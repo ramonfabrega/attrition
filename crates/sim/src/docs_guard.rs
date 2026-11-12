@@ -75,8 +75,6 @@ const CRATE_SOURCES_AT_LEAST: usize = 1800;
 const TOOL_SCRIPTS_AT_LEAST: usize = 35;
 /// The text files `no_conflict_marker_survives_in_the_tree` reads — 4,938.
 const TREE_TEXT_FILES_AT_LEAST: usize = 4000;
-/// The steering passes' records, `docs/audit/*fable-pass*.md` — 74.
-const PASS_RECORDS_AT_LEAST: usize = 60;
 
 /// The most **open items** the queue may book, and the lines one may take.
 ///
@@ -540,8 +538,8 @@ fn an_item_s_frame_is_not_its_number() {
 /// more (see [`OPEN_ITEMS`]). The two failures it can report are the two
 /// remedies that are actually local: an item over its lines is shortened by
 /// whoever is touching it, and a queue over its items has one to finish or
-/// park. `docs/PARKED.md` is where a parked one goes, and moving it there
-/// is not a deletion — `tools/queueledger.py` reads both files.
+/// park. A parked one's finding is written in a journal file
+/// (`docs/DECISIONS.md` entry 125); there is no parked file to move it to.
 #[test]
 fn the_queue_caps_items_not_lines() {
     let items = open_items(&read("QUEUE.md"));
@@ -559,7 +557,7 @@ fn the_queue_caps_items_not_lines() {
     assert!(
         items.len() <= OPEN_ITEMS,
         "docs/QUEUE.md books {} open items; the cap is {OPEN_ITEMS}. Finish one, or park \
-         one in docs/PARKED.md — which is a move, not a deletion",
+         one: its finding goes in a journal file, and the item is deleted here",
         items.len()
     );
 }
@@ -662,8 +660,8 @@ fn the_handoff_is_short() {
         "the handoff is {n} lines; the bound is {HANDOFF_LINES}. Counted: every line \
          after `## Where things stand` up to the next `## `, blanks included — \
          from {:?} to {:?}. It is rewritten from scratch, not appended to; the \
-         literal phrases `Scoreboard:`, `Long captures:`, `Golden:`, `Endpoint ` \
-         and `Fable backlog: N Loop items` are read by other guards and stay",
+         literal phrases `Scoreboard:`, `Long captures:`, `Golden:` and `Endpoint ` \
+         are read by other guards and stay",
         counted.iter().find(|l| !l.trim().is_empty()).unwrap_or(&""),
         counted
             .iter()
@@ -671,178 +669,6 @@ fn the_handoff_is_short() {
             .find(|l| !l.trim().is_empty())
             .unwrap_or(&"")
     );
-}
-
-/// The steering pass's backlog is the parked file's Loop section, which no
-/// session reads at boot; the queue's handoff carries its count so a Fable
-/// session sees it in the same breath as the score (parked item 332, ruled
-/// 2026-09-18). A count nobody checks drifts — it read "twelve" over thirteen
-/// items the day this was written — so the line is parsed against the section.
-#[test]
-fn the_handoff_counts_the_loop_backlog() {
-    let q = read("QUEUE.md");
-    let line = q
-        .lines()
-        .find(|l| l.contains("Fable backlog:"))
-        .expect("docs/QUEUE.md's handoff has no `Fable backlog: N Loop items` line");
-    let after = line.split("Fable backlog:").nth(1).unwrap();
-    let word = after
-        .trim_start_matches([' ', '*'])
-        .split_whitespace()
-        .next()
-        .unwrap_or("");
-    const WORDS: [&str; 21] = [
-        "zero",
-        "one",
-        "two",
-        "three",
-        "four",
-        "five",
-        "six",
-        "seven",
-        "eight",
-        "nine",
-        "ten",
-        "eleven",
-        "twelve",
-        "thirteen",
-        "fourteen",
-        "fifteen",
-        "sixteen",
-        "seventeen",
-        "eighteen",
-        "nineteen",
-        "twenty",
-    ];
-    let said = word
-        .parse::<usize>()
-        .ok()
-        .or_else(|| WORDS.iter().position(|w| *w == word))
-        .unwrap_or_else(|| panic!("`Fable backlog:` is followed by {word:?}, not a count"));
-    let parked = read("PARKED.md");
-    let mut in_loop = false;
-    let mut items = Vec::new();
-    for l in parked.lines() {
-        if l.starts_with("## ") {
-            in_loop = l.starts_with("## Loop");
-            continue;
-        }
-        // An item opens `(N) **…`; a bare `(N) ` mid-item is a reference.
-        let Some((number, _)) = l.strip_prefix('(').and_then(|l| l.split_once(") **")) else {
-            continue;
-        };
-        if let (true, Ok(n)) = (in_loop, number.parse::<u32>()) {
-            items.push(n);
-        }
-    }
-    assert!(
-        !items.is_empty(),
-        "docs/PARKED.md has no `## Loop` section with `(N) **` items"
-    );
-    assert_eq!(
-        said,
-        items.len(),
-        "docs/QUEUE.md's handoff says the Fable backlog is {said} Loop items; docs/PARKED.md's \
-         Loop section holds {}: {items:?}. Rewrite the count with the handoff",
-        items.len()
-    );
-}
-
-/// **The parked file's park pool holds two unassigned headings** (parked
-/// 1812, the thirtieth pass). A lane files its parked rows under its own
-/// `## Parked by item N` heading, and every lane appends that heading at
-/// the file's end — so two lanes' headings are one hunk, and three merges
-/// of the thirtieth tranche backed out on `docs/PARKED.md`'s tail (1744,
-/// 1768, 1845). The stub pool's shape, one file down: `## Parked by the
-/// next landing, slot <A> — reserved` headings landed ahead at the file's
-/// end, each with its own paragraph, assigned by letter in the queue's
-/// words (the handoff's `park <A>`) and renamed by the lane; a refill
-/// lands when two remain. Failed first on 2026-10-13 with no pool.
-#[test]
-fn the_park_pool_holds_two_unassigned_headings() {
-    let parked = read("PARKED.md");
-    let queue = read("QUEUE.md");
-    let free = free_park_slots(&parked, &queue);
-    let assigned = assigned_park_slots(&queue);
-    assert!(
-        free.len() >= 2,
-        "docs/PARKED.md holds {} unassigned park heading(s) ({}), fewer than two once the queue's \
-         open items' assignments ({}) are taken out; append `## Parked by the next landing, slot \
-         <A> — reserved` sections at the file's end, each with a paragraph, past the last one a \
-         live lane holds (parked 1812, Loop 3474)",
-        free.len(),
-        free.join(", "),
-        if assigned.is_empty() {
-            "none".to_string()
-        } else {
-            assigned.join(", ")
-        }
-    );
-}
-
-/// The slots the queue's open items assign: every `park <A>` token (two
-/// capitals) in an open item of the `## The queue` section. A booking
-/// assigns a slot in those words, and the slot's heading stays `— reserved`
-/// until the lane renames it, so a reserved heading the queue has handed
-/// out is not free (Loop 3474).
-fn assigned_park_slots(queue: &str) -> Vec<String> {
-    let Some(start) = queue.find("\n## The queue") else {
-        return Vec::new();
-    };
-    let body = &queue[start + 1..];
-    let end = body[1..].find("\n## ").map_or(body.len(), |i| i + 1);
-    let mut out = Vec::new();
-    for (_, item) in open_item_texts(&body[..end]) {
-        let b = item.as_bytes();
-        let mut i = 0;
-        while let Some(at) = item[i..].find("park ") {
-            let at = i + at;
-            let s = at + "park ".len();
-            if (at == 0 || !b[at - 1].is_ascii_alphanumeric())
-                && s + 2 <= b.len()
-                && b[s].is_ascii_uppercase()
-                && b[s + 1].is_ascii_uppercase()
-                && (s + 2 == b.len() || !b[s + 2].is_ascii_alphanumeric())
-            {
-                let slot = item[s..s + 2].to_string();
-                if !out.contains(&slot) {
-                    out.push(slot);
-                }
-            }
-            i = s;
-        }
-    }
-    out
-}
-
-/// The reserved park headings in `parked` that the queue's open items have
-/// not assigned (Loop 3474: the guard once counted an assigned slot free).
-fn free_park_slots(parked: &str, queue: &str) -> Vec<String> {
-    let assigned = assigned_park_slots(queue);
-    parked
-        .lines()
-        .filter_map(|l| {
-            l.strip_prefix("## Parked by the next landing, slot ")?
-                .strip_suffix(" — reserved")
-        })
-        .map(str::to_string)
-        .filter(|slot| !assigned.contains(slot))
-        .collect()
-}
-
-/// Two reserved headings, one assigned by an open item's `park NA.`,
-/// leave one free; a `park NB` outside the queue section assigns nothing.
-/// Made red first on 2026-10-22 against the old count, which called both
-/// free.
-#[test]
-fn an_assigned_park_slot_is_not_free() {
-    let parked = "# Parked\n\n## Parked by the next landing, slot NA — reserved\n\npara\n\n\
-                  ## Parked by the next landing, slot NB — reserved\n\npara\n";
-    let queue = "# Queue\n\n- the handoff's park NB is not a booking.\n\n## The queue\n\nIntro.\n\n\
-                 3500. **coverage: a thing** runs; park NA.\n\n## How to maintain this file\n\n\
-                 4000. **not an item** park NB.\n";
-    assert_eq!(assigned_park_slots(queue), vec!["NA".to_string()]);
-    assert_eq!(free_park_slots(parked, queue), vec!["NB".to_string()]);
 }
 
 /// **An item number is minted once, and in its file's form** (parked 461,
@@ -861,11 +687,13 @@ fn an_assigned_park_slot_is_not_free() {
 /// **Its first run found three**: `306.` and `307.` standing in the
 /// parked file's older backlog in the queue's form, and `(423)` live in
 /// the parked file a week after item 423 landed with a journal entry.
+///
+/// Since 2026-11-12 there is no parked file (`docs/DECISIONS.md` entry
+/// 125): the queue and the journal directory are what this reads.
 #[test]
 fn an_item_number_is_minted_once_and_in_its_file_s_form() {
     use std::collections::BTreeMap;
     let queue = read("QUEUE.md");
-    let parked = read("PARKED.md");
     let mut where_live: BTreeMap<u32, Vec<String>> = BTreeMap::new();
     let mut wrong_form: Vec<String> = Vec::new();
     for (n, _) in open_items(&queue) {
@@ -880,27 +708,7 @@ fn an_item_number_is_minted_once_and_in_its_file_s_form() {
             && n.parse::<u32>().is_ok()
         {
             wrong_form.push(format!(
-                "docs/QUEUE.md:{}: `({n}) **` is the parked file's form; the queue books `{n}. **`",
-                i + 1
-            ));
-        }
-    }
-    for (i, l) in parked.lines().enumerate() {
-        if let Some(rest) = l.strip_prefix('(')
-            && let Some((n, _)) = rest.split_once(") **")
-            && let Ok(n) = n.parse::<u32>()
-        {
-            where_live
-                .entry(n)
-                .or_default()
-                .push(format!("docs/PARKED.md:{}", i + 1));
-        }
-        if let Some((n, rest)) = l.split_once(". ")
-            && rest.starts_with("**")
-            && n.parse::<u32>().is_ok()
-        {
-            wrong_form.push(format!(
-                "docs/PARKED.md:{}: `{n}. **` is the queue's form; the parked file holds `({n}) **`",
+                "docs/QUEUE.md:{}: `({n}) **` was the parked file's form; the queue books `{n}. **`",
                 i + 1
             ));
         }
@@ -945,9 +753,8 @@ fn an_item_number_is_minted_once_and_in_its_file_s_form() {
         "an item number is minted once, by the commander, in its file's form.\n\
          live twice: {twice:#?}\nlanded and still live: {landed_and_live:#?}\n\
          wrong form: {wrong_form:#?}\n\
-         A worker never mints a number (CLAUDE.md); a landed item's parked entry is \
-         closed — `(N) closed <date> by item N: …` — or deleted; the next free number is \
-         one past the highest anywhere"
+         A worker never mints a number (CLAUDE.md); a landed item is deleted from the \
+         queue; the next free number is one past the highest anywhere"
     );
 }
 
@@ -2493,14 +2300,6 @@ fn a_journal_carries_no_tool_call_markup() {
     );
 }
 
-/// **A journal's "for the Loop" line is filed, or says `none`** (the
-/// forty-first pass): the commander files the line at the merge (`CLAUDE.md`,
-/// "Fan-out rules"), and five of fourteen findings of the forty-first tranche
-/// were not — 3086's, 3112's, 3126's, 3137's and 3142's — against two of
-/// twenty the tranche before. A journal dated from 2026-10-18 whose line is
-/// not `none` names its item in `docs/PARKED.md` or a pass's record under
-/// `docs/audit/` as `N's "for the Loop"`. Made to fail first on the three
-/// unfiled lines of 2026-10-18.
 /// **A worker's journal quotes its lane gate** (the forty-third pass):
 /// the frame's landing row asks for `Lane verdict:`, `Gate steps:` and
 /// `Gate minutes:` in the journal (969, 3224), and in the forty-third
@@ -2546,138 +2345,6 @@ fn a_journal_quotes_its_lane_verdict_and_gate_minutes() {
          step off the journals, and in the forty-third tranche only the four Opus journals carried \
          them:\n{}",
         silent.join("\n")
-    );
-}
-
-/// A journal's "for the Loop" line: what follows the first mention of the
-/// phrase, its leading punctuation trimmed, or None when the journal has no
-/// such line. When nothing follows on that line — a `## For the Loop`
-/// heading — the line is the next non-blank one (Loop 3389).
-fn loop_line_of(text: &str) -> Option<String> {
-    const PHRASE: &str = "for the loop";
-    let trim = |t: &str| {
-        t.trim_start_matches(|c: char| !c.is_alphanumeric())
-            .trim_end()
-            .to_string()
-    };
-    // A line that opens with the phrase (a heading or `For the Loop: …`)
-    // wins over one that only quotes it (item 3918's journal).
-    let opens = |l: &str| trim(l).to_lowercase().starts_with(PHRASE);
-    let at_line = text
-        .lines()
-        .position(opens)
-        .or_else(|| text.lines().position(|l| l.to_lowercase().contains(PHRASE)))?;
-    let mut lines = text.lines().skip(at_line);
-    let line = lines.next()?;
-    let at = (0..line.len()).find(|&i| {
-        line.get(i..i + PHRASE.len())
-            .is_some_and(|s| s.eq_ignore_ascii_case(PHRASE))
-    })?;
-    let after = trim(&line[at + PHRASE.len()..]);
-    if !after.is_empty() {
-        return Some(after);
-    }
-    Some(
-        lines
-            .find(|l| !l.trim().is_empty())
-            .map(trim)
-            .unwrap_or_default(),
-    )
-}
-
-#[test]
-fn a_loop_line_under_its_own_heading_is_read_off_the_next_line() {
-    // Loop 3389 (the forty-seventh pass): 3370's and 3384's journals wrote
-    // `## For the Loop` over `none`, the guard read the heading's empty
-    // remainder and called them unfiled, and the commander filed each by
-    // hand. Made to fail first on that shape.
-    assert_eq!(
-        loop_line_of("# 3384\n\n## For the Loop\n\nnone\n").as_deref(),
-        Some("none")
-    );
-    assert_eq!(
-        loop_line_of("## For the Loop\n\nA real finding.\n").as_deref(),
-        Some("A real finding.")
-    );
-    assert_eq!(
-        loop_line_of("Text.\n\nFor the Loop: none.\n").as_deref(),
-        Some("none.")
-    );
-    assert_eq!(loop_line_of("No such line.\n"), None);
-    // Item 3918's journal quoted the phrase mid-sentence above its own
-    // `For the Loop: none.`; the line that opens with it is the one.
-    assert_eq!(
-        loop_line_of(
-            "item 3917's unfiled \"for the Loop\" line, and more.\n\nFor the Loop: none.\n"
-        )
-        .as_deref(),
-        Some("none.")
-    );
-    // And the two journals of the incident, read off the tree.
-    for name in ["2026-10-20-item-3370.md", "2026-10-20-item-3384.md"] {
-        let text = std::fs::read_to_string(docs().join("journal").join(name)).expect("read");
-        assert_eq!(loop_line_of(&text).as_deref(), Some("none"), "{name}");
-    }
-}
-
-#[test]
-fn a_journal_s_loop_line_is_filed_or_says_none() {
-    // The parked file wraps its rows, so the phrase is matched with its
-    // whitespace folded (3133's row broke between "for the" and "Loop").
-    let fold = |t: String| t.split_whitespace().collect::<Vec<_>>().join(" ");
-    let parked = fold(read("PARKED.md"));
-    let mut records = String::new();
-    let mut passes = 0;
-    for entry in std::fs::read_dir(docs().join("audit")).expect("docs/audit/") {
-        let path = entry.expect("entry").path();
-        let name = path.file_name().unwrap().to_string_lossy().to_string();
-        if name.contains("fable-pass") && name.ends_with(".md") {
-            passes += 1;
-            records.push_str(&std::fs::read_to_string(&path).expect("read"));
-        }
-    }
-    read_enough("docs/audit/*fable-pass*.md", passes, PASS_RECORDS_AT_LEAST);
-    let records = fold(records);
-    let mut unfiled = Vec::new();
-    let mut dated = 0;
-    for entry in std::fs::read_dir(docs().join("journal")).expect("docs/journal/") {
-        let path = entry.expect("entry").path();
-        let name = path.file_name().unwrap().to_string_lossy().to_string();
-        let Some((date, rest)) = name.split_once("-item-") else {
-            continue;
-        };
-        let Some(item) = rest.strip_suffix(".md") else {
-            continue;
-        };
-        if date < "2026-10-18" {
-            continue;
-        }
-        dated += 1;
-        let text = std::fs::read_to_string(&path).expect("read");
-        let Some(line) = loop_line_of(&text) else {
-            continue;
-        };
-        if line.to_lowercase().starts_with("none") {
-            continue;
-        }
-        let filed = format!("{item}'s \"for the Loop\"");
-        let filed_curly = format!("{item}'s \u{201c}for the Loop\u{201d}");
-        if !(parked.contains(&filed)
-            || parked.contains(&filed_curly)
-            || records.contains(&filed)
-            || records.contains(&filed_curly))
-        {
-            unfiled.push(format!("{name}: {line}"));
-        }
-    }
-    // 625 journals dated from 2026-10-18, 2026-11-09.
-    read_enough("docs/journal/ from 2026-10-18", dated, 550);
-    assert!(
-        unfiled.is_empty(),
-        "journal lines headed \"for the Loop\" that neither say `none` nor are filed as \
-         `N's \"for the Loop\"` in docs/PARKED.md or a pass's record — the commander files \
-         the line at the merge (CLAUDE.md, \"Fan-out rules\"):\n{}",
-        unfiled.join("\n")
     );
 }
 

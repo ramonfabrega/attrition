@@ -301,17 +301,13 @@ module merge, or conflict out loud at `ccc update` or at the gate; the
 lane that lands second takes the update before its gate; a brief says
 where the other lane's word sits as information, no grant is asked or
 given, and **a worker never hands its word over for where the code
-sits** (`docs/DECISIONS.md` entry 55). **And a brief names the lane's
-park heading** — one of the parked file's pool, `## Parked by the next
-landing, slot <A> — reserved`, landed six deep at the file's end,
-assigned by letter, renamed by the lane, held at two by `docs_guard` —
-because every lane appended its heading at one tail and three merges of
-one tranche backed out there (parked 1812, DECISIONS 67). **The letters
-are two capitals and cycle**: `ZZ` is followed by `AA` (the sixty-seventh
-tranche's commander wrapped there, DECISIONS 107 §4), and a pair is free
-when no heading in the file carries it and no open item assigns it — a
-landed heading is renamed to its item, so a pair comes round free; the
-guard reads two capitals and never a third. **A pinned
+sits** (`docs/DECISIONS.md` entry 55). **And a brief tells the lane
+where a finding goes**: a `## Parked` row of its own journal file,
+`- **<item><letter>. title**`, and one line under the mechanic's "What is
+not established" when it is about one. There is no parked file and no
+pool of headings (`docs/DECISIONS.md` entry 125): every lane appended to
+that one file, three merges of one tranche backed out at its tail (parked
+1812, DECISIONS 67), and by 2026-11-12 it held 1.49 MB. **A pinned
 constant and its comment are the worker's to re-pin; the queue's lines
 are the commander's to write**, and a worker whose gate is red only on
 those lines has done its half — **which its gate says, under `--lane`,
@@ -421,9 +417,10 @@ what it waited on was the gate.
 reference to another's state, and the only coupling is the merge and what
 the brief reserves. **A capture that is running is never stopped halfway**:
 a reprioritisation stops future captures only. **A finding the driver would
-raise at a pass is filed in `docs/PARKED.md`'s Loop section in the turn it
-is noticed**, the handoff's `Fable backlog:` count moving with it, and a
-journal's own "for the Loop" line is filed at its merge. **The handoff's
+raise at a pass is written in the turn it is noticed, in the journal file
+of the item it came from or in the pass's own record under `docs/audit/`**;
+a journal's own "for the Loop" line stays in the journal and is filed
+nowhere (`docs/DECISIONS.md` entry 125). **The handoff's
 `For the pass` counts are the tables'** — `tools/gates.py <tmp> --since
 <the last pass's gate log>` and `tools/tranche.py --base <base>`, pasted
 after `lore index`, never a count from memory. **A waiter on a lane is

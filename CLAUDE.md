@@ -155,7 +155,7 @@ reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes
 the implementation rather than after.
 
 **An item is booked with the score it moves**, and a finding that names no
-score parks in `docs/PARKED.md` rather than queues. A session that moved no
+score stays in its item's journal rather than queues. A session that moved no
 score says so in the handoff. **A number that moved lands with the value
 diff beside it** — the record, the field and both sides' values, in the
 oracle's own coordinates — because two sides can agree on a wrong answer for

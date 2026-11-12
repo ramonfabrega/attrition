@@ -73,7 +73,7 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
    back through every earlier widening** (2180, 2264, 2738). **A leader
    row: `diff` the whole `LEADERDATA` over the block, unread fields too**
    (2292); **a standing `num_units`/`control` row on the parted queue's
-   player: the parked file first** (2781).
+   player: the parked index first** (2781).
 7. **"Seams, read for you" below**, then `seams.py --field <parted
    field>`, `--callees <writer>`, `--unwritten <Struct>` (1397,
    1382, 1400, 1560), **`--item` on `think_<type>` of a unit the draws
@@ -209,7 +209,7 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   and its value on one line, a `--port-file` inside one (3180, 3102) —
   and `--port-file`, a `--regen` that refuses to reset a hand port (2792,
   2796) — never a throwaway generator; a hand-written script is the
-  Loop's next shape, filed under your park heading. **A subagent's
+  Loop's next shape, in your journal. **A subagent's
   brief names its function in the body, never in the task line alone**
   (2875), **and a subagent never ends its turn on a background wait**:
   it is not re-invoked, and the lane sat 1 h 50 on one that did (2820). **A float return's register is the
@@ -319,7 +319,7 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
 - **`docs/RUNS.md` takes the run's section** (frames, seed, lane,
   minutes, what the disk could not answer), and the dump field the owed
   table names is read beside the trace; a value that parts the twin's
-  dump books a residue item, in the parked file, for the commander.
+  dump is a `## Parked` row of your journal, for the driver.
 - **Your gate is `--tests blind:: --no-widen`**, the line under
   Landing. You move no word: a draw delta is a word lane's row.
 - **A button pressed right after a `select` can hit an empty cell**
@@ -481,7 +481,7 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   has run once, its exit in the journal** (3954).
 - **Documents and journal by the file tool, never in a backgrounded `&&`
   chain (1781); commit, then gate, no suite first (2409, 2415).** Parks:
-  your park heading (1812). The gate: `python3
+  your journal (1812). The gate: `python3
   tools/release_gate.py ~/code/fun/attrition/game --test-threads 4
   --lane --item {item} --tests {tests}{widen}` (1567, 1623, 3313), to a
   file, backgrounded; read its exit; quote `Lane verdict:`, `Gate

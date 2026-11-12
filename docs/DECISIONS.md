@@ -94,7 +94,7 @@ is append-only and amended in place, as it always was.
 - 80 standing — The forty-second tranche: four lanes at the loop's price, the lane gate named the loop's bottleneck and given a clock, the gate table graduates, the nations tool round-trips again, twenty-one Loop items become tools, rows, closes or Ramon's
 - 81 standing — The forty-third tranche: four lanes at less and slower, the sweep lanes' fan-outs read as their own, the lane gate two to four runs a landing and its quote guarded, a regen keeps every hand item, twenty-two Loop items ruled
 - 83 standing — The forty-fourth steer: three lanes, two Opus wide on battery words and one Sonnet sweep, a lane gate that widens only on the AI kind, and the fan-out rules move to docs/LOOP.md
-- 84 standing — The forty-fifth tranche: three lanes at three times the price a landing, the lane gate reads how far its base moved, the Loop-line guard is forgiven on a lane, the click-free lane refuses a windowless launch, the held-out unit is the lobby
+- 84 standing — The forty-fifth tranche: three lanes at three times the price a landing, the lane gate reads how far its base moved, the click-free lane refuses a windowless launch, the held-out unit is the lobby
 - 85 standing — The forty-sixth tranche: four lanes at less a landing, the held-out battery six of eight whole, the sim lib's cap follows the thread count, a push under a clear is a draft, the oracle cache is a directory a gc removes
 - 82 standing — The forty-fourth tranche: four lanes at more and slower, the lane gate's first red was the guard asking for its own quote, a hung mutant and a compile failure get verdicts, cleanup is by ownership, an unread field the sim carries is owed by name
 - 86 standing — The forty-seventh tranche: four lanes at the loop's cheapest landing, the held-out battery eight of eight whole so the battery track stops, the forty-eighth booked on the blind list, nineteen Loop items ruled
@@ -131,6 +131,7 @@ is append-only and amended in place, as it always was.
 - 122 standing — Opus drives, Fable talks
 - 123 standing — two workers out
 - 124 standing — the stop at 98
+- 125 standing — no parked file
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself
@@ -12187,3 +12188,52 @@ to 60 reader sessions in two waves, 12 points about 200 USD list at
 17:47); whether twenty readers' tool calls slow the host's gates (they
 read; they build nothing).
 
+## 125. There is no parked file: a finding that names no score stays in its item's journal (2026-11-12)
+
+Decided with Ramon, on the talk row, with the week at its stop.
+
+`docs/PARKED.md` was split off the queue on 2026-09-07 (item 263) so that a
+session would stop booting a backlog. By 2026-11-12 it was the same problem
+one file down: **16,858 lines and 1.49 MB**, which no session can read, in
+1,186 headings ordered by the day a thing was parked; 3,724 lines on
+2026-10-01, about 310 a day since. Lore's index counts 8,253 commands that
+name it, 6,704 of them since 2026-10-12, against 9,109 for the queue: it
+was appended to and grepped, never read. Two rules made it: a finding that
+names no score parks, and `tools/queueledger.py` fails on a number that
+leaves in silence. Both protect the queue, and together they built a
+second queue with no cap. Splitting it again would build a third.
+
+1. **The file is removed.** Its last revision is `c819131da:docs/PARKED.md`
+   and `docs/audit/parked-archive.md` is its index, 1,832 rows of
+   identifier and opening words, **frozen**: a row is closed by deleting
+   it and none is added. Nothing was triaged; the rules track is whole,
+   and a row is read when a mechanic's work reaches for it.
+2. **A finding that names no score is a row of the journal file of the
+   item that found it**, under `## Parked`, as `- **<item><letter>.
+   title**`; when it is about a mechanic it also takes one line under that
+   document's "What is not established", which is where the next worker
+   on the mechanic looks.
+3. **There is no Loop backlog.** A journal's "for the Loop" line stays in
+   the journal and is filed nowhere; the handoff counts nothing; what the
+   driver would raise at a pass goes in that pass's record under
+   `docs/audit/`.
+4. **The guards.** `tools/queueledger.py` reads the queue alone, takes what
+   the parked file held live at the archive as accounted for, and fails
+   on the file's return, on a `Fable backlog:` line, on a row added to the
+   index, and on a `parked <id>` the queue cites that is neither a row of
+   the index nor written in `docs/journal/*-item-<N>.md`; each was made to
+   fail once. `docs_guard.rs` loses the backlog count, the park pool, the
+   Loop line's filing and the parked half of the minted-once check, 343
+   lines; `floors.rs` reads the index where it read the file. The brief
+   reserves no park slot. Entry 84's forgiveness of the Loop-line guard on
+   a lane goes with the guard, and its index row no longer names it.
+5. **The gate runner is `tools/gate_run.sh`.** It lived in the driver's job
+   temp dir, which dies with the job, and was the one temp script a
+   tracked document depended on (22 runs in 13 sessions by lore's index).
+
+**Not established:** whether each landed item's journal already carries
+the text of what it parked (unread; the older ids resolve at the archive
+either way); whether a `## Parked` heading in a thousand journals is found
+as readily as one file was grepped — `grep -rn 'Parked' docs/journal` is
+the same act; and the gate logs the queue cites as evidence still live in
+that temp dir and have no durable home.

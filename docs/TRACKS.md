@@ -3,7 +3,7 @@
 The finish line, decomposed into the avenues the loop can run, each with
 the number a landing moves and the gate that says the move was real. The
 steering pass maintains this page (`docs/LOOP.md`, "the passes"); the
-queue books from it; `docs/PARKED.md` is the backlog under it. A fresh
+queue books from it; no backlog file stands under it (`docs/DECISIONS.md` entry 125). A fresh
 session reads the queue first and this page second, to know which track
 its item serves. Written at the seventy-fourth pass, 2026-11-08, with Ramon
 on the steer row (`docs/DECISIONS.md` entry 114); the milestone and the

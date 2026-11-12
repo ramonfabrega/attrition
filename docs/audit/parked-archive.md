@@ -1,0 +1,1851 @@
+# The parked file's archive
+
+`docs/PARKED.md` was removed from the tree on 2026-11-12 (`docs/DECISIONS.md`
+entry 125). It had become a second queue with no cap: 16,858 lines, 1.49 MB,
+1,186 headings ordered by the day a thing was parked, and no session could
+read it whole. This page is its index and nothing else: one row per entry,
+the identifier and the entry's opening words.
+
+The whole text of any row is in git, at the last commit that held the file:
+
+    git show c819131da5a33e1ef1a01303d3476187ac3371fa:docs/PARKED.md | grep -n -A40 '(1224) \*\*'
+
+**This page is frozen.** `tools/queueledger.py` pins its row count and fails
+on a row added. A finding that names no score is written in the journal file
+of the item that found it, under `## Parked`, as `- **<item><letter>. title**`
+(`docs/DECISIONS.md` entry 125); a row here is closed by deleting it.
+
+## The rows
+
+- (1224) Fifteen live `SEAM`s name, as missing, a function this crate now carries
+- (1173) `RON_DEBUG_LEADER` prints the make list's values and not `check_income`'s factor
+- (1181) A move's waypoint is compared only under `dest 1`
+- (1564) What 1558 left beside `world_sees`
+- (1562) Great Sahara's coverage pools 68 and 65 `held` on 1203 and 1233
+- (1559) What 1552 left beside the seeker swap
+- (1556) Great Sahara's coverage pool 66 `held` `[17]` on 742
+- (1553) What 1546 left beside the second capital
+- (1550) Leader 1's `known_rares` 1 against 0 on Great Sahara's coverage block 8
+- (1547) What 1544 left beside `find_build_spot`'s tally
+- (1545) What 1539 left beside the coverage pair's word
+- (1542) What 1535's capture arm left unestablished
+- (1540) `swarm_around_last`'s `0x2000` clear
+- (1536) What 1528 left standing at Toughest's close
+- (1533) `find_friends`' enhancer test
+- (1531) What 1511 left standing
+- (1525) What 1519 left standing at the French pair's close
+- (1523) `do_cast`'s pack arm sets the angle with no walk to hold it
+- (1520) What 1514 left standing
+- (1515) What 1508 left standing
+- (1512) The oil patches' arms no walk holds
+- (1509) Leader 0's dirty bit on 17025, and treaties bit 2
+- (1506) who=1's `SITE` list on run651's block 1
+- (1504) Army 65's `speed` and `role`
+- (1499) run642's sixteen `order:group.id` rows on 15345
+- (1494) The census at a city's founding, and the human's city
+- (1489) The battery's three first partings — held out, never booked
+- (1483) Group 15 row 9, an equal push onto an army's `last_group` slot
+- (1484) ch35 and ch36's `2675 0/12 dest_angle`
+- (1486) The no-code document debts 1468 left
+- (1480) who=1's `leader:discovered` 33 against 34
+- (1473) `Group::target_opportunity`'s member `find_melee_target` arm, walked
+- (1474) The think tail's own add
+- (1430) Scholar birth orientation and stored order destination
+- (1134) The domain is one fact in three fields
+- (1135) Forty-nine `SEAM`s say no capture holds their arm, and none names the scan that looked
+- (1136) Five standing simplifications, none measured against a frame
+- (1068) The two `add $0x80000000` folds in `Guy`
+- (1069) Seventeen constants a test's fixture had banked
+- (1070) Thirteen sections the code cites and no document holds
+- (970) Sixteen citations of functions the executable never references.
+- (886) `SITE_STRAFE_BOMB` has no `SITES` row, and its draw's address is six other rows'.
+- (1424) Parts left under chapter fifty's closed word
+- (1420) The tech-bit range arrays and `general_building_range`
+- (1417) The census's unbuilt arms
+- (1413) `Group::target_opportunity`'s 15-frame cooldown and its member `find_melee_target` arm
+- (1408) A held decoy's cast after 16160
+- (1405) `0/7`'s `death:extra` on chapter forty-nine's 943
+- (1399) `get_building_cities`' active flag
+- (1394) `BuildData::get_shot`'s exact-type arms
+- (1395) `death_type`'s REDOUBT 3 can read `Sim::building_shot`
+- (1396) The Bomber's `ox`/`whom` kept after a hit on `0/6`'s `ammo`
+- (1389) `produce_tech`'s `researching` arm
+- (1384) The fort arm's `danger[who][cell/2] / 4` term and the team-style ×16
+- (1385) The enemy-seen cell flag's search in the same loop
+- (1386) A human's `defense`
+- (1381) `COMBAT.md` §6 step 18 under a one-way alliance
+- (1378) The sixteen-frame review skipped under the pack arm
+- (1372) `train_time`'s ships' and vehicles' arms
+- (1373) The rows between 10144 and 10391 on run547
+- (1366) Terms 7–11 of `Unit::update_los` and term 6's archers' sub-arm
+- (1367) A building's `mylos` is derived live
+- (1368) run99's Citizens
+- (1363) A decoy's attrition, every seventh frame on another's ground
+- (1360) who=1's squad's `order:target` on chapter forty-seven's 682
+- (1355) The age-behind discount and `GREEK_AGE_KNOWLEDGE` (0%)
+- (1356) who=1's standing `tech_frame`/`tech_cat_frame`, ours 0
+- (1352) `get_cost`'s bump loop's `JUMP` arm
+- (1347) The `@spell` group's `form` reset
+- (1348) The other `Unit::set_angle` callers ours turns through `Movement::set_heading`
+- (1342) run508's `MAKE[4].val` on 12582
+- (1343) `own_city`'s rank is founding order only while no city changes hands
+- (1334) Group 67's `speed` 0 against 34
+- (1335) The group's `+0x4b` arm
+- (1336) Alexander's arm, the Iroquois bonus and the hero auras
+- (1327) `1/93`'s `path_recursion` 1 against 0 on run506's 11638
+- (1324) A Keep-line site's per-blow damage and progress loss
+- (1320) `cast_ambush` and Rally's cast; `use_spies`, `use_scouts`
+- (1321) The march's expiry
+- (1311) A member refused on its captain's ring
+- (1312) The members' `set_angle(captain)`
+- (1306) The flock's flight past 8856
+- (1307) The human's `production_step`, 0 against 1 from 8801
+- (1303) `LeaderData +0x988 scouts` has no writer in this crate
+- (1298) The merchant family's over-time piece
+- (1299) The age snap leaving `dest_angle`
+- (1300) `Movement::set_facing`'s `des_angle` write in its other callers
+- (1294) The Major City's pair in `get_cost`'s city count
+- (1295) `num_queued` for a city counts an alive, unfinished city
+- (1287) `Unit::end_trade_route@005e3bd0`'s city arm
+- (1288) who=1's University offer on run488's 7782, 4048327 against 3469995 (×7/6), and `scholars` 11 against 12 from 7925
+- (1282) The conversion's in-use arm
+- (1283) `Sim::build_los`'s tower term
+- (1284) `num_buildings[scan]` and `high_buildings` stand on the compared pin as uncompared
+- (1276) run483's window parts on 7144, before 7785's word
+- (1277) `leech_codes`' early return
+- (1269) The Bombers' rounds print `accuracy` 0 against 276–296
+- (1270) The flak Battery `1/9`'s rounds
+- (1271) The Biplane `1/6`'s rounds keep no target
+- (1272) A round's target is cleared on its building's death
+- (1265) `untrack_queued`'s group-tally guard
+- (1266) A technology entry's finish order
+- (1261) `get_cost`'s library-line tail, its other eight steps
+- (1279) The Despotism tiers' order is invisible
+- (1280) `calc_rare`'s Porcelain term and `Unit::update_hits`' other terms
+- (1262) `docs/COSTS.md`'s "The discounts" does not list the library-line tail
+- (1252) `find_friends`' enhancer arm, its good comparison
+- (1244) `counts_in_muster`'s captain half
+- (1245) The make list's `city` from 10181
+- (1246) The zero-pop arm of `create_units`
+- (1236) The crew loop of `eject_contents`
+- (1237) The dead boat's sixty-fourth-frame repaint
+- (1292) `all_gathering`'s prune, its off-map arm
+- (1239) A refused passenger (`num_inside != 0`)
+- (1229) The coastal-refined region in `check_target`'s head
+- (1230) A computer's `SIEGE` ship searching across regions
+- (1231) The head's defensive arm
+- (1258) The head's sea conjunct (`+0x218 == 1`)
+- (1232) `find_nearby_target`'s naval refusal
+- (1218) `do_move`'s sites 1 and 3, held by no walk
+- (1219) `agendas`' other bits
+- (1220) `build_masks & 1` and the orphan check's disband arm are dead by the listing
+- (1216) Great Sahara's standing leader rows, past its close
+- (1215) A close's thirty-frame hold, held by the listing alone on four arms
+- (1210) The death-object cull, measured
+- (1211) The splash's neutral object
+- (1212) The air line's unbuilt arms
+- (1207) run442's 16783: who=1's `bucket[0:food]` 118 against 125
+- (1201) `make_valid`, a row 7 row no golden staging reaches
+- (1202) `is_siege`'s second arm
+- (1203) The Catapult's crew swing
+- (1204) `1/2000`'s `raid_stamp`
+- (1195) who=1's make list stands on every Great Sahara window
+- (1196) `trade_value`'s Indian arm and a foreign pair's leader choice are a reading only
+- (1192) `Good::init`, the mountains and the cliffs write the blocked bit without the road clearing here
+- (1190) The unit arm's `find_collision(my spot, …, 1)` at `5f7f11`, and `valid_target@00648ba0` in the building arm, are unmodelled
+- (1186) Escrow's other writers and draws
+- (1183) The human City's census
+- (1184) Chapter forty's built and unreached arms
+- (1178) `Sim::army_normalize` rewrites an army's list without shifting its slot arrays
+- (1179) Group 68's `speed`/`new_speed` on run418's 14587, ours 26 against 0
+- (1172) who=1's `known_rares` on run417's 13184, 7 here against 6
+- (1168) The pool's speed refresh off the cursor's frame
+- (1165) `1/42`'s `path[16].flags`, ours 4 against 0 on run421's 6576
+- (1160) The rare mask's change arm is held by a unit test alone
+- (1157) The later barge identities `1/36` against `1/38`
+- (1158) The waypoint take's `TRADE_ROUTE` arm on a non-final leg
+- (1152) `widen_block` compares no unit `z`, and no widening compares the strafe's `ox`
+- (1153) The armed ×5's city arm at `64f171`
+- (1148) `1/0`'s `mylos` parts on run382's block 202, 6 against 4
+- (1149) `later` in `birth_come_out` is held by the unit test alone
+- (1144) Every order class's `+0x14`, the `is_moving` the soft row asks
+- (1145) `MAKE[4].val` parts on run414's block 6182
+- (929) The helicopter's over-the-limit arm
+- (930) `do_launch`'s walk ending at a launch
+- (1093) Chapter thirty-six's no-score edges
+- (1122) The trade route's unreached and lagging edges
+- (1118) The anti-air building cycle's four edges
+- (1128) `set_new_location`'s other eight callers move a unit with no reveal
+- (1129) Value rows standing under East Indies' 6151
+- (1125) The Battery's turret edges beside chapter thirty-eight's word
+- (1124) The other `update_speed` arms
+- (1110) Chapter thirty-eight's rows beside its word
+- (1107) Value rows under Great Lakes' agreeing draw stream to 5930
+- (1103) A ranged death's slot is held 30 frames in the original, 0 here
+- (1104) Chapter thirty-seven's residue, no draw
+- (1100) The squad head at `find_melee_target`'s other callers whose third argument is 0
+- (1095) `find_collision`'s conjunct of `do_move`'s kill
+- (1096) A target inside something, or out of war, now enters `do_move`'s ranged block
+- (1098) The review's reused slot
+- (1087) The lead's two unmeasured edges
+- (1084) The blast's two unmeasured edges
+- (1082) The civilian heal's two unbuilt edges
+- (1075) `Army::role` is never written
+- (1063) `do_forming`'s per-group step
+- (1064) `1/9`'s and `1/24`'s `orders_x/y` value rows on 4868 and 4887
+- (1053) The citizens' damage standing on run373's first block
+- (1054) Vslot `+0xc`'s flag on a building
+- (1055) The strike's side arm, its other three faces; the `jmp 005fd639` arms of the one-in-five retarget; and `target_opportunity`'s `600516` attack-actio…
+- (1042) `raid_stamp` is still uncarried
+- (1043) `CityData +0x61`, `plundered`'s decrement
+- (1044) The AI's alarm push and its repair order
+- (1045) The latch's peasant arm
+- (1036) The best-score seed of 0
+- (1037) The squad head for a unit or a wall target
+- (1029) `check_target_path`'s group arm
+- (1030) A building target's fall-through
+- (1031) `is_in_range@006486b0`'s world-cell test
+- (1024) `treaties` bit 1, set by a raid
+- (1025) `danger_build_is_seen` is a fog read at the building's centre
+- (1020) `crate::fight` reads a target building's z without the clamp at 0
+- (1021) run362's pool slot 3 `ox`/`oy` on 2602
+- (1016) `build_ids` has no capital fallback
+- (1017) The army attack's add arm, its siege and naval branches
+- (1007) `0/6`'s `mirror` on 2314 and the pool's slot 1 `facing`
+- (1008) The escort's search
+- (1004) `BuildData::attack`'s garrison arm
+- (998) A city still under construction is counted by the original's sweep and not here
+- (999) `2007`'s site picture one cell apart
+- (1000) The gather-tile re-walk and `verify_gather_tiles` have no capture
+- (993) The port calls neither `new_danger` nor `restart_trade_route` on a caravan's kill
+- (994) `take_damage`'s first arm, a kill on unowned or enemy ground by a Unit, is emulator-only
+- (990) Great Lakes' pools 64 and 66 on the second pair
+- (991) The tech stamps on both second-pair games
+- (980) `think_spellcaster`'s army turn
+- (981) The three craft target searches
+- (982) The hero arm
+- (977) The bomber's search round the last point and the last-leg strike
+- (978) A patrol past `PATROL_POINTS` (8)
+- (962) The builder `0/11`'s `group` on 1144, ours 1 against −1
+- (963) The enemy-at-point attack arms, and waypoints with action ≠ 0
+- (951) Ten functions the scan found dead are cited as live
+- (948) A citizen's repair arm at a gather point
+- (924) `find_any_building`'s cell-circle walk
+- (925) `Trace::add_animals`, the setup borrow, reads the chicken's pair only
+- (920) `blocked_tcoord`'s mountain clause reads the tile's object, not the cell's `0x10`
+- (921) The flat-gather `NoResources` arm has no diff of its own
+- (916) An unfinished member of a command's group
+- (917) A two-member research press
+- (911) run240's one standing priced frame, 15986
+- (912) The quit block's extra records
+- (913) `is_attacking`'s `GroupAttackOrder` and `StrafeOrder` arms
+- (908) The `jump`-chain decrement
+- (909) The queue loop's carrier arm
+- (905) `get_cost`'s building branch past the wonder arm
+- (906) `get_unbuilt_wonders` is read off the buildings
+- (902) run296's cached `mylos` row on 1023
+- (895) `Groups::get_open_slot`'s `Group::get_num_cap` normalize
+- (896) `input::Stream`'s recorded `QueueUp`
+- (897) The −5 and −10 cancels
+- (891) `seat_kill` does not clear an emptied record
+- (892) `unseat_group` takes a pushed squad out of every list
+- (893) A cleared record's `who` 0 and `army` −1
+- (887) A pushed record's `o`
+- (878) A carrier's `0x200000`
+- (871) Great Lakes' pool numbering is not walked
+- (872) `get_num`'s own prune
+- (873) A building's `+0x80` in a building group
+- (868) `Wall::swap_team` copies `build_masks`
+- (861) A bomb's recycled `accuracy`
+- (862) The other Fighter-line pieces' guns are unmeasured
+- (863) `Ammo::init:226`, the harmless flag's other writer
+- (858) The disembark seats figures at `avg_speed` 0
+- (859) The garrison arm of 850's gate is unmeasured
+- (855) ORDERS §39.1's flying-target arm
+- (844) A landed patrol with no action bit
+- (833) `think_peasant`'s deselect
+- (825) `was_builder` is never cleared
+- (826) `build_ids` has no fallback for a building born after the start
+- (827) `think_peasant`'s arm calls `find_repair_spot`
+- (814) `Sim::init_build` does not call `snap_center_placed`
+- (815) The boarding frame's `avg_speed`
+- (816) The disembarked figure's first animation and turn
+- (817) The move group's `speed`/`new_speed`
+- (818) `widen_block` compares two bits of `unit_masks`
+- (819) The AI scout's order point on the disembark frame
+- (812) `stack_sort`'s pointer writes
+- (809) Thirty-five constants a comment alone carried.
+- (804) `think_spellcaster`
+- (805) Why the Informer's `COST` is not charged
+- (806) The infiltrator's plane
+- (807) An aircraft's `mana_burn`
+- (801) Sixteen of who=1's fog half-cells part on 17146
+- (791) A computer's `REPAIR` swarm is `MOVE_TO` in the original
+- (792) The pool's `ox`/`oy` on a pushed selection whose action writes no point
+- (793) `action_build`'s unreached arms
+- (786) A finished wonder's fog ring
+- (787) Leader 0's danger map
+- (788) Cell (2, 40)'s `0x2`
+- (780) A round in flight forgets a dead target here and keeps it there
+- (782) Other nations' and ages' bomber pieces
+- (777) The Pyramids' other readers
+- (774) `get_cost`'s tech terms past the British one
+- (771) The patrol's leash, its 32-frame re-target, its look and its arrival
+- (768) run227's scout `1/0`: its order point and mirror from 16782
+- (764) A squad that garrisons in its own `work` is owed `Guy::process` that frame
+- (765) The tank, ORDERS §32's fourth piece
+- (760) A pushed flight group's point
+- (761) A strike from inside a base
+- (753) run221's rows past the word
+- (754) The rest of the audit's R16
+- (747) The flee's `calc_cost` ×3
+- (748) `get_open_slot`'s walk re-seats speeds
+- (749) `crate::diff::order` does not compare `orig_x`/`orig_y`
+- (750) The Flee button's garrison
+- (743) The `mirror` row's partings on East Indies
+- (744) The stack sub-group's other seams
+- (739) `compare`'s death `extra` direction reads a record the capture may not have asked for
+- (740) `rondata::gamelog` keys type 20 on `GROUPATTACKORDER`
+- (741) `docs/GROUPS.md` §3.2 says `copy_group` "copies nine things"
+- (732) Great Lakes' `1/0` mirror from 6864, 275's remainder.
+- (733) run210 printed no `GROUPDATA`
+- (734) `action_form`'s negative formations
+- (724) `action_garrison`'s unbuilt arms
+- (725) `GarrisonOrder::get_garrison_order@00482dd0`'s vtable slot.
+- (719) A follow on an enemy unit
+- (720) The follow's container swap
+- (721) `action_follow`'s `QUEUE_FIRST` insert
+- (716) `1/79`'s move `facing`
+- (717) The mirror bit's two unwired readers
+- (712) Three seams of the Senate's patriot
+- (710) The AI guard's roll at `fight+0x824`, `k` = 3, the captain shortcut, and the retaliation's `on_duty` return
+- (704) §4.3's first soft row, two caravans
+- (699) who=1's `known_rares`
+- (700) `senates_built`
+- (701) The lazy border recompute after `fix_borders`
+- (702) `TerrainOut::caravan_step`'s camel steps and `element_num`
+- (689) A pushed group's `GroupData::id`
+- (690) `input::Stream`'s recorded `MoveTo`
+- (691) `UnitData::play` (`+0xb6`) is printed and pinned unread.
+- (686) §62.4's unit-target arm.
+- (683) Whether an aircraft on the ground may strike a building at all
+- (684) The air line that flies still has no staging.
+- (674) An order's group id
+- (675) Birds are owner 9 and no dump prints them
+- (671) The meeting on a first blow.
+- (672) `fight`'s retarget budget
+- (665) A fight across an alliance
+- (666) The rally armor's size
+- (662) `go_to_unit`'s walk group 68 is freed on 12086 in the original
+- (663) `find_target`'s head test `2 < epoch[0] && type_avail(SUPPLYWAGON)`
+- (658) `1/41`'s idle variant on 11922
+- (654) `valid_target`'s helicopter and `is(0x132)` arms
+- (655) `check_target`'s region and `DEFENSIVE` gates in the ring search
+- (659) A bird's unit `+0x78` is its birth tile and never moves in flight.
+- (640) A building's arm of `find_nearby_target`'s reach gate
+- (641) `local_5c`, a computer's packed siege engine's exception
+- (635) The scout `1/0`'s fresh `EXPLORETOORDER` move on 847
+- (636) The catapult's round takes pool slot 0 here and 1 in the dump on 798
+- (637) The death object's cull
+- (634) The `ai_off` stand-in's corrected predicate is `!ai_driven(owner)`
+- (626) The catapult's round leaves the unit's square
+- (622) The keys under the word on run152
+- (624) The rest of `get_cost`'s pre-ramp tail and its context argument
+- (618) run145's 729/753: the turned chariot's turret.
+- (619) A round's target is cleared at death here, at the due frame in the original
+- (615) `count_gather_slots`' `open` floor.
+- (611) Node offsets for every other pivot piece
+- (609) The XML-order-to-slot mapping of the mountain templates
+- (610) Great Lakes' solid cells
+- (607) A blind second reading of `docs/AI.md` §59.6's offsets.
+- (599) `docs/AI.md` §58.5's four seams
+- (600) A blind second reading of `docs/AI.md` §58.1
+- (593) The land half of the waypoint probe's second arm
+- (594) A blind second reading of `detect_boat_collision`.
+- (591) `age`'s knowledge and metal buckets
+- (589) Four corners of 579's fix, none on a word's frame
+- (586) Nubia's "50% more" hit points on merchants, caravans and markets is unapplied
+- (585) `ai_off && !ai_driven` is folded in `sim/orders.rs`
+- (580) The Citizens' hit points and line of sight on 10165
+- (581) `gather_stamp` on run139's 9992
+- (577) `compare` never reads gaia's units.
+- (526) Sweep every `find_angle`/`sinx`/`cosx` call site `docs/` cites against the listing.
+- (572) The pathfinder's copy tree (`+0x4c`) has the memo's lifetime and is still a seam
+- (568) The budgeted border sweep's last edge.
+- (570) `calc_anti_attrition` is unwired
+- (564) Which group-mate `1/37`'s collision sweep passed on 11804.
+- (562) Five unmodelled writers of `+0x80 = −1`
+- (558) The group order's `id` carries the army slot, not the pool index
+- (555) `get_cost`'s available-arm bump loop
+- (556) `MAKE[3].val` 38,500 against 37,500 on run123's 11185
+- (553) A census of graphic packets with fewer than three attack slots.
+- (551) `unit_masks & 0x100`, "ordered recently", is not kept
+- (547) The trireme's keel nodes at a second facing.
+- (548) The other 355 separating events.
+- (546) The probe-side region gate's `nocoll` arm
+- (544) `AMMO` in chapter two's widening.
+- (537) The army group's `speed`/`new_speed` at birth
+- (538) The guy's aim at stand-up
+- (532) Chapter one's standing floor rows
+- (525) run112's `AMMO` records are compared against nothing this crate simulates.
+- (522) run122: `master_land_heights` as raw bits.
+- (519) `march` (+0x4b) is owed, and no capture on disk can settle it.
+- (516) `g.gpiece` on ten pre-existing units at block 606
+- (511) `1/2018 queue[0].cost[0]` on 10782.
+- (512) `1/28 order:coll` on 10618.
+- (504) `1/35`'s standing position residue, from block 10353.
+- (505) `0/2000`'s `free`, from block 10400.
+- (501) `Sim::forget` drops a dead object from every attacker's target slot on the frame it dies; the original keeps it.
+- (498) `think_caravan`'s half of the same table is reading-only.
+- (499) `peasants_wait` is read from run12's `LEADEROPTION` record and assumed to hold for run100
+- (500) The gate's `(idle − 2) % 5` retry above the threshold is unexercised.
+- (477) f10235's `1/28 pos`
+- (474) A recycled group slot keeps its `order_num`, and this crate's fresh one does not.
+- (728) A building's `orig_type`, `damage` and `damage_frac` are compared by no shared instrument.
+- (476) f10234's three value rows
+- (342) Host choice seats the scholar on the wrong university
+- (490) `(384, ATTACK3, 16)`'s release node
+- (493) The attrition caller's threshold.
+- (486) `order 1/4` at 685 and `pos 1/4` at 686, a citizen forty thousand units from the engagement.
+- (482) `Unit::think@005f6e40:104-134` has a second `near_o` reader, and it fires thirty-one frames in thirty-two.
+- (375) A staged run is indistinguishable from an unstaged one, and the borrow of a checksum trace is ungated.
+- (440) 9582, one `use_market+0x1ed` short.
+- (429) A positive i32 wrap is live wherever `create_units`' tail is reached.
+- (427) Twenty-four frames pass before chapter two's first arrow.
+- (425) A name a pinned constant carries for an index has nothing to disagree with.
+- (418) Order coverage is a separate axis, and its unit is a native issuer.
+- (412) Fourteen document-address pairs cite a dead-listed function.
+- (413) Seventy-seven constants the specifications name that no crate carries.
+- (310) Nothing decrements the muster on death
+- (305) The make list's five building values, and a factor of ten
+- (278) `Unit::work@0060d180:440` is a second `set_new_location(…, 1, 1)`
+- (220) TECH §13's twenty range blocks.
+- (242) The crate's group id is not the original's
+- (255) `go_to_unit`'s `0x480` and `go_to`'s `MOVE_TO` arm are read and never run
+- (247) An upgrade is an in-place guy-type change on the standing unit
+- (269) The third axis: a field compared at the wrong width
+- (270) The fourth axis: a word compared one bit at a time
+- (257) Nineteen kept tests compare a torn block
+- (175) The uber chain past its birth
+- (161) The make-list block is 2,500 frames behind East Indies' word
+- (211) `get_speed`'s three remaining arms
+- (291) The AI's caravans are not linked
+- (285) The CITY record parts on every block and nothing asserts it
+- (273) `refresh_group_order` re-origins on the order's `form_id`, not the member's list position
+- (316) Sixty-two other callers of `clear_partial_path` are unchecked
+- (326) Three tech `val`s part from before run19's window
+- (333) `1/28`'s path stack is 41 where run19 says 42
+- (309) `find_upath`'s pre-walk give-up exit targets the wrong label
+- (311) The zero-pop predicate disagrees on paper and nowhere else
+- (298) The click-free capture lane starts 6 of 10 pairs
+- (299) A single Gaia reseat correction hides a 556-frame heading difference
+- (300) The original's command API is unused, and the replay adapter lowers only `MoveTo`
+- (277) An age gained through a cascade is unmodelled
+- (248) ATTRITION's Territory section is 15,625 bytes of 16,000
+- (234) Four rules of the turn/idle animation neither side has
+- (292) Nothing in this tree has ever been profiled
+- (283) The ratchet wants a `#[global_allocator]`, not a mapping
+- (296) Great Lakes' endpoint is eight units short and nobody knows which
+- (373) The click-free lane's give-up truncates rather than stops.
+- (376) The sibling borrow is measured harmless on every scored path, and this is the record of it
+- (378) Put the human back into `census_wars` and `census_strategy` too, and the residue gets worse before it gets better.
+- (380) A bare coordinate on the staged channel is a TILE
+- (383) run107 opened two families never compared on Great Lakes.
+- (387) Target selection should walk the world cell's object chain, and ours is units-only.
+- (388) The golden record's `1/7` and `1/8` get their target from a group path the sim does not have at all.
+- (393) who=0's members take the captain's order a frame after it
+- (400) `0/8` plans its chase at 619 to the target's own point
+- (401) Two reading-only residues from 395
+- (403) The launch table has one piece missing, and one capture closes it.
+- (407) A pool dump needs its INHERITED category set high enough, and "DEATHS off" is the wrong rule.
+- (409) The ammo pool's order is not this crate's, and a two-landing frame would spend the draws in the other order.
+- (410) Three `AMMO` branches with no capture behind them.
+- (1459) The pushed slot's normalize prunes what the original still counts.
+- (1456) French East Indies' census reads one cell filled too many.
+- (454) Five residue families never compared on Great Lakes, measured by 448's widening.
+- (455) Two dumped records that nothing in `rondata::diff` compares at all.
+- (451) The original runs its war census for the HUMAN leader, and this crate leaves it at zero forever.
+- (371) `market_speculation`'s two passes fire nowhere below the word.
+- (1587) The closing block's `ever_seen` residue
+- (1592) `find_tpath`'s goal kept across a region seam by a land unit that can transport
+- (1595) The silo's other arms, and one built arm a unit test does not hold
+- (1596) Run710's rows past the old word that 1591's build left
+- (1599) Three rows 1594's build left
+- (1603) A unit leaving a building, and the rival landing end
+- (1606) The closed cell's other arms
+- (1609) The human's sweep, what 1605 left
+- (1612) The ramp's and the border's other arms
+- (1615) The guard's and the cast's unwalked arms
+- (1617) The sweep's first batch, what it parted
+- (1621) The capital flag's other writer, and diplomacy
+- (1626) The General's rally armour, and run715's standing rows
+- (1628) The sweep's second batch, what it parted
+- (1632) The nuke's other arms
+- (1635) The missile's unwalked arms, and a building's last health
+- (306) The `city` column is one high on every make row that carries one
+- (307) `age_p`'s zero-age arm is unexercised
+- (459) The building half of `ObjectData::visible` is read and not built
+- (3068) A harvest batch: the order-adders' family
+- (3302) Chapter one hundred and seven, without a capture yet
+- (3303) The sweep's next shape batch
+- (3799) The emu row cache stores what it could recompute, and it is 16 GiB
+- (4042) The whole gate is the waiting, and its length is one binary running at a quarter of its threads
+- (4050) A comparison cannot fail on a helper both sides call
+- (4051) The waiter's clauses were written against a harness that killed a cleared agent's commands
+- (4052) A re-pin at the booking has no series
+- (4053) Whether an in-session builder waits cleanly on a long gate is untested
+- (4054) How much of a worker's reading repeats across workers is unmeasured
+- (4055) The chain section of `docs/LOOP.md` is the commander's scar tissue, kept whole
+- (4056) The pilot's builders may be invisible to lore
+- (4062) The leader-seat guard has read the wrong files since it was written
+- (4158) A booking's leaf count should name its unit
+- (4157) A rule diffed on one frame failed on a hundred widenings
+- (4156) The gate leaks a temp directory per run
+- (4155) A reader row's brief owes its journal's gate lines and its new specification's constants pin
+- (4151) A minted file's whole-length take is blind to a small change in its orders
+- (4146) The stop was set on the whole week while a Fable-only week bound first
+- (4144) The client's four shaders are string constants in `gpu.rs`; they move to `.wgsl` files at a quiet point
+- (4142) A render lane's first session went deep inside twenty minutes twice running, the second under a warning written for it
+- (4140) A landing bar counted 120 ties as wins for two bookings
+- (4138) A lane sat 84 minutes behind `cat >> /dev/null;` on a socket, and the waiter's first tell was QUIET at 100
+- (4137) A booking quoted a count the journal's own table did not sum to
+- (4135) The export's index is not sorted by address, and a bisect over it named the wrong function
+- (4133) A lane's note sent a rule to a section 333 bytes under its ceiling, and asked for one step that was two items
+- (4130) A record's writer census takes two nets, and a third before a leaf is called never reached
+- (4128) A row borrowed its tolerance from another reader, and the tolerance is wider than the spread of what the row must tell apart
+- (4126) A layout table's offsets banked two constants no mechanism carries, and the builder booked it to the base
+- (4125) A line whose ranges are records of hundreds of leaves is not measured by its ranges
+- (4123) A chunk a decoder kept "as stored and unchecked" was read at the wrong stride from the item that decoded it, and nothing could notice
+- (4120) A field a builder gave the sim's unit stood unowed through its guard, its tests and its booking, and a whole gate found it
+- (4119) A line's port probed our own image before any writer was read, and 37,010 bytes came down to one field
+- (4115) A journal's "ships none" stood through two items against a document on disk that said it ships
+- (4111) A selection was named by a label its predicate did not hold, and an item was designed on the label
+- (4108) A question the ledger named was carried four items when the stream on disk held its answer
+- (4105) A packet word printed as a hex dword was read as a colour in the wrong byte order, and stood two items
+- (4100) A landed lane's row stood seven hours unreaped, reading "needs input"
+- (4096) A checksum line's port is a sweep for the fields no dump compares, and the first one swept had drifted
+- (4090) The booking gate stopped on merged builder trees that no session can remove
+- (4084) A commit chained after a red guard by `;` landed red
+- (4083) A render lane's first session passed 230 k in fifteen minutes, twice in one session
+- (4081) The whole gate's verifiers are about half the isolated library's CPU, and no row says which tests carry them
+- (4078) A pinned row may be scored on a draw the client no longer makes
+- (4075) A photograph's frame is read off its movers before its row is pinned
+- (4074) The alone-timings table and the isolated profile are re-measured by nothing
+- (4068) The park pool ran dry inside a session, and two rows refilled it at once
+- (4064) The journal guard asks a builder's journal for a lane gate it never runs, and a lane's done line can precede its quote
+- (4066) A fast-forward of the root checkout from the local branch puts an ungated merge on `origin/main`
+- (3848) The merged lane branches' remote delete is refused from every row
+- (1687) The Temple's hit points on French East Indies 17025
+- (1688) The member `find_melee_target` arm
+- (1689) Two-order snap (1500) and M5/M6 (1508: the drop, the captain's re-search)
+- (1709) The two-order snap (1500)
+- (1710) run771's word 652
+- (1712) M5/M6 diff-backing
+- (1731) Pool slot 1 keeps a dead member
+- (1777) M6 is reached by no walk
+- (1778) A pushed group's dead member leaves early
+- (1769) run779's quiet rows after 1354
+- (1756) The turret's return runs ahead
+- (1757) The stationary Dragoon's round lands a frame late
+- (1800) The idle Freighter `1/72` the original sends to (35736, 24984)
+- (1804) Closed by 1829
+- (1805) The two-order snap (1709) is still unreached
+- (1806) Closed by 1829
+- (1847) `Unit::think_carry`'s unmodelled arms
+- (1848) The successor pair's word 2838, widened whole
+- (1873) The successor pair's word 3131, widened whole
+- (1874) `find_wpath`'s human arm and the other callers of the sea clause
+- (1875) run794's walk-back window has no widening test
+- (1877) Great Sahara's word 3767, widened whole
+- (1878) The queue cost on 3183
+- (1879) Oil platform / oil well building counts
+- (1896) `tools/sweep_gen.py` had no shape for a function that hands its work to direct callees
+- (1885) `GROUPS=1` with `DEATHS=1` at `end:` prints no `GROUPDATA`
+- (1887) `find_melee_target`'s squad head for its other callers
+- (1830) closed by 1863
+- (1906) Great Sahara's word 3805, unwidened
+- (1907) `1/214`'s group and `mirror` on 3768
+- (1908) `1/172` `order:kind` 17 against 16 on 3765 and `1/161`'s path on 3766–3767
+- (1922) A hooked callee leaves `ecx` as the hook defines it; the original's `extraout_ECX` consumers read it.
+- (1927) `coverage_pair` first parting past the standing block moved 1277 → 1292
+- (1933) `sweep_gen.py` has no `store` shape
+- (1938) Great Sahara's word 3825, widened by run790
+- (1939) Rows that stand before 3825
+- (1940) `do_strafe`'s arm after the flight when the strike is not released
+- (1943) The `deref` and `store` shapes, still hand-written
+- (1944) `OrderList::get_new_data@0046ed60` reads an unset `ebp`
+- (1949) The successor pair's word 3188: 152 draws against 153, index 1
+- (1950) The can-transport goal re-push is built and unwalked
+- (1951) `1/165`'s `form`
+- (1955) `sweep_gen.py obj` built (1943's `deref`/`store`), with its edges.
+- (1956) Not taken, with why
+- (1984) A resumed 48-grid search's kill half is unwalked
+- (1994) `tools/sweep_gen.py vcall --via VIA --own N` built; the global-cell world shape is still by hand
+- (2005) `compare_target`'s raid-ship arm: the SIEGE-and-fires-on-move branch and the wall exemption are unreached
+- (2006) A `RON_STATE_FRAME` tracer define without `RON_STATE_PLAN` dies in the build after the lane is taken
+- (2008) The Fort arm's ×10 reads the city its caller passes
+- (2012) The census counts a hooked callee a sweep test names as backed
+- (2013) `sweep_gen.py vcall` has no shape for a slot entered as an ordinary call after `pop ebp; jmp [eax+N]`
+- (2033) A follower's guard refusal takes the squad head, and no walk holds it
+- (2034) The enemy ladder's `find_new_target(this, NULL, 1)` for a follower takes the head
+- (2021) `sweep_gen.py` has no shape for a function that compares its own vtable slot with the base's address
+- (2022) `tools/emu/hooks.py`'s stub page holds 256 stubs, and a vtable built per row exhausts it
+- (2027) `get_cost`'s other air arm and the Salt arm are not modelled
+- (2028) Rows standing in run790 before the moved word 4266
+- (2039) `sweep_gen.py` has no window for the per-player object tables
+- (2040) Two more slot-against-address functions, neither of 2021's simple shape
+- (2045) `sweep_gen.py obj` cannot bound an argument, nor name a module
+- (2051) `is_in_range`'s head asks health for every caller but the `near_o` arm
+- (2062) The order list's head is a shape four sweeps took by hand
+- (2063) `ObjectData::health_level` clamps a negative pool to zero, the port does not
+- (2067) Answered by item 2099 (`docs/GOLDEN.md` §76): neither fog nor search, but `fight`'s `poor_target` arm ahead of both; chapter sixty-one closed at 1000.
+- (2068) `1/8`'s first wound on run818's 841 is 13 here and 9 there
+- (2073) The per-player object table and the `buildtypes` forest, by hand again
+- (2084) A stub answered per argument, on the object at `this+VIA`, by hand
+- (2091) The successor pair's word 4246: 156 draws against 157, index 147
+- (2095) A slot against its base whose base arm is inline, by hand four times
+- (2096) The order-list iterator, by hand three times
+- (2108) Group 66's standing `sheltered` and `attrition` rows on run817
+- (2109) `Nation`'s wonder flags keep four readers
+- (2111) `ai_sites`' `gatherers` decrement wraps in no walk
+- (2123) `obj --place`, `--wbias`, `--fill`, `--argrange`, `--slotbase` and `--name` built
+- (2133) The successor pair's word 4338: 159 draws against 161, index 142
+- (2134) Other `self.units` walks that break a tie by order
+- (2137) Leader 1's `attrition` and `sheltered` rows on run834
+- (2138) Player 0's leader record after the human's units die
+- (2139) `get_caravan_limit`'s Colossus, Taj and Silk arms, and `get_units`' graft walk over `CARADUTCH`, are reached by no walk
+- (2141) Two generator shapes owed, one row each in item 2129
+- (2150) `obj --ecx-int LO..HI|V,V,..` built
+- (2151) A fifth shape read and not taken: the hidden-return `Coord`
+- (2156) The successor pair's word 4353: 36 draws against 35, index 17
+- (2157) Other writes a member makes to its group's record while a stack group holds the seat
+- (2161) `obj --answers IDX:V,V,..` built, and the stubs' answers readable by `--place` as `s`
+- (2171) `obj --vtat WIN+OFF` and `obj --answer-win IDX:SIZE` built
+- (2176) The successor pair's word 4603: 22 draws against 21, index 17
+- (2177) `Army::count(COUNT_TYPE, 0x3f)` is a lineage count, and this crate counts a flag
+- (2182) `obj --cdecl` and the `--wbias` edge draw built
+- (2272) `obj --ptrarg-null IDX` built
+- (2194) The successor pair's word 4637: 37 draws each, index 0
+- (2195) Four of group 83's helicopters part on `dest_angle` from 4608 to 4615 and spend no draw
+- (2196) `land_tail`'s toggle names no `buildings` group
+- (2201) `obj --argeq` built
+- (2202) `Sim::footprint` panics on a negative footprint size
+- (2203) `World::set_bad_path`'s count saturated where the original wraps
+- (2277) One `obj` shape built: `--link pA..B+OFF:SIZE:DIR[:T,T..]`
+- (2278) `upgrade_level`'s `is` and the port's differ on a non-empty `is_list`
+- (2279) The census's `port` mark can name a different function
+- (2218) Four `obj` shapes built: `--seq`, `--answer-range`, `--cell-this`, `--vtat-also`
+- (2219) `obj` cannot see a stubbed callee's arguments
+- (2220) Two port behaviours made the listing's
+- (2221) `BorderNodes::find@00882170`'s port mark is a name collision
+- (2260) The successor pair's word 4946: ours 161 draws, theirs 162, index 150
+- (2230) The successor pair's word 4671: ours 161 draws, theirs 165, index 145
+- (2231) `finish_insert`'s other target copies are not re-issued by slot
+- (2248) `obj --sparse` built
+- (2249) Off-map tiles skipped where the original skips them
+- (2250) Three arms the ten's sweeps draw away from, each a SEAM or a shape
+- (2282) `obj --record IDX` built
+- (2283) The decompile drops the arguments of `UnitData::transport_type@0046f790`'s base arm
+- (2288) `ObjectData::is_in_range@0064e4a0`, the four-coordinate overload, has no port
+- (2289) The no-argument `Farms::add_animals@008d92d0` has no port
+- (2290) `Build::find_city@00628180` answers the town's building index; the port answers a city index
+- (2291) Unused.
+- (2294) The successor pair's closing residue: two units apart on block 5057
+- (2296) run844's residue past its standing block
+- (2299) `tools/sweep_gen.py --regen` built
+- (2300) The decompile of `ObjectTypeData::is_slow@00661ae0` names three fields `_padding_`
+- (2305) Chapter sixty-six's two other arms stay unwalked: 2111 and 2196
+- (2310) `tools/sweep_gen.py obj --record IDX@S` built
+- (2311) A generated sweep keeps no copy of the `sweep_gen.py` line that drew it
+- (2316) `Sim::num_inside` charges a decoy captain its pop; the original counts it 0
+- (2317) `Sim::push_group`'s equal-arm shortcut kills nothing
+- (2318) Six `sweep_gen` gaps this batch met
+- (2321) The peace pair's rush rules: `Game::war_allowed`'s time arm and its readers
+- (2326) `tools/sweep_gen.py obj --outarg`, `--stub-cdecl` and the kept line built
+- (2327) Read and not taken by 2325, each for a shape the generator lacks
+- (2337) `tools/sweep_gen.py obj --ret al`, `--stub iat:VA:NARGS` and the `sp-0xNN` token built
+- (2338) Read and not taken by 2336, each for a shape the generator lacks
+- (2342) Six `sweep_gen` gaps this batch met
+- (2343) Sweep subagents' scratch scripts collide in `/tmp`
+- (2344) The `0x4000000` unit mask is carried by no port
+- (2345) `repath`'s group arm and `do_attack_ground`'s walk-into-range
+- (2347) `tools/sweep_gen.py obj --edx`, `--tame`, `--stub-write` and a free function's name built
+- (2348) Read and not taken by 2346
+- (2352) The garrison counts are not compared
+- (2358) `get_cost`'s two rare arms on a unit are not built
+- (2363) `tools/sweep_gen.py fwd`'s `vtordisp` ECX token built
+- (2364) The `vtordisp` thunks left
+- (2369) Four `sweep_gen` gaps this batch met
+- (2370) SEAMs the batch's readers named
+- (2375) The `vtordisp{4294967292,0}` band is empty on `tools/census.py --unbacked`
+- (2380) The `CommandManager::issue_*` issuers left are each one generated line
+- (2381) `tools/census.py --unbacked` lists the compiler's backticked initializers as live rows
+- (2385) Theirs' `aggression[i]` is 1 on every at-war slot from the game's start
+- (2386) `Leader::diplomacy`'s score arm: `LeaderData::score` and the top scorer
+- (2387) `Leader::diplomacy`'s unreached arms
+- (2390) Salmon's and Maize's price arms have no capture
+- (2396) The issuers left after 2395
+- (2397) A gate-closed arm of an `obj` port logs one more `-` than the stubs it names
+- (2401) Candidates dropped for want of a port computation
+- (2402) `Wall::update_hits` reads Market as a lineage test
+- (2403) `UnitData::invalid_loc`'s `forest_walker` is passed `false`
+- (2404) `sweep_gen` gaps this batch met
+- (2411) run849's thirteen later rows
+- (2427) A TEAM_STYLE 0 pair is the cheapest way to reach `Leader::diplomacy`'s team-style SEAMs
+- (2428) No golden chapter can stage 2387's allied, offers, `dow`, `blacken` and hiring arms, nor 2111 and 2196
+- (2431) The `GroupOut::issue_*` left after 2421
+- (2432) The two generator shapes 2404 named were built and none of the ten met them
+- (2433) A forwarder's stub `ecx` is the caller's, stale
+- (2434) A break-test that restores by `shutil.move` leaves cargo a stale mutated binary
+- (2424) run853's later rows
+- (2437) The Senate tail's second government on a human is unstaged
+- (2438) A wonder arm needs `finish` applied
+- (2444) Parked 2431's list was not forwarders
+- (2445) Left
+- (2450) A chat line's frame against the birth it races
+- (2451) `calc_unit_stats`' `update_armor`
+- (2455) `--cmd-gate` is built
+- (2456) Left
+- (2465) The `this+OFF` token is built
+- (2466) `--cmd-gate` took six of the ten
+- (2467) Left
+- (2470) `--cmd-obj` is built
+- (2471) Seven group-first issuers on `--cmd-gate`, no new flag
+- (2472) Left
+- (2475) `hurry` and a unit's `finish` are unapplied
+- (2482) Only three `CommandManager` issuers are `--cmd-gate`'s shape; the rest of 2472's list is not
+- (2483) `--cmd-byte CMD[:SIZE]` built
+- (2484) `PathFinder::find_wpath/find_tpath/find_upath/find_upath_restore` (0x688e10..)
+- (2485) `GroupOut::issue_guard` / `issue_follow`
+- (2487) `issue_cannon_time` (0x941260) read and not built
+- (2488) `--cmd-seh CMD:SIZE:FIELD,..:C:IGN:WIDE:NARROW:DW:DN` built
+- (2489) Two hand `--port`s on existing flags: `issue_chat_set` and `issue_player_speed`
+- (2496) `--chain CELL:OFF:STRIDE:P:I:N:SIZE` built
+- (2497) `issue_cannon_time` (0x941260) built
+- (2498) `Herds/Tribes/Lands::walk_data` stay skipped
+- (2499) `Unit/Object/SubObject::must_walk` built by `obj`
+- (2501) A unit's `finish` (the Aircraft Carrier arm) is unbuilt and unstaged
+- (2502) Parked 2475's wording was inverted.
+- (2503) The held-head arm
+- (2509) A pathfinder flag set around a callee is observed only after the call
+- (2510) Unrecorded stubs log nothing, and the row prints `-` for an empty log
+- (2534) x87 returns and float-heavy render getters have no obj shape
+- (2535) A hand-written float sweep is the Loop's next shape
+- (2536) `Army::walk_data` (0x6f9850) needs a mix gate on `[this]`
+- (2531) A human's non-library queue holds a non-unit entry only through an unresearched unit type
+- (2532) `stage_walk` prints a queue's types and never its counters
+- (2538) The decompile's `in_ST0` is not an x87 return
+- (2539) Only six of ten built
+- (2540) `--xmm IDX:RANGE` not built
+- (2548) `Player::walk_data` (0x6ee2d0) and `CommandPackage::walk_data` (0x94b740) want a gate that is not the short at `this`
+- (2549) `CliffMiningData::walk_data` (0x8a6d70) hands its second callee a leftover `ecx`
+- (2550) Seven more order `walk_data`s share `--vbase`'s shape with a third walk
+- (2553) `get_cost`'s domain arms are not built
+- (2558) `hurry` N and `hurry`'s own `this`.
+- (2559) Case `0x4f`'s unit arm
+- (2563) `PatrolOrder::walk_data` (0x483e80) hands two direct callees a stale `ecx`
+- (2564) `Farms::walk_data` (0x8d9280) is 2549's shape on a `call:` step
+- (2565) `CommandPackage::walk_data`'s length is drawn in the gate column
+- (2568) `Rivers::walk_data` (0x8890e0) gates on `[walker+4] != 0`
+- (2569) `--gate-this` taking an optional value still swallows a following positional
+- (2570) The five `get_name` ports check calls, not `eax`
+- (2573) A human's Republic raises every capped good's `resource_cap` by 800, not 50 %
+- (2579) The Assault Infantry queues' `cost[1]` parts on run866's 5183
+- (2584) `Constants::walk_data` (0x57f910) walks from the record the global cell holds, not from a word in it
+- (2585) `Types::walk_data` (0x669780) loops 85 times
+- (2586) `Dock::walk_data` (0x740c40) writes
+- (2587) A batch of only three new functions
+- (2589) The next shortest never-backed shapes
+- (2594) Inlined `String` constructors
+- (2595) `Doober::find_x_pos` 0x846480 / `find_y_pos` 0x8464d0
+- (2596) `Balance::walk_rules_data` 0x582cc0
+- (2600) `Leader::calc_gather@006ceee0` and `LeaderData::calc_rare@006e08d0` read `has_wonder(0x215)` too
+- (2605) `Doober::find_x_pos`/`find_y_pos` reach only `move_x[0..25]`/`move_y[0..25]`
+- (2606) The five `get_name`s' byte `[0xcc2311]`
+- (2607) `Setup::get_starting_citizens` 0x5aaf50
+- (2611) A crash round's two unbuilt arms
+- (2616) A jump-table shape is `obj --jump IDX:N`
+- (2617) `WorldData::get_bottom` 0x6b3c10
+- (2618) The rest of the shortest never-backed list is not packet-free on the shapes in hand
+- (2623) `UnitData::is_gathering` 0x6089b0 needs a two-level answered-record shape
+- (2624) The never-backed list's table users are spent
+- (2625) `is_corner`'s draw reaches a fourth call twice in 220 rows
+- (2629) An `add`ed Helicopter stands at `z` 30 the frame after in the original (611), at 0 until 631 in ours
+- (2630) A plane control on a human is not stageable with `add`
+- (2634) `Search::valid_filter` 0x67dbb0 is a jump-table dispatch
+- (2635) `Doober::has_doobers` 0x8466d0 compares through x87
+- (2636) `UnitOut::issue_come_out` 0x607be0 hands `add_command` a 16-byte `Command` local
+- (2637) `TurnControl::get_delta_percent` 0x957950 returns a float of `timeGetTime`
+- (2525) Astra's replay-oracle branch, settled at the thirty-fifth steer: the review debt and three Loop lines
+- (2656) The peace pair's word 5407 owes its widening
+- (2664) `Search::valid_filter` 0x67dbb0 is 27 arms, not one case
+- (2665) `UnitOut::issue_come_out`'s `Command` is 11 bytes, all written
+- (2666) `--call` (the `fwd` shape) does not hold the callees' order
+- (2667) `Balance::walk_rules_data` 0x582cc0 calls its walker's slot 0 237,169 times
+- (2660) The fighter's strafe release, `do_strafe`'s non-bomber `fire_ammo` arm
+- (2661) A launch of a plane that is refuelling is passed over
+- (2668) Two-displacement `walk_data`s: `GroupMoveOrder` 0x4855c0, `GroupAttackOrder` 0x4850b0, `AirAttackGroundOrder` 0x4875a0 (and, by their size, `Strafe…
+- (2669) `City::walk_data` 0x489220 and `BuildQueue::walk_data` 0x6305f0
+- (2670) Four shapes none of the built ones holds
+- (2671) `BuildData::find_in_queue`'s else arm is not drawn
+- (2673) `stale` and `g` are one value in a `mix` row
+- (2674) Two-vbase `walk_data` forwarders are unbuilt
+- (2675) `City::walk_data` 0x489220
+- (2676) `Herds::start_herds` 0x741d10, `Group::equals_group`, `GroupData::get_num_cap_const`, `ObjectData::inside_bottom`, `UnitData::has_damage`
+- (2679) `find_new_bomber_target`'s best starts at −1
+- (2680) The Sahara coverage pair's four windows each lost one key to item 2677
+- (2689) `BuildQueue::walk_data` 0x6305f0
+- (2690) `TurnControl::get_delta_percent` 0x957950 and `UnbuiltForts::add_unbuilt_fort` 0x73bc00
+- (2691) The shortest unbacked rows are render or UI
+- (2694) Chapter seventy-nine's word 1393: ours 100 draws, theirs 28
+- (2695) `strafe_attack`'s SEAM names an arm no plane reaches
+- (2696) A Biplane graph piece's bay is a measured row per piece
+- (2699) `Herds::start_herds` 0x741d10
+- (2700) `ObjectData::inside_bottom` 0x644000, `UnitData::has_damage` 0x609b50
+- (2701) `Group::equals_group` 0x708000
+- (2705) `UnitData::is_seen`'s stealth arm is not carried
+- (2710) `Herds::start_herds` was already swept
+- (2711) `has_damage`'s stub arm answers 1..5 only
+- (2712) `Group::equals_group`'s `normalize` is hooked
+- (2720) A callee that writes `this` run, not hooked (parked 2701, 2712) is still unbuilt.
+- (2733) `Group::normalize`'s survivor arm for `field_0x4 >= 0` is undrawn.
+- (2734) Slot ED's shapes (parked 2684, 2721) are unchecked and unbuilt
+- (2739) `find_tpath`'s final give-up is the same plain push
+- (2740) `upath`'s pull-back keeps an `sx == 0 && cy == 0` break that the listing lacks.
+- (2751) `PathFinder::kill_lists` is swept with its loop run once, not many times.
+- (2728) A building's `seen3` write and the `0x800` / `0x1000` masks are not carried
+- (2757) run877's `0/7` is weighed whole at the 1000 pass in the original and halved in ours
+- (2758) An added Scout's own path parts from 1198
+- (2764) The count's unwalked arms
+- (2770) The group-list family's remaining never-backed functions
+- (2771) Two of the four have an equivalent break, named rather than hidden
+- (2772) For the Loop
+- (2777) Shape lacking, for 2768's lane: `CityData::num_city_buildings` 0x737ae0.
+- (2794) `--ptrtab LOC:N:SIZE[:vt]` is built
+- (2795) Equivalent breaks, named
+- (2790) Findings.
+- (2791) Shapes lacking.
+- (2759) `unit_masks` is not a word in this crate
+- (2760) `process_cloak@005e1c20`'s other writes and `do_cast`'s `0x11000`
+- (2853) `CityData::num_city_buildings` unswept, built but not landed
+- (2854) A harvest read against the base first
+- (2855) `Game::clock_init`'s port (dropped) hard-coded the harness's pointee address
+- (2800) Two shapes built, two functions; the batch is not ten.
+- (2802) The inside arm's other halves
+- (2803) The `blown`/`fought` rows are gated on `on_map`
+- (2805) `Search::valid_filter` 0x67dbb0 is swept, as 27 `--name valid_filter_caseK` modules at once
+- (2806) `--edx-win WIN`
+- (2810) A staged Spy's Bribe or Sabotage would back `do_cast`'s two blow sites
+- (2811) `do_cast`'s `unit_masks |= 0x20000` and Bribe's `unit_masks2 |= 0x60`
+- (2813) `--xmm N:LO..HI|V,V,..`
+- (2814) Ten functions, `Census:` 1169 → 1181 by `tools/census.py --layers`
+- (2815) Three layout lessons.
+- (2816) Not modelled
+- (2817) Next shortest never-backed rows with no built shape
+- (2826) Three arms of `think_carry`'s attack branch are reading only
+- (2821) `Unit::swap_team@006118d0` (286 lines) and `cast_bribe`'s unit arm are the next chapter's build
+- (2822) `is_valid_target`'s Bribe ally arm, `has_general`'s `+0x56fe` count, and the territory refusal in `cast_bribe` (building and city arms)
+- (2828) `--ecx-out IDX:V,V,..`
+- (2829) The `project` pair
+- (2830) Census 1181 → 1185
+- (2833) `swap_team`'s `inside_down` chain and the `unit_masks` bits
+- (2846) `max_range`'s CEO term is diff-backed on one arm only
+- (2834) `Map::stamp` 0x69cf80 built
+- (2835) `NukeOut::draw_underlays` 0x9269d0 is a renderer body with no simulation effect and no statics guard in the export
+- (2836) The rest of the shortest unbacked rows
+- (2868) The control Spy's chase re-target, run880 frame 1178.
+- (2869) The added Scout's first disc, run880 block 1103, `world:seen2`
+- (2870) The take stopped at 1219, not 1260
+- (2838) Ten built, walked down `census.py --unbacked` to about 1,500 decompile bytes.
+- (2839) `Type::pay_cost`'s escrow arm has an equality boundary no draw reaches.
+- (2840) The `is_seen` family is hand-written on `tools/emu/hooks.py`, as `was_really_seen` was (item 2044).
+- (2841) Not built, with why.
+- (2842) Three generator traps cost this batch about an hour; none is a defect, each is undocumented.
+- (2848) Ten built, walked down `census.py --unbacked` past 2837's 1,500 bytes.
+- (2849) Survivors, read against the draw.
+- (2850) Two generator facts, undocumented.
+- (2851) Not built, with why.
+- (2865) The `set_anim+0x104b` tail on 6808
+- (2866) The `0x800000` restore on the unit-target half of `find_attack_pos`
+- (2858) Ten built, walked down `census.py --unbacked` past 2844's stop.
+- (2859) Survivors, read against the draw.
+- (2860) Generator traps, undocumented.
+- (2861) Not built, with why.
+- (2871) Sweeps whose port is call-order only
+- (2872) `sweep_gen.py obj` gaps
+- (2873) Equivalent mutants
+- (2901) `find_nearby_target`'s find is mandatory for a computer siege engine that finds a city
+- (2902) `1/106`'s `cavarch_o` on 6822
+- (2878) The 1178 re-target (parked 2868) is untouched.
+- (2879) The sight gate is still unproven in its original meaning.
+- (2880) Loop 2654's print was not built
+- (2883) The shape that was asked for is not the one that holds.
+- (2884) Starved arms, named.
+- (2885) Not built.
+- (2888) A `void`/`obj` shape for a vtable *compare* the function branches on.
+- (2889) `ObjectsData::find_goody_at` 0x65c040 and the `o`-list walkers.
+- (2890) Generator traps, undocumented.
+- (2891) Equivalent or thin breaks.
+- (2894) Parked 2868 is answered
+- (2897) No function swept.
+- (2898) `--place-null K` past the first place was not a generator gap.
+- (2911) Parked 2879 is answered
+- (2912) The unseen arm's far side is still unreached
+- (2913) Loop 2654's print was not built
+- (2916) `CityData::count_farms` 0x7368c0 was not swept
+- (2917) `--vtat-keep` is `--slotbase` without the stub-slot check
+- (2918) A `__thiscall` stub the function calls with a pointer into its own frame prints as `sp-0x1` for the first and as the raw stack constant (`214748339…
+- (2919) The walkers' flag byte at `[ebp+0xb]` is the top byte of the walker pointer when `input != 0` on the kept arm
+- (2932) Both leaders' `aggression` stands 0 against 1 from run886's first block, 570
+- (2928) A cast's completion on an unseen target
+- (2929) A building target killed mid-approach
+- (2954) The Romans' flat per-city wealth is built from the listing alone
+- (2950) A `--regen` cannot widen a draw once the module is registered, and a delete-and-regenerate cannot either.
+- (2951) The `process_*` bodies are one of three shapes and the port is the same four lines.
+- (2952) A game pointer that is only added to need not be a window.
+- (2960) `--regen` re-appends the previous line's flags and keeps the old lists.
+- (2961) An `--argrange` argument starves its own edges, and a sweep that wants an edge needs rows.
+- (2962) A break-script that splits `old|new` on `|` breaks on `||`.
+- (2963) Starved arms named, not fixed (no generator change).
+- (2964) Not built, no built shape holds them:
+- (3082) The javelin's launch `sz`
+- (3083) Parked 2995
+- (3084) For the Loop
+- (3031) `--wbias` takes a list or a range, never both.
+- (3032) A window's `c`/`p` number is its flag order, and the header is the only place that says so.
+- (3033) A draw whose two arms contradict starves the one that needs both.
+- (3034) A mutant that compiles nowhere reads as held.
+- (3035) `mutate.py --batch` cannot spell a multi-line old text,
+- (3036) Survivors left, each named.
+- (3065) An armed vehicle target is unstageable as a Sabotage victim
+- (3066) `waitrun.sh` missed the click-free lane's receipt
+- (3039) `--ecx-int` without `--tame` draws wild ecx
+- (3040) `get_inside`'s climb is covered to eight calls only
+- (3041) `Group::get_num`'s short copy is a two-byte move
+- (3042) Not built this batch, read
+- (3050) `Unit::update_armor` is parked twice now
+- (3051) `Tribes::find`'s `_wcsicmp` arm (`call *0xac5640`, an import) is unreached
+- (3052) `Object::poor_target`'s exact edges pass
+- (3053) `--answers IDX:V,..` draws a wild word the other tenth of the rows
+- (3054) `--at VA:SIZE:LO..HI[/b]` is built
+- (3055) `Wall::swap_team` and the `is`-slot sibling shape
+- (3056) `AmmoData::walk_data`, `Game::walk_data`, `TurnControl::end_cannon_time` (3020)
+- (3045) `sweep_gen.py --cell-win` on a muted-error call site's flag byte passes by luck
+- (3046) `mutate.py --batch` cannot carry a multi-line OLD
+- (3047) `h * 100 >> 8` against `h * 100 / 256` in `Fractal::get_height`'s port is an equivalent mutant
+- (3059) Starved draws accepted, said plainly.
+- (3060) Not built, read
+- (3079) Draw gaps, said plainly.
+- (3080) `WorldMapFog::fill_colors` is swept at `who` 0 only
+- (3081) `sweep_gen.py obj` stub answers
+- (3073) Equivalent breaks, said plainly.
+- (3074) `Tribes::find`'s `_wcsicmp` arm is built
+- (3075) `Build::swap_team`, `SubObject::swap_team` built
+- (3076) For the Loop (Loop 3048 and 3077):
+- (3069) Starved draws accepted, said plainly.
+- (3070) Shapes that held, for the next lane.
+- (3105) `order:target` on who=1's attackers after the Scout's death
+- (3106) `Unit::work@0060d180:79-86`'s `+0x2b4 & 0x400` term is not read
+- (3097) The who=1 Scout `1/0`'s explore path parts from 847 on run914
+- (3098) Sabotage's armed-vehicle arm adds nothing the cast reads
+- (3100) Swept: `BuildData::show_later_tech` and `UnitData::get_attrition@00608fd0`.
+- (3101) Not built, read
+- (3121) `1/0` `f1021`, order kind (ours EXPLORE_TO, theirs ATTACK_TO)
+- (3109) Swept: `ObjectData::can_carry@00645e00` (TypeIndex) and `@006483c0` (index, player), plus `@00646c40` (DomainIndex).
+- (3110) Not built, read
+- (3114) `Unit::process_cloak@005e1c20` is not modelled, and the Iroquois Scout carries its cloak by block 1.
+- (3115) `Unit::init@00612100:341`'s first half, `unit_masks2 |= 0x80`
+- (3119) Neither flag was needed.
+- (3141) A computer Tank picks the Commando, ours a Hoplite
+- (3206) Item 3135's wonder blocks are built
+- (3282a) `BuildTypeData::find_friends@00639270`: no stub answers by one of its own arguments.
+- (3282c) `Balance::compute_modifier@00581cc0`: TLS statics and a struct-returning stub.
+- (3282d) `Object::fire_ammo@0064c8b0` swept inline; the crate does not model its side of the shot.
+- (3282e) `Unit::think_fish` findings.
+- (3282f) Mutation survivors not read against the draw.
+- (3282g) Subagent worktrees were removed under three running subagents
+- (3358a) `Object::take_damage@00652020`: the crate has no method.
+- (3358e) `Unit::do_cast@005ebfe0`: port not level; the head slice spells.
+- (3331a) The Japanese arms no walk holds.
+- (3332a) `1/16`'s `g.gpiece[0..1]` on run967, from 3056.
+- (3332b) who=0's `other_team_terr` on run967b, from 1404.
+- (3332c) `GERMAN_INDUSTRY_DISCOUNT` is not carried.
+- (3462b) run1081's pick found no target.
+- (3339b) `Unit::think_civilian_transport@005f40d0`, a second time (3320a was the first): the port is not level with the original.
+- (3339c) Residue kept in the sim by the three path sweeps.
+- (3346a) `Wall::process@00640450` swept inline; the crate's `process_building` (city.rs) parts from it in four places the sweep does not call.
+- (3346b) `Unit::think@005f6e40`: the non-captain half is not swept; a sibling `unit_think_mirror` module owes it.
+- (3346c) `Object::disband@006455c0`: three holes.
+- (3346d) `BuildTypeData::blocked_tcoord@00636db0` seams.
+- (3346e) `Unit::think_carry_civilian@005f37c0` seams in `SimCarryCiv` (not swept; only the steps are).
+- (3346f) `Unit::do_repair@005ee420` seams.
+- (3348a) `Unit::do_group_move@005e79a0`: port not level
+- (3348d) `Unit::work@0060d180`: the caravan block and the move-family dispatch
+- (3348e) `Unit::target_opportunity@005fffc0` past `600108`
+- (3348f) `Build::check_capture@006276a0`
+- (3362b) `Unit::come_out@00617c10` past `6186c1`.
+- (3362c) `Cities::capture_city@00733380` past `City::find_buildings`.
+- (3362d) `Army::find_target@006f69b0`: the forts pass and the probe's body.
+- (3362e) `Group::action_attack@00712490`: arms the stub vtable cannot spell.
+- (3362f) `Balance::type_damage@0057fb50`: the inline `TypeIndex` fast paths.
+- (3362g) The sweep tests of `action_attack` and `find_target` sit in the `sim` lib.
+- (3362h) `--stub-alloc` is now parked five times
+- (3356a) `Object::eject_contents@0064cd20`: the slot `0x18` clash, and no live caller.
+- (3356b) `Unit::plunder@00605b00` residue.
+- (3356c) `Ammo::do_damage@00678060`: `Sim::land`'s splash is one cell wide of the original's, and the shipped `move_x`/`move_y` is defective beyond ring 7.
+- (3356d) `Unit::do_gather@005ef2a0`: the Sim-side view is outside the sweep.
+- (3356e) `Build::check_capture@006276a0`: the village arm is swept but never entered.
+- (3356f) `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other`
+- (3364a) `Build::activate@00623e20`: four slices not reached.
+- (3364b) `Group::action_alarm@0070ec30`: `who` pinned to 0 in the whole-function sweep.
+- (3364c) `blocked_location`: residual weak spots.
+- (3364d) `is_castable`: no `Sim` caller.
+- (3364e) Sim fixes this batch forced, none run against the diff pins
+- (3463a) A pinned `@cursor` on the food counter raises no tooltip.
+- (3463b) The computer's stock falls to 450 of each good on block 9978.
+- (3372a) `Unit::suffer_attrition@005e1a10`: the warning's `is_ally(leaders[who], who)` and the stamp.
+- (3372b) `Object::remove_from_inside@006480f0`: three SEAMs.
+- (3372c) `Unit::check_build_order@00603470`: `--stub-alloc` built; the crowd tally is a sim fix not diff-backed.
+- (3372e) `Unit::find_build_spot@00603e20`: the second pass.
+- (3372f) `Group::finish_insert@0070e620`: leftover `ecx`.
+- (3376a) `Object::take_damage@00652020`: slice (c), the kill arm and plunder, is not swept.
+- (3376b) `Unit::do_cast@005ebfe0`: the non-spell-type arm and the targeted half are not swept.
+- (3376c) `Unit::do_group_move@005e79a0`: the follower arm (`5e7c8c`–`5e8660`) is not swept.
+- (3376d) `Unit::think_civilian_transport` and `Group::action_garrison`: the Sim adapters are weakly tested.
+- (3376e) Sim fixes this batch forced, none run against the diff pins
+- (3379a) `Group::action_form@00707220`: the `loc_to == None` arm is unswept.
+- (3379b) `SimGarrison::action_halt` (`garrison_view.rs`) is still an empty body.
+- (3379c) `Object::add_to_world` has no Sim adapter.
+- (3379d) `Objects::find_builds@0065a120`: cell chains holding ids below 2000 are diff-unchecked.
+- (3379e) `Sim::group_update_positions` adapter (`SimUpdatePositions`) has no direct test
+- (3379f) Sim fixes this batch forced, none run against the diff pins
+- (3381a) `Group::action_trade@00701cc0` swept whole (1600 rows) and by head (400), 47 breaks, none equivalent; not wired.
+- (3381b) `Group::distribute_attack@00713390` swept (2000 rows, 36 of 37 breaks held, one equivalent); not wired.
+- (3381c) `Unit::do_non_flat_gather@005f0170`: the other arms.
+- (3381d) `Group::action_attack_ground@00704520` swept (3000 rows + 400 head, 43 of 45 breaks held, two equivalent); not wired.
+- (3381e) `PathFinder::astar_path@00683770`: slices B (suspend) and C (first expansion, three probes) swept, 3000 rows each; 40 of 49 breaks held, 7 starved…
+- (3383a) run1007's seven `dest_angle` rows from 15980, no draw.
+- (3393a) A decoy's overflow into a closed captain slot.
+- (3386a) `Group::action_spell@006fe1a0` is swept (default arm only) but unwired.
+- (3386b) `action_spell`'s aircraft arm
+- (3386c) `action_spell`'s narrower gaps.
+- (3386d) `Group::action_gather@00700b90` is swept (3 sweeps: 2000 whole, 400 head, 400 spiral; 96 of 98 breaks held, 2 equivalent) but unwired.
+- (3386e) `BuildTypeData::calc_gather@00639e40` is swept whole (4 slices: 1500 + 3 x 2500 rows, 67 of 69 breaks held, 2 equivalent) but unwired.
+- (3386f) `calc_gather`'s draw limits
+- (3386g) `Group::action_board_ship@00700010` is swept whole (1600 rows plus a 400-row head slice, 41 of 44 breaks held, 3 equivalent) but unwired.
+- (3386h) `Unit::find_path` sim fixes and seams.
+- (3386i) `Group::action_swarm_around@0070fbe0` is swept whole (2400 rows plus a 400-row head slice, 96 whole + 6 head breaks, 2 equivalent, the rest held; t…
+- (3387a) The building attack override is in no crate path.
+- (3387b) `Group::normalize@00711540` is swept but unwired.
+- (3387c) `Army::normalize@006f9b50` is swept but unwired.
+- (3387d) `SpellTypeData::find_target@00674920`: the crate has no spell search mapping and no console.
+- (3387e) `Animal::work@005d7330`: the crate keeps no per-herd goods seen-mask and no animal order cursor
+- (3387f) `ObjectData::attack@006469f0`: sim fix, the caravan arm.
+- (3390b) `dest_angle` on run1013's `1/74` (13710) and `1/78` (13732)
+- (3390c) Newborns' `g.angle[0]`
+- (3390d) run1013b's groups 67 and 68
+- (3390e) `has_general`'s per-type count at `leader +0x56fe`
+- (3391a) `ObjectData::count_inside` has no crate method.
+- (3391b) `Wall::update_los` is only partly in `Sim::build_los`.
+- (3391c) `follower_des` differs from `Guy::set_angle` at a zero track.
+- (3391d) `Unit::action_unqueue` is in no crate path.
+- (3391e) `SpellType::cast` is spread over `do_cast_effect` and `cast_on`.
+- (3391f) `Herd::create_units` founding is unmodelled.
+- (3395a) `SpellTypeData::get_job_time@00675800` is swept (2000 + 3000 rows, 59 of 59 breaks held) but unwired.
+- (3395b) `SpellTypeData::is_valid_target@006763c0` is swept (5000 rows, 110 + 13 breaks, 9 equivalent) but unwired.
+- (3395c) `GroupData::count@00711720` has no crate twin.
+- (3395d) Namesakes.
+- (3396a) `Army::do_defending` calls `ObjectsData::find_city` with an unestablished `ecx`.
+- (3396b) `Groups::process`: the crate's `Sim::groups_process` is a namesake.
+- (3396c) `Guy::process`: `docs/COLLISION.md` §2.1's `radius[r] = (2r+1)^2` holds only through r = 7.
+- (3396d) `HeroData::get_radius`: `supply::general_radius` is the port.
+- (3396e) `Unit::land_plane`: the crate's is a collapsed port.
+- (3396f) `CommandManager::start` has no crate twin
+- (3399a) `UnitData::attack@006103c0` is swept (2000 rows, 80 of 80 breaks held) but unwired.
+- (3399b) `UnitData::speed@0060aae0`'s five hero auras are not walked.
+- (3399c) `Build::unqueue@006207c0` is a namesake of `Queue::unqueue`, swept in two slices (3000 + 2500 rows, 38 of 40 breaks held, 2 equivalent) but unwired.
+- (3399d) `Army::process@006f93d0`'s member-copy loop is outside the sweep.
+- (3399e) `Caravan::process@0073e000` is a 3-instruction gate and tail-jump to `Caravan::build_road@0073db10`
+- (3399f) `Unit::update_hits@0060e930`: `supply_hp_upgrade[get_supply_upgrade]` is indexed unclamped in the original; the port's view clamps to 0..3
+- (3400a) `Unit::process_attrition@005e11a0` is swept (30000 rows, 14 breaks caught, 2 equivalent: `n < cur` → `n <= cur` stores the word's own value, `v >>…
+- (3400b) `Unit::repair_damage@0060de10` is swept (4000 rows, 25 breaks caught, 1 equivalent: `<` → `<=` at `d == param_1`); the crate has no `Unit::repair_d…
+- (3400c) `Unit::think_merchant@005f4740` is swept (9000 rows, 46 breaks, all caught on the final draw); `Sim::think_merchant` (`merchant.rs:67`) is a faithf…
+- (3400d) `BuildType::mask_me@006312a0` is swept (2400 rows, 34 breaks: 33 caught, 1 equivalent `ax -= 0x60` → `0x30`); the crate's `Sim::mask_building` (`ci…
+- (3400e) `Tribe::parse@006f0560` is swept (220 rows, 9 of 9 breaks caught); not a rules loader
+- (3400f) `CircleRender::scale` is parked, not swept: a renderer float body (ribbon vertices, colours, texture coordinates) filed under simulation by its sou…
+- (3402a) `Build::plunder`: the crate's `Sim::plunder_kill` (`city.rs`) is a namesake, not the port.
+- (3402b) `BuildType::place_roads`: `Sim::place_roads`/`unplace_roads` (`roads.rs`) port only the REGEN_FORCE call and the `param_5 == 0` teardown.
+- (3402c) `Unit::swap_team`: the crate's `Sim::unit_swap_team` (`bribe.rs`) is a namesake.
+- (3402d) `Unit::set_type` (normal overload) is the port, collapsed: `Sim::unit_set_type` now runs `unit_set_type_view::set_type_steps` through `set_type_ada…
+- (3402e) `Map::make` has no crate twin
+- (3402f) `Unit::detect_unit_collision` is the port (`Sim::detect_unit_collision`, `collide.rs`, the full form: quick 0, nocoll 0, top_only 1).
+- (3404a) `UnitBalance::next@009b8ac0` (43,058 bytes) is not swept: it is the unit-balance shell mode's driver, out of v1.
+- (3404b) `Game::run@00584590` (66,803 bytes) is not swept: it is the match's lifecycle, engine from end to end, and holds no frame loop.
+- (3404c) The sweep pool is empty after this batch.
+- (3408a) Port gaps against `citizen_repair_order` (`docs/GOLDEN.md` §144.2)
+- (3408b) `Sim::unit_swap_team` (`crates/sim/src/spells/bribe.rs:47`) walks both squads' chains and stops when either ends, where the original's bound is the…
+- (3408c) `Sim::disembark_squad` (`crates/sim/src/ai/transport.rs:1548`) writes `orig = dest` for every `Body::Move`.
+- (3408d) Stale texts this reading found, none a score.
+- (3409a) `Sim::process_spells` carries only the March's leader bit.
+- (3409b) `GoodTypeData::is_flat@004780c0`'s residue proposal hangs on an indirect-call scan.
+- (3409c) `docs/audit/census-backed.txt` predates item 3346.
+- (3412a) `Sim::has_market` (`crates/sim/src/ai/ai_make.rs:496`) asks for an active Market building of mine; `LeaderData::has_market@006d5410` asks `num_buil…
+- (3412b) `Object::disband`'s two port questions
+- (3412c) `get_vehicle_speed_upgrade`'s port asks one stored prerequisite per bonus where the original's `has_preq` asks the bonus's whole PREQ list
+- (3412d) Stale texts, none a score.
+- (3413a) A rename sets `priority` on hotkey slots the crate leaves at 0.
+- (3413b) The crate carries no ping.
+- (3413c) `do_form_change`'s residue proposal rests on prefix bytes.
+- (3414a) `send_navy`'s frame is not computed.
+- (3414b) What restores `Game::wonders` on a load is not established
+- (3414c) A fresh profile's Quick Battle is a scenario.
+- (3417a) The sim has no `treaty_off`, and run1016c is its diff.
+- (3417b) An owed row named a detail that prints nothing.
+- (3429a) A driver refusal is read only at the end.
+- (3429b) A click-free `cover=1` trace never enters the menu's own functions.
+- (3418a) `WallData::hits@00642bb0` is a wall object's, and no traced game builds one.
+- (3419a) 3409a's capture is on disk: run1018 shows the Ambush's leader bit fall.
+- (3431a) `rubric.py`'s table 2 counts the two non-player slots as an active human in Ancient.
+- (3431b) Medieval (2) and Modern (6) are still never held, and a start-N lobby holds only age N for 6000 frames.
+- (3464a) A `!` line cannot aim the cursor-reading commands, and `@cursor` does not change that.
+- (3442a) A modifier is a `GetKeyState` hook, and the same small step for the minimap's ctrl/shift (3444).
+- (3442b) `KEYMAP_OPTION_ALL_MILITARY` (254) looked up `KEYMAP_NONE` in options mode 0.
+- (3442c) Form −3 ("the previous one") has no key.
+- (3425a) The walk skips `@attackground` and `@comeout`: neither has an entry in `rondata::input`.
+- (3443a) run1060 is a diff source for `Group::action_trade@00701cc0`, which this crate does not wire.
+- (3428a) `read_package`'s clear at the recording's end stays a reading.
+- (3428b) Every capture since 2026-08-26 has its own recording.
+- (3438a) The bribed unit's `damage` is copied, and no dump has tested it.
+- (3444a) `Options::do_declare_war`'s `afford_dow` (:119), `say_no_war` (:126) and popup arms need a lobby whose team style lets a declaration through.
+- (3445a) The queue lane refused Accessibility on 2026-10-22 at 00:56.
+- (3445b) `process_leader_options` is not dated.
+- (3445c) A filled hotkey group needs ctrl+digit, which is a `GetKeyState` pin.
+- (3446a) `Unit::land_plane@005e9950`'s carrier arm (`docs/ORDERS.md` §40.1, §42.3 row 1) is not read: the plane never lands.
+- (3447a) `citizen_repair_order`'s `0x33` arm
+- (3447b) The port's `citizen_repair_order` pushes no group
+- (3448a) `check_build_order` drops the move it should step over
+- (3448b) The port's `distribute_attack` is empty, and now a capture enters it
+- (3453a) `Leader::action_declare@006dab50` is not entered in the peace lobby, and no input this lobby takes reaches it.
+- (3454a) run1074's wonder close is on disk and in no harness window.
+- (3455a) The disband's `MOVE_TO` to the survivors (`docs/ARMY.md` §6 step 1, §14) is not read: the army that disbanded had none.
+- (3456a) The ping's army arm needs an ally with a manned army.
+- (3456b) Row 11's offer is not made by 5710.
+- (3460a) `Options::do_declare_war`'s other arms past the team-style test are still unread.
+- (3460b) AI §98.6's "the stock and the escrow fall by the same amount" is unread.
+- (3461a) The halt landed on an idle squad
+- (3470a) The ally's gift moved its stock, and no dumped `tributes` or `escrow` moved.
+- (3471b) `ScenarioFuncSet::set_bonus_cap` bounds the type index at 0x32, not 6
+- (3472a) A herd under the camera is never on the on-screen list.
+- (3472b) `add hoplite who=0 184,190` returned 1 and placed nothing.
+- (3477a) The economy's dirty bit rises under the `!eval` toggles, and its writer is not named.
+- (3478a) `ItemOut::draw_overlays@00677590` is reached by no walker
+- (3479a) `Storm::on_field_change@00842050` has no registration path
+- (3479b) `BorderSpline::on_field_change@004a1ca0` and `CircleRender::on_field_change@008c6db0` are reached only through a fault
+- (3479c) `ComboBox` pulldowns and `PullDown::*` are entered by the pool's `@click` inside a modal window
+- (3480a) `TerrainOut::check_for_diagonal` is entered on none of five styles.
+- (3480b) A mid-game `!mapgen` faults on the click-free channel
+- (3481a) Every pool take starts with the map revealed, and `semaphore & 0x42` skips whatever it gates.
+- (3485a) The hand launchers now run beside the pool unrefused
+- (3485b) `captures.txt` keeps eleven `driver: tools/gamelog/handdriver.sh` stanzas
+- (3493a) No concrete map style enters `TerrainOut::check_for_diagonal`.
+- (3494a) What re-sets a hand-held game's hover after `Scene::render` zeroes it is still unread.
+- (3494b) The re-send count is wall-clock, not sim.
+- (3495a) `@hold <vk> <until-frame>` stays unbuilt: the row it was booked for is unreachable
+- (3497a) Only the pool's runner flipped; the stage's own command line did not
+- (3506a) A long taken with `--stride N` has no frame-0 state, so the pair's walk cannot start from it.
+- (3506b) The pair's closing window holds the families the Mongol pair's did, standing from its first block.
+- (3502a) `@hold <vk> <until-frame>` is built, so 3442a's other modifier rows are one line each.
+- (3502b) The siege command's gamelog line is `COMMANDMANAGER=1`'s, in the gamelog.
+- (3505a) `ObjectTypeOut::draw@004703f0` turns on what `falling_build_type` holds.
+- (3505b) `GoodTypeData::is_flat@004780c0` is reachable, unstaged.
+- (3505c) `TypeData::is_item_type@00470760`: the Scenario Editor's resources page.
+- (3505d) `CommandPackage::process_move_near@009495c0`: command type 8 has no builder, but `process` dispatches whatever byte a played-back recorded game car…
+- (3507a) Difficulty 3 does not lengthen the All Technologies game on Great Sahara.
+- (3969a) ~~`ages_queued` and `epochs_queued` are kept by nobody here.~~
+- (3969b) `Build::new_library`'s queue move is not built.
+- (3509a) Ours prices the American Airbases' aircraft above theirs from 2186.
+- (3509b) A `TypeIndex` spelled as a tree id.
+- (3510b) The long's first launch died on a Wine page fault at startup
+- (3511a) A packet's `--log-window` must reach past its `RON_STATE_FRAME`.
+- (3511b) The booked units were not the parting's.
+- (3542a) City `0/2000`'s `build:damage` parts on block 5276 of the British pair and agrees by the closing block.
+- (3542b) The Elite Highlanders (`HIGHLANDERELITE`, the Black Watch) and the Sloop's other art styles have no `BAYS` row.
+- (3513a) A held-age pair can share a held-out lobby's triple.
+- (3513b) The booked units were not the parting's.
+- (3514a) The booked hypothesis, killed: neither the make list's missile arm nor a nuke cap.
+- (3514b) The domain arm's sea and Aluminium steps rest on a reading and a unit test.
+- (3514c) run1147b's residue past the word is the attrition family.
+- (3517a) The booked direction, downstream: no `move_step` or `do_idle` arm.
+- (3517b) The air family stands in the stride and the windows: `mirror` and `g.z[0]`.
+- (3518a) The booked arm, killed: no drawless strike.
+- (3518b) The restricted pieces with no release row still fire from the unit's square.
+- (3519a) The booked shape, corrected: the round lands on both sides.
+- (3519b) The other naval pivot pieces have no rows.
+- (3520a) who=1's reassembly on block 3808 is off the word's chain.
+- (3520b) `find_attack_pos`'s mandatory far arm is a seam.
+- (3520c) Two more gates of `fight`'s chase take the refused arm, and ours returns or chases.
+- (3521a) `Sim::boat_eject_all`'s two arms no capture reaches
+- (3521b) The income's first parting, 2959, is a probe's and not a dump's
+- (3522a) who=1's reassembly parts again on block 4104.
+- (3522b) A loaded boat's passenger type is a seam in the different-region arm.
+- (3523a) Two ground reads on the agreeing stretch are a corner's print, not a measurement
+- (3524a) The nuke flash's 4×4 block is missing in ours by 3920.
+- (3524b) who=1's `explored` reads 483 in ours against 482 on the 3563 recount.
+- (3524c) `explored` is printed and nothing compares it.
+- (3524d) Ptolemy's term in `UnitData::los@006100c0`
+- (3525a) The Light Tank `1/82`'s repath on 3813 lays slots 54..78 differently
+- (3525b) run1171's window reads two corners not known to be the original's single
+- (3527a) The Special Forces `0/0` takes a lighter blow in ours on 5786.
+- (3527b) who=1's economy parts on the window's head and never moves a word.
+- (3527c) `INSTANT_UNIT_BONUS`'s arm of `train_time@006508c0:350`–`354`
+- (3528a) The capture approach's two arms no capture reaches
+- (3529a) `hits.py` names a blow's striker by the victim's `damage_o`, which a later blow need not rewrite
+- (3530b) The bomber's fall reads the figure's facing where its comment cites `UnitData +0x50`.
+- (3531a) A whole game's `cover=1` twin enters what the early twins already do.
+- (3532a) The land map's age-7 twin adds four functions, 9,298 bytes.
+- (3533a) The second whole late-age twin measures 3531a again: one tenth.
+- (3534a) The sea map's age-6 twin adds three functions, 9,383 bytes.
+- (3971a) The sixth melee's word 744
+- (3971b) `--twin` refuses a three-seat lobby
+- (3971c) The all-blocking fallback's `clear_blocking`
+- (3538a) The gunpowder line's other pieces launch from the figure's square.
+- (3539a) `build_masks` is a blow's only record on a building at its ceiling, and this crate carries none
+- (3539b) `check_hit`'s refusal of an unfinished building (`WallData::is_active`, `& 4`) is reached by no walk
+- (3540a) who=1's economy parts before block 4201 on the Chinese pair, and no dump holds where.
+- (3540b) `mylos` ours 4 against theirs 16 on five of who=1's units, and `dest_angle` on three, in run1184.
+- (3540c) `fight`'s latch on `FIGHT_REENTRY`.
+- (3543a) A building's `mylos` is unread, and it hid this word.
+- (3543b) The fort, colosseum and furs terms of `Wall::update_los` stay unbuilt.
+- (3548a) The age-5 twin adds one function, the deaths' logger.
+- (3970a) The Obsidian and Antipater attack terms are unstaged.
+- (3970b) The range terms the walk cannot part.
+- (3970c) `BuildData::hits`' single-precision loss while a Disband runs
+- (3970d) A cell's own building chain order.
+- (3556a) The Romans at Classical, Difficulty 5, never field the Scutari (149).
+- (3968a) A plane's inside strike out of its tank's reach
+- (3558a) who=1's `bucket` and `leftover` part on run1198b's first block, with no leader dump before it.
+- (3580b) Three `dest_angle` rows on the closing window, 3567a's shape.
+- (3589a) The combat table is the full game's ages in every lobby.
+- (3589b) Building ages have no reader on the word.
+- (3966a) A Stable that makes the unit beside a Barracks that does not.
+- (3567a) The Light Horse `1/28`'s `dest_angle` is a frame late at its guard post.
+- (3567b) Three arms of the contact mark are reached by no capture.
+- (3571a) who=1's `known_rares` on run1212's 4584: ours 3, theirs 1.
+- (3574b) `dest_angle` on thirteen of who=1's units from run1214's 7936
+- (3574c) The catapults' piece 215 (TypeIndex 265) leaves from a node this crate lacks.
+- (3575a) Two who=1 queues' unit costs part on 8586, ours 116/86 against theirs 110/82.
+- (3575b) A map whose dump carries no cells keeps a land of 0.
+- (3592a) A buried `ATTACKORDER`'s target is not carried.
+- (3592b) Piece 472's `MEASURED` rows are planar `Node`s, and its floats are exact `Bay`s.
+- (3592c) Piece 473's launch points are diffed on no dumped round.
+- (3578a) Seven of the nine new `BAYS` keys are diffed on no dumped round.
+- (3578b) The standing families on the Korean pair's windows.
+- (3578c) The Korean pair's closing block reads the human's defeat apart on twelve rows.
+- (3579a) `1/187`'s order point parts on 9714, ours (9627, 30596) against theirs (9634, 30612).
+- (3579b) Three bays are their model's, unmeasured.
+- (3581a) who=1's `bucket[2:wealth]` and `bucket[4:metal]` part on 9783
+- (3581b) The Catapult's piece 1271 has no bay.
+- (3581c) Piece 149's `float_lands` are unswept
+- (3830a) Nine value arms the Great Lakes corpus runs but cannot part
+- (3591a) The Umpakati's `CHAR_ATTACK3` row has no round on disk.
+- (3591b) The pool's first take of run1238 died at launch.
+- (3584a) A whole pair closes with two wounds apart, and the closing compare cannot see them.
+- (3585a) The Egyptians at a held Classical age, Difficulty 5, never field the Chariot (195).
+- (3587a) `Royal Balamob Slingers` (89) is not fielded on the Maya Ancient pair.
+- (3593a) A building target's `ez` on a sea tile.
+- (3594a) `widen_on_siblings`' leader rows compare no `region_rows`.
+- (3594b) `compute_reg_territory`'s third region-0 zero, `LeaderData +0x145e + 2r`
+- (3595a) No dump prints a cell's owner.
+- (3596a) Who=1's site ranks part unseen before 5059.
+- (3596b) `Barbarians` (154) is not fielded.
+- (3597a) The Senate arm's capital-loss branches are unwalked.
+- (3598a) The search budget's other entries.
+- (3599a) ~~Piece 38's `CHAR_ATTACK3` row is diffed on no dumped round.~~
+- (3600a) Piece 824's launch points are dumped on no round.
+- (3601a) Five garrisoned units' `g.angle[0]` stand on run1250b's first block.
+- (3602a) `Bushi` (158) is not fielded on the Japanese Ancient pair.
+- (3607a) The French Classical pair's Light Horse `1/50` holds five hits fewer in ours, and no draw parts.
+- (3609a) The Korean Classical pair's closing block reads the human's defeat apart, and one bucket beside it.
+- (3613a) The Royal Atl-Atls `1/175`'s `dest_angle` on its arrival, 8692.
+- (3613b) The Catapult `1/107`'s `mylos`, 4 against 10 from the stride's 5701
+- (3614a) Two `dest_angle` rows that spend no draw
+- (3615a) The `ai` arms of `compare_target`'s building class rest on a reading
+- (3616a) A moving shooter's lead, killed
+- (3617a) `1/57`'s `dest_angle` on block 5444, a row that spends no draw
+- (3617b) The closing Citizen `1/175`
+- (3618a) 3615's `near` hypothesis, killed
+- (3618b) The captain test is ours' `combat.captain == index`
+- (3618c) run1268b's rows past the word, which name no score now that the pair is whole
+- (3619a) The Dutch Merchant Fleet's 20 hits
+- (3619b) A garrisoned Scholar's `g.angle[0]`
+- (3621a) Theirs' `avoid_x/avoid_y` on the word's frame is read, not measured
+- (3622a) `BUILD_AT`'s clear of the site's `build_masks & 0x2000` is still not kept
+- (3624a) Eight `dest_angle` rows on the closing window, 3567a's shape.
+- (3626a) Seventeen `dest_angle` rows on the closing window, 3624a's shape.
+- (3631a) The colosseum and furs terms of a building's sight are not carried.
+- (3631b) Ours' region numbers are not the packet's.
+- (3632a) Piece 842's rows are planar, and a mounted archer is a pivot piece.
+- (3632b) Piece 153's `NODES` row is reached by no walk.
+- (3633a) The Horse Archer's piece 842 is a pivot piece read as planar nodes.
+- (3633b) A ship whose piece has no row looses from its hull.
+- (3634a) `Group::target_opportunity`'s member arm adds alone.
+- (3635a) The closing compare does not see a fire-on-the-move target.
+- (3636a) A splash strikes in the walk's order, not the crate's index order.
+- (3641a) `PlayerSupply::terra_cotta` has no writer.
+- (3643a) The Frigate's left broadside is the packet's alone.
+- (3645a) Four guards' `dest_angle` on an idle turn
+- (3645b) who=1's food bucket from 4219
+- (3645c) Two Arquebusier rounds at the building `0/2004` hold no target in ours
+- (3646a) The shutdown tick's births read as extras.
+- (3646b) A round keeps its gone target in theirs.
+- (3646c) `valid_target_const`'s submarine-target arm is unbuilt.
+- (3654a) `Group::action_attack`'s per-member search does not ask the siege shortcut
+- (3655a) A tech's price in who=1's queue
+- (3659a) The Carbineer's round leaves the figure's own point
+- (3659b) A round in flight keeps a target that left the dump
+- (3660a) A Musketeer picks another target
+- (3660b) A queue's price and the timber behind it
+- (3661a) The other trench writers
+- (3662a) Turns and one move point, past the word
+- (3663a) Three idle guards face another way
+- (3674a) Who=1's later queue slots are dearer in ours
+- (3675a) Who=1's leader sites stand parted on the window's first block
+- (3685) A live round keeps its target after the target dies in flight; ours forgets it at the death.
+- (3679a) A building's arrow and a round no animation launches never stick.
+- (3683a) Piece 191, `MARK4DES`
+- (3683b) The Artillery's launches
+- (3683c) Two idle Black Watch's `dest_angle`
+- (3688a) run1357b's rounds, 153 of 504 parting, none in a draw.
+- (3688b) run1357b's walk ends and idle facings.
+- (3691a) Six French Fusiliers' rounds leave from the wrong point.
+- (3691b) Three Musketeer rounds carry `ox`/`whom` −1 in ours.
+- (3691c) The Horse Guard Grenadier `1/29`'s `damage_frac`, 4552.
+- (3692a) The Mongol Cannons' rounds leave from the figure's own square.
+- (3692b) Two Golden Horde rounds carry a target of −1 in ours.
+- (3695a) The Lakota riders' and Cannon's rounds leave from the unit's own position.
+- (3695b) Two Musketeers' `dest_angle`.
+- (3696a) The Gun Samurai's rounds leave from the unit's own position.
+- (3696b) Two Musketeers' `dest_angle`.
+- (3697a) The state first parts before the word's window.
+- (3697b) Every who=1 building's `myhits` is a tenth low in ours at the close.
+- (3698a) Every who=1 building's `myhits` reads high in ours at the close.
+- (3698b) The Citizen `1/12`'s collision `pause` is the dump's first parted field on the word, not its cause.
+- (3699a) Napata's `assimilation_timer` at the close.
+- (3699b) The Siege Mortar's piece 225 has no `launch::BAYS` row.
+- (3700a) Who=1's leader stands apart before the word's window.
+- (3700b) The closing state is downstream of 4959.
+- (3701a) The Trebuchet's piece 216 has no `launch::BAYS` row.
+- (3702a) The closing state is downstream of 2595.
+- (3703a) Launch points a unit or two off, before the word.
+- (3704a) One Manchu Musketeer round's target stamp
+- (3704b) Every piece's `AttachPos` rows from the art files, not one packet per piece
+- (3705a) Three of who=1's foundations carry `regen_roads` 1 in theirs and 0 in ours at the close.
+- (3706a) The barbarian term of `finalize_grafting`'s rewrite is carried and never exercised.
+- (3706b) 3698b and 3698a are now read on another game.
+- (3707a) Group 71's Riflemen read `order:target` `0/10` in ours against the human's building `0/2003` in theirs
+- (3707b) The Artillery's launches
+- (3708a) The Gun Mahout `1/42`'s `dest_angle` parts on the stride's 2901
+- (3709a) The economy's accounting parts before 2495, and it was not the fisherman's cause
+- (3709b) The rest of `add_to_world`'s body for owner 9 is not checked.
+- (3710a) `Leader::check_orphaned_buildings@006c9f20` walks `units[who]` by object number
+- (3710b) `Unit::add_gather_order@0061a5c0`'s builder clear (`61a5f7`) moves no floor.
+- (3711a) One Crossbowman's attack target, late in the window.
+- (3711b) A Trebuchet's round leaves from the figure's own point.
+- (3712a) The Crossbowmen's other art styles have no launch row.
+- (3713a) `1/99`'s order after its kill.
+- (3713b) who=1's formation `g.des_x`/`g.des_y`, a few units off
+- (3713c) The Persian Bombard's bay, piece 1977
+- (3714a) A round keeps its dead target.
+- (3717a) The Trebuchet `1/98`'s re-path, every frame, on both sides
+- (3718a) The Submarine `1/109`'s birth, 480 apart
+- (3718b) Both leaders' `SITE[i].reg`, 65 against 0
+- (3719b) The leaders' `SITE[i].reg`, ours 1 against theirs 0
+- (3720a) who=0's `SITE[i].reg`, ours 1 against theirs 0, and `aggression[1]`, 0 against 1
+- (3721a) The Attack Submarine `1/74` (TI 339) rests (96, 720) apart from run1401's stride block 2801
+- (3721b) `mirror` 0 against 1 on nine, and `g.angle[0]` 1431655765 against 0 on four, of who=1's units born after 5000
+- (3722a) The Infantry `1/18`'s lone `dest_angle` on 1801
+- (3723a) who=1's leader `SITE[2].reg` and `SITE[3].reg`, ours 1 against theirs 0, from 3376
+- (3726a) The Maya Armored Cavalry's rounds leave from the car's own square in ours
+- (3726b) who=0's `SITE[0..9].reg` 1 against 0, `aggression[1]` 0 against 1, and who=1's `SITE[0..2].reg`
+- (3733a) `tech who=N all on` is not modelled by `crate::golden`.
+- (3733c) None of the `never` column's 39 `unit` rows is entered by the melee
+- (3734a) The land/sea mask against every grid
+- (3734b) The zero-draw passes
+- (3734c) `TerrainGroups::place_all`, `nubify_forest`, `change_*_base`, `fix_transitions`
+- (3734d) Resources
+- (3734e) Values
+- (3734f) `Terrain::init` without heights
+- (3734h) Rivers
+- (3734i) The `acos` in `Cliffs::verify_defensive_position@008a8680`
+- (3735a) Two guards' `dest_angle` on the French Medieval pair's window
+- (3735b) The loop flag as a per-piece table
+- (3735c) Two Trebuchet rounds leave from the figure's own point
+- (3736a) The Battleship `1/71`'s round of 4013 leaves the hull's pose after its move step in ours
+- (3736b) "`graph_index` 3 and 4 are turrets" was a misreading
+- (3737a) A round keeps its dead target's `whom` and `ox` in theirs; a second lobby for 3714a
+- (3737b) The GUY record's `type` is the unit type, not the graphic piece
+- (3738a) The Volksgrenadier `1/49`'s `dest_angle` parts alone on 4103
+- (3738b) run1417's packet loads four more pieces that `pivot` holds no row for
+- (3739a) The Volksgrenadier `1/69`'s `dest_angle` parts alone on 4320
+- (3739b) The Spy's counter-Bribe and the saboteur's halved clock are built and reached by no capture
+- (3740a) run1419 stalled before frame 0 twice on pool lane 1.
+- (3742a) Each aircraft's `mirror` parts on its takeoff block
+- (3742b) The Bombers' rounds over Napata: `accuracy` ours 0 against theirs 252..256
+- (3742c) The city `1/2069`'s `assimilation_timer`, 5304 in ours against 5301
+- (3742d) The human's city `0/2000` on 5157: `city_flags[0x4]` ours 0 against theirs 1, and `reduce_stamp` 4806 against 5156
+- (3742e) Two Volksgrenadiers' rounds leave from another point
+- (3743a) The T80DES's node-1 rounds leave the hull's square in ours, fired from `WALK`.
+- (3744a) The MLRS `1/99`'s (TI 273) rockets leave from another point
+- (3744b) The `1/198`'s rounds part on run1401b
+- (3744c) The Strategic Bombers' air orders part from 5805
+- (3744d) The T80 `1/59`'s (`RUSSHEAVYTANK`, TI 260) rounds leave from another point from 6605
+- (3744e) `Shock Infantry` `1/49` (TI 108) faces another way on 6703
+- (3745a) The Bomber's rounds carry `accuracy` 0 in ours.
+- (3745b) Group 68 holds `[104]` on 3167 in ours alone.
+- (3746a) Two units part on the long's stride block 4301, three frames before the word 4304.
+- (3746b) `check_orphaned_buildings`' outer loop walks this crate's building slots.
+- (3747a) `mirror` parts on four craft minted in run1426's window.
+- (3747b) A round's target reads `whom` −1 in ours once the target has died.
+- (3748a) Three Bantu siege and scout rounds leave their own square in ours, past the closed word.
+- (3748b) `1/86`'s round loses its target a frame apart.
+- (3751b) The Manchu Infantry's rounds leave from the figure's own square in ours
+- (3752a) The Lancaster Bombers' bombs leave from the guy's own point in ours
+- (3752b) Three who=1 units are born in ours on the closing step alone
+- (3731a) Four `vtordisp` destructors count as replaced only while a sweep backs them.
+- (3731b) 31 `obj with windows` scripts the driver does not reproduce stay scripts.
+- (3731c) The other shapes stay scripts
+- (3755a) An American Bomber costs more in ours
+- (3756a) who=1's figures' `mirror` flag reads 0 in ours where theirs sets it
+- (3757a) run1412's block-37 sprout prints on `0/2002`; under the array's own walk the third roll is `1/2004`'s
+- (3757b) `Game::start_list` is not read into the harness.
+- (3758a) The Abrams' desert twin `ABRAMDES` is not rowed
+- (3760a) A strafer's round carries the figure's own angle in theirs.
+- (3760b) Two of who=1's rounds lose their target in ours
+- (3760c) who=1's food bucket is 100 short in ours from 4120
+- (3760d) City `1/2055`'s `assimilation_timer` reads 4320 in ours against 4317 at the close
+- (3760e) `ABRAMDES` and the Strategic Bomber's Asian graph (`STRATEGICBOMBER-ASIAN`) take no rows
+- (3762a) The trackless crew's `des_angle` is a per-unit flag, not a per-guy field
+- (3762b) The booking's "theirs moves the Bombard" was the site label read as a walk
+- (3763a) The booking's "the army re-targets its own city and moves its muster" was the march, not the decision
+- (3763b) Step 6's `has_preq(ALLY_LOS)` half is not read
+- (3763c) `census_ally_mask` ors in every ally both ways outside the gate
+- (3766a) `1/34`'s and `1/35`'s three rounds lose their target a frame apart.
+- (3766b) Piece 196's `CHAR_ATTACK1` row is in no window.
+- (3767b) `compare_target`'s compression constant, 99,996 (`0x1869c`), is unheld.
+- (3770a) The turret step of the Camel Raider's round of 674
+- (3771a) who=1's food and timber buckets part under the whole Roman Modern pair
+- (3773a) `Jet Fighter[MIRAGE]` (296) is still never seen.
+- (3774a) `add` does not test `TRIBE_MASK`, so §155's falsifier (d) has one arm.
+- (3774b) The twin moves neither the matrix nor the bytes while the game parts, and enters none of Classical's gap.
+- (3774c) `--ai-tribe`'s read-back refuses a third seat.
+- (3829a) `1/18`'s extra tick on block 734
+- (3829b) The other aircraft of the lobby leave from rows no dumped round checks
+- (3776a) Two of `MapGreatSahara::make_continents`'s writes no part checks
+- (3776b) The reader's count is a floor
+- (3779a) `find_def_pos` reads every order, the original two
+- (3779b) `has_stance_type`'s refusal in `find_new_target`
+- (3780a) The Tornado `1/89`'s `g.z[0]` aboard its carrier
+- (3781a) `RON_DEBUG_UNIT` prints no wound
+- (3782a) The Advanced Battleship's launch point
+- (3783a) The age and epoch catch-up terms
+- (3783b) `num_players` read as the seat count
+- (3783c) Ours' draw sites name no unit for `Guy::init_real`
+- (3784a) The invalid-target branch's two spellings of `find_new_target`
+- (3785a) The booked mechanism was the wrong piece, and the right one was off the booking.
+- (3785b) The Camel Archer's `CHAR_ATTACKWALK` row is built and no printed round confirms it.
+- (3786a) The respawn's city-centre arm
+- (3787a) The booked direction was a symptom.
+- (3787b) `kill_guy`'s gates are read, not run.
+- (3787c) `set_type`'s other callers now convert in place on a same type.
+- (3788a) who=2's Supply Wagon `2/24` (TI 63) reads `myhits` 108 in theirs against ours' 90
+- (3788b) On the closing block 2601, the human's citizens `0/1`..`0/7` are idle with no order in theirs
+- (3788c) The widening never compares a third seat's leader.
+- (3789a) `find_attack_pos`'s stand arm is built and on no run.
+- (3789b) `unit_masks2 & 0x20000`, the marines' trench bit, is a `SEAM`.
+- (3790a) `LeaderData::is_team`'s team-style-7 arm
+- (3790b) The frame theirs gains City State
+- (3791a) The first melee's closing dump: who=1's `num_units[302]`, ours 1 against theirs 0
+- (3792a) A module holds one `MELEE_LONG`, so a second `Melee` literal there borrows the first's captures.
+- (3792b) The eight functions the twins newly enter are not split by twin.
+- (3793a) The second melee's closing block: the idle human's citizens hold an order in ours.
+- (3793b) Two more readers of a `+0x2b0` per-type table
+- (3793c) The matchup table's arms no capture reaches.
+- (3794a) `init_unit`'s head `+1` carries no population gate
+- (3797a) Three of the thirteen never-seen lines cannot be staged by `add` at all.
+- (3797b) `tech`'s name walk is still `type_named`'s exact-then-prefix rule.
+- (3797c) The twin enters one new function and none of the never list.
+- (3798b) A half-land row reorders `find_all`'s scan on one lobby
+- (3798c) Two `fill_fertile` inputs rest on Great Sahara's one tileset.
+- (3798d) The partitions' float is exact under |f| < 6,420
+- (3800a) A building searcher's helicopter arm
+- (3800b) The `cover=1` twin cannot attribute a draw
+- (3802a) A missile launch's middle point, in float
+- (3802c) A ground unit's figure z
+- (3803a) The branches Great Sahara's groups never take
+- (3803b) The pattern-2/3 weights run on one region only.
+- (3803c) The mountain rings are the install's sixteen, written in
+- (3804a) Piece 261's pods at one heading
+- (3804b) Three more air shooters leave from the wrong point in run1469
+- (3805a) A goods slot is never reused on Great Sahara
+- (3805b) The resource branches Great Sahara never takes
+- (3805c) The herds and the `Goods`/`Items` checksum lines are not compared.
+- (3805d) An unmatched pattern string and a missing `group`
+- (3806b) 3804b's hypothesis is killed for 648, and one of its labels is wrong
+- (3807a) The value branches Great Sahara never takes
+- (3807b) Which `Region.flags` 0x40 `adjust_for_blocking` releases
+- (3808a) A pitched figure's lead is the listing's alone
+- (3808b) The land and building arm's middle point
+- (3809a) The arms of `Terrain::init`'s span that Great Sahara never enters
+- (3811a) The arms of `Map::make_rivers` that Great Sahara never enters
+- (3812a) The height arms that Great Sahara never enters
+- (3813a) Piece 77's rows no dumped round checks
+- (3814a) `air::missile_round`'s ground arm lays no spline
+- (3815a) Eleven Great Lakes files whose head gives no grid size
+- (3815b) The Great Lakes arms the corpus's one generator run cannot reach
+- (3816a) The air shooters' rounds still leave their squares
+- (3816b) A land shooter's `r` is pinned only by the given 984
+- (3819a) Two `find_all` arms no map-generation checkpoint can part
+- (3819b) `tileset_before` cannot see the second tileset draw.
+- (3820a) The East Indies arms the corpus's two generator runs cannot reach
+- (3820b) Nothing caps the restart.
+- (3822a) Three water arms the Great Lakes corpus runs but cannot part
+- (3822b) The team lobby's 3-nation run has a stream and no checkpoint.
+- (3824a) A wreck's other soft arms read nothing off it.
+- (3825a) `find_all`'s clamps and eviction are reached by no map
+- (3826a) Three water arms of `place_region_resource` the Great Lakes corpus runs but cannot part
+- (3826b) The Whales, `get_water` and patterns `continent`/`nonplayer` still run on no map.
+- (3827b) Piece 80's 24 rows that no dumped round checks
+- (3828a) Two water arms East Indies runs and cannot part either
+- (3831a) The water cell's COAST refusal, and `get_water`, `continent` and `corner`, still part nothing
+- (3832a) Great Lakes' 720 is a height's: step 6's tail waits on step 7
+- (3832b) Four flag arms the Great Lakes gate pin cannot part
+- (3834a) Piece 94's rows that no walk holds
+- (3835a) Three height arms Great Lakes cannot part
+- (3836a) A round's target is forgotten at the death, not at `do_damage`
+- (3836b) The Attack Helicopter `1/15`'s damage parts in 701..801.
+- (3836c) Theirs' V2 Rocket `0/16` is in no 2601 record.
+- (3836d) The Stealth Bombers' bombs leave from their square, and their clocks.
+- (3840a) Five value arms East Indies runs but cannot part
+- (3841a) The widening's closing block reads 2601 without the quit.
+- (3841b) What the defeated flag moves on the closing frame.
+- (3841c) `Unit::clear_orders` on a walker at the quit.
+- (3843a) What `_wcoord`'s body holds that Great Lakes does not reach
+- (3844a) Six flag and height arms the archipelago cannot part either
+- (3845a) The river arms Great Lakes' walk cannot part
+- (3846a) The `make_riverbeds` arms East Indies' walk cannot part
+- (3847b) 124, the German Machine Gun, cannot be staged by `add`
+- (3847c) The twin enters none of the never rows.
+- (3847d) The Aircraft Carrier, `add`ed at sea, never moves
+- (3849a) A guided round keeps a dead target.
+- (3849b) Answered by item 3855
+- (3849c) The 24 pivot rows' `float_lands` are unmeasured.
+- (3965b) The unit arm's `0x4000000` is gated on the type's vslot `+0x60`.
+- (3851a) The step 7 tail arms East Indies' walk cannot part
+- (3854a) `healing` (`UnitData +0x38`) is not carried.
+- (3854b) The Citrus arm runs on no capture.
+- (3855a) The pivot bearing of a `SAME_AS` piece scales by its own piece.
+- (3855b) Two rounds' `ez` read 25 against 24.
+- (3857a) `think_scout` on a packet stops in the issue.
+- (3857b) `unitrules.xml` keyed by `NAME` gives the wrong `FROM` root.
+- (3856a) Five of `blind::NEVER`'s 256 row are entered by archived traces outside `TRACES`.
+- (3856b) The cliff chain has no value diff.
+- (3856c) Two `RESIDUE` candidates, one reading each.
+- (3858a) run1118 and run1122 joined `blind::TRACES` with no `cover=0` twin.
+- (3860a) The cell's `0x4000` is one bit, not a count.
+- (3860b) `produce_building` runs whole on a packet.
+- (3859a) `Map::force_continent_spacing@0068e6a0` — ruled `RESIDUE` by the sixty-sixth pass
+- (3861a) `BorderSpline::on_field_change@004a1ca0`, `CircleRender::on_field_change@008c6db0` and `ParamRegisterWindow::on_scroll@009343b0` — ruled `RESIDUE`…
+- (3862a) The fourth melee's three leader keys at the close.
+- (3862b) Four Russian sites read `build:extra` on the closing block.
+- (3863a) `verify_land`'s depth can saturate, and the arm's predicate then has a route in.
+- (3864a) `TerrainOut::check_for_diagonal@008595f0` stays open; `TerrainOut::generate_transitions@00861960` is `RESIDUE`
+- (3864b) 3864's "for the Loop"
+- (3865a) A third computer seat on the click-free lane is not known to work.
+- (3865b) The French pair's Airbase holds 296 and never trains it.
+- (3865c) `SPANISH_EXTRA_SCOUT` is not carried.
+- (3866a) City `1/2046`'s `assimilation_timer` reads 3500 in ours against 3497 at the close
+- (3867a) A round keeps its dead target, on a second lobby
+- (3867b) The Toughest German Industrial computer fields no machine gun
+- (3868a) The Russian Missile Cruiser `2/16`'s rounds part on `ez` and on a dead target
+- (3868b) The Attack Helicopter `2/19`'s `mirror` reads 1 in ours against 0 on block 1501
+- (3869a) Two of the mask's arms are inert on run1493's one generator run.
+- (3869b) Mesa's next step is the zero-draw passes (7835..7854) on run1493's file
+- (3870a) 3863a's bound does not close by reading; the start's two batches are the open part
+- (3870b) The console-planted contact belongs to Great Lakes, not Great Sahara, and needs an aimed cursor
+- (3871a) The plant at (41, 42) did not enter the arm; the gate is in `check_for_tendrils`
+- (3871b) (16, 45) is the same shape on the same grid
+- (3872a) Six of the passes' arms are inert on run1493's all-land mask
+- (3872b) Mesa's next step is `place_all` at 7859, and its first draws are a cliff group's.
+- (3873a) The ammo walk's dead-shooter bump is one pass ahead of the walk, not each round's own step
+- (3874a) No single `weather` plant on Great Lakes' golden start reaches the arm
+- (3875a) Six cliff arms are inert on run1493
+- (3875b) Mesa's step 4 is the tail and the resources, 7861..7927, on run1493.
+- (3875c) `verify_defensive_position`'s angle test is a `SEAM`
+- (3877a) `Unit::do_group_attack@005e75a0` and `Unit::do_await_board@005ed040` are `RESIDUE` candidates
+- (3877c) `Group::kill_group_order@00710aa0`'s second caller is dead
+- (3878a) Fourteen of twenty single mutants of the tail and the resources fail nothing on Mesa, each measured.
+- (3878b) Mesa's step 5 is the values, 7937 and 7945, on run1493.
+- (3881a) The General's stand-off point on run1498, unchecked against `do_attack.rs`
+- (3882a) The five value mutants Mesa cannot part
+- (3882b) Mesa's step 6 is `Terrain::init` without heights, 734..5012, on run1493.
+- (3884a) All nine data-accessor rows are `RESIDUE` candidates, under four predicates
+- (3884b) Four destructors joined `NEVER` with §383's cite, and they are `RESIDUE` candidates too
+- (3884c) `vtables.txt` omits the multiple-inheritance tables.
+- (3885a) The five step-6 mutants Mesa cannot part
+- (3885b) Mesa's step 7 is `Cliffs::init` and the heights, 815 → 894, on run1493.
+- (3886a) `WorldData::is_valid@00471170` is a `blind::RESIDUE` candidate
+- (3888a) Thirteen `make_rivers` arms have nothing to decide on Southwest Mesa.
+- (3888b) Mesa's step 7 is `Cliffs::init` and the heights, 815 → 894, on run1493
+- (3888c) The map lane past step 7
+- (3889a) What `River::calculate`'s body did on run1499's 623 is not read.
+- (3890a) Thirteen `Cliffs::init` arms have nothing to decide on run1493.
+- (3890b) `Goods`' checksum line is not ported, and no herd exists inside `Terrain::init`.
+- (3892a) The eight slot rows' blind second reading.
+- (3892b) The slot scanner is reached for the third time
+- (3894a) The four rows' blind second reading.
+- (3896a) 3505b's route does not exist for an AI, so no take was run (run 1501 unused).
+- (3896c) Archive greps of the dumps need `\r?\n`.
+- (3900a) A blind second reading of AI §388, to move `Unit::kill_group_order@005e3310` and `Group::kill_group_order@00710aa0` to `RESIDUE`.
+- (3900b) 3504a's staging would have held the stash, and only `repath` closes it.
+- (3901a) A gaia Oil good's `ever_seen` parts on run1504's first whole dump.
+- (3902a) `fight`'s second `find_new_target` after a group attack-move meets a capture-eligible building.
+- (3902b) A duplicate group-move id in one list would let `repath` kill the `ATTACK`.
+- (3903a) A blind second reading of AI §389.
+- (3903b) Route 2 (3902b) is the open route to the pair.
+- (3904a) The entry into `find_new_target` for route 2's list
+- (3904b) A blind second reading of §390.1–§390.3.
+- (3905a) A siege member skipped by `action_halt(4)` may get `finish_insert`'s group re-issue under its own `ATTACK`.
+- (3905b) A packer's combat stance is always `COMBAT_STAND_GROUND`.
+- (3906a) `docs/ARMY.md` §5 calls `semaphore[1] & 8` "the AI-off bit".
+- (3906b) A blind second reading of AI §391.3.
+- (3906c) The eleven stagings of AI §391.2, for the commander to book.
+- (3907a) Three spell stagings for the commander to book as chapters
+- (3907b) The writers of a craft's `FROM` (`+0x3c`)
+- (3908a) The `!eval` staging that enters `MapConquest::check_starting_loc@0068d7e0`.
+- (3908b) Each style's chain take, held for 3888c.
+- (3908c) The census leaves `ScenarioFuncSet::find_extra_starting_loc` outside the territory.
+- (3909a) A mine against a cliff
+- (3909b) A unit created by the console's `eval`, on land
+- (3909c) The queue's count of 3909 was 32; the stems it named are 44.
+- (3910a) A blind second reading of AI §390 and §394, on route 2 to the `kill_group_order` pair
+- (3911a) A Bomber's round under an air attack-ground does not take its landing from the order's point.
+- (3912a) Pool lane 2 ran an unstaged game under a staged `cover=1` take
+- (3912b) `Group::action_recall`'s walk reads through a null current order in the original
+- (3913a) `action_stop_spell`'s Merchant arm
+- (3914a) `action_disband`'s building arms
+- (3914b) `OPTION_DISBAND_ALL` on two units, and a holder with passengers.
+- (3915a) Pool lane 2 seats who=1 as another nation.
+- (3915b) The waypoint arm's other verdicts.
+- (3916a) The peasant alarm's unstaged arms
+- (3916b) Two of AI §391.2 row 9's readings were wrong, and only the take showed it.
+- (3918a) A Disband in a city
+- (3918b) A Disband entry behind a stuck head, and its readers
+- (3919a) Antipater's trench
+- (3919b) The semaphore's waiver.
+- (3919c) Entrench's unstaged arms.
+- (3920a) The other `Unit::set_angle(…, 1)` callers
+- (3920b) Counterintelligence's leader counters
+- (3921a) A pool lane's lobby is not pinned unless `--profile` names each field
+- (3921b) What `find_extra_starting_loc` appended
+- (3923a) The take: `do_move:105` under `ungroup_move_order`'s plain move
+- (3924a) The cliff arm of `calc_gather`'s mine arm, built
+- (3924b) `--dump-all-start` refuses any `--log-window` but `0 2`
+- (3930a) A Disband at a city building without `NO_CITY`
+- (3932a) 3923a's entry re-timed: the collision first, then `GM Y` and the regroup inside the beat
+- (3932b) The first `@formadd` after an attack adds no move, and an attack on an unseen unit's plain move ends after nine frames
+- (3932c) run1518 timed out at 3600 s after its last dumped frame
+- (3934a) The city arm's refusal of a second entry in one city
+- (3935a) The chapter that enters `Group::is_moving_to@00713bd0`
+- (3936a) The fleeing unit target that reaches `Group::is_moving_to@00713bd0`
+- (3937a) A stash under the ungroup's copy, the one road 3932a's refusal leaves
+- (3937b) An attack on an unseen unit lays its plain move to a point a few cells off, not at the target
+- (3939a) `check_target_path`'s standing-group pop, `is_moving_to == 0`
+- (3940a) A crowd around V under the plain copy, a seventh ordering
+- (3940b) Whether V's search ran is read off the side-step, not a hook
+- (3964a) run1075's citizens garrisoned, which no walk reaches
+- (3942a) The rest of run1516b's block 101
+- (3942b) `diff::setup` lays no cliffs
+- (3942c) A sweep of `CliffsData::gather_size@008a8f80`
+- (3943a) `SouthwestMesaLakotaTier2` parts on frame 15754
+- (3943b) The cliff lists' tiles in a played game
+- (3943c) The Inca on Southwest Mesa, the lobby the battery's fence refused
+- (3944b) Great Lakes and East Indies hand the troughs no footprints
+- (3944c) The good's new cell is overwritten between 894 and 1240
+- (3945a) 3944c's unnamed writer stands on a second moved good
+- (3946a) §22.2's "no checkpoint 7805..7945 on disk" missed the AI track's Himalayas files
+- (3946b) Himalayas is both a chain read against and the AI track's held-out map
+- (3947a) African Watering Hole's two unreached mask arms.
+- (3948a) The start walk can creep for millions of turns
+- (3948b) `eliminate_pools`' merge target when the last neighbour read is another sea
+- (3949a) Australian Outback's merge loop and restart, unreached.
+- (3950a) Four arms of New World's mask that run1533 does not reach
+- (3951a) Colonial Powers' outsiders, restart and clamp: unreached by any take.
+- (3952a) `check_player_land`'s guard and adoption arm on Sea Power
+- (3952b) The first-pass stall
+- (3952c) The harness's goods order
+- (3953a) Three arms of Nile Delta's mask that run1536 does not reach
+- (3958a) `Unit::find_melee_target@005ff9c0`'s cloak exit
+- (3960a) The carrier's queue, ported, needs a walk of run1066
+- (3961a) The on-map heals this crate does not take, now dated by `healing`
+- (3961b) `Build::process`'s patriot repair
+- (3963a) A world with no dump does not read the style's six territory limits
+- (3975a) The MLRS round's `angle`
+- (3975b) Theirs heals units out of the fight, ours does not
+- (3978a) 3961a's two rows close with the supply heal
+- (3978b) A supplying general's aura heals nobody — a reading
+- (3979a) Two MLRS rounds fired on 2600 land apart
+- (3985b) Blow Tread, Restock Supplies and `TypeData::get_cost@00664090`'s spell arm are dead on shipped data.
+- (3985c) `cast_bribe`'s refusal refunds are dead from `do_cast`.
+- (3999a) The rest of `Unit::swap_team@006118d0`'s figure copy.
+- (3981a) The Dock's trained carrier is born with its planes
+- (3981c) Leader 0's `gather_stamp` after the `resource` line
+- (3983a) The human's units on a quit's closing block keep `0x10` in theirs
+- (3983b) 18 `cant_reach` rows, ours 1 / theirs 0, ride a field that already parts on the same unit.
+- (4000a) who=1's `1/0` on 1021 in chapter 128
+- (3987b) ~~A regrown figure inside a garrison~~ Closed by item 3993 (`docs/GOLDEN.md` §186): `Unit::repair_damage` regrows it into the dead tail's number; c…
+- (3984a) run1075's garrison count parts on 2188, on a stream parted since 2060
+- (3984b) run1075's `healing` rows after 3987's garrison heal
+- (3988a) A busy member of a mixed group is unobservable on the group commands found
+- (3988b) `@settransport` is the boarding toggle, not `Group::action_transport`
+- (3993a) The reload inside is held by no walk
+- (3993b) The short squad's `total_damage`, read and not built
+- (4033a) `START_LOBBIES` counts every capture with a start head, a scratch log among them
+- (4033b) Three of the start block's leader fields compare the crate with itself
+- (3989a) `Build::replace_gather@00622d10`'s hotkey-successor arm is unbuilt
+- (3989b) `tools/gamelog/coverage/disband3455-die.cmd`'s nine `die o,1` now stage
+- (4005a) Who=1's scout `1/0` on 1021
+- (4005b) The flee rings a walk does not hold
+- (3990a) The carrier arms of the scramble and the re-home
+- (3990b) The helicopter's arms a walk does not hold
+- (3992a) The cityless placer's `WorldData::is_really_seen`
+- (3992b) `Wall::process@00640450`'s ever-seen marking on enemy land
+- (3991b) The split's ally arm and the strike on a flying flier
+- (4007a) `0/12`'s strafe rounds part by one unit from 1043
+- (4007b) `unit_masks` bit 4 on a struck unit
+- (4009a) `sweep_gen.py` still draws the unfolded `obj with windows` skeleton
+- (4018a) The camera's per-frame motion
+- (4018b) The starting camera and the clip planes
+- (4019a) How an animation binds to a model whose tree it does not match
+- (4019b) The node and key transforms against a loaded `HierObj`
+- (3994a) The Helicopter's first round lands a frame late.
+- (3994b) Pool slot 2's `speed`/`new_speed` on 930.
+- (4028a) Buildings in the draw list: condition 2 for M's building types.
+- (4028b) The farm's art
+- (4028c) The snowy-tileset texture variant
+- (4026a) The viewer's drawn set against the original
+- (4026b) The depth key's order
+- (4026c) Buildings in the draw list
+- (3995a) The army whose target dies in transit
+- (3995b) The razed trade city
+- (4036b) The camera is not a function of the frame.
+- (4036c) The terrain condition stops at frame 37.
+- (4035a) A building's height in the damage step is read live.
+- (4035b) `BuildData::max_age` is not kept.
+- (4035c) A building's drawn set is a reading.
+- (4046a) `Leader::init`'s diplomacy loop writes two more fields the builder leaves at `Sim::new`'s
+- (4048a) The client does not build the wheat field's mesh
+- (4048b) A start dump with no farm list takes the first sibling's `farm_type`s
+- (4048c) `Farms::add`'s own height sample is not separated by a capture
+- (4061a) The client draws neither the foundation nor the scaffold
+- (4061b) The scaffold's element, its age bracket and its angle are not checked
+- (4047a) `docs/ORDERS.md` §9.2's placer prose has the draw on the wrong arm.
+- (4047b) `AMERICANS_STARTING_FARMS` and `IROQUOIS_SENATE` are not loaded
+- (4038a) Textures and team colours in the client
+- (4038c) A figure the photograph does not show
+- (4065a) The tanks' scale is the original's: the booking's mechanism is killed
+- (4065b) Candidate C cannot see an olive tank on grass
+- (4065c) The tanks' facing and place
+- (4063a) `docs/ORDERS.md` §9.3's citizen prose says `Unit::come_out(u, 0)` "steps off the footprint to the nearest free spot beside it".
+- (4063b) `SPANISH_EXTRA_SCOUT`, `GREEK_START_SCHOLARS` and `KOREAN_CITIZENS` are not loaded
+- (4067a) Every figure is drawn a quarter turn off the original's facing
+- (4069a) Our `fill` of a `rotate_z` quaternion turns opposite to `get_position`'s `R(d)`
+- (4071a) Candidate C reads a new frame only by colour, or by a new trace
+- (4073a) Why run1559's and run1559b's photograph, taken paused on 3294, shows frame 3279
+- (4076a) Candidate C's reader cannot score a building drawn right.
+- (4076b) The sprite's depth.
+- (4076c) What a sprite is drawn with.
+- (4058a) The profile's own `Recorded Games` is not in the round trip's denominator
+- (4058b) A slot written as the original writes it, tribe 24, is not played
+- (4077a) Six rows miss on the default draw, five of them round one untraced tank
+- (4079a) A tree the client does not draw stands in front of the woodcutter's crate
+- (4079b) Three riflemen in the tank's window stay out with 1/27 traced
+- (4080a) The trees hide four figures that the photograph shows
+- (4085a) Two of 4082a's candidates, killed by the photograph's own pixels
+- (4085b) Which land units take `init_land_unit_map`'s method list 1, and the guys pass's order
+- (4086a) 1/31 is behind our tank where the photograph shows it in front of the hull
+- (4086b) Drawn larger: killed by step 1's table.
+- (4086c) Another pose: the state is the original's; ~~the pose drawn from it is not read~~: read by item 4092, the original's (4092a)
+- (4087a) ~~The tank's tilt to the slope, which our client does not draw~~: drawn by item 4089
+- (4087b) The farther figure drawn over: killed by the packet's tree.
+- (4060a) The rules line is not one value across games
+- (4060b) The decompile export's type records lack the fields of a class with a virtual base
+- (4060c) 4060's "for the Loop"
+- (4088a) The reader's `Begin`/`End` names where a checksum record printed, not which half of the tick it is
+- (4088b) 4088's "for the Loop"
+- (4088c) What the items line's one frame does not hold
+- (4091a) `Animal::work`'s herd arm of a good's `ever_seen` is not modelled
+- (4091b) What the cities line's one frame does not hold
+- (4091c) 4091's "for the Loop"
+- (4091d) `ai_census`'s seam table calls `GoodData::ever_seen` unwritten
+- (4093a) Good 15 is `Amber`, not the `SILK`
+- (4093b) Run9's `[Start Game]` dump has a torn first `GOOD` record
+- (4093c) What the scan's one lobby does not hold
+- (4093d) 4093's "for the Loop"
+- (4089a) The draw clock the tilt's ease runs on
+- (4089b) 1/20 and 1/32 stay out
+- (4092a) 1/20 and 1/32 stay out, and the pose is not why: killed by the table
+- (4092b) The clock's clamp is `animmgr.times`, not the root's last key
+- (4098a) The readers with a stated seam can now read the whole chain
+- (4098b) The world line's cell `down` and `down_who`
+- (4098c) The unit dump's four chain words are parsed and compared by no diff
+- (4097a) `recharging` is a `short` in the original and an `i32` here
+- (4097b) `gamelog::BuildDump` does not parse `recharging`, which every kept dump prints
+- (4103a) The silhouette's pixels that still part
+- (4099a) What parts on the colour row
+- (4102a) The masked pixels that still part, and the figures the team colour moves down
+- (4106a) What parts on the colour row once the light is ruled out
+- (4107a) The peasants' masked pixels, and 4106's selection
+- (4104a) What the guys line agrees on by default on frame 91
+- (4110a) The masked pixels that still part, once the colour and the share are read off the photograph
+- (4112a) The level and the texcoord the card samples on a figure's lit pixels
+- (4114a) The photograph over our texel once the install's whole pixel pipeline is read
+- (4113a) The units line's bits and slots no scored frame holds
+- (4117a) The medium tank's texel is its own file in its own place; what parts it from the photograph is not
+- (4116a) What the groups line rests on that no scored frame holds
+- (4122a) The stored normals under the lit pixel; the colour row rests at 18
+- (4121a) What the leaders line rests on that no scored frame holds
+- (4124a) The 80 leaves a plain game moves and the crate holds no value for
+- (4124b) What 4124's carried leaves rest on that frame 91 does not hold
+- (4127a) The blends between bases and kinds
+- (4127b) Sub 3's dirt, and what multiplies the texel
+- (4129a) The transition patch's alpha
+- (4129b) The 31 cells the original re-listed
+- (4131e) What the carried fields rest on that frame 91 does not hold
+- (4136a) Run1559b's 31 cells, still out
+- (4136b) The close's clear and the refresh, by no capture of their own
+- (4136c) Read, not run
+- (4139a) Stage 0's sampling of the patch's base
+- (4139b) The client's blend space
+- (4141a) The ring pass, undiscriminated
+- (4141b) The mountain's diffuse, its tint and its third stage
+- (4141c) The range's own mesh
+- (4143a) The water, the coast and the cliffs: no tile on frame 3279
+- (4143b) The ground the masks take
+- (4143c) Off the heightfield
+- (4145a) The opening camera's clicks
+- (4145b) The original's hit test and hotkeys
+- (4145c) The window under a real mouse
+- (4147a) The `WORLD` census is parsed, and two documents say it is not
+- (4147b) The eight tallies against every block, not only frame 0
+- (4147c) What the tallies rest on that no dump prints
+- (4149a) A move order keeps two destinations
+- (4149b) The build's drop point is printed nowhere
+- (4148a) The words' readers, and what the words rest on that frame 91 does not hold
+- (4153a) Leader 0's `explored` is one or two under theirs in twelve late-age pairs
+- (4150a) `move_unit`'s one-block form returns early on a null block
+- (4150b) What the blocks rest on that frames 91 and 92 do not hold
+- (4118a) The `+0x86` union: our idle citizens hold a hold doober's slot that the original has given back
+- (4118b) `play`: the golden harness's lines never make `process_group`'s write
+- (4118c) run667's closing block takes four more firsts with the union compared
+- (4152a) `docs/CITIES.md` §8.5's repayment rate is wrong, one frame in five
+- (4152b) Three more corrections the readers name, unread by the driver

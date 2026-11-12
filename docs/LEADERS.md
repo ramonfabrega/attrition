@@ -1797,7 +1797,7 @@ Corrections that changed a rule:
 Confidence is **high** on every store and predicate, each read in the
 listing. It is **medium** on `scale_tribute`'s constants.
 
-Witness, **not a pinned diff**: run1086's taunt gift (`docs/PARKED.md`
+Witness, **not a pinned diff**: run1086's taunt gift (`docs/audit/parked-archive.md`
 3470a), where the ally's `gift_stamp[0]` reads the frame and every
 `tributes` and `escrow` slot reads 0 at frame end (commit and exchange run
 in one call).
@@ -4366,7 +4366,7 @@ No kept-dump value is cited as a witness.
 - **What `CityData::race` holds after a capture.** It decides when a tile
   counts for nobody (−2). A capture with `reg_terr` diffed, or a
   reading of `race`'s writers, settles it. Whether the crate's recount
-  already parts in a capture is booked as `docs/PARKED.md` 568.
+  already parts in a capture is booked as `docs/audit/parked-archive.md` 568.
 - **`Wall::increment_stats`' predicate**, which decides that
   `num_buildings[T]` already counts the building when `n` is taken. Both
   readings read it from a folded body (`006432e2`); confidence is medium.

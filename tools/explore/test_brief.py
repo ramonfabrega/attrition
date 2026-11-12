@@ -202,16 +202,17 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertIn('run424', reserved)
         self.assertIn('docs/GOLDEN.md §48', reserved)
 
-    def test_a_park_slot_is_reserved_by_letter(self):
-        # Parked 1812: every lane appended its `## Parked by item N` at the
-        # file's tail, and three merges backed out there; the brief names
-        # the pool heading the lane renames.
-        text = self.compose(1131, 'chapter', park='C')
-        reserved = text.split('## Reserved for you')[1].split('\n## ')[0]
-        self.assertIn('## Parked by the next landing, slot C — reserved', reserved)
-        self.assertIn('rename', reserved)
-        self.assertIn('never append', reserved)
-        self.assertIn('ask me for a park slot', self.compose(1131, 'chapter').split('## Reserved for you')[1])
+    def test_a_finding_parks_in_the_lane_s_own_journal(self):
+        # DECISIONS 125: the parked file is gone. Every lane appended to it
+        # and it grew to 1.49 MB; the brief sends a finding that names no
+        # score to the item's own journal, with or without a slot letter.
+        for text in (self.compose(1131, 'chapter', park='C'), self.compose(1131, 'chapter')):
+            reserved = text.split('## Reserved for you')[1].split('\n## ')[0]
+            self.assertIn('`- **1131a. <title>**`', reserved)
+            self.assertIn('## Parked', reserved)
+            self.assertIn('There is no parked file', reserved)
+            self.assertNotIn('docs/PARKED.md', text)
+            self.assertNotIn('park slot', reserved)
 
     def test_the_seams_are_read_for_the_lane(self):
         # Parked 1743: `seams.py` ran in one of nine word lanes' journals and

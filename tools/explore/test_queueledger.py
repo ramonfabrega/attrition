@@ -8,6 +8,7 @@ ledger exists to catch. These fail on that tree.
 """
 from pathlib import Path
 import importlib.util
+import re
 import unittest
 import subprocess
 import tempfile
@@ -59,6 +60,31 @@ class FourDigitItems(unittest.TestCase):
         self.assertFalse('{1,3}' in source.split('"""', 2)[2], 'a pattern spells its own width')
 
 
+class TheParkedFileIsGone(unittest.TestCase):
+    # DECISIONS 125: docs/PARKED.md is archived, and a parked finding lives
+    # in the journal file of the item that found it.
+    def test_a_cited_park_is_read_only_after_the_word(self):
+        text = ('held out (parked 4124a); kills (4118a to 4118c) and (parked 4058a, 4058b); '
+                'parked 4141a to 4141c; run1561a and frame 4118a stand outside it; parked 1713 is an item')
+        self.assertEqual(queueledger.cited_parks(text), {'4124a', '4058a', '4058b', '4141a', '4141c'})
+
+    def test_a_park_resolves_in_the_index_or_its_item_s_journal(self):
+        index = '# index\n\n- (4124a) the 80 leaves\n- (1224) fifteen seams\n'
+        journals = {4200: '## Parked\n\n- **4200a. A thing found**: text\n', 4201: 'names 4200b in passing'}
+        cited = {'4124a', '4200a', '4200b', '4201a'}
+        # 4200b is written in 4201's journal, not in 4200's: the id names its item.
+        self.assertEqual(queueledger.unresolved_parks(cited, index, journals), ['4200b', '4201a'])
+
+    def test_the_archive_is_pinned_to_a_commit_that_holds_the_file(self):
+        self.assertRegex(queueledger.ARCHIVE_REV, r'^[0-9a-f]{40}$')
+        self.assertEqual(queueledger.QUEUES, ['docs/QUEUE.md'])
+        held = queueledger.git('show', '%s:%s' % (queueledger.ARCHIVE_REV, queueledger.ARCHIVE_PATH))
+        self.assertGreater(len(held), 1_000_000)
+        rows = len(re.findall(r'^- \(', queueledger.ARCHIVE_INDEX.read_text(), re.M))
+        self.assertLessEqual(rows, queueledger.ARCHIVE_ROWS)
+        self.assertGreater(rows, 0)
+
+
 class HistoricalBlobs(unittest.TestCase):
     def test_batch_preserves_show_bytes_order_and_repeated_requests(self):
         with tempfile.TemporaryDirectory() as d:
@@ -91,7 +117,8 @@ class HistoricalBlobs(unittest.TestCase):
             subprocess.run(['git', 'init', '-q', d], check=True)
             journal = root/'docs/JOURNAL.md'; journal.write_text('')
             ledger = root/'docs/audit/queue-ledger.md'; ledger.write_text('')
-            with patch.multiple(queueledger, ROOT=root, JOURNAL=journal, JOURNAL_DIR=root/'docs/journal', LEDGER=ledger):
+            with patch.multiple(queueledger, ROOT=root, JOURNAL=journal, JOURNAL_DIR=root/'docs/journal', LEDGER=ledger,
+                                ARCHIVE_REV=None, ARCHIVE_INDEX=root/'docs/audit/parked-archive.md'):
                 output = io.StringIO()
                 with contextlib.redirect_stdout(output):
                     code = queueledger.main()
@@ -113,7 +140,8 @@ class HistoricalBlobs(unittest.TestCase):
             queue.write_text('')
             journal = root/'docs/JOURNAL.md'; journal.write_text('')
             ledger = root/'docs/audit/queue-ledger.md'; ledger.write_text('')
-            with patch.multiple(queueledger, ROOT=root, JOURNAL=journal, JOURNAL_DIR=root/'docs/journal', LEDGER=ledger):
+            with patch.multiple(queueledger, ROOT=root, JOURNAL=journal, JOURNAL_DIR=root/'docs/journal', LEDGER=ledger,
+                                ARCHIVE_REV=None, ARCHIVE_INDEX=root/'docs/audit/parked-archive.md'):
                 def result():
                     output = io.StringIO()
                     with contextlib.redirect_stdout(output): code = queueledger.main()

@@ -980,14 +980,14 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `process_stance`, but its `cover=0` trace enters no function; a
 /// `cover=1` take would move it to [`ENTERED_BY_THE_DLL_ONLY`].
 /// **333** with item 2287's cite of `Farms::add_animals@008d92d0`
-/// (`docs/PARKED.md` 2289): the no-argument overload has no port, and no
+/// (`docs/audit/parked-archive.md` 2289): the no-argument overload has no port, and no
 /// trace enters it.
 /// **335** with item 2320's cites of `Game::say_no_war@00592b00` and
-/// `Game::current_age@005946d0` (`docs/AI.md` §218, `docs/PARKED.md` 2321):
+/// `Game::current_age@005946d0` (`docs/AI.md` §218, `docs/audit/parked-archive.md` 2321):
 /// the rush rules' arms, which no pinned trace sets; the peace pair's
 /// lobby reaches them at `cover=0`, so a `cover=1` take would enter them.
 /// **336** with item 2341's cite of `Group::kill_group_move@007123f0`
-/// (`docs/PARKED.md` 2345): `Unit::repath`'s grouped-`GROUP_MOVE` arm,
+/// (`docs/audit/parked-archive.md` 2345): `Unit::repath`'s grouped-`GROUP_MOVE` arm,
 /// swept under the emulator with it stubbed, and no trace enters it.
 /// **337** with item 2474's cite of `Console::hurry_action@007c3810`
 /// (`docs/GOLDEN.md` §90): ~~run860's `finish` calls it~~ only `hurry`
@@ -1000,7 +1000,7 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// (`docs/AI.md` §261): The Despot's Ambush, whose `0x2000` run943's
 /// `unit_masks` print, but no pinned trace enters the cast.
 /// **372** with item 3387's cite of `SpellTypeData::find_target@00674920`
-/// (`docs/PARKED.md` 3387d): swept under the emulator with `Console::find_target`
+/// (`docs/audit/parked-archive.md` 3387d): swept under the emulator with `Console::find_target`
 /// stubbed, and no pinned trace casts a spell search.
 /// **373** with item 3409's cite of `Leader::action_declare@006dab50`
 /// (`docs/AI.md` §98.6): `pay_dow`'s one caller, which a skirmish at war
@@ -1231,13 +1231,13 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// Alt-right-click on a Barracks): `CommandPackage::process_siege_attack@00949ae0`
 /// on 612, the type-5 command `GroupOut::issue_siege_attack` built under a
 /// held Alt.
-/// **247** with item 3504's park (`docs/PARKED.md` 3504a, no capture joins
+/// **247** with item 3504's park (`docs/audit/parked-archive.md` 3504a, no capture joins
 /// [`TRACES`]): `Group::kill_group_order@00710aa0` is newly cited, the one
 /// caller of `Unit::kill_group_order@005e3310`, and runs 1139–1142 never enter it.
 /// **248** with item 3693 (no capture joins [`TRACES`]): `GroupData::get_max_range@00711080`
 /// is newly cited (`docs/AI.md` §348.3, `do_attack`'s grouped arm), and no trace enters it.
 /// **249** with item 3708 (no capture joins [`TRACES`]): `Forts::close_fort@0073ec90` is
-/// newly cited (`docs/PARKED.md` 3708b: a fort's death or capture takes it off the list),
+/// newly cited (`docs/audit/parked-archive.md` 3708b: a fort's death or capture takes it off the list),
 /// and no trace enters it.
 /// **256** with item 3734 (no capture joins [`TRACES`]): `docs/MAPGEN.md` cites
 /// `Map::make_continents@00694ab0` (the base mask, no corpus style calls it),

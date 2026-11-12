@@ -429,12 +429,13 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
     out += ['- **Sections**: ' + ('; '.join(sections) if sections else
                                   'amend your documents\' sections in place; name a new '
                                   'section to me before you write it') + '.']
-    out += ['- **Park heading**: ' + (
-        f'`## Parked by the next landing, slot {park} — reserved`, at the end of `docs/PARKED.md`: '
-        f'rename it `## Parked by item {item}, <the day you land> — <title>` and file your parked rows '
-        'under it; never append a heading at the file\'s tail (parked 1812: three merges backed out there).'
-        if park else 'ask me for a park slot before you park a row; never append a heading at '
-                     '`docs/PARKED.md`\'s tail (parked 1812).')]
+    # There is no parked file (DECISIONS 125): it grew to 1.49 MB as the one
+    # place every lane appended to. A finding that names no score stays with
+    # the item that found it, and `park` is accepted and reserves nothing.
+    out += [f'- **Parking**: a finding that names no score is a row of your own journal file, under '
+            f'`## Parked`, as `- **{item}a. <title>**`, then `{item}b`; when it is about a mechanic, add one '
+            'line under that document\'s "What is not established". There is no parked file to append to '
+            '(DECISIONS 125); the old rows are `docs/audit/parked-archive.md`.']
     if seams is not None and kind in ('residue', 'chapter'):
         lines = seams(item).rstrip('\n').split('\n')
         shown, rest = lines[:SEAMS_LINES], len(lines) - SEAMS_LINES
@@ -474,7 +475,7 @@ def main():
     ap.add_argument('--tests', nargs='+', default=[],
                     help="the lane gate's filters for the word; `coverage::` is added (1623); "
                          "a sweep or a reading names none; one that matches no test is refused (3818)")
-    ap.add_argument('--park', help='the park slot letter reserved for the item (parked 1812)')
+    ap.add_argument('--park', help='accepted and unused: there are no park slots since DECISIONS 125')
     ap.add_argument('--no-seams', action='store_true', help='leave out the seams.py print (parked 1743)')
     ap.add_argument('--briefs', type=Path, default=Path(os.environ['CLAUDE_JOB_DIR']) / 'tmp' if os.environ.get('CLAUDE_JOB_DIR') else None,
                     help="the directory of the other lanes' briefs (brief*.md), whose run numbers are taken (Loop 3176); "

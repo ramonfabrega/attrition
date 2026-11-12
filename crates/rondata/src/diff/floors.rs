@@ -2613,7 +2613,11 @@ mod tests {
         }
         let docs = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs");
         let queue = std::fs::read_to_string(format!("{docs}/QUEUE.md")).expect("QUEUE.md");
-        let parked = std::fs::read_to_string(format!("{docs}/PARKED.md")).expect("PARKED.md");
+        // The parked file is archived (`docs/DECISIONS.md` entry 125): its
+        // index holds one row per entry, the identifier and the opening
+        // words, and a row there is frozen, so it cannot be renumbered.
+        let archive = std::fs::read_to_string(format!("{docs}/audit/parked-archive.md"))
+            .expect("docs/audit/parked-archive.md");
         for (name, word, test, item, window) in WIDENINGS {
             match test {
                 Some(t) => {
@@ -2646,12 +2650,12 @@ mod tests {
                         })
                     };
                     let booked = about(&queue, &format!("\n{item}. "));
-                    let parked_row = about(&parked, &format!("({item}) **"));
+                    let archived = archive.contains(&format!("\n- ({item}) "));
                     assert!(
-                        booked || parked_row,
+                        booked || archived,
                         "{name} = {word} has no widening on file and names item {item}, which \
-                         neither docs/QUEUE.md books (`{item}. `) nor docs/PARKED.md holds \
-                         (`({item}) **`) as an item whose text names {word}. Widen the word's \
+                         docs/QUEUE.md does not book (`{item}. `) as an item whose text names {word} and \
+                         docs/audit/parked-archive.md does not hold as a row (`- ({item}) `). Widen the word's \
                          frame whole, or book it — and if the row was renumbered, re-pin the item"
                     );
                 }

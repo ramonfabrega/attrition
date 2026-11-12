@@ -50,6 +50,20 @@ deleted by hand. The width is one constant, `N`, and
 `tools/explore/test_queueledger.py` fails on a pattern that spells its
 own. Five digits stay out on purpose — a frame runs to 24,000.
 
+And since 2026-11-12 (`docs/DECISIONS.md` entry 125) **there is no parked
+file**. `docs/PARKED.md` had grown into a second queue with no cap — 16,858
+lines, 1.49 MB, which no session could read — because this guard forbade a
+number to leave and nothing gave one a way out. It is archived at
+`ARCHIVE_REV`, its index is `docs/audit/parked-archive.md`, and a finding
+that names no score is written in the journal file of the item that found
+it. Four checks hold that:
+
+    a number the parked file held live at the archive is accounted for;
+    the archive's index is frozen — a row may be deleted, never added;
+    `docs/PARKED.md` does not come back, and the handoff counts no backlog;
+    a parked id the queue cites (`parked 4118a`) is a row of the index or
+    is written in `docs/journal/*-item-4118.md`.
+
 Run from anywhere; `tools/guard.sh` runs it between edits.
 """
 
@@ -60,13 +74,18 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-# The files an item may live in. `docs/QUEUE.md` is the only one today;
-# the second is here because the sprint/backlog split lore proposed on
-# 2026-09-07 would otherwise break this guard on its first commit — every
-# parked item would read as a number that had left the queue in silence,
-# and the guard's first act would be to fire on a hundred rows nobody
-# lost. Moving a number between these files is not a deletion.
-QUEUES = ["docs/QUEUE.md", "docs/PARKED.md"]
+# The file an item may live in. There were two from 2026-09-07 to
+# 2026-11-12, the second being the parked file; its last revision is read
+# from git below, once, where its whole history was read on every run.
+QUEUES = ["docs/QUEUE.md"]
+# The last commit that held `docs/PARKED.md`, and the index made from it.
+ARCHIVE_REV = "c819131da5a33e1ef1a01303d3476187ac3371fa"
+ARCHIVE_PATH = "docs/PARKED.md"
+ARCHIVE_INDEX = ROOT / "docs/audit/parked-archive.md"
+# The index's rows on the day it was made. It may only fall.
+ARCHIVE_ROWS = 1832
+# A parked id: the item that found it and a letter or two.
+PARKED_ID = r"\d{1,4}[a-z]{1,2}(?![\w])"
 JOURNAL = ROOT / "docs/JOURNAL.md"
 # One file per landing since 2026-09-17, written by the worker whose item it
 # is; the single file above is the chronicle up to that day and the
@@ -197,6 +216,33 @@ def named_in(journal):
     return named
 
 
+def cited_parks(text):
+    """The parked ids a queue cites: `parked 4118a`, `parked 4058a, 4058b`,
+    `parked 4141a to 4141c`. Only an id that follows the word counts — a
+    run is `run1561a`, and a bare `4118a` in prose may be anything.
+    """
+    out = set()
+    lists = r"\bparked\s+(%s(?:(?:,|;|\s+to|\s+and)?\s+%s)*)" % (PARKED_ID, PARKED_ID)
+    for span in re.findall(lists, text):
+        out |= set(re.findall(PARKED_ID, span))
+    return out
+
+
+def unresolved_parks(cited, index_text, journals):
+    """Of the cited ids, those written nowhere: not a row of the archive's
+    index and not in the journal file of the item the id names.
+    `journals` maps an item number to the text of its journal files.
+    """
+    rows = set(re.findall(r"^- \((%s)\) " % PARKED_ID, index_text, re.M))
+    out = []
+    for ident in sorted(cited):
+        item = int(re.match(r"\d+", ident).group())
+        if ident in rows or re.search(r"(?<![\w])%s(?![\w])" % ident, journals.get(item, "")):
+            continue
+        out.append(ident)
+    return out
+
+
 def main():
     ever = {}
     ever_any = set()
@@ -242,9 +288,43 @@ def main():
         referenced |= refs
 
     journal = JOURNAL.read_text()
+    by_item = {}
     if JOURNAL_DIR.is_dir():
         for f in sorted(JOURNAL_DIR.glob("*.md")):
-            journal += "\n" + f.read_text()
+            body = f.read_text()
+            journal += "\n" + body
+            m = re.search(r"-item-(\d+)\.md$", f.name)
+            if m:
+                by_item[int(m.group(1))] = by_item.get(int(m.group(1)), "") + "\n" + body
+
+    # The parked file's last revision: what it held live then rests there.
+    # `ARCHIVE_REV` is None only in an authored fixture, which holds a queue
+    # and no history of ours; in this repository a missing archive fails.
+    if ARCHIVE_REV is None:
+        parked = ""
+    else:
+        try:
+            parked = git("show", "%s:%s" % (ARCHIVE_REV, ARCHIVE_PATH))
+        except subprocess.CalledProcessError:
+            print("FAIL: the parked file's archive, %s:%s, is not in this repository's "
+                  "history — the guard cannot account for what it held" % (ARCHIVE_REV[:8], ARCHIVE_PATH))
+            return 1
+    # Every form that made a number live while the file stood: a booking,
+    # a `(N)`, and a reference to another item.
+    archived = booked(parked) | parens(parked) | references(parked)
+    ever_any |= archived
+    index_text = ARCHIVE_INDEX.read_text() if ARCHIVE_INDEX.exists() else ""
+    index_rows = len(re.findall(r"^- \(", index_text, re.M))
+    queue_text = (ROOT / QUEUES[0]).read_text()
+    returned = []
+    if (ROOT / ARCHIVE_PATH).exists():
+        returned.append("%s is back in the tree" % ARCHIVE_PATH)
+    if "Fable backlog:" in queue_text:
+        returned.append("%s counts a `Fable backlog:` again" % QUEUES[0])
+    if ARCHIVE_REV is not None and (index_rows > ARCHIVE_ROWS or not index_rows):
+        returned.append("%s holds %d rows; it was made with %d and may only fall"
+                        % (ARCHIVE_INDEX.relative_to(ROOT), index_rows, ARCHIVE_ROWS))
+    lost_parks = unresolved_parks(cited_parks(queue_text), index_text, by_item)
     # `- **N** <disposition> — …`. Three dispositions account for a number
     # and let it rest: `landed` (the work is in the tree, and the line says
     # where), `dropped` (retired on purpose, with the reason), `unverified`
@@ -269,19 +349,23 @@ def main():
         )
     }
     ledgered = {n for n, d in ledger.items() if d in ("landed", "dropped", "unverified")}
-    owed = sorted(n for n, d in ledger.items() if d == "not-landed" and n not in live)
+    owed = sorted(
+        n for n, d in ledger.items() if d == "not-landed" and n not in live and n not in archived
+    )
 
     named = named_in(journal)
 
     silent = [
-        n for n in sorted(ever) if n not in live and n not in named and n not in ledgered
+        n
+        for n in sorted(ever)
+        if n not in live and n not in named and n not in ledgered and n not in archived
     ]
     stale = sorted(n for n, d in ledger.items() if d != "re-booked" and n in live)
     phantom = sorted(n for n in referenced if n not in ever and n not in ever_any)
 
     print(
-        "queue ledger: %d numbers ever booked, %d live, %d ledgered"
-        % (len(ever), len(live), len(ledgered))
+        "queue ledger: %d numbers ever booked, %d live, %d ledgered, %d archived"
+        % (len(ever), len(live), len(ledgered), len(archived))
     )
     for n in stale:
         print("  note: %d is ledgered and live again — drop its ledger line" % n)
@@ -313,10 +397,28 @@ def main():
         for n in phantom:
             print("  %4d" % n)
         print()
-        print("Book it — in docs/QUEUE.md or docs/PARKED.md — or say which item")
-        print("is meant. A number is a claim that an item exists.")
+        print("Book it in docs/QUEUE.md, or say which item is meant. A number")
+        print("is a claim that an item exists.")
 
-    return 1 if (silent or owed or phantom) else 0
+    if returned:
+        print()
+        print("FAIL: there is no parked file (docs/DECISIONS.md entry 125) —")
+        for line in returned:
+            print("  " + line)
+        print()
+        print("A finding that names no score is written in the journal file of")
+        print("the item that found it, under `## Parked`; nothing is appended to")
+        print("a backlog, and the archive's index only loses rows.")
+
+    if lost_parks:
+        print()
+        print("FAIL: the queue cites these parked ids and none is written down —")
+        print("      not a row of docs/audit/parked-archive.md, and not in the")
+        print("      journal file of the item the id names:")
+        for ident in lost_parks:
+            print("  %s   expected in docs/journal/*-item-%s.md" % (ident, re.match(r"\d+", ident).group()))
+
+    return 1 if (silent or owed or phantom or returned or lost_parks) else 0
 
 
 if __name__ == "__main__":

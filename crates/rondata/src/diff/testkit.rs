@@ -8417,7 +8417,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
 /// defect. `floors::the_widening_behind_each_pinned_word_exists` reads
 /// this table: a named test must be a `fn` under `crates/rondata/src/
 /// diff/`, and a `None` must name an item that is open in `docs/QUEUE.md`
-/// or parked in `docs/PARKED.md`. The last column is the item — the one
+/// or parked in `docs/audit/parked-archive.md`. The last column is the item — the one
 /// that landed the widening, or the one that owes it.
 /// The block window `run100_s_word_block_is_every_record_the_dump_carries`
 /// walks — run100's first complete block to thirteen past the word it
@@ -11955,18 +11955,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (`is_modern_infantry`'s Iroquois arm, then `UnitData::speed`'s spear
     // arm); 5843 was widened on run932 over 5826..6094
     // (`run932_s_word_frame_is_widened_whole`), and 6982 is past it, owed
-    // as 3230 (the lane's 3229, renumbered at the merge; `docs/PARKED.md`).
+    // as 3230 (the lane's 3229, renumbered at the merge; `docs/audit/parked-archive.md`).
     // 6982 was widened by item 3231 on run934 over 6976..7232
     // (`run934_s_word_frame_is_widened_whole`): block 6982's `MAKE[3]`, the
     // Senate theirs listed and ours priced. **Item 3231 moved it 6982 →
     // 7033 → 7982** (`get_cost`'s and `construct_time`'s Iroquois Senate
-    // arms), past run934's last block: owed as 3241 (the lane's 3232, renumbered at the merge; `docs/PARKED.md`).
+    // arms), past run934's last block: owed as 3241 (the lane's 3232, renumbered at the merge; `docs/audit/parked-archive.md`).
     // 7982 was widened by item 3242 on run937 over 7976..8232
     // (`run937_s_word_frame_is_widened_whole`): block 7980's `MAKE[7].t`,
     // the Javelineers' upgrade ours priced 80/80 and theirs 68/68. **Item
     // 3242 moved it 7982 → 8415** (`get_cost`'s Despotism arm on a
     // Barracks unit), past run937's last block: owed as 3247
-    // (`docs/PARKED.md`). 8415 was widened by item 3248 on run940 over
+    // (`docs/audit/parked-archive.md`). 8415 was widened by item 3248 on run940 over
     // 8409..8665 (`run940_s_word_frame_is_widened_whole`): block 8416's
     // birth, theirs' Javelineers finished under Cotton. **Item 3248 moved
     // it 8415 → 10695** (`train_time`'s Cotton arm), past run940's last

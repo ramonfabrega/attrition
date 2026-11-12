@@ -218,6 +218,14 @@ the script, sweep, assert.
 - Whether the 60,000-unit guard is reachable on the largest map size the
   original ships — 78 cells on one leg — was not checked against the map
   tables.
+- A hooked callee leaves `ecx` as the hook defines it, and the original's
+  `extraout_ECX` consumers read it: `Tribes::walk_data@006efb20`,
+  `Lands::walk_data@0067e700` and `Herds::walk_data@00741d50` each call the
+  walker's slot 4 and hand `Array::walk_data` whatever `ecx` that callee
+  left, so a stub that does not set `ecx` pins the harness's choice, not the
+  original's. No `Harness.stub` variant sets it yet (the parked archive's
+  row 1922, moved here when the parked file went: `docs/DECISIONS.md` entry
+  125).
 
 ## 7. Coverage
 

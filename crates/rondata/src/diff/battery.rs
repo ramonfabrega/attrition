@@ -1003,7 +1003,7 @@ fn battery_floors_hold() {
         "a held-out lobby fell under this tree — an unseen game regressed (DECISIONS 61 §6, 77). \
          Nobody reads its dump: find a fix that does not lower it, or re-pin `count`/`sequence` \
          down in `diff::battery::BATTERY` in this landing with the item in the comment and a \
-         `FABLE:` row in docs/PARKED.md's Loop section, and the pass rules:\n  {}",
+         `FABLE:` line in the landing's own journal file, and the pass rules:\n  {}",
         fell.join("\n  ")
     );
 }

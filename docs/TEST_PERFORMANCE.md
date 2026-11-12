@@ -573,8 +573,9 @@ crate-boundary findings and the required-fixture gate verdict.
 
 ### Queue history reads
 
-The ledger guard reads every historical QUEUE/PARKED body through one streaming
-`git cat-file --batch` child per file, with a child-local 16 MiB delta cache.
+The ledger guard reads every historical QUEUE body through one streaming
+`git cat-file --batch` child, and the parked file's last revision once
+(`docs/DECISIONS.md` entry 125; its whole history until 2026-11-12), with a child-local 16 MiB delta cache.
 History order and all accounting checks remain unchanged; no verdicts are cached.
 On the measured 2,208-body history this reduces wall30.10→2.13s and CPU27.47→2.08s,
 with peak RSS50.03→55.38MiB. An exhaustive body comparison against the original

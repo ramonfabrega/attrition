@@ -1674,7 +1674,7 @@ reading-only, the route's falsifier a `cover=1` take §22.3 writes.
 
 ## 15. The port chain
 
-Parked, not queued (`docs/PARKED.md`, item 3734's heading), in order. Each
+Parked, not queued (`docs/audit/parked-archive.md`, item 3734's heading), in order. Each
 step is checked by §3 at its own checkpoint before the next begins:
 1. the land/sea mask against every grid (§5, 7807) — **Great Sahara
    built** (item 3776, `sim::mapgen`; the `Mapgen:` line's first phase);

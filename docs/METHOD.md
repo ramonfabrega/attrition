@@ -50,13 +50,13 @@ closed and stands as a floor.
 
 **An item is booked with the score it moves.** The headline, or a sub-score
 the queue names — and the item nearest the headline's first divergence is
-the default. **A finding that names no score parks** (`docs/PARKED.md`)
-rather than queues: the queue holds only what names the headline's frame,
+the default. **A finding that names no score parks in its item's journal**
+(`docs/DECISIONS.md` entry 125) rather than queues: the queue holds only what names the headline's frame,
 a floor, or a takes-chain to one. **And the headline slot is never
 empty**: when no open item names the current word's frame and draw, the
 next brief is to widen every dumped record on that frame and name the
 cause, not to run the nearest residue row. An item that turns out to be
-something else spawns its successors in the parked file, and a session
+something else writes its successors in its own journal, and a session
 that moved no score says so in the handoff. **A word that moved lands with the
 value diff beside it** — the dump's own coordinates on the frame it moved —
 because a draw stream can agree on a wrong destination for a long time,
