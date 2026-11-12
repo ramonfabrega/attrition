@@ -36650,3 +36650,39 @@ in the background.
 Archive `gamelog-run1568-greatlakes-playback-of-right-pressed-300.txt`, 37,258,226 bytes,
 SHA-256 `d09ec774fce01f1d890e3a70e41e4b59c9dba508e2e7f52661f0caf2dccaccc0`; `rontrace-run1568.log`, 9,582,624 bytes,
 SHA-256 `feef04d752c67908037cce788e105f6326167d80447823d35fce4fbf538a0a0b`.
+
+## run1570 — run1559b's take paused on 3331: a photograph of a corpse and rounds in flight (2026-11-12, item 4183, `att-4183`)
+
+`docs/RENDERER.md` §3.13. **What the disk could not answer**: no photograph on disk holds a corpse or a round, and
+no dump prints where a `DEATH_OBJS` record lies. run1429b's dump names the frame: the record `who 0 o 7 first_frame
+3312 cur_anim 17 gpiece 10912`, and rounds 60164 and 60174 in flight on 3309–3318. The line is run1564's without
+its camera line, with the pause on 3331 and `AMMO` and `DEATHS` logged. The command file
+`~/ron-data/lab-experiments/2026-11-12-item-4183/photo3331.cmd` holds `3331 pause 1`, and `poolshot.py
+~/ron-golden/run1570 3331 --map 14` runs beside it:
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1570 --map 14 --end-frame 3333
+--timeout 600 --log-window 3308 3333 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5,DEATHS=1 --ai-tribe 0 --cover cover=0
+--profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--cmd-file <it> --tracer-def RON_STATE_FRAME=3331 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, launched 14:13:14 −05:00, at 55.4 frames a second to 3331. The packet and the photograph were written
+  by 14:13. As run1559b and run1564 did, the paused take then ran to the timeout: `TimeoutExpired` after 600 s
+  (`waitrun.sh` exit 2), settings restored, and the lane free afterwards. 214 GB free before it and 210 GB after.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1570/map-14/frame-snapshot.bin`, 932,651,444 bytes,
+SHA-256 `46be6dc317e75499cdadfed052f1edea45f96fbbf8b230d260268d6830606168`. Gamelog
+`~/ron-golden/run1570/map-14/gamelog.txt`, frames 3308–3332, 9,108,650 bytes,
+SHA-256 `2247f3308271b110872dc0e93ccac4fa54308ad6c102c4b8ab0ab6c36cd56f23`. Not filed.
+
+Photograph `~/ron-data/lab-experiments/2026-11-12-item-4183/run1570-3331.png`: window 16711, 1920×1080 with no title
+bar, the gamelog at 3332. SHA-256 `8c6039c641c0c1643af81e3c6d5bf850404e5f78359157ce60ecdb6ecd133415`.
+
+**What it holds**:
+- **In step with run1429b on the window.** The rounds a frame on 3309–3318 are 5, 7, 6, 7, 6, 3, 2, 2, 2 and 2, and
+  the `0/7` record is the same.
+- **Two corpse records on 3331**: `0/7` from 3312 and `0/11` from 2703, both piece 10912.
+- **The packet's camera is not the client's pinned one.** `loc` is `45460000` `46f0c000`, that is (3168, 30816),
+  the capital's centre. Zoom, tilt, direction, projection and screen are run1559b's. Through it, the city projects
+  to (960, 437) and `0/7`'s last place (4006, 28612) to (1438, 337), among the oil derrick's logs. Every round of
+  the window lands on screen.
+- `client --look 3168,30816` draws the same view. The fountain is on the same pixel.
+- The frame the photograph shows is not settled (parked 4183b).
