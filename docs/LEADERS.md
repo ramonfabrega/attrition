@@ -222,6 +222,249 @@ tribe-shared winner and the `= 1` store rest on the listing alone.
 - **`L` per tribe** is not in the crate; the `n < L` guard and exemption 3 are
   ported under the assumption above.
 
+## 2. The kill, loss and raze counters
+
+### 2.1 Leaves
+
+- `units_killed`, +0x80c, int.
+- `units_lost`, +0x810, int.
+- `buildings_razed`, +0x818, int.
+- `buildings_lost`, +0x81c, int.
+
+### 2.2 The rule
+
+All four step by +1, never decrement, and no sim decision reads them.
+Their readers are `LeaderData::log_data (006e5110)`, the end-of-game chart
+(`AchieveChartPane::set_chart_data`), the checksum walk, and for the two
+unit leaves `num_units_killed` / `num_units_lost` and an end-of-game Steam
+stat. **Reset**: 0 at `Leader::reset_score (006e37f0)` (every live slot at
+`Setup::build_game`, and in `Leader::init`); the bulk memsets, plus
+`Leader::close (006b7f80)`, which also memsets `[+0, +0x6929)`; restored by
+a load.
+
+**"A countable unit death"**, the test the unit leaves share, is
+`Object::take_damage (00652020)` reaching its death branch on a struck
+figure that is:
+
+1. not a building (vslot `+0x1c` answers 0);
+2. its squad's captain (vslot `+0xe8`);
+3. alone: `curr_uber_size(0) == 1`, no live `o_down` follower;
+4. not a decoy (`unit_masks (+0x68) & 1` clear).
+
+A non-captain figure fails test 2 and counts nothing, so a squad counts
+once, at its last figure. The unit test (vslot `+0x18`) also answers 1 on
+`Animal`, and there is no animal exemption to add. No plain-game
+`take_damage` strikes an animal: gaia owns them from a slot ≥ 8, and
+`valid_target_const` refuses `who > 7`.
+
+**`units_lost`.** One writer, `take_damage`: on a countable unit death,
+`units_lost[victim's player] += 1`. The store comes before the attacker
+test, and `param_3` and `param_5` do not enter, so a death with no killer
+counts: attrition (`Unit::suffer_attrition (005e1a10)` strikes through
+vslot `+0x16c`), wall decay, triggers. Spell kills, `Object::disband` and
+a direct `die` do not count it.
+
+**`units_killed`.** Three writers:
+
+- `take_damage`, on a countable unit death, and only when the call
+  carries an attacker object (`param_7 >= 0`):
+  `units_killed[param_8] += 1`, where `param_8` is the attacker's player.
+  There is no ally, self or ownership test before the store. The `is_ally`
+  test after it picks only the sign of `score_combat` (+0x44). Beside the
+  store it also steps victim `+0xa58` and `leaders[param_8] +0xa5a`.
+- `SpellType::cast_sabotage (006720e0)`, unit arm (a Sniper or Commando
+  kill). The target must be live (`flags(+8) & 1`; otherwise the mana is
+  refunded and the cast returns), and the inner test is a unit (`+0x18`),
+  not a building, captain, alone, not a decoy. If it passes:
+  `units_killed[caster] += 1`, target `+0xa58` and caster `+0xa5a` step,
+  and `score_combat[caster] += cost / 5`. Either way the target then dies
+  through vslot `+0x158` directly (dtype 3 with objmask `0x200000`, else
+  2), so the victim's `units_lost` does not step.
+- `SpellType::cast_counterintel (00673740)`. A non-captain target is
+  replaced by its captain (`+0xe4`). The gate: the target's player is not
+  the caster, not `leaders[caster].who` (+0x8), and not mutually allied
+  (`diplos (+0x74) == 2` both ways). Inside the gate, if the target is a
+  countable unit (unit, captain, alone, not a decoy),
+  `units_killed[caster] += 1` and `score_combat` steps. Nothing else of
+  this family steps: no `+0xa58`, `+0xa5a` or `units_lost`. Then
+  `die(2, -1, 0)` runs inside the gate, whatever the inner test said.
+  Outside the gate there is no die.
+
+The caster's player reaches counterintel through `SpellType::cast
+(00676ce0)`'s third argument.
+
+**`take_damage`'s return**, which the raze writers test: 0 when the
+target is still alive or is a clamped city building; 1 from the
+site-abandon disband; 1 after `die` (vslot `+0x158`) when the dead
+object was not a decoy; 2 after the decoy-overflow arm.
+
+**`buildings_razed`.** Two writers:
+
+- `Object::do_damage (0064a480)`: when its `take_damage` call returns
+  non-zero and the target is a building (`+0x1c`),
+  `buildings_razed[this's player] += 1`. There is no owner or ally test,
+  so razing an ally's or one's own building counts. The later `is_ally`
+  picks the sign of `score_combat`, floored at 0 on the minus side. On a
+  unit kill `do_damage` returns before this. `this` is the shooter:
+  `Ammo::do_damage (00678060)` passes the ammo's recorded shooter, and
+  `Nuke::do_damage (0092bc80)` passes the object the nuke effect records.
+- `cast_sabotage`, building arm:
+  `take_damage(dmg, 0, 3, -1, 1, 0x55555555, -1, -1, 0)` on the building
+  itself (`Build`'s vslot `+0xac` returns `this`), with
+  `dmg = max(+0x114 / 2, the type-indexed floor)`. A non-zero return gives
+  `buildings_razed[caster] += 1`.
+
+On a building, "non-zero" is either:
+
+- **death**: accumulated damage ≥ hits, and not a city building. A city
+  is clamped and returns 0, for every caller, because the clamp is not
+  under the `param_5 == 0` block; or
+- **the site-abandon disband**, which needs all four of:
+  - unfinished: vslot `+0x4c` = `WallData::is_active (00472350)` =
+    `flags & 4`, clear;
+  - the owner is a computer player (`leader_flags & 4` clear);
+  - `hits(0) ≤ 2·damage`;
+  - `build_masks (+0x60) & 0x2000`, whose only writer is
+    `Leader::check_orphaned_buildings (006c9f20)`.
+
+  The disband returns 1. It credits a raze while the owner's
+  `buildings_lost` does not step.
+
+**`buildings_lost`.** One writer, `take_damage`: when a building or wall
+segment (`+0x1c` non-zero) reaches the death branch,
+`buildings_lost[owner] += 1`, then `ScenarioData::last_razed[who] = o`,
+then straight to `die`. There is no attacker test and no `param_5` test,
+so combat, sabotage, triggers and border decay all count. Border decay is
+`Wall::process (00640450)` striking
+`take_damage(8, 0, 1, -1, 1, 0x55555555, -1, -1, …)` on a started building
+that stands on another, non-allied player's tile. It reaches every
+building, not only walls: `Build::process` calls `Wall::process` directly.
+Not counted:
+
+- a finished city building (clamped);
+- the site-abandon disband;
+- `Wall::process`'s disband of an unstarted site;
+- `Object::disband` and a direct `die`.
+
+So, summed over players, `units_lost ≠ units_killed` (attackerless
+deaths, spell kills) and `buildings_lost ≠ buildings_razed` (abandon
+disbands, attackerless decay).
+
+### 2.3 In the crate
+
+None of the four is held. Each exists only as a checksum name
+(`crates/sim/src/checksum/leaders.rs:157-161`), and each is `(unheld)`,
+count 2, in `LEADERS_HELD_OUT`
+(`crates/rondata/src/diff/checksum_lines.rs:1769, 1770, 1847, 1848`). A
+port gives each a value arm and removes its four entries. The sites, all
+in `crates/sim/src/combat/fight/delivery.rs` unless named:
+
+- **`take_damage` unit deaths**: `Sim::take_damage_typed` (`:469`), its
+  `Taken::Died` arm (`:537`), gated on `alone` (`:515`,
+  `takes_remainder_share` in `units/store.rs:667`, the same captain ∧
+  size-1 test) and `!decoy` (`:530`), before `close_count`.
+  - `units_lost` goes to the struck unit's owner, with no attacker test.
+  - `units_killed` goes to `owner_of(_by)` only when `_by` is an object.
+    The crate has no `param_7 < 0` notion there, so the
+    attacker-present test is the builder's to carry.
+- **Attrition deaths**: `Sim::die_by_attrition` (`:844`, called from
+  `territory/upkeep.rs:307`) bypasses `take_damage_typed`, so `units_lost`
+  goes there too. **Trap**: read the captain/alone/decoy test *before*
+  its `relink_squad`.
+- **Sniper/Commando**: `Sim::cast_sniper_unit` (`:806`). It needs the
+  caster's player, which its `(v, dtype)` signature lacks. It credits
+  `units_killed` only, never `units_lost`.
+- **Counterintel**: `Sim::cast_counterintel`
+  (`crates/sim/src/spells/cast.rs:1031`, SEAM doc at `:1028`). It
+  credits `units_killed` only.
+- **`do_damage` razes**: `Sim::do_damage_round`'s
+  `if let Obj::Building(b) = target { if killed {` block (`:212`). The
+  count goes to `owner_of(attacker)`, *before and outside* the plunder's
+  unit / non-splash / non-air / non-ally gate.
+- **Sabotage razes**: `Sim::cast_sabotage_building` (`:884`). It needs
+  the caster's player.
+- **Building deaths**: `Sim::damage_building`'s `Taken::Died` arm
+  (`:1041`), before `die_building(b)`, for the building's owner. Do not
+  put it in `die_building`, which other paths reach. The city clamp
+  (`:1025`) returns before the arm. This one function serves:
+  - combat (`take_damage_typed`);
+  - sabotage (`cast_sabotage_building`);
+  - border decay (`cities/city.rs:3128`, from `building_attrition`,
+    which rightly serves every building).
+- **Absent**: the site-abandon disband. `damage_building` has no `0x2000`
+  arm, and the bit itself is a SEAM (`crates/sim/src/ai/ai_make.rs:936`).
+  Until both land, the crate under-counts `buildings_razed` and fires
+  nothing for those sites.
+- `last_razed` is not carried on this path either; it is outside this
+  family.
+
+### 2.4 Reached by a plain game
+
+All four, in a skirmish against the computer:
+
+- combat kills and razes;
+- attrition and border-decay losses;
+- the abandon arm, when a computer's orphaned unfinished site is struck
+  to half its hits (computer players run `check_orphaned_buildings`).
+
+Sniper, Commando and counterintel are skirmish units' spells; whether the
+computer casts them is unread. The decoy-overflow self-credit (§2.5) needs
+a scenario.
+
+### 2.5 How established, and how confident
+
+Two readings and an adjudication
+(`docs/audit/2026-11-11-item-4152/kills-*.md`); no diff backs it yet.
+High confidence: every store and every test was settled at a listing
+instruction.
+
+The listing net found exactly 11 absolute sites (7 `incl` stores, 4
+loads), no slot-biased forms, and only `reset_score` among the 140
+register-relative stores to these offsets. `take_damage`'s callers through
+vslot `+0x16c` are eight, and no vtable overrides that slot.
+
+| leaf | confirmed / corrected / open |
+|---|---|
+| `units_killed` | 22 / 1 / 0 |
+| `units_lost` | 12 / 0 / 0 |
+| `buildings_razed` | 15 / 1 / 0 |
+| `buildings_lost` | 13 / 0 / 0 |
+
+Corrections that changed a rule:
+
+- **The decoy-overflow self-credit is unreachable in a plain game.**
+  After `die`, a decoy figure with whole points past its share strikes
+  its captain with `param_8` = its own player. But
+  `SpellType::cast_create_decoy (00674370)` sets `unit_masks |= 1` on
+  every figure of the new squad, so the captain fails test 4 and nothing
+  counts. The only other writer of that bit is the scenario unit loader
+  (`ScenarioRead::load_unit_chunk`), so a mixed squad needs a scenario.
+- **The abandon arm's vslot `+0x4c` means "finished"** (`flags & 4`), not
+  "a city". The arm strikes an *unfinished* building. The city test is a
+  different slot pair (`+0x20` and `flags & 0x20`).
+
+Settled where a reading left it open:
+
+- `do_damage`'s `this` from ammo and nukes is the shooter;
+- every `Build` reaches `Wall::process`;
+- `Build`'s `+0xac` is `this`.
+
+No kept-dump value is cited.
+
+### 2.6 Not established
+
+- **Spell castability upstream.** When a counterintel or sabotage cast
+  happens at all: `SpellType::cast`'s pre-check (the call at `0x6763c0`)
+  and `is_valid_target`. This decides how often the spell writers fire,
+  not what they count. A reading of those two settles it, or a capture
+  where a player casts them.
+- **Whether the computer casts Sniper, Commando or counterintel** in a
+  skirmish. This is unread, and its AI scripts or a capture settle it.
+- **No value diff.** The rules rest on readings alone until a port's
+  checksum arms meet the leaders line of a kept run. Any capture with a
+  kill, a raze, an attrition death and a border-decay loss on its frames
+  exercises all four.
+
 ## 4. The victim stamps
 
 ### 4.1 Leaves
@@ -1274,6 +1517,223 @@ no dump prints a nonzero `misery`.
 - That `misery` was a live mechanic emptied before ship is a guess from its
   shape; nothing in the sim depends on it.
 
+## 13. The slot marks and build counters
+
+### 13.1 Leaves
+
+- `fort_mark` +0x428, `int`: high-water mark over the leader's fort records.
+- `oil_well_mark` +0x430, `int`: the same, over oil-well and platform records.
+- `supply_mark` +0x434, `int`: the same, over supply-unit records.
+- `wonders_built` +0x854, `int`: wonder activations since the last reset.
+- `wonders_held` +0x858, `int`: the most wonder records ever live at once.
+- `senates_built` +0x85c, `int`: Senate constructions.
+- `forts_built` +0x8f0, `int`: fort activations.
+
+The leaders array is `Leader[10]` (`types.txt`, `struct Leaders`, size
+`0x4554c`), so every per-slot rule below runs over ten slots, not eight.
+`Leaders::clear (006ed5d0)` has two callers only, `Game::close` and
+`Game::run_oos_recovery`; it zeroes all seven leaves. The
+`ScenarioRead::load_leaders_chunk (009acde0)` stores at +0x428/+0x430/+0x434
+are off the `Game`, not a leader.
+
+### 13.2 The rule
+
+#### The three marks (shared rule)
+
+Each mark indexes a per-leader registry of small records with an in-use bit.
+The registry's index for a building is stored at `Build +0x78`; for a unit at
+`Unit +0x84`.
+
+- **Take:** reuse the first free record below the mark; else the allocated
+  record at the mark; else append a new one. Then
+  `mark = max(mark, idx + 1)`. A take raises the mark by 0 or 1, never more.
+- **Give back:** clear the record's in-use bit, then walk the mark down past
+  every free record at the top. A give-back can lower the mark by several.
+- **Reset:** `Leader::init (006e3930)` zeroes all three after its
+  `tribe < 0` early return, so only for seated slots; `Leaders::clear`.
+
+Per mark:
+
+- **`fort_mark`.** Take in `Forts::init_fort (0073ed70)`, called from
+  `Build::activate (00623e20)` on every activation of an `is(FORTX 0x1bb)`
+  type (`BuildTypeData::is_fort`, type slot `+0xfc`), `captured` not tested.
+  Give back in `Forts::close_fort (0073ec90)`, from `Build::close (00628980)`
+  when `is_fort` and `+0x78 ≥ 0`. Readers that change a decision:
+  `find_fort`, `compute_reg_territory`, `Army::find_target`,
+  `Object::do_launch`, `Leader::produce_unit`, `blocked_location`; also
+  `log_data`.
+- **`oil_well_mark`.** Take in `init_oil_well (0073f6f0)`, from
+  `Build::activate` on every activation of `is(OILWELL 0x1a5)` or
+  `is(OILPLATFORM 0x1a6)`, `captured` not tested. Give back in
+  `close_oil_well (0073f670)`, from `Build::close` only when
+  `build_flags & 0x40` (`is_gather_type`, type slot `+0x90`) **and** the type
+  is a well or platform **and** `+0x78 ≥ 0`. The give-back writes the record:
+  `+6 &= ~1`, `+7 = 0xff`, `+2 = 0xffff`, `+4 = 0`. Reader:
+  `Leader::calc_gather (006ceee0)` (loop bound; the sum is order-free) and
+  `log_data`.
+- **`supply_mark`.** Take in `init_supply (0073ad40)`, from `Unit::init` when
+  the unit `is_supply` (`unit_flags2 & 0x40`), and from `Unit::set_type` into
+  a supply type when `+0x84 < 0`. Give back in `close_supply (0073acc0)`, from
+  `Unit::close` (supply, `+0x84 ≥ 0`) and from `Unit::set_type` out of a
+  supply type (`+0x84 ≥ 0`). Extra reset: `Setup::build_game (005ac190)`
+  zeroes it for all ten slots, unconditionally, before any unit exists.
+  Reader: `find_supply (0073aba0)`, through `UnitData::in_supply`,
+  decision-changing; `log_data`.
+
+#### `wonders_built`
+
+- **Writer:** `Build::activate`, `wonders_built[owner] += 1` on **every**
+  activation of a building whose type index is in `0x20e..=0x21e` (Pyramids
+  to Space Program, 17 types; the vtable fast path and
+  `TypeData::is_wonder_type (00470780)` name the same range). No test of
+  `captured`, `announce` or `counted`, and every path through `activate`,
+  the city branch included, reaches it. Order: `remove_unbuilt_wonder`, the
+  increment, then `Wonders::init_wonder (0073c860)`.
+- **Capture credits the captor.** `Cities::capture_city (00733380)` converts
+  a member of the fallen city only when its type lacks `build_flags &
+  0x2000`, and activates an active member as `activate(1, 1, 0)`. Fifteen
+  wonders carry `BUILD_FLAGS` `a` alone and are city members, so a finished
+  one in a captured city steps the captor by 1. The Forbidden City (`0x213`)
+  carries `0x2000` but is itself a city object: `capture_city`'s head
+  activates it `(1, 1, 0)`, and the captor is credited too. The Red Fort
+  (`0x216`) carries `0x2000` and `e` and is not counted on capture. An
+  unfinished wonder site is closed or disbanded, not activated, so it does not
+  count. `Leader::defeat_by (006d1c80)` hands over military trainers only, so
+  it never moves a wonder.
+- **Never decremented.** Reset to 0 by `Leader::reset_score (006e37f0)`,
+  called from every `Leader::init` and from `Setup::build_game`'s loop over
+  seated slots, after the per-slot `Leader::init` and before
+  `build_empire`; and by `Leaders::clear`.
+- **Reader that changes a decision:** `BuildData::construct_time
+  (0062d5c0)`, tribe bonus `0x14`'s first-wonder arm: free only when
+  `get_wonders() == 0 && wonders_built == 0` and the type is not `0x21d` or
+  `0x21e`. No other reader.
+
+#### `wonders_held`
+
+At `init_wonder`, after the new wonder's record is taken, count the leader's
+in-use wonder records in `[0, wonder_mark)` (the new one included) and store
+`wonders_held = max(wonders_held, count)`. Never lowered; `close_wonder` does
+not touch it. Same predicate as `wonders_built`, since `init_wonder`'s one
+caller follows that increment, so capture raises it too. Reset:
+`reset_score`, `Leaders::clear`. Readers: `AchieveChartPane::set_chart_data
+(007f2c40)` (UI) and the checksum; `log_data` does not print it.
+
+#### `senates_built`
+
+`Build::activate`'s non-city arm, `senates_built[owner] += 1` when the type
+is in the SENATE `0x1b6` lineage, the building's city index `+0x72 ≥ 0`, and
+`captured == 0`. `announce` and `counted` are ignored. Reset:
+`reset_score`, `Leaders::clear`. Reader: `log_data` and the checksum.
+
+#### `forts_built`
+
+`Fort::init (0073eac0)`, `forts_built[who] += 1`, unconditionally. Its one
+caller is `init_fort`, whose one caller is `Build::activate`, so the rule is
++1 per activation of an `is(FORTX)` type, Fort line and Red Fort (which is
+also a wonder and steps `wonders_built` too). An upgrade in place does not
+count. Never decremented. `Fort::init` also steps another family's
+per-region short at `+0x12de + region·2` when `region < 0x40`. Reset:
+`reset_score`, `Leaders::clear`. Reader: `set_chart_data` (UI), checksum.
+
+### 13.3 In the crate
+
+- **Marks.** `fort_mark` and `oil_well_mark` have no registry.
+  `units::slots::SlotList` (`crates/sim/src/units/slots.rs:24`) is the exact
+  shape: one per leader per mark, taken in `Sim::activate` beside the
+  `is_fort` test (`crates/sim/src/cities/city.rs:2533`) and given back in
+  `Sim::close_building`'s fort arm (`~2905`). Wells are found by kind in
+  `economy/holdings.rs` today. `supply_mark` is already modelled:
+  `SupplyList` (`territory/supply.rs:171`) pops free tails, so `len()`
+  (`:207`) **is** the mark; opened `units/store.rs:145`, closed
+  `territory/upkeep.rs:62`; the `set_type` pair is stubbed
+  (`units/set_type_adapter.rs:207–211`).
+- **`wonders_built`: no counter.** The site is `Sim::activate`
+  (`city.rs:2420`) beside `self.is_wonder_building(ty)` at line 2490,
+  **before** the `building_is_city` split (~2506), for `captured` true and
+  false alike. Not the non-city tail: the Forbidden City runs the city
+  branch. The capture member loop (`cities/capture_view.rs:156–170`) already
+  gates on `not_civilian` (`0x2000`) and activates with `captured = true`, so
+  a counter there reproduces the capture rule with no further work.
+- **Trap: two bitmasks with counter names.** `Cities::wonders_built`
+  (`cities.rs:63`) and `Sim::wonders_held` (`economy/holdings.rs:572`) are
+  type bitmasks, not these counters. Do not merge them.
+- **Trap: the American proxy.** `american_free_wonder` (`city.rs:1827`, tail
+  ~1855) reads `census.wonder_mark == 0` and no standing wonder in place of
+  `wonders_built == 0`. They part when a leader has ever activated a wonder
+  (built, or captured then lost) and now holds none: the census mark trims
+  to 0 (`Sim::note_wonders`, `ai/ai_census.rs:1276`), the counter does not,
+  so the crate grants the free arm the original refuses. Feed it from the
+  counter.
+- **`wonders_held`: no counter.** `Sim::note_wonders` batches every close
+  before every open, which can under-count against the original's event
+  order; count at `Sim::activate`'s wonder test instead.
+- **`senates_built`.** `senate_arm_steps` (`cities/activate.rs:251`, call
+  `:261`) reaches `SimArms::senates_built_inc` (`:394`), an empty SEAM.
+- **`forts_built`.** None; increment with the `fort_mark` take.
+- **Checksum.** `checksum/leaders.rs` lists all seven leaves (`:105–108`,
+  `:175–177`, `:189`); `leader_long` (`:949`) has an arm for none. Each sits
+  in `LEADERS_HELD_OUT` at count 2 (`crates/rondata/src/diff/
+  checksum_lines.rs:1787, 1788, 1817, 1835, 1837, 1850, 1851`); a port of a
+  leaf adds its arm and drops its entry. The verdicts give no figure beyond
+  that.
+
+### 13.4 Reached by a plain game
+
+A skirmish reaches every writer: fort and oil-well takes and give-backs by
+construction and destruction (oil from the Industrial age); supply takes at
+supply-unit births and deaths; `wonders_built` and `wonders_held` by
+construction (`Wall::do_construct`, `(0, 1, 1)`) and by capturing a city that
+holds a finished wonder or is a Forbidden City; `senates_built` and
+`forts_built` by construction. `Leaders::clear` runs at game close and in
+multiplayer out-of-sync recovery. `LeaderData::walk_data (006d6750)`
+overwrites all seven on a save load, outside a plain game. Whether the
+`set_type` supply pair or a `(0, 1, 0)` Senate transfer is reached is open
+(13.6).
+
+### 13.5 How established, and how confident
+
+Two readings and an adjudication
+(`docs/audit/2026-11-11-item-4152/marks-built-*.md`); no diff backs it yet.
+
+Verdicts: 63 confirmed, 7 corrected, 5 open. The corrections that changed a
+rule:
+
+- the array is ten slots, and `build_game` zeroes `supply_mark` in all ten;
+- `Leaders::clear` has two callers, not four;
+- `oil_well_mark`'s give-back also needs `build_flags & 0x40`, and writes
+  four fields of the record;
+- the `wonders_built` crate site is beside line 2490, outside the city
+  split, not the non-city tail;
+- `defeat_by` hands over no wonder;
+- a fort taken with a city is **not** recounted for the captor: forts carry
+  `0x2000`, which the member loop exempts, and no capture route to a fort
+  was found.
+
+Confidence is high throughout. The `wonders_built` increment, its missing
+gate and its single return are listing-read; the capture route is
+listing-read at `capture_city`'s gate, its member activation and its head
+activation, and the wonders' flags are the shipped `buildingrules.xml`'s,
+held to the program's loaded words by an existing guard (`docs/DATALAYER.md`).
+`senates_built`'s `captured` register was traced through the listing. Every
+leaf's absolute-address writer net was swept, and the register-relative
+hits outside a leader are named in the verdicts.
+
+### 13.6 Not established
+
+- **A capture route to a Red Fort**, or to any fort, for `wonders_built` and
+  `forts_built`. None was found; a sweep of every caller of the `activate`
+  slot (`0x1a8`), its predicate against `is_fort`, would settle it.
+- **`is_wonder_building`'s equivalence to `0x20e..=0x21e`.** The crate asks
+  the tech tree's `wonder` kind; a test that the tree files exactly those 17
+  types settles it.
+- **Whether a plain game retypes a unit across `unit_flags2 & 0x40`**, which
+  is what reaches `supply_mark`'s `set_type` pair. A capture with a supply
+  unit retyped, or a reading of every `set_type` caller, settles it.
+- **Whether a Senate travels a `(0, 1, 0)` transfer** (a cityless foreign
+  Senate adopted by `City::find_buildings`). The predicate is settled; the
+  route is not.
+
 ## 16. `cannon_time`, `handicap` and `multi_diff`
 
 Three words a game build writes from the lobby and that nothing moves in a
@@ -1892,3 +2352,243 @@ the unit cell 0 holds 21, then 14.
   cut from v1). Nothing in the original is open.
 - **Both leaves stay unpinned** until the crate holds them and the
   `out:finish` rows on a kept capture diff clean.
+
+## 20. `high_buildings`, `territory_high` and `reg_terr`
+
+### 20.1 Leaves
+
+- `territory_high`: +0x9dc, `int`. Territory's high-water mark, in tiles.
+- `reg_terr`: +0x145e, `ushort[64]`. Tiles held per land region, indexed by
+  the original's region number 0..63 with no bias.
+- `high_buildings`: +0x5660, `ushort[129]`. A building type's high-water
+  count, indexed by `basic_type(T) − 0x19e` (the root of T's `from` chain).
+  The executable folds the bias into the displacement, so every access is
+  spelled at +0x5324 (absolute `0xe3f6b4`). The export's
+  `high_buildings[x + 0x4f]` hits are `num_units` (+0x5762), not this leaf.
+
+All three are zeroed by both bulk writers (`Leader::init (006e3930)`'s
+tribe<0 memset and `Leaders::clear (006ed5d0)`). The tribe<0 arm runs for
+every slot at game creation, because `Leaders::init (006ed850)` calls
+`Leader::init(i, −1, i)`. `Game::run (00584590)` reaches it before
+`Game::init`, which runs setup's territory recompute. `Leaders::clear`
+covers all ten slots and runs from `Game::close (00594b80)` and
+`Game::run_oos_recovery (005869e0)`.
+
+### 20.2 The rule
+
+**`reg_terr`.** Every writer is inside the border pass,
+`World::compute_reg_territory (006b0bb0)`, called as `(r, reset)`:
+
+1. If `reset`, set region r's cursor (`Region +0x2c`) to 0.
+2. **Zero block.** If the cursor is 0, then for every slot 0..7 with
+   `leader_flags & 1`, set `reg_terr[s][r] = 0`. The same block zeroes
+   `reg_known_rares[s][r]` (+0x4d4) and the slot's live cities' `bordering`
+   (+0x65). Slots without the live bit keep their last counts, and the
+   checksum walks them.
+3. **Early return** when the cursor ≥ the region's size, or when the
+   frame's tile budget (`GameDaemon +0x24`) is above 0xff. The test is
+   signed, so −1 means unlimited. It runs **after** the zero block, so a
+   region the budget denies is re-zeroed every frame until its first tile.
+4. **Count.** For each tile the pass assigns, if the winner is ≥ 0, then
+   `reg_terr[winner][r] += 1`, wrapping as a u16. Two winners count for
+   nobody: −1 (no claim) and −2. A tile is −2 when the winning city's
+   `CityData +0x5f` (`race`, a `char`) is not the slot whose city list held
+   that city.
+
+`World::compute_all_territory (006b5700)`, setup's wholesale recount,
+zeroes all 64 entries for every live slot 0..7. It then sets the budget to
+−1 and calls `compute_reg_territory(r, 1)` for every region r with
+`Region.size (+0x14) != 0`.
+
+`Leader::init`'s ordinary path also zeroes all 64 entries.
+
+The reader that decides is `BuildTypeData::blocked_location (006375b0)`.
+City spacing relaxes by `CITY_SPACING − RELAX_CITY_SPACING` when
+`size·9/10 <= reg_terr[who][r]`. The two `territory` folds below also read
+it.
+
+**`territory_high`.** It has two writers, both the same fold:
+
+- `World::compute_all_territory (006b5700)`, at setup. Its callers are
+  `Setup::build_cities` and `Setup::build_game`, which calls it twice.
+- `GameDaemon::check_borders (00732060)`, every frame through
+  `GameDaemon::process_all`. It folds only when both hold: some
+  `compute_reg_territory` call this frame returned bit 2, and no sized
+  region 0..63 still has its cursor below its size.
+
+The predicate is slots 0..7 with `leader_flags & 1`. The step, signed:
+
+```
+territory      = Σ reg_terr[r]   over r in 0..63 with Region.size != 0
+territory_high = max(territory_high, territory)
+```
+
+It is never lowered between the resets. There is no sim reader. The
+readers are `AchieveChartPane::set_chart_data (007f2c40)`, a UI float, and
+`LeaderData::log_data`.
+
+**`high_buildings`.** The only writer is `Build::activate (00623e20)`,
+called as `(p1, p2, p3)`. It runs after the building is counted: the base
+`Wall::activate` runs `Wall::increment_stats` first.
+
+- `n = Σ num_buildings[U]`, over T and every record on T's `to` (+0x2e0)
+  chain. This is `num_buildings[T] + LeaderData::get_buildings
+  (006e0680)(to(T))`, recursive while `to >= 0`.
+- **Predicate:** `p1 == 0` and `n > high_buildings[root]`, as a signed
+  compare. Then `high_buildings[root] = n as u16`.
+- Inside the raise branch:
+  - `T == 0x21a` sets `leader_flags |= 0x10000000`;
+  - `p3 != 0` pays the nation's free units, subject to the semaphore gates
+    `0x821 & 0x10` and `0x822 & 2` and the scenario byte `0xcb195b`.
+- The reset is all 0x81 entries, by `Leader::init`'s ordinary-path loop
+  (which zeroes `num_buildings` alongside) and both bulk writers.
+  `Wall::decrement_stats` leaves the mark alone, so it is never lowered.
+
+The callers and their `(p1, p2, p3)`, from all 16 listing sites:
+
+| caller | p1, p2, p3 |
+|---|---|
+| `Setup::build_cities` | 0,0,0 |
+| `Build::check_capture` | 0,1,0 |
+| `Wall::do_construct` | 0,1,1 |
+| `SpellType::cast_bribe` | 0,1,0 |
+| `Leader::defeat_by` | 0,1,0 |
+| `Leader::produce_building (006e1400)` | 0,p2,0 |
+| `Cities::capture_city` (two sites) | 1,1,0 |
+| `City::find_buildings` | 0,1,0 |
+| `Console::hurry_action` | 0,1,1 |
+| `ScenarioEditor::add_build`, `activate_selected` | 0,0,0 |
+| `ScenarioRead::load_build_chunk` (two sites) | 0,0,0 |
+| `ScenarioFuncSet::switch_teams` | 1,1,0 |
+| `ScenarioFuncSet::create_building` | 0,1,1 |
+
+`ConquestGame::build_cities (00796140)`, `ScenarioRead::load_city_chunk`,
+`UnitBalance::next` and `ConsoleWin::run_cmd` also call it. So p1 = 1 only
+for `capture_city` and `switch_teams`, and every other caller can raise the
+mark.
+
+The readers are `TypeData::get_cost (00664090)` and
+`BuildData::construct_time (0062d5c0)`. Both run the Iroquois quick-Senate
+test, `high_buildings[T − 0x19e] == 0`, indexed by T itself.
+
+### 20.3 In the crate
+
+- **`territory_high`: not held.** The fold belongs in
+  `Sim::update_territory_holdings` (`crates/sim/src/territory/upkeep.rs:129`).
+  That function is called from `start_border_pass`
+  (`territory/border_pass.rs:56`, pre-play), `settle_borders` (`:170`) and
+  the pass-complete tail of `advance_border_pass` (`:248`), and those are
+  the two original sites. One `Sim` is one game, so zeroing at creation is
+  the reset. A crate that reuses a `Sim` across games must zero the field at
+  game start. The crate's `holdings.territory` counts cells over every land
+  region (per its doc comment). The original sums `reg_terr` over sized
+  regions 0..63, so the checksum agrees only if the two counts agree.
+- **`reg_terr`: not stored.** `Sim::reg_terr` (`cities/place.rs:344`)
+  recounts on demand, so it parts from the original mid-pass. The crate
+  already reads the spacing rule at `cities/location.rs:305`.
+  `zero_region_rares` (`border_pass.rs:125`) notes that the +0x145e write
+  "has no field in this crate". A store goes in three places:
+  - the cursor-0 arm of `advance_border_pass` (`:184`, arm `:205`);
+  - its per-cell loop (`:222`, `who.player()`);
+  - the wholesale recount in `wholesale_bordering` (`:136`),
+    `settle_borders` (`:166`) and `start_border_pass` (`:48`).
+
+  `Sim::reg_terr` should then read the store. **Trap:** `zero_region_rares`
+  zeroes for every `ai` leader without a liveness test. A `reg_terr` zero
+  placed there must be gated on `leader_flags & 1`, or a dead slot's row
+  parts.
+- **`high_buildings`: held**, as `Cities::building_high`
+  (`crates/sim/src/cities.rs:51`). It is written by
+  `Sim::claim_building_high` (`cities/nations.rs:219`) from `Sim::activate`
+  (`cities/city.rs:2420`, call `:2578`). The guard at `nations.rs:234`,
+  `building_high[w][root] >= n || captured`, is the original's predicate,
+  with `captured` as p1. Only the checksum emitter is missing. It maps
+  `building_high[who][rec]` to the original's `type − 0x19e`, zero-padded
+  to 129, and the `"num_buildings"` arm is the model. The crate callers
+  checked against the table:
+  - `capture_view.rs:236` passes `(true, false)`, `city_views.rs:276`
+    passes `(false, false)` and `city.rs:680` passes `(false, false)`. All
+    three match.
+  - `Wall::do_construct` routes through `cities/construct.rs:49`/`:108` as
+    `activate(0, 1, 1)`. Not traced further.
+  - **Unported:** `Build::check_capture`'s non-city swap branch.
+    `SimCapture` answers `swap_team` with −1, and its `activate_new` is
+    empty (`cities/capture.rs:427` ff., `:661`). The (0,1,0) raise there
+    never happens. Only the `capture_city` arm is live.
+  - **Unported:** a building arm of `cast_bribe`. `spells/bribe.rs` ports
+    the unit arm only.
+  - **Trap:** `ai/ai_place.rs:1035` passes `activate(o, false, true)` where
+    `Leader::produce_building` pushes p3 = 0. The mark is unaffected,
+    because p1 = 0 on both sides. But `counted` gates `free_units_for`
+    (`nations.rs:238`), so the crate can pay free units on a frame-0
+    building where the original pays none. Book it against the units
+    score, not this leaf (§19 names the same flag).
+- **Checksum.** The rows are at `crates/sim/src/checksum/leaders.rs:236`
+  (`territory_high`), `:294` (`reg_terr`) and `:297` (`high_buildings`).
+  Each leaf is `(unheld)` in `LEADERS_HELD_OUT` with count 2
+  (`crates/rondata/src/diff/checksum_lines.rs:1794, 1820, 1840`), and each
+  port removes its entry.
+
+### 20.4 Reached by a plain game
+
+All three leaves are reached.
+
+- `reg_terr` and `territory_high` move at setup and on every border pass.
+- `high_buildings` moves on starting buildings (`Setup::build_cities`),
+  every finished construction (`Wall::do_construct`), frame-0 production,
+  `City::find_buildings`, `Leader::defeat_by`, and buildings changing
+  hands.
+- Not yet checked: whether a plain game reaches `check_capture`'s non-city
+  swap or a building bribe.
+- Off the plain path: `Console::hurry_action` and `ConsoleWin::run_cmd`
+  (console), the `ScenarioFuncSet` calls (triggers), the editor and
+  scenario loaders, `UnitBalance::next`, and `ConquestGame::build_cities`
+  (Conquer the World).
+
+### 20.5 How established, and how confident
+
+Two readings and an adjudication
+(`docs/audit/2026-11-11-item-4152/high-buildings-*.md`); no diff backs it
+yet.
+
+| leaf | confirmed | corrected | open |
+|---|---|---|---|
+| `territory_high` | 9 | 1 | 0 |
+| `reg_terr` | 12 | 2 | 1 |
+| `high_buildings` | 12 | 0 | 2 |
+
+The writers, predicates, steps and resets are settled at listing
+addresses. Confidence is high on all three leaves.
+
+The corrections that changed a rule:
+
+- **`territory_high` is reset per game.** The claim that nothing resets it
+  across games in one process is wrong. The tribe<0 memset (`006e398c`, a
+  `_memset` thunk per `rise_z.map`) and `Leaders::clear` (`006ed5e0`) both
+  zero `[+0, +0x6929)`. Both readings' nets missed `Leaders::clear`,
+  because its size is 0x6929, not the struct size.
+- **The −2 arm tests `CityData::race` (+0x5f)**, not an owner byte. The
+  crate's `Owner::Ambiguous` doc (`crates/sim/src/world.rs:172`) has the
+  same naming gap.
+- **`compute_all_territory` clears live slots only**, with eight 16-byte
+  stores (64 ushorts).
+
+No kept-dump value is cited as a witness.
+
+### 20.6 Not established
+
+- **What `CityData::race` holds after a capture.** It decides when a tile
+  counts for nobody (−2). A capture with `reg_terr` diffed, or a
+  reading of `race`'s writers, settles it. Whether the crate's recount
+  already parts in a capture is booked as `docs/PARKED.md` 568.
+- **`Wall::increment_stats`' predicate**, which decides that
+  `num_buildings[T]` already counts the building when `n` is taken. Both
+  readings read it from a folded body (`006432e2`); confidence is medium.
+- **Plain-game reach of `check_capture`'s non-city swap branch and of a
+  building bribe.** Both are unported in the crate. A skirmish capture that
+  swaps a non-city building, diffed on `high_buildings`, settles it.
+- **Cells versus tiles in `territory`.** This is a property of
+  `territory`, not of this leaf. It decides whether `territory_high`'s
+  checksum value agrees.
+- All three leaves stay unpinned until the crate holds them and their rows
+  on a kept capture diff clean.

@@ -21,7 +21,7 @@ reader gets the leaf column alone.**
 | # | slug | leaves (offset, type) | §20's writers |
 |---|---|---|---|
 | 1 | `city-name` | `city_name` (+0x40c int) | `City::generate_name`: a counter shared by the leaders of one tribe, where the one holding the most takes the increment |
-| 2 | `kills` | `units_killed` (+0x80c), `units_lost` (+0x810), `buildings_razed` (+0x818), `buildings_lost` (+0x81c), all int | `Object::take_damage`, `Object::do_damage`, `cast_sabotage`, `cast_counterintel` |
+| 2 | `kills` | `units_killed` (+0x80c), `units_lost` (+0x810), `buildings_razed` (+0x818), `buildings_lost` (+0x81c), all int | done, §2 |
 | 3 | `combat-rates` | `frame_battle` (+0xa4c int); ushort: `average_death_rate` (+0xa50), `average_kill_rate` (+0xa52), `average_damage_rate` (+0xa54), `average_hit_rate` (+0xa56), `deaths_current_frame` (+0xa58), `kills_current_frame` (+0xa5a), `hits_current_frame` (+0xa5c), `damage_current_frame` (+0xa5e), `deaths_fifteen_seconds` (+0xa60), `kills_fifteen_seconds` (+0xa62), `hits_fifteen_seconds` (+0xa64), `damage_fifteen_seconds` (+0xa66) | `Leader::inc_*_event`, folded by `Leader::process_event_frame` |
 | 4 | `victim-stamps` | `attack_stamp` (+0xf4 int[8]), `raid_stamp` (+0x114 int[8]), `ally_stamp` (+0x154 int[8]), `ctw_hero_stamp` (+0x200 int) | `Object::do_damage`; `attack_stamp` also `Leader::plan_strategy`, `end_process` |
 | 5 | `attrition-stamps` | `attrition_stamp` (+0x1f4), `attrition_stamp2` (+0x1f8), `attrition_stamp3` (+0x1fc), `att` (+0x7f0), `give_att_disabled` (+0x7f8), all int | `Unit::process_attrition`, `gain_tech`; `Unit::suffer_attrition`; `Wall::process`; `Leader::calc_attrition`; `Leader::plan_strategy` |
@@ -32,14 +32,14 @@ reader gets the leaf column alone.**
 | 10 | `end-of-game` | `defeated_by` (+0x10), `wonderwin_stamp` (+0x448), `wonderwin_timer` (+0x44c), `victory_type` (+0x7d8), `defeat_type` (+0x7dc), `defeat_stamp` (+0x6924), all int | `Leader::victory`, `defeat`, `defeat_by`; `Leader::process`; `GameDaemon::process_victory` |
 | 11 | `lost-capital` | `lost_capital_stamp` (+0x414), `lost_capital_timer` (+0x418), `lost_capital_modifier` (+0x41c), all int | `Leader::lost_capital`, `recapture_capital`, `Build::activate`, `Leader::process`; the tally's `lost_capital_frame` is a partial copy of the stamp |
 | 12 | `misery` | `pop_issues` (+0x7e8), `misery` (+0x7ec), int | done, §12 |
-| 13 | `marks-built` | `fort_mark` (+0x428), `oil_well_mark` (+0x430), `supply_mark` (+0x434), `wonders_built` (+0x854), `wonders_held` (+0x858), `senates_built` (+0x85c), `forts_built` (+0x8f0), all int | the registries' `init_*`/`close_*`; `Fort::init`; `Build::activate`; `Wonders::init_wonder` |
+| 13 | `marks-built` | `fort_mark` (+0x428), `oil_well_mark` (+0x430), `supply_mark` (+0x434), `wonders_built` (+0x854), `wonders_held` (+0x858), `senates_built` (+0x85c), `forts_built` (+0x8f0), all int | done, §13 |
 | 14 | `queued` | `scholar_militia` (+0x9f0); `barracks_queued` (+0xa10), `stable_queued` (+0xa14), `factory_queued` (+0xa18), `combat_queued` (+0xa1c), `dock_queued` (+0xa20), `air_queued` (+0xa24), all int | `Leader::track_queued` (each its own zero floor) and `Unit::process`; `track_unit_type`'s militia-from-a-Scholar arm |
 | 15 | `odd-counters` | `missiles_used` (+0x7c0), `repair_stamp` (+0x208), `units_bribed` (+0x8f4), `nukes_launched` (+0xa38), all int | `Ammo::do_damage`, `Unit::do_repair`, `cast_bribe`, `Unit::come_out` |
 | 16 | `lobby-words` | `cannon_time` (+0x48 ulong), `handicap` (+0x4c int), `multi_diff` (+0x50 int) | done, §16 |
 | 17 | `spells` | `tech.ptr`: `tech` (+0x6c0c `BitMask<806>`), the spell types' bits `0x275..0x2ab` (46 bits), absent from `tech_at_start` | out by name; a mechanic of its own |
 | 18 | `score` | `score` (+0x18), `score_explored` (+0x1c), `score_territory` (+0x20), `score_units` (+0x24), `score_units_2` (+0x28), `score_buildings` (+0x2c), `score_economy` (+0x30), `score_pop` (+0x34), `score_unit_upgrades` (+0x38), `score_research` (+0x3c), `score_wonders` (+0x40), `score_combat` (+0x44), all int | out by name; a mechanic of its own |
 | 19 | `last-finished` | `last_building_finished` (+0x6070 int[129]), `last_unit_finished` (+0x6274 int[352]) | out by name; a mechanic of its own |
-| 20 | `high-buildings` | `territory_high` (+0x9dc int), `reg_terr` (+0x145e ushort[64]), `high_buildings` (+0x5660 ushort[129]) | out by name; a mechanic of its own |
+| 20 | `high-buildings` | `territory_high` (+0x9dc int), `reg_terr` (+0x145e ushort[64]), `high_buildings` (+0x5660 ushort[129]) | done, §20 |
 
 Leaves: 1 + 4 + 13 + 4 + 5 + 1 + 8 + 7 + 6 + 6 + 3 + 2 + 7 + 7 + 4 + 3 + 1
 + 12 + 2 + 3 = **99**, plus `explored` makes §20's 100.
@@ -187,3 +187,6 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | attrition-stamps | 3 | 189 k+ | 15+ | 44 confirmed, 5 corrected, 1 open | **the `att` floor on a base of 0 is confirmed by the listing and diff-backed by run981: `docs/ATTRITION.md` §1 step 1 and `attrition.rs:43` are wrong**; the crate recomputes `att` a frame early in `apply_gained` (the original folds at the next `process_all`); file complete with its table, the agent still on background work at the clear |
 | lobby-words | 4 | 90 k | 1.3 | §16, 11,649 chars | every verdict a rule; flags `diff/leader.rs:58` calling `multi_diff` "an input, not state"; the 0x4d-arm line is the writer's inference |
 | misery | 4 | 68 k | 1.5 | §12, 9,260 chars | every verdict a rule; the ×4 stance-word-0 predicate in `Army::find_target` left unnamed (not called "at war") |
+| kills | 4 | 75 k | 1.7 | §2, 11,541 chars | every verdict a rule; `LEADERS_HELD_OUT` lines taken from the tree; `delivery.rs:211` now `:212` |
+| marks-built | 4 | 78 k | 1.6 | §13, 11,904 chars | every verdict a rule; totals 63/7/5 summed by the writer; held-out lines from the tree |
+| high-buildings | 4 | 74 k | 1.5 | §20, 11,871 chars | every verdict a rule; adds the cells-versus-tiles gap (`upkeep.rs:129` sums every land region, the original sized regions 0..63), checked by the writer |
