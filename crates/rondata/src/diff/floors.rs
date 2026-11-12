@@ -542,8 +542,10 @@ pub fn structure_line(counts: &[(&str, u64)]) -> String {
 /// §5.4): K of M from [`crate::free::tests::RENDER_K`]'s K and
 /// [`crate::free::tests::RENDER_M`], the frames in register
 /// ([`crate::free::tests::FRAMES_IN_REGISTER`]) and the pieces decoding
-/// ([`crate::artdata::PIECES_DECODING`]), parted by a middle dot. The
-/// camera sweep's 240 of 240 is pinned only inside `render`'s
+/// ([`crate::artdata::PIECES_DECODING`]), and since item 4166 the draw
+/// list across the ages ([`crate::free::ages::AGES_RESOLVED`], `resolved X
+/// of Y objects over L lobbies`, thousands grouped), parted by a middle
+/// dot. The camera sweep's 240 of 240 is pinned only inside `render`'s
 /// `tests/camera_sweep.rs`, a test binary this crate cannot reach, so it is
 /// not on the line.
 #[cfg(test)]
@@ -551,9 +553,24 @@ pub fn renderer_line() -> String {
     use crate::free::tests::{FRAMES_IN_REGISTER, RENDER_K, RENDER_M};
     let (frames, of_frames) = FRAMES_IN_REGISTER;
     let (pieces, of_pieces) = crate::artdata::PIECES_DECODING;
+    let (resolved, objects, lobbies) = crate::free::ages::AGES_RESOLVED;
+    let group = |n: usize| {
+        let s = n.to_string();
+        let mut out = String::new();
+        for (i, c) in s.chars().enumerate() {
+            if i > 0 && (s.len() - i).is_multiple_of(3) {
+                out.push(',');
+            }
+            out.push(c);
+        }
+        out
+    };
     format!(
-        "Renderer: K {} of M {RENDER_M} \u{b7} frames {frames} of {of_frames} \u{b7} pieces {pieces} of {of_pieces}",
-        RENDER_K
+        "Renderer: K {} of M {RENDER_M} \u{b7} frames {frames} of {of_frames} \u{b7} pieces {pieces} of {of_pieces} \
+         \u{b7} resolved {} of {} objects over {lobbies} lobbies",
+        RENDER_K,
+        group(resolved),
+        group(objects)
     )
 }
 
@@ -1226,7 +1243,7 @@ mod tests {
             Some(want.as_str()),
             "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::renderer_line`: \
              `free::tests::RENDER_K`'s K, `RENDER_M`, `FRAMES_IN_REGISTER`, \
-             `artdata::PIECES_DECODING`); it says {line:?}"
+             `artdata::PIECES_DECODING`, `free::ages::AGES_RESOLVED`); it says {line:?}"
         );
     }
 

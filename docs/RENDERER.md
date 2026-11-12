@@ -1690,6 +1690,117 @@ the fade's shape. `water_fade` is pinned by
   water's scales (`WaterLevel1Scale`, `OceanFloorScale`). None is drawn,
   and the client lays both textures one repeat a cell.
 
+## 3.13 The draw list across the ages (item 4166)
+
+*2026-11-12, Opus 5.5. Built in `crates/rondata/src/free/ages.rs`, over
+the games `rondata::diff::drawn_games` lists. Checked by
+`free::ages::the_draw_list_across_the_ages_resolves`.*
+
+**The score.** Over the 82 late-age pairs and the 28 battery words, on the
+4,608 frames their long captures dump: **resolved 1,166,600 of 1,171,799
+objects over 110 lobbies** (`AGES_RESOLVED`). The closing blocks' pieces
+are ours on **34,394 of 34,399** records (`AGES_CLOSING`). K is M on **83
+of 110** lobbies (`AGES_LOBBIES_WHOLE`). The run takes about 100 s on four
+walkers.
+
+**What is walked.** Each game is the free runner stood up from its start
+sibling, its long capture's setup block and its trace's pasture
+(`FreeRunner::from_captures`), stepped to the closing block. The frames are
+frame 0 and every `FRAME` the long prints: every hundredth frame on a pair,
+and only the setup and closing blocks on a battery word. The lists are the
+handoff's `Late ages:` and `Battery word:` rows of `AI_WORDS`, held to them by
+`the_census_walks_every_late_age_and_battery_game`. The same test asserts
+that no game is in the held-out battery (`diff::battery::BATTERY`, DECISIONS
+61 §6). The battery words are the lobbies promoted out of it.
+
+**What an object is.** Each entry of the client's draw list on the frame
+(`render::draw::draw_list` of `free::placed` and `free::placed_buildings`, as
+the observer sees it), plus each projectile and each corpse in the scene. An
+entry resolves when its piece names install files that decode under
+`render`'s readers:
+
+- a figure: its `<UNIT>` model and the animation of the slot it plays
+  (`PieceDecoding::decodes_on`, §5.4's condition 1 on that slot);
+- a building: §5.4's building condition 1 for the piece it shows
+  (`artdata::building_decoding`), on the tileset its map draws;
+- a field: the farm's `<FARM>` and wheat image on that tileset;
+- a foundation: its `<CONSTRUCTION>` sprite (and the dock's model);
+- a scaffold piece: its `<SCAFFOLD>` model, texture and animation.
+
+Projectiles and corpses do not resolve. The scene carries no piece for
+either (`ProjectileScene`, `DeathScene`), so the list cannot draw them.
+
+**The unresolved, cheapest first** (`AGES_UNRESOLVED`, objects summed):
+
+| type | objects | what fails | what would settle it |
+|---|---|---|---|
+| Sawmill (424), piece 55219 | 22 | an addon's `anim`, `sawmill_3t Default`, that `anim_graphics.xml` does not name | how the loader treats an unnamed addon animation |
+| Smelter (425), pieces 50963, 51092 | 180 | the same, `smelter_0a_addon` | the same reading |
+| Observation Post line, 522–525 (pieces 50803–50805) | 279 | the `<BUILD>` names no file: Air Defense Gun, Radar Air Defense, SAM Installation | `WallOut::draw`'s model at the point for these types (§3.5), unread |
+| Citizen and CEO crews (38322, 38323, 39378, 39379) | 15 | slot 2's `ceo_crew3_idle3.bha` is not in the install | what the original does with a missing `.bha` |
+| projectiles | 2,133 | the scene carries no piece | the door widened by the round's ammo piece |
+| corpses | 2,570 | the scene carries no piece | the door widened by the dead unit's piece and its death slot |
+
+The 522 rows are Observation Posts already upgraded: the building keeps
+`orig_type` 522 and shows the Air Defense Gun's piece. No type is bent to a
+missing file. Every file a `<UNIT>` or `<BUILD>` names on these frames is in
+the install, except the crews' one `.bha`.
+
+**The value diff: the closing block.** Every long capture prints its units'
+guys and its buildings with `gpiece` on its closing block, frame
+`length + 1`. On each lobby, every printed record whose object the runner
+holds is compared with the runner's piece on the same frame. Of 34,399
+records, 34,394 agree. The five that part are all
+`GreatLakesAmericanInformation` on frame 4321, guy 0 of the Americans'
+Assault Marines (TypeIndex 122, land, foot):
+
+| record | dump `gpiece` | ours | our slot |
+|---|---|---|---|
+| `1/55` | 72, `ASSAULTMARINES-DEFAULT-AGE0` | 6408, `…-AGE0-FEMALE` | 23 |
+| `1/67` | 72 | 6408 | 8 |
+| `1/69` | 72 | 6408 | 9 |
+| `1/71` | 72 | 6408 | 7 |
+| `1/73` | 72 | 6408 | 9 |
+
+The dump prints `cur_anim` 9 on each. The variant a figure takes, male or
+female, is chosen at the guy's making. Ours took the female row of the
+same entry, and both rows decode. No pixel is compared (parked 4166a).
+
+**K of M on each lobby.** This is §5.4's counter read on the lobby's own
+dumped frames. M is the figure pieces played (with the slots played) plus
+the building types drawn (with the pieces drawn). A member counts when its
+files decode and the closing block's piece is ours on every record of it.
+On 83 of 110 lobbies K is M. The other 27 fall short only through the rows
+above, or through the Assault Marines' piece. **Condition 2 is read on
+pieces, not on pixels.** No lobby but `GreatLakesAztecModern` has its anchors
+put through the original's projection (§3.5).
+
+**Inexact ground.** `Built`'s guard counts height reads on corners this crate
+cannot pin to the original's single (`docs/COMBAT.md` §46.3). The runner
+hands the census its count (`FreeRunner::take_ground_inexact`), and each game
+is held to the largest `testkit::GROUND_INEXACT` row of its own module. No
+game exceeds its pin. Maya Ancient's 52 is its closing state's pin.
+
+**Made to fail once.** A field resolved on a tileset with no wheat image
+turns every field red (below, in the journal). The held-out guard is red
+with a battery lobby added to the list.
+
+**Diff-backed:** the closing block's pieces, on 110 lobbies. **Reading
+only:** every resolution beyond "the file decodes". A piece whose file
+decodes but is the wrong file is caught only where a dump prints the piece:
+the closing block, and the Aztec pair's starts.
+
+**What is not established.**
+
+- **Any pixel off the Aztec pair.** Anchors are not projected on these
+  lobbies.
+- **The viewer's drawn set.** The list is the observer's, every object on
+  the map.
+- **The pieces between the start and the closing block.** The pairs' strides
+  print guys without `gpiece`.
+- **4166a**, the Assault Marines' variant, and the four reading rows of the
+  table.
+
 ## 3.14 The device's state at a figure's draw (item 4165)
 
 **The trace.** run1566b's card trace (`tools/trace/card.h`, read by `rondata::trace::card`) copies, at each
@@ -2229,6 +2340,10 @@ Each line names what would settle it.
   the building types (items 4020 and 4026, §5.4). Whether every lobby's pinned capture
   has a `DUMP_ALL` sibling to check its count against is still a grep of the
   archive. On this lobby, only the start states print a unit's `gpiece`.
+  ~~Still a grep~~: every long capture's closing block prints it (item
+  4166, §3.13), and on 110 lobbies the runner's pieces are the dump's on
+  34,394 of 34,399 records. The five are the Assault Marines' variant
+  (parked 4166a).
 - **Whether the original interpolates figures between simulation frames**
   when it draws. In `GuyOut::draw`, ~~the place to read~~ the anchor's point
   is not interpolated and the bank is (§3.5). Whether the mesh's own

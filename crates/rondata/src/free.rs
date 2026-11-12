@@ -143,6 +143,16 @@ impl FreeRunner {
         self.built.sim.observe_terrain()
     }
 
+    /// The run's height reads that touched a corner this crate cannot pin
+    /// to the original's single (`docs/COMBAT.md` §46.3), taken: the count
+    /// is zeroed, so `Built`'s guard on drop reads nothing and the caller
+    /// holds the number to the pin it owns (item 4166's census, which
+    /// walks many games under one test).
+    #[cfg(test)]
+    pub(crate) fn take_ground_inexact(&mut self) -> u32 {
+        std::mem::take(&mut self.built.sim.trace.ground_inexact)
+    }
+
     /// Step to `FRAME last`, handing each tick's scene to `see`.
     pub fn run_to(&mut self, last: i64, viewer: Option<sim::Player>, mut see: impl FnMut(&Scene)) {
         while self.frame < last {
@@ -269,5 +279,7 @@ fn with_sibling_initials<R>(
     })?
 }
 
+#[cfg(test)]
+pub(crate) mod ages;
 #[cfg(test)]
 pub(crate) mod tests;
