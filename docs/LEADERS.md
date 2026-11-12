@@ -465,6 +465,230 @@ No kept-dump value is cited.
   kill, a raze, an attrition death and a border-decay loss on its frames
   exercises all four.
 
+## 3. The combat rates
+
+### 3.1 Leaves
+
+- `frame_battle`, +0xa4c, `int`. A frame number; 0 means never.
+- `average_death_rate` +0xa50, `average_kill_rate` +0xa52,
+  `average_damage_rate` +0xa54, `average_hit_rate` +0xa56, `ushort`.
+- `deaths_current_frame` +0xa58, `kills_current_frame` +0xa5a,
+  `hits_current_frame` +0xa5c, `damage_current_frame` +0xa5e, `ushort`.
+- `deaths_fifteen_seconds` +0xa60, `kills_fifteen_seconds` +0xa62,
+  `hits_fifteen_seconds` +0xa64, `damage_fifteen_seconds` +0xa66, `ushort`.
+
+Every add below is a 16-bit wrapping add. Slot `i`'s block sits at
+`0xe3addc + i·0x6eec`.
+
+### 3.2 The rule
+
+**Writers, complete.** Four event writers feed the `_current_frame` words
+and one fold writes everything else. The four `Leader::inc_*_event` have no
+caller; their inlined copies are the live sites. Besides the header's bulk
+writers, `Leader::init (006e3930)` zeroes all thirteen by explicit stores.
+No other store exists (both offset nets and an absolute sweep).
+
+**W1, the blow: `Object::do_damage (0064a480)`.** Exemptions: return if the
+blow count argument is `< 1`, or if the attacker is a unit and a decoy
+(`unit_masks & 1`). Nothing else returns before the store, and there is no
+owner, ally or self test.
+
+    s = 5 if is_siege(attacker type) and target is a building or wall else 1
+    leaders[attacker.who].hits_current_frame   += s
+    leaders[owner(target)].damage_current_frame += s
+
+It counts blows, never hit points. A blow on one's own object adds to the
+same leader's hits and damage.
+
+**W2, the structure kill: `do_damage`, after the take.** Before the take,
+record `active = target alive (flags & 1) and is_build (a Build, not a Wall)
+and active (flags & 4)`. If the take (vslot `+0x16c`) returns non-zero and
+the target is a building or wall:
+
+    k = 5 if active else 2
+    leaders[attacker.who].kills_current_frame  += k
+    leaders[owner(target)].deaths_current_frame += k
+
+No unit, splash, air or ally gate; razing one's own wall counts a kill and a
+death to one leader. The take also returns 1 on a **not-dead** path, and W2
+counts it: a building or wall that is not active, whose leader lacks
+`leader_flags & 4`, with `hits <= 2·damage`, and whose type has flag
+`0x2000` at `+0x60`, is disbanded, giving `k = 2`.
+
+**W3, a unit's death: `Object::take_damage (00652020)`.** A dying building or
+wall skips these leaves. A dying unit counts only if it is its squad's
+captain, the squad's size is 1, and it is not a decoy. Then `+0x810 += 1`
+unconditionally, and only if the attacker index argument `param_7 >= 0`:
+
+    leaders[victim.who].deaths_current_frame += 1
+    leaders[param_8].kills_current_frame     += 1
+
+`do_damage` passes the attacker's own index and `who`. The other nine
+object callers of the take (attrition, `Wall::process`, scenario functions)
+pass `-1`, so attrition and scripts count nothing here. The take's tail
+re-calls itself only when the dying unit is a **decoy** with positive
+overflow `damage - hits` and a captain index `>= 0` other than itself; the
+re-call passes the captain's index and the victim's own `who`. If the
+overflow kills the captain, the owner gets one death and one kill of its
+own.
+
+**W4, the sniper: `SpellType::cast_sabotage (006720e0)`, unit arm.** A dead
+target takes the refund and returns. For a target that is a unit, not a
+building or wall, a captain, size 1 and not a decoy:
+
+    leaders[param_4 (target owner)].deaths_current_frame += 1
+    leaders[param_2 (caster)].kills_current_frame        += 1
+
+(with `+0x80c` and `+0x44 += cost/5` on the caster). The arm then kills the
+target by `Unit::die` (vslot `+0x158`), not by a take, so the credit rests
+on the predicate alone, and the unit dies whether or not it qualified. The
+**building arm writes no leaf of this family**: its stores are `+0x818` and
+`+0x44`, and its take passes `-1`.
+
+**W5, the fold: `Leader::process_event_frame (006ec180)`.** `Game::do_frame
+(00591ef0)` calls it for slots 0..7 with `leader_flags & 1`, after
+`Achieve::capture_data` and before `frame += 1`. It returns unless
+`frame % 50 == 0`. Then, in order, for each of the four kinds X (deaths,
+kills, hits, damage):
+
+1. `X_fifteen_seconds += X_current_frame` (the raw count).
+2. `c = (X_current_frame · 100) mod 2^16`, stored back.
+3. `avg = c == 0 ? (avg · 7) >> 3 : (c + avg) >> 1`, unsigned 32-bit on
+   zero-extended words, stored as `u16`; the zero test is on the 16-bit
+   product. deaths→+0xa50, kills→+0xa52, hits→+0xa56, damage→+0xa54.
+4. The console leader's music mood, from `average_hit_rate +
+   average_damage_rate` (thresholds 300, 600, and 2000 only when
+   `0xecba20 == 2`) and the rivals' non-zero rates. Writes no leaf.
+5. The battle test, below.
+6. All four `_current_frame` words to 0.
+
+**The battle test.** With `age = leaders[this.who]`'s age (the encrypted
+word `data_encrypted->+0xdc ^ 0x62766`, 0-based), `D =
+average_death_rate`, `K = average_kill_rate`, zero-extended, all compares
+signed `i32`:
+
+    if D + K >= (age + 1)·125 and (frame_battle == 0 or frame - frame_battle >= 1800):
+        if D >= K + 10·age + 20:   Achieve::add_event(1 defeat, who, "")
+        elif K >= D + 10·age + 20: Achieve::add_event(0 victory, who, "")
+        else: nothing (averages untouched)
+        on either event: D = K = 64536 (0xfc18); frame_battle = frame
+
+`frame_battle` is the pre-increment frame, a multiple of 50. The sentinel
+reads unsigned (every read zero-extends). Over the 36 empty folds of the
+lock-out it decays to 525 (`v·7 >> 3`, 36 times). A consequence of the
+arithmetic only: past the lock-out, a window with deaths and no kills halves
+`D` toward `c` while `K` keeps 7/8, which can record a **victory** (from 525,
+three deaths give `D = 412`, `K = 459`, a lead of 47, enough through age 2).
+
+**Resets.** `_current_frame`: every fold frame (step 6), `Leader::init`.
+`_fifteen_seconds`: `Leader::init` only, so despite the name each is a
+game-long total mod 2^16. Averages: the fold and the battle event.
+`frame_battle`: `Leader::init`. A save-game load restores all thirteen raw.
+
+**Readers that change a decision.** `average_death_rate` and
+`average_kill_rate` (the battle test); `frame_battle` (the lock-out);
+`average_hit_rate` and `average_damage_rate` (music only). `draw_timers`
+displays the averages and `deaths`/`kills_current_frame` (×100), never
+`hits_current_frame`. `log_data` and the checksum walk read all thirteen.
+`Achieve::add_event (007af660)` writes no leaf.
+
+### 3.3 In the crate
+
+No field or function of the family exists in `crates/sim` beyond the
+checksum table (`crates/sim/src/checksum/leaders.rs:264-276`). The fields
+belong in `crate::ai::Leader` (`crates/sim/src/ai.rs:637`), beside
+`frame_attacked`/`attacked_by` (`:697-698`).
+
+- **W1**: `Sim::do_damage_round` (`crates/sim/src/combat/fight/delivery.rs:70`),
+  between the decoy return (`:94-98`) and `treaty_on` (`:107-109`), where
+  the original's store also sits; `hit_who` is already `owner_of(target)`
+  (`:107`). **Trap**: the crate's `!self.struck(target)` return
+  (`:81-83`; `combat/fight/stats.rs:92-100`) precedes the decoy test and
+  refuses a non-active unit or a dead or combat-less building, which the
+  original's store does not see (open, 3.6).
+- **W2**: the `if let Obj::Building(b) = target { if killed` block
+  (`delivery.rs:212-222`, `killed` at `:193`), outside its unit/splash/
+  air/ally gate, with `active` read before the take. `Obj` has only `Unit`
+  and `Building` (`combat.rs:381-384`), so the wall's home is wherever the
+  crate keeps walls; unsettled. `killed` must be true on a disbanded
+  inactive structure; whether `damage_building` models the disband arm was
+  not checked.
+- **W3**: the unit `Taken::Died` arm of `Sim::take_damage_typed`
+  (`delivery.rs:469`, arm `:537`), gated on captain, squad size 1, not
+  decoy, real attacker. `Sim::take_damage` (`:452`) is `#[cfg(test)]`;
+  attrition is `Sim::suffer_attrition` (`territory/upkeep.rs:286`) and never
+  reaches this arm, so no attrition guard is needed. The decoy tail already
+  exists (`:560-596`) and passes the captain as its own attacker, so a
+  counter in the `Died` arm credits the owner's own kill there with no
+  extra code.
+- **W4**: `Sim::cast_sniper_unit` (`delivery.rs:806`), on the
+  captain/size/decoy predicate, before `die_with`. **Trap**: its SEAM
+  (`:803`) lists `+0xa58` among "the caster's leader counters";
+  `deaths_current_frame` goes to the target's owner. **Trap**:
+  `cast_sabotage_building`'s SEAM (`:881`) names `+0xa58`/`+0xa5a`/`+0x80c`;
+  the building arm writes none of them, and the SEAM should name `+0x818`.
+- **W5**: a new fold in `Sim::tick` (`crates/sim/src/core/frame.rs:73`),
+  before `self.frame += 1` (`:475`), for slots 0..7 with `leader_flags & 1`.
+  `Achieve` is unported.
+- **Checksum.** The held arms go beside `"frame_attacked"`
+  (`checksum/leaders.rs:1157`). Each of the thirteen is
+  `("<leaf> (unheld)", 2)` in `LEADERS_HELD_OUT`
+  (`crates/rondata/src/diff/checksum_lines.rs:1762-1765, 1776-1779, 1789,
+  1797-1798, 1803-1804`), counted on run 1562's frame 91; a port holding a
+  leaf moves its row. The verdicts give no figure for how many would agree.
+
+### 3.4 Reached by a plain game
+
+A skirmish against the computer reaches W1 on every blow, W2 on every
+structure razed, W3 on every squad's last captain killed in combat, the fold
+every 50 frames, and the battle event. W4 needs a spy's sniping, rare but
+reachable. At age 0, three unit deaths in one window (`D = 150`) pass the
+battle size test. The disband arm's reach is open (3.6). Scenario functions reach the take
+with `-1` and count nothing (triggers, cut from v1). `Leaders::clear` runs
+at game close and in multiplayer out-of-sync recovery. Gaia slots 8 and 9
+never fold.
+
+### 3.5 How established, and how confident
+
+Two readings and an adjudication
+(`docs/audit/2026-11-11-item-4152/combat-rates-*.md`); no diff backs it yet.
+
+Verdicts, as the adjudication counts them: the shared writers 52 confirmed,
+5 corrected, 1 open; per leaf, `hits_current_frame` 6/1/1,
+`damage_current_frame` 5/0/0, `kills_current_frame` 9/1/1,
+`deaths_current_frame` 5/1/0, each `_fifteen_seconds` 6/0/0, each average
+6/1/0 (one shared correction), `frame_battle` 9/0/0, the gaia rows 2/0/1.
+Three questions are open (3.6).
+
+Corrections that changed a rule: the take's tail re-call is the decoy
+overflow only; the sniper's unit arm kills by `Unit::die`, and the
+building arm counts nothing; the crate's `take_damage` wrapper is test-only;
+`draw_timers` does not read `hits_current_frame`; the decay is 525; the
+take has nine object call sites. One addition: the disband arm counts in W2.
+
+Confidence is high throughout: every step and predicate is confirmed on the
+listing. The verdicts cite no kept-dump value for these leaves.
+
+### 3.6 Not established
+
+- **The crate's `struck` return ahead of W1.** Whether the original ever
+  runs `do_damage` on a target `struck` refuses (non-active unit, dead or
+  combat-less building). If it does, the original counts the blow and the
+  crate as placed cannot. A per-frame `LeadersSync` diff of
+  `hits_current_frame` over a fight settles it.
+- **The disband arm's reach.** Which types carry flag `0x2000` and which
+  leaders hold `leader_flags & 4`; and whether the crate's `damage_building`
+  disbands at all. A reading of the flag's loader, then a diff of
+  `kills_current_frame` on an inactive structure under attack.
+- **Gaia slots 8 and 9.** The fold stops at slot 8, so any store there would
+  never fold or clear; `ObjectData::valid_target_const (006472c0)` refuses
+  `who > 7` and the crate's searches stop at 8 (`crates/sim/src/world.rs:40-55`),
+  so no ordinary blow reaches them. A `LeadersSync` line for slot 8 or 9
+  with non-zero `deaths_current_frame` would settle it.
+- **The wall's home in the crate** for W2.
+- **No diff yet** of "`_fifteen_seconds` is never reset" (a long-fight
+  dump) or of the battle event (any capture that logs one).
+
 ## 4. The victim stamps
 
 ### 4.1 Leaves
@@ -1733,6 +1957,466 @@ hits outside a leader are named in the verdicts.
 - **Whether a Senate travels a `(0, 1, 0)` transfer** (a cityless foreign
   Senate adopted by `City::find_buildings`). The predicate is settled; the
   route is not.
+
+## 14. The six `*_queued` counters and `scholar_militia`
+
+### 14.1 Leaves
+
+- `scholar_militia`, +0x9f0, `int`.
+- `barracks_queued` +0xa10, `stable_queued` +0xa14, `factory_queued`
+  +0xa18, `combat_queued` +0xa1c, `dock_queued` +0xa20, `air_queued`
+  +0xa24, all `int`.
+
+All seven are zeroed by `Leader::init (006e3930)` for a tribe `>= 0` only
+(`6e4c14` and `6e4c3e..6e4c5c`), never recounted, and restored raw by a load.
+
+### 14.2 The rule
+
+#### `scholar_militia`
+
+**Writer.** One live store, at the end of `Leader::track_unit_type
+(006e0dd0)` (`6e0ecd`). There is no inlined copy. It is reached from six
+call sites: `Unit::set_type` twice, `Unit::close`, `Objects::init_unit`
+twice and `SpellType::cast_create_decoy`. Each call site guards it the same
+way: `unit_masks & 1` clear, the unit its own captain (`+0x8e < 0`), and
+`control_cost != 0`, or `is(FIGHTERBOMBER)`, or a government hero.
+
+**Step**, at every `track_unit_type(type, delta, uid)` that passes:
+
+```
+if uid >= 0 && type.is(MILITIA 0x42) {
+    f = units[who][uid].former_type      // +0x54, signed
+    if f >= 0 && types[f].is(SCHOLARS 0x34) { scholar_militia += delta }
+}
+```
+
+There is no floor and no clamp. A militia that fails the Scholar test leaves
+the function; only a non-militia or `uid < 0` goes on to the SPECIALFORCES
+arm.
+
+**Events.** +1 at a Scholar's To Arms; -1 at its Back to Work and at its
+death.
+
+**`former_type` (+0x54) lifecycle.** A port that keeps the counter needs
+this:
+
+- `cast_to_arms` sets it to the current type before the retype.
+- `cast_civilian` sets it to Citizen only if it is 0, and otherwise keeps it.
+- `cast_immortal_hinf (00670600)` and `cast_immortal_arch (00670740)` set
+  it to the current immortal type.
+- Death leaves it.
+- `Unit::init (00612100)` zeroes it (`6121f6`) only **after** the birth +1.
+
+**The stale-slot +1.** A unit born through `Objects::init_unit (0065e0c0)`
+reaches `Unit::init`. That calls `Object::init`, then `SubObject::init`,
+then `Unit::set_type` under `SET_TYPE_INIT` (`612182`). The birth +1 runs
+there against the slot's **previous** occupant's `former_type`, because the
+clear at `6121f6` comes later. `Unit::close` does not clear `+0x54`, and it
+clears bit 0 of `unit_masks` (`60fa35`), so the stale +1 passes the mask
+guard. `Objects::find_free (0065ad60)` hands
+out the lowest free slot, so slots recycle constantly. A dead Scholar
+militia leaves a Scholar id behind, and so does a Scholar that ever went to
+arms and back. Two plain-game routes create a militia-typed unit this way:
+
+- `SpellType::cast_create_decoy (00674370)` copies militia (its exclusions
+  are `0x32..0x35`, caravans and `is(MERCHANT)`). Its own undo
+  `track_unit_type(type, -1, new)` runs after `+0x54` is 0 and misses. It
+  then sets `unit_masks |= 1`, so the decoy's death never takes the +1
+  back. Net +1 for the life of the game.
+- `Unit::swap_team (006118d0)` (from `cast_bribe`, `cast_assimilate`,
+  `Leader::defeat_by`) re-creates the unit in the new owner's slot and does
+  not copy `+0x54`. A bribed militia counts +1 for its new owner exactly
+  when that slot is stale with a Scholar id, and its later -1 sees 0: a
+  permanent +1. A genuine Scholar militia that is bribed loses its Scholar
+  status. The old owner's -1 at close is correct, and the new owner never
+  counts it.
+
+Conversions in place (`cast_to_arms`, `Object::eject_contents (0064cd20)`'s
+Citizen-to-militia turn) and the barge spells are not at risk. A port needs
+the lowest-free-slot reuse modelled.
+
+The immortal spells cannot strand the count. Their -1 is for the immortal
+type, which does not answer `is(MILITIA)` (unless the shipped `is_list` says
+otherwise).
+
+**Readers.** `TypeData::get_cost (00664090)` subtracts it from the
+Citizen's count and adds it to the Scholar's. `LeaderData::log_data
+(006e5110)` logs it.
+
+#### The six `*_queued` counters
+
+**The rule**, `track_queued(who, t, d)`, out of line in
+`Leader::track_queued (006e0f30)`:
+
+1. If `t < 0`, stop.
+2. Step `num_queued[t]` (u16) by `d`, unless it is 0 and `d < 0`.
+3. Require `0x32 <= t < 0x19e` (`TypeData::is_unit_type (004707e0)`, the
+   only implementation of vtable slot `+0xc`) and `attack (+0x1e8) != 0`.
+4. Choose by `w = where (+0x40)`, by equality:
+   - `0x1ab`: barracks and combat;
+   - `0x1ac`: stable and combat (not Auto Plant `0x1ad`);
+   - `0x1ae`: factory (Siege Factory, not `FACTORY 0x1af`);
+   - `0x1b0`: dock (not `0x1b1` or `0x1b2`);
+   - otherwise: air if `domain (+0x218) == 2`, else nothing.
+5. For each chosen counter `c`: `if !(c == 0 && d < 0) { c += d }`, each
+   tested on itself. A skipped barracks or stable step still runs combat's
+   own test.
+
+**Never a clamp.** The guard skips a negative step only at exactly 0. A
+`-n` from `0 < m < n` gives `m - n < 0`. Every inlined `-1` copy tests only
+`== 0` (then `decl`), so a negative counter keeps falling on each `-1`. The
+`+1` copies are a bare `incl`.
+
+**Writers.** These are inlined copies of the rule, devirtualized to
+`0x32 <= t < 0x19e`, and the out-of-line callers:
+
+| site | `d` |
+|---|---|
+| `Build::queue_up (00620f40)`, queue append | +1 |
+| `Group::action_spell (006fe1a0)`, BUILDAIR | +1 |
+| `Build::unqueue (006207c0)`, completion and cancel | -1 |
+| `Build::clean_queue (00620b60)`, per entry, last first | -1 |
+| `Unit::action_unqueue (005e1f20)`, carrier plane cancelled | -1 |
+| `Unit::process (00610bc0)`, carrier plane finished (absolute stores) | -1 |
+| `Unit::close (0060ee50)` `60efed`, carrier lost with `n` queued, then its `num_queued (+0xa0) = 0` | -n on `current_upgrade(FB)` |
+| `Leader::gain_tech (006dcb60)` `6dda28`/`6dda47`, FB-line upgrade, per live carrier | -a0 on old FB, +a0 on new FB |
+| `Leader::gain_tech` `6ddd04`/`6ddd4a`, unit-line upgrade, per queue entry | -1 on the entry's type, +1 on the new |
+
+On the retarget's graft-chain arm the -1 is the **new** type's, so
+`num_queued[old]` stays one high. Within one bin it nets to zero on the six.
+`Build::unqueue` is called from `Build::do_queue` (completion),
+`Build::action_unqueue` (cancel) and three `Build::activate (00623e20)`
+sites. The four `Wall::*` copies are dead: a wall's type is a build type.
+
+**`air_queued`** is the only leaf with `-n` writers. Each carrier +1 also
+stepped it, so `air_queued >=` every carrier's `num_queued` in steady
+state, and going below zero needs an earlier drift not found in a plain
+game.
+
+**Readers.** `LeaderData::get_support_count (006da110)` takes five bins
+(`queued + units`, gated on `+0x2f4 & 1` and attack; no combat arm) and
+feeds `TypeData::get_cost`. `log_data` logs all six; it is
+`combat_queued`'s only reader.
+
+### 14.3 In the crate
+
+- **`scholar_militia` is derived, not kept.** `Sim::worker_support`
+  (`crates/sim/src/economy/pricing.rs:895`) counts live units with
+  `type_index` in `0x42..=0x44`, `rare` in `{0x34, 0x35}`, `captain`,
+  `!decoy`. That cannot carry the stale +1. Those ranges are stand-ins for
+  two kind tests whose `is_list` data was not opened. The kept counter goes
+  in `Sim::track_unit_type` (`crates/sim/src/units/store.rs:755`), with the
+  unit index added, and is exposed to `Sim::leader_long`
+  (`crates/sim/src/checksum/leaders.rs:949`).
+- **The queued bins.** `Muster::queued_by_group` is moved by
+  `Sim::track_tree_queued` (`crates/sim/src/cities/queue.rs:2017`) and
+  `Sim::untrack_queued` (`:2078`), and retargeted by
+  `Sim::retarget_queued_to` (`:1964`). Carriers are in
+  `crates/sim/src/air/carrier_queue.rs` (`carrier_action_spell :60`,
+  `carrier_queue_tick :137`, `unit_action_unqueue :167`). `untrack_queued`
+  tests `!= 0` on `queued_by_type`, `tech.queued` and `queued_by_group`
+  separately: the original's skip at 0, not a clamp.
+- **SEAM: no `-n`.** `Unit::close`'s `-num_queued` and `gain_tech`'s
+  carrier pair are missing (named in `Sim::upgrade_units_to`,
+  `cities/queue.rs:1890`). Both land in `air_queued`.
+- **Trap: derive from the bins, not from `queued_by_type`.** After a
+  graft-chain retarget, `num_queued[old]` stays one high and a sum over
+  types carries it; the bins do not.
+- **Trap: bin shape.** The crate keys bins per `where_` (`load.rs`:
+  `group = if attack != 0 { where_ }`). The original has exactly four
+  `where` bins and an air fallthrough on `domain`. Whether they coincide on
+  the shipped data is open. A separate `air_queued` counter is the safer
+  port, since several `where_`s may train armed air types.
+- **`combat_queued`** has no crate home. Port it as a counter with its own
+  `!= 0` test at the barracks/stable sites. Or port it as
+  `queued_by_group[BARRACKS] + queued_by_group[STABLE]`, which is exact
+  while all three move by paired ±1 from zero. That holds in a plain game,
+  because `-n` is FB-only and FB is air.
+- **Checksum.** `Sim::leader_long` has no arm for the seven. Each is
+  `("<leaf> (unheld)", 2)` in `LEADERS_HELD_OUT`
+  (`crates/rondata/src/diff/checksum_lines.rs`: `scholar_militia :1822`,
+  `barracks_queued :1766`, `stable_queued :1836`, `factory_queued :1786`,
+  `combat_queued :1773`, `dock_queued :1783`, `air_queued :1754`). A port
+  adds the arm to `leader_long` and removes the entry.
+
+### 14.4 Reached by a plain game
+
+Yes, for every live writer; carriers and the FB upgrade in the Modern
+ages. The
+stale `scholar_militia` +1 is reached through a General's decoy over a
+militia, or a Spy's bribe of a militia, landing in a slot that last held a
+Scholar id. Scenario and cheat creators (`ScenarioFuncSet::add_unit`,
+`ScenarioEditor::add_unit`, `Game::action_cheat_init_unit`) are out of
+plain play. `air_queued` below zero is legal code but, as far as read,
+unreached in a plain game.
+
+### 14.5 How established, and how confident
+
+Two readings and an adjudication
+(`docs/audit/2026-11-11-item-4152/queued-*.md`); no diff backs it yet.
+
+Verdicts: `scholar_militia` 13 confirmed, 1 corrected, 1 open; each queued
+leaf 16 confirmed, 1 corrected, 1 open. The writer nets over the listing
+found 75 stores in exactly 12 functions for the six, and 2 leader stores
+for `scholar_militia`. No writer was missed. The corrections:
+
+- **The floor.** "Never below zero" was corrected to "skip a negative step
+  at exactly 0". A negative counter is not floored by the `-1` copies. This
+  changes the rule.
+- **The immortal spells** cannot strand `scholar_militia`. No change to the
+  rule.
+
+Confidence is high on writers, predicates and steps (from the listing:
+`6e0ecd`, `6e0f97..6e0fa7`, `6209d7`), and high on the stale +1 mechanism
+(each link read). It is medium on below-zero `air_queued` being unreached,
+and medium on which buildings train `domain 2` types (data). No kept-dump
+value is cited.
+
+### 14.6 Not established
+
+- **How often a plain game meets the stale `scholar_militia` +1.** A
+  capture settles it: a Scholar sent to arms and killed, then a General's
+  decoy over a militia, reading `scholar_militia` from the leaders line
+  before and after (expect +1). The same probe settles whether the `+0x8e`
+  captain guard passes on a recycled slot. `+0x8e` is not reset before
+  `Object::init`, so the read predicts it passes when the previous
+  occupant was its own captain.
+- **`Build::activate`'s cross-queue cancel.** Does the cancelled item
+  (`BuildData::find_in_queue` after `BuildData::count_queue`) ever have an
+  attacking unit type? Only then does it step the six. Reading
+  `Build::activate`'s item origin settles it.
+- **Data not opened.** Each of these is settled by reading the shipped
+  table:
+  - the `is_list` of MILITIA and SCHOLARS (the crate's `0x42..=0x44` and
+    `{0x34, 0x35}`);
+  - whether an Immortal type's `is_list` names MILITIA;
+  - whether any building trains a Militia-line type through `Build::train`;
+  - the `where`/`domain` columns that say whether the crate's per-`where_`
+    bins coincide with the original's four bins and air fallthrough.
+- **A plain-game drift of `air_queued` below a carrier's count**, the only
+  way to below zero. None was found. A capture that loses a carrier with
+  planes queued, diffed on `air_queued`, would witness the `-n`.
+
+## 15. Missiles, repairs, bribes and nukes
+
+### 15.1 Leaves
+
+- `repair_stamp` (+0x208), `int`: the frame a repair was last refused.
+- `missiles_used` (+0x7c0), `int`: V2 and Cruise Missile rounds landed.
+- `units_bribed` (+0x8f4), `int`: units taken by Bribe.
+- `nukes_launched` (+0xa38), `int`: nukes out holding a strafe.
+
+Each leaf has exactly one event writer; nets over the whole listing found
+no other. All four lie inside the header's bulk writers (and `Leader::close
+(006b7f80)`'s memset, which has no direct caller).
+
+### 15.2 The rule
+
+**`repair_stamp`.** Writer `Unit::do_repair (005ee420)`, index the
+repairer's owner (`unit+0x9`, a byte). Event: a repair step that is
+refused. Before charging, `do_repair` walks the six goods `g` in `0..=5`. A good
+counts when it is `type_avail(g, 1)` and has a nonzero price. Each counted
+good has a due of 0 or 1 this step (1 when the truncated quotient before the
+step is below the one after it; the float `due` is the repair mechanic's,
+item 3346). The first counted good whose stock `< due[g]` (signed) refuses
+the step:
+
+1. kill the repairer's current order;
+2. if `frame − repair_stamp[owner] ≤ 150` (signed, wrapping), return;
+3. else `repair_stamp[owner] = frame`;
+4. then the refusal message, for the console player only.
+
+The stamp is written for every player, AI or human, before the console
+test. It is an assignment, not a step. A refused call charges nothing (the
+charge loop is reached only past the goods test). Edge: because `due` may be
+0, a priced good with a **negative** stock refuses even when this step owes
+none of it. Keep the comparison signed and against `due`.
+
+Reset: 0 at `Leader::init (006e3930)`, an explicit store on both arms
+(the memset runs only when its second argument is negative). Nothing
+mid-game resets it; `reset_score` does not. Readers: `do_repair`'s
+throttle and `log_data` only.
+
+**`missiles_used`.** Writer `Ammo::do_damage (00678060)`, index the round's
+`who` (`AmmoData+0x3c`, the shooter's player at launch). The path, in order:
+
+1. Guards: object `o ≥ 0`, `who ≥ 0`, graphic-piece type `≠ 9`.
+2. Splash arm only: `splash_area ≠ 0`.
+3. The shooter object (`objects[who][o]`, the missile itself) has a type
+   with `obj_masks & 0x8000000`; else straight to `hit_target`, no count.
+4. Note `is(0x13b, 0)` (the Nuclear Missile line, non-strict).
+5. Shield: find the landing tile's owner `L` (a signed byte). On an ocean
+   tile, `L` is the first owned (`≥ 0`), on-map, non-ocean cell of a
+   120-entry offset ring; none found leaves −1. If `L ≥ 0`, `L` holds
+   `MISSILE_DEFENSE_BONUS` (693) and `L ≠ who`, the round closes, no count.
+   The test is `≠`, not "enemy": an ally's shield stops it too.
+6. A Nuclear Missile line shooter takes the nuke arm and returns, no count.
+7. Otherwise the `S_NUKE_HIT` sound, then `missiles_used[who] += 1`, then
+   `hit_target` and the splash.
+
+Reset: 0 at `Leader::init`; never decremented. Reader: `get_support_count
+(006da110)`, feeding `TypeData::get_cost (00664090)`. On its by-type
+fall-through, for exact type `0x139` (`V2ROCKET`) or `0x13a`
+(`CRUISEMISSILE`), it adds `missiles_used[player]` to the count. So each
+landed V2 or Cruise round makes that player's next one dearer. The term
+sits after the group-count arm (types with `progression & 1` and
+`+0x1e8 ≠ 0` return first). In the shipped `unitrules.xml` both missiles
+have `PROGRESSION 0`, so the term is live. The Americans' bomber discount
+below it does not touch them.
+
+**`units_bribed`.** Writer `SpellType::cast_bribe (00672d00)`, index the
+caster's player (`param_2`). Exemptions first, none of which counts:
+
+- own target (`param_2 == param_4`): a separate arm;
+- an ally's unit (the target is the caster's `who`, or relation 2 both
+  ways), unless teams are locked (`team_style ∉ {0, 8, 11}`) **and** the
+  target leader lacks `leader_flags & 2`: `unpay_cast_costs`;
+- a unit with `has_general(target, 0, 0x165) ≥ 0` (CEO cover):
+  `unpay_cast_costs`;
+- a non-unit target: the building/city arm, which never counts.
+
+A unit past these meets no further test. Every message branch joins at one
+point: `units_bribed[caster] += 1`, then `Unit::swap_team` (vslot `0x94`).
+The count precedes the swap.
+
+Reset: `Leader::reset_score (006e37f0)` stores 0. `Leader::init` calls it
+(and has no store of its own), and `Setup::build_game (005ac190)` calls it
+again for every slot with `leader_flags & 1`, inside its `param_2 == 0`
+block. Never decremented. Readers: `AchieveChartPane::set_chart_data
+(007f2c40)` (UI) and the checksum; no sim decision, not in `log_data`.
+
+**`nukes_launched`.** Writer `Unit::come_out (00617c10)`, index the unit's
+owner (`unit+0x9`). After placement, it counts only when all of these hold:
+
+1. the unit `is(0x13b, 0)` (Nuclear Missile line);
+2. its order list head `+0xdc` and current order `+0xcc` are non-null;
+3. the current order's `get_strafe_order` (`UnitOrder` vslot `0x100`) is
+   non-null, which only a `StrafeOrder` answers (every other order's slot is
+   the folded zero, from the PE vtable bytes and RTTI);
+4. that order's `ox` (+0x8) and `whom` (+0xc) are both `≠ −1`.
+
+Then `nukes_launched[owner] += 1`. Every caller of `come_out` is a site: the
+silo launch, ejections, the contents of a killed holder.
+
+Which nukes qualify: `Build::do_missile_launch (00622670)` calls `come_out`
+for every popped missile; its order test gates only the announcement and
+sound (and its `STRAFE` arm is dead, as `is_ally(leaders[p], p)` is 1). And
+`add_strafe_order (005e48c0)`, the only maker of a `StrafeOrder` (plus
+`copy_order (0072f900)`, which copies one that exists), turns a strafe by a
+bit-27 unit at a target `Object::valid_target (00648ba0)` accepts into
+`add_air_attack_ground_order`. A Nuclear Missile has bit 27. So **a nuke
+counts only when it was ordered to strafe an object that
+`ObjectData::valid_target_const (006472c0)` refused at order time**: a
+non-enemy, a slot outside `0..7`, an inactive, off-map or wrong-domain
+target. A nuke ordered at a valid enemy, or at the ground, holds
+`AirAttackGroundOrder` and does not count. `do_garrison`'s strafe passes
+`−1,−1` and fails step 4.
+
+Reset: 0 at `Leader::init`; never decremented. Reader: `log_data`.
+
+### 15.3 In the crate
+
+- **`repair_stamp`.** The event is `do_repair_steps`
+  (`crates/sim/src/orders/jobs.rs:1802`), the throttle at `:1915`
+  (`frame.wrapping_sub(feedback_stamp) < 0x97`, the same test), the signed
+  `due` comparison at `:1912`, owner index at `:2102`. Storage is a stub:
+  `SimDoRepair::feedback_stamp`/`set_feedback_stamp` at `:2105`–`2110`.
+  **Trap:** the stub returns `i32::MIN`, which makes the throttle **always
+  return** before the store, not "always due" as its SEAM says. Harmless
+  while both arms are empty. Port: a per-player `i32`, 0 at init, behind
+  those two methods.
+- **`missiles_used`.** The event is `Sim::land`
+  (`crates/sim/src/combat/fight/projectiles.rs:560`): shield at
+  `:608`–`614`, nuke arm at `:617`–`620`. Put the `+1` keyed `p.owner`
+  after the `is_nuke` return, under `mask::MISSILE`, before the splash
+  walk. Storage beside `Nukes::used` (`combat/nuke.rs:76`). The reader is
+  `nuke_ramp_extra` (`economy/pricing.rs:281`–`300`), whose doc says the
+  term is unmodelled: add `if t == 0x139 || t == 0x13a { extra +=
+  missiles_used[who] }`, on the by-type count only, where it already feeds
+  (`of_type`, `:851`–`855`). **Trap:** `crates/sim/src/ids.rs` names
+  `0x139` `CRUISE`, but `0x139` is `V2ROCKET` and `0x13a` `CRUISEMISSILE`
+  (`air/airbase.rs:42`/`48` have them right). Key on the numbers.
+- **`units_bribed`.** Already counted: `tech[a].bribes += 1` at
+  `crates/sim/src/spells/bribe.rs:42`, field `PlayerTech::bribes`
+  (`tech.rs:771`), test `spells/cast/tests.rs:544`. Not wired: the value
+  match in `checksum/leaders.rs` falls to `_ => None` (`:1305`). Add
+  `"units_bribed" => one(i64::from(self.tech[w].bribes))`. Gap:
+  `Sim::cast_on` (`spells/cast.rs`) re-tests only same owner and CEO cover,
+  not the ally refusal. The order-time `bribe_arm`
+  (`spells/spell_valid_target_view.rs:183`–`186`) carries the same ally
+  rule, so the gap shows only when an alliance forms between order and
+  cast.
+- **`nukes_launched`.** The event is `Sim::come_out`
+  (`crates/sim/src/units/garrison.rs:376`). Port after placement, gated on
+  `air_line_is(u, NUCLEARMISSILE)` and `Body::Strafe` with `target:
+  Some(_)` (`StrafeOrder::target` is `ox/whom`, `orders/order.rs:498`–`501`).
+  Already faithful: `do_missile_launch` (`air.rs:1799`) calls `come_out`
+  unconditionally (`:1825`), and `add_strafe_steps`
+  (`orders/order_list.rs:1854`, `:1873`) converts a missile's valid strafe.
+- **Checksum.** Rows `checksum/leaders.rs:74`, `:141`, `:190`, `:259`. Each
+  port removes its `("<leaf> (unheld)", 2)` entry from `LEADERS_HELD_OUT`
+  (`crates/rondata/src/diff/checksum_lines.rs:1814`, `:1816`, `:1821`,
+  `:1846`).
+
+### 15.4 Reached by a plain game
+
+- `repair_stamp`: yes, any repairer short of a charged good after frame 150.
+- `missiles_used`: yes, from the Industrial age with V2 or Cruise Missiles
+  landed.
+- `units_bribed`: yes, Bribe on an enemy unit.
+- `nukes_launched`: the writer runs on every `come_out`, but the predicate
+  needs a nuke holding a strafe at a refused target, which an ordinary
+  launch never carries. Expect 0 in plain play until a capture says
+  otherwise. `ScenarioFuncSet::add_unit` (triggers) is among
+  `add_strafe_order`'s callers, out of plain play.
+
+### 15.5 How established, and how confident
+
+Two readings and an adjudication
+(`docs/audit/2026-11-11-item-4152/odd-counters-*.md`); no diff backs it yet.
+
+Verdicts by leaf (confirmed / corrected / open): `repair_stamp` 15 / 1 / 0,
+`missiles_used` 16 / 0 / 0, `units_bribed` 15 / 1 / 0, `nukes_launched`
+10 / 2 / 1. The corrections that changed a rule:
+
+- `do_missile_launch`'s order test gates the announcement, not the
+  release; `come_out` runs for every popped missile.
+- A nuke strafing a valid object does not keep a `StrafeOrder`:
+  `add_strafe_order` converts it to an air-attack-ground. This is what
+  makes `nukes_launched` near-dead in plain play.
+
+The other two corrections changed no rule: `Leader::init`'s memset is
+conditional (the explicit store zeroes `repair_stamp` either way), and
+Bribe's own-target arm draws down the caster's `+0x96`, not the target's
+(not a count). Added by the adjudication: the negative-stock edge of the
+repair refusal, and the shipped `PROGRESSION 0` of both missiles, which
+keeps the `missiles_used` price term live.
+
+Confidence is high for every writer and predicate, each read from the
+listing over its branch (`5ee99f`..`5eeaa4`, `678186`..`67861b`, every
+route into `67306a`, `61883d`..`6188fa`), and `get_strafe_order` from the
+PE vtable bytes and RTTI. No kept dump was consulted.
+
+### 15.6 Not established
+
+- **Whether any plain-game path gives a nuke a strafe at a refused
+  target** (the console's right-click on a non-enemy, `Group::action_flight`'s
+  `NUCLEARMISSILE` arm, the AI's nuke choice); not read. A capture with
+  nuke launches read under `log_data`'s `nukes_launched` settles it: a
+  value above 0 after launches at enemy targets refutes the reading.
+- **Which types carry `obj_masks` bit 27 outside the nuke line**, and
+  **whether a missile ever lands more than one round per detonation** (both
+  readings assume one). Data, held in the crate's `mask::MISSILE`. A
+  capture with a V2 landing and a later V2 priced settles both.
+- **Whether a stock can go negative**, which makes the repair edge
+  reachable. The economy's question; the charge clamps only the second
+  ledger.
+- **`hit_target` order.** The crate calls it at `projectiles.rs:577`,
+  before the shield and nuke tests; the original only after them. It
+  matters only if it has side effects on a round that then dies; not
+  adjudicated.
+- **Bribe's own-target arm** skips `unpay_cast_costs` while the crate's
+  refuses with `unpay_cast_mana`; not adjudicated, the bribe owner's.
 
 ## 16. `cannon_time`, `handicap` and `multi_diff`
 
