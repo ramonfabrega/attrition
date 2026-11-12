@@ -199,6 +199,14 @@ pub struct World {
     /// and the transition patch laid over them, at the terrain version
     /// they were built at.
     drawn: (u32, TerrainMesh, Vec<TexturedMesh>, Vec<PatchMesh>),
+    /// The screen's ramp the water and the floor take (item 4178), set by
+    /// [`World::set_screen`]; `None` lays [`crate::ground::ScreenRamp::MIDDLE`].
+    ramp: Option<crate::ground::ScreenRamp>,
+    /// The ramp the drawn layers were last laid at, the water's and the
+    /// floor shade's places among the patches, and the patches' version.
+    laid_ramp: Option<crate::ground::ScreenRamp>,
+    screen_layers: (Option<usize>, Option<usize>),
+    patch_version: u32,
 }
 
 /// The ground's textures, as the draw takes them.
@@ -235,6 +243,14 @@ pub const MOUNTAIN_ALPHA: usize = 1_000;
 
 /// The water's alpha ramp's key among the alphas (item 4164).
 pub const WATER_ALPHA: usize = 900;
+
+/// The water's own colour's piece among the ground's textures (item 4178),
+/// apart from every base's `-1 - index` and the mountains'.
+pub const WATER_PIECE: i32 = -200_000;
+
+/// The ocean floor's baked layers' piece (item 4178), and one less its
+/// shade's.
+pub const FLOOR_PIECE: i32 = -200_010;
 
 /// What [`crate::ground::our_patches`] and the patch's draw take.
 struct PatchArt {
@@ -639,6 +655,10 @@ impl World {
             ground,
             debug_ground: false,
             drawn: (u32::MAX, TerrainMesh::default(), Vec::new(), Vec::new()),
+            ramp: None,
+            laid_ramp: None,
+            screen_layers: (None, None),
+            patch_version: 0,
         })
     }
 
@@ -710,6 +730,20 @@ impl World {
         &self.terrain.1
     }
 
+    /// **The screen the ground is drawn on** (item 4178): `camera` on a
+    /// `size` screen, whose [`crate::ground::ScreenRamp`] the water's colour
+    /// and the floor's grey follow, as `modify_water` and
+    /// `modify_ocean_floor` lay them each frame.
+    pub fn set_screen(&mut self, camera: &render::Camera, size: (u32, u32)) {
+        self.ramp = Some(crate::ground::ScreenRamp::of(camera, size));
+    }
+
+    /// The version of [`World::drawn_terrain`]'s patches (item 4178): it
+    /// moves when the screen's ramp lays them again, the terrain unmoved.
+    pub fn patch_version(&self) -> u32 {
+        self.patch_version
+    }
+
     /// **What the client draws of the terrain** (item 4127): the
     /// heightfield without the `BASELAND` tiles the ground's base layer
     /// textures, and those tiles as one [`TexturedMesh`] per texture, keyed
@@ -769,10 +803,58 @@ impl World {
                     mips: mips.clone(),
                 })
                 .collect();
+            // Item 4178 (§3.12): the land pass draws no `OCEAN` tile;
+            // `render_ocean_floor` draws the floor there, its two layers
+            // baked at the brightest vertex grey, and a black layer over it
+            // takes it to the ramp's grey ([`crate::ground::floor_shade`]).
+            let ocean = g.textures.index_land(render::terrain::OCEAN, 0, 0, 0);
+            let mut floor = ocean.filter(|&k| k < g.flat.len()).map(|k| {
+                let top = crate::ground::floor_grey(0.0);
+                let tex = crate::ground::floor_texture(
+                    &g.flat[k].levels[0],
+                    crate::ground::FLOOR_MIRROR,
+                    top,
+                );
+                TexturedMesh {
+                    piece: FLOOR_PIECE,
+                    who: 0,
+                    positions: Vec::new(),
+                    uvs: Vec::new(),
+                    mips: std::sync::Arc::new(render::silhouette::Mips::new(tex)),
+                }
+            });
+            let mut shade = PatchMesh {
+                piece: FLOOR_PIECE - 1,
+                positions: Vec::new(),
+                uvs: Vec::new(),
+                alpha_uvs: Vec::new(),
+                mips: std::sync::Arc::new(render::silhouette::Mips::new(render::tga::Image {
+                    width: 1,
+                    height: 1,
+                    kind: 2,
+                    bits: 32,
+                    footer: false,
+                    rgba: vec![0, 0, 0, 255],
+                })),
+                alpha: WATER_ALPHA,
+                alpha_mips: std::sync::Arc::new(crate::ground::water_ramp()),
+                mountain: false,
+            };
             for ((tri, uv), &k) in base.tris.iter().zip(&base.uvs).zip(&base.of) {
+                if let (Some(f), true) = (floor.as_mut(), Some(k) == ocean) {
+                    f.positions.extend_from_slice(tri);
+                    f.uvs.extend(tri.iter().map(|p| {
+                        let r = crate::ground::FLOOR_REPEAT;
+                        [p[0] / r, p[1] / r]
+                    }));
+                    shade.positions.extend_from_slice(tri);
+                    shade.uvs.extend_from_slice(&[[0.5, 0.5]; 3]);
+                    continue;
+                }
                 meshes[k].positions.extend_from_slice(tri);
                 meshes[k].uvs.extend_from_slice(uv);
             }
+            meshes.extend(floor);
             meshes.retain(|m| !m.positions.is_empty());
             let mut patches: BTreeMap<(usize, usize), PatchMesh> = BTreeMap::new();
             let choice = g.patch.as_ref().and_then(|a| {
@@ -803,41 +885,37 @@ impl World {
                 }
             }
             let mut patches: Vec<PatchMesh> = patches.into_values().collect();
-            // Item 4164: the water over every cell that holds it, the
-            // ocean's base at `get_water_fade`'s alpha, drawn on the tile's
-            // own triangles (the seabed, parked 4160a); the alpha rides a
-            // linear ramp so the patch's shader takes it unchanged.
-            if let Some(k) = g
-                .textures
-                .index_land(render::terrain::OCEAN, 0, 0, 0)
-                .filter(|&k| k < g.flat.len())
-            {
+            let mut layers = (None, None);
+            if !shade.positions.is_empty() {
+                layers.1 = Some(0);
+                patches.insert(0, shade);
+            }
+            // Item 4164: the water over every cell that holds it, at the
+            // water's alpha on a linear ramp so the patch's shader takes it
+            // unchanged. Item 4178: on the water's own mesh, flat at z 0,
+            // `generate_water`'s alpha, and `modify_water`'s colour, the
+            // screen's ramp of `OceanVars`' top bytes ([`World::set_screen`]).
+            let water = crate::ground::water_mesh(&t, &crate::ground::water_grid(&t));
+            if !water.tris.is_empty() {
                 let mut m = PatchMesh {
-                    piece: -1 - k as i32,
+                    piece: WATER_PIECE,
                     positions: Vec::new(),
                     uvs: Vec::new(),
                     alpha_uvs: Vec::new(),
-                    mips: g.flat[k].clone(),
+                    mips: std::sync::Arc::new(crate::ground::water_colour_ramp()),
                     alpha: WATER_ALPHA,
                     alpha_mips: std::sync::Arc::new(crate::ground::water_ramp()),
                     mountain: false,
                 };
-                for ((tri, uv), tile) in base.tris.iter().zip(&base.uvs).zip(&base.tile) {
-                    let per = render::terrain::TILES_PER_CELL;
-                    let c = (tile.0 / per, tile.1 / per);
-                    if !crate::ground::holds_water(&t, c.0, c.1) {
-                        continue;
-                    }
+                for (tri, a) in water.tris.iter().zip(&water.alpha) {
                     m.positions.extend_from_slice(tri);
-                    m.uvs.extend_from_slice(uv);
-                    for q in uv {
-                        let a = crate::ground::water_alpha(&t, c, *q).unwrap_or(0.0);
+                    m.uvs.extend_from_slice(&[[0.5, 0.5]; 3]);
+                    for a in a {
                         m.alpha_uvs.push([(a + 0.5) / 256.0, 0.5]);
                     }
                 }
-                if !m.positions.is_empty() {
-                    patches.push(m);
-                }
+                layers.0 = Some(patches.len());
+                patches.push(m);
             }
             // Item 4141 (§3.10): each template's ring, then its main, after
             // the patch, `render_mountains`'s order.
@@ -876,6 +954,30 @@ impl World {
                 patches.extend(layers.into_values());
             }
             self.drawn = (version, rest, meshes, patches);
+            self.screen_layers = layers;
+            self.laid_ramp = None;
+        }
+        // Item 4178: the water's colour and the floor's grey follow the
+        // screen's ramp; only their texcoords are laid again when it moves.
+        let ramp = self.ramp.unwrap_or(crate::ground::ScreenRamp::MIDDLE);
+        if self.laid_ramp != Some(ramp) {
+            let at = |p: &[f32; 3]| ramp.at(p[0], p[1]);
+            if let Some(m) = self.screen_layers.0.and_then(|i| self.drawn.3.get_mut(i)) {
+                m.uvs = m
+                    .positions
+                    .iter()
+                    .map(|p| crate::ground::ramp_uv(at(p)))
+                    .collect();
+            }
+            if let Some(m) = self.screen_layers.1.and_then(|i| self.drawn.3.get_mut(i)) {
+                m.alpha_uvs = m
+                    .positions
+                    .iter()
+                    .map(|p| crate::ground::ramp_uv(crate::ground::floor_shade(at(p)) / 255.0))
+                    .collect();
+            }
+            self.laid_ramp = Some(ramp);
+            self.patch_version = self.patch_version.wrapping_add(1);
         }
         (&self.drawn.1, &self.drawn.2, &self.drawn.3)
     }
