@@ -327,7 +327,7 @@ pub(super) fn chapter_seventy_eight_s_word_frame_is_widened_whole() {
         0,
         (1099, 1104),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -370,7 +370,7 @@ pub(super) fn chapter_seventy_nine_s_word_frame_is_widened_whole() {
         0,
         (1499, 1504),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
