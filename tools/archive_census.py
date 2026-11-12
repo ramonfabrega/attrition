@@ -522,14 +522,25 @@ def print_report(rows, summary, top, roots):
         print('  %10s  %s  %s' % (mib(r['alloc']), r['entry'], referenced(r)))
 
 
+def golden_root():
+    """The golden archive: `$RON_GOLDEN_DIR`, else `~/ron-golden` (the
+    resolution `rondata::diff::golden` uses). `tools/disk.py` reads it too."""
+    return os.environ.get('RON_GOLDEN_DIR', os.path.expanduser('~/ron-golden'))
+
+
+def data_root():
+    """The data root, `~/ron-data`: the profile's `Logs` and the lab's
+    experiments sit under it. `tools/disk.py` reads it too."""
+    return os.path.expanduser('~/ron-data')
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('--root', default=os.environ.get(
-        'RON_GOLDEN_DIR', os.path.expanduser('~/ron-golden')),
-        help='the golden archive (default $RON_GOLDEN_DIR or ~/ron-golden)')
+    ap.add_argument('--root', default=golden_root(),
+                    help='the golden archive (default $RON_GOLDEN_DIR or ~/ron-golden)')
     ap.add_argument('--logs', default=census_mod.ARCHIVE,
                     help="the queue lane's logs (tools/census.py's ARCHIVE: $RON_GAMELOG_DIR)")
-    ap.add_argument('--data', default=os.path.expanduser('~/ron-data'),
+    ap.add_argument('--data', default=data_root(),
                     help='the other top-level directories, by size only (default ~/ron-data)')
     ap.add_argument('--repo', default=REPO, help='the checkout whose text says who reads what')
     ap.add_argument('--top', type=int, default=0, help='rows of the table (default all)')

@@ -42,7 +42,12 @@ def row(path):
                ended=datetime.datetime.fromtimestamp(st.st_mtime).strftime('%H:%M'), minutes=minutes,
                scope='whole', steps=None, release_min=None, admission_s=None, leases=None, longest_s=None,
                load_start=None, load_end=None, cores=None, verdict='no receipt', failed=[])
-    for line in lines[:3]:
+    # The scope is the gate's second line. Since 2026-11-12 `gate_run.sh`
+    # writes its `Gate tree:` line and the builders step's (`tools/disk.py`)
+    # ahead of the gate, so the opening is counted from the gate's own first
+    # line, `Gate pid:` — its first one: the tools' fixtures print decoys.
+    start = next((i for i, l in enumerate(lines) if l.startswith('Gate pid: ')), 0)
+    for line in lines[start:start + 3]:
         m = re.match(r'Booking gate scoped to \S+: (.*)', line)
         if m:
             rest = m.group(1)
