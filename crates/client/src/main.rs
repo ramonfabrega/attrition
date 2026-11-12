@@ -44,6 +44,7 @@ mod shadows;
 mod silhouette;
 mod trace;
 mod trees;
+mod weathering;
 mod world;
 
 use std::path::PathBuf;
