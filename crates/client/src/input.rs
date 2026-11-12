@@ -107,6 +107,89 @@ impl View<'_> {
     }
 }
 
+/// What a right press finds under the cursor ([`View::target`]): another
+/// slot's unit or building, or one of the issuing slot's own buildings.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Hit {
+    /// Another slot's unit or building: `Console::execute_at_cursor`'s
+    /// enemy arm (`docs/CLIENT_INPUT.md` §6).
+    Enemy(ObjId),
+    /// One of the issuing slot's buildings, as the dispatch tests it: built
+    /// (`is_active`), damaged (`ObjectData +0x24`), and for a gather type
+    /// whether a gatherer can join (`num_gatherers < gather_max`).
+    Own {
+        id: ObjId,
+        active: bool,
+        damaged: bool,
+        /// `None` for a building that is not a gather type; `Some(true)`
+        /// for one with room.
+        room: Option<bool>,
+    },
+}
+
+impl View<'_> {
+    /// The object a right press at `(px, py)` names for `who`, as
+    /// `Console::execute_at_cursor` looks: another slot's unit first
+    /// (`find_target(SEARCH_ENEMY, units)`), then a building of `who`'s
+    /// (`find_target(SEARCH_ALLIED, buildings)`), then another slot's
+    /// building (the attack's search, units and buildings). Each look takes
+    /// the nearest anchor within [`PICK_RADIUS`], as a press does (ours:
+    /// the original's ±5 px box and bounding volumes are not read). The
+    /// issuing slot's own units are no target: the press falls to the
+    /// ground.
+    pub fn target(&self, who: u8, px: i32, py: i32) -> Option<Hit> {
+        let near = |p: Pos, z: i32| {
+            let (ax, ay) = self.pixel(p.x, p.y, z);
+            let d = i64::from(ax - px).pow(2) + i64::from(ay - py).pow(2);
+            (d <= i64::from(PICK_RADIUS).pow(2)).then_some(d)
+        };
+        let nearest =
+            |it: &mut dyn Iterator<Item = (i64, ObjId)>| it.min_by_key(|&(d, id)| (d, id));
+        let enemy_unit = nearest(
+            &mut self
+                .scene
+                .units
+                .iter()
+                .filter(|u| u.id.who != who)
+                .filter_map(|u| Some((near(u.pos, u.z)?, u.id))),
+        );
+        if let Some((_, id)) = enemy_unit {
+            return Some(Hit::Enemy(id));
+        }
+        let own = self
+            .scene
+            .buildings
+            .iter()
+            .filter(|b| b.id.who == who)
+            .filter_map(|b| Some((near(b.pos, b.z)?, b)))
+            .min_by_key(|&(d, b)| (d, b.id));
+        if let Some((_, b)) = own {
+            return Some(Hit::Own {
+                id: b.id,
+                active: b.active,
+                damaged: b.health < b.hits,
+                room: b.gather.map(|(n, max)| max.is_none_or(|m| n < m)),
+            });
+        }
+        let enemy_building = nearest(
+            &mut self
+                .scene
+                .buildings
+                .iter()
+                .filter(|b| b.id.who != who)
+                .filter_map(|b| Some((near(b.pos, b.z)?, b.id))),
+        );
+        enemy_building.map(|(_, id)| Hit::Enemy(id))
+    }
+}
+
+/// `OrderIndex::BUILD_AT` and `REPAIR`, the `swarm_around` kinds
+/// (`sim::ids::order`).
+const BUILD_AT: i32 = sim::ids::order::BUILD_AT as i32;
+const REPAIR: i32 = sim::ids::order::REPAIR as i32;
+/// `QUEUE_NEW`: every arm's queue with no modifier held.
+const QUEUE_NEW: i32 = 2;
+
 /// The continuous ground point under a pixel: the camera's equations
 /// solved for `(x, y)` at a height, the height re-read at the solution
 /// until it holds.
@@ -214,6 +297,56 @@ impl Input {
         }
     }
 
+    /// **A right press on an object** (item 4179, `docs/CLIENT_INPUT.md` §6):
+    /// the command `Console::execute_at_cursor` issues for a selection of
+    /// units with no modifier held, or none.
+    ///
+    /// - another slot's unit or building: `attack(ox, whom, ignore 0,
+    ///   QUEUE_NEW)` (`GroupOut::issue_attack`);
+    /// - one's own unfinished building: `swarm_around(ox, whom, QUEUE_NEW,
+    ///   BUILD_AT)`, citizens sent to help build it;
+    /// - one's own finished gather building with room: `gather(ox,
+    ///   QUEUE_NEW)`;
+    /// - one's own finished building that is damaged, and full or not a
+    ///   gather type: `swarm_around(…, REPAIR)`;
+    /// - one's own finished building that is undamaged and not a gather
+    ///   building with room (the city, a full camp): nothing.
+    fn on_object(&self, hit: Hit) -> Option<Command> {
+        match hit {
+            Hit::Enemy(id) => Some(Command::Attack {
+                ox: i32::from(id.o),
+                whom: i32::from(id.who),
+                ignore: 0,
+                queued: QUEUE_NEW,
+            }),
+            Hit::Own {
+                id,
+                active,
+                damaged,
+                room,
+            } => {
+                let swarm = |orders| Command::SwarmAround {
+                    ox: i32::from(id.o),
+                    whom: i32::from(id.who),
+                    queued: QUEUE_NEW,
+                    orders,
+                };
+                if !active {
+                    Some(swarm(BUILD_AT))
+                } else if room == Some(true) {
+                    Some(Command::Gather {
+                        ox: i32::from(id.o),
+                        queued: QUEUE_NEW,
+                    })
+                } else if damaged {
+                    Some(swarm(REPAIR))
+                } else {
+                    None
+                }
+            }
+        }
+    }
+
     /// One event on `frame` (the recording frame the package is consumed
     /// on): the order it makes, if any.
     pub fn event(&mut self, frame: i32, ev: Event, view: &View) -> Option<Order> {
@@ -253,6 +386,10 @@ impl Input {
             Event::RightPress { x, y } => {
                 if self.selection.is_empty() || self.building {
                     return None;
+                }
+                if let Some(hit) = view.target(self.player, x, y) {
+                    let cmd = self.on_object(hit)?;
+                    return Some((frame, play, vec![self.group(), cmd]));
                 }
                 let at = ground_at(view, x, y)?;
                 let cmd = Command::MoveTo {
@@ -524,6 +661,11 @@ mod tests {
     /// The events through the layer on the walk, each minted order issued
     /// to the walk as it is made; the orders, and the walk at frame 299.
     fn mint(closer: bool) -> Option<(Vec<Order>, FreeRunner)> {
+        mint_events(events(closer))
+    }
+
+    /// [`mint`] on any list of events.
+    fn mint_events(events: Vec<Scripted>) -> Option<(Vec<Order>, FreeRunner)> {
         let mut r = match lobby() {
             Ok(r) => r,
             Err(e) => {
@@ -533,7 +675,7 @@ mod tests {
         };
         let mut input = Input::new(0);
         let mut out = Vec::new();
-        for (frame, at, ev) in events(closer) {
+        for (frame, at, ev) in events {
             while r.frame() < i64::from(frame) {
                 r.step();
             }
@@ -706,6 +848,159 @@ mod tests {
             "the clicked file is not the first script's"
         );
     }
+
+    /// **Stage 0 of the right presses** (`docs/CLIENT_INPUT.md` §6), on each
+    /// press's frame of the walk under the clicked script, under the opening
+    /// camera: `(frame, the unit pressed, its anchor's pixel, the building
+    /// right-pressed, its anchor's pixel, what the layer reads there)`.
+    type Right = (i32, i16, (i32, i32), i16, (i32, i32), Hit);
+    const RIGHT: [Right; 2] = [
+        (
+            script::RIGHT_BUILD_FRAME,
+            script::HELPER,
+            (1678, 468),
+            script::FARM_SITE,
+            (1338, 463),
+            Hit::Own {
+                id: ObjId {
+                    who: 0,
+                    o: script::FARM_SITE,
+                },
+                active: false,
+                damaged: true,
+                room: Some(true),
+            },
+        ),
+        (
+            script::RIGHT_GATHER_FRAME,
+            script::TRAINED,
+            (976, 602),
+            script::WOODCUTTER,
+            (1640, 438),
+            Hit::Own {
+                id: ObjId {
+                    who: 0,
+                    o: script::WOODCUTTER,
+                },
+                active: true,
+                damaged: false,
+                room: Some(true),
+            },
+        ),
+    ];
+
+    /// The clicked script's seven events, then each right press: a press on
+    /// its unit and a right press on its building, at [`RIGHT`]'s pixels.
+    fn right_events() -> Vec<Scripted> {
+        let mut e = events(false);
+        for (frame, _, unit, _, building, _) in RIGHT {
+            e.push((
+                frame,
+                None,
+                Event::Press {
+                    x: unit.0,
+                    y: unit.1,
+                },
+            ));
+            e.push((
+                frame,
+                None,
+                Event::RightPress {
+                    x: building.0,
+                    y: building.1,
+                },
+            ));
+        }
+        e
+    }
+
+    /// **`INPUT_RIGHT_PRESSED`** (`docs/CLIENT_INPUT.md` §6, item 4179): the
+    /// clicked script's events and two right presses on objects, under the
+    /// opening camera, mint [`script::right_pressed`] field for field, of 5.
+    /// Was 0 (no right press on an object).
+    const INPUT_RIGHT_PRESSED: usize = 5;
+
+    /// **The right-pressed count**: stage 0's pixels pinned on each press's
+    /// frame (each anchor's, and what the layer reads under the building's),
+    /// the events mint the right-pressed script, and on 299 the walk that
+    /// took them holds the helper's and the trained Citizen's orders as
+    /// the orders put them.
+    #[test]
+    fn minted_right_pressed_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let clicked = script::clicked();
+        let mut next = 0;
+        let mut stage = Vec::new();
+        for (frame, unit, _, building, _, _) in RIGHT {
+            while r.frame() < i64::from(frame) {
+                while next < clicked.len() && i64::from(clicked[next].0) == r.frame() {
+                    r.issue(&clicked[next]);
+                    next += 1;
+                }
+                r.step();
+            }
+            let (scene, terrain) = (r.scene(None), r.terrain());
+            let c = camera(None);
+            let v = view(&c, &scene, &terrain);
+            let (u, uz) = object(&scene, unit);
+            let (b, bz) = object(&scene, building);
+            let up = v.pixel(u.x, u.y, uz);
+            let bp = v.pixel(b.x, b.y, bz);
+            stage.push((
+                frame,
+                unit,
+                up,
+                building,
+                bp,
+                v.target(0, bp.0, bp.1).unwrap(),
+            ));
+        }
+        assert_eq!(stage, RIGHT.to_vec(), "stage 0 of the right presses");
+
+        let Some((ours, r)) = mint_events(right_events()) else {
+            return;
+        };
+        let right = script::right_pressed();
+        let whole = ours.iter().zip(&right).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (right.len(), INPUT_RIGHT_PRESSED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, right);
+        drop(r);
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(clicked_file), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(CLICKED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(RIGHT_PRESSED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {CLICKED_RCX} or {RIGHT_PRESSED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), RIGHT_PRESSED_RCX_BYTES);
+        let path = std::path::Path::new(&home).join(MINTED_RCX);
+        let rec = rondata::recgame::read(&path.to_string_lossy()).unwrap();
+        let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
+        let last = rec.packages.last().unwrap().frame;
+        let mut written = rec.clone();
+        written.packages = rondata::recgame::minted_packages(lo[0].clone(), &ours, last).unwrap();
+        let written = rondata::recgame::write_gz(&written);
+        assert!(written == file, "the file from the right-pressed orders");
+        assert!(written != clicked_file, "not the clicked file");
+    }
+
+    /// The right-pressed file (`docs/CLIENT_INPUT.md` §6): the clicked file's
+    /// lobby, `leader_options` and closing frame with the right-pressed
+    /// orders, written by rondata's `the_right_pressed_minted_packages_round_trip`
+    /// under `RON_RCX_OUT`; the file the original's playback takes open
+    /// (run 1568).
+    const RIGHT_PRESSED_RCX: &str =
+        "ron-golden/recordings/item4179-right-pressed-greatlakes-24000.rcx";
+    const RIGHT_PRESSED_RCX_BYTES: usize = 59_312;
 
     /// At the closer camera a pixel is finer than the integer grid: a
     /// neighbour of a target's pixel with no integer point of its own still

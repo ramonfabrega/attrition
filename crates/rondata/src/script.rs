@@ -66,6 +66,68 @@ pub const CLICKED_SCOUT_TO: Pos = Pos { x: 5883, y: 31896 };
 /// site where it puts [`FARM_AT`]'s, (3456, 29760).
 pub const CLICKED_FARM_AT: Pos = Pos { x: 3554, y: 29860 };
 
+/// **The right-pressed script** (item 4179, `docs/CLIENT_INPUT.md` §6): the
+/// clicked script and two right presses on the opening frames' own
+/// objects, each the command `Console::execute_at_cursor` issues for one
+/// selected Citizen with no modifier held. On [`RIGHT_BUILD_FRAME`] the
+/// woodcutter [`HELPER`] is sent to the Farm's unfinished site
+/// [`FARM_SITE`]: `swarm_around` with `BUILD_AT`. On [`RIGHT_GATHER_FRAME`]
+/// the Citizen the capital trained, [`TRAINED`], idle beside it, is sent to
+/// the Woodcutter's camp [`WOODCUTTER`], which has room: `gather`. The
+/// client's `minted_right_pressed_at_the_opening_camera` mints these from
+/// presses and right presses and holds them equal field for field. Later
+/// scripts extend this one (item 4180).
+pub fn right_pressed() -> Vec<Order> {
+    let mut orders = clicked();
+    orders.extend([
+        (
+            RIGHT_BUILD_FRAME,
+            0,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![HELPER],
+                },
+                Command::SwarmAround {
+                    ox: i32::from(FARM_SITE),
+                    whom: 0,
+                    queued: 2,
+                    orders: i32::from(sim::ids::order::BUILD_AT),
+                },
+            ],
+        ),
+        (
+            RIGHT_GATHER_FRAME,
+            0,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![TRAINED],
+                },
+                Command::Gather {
+                    ox: i32::from(WOODCUTTER),
+                    queued: 2,
+                },
+            ],
+        ),
+    ]);
+    orders
+}
+
+/// The Farm's site the build places, `0/2007`: unfinished from frame 91
+/// until our walk finishes it on 297 under one builder.
+pub const FARM_SITE: i16 = 2007;
+/// The Woodcutter's camp, `0/2001` (`TypeIndex` 418), a gather type.
+pub const WOODCUTTER: i16 = 2001;
+/// The Citizen at the Woodcutter's camp, `0/2`, sent to help build.
+pub const HELPER: i16 = 2;
+/// The Citizen the capital trains, `0/6`, idle beside it from about frame
+/// 180 until about 300.
+pub const TRAINED: i16 = 6;
+/// The frames the two right presses' packages are consumed on.
+pub const RIGHT_BUILD_FRAME: i32 = 120;
+pub const RIGHT_GATHER_FRAME: i32 = 200;
+
 /// The script's three orders, the move sent to `scout_to` and the Farm
 /// dropped at `farm_at`.
 fn script_to(scout_to: Pos, farm_at: Pos) -> Vec<Order> {

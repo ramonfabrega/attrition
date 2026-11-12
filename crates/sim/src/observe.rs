@@ -155,6 +155,12 @@ pub struct BuildingScene {
     /// `FarmsOut::draw@008d75f0` draws as a wheat field; `None` for every
     /// other building (item 4048).
     pub field: Option<FieldScene>,
+    /// What a right press on it asks of a gather building (item 4179,
+    /// `docs/CLIENT_INPUT.md` §6): for a gather type (`build_flags & 0x40`,
+    /// `BuildTypeData::is_gather_type`), the gatherers its chain holds
+    /// (`BuildData::gather_down`) and its slot count (`gather_max`, `None`
+    /// uncapped); `None` for every other building.
+    pub gather: Option<(i32, Option<i32>)>,
 }
 
 /// A farm's `FarmStruct`, as `FarmsOut::draw@008d75f0` reads it
@@ -343,6 +349,13 @@ impl Sim {
                     farm_type: b.farm.farm_type,
                     heights: b.farm.heights,
                 }),
+                gather: b
+                    .ty
+                    .filter(|&t| {
+                        self.tables.build_types[t].flags & crate::cities::build::flags::GATHERER
+                            != 0
+                    })
+                    .map(|_| (b.gatherers.len() as i32, b.gather_max)),
             })
             .collect();
         let projectiles = self
