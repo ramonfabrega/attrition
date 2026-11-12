@@ -39,7 +39,11 @@ const QUIET_POLL: Duration = Duration::from_secs(5);
 /// (`{ 7.91 8.99 12.66 }`, macOS) or `/proc/loadavg`'s (`0.52 0.61 0.70
 /// 1/200 1234`, Linux).
 fn one_minute_load(text: &str) -> Option<f64> {
-    let first = text.trim().trim_start_matches('{').split_whitespace().next()?;
+    let first = text
+        .trim()
+        .trim_start_matches('{')
+        .split_whitespace()
+        .next()?;
     first.parse().ok()
 }
 
@@ -213,7 +217,13 @@ fn the_great_lakes_lobby_plays_under_the_clock_s_ceilings() {
         first.join("; "),
         load_words(first_load, cores)
     );
-    let wait = wait_for_quiet(host_load, cores, QUIET_WITHIN, QUIET_POLL, std::thread::sleep);
+    let wait = wait_for_quiet(
+        host_load,
+        cores,
+        QUIET_WITHIN,
+        QUIET_POLL,
+        std::thread::sleep,
+    );
     match &wait {
         Wait::None => {}
         Wait::Quiet { waited, load } => eprintln!(
@@ -226,12 +236,7 @@ fn the_great_lakes_lobby_plays_under_the_clock_s_ceilings() {
         ),
     }
     let (second, second_load) = session();
-    if let Some(failure) = verdict(
-        (&first, first_load),
-        (&second, second_load),
-        &wait,
-        cores,
-    ) {
+    if let Some(failure) = verdict((&first, first_load), (&second, second_load), &wait, cores) {
         panic!("{failure}");
     }
 }
@@ -294,10 +299,16 @@ fn a_host_that_stays_loaded_is_named_not_the_client() {
         message.contains("the host stayed loaded: 50.90 on 16 cores for 600 s; unmeasured, re-run"),
         "{message}"
     );
-    assert!(message.contains("50.04 ms") && message.contains("73.75 ms"), "{message}");
+    assert!(
+        message.contains("50.04 ms") && message.contains("73.75 ms"),
+        "{message}"
+    );
     assert!(message.contains("51.20 on 16 cores"), "{message}");
     // A second session under every ceiling passes, whatever the host did.
-    assert_eq!(verdict((&first, Some(51.2)), (&[], Some(50.9)), &wait, 16), None);
+    assert_eq!(
+        verdict((&first, Some(51.2)), (&[], Some(50.9)), &wait, 16),
+        None
+    );
     // A quiet host's second break is the client's, and is not called the host's.
     let message = verdict((&first, Some(3.0)), (&second, Some(2.5)), &Wait::None, 16).unwrap();
     assert!(!message.contains("stayed loaded"), "{message}");
