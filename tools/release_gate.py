@@ -195,7 +195,6 @@ def summarize_requests(directory, *, release_completed):
 # and forgives nothing. `test_release_gate.py` pins that each name is a
 # test that exists.
 JOURNAL_QUOTE_GUARD = 'a_journal_quotes_its_lane_verdict_and_gate_minutes'
-LOOP_LINE_GUARD = 'a_journal_s_loop_line_is_filed_or_says_none'
 COMMANDERS_LINES = (
     'the_handoff_s_scoreboard_is_the_floors',
     # The blind list's line (Loop 3416, the forty-eighth pass).
@@ -249,15 +248,6 @@ COMMANDERS_LINES = (
     # `blind::tests::the_blind_list_is_the_pinned_residue` reads — 3442's
     # booking gate was red on it alone. `blind::` is the worker's own red;
     # `tools/guard.sh`, the reflex run after the quote, runs it.
-    # The journal's Loop line (Loop 3328, the forty-fifth pass): the guard
-    # asks that a journal's "for the Loop" line be filed in the parked
-    # file by number, and only the commander files it, at the merge — a
-    # worker never writes the Loop section. 3314's lane gate exited 1
-    # three times on it alone, 3318 filed its own line to get past it,
-    # and 3322 wrote `none` and moved its note out of the heading.
-    # Forgiven on a lane, held at the booking gate; the verdict says
-    # whose line it is.
-    LOOP_LINE_GUARD,
 )
 # **The lane gate's suite** (1567): the timed tests over this many seconds
 # alone are the booking gate's. The file is the thirty-fifth pass's
@@ -735,9 +725,6 @@ def lane_verdict(failed_tests, census=None):
         remedy = ('; quote this gate\'s `Lane verdict:` and `Gate minutes:` lines in your journal '
                   'before your done line — the booking gate holds the quote (3277)'
                   if any(name.endswith(JOURNAL_QUOTE_GUARD) for name in failed_tests) else '')
-        remedy += ('; your journal\'s "for the Loop" line is unfiled, and the commander files it at the '
-                   'merge — leave it as written, never file it yourself or rewrite it to `none` (3328)'
-                   if any(name.endswith(LOOP_LINE_GUARD) for name in failed_tests) else '')
         remedy += (census_clause(census) if any(name.endswith(CENSUS_PIN) for name in failed_tests) else '')
         return True, (f"Lane verdict: red only on the commander's lines "
                       f"({len(failed_tests)}): " + ', '.join(failed_tests) + remedy)

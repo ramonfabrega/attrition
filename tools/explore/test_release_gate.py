@@ -868,27 +868,6 @@ class GateTests(unittest.TestCase):
         guard = (Path(__file__).resolve().parents[2] / 'tools/guard.sh').read_text()
         self.assertIn(f'--skip {name}', guard)
 
-    def test_the_loop_line_guard_is_forgiven_on_a_lane_and_the_verdict_says_the_commander_files_it(self):
-        # Loop 3328 (the forty-fifth pass): `a_journal_s_loop_line_is_filed_or_says_none`
-        # asks that a journal's "for the Loop" line be filed in the parked
-        # file, and only the commander files it, at the merge (CLAUDE.md:
-        # a worker never edits the queue or the parked file's Loop section
-        # by number). 3314's lane gate exited 1 three times on it alone,
-        # 3318 filed its own line to get past it, 3322 wrote `none` and
-        # moved its note out of the heading. Forgiven on a lane, held at
-        # the booking gate, and the verdict says whose line it is.
-        name = 'a_journal_s_loop_line_is_filed_or_says_none'
-        self.assertIn(name, gate.COMMANDERS_LINES)
-        forgiven, line = gate.lane_verdict([f'sim::docs_guard::{name}'])
-        self.assertTrue(forgiven, line)
-        self.assertIn("red only on the commander's lines", line)
-        self.assertIn('the commander files', line)
-        forgiven, line = gate.lane_verdict([f'sim::docs_guard::{name}', 'sim::x::a_red_of_the_worker_s_own'])
-        self.assertFalse(forgiven)
-        self.assertNotIn('the commander files', line)
-        guard = (Path(__file__).resolve().parents[2] / 'tools/guard.sh').read_text()
-        self.assertIn(f'--skip {name}', guard)
-
     def test_a_lane_gate_on_a_moved_base_names_the_paths_both_sides_touched_and_refuses_the_done_line(self):
         # Loop 3341 (the forty-fifth pass): 3335 announced its landing on a
         # base four landings behind and 3338 on one two behind; both merges

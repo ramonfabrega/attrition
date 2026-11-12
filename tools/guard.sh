@@ -42,9 +42,8 @@ if [ "$1" = "--built" ]; then PROFILE=(--release); shift; fi
 # authority and runs below and in the release suite.
 python3 tools/shape.py --check
 if [ -n "$RON_LANE" ]; then
-  # The journal's gate quote cannot exist before the lane's gate has run (3277),
-  # and its Loop line is the commander's to file at the merge (3328).
-  cargo test -q "${PROFILE[@]}" -p sim docs_guard -- --skip an_item_number_is_minted_once_and_in_its_file_s_form --skip a_journal_quotes_its_lane_verdict_and_gate_minutes --skip a_journal_s_loop_line_is_filed_or_says_none
+  # The journal's gate quote cannot exist before the lane's gate has run (3277).
+  cargo test -q "${PROFILE[@]}" -p sim docs_guard -- --skip an_item_number_is_minted_once_and_in_its_file_s_form --skip a_journal_quotes_its_lane_verdict_and_gate_minutes
 else
   cargo test -q "${PROFILE[@]}" -p sim docs_guard
 fi
