@@ -1767,6 +1767,23 @@ rows are their pins'.
   `SELECTARG2(TFACTOR)`); a reading, one photograph: **18 of 33**.
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
+- *The device's state* (4165, the rule before its count). run1566b's
+  card trace (`tools/trace/card.h`) copies, at each `D3D11GLSys::render`
+  (DLL `0x10023ac0`, `0x10023d30`), the `RenderState`, the four constant
+  buffers, `mShaderOptions` and both stages' texture names. The pass after
+  3279 is the photograph's: under the take's fast-forward the original
+  draws one frame in sixteen, after 3263 and 3279 (4073a). A figure matches
+  the lit draw at its own point, `gWorld`'s translation, within
+  `CARD_MATCH`; a building its `_NONQUAD` sprite draw. **33 of 33, every
+  figure at 0.0 units** (`RUN1559B_3279_DEVICE_STATE`). Diff-backed there,
+  on every lit draw: stage 0 `BLENDTEXTUREALPHA(TEXTURE, TFACTOR)`, tfactor
+  the owner's `TEAM_UNIT` (4102); stage 1 `MODULATE(CURRENT, DIFFUSE)`;
+  options `ALPHA_TEST LIGHTING` (no vertex colour, normal map, fake light or
+  `NO_HDR`); the material, the white light and the scene's ambient that
+  `lit_pipeline` reads (4114). On every silhouette draw: `SELECTARG2(TFACTOR)`
+  at 128, source alpha over the rest (4103). The tanks' streamed normals are
+  ours within 2.4–3.5° (median). So the colour with no fitted term is 4114's
+  candidate, 17; the figure that parts, 1/27, parts past the draw (4165a).
 
 ### 5.4 Recommended: pieces in register, K of M
 
@@ -2030,6 +2047,11 @@ lines and fog shading, projectiles and corpses, then candidate C.
 ## 7. What is not established, and what needs Ramon's word
 
 ### 7.1 Not established
+
+- What parts tank 1/27 from the photograph once its draw's whole state and normals are the original's: the texture
+  as sampled or what follows the draw (the tone map's mean, bloom, the anti-aliasing); and stage 1's
+  `MODULATE4X` alpha, blended over what is behind, which no draw of ours makes (4165a, 4165b). Settled by the
+  tone mapper's own inputs at its entry on that pass, and by the blend drawn and counted.
 
 Each line names what would settle it.
 

@@ -36,6 +36,9 @@
 //! reads as the LCG's own sequence and the first of them is the word to
 //! seed a replay with.
 
+/// The card probe's records (item 4165).
+pub mod card;
+
 use std::path::Path;
 
 /// The image base every address here is normalised to. A run that

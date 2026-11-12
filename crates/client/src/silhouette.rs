@@ -7328,4 +7328,413 @@ mod tests {
             "the stored candidate beats the texel: kill (a) does not hold"
         );
     }
+
+    /// The card trace's path: `RON_CARD_TRACE`, else run1566b's
+    /// (`docs/RUNS.md`, item 4165).
+    fn card_trace_path() -> PathBuf {
+        std::env::var_os("RON_CARD_TRACE")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home).join("ron-golden/run1566b/map-14/rontrace.log")
+            })
+    }
+
+    /// **The device's state at each scored object** (item 4165;
+    /// `docs/RENDERER.md` §5.3, "The device's state"): run1566b's card trace
+    /// (`tools/trace/card.h`, `rondata::trace::card`) — run1559b's take with
+    /// the probe on `D3D11GLSys::render` — holds the pass drawn after frame
+    /// 3279, the photograph's. Each of [`RUN1559B_3279_TRACED`]'s 33 objects
+    /// is matched to that pass's draws: a figure to the lit draw whose
+    /// `gWorld` translation is nearest its own point (`Placed` x, y, z, in
+    /// the world integers both sides use) and within [`CARD_MATCH`], each
+    /// draw taken once; a building to the sprite draw whose texture is its
+    /// own art file's, `_NONQUAD`. A match counts when its state is whole:
+    /// options, both stages' operations, the texture's name, the texture
+    /// factor, the material, the light and the scene's ambient. The rule was
+    /// written before the count. Then every value the colour row reads
+    /// (4102, 4103, 4114) is asserted against the original's own state.
+    #[test]
+    fn the_device_state_at_each_figure() {
+        use render::silhouette::{
+            SCENE_AMBIENT, SILHOUETTE_ALPHA, UNIT_AMBIENT, UNIT_AMBIENT_I, UNIT_DIFFUSE, team_unit,
+        };
+        use rondata::trace::card::{
+            self, TA_CURRENT, TA_DIFFUSE, TA_TEXTURE, TA_TFACTOR, TOP_BLENDTEXTUREALPHA,
+            TOP_MODULATE, TOP_SELECTARG2,
+        };
+        let tpath = card_trace_path();
+        let Ok(tbytes) = std::fs::read(&tpath) else {
+            println!("skipping: no card trace at {}", tpath.display());
+            return;
+        };
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let rows = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Silhouette);
+        let (figures, _, _) = world.draw_list(
+            &camera,
+            &crate::pinned_screen(),
+            (size.0 as i32, size.1 as i32),
+        );
+
+        let all = card::draws(&tbytes);
+        // `RON_CARD_FRAME` takes another pass, to make the match fail once
+        // (3263's: 4165's journal).
+        let at: i64 = std::env::var("RON_CARD_FRAME")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(PHOTO_FRAME);
+        let pass: Vec<&card::CardDraw> = all.iter().filter(|d| i64::from(d.frame) == at).collect();
+        assert!(
+            pass.iter().all(|d| d.args_checked),
+            "every draw's arguments read where the call left them"
+        );
+        let lit = |d: &card::CardDraw| {
+            d.colour_op(0) == (TOP_BLENDTEXTUREALPHA, TA_TEXTURE, TA_TFACTOR)
+                && d.colour_op(1) == (TOP_MODULATE, TA_CURRENT, TA_DIFFUSE)
+        };
+        let silhouette =
+            |d: &card::CardDraw| d.colour_op(0) == (TOP_SELECTARG2, TA_TEXTURE, TA_TFACTOR);
+        let whole = |d: &card::CardDraw| {
+            let m = d.material();
+            let l = d.light();
+            !d.options.is_empty()
+                && !d.names[0].is_empty()
+                && d.colour_op(0).0 != 0
+                && d.tfactor()[3] != 0
+                && m[1][..3].iter().any(|&v| v != 0.0)
+                && l[2][..3].iter().any(|&v| v != 0.0)
+                && d.scene_ambient()[..3].iter().any(|&v| v != 0.0)
+        };
+        let lits: Vec<&card::CardDraw> = pass.iter().copied().filter(|d| lit(d)).collect();
+        let sils: Vec<&card::CardDraw> = pass.iter().copied().filter(|d| silhouette(d)).collect();
+        println!(
+            "pass after frame {at}: {} draws, {} lit figure draws, {} silhouette draws",
+            pass.len(),
+            lits.len(),
+            sils.len()
+        );
+
+        // Each figure to its nearest lit draw, nearest pairs first.
+        let mut pairs: Vec<(f32, usize, usize)> = Vec::new();
+        for (fi, f) in figures.iter().enumerate() {
+            for (di, d) in lits.iter().enumerate() {
+                let o = d.origin();
+                let dd = ((o[0] - f.x as f32).powi(2)
+                    + (o[1] - f.y as f32).powi(2)
+                    + (o[2] - f.z as f32).powi(2))
+                .sqrt();
+                pairs.push((dd, fi, di));
+            }
+        }
+        pairs.sort_by(|a, b| a.0.total_cmp(&b.0));
+        let mut fig_draw: std::collections::BTreeMap<usize, (usize, f32)> =
+            std::collections::BTreeMap::new();
+        let mut taken = vec![false; lits.len()];
+        for &(dd, fi, di) in &pairs {
+            if dd > render::silhouette::CARD_MATCH || taken[di] || fig_draw.contains_key(&fi) {
+                continue;
+            }
+            taken[di] = true;
+            fig_draw.insert(fi, (di, dd));
+        }
+
+        let mut matched = 0;
+        let mut scored = 0;
+        let mut worst = 0.0f32;
+        for (f, _, who) in &rows {
+            scored += 1;
+            let name = format!("{}/{}", who.0, who.1);
+            if who.3 {
+                let art = rondata::artdata::build_art(
+                    &rondata::Install::new(&install),
+                    &std::iter::once(who.2).collect(),
+                );
+                let file = art
+                    .get(&who.2)
+                    .and_then(|a| a.as_ref().ok())
+                    .map(|a| {
+                        a.texture
+                            .rsplit(['\\', '/'])
+                            .next()
+                            .unwrap_or("")
+                            .to_ascii_lowercase()
+                    })
+                    .unwrap_or_default();
+                let hit = pass.iter().find(|d| {
+                    d.file(0).to_ascii_lowercase() == format!("{file}_nonquad")
+                        && d.has("ENABLE_ALPHA_TEST")
+                });
+                let ok = hit.is_some_and(|d| whole(d));
+                matched += usize::from(ok);
+                println!(
+                    "{name:>7} building piece {} art {file}: draw {:?} whole {ok}",
+                    who.2,
+                    hit.map(|d| d.index)
+                );
+                continue;
+            }
+            let mine: Vec<usize> = figures
+                .iter()
+                .enumerate()
+                .filter(|(_, p)| (p.who, p.o) == (who.0, who.1))
+                .map(|(i, _)| i)
+                .collect();
+            let draws: Vec<(usize, f32)> = mine
+                .iter()
+                .filter_map(|i| fig_draw.get(i).copied())
+                .collect();
+            let ok = !mine.is_empty()
+                && draws.len() == mine.len()
+                && draws.iter().all(|&(di, _)| whole(lits[di]));
+            matched += usize::from(ok);
+            for &(di, dd) in &draws {
+                worst = worst.max(dd);
+                let d = lits[di];
+                println!(
+                    "{name:>7} key {:>3} piece {:>5} figures {} -> draw {:>3} at {:5.1} units  {}  tfactor {:?}  options {}",
+                    f.key,
+                    who.2,
+                    mine.len(),
+                    d.index,
+                    dd,
+                    d.file(0),
+                    d.tfactor(),
+                    d.option_names().join(" ")
+                );
+            }
+            if !ok {
+                println!(
+                    "{name:>7} piece {}: {} figures, {} matched",
+                    who.2,
+                    mine.len(),
+                    draws.len()
+                );
+            }
+        }
+        println!(
+            "matched with a whole state: {matched} of {scored} (the farthest figure {worst:.1} units)"
+        );
+        assert_eq!(
+            (matched, scored),
+            render::silhouette::RUN1559B_3279_DEVICE_STATE
+        );
+
+        // The colour row's readings against the original's state, draw by draw.
+        for d in &lits {
+            let owner = figures
+                .iter()
+                .enumerate()
+                .find(|(i, _)| {
+                    fig_draw
+                        .get(i)
+                        .is_some_and(|&(di, _)| std::ptr::eq(lits[di], *d))
+                })
+                .map(|(_, p)| p.who);
+            let tf = d.tfactor();
+            if let Some(w) = owner {
+                // 4102: `c` is the owner's `TEAM_UNIT`.
+                assert_eq!(
+                    [tf[0], tf[1], tf[2]],
+                    team_unit(w),
+                    "draw {} owner {w}",
+                    d.index
+                );
+            }
+            let names = d.option_names();
+            assert!(names.contains(&"ENABLE_LIGHTING") && names.contains(&"ENABLE_ALPHA_TEST"));
+            for off in [
+                "NORMAL_MAP",
+                "ENABLE_VERTEX_COLOR_DIFFUSE",
+                "TL_FAKE_LIGHT",
+                "NO_HDR",
+                "ENABLE_TEXTURE_FACTOR",
+            ] {
+                assert!(!names.contains(&off), "draw {} has {off}", d.index);
+            }
+            let m = d.material();
+            for k in 0..3 {
+                // 4114: the material ambient `UNIT_AMBIENT · UNIT_AMBIENT_I`,
+                // its diffuse `UNIT_DIFFUSE`, and the scene's ambient raw.
+                assert!((m[0][k] - UNIT_AMBIENT[k] * UNIT_AMBIENT_I).abs() < 1e-3);
+                assert!((m[1][k] - UNIT_DIFFUSE).abs() < 1e-3);
+                assert_eq!(m[2][k], 0.0);
+                assert!((d.scene_ambient()[k] - SCENE_AMBIENT[k]).abs() < 1e-3);
+            }
+            let l = d.light();
+            let h = std::f32::consts::FRAC_1_SQRT_2;
+            assert!(
+                (l[0][0] + h).abs() < 1e-3 && l[0][1].abs() < 1e-3 && (l[0][2] + h).abs() < 1e-3
+            );
+            assert_eq!(l[1][..3], [1.0, 1.0, 1.0], "the light's ambient");
+            assert_eq!(l[2][..3], [1.0, 1.0, 1.0], "the light's diffuse");
+            assert_eq!(
+                (d.alpha_func(), d.alpha_ref()),
+                (4, 0),
+                "alpha test Greater 0"
+            );
+        }
+        // The tanks' own vertices (`get_internal_stream`'s lit ring, 40
+        // bytes: position, normal, uv0, uv1, in the model's space), carried
+        // by the draw's `gWorld`, against our drawing's corners: each of
+        // theirs to our nearest corner, the distance and the angle between
+        // the normals.
+        let scene = frame_scene(&mut world, &camera, size);
+        let mut tank_rows = Vec::new();
+        for (fi, f) in figures.iter().enumerate() {
+            let Some(&(di, _)) = fig_draw.get(&fi) else {
+                continue;
+            };
+            let d = lits[di];
+            let Some(st) = d.stream.as_ref().filter(|st| st.stride == 40) else {
+                continue;
+            };
+            let Some(ours) = scene
+                .drawings
+                .iter()
+                .find(|g| (g.who, g.o, g.piece) == (f.who, f.o, f.piece))
+            else {
+                continue;
+            };
+            let w = d.world();
+            let at = |v: [f32; 3], t: f32| -> [f32; 3] {
+                std::array::from_fn(|r| {
+                    w[4 * r] * v[0] + w[4 * r + 1] * v[1] + w[4 * r + 2] * v[2] + w[4 * r + 3] * t
+                })
+            };
+            let word =
+                |i: usize| f32::from_le_bytes(st.bytes[4 * i..4 * i + 4].try_into().unwrap());
+            let corners: Vec<([f32; 3], [f32; 3])> = ours
+                .tris
+                .iter()
+                .zip(&ours.normals)
+                .flat_map(|(t, n)| (0..3).map(move |k| (t[k], n[k])))
+                .collect();
+            let (mut dist, mut ang) = (Vec::new(), Vec::new());
+            for v in 0..st.vertices as usize {
+                let b = 10 * v;
+                if 4 * (b + 6) > st.bytes.len() {
+                    break;
+                }
+                let p = at([word(b), word(b + 1), word(b + 2)], 1.0);
+                let n = at([word(b + 3), word(b + 4), word(b + 5)], 0.0);
+                // A flat-shaded mesh holds several corners at one point, one
+                // normal each: the angle is the best among our corners within
+                // 6 units of the nearest, a lower bound.
+                let gap = |c: &[f32; 3]| (0..3).map(|k| (c[k] - p[k]).powi(2)).sum::<f32>().sqrt();
+                let Some(near) = corners.iter().map(|c| gap(&c.0)).min_by(f32::total_cmp) else {
+                    continue;
+                };
+                dist.push(near);
+                let best = corners
+                    .iter()
+                    .filter(|c| gap(&c.0) <= near + 6.0)
+                    .map(|c| {
+                        let dot: f32 = (0..3).map(|k| c.1[k] * n[k]).sum();
+                        dot.clamp(-1.0, 1.0).acos().to_degrees()
+                    })
+                    .min_by(f32::total_cmp)
+                    .unwrap_or(180.0);
+                ang.push(best);
+            }
+            dist.sort_by(f32::total_cmp);
+            ang.sort_by(f32::total_cmp);
+            if dist.is_empty() {
+                continue;
+            }
+            let med = |v: &[f32]| v[v.len() / 2];
+            println!(
+                "tank {}/{} draw {}: {} vertices, nearest corner median {:.2} max {:.2} units; normals median {:.1} deg, 90th {:.1}, past 30 deg {}",
+                f.who,
+                f.o,
+                d.index,
+                dist.len(),
+                med(&dist),
+                dist[dist.len() - 1],
+                med(&ang),
+                ang[ang.len() * 9 / 10],
+                ang.iter().filter(|&&a| a > 30.0).count()
+            );
+            tank_rows.push((med(&dist), med(&ang)));
+        }
+        // Stage 1's alpha, `MODULATE4X(TEXTURE, TFACTOR)` with blending on
+        // (`enables` 0x287, `SRCALPHA`/`INVSRCALPHA`): a lit figure's pixel
+        // is `A·C + (1 − A)·behind`, `A = min(1, 4·α·a)`, α the texel's
+        // alpha and `a` the factor's. The scored figures' own pixels whose
+        // texel alpha leaves `A` under 1 — those the colour row draws opaque.
+        for d in &lits {
+            assert_eq!(
+                d.alpha_op(1),
+                (5, TA_TEXTURE, TA_TFACTOR),
+                "draw {} MODULATE4X",
+                d.index
+            );
+            assert_eq!((d.enables() & 4, d.src_blend(), d.dst_blend()), (4, 5, 6));
+        }
+        let w = photo.width;
+        let (mut own, mut thin) = (0usize, 0usize);
+        let mut thin_by: Vec<(String, usize, usize)> = Vec::new();
+        for (f, _, who) in &rows {
+            if who.3 {
+                continue;
+            }
+            let a = figures
+                .iter()
+                .enumerate()
+                .filter(|(_, p)| (p.who, p.o) == (who.0, who.1))
+                .find_map(|(i, _)| fig_draw.get(&i))
+                .map_or(255.0, |&(di, _)| f32::from(lits[di].tfactor()[3]));
+            let ours = painted_scene(
+                &mut world,
+                &scene,
+                &camera,
+                size,
+                f.key,
+                f.window,
+                Colouring::Team,
+            );
+            let ww = (f.window.x1 - f.window.x0) as usize;
+            let (mut o, mut t) = (0, 0);
+            for (i, tx) in ours.iter().enumerate() {
+                let Some(tx) = tx else { continue };
+                let (x, y) = (f.window.x0 as usize + i % ww, f.window.y0 as usize + i / ww);
+                if scene.keys.keys[y * w + x] != f.key || tx.alpha <= 0.0 {
+                    continue;
+                }
+                o += 1;
+                t += usize::from(4.0 * tx.alpha * a / 255.0 < 255.0);
+            }
+            own += o;
+            thin += t;
+            if t > 0 {
+                thin_by.push((format!("{}/{}", who.0, who.1), t, o));
+            }
+        }
+        println!("the figures' own pixels with A under 1: {thin} of {own}; by object {thin_by:?}");
+        for d in &sils {
+            // 4103: `SELECTARG2(TFACTOR)` at 128, source alpha over the rest.
+            assert_eq!(d.tfactor()[3], SILHOUETTE_ALPHA);
+            assert_eq!((d.src_blend(), d.dst_blend()), (5, 6));
+            assert_eq!(d.alpha_op(0), (TOP_SELECTARG2, TA_TEXTURE, TA_TFACTOR));
+        }
+    }
 }

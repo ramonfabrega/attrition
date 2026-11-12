@@ -36569,3 +36569,40 @@ is cropped (PIL) to `run1564-3294-view.png`, which is converted by `sips -s form
   that is (36960, 38496), the centre of tile (192, 200) (`RUN1564_LOC`).
 - The view shows the south-east lake, its beach and a rock patch, unfogged under the lane's `StartReveal=1`.
 - By the client's census it holds 488 `OCEAN` tiles, 901 `SANDY` tiles and 32 `ROCK` tiles (`RUN1564_3279_CENSUS`).
+
+## run1566 — run1559's take with the card probe: the device's state at each draw, frames 3260–3300 (2026-11-12, item 4165, `att-4165`)
+
+`docs/RENDERER.md` §5.3, "The device's state". **What the disk could not answer**: what the original hands the card
+for a figure. run1559b's packet holds `render_states[]` and the team colours, but no draw's stages, options or
+constant buffers, and Wine's `+d3d` is blind here (wined3d gets no GL context on macOS, `docs/ORACLE.md`). The line is
+run1559's, with `--tracer-def RON_CARD_PROBE` (`tools/trace/card.h` at `cfb48d8da`) and no packet:
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1566 --map 14 --end-frame 3296
+--timeout 420 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 0 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cmd-file
+~/ron-data/lab-experiments/2026-11-09-item-4036/pause3294.cmd --tracer-def RON_CARD_PROBE`.
+- Pool lane, launched 01:58:43. The paused take ended as run1559b's did: `ValueError: extra lifecycle or fault
+  records` from `autostart_receipt.py`; settings restored. Its photograph failed (`screencapture: cannot write file`,
+  the output directory did not exist). Not filed.
+- The probe installed on all four sites, d3dgl at `0x78710000` (relocated). Two passes fell in the window, drawn after
+  frames 3263 and 3279: the take's fast-forward draws one frame in sixteen.
+- Superseded by run1566b: its texture names were read one dereference short, and its arguments off a copy.
+
+Trace `~/ron-golden/run1566/map-14/rontrace.log`, SHA-256
+`30d206390f63aeca2ff65d5fa8d4844cae5193776131bc15d5c4163f1df24ed4`.
+
+## run1566b — run1566 with the stream's bytes, the arguments, the exe's frames and the names (2026-11-12, item 4165, `att-4165`)
+
+The same line into `~/ron-golden/run1566b`, the probe at `9fe31a735`, and `poolshot.py ~/ron-golden/run1566b 3294
+--map 14` beside it.
+- Pool lane, launched 02:05:09. The paused take ended as run1566's did. Settings restored; 45 GB free after. Not filed.
+- Six sites hooked, none refused, d3dgl at `0x786f0000`. Two passes again, after 3263 (269 draws) and 3279 (271);
+  every draw's arguments read where the call left them; 14 internal streams dumped (the tanks', 401 vertices of 40
+  bytes, and two of 32).
+- **What it holds**: the pass after 3279 is the photograph's. Its 33 lit figure draws and 8 silhouette draws match
+  `RUN1559B_3279_TRACED`'s 31 figures at 0.0 units and its two buildings by their sprites
+  (`RUN1559B_3279_DEVICE_STATE`).
+
+Trace `~/ron-golden/run1566b/map-14/rontrace.log`, 72,386,592 bytes, SHA-256
+`51007c86828f3077463b7602750946f44f29509f2818cc71fa76aef3926ad2a0`. Photograph
+`~/ron-data/lab-experiments/2026-11-12-item-4165/run1566b-3294.png`: window 16686, 1920×1080, the gamelog at 3295,
+SHA-256 `ebf718d54cb9a47db2f8615d1c38730bdce3d04eef044cdb6bc94fc571794552`.
