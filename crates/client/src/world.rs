@@ -375,6 +375,9 @@ pub const TREE_ALPHA_REF: u8 = 0;
 /// Clockwise` (item 4082; `render::silhouette::Cull`).
 pub const TREE_CULL: render::silhouette::Cull = render::silhouette::Cull::CounterClockwise;
 
+/// One tree texture's faces as corners and texcoords (item 4173).
+type TreeFaces = (Vec<[f32; 3]>, Vec<[f32; 2]>);
+
 /// One tree model at rest: its vertices and its faces.
 pub type TreeModel = (Vec<[f32; 3]>, Vec<[u16; 3]>);
 
@@ -991,11 +994,11 @@ impl World {
     /// `client::gpu`'s tree pass, which binds the leaf's texel as
     /// `client::trees::DRAWN` colours it; a face with no texcoords or no
     /// decoded texture into the window's soup, flat green as before.
-    pub fn tree_meshes(&self, soup: &mut Soup) -> Vec<TexturedMesh> {
+    pub fn tree_textured(&self, soup: &mut Soup) -> Vec<TexturedMesh> {
         let Some(art) = self.tree_art.as_ref() else {
             return Vec::new();
         };
-        let mut by: BTreeMap<usize, (Vec<[f32; 3]>, Vec<[f32; 2]>)> = BTreeMap::new();
+        let mut by: BTreeMap<usize, TreeFaces> = BTreeMap::new();
         let cuts = self.tree_cuts();
         for (d, cut) in self.tree_drawings().iter().zip(&cuts) {
             for (ti, tri) in d.tris.iter().enumerate() {

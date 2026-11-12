@@ -1296,26 +1296,34 @@ pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 /// holds 91 of 1,104 pixels of a silhouette's red over the tree where the
 /// painter keys nothing, so the reader takes that red for ground (parked
 /// 4171a). 1/40 crosses, 0.721 → 0.498 (ours 2,167 → 1,480): an olive
-/// tank on grass, which the photograph's side reads by hand.
-pub const RUN1559B_3279_TRACED_STILL: (usize, usize) = (31, 33);
+/// tank on grass, which the photograph's side reads by hand. **32 since
+/// item 4173**: with the trees textured, 0/1's ring no longer holds the
+/// silhouette's red over our flat green, and 0/1 crosses back, still
+/// 0.159 → 0.850 (ours 68 → 378, both 66 → 364).
+pub const RUN1559B_3279_TRACED_STILL: (usize, usize) = (32, 33);
 /// **`RUN1559B_3279_COLOUR` on the client's still** (item 4171), 18 → 14,
 /// none crossing up. 0/1, all 159 of its lit pixels behind the pine, the
 /// silhouette over our flat green where the painter lays it over the leaf
 /// texel: agree 81 → 30. 0/5, 0/6 and 1/34 by the card's level per pixel
 /// against the painter's per triangle: agree 164 → 142, 97 → 69, 129 →
 /// 115 (0/6's 25 behind part 18 → 19). Expected red first: on the draw
-/// before, 2.
+/// before, 2. **Held at 14 by item 4173**, the trees textured: 0/1's
+/// behind pixels now lie over the drawn leaf as the painter's do, agree 30
+/// → 64 (the painter's 66, all 213 of its pixels within 8), out on both;
+/// 0/5, 0/6 and 1/34 stay the mip level's (4171b), 142, 76 and 115.
 pub const RUN1559B_3279_COLOUR_STILL: (usize, usize) = (14, 33);
 /// The still's `(TRACED, COLOUR)` under its four readings (item 4171):
 /// the silhouette pass before and after the lit one, on a plain target
 /// and on an sRGB one — the client's draw first, the draw before 4171
 /// (after, sRGB) last, the rows' made-to-fail. Before the stencil held a
-/// silhouette to one blend, before-plain read (31, 33), (13, 33).
+/// silhouette to one blend, before-plain read (31, 33), (13, 33). Item
+/// 4173, the trees textured: the client's traced 31 → 32 and after-sRGB's
+/// 32 → 33, every colour count held.
 pub const RUN1559B_3279_STILL_READINGS: [((usize, usize), (usize, usize)); 4] = [
-    ((31, 33), (14, 33)),
+    ((32, 33), (14, 33)),
     ((32, 33), (2, 33)),
     ((32, 33), (11, 33)),
-    ((32, 33), (2, 33)),
+    ((33, 33), (2, 33)),
 ];
 
 /// **The colour row** (item 4099; `docs/RENDERER.md` §5.3, "The colour
@@ -1417,6 +1425,11 @@ pub const RUN1559B_3279_TREES_LITERAL: [(usize, usize); 2] = [(0, 56), (0, 56)];
 /// [`RUN1559B_3279_TREES`] at run1441's camera, made to fail: 0 of 57 (the
 /// luminance reader 9 of 57).
 pub const RUN1441_CAMERA_3279_TREES: [(usize, usize); 2] = [(0, 57), (9, 57)];
+/// [`RUN1559B_3279_TREES`] and its luminance count on the client's still
+/// (item 4171's harness): the same trees and pixels, our side
+/// `client::gpu`'s bytes: 37 of 56 and 54 of 56, the painter's, every tree
+/// agreeing within 5 % of its painted count (item 4173).
+pub const RUN1559B_3279_TREES_STILL: [(usize, usize); 2] = [(37, 56), (54, 56)];
 
 /// The photograph's frame at run1441's camera, by colour and by the mask:
 /// the made-to-fail.

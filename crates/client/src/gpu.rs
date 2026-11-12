@@ -161,11 +161,11 @@ fn fs_silhouette(i: VOut) -> @location(0) vec4<f32> {
 /// **The trees' pass** (item 4173; `docs/RENDERER.md` §3.7, "The trees'
 /// own colour"), appended to [`TEXTURED_SHADER`]: the leaf's texture on
 /// its one level, bilinear and clamped, cut where its alpha is not above
-/// `render_states[9]`'s 0; then, on the stored bytes as the card's stage
-/// runs, `ADDSIGNED` with the vertex diffuse, `TL_FAKE_LIGHT`'s power and
-/// HDR scale, and the tone map at the clamp — `render::silhouette::
-/// fake_light` on `tree_stage`, the arithmetic the painter runs — handed
-/// back linear for the sRGB target to store.
+/// `render_states[9]`'s 0; then `ADDSIGNED` with the vertex diffuse,
+/// `TL_FAKE_LIGHT`'s power and HDR scale, and the tone map at the clamp —
+/// `render::silhouette::fake_light` on `tree_stage`, the arithmetic the
+/// painter runs. On the plain `Unorm` target and texture (item 4171) the
+/// sample is the byte and the result is stored as it stands.
 fn tree_shader() -> String {
     use render::silhouette::{
         EXPOSURE, FAKE_LIGHT_POWER, HDR_SCALE, MIN_LUMINANCE, TREE_DIFFUSE, WHITE_POINT, filmic,
@@ -174,18 +174,6 @@ fn tree_shader() -> String {
     let current = f32::from(TREE_DIFFUSE) / 255.0;
     format!(
         r#"
-fn tree_encoded(c: vec3<f32>) -> vec3<f32> {{
-    let lo = c * 12.92;
-    let hi = 1.055 * pow(c, vec3<f32>(1.0 / 2.4)) - vec3<f32>(0.055);
-    return select(hi, lo, c <= vec3<f32>(0.0031308));
-}}
-
-fn tree_decoded(c: vec3<f32>) -> vec3<f32> {{
-    let lo = c / 12.92;
-    let hi = pow((c + vec3<f32>(0.055)) / 1.055, vec3<f32>(2.4));
-    return select(hi, lo, c <= vec3<f32>(0.04045));
-}}
-
 fn tree_filmic(x: vec3<f32>) -> vec3<f32> {{
     let a = 0.15; let b = 0.50; let c = 0.10; let d = 0.20; let e = 0.02; let f = 0.30;
     return (x * (a * x + c * b) + d * e) / (x * (a * x + b) + d * f) - vec3<f32>(e / f);
@@ -197,10 +185,10 @@ fn fs_tree(i: VOut) -> @location(0) vec4<f32> {{
     if (t.a <= 0.0) {{
         discard;
     }}
-    let stage = clamp(tree_encoded(t.rgb) + vec3<f32>({current:?} - 0.5), vec3<f32>(0.0), vec3<f32>(1.0));
+    let stage = clamp(t.rgb + vec3<f32>({current:?} - 0.5), vec3<f32>(0.0), vec3<f32>(1.0));
     let lin = pow(stage, vec3<f32>({FAKE_LIGHT_POWER:?})) * {HDR_SCALE:?};
     let toned = clamp(tree_filmic({EXPOSURE:?} * lin) * {white:?}, vec3<f32>(0.0), vec3<f32>(1.0));
-    return vec4<f32>(tree_decoded(toned), 1.0);
+    return vec4<f32>(toned, 1.0);
 }}
 "#
     )
@@ -1463,6 +1451,19 @@ mod tests {
             "return vec4<f32>(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), a);"
         ));
         assert!(!PATCH_SHADER.contains("encoded("));
+    }
+
+    /// Item 4173: the tree's pass runs the painter's arithmetic on the
+    /// bytes — the stage on the sample, the power, the scale and the white
+    /// the painter's constants give — with no encode or decode around it.
+    #[test]
+    fn the_tree_pass_is_the_painter_s() {
+        let t = tree_shader();
+        assert!(t.contains("let stage = clamp(t.rgb + vec3<f32>(0.5019608 - 0.5)"));
+        assert!(t.contains("pow(stage, vec3<f32>(1.9)) * 5.0"));
+        assert!(t.contains("return vec4<f32>(toned, 1.0);"));
+        assert!(!t.contains("encoded("));
+        assert!(t.contains("if (t.a <= 0.0)"));
     }
 
     #[test]

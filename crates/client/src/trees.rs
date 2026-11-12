@@ -118,6 +118,7 @@ mod tests {
         camera: &render::Camera,
         photo: &render::tga::Image,
         how: TreeColour,
+        still: Option<&[u8]>,
     ) -> Vec<Row> {
         let size = (photo.width, photo.height);
         let before = world.tree_pixels;
@@ -161,8 +162,19 @@ mod tests {
                 tris: d.tris.clone(),
             };
             let texels = paint_cut(&object, cut, camera, size, window);
-            let ours = recolour(&texels, &d.tris, how);
+            let mut ours = recolour(&texels, &d.tris, how);
             let ww = (x1 - x0) as usize;
+            // On the still (item 4171's harness), the same pixels, our side
+            // the client's own bytes.
+            if let Some(st) = still {
+                for (j, t) in ours.iter_mut().enumerate() {
+                    let (x, y) = (x0 as usize + j % ww, y0 as usize + j / ww);
+                    let i = (y * size.0 + x) * 4;
+                    if let Some(t) = t {
+                        t.rgb = [0, 1, 2].map(|k| f32::from(st[i + k]));
+                    }
+                }
+            }
             let theirs: Vec<Option<bool>> = (0..ours.len())
                 .map(|j| {
                     let (x, y) = (x0 + (j % ww) as i32, y0 + (j / ww) as i32);
@@ -235,7 +247,7 @@ mod tests {
             TreeColour::FakeLight,
             TreeColour::Literal,
         ] {
-            let rows = tree_rows(&mut world, &camera, &photo, how);
+            let rows = tree_rows(&mut world, &camera, &photo, how, None);
             for (j, key, c) in &rows {
                 let [ya, yb] = c.luma_means();
                 let t = &list[*j];
@@ -269,7 +281,35 @@ mod tests {
             &elsewhere,
             &photo,
             TreeColour::FakeLight,
+            None,
         ));
+        // Item 4171's harness: the row on the client's still.
+        let size = (photo.width as u32, photo.height as u32);
+        let still = crate::still_of(
+            &mut world,
+            &camera,
+            size,
+            crate::gpu::SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+        );
+        let on_still = tree_rows(&mut world, &camera, &photo, DRAWN, Some(&still));
+        let painted = tree_rows(&mut world, &camera, &photo, DRAWN, None);
+        let (mut px, mut close) = (0u32, 0u32);
+        for ((j, _, a), (_, _, b)) in painted.iter().zip(&on_still) {
+            px += a.lit;
+            close += u32::from(a.agree.abs_diff(b.agree) * 20 <= a.lit.max(1));
+            if a.passes(&HUE) != b.passes(&HUE) {
+                println!(
+                    "still: tree {j} agree {} of {} painter, {} of {} still",
+                    a.agree, a.lit, b.agree, b.lit
+                );
+            }
+        }
+        let (still_colour, still_luma) = count(&on_still);
+        println!(
+            "on the still: colour {still_colour:?} luma {still_luma:?}; {close} of {} trees agree within 5 % of the painter's ({px} lit pixels)",
+            painted.len()
+        );
         println!("run1441's camera: colour {off_colour:?} luma {off_luma:?}");
         use render::silhouette as s;
         let of = |how: TreeColour| {
@@ -284,6 +324,7 @@ mod tests {
             [s::RUN1559B_3279_TREES, s::RUN1559B_3279_TREES_LUMA]
         );
         assert_eq!([off_colour, off_luma], s::RUN1441_CAMERA_3279_TREES);
+        assert_eq!([still_colour, still_luma], s::RUN1559B_3279_TREES_STILL);
         // The rule (committed before the count): the candidate most trees
         // agree with by colour is drawn, a tie broken by the luminance
         // count, a second tie keeping the stage colour.
@@ -304,35 +345,63 @@ mod tests {
             })
     }
 
+    /// **The trees' draw on the card** (item 4173; §3.7, "The trees' own
+    /// colour"): on run1566b's card trace, the pass after frame 3279 draws
+    /// the trees one texture a draw — the bark and the six leaf layers —
+    /// each under the state [`TreeColour::FakeLight`] reads: stage 0
+    /// `ADDSIGNED(TEXTURE, CURRENT)`, stage 1 `MODULATE(CURRENT,
+    /// TFACTOR)` at white, alpha `MODULATE(TEXTURE, CURRENT)` then
+    /// `SELECTARG2`, the alpha test Greater at 0, `TL_FAKE_LIGHT` and the
+    /// vertex diffuse with no `LIGHTING` and no `NO_HDR`.
     #[test]
-    fn probe_the_trees_on_the_card() {
-        use rondata::trace::card;
+    fn the_trees_draw_on_the_card() {
+        use rondata::trace::card::{
+            self, TA_CURRENT, TA_TEXTURE, TA_TFACTOR, TOP_MODULATE, TOP_SELECTARG2,
+        };
+        const TOP_ADDSIGNED: i32 = 7;
         let Ok(bytes) = std::fs::read(card_trace_path()) else {
-            println!("skipping: no card trace");
+            println!("skipping: no card trace at {}", card_trace_path().display());
             return;
         };
         let all = card::draws(&bytes);
-        let pass: Vec<&card::CardDraw> = all.iter().filter(|d| d.frame == 3279).collect();
-        println!("{} draws in the pass", pass.len());
-        for d in &pass {
-            let n0 = d.file(0).to_ascii_lowercase();
-            if !n0.contains("tree") {
-                continue;
-            }
-            println!(
-                "draw {:>4} | {} | c0 {:?} c1 {:?} a0 {:?} a1 {:?} | en {:#x} af {} ar {} tf {:?} | opts {}",
-                d.index,
-                d.file(0),
-                d.colour_op(0),
-                d.colour_op(1),
-                d.alpha_op(0),
-                d.alpha_op(1),
-                d.enables(),
-                d.alpha_func(),
-                d.alpha_ref(),
-                d.tfactor(),
-                d.option_names().join(" "),
+        let trees: Vec<&card::CardDraw> = all
+            .iter()
+            .filter(|d| i64::from(d.frame) == PHOTO_FRAME)
+            .filter(|d| {
+                let n = d.file(0).to_ascii_lowercase();
+                n.starts_with("tree_") && !n.contains("shadow")
+            })
+            .collect();
+        let names: Vec<String> = trees
+            .iter()
+            .map(|d| d.file(0).to_ascii_lowercase())
+            .collect();
+        println!("the trees' draws: {names:?}");
+        assert_eq!(
+            names,
+            [
+                "tree_t_bark.tga",
+                "tree_tea_bottom_a.tga",
+                "tree_tea_bottom_b.tga",
+                "tree_tea_middle_a.tga",
+                "tree_tea_middle_b.tga",
+                "tree_tea_middle_c.tga",
+                "tree_tea_top_a.tga",
+            ]
+        );
+        for d in &trees {
+            assert_eq!(d.colour_op(0), (TOP_ADDSIGNED, TA_TEXTURE, TA_CURRENT));
+            assert_eq!(d.colour_op(1), (TOP_MODULATE, TA_CURRENT, TA_TFACTOR));
+            assert_eq!(d.alpha_op(0), (TOP_MODULATE, TA_TEXTURE, TA_CURRENT));
+            assert_eq!(d.alpha_op(1), (TOP_SELECTARG2, TA_TEXTURE, TA_CURRENT));
+            assert_eq!(d.tfactor(), [255; 4]);
+            assert_eq!(
+                (d.enables(), d.alpha_func(), d.alpha_ref()),
+                (0x20087, 4, 0)
             );
+            assert!(d.has("TL_FAKE_LIGHT") && d.has("ENABLE_VERTEX_COLOR_DIFFUSE"));
+            assert!(d.has("ENABLE_ALPHA_TEST"));
+            assert!(!d.has("ENABLE_LIGHTING") && !d.has("NO_HDR"));
         }
     }
 }

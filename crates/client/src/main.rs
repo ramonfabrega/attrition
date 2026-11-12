@@ -231,7 +231,7 @@ fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms:
         world.draw_list(camera, &pinned_screen(), (size.0 as i32, size.1 as i32));
     let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
     let (mut figures, textured) = world.figure_meshes(&figures, &buildings, &list);
-    let trees = world.tree_meshes(&mut figures);
+    let trees = world.tree_textured(&mut figures);
     let lines = overlay::Lines {
         frame: world.runner.frame(),
         frame_ms,
@@ -311,6 +311,7 @@ pub(crate) fn still_of(
         patch,
         figures: (&b.figures.positions, &b.figures.colours),
         textured: &b.textured,
+        trees: &b.trees,
         overlay: (&[], &[]),
         sprites: &b.sprites,
     };
