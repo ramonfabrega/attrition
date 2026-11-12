@@ -1,24 +1,27 @@
 #!/usr/bin/env python3
-"""disk.py — the booking gate's two disk steps: a merged builder's build
-output, and the decoded-oracle caches no build reads any more.
+"""disk.py — the booking gate's two disk steps, run after a green gate: the
+merged builders' trees, and the decoded-oracle caches no build reads any more.
 
-    python3 tools/disk.py --sha <sha> [--worktrees DIR] [--dry-run]   # the builders step
-    python3 tools/disk.py --gc <install> [--dir DIR …]                # the oracle step
+    python3 tools/disk.py --sha <sha> [--repo DIR] [--worktrees DIR] [--dry-run]   # the builders step
+    python3 tools/disk.py --gc <install> [--dir DIR …]                              # the oracle step
 
 On 2026-11-12 the disk filled to 0 GB during a builder's test run. Two
 leaks, both regenerable, neither removed by anything: seven merged
 builders' `target/` directories held 40.4 GiB, and 94 stale oracle
 generations stood over 133 caches. The owner's word that day: both are
-cleared as a standing step. `tools/gate_run.sh` runs the builders step
-before every booking gate and the oracle step after a green one, so nobody
-has to remember.
+cleared as a standing step, and merged builder trees do not pile up at all
+(23 stood, reaped by hand). `tools/gate_run.sh` runs both steps after a
+green booking gate, so nobody has to remember. Nothing runs before the
+gate and a red gate runs neither: a just-merged builder may still be sent
+its failing test to fix in its own tree, so the tree outlives its gate;
+once the gate is green its work is in gated history.
 
 **The builders step.** For each worktree (`git worktree list --porcelain`)
 under `--worktrees` (default the repository's `.claude/worktrees`) whose
-directory name starts with `agent-`, its `target/` is removed iff its HEAD
+directory name starts with `agent-`, it acts iff the tree's HEAD
 
 * is an ancestor of `<sha>` — a builder in flight with commits of its own
-  is no ancestor, and keeps its build; and
+  is no ancestor, and is untouched; and
 * is not on `<sha>`'s first-parent line (`git rev-list --first-parent`).
 
 A merged builder's tip is reachable from the booked commit, but only
@@ -26,29 +29,40 @@ through a merge's second parent (the driver merges with `--no-ff`; a
 builder that merged its base into its branch first is still off the
 line). A freshly cut builder that has not committed yet sits exactly on a
 booked tip — this one, or an earlier one — which is on the first-parent
-line, and must not lose its build mid-run. Only `target/` goes: the tree,
-its branch and its files stay, and a tree that is not `agent-*` (the
+line, and must not lose its tree mid-run.
+
+A merged tree whose `git status --porcelain` is empty is reaped: `git
+worktree remove -f -f` (twice, because every agent tree carries the
+harness's lock), then `git branch -d` on its branch — lower-case, which
+refuses a branch not merged into `--repo`'s HEAD (the gate tree, at
+`<sha>`) or into its upstream: the second safety, and never `-D` — then
+`git worktree prune`. A dirty merged tree keeps its tree and branch and
+loses only its `target/` (`kept dirty`, with the first lines of the
+status). A removal git refuses is a `FAILED` line; the other trees go on,
+and the step ends `Disk: step failed`. A tree that is not `agent-*` (the
 integration tree, the `gate` tree, a ccc lane's `att-*`) is never touched,
-merged or not. The harness's own `locked` mark is no refusal here: every
-live agent tree carries one, and the rule above is what tells a merged one
-from a running one. What the rule cannot see: a builder that keeps working
-after its merge without a new commit loses its build at the next gate,
-and rebuilds; so does one whose merge the driver backs out after a red.
+merged or not. What the rule cannot see: a builder that keeps working
+after its gate is green without a new commit, and with nothing
+uncommitted, loses its tree.
 
-A `target` that is itself a symlink is refused, and nothing inside one is
-followed: the sizes are summed with `lstat` and the removal is
-`shutil.rmtree`, which unlinks a symlink it meets rather than entering it.
-The freed figure is allocated blocks (`st_blocks * 512`), not apparent size.
+A `target` that is itself a symlink, or not a directory, or resolves
+outside its tree, is refused, and the tree is left whole. Nothing inside a
+tree is followed: the sizes are summed with `lstat`, `shutil.rmtree` and
+`git worktree remove` unlink a symlink rather than entering it. The freed
+figure is allocated blocks (`st_blocks * 512`), not apparent size.
 
-**The oracle step.** `cargo run --release -q -p rondata -- <install>
---gc-oracle <dir> …` from this checkout (`rondata::diff::oracle::gc_tree`):
-every generation of every `.ron-oracle-v1` cache under each directory but
-the running build's own two. The directories default to the golden archive
-and the data root as `tools/archive_census.py` resolves them
-(`$RON_GOLDEN_DIR` or `~/ron-golden`, and `~/ron-data`), plus the queue
-lane's logs (`$RON_GAMELOG_DIR`) when they are under neither. A lane on
-another parser fingerprint loses nothing it cannot rebuild: its next read
-misses and re-decodes from the dump.
+**The oracle step.** `cargo run -q -p rondata -- <install> --gc-oracle
+<dir> …` from this checkout (`rondata::diff::oracle::gc_tree`): every
+generation of every `.ron-oracle-v1` cache under each directory but the
+running build's own two. The debug profile is the binary the gate's survey
+step already built (`cargo run -p rondata`), so the step compiles nothing;
+a generation is a hash of the parser sources' text, the same in either
+profile. The directories default to the golden archive and the data root
+as `tools/archive_census.py` resolves them (`$RON_GOLDEN_DIR` or
+`~/ron-golden`, and `~/ron-data`), plus the queue lane's logs
+(`$RON_GAMELOG_DIR`) when they are under neither. A lane on another parser
+fingerprint loses nothing it cannot rebuild: its next read misses and
+re-decodes from the dump.
 
 Both steps end with `Disk: <N> GB free` for the volume holding `$HOME`, and
 a `Disk: LOW` line naming the remedy under 30 GB. A failure prints `Disk:
@@ -75,15 +89,18 @@ def git(cwd, *args, check=True):
 
 
 def worktrees(cwd):
-    """`(path, head)` for every worktree of the repository holding `cwd`."""
-    out, path, head = [], None, None
+    """`(path, head, branch)` for every worktree of the repository holding
+    `cwd`; `branch` is the short name, or `None` for a detached tree."""
+    out, path, head, branch = [], None, None, None
     for line in git(cwd, 'worktree', 'list', '--porcelain').stdout.splitlines() + ['']:
         if line.startswith('worktree '):
-            path, head = Path(line[9:]), None
+            path, head, branch = Path(line[9:]), None, None
         elif line.startswith('HEAD '):
             head = line[5:]
+        elif line.startswith('branch '):
+            branch = line[7:].removeprefix('refs/heads/')
         elif line == '' and path is not None:
-            out.append((path, head))
+            out.append((path, head, branch))
             path = None
     return out
 
@@ -105,7 +122,8 @@ def gib(n):
 
 
 def verdict(tree, head, sha, line, repo):
-    """`None` when `tree`'s `target/` goes, else why it stays."""
+    """`None` when `tree` is a merged builder this step may act on, else why
+    it stays untouched."""
     if head is None:
         return 'no HEAD'
     if head in line:
@@ -118,7 +136,7 @@ def verdict(tree, head, sha, line, repo):
     try:
         st = os.lstat(target)
     except FileNotFoundError:
-        return f'merged into {sha[:10]}, no target/ to remove'
+        return None
     if stat.S_ISLNK(st.st_mode):
         return 'target is a symlink: refused'
     if not stat.S_ISDIR(st.st_mode):
@@ -128,33 +146,74 @@ def verdict(tree, head, sha, line, repo):
     return None
 
 
-def builders(sha, wt_dir, dry_run=False, out=None):
+def builders(sha, wt_dir, repo, dry_run=False, out=None):
+    """Reap every merged, clean `agent-*` tree under `wt_dir` (tree and
+    branch), and clean a merged dirty one's `target/`. `repo` is the checkout
+    git runs in, whose HEAD `git branch -d` measures a branch against. Raises
+    after the last tree when any removal failed."""
     out = out or sys.stdout
     wt_dir = Path(wt_dir).resolve()
-    sha = git(wt_dir, 'rev-parse', '--verify', f'{sha}^{{commit}}').stdout.strip()
-    line = set(git(wt_dir, 'rev-list', '--first-parent', sha).stdout.split())
-    freed = cleaned = 0
-    for tree, head in worktrees(wt_dir):
+    sha = git(repo, 'rev-parse', '--verify', f'{sha}^{{commit}}').stdout.strip()
+    line = set(git(repo, 'rev-list', '--first-parent', sha).stdout.split())
+    freed = reaped = dirty_cleaned = 0
+    failed = []
+    for tree, head, branch in worktrees(repo):
         if not tree.name.startswith('agent-'):
             continue
         try:
             Path(os.path.realpath(tree)).relative_to(wt_dir)
         except ValueError:
             continue
-        why = verdict(tree, head, sha, line, wt_dir)
         h = (head or '-')[:10]
+        why = verdict(tree, head, sha, line, repo)
         if why is not None:
             print(f'kept          {tree.name}  {h}  {why}', file=out)
             continue
+        status = git(tree, 'status', '--porcelain').stdout.splitlines()
         target = tree / 'target'
-        size = allocated(target)
-        if not dry_run:
-            shutil.rmtree(target)
+        if status:
+            shown = ', '.join(l.strip() for l in status[:3]) + (f', ... {len(status)} in all' if len(status) > 3 else '')
+            size = allocated(target) if os.path.isdir(target) else 0
+            if size and not dry_run:
+                shutil.rmtree(target)
+            freed += size
+            dirty_cleaned += bool(size)
+            what = f'target/ {gib(size)} {"to free" if dry_run else "freed"}' if size else 'no target/'
+            print(f'{"would clean " if dry_run else "kept dirty  "}  {tree.name}  {h}  {what}; '
+                  f'dirty, the tree stays; status: {shown}', file=out)
+            continue
+        size = allocated(tree)
+        named = f'branch {branch}' if branch else 'no branch (detached)'
+        if dry_run:
+            freed += size
+            reaped += 1
+            print(f'would reap    {tree.name}  {h}  tree and {named}, {gib(size)} to free '
+                  f'(merged into {sha[:10]})', file=out)
+            continue
+        removed = git(repo, 'worktree', 'remove', '-f', '-f', str(tree), check=False)
+        if removed.returncode != 0:
+            failed.append(tree.name)
+            print(f'FAILED        {tree.name}  {h}  git worktree remove: '
+                  f'{(removed.stderr or removed.stdout).strip()}', file=out)
+            continue
         freed += size
-        cleaned += 1
-        print(f'{"would clean " if dry_run else "cleaned     "}  {tree.name}  {h}  target/ {gib(size)} '
-              f'{"to free" if dry_run else "freed"} (merged into {sha[:10]})', file=out)
-    print(f'Builders: {cleaned} target/ {"would be " if dry_run else ""}removed, {gib(freed)}', file=out)
+        reaped += 1
+        if branch:
+            gone = git(repo, 'branch', '-d', branch, check=False)
+            if gone.returncode != 0:
+                failed.append(tree.name)
+                why = ((gone.stderr or gone.stdout).strip().splitlines() or ['(no output)'])[0]
+                print(f'FAILED        {tree.name}  {h}  tree removed, {gib(size)} freed; '
+                      f'git branch -d {branch}: {why}', file=out)
+                continue
+        print(f'reaped        {tree.name}  {h}  tree and {named} removed, {gib(size)} freed '
+              f'(merged into {sha[:10]})', file=out)
+    if not dry_run:
+        git(repo, 'worktree', 'prune')
+    w = 'would be ' if dry_run else ''
+    print(f'Builders: {reaped} {w}reaped, {dirty_cleaned} dirty {w}cleaned, {gib(freed)}', file=out)
+    if failed:
+        raise RuntimeError(f'{len(failed)} FAILED: {", ".join(failed)}')
 
 
 def oracle_dirs():
@@ -178,7 +237,7 @@ def oracle(install, dirs, out=None):
             print(f'gc-oracle {d}: not a directory; skipped', file=out)
     if not present:
         return
-    cmd = ['cargo', 'run', '--release', '-q', '-p', 'rondata', '--', install]
+    cmd = ['cargo', 'run', '-q', '-p', 'rondata', '--', install]
     for d in present:
         cmd += ['--gc-oracle', d]
     p = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True)
@@ -206,6 +265,8 @@ def main(argv=None):
     step = ap.add_mutually_exclusive_group(required=True)
     step.add_argument('--sha', help='the builders step: the gated commit')
     step.add_argument('--gc', metavar='INSTALL', help='the oracle step: the install rondata reads')
+    ap.add_argument('--repo', default='.', help='the builders step: the checkout git runs in, at <sha> '
+                    '(`git branch -d` measures against its HEAD; default the current directory)')
     ap.add_argument('--worktrees', help="the builders' directory (default the repository's .claude/worktrees)")
     ap.add_argument('--dry-run', action='store_true', help='the builders step prints and removes nothing')
     ap.add_argument('--dir', action='append', help='the oracle step: a directory to collect (repeatable; '
@@ -216,9 +277,9 @@ def main(argv=None):
         if a.sha:
             wt = a.worktrees
             if wt is None:
-                common = git(os.getcwd(), 'rev-parse', '--path-format=absolute', '--git-common-dir').stdout.strip()
+                common = git(a.repo, 'rev-parse', '--path-format=absolute', '--git-common-dir').stdout.strip()
                 wt = Path(common).parent / '.claude' / 'worktrees'
-            builders(a.sha, wt, a.dry_run)
+            builders(a.sha, wt, a.repo, a.dry_run)
         else:
             oracle(a.gc, a.dir or oracle_dirs())
     except Exception as e:  # noqa: BLE001 — a disk step never takes the gate down with it

@@ -154,11 +154,14 @@ as one directory, and `rondata <install> --gc-oracle <dir>` removes every
 generation but the build's own (the pre-3353 flat entries count as one). Since
 2026-11-12 the booking gate runs it: `tools/gate_run.sh` calls `tools/disk.py --gc`
 after every green gate, on the golden archive and `~/ron-data`, from the gated
-tree, so the generation kept is the booked commit's. A lane on another parser
-fingerprint pays one cold read: its next read misses and re-decodes from the dump.
-Before each gate `tools/disk.py --sha` removes the `target/` of every merged
-`agent-*` builder tree (its tip an ancestor of the gated commit, off its
-first-parent line); the log carries both steps' lines and `Disk: <N> GB free`.
+tree on the survey step's debug binary, so the generation kept is the booked
+commit's. A lane on another parser fingerprint pays one cold read: its next read
+misses and re-decodes from the dump. Just before it, `tools/disk.py --sha` reaps
+every merged `agent-*` builder tree (its tip an ancestor of the gated commit, off
+its first-parent line): a clean one loses tree and branch (`git branch -d`), a
+dirty one only its `target/`. A red gate runs neither step, so a just-merged
+builder keeps its tree to fix the failing test in. The log carries both steps'
+lines and `Disk: <N> GB free` above its last line, `gate exit <code>`.
 The source must remain finalized, as required by the offset reader.
 
 `RON_VERIFY_ORACLE=1` checks warm records against fresh whole-record parsing and
