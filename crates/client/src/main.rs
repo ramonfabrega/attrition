@@ -32,6 +32,7 @@ mod ground;
 mod input;
 mod overlay;
 mod patch;
+mod shadows;
 mod silhouette;
 mod trace;
 mod trees;

@@ -133,9 +133,17 @@ pub struct World {
     unit_textures: BTreeMap<i32, String>,
     /// The shadows' art (item 4182).
     shadow_art: ShadowArt,
-    /// Draw the shadows (item 4182). On by default; the row's made-to-fail
-    /// and its count as drawn before turn it off.
+    /// Draw the shadows (item 4182). On by default; the row's count as
+    /// drawn before turns it off.
     pub shadows: bool,
+    /// Draw the guys' shadows too (item 4182): off by default. As read
+    /// (`draw_unit_shadow`), they darken the row's figure tiles past the
+    /// photograph's, 28 → 5 of 37 on brightness (parked 4182c); the row's
+    /// selection keeps them either way.
+    pub unit_shadows: bool,
+    /// The shadows' row's made-to-fail (item 4182): every decal's x offset
+    /// with its sign turned, the shadow mirrored about its point in x.
+    pub shadow_mirror: bool,
     /// Each unit piece's texture, decoded once with its levels; `None`
     /// where it does not resolve or decode.
     figure_textures: BTreeMap<i32, Option<std::sync::Arc<render::silhouette::Mips>>>,
@@ -692,6 +700,8 @@ impl World {
             unit_textures,
             shadow_art,
             shadows: true,
+            shadow_mirror: false,
+            unit_shadows: false,
             figure_textures: BTreeMap::new(),
             textured: true,
             root: install.root().to_path_buf(),
@@ -1212,6 +1222,12 @@ impl World {
         if !self.shadows {
             return Vec::new();
         }
+        self.shadows_of(figures, list, self.unit_shadows)
+    }
+
+    /// The frame's decals whether or not they are drawn, the guys' in or
+    /// out as `units` says: the row selects with them in.
+    pub fn shadows_of(&self, figures: &[Placed], list: &[Drawn], units: bool) -> Vec<Shadow> {
         let mut out = Vec::new();
         if self.trees && self.tree_art.as_ref().is_some_and(|a| a.shadow.is_some()) {
             for t in self.tree_list() {
@@ -1225,7 +1241,7 @@ impl World {
             .iter()
             .map(|p| ((p.who, p.o, p.figure), p))
             .collect();
-        for d in list {
+        for d in list.iter().filter(|_| units) {
             let Pose::Figure { figure, facing, .. } = d.pose else {
                 continue;
             };
@@ -1240,6 +1256,11 @@ impl World {
                 decal: render::decal::unit_shadow([p.x, p.y, p.z], w, h, drawn),
                 texture: DECAL_PIECE - 1 - k as i32,
             });
+        }
+        if self.shadow_mirror {
+            for s in &mut out {
+                s.decal.xoffset = -s.decal.xoffset;
+            }
         }
         out
     }
@@ -1256,7 +1277,8 @@ impl World {
     /// [`World::shadows`] as the GPU's decal pass takes them: one mesh a
     /// texture, `piece` its key, in the order the shadows fall.
     pub fn shadow_meshes(&self, shadows: &[Shadow]) -> Vec<TexturedMesh> {
-        let mut by: Vec<(i32, Vec<[f32; 3]>, Vec<[f32; 2]>)> = Vec::new();
+        type Faces = (i32, Vec<[f32; 3]>, Vec<[f32; 2]>);
+        let mut by: Vec<Faces> = Vec::new();
         for s in shadows {
             let (p, uv) = s.decal.triangles();
             match by.iter_mut().find(|e| e.0 == s.texture) {

@@ -162,7 +162,8 @@ mod tests {
         assert_eq!(d.angle, 90.0);
         let k = d.corners();
         let ys: Vec<f32> = k.iter().map(|c| c.0[1]).collect();
-        let span = ys.iter().cloned().fold(f32::MIN, f32::max) - ys.iter().cloned().fold(f32::MAX, f32::min);
+        let span = ys.iter().cloned().fold(f32::MIN, f32::max)
+            - ys.iter().cloned().fold(f32::MAX, f32::min);
         assert!((span - 150.0).abs() < 1e-3, "{ys:?}");
     }
 }
