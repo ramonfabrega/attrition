@@ -587,7 +587,16 @@ pub fn team_blend(rgb: [f32; 3], alpha: f32, owner: [u8; 3]) -> [f32; 3] {
 /// 1.4: a premise the test checks on pixels no figure holds, never fitted.
 /// `rgb` is 0–255 after the team blend; the result is 0–255.
 pub fn lit_pipeline(rgb: [f32; 3], n_dot_l: f32) -> [f32; 3] {
-    let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
+    lit_pipeline_at(rgb, n_dot_l, MIN_LUMINANCE)
+}
+
+/// [`lit_pipeline`] with the frame's mean luminance `mean` in place of
+/// the clamp (item 4168): the one tone-map input the packets do not hold
+/// (the luminance target's mip 10 lives on the card). It is floored at
+/// [`MIN_LUMINANCE`] as the tone map floors it. A chromaticity reader sees
+/// it only through the clamp at 255.
+pub fn lit_pipeline_at(rgb: [f32; 3], n_dot_l: f32, mean: f32) -> [f32; 3] {
+    let white = 1.0 / filmic(mean.max(MIN_LUMINANCE) * WHITE_POINT);
     let diffuse = HDR_SCALE / std::f32::consts::PI * UNIT_DIFFUSE * n_dot_l.max(0.0);
     [0, 1, 2].map(|k| {
         let c = (rgb[k] / 255.0).clamp(0.0, 1.0).powf(LIT_POWER);
@@ -622,12 +631,47 @@ pub const UNIT_AMBIENT_I: f32 = 0.558;
 /// The scene ambient `Game::init_light` hands the card: the same
 /// attributes, raw.
 pub const SCENE_AMBIENT: [f32; 3] = [0.6, 0.716, 0.745];
-/// The tone mapper's exposure plus its adjustment, defaults.
+/// The tone mapper's exposure plus its adjustment, defaults. **Live on
+/// both packets** (item 4168, `RENDERER.md` §3.14): run1559b's and
+/// run1564's `GSToneMapper` hold exposure 1.0 and adjustment 0, and the
+/// constant buffer's shadow (`D3D11ToneMapper::mData`) the same — as
+/// every constant below, `the_tone_mapper_on_both_packets`.
 pub const EXPOSURE: f32 = 1.0;
-/// The tone mapper's white point, default.
+/// The tone mapper's white point, default; live (4168).
 pub const WHITE_POINT: f32 = 3.5;
-/// The tone mapper's minimum luminance, default: the mean's floor.
+/// The tone mapper's minimum luminance, default: the mean's floor; live
+/// (4168).
 pub const MIN_LUMINANCE: f32 = 1.4;
+/// The tone mapper's saturation; live (4168). At 1 the lerp from grey is
+/// the identity.
+pub const SATURATION: f32 = 1.0;
+/// The tint's alpha byte; live (4168). The packets' tint is
+/// (238, 193, 14, 0), not the 0 item 4114 read the constructor to write:
+/// its rgb is set, its alpha 0, and at alpha 0 the tint is the identity.
+pub const TINT_ALPHA: u8 = 0;
+/// The bloom's threshold on the toned luminance; live (4168).
+pub const BLOOM_THRESHOLD: f32 = 0.6;
+/// The bloom's tightness, the power on the toned colour; live (4168).
+pub const BLOOM_TIGHTNESS: f32 = 12.5;
+/// The bloom's strength; live (4168).
+pub const BLOOM_STRENGTH: f32 = 6.0;
+/// The luminance pass's weights (item 4114; the install's shaders).
+pub const LUMA: [f32; 3] = [0.3, 0.59, 0.11];
+
+/// **The bloom's bright pass** (item 4168, §3.14) on a toned colour
+/// `c` (0–1 a channel, after the white scale): strength × `c` to the
+/// tightness × the luminance's excess over the threshold, over the
+/// luminance; nothing at or under it. The bright map is then blurred and
+/// screened over the toned frame, `1 − (1 − b)(1 − c)`, so a pixel's
+/// bloom is never more than the largest bright value near it.
+pub fn bloom_bright(c: [f32; 3]) -> [f32; 3] {
+    let lum = LUMA[0] * c[0] + LUMA[1] * c[1] + LUMA[2] * c[2];
+    if lum <= BLOOM_THRESHOLD {
+        return [0.0; 3];
+    }
+    let k = BLOOM_STRENGTH * (lum - BLOOM_THRESHOLD) / lum;
+    c.map(|v| k * v.max(0.0).powf(BLOOM_TIGHTNESS))
+}
 
 /// **The silhouette's alpha** (item 4103; §5.3, "The silhouette's
 /// colour"): `render_states[1]`'s `tfactor` alpha on run1559b's packet,
@@ -2047,6 +2091,89 @@ mod tests {
         assert!(
             shared.iter().all(|&i| keys.keys[i] == 2),
             "the higher square is nearer"
+        );
+    }
+
+    /// **Item 4168: the tone mapper and the anti-alias, as both packets
+    /// hold them** (`docs/RENDERER.md` §3.14). `tools/render/
+    /// tonemap_packet.py` reads `GSToneMapper`, the constant buffer's
+    /// shadow `D3D11ToneMapper::mData` and `D3D11AntiAlias::mAAEnabled`
+    /// off run1559b's and run1564's packets, each object typed by its
+    /// vtable; this asserts every field against the constant the colour
+    /// row runs, bits for bits. `RON_TONEMAP_DIR` moves the rows.
+    #[test]
+    fn the_tone_mapper_on_both_packets() {
+        let dir = std::env::var_os("RON_TONEMAP_DIR")
+            .map(std::path::PathBuf::from)
+            .or_else(|| {
+                std::env::var_os("HOME").map(|h| {
+                    std::path::PathBuf::from(h)
+                        .join("ron-data/lab-experiments/2026-11-12-item-4168")
+                })
+            });
+        let Some(dir) = dir else {
+            println!("skipping: no HOME");
+            return;
+        };
+        for run in ["run1559b", "run1564"] {
+            let path = dir.join(format!("{run}-tonemap.txt"));
+            let Ok(text) = std::fs::read_to_string(&path) else {
+                println!("skipping: no tone mapper row at {}", path.display());
+                return;
+            };
+            let f: Vec<&str> = text.split_whitespace().collect();
+            let at = |k: &str| -> &str {
+                let i = f
+                    .iter()
+                    .position(|x| *x == k)
+                    .unwrap_or_else(|| panic!("{run}: no {k}"));
+                f[i + 1]
+            };
+            let bits = |k: &str| -> u32 {
+                let h = at(k).split('/').next().expect("bits");
+                u32::from_str_radix(h.trim_start_matches("0x"), 16).expect("hex bits")
+            };
+            assert_eq!(at("frame"), "3294", "{run}: the packet's frame");
+            let want = [
+                ("exposure", EXPOSURE),
+                ("exposure_adjustment", 0.0),
+                ("white_point", WHITE_POINT),
+                ("min_luminance", MIN_LUMINANCE),
+                ("saturation", SATURATION),
+                ("threshold", BLOOM_THRESHOLD),
+                ("bloom_tightness", BLOOM_TIGHTNESS),
+                ("bloom_strength", BLOOM_STRENGTH),
+                ("cb_exposure", EXPOSURE),
+                ("cb_white_point", WHITE_POINT),
+                ("cb_min_luminance", MIN_LUMINANCE),
+                ("cb_saturation", SATURATION),
+                ("cb_threshold", BLOOM_THRESHOLD),
+                ("cb_tightness", BLOOM_TIGHTNESS),
+                ("cb_strength", BLOOM_STRENGTH),
+                ("cb_tint3", f32::from(TINT_ALPHA) / 255.0),
+            ];
+            for (k, v) in want {
+                assert_eq!(bits(k), v.to_bits(), "{run}: {k} is {} against {v}", at(k));
+            }
+            let tint: Vec<u8> = at("tint")
+                .split(',')
+                .map(|x| x.parse().expect("a byte"))
+                .collect();
+            assert_eq!(tint[3], TINT_ALPHA, "{run}: the tint's alpha");
+            assert_eq!(at("dirty"), "0", "{run}: the buffer is current");
+            assert_eq!(at("aa_enabled"), "1", "{run}: FXAA runs");
+            println!("{run}: {} fields agree, tint {tint:?}, FXAA on", want.len());
+        }
+    }
+
+    #[test]
+    fn the_bright_pass_is_dark_under_the_threshold_and_white_at_full() {
+        assert_eq!(bloom_bright([0.59, 0.59, 0.59]), [0.0; 3]);
+        assert_eq!(bloom_bright([0.3, 0.9, 0.2]), [0.0; 3]);
+        let w = bloom_bright([1.0; 3]);
+        assert!(
+            w.iter().all(|&v| (v - BLOOM_STRENGTH * 0.4).abs() < 1e-5),
+            "{w:?}"
         );
     }
 }
