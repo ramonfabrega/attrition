@@ -2095,6 +2095,17 @@ rows are their pins'.
   pixel is `c·a + n·(1 − a)`, `c` the owner's `TEAM_UNIT`, `a` 128/255,
   `n` the nearer tree's texel or sprite's pixel (`render_states[1]`'s
   `SELECTARG2(TFACTOR)`); a reading, one photograph: **18 of 33**.
+- *The luminance reader* (4172, before its count; `Luma`). On the
+  colour reader's pixels, dark ones kept (an object's: its key, the
+  traced footprint; a tile's: the ground row's), each side's mean of
+  0.3 r + 0.59 g + 0.11 b (`LUMA`), floored at 8. A unit agrees when
+  the larger is at most 1.2 times the smaller; an object is scored on
+  40 held pixels, a tile as the ground row scores it. The figures are
+  counted twice: as drawn, and under 4114's `lit_pipeline` at the
+  clamp after the team blend, by the face's N·L against −`cur_dir`, on
+  every mesh pixel not behind. The one more agree with is drawn, if
+  its colour row is not under 18; a tie keeps the drawn. Pins:
+  `RUN1559B_3279_LUMA`, `_GROUND_LUMA`, `RUN1564_3279_GROUND_LUMA`.
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 
