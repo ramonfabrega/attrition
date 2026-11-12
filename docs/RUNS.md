@@ -36539,3 +36539,33 @@ the runner's commands `37 !ffwd 27` and `24000 !quit`. run1563b (2,400 frames, t
 Archive `gamelog-run1563-greatlakes-playback-of-clicked-24000.txt`, 2,452 bytes,
 SHA-256 `ad2d4a6fc3dcc8ee33f87fae5997f32a33e6f75c29ae63988fd4ef6cc66fe9d7`; `rontrace-run1563.log`, 132,471,584 bytes,
 SHA-256 `6e439afbf49360584c1691b89fab3b6604c26163804f1fcedc5e576b270c917e`.
+
+## run1564 — run1559b's take with the view on the south-east lake: a second photograph (2026-11-12, item 4160, `att-4160`)
+
+`docs/RENDERER.md` §3.3, §7.1. **What the disk could not answer**: no photograph of the milestone lobby's water,
+shore or rock existed. run1559b's frame shows none (`RUN1559B_3279_UNSCORED`), and no other photograph of this
+lobby is on disk. The line is run1559b's with one staged line added. The command file
+`~/ron-data/lab-experiments/2026-11-12-item-4160/photo3294.cmd` holds `3200 camera 192,200` and `3294 pause 1`, and
+`poolshot.py ~/ron-golden/run1564 3294 --map 14` runs beside it:
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1564 --map 14 --end-frame 3296
+--timeout 600 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 0 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cmd-file
+<it> --tracer-def RON_STATE_FRAME=3294 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, launched 00:40:35, at 54.9 frames a second to 3294. The packet and the photograph were written by
+  00:41:11. As run1559 and run1559b did, the paused take then ran to the timeout: `TimeoutExpired` after 600 s,
+  settings restored, and the lane free afterwards. 63 GB free before it and 54 GB after. Not filed.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1564/map-14/frame-snapshot.bin`, 936,317,404 bytes,
+SHA-256 `721788fad0d6273cff7447ca481101613ff4d843c3e77bbac370669e9460e9be`.
+
+Photograph `~/ron-data/lab-experiments/2026-11-12-item-4160/run1564-3294.png`: window 16600, 1920×1112, the
+gamelog at 3295. SHA-256 `a141fd83f4a2507dfc3d3c744d97de9c3ec27f75ad2411c6a07955cc7a90787e`. The 32-row title bar
+is cropped (PIL) to `run1564-3294-view.png`, which is converted by `sips -s format tga` to `run1564-3294.tga`, SHA-256
+`8ea21bccc5032306282449c9852e5a7861a29917bd0fc4a613c4df6a95a8f89c`. That TGA is the one the tests read.
+
+**What it holds**:
+- `packet_points.py`'s `state 0` line is the client's pinned camera with only `loc` changed: `47106000` `47166000`,
+  that is (36960, 38496), the centre of tile (192, 200) (`RUN1564_LOC`).
+- The view shows the south-east lake, its beach and a rock patch, unfogged under the lane's `StartReveal=1`.
+- By the client's census it holds 488 `OCEAN` tiles, 901 `SANDY` tiles and 32 `ROCK` tiles (`RUN1564_3279_CENSUS`).

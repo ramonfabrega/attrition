@@ -345,6 +345,84 @@ pub const RUN1559B_3279_UNSCORED: ([[u32; 4]; 3], u32, u32) = (
     213_931,
 );
 
+/// **run1564's camera** (item 4160): `Camera::loc_x` and `loc_y` off the
+/// packet at logger frame 3294 (`tools/render/packet_points.py`'s `state 0`
+/// line), as their bits: (36960, 38496), tile (192, 200)'s centre. Every
+/// other field is [`crate::pinned_camera`]'s.
+#[cfg(test)]
+pub const RUN1564_LOC: (u32, u32) = (0x4710_6000, 0x4716_6000);
+
+/// **`RUN1564_3279_CENSUS`** (item 4160; `docs/RENDERER.md` §7.1): the
+/// second photograph's tiles in view by kind, `ground::tests::KINDS`'
+/// order — plain, under a mountain, `ROCK`, `CLIFF`, a `BASELAND` shore,
+/// `SANDY`, `OCEAN` — each `[in view, scored, short of the bar, no ground
+/// pixel]`; then the pixels off the heightfield. Three kinds the first
+/// photograph shows none of are above zero and scoreable: 488 `OCEAN` tiles
+/// in view (437 scored), 901 `SANDY` (772) and 32 `ROCK` (32, against
+/// run1559b's 17). No cell of this map carries `CLIFF`, so a cliff is in no
+/// photograph of it; no `BASELAND` cell carries `COAST` or `HALFLAND`.
+/// The 44 tiles under a mountain show no ground pixel; nothing is off the
+/// heightfield.
+#[cfg(test)]
+pub const RUN1564_3279_CENSUS: ([[u32; 4]; 7], u32) = (
+    [
+        [1105, 679, 7, 419],
+        [44, 0, 0, 44],
+        [32, 32, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [901, 772, 14, 115],
+        [488, 437, 1, 50],
+    ],
+    0,
+);
+
+/// **`RUN1564_3279_SHORE`** (item 4160): the shore in register — `[plain
+/// tiles the photograph shows blue, OCEAN tiles it does not]` (a scored
+/// tile's ground pixels' mean with `b > r`), at run1564's camera, then with
+/// it moved 384, 768 and 1,536 units (two, four and eight tiles) along +x,
+/// +y, −x and −y. None at the camera; 0 to 3 at two tiles, up to 40 at
+/// four, up to 142 at eight. The shore holds the camera to about two tiles,
+/// the width of the `SANDY` belt the waterline falls in, and no closer.
+#[cfg(test)]
+pub const RUN1564_3279_SHORE: [[u32; 2]; 13] = [
+    [0, 0],
+    [0, 0],
+    [3, 0],
+    [0, 0],
+    [0, 0],
+    [16, 0],
+    [40, 0],
+    [0, 0],
+    [3, 0],
+    [127, 0],
+    [142, 0],
+    [0, 8],
+    [39, 24],
+];
+
+/// **`RUN1564_3279_GROUND`** (item 4160): [`RUN1559B_3279_GROUND`]'s row,
+/// unchanged, on the second photograph: `(agree, scored)`; then by kind,
+/// `[agree, scored]`, `KINDS`' order; then the row on the base alone.
+/// 709 of 1,920: the land the client textures agrees on 709 of 711 (plain
+/// 677 of 679, `ROCK` 32 of 32), and the water and the shore, which it
+/// draws in the debug colours, on none of their 1,209 — the debt the next
+/// render item reads (`TerrainOut::render_water`).
+#[cfg(test)]
+pub const RUN1564_3279_GROUND: ((usize, usize), [[u32; 2]; 7], usize) = (
+    (709, 1920),
+    [
+        [677, 679],
+        [0, 0],
+        [32, 32],
+        [0, 0],
+        [0, 0],
+        [0, 772],
+        [0, 437],
+    ],
+    584,
+);
+
 /// [`RUN1559B_3279_GROUND`] on the base layer alone, as item 4127 pinned it.
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND_BARE: (usize, usize) = (949, 1109);
@@ -682,13 +760,68 @@ mod tests {
         pub photo: render::tga::Image,
         pub camera: render::Camera,
         pub root: PathBuf,
+        /// The photograph's traced polygons, masked out of the ground.
+        pub traced: Traced,
+    }
+
+    /// A photograph's traced polygons, as [`TRACED`] holds run1559b's.
+    pub(crate) type Traced = &'static [(&'static str, &'static [(i32, i32)])];
+
+    /// **A photograph of the original and what it was taken at** (item
+    /// 4160): its file, the camera its packet holds, the frame our walk is
+    /// drawn at, and its traces.
+    pub(crate) struct Photo {
+        pub path: PathBuf,
+        pub camera: render::Camera,
+        pub frame: i64,
+        pub traced: Traced,
+    }
+
+    /// run1559b's photograph at the client's pinned camera, frame 3279.
+    pub(crate) fn run1559b() -> Photo {
+        Photo {
+            path: photo_path(),
+            camera: crate::pinned_camera(),
+            frame: PHOTO_FRAME,
+            traced: &TRACED,
+        }
+    }
+
+    /// **run1564's photograph** (item 4160; `docs/RUNS.md` run1564):
+    /// run1559b's take with `camera 192,200` staged on frame 3200, the
+    /// title bar's 32 rows cropped. Its packet at logger frame 3294 holds
+    /// the pinned camera with `loc` at (36960, 38496), the centre of tile
+    /// (192, 200), and nothing else changed; it is drawn at
+    /// [`PHOTO_FRAME`], as run1559b's photograph is (assumed, not
+    /// clocked: no mover is in view). No polygon is traced on it.
+    pub(crate) fn run1564() -> Photo {
+        let path = std::env::var_os("RON_PHOTO_RUN1564")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home)
+                    .join("ron-data/lab-experiments/2026-11-12-item-4160/run1564-3294.tga")
+            });
+        let mut camera = crate::pinned_camera();
+        camera.loc_x = f32::from_bits(RUN1564_LOC.0);
+        camera.loc_y = f32::from_bits(RUN1564_LOC.1);
+        Photo {
+            path,
+            camera,
+            frame: PHOTO_FRAME,
+            traced: &[],
+        }
     }
 
     pub(crate) fn probe() -> Option<Probe> {
+        probe_at(run1559b())
+    }
+
+    pub(crate) fn probe_at(shot: Photo) -> Option<Probe> {
         let root = std::env::var_os("RON_INSTALL")
             .map(PathBuf::from)
             .unwrap_or_else(|| PathBuf::from("../../game"));
-        let path = photo_path();
+        let path = shot.path;
         let Ok(bytes) = std::fs::read(&path) else {
             println!("skipping: no photograph at {}", path.display());
             return None;
@@ -701,14 +834,15 @@ mod tests {
                 return None;
             }
         };
-        world.run_to(PHOTO_FRAME);
+        world.run_to(shot.frame);
         world.blend = crate::world::Blend::Last;
-        world.run_to(PHOTO_FRAME + 1);
+        world.run_to(shot.frame + 1);
         Some(Probe {
             world,
             photo,
-            camera: crate::pinned_camera(),
+            camera: shot.camera,
             root,
+            traced: shot.traced,
         })
     }
 
@@ -864,7 +998,7 @@ mod tests {
                     .any(|r| (r.x0..r.x1).contains(&xi) && (r.y0..r.y1).contains(&yi))
                 {
                     *q = 3;
-                } else if TRACED.iter().any(|(_, poly)| inside(poly, xi, yi)) {
+                } else if p.traced.iter().any(|(_, poly)| inside(poly, xi, yi)) {
                     *q = 4;
                 }
             }
@@ -998,6 +1132,187 @@ mod tests {
             .map(|(_, r)| r.0[0])
             .sum();
         assert_eq!((land, other, off), RUN1559B_3279_UNSCORED);
+    }
+
+    /// The kinds [`census`] counts a tile by (item 4160): its cell's
+    /// `WData.land`, the `CLIFF`, `ROCK`, `COAST` and `HALFLAND` bits of its
+    /// flags, and a placed mountain.
+    pub(crate) const KINDS: [&str; 7] = [
+        "plain",
+        "under a mountain",
+        "ROCK",
+        "CLIFF",
+        "a BASELAND shore (COAST or HALFLAND)",
+        "SANDY",
+        "OCEAN",
+    ];
+
+    /// One tile's index in [`KINDS`].
+    pub(crate) fn kind_of(
+        t: &sim::observe::TerrainScene,
+        mountains: &std::collections::BTreeSet<(i32, i32)>,
+        (tx, ty): (i32, i32),
+    ) -> usize {
+        use sim::ids::cell;
+        let i = ((ty / TILES_PER_CELL) * t.width + tx / TILES_PER_CELL) as usize;
+        let f = t.flags[i];
+        match t.land[i] {
+            render::terrain::OCEAN => 6,
+            render::terrain::SANDY => 5,
+            _ if mountains.contains(&(tx, ty)) => 1,
+            _ if f & cell::CLIFF != 0 => 3,
+            _ if f & (cell::COAST | cell::HALFLAND) != 0 => 4,
+            _ if f & cell::ROCK != 0 => 2,
+            _ => 0,
+        }
+    }
+
+    /// **A photograph's census by kind** (item 4160): every tile in view by
+    /// [`KINDS`], `[in view, scored, short of the bar, no ground pixel]`,
+    /// the pixels by [`WHY`], and the pixels off the heightfield.
+    pub(crate) struct Census {
+        pub tiles: [[u32; 4]; 7],
+        pub pixels: [u32; 6],
+        pub off: u32,
+        /// Per kind, the scored tiles whose ground pixels' mean on the
+        /// photograph is blue (`b > r`): where the photograph shows water.
+        pub blue: [u32; 7],
+    }
+
+    pub(crate) fn census(p: &mut Probe) -> Census {
+        let (_, any, why) = ground_why(p);
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let mut per: BTreeMap<(i32, i32), [u32; 6]> = BTreeMap::new();
+        let mut rb: BTreeMap<(i32, i32), (u64, u64)> = BTreeMap::new();
+        let mut pixels = [0u32; 6];
+        for (i, (a, q)) in any.iter().zip(&why).enumerate() {
+            pixels[*q as usize] += 1;
+            if let Some(tt) = a {
+                per.entry(*tt).or_default()[*q as usize] += 1;
+                if *q == 0 {
+                    let e = rb.entry(*tt).or_default();
+                    e.0 += u64::from(p.photo.rgba[i * 4]);
+                    e.1 += u64::from(p.photo.rgba[i * 4 + 2]);
+                }
+            }
+        }
+        let mut blue = [0u32; 7];
+        let mut tiles = [[0u32; 4]; 7];
+        for (tt, n) in &per {
+            let e = &mut tiles[kind_of(&t, &mountains, *tt)];
+            e[0] += 1;
+            match n[0] {
+                0 => e[3] += 1,
+                k if k >= HUE.min_pixels => {
+                    e[1] += 1;
+                    if rb.get(tt).is_some_and(|(r, b)| b > r) {
+                        blue[kind_of(&t, &mountains, *tt)] += 1;
+                    }
+                }
+                _ => e[2] += 1,
+            }
+        }
+        Census {
+            tiles,
+            pixels,
+            off: pixels[5],
+            blue,
+        }
+    }
+
+    /// **Item 4160: the second photograph's census.** run1564's frame by
+    /// kind, beside [`RUN1559B_3279_UNSCORED`]: water, the shore and rock
+    /// are in view, scoreable under the row's selection.
+    #[test]
+    fn the_second_photograph_s_census() {
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let c = census(&mut p);
+        for (k, row) in KINDS.iter().zip(&c.tiles) {
+            println!("run1564 {k}: [in view, scored, short, none] {row:?}");
+        }
+        println!("run1564 pixels by {WHY:?}: {:?}", c.pixels);
+        println!(
+            "run1564 scored tiles the photograph shows blue, by kind: {:?}",
+            c.blue
+        );
+        assert_eq!((c.tiles, c.off), RUN1564_3279_CENSUS);
+        // The shore in register: plain land the photograph shows blue and
+        // water it does not, at the camera and with it moved.
+        let wrong = |k: &Census| [k.blue[0], k.tiles[6][1] - k.blue[6]];
+        let mut shore = vec![wrong(&c)];
+        for d in [384.0, 768.0, 1536.0] {
+            for (dx, dy) in [(d, 0.0), (0.0, d), (-d, 0.0), (0.0, -d)] {
+                p.camera.loc_x += dx;
+                p.camera.loc_y += dy;
+                let k = census(&mut p);
+                println!(
+                    "run1564 camera off by ({dx}, {dy}): blue by kind {:?}, scored {:?}, wrong {:?}",
+                    k.blue,
+                    k.tiles.map(|r| r[1]),
+                    wrong(&k)
+                );
+                shore.push(wrong(&k));
+                p.camera.loc_x -= dx;
+                p.camera.loc_y -= dy;
+            }
+        }
+        assert_eq!(shore, RUN1564_3279_SHORE);
+    }
+
+    /// **Item 4160: the ground's row on the second photograph**, its rule
+    /// as committed on the first, by kind.
+    #[test]
+    fn the_ground_on_the_second_photograph() {
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let Some(r) = ground_row(&mut p) else { return };
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let mut by = [[0u32; 2]; 7];
+        for (tt, ok) in &r.scored {
+            let e = &mut by[kind_of(&t, &mountains, *tt)];
+            e[1] += 1;
+            if *ok {
+                e[0] += 1;
+            }
+        }
+        for (k, row) in KINDS.iter().zip(&by) {
+            println!("run1564 ground {k}: [agree, scored] {row:?}");
+        }
+        // The value diff: each kind's first scored tile, the photograph's
+        // mean against ours, and where it sits.
+        for (k, name) in KINDS.iter().enumerate() {
+            let Some((tt, ok)) = r
+                .scored
+                .iter()
+                .find(|(tt, _)| kind_of(&t, &mountains, *tt) == k)
+            else {
+                continue;
+            };
+            let (th, us, at) = r.means[tt];
+            println!(
+                "run1564 sample {name}: tile {tt:?} at pixel {at:?}, theirs ({:.0}, {:.0}, {:.0}) share {:?}, ours {:?} share {:?}, agrees {ok}",
+                th[0],
+                th[1],
+                th[2],
+                chromaticity(th),
+                us,
+                us.map(chromaticity)
+            );
+        }
+        println!(
+            "RUN1564_3279_GROUND: {} of {}, the base alone {}",
+            r.row,
+            r.scored.len(),
+            r.bare
+        );
+        assert_eq!(((r.row, r.scored.len()), by, r.bare), RUN1564_3279_GROUND);
     }
 
     fn mean(px: &[[f32; 3]]) -> [f32; 3] {
@@ -1161,9 +1476,33 @@ mod tests {
     /// mapping's check against its half-period control.
     #[test]
     fn the_ground_s_base_layer_against_the_photograph() {
-        use render::silhouette::{Paint, Rect, paint};
         let Some(mut p) = probe() else { return };
-        let g = ground(&mut p);
+        let Some(r) = ground_row(&mut p) else { return };
+        assert_eq!((r.bare, r.scored.len()), RUN1559B_3279_GROUND_BARE);
+        assert_eq!((r.row, r.scored.len()), RUN1559B_3279_GROUND);
+    }
+
+    /// The ground row on one photograph (item 4160): on the base alone,
+    /// with the patch and the mountains laid, and each scored tile with
+    /// whether it agrees.
+    /// A scored tile's mean colour, theirs then ours, and its centroid.
+    pub(crate) type TileMean = ([f32; 3], Option<[f32; 3]>, (i32, i32));
+
+    pub(crate) struct GroundRow {
+        pub bare: usize,
+        pub row: usize,
+        pub scored: Vec<((i32, i32), bool)>,
+        /// Each scored tile's mean colour, the photograph's and ours (`None`
+        /// where we draw no textured pixel), and its pixels' centroid.
+        pub means: BTreeMap<(i32, i32), TileMean>,
+    }
+
+    /// [`RUN1559B_3279_GROUND`]'s count on `p`'s photograph and camera, as
+    /// item 4127 committed its rule and 4139 and 4141 laid the patch and the
+    /// mountains over it; `None` with no world seed.
+    pub(crate) fn ground_row(p: &mut Probe) -> Option<GroundRow> {
+        use render::silhouette::{Paint, Rect, paint};
+        let g = ground(p);
         let size = (p.photo.width, p.photo.height);
         let (w, _) = size;
         let tileset = crate::world::lobby_tileset(
@@ -1218,9 +1557,7 @@ mod tests {
         // cells, laid over the base at the alpha's A.
         let alphas = load_alphas(&p.root).expect("the alphas load");
         let codes: Vec<[u32; 8]> = alphas.iter().map(|a| a.1).collect();
-        let Some(seed) = crate::patch::tests::world_seed() else {
-            return;
-        };
+        let seed = crate::patch::tests::world_seed()?;
         let choice = our_patches(&t, &p.root, &tileset, seed, &codes).expect("the tileset");
         let patch = ground_patch(&t, &mountains, &tex, &mesh, &choice);
         let laid = paint(
@@ -1350,6 +1687,15 @@ mod tests {
             })
             .count();
         let mut moved: (Tiles, Tiles) = Default::default();
+        let mut agree: Vec<((i32, i32), bool)> = Vec::new();
+        let mut means = BTreeMap::new();
+        let mut centroid: BTreeMap<(i32, i32), (i32, i32, i32)> = BTreeMap::new();
+        for (i, tt) in g.tile.iter().enumerate() {
+            if let Some(tt) = tt {
+                let e = centroid.entry(*tt).or_default();
+                *e = (e.0 + (i % w) as i32, e.1 + (i / w) as i32, e.2 + 1);
+            }
+        }
         let mut by: BTreeMap<(u8, bool), (u32, u32)> = BTreeMap::new();
         let mut parts: BTreeMap<&str, u32> = BTreeMap::new();
         for (tt, (th, us)) in &scored {
@@ -1365,6 +1711,15 @@ mod tests {
             if ok != was {
                 if ok { &mut moved.0 } else { &mut moved.1 }.push(**tt);
             }
+            agree.push((**tt, ok));
+            means.insert(
+                **tt,
+                (
+                    mean(th),
+                    (!us.is_empty()).then(|| mean(us)),
+                    centroid.get(*tt).map_or((0, 0), |c| (c.0 / c.2, c.1 / c.2)),
+                ),
+            );
             if ok {
                 row += 1;
                 e.0 += 1;
@@ -1435,8 +1790,12 @@ mod tests {
             "mapping's check over {} pixels: r {r:.3} against the half-period control's {rc:.3}",
             lum.len()
         );
-        assert_eq!((row_bare, scored.len()), RUN1559B_3279_GROUND_BARE);
-        assert_eq!((row, scored.len()), RUN1559B_3279_GROUND);
+        Some(GroundRow {
+            bare: row_bare,
+            row,
+            scored: agree,
+            means,
+        })
     }
 
     /// The land pass's own bucket per cell on run1559b's packet,
