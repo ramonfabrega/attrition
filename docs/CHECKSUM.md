@@ -1557,6 +1557,25 @@ list, the `num = 0` repeat of a `group`.
 fields; §16 of `docs/SCOUT.md`, §6.12 and §8.1 of `docs/ORDERS.md` each
 list their own.
 
+**The floors do not back the union or `play`** (item 4118). The dumps
+print the union under two keys, `hero` and `special`. Both read the same
+two bytes (`UnitData_u_134`): across 1,173 dumps the two agree on all
+35,161,317 unit records. `play` is printed −1, 0 or 1 and nothing else.
+Compared beside `widen_block`'s `recharging`, with ours as this line
+emits it, the keys turned 100 of the 1,857 `diff::` tests red, and every
+red was these keys:
+
+| key | tests | units | ours \| theirs | earliest parting | parked |
+|---|---|---|---|---|---|
+| `hero`, `special` | 7 (and run667's closing pin +4) | 24 | a slot \| −1 on 23; −1 \| 3 on one | run1066's 2333, `1/99` 3 \| −1, the original's slot 3 on `1/100` at 2337; run1450's 2601, idle citizens `0/1` 11 \| −1 | 4118a, 4118c |
+| `play` | 93 (91 golden chapters) | 526 | −1 \| 0 (seat 0) or 1 (seat 1) | chapter fifty-three's 608, `1/8` −1 \| 1 | 4118b |
+
+So the three stay owed (`diff::coverage`'s `UNREAD_UNIT_FIELDS_OWED`),
+and no compare stands. Frame 91 agreeing is consistent with what was
+found: its `group` commands go through `input::Stream`, where `play` is
+written, and a golden line is staged without that write. Whether any of
+its citizens has left a doober is not read.
+
 ## 19. The groups line, ported (item 4116)
 
 **The line is the original's on run 1562's frame 91**: 556 of 556 ranges,

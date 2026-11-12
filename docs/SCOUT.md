@@ -1347,3 +1347,14 @@ and the mark's walk rest on the reading. A unit both hero and special
 (`Unit::close` would close both lists at one index) is not modelled; no
 shipped type is known to be both. The `Caster` record's spell state is
 not this section's.
+
+**Across every dump on disk** (item 4118): 35,161,317 unit records in
+1,173 dumps print `hero` equal to `special` on every one, because both print
+this one short. A slot (≥ 0) is printed on player units of types 54, 57, 59,
+60, 69 to 81 and 318, 319, 352 to 357, which never print −1; types 50 and 51
+(citizens: a hold doober's slot, `docs/ORDERS.md` §6.12) print both; every
+gaia animal prints its herd. Comparing the union in `widen_block` parted
+7 tests on 24 units. The ones whose types were read are citizens holding a
+doober (run1450's 2601). The earliest is a slot issued to a different unit
+(run1066's 2333, `1/99` against `1/100`; its type not read). Parked 4118a;
+the key stays owed (`diff::coverage`).

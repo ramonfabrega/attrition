@@ -2973,6 +2973,18 @@ holds a slot freed and taken again, so the 26-frame wait and the trim rest
 on the reading. A miner's doober (`MINE_ORE`'s arm takes the same site),
 and a gatherer whose type is not a citizen.
 
+**Against every widening on disk, the slot parts** (item 4118, parked
+4118a). The dumps' `hero`/`special` keys print this short, and comparing
+them in `widen_block` against the checksum's union turned 7 tests red, on
+24 units. Six melee windows part on their first block: run1450's 2601,
+where the original's idle citizens (`idle 1`, type 50) `0/1`, `0/2`, `0/6`
+and `0/7` read −1 and ours still hold slots 11, 2, 3 and 0. The earliest is
+run1066's 2333, where slot 3 is ours on `1/99` and the original's on `1/100`
+four frames later. So a holder that goes idle or walks off gives the slot
+back somewhere this section does not name, and the table's order of issue
+differs. The compare was reverted and the key stays owed
+(`diff::coverage`).
+
 ---
 
 ## 7. The attack order
@@ -3396,6 +3408,16 @@ named by the minted file's `move_to` and `build`, read 0; the Village's
 consistent with run1100, whose commands are console lines and no `group`
 (all 101 units −1). Not established: the `num = 0` repeat (no capture on
 disk sends one), and a multiplayer package whose player and leader differ.
+**Every golden chapter parts on it** (item 4118, parked 4118b): compared
+in `widen_block`, `play` turned 93 tests red, on 526 units. Ours is −1
+throughout; the original's is 0 for seat 0 and 1 for seat 1. The earliest
+is chapter fifty-three's 608, `1/8`; corpse melee run1542 parts at 614
+(`0/14`) and run1075 at 1114 (`0/6`). The rule is applied only where
+`rondata::input::Stream` plays a `group` command. A golden line is issued
+by `golden::Script::pump` without it, so these partings are the harness's
+wiring, not this rule. Which golden line sends the original a `group`
+package, and with which list, is not read. The compare was reverted and
+the key stays owed (`diff::coverage`).
 
 **This is where an order stream enters**: a recorded game is a sequence of
 these packets, and the `GLOG_COMMANDMANAGER` lines of a gamelog (detail 1:
