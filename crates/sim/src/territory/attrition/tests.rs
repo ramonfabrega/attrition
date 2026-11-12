@@ -14,6 +14,35 @@ fn no_attrition_tech_means_no_attrition() {
     assert_eq!(strength(&T, 0, &StrengthMods::default()), 0);
 }
 
+/// Item 4154: the floor fires on a base of 0, so any applying multiplier
+/// lifts a leader with no step to 1 (run647's Russians, `att 1` at the
+/// start); with no multiplier it stays 0 (run647's Nubians).
+#[test]
+fn a_multiplier_floors_no_tech_at_one() {
+    for m in [
+        StrengthMods {
+            russian: true,
+            ..StrengthMods::default()
+        },
+        StrengthMods {
+            colosseum: true,
+            ..StrengthMods::default()
+        },
+        StrengthMods {
+            kremlin: true,
+            ..StrengthMods::default()
+        },
+        StrengthMods {
+            colosseum: true,
+            russian: true,
+            conquest_bonus: true,
+            kremlin: true,
+        },
+    ] {
+        assert_eq!(strength(&T, 0, &m), 1, "{m:?}");
+    }
+}
+
 #[test]
 fn the_tech_chain_doubles() {
     for (steps, want) in [(1, 1), (2, 2), (3, 4), (4, 8)] {

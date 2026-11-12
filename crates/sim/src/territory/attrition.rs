@@ -30,21 +30,31 @@ use crate::world::{Owner, Player};
 /// How much attrition a player inflicts on others inside their borders.
 ///
 /// Recomputed per player, not per victim. Zero means this player inflicts none
-/// at all, which is the state everyone starts in: the tech chain has to be
-/// entered before borders hurt anybody.
+/// at all, which is where a leader with no attrition step and no multiplier
+/// stands.
 ///
 /// `tech_steps` is how many steps of the attrition tech chain the player
-/// holds. It indexes `ATTRITION_IMPROVED`, so zero steps is zero strength.
+/// holds. It indexes `ATTRITION_IMPROVED`; zero steps is a base of 0.
 ///
 /// The four multipliers apply **in this order**, each as
-/// `x = max(1, (100 + pct) * x / 100)`. Order matters because each step
-/// truncates: reordering them changes the result.
+/// `x = (100 + pct) * x / 100` and then `if x == 0 { x = 1 }`. Order
+/// matters because each step truncates: reordering them changes the result.
+/// **The floor fires on a base of 0** (item 4154, `docs/ATTRITION.md` §1,
+/// `docs/LEADERS.md` §5.2): a Russian with a city and no step holds 1, as
+/// run647's start prints, where a leader with neither holds 0. The floor is
+/// the original's `== 0 → 1`, not `.max(1)`; they part only for a negative
+/// quotient, which no shipped `pct` reaches.
 pub fn strength(t: &Tuning, tech_steps: usize, m: &StrengthMods) -> i32 {
-    if tech_steps == 0 {
-        return 0;
-    }
-    let mut x = t.attrition_improved[(tech_steps - 1).min(t.attrition_improved.len() - 1)];
-    let mut bump = |pct: i32| x = ((100 + pct) * x / 100).max(1);
+    let mut x = match tech_steps {
+        0 => 0,
+        n => t.attrition_improved[(n - 1).min(t.attrition_improved.len() - 1)],
+    };
+    let mut bump = |pct: i32| {
+        x = (100 + pct) * x / 100;
+        if x == 0 {
+            x = 1;
+        }
+    };
     if m.colosseum {
         bump(t.colosseum_attrition);
     }
