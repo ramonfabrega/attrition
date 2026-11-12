@@ -2109,7 +2109,6 @@ rows are their pins'.
   pixel is `c·a + n·(1 − a)`, `c` the owner's `TEAM_UNIT`, `a` 128/255,
   `n` the nearer tree's texel or sprite's pixel (`render_states[1]`'s
   `SELECTARG2(TFACTOR)`); a reading, one photograph: **18 of 33**.
-  Brightness: §3.14.
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 
