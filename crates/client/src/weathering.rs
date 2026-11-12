@@ -136,6 +136,36 @@ mod tests {
         }
     }
 
+    /// **`RUN1559B_3279_PLAZA`** (item 4190; §3.16, the rule committed
+    /// before this count in `991246f05`): `(agree, scored)` on [`HUE`],
+    /// the still's mean against the photograph's over each scored tile of
+    /// the frame's weathering; then on [`LUMA_READER`]. From
+    /// [`RUN1559B_3279_PLAZA_BEFORE`], bare grass: hue **0 → 18**, luma
+    /// **6 → 14** of 18. Tile (18, 159), 861 pixels: theirs (178, 186, 162)
+    /// Y 180.9; before (158, 145, 64) Y 140.0, parts; drawn (171, 169, 158)
+    /// Y 168.7. The four that part on luma are the plaza's middle, (15,
+    /// 158), (15, 159), (16, 159), (16, 160), theirs Y 92 to 100 against
+    /// ours 165 to 174: the smoke and fire over the burning buildings,
+    /// which run1570's photograph of the same tiles has at Y 110 to 161.
+    const RUN1559B_3279_PLAZA: [(usize, usize); 2] = [(18, 18), (14, 18)];
+    /// The same row with no weathering drawn (`World::weathering` off):
+    /// the count as drawn, pinned first.
+    const RUN1559B_3279_PLAZA_BEFORE: [(usize, usize); 2] = [(0, 18), (6, 18)];
+    /// The made-to-fail: every footprint moved by its own width
+    /// (`World::weathering_shift` (1, 0)), drawn so: the plaza's tiles are
+    /// bare grass again.
+    const RUN1559B_3279_PLAZA_MOVED: [(usize, usize); 2] = [(0, 18), (6, 18)];
+    /// **`RUN1570_PLAZA`** (item 4190), the same three on run1570's
+    /// photograph ([`run1570`]): hue **0 → 19**, luma **9 → 15** of 19, and
+    /// the moved patch back to bare grass. Drawn at 3331 instead, the same
+    /// counts on the same tiles. The four that part: (15, 158) and (16,
+    /// 160), the smoke; (18, 157), Y 246.0 against 164.0, the white beam
+    /// standing on the plaza's corner; (18, 162), Y 105.4 against 164.1,
+    /// dark on this photograph alone (named by eye: the crowd at the
+    /// corner, or the city's name plate; not settled).
+    const RUN1570_PLAZA: [[(usize, usize); 2]; 3] =
+        [[(0, 19), (9, 19)], [(19, 19), (15, 19)], [(0, 19), (9, 19)]];
+
     /// The frame run1570's photograph is drawn at ([`run1570`]).
     const RUN1570_FRAME: i64 = 3331 - (3294 - crate::silhouette::PHOTO_FRAME);
 
@@ -163,14 +193,16 @@ mod tests {
             .collect()
     }
 
+    /// A tile's pixels on the photograph and on the still.
+    type Sides = (Vec<[f32; 3]>, Vec<[f32; 3]>);
+
     /// The photograph's mean and the still's over [`plaza_pixels`]'s
     /// tiles, those with at least `HUE.min_pixels`.
     fn plaza_tiles(p: &Probe, pixels: &[Option<(i32, i32)>], still: &[u8]) -> Vec<PlazaTile> {
-        let size = (p.photo.width, p.photo.height);
         let px = |rgba: &[u8], i: usize| [0, 1, 2].map(|c| f32::from(rgba[i * 4 + c]));
-        let mut tiles: BTreeMap<(i32, i32), (Vec<[f32; 3]>, Vec<[f32; 3]>)> = BTreeMap::new();
-        for i in 0..size.0 * size.1 {
-            let Some(tt) = pixels[i] else {
+        let mut tiles: BTreeMap<(i32, i32), Sides> = BTreeMap::new();
+        for (i, tt) in pixels.iter().enumerate() {
+            let Some(tt) = *tt else {
                 continue;
             };
             let e = tiles.entry(tt).or_default();
@@ -268,7 +300,61 @@ mod tests {
             return;
         };
         let b = rows(&mut p, "run1570");
-        println!("{a:?} {b:?}");
+        assert_eq!(
+            a,
+            [
+                RUN1559B_3279_PLAZA_BEFORE,
+                RUN1559B_3279_PLAZA,
+                RUN1559B_3279_PLAZA_MOVED
+            ]
+        );
+        assert_eq!(b, RUN1570_PLAZA);
+    }
+
+    /// **The rule on frame 3279** (item 4190; §3.16): the frame's 17
+    /// footprints — the console player's capital, and player 1's cities,
+    /// library, university, senate, markets, temples and wonders, finished
+    /// or not — and none on a farm, a gatherer, a barracks, a factory, an
+    /// airbase or a silo (their `size + 1` arm wants the city, 4190b). The
+    /// capital, a `Village` 7 × 7 at tile (16, 160), lays 6 × 6 tiles from
+    /// (13, 157).
+    #[test]
+    fn the_weathering_s_rule() {
+        let Some(p) = probe_at(run1559b()) else {
+            return;
+        };
+        let feet = p.world.weather_footprints();
+        assert_eq!(feet.len(), 17);
+        let capital = super::Footprint {
+            corner: (13, 157),
+            size: (7, 7),
+        };
+        assert_eq!(feet[0], capital);
+        assert_eq!(capital.tiles().count(), 36);
+        assert_eq!(capital.tiles().next(), Some((13, 157)));
+        assert_eq!(capital.tiles().last(), Some((18, 162)));
+    }
+
+    /// **Set A** (item 4190; §3.16): `d · q` from the corner, the far
+    /// corner's v `1 / (sy − 1)` past the near one's — `+ q` only at
+    /// `sy = 5`.
+    #[test]
+    fn set_a_s_far_corner() {
+        let f = |sy| super::Footprint {
+            corner: (10, 20),
+            size: (7, sy),
+        };
+        assert_eq!(
+            f(7).uvs((12, 21)),
+            [
+                [0.5, 0.25],
+                [0.75, 0.25],
+                [0.75, 0.25 + 1.0 / 6.0],
+                [0.5, 0.5]
+            ]
+        );
+        assert_eq!(f(5).uvs((10, 20))[2], [0.25, 0.25]);
+        assert_eq!(f(4).uvs((10, 20))[2], [0.25, 1.0 / 3.0]);
     }
 
     fn card_trace_path() -> PathBuf {
