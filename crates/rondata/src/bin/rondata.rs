@@ -47,7 +47,9 @@ fn main() -> ExitCode {
         eprintln!("           summarised.");
         eprintln!("--gc-oracle  a directory: every decoded-oracle cache under it");
         eprintln!("           (.ron-oracle-v1, never through a symlink) loses every");
-        eprintln!("           generation but this build's; repeatable. The only flag");
+        eprintln!("           generation but this build's and those another process");
+        eprintln!("           used within 12 hours; a failed removal is reported, the");
+        eprintln!("           rest swept, the exit non-zero; repeatable. The only flag");
         eprintln!("           that deletes, and only what a read regenerates.");
         return ExitCode::from(2);
     };
@@ -96,18 +98,36 @@ fn main() -> ExitCode {
         eprintln!("{root}: no Data/rules.xml here — is this the install root?");
         return ExitCode::from(2);
     }
+    // Every directory is swept, whatever failed in another; a failure is
+    // reported per path and turns the exit non-zero after the last sweep,
+    // so the removals that worked stand and the step does not read clean.
+    let mut failed = 0;
     for dir in &gc_oracle {
         match rondata::diff::oracle::gc_tree(std::path::Path::new(dir)) {
-            Ok((caches, removed)) => println!(
-                "gc-oracle {dir}: {caches} cache(s), {removed} stale generation(s) removed; kept {} and {}",
-                rondata::diff::oracle::generation(),
-                rondata::diff::oracle::civilian_generation()
-            ),
+            Ok(swept) => {
+                for f in &swept.failed {
+                    eprintln!("gc-oracle {dir}: failed: {f}");
+                }
+                failed += swept.failed.len();
+                println!(
+                    "gc-oracle {dir}: {} cache(s), {} stale generation(s) removed, {} in use kept, {} failed; kept {} and {}",
+                    swept.caches,
+                    swept.removed,
+                    swept.in_use,
+                    swept.failed.len(),
+                    rondata::diff::oracle::generation(),
+                    rondata::diff::oracle::civilian_generation()
+                );
+            }
             Err(e) => {
                 eprintln!("gc-oracle {dir}: {e}");
-                return ExitCode::FAILURE;
+                failed += 1;
             }
         }
+    }
+    if failed > 0 {
+        eprintln!("gc-oracle: {failed} failure(s); every other generation was swept");
+        return ExitCode::FAILURE;
     }
 
     let result = survey(&install)
