@@ -302,6 +302,8 @@ mod third;
 #[cfg(test)]
 mod third_pair;
 #[cfg(test)]
+mod transfer;
+#[cfg(test)]
 mod turkish_enlightenment_pair;
 #[cfg(test)]
 mod turkish_information_pair;
