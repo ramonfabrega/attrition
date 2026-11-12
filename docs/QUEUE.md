@@ -58,6 +58,23 @@ holds `att 1` — run981's frame-0 `LEADERDATA` (Great Sahara) prints `att 1` fo
 and the dump both; ours returns 0 at `crates/sim/src/territory/attrition.rs:43`. Score: that record's `att` compared and agreeing on both
 leaders, the leaders line's `att` leaves on frame 91 carried if the rule holds there, every floor held; or the first parting leader.
 
+4159. **The leaders line, in seven steps to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20; DECISIONS 126 §3; builders, one
+after another). Each step's score: its leaves out of `diff::leader::UNMODELLED` with `diff::` whole agreeing on every dump that prints the
+record, or the first parting named; `LEADERS_HELD_OUT` falls only by leaves that widening agrees on. I, with the census first — each of
+the 99 leaves against the level-9 reader: printed or not, the dumps where it moves — §16, §12, §6, §1 (7 leaves); II §13, §14 (14);
+III the damage path, one owner of `combat/fight/delivery.rs`: §2, §4, §15, the rest of §5 (16); IV §3 (13); V §10, §11 (9); VI §19,
+§20, §18, §17 (18); VII §7, §8, §9 (21), which a person's commands reach (run1077, run1078, run1086). A step's number is minted at its cut.
+
+4160. **A second photograph: the milestone lobby's water, coast and cliff** (a `render` item; RENDERER §3.3, §3.10, §7.1; parked 4143a,
+4071a; run 1564): a paused, traced frame of Great Lakes with water, a coast and, if the map holds one in view, a cliff, by run1559b's
+recipe; pinned as a second census by kind beside `RUN1559B_3279_UNSCORED`, then the ground scored on it. Score: the photograph's tiles
+by kind with the three kinds above zero, and the ground's N of M on it; K 59 of 59 and every pin of frame 3279 held.
+
+4161. **The clock, on the scoreboard** (a `render` item; `docs/TRACKS.md`'s renderer row; `crates/client/src/trace.rs`): the Great Lakes
+game played in the client from our own start, its session trace read — seconds to frame zero, the ninety-ninth percentile and the
+slowest frame, peak resident memory — pinned as ceilings behind a `Clock:` line the queue's parser reads, made to fail once. Score:
+the line with its four numbers, the worst named with its cause; its refill is the foundation and the scaffold drawn (parked 4061a).
+
 4034. **The start block, every lobby on disk** (filler behind the milestone; START.md): the nations' civ-specific buildings, the Large Town
 list, the Americans' farms, the Lakota and Korean citizen arms, the Spanish scouts (ORDERS §9.3) — each lobby a row of the
 counter, cheapest first, the value diff per lobby; `Start: N of N` closes the track's first number; rules N (parked 4033a).

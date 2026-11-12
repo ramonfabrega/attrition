@@ -10,13 +10,17 @@ clause below is the driver.**
 
 ## The driver
 
-**One session drives.** The `steer`
-row, on Opus 5.5 since 2026-11-11 (DECISIONS 122; Fable 5.2 before), is the only session that owns the integration worktree.
-It books, merges, gates and pushes; it holds the direction of the track it
-is driving; it spawns the workers; and at a boundary it is the pass. The
-`commander` row is retired. Two permanent rows alternating on one worktree
-was a hazard by construction — a row not cleared, a row woken, both live —
-and their handover was the most scarred text in this file.
+**One session drives at a time.** Since 2026-11-12 (DECISIONS 126) the
+driver is the `commander` row on Opus 5.5 and the pass is the `steer` row on
+Fable 5.2, alternating on the integration worktree. The row that is live
+books, merges, gates and pushes, holds the direction of the track it is
+driving and spawns the workers; "the driver" below is that row. Entry 116
+had merged the two rows because both had been live at once — a row not
+cleared, a row woken. What holds them apart now: **exactly one is live in
+the tree; the row that hands over arms the other with `ccc clear <other>
+--then` as its last act, and `steer` writes in the tree only on a turn
+`commander` armed.** Asked anything else, `steer` answers read-only and
+sends `commander` a decision as one message.
 
 **Ramon steers at will, in this row.** A message he types here arrives
 inside the running turn and is answered in it. A decision of his is written
@@ -44,11 +48,11 @@ with none and 10.61 in one with twelve). Idle compaction is the fallback,
 never the mechanism: a session that resumes summarised re-reads the queue
 before it acts.
 
-**Supply calls the pass, not a count.** The driver's next session opens as
-a pass when the queue holds fewer open items than the workers it would
-feed, when the track's next step is undesigned, at a milestone, or on
-Ramon's word; twenty landings without one of those is also a boundary, as
-a backstop. The pass is a fresh context by construction, and the clear
+**Supply calls the pass, not a count.** `commander` arms `steer` when the
+queue holds fewer designed items than the workers it would feed, when the
+track's next step is undesigned, at a milestone, when a finding changes
+the direction or the kill rule trips, or on Ramon's word; twenty landings
+without one of those is also a boundary, as a backstop (DECISIONS 126 §4). The pass is a fresh context by construction, and the clear
 before it is what makes its scoring a second look. What a pass does is
 under "Ratification, and the passes".
 
@@ -79,9 +83,9 @@ another model takes that model's own default effort, not the driver's.
 
 **The roster is Ramon's, set at a steer** (DECISIONS 116):
 
-- **The driver**: Opus 5.5 (DECISIONS 122). **Fable 5.2 is the outside
-  observer**: a talk row Ramon opens at will, which owns no tree, commits
-  nothing and hands the driver a decision as one message.
+- **The driver**: the `commander` row, Opus 5.5. **The pass**: the `steer`
+  row, Fable 5.2, armed at a boundary (DECISIONS 126; entry 122's observer,
+  given the tree for the length of a pass).
 - **The chain** — start, checksum, orders and save on one lobby, to the
   milestone `docs/TRACKS.md` names — is the driver's own, built by
   in-session builders whose model is the driver's call for each step: Opus

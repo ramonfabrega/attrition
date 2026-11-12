@@ -117,7 +117,7 @@ is append-only and amended in place, as it always was.
 - 108 extended by 109 — The sixty-eighth tranche: three Opus lanes, thirteen in 3 h 51 on supply, blind open 2, Mesa whole, three lanes stand; the implicit residue 81, the pool
 - 109 extended by 110 — The sixty-ninth tranche: three Opus lanes, twenty in 8 h 38, the implicit residue 0, blind open 4
 - 110 extended by 111 — The seventieth: two Opus lanes, seven in 3 h 10, blind open 0
-- 111 extended by 112 — The seventy-first: phase 4 open, the territory read, East Meets West held out
+- 111 extended by 112 — The seventy-first: phase 4 open, the territory read
 - 112 extended by 113 — T71's rows booked
 - 113 extended by 114 — rows booked
 - 114 extended by 116 — finish line
@@ -128,12 +128,13 @@ is append-only and amended in place, as it always was.
 - 119 standing — step 5: twelve lines, an instrument first
 - 120 standing — step 5's frame; the floats
 - 121 standing — no kill rule; soft stop 95 %
-- 122 standing — Opus drives, Fable talks
+- 122 amended by 126 — Opus drives, Fable talks
 - 123 standing — two workers out
-- 124 standing — the stop at 98
+- 124 amended by 126 — the stop at 98
 - 125 standing — no parked file
+- 126 standing — two rows, three workers, the leaders tranche
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
-- 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types
+- 90 amended in place — The fifty-first tranche: two Opus lanes, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself
 - 88 amended by 90 — The forty-ninth tranche: two Opus lanes, sixteen `cover=1` landings drained on a pit stop, the blind list 300 → 240 open, the click layer to the pool, the oracle cache key reads the parser and codec only, sixteen Loop items ruled
 - 87 standing — The forty-eighth tranche: five readings and two sweeps, forty-five residue rows ratified, the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, a pinned `Blind:` line
@@ -12064,6 +12065,8 @@ should cost, which the next bookings measure.
 
 ## 122. The driver is Opus 5.5; Fable 5.2 is the outside observer, a talk row that owns no tree (2026-11-11)
 
+*Amended by entry 126 (2026-11-12): the driver's row is `commander`, and the observer is the `steer` row, given the tree for the length of a pass. §3 is spent; §4 stands.*
+
 **What happened.** At 12:29 −05:00 lore's first reading of a Fable-only week
 (`seven_day_fable`) was 96 %, beside 86 % for the whole week. The driver was
 on Fable 5.2 and had been cutting Opus workers under a stop set on the whole
@@ -12149,6 +12152,8 @@ the memory cap; `tools/resource_budget.py` admits them); what a lane on
 `--effort high` costs against the medium 4145 ran on.
 
 ## 124. The stop moves to 98 %, and a reader row runs the week to 100 % (2026-11-11)
+
+*Amended by entry 126 §2 (2026-11-12): after the reset the stop is 95 % again; 98 was the run-down's.*
 
 **What happened.** The whole week read 87 % at 17:34 −05:00 with the stop
 at 95 % (entry 121) and two workers out (entry 123). The talk row (Fable,
@@ -12237,3 +12242,66 @@ either way); whether a `## Parked` heading in a thousand journals is found
 as readily as one file was grepped — `grep -rn 'Parked' docs/journal` is
 the same act; and the gate logs the queue cites as evidence still live in
 that temp dir and have no durable home.
+
+## 126. Opus drives on the `commander` row and Fable passes on the `steer` row, the pass is called by supply, the window is spent by Saturday on three workers, and the tranche is the leaders line and the renderer's width (2026-11-12)
+
+**What happened.** Ramon pulled the full reset at about 23:00 −05:00 on
+2026-11-11 and opened the `steer` row on Fable 5.2. lore's first reading
+after it: the whole week 0 % at 23:12, the window still closing on
+2026-11-14 06:00 −05:00, 55 hours out. Measured for the week before, on
+the integration well (lore, list prices): Fable 2,447 requests for 323.89
+USD, Opus 1,427 for 87.72 — a driver's request on Opus is half the price
+of one on Fable, and the driver's row had taken about half of a Fable
+week that read 96 % when the whole week read 86 %.
+
+**Ramon, on this row:** "fable goes back to steer, and opus back to
+commander?"; "assume at least no resets banked... but we got enough leeway
+to saturday.. e.g if we run out it dshould be day 6 or close to 7 (and
+we'll measure / see how we go)"; "our goal in general is see if theres
+anything we should do now, as steer, then get back to commander flow /
+working on the renderer/finishing work"; "do we go back to 20 landings
+then a steer(fable)? or do we make it dynamic/when we need steering/to
+mint a next tranche focus?"
+
+**Decided**, the first on his word, the rest the pass's and his to move.
+
+1. **Two rows, one live.** `commander` (Opus 5.5) is the driver and owns
+   the integration worktree between passes; `steer` (Fable 5.2) is the
+   pass. Entry 116's single row and entry 122's roster line are superseded
+   here; entry 122 §4 stands (the worktree and its branch stay). The rule
+   that keeps entry 116's hazard out is in `docs/LOOP.md`, "The driver":
+   the row that hands over arms the other as its last act, and `steer`
+   writes in the tree only on a turn `commander` armed.
+2. **The window is spent, not saved.** A fresh hundred points and 55
+   hours is twice the pace of the week before (86 % in 4.06 days, about 21
+   points a day, on two workers). Three workers stand — the chain's
+   builder and two lanes, the lanes at `--effort high` (entry 123 §3's
+   third worker, on its own condition) — and a fourth is `commander`'s
+   call if the first twelve hours read under 20 points. The stop is 95 %
+   of the whole week (entry 124's 98 was for the run-down); from 93
+   nothing is cut that cannot be booked under it.
+3. **The tranche.** The chain closes the milestone: the leaders line, in
+   the steps item 4159 names, each scored on the level-9 `LEADERDATA`
+   record over every dump that prints it and not on frame 91 alone — 98
+   of the 99 held-out leaves are unheld and most are zero on that frame,
+   and `explored` agreed there while parting in 24 later windows (item
+   4153). The lanes take the renderer's width rather than the colour row,
+   which rests at 18 of 33 on seven kills: a second photograph with the
+   milestone lobby's water, coast and cliff (item 4160), and the clock as
+   a scored line (item 4161). The steps of the chain run one after
+   another, because each widening re-pins the leader record's row counts.
+4. **The pass is called by supply** (`docs/LOOP.md`, amended): the queue
+   short of designed items for its workers, a track's next step
+   undesigned, a milestone, a finding that changes direction, the kill
+   rule, or Ramon's word; twenty landings is the backstop.
+5. **Disk.** The six Codex worktrees of this repository are removed on
+   Ramon's word ("can clear codex worktrees im authing you"), three of
+   them with uncommitted work saved first as patches under
+   `~/.codex/attrition-worktree-patches/`; every branch's commits were in
+   main. Free space 62 → 69 GB.
+
+**Not established:** whether three workers reach the wall by Saturday or
+the host's gate time binds first; whether the Fable week was reset with
+the whole one (no reading since); which of the 99 leaves the level-9
+record prints under a key the reader parses (item 4159's first act);
+whether a paused Great Lakes frame shows a cliff at all.
