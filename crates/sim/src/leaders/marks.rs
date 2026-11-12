@@ -232,17 +232,9 @@ impl Sim {
     /// §14.2): an armed type (`attack != 0`) steps the bins its trainer and
     /// domain choose, each on its own zero test.
     pub(crate) fn step_armed_queued(&mut self, who: Player, ty: usize, d: i32) {
-        let unit = &self.tables.unit_types[ty];
-        if unit.combat.attack == 0 {
+        let Some(bins) = self.armed_queued_bins(ty) else {
             return;
-        }
-        let trainer = unit
-            .tree
-            .and_then(|x| self.tables.tech_tree.types.get(x))
-            .and_then(|t| t.where_)
-            .map(|wh| self.tree_type_index(wh));
-        let air = unit.combat.domain == crate::territory::attrition::Domain::Air;
-        let bins = bins_of(trainer, air);
+        };
         let Some(m) = self.leaders.marks.get_mut(usize::from(who)) else {
             return;
         };
@@ -251,6 +243,26 @@ impl Sim {
                 step_bin(c, d);
             }
         }
+    }
+
+    /// **`track_queued`'s steps 3 and 4 for unit record `ty`**: `None` for
+    /// an unarmed type (`attack == 0`), else the bins [`bins_of`] chooses
+    /// from its trainer's `TypeIndex` and its domain. The one routing
+    /// [`Sim::step_armed_queued`] steps by, and the one the transfer harness
+    /// (`rondata::diff::transfer`, item 4159's step T) runs on the
+    /// original's printed `num_queued`.
+    pub fn armed_queued_bins(&self, ty: usize) -> Option<[bool; 6]> {
+        let unit = self.tables.unit_types.get(ty)?;
+        if unit.combat.attack == 0 {
+            return None;
+        }
+        let trainer = unit
+            .tree
+            .and_then(|x| self.tables.tech_tree.types.get(x))
+            .and_then(|t| t.where_)
+            .map(|wh| self.tree_type_index(wh));
+        let air = unit.combat.domain == crate::territory::attrition::Domain::Air;
+        Some(bins_of(trainer, air))
     }
 
     /// `scholar_militia` (`+0x9f0`), derived from the live militia whose
