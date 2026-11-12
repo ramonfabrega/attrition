@@ -83,11 +83,11 @@ clear cut: re-run that wave for that family.
 | 7 | `diplomacy-relations` | done | done | owed (launch it) | owed |
 | 8 | `diplomacy-tribute` | done | done | in flight at the clear | owed |
 | 9 | `taunts` | done | done | done | done, §9 |
-| 10 | `end-of-game` | done | done | in flight at the clear | owed |
+| 10 | `end-of-game` | done | done | done | owed |
 | 11 | `lost-capital` | done | done | done | done, §11 |
 | 12 | `misery` | done | done | done | owed |
 | 13 | `marks-built` | done | done | in flight at the clear | owed |
-| 14 | `queued` | done | done | in flight at the clear | owed |
+| 14 | `queued` | done | done | done | owed |
 | 15 | `odd-counters` | done | done | done | owed |
 | 16 | `lobby-words` | done | done | in flight at the clear | owed |
 | 17 | `spells` | done | done | done | done, §17 |
@@ -95,7 +95,7 @@ clear cut: re-run that wave for that family.
 | 19 | `last-finished` | done | done | done | done, §19 |
 | 20 | `high-buildings` | done | done | done | owed |
 
-**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 12 of
+**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 14 of
 20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
@@ -178,3 +178,5 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | high-buildings | 3 | ~150 k | ~13 | 33 confirmed, 3 corrected, 3 open | the reset dispute settled for the first reading (`Leader::init`'s tribe<0 memset and `Leaders::clear`); `reg_terr` zeroes live slots only (gate `zero_region_rares`); `check_capture`'s swap branch unported |
 | combat-rates | 3 | ~150 k | ~13 | ~98 confirmed, 9 corrected, 4 open | every writer and step backed; the overflow re-call runs only for a decoy; the sniper's unit arm kills by `Unit::die`; the `cast_sabotage_building` SEAM names the wrong offsets (a sabotaged building counts no kill, no death) |
 | odd-counters | 3 | ~150 k | ~13 | 56 confirmed, 4 corrected, 1 open | writers complete; `nukes_launched` moves only for a strafe at a target `valid_target` refused (expect 0 in plain play); `ids.rs` names 0x139 `CRUISE` where the enum says `V2ROCKET`; the `repair_stamp` SEAM comment says the opposite of its stub |
+| queued | 3 | 183 k | 12 | 109 confirmed, 7 corrected, 7 open (per-leaf rows) | the floor tests only `== 0`, so a counter below 0 keeps falling; the crate's `untrack_queued` matches; **the permanent +1 to `scholar_militia` is confirmed** (decoys of militia, `swap_team`), its frequency open |
+| end-of-game | 3 | 214 k | 17 | 64 confirmed, 8 corrected, 6 open | **the plain lobby is capital elimination (ELIMINATION 1)**, so `process_elimination`, the GLOBAL_GOVERNMENT arms and `leave_game`'s type 1 are plain-game; an archive sweep finds five territory victories (against `territory/victory.rs:21`), run600 frame 17380 a ready value diff, and `wonderwin_timer` 1 in 30 captures against the `w44c` stub |

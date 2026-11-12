@@ -135,3 +135,45 @@ the checksum arm so the two cannot drift.
 - **Open:** none for a plain game. `change_difficulty`'s callers and the
   13 inlined `get_diff` copies were not re-read here (neither changes the
   plain-game value).
+
+## Leaf `cannon_time` (+0x48, ulong)
+
+### 1. Claim by claim
+
+| # | claim | first | second | mark | verdict, deciding line |
+|---|---|---|---|---|---|
+| 1 | `Leader` holds `LeaderData` at +0, so a `Leader*`'s +0x48 is the leaf; slot i's leaf is `0xe3a3d8 + i·0x6eec` | yes (but its file header says "a `Leader*` reaches a leaf at off+8") | yes | agree; the first contradicts itself | confirmed +0: `Leader::init`'s seed stores `0x48(%ebx)` with `%ebx = this` (006e3942, 006e3af3), and the absolute sites use `0xe3a3d8`; the first's header line is a slip its own body overrides |
+| 2 | seed: `Leader::init (006e3930)` stores `cannon_times[game.info.cannon_times].data[0]` on every call, both tribe arms | yes | yes | agree | confirmed: `jns 0x6e3a36` at 006e394a skips only the memset; 006e3a36..006e3af3 has no branch; `movzbl 0x33(game)`, `imul $0x58`, `+0x3c`, store 006e3af3 |
+| 3 | rows: rules.xml `cannontimes` 0, 1, 2, 4, 8 | yes | yes (count 5 from `init_rules_data`) | agree | not re-read; two independent readings of the file agree |
+| 4 | step: `TurnControl::start_cannon_time (00956500)` −1 when `who >= 0`, `cannon_time_who < 0`, `cannon_time != 0`; also stamps who, frame, saved speed, tick | yes | yes | agree | confirmed: `js` 00956528, `cmpl $0,0x24(%esi); jl` 0095652e, `testl; jne` 00956590, `decl` / store 009565ea..009565eb, 009565f1..00956609. The refusals post feedback only when `who` is the console's (`cmpl 0x298`), else return silently. |
+| 5 | issuer: `CommandManager::issue_cannon_time (00941260)` refuses without `semaphore[0] & 4`, then sends 0x4d only if the console leader's `cannon_time` is unsigned `> 0` | yes ("!= 0") | yes ("unsigned `> 0`") | agree (same test: unsigned `> 0` is `!= 0`) | confirmed, `cmpl $0x0,0xe3a3d8(%eax); ja` at 009412f1..009412f8 |
+| 6 | `process_cannon_time (009464f0)` and `start_cannon_time` themselves test no semaphore | yes | implicit | one-sided | confirmed for `start_cannon_time` (00956500..00956609 reads no `0x820`); a crafted 0x4d in solo would reach it, and with row 0's 0 it is refused at 00956592 |
+| 7 | clears: `Leader::init`'s memset (`tribe < 0`, `[+0, +0x6929)`), `Leaders::clear (006ed5d0)` at game end | both | memset only | one-sided (`Leaders::clear`) | confirmed memset 006e398c..006e3995; `Leaders::clear` accepted on the first's citation (game end, not a start) |
+| 8 | `walk_data (006d6750)` restores it on a save load | yes | yes | agree | not re-read |
+| 9 | `Leader::reset_score (006e37f0)` does not touch it | yes | no claim | one-sided | accepted (the listing's absolute net and the `this`-relative net raise no store there) |
+| 10 | readers: the two guards; `IFaceMainBase::update_visibility (00811d40)` greys the button; `log_data` does not print it | yes | guards and `log_data` | one-sided (`update_visibility`) | the absolute net shows only the two guard reads (009412f1, 0095658a), so `update_visibility` reads it through a register; UI only, no bearing on the rule |
+| 11 | crate: none; `LEADER_FIELDS` `checksum/leaders.rs:53`; held out `checksum_lines.rs:1771`; `Command::CannonTime` decoded at `rondata/src/commands.rs:996` and unconsumed | yes | yes | agree | confirmed, lines as cited |
+| 12 | plain game: seeded, never stepped, 0 under `CANNON_TIMES 0` | yes | yes | agree | confirmed for the step (issuer gated on bit 2, 009412f8's refusal branch above it); the 0 rests on `CANNON_TIMES 0`, which the first finds in 1,193 of 1,194 dumps |
+
+**Writer completeness.** Absolute net: one store, 009565eb. Walking
+pointer sweep: no store landing on +0x48. `this`-relative: 006e3af3 (the
+006e3f6a store is off the `+0x6eb8` `LeaderDataEncrypt*`, as both say).
+No new writer.
+
+### 2. The rule as a builder should port it
+
+- **Writer:** at every leader build, `cannon_time =
+  CANNON_TIMES_ROW[lobby.cannon_times]` with rows `[0, 1, 2, 4, 8]`, for
+  every slot 0..9 (the seed is not gated on seating).
+- **Step:** −1 on an accepted command 0x4d (nobody already in cannon
+  time, value non-zero, `who >= 0`); the command's only issuer refuses
+  without the multiplayer bit.
+- **Reset:** the next game build.
+- **Crate site:** add `cannon_times` to `ai::Lobby` (parsed from the
+  dump's `CANNON_TIMES`), and a `"cannon_time"` arm in `Sim::leader_long`
+  (`crates/sim/src/checksum/leaders.rs:949`) returning the row's count.
+- **Plain game:** reached (the seed); frozen at 0 with the default lobby;
+  the step never fires solo.
+- **Confidence:** high. **Open:** whether the solo setup window offers a
+  non-zero `CANNON_TIMES` (it would change the frozen value, not the
+  rule); `walk_data`'s save path.
