@@ -1694,14 +1694,15 @@ the fade's shape. `water_fade` is pinned by
 
 *2026-11-12, Opus 5.5. Built in `crates/rondata/src/free/ages.rs`, over
 the games `rondata::diff::drawn_games` lists. Checked by
-`free::ages::the_draw_list_across_the_ages_resolves`.*
+`free::ages::the_draw_list_across_the_ages_resolves`. Amended by item
+4169, the same day.*
 
 **The score.** Over the 82 late-age pairs and the 28 battery words, on the
-4,608 frames their long captures dump: **resolved 1,166,600 of 1,171,799
-objects over 110 lobbies** (`AGES_RESOLVED`). The closing blocks' pieces
-are ours on **34,394 of 34,399** records (`AGES_CLOSING`). K is M on **83
-of 110** lobbies (`AGES_LOBBIES_WHOLE`). The run takes about 100 s on four
-walkers.
+4,608 frames their long captures dump: **resolved 1,167,081 of 1,171,799
+objects over 110 lobbies** (`AGES_RESOLVED`; 1,166,600 at item 4166). The
+closing blocks' pieces are ours on **34,394 of 34,399** records
+(`AGES_CLOSING`). K is M on **98 of 110** lobbies (`AGES_LOBBIES_WHOLE`;
+83 at item 4166). The run takes about 100 s on four walkers.
 
 **What is walked.** Each game is the free runner stood up from its start
 sibling, its long capture's setup block and its trace's pasture
@@ -1734,17 +1735,51 @@ either (`ProjectileScene`, `DeathScene`), so the list cannot draw them.
 
 | type | objects | what fails | what would settle it |
 |---|---|---|---|
-| Sawmill (424), piece 55219 | 22 | an addon's `anim`, `sawmill_3t Default`, that `anim_graphics.xml` does not name | how the loader treats an unnamed addon animation |
-| Smelter (425), pieces 50963, 51092 | 180 | the same, `smelter_0a_addon` | the same reading |
-| Observation Post line, 522–525 (pieces 50803–50805) | 279 | the `<BUILD>` names no file: Air Defense Gun, Radar Air Defense, SAM Installation | `WallOut::draw`'s model at the point for these types (§3.5), unread |
-| Citizen and CEO crews (38322, 38323, 39378, 39379) | 15 | slot 2's `ceo_crew3_idle3.bha` is not in the install | what the original does with a missing `.bha` |
+| ~~Sawmill (424), piece 55219~~ | ~~22~~ | ~~an `anim` `anim_graphics.xml` does not name~~ | resolved by item 4169, below |
+| ~~Smelter (425), pieces 50963, 51092~~ | ~~180~~ | ~~the same~~ | resolved by item 4169 |
+| ~~Observation Post line, 522–525 (pieces 50803–50805)~~ | ~~279~~ | ~~the `<BUILD>` names no file~~ | resolved by item 4169 |
+| Citizen and CEO crews (38322, 38323, 39378, 39379) | 15 | slot 2's `ceo_crew3_idle3.bha` is not in the install | what the figure's draw makes of a null action |
 | projectiles | 2,133 | the scene carries no piece | the door widened by the round's ammo piece |
-| corpses | 2,570 | the scene carries no piece | the door widened by the dead unit's piece and its death slot |
+| corpses | 2,570 | the scene carries no piece | the door widened by the dead guy's piece; `DeathObjOut::draw@008d4090` sends a piece through `GraphicPieces::draw` |
 
 The 522 rows are Observation Posts already upgraded: the building keeps
 `orig_type` 522 and shows the Air Defense Gun's piece. No type is bent to a
 missing file. Every file a `<UNIT>` or `<BUILD>` names on these frames is in
 the install, except the crews' one `.bha`.
+
+**What the loaders do with what is not there** (item 4169):
+
+- **A name no `<ANIM>` row carries names no file.**
+  `GraphicPieces::decipher_animation@008face0` answers `-1`.
+  `init_build_data@008f2f20:295` reads a `<BUILD>`'s own `anim` only for
+  `build_anim_time`: on `-1` it skips the load and leaves the time 0. The
+  sawmill's `sawmill_3t Default` is that case (`LUMBERMILL-ARAB-AGE3` and
+  `-EINDIAN-AGE3`; no `sawmill_3t_addon.bha` ships). `init_build_events
+  @008ea3c0:252` stores the `-1` in an `EXISTEVENT`'s anim word and goes on;
+  that is the smelter's `BUILD_BUILD` event, `smelter_0a_addon` without
+  `Default`. Neither reports. So the piece loads, and `artdata::
+  building_decoding` no longer counts the name as a failing file.
+- **The Air Defense line loads as a `<UNIT>`.** `GraphicPieces::verify_load
+  @00906550:162`–`173` sends a piece of type `0x20b`–`0x20d` among the first
+  `0x81` build pieces to `init_unit_data`. The `<UNIT>` of the piece's own
+  name, `GRAPH-DEFAULT-AGE0`, is its art, as `artdata::wall_packets` reads
+  its slots (COMBAT §84.2). `artdata::loads_as_unit` names the pieces, and
+  `building_decoding` holds them to the `<UNIT>`'s model and every slot's
+  file. All decode.
+- **A named file the install lacks is a null action.**
+  `AnimMgr::force_load@0053ade0` logs "animation was not found" through
+  `OutputDebugString` only. It stores no `AnimObj`, 200 ms and so 3 frames
+  (`sim::units::anim::MISSING`). `AnimationPacket::get_animobj@00917170`
+  hands the draw that null. The crews stay unresolved: what the hierarchy's
+  pose call makes of null is unread.
+
+**The value diff for these: the original printed the pieces.**
+`get_build_gpiece@0090bce0` takes the first piece whose `data_pieces` entry
+is set. A piece that failed to load would have been walked past, and the
+dump would print another. On the 110 closing blocks (`AGES_CLOSING_WATCHED`,
+ours of printed): sawmill 55219 2 of 2; smelter 50963 5 of 5 and 51092 5 of
+5; the Air Defense line 50803 10 of 10, 50804 11 of 11 and 50805 19 of 19;
+the crews 38322 10 of 10, 38323 9 of 9, 39378 1 of 1 and 39379 3 of 3.
 
 **The value diff: the closing block.** Every long capture prints its units'
 guys and its buildings with `gpiece` on its closing block, frame
@@ -1770,8 +1805,8 @@ same entry, and both rows decode. No pixel is compared (parked 4166a).
 dumped frames. M is the figure pieces played (with the slots played) plus
 the building types drawn (with the pieces drawn). A member counts when its
 files decode and the closing block's piece is ours on every record of it.
-On 83 of 110 lobbies K is M. The other 27 fall short only through the rows
-above, or through the Assault Marines' piece. **Condition 2 is read on
+On 98 of 110 lobbies K is M (83 at item 4166). The other 12 fall short
+only through the crews' row above, or through the Assault Marines' piece. **Condition 2 is read on
 pieces, not on pixels.** No lobby but `GreatLakesAztecModern` has its anchors
 put through the original's projection (§3.5).
 
@@ -1785,8 +1820,10 @@ game exceeds its pin. Maya Ancient's 52 is its closing state's pin.
 turns every field red (below, in the journal). The held-out guard is red
 with a battery lobby added to the list.
 
-**Diff-backed:** the closing block's pieces, on 110 lobbies. **Reading
-only:** every resolution beyond "the file decodes". A piece whose file
+**Diff-backed:** the closing block's pieces, on 110 lobbies. Item 4169's
+three loader readings are backed by the same block: the original printed
+every piece they resolve. **Reading only:** every resolution beyond "the
+file decodes", and what an unnamed anim's `-1` draws. A piece whose file
 decodes but is the wrong file is caught only where a dump prints the piece:
 the closing block, and the Aztec pair's starts.
 
@@ -1798,8 +1835,12 @@ the closing block, and the Aztec pair's starts.
   the map.
 - **The pieces between the start and the closing block.** The pairs' strides
   print guys without `gpiece`.
-- **4166a**, the Assault Marines' variant, and the four reading rows of the
-  table.
+- **4166a**, the Assault Marines' variant. Item 4169's reading is in its
+  journal: the original's piece is guy state written at seventeen call
+  sites, and ours is derived from the object number every frame.
+- **What the addon draws under `BUILD_BUILD`** with the smelter's `-1`
+  anim, and what the crews' figure draws from a null action.
+- **The rounds and the corpses**, behind a door widening in `crates/sim`.
 
 ## 3.14 The device's state at a figure's draw (item 4165)
 
