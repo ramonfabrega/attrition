@@ -5,10 +5,14 @@ slugs = ["city-name","kills","combat-rates","victim-stamps","attrition-stamps","
          "diplomacy-relations","diplomacy-tribute","taunts","end-of-game","lost-capital","misery",
          "marks-built","queued","odd-counters","lobby-words","spells","score","last-finished","high-buildings"]
 head = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "leaders-header.md")).read().rstrip("\n") + "\n"
+# Only a section the README's Pending table marks "done, §N" is spliced:
+# a section file still being written by its agent must not land.
+readme = open(os.path.join(aud, "README.md")).read()
+done = {int(m) for m in re.findall(r"\| done, §(\d+) \|", readme)}
 parts, have = [head], []
 for n, s in enumerate(slugs, 1):
     p = os.path.join(aud, f"{s}-section.md")
-    if not os.path.exists(p):
+    if n not in done or not os.path.exists(p):
         continue
     t = open(p).read().strip("\n")
     m = re.match(r"## (\d+)\.", t)
