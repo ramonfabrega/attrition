@@ -1259,6 +1259,35 @@ pub const RUN1559B_3279_TRACED_WHOLE: (usize, usize) = (30, 33);
 /// (item 4085).
 pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 
+/// **`RUN1559B_3279_TRACED` on the client's still** (item 4171;
+/// `docs/RENDERER.md` §3.15): `client::gpu`'s own pixels, our
+/// side read by the photograph's colour reader, 33 → 31. 0/1 crosses,
+/// 0.946 → 0.159 (ours 415 → 68, both 403 → 66): its ring on the still
+/// holds 91 of 1,104 pixels of a silhouette's red over the tree where the
+/// painter keys nothing, so the reader takes that red for ground (parked
+/// 4171a). 1/40 crosses, 0.721 → 0.498 (ours 2,167 → 1,480): an olive
+/// tank on grass, which the photograph's side reads by hand.
+pub const RUN1559B_3279_TRACED_STILL: (usize, usize) = (31, 33);
+/// **`RUN1559B_3279_COLOUR` on the client's still** (item 4171), 18 → 14,
+/// none crossing up. 0/1, all 159 of its lit pixels behind the pine, the
+/// silhouette over our flat green where the painter lays it over the leaf
+/// texel: agree 81 → 30. 0/5, 0/6 and 1/34 by the card's level per pixel
+/// against the painter's per triangle: agree 164 → 142, 97 → 69, 129 →
+/// 115 (0/6's 25 behind part 18 → 19). Expected red first: on the draw
+/// before, 2.
+pub const RUN1559B_3279_COLOUR_STILL: (usize, usize) = (14, 33);
+/// The still's `(TRACED, COLOUR)` under its four readings (item 4171):
+/// the silhouette pass before and after the lit one, on a plain target
+/// and on an sRGB one — the client's draw first, the draw before 4171
+/// (after, sRGB) last, the rows' made-to-fail. Before the stencil held a
+/// silhouette to one blend, before-plain read (31, 33), (13, 33).
+pub const RUN1559B_3279_STILL_READINGS: [((usize, usize), (usize, usize)); 4] = [
+    ((31, 33), (14, 33)),
+    ((32, 33), (2, 33)),
+    ((32, 33), (11, 33)),
+    ((32, 33), (2, 33)),
+];
+
 /// **The colour row** (item 4099; `docs/RENDERER.md` §5.3, "The colour
 /// reader", committed before its count in `744093625`): on
 /// [`RUN1559B_3279_TRACED`]'s draw, the objects whose colours [`HUE`]
