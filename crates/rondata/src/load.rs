@@ -3058,7 +3058,8 @@ mod tests {
             Some(sim::air::WallCycle {
                 wind: 20,
                 swing: 10,
-                releases: vec![(2, 0, false, -1)],
+                // Item 4175: the release's piece, `FlakShell` at 14.
+                releases: vec![(2, 0, false, 60163)],
                 launch: Some((136, -136, 227)),
             })
         );
