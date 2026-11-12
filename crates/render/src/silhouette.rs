@@ -1186,6 +1186,17 @@ pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 /// figures' 1,257 behind pixels 697 part (from 1,235); the figures agree
 /// 8,679 of 17,889.
 pub const RUN1559B_3279_COLOUR: (usize, usize) = (18, 33);
+/// **The device's state at each scored object** (item 4165; §3.14): of [`RUN1559B_3279_TRACED`]'s 33 objects, those whose
+/// figures each match a lit draw of run1566b's card trace (the pass drawn
+/// after frame 3279) within [`CARD_MATCH`] world units, or whose sprite
+/// matches its own art's `_NONQUAD` draw, with a whole state there
+/// (`client::silhouette`'s `the_device_state_at_each_figure`).
+pub const RUN1559B_3279_DEVICE_STATE: (usize, usize) = (33, 33);
+/// The farthest a figure's point may lie from its draw's `gWorld`
+/// translation and be matched to it, in world units (a tenth of a tile's
+/// 768), written before the count.
+pub const CARD_MATCH: f32 = 76.8;
+
 /// [`RUN1559B_3279_COLOUR`] with the team colour and no silhouette's
 /// colour, item 4102's draw.
 pub const RUN1559B_3279_COLOUR_TEAM: (usize, usize) = (15, 33);

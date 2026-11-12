@@ -1108,6 +1108,12 @@ pub struct Lobby {
     /// profile's value, whatever `check.ini` said); `> 1` makes
     /// `WorldData::was_seen` answer true everywhere.
     pub reveal_map: i32,
+    /// The cannon-time uses: rules.xml's `cannontimes` row that
+    /// `CANNON_TIMES` (`Game+0x33`) indexes, its `DATA` (`Category.data[0]`,
+    /// `+0x3c`; the shipped rows are `0 1 2 4 8`). `Leader::init@006e3930`
+    /// seeds every leader's `cannon_time` (`+0x48`) with it, and only the
+    /// multiplayer command 0x4d steps it (`docs/LEADERS.md` §16.2).
+    pub cannon_time: i32,
 }
 
 impl Default for Lobby {
@@ -1136,6 +1142,7 @@ impl Default for Lobby {
             no_nation_powers: false,
             conquest: false,
             reveal_map: 1,
+            cannon_time: 0,
         }
     }
 }

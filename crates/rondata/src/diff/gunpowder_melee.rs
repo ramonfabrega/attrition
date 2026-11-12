@@ -1285,7 +1285,8 @@ fn gunpowder_melee_s_leaders_are_compared_on_every_seat() {
         // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
         // item 3969: +85 keys a leader (`num_queued` for every technology).
         // item 3982: +2 keys a leader (`ages_queued`, `epochs_queued`), which this record does not print.
-        1125,
+        // Item 4162: 1125 -> 1131, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+        1131,
         "keys run1461's `LEADERS=2` does not print"
     );
     // Item 3791: the standing family on frames 1 and 37 on every seat,

@@ -129,6 +129,11 @@ pub struct Loaded {
     /// minutes" row holds, which `Game::war_allowed@00594670` reads as
     /// `rush_rules.list[RUSH_RULES]` `+0x3c` (`Category.data[0]`) × 900.
     pub rush_minutes: Vec<i32>,
+    /// rules.xml's `cannontimes` category rows' `DATA` in file order
+    /// (`0 1 2 4 8` shipped): the uses `Leader::init@006e3930` seeds every
+    /// leader's `cannon_time` with, indexed by `CANNON_TIMES`
+    /// (`docs/LEADERS.md` §16.2).
+    pub cannon_times: Vec<i32>,
     /// The opening scripts under `ai/scripts/`, `(file name, text)`:
     /// `economic.bhs`, `defensive.bhs` and the library they include
     /// (`docs/AI.md` §3). Empty when loaded from tables alone.
@@ -1930,6 +1935,10 @@ pub fn load_tables(
     tree.roles.temple_range_preq = [bonus_at(34), bonus_at(35), bonus_at(36)];
     // `ATTRITION1..4` (`0x2dd`): the steps `Leader::calc_attrition` counts.
     tree.roles.attrition_preq = [bonus_at(49), bonus_at(50), bonus_at(51), bonus_at(52)];
+    // `FORAGING_1..3` (`0x2fe..0x300`): Forage, Supply and Logistics in the
+    // shipped file, the tier `Leader::calc_anti_attrition` reads
+    // (`docs/LEADERS.md` §6.2, item 4162).
+    tree.roles.foraging_preq = [bonus_at(82), bonus_at(83), bonus_at(84)];
     // `TROOPS_LOS_1..3` (`0x2e9`): the levels `get_troops_los_upgrade`
     // counts (`docs/VISION.md` §2, term 6).
     tree.roles.troops_los_preq = [bonus_at(61), bonus_at(62), bonus_at(63)];
@@ -2139,6 +2148,17 @@ pub fn load_tables(
             .categories
             .iter()
             .find(|(id, _)| id == "rushrules")
+            .map(|(_, t)| {
+                t.records
+                    .iter()
+                    .map(|r| int(r, "DATA").unwrap_or(0))
+                    .collect()
+            })
+            .unwrap_or_default(),
+        cannon_times: rules
+            .categories
+            .iter()
+            .find(|(id, _)| id == "cannontimes")
             .map(|(_, t)| {
                 t.records
                     .iter()
@@ -2918,6 +2938,7 @@ mod tests {
             starting_resources: vec![],
             pop_wins: vec![],
             rush_minutes: vec![],
+            cannon_times: vec![],
             scripts: vec![],
             gaia_lengths: Default::default(),
             piece_lengths: Default::default(),
