@@ -416,7 +416,19 @@ enough to aim a click and not good enough to score. It also ignores height.
 4. **Silhouettes against a screenshot.** The original's frame, taken at a
    chosen frame (`pause` and `break #` from the console, `docs/ORACLE.md`,
    "The `~` console") and camera (`cheat camera`), is compared with the
-   client's frame on object footprints, never on pixels.
+   client's frame on object footprints, never on pixels. **A second
+   photograph is the first one's take with one staged line** (item 4160,
+   run1564): `3200 camera 192,200` before `3294 pause 1`. The lane's
+   `Console Coord Mode=2` reads it as a tile, and the packet's `Camera`
+   holds `loc` at that tile's centre, (36960, 38496), with zoom, tilt,
+   direction and screen unchanged. The lane profile's `StartReveal=1`
+   already holds the display reveal (`semaphore` bit 1, `run_cmd` case
+   0x57), so no fog darkens a far camera. The window's capture carries a
+   32-row title bar that run1559b's lacks. Cropped by 32 rows, its
+   bottom-left interface matches run1559b's photograph with a mean
+   difference of 8.8, summed over the three channels. The next best
+   offset, 31 rows, gives 25. The camera is `RUN1564_LOC` and the
+   photograph is `ground::tests::run1564`.
 
 **Nothing is pixel-exact at first, and maybe never.** The original draws
 through Direct3D 11, then DXVK, then MoltenVK, then Metal, with its own float
@@ -2042,6 +2054,22 @@ Each line names what would settle it.
   "The ground's base layer") and a mountain's (§3.10); the blends, the
   coast, the cliffs and the water are not, and frame 3279 shows no tile of
   the last three (item 4143, `RUN1559B_3279_UNSCORED`; parked 4143a).
+  **run1564's photograph shows two of them** (item 4160,
+  `RUN1564_3279_CENSUS`): in view, 488 `OCEAN` tiles (437 scoreable),
+  901 `SANDY` (772) and 32 `ROCK` (32). No cell of Great Lakes carries
+  `CLIFF`, so no photograph of this map holds a cliff. The ground's row
+  on it, its rule unchanged, is 709 of 1,920 (`RUN1564_3279_GROUND`).
+  The land agrees on 709 of 711. The water and the shore agree on 0 of
+  1,209, because the client draws them in the debug colours. The
+  shoreline is in register. No plain tile is photographed blue, and no
+  `OCEAN` tile is photographed otherwise. With the camera moved two tiles
+  there are 0 to 3 such tiles, at four up to 40, and at eight up to 142
+  (`RUN1564_3279_SHORE`). This places the camera to about two tiles, the
+  width of the beach, and no closer. Not
+  established by it: the water is drawn at its surface and our tile is
+  the seabed, so a water pixel's tile is the seabed's projection
+  (parked 4160a); and the photograph's frame is taken as 3279 without a
+  mover to clock it (parked 4160b).
 - **Whether `sim` builds for `wasm32-unknown-unknown`.** It is untried, and
   matters only if option A's live variant is wanted.
 - **The licence of ptasev/Rise-of-Nations.** Reading it is fine under the
