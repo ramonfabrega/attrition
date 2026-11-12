@@ -81,7 +81,7 @@ pub struct Building {
     /// `Build::init@00629740` sets it, with `0x8`, on every building that
     /// `can_carry(AIR)`; only the player's repeat-orders toggle
     /// (`Group::action_buildmask(0x80)`) clears it (`docs/ORDERS.md` §40).
-    pub repeat_air: bool,
+    pub repeat_air: bool, // twin of WallData::has_repeat_air
     /// `BuildData::gather`, the gather point list (`crate::cities::rally`): the
     /// player's rally points, in order.
     pub gather: Vec<crate::cities::rally::GatherPoint>,

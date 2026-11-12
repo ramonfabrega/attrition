@@ -128,6 +128,52 @@ the census cannot place mechanically (a third of a sample resolved to a
 caller or a neighbour), and the 579 rows the readers excluded wait on the
 census classes they propose; both are the filler's next rows.
 
+**Item 4170** (the filler's next rows, on `fed71cd2`'s tree, measured
+669 · 336 · 1066 before it): **ported 731 · replaced by design 332 · open
+576 of 3611** (in it: the start track 9, the checksum track 41, the
+rules' 1:1 finish 60; layout 318, name 79, unmarked 179). Four moves, in
+order:
+
+- **The readers' classes, open 1066 → 885.** `census.READER_UI` and
+  `READER_CUT`, each pattern beside the readings that proposed it:
+  - **`ui`**: the border renderer, the terrain and mini-map renderers,
+    the reflection names, the render reads, and the frame pacing.
+  - **`cut`**: the editor, Conquer the World, the shell's game types and
+    multiplayer, the finish line's "not in it, by design".
+
+  A class landed only where no open row it reaches was ported or ruled a
+  twin, absorbed, a differing twin or unmodelled. `Doober::` and `gpiece`
+  failed that test and are not classes. Both marks are shared with
+  `--unbacked`, so a sweep lane no longer draws these rows.
+- **The dead scan, open 885 → 633.** A function the image holds no
+  reference to is `dead`: no rel32 or rel8 branch from another function,
+  and no four-byte copy of its address or RVA at any offset of any
+  section but `.reloc`. This is the blind list's scan run over a set,
+  `census.unreferenced`. `blind::RESIDUE` is `dead` too: two readings
+  ruled no stageable game enters it. The scan covers only rows the marks
+  leave open and no replaced group takes, because the command manager's
+  issuers are called by address from the DLL, which the image does not
+  hold. It takes 191 rows and the residue 60 more; 147 of the 251 the
+  readers had ruled dead. A territory run now needs the executable.
+- **`docs/CHECKSUM.md` §22, ported 669 → 686.** A coverage section lists
+  the 36 walkers of the eight whole checksum lines. It is tied to each
+  line's pinned outcome by
+  `the_coverage_section_is_the_whole_lines_walkers`. Four of the walkers
+  were the order classes' plumbing; a port in a replaced layer stays a
+  port, so replaced is 332.
+- **44 twin rows by hand, 45 spellings, ported 686 → 731.** Each is the crate fn,
+  field or constant the reader's evidence names as the twin, on its
+  closing brace or its line.
+
+The rest of the readers' `walk` class is named the checksum track's, and
+moves no row: the save track's file is seed and orders. 148 `layout`
+twins and absorbed rows stay open:
+
+- 127 whose evidence names no crate fn: a field or an inline copy;
+- 15 whose named fn is a caller, a part or a partial;
+- the 6 class-less globals (`vector_dist`, `project` ×2, `flanking`,
+  `cosx`, `find_angle`), which `SPELLED` cannot spell.
+
 **What it does not measure.** Ported is the census's `port` test: a
 consumer exists, not that its every predicate was checked (a ported
 function can still be wrong). Open counts a layout-only sweep as open

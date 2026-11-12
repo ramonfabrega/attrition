@@ -209,7 +209,7 @@ pub const fn get_stance(holds: bool, stance: u8, kind: StanceType) -> i32 {
         StanceType::Caster | StanceType::Packer => 1,
         StanceType::None => 0,
     }
-}
+} // absorbs BuildData::get_packer_stance; absorbs BuildData::get_caster_stance; absorbs BuildData::get_worker_stance; absorbs BuildData::get_combat_stance
 
 /// `BuildTypeData::get_stance_type@006396c0` — the *building's* kind, which
 /// is what decides whether a unit it trains inherits its stance at all.
@@ -241,7 +241,7 @@ pub fn build_stance_type(types: &[crate::cities::build::BuildType], t: usize) ->
         Ident::Market | Ident::University | Ident::Airbase | Ident::MissileSilo => StanceType::None,
         _ => StanceType::Combat,
     }
-}
+} // twin of BuildTypeData::get_stance_type
 
 /// `Build::init@00629740:92–113` — a **building's** own stance byte
 /// (`Build +0x7e`).

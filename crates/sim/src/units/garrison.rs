@@ -77,7 +77,7 @@ impl Sim {
             limit += (level - 1) * self.tables.tuning.fort_garrison_upgrade;
         }
         limit
-    }
+    } // twin of WallData::get_garrison_limit; twin of BuildTypeData::get_garrison_limit
 
     /// `UnitTypeData::can_garrison(unit type, building type)`.
     pub fn can_garrison(&self, unit_ty: usize, build_ty: usize) -> bool {
@@ -345,7 +345,7 @@ impl Sim {
                 self.set_anim(f, crate::units::anim::DEFAULT, true, true);
             }
         }
-    }
+    } // absorbs ObjectData::inside_bottom
 
     /// `Unit::come_out@00617c10`: the squad leaves onto the exit ring.
     ///

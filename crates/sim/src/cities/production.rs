@@ -368,7 +368,7 @@ pub fn time_by(spell: bool, held: impl FnOnce() -> bool, job_time: i32, res_time
     } else {
         job_time.wrapping_mul(TIME_SCALE)
     }
-}
+} // twin of TypeData::time
 
 /// `TypeData::research_time@006639a0`: a spell costs `res_time · 100`; anything else asks `time` (the record's
 /// slot `+0x6c`, [`time_by`] for a type this crate prices) and takes [`research_tick`] of it with

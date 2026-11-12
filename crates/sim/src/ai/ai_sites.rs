@@ -370,7 +370,7 @@ impl Sim {
             Pos::new(wx * UNITS_PER_CELL, wy * UNITS_PER_CELL),
             None,
         ) == Blocked::Clear
-    }
+    } // twin of BuildTypeData::blocked_town
 
     /// The reference objects `compute_sites` hands `compute_site_stats`:
     /// with cities of mine in the region, the nearest friendly city (and

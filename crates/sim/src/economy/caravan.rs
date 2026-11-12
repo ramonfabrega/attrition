@@ -740,7 +740,7 @@ impl Sim {
     fn trade_distance(&self, pa: crate::world::Cell, pb: crate::world::Cell) -> i32 {
         let d = crate::world::vector_dist(pa.x - pb.x, pa.y - pb.y);
         distance_band(d, self.world.width())
-    }
+    } // twin of Caravan::distance
 
     /// `CityData::get_trade_value@007363f0`: the city's building count, plus
     /// two for a Large City and four for a Major City or better.
@@ -791,7 +791,7 @@ impl Sim {
             van.reset_road = false;
         }
         false
-    }
+    } // absorbs PathFinder::find_road_restore
 
     /// One frame's worth of the route's road plan.
     ///
