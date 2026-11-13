@@ -7269,8 +7269,10 @@ pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 /// and the lost capital's nine, the six of them this level prints
 /// (`defeated_by`, the lost capital's three and the wonder clock's two;
 /// +6 a leader); 151 since item 4187 compares `score`, the one of its new
-/// keys this level prints (+1 a leader).
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 151;
+/// keys this level prints (+1 a leader); 168 since item 4159's step VII-b1
+/// compares the declaration's `blacken`, `dow[·]` and `broke_alliance[·]`
+/// (+17 a leader).
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 168;
 /// The leader keys `LEADERS=2` prints and the leader diff reads, a
 /// player: the goods block's 88, `gov` since item 706, and the three tech
 /// counters since item 883 (`docs/GOLDEN.md` §35); 93 since item 4185
@@ -7291,8 +7293,11 @@ pub(crate) const LEADERS_TWO_KEYS: usize = 94;
 /// move; 1285 since item 4185 compares the end of the game's six and the
 /// lost capital's three (+9 a leader); 1610 since item 4187 compares
 /// `score`, `territory_high`, `tech`, `num_buildings[·]` and
-/// `high_buildings[·]` (129 each) and `reg_terr[·]` (64): +325 a leader.
-pub(crate) const LEADERS_NINE_KEYS: usize = 1610;
+/// `high_buildings[·]` (129 each) and `reg_terr[·]` (64): +325 a leader;
+/// 1627 since item 4159's step VII-b1 compares the declaration's
+/// `blacken`, `dow[·]` and `broke_alliance[·]` (+17 a leader; `LEADERS=2`
+/// prints none of them).
+pub(crate) const LEADERS_NINE_KEYS: usize = 1627;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,
