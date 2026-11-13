@@ -2413,7 +2413,7 @@ a line whole on the game**. Measured: the walk to cities' 4030 takes 5.4 s in re
 
 **Item 4218 moved two.** Units 1 → 129: the parting on 1 to 30, 96 and 101 to 299 was `SubObjectData::flags & 0x08`,
 the latch `Unit::check_idle@006032c0:64` raises (`| 0x18`) on a unit's first idle frame and `Unit::work@0060d180:276`
-drops (`& 0xf7`) when an order reaches it. The crate held it (`Unit::idle_latch`) and the emitter left the bit out.
+clears it when an order reaches it. The crate held it (`Unit::idle_latch`) and the emitter left the bit out.
 Value diff on frame 1: unit 0 (`0/0`) `flags` ours 0x41, theirs 0x49 → both 0x49. Units now first part on 129, guys'
 frame (4214d), ours 2850640222 theirs 2564863054. World 0 → whole on all 24,000 (§24.4, the start).
 
