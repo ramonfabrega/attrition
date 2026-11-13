@@ -1702,7 +1702,8 @@ goods exchange (§8):
 
 - **No writer exists.** No `action_declare`, `action_respond`,
   `Diplomacy` record or hire model. `Sim::set_diplo` is
-  `crates/sim/src/leaders/relations.rs:116`, `Sim::declare_war` `:294`.
+  `crates/sim/src/leaders/relations.rs:134`, `Sim::declare_war` `:309`
+  (since item 4207 `set_diplo` at level 0).
   The counting and `broke_alliance` go in a new `Sim::action_declare` beside
   `set_diplo`, never in `set_diplo` (whose `_` arm an accepted treaty also
   calls), and never in `end_the_peace` or the console verb.
@@ -1791,9 +1792,39 @@ there.** Our walk holds run1575 to 1099 and parts on a guard's idle stand
 Here is why. The French answer in `Leader::diplomacy (006bc950)`'s offers
 arm. `action_respond`'s treaty arm then calls `Leader::set_diplo (006ec6a0)`
 with the French as `this`. The original's `set_diplo` ends in
-`Armies::diplo_change (006f30f0)(this)` on every level. **`Sim::set_diplo`
+`Armies::diplo_change (006f30f0)(this)` on every level. ~~**`Sim::set_diplo`
 (`crates/sim/src/leaders/relations.rs:116`) runs it only on level 0, through
-`declare_war`, and only when the pair was not already at war.**
+`declare_war`, and only when the pair was not already at war.**~~ Answered
+by item 4207, below.
+
+**`set_diplo`'s armies rule, ported (item 4207, step VII-a′).** Read from
+`Leader::set_diplo (006ec6a0)`:
+- a set equal to `this->diplos[whom]` (one direction) returns before
+  every step;
+- on a change the level is stored both ways, and then
+  `Armies::diplo_change(this->who)` runs **on every level**, 0, 1 and 2,
+  for `this`'s armies alone, never `whom`'s.
+
+`Sim::set_diplo` (`crates/sim/src/leaders/relations.rs:134`) now does
+this. `Sim::declare_war` is `set_diplo` at level 0. `Sim::end_the_peace`
+goes through it as `Game::do_frame`'s `set_diplo(i, j, 0)` does, so a
+computer declarer's armies run there too. `Sim::init_diplos` does not,
+because `Leader::init` writes `diplos` directly.
+
+The take's walk now stages the window's diplomacy off the take's own
+record (`diff::diplomacy_take::take_diplomacy`):
+- each `process_declare` becomes the human's `set_diplo`;
+- each `process_accept` whose answer moves `diplos` on the record becomes
+  the answerer's `set_diplo`, the French as `this`;
+- the alliance answered short on 1051 stages nothing.
+
+This stands in for the offers arm, which is still a SEAM. With it,
+**run1575 holds whole, 1150 of 1150, with no probe**
+(`run1575_s_word_is_pinned_as_found`). Under the declaration-only rule
+the same staged walk parts on 1099, as before, so the rule is what moves
+the word. Not ported from the same body: the alliance-break eject, the
+`ally_mask` bits (4206c), the third-party message, the alliance's victory
+test (§10.2) and `recalc_borders`.
 
 ### 7.6 Not established
 

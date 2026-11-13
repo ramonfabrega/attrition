@@ -82,8 +82,6 @@ impl Sim {
         // SEAM: team style 7's neutral leaders (`LeaderData::is_neutral`,
         // a player on team 8) neither declare nor are declared on — the
         // crate carries no lobby team, and every capture is style 1.
-        // SEAM: `Armies::diplo_change` for a computer declarer (a lobby
-        // whose slot 0 is a computer) — `Army::process(army, 1)`.
         // The `+0x1f4` zeroed for each leader in play is **`attrition_stamp`**
         // (the base is the leader slot, `docs/LEADERS.md` §5.2), not the
         // editor's `update_leader_list`.
@@ -98,17 +96,16 @@ impl Sim {
                     continue;
                 }
                 if !self.allied_both(i, j) && self.not_at_war(i, j) {
-                    self.leaders.at_war[i][j] = true;
-                    self.leaders.at_war[j][i] = true;
-                    self.leaders.allied[i][j] = false;
-                    self.leaders.allied[j][i] = false;
+                    // `Leader::set_diplo(i, j, 0)`: both ways, then
+                    // `Armies::diplo_change(i)` (item 4207).
+                    self.set_diplo(i as Player, j as Player, 0);
                 }
             }
         }
     }
 
     /// `diplos[a][b]`: 0 war, 1 peace, 2 allied; a leader's own slot is 2.
-    fn diplos(&self, a: usize, b: usize) -> i32 {
+    pub(crate) fn diplos(&self, a: usize, b: usize) -> i32 {
         if a == b || self.leaders.allied[a][b] {
             2
         } else if self.leaders.at_war[a][b] {

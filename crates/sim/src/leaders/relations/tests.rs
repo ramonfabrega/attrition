@@ -86,3 +86,45 @@ fn an_unlocked_style_opens_at_peace_and_conquest_writes_nothing() {
     let (war, ally) = rows(&mut sim, &seats);
     assert!(war[0][2] && !war[2][0] && !ally[0][1]);
 }
+
+/// **`Leader::set_diplo@006ec6a0` runs `this`'s armies on every level**
+/// (item 4207): a change to war, peace or alliance runs `Armies::
+/// diplo_change(a)` — `a`'s armies, never `b`'s — and a same-value set
+/// (`a`'s view of `b`) runs nothing. Observed through `Army::process`'s
+/// first act, the `human_frame` countdown.
+#[test]
+fn set_diplo_runs_this_leader_s_armies_on_every_level_and_only_on_a_change() {
+    let mut sim = Sim::new(Tuning::RON, World::new(2, 2), 3);
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
+    sim.cities.nation[2].human = false;
+    let one = sim.init_army(1, None);
+    let two = sim.init_army(2, None);
+    sim.ai.armies[1].list[one].human_frame = 100;
+    sim.ai.armies[2].list[two].human_frame = 100;
+    let frames = |s: &Sim| {
+        (
+            s.ai.armies[1].list[one].human_frame,
+            s.ai.armies[2].list[two].human_frame,
+        )
+    };
+    sim.set_diplo(1, 0, 1);
+    assert_eq!(frames(&sim), (100, 100), "peace on peace: no change");
+    sim.set_diplo(1, 2, 2);
+    assert_eq!(frames(&sim), (99, 100), "to alliance: this's armies only");
+    assert!(sim.is_ally(1, 2) && !sim.is_enemy(1, 2));
+    sim.set_diplo(1, 2, 1);
+    assert_eq!(frames(&sim), (98, 100), "to peace");
+    assert!(!sim.is_ally(1, 2) && !sim.is_enemy(1, 2));
+    sim.set_diplo(1, 2, 0);
+    assert_eq!(frames(&sim), (97, 100), "to war");
+    assert!(sim.leaders.at_war[1][2] && sim.leaders.at_war[2][1]);
+    sim.set_diplo(2, 1, 0);
+    assert_eq!(frames(&sim), (97, 100), "war on war: no change");
+    sim.set_diplo(2, 1, 1);
+    assert_eq!(frames(&sim), (97, 99), "the other side as this");
+    sim.declare_war(1, 2);
+    assert_eq!(frames(&sim), (96, 99), "declare_war is set_diplo at 0");
+    sim.declare_war(1, 2);
+    assert_eq!(frames(&sim), (96, 99), "and a repeat is no change");
+}

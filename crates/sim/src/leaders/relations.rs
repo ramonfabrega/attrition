@@ -106,36 +106,49 @@ impl Sim {
         a != b && (self.at_war_with(a, b) || self.at_war_with(b, a))
     }
 
-    /// `Leader::set_diplo(whom, level)` as the console's three verbs reach
-    /// it — `ally` 2, `peace` 1, `war` 0 (`run_cmd` cases 0x2c–0x2e,
-    /// `docs/INPUT.md` §11). The table this crate keeps is two booleans,
-    /// so only the ends of that scale are modelled: 0 is
-    /// [`Sim::declare_war`], 2 sets the alliance both ways, and 1 clears
-    /// both. SEAM: the original's `diplos` byte carries more than three
-    /// values (met, tribute state) and none of that is here.
+    /// `Leader::set_diplo@006ec6a0(whom, level)` with `a` as `this`
+    /// (`docs/LEADERS.md` §10.2). The table this crate keeps is two
+    /// booleans, read as the original's three levels by [`Sim::diplos`]:
+    /// 0 war, 1 peace, 2 allied; any other level is taken as 1.
+    ///
+    /// - **A same-value set does nothing**: the original compares
+    ///   `this->diplos[whom]` (`a`'s view of `b`, one direction) with the
+    ///   level and returns before every other step.
+    /// - On a change it stores the level both ways, and then — **on every
+    ///   level**, war, peace or alliance — runs `Armies::diplo_change
+    ///   @006f30f0(this)`: `a`'s armies, never `b`'s (item 4207; before it
+    ///   this crate ran it on a declaration alone, and run1575's French
+    ///   accept of a peace parted on 1099).
+    ///
+    /// Its callers in the original are the console (`run_cmd` cases
+    /// 0x2c–0x2e, `this` the console's leader), `Leader::action_declare`,
+    /// `action_respond`'s treaty arm, `ally_diplo`, the peace's end in
+    /// `Game::do_frame` ([`Sim::end_the_peace`]) and `gain_tech`'s war arm.
+    /// `Leader::init` writes `diplos` directly and runs no army
+    /// ([`Sim::init_diplos`]).
+    ///
+    /// SEAM: the rest of the body — `eject_my_shit_from_his_ass` and the
+    /// `ally_mask` (`+0x6929`) bits on leaving and entering an alliance,
+    /// the third-party message, the alliance's victory test and
+    /// `recalc_borders` — is not carried here (`docs/LEADERS.md` §10.2).
     pub fn set_diplo(&mut self, a: Player, b: Player, level: i32) {
         let (x, y) = (a as usize, b as usize);
         if x >= self.leaders.at_war.len() || y >= self.leaders.at_war.len() || x == y {
             return;
         }
-        match level {
-            0 => {
-                self.leaders.allied[x][y] = false;
-                self.leaders.allied[y][x] = false;
-                self.declare_war(a, b);
-            }
-            2 => {
-                self.leaders.at_war[x][y] = false;
-                self.leaders.at_war[y][x] = false;
-                self.leaders.allied[x][y] = true;
-                self.leaders.allied[y][x] = true;
-            }
-            _ => {
-                self.leaders.at_war[x][y] = false;
-                self.leaders.at_war[y][x] = false;
-                self.leaders.allied[x][y] = false;
-                self.leaders.allied[y][x] = false;
-            }
+        let level = match level {
+            0 | 2 => level,
+            _ => 1,
+        };
+        if self.diplos(x, y) == level {
+            return;
+        }
+        for (p, q) in [(x, y), (y, x)] {
+            self.leaders.at_war[p][q] = level == 0;
+            self.leaders.allied[p][q] = level == 2;
+        }
+        if x < self.ai.armies.len() {
+            self.armies_diplo_change(a);
         }
     }
 
@@ -290,16 +303,11 @@ impl Sim {
         events
     }
 
-    /// Sets two players at war with each other.
+    /// `a` declares war on `b`: [`Sim::set_diplo`] at level 0, so the
+    /// alliance is broken both ways and `a`'s armies run on a change
+    /// (`docs/ARMY.md` §15.9).
     pub fn declare_war(&mut self, a: Player, b: Player) {
-        let changed = !self.leaders.at_war[a as usize][b as usize];
-        self.leaders.at_war[a as usize][b as usize] = true;
-        self.leaders.at_war[b as usize][a as usize] = true;
-        // `Leader::set_diplo` → `Armies::diplo_change` on the declarer
-        // (`docs/ARMY.md` §15.9).
-        if changed && (a as usize) < self.ai.armies.len() {
-            self.armies_diplo_change(a);
-        }
+        self.set_diplo(a, b, 0);
     }
 }
 
