@@ -329,7 +329,8 @@ fn entry_pieces(name: &str, by_graph: &BTreeMap<String, Vec<i32>>) -> Option<Vec
 /// `num_bird_pieces` `0x24`: three variants for each of the twelve gaia
 /// types `0x192..0x19e`, `get_type@00902540` reading a piece back as
 /// `(piece - first_bird_piece) / 3 + 0x192`.
-pub const FIRST_BIRD_PIECE: i32 = 0xea8d;
+/// Defined once, in the sim (`sim::units::anim::FIRST_BIRD_PIECE`, item 4208).
+pub use sim::units::anim::FIRST_BIRD_PIECE;
 
 /// **A gaia entry's pieces** (item 4028): `{GRAPH}-TYPE{v}` is piece
 /// `first_bird_piece + 3·(TypeIndex − 0x192) + v`.
