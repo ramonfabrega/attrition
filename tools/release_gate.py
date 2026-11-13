@@ -55,6 +55,12 @@ data-crate file each ran the binaries for eleven minutes apiece); the receipt's
 `sim_crate` says which. On such a lane a `--tests` filter whose every
 match is a sim test is dropped and named (`Lane filter dropped:`, Loop
 3823) rather than turning the gate red for matching nothing that ran.
+Since the pass of 2026-11-13 (second, DECISIONS 132 §6) a lane that touches
+no path under `crates/client/` or `crates/render/` — nor the four workspace
+inputs — leaves the client crate's targets, its wall-clock `clock` test
+among them, to the booking gate the same way (`client_crate_left`; the
+receipt's `client_crate`), and drops a filter whose every match is a client
+test.
 
 The census pin runs in every lane gate (a lane pin, `LANE_PINS`) and its red is
 forgiven as the commander's line (Loop 2367); since the seventy-fifth pass
@@ -523,6 +529,36 @@ def sim_crate_left(touched, *, lane, whole):
                 and not any(p.startswith(SIM_BUILD_INPUTS) for p in touched))
 
 
+# **The client crate's targets, the same way** (the pass of 2026-11-13,
+# second; DECISIONS 132 §6). The client's clock test
+# (`crates/client/tests/clock.rs`) is a wall-clock ceiling test: it ran
+# 218–362 s beside the rondata lib on lanes 4200 and 4203, and it is behind
+# 2 of the 7 red gate logs on disk (4171, 4179), both under load — p99 over
+# its ceiling, green on the next run. TIMINGS times the data crate alone, so
+# no budget ever left it, and with a lane's own budget at zero the data
+# crate's library no longer hides it: its side lane (the clock, the client
+# lib's 43–75 s) becomes the release step's wall. A branch that touches no
+# path under `crates/client/` or `crates/render/` (the painter the client
+# draws with) — nor the workspace manifest, the lock, the toolchain pin or
+# cargo's config — leaves the client's targets to the booking gate, which
+# runs them on the merged tree; lane mode only, never under `--whole`, and
+# widened or not, as the sim crate's cut. The render and fixed crates'
+# own targets keep running: 0–239 s and 0–52 s on those lanes' report dirs,
+# and a render lane's own.
+CLIENT_PACKAGE = 'client'
+CLIENT_BUILD_INPUTS = ('crates/client/', 'crates/render/', 'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml',
+                       '.cargo/')
+
+
+def client_crate_left(touched, *, lane, whole):
+    """Whether a lane gate leaves the client crate's test targets (its lib
+    and `clock`) to the booking gate: a lane, not `--whole`, whose branch
+    (`touched`, None when the base is not a ref) touches nothing under
+    `CLIENT_BUILD_INPUTS` — widened or not (DECISIONS 132 §6)."""
+    return bool(lane and not whole and touched is not None
+                and not any(p.startswith(CLIENT_BUILD_INPUTS) for p in touched))
+
+
 # Loop 3823 (the sixty-fifth pass): `map_lakes` and `terrain_groups`, tests
 # in `crates/sim` alone, passed 3819's brief — `brief.py` lists the whole
 # workspace's tests (Loop 3818) — and its first lane gate exited 2 on them
@@ -543,9 +579,15 @@ def sim_only_filters(tests, by_crate):
     return brief.sim_only(tests, by_crate)
 
 
-def dropped_line(t):
-    return (f'Lane filter dropped: {t} — every match is in crates/sim, which this lane left to the '
-            'booking gate (Loop 3823)')
+def client_only_filters(tests, by_crate):
+    """The filters whose every live match is in the client crate (`brief.only_in`)."""
+    import brief
+    return brief.only_in(tests, by_crate, CLIENT_PACKAGE)
+
+
+def dropped_line(t, crate='crates/sim', why='Loop 3823'):
+    return (f'Lane filter dropped: {t} — every match is in {crate}, which this lane left to the '
+            f'booking gate ({why})')
 
 
 def branch_paths(base, run=subprocess.run):
@@ -924,13 +966,23 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     sim_left = sim_crate_left(touched, lane=lane, whole=whole)
     sim_clause = ("; the sim crate's test binaries left to the booking gate — no path under "
                   f"{SIM_CRATE} touched (Loop 3653)" if sim_left else '')
+    client_left = client_crate_left(touched, lane=lane, whole=whole)
+    client_clause = ("; the client crate's test targets left to the booking gate — no path under "
+                     "crates/client/ or crates/render/ touched, and its clock test is a wall-clock "
+                     "ceiling a loaded host fails (DECISIONS 132 §6)" if client_left else '')
+    left_packages = (['sim'] if sim_left else []) + ([CLIENT_PACKAGE] if client_left else [])
     install = Path(install).resolve()
     if not (install / 'Data/rules.xml').is_file():
         raise ValueError(f'not an install: missing {install / "Data/rules.xml"}')
-    dropped = sim_only_filters(tests, crate_tests()) if sim_left and tests else []
-    tests = [t for t in tests if t not in dropped]
+    by_crate = crate_tests() if (sim_left or client_left) and tests else {}
+    dropped = sim_only_filters(tests, by_crate) if sim_left and tests else []
+    client_dropped = client_only_filters(tests, by_crate) if client_left and tests else []
+    tests = [t for t in tests if t not in dropped and t not in client_dropped]
     for t in dropped:
         print(dropped_line(t), flush=True)
+    for t in client_dropped:
+        print(dropped_line(t, 'crates/client', 'DECISIONS 132 §6'), flush=True)
+    dropped = dropped + client_dropped
     if report_dir is None:
         report_dir = Path(tempfile.mkdtemp(prefix='attrition-gate-'))
     else:
@@ -978,7 +1030,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                           'paperwork_kept': len(paperwork), 'base': base, 'widened': widened,
                           'row_only': row_only, 'dropped': dropped,
                           'base_overlap': base_overlap,
-                          'sim_crate': 'left to the booking gate' if sim_left else 'run'}
+                          'sim_crate': 'left to the booking gate' if sim_left else 'run',
+                          'client_crate': 'left to the booking gate' if client_left else 'run'}
     (report_dir / 'gate-policy.json').write_text(json.dumps(policy, indent=2) + '\n')
     # No game launch: rondata surveys the user's data files.
     #
@@ -1013,14 +1066,14 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         ['zsh', 'tools/guard.sh', '--built'],
         ['zsh', 'tools/memcap.sh', str(min(32, memory_cap_gib(test_threads))), 'cargo', 'test', '--release',
          '--no-fail-fast']
-        + (['--workspace', '--exclude', 'sim'] if sim_left else [])
+        + (['--workspace'] + [a for p in left_packages for a in ('--exclude', p)] if left_packages else [])
         + ['--', f'--test-threads={test_threads}']
         + (['--exact'] + [arg for name in skips for arg in ('--skip', name)] if (lane or scope is not None) else []),
     ]
     if isolated:
         commands[RELEASE_STEP] = ([sys.executable, 'tools/isolated_tests.py', '--release',
                         '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads)]
-                       + (['--exclude-package', 'sim'] if sim_left else [])
+                       + [a for p in left_packages for a in ('--exclude-package', p)]
                        + [arg for name in skips for arg in ('--skip', name)])
     if scope is not None:
         print((f"Booking gate scoped to {scope}: " +
@@ -1036,16 +1089,16 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         print(f"Lane suite: {budget_clause(skips, budget)} "
               f"booking gate by the brief's --no-widen, though the branch touches {len(widened)} path(s) "
               f"that can move a pin ({widened[0]}{', …' if len(widened) > 1 else ''}); the booking gate "
-              "holds the pins (DECISIONS 83)" + kept_line(paperwork, kept), flush=True)
+              "holds the pins (DECISIONS 83)" + kept_line(paperwork, kept) + client_clause, flush=True)
     elif lane and widened:
         print(f"Lane suite: every timed test — the branch touches {len(widened)} path(s) that can move "
               f"the diff:: pins ({widened[0]}{', …' if len(widened) > 1 else ''}; Loop 2415); "
-              f"the word's: {', '.join(tests)}" + sim_clause, flush=True)
+              f"the word's: {', '.join(tests)}" + sim_clause + client_clause, flush=True)
     elif lane:
         print(f"Lane suite: {budget_clause(skips, budget)} "
               f"booking gate ({TIMINGS.relative_to(ROOT)}); the word's: {', '.join(tests)}"
               + (f"; base {base} is not a ref here, so nothing widened" if touched is None else '')
-              + kept_line(paperwork, kept) + sim_clause, flush=True)
+              + kept_line(paperwork, kept) + sim_clause + client_clause, flush=True)
     reached = []
     seconds = []
     verdicts = []

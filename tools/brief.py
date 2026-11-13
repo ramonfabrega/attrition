@@ -331,10 +331,17 @@ def sim_only(tests, by_crate):
     elsewhere, at least one there (Loop 3823). A lane gate that leaves the
     sim crate to the booking gate (`sim_crate_left`, Loop 3653) runs none
     of their tests; one that matches nothing anywhere is not among them."""
-    def live(crate, t):
-        return any(t in n and not ignored for n, ignored in by_crate.get(crate, {}).items())
-    return [t for t in tests if live(SIM_CRATE, t)
-            and not any(live(c, t) for c in by_crate if c != SIM_CRATE)]
+    return only_in(tests, by_crate, SIM_CRATE)
+
+
+def only_in(tests, by_crate, crate):
+    """The filters whose every live match is a test of `crate` — the rule
+    `sim_only` reads for the sim crate and `release_gate.py` for the client
+    (`client_crate_left`, DECISIONS 132 §6)."""
+    def live(c, t):
+        return any(t in n and not ignored for n, ignored in by_crate.get(c, {}).items())
+    return [t for t in tests if live(crate, t)
+            and not any(live(c, t) for c in by_crate if c != crate)]
 
 
 def filters(kind, tests):
