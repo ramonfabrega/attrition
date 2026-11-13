@@ -279,3 +279,68 @@ fn the_door_carries_the_round_s_piece_and_the_corpse_s() {
         "and the first's on 40"
     );
 }
+
+/// **The leaders behind the door** (item 4198, `docs/HUD.md` §4): one
+/// [`LeaderScene`] per player slot, each a copy of the ledger, the muster
+/// and the tech record it reads — on every frame of a soak game, and on a
+/// sim whose every copied field holds a value of its own, so a field read
+/// from its neighbour parts. Made to fail once by reading `rate` for
+/// `income`.
+#[test]
+fn a_leader_scene_is_the_records_it_copies() {
+    let check = |sim: &Sim| {
+        let scene = sim.observe(None);
+        assert_eq!(scene.leaders.len(), sim.tech.len());
+        for (who, l) in scene.leaders.iter().enumerate() {
+            let (t, e, m) = (
+                &sim.tech[who],
+                &sim.economy.ledgers[who],
+                &sim.roster.muster[who],
+            );
+            assert_eq!(usize::from(l.who), who);
+            assert_eq!((l.tribe, l.ages), (t.tribe, t.ages));
+            assert_eq!((l.bucket, l.income), (e.bucket, e.income));
+            assert_eq!((l.control, l.pop_cap), (m.control, m.cap));
+            for g in 0..6 {
+                assert_eq!(
+                    l.over_cap[g],
+                    e.over_cap[g] != crate::economy::OverCap::Under
+                );
+            }
+        }
+        scene
+    };
+    play_with(7, 300, |sim| {
+        check(sim);
+    });
+    let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(8, 8), 2);
+    for who in 0..2 {
+        let k = who as i32 * 1000;
+        let e = &mut sim.economy.ledgers[who];
+        e.bucket = std::array::from_fn(|g| k + 10 + g as i32);
+        e.income = std::array::from_fn(|g| k + 20 + g as i32);
+        e.rate = std::array::from_fn(|g| k + 30 + g as i32);
+        e.over_cap[2] = crate::economy::OverCap::At;
+        sim.roster.muster[who].control = k + 41;
+        sim.roster.muster[who].cap = k + 42;
+        sim.tech[who].ages = who as i32 + 3;
+    }
+    let scene = check(&sim);
+    assert_eq!(
+        scene.leaders[1].bucket,
+        [1010, 1011, 1012, 1013, 1014, 1015]
+    );
+    assert_eq!(scene.leaders[1].income[0], 1020);
+    assert_eq!(
+        scene.leaders[1].over_cap,
+        [false, false, true, false, false, false]
+    );
+    assert_eq!(
+        (
+            scene.leaders[1].control,
+            scene.leaders[1].pop_cap,
+            scene.leaders[1].ages
+        ),
+        (1041, 1042, 4)
+    );
+}
