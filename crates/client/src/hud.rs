@@ -55,6 +55,7 @@ pub const GOODS: [&str; 6] = ["FOOD", "TIMBER", "WEALTH", "KNOWLEDGE", "METAL", 
 pub struct Names {
     pub units: Vec<String>,
     pub builds: Vec<String>,
+    pub techs: Vec<String>,
 }
 
 impl Names {
@@ -62,20 +63,25 @@ impl Names {
         Names {
             units: loaded.unit_names.clone(),
             builds: loaded.build_names.clone(),
+            techs: loaded.tech_names.clone(),
         }
     }
 
     /// The name of the type a `TypeIndex` names: a unit's from
     /// `BASE_UNITTYPES` (0x32, the Citizen first), a building's from
-    /// `BASE_BUILDTYPES` (`rondata::load::Loaded::type_index`).
+    /// `BASE_BUILDTYPES` (`rondata::load::Loaded::type_index`), a
+    /// technology's from `BASE_TECHTYPES` (0x220; The Art of War, the
+    /// attacked script's research, item 4195).
     pub fn of_type_index(&self, ti: i32) -> String {
-        use rondata::load::{BASE_BUILDTYPES, BASE_UNITTYPES};
+        use rondata::load::{BASE_BUILDTYPES, BASE_TECHTYPES, BASE_UNITTYPES};
         let at = |table: &[String], base: i32| {
             usize::try_from(ti - base)
                 .ok()
                 .and_then(|i| table.get(i).cloned())
         };
-        let name = if ti >= BASE_BUILDTYPES {
+        let name = if ti >= BASE_TECHTYPES {
+            at(&self.techs, BASE_TECHTYPES)
+        } else if ti >= BASE_BUILDTYPES {
             at(&self.builds, BASE_BUILDTYPES)
         } else {
             at(&self.units, BASE_UNITTYPES)
