@@ -529,7 +529,7 @@ an assumption the dump cannot settle.
 | oil claims | a replay off the owners | the walk's territory | built; whole comparison |
 | the sync word | the trace's last word | the walk | built; block |
 | a building's `z` | the setup block | its own terraform | not read by the simulation (the renderer's) |
-| a cell's `down`, `down_who` | the dump's chain heads | the map's (−1, −2, −3) | dump-only as cell bytes: the simulation threads its chains in `terrain.chain_heads`; 28 cells differ; not established that anything reads the cell's copy |
+| a cell's `down`, `down_who` | the dump's chain heads | the map's (−1, −2, −3) | dump-only as cell bytes: the simulation threads its chains in `terrain.chain_heads`; 28 cells differ. ~~Not established that anything reads the cell's copy~~: the world line prints it (`object_head_words`), and a box's −3 goes −1 when the box is taken (item 4209, `docs/GOODY.md` §4) |
 | corrections: frame words, clocks, re-seats | the siblings' `DUMP_ALL` | none | not taken by either walk of §7.4 |
 
 **The counts**: 37 takes. **Built 25**, equal on every comparison since
@@ -648,8 +648,8 @@ walk's word is 0, first parting `Unit::think_scout+0x64c` against
   `Map::init_map_data` (Great Lakes names none, and the built start does
   not read one).
 - **Not established**: §7.3's three; which of `squad_size`'s two values
-  the walk reads (it agrees either way); whether anything reads a cell's
-  own `down` copy; the original's frame-0 `new_rares` (its count's
+  the walk reads (it agrees either way); ~~whether anything reads a cell's
+  own `down` copy~~ (the world line does; item 4209); the original's frame-0 `new_rares` (its count's
   first print is frame 91's `known_rares 1` for seat 1, which ours
   holds; item 4093); ~~the gaia pieces'
   source~~ (item 4208, §7.1: `get_unit_gpiece`'s gaia arm over the

@@ -221,7 +221,11 @@ pub(crate) const RENDER_M: usize = RENDER_M_PIECES + RENDER_M_BUILDING_TYPES;
 /// (−1)** — the read door stopped reporting a unit at no health (the
 /// original has taken it out of its object array; `1/68`'s number is a
 /// new plane's by 2701), and piece 265 was played only by such a record.
-pub(crate) const RENDER_M_PIECES: usize = 38;
+/// Item 4208: **39 (+1)**, the birds' 60045: owner 9's figures had no
+/// piece (−1, left out) until `Sim::gaia_piece` gave them
+/// `get_unit_gpiece`'s gaia arm's. No dump prints a bird, so the piece
+/// counts toward M and not K ([`FIGURES_UNPRINTABLE`]).
+pub(crate) const RENDER_M_PIECES: usize = 39;
 
 /// M's building types: the distinct `orig_type` of the captures' building
 /// records, the start's and run1429b's window (run1429 prints none past the
@@ -245,8 +249,10 @@ pub(crate) const RUNNER_BUILDING_TYPES: usize = 23;
 /// `unit_node_from_gpiece@00901c30`), and decode. 38322's one failing file,
 /// `ceo_crew3_idle3.bha` (not in the install), is `CHAR_IDLE2`'s, which the
 /// run never plays: condition 1 is read on the captured slots, as §5.4
-/// writes it (`PieceDecoding::decodes_on`, [`played_slots`]).
-pub(crate) const M_PIECES_DECODING: (usize, usize) = (38, 38);
+/// writes it (`PieceDecoding::decodes_on`, [`played_slots`]). Item 4208:
+/// **39 of 39**, +1: gaia's bird, 60045 (`WILDBIRD-TYPE0`), which the run's
+/// birds carry since `Sim::gaia_piece`, decodes ([`FIGURES_UNPRINTABLE`]).
+pub(crate) const M_PIECES_DECODING: (usize, usize) = (39, 39);
 
 /// M's building types whose art resolves and decodes (item 4028),
 /// `(decoding, M's types, the pieces the dumps print for them, files
@@ -896,6 +902,23 @@ pub(crate) const FRAMES_IN_REGISTER: (usize, usize) = (35, 35);
 /// those frames (item 4026: 3840 of 3842; item 4027: 3842 of 3842, +2).
 pub(crate) const FIGURES_IN_REGISTER: (usize, usize) = (3842, 3842);
 
+/// **The figures the dump cannot print** (item 4208): `(figures, logged
+/// frames they fall on)` drawn by us, of an owner no `UNITDATA` of the
+/// capture carries. run1429's carry owners 0, 1 and 8 only. Gaia's birds
+/// (owner 9, hatched by `Objects::process_all`) have no record in any dump
+/// (`diff::setup`'s gaia-lengths test), so the dump cannot say where one
+/// stands, or that it is absent. Until item 4208 a bird had no piece and
+/// the draw list skipped it. Now it carries `get_unit_gpiece`'s gaia arm's
+/// 60045 (`WILDBIRD-TYPE0`) and is drawn. It is kept out of the register,
+/// and so is its piece out of K (condition 2 unmet, as for a building,
+/// `docs/RENDERER.md` §5.4), and counted here. The photograph is what
+/// would back a bird.
+pub(crate) const FIGURES_UNPRINTABLE: (usize, usize) = (BIRDS_DRAWN, 34);
+
+/// [`FIGURES_UNPRINTABLE`]'s figures: run1429's birds over the logged
+/// frames from 101 (item 4208).
+const BIRDS_DRAWN: usize = 280;
+
 /// **§5.4's K**: of M's pieces, those whose model and slots decode
 /// (condition 1, `artdata::piece_decoding`) and whose every logged frame
 /// is in register wherever a figure plays it (condition 2), and the two
@@ -910,7 +933,10 @@ pub(crate) const FIGURES_IN_REGISTER: (usize, usize) = (3842, 3842);
 /// list carries no building, so condition 2 is unmet, not vacuous
 /// (`docs/RENDERER.md` §5.4): **K 38 of M 59**. Item 4035: renamed from
 /// `RENDER_K`, now the pieces' half beside [`RENDER_K_BUILDINGS`]; 38.
-pub(crate) const RENDER_K_PIECES: (usize, usize, usize, usize) = (38, 38, 38, 38);
+/// Item 4208: (38, 38, 38, 38) → **(38, 39, 38, 39)**: the birds' 60045
+/// joins M and decodes, and is not in register — only figures the dump
+/// cannot print play it ([`FIGURES_UNPRINTABLE`]). K 59 of M 60.
+pub(crate) const RENDER_K_PIECES: (usize, usize, usize, usize) = (38, 39, 38, 39);
 
 #[test]
 fn the_draw_list_s_frames_are_in_register() {
@@ -923,9 +949,13 @@ fn the_draw_list_s_frames_are_in_register() {
     // unit standing in the world rather than garrisoned or carried.
     let mut src = IndexedCapture::open(&c.long).unwrap();
     let mut dumped: BTreeMap<i64, BTreeMap<(ObjId, usize), [i64; 3]>> = BTreeMap::new();
+    // Every owner a `UNITDATA` of the capture carries, garrisoned or not:
+    // a figure of any other owner is one the dump cannot print (item 4208).
+    let mut printed: BTreeSet<sim::Player> = BTreeSet::new();
     for frame in src.frame_states() {
         let f: Frame = frame.unwrap();
         let figs = dumped.entry(f.n).or_default();
+        printed.extend(f.units.iter().map(|u| u.who as sim::Player));
         for u in f
             .units
             .iter()
@@ -1010,6 +1040,9 @@ fn the_draw_list_s_frames_are_in_register() {
     let mut misses: Vec<String> = Vec::new();
     let mut bad_pieces: BTreeSet<i32> = BTreeSet::new();
     let mut first_out = None;
+    let (mut unprintable, mut unprintable_frames) = (0, 0);
+    let mut unprintable_pieces: BTreeSet<i32> = BTreeSet::new();
+    let mut printed_pieces: BTreeSet<i32> = BTreeSet::new();
     for (&n, figs) in &dumped {
         let mine = ours.get(&n).cloned().unwrap_or_default();
         let mut frame_ok = true;
@@ -1037,7 +1070,15 @@ fn the_draw_list_s_frames_are_in_register() {
                 }
             }
         }
+        let mut on_frame = false;
         for (&(id, k), (at, px, piece)) in &mine {
+            if !printed.contains(&id.who) {
+                unprintable += 1;
+                on_frame = true;
+                unprintable_pieces.insert(*piece);
+                continue;
+            }
+            printed_pieces.insert(*piece);
             if !figs.contains_key(&(id, k)) {
                 frame_ok = false;
                 bad_pieces.insert(*piece);
@@ -1047,12 +1088,16 @@ fn the_draw_list_s_frames_are_in_register() {
                 ));
             }
         }
+        unprintable_frames += usize::from(on_frame);
         if frame_ok {
             frames_ok += 1;
         } else if first_out.is_none() {
             first_out = Some(n);
         }
     }
+    // A piece only an unprintable figure plays has no figure the register
+    // could hold: it is not in register (item 4208).
+    bad_pieces.extend(unprintable_pieces.difference(&printed_pieces));
     let graphs: Vec<String> = inst
         .units()
         .unwrap()
@@ -1100,6 +1145,14 @@ fn the_draw_list_s_frames_are_in_register() {
         (figs_ok, figs_all),
         FIGURES_IN_REGISTER,
         "figures in register"
+    );
+    eprintln!(
+        "  unprintable: {unprintable} figures on {unprintable_frames} frames, owners printed {printed:?}, pieces {unprintable_pieces:?}"
+    );
+    pin_eq!(
+        (unprintable, unprintable_frames),
+        FIGURES_UNPRINTABLE,
+        "figures the dump cannot print"
     );
     pin_eq!(
         (k, decoding.len(), registered.len(), pieces.len()),

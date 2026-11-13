@@ -169,6 +169,24 @@ All three run **before** the `frame != 0` gate, so a unit placed on a box
 during setup consumes it and is paid nothing. The bit is what stops a second
 unit taking the same ruins, since step 2 leaves the item linked.
 
+**Step 1, built (item 4209).** `find_goody_at@0065c040` walks the cell's
+chain to its tail and answers the box only when the tail's `down` is −3:
+the index is the tail's `down_who`, kept while the box's `flags & 1`
+holds. `Item::close@00677050` (slot `+0x90`) clears the box's own cell's
+`GOODY` bit, calls `World::clear_down@006b3ad0` there, and zeroes
+`flags`. `clear_down` on a threaded cell walks to the tail and, where its
+`down` is below −1, writes −1, leaving `down_who`; on an empty cell it
+writes the cell's pair (−1, −1). The finder is threaded before
+`explore_goody` runs (`set_new_location` adds it to the world first), so
+it is the finder's tail word that goes −3 → −1, `down_who` still the
+box's index, and `Object::remove_from_world` hands that pair back to the
+cell when the finder steps off. The original's cell then reads `down` −1
+`down_who` the box for the rest of the game, and its items line walks
+the box no more (`check_items` walks `flags & 1` alone). Ported in
+`Sim::explore_goody` (`find_goody_at`, `clear_down`,
+`repair_goody_chain`), with the head-removal write-back in
+`object_chain_remove`.
+
 ## 5. Coverage
 
 | Claim | Backed by |
@@ -183,7 +201,7 @@ unit taking the same ruins, since step 2 leaves the item linked.
 | The Spanish pair replaces both halves | reading (listing in §3); the branch has never run |
 | Frame 0 consumes without paying | reading |
 | The four guards | reading; only the animal guard is exercised by a capture, and only negatively |
-| The cell's object chain and the goody *item* | read, **not modelled** — queue item 48 |
+| The cell's object chain and the goody *item* | ~~read, not modelled~~ **diff, item 4209**: the world line's cell `down` −1 with `down_who` the box, and the items line, on every built packet (`docs/CHECKSUM.md` §23.7); run1186b's box 2 at cell (47, 29), taken on frame 1134 |
 | A box is drawn by `ItemOut::draw@00677710` (slot +0x58, `pop_all_zoomed_in` over `sort_items`' tree `objects +0x2dc`), never by `ItemOut::draw_overlays@00677590` (+0x5c): its cell's `down -3` keeps it out of `sort_all`'s render tree | trace — run1094 (item 3478): `ItemOut::draw` and `GraphicPieces::draw_item` entered on 602 under `camera 6,110`, `draw_overlays` not entered; the cell's `down -3 down_who 1` on the start's `WORLD=6` |
 
 ## 6. What is not established
@@ -199,8 +217,10 @@ unit taking the same ruins, since step 2 leaves the item linked.
   the formula, so §3's arithmetic stands as written.
 - **`unit_masks & 1`.** Inherited unread from `docs/VISION.md` §7 and
   treated as clear, as everywhere else.
-- **The item, and the message.** `find_goody_at`, the vtable `+0x90` close,
-  the sound and the `TextBubble` are all unmodelled. None of them draws.
+- **The item, and the message.** ~~`find_goody_at`, the vtable `+0x90`
+  close,~~ (item 4209, §4) the sound and the `TextBubble` are unmodelled.
+  None of them draws. The head case of step 2 (no object on the cell) is
+  read, never seen: the finder is always threaded.
 - **`goody_box_techs` and `goody_box_units`.** Both are on `LeaderData` and
   both are reset by `Leader::reset_score`; neither has a writer in this
   executable, so a box in RoN:EE holds resources and nothing else. Not
