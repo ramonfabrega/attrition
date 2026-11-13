@@ -156,7 +156,7 @@ pub struct World {
     /// each owner's debug tint ([`tint`]). On by default; `--tint` turns
     /// it off.
     pub textured: bool,
-    root: PathBuf,
+    pub(crate) root: PathBuf,
     install: Install,
     /// Pose each figure at its slot and clock (item 4067). On by default
     /// since item 4069 drew the original's facing (`guy_placement`): posed,
@@ -240,6 +240,15 @@ pub struct World {
     /// The corpses' made-to-fail (item 4191): every record moved by this
     /// many world units.
     pub corpse_shift: (i32, i32),
+    /// Draw a burning building's fire and smoke stand-ins at the original's
+    /// emitter anchors (item 4201, §3.20). On by default; the stills' rows
+    /// as they stood before turn it off.
+    pub fires: bool,
+    /// Each building piece's attach slots from its `zbuffer` model
+    /// (`render::fire::attach_slots`), `None` where none decodes.
+    pub(crate) fire_slots: BTreeMap<i32, Option<[Option<[f32; 3]>; render::fire::SLOTS]>>,
+    /// `BuildingFX.tga`'s fire and smoke cells as sprite images, read once.
+    pub(crate) fire_images: Option<[Option<std::sync::Arc<SpriteImage>>; 2]>,
     /// Modern's base (`WEATHERELEM age="2"`'s `file2`); `None` where it
     /// does not read, and no weathering is laid.
     weather_mips: Option<std::sync::Arc<render::silhouette::Mips>>,
@@ -794,6 +803,9 @@ impl World {
             weathering_shift: (0, 0),
             corpses: true,
             corpse_shift: (0, 0),
+            fires: true,
+            fire_slots: BTreeMap::new(),
+            fire_images: None,
             weather_mips,
             weather_laid: (-1, false, (0, 0), Vec::new()),
         })
