@@ -312,6 +312,76 @@ pub fn attacked() -> Vec<Order> {
     orders
 }
 
+/// **The followed script** (item 4202, `docs/CLIENT_INPUT.md` §10): the
+/// attacked script, with the Scout [`SCOUT_OBJECT`] pressed twice on slot
+/// 1's Scout `1/0`. On [`FOG_FRAME`], the frame before our walk first
+/// shows it, `1/0` is under the right press but hidden by the fog:
+/// `Console::find_target_daemon` admits no object `is_seen` answers no
+/// for, and the press falls to the ground, a `move_to` at [`FOG_TO`] in
+/// the Scout's own formation. On [`FOLLOW_FRAME`], the frame after the
+/// Slinger's attack, the Scout's press on the now-seen `1/0` (a file holds
+/// one package a frame): a selection none of
+/// whose members has an attack (`COUNT_ATTACK` 0) draws the dispatch's
+/// follow arm, `follow(ox, whom, QUEUE_NEW)`. The client's
+/// `minted_followed_at_the_opening_camera` mints these field for field.
+pub fn followed() -> Vec<Order> {
+    let mut orders = attacked();
+    let at = orders
+        .iter()
+        .position(|o| o.0 == ATTACK_FRAME)
+        .expect("the attacked script's attack");
+    orders.insert(
+        at,
+        (
+            FOG_FRAME,
+            0,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![SCOUT_OBJECT],
+                },
+                Command::MoveTo {
+                    to_x: FOG_TO.x,
+                    to_y: FOG_TO.y,
+                    set_angle: 0,
+                    angle: 0,
+                    orders: 1,
+                    queued: 2,
+                    form: SCOUT_FORM,
+                    width: SCOUT_WIDTH,
+                    disembark: 0,
+                },
+            ],
+        ),
+    );
+    orders.push((
+        FOLLOW_FRAME,
+        0,
+        vec![
+            Command::Group {
+                who: 0,
+                objects: vec![SCOUT_OBJECT],
+            },
+            Command::Follow {
+                ox: i32::from(ATTACKED.1),
+                whom: i32::from(ATTACKED.0),
+                queued: 2,
+            },
+        ],
+    ));
+    orders
+}
+
+/// The frame the fog press is consumed on: the last before our walk under
+/// [`followed`] shows `1/0` to slot 0, which stands at (6792, 31099).
+pub const FOG_FRAME: i32 = 6702;
+/// The ground the fog press names: `1/0`'s pixel (1652, 882) at the
+/// opening camera on [`FOG_FRAME`], under the layer's inverse.
+pub const FOG_TO: Pos = Pos { x: 6792, y: 31100 };
+/// The frame the Scout's follow is consumed on, the one after
+/// [`ATTACK_FRAME`]: `1/0` is still seen.
+pub const FOLLOW_FRAME: i32 = 6704;
+
 /// slot 0's Library, `0/2005` (`TypeIndex` 435).
 pub const LIBRARY_OBJECT: i16 = 2005;
 /// The Art of War's `TypeIndex`: `BASE_TECHTYPES` (0x220) plus its record,
