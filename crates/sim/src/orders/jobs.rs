@@ -1120,7 +1120,7 @@ impl Sim {
             // and the count could not see it: both sites draw once, so
             // the word stayed matched for six hundred frames while the
             // worker's clock ran at a third of the original's and sent it
-            // home two hundred frames early (§6.4, `docs/SYNC.md` §3.18).
+            // home two hundred frames early (§6.4, `docs/SYNC.md` §3.19).
             let anim = self.units[u].guys.first().map_or(0, |g| g.anim);
             if anim == crate::units::anim::MINE_ORE {
                 self.store_gather(u, g);

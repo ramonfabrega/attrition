@@ -195,6 +195,13 @@ impl RoadMesh {
         self.elems.get(&index_of(world, t)).copied()
     }
 
+    /// Every element, by the original's packed index `x + width_in_tiles ·
+    /// y`, in index order: what the read door copies (item 4199,
+    /// `crate::observe::RoadsScene`).
+    pub fn elems(&self) -> impl Iterator<Item = (i32, &Elem)> {
+        self.elems.iter().map(|(&i, e)| (i, e))
+    }
+
     /// How many elements stand. A count for the diffs, and the one number
     /// that says the store is not leaking.
     pub fn len(&self) -> usize {

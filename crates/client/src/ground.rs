@@ -885,9 +885,11 @@ pub const RUN1559B_3279_GROUND: (usize, usize) = (1097, 1109);
 /// tile for tile, no crossing. On the draw before (an sRGB target) 1,003:
 /// 94 of the 106 under a mountain cross down, `ADDSIGNED` taken in linear
 /// light — tile (6, 144), theirs (104, 100, 56), the painter's (116, 97,
-/// 65), the still's (22, 18, 6).
+/// 65), the still's (22, 18, 6). Item 4199: **1,097 → 1,104**, the roads
+/// drawn (`crate::roads`, §3.19): seven plain tiles under the capital's
+/// ring cross up, the asphalt's mean where grass stood.
 #[cfg(test)]
-pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1097, 1109);
+pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1104, 1109);
 
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
 /// `(agree, scored)`, then by kind `[agree, scored]`, `KINDS`' order.
@@ -931,13 +933,15 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// 83 → 80 of 772. run1559b 1,076, unchanged. Item 4192: run1564 **1,001
 /// → 1,318**, the land's depth fade ([`land_alpha`]): `SANDY` 80 → 397 of
 /// 772, the deep sand now the water over the clear colour; run1559b
-/// unchanged.
+/// unchanged. Item 4199: run1559b **1,076 → 1,075**, the roads drawn
+/// (§3.19): plain 980 → 979 of 986, one ring tile whose asphalt is 0.89
+/// of ours (parked 4199b); run1564 unchanged.
 #[cfg(test)]
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1076, 1109),
+        (1075, 1109),
         [
-            [980, 986],
+            [979, 986],
             [80, 106],
             [16, 17],
             [0, 0],
@@ -963,9 +967,10 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Both ground rows on the draw before item 4171 (the silhouette after,
 /// an sRGB target): the rows' made-to-fail, run1559b then run1564. Item
 /// 4178: run1564's 1,286 → 834, the water's colour taken to linear light.
-/// Item 4192: run1564's 834 → 927, the land's depth fade.
+/// Item 4192: run1564's 834 → 927, the land's depth fade. Item 4199:
+/// run1559b's 1,003 → 1,010, the roads drawn (§3.19).
 #[cfg(test)]
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1003, 1109), (927, 1920)];
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1010, 1109), (927, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of

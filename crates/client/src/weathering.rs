@@ -161,9 +161,14 @@ pub(crate) mod tests {
     /// 160), the smoke; (18, 157), Y 246.0 against 164.0, the white beam
     /// standing on the plaza's corner; (18, 162), Y 105.4 against 164.1,
     /// dark on this photograph alone (named by eye: the crowd at the
-    /// corner, or the city's name plate; not settled).
-    const RUN1570_PLAZA: [[(usize, usize); 2]; 3] =
-        [[(0, 19), (9, 19)], [(19, 19), (15, 19)], [(0, 19), (9, 19)]];
+    /// corner, or the city's name plate; not settled). Item 4199: the
+    /// before and moved stills' luma **9 → 10**, the roads drawn in both
+    /// (`crate::roads`, §3.19); drawn, unchanged.
+    const RUN1570_PLAZA: [[(usize, usize); 2]; 3] = [
+        [(0, 19), (10, 19)],
+        [(19, 19), (15, 19)],
+        [(0, 19), (10, 19)],
+    ];
 
     /// The frame run1570's photograph is drawn at ([`run1570`]): 3327,
     /// clocked by its movers (item 4191, [`crate::dead::RUN1570_FRAME`]).
@@ -171,7 +176,7 @@ pub(crate) mod tests {
 
     /// One scored tile: the tile, the photograph's mean, the still's, and
     /// its pixel count.
-    type PlazaTile = ((i32, i32), [f32; 3], [f32; 3], usize);
+    pub(crate) type PlazaTile = ((i32, i32), [f32; 3], [f32; 3], usize);
 
     /// **The row's pixels** (item 4190; §3.17, the rule committed before
     /// any count), each its tile: every tile the frame's weathering lays by
@@ -198,7 +203,11 @@ pub(crate) mod tests {
 
     /// The photograph's mean and the still's over [`plaza_pixels`]'s
     /// tiles, those with at least `HUE.min_pixels`.
-    fn plaza_tiles(p: &Probe, pixels: &[Option<(i32, i32)>], still: &[u8]) -> Vec<PlazaTile> {
+    pub(crate) fn plaza_tiles(
+        p: &Probe,
+        pixels: &[Option<(i32, i32)>],
+        still: &[u8],
+    ) -> Vec<PlazaTile> {
         let px = |rgba: &[u8], i: usize| [0, 1, 2].map(|c| f32::from(rgba[i * 4 + c]));
         let mut tiles: BTreeMap<(i32, i32), Sides> = BTreeMap::new();
         for (i, tt) in pixels.iter().enumerate() {
@@ -221,7 +230,7 @@ pub(crate) mod tests {
     }
 
     /// Both counts, `[hue, luma]`, and the tiles printed with both sides.
-    fn count(name: &str, tiles: &[PlazaTile]) -> [(usize, usize); 2] {
+    pub(crate) fn count(name: &str, tiles: &[PlazaTile]) -> [(usize, usize); 2] {
         let (mut hue, mut luma) = (0, 0);
         for (tt, th, us, n) in tiles {
             let (p, q) = (chromaticity(*us), chromaticity(*th));
@@ -246,7 +255,7 @@ pub(crate) mod tests {
         [(hue, n), (luma, n)]
     }
 
-    fn still(p: &mut Probe, name: &str) -> Vec<u8> {
+    pub(crate) fn still(p: &mut Probe, name: &str) -> Vec<u8> {
         let size = (p.photo.width as u32, p.photo.height as u32);
         let camera = p.camera;
         let s = crate::still_of(

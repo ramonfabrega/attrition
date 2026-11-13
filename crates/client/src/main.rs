@@ -44,6 +44,7 @@ mod input;
 mod lobby;
 mod overlay;
 mod patch;
+mod roads;
 mod shadows;
 mod silhouette;
 mod trace;

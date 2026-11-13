@@ -188,6 +188,16 @@ impl FreeRunner {
         self.built.sim.observe_terrain()
     }
 
+    /// The road mesh as it stands (`Sim::observe_roads`, item 4199).
+    pub fn roads(&self) -> sim::observe::RoadsScene {
+        self.built.sim.observe_roads()
+    }
+
+    /// Who holds each cell as it stands (`Sim::observe_territory`).
+    pub fn territory(&self) -> sim::observe::TerritoryScene {
+        self.built.sim.observe_territory()
+    }
+
     /// The run's height reads that touched a corner this crate cannot pin
     /// to the original's single (`docs/COMBAT.md` §46.3), taken: the count
     /// is zeroed, so `Built`'s guard on drop reads nothing and the caller
