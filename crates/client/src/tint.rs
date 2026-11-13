@@ -174,10 +174,11 @@ pub(crate) mod tests {
     /// the texel unlit) the row read 17 of 986, 1 of 679 and 17 of 1,073
     /// under its bar; tile (0, 140) on run1559b, theirs (165.9, 162.4, 68.6)
     /// hue 57.9, ours (160.5, 138.9, 64.8) hue 46.4. The tint alone, unlit,
-    /// read 16, 1 and 17. Drawn: 959, 674 and 1,042.
+    /// read 16, 1 and 17. Drawn: 959, 674 and 1,042. On the tree merged with
+    /// 4208 (the gaia figures' shipped variant), run1564's untinted 605 → 607.
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
         ((961, 986), (959, 986)),
-        ((605, 679), (674, 679)),
+        ((607, 679), (674, 679)),
         ((1044, 1073), (1042, 1073)),
     ];
 }

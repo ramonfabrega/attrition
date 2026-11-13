@@ -1062,7 +1062,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// → 1,010, the roads drawn (§3.19).
 #[cfg(test)]
 /// Item 4212: run1559b's 1,010 → 992, run1564's 970 → 1,043, the land lit at the frame's white, §3.21.
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1043, 1920)];
+/// On the tree merged with 4208 (the gaia figures' shipped variant), run1564's 1,043 → 1,044.
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1044, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
