@@ -2009,14 +2009,14 @@ impl Sim {
     // §3.2 — every object on the chain, and its four words
     // ------------------------------------------------------------------
 
-    fn chain_words(&self, o: Obj) -> &ObjectChain {
+    pub(crate) fn chain_words(&self, o: Obj) -> &ObjectChain {
         match o {
             Obj::Unit(u) => &self.units[u].chain,
             Obj::Building(b) => &self.buildings[b].chain,
         }
     }
 
-    fn chain_words_mut(&mut self, o: Obj) -> &mut ObjectChain {
+    pub(crate) fn chain_words_mut(&mut self, o: Obj) -> &mut ObjectChain {
         match o {
             Obj::Unit(u) => &mut self.units[u].chain,
             Obj::Building(b) => &mut self.buildings[b].chain,
@@ -2049,60 +2049,6 @@ impl Sim {
             None => {
                 let d = self.world.cell_data(c);
                 (d.down, i16::from(d.down_who))
-            }
-        }
-    }
-
-    /// The tail's `down`/`down_who`: the last object's on a threaded cell,
-    /// else the cell's own — what `ObjectsData::find_goody_at@0065c040`
-    /// walks to (−3 and the box's index on a box's cell).
-    pub(crate) fn chain_tail_words(&self, c: crate::Cell) -> (i16, i16) {
-        match self.object_chain(c).last() {
-            Some(&t) => {
-                let w = self.chain_words(t);
-                (w.down, w.down_who)
-            }
-            None => {
-                let d = self.world.cell_data(c);
-                (d.down, i16::from(d.down_who))
-            }
-        }
-    }
-
-    /// **`World::clear_down@006b3ad0`** (item 4209; `docs/GOODY.md` §4):
-    /// on a threaded cell the tail object's `down` goes to −1 when it is
-    /// below −1, its `down_who` left; on an empty cell the cell's own pair
-    /// goes to (−1, −1). `Item::close@00677050` calls it on the box's cell,
-    /// so the box's −3 leaves the cell with the finder still on it, and the
-    /// cell takes −1 back when the finder steps off.
-    pub(crate) fn clear_down(&mut self, c: crate::Cell) {
-        if c.x < 0 || c.y < 0 || c.x >= self.world.width() || c.y >= self.world.height() {
-            return;
-        }
-        match self.object_chain(c).last() {
-            Some(&t) => {
-                let w = self.chain_words_mut(t);
-                if w.down < -1 {
-                    w.down = -1;
-                }
-            }
-            None => {
-                let mut d = self.world.cell_data(c);
-                d.down = -1;
-                d.down_who = -1;
-                self.world.set_cell_data(c, d);
-            }
-        }
-    }
-
-    /// `Unit::explore_goody@005f9780`'s chain repair (`docs/GOODY.md` §4,
-    /// step 2): on a threaded cell every object whose `down` is −3 takes
-    /// −1 (only the tail can be); the head case's write is a dead store.
-    pub(crate) fn repair_goody_chain(&mut self, c: crate::Cell) {
-        for o in self.object_chain(c) {
-            let w = self.chain_words_mut(o);
-            if w.down == -3 {
-                w.down = -1;
             }
         }
     }
@@ -2160,11 +2106,7 @@ impl Sim {
                     && self.terrain.object_heads[s] == Some(o)
                 {
                     self.terrain.object_heads[s] = w.below;
-                    // The cell takes the head's `down`/`down_who` back. With
-                    // an object below, the pair is that object's number and
-                    // owner, which this crate reads off `object_heads`; the
-                    // last object off writes the cell's own pair, as a
-                    // `clear_down` left it on the tail (item 4209).
+                    // The last one off hands the cell its tail pair (4209).
                     if w.below.is_none() {
                         let c = pos.cell();
                         let mut d = self.world.cell_data(c);
