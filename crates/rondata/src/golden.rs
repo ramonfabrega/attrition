@@ -64,6 +64,12 @@ pub enum Cheat {
     /// target, 2 | 1 | 0)`. `None` for the target is the **bare** form,
     /// which prints the table and changes nothing.
     Diplo { level: i32, target: Option<Target> },
+    /// `meet [who | all]`, `run_cmd` case 0x2f (item 4206): `Leader::
+    /// treaty_on(console->who, target, 1)`, the met bit both ways. `all`
+    /// walks every leader in play but the console's; a named target that
+    /// is the console's own seat does nothing; the bare form prints the
+    /// table and changes nothing (`007dd30f`).
+    Meet { target: Option<Target> },
     /// `human`/`computer [who]`.
     Control { who: i32, human: bool },
     /// `add`/`insert [#] typename [who=RED] [x,y]`.
@@ -1913,6 +1919,16 @@ fn parse(text: &str) -> Cheat {
             };
             Cheat::Diplo { level, target }
         }
+        "meet" => Cheat::Meet {
+            target: match rest.first() {
+                None => None,
+                Some(t) if t.eq_ignore_ascii_case("all") => Some(Target::All),
+                Some(t) => match parse_who(t, true) {
+                    Some(w) => Some(Target::Who(w)),
+                    None => return Cheat::Unmapped(word),
+                },
+            },
+        },
         "human" | "computer" => Cheat::Control {
             who: rest
                 .first()
@@ -2145,6 +2161,28 @@ fn run(
             };
             for w in whom {
                 built.sim.setup().set_diplo(me, w, level);
+            }
+            done.ran += 1;
+        }
+        Cheat::Meet { target } => {
+            let Some(target) = target else {
+                done.skip(&word, "the bare form prints the table and changes nothing");
+                return;
+            };
+            let me = CONSOLE_WHO as sim::Player;
+            let n = built.sim.territory.players.len() as sim::Player;
+            let whom: Vec<sim::Player> = match target {
+                Target::All => (0..n).filter(|&w| w != me).collect(),
+                Target::Who(w) if (w as sim::Player) < n && w as sim::Player != me => {
+                    vec![w as sim::Player]
+                }
+                Target::Who(_) => {
+                    done.skip(&word, "the console's own seat, or no such leader");
+                    return;
+                }
+            };
+            for w in whom {
+                built.sim.treaty_on(me, w, 1);
             }
             done.ran += 1;
         }
@@ -3047,7 +3085,9 @@ mod tests {
                 );
                 match parse(&line.text) {
                     Cheat::Unmapped(w) => debt.push(w),
-                    Cheat::Diplo { target: None, .. } => debt.push(word),
+                    Cheat::Diplo { target: None, .. } | Cheat::Meet { target: None } => {
+                        debt.push(word)
+                    }
                     _ => {}
                 }
             }
@@ -3549,6 +3589,33 @@ mod tests {
     /// `bird` takes no argument and is the chat half's (`run_cmd` case
     /// `0x52`), so a staged `700 bird` parses to [`Cheat::Bird`] and is not
     /// debt (item 652).
+    /// **`meet` is `treaty_on(console, target, 1)`** (item 4206, `run_cmd`
+    /// case 0x2f): `who=N` or a bare number names the target, `all` every
+    /// other leader, and the bare form prints the table.
+    #[test]
+    fn meet_is_the_met_bit_by_target() {
+        assert_eq!(
+            parse("meet who=1"),
+            Cheat::Meet {
+                target: Some(Target::Who(1))
+            }
+        );
+        assert_eq!(
+            parse("meet 2"),
+            Cheat::Meet {
+                target: Some(Target::Who(2))
+            }
+        );
+        assert_eq!(
+            parse("meet all"),
+            Cheat::Meet {
+                target: Some(Target::All)
+            }
+        );
+        assert_eq!(parse("meet"), Cheat::Meet { target: None });
+        assert_eq!(parse("meet x"), Cheat::Unmapped("meet".into()));
+    }
+
     #[test]
     fn bird_is_the_chat_half_s_argumentless_spawn() {
         assert_eq!(parse("bird"), Cheat::Bird);
