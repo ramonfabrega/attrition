@@ -2354,3 +2354,100 @@ and the box's `flags` go 0, so `check_items` walks it no more
 102 of 102 (run1186b (105, 110, 25) → (105, 105, 0); five with no box
 leave the count), world 3 → 39 (run1186b (7361, 7361, 1) → 0, record
 1787 `down` ours −3 theirs −1). Each pin's pair is in its comment.
+
+## 24. Step H: the fifteen, every frame (item 4214)
+
+`DECISIONS.md` entry 132 §7, §10. `CheckSums::check_all@00936560` runs on every turn and prints only inside a dump
+window, and the per-frame oracle the words stand on, the draw stream, is blind to state (§23.7). This section is the
+original's fifteen lines on every frame, the pairing that puts them beside our walk, and the first frame each of our
+emitted lines parts on the minted game.
+
+### 24.1 The hook
+
+`tools/trace/checksums.h`, built under `-DRON_CHECKSUMS` (`--tracer-def RON_CHECKSUMS`; absent, nothing is hooked).
+`check_all` hands each line and its wrapping `total` to `SyncLogger::logToMemory<unsigned_long_&>@00463930` as
+`(file, line, cChecksumSync, format, &value)`, with the value already computed. The hook is an entry stub on that
+function whose `arg0` slot carries the entry's esp. A call counts only when its return address is inside `check_all`
+(the logger has 41 callers; four functions). It is keyed by its `line` argument: 0x1a for units, every five to 0x60
+for `script_run_time`, and 99 for `total`, as the listing pushes them. A whole set of sixteen is written as four
+`K_CSUM` (13) records when its frame or any word moved since the last written set. Each set carries its place among
+the frame's `check_all` calls and `check_all`'s return into `process_turn`. `rondata::trace::checksums` reads it.
+
+A set's frame is the tracer's: `Game::frame` at the last `Game::do_frame` entry, −1 before the first.
+`TurnControl::do_frame_solo@009556a0` calls `process_turn` before `check_new_frame_playback` lets `Game::do_frame` run,
+so every set tagged `f` follows frame `f`'s tick and `end_frame`. **Its first set is logger block `f + 1`'s end
+record**, and our walk's state at `sim.frame == f + 1` before that frame's package. In playback, a frame before an
+order's package has two sets: the read loop's `check_all` before `process_all` (return 0x93f108), then the turn's own
+after it (0x93fb68). The first is the end of the tick. Frame −1 is setup's call, our built start.
+
+### 24.2 The hook is the record (diff-backed)
+
+run1577 (`RUNS.md`): the minted file, 120 frames, `@dumpall` on 91. 124 sets, 0 torn, one on each trace frame −1 to
+119, two on 29, 59 and 89. **The first set of trace frame 90 is record 3201, 15 of 15, and of 91 is record 3202, 15 of
+15**, both in run1577's own window and against run1562's. The sum of the fifteen is the set's `total`. One frame off they
+part: 3201 against 89, 9 of 15 (units, builds, groups, guys, leaders, world part); against 91, 10; 3202 against 90, 10
+(`the_hook_s_values_are_the_printed_record_s`, `HOOK_RECORDS`). run1578's first 124 sets are run1577's. On each of
+seven packets (§24.4) the hook's set on the packet's trace frame is `tools/recomp/checksum.py`'s values, 15 of 15, and
+so is run1578's on that frame. The kill the item booked (the hook's values not the record's on frame 91) did not fire.
+
+### 24.3 The score: `Checksum: frames`
+
+Per line our walk emits, the first of our frames whose Adler parts from the hook's first set of the frame before, on
+the minted game's 24,000 (run1578; `our_lines_part_from_the_hook_s_on_their_first_frame`, `CHECKSUM_FRAMES`).
+Walls, ammo and deaths have no emitter. Rules and the two script lines are not the simulation's (entry 119). Each
+line is taken every frame inside the first 300 (`DIAG`), and past them only until it first parts:
+
+| line | first parts | ours | theirs | frames parted of 0..299 |
+|---|---|---|---|---|
+| units | 1 | 1380746621 | 3361244557 | 230: 1–30, 96, 101–299 |
+| builds | 100 | 2036616519 | 1941983632 | 200: 100–299 |
+| groups | 61 | 3641636078 | 3844076871 | 5: 61–65 |
+| guys | 129 | 4020237905 | 1262538754 | 171: 129–299 |
+| leaders | 0 | 4128131882 | 1059426481 | 300 |
+| cities | 4030 | 66197007 | 38147597 | 0 |
+| items | whole, 24,000 | | | 0 |
+| goods | 3246 | 1994224488 | 2043245418 | 0 |
+| world | 0 | 1459647454 | 823986248 | 1: 0 |
+
+On run1577's 120 the same walk gives the same first frames inside 120; guys, cities, items and goods are whole on all
+120. On the base before item 4209 the items line first parted on 987 (ours 1602836503, theirs 3605812239: item 3's
+`ever_seen`, and one box theirs had closed); item 4209's `Item::close` makes it whole on all 24,000. The 8 of 12 lines
+whole on frame 91 (§22) are whole there and around it; **a line whole on a packet frame is not
+a line whole on the game**. Measured: the walk to cities' 4030 takes 5.4 s in release.
+
+### 24.4 Where each first parting is (diff-backed)
+
+A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
+by range (`the_minted_packets_name_each_first_parting`, `MINTED_PACKETS`). The first parted range, decoded by the
+line's field reader where it has one:
+
+| line | frame | run | record, field: ours, theirs |
+|---|---|---|---|
+| units | 1 | 1579 | unit 0 `flags`: 65 (0x41), 73 (0x49); 2 of 1,077 ranges |
+| groups | 61 | 1580 | group record 1: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34 |
+| builds | 100 | 1581 | building 2000 `queue[k]`: type 0, 50; `cost[0]` 0, 27 |
+| guys | 129 | 1582 | 389 ranges against 375 (units 1,147 against 1,107): a figure ours holds and theirs does not yet |
+| goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02 |
+| cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2 |
+| leaders | 1 to 4030 | all | leader 0's long range at +0x10: ours 0 on every packet, theirs 0xc7 on 1 and 0x105 on 4030 (§20; item 4159) |
+
+**The world on the start** has no packet: the first boundary is frame 0's `end_frame`. run1579's `@dumpall` on 0 prints
+record 3201 before frame 0's tick (the hook's frame −1). Of its fifteen sections, **section 8 alone parts, `danger[0..8]`**:
+ours 1887436801, theirs 2995557468. The whole world, 823986248, is the hook's −1 (`the_world_parts_on_the_start_by_section`,
+`WORLD_START_PARTS`). From frame 1 to 299 the world line is the original's.
+
+### 24.5 How it was established, and what it has not established
+
+The hook's site, its arguments and the call's place in the frame are read from the export and the listing
+(`process_turn@0093ef10` lines 532 and 539, `do_frame_solo`, `Game::loop`). The pairing and the values are diff-backed
+by §24.2. The fold is tested on the host (`checksums_test.c`, red with the frame clause dropped). The reader is tested
+on synthetic records.
+
+Not established:
+- Whether a non-playback game's sets pair the same way. The solo arm calls `check_all` once a turn, with no read loop.
+- The parted lines' causes: each is a parked row of `docs/journal/2026-11-13-item-4214.md` (4214a to 4214h; 4214e
+  closed by item 4209).
+- What parts past a line's first parting outside `DIAG`. On every packet past frame 0 the world line agrees, and so
+  does items since item 4209.
+- Walls, ammo and deaths, which have no emitter. On this game they stay at Adler 1 on both sides to 4030 on every
+  packet.

@@ -16,7 +16,7 @@ use super::*;
 use crate::diff::third::stand_up_from;
 
 /// The twelve state lines, in `CheckSums::check_all@00936560`'s order.
-pub(super) const STATE_LINES: [&str; 12] = [
+pub(in crate::diff) const STATE_LINES: [&str; 12] = [
     "units", "builds", "walls", "ammo", "deaths", "groups", "guys", "leaders", "cities", "items",
     "goods", "world",
 ];
@@ -33,7 +33,15 @@ fn packets_dir() -> String {
 /// The instrument's twelve state lines of one packet, and the logger frame
 /// its values file names. `None` on a machine without them.
 fn packet_stream(run: &str) -> Option<(i64, std::collections::BTreeMap<String, StreamRows>)> {
-    let dir = packets_dir();
+    packet_stream_in(&packets_dir(), run)
+}
+
+/// [`packet_stream`] from another directory of `<run>/values.tsv` and
+/// `<run>/stream.tsv` (item 4214's minted packets).
+pub(in crate::diff) fn packet_stream_in(
+    dir: &str,
+    run: &str,
+) -> Option<(i64, std::collections::BTreeMap<String, StreamRows>)> {
     let values = std::fs::read_to_string(format!("{dir}/{run}/values.tsv")).ok()?;
     let frame = values
         .lines()
@@ -51,7 +59,7 @@ fn packet_stream(run: &str) -> Option<(i64, std::collections::BTreeMap<String, S
 /// One line's outcome on one packet: the stream's ranges, ours, the ranges
 /// that part, and the first parting `(range, record, field, ours, theirs)`.
 #[derive(Clone, Debug)]
-pub(super) struct LineOutcome {
+pub(in crate::diff) struct LineOutcome {
     pub theirs: usize,
     pub ours: usize,
     pub parted: usize,
@@ -70,7 +78,7 @@ impl LineOutcome {
 }
 
 /// The data layer the builds line reads its pieces from, read once a walk.
-pub(super) struct Pieces {
+pub(in crate::diff) struct Pieces {
     look: crate::artdata::BuildLook,
     tribes: Vec<crate::TribeDef>,
 }
@@ -87,7 +95,7 @@ impl Pieces {
 
 /// Our walk's twelve lines, in [`STATE_LINES`]' order. The walls, ammo and
 /// deaths lines have no emitter in the crate and are empty.
-pub(super) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
+pub(in crate::diff) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
     let p = build_pieces_with(sim, &pieces.look, &pieces.tribes);
     vec![
         sim.checksum_units(),
@@ -106,7 +114,7 @@ pub(super) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
 }
 
 /// The twelve lines held range by range against a packet's stream.
-pub(super) fn compare(
+pub(in crate::diff) fn compare(
     ours: &[Line],
     theirs: &std::collections::BTreeMap<String, StreamRows>,
 ) -> Vec<LineOutcome> {
@@ -919,10 +927,27 @@ fn every_packet_is_wired_to_its_game_or_named() {
         return;
     };
     let on_disk = listed.kept;
+    // Step H's packets of the minted game (item 4214) are held by
+    // `diff::checksum_frames`, each on a line's first parting, and are not
+    // step P's: the disk is the census's and theirs, each named once.
+    let minted: std::collections::BTreeSet<&str> = super::super::checksum_frames::MINTED_PACKETS
+        .iter()
+        .map(|p| p.0)
+        .collect();
+    for run in &minted {
+        assert!(
+            on_disk.iter().any(|d| d == run),
+            "{run}: a minted packet checksum_frames holds is on disk"
+        );
+    }
     assert_eq!(
-        on_disk.iter().map(String::as_str).collect::<Vec<_>>(),
+        on_disk
+            .iter()
+            .map(String::as_str)
+            .filter(|d| !minted.contains(d))
+            .collect::<Vec<_>>(),
         sorted,
-        "the packets on disk are the census's"
+        "the packets on disk are the census's and checksum_frames'"
     );
     let mut read = 0;
     for (run, frame) in &frames {

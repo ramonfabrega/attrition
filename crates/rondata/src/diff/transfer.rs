@@ -943,20 +943,25 @@ fn read_corpus() -> Vec<(String, Vec<Rec>)> {
 /// leaves: `barracks_queued` 696 → 700, `combat_queued` 972 → 978,
 /// `high_buildings` 712 → 726, `stable_queued` 338 → 344, `territory_high`
 /// 286 → 288. No parting moves.
+///
+/// Item 4214: 912 → 914 dumps, run1577 and run1579 (the minted game's
+/// `@dumpall` windows on 91 and 0, two level-9 blocks each). Every leaf's
+/// pairs rise by 4 (`air_queued` 479,666 → 479,670); no moving pair and
+/// no parting moves.
 const PINNED: &[(&str, usize, usize, usize)] = &[
-    ("air_queued", 479_666, 288, 0),
-    ("average_damage_rate", 479_432, 1482, 0),
-    ("average_death_rate", 479_432, 1419, 0),
-    ("average_hit_rate", 479_432, 1286, 0),
-    ("average_kill_rate", 479_432, 1527, 0),
-    ("barracks_queued", 479_666, 700, 1),
-    ("combat_queued", 479_666, 978, 1),
-    ("dock_queued", 479_666, 136, 0),
-    ("factory_queued", 479_666, 188, 0),
-    ("high_buildings", 479_464, 726, 0),
-    ("stable_queued", 479_666, 344, 0),
-    ("supply_mark", 480_076, 82, 0),
-    ("territory_high", 479_668, 288, 0),
+    ("air_queued", 479_670, 288, 0),
+    ("average_damage_rate", 479_436, 1482, 0),
+    ("average_death_rate", 479_436, 1419, 0),
+    ("average_hit_rate", 479_436, 1286, 0),
+    ("average_kill_rate", 479_436, 1527, 0),
+    ("barracks_queued", 479_670, 700, 1),
+    ("combat_queued", 479_670, 978, 1),
+    ("dock_queued", 479_670, 136, 0),
+    ("factory_queued", 479_670, 188, 0),
+    ("high_buildings", 479_468, 726, 0),
+    ("stable_queued", 479_670, 344, 0),
+    ("supply_mark", 480_080, 82, 0),
+    ("territory_high", 479_672, 288, 0),
 ];
 
 /// The leaves released on transfer: each transfers on every pair (no

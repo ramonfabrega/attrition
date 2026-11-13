@@ -38,6 +38,8 @@
 
 /// The card probe's records (item 4165).
 pub mod card;
+/// The checksum hook's records (item 4214): `check_all`'s fifteen, every frame.
+pub mod checksums;
 
 use std::path::Path;
 
