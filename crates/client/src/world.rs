@@ -234,6 +234,12 @@ pub struct World {
     /// The weathering's made-to-fail (item 4190): every footprint moved by
     /// this many of its own sizes, in tiles.
     pub weathering_shift: (i32, i32),
+    /// Draw the corpses (item 4191, §3.13). On by default; the row's count
+    /// as drawn before turns it off.
+    pub corpses: bool,
+    /// The corpses' made-to-fail (item 4191): every record moved by this
+    /// many world units.
+    pub corpse_shift: (i32, i32),
     /// Modern's base (`WEATHERELEM age="2"`'s `file2`); `None` where it
     /// does not read, and no weathering is laid.
     weather_mips: Option<std::sync::Arc<render::silhouette::Mips>>,
@@ -782,6 +788,8 @@ impl World {
             build_types: loaded.build_types.clone(),
             weathering: true,
             weathering_shift: (0, 0),
+            corpses: true,
+            corpse_shift: (0, 0),
             weather_mips,
             weather_laid: (-1, false, (0, 0), Vec::new()),
         })
@@ -1518,6 +1526,36 @@ impl World {
             None,
         );
         (figures, buildings, list)
+    }
+
+    /// **The draw list with the corpses in it** (item 4191, §3.13): each
+    /// standing death record as [`crate::dead::corpses`] places it, added
+    /// to `figures` and the list made again over both, as
+    /// [`Self::draw_list`] makes it. The shadows are taken before, from the
+    /// living alone. Off with [`Self::corpses`].
+    pub fn with_corpses(
+        &self,
+        mut figures: Vec<Placed>,
+        buildings: &[PlacedBuilding],
+        camera: &render::Camera,
+        screen: &render::Screen,
+        size: (i32, i32),
+    ) -> (Vec<Placed>, Vec<Drawn>) {
+        if self.corpses {
+            let scene = self.runner.scene(None);
+            let drawn = scene.frame - i64::from(self.blend == Blend::Last);
+            figures.extend(crate::dead::corpses(&scene, drawn, self.corpse_shift));
+        }
+        let list = render::draw::draw_list(
+            &figures,
+            buildings,
+            self.look.scaffold_timing(),
+            camera,
+            screen,
+            Some(size),
+            None,
+        );
+        (figures, list)
     }
 
     /// A unit piece's slots and the `.BHa` file each names, as the mesh

@@ -36,6 +36,7 @@
 //! The simulation stays headless: this crate depends on `sim`, `rondata`
 //! and `render`, and none of them on it (`tests::the_sim_takes_no_graphics`).
 
+mod dead;
 mod gpu;
 mod ground;
 mod hud;
@@ -266,6 +267,13 @@ fn build(
         world.draw_list(camera, &pinned_screen(), (size.0 as i32, size.1 as i32));
     let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
     let shadows = world.shadow_meshes(&world.shadows(&figures, &list));
+    let (figures, list) = world.with_corpses(
+        figures,
+        &buildings,
+        camera,
+        &pinned_screen(),
+        (size.0 as i32, size.1 as i32),
+    );
     let (mut figures, textured) = world.figure_meshes(&figures, &buildings, &list);
     let trees = world.tree_textured(&mut figures);
     let lines = overlay::Lines {

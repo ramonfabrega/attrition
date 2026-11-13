@@ -249,6 +249,18 @@ fn the_door_carries_the_round_s_piece_and_the_corpse_s() {
     figures.life[1] = 20;
     figures.life[2] = i64::MAX;
     figures.gpiece[..3].copy_from_slice(&[219, 12891, 25563]);
+    // Each record's own place (item 4191), distinct, so a record read from
+    // its neighbour parts.
+    for k in 0..3 {
+        figures.place[k] = crate::combat::Lie {
+            pos: crate::world::Pos {
+                x: 3972 + k as i32,
+                y: 28574 - k as i32,
+            },
+            z: 499 + k as i32,
+            angle: crate::movement::Angle(-476_512_256 + k as i32),
+        };
+    }
     sim.combat.deaths.push(crate::combat::Death {
         who: 1,
         o: 4,
@@ -266,11 +278,28 @@ fn the_door_carries_the_round_s_piece_and_the_corpse_s() {
         "every record stands on frame 0"
     );
     assert_eq!(scene.deaths[0].cur_anim, 17);
-    sim.frame = 20;
+    let xs: Vec<i32> = scene.deaths[0].places.iter().map(|l| l.pos.x).collect();
+    assert_eq!(xs, [3972, 3973, 3974], "each record's own place");
     assert_eq!(
-        sim.observe(None).deaths[0].pieces,
+        scene.deaths[0].frames.len(),
+        3,
+        "one action length a record"
+    );
+    sim.frame = 20;
+    let later = sim.observe(None);
+    assert_eq!(
+        later.deaths[0].pieces,
         [219, 25563],
         "the second record's life ran out on 20"
+    );
+    assert_eq!(
+        later.deaths[0]
+            .places
+            .iter()
+            .map(|l| l.z)
+            .collect::<Vec<_>>(),
+        [499, 501],
+        "the places leave with their records"
     );
     sim.frame = 40;
     assert_eq!(

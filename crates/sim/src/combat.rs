@@ -662,6 +662,24 @@ pub struct Figures {
     /// in `RData::unit_data +0x24`, is never taken: `Unit::close` hands
     /// `dtype * 2 + 0xd + roll % 2` with `dtype >= 1`. `-1` past `n`.
     pub gpiece: [i32; Figures::MAX],
+    /// **Where each record lies** (item 4191, `docs/RENDERER.md` §3.13):
+    /// `DeathObjData` `x`, `y`, `z` and `new_angle`, which `DeathObjOut::draw
+    /// @008d4090` places and turns the body by. Zero past `n`.
+    pub place: [Lie; Figures::MAX],
+}
+
+/// **One record's place** (item 4191): what `Objects::add_death@00653b60`
+/// hands `DeathObj::init@008d4c60` — the guy's own `GuyData` `x`, `y`
+/// (`+0xc`, `+0x10`) and `angle` (`+0x18`) at the kill's making — and the
+/// `z` `init` takes: 0 for a type of `+0x218 == 1` (the sea), otherwise
+/// `TerrainOut::find_data_z` under the point. Diff-backed on run1570's
+/// packet's death pool (`0/7` on 3312: (3972, 28574, 499), `new_angle`
+/// −476512256), which no dump prints.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Lie {
+    pub pos: Pos,
+    pub z: i32,
+    pub angle: Angle,
 }
 
 impl Figures {
@@ -674,6 +692,11 @@ impl Figures {
             n: 1,
             life: [0; Self::MAX],
             gpiece: [-1; Self::MAX],
+            place: [Lie {
+                pos: Pos { x: 0, y: 0 },
+                z: 0,
+                angle: Angle(0),
+            }; Self::MAX],
         };
         f.life[0] = match life {
             Some(l) => l,

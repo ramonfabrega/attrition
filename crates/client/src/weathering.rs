@@ -99,7 +99,7 @@ pub fn footprints(types: &[BuildType], buildings: &[BuildingScene]) -> Vec<Footp
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use std::path::PathBuf;
 
     use crate::ground::tests::{Photo, Probe, ground_why, probe_at, run1559b};
@@ -113,10 +113,9 @@ mod tests {
     /// **run1570's photograph** (item 4183; `docs/RUNS.md` run1570):
     /// run1559b's take paused on 3331, 1920 × 1080 with no title bar, at
     /// the pinned camera with run1570's `loc`. The photographed frame is
-    /// not clocked (4183b): it is drawn at 3316, run1559b's own offset
-    /// from its packet's 3294 to the 3279 its movers show (assumed). The
-    /// row's tiles lie under standing buildings; only the movers' masks
-    /// follow the frame.
+    /// 3327, clocked by its movers (item 4191; 3316 was assumed before).
+    /// The row's tiles lie under standing buildings; only the movers'
+    /// masks follow the frame.
     pub(crate) fn run1570() -> Photo {
         let path = std::env::var_os("RON_PHOTO_RUN1570")
             .map(PathBuf::from)
@@ -166,8 +165,9 @@ mod tests {
     const RUN1570_PLAZA: [[(usize, usize); 2]; 3] =
         [[(0, 19), (9, 19)], [(19, 19), (15, 19)], [(0, 19), (9, 19)]];
 
-    /// The frame run1570's photograph is drawn at ([`run1570`]).
-    const RUN1570_FRAME: i64 = 3331 - (3294 - crate::silhouette::PHOTO_FRAME);
+    /// The frame run1570's photograph is drawn at ([`run1570`]): 3327,
+    /// clocked by its movers (item 4191, [`crate::dead::RUN1570_FRAME`]).
+    use crate::dead::RUN1570_FRAME;
 
     /// One scored tile: the tile, the photograph's mean, the still's, and
     /// its pixel count.
