@@ -378,11 +378,14 @@ const RING_MOVE: (i32, i32) = (12, 0);
 /// 91's state does not explain (parked 4199b): luma does not move. The
 /// three that part on hue: (18, 156) and (19, 157), under the fire's
 /// glow; (19, 163), the T, whose white lines part (4199a). Moved twelve
-/// tiles east, back to the before counts.
+/// tiles east, back to the before counts. Before and moved 1 → 2 at the
+/// merge beside item 4201's fire: tile (19, 156), 166 pixels, under the
+/// fire's glow, theirs (177, 168, 75), the still's (162, 142, 64), now
+/// agrees on hue with no road drawn.
 const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
-    [(1, 24), (20, 24)],
+    [(2, 24), (20, 24)],
     [(21, 24), (19, 24)],
-    [(1, 24), (20, 24)],
+    [(2, 24), (20, 24)],
 ];
 /// **`RUN1570_RING`** (item 4199), the same on run1570's photograph: hue
 /// **0 → 22** of 24, luma 14 → 14. The two that part on hue: (18, 163),
