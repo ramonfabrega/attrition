@@ -53,6 +53,7 @@ impl Sim {
             let target = self.world.owners();
             let won = self.territory.territory_won.clone();
             self.wholesale_bordering(&target, &won);
+            self.wholesale_reg_terr(&target);
             self.update_territory_holdings();
             self.claim_oil_from_owners();
             return;
@@ -121,11 +122,70 @@ impl Sim {
     /// leaders' sweep runs before `check_borders` in the frame — is undone
     /// for every region still waiting (`docs/AI.md` §318.1; East Indies'
     /// who=1 on tick 5575, run1241). The block's third write, the
-    /// leader's `ushort` at `+0x145e + 2r`, has no field in this crate.
+    /// leader's `ushort` at `+0x145e + 2r`, is [`Self::zero_reg_terr`],
+    /// gated on the live bit where this one is not.
     fn zero_region_rares(&mut self, r: u16) {
         for leader in &mut self.ai.ai {
             if let Some(slot) = leader.census.reg_known_rares.get_mut(usize::from(r)) {
                 *slot = 0;
+            }
+        }
+    }
+
+    /// `compute_reg_territory`'s zero block for `reg_terr` (§20.2 step 2):
+    /// while region `r`'s cursor is 0, every slot with `leader_flags & 1` —
+    /// every seated player, defeated or not — has its count there zeroed.
+    fn zero_reg_terr(&mut self, r: u16) {
+        let seats = self.territory.players.len().min(8);
+        for row in self.territory.reg_terr.iter_mut().take(seats) {
+            if let Some(slot) = row.get_mut(usize::from(r)) {
+                *slot = 0;
+            }
+        }
+    }
+
+    /// `compute_reg_territory`'s count (§20.2 step 4): a tile the pass gives
+    /// a player adds one to its `reg_terr` there, wrapping as a `ushort`.
+    /// No claim (−1) and an ambiguous winner (−2) count for nobody.
+    fn count_reg_terr(&mut self, who: Owner, r: u16) {
+        let Some(p) = who.player().map(usize::from) else {
+            return;
+        };
+        let regions = self.world.region_count();
+        let Some(row) = self.territory.reg_terr.get_mut(p) else {
+            return;
+        };
+        if row.len() < regions {
+            row.resize(regions, 0);
+        }
+        if let Some(slot) = row.get_mut(usize::from(r)) {
+            *slot = slot.wrapping_add(1);
+        }
+    }
+
+    /// `World::compute_all_territory@006b5700`'s `reg_terr` (§20.2): every
+    /// live slot's 64 counts zeroed, then every sized land region counted
+    /// from its first tile with the budget unlimited.
+    fn wholesale_reg_terr(&mut self, target: &[(Owner, Owner)]) {
+        let seats = self.territory.players.len().min(8);
+        for row in self.territory.reg_terr.iter_mut().take(seats) {
+            row.iter_mut().for_each(|x| *x = 0);
+        }
+        let lands: Vec<u16> = self
+            .world
+            .regions()
+            .filter(|&(_, t)| t == Terrain::Land)
+            .map(|(r, _)| r)
+            .collect();
+        for r in lands {
+            if self.world.region_size(r) == 0 {
+                continue;
+            }
+            for c in self.world.region_coords_strided(r, 0, 1) {
+                let i = (c.y * self.world.width() + c.x) as usize;
+                if let Some(&(who, _)) = target.get(i) {
+                    self.count_reg_terr(who, r);
+                }
             }
         }
     }
@@ -167,6 +227,7 @@ impl Sim {
         let settled = if let Some(pass) = self.territory.border_pass.take() {
             self.world.set_owners(&pass.target);
             self.wholesale_bordering(&pass.target, &pass.won);
+            self.wholesale_reg_terr(&pass.target);
             self.update_territory_holdings();
             self.claim_oil_from_owners();
             true
@@ -205,6 +266,7 @@ impl Sim {
             if *at == 0 {
                 self.clear_bordering();
                 self.zero_region_rares(r);
+                self.zero_reg_terr(r);
             }
             if budget < CELLS_PER_FRAME {
                 let cells = self
@@ -219,6 +281,7 @@ impl Sim {
                     if let Some(&w) = pass.won.get(i) {
                         self.mark_bordering(who, who2, w, c);
                     }
+                    self.count_reg_terr(who, r);
                     if let Some(p) = who.player() {
                         // `compute_reg_territory`'s per-cell goods scan: an
                         // oil patch on a cell it has just given away joins

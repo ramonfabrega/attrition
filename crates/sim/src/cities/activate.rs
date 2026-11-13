@@ -10,10 +10,11 @@
 //!
 //! **Not established.** `Build::new_library` has no counterpart here (the
 //! crate reads a library's queue from the first library where it is used,
-//! `docs/CITIES.md` §4); the per-leader `last_build_built` tables the head
-//! writes (`leaders +0x59f8`, `ScenarioData::last_build_built_o`) are read by
-//! nothing in this crate; `Wall::mask_me(1)` on the converted city is the
-//! city arm's own `mask_city`, later.
+//! `docs/CITIES.md` §4); of the two `last_build_built` tables the head
+//! writes, the leader's (`leaders +0x59f8`, `last_building_finished`) is held
+//! since item 4187 (`docs/LEADERS.md` §19) and
+//! `ScenarioData::last_build_built_o` is not; `Wall::mask_me(1)` on the
+//! converted city is the city arm's own `mask_city`, later.
 
 use crate::cities::build::Ident;
 use crate::{Player, Sim};
@@ -135,8 +136,12 @@ impl ActivateHeadView for SimHead<'_> {
     fn flag_wall_stats(&mut self) {
         self.sim.cities.wall_stats_dirty[self.who as usize] = true;
     }
-    /// SEAM: nothing here reads the tables.
-    fn record_last_built(&mut self) {}
+    /// `last_building_finished[who][type] = o` (`docs/LEADERS.md` §19);
+    /// `ScenarioData::last_build_built_o`, the trigger layer's, is not
+    /// carried.
+    fn record_last_built(&mut self) {
+        self.sim.note_last_building(self.b);
+    }
     fn wall_activate(&mut self, _captured: i32, _announce: i32) {}
 }
 

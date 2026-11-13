@@ -48,7 +48,7 @@ mod bodies {
             // Item 4176: 662160 -> 670560, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 670560 -> 673680, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 673680 -> 675840, +2160 (120 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
-            675840,
+            753840,
             "120 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         // **Under the word and on it, both directions.** The leader rows
@@ -260,7 +260,7 @@ mod bodies {
             // Item 4176: 1892674 -> 1916684, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 1916684 -> 1925602, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1925602 -> 1931776, +6174 (343 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
-            1931776,
+            2154726,
             "343 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -450,7 +450,7 @@ mod bodies {
             // Item 4176: 3890190 -> 3939540, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 3939540 -> 3957870, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 3957870 -> 3970560, +12690 (705 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
-            3970560,
+            4428810,
             "705 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -576,9 +576,11 @@ mod bodies {
         // ordered where it lands — `avg_speed`, `cur_anim` and
         // `orders_y` agree (`docs/TRANSPORT.md` §6.4).
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 4187: `score` (held, `docs/LEADERS.md` §18.5) first parts
+        // past the word, on 16790: who 1 ours 1935 theirs 1946.
         pin_eq!(
             past,
-            Vec::<String>::new(),
+            vec!["16790 1/-1 leader:score: ours 1935 theirs 1946".to_string()],
             "every key first parting past the word"
         );
         // **The floor**: 284 keys standing on the window's first block —
@@ -606,7 +608,7 @@ mod bodies {
         // Item 1291 took (159, 166, 167) → (159, 166, 166): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (159, 166, 166).
         // Item 1330 took 41 (153/158/158 → 112/115/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (36, 37, 37), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (36, 37, 38), "the floor");
     }
 
     pub(in super::super) fn run233_s_word_frame_is_widened_whole() {
@@ -653,7 +655,7 @@ mod bodies {
             // Item 4176: 2825216 -> 2861056, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 2861056 -> 2874368, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 2874368 -> 2883584, +9216 (512 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
-            2883584,
+            3216384,
             "512 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -877,7 +879,7 @@ mod bodies {
         // Item 1330 took 43 (155/165/172/178 → 112/118/122/128): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (36, 37, 37, 37),
+            (37, 38, 38, 38),
             "the floor"
         );
     }
@@ -923,7 +925,7 @@ mod bodies {
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
-            1447424,
+            1614474,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1057,7 +1059,7 @@ mod bodies {
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
-            1447424,
+            1614474,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1213,7 +1215,7 @@ mod bodies {
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
-            1447424,
+            1614474,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1459,7 +1461,7 @@ mod bodies {
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
-            1447424,
+            1614474,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1611,7 +1613,7 @@ mod bodies {
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
-            1447424,
+            1614474,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {

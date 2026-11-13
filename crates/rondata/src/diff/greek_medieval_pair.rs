@@ -253,7 +253,7 @@ fn greek_medieval_pair_run1380b_s_word_frame_is_widened_whole() {
     // `form`, `g.angle[0]` and `dest_angle` rows, and `1/195`'s
     // `order:target` on 5875 (`0/4` against `0/10`, parked 3711a); no
     // draw feels any of them before the game ends.
-    pin_eq!(w.firsts.len(), 137, "run1380b baseline");
+    pin_eq!(w.firsts.len(), 138, "run1380b baseline");
     // Every round, both directions: 1205 against 1199. The first to part
     // are launch points a unit or two off — the Heavy Horse Archer
     // `1/151`'s `ammo[4]` on 5601 (`sx` 6566 against 6565) and the
@@ -326,7 +326,7 @@ fn greek_medieval_pair_run1388_s_closing_frame_is_widened_whole() {
     // `dest_angle` and group-pool rows, and the Crossbowmen `1/195`'s
     // `order:target` on 5875 (`0/4` against `0/10`, parked 3711a). Nothing
     // parts on the closing block 5943, and no draw parts to 5942.
-    pin_eq!(w.firsts.len(), 141, "run1388 baseline");
+    pin_eq!(w.firsts.len(), 142, "run1388 baseline");
     // Every round, both directions: 1239 each side, 133 parting: 3703a's
     // launch points a unit or two off, and the Trebuchet `1/132`'s (TI 266)
     // `ammo[3]` on 5817, which leaves from the figure's own (6456, 10680,

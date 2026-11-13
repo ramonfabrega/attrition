@@ -799,7 +799,7 @@ fn run702_s_word_frame_is_widened_whole() {
     // Item 2761: 82 → 76 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` is not a parting on a capture that
     // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 59, "initial run702 baseline");
+    pin_eq!(w.firsts.len(), 60, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
         47,
@@ -903,7 +903,7 @@ fn run702_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(1991),
+        Some(1990),
         "the first parting past the standing block"
     );
 }

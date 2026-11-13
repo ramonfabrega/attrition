@@ -222,7 +222,7 @@ fn run1014_s_word_frame_is_widened_whole() {
     // Macemen `1/90` and `1/91` as `extra`, which theirs had closed on
     // 13392 — then every unit row from the word's block 13417 on. Built
     // (a decoy's overflow strikes its captain): 26, the 13410 rows alone.
-    pin_eq!(w.firsts.len(), 26, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 27, "keys that part in the window");
 }
 
 /// The closing state's window: run1006b's closing block alone, the long's

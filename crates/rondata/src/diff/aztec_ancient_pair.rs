@@ -308,7 +308,7 @@ fn aztec_ancient_pair_run1266_s_gap_is_widened_whole() {
     // 14 in theirs; then `0/13`'s on 8700, `1/155`'s from (6540, 9742).
     // With the bays: 141, the standing families and `1/175`'s
     // `dest_angle` alone.
-    pin_eq!(w.firsts.len(), 141, "run1266 baseline");
+    pin_eq!(w.firsts.len(), 142, "run1266 baseline");
 }
 
 /// **The closing state** (item 3613): run1256's closing block 9259, the

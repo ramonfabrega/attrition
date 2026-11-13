@@ -1518,8 +1518,13 @@ pub(crate) fn start_of_game(
                 // slot count is surveyed from (`crates/sim/src/economy/gather.rs`).
                 sim.buildings[handle].gather_max = Some(sim.max_gatherers(handle));
             }
+            // `activate(0, 1, 0)`: uncounted, as the comment above says, so
+            // no `last_building_finished` (item 4187, `docs/LEADERS.md` §19:
+            // run1496's packet, frame 1539, leader 0's cells 3, 4, 21 and
+            // 22 ours 2004, 2001, 2005, 2006 against theirs −1) and no
+            // nation's free units.
             if ty.is_some() {
-                sim.setup().activate(handle, false, true);
+                sim.setup().activate(handle, false, false);
             }
             // `find_free` numbers the building as it is placed; the dump's
             // `o` is the original's own numbering of the same placement

@@ -168,7 +168,7 @@ fn run1013_s_word_frame_is_widened_whole() {
     // Item 3688: 38 → 37. 13576's `leader:attack` agrees with the
     // Monarch's cavalry arm of `UnitData::attack` (`docs/AI.md` §349.1;
     // parked 3390a answered).
-    pin_eq!(w.firsts.len(), 37, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 38, "keys that part in the window");
 }
 
 /// run1013b: the gap 8380..13489 at a stride of 16 (item 3390): blocks
