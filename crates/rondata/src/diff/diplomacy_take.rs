@@ -126,6 +126,7 @@ pub(crate) fn walk_take_from(
     capture: (&str, &str),
     seats: usize,
     probes: &[(i64, sim::Player)],
+    diplomacy: &[TakeDiplo],
 ) -> Option<TakeWord> {
     let (Some(own), Some(tr)) = (take_file(capture.0), take_trace(capture.1)) else {
         eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", capture.0);
@@ -141,12 +142,19 @@ pub(crate) fn walk_take_from(
     let mut prev: Vec<Option<std::collections::BTreeMap<String, i64>>> = vec![None; seats];
     for _ in 0..last {
         let at = built.sim.frame;
-        // A probe: the original's `Leader::set_diplo@006ec6a0` ends in
-        // `Armies::diplo_change@006f30f0(this)` on every level, and ours
-        // only on a declaration; `probes` runs it at the head of a frame.
+        // A probe: `Armies::diplo_change@006f30f0(w)` alone at the head of
+        // a frame, the call item 4206 isolated the parting with.
         for &(f, w) in probes {
             if f == at {
                 built.sim.armies_diplo_change(w);
+            }
+        }
+        // The window's diplomacy, staged off the take's own record
+        // ([`take_diplomacy`]): `Leader::set_diplo` with the original's own
+        // `this`, at the head of the frame its command ran on.
+        for d in diplomacy {
+            if d.frame == at {
+                built.sim.setup().set_diplo(d.this, d.whom, d.level);
             }
         }
         built.tick();
@@ -290,7 +298,7 @@ pub(crate) fn walk_style_zero(
     let built =
         crate::diff::setup::with_staged_script(script, || build_sim(&loaded, &init, Tuning::RON));
     assert_eq!(built.sim.ai.lobby.team_style, 0, "the lobby reads style 0");
-    walk_take_from(&loaded, built, capture, 2, &[])
+    walk_take_from(&loaded, built, capture, 2, &[], &[])
 }
 
 /// Print a [`TakeWord`]: the word, the staging's refusals, each leader
@@ -353,6 +361,7 @@ pub(crate) fn walk_sea_style_zero(
     capture: (&str, &str),
     script: crate::golden::Script,
     probes: &[(i64, sim::Player)],
+    diplomacy: &[TakeDiplo],
 ) -> Option<TakeWord> {
     let inst = crate::testenv::install()?;
     let (Some(start), Some(pasture)) = (dump(SEA_START), take_trace(capture.1)) else {
@@ -386,7 +395,106 @@ pub(crate) fn walk_sea_style_zero(
     let built =
         crate::diff::setup::with_staged_script(script, || build_sim(&loaded, &init, Tuning::RON));
     assert_eq!(built.sim.ai.lobby.team_style, 0, "the lobby reads style 0");
-    walk_take_from(&loaded, built, capture, 3, probes)
+    walk_take_from(&loaded, built, capture, 3, probes, diplomacy)
+}
+
+/// One `Leader::set_diplo(this, whom, level)` the take's own record shows,
+/// on the frame its command ran.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct TakeDiplo {
+    pub frame: i64,
+    pub this: sim::Player,
+    pub whom: sim::Player,
+    pub level: i32,
+}
+
+/// The seat that issues the window's commands: the console's leader, who 0
+/// in every lobby these takes use. The dump's `process_*` line prints
+/// `whom` and not `who` (`CommandPackage::process_declare@009472b0`'s
+/// `Log::say`; its `logToMemory` twin carries `who`).
+const ISSUER: sim::Player = 0;
+
+/// **The window's diplomacy, read off a take's own dump** (item 4207): the
+/// `Leader::set_diplo` calls our staging cannot reach, with the original's
+/// own `this`, so that `Sim::set_diplo` runs the armies of the leader the
+/// original's does.
+///
+/// - `process_declare <whom> <treaty> <frame>` is `Leader::action_declare
+///   (issuer, whom, treaty)`, which ends in `set_diplo(issuer, whom,
+///   treaty)` — staged as that.
+/// - `process_accept <whom> <frame>` is the issuer's `action_respond(whom,
+///   1)`: it commits the proposal and forces `whom`'s next
+///   `Leader::diplomacy` pass, whose offers arm decides — a decision this
+///   crate does not carry (the offers arm is a SEAM in
+///   `sim::leaders::diplomacy`). So the answer is read off the record: when
+///   `whom`'s `diplos[issuer]` moves between the block of the accept's frame
+///   and the next, the answer was `action_respond`'s treaty arm, and it is
+///   staged as `set_diplo(whom, issuer, <the new level>)` — `whom` as
+///   `this`. An answer the record shows unmoved stages nothing.
+///
+/// This is staging from the oracle, not the AI's decision; VII-b ports the
+/// offers arm and retires it.
+pub(crate) fn take_diplomacy(capture: &str) -> Option<Vec<TakeDiplo>> {
+    use std::io::BufRead;
+    let path = take_file(capture)?;
+    let file = std::fs::File::open(&path).ok()?;
+    let mut lines: Vec<(String, Vec<i64>)> = Vec::new();
+    for line in std::io::BufReader::new(file).split(b'\n') {
+        let line = line.ok()?;
+        let line = String::from_utf8_lossy(&line);
+        let t = line.trim();
+        let Some(verb) = ["process_declare", "process_accept"]
+            .into_iter()
+            .find(|v| t.starts_with(&format!("{v} ")))
+        else {
+            continue;
+        };
+        let nums: Vec<i64> = t[verb.len()..]
+            .split_whitespace()
+            .filter_map(|x| x.parse().ok())
+            .collect();
+        lines.push((verb.to_string(), nums));
+    }
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).ok()?;
+    let numbers: Vec<i64> = ix.frames().iter().map(|f| f.number).collect();
+    let mut diplos = |n: i64, who: sim::Player, of: sim::Player| -> Option<i64> {
+        let at = numbers.iter().position(|&b| b == n)?;
+        let raw = ix.read_frame(at).ok()?;
+        let blog = Log::parse(&raw);
+        let block = blog.leader_block(n, i64::from(who))?;
+        diplomacy_leaves(&block)
+            .get(&format!("diplos[{of}]"))
+            .copied()
+    };
+    let mut out = Vec::new();
+    for (verb, nums) in lines {
+        match (verb.as_str(), nums.as_slice()) {
+            ("process_declare", &[whom, treaty, frame]) => out.push(TakeDiplo {
+                frame,
+                this: ISSUER,
+                whom: whom as sim::Player,
+                level: treaty as i32,
+            }),
+            ("process_accept", &[whom, frame]) => {
+                let whom = whom as sim::Player;
+                let (Some(before), Some(after)) =
+                    (diplos(frame, whom, ISSUER), diplos(frame + 1, whom, ISSUER))
+                else {
+                    continue;
+                };
+                if before != after {
+                    out.push(TakeDiplo {
+                        frame,
+                        this: whom,
+                        whom: ISSUER,
+                        level: after as i32,
+                    });
+                }
+            }
+            _ => panic!("{capture}: an unread {verb} line: {nums:?}"),
+        }
+    }
+    Some(out)
 }
 
 /// A take named by `RON_TAKE=<gamelog>,<trace>` walked at style 0 on the
@@ -415,7 +523,14 @@ fn diplomacy_take_walked_by_name() {
                 .collect()
         })
         .unwrap_or_default();
-    let Some(w) = walk_sea_style_zero((g, t), script, &probes) else {
+    // `RON_TAKE_NO_DIPLOMACY`: leave the window's diplomacy unstaged.
+    let diplomacy = if std::env::var_os("RON_TAKE_NO_DIPLOMACY").is_some() {
+        Vec::new()
+    } else {
+        take_diplomacy(g).unwrap_or_default()
+    };
+    eprintln!("{g}: staged {diplomacy:?}");
+    let Some(w) = walk_sea_style_zero((g, t), script, &probes, &diplomacy) else {
         return;
     };
     report(g, &w);
@@ -436,38 +551,71 @@ pub(crate) const RUN1575: (&str, &str) = (
 /// @006f30f0(1)`.
 pub(crate) const RUN1575_ACCEPT: i64 = 1027;
 
-/// **The take's word, as found** (item 4206): our walk of run1575 from
-/// run1482's start re-read at style 0, the script staged. Every console
-/// line is ours; every window line (the taunt, both Declares, the two
-/// proposals) is refused by the staging, so ours carries none of the
-/// diplomacy the record moves (`docs/LEADERS.md` §7.4).
+/// **The window's diplomacy on run1575's record** (item 4207,
+/// [`take_diplomacy`]): the two Declares as the human's `set_diplo`, and
+/// the accepted peace as the French one; the alliance asked for on 1041
+/// and answered short on 1051 (`counteroffer`) stages nothing.
+#[test]
+fn run1575_s_window_diplomacy_is_read_off_its_record() {
+    let _pins = Pins::hold();
+    let Some(d) = take_diplomacy(RUN1575.0) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", RUN1575.0);
+        return;
+    };
+    let got: Vec<(i64, sim::Player, sim::Player, i32)> = d
+        .iter()
+        .map(|d| (d.frame, d.this, d.whom, d.level))
+        .collect();
+    pin_eq!(
+        got,
+        vec![(986, 0, 1, 1), (1001, 0, 1, 0), (RUN1575_ACCEPT, 1, 0, 1)],
+        "the take's staged set_diplo calls"
+    );
+}
+
+/// **The take's word** (items 4206, 4207): our walk of run1575 from
+/// run1482's start re-read at style 0, the script staged, and the window's
+/// diplomacy staged off the take's own record ([`take_diplomacy`]) — the
+/// taunt and the proposals' bookkeeping are not carried (`docs/LEADERS.md`
+/// §7.4).
 #[test]
 fn run1575_s_word_is_pinned_as_found() {
     let _pins = Pins::hold();
-    let Some(w) = walk_sea_style_zero(RUN1575, coverage_script("diplomacy4206.cmd"), &[]) else {
+    let Some(diplomacy) = take_diplomacy(RUN1575.0) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", RUN1575.0);
+        return;
+    };
+    let Some(w) = walk_sea_style_zero(
+        RUN1575,
+        coverage_script("diplomacy4206.cmd"),
+        &[],
+        &diplomacy,
+    ) else {
         return;
     };
     report("run1575", &w);
     pin_eq!(w.last, 1150, "the take's last frame");
     // Item 4206, first walk: 1099, count and sequence together, 72 frames
-    // after the accepted peace and 18 past the script's last line (1081).
-    // Theirs spends 10 draws, ours 9: at index 1 theirs spends a guard's
-    // idle stand on its post, ours goes on to the farms.
-    pin_eq!(w.count, 1099, "the draw count's first parting");
-    pin_eq!(w.sequence, 1099, "the draw sequence's first parting");
-    pin_eq!(
-        w.row.as_str(),
-        "frame 1099: ours 9 theirs 10 — at 1, ours Some(\"Farms::inc_time+0x1ae\") theirs Some(\"Guy::set_anim+0x97a < Unit::do_guard+0x7f4\")",
-        "the parting's row"
-    );
+    // after the accepted peace — theirs spent a guard's idle stand
+    // (`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`) at index 1 where ours
+    // went on to `Farms::inc_time+0x1ae`. Item 4207: **whole**, 1150 of
+    // 1150. `Sim::set_diplo` runs `Armies::diplo_change(this)` on every
+    // level, and the staged accept's `this` is the French. The same walk
+    // under the declaration-only rule holds this pin's old 1099 exactly
+    // (count, sequence and row; item 4207's journal), so the staging alone
+    // moves no draw: the rule does.
+    pin_eq!(w.count, 1150, "the draw count's first parting");
+    pin_eq!(w.sequence, 1150, "the draw sequence's first parting");
+    pin_eq!(w.row.as_str(), "", "no parting");
 }
 
 /// **The parting is the French armies' `Armies::diplo_change` on the
 /// accepted peace** (item 4206): the same walk with
 /// `Sim::armies_diplo_change(1)` run at the head of the acceptance frame —
 /// one call, and nothing else of the diplomacy carried — holds the take
-/// whole; without it the walk parts 72 frames on
-/// ([`run1575_s_word_is_pinned_as_found`]).
+/// whole; without it the walk parts 72 frames on. Kept as the isolation's
+/// proof: since item 4207 the word itself is whole with no probe, the
+/// call made by `Sim::set_diplo` ([`run1575_s_word_is_pinned_as_found`]).
 #[test]
 fn run1575_holds_whole_with_the_french_armies_processed_on_the_accept() {
     let _pins = Pins::hold();
@@ -475,6 +623,7 @@ fn run1575_holds_whole_with_the_french_armies_processed_on_the_accept() {
         RUN1575,
         coverage_script("diplomacy4206.cmd"),
         &[(RUN1575_ACCEPT, 1)],
+        &[],
     ) else {
         return;
     };
@@ -496,6 +645,7 @@ fn run1575_s_diplomacy_movers_are_the_script_s() {
         RUN1575,
         coverage_script("diplomacy4206.cmd"),
         &[(RUN1575_ACCEPT, 1)],
+        &[],
     ) else {
         return;
     };

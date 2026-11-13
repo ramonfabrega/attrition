@@ -298,7 +298,12 @@ fn build(
         let screen = (size.0 as i32, size.1 as i32);
         let mut p = overlay::Painter::new(screen);
         let scene = world.runner.scene(None);
-        hud::paint(&mut p, input, &scene, &world.names, screen);
+        let m = camera.to_screen_matrix();
+        let project = |x: i32, y: i32, z: i32| {
+            let a = render::camera::world_to_screen(&m, &pinned_screen(), x, y, z, Some(screen));
+            (!a.off_screen).then_some((a.x, a.y))
+        };
+        hud::paint(&mut p, input, &scene, &world.names, screen, &project);
         overlay.0.extend(p.pos);
         overlay.1.extend(p.col);
     }

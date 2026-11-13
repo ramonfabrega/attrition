@@ -178,6 +178,27 @@ pub const HUD_PANEL: (usize, usize) = (628, 628);
 /// `pop_cap`, the age and the nation, 22 a record. 0 of 0 with no bar (no
 /// `LeaderScene` behind the door).
 pub const HUD_BAR: (usize, usize) = (57_420, 57_420);
+/// **The HUD's clock on the photographs** (item 4203, `docs/HUD.md` §5;
+/// the client's `hud::tests::the_clock_reads_the_photographs`): of the
+/// three photographs of the original (run1559b and run1564 on frame 3279,
+/// run1570 on 3327, each frame settled by its movers), those whose clock,
+/// read by eye, the bar's `TIME` prints on the frame it shows. 0 of 3
+/// before (the bar printed the frame alone); under the victory timers'
+/// `(frames + 14) / 15`, 0 of 3.
+pub const HUD_CLOCK_PHOTOS: (usize, usize) = (3, 3);
+/// **The HUD's clock against the packets** (item 4203; the client's
+/// `hud::tests::the_clock_is_the_original_s_tick`): of the packets on
+/// disk, those whose `Game::tick` (`+0x560`) is the bar's clock in
+/// seconds on the packet's `Game::frame` (`+0x550`), read off each packet
+/// by `tools/render/packet_clock.py`.
+pub const HUD_CLOCK_PACKETS: (usize, usize) = (109, 109);
+/// **The HUD's panel on a wounded unit** (item 4203; the client's
+/// `hud::tests::the_panel_s_damage_half_is_the_dump_s`): `(equal,
+/// compared)`, each number the panel prints for the attacked script's
+/// Scout `1/0` and Slinger `0/7` against run1571's `UNITDATA` on every
+/// frame it prints (6690..6899); the Scout's `damage` climbs from 0 to 19
+/// there, so the `damage` half of hits left parts if it is wrong.
+pub const HUD_WOUNDED: (usize, usize) = (840, 840);
 
 /// **The boxed script** (item 4180, `docs/CLIENT_INPUT.md` §7): the
 /// right-pressed script and one more package, a box dragged round the three
