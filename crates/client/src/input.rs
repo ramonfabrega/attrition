@@ -94,6 +94,19 @@ pub enum Event {
         x: i32,
         y: i32,
     },
+    /// A right press on the minimap at the world point it names
+    /// (`WorldMap::on_right_up@008c7050`, item 4194): a `move_to` with the
+    /// minimap's `form`/`width` −1/−1, the fields the scripts before
+    /// [`rondata::script::clicked_main_view`] carry. Ours: the minimap is
+    /// not drawn, so the event carries the point rather than a pixel.
+    #[cfg_attr(
+        not(test),
+        expect(dead_code, reason = "the window draws no minimap; the tests send it")
+    )]
+    MapRightPress {
+        x: i32,
+        y: i32,
+    },
     Key(char),
 }
 
@@ -113,6 +126,17 @@ impl View<'_> {
     pub fn pixel(&self, x: i32, y: i32, z: i32) -> (i32, i32) {
         let p = render::camera::world_to_screen(&self.matrix, &self.screen, x, y, z, self.size);
         (p.x, p.y)
+    }
+
+    /// The map's extent in world units, `(width, height)`: the bound the
+    /// minimap's right press holds its point to (`worldc +0x18`, `+0x1c`
+    /// cells of `0xc0`, `WorldMap::on_right_up@008c7050`).
+    pub fn map_extent(&self) -> (i32, i32) {
+        let t = self.terrain;
+        (
+            t.width * TILES_PER_CELL * TILE,
+            t.height * TILES_PER_CELL * TILE,
+        )
     }
 
     /// The height an object stands at on the ground at `(x, y)`: its
@@ -417,6 +441,22 @@ pub fn footprint(view: &View, at: Pos, r: i32) -> Vec<Pos> {
     out
 }
 
+/// A right press's `move_to` at `at`, the script's right-click fields with
+/// the arm's `form` and `width`.
+fn move_to(at: Pos, form: i8, width: i8) -> Command {
+    Command::MoveTo {
+        to_x: at.x,
+        to_y: at.y,
+        set_angle: 0,
+        angle: 0,
+        orders: 1,
+        queued: 2,
+        form,
+        width,
+        disembark: 0,
+    }
+}
+
 /// The session's input state: who issues, and what is selected or chosen.
 #[derive(Clone, Debug, Default)]
 pub struct Input {
@@ -547,25 +587,23 @@ impl Input {
                     return Some((frame, play, vec![self.group(), cmd]));
                 }
                 let at = ground_at(view, x, y)?;
-                // One unit keeps the scripts' −1/−1, the fields every file
-                // played so far carries (ours: the original's main view
-                // mints its formation for one unit too, parked 4180a).
-                let (form, width) = if self.selection.len() > 1 {
-                    view.formation(&self.selection)
-                } else {
-                    (-1, -1)
-                };
-                let cmd = Command::MoveTo {
-                    to_x: at.x,
-                    to_y: at.y,
-                    set_angle: 0,
-                    angle: 0,
-                    orders: 1,
-                    queued: 2,
-                    form,
-                    width,
-                    disembark: 0,
-                };
+                // The main view's formation, for one unit as for many
+                // (`Console::down@007cd8f0`; item 4194).
+                let (form, width) = view.formation(&self.selection);
+                Some((frame, play, vec![self.group(), move_to(at, form, width)]))
+            }
+            Event::MapRightPress { x, y } => {
+                // The minimap's arm: the point on the map, the selection
+                // able to act, `MOVE_TO` with −1/−1.
+                let (w, h) = view.map_extent();
+                if self.selection.is_empty()
+                    || self.building
+                    || !(0..w).contains(&x)
+                    || !(0..h).contains(&y)
+                {
+                    return None;
+                }
+                let cmd = move_to(Pos { x, y }, -1, -1);
                 Some((frame, play, vec![self.group(), cmd]))
             }
             Event::Key(k) => {
@@ -772,6 +810,13 @@ pub(crate) mod tests {
     /// An event on a frame, under the opening camera or the closer one.
     pub(crate) type Scripted = (i32, Option<(Pos, i32)>, Event);
 
+    ///
+    /// The Scout's move is the minimap's (item 4194): a right press on it
+    /// at the ground stage 0's inverse names under the event's camera — the
+    /// script's point under the closer one, the clicked point under the
+    /// opening one — whose `form`/`width` are the −1/−1 every file played
+    /// before [`script::clicked_main_view`] carries. [`main_view_events`]
+    /// is the same list with the move pressed on the main view.
     pub(crate) fn events(closer: bool) -> Vec<Scripted> {
         let o = |k: usize| OBJECTS[k].3;
         let (t0, t1) = (TARGETS[0], TARGETS[1]);
@@ -779,6 +824,7 @@ pub(crate) mod tests {
             if closer { t.7 } else { t.3 }
         };
         let cam = |t: Target| closer.then_some((Pos { x: t.1.0, y: t.1.1 }, t.2));
+        let named = if closer { t0.1 } else { t0.4 };
         vec![
             (
                 30,
@@ -791,9 +837,9 @@ pub(crate) mod tests {
             (
                 30,
                 cam(t0),
-                Event::RightPress {
-                    x: tp(t0).0,
-                    y: tp(t0).1,
+                Event::MapRightPress {
+                    x: named.0,
+                    y: named.1,
                 },
             ),
             (
@@ -823,6 +869,23 @@ pub(crate) mod tests {
                 },
             ),
         ]
+    }
+
+    /// **The clicked events on the main view** (item 4194): [`events`] at
+    /// the opening camera with the Scout's move a right press at its
+    /// target's pixel, (1384, 862), as the main view takes it.
+    pub(crate) fn main_view_events() -> Vec<Scripted> {
+        let mut e = events(false);
+        let t0 = TARGETS[0];
+        e[1] = (
+            30,
+            None,
+            Event::RightPress {
+                x: t0.3.0,
+                y: t0.3.1,
+            },
+        );
+        e
     }
 
     /// The events through the layer on the walk, each minted order issued
@@ -967,11 +1030,19 @@ pub(crate) mod tests {
         assert_eq!((site.x, site.y), (3456, 29760));
     }
 
-    /// **`INPUT_CLICKED`** (`docs/CLIENT_INPUT.md` §5, item 4149): the same
-    /// seven events, every target clicked under the opening camera at the
-    /// pixel the script's own target projects to, mint
-    /// [`script::clicked`] field for field, of 3. Was 0 (no clicked script).
+    /// **`INPUT_CLICKED`** (`docs/CLIENT_INPUT.md` §5, item 4149; §9, item
+    /// 4194): the same seven events, every target clicked under the
+    /// opening camera at the pixel the script's own target projects to and
+    /// the Scout's move pressed on the main view, mint
+    /// [`script::clicked_main_view`] field for field, of 3. Was 0 (no
+    /// clicked script); 3 of 3 on [`script::clicked`] while one unit's move
+    /// kept the minimap's −1/−1; 3 of 3 on the main view's file since item
+    /// 4194, where [`script::clicked`] counts 2 (the move's `form`/`width`).
     const INPUT_CLICKED: usize = 3;
+    /// [`script::clicked`] against the main view's events: the move parts
+    /// on `form`/`width` alone (item 4194; "fails today" was the layer
+    /// minting −1/−1).
+    const INPUT_CLICKED_MINIMAP_ON_MAIN: usize = 2;
     /// The clicked file (`docs/CLIENT_INPUT.md` §5): the minted file's
     /// lobby, `leader_options` and closing frame with the clicked orders,
     /// written by rondata's `the_clicked_minted_packages_round_trip` under
@@ -980,23 +1051,51 @@ pub(crate) mod tests {
     pub(crate) const CLICKED_RCX: &str =
         "ron-golden/recordings/item4149-clicked-greatlakes-24000.rcx";
     pub(crate) const CLICKED_RCX_BYTES: usize = 59_280;
+    /// The main view's clicked file (item 4194, `docs/CLIENT_INPUT.md` §9):
+    /// [`CLICKED_RCX`] with the move's `form`/`width` (0, 50), written by
+    /// rondata's `the_clicked_main_view_minted_packages_round_trip` under
+    /// `RON_RCX_OUT`; the file run1572 takes open.
+    pub(crate) const CLICKED_MAIN_RCX: &str =
+        "ron-golden/recordings/item4194-clicked-main-view-greatlakes-24000.rcx";
+    pub(crate) const CLICKED_MAIN_RCX_BYTES: usize = 59_278;
 
-    /// **The clicked count**: the events at the opening camera mint the
-    /// clicked script, every field; the walk that took them stands on frame
-    /// 299 with the Scout on its clicked point and the Farm's site `0/2007`
-    /// where the first script's stands; and the file written from them is
-    /// the clicked file, byte for byte, not the first script's.
+    /// The file the lobby's recording makes with `orders`' packages.
+    fn written(orders: &[Order]) -> Option<Vec<u8>> {
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let path = std::path::Path::new(&home).join(MINTED_RCX);
+        let rec = rondata::recgame::read(&path.to_string_lossy()).ok()?;
+        let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
+        let last = rec.packages.last().unwrap().frame;
+        let mut w = rec.clone();
+        w.packages = rondata::recgame::minted_packages(lo[0].clone(), orders, last).unwrap();
+        Some(rondata::recgame::write_gz(&w))
+    }
+
+    /// **The clicked count**: the main view's events at the opening camera
+    /// mint the main view's clicked script, every field; the walk that took
+    /// them stands on frame 299 with the Scout on its clicked point and the
+    /// Farm's site `0/2007` where the first script's stands; and the file
+    /// written from them is the main view's clicked file byte for byte, not
+    /// the played clicked file. The minimap's list mints [`script::clicked`]
+    /// whole and writes the played file (item 4194).
     #[test]
     fn minted_clicked_at_the_opening_camera() {
-        let Some((ours, r)) = mint(false) else { return };
-        let clicked = script::clicked();
-        let whole = ours.iter().zip(&clicked).filter(|(a, b)| a == b).count();
+        let Some((ours, r)) = mint_events(main_view_events()) else {
+            return;
+        };
+        let main = script::clicked_main_view();
+        let whole = |a: &[Order], b: &[Order]| a.iter().zip(b).filter(|(a, b)| a == b).count();
         assert_eq!(
-            (ours.len(), whole),
-            (clicked.len(), INPUT_CLICKED),
+            (ours.len(), whole(&ours, &main)),
+            (main.len(), INPUT_CLICKED),
             "{ours:?}"
         );
-        assert_eq!(ours, clicked);
+        assert_eq!(ours, main);
+        assert_eq!(
+            whole(&ours, &script::clicked()),
+            INPUT_CLICKED_MINIMAP_ON_MAIN,
+            "the played clicked script against the main view's events"
+        );
         let scene = r.scene(None);
         let scout = object(&scene, script::SCOUT_OBJECT).0;
         assert_eq!(
@@ -1005,27 +1104,25 @@ pub(crate) mod tests {
         );
         let site = object(&scene, 2007).0;
         assert_eq!((site.x, site.y), (3456, 29760));
+        let (minimap, _) = mint(false).unwrap();
+        assert_eq!(minimap, script::clicked(), "the minimap's list");
 
         let home = std::env::var_os("HOME").unwrap_or_default();
-        let (Ok(first), Ok(file)) = (
-            std::fs::read(std::path::Path::new(&home).join(MINTED_RCX)),
-            std::fs::read(std::path::Path::new(&home).join(CLICKED_RCX)),
-        ) else {
-            println!("skipping the bytes: no {MINTED_RCX} or {CLICKED_RCX}");
+        let read = |p: &str| std::fs::read(std::path::Path::new(&home).join(p));
+        let (Ok(played), Ok(file)) = (read(CLICKED_RCX), read(CLICKED_MAIN_RCX)) else {
+            println!("skipping the bytes: no {CLICKED_RCX} or {CLICKED_MAIN_RCX}");
             return;
         };
-        assert_eq!(file.len(), CLICKED_RCX_BYTES);
-        let path = std::path::Path::new(&home).join(MINTED_RCX);
-        let rec = rondata::recgame::read(&path.to_string_lossy()).unwrap();
-        let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
-        let last = rec.packages.last().unwrap().frame;
-        let mut written = rec.clone();
-        written.packages = rondata::recgame::minted_packages(lo[0].clone(), &ours, last).unwrap();
-        let written = rondata::recgame::write_gz(&written);
-        assert!(written == file, "the file from the clicked orders");
+        assert_eq!(
+            (played.len(), file.len()),
+            (CLICKED_RCX_BYTES, CLICKED_MAIN_RCX_BYTES)
+        );
+        let w = written(&ours).unwrap();
+        assert!(w == file, "the file from the main view's clicked orders");
+        assert!(w != played, "the main view's file is not the played one");
         assert!(
-            written != first,
-            "the clicked file is not the first script's"
+            written(&minimap).unwrap() == played,
+            "the minimap's list writes the played clicked file"
         );
     }
 

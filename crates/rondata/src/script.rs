@@ -58,6 +58,31 @@ pub fn clicked() -> Vec<Order> {
     script_to(CLICKED_SCOUT_TO, CLICKED_FARM_AT)
 }
 
+/// **The clicked script, as the main view mints it** (item 4194,
+/// `docs/CLIENT_INPUT.md` §9): [`clicked`] with the Scout's move carrying
+/// the main view's formation fields in place of the minimap's −1/−1. A
+/// right button going down writes `drag_form = max(GroupData::get_form, 0)`
+/// and `drag_form_mod = get_form_mod_option` (`Console::down@007cd8f0`),
+/// for one unit as for many: the Scout's `UnitData +0xaa` is 0 and its
+/// `+0xab` −1 on frame 29 (run1563a), so the move carries [`SCOUT_FORM`]
+/// and [`SCOUT_WIDTH`], the leader's byte or 50. [`clicked`]'s −1/−1 is
+/// what `WorldMap::on_right_up@008c7050`, the minimap's arm, issues. The
+/// client's `minted_clicked_at_the_opening_camera` mints this from the
+/// main view's presses and holds it equal field for field.
+pub fn clicked_main_view() -> Vec<Order> {
+    let mut orders = clicked();
+    if let Command::MoveTo { form, width, .. } = &mut orders[0].2[1] {
+        (*form, *width) = (SCOUT_FORM, SCOUT_WIDTH);
+    }
+    orders
+}
+
+/// The Scout's move's `form` and `width` as the main view mints them: its
+/// own `form` byte, 0, clamped up to 0, and `get_form_mod_option`'s 50 for
+/// one member whose `form_mod` is −1.
+pub const SCOUT_FORM: i8 = 0;
+pub const SCOUT_WIDTH: i8 = 50;
+
 /// The scout's destination as clicked: [`SCOUT_TO`]'s pixel at the opening
 /// camera, (1384, 862), under the layer's inverse.
 pub const CLICKED_SCOUT_TO: Pos = Pos { x: 5883, y: 31896 };

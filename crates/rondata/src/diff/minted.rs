@@ -923,6 +923,170 @@ const FIRST_AGAINST_CLICKED: (i64, &str, &str, Option<i64>) = (
     None,
 );
 
+/// **The main view's clicked file's size** (item 4194,
+/// `docs/CLIENT_INPUT.md` §9): the lobby's file with
+/// [`crate::script::clicked_main_view`]'s packages, gzipped.
+const CLICKED_MAIN_RCX_BYTES: usize = 59_278;
+
+/// **The clicked script as the main view mints it** (item 4194): the
+/// clicked file with the Scout's move carrying `form` 0 and `width` 50 in
+/// place of the minimap's −1/−1; it round-trips, and parts from the played
+/// clicked file in the move's package alone. With `RON_RCX_OUT=<file>` it
+/// writes the `.rcx` run1572 takes open.
+#[test]
+fn the_clicked_main_view_minted_packages_round_trip() {
+    let main = crate::script::clicked_main_view();
+    let (Some(rec), Some(played)) = (minted(&main), minted(&clicked())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "clicked-main").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in main.iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let parted: Vec<i32> = back
+        .packages
+        .iter()
+        .zip(&played.packages)
+        .filter(|(a, b)| a != b)
+        .map(|(a, _)| a.frame)
+        .collect();
+    assert_eq!(parted, vec![MOVE_FRAME], "the packages that part");
+    let gz = crate::recgame::write_gz(&rec);
+    assert_eq!(gz.len(), CLICKED_MAIN_RCX_BYTES, "CLICKED_MAIN_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The original's playback of the main view's clicked file (run1572), as
+/// [`CLICKED_WALKED`]: every unit and building printed for 300 frames.
+pub(crate) const CLICKED_MAIN_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1572-greatlakes-playback-of-clicked-main-view-300.txt",
+    "rontrace-run1572.log",
+    300,
+    300,
+    299,
+    0,
+)];
+
+/// **The original plays the main view's clicked file, and our walk keeps
+/// lockstep** (item 4194): [`CLICKED_MAIN_WALKED`], and each order's
+/// effect equal on both sides — [`clicked_effects`], the played clicked
+/// file's own, since the move's (0, 50) leaves the Scout where −1/−1 does.
+/// Seen red first: the row pinned `(0, 0, 0, 0)`.
+#[test]
+fn the_original_s_playback_of_the_main_view_clicked_file_walks_in_lockstep() {
+    playback_walks_in_lockstep(
+        &crate::script::clicked_main_view(),
+        CLICKED_MAIN_WALKED,
+        &clicked_effects(),
+    );
+}
+
+/// The frames the Scout's formation bytes are read on, both sides: the
+/// frame before the move, the frame after it, the frame its order's
+/// target turns to the clicked point, and the take's last.
+const SCOUT_FORM_AT: [i64; 4] = [29, 31, 101, 299];
+
+/// **The Scout's formation bytes, both sides** (item 4194):
+/// `(frame, form, form_mod)` of `0/0` on [`SCOUT_FORM_AT`] under the main
+/// view's file — `UnitData +0xaa`, `+0xab` in run1572's `UNITDATA`, and
+/// `Unit::form`, `form_width` on our walk. The move's `width` 50 is the
+/// `form_mod` both hold from 31; run1563a, the minimap's −1/−1, prints
+/// the same. Seen red first: pinned `(f, 0, -1)` on every frame.
+const SCOUT_FORM: [(i64, i64, i64); 4] = [(29, 0, -1), (31, 0, 50), (101, 0, 50), (299, 0, 50)];
+
+#[test]
+fn the_main_view_s_scout_holds_the_move_s_formation_on_both_sides() {
+    let (take, ..) = CLICKED_MAIN_WALKED[0];
+    let Some(text) = dump(take) else {
+        eprintln!("skipping {take}: not filed (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let Some((_, mut built, _)) = built_start() else {
+        return;
+    };
+    let mut source = crate::capture::indexed::IndexedCapture::open(text).unwrap();
+    let mut theirs = Vec::new();
+    for i in 0..source.frames().len() {
+        let n = source.frames()[i].number;
+        if SCOUT_FORM_AT.contains(&n) {
+            let f = source.frame_state(i).unwrap();
+            let u = f.units.iter().find(|u| u.who == 0 && u.o == 0).unwrap();
+            theirs.push((n, u.form.unwrap_or(-2), u.form_mod.unwrap_or(-2)));
+        }
+    }
+    let mut stream =
+        crate::input::Stream::pump(&minted(&crate::script::clicked_main_view()).unwrap());
+    let mut ours = Vec::new();
+    for n in SCOUT_FORM_AT {
+        tick_to(&mut built, Some(&mut stream), n);
+        let s = &built.sim;
+        let u = &s.units[s.unit_by_o(0, SCOUT).unwrap()];
+        ours.push((n, i64::from(u.form), i64::from(u.form_width)));
+    }
+    eprintln!("SCOUT FORM theirs {theirs:?}\n           ours {ours:?}");
+    assert_eq!(theirs, SCOUT_FORM, "the original's");
+    assert_eq!(ours, SCOUT_FORM, "ours");
+}
+
+/// **Made to fail against the main view's playback** (item 4194). The
+/// played clicked file, the minimap's −1/−1, walked against run1572: it
+/// parts nowhere, since the two arms leave the same state (the two dumps
+/// differ in three wall-clock lines alone). The first script's file,
+/// three units off on the move, parts there as it parts on run1563a
+/// ([`FIRST_AGAINST_CLICKED`]): the take can fail. Seen red first: the
+/// clicked walk pinned to part on 31.
+#[test]
+fn the_minimap_s_clicked_file_against_the_main_view_playback() {
+    let (take, take_trace, ..) = CLICKED_MAIN_WALKED[0];
+    let Some((w, _)) = walk_minted(&clicked(), take, take_trace) else {
+        return;
+    };
+    eprintln!(
+        "CLICKED AGAINST MAIN: first {:?}; draws part {:?}; records {} parted {}",
+        w.first_record, w.first_sequence, w.records, w.records_parted
+    );
+    assert_eq!(
+        (
+            w.first_record.map(|r| r.0),
+            w.first_sequence,
+            w.records,
+            w.records_parted
+        ),
+        (None, None, 299, 0),
+        "the minimap's file against run1572"
+    );
+    let Some((w, _)) = walk_minted(&script(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    let (f, kind, row, draws) = FIRST_AGAINST_CLICKED;
+    assert_eq!(
+        (
+            frame,
+            partings[0].0,
+            partings[0].2.clone(),
+            w.first_sequence
+        ),
+        (f, kind, row.to_string(), draws),
+        "the first script against run1572"
+    );
+}
+
 /// **The right-pressed file's size** (item 4179, `docs/CLIENT_INPUT.md` §6):
 /// the lobby's file with [`crate::script::right_pressed`]'s packages,
 /// gzipped as the original reads it.
