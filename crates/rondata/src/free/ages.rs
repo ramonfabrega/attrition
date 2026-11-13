@@ -662,7 +662,10 @@ fn census() -> Option<Vec<GameCensus>> {
 /// unresolved holding at 15 — the closing blocks the quit now replays
 /// (a resign on its own frame, `check_victory`'s conquest emptying the
 /// winner's queues) carry five fewer drawn objects; met at the bank gate.
-pub(crate) const AGES_RESOLVED: (usize, usize, usize) = (1_171_779, 1_171_794, 110);
+/// Item 4208: +65,812 objects, +65,812 resolved, the unresolved holding at
+/// 15 — gaia's birds, which had no piece and were not drawn until
+/// `Sim::gaia_piece`, now drawn on `WILDBIRD-TYPE0`'s 60045 and resolved.
+pub(crate) const AGES_RESOLVED: (usize, usize, usize) = (1_237_591, 1_237_606, 110);
 
 /// The dumped frames walked: frame 0 and every `FRAME` each long prints.
 pub(crate) const AGES_FRAMES: usize = 4_608;

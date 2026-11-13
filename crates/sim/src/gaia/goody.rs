@@ -59,7 +59,94 @@ impl Sim {
     /// guards (§2); this function assumes them.
     pub(crate) fn explore_goody(&mut self, u: usize) {
         let who = self.units[u].owner;
+        let cell = self.units[u].pos.cell();
+        // §4 step 1: `find_goody_at` reads the box off the chain's tail and
+        // its vtable `+0x90`, `Item::close@00677050`, takes it — the box's
+        // `GOODY` bit, `World::clear_down` on its cell, and `flags` 0, so
+        // the items line walks it no more (item 4209).
+        if let Some(i) = self.find_goody_at(cell) {
+            let at = self.gaia.goody_items[i].pos.cell();
+            let mut d = self.world.cell_data(at);
+            d.flags &= !GOODY;
+            self.world.set_cell_data(at, d);
+            self.clear_down(at);
+            self.gaia.goody_items[i].alive = false;
+        }
+        // Step 2: the chain's −3 becomes −1.
+        self.repair_goody_chain(cell);
         explore_goody_steps(&mut SimGoody { sim: self, u, who });
+    }
+
+    /// `ObjectsData::find_goody_at@0065c040`: the box whose index the cell's
+    /// chain ends at — the tail's `down` −3, `down_who` the box — while
+    /// its `flags & 1` (here `alive`) holds.
+    fn find_goody_at(&self, c: Cell) -> Option<usize> {
+        let (down, who) = self.chain_tail_words(c);
+        if down != -3 {
+            return None;
+        }
+        let i = usize::try_from(who).ok()?;
+        self.gaia
+            .goody_items
+            .get(i)
+            .filter(|it| it.alive)
+            .map(|_| i)
+    }
+}
+
+impl Sim {
+    /// The tail's `down`/`down_who`: the last object's on a threaded cell,
+    /// else the cell's own — what `ObjectsData::find_goody_at@0065c040`
+    /// walks to (−3 and the box's index on a box's cell).
+    pub(crate) fn chain_tail_words(&self, c: crate::Cell) -> (i16, i16) {
+        match self.object_chain(c).last() {
+            Some(&t) => {
+                let w = self.chain_words(t);
+                (w.down, w.down_who)
+            }
+            None => {
+                let d = self.world.cell_data(c);
+                (d.down, i16::from(d.down_who))
+            }
+        }
+    }
+
+    /// **`World::clear_down@006b3ad0`** (item 4209; `docs/GOODY.md` §4):
+    /// on a threaded cell the tail object's `down` goes to −1 when it is
+    /// below −1, its `down_who` left; on an empty cell the cell's own pair
+    /// goes to (−1, −1). `Item::close@00677050` calls it on the box's cell,
+    /// so the box's −3 leaves the cell with the finder still on it, and the
+    /// cell takes −1 back when the finder steps off.
+    pub(crate) fn clear_down(&mut self, c: crate::Cell) {
+        if c.x < 0 || c.y < 0 || c.x >= self.world.width() || c.y >= self.world.height() {
+            return;
+        }
+        match self.object_chain(c).last() {
+            Some(&t) => {
+                let w = self.chain_words_mut(t);
+                if w.down < -1 {
+                    w.down = -1;
+                }
+            }
+            None => {
+                let mut d = self.world.cell_data(c);
+                d.down = -1;
+                d.down_who = -1;
+                self.world.set_cell_data(c, d);
+            }
+        }
+    }
+
+    /// `Unit::explore_goody@005f9780`'s chain repair (`docs/GOODY.md` §4,
+    /// step 2): on a threaded cell every object whose `down` is −3 takes
+    /// −1 (only the tail can be); the head case's write is a dead store.
+    pub(crate) fn repair_goody_chain(&mut self, c: crate::Cell) {
+        for o in self.object_chain(c) {
+            let w = self.chain_words_mut(o);
+            if w.down == -3 {
+                w.down = -1;
+            }
+        }
     }
 }
 
