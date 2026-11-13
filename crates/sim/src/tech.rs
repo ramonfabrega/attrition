@@ -778,6 +778,15 @@ pub struct PlayerTech {
     /// spy's `Unit::close` sets it again, and `Build::process`'s Kremlin arm
     /// clears it as it trains the next (`docs/AI.md` §188).
     pub kremlin_spy_due: bool,
+    /// **`tech`'s spell bits** (`docs/LEADERS.md` §17): bit `i` is `TypeIndex`
+    /// [`SPELL_BASE`]` + i`, which the tree's own `tech` has no entry for.
+    /// `Leader::init`'s spell pass ([`TechTree::start`]) is the one writer a
+    /// plain game reaches; `tech_at_start` never holds one.
+    pub spells: u64,
+    /// **`leader_flags & 0x1000000`, the score's tech bit** (§18.2): set at
+    /// the entry of every `Leader::gain_tech` ([`TechTree::gain`]), cleared
+    /// by `Leader::compute_score` after the upgrades and research parts.
+    pub score_dirty: bool,
 }
 
 impl PlayerTech {
@@ -806,6 +815,8 @@ impl PlayerTech {
             gov_hero_frame: -1,
             bribes: 0,
             kremlin_spy_due: false,
+            spells: 0,
+            score_dirty: false,
         }
     }
 
@@ -851,10 +862,30 @@ pub enum Gained {
     CityCheck,
 }
 
+/// One `SPELLTYPE` row as `Leader::init`'s spell pass reads it
+/// (`docs/LEADERS.md` §17): `preq[0]`, `tribe_mask` and `spell_flags`'
+/// letter `a`. The rows are `TypeIndex` `0x275..=0x2ab` in file order.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct SpellRow {
+    /// `PREQ0`: `none`, `disable` or a type that must be held.
+    pub preq: Preq,
+    /// `TRIBE_MASK`, a nation per bit.
+    pub tribe_mask: u32,
+    /// `spell_flags & 1`, letter `a`.
+    pub letter_a: bool,
+}
+
+/// The first spell's `TypeIndex` (`BASE_SPELLTYPES`, `0x275`): bit `i` of
+/// [`PlayerTech::spells`] is `tech`'s bit `SPELL_BASE + i`.
+pub const SPELL_BASE: usize = 0x275;
+
 /// The tree itself: the table of types and the facts the rules hang on it.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct TechTree {
     pub types: Vec<TypeDef>,
+    /// The spell rows the spell pass reads ([`SpellRow`]), in `TypeIndex`
+    /// order from [`SPELL_BASE`].
+    pub spells: Vec<SpellRow>,
     pub tribes: Vec<Tribe>,
     pub roles: Roles,
     pub free_rules: Vec<FreeRule>,
@@ -1953,6 +1984,9 @@ impl TechTree {
         if depth > 64 {
             return;
         }
+        // `Leader::gain_tech@006dcb60:158`, at entry and unconditional:
+        // `leader_flags |= 0x1000000`, the score's tech bit (§18.2).
+        p.score_dirty = true;
         let kind = self.kind(t);
         // 1. A Science epoch re-prices the first library's queue.
         if let Kind::Epoch {
@@ -2235,6 +2269,34 @@ impl TechTree {
 
     // ---- the starting position ----
 
+    /// **`Leader::init`'s spell pass** (`docs/LEADERS.md` §17.2), after the
+    /// age, tech, building and unit passes and before `reset_obs_flags`: a
+    /// spell's bit is set when `type_avail(t, 1)` holds and (`preq[0] != -1`
+    /// or letter `a` is clear). For a spell `type_avail` is `has_preq` and
+    /// `type_eligible`: the preq held (`none` is, `disable` never is), the
+    /// tribe's bit in `tribe_mask`, and a `disable` slot refused a second
+    /// time, as is a preq past the game's ending age. Bits only go up here;
+    /// nothing in a plain game clears one.
+    pub fn spell_pass(&self, setup: &Setup, p: &mut PlayerTech) {
+        p.spells = 0;
+        for (i, s) in self.spells.iter().enumerate().take(64) {
+            let held = match s.preq {
+                Preq::None => true,
+                Preq::Disabled => false,
+                Preq::Of(q) => self.has_tech(setup, p, q),
+            };
+            let tribe = s.tribe_mask & (1u32 << (p.tribe as u32 & 31)) != 0;
+            let eligible = match s.preq {
+                Preq::None => true,
+                Preq::Disabled => false,
+                Preq::Of(q) => !(self.age_of(q).is_some() && setup.ending < self.tech_age(q)),
+            };
+            if held && tribe && eligible && (s.preq != Preq::None || !s.letter_a) {
+                p.spells |= 1u64 << i;
+            }
+        }
+    }
+
     /// `Leader::init`'s tech block: the bits a player starts with.
     pub fn start(&self, setup: &Setup, tuning: &Tuning, p: &mut PlayerTech) -> Vec<Gained> {
         let start_age = self.starting_age(setup, p);
@@ -2295,6 +2357,17 @@ impl TechTree {
         for t in 0..self.types.len() {
             match self.kind(t) {
                 Kind::Building { .. } => {
+                    // **The Senate's arm** of `type_avail` (item 3597,
+                    // [`crate::Sim::senate_avail`]) asks `find_capital`, and
+                    // `Leader::init` runs before any city stands, so it
+                    // answers 0 and the Senate's bit stays clear at any
+                    // starting age (item 4187, `docs/LEADERS.md` §17.6:
+                    // run1496's packet, frame 1539, bit `0x1b6` ours 1
+                    // theirs 0 on every leader of a Classical-or-later
+                    // start). The tree's own answer has no city to ask.
+                    if self.roles.senate == Some(t) {
+                        continue;
+                    }
                     if self.type_avail(setup, p, t, true) != 0 {
                         p.tech[t] = true;
                     }
@@ -2322,6 +2395,7 @@ impl TechTree {
                 _ => {}
             }
         }
+        self.spell_pass(setup, p);
         self.reset_obs_flags(setup, p);
         // The nation starting techs.
         let mut out = Vec::new();

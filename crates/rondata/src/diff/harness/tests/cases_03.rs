@@ -1612,7 +1612,7 @@ mod bodies {
             // Item 4176: 1227 -> 1262, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 1262 -> 1275, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1275 -> 1283, +8: of the end of the game's and the lost capital's nine, the eight this record does not print (`defeated_by` prints).
-            1283,
+            1607,
             "the keys run80's record does not carry"
         );
         pin_eq!(
@@ -1635,7 +1635,7 @@ mod bodies {
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            [(23960, 37), (24001, 48)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(23960, 37), (24001, 49)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, and how many"
         );
         let end: Vec<&String> = firsts
@@ -1644,9 +1644,11 @@ mod bodies {
             .map(|((_, _, what), _)| what)
             .filter(|what| what.as_str() != "orders.len")
             .collect();
+        // Item 4187: and on `score` (held, `docs/LEADERS.md` §18.5): who 0
+        // ours 402 theirs 401 on 24001.
         pin_eq!(
             end,
-            Vec::<&String>::new(),
+            vec![&"leader:score".to_string()],
             "the end block parts on `orders.len` alone"
         );
         // Item 1115 took the caravan's four rows here (306 → 302; `docs/CARAVAN.md` §11.3).
@@ -1698,7 +1700,9 @@ mod bodies {
             // Item 4177: +13, the thirteen combat rates (2795 -> 2808).
             // Item 4185: +8, of the end of the game's and the lost
             // capital's nine, all but `defeated_by` (2808 -> 2816).
-            1_210 + 1_531 + 2 + 6 + 11 + 35 + 13 + 8,
+            // Item 4187: +324, of its 325 new keys all but `score`
+            // (2816 -> 3140).
+            1_210 + 1_531 + 2 + 6 + 11 + 35 + 13 + 8 + 324,
             "the keys run96's records do not carry"
         );
         pin_eq!(

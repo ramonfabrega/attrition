@@ -46,6 +46,10 @@ impl Sim {
     /// prefer it over pushing onto `units` directly: a supply wagon that never
     /// registered supplies nobody, silently.
     pub fn add_unit(&mut self, unit: Unit) -> usize {
+        // `Unit::init@00612100:578` (`612d83`), for an owner below 8:
+        // `leader_flags |= 0x800000`, the score's units bit
+        // (`docs/LEADERS.md` §18.2).
+        self.score_units_dirty(unit.owner);
         // `Unit::init` preserves an existing guy's point until seating it;
         // the collision move uses the new type's radius (COLLISION §23).
         // Only the latest occupant of the object number owns that figure.

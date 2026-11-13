@@ -26,6 +26,17 @@
 //!   fold adds that same count to `*_fifteen_seconds`, step 1); a pair with
 //!   no fold between its records must hold the averages still.
 //!
+//! - **`territory_high`** (§20, item 4187): [`sim::territory::fold_territory_high`]
+//!   on the first record's mark and the second's `territory` — the fold runs
+//!   where `territory` is summed again, so a pair with no fold holds both;
+//! - **`high_buildings`** (§20, item 4187): every building record whose
+//!   `num_buildings` rose across the pair is an activation, its line count
+//!   (`Sim::building_line`, the record and its `to` chain) read off the
+//!   second record, and [`sim::cities::nations::raise_building_high`] raises
+//!   its root's mark (`Sim::base_build_type`) — unless the pair's
+//!   `cities_captured` rose (a capture's `activate(1, 1, 0)`); a pair over a
+//!   gap that moves `num_buildings` has no step (the order is not printed).
+//!
 //! The pairs and the moving pairs are pinned per leaf ([`PINNED`]), so a
 //! change that drops pairs is red too, and a bent step is seen red on a named
 //! pair ([`the_bent_steps_part_on_a_named_pair`]).
@@ -49,7 +60,7 @@ use std::path::{Path, PathBuf};
 
 /// The cache's schema: bumped whenever [`extract`] reads a different set of
 /// words, so a stale extraction is never read as the new one.
-const SCHEMA: &str = "transfer-v1";
+const SCHEMA: &str = "transfer-v3";
 
 /// `BASE_UNITTYPES`: `num_queued[scan]`'s index 0 is `TypeIndex` 0, and the
 /// unit records are `0x32..0x19e` (`TypeData::is_unit_type`).
@@ -58,6 +69,9 @@ const END_UNITTYPES: usize = 0x19e;
 
 /// The record's words the steps read, beside the thirteen rates.
 const WORDS: &[&str] = &[
+    "territory",
+    "territory_high",
+    "cities_captured",
     "ages_get()",
     "leader_flags",
     "supply_mark",
@@ -100,7 +114,7 @@ fn slot(k: &str) -> Option<usize> {
 }
 
 /// How many words a record keeps.
-const KEPT: usize = 9 + 13;
+const KEPT: usize = 12 + 13;
 
 /// A word the record did not print.
 const MISSING: i64 = i64::MIN;
@@ -124,6 +138,9 @@ pub(crate) struct Rec {
     /// The supply records this leader's units hold on the record's frame,
     /// slot → `(o, uid)`; `None` when the frame printed no unit.
     pub supply: Option<BTreeMap<i64, (i64, i64)>>,
+    /// `num_buildings[scan]` and `high_buildings[scan]` by building
+    /// record, non-zero, in record order; `None` when not printed.
+    pub builds: Option<(Counts, Counts)>,
 }
 
 impl Default for Rec {
@@ -135,6 +152,7 @@ impl Default for Rec {
             queued_printed: false,
             queued: Vec::new(),
             supply: None,
+            builds: None,
         }
     }
 }
@@ -146,6 +164,9 @@ impl Rec {
             .map_or(0, |i| i64::from(self.queued[i].1))
     }
 }
+
+/// A per-building-record array read sparse: `(record, value)`, non-zero.
+pub(crate) type Counts = Vec<(u8, u16)>;
 
 /// A unit record being read: its indent, and its `who`, `o`, `uid` and
 /// `supply` once seen.
@@ -206,6 +227,9 @@ pub(crate) fn extract(path: &Path) -> std::io::Result<Vec<Rec>> {
     let mut seen_units: std::collections::BTreeSet<(i64, i64)> = Default::default();
     // The open leader record: its indent, the record, the scan index.
     let mut lead: Option<(usize, Rec, usize)> = None;
+    // The open record's `num_buildings[scan]` and `high_buildings[scan]`
+    // indices.
+    let mut bscan = [0usize; 2];
     // The open units: indent, who, o, uid, supply.
     let mut units: Vec<OpenUnit> = Vec::new();
 
@@ -287,6 +311,7 @@ pub(crate) fn extract(path: &Path) -> std::io::Result<Vec<Rec>> {
             let Some(at) = at else { continue };
             match rest {
                 b"LEADERDATA" => {
+                    bscan = [0, 0];
                     lead = Some((
                         ind,
                         Rec {
@@ -310,6 +335,21 @@ pub(crate) fn extract(path: &Path) -> std::io::Result<Vec<Rec>> {
                 Some(p) => (&body[..p], &body[p + 1..]),
                 None => (body, &b""[..]),
             };
+            if let Some(which) = [&b"num_buildings[scan]"[..], &b"high_buildings[scan]"[..]]
+                .iter()
+                .position(|n| *n == k)
+            {
+                let i = bscan[which];
+                bscan[which] += 1;
+                let b = rec.builds.get_or_insert_with(Default::default);
+                if i < 129
+                    && let Some(x) = int(v).filter(|x| *x != 0)
+                {
+                    let list = if which == 0 { &mut b.0 } else { &mut b.1 };
+                    list.push((i as u8, x as u16));
+                }
+                continue;
+            }
             if k == b"num_queued[scan]" {
                 rec.queued_printed = true;
                 let i = *scan;
@@ -373,7 +413,7 @@ pub(crate) fn extract(path: &Path) -> std::io::Result<Vec<Rec>> {
     }
     finish_frame(&mut out, start, units_seen, &mut supply);
     // Only the level-9 record carries what the steps read.
-    out.retain(|r| word(r, "supply_mark").is_some() || r.queued_printed);
+    out.retain(|r| word(r, "supply_mark").is_some() || r.queued_printed || r.builds.is_some());
     Ok(out)
 }
 
@@ -396,8 +436,16 @@ fn encode(recs: &[Rec]) -> String {
                 format!("+{}", v.join(","))
             }
         };
+        let list = |l: &[(u8, u16)]| -> String {
+            let v: Vec<String> = l.iter().map(|(k, v)| format!("{k}:{v}")).collect();
+            format!("+{}", v.join(","))
+        };
+        let (bn, bh) = match &r.builds {
+            None => ("-".to_string(), "-".to_string()),
+            Some((n, h)) => (list(n), list(h)),
+        };
         s.push_str(&format!(
-            "{} {} {} {} {} {}\n",
+            "{} {} {} {} {} {} {} {}\n",
             r.frame,
             r.who,
             u8::from(r.queued_printed),
@@ -407,7 +455,9 @@ fn encode(recs: &[Rec]) -> String {
             } else {
                 q.join(",")
             },
-            u
+            u,
+            bn,
+            bh
         ));
     }
     s
@@ -417,7 +467,7 @@ fn decode(text: &str) -> Option<Vec<Rec>> {
     let mut out = Vec::new();
     for line in text.lines() {
         let f: Vec<&str> = line.split(' ').collect();
-        if f.len() != 6 {
+        if f.len() != 8 {
             return None;
         }
         let mut rec = Rec {
@@ -446,6 +496,19 @@ fn decode(text: &str) -> Option<Vec<Rec>> {
                 m.insert(s, (o, uid));
             }
             rec.supply = Some(m);
+        }
+        let list = |t: &str| -> Option<Vec<(u8, u16)>> {
+            t.strip_prefix('+')?
+                .split(',')
+                .filter(|x| !x.is_empty())
+                .map(|kv| {
+                    let (k, v) = kv.split_once(':')?;
+                    Some((k.parse().ok()?, v.parse().ok()?))
+                })
+                .collect()
+        };
+        if f[6] != "-" {
+            rec.builds = Some((list(f[6])?, list(f[7])?));
         }
         out.push(rec);
     }
@@ -491,7 +554,9 @@ pub(crate) enum Verdict {
 }
 
 /// The leaves the harness transfers, each with its step.
-pub(crate) const LEAVES: [&str; 11] = [
+pub(crate) const LEAVES: [&str; 13] = [
+    "territory_high",
+    "high_buildings",
     "barracks_queued",
     "stable_queued",
     "factory_queued",
@@ -515,6 +580,10 @@ pub(crate) enum Bend {
     Decay,
     /// A newborn supply record appended rather than reusing a free one.
     SupplyAppend,
+    /// `territory_high` taking the second record's `territory` outright.
+    HighFollows,
+    /// `high_buildings`' line count one too many.
+    LineOver,
 }
 
 fn word(r: &Rec, k: &str) -> Option<i64> {
@@ -601,6 +670,68 @@ fn step_supply(a: &Rec, b: &Rec, bend: Bend) -> Option<i64> {
     Some(list.len() as i64 + bent)
 }
 
+/// **`territory_high`'s step** across a pair: the fold on the first
+/// record's mark and the second's `territory`.
+fn step_territory_high(a: &Rec, b: &Rec, bend: Bend) -> Option<i64> {
+    let high = i32::try_from(word(a, "territory_high")?).ok()?;
+    let t = i32::try_from(word(b, "territory")?).ok()?;
+    if bend == Bend::HighFollows {
+        return Some(i64::from(t));
+    }
+    Some(i64::from(sim::territory::fold_territory_high(high, t)))
+}
+
+/// **`high_buildings`' step** across a pair: each record whose
+/// `num_buildings` rose is activated, its line counted on the second record,
+/// its root's mark raised. `Ok(())` when the step gives the second record's
+/// array, else the first index that parts, `(ours, theirs)`.
+fn step_high_buildings(
+    sim: &Sim,
+    a: &Rec,
+    b: &Rec,
+    bend: Bend,
+) -> Option<Result<bool, (i64, i64)>> {
+    let ((na, ha), (nb, hb)) = (a.builds.as_ref()?, b.builds.as_ref()?);
+    let dense = |l: &[(u8, u16)]| {
+        let mut v = [0i32; 129];
+        for &(k, x) in l {
+            v[usize::from(k)] = i32::from(x);
+        }
+        v
+    };
+    let (na, ha, nb, hb) = (dense(na), dense(ha), dense(nb), dense(hb));
+    // Across more than one tick the order of the activations and losses is
+    // not printed: a pair that moves `num_buildings` over a gap has no
+    // step.
+    if b.frame != a.frame + 1 && na != nb {
+        return None;
+    }
+    // A city taken in the pair (`cities_captured`, printed, rose) brings its
+    // buildings through `Cities::capture_city`'s `activate(1, 1, 0)`: the
+    // rises are captures and raise no mark.
+    let captured = word(b, "cities_captured")? > word(a, "cities_captured")?;
+    let mut high = ha;
+    for t in 0..129usize.min(sim.tables.build_types.len()) {
+        if nb[t] <= na[t] {
+            continue;
+        }
+        let line = sim.building_line(t);
+        let n: i32 = line
+            .iter()
+            .map(|&u| nb.get(u).copied().unwrap_or(0))
+            .sum::<i32>()
+            + i32::from(bend == Bend::LineOver);
+        let root = sim.base_build_type(t);
+        if let Some(r) = sim::cities::nations::raise_building_high(high[root], n, captured) {
+            high[root] = r;
+        }
+    }
+    Some(match (0..129).find(|&i| high[i] != hb[i]) {
+        None => Ok(ha != hb),
+        Some(i) => Err((i64::from(high[i]), i64::from(hb[i]))),
+    })
+}
+
 /// The age `Rates::fold`'s battle test reads: `ages_get()`, 0-based.
 fn age(r: &Rec) -> Option<i32> {
     i32::try_from(word(r, "ages_get()")?).ok()
@@ -647,6 +778,13 @@ fn step_rates(a: &Rec, b: &Rec, bend: Bend) -> Option<Rates> {
 
 /// One leaf's verdict on one pair.
 pub(crate) fn verdict(sim: &Sim, leaf: &str, a: &Rec, b: &Rec, bend: Bend) -> Verdict {
+    if leaf == "high_buildings" {
+        return match step_high_buildings(sim, a, b, bend) {
+            None => Verdict::Unprinted,
+            Some(Ok(moved)) => Verdict::Agree { moved },
+            Some(Err((ours, theirs))) => Verdict::Part { ours, theirs },
+        };
+    }
     let Some(theirs) = word(b, leaf) else {
         return Verdict::Unprinted;
     };
@@ -654,6 +792,8 @@ pub(crate) fn verdict(sim: &Sim, leaf: &str, a: &Rec, b: &Rec, bend: Bend) -> Ve
         step_bins(sim, a, b, bend).map(|v| i64::from(v[i]))
     } else if leaf == "supply_mark" {
         step_supply(a, b, bend)
+    } else if leaf == "territory_high" {
+        step_territory_high(a, b, bend)
     } else if let Some(k) = AVERAGES.iter().position(|(n, _)| *n == leaf) {
         step_rates(a, b, bend).map(|r| i64::from(r.average[k]))
     } else {
@@ -781,6 +921,15 @@ fn read_corpus() -> Vec<(String, Vec<Rec>)> {
 /// array prints (parked 4159Ta). The three other averages transfer, but
 /// part in the record diff on frames of their own (4177a, 4177b), so they
 /// stay held.
+///
+/// Item 4187 added `territory_high` (286 moving pairs, none parting; it
+/// agrees in the record diff too) and `high_buildings` (712 moving, none
+/// parting, after the step learned two things the first try parted on:
+/// a pair whose `cities_captured` rose is a capture — run594's 18140 →
+/// 18141, run609's 5638 → 5639, run958f's 22700 → 22701, run1007c's 16564
+/// → 16565 and run1018's 12658 → 12659, ours 6 / 3 / 6 / 6 / 4 against 5 /
+/// 2 / 5 / 5 / 3 — and a pair over a gap that moves `num_buildings`
+/// has no printed order — run25's and run26's 12132/12027 → 16008).
 const PINNED: &[(&str, usize, usize, usize)] = &[
     ("air_queued", 477_126, 288, 0),
     ("average_damage_rate", 476_892, 1482, 0),
@@ -791,18 +940,25 @@ const PINNED: &[(&str, usize, usize, usize)] = &[
     ("combat_queued", 477_126, 972, 1),
     ("dock_queued", 477_126, 136, 0),
     ("factory_queued", 477_126, 188, 0),
+    ("high_buildings", 476_924, 712, 0),
     ("stable_queued", 477_126, 338, 0),
     ("supply_mark", 480_076, 82, 0),
+    ("territory_high", 477_128, 286, 0),
 ];
 
 /// The leaves released on transfer: each transfers on every pair (no
 /// parting, a moving pair) and is emitted on the leaders line.
-const RELEASED: [&str; 5] = [
+const RELEASED: [&str; 7] = [
     "stable_queued",
     "factory_queued",
     "air_queued",
     "supply_mark",
     "average_kill_rate",
+    // Item 4187 (`docs/LEADERS.md` §20): `high_buildings` parts in the
+    // record diff only in run1075's window, beside `num_buildings[21]`;
+    // `territory_high` parts nowhere and transfers too.
+    "high_buildings",
+    "territory_high",
 ];
 
 #[test]
@@ -873,6 +1029,8 @@ fn the_bent_steps_part_on_a_named_pair() {
         (Bend::BinIncrement, "barracks_queued"),
         (Bend::Decay, "average_kill_rate"),
         (Bend::SupplyAppend, "supply_mark"),
+        (Bend::HighFollows, "territory_high"),
+        (Bend::LineOver, "high_buildings"),
     ] {
         let t = tally(&built.sim, dumps, bend);
         let x = &t[leaf];

@@ -837,8 +837,8 @@ fn the_schema_key_moves_on_the_parser_and_the_codec_only() {
     let tested = format!("{leader}\n#[test]\nfn added() {{\n    assert!(true);\n}}\n");
     let one_line = format!("{leader}\n#[test]\nfn empty() {{}}\n");
     let unmodelled = leader.replace(
-        "    (\"score\", \"no score is kept\"),\n",
-        "    (\"score\", \"no score is kept\"),\n    (\"extra\", \"a ledger line\"),\n",
+        "    (\"blacken\", \"fog bookkeeping\"),\n",
+        "    (\"blacken\", \"fog bookkeeping\"),\n    (\"extra\", \"a ledger line\"),\n",
     );
     assert_ne!(unmodelled, leader);
     for (what, edited) in [

@@ -249,7 +249,7 @@ fn roman_medieval_pair_run1275b_s_word_frame_is_widened_whole() {
         w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 17)),
         "the Citizen 1/17 parts nowhere in the window"
     );
-    pin_eq!(w.firsts.len(), 83, "run1275b baseline");
+    pin_eq!(w.firsts.len(), 66, "run1275b baseline");
 }
 
 /// run1277: the word 3607's window, blocks 3602..3858 at the long's detail

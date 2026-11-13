@@ -1012,3 +1012,58 @@ fn barbarians_defenders_start_with_both_settings() {
     f.tree.start(&s, &Tuning::RON, &mut a);
     assert_eq!(a.epochs, 0);
 }
+
+/// **The spell pass** (`docs/LEADERS.md` §17.2): a `none` preq is set, a
+/// `disable` one never is, a held age sets its spell, a nation outside the
+/// mask does not, and letter `a` with a `none` preq refuses. Gaining the
+/// age afterwards sets nothing: the pass runs once, at `Leader::init`.
+#[test]
+fn the_spell_pass_sets_the_available_spells_once() {
+    let mut f = fixture();
+    let industrial = f.ages[0];
+    f.tree.spells = vec![
+        SpellRow {
+            preq: Preq::None,
+            tribe_mask: u32::MAX,
+            letter_a: false,
+        },
+        SpellRow {
+            preq: Preq::Disabled,
+            tribe_mask: u32::MAX,
+            letter_a: false,
+        },
+        SpellRow {
+            preq: Preq::Of(industrial),
+            tribe_mask: u32::MAX,
+            letter_a: false,
+        },
+        SpellRow {
+            preq: Preq::None,
+            tribe_mask: 0,
+            letter_a: false,
+        },
+        SpellRow {
+            preq: Preq::None,
+            tribe_mask: u32::MAX,
+            letter_a: true,
+        },
+    ];
+    let mut p = fresh(&f);
+    assert_eq!(p.spells, 0b00001, "an Ancient start: the age is not held");
+    age_up(&f, &mut p, 0);
+    assert_eq!(p.spells, 0b00001, "gaining the age sets no spell");
+    f.tree.spell_pass(&Setup::STANDARD, &mut p);
+    assert_eq!(p.spells, 0b00101, "the age held at the pass");
+}
+
+/// **The score's tech bit** (`docs/LEADERS.md` §18.2): every gain raises
+/// it at its entry.
+#[test]
+fn every_gain_raises_the_score_s_tech_bit() {
+    let f = fixture();
+    let mut p = fresh(&f);
+    p.score_dirty = false;
+    f.tree
+        .gain_tech(&Setup::STANDARD, &mut p, f.epochs[0][0], 1);
+    assert!(p.score_dirty);
+}

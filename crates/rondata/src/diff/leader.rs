@@ -39,7 +39,6 @@ pub(crate) type Row = (String, i64);
 /// widening ledger's own list, so "not compared" is a statement rather
 /// than an omission. Every other scalar the record prints is in [`rows`].
 pub(crate) const UNMODELLED: &[(&str, &str)] = &[
-    ("score", "no score is kept"),
     ("blacken", "fog bookkeeping"),
     (
         "pop_issues",
@@ -594,6 +593,53 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     for k in sim::leaders::endgame::ENDGAME_LEAVES {
         out.push((k.to_string(), s.leader_endgame_leaf(p, k).unwrap_or(0)));
     }
+    // **Item 4187, step VI** (`docs/LEADERS.md` §17–§20): `score`, the
+    // one of its twelve `log_data` prints; `territory_high`;
+    // `high_buildings[r]` by building record, the lineage root's
+    // high-water count; `reg_terr[d]` by the dump's own region `d`; and
+    // `tech`'s 806-bit mask, spell bits included, compared as its print.
+    // The same values the leaders line emits.
+    out.push((
+        "score".to_string(),
+        s.leader_score_leaf(p, "score").unwrap_or(0),
+    ));
+    out.push((
+        "territory_high".to_string(),
+        i64::from(s.territory.territory_high.get(who).copied().unwrap_or(0)),
+    ));
+    // `num_buildings[r]`, `high_buildings`' named input (§20.2), the
+    // finished buildings of each record: the same values the line emits.
+    let mut counts = [0i64; HIGH_BUILDINGS];
+    for b in s
+        .buildings
+        .iter()
+        .filter(|b| b.alive && b.active && b.owner == p)
+    {
+        if let Some(r) = b.ty.filter(|&r| r < HIGH_BUILDINGS) {
+            counts[r] += 1;
+        }
+    }
+    for (r, v) in counts.iter().enumerate() {
+        out.push((format!("num_buildings[{r}]"), *v));
+    }
+    for r in 0..HIGH_BUILDINGS {
+        let v = s
+            .cities
+            .building_high
+            .get(who)
+            .and_then(|v| v.get(r))
+            .map_or(0, |&n| i64::from(n as u16));
+        out.push((format!("high_buildings[{r}]"), v));
+    }
+    for d in 0..64i64 {
+        let v = built
+            .region_map
+            .iter()
+            .find(|(dr, _)| *dr == d)
+            .map_or(0, |&(_, sr)| s.reg_terr(p, sr));
+        out.push((format!("reg_terr[{d}]"), i64::from(v)));
+    }
+    out.push(("tech".to_string(), tech_mask_key(&s.leader_tech_bits(p))));
     out.push(("rare".to_string(), mask_text(l.rare)));
     out.push(("rare_owned".to_string(), mask_text(h.rare_owned)));
     out.push(("rare_conquest".to_string(), mask_text(0)));
@@ -616,6 +662,33 @@ fn mask_text(m: u64) -> i64 {
         text.push_str(&b.to_string());
     }
     text.parse().unwrap_or(i64::MIN)
+}
+
+/// `high_buildings`' width: the building records `0x19e..0x21f`.
+const HIGH_BUILDINGS: usize = 129;
+
+/// A printed mask's key: `BitMask::log_data`'s `bit_values` text — each
+/// byte in `%u`, no separator — hashed (FNV-1a, 64 bits), since an 806-bit
+/// print is three hundred digits and not uniquely decodable (`mask_text`'s
+/// note). Both sides are compared in the printed form.
+fn print_hash(text: &str) -> i64 {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for b in text.trim().bytes() {
+        h ^= u64::from(b);
+        h = h.wrapping_mul(0x0100_0000_01b3);
+    }
+    h as i64
+}
+
+/// The crate's side of the `tech` mask's print: its 101 bytes from the set
+/// `TypeIndex` bits, each in `%u`, then [`print_hash`].
+pub(crate) fn tech_mask_key(bits: &[usize]) -> i64 {
+    let mut bytes = [0u8; 101];
+    for &i in bits.iter().filter(|&&i| i < 806) {
+        bytes[i / 8] |= 1 << (i % 8);
+    }
+    let text: String = bytes.iter().map(|b| b.to_string()).collect();
+    print_hash(&text)
 }
 
 /// A `%f` print — digits, a point, exactly six decimals — as its
@@ -956,6 +1029,10 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "buildings_razed",
         "buildings_lost",
         "nukes_launched",
+        // Item 4187, step VI (`docs/LEADERS.md` §18, §20): `score` and
+        // `territory_high`.
+        "score",
+        "territory_high",
     ]
     .into_iter()
     // Item 4177, step IV (`docs/LEADERS.md` §3): the thirteen combat rates.
@@ -1064,7 +1141,35 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     // the tech and conquest masks, read here and not compared. `bits` and
     // `bit_values` pair one to one; `size` is not paired, since the record
     // prints other `size` lines, and stays unread.
+    // Item 4187, step VI (`docs/LEADERS.md` §20): `num_buildings[scan]`
+    // and `high_buildings[scan]` by building record, `reg_terr[scan]` by the
+    // dump's region.
+    for (r, x) in all("num_buildings[scan]")
+        .iter()
+        .enumerate()
+        .take(HIGH_BUILDINGS)
+    {
+        out.insert(format!("num_buildings[{r}]"), *x);
+    }
+    for (r, x) in all("high_buildings[scan]")
+        .iter()
+        .enumerate()
+        .take(HIGH_BUILDINGS)
+    {
+        out.insert(format!("high_buildings[{r}]"), *x);
+    }
+    for (d, x) in all("reg_terr[scan]").iter().enumerate().take(64) {
+        out.insert(format!("reg_terr[{d}]"), *x);
+    }
     let (bits, values) = (block.all("bits"), block.all("bit_values"));
+    // `tech`, the first 806-bit mask `log_data` prints (§17), as its print.
+    if let Some((_, v)) = bits
+        .iter()
+        .zip(values.iter())
+        .find(|(b, _)| b.trim() == "806")
+    {
+        out.insert("tech".to_string(), print_hash(v));
+    }
     let rare44: Vec<_> = bits
         .iter()
         .zip(values.iter())
@@ -1525,7 +1630,8 @@ mod tests {
             // item 4176: 196_480 -> 202_080, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 202_080 -> 204_160, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 204_160 -> 205_600, +9 keys a leader block (the end of the game's six and the lost capital's three).
-            205_600, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4187: 205_600 -> 257_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
+            257_600, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1638,7 +1744,8 @@ mod tests {
             // item 4176: 211_216 -> 217_236, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 217_236 -> 219_472, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 219_472 -> 221_020, +9 keys a leader block (the end of the game's six and the lost capital's three).
-            221_020, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4187: 221_020 -> 276_920, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
+            276_920, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1842,7 +1949,8 @@ mod tests {
             // item 4176: 44_208 -> 45_468, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 45_468 -> 45_936, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 45_936 -> 46_260, +9 keys a leader block (the end of the game's six and the lost capital's three).
-            46_260, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4187: 46_260 -> 57_960, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
+            57_960, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1990,7 +2098,8 @@ mod tests {
             // item 4176: 319_280 -> 328_380, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 328_380 -> 331_760, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 331_760 -> 334_100, +9 keys a leader block (the end of the game's six and the lost capital's three).
-            334_100, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4187: 334_100 -> 418_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
+            418_600, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -2138,7 +2247,8 @@ mod tests {
             // item 4176: 73_680 -> 75_780, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 75_780 -> 76_560, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 76_560 -> 77_100, +9 keys a leader block (the end of the game's six and the lost capital's three).
-            77_100, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4187: 77_100 -> 96_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
+            96_600, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3245,7 +3355,8 @@ mod tests {
             // item 4176: 601_720 -> 618_870, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 618_870 -> 625_240, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 625_240 -> 629_650, +9 keys a leader block (the end of the game's six and the lost capital's three).
-            629_650, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4187: 629_650 -> 788_900, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
+            788_900, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
@@ -3565,6 +3676,7 @@ mod tests {
                 "fort_mark",
                 "frame_battle",
                 "handicap",
+                "high_buildings",
                 "hits_current_frame",
                 "hits_fifteen_seconds",
                 "kills_current_frame",
@@ -3578,11 +3690,14 @@ mod tests {
                 "nukes_launched",
                 "oil_well_mark",
                 "raid_stamp",
+                "reg_terr",
                 "repair_stamp",
                 "scholar_militia",
+                "score",
                 "senates_built",
                 "stable_queued",
                 "supply_mark",
+                "territory_high",
                 "units_killed",
                 "units_lost",
                 "victory_type",

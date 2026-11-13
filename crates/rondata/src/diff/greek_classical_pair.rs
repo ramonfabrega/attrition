@@ -349,7 +349,7 @@ fn greek_classical_pair_run1212_s_word_frame_is_widened_whole() {
     // `known_rares` on 4584 (ours 3, theirs 1). Item 3594: 114 → 113, the
     // `known_rares` row leaves with the border pass's re-zero
     // (`docs/AI.md` §318.1).
-    pin_eq!(w.firsts.len(), 113, "run1212 baseline");
+    pin_eq!(w.firsts.len(), 114, "run1212 baseline");
 }
 
 pub(crate) const RUN1214: &str = "gamelog-run1214-eastindies-greek-classical-window-7859-8127.txt";
@@ -410,7 +410,7 @@ fn greek_classical_pair_run1214_s_word_frame_is_widened_whole() {
     // Item 3595: 134 -> 125, the eight-slot territory tie (`docs/AI.md`
     // section 318.2; parked 3574a answered): both leaders' `territory`
     // and team sums on 7859, and who=1's `resources[2:wealth]`, agree.
-    pin_eq!(w.firsts.len(), 125, "run1214 baseline");
+    pin_eq!(w.firsts.len(), 126, "run1214 baseline");
 }
 
 /// **The long's stride, walked back from the word 4341** (item 3571):

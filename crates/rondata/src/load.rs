@@ -923,6 +923,17 @@ pub fn load_tables(
         let id = tree.add(d);
         debug_assert_eq!(id, tech_tree[i]);
     }
+    // The spell rows `Leader::init`'s spell pass reads (`docs/LEADERS.md`
+    // §17): `PREQ0`, `TRIBE_MASK` and `FLAGS`' letter `a`, `TypeIndex`
+    // `0x275` upward in file order.
+    tree.spells = craft_records
+        .iter()
+        .map(|r| sim::tech::SpellRow {
+            preq: tech_key(r.text("PREQ0"), &mut warnings),
+            tribe_mask: mask_bits(r.text("TRIBE_MASK")),
+            letter_a: craft_flags(r.text("FLAGS").unwrap_or("")) & 1 != 0,
+        })
+        .collect();
     // The 24 nations. `Tribe::graft` is `UnitType::init`'s passes 2 and 3
     // over the unit records (`docs/TECH.md` §"The graft table", diffed
     // against run3's `DUMP_ALL`); `barbarian` is false, since the flag has

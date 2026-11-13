@@ -169,3 +169,59 @@ fn a_rival_s_runner_up_marks_the_winning_city_s_bordering() {
     sim.advance_border_pass();
     assert_eq!(bordering(&sim), 0, "the region's first call clears it");
 }
+
+/// **`reg_terr` is the pass's own count** (`docs/LEADERS.md` §20.2): a
+/// region the pass has not reached reads 0 mid-pass (its cursor at 0 is
+/// re-zeroed every frame), a region in progress reads the tiles written so
+/// far, and `territory_high` folds only where `territory` is summed again,
+/// the frame the last region finishes — and is never lowered.
+#[test]
+fn reg_terr_counts_the_tiles_the_pass_has_written() {
+    let mut sim = Sim::new(crate::Tuning::RON, rows(200, 3), 2);
+    sim.in_play = true;
+    let before = sim.world.owners();
+    let mut target = before.clone();
+    target.fill((Owner::Player(1), Owner::None));
+    sim.world.set_owners(&target);
+    sim.start_border_pass(before.clone());
+    let r = |sim: &Sim, y: i32| sim.world.region_of(Cell::new(0, y)).unwrap();
+    sim.advance_border_pass();
+    let (r0, r1, r2) = (r(&sim, 0), r(&sim, 1), r(&sim, 2));
+    assert_eq!(
+        (
+            sim.reg_terr(1, r0),
+            sim.reg_terr(1, r1),
+            sim.reg_terr(1, r2)
+        ),
+        (200, 56, 0)
+    );
+    assert_eq!(sim.territory.territory_high[1], 0, "no fold mid-pass");
+    sim.advance_border_pass();
+    sim.advance_border_pass();
+    assert_eq!(
+        (
+            sim.reg_terr(1, r0),
+            sim.reg_terr(1, r1),
+            sim.reg_terr(1, r2)
+        ),
+        (200, 200, 200)
+    );
+    assert_eq!(
+        sim.territory.territory_high[1], 600,
+        "the pass's last frame folds"
+    );
+    // A second fix that takes the land away: the counts follow the pass,
+    // the high-water mark stays.
+    let before = sim.world.owners();
+    let mut target = before.clone();
+    target.fill((Owner::None, Owner::None));
+    sim.world.set_owners(&target);
+    sim.start_border_pass(before);
+    sim.advance_border_pass();
+    assert_eq!(sim.reg_terr(1, r2), 0, "region 2 waits at 0");
+    while sim.territory.border_pass.is_some() {
+        sim.advance_border_pass();
+    }
+    assert_eq!(sim.reg_terr(1, r0), 0);
+    assert_eq!(sim.territory.territory_high[1], 600, "never lowered");
+}

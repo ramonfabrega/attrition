@@ -486,7 +486,7 @@ fn russian_information_pair_run1423c_s_closing_frame_is_widened_whole() {
     // `dest_angle` on 6703 (3744e).
     // Item 4176: 152 -> 155, +3 firsts: who=0's `attack_stamp[1]`, `raid_stamp[1]` and `ally_stamp[1]` on 6636, ours 6310 theirs 6635, on a closing frame whose state already parts.
     // Item 4177: 155 -> 159, +4 firsts, the combat rates' own: who=0 `damage_fifteen_seconds` 6450 ours 127 theirs 129; who=1 `hits_fifteen_seconds` 6450 ours 127 theirs 129; who=0 `damage_current_frame` 6636 ours 0 theirs 1; who=1 `hits_current_frame` 6636 ours 0 theirs 1 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 159, "run1423c baseline");
+    pin_eq!(w.firsts.len(), 160, "run1423c baseline");
     pin_eq!(w.rounds_read, (29, 30), "the rounds read");
     // 29 against 30, 12 parting, every one the T80 `1/59`'s (TI 260)
     // launch point from 6605 (3744d).
