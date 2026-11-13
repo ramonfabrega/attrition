@@ -2435,8 +2435,9 @@ mean; the patch opaque and unlit. **On a reading alone**, for the next batched s
 - the walker's skips: a building the console player has not seen, and the mode-5 frame;
 - player 1's footprints, all off-screen.
 
-**Not established.** The asphalt ring and the red line (4190a, `RoadsOut`, which needs the roads through
-`sim::observe`); whether the red line is the border's; the underlay pass `render_weathering(4, 4)` under a farm;
+**Not established.** ~~The asphalt ring and the red line (4190a, `RoadsOut`, which needs the roads through
+`sim::observe`); whether the red line is the border's;~~ the ring is drawn and the red line named apart from the
+border in §3.19 (item 4199); the underlay pass `render_weathering(4, 4)` under a farm;
 the vertex lighting draw 90 enables, which the client does not take.
 
 ## 3.18 The coast's patches, and what lies under the lake (item 4200)
@@ -2540,6 +2541,86 @@ photograph:** the rows.
   drawn.
 - The patch's vertex colour (stage 0 `MODULATE(TEXTURE, DIFFUSE)`): ours
   draws the texel alone.
+
+## 3.19 The asphalt ring around a city: the roads (item 4199)
+
+**What it is.** Draw 91, `modern_road_pieces.tga`: one `Data/roads.xml` piece on each road tile, the capital's ring
+`BuildType::place_roads@0063c580`'s city arm lays round its footprint. The roads reach the client through the door:
+`Sim::observe_roads` (`sim::observe::RoadsScene`) copies each element of the road mesh, its eight connections, its two
+reference counts, and each tile's compass of roads and of footprints, the two caches `RoadsOut::fill_cache@00893b30`
+fills. The passes that choose a piece are the client's (`client::roads`); the simulation keeps only what it reads.
+
+**The oracle.** `tools/render/road_records.py` reads run1559b's and run1570's packets: every `CoordInfo`'s sixteen
+`roads_in_wcoord` records (`RoadElementCandidate`: `element_num`, the four-byte `flags`, `rotation`, `prev_age`, the
+counts, `was_really_seen`), the 57 `RoadElement`s (`RoadsOut +0x40`, the `RoadsData` at `+0x3c`), and the buffers
+`build_render_data@00894890` left in `current_roads` (helper `pagenum · 3 + age bucket`), grouped into pieces by their
+faces. On run1559b the drawn buffer is 450 vertices, 28 pieces, one per tile of the capital's ring; the card's draw
+91 renders 450 (`client::roads::tests::draw_91_s_state`).
+
+**The pieces** (`rondata::artdata::road_art`). Both `<ROADPAGE>`s' `<PAGEELEMENT>`s in file order, 36 and 21, are
+`modern_elements`; a size and an offset are half tiles, the texcoords sixteenths, and `C31` (index 44) is the piece
+`find_map` takes when nothing matches. A piece's flag word is its connections, yellow lines, white lines and
+intersections, high byte to low, each a compass byte from NW at bit 7. `RoadsPieces::rotate_flags@00895b20` makes
+eight: each byte turned one, two, three quarter turns (two bits a turn), then the mirror across north–south (W↔E,
+SW↔SE, NW↔NE; a line byte's pairs swapped and reordered) and its turns. All 57 pieces, every field and all eight
+words, are the packet's.
+
+**The candidate** (`client::roads::candidates`): the connections from the door; the white lines from
+`mark_white_lines@00892c10`'s arms, each a half segment of an edge line where no road stands beside the tile, and an
+inside corner's two halves where a footprint stands on its diagonal, the far half written on each neighbour holding a
+record; the intersections from `mark_intersections@00892390`, an end whose neighbour is not joined straight through.
+Yellow lines are not marked (`mark_yellow_lines` not read). Evaluated once on the mesh as it stands.
+
+**The match** (`find_map@00897840`): every piece's every orientation, piece then orientation, that equals the word,
+or, where an intersection is marked, equals it with the marked ends' yellow pairs cleared or with no intersections;
+with a diagonal connection, the connections alone. The texture fractal's height at `(x mod width, y mod height)` in
+cells picks one, `h · n / 100` held below `n`.
+
+**The quad**, read off the packet's 28 pieces: the piece is `width × height` half tiles, sides swapped on an odd
+orientation; its box starts `CENTEROFFSET[rot]` half tiles above and left of the tile's corner, the two halves
+swapped likewise, on the half-tile grid (ties to even: element 1 at orientation 3 needs it). Each corner's texcoord
+fraction `(s, t)` of the box's `(x, y)`: `(x, y)`, `(y, 1−x)`, `(1−x, 1−y)`, `(1−y, x)`, then `(1−x, y)`,
+`(1−y, 1−x)`, `(x, 1−y)`, `(y, x)`. 28 of 28 boxes and texcoords are the packet's from its own element and
+orientation; with the offset's swap dropped, 16.
+
+**The draw.** Enables `0x20004`, `SRCALPHA`/`INVSRCALPHA`, stage 0 `MODULATE(TEXTURE, DIFFUSE)`, A the texel's,
+stage 1 disabled, `TL_FAKE_LIGHT` with no lighting and no vertex colour: the install's `ps_global.hlsl` leaves the
+diffuse at 1, so the stage is the texel and the fake light is near identity at the asphalt's values (146 → 147.7). The
+client lays the pieces as one patch mesh after the weathering and before the first mountain layer, cut at the tile
+lines inside each box as the packet's vertices are, on the ground's own triangles; colour and alpha are the atlas's.
+The owner's age bucket (`ages` 0–2, 3–5, 6–7) picks the page's texture; only bucket 2 on page 0 is drawn.
+
+**The rule** (before its count): every tile of a city's ring, the border of `[c − 1, c − 1 + size]` with `c` the
+tile less `size >> 1`, whether or not a road stands on it, on the photograph's ground or object-window pixels, as
+§3.17's row takes them; hue and luma of the tile means, before (no roads), drawn, and moved twelve tiles east.
+
+**The count.** `RUN1559B_3279_RING`: hue **1 → 21**, luma 20 → 19, of 24; moved, back to 1 and 20.
+`RUN1570_RING`: hue **0 → 22**, luma 14 → 14; moved, back. Tile (19, 160) on run1559b, 915 pixels: theirs (150, 126,
+102) Y 130.4; drawn (157, 145, 117) Y 145.7. Across the asphalt's middle the photograph is 0.89 of ours on every
+channel, (133, 123, 100) against (148, 138, 112), so luma does not move (4199b). Parting on hue: (18, 156) and (19,
+157), under the fire's glow; (19, 163), the T; on run1570 (18, 163), the name plate. Moved with the roads drawn:
+`RUN1559B_3279_GROUND_STILL` 1,097 → 1,104, `GROUND_STILL_SRGB` 1,003 → 1,010, `GROUND_LUMA_STILL` 1,076 → 1,075,
+`RUN1570_PLAZA`'s before and moved luma 9 → 10.
+
+**The records.** Our walk on 3279 against the packet's 3294, 599 records with a reference: 599 ours, connections 599,
+white lines 576, intersections 320; of the 485 pieces we lay, 286 are the packet's element and orientation. The
+white partings are junctions; the intersections are set and never cleared as a ring is laid tile by tile beside a
+half-built one, so a once-only evaluation misses 279 (4199a), and an extra intersection widens the candidates so the
+fractal picks another straight.
+
+**The red line is not the border's.** On both photographs it is the inner two or three pixel rows of every ring
+tile, (194, 85, 68) to (184, 88, 69), along the footprint's edge; the national border runs on cell edges far outside
+the ring. Which pass draws it is not named (4199d).
+
+**Coverage.** Diff-backed: the pieces and their orientations (57 of 57); the quads (28 of 28); draw 91's state; the
+connections (599 of 599); the white lines, 576 of 599. **On a reading alone**: the white lines' corner arms
+(written by symmetry from the two read); the match's strip arm and its diagonal arm; the age buckets.
+
+**Not established.** The texture passes as the original runs them, incrementally inside `Roads::add_roads`
+(`mark_splits@00891d40`, `mark_yellow_lines@00892550`, `fixup_lines@00891210`, `delete_straglers@008910b0`,
+`leech_codes@00890da0`'s lent bits; 4199a); the asphalt's 0.89 (4199b); the early and middle pages, whose texture is an
+alpha over a tile page, the caravan page, and an unowned cell's `prev_age`, which the door does not carry (4199c);
+the console player's seen test, which every record here passes.
 
 ## 3.20 A burning building's fire and smoke, where the original anchors them (item 4201)
 

@@ -335,6 +335,49 @@ pub struct TerritoryScene {
     pub version: u32,
 }
 
+/// **The roads as they stand** (item 4199, `docs/RENDERER.md` §3.19): one
+/// row per element of the road mesh (`RoadsPieces::candidates`, the
+/// original's `CoordInfo::roads_in_wcoord`), in the mesh's index order. A
+/// copy of what the simulation keeps: the eight connections, the two
+/// reference counts, and each tile's compass of roads and of footprints —
+/// the two caches `RoadsOut::fill_cache@00893b30` fills before the texture
+/// passes read them. The passes themselves, which choose a piece and a
+/// rotation, are a renderer's (`client::roads`).
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct RoadsScene {
+    /// The tile grid's size, four tiles a cell.
+    pub tiles_wide: i32,
+    pub tiles_high: i32,
+    pub roads: Vec<RoadTile>,
+}
+
+/// One element of the road mesh.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RoadTile {
+    /// The tile.
+    pub x: i32,
+    pub y: i32,
+    /// `RoadElementCandidate::flags`' top byte: the eight connections,
+    /// clockwise from NW at bit 7 (`crate::movement::mesh::dir`, shifted
+    /// down 24).
+    pub dirs: u8,
+    /// `ref_count` (`+0xa`) and `pending_camel_steps` (`+0xb`).
+    pub refs: u8,
+    pub refs2: u8,
+    /// `is_terrain_creation` (`+0xf`): the mesh laid this tile itself.
+    pub made: bool,
+    /// The element is `set_diags`' C4 corner piece (`docs/ROADS.md` §12).
+    pub c4: bool,
+    /// `fill_cache`'s `road_cache`: bit `k` set when compass neighbour `k`
+    /// (`MOVE_X`/`MOVE_Y` order, 0 the tile itself, 1 NW, 2 N … 8 W) is a
+    /// road tile (`tile::SURFACE == SURFACE_ROAD`). Off the map is clear.
+    pub road: u16,
+    /// `fill_cache`'s `neighbor_cache`: bit `k` set when compass neighbour
+    /// `k` is a footprint (`tile::OBJECT == OBJECT_BUILDING`) that is not a
+    /// road.
+    pub footprint: u16,
+}
+
 /// The values of [`Scene::fog`].
 pub mod fog {
     /// The viewer has never seen the half-cell.
@@ -588,6 +631,53 @@ impl Sim {
                 .map(|m| m.tiles.clone())
                 .collect(),
             version: w.terrain_version(),
+        }
+    }
+
+    /// The road mesh as it stands ([`RoadsScene`], item 4199).
+    pub fn observe_roads(&self) -> RoadsScene {
+        use crate::ai::ai_place::{MOVE_X, MOVE_Y};
+        use crate::world::tile;
+        let w = &self.world;
+        let (tw, th) = (w.width() * 4, w.height() * 4);
+        let compass = |x: i32, y: i32| {
+            let (mut road, mut footprint) = (0u16, 0u16);
+            for k in 0..9 {
+                let (nx, ny) = (x + MOVE_X[k], y + MOVE_Y[k]);
+                if nx < 0 || ny < 0 || nx >= tw || ny >= th {
+                    continue;
+                }
+                let m = w.tile_mask(Pos::new(nx, ny));
+                let is_road = m & tile::SURFACE == tile::SURFACE_ROAD;
+                road |= u16::from(is_road) << k;
+                footprint |= u16::from(m & tile::OBJECT == tile::OBJECT_BUILDING && !is_road) << k;
+            }
+            (road, footprint)
+        };
+        let roads = self
+            .movement
+            .mesh
+            .elems()
+            .map(|(i, e)| {
+                let (x, y) = (i.rem_euclid(tw), i.div_euclid(tw));
+                let (road, footprint) = compass(x, y);
+                RoadTile {
+                    x,
+                    y,
+                    dirs: (e.flags >> 24) as u8,
+                    refs: e.refs,
+                    refs2: e.refs2,
+                    made: e.made,
+                    c4: e.c4,
+                    road,
+                    footprint,
+                }
+            })
+            .collect();
+        RoadsScene {
+            tiles_wide: tw,
+            tiles_high: th,
+            roads,
         }
     }
 
