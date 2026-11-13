@@ -250,7 +250,7 @@ fn american_enlightenment_pair_run1314b_s_word_frame_is_widened_whole() {
     // against (34536, 43080): the draw on 3215, ours 15 against 16, index
     // 9, ours `Guy::set_anim+0x104b`, theirs
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`docs/AI.md` §341).
-    pin_eq!(w.firsts.len(), 102, "run1314b baseline");
+    pin_eq!(w.firsts.len(), 98, "run1314b baseline");
     // Every round, both directions: 9 round-blocks theirs, 18 ours, 3
     // parting — all the Sloop `1/61`'s (TI 327) at the human's `0/2005`:
     // its round's end point on 3240, `ex`/`ey` (4773, 7451) against
@@ -312,7 +312,7 @@ fn american_enlightenment_pair_run1325_s_clocks_are_widened_whole() {
     // the standing families (`SITE[*].reg`, `form`, who=1's groups and
     // pools) and what follows the old word; unread by the draft — the
     // next session's first job (journal 2026-10-26, item 3661).
-    pin_eq!(w.firsts.len(), 124, "run1325 baseline");
+    pin_eq!(w.firsts.len(), 120, "run1325 baseline");
     pin_eq!(w.rounds_read, (9, 9), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -516,7 +516,7 @@ fn american_enlightenment_pair_run1325d_s_closing_window_is_widened_whole() {
     // groups' `held` and pools, `form` (each new figure's, ours −1 against
     // 0), `SITE[i].reg`, `aggression[1]` — and the Scholar `1/14`'s figure
     // `angle`.
-    pin_eq!(w.firsts.len(), 147, "run1325d baseline");
+    pin_eq!(w.firsts.len(), 148, "run1325d baseline");
     // 82 a side, none parting. Before piece 218's bays who=1's Cannons'
     // (type 268) four rounds left the carriage's own point, 100 low —
     // `1/96`'s on 6475 from (9480, 9864, 318) against (9369, 9768, 418).

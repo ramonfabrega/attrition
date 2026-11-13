@@ -485,6 +485,18 @@ fn array_head(
     });
 }
 
+/// **Step VI's leaves held and not emitted** (item 4187, `docs/LEADERS.md`
+/// §17–§20): the crate keeps each, and no release rule (`docs/DECISIONS.md`
+/// entries 128 §3, 129 §5) has carried it onto the line yet.
+pub const STEP_VI_OFF_THE_LINE: &[&str] = &[
+    "score",
+    "score_explored",
+    "score_pop",
+    "score_units",
+    "score_units_2",
+    "score_combat",
+];
+
 /// `Leader::init`'s `plunder_scale`, −1.0 as its IEEE-754 single's bits.
 const PLUNDER_SCALE_BITS: i32 = 0xbf80_0000_u32 as i32;
 
@@ -721,7 +733,7 @@ impl Sim {
             record,
             ["tech.head", "tech.ptr"],
             806,
-            Some(bits_of(&t.tech)),
+            Some(self.leader_tech_bits(who)),
         );
         mask(
             &mut out,
@@ -959,6 +971,26 @@ impl Sim {
         word("epochs".into(), Some(i64::from(t.epochs)));
         word("discovered".into(), Some(i64::from(t.discovered)));
         out
+    }
+
+    /// **`tech`'s set bits by `TypeIndex`** (`BitMask<806>`): the tree's
+    /// owned types, and the spell bits `0x275..=0x2ab` the tree has no entry
+    /// for (`docs/LEADERS.md` §17); `tech_at_start` never holds a spell.
+    pub fn leader_tech_bits(&self, who: Player) -> Vec<usize> {
+        let t = &self.tech[who as usize];
+        let mut bits: Vec<usize> = t
+            .tech
+            .iter()
+            .enumerate()
+            .filter(|(_, on)| **on)
+            .map(|(i, _)| self.tree_type_index(i) as usize)
+            .collect();
+        bits.extend(
+            (0..64)
+                .filter(|i| t.spells >> i & 1 == 1)
+                .map(|i| crate::tech::SPELL_BASE + i),
+        );
+        bits
     }
 
     /// One leaf of the long range as this crate holds it, or `None`.
@@ -1377,6 +1409,39 @@ impl Sim {
                 && !crate::leaders::endgame::ENDGAME_OFF_THE_LINE.contains(&name) =>
             {
                 self.leader_endgame_leaf(who, name).map(|v| vec![v])
+            }
+            // Item 4187 (`docs/LEADERS.md` §18–§20): the score and its
+            // eleven parts, the last building and unit finished,
+            // `high_buildings` (the lineage root's high-water count, by its
+            // building record), `territory_high` and `reg_terr` (by the
+            // original's own region number). Each leaf a release rule has not
+            // carried stays off the line ([`STEP_VI_OFF_THE_LINE`]).
+            _ if STEP_VI_OFF_THE_LINE.contains(&name) => None,
+            _ if crate::leaders::score::SCORE_LEAVES.contains(&name) => {
+                self.leader_score_leaf(who, name).map(|v| vec![v])
+            }
+            _ if crate::leaders::finished::FINISHED_LEAVES.contains(&name) => {
+                self.leader_finished_leaf(who, name)
+            }
+            "high_buildings" => Some(
+                (0..count)
+                    .map(|r| {
+                        self.cities
+                            .building_high
+                            .get(w)
+                            .and_then(|v| v.get(r))
+                            .map_or(0, |&n| i64::from(n as u16))
+                    })
+                    .collect(),
+            ),
+            "territory_high" => one(i64::from(
+                self.territory.territory_high.get(w).copied().unwrap_or(0),
+            )),
+            "reg_terr" => {
+                let v: Vec<i32> = (0..self.world.region_count())
+                    .map(|r| self.reg_terr(who, r as u16))
+                    .collect();
+                Some(self.leader_region_array(&v, count, 0))
             }
             // Item 4177 (`crate::leaders::rates`): the combat rates
             // (`docs/LEADERS.md` §3).

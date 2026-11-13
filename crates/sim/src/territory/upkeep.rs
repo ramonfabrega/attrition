@@ -163,6 +163,15 @@ impl Sim {
             holdings.territory = owned[who];
             holdings.land_size = land;
         }
+        // `territory_high = max(territory_high, territory)` for every slot
+        // with `leader_flags & 1` (`GameDaemon::check_borders` and
+        // `World::compute_all_territory`, `docs/LEADERS.md` §20.2), the same
+        // two moments `territory` is summed again.
+        for (who, high) in self.territory.territory_high.iter_mut().enumerate().take(8) {
+            if let Some(&t) = owned.get(who) {
+                *high = crate::territory::fold_territory_high(*high, t);
+            }
+        }
         for l in &mut self.economy.ledgers {
             l.dirty = true;
         }

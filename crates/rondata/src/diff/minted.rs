@@ -374,6 +374,9 @@ const PUMPED_PLACES: &[(i64, &[&str])] = &[
             ".cities.city_tally",
             ".cities.farm_order",
             ".economy.ledgers",
+            // Item 4187: the score (`leaders.score`), recounted on who 0's
+            // frame 90 with the farm the order placed.
+            ".leaders.score",
             ".movement.pf_start",
             ".orders.last_group",
             ".orders.pushed",

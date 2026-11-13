@@ -552,6 +552,13 @@ pub mod supply;
 pub mod upkeep;
 pub mod victory;
 
+/// **`territory_high`'s step** (`GameDaemon::check_borders` and
+/// `World::compute_all_territory`, `docs/LEADERS.md` §20.2): the high-water
+/// mark of `territory`, signed, never lowered.
+pub fn fold_territory_high(high: i32, territory: i32) -> i32 {
+    high.max(territory)
+}
+
 /// The `territory/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
 /// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
 #[derive(Clone, Debug)]
@@ -583,4 +590,13 @@ pub struct TerritoryState {
     /// `docs/AI.md` §152), by goods-list index. `reveal_fog`'s own writes are
     /// answered by the fog read in [`Sim::good_ever_seen`].
     pub good_seen_bits: Vec<u8>,
+    /// **`LeaderData::reg_terr`** (`+0x145e`, `ushort[64]`), per player by
+    /// this crate's region index: the tiles the border pass has given the
+    /// player in each land region since that region's cursor last stood at
+    /// 0 (`World::compute_reg_territory@006b0bb0`; `docs/LEADERS.md` §20).
+    /// Grown on first write; a region past the end reads 0.
+    pub reg_terr: Vec<Vec<u16>>,
+    /// **`LeaderData::territory_high`** (`+0x9dc`): `territory`'s high-water
+    /// mark, folded where `territory` is summed again (§20.2).
+    pub territory_high: Vec<i32>,
 }

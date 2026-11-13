@@ -7268,13 +7268,15 @@ pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 /// `LEADERS=9` alone); 150 since item 4185 compares the end of the game's
 /// and the lost capital's nine, the six of them this level prints
 /// (`defeated_by`, the lost capital's three and the wonder clock's two;
-/// +6 a leader).
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 150;
+/// +6 a leader); 151 since item 4187 compares `score`, the one of its new
+/// keys this level prints (+1 a leader).
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 151;
 /// The leader keys `LEADERS=2` prints and the leader diff reads, a
 /// player: the goods block's 88, `gov` since item 706, and the three tech
 /// counters since item 883 (`docs/GOLDEN.md` §35); 93 since item 4185
-/// compares `defeated_by`, the one of its nine this level prints.
-pub(crate) const LEADERS_TWO_KEYS: usize = 93;
+/// compares `defeated_by`, the one of its nine this level prints; 94 since
+/// item 4187 compares `score`, which this level prints.
+pub(crate) const LEADERS_TWO_KEYS: usize = 94;
 /// The leader keys `LEADERS=9` prints and the leader diff reads, a player
 /// (item 3969, chapter one hundred and twenty-five's take, the first golden
 /// window at that level); 1211 since item 3982 reads `ages_queued` and
@@ -7287,8 +7289,10 @@ pub(crate) const LEADERS_TWO_KEYS: usize = 93;
 /// 1276 since item 4177 compares the thirteen combat rates (+13 a leader),
 /// which print at this level alone: `CHAPTER_EIGHT_LEADER_KEYS` did not
 /// move; 1285 since item 4185 compares the end of the game's six and the
-/// lost capital's three (+9 a leader).
-pub(crate) const LEADERS_NINE_KEYS: usize = 1285;
+/// lost capital's three (+9 a leader); 1610 since item 4187 compares
+/// `score`, `territory_high`, `tech`, `num_buildings[·]` and
+/// `high_buildings[·]` (129 each) and `reg_terr[·]` (64): +325 a leader.
+pub(crate) const LEADERS_NINE_KEYS: usize = 1610;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,

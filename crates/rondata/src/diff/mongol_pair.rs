@@ -563,7 +563,7 @@ fn run820_s_word_frame_is_widened_whole() {
     // Item 2384: 170 -> 171, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 171 → 167 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 145, "run820 baseline");
+    pin_eq!(w.firsts.len(), 146, "run820 baseline");
 }
 
 /// run838: the word 4603's window, blocks 4597..4852 at the long's detail (item 2193).

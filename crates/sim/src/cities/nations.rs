@@ -199,6 +199,14 @@ impl Sim {
     }
 }
 
+/// **`high_buildings`' step** (`Build::activate@00623e20`,
+/// `docs/LEADERS.md` §20.2): an activation not by capture (`p1 == 0`)
+/// whose line count `n` beats the root's mark raises it to `n`; anything
+/// else leaves it (`None`). The mark is never lowered.
+pub fn raise_building_high(high: i32, n: i32, captured: bool) -> Option<i32> {
+    (!captured && n > high).then_some(n)
+}
+
 /// The Modern age's place in [`crate::tech::TechTree::ages`], Classical
 /// first: the sixth age tech, `MODERN_AGE` (`0x225`) in the original.
 const MODERN: usize = 5;
@@ -236,18 +244,34 @@ impl Sim {
         if self.cities.building_high[w].len() <= root {
             self.cities.building_high[w].resize(root + 1, 0);
         }
-        if self.cities.building_high[w][root] >= n || captured {
+        let Some(raised) = raise_building_high(self.cities.building_high[w][root], n, captured)
+        else {
             return;
-        }
-        self.cities.building_high[w][root] = n;
+        };
+        self.cities.building_high[w][root] = raised;
         if counted {
             self.free_units_for(b, rec);
         }
     }
 
+    /// The building records `get_buildings(t)` sums for `rec`: the record
+    /// and every record on its `to` chain (`docs/LEADERS.md` §20.2).
+    pub fn building_line(&self, rec: usize) -> Vec<usize> {
+        let mut out = Vec::new();
+        let mut r = Some(rec);
+        while let Some(x) = r {
+            if out.len() > 16 || out.contains(&x) {
+                break;
+            }
+            out.push(x);
+            r = self.tables.build_types.get(x).and_then(|t| t.to);
+        }
+        out
+    }
+
     /// `TypeData::get_base_type` on a building record: the root of its
     /// `FROM` chain.
-    fn base_build_type(&self, rec: usize) -> usize {
+    pub fn base_build_type(&self, rec: usize) -> usize {
         let mut cur = rec;
         let mut guard = 0;
         while let Some(x) = self.tables.build_types[cur].from {

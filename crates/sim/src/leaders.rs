@@ -3,10 +3,12 @@
 pub mod capital;
 pub mod diplomacy;
 pub mod endgame;
+pub mod finished;
 pub mod marks;
 pub mod rates;
 pub mod relations;
 pub mod resign;
+pub mod score;
 pub mod tallies;
 pub mod words;
 
@@ -69,4 +71,10 @@ pub struct LeadersState {
     /// (`docs/LEADERS.md` §10, §11; [`endgame`], [`capital`], item 4185),
     /// one per slot.
     pub endgame: Vec<endgame::EndGame>,
+    /// The last building and unit finished, by type (`docs/LEADERS.md`
+    /// §19; [`finished`], item 4187), one per slot.
+    pub finished: Vec<finished::Finished>,
+    /// The score, its eleven parts and the units part's dirty bit
+    /// (`docs/LEADERS.md` §18; [`score`], item 4187), one per slot.
+    pub score: Vec<score::Score>,
 }

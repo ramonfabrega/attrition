@@ -198,6 +198,13 @@ impl Sim {
         // 5 against 2 (`docs/LEADERS.md` §3.2).
         let raze_active = matches!(target, Obj::Building(b)
             if self.buildings[b].alive && self.buildings[b].active);
+        // `do_damage@0064a480`: the target's type, read before the take
+        // (`score_combat`'s building arm prices it, `docs/LEADERS.md`
+        // §18.2).
+        let raze_type = match target {
+            Obj::Building(b) => self.buildings[b].ty,
+            _ => None,
+        };
         // The city alarm, before the take (`0064a9f8`..`0064b2c4`).
         let alarm = self.city_alarm(attacker, target, ap.siege, dealt.whole, frame);
         // Step 7: take.
@@ -230,6 +237,18 @@ impl Sim {
                 // gate: an ally's or one's own building counts
                 // (`docs/LEADERS.md` §2.2).
                 self.note_raze(who);
+                // **`score_combat`** (`do_damage@0064a480:917`–`:929`): the
+                // attacker's player takes a fifth of the razed building's
+                // kill value, its owner's count already without it; an
+                // ally's (itself included) comes off, floored at 0.
+                if let Some(r) = raze_type {
+                    self.note_score_kill(
+                        who,
+                        crate::leaders::score::Victim::Building(r),
+                        bowner,
+                        true,
+                    );
+                }
                 // **W2, the structure kill** (`64bbb5..64bbe3`), with no
                 // unit, splash, air or ally gate: `k` 5 for a building
                 // active before the take, else 2 (`docs/LEADERS.md` §3.2).
@@ -627,6 +646,21 @@ impl Sim {
                     if self.countable_death(i) {
                         let (victim, by) = (self.units[i].owner, self.owner_of(_by));
                         self.note_unit_death(victim, Some(by));
+                        // **`score_combat`** (`take_damage@00652020:531`–
+                        // `:543`, `docs/LEADERS.md` §18.2): the killer's
+                        // player takes a fifth of the victim's kill value,
+                        // priced before `die` takes it off its owner's
+                        // count; an ally's (itself included) comes off,
+                        // floored at 0. No killer-kind or splash test.
+                        // SEAM: the `unit_flags & 0x10` victim redirect.
+                        if let Some(r) = self.units[i].ty {
+                            self.note_score_kill(
+                                by,
+                                crate::leaders::score::Victim::Unit(r),
+                                victim,
+                                true,
+                            );
+                        }
                         // **W3** (`take_damage@00652020`, `653026`,
                         // `653033`): the same death steps the victim's
                         // `deaths_current_frame` and the attacker's
@@ -907,11 +941,18 @@ impl Sim {
     /// `kills_current_frame` of the caster's step by one (`docs/LEADERS.md`
     /// §3.2).
     ///
-    /// SEAM: the score `+0x44 += cost / 5`, and the message and sound.
+    /// **And `score_combat[caster] += kill(t, o) / 5`** on the same
+    /// predicate, with no ally test (`docs/LEADERS.md` §18.2).
+    ///
+    /// SEAM: the message and sound.
     pub(crate) fn cast_sniper_unit(&mut self, v: usize, dtype: i32, caster: Player) {
         if self.countable_death(v) {
             self.note_unit_kill(caster);
             self.note_rate_kill(caster, self.units[v].owner, 1);
+            if let Some(r) = self.units[v].ty {
+                let o = self.units[v].owner;
+                self.note_score_kill(caster, crate::leaders::score::Victim::Unit(r), o, false);
+            }
         }
         self.die_with(v, dtype);
     }
@@ -1002,8 +1043,10 @@ impl Sim {
     /// and `+0x44`, and its take passes no attacker (`docs/LEADERS.md`
     /// §3.2, W4).
     ///
-    /// SEAM: the score `+0x44 += cost / 5`, the message and the sound; the
-    /// dead-target refund arm.
+    /// A non-zero take also adds `kill(t, o) / 5` to the caster's
+    /// `score_combat`, no ally test (`docs/LEADERS.md` §18.2).
+    ///
+    /// SEAM: the message and the sound; the dead-target refund arm.
     pub(crate) fn cast_sabotage_building(&mut self, b: usize, caster: Player) {
         let frame = self.frame;
         let dmg = (self.buildings[b].health / 2).max(self.tables.tuning.commando_min_damage);
@@ -1019,6 +1062,10 @@ impl Sim {
         );
         if matches!(taken, Taken::Died { .. }) {
             self.note_raze(caster);
+            if let Some(r) = self.buildings[b].ty {
+                let o = self.buildings[b].owner;
+                self.note_score_kill(caster, crate::leaders::score::Victim::Building(r), o, false);
+            }
         }
     }
 
@@ -1203,6 +1250,10 @@ impl Sim {
     /// SEAM: the `is(0x134)` half of that arm is not read here, and answers
     /// no.
     pub(crate) fn close_count(&mut self, i: usize) {
+        // `Unit::close@0060ee50:79` (`60eedb`), for an owner below 8:
+        // `leader_flags |= 0x800000`, the score's units bit
+        // (`docs/LEADERS.md` §18.2).
+        self.score_units_dirty(self.units[i].owner);
         self.gov_hero_closed(i);
         // `Unit::close@0060ee50:157-170`, ahead of the count and ungated by
         // the squad: an American Barracks unit that is not a scout raises

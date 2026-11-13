@@ -340,12 +340,16 @@ impl Sim {
             .count() as i32
     }
 
-    /// `reg_terr[reg]`: the cells of a region the player owns.
+    /// `reg_terr[reg]` (`LeaderData +0x145e`): the tiles of a region the
+    /// border pass has given the player, as the pass keeps it
+    /// ([`crate::territory::TerritoryState::reg_terr`], `docs/LEADERS.md`
+    /// §20) — zero for a region its cursor has not yet left, mid-pass.
     pub fn reg_terr(&self, who: Player, reg: u16) -> i32 {
-        self.world
-            .cells_in(reg)
-            .filter(|c| self.world.owner(*c) == Owner::Player(who))
-            .count() as i32
+        self.territory
+            .reg_terr
+            .get(usize::from(who))
+            .and_then(|r| r.get(usize::from(reg)))
+            .map_or(0, |&n| i32::from(n))
     }
 
     /// A placed, unfinished city of `who` — an `UnbuiltCity` entry.

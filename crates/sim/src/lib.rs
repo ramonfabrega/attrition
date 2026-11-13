@@ -183,6 +183,8 @@ impl Sim {
                 tallies: vec![crate::leaders::tallies::Tallies::default(); players],
                 rates: vec![crate::leaders::rates::Rates::default(); players],
                 endgame: vec![crate::leaders::endgame::EndGame::default(); players],
+                finished: vec![crate::leaders::finished::Finished::default(); players],
+                score: vec![crate::leaders::score::Score::default(); players],
             },
             cities: crate::cities::CitiesState {
                 walks_setup: false,
@@ -205,6 +207,8 @@ impl Sim {
                 border_pass: None,
                 territory_won: Vec::new(),
                 good_seen_bits: Vec::new(),
+                reg_terr: vec![Vec::new(); players],
+                territory_high: vec![0; players],
             },
             gaia: crate::gaia::GaiaState {
                 gaia: gaia::Gaia::default(),
@@ -319,10 +323,18 @@ impl Sim {
         self.territory
             .borders
             .push(territory::PlayerBorders::plain(&self.tables.tuning));
+        self.territory.reg_terr.push(Vec::new());
+        self.territory.territory_high.push(0);
         self.leaders.defeated.push(false);
         self.leaders
             .endgame
             .push(crate::leaders::endgame::EndGame::default());
+        self.leaders
+            .finished
+            .push(crate::leaders::finished::Finished::default());
+        self.leaders
+            .score
+            .push(crate::leaders::score::Score::default());
         self.cities.lost_city_stamp.push(None);
         self.cities
             .city_tally

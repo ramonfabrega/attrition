@@ -386,5 +386,5 @@ fn chinese_industrial_pair_run1184_s_closing_frame_is_widened_whole() {
     // (4203), `1/110` (4342) and `1/75` (4343), who=1's `escrow`/food
     // economy (4213, 4376–4379) and `mylos` ours 4 against theirs 16 on
     // five of who=1's units from 4376.
-    pin_eq!(w.firsts.len(), 81, "run1184 baseline");
+    pin_eq!(w.firsts.len(), 82, "run1184 baseline");
 }

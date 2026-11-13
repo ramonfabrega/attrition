@@ -71,7 +71,12 @@ them (§2.5, §4.5, §5.5, §15.5). Item 4177 (step IV) made `theirs` read
 the thirteen combat rates, and `rows` compare them (§3.5). Item 4185
 (step V) made `theirs` read the end of the game's six and the lost
 capital's three, and `rows` compare them (§10.5, §11): seven agree on every
-dump and move there, and leave `LEADERS_HELD_OUT` (68 → 61).
+dump and move there, and leave `LEADERS_HELD_OUT` (68 → 61). Item 4187
+(step VI) made `theirs` read `score`, `territory_high`, `high_buildings`,
+`num_buildings`, `reg_terr` and the `tech` mask, and `rows` compare them
+(§17–§20): twelve leaves leave `LEADERS_HELD_OUT` (61 → 49), four printed
+ones by entry 128 §3 (`tech.ptr`, `reg_terr`, `territory_high`, and
+`high_buildings` on transfer) and eight unprinted ones by entry 129 §5.
 
 **The transfer harness** (item 4159's step T; `docs/DECISIONS.md` entry
 128 §3; `rondata::diff::transfer`). A held leaf that parts only beside a
@@ -103,7 +108,16 @@ them. The packets corrected two leaves the line already held,
 `mil_trainers`' elements (object numbers) and the `SimpleArray<int>`
 sizes (capacity in tens), and pinned the leaves still parting outside the
 list (`cities_built`, `aggression`, `leader_flags`, `resources_controlled`,
-`reg_unpack_merch` and ten more; `docs/CHECKSUM.md` §23.4).
+`reg_unpack_merch` and ten more; `docs/CHECKSUM.md` §23.4). ~~No leaf
+leaves `LEADERS_HELD_OUT` on the packets.~~ **Item 4187 released eight
+there** (`PACKET_RELEASED`, each agreeing on all 226 leaders and off its
+seated image on a named one): `last_building_finished`,
+`last_unit_finished`, and six of the score's parts (§18.5, §19). Two fixes
+made them agree: the harness's dump seat activated a start's buildings
+counted where the original's frame-0 arm does not (§19), and the start's
+building pass set the Senate's bit (§17.4a). `score_explored` and
+`score_pop` agree and are zero on every packet; `score_units`,
+`score_units_2` and `score_combat` part (parked 4187a).
 
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
@@ -3949,7 +3963,17 @@ no other writer.
 
 ### 17.3 In the crate
 
-- **No spell pass.** `TechTree::start` (`crates/sim/src/tech.rs:2235`) ends
+**Held since item 4187.** `TechTree::spell_pass` runs inside
+`TechTree::start` between the building/unit loop and `reset_obs_flags`, the
+original's order, over `TechTree::spells` (`SpellRow`: `PREQ0`,
+`TRIBE_MASK` and letter `a`, loaded from the craft rows in `TypeIndex`
+order); the bits are `PlayerTech::spells` (bit `i` is `0x275 + i`), and
+`Sim::leader_tech_bits` adds them to the `tech` mask the leaders line and the
+record diff read, never to `tech_at_start`. The eligibility's ending-age
+clause is the crate's own `type_eligible` clause (an age preq past
+`ending`). The reading's map, which the port followed:
+
+- ~~**No spell pass.**~~ `TechTree::start` (`crates/sim/src/tech.rs:2235`) ends
   its building/unit loop at `:2290–:2320` and calls `self.reset_obs_flags`
   at `:2321`. The pass goes between the two, the original's order.
 - **No slot to hold the bits.** `Kind` (`tech.rs:100`) ends at `Gov`
@@ -3984,10 +4008,29 @@ start. The `RADARSPELL`-set branch needs an Industrial-or-later start (or
 a plain game. The cheats, the console, `disable_type_by_tribe`, scenarios,
 the editor and CtW are out of plain play.
 
+### 17.4a A building bit the port found: the Senate (item 4187)
+
+On the packets the `tech` array parted on 160 of 226 walked leaders after the
+spell pass, every one on **bit `0x1b6`, the Senate, ours 1 theirs 0**
+(run1496's frame 1539, leader 0, first), on every leader of a game started
+at Classical or later and on none of an Ancient start. `Leader::init`'s
+building pass asks `type_avail(t, 1)`, whose Senate arm (item 3597,
+`Sim::senate_avail`) asks `find_capital` — and `Leader::init` runs before any
+city stands, so it answers 0. The tree's own `type_avail` has no city to
+ask and answered 4. `TechTree::start` now skips the Senate (`roles.senate`).
+The bit has no sim reader (a Senate is not an upgrade building, so its bit
+gates nothing), so no walk moved; after it, the array agrees on all 226.
+
 ### 17.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/spells-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/spells-*.md`). **Diff-backed since item
+4187**: `tech.ptr` is the whole 101-byte array, and it agrees on run 1562's
+frame 91 (the two `tech` ranges of the leaders line now agree: 265 of 267
+ranges, 4,515 bytes), on all 226 walked leaders of the 107 packets, and on
+every level-9 record the record diff reads (`diff::leader`'s `tech` row, the
+first `bits 806` mask compared as its print), moving there; it leaves
+`LEADERS_HELD_OUT` by entry 128 §3.
 
 Verdicts: 16 confirmed, 3 corrected, 0 open of 19 claims, plus one added
 reader (`Build::do_queue`'s silo test). The corrections:
@@ -4020,9 +4063,9 @@ Ancient start. No test pins it. A port turns it into the leaders line's own
 
 ### 17.6 Not established
 
-- **The `RADARSPELL`-set branch** (Industrial Age held at init). Unobserved.
-  A capture with an Industrial-or-later start, diffed on `tech.ptr`, settles
-  it.
+- ~~**The `RADARSPELL`-set branch** (Industrial Age held at init).~~ Every
+  late-age pair of the packets starts at Industrial or later and agrees on
+  the array (item 4187), so the branch is diff-backed there.
 - **`ending_technology`'s refusal** of a too-late tech preq. No shipped
   spell row has a tech preq other than `RADARSPELL`'s age, and no capture
   limits the ending age. A capture with a restricted ending age settles it.
@@ -4175,6 +4218,27 @@ scoring above me and finds the top scorer.
 
 ### 18.3 In the crate
 
+**Held since item 4187** (`crate::leaders::score`): `Score`, one a slot,
+with the units part's dirty bit (`dirty_units`, raised by `add_unit` and
+`close_count`, the crate's `Unit::init` and `Unit::close`); the tech bit is
+`PlayerTech::score_dirty`, raised at the entry of every `TechTree::gain`
+(the nation's starting epochs inside `Leader::init` included).
+`Sim::compute_score` runs in `strategy_all` after `plan_strategy` and before
+`diplomacy`, humans included. The parts read `Muster::by_type` and
+`queued_by_type` (each taken as a `ushort`), one pass over the buildings for
+`num_buildings` and the sites, `Ledger::bucket`, `Ledger::income`,
+`Sim::starting_good`, `Holdings::available`, `Ledger::rare`, `tech_at_start`
+and the unit's `research_premium_cost`; the factors are each type's own
+(`UNIT_`, `BUILD_` and `TECH_COST_FACTOR`, item-4152's reading §0.5).
+`score_combat`'s four sites: `take_damage_typed`'s countable death (beside
+`note_unit_death`, before `close_count`), `do_damage`'s raze (the type read
+before the take, the owner's count after it), `cast_sniper_unit`,
+`cast_sabotage_building` and `cast_counterintel`. SEAMs: the Armageddon arm
+and the `Game+0x820 & 0x40` latch (not carried), the `unit_flags & 0x10`
+victim redirect, and a gaia owner's `is_ally` (taken as not allied). The
+readers (`diplomacy`, `find_target`) stay on their seams: wiring them is an
+AI change, not this leaf's. The reading's map, which the port followed:
+
 - **Step site**: `Sim::strategy_all` (`crates/sim/src/ai/ai_drive.rs:73`,
   comment `:87`). **Trap**: the human arm `continue`s at `:82`–`:85`, ahead
   of the site; the score must run before it.
@@ -4221,10 +4285,34 @@ need a spy or commando cast; whether the computer casts them is open.
 ### 18.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/score-*.md`); no diff backs it yet. Every
-integer formula, both `get_kill_value`s and `get_score_value` were checked
-against the listing instruction by instruction; none was wrong. Confidence
-high.
+(`docs/audit/2026-11-11-item-4152/score-*.md`). Every integer formula, both
+`get_kill_value`s and `get_score_value` were checked against the listing
+instruction by instruction; none was wrong. Confidence high.
+
+**Diff-backed since item 4187.** All twelve agree on run 1562's frame 91
+(leader 0: 219 = territory 87 + units 38 + buildings 78 + economy 16;
+leader 1: 197 = 85 + 38 + 62 + 12; `score_units_2` 22 on both). On the 107
+packets, 226 walked leaders (`docs/CHECKSUM.md` §23):
+
+| leaf | packets | rule | verdict |
+|---|---|---|---|
+| `score_territory` | agree 226, non-zero 226 | 129 §5 | **released** (run1161, frame 4, leader 0: 123) |
+| `score_buildings` | agree 226, non-zero 226 | 129 §5 | **released** (run1161 leader 0: 68) |
+| `score_economy` | agree 226, non-zero 226 | 129 §5 | **released** (run1161 leader 0: 6) |
+| `score_unit_upgrades` | agree 226, non-zero 20 | 129 §5 | **released** (run938b, frame 630, leader 1: 208) |
+| `score_research` | agree 226, non-zero 113 | 129 §5 | **released** (run1161 leader 1: 56) |
+| `score_wonders` | agree 226, non-zero 65 | 129 §5 | **released** (run1487, frame 1980, leader 2: 666) |
+| `score_explored` | agree 226, zero everywhere | 129 §5 | held: no packet moves it |
+| `score_pop` | agree 226, zero everywhere | 129 §5 | held: no packet moves it |
+| `score_units` | parts on 10 | 129 §5 | held (4187a) |
+| `score_units_2` | parts on 3 | 129 §5 | held (4187a) |
+| `score_combat` | parts on 4 | 129 §5 | held (4187a) |
+| `score` | parts on 10 | 128 §3 | held: parts in the record diff (4187b) |
+
+`score` is printed; its sum takes `score_combat` and `score_units`, an
+accumulator and a part gated on a dirty bit, neither printed, so the
+crate's step cannot be run on the original's printed inputs and the leaf
+cannot transfer.
 
 Confirmed / corrected / open: shared 12/2/1; `score` 6/2/0; explored 3/0/0;
 territory 4/0/1; units pair 9/0/1; buildings pair 6/0/0; economy 6/0/2; pop
@@ -4361,6 +4449,13 @@ writer.
 
 ### In the crate
 
+**Held since item 4187** (`crate::leaders::finished`): `Finished`, one a
+slot, −1 at a seated leader's init; `Sim::note_last_building` from the
+head's `record_last_built` and `Sim::note_last_unit` from `build_train`
+right after `init_unit`. Both leaves are emitted on the leaders line and
+released by entry 129 §5 (below). The rest of this subsection is the
+reading's map, which the port followed.
+
 - **Building hook**: `activate_head_steps`
   (`crates/sim/src/cities/activate.rs:53`) tests the predicate at `:74` and
   calls the empty `SimHead::record_last_built` (`:139`; `:349` is the test
@@ -4373,14 +4468,17 @@ writer.
   - **Value**: `buildings[b].index`, the crate's `SubObjectData::o` in
     `[2000, 3000)` (`crates/sim/src/cities/building.rs:14–17`), **not** the
     vector position `b`.
-- **Trap, the frame-0 `counted` flag.** `Leader::produce_building` passes
+- ~~**Trap, the frame-0 `counted` flag.** `Leader::produce_building` passes
   counted 0. The crate's frame-0 arm calls `self.activate(o, false, true)`
-  (`crates/sim/src/ai/ai_place.rs:1035`), which is counted = true. Fill the
-  hook as-is and every building `Setup` produces at frame 0 would be
-  recorded, where the witness below shows −1. The same flag already gates
-  `claim_building_high`'s `free_units_for`
-  (`crates/sim/src/cities/nations.rs:238`). So the fix needs its own check
-  and a re-check of what that path pays, not a bare flip.
+  (`crates/sim/src/ai/ai_place.rs:1035`), which is counted = true.~~ Item
+  4187 passes `(false, false)` there, as the original does, and so does the
+  harness's dump seat (`rondata::diff::setup`, the buildings `2001..` of a
+  start seated from a dump, whose own comment named `activate(0, 1, 0)`).
+  Before the seat's flip, 106 of 107 packets parted the leaf: run1496's
+  frame 1539, leader 0, cells 3, 4, 21 and 22 ours 2004, 2001, 2005, 2006
+  against theirs −1. After both, no record diff, packet pin or line of the
+  frame-91 pair moved: no frame-0 building in any walk pays a nation's free
+  units.
 - **Unit hook**: `Sim::build_train` (`crates/sim/src/cities/queue.rs:1693`),
   right after `init_unit` (`crates/sim/src/units/store.rs:504`), with
   `table[who][ty] = units[unit].index as i32`.
@@ -4447,28 +4545,35 @@ The corrections that changed a rule:
 The building caller list was corrected to the union of both readings; no
 caller in it writes.
 
-**Witness, not a pinned diff**: the 4124 journal's checksum columns
-(`docs/journal/2026-11-11-item-4124.md:159–160`). Every cell of both leaves
-is −1 at the start, including the citizen's unit cell 0, as the
-fallback-only rule predicts. Later, building cells hold `o`s 2007..2015 and
-the unit cell 0 holds 21, then 14.
+~~**Witness, not a pinned diff**: the 4124 journal's checksum columns.~~
+**Diff-backed since item 4187, on the checksum line alone** (neither leaf is
+printed): both agree on run 1562's frame 91 (every cell −1 on both leaders,
+the citizen's unit cell 0 included, as the fallback-only rule predicts) and
+on **every one of the 107 packets our walks hold, 226 walked leaders**
+(`docs/CHECKSUM.md` §23), and both leave `LEADERS_HELD_OUT` by entry 129 §5.
+`last_building_finished` is off its −1 image on 110 leaders, its witness
+run958b's frame 375, leader 1, cell 3 holding 2006; `last_unit_finished` on
+92, its witness the same packet's leader 1, cell 0 (the Citizen) holding 7
+(`PACKET_RELEASED`, `hold_released`: each bent on our side parts). The
+object numbers agreeing on 110 leaders settles `Building::index` against
+`Objects::find_free`'s allocation on those walks.
 
 ### Not established
 
-- **The frame-0 `counted` flag** (`ai_place.rs:1035`) needs a re-gate once
-  `record_last_built` is filled, together with what `claim_building_high`
-  pays on that path. A port settles it against the witness (−1 at the start).
-- **Whether the crate's `Building::index` matches the original's building
-  `o` allocation** (`Objects::find_free (0065ad60)` over `[2000, 3000)`) is
-  the crate's existing contract and was not re-read here. A pinned diff of
-  `last_building_finished` would settle it.
+- ~~**The frame-0 `counted` flag.**~~ Flipped to the original's 0 (item
+  4187); nothing it paid moved.
+- ~~**Whether the crate's `Building::index` matches the original's building
+  `o` allocation.**~~ Settled on the 110 packet leaders that hold a cell
+  (item 4187).
 - **The no-write-on-failure branch of `Build::train`** cannot be exercised
   until the crate models object-table exhaustion.
 - **How a port treats the trigger reader's gaia overrun** into
   +0x67f4..+0x6823 is a design choice for when triggers are built (they are
   cut from v1). Nothing in the original is open.
-- **Both leaves stay unpinned** until the crate holds them and the
-  `out:finish` rows on a kept capture diff clean.
+- ~~**Both leaves stay unpinned.**~~ Released by entry 129 §5 (item 4187).
+- **The trigger reader's read-and-clear**, `get_last_type_built`, is not
+  carried: triggers are cut from v1, and nothing in a plain game reads
+  either leaf.
 
 ## 20. `high_buildings`, `territory_high` and `reg_terr`
 
@@ -4590,7 +4695,22 @@ test, `high_buildings[T − 0x19e] == 0`, indexed by T itself.
 
 ### 20.3 In the crate
 
-- **`territory_high`: not held.** The fold belongs in
+**Held since item 4187.** `TerritoryState::reg_terr` (per player, by this
+crate's region index, a `u16` that wraps) is zeroed for every seated slot
+while a region's cursor stands at 0 (`Sim::zero_reg_terr`, beside
+`zero_region_rares`, which is not gated), counted per tile the pass writes
+(`count_reg_terr`), and recounted wholesale at setup's pass and
+`settle_borders` (`wholesale_reg_terr`); `Sim::reg_terr` reads it, so the
+city-spacing rule now sees the pass's count mid-pass. `territory_high` is
+`TerritoryState::territory_high`, folded by `fold_territory_high` in
+`update_territory_holdings`, which runs at exactly the two original moments.
+`high_buildings` is emitted from `Cities::building_high` by its building
+record, and its step is the pure `raise_building_high` (`cities::nations`),
+which `claim_building_high` and the transfer harness both call. The
+record diff compares all three and `num_buildings`, `high_buildings`' named
+input. The reading's map, which the port followed:
+
+- ~~**`territory_high`: not held.**~~ The fold belongs in
   `Sim::update_territory_holdings` (`crates/sim/src/territory/upkeep.rs:129`).
   That function is called from `start_border_pass`
   (`territory/border_pass.rs:56`, pre-play), `settle_borders` (`:170`) and
@@ -4665,8 +4785,26 @@ All three leaves are reached.
 ### 20.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/high-buildings-*.md`); no diff backs it
-yet.
+(`docs/audit/2026-11-11-item-4152/high-buildings-*.md`).
+
+**Diff-backed since item 4187**, all three released (entry 128 §3):
+
+- `reg_terr` and `territory_high` agree on run 1562's frame 91 (leader 0:
+  266 in region 1, 266; leader 1: 261, 261), on all 226 walked leaders of
+  the 107 packets, and on every record the record diff reads, moving there
+  (9,958 and 792 moves of a key across consecutive records in the first
+  whole run's probe). The crate's cell count is the original's tile count.
+- `high_buildings` agrees on frame 91 (leader 0 cells 0, 3, 4, 21, 22 =
+  1, 3, 1, 1, 1) and on all 226 packet leaders, and parts in the record
+  diff once: run1075's window (`coverage_pair`, and `coverage`'s read of
+  the same capture), who 1's Library (cell 21) from 2765 to the window's
+  end, ours 1 theirs 2 — theirs finishes a second Library on 2765
+  (`num_buildings[21]` 1 → 2) and ours, already apart in that window,
+  does not. `num_buildings[21]` parts on the same records, under the
+  window's pin. **It transfers** (`diff::transfer`): the activations read
+  off `num_buildings`' rises and the line counted on the second record
+  give the original's printed array on every consecutive pair of the
+  corpus.
 
 | leaf | confirmed | corrected | open |
 |---|---|---|---|
@@ -4694,6 +4832,9 @@ No kept-dump value is cited as a witness.
 
 ### 20.6 Not established
 
+- **A capture's buildings** arrive with `p1 = 1` and raise no mark; the
+  transfer step reads every rise of `num_buildings` as an activation, so a
+  capture pair would part it. The pinned partings say whether one does.
 - **What `CityData::race` holds after a capture.** It decides when a tile
   counts for nobody (−2). A capture with `reg_terr` diffed, or a
   reading of `race`'s writers, settles it. Whether the crate's recount
@@ -4704,8 +4845,6 @@ No kept-dump value is cited as a witness.
 - **Plain-game reach of `check_capture`'s non-city swap branch and of a
   building bribe.** Both are unported in the crate. A skirmish capture that
   swaps a non-city building, diffed on `high_buildings`, settles it.
-- **Cells versus tiles in `territory`.** This is a property of
-  `territory`, not of this leaf. It decides whether `territory_high`'s
-  checksum value agrees.
-- All three leaves stay unpinned until the crate holds them and their rows
-  on a kept capture diff clean.
+- ~~**Cells versus tiles in `territory`.**~~ The same unit: `territory_high`
+  agrees everywhere (item 4187).
+- ~~All three leaves stay unpinned.~~ Released (item 4187).

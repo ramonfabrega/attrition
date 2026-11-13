@@ -1708,6 +1708,10 @@ impl Sim {
     pub(crate) fn build_train(&mut self, at: usize, ty: usize) -> Produced {
         let who = self.buildings[at].owner;
         let unit = self.init_unit(who, ty, self.buildings[at].pos);
+        // `Build::train@0062f9b0`, on `init_unit`'s non-negative return:
+        // `last_unit_finished[who][t − 0x32] = o`, the trained type the
+        // argument and `o` the squad's captain (`docs/LEADERS.md` §19).
+        self.note_last_unit(who, ty, unit);
         // `Build::train@0062f9b0:86–101`: when the trainer's stance kind is
         // the type's, the building's own byte overrides the one
         // `Unit::init` was born with — for the whole squad, which is one

@@ -326,7 +326,7 @@ fn british_classical_pair_run1316b_s_word_frame_is_widened_whole() {
     // the standing families alone, with `compare_target`'s sea raid arm:
     // on 4567 run1326's packet scores `0/3` and `0/10` at 512 and 596
     // for `1/21`, ours 9512 and 9596.
-    pin_eq!(w.firsts.len(), 109, "run1316b baseline");
+    pin_eq!(w.firsts.len(), 110, "run1316b baseline");
     // Every round, both directions: 809 round-blocks theirs, 899 ours,
     // 145 parting — the Galleys' rounds from the hull's square in ours.
     // Item 3662: 809 a side, none parting.
@@ -390,7 +390,7 @@ fn british_classical_pair_run1326b_s_closing_window_is_widened_whole() {
     // `1/108`, `1/124`, `1/114`, `1/98`, `1/105`), and the Javelineers
     // `1/114`'s `orders_x`/`orders_y` on 8760, (7953, 10301) against
     // (7958, 10275) (parked 3662a).
-    pin_eq!(w.firsts.len(), 99, "run1326b baseline");
+    pin_eq!(w.firsts.len(), 100, "run1326b baseline");
     // Every round, both directions: 209 a side. The British Catapults
     // (TI 265, piece 215) threw from their square 245 under until piece
     // 215 took piece 567's row; 23 parted before it.
