@@ -4,9 +4,13 @@
 //! one frame boundary of a captured game. The instrument's stream of each
 //! (`tools/recomp/checksum.py --stream`, kept outside git under
 //! `RON_PACKETS_DIR`) is held range by range against our walk's twelve
-//! lines on the same frame of the same game: the word's own walk
-//! ([`super::super::third::stand_up_from`], the state every word on the
-//! scoreboard walks from) ticked to the packet's logger frame.
+//! lines on the same frame of the same game: the word's game ticked to the
+//! packet's logger frame. Since item 4205 (§23.7) a word's game stands up
+//! from its lobby's **built start** ([`super::super::third::stand_up_built`],
+//! `docs/START.md` §7) where the draws hold lockstep from it to every
+//! packet, and from the dump's seat ([`super::super::third::stand_up_from`],
+//! the state the word's own floor walks from) where they do not
+//! ([`SEATED_WORDS`]).
 
 use super::*;
 use crate::diff::third::stand_up_from;
@@ -241,10 +245,238 @@ fn pin_of(lines: &[LineOutcome]) -> [(usize, usize, usize); 12] {
 /// of the leaders line that parts outside [`LEADERS_HELD_OUT`].
 /// `RON_PACKETS_PRINT` prints the pins and every leaf row.
 pub(super) fn hold(game: &Game, packets: &[(&'static str, i64)]) {
-    let Some(walked) = walk_packets(game, packets) else {
+    if std::env::var_os("RON_PACKETS_BUILT").is_some() {
+        let Some((walked, parts)) = walk_packets_built(game, packets) else {
+            return;
+        };
+        for w in &walked {
+            let agree = w.lines.iter().filter(|l| l.agrees()).count();
+            let counted = w.lines.iter().filter(|l| l.counted()).count();
+            let pinned = PINNED.iter().find(|p| p.0 == w.run).map(|p| {
+                let c = p.2.iter().filter(|l| l.0 > 0 || l.1 > 0).count();
+                let a =
+                    p.2.iter()
+                        .filter(|l| (l.0 > 0 || l.1 > 0) && l.2 == 0)
+                        .count();
+                (a, c)
+            });
+            let held: std::collections::BTreeSet<&str> =
+                LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
+            eprintln!(
+                "BUILT\t{}\t{}\t{}\tlockstep parts {:?}\tbuilt {agree} of {counted}\tseated {:?}\tpin {:?}\textra {}",
+                game.name,
+                w.run,
+                w.frame,
+                parts,
+                pinned,
+                pin_of(&w.lines),
+                extra_leaves(w, &held)
+            );
+        }
+        return;
+    }
+    if let Some((_, why)) = SEATED_WORDS.iter().find(|(n, _)| *n == game.name) {
+        eprintln!("{}: dump-seated ({why})", game.name);
+        let Some(walked) = walk_packets(game, packets) else {
+            return;
+        };
+        check(game.name, &walked);
+        return;
+    }
+    let Some((walked, parts)) = walk_packets_built(game, packets) else {
         return;
     };
+    assert_eq!(
+        parts, None,
+        "{}: the built start's draws part from the long trace before the last packet \
+         (a word that does not hold lockstep from the built start is named in SEATED_WORDS)",
+        game.name
+    );
     check(game.name, &walked);
+}
+
+/// **The words whose packets stay dump-seated** (item 4205,
+/// `docs/CHECKSUM.md` §23.7): walked from the lobby's built start their
+/// draw stream parts from the long trace before their first packet, so
+/// the lines would be read off a walk out of step. `(the word, why)`, the
+/// why the journal's parked finding: **4205a**, every East Indies word,
+/// parts on frame 2 (ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+/// theirs `Farms::inc_time+0x1ae`); **4205b**, the Great Lakes Modern and
+/// Information words, part on frame 0 (`Unit::think_scout+0x64c` against
+/// `+0x436`, the fog's sign, `docs/START.md` §7.2). Every other word walks
+/// from the built start ([`walk_packets_built`]) and holds the draws to
+/// every packet's frame.
+pub(super) const SEATED_WORDS: &[(&str, &str)] = &[
+    ("EastIndiesAmericanEnlightenment", "4205a"),
+    ("EastIndiesAztecAncient", "4205a"),
+    ("EastIndiesBantuAncient", "4205a"),
+    ("EastIndiesBritishClassical", "4205a"),
+    ("EastIndiesBritishEnlightenment", "4205a"),
+    ("EastIndiesGermanTier3", "4205a"),
+    ("EastIndiesGreekClassical", "4205a"),
+    ("EastIndiesIndianEnlightenment", "4205a"),
+    ("EastIndiesIroquoisEnlightenment", "4205a"),
+    ("EastIndiesJapaneseAncient", "4205a"),
+    ("EastIndiesJapaneseIndustrial", "4205a"),
+    ("EastIndiesKoreanAncient", "4205a"),
+    ("EastIndiesLakotaMedieval", "4205a"),
+    ("EastIndiesLakotaPeace", "4205a"),
+    ("EastIndiesMayaAncient", "4205a"),
+    ("EastIndiesMongolAllTech", "4205a"),
+    ("EastIndiesMongolGunpowder", "4205a"),
+    ("EastIndiesMongolMedieval", "4205a"),
+    ("EastIndiesPersianGunpowder", "4205a"),
+    ("EastIndiesRomanMedieval", "4205a"),
+    ("EastIndiesRomanTier2", "4205a"),
+    ("EastIndiesRussianModern", "4205a"),
+    ("EastIndiesSpanishGunpowder", "4205a"),
+    ("EastIndiesSpanishModern", "4205a"),
+    ("GreatLakesAmericanInformation", "4205b"),
+    ("GreatLakesAztecModern", "4205b"),
+    ("GreatLakesEgyptianInformation", "4205b"),
+    ("GreatLakesEgyptianModern", "4205b"),
+    ("GreatLakesJapaneseModern", "4205b"),
+];
+
+/// The word packets by their walk: `((words, packets) from the built
+/// start, (words, packets) dump-seated)` (item 4205).
+const BY_START: ((usize, usize), (usize, usize)) = ((30, 41), (29, 46));
+
+/// Where a built start's draws first part from `tr`'s by frame `to`:
+/// `(frame, ours, theirs, the draw, our site, theirs)`.
+type BuiltParting = (i64, usize, usize, usize, String, String);
+
+/// **The seat is named, and the built start's lockstep can fail** (item
+/// 4205): every [`SEATED_WORDS`] row is a held word, the counts are
+/// [`BY_START`]'s; and one word of each cluster walked from the built
+/// start parts where its row says — 4205a's on frame 2 (run1149's game,
+/// ours 7 draws theirs 4), 4205b's on frame 0 (run1429's, ours 142 theirs
+/// 141, at draw 37) — so [`hold`]'s lockstep assertion is sighted.
+#[test]
+fn the_seated_words_part_from_the_built_start() {
+    let words: std::collections::BTreeMap<&str, usize> =
+        HELD.iter().fold(Default::default(), |mut m, h| {
+            *m.entry(h.2).or_default() += 1;
+            m
+        });
+    for (w, why) in SEATED_WORDS {
+        assert!(words.contains_key(w), "{w} is a held word");
+        assert!(["4205a", "4205b"].contains(why), "{w}: {why}");
+    }
+    let seated = |w: &str| SEATED_WORDS.iter().any(|(n, _)| *n == w);
+    let count = |pick: bool| {
+        let ws: Vec<usize> = words
+            .iter()
+            .filter(|(w, _)| seated(w) == pick)
+            .map(|(_, n)| *n)
+            .collect();
+        (ws.len(), ws.iter().sum::<usize>())
+    };
+    assert_eq!(
+        (count(false), count(true)),
+        BY_START,
+        "the word packets by their walk"
+    );
+    type Want = (i64, usize, usize, usize, &'static str, &'static str);
+    let cases: [((&str, &str), Want); 2] = [
+        (
+            crate::diff::russian_modern_pair::RUSSIAN_MODERN.long,
+            (
+                2,
+                7,
+                4,
+                0,
+                "Guy::set_anim+0x97a < Guy::inc_time+0x271",
+                "Farms::inc_time+0x1ae",
+            ),
+        ),
+        (
+            crate::diff::aztec_modern_pair::AZTEC_MODERN.long,
+            (
+                0,
+                142,
+                141,
+                37,
+                "Unit::think_scout+0x64c",
+                "Unit::think_scout+0x436",
+            ),
+        ),
+    ];
+    for (long, want) in cases {
+        let Some(got) = built_parting(long, 4) else {
+            return;
+        };
+        assert_eq!(
+            (got.0, got.1, got.2, got.3, got.4.as_str(), got.5.as_str()),
+            want,
+            "{}: where the built start's draws part",
+            long.0
+        );
+    }
+}
+
+/// A word's built start ticked to frame `to` at most, and where its draw
+/// count first parts from the long trace's. `None` on a machine without
+/// the captures; panics when the draws hold to `to`.
+fn built_parting(long: (&str, &str), to: i64) -> Option<BuiltParting> {
+    let (mut built, tr) = crate::diff::third::stand_up_built(long)?;
+    built.sim.trace.trace_phases = true;
+    while built.sim.frame < to {
+        built.tick();
+        let (at, ours) = built.frame_sites.pop().expect("the frame's draws");
+        let theirs = tr.labels(at);
+        if ours.len() != theirs.len() {
+            let i = (0..ours.len().max(theirs.len()))
+                .find(|&i| ours.get(i) != theirs.get(i))
+                .unwrap_or(0);
+            let name = |v: &[String]| v.get(i).cloned().unwrap_or_default();
+            return Some((at, ours.len(), theirs.len(), i, name(&ours), name(&theirs)));
+        }
+    }
+    panic!("{}: the built start holds to frame {to}", long.0)
+}
+
+/// [`walk_packets`] from the lobby's **built start**
+/// ([`crate::diff::third::stand_up_built`], item 4205) in place of the
+/// dump's seat, and the first frame to the last packet's whose draw count
+/// parts from the long trace's (`None`: the draw stream holds lockstep to
+/// every packet).
+pub(super) fn walk_packets_built(
+    game: &Game,
+    packets: &[(&'static str, i64)],
+) -> Option<(Vec<Walked>, Option<i64>)> {
+    let mut parts = None;
+    let walked = walk_packets_with(game.name, game.length, packets, &mut |frames, probe| {
+        let (mut built, tr) = crate::diff::third::stand_up_built(game.long)?;
+        built.sim.trace.trace_phases = true;
+        for &f in frames {
+            assert!(built.sim.frame <= f, "the packets ascend");
+            while built.sim.frame < f {
+                built.tick();
+                if let Some((at, ours)) = built.frame_sites.pop()
+                    && parts.is_none()
+                    && ours.len() != tr.labels(at).len()
+                {
+                    let theirs = tr.labels(at);
+                    let i = (0..ours.len().max(theirs.len()))
+                        .find(|&i| ours.get(i) != theirs.get(i))
+                        .unwrap_or(0);
+                    eprintln!(
+                        "BUILT-PARTS\t{}\tframe {at}: ours {} theirs {} at {i}, ours {:?} theirs {:?}",
+                        game.name,
+                        ours.len(),
+                        theirs.len(),
+                        ours.get(i),
+                        theirs.get(i)
+                    );
+                    parts = Some(at);
+                }
+            }
+            probe(f, &built);
+        }
+        Some(())
+    })?;
+    Some((walked, parts))
 }
 
 /// The leaves of a packet's leaders line that part outside the held-out
@@ -738,7 +970,11 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **The score**: `(packets compared, lines agreeing, lines counted)` summed
 /// over [`PINNED`], a line counted when either side walks a range of it
 /// (`docs/DECISIONS.md` entry 120 §2). The queue's `Checksum:` clause.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 147, 1058);
+/// 147 at item 4188; **150** at item 4205, the 41 packets of the 30 words
+/// that hold lockstep from the built start walked from it: run958b's world
+/// line (7,291 ranges, 3,748 parting → 0), and run1237's and run1382's
+/// cities lines (27 ranges, 1 → 0; 20 ranges, 1 → 0).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 150, 1058);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -867,12 +1103,14 @@ pub(super) const PINNED: &[Pinned] = &[
             (7994, 7275, 4482),
         ],
     ),
+    // Item 4205, the built start: units (2445, 2672, 1998) -> (2445, 2672, 1966); builds (2028,
+    // 2028, 49) -> (2028, 2028, 36); world (7581, 7565, 4436) -> (7581, 7581, 20).
     (
         "run1001d",
         13760,
         [
-            (2445, 2672, 1998),
-            (2028, 2028, 49),
+            (2445, 2672, 1966),
+            (2028, 2028, 36),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -882,15 +1120,17 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 3),
             (5, 110, 107),
             (120, 120, 0),
-            (7581, 7565, 4436),
+            (7581, 7581, 20),
         ],
     ),
+    // Item 4205, the built start: units (2939, 3438, 2660) -> (2939, 3438, 2627); builds (2417,
+    // 2417, 58) -> (2417, 2417, 45); world (7537, 7521, 4313) -> (7537, 7537, 12).
     (
         "run1007b",
         15915,
         [
-            (2939, 3438, 2660),
-            (2417, 2417, 58),
+            (2939, 3438, 2627),
+            (2417, 2417, 45),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -900,15 +1140,17 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 3),
             (45, 110, 83),
             (120, 120, 0),
-            (7537, 7521, 4313),
+            (7537, 7537, 12),
         ],
     ),
+    // Item 4205, the built start: units (3219, 3345, 2625) -> (3219, 3345, 2592); builds (2060,
+    // 2060, 49) -> (2060, 2060, 36); world (7479, 7463, 4220) -> (7479, 7479, 11).
     (
         "run1011b",
         13105,
         [
-            (3219, 3345, 2625),
-            (2060, 2060, 49),
+            (3219, 3345, 2592),
+            (2060, 2060, 36),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -918,15 +1160,17 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 3),
             (50, 110, 77),
             (120, 120, 0),
-            (7479, 7463, 4220),
+            (7479, 7479, 11),
         ],
     ),
+    // Item 4205, the built start: units (3193, 3298, 2619) -> (3193, 3298, 2588); builds (2080,
+    // 2080, 47) -> (2080, 2080, 34); world (7537, 7521, 4366) -> (7537, 7537, 11).
     (
         "run1011c",
         13225,
         [
-            (3193, 3298, 2619),
-            (2080, 2080, 47),
+            (3193, 3298, 2588),
+            (2080, 2080, 34),
             (0, 0, 0),
             (6, 0, 6),
             (4, 0, 4),
@@ -936,15 +1180,17 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 3),
             (50, 110, 77),
             (120, 120, 0),
-            (7537, 7521, 4366),
+            (7537, 7537, 11),
         ],
     ),
+    // Item 4205, the built start: units (3158, 3250, 2530) -> (3158, 3250, 2498); builds (2080,
+    // 2080, 47) -> (2080, 2080, 34); world (7553, 7537, 4393) -> (7553, 7553, 10).
     (
         "run1011d",
         13277,
         [
-            (3158, 3250, 2530),
-            (2080, 2080, 47),
+            (3158, 3250, 2498),
+            (2080, 2080, 34),
             (0, 0, 0),
             (12, 0, 12),
             (4, 0, 4),
@@ -954,15 +1200,17 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 3),
             (50, 110, 77),
             (120, 120, 0),
-            (7553, 7537, 4393),
+            (7553, 7553, 10),
         ],
     ),
+    // Item 4205, the built start: units (3117, 3189, 2465) -> (3117, 3189, 2437); builds (2080,
+    // 2080, 47) -> (2080, 2080, 34); world (7517, 7501, 4316) -> (7517, 7517, 11).
     (
         "run1011e",
         13296,
         [
-            (3117, 3189, 2465),
-            (2080, 2080, 47),
+            (3117, 3189, 2437),
+            (2080, 2080, 34),
             (0, 0, 0),
             (9, 0, 9),
             (6, 0, 6),
@@ -972,15 +1220,17 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 3),
             (50, 110, 77),
             (120, 120, 0),
-            (7517, 7501, 4316),
+            (7517, 7517, 11),
         ],
     ),
+    // Item 4205, the built start: units (3139, 3183, 2492) -> (3139, 3183, 2464); builds (2080,
+    // 2080, 46) -> (2080, 2080, 33); world (7419, 7403, 4096) -> (7419, 7419, 11).
     (
         "run1015b",
         13392,
         [
-            (3139, 3183, 2492),
-            (2080, 2080, 46),
+            (3139, 3183, 2464),
+            (2080, 2080, 33),
             (0, 0, 0),
             (27, 0, 27),
             (4, 0, 4),
@@ -990,25 +1240,28 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 3),
             (50, 110, 77),
             (120, 120, 0),
-            (7419, 7403, 4096),
+            (7419, 7419, 11),
         ],
     ),
+    // Item 4205, the built start: units (4193, 4310, 3311) -> (4193, 4310, 3249); builds (2371,
+    // 2371, 68) -> (2371, 2371, 52); cities (27, 27, 2) -> (27, 27, 1); world (7583, 7567,
+    // 4490) -> (7583, 7583, 8).
     (
         "run1155c",
         3003,
         [
-            (4193, 4310, 3311),
-            (2371, 2371, 68),
+            (4193, 4310, 3249),
+            (2371, 2371, 52),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
             (550, 550, 2),
             (1129, 1234, 106),
             (271, 271, 3),
-            (27, 27, 2),
+            (27, 27, 1),
             (75, 110, 56),
             (120, 120, 0),
-            (7583, 7567, 4490),
+            (7583, 7583, 8),
         ],
     ),
     (
@@ -1029,22 +1282,25 @@ pub(super) const PINNED: &[Pinned] = &[
             (8850, 7263, 4860),
         ],
     ),
+    // Item 4205, the built start: units (6053, 5910, 5313) -> (6053, 5910, 5268); builds (2140,
+    // 2136, 820) -> (2140, 2136, 811); cities (30, 30, 3) -> (30, 30, 2); world (7597, 7581,
+    // 4525) -> (7597, 7597, 22).
     (
         "run1164",
         4528,
         [
-            (6053, 5910, 5313),
-            (2140, 2136, 820),
+            (6053, 5910, 5268),
+            (2140, 2136, 811),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
             (550, 550, 2),
             (1321, 1475, 158),
             (271, 271, 6),
-            (30, 30, 3),
+            (30, 30, 2),
             (75, 110, 56),
             (120, 120, 0),
-            (7597, 7581, 4525),
+            (7597, 7597, 22),
         ],
     ),
     (
@@ -1119,12 +1375,14 @@ pub(super) const PINNED: &[Pinned] = &[
             (9268, 7681, 6012),
         ],
     ),
+    // Item 4205, the built start: units (1060, 1345, 381) -> (1060, 1345, 303); builds (1164,
+    // 1164, 23) -> (1164, 1164, 9); world (7361, 7345, 3930) -> (7361, 7361, 1).
     (
         "run1186b",
         1377,
         [
-            (1060, 1345, 381),
-            (1164, 1164, 23),
+            (1060, 1345, 303),
+            (1164, 1164, 9),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1134,7 +1392,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (9, 9, 0),
             (105, 110, 25),
             (120, 120, 0),
-            (7361, 7345, 3930),
+            (7361, 7361, 1),
         ],
     ),
     (
@@ -1155,22 +1413,25 @@ pub(super) const PINNED: &[Pinned] = &[
             (9486, 7899, 6514),
         ],
     ),
+    // Item 4205, the built start: units (4091, 4338, 3359) -> (4091, 4338, 3296); builds (1817,
+    // 1817, 43) -> (1817, 1817, 28); cities (27, 27, 2) -> (27, 27, 1); world (7663, 7647,
+    // 4673) -> (7663, 7663, 4).
     (
         "run1220b",
         2976,
         [
-            (4091, 4338, 3359),
-            (1817, 1817, 43),
+            (4091, 4338, 3296),
+            (1817, 1817, 28),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
             (550, 550, 2),
             (1099, 1274, 175),
             (271, 271, 3),
-            (27, 27, 2),
+            (27, 27, 1),
             (90, 110, 44),
             (120, 120, 0),
-            (7663, 7647, 4673),
+            (7663, 7663, 4),
         ],
     ),
     (
@@ -1191,22 +1452,25 @@ pub(super) const PINNED: &[Pinned] = &[
             (9162, 7575, 5806),
         ],
     ),
+    // Item 4205, the built start: units (11740, 11409, 10463) -> (11740, 11409, 10402); builds
+    // (4271, 4271, 126) -> (4271, 4271, 112); cities (62, 62, 7) -> (62, 62, 3); world (7873,
+    // 7857, 4963) -> (7873, 7873, 17).
     (
         "run1224b",
         9745,
         [
-            (11740, 11409, 10463),
-            (4271, 4271, 126),
+            (11740, 11409, 10402),
+            (4271, 4271, 112),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
             (556, 556, 1),
             (2735, 2910, 182),
             (271, 271, 6),
-            (62, 62, 7),
+            (62, 62, 3),
             (30, 110, 91),
             (120, 120, 0),
-            (7873, 7857, 4963),
+            (7873, 7873, 17),
         ],
     ),
     (
@@ -1245,22 +1509,25 @@ pub(super) const PINNED: &[Pinned] = &[
             (9312, 7725, 6216),
         ],
     ),
+    // Item 4205, the built start: units (3448, 3542, 2712) -> (3448, 3542, 2651); builds (1650,
+    // 1650, 35) -> (1650, 1650, 18); cities (27, 27, 1) -> (27, 27, 0); world (7703, 7687,
+    // 4645) -> (7703, 7703, 5).
     (
         "run1237",
         2674,
         [
-            (3448, 3542, 2712),
-            (1650, 1650, 35),
+            (3448, 3542, 2651),
+            (1650, 1650, 18),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
             (538, 538, 1),
             (892, 990, 98),
             (271, 271, 3),
-            (27, 27, 1),
+            (27, 27, 0),
             (85, 110, 48),
             (120, 120, 0),
-            (7703, 7687, 4645),
+            (7703, 7703, 5),
         ],
     ),
     (
@@ -1299,30 +1566,35 @@ pub(super) const PINNED: &[Pinned] = &[
             (9158, 7571, 5816),
         ],
     ),
+    // Item 4205, the built start: units (4388, 4364, 3447) -> (4388, 4364, 3388); builds (1674,
+    // 1674, 54) -> (1674, 1674, 37); cities (27, 27, 2) -> (27, 27, 1); world (7669, 7653,
+    // 4540) -> (7669, 7669, 5).
     (
         "run1254c",
         3115,
         [
-            (4388, 4364, 3447),
-            (1674, 1674, 54),
+            (4388, 4364, 3388),
+            (1674, 1674, 37),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
             (550, 550, 0),
             (1134, 1239, 107),
             (271, 271, 3),
-            (27, 27, 2),
+            (27, 27, 1),
             (85, 110, 49),
             (120, 120, 0),
-            (7669, 7653, 4540),
+            (7669, 7669, 5),
         ],
     ),
+    // Item 4205, the built start: units (11229, 10998, 9898) -> (11229, 10998, 9831); builds
+    // (3789, 3789, 109) -> (3789, 3789, 92); world (7867, 7851, 5107) -> (7867, 7867, 10).
     (
         "run1263",
         8362,
         [
-            (11229, 10998, 9898),
-            (3789, 3789, 109),
+            (11229, 10998, 9831),
+            (3789, 3789, 92),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
@@ -1332,7 +1604,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (54, 54, 5),
             (50, 110, 77),
             (120, 120, 1),
-            (7867, 7851, 5107),
+            (7867, 7867, 10),
         ],
     ),
     (
@@ -1371,22 +1643,25 @@ pub(super) const PINNED: &[Pinned] = &[
             (9704, 8117, 6778),
         ],
     ),
+    // Item 4205, the built start: units (4744, 4798, 3764) -> (4744, 4798, 3708); builds (1908,
+    // 1908, 65) -> (1908, 1908, 50); cities (30, 30, 3) -> (30, 30, 1); world (7773, 7757,
+    // 4828) -> (7773, 7773, 4).
     (
         "run1268",
         3347,
         [
-            (4744, 4798, 3764),
-            (1908, 1908, 65),
+            (4744, 4798, 3708),
+            (1908, 1908, 50),
             (0, 0, 0),
             (24, 0, 24),
             (4, 0, 4),
             (544, 544, 0),
             (1246, 1386, 141),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 1),
             (90, 110, 42),
             (120, 120, 0),
-            (7773, 7757, 4828),
+            (7773, 7773, 4),
         ],
     ),
     (
@@ -1461,22 +1736,25 @@ pub(super) const PINNED: &[Pinned] = &[
             (9448, 7861, 6596),
         ],
     ),
+    // Item 4205, the built start: units (4968, 4832, 4109) -> (4968, 4832, 4054); builds (1882,
+    // 1882, 53) -> (1882, 1882, 42); cities (35, 35, 3) -> (35, 35, 1); world (7585, 7569,
+    // 4445) -> (7585, 7585, 8).
     (
         "run1305b",
         4181,
         [
-            (4968, 4832, 4109),
-            (1882, 1882, 53),
+            (4968, 4832, 4054),
+            (1882, 1882, 42),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (550, 550, 1),
             (1327, 1397, 70),
             (271, 271, 3),
-            (35, 35, 3),
+            (35, 35, 1),
             (70, 110, 62),
             (120, 120, 0),
-            (7585, 7569, 4445),
+            (7585, 7585, 8),
         ],
     ),
     (
@@ -1497,22 +1775,25 @@ pub(super) const PINNED: &[Pinned] = &[
             (9476, 7889, 6506),
         ],
     ),
+    // Item 4205, the built start: units (3933, 4098, 3225) -> (3933, 4098, 3168); builds (1792,
+    // 1792, 44) -> (1792, 1792, 28); cities (27, 27, 2) -> (27, 27, 1); world (7615, 7599,
+    // 4535) -> (7615, 7615, 4).
     (
         "run1323b",
         3052,
         [
-            (3933, 4098, 3225),
-            (1792, 1792, 44),
+            (3933, 4098, 3168),
+            (1792, 1792, 28),
             (0, 0, 0),
             (3, 0, 3),
             (2, 0, 2),
             (544, 544, 0),
             (1029, 1162, 133),
             (271, 271, 3),
-            (27, 27, 2),
+            (27, 27, 1),
             (90, 110, 44),
             (120, 120, 0),
-            (7615, 7599, 4535),
+            (7615, 7615, 4),
         ],
     ),
     (
@@ -1569,220 +1850,256 @@ pub(super) const PINNED: &[Pinned] = &[
             (9244, 7657, 5995),
         ],
     ),
+    // Item 4205, the built start: units (13393, 13427, 11988) -> (13393, 13427, 11927); builds
+    // (4230, 4230, 113) -> (4230, 4230, 98); guys (3459, 3774, 361) -> (3459, 3774, 325); world
+    // (8592, 7873, 5834) -> (8592, 8592, 16).
     (
         "run1327",
         10930,
         [
-            (13393, 13427, 11988),
-            (4230, 4230, 113),
+            (13393, 13427, 11927),
+            (4230, 4230, 98),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
             (574, 574, 2),
-            (3459, 3774, 361),
+            (3459, 3774, 325),
             (271, 271, 4),
             (59, 59, 6),
             (25, 110, 94),
             (180, 180, 0),
-            (8592, 7873, 5834),
+            (8592, 8592, 16),
         ],
     ),
+    // Item 4205, the built start: units (5746, 5891, 4421) -> (5746, 5891, 4373); builds (2354,
+    // 2354, 75) -> (2354, 2354, 59); guys (1463, 1638, 211) -> (1463, 1638, 175); world (8244,
+    // 7525, 5179) -> (8244, 8244, 5).
     (
         "run1332a",
         3627,
         [
-            (5746, 5891, 4421),
-            (2354, 2354, 75),
+            (5746, 5891, 4373),
+            (2354, 2354, 59),
             (0, 0, 0),
             (48, 0, 48),
             (14, 0, 14),
             (580, 580, 5),
-            (1463, 1638, 211),
+            (1463, 1638, 175),
             (271, 271, 3),
             (30, 30, 3),
             (80, 110, 54),
             (180, 180, 0),
-            (8244, 7525, 5179),
+            (8244, 8244, 5),
         ],
     ),
+    // Item 4205, the built start: units (4745, 4928, 3951) -> (4745, 4928, 3885); builds (2237,
+    // 2237, 74) -> (2237, 2237, 60); guys (1352, 1492, 179) -> (1352, 1492, 143); world (8328,
+    // 7609, 5258) -> (8328, 8328, 7).
     (
         "run1351",
         4303,
         [
-            (4745, 4928, 3951),
-            (2237, 2237, 74),
+            (4745, 4928, 3885),
+            (2237, 2237, 60),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
             (562, 562, 2),
-            (1352, 1492, 179),
+            (1352, 1492, 143),
             (271, 271, 3),
             (30, 30, 3),
             (75, 110, 56),
             (180, 180, 1),
-            (8328, 7609, 5258),
+            (8328, 8328, 7),
         ],
     ),
+    // Item 4205, the built start: units (4512, 4732, 3134) -> (4512, 4732, 3067); builds (2143,
+    // 2143, 75) -> (2143, 2143, 61); guys (1286, 1426, 176) -> (1286, 1426, 140); cities (30,
+    // 30, 2) -> (30, 30, 1); world (8298, 7579, 5257) -> (8298, 8298, 7).
     (
         "run1351c",
         3521,
         [
-            (4512, 4732, 3134),
-            (2143, 2143, 75),
+            (4512, 4732, 3067),
+            (2143, 2143, 61),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
             (556, 556, 3),
-            (1286, 1426, 176),
+            (1286, 1426, 140),
             (271, 271, 4),
-            (30, 30, 2),
+            (30, 30, 1),
             (75, 110, 56),
             (180, 180, 1),
-            (8298, 7579, 5257),
+            (8298, 8298, 7),
         ],
     ),
+    // Item 4205, the built start: units (3610, 3841, 2961) -> (3610, 3841, 2904); builds (1836,
+    // 1836, 45) -> (1836, 1836, 29); cities (27, 27, 2) -> (27, 27, 1); world (7777, 7761,
+    // 4777) -> (7777, 7777, 6).
     (
         "run1355",
         2933,
         [
-            (3610, 3841, 2961),
-            (1836, 1836, 45),
+            (3610, 3841, 2904),
+            (1836, 1836, 29),
             (0, 0, 0),
             (3, 0, 3),
             (2, 0, 2),
             (556, 556, 4),
             (902, 1042, 140),
             (271, 271, 3),
-            (27, 27, 2),
+            (27, 27, 1),
             (80, 110, 51),
             (120, 120, 0),
-            (7777, 7761, 4777),
+            (7777, 7777, 6),
         ],
     ),
+    // Item 4205, the built start: units (5707, 5937, 4835) -> (5707, 5937, 4771); builds (1977,
+    // 1977, 59) -> (1977, 1977, 43); guys (1427, 1602, 211) -> (1427, 1602, 175); cities (30,
+    // 30, 3) -> (30, 30, 1); world (8528, 7809, 5790) -> (8528, 8528, 7).
     (
         "run1357",
         3439,
         [
-            (5707, 5937, 4835),
-            (1977, 1977, 59),
+            (5707, 5937, 4771),
+            (1977, 1977, 43),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (568, 568, 2),
-            (1427, 1602, 211),
+            (1427, 1602, 175),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 1),
             (75, 110, 59),
             (180, 180, 1),
-            (8528, 7809, 5790),
+            (8528, 8528, 7),
         ],
     ),
+    // Item 4205, the built start: units (6464, 6432, 5647) -> (6464, 6432, 5603); builds (2974,
+    // 2974, 108) -> (2974, 2974, 94); cities (48, 48, 4) -> (48, 48, 3); world (8007, 7991,
+    // 5220) -> (8007, 8007, 12).
     (
         "run1359",
         5619,
         [
-            (6464, 6432, 5647),
-            (2974, 2974, 108),
+            (6464, 6432, 5603),
+            (2974, 2974, 94),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (568, 568, 3),
             (1584, 1724, 144),
             (271, 271, 5),
-            (48, 48, 4),
+            (48, 48, 3),
             (60, 110, 69),
             (120, 120, 0),
-            (8007, 7991, 5220),
+            (8007, 8007, 12),
         ],
     ),
+    // Item 4205, the built start: units (6408, 6424, 5583) -> (6408, 6424, 5539); builds (2974,
+    // 2974, 110) -> (2974, 2974, 96); cities (48, 48, 4) -> (48, 48, 3); world (7717, 7701,
+    // 4791) -> (7717, 7717, 13).
     (
         "run1359b",
         5677,
         [
-            (6408, 6424, 5583),
-            (2974, 2974, 110),
+            (6408, 6424, 5539),
+            (2974, 2974, 96),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (556, 556, 4),
             (1598, 1738, 144),
             (271, 271, 5),
-            (48, 48, 4),
+            (48, 48, 3),
             (55, 110, 74),
             (120, 120, 0),
-            (7717, 7701, 4791),
+            (7717, 7717, 13),
         ],
     ),
+    // Item 4205, the built start: units (6407, 6423, 5580) -> (6407, 6423, 5536); builds (2974,
+    // 2974, 110) -> (2974, 2974, 96); cities (48, 48, 4) -> (48, 48, 3); world (7715, 7699,
+    // 4789) -> (7715, 7715, 13).
     (
         "run1359c",
         5678,
         [
-            (6407, 6423, 5580),
-            (2974, 2974, 110),
+            (6407, 6423, 5536),
+            (2974, 2974, 96),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (556, 556, 4),
             (1598, 1738, 144),
             (271, 271, 5),
-            (48, 48, 4),
+            (48, 48, 3),
             (55, 110, 74),
             (120, 120, 0),
-            (7715, 7699, 4789),
+            (7715, 7715, 13),
         ],
     ),
+    // Item 4205, the built start: units (6810, 6671, 5784) -> (6810, 6671, 5721); builds (2544,
+    // 2544, 72) -> (2544, 2544, 57); guys (1847, 1952, 141) -> (1847, 1952, 105); cities (37,
+    // 37, 3) -> (37, 37, 2); world (8476, 7757, 5586) -> (8476, 8476, 10).
     (
         "run1361",
         4840,
         [
-            (6810, 6671, 5784),
-            (2544, 2544, 72),
+            (6810, 6671, 5721),
+            (2544, 2544, 57),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
             (556, 556, 1),
-            (1847, 1952, 141),
+            (1847, 1952, 105),
             (271, 271, 8),
-            (37, 37, 3),
+            (37, 37, 2),
             (50, 110, 78),
             (180, 180, 2),
-            (8476, 7757, 5586),
+            (8476, 8476, 10),
         ],
     ),
+    // Item 4205, the built start: units (5194, 5195, 3939) -> (5194, 5195, 3876); builds (2147,
+    // 2147, 64) -> (2147, 2147, 49); guys (1419, 1517, 134) -> (1419, 1517, 98); cities (27,
+    // 27, 3) -> (27, 27, 1); world (8334, 7615, 5331) -> (8334, 8334, 3).
     (
         "run1381",
         3262,
         [
-            (5194, 5195, 3939),
-            (2147, 2147, 64),
+            (5194, 5195, 3876),
+            (2147, 2147, 49),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
             (556, 556, 2),
-            (1419, 1517, 134),
+            (1419, 1517, 98),
             (271, 271, 3),
-            (27, 27, 3),
+            (27, 27, 1),
             (90, 110, 44),
             (180, 180, 1),
-            (8334, 7615, 5331),
+            (8334, 8334, 3),
         ],
     ),
+    // Item 4205, the built start: units (5014, 5130, 4171) -> (5014, 5130, 4106); builds (2015,
+    // 2015, 67) -> (2015, 2015, 52); guys (1349, 1482, 169) -> (1349, 1482, 133); cities (20,
+    // 20, 1) -> (20, 20, 0); world (8340, 7621, 5320) -> (8340, 8340, 7).
     (
         "run1382",
         3228,
         [
-            (5014, 5130, 4171),
-            (2015, 2015, 67),
+            (5014, 5130, 4106),
+            (2015, 2015, 52),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (544, 544, 0),
-            (1349, 1482, 169),
+            (1349, 1482, 133),
             (271, 271, 4),
-            (20, 20, 1),
+            (20, 20, 0),
             (70, 110, 61),
             (180, 180, 0),
-            (8340, 7621, 5320),
+            (8340, 8340, 7),
         ],
     ),
     (
@@ -1857,22 +2174,25 @@ pub(super) const PINNED: &[Pinned] = &[
             (9554, 7967, 6698),
         ],
     ),
+    // Item 4205, the built start: units (4518, 4705, 3767) -> (4518, 4705, 3703); builds (2321,
+    // 2321, 75) -> (2321, 2321, 61); guys (1265, 1405, 178) -> (1265, 1405, 141); cities (33,
+    // 33, 3) -> (33, 33, 2); world (8274, 7555, 5208) -> (8274, 8274, 8).
     (
         "run1417",
         4016,
         [
-            (4518, 4705, 3767),
-            (2321, 2321, 75),
+            (4518, 4705, 3703),
+            (2321, 2321, 61),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (544, 544, 1),
-            (1265, 1405, 178),
+            (1265, 1405, 141),
             (271, 271, 4),
-            (33, 33, 3),
+            (33, 33, 2),
             (75, 110, 54),
             (180, 180, 1),
-            (8274, 7555, 5208),
+            (8274, 8274, 8),
         ],
     ),
     (
@@ -1893,22 +2213,25 @@ pub(super) const PINNED: &[Pinned] = &[
             (8434, 7715, 5388),
         ],
     ),
+    // Item 4205, the built start: units (5583, 5614, 4645) -> (5583, 5614, 4588); builds (2515,
+    // 2513, 751) -> (2515, 2513, 737); guys (1327, 1467, 177) -> (1327, 1467, 141); world
+    // (8466, 7747, 5536) -> (8466, 8466, 9).
     (
         "run1420",
         4586,
         [
-            (5583, 5614, 4645),
-            (2515, 2513, 751),
+            (5583, 5614, 4588),
+            (2515, 2513, 737),
             (0, 0, 0),
             (0, 0, 0),
             (8, 0, 8),
             (544, 544, 1),
-            (1327, 1467, 177),
+            (1327, 1467, 141),
             (271, 271, 4),
             (38, 38, 3),
             (70, 110, 59),
             (180, 180, 0),
-            (8466, 7747, 5536),
+            (8466, 8466, 9),
         ],
     ),
     (
@@ -2577,76 +2900,88 @@ pub(super) const PINNED: &[Pinned] = &[
             (7994, 7275, 4481),
         ],
     ),
+    // Item 4205, the built start: units (2726, 3048, 2294) -> (2726, 3048, 2260); builds (1580,
+    // 1580, 34) -> (1580, 1580, 21); guys (819, 959, 176) -> (819, 959, 140); cities (27, 27,
+    // 2) -> (27, 27, 1); world (8150, 7431, 4899) -> (8150, 8150, 14).
     (
         "run943c",
         10674,
         [
-            (2726, 3048, 2294),
-            (1580, 1580, 34),
+            (2726, 3048, 2260),
+            (1580, 1580, 21),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (532, 532, 0),
-            (819, 959, 176),
+            (819, 959, 140),
             (271, 271, 3),
-            (27, 27, 2),
+            (27, 27, 1),
             (40, 110, 84),
             (180, 180, 0),
-            (8150, 7431, 4899),
+            (8150, 8150, 14),
         ],
     ),
+    // Item 4205, the built start: units (2838, 3119, 2310) -> (2838, 3119, 2277); builds (1580,
+    // 1580, 33) -> (1580, 1580, 20); guys (826, 966, 176) -> (826, 966, 140); cities (27, 27,
+    // 2) -> (27, 27, 1); world (8164, 7445, 4942) -> (8164, 8164, 14).
     (
         "run946",
         10842,
         [
-            (2838, 3119, 2310),
-            (1580, 1580, 33),
+            (2838, 3119, 2277),
+            (1580, 1580, 20),
             (0, 0, 0),
             (15, 0, 15),
             (0, 0, 0),
             (532, 532, 0),
-            (826, 966, 176),
+            (826, 966, 140),
             (271, 271, 3),
-            (27, 27, 2),
+            (27, 27, 1),
             (40, 110, 84),
             (180, 180, 0),
-            (8164, 7445, 4942),
+            (8164, 8164, 14),
         ],
     ),
+    // Item 4205, the built start: units (2832, 3140, 2431) -> (2832, 3140, 2402); builds (1598,
+    // 1598, 36) -> (1598, 1598, 24); guys (875, 1015, 180) -> (875, 1015, 144); world (8096,
+    // 7377, 4771) -> (8096, 8096, 15).
     (
         "run954b",
         12155,
         [
-            (2832, 3140, 2431),
-            (1598, 1598, 36),
+            (2832, 3140, 2402),
+            (1598, 1598, 24),
             (0, 0, 0),
             (9, 0, 9),
             (2, 0, 2),
             (532, 532, 0),
-            (875, 1015, 180),
+            (875, 1015, 144),
             (271, 271, 3),
             (27, 27, 3),
             (35, 110, 87),
             (180, 180, 0),
-            (8096, 7377, 4771),
+            (8096, 8096, 15),
         ],
     ),
+    // Item 4205, the built start: units (490, 550, 108) -> (490, 550, 62); builds (455, 455,
+    // 15) -> (455, 455, 2); guys (160, 181, 23) -> (160, 181, 21); world (7291, 7275, 3748) ->
+    // (7291, 7291, 0).
     (
         "run958b",
         375,
         [
-            (490, 550, 108),
-            (455, 455, 15),
+            (490, 550, 62),
+            (455, 455, 2),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (538, 538, 0),
-            (160, 181, 23),
+            (160, 181, 21),
             (267, 267, 3),
             (6, 6, 0),
             (110, 110, 0),
             (120, 120, 0),
-            (7291, 7275, 3748),
+            (7291, 7291, 0),
         ],
     ),
     (
@@ -2667,66 +3002,77 @@ pub(super) const PINNED: &[Pinned] = &[
             (9056, 7469, 5567),
         ],
     ),
+    // Item 4205, the built start: units (3135, 3263, 2550) -> (3135, 3263, 2517); builds (2052,
+    // 2052, 46) -> (2052, 2052, 33); cities (35, 35, 4) -> (35, 35, 3); world (7513, 7497,
+    // 4325) -> (7513, 7513, 9).
     (
         "run973g",
         12286,
         [
-            (3135, 3263, 2550),
-            (2052, 2052, 46),
+            (3135, 3263, 2517),
+            (2052, 2052, 33),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
             (532, 532, 0),
             (941, 1046, 106),
             (271, 271, 2),
-            (35, 35, 4),
+            (35, 35, 3),
             (60, 110, 69),
             (120, 120, 0),
-            (7513, 7497, 4325),
+            (7513, 7513, 9),
         ],
     ),
+    // Item 4205, the built start: units (2003, 2230, 1758) -> (2003, 2230, 1723); builds (789,
+    // 789, 20) -> (789, 789, 7); guys (533, 638, 141) -> (533, 638, 105); world (8052, 7333,
+    // 4648) -> (8052, 8052, 7).
     (
         "run984b",
         6011,
         [
-            (2003, 2230, 1758),
-            (789, 789, 20),
+            (2003, 2230, 1723),
+            (789, 789, 7),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (538, 538, 0),
-            (533, 638, 141),
+            (533, 638, 105),
             (271, 271, 2),
             (17, 17, 1),
             (75, 110, 55),
             (180, 180, 0),
-            (8052, 7333, 4648),
+            (8052, 8052, 7),
         ],
     ),
+    // Item 4205, the built start: units (1903, 2165, 1626) -> (1903, 2165, 1594); builds (827,
+    // 827, 21) -> (827, 827, 8); guys (540, 645, 141) -> (540, 645, 105); world (8078, 7359,
+    // 4721) -> (8078, 8078, 7).
     (
         "run984c",
         6251,
         [
-            (1903, 2165, 1626),
-            (827, 827, 21),
+            (1903, 2165, 1594),
+            (827, 827, 8),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
             (538, 538, 0),
-            (540, 645, 141),
+            (540, 645, 105),
             (271, 271, 2),
             (17, 17, 1),
             (75, 110, 55),
             (180, 180, 0),
-            (8078, 7359, 4721),
+            (8078, 8078, 7),
         ],
     ),
+    // Item 4205, the built start: units (3289, 3742, 3058) -> (3289, 3742, 3041); builds (2783,
+    // 2783, 54) -> (2783, 2783, 43); world (7443, 7427, 4174) -> (7443, 7443, 15).
     (
         "run985b",
         16762,
         [
-            (3289, 3742, 3058),
-            (2783, 2783, 54),
+            (3289, 3742, 3041),
+            (2783, 2783, 43),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2736,15 +3082,17 @@ pub(super) const PINNED: &[Pinned] = &[
             (33, 33, 3),
             (40, 110, 85),
             (120, 120, 0),
-            (7443, 7427, 4174),
+            (7443, 7443, 15),
         ],
     ),
+    // Item 4205, the built start: units (3178, 3504, 2770) -> (3178, 3504, 2733); builds (2006,
+    // 2006, 47) -> (2006, 2006, 32); world (7461, 7445, 4143) -> (7461, 7461, 11).
     (
         "run991d",
         15256,
         [
-            (3178, 3504, 2770),
-            (2006, 2006, 47),
+            (3178, 3504, 2733),
+            (2006, 2006, 32),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2754,7 +3102,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 3),
             (55, 110, 74),
             (120, 120, 0),
-            (7461, 7445, 4143),
+            (7461, 7461, 11),
         ],
     ),
 ];
@@ -2768,27 +3116,21 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "ch95pkt",
         "aggression cities_built explored flags.leader_flags",
     ),
-    ("run1001d", "aggression cities_built resources_controlled"),
-    ("run1007b", "aggression cities_built resources_controlled"),
-    (
-        "run1011b",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
-    ("run1011c", "aggression cities_built resources_controlled"),
-    ("run1011d", "aggression cities_built resources_controlled"),
-    (
-        "run1011e",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
-    ("run1015b", "aggression cities_built resources_controlled"),
+    ("run1001d", "resources_controlled"),
+    ("run1007b", "resources_controlled"),
+    ("run1011b", "flags.leader_flags resources_controlled"),
+    ("run1011c", "resources_controlled"),
+    ("run1011d", "resources_controlled"),
+    ("run1011e", "flags.leader_flags resources_controlled"),
+    ("run1015b", "resources_controlled"),
     (
         "run1155c",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run1161", "aggression cities_built flags.leader_flags"),
     (
         "run1164",
-        "aggression cities_built encrypt.bucket[2] encrypt.bucket[5] explored flags.leader_flags reg_unpack_merch resources_controlled",
+        "encrypt.bucket[2] encrypt.bucket[5] explored flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1165",
@@ -2806,14 +3148,14 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "run1185",
         "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    ("run1186b", "aggression cities_built flags.leader_flags"),
+    ("run1186b", "flags.leader_flags"),
     (
         "run1217",
         "aggression cities_built flags.leader_flags resources_controlled",
     ),
     (
         "run1220b",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1221",
@@ -2821,7 +3163,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1224b",
-        "aggression cities_built encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch resources_controlled",
+        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1235b",
@@ -2833,7 +3175,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1237",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1238c",
@@ -2845,12 +3187,9 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1254c",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    (
-        "run1263",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1263", "flags.leader_flags resources_controlled"),
     (
         "run1264b",
         "aggression cities_built flags.leader_flags resources_controlled",
@@ -2861,7 +3200,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1268",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1293",
@@ -2879,18 +3218,12 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "run1304",
         "aggression cities_built flags.leader_flags resources_controlled",
     ),
-    (
-        "run1305b",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1305b", "flags.leader_flags resources_controlled"),
     (
         "run1320b",
         "aggression cities_built encrypt.bucket[2] flags.leader_flags resources_controlled",
     ),
-    (
-        "run1323b",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1323b", "flags.leader_flags resources_controlled"),
     (
         "run1324c",
         "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
@@ -2905,51 +3238,42 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1327",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1332a",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    (
-        "run1351",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
-    (
-        "run1351c",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1351", "flags.leader_flags resources_controlled"),
+    ("run1351c", "flags.leader_flags resources_controlled"),
     (
         "run1355",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1357",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1359",
-        "aggression cities_built encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch resources_controlled",
+        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1359b",
-        "aggression cities_built encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch resources_controlled",
+        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1359c",
-        "aggression cities_built encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch resources_controlled",
+        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1361",
-        "aggression cities_built encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags reg_unpack_merch resources_controlled",
+        "encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    (
-        "run1381",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1381", "flags.leader_flags resources_controlled"),
     (
         "run1382",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run1383", "aggression cities_built flags.leader_flags"),
     (
@@ -2964,17 +3288,14 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "run1416",
         "aggression cities_built flags.leader_flags resources_controlled",
     ),
-    (
-        "run1417",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1417", "flags.leader_flags resources_controlled"),
     (
         "run1419b",
         "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1420",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1424",
@@ -3081,31 +3402,20 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "aggression cities_built flags.leader_flags resources_controlled",
     ),
     ("run938b", "aggression cities_built flags.leader_flags"),
-    (
-        "run943c",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run943c", "flags.leader_flags resources_controlled"),
     (
         "run946",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    (
-        "run954b",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
-    ("run958b", "aggression cities_built flags.leader_flags"),
+    ("run954b", "flags.leader_flags resources_controlled"),
+    ("run958b", "flags.leader_flags"),
     (
         "run959",
         "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    (
-        "run973g",
-        "aggression cities_built reg_unpack_merch resources_controlled",
-    ),
-    ("run984b", "aggression cities_built"),
-    ("run984c", "aggression cities_built"),
-    ("run985b", "aggression cities_built resources_controlled"),
-    ("run991d", "aggression cities_built resources_controlled"),
+    ("run973g", "reg_unpack_merch resources_controlled"),
+    ("run985b", "resources_controlled"),
+    ("run991d", "resources_controlled"),
 ];
 
 /// **Probe**: walks one word (`RON_PACKET_START`, `_LONG`, `_TRACE`) to a
@@ -3153,5 +3463,159 @@ fn probe_one_packet() {
             );
         }
         built.tick();
+    }
+}
+
+/// **Probe** (item 4205): one word's packet walked from the dump-seated
+/// start and from the lobby's built start, the twelve lines on the packet's
+/// frame from each, and the built walk's draws against the long trace to
+/// that frame. `RON_PACKET_WORD=1` walks the built start on to the trace's
+/// end for its word.
+#[test]
+#[ignore = "a probe: RON_PACKET_RUN, RON_PACKET_START, RON_PACKET_LONG, RON_PACKET_TRACE"]
+fn probe_built_packet() {
+    let run = std::env::var("RON_PACKET_RUN").expect("RON_PACKET_RUN");
+    let start = std::env::var("RON_PACKET_START").expect("RON_PACKET_START");
+    let long = std::env::var("RON_PACKET_LONG").expect("RON_PACKET_LONG");
+    let trl = std::env::var("RON_PACKET_TRACE").expect("RON_PACKET_TRACE");
+    let (frame, theirs) = packet_stream(&run).expect("the packet's stream");
+    let pieces = Pieces::read().expect("the install");
+    let show = |side: &str, o: &[LineOutcome]| {
+        let agree = o.iter().filter(|x| x.agrees()).count();
+        let counted = o.iter().filter(|x| x.counted()).count();
+        eprintln!(
+            "{side} frame {frame}: {agree} of {counted} counted; pin {:?}",
+            pin_of(o)
+        );
+        for (n, x) in STATE_LINES.iter().zip(o) {
+            eprintln!(
+                "  {n:8} theirs {:5} ours {:5} parted {:5} first {:?}",
+                x.theirs,
+                x.ours,
+                x.parted,
+                x.first.as_ref().map(|f| (
+                    f.0,
+                    f.1,
+                    f.2.clone(),
+                    f.3.chars().take(48).collect::<String>(),
+                    f.4.chars().take(48).collect::<String>()
+                ))
+            );
+        }
+    };
+    let held: std::collections::BTreeSet<&str> = LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
+    let (mut seated, _) = stand_up_from(&start, (&long, &trl)).expect("the captures");
+    while seated.sim.frame < frame {
+        seated.tick();
+    }
+    let s = compare(&our_lines(&seated.sim, &pieces), &theirs);
+    let empty = StreamRows::new();
+    let sl = leader_leaf_rows(&seated.sim, theirs.get("leaders").unwrap_or(&empty));
+    show("seated", &s);
+    drop(seated);
+    let (mut built, tr) = crate::diff::third::stand_up_built((&long, &trl)).expect("the captures");
+    let mut parts = None;
+    while built.sim.frame < frame {
+        built.tick();
+        if parts.is_none()
+            && let Some((f, ours)) = built.frame_sites.last()
+            && ours.len() != tr.labels(*f).len()
+        {
+            parts = Some(*f);
+        }
+    }
+    eprintln!("built: draws to frame {frame} first part (count) at {parts:?}");
+    let b = compare(&our_lines(&built.sim, &pieces), &theirs);
+    let bl = leader_leaf_rows(&built.sim, theirs.get("leaders").unwrap_or(&empty));
+    show("built", &b);
+    for (side, leaves) in [("seated", &sl), ("built", &bl)] {
+        let w = Walked {
+            run: "probe",
+            frame,
+            lines: vec![],
+            leaves: leaves.clone(),
+        };
+        eprintln!(
+            "{side} leaves parting outside the list: {}",
+            extra_leaves(&w, &held)
+        );
+    }
+    for (slot, field, leaf, ours, t, _) in &bl {
+        if ["cities_built", "aggression", "diplos"].contains(&leaf.as_str()) {
+            eprintln!(
+                "  built slot {slot} {field} {leaf}: ours {} theirs {}",
+                ours.as_deref().map_or("-".into(), leaf_text),
+                leaf_text(t)
+            );
+        }
+    }
+    if std::env::var_os("RON_PACKET_WORD").is_some() {
+        drop(built);
+        let (fresh, _) = crate::diff::third::stand_up_built((&long, &trl)).expect("the captures");
+        let w = crate::diff::third::walk_word(fresh, &tr, &long);
+        eprintln!(
+            "built word: count {} sequence {} of {}; {}",
+            w.count, w.sequence, w.last, w.row
+        );
+    }
+}
+
+/// **Probe** (item 4205): one word's two frame zeros, the dump-seated and
+/// the lobby-built, compared whole (`start_walk::whole_diff`, take by
+/// take), and the seated start's corrections by frame. `RON_PACKET_TAKE`
+/// filters the takes printed by a substring.
+#[test]
+#[ignore = "a probe: RON_PACKET_START, RON_PACKET_LONG, RON_PACKET_TRACE"]
+fn probe_built_start_whole() {
+    let start = std::env::var("RON_PACKET_START").expect("RON_PACKET_START");
+    let long = std::env::var("RON_PACKET_LONG").expect("RON_PACKET_LONG");
+    let trl = std::env::var("RON_PACKET_TRACE").expect("RON_PACKET_TRACE");
+    let only = std::env::var("RON_PACKET_TAKE").unwrap_or_default();
+    let (seated, _) = stand_up_from(&start, (&long, &trl)).expect("the captures");
+    let (built, _) = crate::diff::third::stand_up_built((&long, &trl)).expect("the captures");
+    eprintln!(
+        "seated corrections: seeds at {:?}; clocks at {:?}",
+        seated
+            .frame_seeds
+            .iter()
+            .map(|s| s.0)
+            .take(20)
+            .collect::<Vec<_>>(),
+        seated
+            .frame_guys
+            .iter()
+            .map(|g| (g.0, g.1.len()))
+            .take(20)
+            .collect::<Vec<_>>()
+    );
+    eprintln!(
+        "rng: seated {:#010x} built {:#010x}",
+        seated.sim.rng.seed, built.sim.rng.seed
+    );
+    if let Ok(prefix) = std::env::var("RON_PACKET_LEAVES") {
+        use crate::diff::start_walk::{debug_leaves, keyed};
+        let a = keyed(&built.sim, debug_leaves(&format!("{:#?}", built.sim)));
+        let b = keyed(&seated.sim, debug_leaves(&format!("{:#?}", seated.sim)));
+        let bm: std::collections::HashMap<&str, &str> =
+            b.iter().map(|(p, v)| (p.as_str(), v.as_str())).collect();
+        for (p, v) in &a {
+            if p.starts_with(prefix.as_str()) && bm.get(p.as_str()) != Some(&v.as_str()) {
+                eprintln!("LEAF {p}: built {v} seated {:?}", bm.get(p.as_str()));
+            }
+        }
+    }
+    let d = crate::diff::start_walk::whole_diff(&built.sim, &seated.sim);
+    for (take, (n, first, o, t)) in &d {
+        if take.contains(only.as_str()) {
+            let cut = |s: &Option<String>| {
+                s.as_deref()
+                    .map_or("-".to_string(), |s| s.chars().take(60).collect())
+            };
+            eprintln!(
+                "TAKE {take}: {n}; first {first}: built {} seated {}",
+                cut(o),
+                cut(t)
+            );
+        }
     }
 }

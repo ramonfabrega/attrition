@@ -145,10 +145,44 @@ pub(crate) fn stand_up_from(
     Some((build_sim(&loaded, &init, Tuning::RON), tr))
 }
 
+/// **A word's game stood up from its lobby's built start** (item 4205,
+/// `docs/CHECKSUM.md` §23.7; `docs/START.md` §7): the long capture's
+/// `GAMEINFO` and player rows — the lobby's choices — through
+/// [`from_lobby`] and [`built_from_lobby`], as the harness lobby's own walk
+/// stands it up (`start_walk::the_lobby_walked_from_the_built_start`). No
+/// dump is installed and no correction is taken: no frame's word, no clock,
+/// no re-seat. Beside it, the long trace. `None` when the captures are not
+/// on this machine.
+pub(crate) fn stand_up_built(
+    (gamelog, tracelog): (&str, &str),
+) -> Option<(Built, crate::trace::Trace)> {
+    let inst = install()?;
+    let (Some(path), Some(tr)) = (dump(gamelog), trace(tracelog)) else {
+        eprintln!("skipping: no {gamelog} (set RON_GAMELOG_DIR)");
+        return None;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let built = source
+        .with_replay_initial(|init| {
+            let ours = from_lobby(&loaded, &init.game_info, &init.players, Tuning::RON);
+            built_from_lobby(&loaded, ours).0
+        })
+        .unwrap();
+    Some((built, tr))
+}
+
 /// The same draw-stream walk with an explicit full-start sibling on any map.
 /// No map-specific state is supplied beyond the named captures.
 pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Option<Word> {
-    let (mut built, tr) = stand_up_from(start, (gamelog, tracelog))?;
+    let (built, tr) = stand_up_from(start, (gamelog, tracelog))?;
+    Some(walk_word(built, &tr, gamelog))
+}
+
+/// [`walk_from`]'s walk on a stood-up game: ticked until the draw count
+/// parts from `tr`'s (or the trace ends). Item 4205 walks the built start
+/// ([`stand_up_built`]) through it.
+pub(crate) fn walk_word(mut built: Built, tr: &crate::trace::Trace, gamelog: &str) -> Word {
     built.sim.trace.trace_phases = true;
     let difficulty = built.sim.ai.lobby.difficulty;
     let last = tr.frames.last().map_or(0, |(n, _)| *n);
@@ -235,13 +269,13 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         }
     }
     eprintln!("{gamelog}: word parts at {count}, sequence at {sequence} of {last}; {row}");
-    Some(Word {
+    Word {
         count,
         sequence,
         last,
         row,
         difficulty,
-    })
+    }
 }
 
 /// **The first word's block, 9** (item 1066): frame 8 writes it. Item 1133
