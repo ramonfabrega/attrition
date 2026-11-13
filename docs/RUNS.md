@@ -36883,3 +36883,31 @@ records, no page fault. DLL `7a1383c3…`.
 Archive `gamelog-run1576-eastindies-melee-style0-diplomacy-take-window-1025-1029.txt`, 462,587,817 bytes,
 SHA-256 `b6311f305ce0ef53709a6b6fa2ccb9c81454a74bc81675b1479a5810a428f78a`; `rontrace-run1576.log`, 17,972,384 bytes,
 SHA-256 `c59a866dfe4a847f12ac6abd358afa4da27fb0831c2ad42a9fd20e2612036bc0`.
+
+## run1577 — the minted file's playback with the checksum hook and an `@dumpall` at 91: step H's first act (2026-11-13, item 4214, `att-4214`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: whether the fifteen values `CheckSums::check_all` hands its
+logger on a frame are the record the original prints there. No capture on disk carries `check_all`'s values outside a
+dump window; the hook (`tools/trace/checksums.h`) is new. The take: run1562's line with the hook and without the
+packet, `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1577
+--recording ~/ron-golden/recordings/item4059-minted-greatlakes-24000.rcx --end-frame 120 --cover cover=1 --log-window
+90 93 --detail end:MISC --timeout 900 --stall-seconds 120 --cmd-file <one line, "91 @dumpall"> --tracer-def
+RON_CHECKSUMS`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 15:29:55 −05:00, exited 15:30:24: **28.7 s launch to exit**, exit 0, `success`, 121 frames,
+  `last_frame` 120, seed 12345, map 14, players tribe 4 (flags 7) and tribe 11 (flags 1), five settings restored, no
+  page fault, no relaunch. `df -g ~` read 208 GB free before it. Minutes waited on another lane: none. DLL `73bd8f07…`,
+  build defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS`. The take left no `.rcx` in `Logs\`.
+- The hook: `I_CSUM` 124 sets, 0 torn, the stub patched; one set on every trace frame −1 to 119, two on 29, 59 and
+  89 (the read loop's `check_all` before an order's package, `process_turn`'s return 0x93f108, then the turn's own
+  after it, 0x93fb68).
+- The window prints records 3201 (`BEGIN FRAME 91`) and 3202 (`BEGIN FRAME 92`) again. **The hook's first set of trace
+  frame 90 is 3201, 15 of 15, and of 91 is 3202, 15 of 15**, in this take and against run1562's; one frame off they
+  part (3201 against 89: 9 of 15; against 91: 10; 3202 against 90: 10).
+- Filed with `filerun.py run1577 greatlakes-playback-of-minted-checksums-120`.
+
+Archive `gamelog-run1577-greatlakes-playback-of-minted-checksums-120.txt`, 62,498,527 bytes,
+SHA-256 `42af93222b0a69f1db805c08f3731d46531aef4013e1e5bd2ed3839f6e3050f5`; `rontrace-run1577.log`, 9,129,408 bytes,
+SHA-256 `197393e5191dd02b834eb5e13165c51c5380aeb08af3c56ad1f76c0c86d99d37`.
+
+**What it holds**: `diff::checksum_frames`. The hook is the record; our nine emitted lines walked frame by frame
+against it on 120 frames.

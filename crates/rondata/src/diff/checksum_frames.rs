@@ -25,6 +25,9 @@ use crate::trace::checksums::{Set, per_frame, sets, summary};
 /// `@dumpall` on 91 (`docs/RUNS.md` run1577).
 const RUN1577: &str = "gamelog-run1577-greatlakes-playback-of-minted-checksums-120.txt";
 const RUN1577_TRACE: &str = "rontrace-run1577.log";
+/// The whole game: the same file and hook to frame 24,000, trace only
+/// (`docs/RUNS.md` run1578).
+const RUN1578_TRACE: &str = "rontrace-run1578.log";
 /// run1562's dump: the same file and window with a packet, record 3201
 /// the instrument reproduces (`docs/CHECKSUM.md` §3).
 const RUN1562: &str = "gamelog-run1562-greatlakes-playback-of-minted-packet-91.txt";
@@ -99,6 +102,20 @@ fn the_hook_s_values_are_the_printed_record_s() {
         twice.as_slice(),
     );
     assert_eq!(take, HOOK_TAKE, "the hook's take");
+    // The whole game's take is the same trajectory on the frames both hold.
+    if let Some(whole) = hook(RUN1578_TRACE) {
+        let key = |s: &Set| (s.frame, s.ordinal, s.lines, s.total);
+        let short: std::collections::BTreeSet<_> = trace.iter().map(key).collect();
+        let common = whole.iter().filter(|s| s.frame <= 119).map(key);
+        let (n, equal) = common.fold((0, 0), |(n, e), k| {
+            (n + 1, e + usize::from(short.contains(&k)))
+        });
+        assert_eq!(
+            (n, equal),
+            (HOOK_TAKE.0, HOOK_TAKE.0),
+            "run1578's first sets are run1577's"
+        );
+    }
     let mut seen = Vec::new();
     for &(run, number, frame, _) in HOOK_RECORDS {
         let recs = if run == "run1562" { &r1562 } else { &r1577 };
@@ -139,21 +156,38 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// per emitted line (line, the first of our walk's frames whose Adler parts
 /// from the hook's — the take's length when none does — and the frames it
 /// parts on inside [`DIAG`]))`. Seen red first against zeros.
-const CHECKSUM_FRAMES: &[(&str, i64, [(&str, i64, usize); 9])] = &[(
-    RUN1577_TRACE,
-    120,
-    [
-        ("units", 1, 50),
-        ("builds", 100, 20),
-        ("groups", 61, 5),
-        ("guys", 120, 0),
-        ("leaders", 0, 120),
-        ("cities", 120, 0),
-        ("items", 120, 0),
-        ("goods", 120, 0),
-        ("world", 0, 1),
-    ],
-)];
+const CHECKSUM_FRAMES: &[(&str, i64, [(&str, i64, usize); 9])] = &[
+    (
+        RUN1577_TRACE,
+        120,
+        [
+            ("units", 1, 50),
+            ("builds", 100, 20),
+            ("groups", 61, 5),
+            ("guys", 120, 0),
+            ("leaders", 0, 120),
+            ("cities", 120, 0),
+            ("items", 120, 0),
+            ("goods", 120, 0),
+            ("world", 0, 1),
+        ],
+    ),
+    (
+        RUN1578_TRACE,
+        24000,
+        [
+            ("units", 1, 230),
+            ("builds", 100, 200),
+            ("groups", 61, 5),
+            ("guys", 129, 171),
+            ("leaders", 0, 300),
+            ("cities", 4030, 0),
+            ("items", 987, 0),
+            ("goods", 3246, 0),
+            ("world", 0, 1),
+        ],
+    ),
+];
 
 /// The frames on which every emitted line is taken and each parting is
 /// counted; past them a line is taken only until it first parts, so a
@@ -296,5 +330,173 @@ fn our_lines_part_from_the_hook_s_on_their_first_frame() {
             .map(|(l, f, _, _, p)| (*l, *f, p.len()))
             .collect();
         assert_eq!(seen, pinned, "CHECKSUM_FRAMES {name}");
+    }
+}
+
+/// The instrument's streams of the minted game's packets (runs 1579 to
+/// 1581), outside git: `<run>/values.tsv` and `<run>/stream.tsv`.
+fn minted_packets_dir() -> String {
+    std::env::var("RON_MINTED_PACKETS_DIR").unwrap_or_else(|_| {
+        let home = std::env::var("HOME").unwrap_or_default();
+        format!("{home}/ron-data/lab-experiments/2026-11-13-item-4214")
+    })
+}
+
+/// **Where each first parting is**: per packet, `(run, its trace, our
+/// frame, per state line that parts (line, the stream's ranges, ours,
+/// ranges parted, the first parting as `range record field: ours |
+/// theirs`, each side's bytes in hex cut to 32 digits))`. Each packet
+/// stands on a frame [`CHECKSUM_FRAMES`] names as a line's first parting;
+/// a line that agrees there is not listed.
+type PacketRow = (&'static str, usize, usize, usize, &'static str);
+const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &[
+    (
+        "run1580",
+        "rontrace-run1580.log",
+        61,
+        &[
+            (
+                "groups",
+                550,
+                550,
+                1,
+                "7 1 id..march: role 0|262416, new_speed 0|34, speed 0|34",
+            ),
+            (
+                "leaders",
+                267,
+                267,
+                2,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|d1000000",
+            ),
+        ],
+    ),
+    (
+        "run1581",
+        "rontrace-run1581.log",
+        100,
+        &[
+            (
+                "builds",
+                519,
+                519,
+                1,
+                "305 2000 queue[k]: type 0|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|27",
+            ),
+            (
+                "leaders",
+                267,
+                267,
+                3,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|db000000",
+            ),
+        ],
+    ),
+];
+
+/// One line's first parting as [`MINTED_PACKETS`] pins it: `range record
+/// field`, then the fields that part as `name ours|theirs` where the line
+/// has a decoder, else the first byte that parts and four bytes from it
+/// on each side, in hex.
+fn first_text(line: &str, f: &(usize, i16, String, String, String)) -> String {
+    let bytes = |h: &str| -> Vec<u8> {
+        (0..h.len() / 2)
+            .filter_map(|i| u8::from_str_radix(&h[2 * i..2 * i + 2], 16).ok())
+            .collect()
+    };
+    let (o, t) = (bytes(&f.3), bytes(&f.4));
+    let head = format!("{} {} {}", f.0, f.1, f.2);
+    let decoded = (o.len() == t.len() && !o.is_empty())
+        .then(|| {
+            let a = super::checksum_lines::range_fields(line, &f.2, &o)?;
+            let b = super::checksum_lines::range_fields(line, &f.2, &t)?;
+            Some(
+                a.iter()
+                    .zip(&b)
+                    .filter(|(x, y)| x.1 != y.1)
+                    .map(|(x, y)| format!("{} {}|{}", x.0, x.1, y.1))
+                    .collect::<Vec<_>>(),
+            )
+        })
+        .flatten()
+        .filter(|d| !d.is_empty());
+    if let Some(d) = decoded {
+        return format!("{head}: {}", d.join(", "));
+    }
+    let at = o
+        .iter()
+        .zip(&t)
+        .position(|(x, y)| x != y)
+        .unwrap_or(o.len().min(t.len()));
+    let cut = |b: &[u8]| {
+        b.iter()
+            .skip(at)
+            .take(4)
+            .map(|x| format!("{x:02x}"))
+            .collect::<String>()
+    };
+    format!(
+        "{head}: +{at:#x} of {}|{}: {}|{}",
+        o.len(),
+        t.len(),
+        cut(&o),
+        cut(&t)
+    )
+}
+
+/// **The packets name the partings.** Our walk under the pump to each
+/// packet's frame, its twelve lines held range by range against the
+/// packet's stream ([`MINTED_PACKETS`]); and the hook's set on the same
+/// take is the instrument's values on that frame, 15 of 15.
+#[test]
+fn the_minted_packets_name_each_first_parting() {
+    use super::checksum_lines::packets::{STATE_LINES, compare, our_lines, packet_stream_in};
+    let dir = minted_packets_dir();
+    for &(run, trace, frame, pinned) in MINTED_PACKETS {
+        let (Some((logger, theirs)), Some(sets)) = (packet_stream_in(&dir, run), hook(trace))
+        else {
+            eprintln!("skipping {run}: no stream under {dir} or no {trace}");
+            continue;
+        };
+        assert_eq!(logger, frame, "{run}'s values file names our frame");
+        let values = std::fs::read_to_string(format!("{dir}/{run}/values.tsv")).unwrap();
+        let instrument = crate::checksum::instrument_values(&values);
+        let set = per_frame(&sets)[&(frame - 1)];
+        let agree = CHECKSUM_LINES
+            .iter()
+            .zip(set.lines)
+            .filter(|((name, ..), v)| instrument.iter().any(|(n, iv)| n == name && *iv == *v))
+            .count();
+        assert_eq!(
+            agree,
+            15,
+            "{run}: the hook's set on {} is the instrument's",
+            frame - 1
+        );
+        let (Some((_, mut built, _)), Some(pieces)) = (
+            built_start(),
+            super::checksum_lines::packets::Pieces::read(),
+        ) else {
+            eprintln!("skipping: no install or lobby dump");
+            return;
+        };
+        let mut stream = crate::input::Stream::pump(&minted(&script()).unwrap());
+        super::minted::tick_to(&mut built, Some(&mut stream), frame);
+        let outcome = compare(&our_lines(&built.sim, &pieces), &theirs);
+        let mut seen: Vec<(&str, usize, usize, usize, String)> = Vec::new();
+        for (name, o) in STATE_LINES.iter().zip(&outcome) {
+            if let Some(f) = &o.first {
+                eprintln!(
+                    "MINTED PACKET {run} frame {frame} {name}: theirs {} ours {} parted {}; first {} {} {}:\n  ours   {}\n  theirs {}",
+                    o.theirs, o.ours, o.parted, f.0, f.1, f.2, f.3, f.4
+                );
+                seen.push((name, o.theirs, o.ours, o.parted, first_text(name, f)));
+            }
+        }
+        let pinned: Vec<(&str, usize, usize, usize, String)> = pinned
+            .iter()
+            .map(|&(l, t, o, p, f)| (l, t, o, p, f.to_string()))
+            .collect();
+        assert_eq!(seen, pinned, "MINTED_PACKETS {run}");
     }
 }

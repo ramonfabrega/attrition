@@ -16,7 +16,7 @@ use super::*;
 use crate::diff::third::stand_up_from;
 
 /// The twelve state lines, in `CheckSums::check_all@00936560`'s order.
-pub(super) const STATE_LINES: [&str; 12] = [
+pub(in crate::diff) const STATE_LINES: [&str; 12] = [
     "units", "builds", "walls", "ammo", "deaths", "groups", "guys", "leaders", "cities", "items",
     "goods", "world",
 ];
@@ -33,7 +33,15 @@ fn packets_dir() -> String {
 /// The instrument's twelve state lines of one packet, and the logger frame
 /// its values file names. `None` on a machine without them.
 fn packet_stream(run: &str) -> Option<(i64, std::collections::BTreeMap<String, StreamRows>)> {
-    let dir = packets_dir();
+    packet_stream_in(&packets_dir(), run)
+}
+
+/// [`packet_stream`] from another directory of `<run>/values.tsv` and
+/// `<run>/stream.tsv` (item 4214's minted packets).
+pub(in crate::diff) fn packet_stream_in(
+    dir: &str,
+    run: &str,
+) -> Option<(i64, std::collections::BTreeMap<String, StreamRows>)> {
     let values = std::fs::read_to_string(format!("{dir}/{run}/values.tsv")).ok()?;
     let frame = values
         .lines()
@@ -51,7 +59,7 @@ fn packet_stream(run: &str) -> Option<(i64, std::collections::BTreeMap<String, S
 /// One line's outcome on one packet: the stream's ranges, ours, the ranges
 /// that part, and the first parting `(range, record, field, ours, theirs)`.
 #[derive(Clone, Debug)]
-pub(super) struct LineOutcome {
+pub(in crate::diff) struct LineOutcome {
     pub theirs: usize,
     pub ours: usize,
     pub parted: usize,
@@ -106,7 +114,7 @@ pub(in crate::diff) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
 }
 
 /// The twelve lines held range by range against a packet's stream.
-pub(super) fn compare(
+pub(in crate::diff) fn compare(
     ours: &[Line],
     theirs: &std::collections::BTreeMap<String, StreamRows>,
 ) -> Vec<LineOutcome> {
