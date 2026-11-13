@@ -144,6 +144,14 @@ pub struct PlacedBuilding {
     /// The owner's age, `LeaderDataEncrypt +0xdc`: `draw_scaffold` draws
     /// the scaffold of its bracket ([`age_bracket`]).
     pub age: i32,
+    /// Its hit points left and the hit points it was built with, as the
+    /// door carries them (`BuildingScene::health`, `hits`), and
+    /// `WallData::construct_hits`, the whole `BuildData::hits(0)` returns:
+    /// [`crate::fire`]'s health level reads `construct_hits` against the
+    /// damage, `hits − health` (item 4201).
+    pub health: i32,
+    pub hits: i32,
+    pub construct_hits: i32,
 }
 
 /// The construction foundation of a building, as `WallOut::draw_underlays
@@ -761,6 +769,9 @@ mod tests {
             }),
             scaffold: (type_index != FARM).then_some(3),
             age: 0,
+            health: 1000,
+            hits: 1000,
+            construct_hits: 1000,
         }
     }
 

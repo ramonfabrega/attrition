@@ -285,6 +285,9 @@ pub fn placed_buildings(
                 foundation: look.foundation(type_index, piece),
                 scaffold: look.scaffold_table(type_index),
                 age: b.age,
+                health: b.health,
+                hits: b.hits,
+                construct_hits: b.construct_hits,
             })
         })
         .collect()

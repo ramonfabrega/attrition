@@ -37,6 +37,7 @@
 //! and `render`, and none of them on it (`tests::the_sim_takes_no_graphics`).
 
 mod dead;
+mod fire;
 mod gpu;
 mod ground;
 mod hud;
@@ -265,7 +266,15 @@ fn build(
 ) -> Built {
     let (figures, buildings, list) =
         world.draw_list(camera, &pinned_screen(), (size.0 as i32, size.1 as i32));
-    let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
+    let mut sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
+    // Item 4201: the burning buildings' stand-ins, over their sprites.
+    sprites.extend(world.fire_drawings(
+        &buildings,
+        &list,
+        camera,
+        &pinned_screen(),
+        (size.0 as i32, size.1 as i32),
+    ));
     let shadows = world.shadow_meshes(&world.shadows(&figures, &list));
     let (figures, list) = world.with_corpses(
         figures,

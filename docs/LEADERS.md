@@ -1767,6 +1767,34 @@ Witness, **not a pinned diff**: run1078 (style 0, a human Declare), where
 the dump's `dow[1]` moves 0 → 1 (`crates/rondata/src/blind.rs:333–343`). No
 `rondata::diff` row compares `dow`.
 
+**The take, pinned on its own record (item 4206, step VII-a): run1575.**
+It is run1482's three-seat lobby at style 0, the human allied with the
+French, and it moves every §7 leaf the window reaches. It is pinned as
+the take's movers, not as a diff of ours, since no writer exists yet
+(`diff::diplomacy_take::run1575_s_diplomacy_movers_are_the_script_s`).
+- A Declare on the ally (`process_declare 1 1 986`, the request turned
+  into peace): `dow[1]` 0 → 1 and `broke_alliance[1]` 0 → 986 on block 987.
+- A second Declare, at peace (`process_declare 1 0 1001`): `dow[1]` 1 → 2
+  and `blacken` 0 → 1 on 1002.
+- An accepted peace (`process_accept 1 1027`): `made_peace` 1027 both ways
+  on 1028.
+
+`hire_stamp`, `hire_who` and `good_deeds` stay at reset on run1575.
+recon4206-4, an unfiled rehearsal, moved the French `good_deeds[0]` 0 →
+1328 on a peace bought with 2,000 metal (§8.5).
+
+**The walk parts on the accepted peace, and the step after VII-a is named
+there.** Our walk holds run1575 to 1099 and parts on a guard's idle stand
+(`Unit::do_guard+0x7f4`), 72 frames after the acceptance. One call,
+`Sim::armies_diplo_change(1)` at the head of 1027, makes it hold whole to
+1150 (`run1575_holds_whole_with_the_french_armies_processed_on_the_accept`).
+Here is why. The French answer in `Leader::diplomacy (006bc950)`'s offers
+arm. `action_respond`'s treaty arm then calls `Leader::set_diplo (006ec6a0)`
+with the French as `this`. The original's `set_diplo` ends in
+`Armies::diplo_change (006f30f0)(this)` on every level. **`Sim::set_diplo`
+(`crates/sim/src/leaders/relations.rs:116`) runs it only on level 0, through
+`declare_war`, and only when the pair was not already at war.**
+
 ### 7.6 Not established
 
 - **Declare on a locked teammate.** Whether the interface offers it under
@@ -1999,6 +2027,24 @@ Witness, **not a pinned diff**: run1086's taunt gift (`docs/audit/parked-archive
 `tributes` and `escrow` slot reads 0 at frame end (commit and exchange run
 in one call).
 
+**run1575 (item 4206) moves these too**, pinned on its own record (§7.5):
+- A human receiver's `tribute_stamp[1]` reads 966 beside the ally's
+  `gift_stamp[0]` 966 on block 967, the taunt's gift.
+- The French `counteroffer[0]` goes 0 → 1 on 1052, on an alliance asked for
+  nothing (`process_treaty 1 2 1041`, `process_accept 1 1051`).
+- A peace asked at war for nothing was accepted (1027), so `need <= 0`
+  held there. That is one point of `S`.
+
+`tribute_demanded`, `tributes` and the two totals did not move. The totals
+are not printed; run1575's packet at 1090 holds them.
+
+Two scale readings come off recon4206-4's buckets, a rehearsal that was
+not filed; a filed capture is needed before either is cited as evidence:
+- the French gift, `stock/3` = 3290 food, came to 1909;
+- the human's 2,000 metal came to 1020 for the French.
+
+Both fit `(x·pct + 99)/100`, with the French `pct` 58 and the human's 51.
+
 ### 8.6 Not established
 
 - **The shortfall formula** (decompile `:2676`–`:2777`) is unread, and so is
@@ -2186,6 +2232,9 @@ run1077's `HELP`, after which leader 1 holds `last_taunt[0]` 16 and
 that commands are applied before the drain on the same frame. run1086's food
 and timber requests read `last_taunt[0]` 1 with `taunt_frame[0]` 661, and 2
 with 681. Receipt one block before 661 matches the 60-frame delay.
+run1575 (item 4206) has a NEED_FOOD chat on 905, received that frame. It
+reads `last_taunt[0]` 1 and `taunt_frame[0]` 966 on block 967, which is the
+same delay. Its packet at 1090 holds the ring words, which no dump prints.
 
 ### 9.6 Not established
 

@@ -439,6 +439,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the fourth melee's walks: it compares no field itself (item 3847)",
     ),
     (
+        "diff/diplomacy_take.rs",
+        "step VII-a's walks of the diplomacy take (item 4206): its record comparison is leader.rs's rows against theirs, and its own reads are the take's movers on the original's record alone",
+    ),
+    (
         "diff/airbase_melee.rs",
         "the fifth melee's walks: it compares no field itself (item 3868)",
     ),
