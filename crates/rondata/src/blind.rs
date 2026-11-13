@@ -4121,6 +4121,35 @@ mod tests {
         assert!(out.status.success(), "the log stride:\n{text}");
     }
 
+    /// **The checksum hook's fold** (item 4214): `checksums.h` keeps a
+    /// `check_all` set when its frame or a word moved, drops the logger's
+    /// other callers and a torn set, and counts the frame's calls, compiled
+    /// here as the DLL compiles it.
+    #[test]
+    fn the_checksum_hook_folds_a_frame_s_calls() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tools/trace");
+        let exe = std::env::temp_dir().join(format!("checksums_test-{}", std::process::id()));
+        let built = std::process::Command::new("cc")
+            .args(["-Wall", "-Wextra", "-Werror", "-o"])
+            .arg(&exe)
+            .arg(format!("{root}/checksums_test.c"))
+            .output();
+        match built {
+            Ok(o) if o.status.success() => {}
+            Ok(o) => panic!("checksums_test.c: {}", String::from_utf8_lossy(&o.stderr)),
+            Err(e) => {
+                eprintln!("skipping: no host C compiler ({e})");
+                return;
+            }
+        }
+        let out = std::process::Command::new(&exe)
+            .output()
+            .expect("checksums_test runs");
+        let _ = std::fs::remove_file(&exe);
+        let text = String::from_utf8_lossy(&out.stdout);
+        assert!(out.status.success(), "the checksum hook's fold:\n{text}");
+    }
+
     /// The grammar: a split citation is joined, a bare address is not a
     /// citation, and a name's template brackets are part of it.
     #[test]

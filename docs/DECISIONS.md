@@ -12923,9 +12923,10 @@ phase-traced walks follow the plain walk's trajectory byte for byte (read,
 not diffed; stage 2 of item 4216 diffs it); whether two takes of one lobby
 are one trajectory; a grouped process's peak memory; the suite's seconds on
 a quiet host (2,171 of the timings file's rows are of 2026-11-09 and read
-high); whether the hook's values on a frame are the printed
+high); ~~whether the hook's values on a frame are the printed
 record's (the call sits before the packages in playback and after the mode
-arms); what a lane's gate costs once it runs its filters alone; how many
+arms)~~ (they are: the frame's first set, 15 of 15 against records 3201
+and 3202, `docs/CHECKSUM.md` §24); what a lane's gate costs once it runs its filters alone; how many
 booking gates go red on a test a lane no longer runs; whether a recording
 left in `Logs\` by a capture turns another tree red (`RECORDINGS_ON_DISK`
 lists files that carry no run token); the two readings the sizing scout

@@ -174,6 +174,10 @@ enum {
                 * f = the byte behind arg7 where the site names one, else ~0 */
     K_LOOP = 11, /* Game::loop entry: no record; runs the due `@after` lines (9, 10: RON_STATE_FRAME) */
     K_HOVER = 12, /* Scene::describe_mouseover entry: no record of its own; `hover.h` */
+    K_CSUM = 13, /* RON_CHECKSUMS: one of check_all's sets, four records (`checksums.h`):
+                  * a = part | ordinal << 8, then part 0: b = check_all's caller, c..f = lines
+                  * 0..3; part 1: b..f = lines 4..8; part 2: b..f = lines 9..13; part 3: b =
+                  * line 14, c = total, d = the frame's check_all calls so far */
 };
 
 enum {
@@ -216,6 +220,8 @@ enum {
     I_HOLD_ASKED = 32, /* the first held `GetKeyState` answer of a frame (`hold.h`) */
     I_AIM = 33, /* an `@aim` line: a = frame, b = line index | refusal << 16 (0 stored; 1 no
                  * console_win; 5 the text did not parse), c = cx | cy << 16, d = the stored x, e = y */
+    I_CSUM = 35, /* RON_CHECKSUMS, at detach: a = sets written, b = torn sets (`checksums.h`),
+                  * c = 1 when the stub passed esp (0: the hook wrote nothing) */
     I_LOGDETAIL = 34, /* an `@logdetail` line: a = frame, b = line index | refusal << 16 (0 stored; 5 the
                        * text did not parse), c = mode | type << 8, d = the byte before, e = the byte stored */
 };
@@ -233,6 +239,13 @@ static const HookSite HOOKS[] = {
     {0x5329d0, 6, 9, {0x8b,0x0d,0xd4,0x13,0xeb,0x00}},
     /* Normal do_frame continuation after end_frame: cmp byte [ebx+0x8a0],0. */
     {0x192586, 7, 10, {0x80,0xbb,0xa0,0x08,0x00,0x00,0x00}},
+#endif
+#ifdef RON_CHECKSUMS
+    /* SyncLogger::logToMemory<unsigned_long_&>@00463930: push ebp; mov ebp,esp; mov eax,fs:[0].
+     * Item 4214: check_all's sixteen value lines (`checksums.h`). Its stub passes the
+     * entry's esp where the others pass arg0, since the line and the value's pointer
+     * are the second and fifth arguments. */
+    {0x63930, 9, K_CSUM, {0x55, 0x8b, 0xec, 0x64, 0xa1, 0x00, 0x00, 0x00, 0x00}},
 #endif
     /* Game::do_frame@00591ef0: push ebp; mov ebp,esp; push -1; push 0xa83e41 */
     {0x191ef0, 10, K_FRAME, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x41, 0x3e, 0xa8, 0x00}},
@@ -1812,7 +1825,35 @@ static void capsule_request_copy(u8 *package);
 #include "../explore/live_congestion_probe.h"
 #endif
 
+#ifdef RON_CHECKSUMS
+#include "checksums.h"
+static Csum g_csum;
+static u32 g_csum_sets;
+static i32 g_csum_ok; /* the stub passes esp: set by build_stub, never cleared */
+#endif
+
 static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
+#ifdef RON_CHECKSUMS
+    if (kind == K_CSUM) {
+        if (!g_csum_ok) return;
+        /* arg0 is the entry's esp: [esp] the return address, +8 `line`, +0x14 `&value`;
+         * ebp is still check_all's, so [ebp+4] is its return into process_turn. */
+        u32 rva = caller - g_base;
+        if (rva < CSUM_RVA_LO || rva >= CSUM_RVA_HI) return;
+        u32 line = *(u32 *)(arg0 + 8);
+        u32 value = **(u32 **)(arg0 + 0x14);
+        u32 up = *(u32 *)(ebp + 4);
+        if (!csum_line(&g_csum, rva, line, value, up, g_frame)) return;
+        const u32 *v = g_csum.last;
+        u32 o = g_csum.ordinal << 8;
+        g_csum_sets++;
+        emit(K_CSUM, o | 0, g_csum.caller, v[0], v[1], v[2], v[3]);
+        emit(K_CSUM, o | 1, v[4], v[5], v[6], v[7], v[8]);
+        emit(K_CSUM, o | 2, v[9], v[10], v[11], v[12], v[13]);
+        emit(K_CSUM, o | 3, v[14], v[15], g_csum.count, 0, 0);
+        return;
+    }
+#endif
     if (kind == K_LOOP) {
         if (g_loopq_next >= g_nloopq) return;
         g_loops++;
@@ -1923,8 +1964,19 @@ static u32 build_stub(u8 *s, const HookSite *h) {
             (u32)(void *)(h->kind==9?frame_snapshot_enter:frame_snapshot_after),(const u8 *)(g_base+h->rva),h->len);
     }
 #endif
-    return build_hook_stub(s, (u32)s, g_base+h->rva, h->kind, (u32)(void *)on_hook,
-                           (const u8 *)(g_base+h->rva), h->len);
+    u32 n = build_hook_stub(s, (u32)s, g_base+h->rva, h->kind, (u32)(void *)on_hook,
+                            (const u8 *)(g_base+h->rva), h->len);
+#ifdef RON_CHECKSUMS
+    /* The head's `mov eax,[esp+0x14]; push eax` (arg0, at offset 8) becomes
+     * `lea eax,[esp+0x10]; push eax`: four registers are pushed by then, so
+     * that is the entry's esp. Same length; nothing after it moves. */
+    if (h->kind == K_CSUM && s[8] == 0x8b && s[11] == 0x14) {
+        s[8] = 0x8d;
+        s[11] = 0x10;
+        g_csum_ok = 1;
+    }
+#endif
+    return n;
 }
 
 /* ---- the call proxies -------------------------------------------------- */
@@ -2409,6 +2461,9 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
                             FILE_ATTRIBUTE_NORMAL, 0);
         read_cfg();
         read_cmds();
+#ifdef RON_CHECKSUMS
+        csum_init(&g_csum);
+#endif
         g_nfuncs = read_file("rontrace.funcs", g_funcs, sizeof g_funcs) / sizeof(Entry);
 
         /* header: magic, version (2 = the displaced-prologue table), base,
@@ -2456,6 +2511,9 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
         flush();
         OutputDebugStringA("rontrace: attached\n");
     } else if (reason == 0) { /* DLL_PROCESS_DETACH */
+#ifdef RON_CHECKSUMS
+        emit(K_INFO, I_CSUM, g_csum_sets, g_csum.torn, (u32)g_csum_ok, 0, 0);
+#endif
         emit(K_INFO, I_DETACH, 0, 0, 0, 0, 0);
         flush();
         if (g_log != INVALID_HANDLE) CloseHandle(g_log);
