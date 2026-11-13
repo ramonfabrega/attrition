@@ -641,6 +641,13 @@ pub struct Art {
     /// install says `WILDBIRD` plays *Bird Soar* for `CHAR_WALK` and
     /// *Bird Flap* for `CHAR_JOG`, 31 frames and 23 (`docs/SYNC.md` §3.9).
     pub gaia_lengths: BTreeMap<(i32, u8, i8), u32>,
+    /// `(TypeIndex, (seed + o) % 3) → the variant whose piece loads`, for
+    /// the gaia types (`rondata::artdata::GaiaVariants`, item 4208):
+    /// `GraphicPieces::get_unit_gpiece@0090c030`'s gaia arm walks the
+    /// variant down to the first `{GRAPH}-TYPE{v}` the install ships.
+    /// Empty when the install was not read, which leaves a gaia figure the
+    /// piece [`Art::pieces`] gives it, or none.
+    pub gaia_variants: BTreeMap<(i32, u8), u8>,
     /// The graphic pieces whose `<UNIT>` names a `skeleton` — a corpse
     /// (`RData::unit_data +0x20 != -1`), which `DeathObj::init` keeps at
     /// `+0x44`: the death object of such a piece lives
@@ -717,6 +724,11 @@ impl Art {
             .is_some()
     }
 }
+
+/// `first_bird_piece`, as `GraphicPieces::init_piece_ranges@008f70e0`
+/// writes it: `0xea8d`, the first of the twelve gaia types' three pieces
+/// each (`rondata::artdata::FIRST_BIRD_PIECE`, `docs/FORMATS.md`).
+pub const FIRST_BIRD_PIECE: i32 = 0xea8d;
 
 /// The idle variant `set_anim` picks from `p = rand % 100` when the guy was
 /// already idle (`docs/ANIM.md` §4.1): 0 up to 69, `IDLE1` to 82, `IDLE2` to
@@ -953,12 +965,17 @@ impl Sim {
     ) -> Option<i32> {
         if self.roster.art.gaia_types.contains(&ty) {
             let sub = (self.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8;
+            // The dump's piece where it printed one, and otherwise the
+            // gaia arm's own (item 4208): a built start has no dump, and a
+            // figure with no piece keeps an idle variant its packet lacks
+            // — every East Indies whale, whose one slot is `CHAR_DEFAULT`.
             return self
                 .roster
                 .art
                 .pieces
                 .get(&(who, ty, sub, guy_num))
-                .copied();
+                .copied()
+                .or_else(|| self.gaia_piece(self.tables.unit_types.get(ty)?.type_index, o));
         }
         if !self.roster.art.piece_lengths.is_empty() {
             return self.unit_gpiece(who, ty, o, guy_num, packed);
@@ -1039,6 +1056,21 @@ impl Sim {
                 (_, None) => None,
             };
         }
+    }
+
+    /// **A gaia figure's piece** (item 4208), as
+    /// `GraphicPieces::get_unit_gpiece@0090c030`'s gaia arm (`TypeIndex −
+    /// 0x192 < 0xc`) hands it out: `first_bird_piece − 0x4b6 + 3·type + v`,
+    /// `v` starting at `(seed + o) % 3` and walked down while
+    /// `data_pieces[piece]` is null — [`Art::gaia_variants`]. `None` for a
+    /// type that is not gaia's, or when the install was not read.
+    pub fn gaia_piece(&self, type_index: i32, o: i16) -> Option<i32> {
+        if !(0x192..0x19e).contains(&type_index) {
+            return None;
+        }
+        let v = (self.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8;
+        let shipped = *self.roster.art.gaia_variants.get(&(type_index, v))?;
+        Some(FIRST_BIRD_PIECE + 3 * (type_index - 0x192) + i32::from(shipped))
     }
 
     /// The gaia variant of a unit — `(seed + o) % 3`, the index into the
