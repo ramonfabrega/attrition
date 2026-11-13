@@ -507,6 +507,20 @@ fn record_bar(l: &rondata::gamelog::Block<'_>) -> Option<(Vec<i64>, usize)> {
     Some((v, usize::try_from(l.int("tribe")?).ok()?))
 }
 
+/// A rate token read back as the original writes one (item 4203): `0`
+/// alone, or a `+` and a non-zero number (`+-3` falling). Any other
+/// writing — `+0`, a bare `-3` — reads as `i64::MIN`, which no record
+/// holds, so it parts.
+fn printed_rate(tok: &str) -> i64 {
+    if tok == "0" {
+        return 0;
+    }
+    match tok.strip_prefix('+').map(str::parse::<i64>) {
+        Some(Ok(v)) if v != 0 => v,
+        _ => i64::MIN,
+    }
+}
+
 /// The bar's printed text read back: its numbers in order (each good's
 /// stockpile, its rate and 1 where `CAP` follows, 0 where not; the
 /// population and its cap; the age) and the
@@ -520,7 +534,7 @@ fn printed_bar(text: &str) -> (Vec<i64>, String) {
         let w = t[i];
         if GOODS.contains(&w) {
             v.push(t[i + 1].parse().unwrap());
-            v.push(t[i + 2].parse().unwrap());
+            v.push(printed_rate(t[i + 2]));
             let capped = t.get(i + 3) == Some(&"CAP");
             v.push(i64::from(capped));
             i += 3 + usize::from(capped);
@@ -603,6 +617,7 @@ fn the_bar_s_values_are_the_leader_record_s() {
     // Ours: the bar for each slot on every frame the record prints, and
     // on the frame after (for the late reading).
     let mut ours: std::collections::BTreeMap<(i64, u8), (String, String)> = Default::default();
+    let mut olds: std::collections::BTreeMap<(i64, u8), String> = Default::default();
     while r.frame() < last + 1 {
         r.step();
         let n = r.frame();
@@ -622,7 +637,20 @@ fn the_bar_s_values_are_the_leader_record_s() {
                 l.bucket.rotate_left(1);
             }
             let bad = Bar::of(&shifted, who).unwrap().text();
+            // Made to fail: the rates as the bar wrote them before item
+            // 4203, every one signed (`{rate:+}`), so a zero read `+0`.
+            let signed = text
+                .split(' ')
+                .scan(None::<&str>, |prev, tok| {
+                    let after_stock = prev.is_some_and(|p| p.parse::<i64>().is_ok());
+                    let out = if after_stock && tok == "0" { "+0" } else { tok };
+                    *prev = Some(tok);
+                    Some(out.to_string())
+                })
+                .collect::<Vec<_>>()
+                .join(" ");
             ours.insert((n, who), (text, bad));
+            olds.insert((n, who), signed);
         }
     }
     let score = |late: i64, shifted: bool| {
@@ -691,7 +719,410 @@ fn the_bar_s_values_are_the_leader_record_s() {
     );
     let (late, late_of, _) = score(1, false);
     assert!(late < late_of, "one frame late parts: {late} of {late_of}");
+    // The old writing: each zero rate parts, the rest agree.
+    let (mut signed, mut signed_of) = (0usize, 0usize);
+    for (&(n, who), (w, _)) in &want {
+        let Some(t) = olds.get(&(n, who)) else {
+            continue;
+        };
+        let (got, _) = printed_bar(t);
+        for (g, x) in got.iter().zip(w) {
+            signed_of += 1;
+            signed += usize::from(g == x);
+        }
+    }
+    let zeros = want
+        .values()
+        .flat_map(|(v, _)| (0..6).map(move |g| v[3 * g + 1]))
+        .filter(|r| *r == 0)
+        .count();
     eprintln!(
-        "BAR made to fail: neighbour {shifted} of {shifted_of}, one frame late {late} of {late_of}"
+        "BAR made to fail: neighbour {shifted} of {shifted_of}, one frame late {late} of {late_of}, \
+         signed zeros {signed} of {signed_of} ({zeros} zero rates)"
+    );
+    assert!(zeros > 0, "a zero rate is compared");
+    assert_eq!(
+        signed_of - signed,
+        zeros,
+        "each zero rate parts when signed"
+    );
+}
+
+/// **A rate as the original writes it** (item 4203), against the
+/// reading written out again in the listing's own arithmetic, apart
+/// from [`shown_rate`] and [`rate_text`]: `IFaceResources::draw_resource@00818840`
+/// writes entry 404 of `internal_strings.xml` (`0`) for a zero `income`,
+/// `(v + (v >> 31 & 0xf)) >> 4` of `v = income + 8` otherwise, and puts a
+/// `+` in front unless the string is entry 404's.
+#[test]
+fn a_rate_is_written_as_the_original_writes_it() {
+    let listing = |income: i32| -> String {
+        let s = if income == 0 {
+            "0".to_string()
+        } else {
+            let v = income + 8;
+            ((v + ((v >> 31) & 0xf)) >> 4).to_string()
+        };
+        if s == "0" { s } else { format!("+{s}") }
+    };
+    for income in -400..=400 {
+        assert_eq!(
+            rate_text(shown_rate(income)),
+            listing(income),
+            "income {income}"
+        );
+    }
+    assert_eq!(rate_text(shown_rate(0)), "0");
+    assert_eq!(rate_text(shown_rate(7)), "0");
+    assert_eq!(rate_text(shown_rate(640)), "+40");
+    assert_eq!(rate_text(shown_rate(-20)), "0");
+    assert_eq!(rate_text(shown_rate(-50)), "+-2");
+    for c in "+-0123456789".chars() {
+        assert!(crate::overlay::has_glyph(c));
+    }
+}
+
+/// The packets' clock (`tools/render/packet_clock.py` over every
+/// `frame-snapshot.bin` under `~/ron-golden` and `~/ron-data`): `run map
+/// packet_frame frame tick`, at `$RON_PACKET_TICKS` or item 4203's file.
+fn packet_ticks() -> Option<Vec<(String, i64, i64)>> {
+    let path = std::env::var_os("RON_PACKET_TICKS")
+        .map(std::path::PathBuf::from)
+        .or_else(|| {
+            std::env::var_os("HOME").map(|h| {
+                std::path::PathBuf::from(h)
+                    .join("ron-data/lab-experiments/2026-11-13-item-4203/packet-ticks.txt")
+            })
+        })?;
+    let Ok(text) = std::fs::read_to_string(&path) else {
+        println!("skipping: no packet clock at {}", path.display());
+        return None;
+    };
+    Some(
+        text.lines()
+            .map(|l| {
+                let f: Vec<&str> = l.split_whitespace().collect();
+                (
+                    format!("{} {}", f[0], f[1]),
+                    f[3].parse().unwrap(),
+                    f[4].parse().unwrap(),
+                )
+            })
+            .collect(),
+    )
+}
+
+/// **`Hud: the clock` against the packets** (item 4203, `docs/HUD.md`
+/// §5): on every packet on disk, the bar's clock in seconds on the
+/// packet's `Game::frame` is the packet's `Game::tick`, and the bar's
+/// printed `TIME` is that tick written `hh:mm:ss` —
+/// [`script::HUD_CLOCK_PACKETS`]. Their side is the original's memory, and
+/// the written form is checked against the tick by arithmetic apart from
+/// [`clock`]. Made to fail: the victory timers' `(frames + 14) / 15`
+/// (`IFaceMainBase::draw_game_timer@0080a3c0`) parts on every packet whose
+/// frame is not a multiple of 15.
+#[test]
+fn the_clock_is_the_original_s_tick() {
+    let Some(rows) = packet_ticks() else { return };
+    let printed = |frame: i64| -> String {
+        let bar = Bar {
+            goods: [(0, 0, false); 6],
+            pop: (0, 0),
+            age: 1,
+            nation: "N".into(),
+            frame,
+        };
+        let text = bar.text();
+        let t: Vec<&str> = text.split_whitespace().collect();
+        let k = t.iter().position(|w| *w == "TIME").expect("TIME");
+        t[k + 1].to_string()
+    };
+    let (mut equal, mut late) = (0usize, 0usize);
+    let mut maps = std::collections::BTreeSet::new();
+    for (run, frame, tick) in &rows {
+        maps.insert(run.split(' ').nth(1).unwrap().to_string());
+        let want = format!(
+            "{:02}:{:02}:{:02}",
+            tick / 3600,
+            (tick - tick / 3600 * 3600) / 60,
+            tick - tick / 60 * 60
+        );
+        if clock_seconds(*frame) == *tick && printed(*frame) == want {
+            equal += 1;
+        } else {
+            eprintln!(
+                "CLOCK PARTS {run} frame {frame}: ours {} theirs {want}",
+                printed(*frame)
+            );
+        }
+        late += usize::from((frame + 14) / 15 == *tick);
+    }
+    let multiples = rows.iter().filter(|r| r.1 % 15 == 0).count();
+    eprintln!(
+        "CLOCK {equal} of {} packets over {maps:?}; the victory timers' rule {late} ({multiples} on a multiple of 15)",
+        rows.len()
+    );
+    assert!(maps.len() > 1 && rows.iter().any(|r| r.2 > 3600 / 3));
+    assert_eq!(
+        (equal, rows.len()),
+        script::HUD_CLOCK_PACKETS,
+        "HUD_CLOCK_PACKETS"
+    );
+    assert_eq!(
+        late, multiples,
+        "the victory timers' rule agrees only on a multiple of 15"
+    );
+}
+
+/// **The photographs' clocks, read by eye** (item 4203): each
+/// photograph, the frame it shows (settled by its movers, not by the
+/// clock) and the time its bar's line reads after `Normal: `.
+const PHOTO_CLOCKS: [(&str, i64, &str); 3] = [
+    ("run1559b", crate::silhouette::PHOTO_FRAME, "00:03:38"),
+    ("run1564", crate::silhouette::PHOTO_FRAME, "00:03:38"),
+    ("run1570", crate::dead::RUN1570_FRAME, "00:03:41"),
+];
+
+/// **`Hud: the clock` on the photographs** (item 4203, `docs/HUD.md` §5):
+/// the bar's printed `TIME` on the frame each photograph shows is the time
+/// the photograph's own bar reads — [`script::HUD_CLOCK_PHOTOS`]. The
+/// readings are by eye and pinned; the frames are the movers' (item 4073
+/// for 3279, item 4191 for 3327). Made to fail: the victory timers'
+/// `(frames + 14) / 15` reads 00:03:39 and 00:03:42, 0 of 3.
+#[test]
+fn the_clock_reads_the_photographs() {
+    let text = |frame: i64| {
+        Bar {
+            goods: [(0, 0, false); 6],
+            pop: (0, 0),
+            age: 1,
+            nation: "N".into(),
+            frame,
+        }
+        .text()
+    };
+    let read = |t: &str| t.rsplit_once("TIME ").unwrap().1.to_string();
+    let mut equal = 0;
+    for (photo, frame, want) in PHOTO_CLOCKS {
+        let got = read(&text(frame));
+        eprintln!("CLOCK {photo} frame {frame}: ours {got}, the photograph {want}");
+        equal += usize::from(got == want);
+    }
+    assert_eq!(
+        (equal, PHOTO_CLOCKS.len()),
+        script::HUD_CLOCK_PHOTOS,
+        "HUD_CLOCK_PHOTOS"
+    );
+    let timers = PHOTO_CLOCKS
+        .iter()
+        .filter(|(_, f, want)| {
+            let s = (f + 14) / 15;
+            format!("{:02}:{:02}:{:02}", s / 3600, s % 3600 / 60, s % 60) == *want
+        })
+        .count();
+    assert_eq!(
+        timers, 0,
+        "the victory timers' rule misses every photograph"
+    );
+}
+
+/// The attacked script's playback: every unit on frames 6690..6899
+/// (`rondata::diff::minted::ATTACKED_WALKED`, run 1571).
+const ATTACKED_DUMP: &str = "gamelog-run1571-greatlakes-playback-of-attacked-6900.txt";
+
+/// **The panel on a wounded unit** (item 4203, `docs/HUD.md` §5): the
+/// attacked script's orders walked on the lobby, the Scout `1/0` it wounds
+/// and the Slinger `0/7` that wounds it selected; on every frame run1571
+/// prints, each number the panel prints is the dump's hits left
+/// (`myhits − damage`) and `myhits` for that unit —
+/// [`script::HUD_WOUNDED`]. The Scout's `damage` moves there, so the
+/// `damage` half of hits left is compared where it is not zero. Made to
+/// fail: the panel printing full hits (the damage dropped) parts on every
+/// wounded frame; the dump read one frame late parts on each blow.
+#[test]
+fn the_panel_s_damage_half_is_the_dump_s() {
+    let root = std::env::var_os("RON_INSTALL")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| "../../game".into());
+    let install = rondata::Install::new(&root);
+    let path = crate::world::gamelog_dir().join(ATTACKED_DUMP);
+    if !install.looks_valid() || !path.is_file() {
+        println!("skipping: no install or no {}", path.display());
+        return;
+    }
+    let Ok(mut r) = lobby() else {
+        println!("skipping: no lobby");
+        return;
+    };
+    let names = Names::new(&rondata::load::load(&install).unwrap());
+    let mut dump = rondata::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let mut frames = std::collections::BTreeMap::new();
+    for i in 0..dump.frames().len() {
+        let f = dump.frame_state(i).unwrap();
+        if !f.units.is_empty() {
+            frames.insert(f.n, f);
+        }
+    }
+    let (first, last) = (
+        *frames.keys().next().unwrap(),
+        *frames.keys().next_back().unwrap(),
+    );
+    let (sw, so) = script::ATTACKED;
+    let scout = ObjId { who: sw, o: so };
+    let slinger = ObjId {
+        who: 0,
+        o: script::SLINGER,
+    };
+    let mut input = Input::new(0);
+    input.selection = vec![scout, slinger];
+    let orders = script::attacked();
+    let mut next = 0;
+    let mut walk = Vec::new();
+    while r.frame() < last + 1 {
+        while next < orders.len() && i64::from(orders[next].0) == r.frame() {
+            r.issue(&orders[next]);
+            next += 1;
+        }
+        let n = r.frame();
+        if n >= first {
+            let scene = r.scene(None);
+            let lines = panel(&input, &scene, &names);
+            assert_eq!(lines.len(), 2, "frame {n}: both selected are in the scene");
+            for (id, line) in input.selection.iter().zip(lines) {
+                walk.push((n, *id, line));
+            }
+        }
+        r.step();
+    }
+    let score = |late: i64, undamaged: bool| {
+        let (mut equal, mut compared, mut wounded) = (0usize, 0usize, 0usize);
+        for (n, id, line) in &walk {
+            let Some(f) = frames.get(&(n + late)) else {
+                continue;
+            };
+            let want = theirs(f, *id).expect("the unit printed");
+            let mut line = line.clone();
+            if undamaged {
+                line.health.0 = line.health.1;
+            }
+            let text = line.text();
+            let got = printed_numbers(&text);
+            assert_eq!(got.len(), want.len(), "frame {n} {id:?}: {text:?}");
+            if want[0] < want[1] {
+                wounded += 1;
+            }
+            for (k, (g, w)) in got.iter().zip(&want).enumerate() {
+                compared += 1;
+                if g == w {
+                    equal += 1;
+                } else if late == 0 && !undamaged {
+                    eprintln!("WOUNDED PARTS frame {n} {id:?} number {k}: ours {g} theirs {w}");
+                }
+            }
+        }
+        (equal, compared, wounded)
+    };
+    let (equal, compared, wounded) = score(0, false);
+    for (n, id, line) in walk
+        .iter()
+        .filter(|(n, ..)| [first, 6804, 6805, 6850, last].contains(n))
+    {
+        eprintln!("WOUNDED frame {n} {id:?}: {}", line.text());
+    }
+    let distinct: std::collections::BTreeSet<i64> = walk
+        .iter()
+        .filter(|(_, id, _)| *id == scout)
+        .map(|(_, _, l)| i64::from(l.health.0))
+        .collect();
+    eprintln!(
+        "WOUNDED {equal} of {compared} on frames {first}..{last}; {wounded} lines wounded; the Scout's hits left {distinct:?}"
+    );
+    assert!(wounded > 0 && distinct.len() > 2, "the damage moves");
+    assert_eq!((equal, compared), script::HUD_WOUNDED, "HUD_WOUNDED");
+    let (full, full_of, _) = score(0, true);
+    assert_eq!(
+        full_of - full,
+        wounded,
+        "full hits part on every wounded line"
+    );
+    let (late, late_of, _) = score(1, false);
+    assert!(late < late_of, "one frame late parts: {late} of {late_of}");
+    eprintln!(
+        "WOUNDED made to fail: full hits {full} of {full_of}, one frame late {late} of {late_of}"
+    );
+}
+
+/// **The ring** (item 4203, `docs/HUD.md` §3): a selected unit takes one
+/// circle each figure at its type's radius (48 × `CIRCLE_RADIUS`), every
+/// point that far from the figure; a selected building its footprint's
+/// four corners; nothing selected, nothing. Drawn, each ring's sides are
+/// quads in the owner's colour.
+#[test]
+fn the_selection_s_rings() {
+    let root = std::env::var_os("RON_INSTALL")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| "../../game".into());
+    let install = rondata::Install::new(&root);
+    let Ok(mut r) = lobby() else {
+        println!("skipping: no install or no lobby");
+        return;
+    };
+    let names = Names::new(&rondata::load::load(&install).unwrap());
+    while r.frame() < 30 {
+        r.step();
+    }
+    let scene = r.scene(None);
+    assert!(rings(&Input::new(0), &scene, &names).is_empty());
+    let scout = scene
+        .units
+        .iter()
+        .find(|u| u.id == ObjId { who: 0, o: 0 })
+        .unwrap();
+    let radius = names.rings[scout.ty.unwrap()];
+    eprintln!(
+        "RING the Scout: {} figures, radius {radius}",
+        scout.figures.len()
+    );
+    assert!(radius > 0 && radius % UNIT_BLOCK_RADIUS == 0);
+    let mut input = Input::new(0);
+    input.selection = vec![scout.id];
+    let got = rings(&input, &scene, &names);
+    assert_eq!(got.len(), scout.figures.len().max(1));
+    for (ring, f) in got.iter().zip(&scout.figures) {
+        assert_eq!(ring.owner, 0);
+        assert_eq!(ring.points.len(), RING_POINTS);
+        for &(x, y, z) in &ring.points {
+            let d = f64::from(x - f.pos.x).hypot(f64::from(y - f.pos.y));
+            assert!((d - f64::from(radius)).abs() <= 1.0, "{d} against {radius}");
+            assert_eq!(z, f.z);
+        }
+    }
+    let mut input = building_selected();
+    input.selection = vec![ObjId { who: 0, o: 2000 }];
+    let city = scene
+        .buildings
+        .iter()
+        .find(|b| b.id == input.selection[0])
+        .unwrap();
+    let got = rings(&input, &scene, &names);
+    let (w, h) = names.footprints[city.ty.unwrap()];
+    assert_eq!(got.len(), 1);
+    assert_eq!(
+        got[0].points[0],
+        (city.pos.x - w * 96, city.pos.y - h * 96, city.z)
+    );
+    assert_eq!(
+        got[0].points[2],
+        (city.pos.x + w * 96, city.pos.y + h * 96, city.z)
+    );
+    let mut p = Painter::new(SIZE);
+    paint(&mut p, &input, &scene, &names, SIZE, &|x, y, _| {
+        Some((x / 20, y / 40))
+    });
+    let red = [1.0, 0.0, 0.0];
+    assert_eq!(
+        p.col.iter().filter(|c| **c == red).count(),
+        4 * 6,
+        "four sides, two triangles each"
     );
 }
