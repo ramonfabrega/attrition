@@ -353,7 +353,11 @@ class TheLiveTree(unittest.TestCase):
     # `forbidden_city_close`'s SEAM, which names tribe bonus 0x17's second
     # `find_capital` call as not carried while the function is in the tree;
     # re-pinned by lane 4186 at the merge that met it, 1224's to re-word.
-    DOORS = 13
+    # 13 → 14: item 4187 (step VI) built `Sim::compute_score`
+    # (`leaders/score.rs`), and `diplomacy`'s SEAM still names it as not
+    # modelled (its top-scorer arm stays unwired); re-pinned by the
+    # commander at the booking gate that met it, 1224's to re-word.
+    DOORS = 14
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)
