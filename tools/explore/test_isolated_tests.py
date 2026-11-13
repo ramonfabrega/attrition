@@ -620,6 +620,199 @@ if __name__ == '__main__':
     unittest.main()
 
 
+FAKE_BINARY = r"""#!/usr/bin/env python3
+# A test binary's shape, for the group unit: `--exact a b c --test-threads=1`
+# prints libtest's lines. A test named `fails` fails, `dies` ends the
+# process with 9 before its verdict, and `dropped` is never run.
+import os, sys, time
+names = [a for a in sys.argv[1:] if not a.startswith('--')]
+print(f'\nrunning {len(names)} tests')
+passed = failed = 0
+for name in names:
+    if name == 'dropped':
+        continue
+    sys.stdout.write(f'test {name} ... ')
+    sys.stdout.flush()
+    time.sleep(0.05)
+    if name == 'dies':
+        os._exit(9)
+    if name == 'fails':
+        failed += 1
+        print('FAILED')
+    else:
+        passed += 1
+        print('ok')
+    with open(os.environ['FAKE_RAN'], 'a') as ran:
+        ran.write(f"{name} {os.getpid()} {os.environ.get('RON_SUITE_GROUP')} {os.environ.get('RON_SUITE_GROUP_TESTS')}\n")
+print(f"\ntest result: {'FAILED' if failed else 'ok'}. {passed} passed; {failed} failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.10s\n")
+sys.exit(101 if failed else 0)
+"""
+
+
+class Groups(unittest.TestCase):
+    """Item 4216 (DECISIONS 132 §11): a group's selected tests run in one
+    process. Red first: the runner knew no unit but one test a process, so
+    `group_units`, `run_group` and the rows' `group` did not exist."""
+
+    def run_library(self, names, groups, ignored=()):
+        """The runner over the fake binary; `(exit, rows by name, the
+        lines each test's process wrote, what the runner printed)`."""
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            binary = d / 'fake-binary'
+            binary.write_text(FAKE_BINARY)
+            binary.chmod(0o755)
+            profile = d / 'profile.json'
+            profile.write_text(json.dumps({'tree': 'fixture', 'tests': {}}))
+            said = io.StringIO()
+            with patch.dict(os.environ, {'FAKE_RAN': str(d / 'ran')}), patch.object(runner, 'PROFILE', profile), \
+                    patch.object(runner, 'discover', side_effect=[list(names), list(ignored)]), \
+                    patch.object(runner, 'ONE', runner.re.compile(r'^test result: ok\. 1 passed; 0 failed;', runner.re.M)), \
+                    contextlib.redirect_stdout(said):
+                code = runner.isolated(binary, d / 'out', d / 'budget', 4, groups=groups)
+            rows = {}
+            for line in (d / 'out' / 'measurements.jsonl').read_text().splitlines():
+                row = json.loads(line)
+                self.assertNotIn(row['name'], rows, 'a test has one row')
+                rows[row['name']] = row
+            ran = [line.split() for line in (d / 'ran').read_text().splitlines()] if (d / 'ran').exists() else []
+            summary = json.loads((d / 'out' / 'summary.json').read_text())
+            manifest = json.loads((d / 'out' / 'manifest.json').read_text())
+        return code, rows, ran, said.getvalue(), summary, manifest
+
+    def test_a_group_s_tests_run_in_one_process_and_each_has_its_own_row(self):
+        code, rows, ran, said, summary, manifest = self.run_library(
+            ['a', 'b', 'c', 'lone', 'd'], {'game:one': ['a', 'c', 'd'], 'game:two': ['lone', 'absent']})
+        self.assertEqual(code, 0, said)
+        self.assertEqual(set(rows), {'a', 'b', 'c', 'lone', 'd'})
+        self.assertTrue(all(row['success'] for row in rows.values()), rows)
+        pids = {name: pid for name, pid, _, _ in ran}
+        # One process for the group's three, in the order listed; the test no
+        # group names and the group with one selected member each alone.
+        self.assertEqual(len({pids['a'], pids['c'], pids['d']}), 1)
+        self.assertEqual(len(set(pids.values())), 3)
+        self.assertEqual([name for name, pid, _, _ in ran if pid == pids['a']], ['a', 'c', 'd'])
+        self.assertEqual({(key, size) for name, _, key, size in ran if name in 'acd'}, {('game:one', '3')})
+        self.assertEqual({(key, size) for name, _, key, size in ran if name in ('b', 'lone')}, {('None', 'None')})
+        self.assertEqual([rows[n].get('group') for n in ('a', 'b', 'c', 'lone', 'd')],
+                         ['game:one', None, 'game:one', None, 'game:one'])
+        self.assertEqual(manifest['groups'], {'game:one': ['a', 'c', 'd']})
+        self.assertEqual((summary['groups'], summary['grouped_tests'], summary['processes'], summary['not_run']),
+                         (1, 3, 3, 0))
+        self.assertIn('Suite: 3 processes for 5 tests: 1 groups hold 3, 2 ran alone', said)
+        # The group's CPU is shared out, so the suite's sum counts it once.
+        self.assertAlmostEqual(sum(rows[n]['user'] + rows[n]['system'] for n in 'acd'),
+                               sum(rows[n]['user'] + rows[n]['system'] for n in 'acd'))
+        self.assertEqual(sum(rows[n]['resource_timing'] is not None for n in 'acd'), 1)
+
+    def test_a_failing_test_is_its_own_red_and_the_rest_of_its_group_still_run(self):
+        code, rows, ran, said, summary, _ = self.run_library(
+            ['a', 'fails', 'c'], {'g': ['a', 'fails', 'c']})
+        self.assertEqual(code, 101, said)
+        self.assertEqual({n: (r['success'], r['exit'], r['not_run']) for n, r in rows.items()},
+                         {'a': (True, 0, False), 'fails': (False, 101, False), 'c': (True, 0, False)})
+        self.assertIn('test fails ... FAILED', said)
+        self.assertIn('test c ... ok', said)
+        self.assertNotIn('not run', said)
+
+    def test_a_group_that_dies_reports_what_it_did_not_reach_as_not_run_never_green(self):
+        code, rows, ran, said, summary, _ = self.run_library(
+            ['a', 'dies', 'c', 'e'], {'g': ['a', 'dies', 'c', 'e']})
+        self.assertNotIn(code, (0, 101), said)
+        self.assertEqual([name for name, *_ in ran], ['a'])
+        self.assertEqual({n: (r['success'], r['not_run']) for n, r in rows.items()},
+                         {'a': (True, False), 'dies': (False, True), 'c': (False, True), 'e': (False, True)})
+        for name in ('dies', 'c', 'e'):
+            self.assertIn(f'not run: {name}: the process of its group g ended (exit 9) before it reported', said)
+            self.assertIn(f'test {name} ... FAILED', said)
+        self.assertEqual(summary['not_run'], 3)
+        self.assertFalse(summary['success'])
+        self.assertIn('; 3 not run', said)
+
+    def test_a_group_that_exits_clean_one_verdict_short_is_red(self):
+        # The first act of stage 1: the count of tests run equals the count
+        # listed. A process that drops a listed test and exits zero is not a
+        # pass for it.
+        code, rows, ran, said, summary, _ = self.run_library(
+            ['a', 'dropped', 'c'], {'g': ['a', 'dropped', 'c']})
+        self.assertEqual(code, 125, said)
+        self.assertEqual({n: (r['success'], r['exit'], r['not_run']) for n, r in rows.items()},
+                         {'a': (True, 0, False), 'dropped': (False, 125, True), 'c': (True, 0, False)})
+        self.assertIn('not run: dropped: the process of its group g ended (exit 0) before it reported', said)
+
+    def test_groups_off_runs_every_test_alone(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / 'groups.json'
+            path.write_text(json.dumps({'schema': 1, 'groups': {'g': ['a', 'b']}}))
+            self.assertEqual(runner.load_groups(path, {}), {'g': ['a', 'b']})
+            self.assertEqual(runner.load_groups(path, {'RON_SUITE_GROUPS': 'off'}), {})
+            self.assertEqual(runner.load_groups(Path(d) / 'absent.json', {}), {})
+            with self.assertRaises(ValueError):
+                runner.load_groups(path, {'RON_SUITE_GROUPS': 'sometimes'})
+            path.write_text(json.dumps({'schema': 1, 'groups': {'g': ['a', 'b'], 'h': ['b']}}))
+            with self.assertRaisesRegex(ValueError, 'b is in two groups: g and h'):
+                runner.load_groups(path, {})
+
+    def test_a_wide_test_and_a_lone_member_are_units_of_one(self):
+        units = runner.group_units(['a', 'wide', 'b', 'c', 'x'], {'g': ['a', 'wide', 'b'], 'h': ['c', 'gone']},
+                                   {'wide': {'cpu': 4}}, 8)
+        self.assertEqual(units, [('g', [(0, 'a'), (2, 'b')]), (None, [(1, 'wide')]), (None, [(3, 'c')]),
+                                 (None, [(4, 'x')])])
+        # Every selected test is in exactly one unit.
+        self.assertEqual(sorted(i for _, members in units for i, _ in members), [0, 1, 2, 3, 4])
+
+    def test_a_verdict_line_is_read_once_and_a_whole_result_covers_a_broken_line(self):
+        with tempfile.TemporaryDirectory() as d:
+            log = Path(d) / 'log'
+            clock = iter(range(10, 100))
+            verdicts = runner.Verdicts(log, clock=lambda: next(clock))
+            verdicts.poll()
+            log.write_text('running 3 tests\ntest a ... ok\ntest b ... ')
+            verdicts.poll()
+            self.assertEqual(verdicts.seen, {'a': ('ok', 10)})
+            with log.open('a') as sink:
+                # Another writer broke b's line; libtest's result still counts three.
+                sink.write('resource budget: note\nok\ntest c ... FAILED\n' + 'x' * 200000 + '\n'
+                           'test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished\n'
+                           '        1.00 real         2.00 user         3.00 sys\n  123  maximum resident set size\n'
+                           '  456  instructions retired\n')
+            verdicts.poll()
+            self.assertEqual(verdicts.seen, {'a': ('ok', 10), 'c': ('FAILED', 11)})
+            self.assertEqual((verdicts.result, verdicts.cpu, verdicts.rss, verdicts.instructions),
+                             (('ok', 3, 0, 0), (2.0, 3.0), 123, 456))
+            common = dict(reservation_mib=1, resource_timing={'wait_seconds': 0})
+            rows = runner.group_rows('g', ['a', 'b', 'c'], verdicts, exit_code=0, began=9, stamp_held=True, common=common)
+            self.assertEqual([(r['name'], r['success'], r['not_run']) for r in rows],
+                             [('a', True, False), ('b', True, False), ('c', True, False)])
+            self.assertAlmostEqual(sum(r['user'] for r in rows), 2.0)
+            # The same lines from a process that did not exit zero: b has no verdict.
+            rows = runner.group_rows('g', ['a', 'b', 'c'], verdicts, exit_code=101, began=9, stamp_held=True, common=common)
+            self.assertEqual([(r['name'], r['success'], r['exit'], r['not_run']) for r in rows],
+                             [('a', True, 0, False), ('b', False, 125, True), ('c', False, 101, False)])
+            # A binary that changed under the run passes nothing.
+            rows = runner.group_rows('g', ['a'], verdicts, exit_code=0, began=9, stamp_held=False, common=common)
+            self.assertFalse(rows[0]['success'])
+
+    def test_a_group_s_allowance_follows_its_members(self):
+        self.assertIsNone(runner.group_timeout(['a', 'b'], {'a': 100, 'b': 10}))
+        self.assertEqual(runner.group_timeout(['a', 'b'], {'a': 600, 'b': 10}), 2440)
+        long = 'diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned'
+        self.assertEqual(runner.group_timeout(['a', long], {'a': 1}), 3600)
+        self.assertEqual(runner.weights(['a', 'b', 'c'], {'a': {'elapsed': 3}}, {'a': 9, 'b': 2}), {'a': 3, 'b': 2, 'c': 0})
+
+    def test_the_groups_file_names_each_test_once_and_no_wide_test(self):
+        if not runner.GROUPS.is_file():
+            self.skipTest('no groups file in this tree')
+        groups = runner.load_groups(runner.GROUPS, {})
+        profile = json.loads(runner.PROFILE.read_text())['tests']
+        self.assertTrue(groups)
+        for key, tests in groups.items():
+            self.assertGreater(len(tests), 1, key)
+            self.assertEqual(tests, sorted(tests), key)
+            for name in tests:
+                self.assertEqual(runner.width(name, profile, 8), 1, name)
+
+
 class ExcludedPackages(unittest.TestCase):
     def test_a_package_left_to_the_booking_gate_keeps_its_binaries_out_of_the_run(self):
         # Loop 3653 (the fifty-seventh pass): the gate passes
