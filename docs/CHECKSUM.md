@@ -1827,8 +1827,8 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     `territory.players[w].strength`, 0 and 0 on both sides (`docs/LEADERS.md`
     §5.2), `give_att_disabled` (~~`Leader::plan_strategy`~~ the scenario
     triggers, `docs/LEADERS.md` §5.2).
-  - the diplomacy actions (15): `dow`, `blacken`, `broke_alliance`,
-    `made_peace`, `tributes`, `tribute_sent`, `tribute_received`,
+  - the diplomacy actions (~~15~~ 12): ~~`dow`, `blacken`, `broke_alliance`,~~
+    carried by item 4159's VII-b1 (`sim::leaders::declare`); `made_peace`, `tributes`, `tribute_sent`, `tribute_received`,
     `tribute_stamp`, `gift_stamp`, `hire_stamp`, `hire_who`, `good_deeds`,
     `last_spoke`, `counteroffer`, `tribute_demanded`: the `action_*` family,
     `consider_tribute` and `Leader::diplomacy`'s arms the crate stops at a

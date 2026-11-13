@@ -32,7 +32,7 @@ pub const ALLY_TO_WAR_DELAY: i64 = -1;
 const INVADERS_JUSTIFY: i32 = 5;
 
 /// What one invading unit takes off a declaration's price, per good:
-/// `get_cost`'s `invaders[t] · −10` (`00666ab7`), a literal, not
+/// `get_cost`'s `invaders[t] · −10` (its declare-war arm, after `LAB_00666230`), a literal, not
 /// `SPELL_COST_FACTOR`.
 const INVADER_DISCOUNT: i32 = 10;
 
@@ -92,7 +92,7 @@ impl Sim {
     /// whom, treaty, 0, 0)`) and a human party's leg of `action_respond`'s
     /// hire loop. So `dow` and `blacken` move for a human declarer alone.
     ///
-    /// SEAM: the tail after `set_diplo` — for each other leader in play, on
+    /// SEAM: the team tail after step 6 — for each other leader in play, on
     /// the declarer's team or the target's and not both, `ally_diplo` down
     /// to `level` — needs `LeaderData::is_team` at frame 0, which is false
     /// between every two seats at `TEAM_STYLE 0` (no locked teams), so no
@@ -103,7 +103,7 @@ impl Sim {
         if m >= self.leaders.declare.len() || x >= self.leaders.declare.len() || m == x {
             return;
         }
-        let (mut level, mut force) = (level, force);
+        let mut level = level;
         loop {
             if self.is_enemy(me, t) {
                 return;

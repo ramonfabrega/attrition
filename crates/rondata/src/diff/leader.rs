@@ -1656,7 +1656,8 @@ mod tests {
             // item 4177: 202_080 -> 204_160, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 204_160 -> 205_600, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 205_600 -> 257_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
-            257_600, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b1: 257_600 -> 260_320, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
+            260_320, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1770,7 +1771,8 @@ mod tests {
             // item 4177: 217_236 -> 219_472, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 219_472 -> 221_020, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 221_020 -> 276_920, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
-            276_920, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b1: 276_920 -> 279_844, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
+            279_844, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1975,7 +1977,8 @@ mod tests {
             // item 4177: 45_468 -> 45_936, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 45_936 -> 46_260, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 46_260 -> 57_960, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
-            57_960, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b1: 57_960 -> 58_572, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
+            58_572, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -2124,7 +2127,8 @@ mod tests {
             // item 4177: 328_380 -> 331_760, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 331_760 -> 334_100, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 334_100 -> 418_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
-            418_600, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b1: 418_600 -> 423_020, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
+            423_020, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -2273,7 +2277,8 @@ mod tests {
             // item 4177: 75_780 -> 76_560, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 76_560 -> 77_100, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 77_100 -> 96_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
-            96_600, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b1: 96_600 -> 97_620, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
+            97_620, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3381,7 +3386,8 @@ mod tests {
             // item 4177: 618_870 -> 625_240, +13 keys a leader block (the thirteen combat rates).
             // item 4185: 625_240 -> 629_650, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 629_650 -> 788_900, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
-            788_900, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b1: 788_900 -> 797_230, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
+            797_230, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
@@ -3684,6 +3690,9 @@ mod tests {
                 "average_hit_rate",
                 "average_kill_rate",
                 "barracks_queued",
+                // Item 4159's step VII-b1: the declaration's three.
+                "blacken",
+                "broke_alliance",
                 "buildings_lost",
                 "buildings_razed",
                 "city_name",
@@ -3697,6 +3706,7 @@ mod tests {
                 "defeat_type",
                 "defeated_by",
                 "dock_queued",
+                "dow",
                 "factory_queued",
                 "fort_mark",
                 "frame_battle",
