@@ -958,6 +958,34 @@ pub fn sea_map(root: &Path, style_file: &str) -> Option<i32> {
     }
 }
 
+/// **The style's six territory limits**, as `Map::init_map_data@0069f250`
+/// reads them (lines 552–792 of the export; item 4196): each of
+/// `PLAYER_TERRITORY_{BASE,CIVIC,CITY}_HARD_LIMIT` and
+/// `COLONIZED_TERRITORY_{BASE,CIVIC,CITY}_HARD_LIMIT` the file names
+/// writes its own `Map` field (`player_territory_limit{,_civic,_city}`,
+/// `colonized_territory_limit{,_civic,_city}`), and one it does not name
+/// leaves the field on the rules' `TERRITORY_LIMIT_*`. In that order;
+/// `None` for a tag the file does not carry. Nile Delta and Sea Power name
+/// the player triple (48/8/8), New World all six (44/4/4, 32/4/4); no
+/// other shipped style names any.
+pub fn territory_limits(root: &Path, style_file: &str) -> Option<[Option<i32>; 6]> {
+    let text = std::fs::read_to_string(root.join(format!("mapstyles/{style_file}"))).ok()?;
+    let doc = roxmltree::Document::parse(&text).ok()?;
+    let tag = |name: &str| {
+        doc.descendants()
+            .find(|n| n.has_tag_name(name))
+            .and_then(|n| n.attribute("value")?.trim().parse().ok())
+    };
+    Some([
+        tag("PLAYER_TERRITORY_BASE_HARD_LIMIT"),
+        tag("PLAYER_TERRITORY_CIVIC_HARD_LIMIT"),
+        tag("PLAYER_TERRITORY_CITY_HARD_LIMIT"),
+        tag("COLONIZED_TERRITORY_BASE_HARD_LIMIT"),
+        tag("COLONIZED_TERRITORY_CIVIC_HARD_LIMIT"),
+        tag("COLONIZED_TERRITORY_CITY_HARD_LIMIT"),
+    ])
+}
+
 /// **`Map::river_thresh`**, as `Map::init_map_data@0069f250` reads it:
 /// `RIVER_THRESHOLD`'s `value` in the style, else in `default.xml`, else
 /// `Map::Map@006a06e0`'s 30 (`docs/MAPGEN.md` §10). `None` when a file is

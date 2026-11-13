@@ -88,15 +88,38 @@ it (**not built**).
    `world_from` stands it on a dump. *Diff-backed* on the harness lobby:
    seed and parts 2, 5, 6 and 10–13 at all 19 checkpoints 7805 → 884
    (part 5 at 7805 excepted: `World::init`'s cells, which
-   `make_continents` overwrites). Other styles: **not built**.
+   `make_continents` overwrites). **Built for East Indies and Great
+   Sahara** (item 4186), **and for Southwest Mesa and the eleven styles
+   `mapgen`'s chain walk carries** (item 4196: Old World, Amazon Basin,
+   Himalayas, African Watering Hole, Mediterranean, Australian Outback,
+   New World, Colonial Powers, East Meets West, Sea Power, Nile Delta).
+   Past Great Lakes' and East Indies' order, every style takes the
+   chain walk's tail: `Terrain::init` without heights when no cell
+   opens the half-land gate, Great Lakes' half-land path when one does,
+   the rivers, the heights on the grid the rivers left, the troughs with
+   `move_goody`'s good arm, `adjust_for_mountains` and `Cliffs::init`.
+   Its mining lists are laid on a Mesa map (`Sim::place_cliffs`), and
+   are inert elsewhere. `Map::make` also copies the style's six
+   territory limits into `world+0x38..+0x4c`. Each
+   `PLAYER_/COLONIZED_TERRITORY_{BASE,CIVIC,CITY}_HARD_LIMIT` the file
+   names is written by `Map::init_map_data@0069f250` over the rules'
+   `TERRITORY_LIMIT_*` (`rondata::mapgen::territory_limits`; Nile
+   Delta and Sea Power 48/8/8, New World 44/4/4 and 32/4/4). East Meets
+   West refuses a team game, and Colonial Powers refuses team style 7
+   (both arms unread). **Not built**: Warring States and British Isles,
+   which have no mask port.
 5. **The start permutation**: `Game::start_list[k]`, a random permutation
    when the map randomises starts (`rand & 7`, 8 draws here), else
    identity; teammates placed consecutively in a team game unless `world
    +0x30 == 0x16` (ORDERS §9.2, S5). The installer recovers the visiting
    order from the trace (`leader_visit_order`). `randomize_starts` is
-   `Map::Map@006a06e0`'s 1, which only East Meets West's
-   `make_continents` writes again. **Built** (`start_permutation`, item
-   4047), randomised; *diff-backed*: the eight draws from 894's word are
+   `Map::Map@006a06e0`'s 1. Only East Meets West's
+   `make_continents@00696640` writes it again, to 0, at its head
+   (`Map+0x2ec`, the type record; item 4196). There the permutation is
+   the identity and draws nothing. *Diff-backed* on run1524's lobby: with
+   the randomised permutation its seats swap, `BUILD 0/2000 pos` ours
+   28512 30816 against theirs 11616 12384. **Built** (`start_permutation`,
+   item 4047), randomised; *diff-backed*: the eight draws from 894's word are
    4, 7, 6, 1, 0, 3, 2, 5, each fresh first time, landing on 955's
    `0x9991b076`. Teammates: not built (no team game on disk).
 6. **`Leader::init@006e3930(who, tribe, who)`** for every active player:
@@ -331,7 +354,21 @@ nation arms at a `CELL flags` (Great Lakes 8, East Indies 11, Great
 Sahara 10: a Spanish, American, Dutch, Korean or Greek seat, or a lobby
 with one among several), 17 the fourteen styles still without a chain at
 their first cell, and one 4033a's. **143 of 161** the same item: the
-nation arms (§2 step 7) release all 29.
+nation arms (§2 step 7) release all 29. **158 of 161** at item 4196:
+
+- Southwest Mesa composed (3), then the eleven chained styles (one lobby
+  each, 7 on the first walk).
+- Nile Delta, Sea Power and New World once the style's territory limits
+  are read, and East Meets West once its permutation is the identity
+  (§2 steps 4 and 5).
+- 4033a's thin lobby.
+
+A dump that prints no cells, no `diplos`, or a building without its
+`orig_type` leaves the installer on its own defaults there. Those rows
+are stand-ins. The rows such a dump does print stay compared: on the
+thin lobby, the buildings' places and the units. A one-unit nudge to
+either parts it. The three left are Warring States (run1122) and British
+Isles (run1127, run316), at their first cell, with no mask port.
 
 ## 6. Confidence, and what is not established
 
@@ -379,9 +416,25 @@ nation arms (§2 step 7) release all 29.
   lobbies (the item's journal). The Greek lobbies (6) are backed only in
   that the arm is inert at 0 scholars; the `reveal_map > 1` scout is read
   only — every Spanish lobby on disk is `REVEAL_MAP` 1.
+- **Diff-backed on 14 more** (item 4196): Southwest Mesa (3) and the
+  eleven chained styles, one lobby each. On each lobby every cell,
+  building and unit agrees, and so does the setup trace's sync word.
+  The territory limits are backed on Nile Delta, Sea Power and New World,
+  which part on cell owners without them. East Meets West's permutation
+  is backed on run1524, whose seats swap with it randomised. A Mesa
+  map's mining lists equal those `build_sim` lays from the trace's 7805
+  word, but that is the crate against itself, held to the trace's word:
+  no dump prints `cliff_mining_data`.
+- **Thin, on 1** (4034a, item 4196): 4033a's scratch lobby, whose dump
+  prints no cells, no `diplos` and no building types. Its 13 buildings'
+  places, its units, the extent and the seed are backed; its cells, war
+  row and three buildings' types (0/2005, 0/2006, 1/2005, which
+  `start_of_game`'s object-number list does not name) are stand-ins
+  (4,330 rows).
 - **Not established**: the team assignment and the handicaps; a
-  composed chain for any style but Great Lakes, East Indies and Great
-  Sahara; the default tileset
+  composed chain for Warring States or British Isles (no mask port);
+  East Meets West in a team game and Colonial Powers' outsiders (both
+  refused); the default tileset
   draw's unavailable-name arm (a second
   draw, parked 3819b); a team game's consecutive teammates; the Large
   Town list; `build_units` on a Nomad or City-only start (`place_unit`'s
@@ -398,7 +451,7 @@ nation arms (§2 step 7) release all 29.
   "steps off the footprint" is not what the no-host arm does (parked
   4063a); the port is right in both.
 - **Coverage**: every lobby compared, 161 of 161 (item 4034); 35 whole,
-  114 and then 143 at item 4186.
+  114 and then 143 at item 4186, 158 at item 4196.
   Two of the 35 have no setup trace on disk (run1515b's and run1541b's
   lobbies), so their sync word is not backed; four have neither a
   bracket nor a `PERSONALITY` block for the computer leader (run3's,
@@ -456,7 +509,7 @@ an assumption the dump cannot settle.
 | animation lengths (`art.lengths`) | `DUMP_ALL` guys | none | dump-only, and not read where the install speaks: `art.piece_lengths` wins (`docs/ANIM.md` §3.2); the walk agrees without it |
 | the install's art, craft, release, track and pivot tables | the install | the same, `install_art` (shared) before the first unit | built; whole comparison |
 | placed mountains | `MOUNTAINS` | the grid's `mountains`, laid from their templates | built; wide |
-| cliffs | the Mesa generator | none (no composed Mesa chain) | not this lobby's |
+| cliffs | the Mesa generator | the composed chain's `Cliffs::init` lists on a Mesa map (item 4196) | not this lobby's |
 | nations, human bits, `diplos` | `LEADER` | `PLAYER` rows, `init_diplos` | built; block |
 | opening techs, scripts, personality | `start_techs`, the trace's brackets | the walk | built; block |
 | goods | `GOOD` | the grid's goods list, each at `GoodTypeData::snap_center` of its cell (oil at the centre) | built, red first (36 absent, then 19 off by half a tile); wide |
