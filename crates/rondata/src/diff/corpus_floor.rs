@@ -200,14 +200,17 @@ const WORDS: &[(&Lobby, &str)] = &[
     floor!(turkish_word, TURKISH),
 ];
 
-const MELEES: &[(
-    &str,
-    &crate::diff::gunpowder_melee::Melee,
-    &str,
-    (&str, &str),
+/// One melee's row: its floor test, its game, and what its walk reads.
+type MeleeRow = (
+    &'static str,
+    &'static crate::diff::gunpowder_melee::Melee,
+    &'static str,
+    (&'static str, &'static str),
     fn() -> crate::golden::Script,
-    &str,
-)] = &[
+    &'static str,
+);
+
+const MELEES: &[MeleeRow] = &[
     (
         "GreatSaharaGunpowderMelee",
         &crate::diff::gunpowder_melee::GUNPOWDER_MELEE,
