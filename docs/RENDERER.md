@@ -1241,7 +1241,7 @@ photograph. *Counted* (`client::shadows`), luma, hue at 92 throughout:
   (item 4182, "The shadows" above).
 - What the guys' decals miss. As read they darken the row's figure tiles past the photograph (28 → 5 of 37,
   0.99 → 0.82), and they are not drawn (parked 4182c). Also not established: ~~the city's paved base, which is
-  `RoadsOut`'s (4182a)~~ — it is not `RoadsOut`'s but the footprint weathering, read and drawn (item 4190, §3.16);
+  `RoadsOut`'s (4182a)~~ — it is not `RoadsOut`'s but the footprint weathering, read and drawn (item 4190, §3.17);
   the asphalt ring around it is `RoadsOut`'s (4190a) — and the `shadow_offset` (4182d).
 - Why 0/1 behind the pine agrees with the raw texel under its silhouette (81 of 159) and not with the drawn leaf
   (66), nor with the blend before the tone map (11) (parked 4173b).
@@ -1914,8 +1914,9 @@ one photograph: the rows.
   quarter on a tile's `0x800` flag is not read; it does not enter run1564's
   view.
 - **The shore's blend** (parked 4178b). On frame 3279 the card draws
-  `sand.tga` as its own layer, 4,928 vertices blended at their alpha
-  (draw 35, flushed at `render_ocean_floor`'s entry), and four
+  `sand.tga` as its own layer, ~~4,928 vertices blended at their alpha
+  (draw 35, flushed at `render_ocean_floor`'s entry)~~ at the land's depth
+  fade (§3.16), and four
   transition-patch draws on `sand.tga` (`110000000011` to
   `110011111111`). Ours draws `SANDY` cells whole in the land pass, so the
   beach meets the grass on a sawtooth.
@@ -2253,7 +2254,96 @@ and 1/40, a tank the photograph's side reads by hand. Not established:
 the original's cull mode 2 on both states, which this draw does not
 take (4171c).
 
-## 3.16 The paved base under a city: the footprint weathering (item 4190)
+## 3.16 The shore's sand (item 4192)
+
+*2026-11-12, Opus 5.5. `client::ground`: `land_alpha`, `land_alpha_of`,
+`LAND_FADE_TOP`, `COAST_DEPTH` and `LAND_HEIGHT`;
+`client::world::World::drawn_terrain`'s faded land;
+`tools/render/sand_packet.py`. Scored on run1564's photograph (§3.12, split
+from it at the section ceiling).*
+
+**The sand layer, off the packet.** The land pass keeps one `RenderHelper`
+per linear land texture at terrain `+0x4b0`, 38 of them, which
+`CoordInfo::add_geometry@0084bef0` fills four corners a tile. On run1564's
+packet only index 36 is filled: `sand.tga`, 4,928 vertices and 7,392
+indices, 77 cells of 16 quads. That is the card's draw 35, and
+`scene_coral` (draw 131) holds the same 4,928 positions. Each vertex's
+colour is `master_land`'s at its corner and its z the corner's height.
+
+**The fade, read and diffed.** `master_land`'s alpha is
+`TerrainOut::light_land_vert@00866e50`'s depth fade, on **58,081 of 58,081
+corners**:
+
+- 255 at or above −52 (`__real_c2500000`), and 0 from −271;
+- between them `(1 − m / span) · 255`, truncated, with `m` the depth past
+  −52 and `span = |coast_depth + land_height + 2 + 52|`, 219;
+- `coast_depth` is terrain `+0x5630` (−303) and `land_height` the global
+  `0x00cbe54c` (30.0), both off the packet. `build_ocean_floor`'s plane is
+  `coast_depth + land_height − 10`, the floor's −283 (§3.12).
+
+A scan over the span puts 219 alone at 58,081. At `land_height` 0 the
+formula agrees on 47,874 corners and on 1,077 of the sand's 4,928
+vertices (`ZERO_SAND`, the made-to-fail side). Value diffs, packet against
+`land_alpha`: the sand's first vertex, (148, 192) at −190.71, 93 and 93; a
+corner at −59.01, 246 and 246 (247 at `land_height` 0); at −74.98, 228 and
+228 (231); at −273, 0 and 0. Pinned by `the_land_fade_off_the_packet`,
+`RUN1564_LAND_FADE`; seen red with the top at −51.
+
+**What it blends over.** The packet's render states (`CompareFunc` from
+the PDB, 3 is `CMP_LESSEQUAL`; the words are the item's journal):
+`base_terrain_rs` tests and writes depth and blends source alpha over;
+`ocean_floor_rs` tests depth, writes none, and is opaque. So the land writes depth wherever it is drawn,
+and the floor plane at −283 shows only on the 42 of its 104 cells in view
+that no land covers, the `OCEAN`-only cells, where the client draws it.
+Under the land there is the clear colour, `BLACK`: `Game::init` calls
+`graphsys` slot 0x140, `set_clear_color` (vftable offset 320 in the PDB's
+`LF_ONEMETHOD`). **The deep sand fades to black under the water.**
+
+**The client draws it.** In `drawn_terrain`, a land-pass triangle with any
+corner below −52 leaves the opaque pass for its texture's faded
+`PatchMesh`, alpha `land_alpha` on the 256-texel ramp, drawn before the
+floor's shade and every transition patch. No shader changes.
+`the_client_draws_every_tile_once` counts each faded triangle once,
+against its texture's base tiles.
+
+The rows, on the client's still, from the base (`SANDY` of 772):
+
+| row | before | after |
+|---|---|---|
+| `RUN1564_3279_GROUND_STILL` | 1,373 (`SANDY` 664) | **1,024** (315) |
+| `GROUND_LUMA_STILL`, run1564 | 1,001 (`SANDY` 80) | **1,318** (397) |
+| `GROUND_STILL_SRGB`, run1564 | 834 | 927 |
+
+run1559b's three are unchanged, as are the painter's `RUN1564_3279_GROUND`
+1,233 and `_LUMA` 791 (it draws no fade). **The hue row falls because
+the luma rises**: the deep sand had agreed on hue only lying opaque under
+the water. By class on the still (photograph, then ours): the deep
+`SANDY`, alpha 0, 251 tiles, (49, 111, 155) Y 101 against Y 145 →
+(1, 104, 175) Y 87; the mid `SANDY`, 394 tiles, (89, 124, 135) Y 117
+against Y 163 → (81, 131, 151) Y 122. What is lost is 4174a's red, as on
+`OCEAN`. The fall was taken on the commander's word (2026-11-12).
+
+**Diff-backed** (run1564's packet): the fade on every corner, its
+constants, the sand layer's vertices and alphas. **Read off the packet,
+not compared per pixel**: the render states and the clear colour. **Resting
+on one photograph**: the rows.
+
+**What is not established.**
+
+- **The floor's brightness** (4178c). Drawn without the floor, `OCEAN`
+  reads Y 92 against the deep sand's 87, and the photograph's 102 and 101,
+  so the original's floor shows about as dark as black under the water;
+  the card lights it (`ps_global.hlsl`'s HDR multiplier, the 1.45 power),
+  and ours is unlit. Luma `OCEAN` would go 215 → 276; not drawn.
+- **The water's tone** (4174a). Over every water class the photograph is
+  close to `0.6 · ours + 45`: the lit water and the screen reflection,
+  read, not counted.
+- **The beach's edge against the grass** (4178b's remainder). The card
+  binds `sand.tga` in four transition-patch draws; whether our coast arm
+  of `patch::Ground::combo` lays them on run1564 is not checked. The
+  sawtooth stands.
+
+## 3.17 The paved base under a city: the footprint weathering (item 4190)
 
 **What it is.** On the photographs the capital stands on a pale square of paving stones, crisp at its edge, inside
 a red line and a dark asphalt ring. Item 4182 booked the square as `RoadsOut`'s draw 90. It is not. Draw 90 binds

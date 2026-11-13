@@ -2411,7 +2411,7 @@ pub fn mountain_textures(install: &Install, tileset: &str) -> Result<(String, St
 }
 
 /// **The footprint weathering's textures** (item 4190; `docs/RENDERER.md`
-/// §3.16): `Data/tilesets.xml`'s `<COMMON><WEATHERING>` `WEATHERELEM`s, one
+/// §3.17): `Data/tilesets.xml`'s `<COMMON><WEATHERING>` `WEATHERELEM`s, one
 /// per age bucket as `age=` numbers them, each `(file1, file2)` as written.
 /// `Terrain::add_weathering@00850120` binds the bucket's `file2`
 /// (`weather_textures_fertile_0[bucket]`) as stage 0; the `ALPHAELEM`s are

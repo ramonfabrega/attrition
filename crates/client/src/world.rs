@@ -228,7 +228,7 @@ pub struct World {
     /// The building types, which the footprint weathering's rule reads
     /// (item 4190, [`crate::weathering::footprint`]).
     build_types: Vec<sim::cities::build::BuildType>,
-    /// Draw the footprint weathering (item 4190, §3.16). On by default; the
+    /// Draw the footprint weathering (item 4190, §3.17). On by default; the
     /// row's count as drawn before turns it off.
     pub weathering: bool,
     /// The weathering's made-to-fail (item 4190): every footprint moved by
@@ -728,7 +728,7 @@ impl World {
                 }
             });
         let cats = loaded.unit_types.iter().map(|t| t.cols.cat).collect();
-        // Item 4190 (§3.16): the weathering's base past the age gate, the
+        // Item 4190 (§3.17): the weathering's base past the age gate, the
         // bucket `add_weathering` takes for every age it lets through.
         let weather_mips = rondata::artdata::weathering_art(&install)
             .ok()
@@ -965,6 +965,8 @@ impl World {
                 alpha_mips: std::sync::Arc::new(crate::ground::water_ramp()),
                 mountain: false,
             };
+            let ramp = std::sync::Arc::new(crate::ground::water_ramp());
+            let mut fades: BTreeMap<usize, PatchMesh> = BTreeMap::new();
             for ((tri, uv), &k) in base.tris.iter().zip(&base.uvs).zip(&base.of) {
                 if let (Some(f), true) = (floor.as_mut(), Some(k) == ocean) {
                     f.positions.extend_from_slice(tri);
@@ -974,6 +976,29 @@ impl World {
                     }));
                     shade.positions.extend_from_slice(tri);
                     shade.uvs.extend_from_slice(&[[0.5, 0.5]; 3]);
+                    continue;
+                }
+                // Item 4192 (§3.16): every land-pass
+                // draw blends at its corners' `light_land_vert` alpha, 255
+                // down to −52 and 0 from −271, over the clear colour; a
+                // triangle with a corner below −52 leaves the opaque pass
+                // for its texture's faded layer.
+                let alpha = tri.map(|p| crate::ground::land_alpha(p[2]));
+                if alpha.iter().any(|&a| a < 255) {
+                    let m = fades.entry(k).or_insert_with(|| PatchMesh {
+                        piece: -1 - k as i32,
+                        positions: Vec::new(),
+                        uvs: Vec::new(),
+                        alpha_uvs: Vec::new(),
+                        mips: g.flat[k].clone(),
+                        alpha: WATER_ALPHA,
+                        alpha_mips: ramp.clone(),
+                        mountain: false,
+                    });
+                    m.positions.extend_from_slice(tri);
+                    m.uvs.extend_from_slice(uv);
+                    m.alpha_uvs
+                        .extend(alpha.map(|a| [(f32::from(a) + 0.5) / 256.0, 0.5]));
                     continue;
                 }
                 meshes[k].positions.extend_from_slice(tri);
@@ -1009,11 +1034,15 @@ impl World {
                     m.alpha_uvs.extend_from_slice(&laid.alpha_uvs[i]);
                 }
             }
-            let mut patches: Vec<PatchMesh> = patches.into_values().collect();
+            // The faded land first: the card draws it in the land pass,
+            // before the floor and every transition patch.
+            let faded = fades.len();
+            let mut patches: Vec<PatchMesh> =
+                fades.into_values().chain(patches.into_values()).collect();
             let mut layers = (None, None);
             if !shade.positions.is_empty() {
-                layers.1 = Some(0);
-                patches.insert(0, shade);
+                layers.1 = Some(faded);
+                patches.insert(faded, shade);
             }
             // Item 4164: the water over every cell that holds it, at the
             // water's alpha on a linear ramp so the patch's shader takes it
@@ -1083,7 +1112,7 @@ impl World {
             self.laid_ramp = None;
             self.weather_laid = (-1, false, (0, 0), Vec::new());
         }
-        // Item 4190 (§3.16): the footprint weathering, laid again when the
+        // Item 4190 (§3.17): the footprint weathering, laid again when the
         // frame or its switches move, after the land's patches and the
         // water and before the first mountain layer — the card's order is
         // the weathering, the roads, the shadows, the mountains.
@@ -1145,7 +1174,7 @@ impl World {
         &self.build_types
     }
 
-    /// **The frame's footprint weathering** (item 4190, §3.16): every
+    /// **The frame's footprint weathering** (item 4190, §3.17): every
     /// building's [`crate::weathering::footprint`], moved by
     /// [`World::weathering_shift`] of its own size.
     pub fn weather_footprints(&self) -> Vec<crate::weathering::Footprint> {
@@ -1161,7 +1190,7 @@ impl World {
             .collect()
     }
 
-    /// The footprints' tiles as one [`PatchMesh`] (item 4190, §3.16): each
+    /// The footprints' tiles as one [`PatchMesh`] (item 4190, §3.17): each
     /// tile on the ground's own corners (`TerrainMesh::build`'s `[a, b, d]`,
     /// `[b, c, d]`, the diagonal `get_indexed_mesh`'s faces cut), set A's
     /// texcoords, and a white alpha — `Modern_Weathering.tga`'s A is 255

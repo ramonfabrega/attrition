@@ -1,4 +1,4 @@
-//! **The paved base under a city** (item 4190; `docs/RENDERER.md` §3.16):
+//! **The paved base under a city** (item 4190; `docs/RENDERER.md` §3.17):
 //! a building's footprint weathering, laid by
 //! `WallOut::draw_weathering@0063dde0` through
 //! `Terrain::add_weathering@00850120` and drawn by
@@ -21,7 +21,7 @@ pub const WEATHER_AGE: i32 = 5;
 /// `add_weathering`'s side gate: one side past this (`2 < sx || 2 < sy`).
 pub const WEATHER_SIDE: i32 = 2;
 
-/// **One building's weathering** (§3.16): the corner tile
+/// **One building's weathering** (§3.17): the corner tile
 /// `WallData::tile_corner@00643440` answers and the `(sx, sy)`
 /// `WallOut::draw_weathering` passes. It lays `(sx − 1) × (sy − 1)` tiles.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -30,7 +30,7 @@ pub struct Footprint {
     pub size: (i32, i32),
 }
 
-/// **Whether and where a building is weathered** (§3.16), as
+/// **Whether and where a building is weathered** (§3.17), as
 /// `WallOut::draw_weathering@0063dde0` asks it of a building
 /// `ObjectsOut::draw_weathering@00654a60` walks:
 /// - none on a water building (`ObjectTypeData::domain` 1);
@@ -89,7 +89,7 @@ impl Footprint {
     }
 }
 
-/// **The frame's weathering** (§3.16): every building's [`footprint`], in
+/// **The frame's weathering** (§3.17): every building's [`footprint`], in
 /// the scene's store order.
 pub fn footprints(types: &[BuildType], buildings: &[BuildingScene]) -> Vec<Footprint> {
     buildings
@@ -136,7 +136,7 @@ mod tests {
         }
     }
 
-    /// **`RUN1559B_3279_PLAZA`** (item 4190; §3.16, the rule committed
+    /// **`RUN1559B_3279_PLAZA`** (item 4190; §3.17, the rule committed
     /// before this count in `991246f05`): `(agree, scored)` on [`HUE`],
     /// the still's mean against the photograph's over each scored tile of
     /// the frame's weathering; then on [`LUMA_READER`]. From
@@ -173,7 +173,7 @@ mod tests {
     /// its pixel count.
     type PlazaTile = ((i32, i32), [f32; 3], [f32; 3], usize);
 
-    /// **The row's pixels** (item 4190; §3.16, the rule committed before
+    /// **The row's pixels** (item 4190; §3.17, the rule committed before
     /// any count), each its tile: every tile the frame's weathering lays by
     /// [`super::footprints`] — unmoved, whether or not it is drawn — with
     /// at least `HUE.min_pixels` ground pixels on the photograph
@@ -288,7 +288,7 @@ mod tests {
         out
     }
 
-    /// **The paved base's row** (item 4190; §3.16): on run1559b's and
+    /// **The paved base's row** (item 4190; §3.17): on run1559b's and
     /// run1570's photographs, as drawn before, drawn, and moved.
     #[test]
     fn the_paved_base_under_a_city() {
@@ -311,7 +311,7 @@ mod tests {
         assert_eq!(b, RUN1570_PLAZA);
     }
 
-    /// **The rule on frame 3279** (item 4190; §3.16): the frame's 17
+    /// **The rule on frame 3279** (item 4190; §3.17): the frame's 17
     /// footprints — the console player's capital, and player 1's cities,
     /// library, university, senate, markets, temples and wonders, finished
     /// or not — and none on a farm, a gatherer, a barracks, a factory, an
@@ -335,7 +335,7 @@ mod tests {
         assert_eq!(capital.tiles().last(), Some((18, 162)));
     }
 
-    /// **Set A** (item 4190; §3.16): `d · q` from the corner, the far
+    /// **Set A** (item 4190; §3.17): `d · q` from the corner, the far
     /// corner's v `1 / (sy − 1)` past the near one's — `+ q` only at
     /// `sy = 5`.
     #[test]
