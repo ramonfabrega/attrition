@@ -39,7 +39,6 @@ pub(crate) type Row = (String, i64);
 /// widening ledger's own list, so "not compared" is a statement rather
 /// than an omission. Every other scalar the record prints is in [`rows`].
 pub(crate) const UNMODELLED: &[(&str, &str)] = &[
-    ("blacken", "fog bookkeeping"),
     (
         "pop_issues",
         "held (docs/LEADERS.md §12.2, item 4162); parts once: run667's closing frame 17380, who 1 ours 2 theirs 0 (parked 4162a)",
@@ -79,6 +78,11 @@ pub(crate) const DAMAGE_PRINTED: [&str; 14] = [
 /// Of [`DAMAGE_PRINTED`], the three `int[8]` rows the record prints as
 /// eight `name[scan]` lines, keyed `name[i]` by attacker.
 const DAMAGE_ROWS: [&str; 3] = ["attack_stamp", "raid_stamp", "ally_stamp"];
+
+/// The declaration's two `int[8]` rows (`docs/LEADERS.md` §7.1, item 4159's
+/// step VII-b1), eight `name[scan]` lines each, keyed `name[i]` by target;
+/// `blacken`, the third leaf, is a scalar.
+const DECLARE_ROWS: [&str; 2] = ["dow", "broke_alliance"];
 
 /// Whether a good's index is one the record prints in its per-good block.
 /// The six goods, **in the type record's own order** — `rise.pdb`'s
@@ -593,6 +597,19 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     for k in sim::leaders::endgame::ENDGAME_LEAVES {
         out.push((k.to_string(), s.leader_endgame_leaf(p, k).unwrap_or(0)));
     }
+    // **Item 4159, step VII-b1** (`docs/LEADERS.md` §7): the declaration's
+    // `blacken`, and `dow` and `broke_alliance` by target. The same values
+    // the leaders line emits.
+    for k in sim::leaders::declare::DECLARE_LEAVES {
+        let v = s.leader_declare_leaf(p, k).unwrap_or_default();
+        if DECLARE_ROWS.contains(&k) {
+            for (i, x) in v.iter().enumerate() {
+                out.push((format!("{k}[{i}]"), *x));
+            }
+        } else {
+            out.push((k.to_string(), v.first().copied().unwrap_or(0)));
+        }
+    }
     // **Item 4187, step VI** (`docs/LEADERS.md` §17–§20): `score`, the
     // one of its twelve `log_data` prints; `territory_high`;
     // `high_buildings[r]` by building record, the lineage root's
@@ -1040,6 +1057,8 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     // Item 4185, step V (`docs/LEADERS.md` §10, §11): the end of the game
     // and the lost capital.
     .chain(sim::leaders::endgame::ENDGAME_LEAVES)
+    // Item 4159, step VII-b1 (`docs/LEADERS.md` §7): `blacken`.
+    .chain(["blacken"])
     {
         if let Some(x) = block.int(key) {
             out.insert(key.to_string(), x);
@@ -1048,6 +1067,12 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     // The three victim stamp rows (§4), eight `[scan]` lines each, by
     // attacker.
     for key in DAMAGE_ROWS {
+        for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
+            out.insert(format!("{key}[{i}]"), *x);
+        }
+    }
+    // The declaration's two rows (§7), eight `[scan]` lines each, by target.
+    for key in DECLARE_ROWS {
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
         }

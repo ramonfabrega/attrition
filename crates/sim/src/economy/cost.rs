@@ -937,7 +937,7 @@ struct Goods<'a> {
 /// with the sign fix that makes the truncation go toward zero rather than down.
 /// It only matters if a price ever goes negative, which a discount tail summing
 /// past a hundred percent can do.
-const fn apply_rate(cost: i32, rate: i32) -> i32 {
+pub(crate) const fn apply_rate(cost: i32, rate: i32) -> i32 {
     let scaled = cost * rate;
     (scaled + ((scaled >> 31) & 0xff)) >> 8
 }

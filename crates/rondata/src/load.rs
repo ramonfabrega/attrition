@@ -747,6 +747,9 @@ pub fn load_tables(
             // Seconds on file, frames in the record (`× 0xf`).
             duration: int(r, "DURATION").unwrap_or(0) * 15,
             duration_upgrade: int(r, "DURATION_UPGRADE").unwrap_or(0) * 15,
+            // `COST2`, the cast's price, unscaled as `Type::load_cost`
+            // stores it (`docs/LEADERS.md` §7.2, `pay_dow`).
+            cost2: cost_slots(r.text("COST2")),
             from: ["FROM", "FROM2"].map(|col| {
                 r.text(col)
                     .map(str::trim)
