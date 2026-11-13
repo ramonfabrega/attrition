@@ -70,6 +70,40 @@ fn taped<T>(cache: usize, body: impl FnOnce() -> T) -> (T, Vec<Request>) {
     (value, tape)
 }
 
+/// The fixture requests one stand-up made, kept beside the state it
+/// built: a test that resumes that state is credited with them
+/// ([`replay`]), as a test that reads a [`Shared`] cache is with its fill's.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Tape(Vec<Request>);
+
+/// `body`'s value, and the fixtures this thread requested while it ran.
+pub(crate) fn taped_requests<T>(body: impl FnOnce() -> T) -> (T, Tape) {
+    let (value, tape) = taped(0, body);
+    (value, Tape(tape))
+}
+
+/// Write `tape`'s requests again under this thread's name: every one, each
+/// time, since a test that resumes a kept state twice would have stood it
+/// up twice alone. A request a [`Shared`] cache's fill made inside the
+/// stand-up is written only where this thread does not hold that cache's
+/// credit, as reading the cache would.
+pub(crate) fn replay(tape: &Tape) {
+    let reader = std::thread::current()
+        .name()
+        .unwrap_or("unnamed")
+        .to_owned();
+    let mut fresh = std::collections::BTreeMap::new();
+    for (made_by, name, present) in &tape.0 {
+        let owed = *fresh
+            .entry(*made_by)
+            .or_insert_with(|| *made_by == 0 || credit(*made_by, &reader));
+        if owed {
+            write(name, *present);
+        }
+    }
+    onto_tapes(&tape.0);
+}
+
 /// Credit the current thread with `tape`, the requests of `cache`'s fill:
 /// each request is written under this thread's name unless the thread
 /// already holds the credit of the cache that made it, and all of them go
@@ -160,12 +194,28 @@ thread_local! {
         const { std::cell::RefCell::new(None) };
 }
 
-fn write(name: &str, present: bool) {
+/// Keep this thread's rows in memory from here on (this module's tests).
+#[cfg(test)]
+fn quiet() {
     WRITTEN.with(|written| {
-        if let Some(rows) = written.borrow_mut().as_mut() {
-            rows.push((name.to_owned(), present));
-        }
+        written.borrow_mut().get_or_insert_with(Vec::new);
     });
+}
+
+fn write(name: &str, present: bool) {
+    // A thread of this module's own tests keeps its rows and writes none:
+    // their fixtures are authored names, and a row for one in a gate's
+    // audit would read as a missing fixture.
+    let kept = WRITTEN.with(|written| {
+        written
+            .borrow_mut()
+            .as_mut()
+            .map(|rows| rows.push((name.to_owned(), present)))
+            .is_some()
+    });
+    if kept {
+        return;
+    }
     let Some(directory) = std::env::var_os("RON_FIXTURE_AUDIT_DIR") else {
         return;
     };
@@ -203,6 +253,7 @@ fn audit_write_errors_are_not_successes() {
 
 #[test]
 fn a_shared_cache_credits_each_reader_with_the_fill_s_requests() {
+    quiet();
     // What a reader is credited with is what lands on a tape open around
     // its read, so the test reads tapes: it sets no environment and
     // writes no file.
@@ -233,6 +284,7 @@ fn a_shared_cache_credits_each_reader_with_the_fill_s_requests() {
     let other = std::thread::Builder::new()
         .name("another_test".into())
         .spawn(move || {
+            quiet();
             let before = credit(cache, "another_test_probe");
             let first = taped(0, || *CACHE.get_or_init(|| unreachable!())).1;
             let held = !credit(cache, "another_test");
@@ -248,6 +300,7 @@ fn a_shared_cache_credits_each_reader_with_the_fill_s_requests() {
 
 #[test]
 fn a_cache_filled_inside_another_is_credited_once_a_reader() {
+    quiet();
     static INNER: Shared<u32> = Shared::new();
     static OUTER: Shared<u32> = Shared::new();
     let inner = std::ptr::from_ref(&INNER) as usize;
@@ -256,6 +309,7 @@ fn a_cache_filled_inside_another_is_credited_once_a_reader() {
     std::thread::Builder::new()
         .name("fills_both".into())
         .spawn(|| {
+            quiet();
             OUTER.get_or_init(|| {
                 record("outer", true);
                 *INNER.get_or_init(|| {
@@ -282,7 +336,8 @@ fn a_cache_filled_inside_another_is_credited_once_a_reader() {
     let rows = std::thread::Builder::new()
         .name("reads_inner_then_outer".into())
         .spawn(|| {
-            WRITTEN.with(|written| *written.borrow_mut() = Some(Vec::new()));
+            quiet();
+            WRITTEN.with(|written| written.borrow_mut().as_mut().unwrap().clear());
             INNER.get_or_init(|| unreachable!());
             OUTER.get_or_init(|| unreachable!());
             OUTER.get_or_init(|| unreachable!());
@@ -299,7 +354,8 @@ fn a_cache_filled_inside_another_is_credited_once_a_reader() {
     let rows = std::thread::Builder::new()
         .name("reads_outer".into())
         .spawn(|| {
-            WRITTEN.with(|written| *written.borrow_mut() = Some(Vec::new()));
+            quiet();
+            WRITTEN.with(|written| written.borrow_mut().as_mut().unwrap().clear());
             OUTER.get_or_init(|| unreachable!());
             INNER.get_or_init(|| unreachable!());
             WRITTEN.with(|written| written.borrow_mut().take().unwrap())
@@ -314,7 +370,58 @@ fn a_cache_filled_inside_another_is_credited_once_a_reader() {
 }
 
 #[test]
+fn a_resumed_stand_up_s_requests_are_written_each_time() {
+    quiet();
+    static INSIDE: Shared<u32> = Shared::new();
+    let rows = std::thread::Builder::new()
+        .name("stands_up_and_resumes".into())
+        .spawn(|| {
+            quiet();
+            let ((), tape) = taped_requests(|| {
+                record("start", true);
+                INSIDE.get_or_init(|| {
+                    record("cached", true);
+                    1
+                });
+                record("trace", false);
+            });
+            WRITTEN.with(|written| written.borrow_mut().as_mut().unwrap().clear());
+            replay(&tape);
+            replay(&tape);
+            (
+                tape,
+                WRITTEN.with(|written| written.borrow_mut().take().unwrap()),
+            )
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+    // The stand-up's own requests twice; the cache's once a process a
+    // reader, and this reader filled it.
+    let own = [("start".to_owned(), true), ("trace".to_owned(), false)];
+    assert_eq!(rows.1, [own.clone(), own].concat());
+    // Another test resumes the same state: the cache's request is its row
+    // once, the stand-up's each time.
+    let tape = rows.0;
+    let other = std::thread::Builder::new()
+        .name("resumes_twice".into())
+        .spawn(move || {
+            quiet();
+            WRITTEN.with(|written| written.borrow_mut().as_mut().unwrap().clear());
+            replay(&tape);
+            replay(&tape);
+            WRITTEN.with(|written| written.borrow_mut().take().unwrap())
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+    let names: Vec<&str> = other.iter().map(|(n, _)| n.as_str()).collect();
+    assert_eq!(names, ["start", "cached", "trace", "start", "trace"]);
+}
+
+#[test]
 fn a_fill_inside_a_fill_is_on_both_tapes_and_a_panic_closes_its_tape() {
+    quiet();
     let (inner, outer) = taped(1, || {
         record("outer", true);
         taped(2, || record("inner", true)).1

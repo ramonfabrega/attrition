@@ -403,7 +403,7 @@ pub(crate) fn parse<'a>(path: &Path, text: &'a str) -> Result<roxmltree::Documen
 #[cfg(test)]
 pub(crate) mod testenv {
     mod fixture_audit;
-    pub(crate) use fixture_audit::Shared;
+    pub(crate) use fixture_audit::{Shared, Tape, replay, taped_requests};
     pub(crate) mod source;
     /// The install's root: `$RON_INSTALL`, else the checkout's `game/`, else
     /// — from a worktree under `.claude/worktrees/<name>/` — the main
@@ -442,6 +442,14 @@ pub(crate) mod testenv {
              To step through one test in this profile, set RON_DIFF_DEBUG=1."
         );
         Some(path)
+    }
+
+    /// Where a kept dump is, with no row in the fixture audit and no door:
+    /// for a key over a walk's inputs, which asks whether two walks read
+    /// the same files and requests nothing of them. Anything that reads a
+    /// dump asks [`dump`].
+    pub(crate) fn locate(name: &str) -> Option<String> {
+        dump_path(name)
     }
 
     /// The kept dumps' directory, if this machine has it (as [`dump`]).

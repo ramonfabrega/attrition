@@ -1702,6 +1702,18 @@ impl Drop for Built {
         if std::thread::panicking() {
             return;
         }
+        self.answer_for_the_ground();
+    }
+}
+
+#[cfg(test)]
+impl Built {
+    /// The ground guard's check, under the name of the thread it runs on.
+    /// `Drop` makes it for a replay a test owns to its end; a walk handed
+    /// back to the process-wide kept walk (`harness::prefix`, item 4216)
+    /// makes it at the hand-back, since the state then outlives the test
+    /// that must answer for it.
+    pub(crate) fn answer_for_the_ground(&self) {
         let name = std::thread::current()
             .name()
             .unwrap_or_default()
@@ -1716,6 +1728,13 @@ impl Drop for Built {
              the original's single, against a pin of {pin} — see docs/COMBAT.md §46.3",
             self.sim.trace.ground_inexact
         );
+    }
+
+    /// Drop a kept state on a thread that never walked it: the test that
+    /// handed it back answered for its ground then, and the thread that
+    /// replaces it has its own pin for its own walk.
+    pub(crate) fn retire(mut self) {
+        self.sim.trace.ground_inexact = 0;
     }
 }
 

@@ -5008,18 +5008,27 @@ pub(crate) mod tests {
             .and_then(|key| super::prefix::take(key, first_block));
         let mut parse_time = std::time::Duration::ZERO;
         let mut built = resumed.unwrap_or_else(|| {
-            crate::diff::testkit::with_named_sibling_initials(siblings, |refs| {
-                let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
-                let text = source.read_replay_setup().unwrap();
-                let log = Log::parse(&text);
-                let mut init = log.replay_initial().unwrap();
-                borrow_from_siblings(&mut init, refs);
-                if let Some(t) = trace(base_trace) {
-                    borrow_pasture(&mut init, &t);
-                }
-                parse_time = started.elapsed();
-                build_sim(&loaded, &init, Tuning::RON)
-            })
+            let mut build = || {
+                crate::diff::testkit::with_named_sibling_initials(siblings, |refs| {
+                    let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+                    let text = source.read_replay_setup().unwrap();
+                    let log = Log::parse(&text);
+                    let mut init = log.replay_initial().unwrap();
+                    borrow_from_siblings(&mut init, refs);
+                    if let Some(t) = trace(base_trace) {
+                        borrow_pasture(&mut init, &t);
+                    }
+                    parse_time = started.elapsed();
+                    build_sim(&loaded, &init, Tuning::RON)
+                })
+            };
+            // A walk that may be handed to the next test of the process
+            // keeps its stand-up's fixture requests beside it.
+            if prefix {
+                super::prefix::stand_up(build)
+            } else {
+                build()
+            }
         });
         if let Some(key) = &prefix_key {
             super::prefix::mark_start(key, &built);
