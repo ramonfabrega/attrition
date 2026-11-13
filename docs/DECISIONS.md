@@ -12625,12 +12625,15 @@ and read a cold / uncached response.. unaceptable."
    retiring `replan-pdb`, or a reap and respawn per handover (entry 128 §2 is
    amended by this: its reason for keeping one tree is outweighed). It stays
    a pass item until it is built and has a guard.
-3. **Until it is built**, the commander cleared the resting `steer` row by hand
+3. ~~**Until it is built**, the commander cleared the resting `steer` row by hand
    (`ccc clear steer`, 2026-11-12), and a driver arms a bare clear on the other
-   row at every handover.
+   row at every handover.~~ Withdrawn by entry 131 §8: a `--then` onto a row
+   already cleared types no prompt. The mechanism is entry 131 §8's spawn
+   and reap.
 
-**Not established:** which notifications woke the row (a lane's message to
-`steer`, a backgrounded task's exit, a harness event); whether `ccc clear`
+**Not established:** ~~which notifications woke the row (a lane's message to
+`steer`, a backgrounded task's exit, a harness event)~~ (its own backgrounded
+command's exit: entry 131 §8); whether `ccc clear`
 on a row armed by another stays safe when the target's worktree is the shared
 one.
 
@@ -12649,9 +12652,11 @@ minutes of gate inside a span of 413, three red.
 
 **Ramon, on this row:** "where are commander and steer right now? both are
 paused..."; "start the pass then we decide how we're handing
-steer<->commande rhandoff".
+steer<->commande rhandoff". Then, on the three ways the record's first
+draft put to him: "spawn and reap is fine, we can also send a msg out to
+ccc if you wish".
 
-**Decided**, the pass's and Ramon's to move; §8's mechanism is his.
+**Decided**, the pass's and Ramon's to move; §8's mechanism on his word.
 
 1. **A leaf leaves `LEADERS_HELD_OUT` only where it moves, or where it is
    frozen by construction.** Entry 128 §3's first clause read "agrees on
@@ -12752,12 +12757,22 @@ steer<->commande rhandoff".
    change, and returns without typing the prompt when it does not; a row
    already cleared has nothing to change. Entry 130 §3's interim rule, a
    bare clear of the other row at every handover, therefore breaks the
-   next `--then` onto that row, and is withdrawn. The mechanism is
-   Ramon's to pick (the record's "For Ramon"); until he has, a row hands
-   over by a message to the other row's empty session or by his hand, and
-   no row leaves a background command running when it rests.
+   next `--then` onto that row, and is withdrawn. **Ramon picked the
+   mechanism on this row: "spawn and reap is fine".** A handover is
+   `tools/handover.py to <row> --opener-file <file>`: the other row is
+   spawned fresh with its opener as the spawn's prompt, and its first act
+   reaps the row that handed over (`handover.py reap`: stop, wait for the
+   roster to say stopped, forget; never `ccc rm`). The script refuses an
+   unpushed tree and a background command still running under the row.
+   The guard is `handover.py check`, which `tools/gate_run.sh` runs before
+   every gate: two driver rows in the tree refuse the gate, exit 95. Seen
+   red on the pass's own roster (`steer` and the empty `commander`), green
+   once the pass reaped `commander` (1b2cdb50) with the tree intact. The
+   tree stays one tree; entry 130 §2's question is closed by this.
 
-**Not established:** how far our walk holds a style-0 game; how many of the
+**Not established:** whether a spawn onto the tree behaves as a lane's
+spawn does (the reap half ran; the first whole handover is this pass's
+own); how far our walk holds a style-0 game; how many of the
 87 word packets' lobbies hold lockstep from the built start; whether the
 frozen scan finds a live writer behind a quiet leaf already released;
 whether a gate over several merges reads its reds as cleanly as one over

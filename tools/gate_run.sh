@@ -20,9 +20,14 @@ case "$log" in /*) ;; *) log="$PWD/$log" ;; esac
 common="$(cd "$(dirname "$0")" && cd "$(git rev-parse --git-common-dir)" && pwd)" || exit 98
 root="$(dirname "$common")"
 install="${RON_INSTALL:-$root/game}"
+# One driver row at most (docs/DECISIONS.md entries 130, 131 §8): a second
+# one resting in the tree is the row a notification wakes cold. Asked from
+# the caller's tree, before the gate tree is touched.
+rows="$(cd "$(dirname "$0")/.." && python3 tools/handover.py check 2>&1)" || { printf '%s\ngate exit 95 (two driver rows)\n' "$rows" > "$log"; exit 95; }
 cd "$root/.claude/worktrees/gate" || { echo "gate exit 97 (no gate tree)" > "$log"; exit 97; }
 git checkout -q --detach "$sha" || { echo "gate exit 96 (checkout $sha refused)" > "$log"; exit 96; }
 echo "Gate tree: $(pwd) at $(git rev-parse HEAD)" > "$log"
+echo "$rows" >> "$log"
 python3 tools/release_gate.py "$install" --test-threads 8 "$@" >> "$log" 2>&1
 code=$?
 if [ $code -eq 0 ]; then

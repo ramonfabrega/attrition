@@ -12,11 +12,12 @@ pass before it is `2026-11-12-fable-pass-load.md`.*
 
 ## For Ramon
 
-- **The handover is yours to pick** (entry 131 §8). Both failures are read:
-  the cold wake was the resting row's own background command exiting an hour
-  later; the lost arm is ccc declining to type a prompt onto a row that is
-  already empty. I recommend spawning the other row at each handover and
-  reaping the old one over fixing ccc's clear; a tree a row fixes neither.
+- **The handover is a spawn and a reap, on your word** (entry 131 §8). Both
+  failures are read: the cold wake was the resting row's own background
+  command exiting an hour later; the lost arm is ccc declining to type a
+  prompt onto a row that is already empty. `tools/handover.py` spawns the
+  other row with its opener and the new row reaps the old; the gate refuses
+  to start while two driver rows hold the tree.
 - **The loop is bound by the booking gate.** A gate ran for 334.9 of the
   tranche's 413 minutes, one landing each. More workers add a queue. A gate
   now takes every landing merged when it starts.
@@ -149,7 +150,6 @@ BUILT_PLACEHOLDER
 
 ## Not done, and said
 
-- **No handover mechanism is built**: Ramon's pick (entry 131 §8).
 - **No second reading** was run; no marked row stood for this pass.
 - **Minting a `Declare` or a `Chat` through `Command`** is not booked. It is
   the milestone's own carrier for diplomacy, and VII-a's script does not

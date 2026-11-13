@@ -46,6 +46,7 @@ SUITES = (
     'test_killguard',  # the forty-seventh pass, Loop 3392/3394
     'test_reap_agents',
     'test_memcap',
+    'test_handover',  # the pass of 2026-11-13, DECISIONS 131 §8
     'test_isolated_tests',
     'test_runtime_policy',
     'test_lab_demo',

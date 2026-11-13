@@ -16,11 +16,22 @@ Fable 5.2, alternating on the integration worktree. The row that is live
 books, merges, gates and pushes, holds the direction of the track it is
 driving and spawns the workers; "the driver" below is that row. Entry 116
 had merged the two rows because both had been live at once — a row not
-cleared, a row woken. What holds them apart now: **exactly one is live in
-the tree; the row that hands over arms the other with `ccc clear <other>
---then` as its last act, and `steer` writes in the tree only on a turn
-`commander` armed.** Asked anything else, `steer` answers read-only and
-sends `commander` a decision as one message.
+cleared, a row woken. What holds them apart now: **exactly one row exists
+in the tree, and a handover is a spawn and a reap** (DECISIONS 130, 131 §8;
+Ramon, 2026-11-13). The row that hands over banks, writes the other's
+opener to a file and runs `python3 tools/handover.py to <commander|steer>
+--opener-file <file>` as its last act: it refuses an unpushed tree and a
+background command still running under the row, reaps any other driver
+row, and spawns the new one with the opener as its prompt. The new row's
+first act is `python3 tools/handover.py reap <the old ref>`: stop, then
+forget, never `ccc rm`, which reaches the tree. **No prompt is typed into
+a pane and no row rests on its context.** Both ways of doing it otherwise
+failed: a resting row was woken cold by its own background command an
+hour later (312,347 tokens written, 2026-11-12), and ccc's clear types no
+prompt onto a row that is already empty (the pass armed at 01:30 on
+2026-11-13 never started). `tools/gate_run.sh` asks `handover.py check`
+before every gate and refuses, exit 95, while two driver rows hold the
+tree. `steer` writes in the tree only on a turn a handover opened.
 
 **Ramon steers at will, in this row.** A message he types here arrives
 inside the running turn and is answered in it. A decision of his is written
@@ -34,7 +45,8 @@ committed, the gate log's own `gate exit 0` read, the branch pushed and
 in-session builder in flight. A ccc lane may be out across a clear: the
 handoff names it, its item and its waiter's arguments. Then the driver
 reads `ccc clear <own ref> --status`, arms `ccc clear <own ref> --then "<the
-queue's opener>"` as the turn's last act, and the turn ends. An arm fires
+queue's opener>"` as the turn's last act, and the turn ends (its own row
+has a screen to clear; the other row is never cleared, only spawned). An arm fires
 only on an idle row, so nothing follows it — **and the arming turn's closing
 text asks nothing**: an ask leaves the row `blocked`, and an arm sat seven
 hours on one (DECISIONS 118); what is Ramon's goes in the handoff. It is
@@ -52,7 +64,7 @@ that on a deep context is cleared first. Idle compaction is the fallback,
 never the mechanism: a session that resumes summarised re-reads the queue
 before it acts.
 
-**Supply calls the pass, not a count.** `commander` arms `steer` when the
+**Supply calls the pass, not a count.** `commander` hands over to `steer` when the
 queue holds fewer designed items than the workers it would feed, when the
 track's next step is undesigned, at a milestone, when a finding changes
 the direction or the kill rule trips, or on Ramon's word; twenty landings
