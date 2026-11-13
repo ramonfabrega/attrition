@@ -573,7 +573,7 @@ class AStartOrInputItemHasItsKind(unittest.TestCase):
         args.update(kw)
         return brief.compose(item, kind, **args)
 
-    def test_a_start_brief_carries_the_counter_the_oracle_and_a_whole_gate(self):
+    def test_a_start_brief_carries_the_counter_the_oracle_and_a_scoped_gate(self):
         text = self.compose(4034, 'start', sections=['docs/START.md §5'])
         self.assertIn('the start track', text)
         self.assertIn('4034. **The start block, every lobby on disk**', text)
@@ -583,20 +583,29 @@ class AStartOrInputItemHasItsKind(unittest.TestCase):
                      '[Start Game]', 'build_sim', 'RON_START_DIFF=1', '=all', 'tools/start_lobbies.py',
                      'No capture is booked', '§3', '`bucket`', '`ages`', '`techs`', 'quiet',
                      'dump-backed', 'census', 'first parting', 'value diff', '§1',
-                     'check_all_level=14', 'grep the archive', 'whole'):
+                     'check_all_level=14', 'grep the archive', 'scoped', 'never `--lane --whole`',
+                     'booking gate'):
             self.assertIn(word, section)
+        # The pass of 2026-11-13 (second), DECISIONS 132: a start lane gated
+        # whole and sat 18–21 minutes on the whole-lane lock before a
+        # 20-minute run; its gate is its own filters now, `--no-widen` as
+        # every kind but a residue's. Red first: the landing read `--whole`.
         landing = text.split('## Landing')[1]
-        self.assertIn('--lane --item 4034 --whole`', landing)
-        self.assertNotIn('--tests', landing)
+        filters = ' '.join(brief.ALWAYS_TESTS['start'])
+        self.assertIn(f'--lane --item 4034 --tests {filters} --no-widen`', landing)
+        self.assertNotIn('--whole', landing)
+        for want in ('diff::start', 'lobby::', 'minted::', 'checksum_lines::packets::', 'blind::'):
+            self.assertIn(want, brief.ALWAYS_TESTS['start'])
         for gone in ('## Before any reading', '## A capture or a packet', '## Build', '## The sweep',
                      '## Seams, read for you', '`docs/METHOD.md`'):
             self.assertNotIn(gone, text)
         self.assertLess(text.index('## A start item'), text.index('## Landing'))
         self.assertEqual(re.findall(r'\{[a-z]+\}', text), [])
-        # Gated whole: a filter named for it is refused, never silently dropped.
-        with self.assertRaisesRegex(ValueError, '--whole'):
-            self.compose(4034, 'start', tests=['coverage::'])
-        self.assertEqual(brief.filters('start', []), [])
+        # A filter the commander names joins the kind's own, first.
+        landing = self.compose(4034, 'start', tests=['coverage::']).split('## Landing')[1]
+        self.assertIn(f'--tests coverage:: {filters} --no-widen`', landing)
+        self.assertEqual(brief.filters('start', []), list(brief.ALWAYS_TESTS['start']))
+        self.assertNotIn('free::', brief.filters('start', []))
 
     def test_an_input_brief_carries_the_method_in_order_and_a_scoped_gate(self):
         text = self.compose(4149, 'input', sections=['docs/CLIENT_INPUT.md §6'])
@@ -637,8 +646,16 @@ class AStartOrInputItemHasItsKind(unittest.TestCase):
             self.assertLessEqual(len(body[kind]), 2400, kind)
             self.assertIn(kind, brief.NO_WORD)
             self.assertNotIn(kind, brief.METHOD_KINDS)
-        self.assertIn('start', brief.WHOLE)
+        # DECISIONS 132: a structure move alone gates whole.
+        self.assertEqual(brief.WHOLE, ('structure',))
+        self.assertNotIn('start', brief.WHOLE)
         self.assertNotIn('input', brief.WHOLE)
+        # And no section tells a render, start or input lane that touches
+        # `crates/sim` to gate whole: it keeps its scoped gate.
+        for kind in ('render', 'start', 'input'):
+            self.assertNotIn('gates `--lane --whole`', body[kind], kind)
+            self.assertIn('never `--lane --whole`', body[kind], kind)
+            self.assertIn('booking gate', body[kind], kind)
         self.assertEqual(brief.TRACKS['start'], 'the start track')
         self.assertEqual(brief.TRACKS['input'], 'the orders track')
 
