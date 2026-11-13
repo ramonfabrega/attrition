@@ -101,7 +101,7 @@ fn ours_at_packet() -> Option<sim::Sim> {
 /// Skips a line's test, saying why, on a machine without the stream, the
 /// archived record or the install: `Some((theirs, printed, ours))` else.
 /// One line's rows of the instrument's stream: `(walker, call site, bytes)`.
-type StreamRows = Vec<(String, String, Vec<u8>)>;
+pub(in crate::diff) type StreamRows = Vec<(String, String, Vec<u8>)>;
 
 fn line_inputs(line: &str, label: &str) -> Option<(StreamRows, u32, sim::Sim)> {
     let Some(theirs) = stream(line) else {
@@ -155,6 +155,29 @@ fn parting(
             ))
         })
         .collect()
+}
+
+/// One range of `line` decoded into its fields, where the line has a
+/// decoder for the range's `field` (item 4214's minted packets name a
+/// parting by field through it). `None` for a line with none.
+pub(in crate::diff) fn range_fields(
+    line: &str,
+    field: &str,
+    b: &[u8],
+) -> Option<Vec<(String, i64)>> {
+    match line {
+        "units" => Some(unit_range_fields(field, b)),
+        "builds" => Some(build_range_fields(field, b)),
+        "guys" => Some(guy_range_fields(field, b)),
+        "groups" => Some(group_range_fields(field, b)),
+        "cities" => Some(
+            city_fields(b)
+                .into_iter()
+                .map(|(n, v)| (n.to_string(), v))
+                .collect(),
+        ),
+        _ => None,
+    }
 }
 
 /// An item's 22 bytes, decoded: `ever_seen`, `flags`, `must_walk`, `who`,
