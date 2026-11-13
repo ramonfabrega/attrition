@@ -974,6 +974,11 @@ garbage line
         kw.setdefault('isolated', False)  # Retain reference-runner selection assertions.
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            # A `whole=True` call takes the whole-lane flock; on the host's
+            # own file it waits forever inside a real `--lane --whole` gate,
+            # which holds that file while its offline step runs this test
+            # (item 4198's gate, twice at the 30-minute cap).
+            kw.setdefault('whole_lock', path/'whole-lane.lock')
             calls=[]
             def run(command, **kwargs):
                 calls.append(command)
