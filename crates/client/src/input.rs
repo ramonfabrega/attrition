@@ -1325,7 +1325,9 @@ pub(crate) mod tests {
     /// [`script::attacked`], the anchor each press and the right press land
     /// on at the opening camera, `(frame, (who, o), pixel)`. Every one is on
     /// the 1920×1080 screen, so the script's camera is the client's own.
-    const ATTACK_ANCHORS: [(i32, (u8, i16), (i32, i32)); 5] = [
+    /// An anchor of the attacked script: `(frame, (who, o), pixel)`.
+    type AttackAnchor = (i32, (u8, i16), (i32, i32));
+    const ATTACK_ANCHORS: [AttackAnchor; 5] = [
         (
             script::ATTACK_RESEARCH_FRAME,
             (0, script::LIBRARY_OBJECT),
