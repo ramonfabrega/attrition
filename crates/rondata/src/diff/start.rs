@@ -1612,7 +1612,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let lobbies = crate::lobby::lobbies_on_disk(&dir).expect("the logs");
+        let lobbies = crate::lobby::lobbies_on_disk(&dir, crate::corpus::Ledger::of_tree())
+            .expect("the logs");
         assert_eq!(
             lobbies.len(),
             START_LOBBIES,

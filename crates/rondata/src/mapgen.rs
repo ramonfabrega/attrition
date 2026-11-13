@@ -1426,16 +1426,7 @@ mod tests {
     fn archive() -> Option<&'static [(String, StartGrid)]> {
         static ALL: OnceLock<Option<Vec<(String, StartGrid)>>> = OnceLock::new();
         ALL.get_or_init(|| {
-            let dir = std::env::var("RON_GAMELOG_DIR").unwrap_or_else(|_| {
-                let home = std::env::var("HOME").unwrap_or_default();
-                format!("{home}/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
-            });
-            let mut names: Vec<String> = std::fs::read_dir(&dir)
-                .ok()?
-                .filter_map(|e| e.ok()?.file_name().into_string().ok())
-                .filter(|n| n.starts_with("gamelog") && n.ends_with(".txt"))
-                .collect();
-            names.sort();
+            let names = filed_names(|n| n.starts_with("gamelog") && n.ends_with(".txt"))?;
             let paths: Vec<(String, String)> = names
                 .into_iter()
                 .filter_map(|n| Some((crate::testenv::dump(&n)?, n)))
@@ -1893,6 +1884,20 @@ mod tests {
         })
     }
 
+    /// The names under [`gamelog_dir`] that `wanted` accepts and this
+    /// tree's corpus holds, sorted: a capture another worktree filed and
+    /// this tree's `docs/RUNS.md` does not head is skipped and named
+    /// ([`crate::corpus`]), so it moves no count or census here. `None`
+    /// without the archive.
+    fn filed_names(wanted: impl Fn(&str) -> bool) -> Option<Vec<String>> {
+        let dir = gamelog_dir();
+        let listed =
+            crate::corpus::listed(Path::new(&dir), crate::corpus::Ledger::of_tree(), |p| {
+                p.file_name().and_then(|n| n.to_str()).is_some_and(&wanted)
+            });
+        listed.ok().map(|l| l.kept)
+    }
+
     /// The Great Sahara traces whose `place_all` segment the stream check
     /// walks: a floor, as [`MAPGEN`]'s file counts are.
     const PLACE_ALL_TRACES: usize = 280;
@@ -1926,12 +1931,7 @@ mod tests {
         type Segments = Vec<(String, Vec<SetupDraw>)>;
         static ALL: OnceLock<Option<Segments>> = OnceLock::new();
         ALL.get_or_init(|| {
-            let mut names: Vec<String> = std::fs::read_dir(gamelog_dir())
-                .ok()?
-                .filter_map(|e| e.ok()?.file_name().into_string().ok())
-                .filter(|n| n.starts_with("rontrace-") && n.ends_with(".log"))
-                .collect();
-            names.sort();
+            let names = filed_names(|n| n.starts_with("rontrace-") && n.ends_with(".log"))?;
             let paths: Vec<(String, String)> = names
                 .into_iter()
                 .filter_map(|n| Some((crate::testenv::dump(&n)?, n)))
@@ -1992,12 +1992,7 @@ mod tests {
     fn sahara_traces(
         traces: &'static [(String, Vec<SetupDraw>)],
     ) -> Vec<&'static (String, Vec<SetupDraw>)> {
-        let gamelogs: Vec<String> = std::fs::read_dir(gamelog_dir())
-            .map(|r| {
-                r.filter_map(|e| e.ok()?.file_name().into_string().ok())
-                    .collect()
-            })
-            .unwrap_or_default();
+        let gamelogs: Vec<String> = filed_names(|_| true).unwrap_or_default();
         let sahara = |trace: &str| {
             let run = trace
                 .trim_start_matches("rontrace-")
@@ -2893,12 +2888,7 @@ mod tests {
 
     /// The traces a gamelog of whose run names `word` in its file name.
     fn traces_of(word: &str) -> Vec<String> {
-        let names: Vec<String> = std::fs::read_dir(gamelog_dir())
-            .map(|r| {
-                r.filter_map(|e| e.ok()?.file_name().into_string().ok())
-                    .collect()
-            })
-            .unwrap_or_default();
+        let names: Vec<String> = filed_names(|_| true).unwrap_or_default();
         let mut out: Vec<String> = names
             .iter()
             .filter(|n| n.starts_with("rontrace-") && n.ends_with(".log"))
@@ -3299,12 +3289,7 @@ mod tests {
             .filter(|(_, g)| g.style == 18)
             .filter_map(|(n, _)| run_of(n))
             .collect();
-        let names: Vec<String> = std::fs::read_dir(gamelog_dir())
-            .map(|r| {
-                r.filter_map(|e| e.ok()?.file_name().into_string().ok())
-                    .collect()
-            })
-            .unwrap_or_default();
+        let names: Vec<String> = filed_names(|_| true).unwrap_or_default();
         for n in names.iter().filter(|n| n.contains("eastindies")) {
             if let Some(r) = run_of(n) {
                 runs.insert(r);

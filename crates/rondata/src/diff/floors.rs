@@ -1468,13 +1468,58 @@ mod tests {
         );
     }
 
+    /// The numbers in `line` written without their thousands' commas: each
+    /// run of four or more digits that is not part of a name (a digit run
+    /// right after a letter — `run1562`, `f1090` — is a name's).
+    fn ungrouped_numbers(line: &str) -> Vec<&str> {
+        let b = line.as_bytes();
+        let mut out = Vec::new();
+        let mut i = 0;
+        while i < b.len() {
+            if !b[i].is_ascii_digit() {
+                i += 1;
+                continue;
+            }
+            let start = i;
+            while i < b.len() && b[i].is_ascii_digit() {
+                i += 1;
+            }
+            let named = start > 0 && b[start - 1].is_ascii_alphabetic();
+            if !named && i - start >= 4 {
+                out.push(&line[start..i]);
+            }
+        }
+        out
+    }
+
+    /// **The checksum line groups its numbers** — and carries at least one
+    /// grouped (its bytes are past a thousand). No pinned value is written
+    /// here, so a re-pin of `PACKETS_SCORE` or `CHECKSUM_STATE` cannot turn
+    /// it red: a builder who re-pinned the score missed the literal this
+    /// test used to carry, and a 20-minute gate went red on it alone.
     #[test]
     fn the_checksum_line_groups_its_bytes() {
+        let line = checksum_line();
+        assert!(ungrouped_numbers(&line).is_empty(), "{line}");
         assert!(
-            checksum_line().contains(" of 425,499 bytes")
-                && checksum_line().ends_with(" lines 150 of 1,058"),
-            "{}",
-            checksum_line()
+            line.as_bytes().windows(5).any(|w| w[0].is_ascii_digit()
+                && w[1] == b','
+                && w[2..].iter().all(u8::is_ascii_digit)),
+            "no grouped number in {line}"
+        );
+    }
+
+    /// The grouping check, seen to fail: an ungrouped line is caught, a
+    /// name's digits are not.
+    #[test]
+    fn an_ungrouped_number_is_caught() {
+        assert_eq!(
+            ungrouped_numbers("state 3 of 9 lines, 425499 of 1058 bytes (run1562 f1090)"),
+            ["425499", "1058"]
+        );
+        assert!(
+            ungrouped_numbers("state 3 of 9 lines, 425,499 of 1,058 bytes (run1562 f1090)")
+                .is_empty()
         );
     }
 

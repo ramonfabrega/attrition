@@ -186,23 +186,28 @@ fn cache_dir() -> PathBuf {
     PathBuf::from(format!("{home}/Library/Caches/attrition/{SCHEMA}"))
 }
 
-/// The scored kept dumps: every `gamelog-*.txt` but the held-out battery's.
+/// The scored kept dumps: every `gamelog-*.txt` of this tree's corpus
+/// (`crate::corpus`: a dump another worktree filed and this tree's
+/// `docs/RUNS.md` does not head is skipped and named) but the held-out
+/// battery's.
 fn corpus() -> Vec<String> {
+    corpus_in(&logs_dir(), crate::corpus::Ledger::of_tree())
+}
+
+/// [`corpus`] of `dir` under `ledger`.
+fn corpus_in(dir: &Path, ledger: &crate::corpus::Ledger) -> Vec<String> {
     let held: std::collections::BTreeSet<&str> = crate::diff::battery::BATTERY
         .iter()
         .flat_map(|l| [l.start, l.long.0])
         .collect();
-    let Ok(rd) = std::fs::read_dir(logs_dir()) else {
+    let Ok(listed) = crate::corpus::listed(dir, ledger, crate::corpus::is_gamelog) else {
         return Vec::new();
     };
-    let mut names: Vec<String> = rd
-        .filter_map(|e| e.ok())
-        .map(|e| e.file_name().to_string_lossy().into_owned())
-        .filter(|n| n.starts_with("gamelog-") && n.ends_with(".txt"))
+    listed
+        .kept
+        .into_iter()
         .filter(|n| !held.contains(n.as_str()))
-        .collect();
-    names.sort();
-    names
+        .collect()
 }
 
 fn int(b: &[u8]) -> Option<i64> {

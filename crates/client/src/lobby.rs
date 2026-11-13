@@ -454,7 +454,8 @@ mod tests {
             return;
         };
         let dir = crate::world::gamelog_dir();
-        let Ok(lobbies) = lobbies_on_disk(&dir) else {
+        // The tree's lobbies, not the machine's (`rondata::corpus`).
+        let Ok(lobbies) = lobbies_on_disk(&dir, rondata::corpus::Ledger::of_tree()) else {
             eprintln!("skipping: no gamelog directory (set RON_GAMELOG_DIR)");
             return;
         };
