@@ -320,6 +320,8 @@ mod army;
 #[cfg(test)]
 pub(crate) mod cant_reach;
 #[cfg(test)]
+mod corpus_floor;
+#[cfg(test)]
 mod coverage;
 #[cfg(test)]
 pub(crate) mod drawn_games;
