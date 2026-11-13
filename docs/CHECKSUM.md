@@ -1734,9 +1734,12 @@ the crate and stay held out, each parting on a closing block whose quit
 the window harness does not replay (4185a). The ranges and bytes do not
 move: the long range still parts on the other 61, so 263 of 267 ranges
 and 4,313 of 58,343 bytes agree as before. ~~**61**~~ 61 since step V,
-and **49** since item 4187 (step VI), which released twelve (`docs/LEADERS.md`
+and ~~**49**~~ 49 since item 4187 (step VI), which released twelve (`docs/LEADERS.md`
 §17–§20 name them and the rule each met); six of the score's twelve stay
-held out (4187a–c). With the spell bits each `tech` array agrees: **265 of
+held out (4187a–c). **47** since item 4189, which put `defeat_type` and
+`victory_type` on the line (0 = 0 on frame 91): the window harness replays
+the human's quit where the capture's trace dates it, and both agree on
+every dump the record diff reads (`docs/LEADERS.md` §10.5). With the spell bits each `tech` array agrees: **265 of
 267 ranges and 4,515 bytes** agree on frame 91, the long ranges parting.
 `CHECKSUM_STATE` does not count it (§5).
 

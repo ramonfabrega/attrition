@@ -4913,7 +4913,8 @@ pub(crate) mod tests {
     ) -> Option<(i64, bool)> {
         use std::collections::HashMap;
         use std::sync::{Mutex, OnceLock};
-        static QUITS: OnceLock<Mutex<HashMap<String, Option<(i64, bool)>>>> = OnceLock::new();
+        type Quits = Mutex<HashMap<String, Option<(i64, bool)>>>;
+        static QUITS: OnceLock<Quits> = OnceLock::new();
         let cache = QUITS.get_or_init(Default::default);
         if let Some(q) = cache.lock().unwrap().get(name) {
             return *q;
@@ -4933,7 +4934,11 @@ pub(crate) mod tests {
             }
             eprintln!(
                 "{name}: the quit on {q}, {}",
-                if head { "the frame's head" } else { "past its body" }
+                if head {
+                    "the frame's head"
+                } else {
+                    "past its body"
+                }
             );
             Some((q, head))
         })();

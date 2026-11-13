@@ -735,5 +735,9 @@ fn spanish_gunpowder_pair_run1287_s_closing_state() {
     // trained on the closing step.
     pin_eq!(e.compared, 219, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
-    pin_eq!(e.extra.clone(), Vec::<(i64, i64)>::new(), "the closing extras");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }

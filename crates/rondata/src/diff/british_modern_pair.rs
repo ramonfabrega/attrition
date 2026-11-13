@@ -301,5 +301,9 @@ fn british_modern_pair_run1433_s_closing_state() {
     // §10.2), so nothing is born on the closing step on either side.
     pin_eq!(e.compared, 146, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
-    pin_eq!(e.extra.clone(), Vec::<(i64, i64)>::new(), "the closing extras");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }

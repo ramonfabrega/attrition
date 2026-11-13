@@ -500,7 +500,11 @@ fn inca_classical_pair_run1260_s_closing_state() {
     pin_eq!(e.frame, 6074, "the closing block");
     pin_eq!(e.compared, 196, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
-    pin_eq!(e.extra.clone(), Vec::<(i64, i64)>::new(), "the closing extras");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }
 
 /// run1270b: the closing window, blocks 5817..6074 at the long's detail
