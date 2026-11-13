@@ -16,6 +16,14 @@
 //!   unfinished building's construction (`construct_hits`) of the full as
 //!   well. Nothing is scaled or computed beyond the join to a name.
 //!
+//! - **The bar** (item 4198, `docs/HUD.md` §4) prints the issuing slot's
+//!   leader record from the scene's [`sim::observe::LeaderScene`]: each
+//!   good's stockpile and its rate, the population over its cap, the age,
+//!   the nation and the frame. The numbers are the ones the original's
+//!   resource bar and population box read (`bucket`, `income`, `control`,
+//!   `pop_cap`), at the record's own scale; the rate is shown as the
+//!   original shows it, `(income + 8) / 16`.
+//!
 //! Where the buttons stand is ours, anchored to the window's bottom-left
 //! corner, and pinned as pixels at the scripts' 1920×1080 by the tests.
 //! The HUD is drawn in a window, and under `--still` only with `--select`;
@@ -24,7 +32,7 @@
 use crate::input::{BUILD_KEYS, Event, Input, TRAIN_KEYS, View};
 use crate::overlay::{self, Painter};
 use rondata::recgame::Order;
-use sim::observe::Scene;
+use sim::observe::{LeaderScene, Scene};
 
 /// The font's scale: the debug overlay's.
 pub const SCALE: i32 = 2;
@@ -36,6 +44,10 @@ pub const BUTTON: (i32, i32) = (240, 36);
 pub const PANEL_LINES: usize = 6;
 /// The panel's least width, in pixels; a longer line widens it.
 pub const PANEL_WIDTH: i32 = 480;
+
+/// The six goods, in the leader record's order (`LeaderDataEncrypt`'s
+/// per-good arrays; [`sim::economy::Resource`]).
+pub const GOODS: [&str; 6] = ["FOOD", "TIMBER", "WEALTH", "KNOWLEDGE", "METAL", "OIL"];
 
 /// The install's names, as the interface shows them (`NAME`): one a unit
 /// type, one a building type.
@@ -244,13 +256,94 @@ pub fn panel_rect(text: &[String], size: (i32, i32)) -> Rect {
     }
 }
 
+/// **The bar**: one player's leader record as the HUD prints it, read
+/// from the scene alone (`docs/HUD.md` §4).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Bar {
+    /// Each good's stockpile (`bucket`) and its rate as the original's bar
+    /// writes it, `(income + 8) / 16`; and whether it is at its cap.
+    pub goods: [(i32, i32, bool); 6],
+    /// `control` of `pop_cap`.
+    pub pop: (i32, i32),
+    /// The age a person counts, the first being 1: `ages + 1`.
+    pub age: i32,
+    /// The nation's name.
+    pub nation: String,
+    /// The game's clock, as the frame count (the original's time display
+    /// is not read: `docs/HUD.md` §6).
+    pub frame: i64,
+}
+
+/// The rate the original's bar writes for an `income` in sixteenths:
+/// `IFaceResources::draw_resource@00818840` adds 8 and divides by 16,
+/// rounding toward zero.
+pub fn shown_rate(income: i32) -> i32 {
+    (income + 8) / 16
+}
+
+impl Bar {
+    /// The bar for `who`'s record in `scene`, `None` when the scene holds
+    /// no such slot.
+    pub fn of(scene: &Scene, who: sim::Player) -> Option<Bar> {
+        let l: &LeaderScene = scene.leaders.iter().find(|l| l.who == who)?;
+        Some(Bar {
+            goods: std::array::from_fn(|g| (l.bucket[g], shown_rate(l.income[g]), l.over_cap[g])),
+            pop: (l.control, l.pop_cap),
+            age: l.ages + 1,
+            nation: if l.nation.is_empty() {
+                format!("TRIBE {}", l.tribe)
+            } else {
+                l.nation.clone()
+            },
+            frame: scene.frame,
+        })
+    }
+
+    /// The printed text: `FOOD 200 +0 … POP 6/25 AGE 1 NATION Greeks
+    /// FRAME 7000`, each number after its word. A good at its cap is
+    /// marked `CAP`.
+    pub fn text(&self) -> String {
+        let mut s = String::new();
+        for (name, (stock, rate, capped)) in GOODS.iter().zip(self.goods) {
+            s += &format!("{name} {stock} {rate:+} ");
+            if capped {
+                s += "CAP ";
+            }
+        }
+        s += &format!(
+            "POP {}/{} AGE {} NATION {} FRAME {}",
+            self.pop.0, self.pop.1, self.age, self.nation, self.frame
+        );
+        s
+    }
+}
+
+/// Where the bar stands for its text: along the window's top edge, at the
+/// right, clear of the debug overlay's lines at the top-left (seen on the
+/// still: at the left it covered the overlay's frame line).
+pub fn bar_rect(text: &str, size: (i32, i32)) -> Rect {
+    let w = text.chars().count() as i32 * overlay::advance(SCALE) + 4 * SCALE;
+    Rect {
+        x: (size.0 - MARGIN - w).max(MARGIN),
+        y: MARGIN,
+        w,
+        h: overlay::line_height(SCALE) + 4 * SCALE,
+    }
+}
+
 /// The button's label: its key, then the type's name.
 pub fn label(b: &Button, names: &Names) -> String {
     format!("{} {}", b.key, names.of_type_index(b.ty))
 }
 
-/// **The HUD drawn**: the panel and the menu as quads on `p`.
+/// **The HUD drawn**: the bar, the panel and the menu as quads on `p`.
 pub fn paint(p: &mut Painter, input: &Input, scene: &Scene, names: &Names, size: (i32, i32)) {
+    if let Some(bar) = Bar::of(scene, input.player) {
+        let text = bar.text();
+        let r = bar_rect(&text, size);
+        p.rect(r.x, r.y, r.w, r.h, overlay::PANEL);
+        p.text(r.x + 2 * SCALE, r.y + 2 * SCALE, &text, SCALE, overlay::INK);
+    }
     let text = panel_text(&panel(input, scene, names));
     if !text.is_empty() {
         let r = panel_rect(&text, size);

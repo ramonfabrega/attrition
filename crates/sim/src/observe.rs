@@ -48,6 +48,9 @@ pub struct Scene {
     pub projectiles: Vec<ProjectileScene>,
     /// The corpses fading.
     pub deaths: Vec<DeathScene>,
+    /// Each player slot's leader record, in slot order: what the HUD's bar
+    /// prints (item 4198, `docs/HUD.md` §4).
+    pub leaders: Vec<LeaderScene>,
     /// The viewer's fog plane on the half-cell grid (`fog_xs × fog_ys`,
     /// row-major): [`fog::UNSEEN`], [`fog::EXPLORED`] or [`fog::VISIBLE`].
     /// `None` for an observer who sees everything, and on a world with no
@@ -59,6 +62,42 @@ pub struct Scene {
     /// Moves when a cell's claimants change: fetch
     /// [`Sim::observe_territory`] again.
     pub territory_version: u32,
+}
+
+/// **One player's leader record, as the original's resource bar and
+/// population box read it** (item 4198, `docs/HUD.md` §4). A copy: the
+/// door adds no state and no rule. The fields are the ones
+/// `IFaceResources::draw_resource@00818840` and
+/// `IFaceMainBase::draw_pop_cap@0080ff90` read off `LeaderData`, at the
+/// scale the record stores them.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LeaderScene {
+    /// The player slot, the record's `who`.
+    pub who: Player,
+    /// `LeaderData::tribe`, an index into the tech tree's tribes.
+    pub tribe: usize,
+    /// That tribe's `<TRIBE name>` from the install's tables, empty when
+    /// unloaded: a copy of the table's entry, so a client needs no tables
+    /// of its own to name the nation.
+    pub nation: String,
+    /// `LeaderDataEncrypt::ages` (`+0xdc`), the dump's `ages_get()`: the
+    /// ages gained past the first, 0 in the Ancient age.
+    pub ages: i32,
+    /// `LeaderDataEncrypt::bucket` (`+0x0`), per good in the record's
+    /// order (food, timber, wealth, knowledge, metal, oil): the stockpile,
+    /// in whole units, the number `draw_resource` writes.
+    pub bucket: [i32; 6],
+    /// `LeaderDataEncrypt::income` (`+0x94`), in sixteenths: the rate
+    /// `draw_resource` writes beside the stockpile as `(income + 8) / 16`.
+    pub income: [i32; 6],
+    /// `LeaderDataEncrypt::over_cap` (`+0x4c`) non-zero: the good is at its
+    /// commerce cap, which `draw_resource` flashes.
+    pub over_cap: [bool; 6],
+    /// `LeaderData::control` (`+0x940`): the population occupied, the
+    /// first number of `draw_pop_cap`'s `n/cap`.
+    pub control: i32,
+    /// `LeaderData::pop_cap` (`+0x7e4`): the cap it is measured against.
+    pub pop_cap: i32,
 }
 
 /// One unit on the map.
@@ -412,10 +451,46 @@ impl Sim {
             buildings,
             projectiles,
             deaths,
+            leaders: self.observe_leaders(),
             fog: viewer.and_then(|p| self.fog_plane(p)),
             terrain_version: self.world.terrain_version(),
             territory_version: self.world.territory_version(),
         }
+    }
+
+    /// Every player slot's [`LeaderScene`]: a slot is one the tech, the
+    /// ledgers and the muster all hold.
+    fn observe_leaders(&self) -> Vec<LeaderScene> {
+        let slots = self
+            .tech
+            .len()
+            .min(self.economy.ledgers.len())
+            .min(self.roster.muster.len());
+        (0..slots)
+            .map(|who| {
+                let (t, l, m) = (
+                    &self.tech[who],
+                    &self.economy.ledgers[who],
+                    &self.roster.muster[who],
+                );
+                LeaderScene {
+                    who: who as Player,
+                    tribe: t.tribe,
+                    nation: self
+                        .tables
+                        .tech_tree
+                        .tribes
+                        .get(t.tribe)
+                        .map_or_else(String::new, |n| n.name.clone()),
+                    ages: t.ages,
+                    bucket: l.bucket,
+                    income: l.income,
+                    over_cap: l.over_cap.map(|o| o != crate::economy::OverCap::Under),
+                    control: m.control,
+                    pop_cap: m.cap,
+                }
+            })
+            .collect()
     }
 
     /// The terrain grids as they stand.
