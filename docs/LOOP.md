@@ -41,10 +41,14 @@ hours on one (DECISIONS 118); what is Ramon's goes in the handoff. It is
 asked only with `--status`, never cancelled; and a draft left in the prompt box, which ccc
 never submits, is a permission-shaped block that goes to Ramon in the
 closing message. **It clears at a milestone of the track it is driving, at
-a supply boundary, and whenever its next turn would carry more than 230 k**
-— the depth at which landings were measured to get dear (lore, 2026-11-09:
-lane USD a landing followed the count of deep sessions, 5.03 in a tranche
-with none and 10.61 in one with twelve). Idle compaction is the fallback,
+a supply boundary, and whenever its next turn would carry more than 400 k**
+(230 before DECISIONS 131 §6: measured on four lanes cleared at 230 k, the
+fresh session's re-reading cost more than the lighter requests saved, 7.77
+USD against 4.27, because a token read again costs forty times a token
+carried; the figure of 2026-11-09, 5.03 USD a landing with no deep session
+and 10.61 with twelve, followed the item's size). **What is dear is a read
+past the hour the cache lives**: a row or a lane that will sit longer than
+that on a deep context is cleared first. Idle compaction is the fallback,
 never the mechanism: a session that resumes summarised re-reads the queue
 before it acts.
 
@@ -129,6 +133,17 @@ worktree-replan-pdb:main`, a fast-forward only — because a harness-made
 worktree branches from `origin/main`, and a main left behind starts a
 builder on a stale base. The root checkout is Ramon's to pull. Renaming the
 branch is his: a remote branch delete is refused from every row.
+
+**The booking gate takes every landing that is merged when it starts**
+(DECISIONS 131 §4). The tranche of 2026-11-12 ran eleven booking gates one
+landing at a time, 334.9 minutes of gate in a span of 413: the gate bound
+the loop, not the workers. The driver merges and books every lane and
+builder that is done, then gates the tip once and pushes it; a red names
+its test, and the driver reads which merge moved it before it sends anyone
+a line. **At a builder's merge the pins a merge moves are run first** — the
+census pin, the doors pin, `free::ages`, `diff::coverage`,
+`diff::checksum_lines`, `diff::transfer` — because two of that tranche's
+three reds were such a pin found by a thirty-minute gate.
 
 **The gate clears the disk** (DECISIONS 128 §1). After a gate that exits 0,
 `tools/gate_run.sh` runs `tools/disk.py`: every oracle cache generation but
@@ -456,7 +471,7 @@ nowhere (`docs/DECISIONS.md` entry 125). **The handoff's
 `For the pass` counts are the tables'** — `tools/gates.py <tmp> --since
 <the last pass's gate log>` and `tools/tranche.py --base <base>`, pasted
 after `lore index`, never a count from memory. **A waiter on a lane is
-armed with `--deep 230`.**
+armed with `--deep 400`** (DECISIONS 131 §6).
 
 ## Ratification, and the passes
 

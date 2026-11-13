@@ -134,9 +134,10 @@ is append-only and amended in place, as it always was.
 - 125 standing — no parked file
 - 126 amended by 128 — two rows, three workers, the leaders tranche
 - 127 standing — a render row is the client's pixels and reads brightness
-- 128 amended by 129, 130 — the gate clears the disk, release on transfer, four workers on trial
+- 128 amended by 129, 130, 131 — the gate clears the disk, release on transfer, four workers on trial
 - 129 standing — four workers confirmed, one whole lane at a time; the sweep keeps a cache in use; release on the packets
-- 130 standing — no idle driver row: the row that hands over is cleared or reaped; the pass designs the trees
+- 130 amended by 131 — no idle driver row; §3 withdrawn
+- 131 standing — a leaf leaves where it moves; VII's capture; step S; a gate takes all merged; 400 k
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — the fifty-first tranche, two Opus lanes
 - 89 amended in place — the fiftieth tranche, two Opus lanes
@@ -12632,3 +12633,134 @@ and read a cold / uncached response.. unaceptable."
 `steer`, a backgrounded task's exit, a harness event); whether `ccc clear`
 on a row armed by another stays safe when the target's worktree is the shared
 one.
+
+## 131. A leaf leaves only where it moves or is frozen by construction, step VII takes its capture first, the packets' games walk from the lobby's start, the booking gate takes every landing that is merged, a lane clears at 400 k, and the handover's two failures are named (2026-11-13)
+
+**What happened.** `commander` banked the tranche at `9db514c56` and armed the
+pass by supply at 01:30 −05:00 (entry 126 §4): no scoped item stood and the
+chain's step VII was undesigned. The arm never fired (§8). Ramon found both
+rows idle at 08:14 and started the pass by hand on the `steer` row. Measured
+on the tranche (`tranche.py`, `gates.py --since gate-pass-1112d.log`, and two
+Opus 5.5 scouts whose reports are under `~/Library/Caches/attrition/pass-1113/`;
+the tables are in `docs/audit/2026-11-13-fable-pass-supply.md`): eleven landings
+in 6.9 hours; eight lane landings at 10.73 USD; a lane's session 69.0 minutes
+of which 50.0 waiting, 39.0 on its own gate; eleven booking gates, 334.9
+minutes of gate inside a span of 413, three red.
+
+**Ramon, on this row:** "where are commander and steer right now? both are
+paused..."; "start the pass then we decide how we're handing
+steer<->commande rhandoff".
+
+**Decided**, the pass's and Ramon's to move; §8's mechanism is his.
+
+1. **A leaf leaves `LEADERS_HELD_OUT` only where it moves, or where it is
+   frozen by construction.** Entry 128 §3's first clause read "agrees on
+   every dump that prints the record" and asked for no mover; its transfer
+   clause and entry 129 §5 both ask for one. The census of step VII found
+   what that lets through: fifteen printed leaves of §7 to §9 are nonzero in
+   six dumps and no harness walks any of them, so a stub that holds each
+   leaf's reset value would agree on every dump the leader diff reads and
+   release all fifteen. The clause now reads: **agrees on every dump that
+   prints the record, at least one of them a dump our walk holds on which
+   the leaf is nonzero or changes.** The second way out is new, for a leaf
+   nothing can move: **a leaf whose every store in the executable writes one
+   constant leaves when it agrees everywhere, its writer set is pinned by a
+   scan of the executable's stores to its displacement (an install-backed
+   test, seen red once on a displacement that has a live writer), and a
+   leaf on each side of it in the record has left by moving**, so the
+   comparison is sighted on its bytes. That is 4187c's ruling
+   (`score_explored`, `score_pop`), and `last_spoke`'s, which nothing
+   writes. The quiet printed leaves that left before entry 128 by holding
+   their reset value (item 4162's `misery`, `handicap` and the rest) are
+   run through the same scan by the step that builds it; one with a live
+   writer and no mover goes back on the list, and the count rising by it is
+   a correction, not a regression.
+2. **Step VII takes its capture first.** All 21 leaves of §7, §8 and §9
+   are held out, none has a writer in the crate, twenty read zero on all
+   226 walked packet leaders and `hire_who` reads −1 on all of them. The
+   games that move them (run1077, run1078, run1086 and their twins) have
+   no walk, no packet and no recording. So the order is **VII-a, the
+   take**: one game on the click-free lane, on a lobby our walk holds, at
+   `TEAM_STYLE` 0 (run1078's lobby is the coverage pair's, which the
+   harness walks at style 1), its script meeting and allying a computer,
+   sending it a resource taunt, declaring on it while allied, making a
+   peace that is accepted, declaring again and making a proposal the
+   computer finds short; the level-9 record every frame in a window round
+   each line and a packet after the last. Its first number is the walk's
+   own: how far our walk holds that game. A style-0 game enters the
+   computer's diplomacy, which no walked capture has, and the step stops
+   and says so at the first decision we lack. **VII-b** holds the leaves
+   that moved there, up to fifteen, and compares them on that game.
+   **VII-c** — `hire_stamp`, `hire_who`, `tributes`, `tribute_demanded`,
+   `incoming_taunt_who`, and the leaves `docs/LEADERS.md` §8.6 leaves
+   unread (the shortfall, the demand arm's locals, `scale_tribute`'s
+   constants) — needs a reading and a game of three leaders, and is
+   booked when VII-b lands. The carrier is the console script, which
+   carried a declaration and a taunt on those six runs; whether the
+   original plays a minted `Declare` or `Chat` is not established
+   (`docs/RECGAME.md` §9.4) and our pump maps neither.
+3. **Step S goes ahead of both: the packets' games walk from the lobby's
+   start** (parked 4188a). Entry 129 §5 made the packets the oracle for
+   every unprinted leaf. Item 4188 wired 107 and found 147 of 1,058 lines
+   agreeing, the leaders line on none: 87 packets sit on words whose start
+   is seated from a dump, and the lines carry what a dump does not print
+   (`start_x.num` on 106, `cities_built` one short on 224 of 226 leaders,
+   `aggression` on 216, every item's `ever_seen`). Which partings are the
+   seat's and which the walk's nobody knows, and the only frame on which
+   eight of twelve lines are shown whole is frame 91, where little has
+   happened. `Start:` holds 143 of 161 lobbies. Step S stands each
+   packet's game up from the lobby-built start where the start track
+   holds its lobby, and counts `Checksum: lines` again. A word that does
+   not hold lockstep from the built start stays dump-seated and is named.
+   It is first for the reason T went ahead of V and P ahead of VI.
+4. **The booking gate takes every landing that is merged when it starts.**
+   The tranche's gates ran one at a time for 334.9 of 413 minutes, one
+   landing a gate, 30 to 45 minutes each: the loop is bound by the gate,
+   not by the workers, the window or the host. The driver merges and books
+   every lane and builder that is done, then gates the tip once; a red
+   names its test and the driver reads which merge it is. Two of the three
+   reds were pins a merge had moved (the seams count after 4187,
+   `AGES_RESOLVED` after 4189), each a second gate: the doors pin and
+   `free::ages` join the tests the driver runs at a builder's merge.
+5. **Four workers stand; a fifth is not added.** On §4's measurement a
+   fifth worker adds a queue, not a landing. The whole slot stays one lane
+   (entry 129 §1): nine of eleven gates ended under the cores.
+6. **A lane is cleared at 400 k, not 230.** Measured on the four lanes
+   cleared at 230 k this tranche: the fresh session's ramp cost 7.77 USD
+   and the lighter requests after it saved 4.27, a net loss of 3.49 (a gain
+   of 0.24 on the most generous model); two of the four re-derived what the
+   first session had read and climbed back over 230 k. The reason is the
+   rate: a token read again costs 8.00 USD a million and a token carried
+   costs 0.20 a request (lore's rates for Opus 5.5 on 2026-11-13), so above
+   100 k a request grows about 0.01 USD for each 50 k. Entry 116's figure
+   (5.03 USD a landing with no deep session, 10.61 with twelve) was a
+   correlation with the item's size. What is dear is a read past the hour
+   the cache lives: no lane paid one, and the longest gap was 51.7 minutes.
+   The driver's own line moves with it; it still clears at a step and at a
+   handover.
+7. **The lanes' items are 4200 to 4204** (`docs/QUEUE.md`): the lake's
+   water, fire and smoke where the original anchors them, a press that
+   follows or guards, the HUD's clock and a wounded selection, and on the
+   whole slot the asphalt ring (4199), the start track (4196) and the
+   quit's `clear_orders` (4204, parked 4189a).
+8. **The handover failed twice, and both causes are read.** The cold wake
+   of 2026-11-12 was the resting row's own background command (a headless
+   ccc pane it had started to serve the other row's fire) exiting an hour
+   after the turn ended: the harness re-invoked the row on 343 k past the
+   cache's hour, 312,347 tokens written cold. The lost arm of 2026-11-13
+   is ccc's `performClear`: it types `/clear`, waits for the screen to
+   change, and returns without typing the prompt when it does not; a row
+   already cleared has nothing to change. Entry 130 §3's interim rule, a
+   bare clear of the other row at every handover, therefore breaks the
+   next `--then` onto that row, and is withdrawn. The mechanism is
+   Ramon's to pick (the record's "For Ramon"); until he has, a row hands
+   over by a message to the other row's empty session or by his hand, and
+   no row leaves a background command running when it rests.
+
+**Not established:** how far our walk holds a style-0 game; how many of the
+87 word packets' lobbies hold lockstep from the built start; whether the
+frozen scan finds a live writer behind a quiet leaf already released;
+whether a gate over several merges reads its reds as cleanly as one over
+one; what `fseventsd` is serving (it holds a core and 28 GiB after 29 days
+up, and is Ramon's to restart); whether the fresh session's second look is
+worth something the prices do not show (lane-4193's reversed a wrong sign).
