@@ -37,6 +37,7 @@
 //! and `render`, and none of them on it (`tests::the_sim_takes_no_graphics`).
 
 mod dead;
+mod expose;
 mod fire;
 mod gpu;
 mod ground;
@@ -48,6 +49,7 @@ mod patch;
 mod roads;
 mod shadows;
 mod silhouette;
+mod tint;
 mod trace;
 mod trees;
 mod weathering;

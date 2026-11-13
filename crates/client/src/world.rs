@@ -663,6 +663,9 @@ impl World {
             }
         }
         let tileset = lobby_tileset(install_root, &start);
+        let tint = tileset
+            .as_deref()
+            .map_or([0; 3], |t| crate::tint::of(install.root(), t));
         let seed = rondata::mapgen::start_head(&start)
             .ok()
             .flatten()
@@ -786,7 +789,9 @@ impl World {
             .and_then(|w| {
                 let (_, _, file2) = w.into_iter().find(|e| e.0 == WEATHER_BUCKET)?;
                 let bytes = std::fs::read(resolve_art(install.root(), &file2)?).ok()?;
-                let img = render::tga::decode(&bytes).ok()?;
+                let mut img = render::tga::decode(&bytes).ok()?;
+                // Item 4212 (§3.21): `load_weathering_data@00875a60` tints it.
+                img.tint(tint);
                 Some(std::sync::Arc::new(render::silhouette::Mips::new(img)))
             });
         // Item 4199 (§3.19): the road pieces, page 0's modern texture and
@@ -799,6 +804,8 @@ impl World {
                 .iter()
                 .find(|t| t.0 == ROAD_BUCKET)?;
             let bytes = std::fs::read(resolve_art(install.root(), file)?).ok()?;
+            // Item 4212 (§3.21): `roads.xml`'s pages are not the tileset's
+            // `<ROADTEX>`, and their loader sets no tint.
             let img = render::tga::decode(&bytes).ok()?;
             Some(RoadArt {
                 pieces: crate::roads::Pieces::new(&art),

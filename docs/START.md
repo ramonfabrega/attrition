@@ -516,7 +516,7 @@ an assumption the dump cannot settle.
 | cities, buildings, units, orders | `CITY`, `BUILDDATA`, `UNIT` | the walk | built; block |
 | guy clocks | `DUMP_ALL` guys | `Guy::init_real` | built; the walk (frame 40 parted while the pieces were missing, below) |
 | a player unit's pieces | `GUY gpiece` | `Sim::unit_gpiece` off the install | built once `install_art` ran before the first unit; the walk |
-| gaia's pieces | `GUY gpiece` | none | dump-only: `first_bird_piece` is a runtime pointer no file states (`Sim::piece_of`); the walk agrees without it |
+| gaia's pieces | `GUY gpiece` | `Sim::gaia_piece`: `get_unit_gpiece`'s gaia arm, `(seed + o) % 3` walked down to a variant the install ships (item 4208) | built; ~~dump-only~~ the dump's 60075 on every whale, and every East Indies word's draws to its last packet (`docs/CHECKSUM.md` §23.7). Without it a whale keeps an idle variant its packet lacks and wraps on frame 2 |
 | gaia's facing | a default, `0x55555555` | `Herd::create_units`' angle draw | built; the installer's is the default (40 differ) |
 | a gaia animal's herd | the first herd of its type | the herd that founded it | built; the installer's is an approximation (33 differ) |
 | the scout's `squad_size` | the dump's figure count, 2 | 1 | not established which the walk reads; the walk agrees |
@@ -529,7 +529,7 @@ an assumption the dump cannot settle.
 | oil claims | a replay off the owners | the walk's territory | built; whole comparison |
 | the sync word | the trace's last word | the walk | built; block |
 | a building's `z` | the setup block | its own terraform | not read by the simulation (the renderer's) |
-| a cell's `down`, `down_who` | the dump's chain heads | the map's (−1, −2, −3) | dump-only as cell bytes: the simulation threads its chains in `terrain.chain_heads`; 28 cells differ; not established that anything reads the cell's copy |
+| a cell's `down`, `down_who` | the dump's chain heads | the map's (−1, −2, −3) | dump-only as cell bytes: the simulation threads its chains in `terrain.chain_heads`; 28 cells differ. ~~Not established that anything reads the cell's copy~~: the world line prints it (`object_head_words`), and a box's −3 goes −1 when the box is taken (item 4209, `docs/GOODY.md` §4) |
 | corrections: frame words, clocks, re-seats | the siblings' `DUMP_ALL` | none | not taken by either walk of §7.4 |
 
 **The counts**: 37 takes. **Built 25**, equal on every comparison since
@@ -648,11 +648,15 @@ walk's word is 0, first parting `Unit::think_scout+0x64c` against
   `Map::init_map_data` (Great Lakes names none, and the built start does
   not read one).
 - **Not established**: §7.3's three; which of `squad_size`'s two values
-  the walk reads (it agrees either way); whether anything reads a cell's
-  own `down` copy; the original's frame-0 `new_rares` (its count's
+  the walk reads (it agrees either way); ~~whether anything reads a cell's
+  own `down` copy~~ (the world line does; item 4209); the original's frame-0 `new_rares` (its count's
   first print is frame 91's `known_rares 1` for seat 1, which ours
-  holds; item 4093); the gaia pieces'
-  source; the heights below the dump's print. One lobby: any other needs
+  holds; item 4093); ~~the gaia pieces'
+  source~~ (item 4208, §7.1: `get_unit_gpiece`'s gaia arm over the
+  install's shipped variants); the heights below the dump's print; the
+  creation variant of East Indies' pasture chicken (run1149's `9/4`, built
+  `IDLE1` on piece 60058, the seated start 0 with no piece). It agrees by
+  frame 1 and spends no draw. One lobby: any other needs
   its own composed map (`docs/START.md` §6) and its own captures.
 - **The lobby page** (item 4184): the choices this walk reads are set by
   a person on the client's page, and the harness lobby's start built from

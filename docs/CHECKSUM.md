@@ -1827,8 +1827,8 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     `territory.players[w].strength`, 0 and 0 on both sides (`docs/LEADERS.md`
     §5.2), `give_att_disabled` (~~`Leader::plan_strategy`~~ the scenario
     triggers, `docs/LEADERS.md` §5.2).
-  - the diplomacy actions (15): `dow`, `blacken`, `broke_alliance`,
-    `made_peace`, `tributes`, `tribute_sent`, `tribute_received`,
+  - the diplomacy actions (~~15~~ 12): ~~`dow`, `blacken`, `broke_alliance`,~~
+    carried by item 4159's VII-b1 (`sim::leaders::declare`); `made_peace`, `tributes`, `tribute_sent`, `tribute_received`,
     `tribute_stamp`, `gift_stamp`, `hire_stamp`, `hire_who`, `good_deeds`,
     `last_spoke`, `counteroffer`, `tribute_demanded`: the `action_*` family,
     `consider_tribute` and `Leader::diplomacy`'s arms the crate stops at a
@@ -2246,27 +2246,59 @@ from it now (`packets::walk_packets_built`; `hold` asserts the lockstep).
 The other 29 words, 46 packets, part before their first packet and stay
 dump-seated (`packets::SEATED_WORDS`), in two clusters:
 
-- **4205a, every East Indies word (24, 38 packets)**: the count parts on
+- ~~**4205a, every East Indies word (24, 38 packets)**: the count parts on
   frame 2, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271` at draw 0,
-  theirs `Farms::inc_time+0x1ae` (run1149's game, ours 7 draws theirs 4).
-  At frame 0 the two starts' figures differ in `guys[0].anim` on four gaia
-  animals with the unset angle (facing `0x80000000`; §6 of
-  `docs/START.md` names it for a whale) and one pasture animal: run1149's
-  `8/4` built 3 dump 0, `8/5` 1 and 0, `8/11` 1 and 0, `8/13` 2 and 0,
-  `9/4` 1 and 0. The seated start also installs 132 figures' clocks from
-  its `DUMP_ALL` sibling at frame 0's end; which difference spends the
-  draw is not established.
+  theirs `Farms::inc_time+0x1ae` (run1149's game, ours 7 draws theirs 4).~~
+  Closed by item 4208: the built start's whales had no piece. Below.
 - **4205b, the Great Lakes Modern and Information words (5, 8 packets)**:
   the count parts on frame 0, `Unit::think_scout+0x64c` against `+0x436`
   at draw 36 or 37, the fog's sign (`docs/START.md` §7.2). On run1429's
   game four fog cells differ, the first `world.fog[5981]` built 0 dump 2.
 
-`the_seated_words_part_from_the_built_start` pins one word of each
-cluster's parting and the counts (`BY_START`): the lockstep assertion is
-sighted. Each word's own floor test still walks from its dump-seated
-stand-up (`third::walk_from`, now `stand_up_from` and `walk_word`).
+**4205a's cause (item 4208): the whales' piece.** The three draws are
+three whales' clocks wrapping: run1149's `8/8`, `8/10` and `8/13`
+(`TypeIndex` `0x19c`, `HERDWHALES`, gaia's owner 8). On frame 0 each
+idles (`Animal::do_idle`) and its roll gives a variant, `IDLE1` or
+`IDLE2`. The whale's packet names one slot, `CHAR_DEFAULT` (*Whale
+Idle3*, 387 frames). `set_anim` therefore drops the variant to the
+default, and the clock runs 387 frames. The dump's frame-0 clocks say
+this: anim 0, end 387 on all three. Ours dropped nothing. The drop is
+gated on the guy having a piece, and a built start's gaia figure had
+none (`gpiece` −1), because `Sim::piece_of` read gaia's pieces from the
+dump alone. So ours kept `IDLE1` at the missing slot's 3 frames and
+wrapped on frame 2. The piece is not a runtime pointer.
+`GraphicPieces::get_unit_gpiece@0090c030`'s gaia arm gives
+`first_bird_piece + 3·(type − 0x192) + v`. `v` starts at `(seed + o) % 3`
+and walks **down** while the piece does not load. The install ships
+`HERDWHALES-TYPE0` alone, so every whale is 60075, the piece the start
+dump prints for all of run1148's whales. `Sim::gaia_piece` derives it
+from the install's shipped variants (`artdata::GaiaVariants`). It stands
+wherever a dump names no piece, and the checksum emitter's `gpiece` reads
+it too. The frame-zero `anim` differences of four whales (`8/4`, `8/5`,
+`8/11`, `8/13`) were the creation roll's variants, kept for the same
+reason, and they go with it. `9/4`'s remains (below). Built, run1149's
+game holds the draw stream for 5,841 of 5,841 frames, where it parted
+on frame 2. All 24 East Indies words hold to their last packet. **54 of
+59 words, 79 of 87 packets, walk from the built start** (`BY_START`
+((54, 79), (5, 8))). Every other packet's pin is unchanged.
 
-**The score: 150 of 1,058 lines agree** (147 at §23.5). On the 41 packets,
+`the_seated_words_part_from_the_built_start` pins 4205b's parting, run1149's
+game holding to frame 4, and the counts (`BY_START`): the lockstep
+assertion is sighted. Each word's own floor test still walks from its
+dump-seated stand-up (`third::walk_from`, now `stand_up_from` and
+`walk_word`).
+
+**The score: 153 of 1,058 lines agree** (150 at item 4205; 147 at §23.5).
+Item 4208's three, the East Indies packets built: run1161's builds line
+(frame 4, 520 ranges, 13 parting → 0; the first was building 7's
+`myhits..launch_frames`, ours `…d0070000…` theirs `…ffff0000…`) and its
+world line (8,850 ranges, 4,860 → 0; the first was range 1's
+`start_x.num`, ours 0 theirs 2), and run1385p's cities line (frame 2775,
+27 ranges, 2 → 0). On the 38, ranges parting fall on every line that
+moved: guys about 100 a packet (run1161 174 → 70), world to 0–18, builds
+by about 14. Every entry's comment in `packets.rs` has its pair. As at
+item 4205, `aggression` and `cities_built` leave all 38 entries of
+`PACKET_LEAF_PARTINGS`. On the 41 packets of item 4205,
 by line, seated against built (lines agreeing; ranges parting summed):
 
 | line | agree, seated → built | ranges parting, seated → built |
@@ -2292,15 +2324,126 @@ theirs 1, the start city `Setup::build_cities` counts) and `aggression`
 on dump-seated walks, chapters and melees. `start_x.num` is the world
 line's first parting on 65 packets (106). On 39 of the 41 the world
 line's first parting is a cell's `down`, ours −3 theirs −1 with
-`down_who` equal (4205c). run984b and run984c have no leaf parting
+`down_who` equal (4205c; closed by item 4209, below). run984b and run984c have no leaf parting
 outside the list. No leaf leaves `LEADERS_HELD_OUT`: `aggression` and
 `cities_built` were never on it.
 
 **How it was established**: diff-backed, every number a range-by-range
 comparison against the instrument's stream; the lockstep by the long
 trace's draws per frame. Red first: `spanish_word_packets` at the built
-start's pins, walked seated, part on four lines. **Not established**: the
-two clusters' causes (4205a, 4205b); whether the built start holds a
+start's pins, walked seated, part on four lines. The whales' piece (item
+4208) is backed by the start dump's `gpiece` 60075, by the dump's frame-0
+clocks (anim 0, end 387), and by the draw stream: run1149 to its end, and
+24 words to their last packets. **Not established**: 4205b's cause;
+~~4205a's~~ (item 4208, above); whether the built start holds a
 seated word past where its draws part; the chapters' and melees' packets,
-which stand up as before; the cell `down` copy (4205c, `docs/START.md`
-§7.1 names it dump-only).
+which stand up as before; ~~the cell `down` copy (4205c, `docs/START.md`
+§7.1 names it dump-only)~~ (item 4209, below).
+
+**4205c's cause (item 4209): the taken box's `Item::close`.** It was the
+world line's first parting on 76 of the 79 built packets. On run1186b
+the cell is (47, 29), box 2's, taken on frame 1134 by `1/0` (`0x47`,
+`EXPLORER`, land). `World::clear_down` turns the finder's tail word −3 →
+−1, `down_who` left, the cell takes it back when the finder steps off,
+and the box's `flags` go 0, so `check_items` walks it no more
+(`docs/GOODY.md` §4). **280 of 1,053 lines** (153 of 1,058): items 11 →
+102 of 102 (run1186b (105, 110, 25) → (105, 105, 0); five with no box
+leave the count), world 3 → 39 (run1186b (7361, 7361, 1) → 0, record
+1787 `down` ours −3 theirs −1). Each pin's pair is in its comment.
+
+## 24. Step H: the fifteen, every frame (item 4214)
+
+`DECISIONS.md` entry 132 §7, §10. `CheckSums::check_all@00936560` runs on every turn and prints only inside a dump
+window, and the per-frame oracle the words stand on, the draw stream, is blind to state (§23.7). This section is the
+original's fifteen lines on every frame, the pairing that puts them beside our walk, and the first frame each of our
+emitted lines parts on the minted game.
+
+### 24.1 The hook
+
+`tools/trace/checksums.h`, built under `-DRON_CHECKSUMS` (`--tracer-def RON_CHECKSUMS`; absent, nothing is hooked).
+`check_all` hands each line and its wrapping `total` to `SyncLogger::logToMemory<unsigned_long_&>@00463930` as
+`(file, line, cChecksumSync, format, &value)`, with the value already computed. The hook is an entry stub on that
+function whose `arg0` slot carries the entry's esp. A call counts only when its return address is inside `check_all`
+(the logger has 41 callers; four functions). It is keyed by its `line` argument: 0x1a for units, every five to 0x60
+for `script_run_time`, and 99 for `total`, as the listing pushes them. A whole set of sixteen is written as four
+`K_CSUM` (13) records when its frame or any word moved since the last written set. Each set carries its place among
+the frame's `check_all` calls and `check_all`'s return into `process_turn`. `rondata::trace::checksums` reads it.
+
+A set's frame is the tracer's: `Game::frame` at the last `Game::do_frame` entry, −1 before the first.
+`TurnControl::do_frame_solo@009556a0` calls `process_turn` before `check_new_frame_playback` lets `Game::do_frame` run,
+so every set tagged `f` follows frame `f`'s tick and `end_frame`. **Its first set is logger block `f + 1`'s end
+record**, and our walk's state at `sim.frame == f + 1` before that frame's package. In playback, a frame before an
+order's package has two sets: the read loop's `check_all` before `process_all` (return 0x93f108), then the turn's own
+after it (0x93fb68). The first is the end of the tick. Frame −1 is setup's call, our built start.
+
+### 24.2 The hook is the record (diff-backed)
+
+run1577 (`RUNS.md`): the minted file, 120 frames, `@dumpall` on 91. 124 sets, 0 torn, one on each trace frame −1 to
+119, two on 29, 59 and 89. **The first set of trace frame 90 is record 3201, 15 of 15, and of 91 is record 3202, 15 of
+15**, both in run1577's own window and against run1562's. The sum of the fifteen is the set's `total`. One frame off they
+part: 3201 against 89, 9 of 15 (units, builds, groups, guys, leaders, world part); against 91, 10; 3202 against 90, 10
+(`the_hook_s_values_are_the_printed_record_s`, `HOOK_RECORDS`). run1578's first 124 sets are run1577's. On each of
+seven packets (§24.4) the hook's set on the packet's trace frame is `tools/recomp/checksum.py`'s values, 15 of 15, and
+so is run1578's on that frame. The kill the item booked (the hook's values not the record's on frame 91) did not fire.
+
+### 24.3 The score: `Checksum: frames`
+
+Per line our walk emits, the first of our frames whose Adler parts from the hook's first set of the frame before, on
+the minted game's 24,000 (run1578; `our_lines_part_from_the_hook_s_on_their_first_frame`, `CHECKSUM_FRAMES`).
+Walls, ammo and deaths have no emitter. Rules and the two script lines are not the simulation's (entry 119). Each
+line is taken every frame inside the first 300 (`DIAG`), and past them only until it first parts:
+
+| line | first parts | ours | theirs | frames parted of 0..299 |
+|---|---|---|---|---|
+| units | 1 | 1380746621 | 3361244557 | 230: 1–30, 96, 101–299 |
+| builds | 100 | 2036616519 | 1941983632 | 200: 100–299 |
+| groups | 61 | 3641636078 | 3844076871 | 5: 61–65 |
+| guys | 129 | 4020237905 | 1262538754 | 171: 129–299 |
+| leaders | 0 | 4128131882 | 1059426481 | 300 |
+| cities | 4030 | 66197007 | 38147597 | 0 |
+| items | whole, 24,000 | | | 0 |
+| goods | 3246 | 1994224488 | 2043245418 | 0 |
+| world | 0 | 1459647454 | 823986248 | 1: 0 |
+
+On run1577's 120 the same walk gives the same first frames inside 120; guys, cities, items and goods are whole on all
+120. On the base before item 4209 the items line first parted on 987 (ours 1602836503, theirs 3605812239: item 3's
+`ever_seen`, and one box theirs had closed); item 4209's `Item::close` makes it whole on all 24,000. The 8 of 12 lines
+whole on frame 91 (§22) are whole there and around it; **a line whole on a packet frame is not
+a line whole on the game**. Measured: the walk to cities' 4030 takes 5.4 s in release.
+
+### 24.4 Where each first parting is (diff-backed)
+
+A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
+by range (`the_minted_packets_name_each_first_parting`, `MINTED_PACKETS`). The first parted range, decoded by the
+line's field reader where it has one:
+
+| line | frame | run | record, field: ours, theirs |
+|---|---|---|---|
+| units | 1 | 1579 | unit 0 `flags`: 65 (0x41), 73 (0x49); 2 of 1,077 ranges |
+| groups | 61 | 1580 | group record 1: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34 |
+| builds | 100 | 1581 | building 2000 `queue[k]`: type 0, 50; `cost[0]` 0, 27 |
+| guys | 129 | 1582 | 389 ranges against 375 (units 1,147 against 1,107): a figure ours holds and theirs does not yet |
+| goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02 |
+| cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2 |
+| leaders | 1 to 4030 | all | leader 0's long range at +0x10: ours 0 on every packet, theirs 0xc7 on 1 and 0x105 on 4030 (§20; item 4159) |
+
+**The world on the start** has no packet: the first boundary is frame 0's `end_frame`. run1579's `@dumpall` on 0 prints
+record 3201 before frame 0's tick (the hook's frame −1). Of its fifteen sections, **section 8 alone parts, `danger[0..8]`**:
+ours 1887436801, theirs 2995557468. The whole world, 823986248, is the hook's −1 (`the_world_parts_on_the_start_by_section`,
+`WORLD_START_PARTS`). From frame 1 to 299 the world line is the original's.
+
+### 24.5 How it was established, and what it has not established
+
+The hook's site, its arguments and the call's place in the frame are read from the export and the listing
+(`process_turn@0093ef10` lines 532 and 539, `do_frame_solo`, `Game::loop`). The pairing and the values are diff-backed
+by §24.2. The fold is tested on the host (`checksums_test.c`, red with the frame clause dropped). The reader is tested
+on synthetic records.
+
+Not established:
+- Whether a non-playback game's sets pair the same way. The solo arm calls `check_all` once a turn, with no read loop.
+- The parted lines' causes: each is a parked row of `docs/journal/2026-11-13-item-4214.md` (4214a to 4214h; 4214e
+  closed by item 4209).
+- What parts past a line's first parting outside `DIAG`. On every packet past frame 0 the world line agrees, and so
+  does items since item 4209.
+- Walls, ammo and deaths, which have no emitter. On this game they stay at Adler 1 on both sides to 4030 on every
+  packet.

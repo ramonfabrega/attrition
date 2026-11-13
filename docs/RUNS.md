@@ -36883,3 +36883,194 @@ records, no page fault. DLL `7a1383c3…`.
 Archive `gamelog-run1576-eastindies-melee-style0-diplomacy-take-window-1025-1029.txt`, 462,587,817 bytes,
 SHA-256 `b6311f305ce0ef53709a6b6fa2ccb9c81454a74bc81675b1479a5810a428f78a`; `rontrace-run1576.log`, 17,972,384 bytes,
 SHA-256 `c59a866dfe4a847f12ac6abd358afa4da27fb0831c2ad42a9fd20e2612036bc0`.
+
+## run1577 — the minted file's playback with the checksum hook and an `@dumpall` at 91: step H's first act (2026-11-13, item 4214, `att-4214`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: whether the fifteen values `CheckSums::check_all` hands its
+logger on a frame are the record the original prints there. No capture on disk carries `check_all`'s values outside a
+dump window; the hook (`tools/trace/checksums.h`) is new. The take: run1562's line with the hook and without the
+packet, `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1577
+--recording ~/ron-golden/recordings/item4059-minted-greatlakes-24000.rcx --end-frame 120 --cover cover=1 --log-window
+90 93 --detail end:MISC --timeout 900 --stall-seconds 120 --cmd-file <one line, "91 @dumpall"> --tracer-def
+RON_CHECKSUMS`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 15:29:55 −05:00, exited 15:30:24: **28.7 s launch to exit**, exit 0, `success`, 121 frames,
+  `last_frame` 120, seed 12345, map 14, players tribe 4 (flags 7) and tribe 11 (flags 1), five settings restored, no
+  page fault, no relaunch. `df -g ~` read 208 GB free before it. Minutes waited on another lane: none. DLL `73bd8f07…`,
+  build defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS`. The take left no `.rcx` in `Logs\`.
+- The hook: `I_CSUM` 124 sets, 0 torn, the stub patched; one set on every trace frame −1 to 119, two on 29, 59 and
+  89 (the read loop's `check_all` before an order's package, `process_turn`'s return 0x93f108, then the turn's own
+  after it, 0x93fb68).
+- The window prints records 3201 (`BEGIN FRAME 91`) and 3202 (`BEGIN FRAME 92`) again. **The hook's first set of trace
+  frame 90 is 3201, 15 of 15, and of 91 is 3202, 15 of 15**, in this take and against run1562's; one frame off they
+  part (3201 against 89: 9 of 15; against 91: 10; 3202 against 90: 10).
+- Filed with `filerun.py run1577 greatlakes-playback-of-minted-checksums-120`.
+
+Archive `gamelog-run1577-greatlakes-playback-of-minted-checksums-120.txt`, 62,498,527 bytes,
+SHA-256 `42af93222b0a69f1db805c08f3731d46531aef4013e1e5bd2ed3839f6e3050f5`; `rontrace-run1577.log`, 9,129,408 bytes,
+SHA-256 `197393e5191dd02b834eb5e13165c51c5380aeb08af3c56ad1f76c0c86d99d37`.
+
+**What it holds**: `diff::checksum_frames`. The hook is the record; our nine emitted lines walked frame by frame
+against it on 120 frames.
+
+## run1578 — the minted file's playback with the checksum hook, 0..24000: step H's score (2026-11-13, item 4214, `att-4214`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: on which frame of the minted game's 24,000 each line our walk
+emits first parts from the original's. run1561's take carries the draw stream, which is blind to state (DECISIONS 132
+§7). The take: run1561's line with the hook, `--recording <the minted file> --end-frame 24000 --cover cover=1
+--log-window 0 24001 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS`, through
+`viadriver.sh golden_capture.sh ~/ron-golden/run1578`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 15:39:26 −05:00, exited 16:09:18: **1,792.1 s launch to exit**, exit 0, `success`, 24,001
+  frames, `last_frame` 24000, `!ffwd 27`, no page fault, no relaunch. `df -g ~` read 207 GB free before it. Minutes
+  waited on another lane: none. DLL `91dda1fa…`. The take left no `.rcx` in `Logs\`.
+- The hook: `I_CSUM` 24,004 sets, 0 torn, one on every trace frame −1 to 23,999, two on 29, 59 and 89. Its sets on
+  −1..119 are run1577's, 124 of 124, and on each of the seven packets' frames (runs 1579 to 1585) each packet's
+  instrument values, 15 of 15.
+- The score, our walk under the pump against the hook's first set of each frame: units first parts on 1, builds 100,
+  groups 61, guys 129, leaders 0, cities 4030, items 987, goods 3246, world 0 (`CHECKSUM_FRAMES`).
+- Filed with `filerun.py run1578 greatlakes-playback-of-minted-checksums-24000`.
+
+Archive `gamelog-run1578-greatlakes-playback-of-minted-checksums-24000.txt`, 2,452 bytes,
+SHA-256 `40168698e6845d5e69297dc81607b221d8cc2487d77dee536c30ccd27bf729a2`; `rontrace-run1578.log`, 130,304,864 bytes,
+SHA-256 `b59b838d401a43f609a945425437e02feec5efeeed3afb54f4ac0e1300d85b25`.
+
+**What it holds**: `diff::checksum_frames`'s score on the whole game.
+
+## run1579 — the minted file's playback with a packet at 1 and an `@dumpall` on 0: units' first parting and the world on the start (2026-11-13, item 4214, `att-4214`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the units line out on frame 1, its first
+parting on run1578, and which world section parts on the start (frame 0), where no packet can stand. The take: the
+minted file with the hook, `--end-frame 40 --cover cover=1 --log-window 0 3 --detail end:MISC --timeout 900
+--stall-seconds 120 --cmd-file <one line, "0 @dumpall"> --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=1
+--tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`. A first launch at 16:09:44 with `--end-frame 4` was
+refused by the runner before any game ran (`invalid frame, timeout, or seed bound`: the floor is 36); no directory was
+written.
+- Pool lane 1, launched 16:13:25 −05:00, exited 16:13:46: **21.0 s launch to exit**, exit 0, `success`, 41 frames,
+  `last_frame` 40, no page fault. Minutes waited on another lane: none. DLL `6fcb6a98…`. No `.rcx` left in `Logs\`.
+- The packet at logger frame 1, trace frame 0, 942,005,052 bytes, SHA-256
+  `4f52cf73ba2a279081165e9a5a98617cc4b8635ea029ffd5200a00d9c4278a08`. `tools/recomp/checksum.py --stream --values`: the
+  stream's sums equal the original's on every line; kept under `~/ron-data/lab-experiments/2026-11-13-item-4214/run1579/`.
+- **Units on frame 1**: unit record 0's `flags`, ours 65 (0x41), theirs 73 (0x49), 2 of 1,077 ranges parted.
+- The window prints record 3201 before frame 0's tick (the hook's frame −1) and 3202 under `BEGIN FRAME 1`. **The world
+  on the start**: of 3201's fifteen sections, section 8 alone (`danger[0..8]`) parts from our built start, ours
+  1887436801, theirs 2995557468; the record's whole world, 823986248, is the hook's frame −1 value.
+- Filed with `filerun.py run1579 greatlakes-playback-of-minted-packet-1`.
+
+Archive `gamelog-run1579-greatlakes-playback-of-minted-packet-1.txt`, 61,219,660 bytes,
+SHA-256 `7ebe910fff3e7d86cf7448cad3f558def871fe5eb510a051280f2ba873ab5f13`; `rontrace-run1579.log`, 9,009,600 bytes,
+SHA-256 `cb5f65b91b0e657c104c203781ee618ae15192abdeba00e2c17f9a362d516e44`.
+
+**What it holds**: units' and the world's first partings, named.
+
+## run1580 — the minted file's playback with a packet at 61: groups' first parting (2026-11-13, item 4214, `att-4214`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the groups line out on frame 61, its
+first parting on run1578; the hook carries only the line's Adler. The take: run1579's line without the `@dumpall`,
+`--end-frame 64 --log-window 60 63 --tracer-def RON_STATE_FRAME=61`.
+- Pool lane 1, launched 16:10:13 −05:00, exited 16:10:32: **18.7 s launch to exit**, exit 0, `success`, 65 frames,
+  `last_frame` 64, no page fault. Minutes waited on another lane: none. DLL `6464b20f…`. No `.rcx` left in `Logs\`.
+- The packet at logger frame 61, trace frame 60, 778,373,852 bytes, SHA-256 `c88ac79c9c8b062b125d4777bca2ac31912389fc50eccb89316155cbd5ce3cf4`. `checksum.py --stream
+  --values`: the stream's sums equal the original's on every line; kept under
+  `~/ron-data/lab-experiments/2026-11-13-item-4214/run1580/`. The hook's set on 60 is the instrument's, 15 of 15.
+- **Groups on frame 61**: group record 1's `role` ours 0, theirs 262416 (0x40110); `new_speed` and `speed` ours 0, theirs 34 (`MINTED_PACKETS`).
+- Filed with `filerun.py run1580 greatlakes-playback-of-minted-packet-61`.
+
+Archive `gamelog-run1580-greatlakes-playback-of-minted-packet-61.txt`, 2,446 bytes,
+SHA-256 `c6b6997650de89ca93089332e355110ffdc6ab672a9bb66c3dbf5ce3eafccac1`; `rontrace-run1580.log`, 9,068,736 bytes,
+SHA-256 `84aa7bd873ab3225f7568f20307ebedadf7f32350d3fe78f3c1edc992d8d2097`.
+
+**What it holds**: the groups line's first parting, named by record and field.
+
+## run1581 — the minted file's playback with a packet at 100: builds' first parting (2026-11-13, item 4214, `att-4214`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the builds line out on frame 100, its
+first parting on run1578; the hook carries only the line's Adler. The take: run1579's line without the `@dumpall`,
+`--end-frame 103 --log-window 99 102 --tracer-def RON_STATE_FRAME=100`.
+- Pool lane 1, launched 16:11:04 −05:00, exited 16:11:24: **20.2 s launch to exit**, exit 0, `success`, 104 frames,
+  `last_frame` 103, no page fault. Minutes waited on another lane: none. DLL `1ef2bf5c…`. No `.rcx` left in `Logs\`.
+- The packet at logger frame 100, trace frame 99, 812,387,116 bytes, SHA-256 `18483cd99e6e9019a472fb2162258cdade9f21c01741c75b92446140a58368eb`. `checksum.py --stream
+  --values`: the stream's sums equal the original's on every line; kept under
+  `~/ron-data/lab-experiments/2026-11-13-item-4214/run1581/`. The hook's set on 99 is the instrument's, 15 of 15.
+- **Builds on frame 100**: building 2000's `queue[k]`: theirs type 50 at `cost[0]` 27, ours an empty slot (type 0) (`MINTED_PACKETS`).
+- Filed with `filerun.py run1581 greatlakes-playback-of-minted-packet-100`.
+
+Archive `gamelog-run1581-greatlakes-playback-of-minted-packet-100.txt`, 2,449 bytes,
+SHA-256 `d246281e101089df9221931ebe1f61c65168874f12c701b5e9b780954ed2d750`; `rontrace-run1581.log`, 9,133,280 bytes,
+SHA-256 `cccae2a85a2f5396c04b407a4023e77c64575ded06653fb54e6f3388c06b8f23`.
+
+**What it holds**: the builds line's first parting, named by record and field.
+
+## run1582 — the minted file's playback with a packet at 129: guys' first parting (2026-11-13, item 4214, `att-4214`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the guys line out on frame 129, its
+first parting on run1578; the hook carries only the line's Adler. The take: run1579's line without the `@dumpall`,
+`--end-frame 132 --log-window 128 131 --tracer-def RON_STATE_FRAME=129`.
+- Pool lane 1, launched 16:14:16 −05:00, exited 16:14:40: **24.0 s launch to exit**, exit 0, `success`, 133 frames,
+  `last_frame` 132, no page fault. Minutes waited on another lane: none. DLL `22b38414…`. No `.rcx` left in `Logs\`.
+- The packet at logger frame 129, trace frame 128, 779,172,572 bytes, SHA-256 `3798327f98ee60547525d7262ad6ef7741c493c412f8838b92ff173c46cea3a8`. `checksum.py --stream
+  --values`: the stream's sums equal the original's on every line; kept under
+  `~/ron-data/lab-experiments/2026-11-13-item-4214/run1582/`. The hook's set on 128 is the instrument's, 15 of 15.
+- **Guys on frame 129**: ours 389 ranges against theirs' 375 (and units 1,147 against 1,107): a figure and its unit ours holds and theirs does not yet; the first range past theirs' end is `guys.length` 1 (`MINTED_PACKETS`).
+- Filed with `filerun.py run1582 greatlakes-playback-of-minted-packet-129`.
+
+Archive `gamelog-run1582-greatlakes-playback-of-minted-packet-129.txt`, 2,448 bytes,
+SHA-256 `5e92c97365adbe1b82ee61fc3668ddc8e01d5c8a0debefd2e23ceac0f8d014c5`; `rontrace-run1582.log`, 9,186,944 bytes,
+SHA-256 `1b90ff0f042d3e380cb7a303cd64fc3fce3da23d9a10c88013d62432f7e028f2`.
+
+**What it holds**: the guys line's first parting, named by record and field.
+
+## run1583 — the minted file's playback with a packet at 987: items' first parting (2026-11-13, item 4214, `att-4214`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the items line out on frame 987, its
+first parting on run1578; the hook carries only the line's Adler. The take: run1579's line without the `@dumpall`,
+`--end-frame 990 --log-window 986 989 --tracer-def RON_STATE_FRAME=987`.
+- Pool lane 1, launched 16:15:07 −05:00, exited 16:16:51: **104.3 s launch to exit**, exit 0, `success`, 991 frames,
+  `last_frame` 990, no page fault. Minutes waited on another lane: none. DLL `4371258d…`. No `.rcx` left in `Logs\`.
+- The packet at logger frame 987, trace frame 986, 797,457,156 bytes, SHA-256 `b8f9a1afc1469e39bc2ad7143f32c37c29404a16668d64c15a7f9f1b7b5a6f0c`. `checksum.py --stream
+  --values`: the stream's sums equal the original's on every line; kept under
+  `~/ron-data/lab-experiments/2026-11-13-item-4214/run1583/`. The hook's set on 986 is the instrument's, 15 of 15.
+- **Items on frame 987**: item record 3's `ever_seen` ours 0x02, theirs 0x00; theirs walks 105 ranges, ours 110 (`MINTED_PACKETS`).
+- Filed with `filerun.py run1583 greatlakes-playback-of-minted-packet-987`.
+
+Archive `gamelog-run1583-greatlakes-playback-of-minted-packet-987.txt`, 2,447 bytes,
+SHA-256 `f8daa7847a943831bf92d9e32664cc8141a0352443a2af38a431b22f082fd1dd`; `rontrace-run1583.log`, 11,530,208 bytes,
+SHA-256 `4cb2f021fd15852e83d5f55acab84b674e229bea926c54df61a59e00275dd83c`.
+
+**What it holds**: the items line's first parting, named by record and field.
+
+## run1584 — the minted file's playback with a packet at 3246: goods' first parting (2026-11-13, item 4214, `att-4214`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the goods line out on frame 3246, its
+first parting on run1578; the hook carries only the line's Adler. The take: run1579's line without the `@dumpall`,
+`--end-frame 3249 --log-window 3245 3248 --tracer-def RON_STATE_FRAME=3246`.
+- Pool lane 1, launched 16:17:18 −05:00, exited 16:21:19: **241.0 s launch to exit**, exit 0, `success`, 3,250 frames,
+  `last_frame` 3249, no page fault. Minutes waited on another lane: none. DLL `a0823f75…`. No `.rcx` left in `Logs\`.
+- The packet at logger frame 3246, trace frame 3245, 784,735,076 bytes, SHA-256 `cc1e2f19f7ecde75af47ebd929761257a163a773cf7c85bdf8d832fb5dbfafdd`. `checksum.py --stream
+  --values`: the stream's sums equal the original's on every line; kept under
+  `~/ron-data/lab-experiments/2026-11-13-item-4214/run1584/`. The hook's set on 3245 is the instrument's, 15 of 15.
+- **Goods on frame 3246**: good record 19's `ever_seen` ours 0x00, theirs 0x02 (`MINTED_PACKETS`).
+- Filed with `filerun.py run1584 greatlakes-playback-of-minted-packet-3246`.
+
+Archive `gamelog-run1584-greatlakes-playback-of-minted-packet-3246.txt`, 2,451 bytes,
+SHA-256 `553361f590e042fed5c9a48327a00c6fdb552ba7bfbda40d068896dcdd8726b8`; `rontrace-run1584.log`, 22,185,024 bytes,
+SHA-256 `fc643d8e6025b4480fe8543137a677653694895f37f8eb1e11da2ab0cae1045c`.
+
+**What it holds**: the goods line's first parting, named by record and field.
+
+## run1585 — the minted file's playback with a packet at 4030: cities' first parting (2026-11-13, item 4214, `att-4214`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the cities line out on frame 4030, its
+first parting on run1578; the hook carries only the line's Adler. The take: run1579's line without the `@dumpall`,
+`--end-frame 4033 --log-window 4029 4032 --tracer-def RON_STATE_FRAME=4030`.
+- Pool lane 1, launched 16:21:50 −05:00, exited 16:26:49: **298.4 s launch to exit**, exit 0, `success`, 4,034 frames,
+  `last_frame` 4033, no page fault. Minutes waited on another lane: none. DLL `16c7939d…`. No `.rcx` left in `Logs\`.
+- The packet at logger frame 4030, trace frame 4029, 806,902,488 bytes, SHA-256 `0827f3fafa4a46bf541e02c6a75347e93541bf88379cce929ea4b46998eb6e55`. `checksum.py --stream
+  --values`: the stream's sums equal the original's on every line; kept under
+  `~/ron-data/lab-experiments/2026-11-13-item-4214/run1585/`. The hook's set on 4029 is the instrument's, 15 of 15.
+- **Cities on frame 4030**: city record 0's `traded_with[1]` ours 4, theirs 2 (`MINTED_PACKETS`).
+- Filed with `filerun.py run1585 greatlakes-playback-of-minted-packet-4030`.
+
+Archive `gamelog-run1585-greatlakes-playback-of-minted-packet-4030.txt`, 2,450 bytes,
+SHA-256 `2e3a9db10b14fa226ec7061f37b2072c539883e626a876b71df22db7f10c8028`; `rontrace-run1585.log`, 24,960,544 bytes,
+SHA-256 `daaf2327e1bc272f52c2d421737bc6b42ccc3e2a2bb68a1fb1b69f0b7c91f33d`.
+
+**What it holds**: the cities line's first parting, named by record and field.

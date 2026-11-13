@@ -185,6 +185,7 @@ impl Sim {
                 endgame: vec![crate::leaders::endgame::EndGame::default(); players],
                 finished: vec![crate::leaders::finished::Finished::default(); players],
                 score: vec![crate::leaders::score::Score::default(); players],
+                declare: vec![crate::leaders::declare::Declared::default(); players],
                 victory_checked: false,
                 game_over: false,
             },

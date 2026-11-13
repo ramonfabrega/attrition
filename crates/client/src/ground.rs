@@ -75,7 +75,20 @@ pub struct GroundTextures {
 }
 
 impl GroundTextures {
+    /// The tileset's textures as the client draws them: tinted at load
+    /// (item 4212, §3.21).
     pub fn load(root: &Path, tileset: &str) -> Result<GroundTextures, String> {
+        Self::load_tinted(root, tileset, crate::tint::of(root, tileset))
+    }
+
+    /// The files' own texels, untinted: the painter's (§3.6, the colour
+    /// reader's texel alone), whose rows item 4212 leaves as they stood.
+    #[cfg(test)]
+    pub fn untinted(root: &Path, tileset: &str) -> Result<GroundTextures, String> {
+        Self::load_tinted(root, tileset, [0; 3])
+    }
+
+    fn load_tinted(root: &Path, tileset: &str, tint: [u8; 3]) -> Result<GroundTextures, String> {
         let install = rondata::Install::new(root);
         let art = rondata::artdata::ground_art(&install, tileset).map_err(|e| format!("{e:?}"))?;
         let load = |list: &[rondata::artdata::GroundBase]| -> Result<Vec<Vec<Mips>>, String> {
@@ -84,8 +97,9 @@ impl GroundTextures {
                 let path = rondata::artdata::resolve_art(root, &b.texture)
                     .ok_or_else(|| format!("no file for {}", b.texture))?;
                 let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-                let image =
+                let mut image =
                     render::tga::decode(&bytes).map_err(|e| format!("{}: {e:?}", b.texture))?;
+                image.tint(tint);
                 bases.push(if b.supertile {
                     (0..9).map(|k| Mips::new(cut(&image, k))).collect()
                 } else {
@@ -104,9 +118,9 @@ impl GroundTextures {
                 let path = rondata::artdata::resolve_art(root, &rel)
                     .ok_or_else(|| format!("no file {rel}"))?;
                 let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-                Some(Mips::new(
-                    render::tga::decode(&bytes).map_err(|e| format!("{rel}: {e:?}"))?,
-                ))
+                let mut image = render::tga::decode(&bytes).map_err(|e| format!("{rel}: {e:?}"))?;
+                image.tint(tint);
+                Some(Mips::new(image))
             }
             None => None,
         };
@@ -979,15 +993,16 @@ pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1104, 1109);
 /// (164, 161, 124). `OCEAN` stays 0: with the sand patch and no coral it
 /// read 132 (the journal), the coral's cyan taking the sand's red back.
 #[cfg(test)]
+/// Item 4212: **1,028 → 1,021**, the land lit at the frame's white, §3.21: plain 677 → 679, `ROCK` 32 → 31, `SANDY` 319 → 311.
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1028, 1920),
+    (1021, 1920),
     [
-        [677, 679],
+        [679, 679],
         [0, 0],
-        [32, 32],
+        [31, 32],
         [0, 0],
         [0, 0],
-        [319, 772],
+        [311, 772],
         [0, 437],
     ],
 );
@@ -1011,12 +1026,13 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// 1,075**, the roads drawn (§3.19): plain 980 → 979 of 986, one ring tile
 /// whose asphalt is 0.89 of ours (parked 4199b); run1564 unchanged.
 #[cfg(test)]
+/// Item 4212: run1559b **1,075 → 1,029** (plain 979 → 952, under a mountain 80 → 61); run1564 **1,377 → 1,396** (`ROCK` 27 → 21, `SANDY` 499 → 397, `OCEAN` 172 → 299): the land lit at the frame's white, §3.21.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1075, 1109),
+        (1029, 1109),
         [
-            [979, 986],
-            [80, 106],
+            [952, 986],
+            [61, 106],
             [16, 17],
             [0, 0],
             [0, 0],
@@ -1025,15 +1041,15 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1377, 1920),
+        (1396, 1920),
         [
             [679, 679],
             [0, 0],
-            [27, 32],
+            [21, 32],
             [0, 0],
             [0, 0],
-            [499, 772],
-            [172, 437],
+            [397, 772],
+            [299, 437],
         ],
     ),
 ];
@@ -1045,7 +1061,9 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// run1564's 927 → 970, the coast's patches. Item 4199: run1559b's 1,003
 /// → 1,010, the roads drawn (§3.19).
 #[cfg(test)]
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1010, 1109), (970, 1920)];
+/// Item 4212: run1559b's 1,010 → 992, run1564's 970 → 1,043, the land lit at the frame's white, §3.21.
+/// On the tree merged with 4208 (the gaia figures' shipped variant), run1564's 1,043 → 1,044.
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1044, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1395,15 +1413,27 @@ pub struct MountainTemplateArt {
 }
 
 impl MountainArt {
+    /// Item 4212 (§3.21): `mountain_base` and `mountain_alpha` take the
+    /// tileset's tint (`TileSet::init@0087b370`).
     pub fn load(root: &Path, tileset: &str) -> Result<MountainArt, String> {
+        Self::load_tinted(root, tileset, crate::tint::of(root, tileset))
+    }
+
+    /// The files' own texels, untinted: the painter's.
+    #[cfg(test)]
+    pub fn untinted(root: &Path, tileset: &str) -> Result<MountainArt, String> {
+        Self::load_tinted(root, tileset, [0; 3])
+    }
+
+    fn load_tinted(root: &Path, tileset: &str, tint: [u8; 3]) -> Result<MountainArt, String> {
         let install = rondata::Install::new(root);
         let load = |rel: &str| -> Result<Mips, String> {
             let path =
                 rondata::artdata::resolve_art(root, rel).ok_or_else(|| format!("no file {rel}"))?;
             let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-            Ok(Mips::new(
-                render::tga::decode(&bytes).map_err(|e| format!("{rel}: {e:?}"))?,
-            ))
+            let mut image = render::tga::decode(&bytes).map_err(|e| format!("{rel}: {e:?}"))?;
+            image.tint(tint);
+            Ok(Mips::new(image))
         };
         let (base, alpha) =
             rondata::artdata::mountain_textures(&install, tileset).map_err(|e| format!("{e:?}"))?;
@@ -2196,10 +2226,10 @@ pub(crate) mod tests {
             &crate::world::gamelog_dir().join(crate::world::START_DUMP),
         )
         .expect("the lobby's tileset");
-        let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
+        let tex = GroundTextures::untinted(&p.root, &tileset).expect("the ground's textures load");
         // Item 4141: with a mountain's own art the ground is laid beneath
         // every mountain tile, and each range's tiles twice over it.
-        let art = MountainArt::load(&p.root, &tileset).expect("the mountains' art loads");
+        let art = MountainArt::untinted(&p.root, &tileset).expect("the mountains' art loads");
         let range = ground_mountain(&t, &art, &full);
         assert_eq!(
             range.tile.len(),
@@ -3168,7 +3198,7 @@ pub(crate) mod tests {
             &crate::world::gamelog_dir().join(crate::world::START_DUMP),
         )
         .unwrap_or_else(|| "early_autumn".to_string());
-        let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
+        let tex = GroundTextures::untinted(&p.root, &tileset).expect("the ground's textures load");
         println!("tileset {tileset}: {:?}", tex.art);
         for (b, subs) in tex.bases.iter().enumerate() {
             for (k, m) in subs.iter().enumerate() {
@@ -3365,7 +3395,7 @@ pub(crate) mod tests {
             &crate::world::gamelog_dir().join(crate::world::START_DUMP),
         )
         .expect("the lobby's tileset");
-        let tex = GroundTextures::load(root, &tileset).expect("the ground's textures load");
+        let tex = GroundTextures::untinted(root, &tileset).expect("the ground's textures load");
         tex.ocean[0][0].clone()
     }
 
@@ -3439,7 +3469,7 @@ pub(crate) mod tests {
             &crate::world::gamelog_dir().join(crate::world::START_DUMP),
         )
         .expect("the lobby's tileset");
-        let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
+        let tex = GroundTextures::untinted(&p.root, &tileset).expect("the ground's textures load");
         let mesh = p.world.terrain().clone();
         let t = p.world.runner.terrain();
         let mountains: std::collections::BTreeSet<(i32, i32)> =
@@ -3526,7 +3556,7 @@ pub(crate) mod tests {
         let none = std::collections::BTreeSet::new();
         let under_base = ground_base(&t, &none, &tex, &mesh);
         let under_patch = ground_patch(&t, &none, &tex, &mesh, &choice);
-        let art = MountainArt::load(&p.root, &tileset).expect("the mountains' art loads");
+        let art = MountainArt::untinted(&p.root, &tileset).expect("the mountains' art loads");
         let range = ground_mountain(&t, &art, &mesh);
         let painted = |tris: &[[[f32; 3]; 3]], uvs: &[[[f32; 2]; 3]], of: &[usize]| {
             paint(
@@ -3912,7 +3942,7 @@ pub(crate) mod tests {
             &crate::world::gamelog_dir().join(crate::world::START_DUMP),
         )
         .expect("the lobby's tileset");
-        let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
+        let tex = GroundTextures::untinted(&p.root, &tileset).expect("the ground's textures load");
         assert!(tex.bases.iter().all(|b| b.len() == 9), "four supertiles");
         let nb = tex.bases.len();
         let mesh = p.world.terrain().clone();
@@ -4427,7 +4457,7 @@ pub(crate) mod tests {
             &crate::world::gamelog_dir().join(crate::world::START_DUMP),
         )
         .expect("the lobby's tileset");
-        let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
+        let tex = GroundTextures::untinted(&p.root, &tileset).expect("the ground's textures load");
         assert!(tex.bases.iter().all(|b| b.len() == 9), "four supertiles");
         let mesh = p.world.terrain().clone();
         let t = p.world.runner.terrain();
@@ -5302,7 +5332,7 @@ pub(crate) mod tests {
             &crate::world::gamelog_dir().join(crate::world::START_DUMP),
         )
         .expect("the lobby's tileset");
-        let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
+        let tex = GroundTextures::untinted(&p.root, &tileset).expect("the ground's textures load");
         let mesh = p.world.terrain().clone();
         let t = p.world.runner.terrain();
         let mountains: std::collections::BTreeSet<(i32, i32)> =

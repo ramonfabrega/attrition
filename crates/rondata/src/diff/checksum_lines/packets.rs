@@ -16,7 +16,7 @@ use super::*;
 use crate::diff::third::stand_up_from;
 
 /// The twelve state lines, in `CheckSums::check_all@00936560`'s order.
-pub(super) const STATE_LINES: [&str; 12] = [
+pub(in crate::diff) const STATE_LINES: [&str; 12] = [
     "units", "builds", "walls", "ammo", "deaths", "groups", "guys", "leaders", "cities", "items",
     "goods", "world",
 ];
@@ -33,7 +33,15 @@ fn packets_dir() -> String {
 /// The instrument's twelve state lines of one packet, and the logger frame
 /// its values file names. `None` on a machine without them.
 fn packet_stream(run: &str) -> Option<(i64, std::collections::BTreeMap<String, StreamRows>)> {
-    let dir = packets_dir();
+    packet_stream_in(&packets_dir(), run)
+}
+
+/// [`packet_stream`] from another directory of `<run>/values.tsv` and
+/// `<run>/stream.tsv` (item 4214's minted packets).
+pub(in crate::diff) fn packet_stream_in(
+    dir: &str,
+    run: &str,
+) -> Option<(i64, std::collections::BTreeMap<String, StreamRows>)> {
     let values = std::fs::read_to_string(format!("{dir}/{run}/values.tsv")).ok()?;
     let frame = values
         .lines()
@@ -51,7 +59,7 @@ fn packet_stream(run: &str) -> Option<(i64, std::collections::BTreeMap<String, S
 /// One line's outcome on one packet: the stream's ranges, ours, the ranges
 /// that part, and the first parting `(range, record, field, ours, theirs)`.
 #[derive(Clone, Debug)]
-pub(super) struct LineOutcome {
+pub(in crate::diff) struct LineOutcome {
     pub theirs: usize,
     pub ours: usize,
     pub parted: usize,
@@ -70,7 +78,7 @@ impl LineOutcome {
 }
 
 /// The data layer the builds line reads its pieces from, read once a walk.
-pub(super) struct Pieces {
+pub(in crate::diff) struct Pieces {
     look: crate::artdata::BuildLook,
     tribes: Vec<crate::TribeDef>,
 }
@@ -87,7 +95,7 @@ impl Pieces {
 
 /// Our walk's twelve lines, in [`STATE_LINES`]' order. The walls, ammo and
 /// deaths lines have no emitter in the crate and are empty.
-pub(super) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
+pub(in crate::diff) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
     let p = build_pieces_with(sim, &pieces.look, &pieces.tribes);
     vec![
         sim.checksum_units(),
@@ -106,7 +114,7 @@ pub(super) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
 }
 
 /// The twelve lines held range by range against a packet's stream.
-pub(super) fn compare(
+pub(in crate::diff) fn compare(
     ours: &[Line],
     theirs: &std::collections::BTreeMap<String, StreamRows>,
 ) -> Vec<LineOutcome> {
@@ -299,38 +307,14 @@ pub(super) fn hold(game: &Game, packets: &[(&'static str, i64)]) {
 /// `docs/CHECKSUM.md` §23.7): walked from the lobby's built start their
 /// draw stream parts from the long trace before their first packet, so
 /// the lines would be read off a walk out of step. `(the word, why)`, the
-/// why the journal's parked finding: **4205a**, every East Indies word,
-/// parts on frame 2 (ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
-/// theirs `Farms::inc_time+0x1ae`); **4205b**, the Great Lakes Modern and
+/// why the journal's parked finding: **4205b**, the Great Lakes Modern and
 /// Information words, part on frame 0 (`Unit::think_scout+0x64c` against
 /// `+0x436`, the fog's sign, `docs/START.md` §7.2). Every other word walks
 /// from the built start ([`walk_packets_built`]) and holds the draws to
-/// every packet's frame.
+/// every packet's frame. The 24 East Indies words of **4205a** left at item
+/// 4208: their whales had no piece, so each kept an idle variant its packet
+/// lacks and wrapped on frame 2 (`Sim::gaia_piece`, `docs/START.md` §6).
 pub(super) const SEATED_WORDS: &[(&str, &str)] = &[
-    ("EastIndiesAmericanEnlightenment", "4205a"),
-    ("EastIndiesAztecAncient", "4205a"),
-    ("EastIndiesBantuAncient", "4205a"),
-    ("EastIndiesBritishClassical", "4205a"),
-    ("EastIndiesBritishEnlightenment", "4205a"),
-    ("EastIndiesGermanTier3", "4205a"),
-    ("EastIndiesGreekClassical", "4205a"),
-    ("EastIndiesIndianEnlightenment", "4205a"),
-    ("EastIndiesIroquoisEnlightenment", "4205a"),
-    ("EastIndiesJapaneseAncient", "4205a"),
-    ("EastIndiesJapaneseIndustrial", "4205a"),
-    ("EastIndiesKoreanAncient", "4205a"),
-    ("EastIndiesLakotaMedieval", "4205a"),
-    ("EastIndiesLakotaPeace", "4205a"),
-    ("EastIndiesMayaAncient", "4205a"),
-    ("EastIndiesMongolAllTech", "4205a"),
-    ("EastIndiesMongolGunpowder", "4205a"),
-    ("EastIndiesMongolMedieval", "4205a"),
-    ("EastIndiesPersianGunpowder", "4205a"),
-    ("EastIndiesRomanMedieval", "4205a"),
-    ("EastIndiesRomanTier2", "4205a"),
-    ("EastIndiesRussianModern", "4205a"),
-    ("EastIndiesSpanishGunpowder", "4205a"),
-    ("EastIndiesSpanishModern", "4205a"),
     ("GreatLakesAmericanInformation", "4205b"),
     ("GreatLakesAztecModern", "4205b"),
     ("GreatLakesEgyptianInformation", "4205b"),
@@ -339,8 +323,10 @@ pub(super) const SEATED_WORDS: &[(&str, &str)] = &[
 ];
 
 /// The word packets by their walk: `((words, packets) from the built
-/// start, (words, packets) dump-seated)` (item 4205).
-const BY_START: ((usize, usize), (usize, usize)) = ((30, 41), (29, 46));
+/// start, (words, packets) dump-seated)` (item 4205). ((30, 41), (29, 46))
+/// at item 4205; **((54, 79), (5, 8))** at item 4208, the 24 East Indies
+/// words and their 38 packets walked from the built start.
+const BY_START: ((usize, usize), (usize, usize)) = ((54, 79), (5, 8));
 
 /// Where a built start's draws first part from `tr`'s by frame `to`:
 /// `(frame, ours, theirs, the draw, our site, theirs)`.
@@ -348,10 +334,11 @@ type BuiltParting = (i64, usize, usize, usize, String, String);
 
 /// **The seat is named, and the built start's lockstep can fail** (item
 /// 4205): every [`SEATED_WORDS`] row is a held word, the counts are
-/// [`BY_START`]'s; and one word of each cluster walked from the built
-/// start parts where its row says — 4205a's on frame 2 (run1149's game,
-/// ours 7 draws theirs 4), 4205b's on frame 0 (run1429's, ours 142 theirs
-/// 141, at draw 37) — so [`hold`]'s lockstep assertion is sighted.
+/// [`BY_START`]'s; 4205b's word walked from the built start parts where
+/// its row says, on frame 0 (run1429's, ours 142 theirs 141, at draw 37),
+/// so [`hold`]'s lockstep assertion is sighted. And run1149's game, which
+/// parted on frame 2 (ours 7 draws theirs 4) until item 4208 gave the
+/// built start's whales their piece, holds to frame 4.
 #[test]
 fn the_seated_words_part_from_the_built_start() {
     let words: std::collections::BTreeMap<&str, usize> =
@@ -361,7 +348,7 @@ fn the_seated_words_part_from_the_built_start() {
         });
     for (w, why) in SEATED_WORDS {
         assert!(words.contains_key(w), "{w} is a held word");
-        assert!(["4205a", "4205b"].contains(why), "{w}: {why}");
+        assert_eq!(*why, "4205b", "{w}");
     }
     let seated = |w: &str| SEATED_WORDS.iter().any(|(n, _)| *n == w);
     let count = |pick: bool| {
@@ -378,47 +365,35 @@ fn the_seated_words_part_from_the_built_start() {
         "the word packets by their walk"
     );
     type Want = (i64, usize, usize, usize, &'static str, &'static str);
-    let cases: [((&str, &str), Want); 2] = [
-        (
-            crate::diff::russian_modern_pair::RUSSIAN_MODERN.long,
-            (
-                2,
-                7,
-                4,
-                0,
-                "Guy::set_anim+0x97a < Guy::inc_time+0x271",
-                "Farms::inc_time+0x1ae",
-            ),
-        ),
+    let cases: [((&str, &str), Option<Want>); 2] = [
+        (crate::diff::russian_modern_pair::RUSSIAN_MODERN.long, None),
         (
             crate::diff::aztec_modern_pair::AZTEC_MODERN.long,
-            (
+            Some((
                 0,
                 142,
                 141,
                 37,
                 "Unit::think_scout+0x64c",
                 "Unit::think_scout+0x436",
-            ),
+            )),
         ),
     ];
     for (long, want) in cases {
         let Some(got) = built_parting(long, 4) else {
             return;
         };
-        assert_eq!(
-            (got.0, got.1, got.2, got.3, got.4.as_str(), got.5.as_str()),
-            want,
-            "{}: where the built start's draws part",
-            long.0
-        );
+        let got = got
+            .as_ref()
+            .map(|g| (g.0, g.1, g.2, g.3, g.4.as_str(), g.5.as_str()));
+        assert_eq!(got, want, "{}: where the built start's draws part", long.0);
     }
 }
 
 /// A word's built start ticked to frame `to` at most, and where its draw
-/// count first parts from the long trace's. `None` on a machine without
-/// the captures; panics when the draws hold to `to`.
-fn built_parting(long: (&str, &str), to: i64) -> Option<BuiltParting> {
+/// count first parts from the long trace's (`Some(None)`: the draws hold
+/// to `to`). `None` on a machine without the captures.
+fn built_parting(long: (&str, &str), to: i64) -> Option<Option<BuiltParting>> {
     let (mut built, tr) = crate::diff::third::stand_up_built(long)?;
     built.sim.trace.trace_phases = true;
     while built.sim.frame < to {
@@ -430,10 +405,17 @@ fn built_parting(long: (&str, &str), to: i64) -> Option<BuiltParting> {
                 .find(|&i| ours.get(i) != theirs.get(i))
                 .unwrap_or(0);
             let name = |v: &[String]| v.get(i).cloned().unwrap_or_default();
-            return Some((at, ours.len(), theirs.len(), i, name(&ours), name(&theirs)));
+            return Some(Some((
+                at,
+                ours.len(),
+                theirs.len(),
+                i,
+                name(&ours),
+                name(&theirs),
+            )));
         }
     }
-    panic!("{}: the built start holds to frame {to}", long.0)
+    Some(None)
 }
 
 /// [`walk_packets`] from the lobby's **built start**
@@ -954,10 +936,27 @@ fn every_packet_is_wired_to_its_game_or_named() {
         return;
     };
     let on_disk = listed.kept;
+    // Step H's packets of the minted game (item 4214) are held by
+    // `diff::checksum_frames`, each on a line's first parting, and are not
+    // step P's: the disk is the census's and theirs, each named once.
+    let minted: std::collections::BTreeSet<&str> = super::super::checksum_frames::MINTED_PACKETS
+        .iter()
+        .map(|p| p.0)
+        .collect();
+    for run in &minted {
+        assert!(
+            on_disk.iter().any(|d| d == run),
+            "{run}: a minted packet checksum_frames holds is on disk"
+        );
+    }
     assert_eq!(
-        on_disk.iter().map(String::as_str).collect::<Vec<_>>(),
+        on_disk
+            .iter()
+            .map(String::as_str)
+            .filter(|d| !minted.contains(d))
+            .collect::<Vec<_>>(),
         sorted,
-        "the packets on disk are the census's"
+        "the packets on disk are the census's and checksum_frames'"
     );
     let mut read = 0;
     for (run, frame) in &frames {
@@ -978,8 +977,19 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// 147 at item 4188; **150** at item 4205, the 41 packets of the 30 words
 /// that hold lockstep from the built start walked from it: run958b's world
 /// line (7,291 ranges, 3,748 parting → 0), and run1237's and run1382's
-/// cities lines (27 ranges, 1 → 0; 20 ranges, 1 → 0).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 150, 1058);
+/// cities lines (27 ranges, 1 → 0; 20 ranges, 1 → 0). **153** at item
+/// 4208, the 38 packets of the 24 East Indies words walked from the built
+/// start once its whales carry their piece: run1161's builds line (520
+/// ranges, 13 parting → 0) and world line (8,850 ranges, 4,860 → 0), and
+/// run1385p's cities line (27 ranges, 2 → 0). **280 of 1,053** at item
+/// 4209, the taken box's `Item::close` (`docs/GOODY.md` §4): the items line
+/// agrees on 102 of 102 packets, 11 before (on run1186b (105, 110, 25) →
+/// (105, 105, 0): box 2, taken on frame 1134, is walked no more), and the
+/// five where theirs walks no box leave the count (run1217, run865, run882b,
+/// run883b and run959, (0, 35, 35) → (0, 0, 0)); the world line agrees on
+/// 39 of 107, 3 before (run1186b (7361, 7361, 1) → 0, its one range record
+/// 1787's `down` ours −3 theirs −1, `down_who` 2 both).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 280, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1027,7 +1037,9 @@ fn a_packet_s_comparison_can_part() {
     let Some(pieces) = Pieces::read() else {
         return;
     };
-    let Some((mut built, _)) = stand_up_from(G.start, G.long) else {
+    // The packet's own walk: the word holds from the built start since item
+    // 4208, so its pin is the built start's.
+    let Some((mut built, _)) = crate::diff::third::stand_up_built(G.long) else {
         return;
     };
     let agreeing = |o: &[LineOutcome]| o.iter().filter(|l| l.agrees()).count();
@@ -1110,12 +1122,14 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4205, the built start: units (2445, 2672, 1998) -> (2445, 2672, 1966); builds (2028,
     // 2028, 49) -> (2028, 2028, 36); world (7581, 7565, 4436) -> (7581, 7581, 20).
+    // Item 4209, the box's `clear_down`: builds (2028, 2028, 36) -> (2028, 2028, 35); items (5, 110,
+    // 107) -> (5, 5, 0); world (7581, 7581, 20) -> (7581, 7581, 0).
     (
         "run1001d",
         13760,
         [
             (2445, 2672, 1966),
-            (2028, 2028, 36),
+            (2028, 2028, 35),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -1123,18 +1137,20 @@ pub(super) const PINNED: &[Pinned] = &[
             (701, 806, 106),
             (271, 271, 2),
             (30, 30, 3),
-            (5, 110, 107),
+            (5, 5, 0),
             (120, 120, 0),
-            (7581, 7581, 20),
+            (7581, 7581, 0),
         ],
     ),
     // Item 4205, the built start: units (2939, 3438, 2660) -> (2939, 3438, 2627); builds (2417,
     // 2417, 58) -> (2417, 2417, 45); world (7537, 7521, 4313) -> (7537, 7537, 12).
+    // Item 4209, the box's `clear_down`: units (2939, 3438, 2627) -> (2939, 3438, 2626); items (45,
+    // 110, 83) -> (45, 45, 0); world (7537, 7537, 12) -> (7537, 7537, 0).
     (
         "run1007b",
         15915,
         [
-            (2939, 3438, 2627),
+            (2939, 3438, 2626),
             (2417, 2417, 45),
             (0, 0, 0),
             (0, 0, 0),
@@ -1143,19 +1159,21 @@ pub(super) const PINNED: &[Pinned] = &[
             (916, 1126, 215),
             (271, 271, 2),
             (30, 30, 3),
-            (45, 110, 83),
+            (45, 45, 0),
             (120, 120, 0),
-            (7537, 7537, 12),
+            (7537, 7537, 0),
         ],
     ),
     // Item 4205, the built start: units (3219, 3345, 2625) -> (3219, 3345, 2592); builds (2060,
     // 2060, 49) -> (2060, 2060, 36); world (7479, 7463, 4220) -> (7479, 7479, 11).
+    // Item 4209, the box's `clear_down`: builds (2060, 2060, 36) -> (2060, 2060, 35); items (50, 110,
+    // 77) -> (50, 50, 0); world (7479, 7479, 11) -> (7479, 7479, 0).
     (
         "run1011b",
         13105,
         [
             (3219, 3345, 2592),
-            (2060, 2060, 36),
+            (2060, 2060, 35),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -1163,19 +1181,21 @@ pub(super) const PINNED: &[Pinned] = &[
             (870, 975, 105),
             (271, 271, 3),
             (30, 30, 3),
-            (50, 110, 77),
+            (50, 50, 0),
             (120, 120, 0),
-            (7479, 7479, 11),
+            (7479, 7479, 0),
         ],
     ),
     // Item 4205, the built start: units (3193, 3298, 2619) -> (3193, 3298, 2588); builds (2080,
     // 2080, 47) -> (2080, 2080, 34); world (7537, 7521, 4366) -> (7537, 7537, 11).
+    // Item 4209, the box's `clear_down`: builds (2080, 2080, 34) -> (2080, 2080, 33); items (50, 110,
+    // 77) -> (50, 50, 0); world (7537, 7537, 11) -> (7537, 7537, 0).
     (
         "run1011c",
         13225,
         [
             (3193, 3298, 2588),
-            (2080, 2080, 34),
+            (2080, 2080, 33),
             (0, 0, 0),
             (6, 0, 6),
             (4, 0, 4),
@@ -1183,19 +1203,21 @@ pub(super) const PINNED: &[Pinned] = &[
             (861, 966, 105),
             (271, 271, 2),
             (30, 30, 3),
-            (50, 110, 77),
+            (50, 50, 0),
             (120, 120, 0),
-            (7537, 7537, 11),
+            (7537, 7537, 0),
         ],
     ),
     // Item 4205, the built start: units (3158, 3250, 2530) -> (3158, 3250, 2498); builds (2080,
     // 2080, 47) -> (2080, 2080, 34); world (7553, 7537, 4393) -> (7553, 7553, 10).
+    // Item 4209, the box's `clear_down`: builds (2080, 2080, 34) -> (2080, 2080, 33); items (50, 110,
+    // 77) -> (50, 50, 0); world (7553, 7553, 10) -> (7553, 7553, 0).
     (
         "run1011d",
         13277,
         [
             (3158, 3250, 2498),
-            (2080, 2080, 34),
+            (2080, 2080, 33),
             (0, 0, 0),
             (12, 0, 12),
             (4, 0, 4),
@@ -1203,19 +1225,21 @@ pub(super) const PINNED: &[Pinned] = &[
             (861, 966, 105),
             (271, 271, 2),
             (30, 30, 3),
-            (50, 110, 77),
+            (50, 50, 0),
             (120, 120, 0),
-            (7553, 7553, 10),
+            (7553, 7553, 0),
         ],
     ),
     // Item 4205, the built start: units (3117, 3189, 2465) -> (3117, 3189, 2437); builds (2080,
     // 2080, 47) -> (2080, 2080, 34); world (7517, 7501, 4316) -> (7517, 7517, 11).
+    // Item 4209, the box's `clear_down`: builds (2080, 2080, 34) -> (2080, 2080, 33); items (50, 110,
+    // 77) -> (50, 50, 0); world (7517, 7517, 11) -> (7517, 7517, 0).
     (
         "run1011e",
         13296,
         [
             (3117, 3189, 2437),
-            (2080, 2080, 34),
+            (2080, 2080, 33),
             (0, 0, 0),
             (9, 0, 9),
             (6, 0, 6),
@@ -1223,19 +1247,21 @@ pub(super) const PINNED: &[Pinned] = &[
             (854, 959, 105),
             (271, 271, 3),
             (30, 30, 3),
-            (50, 110, 77),
+            (50, 50, 0),
             (120, 120, 0),
-            (7517, 7517, 11),
+            (7517, 7517, 0),
         ],
     ),
     // Item 4205, the built start: units (3139, 3183, 2492) -> (3139, 3183, 2464); builds (2080,
     // 2080, 46) -> (2080, 2080, 33); world (7419, 7403, 4096) -> (7419, 7419, 11).
+    // Item 4209, the box's `clear_down`: builds (2080, 2080, 33) -> (2080, 2080, 32); items (50, 110,
+    // 77) -> (50, 50, 0); world (7419, 7419, 11) -> (7419, 7419, 0).
     (
         "run1015b",
         13392,
         [
             (3139, 3183, 2464),
-            (2080, 2080, 33),
+            (2080, 2080, 32),
             (0, 0, 0),
             (27, 0, 27),
             (4, 0, 4),
@@ -1243,14 +1269,16 @@ pub(super) const PINNED: &[Pinned] = &[
             (847, 952, 105),
             (271, 271, 2),
             (30, 30, 3),
-            (50, 110, 77),
+            (50, 50, 0),
             (120, 120, 0),
-            (7419, 7419, 11),
+            (7419, 7419, 0),
         ],
     ),
     // Item 4205, the built start: units (4193, 4310, 3311) -> (4193, 4310, 3249); builds (2371,
     // 2371, 68) -> (2371, 2371, 52); cities (27, 27, 2) -> (27, 27, 1); world (7583, 7567,
     // 4490) -> (7583, 7583, 8).
+    // Item 4209, the box's `clear_down`: items (75, 110, 56) -> (75, 75, 0); world (7583, 7583, 8) ->
+    // (7583, 7583, 2).
     (
         "run1155c",
         3003,
@@ -1264,32 +1292,37 @@ pub(super) const PINNED: &[Pinned] = &[
             (1129, 1234, 106),
             (271, 271, 3),
             (27, 27, 1),
-            (75, 110, 56),
+            (75, 75, 0),
             (120, 120, 0),
-            (7583, 7583, 8),
+            (7583, 7583, 2),
         ],
     ),
+    // Item 4208, the whales' piece: units (2760, 2965, 535) -> (2760, 2965, 213); builds (520, 520,
+    // 13) -> (520, 520, 0); guys (924, 994, 174) -> (924, 994, 70); world (8850, 7263, 4860) -> (8850,
+    // 8850, 0).
     (
         "run1161",
         4,
         [
-            (2760, 2965, 535),
-            (520, 520, 13),
+            (2760, 2965, 213),
+            (520, 520, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (526, 526, 0),
-            (924, 994, 174),
+            (924, 994, 70),
             (263, 263, 4),
             (6, 6, 0),
             (35, 35, 0),
             (330, 330, 0),
-            (8850, 7263, 4860),
+            (8850, 8850, 0),
         ],
     ),
     // Item 4205, the built start: units (6053, 5910, 5313) -> (6053, 5910, 5268); builds (2140,
     // 2136, 820) -> (2140, 2136, 811); cities (30, 30, 3) -> (30, 30, 2); world (7597, 7581,
     // 4525) -> (7597, 7597, 22).
+    // Item 4209, the box's `clear_down`: items (75, 110, 56) -> (75, 75, 0); world (7597, 7597, 22) ->
+    // (7597, 7597, 15).
     (
         "run1164",
         4528,
@@ -1303,85 +1336,108 @@ pub(super) const PINNED: &[Pinned] = &[
             (1321, 1475, 158),
             (271, 271, 6),
             (30, 30, 2),
-            (75, 110, 56),
+            (75, 75, 0),
             (120, 120, 0),
-            (7597, 7597, 22),
+            (7597, 7597, 15),
         ],
     ),
+    // Item 4208, the whales' piece: units (6004, 6418, 5320) -> (6004, 6418, 5252); builds (2267,
+    // 2266, 445) -> (2267, 2266, 431); groups (676, 676, 3) -> (676, 676, 1); guys (1890, 2051, 263)
+    // -> (1890, 2051, 163); world (9290, 7703, 6027) -> (9290, 9290, 15).
+    // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9290, 9290, 15) ->
+    // (9290, 9290, 11).
     (
         "run1165",
         3719,
         [
-            (6004, 6418, 5320),
-            (2267, 2266, 445),
+            (6004, 6418, 5252),
+            (2267, 2266, 431),
             (0, 0, 0),
             (287, 0, 287),
             (0, 0, 0),
-            (676, 676, 3),
-            (1890, 2051, 263),
+            (676, 676, 1),
+            (1890, 2051, 163),
             (271, 271, 4),
             (30, 30, 3),
-            (15, 35, 25),
+            (15, 15, 0),
             (330, 330, 2),
-            (9290, 7703, 6027),
+            (9290, 9290, 11),
         ],
     ),
+    // Item 4208, the whales' piece: units (6004, 6310, 5126) -> (6004, 6310, 5070); builds (2247,
+    // 2246, 508) -> (2247, 2246, 498); groups (688, 688, 3) -> (688, 688, 1); guys (1935, 2061, 229)
+    // -> (1935, 2061, 129); world (9262, 7675, 5955) -> (9262, 9262, 17).
+    // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9262, 9262, 17) ->
+    // (9262, 9262, 13).
     (
         "run1166",
         3920,
         [
-            (6004, 6310, 5126),
-            (2247, 2246, 508),
+            (6004, 6310, 5070),
+            (2247, 2246, 498),
             (0, 0, 0),
             (0, 0, 0),
             (10, 0, 10),
-            (688, 688, 3),
-            (1935, 2061, 229),
+            (688, 688, 1),
+            (1935, 2061, 129),
             (271, 271, 7),
             (30, 30, 3),
-            (15, 35, 25),
+            (15, 15, 0),
             (330, 330, 2),
-            (9262, 7675, 5955),
+            (9262, 9262, 13),
         ],
     ),
+    // Item 4208, the whales' piece: units (7749, 8143, 6789) -> (7749, 8143, 6726); builds (1813,
+    // 1813, 87) -> (1813, 1813, 73); groups (628, 628, 7) -> (628, 628, 5); guys (1934, 2095, 277) ->
+    // (1934, 2095, 177); world (9438, 7851, 6516) -> (9438, 9438, 4).
+    // Item 4209, the box's `clear_down`: items (20, 35, 22) -> (20, 20, 0); world (9438, 9438, 4) ->
+    // (9438, 9438, 1).
     (
         "run1169",
         3769,
         [
-            (7749, 8143, 6789),
-            (1813, 1813, 87),
+            (7749, 8143, 6726),
+            (1813, 1813, 73),
             (0, 0, 0),
             (12, 0, 12),
             (0, 0, 0),
-            (628, 628, 7),
-            (1934, 2095, 277),
+            (628, 628, 5),
+            (1934, 2095, 177),
             (271, 271, 4),
             (27, 27, 3),
-            (20, 35, 22),
+            (20, 20, 0),
             (330, 330, 2),
-            (9438, 7851, 6516),
+            (9438, 9438, 1),
         ],
     ),
+    // Item 4208, the whales' piece: units (6735, 7099, 6040) -> (6735, 7099, 5981); builds (1911,
+    // 1911, 73) -> (1911, 1911, 59); groups (640, 640, 9) -> (640, 640, 5); guys (1962, 2123, 268) ->
+    // (1962, 2123, 168); cities (27, 27, 2) -> (27, 27, 1); world (9268, 7681, 6012) -> (9268, 9268,
+    // 5).
+    // Item 4209, the box's `clear_down`: units (6735, 7099, 5981) -> (6735, 7099, 5980); items (5, 35,
+    // 31) -> (5, 5, 0); world (9268, 9268, 5) -> (9268, 9268, 0).
     (
         "run1185",
         4582,
         [
-            (6735, 7099, 6040),
-            (1911, 1911, 73),
+            (6735, 7099, 5980),
+            (1911, 1911, 59),
             (0, 0, 0),
             (3, 0, 3),
             (4, 0, 4),
-            (640, 640, 9),
-            (1962, 2123, 268),
+            (640, 640, 5),
+            (1962, 2123, 168),
             (271, 271, 4),
-            (27, 27, 2),
-            (5, 35, 31),
+            (27, 27, 1),
+            (5, 5, 0),
             (330, 330, 2),
-            (9268, 7681, 6012),
+            (9268, 9268, 0),
         ],
     ),
     // Item 4205, the built start: units (1060, 1345, 381) -> (1060, 1345, 303); builds (1164,
     // 1164, 23) -> (1164, 1164, 9); world (7361, 7345, 3930) -> (7361, 7361, 1).
+    // Item 4209, the box's `clear_down`: items (105, 110, 25) -> (105, 105, 0); world (7361, 7361, 1)
+    // -> (7361, 7361, 0).
     (
         "run1186b",
         1377,
@@ -1395,32 +1451,40 @@ pub(super) const PINNED: &[Pinned] = &[
             (309, 407, 98),
             (271, 271, 3),
             (9, 9, 0),
-            (105, 110, 25),
+            (105, 105, 0),
             (120, 120, 0),
-            (7361, 7361, 1),
+            (7361, 7361, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (10607, 10674, 9119) -> (10607, 10674, 9057); builds (3412,
+    // 3412, 141) -> (3412, 3412, 126); groups (700, 700, 12) -> (700, 700, 9); guys (3247, 3436, 299)
+    // -> (3247, 3436, 199); world (9486, 7899, 6514) -> (9486, 9486, 5).
+    // Item 4209, the box's `clear_down`: units (10607, 10674, 9057) -> (10607, 10674, 9056); builds
+    // (3412, 3412, 126) -> (3412, 3412, 124); items (0, 35, 35) -> (0, 0, 0); world (9486, 9486, 5)
+    // -> (9486, 9486, 1).
     (
         "run1217",
         7728,
         [
-            (10607, 10674, 9119),
-            (3412, 3412, 141),
+            (10607, 10674, 9056),
+            (3412, 3412, 124),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
-            (700, 700, 12),
-            (3247, 3436, 299),
+            (700, 700, 9),
+            (3247, 3436, 199),
             (271, 271, 4),
             (56, 56, 5),
-            (0, 35, 35),
+            (0, 0, 0),
             (330, 330, 1),
-            (9486, 7899, 6514),
+            (9486, 9486, 1),
         ],
     ),
     // Item 4205, the built start: units (4091, 4338, 3359) -> (4091, 4338, 3296); builds (1817,
     // 1817, 43) -> (1817, 1817, 28); cities (27, 27, 2) -> (27, 27, 1); world (7663, 7647,
     // 4673) -> (7663, 7663, 4).
+    // Item 4209, the box's `clear_down`: items (90, 110, 44) -> (90, 90, 0); world (7663, 7663, 4) ->
+    // (7663, 7663, 1).
     (
         "run1220b",
         2976,
@@ -1434,32 +1498,39 @@ pub(super) const PINNED: &[Pinned] = &[
             (1099, 1274, 175),
             (271, 271, 3),
             (27, 27, 1),
-            (90, 110, 44),
+            (90, 90, 0),
             (120, 120, 0),
-            (7663, 7663, 4),
+            (7663, 7663, 1),
         ],
     ),
+    // Item 4208, the whales' piece: units (6445, 6949, 5946) -> (6445, 6949, 5874); builds (1719,
+    // 1719, 44) -> (1719, 1719, 30); groups (592, 592, 5) -> (592, 592, 4); guys (1768, 1992, 339) ->
+    // (1768, 1992, 239); world (9162, 7575, 5806) -> (9162, 9162, 4).
+    // Item 4209, the box's `clear_down`: items (10, 35, 29) -> (10, 10, 0); world (9162, 9162, 4) ->
+    // (9162, 9162, 1).
     (
         "run1221",
         4287,
         [
-            (6445, 6949, 5946),
-            (1719, 1719, 44),
+            (6445, 6949, 5874),
+            (1719, 1719, 30),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
-            (592, 592, 5),
-            (1768, 1992, 339),
+            (592, 592, 4),
+            (1768, 1992, 239),
             (271, 271, 4),
             (33, 33, 3),
-            (10, 35, 29),
+            (10, 10, 0),
             (330, 330, 1),
-            (9162, 7575, 5806),
+            (9162, 9162, 1),
         ],
     ),
     // Item 4205, the built start: units (11740, 11409, 10463) -> (11740, 11409, 10402); builds
     // (4271, 4271, 126) -> (4271, 4271, 112); cities (62, 62, 7) -> (62, 62, 3); world (7873,
     // 7857, 4963) -> (7873, 7873, 17).
+    // Item 4209, the box's `clear_down`: items (30, 110, 91) -> (30, 30, 0); world (7873, 7873, 17) ->
+    // (7873, 7873, 1).
     (
         "run1224b",
         9745,
@@ -1473,50 +1544,63 @@ pub(super) const PINNED: &[Pinned] = &[
             (2735, 2910, 182),
             (271, 271, 6),
             (62, 62, 3),
-            (30, 110, 91),
+            (30, 30, 0),
             (120, 120, 0),
-            (7873, 7873, 17),
+            (7873, 7873, 1),
         ],
     ),
+    // Item 4208, the whales' piece: units (7490, 7627, 6531) -> (7490, 7627, 6482); builds (1733,
+    // 1733, 57) -> (1733, 1733, 46); groups (646, 646, 10) -> (646, 646, 7); guys (2097, 2188, 197) ->
+    // (2097, 2188, 97); world (9352, 7765, 6266) -> (9352, 9352, 3).
+    // Item 4209, the box's `clear_down`: builds (1733, 1733, 46) -> (1733, 1733, 45); items (15, 35,
+    // 26) -> (15, 15, 0); world (9352, 9352, 3) -> (9352, 9352, 0).
     (
         "run1235b",
         4127,
         [
-            (7490, 7627, 6531),
-            (1733, 1733, 57),
+            (7490, 7627, 6482),
+            (1733, 1733, 45),
             (0, 0, 0),
             (12, 0, 12),
             (4, 0, 4),
-            (646, 646, 10),
-            (2097, 2188, 197),
+            (646, 646, 7),
+            (2097, 2188, 97),
             (271, 271, 4),
             (30, 30, 2),
-            (15, 35, 26),
+            (15, 15, 0),
             (330, 330, 0),
-            (9352, 7765, 6266),
+            (9352, 9352, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (6610, 7349, 5833) -> (6610, 7349, 5764); builds (1762,
+    // 1762, 58) -> (1762, 1762, 44); groups (658, 658, 7) -> (658, 658, 4); guys (2070, 2329, 392) ->
+    // (2070, 2329, 292); cities (44, 44, 4) -> (44, 44, 1); world (9312, 7725, 6216) -> (9312, 9312,
+    // 5).
+    // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9312, 9312, 5) ->
+    // (9312, 9312, 1).
     (
         "run1236",
         4179,
         [
-            (6610, 7349, 5833),
-            (1762, 1762, 58),
+            (6610, 7349, 5764),
+            (1762, 1762, 44),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (658, 658, 7),
-            (2070, 2329, 392),
+            (658, 658, 4),
+            (2070, 2329, 292),
             (271, 271, 4),
-            (44, 44, 4),
-            (15, 35, 25),
+            (44, 44, 1),
+            (15, 15, 0),
             (330, 330, 0),
-            (9312, 7725, 6216),
+            (9312, 9312, 1),
         ],
     ),
     // Item 4205, the built start: units (3448, 3542, 2712) -> (3448, 3542, 2651); builds (1650,
     // 1650, 35) -> (1650, 1650, 18); cities (27, 27, 1) -> (27, 27, 0); world (7703, 7687,
     // 4645) -> (7703, 7703, 5).
+    // Item 4209, the box's `clear_down`: items (85, 110, 48) -> (85, 85, 0); world (7703, 7703, 5) ->
+    // (7703, 7703, 0).
     (
         "run1237",
         2674,
@@ -1530,50 +1614,63 @@ pub(super) const PINNED: &[Pinned] = &[
             (892, 990, 98),
             (271, 271, 3),
             (27, 27, 0),
-            (85, 110, 48),
+            (85, 85, 0),
             (120, 120, 0),
-            (7703, 7703, 5),
+            (7703, 7703, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (6417, 7136, 5611) -> (6417, 7136, 5546); builds (2494,
+    // 2494, 58) -> (2494, 2494, 44); groups (646, 646, 7) -> (646, 646, 4); guys (2151, 2410, 366) ->
+    // (2151, 2410, 266); cities (49, 49, 4) -> (49, 49, 1); world (9318, 7731, 6179) -> (9318, 9318,
+    // 5).
+    // Item 4209, the box's `clear_down`: builds (2494, 2494, 44) -> (2494, 2494, 43); items (10, 35,
+    // 29) -> (10, 10, 0); world (9318, 9318, 5) -> (9318, 9318, 1).
     (
         "run1238c",
         5021,
         [
-            (6417, 7136, 5611),
-            (2494, 2494, 58),
+            (6417, 7136, 5546),
+            (2494, 2494, 43),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (646, 646, 7),
-            (2151, 2410, 366),
+            (646, 646, 4),
+            (2151, 2410, 266),
             (271, 271, 4),
-            (49, 49, 4),
-            (10, 35, 29),
+            (49, 49, 1),
+            (10, 10, 0),
             (330, 330, 0),
-            (9318, 7731, 6179),
+            (9318, 9318, 1),
         ],
     ),
+    // Item 4208, the whales' piece: units (5942, 6521, 5260) -> (5942, 6521, 5195); builds (1692,
+    // 1692, 41) -> (1692, 1692, 27); groups (622, 622, 7) -> (622, 622, 6); guys (1748, 1972, 325) ->
+    // (1748, 1972, 225); world (9158, 7571, 5816) -> (9158, 9158, 5).
+    // Item 4209, the box's `clear_down`: items (10, 35, 29) -> (10, 10, 0); world (9158, 9158, 5) ->
+    // (9158, 9158, 0).
     (
         "run1247",
         4306,
         [
-            (5942, 6521, 5260),
-            (1692, 1692, 41),
+            (5942, 6521, 5195),
+            (1692, 1692, 27),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
-            (622, 622, 7),
-            (1748, 1972, 325),
+            (622, 622, 6),
+            (1748, 1972, 225),
             (271, 271, 4),
             (38, 38, 3),
-            (10, 35, 29),
+            (10, 10, 0),
             (330, 330, 0),
-            (9158, 7571, 5816),
+            (9158, 9158, 0),
         ],
     ),
     // Item 4205, the built start: units (4388, 4364, 3447) -> (4388, 4364, 3388); builds (1674,
     // 1674, 54) -> (1674, 1674, 37); cities (27, 27, 2) -> (27, 27, 1); world (7669, 7653,
     // 4540) -> (7669, 7669, 5).
+    // Item 4209, the box's `clear_down`: items (85, 110, 49) -> (85, 85, 0); world (7669, 7669, 5) ->
+    // (7669, 7669, 0).
     (
         "run1254c",
         3115,
@@ -1587,19 +1684,21 @@ pub(super) const PINNED: &[Pinned] = &[
             (1134, 1239, 107),
             (271, 271, 3),
             (27, 27, 1),
-            (85, 110, 49),
+            (85, 85, 0),
             (120, 120, 0),
-            (7669, 7669, 5),
+            (7669, 7669, 0),
         ],
     ),
     // Item 4205, the built start: units (11229, 10998, 9898) -> (11229, 10998, 9831); builds
     // (3789, 3789, 109) -> (3789, 3789, 92); world (7867, 7851, 5107) -> (7867, 7867, 10).
+    // Item 4209, the box's `clear_down`: builds (3789, 3789, 92) -> (3789, 3789, 90); items (50, 110,
+    // 77) -> (50, 50, 0); world (7867, 7867, 10) -> (7867, 7867, 1).
     (
         "run1263",
         8362,
         [
             (11229, 10998, 9831),
-            (3789, 3789, 92),
+            (3789, 3789, 90),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
@@ -1607,50 +1706,62 @@ pub(super) const PINNED: &[Pinned] = &[
             (2913, 3123, 215),
             (271, 271, 4),
             (54, 54, 5),
-            (50, 110, 77),
+            (50, 50, 0),
             (120, 120, 1),
-            (7867, 7867, 10),
+            (7867, 7867, 1),
         ],
     ),
+    // Item 4208, the whales' piece: units (6468, 7014, 5960) -> (6468, 7014, 5902); builds (1770,
+    // 1770, 57) -> (1770, 1770, 43); groups (586, 586, 8) -> (586, 586, 7); guys (1895, 2119, 344) ->
+    // (1895, 2119, 244); world (9330, 7743, 6143) -> (9330, 9330, 5).
+    // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9330, 9330, 5) ->
+    // (9330, 9330, 1).
     (
         "run1264b",
         4919,
         [
-            (6468, 7014, 5960),
-            (1770, 1770, 57),
+            (6468, 7014, 5902),
+            (1770, 1770, 43),
             (0, 0, 0),
             (3, 0, 3),
             (2, 0, 2),
-            (586, 586, 8),
-            (1895, 2119, 344),
+            (586, 586, 7),
+            (1895, 2119, 244),
             (271, 271, 3),
             (43, 43, 4),
-            (15, 35, 25),
+            (15, 15, 0),
             (330, 330, 1),
-            (9330, 7743, 6143),
+            (9330, 9330, 1),
         ],
     ),
+    // Item 4208, the whales' piece: units (11161, 11622, 10287) -> (11161, 11622, 10220); builds
+    // (3796, 3796, 114) -> (3796, 3796, 100); groups (682, 682, 11) -> (682, 682, 10); guys (3210,
+    // 3413, 324) -> (3210, 3413, 224); world (9704, 8117, 6778) -> (9704, 9704, 6).
+    // Item 4209, the box's `clear_down`: items (5, 35, 31) -> (5, 5, 0); world (9704, 9704, 6) ->
+    // (9704, 9704, 1).
     (
         "run1266c",
         8700,
         [
-            (11161, 11622, 10287),
-            (3796, 3796, 114),
+            (11161, 11622, 10220),
+            (3796, 3796, 100),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
-            (682, 682, 11),
-            (3210, 3413, 324),
+            (682, 682, 10),
+            (3210, 3413, 224),
             (271, 271, 4),
             (54, 54, 5),
-            (5, 35, 31),
+            (5, 5, 0),
             (330, 330, 0),
-            (9704, 8117, 6778),
+            (9704, 9704, 1),
         ],
     ),
     // Item 4205, the built start: units (4744, 4798, 3764) -> (4744, 4798, 3708); builds (1908,
     // 1908, 65) -> (1908, 1908, 50); cities (30, 30, 3) -> (30, 30, 1); world (7773, 7757,
     // 4828) -> (7773, 7773, 4).
+    // Item 4209, the box's `clear_down`: items (90, 110, 42) -> (90, 90, 0); world (7773, 7773, 4) ->
+    // (7773, 7773, 0).
     (
         "run1268",
         3347,
@@ -1664,86 +1775,109 @@ pub(super) const PINNED: &[Pinned] = &[
             (1246, 1386, 141),
             (271, 271, 4),
             (30, 30, 1),
-            (90, 110, 42),
+            (90, 90, 0),
             (120, 120, 0),
-            (7773, 7773, 4),
+            (7773, 7773, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (9512, 9862, 8627) -> (9512, 9862, 8560); builds (1938,
+    // 1938, 64) -> (1938, 1938, 50); guys (2191, 2345, 265) -> (2191, 2345, 165); cities (25, 25, 2)
+    // -> (25, 25, 1); world (9230, 7643, 5878) -> (9230, 9230, 3).
+    // Item 4209, the box's `clear_down`: items (20, 35, 22) -> (20, 20, 0); world (9230, 9230, 3) ->
+    // (9230, 9230, 0).
     (
         "run1293",
         3606,
         [
-            (9512, 9862, 8627),
-            (1938, 1938, 64),
+            (9512, 9862, 8560),
+            (1938, 1938, 50),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (586, 586, 4),
-            (2191, 2345, 265),
+            (2191, 2345, 165),
             (271, 271, 4),
-            (25, 25, 2),
-            (20, 35, 22),
+            (25, 25, 1),
+            (20, 20, 0),
             (330, 330, 1),
-            (9230, 7643, 5878),
+            (9230, 9230, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (8216, 8852, 7275) -> (8216, 8852, 7208); builds (2123,
+    // 2123, 74) -> (2123, 2123, 59); groups (688, 688, 12) -> (688, 688, 11); guys (2242, 2473, 338)
+    // -> (2242, 2473, 238); world (9490, 7903, 6488) -> (9490, 9490, 5).
+    // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9490, 9490, 5) ->
+    // (9490, 9490, 0).
     (
         "run1294",
         4473,
         [
-            (8216, 8852, 7275),
-            (2123, 2123, 74),
+            (8216, 8852, 7208),
+            (2123, 2123, 59),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
-            (688, 688, 12),
-            (2242, 2473, 338),
+            (688, 688, 11),
+            (2242, 2473, 238),
             (271, 271, 8),
             (27, 27, 3),
-            (10, 35, 28),
+            (10, 10, 0),
             (330, 330, 0),
-            (9490, 7903, 6488),
+            (9490, 9490, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (9905, 10501, 9382) -> (9905, 10501, 9324); builds (2163,
+    // 2163, 80) -> (2163, 2163, 64); groups (682, 682, 11) -> (682, 682, 10); guys (2172, 2403, 340)
+    // -> (2172, 2403, 240); world (9470, 7883, 6497) -> (9470, 9470, 5).
+    // Item 4209, the box's `clear_down`: items (5, 35, 32) -> (5, 5, 0); world (9470, 9470, 5) ->
+    // (9470, 9470, 1).
     (
         "run1296",
         4632,
         [
-            (9905, 10501, 9382),
-            (2163, 2163, 80),
+            (9905, 10501, 9324),
+            (2163, 2163, 64),
             (0, 0, 0),
             (0, 0, 0),
             (6, 0, 6),
-            (682, 682, 11),
-            (2172, 2403, 340),
+            (682, 682, 10),
+            (2172, 2403, 240),
             (271, 271, 8),
             (27, 27, 3),
-            (5, 35, 32),
+            (5, 5, 0),
             (330, 330, 0),
-            (9470, 7883, 6497),
+            (9470, 9470, 1),
         ],
     ),
+    // Item 4208, the whales' piece: units (5488, 5902, 4705) -> (5488, 5902, 4638); builds (2029,
+    // 2029, 78) -> (2029, 2029, 64); groups (616, 616, 4) -> (616, 616, 1); guys (1616, 1784, 269) ->
+    // (1616, 1784, 169); cities (23, 23, 2) -> (23, 23, 1); world (9448, 7861, 6596) -> (9448, 9448,
+    // 4).
+    // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9448, 9448, 4) ->
+    // (9448, 9448, 0).
     (
         "run1304",
         3865,
         [
-            (5488, 5902, 4705),
-            (2029, 2029, 78),
+            (5488, 5902, 4638),
+            (2029, 2029, 64),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (616, 616, 4),
-            (1616, 1784, 269),
+            (616, 616, 1),
+            (1616, 1784, 169),
             (271, 271, 4),
-            (23, 23, 2),
-            (15, 35, 25),
+            (23, 23, 1),
+            (15, 15, 0),
             (330, 330, 1),
-            (9448, 7861, 6596),
+            (9448, 9448, 0),
         ],
     ),
     // Item 4205, the built start: units (4968, 4832, 4109) -> (4968, 4832, 4054); builds (1882,
     // 1882, 53) -> (1882, 1882, 42); cities (35, 35, 3) -> (35, 35, 1); world (7585, 7569,
     // 4445) -> (7585, 7585, 8).
+    // Item 4209, the box's `clear_down`: items (70, 110, 62) -> (70, 70, 0); world (7585, 7585, 8) ->
+    // (7585, 7585, 0).
     (
         "run1305b",
         4181,
@@ -1757,32 +1891,40 @@ pub(super) const PINNED: &[Pinned] = &[
             (1327, 1397, 70),
             (271, 271, 3),
             (35, 35, 1),
-            (70, 110, 62),
+            (70, 70, 0),
             (120, 120, 0),
-            (7585, 7585, 8),
+            (7585, 7585, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (8490, 8757, 7447) -> (8490, 8757, 7392); builds (2140,
+    // 2140, 78) -> (2140, 2140, 67); groups (652, 652, 10) -> (652, 652, 5); guys (2197, 2323, 235) ->
+    // (2197, 2323, 135); cities (39, 39, 3) -> (39, 39, 1); world (9476, 7889, 6506) -> (9476, 9476,
+    // 7).
+    // Item 4209, the box's `clear_down`: items (5, 35, 31) -> (5, 5, 0); world (9476, 9476, 7) ->
+    // (9476, 9476, 1).
     (
         "run1320b",
         5066,
         [
-            (8490, 8757, 7447),
-            (2140, 2140, 78),
+            (8490, 8757, 7392),
+            (2140, 2140, 67),
             (0, 0, 0),
             (9, 0, 9),
             (2, 0, 2),
-            (652, 652, 10),
-            (2197, 2323, 235),
+            (652, 652, 5),
+            (2197, 2323, 135),
             (271, 271, 5),
-            (39, 39, 3),
-            (5, 35, 31),
+            (39, 39, 1),
+            (5, 5, 0),
             (330, 330, 4),
-            (9476, 7889, 6506),
+            (9476, 9476, 1),
         ],
     ),
     // Item 4205, the built start: units (3933, 4098, 3225) -> (3933, 4098, 3168); builds (1792,
     // 1792, 44) -> (1792, 1792, 28); cities (27, 27, 2) -> (27, 27, 1); world (7615, 7599,
     // 4535) -> (7615, 7615, 4).
+    // Item 4209, the box's `clear_down`: items (90, 110, 44) -> (90, 90, 0); world (7615, 7615, 4) ->
+    // (7615, 7615, 0).
     (
         "run1323b",
         3052,
@@ -1796,74 +1938,92 @@ pub(super) const PINNED: &[Pinned] = &[
             (1029, 1162, 133),
             (271, 271, 3),
             (27, 27, 1),
-            (90, 110, 44),
+            (90, 90, 0),
             (120, 120, 0),
-            (7615, 7615, 4),
+            (7615, 7615, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (7276, 7557, 6190) -> (7276, 7557, 6127); builds (1918,
+    // 1918, 87) -> (1918, 1918, 75); guys (2055, 2188, 242) -> (2055, 2188, 142); cities (27, 27, 2)
+    // -> (27, 27, 1); world (9466, 7879, 6370) -> (9466, 9466, 4).
+    // Item 4209, the box's `clear_down`: items (20, 35, 21) -> (20, 20, 0); world (9466, 9466, 4) ->
+    // (9466, 9466, 1).
     (
         "run1324c",
         4904,
         [
-            (7276, 7557, 6190),
-            (1918, 1918, 87),
+            (7276, 7557, 6127),
+            (1918, 1918, 75),
             (0, 0, 0),
             (15, 0, 15),
             (2, 0, 2),
             (676, 676, 9),
-            (2055, 2188, 242),
+            (2055, 2188, 142),
             (271, 271, 4),
-            (27, 27, 2),
-            (20, 35, 21),
+            (27, 27, 1),
+            (20, 20, 0),
             (330, 330, 4),
-            (9466, 7879, 6370),
+            (9466, 9466, 1),
         ],
     ),
+    // Item 4208, the whales' piece: units (10367, 11043, 9354) -> (10367, 11043, 9288); builds (2521,
+    // 2521, 93) -> (2521, 2521, 79); groups (682, 682, 13) -> (682, 682, 8); guys (2706, 2965, 373) ->
+    // (2706, 2965, 273); world (9666, 8079, 6675) -> (9666, 9666, 6).
+    // Item 4209, the box's `clear_down`: items (10, 35, 27) -> (10, 10, 0); world (9666, 9666, 6) ->
+    // (9666, 9666, 1).
     (
         "run1325c",
         5578,
         [
-            (10367, 11043, 9354),
-            (2521, 2521, 93),
+            (10367, 11043, 9288),
+            (2521, 2521, 79),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (682, 682, 13),
-            (2706, 2965, 373),
+            (682, 682, 8),
+            (2706, 2965, 273),
             (271, 271, 4),
             (43, 43, 5),
-            (10, 35, 27),
+            (10, 10, 0),
             (330, 330, 1),
-            (9666, 8079, 6675),
+            (9666, 9666, 1),
         ],
     ),
+    // Item 4208, the whales' piece: units (6268, 6911, 5540) -> (6268, 6911, 5474); builds (2161,
+    // 2161, 86) -> (2161, 2161, 72); groups (616, 616, 9) -> (616, 616, 7); guys (1993, 2224, 341) ->
+    // (1993, 2224, 241); cities (30, 30, 2) -> (30, 30, 1); world (9244, 7657, 5995) -> (9244, 9244,
+    // 3).
+    // Item 4209, the box's `clear_down`: builds (2161, 2161, 72) -> (2161, 2161, 71); items (15, 35,
+    // 26) -> (15, 15, 0); world (9244, 9244, 3) -> (9244, 9244, 0).
     (
         "run1326",
         4567,
         [
-            (6268, 6911, 5540),
-            (2161, 2161, 86),
+            (6268, 6911, 5474),
+            (2161, 2161, 71),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
-            (616, 616, 9),
-            (1993, 2224, 341),
+            (616, 616, 7),
+            (1993, 2224, 241),
             (271, 271, 4),
-            (30, 30, 2),
-            (15, 35, 26),
+            (30, 30, 1),
+            (15, 15, 0),
             (330, 330, 2),
-            (9244, 7657, 5995),
+            (9244, 9244, 0),
         ],
     ),
     // Item 4205, the built start: units (13393, 13427, 11988) -> (13393, 13427, 11927); builds
     // (4230, 4230, 113) -> (4230, 4230, 98); guys (3459, 3774, 361) -> (3459, 3774, 325); world
     // (8592, 7873, 5834) -> (8592, 8592, 16).
+    // Item 4209, the box's `clear_down`: builds (4230, 4230, 98) -> (4230, 4230, 97); items (25, 110,
+    // 94) -> (25, 25, 0); world (8592, 8592, 16) -> (8592, 8592, 1).
     (
         "run1327",
         10930,
         [
             (13393, 13427, 11927),
-            (4230, 4230, 98),
+            (4230, 4230, 97),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
@@ -1871,20 +2031,22 @@ pub(super) const PINNED: &[Pinned] = &[
             (3459, 3774, 325),
             (271, 271, 4),
             (59, 59, 6),
-            (25, 110, 94),
+            (25, 25, 0),
             (180, 180, 0),
-            (8592, 8592, 16),
+            (8592, 8592, 1),
         ],
     ),
     // Item 4205, the built start: units (5746, 5891, 4421) -> (5746, 5891, 4373); builds (2354,
     // 2354, 75) -> (2354, 2354, 59); guys (1463, 1638, 211) -> (1463, 1638, 175); world (8244,
     // 7525, 5179) -> (8244, 8244, 5).
+    // Item 4209, the box's `clear_down`: builds (2354, 2354, 59) -> (2354, 2354, 58); items (80, 110,
+    // 54) -> (80, 80, 0); world (8244, 8244, 5) -> (8244, 8244, 0).
     (
         "run1332a",
         3627,
         [
             (5746, 5891, 4373),
-            (2354, 2354, 59),
+            (2354, 2354, 58),
             (0, 0, 0),
             (48, 0, 48),
             (14, 0, 14),
@@ -1892,20 +2054,22 @@ pub(super) const PINNED: &[Pinned] = &[
             (1463, 1638, 175),
             (271, 271, 3),
             (30, 30, 3),
-            (80, 110, 54),
+            (80, 80, 0),
             (180, 180, 0),
-            (8244, 8244, 5),
+            (8244, 8244, 0),
         ],
     ),
     // Item 4205, the built start: units (4745, 4928, 3951) -> (4745, 4928, 3885); builds (2237,
     // 2237, 74) -> (2237, 2237, 60); guys (1352, 1492, 179) -> (1352, 1492, 143); world (8328,
     // 7609, 5258) -> (8328, 8328, 7).
+    // Item 4209, the box's `clear_down`: builds (2237, 2237, 60) -> (2237, 2237, 59); items (75, 110,
+    // 56) -> (75, 75, 0); world (8328, 8328, 7) -> (8328, 8328, 2).
     (
         "run1351",
         4303,
         [
             (4745, 4928, 3885),
-            (2237, 2237, 60),
+            (2237, 2237, 59),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -1913,20 +2077,22 @@ pub(super) const PINNED: &[Pinned] = &[
             (1352, 1492, 143),
             (271, 271, 3),
             (30, 30, 3),
-            (75, 110, 56),
+            (75, 75, 0),
             (180, 180, 1),
-            (8328, 8328, 7),
+            (8328, 8328, 2),
         ],
     ),
     // Item 4205, the built start: units (4512, 4732, 3134) -> (4512, 4732, 3067); builds (2143,
     // 2143, 75) -> (2143, 2143, 61); guys (1286, 1426, 176) -> (1286, 1426, 140); cities (30,
     // 30, 2) -> (30, 30, 1); world (8298, 7579, 5257) -> (8298, 8298, 7).
+    // Item 4209, the box's `clear_down`: builds (2143, 2143, 61) -> (2143, 2143, 60); items (75, 110,
+    // 56) -> (75, 75, 0); world (8298, 8298, 7) -> (8298, 8298, 1).
     (
         "run1351c",
         3521,
         [
             (4512, 4732, 3067),
-            (2143, 2143, 61),
+            (2143, 2143, 60),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -1934,14 +2100,16 @@ pub(super) const PINNED: &[Pinned] = &[
             (1286, 1426, 140),
             (271, 271, 4),
             (30, 30, 1),
-            (75, 110, 56),
+            (75, 75, 0),
             (180, 180, 1),
-            (8298, 8298, 7),
+            (8298, 8298, 1),
         ],
     ),
     // Item 4205, the built start: units (3610, 3841, 2961) -> (3610, 3841, 2904); builds (1836,
     // 1836, 45) -> (1836, 1836, 29); cities (27, 27, 2) -> (27, 27, 1); world (7777, 7761,
     // 4777) -> (7777, 7777, 6).
+    // Item 4209, the box's `clear_down`: items (80, 110, 51) -> (80, 80, 0); world (7777, 7777, 6) ->
+    // (7777, 7777, 1).
     (
         "run1355",
         2933,
@@ -1955,14 +2123,16 @@ pub(super) const PINNED: &[Pinned] = &[
             (902, 1042, 140),
             (271, 271, 3),
             (27, 27, 1),
-            (80, 110, 51),
+            (80, 80, 0),
             (120, 120, 0),
-            (7777, 7777, 6),
+            (7777, 7777, 1),
         ],
     ),
     // Item 4205, the built start: units (5707, 5937, 4835) -> (5707, 5937, 4771); builds (1977,
     // 1977, 59) -> (1977, 1977, 43); guys (1427, 1602, 211) -> (1427, 1602, 175); cities (30,
     // 30, 3) -> (30, 30, 1); world (8528, 7809, 5790) -> (8528, 8528, 7).
+    // Item 4209, the box's `clear_down`: items (75, 110, 59) -> (75, 75, 0); world (8528, 8528, 7) ->
+    // (8528, 8528, 0).
     (
         "run1357",
         3439,
@@ -1976,14 +2146,16 @@ pub(super) const PINNED: &[Pinned] = &[
             (1427, 1602, 175),
             (271, 271, 4),
             (30, 30, 1),
-            (75, 110, 59),
+            (75, 75, 0),
             (180, 180, 1),
-            (8528, 8528, 7),
+            (8528, 8528, 0),
         ],
     ),
     // Item 4205, the built start: units (6464, 6432, 5647) -> (6464, 6432, 5603); builds (2974,
     // 2974, 108) -> (2974, 2974, 94); cities (48, 48, 4) -> (48, 48, 3); world (8007, 7991,
     // 5220) -> (8007, 8007, 12).
+    // Item 4209, the box's `clear_down`: items (60, 110, 69) -> (60, 60, 0); world (8007, 8007, 12) ->
+    // (8007, 8007, 2).
     (
         "run1359",
         5619,
@@ -1997,14 +2169,16 @@ pub(super) const PINNED: &[Pinned] = &[
             (1584, 1724, 144),
             (271, 271, 5),
             (48, 48, 3),
-            (60, 110, 69),
+            (60, 60, 0),
             (120, 120, 0),
-            (8007, 8007, 12),
+            (8007, 8007, 2),
         ],
     ),
     // Item 4205, the built start: units (6408, 6424, 5583) -> (6408, 6424, 5539); builds (2974,
     // 2974, 110) -> (2974, 2974, 96); cities (48, 48, 4) -> (48, 48, 3); world (7717, 7701,
     // 4791) -> (7717, 7717, 13).
+    // Item 4209, the box's `clear_down`: items (55, 110, 74) -> (55, 55, 0); world (7717, 7717, 13) ->
+    // (7717, 7717, 2).
     (
         "run1359b",
         5677,
@@ -2018,14 +2192,16 @@ pub(super) const PINNED: &[Pinned] = &[
             (1598, 1738, 144),
             (271, 271, 5),
             (48, 48, 3),
-            (55, 110, 74),
+            (55, 55, 0),
             (120, 120, 0),
-            (7717, 7717, 13),
+            (7717, 7717, 2),
         ],
     ),
     // Item 4205, the built start: units (6407, 6423, 5580) -> (6407, 6423, 5536); builds (2974,
     // 2974, 110) -> (2974, 2974, 96); cities (48, 48, 4) -> (48, 48, 3); world (7715, 7699,
     // 4789) -> (7715, 7715, 13).
+    // Item 4209, the box's `clear_down`: items (55, 110, 74) -> (55, 55, 0); world (7715, 7715, 13) ->
+    // (7715, 7715, 2).
     (
         "run1359c",
         5678,
@@ -2039,20 +2215,22 @@ pub(super) const PINNED: &[Pinned] = &[
             (1598, 1738, 144),
             (271, 271, 5),
             (48, 48, 3),
-            (55, 110, 74),
+            (55, 55, 0),
             (120, 120, 0),
-            (7715, 7715, 13),
+            (7715, 7715, 2),
         ],
     ),
     // Item 4205, the built start: units (6810, 6671, 5784) -> (6810, 6671, 5721); builds (2544,
     // 2544, 72) -> (2544, 2544, 57); guys (1847, 1952, 141) -> (1847, 1952, 105); cities (37,
     // 37, 3) -> (37, 37, 2); world (8476, 7757, 5586) -> (8476, 8476, 10).
+    // Item 4209, the box's `clear_down`: builds (2544, 2544, 57) -> (2544, 2544, 56); items (50, 110,
+    // 78) -> (50, 50, 0); world (8476, 8476, 10) -> (8476, 8476, 0).
     (
         "run1361",
         4840,
         [
             (6810, 6671, 5721),
-            (2544, 2544, 57),
+            (2544, 2544, 56),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
@@ -2060,20 +2238,22 @@ pub(super) const PINNED: &[Pinned] = &[
             (1847, 1952, 105),
             (271, 271, 8),
             (37, 37, 2),
-            (50, 110, 78),
+            (50, 50, 0),
             (180, 180, 2),
-            (8476, 8476, 10),
+            (8476, 8476, 0),
         ],
     ),
     // Item 4205, the built start: units (5194, 5195, 3939) -> (5194, 5195, 3876); builds (2147,
     // 2147, 64) -> (2147, 2147, 49); guys (1419, 1517, 134) -> (1419, 1517, 98); cities (27,
     // 27, 3) -> (27, 27, 1); world (8334, 7615, 5331) -> (8334, 8334, 3).
+    // Item 4209, the box's `clear_down`: builds (2147, 2147, 49) -> (2147, 2147, 48); items (90, 110,
+    // 44) -> (90, 90, 0); world (8334, 8334, 3) -> (8334, 8334, 1).
     (
         "run1381",
         3262,
         [
             (5194, 5195, 3876),
-            (2147, 2147, 49),
+            (2147, 2147, 48),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -2081,14 +2261,16 @@ pub(super) const PINNED: &[Pinned] = &[
             (1419, 1517, 98),
             (271, 271, 3),
             (27, 27, 1),
-            (90, 110, 44),
+            (90, 90, 0),
             (180, 180, 1),
-            (8334, 8334, 3),
+            (8334, 8334, 1),
         ],
     ),
     // Item 4205, the built start: units (5014, 5130, 4171) -> (5014, 5130, 4106); builds (2015,
     // 2015, 67) -> (2015, 2015, 52); guys (1349, 1482, 169) -> (1349, 1482, 133); cities (20,
     // 20, 1) -> (20, 20, 0); world (8340, 7621, 5320) -> (8340, 8340, 7).
+    // Item 4209, the box's `clear_down`: items (70, 110, 61) -> (70, 70, 0); world (8340, 8340, 7) ->
+    // (8340, 8340, 2).
     (
         "run1382",
         3228,
@@ -2102,86 +2284,110 @@ pub(super) const PINNED: &[Pinned] = &[
             (1349, 1482, 133),
             (271, 271, 4),
             (20, 20, 0),
-            (70, 110, 61),
+            (70, 70, 0),
             (180, 180, 0),
-            (8340, 8340, 7),
+            (8340, 8340, 2),
         ],
     ),
+    // Item 4208, the whales' piece: units (2933, 3253, 650) -> (2933, 3253, 339); builds (1184, 1184,
+    // 21) -> (1184, 1184, 7); guys (967, 1079, 213) -> (967, 1079, 112); world (8876, 7289, 4946) ->
+    // (8876, 8876, 1).
+    // Item 4209, the box's `clear_down`: items (30, 35, 11) -> (30, 30, 0); world (8876, 8876, 1) ->
+    // (8876, 8876, 0).
     (
         "run1383",
         1180,
         [
-            (2933, 3253, 650),
-            (1184, 1184, 21),
+            (2933, 3253, 339),
+            (1184, 1184, 7),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (538, 538, 1),
-            (967, 1079, 213),
+            (967, 1079, 112),
             (271, 271, 3),
             (6, 6, 0),
-            (30, 35, 11),
+            (30, 30, 0),
             (330, 330, 0),
-            (8876, 7289, 4946),
+            (8876, 8876, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (5193, 5463, 4596) -> (5193, 5463, 4532); builds (1774,
+    // 1774, 42) -> (1774, 1774, 28); groups (652, 652, 2) -> (652, 652, 1); guys (1609, 1756, 247) ->
+    // (1609, 1756, 147); cities (27, 27, 2) -> (27, 27, 0); world (9252, 7665, 5784) -> (9252, 9252,
+    // 3).
+    // Item 4209, the box's `clear_down`: items (20, 35, 21) -> (20, 20, 0); world (9252, 9252, 3) ->
+    // (9252, 9252, 0).
     (
         "run1385p",
         2775,
         [
-            (5193, 5463, 4596),
-            (1774, 1774, 42),
+            (5193, 5463, 4532),
+            (1774, 1774, 28),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (652, 652, 2),
-            (1609, 1756, 247),
+            (652, 652, 1),
+            (1609, 1756, 147),
             (271, 271, 4),
-            (27, 27, 2),
-            (20, 35, 21),
+            (27, 27, 0),
+            (20, 20, 0),
             (330, 330, 0),
-            (9252, 7665, 5784),
+            (9252, 9252, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (6512, 6830, 5822) -> (6512, 6830, 5761); builds (1830,
+    // 1830, 73) -> (1830, 1830, 58); groups (694, 694, 17) -> (694, 694, 14); guys (1927, 2088, 265)
+    // -> (1927, 2088, 165); world (9408, 7821, 6277) -> (9408, 9408, 3).
+    // Item 4209, the box's `clear_down`: units (6512, 6830, 5761) -> (6512, 6830, 5759); items (10, 35,
+    // 28) -> (10, 10, 0); world (9408, 9408, 3) -> (9408, 9408, 0).
     (
         "run1391",
         4174,
         [
-            (6512, 6830, 5822),
-            (1830, 1830, 73),
+            (6512, 6830, 5759),
+            (1830, 1830, 58),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (694, 694, 17),
-            (1927, 2088, 265),
+            (694, 694, 14),
+            (1927, 2088, 165),
             (271, 271, 8),
             (35, 35, 3),
-            (10, 35, 28),
+            (10, 10, 0),
             (330, 330, 1),
-            (9408, 7821, 6277),
+            (9408, 9408, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (6953, 7259, 6119) -> (6953, 7259, 6070); builds (2128,
+    // 2127, 678) -> (2128, 2127, 669); groups (634, 634, 10) -> (634, 634, 9); guys (1829, 1955, 240)
+    // -> (1829, 1955, 140); cities (33, 33, 2) -> (33, 33, 1); world (9554, 7967, 6698) -> (9554,
+    // 9554, 15).
+    // Item 4209, the box's `clear_down`: units (6953, 7259, 6070) -> (6953, 7259, 6069); items (5, 35,
+    // 31) -> (5, 5, 0); world (9554, 9554, 15) -> (9554, 9554, 10).
     (
         "run1416",
         4016,
         [
-            (6953, 7259, 6119),
-            (2128, 2127, 678),
+            (6953, 7259, 6069),
+            (2128, 2127, 669),
             (0, 0, 0),
             (18, 0, 18),
             (0, 0, 0),
-            (634, 634, 10),
-            (1829, 1955, 240),
+            (634, 634, 9),
+            (1829, 1955, 140),
             (271, 271, 4),
-            (33, 33, 2),
-            (5, 35, 31),
+            (33, 33, 1),
+            (5, 5, 0),
             (330, 330, 2),
-            (9554, 7967, 6698),
+            (9554, 9554, 10),
         ],
     ),
     // Item 4205, the built start: units (4518, 4705, 3767) -> (4518, 4705, 3703); builds (2321,
     // 2321, 75) -> (2321, 2321, 61); guys (1265, 1405, 178) -> (1265, 1405, 141); cities (33,
     // 33, 3) -> (33, 33, 2); world (8274, 7555, 5208) -> (8274, 8274, 8).
+    // Item 4209, the box's `clear_down`: items (75, 110, 54) -> (75, 75, 0); world (8274, 8274, 8) ->
+    // (8274, 8274, 1).
     (
         "run1417",
         4016,
@@ -2195,17 +2401,19 @@ pub(super) const PINNED: &[Pinned] = &[
             (1265, 1405, 141),
             (271, 271, 4),
             (33, 33, 2),
-            (75, 110, 54),
+            (75, 75, 0),
             (180, 180, 1),
-            (8274, 8274, 8),
+            (8274, 8274, 1),
         ],
     ),
+    // Item 4209, the box's `clear_down`: builds (2033, 2033, 75) -> (2033, 2033, 74); items (60, 110,
+    // 69) -> (60, 60, 0).
     (
         "run1419b",
         3212,
         [
             (4406, 4486, 3414),
-            (2033, 2033, 75),
+            (2033, 2033, 74),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2213,7 +2421,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (1231, 1336, 141),
             (271, 271, 4),
             (27, 27, 2),
-            (60, 110, 69),
+            (60, 60, 0),
             (180, 180, 0),
             (8434, 7715, 5388),
         ],
@@ -2221,6 +2429,8 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4205, the built start: units (5583, 5614, 4645) -> (5583, 5614, 4588); builds (2515,
     // 2513, 751) -> (2515, 2513, 737); guys (1327, 1467, 177) -> (1327, 1467, 141); world
     // (8466, 7747, 5536) -> (8466, 8466, 9).
+    // Item 4209, the box's `clear_down`: items (70, 110, 59) -> (70, 70, 0); world (8466, 8466, 9) ->
+    // (8466, 8466, 1).
     (
         "run1420",
         4586,
@@ -2234,11 +2444,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (1327, 1467, 141),
             (271, 271, 4),
             (38, 38, 3),
-            (70, 110, 59),
+            (70, 70, 0),
             (180, 180, 0),
-            (8466, 8466, 9),
+            (8466, 8466, 1),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (90, 110, 44) -> (90, 90, 0).
     (
         "run1424",
         3156,
@@ -2252,11 +2463,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (1138, 1278, 177),
             (271, 271, 4),
             (27, 27, 3),
-            (90, 110, 44),
+            (90, 90, 0),
             (180, 180, 0),
             (8344, 7625, 5328),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (80, 110, 52) -> (80, 80, 0).
     (
         "run1426b",
         3722,
@@ -2270,11 +2482,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (1227, 1332, 146),
             (271, 271, 4),
             (27, 27, 3),
-            (80, 110, 52),
+            (80, 80, 0),
             (180, 180, 0),
             (8284, 7565, 5190),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (85, 110, 49) -> (85, 85, 0).
     (
         "run1437",
         3894,
@@ -2288,7 +2501,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (1208, 1348, 183),
             (271, 271, 6),
             (30, 30, 3),
-            (85, 110, 49),
+            (85, 85, 0),
             (180, 180, 0),
             (8414, 7695, 5513),
         ],
@@ -2311,6 +2524,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (7499, 7483, 4263),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (130, 135, 28) -> (130, 130, 0).
     (
         "run1440",
         809,
@@ -2324,11 +2538,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (638, 757, 120),
             (399, 399, 6),
             (9, 9, 0),
-            (130, 135, 28),
+            (130, 130, 0),
             (165, 165, 0),
             (7513, 7497, 4347),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
     (
         "run1441",
         3294,
@@ -2342,11 +2557,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (1108, 1171, 100),
             (271, 271, 4),
             (30, 30, 3),
-            (75, 110, 55),
+            (75, 75, 0),
             (180, 180, 0),
             (8276, 7557, 5229),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (125, 135, 37) -> (125, 125, 0).
     (
         "run1451",
         945,
@@ -2360,11 +2576,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (604, 723, 120),
             (399, 399, 6),
             (9, 9, 0),
-            (125, 135, 37),
+            (125, 125, 0),
             (165, 165, 0),
             (7585, 7569, 4477),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
     (
         "run1457",
         700,
@@ -2378,11 +2595,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (725, 788, 64),
             (399, 399, 4),
             (9, 9, 0),
-            (130, 135, 30),
+            (130, 130, 0),
             (165, 165, 0),
             (7525, 7509, 4362),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
     (
         "run1459",
         780,
@@ -2396,11 +2614,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (665, 728, 64),
             (403, 403, 5),
             (9, 9, 0),
-            (130, 135, 30),
+            (130, 130, 0),
             (165, 165, 0),
             (7535, 7519, 4363),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
     (
         "run1460",
         760,
@@ -2414,11 +2633,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (686, 749, 64),
             (403, 403, 5),
             (9, 9, 0),
-            (130, 135, 30),
+            (130, 130, 0),
             (165, 165, 0),
             (7523, 7507, 4355),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (130, 135, 29) -> (130, 130, 0).
     (
         "run1469",
         627,
@@ -2432,11 +2652,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (413, 518, 106),
             (399, 399, 6),
             (9, 9, 0),
-            (130, 135, 29),
+            (130, 130, 0),
             (165, 165, 0),
             (7475, 7459, 4267),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (130, 135, 29) -> (130, 130, 0).
     (
         "run1469b",
         628,
@@ -2450,11 +2671,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (413, 518, 106),
             (399, 399, 6),
             (9, 9, 0),
-            (130, 135, 29),
+            (130, 130, 0),
             (165, 165, 0),
             (7475, 7459, 4267),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
     (
         "run1472",
         707,
@@ -2468,11 +2690,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (612, 717, 106),
             (399, 399, 6),
             (9, 9, 0),
-            (130, 135, 30),
+            (130, 130, 0),
             (165, 165, 0),
             (7527, 7511, 4420),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (25, 45, 28) -> (25, 25, 0).
     (
         "run1484",
         676,
@@ -2486,11 +2709,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (1381, 1416, 159),
             (403, 403, 6),
             (9, 9, 0),
-            (25, 45, 28),
+            (25, 25, 0),
             (405, 405, 0),
             (9053, 7519, 5588),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (25, 45, 28) -> (25, 25, 0).
     (
         "run1487",
         1980,
@@ -2504,11 +2728,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (1718, 1844, 247),
             (407, 407, 6),
             (31, 31, 0),
-            (25, 45, 28),
+            (25, 25, 0),
             (405, 405, 2),
             (9267, 7733, 6310),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (25, 45, 28) -> (25, 25, 0).
     (
         "run1496",
         1539,
@@ -2522,11 +2747,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (1577, 1696, 241),
             (407, 407, 6),
             (23, 23, 0),
-            (25, 45, 28),
+            (25, 25, 0),
             (405, 405, 2),
             (9183, 7649, 6125),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
     (
         "run1559b",
         3294,
@@ -2540,7 +2766,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (1108, 1171, 100),
             (271, 271, 4),
             (30, 30, 3),
-            (75, 110, 55),
+            (75, 75, 0),
             (180, 180, 0),
             (8276, 7557, 5229),
         ],
@@ -2563,6 +2789,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (7994, 7994, 0),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
     (
         "run1564",
         3294,
@@ -2576,11 +2803,12 @@ pub(super) const PINNED: &[Pinned] = &[
             (1108, 1171, 100),
             (271, 271, 4),
             (30, 30, 3),
-            (75, 110, 55),
+            (75, 75, 0),
             (180, 180, 0),
             (8276, 7557, 5229),
         ],
     ),
+    // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
     (
         "run1570",
         3331,
@@ -2594,117 +2822,147 @@ pub(super) const PINNED: &[Pinned] = &[
             (1112, 1175, 101),
             (271, 271, 4),
             (30, 30, 3),
-            (75, 110, 55),
+            (75, 75, 0),
             (180, 180, 0),
             (8294, 7575, 5253),
         ],
     ),
+    // Item 4208, the whales' piece: units (4969, 4983, 4166) -> (4969, 4983, 4139); builds (1731,
+    // 1729, 965) -> (1731, 1729, 958); guys (1429, 1506, 178) -> (1429, 1506, 78); cities (47, 47, 4)
+    // -> (47, 47, 1); world (9108, 7521, 5669) -> (9108, 9108, 14).
+    // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9108, 9108, 14) ->
+    // (9108, 9108, 10).
     (
         "run785",
         2178,
         [
-            (4969, 4983, 4166),
-            (1731, 1729, 965),
+            (4969, 4983, 4139),
+            (1731, 1729, 958),
             (0, 0, 0),
             (0, 0, 0),
             (28, 0, 28),
             (640, 640, 4),
-            (1429, 1506, 178),
+            (1429, 1506, 78),
             (271, 271, 7),
-            (47, 47, 4),
-            (15, 35, 25),
+            (47, 47, 1),
+            (15, 15, 0),
             (330, 330, 1),
-            (9108, 7521, 5669),
+            (9108, 9108, 10),
         ],
     ),
+    // Item 4208, the whales' piece: units (5889, 5855, 5006) -> (5889, 5855, 4979); builds (2157,
+    // 2155, 1285) -> (2157, 2155, 1278); guys (1765, 1842, 178) -> (1765, 1842, 78); world (9526,
+    // 7939, 6468) -> (9526, 9526, 15).
+    // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9526, 9526, 15) ->
+    // (9526, 9526, 11).
     (
         "run789",
         2799,
         [
-            (5889, 5855, 5006),
-            (2157, 2155, 1285),
+            (5889, 5855, 4979),
+            (2157, 2155, 1278),
             (0, 0, 0),
             (281, 0, 281),
             (0, 0, 0),
             (664, 664, 2),
-            (1765, 1842, 178),
+            (1765, 1842, 78),
             (271, 271, 7),
             (52, 52, 5),
-            (15, 35, 25),
+            (15, 15, 0),
             (330, 330, 0),
-            (9526, 7939, 6468),
+            (9526, 9526, 11),
         ],
     ),
+    // Item 4208, the whales' piece: units (5860, 5823, 4887) -> (5860, 5823, 4860); builds (2059,
+    // 2057, 1209) -> (2059, 2057, 1202); guys (1704, 1781, 178) -> (1704, 1781, 78); world (9420,
+    // 7833, 6400) -> (9420, 9420, 15).
+    // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9420, 9420, 15) ->
+    // (9420, 9420, 11).
     (
         "run795",
         2681,
         [
-            (5860, 5823, 4887),
-            (2059, 2057, 1209),
+            (5860, 5823, 4860),
+            (2059, 2057, 1202),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (652, 652, 2),
-            (1704, 1781, 178),
+            (1704, 1781, 78),
             (271, 271, 7),
             (52, 52, 5),
-            (15, 35, 25),
+            (15, 15, 0),
             (330, 330, 1),
-            (9420, 7833, 6400),
+            (9420, 9420, 11),
         ],
     ),
+    // Item 4208, the whales' piece: units (9526, 9603, 8636) -> (9526, 9603, 8609); builds (2384,
+    // 2381, 1424) -> (2384, 2381, 1417); groups (688, 688, 6) -> (688, 688, 5); guys (2341, 2425, 195)
+    // -> (2341, 2425, 95); world (9442, 7855, 6428) -> (9442, 9442, 16).
+    // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9442, 9442, 16) ->
+    // (9442, 9442, 11).
     (
         "run810",
         3631,
         [
-            (9526, 9603, 8636),
-            (2384, 2381, 1424),
+            (9526, 9603, 8609),
+            (2384, 2381, 1417),
             (0, 0, 0),
             (156, 0, 156),
             (0, 0, 0),
-            (688, 688, 6),
-            (2341, 2425, 195),
+            (688, 688, 5),
+            (2341, 2425, 95),
             (271, 271, 7),
             (58, 58, 5),
-            (10, 35, 28),
+            (10, 10, 0),
             (330, 330, 1),
-            (9442, 7855, 6428),
+            (9442, 9442, 11),
         ],
     ),
+    // Item 4208, the whales' piece: units (9339, 9413, 8439) -> (9339, 9413, 8412); builds (2473,
+    // 2469, 1560) -> (2473, 2469, 1553); guys (2450, 2534, 195) -> (2450, 2534, 95); world (9552,
+    // 7965, 6484) -> (9552, 9552, 15).
+    // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9552, 9552, 15) ->
+    // (9552, 9552, 11).
     (
         "run823",
         4238,
         [
-            (9339, 9413, 8439),
-            (2473, 2469, 1560),
+            (9339, 9413, 8412),
+            (2473, 2469, 1553),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (676, 676, 6),
-            (2450, 2534, 195),
+            (2450, 2534, 95),
             (271, 271, 7),
             (58, 58, 5),
-            (10, 35, 28),
+            (10, 10, 0),
             (330, 330, 0),
-            (9552, 7965, 6484),
+            (9552, 9552, 11),
         ],
     ),
+    // Item 4208, the whales' piece: units (9362, 9436, 8403) -> (9362, 9436, 8376); builds (2473,
+    // 2469, 1560) -> (2473, 2469, 1553); groups (688, 688, 6) -> (688, 688, 5); guys (2471, 2555, 194)
+    // -> (2471, 2555, 94); world (9560, 7973, 6527) -> (9560, 9560, 15).
+    // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9560, 9560, 15) ->
+    // (9560, 9560, 11).
     (
         "run825",
         4204,
         [
-            (9362, 9436, 8403),
-            (2473, 2469, 1560),
+            (9362, 9436, 8376),
+            (2473, 2469, 1553),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (688, 688, 6),
-            (2471, 2555, 194),
+            (688, 688, 5),
+            (2471, 2555, 94),
             (271, 271, 7),
             (58, 58, 5),
-            (10, 35, 28),
+            (10, 10, 0),
             (330, 330, 0),
-            (9560, 7973, 6527),
+            (9560, 9560, 11),
         ],
     ),
     (
@@ -2761,40 +3019,51 @@ pub(super) const PINNED: &[Pinned] = &[
             (8004, 7285, 4510),
         ],
     ),
+    // Item 4208, the whales' piece: units (5770, 5833, 4677) -> (5770, 5833, 4618); builds (2095,
+    // 2095, 73) -> (2095, 2095, 61); groups (640, 640, 8) -> (640, 640, 7); guys (1794, 1878, 184) ->
+    // (1794, 1878, 84); world (9344, 7757, 6056) -> (9344, 9344, 8).
+    // Item 4209, the box's `clear_down`: items (5, 35, 32) -> (5, 5, 0); world (9344, 9344, 8) ->
+    // (9344, 9344, 2).
     (
         "run854",
         3301,
         [
-            (5770, 5833, 4677),
-            (2095, 2095, 73),
+            (5770, 5833, 4618),
+            (2095, 2095, 61),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (640, 640, 8),
-            (1794, 1878, 184),
+            (640, 640, 7),
+            (1794, 1878, 84),
             (271, 271, 5),
             (36, 36, 0),
-            (5, 35, 32),
+            (5, 5, 0),
             (330, 330, 2),
-            (9344, 7757, 6056),
+            (9344, 9344, 2),
         ],
     ),
+    // Item 4208, the whales' piece: units (10342, 10233, 9575) -> (10342, 10233, 9554); builds (2288,
+    // 2283, 1566) -> (2288, 2283, 1562); groups (640, 640, 6) -> (640, 640, 5); guys (2210, 2294, 185)
+    // -> (2210, 2294, 85); cities (64, 64, 4) -> (64, 64, 1); world (9534, 7947, 6461) -> (9534, 9534,
+    // 17).
+    // Item 4209, the box's `clear_down`: units (10342, 10233, 9554) -> (10342, 10233, 9553); items (0,
+    // 35, 35) -> (0, 0, 0); world (9534, 9534, 17) -> (9534, 9534, 12).
     (
         "run865",
         4859,
         [
-            (10342, 10233, 9575),
-            (2288, 2283, 1566),
+            (10342, 10233, 9553),
+            (2288, 2283, 1562),
             (0, 0, 0),
             (0, 0, 0),
             (28, 0, 28),
-            (640, 640, 6),
-            (2210, 2294, 185),
+            (640, 640, 5),
+            (2210, 2294, 85),
             (271, 271, 5),
-            (64, 64, 4),
-            (0, 35, 35),
+            (64, 64, 1),
+            (0, 0, 0),
             (330, 330, 2),
-            (9534, 7947, 6461),
+            (9534, 9534, 12),
         ],
     ),
     (
@@ -2815,76 +3084,96 @@ pub(super) const PINNED: &[Pinned] = &[
             (8004, 7285, 4510),
         ],
     ),
+    // Item 4208, the whales' piece: units (11125, 10562, 9845) -> (11125, 10562, 9821); builds (2737,
+    // 2732, 1950) -> (2737, 2732, 1946); guys (2832, 2923, 224) -> (2832, 2923, 124); cities (64, 64,
+    // 7) -> (64, 64, 4); world (9518, 7931, 6568) -> (9518, 9518, 18).
+    // Item 4209, the box's `clear_down`: items (0, 35, 35) -> (0, 0, 0); world (9518, 9518, 18) ->
+    // (9518, 9518, 12).
     (
         "run882b",
         6808,
         [
-            (11125, 10562, 9845),
-            (2737, 2732, 1950),
+            (11125, 10562, 9821),
+            (2737, 2732, 1946),
             (0, 0, 0),
             (15, 0, 15),
             (0, 0, 0),
             (616, 616, 10),
-            (2832, 2923, 224),
+            (2832, 2923, 124),
             (271, 271, 5),
-            (64, 64, 7),
-            (0, 35, 35),
+            (64, 64, 4),
+            (0, 0, 0),
             (330, 330, 2),
-            (9518, 7931, 6568),
+            (9518, 9518, 12),
         ],
     ),
+    // Item 4208, the whales' piece: units (11180, 10557, 9936) -> (11180, 10557, 9912); builds (2737,
+    // 2732, 1951) -> (2737, 2732, 1947); guys (2832, 2923, 222) -> (2832, 2923, 122); cities (64, 64,
+    // 7) -> (64, 64, 4); world (9536, 7949, 6589) -> (9536, 9536, 18).
+    // Item 4209, the box's `clear_down`: items (0, 35, 35) -> (0, 0, 0); world (9536, 9536, 18) ->
+    // (9536, 9536, 12).
     (
         "run883b",
         6821,
         [
-            (11180, 10557, 9936),
-            (2737, 2732, 1951),
+            (11180, 10557, 9912),
+            (2737, 2732, 1947),
             (0, 0, 0),
             (36, 0, 36),
             (0, 0, 0),
             (616, 616, 10),
-            (2832, 2923, 222),
+            (2832, 2923, 122),
             (271, 271, 5),
-            (64, 64, 7),
-            (0, 35, 35),
+            (64, 64, 4),
+            (0, 0, 0),
             (330, 330, 2),
-            (9536, 7949, 6589),
+            (9536, 9536, 12),
         ],
     ),
+    // Item 4208, the whales' piece: units (2652, 2987, 625) -> (2652, 2987, 343); builds (709, 709,
+    // 20) -> (709, 709, 7); guys (900, 1012, 212) -> (900, 1012, 112); world (8966, 7379, 5253) ->
+    // (8966, 8966, 1).
+    // Item 4209, the box's `clear_down`: items (30, 35, 11) -> (30, 30, 0); world (8966, 8966, 1) ->
+    // (8966, 8966, 0).
     (
         "run893b",
         3975,
         [
-            (2652, 2987, 625),
-            (709, 709, 20),
+            (2652, 2987, 343),
+            (709, 709, 7),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (532, 532, 0),
-            (900, 1012, 212),
+            (900, 1012, 112),
             (271, 271, 3),
             (9, 9, 0),
-            (30, 35, 11),
+            (30, 30, 0),
             (330, 330, 0),
-            (8966, 7379, 5253),
+            (8966, 8966, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (4112, 4387, 3652) -> (4112, 4387, 3617); builds (1508,
+    // 1508, 40) -> (1508, 1508, 26); guys (1352, 1464, 217) -> (1352, 1464, 117); world (9122, 7535,
+    // 5619) -> (9122, 9122, 6).
+    // Item 4209, the box's `clear_down`: items (5, 35, 32) -> (5, 5, 0); world (9122, 9122, 6) ->
+    // (9122, 9122, 0).
     (
         "run912e",
         12753,
         [
-            (4112, 4387, 3652),
-            (1508, 1508, 40),
+            (4112, 4387, 3617),
+            (1508, 1508, 26),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (568, 568, 5),
-            (1352, 1464, 217),
+            (1352, 1464, 117),
             (271, 271, 3),
             (27, 27, 3),
-            (5, 35, 32),
+            (5, 5, 0),
             (330, 330, 0),
-            (9122, 7535, 5619),
+            (9122, 9122, 0),
         ],
     ),
     (
@@ -2908,6 +3197,8 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4205, the built start: units (2726, 3048, 2294) -> (2726, 3048, 2260); builds (1580,
     // 1580, 34) -> (1580, 1580, 21); guys (819, 959, 176) -> (819, 959, 140); cities (27, 27,
     // 2) -> (27, 27, 1); world (8150, 7431, 4899) -> (8150, 8150, 14).
+    // Item 4209, the box's `clear_down`: items (40, 110, 84) -> (40, 40, 0); world (8150, 8150, 14) ->
+    // (8150, 8150, 0).
     (
         "run943c",
         10674,
@@ -2921,14 +3212,16 @@ pub(super) const PINNED: &[Pinned] = &[
             (819, 959, 140),
             (271, 271, 3),
             (27, 27, 1),
-            (40, 110, 84),
+            (40, 40, 0),
             (180, 180, 0),
-            (8150, 8150, 14),
+            (8150, 8150, 0),
         ],
     ),
     // Item 4205, the built start: units (2838, 3119, 2310) -> (2838, 3119, 2277); builds (1580,
     // 1580, 33) -> (1580, 1580, 20); guys (826, 966, 176) -> (826, 966, 140); cities (27, 27,
     // 2) -> (27, 27, 1); world (8164, 7445, 4942) -> (8164, 8164, 14).
+    // Item 4209, the box's `clear_down`: items (40, 110, 84) -> (40, 40, 0); world (8164, 8164, 14) ->
+    // (8164, 8164, 0).
     (
         "run946",
         10842,
@@ -2942,14 +3235,16 @@ pub(super) const PINNED: &[Pinned] = &[
             (826, 966, 140),
             (271, 271, 3),
             (27, 27, 1),
-            (40, 110, 84),
+            (40, 40, 0),
             (180, 180, 0),
-            (8164, 8164, 14),
+            (8164, 8164, 0),
         ],
     ),
     // Item 4205, the built start: units (2832, 3140, 2431) -> (2832, 3140, 2402); builds (1598,
     // 1598, 36) -> (1598, 1598, 24); guys (875, 1015, 180) -> (875, 1015, 144); world (8096,
     // 7377, 4771) -> (8096, 8096, 15).
+    // Item 4209, the box's `clear_down`: items (35, 110, 87) -> (35, 35, 0); world (8096, 8096, 15) ->
+    // (8096, 8096, 0).
     (
         "run954b",
         12155,
@@ -2963,9 +3258,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (875, 1015, 144),
             (271, 271, 3),
             (27, 27, 3),
-            (35, 110, 87),
+            (35, 35, 0),
             (180, 180, 0),
-            (8096, 8096, 15),
+            (8096, 8096, 0),
         ],
     ),
     // Item 4205, the built start: units (490, 550, 108) -> (490, 550, 62); builds (455, 455,
@@ -2989,27 +3284,34 @@ pub(super) const PINNED: &[Pinned] = &[
             (7291, 7291, 0),
         ],
     ),
+    // Item 4208, the whales' piece: units (4466, 4844, 3954) -> (4466, 4844, 3921); builds (1832,
+    // 1832, 48) -> (1832, 1832, 35); guys (1514, 1668, 268) -> (1514, 1668, 168); cities (17, 17, 2)
+    // -> (17, 17, 1); world (9056, 7469, 5567) -> (9056, 9056, 7).
+    // Item 4209, the box's `clear_down`: items (0, 35, 35) -> (0, 0, 0); world (9056, 9056, 7) ->
+    // (9056, 9056, 0).
     (
         "run959",
         18368,
         [
-            (4466, 4844, 3954),
-            (1832, 1832, 48),
+            (4466, 4844, 3921),
+            (1832, 1832, 35),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
             (562, 562, 5),
-            (1514, 1668, 268),
+            (1514, 1668, 168),
             (271, 271, 3),
-            (17, 17, 2),
-            (0, 35, 35),
+            (17, 17, 1),
+            (0, 0, 0),
             (330, 330, 1),
-            (9056, 7469, 5567),
+            (9056, 9056, 0),
         ],
     ),
     // Item 4205, the built start: units (3135, 3263, 2550) -> (3135, 3263, 2517); builds (2052,
     // 2052, 46) -> (2052, 2052, 33); cities (35, 35, 4) -> (35, 35, 3); world (7513, 7497,
     // 4325) -> (7513, 7513, 9).
+    // Item 4209, the box's `clear_down`: items (60, 110, 69) -> (60, 60, 0); world (7513, 7513, 9) ->
+    // (7513, 7513, 0).
     (
         "run973g",
         12286,
@@ -3023,14 +3325,16 @@ pub(super) const PINNED: &[Pinned] = &[
             (941, 1046, 106),
             (271, 271, 2),
             (35, 35, 3),
-            (60, 110, 69),
+            (60, 60, 0),
             (120, 120, 0),
-            (7513, 7513, 9),
+            (7513, 7513, 0),
         ],
     ),
     // Item 4205, the built start: units (2003, 2230, 1758) -> (2003, 2230, 1723); builds (789,
     // 789, 20) -> (789, 789, 7); guys (533, 638, 141) -> (533, 638, 105); world (8052, 7333,
     // 4648) -> (8052, 8052, 7).
+    // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0); world (8052, 8052, 7) ->
+    // (8052, 8052, 0).
     (
         "run984b",
         6011,
@@ -3044,14 +3348,16 @@ pub(super) const PINNED: &[Pinned] = &[
             (533, 638, 105),
             (271, 271, 2),
             (17, 17, 1),
-            (75, 110, 55),
+            (75, 75, 0),
             (180, 180, 0),
-            (8052, 8052, 7),
+            (8052, 8052, 0),
         ],
     ),
     // Item 4205, the built start: units (1903, 2165, 1626) -> (1903, 2165, 1594); builds (827,
     // 827, 21) -> (827, 827, 8); guys (540, 645, 141) -> (540, 645, 105); world (8078, 7359,
     // 4721) -> (8078, 8078, 7).
+    // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0); world (8078, 8078, 7) ->
+    // (8078, 8078, 0).
     (
         "run984c",
         6251,
@@ -3065,13 +3371,15 @@ pub(super) const PINNED: &[Pinned] = &[
             (540, 645, 105),
             (271, 271, 2),
             (17, 17, 1),
-            (75, 110, 55),
+            (75, 75, 0),
             (180, 180, 0),
-            (8078, 8078, 7),
+            (8078, 8078, 0),
         ],
     ),
     // Item 4205, the built start: units (3289, 3742, 3058) -> (3289, 3742, 3041); builds (2783,
     // 2783, 54) -> (2783, 2783, 43); world (7443, 7427, 4174) -> (7443, 7443, 15).
+    // Item 4209, the box's `clear_down`: items (40, 110, 85) -> (40, 40, 0); world (7443, 7443, 15) ->
+    // (7443, 7443, 1).
     (
         "run985b",
         16762,
@@ -3085,13 +3393,15 @@ pub(super) const PINNED: &[Pinned] = &[
             (1012, 1222, 211),
             (271, 271, 2),
             (33, 33, 3),
-            (40, 110, 85),
+            (40, 40, 0),
             (120, 120, 0),
-            (7443, 7443, 15),
+            (7443, 7443, 1),
         ],
     ),
     // Item 4205, the built start: units (3178, 3504, 2770) -> (3178, 3504, 2733); builds (2006,
     // 2006, 47) -> (2006, 2006, 32); world (7461, 7445, 4143) -> (7461, 7461, 11).
+    // Item 4209, the box's `clear_down`: items (55, 110, 74) -> (55, 55, 0); world (7461, 7461, 11) ->
+    // (7461, 7461, 0).
     (
         "run991d",
         15256,
@@ -3105,9 +3415,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (961, 1136, 179),
             (271, 271, 2),
             (30, 30, 3),
-            (55, 110, 74),
+            (55, 55, 0),
             (120, 120, 0),
-            (7461, 7461, 11),
+            (7461, 7461, 0),
         ],
     ),
 ];
@@ -3132,76 +3442,64 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "run1155c",
         "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    ("run1161", "aggression cities_built flags.leader_flags"),
+    ("run1161", "flags.leader_flags"),
     (
         "run1164",
         "encrypt.bucket[2] encrypt.bucket[5] explored flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1165",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1166",
-        "aggression cities_built collected encrypt.bucket[0] encrypt.bucket[1] encrypt.leftover[0] escrow explored flags.leader_flags reg_unpack_merch resources_controlled",
+        "collected encrypt.bucket[0] encrypt.bucket[1] encrypt.leftover[0] escrow explored flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1169",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1185",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run1186b", "flags.leader_flags"),
-    (
-        "run1217",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1217", "flags.leader_flags resources_controlled"),
     (
         "run1220b",
         "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    (
-        "run1221",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1221", "flags.leader_flags resources_controlled"),
     (
         "run1224b",
         "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1235b",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1236",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1237",
         "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    (
-        "run1238c",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1238c", "flags.leader_flags resources_controlled"),
     (
         "run1247",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1254c",
         "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run1263", "flags.leader_flags resources_controlled"),
-    (
-        "run1264b",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1264b", "flags.leader_flags resources_controlled"),
     (
         "run1266c",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1268",
@@ -3209,37 +3507,31 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1293",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1294",
-        "aggression cities_built encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags resources_controlled",
+        "encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags resources_controlled",
     ),
     (
         "run1296",
-        "aggression cities_built encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags resources_controlled",
+        "encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags resources_controlled",
     ),
-    (
-        "run1304",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1304", "flags.leader_flags resources_controlled"),
     ("run1305b", "flags.leader_flags resources_controlled"),
     (
         "run1320b",
-        "aggression cities_built encrypt.bucket[2] flags.leader_flags resources_controlled",
+        "encrypt.bucket[2] flags.leader_flags resources_controlled",
     ),
     ("run1323b", "flags.leader_flags resources_controlled"),
     (
         "run1324c",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    (
-        "run1325c",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1325c", "flags.leader_flags resources_controlled"),
     (
         "run1326",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1327",
@@ -3280,19 +3572,13 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "run1382",
         "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    ("run1383", "aggression cities_built flags.leader_flags"),
-    (
-        "run1385p",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1383", "flags.leader_flags"),
+    ("run1385p", "flags.leader_flags resources_controlled"),
     (
         "run1391",
-        "aggression cities_built encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags resources_controlled",
+        "encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags resources_controlled",
     ),
-    (
-        "run1416",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run1416", "flags.leader_flags resources_controlled"),
     ("run1417", "flags.leader_flags resources_controlled"),
     (
         "run1419b",
@@ -3359,53 +3645,50 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run785",
-        "aggression cities_built encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers",
+        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     (
         "run789",
-        "aggression cities_built encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
+        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
     ),
     (
         "run795",
-        "aggression cities_built encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch",
+        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch",
     ),
     (
         "run810",
-        "aggression cities_built encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
+        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
     ),
     (
         "run823",
-        "aggression cities_built encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
+        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
     ),
     (
         "run825",
-        "aggression cities_built encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
+        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
     ),
     ("run839", "aggression cities_built flags.leader_flags"),
     ("run842", "aggression cities_built flags.leader_flags"),
     ("run842b", "aggression cities_built flags.leader_flags"),
     (
         "run854",
-        "cities_built diplos flags.leader_flags oil_patches.elements reg_unpack_merch resources_controlled",
+        "diplos flags.leader_flags oil_patches.elements reg_unpack_merch resources_controlled",
     ),
     (
         "run865",
-        "cities_built diplos flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
+        "diplos flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
     ),
     ("run870", "aggression cities_built flags.leader_flags"),
     (
         "run882b",
-        "cities_built diplos flags.leader_flags oil_patches.elements reg_gatherers resources_controlled",
+        "diplos flags.leader_flags oil_patches.elements reg_gatherers resources_controlled",
     ),
     (
         "run883b",
-        "cities_built diplos flags.leader_flags oil_patches.elements reg_gatherers resources_controlled",
+        "diplos flags.leader_flags oil_patches.elements reg_gatherers resources_controlled",
     ),
-    ("run893b", "aggression cities_built flags.leader_flags"),
-    (
-        "run912e",
-        "aggression cities_built flags.leader_flags resources_controlled",
-    ),
+    ("run893b", "flags.leader_flags"),
+    ("run912e", "flags.leader_flags resources_controlled"),
     ("run938b", "aggression cities_built flags.leader_flags"),
     ("run943c", "flags.leader_flags resources_controlled"),
     (
@@ -3416,7 +3699,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run958b", "flags.leader_flags"),
     (
         "run959",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run973g", "reg_unpack_merch resources_controlled"),
     ("run985b", "resources_controlled"),
@@ -3622,5 +3905,53 @@ fn probe_built_start_whole() {
                 cut(t)
             );
         }
+    }
+}
+
+/// **Probe** (item 4208): the built and the dump-seated starts ticked to
+/// frame 3, every gaia figure's guy 0 clock printed where the two differ.
+#[test]
+#[ignore = "a probe: RON_PACKET_START, RON_PACKET_LONG, RON_PACKET_TRACE"]
+fn probe_built_clocks() {
+    let start = std::env::var("RON_PACKET_START").expect("RON_PACKET_START");
+    let long = std::env::var("RON_PACKET_LONG").expect("RON_PACKET_LONG");
+    let trl = std::env::var("RON_PACKET_TRACE").expect("RON_PACKET_TRACE");
+    let (mut seated, _) = stand_up_from(&start, (&long, &trl)).expect("the captures");
+    let (mut built, _) = crate::diff::third::stand_up_built((&long, &trl)).expect("the captures");
+    let row = |s: &sim::Sim, owner: u8, index: i16| {
+        s.units
+            .iter()
+            .find(|u| u.owner == owner && u.index == index)
+            .map(|u| {
+                let g = &u.guys[0];
+                format!(
+                    "ty {} anim {} cur {} end {} last {} piece {}",
+                    u.type_index, g.anim, g.cur_time, g.end_time, g.last_time, g.gpiece
+                )
+            })
+    };
+    for f in 0..=3 {
+        let mut keys: Vec<(u8, i16)> = built
+            .sim
+            .units
+            .iter()
+            .chain(seated.sim.units.iter())
+            .filter(|u| u.owner >= 8)
+            .map(|u| (u.owner, u.index))
+            .collect();
+        keys.sort();
+        keys.dedup();
+        for (o, i) in keys {
+            let (b, s) = (row(&built.sim, o, i), row(&seated.sim, o, i));
+            let strip = |r: &Option<String>| {
+                r.as_ref()
+                    .map(|r| r.split(" piece").next().unwrap_or("").to_string())
+            };
+            if strip(&b) != strip(&s) || std::env::var_os("RON_PACKET_ALL").is_some() {
+                eprintln!("CLOCK f{f} {o}/{i}: built {b:?}\n                seated {s:?}");
+            }
+        }
+        built.tick();
+        seated.tick();
     }
 }

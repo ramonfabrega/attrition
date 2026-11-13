@@ -150,11 +150,19 @@ pub(crate) fn walk_take_from(
             }
         }
         // The window's diplomacy, staged off the take's own record
-        // ([`take_diplomacy`]): `Leader::set_diplo` with the original's own
-        // `this`, at the head of the frame its command ran on.
+        // ([`take_diplomacy`]) at the head of the frame its command ran on:
+        // the human's Declare as `Leader::action_declare`, a computer's
+        // answer as `Leader::set_diplo` with the original's own `this`.
         for d in diplomacy {
             if d.frame == at {
-                built.sim.setup().set_diplo(d.this, d.whom, d.level);
+                if d.declare {
+                    built
+                        .sim
+                        .command()
+                        .action_declare(d.this, d.whom, d.level, false, false);
+                } else {
+                    built.sim.setup().set_diplo(d.this, d.whom, d.level);
+                }
             }
         }
         built.tick();
@@ -258,10 +266,12 @@ pub(crate) fn walk_take_from(
 }
 
 /// The coverage pair's frame zero re-read at `TEAM_STYLE 0`, `script`
-/// staged, walked against `capture` ([`walk_take_from`]).
+/// staged, the window's `diplomacy` staged ([`take_diplomacy`]), walked
+/// against `capture` ([`walk_take_from`]).
 pub(crate) fn walk_style_zero(
     capture: (&str, &str),
     script: crate::golden::Script,
+    diplomacy: &[TakeDiplo],
 ) -> Option<TakeWord> {
     let inst = crate::testenv::install()?;
     let pair = crate::diff::coverage_pair::COVERAGE;
@@ -298,7 +308,7 @@ pub(crate) fn walk_style_zero(
     let built =
         crate::diff::setup::with_staged_script(script, || build_sim(&loaded, &init, Tuning::RON));
     assert_eq!(built.sim.ai.lobby.team_style, 0, "the lobby reads style 0");
-    walk_take_from(&loaded, built, capture, 2, &[], &[])
+    walk_take_from(&loaded, built, capture, 2, &[], diplomacy)
 }
 
 /// Print a [`TakeWord`]: the word, the staging's refusals, each leader
@@ -334,18 +344,54 @@ pub(crate) fn report(name: &str, w: &TakeWord) {
 /// before any take.
 #[test]
 fn run1078_walked_at_style_zero() {
-    let Some(w) = walk_style_zero(RUN1078, coverage_script("declare3460-diplomacy.cmd")) else {
+    // Item 4159, step VII-b1: the human's Declare (`process_declare 1 0
+    // 911`) staged off the record as `Sim::action_declare`.
+    let diplomacy = take_diplomacy(RUN1078.0).unwrap_or_default();
+    let Some(w) = walk_style_zero(
+        RUN1078,
+        coverage_script("declare3460-diplomacy.cmd"),
+        &diplomacy,
+    ) else {
         return;
     };
     report("run1078 at style 0", &w);
     let _pins = Pins::hold();
     // Item 4206: whole, 960 of 960. The original draws the same 961 frames
     // at style 0 as at style 1 (`rngcmp` run652 against run1078), the paid
-    // Declare included; the record parts where the staging maps no line:
-    // `meet` before this item (`treaties[1]` from 901), the window's
-    // Declare (`diplos`, and `pay_dow`'s −640 wealth, on 912).
+    // Declare included; the record parted where the staging mapped no line:
+    // `meet` before that item (`treaties[1]` from 901), the window's
+    // Declare (`diplos`, `dow[1]`, and `pay_dow`'s −640 wealth, on 912).
+    // Item 4159, step VII-b1: still whole with the Declare staged as
+    // `Sim::action_declare` (a human's command, an input; entry 132 §1).
     pin_eq!(w.count, 960, "run1078's draw count at style 0");
     pin_eq!(w.sequence, 960, "run1078's draw sequence at style 0");
+    // The Declare's leaves, `diplos` and the wealth agree on every block:
+    // the record moves `dow[1]` 0 → 1 on 912 (block A, a first count, so no
+    // `blacken`; at peace, so no `broke_alliance`).
+    let movers: Vec<String> = w
+        .movers
+        .iter()
+        .filter(|(_, _, k, _, _)| declaration_row(k))
+        .map(|(n, who, k, b, a)| format!("{n} {who} {k} {b}->{a}"))
+        .collect();
+    pin_eq!(
+        movers,
+        vec!["912 0 dow[1] 0->1".to_string()],
+        "run1078's declaration movers"
+    );
+    let parted: Vec<String> = w
+        .leader_parted
+        .iter()
+        .filter(|(_, _, k, _, _)| {
+            declaration_row(k) || k == "bucket[2:wealth]" || k.starts_with("diplos[")
+        })
+        .map(|(n, who, k, t, m)| format!("{n} {who} {k}: theirs {t} ours {m}"))
+        .collect();
+    pin_eq!(
+        parted,
+        Vec::<String>::new(),
+        "run1078's declaration, diplos and wealth, ours against the record"
+    );
 }
 
 /// The sea melee's lobby (run1482: East Indies, three seats, the
@@ -398,14 +444,20 @@ pub(crate) fn walk_sea_style_zero(
     walk_take_from(&loaded, built, capture, 3, probes, diplomacy)
 }
 
-/// One `Leader::set_diplo(this, whom, level)` the take's own record shows,
-/// on the frame its command ran.
+/// One diplomacy call the take's own record shows, on the frame its
+/// command ran: the human's `Leader::action_declare(this, whom, level, 0,
+/// 0)` when `declare`, else a computer's `Leader::set_diplo(this, whom,
+/// level)`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct TakeDiplo {
     pub frame: i64,
     pub this: sim::Player,
     pub whom: sim::Player,
     pub level: i32,
+    /// The human's Declare, an input: `Sim::action_declare` computes it
+    /// (item 4159, step VII-b1). A computer's answer read off the record
+    /// is not (`docs/DECISIONS.md` entry 132 §1).
+    pub declare: bool,
 }
 
 /// The seat that issues the window's commands: the console's leader, who 0
@@ -419,9 +471,10 @@ const ISSUER: sim::Player = 0;
 /// own `this`, so that `Sim::set_diplo` runs the armies of the leader the
 /// original's does.
 ///
-/// - `process_declare <whom> <treaty> <frame>` is `Leader::action_declare
-///   (issuer, whom, treaty)`, which ends in `set_diplo(issuer, whom,
-///   treaty)` — staged as that.
+/// - `process_declare <whom> <treaty> <frame>` is `CommandPackage::
+///   process_declare@009472b0`'s `Leader::action_declare(issuer, whom,
+///   treaty, 0, 0)` — staged as that, a human's command and so an input
+///   (item 4159, step VII-b1; before it, the `set_diplo` it ends in).
 /// - `process_accept <whom> <frame>` is the issuer's `action_respond(whom,
 ///   1)`: it commits the proposal and forces `whom`'s next
 ///   `Leader::diplomacy` pass, whose offers arm decides — a decision this
@@ -474,6 +527,7 @@ pub(crate) fn take_diplomacy(capture: &str) -> Option<Vec<TakeDiplo>> {
                 this: ISSUER,
                 whom: whom as sim::Player,
                 level: treaty as i32,
+                declare: true,
             }),
             ("process_accept", &[whom, frame]) => {
                 let whom = whom as sim::Player;
@@ -488,6 +542,7 @@ pub(crate) fn take_diplomacy(capture: &str) -> Option<Vec<TakeDiplo>> {
                         this: whom,
                         whom: ISSUER,
                         level: after as i32,
+                        declare: false,
                     });
                 }
             }
@@ -562,14 +617,20 @@ fn run1575_s_window_diplomacy_is_read_off_its_record() {
         eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", RUN1575.0);
         return;
     };
-    let got: Vec<(i64, sim::Player, sim::Player, i32)> = d
+    let got: Vec<(i64, sim::Player, sim::Player, i32, bool)> = d
         .iter()
-        .map(|d| (d.frame, d.this, d.whom, d.level))
+        .map(|d| (d.frame, d.this, d.whom, d.level, d.declare))
         .collect();
+    // Item 4159, step VII-b1: the two Declares are `action_declare`, the
+    // accept stays the French `set_diplo`.
     pin_eq!(
         got,
-        vec![(986, 0, 1, 1), (1001, 0, 1, 0), (RUN1575_ACCEPT, 1, 0, 1)],
-        "the take's staged set_diplo calls"
+        vec![
+            (986, 0, 1, 1, true),
+            (1001, 0, 1, 0, true),
+            (RUN1575_ACCEPT, 1, 0, 1, false)
+        ],
+        "the take's staged diplomacy calls"
     );
 }
 
@@ -694,5 +755,76 @@ fn run1575_s_diplomacy_movers_are_the_script_s() {
         movers,
         want.iter().map(|m| m.to_string()).collect::<Vec<_>>(),
         "the take's movers"
+    );
+}
+
+/// The last block of run1575 no staged decision precedes (`docs/DECISIONS.md`
+/// entry 132 §1): the French accept of 1027 is read off the record, so a
+/// leaf leaves on a mover at or before this block. Quoted both ways, the
+/// word is 1150 of 1150 staged and 1099 computed.
+pub(crate) const RUN1575_HELD: i64 = 1026;
+
+/// Whether a leader row is one of the declaration's (`docs/LEADERS.md`
+/// §7.1): `blacken`, `dow[t]`, `broke_alliance[t]`.
+fn declaration_row(k: &str) -> bool {
+    k == "blacken" || k.starts_with("dow[") || k.starts_with("broke_alliance[")
+}
+
+/// **The human's two Declares, ours against the record** (item 4159, step
+/// VII-b1): run1575 walked with the window's diplomacy off its record
+/// ([`take_diplomacy`]), the Declares through `Sim::action_declare`. The
+/// record moves the three leaves on 987 (`dow[1]` 0 → 1, `broke_alliance[1]`
+/// 0 → 986: the Declare on the ally, turned into peace) and 1002 (`dow[1]`
+/// 1 → 2, `blacken` 0 → 1: the Declare at peace), each inside the held
+/// window; `pay_dow` takes the "Cancel Alliance" and "Declare War" crafts'
+/// price off the human's wealth on the same blocks. Pinned: the record's
+/// movers of the three, and every parting of the three over the whole walk
+/// and of the wealth bucket through [`RUN1575_HELD`].
+#[test]
+fn run1575_s_declarations_are_ours() {
+    let _pins = Pins::hold();
+    let Some(diplomacy) = take_diplomacy(RUN1575.0) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", RUN1575.0);
+        return;
+    };
+    let Some(w) = walk_sea_style_zero(
+        RUN1575,
+        coverage_script("diplomacy4206.cmd"),
+        &[],
+        &diplomacy,
+    ) else {
+        return;
+    };
+    let movers: Vec<String> = w
+        .movers
+        .iter()
+        .filter(|(_, _, k, _, _)| declaration_row(k))
+        .map(|(n, who, k, b, a)| format!("{n} {who} {k} {b}->{a}"))
+        .collect();
+    pin_eq!(
+        movers,
+        vec![
+            "987 0 broke_alliance[1] 0->986".to_string(),
+            "987 0 dow[1] 0->1".to_string(),
+            "1002 0 blacken 0->1".to_string(),
+            "1002 0 dow[1] 1->2".to_string(),
+        ],
+        "the record's declaration movers"
+    );
+    let parted: Vec<String> = w
+        .leader_parted
+        .iter()
+        .filter(|(n, _, k, _, _)| {
+            declaration_row(k) || (k == "bucket[2:wealth]" && *n <= RUN1575_HELD)
+        })
+        .map(|(n, who, k, t, m)| format!("{n} {who} {k}: theirs {t} ours {m}"))
+        .collect();
+    for p in &parted {
+        eprintln!("  parted {p}");
+    }
+    pin_eq!(
+        parted,
+        Vec::<String>::new(),
+        "the declaration's leaves and wealth, ours against the record"
     );
 }

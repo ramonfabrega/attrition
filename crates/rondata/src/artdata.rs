@@ -40,6 +40,13 @@ use crate::Install;
 /// `(TypeIndex, variant, slot) → frames`, for the twelve gaia types.
 pub type GaiaLengths = BTreeMap<(i32, u8, i8), u32>;
 
+/// `(TypeIndex, variant) → the variant whose piece loads` for the twelve
+/// gaia types (item 4208): `GraphicPieces::get_unit_gpiece@0090c030`'s
+/// gaia arm starts at `(seed + o) % 3` and walks **down** to the first
+/// variant whose `{GRAPH}-TYPE{v}` entry the install ships. A whale, which
+/// ships `-TYPE0` alone, is piece `0xea8d + 30` whatever its `o`.
+pub type GaiaVariants = BTreeMap<(i32, u8), u8>;
+
 /// `gpiece → (slot → frames)` for every graphic piece the install's own
 /// `<UNIT>` entries name — a player's units, where [`GaiaLengths`] covers
 /// gaia's. A piece present here has its **whole** slot list known, so a
@@ -174,28 +181,41 @@ const GAIA_UNITS: &[(i32, &str)] = &[
 /// frames (`sim::units::anim::MISSING`). Returns an empty map when either XML is
 /// unreadable, which is what a tables-only load gets.
 pub fn gaia_lengths(install: &Install) -> GaiaLengths {
+    gaia_tables(install).0
+}
+
+/// [`gaia_lengths`] and [`GaiaVariants`] from one read of the install.
+pub fn gaia_tables(install: &Install) -> (GaiaLengths, GaiaVariants) {
     let apath = install.data("anim_graphics.xml");
     let upath = install.data("unit_graphics.xml");
     let (Ok(atext), Ok(utext)) = (crate::read(&apath), crate::read(&upath)) else {
-        return GaiaLengths::new();
+        return Default::default();
     };
     let (Ok(adoc), Ok(udoc)) = (crate::parse(&apath, &atext), crate::parse(&upath, &utext)) else {
-        return GaiaLengths::new();
+        return Default::default();
     };
     let files = anim_files(&adoc);
     let units = unit_anims(&udoc);
     let mut frames: BTreeMap<String, u32> = BTreeMap::new();
     let mut out = GaiaLengths::new();
+    let mut variants = GaiaVariants::new();
     for &(ty, prefix) in GAIA_UNITS {
         for v in 0..3u8 {
-            // `-TYPE1` and `-TYPE2` are optional: a type that names only
-            // `-TYPE0` plays it for all three variants, which is what the
-            // piece pool's fall-back does.
-            let name = format!("{prefix}-TYPE{v}");
-            let rows = units
-                .get(&name)
-                .or_else(|| units.get(&format!("{prefix}-TYPE0")));
-            let Some(rows) = rows else { continue };
+            // `-TYPE1` and `-TYPE2` are optional: the piece pool walks a
+            // variant the install does not ship **down** to the next one
+            // it does (`get_unit_gpiece@0090c030`'s gaia arm, item 4208),
+            // so a pig's or a chicken's `-TYPE2` plays its `-TYPE1`, and a
+            // type that names only `-TYPE0` plays it for all three.
+            let Some(shipped) = (0..=v)
+                .rev()
+                .find(|w| units.contains_key(&format!("{prefix}-TYPE{w}")))
+            else {
+                continue;
+            };
+            variants.insert((ty, v), shipped);
+            let Some(rows) = units.get(&format!("{prefix}-TYPE{shipped}")) else {
+                continue;
+            };
             for (slot, anim) in rows {
                 let Some((file, looping)) = files.get(&anim_key(anim)) else {
                     continue;
@@ -214,7 +234,7 @@ pub fn gaia_lengths(install: &Install) -> GaiaLengths {
             }
         }
     }
-    out
+    (out, variants)
 }
 
 /// One `<UNIT name="…">`'s place in the piece pool: the graphic's own name
@@ -309,7 +329,8 @@ fn entry_pieces(name: &str, by_graph: &BTreeMap<String, Vec<i32>>) -> Option<Vec
 /// `num_bird_pieces` `0x24`: three variants for each of the twelve gaia
 /// types `0x192..0x19e`, `get_type@00902540` reading a piece back as
 /// `(piece - first_bird_piece) / 3 + 0x192`.
-pub const FIRST_BIRD_PIECE: i32 = 0xea8d;
+/// Defined once, in the sim (`sim::units::anim::FIRST_BIRD_PIECE`, item 4208).
+pub use sim::units::anim::FIRST_BIRD_PIECE;
 
 /// **A gaia entry's pieces** (item 4028): `{GRAPH}-TYPE{v}` is piece
 /// `first_bird_piece + 3·(TypeIndex − 0x192) + v`.
@@ -2437,6 +2458,44 @@ pub fn coral_texture(install: &Install, tileset: &str) -> Result<Option<String>,
         .map(|f| f.trim().to_string()))
 }
 
+/// **The tileset's tint** (item 4212; `docs/RENDERER.md` §3.21): the
+/// `<LIGHTING>` element's `tint_red`, `tint_green` and `tint_blue` under
+/// `tileset`, as `TileSet::init@0087b370` reads them into
+/// `TileSetData::tint_color`. `ImageIO::set_tint@00511a00` hands them to
+/// every tileset texture's loader, and `ImageIO::tint@00511aa0` adds them,
+/// saturating, to each decoded texel's bytes. A missing attribute is 0, as
+/// `get_attrib_num`'s default of −1 truncated to a byte would not be: the
+/// install writes all three on every tileset.
+pub fn tileset_tint(install: &Install, tileset: &str) -> Result<[u8; 3], ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let set = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?;
+    let light = set
+        .children()
+        .find(|n| n.has_tag_name("LIGHTING"))
+        .ok_or_else(|| unnamed(&format!("{tileset}/LIGHTING")))?;
+    let mut out = [0u8; 3];
+    for (o, a) in out.iter_mut().zip(["tint_red", "tint_green", "tint_blue"]) {
+        let v = light
+            .attribute(a)
+            .ok_or_else(|| unnamed(&format!("{tileset}/LIGHTING/{a}")))?;
+        *o = v
+            .trim()
+            .parse()
+            .map_err(|_| unnamed(&format!("{tileset}/LIGHTING/{a}")))?;
+    }
+    Ok(out)
+}
+
 /// **The footprint weathering's textures** (item 4190; `docs/RENDERER.md`
 /// §3.17): `Data/tilesets.xml`'s `<COMMON><WEATHERING>` `WEATHERELEM`s, one
 /// per age bucket as `age=` numbers them, each `(file1, file2)` as written.
@@ -2728,6 +2787,20 @@ mod tests {
             ]
         );
         assert!(anim_failed.is_empty(), "{anim_failed:#?}");
+    }
+
+    /// **The tileset's tint** (item 4212; `docs/RENDERER.md` §3.21):
+    /// `early_autumn`'s `<LIGHTING>` reads (18, 18, 0), `Snowy`'s (0, 9,
+    /// 38), and a tileset the file does not hold is refused.
+    #[test]
+    fn the_tileset_tint_is_read() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        assert_eq!(tileset_tint(&inst, "early_autumn").unwrap(), [18, 18, 0]);
+        assert_eq!(tileset_tint(&inst, "Snowy").unwrap(), [0, 9, 38]);
+        assert!(tileset_tint(&inst, "no such tileset").is_err());
     }
 
     /// **Every image the install ships is read whole** (item 4037,
