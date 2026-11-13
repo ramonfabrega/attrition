@@ -22,7 +22,15 @@
 //!   the nation and the frame. The numbers are the ones the original's
 //!   resource bar and population box read (`bucket`, `income`, `control`,
 //!   `pop_cap`), at the record's own scale; the rate is shown as the
-//!   original shows it, `(income + 8) / 16`.
+//!   original shows it, `(income + 8) / 16`, and written as it writes it
+//!   (item 4203): `0` with no sign, otherwise a `+` before the number, so
+//!   a falling rate reads `+-3` ([`rate_text`]).
+//! - **The clock** (item 4203, `docs/HUD.md` §4): the original's
+//!   `Game::tick`, one more each fifteenth frame, so `frame / 15` seconds,
+//!   written `hh:mm:ss` as `say_timer@007f1b00` writes it ([`clock`]).
+//! - **The ring** (item 4203, `docs/HUD.md` §3): each selected unit's
+//!   figures circled on the ground at the original's radius, a selected
+//!   building's footprint outlined, in the owner's colour ([`rings`]).
 //!
 //! Where the buttons stand is ours, anchored to the window's bottom-left
 //! corner, and pinned as pixels at the scripts' 1920×1080 by the tests.
@@ -56,6 +64,13 @@ pub struct Names {
     pub units: Vec<String>,
     pub builds: Vec<String>,
     pub techs: Vec<String>,
+    /// Each unit type's selection ring radius, in position units:
+    /// `CIRCLE_RADIUS` (`ObjectTypeData +0x234` on a unit type) times
+    /// `unit_block_radius`, as `UnitOut::draw_underlays@00614100` passes
+    /// it to `draw_unit_circles@00606a10` (item 4203).
+    pub rings: Vec<i32>,
+    /// Each building type's footprint, in tiles (`+0x234`, `+0x238`).
+    pub footprints: Vec<(i32, i32)>,
 }
 
 impl Names {
@@ -64,6 +79,16 @@ impl Names {
             units: loaded.unit_names.clone(),
             builds: loaded.build_names.clone(),
             techs: loaded.tech_names.clone(),
+            rings: loaded
+                .unit_types
+                .iter()
+                .map(|t| t.combat.circle_radius * UNIT_BLOCK_RADIUS)
+                .collect(),
+            footprints: loaded
+                .build_types
+                .iter()
+                .map(|b| (b.x_size, b.y_size))
+                .collect(),
         }
     }
 
@@ -269,8 +294,7 @@ pub struct Bar {
     pub age: i32,
     /// The nation's name.
     pub nation: String,
-    /// The game's clock, as the frame count (the original's time display
-    /// is not read: `docs/HUD.md` §6).
+    /// The frame the scene is at; the clock is read from it ([`clock`]).
     pub frame: i64,
 }
 
@@ -279,6 +303,48 @@ pub struct Bar {
 /// rounding toward zero.
 pub fn shown_rate(income: i32) -> i32 {
     (income + 8) / 16
+}
+
+/// **A shown rate as the original writes it** (item 4203).
+/// `IFaceResources::draw_resource@00818840` writes `internal_strings.xml`
+/// entry 404 (`int_str_array +0x1f90`, the string `0`) for a zero
+/// `income`, the shown rate's digits otherwise, and then puts a `+` in
+/// front **unless the string is that `0`**. So a rate that rounds to zero
+/// reads `0` with no sign, a rising one `+40`, and a falling one `+-3`:
+/// the sign is not chosen by the value, only withheld from zero.
+pub fn rate_text(shown: i32) -> String {
+    if shown == 0 {
+        "0".into()
+    } else {
+        format!("+{shown}")
+    }
+}
+
+/// `UNIT_BLOCK_RADIUS` as loaded: one `UCoord`, 48 position units
+/// (`rondata::load`'s).
+pub const UNIT_BLOCK_RADIUS: i32 = 48;
+
+/// Frames to one second of the game's clock: `Game::do_frame@00591ef0`
+/// raises `Game::tick` (`+0x560`) by one after the frame count's own
+/// step whenever the count is a multiple of 15, and `Setup::build_game`
+/// and `Game::clear` set it to 0. No other writer.
+pub const FRAMES_PER_TICK: i64 = 15;
+
+/// **The game's clock in seconds**, `Game::tick` on frame `frame`: the
+/// frames counted to it, a fifteenth each. 109 of 109 packets on disk hold
+/// exactly this (`docs/HUD.md` §5).
+pub fn clock_seconds(frame: i64) -> i64 {
+    frame / FRAMES_PER_TICK
+}
+
+/// **The clock as the original writes it**, `say_timer@007f1b00` on
+/// seconds: hours, minutes and seconds, each through `say_timer_num`
+/// (`0` put in front of a number under 10), joined by `:`. The bar's own
+/// line writes it after the speed's name and `: ` (`Normal: 00:03:38` on
+/// run1559b's photograph); the speed is not ours to name.
+pub fn clock(frame: i64) -> String {
+    let s = clock_seconds(frame);
+    format!("{:02}:{:02}:{:02}", s / 3600, s % 3600 / 60, s % 60)
 }
 
 impl Bar {
@@ -299,20 +365,25 @@ impl Bar {
         })
     }
 
-    /// The printed text: `FOOD 200 +0 … POP 6/25 AGE 1 NATION Greeks
-    /// FRAME 7000`, each number after its word. A good at its cap is
-    /// marked `CAP`.
+    /// The printed text: `FOOD 200 0 … POP 6/25 AGE 1 NATION Greeks
+    /// FRAME 7000 TIME 00:07:46`, each number after its word, each rate as
+    /// [`rate_text`] writes it. A good at its cap is marked `CAP`.
     pub fn text(&self) -> String {
         let mut s = String::new();
         for (name, (stock, rate, capped)) in GOODS.iter().zip(self.goods) {
-            s += &format!("{name} {stock} {rate:+} ");
+            s += &format!("{name} {stock} {} ", rate_text(rate));
             if capped {
                 s += "CAP ";
             }
         }
         s += &format!(
-            "POP {}/{} AGE {} NATION {} FRAME {}",
-            self.pop.0, self.pop.1, self.age, self.nation, self.frame
+            "POP {}/{} AGE {} NATION {} FRAME {} TIME {}",
+            self.pop.0,
+            self.pop.1,
+            self.age,
+            self.nation,
+            self.frame,
+            clock(self.frame)
         );
         s
     }
@@ -331,13 +402,109 @@ pub fn bar_rect(text: &str, size: (i32, i32)) -> Rect {
     }
 }
 
+/// **A selection's ring**: a closed line on the ground, in world
+/// coordinates, and the slot whose colour it takes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Ring {
+    pub owner: sim::Player,
+    pub points: Vec<(i32, i32, i32)>,
+}
+
+/// The points a ring's circle is drawn with.
+pub const RING_POINTS: usize = 32;
+
+/// **The selection's rings** (item 4203; `docs/HUD.md` §3), in world
+/// coordinates, from the scene alone. A unit: one circle each figure, at
+/// the figure's place, its radius the type's
+/// ([`Names::rings`]; `UnitOut::draw_underlays@00614100` hands
+/// `draw_unit_circles@00606a10` `unit_block_radius × +0x234`, and that
+/// draws one circle each figure in the owner's `TeamColor::get_iface`).
+/// A building: its footprint's rectangle about its place, **ours**: the
+/// original draws `draw_funky_rectangle_circle` at `BuildData::max_range`
+/// (vtable `+0x130`), not ported. An object no longer in the scene draws
+/// nothing; a type with no radius draws no circle.
+pub fn rings(input: &Input, scene: &Scene, names: &Names) -> Vec<Ring> {
+    let mut out = Vec::new();
+    for id in &input.selection {
+        if let Some(u) = scene.units.iter().find(|u| u.id == *id) {
+            let r = u.ty.and_then(|t| names.rings.get(t)).copied().unwrap_or(0);
+            if r <= 0 {
+                continue;
+            }
+            let places: Vec<(i32, i32, i32)> = if u.figures.is_empty() {
+                vec![(u.pos.x, u.pos.y, u.z)]
+            } else {
+                u.figures.iter().map(|f| (f.pos.x, f.pos.y, f.z)).collect()
+            };
+            for (x, y, z) in places {
+                let points = (0..RING_POINTS)
+                    .map(|k| {
+                        let a = std::f64::consts::TAU * k as f64 / RING_POINTS as f64;
+                        let dx = (f64::from(r) * a.cos()).round() as i32;
+                        let dy = (f64::from(r) * a.sin()).round() as i32;
+                        (x + dx, y + dy, z)
+                    })
+                    .collect();
+                out.push(Ring {
+                    owner: u.owner,
+                    points,
+                });
+            }
+        } else if let Some(b) = scene.buildings.iter().find(|b| b.id == *id) {
+            let (w, h) =
+                b.ty.and_then(|t| names.footprints.get(t))
+                    .copied()
+                    .unwrap_or((1, 1));
+            let (hx, hy) = (
+                w * sim::ids::scale::UNITS_PER_TILE / 2,
+                h * sim::ids::scale::UNITS_PER_TILE / 2,
+            );
+            let (x, y, z) = (b.pos.x, b.pos.y, b.z);
+            out.push(Ring {
+                owner: b.owner,
+                points: vec![
+                    (x - hx, y - hy, z),
+                    (x + hx, y - hy, z),
+                    (x + hx, y + hy, z),
+                    (x - hx, y + hy, z),
+                ],
+            });
+        }
+    }
+    out
+}
+
 /// The button's label: its key, then the type's name.
 pub fn label(b: &Button, names: &Names) -> String {
     format!("{} {}", b.key, names.of_type_index(b.ty))
 }
 
-/// **The HUD drawn**: the bar, the panel and the menu as quads on `p`.
-pub fn paint(p: &mut Painter, input: &Input, scene: &Scene, names: &Names, size: (i32, i32)) {
+/// **The HUD drawn**: the selection's rings, then the bar, the panel and
+/// the menu, as quads on `p`. `project` takes a world point to its pixel,
+/// `None` off the camera; a ring is drawn two pixels wide in the owner's
+/// unit colour.
+pub fn paint(
+    p: &mut Painter,
+    input: &Input,
+    scene: &Scene,
+    names: &Names,
+    size: (i32, i32),
+    project: &dyn Fn(i32, i32, i32) -> Option<(i32, i32)>,
+) {
+    for ring in rings(input, scene, names) {
+        let c = render::silhouette::team_unit(ring.owner);
+        let c = c.map(|v| f32::from(v) / 255.0);
+        let px: Vec<Option<(i32, i32)>> = ring
+            .points
+            .iter()
+            .map(|&(x, y, z)| project(x, y, z))
+            .collect();
+        for k in 0..px.len() {
+            if let (Some(a), Some(b)) = (px[k], px[(k + 1) % px.len()]) {
+                p.line(a, b, SCALE, c);
+            }
+        }
+    }
     if let Some(bar) = Bar::of(scene, input.player) {
         let text = bar.text();
         let r = bar_rect(&text, size);

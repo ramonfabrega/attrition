@@ -89,6 +89,24 @@ A unit's `hits(0)` is its `myhits` (the harness's hit-point rows).
 The printed line is `NAME health/full`, then ` BUILDING c/full` while
 unfinished and ` FIGURES n` for more than one figure (the Scout prints 2).
 
+**A wounded unit's health is `myhits − damage`** (4203): the `damage`
+half is compared on run1571, where the attacked script's Slinger wounds
+slot 1's Scout from frame 6805 (§5).
+
+**The ring (4203).** The original marks a selected unit in
+`UnitOut::draw_underlays@00614100`: when `GroupData::member` finds it in the
+console's selection, `draw_unit_circles@00606a10` draws one circle at each
+figure's place, of radius `unit_block_radius × +0x234` (the unit type's
+`CIRCLE_RADIUS`, clamped to 10), in the owner's `TeamColor::get_iface`.
+`client::hud::rings` draws that circle, 32 points on the ground at the
+figure's height, two pixels wide in the owner's unit colour
+(`render::silhouette::team_unit`); the Scout's is 48. **A building's is
+ours**: its footprint's rectangle about its place. The original's
+(`BuildOut::draw_underlays@0062bdf0`) is `draw_funky_rectangle_circle` at
+vtable `+0x130`, `BuildData::max_range`, in `TeamColor::get_unit` at alpha
+0x40: run1570's photograph shows it as a rounded red outline about
+Napata's plaza. Not ported (§6).
+
 ## 4. The bar (item 4198)
 
 A `LeaderScene` through `sim::observe`, read-only, for the issuing slot:
@@ -96,8 +114,7 @@ the six resources, the population and its cap, the age, the tribe. The
 bar prints them as integers in the original's own units, with the nation's
 name from the tables and the clock as the frame count and as the time the
 original's own bar shows (the photographs read `00:03:38` on frame 3279
-and `00:03:41` on 3331 at normal speed: three seconds over 52 frames; the
-rule behind it is not read, §6).
+and `00:03:41` on the frame run1570's shows, 3327; read below).
 
 The door is a door: it adds no state and no rule to the simulation. Which
 fields of the leader are the six the original's bar shows, and at what
@@ -122,6 +139,29 @@ metal, oil.
 top edge, at the right, as `FOOD 1032 +40 … POP 6/25 AGE 1 NATION <name> FRAME n`: each
 stockpile and its shown rate, `CAP` after a good at its cap, the population,
 the age counted from 1 (`ages + 1`), the nation, and the frame for the clock.
+
+**The clock, read and built (4203).** `IFaceMainBase::draw_button_row_area@0080f7b0`
+writes the speed's name, `: `, and `say_timer@007f1b00` of `Game::tick`
+(`gamec +0x560`, by the type record; the listing passes it in `edx` at
+`0080f937`). `say_timer` writes `s / 3600`, `(s % 3600) / 60` and
+`s % 60`, each through `say_timer_num@007f1a70` (a `0` before a number
+under 10), joined by `:`. `Game::do_frame@00591ef0` raises `tick` by one
+when the frame count, after its own step, is a multiple of 15
+(`TurnControl::check_cannon_time` beside it); `Setup::build_game` and
+`Game::clear` set it to 0, and nothing else writes it. So the clock is
+`frame / 15` seconds, and the bar prints it after the frame as
+`TIME hh:mm:ss` (`client::hud::clock`). The speed's name is not ours to
+print (§6). A ranked game's first 60 seconds take the other arm, a
+countdown `say_short_timer(60 − tick)`; not built.
+
+**The rates' writing, read and built (4203).** `draw_resource` writes the
+stockpile, a `/`, then the rate's string: `internal_strings.xml` entry 404
+(`int_str_array +0x1f90`, the string `0`) for a zero `income`, else the
+digits of `(income + 8) >> 4` with the sign bias. It then puts a `+` in
+front **unless that string equals entry 404**. So a rate that rounds to
+zero reads `0`, a rising one `+40`, a falling one `+-3`. run1570's
+photograph shows `20240/+10` and `20000/0`. The bar writes each rate so
+(`client::hud::rate_text`), where it wrote `+0` and `-3` before.
 
 ## 5. The scores, each with how it fails
 
@@ -185,12 +225,48 @@ the age counted from 1 (`ages + 1`), the nation, and the frame for the clock.
   each good showing its neighbour's stockpile, 44,389 of 57,420; the
   record read one frame late, 56,326 of 57,420. Slots 8 and 9 (printed,
   no player) are not compared.
-- **The clock's line** is pinned only once its rule is read (§6); until
-  then the bar prints the frame and the photograph's two readings stand
-  as the first check a rule must pass. The record prints no clock, and
-  the printed frame is the walk's own step count, aligned to the dump's
-  `FRAME` header by construction, so it is not counted: a comparison
-  that cannot fail.
+- **The clock's line** was pinned only once its rule was read (4203, §4).
+  The record prints no clock, and the printed frame is the walk's own
+  step count, aligned to the dump's `FRAME` header by construction, so
+  the frame is not counted: a comparison that cannot fail.
+  - The bar's `TIME` gets most of its backing from the packets. **109 of
+    109** (`script::HUD_CLOCK_PACKETS`;
+    `client::hud::tests::the_clock_is_the_original_s_tick`): on every
+    packet on disk, frames 91 to 18,368 on maps 7, 14 and 18, the packet's
+    `Game::tick` is `clock_seconds` of its `Game::frame`, and the printed
+    `TIME` is that tick written `hh:mm:ss` by arithmetic apart from
+    `clock`. Their side is `tools/render/packet_clock.py`'s file, outside
+    the repository. Made to fail: the victory timers' `(frames + 14) / 15`
+    agrees on only the 9 packets whose frame is a multiple of 15.
+  - **3 of 3 photographs** (`script::HUD_CLOCK_PHOTOS`;
+    `the_clock_reads_the_photographs`): run1559b and run1564 on frame
+    3279, run1570 on 3327. Each frame is the movers' (items 4073, 4191),
+    never the clock's, and each reading (`00:03:38`, `00:03:38`,
+    `00:03:41`) is by eye and pinned. This also settles 3331's reading:
+    the photograph was taken paused on 3331, but the fast-forward last drew
+    3327, and 3327 / 15 is 221. Made to fail: the victory timers' rule
+    reads `00:03:39` and `00:03:42`, 0 of 3.
+
+**Item 4203.**
+
+- **`Hud: a wounded unit's panel`, 840 of 840** (`script::HUD_WOUNDED`;
+  `client::hud::tests::the_panel_s_damage_half_is_the_dump_s`). The
+  walk is the attacked script's orders, issued on the lobby on their
+  frames. The selection is the Scout `1/0` and the Slinger `0/7`. On
+  each of run1571's 210 printed frames (6690..6899), each printed number
+  is compared with the dump's `myhits − damage` and `myhits`. The Scout's
+  hits left fall 50, 47, 44, 41, 37, 34, 31, and 95 of the lines are
+  wounded. Made to fail: full hits printed (the damage dropped), 745 of
+  840, every wounded line parting; the dump read one frame late, 830 of
+  836. No capture was taken. run1571, a Great Lakes playback in lockstep
+  with our walk, already holds the wounded unit.
+- **The rates' writing.** In the bar's 57,420, a rate token is read back
+  only in the original's writing (`0`, or `+` and a non-zero number).
+  The bar's old writing, `+0` for a zero, parts on exactly the 5,534
+  zero rates the records hold (49,276 of 54,810). A negative rate is in
+  no record, so `a_rate_is_written_as_the_original_writes_it` checks
+  that arm against the listing's arithmetic, written again from −400 to
+  400.
 
 The queue's `Hud:` line is the driver's to write once the first count
 exists; its parser goes beside `lobby_line` in `rondata::diff::floors`.
@@ -209,7 +285,13 @@ rates, six cap marks, population, cap, age and nation, against the level-9
 print it (§5). **On a reading alone**: which fields the original's bar
 shows (§4, two consumers, one reader); the diff cannot say the original
 draws `bucket` rather than another field, only that ours prints the
-record's `bucket`. What the bar rested on before it was built:
+record's `bucket`. **Diff-backed (4203)**: the clock, against
+`Game::tick` on 109 packets and three photographs' readings; a wounded
+unit's hits left, against run1571 (§5); a zero rate's `0`, against the
+5,534 zero rates and the photograph's `/0`. **On a reading alone**: a
+negative rate's `+-n`; the ring's radius and its one circle for each
+figure (one reader, two functions, and the stills by eye). What the bar
+rested on before it was built:
 
 - **Read from the tree by the pass**: the scene's fields (§1, §3), the two
   key tables, the absence of any leader state behind the door.
@@ -228,16 +310,26 @@ Not established:
   photographs) and where the original keeps them.~~ Read (4198, §4):
   `income` in sixteenths, shown as `(income + 8) / 16` by
   `IFaceResources::draw_resource@00818840`; the bar's 15,660 rate values
-  agree with the record's `income` under that rule (§5). Not read: what
-  the original writes for a zero rate (a string from its text table) and
-  for a negative one (a `+` then the number); the bar prints `+0` and
-  `-n`.
-- **The clock's rule**: frames to the time shown, at each game speed.
-  Not `IFaceMainBase::draw_game_timer@0080a3c0`'s: that writes the
-  victory countdowns `IFaceMainBase::draw_timers@0080b060` passes it, at
-  `(frames + 14) / 15` seconds, which reads 3:39 on frame 3279 and 3:43 on
-  3331 where the photographs show 3:38 and 3:41. The game clock's reader
-  is not found.
+  agree with the record's `income` under that rule (§5). ~~Not read: what
+  the original writes for a zero rate and for a negative one~~: read
+  (4203, §4). A zero reads `0`, a negative `+-n`. The negative arm rests
+  on the reading and the listing's arithmetic alone, since no record
+  holds a negative `income`.
+- ~~**The clock's rule**: frames to the time shown, at each game
+  speed.~~ Read (4203, §4): `Game::tick`, `frame / 15`, written by
+  `say_timer`. Diff-backed on 109 packets and 3 photographs (§5). The
+  game speed changes how fast frames pass, not the rule. Still not
+  established: **the speed's name** before the time (`game_speeds` at
+  `turn_control->speed`; `Normal` on every photograph), and **a ranked
+  game's countdown**, the first 60 seconds' other arm.
+- **The ring's place in the draw.** The original draws it among the
+  underlays, before the objects. Ours is a quad in the HUD's overlay,
+  drawn over the world: a ring shows through a tree or a building
+  standing in front of its figure. No row counts the ring against a
+  photograph.
+- **A building's marker.** `draw_funky_rectangle_circle` at
+  `BuildData::max_range` is not read, and its shape and size are not
+  ported; ours outlines the footprint.
 - **Slots 8 and 9.** The record prints two more leaders (no tribe, no
   goods); the bar shows the issuing slot only and they are not compared.
 - **A narrow window.** The bar is one line, about 1,430 pixels at the
@@ -256,8 +348,9 @@ Not established:
   queue's progress (a float in the original); no compared object holds it
   and the scene does not carry it, so a building in that state may print
   other hits left than the original's.
-- **A damaged object.** Every compared object is at full hits left but
-  the site, whose `damage` is 0: the `damage` half of hits left parts on
-  no frame here. A capture with a wounded unit selected would test it.
+- ~~**A damaged object.** Every compared object is at full hits left but
+  the site, whose `damage` is 0~~: compared (4203, §5), the Scout on
+  run1571, 840 of 840. A damaged **building** is still in no compared
+  dump.
 - **What a press on the panel does**: it reaches the world (only a
   button takes a press). A right press on a button reaches the world too.

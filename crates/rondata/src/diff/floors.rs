@@ -650,6 +650,9 @@ pub fn hud_clauses() -> Vec<(&'static str, String)> {
     let (b, bn) = crate::script::HUD_BUTTONS;
     let (p, pn) = crate::script::HUD_PANEL;
     let (r, rn) = crate::script::HUD_BAR;
+    let (c, cn) = crate::script::HUD_CLOCK_PHOTOS;
+    let (k, kn) = crate::script::HUD_CLOCK_PACKETS;
+    let (w, wn) = crate::script::HUD_WOUNDED;
     let n = |v: usize| {
         let s = v.to_string();
         let mut out = String::new();
@@ -680,6 +683,20 @@ pub fn hud_clauses() -> Vec<(&'static str, String)> {
                 "the bar equals the LEADERDATA record, {} of {} values",
                 n(r),
                 n(rn)
+            ),
+        ),
+        (
+            "the clock reads",
+            format!(
+                "the clock reads the photographs' time, {c} of {cn}, and Game::tick on {k} of {kn} packets"
+            ),
+        ),
+        (
+            "a wounded unit's panel equals",
+            format!(
+                "a wounded unit's panel equals run1571's dump, {} of {} values",
+                n(w),
+                n(wn)
             ),
         ),
     ]

@@ -131,6 +131,31 @@ impl Painter {
         }
     }
 
+    /// A straight line `w` pixels wide from pixel `a` to pixel `b`: one
+    /// quad, its sides offset half the width either way across the line.
+    pub fn line(&mut self, a: (i32, i32), b: (i32, i32), w: i32, c: [f32; 3]) {
+        let (dx, dy) = ((b.0 - a.0) as f32, (b.1 - a.1) as f32);
+        let len = (dx * dx + dy * dy).sqrt();
+        if len == 0.0 {
+            return;
+        }
+        let h = w as f32 / 2.0;
+        let (nx, ny) = (-dy / len * h, dx / len * h);
+        let (sw, sh) = (self.size.0 as f32, self.size.1 as f32);
+        let ndc = |x: f32, y: f32| [x / sw * 2.0 - 1.0, 1.0 - y / sh * 2.0, 0.0];
+        let (ax, ay, bx, by) = (a.0 as f32, a.1 as f32, b.0 as f32, b.1 as f32);
+        let q = [
+            ndc(ax + nx, ay + ny),
+            ndc(bx + nx, by + ny),
+            ndc(bx - nx, by - ny),
+            ndc(ax - nx, ay - ny),
+        ];
+        for k in [0, 1, 2, 0, 2, 3] {
+            self.pos.push(q[k]);
+            self.col.push(c);
+        }
+    }
+
     /// One line of text, its first glyph's top-left at `(x, y)`, each lit
     /// font pixel a `scale`-pixel square.
     pub fn text(&mut self, x: i32, y: i32, line: &str, scale: i32, c: [f32; 3]) {
