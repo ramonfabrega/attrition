@@ -637,15 +637,28 @@ held_melees! {
 
 /// **Every packet our walk does not hold**, with why: `(run, logger frame,
 /// why)` (`docs/CHECKSUM.md` §23.1).
-pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[(
-    "run1100",
-    5408,
-    "run1090's lobby with `100 ally 1` and `5404 explore all` staged; no word walks it",
-)];
+pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
+    (
+        "run1100",
+        5408,
+        "run1090's lobby with `100 ally 1` and `5404 explore all` staged; no word walks it",
+    ),
+    // Item 4206 (step VII-a): `diff::diplomacy_take` walks the take from
+    // run1482's start re-read at style 0 and holds it to 1099, past this
+    // frame, but that walk is a pin as found, not a word with a pinned
+    // length and a stand-up the packet lines read; step VII-b holds it.
+    (
+        "run1575",
+        1090,
+        "the diplomacy take (run1482's lobby at style 0, `diplomacy4206.cmd`); its walk is \
+         `diff::diplomacy_take`, held to 1099 but no word's; step VII-b wires it",
+    ),
+];
 
 /// The census's counts: `(packets on disk, held by a word's walk, by a
 /// chapter's, by a melee's, by the minted walk, not held)`.
-const CENSUS: (usize, usize, usize, usize, usize, usize) = (108, 87, 7, 12, 1, 1);
+// Item 4206: (108, …, 1) → (109, …, 2), run1575's packet at 1090 named.
+const CENSUS: (usize, usize, usize, usize, usize, usize) = (109, 87, 7, 12, 1, 2);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.

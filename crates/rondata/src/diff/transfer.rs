@@ -930,20 +930,28 @@ fn read_corpus() -> Vec<(String, Vec<Rec>)> {
 /// → 16565 and run1018's 12658 → 12659, ours 6 / 3 / 6 / 6 / 4 against 5 /
 /// 2 / 5 / 5 / 3 — and a pair over a gap that moves `num_buildings`
 /// has no printed order — run25's and run26's 12132/12027 → 16008).
+///
+/// Item 4206: 910 → 912 dumps, run1575 and run1576 (the diplomacy take
+/// and its twin, 255 level-9 blocks of three leaders each). Every leaf's
+/// pairs rise by 2,540 (`supply_mark`'s none: the take prints no unit, so
+/// its 2,540 are unprinted, 6,788 → 9,328). Moving pairs rise on five
+/// leaves: `barracks_queued` 696 → 700, `combat_queued` 972 → 978,
+/// `high_buildings` 712 → 726, `stable_queued` 338 → 344, `territory_high`
+/// 286 → 288. No parting moves.
 const PINNED: &[(&str, usize, usize, usize)] = &[
-    ("air_queued", 477_126, 288, 0),
-    ("average_damage_rate", 476_892, 1482, 0),
-    ("average_death_rate", 476_892, 1419, 0),
-    ("average_hit_rate", 476_892, 1286, 0),
-    ("average_kill_rate", 476_892, 1527, 0),
-    ("barracks_queued", 477_126, 696, 1),
-    ("combat_queued", 477_126, 972, 1),
-    ("dock_queued", 477_126, 136, 0),
-    ("factory_queued", 477_126, 188, 0),
-    ("high_buildings", 476_924, 712, 0),
-    ("stable_queued", 477_126, 338, 0),
+    ("air_queued", 479_666, 288, 0),
+    ("average_damage_rate", 479_432, 1482, 0),
+    ("average_death_rate", 479_432, 1419, 0),
+    ("average_hit_rate", 479_432, 1286, 0),
+    ("average_kill_rate", 479_432, 1527, 0),
+    ("barracks_queued", 479_666, 700, 1),
+    ("combat_queued", 479_666, 978, 1),
+    ("dock_queued", 479_666, 136, 0),
+    ("factory_queued", 479_666, 188, 0),
+    ("high_buildings", 479_464, 726, 0),
+    ("stable_queued", 479_666, 344, 0),
     ("supply_mark", 480_076, 82, 0),
-    ("territory_high", 477_128, 286, 0),
+    ("territory_high", 479_668, 288, 0),
 ];
 
 /// The leaves released on transfer: each transfers on every pair (no
