@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §9 item 4194, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -326,8 +326,8 @@ made. Those rows are the repair, the nothing, the attack and the predicates' ord
 
 **Not established:**
 
-- **The attack.** It is minted, but no enemy stands in view on the opening frames, so no file carries it. It waits for
-  a lobby with one (parked 4179a).
+- ~~**The attack.** It is minted, but no enemy stands in view on the opening frames, so no file carries it. It waits for
+  a lobby with one (parked 4179a).~~ Played on the harness lobby on the frame our walk first shows an enemy (§8).
 - **A selection that cannot attack.** A Scout's `ATTACK` is 0. On an enemy unit it reads as `follow`
   (`GroupOut::issue_follow@00708980`), and on an enemy Spy as a counter-intelligence spell. The layer mints neither:
   it would mint an attack. The scene does not carry a unit's attack (parked 4179b).
@@ -499,6 +499,103 @@ each unit's slot, path goal and formation bytes equal on both sides.
   mean.
 - ~~**The single unit's main-view fields** (parked 4180a).~~ Played by run1572 (§9).
 
+## 8. An attack on an enemy unit (item 4195)
+
+A soldier is trained and right-pressed on the first enemy our walk shows slot 0. The original plays the file in
+lockstep up to the soldier's first blow, and the target's hits are equal on both sides. §6.1's enemy arm is the one
+played here: `attack(ox, whom, ignore 0, QUEUE_NEW)`.
+
+### 8.1 The fifth script and its stage 0
+
+**Where an enemy is first seen.** The harness lobby has two players. Slot 1 starts about 37,000 units from slot 0.
+Under the boxed script our walk shows slot 1's units to slot 0 on no frame before 6187 (`Sim::world_sees`, the
+live sight at the unit's half-cell). On 6187 slot 1's Scout `1/0` (TI 69, land) wanders within 1,465 units of
+slot 0's objects. Slot 1's Citizens never leave their base. Slots 8 and 9 are nature, not enemies.
+
+**What a soldier needs.** Slot 0 starts with no Barracks. The Barracks' `PREQ0` is The Art of War, researched at the
+Library. Until it is researched, `group_action_build` places nothing.
+
+`rondata::script::attacked()` is the boxed script (§7) with four packages more:
+
+| frame | events, at the opening camera | what the layer reads | the order |
+| --- | --- | --- | --- |
+| 310 | a press on the Library `0/2005` (1006, 397), then `a` | a building selected | `group` [2005]; `queue_up` 572 (The Art of War), `num` 1 |
+| 521 | a press on `0/3` (TI 50) (735, 523), then `b`, then a press at (614, 475) | the ground (1249, 32163) | `group` [3]; `build` 427 at (1249, 32163), `x2`/`y2` the same, `queued` 2 |
+| 965 | a press on the Barracks `0/2008` (614, 458), then `s` | a building selected | `group` [2008]; `queue_up` 82 (the Slingers), `num` 1 |
+| 6703 | a press on the Slinger `0/7` (TI 82, land) (509, 513), then a right press on `1/0` (1645, 884) | another slot's unit | `group` [7]; `attack` `ox` 0, `whom` 1, `ignore` 0, `queued` 2 |
+
+- The build and the train come ten frames after our walk first allows each. The Barracks is available from 511 and
+  finished on 955.
+- The drop pixel is the pixel of (1248, 32160), the clear site on a 192-unit grid nearest the builder. Its ground
+  under the layer's inverse is (1249, 32163), and `snap_center` puts the site at (1152, 32064).
+- 6703 is the first frame our walk shows `1/0` under this script. The first-seen frame moves with the orders' timing:
+  with the build and the train issued as soon as allowed it was 5474, and under the boxed script 6187.
+- Every anchor is on the 1920×1080 screen at the opening camera, so the script's camera is the client's own.
+- Each press lands on its own object. The nearest other anchors are 142, 4, 74 and 17 px away; the 4 px one is the
+  Farm `0/2003` beside `0/3`.
+- Under the right press, `View::target` finds `1/0` and no other slot's unit within the pick.
+
+The keys are ours: `a` and `s` in `TRAIN_KEYS`, `b` in `BUILD_KEYS`. The HUD's menu grows to match
+(`docs/HUD.md` §2), and its labels name the technology through `BASE_TECHTYPES`.
+
+`INPUT_ATTACKED`: **10 of 10** (`minted_attacked_at_the_opening_camera`, `ATTACK_ANCHORS`, `BARRACKS_DROP`). The boxed
+events and these nine mint the attacked script field for field. Before this item it was 0: no file carried an attack.
+Seen red: the script's `ignore` set to 1 gave 9 of 10. `INPUT_BOXED` stays 6 of 6.
+
+**The file** is `~/ron-golden/recordings/item4195-attacked-greatlakes-24000.rcx`, 59,404 bytes, SHA-256
+`619c27db…bcb2e6` (`ATTACKED_RCX_BYTES`). It is the boxed file with four packages added, and the closing `stamp` goes
+from 8 to 12 (`the_attacked_minted_packages_round_trip`). The client writes the same bytes from the orders it minted.
+
+### 8.2 The playback, and the blow
+
+**run1571**: the click-free lane, `end:MISC,UNITS=3,BUILDS=7` with records in the window 6690..6900, to frame 6900
+(`docs/RUNS.md`). `the_original_s_playback_of_the_attacked_file_walks_in_lockstep` gives `ATTACKED_WALKED`:
+
+- draws agree on **6,900 of 6,900** frames, count and sequence;
+- **210 records compared whole, none parted**, 6690 to 6899 (the window prints no record of 6900).
+
+Seen red first: pinned `(0, 0, 0, 0)`, it printed `(6900, 6900, 210, 0)`.
+
+**The attack's effect, both sides** (`attacked_effects`, on 6703, 6704, 6804, 6805 and 6899), equal:
+
+| frame | `1/0`: position, hits left | `0/7`: position, orders |
+| --- | --- | --- |
+| 6703 | (6762, 31117), 50 | (1176, 32760), none |
+| 6704 | (6731, 31133), 50 | (1202, 32744), `move`, `attack` |
+| 6804 | (4320, 32084), 50 | (3104, 31512), `move`, `attack` |
+| 6805 | (4320, 32118), **47** | (3135, 31512), `move`, `attack` |
+| 6899 | (2130, 33412), 31 | (3463, 31825), `move`, `attack` |
+
+The hits left are `myhits − damage` in the dump and `Unit::health` in ours. Our walk's values were pinned before
+the playback was read.
+
+**The value diff** against the boxed script's walk, the control. No playback of the boxed file reaches these
+frames: run1569 stops at 300. On 6805 the boxed walk has no `0/7`, and `1/0` stands at (8472, 33213) with 50 hits.
+
+**Made to fail** (`the_boxed_script_against_the_attacked_playback_parts`, `BOXED_AGAINST_ATTACKED`): our walk under the
+boxed file, against run1571, parts on every one of the 210 records. The first parting, on 6690, is the Slinger
+`0/7`, which that walk never trains. The draws part from 535, while the Barracks' site is under construction. Seen
+red first: pinned `(0, "", "", None, 0)`. **Our side perturbed**: with the attack consumed one frame late, on 6704,
+the lockstep test turns red. What it printed is in the journal.
+
+### 8.3 Confidence, and what is not established
+
+**Backed by the playback.** These are played by run1571, with the blow's hits equal on both sides:
+- §6.1's enemy arm, an `attack` with `ignore` 0 and `QUEUE_NEW` on another slot's unit;
+- a `queue_up` of a technology at the Library;
+- a `build` of the Barracks;
+- a `queue_up` of a soldier.
+
+**Not established:**
+
+- **The right press's fog test.** The dispatch asks `is_seen`, and an unseen enemy is moved to instead. The layer still
+  does not test the fog. The script presses only on the frame our walk first shows the Scout.
+- **A Scout or another unit with no attack, selected** (parked 4179b, then item 4194's). Its right press would read as
+  `follow` (§9.4).
+- **An enemy building, an ally, and a target the soldier cannot reach.**
+- **The record of 6900.** The window ends one record short of the take's last frame.
+- **The original's hotkeys and menu.** The keys `a`, `s` and `b` are ours.
+
 ## 9. One unit's press, as the main view mints it (item 4194)
 
 A right press on the ground mints the selection's formation for one unit as it does for many. The −1/−1 that every
@@ -541,7 +638,7 @@ gave 2 of 3.
 **The played files keep their counts.** The test lists for the earlier scripts send the Scout's move as the
 minimap's press, at the ground stage 0's inverse names under the event's camera: (5880, 31896) under the closer
 camera, and (5883, 31896) under the opening one. `INPUT_MINTED` 3 of 3, `INPUT_MINTED_OPENING` 1 of 3 with
-`(30, 3, 0)`, `(90, 2, 4)`, `INPUT_RIGHT_PRESSED` 5 of 5 and `INPUT_BOXED` 6 of 6 are unchanged. The HUD's
+`(30, 3, 0)`, `(90, 2, 4)`, `INPUT_RIGHT_PRESSED` 5 of 5, `INPUT_BOXED` 6 of 6 and §8's `INPUT_ATTACKED` 10 of 10 are unchanged. The HUD's
 `HUD_BUTTONS` 2 of 2 is unchanged too, and every file those tests write is still byte for byte the file the original
 played. The same test asserts that the minimap's list mints `clicked()` whole and writes the played clicked file.
 

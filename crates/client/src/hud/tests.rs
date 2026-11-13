@@ -337,7 +337,19 @@ fn the_panel_s_values_are_the_dump_s() {
         .flat_map(|i| menu(i, SIZE))
         .map(|b| label(&b, &names))
         .collect();
-    assert_eq!(labels, ["c Citizen", "f Farm"]);
+    // Item 4195 widened both rows: The Art of War and the Slingers on a
+    // building, the Barracks on units (seen red first as `a TYPE 572`,
+    // before the names took the technologies).
+    assert_eq!(
+        labels,
+        [
+            "c Citizen",
+            "a The Art of War",
+            "s Slingers",
+            "f Farm",
+            "b Barracks"
+        ]
+    );
     let walk = panel_walk(&names).expect("the lobby");
 
     let mut dump = rondata::capture::indexed::IndexedCapture::open(&path).unwrap();

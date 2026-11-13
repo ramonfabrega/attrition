@@ -1757,3 +1757,303 @@ const RIGHT_PRESSED_AGAINST_BOXED: (i64, &str, &str, Option<i64>, usize) = (
     Some(240),
     59,
 );
+
+/// The attacked file's gzip length (item 4195).
+const ATTACKED_RCX_BYTES: usize = 59_404;
+
+/// **The attacked script, minted** (item 4195, `docs/CLIENT_INPUT.md` §8):
+/// the boxed file and four packages more — the research, the Barracks,
+/// the Slingers and the attack; it round-trips through the file. With
+/// `RON_RCX_OUT=<file>` it writes the `.rcx` the playback takes open.
+#[test]
+fn the_attacked_minted_packages_round_trip() {
+    use crate::script::{
+        ATTACK_FRAME, ATTACK_RESEARCH_FRAME, BARRACKS_FRAME, TRAIN_FRAME, attacked,
+    };
+    let (Some(rec), Some(first)) = (minted(&attacked()), minted(&boxed())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "attacked").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in attacked().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<i32> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| p.frame)
+        .collect();
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (12, 8));
+    assert_eq!(
+        added,
+        vec![
+            ATTACK_RESEARCH_FRAME,
+            BARRACKS_FRAME,
+            TRAIN_FRAME,
+            ATTACK_FRAME,
+            last.frame
+        ],
+        "the packages the boxed file does not hold"
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    assert_eq!(gz.len(), ATTACKED_RCX_BYTES, "ATTACKED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The frames the attack is read on (item 4195): the package's own frame,
+/// the frame after it, the frame before the first blow on our walk, the
+/// blow's, and the window's last record (run1571 prints 6690..6899).
+const ATTACK_READ_AT: [i64; 5] = [6703, 6704, 6804, 6805, 6899];
+
+/// The attack, read off one frame: the target `1/0`'s position and hits
+/// left (`myhits − damage` in the dump), and the Slinger `0/7`'s position
+/// and order list by class, front first.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct AttackEffect {
+    pub frame: i64,
+    pub target: ((i64, i64), i64),
+    pub slinger: ((i64, i64), Vec<&'static str>),
+}
+
+/// The dump's order block names, as [`AttackEffect`] classes them.
+fn attack_class(name: &str) -> &'static str {
+    match name {
+        "ATTACKORDER" => "attack",
+        "MOVEORDER" => "move",
+        _ => "other",
+    }
+}
+
+fn attack_effect_theirs(f: &crate::gamelog::Frame) -> AttackEffect {
+    let (tw, to) = crate::script::ATTACKED;
+    let unit = |who: u8, o: i16| {
+        f.units
+            .iter()
+            .find(|u| u.who == i64::from(who) && u.o == i64::from(o))
+            .unwrap()
+    };
+    let t = unit(tw, to);
+    let sl = unit(0, crate::script::SLINGER);
+    AttackEffect {
+        frame: f.n,
+        target: (
+            (t.pos.x, t.pos.y),
+            t.myhits.unwrap_or(-1) - t.damage.unwrap_or(0),
+        ),
+        slinger: (
+            (sl.pos.x, sl.pos.y),
+            sl.orders_front_first()
+                .map(|o| attack_class(&o.kind))
+                .collect(),
+        ),
+    }
+}
+
+fn attack_effect_ours(b: &Built) -> AttackEffect {
+    let s = &b.sim;
+    let (tw, to) = crate::script::ATTACKED;
+    let t = &s.units[s.unit_by_o(tw, to).unwrap()];
+    let sl = &s.units[s.unit_by_o(0, crate::script::SLINGER).unwrap()];
+    AttackEffect {
+        frame: s.frame,
+        target: (
+            (i64::from(t.pos.x), i64::from(t.pos.y)),
+            i64::from(t.health),
+        ),
+        slinger: (
+            (i64::from(sl.pos.x), i64::from(sl.pos.y)),
+            sl.orders
+                .iter()
+                .map(|o| match &o.body {
+                    sim::orders::Body::Attack(_) => "attack",
+                    sim::orders::Body::Move(_) => "move",
+                    _ => "other",
+                })
+                .collect(),
+        ),
+    }
+}
+
+/// Our walk under the pump on `orders`' file, read on [`ATTACK_READ_AT`].
+fn attack_effects_ours(orders: &[Order]) -> Vec<AttackEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in &ATTACK_READ_AT {
+        tick_to(&mut built, Some(&mut stream), n);
+        ours.push(attack_effect_ours(&built));
+    }
+    ours
+}
+
+/// The original's, off the take's records on [`ATTACK_READ_AT`].
+fn attack_effects_theirs(take: &str) -> Option<Vec<AttackEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for i in 0..source.frames().len() {
+        if ATTACK_READ_AT.contains(&source.frames()[i].number) {
+            theirs.push(attack_effect_theirs(&source.frame_state(i).unwrap()));
+        }
+    }
+    Some(theirs)
+}
+
+/// **The attack's effect, both sides** (item 4195), our walk's values
+/// pinned before the original's playback was read and run1571's equal to
+/// them on every frame: the Slinger idle by its Barracks on 6703, `move`
+/// then `attack` from 6704; the Scout's 50 hits until 6804 and 47 on
+/// 6805, the first blow; 31 on 6899.
+fn attacked_effects() -> Vec<AttackEffect> {
+    let row = |frame, t: ((i64, i64), i64), at: (i64, i64), orders: &[&'static str]| AttackEffect {
+        frame,
+        target: t,
+        slinger: (at, orders.to_vec()),
+    };
+    let chase: &[&str] = &["move", "attack"];
+    vec![
+        row(6703, ((6762, 31117), 50), (1176, 32760), &[]),
+        row(6704, ((6731, 31133), 50), (1202, 32744), chase),
+        row(6804, ((4320, 32084), 50), (3104, 31512), chase),
+        row(6805, ((4320, 32118), 47), (3135, 31512), chase),
+        row(6899, ((2130, 33412), 31), (3463, 31825), chase),
+    ]
+}
+
+/// **What the attacked orders do on our walk** (item 4195), on
+/// [`ATTACK_READ_AT`]: the Slinger takes the attack on the frame after
+/// the package and lands its first blow on 6805, the Scout's 50 hits
+/// going to 47.
+#[test]
+fn the_attacked_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::attacked()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = attack_effects_ours(&crate::script::attacked());
+    for e in &ours {
+        eprintln!("ATTACK EFFECT ours {e:?}");
+    }
+    assert_eq!(ours, attacked_effects());
+}
+
+/// The attacked file's playback (`docs/RUNS.md` run1571): `(take, trace,
+/// frames agreeing, frames walked, records, parted)`.
+pub(crate) const ATTACKED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1571-greatlakes-playback-of-attacked-6900.txt",
+    "rontrace-run1571.log",
+    6900,
+    6900,
+    210,
+    0,
+)];
+
+/// **The original plays the attacked file in lockstep to the blow**
+/// (item 4195): the built start walked under the pump against run1571,
+/// every frame's draws against its trace and every record of its window
+/// whole ([`ATTACKED_WALKED`]); and the attack's effect read on both sides
+/// on [`ATTACK_READ_AT`], the target's hits among them.
+#[test]
+fn the_original_s_playback_of_the_attacked_file_walks_in_lockstep() {
+    let attacked = crate::script::attacked();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in ATTACKED_WALKED {
+        let Some((w, _)) = walk_minted(&attacked, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "ATTACKED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        if let Some((o, t)) = &w.sites
+            && let Some((_, d)) = first_parting(o, t)
+        {
+            eprintln!("the first parting frame, {:?}: {d}", w.first_sequence);
+        }
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs = attack_effects_theirs(ATTACKED_WALKED[0].0).unwrap();
+    let ours = attack_effects_ours(&attacked);
+    for (o, t) in ours.iter().zip(&theirs) {
+        eprintln!("ATTACK EFFECT ours {o:?}\n              theirs {t:?}");
+    }
+    assert_eq!(walked, ATTACKED_WALKED, "the walked table");
+    assert_eq!(theirs, attacked_effects(), "the original's effects");
+    assert_eq!(ours, attacked_effects(), "our effects");
+}
+
+/// **Made to fail** (item 4195): our walk under the boxed file — no
+/// research, no Barracks, no Slinger, no attack — against run1571; and
+/// the boxed walk read on the blow's frame, the control's values.
+#[test]
+fn the_boxed_script_against_the_attacked_playback_parts() {
+    let (take, take_trace, ..) = ATTACKED_WALKED[0];
+    let Some((w, built)) = walk_minted(&boxed(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    eprintln!(
+        "BOXED AGAINST ATTACKED: record {frame}: {partings:?}; draws part {:?}; records {} parted {}",
+        w.first_sequence, w.records, w.records_parted
+    );
+    let seen = (
+        frame,
+        partings[0].0,
+        partings[0].2.clone(),
+        w.first_sequence,
+        w.records_parted,
+    );
+    let (f, kind, row, draws, parted) = BOXED_AGAINST_ATTACKED;
+    assert_eq!(
+        seen,
+        (f, kind, row.to_string(), draws, parted),
+        "BOXED_AGAINST_ATTACKED"
+    );
+    drop(built);
+    let (_, mut b, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(&boxed()).unwrap());
+    tick_to(&mut b, Some(&mut stream), 6805);
+    let (tw, to) = crate::script::ATTACKED;
+    let t = &b.sim.units[b.sim.unit_by_o(tw, to).unwrap()];
+    let control = (
+        b.sim.unit_by_o(0, crate::script::SLINGER).is_some(),
+        (i64::from(t.pos.x), i64::from(t.pos.y)),
+        t.health,
+    );
+    eprintln!("BOXED CONTROL on 6805: {control:?}");
+    assert_eq!(control, BOXED_ON_THE_BLOW, "BOXED_ON_THE_BLOW");
+}
+
+/// The boxed script's walk against run1571: `(the first parted record's
+/// frame, its kind, its row, the first frame whose draws part, records
+/// parted)`. Every record of the window parts, first on the Slinger `0/7`
+/// the boxed walk never trains; the draws part from 535, the Barracks'
+/// site under construction. Seen red first: pinned `(0, "", "", None, 0)`.
+const BOXED_AGAINST_ATTACKED: (i64, &str, &str, Option<i64>, usize) =
+    (6690, "unlinked_units", "(0, 7)", Some(535), 210);
+/// The boxed walk on 6805: `(a 0/7 on the map, 1/0's position, its hits)`
+/// — no Slinger, and the Scout 4,152 units east of where the attacked walk
+/// has it, untouched at 50. Seen red first: pinned `(true, (0, 0), 0)`.
+const BOXED_ON_THE_BLOW: (bool, (i64, i64), i32) = (false, (8472, 33213), 50);

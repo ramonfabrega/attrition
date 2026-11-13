@@ -230,6 +230,119 @@ pub const BOX_TO: Pos = Pos { x: 2344, y: 32710 };
 pub const BOX_FORM: i8 = 9;
 pub const BOX_WIDTH: i8 = 50;
 
+/// **The attacked script** (item 4195, `docs/CLIENT_INPUT.md` §8): the
+/// boxed script, then a soldier trained and right-pressed on the first
+/// enemy our walk shows slot 0. The Barracks' `PREQ0` is The Art of War,
+/// so the Library researches it first ([`ATTACK_RESEARCH_FRAME`]); the
+/// idle Citizen [`BARRACKS_BUILDER`] drops the Barracks at
+/// [`BARRACKS_AT`] once it is available, ten frames after; the finished
+/// Barracks [`BARRACKS_OBJECT`] trains the Slingers ten frames after it is done;
+/// and on [`ATTACK_FRAME`], the first frame slot 1's Scout `1/0` stands in
+/// slot 0's live sight on our walk, the Slinger [`SLINGER`] is sent at it:
+/// `Console::execute_at_cursor`'s enemy arm, `attack(ox, whom, ignore 0,
+/// QUEUE_NEW)`. The client's `minted_attacked_at_the_opening_camera`
+/// mints these from presses, keys and a right press and holds them equal
+/// field for field.
+pub fn attacked() -> Vec<Order> {
+    let mut orders = boxed();
+    orders.extend([
+        (
+            ATTACK_RESEARCH_FRAME,
+            0,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![LIBRARY_OBJECT],
+                },
+                Command::QueueUp {
+                    unit: ART_OF_WAR,
+                    num: 1,
+                },
+            ],
+        ),
+        (
+            BARRACKS_FRAME,
+            0,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![BARRACKS_BUILDER],
+                },
+                Command::Build {
+                    x: BARRACKS_AT.x,
+                    y: BARRACKS_AT.y,
+                    x2: BARRACKS_AT.x,
+                    y2: BARRACKS_AT.y,
+                    build: BARRACKS_TYPE,
+                    queued: 2,
+                },
+            ],
+        ),
+        (
+            TRAIN_FRAME,
+            0,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![BARRACKS_OBJECT],
+                },
+                Command::QueueUp {
+                    unit: SLINGERS_TYPE,
+                    num: 1,
+                },
+            ],
+        ),
+        (
+            ATTACK_FRAME,
+            0,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![SLINGER],
+                },
+                Command::Attack {
+                    ox: i32::from(ATTACKED.1),
+                    whom: i32::from(ATTACKED.0),
+                    ignore: 0,
+                    queued: 2,
+                },
+            ],
+        ),
+    ]);
+    orders
+}
+
+/// slot 0's Library, `0/2005` (`TypeIndex` 435).
+pub const LIBRARY_OBJECT: i16 = 2005;
+/// The Art of War's `TypeIndex`: `BASE_TECHTYPES` (0x220) plus its record,
+/// 28 — the Barracks' `PREQ0`, researched at the Library (`JOB_TIME` 200).
+pub const ART_OF_WAR: i32 = 572;
+/// The Barracks' `TypeIndex`: `BASE_BUILDTYPES` (0x19e) plus its record,
+/// 13 (`sim::ids::ty::BARRACKS`).
+pub const BARRACKS_TYPE: i32 = sim::ids::ty::BARRACKS as i32;
+/// The Slingers' `TypeIndex` (unit record 32): 40 food and 40 timber on
+/// our walk, `moves` 28, a 6-tile reach.
+pub const SLINGERS_TYPE: i32 = sim::ids::ty::SLINGERS as i32;
+/// The Citizen who builds the Barracks, `0/3`, idle where the box sent it.
+pub const BARRACKS_BUILDER: i16 = 3;
+/// The Barracks' drop point, as clicked: the pixel (614, 475) at the
+/// opening camera, under the layer's inverse — the pixel of (1248, 32160),
+/// the clear site on a 192-unit grid nearest the builder on our placement
+/// check. `snap_center` puts the site at (1152, 32064).
+pub const BARRACKS_AT: Pos = Pos { x: 1249, y: 32163 };
+/// The Barracks' site the build places, `0/2008`.
+pub const BARRACKS_OBJECT: i16 = 2008;
+/// The Slinger the Barracks trains, `0/7`.
+pub const SLINGER: i16 = 7;
+/// The enemy the Slinger is sent at, `(who, o)`: slot 1's Scout (TI 69,
+/// land).
+pub const ATTACKED: (u8, i16) = (1, 0);
+/// The frames the four packages are consumed on.
+pub const ATTACK_RESEARCH_FRAME: i32 = 310;
+pub const BARRACKS_FRAME: i32 = 521;
+pub const TRAIN_FRAME: i32 = 965;
+pub const ATTACK_FRAME: i32 = 6703;
+
 /// The script's three orders, the move sent to `scout_to` and the Farm
 /// dropped at `farm_at`.
 fn script_to(scout_to: Pos, farm_at: Pos) -> Vec<Order> {

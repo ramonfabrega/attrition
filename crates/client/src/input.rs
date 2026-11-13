@@ -54,12 +54,15 @@ const TILES_PER_CELL: i32 = 4;
 /// not read (`docs/CLIENT_INPUT.md` §4).
 pub const PICK_RADIUS: i32 = 24;
 
-/// The keys that train, and what: the script's one, the Citizen
-/// (`TypeIndex` 50). Ours, not the original's hotkeys.
-pub const TRAIN_KEYS: &[(char, i32)] = &[('c', 50)];
-/// The keys that choose a building to place: the script's one, the Farm
-/// (`TypeIndex` 417). Ours, not the original's hotkeys.
-pub const BUILD_KEYS: &[(char, i32)] = &[('f', 417)];
+/// The keys that train or research, and what — each a `queue_up` of the
+/// `TypeIndex` on the selected building: the Citizen (50); The Art of War
+/// (572), the attacked script's research at the Library; the Slingers
+/// (82), its soldier at the Barracks (item 4195). Ours, not the original's
+/// hotkeys.
+pub const TRAIN_KEYS: &[(char, i32)] = &[('c', 50), ('a', 572), ('s', 82)];
+/// The keys that choose a building to place: the Farm (`TypeIndex` 417)
+/// and the Barracks (427, item 4195). Ours, not the original's hotkeys.
+pub const BUILD_KEYS: &[(char, i32)] = &[('f', 417), ('b', 427)];
 
 /// How far the box test reaches past the dragged rectangle, in pixels: the
 /// original's own, `BoundingBox::around_bounding_volume@00544860`'s ±30
@@ -1413,6 +1416,173 @@ pub(crate) mod tests {
     /// the original's playback takes open (run 1569).
     const BOXED_RCX: &str = "ron-golden/recordings/item4180-boxed-greatlakes-24000.rcx";
     const BOXED_RCX_BYTES: usize = 59_338;
+
+    /// **Stage 0 of the attacked script** (item 4195, `docs/CLIENT_INPUT.md`
+    /// §8.2): on each package's frame of the walk under
+    /// [`script::attacked`], the anchor each press and the right press land
+    /// on at the opening camera, `(frame, (who, o), pixel)`. Every one is on
+    /// the 1920×1080 screen, so the script's camera is the client's own.
+    /// An anchor of the attacked script: `(frame, (who, o), pixel)`.
+    type AttackAnchor = (i32, (u8, i16), (i32, i32));
+    const ATTACK_ANCHORS: [AttackAnchor; 5] = [
+        (
+            script::ATTACK_RESEARCH_FRAME,
+            (0, script::LIBRARY_OBJECT),
+            (1006, 397),
+        ),
+        (
+            script::BARRACKS_FRAME,
+            (0, script::BARRACKS_BUILDER),
+            (735, 523),
+        ),
+        (
+            script::TRAIN_FRAME,
+            (0, script::BARRACKS_OBJECT),
+            (614, 458),
+        ),
+        (script::ATTACK_FRAME, (0, script::SLINGER), (509, 513)),
+        (script::ATTACK_FRAME, script::ATTACKED, (1645, 884)),
+    ];
+    /// The Barracks' drop pixel: the pixel of (1248, 32160) at the opening
+    /// camera, whose ground under the layer's inverse is
+    /// [`script::BARRACKS_AT`].
+    const BARRACKS_DROP: (i32, i32) = (614, 475);
+
+    /// The boxed events, then the fifth script's: a press on the Library
+    /// and `a`; a press on the idle Citizen, `b` and a press at the drop
+    /// pixel; a press on the Barracks and `s`; a press on the Slinger and a
+    /// right press on slot 1's Scout.
+    fn attack_events() -> Vec<Scripted> {
+        let mut e = box_events();
+        let press = |k: usize| {
+            let (f, _, (x, y)) = ATTACK_ANCHORS[k];
+            (f, None, Event::Press { x, y })
+        };
+        let (fa, _, (ax, ay)) = ATTACK_ANCHORS[4];
+        e.extend([
+            press(0),
+            (script::ATTACK_RESEARCH_FRAME, None, Event::Key('a')),
+            press(1),
+            (script::BARRACKS_FRAME, None, Event::Key('b')),
+            (
+                script::BARRACKS_FRAME,
+                None,
+                Event::Press {
+                    x: BARRACKS_DROP.0,
+                    y: BARRACKS_DROP.1,
+                },
+            ),
+            press(2),
+            (script::TRAIN_FRAME, None, Event::Key('s')),
+            press(3),
+            (fa, None, Event::RightPress { x: ax, y: ay }),
+        ]);
+        e
+    }
+
+    /// **`INPUT_ATTACKED`** (item 4195): the boxed events and the fifth
+    /// script's, under the opening camera, mint [`script::attacked`] field
+    /// for field, of 10. Was 0 (no file carried an attack).
+    const INPUT_ATTACKED: usize = 10;
+
+    /// **The attacked count**: stage 0's anchors pinned on each package's
+    /// frame, the drop pixel's ground, and what the right press finds under
+    /// it — slot 1's Scout, an enemy unit, and nothing else within the pick;
+    /// then the events mint the attacked script, and the file written from
+    /// the orders is the attacked file. Seen red: the script's attack
+    /// `ignore` set to 1 gave 9 of 10.
+    #[test]
+    fn minted_attacked_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let attacked = script::attacked();
+        let c = camera(None);
+        let mut next = 0;
+        let mut anchors = Vec::new();
+        for f in 0..=script::ATTACK_FRAME {
+            if ATTACK_ANCHORS.iter().any(|a| a.0 == f) {
+                let (scene, terrain) = (r.scene(None), r.terrain());
+                let v = view(&c, &scene, &terrain);
+                for &(af, (who, o), _) in ATTACK_ANCHORS.iter().filter(|a| a.0 == f) {
+                    let u = scene.units.iter().find(|u| u.id == ObjId { who, o });
+                    let b = scene.buildings.iter().find(|b| b.id == ObjId { who, o });
+                    let (p, z) = u.map(|u| (u.pos, u.z)).or(b.map(|b| (b.pos, b.z))).unwrap();
+                    anchors.push((af, (who, o), v.pixel(p.x, p.y, z)));
+                }
+                if f == script::BARRACKS_FRAME {
+                    let p = Pos { x: 1248, y: 32160 };
+                    assert_eq!(v.pixel(p.x, p.y, v.ground_z(p.x, p.y)), BARRACKS_DROP);
+                    let at = ground_at(&v, BARRACKS_DROP.0, BARRACKS_DROP.1);
+                    assert_eq!(at, Some(script::BARRACKS_AT), "the drop pixel's ground");
+                }
+                if f == script::ATTACK_FRAME {
+                    let (_, (who, o), (x, y)) = ATTACK_ANCHORS[4];
+                    assert_eq!(
+                        v.target(0, x, y),
+                        Some(Hit::Enemy(ObjId { who, o })),
+                        "the right press finds slot 1's Scout"
+                    );
+                    let slinger = scene
+                        .units
+                        .iter()
+                        .find(|u| u.id.who == 0 && u.id.o == script::SLINGER);
+                    assert_eq!(slinger.map(|u| u.type_index), Some(script::SLINGERS_TYPE));
+                    let scout = scene
+                        .units
+                        .iter()
+                        .find(|u| u.id == ObjId { who, o })
+                        .unwrap();
+                    assert_eq!((scout.type_index, scout.health), (69, 50), "TI, hp");
+                }
+            }
+            while next < attacked.len() && attacked[next].0 == f {
+                r.issue(&attacked[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        assert_eq!(anchors, ATTACK_ANCHORS.to_vec(), "stage 0's anchors");
+        drop(r);
+
+        let Some((ours, r)) = mint_events(attack_events()) else {
+            return;
+        };
+        let whole = ours.iter().zip(&attacked).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (attacked.len(), INPUT_ATTACKED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, attacked);
+        drop(r);
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(boxed_file), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(BOXED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(ATTACKED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {BOXED_RCX} or {ATTACKED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), ATTACKED_RCX_BYTES);
+        let path = std::path::Path::new(&home).join(MINTED_RCX);
+        let rec = rondata::recgame::read(&path.to_string_lossy()).unwrap();
+        let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
+        let last = rec.packages.last().unwrap().frame;
+        let mut written = rec.clone();
+        written.packages = rondata::recgame::minted_packages(lo[0].clone(), &ours, last).unwrap();
+        let written = rondata::recgame::write_gz(&written);
+        assert!(written == file, "the file from the attacked orders");
+        assert!(written != boxed_file, "not the boxed file");
+    }
+
+    /// The attacked file (`docs/CLIENT_INPUT.md` §8), written by rondata's
+    /// `the_attacked_minted_packages_round_trip` under `RON_RCX_OUT`; the
+    /// file the original's playback takes open (run 1571).
+    const ATTACKED_RCX: &str = "ron-golden/recordings/item4195-attacked-greatlakes-24000.rcx";
+    const ATTACKED_RCX_BYTES: usize = 59_404;
 
     /// A unit for the walk-free box tests: slot `who`'s `o` of type `ti`,
     /// standing at `(x, 0)` with its formation bytes.
