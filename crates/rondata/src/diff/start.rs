@@ -28,8 +28,11 @@ use super::*;
 /// then 143 (+29): `build_units`' and `small_city_buildings`' nation arms,
 /// a Spanish, Dutch, Korean, Greek or American seat on the three maps.
 /// 146 at item 4196 (+3): Southwest Mesa composed, its three lobbies (15,
-/// 114, 115) whole, `Cliffs::init` and all.
-pub const START_BUILT: usize = 146;
+/// 114, 115) whole, `Cliffs::init` and all; then 153 (+7): the chains
+/// `mapgen`'s walk carries on their own takes composed — Old World,
+/// Amazon Basin, Himalayas, African Watering Hole, Mediterranean,
+/// Australian Outback and Colonial Powers, one lobby each.
+pub const START_BUILT: usize = 153;
 
 /// **The lobby's word on the built start** (`docs/START.md` §7.4, item
 /// 4057): `(map, word, length)` — the harness lobby's long capture (run53,
@@ -922,6 +925,16 @@ pub fn from_lobby(
             nations: player_rows.len() as i32,
             map_size: int("MAP_SIZE").unwrap_or(-1),
             seed: game_seed,
+            teams: {
+                let mut t = [None; 8];
+                for p in player_rows {
+                    if let Some(w) = row_int(p, "who").filter(|w| (0..8).contains(w)) {
+                        t[w as usize] = Some(row_int(p, "team").unwrap_or(8) as i32);
+                    }
+                }
+                t
+            },
+            team_style: int("TEAM_STYLE").unwrap_or(0),
         };
         let sea = crate::mapgen::sea_map(root, which.file())?;
         match crate::mapgen::lakes::composed_map(root, which, &lobby, range, |c| {
@@ -1769,11 +1782,11 @@ mod tests {
     /// `diplos`, so the installer's side there is its own default, not the
     /// original's.
     const START_CENSUS: &[(&str, usize)] = &[
-        ("CELL flags", 2),
-        ("CELL land", 7),
-        ("CELL region", 5),
+        ("CELL flags", 1),
+        ("CELL land", 3),
+        ("CELL owner", 3),
         ("LEADER at_war", 1),
-        ("built", 146),
+        ("built", 153),
     ];
 
     /// A computer leader's `PERSONALITY` block under the start dump's

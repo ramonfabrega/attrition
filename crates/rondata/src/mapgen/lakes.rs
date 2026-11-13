@@ -48,6 +48,12 @@ pub struct LakesLobby {
     pub nations: i32,
     pub map_size: i64,
     pub seed: i32,
+    /// Each seat's `LeaderData::get_team` (`PLAYER team`, 8 for none),
+    /// which East Meets West's `fill_cont` reads (item 4196).
+    pub teams: [Option<i32>; 8],
+    /// `GAMEINFO`'s `TEAM_STYLE`: Colonial Powers' outsiders are the
+    /// unteamed computers under style 7 (`docs/MAPGEN.md` §32.1).
+    pub team_style: i64,
 }
 
 /// One checkpoint's state, as the setup trace prints it: the file and
@@ -144,18 +150,49 @@ pub enum Style {
     /// own order and `Cliffs::init` — the chain items 3869–3890 checked
     /// phase by phase on run1493 (`crate::mapgen::mesa`).
     SouthwestMesa,
+    /// The styles `mapgen`'s chain walk carries 7805 → 894 on their own
+    /// takes (items 3941, 3944 to 3953; `docs/MAPGEN.md` §24 to §34),
+    /// composed here by item 4196: Old World (6), Amazon Basin (8) and
+    /// Himalayas (9) on Great Sahara's mask listing; African Watering Hole
+    /// (11), Mediterranean (12), Australian Outback (13), New World (16),
+    /// Colonial Powers (17), East Meets West (19), Sea Power (20) and Nile
+    /// Delta (21) on their own.
+    OldWorld,
+    AmazonBasin,
+    Himalayas,
+    AfricanWateringHole,
+    Mediterranean,
+    AustralianOutback,
+    NewWorld,
+    ColonialPowers,
+    EastMeetsWest,
+    SeaPower,
+    NileDelta,
 }
+
+/// Every composed style, `MAP_STYLE` order aside.
+const STYLES: [Style; 15] = [
+    Style::GreatLakes,
+    Style::EastIndies,
+    Style::GreatSahara,
+    Style::SouthwestMesa,
+    Style::OldWorld,
+    Style::AmazonBasin,
+    Style::Himalayas,
+    Style::AfricanWateringHole,
+    Style::Mediterranean,
+    Style::AustralianOutback,
+    Style::NewWorld,
+    Style::ColonialPowers,
+    Style::EastMeetsWest,
+    Style::SeaPower,
+    Style::NileDelta,
+];
 
 impl Style {
     /// The style a lobby's `MAP_STYLE` names, when its chain is composed.
     pub fn of(map_style: i64) -> Option<Style> {
-        match map_style {
-            7 => Some(Style::GreatSahara),
-            10 => Some(Style::SouthwestMesa),
-            14 => Some(Style::GreatLakes),
-            18 => Some(Style::EastIndies),
-            _ => None,
-        }
+        STYLES.into_iter().find(|s| i64::from(s.id()) == map_style)
     }
 
     /// The style's file under `mapstyles/`.
@@ -165,6 +202,17 @@ impl Style {
             Style::EastIndies => "EASTINDIES.xml",
             Style::GreatSahara => "SAHARA.xml",
             Style::SouthwestMesa => "SOUTHWESTMESA.xml",
+            Style::OldWorld => "OLDWORLD.xml",
+            Style::AmazonBasin => "AMAZON.xml",
+            Style::Himalayas => "HIMALAYAS.xml",
+            Style::AfricanWateringHole => "AFRICA.xml",
+            Style::Mediterranean => "MEDITERRANEAN.xml",
+            Style::AustralianOutback => "OUTBACK.xml",
+            Style::NewWorld => "NEWWORLD.xml",
+            Style::ColonialPowers => "COLONIALPOWERS.xml",
+            Style::EastMeetsWest => "EASTWEST.xml",
+            Style::SeaPower => "SEAPOWER.xml",
+            Style::NileDelta => "NILEDELTA.xml",
         }
     }
 
@@ -175,6 +223,17 @@ impl Style {
             Style::EastIndies => 18,
             Style::GreatSahara => 7,
             Style::SouthwestMesa => 10,
+            Style::OldWorld => 6,
+            Style::AmazonBasin => 8,
+            Style::Himalayas => 9,
+            Style::AfricanWateringHole => 11,
+            Style::Mediterranean => 12,
+            Style::AustralianOutback => 13,
+            Style::NewWorld => 16,
+            Style::ColonialPowers => 17,
+            Style::EastMeetsWest => 19,
+            Style::SeaPower => 20,
+            Style::NileDelta => 21,
         }
     }
 }
@@ -260,7 +319,9 @@ pub fn composed_map(
             &mut d,
         )
         .map(|_| ()),
-        Style::GreatSahara => {
+        // Old World's, Amazon Basin's and Himalayas' listings are Great
+        // Sahara's at other addresses (§25.1, §26.1, §27).
+        Style::GreatSahara | Style::OldWorld | Style::AmazonBasin | Style::Himalayas => {
             sim::mapgen::great_sahara_make_continents(&mut grid, lobby.nations, &mut d.rng);
             Some(())
         }
@@ -268,6 +329,88 @@ pub fn composed_map(
             sim::mapgen::southwest_mesa_make_continents(&mut grid, lobby.nations, &mut d.rng);
             Some(())
         }
+        Style::AfricanWateringHole => {
+            sim::mapgen::map_watering_hole::african_watering_hole_make_continents(
+                &mut grid,
+                lobby.nations,
+                style()?,
+                &mut d,
+            )
+            .map(|_| ())
+        }
+        Style::Mediterranean => sim::mapgen::map_mediterranean::mediterranean_make_continents(
+            &mut grid,
+            lobby.nations,
+            style()?,
+            &mut d,
+        )
+        .map(|_| ()),
+        Style::AustralianOutback => {
+            sim::mapgen::map_outback::australian_outback_make_continents(
+                &mut grid,
+                lobby.nations,
+                style()?,
+                &mut d,
+            );
+            Some(())
+        }
+        Style::NewWorld => sim::mapgen::map_new_world::new_world_make_continents(
+            &mut grid,
+            lobby.nations,
+            style()?,
+            &mut d,
+        )
+        .map(|_| ()),
+        Style::ColonialPowers => {
+            // The outsiders are unteamed computers under team style 7
+            // (§32.1); no lobby on disk is one, and the arm is unread.
+            if lobby.team_style == 7 {
+                return Err(Refusal::Unported(
+                    "Colonial Powers' outsiders under team style 7".into(),
+                ));
+            }
+            sim::mapgen::map_colonial::colonial_powers_make_continents(
+                &mut grid,
+                lobby.nations,
+                0,
+                style()?,
+                &mut d,
+            )
+            .map(|_| ())
+        }
+        Style::EastMeetsWest => {
+            // `num_sides` is the nations when no seat has a team (run1524,
+            // the default lobby, §24); a team game's sides are unread.
+            let none = sim::mapgen::map_east_west::NO_TEAM;
+            if lobby.teams.iter().flatten().any(|&t| t != none) {
+                return Err(Refusal::Unported(
+                    "East Meets West's sides in a team game".into(),
+                ));
+            }
+            sim::mapgen::map_east_west::east_west_make_continents(
+                &mut grid,
+                lobby.nations,
+                lobby.nations,
+                &lobby.teams,
+                style()?,
+                &mut d,
+            )
+            .map(|_| ())
+        }
+        Style::SeaPower => sim::mapgen::map_sea_power::sea_power_make_continents(
+            &mut grid,
+            lobby.nations,
+            style()?,
+            &mut d,
+        )
+        .map(|_| ()),
+        Style::NileDelta => sim::mapgen::map_nile_delta::nile_delta_make_continents(
+            &mut grid,
+            lobby.nations,
+            style()?,
+            &mut d,
+        )
+        .map(|_| ()),
     };
     made.ok_or(Refusal::Continents)?;
     say("map.cpp", 7807, &grid, &d.rng, empty);
@@ -329,17 +472,45 @@ pub fn composed_map(
     };
     let install = crate::Install::new(root);
     let meshes = crate::mountains::meshes(&install);
-    if matches!(which, Style::GreatSahara | Style::SouthwestMesa) {
-        // §10, §15 steps 6 to 8 on an all-land mask, in the order
-        // `mapgen`'s Great Sahara tests walk them (items 3809, 3811,
-        // 3812): `Terrain::init` without heights (734 → 5012, no cell
-        // gated, so the lists stay empty and nothing moves), the rivers
-        // (5012..5118; `SAHARA.xml`'s `RIVERLIST` is empty), then the
-        // heights on the grid the rivers left, with no trough to carve.
+    if !matches!(which, Style::GreatLakes | Style::EastIndies) {
+        // §10, §15 steps 6 to 8 as `mapgen`'s chain walk takes them on
+        // every other style's own take (items 3885 to 3890 on Southwest
+        // Mesa, 3941 and 3944 to 3953): `Terrain::init` without heights
+        // when no cell opens the half-land gate (734 → 5012, the lists
+        // empty); a mask with water opens it (African Watering Hole's
+        // lake, §28), and then Great Lakes' path to the beach. The rivers
+        // (5012..5118), then the heights on the grid the rivers left when
+        // they were not made before the half-land, the troughs with
+        // `move_goody`'s good arm, `adjust_for_mountains`, and
+        // `Cliffs::init` — inert where `place_all` laid no cliff.
         let sea = super::sea_map(root, style_file).ok_or(Refusal::Data("SEA_MAP"))?;
-        let (_, mut coord, halfland) =
-            sim::mapgen::terrain_init::terrain_init_without_heights(&mut grid, sea)
-                .map_err(|e| Refusal::Unported(format!("Terrain::init: {e:?}")))?;
+        let mut probe = grid.clone();
+        let (mut coord, halfland, wet) =
+            match sim::mapgen::terrain_init::terrain_init_without_heights(&mut probe, sea) {
+                Ok((_, coord, half)) => {
+                    grid = probe;
+                    (coord, half, None)
+                }
+                Err(sim::mapgen::terrain_init::Unported::HalfLand(_)) => {
+                    let mut coord = coord_flags(&grid);
+                    let f = sim::mapgen::map_heights::fractals(xs, ys, seed);
+                    let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+                    sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, seed);
+                    let mut depth = 0;
+                    let lists = sim::mapgen::terrain_init::check_and_set_halfland_heights(
+                        &mut grid, &mut coord, &z, combo, &mut depth,
+                    )
+                    .map_err(|e| Refusal::Unported(format!("the half-land: {e:?}")))?;
+                    sim::mapgen::halfland::create_doobers_flags(&mut grid);
+                    sim::mapgen::map_heights::create_doobers(&grid, &mut z);
+                    sim::mapgen::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+                        .with_depth(depth)
+                        .convert_beach_to_sandy()
+                        .map_err(|e| Refusal::Unported(format!("the beach: {e:?}")))?;
+                    (coord, lists, Some((z, depth)))
+                }
+                Err(e) => return Err(Refusal::Unported(format!("Terrain::init: {e:?}"))),
+            };
         let lists = halfland
             .parts()
             .ok_or(Refusal::Data("the half-land lists' walk"))?;
@@ -349,57 +520,36 @@ pub fn composed_map(
         make_rivers(&mut grid, &mut regions, &phase, &mut d, |line, g, d| {
             say("map.cpp", line, g, &d.rng, lists)
         });
-        let (z, cliffs) = if which == Style::SouthwestMesa {
-            // Southwest Mesa's heights in `Terrain::init`'s order
-            // (`crate::mapgen::mesa::southwest_mesa_at_894`, item 3890):
-            // the land and the coast, the doobers, the troughs
-            // (`RIVERLIST` empty: none), `adjust_for_mountains`, then
-            // `Cliffs::init` on the cells `place_all`'s cliffs flagged
-            // 0x40, where `heights` refuses the slope arm.
-            let f = sim::mapgen::map_heights::fractals(xs, ys, seed);
-            let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
-            sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, seed);
-            sim::mapgen::map_heights::create_doobers(&grid, &mut z);
-            let troughs = sim::mapgen::map_troughs::calculate_all(
-                &mut grid,
-                &mut coord,
-                &mut z,
-                ts.riverbase,
-                combo,
-                0,
-                None,
-            )
-            .map_err(|e| Refusal::Unported(format!("the troughs: {e:?}")))?;
-            if !troughs.sections.is_empty() {
-                return Err(Refusal::Unported("a trough on Southwest Mesa".into()));
+        let (mut z, depth) = match wet {
+            Some(zd) => zd,
+            None => {
+                let f = sim::mapgen::map_heights::fractals(xs, ys, seed);
+                let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+                sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, seed);
+                sim::mapgen::map_heights::create_doobers(&grid, &mut z);
+                (z, 0)
             }
-            sim::mapgen::map_heights::adjust_for_mountains(
-                &grid,
-                &mut z,
-                &groups.templates,
-                &meshes,
-            );
-            let cliffs = sim::mapgen::cliffs::init(
-                &mut grid,
-                &mut coord,
-                &mut z,
-                &groups.cliffs,
-                &rows.goods,
-                combo,
-            )
-            .map_err(|e| Refusal::Unported(format!("Cliffs::init: {e:?}")))?;
-            (z, Some(cliffs))
-        } else {
-            let z = sim::mapgen::map_heights::heights(
-                &grid,
-                &mut coord,
-                seed,
-                &groups.templates,
-                &meshes,
-            )
-            .map_err(|e| Refusal::Unported(format!("the heights: {e:?}")))?;
-            (z, None)
         };
+        sim::mapgen::map_troughs::calculate_all(
+            &mut grid,
+            &mut coord,
+            &mut z,
+            ts.riverbase,
+            combo,
+            depth,
+            Some(&rows.goods),
+        )
+        .map_err(|e| Refusal::Unported(format!("the troughs: {e:?}")))?;
+        sim::mapgen::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
+        let cliffs = sim::mapgen::cliffs::init(
+            &mut grid,
+            &mut coord,
+            &mut z,
+            &groups.cliffs,
+            &rows.goods,
+            combo,
+        )
+        .map_err(|e| Refusal::Unported(format!("Cliffs::init: {e:?}")))?;
         say("Terrain.cpp", 894, &grid, &d.rng, lists);
         grid.mark_forest();
         say("setup.cpp", 884, &grid, &d.rng, lists);
@@ -415,7 +565,7 @@ pub fn composed_map(
                 weatherbase: ts.weatherbase as u8,
                 combo,
             },
-            cliffs,
+            cliffs: Some(cliffs),
         });
     }
     // §10, §16: `Terrain::init` — the heights to 706, the half-land (720),
