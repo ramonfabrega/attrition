@@ -40,6 +40,13 @@ use crate::Install;
 /// `(TypeIndex, variant, slot) → frames`, for the twelve gaia types.
 pub type GaiaLengths = BTreeMap<(i32, u8, i8), u32>;
 
+/// `(TypeIndex, variant) → the variant whose piece loads` for the twelve
+/// gaia types (item 4208): `GraphicPieces::get_unit_gpiece@0090c030`'s
+/// gaia arm starts at `(seed + o) % 3` and walks **down** to the first
+/// variant whose `{GRAPH}-TYPE{v}` entry the install ships. A whale, which
+/// ships `-TYPE0` alone, is piece `0xea8d + 30` whatever its `o`.
+pub type GaiaVariants = BTreeMap<(i32, u8), u8>;
+
 /// `gpiece → (slot → frames)` for every graphic piece the install's own
 /// `<UNIT>` entries name — a player's units, where [`GaiaLengths`] covers
 /// gaia's. A piece present here has its **whole** slot list known, so a
@@ -174,28 +181,41 @@ const GAIA_UNITS: &[(i32, &str)] = &[
 /// frames (`sim::units::anim::MISSING`). Returns an empty map when either XML is
 /// unreadable, which is what a tables-only load gets.
 pub fn gaia_lengths(install: &Install) -> GaiaLengths {
+    gaia_tables(install).0
+}
+
+/// [`gaia_lengths`] and [`GaiaVariants`] from one read of the install.
+pub fn gaia_tables(install: &Install) -> (GaiaLengths, GaiaVariants) {
     let apath = install.data("anim_graphics.xml");
     let upath = install.data("unit_graphics.xml");
     let (Ok(atext), Ok(utext)) = (crate::read(&apath), crate::read(&upath)) else {
-        return GaiaLengths::new();
+        return Default::default();
     };
     let (Ok(adoc), Ok(udoc)) = (crate::parse(&apath, &atext), crate::parse(&upath, &utext)) else {
-        return GaiaLengths::new();
+        return Default::default();
     };
     let files = anim_files(&adoc);
     let units = unit_anims(&udoc);
     let mut frames: BTreeMap<String, u32> = BTreeMap::new();
     let mut out = GaiaLengths::new();
+    let mut variants = GaiaVariants::new();
     for &(ty, prefix) in GAIA_UNITS {
         for v in 0..3u8 {
-            // `-TYPE1` and `-TYPE2` are optional: a type that names only
-            // `-TYPE0` plays it for all three variants, which is what the
-            // piece pool's fall-back does.
-            let name = format!("{prefix}-TYPE{v}");
-            let rows = units
-                .get(&name)
-                .or_else(|| units.get(&format!("{prefix}-TYPE0")));
-            let Some(rows) = rows else { continue };
+            // `-TYPE1` and `-TYPE2` are optional: the piece pool walks a
+            // variant the install does not ship **down** to the next one
+            // it does (`get_unit_gpiece@0090c030`'s gaia arm, item 4208),
+            // so a pig's or a chicken's `-TYPE2` plays its `-TYPE1`, and a
+            // type that names only `-TYPE0` plays it for all three.
+            let Some(shipped) = (0..=v)
+                .rev()
+                .find(|w| units.contains_key(&format!("{prefix}-TYPE{w}")))
+            else {
+                continue;
+            };
+            variants.insert((ty, v), shipped);
+            let Some(rows) = units.get(&format!("{prefix}-TYPE{shipped}")) else {
+                continue;
+            };
             for (slot, anim) in rows {
                 let Some((file, looping)) = files.get(&anim_key(anim)) else {
                     continue;
@@ -214,7 +234,7 @@ pub fn gaia_lengths(install: &Install) -> GaiaLengths {
             }
         }
     }
-    out
+    (out, variants)
 }
 
 /// One `<UNIT name="…">`'s place in the piece pool: the graphic's own name
