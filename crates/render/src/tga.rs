@@ -31,6 +31,20 @@ pub struct Image {
     pub rgba: Vec<u8>,
 }
 
+impl Image {
+    /// **The tileset's tint** (item 4212; `docs/RENDERER.md` §3.21):
+    /// `ImageIO::tint@00511aa0`'s saturating add (`paddusb`) of `tint` to
+    /// every texel's red, green and blue bytes, alpha untouched, as the
+    /// original lays it on a tileset texture once at load.
+    pub fn tint(&mut self, tint: [u8; 3]) {
+        for px in self.rgba.as_chunks_mut::<4>().0 {
+            for (c, t) in px.iter_mut().zip(tint) {
+                *c = c.saturating_add(t);
+            }
+        }
+    }
+}
+
 /// Why a file is not one this reader understands.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum DecodeError {

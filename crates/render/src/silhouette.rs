@@ -661,6 +661,15 @@ pub const UNIT_AMBIENT_I: f32 = 0.558;
 /// The scene ambient `Game::init_light` hands the card: the same
 /// attributes, raw.
 pub const SCENE_AMBIENT: [f32; 3] = [0.6, 0.716, 0.745];
+/// **The land's light** (item 4212; `docs/RENDERER.md` §3.21): the card's
+/// `gLight.Diffuse` on every land draw of run1567's 3279 pass, (1.36,
+/// 1.36, 1.36), the tileset's `<DIFFUSE alpha>` times its white; the
+/// material's diffuse and ambient are 1.
+pub const LAND_DIFFUSE: f32 = 1.36;
+/// The flat ground's N·L under the land's light, direction
+/// (−0.707, 0, −0.707) on the same draws: the terrain's normals and the
+/// `_mtrl` normal map are not drawn.
+pub const LAND_N_DOT_L: f32 = std::f32::consts::FRAC_1_SQRT_2;
 /// The tone mapper's exposure plus its adjustment, defaults. **Live on
 /// both packets** (item 4168, `RENDERER.md` §3.14): run1559b's and
 /// run1564's `GSToneMapper` hold exposure 1.0 and adjustment 0, and the
@@ -1300,7 +1309,8 @@ pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 /// item 4173**: with the trees textured, 0/1's ring no longer holds the
 /// silhouette's red over our flat green, and 0/1 crosses back, still
 /// 0.159 → 0.850 (ours 68 → 378, both 66 → 364).
-pub const RUN1559B_3279_TRACED_STILL: (usize, usize) = (32, 33);
+/// Item 4212: **32 → 33**, the land lit at the frame's white, §3.21.
+pub const RUN1559B_3279_TRACED_STILL: (usize, usize) = (33, 33);
 /// **`RUN1559B_3279_COLOUR` on the client's still** (item 4171), 18 → 14,
 /// none crossing up. 0/1, all 159 of its lit pixels behind the pine, the
 /// silhouette over our flat green where the painter lays it over the leaf
@@ -1319,10 +1329,12 @@ pub const RUN1559B_3279_COLOUR_STILL: (usize, usize) = (14, 33);
 /// silhouette to one blend, before-plain read (31, 33), (13, 33). Item
 /// 4173, the trees textured: the client's traced 31 → 32 and after-sRGB's
 /// 32 → 33, every colour count held.
+/// Item 4212 (§3.21): the land lit at the frame's white, traced 32 → 33
+/// on the first three, every colour count held.
 pub const RUN1559B_3279_STILL_READINGS: [((usize, usize), (usize, usize)); 4] = [
-    ((32, 33), (14, 33)),
-    ((32, 33), (2, 33)),
-    ((32, 33), (11, 33)),
+    ((33, 33), (14, 33)),
+    ((33, 33), (2, 33)),
+    ((33, 33), (11, 33)),
     ((33, 33), (2, 33)),
 ];
 
@@ -1429,7 +1441,8 @@ pub const RUN1441_CAMERA_3279_TREES: [(usize, usize); 2] = [(0, 57), (9, 57)];
 /// (item 4171's harness): the same trees and pixels, our side
 /// `client::gpu`'s bytes: 37 of 56 and 54 of 56, the painter's, every tree
 /// agreeing within 5 % of its painted count (item 4173).
-pub const RUN1559B_3279_TREES_STILL: [(usize, usize); 2] = [(37, 56), (54, 56)];
+/// Item 4212: colour 37 → 38, **luma 54 → 39**: the trees take the frame's white, 0.898 on run1559b (§3.21), and fall under the photograph's; the land's N·L, which sets the mean, is not drawn.
+pub const RUN1559B_3279_TREES_STILL: [(usize, usize); 2] = [(38, 56), (39, 56)];
 
 /// The photograph's frame at run1441's camera, by colour and by the mask:
 /// the made-to-fail.

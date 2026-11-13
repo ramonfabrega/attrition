@@ -2437,6 +2437,44 @@ pub fn coral_texture(install: &Install, tileset: &str) -> Result<Option<String>,
         .map(|f| f.trim().to_string()))
 }
 
+/// **The tileset's tint** (item 4212; `docs/RENDERER.md` §3.21): the
+/// `<LIGHTING>` element's `tint_red`, `tint_green` and `tint_blue` under
+/// `tileset`, as `TileSet::init@0087b370` reads them into
+/// `TileSetData::tint_color`. `ImageIO::set_tint@00511a00` hands them to
+/// every tileset texture's loader, and `ImageIO::tint@00511aa0` adds them,
+/// saturating, to each decoded texel's bytes. A missing attribute is 0, as
+/// `get_attrib_num`'s default of −1 truncated to a byte would not be: the
+/// install writes all three on every tileset.
+pub fn tileset_tint(install: &Install, tileset: &str) -> Result<[u8; 3], ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let set = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?;
+    let light = set
+        .children()
+        .find(|n| n.has_tag_name("LIGHTING"))
+        .ok_or_else(|| unnamed(&format!("{tileset}/LIGHTING")))?;
+    let mut out = [0u8; 3];
+    for (o, a) in out.iter_mut().zip(["tint_red", "tint_green", "tint_blue"]) {
+        let v = light
+            .attribute(a)
+            .ok_or_else(|| unnamed(&format!("{tileset}/LIGHTING/{a}")))?;
+        *o = v
+            .trim()
+            .parse()
+            .map_err(|_| unnamed(&format!("{tileset}/LIGHTING/{a}")))?;
+    }
+    Ok(out)
+}
+
 /// **The footprint weathering's textures** (item 4190; `docs/RENDERER.md`
 /// §3.17): `Data/tilesets.xml`'s `<COMMON><WEATHERING>` `WEATHERELEM`s, one
 /// per age bucket as `age=` numbers them, each `(file1, file2)` as written.
@@ -2728,6 +2766,20 @@ mod tests {
             ]
         );
         assert!(anim_failed.is_empty(), "{anim_failed:#?}");
+    }
+
+    /// **The tileset's tint** (item 4212; `docs/RENDERER.md` §3.21):
+    /// `early_autumn`'s `<LIGHTING>` reads (18, 18, 0), `Snowy`'s (0, 9,
+    /// 38), and a tileset the file does not hold is refused.
+    #[test]
+    fn the_tileset_tint_is_read() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        assert_eq!(tileset_tint(&inst, "early_autumn").unwrap(), [18, 18, 0]);
+        assert_eq!(tileset_tint(&inst, "Snowy").unwrap(), [0, 9, 38]);
+        assert!(tileset_tint(&inst, "no such tileset").is_err());
     }
 
     /// **Every image the install ships is read whole** (item 4037,
