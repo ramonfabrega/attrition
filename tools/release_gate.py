@@ -10,14 +10,18 @@ booking gate), and a third word lane bought no wall clock for that reason.
 
 The lane gate's release step runs:
 
-  * every test of every crate that is **not timed over budget** — the
-    timings file (`TIMINGS`, every rondata release test alone, one at a
-    time) names each rondata test that took over `LANE_BUDGET_SECONDS`, and
-    those are `--skip`ped by exact name; a test the file does not name (the
-    worker's new widening among them) runs. So the sim suite, the paperwork
-    guards and the data layer run whole, and rondata's walks under a second;
-    a paperwork guard (`PAPERWORK_GUARDS`: `writers::`, `ledger::`,
-    `docs_guard`, `the_handoff_s_`) runs whatever its timing (item 3373);
+  * every test of every crate that the timings file **does not name** —
+    the file (`TIMINGS`, every rondata release test alone, one at a time)
+    names the rondata tests it timed, and since the pass of 2026-11-13
+    (second, DECISIONS 132) a lane's own budget is zero
+    (`LANE_OWN_BUDGET_SECONDS`): every row it names is `--skip`ped by exact
+    name, where the scoped booking gate skips only the rows over
+    `LANE_BUDGET_SECONDS`. A test the file does not name (the worker's new
+    widening among them) runs, and so do the crates it does not time; a
+    paperwork guard (`PAPERWORK_GUARDS`: `writers::`, `ledger::`,
+    `docs_guard`, `the_handoff_s_`) runs whatever its timing (item 3373),
+    and so do the pins a lane's rows answer to (`LANE_PINS`: the floors
+    guards and the census pin);
   * **the word's own tests**, `--tests FILTER ...`, which the brief names
     and the lane gate refuses to run without: a timed test that contains a
     filter is kept, however slow, and a filter that matched no test that
@@ -52,7 +56,7 @@ data-crate file each ran the binaries for eleven minutes apiece); the receipt's
 match is a sim test is dropped and named (`Lane filter dropped:`, Loop
 3823) rather than turning the gate red for matching nothing that ran.
 
-The census pin runs in every lane gate (under the budget) and its red is
+The census pin runs in every lane gate (a lane pin, `LANE_PINS`) and its red is
 forgiven as the commander's line (Loop 2367); since the seventy-fifth pass
 the forgiven verdict carries the measured (backed, port, functions) against
 the pin's, read off the assertion's panic, so the journal's quoted verdict
@@ -269,7 +273,24 @@ COMMANDERS_LINES = (
 # (`-suite-memory.txt`) is the tool's since this pass and lands with the
 # next re-timing.
 TIMINGS = ROOT / 'docs/audit/2026-10-15-suite-timings.txt'
+# **Two budgets** (the pass of 2026-11-13 (second), DECISIONS 132). The
+# scoped booking gate's is a second, as since 1567: a timed row over it is
+# left to the next whole gate. A lane gate's own is zero: every row the
+# file names is left to the booking gate unless a `--tests` filter names
+# it, it is a paperwork guard, or it is a pin a lane's own rows answer to
+# (`LANE_PINS`); a test the file has never timed — the lane's own new
+# tests among them — still runs. Measured by the pass (four unwidened
+# `--no-widen` lane gates of items 4200, 4201 and 4203, at four threads):
+# release 11.0–12.6 minutes, of which the brief's filters were 645–740
+# test-seconds and the paperwork 11–18; the rest, 1,258–1,690
+# test-seconds and five to seven minutes of wall, was ~920 rows the file
+# times under a second, which a loaded host ran at 1.6–2.0 s each — work
+# the booking gate repeats on the merged tree. In 43 gate logs no red was
+# a test a scoped gate would have skipped. A zero budget leaves a row the
+# file timed at 0.00 too (`over_budget`): the file names it, so it is the
+# booking gate's.
 LANE_BUDGET_SECONDS = 1.0
+LANE_OWN_BUDGET_SECONDS = 0.0
 RAN_TEST = re.compile(r'^test (\S+) \.\.\. (?:ok|FAILED)$')
 # **The paperwork guards run in every lane gate, whatever their timing**
 # (item 3373, the forty-sixth pass): `writers::a_field_the_sim_writes_is_
@@ -283,6 +304,17 @@ RAN_TEST = re.compile(r'^test (\S+) \.\.\. (?:ok|FAILED)$')
 # readers of `docs/QUEUE.md` (`the_handoff_s_`, the commander's lines, which
 # a lane forgives by name and still runs).
 PAPERWORK_GUARDS = ('writers::', 'ledger::', 'docs_guard', 'the_handoff_s_')
+# **And the pins a lane's own rows answer to, under the lane's zero budget**
+# (the same pass). Under the second's budget every one of these ran in
+# every lane gate, being under it, and two rules lean on that: a row-list
+# edit does not widen a lane because the test-kit rows are held by "the
+# fast floors guards every lane gate runs" (Loop 3608's sequel, above
+# `ROW_LISTS`), and a forgiven census red hands the commander the re-pin
+# only if the lane ran the census pin (Loop 4030 — 0.72 s alone; a sweep
+# lane moves it and names no `census::`). `diff::floors::` is ~60 tests
+# timed at 0.00–0.36 s each; kept, they cost seconds of wall.
+LANE_PINS = ('diff::floors::', 'the_census_s_simulation_share_is_pinned')
+LANE_KEPT = PAPERWORK_GUARDS + LANE_PINS
 
 
 def _timed_rows(timings):
@@ -297,27 +329,49 @@ def is_paperwork(name):
     return any(p in name for p in PAPERWORK_GUARDS)
 
 
-def lane_skips(timings, tests):
-    """The timed tests a lane gate leaves to the booking gate: every name
-    whose seconds alone exceed the budget, which no word filter in `tests`
-    names, and which is no paperwork guard (`PAPERWORK_GUARDS`). `timings`
-    is the file's text: `seconds<TAB>name` rows, `#` comments."""
+def is_kept(name, kept=PAPERWORK_GUARDS):
+    """Whether a budget never skips `name`: it contains one of `kept`."""
+    return any(p in name for p in kept)
+
+
+def over_budget(seconds, budget):
+    """A row a budget leaves: over it, and every row under a zero budget
+    (DECISIONS 132), the file's 0.00 rows included."""
+    return budget <= 0 or seconds > budget
+
+
+def lane_skips(timings, tests, budget=LANE_BUDGET_SECONDS, kept=PAPERWORK_GUARDS):
+    """The timed tests a gate leaves to the next gate: every name over
+    `budget` (`over_budget`), which no word filter in `tests` names, and
+    which `kept` does not keep (`PAPERWORK_GUARDS`; a lane's `LANE_KEPT`).
+    `timings` is the file's text: `seconds<TAB>name` rows, `#` comments."""
     return sorted(name for seconds, name in _timed_rows(timings)
-                  if seconds > LANE_BUDGET_SECONDS and not any(f in name for f in tests)
-                  and not is_paperwork(name))
+                  if over_budget(seconds, budget) and not any(f in name for f in tests)
+                  and not is_kept(name, kept))
 
 
-def kept_line(paperwork):
+def kept_line(paperwork, kept=PAPERWORK_GUARDS):
     """The `Lane suite:` line's clause for the paperwork the budget kept."""
-    return (f"; {len(paperwork)} over budget kept as paperwork ({', '.join(PAPERWORK_GUARDS)}; item 3373)"
-            if paperwork else '')
+    if not paperwork:
+        return ''
+    why = 'item 3373' + ('; the lane pins, DECISIONS 132' if kept != PAPERWORK_GUARDS else '')
+    return f"; {len(paperwork)} over budget kept as paperwork ({', '.join(kept)}; {why})"
 
 
-def lane_paperwork(timings):
-    """The timed tests over the budget a lane gate keeps because they are
-    paperwork guards — the count its `Lane suite:` line says."""
+def lane_paperwork(timings, budget=LANE_BUDGET_SECONDS, kept=PAPERWORK_GUARDS):
+    """The timed tests over `budget` a gate keeps because `kept` names them
+    — the count its `Lane suite:` line says."""
     return sorted(name for seconds, name in _timed_rows(timings)
-                  if seconds > LANE_BUDGET_SECONDS and is_paperwork(name))
+                  if over_budget(seconds, budget) and is_kept(name, kept))
+
+
+def budget_clause(skips, budget):
+    """The `Lane suite:` line's count of what the budget left, naming the
+    budget it used (DECISIONS 132)."""
+    if budget <= 0:
+        return (f"{len(skips)} timed tests — every row the timings file names that no filter, paperwork "
+                "guard or lane pin keeps, under the lane's own budget 0 s (DECISIONS 132) — left to the")
+    return f"{len(skips)} timed tests over {budget:g} s alone left to the"
 
 
 # Loop 2415 (the thirty-fifth pass): the lane gate leaves the timed
@@ -846,6 +900,9 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                              f"{', '.join(blocking)}: refused before the offline step, nothing ran; "
                              "take `ccc update <your ref>` and gate again (Loop 3341, item 3366)")
     skips, widened, touched, paperwork, row_only = [], [], None, [], []
+    # The budget the release step used: None where it skipped nothing
+    # (`--whole`, a widened lane or scope, the whole booking gate).
+    budget, kept = None, PAPERWORK_GUARDS
     if lane or scope is not None:
         touched = branch_paths(base if lane else scope, run=git)
         # Loop 3608: a lane's row-list edits and new `diff/` modules do not
@@ -858,9 +915,12 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         # twenty moved no pin. The AI lane's brief widens; a sweep's or a
         # chapter's says `--no-widen`, and the booking gate holds the pins.
         if (not widened or no_widen) and not whole:
+            # DECISIONS 132: a lane's own budget is zero, the scope's a second.
+            budget, kept = ((LANE_OWN_BUDGET_SECONDS, LANE_KEPT) if lane
+                            else (LANE_BUDGET_SECONDS, PAPERWORK_GUARDS))
             timings = TIMINGS.read_text()
-            skips = lane_skips(timings, tests)
-            paperwork = lane_paperwork(timings)
+            skips = lane_skips(timings, tests, budget, kept)
+            paperwork = lane_paperwork(timings, budget, kept)
     sim_left = sim_crate_left(touched, lane=lane, whole=whole)
     sim_clause = ("; the sim crate's test binaries left to the booking gate — no path under "
                   f"{SIM_CRATE} touched (Loop 3653)" if sim_left else '')
@@ -910,11 +970,11 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         # of them can move a pin; every third landing, and the drain, take
         # the whole gate with no --scope. Forgives nothing, as ever.
         policy['scope'] = {'base': scope, 'widened': widened, 'skipped': len(skips),
-                           'timings': str(TIMINGS.relative_to(ROOT))}
+                           'budget_seconds': budget, 'timings': str(TIMINGS.relative_to(ROOT))}
     if lane:
         policy['lane'] = {'tests': tests, 'timings': str(TIMINGS.relative_to(ROOT)), 'no_widen': bool(no_widen),
                           'whole': bool(whole),
-                          'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips),
+                          'budget_seconds': budget, 'skipped': len(skips),
                           'paperwork_kept': len(paperwork), 'base': base, 'widened': widened,
                           'row_only': row_only, 'dropped': dropped,
                           'base_overlap': base_overlap,
@@ -973,19 +1033,19 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         print("Lane suite: every test, the timed ones included (--whole, a lane whose item moves no "
               "test; Loop 3489); the commander's lines forgiven as on any lane", flush=True)
     elif lane and widened and no_widen:
-        print(f"Lane suite: {len(skips)} timed tests over {LANE_BUDGET_SECONDS:g} s alone left to the "
+        print(f"Lane suite: {budget_clause(skips, budget)} "
               f"booking gate by the brief's --no-widen, though the branch touches {len(widened)} path(s) "
               f"that can move a pin ({widened[0]}{', …' if len(widened) > 1 else ''}); the booking gate "
-              "holds the pins (DECISIONS 83)" + kept_line(paperwork), flush=True)
+              "holds the pins (DECISIONS 83)" + kept_line(paperwork, kept), flush=True)
     elif lane and widened:
         print(f"Lane suite: every timed test — the branch touches {len(widened)} path(s) that can move "
               f"the diff:: pins ({widened[0]}{', …' if len(widened) > 1 else ''}; Loop 2415); "
               f"the word's: {', '.join(tests)}" + sim_clause, flush=True)
     elif lane:
-        print(f"Lane suite: {len(skips)} timed tests over {LANE_BUDGET_SECONDS:g} s alone left to the "
+        print(f"Lane suite: {budget_clause(skips, budget)} "
               f"booking gate ({TIMINGS.relative_to(ROOT)}); the word's: {', '.join(tests)}"
               + (f"; base {base} is not a ref here, so nothing widened" if touched is None else '')
-              + kept_line(paperwork) + sim_clause, flush=True)
+              + kept_line(paperwork, kept) + sim_clause, flush=True)
     reached = []
     seconds = []
     verdicts = []

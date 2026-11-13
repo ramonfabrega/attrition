@@ -1626,8 +1626,87 @@ garbage line
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             policy=json.loads((path/'report/gate-policy.json').read_text())
         suite=next(l for l in said.splitlines() if l.startswith('Lane suite:'))
+        # Under the lane's own zero budget (DECISIONS 132) the 0.12 s writer
+        # guard is over it too, and kept with the three.
+        self.assertIn('4 over budget kept as paperwork', suite)
+        self.assertEqual(policy['lane']['paperwork_kept'], 4)
+
+    # The pass of 2026-11-13 (second), DECISIONS 132: an unwidened lane
+    # gate's release step was 11.0–12.6 minutes, its filters 645–740
+    # test-seconds and its paperwork 11–18; the rest was ~920 rows the
+    # timings file has under a second, 1.6–2.0 s each on a loaded host, which
+    # the booking gate runs again on the merged tree. A lane's own budget is
+    # zero; the scoped booking gate keeps its second. Red first: the old
+    # `lane_skips` took no budget and skipped no row under a second.
+    BUDGET_TIMINGS = ('3.00\tdiff::harness::tests::a_slow_walk_no_filter_names\n'
+                      '0.40\tdiff::golden::a_fast_walk_no_filter_names\n'
+                      '0.00\tdiff::audit::a_row_timed_at_nothing\n'
+                      '0.40\tdiff::second::tests::run589_s_word_frame_is_widened_whole\n'
+                      '0.12\twriters::compared_fields_have_writers\n'
+                      '0.01\tdiff::floors::tests::a_golden_widening_holds_its_word\n'
+                      '0.72\tcensus::tests::the_census_s_simulation_share_is_pinned\n')
+
+    def test_a_lane_s_own_budget_leaves_every_timed_row_and_the_scope_keeps_its_second(self):
+        lane = gate.lane_skips(self.BUDGET_TIMINGS, ['run589'], gate.LANE_OWN_BUDGET_SECONDS, gate.LANE_KEPT)
+        self.assertEqual(gate.LANE_OWN_BUDGET_SECONDS, 0.0)
+        self.assertEqual(gate.LANE_BUDGET_SECONDS, 1.0)
+        self.assertEqual(lane, ['diff::audit::a_row_timed_at_nothing',
+                                'diff::golden::a_fast_walk_no_filter_names',
+                                'diff::harness::tests::a_slow_walk_no_filter_names'])
+        # The scope's budget: only the row over a second.
+        self.assertEqual(gate.lane_skips(self.BUDGET_TIMINGS, [], gate.LANE_BUDGET_SECONDS),
+                         ['diff::harness::tests::a_slow_walk_no_filter_names'])
+        # End to end on the suite's own file: the lane gate leaves the rows
+        # under a second too, the scoped booking gate does not, and each
+        # receipt says the budget it used.
+        text = gate.TIMINGS.read_text()
+        fast = sorted(name for seconds, name in gate._timed_rows(text)
+                      if seconds <= 1.0 and not gate.is_kept(name, gate.LANE_KEPT))
+        self.assertGreater(len(fast), 300)
+        command, policy = self.release_command(touched=['docs/AI.md'], lane=True, tests=WORD)
+        skipped = [command[i + 1] for i, a in enumerate(command) if a == '--skip']
+        self.assertIn(fast[0], skipped)
+        self.assertEqual(policy['lane']['budget_seconds'], 0.0)
+        scoped, scope_policy = self.release_command(touched=['docs/AI.md'], scope='abc1234')
+        self.assertNotIn(fast[0], [scoped[i + 1] for i, a in enumerate(scoped) if a == '--skip'])
+        self.assertEqual(scope_policy['scope']['budget_seconds'], 1.0)
+        self.assertGreater(policy['lane']['skipped'], scope_policy['scope']['skipped'] + 300)
+
+    def test_a_lane_s_own_budget_keeps_the_paperwork_its_filters_and_the_pins_its_rows_answer_to(self):
+        kept = [n for _, n in gate._timed_rows(self.BUDGET_TIMINGS)
+                if n not in gate.lane_skips(self.BUDGET_TIMINGS, ['run589'], gate.LANE_OWN_BUDGET_SECONDS,
+                                            gate.LANE_KEPT)]
+        self.assertEqual(sorted(kept), ['census::tests::the_census_s_simulation_share_is_pinned',
+                                        'diff::floors::tests::a_golden_widening_holds_its_word',
+                                        'diff::second::tests::run589_s_word_frame_is_widened_whole',
+                                        'writers::compared_fields_have_writers'])
+        # The `Lane suite:` line counts what the lane's budget kept for the
+        # paperwork and the pins, and the filter's row is no paperwork.
+        self.assertEqual(gate.lane_paperwork(self.BUDGET_TIMINGS, gate.LANE_OWN_BUDGET_SECONDS, gate.LANE_KEPT),
+                         ['census::tests::the_census_s_simulation_share_is_pinned',
+                          'diff::floors::tests::a_golden_widening_holds_its_word',
+                          'writers::compared_fields_have_writers'])
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            def run(command, **kwargs):
+                if '--release' in command:
+                    release_ran(kwargs, log=RELEASE_LOG.replace(' ... FAILED', ' ... ok'))
+            (path/'timings.txt').write_text(self.BUDGET_TIMINGS)
+            with patch('builtins.print') as printed, patch.object(gate, 'TIMINGS', path/'timings.txt'), \
+                 patch.object(gate, 'ROOT', path):
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
+                          git=UNMOVED, isolated=False)
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            policy=json.loads((path/'report/gate-policy.json').read_text())
+        suite=next(l for l in said.splitlines() if l.startswith('Lane suite:'))
+        # The fixture's release log ran no `run589` test, so the gate names
+        # no such filter, and that row is left with the three.
+        self.assertIn('4 timed tests', suite)
+        self.assertIn('budget 0 s', suite)
         self.assertIn('3 over budget kept as paperwork', suite)
-        self.assertEqual(policy['lane']['paperwork_kept'], 3)
+        self.assertIn('DECISIONS 132', suite)
+        self.assertEqual((policy['lane']['skipped'], policy['lane']['paperwork_kept']), (4, 3))
+        self.assertEqual(policy['lane']['budget_seconds'], 0.0)
 
     def test_the_timings_file_is_the_suite_s(self):
         # The constant names a file that exists, holds the two coverage pins
