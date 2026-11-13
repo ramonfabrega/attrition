@@ -36712,3 +36712,36 @@ golden_capture.sh` and waited on with `waitrun.sh` in the background.
 Archive `gamelog-run1569-greatlakes-playback-of-boxed-300.txt`, 37,261,607 bytes,
 SHA-256 `0a896c44f915cb2512872be614edad159c2dc8c47d125463186917865d9d9e14`; `rontrace-run1569.log`, 9,588,576 bytes,
 SHA-256 `0be98850cf2cdf4906102b67f35544cd43d184a95f8700cae340dfe2a5db7363`.
+
+## run1571 — the original playing the file a person's attack minted, to the first blow (2026-11-12, item 4195, `att-4195`)
+
+`docs/CLIENT_INPUT.md` §8. **What the disk could not answer**: whether the original plays a person's `attack` on an
+enemy unit, minted from a right press, as our walk's order door does, and whether the blow lands on the same frame
+for the same hits. No playback on disk carries an attack. No playback of this lobby reaches an enemy in slot 0's
+sight: run1569 stops at 300, and the first frame our walk shows one is 6703. The file:
+`~/ron-golden/recordings/item4195-attacked-greatlakes-24000.rcx`, 59,404 bytes, SHA-256
+`619c27db33bbc33464eac997d383d46d020df8b6f5839caf0162e7e693bcb2e6`. It was written by `RON_RCX_OUT=<it> … test
+--release -p rondata the_attacked_minted_packages_round_trip`. It is run1569's file plus four packages:
+- The Art of War queued at the Library `0/2005` on 310;
+- the Barracks dropped by `0/3` at (1249, 32163) on 521;
+- the Slingers queued at the Barracks `0/2008` on 965;
+- the Slinger `0/7` sent at slot 1's Scout `1/0` on 6703.
+
+The take is run1569's line with this file, `--end-frame 6900 --cover cover=1 --log-window 6690 6900 --detail
+end:MISC,UNITS=3,BUILDS=7 --timeout 1800 --stall-seconds 120`. It was launched through `viadriver.sh
+golden_capture.sh` and waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 20:57:51 −05:00, exited 21:07:21; **570.1 s launch to exit**, exit 0, `success`.
+  6,901 frames, `last_frame` 6900, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault. Minutes waited on another lane: none.
+- **The built walk under the pump on the file** (`ATTACKED_WALKED`): draws agree on all 6,900 frames, count and
+  sequence. **210 records compared whole (6690..6899), none parted.**
+- **The attack's effect is equal on both sides** on 6703, 6704, 6804, 6805 and 6899 (`attacked_effects`). The
+  Slinger holds `move`, `attack` from 6704. **On 6805 the Scout goes from 50 to 47 hits**, at (4320, 32118), and it
+  has 31 on 6899.
+- **The boxed file walked against it parts on every record** from 6690, first on `0/7`. Its draws part from 535
+  (`BOXED_AGAINST_ATTACKED`). With the attack consumed a frame late, our walk parts on 6704.
+- Filed with `filerun.py run1571 greatlakes-playback-of-attacked-6900`.
+
+Archive `gamelog-run1571-greatlakes-playback-of-attacked-6900.txt`, 45,018,894 bytes,
+SHA-256 `40abea4e218fe9703248c22aee13c1c9f1573aa7c403b888e74c9ce950434e99`; `rontrace-run1571.log`, 33,771,776 bytes,
+SHA-256 `d18988e482bcebe147288b132ccc2f6242d1533e856b62d198d8d980ebb5a660`.

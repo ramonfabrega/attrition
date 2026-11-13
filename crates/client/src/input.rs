@@ -1326,8 +1326,16 @@ pub(crate) mod tests {
     /// on at the opening camera, `(frame, (who, o), pixel)`. Every one is on
     /// the 1920×1080 screen, so the script's camera is the client's own.
     const ATTACK_ANCHORS: [(i32, (u8, i16), (i32, i32)); 5] = [
-        (script::ATTACK_RESEARCH_FRAME, (0, script::LIBRARY), (1006, 397)),
-        (script::BARRACKS_FRAME, (0, script::BARRACKS_BUILDER), (735, 523)),
+        (
+            script::ATTACK_RESEARCH_FRAME,
+            (0, script::LIBRARY),
+            (1006, 397),
+        ),
+        (
+            script::BARRACKS_FRAME,
+            (0, script::BARRACKS_BUILDER),
+            (735, 523),
+        ),
         (script::TRAIN_FRAME, (0, script::BARRACKS), (614, 458)),
         (script::ATTACK_FRAME, (0, script::SLINGER), (509, 513)),
         (script::ATTACK_FRAME, script::ATTACKED, (1645, 884)),
@@ -1413,9 +1421,16 @@ pub(crate) mod tests {
                         Some(Hit::Enemy(ObjId { who, o })),
                         "the right press finds slot 1's Scout"
                     );
-                    let slinger = scene.units.iter().find(|u| u.id.who == 0 && u.id.o == script::SLINGER);
+                    let slinger = scene
+                        .units
+                        .iter()
+                        .find(|u| u.id.who == 0 && u.id.o == script::SLINGER);
                     assert_eq!(slinger.map(|u| u.type_index), Some(script::SLINGERS));
-                    let scout = scene.units.iter().find(|u| u.id == ObjId { who, o }).unwrap();
+                    let scout = scene
+                        .units
+                        .iter()
+                        .find(|u| u.id == ObjId { who, o })
+                        .unwrap();
                     assert_eq!((scout.type_index, scout.health), (69, 50), "TI, hp");
                 }
             }
@@ -1618,4 +1633,3 @@ pub(crate) mod tests {
         assert_eq!(order.2[1], Command::QueueUp { unit: 50, num: 1 });
     }
 }
-
