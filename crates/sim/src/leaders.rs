@@ -77,4 +77,13 @@ pub struct LeadersState {
     /// The score, its eleven parts and the units part's dirty bit
     /// (`docs/LEADERS.md` §18; [`score`], item 4187), one per slot.
     pub score: Vec<score::Score>,
+    /// `Game::semaphore[0] & 0x40`: `Game::check_victory@005926b0` has
+    /// decided the game and is not asked again (`docs/LEADERS.md` §10.2;
+    /// [`Sim::check_victory`], item 4189).
+    pub victory_checked: bool,
+    /// `Game::semaphore[2] & 0x40`: the game is over. `Game::do_frame`'s
+    /// tail runs `Game::process_end_game@00591ce0` on it, whose modal end
+    /// window is where a human quits once the game has ended
+    /// (`docs/LEADERS.md` §10.2; item 4189).
+    pub game_over: bool,
 }
