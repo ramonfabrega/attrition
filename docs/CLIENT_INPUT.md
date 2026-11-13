@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -328,21 +328,23 @@ made. Those rows are the repair, the nothing, the attack and the predicates' ord
 
 - ~~**The attack.** It is minted, but no enemy stands in view on the opening frames, so no file carries it. It waits for
   a lobby with one (parked 4179a).~~ Played on the harness lobby on the frame our walk first shows an enemy (§8).
-- **A selection that cannot attack.** A Scout's `ATTACK` is 0. On an enemy unit it reads as `follow`
+- ~~**A selection that cannot attack.** A Scout's `ATTACK` is 0. On an enemy unit it reads as `follow`
   (`GroupOut::issue_follow@00708980`), and on an enemy Spy as a counter-intelligence spell. The layer mints neither:
-  it would mint an attack. The scene does not carry a unit's attack (parked 4179b).
+  it would mint an attack. The scene does not carry a unit's attack (parked 4179b).~~ The follow is minted and played
+  (§10). The counter-intelligence arm is not minted (§10.4).
 - **The garrison.** It is issued only with the profile's `0x200` set, the advanced option. Then it is issued ahead of
   the build, gather and repair arms, for any building with a garrison limit. The default profile clears it, so the
   layer has no garrison arm (parked 4179c).
 - **Trees, mountains and oil.** The dispatch sends a Citizen to the nearest own Woodcutter's camp or Mine within
   `0x600` units, and gathers there. The scene does not carry the terrain object, so the layer does not mint this (parked 4179d).
-- **Is seen.** The attack asks `is_seen`; an unseen enemy is moved to instead. The layer does not test the fog.
+- ~~**Is seen.** The attack asks `is_seen`; an unseen enemy is moved to instead. The layer does not test the fog.~~
+  The layer tests it, and the fog's press is played (§10).
 - **The repair's territory test**, and **the University's** Citizen arm.
 - **The room test's count.** `num_gatherers` counts the chain's units that `is_gathering_at` the building, plus a few
   types' insiders. The layer takes the chain's length.
 - **Allies.** The scene names an owner, not an alliance. The layer treats every other slot as an enemy.
-- **A right press on one of the slot's own units**: in the original, follow or guard. The layer moves to the ground
-  under it.
+- ~~**A right press on one of the slot's own units**: in the original, follow or guard. The layer moves to the ground
+  under it.~~ It is a `guard` (`is_ally` of the slot itself), minted and not played (§10).
 
 ## 7. A dragged box, and a group that moves (item 4180)
 
@@ -588,10 +590,11 @@ the lockstep test turns red. What it printed is in the journal.
 
 **Not established:**
 
-- **The right press's fog test.** The dispatch asks `is_seen`, and an unseen enemy is moved to instead. The layer still
-  does not test the fog. The script presses only on the frame our walk first shows the Scout.
-- **A Scout or another unit with no attack, selected** (parked 4179b, then item 4194's). Its right press would read as
-  `follow` (§9.4).
+- ~~**The right press's fog test.** The dispatch asks `is_seen`, and an unseen enemy is moved to instead. The layer still
+  does not test the fog. The script presses only on the frame our walk first shows the Scout.~~ Tested and played
+  (§10).
+- ~~**A Scout or another unit with no attack, selected** (parked 4179b, then item 4194's). Its right press would read as
+  `follow` (§9.4).~~ Its follow is played (§10).
 - **An enemy building, an ally, and a target the soldier cannot reach.**
 - **The record of 6900.** The window ends one record short of the take's last frame.
 - **The original's hotkeys and menu.** The keys `a`, `s` and `b` are ours.
@@ -695,7 +698,8 @@ frames, with each effect and the formation bytes equal on both sides.
 
 **Not established:**
 
-- **A Scout on an enemy draws `follow`, and an ally `guard`** (parked, second). The dispatch's arm for a selection
+- ~~**A Scout on an enemy draws `follow`, and an ally `guard`** (parked, second).~~ Read to the end, the member's
+  test named by the PDB, and the follow played: §10. The dispatch's arm for a selection
   none of whose members can attack is read as far as `GroupData::count(COUNT_ATTACK)`. A seen unit under the cursor
   draws `GroupOut::issue_guard` when it is an ally's, and `issue_follow@00708980` otherwise. `COUNT_ATTACK` counts the
   members whose type's `+0x1e8` is nonzero and whose vtable slot `+0xe8` answers nonzero. The export names neither:
@@ -704,3 +708,150 @@ frames, with each effect and the formation bytes equal on both sides.
 - **The minimap's pixel.** Its transform from a minimap pixel to the world is not read, and the client draws no
   minimap.
 - **A one-unit `form` other than 0**, and a member whose `form_mod` is set. Neither is played.
+
+## 10. A press that follows, and the fog's press (item 4202)
+
+A Scout cannot attack. Its right press on an enemy unit mints `follow`, not `attack`. A right press on an enemy the
+fog hides names no object at all: it is a move to the ground under the cursor. Both are minted on the attacked script
+(§8), one frame either side of the Slinger's attack.
+
+### 10.1 What the dispatch reads
+
+`Console::execute_at_cursor@007c6630`, the same no-modifier path as §6.1. The member names come from the PDB's type
+stream (`llvm-pdbutil dump --types`), not from the code around them:
+
+- **`COUNT_ATTACK`** (`GroupData::count@00711720`) counts a member whose type's `+0x1e8` is nonzero and whose
+  `ObjectData` vslot `+0xe8` answers yes. The type record names `+0x1e8` `attack` (`docs/ORDERS.md`). `ObjectData`'s
+  field list names vftable offset 232 `is_captain`, `public intro virtual`. The export calls the slot `is_captain`
+  too, and the record settles it. The count's other arm is a `TRANSPORTBARGE` (0x140) on the map whose `+0x28`
+  object is such a member.
+- **The arm for a selection with `COUNT_ATTACK` 0.** The dispatch reaches `LAB_007c98d3` past the gather,
+  air-garrison and air arms, which a Scout does not enter. Before that, the Scout's own arm (`COUNT_TYPE` 0x45,
+  `SCOUT`) looks under the cursor for one of the player's own objects that is infiltrated (vslot `+0xdc`) and casts
+  `COUNTERINTEL` on it. An enemy unit is not the player's own, so it falls through. Then the spy arm (0x3a) and the
+  trade arms (0x3b, 0x13e) are skipped. Last comes `find_target(SEARCH_ALL, units, FILTER_ALL)`: a unit found there
+  draws `GroupOut::issue_guard(ox, whom, QUEUE_NEW)` if `LeaderData::is_ally` answers yes, and
+  `issue_follow(ox, whom, QUEUE_NEW)` otherwise. `is_ally` answers yes for the player itself (`param == who`).
+- **The same arm for a selection that can attack.** It is reached when the attack's search finds nothing, or finds
+  an ally: `is_over_enemy`, then `find_target(SEARCH_NON_FRIENDLY)`, and an object that is neither enemy nor ally
+  sets `local_54`, which skips it. So for any selection, a press on one's own unit is a `guard`.
+- **The fog.** `Console::find_target_daemon@007c5930` takes an object only if it answers `is_seen(console->who, 0)`
+  (`SubObjectData` vslot `+0x48`). Its field list names vftable offset 72 `is_seen`, `public intro virtual`. The
+  only exceptions are an observer's flags and the semaphore's `0x42`. So every `find_target` above passes over what
+  the fog hides. The press then reaches the dispatch's ground arm, `issue_move_to(drag_x2, drag_y2, QUEUE_NEW, 0, 0,
+  MOVE_TO, drag_form, drag_form_mod, 0)`. The attack arm also asks `is_seen` (`+0x48`) of what it found, and sends a
+  move with the same fields when the object is unseen. Either way the order is the ground's.
+
+**Ours.** The scene carries both answers, as reads that change no state (`sim::observe`):
+- `UnitScene::seen` is `Sim::target_seen_by`, the port of `UnitData::is_seen`.
+- `BuildingScene::seen` is `Sim::build_is_seen`.
+- `UnitScene::attacks` is `captain && unit_types[ty].combat.attack != 0`.
+
+`View::target` takes only seen objects. After another slot's buildings it looks at the slot's own units
+(`Hit::Friend`). `View::attacks` is `COUNT_ATTACK` as far as nonzero. `Input::on_object`:
+- an enemy unit or building, with a member that attacks: `attack`, as before;
+- an enemy unit, with none: `follow`;
+- one's own unit: `guard`;
+- an enemy building, with none: falls to the ground move. **Ours**: the arms past the follow are not read.
+
+The client and the tests build the layer's scene for the issuing slot (`scene(Some(player))`).
+
+### 10.2 The followed script, and the count
+
+`rondata::script::followed()` is `attacked()` with two packages more (a file holds one package a frame):
+
+| frame | events, at the opening camera | what the layer reads | the order |
+| --- | --- | --- | --- |
+| 6702 | a press on the Scout `0/0` (1384, 862), then a right press on `1/0` (1652, 882) | `1/0` unseen: nothing; the ground (6792, 31100) | `group` [0]; `move_to` (6792, 31100), `orders` 1, `queued` 2, `form` 0, `width` 50 |
+| 6703 | §8's | §8's | §8's attack |
+| 6704 | a press on the Scout (1399, 860), then a right press on `1/0` (1637, 883) | another slot's unit, seen; the Scout (TI 69) has no attack | `group` [0]; `follow` `ox` 0, `whom` 1, `queued` 2 |
+
+- 6702 is the last frame our walk hides `1/0` from slot 0. It stands at (6792, 31099), and nothing else is within
+  120 px. With the fog press in, `1/0` still stands at (6762, 31117) on 6703 and is first seen there, so §8's frames
+  hold (parked 4195a's chaos did not bite).
+- The stage 0 test lights the same scene (every `seen` set) and checks that the same pixel then draws the follow. So
+  on 6702 the fog test, and nothing else, makes the move.
+
+`INPUT_FOLLOWED`: **12 of 12** (`minted_followed_at_the_opening_camera`, `FOLLOW_ANCHORS`). Before this item it was
+**10**: seen red with the fog filter and `COUNT_ATTACK` both taken out, the layer minted `attack` on 6702 and on 6704.
+`INPUT_ATTACKED` stays 10 of 10, and every earlier count is unchanged.
+
+**The file** is `~/ron-golden/recordings/item4202-followed-greatlakes-24000.rcx`, 59,435 bytes, SHA-256
+`7d0f8302…2048b4` (`FOLLOWED_RCX_BYTES`). It is the attacked file with two packages added. The attack's package moves
+up one stamp, and the closing `stamp` goes from 12 to 14 (`the_followed_minted_packages_round_trip`). The client
+writes the same bytes from the orders it minted.
+
+**The pump** takes `follow` and `guard` through `rondata::input::group_follow` and `group_guard`, the golden
+harness's entries (`docs/GOLDEN.md` §19, §20). Before this item it dropped them as unmapped.
+
+### 10.3 The playback, and each order's effect
+
+**run1573**: the click-free lane. It is run1571's take with the followed file: `end:MISC,UNITS=3,BUILDS=7`, records
+in the window 6690..6900, to frame 6900 (`docs/RUNS.md`).
+`the_original_s_playback_of_the_followed_file_walks_in_lockstep` gives `FOLLOWED_WALKED`:
+
+- draws agree on **6,900 of 6,900** frames, count and sequence;
+- **210 records compared whole, none parted**.
+
+Seen red first: pinned `(0, 0, 0, 0)`, it printed `(6900, 6900, 210, 0)`.
+
+**Each order's effect, both sides** (`followed_effects`), equal on every frame. Our walk's values were pinned before
+run1573 was read.
+
+| frame | `1/0`: position, hits | `0/7`: position, orders | `0/0` the Scout: position, orders |
+| --- | --- | --- | --- |
+| 6702 | (6792, 31099), 50 | (1176, 32760), none | (5883, 31896), none |
+| 6703 | (6762, 31117), 50 | (1176, 32760), none | (5908, 31874), `move` |
+| 6704 | (6731, 31133), 50 | (1202, 32744), `move`, `attack` | (5933, 31852), `move` |
+| 6705 | (6700, 31148), 50 | (1228, 32729), `move`, `attack` | (5959, 31831), `move`, `follow` |
+| 6805 | (4320, 32118), **47** | (3135, 31512), `move`, `attack` | (4506, 31571), `move`, `follow` |
+| 6899 | (2122, 32090), 31 | (3240, 31944), `attack` | (2641, 32500), `move`, `follow` |
+
+**The value diff against run1571**, the attacked file's playback:
+- The fog press moves the Scout from 6703. Under the attacked file it stands idle at (5883, 31896).
+- The blow is the same, on 6805, 50 to 47.
+- On 6899 the two walks part. `1/0` is at (2122, 32090) on run1573 and at (2130, 33412) on run1571. The Slinger holds
+  `attack` alone at (3240, 31944) on run1573, and `move`, `attack` at (3463, 31825) on run1571.
+
+**Made to fail** (`the_attacked_script_against_the_followed_playback_parts`, `ATTACKED_AGAINST_FOLLOWED`): our walk
+under the attacked file, against run1573.
+- It parts first on 6703, the frame after the fog press, at the Scout: ours idle at (5883, 31896), theirs at
+  (5908, 31874) with one order.
+- 197 of 210 records part, and the draws part from 6725.
+
+Seen red first: pinned `(0, "", "", None, 0)`.
+
+### 10.4 Confidence, and what is not established
+
+**Backed by the playback.** run1573 plays these, each with its effect equal on both sides:
+- the follow arm of a selection with `COUNT_ATTACK` 0, on another slot's seen unit;
+- the fog's press: a right press on an enemy the fog hides, minted as the ground's `move_to` in the Scout's own
+  formation.
+
+The count's red shows that both turn on the new tests. It is (12, 10) with the fog filter and `COUNT_ATTACK` taken
+out.
+
+**Reading only**, one reader, with the call sites and the PDB's records checked:
+- that the playback could not tell the fog press's `move_to` from any other: the file is the layer's order, played.
+  That the original's own dispatch would have issued it rests on `find_target_daemon`'s `is_seen` admission.
+- the guard arm, on one's own unit or an ally's;
+- the Scout's counter-intelligence arm on an infiltrated object of one's own;
+- that the gather, air-garrison and air arms do not take a Scout's press.
+
+No blind second reading was made of these.
+
+**Ours, not the original's:**
+- an enemy building under a press by a selection with no attack falls to the ground move. The arms past the follow
+  (`local_38`'s allied search, and on) are not read.
+
+**Not established:**
+
+- **The `TRANSPORTBARGE` arm of `COUNT_ATTACK`.** The scene does not carry what a barge holds.
+- **The counter-intelligence spell.** It is not minted: the layer has no spell order.
+- **A guard played.** No take carries one. The layer mints it for a press on one's own unit (`Hit::Friend`).
+- **Allies.** The layer still names an owner, not an alliance: every other slot is an enemy, so it never draws the
+  follow arm's `guard` on another slot.
+- **A target the fog hides behind an observer's flags** (`find_target_daemon`'s `0x42` and player-flag arms). The
+  layer takes the issuing slot's own sight.
+- **`UnitData::is_seen`'s two `unit_masks` bits.** These are `0x800` and `0x1000`, which `Sim::target_seen_by` does
+  not carry (`docs/VISION.md`).

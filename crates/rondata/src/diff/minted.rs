@@ -2194,7 +2194,8 @@ fn follow_effects_theirs(take: &str) -> Option<Vec<FollowEffect>> {
 }
 
 /// **The followed script's effects** (item 4202), our walk's values
-/// pinned before the original's playback was read: the Scout idle on
+/// pinned before the original's playback was read, and run1573's equal to
+/// them on every frame: the Scout idle on
 /// 6702, moving to the fog press's ground from 6703, and `move`, `follow`
 /// from 6705, the frame after its package, closing on `1/0` from the
 /// east; the Slinger's attack as the attacked script's, its first blow
@@ -2265,3 +2266,93 @@ fn the_followed_minted_script_s_effects_on_our_walk() {
     }
     assert_eq!(ours, followed_effects());
 }
+
+/// The followed file's playback (`docs/RUNS.md` run1573): `(take, trace,
+/// frames agreeing, frames walked, records, parted)`.
+pub(crate) const FOLLOWED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1573-greatlakes-playback-of-followed-6900.txt",
+    "rontrace-run1573.log",
+    6900,
+    6900,
+    210,
+    0,
+)];
+
+/// **The original plays the followed file in lockstep** (item 4202): the
+/// built start walked under the pump against run1573, every frame's draws
+/// against its trace and every record of its window whole
+/// ([`FOLLOWED_WALKED`]); and the fog press's move, the follow and the
+/// attack read on both sides on [`FOLLOW_READ_AT`].
+#[test]
+fn the_original_s_playback_of_the_followed_file_walks_in_lockstep() {
+    let followed = crate::script::followed();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in FOLLOWED_WALKED {
+        let Some((w, _)) = walk_minted(&followed, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "FOLLOWED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs = follow_effects_theirs(FOLLOWED_WALKED[0].0).unwrap();
+    let ours = follow_effects_ours(&followed);
+    for (o, t) in ours.iter().zip(&theirs) {
+        eprintln!("FOLLOW EFFECT ours {o:?}\n              theirs {t:?}");
+    }
+    assert_eq!(walked, FOLLOWED_WALKED, "the walked table");
+    assert_eq!(theirs, followed_effects(), "the original's effects");
+    assert_eq!(ours, followed_effects(), "our effects");
+}
+
+/// **Made to fail** (item 4202): our walk under the attacked file — no fog
+/// press, no follow — against run1573; and the attacked walk's Scout on
+/// the follow's next frame, the control's values.
+#[test]
+fn the_attacked_script_against_the_followed_playback_parts() {
+    let (take, take_trace, ..) = FOLLOWED_WALKED[0];
+    let Some((w, _)) = walk_minted(&crate::script::attacked(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    eprintln!(
+        "ATTACKED AGAINST FOLLOWED: record {frame}: {partings:?}; draws part {:?}; records {} parted {}",
+        w.first_sequence, w.records, w.records_parted
+    );
+    let seen = (
+        frame,
+        partings[0].0,
+        partings[0].2.clone(),
+        w.first_sequence,
+        w.records_parted,
+    );
+    let (f, kind, row, draws, parted) = ATTACKED_AGAINST_FOLLOWED;
+    assert_eq!(
+        seen,
+        (f, kind, row.to_string(), draws, parted),
+        "ATTACKED_AGAINST_FOLLOWED"
+    );
+}
+
+/// The attacked script's walk against run1573: `(the first parted record's
+/// frame, its kind, its row, the first frame whose draws part, records
+/// parted)`. It parts first on 6703, the frame after the fog press: the
+/// Scout `0/0` idle at (5883, 31896) on ours, moving at (5908, 31874) with
+/// one order on run1573's; 197 of 210 records part, and the draws from
+/// 6725. Seen red first: pinned `(0, "", "", None, 0)`.
+const ATTACKED_AGAINST_FOLLOWED: (i64, &str, &str, Option<i64>, usize) = (
+    6703,
+    "diverged",
+    "Divergence { frame: 6703, who: 0, o: 0, ours: Pos { x: 5883, y: 31896 }, theirs: Pos { x: 5908, y: 31874 } }",
+    Some(6725),
+    197,
+);

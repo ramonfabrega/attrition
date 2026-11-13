@@ -36771,3 +36771,35 @@ golden_capture.sh` and waited on with `waitrun.sh` in the background.
 Archive `gamelog-run1571-greatlakes-playback-of-attacked-6900.txt`, 45,018,894 bytes,
 SHA-256 `40abea4e218fe9703248c22aee13c1c9f1573aa7c403b888e74c9ce950434e99`; `rontrace-run1571.log`, 33,771,776 bytes,
 SHA-256 `d18988e482bcebe147288b132ccc2f6242d1533e856b62d198d8d980ebb5a660`.
+
+## run1573 — the original playing the file a Scout's follow and a fog press minted (2026-11-13, item 4202, `att-4202`)
+
+`docs/CLIENT_INPUT.md` §10. **What the disk could not answer**: whether the original plays a `follow` minted from a
+right press, and the ground move a right press makes on an enemy the fog hides, as our walk's order door does. No
+playback on disk carries a `follow`. run1571 carries an attack but no other order past 6703. The file:
+`~/ron-golden/recordings/item4202-followed-greatlakes-24000.rcx`, 59,435 bytes, SHA-256
+`7d0f830262fc490ffe03249b022904b18c320606cb6473aa6dd4e77dc22048b4`. It was written by `RON_RCX_OUT=<it> … test
+--release -p rondata the_followed_minted_packages_round_trip`. It is run1571's file plus two packages:
+- the Scout `0/0` moved to (6792, 31100), form 0, width 50, on 6702;
+- the Scout's `follow` of slot 1's Scout `1/0` on 6704.
+
+The take is run1571's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1573 --recording <the file> --end-frame 6900 --cover cover=1
+--log-window 6690 6900 --detail end:MISC,UNITS=3,BUILDS=7 --timeout 1800 --stall-seconds 120`. It was waited on with
+`waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 09:58:59 −05:00, exited 10:07:31; **511.6 s launch to exit**, exit 0, `success`.
+  6,901 frames, `last_frame` 6900, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault. Minutes waited on another lane: none.
+- **The built walk under the pump on the file** (`FOLLOWED_WALKED`): draws agree on all 6,900 frames, count and
+  sequence. **210 records compared whole (6690..6899), none parted.**
+- **Each order's effect is equal on both sides** on 6702, 6703, 6704, 6705, 6805 and 6899 (`followed_effects`).
+  - The Scout holds `move` from 6703 and `move`, `follow` from 6705.
+  - The Slinger's blow lands on 6805, 50 hits to 47.
+  - On 6899, `1/0` stands at (2122, 32090) with 31 hits, against run1571's (2130, 33412).
+- **The attacked file walked against it parts first on 6703**, at the Scout `0/0`: ours idle at (5883, 31896), theirs
+  (5908, 31874) with one order. 197 of 210 records part, and the draws part from 6725 (`ATTACKED_AGAINST_FOLLOWED`).
+- Filed with `filerun.py run1573 greatlakes-playback-of-followed-6900`.
+
+Archive `gamelog-run1573-greatlakes-playback-of-followed-6900.txt`, 45,137,463 bytes,
+SHA-256 `ea6a5ea1b36c8180e35b8555011759ea32f6a11a4f0fbe4b0da4a4b841b1ad3e`; `rontrace-run1573.log`, 34,709,152 bytes,
+SHA-256 `8f37641423bce4e08611b09f757669872db24f1ca8bd478d241e74679f1d7558`.
