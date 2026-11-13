@@ -2148,7 +2148,7 @@ when either side walks a range of it (entry 120 §2). By line:
 | cities | 26 / 107 | `city..ter` (81) |
 | items | 11 / 107 | `ever_seen`, ours 2 theirs 0 (83) |
 | goods | 75 / 107 | `ever_seen` (32) |
-| world | 1 / 107 | `start_x.num` ours 0 theirs 2 or 3 (106 of 106 off the minted walk) |
+| world | 1 / 107 | `start_x.num` ours 0 theirs 2 or 3 (~~106 of 106~~ 65 off the minted walk since item 4205, §23.7) |
 
 By walk: the minted packet 8 of 9 (frame 91's own pins); the chapters 28 of
 68, their groups, cities, items and goods agreeing on all seven; the melees
@@ -2188,8 +2188,8 @@ The leaves that still part outside the list are pinned per packet
 
 | leaf | slots parting of 226 | value diff |
 |---|---|---|
-| `cities_built` | 224 | run1496's who 0 (frame 1539), ours 0 theirs 1: off the minted walk ours is one short everywhere |
-| `aggression` | 216 | run1496's who 0, ours all 0, theirs 1 on every other slot |
+| `cities_built` | ~~224~~ 142 (§23.7) | run1496's who 0 (frame 1539), ours 0 theirs 1: off the minted walk ours is one short on every dump-seated walk |
+| `aggression` | ~~216~~ 134 (§23.7) | run1496's who 0, ours all 0, theirs 1 on every other slot |
 | `flags.leader_flags` | 171 of 856 flag words | run1496's who 0, ours 7 theirs 917511 (`0xe0007`) |
 | `resources_controlled` | 79 | run1359's who 1, ours 0 theirs 6 |
 | `reg_unpack_merch` | 49 | run1359's who 1, region 1 ours 7 theirs 6 |
@@ -2226,6 +2226,81 @@ for all 74 game tests together.
   read like a walk far out of step, and no test tells the two apart.
 - Not established: run1100 (no word walks its lobby); the walls line (no
   packet walks a wall); the ammo and deaths lines (no emitter); every
-  line's agreement on a lobby-built start past frame 91 (only the minted
-  packet is one); which of the dump-seated parts are the seat's and which
-  the walk's (4188a); a `SimpleArray<int>` that has shrunk.
+  line's agreement on a lobby-built start past frame 91 (~~only the minted
+  packet is one~~ 41 more since item 4205, §23.7); which of the
+  dump-seated parts are the seat's and which the walk's (4188a; §23.7
+  answers it for the 41); a `SimpleArray<int>` that has shrunk.
+
+### 23.7 Step S: the words' packets from the lobby's built start (item 4205)
+
+Item 4205, step S of the leaders chain (`docs/DECISIONS.md` entry 131 §3,
+parked 4188a). Each word's game is stood up from its lobby's built start
+(`third::stand_up_built`: the long capture's `GAMEINFO` and player rows
+through `from_lobby` and `built_from_lobby`, `docs/START.md` §7, no dump
+installed and no correction), ticked to each packet's frame with every
+frame's draw count held against the long trace. **30 of the 59 words, 41
+of their 87 packets, hold the draw stream to every packet from the built
+start**: every Great Sahara word (20, 26 packets) and ten Great Lakes
+words (15 packets). Those walk
+from it now (`packets::walk_packets_built`; `hold` asserts the lockstep).
+The other 29 words, 46 packets, part before their first packet and stay
+dump-seated (`packets::SEATED_WORDS`), in two clusters:
+
+- **4205a, every East Indies word (24, 38 packets)**: the count parts on
+  frame 2, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271` at draw 0,
+  theirs `Farms::inc_time+0x1ae` (run1149's game, ours 7 draws theirs 4).
+  At frame 0 the two starts' figures differ in `guys[0].anim` on four gaia
+  animals with the unset angle (facing `0x80000000`; §6 of
+  `docs/START.md` names it for a whale) and one pasture animal: run1149's
+  `8/4` built 3 dump 0, `8/5` 1 and 0, `8/11` 1 and 0, `8/13` 2 and 0,
+  `9/4` 1 and 0. The seated start also installs 132 figures' clocks from
+  its `DUMP_ALL` sibling at frame 0's end; which difference spends the
+  draw is not established.
+- **4205b, the Great Lakes Modern and Information words (5, 8 packets)**:
+  the count parts on frame 0, `Unit::think_scout+0x64c` against `+0x436`
+  at draw 36 or 37, the fog's sign (`docs/START.md` §7.2). On run1429's
+  game four fog cells differ, the first `world.fog[5981]` built 0 dump 2.
+
+`the_seated_words_part_from_the_built_start` pins one word of each
+cluster's parting and the counts (`BY_START`): the lockstep assertion is
+sighted. Each word's own floor test still walks from its dump-seated
+stand-up (`third::walk_from`, now `stand_up_from` and `walk_word`).
+
+**The score: 150 of 1,058 lines agree** (147 at §23.5). On the 41 packets,
+by line, seated against built (lines agreeing; ranges parting summed):
+
+| line | agree, seated → built | ranges parting, seated → built |
+|---|---|---|
+| units | 0 → 0 | 156,682 → 154,698 |
+| builds | 0 → 0 | 3,887 → 3,313 |
+| groups | 20 → 20 | 45 → 45 |
+| guys | 0 → 0 | 6,171 → 5,628 |
+| leaders | 0 → 0 | 138 → 138 |
+| cities | 2 → 4 | 114 → 85 |
+| items | 1 → 1 | 2,645 → 2,645 |
+| goods | 34 → 34 | 8 → 8 |
+| world | 0 → 1 | 195,068 → 389 |
+| ammo, deaths | 0 → 0 | 222, 58 (no emitter) |
+
+The three lines that turned: run958b's world (frame 375, 7,291 ranges,
+3,748 parting → 0; the first was `start_x.num` ours 0 theirs 2),
+run1237's cities (27 ranges, 1 → 0) and run1382's (20, 1 → 0).
+
+**The leaves**: on all 82 leaders of the 41, `cities_built` (ours 1
+theirs 1, the start city `Setup::build_cities` counts) and `aggression`
+(`Leader::init`'s row) agree; they part on 142 and 134 of 226 leaders, all
+on dump-seated walks, chapters and melees. `start_x.num` is the world
+line's first parting on 65 packets (106). On 39 of the 41 the world
+line's first parting is a cell's `down`, ours −3 theirs −1 with
+`down_who` equal (4205c). run984b and run984c have no leaf parting
+outside the list. No leaf leaves `LEADERS_HELD_OUT`: `aggression` and
+`cities_built` were never on it.
+
+**How it was established**: diff-backed, every number a range-by-range
+comparison against the instrument's stream; the lockstep by the long
+trace's draws per frame. Red first: `spanish_word_packets` at the built
+start's pins, walked seated, part on four lines. **Not established**: the
+two clusters' causes (4205a, 4205b); whether the built start holds a
+seated word past where its draws part; the chapters' and melees' packets,
+which stand up as before; the cell `down` copy (4205c, `docs/START.md`
+§7.1 names it dump-only).

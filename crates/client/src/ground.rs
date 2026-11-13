@@ -66,6 +66,12 @@ pub struct GroundTextures {
     /// holds its own, in [`GroundTextures::flat`] after `bases`.
     pub coastal: Vec<Vec<Mips>>,
     pub ocean: Vec<Vec<Mips>>,
+    /// The tileset's `COAST_BASE` (item 4200): the `BASELAND` sub a
+    /// `SANDY` cell's transition patch draws ([`GroundTextures::patch_index`]).
+    pub coast_base: u8,
+    /// The tileset's `<CORALTEX>` (item 4200), laid over every `OCEAN`
+    /// cell's patch at the patch's own alpha.
+    pub coral: Option<Mips>,
 }
 
 impl GroundTextures {
@@ -88,12 +94,67 @@ impl GroundTextures {
             }
             Ok(bases)
         };
+        let coast_base = rondata::mapgen::tileset_groups(root, tileset)
+            .and_then(|g| u8::try_from(g.coast_base).ok())
+            .ok_or_else(|| format!("{tileset}: no COAST_BASE"))?;
+        let coral = match rondata::artdata::coral_texture(&install, tileset)
+            .map_err(|e| format!("{e:?}"))?
+        {
+            Some(rel) => {
+                let path = rondata::artdata::resolve_art(root, &rel)
+                    .ok_or_else(|| format!("no file {rel}"))?;
+                let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+                Some(Mips::new(
+                    render::tga::decode(&bytes).map_err(|e| format!("{rel}: {e:?}"))?,
+                ))
+            }
+            None => None,
+        };
         Ok(GroundTextures {
             bases: load(&art.baseland)?,
             coastal: load(&art.coastal)?,
             ocean: load(&art.ocean)?,
             art,
+            coast_base,
+            coral,
         })
+    }
+
+    /// **The texture a cell's transition patch draws** (item 4200;
+    /// `docs/RENDERER.md` §3.18), as an index into [`GroundTextures::flat`]:
+    /// `create_transition_renderables@00862c60`'s choice. Past sub 0 the
+    /// cell's own land at `land_sub − 1`; at sub 0 a `SANDY` cell
+    /// (`eTILE_COASTAL`) takes `BASELAND`'s `COAST_BASE` itself, with no
+    /// step down, and an `OCEAN` cell the coastal land's last texture.
+    /// `BASELAND` sub-tiles are chosen as the land pass chooses them,
+    /// `x mod 3 + 3 (y mod 3)`. `None` on a `BASELAND` cell at sub 0, which
+    /// is never queued, and past the tileset's textures.
+    pub fn patch_index(&self, land: i8, land_sub: u8, cx: i32, cy: i32) -> Option<usize> {
+        use render::terrain::{BASELAND, OCEAN, SANDY};
+        let count = |b: &[Vec<Mips>]| b.iter().map(Vec::len).sum::<usize>();
+        let (land, sub) = match (land, land_sub.checked_sub(1)) {
+            (_, Some(sub)) => (land, sub),
+            (SANDY, None) => (BASELAND, self.coast_base),
+            (OCEAN, None) => (
+                SANDY,
+                u8::try_from(self.coastal.len().checked_sub(1)?).ok()?,
+            ),
+            _ => return None,
+        };
+        match land {
+            BASELAND => self.index(sub, cx, cy),
+            SANDY => {
+                let b = usize::from(sub);
+                self.coastal.get(b)?;
+                Some(count(&self.bases) + count(&self.coastal[..b]))
+            }
+            OCEAN => {
+                let b = usize::from(sub);
+                self.ocean.get(b)?;
+                Some(count(&self.bases) + count(&self.coastal) + count(&self.ocean[..b]))
+            }
+            _ => None,
+        }
     }
 
     /// **The texture any cell's land pass draws** (item 4164), as an index
@@ -750,7 +811,7 @@ pub fn ground_patch(
     mesh: &render::terrain::TerrainMesh,
     choice: &[Option<crate::patch::Patch>],
 ) -> GroundPatch {
-    use render::terrain::{BASELAND, TILES_PER_CELL};
+    use render::terrain::{BASELAND, OCEAN, SANDY, TILES_PER_CELL};
     let mut out = GroundPatch::default();
     let (tw, th) = (t.width * TILES_PER_CELL, t.height * TILES_PER_CELL);
     if mesh.positions.len() != (tw * th * 6) as usize || choice.len() != t.land.len() {
@@ -760,13 +821,15 @@ pub fn ground_patch(
         for tx in 0..tw {
             let (cx, cy) = (tx / TILES_PER_CELL, ty / TILES_PER_CELL);
             let c = (cy * t.width + cx) as usize;
-            if t.land.get(c) != Some(&BASELAND) || mountains.contains(&(tx, ty)) {
+            if !matches!(t.land.get(c), Some(&(BASELAND | SANDY | OCEAN)))
+                || mountains.contains(&(tx, ty))
+            {
                 continue;
             }
-            let (Some(q), Some(sub)) = (choice[c], t.land_sub[c].checked_sub(1)) else {
+            let Some(q) = choice[c] else {
                 continue;
             };
-            let Some(k) = tex.index(sub, cx, cy) else {
+            let Some(k) = tex.patch_index(t.land[c], t.land_sub[c], cx, cy) else {
                 continue;
             };
             let i = ((ty * tw + tx) * 6) as usize;
@@ -907,16 +970,24 @@ pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1104, 1109);
 /// short of the photograph's red as `OCEAN` is (4174a). Tile (159, 194) at
 /// pixel (158, 6), theirs (46, 113, 162), the still's (65, 168, 217) →
 /// (1, 117, 188), parts. Its luminance gains 317 ([`GROUND_LUMA_STILL`]).
+/// Item 4200: **1,024 → 1,028**, the coast's transition patches
+/// (`docs/RENDERER.md` §3.18; [`crate::patch::RUN1564_3294_COAST_PATCH`]):
+/// `COAST_BASE`'s grass over 319 `SANDY` cells' edges, and on 120 `OCEAN`
+/// cells `sand.tga` with the tileset's coral over it at the patch's alpha.
+/// `SANDY` 315 → 319: tile (171, 206) at pixel (148, 333), theirs (149,
+/// 154, 118), the base's sand (126, 191, 215) on the painter, the still's
+/// (164, 161, 124). `OCEAN` stays 0: with the sand patch and no coral it
+/// read 132 (the journal), the coral's cyan taking the sand's red back.
 #[cfg(test)]
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1024, 1920),
+    (1028, 1920),
     [
         [677, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [315, 772],
+        [319, 772],
         [0, 437],
     ],
 );
@@ -933,9 +1004,12 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// 83 → 80 of 772. run1559b 1,076, unchanged. Item 4192: run1564 **1,001
 /// → 1,318**, the land's depth fade ([`land_alpha`]): `SANDY` 80 → 397 of
 /// 772, the deep sand now the water over the clear colour; run1559b
-/// unchanged. Item 4199: run1559b **1,076 → 1,075**, the roads drawn
-/// (§3.19): plain 980 → 979 of 986, one ring tile whose asphalt is 0.89
-/// of ours (parked 4199b); run1564 unchanged.
+/// unchanged. Item 4200: run1564 **1,318 → 1,377**, the coast's patches:
+/// `SANDY` 397 → 499 (the beach's edge under `COAST_BASE`'s grass),
+/// `OCEAN` 215 → 172 (the sand and coral patches under the water, brighter
+/// than the floor); run1559b unchanged. Item 4199: run1559b **1,076 →
+/// 1,075**, the roads drawn (§3.19): plain 980 → 979 of 986, one ring tile
+/// whose asphalt is 0.89 of ours (parked 4199b); run1564 unchanged.
 #[cfg(test)]
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
@@ -951,15 +1025,15 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1318, 1920),
+        (1377, 1920),
         [
             [679, 679],
             [0, 0],
             [27, 32],
             [0, 0],
             [0, 0],
-            [397, 772],
-            [215, 437],
+            [499, 772],
+            [172, 437],
         ],
     ),
 ];
@@ -967,10 +1041,11 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Both ground rows on the draw before item 4171 (the silhouette after,
 /// an sRGB target): the rows' made-to-fail, run1559b then run1564. Item
 /// 4178: run1564's 1,286 → 834, the water's colour taken to linear light.
-/// Item 4192: run1564's 834 → 927, the land's depth fade. Item 4199:
-/// run1559b's 1,003 → 1,010, the roads drawn (§3.19).
+/// Item 4192: run1564's 834 → 927, the land's depth fade. Item 4200:
+/// run1564's 927 → 970, the coast's patches. Item 4199: run1559b's 1,003
+/// → 1,010, the roads drawn (§3.19).
 #[cfg(test)]
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1010, 1109), (927, 1920)];
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1010, 1109), (970, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -3260,6 +3335,23 @@ pub(crate) mod tests {
     /// [`RUN1559B_3279_GROUND`]'s count on `p`'s photograph and camera, as
     /// item 4127 committed its rule and 4139 and 4141 laid the patch and the
     /// mountains over it; `None` with no world seed.
+    /// **The painter's patches** (item 4200): the choice on `BASELAND`
+    /// cells alone, as before the coast arm. The painter draws neither the
+    /// coral the card lays over an `OCEAN` patch nor the land's fade
+    /// (item 4192), so its rows keep land 0's patches; the coast's are the
+    /// client's still's (`docs/RENDERER.md` §3.18).
+    pub(crate) fn painter_choice(
+        t: &sim::observe::TerrainScene,
+        mut choice: Vec<Option<crate::patch::Patch>>,
+    ) -> Vec<Option<crate::patch::Patch>> {
+        for (c, q) in choice.iter_mut().enumerate() {
+            if t.land.get(c) != Some(&render::terrain::BASELAND) {
+                *q = None;
+            }
+        }
+        choice
+    }
+
     pub(crate) fn ground_row(p: &mut Probe) -> Option<GroundRow> {
         let floor = ocean_floor(&p.root);
         ground_row_with(p, Some(&floor))
@@ -3410,7 +3502,10 @@ pub(crate) mod tests {
         let alphas = load_alphas(&p.root).expect("the alphas load");
         let codes: Vec<[u32; 8]> = alphas.iter().map(|a| a.1).collect();
         let seed = crate::patch::tests::world_seed()?;
-        let choice = our_patches(&t, &p.root, &tileset, seed, &codes).expect("the tileset");
+        let choice = painter_choice(
+            &t,
+            our_patches(&t, &p.root, &tileset, seed, &codes).expect("the tileset"),
+        );
         let patch = ground_patch(&t, &mountains, &tex, &mesh, &choice);
         let laid = paint(
             &Object {
@@ -4025,7 +4120,10 @@ pub(crate) mod tests {
         let Some(seed) = crate::patch::tests::world_seed() else {
             return;
         };
-        let choice = our_patches(&t, &p.root, &tileset, seed, &codes).expect("the tileset");
+        let choice = painter_choice(
+            &t,
+            our_patches(&t, &p.root, &tileset, seed, &codes).expect("the tileset"),
+        );
         let patch = ground_patch(&t, &mountains, &tex, &mesh, &choice);
         let laid_paint = paint(
             &Object {
@@ -5250,7 +5348,10 @@ pub(crate) mod tests {
         let Some(seed) = crate::patch::tests::world_seed() else {
             return;
         };
-        let choice = our_patches(&t, &p.root, &tileset, seed, &codes).expect("the tileset");
+        let choice = painter_choice(
+            &t,
+            our_patches(&t, &p.root, &tileset, seed, &codes).expect("the tileset"),
+        );
         let patch = ground_patch(&t, &none, &tex, &mesh, &choice);
         let flat = tex.flat();
         let mut window = Rect::new(i32::MAX, i32::MAX, 0, 0);

@@ -318,6 +318,10 @@ pub const FLOOR_PIECE: i32 = -200_010;
 /// The footprint weathering's base's piece among the ground's textures
 /// (item 4190), and its white alpha's key among the alphas.
 pub const WEATHER_PIECE: i32 = -200_020;
+
+/// The tileset's coral texture's piece (item 4200), laid over each
+/// `OCEAN` cell's patch at its alpha.
+pub const CORAL_PIECE: i32 = -200_030;
 pub const WEATHER_ALPHA: usize = 910;
 /// The roads' texture among the ground's, and as their own alpha (item
 /// 4199): `modern_road_pieces.tga` is both.
@@ -1068,7 +1072,15 @@ impl World {
             }
             meshes.extend(floor);
             meshes.retain(|m| !m.positions.is_empty());
-            let mut patches: BTreeMap<(usize, usize), PatchMesh> = BTreeMap::new();
+            // Keyed `(texture, alpha, layer)`: layer 1 is the coral
+            // `TerrainOut::render` lays over a patch in `oceanindex`'s
+            // texture, on its stream, straight after it (item 4200).
+            let mut patches: BTreeMap<(usize, usize, u8), PatchMesh> = BTreeMap::new();
+            let coral = g
+                .textures
+                .coral
+                .as_ref()
+                .map(|c| std::sync::Arc::new(c.clone()));
             let choice = g.patch.as_ref().and_then(|a| {
                 let c = crate::ground::our_patches(&t, &a.root, &a.tileset, a.seed, &a.codes)?;
                 Some((a, c))
@@ -1081,19 +1093,31 @@ impl World {
                     let (Some(mips), Some(alpha_mips)) = (g.flat.get(k), art.alphas.get(a)) else {
                         continue;
                     };
-                    let m = patches.entry((k, a)).or_insert_with(|| PatchMesh {
-                        piece: -1 - k as i32,
-                        positions: Vec::new(),
-                        uvs: Vec::new(),
-                        alpha_uvs: Vec::new(),
-                        mips: mips.clone(),
-                        alpha: a,
-                        alpha_mips: alpha_mips.clone(),
-                        mountain: false,
-                    });
-                    m.positions.extend_from_slice(&laid.tris[i]);
-                    m.uvs.extend_from_slice(&laid.uvs[i]);
-                    m.alpha_uvs.extend_from_slice(&laid.alpha_uvs[i]);
+                    let (tx, ty) = laid.tile[i];
+                    let per = render::terrain::TILES_PER_CELL;
+                    let c = (ty / per * t.width + tx / per) as usize;
+                    let ocean = t.land.get(c) == Some(&render::terrain::OCEAN);
+                    for (layer, piece, tex) in [
+                        (0u8, -1 - k as i32, Some(mips)),
+                        (1, CORAL_PIECE, coral.as_ref()),
+                    ] {
+                        let Some(tex) = tex.filter(|_| layer == 0 || ocean) else {
+                            continue;
+                        };
+                        let m = patches.entry((k, a, layer)).or_insert_with(|| PatchMesh {
+                            piece,
+                            positions: Vec::new(),
+                            uvs: Vec::new(),
+                            alpha_uvs: Vec::new(),
+                            mips: tex.clone(),
+                            alpha: a,
+                            alpha_mips: alpha_mips.clone(),
+                            mountain: false,
+                        });
+                        m.positions.extend_from_slice(&laid.tris[i]);
+                        m.uvs.extend_from_slice(&laid.uvs[i]);
+                        m.alpha_uvs.extend_from_slice(&laid.alpha_uvs[i]);
+                    }
                 }
             }
             // The faded land first: the card draws it in the land pass,
