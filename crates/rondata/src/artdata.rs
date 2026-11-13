@@ -2410,6 +2410,37 @@ pub fn mountain_textures(install: &Install, tileset: &str) -> Result<(String, St
     Ok((file("BASETEX")?, file("ALPHATEX")?))
 }
 
+/// **The footprint weathering's textures** (item 4190; `docs/RENDERER.md`
+/// §3.17): `Data/tilesets.xml`'s `<COMMON><WEATHERING>` `WEATHERELEM`s, one
+/// per age bucket as `age=` numbers them, each `(file1, file2)` as written.
+/// `Terrain::add_weathering@00850120` binds the bucket's `file2`
+/// (`weather_textures_fertile_0[bucket]`) as stage 0; the `ALPHAELEM`s are
+/// stage 1, which the card's draw 90 leaves disabled, so they are not read.
+pub fn weathering_art(install: &Install) -> Result<Vec<(i32, String, String)>, ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let w = tdoc
+        .descendants()
+        .find(|n| n.has_tag_name("COMMON"))
+        .and_then(|c| c.children().find(|n| n.has_tag_name("WEATHERING")))
+        .ok_or_else(|| unnamed("COMMON/WEATHERING"))?;
+    let mut out = Vec::new();
+    for e in w.children().filter(|n| n.has_tag_name("WEATHERELEM")) {
+        let field = |a: &str| {
+            e.attribute(a)
+                .map(|v| v.trim().to_string())
+                .ok_or_else(|| unnamed(&format!("WEATHERELEM/{a}")))
+        };
+        let age = field("age")?
+            .parse()
+            .map_err(|_| unnamed("WEATHERELEM/age"))?;
+        out.push((age, field("file1")?, field("file2")?));
+    }
+    Ok(out)
+}
+
 /// **The farm's condition 1** (item 4037, `docs/RENDERER.md` §5.4): the
 /// `<FARM>` element reads whole ([`farm_art`]) and the tileset's wheat
 /// image decodes under `render::tga`. `Ok(1)`, the one file decoded.

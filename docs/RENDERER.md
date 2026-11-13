@@ -1240,8 +1240,9 @@ photograph. *Counted* (`client::shadows`), luma, hue at 92 throughout:
   dark patch under each tree on the photograph; not drawn (parked 4173c)~~: read and drawn, the figures' with them
   (item 4182, "The shadows" above).
 - What the guys' decals miss. As read they darken the row's figure tiles past the photograph (28 → 5 of 37,
-  0.99 → 0.82), and they are not drawn (parked 4182c). Also not established: the city's paved base, which is
-  `RoadsOut`'s (4182a), and the `shadow_offset` (4182d).
+  0.99 → 0.82), and they are not drawn (parked 4182c). Also not established: ~~the city's paved base, which is
+  `RoadsOut`'s (4182a)~~ — it is not `RoadsOut`'s but the footprint weathering, read and drawn (item 4190, §3.17);
+  the asphalt ring around it is `RoadsOut`'s (4190a) — and the `shadow_offset` (4182d).
 - Why 0/1 behind the pine agrees with the raw texel under its silhouette (81 of 159) and not with the drawn leaf
   (66), nor with the blend before the tone map (11) (parked 4173b).
 - Why tree models 9–15 agree at 0.71–0.81 and the rest at 0.34–0.63, the photograph greener on the latter's opaque
@@ -2341,6 +2342,92 @@ on one photograph**: the rows.
   binds `sand.tga` in four transition-patch draws; whether our coast arm
   of `patch::Ground::combo` lays them on run1564 is not checked. The
   sawtooth stands.
+
+## 3.17 The paved base under a city: the footprint weathering (item 4190)
+
+**What it is.** On the photographs the capital stands on a pale square of paving stones, crisp at its edge, inside
+a red line and a dark asphalt ring. Item 4182 booked the square as `RoadsOut`'s draw 90. It is not. Draw 90 binds
+`Modern_Weathering.tga` and `age0_22.tga`, which are `Data/tilesets.xml`'s `<COMMON><WEATHERING>` (`WEATHERELEM
+name="Modern" age="2"`, and every `ALPHAELEM`'s file), and neither is in `Data/roads.xml`. Its state is enables
+`0x1c204`, blend 5/6, lit; stage 0 `MODULATE(TEXTURE, DIFFUSE)` with A `SELECTARG1(TEXTURE)`; stage 1 disabled.
+Draw 91 binds `modern_road_pieces.tga` under `RoadsOut`'s own state `0x20004`: that is the asphalt ring (4190a).
+The card (run1566b) pins both draws: `client::weathering::tests::draw_90_is_the_weathering_s`.
+
+**Why 4182 read it as `RoadsOut`'s.** A card-trace draw flushes one call late. `Scene::render@008b3270` calls
+`TerrainOut::render_weathering(0, 3)` just before `TerrainOut::render_roads`, so draw 90's first return address
+lies inside `RoadsOut::render@008943d0`, and draw 91's in `Game::loop_render`. **A draw's `frames` name where it
+flushed, not who submitted it**: read its textures and state first.
+
+**The chain** (each function read in the decompile; the arithmetic on the listing):
+- `ObjectsOut::draw_weathering@00654a60` walks the render tree's objects. It skips one the console player has not
+  seen, and all of them when `objects+0x224` mode is 5.
+- `WallOut::draw_weathering@0063dde0`, per building:
+  - nothing on a water building (`ObjectTypeData::domain`, `+0x218`, 1);
+  - the age is the owner's `LeaderDataEncrypt::ages` (`^ 0x62766`), asked when slot `+0x20` answers, which for a
+    `Build` it always does;
+  - the type's own `x_size`, `y_size` (`+0x234`, `+0x238`) for a city (`is(VILLAGE 0x19e)`) or a type that
+    `connects_to_roads@006398c0`;
+  - else `size + 1`, only for a building in a city (`BuildData::city`, `+0x72`, `>= 0`) whose type is not a
+    gatherer (`is_gather_type`, the type's slot `0x90`) unless a University; out of a city, nothing;
+  - a `FARM` also gets `add_weather_underlay` 4 × 4, the underlay pass `render_weathering(4, 4)`, not draw 90.
+- `WallData::tile_corner@00643440`: the corner is the building's tile less `size >> 1` on each axis, by the type's
+  own size whichever arm passed.
+- `Terrain::add_weathering@00850120`:
+  - the gate: `5 < age` and (`2 < sx` or `2 < sy`). Every age it passes takes bucket 2, Modern, and the texture
+    `weather_textures_fertile_0[2]`, Modern's `file2`;
+  - it lays `(sx − 1) × (sy − 1)` tiles from the corner. Each is `TerrainOut::get_indexed_mesh@00863c50`'s quad on
+    the corner heights, faces (n, n+1, n+2) and (n+2, n+1, n+3): the diagonal the ground's own triangles cut;
+  - **set A**, which `render_weathering@00852f70` hands the vertex buffer first (UV0, `Terrain +0x46e8`): `d · q`
+    from the corner, q = 0.25 (`__real_3e800000`), so the stones repeat every four tiles. The far corner's v is
+    `dy · q + 1 / (sy − 1)`, not `+ q`: the listing adds `[ebp + 0x1c]` (`0x850853`), the spent age argument's
+    slot, where `1 / (sy − 1)` was stored for set B (`0x850321`). The two agree only at sy = 5;
+  - **set B** (UV1, `+0x46ec`) spans the patch, turned by `rotate_tex_coords@00863a50` in quarter turns off the
+    texture fractal. It feeds stage 1, which draw 90 disables, so neither it nor its float rounding reaches a
+    pixel.
+
+`Modern_Weathering.tga`'s A is 255 throughout, so the patch is an opaque square of the stone texel.
+
+**The draw** (`client::weathering`, `World::weather_footprints`, `World::drawn_terrain`). The frame's footprints,
+moved by none, are laid as one patch mesh (`WEATHER_PIECE`). Each tile sits on the ground's own corners with set A's
+texcoords and a 1 × 1 white alpha. It goes after the land's patches and the water and before the first mountain
+layer, in the card's order: the weathering, the roads, the shadows, the mountains. The patch pass takes the texel
+unlit, as the ground's (§3.14). It is laid again when the frame or a switch moves.
+
+**The rule** (before its count, `991246f05`). The row is every tile the frame's weathering lays (unmoved, drawn or
+not) with at least `HUE.min_pixels` ground pixels on the photograph: `ground_why`'s ground or an object's window,
+as the shadows' row takes them. It compares the photograph's mean and the still's on `HUE` and `LUMA_READER`, on
+two photographs: run1559b's (3279), and run1570's at run1570's `loc`, drawn at 3316. That is run1559b's own offset
+from its packet's 3294 to the 3279 its movers show; it is assumed, since 4183b clocks it. It is pinned as drawn
+first (bare grass), then drawn, then made to fail by moving every footprint its own width.
+
+**The count.** `RUN1559B_3279_PLAZA`: hue **0 → 18**, luma **6 → 14** of 18; moved, back to 0 and 6.
+`RUN1570_PLAZA`: hue **0 → 19**, luma **9 → 15** of 19; moved, back to 0 and 9. Drawn at 3331 instead, run1570
+reads the same counts on the same tiles. One tile's values: (18, 159) on run1559b, 861 pixels, theirs (178, 186,
+162) Y 180.9; before (158, 145, 64) Y 140.0; drawn (171, 169, 158) Y 168.7. The partings, by name:
+- the plaza's middle, (15, 158), (15, 159), (16, 159), (16, 160): theirs Y 92 to 100 against ours 165 to 174. The
+  same tiles read Y 110 to 161 on run1570, so they change with the frame: the smoke and fire over the burning
+  buildings, which the client does not draw (no row);
+- (18, 157) on run1570, Y 246.0 against 164.0: the white beam standing on the plaza's corner;
+- (18, 162) on run1570, Y 105.4 against 164.1, dark on that photograph alone. By eye it is the crowd at the corner
+  or the city's name plate; not settled.
+
+No other pin moved: the ground's rows score an object's window out.
+
+**Coverage.** Diff-backed (the two rows, and the card): the texture and its state; the capital's corner, size and
+tiles, which the moved count would break; set A's step of 0.25, which sets the stones' size within each tile's
+mean; the patch opaque and unlit. **On a reading alone**, for the next batched second reading:
+- the age gate, `5 < age`: every building on these frames is at age 6, so the gate was never seen to close;
+- the side gate, and the water arm;
+- the far corner's `1 / (sy − 1)`: a tile's mean cannot see it;
+- the `size + 1` arm. `BuildingScene` carries no `city`, so it lays nothing here (**4190b**): a barracks,
+  factory, airbase or silo in a city would get a `(sx + 1) × (sy + 1)` footprint's weathering in the original.
+  None stands in view of either photograph;
+- the walker's skips: a building the console player has not seen, and the mode-5 frame;
+- player 1's footprints, all off-screen.
+
+**Not established.** The asphalt ring and the red line (4190a, `RoadsOut`, which needs the roads through
+`sim::observe`); whether the red line is the border's; the underlay pass `render_weathering(4, 4)` under a farm;
+the vertex lighting draw 90 enables, which the client does not take.
 
 ## 4. The stack
 
