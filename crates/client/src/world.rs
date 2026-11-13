@@ -1443,9 +1443,9 @@ impl World {
             let Some(&(w, h, k)) = self.shadow_art.units.get(&d.piece) else {
                 continue;
             };
-            let drawn = sim::data::pivot::release_rotation(sim::movement::Angle(facing as i32));
+            let degrees = sim::data::pivot::fast_degrees(facing as i32);
             out.push(Shadow {
-                decal: render::decal::unit_shadow([p.x, p.y, p.z], w, h, drawn),
+                decal: render::decal::unit_shadow([p.x, p.y, p.z], w, h, degrees),
                 texture: DECAL_PIECE - 1 - k as i32,
             });
         }
