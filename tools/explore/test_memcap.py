@@ -23,7 +23,7 @@ KILLED_WITHIN = 40
 
 
 class SamplingFailureTests(unittest.TestCase):
-    def run_guard(self, fake_ps, expected_code=125, child_must_die=False):
+    def run_guard(self, fake_ps, expected_code=125, child_must_die=False, cap="20"):
         with tempfile.TemporaryDirectory(prefix="attrition-memcap-") as directory:
             root = Path(directory)
             ps = root / "ps"
@@ -33,7 +33,7 @@ class SamplingFailureTests(unittest.TestCase):
                        MEMCAP_TEST_STATE=str(root / "sampled"))
             started = time.monotonic()
             result = subprocess.run(
-                ["zsh", str(MEMCAP), "20", "sleep", str(CHILD_SECONDS)],
+                ["zsh", str(MEMCAP), cap, "sleep", str(CHILD_SECONDS)],
                 env=env, capture_output=True, text=True, timeout=TIMEOUT,
             )
             elapsed = time.monotonic() - started
@@ -74,6 +74,38 @@ class SamplingFailureTests(unittest.TestCase):
             'echo 1024\n', expected_code=137, child_must_die=True,
         )
         self.assertIn("over the 20 GiB ceiling", message)
+
+    def test_footprint_counts_what_rss_does_not(self):
+        # gate-4192: a child held 1,200 MiB for 120 s and `ps rss` never
+        # read it over a 1 GiB cap — the host had compressed or swapped its
+        # idle pages, which leaves the resident set and stays in the
+        # footprint. Here `ps` reads zero for every live sample, as a fully
+        # compressed tree would, and the cap is zero: only the real
+        # footprint of a sleeping child can trip it. Against an `rss`-only
+        # sampler the minute-long child is never stopped.
+        message = self.run_guard(
+            'if [ -e "$MEMCAP_TEST_STATE" ]; then echo 0; exit 0; fi\n'
+            ': > "$MEMCAP_TEST_STATE"\n'
+            'echo 1024\n', cap="0", expected_code=137, child_must_die=True,
+        )
+        self.assertIn("over the 0 GiB ceiling", message)
+
+    def test_trace_records_each_sample_with_both_measures(self):
+        with tempfile.TemporaryDirectory(prefix="attrition-memcap-trace-") as directory:
+            trace = Path(directory) / "trace"
+            result = subprocess.run(
+                ["zsh", str(MEMCAP), "1", "sleep", "3"],
+                env=dict(os.environ, MEMCAP_TRACE=str(trace)),
+                capture_output=True, text=True, timeout=TIMEOUT,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            lines = trace.read_text().splitlines()
+            self.assertIn("launched pid", lines[0])
+            samples = [line for line in lines if " rss " in line]
+            self.assertGreaterEqual(len(samples), 1, lines)
+            self.assertRegex(samples[0], r"^ +\d+\.\ds tree \d+.* rss \d+ footprint \d+ "
+                                         r"counted \d+ cap 1048576 KiB$")
+            self.assertIn("the command exited 0", lines[-1])
 
     def test_sampling_loss_stops_live_command(self):
         # The preflight succeeds, then the first live sample fails. The

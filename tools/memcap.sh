@@ -26,6 +26,25 @@
 # reason (that is what the first version of this file did, and the way it
 # was found is the way every guard here is found: by making it fire).
 #
+# It counts the tree at the **larger of its resident set and its physical
+# footprint** (`proc_pid_rusage`'s `ri_phys_footprint`, the number Activity
+# Monitor and jetsam use), each summed over the tree. `ps rss` alone under-reads exactly when
+# the guard matters: a page macOS has compressed or swapped is not resident,
+# so a process whose memory the host is squeezing reads small while it still
+# holds every byte. The fixture's child — 1,200 MiB of one repeated byte,
+# idle, the cheapest page the compressor can take — was held for 120 s on a
+# booking gate (gate-4192) while the resource budget's own `ps rss` sampler
+# saw its whole test binary's tree peak at 1,159 MiB, against 1.8–2.4 GiB on
+# every green gate; this script, reading the same `ps`, never fired. The
+# footprint counts compressed pages, and a test that fakes a small resident
+# set over a large footprint holds that door (`tools/explore/test_memcap.py`).
+#
+# `MEMCAP_TRACE=<file>` appends every sample — the seconds since launch, the
+# tree, both measures, the counted total and the cap, in KiB — so a red that
+# says "never fired" can say what it saw and when, and a gap in the times
+# says the sampler itself stalled. It is off unless asked for: a gate's
+# half-hour suite would otherwise write nine hundred lines to its log.
+#
 #   zsh tools/memcap.sh 8 cargo test -p rondata --release
 #
 # Exit status is the command's own, except when the ceiling fires: then it
@@ -51,8 +70,41 @@ if [[ "$probe_rss" != <-> ]] || (( probe_rss <= 0 )); then
     exit 125
 fi
 
+# `pid rss_kib footprint_kib` per live pid named; exits 1 if a live pid could
+# not be read (a pid that has exited is skipped, as `ps` skips it).
+footprints() {
+    python3 -I -c '
+import ctypes, errno, sys
+lib = ctypes.CDLL("/usr/lib/libproc.dylib", use_errno=True)
+info = (ctypes.c_uint64 * 12)()  # rusage_info_v0: uuid[16], then ten u64
+bad = 0
+for pid in sys.argv[1:]:
+    if lib.proc_pid_rusage(int(pid), 0, ctypes.byref(info)) == 0:
+        print(pid, info[8] // 1024, info[9] // 1024)  # ri_resident_size, ri_phys_footprint
+    elif ctypes.get_errno() != errno.ESRCH:
+        bad = 1
+sys.exit(bad)
+' "$@" 2>/dev/null
+}
+
+probe_fp=$(footprints $$) || {
+    print -u2 "memcap: cannot sample process footprint; refusing to launch an unmonitored command"
+    exit 125
+}
+if [[ "${probe_fp##* }" != <-> ]] || (( ${probe_fp##* } <= 0 )); then
+    print -u2 "memcap: invalid footprint sample; refusing to launch an unmonitored command"
+    exit 125
+fi
+
 cap_gib=$1; shift
 cap_kb=$(( cap_gib * 1024 * 1024 ))
+
+zmodload zsh/datetime
+launched=$EPOCHREALTIME
+trace() {
+    [[ -n ${MEMCAP_TRACE:-} ]] || return 0
+    printf '%7.1fs %s\n' $(( EPOCHREALTIME - launched )) "$*" >> $MEMCAP_TRACE
+}
 
 # Every descendant of $1, depth first, one pid per line.
 descendants() {
@@ -70,24 +122,36 @@ descendants() {
 # on 16 cores with the game at 2 % CPU), so a guarded suite yields to it.
 RON_TEST_MEMCAP_GIB="$cap_gib" nice -n 10 "$@" &
 pid=$!
+trace "launched pid $pid under a ${cap_gib} GiB cap ($cap_kb KiB): ${*//$'\n'/; }"
 
 peak_kb=0
 peak_one_kb=0
 rung=0
 while kill -0 $pid 2>/dev/null; do
     tree=($pid ${(f)"$(descendants $pid)"})
-    if ! rss_rows=$(ps -o rss= -p ${(j:,:)tree} 2>/dev/null); then
+    rss_rows= fp_rows=
+    if ! rss_rows=$(ps -o rss= -p ${(j:,:)tree} 2>/dev/null) \
+        || ! fp_rows=$(footprints ${tree[@]}); then
         # A short-lived command may finish between kill -0 and ps. Otherwise
         # fail closed rather than let a live command run without monitoring.
         kill -0 $pid 2>/dev/null || break
+        trace "sampling failed: ps [${rss_rows//$'\n'/; }] footprint [${fp_rows//$'\n'/; }]"
         print -u2 "memcap: RSS sampling failed while the command is live — stopping its process tree"
         kill -9 ${tree[@]} 2>/dev/null
         wait $pid 2>/dev/null
         exit 125
     fi
-    sample=$(print -r -- "$rss_rows" | awk '{s+=$1; if ($1>m) m=$1} END {print s+0, m+0}')
-    rss_kb=${sample%% *}
-    one_kb=${sample##* }
+    # Each measure's sum over the tree and its largest single process; the
+    # counted figure is the larger of the two measures, for both.
+    sample=$(print -rl -- "$rss_rows" -- "$fp_rows" | awk '
+        $1 == "--" { fp = 1; next }
+        !fp && NF >= 1 { rs += $1; if ($1 > rm) rm = $1 }
+        fp && NF >= 3 { fs += $3; if ($3 > fm) fm = $3 }
+        END { print (rs > fs ? rs : fs) + 0, (rm > fm ? rm : fm) + 0, rs + 0, fs + 0 }')
+    sample=(${=sample})
+    rss_kb=$sample[1]
+    one_kb=$sample[2]
+    trace "tree ${(j:,:)tree} rss $sample[3] footprint $sample[4] counted $rss_kb cap $cap_kb KiB"
     (( rss_kb > peak_kb )) && peak_kb=$rss_kb
     (( one_kb > peak_one_kb )) && peak_one_kb=$one_kb
     # A rung per gibibyte, so the log says *when* it climbed: interleaved
@@ -99,6 +163,7 @@ while kill -0 $pid 2>/dev/null; do
     fi
     if (( rss_kb > cap_kb )); then
         print -u2 "memcap: $1 and its children reached $(( rss_kb / 1024 )) MiB, over the ${cap_gib} GiB ceiling — killing them"
+        trace "over the cap: killing ${(j:,:)tree}"
         kill -9 ${tree[@]} 2>/dev/null
         wait $pid 2>/dev/null
         exit 137
@@ -111,5 +176,6 @@ done
 # line and the exit code. `rc` it is.
 wait $pid
 rc=$?
+trace "the command exited $rc"
 print -u2 "memcap: peak $(( peak_kb / 1024 )) MiB across the tree, $(( peak_one_kb / 1024 )) MiB in the largest single process, of a ${cap_gib} GiB ceiling"
 exit $rc

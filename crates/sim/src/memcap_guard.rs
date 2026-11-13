@@ -15,11 +15,19 @@
 //! mapping in every process that maps it, which errs toward killing early,
 //! while a two-second poll under-reports a sawtooth, which errs late by at
 //! most two seconds of growth.
+//!
+//! What `ps rss` does *not* count is a page the host has compressed or
+//! swapped, so the script counts the larger of it and the physical
+//! footprint (gate-4192: this fixture's idle child read under its cap for
+//! 120 s; `tools/memcap.sh` has the evidence). A red here prints the
+//! script's own samples (`MEMCAP_TRACE`), both processes' state and the
+//! host's memory state, so the next one is a diagnosis rather than a re-run.
 
 use std::io::{BufRead, BufReader, Read};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 fn memcap() -> String {
     concat!(env!("CARGO_MANIFEST_DIR"), "/../../tools/memcap.sh").to_string()
@@ -51,12 +59,69 @@ const FIRES_WITHIN: Duration = Duration::from_secs(120);
 /// 1,200 MiB near 90 s.
 const HOLDS_WITHIN: Duration = Duration::from_secs(600);
 
+/// One command's output for a red's report, or why it gave none.
+fn shown(program: &str, args: &[&str]) -> String {
+    match Command::new(program).args(args).output() {
+        Ok(out) => format!(
+            "$ {program} {}\n{}{}",
+            args.join(" "),
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        ),
+        Err(e) => format!("$ {program} {}: {e}\n", args.join(" ")),
+    }
+}
+
+/// What a red says beyond "never fired": memcap.sh's every sample, the child
+/// and the script as `ps` sees them, the child's footprint, and how hard the
+/// host was squeezing its memory. Taken before anything is killed.
+fn diagnosis(trace: &Path, child: Option<&str>, guard: u32) -> String {
+    let guard = guard.to_string();
+    let pids = child.map_or(guard.clone(), |c| format!("{c},{guard}"));
+    let mut text = format!(
+        "\n--- memcap.sh's samples (MEMCAP_TRACE, KiB) ---\n{}",
+        std::fs::read_to_string(trace).unwrap_or_else(|e| format!("no trace: {e}\n"))
+    );
+    text += "--- the child and memcap.sh ---\n";
+    text += &shown(
+        "ps",
+        &[
+            "-o",
+            "pid,ppid,stat,nice,rss,vsz,%cpu,time,wchan,command",
+            "-p",
+            &pids,
+        ],
+    );
+    if let Some(child) = child {
+        text += &shown("footprint", &["-f", "bytes", "--noCategories", "-p", child]);
+    }
+    text += "--- the host ---\n";
+    text += &shown(
+        "sysctl",
+        &[
+            "vm.swapusage",
+            "kern.memorystatus_vm_pressure_level",
+            "vm.loadavg",
+        ],
+    );
+    text += &shown("vm_stat", &[]);
+    text
+}
+
 /// A process that climbs past a 1 GiB cap is dead within a few polls, and
 /// the exit code is 137 with the reason on stderr.
 #[test]
 fn memcap_kills_a_process_past_the_cap_with_137() {
     let start = Instant::now();
+    let stamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_or(0, |d| d.as_nanos());
+    let trace = std::env::temp_dir().join(format!(
+        "attrition-memcap-trace-{}-{stamp}",
+        std::process::id()
+    ));
     let mut guard = Command::new("zsh")
+        .env("MEMCAP_TRACE", &trace)
         .arg(memcap())
         .arg("1")
         .arg("python3")
@@ -104,16 +169,23 @@ fn memcap_kills_a_process_past_the_cap_with_137() {
             _ => None,
         };
         if let Some(why) = late {
+            let report = diagnosis(&trace, pid.as_deref(), guard.id());
             // The child first, so its pipes close and the readers finish.
             if let Some(pid) = &pid {
                 let _ = Command::new("kill").args(["-9", pid]).status();
             }
             let _ = guard.kill();
             let _ = guard.wait();
-            panic!("{why}: {}", stderr.join().unwrap_or_default());
+            let _ = std::fs::remove_file(&trace);
+            panic!(
+                "{why}.\n--- memcap.sh's stderr ---\n{}{report}",
+                stderr.join().unwrap_or_default()
+            );
         }
     };
     let stderr = stderr.join().unwrap_or_default();
+    let samples = std::fs::read_to_string(&trace).unwrap_or_default();
+    let _ = std::fs::remove_file(&trace);
     assert_eq!(
         status.code(),
         Some(137),
@@ -122,6 +194,10 @@ fn memcap_kills_a_process_past_the_cap_with_137() {
     assert!(
         stderr.contains("over the 1 GiB ceiling"),
         "memcap.sh killed without saying why: {stderr}"
+    );
+    assert!(
+        samples.contains(" footprint ") && samples.contains("over the cap: killing"),
+        "memcap.sh's trace did not record its samples and its kill: {samples}"
     );
     eprintln!(
         "memcap fired {} s after launch{}",
