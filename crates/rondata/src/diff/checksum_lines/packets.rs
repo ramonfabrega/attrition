@@ -70,7 +70,7 @@ impl LineOutcome {
 }
 
 /// The data layer the builds line reads its pieces from, read once a walk.
-pub(super) struct Pieces {
+pub(in crate::diff) struct Pieces {
     look: crate::artdata::BuildLook,
     tribes: Vec<crate::TribeDef>,
 }
@@ -87,7 +87,7 @@ impl Pieces {
 
 /// Our walk's twelve lines, in [`STATE_LINES`]' order. The walls, ammo and
 /// deaths lines have no emitter in the crate and are empty.
-pub(super) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
+pub(in crate::diff) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
     let p = build_pieces_with(sim, &pieces.look, &pieces.tribes);
     vec![
         sim.checksum_units(),
