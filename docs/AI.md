@@ -20963,7 +20963,8 @@ it.
 
 **Built.** `Sim::end_the_peace` (`crates/sim/src/leaders/diplomacy.rs`), called before `strategy_all` in the frame step:
 the rule's frame, the team-style gate, and the pair walk through `allied_both` and `not_at_war`. Team style 7's
-neutrals and a computer declarer's `diplo_change` are `SEAM`s. `update_leader_list` is the interface's. Test:
+neutrals are a `SEAM`; ~~a computer declarer's `diplo_change`~~ runs since item 4207, through `Sim::set_diplo`
+(`docs/LEADERS.md` §7.5). `update_leader_list` is the interface's. Test:
 `diplomacy::tests::the_peace_s_end_declares_war_both_ways_on_its_one_frame` (4499 and 4501 nothing; 4500 both
 ways; mutual allies keep their peace; a one-way ally does not; rule 8 and team style 0 declare nothing). Two
 mutations, through `tools/mutate.py`:
@@ -21003,8 +21004,8 @@ parting inside its window: `active` ours 14 against theirs 13 on 4679. That is w
 2491).
 
 **Not established.**
-- A computer in slot 0: `diplo_change`'s `Army::process(army, 1)` is not carried, and no capture puts a computer
-  first.
+- ~~A computer in slot 0: `diplo_change`'s `Army::process(army, 1)` is not carried~~ — carried by item 4207
+  (`docs/LEADERS.md` §7.5); no capture puts a computer first, so no diff backs it.
 - Team style 7's neutral skip.
 - `update_leader_list`, which nothing in the simulation reads.
 
