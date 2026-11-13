@@ -156,7 +156,8 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// per emitted line (line, the first of our walk's frames whose Adler parts
 /// from the hook's — the take's length when none does — and the frames it
 /// parts on inside [`DIAG`]))`. Seen red first against zeros.
-const CHECKSUM_FRAMES: &[(&str, i64, [(&str, i64, usize); 9])] = &[
+type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
+const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
         RUN1577_TRACE,
         120,

@@ -50,7 +50,9 @@ fn records(bytes: &[u8]) -> impl Iterator<Item = [u32; 8]> + '_ {
         .get(32..)
         .filter(|_| base_ok)
         .unwrap_or(&[])
-        .chunks_exact(32)
+        .as_chunks::<32>()
+        .0
+        .iter()
         .map(|c| {
             let mut r = [0u32; 8];
             for (i, w) in r.iter_mut().enumerate() {
