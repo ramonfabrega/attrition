@@ -36803,3 +36803,75 @@ tools/explore/golden_capture.sh ~/ron-golden/run1573 --recording <the file> --en
 Archive `gamelog-run1573-greatlakes-playback-of-followed-6900.txt`, 45,137,463 bytes,
 SHA-256 `ea6a5ea1b36c8180e35b8555011759ea32f6a11a4f0fbe4b0da4a4b841b1ad3e`; `rontrace-run1573.log`, 34,709,152 bytes,
 SHA-256 `8f37641423bce4e08611b09f757669872db24f1ca8bd478d241e74679f1d7558`.
+## run1575 — the sea melee's lobby at `TEAM_STYLE 0`: an ally, a taunt, two Declares, an accepted peace and a short alliance, with a packet at 1090 (2026-11-13, item 4206, `in-session builder`)
+
+`docs/LEADERS.md` §7 to §9, `docs/DECISIONS.md` entry 131 §2 (step VII-a). **What the disk could not answer**: no
+capture our walk holds moves a diplomacy leaf. run1077, run1078 and run1086 move `dow`, `last_taunt`, `taunt_frame`
+and `gift_stamp`, but none has a walk, a packet or a recording. None of them moves `blacken`, `broke_alliance`,
+`made_peace`, `counteroffer` or a human's `tribute_stamp`. The coverage pair's lobby (run1078's) cannot carry an
+alliance: **recon4206-1** (that lobby at style 0, unfiled) printed `GameInfo closing` on 903, the frame after `902
+ally 1`. `Leader::set_diplo` calls victory once every live leader is mutually allied (§10.2). So the take uses
+run1482's three-seat lobby, which our walk holds whole to 2600 (`diff::sea_melee`). The line: `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1575 --map 18 --end-frame 1150 --timeout 1800 --stall-seconds 300
+--ffwd-minute 1 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile
+STARTING_RESOURCES=7 --profile TEAM_STYLE=0 --seat-tribe 1=10 --seat-tribe 2=13 --log-window 896 1151 --detail
+end:MISC,LEADERS=9 --detail misc:COMMANDMANAGER=1 --bindkey OPTION_DIPLO=129 --bindkey OPTION_CHAT_ALLIES=125
+--cmd-file tools/gamelog/coverage/diplomacy4206.cmd --cover cover=1 --tracer-def RON_STATE_FRAME=1090 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- **Five recons first, unfiled**, all at style 0 on `~/ron-golden/recon4206-N`. recon4206-2 and -3 are run1482's
+  lobby paused on 610, window-only photographs at 611 (`poolshot.py`). The diplomacy window puts Declare at
+  (955,366) and the contact button at (775,366). The negotiation window puts the peace check at (676,499), the
+  alliance check at (770,499) and PROPOSE at (1206,564). recon4206-2's record shows the `ally` taken under
+  Deathmatch: `diplos[1]` 1 → 2 on 603, and the game runs on. recon4206-4, -5 and -6 are dress rehearsals of the
+  script, all to 1150. In -4, a PROPOSE one frame after its check issued nothing. In -5, a peace asked at war for
+  nothing was accepted, so the short proposal became an alliance.
+- Pool lane 1, seed 12345, `MAP_STYLE 18`. PLAYER records: who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 10) and
+  who 2 (flags 1, tribe 13). Launched 10:38:49 −05:00, exited 10:39:53: **64.2 s launch to exit**. `success`, 1151
+  frames, `last_frame` 1150, no page fault, no relaunch. DLL `ffe699a9…`. 206 GiB free before. Minutes waited on
+  another lane: none.
+- **The commands.** `COMMANDMANAGER=1` prints these lines:
+  - `process_declare 1 1 986` and `process_declare 1 0 1001`;
+  - `process_treaty 1 1 1021` and `process_accept 1 1027`;
+  - `process_treaty 1 2 1041` and `process_accept 1 1051`.
+- **The movers**, block on block (`run1575_s_diplomacy_movers_are_the_script_s`):
+  - 901: `treaties` 0 → 1 both ways.
+  - 903: `diplos` 1 → 2 both ways.
+  - 967: the human's `tribute_stamp[1]` and the French `gift_stamp[0]` and `taunt_frame[0]` all read 966. The French
+    `last_taunt[0]` reads 1 (NEED_FOOD).
+  - 987: the human's `dow[1]` 0 → 1 and `broke_alliance[1]` 0 → 986; `diplos` 2 → 1.
+  - 1002: `dow[1]` 1 → 2 and `blacken` 0 → 1; `diplos` 1 → 0.
+  - 1028: `made_peace` 0 → 1027 both ways; `diplos` 0 → 1.
+  - 1052: the French `counteroffer[0]` 0 → 1.
+- **The packet** is `~/ron-golden/run1575/map-18/frame-snapshot.bin`, 877,805,736 bytes, logger frame 1090 and
+  trace frame 1089. SHA-256 is `ad6cf87870c9a511e0ee06447e3db931241f7c988d14ff4b27d4edead1afb924`.
+  `frame_snapshot.py` against item 597's plan: `logger_return_roots_unchanged`, `completion_receipt_checked`.
+- **6,767 functions entered.** First entries: `Leader::receive_taunt` 905; `Leader::process_taunt`,
+  `Leader::action_respond`, `Leader::consider_tribute` and `Leader::clear_agree` 966; `Leader::action_declare`
+  and `Leader::pay_dow` 985; `Leader::action_treaty` 1020.
+- `rngcmp.py` against recon4206-6, a `cover=0` rehearsal of the same command file: **1151 in common, 0 differing**.
+  `samegame.py`: **255 in common (896..1150), 0 differing**.
+- Filed with `filerun.py run1575 eastindies-melee-style0-diplomacy-take-packet-1090`.
+
+Archive `gamelog-run1575-eastindies-melee-style0-diplomacy-take-packet-1090.txt`, 462,587,819 bytes,
+SHA-256 `9b31f1ffc585fc67d9bb807a3b052237492262fec354f8cfe560c806f2a0525b`; `rontrace-run1575.log`, 17,997,568 bytes,
+SHA-256 `974483943e67e3322cf60f865b8ceae693e4ea0af3d55bca0e10108cb0004cff`.
+
+**What it holds**: `diff::diplomacy_take`. Our walk from run1482's start, re-read at style 0, holds the take to
+**1099**. With the French `Armies::diplo_change` run on 1027 it holds it whole to 1150 (item 4206).
+
+## run1576 — run1575's game with coverage re-armed on 1025..1029 (2026-11-13, item 4206, `in-session builder`)
+
+run1575's line without the packet's two defines, at `--cover "cover=1 window=1025-1029"`, `~/ron-golden/run1576`. Pool
+lane 1, launched 10:42:01 −05:00, exited 10:43:05 (**63.9 s**). `success`, 1151 frames, the same three PLAYER
+records, no page fault. DLL `7a1383c3…`.
+- `rngcmp.py` against run1575: **1151 in common, 0 differing**. `samegame.py`: **255 in common, 0 differing**.
+- The window lists `IFaceDiploNeg::on_button_clicked`, `LeaderOut::issue_accept`, `CommandManager::issue_accept` and
+  `CommandPackage::process_accept` on 1026. On 1027 it lists `Leader::notify_deal`, `LeaderData::is_tribute_period`,
+  `LeaderData::is_neutral` and `IFaceDiploBase::chat_receive_string_callback`. It prints five functions on 1027 and
+  does not list `Leader::diplomacy`, `Leader::action_respond`, `Leader::set_diplo` or `Armies::diplo_change`. So
+  whether the window re-arms every function is not established here.
+- Filed with `filerun.py run1576 eastindies-melee-style0-diplomacy-take-window-1025-1029`.
+
+Archive `gamelog-run1576-eastindies-melee-style0-diplomacy-take-window-1025-1029.txt`, 462,587,817 bytes,
+SHA-256 `b6311f305ce0ef53709a6b6fa2ccb9c81454a74bc81675b1479a5810a428f78a`; `rontrace-run1576.log`, 17,972,384 bytes,
+SHA-256 `c59a866dfe4a847f12ac6abd358afa4da27fb0831c2ad42a9fd20e2612036bc0`.
