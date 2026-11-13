@@ -1,6 +1,7 @@
 //! `leaders/` — the files `docs/STRUCTURE.md` §3 maps here (item 4012).
 
 pub mod capital;
+pub mod declare;
 pub mod diplomacy;
 pub mod endgame;
 pub mod finished;
@@ -77,6 +78,10 @@ pub struct LeadersState {
     /// The score, its eleven parts and the units part's dirty bit
     /// (`docs/LEADERS.md` §18; [`score`], item 4187), one per slot.
     pub score: Vec<score::Score>,
+    /// The declaration's leaves: `dow`, `blacken` and `broke_alliance`
+    /// (`docs/LEADERS.md` §7; [`declare`], item 4159's step VII-b1), one
+    /// per slot.
+    pub declare: Vec<declare::Declared>,
     /// `Game::semaphore[0] & 0x40`: `Game::check_victory@005926b0` has
     /// decided the game and is not asked again (`docs/LEADERS.md` §10.2;
     /// [`Sim::check_victory`], item 4189).

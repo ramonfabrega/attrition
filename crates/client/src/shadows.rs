@@ -30,21 +30,25 @@ mod tests {
     /// 4182c, [`RUN1559B_3279_SHADOW_UNITS`]).
     /// Item 4193's turn moved the selection (the guys' decals lie
     /// elsewhere): 105 → 104 scored, hue 92 → 93.
-    const RUN1559B_3279_SHADOW: [(usize, usize); 2] = [(93, 104), (89, 104)];
+    /// Item 4212: hue 93 → 80, luma 89 → 79, the land lit at the frame's white, §3.21: under the trees the photograph's shadowed grass is orange, tile (10, 178) theirs (137, 107, 35), ours (120, 124, 43) (parked 4212b).
+    const RUN1559B_3279_SHADOW: [(usize, usize); 2] = [(80, 104), (79, 104)];
     /// The same rows on the still drawn before item 4182, no decal drawn
     /// (`World::shadows` off): the count as drawn, pinned first. Ours
     /// 1.25× theirs on brightness (median).
-    const RUN1559B_3279_SHADOW_BEFORE: [(usize, usize); 2] = [(93, 104), (41, 104)];
+    /// Item 4212: hue 93 → 72, luma 41 → 21, the land lit at the frame's white, §3.21.
+    const RUN1559B_3279_SHADOW_BEFORE: [(usize, usize); 2] = [(72, 104), (21, 104)];
     /// The made-to-fail: every decal mirrored in x (`World::shadow_mirror`),
     /// selected and drawn so: luma 59 → 60 of 108 with 4193's turn, the
     /// tree tiles 32 of 72 against the drawn 61 of 68.
-    const RUN1559B_3279_SHADOW_MIRRORED: [(usize, usize); 2] = [(98, 108), (60, 108)];
+    /// Item 4212: hue 98 → 83, luma 60 → 67, the land lit at the frame's white, §3.21.
+    const RUN1559B_3279_SHADOW_MIRRORED: [(usize, usize); 2] = [(83, 108), (67, 108)];
     /// The before still composed on the CPU under the rule's own darkening,
     /// the guys' in (nearest texels): through the tone map, the GPU's 78
     /// with the guys' drawn within one (77; 65 against 66 before 4193's
     /// turn); in display space, the first draw's 24 within three (21).
+    /// Item 4212: toned (92, 77) → (78, 90), display (93, 21) → (72, 83): composed over the before still, which is now the land lit at the frame's white (§3.21); the compose's own curve is the floor's.
     const RUN1559B_3279_SHADOW_CPU: [[(usize, usize); 2]; 2] =
-        [[(92, 104), (77, 104)], [(93, 104), (21, 104)]];
+        [[(78, 104), (90, 104)], [(72, 104), (83, 104)]];
     /// The row with the guys' decals drawn too (`World::unit_shadows`), as
     /// `draw_unit_shadow` reads: 4182's luma 89 → 66, the figure tiles 28
     /// → 5 of 37, median ours/theirs 0.99 → 0.82 (parked 4182c). **Item
@@ -52,13 +56,15 @@ mod tests {
     /// the figure tiles 5 → 17 of 36.** Tile (22, 166), 275 pixels under
     /// the guys' decals: theirs Y 128.3, ours undarkened 128.8, darkened
     /// 101.0. Still not drawn (parked 4193a).
-    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(93, 104), (78, 104)];
+    /// Item 4212: hue 93 → 78, luma 78 → 88, the land lit at the frame's white, §3.21.
+    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(78, 104), (88, 104)];
     /// Before, drawn and with the guys': the tree tiles, then the figure
     /// tiles, each `[hue, luma]`.
+    /// Item 4212: drawn, the tree tiles' hue 63 → 51 (parked 4212b), the figures' 30 → 29: the land lit at the frame's white, §3.21.
     const RUN1559B_3279_SHADOW_BY_KIND: [[[(usize, usize); 2]; 2]; 3] = [
-        [[(63, 68), (13, 68)], [(30, 36), (28, 36)]],
-        [[(63, 68), (61, 68)], [(30, 36), (28, 36)]],
-        [[(63, 68), (61, 68)], [(30, 36), (17, 36)]],
+        [[(43, 68), (1, 68)], [(29, 36), (20, 36)]],
+        [[(51, 68), (59, 68)], [(29, 36), (20, 36)]],
+        [[(51, 68), (59, 68)], [(27, 36), (29, 36)]],
     ];
 
     /// One scored tile: the tile, the photograph's mean, the still's, and

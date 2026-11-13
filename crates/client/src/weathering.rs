@@ -149,11 +149,13 @@ pub(crate) mod tests {
     const RUN1559B_3279_PLAZA: [(usize, usize); 2] = [(18, 18), (14, 18)];
     /// The same row with no weathering drawn (`World::weathering` off):
     /// the count as drawn, pinned first.
-    const RUN1559B_3279_PLAZA_BEFORE: [(usize, usize); 2] = [(0, 18), (6, 18)];
+    /// Item 4212: luma 6 → 14, the bare grass lit at the frame's white, §3.21.
+    const RUN1559B_3279_PLAZA_BEFORE: [(usize, usize); 2] = [(0, 18), (14, 18)];
     /// The made-to-fail: every footprint moved by its own width
     /// (`World::weathering_shift` (1, 0)), drawn so: the plaza's tiles are
     /// bare grass again.
-    const RUN1559B_3279_PLAZA_MOVED: [(usize, usize); 2] = [(0, 18), (6, 18)];
+    /// Item 4212: luma 6 → 14, the bare grass lit at the frame's white, §3.21.
+    const RUN1559B_3279_PLAZA_MOVED: [(usize, usize); 2] = [(0, 18), (14, 18)];
     /// **`RUN1570_PLAZA`** (item 4190), the same three on run1570's
     /// photograph ([`run1570`]): hue **0 → 19**, luma **9 → 15** of 19, and
     /// the moved patch back to bare grass. Drawn at 3331 instead, the same
@@ -164,10 +166,11 @@ pub(crate) mod tests {
     /// corner, or the city's name plate; not settled). Item 4199: the
     /// before and moved stills' luma **9 → 10**, the roads drawn in both
     /// (`crate::roads`, §3.19); drawn, unchanged.
+    /// Item 4212: before and moved luma 10 → 15, the bare grass lit at the frame's white, §3.21; drawn unchanged.
     const RUN1570_PLAZA: [[(usize, usize); 2]; 3] = [
-        [(0, 19), (10, 19)],
+        [(0, 19), (15, 19)],
         [(19, 19), (15, 19)],
-        [(0, 19), (10, 19)],
+        [(0, 19), (15, 19)],
     ];
 
     /// The frame run1570's photograph is drawn at ([`run1570`]): 3327,

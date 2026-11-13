@@ -144,6 +144,11 @@ pub struct Loaded {
     /// tables alone; it is the only art the loader reads, and the only
     /// place a length exists for a unit no dump has ever printed.
     pub gaia_lengths: crate::artdata::GaiaLengths,
+    /// The gaia types' shipped variant for each requested one
+    /// (`crate::artdata::GaiaVariants`, item 4208): which piece
+    /// `get_unit_gpiece`'s gaia arm hands a figure. Empty when loaded
+    /// from tables alone.
+    pub gaia_variants: crate::artdata::GaiaVariants,
     /// Every player unit graphic piece's `slot → frames`, read from the
     /// same three files (`crate::artdata::piece_lengths`). Empty when
     /// loaded from tables alone. Where a dump and this table both name a
@@ -482,7 +487,7 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     // graphics tables and the `.bha` files they name. It is the only art
     // the loader reads, and the only source there is for a unit no dump
     // has ever printed — gaia's bird (`crate::artdata`).
-    loaded.gaia_lengths = crate::artdata::gaia_lengths(install);
+    (loaded.gaia_lengths, loaded.gaia_variants) = crate::artdata::gaia_tables(install);
     // And every player unit's, keyed by the graphic piece
     // `GraphicPieces::get_unit_gpiece` hands out — the `GRAPH` column of
     // each record placed by `init_piece_ranges`' arithmetic.
@@ -747,6 +752,9 @@ pub fn load_tables(
             // Seconds on file, frames in the record (`× 0xf`).
             duration: int(r, "DURATION").unwrap_or(0) * 15,
             duration_upgrade: int(r, "DURATION_UPGRADE").unwrap_or(0) * 15,
+            // `COST2`, the cast's price, unscaled as `Type::load_cost`
+            // stores it (`docs/LEADERS.md` §7.2, `pay_dow`).
+            cost2: cost_slots(r.text("COST2")),
             from: ["FROM", "FROM2"].map(|col| {
                 r.text(col)
                     .map(str::trim)
@@ -2184,6 +2192,7 @@ pub fn load_tables(
             .unwrap_or_default(),
         scripts: Vec::new(),
         gaia_lengths: Default::default(),
+        gaia_variants: Default::default(),
         piece_lengths: Default::default(),
         piece_skeletons: Default::default(),
         piece_tracks: Default::default(),
@@ -2958,6 +2967,7 @@ mod tests {
             cannon_times: vec![],
             scripts: vec![],
             gaia_lengths: Default::default(),
+            gaia_variants: Default::default(),
             piece_lengths: Default::default(),
             piece_skeletons: Default::default(),
             piece_tracks: Default::default(),

@@ -1947,6 +1947,18 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// victory bars), and on run600's closing 17380, walked since this item,
 /// who 1 `victory_type` 2 = 2 and who 0 `defeat_type` 5 = 5 with the quit's
 /// re-stamp 17380 = 17380. The long range stays out on the other 47.
+///
+/// Item 4159's step VII-b1: 47 → 44 names, `blacken`, `broke_alliance` and
+/// `dow` (`sim::leaders::declare`, `docs/LEADERS.md` §7), each 0 = 0 on
+/// frame 91, both leaders. Released by entry 131 §1 (entry 132 §1): each
+/// agrees on every dump the record diff reads, and moves on dumps our walk
+/// holds, on blocks no staged decision precedes — run1575 (held unstaged
+/// through block 1026; the word is 1150 of 1150 staged, 1099 computed):
+/// on 987 `dow[1]` 0 → 1 and `broke_alliance[1]` 0 → 986, on 1002 `dow[1]`
+/// 1 → 2 and `blacken` 0 → 1, ours equal to theirs on each, the human's
+/// Declares computed by `Sim::action_declare` off the command
+/// (`diff::diplomacy_take::run1575_s_declarations_are_ours`); and run1078's
+/// 912, `dow[1]` 0 → 1. The long range stays out on the other 44.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
@@ -1955,15 +1967,12 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("average_death_rate (unheld)", 2),
     ("average_hit_rate (unheld)", 2),
     ("barracks_queued (unheld)", 2),
-    ("blacken (unheld)", 2),
-    ("broke_alliance (unheld)", 2),
     ("combat_queued (unheld)", 2),
     ("counteroffer (unheld)", 2),
     ("damage_current_frame (unheld)", 2),
     ("damage_fifteen_seconds (unheld)", 2),
     ("deaths_current_frame (unheld)", 2),
     ("deaths_fifteen_seconds (unheld)", 2),
-    ("dow (unheld)", 2),
     ("gift_stamp (unheld)", 2),
     ("good_deeds (unheld)", 2),
     ("hire_stamp (unheld)", 2),
@@ -2080,6 +2089,11 @@ const LEADERS_BENT: &[&str] = &[
     "score_unit_upgrades",
     "score_research",
     "score_wonders",
+    // Item 4159's step VII-b1: the declaration's three
+    // (`sim::leaders::declare`), each agreeing on run 1562's frame 91.
+    "blacken",
+    "dow",
+    "broke_alliance",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

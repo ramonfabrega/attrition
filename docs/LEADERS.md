@@ -1612,6 +1612,16 @@ Three writers own the seven live leaves: `Leader::action_declare
    `broke_alliance[me][t] = frame`. The target's mirror slot is not written;
 6. `set_diplo(me, t, level)`.
 
+**The price** (`pay_dow`, `afford_dow`): the craft `0x29c + t`, Declare
+War, at level 0, else `0x2a4 + t`, Cancel Alliance; each `COST2 8g`. Per
+good, `get_cost`'s craft arm: `COST2 × SPELL_COST_FACTOR ×
+cost_factor_dow`, that being `LeaderData::cost_factor_dow (006da590)`'s
+`((t == me or allied both ways) + Declare War) × (ages + 1)`; a Declare
+War on a non-ally less `10 × invaders[t]`, floored at 0; then the rares'
+tail and the redirect. `afford_dow` is free at war, and at a level not 0
+unless allied both ways; else each usable bucket must hold the price.
+`pay_dow` takes it off bucket and escrow, each floored.
+
 **Who passes `quiet = 0`**, from all 16 call sites: only the human's
 Declare (`CommandPackage::process_declare`, 9473aa) and a human party's leg
 of the hire loop below. `Object::take_damage` and `Nuke::do_damage` pass
@@ -1700,29 +1710,36 @@ goods exchange (§8):
 
 ### 7.3 In the crate
 
-- **No writer exists.** No `action_declare`, `action_respond`,
+- ~~**No writer exists.** No `action_declare`, `action_respond`,
   `Diplomacy` record or hire model. `Sim::set_diplo` is
   `crates/sim/src/leaders/relations.rs:134`, `Sim::declare_war` `:309`
   (since item 4207 `set_diplo` at level 0).
   The counting and `broke_alliance` go in a new `Sim::action_declare` beside
   `set_diplo`, never in `set_diplo` (whose `_` arm an accepted treaty also
-  calls), and never in `end_the_peace` or the console verb.
+  calls), and never in `end_the_peace` or the console verb.~~
+- **The declaration** (VII-b1): `Sim::action_declare`, `afford_dow`,
+  `pay_dow`, `dow_price` in `crates/sim/src/leaders/declare.rs`, beside
+  `Sim::set_diplo` and never in it; `command().action_declare` is the
+  Declare's door; `SpellType::cost2` is `COST2`. No `action_respond`,
+  `Diplomacy` record or hire model.
 - **SEAMs** in `crates/sim/src/leaders/diplomacy.rs`: `dow` at `:305`,
   `dow`/`blacken` at `:398`, `let blacken = 0` at `:444–445` (the race
   coin), the hire readers at `:453`, the offers arm (`good_deeds`) at
   `:490` inside `diplomacy_with` (`:174`).
 - **Traps.** `diplomacy.rs:453–454` says two hire arms; three read the
   words there (a fourth, 6be680, is in the demand arm).
-  `crates/rondata/src/diff/leader.rs:47` labels `blacken` "fog
-  bookkeeping"; it is a human's repeat-declaration count.
+  ~~`crates/rondata/src/diff/leader.rs:47` labels `blacken` "fog
+  bookkeeping"~~ (gone in VII-b1); `blacken` is a human's repeat-declaration count.
   `crates/sim/src/combat/take_damage_view.rs:34` names `0x4` `LEADER_OUT`;
   it is HUMAN (its uses are right: "skip a human declarer").
-- **Checksum.** Rows `crates/sim/src/checksum/leaders.rs:60, 67, 68, 75,
+- **Checksum.** ~~Rows `crates/sim/src/checksum/leaders.rs:60, 67, 68, 75,
   79, 81, 82, 84`, answered by `leader_long`'s `_ => None` (`:1305`). Each
   is an `(unheld)` entry, count 2, of `LEADERS_HELD_OUT`
   (`crates/rondata/src/diff/checksum_lines.rs:1767, 1768, 1784, 1792,
   1795, 1796, 1806, 1812`; lines and counts read from the code, not the
-  verdicts). The answer is a constant for all eight in an all-computer
+  verdicts).~~ `blacken`, `dow`, `broke_alliance`: `leader_declare_leaf`,
+  off `LEADERS_HELD_OUT` since VII-b1 (47 → 44); five stay `(unheld)`.
+  The answer is a constant for all eight in an all-computer
   style-1 game: 0, and `hire_who` −1 per slot after `Leader::init`.
 
 ### 7.4 Reached by a plain game
@@ -1744,8 +1761,8 @@ the World or multiplayer path is needed.
 ### 7.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/diplomacy-relations-*.md`); no diff backs
-it yet. Verdicts: 87 confirmed, 12 corrected, 2 open.
+(`docs/audit/2026-11-11-item-4152/diplomacy-relations-*.md`); ~~no diff backs
+it yet~~ the declaration is diff-backed since VII-b1 (below). Verdicts: 87 confirmed, 12 corrected, 2 open.
 
 Corrections that changed a rule:
 
@@ -1764,9 +1781,14 @@ Confidence is **high** on every store, gate and reset, each read in the
 listing. It is **medium** on the full composition of `good_deeds`'s
 valuation `S`, not walked term by term.
 
-Witness, **not a pinned diff**: run1078 (style 0, a human Declare), where
-the dump's `dow[1]` moves 0 → 1 (`crates/rondata/src/blind.rs:333–343`). No
-`rondata::diff` row compares `dow`.
+~~Witness, **not a pinned diff**: run1078~~ **Diff-backed (VII-b1).**
+`diff::leader` compares the three leaves on every dump that prints the
+record. Each human Declare is staged off its record as `action_declare`
+(an input), and ours
+equals theirs: run1575, held unstaged through 1026 (1150 of 1150 staged,
+1099 computed), on 987 `dow[1]` 1, `broke_alliance[1]` 986 and wealth
+119,381 (ours was 120,021), on 1002 `dow[1]` 2, `blacken` 1 and wealth
+118,742; run1078's 912, `dow[1]` 1 and its wealth (`diff::diplomacy_take`).
 
 **The take, pinned on its own record (item 4206, step VII-a): run1575.**
 It is run1482's three-seat lobby at style 0, the human allied with the
@@ -1838,6 +1860,11 @@ test (§10.2) and `recalc_borders`.
   not at war, rush rules) or 6c04df can name a mutual ally was not traced.
   Reading 6be067–6be1ad's entry, or a capture with a team and rush rules,
   settles it.
+- **The declaration's other arms**: a reading and a fixture
+  (`leaders::declare::tests`), no capture: five invaders, a `quiet`
+  stamp, the refusals, a forced ask, the price's rares and redirect. Not
+  carried: the team tail (`is_team` is false at style 0) and `has_spell`'s
+  false arm (every craft ships `PREQ0 None`).
 - **`good_deeds`'s `S`** term by term, and the scenario fixed-answer mode
   that skips it (`semaphore[2] & 2` read; the `semaphore[1] & 0x10` half
   not); both belong to the offers-arm port.
