@@ -117,6 +117,12 @@ pub struct SpellType {
     /// seconds × 15, as `SpellType::init@00674a80` stores them.
     pub duration: i32,
     pub duration_upgrade: i32,
+    /// `COST2`, the cast's price per good as the file writes it
+    /// (`SpellType::init@00674a80`'s second `Type::load_cost`, into
+    /// `+0x1e0`, unscaled): `TypeData::get_cost@00664090`'s spell arm
+    /// multiplies it by `SPELL_COST_FACTOR`. The declaration's crafts are
+    /// `8g` each (`crate::leaders::declare`).
+    pub cost2: [i32; crate::economy::RESOURCES],
 }
 
 impl SpellType {

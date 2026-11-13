@@ -1414,6 +1414,14 @@ impl Sim {
             // building record), `territory_high` and `reg_terr` (by the
             // original's own region number). Each leaf a release rule has not
             // carried stays off the line ([`STEP_VI_OFF_THE_LINE`]).
+            // Item 4159, step VII-b1 (`crate::leaders::declare`,
+            // `docs/LEADERS.md` §7): the declaration's `blacken`, `dow` and
+            // `broke_alliance`, each moved on run1575's blocks 987 and 1002
+            // (and `dow` on run1078's 912) by a human's Declare our walk
+            // computes, and agreeing there.
+            _ if crate::leaders::declare::DECLARE_LEAVES.contains(&name) => {
+                self.leader_declare_leaf(who, name)
+            }
             _ if STEP_VI_OFF_THE_LINE.contains(&name) => None,
             _ if crate::leaders::score::SCORE_LEAVES.contains(&name) => {
                 self.leader_score_leaf(who, name).map(|v| vec![v])

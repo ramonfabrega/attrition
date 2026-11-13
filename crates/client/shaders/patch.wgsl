@@ -39,6 +39,13 @@ fn fs_patch(i: VOut) -> @location(0) vec4<f32> {
     return vec4<f32>(textureSample(tex, samp, i.uv).rgb, a);
 }
 
+// Item 4212 (§3.21): a land texture's patch, lit.
+@fragment
+fn fs_patch_lit(i: VOut) -> @location(0) vec4<f32> {
+    let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    return vec4<f32>(land_lit(textureSample(tex, samp, i.uv).rgb), a);
+}
+
 // Item 4141 (`docs/RENDERER.md` §3.10): one layer of a mountain's own draw,
 // `MountainsOut::mountain_blend` — stage 0 the tileset's texture (MODULATE
 // with the vertex white, A its own); stage 1 the range's alpha, ADDSIGNED
@@ -55,5 +62,5 @@ fn fs_mountain(i: VOut) -> @location(0) vec4<f32> {
     if (a <= 0.0) {
         discard;
     }
-    return vec4<f32>(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), a);
+    return vec4<f32>(land_lit(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0))), a);
 }

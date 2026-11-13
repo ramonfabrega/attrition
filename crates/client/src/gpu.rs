@@ -120,6 +120,45 @@ fn shade_shader() -> String {
         .replace("{white}", &format!("{white:?}"))
 }
 
+/// **The land's lit branch** (item 4212; `docs/RENDERER.md` §3.21),
+/// appended to [`TEXTURED_SHADER`] and [`PATCH_SHADER`]: `land_lit`, which
+/// `fs_ground`, `fs_patch` and `fs_mountain` take their stage colour
+/// through.
+const LAND_SHADER: &str = include_str!("../shaders/land.wgsl");
+
+/// The names [`LAND_SHADER`] leaves a hole for, each filled once.
+#[cfg(test)]
+const LAND_HOLES: [&str; 9] = [
+    "LIT_POWER",
+    "HDR_SCALE",
+    "LAND_DIFFUSE",
+    "N_DOT_L",
+    "AMBIENT_R",
+    "AMBIENT_G",
+    "AMBIENT_B",
+    "EXPOSURE",
+    "white",
+];
+
+/// [`LAND_SHADER`] with its holes filled.
+fn land_shader() -> String {
+    use render::silhouette::{
+        EXPOSURE, HDR_SCALE, LAND_DIFFUSE, LAND_N_DOT_L, LIT_POWER, MIN_LUMINANCE, SCENE_AMBIENT,
+        WHITE_POINT, filmic,
+    };
+    let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
+    LAND_SHADER
+        .replace("{LIT_POWER}", &format!("{LIT_POWER:?}"))
+        .replace("{HDR_SCALE}", &format!("{HDR_SCALE:?}"))
+        .replace("{LAND_DIFFUSE}", &format!("{LAND_DIFFUSE:?}"))
+        .replace("{N_DOT_L}", &format!("{LAND_N_DOT_L:?}"))
+        .replace("{AMBIENT_R}", &format!("{:?}", SCENE_AMBIENT[0]))
+        .replace("{AMBIENT_G}", &format!("{:?}", SCENE_AMBIENT[1]))
+        .replace("{AMBIENT_B}", &format!("{:?}", SCENE_AMBIENT[2]))
+        .replace("{EXPOSURE}", &format!("{EXPOSURE:?}"))
+        .replace("{white}", &format!("{white:?}"))
+}
+
 /// The names [`SHADE_SHADER`] leaves a hole for, each filled once.
 #[cfg(test)]
 const SHADE_HOLES: [&str; 2] = ["EXPOSURE", "white"];
@@ -130,16 +169,25 @@ const SHADE_HOLES: [&str; 2] = ["EXPOSURE", "white"];
 /// built without being validated. In `Gpu::new`'s order: the world's, the
 /// sprites', the textured, the decal (the textured with
 /// [`DECAL_SHADER`] appended), the tree (the textured with the filled
-/// [`TREE_SHADER`] appended), the shade, the patch.
-fn shader_sources() -> [(&'static str, String); 7] {
+/// [`TREE_SHADER`] appended), the shade, the patch, the luminance and the
+/// expose (item 4212).
+fn shader_sources() -> [(&'static str, String); 9] {
     [
         ("client", SHADER.to_string()),
         ("sprites", SPRITE_SHADER.to_string()),
-        ("textured", TEXTURED_SHADER.to_string()),
-        ("decal", format!("{TEXTURED_SHADER}{DECAL_SHADER}")),
-        ("tree", format!("{TEXTURED_SHADER}{}", tree_shader())),
+        ("textured", format!("{TEXTURED_SHADER}{}", land_shader())),
+        (
+            "decal",
+            format!("{TEXTURED_SHADER}{}{DECAL_SHADER}", land_shader()),
+        ),
+        (
+            "tree",
+            format!("{TEXTURED_SHADER}{}{}", land_shader(), tree_shader()),
+        ),
         ("shade", shade_shader()),
-        ("patch", PATCH_SHADER.to_string()),
+        ("patch", format!("{PATCH_SHADER}{}", land_shader())),
+        ("luminance", crate::expose::luminance_shader()),
+        ("expose", crate::expose::expose_shader()),
     ]
 }
 
@@ -218,7 +266,24 @@ type Uploaded = (wgpu::Buffer, u32, wgpu::BindGroup);
 
 /// A patch mesh on the GPU: [`Uploaded`], its alpha's bind group and
 /// whether it is a mountain's layer (item 4141).
-type UploadedPatch = (wgpu::Buffer, u32, wgpu::BindGroup, wgpu::BindGroup, bool);
+type UploadedPatch = (
+    wgpu::Buffer,
+    u32,
+    wgpu::BindGroup,
+    wgpu::BindGroup,
+    bool,
+    bool,
+);
+
+/// **Whether a patch mesh takes the land's light** (item 4212;
+/// `docs/RENDERER.md` §3.21): a land texture's layer (keyed `-1 − index`,
+/// the faded land and the transition patches) and the coral, which the
+/// card draws `ENABLE_LIGHTING`; not the water, the floor's shade, the
+/// roads or the weathering, which the client draws as their colours stand.
+fn lit_patch(piece: i32) -> bool {
+    use crate::world::{CORAL_PIECE, WATER_PIECE};
+    (WATER_PIECE + 1..0).contains(&piece) || piece == CORAL_PIECE
+}
 
 /// The ground's base layer and its patch on the GPU, at a terrain version.
 /// Item 4178: and the patches' own version, which the screen's ramp moves.
@@ -240,6 +305,8 @@ pub struct Gpu {
     /// The transition patch's pass (item 4139), its alphas' nearest,
     /// clamped sampler and each alpha on the GPU, uploaded once.
     patch: wgpu::RenderPipeline,
+    /// The land's patches, lit (item 4212).
+    patch_lit: wgpu::RenderPipeline,
     alpha_sampler: wgpu::Sampler,
     /// A mountain's layers (item 4141, §3.10): their pass, and the alphas'
     /// linear, clamped sampler (`MIP_LINEAR`, `TEXADD_CLAMP`).
@@ -272,6 +339,8 @@ pub struct Gpu {
     decal: wgpu::RenderPipeline,
     /// The shade pass (item 4182) and its two textures' layout.
     shade: wgpu::RenderPipeline,
+    /// The tone map's white from the frame's mean (item 4212).
+    expose: crate::expose::Expose,
     shade_layout: wgpu::BindGroupLayout,
     decal_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
     /// Where the silhouette pass falls (item 4171).
@@ -317,6 +386,8 @@ impl Gpu {
             tree_module,
             shade_module,
             patch_module,
+            luminance_module,
+            expose_module,
         ] = shader_sources().map(|(label, source)| {
             device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some(label),
@@ -728,6 +799,7 @@ impl Gpu {
             })
         };
         let patch = blended("patch", "fs_patch");
+        let patch_lit = blended("patch_lit", "fs_patch_lit");
         let mountain = blended("mountain", "fs_mountain");
         let alpha_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             label: Some("alpha"),
@@ -765,7 +837,15 @@ impl Gpu {
             mipmap_filter: wgpu::MipmapFilterMode::Nearest,
             ..Default::default()
         });
+        let expose = crate::expose::Expose::new(
+            &device,
+            &luminance_module,
+            &expose_module,
+            format,
+            DEPTH_FORMAT,
+        );
         Ok(Gpu {
+            expose,
             decal,
             shade,
             shade_layout,
@@ -776,6 +856,7 @@ impl Gpu {
             ground,
             ground_meshes: std::sync::Mutex::new(None),
             patch,
+            patch_lit,
             alpha_sampler,
             mountain,
             mountain_sampler,
@@ -995,6 +1076,7 @@ impl Gpu {
                     self.figure_texture(m.piece, &m.mips),
                     self.alpha_texture(m.alpha, &m.alpha_mips, m.mountain),
                     m.mountain,
+                    lit_patch(m.piece),
                 )
             })
             .collect()
@@ -1175,6 +1257,8 @@ impl Gpu {
             view_formats: &[],
         });
         let depth_view = depth.create_view(&Default::default());
+        let exposed = self.expose.frame(&self.device, self.format, size);
+        let scene_view = exposed.scene.create_view(&Default::default());
         let mut cache = self.terrain.lock().unwrap();
         if cache
             .as_ref()
@@ -1276,7 +1360,7 @@ impl Gpu {
             let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("frame"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: target,
+                    view: &scene_view,
                     depth_slice: None,
                     resolve_target: None,
                     ops: wgpu::Operations {
@@ -1288,11 +1372,11 @@ impl Gpu {
                     view: &depth_view,
                     depth_ops: Some(wgpu::Operations {
                         load: depth_load,
-                        store: wgpu::StoreOp::Discard,
+                        store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: Some(wgpu::Operations {
                         load: stencil_load,
-                        store: wgpu::StoreOp::Discard,
+                        store: wgpu::StoreOp::Store,
                     }),
                 }),
                 timestamp_writes: None,
@@ -1350,7 +1434,40 @@ impl Gpu {
                     }
                 }
             }
+        }
+        // Item 4212 (§3.21): the tone map's white at the frame's mean, then
+        // the overlay, which the tone map does not take.
+        self.expose.measure(&mut enc, &exposed);
+        {
+            let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("shown"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: target,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(CLEAR),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Discard,
+                    }),
+                    stencil_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Discard,
+                    }),
+                }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
+            self.expose.show(&mut pass, &exposed);
             if let Some(b) = &overlay {
+                pass.set_bind_group(0, &self.bind, &[]);
                 pass.set_pipeline(&self.overlay);
                 pass.set_vertex_buffer(0, b.slice(..));
                 pass.draw(0..frame.overlay.0.len() as u32, 0..1);
@@ -1384,9 +1501,11 @@ impl Gpu {
                 pass.draw(0..*n, 0..1);
             }
         }
-        for (b, n, t, a, mountain) in patches {
+        for (b, n, t, a, mountain, lit) in patches {
             pass.set_pipeline(if *mountain {
                 &self.mountain
+            } else if *lit {
+                &self.patch_lit
             } else {
                 &self.patch
             });
@@ -1570,14 +1689,30 @@ mod tests {
         assert!(TEXTURED_SHADER.contains(&alpha), "{alpha}");
     }
 
-    /// Item 4127: the ground draws the texel's colour alone, its alpha
-    /// laid over nothing (`docs/RENDERER.md` §3.6).
+    /// Item 4127: the ground draws the texel's colour, its alpha laid over
+    /// nothing (`docs/RENDERER.md` §3.6). Item 4212 (§3.21): through the
+    /// land's lit branch.
     #[test]
-    fn the_ground_draws_the_texel_s_colour_alone() {
+    fn the_ground_draws_the_texel_lit() {
         assert!(TEXTURED_SHADER.contains(
             "fn fs_ground(i: VOut) -> @location(0) vec4<f32> {\n    \
-             return vec4<f32>(textureSample(tex, samp, i.uv).rgb, 1.0);"
+             return vec4<f32>(land_lit(textureSample(tex, samp, i.uv).rgb), 1.0);"
         ));
+    }
+
+    /// Item 4212: the land template's every hole is filled, once.
+    #[test]
+    fn the_land_template_s_holes_are_filled() {
+        for h in LAND_HOLES {
+            assert_eq!(LAND_SHADER.matches(&format!("{{{h}}}")).count(), 1, "{h}");
+        }
+        let t = land_shader();
+        assert!(
+            !t.chars()
+                .zip(t.chars().skip(1))
+                .any(|(a, b)| a == '{' && b.is_ascii_alphabetic()),
+            "a hole the template names and the code does not fill"
+        );
     }
 
     /// Item 4172: the mountain's ADDSIGNED runs on the stored bytes, not
@@ -1588,7 +1723,7 @@ mod tests {
     #[test]
     fn the_mountain_adds_on_the_stored_bytes() {
         assert!(PATCH_SHADER.contains(
-            "return vec4<f32>(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), a);"
+            "return vec4<f32>(land_lit(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0))), a);"
         ));
         assert!(!PATCH_SHADER.contains("encoded("));
     }
@@ -1764,7 +1899,7 @@ mod tests {
             }
         }
         assert_eq!(built, 1, "call sites building a shader module");
-        assert_eq!(shader_sources().len(), 7);
+        assert_eq!(shader_sources().len(), 9);
     }
 
     #[test]
