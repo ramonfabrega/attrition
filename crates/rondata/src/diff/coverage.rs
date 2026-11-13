@@ -303,10 +303,12 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 4185 read the end of the game's six and the lost capital's
     // three (§10, §11). Item 4187 read `high_buildings`, `num_buildings`,
     // `reg_terr` and `territory_high` (§20). Item 4159's step VII-b1 read
-    // the declaration's `blacken`, `dow` and `broke_alliance` (§7).
+    // the declaration's `blacken`, `dow` and `broke_alliance` (§7), and
+    // step VII-b2 the taunt's answer's `tribute_stamp`, `gift_stamp`,
+    // `last_taunt` and `taunt_frame` (§8, §9).
     (
         "GAME/FRAME/LEADERDATA",
-        "(int) air_units barracks_units base_rate[scan] best_armor best_attack best_move best_pop bonus bonus_cap[NUM_COMMON] capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine combat_units counteroffer[scan] ctw_hero_retreat_stamp defensive dock_mark dock_units economic explored factory_units flags gift_stamp[scan] good_deeds[scan] hero_mark hire_stamp[scan] hire_who[scan] increment invaders[scan] last_spoke[scan] last_taunt[scan] length list[scan] lost_city_stamp made_peace[scan] nuke_stamp nukes_in_flight nukes_used num_bonus_cards[scan] num_ctw_rate_bonuses[scan] reg_buildings[scan][scan2] size special_mark stable_units support support_stamp taunt_frame[scan] team_color tribute_demanded[scan] tribute_stamp[scan] tributes[scan] village_mine",
+        "(int) air_units barracks_units base_rate[scan] best_armor best_attack best_move best_pop bonus bonus_cap[NUM_COMMON] capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine combat_units counteroffer[scan] ctw_hero_retreat_stamp defensive dock_mark dock_units economic explored factory_units flags good_deeds[scan] hero_mark hire_stamp[scan] hire_who[scan] increment invaders[scan] last_spoke[scan] length list[scan] lost_city_stamp made_peace[scan] nuke_stamp nukes_in_flight nukes_used num_bonus_cards[scan] num_ctw_rate_bonuses[scan] reg_buildings[scan][scan2] size special_mark stable_units support support_stamp team_color tribute_demanded[scan] tributes[scan] village_mine",
     ),
     (
         "GAME/FRAME/LEADERDATA/DIPLOMACY",

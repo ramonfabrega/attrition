@@ -49,7 +49,7 @@ pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     ),
     (
         "misc_stamps",
-        "capital_stamp is held and not compared; tribute_stamp, gift_stamp, hire_stamp and the rest of the *_stamp counters have no writers here (item 4176 compares attack_stamp, raid_stamp, ally_stamp, the three attrition stamps, ctw_hero_stamp and repair_stamp)",
+        "capital_stamp is held and not compared; hire_stamp and the rest of the *_stamp counters have no writers here (item 4176 compares attack_stamp, raid_stamp, ally_stamp, the three attrition stamps, ctw_hero_stamp and repair_stamp; item 4159's VII-b2 tribute_stamp and gift_stamp)",
     ),
     ("DIPLOMACY", "the diplomacy block is not modelled"),
     ("num_bonus_cards", "bonus cards are Conquer-the-World's"),
@@ -83,6 +83,13 @@ const DAMAGE_ROWS: [&str; 3] = ["attack_stamp", "raid_stamp", "ally_stamp"];
 /// step VII-b1), eight `name[scan]` lines each, keyed `name[i]` by target;
 /// `blacken`, the third leaf, is a scalar.
 const DECLARE_ROWS: [&str; 2] = ["dow", "broke_alliance"];
+
+/// The taunt's answer's four printed `int[8]` rows (`docs/LEADERS.md` §8.1,
+/// §9.1, item 4159's step VII-b2): `tribute_stamp` by giver, `gift_stamp`,
+/// `last_taunt` and `taunt_frame` by receiver or sender, eight `name[scan]`
+/// lines each. The ring, `incoming` and the two totals are not printed; a
+/// packet holds them.
+const TAUNT_ROWS: [&str; 4] = ["tribute_stamp", "gift_stamp", "last_taunt", "taunt_frame"];
 
 /// Whether a good's index is one the record prints in its per-good block.
 /// The six goods, **in the type record's own order** — `rise.pdb`'s
@@ -610,6 +617,17 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
             out.push((k.to_string(), v.first().copied().unwrap_or(0)));
         }
     }
+    // **Item 4159, step VII-b2** (`docs/LEADERS.md` §8, §9): the taunt's
+    // answer's printed rows. The same values the leaders line emits.
+    for k in TAUNT_ROWS {
+        let v = s
+            .leader_tribute_leaf(p, k)
+            .or_else(|| s.leader_taunt_leaf(p, k))
+            .unwrap_or_default();
+        for (i, x) in v.iter().enumerate() {
+            out.push((format!("{k}[{i}]"), *x));
+        }
+    }
     // **Item 4187, step VI** (`docs/LEADERS.md` §17–§20): `score`, the
     // one of its twelve `log_data` prints; `territory_high`;
     // `high_buildings[r]` by building record, the lineage root's
@@ -1071,8 +1089,9 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
             out.insert(format!("{key}[{i}]"), *x);
         }
     }
-    // The declaration's two rows (§7), eight `[scan]` lines each, by target.
-    for key in DECLARE_ROWS {
+    // The declaration's two rows (§7), eight `[scan]` lines each, by
+    // target; and the taunt's answer's four (§8, §9).
+    for key in DECLARE_ROWS.iter().chain(&TAUNT_ROWS) {
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
         }
@@ -3710,12 +3729,15 @@ mod tests {
                 "factory_queued",
                 "fort_mark",
                 "frame_battle",
+                // Item 4159's step VII-b2: the taunt's answer's four rows.
+                "gift_stamp",
                 "handicap",
                 "high_buildings",
                 "hits_current_frame",
                 "hits_fifteen_seconds",
                 "kills_current_frame",
                 "kills_fifteen_seconds",
+                "last_taunt",
                 "lost_capital_modifier",
                 "lost_capital_stamp",
                 "lost_capital_timer",
@@ -3732,7 +3754,9 @@ mod tests {
                 "senates_built",
                 "stable_queued",
                 "supply_mark",
+                "taunt_frame",
                 "territory_high",
+                "tribute_stamp",
                 "units_killed",
                 "units_lost",
                 "victory_type",

@@ -186,6 +186,8 @@ impl Sim {
                 finished: vec![crate::leaders::finished::Finished::default(); players],
                 score: vec![crate::leaders::score::Score::default(); players],
                 declare: vec![crate::leaders::declare::Declared::default(); players],
+                tribute: vec![crate::leaders::tribute::Tribute::default(); players],
+                taunts: vec![crate::leaders::taunt::Taunts::default(); players],
                 victory_checked: false,
                 game_over: false,
             },

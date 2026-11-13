@@ -1921,8 +1921,14 @@ header's bulk writers, these are the only resets; none runs in a match.
 
    A second pass does the same with `price[r]`, an attack request's price
    in `T.dip[P].attacks[]` (0 unless `T` is human, `leader_flags & 4`), and
-   stores `T.dip[P].dows[r] = price[r]`. Then `agree = 1`. The deal executes now if `P` had agreed, or
-   if it asks nothing of `P`; otherwise it waits.
+   stores `T.dip[P].dows[r] = price[r]`. Then `agree = 1`, and
+   **`P.agendas[T] |= 4`** (`6d088c`, right after the `agree` store at
+   `6d0873`): `P`'s next `Leader::diplomacy` pass at `T` runs off its
+   cadence. Item 4152's readings missed this write; VII-b2's sizing found
+   it as run1575's parting on the human's `agendas[1]` at block 967
+   (theirs 4, ours 0), and it is why the French pass runs on 1027. The
+   deal executes now if `P` had agreed, or if it asks no treaty, no
+   attack and nothing of `P` (a pure gift); otherwise it waits.
 3. **Exchange** (any treaty but 2). Each side's `dows[r]` is first credited
    back to its own bucket and zeroed. Then, per good both can use, with
    `gT = max(T.dip[P].offers[r], 0)` and `gP = max(P.dip[T].offers[r], 0)`:
@@ -2029,26 +2035,33 @@ these two.
 
 ### 8.3 In the crate
 
-- **No writer exists**: no `Diplomacy` record, `action_respond`,
-  `clear_agree`, `consider_tribute` or `scale_tribute`, and neither tribute
-  constant is loaded. The commit debits the ledger's `escrow`
-  (`crates/sim/src/economy.rs:687`).
-- **Reader stubs:** `tribute()` returns `false` at
-  `crates/sim/src/ai/army.rs:3262` and at
-  `crates/sim/src/ai/army/target_gate.rs:523` (the `find_target` gate). One
-  `is_tribute_period` port replaces both.
-- **SEAMs:** `Sim::diplomacy_with` (`crates/sim/src/leaders/diplomacy.rs:177-179`)
-  states that `agree` is never 1 and that neither flag is set. The cadence
-  at `:180` omits both terms. The style-0/8/11 return at `:470` is where
-  the demand arm goes.
-- **Checksum.** The leaves are `crates/sim/src/checksum/leaders.rs:65, 66,
-  85, 86, 118, 178, 179`, answered by `leader_long`'s `_ => None` (`:1305`).
-  Each is an `(unheld)` entry, count 2, of `LEADERS_HELD_OUT`
-  (`crates/rondata/src/diff/checksum_lines.rs:1774, 1790, 1841-1845`; count
-  read from the code, not the verdicts); a port removes them. By 8.4, 0 is
-  exact for a style-1 game with no human. `coverage.rs:295` lists `tributes`,
-  not `tribute_sent`/`tribute_received`.
-- `process_taunt`'s `gift_stamp` waits on §9's chain.
+`crates/sim/src/leaders/tribute.rs` (item 4159's step VII-b2):
+`Diplomacy`, `dip[8]` and the seven leaves per leader
+(`LeadersState::tribute`); `Sim::action_offer`, `action_clear_all`,
+`clear_agree`, `action_respond` (withdraw, accept, reject; the commit, the
+wait and the exchange), `consider_tribute`, `scale_tribute` (`Tuning`'s
+`base_tribute` 51 and `commerce_tribute` 7, loaded and checked against
+`rules.xml`) and `is_tribute_period`. Its fixture tests are
+`leaders::tribute::tests`.
+
+- **`is_tribute_period` is live** in both army readers
+  (`crates/sim/src/ai/army.rs:3262`, `do_marching`;
+  `crates/sim/src/ai/army/target_gate.rs:527`, `find_target`).
+- **`Sim::diplomacy_with`'s cadence** reads `agree`, `tribute_demanded`
+  and `counteroffer` (`crates/sim/src/leaders/diplomacy.rs:176`). No
+  setter of the last two is carried: the demand arm and the counteroffer
+  are steps VII-c and VII-d.
+- **SEAMs**: `action_respond`'s treaty arm, the alliance's team gate and
+  the hires (VII-c, VII-d), and the reject's human-ally attack arm. No
+  caller reaches them: nothing writes `treaty` or `attacks`
+  (`action_treaty` and `action_attack` are not carried).
+  `is_tribute_period` at frame 0 answers no (every stamp is 0 there) and
+  skips no style-7 neutral.
+- **Checksum**: `tribute_stamp`, `gift_stamp`, `tribute_sent` and
+  `tribute_received` are emitted (`Sim::leader_tribute_leaf`).
+  `counteroffer`, `tribute_demanded` and `tributes` are held but emitted
+  unheld, and stay on `LEADERS_HELD_OUT`, since nothing our walks hold
+  moves them. `coverage.rs` still lists `tributes`.
 
 ### 8.4 Reached by a plain game
 
@@ -2067,8 +2080,9 @@ path is needed.
 ### 8.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/diplomacy-tribute-*.md`); no diff backs it
-yet. Verdicts: 63 confirmed, 4 corrected, 4 open.
+(`docs/audit/2026-11-11-item-4152/diplomacy-tribute-*.md`). Verdicts: 63
+confirmed, 4 corrected, 4 open. Since VII-b2 a diff backs the taunt's gift
+(below); the rest rests on the readings and the fixtures.
 
 Corrections that changed a rule:
 
@@ -2080,28 +2094,43 @@ Corrections that changed a rule:
 Confidence is **high** on every store and predicate, each read in the
 listing. It is **medium** on `scale_tribute`'s constants.
 
+**Diff-backed on run1575 (VII-b2)**, the taunt's gift of 966, ours equal
+on each (`diff::diplomacy_take::run1575_s_taunt_is_answered_as_the_original_s`,
+`packets::run1575_take_packet`). The walk is the take's, held unstaged
+through 1026:
+- the French food 9,870 → 6,580, the gift `9,870 / 3` = 3,290;
+- the human's 120,085 → 121,994, a credit of 1,909. That is
+  `(3,290 · 58 + 99) / 100`: the French Commerce 1, so `pct` 51 + 7;
+- the human's `tribute_stamp[1]` and the French `gift_stamp[0]` 966;
+- the commit's `agendas` write, the human's `agendas[1]` 4;
+- on the packet at 1090, the French `tribute_sent` 3,290, the human's
+  `tribute_received` 1,909, and every `tributes` slot 0.
+
+So these are backed by the diff: the commit with its `agendas` bit, the
+pure gift's execution, the exchange for a human receiver, the
+`x >= 100` rounding, and the two constants at Commerce 1. These rest on
+the reading and `leaders::tribute::tests` alone:
+- the wait, `clear_agree`'s refund and the reject;
+- a computer receiver's predicate;
+- the `x < 20` and `x < 100` roundings;
+- the attack prices and the `dows` residue;
+- `is_tribute_period`. Its one live stamp is the human's, and a human
+  leads no army.
+
 Witness, **not a pinned diff**: run1086's taunt gift (`docs/audit/parked-archive.md`
-3470a), where the ally's `gift_stamp[0]` reads the frame and every
-`tributes` and `escrow` slot reads 0 at frame end (commit and exchange run
-in one call).
+3470a). There the ally's `gift_stamp[0]` reads the frame, and every
+`tributes` and `escrow` slot reads 0 at frame end.
 
-**run1575 (item 4206) moves these too**, pinned on its own record (§7.5):
-- A human receiver's `tribute_stamp[1]` reads 966 beside the ally's
-  `gift_stamp[0]` 966 on block 967, the taunt's gift.
-- The French `counteroffer[0]` goes 0 → 1 on 1052, on an alliance asked for
-  nothing (`process_treaty 1 2 1041`, `process_accept 1 1051`).
-- A peace asked at war for nothing was accepted (1027), so `need <= 0`
-  held there. That is one point of `S`.
+**run1575 also moves** `counteroffer`: the French `counteroffer[0]` goes 0
+→ 1 on 1052, on an alliance asked for nothing (`process_treaty 1 2 1041`,
+`process_accept 1 1051`). A peace asked at war for nothing was accepted
+(1027), so `need <= 0` held there. That is one point of `S`. Both follow
+the staged accept of 1027 (`docs/DECISIONS.md` entry 132 §1).
 
-`tribute_demanded`, `tributes` and the two totals did not move. The totals
-are not printed; run1575's packet at 1090 holds them.
-
-Two scale readings come off recon4206-4's buckets, a rehearsal that was
-not filed; a filed capture is needed before either is cited as evidence:
-- the French gift, `stock/3` = 3290 food, came to 1909;
-- the human's 2,000 metal came to 1020 for the French.
-
-Both fit `(x·pct + 99)/100`, with the French `pct` 58 and the human's 51.
+`tribute_demanded` and `tributes` did not move. One scale reading comes
+off recon4206-4's buckets, a rehearsal that was not filed: the human's
+2,000 metal came to 1020 for the French, `pct` 51. A filed capture is
+needed before it is cited.
 
 ### 8.6 Not established
 
@@ -2115,7 +2144,10 @@ Both fit `(x·pct + 99)/100`, with the French `pct` 58 and the human's 51.
   `base_tribute` (`Constants::init`), and its rounding branches, which were
   not re-listed. A deal captured above Commerce 0 pins them.
 - **run1086** (the zeros; a predicted human `tribute_stamp[1] = 661`): a
-  packet check makes them a diff.
+  packet check makes them a diff. No walk holds it.
+- **The `this` of the exchange's second refund** is `P`: the decompile
+  prints an unset local, and the listing loads `P`'s record into `ecx`
+  (`6d0e60`). No capture pays an attack price, so no diff backs it.
 - **`walk_data`** in load mode was not re-read.
 
 ## 9. The taunts
@@ -2228,30 +2260,34 @@ all six whole for the checksum.
 
 ### 9.3 In the crate
 
-Nothing of the chain exists yet.
+`crates/sim/src/leaders/taunt.rs` (item 4159's step VII-b2): `Taunts` per
+leader (`LeadersState::taunts`), `Sim::receive_taunt` (the order door
+`Command::receive_taunt`), and the drain `Sim::drain_taunts`. The drain is
+the last act of a live slot's step in `Sim::tick`'s per-player loop
+(`crates/sim/src/core/frame.rs:214`). Then `Sim::process_taunt` and its
+goods arm, whose gift is §8.2's commit and exchange. The fixture tests
+are `leaders::taunt::tests`.
 
-- `Command::Chat` is decoded with `taunt` and `taunt_num`
-  (`crates/rondata/src/commands.rs:921`) and dropped at
-  `crates/rondata/src/input.rs:1611` inside `Stream::one` (:1503). The port
-  replaces that skip with a chat arm that applies the delivery gate and calls
-  a new `receive_taunt` on the sim.
-- The ring and stamps belong on the leaders record
-  (`crates/sim/src/leaders.rs`).
-- The drain belongs in `Sim::tick`'s per-player loop
-  (`crates/sim/src/core/frame.rs:94`, the `Leaders::process_all` analogue),
-  calling a new `process_taunt`.
-- `Command::Ping` is not mapped, so there is no `action_ping`;
-  `Armies::find_useful_army` exists (`crates/sim/src/ai/army.rs:2207`) with
-  no caller.
-- Checksum: the six leaves are listed at
-  `crates/sim/src/checksum/leaders.rs:87`–92, and `leader_long` (:949)
-  answers each through its catch-all `_ => None` (:1305). Each is a
-  `(unheld)` entry of `LEADERS_HELD_OUT`
-  (`crates/rondata/src/diff/checksum_lines.rs`) with count 2 (two walked
-  leaders on run 1562's frame 91; read from the code, not from the
-  verdicts). Six `leader_long` arms holding the leaves move those six
-  entries, off the list where run 1562's values are the zero a game with no
-  taunt line predicts.
+- **The carrier.** `Command::Chat` is still dropped in `Stream::one`
+  (`crates/rondata/src/input.rs:1613`): no walked recording holds a chat.
+  run1575's chat is minted from its script instead
+  (`diff::diplomacy_take::script_taunts`). The script's `@key 125` (chat
+  to allies) and typed text, closed by Return, make one `Chat` from the
+  console's seat. The install's `sound.xml` names the text's order string,
+  and it is applied one frame after the Return's line, as the take's
+  Declares are. It is delivered to every slot, and `receive_taunt`
+  refuses all but the sender's live computer allies.
+  `CommandPackage::process_chat`'s delivery gate (`chat_status`,
+  `sem & 0x40`, crossplay) is not carried.
+- **SEAMs**: requests 6..15 (`TAUNT_NEED`, the production weights,
+  `TAUNT_DEFEND`'s draw) store their head and do nothing else.
+  `LeaderData::is_neutral` is false: the crate keeps no lobby team.
+- `Command::Ping` is not mapped, so there is no `action_ping`.
+- **Checksum**: `last_taunt`, `taunt_frame`, `incoming_taunt`,
+  `incoming_taunt_frame` and `incoming` are emitted
+  (`Sim::leader_taunt_leaf`). `incoming_taunt_who` is held but emitted
+  unheld, and stays on `LEADERS_HELD_OUT`: every walked sender is who 0,
+  the reset value.
 
 ### 9.4 Reached by a plain game
 
@@ -2265,7 +2301,8 @@ games.
 ### 9.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/taunts-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/taunts-*.md`). Since VII-b2 run1575 backs
+the goods arm's path (below).
 Counts per claim row: `last_taunt` 11/0/0, `taunt_frame` 7/0/0,
 `incoming_taunt` 12/1/0, `incoming_taunt_who` 8/0/1, `incoming_taunt_frame`
 11/0/0, `incoming` 8/0/0, the shared pipeline 8/2/2 (confirmed / corrected /
@@ -2290,9 +2327,20 @@ run1077's `HELP`, after which leader 1 holds `last_taunt[0]` 16 and
 that commands are applied before the drain on the same frame. run1086's food
 and timber requests read `last_taunt[0]` 1 with `taunt_frame[0]` 661, and 2
 with 681. Receipt one block before 661 matches the 60-frame delay.
-run1575 (item 4206) has a NEED_FOOD chat on 905, received that frame. It
-reads `last_taunt[0]` 1 and `taunt_frame[0]` 966 on block 967, which is the
-same delay. Its packet at 1090 holds the ring words, which no dump prints.
+**Diff-backed on run1575 (VII-b2)**, ours equal on each. The NEED_FOOD
+chat typed on 905 is applied on 906. The French `last_taunt[0]` 1 and
+`taunt_frame[0]` 966 are on block 967. The packet at 1090 holds the ring:
+`incoming` 1, `incoming_taunt[0]` 1 and `incoming_taunt_frame[0]` 966,
+which is 906 + 60. So the 60-frame delay, the cursor's step, the drain's
+frame test, the alliance retest and the head's stores are backed by the
+diff. These rest on the reading and `leaders::taunt::tests` alone:
+- the exemptions;
+- `HELP`'s zero delay (run1077's witness);
+- the wrap;
+- the refusal window;
+- requests above 5;
+- the delivery gate. Item 4206's journal had said the chat was received
+  on 905; the packet says 906.
 
 ### 9.6 Not established
 
@@ -2312,7 +2360,7 @@ same delay. Its packet at 1090 holds the ring words, which no dump prints.
   their writers, or a capture with chat between allied seats under each.
 - **The two witnesses become assertions**: a `rondata::diff` check on
   run1077 and run1086 that the leaves hold 16/5411 and 1/661, 2/681 on the
-  cited frames, once the chain is ported.
+  cited frames. The chain is ported; neither game has a walk.
 
 ## 10. The end of the game
 

@@ -552,7 +552,16 @@ fn at_init_image(leaf: &str, theirs: &[i64]) -> bool {
 /// its seated image there, ours equal to it — and bent on our side, it
 /// joins the leaves parting outside the list (the comparison can fail).
 fn hold_released(w: &Walked, held: &std::collections::BTreeSet<&str>) {
-    for &(leaf, run, slot) in PACKET_RELEASED {
+    hold_witnesses(w, held, PACKET_RELEASED);
+}
+
+/// [`hold_released`] over any list of `(leaf, run, slot)` witnesses.
+fn hold_witnesses(
+    w: &Walked,
+    held: &std::collections::BTreeSet<&str>,
+    witnesses: &[(&str, &str, i16)],
+) {
+    for &(leaf, run, slot) in witnesses {
         if run != w.run {
             continue;
         }
@@ -843,28 +852,25 @@ held_melees! {
 
 /// **Every packet our walk does not hold**, with why: `(run, logger frame,
 /// why)` (`docs/CHECKSUM.md` §23.1).
-pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
-    (
-        "run1100",
-        5408,
-        "run1090's lobby with `100 ally 1` and `5404 explore all` staged; no word walks it",
-    ),
-    // Item 4206 (step VII-a): `diff::diplomacy_take` walks the take from
-    // run1482's start re-read at style 0 and holds it to 1099, past this
-    // frame, but that walk is a pin as found, not a word with a pinned
-    // length and a stand-up the packet lines read; step VII-b holds it.
-    (
-        "run1575",
-        1090,
-        "the diplomacy take (run1482's lobby at style 0, `diplomacy4206.cmd`); its walk is \
-         `diff::diplomacy_take`, held to 1099 but no word's; step VII-b wires it",
-    ),
-];
+pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[(
+    "run1100",
+    5408,
+    "run1090's lobby with `100 ally 1` and `5404 explore all` staged; no word walks it",
+)];
+
+/// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
+/// (`diff::diplomacy_take`), which stages a computer's decision off the
+/// record, so no scoreboard line counts them (`docs/DECISIONS.md` entry
+/// 132 §1) and [`PINNED`] does not hold them. `(run, logger frame, the
+/// take, the length its staged walk is whole to)`.
+pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] =
+    &[("run1575", 1090, "the diplomacy take (1099 computed)", 1150)];
 
 /// The census's counts: `(packets on disk, held by a word's walk, by a
-/// chapter's, by a melee's, by the minted walk, not held)`.
+/// chapter's, by a melee's, by the minted walk, by a take's, not held)`.
 // Item 4206: (108, …, 1) → (109, …, 2), run1575's packet at 1090 named.
-const CENSUS: (usize, usize, usize, usize, usize, usize) = (109, 87, 7, 12, 1, 2);
+// Item 4159, step VII-b2: run1575's packet held by its take, (…, 1, 1).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (109, 87, 7, 12, 1, 1, 1);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.
@@ -892,6 +898,7 @@ fn every_held() -> Vec<(&'static str, i64, &'static str, i64)> {
 fn every_packet_is_wired_to_its_game_or_named() {
     let held = every_held();
     let mut runs: Vec<&str> = held.iter().map(|h| h.0).collect();
+    runs.extend(TAKES_HELD.iter().map(|t| t.0));
     runs.extend(NOT_HELD.iter().map(|n| n.0));
     let mut sorted = runs.clone();
     sorted.sort_unstable();
@@ -904,17 +911,19 @@ fn every_packet_is_wired_to_its_game_or_named() {
             CHAPTERS_HELD.len(),
             MELEES_HELD.len(),
             1,
+            TAKES_HELD.len(),
             NOT_HELD.len()
         ),
         CENSUS,
         "the census's counts"
     );
-    for (run, frame, game, length) in &held {
+    for (run, frame, game, length) in held.iter().chain(TAKES_HELD) {
         assert!(frame <= length, "{run}: {frame} past {game}'s {length}");
     }
     let frames: std::collections::BTreeMap<&str, i64> = held
         .iter()
         .map(|h| (h.0, h.1))
+        .chain(TAKES_HELD.iter().map(|t| (t.0, t.1)))
         .chain(NOT_HELD.iter().map(|n| (n.0, n.1)))
         .collect();
     let root = std::env::var("RON_GOLDEN_DIR")
@@ -3747,4 +3756,117 @@ fn probe_built_clocks() {
         built.tick();
         seated.tick();
     }
+}
+
+/// run1575's packet at 1090, pinned as found (item 4159, step VII-b2):
+/// each line's (the stream's ranges, ours, ranges parted), our walk the
+/// take's ([`run1575_take_packet`]). One line agrees, the cities' (12
+/// ranges).
+const TAKE_PINNED: Pinned = (
+    "run1575",
+    1090,
+    [
+        (3907, 4015, 3084),
+        (1709, 1709, 35),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (556, 556, 2),
+        (1289, 1331, 166),
+        (407, 407, 8),
+        (12, 12, 0),
+        (25, 45, 28),
+        (405, 405, 1),
+        (8981, 7447, 5432),
+    ],
+);
+
+/// The leaves of run1575's leaders line that part outside
+/// [`LEADERS_HELD_OUT`] at 1090, as found: `cities_built` (theirs 1, 1, 2
+/// on the three seats, ours 0, 0, 1); `dip.treaty` (the alliance asked on
+/// 1041, `treaty` 2 on both seats' records, ours −1: `action_treaty`, step
+/// VII-d); `diplos` (slots 3..7 read 1 there, `Leader::init`'s peace at
+/// style 0 on every slot, which the take's re-read lobby writes on 0..2
+/// only); `flags.leader_flags` (high bits on every seat).
+const TAKE_LEAF_PARTINGS: &str = "cities_built dip.treaty diplos flags.leader_flags";
+
+/// **The unprinted leaves the take's packet releases** (item 4159, step
+/// VII-b2; `docs/DECISIONS.md` entry 131 §1): each written on 906 (the
+/// ring) or 966 (the drain and the gift) and by nothing after, so the
+/// packet at 1090 reads the taunt's own values; `(leaf, run, slot)`, each
+/// off its seated image there, ours equal ([`hold_witnesses`]).
+pub(super) const TAKE_RELEASED: &[(&str, &str, i16)] = &[
+    // The French ring: the cursor 1, the request 1, due 966.
+    ("incoming", "run1575", 1),
+    ("incoming_taunt", "run1575", 1),
+    ("incoming_taunt_frame", "run1575", 1),
+    // The French gave 3,290 food, the human received 1,909.
+    ("tribute_sent", "run1575", 1),
+    ("tribute_received", "run1575", 0),
+];
+
+/// **run1575's packet at 1090, held by the take** (item 4159, step
+/// VII-b2): the take's walk (`diff::diplomacy_take`: run1482's start at
+/// style 0, the script, the window's diplomacy off the record, the chat
+/// minted) ticked to the packet's frame, its twelve lines against the
+/// instrument's stream. Off the scoreboard ([`TAKES_HELD`]). The five
+/// unprinted leaves of the taunt's answer are witnessed here.
+#[test]
+fn run1575_take_packet() {
+    use crate::diff::diplomacy_take as take;
+    let (run, frame, name, length) = TAKES_HELD[0];
+    let (Some(diplomacy), Some(taunts)) = (
+        take::take_diplomacy(take::RUN1575.0),
+        take::script_taunts("diplomacy4206.cmd"),
+    ) else {
+        eprintln!("skipping: no {} or install", take::RUN1575.0);
+        return;
+    };
+    let Some(walked) = walk_packets_with(name, length, &[(run, frame)], &mut |frames, probe| {
+        let script = take::coverage_script("diplomacy4206.cmd");
+        let (_, mut built) = take::stand_up_sea_style_zero(take::RUN1575, script)?;
+        for &f in frames {
+            while built.sim.frame < f {
+                take::stage_frame(&mut built, 3, &[], &diplomacy, &taunts);
+                built.tick();
+            }
+            probe(f, &built);
+        }
+        Some(())
+    }) else {
+        return;
+    };
+    let w = &walked[0];
+    let held: std::collections::BTreeSet<&str> = LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
+    for (n, l) in STATE_LINES.iter().zip(&w.lines) {
+        if let Some(f) = &l.first {
+            eprintln!(
+                "  {n}: {} of {} ranges part; first range {} record {} {}",
+                l.parted, l.theirs, f.0, f.1, f.2
+            );
+        }
+    }
+    for (slot, field, leaf, ours, t, _) in &w.leaves {
+        if ours.as_ref() != Some(t) {
+            eprintln!(
+                "LEAF\t{slot}\t{}\t{}\t{}",
+                leader_held_name(field, leaf, ours.is_none()),
+                leaf_text(t),
+                ours.as_deref().map_or("-".into(), leaf_text)
+            );
+        }
+    }
+    eprintln!("PIN\t(\"{}\", {}, {:?}),", w.run, w.frame, pin_of(&w.lines));
+    eprintln!("EXTRA\t{}", extra_leaves(w, &held));
+    assert_eq!(
+        (TAKE_PINNED.0, TAKE_PINNED.1, TAKE_PINNED.2),
+        (w.run, w.frame, pin_of(&w.lines)),
+        "run1575: each line's (the stream's ranges, ours, ranges parted)"
+    );
+    assert_eq!(
+        extra_leaves(w, &held),
+        TAKE_LEAF_PARTINGS,
+        "run1575: the leaders line's leaves parting outside LEADERS_HELD_OUT"
+    );
+    hold_witnesses(w, &held, TAKE_RELEASED);
 }

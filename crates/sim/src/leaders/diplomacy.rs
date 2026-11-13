@@ -173,12 +173,24 @@ impl Sim {
     fn diplomacy_with(&mut self, me: usize, t: usize, non_allies: usize) {
         let frame = self.frame;
         let agenda = self.leaders.agendas[me][t];
-        // SEAM: `dip[t].agree` (`+0x692c`) is never 1 — the Diplomacy
-        // records are not carried — and `tribute_demanded`/`counteroffer`
-        // (`+0x334`/`+0x314`) are never set.
+        // The cadence (`docs/LEADERS.md` §8.2): while I have not committed
+        // to `t` (`dip[t].agree`, `+0x692c`), a demand outstanding
+        // (`tribute_demanded`, `+0x334`) stretches the period to `0x2000`
+        // and a counteroffer (`counteroffer`, `+0x314`) doubles it. Their
+        // setters are the demand arm and the found-short arm (steps VII-c,
+        // VII-d), not carried, so both read 0 in every walked game.
         let forced = agenda & 4 != 0;
         if !forced {
             let mut period: i64 = 0x800;
+            let deal = &self.leaders.tribute[me];
+            if deal.dip[t].agree != 1 {
+                if deal.tribute_demanded[t] != 0 {
+                    period = 0x2000;
+                }
+                if deal.counteroffer[t] != 0 {
+                    period *= 2;
+                }
+            }
             if agenda & 8 == 0 {
                 period >>= 2;
             }

@@ -383,6 +383,13 @@ impl Command<'_> {
         self.sim.action_declare(me, t, level, quiet, force)
     }
 
+    /// [`Sim::receive_taunt`] (`leaders/taunt.rs`): a chat command's taunt
+    /// delivered to `r` (`CommandPackage::process_chat@009454f0`'s
+    /// `Leader::receive_taunt`, sender `s`).
+    pub fn receive_taunt(&mut self, r: Player, req: i32, s: Player) {
+        self.sim.receive_taunt(r, req, s)
+    }
+
     // The clock: one frame, every mechanic, in the original's order.
     /// [`Sim::tick`] (`core/frame.rs`).
     pub fn tick(&mut self) -> Vec<Tick> {
