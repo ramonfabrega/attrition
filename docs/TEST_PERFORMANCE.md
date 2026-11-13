@@ -363,23 +363,31 @@ off; `RON_SUITE_GROUPS=off` is a hand's. The whole booking gate alone sets
 frame 0 and compared whole, so once the kept walk is on the whole gate is its standing
 check and a lane's gate is not.
 
-**Measured** (2026-11-13, one binary of `901f866c9` less the load memo, the whole
-library three times through the runner at 8 slots with the fixture audit on and no
-verifiers, beside other lanes' gates at a load of 20 to 34; CPU is the record, the wall
-is not):
+**Measured** (2026-11-13, the whole library through the runner at 8 slots with the
+fixture audit on and no verifiers, beside other lanes' gates at a load of 20 to 40; the
+first three rows are one binary of `901f866c9` less the load memo, the last two that
+commit's own. **Instructions retired are the record**, summed over every test process's
+`time -l`: a CPU-second on this host is worth less under load, and the wall does not
+rank at all):
 
-| run | processes | test CPU-seconds | wall | map generation | the games' groups | alone |
+| run | processes | instructions | test CPU-seconds | map generation | the games' groups | alone |
 |---|---|---|---|---|---|---|
-| `RON_SUITE_GROUPS=off` | 2,361 | 6,091 | 828 s | 1,574 | 2,784 | 1,733 |
-| groups | 1,232 | 4,805 | 899 s | 109 | 2,891 | 1,806 |
-| groups, kept walk on | 1,232 | 4,129 | 773 s | 123 | 2,235 | 1,771 |
+| `RON_SUITE_GROUPS=off` | 2,361 | 113,766 G | 6,091 | 1,574 | 2,784 | 1,733 |
+| groups | 1,232 | 88,163 G | 4,805 | 109 | 2,891 | 1,806 |
+| groups, kept walk on | 1,232 | 79,589 G | 4,129 | 123 | 2,235 | 1,771 |
+| groups, load memo | 1,233 | 82,771 G | 4,126 | | | |
+| groups, kept walk on, load memo | 1,233 | 75,814 G | 3,798 | 98 | 2,030 | 1,669 |
 
-All three green, 2,361 of 2,361. **The fixture audit, test for test as multisets**
+The first three and the last green, 2,361 and 2,362 of them; the fourth ran while its
+tree was updated under it and five tests that read the tree's own files were red. The
+lane gate of the landing, on the updated tree at 4 threads: `Suite: 1242 processes for
+2371 tests: 145 groups hold 1274, 1097 ran alone; 4570 test CPU-seconds`. **The fixture audit, test for test as multisets**
 (`suite_groups.py --audit`, 1,924 tests with rows): groups against off, one test
 differs, the coverage test (8 against 7 requests of two files of one game), which is
 wider than a slot and ran alone in its own process in both runs; kept walk against off,
-none differ. With the kept walk on and `RON_VERIFY_PREFIX_REUSE=1`, six groups (201
-tests, 72 widened windows) reported for every resumed window what a fresh walk reports.
+none differ, on either binary. With the kept walk on and `RON_VERIFY_PREFIX_REUSE=1`,
+the whole library is green: 508 tests' widenings each walked a second time fresh from
+frame 0 and compared whole (their audit rows doubled, which is how they are counted).
 On `game:run1149` (28 tests, one process, instructions retired): 1,217 G alone, 1,208 G
 grouped, 1,017 G with the kept walk, 922 G with the load memo beside it.
 
