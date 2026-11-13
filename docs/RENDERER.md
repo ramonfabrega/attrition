@@ -2346,13 +2346,12 @@ on one photograph**: the rows.
   so the original's floor shows about as dark as black under the water;
   the card lights it (`ps_global.hlsl`'s HDR multiplier, the 1.45 power),
   and ours is unlit. Luma `OCEAN` would go 215 → 276; not drawn.
+  Item 4200 (§3.18): the floor's own texture does not show in the
+  photograph.
 - **The water's tone** (4174a). Over every water class the photograph is
-  close to `0.6 · ours + 45`: the lit water and the screen reflection,
-  read, not counted.
-- **The beach's edge against the grass** (4178b's remainder). The card
-  binds `sand.tga` in four transition-patch draws; whether our coast arm
-  of `patch::Ground::combo` lays them on run1564 is not checked. The
-  sawtooth stands.
+  close to `0.6 · ours + 45`. ~~The lit water and the screen reflection~~:
+  both are ruled out over the deep water (§3.18), and the red is open.
+- ~~**The beach's edge against the grass**~~: drawn by item 4200, §3.18.
 
 ## 3.17 The paved base under a city: the footprint weathering (item 4190)
 
@@ -2439,6 +2438,108 @@ mean; the patch opaque and unlit. **On a reading alone**, for the next batched s
 **Not established.** The asphalt ring and the red line (4190a, `RoadsOut`, which needs the roads through
 `sim::observe`); whether the red line is the border's; the underlay pass `render_weathering(4, 4)` under a farm;
 the vertex lighting draw 90 enables, which the client does not take.
+
+## 3.18 The coast's patches, and what lies under the lake (item 4200)
+
+*2026-11-13, Opus 5.5. `client::patch::patches` on every land;
+`client::ground::GroundTextures::patch_index`, its `coast_base` and
+`coral`; `ground_patch` on `SANDY` and `OCEAN` tiles;
+`World::drawn_terrain`'s coral layer (`CORAL_PIECE`);
+`rondata::artdata::coral_texture`. Scored on run1564's photograph.*
+
+**The beach's edge, read.** `TerrainOut::create_transition_renderables@00862c60`
+takes the queue `mark_trans_flags` builds, with no filter on the land.
+Our chain had kept only land 0. So a `SANDY` cell one step above a
+`BASELAND` neighbour at `COAST_BASE` was queued and then skipped, as was
+an `OCEAN` cell beside any other land. The texture a patch draws is the
+function's own choice:
+
+- past sub 0, the cell's own land at `land_sub − 1`;
+- a `SANDY` cell at sub 0 draws `BASELAND`'s `COAST_BASE` texture itself,
+  with no step down;
+- an `OCEAN` cell at sub 0 draws the coastal land's last texture,
+  `sand.tga` on `early_autumn`.
+
+The geometry, the pick and the texcoords are land 0's chain (§3.8, §3.9).
+
+**Diffed on run1564's packet** (`tools/render/patches.py`,
+`RUN1564_3294_COAST_PATCH`): **319 of 319** `SANDY` patches and **120 of
+120** `OCEAN` patches match in alpha and in all 25 texcoords, on the packet's
+masks and on masks marked fresh from its cells. Every other cell of the two
+lands is unpatched on both sides, and the fractal is the packet's on every
+patched cell. Seen red: before this item the chain laid none of the 439,
+and at `COAST_BASE` 2 none of the 319 agree.
+
+**The coral over the ocean's patches.** `TerrainOut::render@008558b0`'s
+patch loop draws, after every patch in `oceanindex`'s texture, the
+tileset's `coral_tex` on the same stream, the same geometry and the same
+mask. That texture is `<CORALTEX>`'s file, `coralblend.tga`, and
+`TileSet::init@0087b370` loads it. The card shows the pairs on run1567's
+pass after 3279: `sand.tga`, then `coralblend.tga`, under one mask each.
+Both pairs blend source alpha over at the mask alone: stage 0's alpha
+selects the texture and stage 1's the mask, so the land's depth fade
+does not enter. The client lays each `OCEAN` patch twice, the sand and
+then the coral, in the card's order.
+
+The rows, on the client's still:
+
+| row | before | after |
+|---|---|---|
+| `RUN1564_3279_GROUND_STILL` | 1,024 (`SANDY` 315, `OCEAN` 0) | **1,028** (319, 0) |
+| its luma, `GROUND_LUMA_STILL` | 1,318 (`SANDY` 397, `OCEAN` 215) | **1,377** (499, 172) |
+| `GROUND_STILL_SRGB`, run1564 | 927 | 970 |
+
+run1559b's three rows are unchanged. **The painter keeps land 0's
+patches** (`painter_choice`): it draws neither the coral nor the fade, so
+its rows stand as they were.
+
+**Counted and not drawn: the sand patch with no coral.** `OCEAN` then
+reads **132** of 437 on hue (the row 1,160) and 165 on luma. The coral's
+cyan takes back the red that the sand's gave.
+
+**What lies under the lake, read and measured** (none of it drawn):
+
+- **The specular and the screen reflection are nothing over the deep
+  water.** On the card's view (orthographic, the water's normal (0, 0.866,
+  −0.5) in view space) N·H is 0.64 at the screen's centre. Beckmann's
+  term at roughness 0.3 is then about 1e-7, so even at `gSpecular` 40 the
+  specular is nothing. The reflected ray climbs 10 view units a step and
+  stands 10 units nearer the camera than the water per step, and the
+  threshold is 22 view units. So only a bottom within about 6 world units
+  of the surface returns a hit.
+- **The floor's texture is not what shows.** High-passed, the photograph's
+  mottle inside our `OCEAN` polygon correlates with our floor at its
+  packet texcoords by at most 0.08, at any shift within 60 pixels.
+- **The coral layer lies under the deep water.** `scene_coral` (draw
+  131) holds the sand layer's 4,928 vertices: the same positions,
+  texcoords and colours (rgb 252). Its stage-0 alpha is the complement of
+  the vertex's, so coral fades in exactly where the sand fades out.
+  `coralblend.tga` is cyan, mean (41, 198, 212).
+- **The tone's shape.** The water is lit far below the land: material
+  ambient 0.2 and light diffuse 1, against the land's 1 and 1.36.
+  4192b's `0.6 · ours + 45` is the shape of a desaturation
+  `lerp(L, c, 0.6)`. With the water lit over the coral in HDR and toned, at
+  the clamp, the deep water reads (10, 133, 191). Desaturated at 0.6 that
+  is (47, 121, 156), against the photograph's (47, 113, 158). But the tone
+  mapper's saturation is 1.0 on the packet (§3.14), so this names no
+  mechanism.
+
+**Diff-backed:** the coast's patches, every one, on run1564's packet.
+**Read off the card and the packet, not compared per pixel:** the coral
+pairs, their alpha, and the coral layer's vertices. **Resting on one
+photograph:** the rows.
+
+**What is not established.**
+
+- **The lake's red** (4174a, 4192b): no input read so far carries it, and
+  sand under the water is the only layer that has matched it.
+- The tileset's tint, (18, 18, 0) on `early_autumn`, which
+  `ImageIO::set_tint` lays on every tileset texture at load; the client
+  takes the files untinted.
+- The coral layer itself (draw 131) and the floor's light: neither is
+  drawn.
+- The patch's vertex colour (stage 0 `MODULATE(TEXTURE, DIFFUSE)`): ours
+  draws the texel alone.
 
 ## 4. The stack
 

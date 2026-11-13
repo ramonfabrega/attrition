@@ -631,16 +631,17 @@ pub struct Patch {
 }
 
 /// **The whole chain** (§3.8, steps 1 to 6): the masks from the cells,
-/// then for each queued land-0 cell the checked codes, the pick and the
-/// texcoords; row-major, `None` where no patch is laid.
+/// then for each queued cell the checked codes, the pick and the
+/// texcoords; row-major, `None` where no patch is laid. Item 4200
+/// (§3.18): every land, as `create_transition_renderables` takes its
+/// queue — a `SANDY` cell above a `COAST_BASE` neighbour and an `OCEAN`
+/// cell above any are patched too, held to run1564's packet
+/// ([`RUN1564_3294_COAST_PATCH`]).
 pub fn patches(g: &Ground, frac: &sim::mapgen::Fractal, alphas: &[[u32; 8]]) -> Vec<Option<Patch>> {
     let (edges, queue) = marks(g);
     let mut out = vec![None; (g.width * g.height) as usize];
     for i in queue {
         let (x, y) = (i % g.width, i / g.width);
-        if g.at(x, y).0 != 0 {
-            continue;
-        }
         let h = frac.get_height(x, y);
         let (b, c, f) = checked_codes(g, &edges, x, y);
         if let Some((alpha, o)) = find_map(alphas, h, b, c, f) {
@@ -692,6 +693,25 @@ pub const RUN1559B_3279_PACKET_MASKS: (u32, u32, u32) = (3402, 3375, 3660);
 #[cfg(test)]
 pub const RUN1559B_3279_PATCH_ON_OUR_CELLS: [u32; 4] = [1471, 1471, 79, 1185];
 
+/// **The coast's patches on run1564's packet** (item 4200;
+/// `docs/RENDERER.md` §3.18): [`RUN1559B_3279_PATCH_ON_ITS_MASKS`]'s
+/// counts on the `SANDY` cells, then the `OCEAN` cells — `[alpha ours,
+/// texcoords ours at all 25 vertices, emptied where ours is none,
+/// unpatched where ours is none]` beside `[drawn, emptied, cells]` — on
+/// the packet's own masks, and again on masks marked fresh from its
+/// cells. **Whole on both**: 319 of 319 `SANDY` patches and 120 of 120
+/// `OCEAN` patches, alpha and texcoords, every other cell of the two lands
+/// unpatched on both sides. Before item 4200 the chain skipped every cell
+/// past land 0, none of the 439 laid; at `COAST_BASE` 2 the `SANDY` count
+/// falls (the test).
+#[cfg(test)]
+pub const RUN1564_3294_COAST_PATCH: [([u32; 4], [u32; 3]); 4] = [
+    ([319, 319, 0, 307], [319, 0, 626]),
+    ([120, 120, 0, 44], [120, 0, 164]),
+    ([319, 319, 0, 307], [319, 0, 626]),
+    ([120, 120, 0, 44], [120, 0, 164]),
+];
+
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
@@ -720,14 +740,26 @@ pub(crate) mod tests {
     }
 
     pub(crate) fn packet() -> Option<Packet> {
-        let path = std::env::var_os("RON_PATCHES")
+        packet_at(
+            "RON_PATCHES",
+            "ron-data/lab-experiments/2026-11-11-item-4134/run1559b-patches.txt",
+        )
+    }
+
+    /// run1564's packet's patches (item 4200), `patches.py` on
+    /// `~/ron-golden/run1564/map-14/frame-snapshot.bin`.
+    pub(crate) fn packet_1564() -> Option<Packet> {
+        packet_at(
+            "RON_PATCHES_1564",
+            "ron-data/lab-experiments/2026-11-13-item-4200/run1564-patches.txt",
+        )
+    }
+
+    /// A `patches.py` dump at `$var`, or at `rel` under the home directory.
+    fn packet_at(var: &str, rel: &str) -> Option<Packet> {
+        let path = std::env::var_os(var)
             .map(PathBuf::from)
-            .or_else(|| {
-                std::env::var_os("HOME").map(|h| {
-                    PathBuf::from(h)
-                        .join("ron-data/lab-experiments/2026-11-11-item-4134/run1559b-patches.txt")
-                })
-            })?;
+            .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(rel)))?;
         let Ok(text) = std::fs::read_to_string(&path) else {
             println!("skipping: no packet patches at {}", path.display());
             return None;
@@ -1081,6 +1113,18 @@ pub(crate) mod tests {
         frac: &sim::mapgen::Fractal,
         turn: u8,
     ) -> ([u32; 4], Vec<Parting>) {
+        score_land(p, cells, edges, frac, turn, 0)
+    }
+
+    /// [`score`] on the cells of one `land` of the packet's.
+    fn score_land(
+        p: &Packet,
+        cells: &[(i8, u8)],
+        edges: &Edges,
+        frac: &sim::mapgen::Fractal,
+        turn: u8,
+        land: i8,
+    ) -> ([u32; 4], Vec<Parting>) {
         let g = Ground {
             width: p.width,
             height: p.height,
@@ -1096,7 +1140,7 @@ pub(crate) mod tests {
         let (mut n, mut parting) = ([0u32; 4], Vec::new());
         for y in 0..p.height {
             for x in 0..p.width {
-                if p.cells[(y * p.width + x) as usize].0 != 0 {
+                if p.cells[(y * p.width + x) as usize].0 != land {
                     continue;
                 }
                 let h = frac.get_height(x, y);
@@ -1192,5 +1236,81 @@ pub(crate) mod tests {
         let (m, _) = score(&p, &p.cells, &p.edges, &frac, 4);
         println!("the orientation mirrored: {m:?}");
         assert!(m[1] < n[1], "the texcoords follow the orientation");
+    }
+
+    /// **The coast's patches on run1564's packet** ([`RUN1564_3294_COAST_PATCH`]):
+    /// the chain on the `SANDY` and the `OCEAN` cells, on the packet's
+    /// masks and on masks marked from its cells; the fractal checked on
+    /// every patched cell first, and the land filter put back once.
+    #[test]
+    fn the_coast_patch_on_run1564_s_packet() {
+        let (Some(p), Some(seed)) = (packet_1564(), world_seed()) else {
+            return;
+        };
+        let frac = sim::mapgen::Fractal::init(p.width + 1, p.height + 1, 0, 2, seed);
+        let off = p
+            .patches
+            .iter()
+            .filter(|((x, y), r)| frac.get_height(*x, *y) != r.frac)
+            .count();
+        assert_eq!(off, 0, "the fractal is the packet's on every patched cell");
+        let g = Ground {
+            width: p.width,
+            height: p.height,
+            cells: &p.cells,
+            coast_base: 3,
+            base_subs: 4,
+        };
+        let (fresh, _) = marks(&g);
+        let mut got = Vec::new();
+        for (name, edges) in [("its masks", &p.edges), ("fresh masks", &fresh)] {
+            for land in [1i8, 2] {
+                let of = |empty: bool| {
+                    p.patches
+                        .values()
+                        .filter(|r| r.land == land && r.uv.is_empty() == empty)
+                        .count() as u32
+                };
+                let cells = p.cells.iter().filter(|c| c.0 == land).count() as u32;
+                let (n, part) = score_land(&p, &p.cells, edges, &frac, 0, land);
+                println!(
+                    "run1564 land {land} on {name}: {n:?} of [{0}, {0}, {1}, {2}]; parting (x, y, theirs, ours) {part:?}",
+                    of(false),
+                    of(true),
+                    cells - of(false) - of(true)
+                );
+                got.push((n, [of(false), of(true), cells]));
+            }
+        }
+        // Made to fail: the chain as it stood, land 0 only.
+        let alphas: Vec<[u32; 8]> = p
+            .alpha_names
+            .iter()
+            .map(|n| bitcodes(n).expect("a code"))
+            .collect();
+        let laid = patches(&g, &frac, &alphas);
+        let coast = (0..p.height)
+            .flat_map(|y| (0..p.width).map(move |x| (x, y)))
+            .filter(|&(x, y)| {
+                let i = (y * p.width + x) as usize;
+                p.cells[i].0 != 0 && laid[i].is_some()
+            })
+            .count();
+        println!("the chain lays {coast} patches past land 0");
+        assert_eq!(coast, 439, "the chain lays the coast's patches");
+        // Perturbed once: the coast arm at the wrong `COAST_BASE`.
+        let wrong = Ground { coast_base: 2, ..g };
+        let laid = patches(&wrong, &frac, &alphas);
+        let n = p
+            .patches
+            .iter()
+            .filter(|((x, y), r)| {
+                let i = (y * p.width + x) as usize;
+                r.land == 1 && laid[i].is_some_and(|q| q.alpha == usize::from(r.alpha))
+            })
+            .count();
+        println!("at COAST_BASE 2: {n} of 319 SANDY patches");
+        assert!(n < 319, "the coast arm follows COAST_BASE");
+        assert_eq!(got, RUN1564_3294_COAST_PATCH, "RUN1564_3294_COAST_PATCH");
     }
 }

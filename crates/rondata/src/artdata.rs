@@ -2410,6 +2410,33 @@ pub fn mountain_textures(install: &Install, tileset: &str) -> Result<(String, St
     Ok((file("BASETEX")?, file("ALPHATEX")?))
 }
 
+/// **The tileset's coral texture** (item 4200; `docs/RENDERER.md` §3.18):
+/// `<CORALTEX>`'s `TEXTURE` `file=` under `tileset`, as written.
+/// `TileSet::init@0087b370` loads it as `TileSetData::coral_tex`, the
+/// texture `TerrainOut::render` binds over every patch drawn in
+/// `oceanindex`'s texture and `TerrainOut::render_coral` over the sand
+/// layer. `None` where the tileset names none.
+pub fn coral_texture(install: &Install, tileset: &str) -> Result<Option<String>, ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let set = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?;
+    Ok(set
+        .children()
+        .find(|n| n.has_tag_name("CORALTEX"))
+        .and_then(|c| c.children().find(|n| n.has_tag_name("TEXTURE")))
+        .and_then(|t| t.attribute("file"))
+        .map(|f| f.trim().to_string()))
+}
+
 /// **The footprint weathering's textures** (item 4190; `docs/RENDERER.md`
 /// §3.17): `Data/tilesets.xml`'s `<COMMON><WEATHERING>` `WEATHERELEM`s, one
 /// per age bucket as `age=` numbers them, each `(file1, file2)` as written.
