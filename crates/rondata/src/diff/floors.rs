@@ -640,13 +640,16 @@ pub fn lobby_line() -> String {
 /// The queue's `Hud:` line's clauses (item 4197, `docs/HUD.md` §5), each
 /// `(its prefix, the clause)`: the clicked file minted from button presses
 /// ([`crate::script::HUD_BUTTONS`]) and the panel's numbers against
-/// run1568's dump ([`crate::script::HUD_PANEL`]). The line joins them on
-/// ` · `; the handoff test matches each clause by its prefix, so a later
-/// item's clause (4198, the bar) is one more row here and no new parser.
+/// run1568's dump ([`crate::script::HUD_PANEL`]); and the bar's values
+/// against the level-9 `LEADERDATA` record ([`crate::script::HUD_BAR`],
+/// item 4198). The line joins them on ` · `; the handoff test matches each
+/// clause by its prefix, so a later item's clause is one more row here and
+/// no new parser.
 #[cfg(test)]
 pub fn hud_clauses() -> Vec<(&'static str, String)> {
     let (b, bn) = crate::script::HUD_BUTTONS;
     let (p, pn) = crate::script::HUD_PANEL;
+    let (r, rn) = crate::script::HUD_BAR;
     let n = |v: usize| {
         let s = v.to_string();
         let mut out = String::new();
@@ -669,6 +672,14 @@ pub fn hud_clauses() -> Vec<(&'static str, String)> {
                 "the panel equals run1568's dump, {} of {} values",
                 n(p),
                 n(pn)
+            ),
+        ),
+        (
+            "the bar equals",
+            format!(
+                "the bar equals the LEADERDATA record, {} of {} values",
+                n(r),
+                n(rn)
             ),
         ),
     ]

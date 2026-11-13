@@ -145,6 +145,14 @@ pub const HUD_BUTTONS: (usize, usize) = (2, 2);
 /// site's health parted on those 44 (584 of 628), the misreading
 /// `ObjectData::hits_left` settles (`docs/HUD.md` §3).
 pub const HUD_PANEL: (usize, usize) = (628, 628);
+/// **The HUD's bar** (item 4198, `docs/HUD.md` §5; the client's
+/// `hud::tests::the_bar_s_values_are_the_leader_record_s`): `(equal,
+/// compared)`, each value the bar prints for slots 0 and 1 against the
+/// level-9 `LEADERDATA` record on every frame the nine Great Lakes leader
+/// captures print it: six stockpiles, six rates, six cap marks, `control`,
+/// `pop_cap`, the age and the nation, 22 a record. 0 of 0 with no bar (no
+/// `LeaderScene` behind the door).
+pub const HUD_BAR: (usize, usize) = (57_420, 57_420);
 
 /// **The boxed script** (item 4180, `docs/CLIENT_INPUT.md` §7): the
 /// right-pressed script and one more package, a box dragged round the three

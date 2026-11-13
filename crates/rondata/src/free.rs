@@ -169,6 +169,20 @@ impl FreeRunner {
         self.built.sim.observe(viewer)
     }
 
+    /// The tech tree's nation names, by tribe index: what a test joins a
+    /// dump's `tribe` through to check the name a client prints for a
+    /// [`sim::observe::LeaderScene`] (item 4198).
+    pub fn nations(&self) -> Vec<String> {
+        self.built
+            .sim
+            .tables
+            .tech_tree
+            .tribes
+            .iter()
+            .map(|t| t.name.clone())
+            .collect()
+    }
+
     /// The terrain grids as they stand (`Sim::observe_terrain`).
     pub fn terrain(&self) -> sim::observe::TerrainScene {
         self.built.sim.observe_terrain()
