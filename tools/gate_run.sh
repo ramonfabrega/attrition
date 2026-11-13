@@ -27,9 +27,9 @@ rows="$(cd "$(dirname "$0")/.." && python3 tools/handover.py check 2>&1)" || { p
 cd "$root/.claude/worktrees/gate" || { echo "gate exit 97 (no gate tree)" > "$log"; exit 97; }
 git checkout -q --detach "$sha" || { echo "gate exit 96 (checkout $sha refused)" > "$log"; exit 96; }
 echo "Gate tree: $(pwd) at $(git rev-parse HEAD)" > "$log"
-echo "$rows" >> "$log"
 python3 tools/release_gate.py "$install" --test-threads 8 "$@" >> "$log" 2>&1
 code=$?
+echo "$rows" >> "$log"
 if [ $code -eq 0 ]; then
   python3 tools/disk.py --sha "$sha" >> "$log" 2>&1 || echo "Disk: step failed: the builders step exited $?" >> "$log"
   python3 tools/disk.py --gc "$install" >> "$log" 2>&1 || echo "Disk: step failed: the oracle step exited $?" >> "$log"

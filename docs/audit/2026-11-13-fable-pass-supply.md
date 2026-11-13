@@ -36,8 +36,7 @@ pass before it is `2026-11-12-fable-pass-load.md`.*
   16 GB. It tops every gate's receipt, quiet ones too. `sudo killall
   fseventsd`, or a restart, is yours.
 - The tranche: eleven landings in 6.9 hours, 85.87 USD of lanes (10.73 a
-  landing); the week 25 % at 04:46Z with a day left. The pass changed four
-  documents and the memcap fixture, and moved no score.
+  landing); the week 25 % at 04:46Z with a day left. The pass moved no score.
 
 ## What was measured
 
@@ -146,7 +145,37 @@ scoped render lane: 4200, 4201. The input lane: 4202, 4203.
 
 ## Built
 
-BUILT_PLACEHOLDER
+- **`tools/handover.py`**: the handover as one script (entry 131 §8). `to
+  <row> --opener-file <file>` refuses a dirty or unpushed tree and a command
+  still running under the row, reaps any other driver row and spawns the new
+  one with the opener as its prompt; `reap <ref>` is the new row's first act;
+  `check` is the guard. Seven tests on authored rosters
+  (`tools/explore/test_handover.py`).
+- **`tools/gate_run.sh` asks `handover.py check` before a gate** and refuses
+  with `gate exit 95 (two driver rows)`; the `Rows:` line is in every gate's
+  log. Two tests on the gate runner's fixture.
+- **Made to fail.** `handover.py check` on the pass's own roster: `Rows: 2
+  driver rows hold this tree: steer d388900a (working), commander 1b2cdb50
+  (done)`, exit 1. The first reap failed too, usefully: `ccc stop` answers
+  before the process is gone and `ccc forget` then refuses ("still has a
+  process"), so the reap waits for the roster to say stopped. The second
+  removed 1b2cdb50 with the tree intact, and the check read one row.
+- **The memcap fixture** (an Opus 5.5 builder, branch
+  `worktree-agent-ae24c1a1edb2c9783`, tip `01eabcef9`). The cause is likely
+  and not reproduced: on gate-4192 the budget's own `ps rss` sampler saw
+  the test binary's whole tree peak at 1,159 MiB, where the child alone
+  holds 1,214 when resident and 32 green gates read 1.8 to 2.4 GiB. Pages
+  the host has compressed leave `ps rss` and stay in the physical
+  footprint. The builder could not force compression (0 red of 15 beside a
+  12 GiB load). `tools/memcap.sh` now counts a tree at the larger of its
+  summed `ps rss` and its summed `phys_footprint`, a failed read of either
+  stops the command, and a red prints the wrapper's samples, the child's
+  state and the host's swap and pressure. A test that fakes a small
+  resident set over a large footprint fails on the old script. The host
+  that compressed those pages is the one whose `fseventsd` holds 28 GiB.
+- **The documents**: entry 131; entry 130 amended in place; `docs/LOOP.md`'s
+  handover, booking gate and 400 k clauses; the queue; the tracks page.
+- `afsctool` over both archives, 186 → 209 GB free.
 
 ## Not done, and said
 
@@ -163,4 +192,5 @@ BUILT_PLACEHOLDER
 
 ## The gate
 
-GATE_PLACEHOLDER
+Whole, on the pass's commit; its log is
+`~/Library/Caches/attrition/gates/gate-pass-1113.log`.

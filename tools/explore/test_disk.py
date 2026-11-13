@@ -403,6 +403,12 @@ class GateRun(unittest.TestCase):
         for name in ('gate_run.sh', 'disk.py', 'archive_census.py', 'census.py'):
             (d / 'tools' / name).write_bytes((ROOT / 'tools' / name).read_bytes())
         (d / 'tools' / 'release_gate.py').write_text(STUB_GATE)
+        # The row check asks ccc's roster; the fixture answers for it.
+        (d / 'tools' / 'handover.py').write_text(
+            "import os, sys\n"
+            "two = os.environ.get('FAKE_TWO_ROWS')\n"
+            "print('Rows: 2 driver rows hold this tree' if two else 'Rows: one driver row at most: none listed')\n"
+            "sys.exit(1 if two else 0)\n")
         git(d, 'add', 'tools')
         git(d, 'commit', '-q', '-m', 'the tools')
         self.sha = git(d, 'rev-parse', 'HEAD')
@@ -439,6 +445,21 @@ class GateRun(unittest.TestCase):
         self.assertFalse(self.f.trees['agent-merged'].exists())
         self.assertNotIn('worktree-agent-merged', self.f.branches())
         self.assertTrue(self.f.targets['agent-fresh'].exists())
+
+    def test_two_driver_rows_refuse_the_gate_before_it_starts(self):
+        code, log = self.gate(FAKE_TWO_ROWS='1')
+        self.assertEqual(code, 95, log)
+        lines = log.splitlines()
+        self.assertEqual(lines[0], 'Rows: 2 driver rows hold this tree')
+        self.assertEqual(lines[-1], 'gate exit 95 (two driver rows)')
+        self.assertNotIn('Gate pid', log)
+        self.assertTrue(self.f.trees['agent-merged'].exists())
+
+    def test_the_rows_line_is_in_a_gate_s_log(self):
+        code, log = self.gate()
+        self.assertEqual(code, 0, log)
+        self.assertIn('Rows: one driver row at most', log)
+        self.assertEqual(log.splitlines()[-1], 'gate exit 0')
 
     def test_a_red_gate_runs_neither_step(self):
         code, log = self.gate(STUB_GATE_EXIT='3')
