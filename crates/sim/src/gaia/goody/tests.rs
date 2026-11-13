@@ -419,3 +419,48 @@ fn a_sea_type_leaves_the_goody_where_it_is() {
     assert_ne!(s.world.cell_data(Cell::new(3, 2)).flags & GOODY, 0);
     assert_eq!(s.economy.ledgers[1].bucket, [0; RESOURCES]);
 }
+
+/// **The box leaves the cell's chain** (item 4209; `docs/GOODY.md` §4):
+/// the map marks a box's cell `down` −3 with the box's index in
+/// `down_who`; the finder threads onto the cell and takes the −3 as its
+/// own tail word; `Item::close@00677050`'s `World::clear_down` turns it
+/// −1, `down_who` left; and the cell takes (−1, the box) back when the
+/// finder steps off. The box's `flags & 1` goes, so the items line walks
+/// it no more. Before the item, the cell kept −3 and the box stayed live:
+/// the world and items lines' first parting on 76 of the 79 built
+/// packets.
+#[test]
+fn a_taken_box_leaves_its_cell_minus_one() {
+    let (mut s, u) = sim();
+    let c = Cell::new(3, 2);
+    let mut d = s.world.cell_data(c);
+    d.down = -3;
+    d.down_who = 0;
+    s.world.set_cell_data(c, d);
+    s.add_goody_item(Pos::new(3 * 0x300 + 0x180, 2 * 0x300 + 0x180), true, 0);
+    assert_eq!(
+        s.checksum_items().ranges.len(),
+        5,
+        "one live box, five ranges"
+    );
+    step_onto_the_goody(&mut s, u);
+    assert_eq!(s.chain_tail_words(c), (-1, 0), "the finder's tail word");
+    assert!(!s.gaia.goody_items[0].alive);
+    assert!(
+        s.checksum_items().ranges.is_empty(),
+        "the taken box is not walked"
+    );
+    s.set_new_location(u, Pos::new(4 * 0x300 + 0x180, 2 * 0x300 + 0x180), false);
+    assert!(s.object_chain(c).is_empty());
+    let d = s.world.cell_data(c);
+    assert_eq!(
+        (d.down, d.down_who),
+        (-1, 0),
+        "the cell takes the pair back"
+    );
+    assert_eq!(
+        s.object_head_words(c),
+        (-1, 0),
+        "and the world line prints it"
+    );
+}

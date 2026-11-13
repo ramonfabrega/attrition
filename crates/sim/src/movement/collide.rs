@@ -2009,14 +2009,14 @@ impl Sim {
     // §3.2 — every object on the chain, and its four words
     // ------------------------------------------------------------------
 
-    fn chain_words(&self, o: Obj) -> &ObjectChain {
+    pub(crate) fn chain_words(&self, o: Obj) -> &ObjectChain {
         match o {
             Obj::Unit(u) => &self.units[u].chain,
             Obj::Building(b) => &self.buildings[b].chain,
         }
     }
 
-    fn chain_words_mut(&mut self, o: Obj) -> &mut ObjectChain {
+    pub(crate) fn chain_words_mut(&mut self, o: Obj) -> &mut ObjectChain {
         match o {
             Obj::Unit(u) => &mut self.units[u].chain,
             Obj::Building(b) => &mut self.buildings[b].chain,
@@ -2106,6 +2106,14 @@ impl Sim {
                     && self.terrain.object_heads[s] == Some(o)
                 {
                     self.terrain.object_heads[s] = w.below;
+                    // The last one off hands the cell its tail pair (4209).
+                    if w.below.is_none() {
+                        let c = pos.cell();
+                        let mut d = self.world.cell_data(c);
+                        d.down = w.down;
+                        d.down_who = w.down_who as _;
+                        self.world.set_cell_data(c, d);
+                    }
                 }
                 if let Some(b) = w.below {
                     let bw = self.chain_words_mut(b);

@@ -2324,7 +2324,7 @@ theirs 1, the start city `Setup::build_cities` counts) and `aggression`
 on dump-seated walks, chapters and melees. `start_x.num` is the world
 line's first parting on 65 packets (106). On 39 of the 41 the world
 line's first parting is a cell's `down`, ours −3 theirs −1 with
-`down_who` equal (4205c). run984b and run984c have no leaf parting
+`down_who` equal (4205c; closed by item 4209, below). run984b and run984c have no leaf parting
 outside the list. No leaf leaves `LEADERS_HELD_OUT`: `aggression` and
 `cities_built` were never on it.
 
@@ -2337,5 +2337,16 @@ clocks (anim 0, end 387), and by the draw stream: run1149 to its end, and
 24 words to their last packets. **Not established**: 4205b's cause;
 ~~4205a's~~ (item 4208, above); whether the built start holds a
 seated word past where its draws part; the chapters' and melees' packets,
-which stand up as before; the cell `down` copy (4205c, `docs/START.md`
-§7.1 names it dump-only).
+which stand up as before; ~~the cell `down` copy (4205c, `docs/START.md`
+§7.1 names it dump-only)~~ (item 4209, below).
+
+**4205c's cause (item 4209): the taken box's `Item::close`.** It was the
+world line's first parting on 76 of the 79 built packets. On run1186b
+the cell is (47, 29), box 2's, taken on frame 1134 by `1/0` (`0x47`,
+`EXPLORER`, land). `World::clear_down` turns the finder's tail word −3 →
+−1, `down_who` left, the cell takes it back when the finder steps off,
+and the box's `flags` go 0, so `check_items` walks it no more
+(`docs/GOODY.md` §4). **280 of 1,053 lines** (153 of 1,058): items 11 →
+102 of 102 (run1186b (105, 110, 25) → (105, 105, 0); five with no box
+leave the count), world 3 → 39 (run1186b (7361, 7361, 1) → 0, record
+1787 `down` ours −3 theirs −1). Each pin's pair is in its comment.
