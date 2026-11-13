@@ -647,7 +647,11 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **The score**: `(packets compared, lines agreeing, lines counted)` summed
 /// over [`PINNED`], a line counted when either side walks a range of it
 /// (`docs/DECISIONS.md` entry 120 §2). The queue's `Checksum:` clause.
-pub(super) const PACKETS_SCORE: (usize, usize, usize) = (107, 147, 1058);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 147, 1058);
+
+/// The packets on disk, the census's first count: the `Checksum:` line's
+/// `of` (`diff::floors::checksum_line`).
+pub(crate) const PACKETS_ON_DISK: usize = CENSUS.0;
 
 /// The pins' sum is [`PACKETS_SCORE`], and every held packet has its pin.
 #[test]
