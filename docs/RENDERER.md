@@ -3200,6 +3200,11 @@ lines and fog shading, projectiles and corpses, then candidate C.
 
 ### 7.1 Not established
 
+- **Where gaia's birds are drawn** (item 4208). Owner 9's birds carry `get_unit_gpiece`'s gaia piece
+  (60045, `WILDBIRD-TYPE0`) since `Sim::gaia_piece`, and the draw list draws them. On run1429 that is 280
+  figures on 34 logged frames. No dump prints owner 9, so the register leaves them out and counts them
+  (`free::tests::FIGURES_UNPRINTABLE`). Their piece joins M and not K: K 59 of M 60. The drawn objects over
+  the ages rise by 65,812, all resolved. Settled by a photograph, or a draw trace, that holds a bird.
 - What parts tank 1/27 from the photograph once its draw's whole state and normals are the original's, and the
   tone mapper's every input is live (§3.14, 4168): the texture as sampled, the frame's mean through clipping, or
   FXAA. Bloom is bounded out. And stage 1's `MODULATE4X` alpha, blended over what is behind, which no draw of
