@@ -31,8 +31,12 @@ use super::*;
 /// 114, 115) whole, `Cliffs::init` and all; then 153 (+7): the chains
 /// `mapgen`'s walk carries on their own takes composed — Old World,
 /// Amazon Basin, Himalayas, African Watering Hole, Mediterranean,
-/// Australian Outback and Colonial Powers, one lobby each.
-pub const START_BUILT: usize = 153;
+/// Australian Outback and Colonial Powers, one lobby each; then 157 (+4):
+/// Nile Delta, Sea Power and New World once the style's territory limits
+/// are read (`crate::mapgen::territory_limits`), East Meets West once its
+/// permutation is the identity; then 158 (+1): 4033a's thin lobby, its
+/// unprinted rows stand-ins and its printed ones whole (4034a).
+pub const START_BUILT: usize = 158;
 
 /// **The lobby's word on the built start** (`docs/START.md` §7.4, item
 /// 4057): `(map, word, length)` — the harness lobby's long capture (run53,
@@ -1012,18 +1016,25 @@ pub fn from_lobby(
         // `Map::make`'s copy of the style's six territory limits into
         // `world+0x38..+0x4c`; `Map::load_map_data` seeds them from the
         // rules' `TERRITORY_LIMIT_BASE/CIVIC/CITY` for both the player and
-        // the colonized triple, and a style XML that names its own
-        // overrides them (Great Lakes names none; the override is not
-        // read, §7.3).
+        // the colonized triple, and each `*_TERRITORY_*_HARD_LIMIT` the
+        // style XML names overrides its own (item 4196: Nile Delta, Sea
+        // Power and New World name theirs; [`crate::mapgen::territory_limits`]).
         let t = &sim.tables.tuning;
         let triple = [
             t.territory_limit_base,
             t.territory_limit_civic,
             t.territory_limit_city,
         ];
+        let named = loaded
+            .install_root
+            .as_deref()
+            .zip(int("MAP_STYLE").and_then(crate::mapgen::lakes::Style::of))
+            .and_then(|(root, s)| crate::mapgen::territory_limits(root, s.file()))
+            .unwrap_or([None; 6]);
+        let pick = |k: usize| named[k].unwrap_or(triple[k % 3]);
         sim.world.set_territory_limits(sim::world::TerritoryLimits {
-            player: triple,
-            colonized: triple,
+            player: [pick(0), pick(1), pick(2)],
+            colonized: [pick(3), pick(4), pick(5)],
         });
     }
     // 2. `init_rules_and_teams`.
@@ -1090,9 +1101,12 @@ pub fn from_lobby(
     let mut empire_words = Vec::new();
     if map_built {
         // 5. The start permutation, off the map's stream (`setup.cpp` 884
-        // -> 955). Every composed style randomises its starts (only East
-        // Meets West's `make_continents` writes the flag again).
-        let start_list = start_permutation(&mut sim.rng, true);
+        // -> 955). `Map::Map@006a06e0` sets `randomize_starts`, and only
+        // East Meets West's `make_continents@00696640` writes it again, to
+        // 0 at its head (`Map+0x2ec`, item 4196): its seats keep the
+        // continents it placed them on, and the permutation draws nothing.
+        let randomize = int("MAP_STYLE") != Some(19);
+        let start_list = start_permutation(&mut sim.rng, randomize);
         words.push(("setup.cpp", 955, sim.rng.seed));
         steps.push(("the start permutation", true));
         // 6. `Leader::init` for each active seat, in the permutation's
@@ -1676,11 +1690,55 @@ mod tests {
             let ours = from_lobby(&loaded, &init.game_info, &init.players, Tuning::RON);
             let a = start_block(&ours.sim, players);
             let b = start_block(&theirs.sim, players);
-            let (mut parted, mut stand_in) = dump_backed(
+            let (parted, mut stand_in) = dump_backed(
                 compare_start(&a, &b),
                 init.pasture.is_empty(),
                 init.checksums.is_empty(),
             );
+            // **A thin dump** (4034a, settled by item 4196): a start dump
+            // that prints no cells, no `diplos`, or a building without its
+            // `orig_type` leaves the installer on its own defaults there
+            // (`World::new`'s cells, the war matrix `Leader::init` would
+            // write, `start_of_game`'s type by object number, which names
+            // no 2005 or 2006) — the crate against itself. Those rows are
+            // stand-ins; the rows such a dump does print (the buildings'
+            // places, the units, `WORLD`'s extent and seed, the nations)
+            // are what it can fail on, and stay compared.
+            let no_cells = crate::gamelog::world_cells(&init.world).is_empty();
+            let no_diplos = init.leaders.iter().all(|l| l.diplos.is_empty());
+            let untyped: Vec<String> = init
+                .builds
+                .iter()
+                .filter(|b| b.orig_type.is_none())
+                .map(|b| format!("BUILD {}/{}", b.who, b.o))
+                .collect();
+            let mut parted: Vec<Parting> = parted
+                .into_iter()
+                .filter(|p| {
+                    let thin = (no_cells && p.record.starts_with("CELL "))
+                        || (no_diplos && p.field == "at_war")
+                        || (p.field == "type"
+                            && p.theirs.as_deref() == Some("None")
+                            && untyped.contains(&p.record));
+                    stand_in += usize::from(thin);
+                    !thin
+                })
+                .collect();
+            // A Southwest Mesa lobby's cliffs (item 4196): the mining lists
+            // our chain laid at the lobby's own stream against those
+            // `build_sim` lays from the same chain at the setup trace's
+            // 7805 seed. No dump prints `cliff_mining_data`, so this holds
+            // our walk to the trace's word, not to the original's lists.
+            if !theirs.sim.terrain.cliffs.is_empty()
+                && ours.sim.terrain.cliffs != theirs.sim.terrain.cliffs
+            {
+                parted.push(Parting {
+                    record: "CLIFFS".into(),
+                    field: "mining",
+                    ours: Some(format!("{} lists", ours.sim.terrain.cliffs.len())),
+                    theirs: Some(format!("{} lists", theirs.sim.terrain.cliffs.len())),
+                });
+            }
             // Each farm's `farm_type` — the pasture is type 1 — against the
             // start dump's own `FARMS` list where it prints one.
             for f in &init.farms {
@@ -1768,26 +1826,17 @@ mod tests {
 
     /// **The census**: every lobby's first parting by record and field,
     /// counted (items 4034, 4186; the value diff per lobby is each item's
-    /// journal's). The map is the 14 lobbies of the thirteen styles with no
-    /// composed chain, each at its first cell — the seven `CELL land`, the
-    /// five `CELL region` and two of the 31 `CELL flags` (item 4186
-    /// composed East Indies and Great Sahara: 60 → 7 and 55 → 8; item 4196
-    /// Southwest Mesa, 8 → 5). The
-    /// nation arms (`docs/START.md` §2 step 7, the same item) took the
-    /// other 29 `CELL flags` (31 → 2): a Spanish, American, Dutch, Korean
-    /// or Greek seat on Great Lakes (8), East Indies (11, one the fuzz
-    /// lobby) and Great Sahara (10, one a classical melee). `LEADER
-    /// at_war` is item 4033a's
+    /// journal's). The three left are Warring States (run1122) and British
+    /// Isles (run1127, run316), with no mask port, at their first cell
+    /// (item 4186 composed East Indies and Great Sahara; item 4196
+    /// Southwest Mesa and the eleven chained styles, and 4034a: 4033a's
     /// scratch lobby, a Great Sahara dump that prints neither cells nor
-    /// `diplos`, so the installer's side there is its own default, not the
-    /// original's.
-    const START_CENSUS: &[(&str, usize)] = &[
-        ("CELL flags", 1),
-        ("CELL land", 3),
-        ("CELL owner", 3),
-        ("LEADER at_war", 1),
-        ("built", 153),
-    ];
+    /// `diplos`, its unprinted rows stand-ins). The nation arms
+    /// (`docs/START.md` §2 step 7, item 4186) took 29 `CELL flags`: a
+    /// Spanish, American, Dutch, Korean or Greek seat on Great Lakes (8),
+    /// East Indies (11, one the fuzz lobby) and Great Sahara (10, one a
+    /// classical melee).
+    const START_CENSUS: &[(&str, usize)] = &[("CELL land", 3), ("built", 158)];
 
     /// A computer leader's `PERSONALITY` block under the start dump's
     /// `LEADERDATA` (`LEADERS=9`), as the crate's record; none below that
