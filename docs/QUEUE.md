@@ -47,22 +47,62 @@ Checksum: instrument 15 of 15 lines (run1562 f91) · state 8 of 12 lines, 367,15
 
 In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). The shapes are DECISIONS 90–94 and 100 §3, a
 `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6; gate scoped, DECISIONS 115 §3), a `start`
-item (`docs/START.md` §5: the frame-zero state built from the lobby's choices, the `[Start Game]` dump its oracle, gated whole)
+item (`docs/START.md` §5: the frame-zero state built from the lobby's choices, the `[Start Game]` dump its oracle)
 and an `input` item (`docs/CLIENT_INPUT.md`: events mint a script's orders and the original plays the file; gate scoped). A
-residue or chapter item books only when another track's frame needs one.
+residue or chapter item books only when another track's frame needs one. **The lanes** (DECISIONS 132 §9): start 4208 to 4211, 4204; render 4212, 4213; third 4214, 4215.
 
-4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 128 §3, 129 §5,
-131 §1 to §3; builders). `LEADERS_HELD_OUT` 47. A leaf leaves where it moves on a dump or packet our walk holds, or frozen.
-**Done:** S (4205: 41 of 87 word packets from the built start, lines 147 → 150; 4205a, 4205b seat the rest); VII-a (4206: run1575,
-style 0, ten leaves move); VII-a′ (4207: `set_diplo` runs this leader's armies on every level; run1575 whole, 1150 of 1150, **the
-French accept staged off the record**, not our AI's; parked 4207a the offers arm, 4207b the rest of `set_diplo`). **Next, the
-pass's to order:** the offers arm, **VII-b** (the leaves that moved), the frozen scan (`score_explored`, `score_pop`,
-`last_spoke`; 4187c), the residue of III, IV and VI (4176a–c, 4177a–c, 4187a, 4187b).
+4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
+§2; builders). `LEADERS_HELD_OUT` 47. A leaf leaves where it moves on a dump or packet our walk holds, on a block no staged
+decision precedes, or frozen. run1575 is **1150 staged, 1099 computed**, held unstaged through block 1026. **Order:** **VII-b1**
+the declaration (`action_declare`, `pay_dow`, `afford_dow`: `dow`, `blacken`, `broke_alliance` on 987 and 1002, the 640 of
+wealth); **VII-b2** the taunt's answer (`process_taunt`'s goods arm: four leaves on 967, five on the packet at 1090, wired); the
+frozen scan (4187c); **VII-c** the offers arm's accept (`made_peace`; retires the staging, 4207a); **VII-d** found short
+(`counteroffer`); the residue (4176a–c, 4177a–c, 4187a, 4187b, 4207b). Two readings stand open: the record, "Readings".
+
+4214. **Step H: the original's fifteen checksums, every frame** (checksum; an `input` lane, one playback on the click-free lane; scoped;
+DECISIONS 132 §7, §10). `CheckSums::check_all` runs every turn and prints only in a dump window; the draw stream the words stand
+on is blind to state. A hook in `tools/trace` writes its fifteen values a frame, `rondata` reads them, our emitters run on those
+frames. First act: a 120-frame playback of the minted file, the hook's frame-91 values against run1562's printed record, seen
+red on a shifted frame. Score: `Checksum: frames`, per emitted line the first frame it parts on the minted game's 24,000. Kill:
+the hook's values are not the record's on frame 91: the call's place in the frame is named, and a packet is the comparison.
+
+4208. **East Indies parts on frame 2 from the built start** (start; **whole**; parked 4205a). Every East Indies word's built walk
+spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where theirs spends `Farms::inc_time+0x1ae`. On run1149's game the frame
+zeros differ in `guys[0].anim` on four gaia animals with the unset angle and one pasture animal; the seated start also installs
+132 figures' clocks. First act: which difference spends the draw. Score: 38 packets onto the built start (`BY_START`),
+`Checksum: lines 150 of 1,058`. Kill: the cause is a clock only a dump holds: it is named and the 38 stay seated.
+
+4209. **A cell's `down` after its goody box goes** (rules; **whole**; parked 4205c). On 39 of the 41 built packets the world
+line's first parting is a cell with no object, `down` ours −3 theirs −1. Score: run1186b's world line (range 1811 its one
+parting) and `Checksum: lines` by it; the first parting on the other 38. First act: that cell on the packet beside ours, and
+the frame theirs leaves −3. Kill: theirs reads −1 from frame 0: it is the start's, and the item turns `start`.
+
+4210. **The late-age Great Lakes lobbies part on frame 0** (start; parked 4205b). Five Modern and Information words part at
+`Unit::think_scout+0x64c` against `+0x436`; on run1429's game four `world.fog` cells differ, the first `fog[5981]` built 0
+against 2. Item 4057's `update_seen_ally` radius was diff-backed at the harness lobby's age alone. Score: 8 packets onto the
+built start. First act: the radius at the Modern age against the dump's fog.
+
+4211. **The start track's last three lobbies** (start). Warring States (19) and British Isles (24, 119): neither style has a
+mask port. Score: `Start: 158 of 161 lobbies` to 161, and the track closes.
 
 4204. **The quit's `clear_orders`, timed past the frame's body** (rules; **whole**; parked 4189a). Seven closing pairs quit past
 the frame's body where `compare_shutdown` and `seat_walk` resign at its head, so the walkers take a step in theirs. Each pair's
 `quit_in_trace` at the 130 call sites, then the defeat's `clear_orders` in the crate's resign. Score: run667's 45 unit rows and 4 Mill rows,
 run609's 4, `cant_reach` on run667 5 → 0. Fails today: carried at the frame's head it moved 54 closing states the wrong way.
+
+4212. **The field reads browner than the photograph, and the row reads whole** (render; scoped). By eye on three stills ours is
+orange-brown where theirs is yellow-green, and `RUN1559B_3279_GROUND_STILL` reads 1,104 of 1,109. First act: the grass tiles'
+mean colour, ours and theirs, on both photographs. Score: a hue row on those tiles, seen under its bar, then moved; the tileset
+tint (`ImageIO::set_tint`, parked 4200c) is the hypothesis. Kill: one transform over the three channels explains it (the
+photographs are grabs of a window; 4199b's 0.89): the photographs are converted once and every row is read again.
+
+4213. **The lake** (render; scoped; parked 4200a, 4200d, 4200e). `RUN1564_3279_GROUND_STILL` 1,028 of 1,920: the `OCEAN` cells
+are a light, tile-stepped polygon, 132 of 437 on hue; no surf, no whitecaps. First act: the card's setters on one take
+(`RON_CARD_PROBE`) for draws 122–131. Kill: nothing read carries the red: the rung parks with the draws named.
+
+4215. **The page starts any lobby the start track holds** (lobby; scoped; parked 4184b). The page sets 161 of 161 lobbies and
+the client composes Great Lakes alone, though `Start:` holds 158. Score: `Lobby:` the page starts N of 161, the client's frame
+zero from the page's choices equal to the built start's and walked 600 frames off-screen. First act: East Indies from the page.
 
 ## How to maintain this file
 
@@ -99,6 +139,6 @@ run609's 4, `cant_reach` on run667 5 → 0. Fails today: carried at the frame's 
   zero-valued or switched off (117, 178); **a never-cleared field asserts a CHANGE, not a value** (`collide_frame`, run85).
 - **The gate is `python3 tools/release_gate.py <install> --test-threads 8 [--scope <tip>]`** (DECISIONS 72), to
   a file, never piped — a pipe launders the 137 — ending `Gate steps:`, `Admission wait:` and `Host load:`; **whole
-  (no `--scope`) every third landing whose merge widened, and at the drain** (DECISIONS 79); **a worker's takes
-  `--lane --tests --test-threads 4`** (the brief's, 1623), quotes `Lane verdict:` (969), and widens on a branch that
-  moves a pin (2415).
+  (no `--scope`) at the drain and at a pass** (DECISIONS 132 §5); **a worker's takes
+  `--lane --tests --test-threads 4`** (the brief's, 1623), runs its filters and the paperwork (132 §6), and quotes
+  `Lane verdict:` (969).

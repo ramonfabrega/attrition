@@ -16,6 +16,14 @@ answered and what it did not. A run that changes *how* a capture is
 taken — a key, a trap, a permission — writes that into ORACLE's runbook
 and cites its run here. The section is the unit the size guard reads.
 
+**The heading admits the capture to a tree's tests** (`docs/DECISIONS.md`
+entry 132 §3; `rondata::corpus`). From run 1546 on, a test that lists the
+shared archives counts a capture only when this file, in that tree, heads a
+section with its exact run token: `## run1576 — …`, or two tokens by name
+(`## run1507 and run1507b — …`). A range (`run1580 to run1580d`) names its
+ends alone. So the branch that files a capture writes its section and its
+re-pins together, and no other tree's gate sees the capture before the merge.
+
 ---
 
 ## The attrition run (run16, 2026-08-24) — the first of the blind runs

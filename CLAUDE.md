@@ -176,8 +176,8 @@ item follows are `docs/METHOD.md`.
   `python3 tools/release_gate.py <install> --test-threads 4` in one
   command, under the memory cap, with the fixture audit and the paperwork
   guards; that is the gate a landing names. **A worker's is the same line
-  with `--lane --tests <its filters>`**: it runs those, the fast tests and
-  the guards, and leaves the timed ones to the booking gate. It forgives a
+  with `--lane --tests <its filters>`**: it runs those, the guards and the
+  tests no timing names, and leaves the rest to the booking gate. It forgives a
   red only on the queue's lines, which are the driver's to write at the
   merge, and on the journal's own gate quote, which cannot exist before the
   gate has run; red on anything else it stops and names the test. The debug

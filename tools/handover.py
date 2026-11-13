@@ -44,9 +44,11 @@ def tree():
     return run(['git', 'rev-parse', '--show-toplevel']).stdout.strip()
 
 
-def roster():
-    """ccc's rows, every one. A row is `{job, session, worktree, archived}`."""
-    out = run(['ccc', 'list', '--json'])
+def roster(fresh=False):
+    """ccc's rows, every one. A row is `{job, session, worktree, archived}`.
+    `ccc list` is answered by the running app's roster, a tick old; `fresh`
+    polls once more first, for a read that follows a write of ours."""
+    out = run(['ccc', 'list', '--json'] + (['--fresh'] if fresh else []))
     if out.returncode != 0:
         raise SystemExit(f'handover: `ccc list --json` exited {out.returncode}: {out.stderr.strip()}')
     rows = json.loads(out.stdout)
@@ -158,7 +160,10 @@ def reap(ref):
         time.sleep(3)
     out = run(['ccc', 'forget', ref, '--json'])
     print(f'handover: ccc forget {ref}: exit {out.returncode} {said(out)}')
-    rows = roster()
+    # A stale roster still lists the row `forget` just removed, and the
+    # archive that follows then fails on a row that is gone (the reap of
+    # e9aff36b, 2026-11-13: "forget kept the row; ccc archive: exit 1").
+    rows = roster(fresh=True)
     row = next((r for r in rows if (r.get('session') or {}).get('id') == ref), None)
     if row is not None and (row.get('session') or {}).get('state') != 'stopped':
         print(f'handover: {ref} still has a process after stop and forget', file=sys.stderr)

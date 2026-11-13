@@ -113,8 +113,11 @@ another model takes that model's own default effort, not the driver's.
   frame — four workers with the chain's builder, confirmed at the pass by
   load (DECISIONS 129 §1). **At most one lane holds an item the queue marks
   whole**; a scoped item that finds it must touch `crates/sim` says so
-  before it builds; and a lane's whole gate takes a host-wide lock, so a
-  second one prints `Whole lane: waiting on <holder>` and waits. The trial
+  before it builds, **and in its done line, and its gate stays the brief's**
+  (DECISIONS 132 §6: no lane gates whole but a `structure` lane; two that
+  did sat 18 and 21 minutes on the host-wide lock before a twenty-minute
+  run, and the booking gate ran the same tests again). A `--lane --whole`
+  gate still takes that lock and prints `Whole lane: waiting on <holder>`. The trial
   tranche ran four of nine lane landings whole and read two false reds
   under a load of 46 to 51 on 16 cores. One lane at medium was the control: 27
   tranches of that roster read 7.25 USD a landing (lore, 2026-11-09); the
@@ -154,8 +157,32 @@ builder that is done, then gates the tip once and pushes it; a red names
 its test, and the driver reads which merge moved it before it sends anyone
 a line. **At a builder's merge the pins a merge moves are run first** — the
 census pin, the doors pin, `free::ages`, `diff::coverage`,
-`diff::checksum_lines`, `diff::transfer` — because two of that tranche's
-three reds were such a pin found by a thirty-minute gate.
+`diff::checksum_lines`, `diff::transfer`, `diff::floors` — because two of
+that tranche's three reds were such a pin found by a thirty-minute gate,
+and the next tranche's first was a literal in `diff::floors` (gate-4205,
+19.8 minutes on it alone; the literal is gone, DECISIONS 132 §4).
+
+**A booking gate is scoped, and the whole gate runs at a drain and at a
+pass** (DECISIONS 132 §5). A scoped gate widens to every timed test on any
+path that can move a pin; what the whole gate adds is the caches' verifiers.
+Of nine red verdicts in the 43 gate logs of 2026-11-11 to 11-13 none was a
+test a scoped gate skips, and the verifiers caught nothing: 20.0 minutes
+against 33.0, by the medians. **A lane's own gate runs its brief's filters,
+the paperwork guards and whatever the timings file has never timed**
+(§6): the rest is the booking gate's, on the merged tree. A red at the
+booking gate names its test; the fix is its owner's second commit, and a
+merge whose fix is not in hand is reverted (`git revert -m 1`) and lands
+again with it.
+
+**A tree's corpus is what its own ledger names** (DECISIONS 132 §3;
+`rondata::corpus`). From run 1546 on, a capture in the shared archives
+counts in a tree's tests only when that tree's `docs/RUNS.md` heads a
+section with its exact run token, so a capture filed by one worker is
+skipped and printed by every other tree until the filing branch merges
+(run1575 and run1576 turned four gates red on 2026-11-13). **Each run
+token takes its own heading or is named in one; a range is not expanded.**
+A recording a capture leaves in `Logs\` carries no run token and is not
+covered: a capture that plays a file removes the `.rcx` it left, or says so.
 
 **The gate clears the disk** (DECISIONS 128 §1). After a gate that exits 0,
 `tools/gate_run.sh` runs `tools/disk.py`: every oracle cache generation but
@@ -215,7 +242,8 @@ unshared input, where the take sends one — and pins it into
 `blind::TRACES`, so the functions a reading's captures-owed table names
 leave `NEVER`; it gates on the same line. **`structure` and `render`** (Loop 4022) **and `start` and
 `input`** (DECISIONS 128 §7) **are the sixth to ninth**: a start lane gates
-`--lane --whole`, an input lane scoped with the capture section. **A need
+on its own filters since DECISIONS 132 §6 (`--lane --whole` before it), an
+input lane scoped with the capture section. **A need
 for the queue lane
 again is a steer, never a lane's redirect** (item 3485, DECISIONS 89).
 **A late-age pair is a `residue` item that stands a word up** (DECISIONS
@@ -318,7 +346,8 @@ that commit** — `python3 tools/brief.py … > brief.md && [ -s brief.md ]
 nothing on stdout) fed to `ccc spawn -` makes a promptless `draft` row
 that sits until a person looks (Loop 3434, entry 88) — the gate to a file — **`--scope <the tip the last whole
 gate ran on> --test-threads 8` on a merge, and the whole gate, no
-`--scope`, every third landing whose merge widened and at the drain**
+`--scope`, at the drain and at a pass** (DECISIONS 132 §5; every third
+landing whose merge widened, before it)
 (the thirty-fifth steer, DECISIONS 72: a scoped gate runs the timed
 tests only when a merge since the last whole one can move a pin; the
 forty-first pass, DECISIONS 79: a sweep or document landing in third
@@ -512,7 +541,10 @@ start** (`ccc rm <ref>` on a merged row; eight stood at the fifty-third's
 drain, Loop 3565). **Its first act is the archives' compression,
 backgrounded** — `afsctool -c -f -T LZFSE -J8` on `~/ron-data` and
 `~/ron-golden`, six minutes and 19 GiB on 2026-10-17, never beside a
-gate (DECISIONS 77) — **and the integration tree's debug profile is
+gate (DECISIONS 77) — **and the suite's re-timing beside it** (`python3
+tools/suite_timings.py <install> --stale-only`, committed; DECISIONS 132
+§6: on 2026-11-13 the file was four days old and 189 tests were untimed,
+so every lane gate ran them) — **and the integration tree's debug profile is
 cleaned beside it** (`cargo clean --profile dev`: 180,851 files and 74.2
 GiB on 2026-11-04, the disk 108 → 144; the reflex rebuilds it in minutes)
 **when `df -g ~` reads under the last pass's figure** (DECISIONS 104 §6;

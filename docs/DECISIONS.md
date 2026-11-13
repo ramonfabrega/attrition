@@ -90,7 +90,7 @@ is append-only and amended in place, as it always was.
 - 76 standing — The thirty-eighth tranche is scored under host admission, the admission and the fourth lane stay, the census subtracts a sweep's stubbed callees, and twenty Loop items become tools, rows or closes
 - 77 standing — The thirty-ninth tranche is scored at the loop's fastest, the fourth lane holds while the fifth goes to a steer, the sweep lanes get a claim mark, and thirteen Loop items become tools, rows or closes
 - 78 standing — The fortieth tranche: five lanes, the booking gate named the chain's bottleneck and its scope stops widening on the blind residue, the waiter reads a finished log under another lane's runner, nine Loop items become tools, rows or closes
-- 79 standing — The forty-first tranche is scored on four lanes at the loop's cheapest, the census splits port-backed from layout-backed, the Golden line is counted, the whole gate counts widening landings, and twenty-six Loop items become tools, rows or closes
+- 79 amended by 132 — The forty-first tranche scored; the census splits port from layout; the whole gate counts widening landings
 - 80 standing — The forty-second tranche: four lanes at the loop's price, the lane gate named the loop's bottleneck and given a clock, the gate table graduates, the nations tool round-trips again, twenty-one Loop items become tools, rows, closes or Ramon's
 - 81 standing — The forty-third tranche: four lanes at less and slower, the sweep lanes' fan-outs read as their own, the lane gate two to four runs a landing and its quote guarded, a regen keeps every hand item, twenty-two Loop items ruled
 - 83 standing — The forty-fourth steer: three lanes, two Opus wide on battery words and one Sonnet sweep, a lane gate that widens only on the AI kind, and the fan-out rules move to docs/LOOP.md
@@ -134,10 +134,11 @@ is append-only and amended in place, as it always was.
 - 125 standing — no parked file
 - 126 amended by 128 — two rows, three workers, the leaders tranche
 - 127 standing — a render row is the client's pixels and reads brightness
-- 128 amended by 129, 130, 131 — the gate clears the disk, release on transfer, four workers on trial
-- 129 standing — four workers confirmed, one whole lane at a time; the sweep keeps a cache in use; release on the packets
+- 128 amended by 129, 130, 131, 132 — the gate clears the disk, release on transfer, four workers on trial
+- 129 amended by 132 — four workers confirmed, one whole lane at a time; the sweep keeps a cache in use; release on the packets
 - 130 amended by 131 — no idle driver row; §3 withdrawn
-- 131 standing — a leaf leaves where it moves; VII's capture; step S; a gate takes all merged; 400 k
+- 131 extended by 132 — a leaf leaves where it moves; VII's capture; step S; a gate takes all merged; 400 k
+- 132 standing — staged decisions; the chain's order; the corpus ledger; scoped gates; step H; parity
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — the fifty-first tranche, two Opus lanes
 - 89 amended in place — the fiftieth tranche, two Opus lanes
@@ -12779,3 +12780,119 @@ whether a gate over several merges reads its reds as cleanly as one over
 one; what `fseventsd` is serving (it holds a core and 28 GiB after 29 days
 up, and is Ramon's to restart); whether the fresh session's second look is
 worth something the prices do not show (lane-4193's reversed a wrong sign).
+
+## 132. A decision staged off the record holds no leaf, the chain goes declaration, taunt, scan, offers, a tree's corpus is its ledger's, a lane's gate runs what its brief names and the booking gate is scoped, and the original's own checksum is hooked every frame (2026-11-13)
+
+**What happened.** `commander` handed over at 12:45 −05:00 with the tree gated at
+`331d85b01`, one designed item on the queue and the chain's next step unordered
+(entry 126 §4). The `steer` row's pass ran from 13:33. Its opener carried four
+questions: the French accept that item 4207 staged off the dump's record, supply
+for three lanes, a capture filed mid-gate that turned four gates red, and a
+literal the merge pins missed. The `lore` row then sent input it said was at
+Ramon's request: the thirty-minute gate as the loop's main pain, whether a
+landing needs a whole gate, whether a verdict may be reused, parity as zero
+checksum mismatches over a declared set of games, and a function census.
+Ramon joined the row at about 14:00: "im here for whatever needs my discussion
+etc. we got 16 hours til reset and a good headway of tokens, so debating how
+much we can optimize our test/challenge our ideas". Measured by four Opus 5.5
+scouts and built by two Opus 5.5 builders; the tables and the reports' paths are
+in `docs/audit/2026-11-13-fable-pass-supply-2.md`.
+
+**Decided**, the pass's to move. What is Ramon's is under "For Ramon" in the
+record and is not decided here.
+
+1. **A computer's decision staged off the record holds no leaf.** Item 4207's
+   walk of run1575 reads the French accept of frame 1027 off the dump's own
+   `COMMANDMANAGER` line and its `diplos` move, because the offers arm that
+   decides it is not ported. A human's command read off that record is an
+   input, as a script's line is; a computer's answer read off it is the
+   oracle's own output fed back. So the word is quoted both ways wherever it
+   is quoted, **1150 of 1150 with the accept staged, 1099 computed**, it goes
+   on no scoreboard line until the arm computes the answer, and for entry 131
+   §1 our walk holds run1575 **through block 1026**, the last block no staged
+   decision precedes. A leaf leaves on a mover at or before that block. A leaf
+   whose only mover is written by a staged decision, or on a frame after one
+   (`made_peace` on 1028, `counteroffer` on 1052), waits for the decision's
+   port. The pin stays as the isolation's proof that `set_diplo`'s rule moves
+   the draws.
+2. **The chain's order, by leaves a decompiled line** (the sizing scout's
+   counts, `wc -l` over the export):
+   **VII-b1, the declaration**: `action_declare`, `pay_dow`, `afford_dow`,
+   about 317 lines, no draw and no decision; `dow`, `blacken` and
+   `broke_alliance` move on blocks 987 and 1002, and `pay_dow` closes the
+   wealth parting of 640. **VII-b2, the taunt's answer**: `process_taunt`'s
+   goods arm with `action_respond`'s commit and exchange, about 674 lines;
+   `gift_stamp`, `tribute_stamp`, `last_taunt` and `taunt_frame` move on 967,
+   and five more leaves on run1575's packet at 1090 once it is wired; a
+   computer's decision, computed, on a block our walk holds unstaged. **The
+   frozen scan** (entry 131 §1): a store scanner by displacement, which
+   nothing in the tree is today; `score_explored`, `score_pop`, `last_spoke`,
+   and the earlier quiet releases checked. **VII-c, the offers arm's accept
+   and the treaty arm**, about 750 lines on VII-b2's core: `made_peace`, and
+   the staging of §1 retired. **VII-d, found short**, about 250 lines more:
+   `counteroffer`. Then the residue of III, IV and VI. The offers arm is not
+   first: it needs VII-b2's commit and exchange, reads VII-b1's leaves, and
+   releases two leaves for a thousand lines.
+3. **A tree's corpus is what its own ledger names.** run1575 and run1576 were
+   filed into the shared archives at 10:40 and four gates went red on two
+   tests that list a directory and pin what they find, until the filing
+   builder's branch merged. From run 1546 on, a capture on disk counts in a
+   tree's tests only when that tree's `docs/RUNS.md` heads a section with its
+   exact run token; one it does not name is skipped and printed, never red
+   (`rondata::corpus`, the packets census, the transfer corpus, the lobbies
+   and map generation's traces). Each run token takes its own heading or is
+   named in one; a range is not expanded. Below 1546 the ledger groups runs
+   and everything counts as before. Seen red on the old code with one extra
+   packet directory, green on the new with the run named.
+4. **`diff::floors` joins the merge pins**, and the test that missed has no
+   literal a re-pin moves: it asserts the grouping itself.
+5. **A booking gate is scoped; the whole gate runs at a drain and at a
+   pass.** Of nine red verdicts in the 43 gate logs on disk, none was a test
+   a scoped gate skips, and the cache verifiers only a whole gate runs caught
+   nothing. A widened scoped gate runs every timed test; its median is 20.0
+   minutes against the whole gate's 33.0. This replaces the pilot's "whole
+   when it touches `crates/sim`" and entry 79's every third landing. What it
+   gives up is entry 75 (iv)'s check inside a tranche: a parser moved off the
+   cache's hand-listed sources is found at the drain, not at the next gate.
+6. **A lane's own gate runs what its brief names.** An unwidened lane gate's
+   release step ran 11.0 to 12.6 minutes: its filters, the paperwork, and
+   about 920 tests listed under a second that a loaded host ran at 1.6 to 2.0
+   seconds each, which the booking gate runs again on the merged tree. Two
+   lanes that gated whole sat 18 and 21 minutes on the whole-lane lock before
+   a twenty-minute run. A lane's gate now leaves every timed test to the
+   booking gate but its filters and the paperwork guards, and runs whatever
+   the timings file has never timed, which is its own new tests. No lane
+   gates whole but a `structure` lane; a lane that touches `crates/sim` says
+   so in its done line and the gate runs the sim crate's own binaries. **The
+   pass re-times the suite at its start** (`tools/suite_timings.py
+   --stale-only`): the file was four days old.
+7. **The original's fifteen checksums are hooked every frame** (step H, item
+   4214). `CheckSums::check_all` runs on every turn in every mode and prints
+   only inside a dump window; no capture carries it by frame. The per-frame
+   oracle the words stand on is the draw stream, and it is blind to state:
+   two recorded files three units apart in one Scout's target agree on every
+   random-number word of 24,001 frames, and on 41 packets in draw lockstep
+   the units, builds and guys lines agree on none. A hook in `tools/trace`
+   writes the fifteen values a frame; the score is, for each line our walk
+   emits, the first frame it parts on the minted game.
+8. **No verdict is cached, and the reason is now a number.** A key exists
+   (each gate records its test binaries' SHA-256, the fixture audit records
+   what each test read), but seven of the last sixty landings left the test
+   binaries unchanged, and none of the last eight.
+9. **The lanes' items are 4208 to 4215** (`docs/QUEUE.md`).
+10. **Parity is zero mismatched frames on the twelve state checksums over a
+   declared set of games** — Ramon's, on this row, to the pass's
+   recommendation: "yeah parity definition as you say makes sense". It is
+   the rules' finish line from the day step H prints its first number. Until
+   then the draw floors stand in for it, and they stay the regression gate
+   after. On what exists it reads 0 games. He left the day-one rules as they
+   are ("im ok with challenging/considering all. both seem fine as is") and
+   gave the word for one sentence of `CLAUDE.md`, on a worker's gate (§6).
+
+**Not established:** whether the hook's values on a frame are the printed
+record's (the call sits before the packages in playback and after the mode
+arms); what a lane's gate costs once it runs its filters alone; how many
+booking gates go red on a test a lane no longer runs; whether a recording
+left in `Logs\` by a capture turns another tree red (`RECORDINGS_ON_DISK`
+lists files that carry no run token); the two readings the sizing scout
+left open (`docs/audit/2026-11-13-fable-pass-supply-2.md`, "Readings").
