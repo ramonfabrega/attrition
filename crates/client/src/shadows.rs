@@ -28,33 +28,37 @@ mod tests {
     /// the tone map, the first draw (24 of 105 with the guys', ours 0.79×
     /// theirs), and agreeing now. The guys' decals are not drawn (parked
     /// 4182c, [`RUN1559B_3279_SHADOW_UNITS`]).
-    const RUN1559B_3279_SHADOW: [(usize, usize); 2] = [(92, 105), (89, 105)];
+    /// Item 4193's turn moved the selection (the guys' decals lie
+    /// elsewhere): 105 → 104 scored, hue 92 → 93.
+    const RUN1559B_3279_SHADOW: [(usize, usize); 2] = [(93, 104), (89, 104)];
     /// The same rows on the still drawn before item 4182, no decal drawn
     /// (`World::shadows` off): the count as drawn, pinned first. Ours
     /// 1.25× theirs on brightness (median).
-    const RUN1559B_3279_SHADOW_BEFORE: [(usize, usize); 2] = [(92, 105), (41, 105)];
+    const RUN1559B_3279_SHADOW_BEFORE: [(usize, usize); 2] = [(93, 104), (41, 104)];
     /// The made-to-fail: every decal mirrored in x (`World::shadow_mirror`),
-    /// selected and drawn so: luma 59 of 108, the tree tiles 31 of 71
-    /// against the drawn 61 of 68.
-    const RUN1559B_3279_SHADOW_MIRRORED: [(usize, usize); 2] = [(96, 108), (59, 108)];
+    /// selected and drawn so: luma 59 → 60 of 108 with 4193's turn, the
+    /// tree tiles 32 of 72 against the drawn 61 of 68.
+    const RUN1559B_3279_SHADOW_MIRRORED: [(usize, usize); 2] = [(98, 108), (60, 108)];
     /// The before still composed on the CPU under the rule's own darkening,
-    /// the guys' in (nearest texels): through the tone map, the GPU's 66
-    /// with the guys' drawn within one (65); in display space, the first
-    /// draw's 24 within three (21).
+    /// the guys' in (nearest texels): through the tone map, the GPU's 78
+    /// with the guys' drawn within one (77; 65 against 66 before 4193's
+    /// turn); in display space, the first draw's 24 within three (21).
     const RUN1559B_3279_SHADOW_CPU: [[(usize, usize); 2]; 2] =
-        [[(91, 105), (65, 105)], [(92, 105), (21, 105)]];
+        [[(92, 104), (77, 104)], [(93, 104), (21, 104)]];
     /// The row with the guys' decals drawn too (`World::unit_shadows`), as
-    /// `draw_unit_shadow` reads: luma 89 → 66, the figure tiles 28 → 5 of
-    /// 37, median ours/theirs 0.99 → 0.82. Tile (21, 166), 318 pixels
-    /// under the guys' decals: theirs (148, 148, 64) Y 138.7, ours (119, 113, 46) Y
-    /// 107.1 (parked 4182c).
-    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(92, 105), (66, 105)];
+    /// `draw_unit_shadow` reads: 4182's luma 89 → 66, the figure tiles 28
+    /// → 5 of 37, median ours/theirs 0.99 → 0.82 (parked 4182c). **Item
+    /// 4193: turned by −a, as `Point<float>::rotate` turns, 66 → 78 of 104,
+    /// the figure tiles 5 → 17 of 36.** Tile (22, 166), 275 pixels under
+    /// the guys' decals: theirs Y 128.3, ours undarkened 128.8, darkened
+    /// 101.0. Still not drawn (parked 4193a).
+    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(93, 104), (78, 104)];
     /// Before, drawn and with the guys': the tree tiles, then the figure
     /// tiles, each `[hue, luma]`.
     const RUN1559B_3279_SHADOW_BY_KIND: [[[(usize, usize); 2]; 2]; 3] = [
-        [[(63, 68), (13, 68)], [(29, 37), (28, 37)]],
-        [[(63, 68), (61, 68)], [(29, 37), (28, 37)]],
-        [[(63, 68), (61, 68)], [(29, 37), (5, 37)]],
+        [[(63, 68), (13, 68)], [(30, 36), (28, 36)]],
+        [[(63, 68), (61, 68)], [(30, 36), (28, 36)]],
+        [[(63, 68), (61, 68)], [(30, 36), (17, 36)]],
     ];
 
     /// One scored tile: the tile, the photograph's mean, the still's, and
@@ -309,5 +313,42 @@ mod tests {
             RUN1559B_3279_SHADOW_BY_KIND
         );
         assert_eq!(cpu, RUN1559B_3279_SHADOW_CPU);
+    }
+
+    /// **A decal turns as `Point<float>::rotate` turns** (item 4193): at
+    /// every whole degree, `render::decal`'s axes against
+    /// `sim::combat::quat_rotate` — the same function, ported on its own
+    /// and diff-backed on run1471's missile — under the decal's quaternion
+    /// `(0, 0, sin a/2, cos a/2)`. Made to fail once on 4182's `+a`: 358
+    /// of 360 degrees parted (all but 0 and 180).
+    #[test]
+    fn a_decal_turns_as_the_quaternion_turns() {
+        use sim::num::single::Single;
+        let f = |v: f32| Single::from_bits(v.to_bits());
+        let mut parted = Vec::new();
+        for a in 0..360 {
+            let h = (a as f32 * 0.5).to_radians();
+            let q = [f(0.0), f(0.0), f(h.sin()), f(h.cos())];
+            let axis =
+                |v: [f32; 3]| sim::combat::quat_rotate(q, v.map(f)).map(|s| f32::from_bits(s.0));
+            let (r1, r2) = (axis([1.0, 0.0, 0.0]), axis([0.0, 1.0, 0.0]));
+            let d = render::decal::Decal {
+                xstretch: 1.0,
+                xoffset: 0.0,
+                angle: a as f32,
+                ..render::decal::unit_shadow([0; 3], 2.0, 4.0, 0)
+            };
+            // The first corner is `−hw·r1 − hh·r2`, hw 3 and hh 6.
+            let want = [-3.0 * r1[0] - 6.0 * r2[0], -3.0 * r1[1] - 6.0 * r2[1]];
+            let got = d.corners()[0].0;
+            if (got[0] - want[0]).abs() > 1e-3 || (got[1] - want[1]).abs() > 1e-3 {
+                parted.push(a);
+            }
+        }
+        assert!(
+            parted.is_empty(),
+            "{} degrees part: {parted:?}",
+            parted.len()
+        );
     }
 }
