@@ -417,6 +417,81 @@ pub(crate) fn french_east_indies_closing_window() -> Option<harness::tests::Wide
     )
 }
 
+/// run600: the same game's closing state, block 17380, walked by the window
+/// harness (item 4189): the computer wins the territory on 17379
+/// (`popwin_stamp` 14293 + `popwin_timer()` 3086) and the human quits from
+/// the end window past that frame's body, which its trace dates
+/// (`Player::resign`'s draw after the frame's last `game_random` draw).
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_RUN600_CLOSING: (i64, i64) = (17380, 17380);
+
+pub(crate) fn french_east_indies_run600_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run600 closing",
+        &[(EAST_LONG.0, WIDENING_FRENCH_EAST_INDIES_RUN600_CLOSING.0)],
+        WIDENING_FRENCH_EAST_INDIES_RUN600_CLOSING,
+        1,
+        &[17380],
+        true,
+    )
+}
+
+/// **The territory victory and the quit after it** (item 4189,
+/// `docs/LEADERS.md` §10.5): on run600's closing block the end of the game
+/// agrees whole — who=1 `victory_type` 2, who=0 `defeat_type` 5 (the
+/// cascade's) and `defeat_stamp` 17380 (the quit's re-stamp on the frame
+/// count the territory frame advanced), `defeated_by` −1.
+#[test]
+fn run600_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_run600_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 1, "the closing state");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    let endgame: Vec<String> = w
+        .firsts
+        .iter()
+        .filter(|((_, o, what), _)| {
+            *o == -1
+                && ["defeat_type", "victory_type", "defeat_stamp", "defeated_by"]
+                    .iter()
+                    .any(|k| what == &format!("leader:{k}"))
+        })
+        .map(|((who, _, what), (n, row))| format!("who={who} {what} {n}: {row}"))
+        .collect();
+    pin_eq!(endgame, Vec::<String>::new(), "the end of the game agrees");
+    // The rows move: theirs is off `Leader::init`'s image on this block, so
+    // the agreement above is not a quiet field's.
+    let text = crate::capture::read(dump(EAST_LONG.0).expect("walked above"));
+    let log = Log::parse(&text);
+    let leaf = |who: i64, k: &str| {
+        log.leader_block(17380, who)
+            .map(|b| crate::diff::leader::theirs(&b))
+            .and_then(|t| t.get(k).copied())
+    };
+    pin_eq!(
+        [
+            leaf(1, "victory_type"),
+            leaf(0, "defeat_type"),
+            leaf(0, "defeat_stamp"),
+            leaf(0, "defeated_by"),
+        ],
+        [Some(2), Some(5), Some(17380), Some(-1)],
+        "theirs: the territory victory, the cascade, the quit's re-stamp"
+    );
+    // Item 4189, the first walk: 50 keys. 28 are the standing families the
+    // run667 window carries from 17374 — the `form`s of `0/0`..`0/5`,
+    // `1/1`..`1/5`, `1/95`, `1/96`, `1/132`, who=0's ten `SITE[i].reg` and
+    // `aggression[1]`, who=1's `num_units[270]`, `[271]` and `score`. 22 are
+    // who=1's eleven groups' `held` and pools 64..75, ours populated and
+    // theirs empty: the winner's armies let go on the victory, as on
+    // run667's 17380 (parked 4189b). Nothing of the end of the game parts.
+    pin_eq!(w.firsts.len(), 50, "run600 closing baseline");
+}
+
 #[test]
 fn run667_s_closing_frame_is_widened_whole() {
     let _pins = Pins::hold();
@@ -446,7 +521,23 @@ fn run667_s_closing_frame_is_widened_whole() {
     // `victory_type` ours 2 theirs 0 (the original, its human gone, does not
     // win; parked 4185a). `defeat_stamp` 17379 agrees, the cascade's against
     // the quit's.
-    pin_eq!(w.firsts.len(), 120, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
+    // Item 4189: 120 -> 159, −12 +51 on the closing block 17380. The quit
+    // on 17379's head is replayed from run667's trace and its
+    // `Game::check_victory` gives who=1 the conquest, which bars the
+    // territory win (`docs/LEADERS.md` §10.2). Gone, each now agreeing:
+    // who=0's `defeat_type` 6 = 6 (was ours 5), who=1's `victory_type` 0 = 0
+    // (was ours 2), `effective_pop` 128 = 128 (was 130), and the queue the
+    // conquest victory cleans — `barracks_queued`, `combat_queued`,
+    // `epochs_queued`, `num_queued[0]`, `[526]`, `[85]` and `queue:queued`
+    // on `1/2005`, `1/2023`, `1/2032` (ours 1 each, theirs 0). Back, the
+    // 4185 coincidence undone: the human's units `0/1`..`0/5` keep their
+    // order (45 rows: `orders.len` ours 1 theirs 0, `idle` 0 against 1, the
+    // figures' clocks, `0/5` a step on at (4784, 6096) against (4792, 6072)),
+    // the Mill's `gather_down[-1]` on `0/2001`..`0/2004` (ours 2..5, theirs
+    // −1), and `1/123`'s `cur_anim` 2 against 0 and `end_time` 68 against
+    // 32 — `Sim::resign` does not carry the defeat's `clear_orders`
+    // (GOLDEN §152.15, parked 4189a).
+    pin_eq!(w.firsts.len(), 159, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
 #[test]
@@ -1555,7 +1646,15 @@ fn run609_s_closing_frame_is_widened_whole() {
         // 5638's head, which the harness does not replay (parked 4185a);
         // `defeated_by` 1, `defeat_stamp` 5638 and the lost capital's 5638,
         // 1, 226 agree.
-        43, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 4189: 43 -> 42, −5 +4 on 5639. The quit on 5638's head is
+        // replayed from run609's trace: who=0's `defeat_type` 6 = 6 (was ours
+        // 0), and its conquest victory cleans who=1's queues (`num_queued[0]`,
+        // `[11]`, `queue:queued` on `1/2010`, `1/2013`, ours 1 each, now 0 =
+        // 0; `docs/LEADERS.md` §10.2). The conquest that follows meets a
+        // defeated leader and no longer clears the human's orders, so `0/1`
+        // and `0/2`'s `orders.len` and `order:length` part, ours 1 theirs 0
+        // (`Sim::resign` does not carry `clear_orders`; parked 4189a).
+        42, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         "run609 closing residue, not whole-record parity"
     );
 }

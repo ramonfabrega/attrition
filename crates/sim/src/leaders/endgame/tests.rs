@@ -156,3 +156,58 @@ fn the_wonder_clock_banks_a_stop_and_pays_it_back() {
     s.refresh_wonder_timer(1);
     assert_eq!(s.leader_endgame(1).wonderwin_stamp, -62);
 }
+
+/// Slot 0 the one human, the rest computers (`Nation::default` seats a
+/// human in every slot).
+fn one_human(s: &mut Sim) {
+    for (j, n) in s.cities.nation.iter_mut().enumerate() {
+        n.human = j == 0;
+    }
+}
+
+/// **The quit decides the game** (item 4189, run667's 17379): the human's
+/// resign reaches `Game::check_victory`, which with no human alive gives the
+/// last computer `victory(0)` and ends the game; the territory clock that
+/// runs out on the same frame then finds the winner already won.
+#[test]
+fn a_quit_gives_the_last_computer_the_conquest_and_bars_the_territory() {
+    let mut s = sim();
+    one_human(&mut s);
+    let land = s.land_size();
+    s.economy.holdings[1].territory = land * 70 / 100 + 1;
+    s.frame = 14_293;
+    s.process_victory_territory();
+    s.frame = 14_293 + 3086;
+    s.resign(0);
+    let (w, l) = (s.leader_endgame(1), s.leader_endgame(0));
+    assert_eq!((w.won, w.victory_type), (true, VICTORY_CONQUEST));
+    assert_eq!((l.defeat_type, l.defeat_stamp), (DEFEAT_RESIGN, 17_379));
+    assert!(s.game_over() && s.leaders.victory_checked);
+    s.process_victory_territory();
+    assert_eq!(
+        s.leader_endgame(1).victory_type,
+        VICTORY_CONQUEST,
+        "the territory arm's victory(2) meets the won flag"
+    );
+    assert_eq!(s.leader_endgame(0).defeat_type, DEFEAT_RESIGN, "no cascade");
+}
+
+/// **No winner, and no answer while a human lives**: a computer's defeat
+/// beside a live human asks `check_victory`, which declines (the human is
+/// not allied with the rest); once the human is gone, two unallied
+/// computers end the game with no winner.
+#[test]
+fn a_live_human_defers_the_check_and_unallied_survivors_end_it_unwon() {
+    let mut s = Sim::new(crate::Tuning::RON, World::new(60, 60), 3);
+    one_human(&mut s);
+    s.frame = 100;
+    s.defeat(2, DEFEAT_CONQUEST, Some(1));
+    assert!(!s.leaders.victory_checked && !s.game_over());
+    assert!(!s.leader_endgame(1).won);
+    let mut t = Sim::new(crate::Tuning::RON, World::new(60, 60), 3);
+    one_human(&mut t);
+    t.frame = 200;
+    t.resign(0);
+    assert!(t.leaders.victory_checked && t.game_over());
+    assert!(!t.leader_endgame(1).won && !t.leader_endgame(2).won);
+}

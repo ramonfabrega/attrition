@@ -4870,6 +4870,82 @@ pub(crate) mod tests {
         Some(result)
     }
 
+    /// `Player::quit+0x20`, the return address of its call to
+    /// `Player::resign@006edcb0`, and `Player::resign+0x18a`, of the
+    /// resign's `SoundGlobal::play` — the one draw the quit makes, on the
+    /// sound's own generator (run1468b, `docs/GOLDEN.md` §152.15).
+    const QUIT_RESIGN_RET: u32 = 0x006e_dc20;
+    const RESIGN_SOUND_RET: u32 = 0x006e_de3a;
+
+    /// The capture's own quit as its trace dates it, `(frame, head)` — the
+    /// resign's draw under `Player::quit`, and whether a `game_random` draw
+    /// of the same frame follows it ([`closing_quit`]). `name` is the
+    /// capture's `gamelog-runN-…` name; its trace is `rontrace-runN.log`.
+    pub(crate) fn quit_in_trace(name: &str) -> Option<(i64, bool)> {
+        let run = name.strip_prefix("gamelog-")?.split('-').next()?;
+        let t = trace(&format!("rontrace-{run}.log"))?;
+        let draws = t.draws();
+        let at = draws
+            .iter()
+            .rposition(|d| d.up == [RESIGN_SOUND_RET, QUIT_RESIGN_RET])?;
+        let q = draws[at].frame;
+        let head = draws[at + 1..]
+            .iter()
+            .take_while(|d| d.frame == q)
+            .any(|d| d.sync());
+        Some((q, head))
+    }
+
+    /// **When the human quit, read off the capture's own trace** (item
+    /// 4189, `docs/LEADERS.md` §10.2): the frame of the resign's sound draw
+    /// under `Player::quit`, and whether it opened that frame — a
+    /// `game_random` draw of the same frame follows it — or followed the
+    /// frame's body, from the end window of a game already over (run1200's
+    /// 5639, after the conquest; run600's 17379, after the territory
+    /// victory). `None` with no trace, no quit in it, a quit that is not
+    /// the frame before the capture's last block, or a quit past the body
+    /// whose capture closes with an ordinary block and its closing records
+    /// beside it (the block was written before the quit). Read once per
+    /// capture and process.
+    fn closing_quit(
+        name: &str,
+        ix: &mut crate::capture::indexed::IndexedCapture,
+    ) -> Option<(i64, bool)> {
+        use std::collections::HashMap;
+        use std::sync::{Mutex, OnceLock};
+        type Quits = Mutex<HashMap<String, Option<(i64, bool)>>>;
+        static QUITS: OnceLock<Quits> = OnceLock::new();
+        let cache = QUITS.get_or_init(Default::default);
+        if let Some(q) = cache.lock().unwrap().get(name) {
+            return *q;
+        }
+        let found = (|| {
+            let (q, head) = quit_in_trace(name)?;
+            let last = ix.frames().last()?.number;
+            if q + 1 != last {
+                eprintln!("{name}: the quit on {q} is not the closing block {last}'s frame");
+                return None;
+            }
+            if !head {
+                let text = ix.read_shutdown().ok()?;
+                if crate::gamelog::Log::parse(&text).final_state().is_some() {
+                    return None;
+                }
+            }
+            eprintln!(
+                "{name}: the quit on {q}, {}",
+                if head {
+                    "the frame's head"
+                } else {
+                    "past its body"
+                }
+            );
+            Some((q, head))
+        })();
+        cache.lock().unwrap().insert(name.to_string(), found);
+        found
+    }
+
     #[expect(
         clippy::too_many_arguments,
         reason = "the existing walk plus a legacy audit mode"
@@ -4990,6 +5066,37 @@ pub(crate) mod tests {
             Some((f.parse().ok()?, w.parse().ok()?, o.parse().ok()?))
         });
         let mut gap_seen: BTreeMap<String, String> = BTreeMap::new();
+        // **The quit, replayed where the original's own run made it** (item
+        // 4189, `docs/LEADERS.md` §10.2): for each capture whose last block
+        // the walk compares, its trace dates the human's `Player::quit` and
+        // says whether it opened that frame or followed its body (the end
+        // window of a game already over). `(frame, head)` per capture.
+        let quits: Vec<Option<(i64, bool)>> = chain
+            .iter()
+            .enumerate()
+            .map(|(c, (n, _))| {
+                let last = ixs[c].frames().last()?.number;
+                let active = from.iter().rposition(|&lo| last >= lo) == Some(c);
+                (active && first_block <= last && last <= tail)
+                    .then(|| closing_quit(n, &mut ixs[c]))
+                    .flatten()
+            })
+            .collect();
+        let mut quit_replayed = false;
+        let resign_humans = |built: &mut Built| {
+            for who in 0..players.min(built.sim.cities.nation.len()) {
+                if built.sim.cities.nation[who].human {
+                    built.sim.command().resign(who as sim::Player);
+                }
+            }
+        };
+        let quit_at = |n: i64, head: bool| {
+            (n >= first_block)
+                .then(|| from.iter().rposition(|&lo| n >= lo))
+                .flatten()
+                .and_then(|c| quits[c])
+                .is_some_and(|q| q == (n - 1, head))
+        };
         // Frame `f` writes block `f + 1`, so the window's last block is
         // frame `tail - 1`'s. `0..=tail` read block `tail + 1` too, which no
         // chain held until run211 followed run202 (item 722).
@@ -5000,8 +5107,20 @@ pub(crate) mod tests {
                 built.sim.trace.sweep_watch =
                     Some(sim::movement::collide::SweepWatch::new(sf, w, o));
             }
+            // A quit at the frame's head runs before any of its units:
+            // `CommandManager::issue_quit` → `Player::quit` → `resign`.
+            if quit_at(f + 1, true) {
+                resign_humans(&mut built);
+                quit_replayed = true;
+            }
             let tick_started = profiling.then(std::time::Instant::now);
             built.tick();
+            // A quit from the end window follows the frame's body, on the
+            // frame count it has already advanced (run1200's 5640).
+            if quit_at(f + 1, false) {
+                resign_humans(&mut built);
+                quit_replayed = true;
+            }
             if let Some(t) = tick_started {
                 tick_time += t.elapsed();
             }
@@ -5332,7 +5451,10 @@ pub(crate) mod tests {
                 stages[3]
             );
         }
-        if let Some(key) = prefix_key {
+        // A state past a replayed quit is no other walk's prefix.
+        if let Some(key) = prefix_key
+            && !quit_replayed
+        {
             super::prefix::put(key, built);
         }
         Some((

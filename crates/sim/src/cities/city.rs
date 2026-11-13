@@ -699,6 +699,9 @@ impl Sim {
                 self.clear_orders(u);
             }
         }
+        // `Leader::defeat@006ecb00`'s tail: `Game::check_victory` while
+        // `semaphore[0] & 0x40` is clear (`docs/LEADERS.md` §10.2).
+        self.check_victory();
     }
 
     // ------------------------------------------------------------------
@@ -2774,7 +2777,7 @@ impl Sim {
     /// off, each refunded when `refund` is set, and each one's queued count
     /// taken down — a technology's under its own type
     /// ([`Sim::untrack_item`]; item 3969).
-    fn clean_queue(&mut self, b: usize, refund: bool) {
+    pub(crate) fn clean_queue(&mut self, b: usize, refund: bool) {
         let who = self.buildings[b].owner;
         let mut ledger = std::mem::take(&mut self.economy.ledgers[who as usize]);
         while !self.buildings[b].queue.items.is_empty() {

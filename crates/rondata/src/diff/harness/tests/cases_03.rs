@@ -1635,7 +1635,9 @@ mod bodies {
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            [(23960, 37), (24001, 49)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            // Item 4189: 49 -> 48 on 24001, who 0's `score` 401 = 401 (was
+            // ours 402): the quit on 24000's head, replayed from run80's trace.
+            [(23960, 37), (24001, 48)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, and how many"
         );
         let end: Vec<&String> = firsts
@@ -1645,10 +1647,11 @@ mod bodies {
             .filter(|what| what.as_str() != "orders.len")
             .collect();
         // Item 4187: and on `score` (held, `docs/LEADERS.md` §18.5): who 0
-        // ours 402 theirs 401 on 24001.
+        // ours 402 theirs 401 on 24001. Item 4189: 401 = 401, the quit on
+        // 24000's head replayed (`docs/LEADERS.md` §10.2).
         pin_eq!(
             end,
-            vec![&"leader:score".to_string()],
+            Vec::<&String>::new(),
             "the end block parts on `orders.len` alone"
         );
         // Item 1115 took the caravan's four rows here (306 → 302; `docs/CARAVAN.md` §11.3).

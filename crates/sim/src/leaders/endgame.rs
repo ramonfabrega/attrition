@@ -33,6 +33,8 @@ pub const DEFEAT_ELIMINATION: i32 = 1;
 /// `defeat_type` of `Leader::lost_a_city`'s last-city arm (§10.2).
 pub const DEFEAT_CONQUEST: i32 = 0;
 
+/// `victory_type` of `Game::check_victory@005926b0`'s conquest (§10.2).
+pub const VICTORY_CONQUEST: i32 = 0;
 /// `victory_type` of the wonder arm (§10.2).
 pub const VICTORY_WONDER: i32 = 1;
 /// `victory_type` of the territory arm (§10.2).
@@ -97,12 +99,6 @@ pub const ENDGAME_LEAVES: [&str; 9] = [
     "defeat_type",
     "defeat_stamp",
 ];
-
-/// Of [`ENDGAME_LEAVES`], the two the leaders line emits unheld although
-/// the crate holds them: the record diff parts each on a closing block
-/// whose human quit, which the window harness does not replay (run609's
-/// 5639, run667's 17380; parked 4185a).
-pub const ENDGAME_OFF_THE_LINE: [&str; 2] = ["victory_type", "defeat_type"];
 
 /// `max(1, (S/2 + xs·t) / S)` for `t ≥ 1`, else 0: the map-size scaling
 /// `Game::popwin_timer@005944b0`, `Game::wonder_timer@005944f0` and
@@ -181,9 +177,15 @@ impl Sim {
     /// every other live seated slot either wins with it (it counts `who` as
     /// an ally) or is defeated by the cascade, `defeat(5, −1, 0)`.
     ///
-    /// SEAM: `instant` (`flags2 & 0x100`), the `0x80` mark, the messages
-    /// and the achievement are not carried; nothing this crate holds reads
-    /// them.
+    /// Between the two, **every building of the winner's has its queue
+    /// cleaned with no refund**: the walk over `objects[who]` from 2000
+    /// asks vslot `+0x20` (a `Build` answers 1, a `Wall` 0) and calls
+    /// `Build::clean_queue(0)` (item 4189). A wall holds no queue, so the
+    /// walk here takes every live building of the winner's.
+    ///
+    /// SEAM: `instant` (`flags2 & 0x100`), the `0x80` mark, the messages,
+    /// `Player::win` and the achievement are not carried; nothing this
+    /// crate holds reads them.
     pub fn victory(&mut self, who: Player, ty: i32) {
         let w = usize::from(who);
         if w >= self.leaders.endgame.len()
@@ -194,6 +196,11 @@ impl Sim {
         }
         self.leaders.endgame[w].won = true;
         self.leaders.endgame[w].victory_type = ty;
+        for b in 0..self.buildings.len() {
+            if self.buildings[b].alive && self.buildings[b].owner == who {
+                self.clean_queue(b, false);
+            }
+        }
         for j in 0..self.leaders.endgame.len().min(8) {
             if j == w || self.leaders.defeated[j] {
                 continue;
@@ -205,6 +212,67 @@ impl Sim {
                 self.defeat(j, DEFEAT_CASCADE, None);
             }
         }
+    }
+
+    /// **`Game::check_victory@005926b0`** (§10.2), asked at the tail of
+    /// every `Leader::defeat@006ecb00` that passes the defeated guard while
+    /// `semaphore[0] & 0x40` is clear ([`Sim::defeat`], [`Sim::resign`]).
+    ///
+    /// While a seated human still lives, or no human is seated, it answers
+    /// only if every live leader is mutually allied with the first live
+    /// one. Past that it latches `semaphore[0] |= 0x40`
+    /// ([`LeadersState::victory_checked`](crate::leaders::LeadersState)),
+    /// walks the live slots — the first is the candidate; a later live one
+    /// that has not won and is not mutually allied with it means no winner
+    /// — and else `victory(candidate, 0)`. Either way the game is over,
+    /// `semaphore[2] |= 0x40` ([`Sim::game_over`]).
+    ///
+    /// So the human's quit decides a two-leader game for the computer at
+    /// once, by conquest, and the won flag that sets is what keeps the
+    /// territory arm from winning later that frame (run667's 17379:
+    /// `victory_type` 0, the winner's queues cleaned; item 4189).
+    ///
+    /// SEAM: the armageddon gate (`game.armageddon < A`, `A` from
+    /// `ARMAGEDDON`, `_PER_NATION` and `_PER_TEAM` and the starting
+    /// resources) is read as passing: `Game::armageddon` is not carried, so
+    /// it is 0 against the shipped `A ≥ 4`. Balance mode
+    /// (`semaphore[1] & 2`), the `0x80` mark, the drop window and the
+    /// GameSpy tail are not carried.
+    pub(crate) fn check_victory(&mut self) {
+        if self.leaders.victory_checked {
+            return;
+        }
+        let n = self.leaders.endgame.len().min(8);
+        let live: Vec<usize> = (0..n).filter(|&j| !self.leaders.defeated[j]).collect();
+        let human = |s: &Sim, j: usize| s.cities.nation.get(j).is_some_and(|x| x.human);
+        let seated = (0..n).filter(|&j| human(self, j)).count();
+        let living = live.iter().filter(|&&j| human(self, j)).count();
+        if living != 0 || seated == 0 {
+            let all_allied = live
+                .iter()
+                .all(|&j| self.is_ally(j as Player, live[0] as Player));
+            if !all_allied {
+                return;
+            }
+        }
+        self.leaders.victory_checked = true;
+        if let Some(&c) = live.first() {
+            for &j in &live[1..] {
+                if !self.leaders.endgame[j].won && !self.is_ally(j as Player, c as Player) {
+                    self.leaders.game_over = true;
+                    return;
+                }
+            }
+            self.victory(c as Player, VICTORY_CONQUEST);
+        }
+        self.leaders.game_over = true;
+    }
+
+    /// `Game::semaphore[2] & 0x40`: the game is over, decided by
+    /// [`Sim::check_victory`]. A human who quits after this frame quits
+    /// from the end window, past the frame's body (item 4189).
+    pub fn game_over(&self) -> bool {
+        self.leaders.game_over
     }
 
     /// `Game::wonder_timer@005944f0`: [`scaled_timer`] of `WONDER_TIMER`.

@@ -77,6 +77,10 @@ dump and move there, and leave `LEADERS_HELD_OUT` (68 → 61). Item 4187
 (§17–§20): twelve leaves leave `LEADERS_HELD_OUT` (61 → 49), four printed
 ones by entry 128 §3 (`tech.ptr`, `reg_terr`, `territory_high`, and
 `high_buildings` on transfer) and eight unprinted ones by entry 129 §5.
+Item 4189 replayed the human's quit on a window's closing block where the
+capture's trace dates it and ported `Game::check_victory`, and
+`defeat_type` and `victory_type` agree on every dump and leave (49 → 47;
+§10.2, §10.5).
 
 **The transfer harness** (item 4159's step T; `docs/DECISIONS.md` entry
 128 §3; `rondata::diff::transfer`). A held leaf that parts only beside a
@@ -2292,6 +2296,24 @@ not mutually allied with it, set `semaphore[2] |= 0x40` and declare no
 winner; else `victory(candidate, 0, 0)`. All humans dead and the computers
 unallied ends the game with no `victory_type`.
 
+**Where `check_victory` is asked** (item 4189): the tail of every
+`Leader::defeat` past its guard while `semaphore[0] & 0x40` is clear.
+Past the latch it sets `semaphore[2] |= 0x40`, on which `Game::do_frame`
+ends in `Game::process_end_game (00591ce0)`'s modal end window.
+
+**The quit** (item 4189): `CommandManager::issue_quit (00941360)` →
+`Player::quit (006edc00)` → `resign(1)` → `defeat(6, −1, 0)`, whose
+`check_victory`, one computer left, gives it `victory(1, 0, 0)`: the won
+flag (which the territory arm's `victory(2)` meets later that frame — no
+semaphore) and its queues cleaned with no refund (`Leader::victory`'s walk
+from object 2000, `Build::clean_queue(0)`). The trace dates the quit by the
+resign's draw (`< Player::resign+0x18a < Player::quit+0x20`): **at the
+head**, before any `game_random` draw, in a live game (run609's 5638,
+run667's 17379, the melees' 2600, run80's 24000); or **past the body**, from
+the end window of a game over (run1200's 5639, run1250's 8777, run1262's
+6106, run958f's 22700, run600's 17379), the count advanced (run600's
+re-stamp 17380).
+
 **The wonder arm**, in `process_victory`, every frame under `VICTORY` ∈
 {0, 1, 6}, with `W = Game::wonder_winning (005948a0)` read once. For slots
 0..7 with `flags & 3 == 3`, in order:
@@ -2344,9 +2366,8 @@ landed:
 - **The captor reaches the defeat.** `Sim::capture_city` closes the old
   city building through `close_building`, whose `close_city` carried no
   captor, so a conquest's `defeat_by` saw −1. `CitiesState::capturing`
-  carries the taker through the capture's closes (red first: before it,
-  `defeated_by` parted ours −1 theirs 1 on run1200's 5640, run1250's 8778,
-  run1262's 6107, run594's 18141 and run958f's 22701).
+  carries the taker through the capture's closes (red first: the 4185
+  journal).
 - **`Sim::resign`** is `leave_game`'s choice: type 1 with the
   `find_capital` holder (itself under another elimination) while the
   capital clock runs, else type 6. SEAM: the captor arm under a running
@@ -2368,16 +2389,15 @@ landed:
   no longer paid back.
 - **A wonder finished by a command** is registered at once
   (`Sim::finish_arm` calls `note_wonders`): `Wonders::init_wonder` runs
-  inside the command, before `process_victory`. Before it, chapter
-  seventy-three's clock started a frame late (ours 702, theirs 701, from
-  block 702).
-- **Not built:** the `w44c` reader (`ai/army/target_gate.rs`) still
-  answers 0 where 30 captures hold a live 1 (parked 4185b);
-  `Game::check_victory` (it moves no printed leaf of a two-leader game but
-  the won flag); `Wall::process`'s reader.
-- Checksum: `leader_long` answers the nine through `ENDGAME_LEAVES`, and
-  `ENDGAME_OFF_THE_LINE` keeps `victory_type` and `defeat_type` off the
-  line (§10.5).
+  inside the command, before `process_victory` (chapter seventy-three's
+  clock, 701).
+- **Item 4189**: `Sim::check_victory` at the tail of `Sim::defeat` and
+  `Sim::resign` (latches `victory_checked`, `game_over`); `Sim::victory`
+  cleans the winner's queues. SEAM: the armageddon gate passes; the
+  winner's armies stay (4189b). `rondata`'s `widen_walk` resigns at the
+  trace's quit (`quit_in_trace`), before or after the frame's tick.
+- **Not built:** the `w44c` reader (4185b); `Wall::process`'s reader;
+  `Sim::resign`'s `clear_orders` (4189a). All nine are on the line.
 
 ### 10.4 Reached by a plain game
 
@@ -2395,7 +2415,7 @@ and the shared-`who` arm. Type 10: a load only.
 
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/end-of-game-*.md`); ~~no diff backs it
-yet~~ since item 4185 the record diff backs four of the six. Counts (confirmed / corrected / open): `defeated_by` 13/3/1,
+yet~~ since item 4185 the record diff backs ~~four~~ of the six, and since item 4189 all six. Counts (confirmed / corrected / open): `defeated_by` 13/3/1,
 `defeat_stamp` 10/0/1, `victory_type` 10/1/1, `defeat_type` 9/2/1,
 `wonderwin_timer` 14/2/1, `wonderwin_stamp` 8/0/1. Every store, guard and
 push was read in the listing; confidence is high throughout.
@@ -2414,30 +2434,24 @@ quit) and on the quits' (the melees' closing 2601: −1 and 2600, replayed
 by `Sim::resign`; their start dumps' 37: 36, read off a copy that resigns,
 `gunpowder_melee::seat_walk`). `wonderwin_stamp` and `wonderwin_timer`
 agree everywhere and move on chapter seventy-three (701 and 1 from block
-702 to 760). One agreement is a coincidence of frames: on run667's
-closing block 17380, ours `defeat_stamp` 17379 is the cascade's and
-theirs the quit's.
+702 to 760).
 
-**Not agreeing**, both on a closing block whose human quit, a quit the
-window harness (`widen_on_siblings`) does not replay: `defeat_type` on
-run609's 5639 (ours 0, the conquest's; theirs 6, the quit's) and on
-run667's 17380 (ours 5, the cascade's; theirs 6), and `victory_type` on
-run667's 17380 (who 1, ours 2, theirs 0). Ours wins the territory on
-frame 17379 there, where the original, its human gone at 17379's head,
-does not. Both stay held (parked 4185a).
+**`defeat_type` and `victory_type`** agree everywhere since item 4189
+(§10.2): run609's 5639 `defeat_type` 6 = 6 (was ours 0); run667's 17380 6 =
+6 (was 5), who 1 `victory_type` 0 = 0 (was 2); run600's 17380 `victory_type`
+2 = 2, `defeat_type` 5 = 5, `defeat_stamp` 17380 = 17380.
 
 **The expiry's frame, a witness**: on all five captures that end on it,
 the closing record's `defeat_stamp` is `popwin_stamp + 3087`, one past
 `popwin_timer()`'s 3086 on a 60-wide map (run600 14293 → 17380, run972b
 20541 → 23628, run981b 15797 → 18884, run1256 6172 → 9259, run1316 5894 →
 8981). The port wins on `popwin_stamp + 3086`, and the one frame is the
-quit's re-stamp on the next (a closing record is written by a quit); this
-is read, not diffed: no test replays those closings.
+quit's re-stamp past the body; diffed on run600 (item 4189), read on the
+other four.
 
 Witnesses from an archive sweep of 3,805 dumps, **not pinned diffs**:
-run600's closing frame 17380, slot 1 `victory_type` 2 and slot 0
-`defeat_stamp` 17380, `defeat_type` 5, `defeated_by` −1 (the cascade);
-the same shape in run972b, run981b, run1256, run1316. run1200: slot 0
+run600's closing shape (diffed since item 4189) in run972b, run981b,
+run1256, run1316. run1200: slot 0
 `defeated_by` 1, `defeat_stamp` 5639, `defeat_type` 0. run24: slot 1
 `defeated_by` 0, 3363 frames after its capital fell (the shape of
 `process_elimination`). `defeat_type` 6 in the start captures, 9 in
@@ -2447,26 +2461,24 @@ run1113/1114. `wonderwin_timer` 1 in 30 captures (run652 … run1423c).
 
 - **The stop, the banked stamp, the pay-back** (and the crate's missing
   alive gate): no capture holds a negative `wonderwin_stamp`.
-- **A wonder win.** No `victory_type` 1 in the archive. ~~Nor `M`'s row
-  (`0xe7fca8`) and `world[0]` (`*0xc06188`) in `wonder_timer`~~ — read by
-  item 4185: `M` is `map_sizes` record 3's `+0x144` (70) and `world[0]`
-  `WorldData::xs`, as in `retake_capital` and `popwin_timer`; a capture
-  that runs the clock out would back it.
+- **A wonder win.** No `victory_type` 1 in the archive. ~~Nor
+  `wonder_timer`'s `M` and `world[0]`~~ — read by item 4185 (§10.3's
+  `scaled_timer`); a capture that runs the clock out would back it.
 - **A re-stamp.** No file shows two `defeat_stamp` values.
 - **Resign under a capital timer.** No `defeat_type` 1 in the archive; it
   would show `defeated_by` = the quitter's own slot.
-- ~~**The territory expiry's frame** for run600 (from `popwin_stamp` 14293)
-  is the territory family's arithmetic; `Game::popwin_timer` for its map
-  is unread.~~ Read and ported by item 4185 (§10.3, §10.5's witness); no
-  test replays a capture to its expiry.
-- **Why the original does not win after a quit** (run667's 17379):
-  read as the quit closing the game before `process_victory`; the
-  semaphore it sets is unread (4185a).
+- ~~**The territory expiry's frame**~~: ported by item 4185, diffed on
+  run600's closing by item 4189 (§10.5).
+- ~~**Why the original does not win after a quit** (run667's 17379)~~:
+  the conquest victory's won flag (§10.2; item 4189), backed by run667's
+  17380 by elimination; `Player::win` draws only for the console player,
+  so the trace cannot show it.
+- **The quit's timing outside the window walk** (4189a).
 - **`lost_a_city`'s `param_1`, `param_2` and captor** are derived by its
   callers (`Build::close`), owned by §11.
-- **The pins:** ~~run600's closing block and~~ run1200's loss is held by
-  `korean_ancient_pair`'s closing walk since item 4185; run600's closing
-  block is not walked.
+- **The pins:** run1200's loss is held by `korean_ancient_pair`'s closing
+  walk since item 4185, and run600's closing block by `third_pair` since
+  item 4189.
 
 ## 11. The lost capital
 

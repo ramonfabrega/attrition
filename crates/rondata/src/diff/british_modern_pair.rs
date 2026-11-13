@@ -294,11 +294,16 @@ fn british_modern_pair_run1433_s_closing_state() {
     // them through 3793; theirs' 3794 holds none, parked 3752b), and the
     // city `1/2050`'s `assimilation_timer` 3793 against 3790 (3760d's
     // family); nothing off, torn or unlinked. A floor, not a score.
+    // Item 4189: [0, 0, 3, 0, 0, 0, 1] -> [0, 0, 0, 0, 0, 0, 1], the three
+    // extras gone (3752b answered): the human's defeat asks
+    // `Game::check_victory`, whose conquest victory cleans every one of
+    // who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md`
+    // §10.2), so nothing is born on the closing step on either side.
     pin_eq!(e.compared, 146, "units compared");
-    pin_eq!(e.counts(), [0, 0, 3, 0, 0, 0, 1], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
     pin_eq!(
         e.extra.clone(),
-        vec![(1, 136), (1, 137), (1, 138)],
+        Vec::<(i64, i64)>::new(),
         "the closing extras"
     );
 }

@@ -31,8 +31,9 @@
 //!
 //! SEAM: the building loop's `Build::clean_queue` on each active building
 //! (a refund; no closing dump on disk holds a quitter's queue), the
-//! achievement event, the messages, `Game::check_victory` and the tribute
-//! arm for allies (`semaphore & 0x44 == 4`).
+//! achievement event, the messages and the tribute arm for allies
+//! (`semaphore & 0x44 == 4`). `Game::check_victory` is carried since item
+//! 4189 ([`Sim::check_victory`]).
 
 use crate::combat::Obj;
 use crate::{Player, Sim};
@@ -80,6 +81,9 @@ impl Sim {
                 self.die_quietly(u);
             }
         }
+        // `Leader::defeat@006ecb00`'s tail (item 4189): with the human gone
+        // and one computer left, the game is decided for it at once.
+        self.check_victory();
     }
 
     /// `Unit::die(0, −1, 0)` → `Object::die`: the close through vslot
