@@ -4476,9 +4476,9 @@ reading's map, which the port followed.
   start seated from a dump, whose own comment named `activate(0, 1, 0)`).
   Before the seat's flip, 106 of 107 packets parted the leaf: run1496's
   frame 1539, leader 0, cells 3, 4, 21 and 22 ours 2004, 2001, 2005, 2006
-  against theirs −1. After both, no record diff, packet pin or line of the
-  frame-91 pair moved: no frame-0 building in any walk pays a nation's free
-  units.
+  against theirs −1. After both, no packet line but the leaders' moved and
+  the frame-91 pair's lines held; two windows run with the seat's flag put
+  back (run1275b, run1314b) parted exactly as with it.
 - **Unit hook**: `Sim::build_train` (`crates/sim/src/cities/queue.rs:1693`),
   right after `init_unit` (`crates/sim/src/units/store.rs:504`), with
   `table[who][ty] = units[unit].index as i32`.
@@ -4804,7 +4804,14 @@ Two readings and an adjudication
   window's pin. **It transfers** (`diff::transfer`): the activations read
   off `num_buildings`' rises and the line counted on the second record
   give the original's printed array on every consecutive pair of the
-  corpus.
+  corpus: 476,924 pairs, 712 on which it moves, none parting, once the step
+  reads a pair whose `cities_captured` rose as a capture (no raise) and
+  refuses a pair over a gap that moves `num_buildings`.
+- **`Sim::reg_terr` reads the store**, so the spacing rule sees the pass's
+  count. Put back to the recount, run1275b's window parts `reg_terr` on
+  1973 mid-pass (who 1, region 11, ours 269 theirs 0) and the site list on
+  1976; with the store, 89 → 66 first partings there (item 4187's
+  journal).
 
 | leaf | confirmed | corrected | open |
 |---|---|---|---|

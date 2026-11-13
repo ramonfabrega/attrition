@@ -1734,17 +1734,10 @@ the crate and stay held out, each parting on a closing block whose quit
 the window harness does not replay (4185a). The ranges and bytes do not
 move: the long range still parts on the other 61, so 263 of 267 ranges
 and 4,313 of 58,343 bytes agree as before. ~~**61**~~ 61 since step V,
-and **49** since item 4187 (step VI, `docs/LEADERS.md` §17–§20), which
-released twelve: `tech.ptr`, `reg_terr`, `territory_high` and
-`high_buildings` (entry 128 §3; the last on transfer), and
-`last_building_finished`, `last_unit_finished`, `score_territory`,
-`score_buildings`, `score_economy`, `score_unit_upgrades`,
-`score_research` and `score_wonders` (entry 129 §5, on the packets).
-`score`, `score_units`, `score_units_2`, `score_combat`, `score_explored`
-and `score_pop` are held by the crate and stay held out (4187a, 4187b).
-The spell pass makes each walked leader's `tech` array agree: **265 of 267
-ranges and 4,515 of 58,343 bytes** agree on frame 91; the two that part
-are the long ranges, on the 49.
+and **49** since item 4187 (step VI), which released twelve (`docs/LEADERS.md`
+§17–§20 name them and the rule each met); six of the score's twelve stay
+held out (4187a–c). With the spell bits each `tech` array agrees: **265 of
+267 ranges and 4,515 bytes** agree on frame 91, the long ranges parting.
 `CHECKSUM_STATE` does not count it (§5).
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7

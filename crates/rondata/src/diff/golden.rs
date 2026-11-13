@@ -4736,7 +4736,12 @@ fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
 /// detail does not print (no `DEATHS`), on the blocks after the ring
 /// kills them on both sides; and two citizens' animation clocks on
 /// 617..655, a residue outside the nuke that moves no draw.
-const WANT_CH37: &[&str] = &["3218 0/6 death:extra", "3227 0/7 death:extra"];
+const WANT_CH37: &[&str] = &[
+    "3218 0/6 death:extra",
+    "3227 0/7 death:extra",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 6604 theirs 6384.
+    "3091 0/-1 leader:score",
+];
 
 /// Chapter thirty-seven's pool rows (item 1091): the research's building
 /// group on 617, `ox`/`oy` 0 against −1.
@@ -5344,6 +5349,8 @@ const WANT_CH71: &[&str] = &[
     "600 1/3 form",
     "600 1/4 form",
     "600 1/5 form",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 1277 theirs 1257.
+    "611 0/-1 leader:score",
 ];
 
 /// **Chapter seventy-two** (item 2448, `docs/GOLDEN.md` §89, run859): a
@@ -5374,6 +5381,8 @@ const WANT_CH72: &[&str] = &[
     "600 1/3 form",
     "600 1/4 form",
     "600 1/5 form",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 1277 theirs 1257.
+    "611 0/-1 leader:score",
 ];
 
 /// **Chapter seventy-three** (item 2474, `docs/GOLDEN.md` §90, run860): a
@@ -5499,6 +5508,8 @@ const WANT_CH76: &[&str] = &[
     "600 1/3 form",
     "600 1/4 form",
     "600 1/5 form",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 1103 theirs 1083.
+    "611 0/-1 leader:score",
 ];
 
 /// **Chapter seventy-seven** (item 2598, `docs/GOLDEN.md` §96, run872): the
@@ -5529,6 +5540,8 @@ const WANT_CH77: &[&str] = &[
     "600 1/3 form",
     "600 1/4 form",
     "600 1/5 form",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 1521 theirs 1546.
+    "711 0/-1 leader:score",
 ];
 
 /// **Chapter seventy-eight** (item 2627, `docs/GOLDEN.md` §97, run874): the
@@ -6922,6 +6935,8 @@ const WANT_CH136: &[&str] = &[
     "600 1/3 form",
     "600 1/4 form",
     "600 1/5 form",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 479 theirs 467.
+    "620 1/-1 leader:score",
 ];
 
 /// What parts in run1552's window, blocks 605–1250 (item 3994): the eleven
@@ -8513,6 +8528,8 @@ const WANT_CH36: &[&str] = &[
     "984 0/7 ammo[2].accuracy",
     "987 0/7 ammo[3].accuracy",
     "995 0/7 ammo[5].accuracy",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 6125 theirs 6085.
+    "2711 0/-1 leader:score",
 ];
 
 /// Chapter thirty-six's pool rows (item 1078).
@@ -8668,6 +8685,8 @@ const WANT_CH35: &[&str] = &[
     "984 0/7 ammo[2].accuracy",
     "987 0/7 ammo[3].accuracy",
     "995 0/7 ammo[5].accuracy",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 5925 theirs 5885.
+    "2711 0/-1 leader:score",
 ];
 
 // **What parts in the pool** on run371: chapter twenty-two's ten, and
