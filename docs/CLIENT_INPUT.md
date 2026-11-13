@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §9 item 4194, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -27,8 +27,11 @@ Each event does one thing:
   rule (§7).
 - **A right press**, with units selected, on an object gives the command the original's dispatch issues for it
   (§6). On nothing it moves them: a `move_to` at the ground under the pixel. Its fields are the
-  script's right-click fields: `set_angle` 0, `angle` 0, `orders` 1, `queued` 2, `form`/`width` −1, `disembark` 0.
-  For more than one unit, `form` and `width` are the formation the original reads off the selection (§7.1).
+  script's right-click fields: `set_angle` 0, `angle` 0, `orders` 1, `queued` 2, `disembark` 0, and `form`/`width`
+  the formation the original reads off the selection (§7.1), for one unit as for many (§9).
+- **A right press on the minimap** (`Event::MapRightPress`) moves the selection to the point it names, with
+  `form`/`width` −1/−1, the minimap's own fields (§9). Ours: the minimap is not drawn, so the event carries the
+  world point rather than a pixel.
 - **A key** trains or chooses:
   - With a building selected, a key in `TRAIN_KEYS` trains: `c` gives a `queue_up` of the Citizen (50), `num` 1.
   - With units selected, a key in `BUILD_KEYS` chooses the building the next press places: `f` chooses the Farm (417).
@@ -122,7 +125,9 @@ the original played in lockstep. The stage 0 projections are the original's own 
   (§6); on the ground it moves, and the move's fields are the script's;
 - the right press's look (§6): the nearest anchor within 24 px, where the original searches a ±5 px box by bounding
   volume;
-- the box's anchor test and its drag threshold, and one unit's (−1, −1) (§7.1).
+- the box's anchor test and its drag threshold (§7.1), ~~and one unit's (−1, −1)~~ the main view's formation for
+  one unit (§9);
+- the minimap's event carrying a world point (§9).
 
 **Not established:**
 
@@ -403,9 +408,8 @@ on frames 230 and 239. So the minted move carries `form` 9 and `width` 50.
 - The window sends a drag when the release is `DRAG_SLOP` (4 px) or more from the press. The original's `clicking`
   threshold is not read.
 - The window now selects on the left button's release, as `on_left_up` does.
-- **One unit keeps the scripts' (−1, −1).** The original's main view mints `max(form, 0)` and the leader's width for
-  one unit too: (0, 50) for the Scout on frame 30, whose bytes read `form 0` and `form_mod -1` on 29. The scripts'
-  move carries the minimap's fields, and every file played so far holds them. This is parked as 4180a.
+- ~~**One unit keeps the scripts' (−1, −1).**~~ The main view mints `max(form, 0)` and the leader's width for one
+  unit too, (0, 50) for the Scout on frame 30; the scripts' −1/−1 is the minimap's arm. Played by run1572 (§9).
 
 The scene carries what the box and the formation read (`observe::UnitScene`): `type_index`, `form` and
 `form_width`. In the layer they are `input::View::boxed` and `View::formation`, with `Event::Drag`.
@@ -493,4 +497,113 @@ each unit's slot, path goal and formation bytes equal on both sides.
 - **The figure's bounding box.** The anchor stands in for its centre. A unit near the margin can fall either way.
 - **Another slot's units in a box, buildings in a box, shift, ctrl and alt,** and the planes' arm of the width's
   mean.
-- **The single unit's main-view fields** (parked 4180a).
+- ~~**The single unit's main-view fields** (parked 4180a).~~ Played by run1572 (§9).
+
+## 9. One unit's press, as the main view mints it (item 4194)
+
+A right press on the ground mints the selection's formation for one unit as it does for many. The −1/−1 that every
+script before this one carries for its single move is the minimap's arm, not the main view's.
+
+### 9.1 The two arms
+
+- **The main view.** A right button going down with a selection writes `drag_form = max(GroupData::get_form, 0)` and
+  `drag_form_mod = get_form_mod_option` (`Console::down@007cd8f0`, §7.1). `Console::execute_at_cursor@007c6630`'s
+  ground arm hands both to `issue_move_to` as `form` and `width`. Nothing in that path tests the selection's size.
+  For one member, `get_form` is its own `UnitData +0xaa`, and `get_form_mod_option` is its own `+0xab`, or 50 when
+  that is −1.
+- **The minimap.** `WorldMap::on_right_up@008c7050` takes the world point the minimap names. It holds that point
+  inside the map (`0 ≤ x < worldc +0x18 · 0xc0`, the same in `y`) and asks `Group::can_activate`. When
+  `count(COUNT_DOMAIN, 4)` is 0 (a domain this item did not name) it issues `issue_move_to(…, MOVE_TO, -1, -1, 0)`, or `ATTACK_TO` with
+  ctrl held.
+
+**The bytes on the press's frame.** run1563a's `UNITDATA` prints `form 0` and `form_mod -1` for the Scout `0/0` on 29.
+So the main view's move carries `form` 0 and `width` 50 (`script::SCOUT_FORM`, `SCOUT_WIDTH`).
+
+**Ours.** The layer's `Event::RightPress` on the ground always mints `View::formation`. `Event::MapRightPress`
+carries a world point and mints −1/−1, bounded by `View::map_extent`. The minimap is not drawn and its pixel
+transform is not read, so the event carries the point rather than a pixel. The window sends no minimap event.
+
+### 9.2 The scripts, and the counts
+
+**The main view's clicked script** is `rondata::script::clicked_main_view()`: `clicked()` (§5) with the move's
+`form`/`width` (0, 50). It stands beside `clicked()` and changes nothing else.
+
+| frame | events | the order |
+| --- | --- | --- |
+| 30 | a press on the Scout at (1006, 629), then a right press at (1384, 862) on the main view | `group` [0]; `move_to` (5883, 31896), `orders` 1, `queued` 2, **`form` 0, `width` 50** |
+| 60, 90 | §5's | §5's |
+
+`INPUT_CLICKED`: **3 of 3**, now counted against this script (`minted_clicked_at_the_opening_camera`). The old
+clicked script counts **2 of 3** against the same events (`INPUT_CLICKED_MINIMAP_ON_MAIN`): the move parts on
+`form`/`width` alone. That was "fails today": the layer minted −1/−1 for one unit. Seen red: `SCOUT_WIDTH` set to 49
+gave 2 of 3.
+
+**The played files keep their counts.** The test lists for the earlier scripts send the Scout's move as the
+minimap's press, at the ground stage 0's inverse names under the event's camera: (5880, 31896) under the closer
+camera, and (5883, 31896) under the opening one. `INPUT_MINTED` 3 of 3, `INPUT_MINTED_OPENING` 1 of 3 with
+`(30, 3, 0)`, `(90, 2, 4)`, `INPUT_RIGHT_PRESSED` 5 of 5 and `INPUT_BOXED` 6 of 6 are unchanged. The HUD's
+`HUD_BUTTONS` 2 of 2 is unchanged too, and every file those tests write is still byte for byte the file the original
+played. The same test asserts that the minimap's list mints `clicked()` whole and writes the played clicked file.
+
+**The file** is `~/ron-golden/recordings/item4194-clicked-main-view-greatlakes-24000.rcx`, 59,278 bytes, SHA-256
+`7a8bffce…5f864d` (`CLICKED_MAIN_RCX_BYTES`). It parts from the clicked file in the move's package alone
+(`the_clicked_main_view_minted_packages_round_trip`). The client writes the same bytes from the orders it minted.
+
+### 9.3 The playback, and each order's effect
+
+**run1572**: the click-free lane, `end:MISC,UNITS=3,BUILDS=7`, 300 frames (`docs/RUNS.md`).
+`the_original_s_playback_of_the_main_view_clicked_file_walks_in_lockstep` gives `CLICKED_MAIN_WALKED`. The draws
+agree on **300 of 300** frames, count and sequence, and **299 records are compared whole, with none parted**. Seen
+red: pinned `(0, 0, 0, 0)`. Each order's effect is equal on both sides on 31, 61, 91 and 299, and it is §5's
+(`clicked_effects`):
+
+- the Scout at (3514, 31896), (4534, 31896) and (5554, 31896), and on (5883, 31896) on 299;
+- the Village's queue `[50]` on 61 and 91;
+- the site `0/2007` at (3456, 29760) from 91;
+- the builder's `move`, `build`, then `gather`.
+
+**The Scout's formation bytes, both sides** (`the_main_view_s_scout_holds_the_move_s_formation_on_both_sides`,
+`SCOUT_FORM`):
+
+| frame | run1572 `form`, `form_mod` | our walk `form`, `form_width` |
+| --- | --- | --- |
+| 29 | 0, −1 | 0, −1 |
+| 31 | 0, 50 | 0, 50 |
+| 101 | 0, 50 | 0, 50 |
+| 299 | 0, 50 | 0, 50 |
+
+Seen red: pinned −1 on every frame.
+
+**The value diff against run1563a**, the minimap's −1/−1, is **none**. The two dumps differ only in three wall-clock
+lines before frame 0: two `SYNCPOINT` timings and `Sys Memory`. On frame 31 run1563a's Scout prints `form 0`,
+`form_mod 50`, and so does run1572's. Its `MOVEORDER` `x` reads 5880 in both. So the original fills an unset
+`width` with what the main view would have sent, and our walk's `Sim::group_action_move_to` does the same (§7.4).
+
+**Made to fail** (`the_minimap_s_clicked_file_against_the_main_view_playback`). The played clicked file against
+run1572 parts **nowhere**: 299 records, none parted, and no draw parts. Seen red: pinned to part on 31. The first
+script's file, three units off on the move, parts against run1572 exactly as it parts against run1563a: frame 31, the
+Scout's path target (5880, 31896) against (5883, 31896) (`FIRST_AGAINST_CLICKED`). So this take can fail. It does
+not tell the two clicked files apart because their state is the same.
+
+### 9.4 Confidence, and what is not established
+
+**Backed by the playback.** One unit moved with the main view's (0, 50) is played by run1572, in lockstep for 300
+frames, with each effect and the formation bytes equal on both sides.
+
+**Reading only**, one reader, with the call sites checked:
+
+- the minimap's bound and its `can_activate` test;
+- its other arm, for `count(COUNT_DOMAIN, 4)` nonzero, which this item did not read;
+- that nothing on the main view's path tests the selection's size.
+
+**Not established:**
+
+- **A Scout on an enemy draws `follow`, and an ally `guard`** (parked, second). The dispatch's arm for a selection
+  none of whose members can attack is read as far as `GroupData::count(COUNT_ATTACK)`. A seen unit under the cursor
+  draws `GroupOut::issue_guard` when it is an ally's, and `issue_follow@00708980` otherwise. `COUNT_ATTACK` counts the
+  members whose type's `+0x1e8` is nonzero and whose vtable slot `+0xe8` answers nonzero. The export names neither:
+  the type's field prints as padding, and COMDAT folding names the slot `is_captain`. The layer still mints an attack.
+  No take can play it here: the harness lobby shows slot 0 no enemy until frame 6703 (item 4195).
+- **The minimap's pixel.** Its transform from a minimap pixel to the world is not read, and the client draws no
+  minimap.
+- **A one-unit `form` other than 0**, and a member whose `form_mod` is set. Neither is played.

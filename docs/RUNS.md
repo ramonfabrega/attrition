@@ -36712,3 +36712,30 @@ golden_capture.sh` and waited on with `waitrun.sh` in the background.
 Archive `gamelog-run1569-greatlakes-playback-of-boxed-300.txt`, 37,261,607 bytes,
 SHA-256 `0a896c44f915cb2512872be614edad159c2dc8c47d125463186917865d9d9e14`; `rontrace-run1569.log`, 9,588,576 bytes,
 SHA-256 `0be98850cf2cdf4906102b67f35544cd43d184a95f8700cae340dfe2a5db7363`.
+
+## run1572 — the original playing the clicked file as the main view mints it, 0..300 (2026-11-12, item 4194, `att-4194`)
+
+`docs/CLIENT_INPUT.md` §9. **What the disk could not answer**: whether the original plays one unit's `move_to` with
+the main view's formation fields, `form` 0 and `width` 50, where every file played so far holds the minimap's −1/−1,
+and whether the two leave the same state. The file:
+`~/ron-golden/recordings/item4194-clicked-main-view-greatlakes-24000.rcx`, 59,278 bytes, SHA-256
+`7a8bffcef70364a98a0c59e9c77bbbd2fe8f0825197b3d5b8acc954d295f864d`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata the_clicked_main_view_minted_packages_round_trip`. It is run1563a's file with the Scout's move carrying
+(0, 50). The take: run1563a's line with this file, `--end-frame 300 --cover cover=1 --log-window 0 300 --detail
+end:MISC,UNITS=3,BUILDS=7 --timeout 540 --stall-seconds 120`, launched through `viadriver.sh golden_capture.sh` and
+waited on with `waitrun.sh` in the background.
+- Pool lane 1, launched 22:14:42 −05:00; **39.5 s launch to exit**, exit 0, `success`, 301 frames, `last_frame` 300,
+  seed 12345, map 14, players tribe 4 (flags 7) and tribe 11 (flags 1), five settings restored, no page fault, no
+  relaunch. Minutes waited on another lane: none.
+- The built walk under the pump on the file (`CLICKED_MAIN_WALKED`): draws agree on all 300 frames, count and
+  sequence; **299 records compared whole, none parted**; each order's effect equal on both sides on 31, 61, 91 and 299
+  (`clicked_effects`); the Scout's `form`, `form_mod` (0, −1) on 29 and (0, 50) on 31, 101 and 299 on both sides
+  (`SCOUT_FORM`).
+- **Against run1563a's dump: no record differs.** `diff` names three lines, all before frame 0: two `SYNCPOINT`
+  timings and `Sys Memory`. The played clicked file walked against this take parts nowhere; the first script's file
+  parts on 31 as against run1563a (`FIRST_AGAINST_CLICKED`).
+- Filed with `filerun.py run1572 greatlakes-playback-of-clicked-main-view-300`.
+
+Archive `gamelog-run1572-greatlakes-playback-of-clicked-main-view-300.txt`, 37,134,703 bytes,
+SHA-256 `ea0b8dc4c47b2c21cd46ac3b656c55b0d556619e4cce6c59aa3f146d51229c23`; `rontrace-run1572.log`, 9,728,448 bytes,
+SHA-256 `79607cf52c74b29edee0572db2f0cb497c20ebe3c413c1c66aef5d8a7a82e590`.
