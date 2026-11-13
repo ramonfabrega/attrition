@@ -948,6 +948,8 @@ committed before its count.* What a `BASELAND` tile draws, read from:
   `determine_land_height_color@0086c1e0` writes is `0xffffffff` on every
   path. The light (the tileset's `<LIGHTING>`, the normals) and the
   `_mtrl` stage are not drawn: the texel alone, as the colour reader's.
+  ~~The light is not drawn~~: the client's still lights the land (§3.21);
+  the painter keeps the texel alone.
 - *Drawn:* every `BASELAND` tile not under a placed mountain, bilinear
   over the sub-tile's mips (`render::silhouette::Paint::Textures`). A
   mountain's tiles take their own draw (§3.10),
@@ -2534,9 +2536,9 @@ photograph:** the rows.
 
 - **The lake's red** (4174a, 4192b): no input read so far carries it, and
   sand under the water is the only layer that has matched it.
-- The tileset's tint, (18, 18, 0) on `early_autumn`, which
+- ~~The tileset's tint, (18, 18, 0) on `early_autumn`, which
   `ImageIO::set_tint` lays on every tileset texture at load; the client
-  takes the files untinted.
+  takes the files untinted.~~ Drawn, with the land's light (§3.21).
 - The coral layer itself (draw 131) and the floor's light: neither is
   drawn.
 - The patch's vertex colour (stage 0 `MODULATE(TEXTURE, DIFFUSE)`): ours
@@ -2597,7 +2599,7 @@ tile less `size >> 1`, whether or not a road stands on it, on the photograph's g
 **The count.** `RUN1559B_3279_RING`: hue **1 → 21**, luma 20 → 19, of 24; moved, back to 1 and 20.
 `RUN1570_RING`: hue **0 → 22**, luma 14 → 14; moved, back. Tile (19, 160) on run1559b, 915 pixels: theirs (150, 126,
 102) Y 130.4; drawn (157, 145, 117) Y 145.7. Across the asphalt's middle the photograph is 0.89 of ours on every
-channel, (133, 123, 100) against (148, 138, 112), so luma does not move (4199b). Parting on hue: (18, 156) and (19,
+channel, (133, 123, 100) against (148, 138, 112), so luma does not move (~~4199b~~: the tone map's white at the frame's mean, §3.21). Parting on hue: (18, 156) and (19,
 157), under the fire's glow; (19, 163), the T; on run1570 (18, 163), the name plate. Moved with the roads drawn:
 `RUN1559B_3279_GROUND_STILL` 1,097 → 1,104, `GROUND_STILL_SRGB` 1,003 → 1,010, `GROUND_LUMA_STILL` 1,076 → 1,075,
 `RUN1570_PLAZA`'s before and moved luma 9 → 10.
@@ -2618,7 +2620,7 @@ connections (599 of 599); the white lines, 576 of 599. **On a reading alone**: t
 
 **Not established.** The texture passes as the original runs them, incrementally inside `Roads::add_roads`
 (`mark_splits@00891d40`, `mark_yellow_lines@00892550`, `fixup_lines@00891210`, `delete_straglers@008910b0`,
-`leech_codes@00890da0`'s lent bits; 4199a); the asphalt's 0.89 (4199b); the early and middle pages, whose texture is an
+`leech_codes@00890da0`'s lent bits; 4199a); ~~the asphalt's 0.89 (4199b)~~ (§3.21); the early and middle pages, whose texture is an
 alpha over a tile page, the caravan page, and an unowned cell's `prev_age`, which the door does not carry (4199c);
 the console player's seen test, which every record here passes.
 
@@ -2728,6 +2730,94 @@ piece with an `anim=` (the rest pose is assumed).
 - `Building Spark` (`[0x87]`, slot 8 while `+0x60` is negative), the ships'
   and walls' own ladders (`GuyOut::graph_inc_frame@005dd200` on types
   0x3d, 0x3e and 400), and every other system the card binds.
+
+## 3.21 The land's light, the tileset's tint and the frame's white (item 4212)
+
+*2026-11-13, Opus 5.5. `rondata::artdata::tileset_tint`; `render::tga::Image::tint`;
+`render::silhouette::{LAND_DIFFUSE, LAND_N_DOT_L}`; `client::tint`, `client::expose`;
+`shaders/land.wgsl`, `luminance.wgsl`, `expose.wgsl`; `fs_ground`, `fs_patch_lit`, `fs_mountain`.
+Scored on run1559b's, run1564's and run1570's photographs.*
+
+**What the eye saw.** On all three stills our field was orange-brown where the photograph's is
+yellow-green, while `RUN1559B_3279_GROUND_STILL` read 1,104 of 1,109: the hue reader's 0.05 in
+chromaticity is wider than the gap. **The grass's mean** (the ground row's `plain` tiles, tile
+means averaged; HSV hue in degrees):
+
+| photograph | theirs | ours at the base | ours drawn |
+|---|---|---|---|
+| run1559b, 986 tiles | (166.3, 164.1, 71.0) 58.6° | (162.8, 144.2, 67.0) 48.3° | (174.1, 170.9, 71.7) 58.2° |
+| run1564, 679 | (162.3, 158.5, 77.4) 57.3° | (171.9, 148.8, 73.8) 45.9° | (176.0, 170.4, 78.0) 56.6° |
+| run1570, 1,073 | (164.0, 161.5, 69.6) 58.4° | (162.4, 144.0, 67.2) 48.4° | (168.2, 165.3, 69.4) 58.2° |
+
+At the base the gap is green, (1.02, 1.14, 1.06) of ours on run1559b, while the asphalt's is 0.89 on
+all three channels (§3.19). No one transform of the photograph gives both, so **the kill did not
+fire: no photograph is converted.**
+
+**The tint, read.** `TileSet::init@0087b370` reads `<LIGHTING tint_red tint_green tint_blue>` into
+`tint_color`; `ImageIO::set_tint@00511a00` hands it to the land's `TextureEffect`s, the coast's
+textures (`load_land_data@008767d0`), the coral, the mountains' two, the cliffs, the rivers and the
+border (`TileSet::init`), and the weathering (`load_weathering_data@00875a60`).
+`ImageIO::tint@00511aa0` adds it per byte, saturating (`paddusb`), to each decoded row. The row is
+`decode_tga@00546e10`'s: file bytes B, G, R packed with R in the low byte (`546ee0`–`546efc` in the
+listing), so `tint_red` lands on red. `early_autumn` is (18, 18, 0). `roads.xml`'s pages, which the
+client's roads draw, are not `<ROADTEX>`; their loader sets no tint. **Alone, unlit, the tint moves
+the grass's hue 48.3° → 50.2°** and the row 17 → 16 of 986: the hypothesis the item named is not
+the mechanism.
+
+**The land is lit.** On run1567's card trace (pass 3279) all 125 land draws (`grass`, `dirt`,
+`sand`, the patches over them; and the mountains' 143–144 and the coral) carry `ENABLE_LIGHTING`,
+the vertex diffuse, stage 0 `MODULATE(TEXTURE, DIFFUSE)`, the material white, the light's diffuse
+1.36 along (−0.707, 0, −0.707) and the scene's ambient (0.6, 0.716, 0.745)
+(`client::tint::card::the_land_is_lit_on_the_card`). The install's `ps_global.hlsl` lit branch is
+`c^1.45 · 5 · (diffuse · light · N·L / π + ambient · gAmbientLight)`, and `ps_tonemap.hlsl` maps it.
+The scene's ambient is blue-green; it is what makes the field green. The vertex colour
+`light_vert@00866f90` writes is `min(1, 1.36 · N·L + (0.02, 0.06, 0.36))`, near white on flat
+ground, and is not drawn.
+
+**The frame's white.** `ps_tonemap.hlsl` scales every pixel by `1 / tonemap(max(avgLuminance,
+gMinLuminance) · gWhitePoint)`, `avgLuminance` the luminance target's mip 10: the HDR frame's mean
+of `dot(rgb, (0.3, 0.59, 0.11))`. Every draw the client makes is the curve's output at the floor,
+1.4. Lit, the frame's mean is above it, and the whole frame darkens by one factor on every channel.
+That is **4199b's 0.89**. The client takes it from its own frame: off screen, each pixel back through
+the curve, the mean reduced on the GPU (`luminance.wgsl`), the frame shown at
+`tonemap(1.4 · 3.5) / tonemap(max(mean, 1.4) · 3.5)` (`expose.wgsl`), then the overlay. Measured on
+the stills: mean 1.887, 2.155, 2.085; scale 0.898, 0.861, 0.870. Nothing is fitted.
+
+**The client draws it.** `fs_ground`, `fs_patch_lit` (a land texture's layer and the coral, by
+piece) and `fs_mountain` take their stage colour through `land_lit` at a flat N·L of 1/√2, and every
+tileset texture but the roads' is tinted at load. The water, the floor's shade, the roads and the
+weathering stay unlit. The painter keeps the files' texels untinted and unlit (§3.6), so its rows
+stand.
+
+**The row** (`client::tint::GRASS_HUE`, the rule committed before the count): the ground row's
+`plain` tiles on the three photographs; a tile agrees when the still's mean's hue is the
+photograph's within 4°. At the base, **17 of 986, 1 of 679, 17 of 1,073**. Lit at the frame's white
+and untinted, 961, 605, 1,044; **tinted, 959, 674, 1,042**. Tile (0, 140) on run1559b: theirs
+(165.9, 162.4, 68.6) 57.9°; base (160.5, 138.9, 64.8) 46.4°.
+
+**Every row, read again** (base → drawn). Up: `_TRACED_STILL` 32 → 33; `RUN1564_3279_GROUND_STILL`'s
+plain 677 → 679; run1564's luma 1,377 → 1,396 (`OCEAN` 172 → 299); trees' colour 37 → 38; the plaza's
+and the ring's drawn rows hold, run1570's ring luma 14 → 15. Down: `RUN1564_3279_GROUND_STILL` 1,028
+→ 1,021 (`SANDY` 319 → 311, `ROCK` 32 → 31); run1559b's luma 1,075 → 1,029 (plain 979 → 952, under
+a mountain 80 → 61), run1564's `SANDY` luma 499 → 397, `ROCK` 27 → 21; **the trees' luma 54 → 39 of
+56**, the trees taking the frame's 0.898; the shadows' row hue 93 → 80, luma 89 → 79. The asphalt,
+tile (19, 160): theirs (150, 126, 102) Y 130.4; drawn (157, 145, 117) Y 145.7 → (145, 137, 107)
+Y 135.8. The made-to-fail sides move with the grass: `GROUND_STILL_SRGB` 1,010 → 992 and 970 →
+1,043; the plaza's before 6 → 14 and 10 → 15 on luma; the ring's before 20 → 8 and 14 → 9.
+
+**Coverage.** Diff-backed: the land draws' light state on the card; the tint's bytes off the
+install (`the_tileset_tint_is_read`). On a reading: the tint's byte order (decompile and listing),
+which textures take it, the shaders' formulas (the install's own HLSL). On the photographs alone:
+the rows.
+
+**What is not established.**
+- **N·L.** The terrain's normals and the `_mtrl` normal, spec and gloss maps are not drawn; flat
+  N·L is 0.707. A lower mean N·L would darken the land, lower the frame's mean and lift the scale:
+  the grass's 4 % surplus on run1559b and the trees' fall both point that way.
+- The vertex colour (`light_vert`), the bloom (`OUT.Bright`), and the mip chain's own mean against
+  ours; pixels at 255 untone to the curve's top, 4.9.
+- The shadowed grass under the trees reads orange on the photograph (parked 4212b).
+- The weathering's lighting (draw 90 enables it, §3.17); the water's and the floor's.
 
 ## 4. The stack
 
