@@ -350,7 +350,7 @@ fn minted_packets_dir() -> String {
 /// stands on a frame [`CHECKSUM_FRAMES`] names as a line's first parting;
 /// a line that agrees there is not listed.
 type PacketRow = (&'static str, usize, usize, usize, &'static str);
-const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &[
+pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &[
     (
         "run1579",
         "rontrace-run1579.log",

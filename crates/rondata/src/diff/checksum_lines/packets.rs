@@ -936,10 +936,27 @@ fn every_packet_is_wired_to_its_game_or_named() {
         return;
     };
     let on_disk = listed.kept;
+    // Step H's packets of the minted game (item 4214) are held by
+    // `diff::checksum_frames`, each on a line's first parting, and are not
+    // step P's: the disk is the census's and theirs, each named once.
+    let minted: std::collections::BTreeSet<&str> = super::super::checksum_frames::MINTED_PACKETS
+        .iter()
+        .map(|p| p.0)
+        .collect();
+    for run in &minted {
+        assert!(
+            on_disk.iter().any(|d| d == run),
+            "{run}: a minted packet checksum_frames holds is on disk"
+        );
+    }
     assert_eq!(
-        on_disk.iter().map(String::as_str).collect::<Vec<_>>(),
+        on_disk
+            .iter()
+            .map(String::as_str)
+            .filter(|d| !minted.contains(d))
+            .collect::<Vec<_>>(),
         sorted,
-        "the packets on disk are the census's"
+        "the packets on disk are the census's and checksum_frames'"
     );
     let mut read = 0;
     for (run, frame) in &frames {
