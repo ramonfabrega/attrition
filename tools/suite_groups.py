@@ -2,6 +2,7 @@
 """suite_groups.py — the release suite's groups, from a gate's own fixture audit.
 
     python3 tools/suite_groups.py --from <report dir> --out docs/audit/2026-11-13-suite-groups.json
+    python3 tools/suite_groups.py --peaks <report dir> --out docs/audit/2026-11-13-suite-groups.json
     python3 tools/suite_groups.py --audit <report dir A> <report dir B>
     python3 tools/suite_groups.py --stand-ups <report dir>
 
@@ -24,6 +25,13 @@ for which kept file, and
 A test the audit never saw (a new one) is in no group and runs alone, as
 every test did; a stale file costs seconds, never a verdict. A test the
 runner's profile runs wider than one slot is left out.
+
+`--peaks` reads a grouped run's `measurements.jsonl` and writes each
+group's peak resident set into the groups file's `memory_mib`: the runner
+reserves from it (`isolated_tests.group_memory`), and a group no run has
+measured reserves as an unknown test does. A group whose process was
+stopped has no peak and keeps none. `--from` keeps the peaks of the file
+it rewrites for every group whose members did not change.
 
 `--audit` compares two audits test for test, as multisets: the fixtures each
 test asked for and how many times. It is the group unit's guard — a cache
@@ -148,6 +156,20 @@ def audit_differences(a, b):
     return differing, sorted(set(a) - set(b)), sorted(set(b) - set(a))
 
 
+def peaks_of(report):
+    """`{group: MiB}` from a grouped run's `measurements.jsonl`: the peak
+    resident set of each group's process that exited by itself (zero, or
+    101 for a failing test), in whole MiB, rounded up."""
+    report = Path(report)
+    path = report / 'measurements.jsonl' if report.is_dir() else report
+    peaks = {}
+    for line in path.read_text().splitlines():
+        row = json.loads(line)
+        if row.get('group') and row.get('rss_bytes') and row.get('group_exit') in (0, 101):
+            peaks[row['group']] = max(peaks.get(row['group'], 0), -(-row['rss_bytes'] // 2**20))
+    return peaks
+
+
 def wide_tests():
     """The tests the runner's profile runs wider than one slot."""
     import isolated_tests
@@ -162,6 +184,8 @@ def main(argv=None):
     ap.add_argument('--audit', nargs=2, type=Path, metavar=('A', 'B'),
                     help='compare two audits test for test, as multisets; exit 1 on a difference')
     ap.add_argument('--stand-ups', type=Path, metavar='REPORT', help="count an audit's games and their walkers")
+    ap.add_argument('--peaks', type=Path, metavar='REPORT',
+                    help="write each group's measured peak from a grouped run into --out's memory_mib")
     args = ap.parse_args(argv)
     if args.audit:
         a, b = (read_audit(path) for path in args.audit)
@@ -179,15 +203,37 @@ def main(argv=None):
         games, walkers = stand_ups(read_audit(args.stand_ups))
         print(f'{walkers} tests walk {games} games')
         return 0
+    if args.peaks and not args.source:
+        if not args.out or not args.out.is_file():
+            ap.error('--peaks rewrites an existing groups file: name it with --out')
+        doc = json.loads(args.out.read_text())
+        measured = peaks_of(args.peaks)
+        memory = dict(doc.get('memory_mib', {}))
+        memory.update({key: mib for key, mib in measured.items() if key in doc['groups']})
+        doc['memory_mib'] = dict(sorted(memory.items()))
+        doc['memory_source'] = f'tools/suite_groups.py --peaks {args.peaks.name}'
+        args.out.write_text(json.dumps(doc, indent=1) + '\n')
+        print(f"wrote {args.out}: {len(memory)} of {len(doc['groups'])} groups have a measured peak; "
+              f"largest {max(memory.values(), default=0)} MiB")
+        return 0
     if not args.source:
-        ap.error('one of --from, --audit and --stand-ups is needed')
+        ap.error('one of --from, --peaks, --audit and --stand-ups is needed')
     audit = read_audit(args.source)
     groups = groups_of(audit, wide=wide_tests())
+    memory = {}
+    if args.out and args.out.is_file():
+        before = json.loads(args.out.read_text())
+        memory = {key: mib for key, mib in before.get('memory_mib', {}).items()
+                  if groups.get(key) == before['groups'].get(key)}
+    if args.peaks:
+        memory.update({key: mib for key, mib in peaks_of(args.peaks).items() if key in groups})
     tree = subprocess.run(['git', 'rev-parse', '--short=8', 'HEAD'], cwd=ROOT,
                           capture_output=True, text=True, check=True).stdout.strip()
     doc = {'schema': 1, 'tree': tree,
            'source': f"tools/suite_groups.py --from {args.source.name}: {len(audit)} tests' fixture requests",
            'groups': groups}
+    if memory:
+        doc['memory_mib'] = dict(sorted(memory.items()))
     text = json.dumps(doc, indent=1) + '\n'
     if args.out:
         args.out.write_text(text)

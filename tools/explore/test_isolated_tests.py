@@ -644,6 +644,9 @@ for name in names:
         print('ok')
     with open(os.environ['FAKE_RAN'], 'a') as ran:
         ran.write(f"{name} {os.getpid()} {os.environ.get('RON_SUITE_GROUP')} {os.environ.get('RON_SUITE_GROUP_TESTS')}\n")
+    if os.environ.get('FAKE_SHARE'):
+        with open(os.environ['FAKE_SHARE'], 'a') as share:
+            share.write(f"{name} {os.environ.get('RON_SHARE_WALKS')}\n")
 print(f"\ntest result: {'FAILED' if failed else 'ok'}. {passed} passed; {failed} failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.10s\n")
 sys.exit(101 if failed else 0)
 """
@@ -654,7 +657,7 @@ class Groups(unittest.TestCase):
     process. Red first: the runner knew no unit but one test a process, so
     `group_units`, `run_group` and the rows' `group` did not exist."""
 
-    def run_library(self, names, groups, ignored=()):
+    def run_library(self, names, groups, ignored=(), peaks=None):
         """The runner over the fake binary; `(exit, rows by name, the
         lines each test's process wrote, what the runner printed)`."""
         with tempfile.TemporaryDirectory() as d:
@@ -669,7 +672,7 @@ class Groups(unittest.TestCase):
                     patch.object(runner, 'discover', side_effect=[list(names), list(ignored)]), \
                     patch.object(runner, 'ONE', runner.re.compile(r'^test result: ok\. 1 passed; 0 failed;', runner.re.M)), \
                     contextlib.redirect_stdout(said):
-                code = runner.isolated(binary, d / 'out', d / 'budget', 4, groups=groups)
+                code = runner.isolated(binary, d / 'out', d / 'budget', 4, groups=groups, peaks=peaks)
             rows = {}
             for line in (d / 'out' / 'measurements.jsonl').read_text().splitlines():
                 row = json.loads(line)
@@ -800,6 +803,51 @@ class Groups(unittest.TestCase):
         self.assertEqual(runner.group_timeout(['a', long], {'a': 1}), 3600)
         self.assertEqual(runner.weights(['a', 'b', 'c'], {'a': {'elapsed': 3}}, {'a': 9, 'b': 2}), {'a': 3, 'b': 2, 'c': 0})
 
+    def test_a_group_s_memory_is_its_own_measured_peak_and_never_a_member_s_row(self):
+        # Red first: the first whole run gave a group 1.5 times its largest
+        # member's profile row, and `game:run346` (28 tests) was stopped at
+        # 789 MiB against 768.
+        self.assertEqual(runner.group_memory('g', {'g': 789}), (1280, runner.UNKNOWN_LIMIT_MIB))
+        self.assertEqual(runner.group_memory('g', {'g': 1}), (256, runner.UNKNOWN_LIMIT_MIB))
+        self.assertEqual(runner.group_memory('g', {'h': 789}), (runner.UNKNOWN_MIB, runner.UNKNOWN_LIMIT_MIB))
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / 'groups.json'
+            path.write_text(json.dumps({'schema': 1, 'groups': {'g': ['a', 'b']}, 'memory_mib': {'g': 789}}))
+            self.assertEqual(runner.load_group_memory(path), {'g': 789})
+            path.write_text(json.dumps({'schema': 1, 'groups': {'g': ['a', 'b']}}))
+            self.assertEqual(runner.load_group_memory(path), {})
+            self.assertEqual(runner.load_group_memory(Path(d) / 'absent.json'), {})
+        # Through the real process path: the members' profile rows say 1
+        # byte each, and the group still reserves from its own peak.
+        seen = []
+        real = runner.wrapper
+        def spy(directory, memory, cpu=1, limit=None, timeout=None):
+            seen.append((memory, limit))
+            return real(directory, memory, cpu=cpu, limit=limit, timeout=timeout)
+        with patch.object(runner, 'wrapper', side_effect=spy):
+            code, rows, *_ = self.run_library(['a', 'b', 'c', 'd'], {'g': ['a', 'b'], 'h': ['c', 'd']},
+                                              peaks={'g': 789})
+        self.assertEqual(code, 0)
+        self.assertEqual(sorted(seen), [(1280, runner.UNKNOWN_LIMIT_MIB), (runner.UNKNOWN_MIB, runner.UNKNOWN_LIMIT_MIB)])
+        self.assertEqual({rows[n]['reservation_mib'] for n in 'ab'}, {1280})
+        self.assertEqual({rows[n]['limit_mib'] for n in 'abcd'}, {runner.UNKNOWN_LIMIT_MIB})
+
+    def test_a_group_is_told_whether_its_tests_share_a_walk_and_a_lone_test_is_told_nothing(self):
+        with tempfile.TemporaryDirectory() as d:
+            for asked, want in ((None, runner.SHARE_WALKS), ('on', 'on'), ('off', 'off')):
+                share = Path(d) / f'share-{asked}'
+                env = {'FAKE_SHARE': str(share), **({'RON_SUITE_SHARE_WALKS': asked} if asked else {})}
+                with patch.dict(os.environ, env):
+                    os.environ.pop('RON_SHARE_WALKS', None)
+                    if not asked:
+                        os.environ.pop('RON_SUITE_SHARE_WALKS', None)
+                    code, *_ = self.run_library(['a', 'b', 'lone'], {'g': ['a', 'b']})
+                self.assertEqual(code, 0)
+                self.assertEqual(sorted(share.read_text().split('\n')[:-1]),
+                                 [f'a {want}', f'b {want}', 'lone None'])
+        with self.assertRaises(ValueError):
+            runner.share_walks({'RON_SUITE_SHARE_WALKS': 'sometimes'})
+
     def test_the_groups_file_names_each_test_once_and_no_wide_test(self):
         if not runner.GROUPS.is_file():
             self.skipTest('no groups file in this tree')
@@ -811,6 +859,8 @@ class Groups(unittest.TestCase):
             self.assertEqual(tests, sorted(tests), key)
             for name in tests:
                 self.assertEqual(runner.width(name, profile, 8), 1, name)
+        # A measured peak names a group the file holds.
+        self.assertLessEqual(set(runner.load_group_memory(runner.GROUPS)), set(groups))
 
 
 class ExcludedPackages(unittest.TestCase):

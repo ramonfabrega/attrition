@@ -19,6 +19,18 @@ without one verdict a listed test is an infrastructure failure. A test no
 group names, a group with one selected member and a test wider than one
 slot run alone, exactly as before. `RON_SUITE_GROUPS=off` runs every test
 alone.
+
+**A group's memory is its own** (`group_memory`). A process that runs 28
+tests holds what each left in the code's caches, and the 145 groups of the
+first whole run peaked at a median 1.7 times, and up to 3.7 times, their
+largest member alone; a ceiling of 1.5 times a member's row stopped
+`game:run346` at 789 MiB and turned 28 tests red. So a group reserves 1.5
+times the peak a grouped run measured for it (the groups file's
+`memory_mib`, written by `tools/suite_groups.py --peaks`), or the unknown
+test's 8 GiB when no run has; and its ceiling is always the unknown test's
+32 GiB, because a stale number then costs admission and never a verdict.
+A test that printed `ok` in a process that was then stopped stays red: a
+stopped process prints no clock, and a row with no clock is not green.
 No verdicts are cached. Test logs, discovery manifests and measurements survive
 failures. Resource admission is shared with other cooperating worktrees.
 """
@@ -50,6 +62,10 @@ GROUPS = ROOT / 'docs/audit/2026-11-13-suite-groups.json'
 TEST_LINE = re.compile(r'^test (\S+) \.\.\. (ok|FAILED)$')
 GROUP_RESULT = re.compile(r'^test result: (ok|FAILED)\. (\d+) passed; (\d+) failed; (\d+) ignored; 0 measured; \d+ filtered out;')
 GROUP_FLOOR_SECONDS = 1800
+# Whether a group's tests share one kept walk (`harness::prefix`, stage 2 of
+# item 4216): what the runner says to a group's process as
+# `RON_SHARE_WALKS`. `RON_SUITE_SHARE_WALKS=on|off` overrides it for a run.
+SHARE_WALKS = 'off'
 GROUP_SECONDS_FACTOR = 4
 
 
@@ -72,6 +88,36 @@ def load_groups(path=None, environ=None):
                 raise ValueError(f'{name} is in two groups: {seen[name]} and {key}')
             seen[name] = key
     return groups
+
+
+def share_walks(environ=None):
+    """`on` or `off`: `RON_SUITE_SHARE_WALKS`, else `SHARE_WALKS`."""
+    mode = (os.environ if environ is None else environ).get('RON_SUITE_SHARE_WALKS', SHARE_WALKS)
+    if mode not in ('on', 'off'):
+        raise ValueError('RON_SUITE_SHARE_WALKS must be on or off')
+    return mode
+
+
+def load_group_memory(path=None):
+    """`{key: MiB}`: each group's measured peak, from the groups file's
+    `memory_mib`; empty when the file or the key is absent."""
+    path = GROUPS if path is None else Path(path)
+    if not path.is_file():
+        return {}
+    return {key: int(mib) for key, mib in json.loads(path.read_text()).get('memory_mib', {}).items()}
+
+
+def group_memory(key, peaks):
+    """`(reservation, limit)` in MiB for a group's process: 1.5 times its
+    measured peak in whole quanta, or the unknown test's reservation when
+    no grouped run has measured it; the ceiling is the unknown test's
+    either way. Never a member's own row: a group holds what every test of
+    it left in the process's caches."""
+    peak = peaks.get(key)
+    if peak is None:
+        return UNKNOWN_MIB, UNKNOWN_LIMIT_MIB
+    return (min(MEMORY_MIB, max(QUANTUM_MIB, math.ceil(peak * 1.5 / QUANTUM_MIB) * QUANTUM_MIB)),
+            UNKNOWN_LIMIT_MIB)
 
 
 def group_units(names, groups, profile, slots):
@@ -307,10 +353,10 @@ def run_one(binary, name, number, output, directory, memory, cancelled, known=Tr
                 log=str(log), allocator=allocator_policy(env), resource_timing=resource_timing(log), cpu_slots=cpu)
 
 
-def run_group(binary, key, tests, number, output, directory, memory, cancelled, known=True, timeout=None):
+def run_group(binary, key, tests, number, output, directory, memory, cancelled, limit=UNKNOWN_LIMIT_MIB, timeout=None):
     """A group's selected tests in one process, `--test-threads=1`: libtest
     runs each on a thread named after it, one after another. Returns one
-    row a test (`group_rows`)."""
+    row a test (`group_rows`). `memory` and `limit` are `group_memory`'s."""
     log = output / 'tests' / f'{number:04d}.log'
     start = time.monotonic()
     stamp = binary_stamp(binary)
@@ -320,8 +366,8 @@ def run_group(binary, key, tests, number, output, directory, memory, cancelled, 
     env['RON_TEST_CPU'] = '1'
     env['RON_SUITE_GROUP'] = key
     env['RON_SUITE_GROUP_TESTS'] = str(len(tests))
+    env['RON_SHARE_WALKS'] = share_walks()
     verdicts = Verdicts(log)
-    limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB) if known else UNKNOWN_LIMIT_MIB
     with log.open('x') as sink:
         command = wrapper(directory, memory, cpu=1, limit=limit, timeout=timeout) + [
             '/usr/bin/time', '-l', str(binary), '--exact', *tests, '--test-threads=1']
@@ -352,7 +398,7 @@ def head_running(log):
         return False
 
 
-def isolated(binary, output, directory, slots=8, skips=(), stop=None, started=None, groups=None):
+def isolated(binary, output, directory, slots=8, skips=(), stop=None, started=None, groups=None, peaks=None):
     """`stop` and `started` are the release step's lanes (Loop 4042): a
     signal here stops the lane beside the library too, and `started` is set
     once the head of the queue — the widest, longest test — is running, so
@@ -371,6 +417,8 @@ def isolated(binary, output, directory, slots=8, skips=(), stop=None, started=No
         raise ValueError('no nonignored tests discovered')
     profile_doc = json.loads(PROFILE.read_text())
     profile = profile_doc['tests']
+    if peaks is None:
+        peaks = load_group_memory() if groups is None else {}
     groups = load_groups() if groups is None else groups
     weight = weights(names, profile)
     units = group_units(names, groups, profile, slots)
@@ -413,10 +461,9 @@ def isolated(binary, output, directory, slots=8, skips=(), stop=None, started=No
                                              reservation(name, profile), halted, name in profile, cpu)
                     else:
                         tests = [member for _, member in members]
+                        memory, limit = group_memory(key, peaks)
                         future = pool.submit(run_group, binary, key, tests, i, output, directory,
-                                             max(reservation(member, profile) for member in tests), halted,
-                                             all(member in profile for member in tests),
-                                             group_timeout(tests, weight))
+                                             memory, halted, limit, group_timeout(tests, weight))
                     if head is None:
                         head = (future, output / 'tests' / f'{i:04d}.log')
                     active[future] = cpu

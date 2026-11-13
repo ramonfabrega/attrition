@@ -4,9 +4,9 @@
 //! **Two holders** (item 4216, DECISIONS 132 §11). A [`Scope`] is one
 //! thread's batch: the coverage walk opens one a walker and runs a module's
 //! windows through it. The **kept walk** is the process's: a thread with no
-//! batch of its own takes the state the last widening left, when the
-//! process is a group of one game's tests (`tools/isolated_tests.py` sets
-//! `RON_SUITE_GROUP`) or `RON_SHARE_WALKS` is set. The rule is the same for
+//! batch of its own takes the state the last widening left, when
+//! `RON_SHARE_WALKS=on` — which `tools/isolated_tests.py` says to a group
+//! of one game's tests, and nothing else does. The rule is the same for
 //! both — the same inputs by path, length and modification time, and a
 //! first block strictly after the retained frame — and so is what is never
 //! shared: a verdict, a comparison, a recorded field. What the kept walk
@@ -100,8 +100,11 @@ fn kept<T>(with: impl FnOnce(&mut Kept) -> T) -> T {
 fn sharing() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ON.get_or_init(|| {
-        let asked = std::env::var_os("RON_SUITE_GROUP").is_some()
-            || std::env::var_os("RON_SHARE_WALKS").is_some();
+        let asked = match std::env::var("RON_SHARE_WALKS").as_deref() {
+            Ok("on") => true,
+            Ok("off") | Err(std::env::VarError::NotPresent) => false,
+            other => panic!("RON_SHARE_WALKS must be on or off, not {other:?}"),
+        };
         asked && !diagnostic() && std::env::var_os("RON_DISABLE_PREFIX_REUSE").is_none()
     })
 }

@@ -98,5 +98,36 @@ class Audit(unittest.TestCase):
             self.assertEqual(suite_groups.main(['--audit', str(a), str(b)]), 1)
 
 
+class Peaks(unittest.TestCase):
+    """A group's memory is its own measured peak (item 4216): the first
+    whole run stopped a 28-test group under a ceiling read off one member."""
+
+    ROWS = [
+        {'name': 'a', 'group': 'g', 'rss_bytes': 789 * 2**20 + 1, 'group_exit': 0},
+        {'name': 'b', 'group': 'g', 'rss_bytes': 789 * 2**20 + 1, 'group_exit': 0},
+        {'name': 'c', 'group': 'failed', 'rss_bytes': 5 * 2**20, 'group_exit': 101},
+        # Stopped by the budget: what it reached is no peak.
+        {'name': 'd', 'group': 'stopped', 'rss_bytes': None, 'group_exit': 137},
+        {'name': 'e', 'group': 'killed', 'rss_bytes': 9 * 2**20, 'group_exit': 137},
+        {'name': 'lone', 'rss_bytes': 7 * 2**20},
+        {'name': 'f', 'group': 'gone', 'rss_bytes': 3 * 2**20, 'group_exit': 0},
+    ]
+
+    def test_a_group_s_peak_is_its_process_s_and_a_stopped_group_has_none(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            (d / 'measurements.jsonl').write_text(''.join(json.dumps(row) + '\n' for row in self.ROWS))
+            self.assertEqual(suite_groups.peaks_of(d), {'g': 790, 'failed': 5, 'gone': 3})
+            out = d / 'groups.json'
+            out.write_text(json.dumps({'schema': 1, 'groups': {'g': ['a', 'b'], 'failed': ['c', 'x'], 'old': ['y', 'z']},
+                                       'memory_mib': {'old': 11, 'g': 1}}))
+            self.assertEqual(suite_groups.main(['--peaks', str(d), '--out', str(out)]), 0)
+            doc = json.loads(out.read_text())
+            # A group the file does not hold gets no row; one this run did
+            # not measure keeps what it had.
+            self.assertEqual(doc['memory_mib'], {'failed': 5, 'g': 790, 'old': 11})
+            self.assertEqual(doc['groups'], {'g': ['a', 'b'], 'failed': ['c', 'x'], 'old': ['y', 'z']})
+
+
 if __name__ == '__main__':
     unittest.main()
