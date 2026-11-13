@@ -76,7 +76,7 @@ pub(crate) const GAIA_TYPES: std::ops::Range<i32> = 0x192..0x19e;
 
 /// `first_bird_piece`, as `GraphicPieces::init_piece_ranges@008f70e0`
 /// writes it: `0xea8d` (`rondata::artdata::FIRST_BIRD_PIECE`).
-const FIRST_BIRD_PIECE: i32 = 0xea8d;
+const FIRST_BIRD_PIECE: i32 = crate::units::anim::FIRST_BIRD_PIECE;
 
 /// `ArrayBaseMaster::increment` (`+0xc` of the figure array) on every unit
 /// of both frames read: 1.
@@ -201,9 +201,13 @@ impl Sim {
     /// gaia type (`TypeIndex` `0x192..0x19e`, the birds and the herd
     /// animals) `GraphicPieces::get_unit_gpiece@0090c030`'s own gaia arm,
     /// `first_bird_piece + 3·(type − 0x192) + (seed + o) % 3`
-    /// (`docs/ANIM.md` §3), which this crate's figure leaves at −1.
+    /// (`docs/ANIM.md` §3), its variant walked down to one the install
+    /// ships ([`Sim::gaia_piece`], item 4208) where the install was read.
     fn guy_gpiece(&self, u: usize, g: usize) -> i32 {
         let ty = self.units[u].type_index;
+        if let Some(p) = self.gaia_piece(ty, self.units[u].index) {
+            return p;
+        }
         if (GAIA_TYPES).contains(&ty) {
             return FIRST_BIRD_PIECE
                 + 3 * (ty - GAIA_TYPES.start)

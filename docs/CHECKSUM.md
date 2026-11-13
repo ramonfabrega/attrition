@@ -2246,27 +2246,59 @@ from it now (`packets::walk_packets_built`; `hold` asserts the lockstep).
 The other 29 words, 46 packets, part before their first packet and stay
 dump-seated (`packets::SEATED_WORDS`), in two clusters:
 
-- **4205a, every East Indies word (24, 38 packets)**: the count parts on
+- ~~**4205a, every East Indies word (24, 38 packets)**: the count parts on
   frame 2, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271` at draw 0,
-  theirs `Farms::inc_time+0x1ae` (run1149's game, ours 7 draws theirs 4).
-  At frame 0 the two starts' figures differ in `guys[0].anim` on four gaia
-  animals with the unset angle (facing `0x80000000`; §6 of
-  `docs/START.md` names it for a whale) and one pasture animal: run1149's
-  `8/4` built 3 dump 0, `8/5` 1 and 0, `8/11` 1 and 0, `8/13` 2 and 0,
-  `9/4` 1 and 0. The seated start also installs 132 figures' clocks from
-  its `DUMP_ALL` sibling at frame 0's end; which difference spends the
-  draw is not established.
+  theirs `Farms::inc_time+0x1ae` (run1149's game, ours 7 draws theirs 4).~~
+  Closed by item 4208: the built start's whales had no piece. Below.
 - **4205b, the Great Lakes Modern and Information words (5, 8 packets)**:
   the count parts on frame 0, `Unit::think_scout+0x64c` against `+0x436`
   at draw 36 or 37, the fog's sign (`docs/START.md` §7.2). On run1429's
   game four fog cells differ, the first `world.fog[5981]` built 0 dump 2.
 
-`the_seated_words_part_from_the_built_start` pins one word of each
-cluster's parting and the counts (`BY_START`): the lockstep assertion is
-sighted. Each word's own floor test still walks from its dump-seated
-stand-up (`third::walk_from`, now `stand_up_from` and `walk_word`).
+**4205a's cause (item 4208): the whales' piece.** The three draws are
+three whales' clocks wrapping: run1149's `8/8`, `8/10` and `8/13`
+(`TypeIndex` `0x19c`, `HERDWHALES`, gaia's owner 8). On frame 0 each
+idles (`Animal::do_idle`) and its roll gives a variant, `IDLE1` or
+`IDLE2`. The whale's packet names one slot, `CHAR_DEFAULT` (*Whale
+Idle3*, 387 frames). `set_anim` therefore drops the variant to the
+default, and the clock runs 387 frames. The dump's frame-0 clocks say
+this: anim 0, end 387 on all three. Ours dropped nothing. The drop is
+gated on the guy having a piece, and a built start's gaia figure had
+none (`gpiece` −1), because `Sim::piece_of` read gaia's pieces from the
+dump alone. So ours kept `IDLE1` at the missing slot's 3 frames and
+wrapped on frame 2. The piece is not a runtime pointer.
+`GraphicPieces::get_unit_gpiece@0090c030`'s gaia arm gives
+`first_bird_piece + 3·(type − 0x192) + v`. `v` starts at `(seed + o) % 3`
+and walks **down** while the piece does not load. The install ships
+`HERDWHALES-TYPE0` alone, so every whale is 60075, the piece the start
+dump prints for all of run1148's whales. `Sim::gaia_piece` derives it
+from the install's shipped variants (`artdata::GaiaVariants`). It stands
+wherever a dump names no piece, and the checksum emitter's `gpiece` reads
+it too. The frame-zero `anim` differences of four whales (`8/4`, `8/5`,
+`8/11`, `8/13`) were the creation roll's variants, kept for the same
+reason, and they go with it. `9/4`'s remains (below). Built, run1149's
+game holds the draw stream for 5,841 of 5,841 frames, where it parted
+on frame 2. All 24 East Indies words hold to their last packet. **54 of
+59 words, 79 of 87 packets, walk from the built start** (`BY_START`
+((54, 79), (5, 8))). Every other packet's pin is unchanged.
 
-**The score: 150 of 1,058 lines agree** (147 at §23.5). On the 41 packets,
+`the_seated_words_part_from_the_built_start` pins 4205b's parting, run1149's
+game holding to frame 4, and the counts (`BY_START`): the lockstep
+assertion is sighted. Each word's own floor test still walks from its
+dump-seated stand-up (`third::walk_from`, now `stand_up_from` and
+`walk_word`).
+
+**The score: 153 of 1,058 lines agree** (150 at item 4205; 147 at §23.5).
+Item 4208's three, the East Indies packets built: run1161's builds line
+(frame 4, 520 ranges, 13 parting → 0; the first was building 7's
+`myhits..launch_frames`, ours `…d0070000…` theirs `…ffff0000…`) and its
+world line (8,850 ranges, 4,860 → 0; the first was range 1's
+`start_x.num`, ours 0 theirs 2), and run1385p's cities line (frame 2775,
+27 ranges, 2 → 0). On the 38, ranges parting fall on every line that
+moved: guys about 100 a packet (run1161 174 → 70), world to 0–18, builds
+by about 14. Every entry's comment in `packets.rs` has its pair. As at
+item 4205, `aggression` and `cities_built` leave all 38 entries of
+`PACKET_LEAF_PARTINGS`. On the 41 packets of item 4205,
 by line, seated against built (lines agreeing; ranges parting summed):
 
 | line | agree, seated → built | ranges parting, seated → built |
@@ -2299,8 +2331,11 @@ outside the list. No leaf leaves `LEADERS_HELD_OUT`: `aggression` and
 **How it was established**: diff-backed, every number a range-by-range
 comparison against the instrument's stream; the lockstep by the long
 trace's draws per frame. Red first: `spanish_word_packets` at the built
-start's pins, walked seated, part on four lines. **Not established**: the
-two clusters' causes (4205a, 4205b); whether the built start holds a
+start's pins, walked seated, part on four lines. The whales' piece (item
+4208) is backed by the start dump's `gpiece` 60075, by the dump's frame-0
+clocks (anim 0, end 387), and by the draw stream: run1149 to its end, and
+24 words to their last packets. **Not established**: 4205b's cause;
+~~4205a's~~ (item 4208, above); whether the built start holds a
 seated word past where its draws part; the chapters' and melees' packets,
 which stand up as before; the cell `down` copy (4205c, `docs/START.md`
 §7.1 names it dump-only).

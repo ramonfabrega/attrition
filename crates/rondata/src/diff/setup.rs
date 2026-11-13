@@ -618,6 +618,9 @@ pub(crate) fn install_art(sim: &mut Sim, loaded: &Loaded, notes: &mut Vec<String
     // the dump — which is what gives a bird a length at all
     // (`crate::artdata`, `docs/SYNC.md` §3.9).
     sim.roster.art.gaia_lengths = loaded.gaia_lengths.clone();
+    // And which variant's piece each gaia figure plays, so a built start's
+    // herds carry the piece a dump would print (item 4208).
+    sim.roster.art.gaia_variants = loaded.gaia_variants.clone();
     if !loaded.gaia_lengths.is_empty() {
         notes.push(format!(
             "anim: {} (type, variant, slot) gaia lengths from the install",
@@ -3426,6 +3429,55 @@ mod tests {
     /// is also what pins the `-TYPE<v>` suffix to the variant `(seed + o)
     /// % 3` picks, which is the one step of the chain neither file states
     /// outright.
+    /// **A gaia figure's piece is `get_unit_gpiece`'s gaia arm** (item
+    /// 4208): on three maps' start dumps, every gaia figure whose piece the
+    /// dump prints holds the one [`sim::Sim::gaia_piece`] derives from the
+    /// install's shipped variants — `(seed + o) % 3` walked down. Run1148's
+    /// whales are the walk's witness: `HERDWHALES` ships `-TYPE0` alone, so
+    /// all of them print 60075 whatever their `o`.
+    #[test]
+    fn a_gaia_figure_s_piece_is_the_gaia_arm_s() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut seen = std::collections::BTreeMap::<i32, usize>::new();
+        for name in [
+            "gamelog-run12-dumpall-seeds.txt",
+            "gamelog-run1148-eastindies-russian-modern-start.txt",
+            crate::diff::third::SAHARA_START,
+        ] {
+            let Some(path) = dump(name) else {
+                eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
+                return;
+            };
+            let text = crate::capture::read(&path);
+            let log = Log::parse(&text);
+            let init = log.initial().unwrap();
+            let built = build_sim(&loaded, &init, Tuning::RON);
+            let sim = &built.sim;
+            for u in sim.units.iter().filter(|u| u.owner >= 8) {
+                let Some(printed) = u.guys.first().map(|g| g.gpiece).filter(|&p| p >= 0) else {
+                    continue;
+                };
+                assert_eq!(
+                    sim.gaia_piece(u.type_index, u.index),
+                    Some(printed),
+                    "{name}: {}/{} (TypeIndex {:#x}): the dump's piece",
+                    u.owner,
+                    u.index,
+                    u.type_index
+                );
+                *seen.entry(u.type_index).or_default() += 1;
+            }
+        }
+        // The types the three dumps print a piece for, so a run that stops
+        // printing one reads as a thinner check rather than a passing one.
+        assert!(
+            seen.get(&0x19c).is_some_and(|&n| n >= 4),
+            "the whales, the walk's witness: {seen:?}"
+        );
+        eprintln!("gaia pieces checked by type: {seen:x?}");
+    }
+
     #[test]
     fn the_install_s_gaia_lengths_match_the_dump_s() {
         let Some(inst) = install() else { return };
