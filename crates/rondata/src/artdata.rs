@@ -2468,6 +2468,109 @@ pub fn weathering_art(install: &Install) -> Result<Vec<(i32, String, String)>, A
     Ok(out)
 }
 
+/// **One road piece** (item 4199, `docs/RENDERER.md` §3.19): a
+/// `<PAGEELEMENT>` of `Data/roads.xml`, as `RoadsPieces::parse_element
+/// @00895fc0` reads it into a `RoadElement`. Sizes and offsets are in half
+/// tiles, as the file's comments say; the four flag bytes are its bit
+/// strings, the first character bit 7 (NW, then clockwise).
+#[derive(Clone, Debug, PartialEq)]
+pub struct RoadPiece {
+    pub name: String,
+    /// The `<ROADPAGE>`'s index, `RoadElement::pagenum`.
+    pub page: u8,
+    pub width: u8,
+    pub height: u8,
+    pub offset: (u8, u8),
+    /// `<CENTEROFFSET>`'s eight `<OFFSET>`s, one per rotation.
+    pub center: [(f32, f32); 8],
+    pub road: u8,
+    pub yellow: u8,
+    pub white: u8,
+    pub intersect: u8,
+}
+
+/// **The road pieces and their pages** (item 4199, §3.19): every
+/// `<ROADPAGE>`'s `<PAGEELEMENT>`s in file order — `RoadsPieces::
+/// modern_elements`, whose index is a record's `element_num` — and each
+/// page's `<TEXTURE>`s as `(age, name)`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct RoadArt {
+    pub pieces: Vec<RoadPiece>,
+    pub pages: Vec<Vec<(i32, String)>>,
+}
+
+impl RoadArt {
+    /// The index of the piece a name names, as `parse_element` remembers
+    /// `C4` (`RoadsPieces::element_C4`) and `C31` (`?C31@@3HA`, the piece
+    /// `RoadsPieces::find_map@00897840` takes when nothing matches).
+    pub fn named(&self, name: &str) -> Option<usize> {
+        self.pieces
+            .iter()
+            .position(|p| p.name.eq_ignore_ascii_case(name))
+    }
+}
+
+/// `Data/roads.xml`, read whole ([`RoadArt`]).
+pub fn road_art(install: &Install) -> Result<RoadArt, ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let path = install.data("roads.xml");
+    let text = crate::read(&path).map_err(|_| unnamed("roads.xml"))?;
+    let doc = crate::parse(&path, &text).map_err(|_| unnamed("roads.xml"))?;
+    let mut art = RoadArt {
+        pieces: Vec::new(),
+        pages: Vec::new(),
+    };
+    let pages = doc.descendants().filter(|n| n.has_tag_name("ROADPAGE"));
+    for (page, pg) in pages.enumerate() {
+        let mut textures = Vec::new();
+        for t in pg.children().filter(|n| n.has_tag_name("TEXTURE")) {
+            let age = t
+                .attribute("age")
+                .and_then(|a| a.trim().parse().ok())
+                .ok_or_else(|| unnamed("TEXTURE/age"))?;
+            let name = t.attribute("name").ok_or_else(|| unnamed("TEXTURE/name"))?;
+            textures.push((age, name.trim().to_string()));
+        }
+        art.pages.push(textures);
+        for e in pg.children().filter(|n| n.has_tag_name("PAGEELEMENT")) {
+            let child = |tag: &str| e.children().find(|n| n.has_tag_name(tag));
+            let number = |tag: &str| -> Result<u8, ArtFailure> {
+                child(tag)
+                    .and_then(|n| n.text())
+                    .and_then(|t| t.trim().parse().ok())
+                    .ok_or_else(|| unnamed(&format!("PAGEELEMENT/{tag}")))
+            };
+            let bits = |tag: &str| -> Result<u8, ArtFailure> {
+                child(tag)
+                    .and_then(|n| n.attribute("value"))
+                    .and_then(|v| u8::from_str_radix(v.trim(), 2).ok())
+                    .ok_or_else(|| unnamed(&format!("PAGEELEMENT/{tag}")))
+            };
+            let mut center = [(0.0, 0.0); 8];
+            let offs: Vec<_> = child("CENTEROFFSET")
+                .map(|c| c.children().filter(|n| n.has_tag_name("OFFSET")).collect())
+                .unwrap_or_default();
+            for (k, o) in offs.iter().take(8).enumerate() {
+                let f = |a: &str| o.attribute(a).and_then(|v| v.trim().parse::<f32>().ok());
+                center[k] = (f("x").unwrap_or(0.0), f("y").unwrap_or(0.0));
+            }
+            art.pieces.push(RoadPiece {
+                name: e.attribute("name").unwrap_or_default().trim().to_string(),
+                page: page as u8,
+                width: number("WIDTH")?,
+                height: number("HEIGHT")?,
+                offset: (number("OFFSETX")?, number("OFFSETY")?),
+                center,
+                road: bits("ROADFLAGS")?,
+                yellow: bits("YELLOWFLAGS")?,
+                white: bits("WHITEFLAGS")?,
+                intersect: bits("INTERSECTFLAGS")?,
+            });
+        }
+    }
+    Ok(art)
+}
+
 /// **The farm's condition 1** (item 4037, `docs/RENDERER.md` §5.4): the
 /// `<FARM>` element reads whole ([`farm_art`]) and the tileset's wheat
 /// image decodes under `render::tga`. `Ok(1)`, the one file decoded.

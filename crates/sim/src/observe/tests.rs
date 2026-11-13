@@ -373,3 +373,31 @@ fn a_leader_scene_is_the_records_it_copies() {
         (1041, 1042, 4)
     );
 }
+
+/// **The door carries the road mesh** (item 4199, `docs/RENDERER.md`
+/// §3.19): one row per element, its connections the element's top byte and
+/// its compass of roads the tile masks'. Three tiles laid in a line join
+/// east and west, the middle both ways, and each knows its neighbours.
+#[test]
+fn the_door_carries_the_road_mesh() {
+    let w = crate::World::new(4, 3);
+    let mut sim = Sim::new(crate::Tuning::RON, w, 2);
+    assert!(sim.observe_roads().roads.is_empty());
+    for x in 5..8 {
+        sim.set_road_at(Pos::new(x, 6));
+    }
+    let r = sim.observe_roads();
+    assert_eq!((r.tiles_wide, r.tiles_high), (16, 12));
+    let at: Vec<(i32, i32, u8, u16)> = r.roads.iter().map(|t| (t.x, t.y, t.dirs, t.road)).collect();
+    // `dir::E` is 0x10 and `dir::W` 0x01 in the top byte; the compass bit
+    // `k` is `MOVE_X`/`MOVE_Y`'s neighbour `k`, 0 the tile, 4 east, 8 west.
+    assert_eq!(
+        at,
+        vec![
+            (5, 6, 0x10, 1 | 1 << 4),
+            (6, 6, 0x11, 1 | 1 << 4 | 1 << 8),
+            (7, 6, 0x01, 1 | 1 << 8),
+        ]
+    );
+    assert!(r.roads.iter().all(|t| t.refs > 0 && t.footprint == 0));
+}

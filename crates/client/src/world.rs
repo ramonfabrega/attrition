@@ -255,6 +255,30 @@ pub struct World {
     /// The footprints laid among the patches, at the frame and the switches
     /// they were laid at.
     weather_laid: (i64, bool, (i32, i32), Vec<crate::weathering::Footprint>),
+    /// Draw the roads (item 4199, §3.19). On by default; the row's count as
+    /// drawn before turns it off.
+    pub roads: bool,
+    /// The roads' made-to-fail (item 4199): every piece moved by this many
+    /// tiles.
+    pub roads_shift: (i32, i32),
+    /// The pieces, the modern page's texture and the texture fractal's
+    /// seed; `None` where `roads.xml`, the texture or the seed does not
+    /// read, and no road is laid.
+    road_art: Option<RoadArt>,
+    /// The pieces laid among the patches, at the frame and the switches
+    /// they were laid at.
+    roads_laid: (i64, bool, (i32, i32), Vec<crate::roads::Laid>),
+}
+
+/// What the roads' draw takes (item 4199, §3.19).
+struct RoadArt {
+    pieces: crate::roads::Pieces,
+    /// Page 0's `age="2"` `<TEXTURE>`, `modern_road_pieces.tga`, whose A is
+    /// the piece's own (`tilepage="0"`).
+    mips: std::sync::Arc<render::silhouette::Mips>,
+    /// `World.seed`, the texture fractal's, which `find_map` asks.
+    seed: u32,
+    fractal: Option<sim::mapgen::Fractal>,
 }
 
 /// The ground's textures, as the draw takes them.
@@ -308,6 +332,14 @@ pub const WEATHER_PIECE: i32 = -200_020;
 /// `OCEAN` cell's patch at its alpha.
 pub const CORAL_PIECE: i32 = -200_030;
 pub const WEATHER_ALPHA: usize = 910;
+/// The roads' texture among the ground's, and as their own alpha (item
+/// 4199): `modern_road_pieces.tga` is both.
+pub const ROAD_PIECE: i32 = -200_021;
+pub const ROAD_ALPHA: usize = 911;
+/// The one page `RoadsOut` draws here, and its age bucket: the modern
+/// road pieces (item 4199, §3.19).
+pub const ROAD_PAGE: u8 = 0;
+pub const ROAD_BUCKET: i32 = 2;
 
 /// The age bucket `Terrain::add_weathering` takes for every age past its
 /// gate (`4 < age` → 2), `WEATHERELEM age="2"`, Modern (item 4190).
@@ -757,6 +789,24 @@ impl World {
                 let img = render::tga::decode(&bytes).ok()?;
                 Some(std::sync::Arc::new(render::silhouette::Mips::new(img)))
             });
+        // Item 4199 (§3.19): the road pieces, page 0's modern texture and
+        // the texture fractal's seed.
+        let road_art = seed.and_then(|seed| {
+            let art = rondata::artdata::road_art(&install).ok()?;
+            let (_, file) = art
+                .pages
+                .get(usize::from(ROAD_PAGE))?
+                .iter()
+                .find(|t| t.0 == ROAD_BUCKET)?;
+            let bytes = std::fs::read(resolve_art(install.root(), file)?).ok()?;
+            let img = render::tga::decode(&bytes).ok()?;
+            Some(RoadArt {
+                pieces: crate::roads::Pieces::new(&art),
+                mips: std::sync::Arc::new(render::silhouette::Mips::new(img)),
+                seed,
+                fractal: None,
+            })
+        });
         Ok(World {
             names: crate::hud::Names::new(&loaded),
             look: BuildLook::new(&install).with_types(&loaded.build_types),
@@ -808,6 +858,10 @@ impl World {
             fire_images: None,
             weather_mips,
             weather_laid: (-1, false, (0, 0), Vec::new()),
+            roads: true,
+            roads_shift: (0, 0),
+            road_art,
+            roads_laid: (-1, false, (0, 0), Vec::new()),
         })
     }
 
@@ -1155,6 +1209,7 @@ impl World {
             self.screen_layers = layers;
             self.laid_ramp = None;
             self.weather_laid = (-1, false, (0, 0), Vec::new());
+            self.roads_laid = (-1, false, (0, 0), Vec::new());
         }
         // Item 4190 (§3.17): the footprint weathering, laid again when the
         // frame or its switches move, after the land's patches and the
@@ -1187,6 +1242,30 @@ impl World {
                 self.patch_version = self.patch_version.wrapping_add(1);
             }
             self.weather_laid = (key.0, key.1, key.2, want);
+        }
+        // Item 4199 (§3.19): the roads, after the weathering and before the
+        // first mountain layer, laid again when the frame or a switch moves.
+        let key = (frame, self.roads, self.roads_shift);
+        if (self.roads_laid.0, self.roads_laid.1, self.roads_laid.2) != key {
+            let want = if self.roads && self.road_art.is_some() {
+                self.road_pieces()
+            } else {
+                Vec::new()
+            };
+            if want != self.roads_laid.3 {
+                self.drawn.3.retain(|m| m.piece != ROAD_PIECE);
+                if let Some(m) = self.road_mesh(&want) {
+                    let at = self
+                        .drawn
+                        .3
+                        .iter()
+                        .position(|p| p.mountain)
+                        .unwrap_or(self.drawn.3.len());
+                    self.drawn.3.insert(at, m);
+                }
+                self.patch_version = self.patch_version.wrapping_add(1);
+            }
+            self.roads_laid = (key.0, key.1, key.2, want);
         }
         // Item 4178: the water's colour and the floor's grey follow the
         // screen's ramp; only their texcoords are laid again when it moves.
@@ -1232,6 +1311,129 @@ impl World {
                 f
             })
             .collect()
+    }
+
+    /// **The frame's road pieces** (item 4199, §3.19): every record
+    /// [`crate::roads::laid`] lays whose owner's age bucket is
+    /// [`ROAD_BUCKET`] and whose piece is on [`ROAD_PAGE`], moved by
+    /// [`World::roads_shift`] tiles. A cell nobody holds takes the record's
+    /// `prev_age`, which the door does not carry; it lays nothing here.
+    pub fn road_pieces(&mut self) -> Vec<crate::roads::Laid> {
+        if self.road_art.is_none() {
+            return Vec::new();
+        }
+        let t = self.runner.terrain();
+        let (w, h) = (t.width, t.height);
+        let scene = self.runner.roads();
+        let territory = self.runner.territory();
+        let leaders = self.runner.scene(None).leaders;
+        let (dx, dy) = (self.roads_shift.0 as f32, self.roads_shift.1 as f32);
+        let art = self.road_art.as_mut().expect("checked above");
+        let seed = art.seed;
+        let frac = art
+            .fractal
+            .get_or_insert_with(|| sim::mapgen::Fractal::init(w + 1, h + 1, 0, 2, seed));
+        let bucket = |x: i32, y: i32| {
+            let (cx, cy) = (x.div_euclid(4), y.div_euclid(4));
+            let owner = *territory.owner.get((cy * territory.width + cx) as usize)?;
+            let who = owner.player()?;
+            let l = leaders.iter().find(|l| l.who == who)?;
+            crate::roads::age_bucket(l.ages)
+        };
+        crate::roads::laid(&art.pieces, &scene, |x, y| {
+            frac.get_height(x.rem_euclid(w), y.rem_euclid(h))
+        })
+        .into_iter()
+        .filter(|l| {
+            art.pieces.pieces[l.elem].page == ROAD_PAGE
+                && bucket(l.tile.0, l.tile.1) == Some(ROAD_BUCKET)
+        })
+        .map(|mut l| {
+            l.rect = [
+                l.rect[0] + dx,
+                l.rect[1] + dy,
+                l.rect[2] + dx,
+                l.rect[3] + dy,
+            ];
+            l
+        })
+        .collect()
+    }
+
+    /// The pieces as one [`PatchMesh`] (item 4199, §3.19): each piece's box
+    /// cut at the tile lines inside it, as the packet's vertices stand, each
+    /// corner on the ground's own triangle (`TerrainMesh::build`'s `[a, b,
+    /// d]`, `[b, c, d]`) and its texcoord the box's bilinear; the texture is
+    /// its own alpha.
+    fn road_mesh(&mut self, laid: &[crate::roads::Laid]) -> Option<PatchMesh> {
+        let mips = self.road_art.as_ref()?.mips.clone();
+        let t = self.runner.terrain();
+        let field = Heightfield {
+            width: t.width,
+            height: t.height,
+            corners: &t.corners,
+        };
+        if !field.is_whole() {
+            return None;
+        }
+        let (sx, sy) = field.stride();
+        let z = |x: f32, y: f32| {
+            let (tx, ty) = (x.floor() as i32, y.floor() as i32);
+            let (fx, fy) = (x - tx as f32, y - ty as f32);
+            let c = |cx: i32, cy: i32| field.z(cx.clamp(0, sx - 1), cy.clamp(0, sy - 1));
+            let (a, b, c4, d) = (c(tx, ty), c(tx + 1, ty), c(tx + 1, ty + 1), c(tx, ty + 1));
+            if fx + fy <= 1.0 {
+                a + fx * (b - a) + fy * (d - a)
+            } else {
+                c4 + (1.0 - fx) * (d - c4) + (1.0 - fy) * (b - c4)
+            }
+        };
+        let unit = render::terrain::UNITS_PER_TILE as f32;
+        let mut m = PatchMesh {
+            piece: ROAD_PIECE,
+            positions: Vec::new(),
+            uvs: Vec::new(),
+            alpha_uvs: Vec::new(),
+            mips: mips.clone(),
+            alpha: ROAD_ALPHA,
+            alpha_mips: mips,
+            mountain: false,
+        };
+        let cuts = |a: f32, b: f32| {
+            let mut v = vec![a];
+            let mut k = a.floor() + 1.0;
+            while k < b {
+                v.push(k);
+                k += 1.0;
+            }
+            v.push(b);
+            v
+        };
+        for l in laid {
+            let [x0, y0, x1, y1] = l.rect;
+            let [nw, ne, sw, se] = l.uv;
+            let uv = |x: f32, y: f32| {
+                let (fx, fy) = ((x - x0) / (x1 - x0), (y - y0) / (y1 - y0));
+                [0, 1].map(|k| {
+                    let top = nw[k] + fx * (ne[k] - nw[k]);
+                    let bottom = sw[k] + fx * (se[k] - sw[k]);
+                    top + fy * (bottom - top)
+                })
+            };
+            let (xs, ys) = (cuts(x0, x1), cuts(y0, y1));
+            for j in 0..ys.len() - 1 {
+                for i in 0..xs.len() - 1 {
+                    let p = |x: f32, y: f32| [x * unit, y * unit, z(x, y)];
+                    let (ax, ay, cx, cy) = (xs[i], ys[j], xs[i + 1], ys[j + 1]);
+                    let (pa, pb, pc, pd) = (p(ax, ay), p(cx, ay), p(cx, cy), p(ax, cy));
+                    let (ua, ub, uc, ud) = (uv(ax, ay), uv(cx, ay), uv(cx, cy), uv(ax, cy));
+                    m.positions.extend_from_slice(&[pa, pb, pd, pb, pc, pd]);
+                    m.uvs.extend_from_slice(&[ua, ub, ud, ub, uc, ud]);
+                    m.alpha_uvs.extend_from_slice(&[ua, ub, ud, ub, uc, ud]);
+                }
+            }
+        }
+        (!m.positions.is_empty()).then_some(m)
     }
 
     /// The footprints' tiles as one [`PatchMesh`] (item 4190, §3.17): each
