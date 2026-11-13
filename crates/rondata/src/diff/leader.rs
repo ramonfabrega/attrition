@@ -1676,7 +1676,8 @@ mod tests {
             // item 4185: 204_160 -> 205_600, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 205_600 -> 257_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 257_600 -> 260_320, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
-            260_320, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b2: 260_320 -> 265_440, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
+            265_440, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1791,7 +1792,8 @@ mod tests {
             // item 4185: 219_472 -> 221_020, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 221_020 -> 276_920, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 276_920 -> 279_844, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
-            279_844, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b2: 279_844 -> 285_348, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
+            285_348, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1997,7 +1999,8 @@ mod tests {
             // item 4185: 45_936 -> 46_260, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 46_260 -> 57_960, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 57_960 -> 58_572, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
-            58_572, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b2: 58_572 -> 59_724, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
+            59_724, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -2147,7 +2150,8 @@ mod tests {
             // item 4185: 331_760 -> 334_100, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 334_100 -> 418_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 418_600 -> 423_020, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
-            423_020, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b2: 423_020 -> 431_340, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
+            431_340, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -2297,7 +2301,8 @@ mod tests {
             // item 4185: 76_560 -> 77_100, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 77_100 -> 96_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 96_600 -> 97_620, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
-            97_620, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b2: 97_620 -> 99_540, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
+            99_540, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3406,7 +3411,8 @@ mod tests {
             // item 4185: 625_240 -> 629_650, +9 keys a leader block (the end of the game's six and the lost capital's three).
             // item 4187: 629_650 -> 788_900, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 788_900 -> 797_230, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
-            797_230, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-b2: 797_230 -> 812_910, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
+            812_910, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
