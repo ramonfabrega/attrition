@@ -1590,3 +1590,91 @@ const RIGHT_PRESSED_AGAINST_BOXED: (i64, &str, &str, Option<i64>, usize) = (
     Some(240),
     59,
 );
+
+/// The attacked file's gzip length (item 4195).
+const ATTACKED_RCX_BYTES: usize = 59_404;
+
+/// **The attacked script, minted** (item 4195, `docs/CLIENT_INPUT.md` §8):
+/// the boxed file and four packages more — the research, the Barracks,
+/// the Slingers and the attack; it round-trips through the file. With
+/// `RON_RCX_OUT=<file>` it writes the `.rcx` the playback takes open.
+#[test]
+fn the_attacked_minted_packages_round_trip() {
+    use crate::script::{ATTACK_FRAME, ATTACK_RESEARCH_FRAME, BARRACKS_FRAME, TRAIN_FRAME, attacked};
+    let (Some(rec), Some(first)) = (minted(&attacked()), minted(&boxed())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "attacked").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in attacked().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<i32> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| p.frame)
+        .collect();
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (12, 8));
+    assert_eq!(
+        added,
+        vec![ATTACK_RESEARCH_FRAME, BARRACKS_FRAME, TRAIN_FRAME, ATTACK_FRAME, last.frame],
+        "the packages the boxed file does not hold"
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    assert_eq!(gz.len(), ATTACKED_RCX_BYTES, "ATTACKED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+#[test]
+#[ignore]
+fn probe_4195_attacked_walk() {
+    let Some((_, mut built, _)) = built_start() else { return };
+    let rec = minted(&crate::script::attacked()).unwrap();
+    let mut stream = crate::input::Stream::pump(&rec);
+    let barracks = (427 - crate::load::BASE_BUILDTYPES) as usize;
+    eprintln!("barracks site clear: {:?}", built.sim.blocked_site(Some(0), barracks, crate::script::BARRACKS_AT, None));
+    let (mut placed, mut done, mut trained, mut seen, mut hp) = (false, false, false, None::<i64>, 50);
+    while built.sim.frame < 7000 {
+        stream.apply(built.sim.frame as i32, &mut built);
+        built.tick();
+        let s = &built.sim;
+        let f = s.frame;
+        if !placed && let Some(b) = s.buildings.iter().find(|b| b.alive && b.owner == 0 && b.ty == Some(barracks)) {
+            placed = true;
+            eprintln!("f{f} Barracks 0/{} at ({}, {})", b.index, b.pos.x, b.pos.y);
+        }
+        if placed && !done && s.buildings.iter().any(|b| b.owner == 0 && b.ty == Some(barracks) && b.active) {
+            done = true;
+            eprintln!("f{f} Barracks finished");
+        }
+        if !trained && let Some(u) = s.units.iter().find(|u| u.owner == 0 && u.index == 7 && u.on_map && u.alive()) {
+            trained = true;
+            eprintln!("f{f} 0/7 TI {} at ({}, {})", u.type_index, u.pos.x, u.pos.y);
+        }
+        if seen.is_none() && let Some(e) = s.units.iter().find(|u| u.owner == 1 && u.on_map && u.alive() && s.world_sees(u.pos, 0)) {
+            seen = Some(f);
+            eprintln!("f{f} FIRST SEEN 1/{} at ({}, {})", e.index, e.pos.x, e.pos.y);
+        }
+        let t = s.units.iter().find(|u| u.owner == 1 && u.index == 0).unwrap();
+        if t.health != hp {
+            eprintln!("f{f} 1/0 hp {} -> {}", hp, t.health);
+            hp = t.health;
+        }
+    }
+}

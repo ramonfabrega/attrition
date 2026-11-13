@@ -54,12 +54,15 @@ const TILES_PER_CELL: i32 = 4;
 /// not read (`docs/CLIENT_INPUT.md` §4).
 pub const PICK_RADIUS: i32 = 24;
 
-/// The keys that train, and what: the script's one, the Citizen
-/// (`TypeIndex` 50). Ours, not the original's hotkeys.
-pub const TRAIN_KEYS: &[(char, i32)] = &[('c', 50)];
-/// The keys that choose a building to place: the script's one, the Farm
-/// (`TypeIndex` 417). Ours, not the original's hotkeys.
-pub const BUILD_KEYS: &[(char, i32)] = &[('f', 417)];
+/// The keys that train or research, and what — each a `queue_up` of the
+/// `TypeIndex` on the selected building: the Citizen (50); The Art of War
+/// (572), the attacked script's research at the Library; the Slingers
+/// (82), its soldier at the Barracks (item 4195). Ours, not the original's
+/// hotkeys.
+pub const TRAIN_KEYS: &[(char, i32)] = &[('c', 50), ('a', 572), ('s', 82)];
+/// The keys that choose a building to place: the Farm (`TypeIndex` 417)
+/// and the Barracks (427, item 4195). Ours, not the original's hotkeys.
+pub const BUILD_KEYS: &[(char, i32)] = &[('f', 417), ('b', 427)];
 
 /// How far the box test reaches past the dragged rectangle, in pixels: the
 /// original's own, `BoundingBox::around_bounding_volume@00544860`'s ±30
@@ -1467,5 +1470,56 @@ pub(crate) mod tests {
         assert_eq!(input.event(1, Event::Key('x'), &v), None);
         let order = input.event(1, Event::Key('c'), &v).unwrap();
         assert_eq!(order.2[1], Command::QueueUp { unit: 50, num: 1 });
+    }
+}
+
+#[cfg(test)]
+mod probe_4195 {
+    use super::tests::*;
+    use super::*;
+    use rondata::script;
+
+    #[test]
+    #[ignore]
+    fn probe_4195_stage_zero() {
+        let Ok(mut r) = lobby() else { return };
+        let orders = script::attacked();
+        let c = camera(None);
+        let at = |r: &rondata::free::FreeRunner, who: u8, o: i16| {
+            let scene = r.scene(None);
+            let terrain = r.terrain();
+            let v = view(&c, &scene, &terrain);
+            let u = scene.units.iter().find(|u| u.id.who == who && u.id.o == o).map(|u| (u.pos, u.z));
+            let b = scene.buildings.iter().find(|b| b.id.who == who && b.id.o == o).map(|b| (b.pos, b.z));
+            let (p, z) = u.or(b).expect("on the map");
+            let px = v.pixel(p.x, p.y, z);
+            let near = v.anchors(who).filter(|(id, ..)| id.o != o).map(|(id, _, (ax, ay))| (((ax - px.0).pow(2) + (ay - px.1).pow(2)).isqrt(), id.o)).min();
+            eprintln!("f{} {who}/{o} at ({}, {}) z {z} pixel {:?} nearest other {:?}", r.frame(), p.x, p.y, px, near);
+            px
+        };
+        let mut i = 0;
+        for f in 0..=6703 {
+            while i < orders.len() && orders[i].0 == f as i32 {
+                r.issue(&orders[i]);
+                i += 1;
+            }
+            match f {
+                310 => { at(&r, 0, script::LIBRARY); }
+                521 => {
+                    at(&r, 0, script::BARRACKS_BUILDER);
+                    let scene = r.scene(None);
+                    let terrain = r.terrain();
+                    let v = view(&c, &scene, &terrain);
+                    let p = script::BARRACKS_AT;
+                    let px = v.pixel(p.x, p.y, v.ground_z(p.x, p.y));
+                    eprintln!("drop ({}, {}) pixel {:?} inverse {:?}", p.x, p.y, px, ground_at(&v, px.0, px.1));
+                }
+                965 => { at(&r, 0, script::BARRACKS); }
+                6703 => { at(&r, 0, script::SLINGER); at(&r, 1, 0); }
+                _ => {}
+            }
+            r.step();
+        }
+        eprintln!("screen {:?}", crate::pinned_screen());
     }
 }
