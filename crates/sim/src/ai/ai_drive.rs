@@ -7,7 +7,7 @@
 //! arms the step machine, and the machine runs one step a frame — the
 //! script at step 1 (over [`crate::ai::ai_host`]), the goods picture at step 2,
 //! and the producers as the seams they are until the census lands (§12.1
-//! item 5). `compute_score` is not stepped yet; `diplomacy` is
+//! item 5). `compute_score` is [`crate::leaders::score`]; `diplomacy` is
 //! [`crate::leaders::diplomacy`].
 
 use crate::ai::{self, GoodsSetup, ScriptResult, Step, cadence};
@@ -61,7 +61,7 @@ impl Sim {
     /// `Leaders::strategy_all@006ed430`: every leader in play, every frame
     /// — `check_explore`, `plan_strategy`, `compute_score`, `diplomacy`.
     /// `plan_strategy` and `diplomacy` ([`crate::leaders::diplomacy`]) decide; the
-    /// other two are recounts, and `compute_score` is not modelled.
+    /// other two are recounts ([`crate::leaders::score`] for `compute_score`).
     ///
     /// **The human is swept too** (`docs/AI.md` §23.1, §169). The gate is
     /// `leader_flags & 3 == 3` and nothing more, and `Leader::production_ai`
@@ -81,11 +81,15 @@ impl Sim {
             }
             if self.cities.nation[w].human {
                 self.plan_strategy_human(who);
+                // `compute_score(0)` runs for the human too (§18.2).
+                self.compute_score(who, false);
                 continue;
             }
             self.plan_strategy(who);
-            // `compute_score(0)` — not modelled. `diplomacy` returns at its
-            // head for a human (`leader_flags & 4`), so only here.
+            // `compute_score(0)` (`crate::leaders::score`, `docs/LEADERS.md`
+            // §18). `diplomacy` returns at its head for a human
+            // (`leader_flags & 4`), so only here.
+            self.compute_score(who, false);
             self.diplomacy(who);
         }
     }

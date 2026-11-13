@@ -1733,7 +1733,11 @@ diff reads and moving there; `victory_type` and `defeat_type` are held by
 the crate and stay held out, each parting on a closing block whose quit
 the window harness does not replay (4185a). The ranges and bytes do not
 move: the long range still parts on the other 61, so 263 of 267 ranges
-and 4,313 of 58,343 bytes agree as before.
+and 4,313 of 58,343 bytes agree as before. ~~**61**~~ 61 since step V,
+and **49** since item 4187 (step VI), which released twelve (`docs/LEADERS.md`
+§17–§20 name them and the rule each met); six of the score's twelve stay
+held out (4187a–c). With the spell bits each `tech` array agrees: **265 of
+267 ranges and 4,515 bytes** agree on frame 91, the long ranges parting.
 `CHECKSUM_STATE` does not count it (§5).
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
@@ -1881,8 +1885,10 @@ counter, a slot mark, a setup rule, a never-reached constant, a held leaf and
 **Not established**:
 
 - ~~Every frame but 91.~~ The line is compared on 107 packets since item
-  4188 (§23.4): the long range parts on every one, and no held-out leaf
-  but `tech.ptr` has a value to compare.
+  4188 (§23.4): the long range parts on every one. ~~No held-out leaf but
+  `tech.ptr` has a value to compare.~~ Since item 4187 every leaf of §17–§20
+  has one; the `tech` arrays agree on all 226 walked leaders, and the
+  leaders line's parted ranges fell by two a packet (three on the melees').
 - A leader the crate seats from a dump.
 - ~~`mil_trainers`' elements and a `SimpleArray<int>`'s `size` past ten.~~
   Both corrected on the packets (§23.4): the elements are the trainers'
@@ -2165,6 +2171,13 @@ with its value diff:
   emitted `max(10, length)`; on run1359's who 1, 12 trainers, ours 12 and
   theirs 20. It now agrees on all 226 for `mil_trainers`, `new_rares` and
   `oil_patches`.
+
+Item 4187 gave §17–§20's leaves their values: eight unprinted leaves
+agree on all 226 and leave the list by entry 129 §5 (`PACKET_RELEASED`,
+`docs/LEADERS.md` §18.5, §19), the `tech` arrays agree on all 226 (each
+packet's leaders line parts on two fewer ranges, three on a melee's), and
+`score`, `score_units`, `score_units_2` and `score_combat` part on 3 to 10
+leaders and stay held.
 
 The leaves that still part outside the list are pinned per packet
 (`PACKET_LEAF_PARTINGS`), 106 packets. They are findings

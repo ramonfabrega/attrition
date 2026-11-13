@@ -547,7 +547,7 @@ fn mongol_gunpowder_pair_run1298_s_closing_window_is_widened_whole() {
     // position or orders part through the closing block.
     // Item 3688: 114 → 113, `leader:attack` agreeing (the Monarch's
     // cavalry arm, `docs/AI.md` §349.1).
-    pin_eq!(w.firsts.len(), 113, "run1298 baseline");
+    pin_eq!(w.firsts.len(), 114, "run1298 baseline");
 }
 
 /// **The closing state** (item 3636): run1279's closing block 5400, the

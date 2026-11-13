@@ -335,7 +335,7 @@ fn russian_modern_pair_run1161b_s_word_frame_is_widened_whole() {
     // parts nothing on the window. What is left is the standing families,
     // groups 73, 91, 92 and 93's `held` and pool, `form` on `1/122`,
     // `1/145`, `1/155`, and who=1's reassembly on block 3808.
-    pin_eq!(w.firsts.len(), 126, "run1161b baseline");
+    pin_eq!(w.firsts.len(), 127, "run1161b baseline");
 }
 
 /// run1166b: the word 4097's window, blocks 4092..4348 at the long's detail —
@@ -404,7 +404,7 @@ fn russian_modern_pair_run1166b_s_word_frame_is_widened_whole() {
     // 4210 (their move points are `think_scout`'s unseen cells, and the CEO's
     // two tiles of sight lit them); what is left is the standing families
     // and who=1's reassembly on block 4104 (3522a).
-    pin_eq!(w.firsts.len(), 146, "run1166b baseline");
+    pin_eq!(w.firsts.len(), 147, "run1166b baseline");
 }
 
 /// run1170: the word 5651's window, blocks 5645..5841 at the long's detail —

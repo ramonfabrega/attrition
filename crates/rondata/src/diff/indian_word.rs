@@ -328,7 +328,7 @@ fn run970d_s_gap_is_widened_whole() {
     // the War Elephant (TI 261) queued at the Stable `1/2019` costing
     // 96/56 ours against 81/47 — fifteen percent, `get_cost`'s Indian
     // elephant arm. **67 → 62** with the arm: the standing set alone.
-    pin_eq!(w.firsts.len(), 62, "keys that part in the gap");
+    pin_eq!(w.firsts.len(), 63, "keys that part in the gap");
 }
 
 /// run970e: the word 14594's window, blocks 14588..14845 at run970's

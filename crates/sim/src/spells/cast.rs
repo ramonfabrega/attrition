@@ -1031,8 +1031,11 @@ impl Sim {
     /// captain, alone, no decoy; `docs/LEADERS.md` §2.2), and nothing else
     /// of that family does.
     ///
-    /// SEAM: `score_combat`; the sounds and the message; a building target
-    /// (`febchm`'s `c`), which no staging has cast on.
+    /// `score_combat[caster] += kill(t, o) / 5` beside it, no ally test
+    /// (`docs/LEADERS.md` §18.2).
+    ///
+    /// SEAM: the sounds and the message; a building target (`febchm`'s
+    /// `c`), which no staging has cast on.
     pub(crate) fn cast_counterintel(&mut self, who: Player, v: usize) {
         let mut v = v;
         while let Some(up) = self.units[v].o_up {
@@ -1041,6 +1044,10 @@ impl Sim {
         if !self.is_ally(who, self.units[v].owner) {
             if self.countable_death(v) {
                 self.note_unit_kill(who);
+                if let Some(r) = self.units[v].ty {
+                    let o = self.units[v].owner;
+                    self.note_score_kill(who, crate::leaders::score::Victim::Unit(r), o, false);
+                }
             }
             self.die_with(v, 2);
         } else {

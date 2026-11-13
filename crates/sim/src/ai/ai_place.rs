@@ -1032,7 +1032,10 @@ impl Sim {
                 self.order_builder(who, u, kind, o);
             }
         } else {
-            self.activate(o, false, true);
+            // `Leader::produce_building@006e1400` at frame 0 activates
+            // `(0, param_2, 0)`: uncounted, so no `last_building_finished`
+            // and no nation's free units (`docs/LEADERS.md` §19, §20.3).
+            self.activate(o, false, false);
         }
         // The census, adjusted in place (report §4.6 lines 1114–1151), so
         // a second producer in the same step machine sees the tile and the

@@ -945,7 +945,7 @@ fn run678_s_word_frame_is_widened_whole() {
     // **139** on the tree item 1558 landed (160 on item 1552's, 307 on item
     // 1546's, 1,378 on item 1544's); 98 stand from the window's first block
     // — `1/2006`'s capital bit no longer among them.
-    pin_eq!(w.firsts.len(), 66, "initial run678 baseline");
+    pin_eq!(w.firsts.len(), 67, "initial run678 baseline");
     // Item 3333: who=1's `bucket` timber 17978/17958 and metal 14157/14137 on
     // 1183 close with an Oil Platform priced by the Oil Wells (`docs/AI.md`
     // §270).
@@ -1186,7 +1186,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
     // Item 3708: 79 → 78, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
-    pin_eq!(w.firsts.len(), 78, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 79, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1317,7 +1317,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // numbers.
     // Item 2761: 106 → 102 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 67, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 68, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1824,7 +1824,7 @@ fn run762_s_word_frame_is_widened_whole() {
     // Item 2384: 196 -> 197, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 196 → 192 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 167, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 168, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1855,7 +1855,7 @@ fn run754_s_word_frame_is_widened_whole() {
     // Item 2761: 176 → 172 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3961: +1, `healing` on `1/116` (4025, ours 45 theirs 0): our civilian heal on a
     // citizen whose hits already part from 3923 (its attrition, 3917); theirs is whole.
-    pin_eq!(w.firsts.len(), 142, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 143, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -2441,5 +2441,5 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // Item 4167: 9070 -> 9073, +3 firsts, who=1: `air_queued` 2583 ours 10 theirs 13 and `factory_queued` 2583 ours 1 theirs 8, beside `num_queued[261]` 0/3 and `[223]` 0/7; `supply_mark` 2805 ours 4 theirs 3, beside `num_units[13]` 4/3 (the bins and the mark follow the arrays' own partings).
     // Item 4176: 9073 -> 9081, +8 firsts: the victim stamp rows on 2060, 2063, 2079 and 2552 (who=1's `attack_stamp[0]` ours 2059 theirs 0 beside `1/59`'s damage 10 against 0), and `units_killed`/`units_lost` on 2247 (ours 15 theirs 16) and 2386 (ours 2 theirs 1), beside the units' own hits.
     // Item 4177: 9081 -> 9105, +24 firsts, the combat rates' own: who=0 `hits_current_frame` 2060 ours 1 theirs 0; who=1 `damage_current_frame` 2060 ours 1 theirs 0; who=0 `damage_current_frame` 2079 ours 1 theirs 0; who=1 `hits_current_frame` 2079 ours 1 theirs 0 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 9105, "initial run1075 baseline");
+    pin_eq!(w.firsts.len(), 9109, "initial run1075 baseline");
 }

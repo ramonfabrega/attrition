@@ -1775,11 +1775,13 @@ fn leaf_text(v: &[i64]) -> String {
 /// The pinned outcome of the leaders line on run 1562's packet
 /// (`docs/CHECKSUM.md` §20): `(slots walked whole, ranges, bytes, ranges
 /// parted, bytes in the ranges that agree)` — two leaders walked whole of
-/// eight slots, 267 ranges and 58,343 bytes. Four ranges part: each walked
+/// eight slots, 267 ranges and 58,343 bytes. Two ranges part: each walked
 /// leader's long range `[+0x8, +0x692a)` (26,914 bytes, on the leaves
-/// [`LEADERS_HELD_OUT`] names) and its `tech` mask's array (101 bytes, the
-/// spell types' bits). Item 4121's first image agreed on 403 and 410 leaves.
-const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
+/// [`LEADERS_HELD_OUT`] names). Item 4121's first image agreed on 403 and
+/// 410 leaves. Item 4187: 4 → 2 ranges parted, 4,313 → 4,515 bytes in the
+/// agreeing ones — each leader's `tech` array (101 bytes) agrees since the
+/// spell pass sets its 46 bits (`docs/LEADERS.md` §17).
+const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 
 /// **The leaves the leaders line is held out on**, each with its count of
 /// walked leaders on run 1562's frame 91 (`docs/CHECKSUM.md` §20): a leaf
@@ -1891,6 +1893,25 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// (`defeat_type` ours 0 theirs 6) and run667's 17380 (who 0 ours 5 theirs
 /// 6, who 1 `victory_type` ours 2 theirs 0; parked 4185a). The long range
 /// stays out on the other 61.
+///
+/// Item 4187, step VI: 61 → 49 names (`docs/LEADERS.md` §17–§20). Released
+/// by entry 128 §3, each agreeing on every record the record diff reads and
+/// moving there: `tech.ptr` (the spell bits; the leaders line's two `tech`
+/// arrays now agree, [`LEADERS`]), `reg_terr` and `territory_high` (leader 0
+/// 266 = 266, region 1 266 = 266; leader 1 261 = 261), and `high_buildings`
+/// on transfer (its one parting, run1075's window from 2765, who 1's
+/// Library ours 1 theirs 2, sits beside `num_buildings[21]` ours 1 theirs 2;
+/// `diff::transfer`). Released by entry 129 §5, each agreeing on all 226
+/// walked leaders of the 107 packets and off its seated image on one
+/// ([`packets::PACKET_RELEASED`]): `last_building_finished`,
+/// `last_unit_finished` (every cell −1 = −1 on frame 91), `score_territory`
+/// (87 = 87, 85 = 85), `score_buildings` (78, 62), `score_economy` (16,
+/// 12), `score_unit_upgrades`, `score_research` and `score_wonders` (0 =
+/// 0). Held and emitted unheld: `score` (printed; parts in the record diff,
+/// and its sum takes two unprinted parts, so it cannot transfer),
+/// `score_units`, `score_units_2` and `score_combat` (part on packets; parked
+/// 4187a), `score_explored` and `score_pop` (0 on every packet, so no packet
+/// moves them).
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
@@ -1911,7 +1932,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("dow (unheld)", 2),
     ("gift_stamp (unheld)", 2),
     ("good_deeds (unheld)", 2),
-    ("high_buildings (unheld)", 2),
     ("hire_stamp (unheld)", 2),
     ("hire_who (unheld)", 2),
     ("hits_current_frame (unheld)", 2),
@@ -1922,29 +1942,18 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("incoming_taunt_who (unheld)", 2),
     ("kills_current_frame (unheld)", 2),
     ("kills_fifteen_seconds (unheld)", 2),
-    ("last_building_finished (unheld)", 2),
     ("last_spoke (unheld)", 2),
     ("last_taunt (unheld)", 2),
-    ("last_unit_finished (unheld)", 2),
     ("made_peace (unheld)", 2),
     ("pop_issues (unheld)", 2),
     ("raid_stamp (unheld)", 2),
-    ("reg_terr (unheld)", 2),
     ("score (unheld)", 2),
-    ("score_buildings (unheld)", 2),
     ("score_combat (unheld)", 2),
-    ("score_economy (unheld)", 2),
     ("score_explored (unheld)", 2),
     ("score_pop (unheld)", 2),
-    ("score_research (unheld)", 2),
-    ("score_territory (unheld)", 2),
-    ("score_unit_upgrades (unheld)", 2),
     ("score_units (unheld)", 2),
     ("score_units_2 (unheld)", 2),
-    ("score_wonders (unheld)", 2),
     ("taunt_frame (unheld)", 2),
-    ("tech.ptr", 2),
-    ("territory_high (unheld)", 2),
     ("tribute_demanded (unheld)", 2),
     ("tribute_received (unheld)", 2),
     ("tribute_sent (unheld)", 2),
@@ -2024,6 +2033,20 @@ const LEADERS_BENT: &[&str] = &[
     "lost_capital_stamp",
     "lost_capital_timer",
     "lost_capital_modifier",
+    // Item 4187's twelve released (`docs/LEADERS.md` §17–§20), the eleven
+    // on the long range, each agreeing on run 1562's frame 91; `tech.ptr`
+    // is its own range, bent with the range kinds above.
+    "last_building_finished",
+    "last_unit_finished",
+    "high_buildings",
+    "territory_high",
+    "reg_terr",
+    "score_territory",
+    "score_buildings",
+    "score_economy",
+    "score_unit_upgrades",
+    "score_research",
+    "score_wonders",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its
@@ -2176,6 +2199,7 @@ fn the_leaders_line_is_the_original_s_range_by_range() {
         "dip",
         "pers",
         "rare.ptr",
+        "tech.ptr",
         "sites[k]",
         "make_list[k]",
         "encrypt",
