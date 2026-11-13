@@ -2121,8 +2121,10 @@ the closing block, and the Aztec pair's starts.
   anim, and what the crews' figure draws from a null action.
 - **What a round or a corpse draws**: a round resolves on its files, not
   on a pixel; what slot `AmmoOut::draw@0067ac10` plays on a falling
-  plane's unit piece is unread. The client draws neither (parked 4175a,
-  4183a): the door lacks the corpse's place and the round's height, below.
+  plane's unit piece is unread. The corpse's body is drawn (item 4191);
+  the round is not: the door lacks its height, and run1570's F holds
+  none (4191c). Not drawn: the body's fade alpha, the skeleton (4191b),
+  the slope tilt, `center_z`.
 
 **The photograph of a corpse and a round** (item 4183, run1570; the rule
 before any count, so no count yet). run1570 is run1559b's paused, traced
@@ -2138,25 +2140,29 @@ land on screen: pieces 60164 and 60174 on 3309–3318, and the
 `DEATH_OBJS` record, so the packet's pool is the only oracle for the
 corpse's place.
 
-**The rule, `RUN1570_DEAD`.** It is drawn on the photographed frame F,
-which is settled first by the movers, as `client::silhouette::PHOTO_FRAME`
-settled run1559b's 3279 (4073a). Every corpse record standing on F, and
-every round in flight on F, is one window. It is placed by the original's
-geometry at the original's points:
-- a corpse at its `DeathObj`'s x, y, `center_z` and angle, read off the
-  packet's pool, posed on `cur_anim` at `DeathObjOut::draw@008d4090`'s
-  time (`age × 200 / 3` ms, held at the action's end);
-- a round at `AmmoOut::draw`'s point, read off the dump's `AMMO` on F:
-  x and y from `sx`, `sy` to `ex`, `ey` at `cur_time / total_time`, and z
-  by `traj` (linear; `sz + v1z·t + GRAV_Z·t²/2`; the path table).
-
-Each window is projected through the packet's camera. Ours is the client's
-still (§3.15). The window's colour is read by `_TRACED`'s reader, and its
-ring is the still's pixels where no key lies. A window counts in register
-when the overlap is 0.5 or more and the chromaticity is within 0.05: the
-rows' own tolerances. An occluded window (`0/7`'s, if the trees cover it)
-stays in the selection and is named, never dropped. The count as drawn
-(none) is pinned first.
+**The rule, `RUN1570_DEAD`, and its count** (item 4191;
+`client::dead`). **F is 3327**, four frames before the pause, clocked
+by its movers (`RUN1570_FRAME`, `RUN1570_ANCHORS`: miss 3.8 px summed
+over three movers, its neighbours 22.6 and 35.0). **No round is in flight on F**: the
+dump's `AMMO` ends at 3318, so this photograph scores corpses only.
+**The place is diff-backed**: `DeathObj::init@008d4c60` takes the guy's
+own `x`, `y`, `angle` from `Objects::add_death@00653b60`, and `z` as 0
+on the sea, else `find_data_z`; `sim::combat::Lie` keeps it at the
+kill's making, and both records on F equal the packet's pool on every
+field: `0/7` (3972, 28574, 499, −476512256), `0/11` (3933, 32387, 554,
+−1352335360). The body is drawn on `cur_anim` at `age` frames, held at
+`frames − 1`, while `age < frames + body_fade_end` (135). Each record
+standing on F is a window: W is our still's pixels that differ from
+the still without corpses (a channel past 8), within 80 px; each
+side's key is W's pixels more than 0.05 in chromaticity from that
+side's 6-px ring; in register at overlap 0.5 and chromaticity 0.05 on
+the keys' intersection. **Count: 0 of 2, before 0 of 2, moved 0 of 2.**
+`0/7` (age 15, lying) overlaps 0.52 but parts on colour, ours (0.661,
+0.197) against (0.541, 0.324): the derrick's logs hide most of the
+photograph's body, and our sprite writes one depth for the building
+(4191a). `0/11` (age 624) shows only its skeleton, piece 60113, fading
+at 147 of 255 (`corpse_hold_end` 582, `corpse_fade_end` 627,
+`0x00b21770`), which the client does not draw (4191b).
 - **A building's round piece and the Merchant arm** of `fire_ammo` are
   read, not diffed; no walked frame or `AMMO=5` walk holds one.
 - **The doobers' 16** before `first_ammo_piece`: the constant is the

@@ -1660,8 +1660,28 @@ impl Sim {
                 i64::MAX
             };
             f.gpiece[k] = self.units[i].guys.get(k).map_or(-1, |g| g.gpiece);
+            f.place[k] = self.death_lie(i, k);
         }
         f
+    }
+
+    /// **Where guy `k`'s record lies** (item 4191, `docs/RENDERER.md`
+    /// §3.13): `Objects::add_death@00653b60` hands `DeathObj::init@008d4c60`
+    /// the guy's own `x`, `y` and `angle`, and `init` takes `z` as 0 on a
+    /// type of `+0x218 == 1` (the sea, as [`Self::figure_life`] reads it)
+    /// and `TerrainOut::find_data_z` under the point otherwise.
+    pub(super) fn death_lie(&self, i: usize, k: usize) -> combat::Lie {
+        let (pos, angle) = self.figure_point(i, k.min(self.units[i].guys.len().saturating_sub(1)));
+        let sea = self.units[i].kind.domain == crate::territory::attrition::Domain::Sea;
+        combat::Lie {
+            pos,
+            z: if sea {
+                0
+            } else {
+                self.world.data_z(pos.x, pos.y).0
+            },
+            angle,
+        }
     }
 
     /// **`Object::die@00647080`'s tail** — `hold_frames = max(hold_frames,

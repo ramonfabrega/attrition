@@ -263,6 +263,19 @@ pub struct DeathScene {
     /// `GraphicPieces::draw` on slot [`Self::cur_anim`]. A record whose
     /// life has run out, or that the pool evicted, is gone from the list.
     pub pieces: Vec<i32>,
+    /// **Where each of those records lies** (item 4191, `docs/RENDERER.md`
+    /// §3.13), one per entry of [`Self::pieces`]: `DeathObjData` `x`, `y`,
+    /// `z` and `new_angle`, the guy's own point and facing at the kill's
+    /// making ([`crate::combat::Lie`]), which `DeathObjOut::draw@008d4090`
+    /// places and turns the body by.
+    pub places: Vec<crate::combat::Lie>,
+    /// **Each of those records' action, in game frames**, one per entry
+    /// of [`Self::pieces`]: `AnimationPacket::get_game_frames` of its
+    /// piece on [`Self::cur_anim`], which `DeathObjOut::draw@008d4090`
+    /// reads every draw — the body plays to `(frames × 200 − 200) / 3` ms
+    /// and holds there, and its fade and the skeleton's count from it
+    /// (item 4191). `None` where the install does not describe the slot.
+    pub frames: Vec<Option<u32>>,
 }
 
 /// The terrain grids, fetched when [`Scene::terrain_version`] moves.
@@ -344,12 +357,7 @@ impl Sim {
                         .iter()
                         .enumerate()
                         .map(|(k, g)| {
-                            // Guy 0's own point is the unit's body
-                            // (`Movement::body`, `GuyData +0xc`), which a
-                            // push that does not move the guys leaves
-                            // behind (item 4027).
-                            let own = if k == 0 { u.movement.body.pos } else { u.pos };
-                            let pos = g.follow.map_or(own, |f| f.body.pos);
+                            let (pos, facing) = self.figure_point(i, k);
                             FigureScene {
                                 pos,
                                 z: match domain {
@@ -357,7 +365,7 @@ impl Sim {
                                     Domain::Air => u.airframe.z,
                                     Domain::Land => self.world.data_z(pos.x, pos.y).0,
                                 },
-                                facing: g.follow.map_or(facing, |f| f.facing),
+                                facing,
                                 gpiece: g.gpiece,
                                 anim: g.anim,
                                 cur_time: g.cur_time,
@@ -442,6 +450,25 @@ impl Sim {
                         .filter(|&k| age < d.figures.life[k])
                         .map(|k| d.figures.gpiece[k])
                         .collect(),
+                    places: (0..n)
+                        .filter(|&k| age < d.figures.life[k])
+                        .map(|k| d.figures.place[k])
+                        .collect(),
+                    frames: (0..n)
+                        .filter(|&k| age < d.figures.life[k])
+                        .map(|k| {
+                            let (gp, anim) = (d.figures.gpiece[k], i8::try_from(d.cur_anim).ok()?);
+                            match self.roster.art.piece_lengths.get(&gp) {
+                                Some(slots) => Some(
+                                    slots
+                                        .get(&anim)
+                                        .copied()
+                                        .unwrap_or(crate::units::anim::MISSING),
+                                ),
+                                None => self.roster.art.length(gp, anim),
+                            }
+                        })
+                        .collect(),
                 }
             })
             .collect();
@@ -460,6 +487,21 @@ impl Sim {
 
     /// Every player slot's [`LeaderScene`]: a slot is one the tech, the
     /// ledgers and the muster all hold.
+    /// **Guy `k`'s own point and facing** (`GuyData` `x`, `y`, `angle`):
+    /// a crew body's where it follows one; guy 0's own body
+    /// (`Movement::body`, `GuyData +0xc`), which a push that does not move
+    /// the guys leaves behind its unit's `pos` (item 4027); otherwise the
+    /// unit's. The door draws a figure here, and a death record lies here
+    /// (item 4191, [`crate::combat::Lie`]).
+    pub(crate) fn figure_point(&self, i: usize, k: usize) -> (Pos, Angle) {
+        let u = &self.units[i];
+        let own = if k == 0 { u.movement.body.pos } else { u.pos };
+        match u.guys.get(k).and_then(|g| g.follow) {
+            Some(f) => (f.body.pos, f.facing),
+            None => (own, u.movement.facing),
+        }
+    }
+
     fn observe_leaders(&self) -> Vec<LeaderScene> {
         let slots = self
             .tech
