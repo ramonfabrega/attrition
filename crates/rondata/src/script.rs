@@ -211,7 +211,7 @@ pub const BOX_WIDTH: i8 = 50;
 /// so the Library researches it first ([`ATTACK_RESEARCH_FRAME`]); the
 /// idle Citizen [`BARRACKS_BUILDER`] drops the Barracks at
 /// [`BARRACKS_AT`] once it is available, ten frames after; the finished
-/// Barracks [`BARRACKS`] trains the Slingers ten frames after it is done;
+/// Barracks [`BARRACKS_OBJECT`] trains the Slingers ten frames after it is done;
 /// and on [`ATTACK_FRAME`], the first frame slot 1's Scout `1/0` stands in
 /// slot 0's live sight on our walk, the Slinger [`SLINGER`] is sent at it:
 /// `Console::execute_at_cursor`'s enemy arm, `attack(ox, whom, ignore 0,
@@ -227,7 +227,7 @@ pub fn attacked() -> Vec<Order> {
             vec![
                 Command::Group {
                     who: 0,
-                    objects: vec![LIBRARY],
+                    objects: vec![LIBRARY_OBJECT],
                 },
                 Command::QueueUp {
                     unit: ART_OF_WAR,
@@ -259,10 +259,10 @@ pub fn attacked() -> Vec<Order> {
             vec![
                 Command::Group {
                     who: 0,
-                    objects: vec![BARRACKS],
+                    objects: vec![BARRACKS_OBJECT],
                 },
                 Command::QueueUp {
-                    unit: SLINGERS,
+                    unit: SLINGERS_TYPE,
                     num: 1,
                 },
             ],
@@ -288,15 +288,16 @@ pub fn attacked() -> Vec<Order> {
 }
 
 /// slot 0's Library, `0/2005` (`TypeIndex` 435).
-pub const LIBRARY: i16 = 2005;
+pub const LIBRARY_OBJECT: i16 = 2005;
 /// The Art of War's `TypeIndex`: `BASE_TECHTYPES` (0x220) plus its record,
 /// 28 — the Barracks' `PREQ0`, researched at the Library (`JOB_TIME` 200).
 pub const ART_OF_WAR: i32 = 572;
-/// The Barracks' `TypeIndex`: `BASE_BUILDTYPES` (0x19e) plus its record, 13.
-pub const BARRACKS_TYPE: i32 = 427;
+/// The Barracks' `TypeIndex`: `BASE_BUILDTYPES` (0x19e) plus its record,
+/// 13 (`sim::ids::ty::BARRACKS`).
+pub const BARRACKS_TYPE: i32 = sim::ids::ty::BARRACKS as i32;
 /// The Slingers' `TypeIndex` (unit record 32): 40 food and 40 timber on
 /// our walk, `moves` 28, a 6-tile reach.
-pub const SLINGERS: i32 = 82;
+pub const SLINGERS_TYPE: i32 = sim::ids::ty::SLINGERS as i32;
 /// The Citizen who builds the Barracks, `0/3`, idle where the box sent it.
 pub const BARRACKS_BUILDER: i16 = 3;
 /// The Barracks' drop point, as clicked: the pixel (614, 475) at the
@@ -305,7 +306,7 @@ pub const BARRACKS_BUILDER: i16 = 3;
 /// check. `snap_center` puts the site at (1152, 32064).
 pub const BARRACKS_AT: Pos = Pos { x: 1249, y: 32163 };
 /// The Barracks' site the build places, `0/2008`.
-pub const BARRACKS: i16 = 2008;
+pub const BARRACKS_OBJECT: i16 = 2008;
 /// The Slinger the Barracks trains, `0/7`.
 pub const SLINGER: i16 = 7;
 /// The enemy the Slinger is sent at, `(who, o)`: slot 1's Scout (TI 69,

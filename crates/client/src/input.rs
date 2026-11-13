@@ -1328,7 +1328,7 @@ pub(crate) mod tests {
     const ATTACK_ANCHORS: [(i32, (u8, i16), (i32, i32)); 5] = [
         (
             script::ATTACK_RESEARCH_FRAME,
-            (0, script::LIBRARY),
+            (0, script::LIBRARY_OBJECT),
             (1006, 397),
         ),
         (
@@ -1336,7 +1336,11 @@ pub(crate) mod tests {
             (0, script::BARRACKS_BUILDER),
             (735, 523),
         ),
-        (script::TRAIN_FRAME, (0, script::BARRACKS), (614, 458)),
+        (
+            script::TRAIN_FRAME,
+            (0, script::BARRACKS_OBJECT),
+            (614, 458),
+        ),
         (script::ATTACK_FRAME, (0, script::SLINGER), (509, 513)),
         (script::ATTACK_FRAME, script::ATTACKED, (1645, 884)),
     ];
@@ -1425,7 +1429,7 @@ pub(crate) mod tests {
                         .units
                         .iter()
                         .find(|u| u.id.who == 0 && u.id.o == script::SLINGER);
-                    assert_eq!(slinger.map(|u| u.type_index), Some(script::SLINGERS));
+                    assert_eq!(slinger.map(|u| u.type_index), Some(script::SLINGERS_TYPE));
                     let scout = scene
                         .units
                         .iter()
