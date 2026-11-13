@@ -58,6 +58,23 @@ def test_binaries(cwd=ROOT):
     return out
 
 
+def snapshot(binaries, directory, copy=None):
+    """Copies of the test executables under `directory`, to time in place of
+    the build's own: a re-time of the whole suite runs ninety minutes one
+    test at a time, and a `cargo test` in the same worktree meanwhile writes
+    the next build over the very path being timed (item 4216, stage 0). The
+    copy keeps the file's name, so two executables never collide."""
+    import shutil
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    out = []
+    for binary in binaries:
+        kept = directory / Path(binary).name
+        (copy or shutil.copy2)(binary, kept)
+        out.append(str(kept))
+    return out
+
+
 def list_tests(binary, ignored=False):
     args = [binary, '--list', '--format', 'terse'] + (['--ignored'] if ignored else [])
     done = subprocess.run(args, capture_output=True, text=True, check=True)
@@ -65,19 +82,50 @@ def list_tests(binary, ignored=False):
 
 
 RSS = re.compile(r'^\s*(\d+)\s+maximum resident set size', re.M)
+CLOCK = re.compile(r'^\s*[\d.]+ real\s+([\d.]+) user\s+([\d.]+) sys', re.M)
+INSTRUCTIONS = re.compile(r'^\s*(\d+)\s+instructions retired', re.M)
+
+
+def work(stderr):
+    """`(cpu seconds, instructions retired)` from `/usr/bin/time -l`'s
+    stderr, `-1` for a line it did not print. Item 4216's baseline: the
+    file's seconds are wall and rise with the host's load (a 9,632-frame
+    word read 1.76 s alone and 8.20 inside a gate on the same 30 G
+    instructions), so the score a change of the suite's form is read
+    against is the CPU a test took and the instructions it retired, which
+    the load does not move."""
+    c, i = CLOCK.search(stderr), INSTRUCTIONS.search(stderr)
+    return (float(c.group(1)) + float(c.group(2)) if c else -1.0,
+            int(i.group(1)) if i else -1)
 
 
 def time_one(binary, name, env):
-    """Seconds, exit code and peak resident MiB of one test alone (the
-    thirty-fifth steer: a test binary peaked at 11.8 GiB under four threads,
-    and whether that is one test or four is this column's to say; macOS's
-    `/usr/bin/time -l` prints the peak in bytes on stderr)."""
+    """Seconds, exit code, peak resident MiB, CPU seconds and instructions
+    retired of one test alone (the thirty-fifth steer: a test binary peaked
+    at 11.8 GiB under four threads, and whether that is one test or four is
+    the memory column's to say; macOS's `/usr/bin/time -l` prints the peak
+    in bytes on stderr)."""
     t0 = time.monotonic()
     done = subprocess.run(['/usr/bin/time', '-l', binary, '--exact', name, '--test-threads', '1'],
                           env=env, capture_output=True, text=True, check=False)
     m = RSS.search(done.stderr)
     mib = int(m.group(1)) / (1 << 20) if m else -1.0
-    return time.monotonic() - t0, done.returncode, mib
+    cpu, instructions = work(done.stderr)
+    return time.monotonic() - t0, done.returncode, mib, cpu, instructions
+
+
+def render_cpu(rows, when, tree, load=''):
+    """A sibling file, `<stem>-cpu.txt`: CPU seconds (user + system), then
+    instructions retired in units of 1e9, then the test, most CPU first; the
+    gate reads only the timings file."""
+    rows = sorted(rows, key=lambda r: -r[0])
+    cpu = sum(c for c, _, _ in rows if c >= 0)
+    ins = sum(i for _, i, _ in rows if i >= 0)
+    head = [f"# Every rondata release test's CPU alone, {when}, tools/suite_timings.py (tree {tree}).",
+            '# /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), '
+            'instructions retired (1e9), the test; -1 when unread.',
+            f'# Sum {cpu:,.0f} CPU-seconds and {ins / 1e12:,.2f}e12 instructions over {len(rows)} tests{load}.']
+    return '\n'.join(head + [f'{c:.2f}\t{i / 1e9:.2f}\t{n}' for c, i, n in rows]) + '\n'
 
 
 def render_memory(rows, when, tree):
@@ -142,10 +190,15 @@ def main(argv=None):
     ap.add_argument('--stale-only', action='store_true',
                     help='time only the tests the timings file has never timed, and merge '
                          'them into it (written to --out, or over the file itself)')
+    ap.add_argument('--snapshot', type=Path, default=None,
+                    help='copy the test executables into this directory and time the copies, '
+                         'so a build in this worktree meanwhile cannot replace what is being timed')
     args = ap.parse_args(argv)
     import release_gate  # noqa: E402  (the gate's own TIMINGS path)
     timings = args.timings or release_gate.TIMINGS
     binaries = test_binaries()
+    if args.snapshot:
+        binaries = snapshot(binaries, args.snapshot)
     names = []
     for b in binaries:
         ignored = set(list_tests(b, ignored=True))
@@ -169,16 +222,20 @@ def main(argv=None):
     if args.stale_only:
         names = stale_only(names, timings.read_text())
         print(f'{len(names)} untimed test(s) to time', file=sys.stderr)
-    rows, mem, red = [], [], []
+    rows, mem, cpu, red = [], [], [], []
     t0 = time.monotonic()
+    load0 = os.getloadavg()[0]
     for i, (b, n) in enumerate(names, 1):
-        secs, code, mib = time_one(b, n, env)
+        secs, code, mib, used, instructions = time_one(b, n, env)
         rows.append((secs, n))
         mem.append((mib, n))
+        cpu.append((used, instructions, n))
         if code != 0:
             red.append(n)
-        print(f'[{i}/{len(names)}] {secs:8.2f} {mib:7.0f}M  {n}{"  RED" if code else ""}', file=sys.stderr, flush=True)
+        print(f'[{i}/{len(names)}] {secs:8.2f} {used:8.2f}c {mib:7.0f}M  {n}{"  RED" if code else ""}',
+              file=sys.stderr, flush=True)
     wall = time.monotonic() - t0
+    load = f"; the host's load {load0:.1f} at the start and {os.getloadavg()[0]:.1f} at the end"
     if args.stale_only:
         text = merged(timings.read_text(), rows, date.today().isoformat(), tree)
     else:
@@ -194,7 +251,15 @@ def main(argv=None):
                 old_mem[n] = mib
             mem = [(m, n) for n, m in old_mem.items()]
         mem_out.write_text(render_memory(mem, date.today().isoformat(), tree))
-        print(f'wrote {out} ({len(timed(text))} tests, {sum(timed(text).values()):,.0f} s) and {mem_out}')
+        cpu_out = out.with_name(out.name.replace('-suite-timings', '-suite-cpu'))
+        if args.stale_only and cpu_out.exists():
+            old_cpu = {n: (float(c), float(i) * 1e9) for c, i, n in
+                       (l.split('\t') for l in cpu_out.read_text().splitlines() if not l.startswith('#'))}
+            for used, instructions, n in cpu:
+                old_cpu[n] = (used, instructions)
+            cpu = [(c, i, n) for n, (c, i) in old_cpu.items()]
+        cpu_out.write_text(render_cpu(cpu, date.today().isoformat(), tree, load))
+        print(f'wrote {out} ({len(timed(text))} tests, {sum(timed(text).values()):,.0f} s), {mem_out} and {cpu_out}')
     else:
         sys.stdout.write(text)
     if red:
