@@ -3972,12 +3972,14 @@ const TAKE_PINNED: Pinned = (
 /// only); `flags.leader_flags` (high bits on every seat).
 const TAKE_LEAF_PARTINGS: &str = "cities_built dip.treaty diplos flags.leader_flags";
 
-/// **The unprinted leaves the take's packet releases** (item 4159, step
-/// VII-b2; `docs/DECISIONS.md` entry 131 §1): each written on 906 (the
-/// ring) or 966 (the drain and the gift) and by nothing after, so the
-/// packet at 1090 reads the taunt's own values; `(leaf, run, slot)`, each
-/// off its seated image there, ours equal ([`hold_witnesses`]).
-pub(super) const TAKE_RELEASED: &[(&str, &str, i16)] = &[
+/// **The unprinted leaves the take's packet witnesses, held and off the
+/// line** (item 4159, step VII-b2): each written on 906 (the ring) or 966
+/// (the drain and the gift) in our walk. They stay on [`LEADERS_HELD_OUT`]:
+/// 1090 follows the staged accept of 1027, and `docs/DECISIONS.md` entry 132
+/// §1 releases a leaf only on a block no staged decision precedes (the
+/// driver's ruling). `(leaf, run, slot)`, each off its seated image on the
+/// packet, our held value equal; they leave when VII-c retires the staging.
+pub(super) const TAKE_WITNESSED: &[(&str, &str, i16)] = &[
     // The French ring: the cursor 1, the request 1, due 966.
     ("incoming", "run1575", 1),
     ("incoming_taunt", "run1575", 1),
@@ -3992,7 +3994,9 @@ pub(super) const TAKE_RELEASED: &[(&str, &str, i16)] = &[
 /// style 0, the script, the window's diplomacy off the record, the chat
 /// minted) ticked to the packet's frame, its twelve lines against the
 /// instrument's stream. Off the scoreboard ([`TAKES_HELD`]). The five
-/// unprinted leaves of the taunt's answer are witnessed here.
+/// unprinted leaves of the taunt's answer, held off the line, are
+/// witnessed here ([`TAKE_WITNESSED`]): our held value against the
+/// packet's, a bent one parting.
 #[test]
 fn run1575_take_packet() {
     use crate::diff::diplomacy_take as take;
@@ -4004,6 +4008,9 @@ fn run1575_take_packet() {
         eprintln!("skipping: no {} or install", take::RUN1575.0);
         return;
     };
+    // Our held values of the witnessed leaves on the packet's frame:
+    // `(leaf, slot) → values`, read off the sim, not off the line.
+    let mut ours_held: std::collections::BTreeMap<(&str, i16), Vec<i64>> = Default::default();
     let Some(walked) = walk_packets_with(name, length, &[(run, frame)], &mut |frames, probe| {
         let script = take::coverage_script("diplomacy4206.cmd");
         let (_, mut built) = take::stand_up_sea_style_zero(take::RUN1575, script)?;
@@ -4011,6 +4018,15 @@ fn run1575_take_packet() {
             while built.sim.frame < f {
                 take::stage_frame(&mut built, 3, &[], &diplomacy, &taunts);
                 built.tick();
+            }
+            for &(leaf, _, slot) in TAKE_WITNESSED {
+                let who = slot as sim::Player;
+                let v = built
+                    .sim
+                    .leader_taunt_leaf(who, leaf)
+                    .or_else(|| built.sim.leader_tribute_leaf(who, leaf))
+                    .unwrap_or_else(|| panic!("{leaf} is held"));
+                ours_held.insert((leaf, slot), v);
             }
             probe(f, &built);
         }
@@ -4050,5 +4066,24 @@ fn run1575_take_packet() {
         TAKE_LEAF_PARTINGS,
         "run1575: the leaders line's leaves parting outside LEADERS_HELD_OUT"
     );
-    hold_witnesses(w, &held, TAKE_RELEASED);
+    for &(leaf, _, slot) in TAKE_WITNESSED {
+        assert!(
+            held.contains(format!("{leaf} (unheld)").as_str()),
+            "{leaf} is held out"
+        );
+        let row = w
+            .leaves
+            .iter()
+            .find(|r| r.0 == slot && r.1 == "who..ally_mask" && r.2 == leaf)
+            .unwrap_or_else(|| panic!("run1575: slot {slot}'s {leaf}"));
+        assert!(
+            !at_init_image(leaf, &row.4),
+            "run1575: slot {slot}'s {leaf} is its seated image, no witness"
+        );
+        let ours = &ours_held[&(leaf, slot)];
+        assert_eq!(ours, &row.4, "run1575: slot {slot}'s held {leaf}");
+        let mut bent = ours.clone();
+        bent[0] ^= 1;
+        assert_ne!(bent, row.4, "run1575: a bent {leaf} parts");
+    }
 }

@@ -77,15 +77,14 @@ impl Diplomacy {
     }
 }
 
-/// The leaves [`Sim::leader_tribute_leaf`] answers and the leaders line
-/// emits. `counteroffer`, `tribute_demanded`, `tributes` are held and stay
-/// off the line: nothing our walks hold moves them (`docs/LEADERS.md` §8.5).
-pub const TRIBUTE_LEAVES: [&str; 4] = [
-    "tribute_stamp",
-    "gift_stamp",
-    "tribute_sent",
-    "tribute_received",
-];
+/// The leaves the leaders line emits: the two stamps, which move on
+/// run1575's block 967. `tribute_sent` and `tribute_received` are held
+/// ([`Sim::leader_tribute_leaf`] answers them) and stay off the line: their
+/// only witness is run1575's packet at 1090, which follows the staged accept
+/// of 1027 (`docs/DECISIONS.md` entry 132 §1), so they wait on step VII-c.
+/// `counteroffer`, `tribute_demanded` and `tributes` are held and stay off
+/// too: nothing our walks hold moves them (`docs/LEADERS.md` §8.5).
+pub const TRIBUTE_LEAVES: [&str; 2] = ["tribute_stamp", "gift_stamp"];
 
 /// One leader's tribute leaves and deal records (`docs/LEADERS.md` §8.1).
 /// `Leader::init` zeroes the leaves and clears every record; nothing in a

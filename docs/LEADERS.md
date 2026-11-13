@@ -2057,11 +2057,17 @@ wait and the exchange), `consider_tribute`, `scale_tribute` (`Tuning`'s
   (`action_treaty` and `action_attack` are not carried).
   `is_tribute_period` at frame 0 answers no (every stamp is 0 there) and
   skips no style-7 neutral.
-- **Checksum**: `tribute_stamp`, `gift_stamp`, `tribute_sent` and
-  `tribute_received` are emitted (`Sim::leader_tribute_leaf`).
-  `counteroffer`, `tribute_demanded` and `tributes` are held but emitted
-  unheld, and stay on `LEADERS_HELD_OUT`, since nothing our walks hold
-  moves them. `coverage.rs` still lists `tributes`.
+- **Checksum**: `tribute_stamp` and `gift_stamp` are emitted
+  (`Sim::leader_tribute_leaf`). `tribute_sent` and `tribute_received` are
+  held but emitted unheld, and stay on `LEADERS_HELD_OUT`: their only
+  witness is run1575's packet at 1090, which follows the staged accept of
+  1027, and `docs/DECISIONS.md` entry 132 §1 releases a leaf only on a
+  block no staged decision precedes. They agree there, but that nothing
+  writes them after 966 is true of our staged walk. Whether the computed
+  accept leaves them alone is VII-c's to show, and they leave when VII-c
+  retires the staging. `counteroffer`, `tribute_demanded` and `tributes`
+  are held, emitted unheld and stay on the list too, since nothing our
+  walks hold moves them. `coverage.rs` still lists `tributes`.
 
 ### 8.4 Reached by a plain game
 
@@ -2104,7 +2110,9 @@ through 1026:
 - the human's `tribute_stamp[1]` and the French `gift_stamp[0]` 966;
 - the commit's `agendas` write, the human's `agendas[1]` 4;
 - on the packet at 1090, the French `tribute_sent` 3,290, the human's
-  `tribute_received` 1,909, and every `tributes` slot 0.
+  `tribute_received` 1,909, and every `tributes` slot 0. Our held values
+  are equal, but the two totals stay held out: the packet follows the
+  staged accept (8.3).
 
 So these are backed by the diff: the commit with its `agendas` bit, the
 pure gift's execution, the exchange for a human receiver, the
@@ -2283,11 +2291,13 @@ are `leaders::taunt::tests`.
   `TAUNT_DEFEND`'s draw) store their head and do nothing else.
   `LeaderData::is_neutral` is false: the crate keeps no lobby team.
 - `Command::Ping` is not mapped, so there is no `action_ping`.
-- **Checksum**: `last_taunt`, `taunt_frame`, `incoming_taunt`,
-  `incoming_taunt_frame` and `incoming` are emitted
-  (`Sim::leader_taunt_leaf`). `incoming_taunt_who` is held but emitted
-  unheld, and stays on `LEADERS_HELD_OUT`: every walked sender is who 0,
-  the reset value.
+- **Checksum**: `last_taunt` and `taunt_frame` are emitted
+  (`Sim::leader_taunt_leaf`). The ring (`incoming_taunt`,
+  `incoming_taunt_frame`, `incoming`) is held but emitted unheld, and
+  stays on `LEADERS_HELD_OUT` until VII-c retires the staging. Its only
+  witness is the packet at 1090, after the staged accept of 1027 (§8.3).
+  `incoming_taunt_who` is held, emitted unheld and stays on the list:
+  every walked sender is who 0, the reset value.
 
 ### 9.4 Reached by a plain game
 
@@ -2331,7 +2341,7 @@ with 681. Receipt one block before 661 matches the 60-frame delay.
 chat typed on 905 is applied on 906. The French `last_taunt[0]` 1 and
 `taunt_frame[0]` 966 are on block 967. The packet at 1090 holds the ring:
 `incoming` 1, `incoming_taunt[0]` 1 and `incoming_taunt_frame[0]` 966,
-which is 906 + 60. So the 60-frame delay, the cursor's step, the drain's
+which is 906 + 60. Our held ring equals it, but it stays held out (9.3). So the 60-frame delay, the cursor's step, the drain's
 frame test, the alliance retest and the head's stores are backed by the
 diff. These rest on the reading and `leaders::taunt::tests` alone:
 - the exemptions;
