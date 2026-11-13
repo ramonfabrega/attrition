@@ -34,6 +34,9 @@ struct Entry {
     count: i64,
     sequence: i64,
     how: How,
+    /// The floor test that walks this word: the worker thread takes its
+    /// name, as the ground guard keys its pin on it.
+    test: &'static str,
 }
 
 impl Entry {
@@ -54,125 +57,125 @@ struct Done {
     ok: Result<(), String>,
 }
 
-const PAIRS: &[&Pair] = &[
-    &crate::diff::american_enlightenment_pair::AMERICAN_ENLIGHTENMENT,
-    &crate::diff::american_industrial_pair::AMERICAN_INDUSTRIAL,
-    &crate::diff::american_information_pair::AMERICAN_INFORMATION,
-    &crate::diff::american_modern_pair::AMERICAN_MODERN,
-    &crate::diff::aztec_alltech_pair::AZTEC_ALLTECH,
-    &crate::diff::aztec_ancient_pair::AZTEC_ANCIENT,
-    &crate::diff::aztec_medieval_pair::AZTEC_MEDIEVAL,
-    &crate::diff::aztec_modern_pair::AZTEC_MODERN,
-    &crate::diff::bantu_ancient_pair::BANTU_ANCIENT,
-    &crate::diff::bantu_medieval_pair::BANTU_MEDIEVAL,
-    &crate::diff::bantu_modern_pair::BANTU_MODERN,
-    &crate::diff::british_classical_pair::BRITISH_CLASSICAL,
-    &crate::diff::british_enlightenment_pair::BRITISH_ENLIGHTENMENT,
-    &crate::diff::british_industrial_pair::BRITISH_INDUSTRIAL,
-    &crate::diff::british_medieval_pair::BRITISH_MEDIEVAL,
-    &crate::diff::british_modern_pair::BRITISH_MODERN,
-    &crate::diff::chinese_enlightenment_pair::CHINESE_ENLIGHTENMENT,
-    &crate::diff::chinese_gunpowder_pair::CHINESE_GUNPOWDER,
-    &crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL,
-    &crate::diff::chinese_medieval_pair::CHINESE_MEDIEVAL,
-    &crate::diff::chinese_modern_pair::CHINESE_MODERN,
-    &crate::diff::coverage_pair::COVERAGE,
-    &crate::diff::dutch_medieval_pair::DUTCH_MEDIEVAL,
-    &crate::diff::egyptian_classical_pair::EGYPTIAN_CLASSICAL,
-    &crate::diff::egyptian_gunpowder_pair::EGYPTIAN_GUNPOWDER,
-    &crate::diff::egyptian_industrial_pair::EGYPTIAN_INDUSTRIAL,
-    &crate::diff::egyptian_information_pair::EGYPTIAN_INFORMATION,
-    &crate::diff::egyptian_modern_pair::EGYPTIAN_MODERN,
-    &crate::diff::french_classical_pair::FRENCH_CLASSICAL,
-    &crate::diff::french_enlightenment_pair::FRENCH_ENLIGHTENMENT,
-    &crate::diff::french_information_pair::FRENCH_INFORMATION,
-    &crate::diff::french_medieval_pair::FRENCH_MEDIEVAL,
-    &crate::diff::german_alltech_pair::GERMAN_ALLTECH,
-    &crate::diff::german_ancient_pair::GERMAN_ANCIENT,
-    &crate::diff::german_industrial_moderate_pair::GERMAN_INDUSTRIAL_MODERATE,
-    &crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL,
-    &crate::diff::german_modern_pair::GERMAN_MODERN,
-    &crate::diff::greek_classical_pair::GREEK_CLASSICAL,
-    &crate::diff::greek_enlightenment_pair::GREEK_ENLIGHTENMENT,
-    &crate::diff::greek_gunpowder_pair::GREEK_GUNPOWDER,
-    &crate::diff::greek_medieval_pair::GREEK_MEDIEVAL,
-    &crate::diff::inca_classical_pair::INCA_CLASSICAL,
-    &crate::diff::inca_enlightenment_pair::INCA_ENLIGHTENMENT,
-    &crate::diff::inca_industrial_pair::INCA_INDUSTRIAL,
-    &crate::diff::indian_enlightenment_pair::INDIAN_ENLIGHTENMENT,
-    &crate::diff::iroquois_ancient_pair::IROQUOIS_ANCIENT,
-    &crate::diff::iroquois_enlightenment_pair::IROQUOIS_ENLIGHTENMENT,
-    &crate::diff::japanese_ancient_pair::JAPANESE_ANCIENT,
-    &crate::diff::japanese_enlightenment_pair::JAPANESE_ENLIGHTENMENT,
-    &crate::diff::japanese_gunpowder_pair::JAPANESE_GUNPOWDER,
-    &crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL,
-    &crate::diff::japanese_medieval_pair::JAPANESE_MEDIEVAL,
-    &crate::diff::japanese_modern_pair::JAPANESE_MODERN,
-    &crate::diff::korean_ancient_pair::KOREAN_ANCIENT,
-    &crate::diff::korean_classical_pair::KOREAN_CLASSICAL,
-    &crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL,
-    &crate::diff::lakota_enlightenment_pair::LAKOTA_ENLIGHTENMENT,
-    &crate::diff::lakota_gunpowder_pair::LAKOTA_GUNPOWDER,
-    &crate::diff::lakota_medieval_pair::LAKOTA_MEDIEVAL,
-    &crate::diff::lakota_pair::LAKOTA,
-    &crate::diff::maya_ancient_pair::MAYA_ANCIENT,
-    &crate::diff::maya_information_pair::MAYA_INFORMATION,
-    &crate::diff::mongol_classical_pair::MONGOL_CLASSICAL,
-    &crate::diff::mongol_enlightenment_pair::MONGOL_ENLIGHTENMENT,
-    &crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER,
-    &crate::diff::mongol_medieval_pair::MONGOL_MEDIEVAL,
-    &crate::diff::mongol_pair::MONGOL,
-    &crate::diff::persian_classical_pair::PERSIAN_CLASSICAL,
-    &crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER,
-    &crate::diff::persian_medieval_pair::PERSIAN_MEDIEVAL,
-    &crate::diff::roman_classical_pair::ROMAN_CLASSICAL,
-    &crate::diff::roman_gunpowder_pair::ROMAN_GUNPOWDER,
-    &crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL,
-    &crate::diff::roman_modern_pair::ROMAN_MODERN,
-    &crate::diff::russian_gunpowder_pair::RUSSIAN_GUNPOWDER,
-    &crate::diff::russian_information_pair::RUSSIAN_INFORMATION,
-    &crate::diff::russian_medieval_pair::RUSSIAN_MEDIEVAL,
-    &crate::diff::russian_modern_pair::RUSSIAN_MODERN,
-    &crate::diff::sahara_coverage::SAHARA_COVERAGE,
-    &crate::diff::sahara_mongol::SAHARA_MONGOL,
-    &crate::diff::spanish_classical_pair::SPANISH_CLASSICAL,
-    &crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER,
-    &crate::diff::spanish_industrial_pair::SPANISH_INDUSTRIAL,
-    &crate::diff::spanish_information_pair::SPANISH_INFORMATION,
-    &crate::diff::spanish_modern_pair::SPANISH_MODERN,
-    &crate::diff::turkish_enlightenment_pair::TURKISH_ENLIGHTENMENT,
-    &crate::diff::turkish_information_pair::TURKISH_INFORMATION,
+const PAIRS: &[(&Pair, &str)] = &[
+    (&crate::diff::american_enlightenment_pair::AMERICAN_ENLIGHTENMENT, "american_enlightenment_pair_first_parting"),
+    (&crate::diff::american_industrial_pair::AMERICAN_INDUSTRIAL, "american_industrial_pair_first_parting"),
+    (&crate::diff::american_information_pair::AMERICAN_INFORMATION, "american_information_pair_first_parting"),
+    (&crate::diff::american_modern_pair::AMERICAN_MODERN, "american_modern_pair_first_parting"),
+    (&crate::diff::aztec_alltech_pair::AZTEC_ALLTECH, "aztec_alltech_pair_first_parting"),
+    (&crate::diff::aztec_ancient_pair::AZTEC_ANCIENT, "aztec_ancient_pair_first_parting"),
+    (&crate::diff::aztec_medieval_pair::AZTEC_MEDIEVAL, "aztec_medieval_pair_first_parting"),
+    (&crate::diff::aztec_modern_pair::AZTEC_MODERN, "aztec_modern_pair_first_parting"),
+    (&crate::diff::bantu_ancient_pair::BANTU_ANCIENT, "bantu_ancient_pair_first_parting"),
+    (&crate::diff::bantu_medieval_pair::BANTU_MEDIEVAL, "bantu_medieval_pair_first_parting"),
+    (&crate::diff::bantu_modern_pair::BANTU_MODERN, "bantu_modern_pair_first_parting"),
+    (&crate::diff::british_classical_pair::BRITISH_CLASSICAL, "british_classical_pair_first_parting"),
+    (&crate::diff::british_enlightenment_pair::BRITISH_ENLIGHTENMENT, "british_enlightenment_pair_first_parting"),
+    (&crate::diff::british_industrial_pair::BRITISH_INDUSTRIAL, "british_industrial_pair_first_parting"),
+    (&crate::diff::british_medieval_pair::BRITISH_MEDIEVAL, "british_medieval_pair_first_parting"),
+    (&crate::diff::british_modern_pair::BRITISH_MODERN, "british_modern_pair_first_parting"),
+    (&crate::diff::chinese_enlightenment_pair::CHINESE_ENLIGHTENMENT, "chinese_enlightenment_pair_first_parting"),
+    (&crate::diff::chinese_gunpowder_pair::CHINESE_GUNPOWDER, "chinese_gunpowder_pair_first_parting"),
+    (&crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL, "chinese_industrial_pair_first_parting"),
+    (&crate::diff::chinese_medieval_pair::CHINESE_MEDIEVAL, "chinese_medieval_pair_first_parting"),
+    (&crate::diff::chinese_modern_pair::CHINESE_MODERN, "chinese_modern_pair_first_parting"),
+    (&crate::diff::coverage_pair::COVERAGE, "coverage_pair_first_parting"),
+    (&crate::diff::dutch_medieval_pair::DUTCH_MEDIEVAL, "dutch_medieval_pair_first_parting"),
+    (&crate::diff::egyptian_classical_pair::EGYPTIAN_CLASSICAL, "egyptian_classical_pair_first_parting"),
+    (&crate::diff::egyptian_gunpowder_pair::EGYPTIAN_GUNPOWDER, "egyptian_gunpowder_pair_first_parting"),
+    (&crate::diff::egyptian_industrial_pair::EGYPTIAN_INDUSTRIAL, "egyptian_industrial_pair_first_parting"),
+    (&crate::diff::egyptian_information_pair::EGYPTIAN_INFORMATION, "egyptian_information_pair_first_parting"),
+    (&crate::diff::egyptian_modern_pair::EGYPTIAN_MODERN, "egyptian_modern_pair_first_parting"),
+    (&crate::diff::french_classical_pair::FRENCH_CLASSICAL, "french_classical_pair_first_parting"),
+    (&crate::diff::french_enlightenment_pair::FRENCH_ENLIGHTENMENT, "french_enlightenment_pair_first_parting"),
+    (&crate::diff::french_information_pair::FRENCH_INFORMATION, "french_information_pair_first_parting"),
+    (&crate::diff::french_medieval_pair::FRENCH_MEDIEVAL, "french_medieval_pair_first_parting"),
+    (&crate::diff::german_alltech_pair::GERMAN_ALLTECH, "german_alltech_pair_first_parting"),
+    (&crate::diff::german_ancient_pair::GERMAN_ANCIENT, "german_ancient_pair_first_parting"),
+    (&crate::diff::german_industrial_moderate_pair::GERMAN_INDUSTRIAL_MODERATE, "german_industrial_moderate_pair_first_parting"),
+    (&crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL, "german_industrial_pair_first_parting"),
+    (&crate::diff::german_modern_pair::GERMAN_MODERN, "german_modern_pair_first_parting"),
+    (&crate::diff::greek_classical_pair::GREEK_CLASSICAL, "greek_classical_pair_first_parting"),
+    (&crate::diff::greek_enlightenment_pair::GREEK_ENLIGHTENMENT, "greek_enlightenment_pair_first_parting"),
+    (&crate::diff::greek_gunpowder_pair::GREEK_GUNPOWDER, "greek_gunpowder_pair_first_parting"),
+    (&crate::diff::greek_medieval_pair::GREEK_MEDIEVAL, "greek_medieval_pair_first_parting"),
+    (&crate::diff::inca_classical_pair::INCA_CLASSICAL, "inca_classical_pair_first_parting"),
+    (&crate::diff::inca_enlightenment_pair::INCA_ENLIGHTENMENT, "inca_enlightenment_pair_first_parting"),
+    (&crate::diff::inca_industrial_pair::INCA_INDUSTRIAL, "inca_industrial_pair_first_parting"),
+    (&crate::diff::indian_enlightenment_pair::INDIAN_ENLIGHTENMENT, "indian_enlightenment_pair_first_parting"),
+    (&crate::diff::iroquois_ancient_pair::IROQUOIS_ANCIENT, "iroquois_ancient_pair_first_parting"),
+    (&crate::diff::iroquois_enlightenment_pair::IROQUOIS_ENLIGHTENMENT, "iroquois_enlightenment_pair_first_parting"),
+    (&crate::diff::japanese_ancient_pair::JAPANESE_ANCIENT, "japanese_ancient_pair_first_parting"),
+    (&crate::diff::japanese_enlightenment_pair::JAPANESE_ENLIGHTENMENT, "japanese_enlightenment_pair_first_parting"),
+    (&crate::diff::japanese_gunpowder_pair::JAPANESE_GUNPOWDER, "japanese_gunpowder_pair_first_parting"),
+    (&crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL, "japanese_industrial_pair_first_parting"),
+    (&crate::diff::japanese_medieval_pair::JAPANESE_MEDIEVAL, "japanese_medieval_pair_first_parting"),
+    (&crate::diff::japanese_modern_pair::JAPANESE_MODERN, "japanese_modern_pair_first_parting"),
+    (&crate::diff::korean_ancient_pair::KOREAN_ANCIENT, "korean_ancient_pair_first_parting"),
+    (&crate::diff::korean_classical_pair::KOREAN_CLASSICAL, "korean_classical_pair_first_parting"),
+    (&crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL, "korean_medieval_pair_first_parting"),
+    (&crate::diff::lakota_enlightenment_pair::LAKOTA_ENLIGHTENMENT, "lakota_enlightenment_pair_first_parting"),
+    (&crate::diff::lakota_gunpowder_pair::LAKOTA_GUNPOWDER, "lakota_gunpowder_pair_first_parting"),
+    (&crate::diff::lakota_medieval_pair::LAKOTA_MEDIEVAL, "lakota_medieval_pair_first_parting"),
+    (&crate::diff::lakota_pair::LAKOTA, "lakota_pair_first_parting"),
+    (&crate::diff::maya_ancient_pair::MAYA_ANCIENT, "maya_ancient_pair_first_parting"),
+    (&crate::diff::maya_information_pair::MAYA_INFORMATION, "maya_information_pair_first_parting"),
+    (&crate::diff::mongol_classical_pair::MONGOL_CLASSICAL, "mongol_classical_pair_first_parting"),
+    (&crate::diff::mongol_enlightenment_pair::MONGOL_ENLIGHTENMENT, "mongol_enlightenment_pair_first_parting"),
+    (&crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER, "mongol_gunpowder_pair_first_parting"),
+    (&crate::diff::mongol_medieval_pair::MONGOL_MEDIEVAL, "mongol_medieval_pair_first_parting"),
+    (&crate::diff::mongol_pair::MONGOL, "mongol_pair_first_parting"),
+    (&crate::diff::persian_classical_pair::PERSIAN_CLASSICAL, "persian_classical_pair_first_parting"),
+    (&crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER, "persian_gunpowder_pair_first_parting"),
+    (&crate::diff::persian_medieval_pair::PERSIAN_MEDIEVAL, "persian_medieval_pair_first_parting"),
+    (&crate::diff::roman_classical_pair::ROMAN_CLASSICAL, "roman_classical_pair_first_parting"),
+    (&crate::diff::roman_gunpowder_pair::ROMAN_GUNPOWDER, "roman_gunpowder_pair_first_parting"),
+    (&crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL, "roman_medieval_pair_first_parting"),
+    (&crate::diff::roman_modern_pair::ROMAN_MODERN, "roman_modern_pair_first_parting"),
+    (&crate::diff::russian_gunpowder_pair::RUSSIAN_GUNPOWDER, "russian_gunpowder_pair_first_parting"),
+    (&crate::diff::russian_information_pair::RUSSIAN_INFORMATION, "russian_information_pair_first_parting"),
+    (&crate::diff::russian_medieval_pair::RUSSIAN_MEDIEVAL, "russian_medieval_pair_first_parting"),
+    (&crate::diff::russian_modern_pair::RUSSIAN_MODERN, "russian_modern_pair_first_parting"),
+    (&crate::diff::sahara_coverage::SAHARA_COVERAGE, "sahara_coverage_first_parting"),
+    (&crate::diff::sahara_mongol::SAHARA_MONGOL, "sahara_mongol_first_parting"),
+    (&crate::diff::spanish_classical_pair::SPANISH_CLASSICAL, "spanish_classical_pair_first_parting"),
+    (&crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER, "spanish_gunpowder_pair_first_parting"),
+    (&crate::diff::spanish_industrial_pair::SPANISH_INDUSTRIAL, "spanish_industrial_pair_first_parting"),
+    (&crate::diff::spanish_information_pair::SPANISH_INFORMATION, "spanish_information_pair_first_parting"),
+    (&crate::diff::spanish_modern_pair::SPANISH_MODERN, "spanish_modern_pair_first_parting"),
+    (&crate::diff::turkish_enlightenment_pair::TURKISH_ENLIGHTENMENT, "turkish_enlightenment_pair_first_parting"),
+    (&crate::diff::turkish_information_pair::TURKISH_INFORMATION, "turkish_information_pair_first_parting"),
 ];
 
-const WORDS: &[&Lobby] = &[
-    &crate::diff::american_lakes_word::AMERICAN_LAKES,
-    &crate::diff::american_word::AMERICAN,
-    &crate::diff::aztec_word::AZTEC,
-    &crate::diff::bantu_word::BANTU,
-    &crate::diff::dutch_sahara_word::DUTCH_SAHARA,
-    &crate::diff::dutch_word::DUTCH,
-    &crate::diff::egyptian_word::EGYPTIAN,
-    &crate::diff::french_word::FRENCH,
-    &crate::diff::german_sahara_word::GERMAN_SAHARA,
-    &crate::diff::german_word::GERMAN,
-    &crate::diff::greek_word::GREEK,
-    &crate::diff::inca_sahara_word::INCA_SAHARA,
-    &crate::diff::inca_word::INCA,
-    &crate::diff::indian_sahara_word::INDIAN_SAHARA,
-    &crate::diff::indian_word::INDIAN,
-    &crate::diff::iroquois_sahara_word::IROQUOIS_SAHARA,
-    &crate::diff::iroquois_word::IROQUOIS,
-    &crate::diff::japanese_word::JAPANESE,
-    &crate::diff::korean_word::KOREAN,
-    &crate::diff::lakota_word::LAKOTA,
-    &crate::diff::maya_word::MAYA,
-    &crate::diff::persian_word::PERSIAN,
-    &crate::diff::roman_word::ROMAN,
-    &crate::diff::russian_word::RUSSIAN,
-    &crate::diff::spanish_east_word::SPANISH_EAST,
-    &crate::diff::spanish_lakes_word::SPANISH_LAKES,
-    &crate::diff::spanish_word::SPANISH,
-    &crate::diff::turkish_word::TURKISH,
+const WORDS: &[(&Lobby, &str)] = &[
+    (&crate::diff::american_lakes_word::AMERICAN_LAKES, "american_lakes_word_first_parting"),
+    (&crate::diff::american_word::AMERICAN, "american_word_first_parting"),
+    (&crate::diff::aztec_word::AZTEC, "aztec_word_first_parting"),
+    (&crate::diff::bantu_word::BANTU, "bantu_word_first_parting"),
+    (&crate::diff::dutch_sahara_word::DUTCH_SAHARA, "dutch_sahara_word_first_parting"),
+    (&crate::diff::dutch_word::DUTCH, "dutch_word_first_parting"),
+    (&crate::diff::egyptian_word::EGYPTIAN, "egyptian_word_first_parting"),
+    (&crate::diff::french_word::FRENCH, "french_word_first_parting"),
+    (&crate::diff::german_sahara_word::GERMAN_SAHARA, "german_sahara_word_first_parting"),
+    (&crate::diff::german_word::GERMAN, "german_word_first_parting"),
+    (&crate::diff::greek_word::GREEK, "greek_word_first_parting"),
+    (&crate::diff::inca_sahara_word::INCA_SAHARA, "inca_sahara_word_first_parting"),
+    (&crate::diff::inca_word::INCA, "inca_word_first_parting"),
+    (&crate::diff::indian_sahara_word::INDIAN_SAHARA, "indian_sahara_word_first_parting"),
+    (&crate::diff::indian_word::INDIAN, "indian_word_first_parting"),
+    (&crate::diff::iroquois_sahara_word::IROQUOIS_SAHARA, "iroquois_sahara_word_first_parting"),
+    (&crate::diff::iroquois_word::IROQUOIS, "iroquois_word_first_parting"),
+    (&crate::diff::japanese_word::JAPANESE, "japanese_word_first_parting"),
+    (&crate::diff::korean_word::KOREAN, "korean_word_first_parting"),
+    (&crate::diff::lakota_word::LAKOTA, "lakota_word_first_parting"),
+    (&crate::diff::maya_word::MAYA, "maya_word_first_parting"),
+    (&crate::diff::persian_word::PERSIAN, "persian_word_first_parting"),
+    (&crate::diff::roman_word::ROMAN, "roman_word_first_parting"),
+    (&crate::diff::russian_word::RUSSIAN, "russian_word_first_parting"),
+    (&crate::diff::spanish_east_word::SPANISH_EAST, "spanish_east_word_first_parting"),
+    (&crate::diff::spanish_lakes_word::SPANISH_LAKES, "spanish_lakes_word_first_parting"),
+    (&crate::diff::spanish_word::SPANISH, "spanish_word_first_parting"),
+    (&crate::diff::turkish_word::TURKISH, "turkish_word_first_parting"),
 ];
 
 const MELEES: &[(
@@ -181,6 +184,7 @@ const MELEES: &[(
     &str,
     (&str, &str),
     fn() -> crate::golden::Script,
+    &str,
 )] = &[
     (
         "GreatSaharaGunpowderMelee",
@@ -188,6 +192,7 @@ const MELEES: &[(
         crate::diff::gunpowder_melee::MELEE_START,
         crate::diff::gunpowder_melee::MELEE_LONG,
         crate::diff::gunpowder_melee::melee_script,
+        "gunpowder_melee_first_parting",
     ),
     (
         "GreatSaharaClassicalMelee",
@@ -195,6 +200,7 @@ const MELEES: &[(
         crate::diff::classical_melee::MELEE_START,
         crate::diff::classical_melee::MELEE_LONG,
         crate::diff::classical_melee::melee_script,
+        "classical_melee_first_parting",
     ),
     (
         "GreatSaharaInformationMelee",
@@ -202,6 +208,7 @@ const MELEES: &[(
         crate::diff::information_melee::MELEE_START,
         crate::diff::information_melee::MELEE_LONG,
         crate::diff::information_melee::melee_script,
+        "information_melee_first_parting",
     ),
     (
         "EastIndiesInformationMelee",
@@ -209,6 +216,7 @@ const MELEES: &[(
         crate::diff::sea_melee::MELEE_START,
         crate::diff::sea_melee::MELEE_LONG,
         crate::diff::sea_melee::melee_script,
+        "sea_melee_first_parting",
     ),
     (
         "EastIndiesAirbaseMelee",
@@ -216,6 +224,7 @@ const MELEES: &[(
         crate::diff::airbase_melee::MELEE_START,
         crate::diff::airbase_melee::MELEE_LONG,
         crate::diff::airbase_melee::melee_script,
+        "airbase_melee_first_parting",
     ),
     (
         "GreatSaharaCorpseMelee",
@@ -223,6 +232,7 @@ const MELEES: &[(
         crate::diff::corpse_melee::MELEE_START,
         crate::diff::corpse_melee::MELEE_LONG,
         crate::diff::corpse_melee::melee_script,
+        "corpse_melee_first_parting",
     ),
 ];
 
@@ -238,6 +248,7 @@ fn entry(
     long: (&'static str, &'static str),
     (length, count, sequence): (i64, i64, i64),
     how: How,
+    test: &'static str,
 ) -> Entry {
     Entry {
         family,
@@ -248,49 +259,60 @@ fn entry(
         count,
         sequence,
         how,
+        test,
     }
 }
 
 fn entries() -> Vec<Entry> {
     let mut v = Vec::new();
-    for l in WORDS {
+    for (l, t) in WORDS {
         let pins = (l.length, l.count, l.sequence);
-        v.push(entry("word", l.name, l.start, l.long, pins, How::From));
+        v.push(entry("word", l.name, l.start, l.long, pins, How::From, t));
     }
     for l in super::battery::BATTERY {
         let pins = (l.length, l.count, l.sequence);
-        v.push(entry("battery", l.name, l.start, l.long, pins, How::From));
+        let t = "battery_floors_hold";
+        v.push(entry("battery", l.name, l.start, l.long, pins, How::From, t));
     }
-    for p in PAIRS {
+    for (p, t) in PAIRS {
         let pins = (p.length, p.count, p.sequence);
-        v.push(entry("pair", p.name, p.start, p.long, pins, How::From));
+        v.push(entry("pair", p.name, p.start, p.long, pins, How::From, t));
     }
-    for (name, m, start, long, script) in MELEES {
+    for (name, m, start, long, script, t) in MELEES {
         let pins = (m.length, m.count, m.sequence);
-        v.push(entry("melee", name, start, *long, pins, How::Staged(*script)));
+        v.push(entry("melee", name, start, *long, pins, How::Staged(*script), t));
     }
-    for (map, start, long) in [
+    for (map, start, long, t) in [
         (
             "EastIndiesFrench",
             crate::diff::third_pair::EAST_START,
             crate::diff::third_pair::EAST_LONG,
+            "run600_french_east_indies_word",
         ),
         (
             "GreatLakesFrench",
             crate::diff::third_pair::LAKES_START,
             crate::diff::third_pair::LAKES_LONG,
+            "run598_french_great_lakes_word",
         ),
-        ("GreatSahara", third::SAHARA_START, third::SAHARA_LONG),
+        (
+            "GreatSahara",
+            third::SAHARA_START,
+            third::SAHARA_LONG,
+            "run383_s_long_trace_says_where_the_third_map_s_word_parts",
+        ),
         (
             "GreatSaharaToughest",
             crate::diff::sahara_toughest::TOUGHEST_START,
             crate::diff::sahara_toughest::TOUGHEST_LONG,
+            "run470_is_great_sahara_at_toughest_and_its_word_holds",
         ),
     ] {
         let (length, word) = ai(map);
-        v.push(entry("third", map, start, long, (length, word, word), How::From));
+        let pins = (length, word, word);
+        v.push(entry("third", map, start, long, pins, How::From, t));
     }
-    for (map, long, east) in [
+    for (map, long, east, t) in [
         (
             "EastIndies",
             (
@@ -298,6 +320,7 @@ fn entries() -> Vec<Entry> {
                 "rontrace-run346.log",
             ),
             true,
+            "run346_is_east_indies_at_toughest_and_its_word_holds",
         ),
         (
             "GreatLakes",
@@ -306,11 +329,13 @@ fn entries() -> Vec<Entry> {
                 "rontrace-run347.log",
             ),
             false,
+            "run347_is_great_lakes_at_toughest_and_its_word_holds",
         ),
     ] {
         let (length, word) = ai(map);
         let name = format!("{map}Toughest");
-        v.push(entry("second", &name, "", long, (length, word, word), How::Second(east)));
+        let pins = (length, word, word);
+        v.push(entry("second", &name, "", long, pins, How::Second(east), t));
     }
     // One walk per game: a long capture named twice is walked once.
     let mut seen = std::collections::HashSet::new();
@@ -463,10 +488,7 @@ fn every_word_walked_once() {
                         // The ground guard (`setup.rs`, `Drop for Built`) keys its
                         // pin on the thread's name, as libtest names it after the
                         // test: each word runs on a thread named after its floor test.
-                        let tname = match e.name.as_str() {
-                            "EastIndiesAirbaseMelee" => "airbase_melee_first_parting".to_string(),
-                            n => format!("corpus_floor::{n}"),
-                        };
+                        let tname = format!("corpus_floor::{}", e.test);
                         let e2 = e.clone();
                         let r = std::thread::Builder::new()
                             .name(tname)
