@@ -108,10 +108,8 @@ and slot — and **3** for a slot the packet lacks. The piece is
   `first_bird_piece − 0x4b6 + 3·type + (seed + o) % 3` with `seed` the map
   seed — three pieces per type, cycling by object number. Run12 (seed 7236):
   sheep `o` 0, 1, 2, 3 → 60063, 60064, 60065, 60063; fish `o` 4, 5, 6 →
-  60073, 60074, 60072. **The variant walks down** to one whose piece loads
-  (item 4208): a type the install ships only `-TYPE0` of, a whale or a
-  bird, is one piece whatever its `o` (run1148's whales, all 60075), and a
-  pig's or chicken's `-TYPE2` is its `-TYPE1`;
+  60073, 60074, 60072. The variant walks down to one the install ships
+  (item 4208): every whale is 60075;
 - a player's unit: by the type, the tribe's art set (`tribes[+0x68]`), the
   leader's age bracket (`(age ^ 0x62766 + …) / 3`, capped at 2), the crew
   index `guy_num`, and — unless the type's `+0x2b8 & 4` — the **gender bit
@@ -342,12 +340,7 @@ decides the frame the clock wraps and pays an idle roll.
 The existence test is [`Art::piece_lengths`] — a piece the install's
 `<UNIT>` entries name at all is one that loads — and the walk is
 [`Sim::unit_gpiece`], used for every player unit wherever the install table
-was read; gaia keeps the dump's table where a dump names a piece, and
-otherwise takes [`Sim::gaia_piece`] (item 4208): `first_bird_piece` is
-`init_piece_ranges`' constant `0xea8d`, not a pointer, and the variant walk
-reads the install's shipped `-TYPE<v>` entries. Without it a built start's
-whale had no piece, kept an idle variant its packet lacks, and wrapped three
-frames later (`docs/CHECKSUM.md` §23.7).
+was read; gaia the dump's piece, else [`Sim::gaia_piece`] (CHECKSUM §23.7).
 
 *The check.* `the_walk_gives_every_dumped_guy_its_own_piece` runs the walk
 against every `GUY` block carrying a `gpiece` in ten dumps of two maps —

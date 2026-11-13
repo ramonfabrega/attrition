@@ -2268,7 +2268,7 @@ none (`gpiece` −1), because `Sim::piece_of` read gaia's pieces from the
 dump alone. So ours kept `IDLE1` at the missing slot's 3 frames and
 wrapped on frame 2. The piece is not a runtime pointer.
 `GraphicPieces::get_unit_gpiece@0090c030`'s gaia arm gives
-`first_bird_piece − 0x4b6 + 3·type + v`. `v` starts at `(seed + o) % 3`
+`first_bird_piece + 3·(type − 0x192) + v`. `v` starts at `(seed + o) % 3`
 and walks **down** while the piece does not load. The install ships
 `HERDWHALES-TYPE0` alone, so every whale is 60075, the piece the start
 dump prints for all of run1148's whales. `Sim::gaia_piece` derives it
