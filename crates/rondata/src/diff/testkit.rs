@@ -8427,6 +8427,16 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "british_modern_pair_run1433b_s_closing_frame_is_widened_whole",
         11,
     ),
+    // Item 4188: each word's walk to its last packet's frame
+    // (`diff::checksum_lines::packets`) — the corners its own word's walk
+    // meets on the way, counted to that frame.
+    ("aztec_modern_pair_packets", 1),
+    ("iroquois_enlightenment_pair_packets", 2),
+    ("japanese_ancient_pair_packets", 6),
+    ("lakota_pair_packets", 584),
+    ("mongol_gunpowder_pair_packets", 2),
+    ("mongol_medieval_pair_packets", 1),
+    ("mongol_pair_packets", 138),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or

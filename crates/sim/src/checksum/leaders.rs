@@ -491,9 +491,18 @@ const PLUNDER_SCALE_BITS: i32 = 0xbf80_0000_u32 as i32;
 /// `LeaderData`'s `0x2000000`, the economy's dirty bit ([`crate::economy::Ledger::dirty`]).
 const DIRTY: i64 = 0x200_0000;
 
-/// The `size` a `SimpleArray<int>` with elements reports: 10 on every
-/// non-empty one of both frames (`docs/CHECKSUM.md` §20).
+/// The `size` a `SimpleArray<int>` with elements reports: its capacity,
+/// which grows by ten (`docs/CHECKSUM.md` §20, §23.4). 10 on every
+/// non-empty one of frame 91; on the packets 20 for every array of 11 to 19
+/// elements (item 4188: `mil_trainers` on 43 slots, `oil_patches` on 28,
+/// `new_rares` on 1). A capacity never shrinks, so an array that has lost
+/// elements may report more; no packet shows one.
 const SIMPLE_ARRAY_SIZE: usize = 10;
+
+/// [`SIMPLE_ARRAY_SIZE`]'s steps: the least multiple of ten that holds `n`.
+fn simple_array_size(n: usize) -> usize {
+    n.div_ceil(SIMPLE_ARRAY_SIZE).max(1) * SIMPLE_ARRAY_SIZE
+}
 
 impl Sim {
     /// **The leaders line** (`docs/CHECKSUM.md` §20).
@@ -829,8 +838,15 @@ impl Sim {
                 .collect(),
             });
         }
+        // `mil_trainers` holds each trainer's object number, the building's
+        // `o` (item 4188: run1359's who 1, 2018 where our handle read 25).
+        let trainers: Vec<usize> = a
+            .mil_trainers
+            .iter()
+            .map(|&b| self.buildings[b].index as usize)
+            .collect();
         for (name, v) in [
-            ("mil_trainers", &a.mil_trainers),
+            ("mil_trainers", &trainers),
             ("new_rares", &a.new_rares),
             ("oil_patches", &a.oil_patches),
         ] {
@@ -839,7 +855,7 @@ impl Sim {
                 record,
                 name,
                 v.len(),
-                SIMPLE_ARRAY_SIZE.max(v.len()),
+                simple_array_size(v.len()),
                 0,
             );
             if !v.is_empty() {
