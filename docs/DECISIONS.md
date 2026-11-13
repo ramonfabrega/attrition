@@ -134,8 +134,9 @@ is append-only and amended in place, as it always was.
 - 125 standing — no parked file
 - 126 amended by 128 — two rows, three workers, the leaders tranche
 - 127 standing — a render row is the client's pixels and reads brightness
-- 128 amended by 129 — the gate clears the disk, release on transfer, four workers on trial
+- 128 amended by 129, 130 — the gate clears the disk, release on transfer, four workers on trial
 - 129 standing — four workers confirmed, one whole lane at a time; the sweep keeps a cache in use; release on the packets
+- 130 standing — no idle driver row: the row that hands over is cleared or reaped; the pass designs the trees
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — the fifty-first tranche, two Opus lanes
 - 89 amended in place — the fiftieth tranche, two Opus lanes
@@ -12418,7 +12419,7 @@ move.
    and by a list. A decoded cache and a build are not the archive. The pass
    ran both by hand first: 10,725 stale generations removed, 23 merged trees
    reaped, 20 → 243 GB free.
-2. **The worktree and the two rows stay** (entry 126 §1). The space was never
+2. **The worktree and the two rows stay** (entry 126 §1; amended by entry 130: no row rests on its context, and the next pass designs the trees). The space was never
    in the tree. Build output outside the tree, shared by the driver and the
    gate, is what would make a tree per session free; it is a note for after
    the milestone, not a step.
@@ -12598,3 +12599,36 @@ older ones read under today's plan (one was walked, run1570's); whether the pave
 base is `Roads`' state or the city's footprint; whether the week's pace
 holds with one whole lane at a time; the finer gate rule (which paths can
 move a timed test), unbuilt for a third pass.
+
+## 130. No idle driver row: the row that hands over is cleared or reaped, never left resting on its context (2026-11-12)
+
+**What happened.** The `steer` row ran the pass of 2026-11-12, banked, armed
+`commander`, and rested in the shared worktree on its whole context. Two hours
+later a notification woke it, and it read that context cold, uncached. It has
+happened before.
+
+**Ramon, on the commander row:** "flag for steer, we need to fix this
+immediately. we are never to leave idle commander/steer rows... e.g. when we
+swap between commander and steer. we must clear/reap the other... we will have
+to use diff worktrees/retire this worktree. will be decided by steer. but ive
+decided this MUST happen. as once again, steer has woken up on a notification
+and read a cold / uncached response.. unaceptable."
+
+**Decided, Ramon's word.**
+
+1. **No row of the pair rests on its context.** At a handover, the row handing
+   over is cleared (no `--then`) or reaped as its last act, and so is the row
+   it hands to once that row's turn is done. A notification that reaches a
+   resting row reaches an empty session, never a deep cold one.
+2. **The mechanism is the next pass's to design**: separate worktrees per row,
+   retiring `replan-pdb`, or a reap and respawn per handover (entry 128 §2 is
+   amended by this: its reason for keeping one tree is outweighed). It stays
+   a pass item until it is built and has a guard.
+3. **Until it is built**, the commander cleared the resting `steer` row by hand
+   (`ccc clear steer`, 2026-11-12), and a driver arms a bare clear on the other
+   row at every handover.
+
+**Not established:** which notifications woke the row (a lane's message to
+`steer`, a backgrounded task's exit, a harness event); whether `ccc clear`
+on a row armed by another stays safe when the target's worktree is the shared
+one.
