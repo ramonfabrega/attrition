@@ -50,7 +50,7 @@ pass before it is `2026-11-12-fable-pass-load.md`.*
 | the disk step (`gc-oracle` lines) | 0 stale generations removed at every gate; kept in use 130, 260, 387, 514, 644, 774, 774, 774 over 132 caches: about six sets, 9 GiB at 1.5 GiB a set. The disk 224 → 187 → 200 GB over the tranche: the fall is lanes' and builders' trees, returned at their reap |
 | the clear at 230 k (scout, 1,310 requests of 12 sessions, lore's list prices) | ramp 2.51, 0.45, 3.44, 1.37 USD (4190, 4192, 4193, 4198); saving 1.17, 1.72, 0.78, 0.60; net −3.49; on a model charging only the context carried, +0.24. Mean USD a request by context: 0.049 at 100–150 k, 0.064, 0.071, 0.076, 0.083 at 300 k+. No request missed the cache; the longest gap 51.7 minutes. On the four uncleared lanes 209 requests above 230 k cost 15.08, of which 3.54 to 4.82 is the context; waiting turns 0.75 |
 | step VII's leaves (scout: `rg` over 1,180 gamelogs less the battery's 18; item 4188's `leaves4.tsv`) | 21 of 21 in `LEADERS_HELD_OUT`, no writer in `crates/sim`; 15 printed, `theirs` parses none; nonzero in six dumps (run1077, run1078, run1086 and twins), none walked, none with a packet or a recording; on 226 packet leaders 20 read 0 and `hire_who` −1 |
-| the window (`lore limits`) | the whole week 25 % at 04:46Z, the Fable week 13 % at 02:43Z, both closing 2026-11-14 06:00 −05:00 |
+| the window (`lore limits`) | the whole week 25 % at 04:46Z and 28 % at 14:12Z, the Fable week 13 % and 18 %, both closing 2026-11-14 06:00 −05:00: the pass cost three points of the week and five of Fable's |
 | the rubric (`rubric.py --record`) | the territory 733 · 332 · 574; simulation backed 1,456; lockstep bytes 78.1 %, ages 8 of 8, unit types 296 of 302: every figure the pass before's |
 | the disk (`df -g ~`) | 186 GB free at the start, 209 after `afsctool` over both archives (1,249,010 entries) |
 
@@ -160,6 +160,10 @@ scoped render lane: 4200, 4201. The input lane: 4202, 4203.
   before the process is gone and `ccc forget` then refuses ("still has a
   process"), so the reap waits for the roster to say stopped. The second
   removed 1b2cdb50 with the tree intact, and the check read one row.
+  The first `handover.py to commander` refused as well, on the harness's
+  own children (two MCP servers and `caffeinate`) and on the script's own
+  `ps`: a stray is now a shell the row started for a tool call, and
+  nothing else.
 - **The memcap fixture** (an Opus 5.5 builder, branch
   `worktree-agent-ae24c1a1edb2c9783`, tip `01eabcef9`). The cause is likely
   and not reproduced: on gate-4192 the budget's own `ps rss` sampler saw
@@ -192,5 +196,9 @@ scoped render lane: 4200, 4201. The input lane: 4202, 4203.
 
 ## The gate
 
-Whole, on the pass's commit; its log is
-`~/Library/Caches/attrition/gates/gate-pass-1113.log`.
+Whole, on `8b49cb98e`: `gate exit 0`, 7 of 7 steps, release 27.4 minutes,
+admission 19.4 s, load 3.1 to 5.5, `Rows: one driver row at most: steer
+d388900a (working)`; the disk step removed 514 stale generations and the
+builder's tree, 225 → 243 GB free. Its log is
+`~/Library/Caches/attrition/gates/gate-pass-1113.log`. The follow-up that
+narrowed the handover's stray check ran scoped (`gate-pass-1113b.log`).

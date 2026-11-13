@@ -44,16 +44,19 @@ class CheckTests(unittest.TestCase):
 
 class StrayTests(unittest.TestCase):
     TABLE = {
-        10: (1, 'claude --bg'),          # the row
-        20: (10, 'zsh -c handover'),     # this call's shell
+        10: (1, 'claude --bg'),                      # the row
+        20: (10, '/bin/zsh -c python3 tools/handover.py to commander'),  # this call's shell
         30: (20, 'python3 tools/handover.py to commander'),
-        40: (10, 'zsh tools/gate_run.sh abc gate.log'),
+        35: (30, 'ps -Ao pid=,ppid=,command='),      # this script's own child
+        40: (10, '/bin/zsh -c zsh tools/gate_run.sh abc gate.log'),
         50: (40, 'python3 tools/release_gate.py'),
         60: (1, 'unrelated'),
+        70: (10, 'bun /somewhere/server.ts'),        # an MCP server of the harness
+        80: (10, 'caffeinate -i -t 300'),
     }
 
-    def test_this_call_s_own_ancestry_is_not_a_stray(self):
-        table = {k: v for k, v in self.TABLE.items() if k in (10, 20, 30, 60)}
+    def test_this_call_and_the_harness_s_own_children_are_not_strays(self):
+        table = {k: v for k, v in self.TABLE.items() if k not in (40, 50)}
         self.assertEqual(handover.strays(10, table, 30), [])
 
     def test_a_gate_under_the_row_is_named(self):

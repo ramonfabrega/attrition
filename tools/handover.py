@@ -91,26 +91,29 @@ def own_ref():
     return os.path.basename(job) if job else None
 
 
+SHELLS = ('zsh', 'bash', 'sh')
+
+
 def strays(pid, table, me):
-    """The commands running under `pid` that are not this script's own
-    ancestry: what a reap of the row would kill. `table` is `{pid: (ppid,
-    command)}`."""
+    """The tool commands still running under the row `pid`: what a reap of
+    the row would kill. `table` is `{pid: (ppid, command)}`. A tool call's
+    command runs under a shell the row started, so a stray is a shell that
+    is the row's direct child and not this script's own ancestor. The
+    row's other children are the harness's own — its MCP servers, its
+    `caffeinate` — and die with it by design."""
     lineage = set()
     walk = me
     while walk in table and walk not in lineage:
         lineage.add(walk)
         walk = table[walk][0]
-    children = {}
-    for child, (parent, _) in table.items():
-        children.setdefault(parent, []).append(child)
-    found, stack = [], list(children.get(pid, []))
-    while stack:
-        child = stack.pop()
-        if child in lineage:
-            stack.extend(c for c in children.get(child, []) if c not in found)
+    found = []
+    for child, (parent, command) in table.items():
+        if parent != pid or child in lineage:
             continue
-        found.append(child)
-    return sorted((child, table[child][1]) for child in found)
+        words = command.split()
+        if words and os.path.basename(words[0]).lstrip('-') in SHELLS:
+            found.append((child, command))
+    return sorted(found)
 
 
 def process_table():
