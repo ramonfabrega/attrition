@@ -4877,6 +4877,25 @@ pub(crate) mod tests {
     const QUIT_RESIGN_RET: u32 = 0x006e_dc20;
     const RESIGN_SOUND_RET: u32 = 0x006e_de3a;
 
+    /// The capture's own quit as its trace dates it, `(frame, head)` — the
+    /// resign's draw under `Player::quit`, and whether a `game_random` draw
+    /// of the same frame follows it ([`closing_quit`]). `name` is the
+    /// capture's `gamelog-runN-…` name; its trace is `rontrace-runN.log`.
+    pub(crate) fn quit_in_trace(name: &str) -> Option<(i64, bool)> {
+        let run = name.strip_prefix("gamelog-")?.split('-').next()?;
+        let t = trace(&format!("rontrace-{run}.log"))?;
+        let draws = t.draws();
+        let at = draws
+            .iter()
+            .rposition(|d| d.up == [RESIGN_SOUND_RET, QUIT_RESIGN_RET])?;
+        let q = draws[at].frame;
+        let head = draws[at + 1..]
+            .iter()
+            .take_while(|d| d.frame == q)
+            .any(|d| d.sync());
+        Some((q, head))
+    }
+
     /// **When the human quit, read off the capture's own trace** (item
     /// 4189, `docs/LEADERS.md` §10.2): the frame of the resign's sound draw
     /// under `Player::quit`, and whether it opened that frame — a
@@ -4899,18 +4918,8 @@ pub(crate) mod tests {
         if let Some(q) = cache.lock().unwrap().get(name) {
             return *q;
         }
-        let run = name.strip_prefix("gamelog-")?.split('-').next()?;
         let found = (|| {
-            let t = trace(&format!("rontrace-{run}.log"))?;
-            let draws = t.draws();
-            let at = draws
-                .iter()
-                .rposition(|d| d.up == [RESIGN_SOUND_RET, QUIT_RESIGN_RET])?;
-            let q = draws[at].frame;
-            let head = draws[at + 1..]
-                .iter()
-                .take_while(|d| d.frame == q)
-                .any(|d| d.sync());
+            let (q, head) = quit_in_trace(name)?;
             let last = ix.frames().last()?.number;
             if q + 1 != last {
                 eprintln!("{name}: the quit on {q} is not the closing block {last}'s frame");

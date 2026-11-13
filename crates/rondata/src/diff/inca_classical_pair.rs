@@ -491,10 +491,16 @@ fn inca_classical_pair_run1260_s_closing_state() {
     // closing block. On 6073 theirs runs `Cities::capture_city` and the
     // game ends; a Citizen's birth spends no draw, so the stream cannot see
     // it (parked 3617b).
+    // Item 4189: [0, 0, 1, 0, 0, 0, 0] -> zeros, `1/175` gone (3617b
+    // answered): the capture's defeat asks `Game::check_victory`, whose
+    // conquest victory on 6073 cleans who=1's queues with no refund
+    // (`Leader::victory`, `docs/LEADERS.md` §10.2), and no Citizen is born
+    // on the closing step. The closing dump prints no building record, so
+    // `1/2040`'s queue after the clean is not compared here.
     pin_eq!(e.frame, 6074, "the closing block");
     pin_eq!(e.compared, 196, "units compared");
-    pin_eq!(e.counts(), [0, 0, 1, 0, 0, 0, 0], "the closing counts");
-    pin_eq!(e.extra.clone(), vec![(1, 175)], "the closing extras");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), Vec::<(i64, i64)>::new(), "the closing extras");
 }
 
 /// run1270b: the closing window, blocks 5817..6074 at the long's detail

@@ -100,12 +100,6 @@ pub const ENDGAME_LEAVES: [&str; 9] = [
     "defeat_stamp",
 ];
 
-/// Of [`ENDGAME_LEAVES`], the two the leaders line emits unheld although
-/// the crate holds them: the record diff parts each on a closing block
-/// whose human quit, which the window harness does not replay (run609's
-/// 5639, run667's 17380; parked 4185a).
-pub const ENDGAME_OFF_THE_LINE: [&str; 2] = ["victory_type", "defeat_type"];
-
 /// `max(1, (S/2 + xs·t) / S)` for `t ≥ 1`, else 0: the map-size scaling
 /// `Game::popwin_timer@005944b0`, `Game::wonder_timer@005944f0` and
 /// `Game::retake_capital@00594530` share, `xs` the map's width in cells

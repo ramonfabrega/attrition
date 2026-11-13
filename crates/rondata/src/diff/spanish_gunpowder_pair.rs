@@ -728,7 +728,12 @@ fn spanish_gunpowder_pair_run1287_s_closing_state() {
     // target on 6128 on both sides (run1306's block 6128), and the tick
     // `compare_shutdown` takes past it trains the Citizen into slot 196 —
     // a tick the original's quit on 6128 never ran (parked 3646a).
+    // Item 4189: [0, 0, 1, 0, 0, 0, 0] -> zeros, `1/196` gone (3646a
+    // answered): the human's defeat asks `Game::check_victory`, whose
+    // conquest victory cleans the Village's queue with no refund
+    // (`Leader::victory`, `docs/LEADERS.md` §10.2), so the Citizen is not
+    // trained on the closing step.
     pin_eq!(e.compared, 219, "units compared");
-    pin_eq!(e.counts(), [0, 0, 1, 0, 0, 0, 0], "the closing counts");
-    pin_eq!(e.extra.clone(), vec![(1, 196)], "the closing extras");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), Vec::<(i64, i64)>::new(), "the closing extras");
 }

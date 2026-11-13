@@ -72,6 +72,20 @@ pub struct ShutdownResult {
 /// `n − 1` is one the quit caught before its update, not one this crate moved
 /// wrongly. Everything else lands in [`ShutdownResult::off`].
 pub fn compare_shutdown(built: &mut Built, fin: &Frame, players: usize) -> ShutdownResult {
+    compare_shutdown_quitting(built, fin, players, true)
+}
+
+/// [`compare_shutdown`] with the quit where the capture's trace puts it
+/// (item 4189, `docs/LEADERS.md` §10.2): `head` resigns before the closing
+/// frame's tick, as `compare_shutdown` does; otherwise the quit follows the
+/// frame's body, from the end window of a game already over, and resigns
+/// after the tick.
+pub fn compare_shutdown_quitting(
+    built: &mut Built,
+    fin: &Frame,
+    players: usize,
+    head: bool,
+) -> ShutdownResult {
     let before = compare(built, fin, players);
     let agreed_before: BTreeSet<(i64, i64)> = {
         let bad: BTreeSet<(i64, i64)> = before
@@ -92,12 +106,20 @@ pub fn compare_shutdown(built: &mut Built, fin: &Frame, players: usize) -> Shutd
     // `Player::resign` → `Leader::defeat(6, −1, 0)` runs before any unit
     // does, so the human's planes die and its other units drop their
     // orders on the frame the dump is written in.
-    for who in 0..players.min(built.sim.cities.nation.len()) {
-        if built.sim.cities.nation[who].human {
-            built.sim.command().resign(who as sim::Player);
+    let quit = |built: &mut Built| {
+        for who in 0..players.min(built.sim.cities.nation.len()) {
+            if built.sim.cities.nation[who].human {
+                built.sim.command().resign(who as sim::Player);
+            }
         }
+    };
+    if head {
+        quit(built);
     }
     built.tick();
+    if !head {
+        quit(built);
+    }
     let after = compare(built, fin, players);
     let mut torn = Vec::new();
     let mut off = BTreeMap::new();

@@ -1402,12 +1402,10 @@ impl Sim {
             }
             // Item 4185 (`crate::leaders::endgame`, `crate::leaders::capital`):
             // the end of the game and the lost capital (`docs/LEADERS.md`
-            // §10, §11). `victory_type` and `defeat_type` are held and not
-            // emitted: the record diff parts each on a closing block whose
-            // quit the window harness does not replay (parked 4185a).
-            _ if crate::leaders::endgame::ENDGAME_LEAVES.contains(&name)
-                && !crate::leaders::endgame::ENDGAME_OFF_THE_LINE.contains(&name) =>
-            {
+            // §10, §11). Item 4189 put `victory_type` and `defeat_type` on
+            // the line: the window harness replays the quit where the
+            // original's run made it, and both agree on every dump.
+            _ if crate::leaders::endgame::ENDGAME_LEAVES.contains(&name) => {
                 self.leader_endgame_leaf(who, name).map(|v| vec![v])
             }
             // Item 4187 (`docs/LEADERS.md` §18–§20): the score and its

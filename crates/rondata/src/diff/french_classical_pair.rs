@@ -231,5 +231,11 @@ fn french_classical_pair_run1262_s_closing_frame_is_widened_whole() {
     // 10, 0 and 73 both sides) — 3961a's run1262 row and 3607a's damage.
     // Item 3982: +1, who=1's `epochs_queued` on the closing block 6107, ours >0 theirs 0, beside the technology `num_queued` rows: the same emptied queue.
     // Item 4167: 156 -> 158, +2, who=1's `barracks_queued` and `combat_queued` on the closing block 6107, ours 8 theirs 0: the closing frame's emptied queue, beside the `num_queued` rows.
-    pin_eq!(w.firsts.len(), 158, "the closing walk's baseline");
+    // Item 4189: 158 -> 142, −16 on the closing block 6107, each now ours 0
+    // = theirs 0: who=1's `barracks_queued` (was ours 8), `combat_queued`
+    // (8), `epochs_queued` (3), `num_queued[0]` (6), `[11]` (1), `[121]`
+    // (2), `[33]` (6), `[505]`, `[512]`, `[527]` (1 each), and `queue:queued`
+    // on `1/2000` (1), `1/2005` (3), `1/2017` (5), `1/2018` (4), `1/2021`
+    // (4), `1/2023` (1) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2).
+    pin_eq!(w.firsts.len(), 142, "the closing walk's baseline");
 }

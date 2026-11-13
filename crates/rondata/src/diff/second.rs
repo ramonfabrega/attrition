@@ -2816,7 +2816,11 @@ mod tests {
         // Item 3982: +1, who=1's `epochs_queued` on the closing block 18141, ours >0 theirs 0, beside the technology `num_queued` rows: the same emptied queue.
         // Item 4167: 86 -> 88, +2, who=1's `barracks_queued` and `combat_queued` on the closing block 18141, ours 1 theirs 0: the emptied queue, beside the `num_queued` rows.
         // Item 4177: 88 -> 95, +7 firsts, the combat rates' own: who=0 `average_damage_rate` 18060 ours 5818 theirs 5815; who=0 `damage_current_frame` 18060 ours 11 theirs 12; who=1 `average_hit_rate` 18060 ours 5818 theirs 5815; who=1 `hits_current_frame` 18060 ours 11 theirs 12 (docs/LEADERS.md §3.5).
-        pin_eq!(w.firsts.len(), 95, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
+        // Item 4189: 95 -> 86, −9 on the closing block 18141, each now ours 0
+        // = theirs 0: who=1's `barracks_queued`, `combat_queued`,
+        // `epochs_queued`, `num_queued[0]`, `[504]`, `[64]` and `queue:queued`
+        // on `1/2005`, `1/2020`, `1/2044` (ours 1 each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2).
+        pin_eq!(w.firsts.len(), 86, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))

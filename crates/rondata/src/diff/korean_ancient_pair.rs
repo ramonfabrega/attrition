@@ -333,5 +333,11 @@ fn korean_ancient_pair_run1200_s_closing_frame_is_widened_whole() {
     // now that the leader emits a technology's count.
     // Item 3982: +1, who=1's `epochs_queued` on the closing block 5640, ours >0 theirs 0, beside the technology `num_queued` rows: the same emptied queue.
     // Item 4167: 169 -> 171, +2, who=1's `barracks_queued` and `combat_queued` on the closing block 5640, ours 2 theirs 0: the closing frame's emptied queue, beside the `num_queued` rows.
-    pin_eq!(w.firsts.len(), 171, "the closing walk's baseline");
+    // Item 4189: 171 -> 154, −17 on the closing block 5640, each now ours 0
+    // = theirs 0: who=1's `barracks_queued` (was ours 2), `combat_queued`
+    // (2), `epochs_queued` (1), `num_queued[130]` (2), `[1]` (6), `[525]`,
+    // `[541]`, `[566]`, `[574]` (1 each), and `queue:queued` on `1/2000`,
+    // `1/2005`, `1/2006`, `1/2009`, `1/2011` (1 each), `1/2012` (5),
+    // `1/2048`, `1/2054` (1 each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2). The queues 3578c names.
+    pin_eq!(w.firsts.len(), 154, "the closing walk's baseline");
 }

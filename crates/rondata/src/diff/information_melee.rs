@@ -579,7 +579,10 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 165, "run1468's word window");
+    // Item 4189: 165 -> 164: the V2 Rocket `0/16` on 2601, which ours held
+    // alone, dies with the quit on 2600's head, replayed from run1468's
+    // trace (`Sim::resign`, `docs/LEADERS.md` §10.2; GOLDEN §152.15).
+    pin_eq!(w.firsts.len(), 164, "run1468's word window");
     pin_eq!(w.rounds_read, (24, 24), "the rounds read");
     pin_eq!(w.rounds.len(), 107, "the rounds that part");
 }

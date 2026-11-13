@@ -577,7 +577,13 @@ fn mongol_gunpowder_pair_run1279_s_closing_state() {
         .final_state()
         .or_else(|| log.frame_states().pop())
         .expect("closing whole-map state");
-    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    // Item 4189: the quit is past the closing frame's body (run1279's trace:
+    // the resign's draw on 5399 after its last `game_random` draw), so the
+    // three units that frame finishes are born before the quit's conquest
+    // victory cleans who=1's queues (`docs/LEADERS.md` §10.2).
+    let quit = harness::tests::quit_in_trace(p.long.0);
+    pin_eq!(quit, Some((5399, false)), "the quit, past the frame's body");
+    let e = endpoint::walk_to_close_quitting(&mut built, &fin, 8, quit.is_none_or(|q| q.1));
     eprintln!(
         "Mongol Gunpowder pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
         e.frame,

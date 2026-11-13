@@ -386,5 +386,8 @@ fn run958f_s_word_frame_is_widened_whole() {
     // `defense` (0 against −1) and `1/2024`'s `queued` (1 against 0), the
     // game's end (park KJ). Item 3969: +1, who=1's technology
     // `num_queued[541]` on 22701, ours 1 against 0, the same end.
-    pin_eq!(w.firsts.len(), 34, "run958f with decoys out of the tally");
+    // Item 4189: 34 -> 32, −2 on the closing block 22701, now ours 0 = theirs
+    // 0: who=1's `num_queued[541]` and `1/2024`'s `queue:queued` (ours 1
+    // each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2).
+    pin_eq!(w.firsts.len(), 32, "run958f with decoys out of the tally");
 }

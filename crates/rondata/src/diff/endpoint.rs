@@ -2185,10 +2185,21 @@ pub const COUNT_NAMES: [&str; 7] = [
 /// halves are read from a second [`compare`] at `n`, which
 /// `compare_shutdown` has already left the simulation standing on.
 pub fn walk_to_close(built: &mut Built, fin: &Frame, players: usize) -> EndpointResult {
+    walk_to_close_quitting(built, fin, players, true)
+}
+
+/// [`walk_to_close`] with the quit at the frame's head (`head`) or past
+/// its body ([`compare_shutdown_quitting`], item 4189).
+pub fn walk_to_close_quitting(
+    built: &mut Built,
+    fin: &Frame,
+    players: usize,
+    head: bool,
+) -> EndpointResult {
     while built.sim.frame < fin.n - 1 {
         built.tick();
     }
-    let r = compare_shutdown(built, fin, players);
+    let r = compare_shutdown_quitting(built, fin, players, head);
     let whole = compare(built, fin, players);
     EndpointResult {
         frame: r.frame,

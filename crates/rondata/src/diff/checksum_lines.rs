@@ -1912,6 +1912,18 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// `score_units`, `score_units_2` and `score_combat` (part on packets; parked
 /// 4187a), `score_explored` and `score_pop` (0 on every packet, so no packet
 /// moves them).
+///
+/// Item 4189: 49 → 47 names, `defeat_type` and `victory_type` (0 = 0 on
+/// frame 91, both leaders), each now agreeing on every dump the record diff
+/// reads. The window harness replays the human's quit where the capture's
+/// trace dates it, at the frame's head or past its body, and the quit's
+/// `Leader::defeat` asks `Game::check_victory` (`sim::leaders::endgame`;
+/// `docs/LEADERS.md` §10.2): run609's 5639 `defeat_type` 6 = 6 (was ours
+/// 0), run667's 17380 who 0 `defeat_type` 6 = 6 (was 5) and who 1
+/// `victory_type` 0 = 0 (was 2, the territory win the quit's conquest
+/// victory bars), and on run600's closing 17380, walked since this item,
+/// who 1 `victory_type` 2 = 2 and who 0 `defeat_type` 5 = 5 with the quit's
+/// re-stamp 17380 = 17380. The long range stays out on the other 47.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
@@ -1928,7 +1940,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("damage_fifteen_seconds (unheld)", 2),
     ("deaths_current_frame (unheld)", 2),
     ("deaths_fifteen_seconds (unheld)", 2),
-    ("defeat_type (unheld)", 2),
     ("dow (unheld)", 2),
     ("gift_stamp (unheld)", 2),
     ("good_deeds (unheld)", 2),
@@ -1961,7 +1972,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("tributes (unheld)", 2),
     ("units_killed (unheld)", 2),
     ("units_lost (unheld)", 2),
-    ("victory_type (unheld)", 2),
 ];
 
 /// The long range's leaves the test bends, one of each kind carried
