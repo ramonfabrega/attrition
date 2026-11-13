@@ -11,6 +11,8 @@ pub mod relations;
 pub mod resign;
 pub mod score;
 pub mod tallies;
+pub mod taunt;
+pub mod tribute;
 pub mod words;
 
 /// The `leaders/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
@@ -82,6 +84,15 @@ pub struct LeadersState {
     /// (`docs/LEADERS.md` §7; [`declare`], item 4159's step VII-b1), one
     /// per slot.
     pub declare: Vec<declare::Declared>,
+    /// The tribute leaves and the deal records: `tribute_stamp`,
+    /// `gift_stamp`, `counteroffer`, `tribute_demanded`, `tributes`, the
+    /// two totals and `dip[8]` (`docs/LEADERS.md` §8; [`tribute`], item
+    /// 4159's step VII-b2), one per slot.
+    pub tribute: Vec<tribute::Tribute>,
+    /// The taunts: `last_taunt`, `taunt_frame` and the incoming ring
+    /// (`docs/LEADERS.md` §9; [`taunt`], item 4159's step VII-b2), one per
+    /// slot.
+    pub taunts: Vec<taunt::Taunts>,
     /// `Game::semaphore[0] & 0x40`: `Game::check_victory@005926b0` has
     /// decided the game and is not asked again (`docs/LEADERS.md` §10.2;
     /// [`Sim::check_victory`], item 4189).

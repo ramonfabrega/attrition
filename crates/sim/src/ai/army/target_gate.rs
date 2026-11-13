@@ -524,8 +524,8 @@ impl TargetGateView for SimGate<'_> {
             .position(|c| self.sim.cities.cities[c].capital);
         (idx.map_or(-1, |i| i as i32), i32::from(w))
     }
-    fn tribute(&mut self, _b: usize) -> bool {
-        false
+    fn tribute(&mut self, b: usize) -> bool {
+        self.sim.is_tribute_period(self.who, b as crate::Player)
     }
     fn find_aggressive(&mut self, _ecx: Ecx) -> i32 {
         self.sim

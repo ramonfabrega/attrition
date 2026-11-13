@@ -127,6 +127,7 @@ pub(crate) fn walk_take_from(
     seats: usize,
     probes: &[(i64, sim::Player)],
     diplomacy: &[TakeDiplo],
+    taunts: &[TakeTaunt],
 ) -> Option<TakeWord> {
     let (Some(own), Some(tr)) = (take_file(capture.0), take_trace(capture.1)) else {
         eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", capture.0);
@@ -142,29 +143,7 @@ pub(crate) fn walk_take_from(
     let mut prev: Vec<Option<std::collections::BTreeMap<String, i64>>> = vec![None; seats];
     for _ in 0..last {
         let at = built.sim.frame;
-        // A probe: `Armies::diplo_change@006f30f0(w)` alone at the head of
-        // a frame, the call item 4206 isolated the parting with.
-        for &(f, w) in probes {
-            if f == at {
-                built.sim.armies_diplo_change(w);
-            }
-        }
-        // The window's diplomacy, staged off the take's own record
-        // ([`take_diplomacy`]) at the head of the frame its command ran on:
-        // the human's Declare as `Leader::action_declare`, a computer's
-        // answer as `Leader::set_diplo` with the original's own `this`.
-        for d in diplomacy {
-            if d.frame == at {
-                if d.declare {
-                    built
-                        .sim
-                        .command()
-                        .action_declare(d.this, d.whom, d.level, false, false);
-                } else {
-                    built.sim.setup().set_diplo(d.this, d.whom, d.level);
-                }
-            }
-        }
+        stage_frame(&mut built, seats, probes, diplomacy, taunts);
         built.tick();
         // `RON_DEBUG_SITES=<lo>-<hi>`: each draw's owner, as the pairs' walks
         // print it.
@@ -265,6 +244,143 @@ pub(crate) fn walk_take_from(
     })
 }
 
+/// What a take stages at the head of the frame `built` is about to tick,
+/// before the tick: a probe, the window's diplomacy and the script's
+/// taunts, each on the frame its command ran.
+pub(crate) fn stage_frame(
+    built: &mut Built,
+    seats: usize,
+    probes: &[(i64, sim::Player)],
+    diplomacy: &[TakeDiplo],
+    taunts: &[TakeTaunt],
+) {
+    let at = built.sim.frame;
+    // A probe: `Armies::diplo_change@006f30f0(w)` alone at the head of a
+    // frame, the call item 4206 isolated the parting with.
+    for &(f, w) in probes {
+        if f == at {
+            built.sim.armies_diplo_change(w);
+        }
+    }
+    // The window's diplomacy, staged off the take's own record
+    // ([`take_diplomacy`]): the human's Declare as `Leader::action_declare`,
+    // a computer's answer as `Leader::set_diplo` with the original's own
+    // `this`.
+    for d in diplomacy {
+        if d.frame == at {
+            if d.declare {
+                built
+                    .sim
+                    .command()
+                    .action_declare(d.this, d.whom, d.level, false, false);
+            } else {
+                built.sim.setup().set_diplo(d.this, d.whom, d.level);
+            }
+        }
+    }
+    // The script's taunts ([`script_taunts`]): `process_chat`'s
+    // `Leader::receive_taunt` on every slot, which refuses all but the
+    // sender's live computer allies.
+    for t in taunts {
+        if t.frame == at {
+            for k in 0..seats {
+                built
+                    .sim
+                    .command()
+                    .receive_taunt(k as sim::Player, t.request, t.sender);
+            }
+        }
+    }
+}
+
+/// `OPTION_CHAT_ALLIES`'s key in `diplomacy4206.cmd`'s profile: F14, VK
+/// 125 (the script's header; `--bindkey`).
+const CHAT_ALLIES_VK: &str = "125";
+
+/// The taunt requests the mint reads, by the order string the install's
+/// `sound.xml` gives a taunt (`id`), and `rise.pdb`'s `TauntRequest`:
+/// `TAUNT_FOOD` 1 to `TAUNT_OIL` 5 and `TAUNT_HELP` 16. That `NEED_FOOD` is
+/// 1 is the record's (run1575's `last_taunt[0]` 1 on block 967); the rest
+/// follow the enum's names.
+const TAUNT_ORDERS: [(&str, i32); 6] = [
+    ("NEED_FOOD", 1),
+    ("NEED_TIMBER", 2),
+    ("NEED_WEALTH", 3),
+    ("NEED_METAL", 4),
+    ("NEED_OIL", 5),
+    ("HELP", 16),
+];
+
+/// One taunt a take's script sends to allies: applied on `frame`, from
+/// `sender`, as `request`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct TakeTaunt {
+    pub frame: i64,
+    pub sender: sim::Player,
+    pub request: i32,
+}
+
+/// **The taunt's carrier, minted from the script** (item 4159, step
+/// VII-b2): the dump prints no chat line and no recording holds the
+/// command, so each `@key 125` (chat to allies) whose typed text closes
+/// with Return (`@char 13`) is one `Chat` command from the console's seat.
+/// The text is the taunt's index, the install's `sound.xml` names its order
+/// string, and [`TAUNT_ORDERS`] its request. It is applied one frame after
+/// the Return's line, as every window command of the take is (the Declare
+/// clicked on 985 is `process_declare 1 0 986` on the record), and
+/// run1575's packet holds the receipt there: `incoming_taunt_frame[0]` 966,
+/// 60 frames on from 906. A text that names no order string panics: the
+/// mint reads none it cannot map.
+pub(crate) fn script_taunts(name: &str) -> Option<Vec<TakeTaunt>> {
+    let inst = crate::testenv::install()?;
+    let path = format!(
+        "{}/../../tools/gamelog/coverage/{name}",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path}: {e}"));
+    let sounds = std::fs::read_to_string(inst.root().join("data/sound.xml")).ok()?;
+    let order = |index: &str| -> Option<String> {
+        let at = sounds.find(&format!("<TAUNT index=\"{index}\" "))?;
+        let tag = &sounds[at..at + sounds[at..].find('>')?];
+        let id = tag.split("id=\"").nth(1)?.split('"').next()?;
+        (!id.is_empty()).then(|| id.to_string())
+    };
+    let mut out = Vec::new();
+    let mut open: Option<String> = None;
+    for line in text.lines() {
+        let w: Vec<&str> = line.split_whitespace().collect();
+        let (Some(f), Some(verb), Some(arg)) = (w.first(), w.get(1), w.get(2)) else {
+            continue;
+        };
+        let Ok(frame) = f.parse::<i64>() else {
+            continue;
+        };
+        match (*verb, open.as_mut()) {
+            ("@key", _) if *arg == CHAT_ALLIES_VK => open = Some(String::new()),
+            ("@char", Some(typed)) if *arg == "13" => {
+                let id = order(typed).unwrap_or_else(|| panic!("{name}: taunt {typed:?}"));
+                let request = TAUNT_ORDERS
+                    .iter()
+                    .find(|(n, _)| *n == id)
+                    .unwrap_or_else(|| panic!("{name}: an unread order {id}"))
+                    .1;
+                out.push(TakeTaunt {
+                    frame: frame + 1,
+                    sender: ISSUER,
+                    request,
+                });
+                open = None;
+            }
+            ("@char", Some(typed)) => {
+                let c = arg.parse::<u32>().ok().and_then(char::from_u32);
+                typed.push(c.unwrap_or_else(|| panic!("{name}: @char {arg}")));
+            }
+            _ => {}
+        }
+    }
+    Some(out)
+}
+
 /// The coverage pair's frame zero re-read at `TEAM_STYLE 0`, `script`
 /// staged, the window's `diplomacy` staged ([`take_diplomacy`]), walked
 /// against `capture` ([`walk_take_from`]).
@@ -308,7 +424,7 @@ pub(crate) fn walk_style_zero(
     let built =
         crate::diff::setup::with_staged_script(script, || build_sim(&loaded, &init, Tuning::RON));
     assert_eq!(built.sim.ai.lobby.team_style, 0, "the lobby reads style 0");
-    walk_take_from(&loaded, built, capture, 2, &[], diplomacy)
+    walk_take_from(&loaded, built, capture, 2, &[], diplomacy, &[])
 }
 
 /// Print a [`TakeWord`]: the word, the staging's refusals, each leader
@@ -408,7 +524,18 @@ pub(crate) fn walk_sea_style_zero(
     script: crate::golden::Script,
     probes: &[(i64, sim::Player)],
     diplomacy: &[TakeDiplo],
+    taunts: &[TakeTaunt],
 ) -> Option<TakeWord> {
+    let (loaded, built) = stand_up_sea_style_zero(capture, script)?;
+    walk_take_from(&loaded, built, capture, 3, probes, diplomacy, taunts)
+}
+
+/// [`walk_sea_style_zero`]'s game at frame zero: run1482's start re-read
+/// at style 0 with `capture`'s pasture and `script` staged.
+pub(crate) fn stand_up_sea_style_zero(
+    capture: (&str, &str),
+    script: crate::golden::Script,
+) -> Option<(crate::load::Loaded, Built)> {
     let inst = crate::testenv::install()?;
     let (Some(start), Some(pasture)) = (dump(SEA_START), take_trace(capture.1)) else {
         eprintln!(
@@ -441,7 +568,7 @@ pub(crate) fn walk_sea_style_zero(
     let built =
         crate::diff::setup::with_staged_script(script, || build_sim(&loaded, &init, Tuning::RON));
     assert_eq!(built.sim.ai.lobby.team_style, 0, "the lobby reads style 0");
-    walk_take_from(&loaded, built, capture, 3, probes, diplomacy)
+    Some((loaded, built))
 }
 
 /// One diplomacy call the take's own record shows, on the frame its
@@ -585,7 +712,13 @@ fn diplomacy_take_walked_by_name() {
         take_diplomacy(g).unwrap_or_default()
     };
     eprintln!("{g}: staged {diplomacy:?}");
-    let Some(w) = walk_sea_style_zero((g, t), script, &probes, &diplomacy) else {
+    // `RON_TAKE_NO_TAUNT`: leave the script's taunts unstaged.
+    let taunts = if std::env::var_os("RON_TAKE_NO_TAUNT").is_some() {
+        Vec::new()
+    } else {
+        script_taunts("diplomacy4206.cmd").unwrap_or_default()
+    };
+    let Some(w) = walk_sea_style_zero((g, t), script, &probes, &diplomacy, &taunts) else {
         return;
     };
     report(g, &w);
@@ -651,6 +784,7 @@ fn run1575_s_word_is_pinned_as_found() {
         coverage_script("diplomacy4206.cmd"),
         &[],
         &diplomacy,
+        &script_taunts("diplomacy4206.cmd").unwrap_or_default(),
     ) else {
         return;
     };
@@ -685,6 +819,7 @@ fn run1575_holds_whole_with_the_french_armies_processed_on_the_accept() {
         coverage_script("diplomacy4206.cmd"),
         &[(RUN1575_ACCEPT, 1)],
         &[],
+        &[],
     ) else {
         return;
     };
@@ -706,6 +841,7 @@ fn run1575_s_diplomacy_movers_are_the_script_s() {
         RUN1575,
         coverage_script("diplomacy4206.cmd"),
         &[(RUN1575_ACCEPT, 1)],
+        &[],
         &[],
     ) else {
         return;
@@ -792,6 +928,7 @@ fn run1575_s_declarations_are_ours() {
         coverage_script("diplomacy4206.cmd"),
         &[],
         &diplomacy,
+        &script_taunts("diplomacy4206.cmd").unwrap_or_default(),
     ) else {
         return;
     };
@@ -826,5 +963,152 @@ fn run1575_s_declarations_are_ours() {
         parted,
         Vec::<String>::new(),
         "the declaration's leaves and wealth, ours against the record"
+    );
+}
+
+/// Whether a leader row is one of the taunt's answer's printed rows
+/// (`docs/LEADERS.md` §8.1, §9.1): `tribute_stamp[t]`, `gift_stamp[t]`,
+/// `last_taunt[t]`, `taunt_frame[t]`.
+fn taunt_row(k: &str) -> bool {
+    [
+        "tribute_stamp[",
+        "gift_stamp[",
+        "last_taunt[",
+        "taunt_frame[",
+    ]
+    .iter()
+    .any(|p| k.starts_with(p))
+}
+
+/// The rows the taunt's gift moves beside its leaves, compared through
+/// [`RUN1575_HELD`]: the commit's `agendas` bit, and the food each side's
+/// bucket holds.
+fn gift_row(k: &str) -> bool {
+    k.starts_with("agendas[") || k == "bucket[0:food]"
+}
+
+/// The script's taunt ([`script_taunts`]): one `NEED_FOOD` from the
+/// console's seat, applied on 906.
+#[test]
+fn diplomacy4206_s_taunt_is_minted_from_its_chat() {
+    let _pins = Pins::hold();
+    let Some(t) = script_taunts("diplomacy4206.cmd") else {
+        eprintln!("skipping: no install (RON_INSTALL)");
+        return;
+    };
+    pin_eq!(
+        t,
+        vec![TakeTaunt {
+            frame: 906,
+            sender: 0,
+            request: 1
+        }],
+        "the script's taunts"
+    );
+}
+
+/// **The taunt's answer, ours against the record** (item 4159, step
+/// VII-b2): run1575 walked with the window's diplomacy off its record and
+/// the script's chat minted as its `Chat` command. The French drain the
+/// request on 966, sixty frames after its receipt, and give a third of
+/// their food: on block 967 the human's `tribute_stamp[1]` and the French
+/// `gift_stamp[0]` read 966, the French `last_taunt[0]` 1 and
+/// `taunt_frame[0]` 966, and the commit's `agendas` bit is the human's
+/// `agendas[1]` 4. Pinned: the record's movers of the four, and no parting
+/// of them over the whole walk, nor of `agendas` and the food buckets
+/// through [`RUN1575_HELD`].
+#[test]
+fn run1575_s_taunt_is_answered_as_the_original_s() {
+    let _pins = Pins::hold();
+    let (Some(diplomacy), Some(taunts)) = (
+        take_diplomacy(RUN1575.0),
+        script_taunts("diplomacy4206.cmd"),
+    ) else {
+        eprintln!(
+            "skipping: no {} or install (RON_GAMELOG_DIR, RON_INSTALL)",
+            RUN1575.0
+        );
+        return;
+    };
+    let Some(w) = walk_sea_style_zero(
+        RUN1575,
+        coverage_script("diplomacy4206.cmd"),
+        &[],
+        &diplomacy,
+        &taunts,
+    ) else {
+        return;
+    };
+    let movers: Vec<String> = w
+        .movers
+        .iter()
+        .filter(|(_, _, k, _, _)| taunt_row(k))
+        .map(|(n, who, k, b, a)| format!("{n} {who} {k} {b}->{a}"))
+        .collect();
+    pin_eq!(
+        movers,
+        vec![
+            "967 0 tribute_stamp[1] 0->966".to_string(),
+            "967 1 gift_stamp[0] 0->966".to_string(),
+            "967 1 last_taunt[0] 0->1".to_string(),
+            "967 1 taunt_frame[0] 0->966".to_string(),
+        ],
+        "the record's taunt movers"
+    );
+    let parted: Vec<String> = w
+        .leader_parted
+        .iter()
+        .filter(|(n, _, k, _, _)| taunt_row(k) || (gift_row(k) && *n <= RUN1575_HELD))
+        .map(|(n, who, k, t, m)| format!("{n} {who} {k}: theirs {t} ours {m}"))
+        .collect();
+    for p in &parted {
+        eprintln!("  parted {p}");
+    }
+    pin_eq!(
+        parted,
+        Vec::<String>::new(),
+        "the taunt's leaves, agendas and food, ours against the record"
+    );
+}
+
+/// **The comparison can part** (item 4159, step VII-b2): the same walk with
+/// the chat left unminted holds every taunt leaf at its reset value, and
+/// each of the four parts on block 967 with the commit's `agendas` bit and
+/// the gift's food — the stub's partings, first per row.
+#[test]
+fn run1575_s_taunt_parts_without_its_chat() {
+    let _pins = Pins::hold();
+    let Some(diplomacy) = take_diplomacy(RUN1575.0) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", RUN1575.0);
+        return;
+    };
+    let Some(w) = walk_sea_style_zero(
+        RUN1575,
+        coverage_script("diplomacy4206.cmd"),
+        &[],
+        &diplomacy,
+        &[],
+    ) else {
+        return;
+    };
+    let mut firsts: Vec<String> = Vec::new();
+    let mut seen = std::collections::BTreeSet::new();
+    for (n, who, k, t, m) in &w.leader_parted {
+        if (taunt_row(k) || gift_row(k)) && seen.insert((*who, k.clone())) {
+            firsts.push(format!("{n} {who} {k}: theirs {t} ours {m}"));
+        }
+    }
+    pin_eq!(
+        firsts,
+        vec![
+            "967 0 agendas[1]: theirs 4 ours 0".to_string(),
+            "967 0 bucket[0:food]: theirs 121994 ours 120085".to_string(),
+            "967 0 tribute_stamp[1]: theirs 966 ours 0".to_string(),
+            "967 1 bucket[0:food]: theirs 6580 ours 9870".to_string(),
+            "967 1 gift_stamp[0]: theirs 966 ours 0".to_string(),
+            "967 1 last_taunt[0]: theirs 1 ours 0".to_string(),
+            "967 1 taunt_frame[0]: theirs 966 ours 0".to_string(),
+        ],
+        "the stub's first partings"
     );
 }

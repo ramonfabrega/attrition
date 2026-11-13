@@ -3260,7 +3260,7 @@ impl MarchView for MarchSim<'_> {
         true
     }
     fn tribute(&mut self) -> bool {
-        false
+        self.sim.is_tribute_period(self.who, self.tw())
     }
     fn find_target(&mut self) -> bool {
         self.sim.find_target(self.who, self.slot);

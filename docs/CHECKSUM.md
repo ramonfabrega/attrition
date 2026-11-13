@@ -1827,13 +1827,14 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     `territory.players[w].strength`, 0 and 0 on both sides (`docs/LEADERS.md`
     §5.2), `give_att_disabled` (~~`Leader::plan_strategy`~~ the scenario
     triggers, `docs/LEADERS.md` §5.2).
-  - the diplomacy actions (~~15~~ 12): ~~`dow`, `blacken`, `broke_alliance`,~~
-    carried by item 4159's VII-b1 (`sim::leaders::declare`); `made_peace`, `tributes`, `tribute_sent`, `tribute_received`,
-    `tribute_stamp`, `gift_stamp`, `hire_stamp`, `hire_who`, `good_deeds`,
+  - the diplomacy actions (~~15~~ ~~12~~ 10): ~~`dow`, `blacken`, `broke_alliance`,~~
+    carried by item 4159's VII-b1; `made_peace`, `tributes`, `tribute_sent`, `tribute_received`,
+    ~~`tribute_stamp`, `gift_stamp`,~~ carried by VII-b2; `hire_stamp`, `hire_who`, `good_deeds`,
     `last_spoke`, `counteroffer`, `tribute_demanded`: the `action_*` family,
     `consider_tribute` and `Leader::diplomacy`'s arms the crate stops at a
     SEAM.
-  - the taunts (6): `receive_taunt`, `process_taunt`, `end_process`.
+  - the taunts (~~6~~ 4): `receive_taunt`, `process_taunt`, `end_process`;
+    two carried by VII-b2, the ring held off the line until VII-c.
   - the end of a game (6): `victory_type`, `defeat_type`, ~~`defeat_stamp`,
     `defeated_by`~~ (`Leader::victory`, `defeat`, `defeat_by`),
     ~~`wonderwin_stamp` (`Leader::process`), `wonderwin_timer`

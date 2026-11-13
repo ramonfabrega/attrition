@@ -669,16 +669,31 @@ impl Sim {
             leaves,
         });
         for d in 0..8 {
-            let _ = d;
+            // The deal records (`crate::leaders::tribute`, item 4159's step
+            // VII-b2); a slot outside the table reads `Diplomacy::clear_all`'s
+            // image, `Leader::init`'s: `treaty` −1, every other word 0 (§20).
+            let dip = self
+                .leaders
+                .tribute
+                .get(w)
+                .map(|t| t.dip[d])
+                .unwrap_or_default();
+            let wide = |a: &[i32]| a.iter().map(|&x| i64::from(x)).collect::<Vec<_>>();
             out.push(LeaderRange {
                 record,
                 field: "dip",
-                // `Diplomacy::clear_all`'s image, `Leader::init`'s: `treaty`
-                // −1, every other word 0 (§20).
                 leaves: DIPLOMACY_FIELDS
                     .iter()
                     .map(|&(n, c)| {
-                        Leaf::new(n, 4, c, Some(vec![if n == "treaty" { -1 } else { 0 }]))
+                        let v = match n {
+                            "agree" => vec![i64::from(dip.agree)],
+                            "any_offer" => vec![i64::from(dip.any_offer)],
+                            "treaty" => vec![i64::from(dip.treaty)],
+                            "offers" => wide(&dip.offers),
+                            "dows" => wide(&dip.dows),
+                            _ => wide(&dip.attacks),
+                        };
+                        Leaf::new(n, 4, c, Some(v))
                     })
                     .collect(),
             });
@@ -1421,6 +1436,19 @@ impl Sim {
             // computes, and agreeing there.
             _ if crate::leaders::declare::DECLARE_LEAVES.contains(&name) => {
                 self.leader_declare_leaf(who, name)
+            }
+            // Item 4159, step VII-b2 (`crate::leaders::tribute`,
+            // `crate::leaders::taunt`, `docs/LEADERS.md` §8, §9): the
+            // taunt's answer. `tribute_stamp`, `gift_stamp`, `last_taunt`
+            // and `taunt_frame` move on run1575's block 967, computed by our
+            // walk and agreeing there. The ring and the two totals are held
+            // and stay off the line: their only witness, run1575's packet
+            // at 1090, follows the staged accept of 1027 (step VII-c).
+            _ if crate::leaders::tribute::TRIBUTE_LEAVES.contains(&name) => {
+                self.leader_tribute_leaf(who, name)
+            }
+            _ if crate::leaders::taunt::TAUNT_LEAVES.contains(&name) => {
+                self.leader_taunt_leaf(who, name)
             }
             _ if STEP_VI_OFF_THE_LINE.contains(&name) => None,
             _ if crate::leaders::score::SCORE_LEAVES.contains(&name) => {

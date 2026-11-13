@@ -1959,6 +1959,26 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// Declares computed by `Sim::action_declare` off the command
 /// (`diff::diplomacy_take::run1575_s_declarations_are_ours`); and run1078's
 /// 912, `dow[1]` 0 → 1. The long range stays out on the other 44.
+///
+/// Item 4159's step VII-b2: 44 → 40 names, the taunt's answer's four
+/// printed leaves (`sim::leaders::tribute`, `sim::leaders::taunt`,
+/// `docs/LEADERS.md` §8, §9), each 0 = 0 on frame 91, both leaders.
+/// Released by entry 131 §1 (entry 132 §1) on run1575, whose taunt our walk
+/// computes from the script's chat (`diff::diplomacy_take::script_taunts`),
+/// and whose block 967 no staged decision precedes: `tribute_stamp`,
+/// `gift_stamp`, `last_taunt` and `taunt_frame` move on the record there
+/// (the human's `tribute_stamp[1]` 0 → 966, the French `gift_stamp[0]` 0 →
+/// 966, `last_taunt[0]` 0 → 1, `taunt_frame[0]` 0 → 966), ours equal on
+/// each (`diff::diplomacy_take::run1575_s_taunt_is_answered_as_the_original_s`).
+/// `incoming`, `incoming_taunt`, `incoming_taunt_frame`, `tribute_sent` and
+/// `tribute_received` stay (the driver's ruling): printed nowhere, their one
+/// witness is run1575's packet at 1090, which follows the staged accept of
+/// 1027, and entry 132 §1 releases a leaf only on a block no staged
+/// decision precedes. That nothing writes them after 966 is our staged
+/// walk's; whether the computed accept leaves them alone is VII-c's to
+/// show. Held, and agreeing there (`packets::run1575_take_packet`), they
+/// leave when VII-c retires the staging. The long range stays out on the
+/// other 40.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
@@ -1973,7 +1993,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("damage_fifteen_seconds (unheld)", 2),
     ("deaths_current_frame (unheld)", 2),
     ("deaths_fifteen_seconds (unheld)", 2),
-    ("gift_stamp (unheld)", 2),
     ("good_deeds (unheld)", 2),
     ("hire_stamp (unheld)", 2),
     ("hire_who (unheld)", 2),
@@ -1986,7 +2005,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("kills_current_frame (unheld)", 2),
     ("kills_fifteen_seconds (unheld)", 2),
     ("last_spoke (unheld)", 2),
-    ("last_taunt (unheld)", 2),
     ("made_peace (unheld)", 2),
     ("pop_issues (unheld)", 2),
     ("raid_stamp (unheld)", 2),
@@ -1996,11 +2014,9 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("score_pop (unheld)", 2),
     ("score_units (unheld)", 2),
     ("score_units_2 (unheld)", 2),
-    ("taunt_frame (unheld)", 2),
     ("tribute_demanded (unheld)", 2),
     ("tribute_received (unheld)", 2),
     ("tribute_sent (unheld)", 2),
-    ("tribute_stamp (unheld)", 2),
     ("tributes (unheld)", 2),
     ("units_killed (unheld)", 2),
     ("units_lost (unheld)", 2),
@@ -2094,6 +2110,13 @@ const LEADERS_BENT: &[&str] = &[
     "blacken",
     "dow",
     "broke_alliance",
+    // Item 4159's step VII-b2: the taunt's answer's four printed leaves
+    // (`sim::leaders::tribute`, `sim::leaders::taunt`), each agreeing on
+    // run 1562's frame 91.
+    "tribute_stamp",
+    "gift_stamp",
+    "last_taunt",
+    "taunt_frame",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its
