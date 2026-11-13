@@ -446,3 +446,240 @@ fn the_panel_closes_with_a_count_of_the_rest() {
     p.text(0, 0, &site.text(), SCALE, overlay::INK);
     assert!(!p.pos.is_empty());
 }
+
+/// The Great Lakes captures of the harness lobby's game that print the
+/// level-9 `LEADERDATA` record (`rondata::diff::leader`'s merchant files,
+/// stood up from the same run53 start): frames 6950 to 11471.
+const BAR_DUMPS: [&str; 9] = [
+    "gamelog-run84-greatlakes-makelist.txt",
+    "gamelog-run91-greatlakes-wordledger.txt",
+    "gamelog-run107-greatlakes-wordledger2.txt",
+    "gamelog-run115-greatlakes-firstcontact.txt",
+    "gamelog-run19-window-8174-8192.txt",
+    "gamelog-run111-greatlakes-makeword.txt",
+    "gamelog-run100-greatlakes-valuewindow2.txt",
+    "gamelog-run117-greatlakes-makeword2.txt",
+    "gamelog-run123-greatlakes-marketword.txt",
+];
+
+/// The bar's slots: the human's and the computer's.
+const BAR_SLOTS: [u8; 2] = [0, 1];
+
+/// The record's side of the bar, in the bar's order: per good its
+/// `bucket`, its `income` as the original's bar writes it
+/// (`(income + 8) / 16`) and whether `over_cap` is set (1 or 0), then
+/// `control`, `pop_cap` and `ages_get() + 1`;
+/// and its `tribe`. `None` for a block that does not carry them all.
+fn record_bar(l: &rondata::gamelog::Block<'_>) -> Option<(Vec<i64>, usize)> {
+    let all = |k: &str| -> Option<Vec<i64>> {
+        let v: Vec<i64> = l
+            .all(k)
+            .iter()
+            .map(|x| x.trim().parse().ok())
+            .collect::<Option<_>>()?;
+        Some(v)
+    };
+    let (bucket, income, over) = (all("bucket")?, all("income")?, all("over_cap")?);
+    if bucket.len() < 6 || income.len() < 6 || over.len() < 6 {
+        return None;
+    }
+    let mut v = Vec::new();
+    for g in 0..6 {
+        v.push(bucket[g]);
+        v.push((income[g] + 8) / 16);
+        v.push(i64::from(over[g] != 0));
+    }
+    v.push(l.int("control")?);
+    v.push(l.int("pop_cap")?);
+    v.push(all("ages_get()")?.first()? + 1);
+    Some((v, usize::try_from(l.int("tribe")?).ok()?))
+}
+
+/// The bar's printed text read back: its numbers in order (each good's
+/// stockpile, its rate and 1 where `CAP` follows, 0 where not; the
+/// population and its cap; the age) and the
+/// nation's name. The frame is the clock's and is not returned.
+fn printed_bar(text: &str) -> (Vec<i64>, String) {
+    let t: Vec<&str> = text.split_whitespace().collect();
+    let mut v = Vec::new();
+    let mut nation = String::new();
+    let mut i = 0;
+    while i < t.len() {
+        let w = t[i];
+        if GOODS.contains(&w) {
+            v.push(t[i + 1].parse().unwrap());
+            v.push(t[i + 2].parse().unwrap());
+            let capped = t.get(i + 3) == Some(&"CAP");
+            v.push(i64::from(capped));
+            i += 3 + usize::from(capped);
+        } else if w == "POP" {
+            let (a, b) = t[i + 1].split_once('/').unwrap();
+            v.extend([a.parse::<i64>().unwrap(), b.parse().unwrap()]);
+            i += 2;
+        } else if w == "AGE" {
+            v.push(t[i + 1].parse().unwrap());
+            i += 2;
+        } else if w == "NATION" {
+            let end = t.iter().position(|x| *x == "FRAME").unwrap();
+            nation = t[i + 1..end].join(" ");
+            i = end;
+        } else {
+            i += 1;
+        }
+    }
+    (v, nation)
+}
+
+/// **`Hud: the bar's values`** (`docs/HUD.md` §5): on every frame the
+/// Great Lakes leader captures print the level-9 `LEADERDATA` record, each
+/// value the bar prints for slots 0 and 1 is the record's —
+/// `(equal, compared)`, [`script::HUD_BAR`]. Each number is parsed back
+/// out of the printed text, so the text is what is checked; the nation is
+/// compared by name, the record's `tribe` joined through the tech tree.
+/// Made to fail: each good read from its neighbour's stockpile; the
+/// record read one frame late.
+#[test]
+fn the_bar_s_values_are_the_leader_record_s() {
+    let dir = crate::world::gamelog_dir();
+    let present: Vec<_> = BAR_DUMPS
+        .iter()
+        .map(|f| dir.join(f))
+        .filter(|p| p.is_file())
+        .collect();
+    let Ok(mut r) = lobby() else {
+        println!("skipping: no install or no lobby");
+        return;
+    };
+    if present.is_empty() {
+        println!(
+            "skipping: no Great Lakes leader capture under {}",
+            dir.display()
+        );
+        return;
+    }
+    assert_eq!(present.len(), BAR_DUMPS.len(), "all nine captures present");
+    // The record's side: (frame, slot) -> the bar's values and the tribe.
+    type Want = std::collections::BTreeMap<(i64, u8), (Vec<i64>, usize)>;
+    let mut want: Want = Default::default();
+    let mut thin = 0usize;
+    for path in &present {
+        let mut source = rondata::capture::indexed::IndexedCapture::open(path).unwrap();
+        for i in 0..source.frames().len() {
+            let text = source.read_frame_and_siblings(i).unwrap();
+            let log = rondata::gamelog::Log::parse(&text);
+            for (n, b) in log.frames() {
+                let b = b.kid("FULL DUMP").unwrap_or(b);
+                for l in b.kids("LEADERDATA") {
+                    let Some(who) = l.int("who").and_then(|w| u8::try_from(w).ok()) else {
+                        continue;
+                    };
+                    if !BAR_SLOTS.contains(&who) {
+                        continue;
+                    }
+                    match record_bar(&l) {
+                        Some(v) => {
+                            want.entry((n, who)).or_insert(v);
+                        }
+                        None => thin += 1,
+                    }
+                }
+            }
+        }
+    }
+    let nations = r.nations();
+    let last = want.keys().map(|k| k.0).max().unwrap();
+    // Ours: the bar for each slot on every frame the record prints, and
+    // on the frame after (for the late reading).
+    let mut ours: std::collections::BTreeMap<(i64, u8), (String, String)> = Default::default();
+    while r.frame() < last + 1 {
+        r.step();
+        let n = r.frame();
+        if !want.keys().any(|k| k.0 == n || k.0 + 1 == n) {
+            continue;
+        }
+        let scene = r.scene(None);
+        for who in BAR_SLOTS {
+            let bar = Bar::of(&scene, who).expect("the slot's leader");
+            let text = bar.text();
+            for c in text.chars() {
+                assert!(crate::overlay::has_glyph(c), "{c:?} in {text:?}");
+            }
+            // Made to fail: each good shows its neighbour's stockpile.
+            let mut shifted = scene.clone();
+            for l in &mut shifted.leaders {
+                l.bucket.rotate_left(1);
+            }
+            let bad = Bar::of(&shifted, who).unwrap().text();
+            ours.insert((n, who), (text, bad));
+        }
+    }
+    let score = |late: i64, shifted: bool| {
+        let (mut equal, mut compared) = (0usize, 0usize);
+        let mut first_part: Option<String> = None;
+        for (&(n, who), (w, tribe)) in &want {
+            let Some((text, bad)) = ours.get(&(n + late, who)) else {
+                continue;
+            };
+            let (got, nation) = printed_bar(if shifted { bad } else { text });
+            assert_eq!(got.len(), w.len(), "frame {n} slot {who}: {text:?}");
+            for (k, (g, x)) in got.iter().zip(w).enumerate() {
+                compared += 1;
+                if g == x {
+                    equal += 1;
+                } else if first_part.is_none() {
+                    first_part = Some(format!(
+                        "frame {n} slot {who} value {k}: ours {g} theirs {x}"
+                    ));
+                }
+            }
+            compared += 1;
+            if nations.get(*tribe) == Some(&nation) {
+                equal += 1;
+            } else if first_part.is_none() {
+                first_part = Some(format!(
+                    "frame {n} slot {who} nation: ours {nation} theirs {tribe}"
+                ));
+            }
+        }
+        (equal, compared, first_part)
+    };
+    let (equal, compared, part) = score(0, false);
+    eprintln!(
+        "BAR {equal} of {compared} on {} records ({thin} thin blocks); first part {part:?}",
+        want.len()
+    );
+    for who in BAR_SLOTS {
+        for n in [6950, 9375, 11471] {
+            if let Some((t, _)) = ours.get(&(n, who)) {
+                eprintln!("BAR frame {n} slot {who}: {t}");
+            }
+        }
+    }
+    // The fields move: a quiet field cannot part.
+    let rates: std::collections::BTreeSet<i64> = want
+        .values()
+        .flat_map(|(v, _)| (0..6).map(move |g| v[3 * g + 1]))
+        .collect();
+    let capped = want
+        .values()
+        .filter(|(v, _)| (0..6).any(|g| v[3 * g + 2] == 1))
+        .count();
+    let ages: std::collections::BTreeSet<i64> = want.values().map(|(v, _)| v[20]).collect();
+    let stocks: std::collections::BTreeSet<i64> = want.values().map(|(v, _)| v[0]).collect();
+    eprintln!("BAR records with a good at its cap: {capped}");
+    assert!(
+        rates.len() > 1 && ages.len() > 1 && stocks.len() > 1 && capped > 0,
+        "{rates:?} {ages:?}"
+    );
+    assert_eq!((equal, compared), script::HUD_BAR, "HUD_BAR");
+    let (shifted, shifted_of, _) = score(0, true);
+    assert!(
+        shifted < shifted_of,
+        "the neighbour's stockpile parts: {shifted} of {shifted_of}"
+    );
+    let (late, late_of, _) = score(1, false);
+    assert!(late < late_of, "one frame late parts: {late} of {late_of}");
+    eprintln!(
+        "BAR made to fail: neighbour {shifted} of {shifted_of}, one frame late {late} of {late_of}"
+    );
+}

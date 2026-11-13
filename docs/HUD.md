@@ -2,7 +2,8 @@
 
 Items 4197 and 4198 (DECISIONS 129 §7), designed by the pass of 2026-11-12
 before either was cut. **The menu and the panel are built** (item 4197,
-`client::hud`); **the bar is not** (4198). This is the document the lanes
+`client::hud`); **the bar is built** (item 4198, `client::hud::Bar` over
+`sim::observe::LeaderScene`). This is the document the lanes
 implement and amend; a claim below is a rule to hold the build to unless
 it says what backs it.
 
@@ -24,7 +25,7 @@ Farm, `c` trains the Citizen; `docs/CLIENT_INPUT.md` §1).
 |---|---|---|---|
 | the menu | one button for each thing the selection can order from the keyboard | `client::input`'s `BUILD_KEYS` and `TRAIN_KEYS` | 4197 |
 | the panel | the selection: each object's type name, its health over its full health; a building's construction | `sim::observe`'s `UnitScene` and `BuildingScene`, which carry them today | 4197 |
-| the bar | the six resources, population over its cap, the age, the nation, the game's clock | **nothing the door carries**: `Scene` holds no leader state | 4198 |
+| the bar | the six resources, population over its cap, the age, the nation, the game's clock | `sim::observe`'s `LeaderScene` (item 4198; before it, nothing the door carried) | 4198 |
 
 That split is the gate's. The menu and the panel read what the scene
 already holds, so 4197 touches `crates/client` alone and gates scoped. The
@@ -104,6 +105,24 @@ scale each is stored, is settled against the dump's `LEADERDATA` record
 before the first count, the consumer read before the digits are believed
 (`CLAUDE.md`, "Tooling").
 
+**Settled (4198), by the consumers.** `IFaceResources::draw_resource@00818840`
+reads, for good `g`, the leader's encrypted block (`LeaderData +0x6eb8`,
+`LeaderDataEncrypt` by its type record): the number at `+0x0 + 4g`, which is
+`bucket`, the stockpile in whole units; the flash at `+0x4c + 4g`, `over_cap`;
+and the rate at `+0x94 + 4g`, `income` in sixteenths, written behind a `+` as
+`(income + 8) / 16`. `IFaceMainBase::draw_pop_cap@0080ff90` writes
+`LeaderData +0x940` over `+0x7e4`: `control` over `pop_cap`, not the census's
+`pop`. The goods are in the record's order: food, timber, wealth, knowledge,
+metal, oil.
+
+**Built (4198).** `sim::observe::LeaderScene`, one per player slot in
+`Scene::leaders`: `who`, `tribe` and its `nation` name (the tech tree's
+`<TRIBE name>`, copied), `ages`, `bucket`, `income`, `over_cap`, `control`,
+`pop_cap`. `client::hud::Bar` prints the issuing slot's along the window's
+top edge, at the right, as `FOOD 1032 +40 … POP 6/25 AGE 1 NATION <name> FRAME n`: each
+stockpile and its shown rate, `CAP` after a good at its cap, the population,
+the age counted from 1 (`ages + 1`), the nation, and the frame for the clock.
+
 ## 5. The scores, each with how it fails
 
 **Item 4197.**
@@ -150,9 +169,28 @@ before the first count, the consumer read before the digits are believed
   the bar's numbers is the record's, for both the human's slot and one
   computer's. Pinned first with no bar, 0 of k. Made to fail: one resource
   read from the neighbouring field.
+  **Built (4198): 57,420 of 57,420** (`script::HUD_BAR`;
+  `client::hud::tests::the_bar_s_values_are_the_leader_record_s`). Our
+  side is the bar's printed text, parsed back, for `Bar::of` on the
+  scene `sim::observe` gives of the harness lobby's walk
+  (`FreeRunner::from_lobby` on run53's `GAMEINFO`, stepped to frame
+  11,472). Their side is the record, read through `rondata::gamelog`
+  alone: the nine Great Lakes leader captures of that game
+  (`diff::leader`'s merchant files, frames 6950 to 11471), 1,305 frames
+  carrying the level-9 block, slots 0 and 1, 2,610 records. 22 values a
+  record: per good `bucket`, `(income + 8) / 16` and whether `over_cap`
+  is set; `control`, `pop_cap`, `ages_get() + 1`; and the nation, the
+  record's `tribe` joined through the tech tree's names. 3,138 thinner
+  blocks of those slots carry no goods and are not compared. Made to fail:
+  each good showing its neighbour's stockpile, 44,389 of 57,420; the
+  record read one frame late, 56,326 of 57,420. Slots 8 and 9 (printed,
+  no player) are not compared.
 - **The clock's line** is pinned only once its rule is read (§6); until
   then the bar prints the frame and the photograph's two readings stand
-  as the first check a rule must pass.
+  as the first check a rule must pass. The record prints no clock, and
+  the printed frame is the walk's own step count, aligned to the dump's
+  `FRAME` header by construction, so it is not counted: a comparison
+  that cannot fail.
 
 The queue's `Hud:` line is the driver's to write once the first count
 exists; its parser goes beside `lobby_line` in `rondata::diff::floors`.
@@ -165,7 +203,13 @@ orders, by the clicked file's bytes, which the original played in
 lockstep (run1563). **On a reading alone**: §3's hits-left rule for a
 building (three functions, one reader; the 628 agree under it and 44 part
 without it, so the diff stands behind it for a site with no damage and
-no queue). What the bar rests on:
+no queue). **Diff-backed (4198)**: the bar's six stockpiles, six shown
+rates, six cap marks, population, cap, age and nation, against the level-9
+`LEADERDATA` record on every frame the nine Great Lakes leader captures
+print it (§5). **On a reading alone**: which fields the original's bar
+shows (§4, two consumers, one reader); the diff cannot say the original
+draws `bucket` rather than another field, only that ours prints the
+record's `bucket`. What the bar rested on before it was built:
 
 - **Read from the tree by the pass**: the scene's fields (§1, §3), the two
   key tables, the absence of any leader state behind the door.
@@ -180,9 +224,24 @@ Not established:
   panel. The simulation refuses an order it cannot take; the menu here
   does not ask it. A later item makes the menu the legal list and scores
   it by the orders the simulation accepts.
-- **The resources' rates** (the `+10`, `+70` beside each on the
-  photographs) and where the original keeps them.
+- ~~**The resources' rates** (the `+10`, `+70` beside each on the
+  photographs) and where the original keeps them.~~ Read (4198, §4):
+  `income` in sixteenths, shown as `(income + 8) / 16` by
+  `IFaceResources::draw_resource@00818840`; the bar's 15,660 rate values
+  agree with the record's `income` under that rule (§5). Not read: what
+  the original writes for a zero rate (a string from its text table) and
+  for a negative one (a `+` then the number); the bar prints `+0` and
+  `-n`.
 - **The clock's rule**: frames to the time shown, at each game speed.
+  Not `IFaceMainBase::draw_game_timer@0080a3c0`'s: that writes the
+  victory countdowns `IFaceMainBase::draw_timers@0080b060` passes it, at
+  `(frames + 14) / 15` seconds, which reads 3:39 on frame 3279 and 3:43 on
+  3331 where the photographs show 3:38 and 3:41. The game clock's reader
+  is not found.
+- **Slots 8 and 9.** The record prints two more leaders (no tribe, no
+  goods); the bar shows the issuing slot only and they are not compared.
+- **A narrow window.** The bar is one line, about 1,430 pixels at the
+  font's scale; a window narrower than that clips it at the left.
 - **The messages, the minimap, the commerce caps and the alerts** on the
   photographs. None is in these two items.
 - **Whether a HUD drawn into the frame moves a still's row.** The stills'
