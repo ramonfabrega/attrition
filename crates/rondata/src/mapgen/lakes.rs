@@ -81,6 +81,10 @@ pub struct LakesMap {
     /// `weatherbase` and the `is_combo_acceptable` numbers the half-land
     /// pass ran on (`Terrain::object_placed`, item 4136).
     pub land: sim::world::terrain::TileSetLand,
+    /// What `Cliffs::init` did, on a style that runs it (Southwest Mesa,
+    /// item 4196): its `mining` lists are what a game lays by queue index
+    /// (`Sim::place_cliffs`). `None` on the styles that place no cliff.
+    pub cliffs: Option<sim::mapgen::cliffs::CliffsInit>,
 }
 
 /// Why the chain stopped short.
@@ -134,6 +138,12 @@ pub enum Style {
     /// (`sim::mapgen::map_heights::heights`), as `mapgen`'s Great Sahara
     /// tests walk them from 7805.
     GreatSahara,
+    /// `MAP_STYLE` 10, `MapSouthwestMesa::make_continents` (item 4196):
+    /// Great Sahara's whole-land mask at another address, its height-free
+    /// `Terrain::init` and rivers, then the heights in `Terrain::init`'s
+    /// own order and `Cliffs::init` — the chain items 3869–3890 checked
+    /// phase by phase on run1493 (`crate::mapgen::mesa`).
+    SouthwestMesa,
 }
 
 impl Style {
@@ -141,6 +151,7 @@ impl Style {
     pub fn of(map_style: i64) -> Option<Style> {
         match map_style {
             7 => Some(Style::GreatSahara),
+            10 => Some(Style::SouthwestMesa),
             14 => Some(Style::GreatLakes),
             18 => Some(Style::EastIndies),
             _ => None,
@@ -153,6 +164,7 @@ impl Style {
             Style::GreatLakes => "GREATLAKES.xml",
             Style::EastIndies => "EASTINDIES.xml",
             Style::GreatSahara => "SAHARA.xml",
+            Style::SouthwestMesa => "SOUTHWESTMESA.xml",
         }
     }
 
@@ -162,6 +174,7 @@ impl Style {
             Style::GreatLakes => 14,
             Style::EastIndies => 18,
             Style::GreatSahara => 7,
+            Style::SouthwestMesa => 10,
         }
     }
 }
@@ -251,6 +264,10 @@ pub fn composed_map(
             sim::mapgen::great_sahara_make_continents(&mut grid, lobby.nations, &mut d.rng);
             Some(())
         }
+        Style::SouthwestMesa => {
+            sim::mapgen::southwest_mesa_make_continents(&mut grid, lobby.nations, &mut d.rng);
+            Some(())
+        }
     };
     made.ok_or(Refusal::Continents)?;
     say("map.cpp", 7807, &grid, &d.rng, empty);
@@ -312,7 +329,7 @@ pub fn composed_map(
     };
     let install = crate::Install::new(root);
     let meshes = crate::mountains::meshes(&install);
-    if which == Style::GreatSahara {
+    if matches!(which, Style::GreatSahara | Style::SouthwestMesa) {
         // §10, §15 steps 6 to 8 on an all-land mask, in the order
         // `mapgen`'s Great Sahara tests walk them (items 3809, 3811,
         // 3812): `Terrain::init` without heights (734 → 5012, no cell
@@ -332,9 +349,57 @@ pub fn composed_map(
         make_rivers(&mut grid, &mut regions, &phase, &mut d, |line, g, d| {
             say("map.cpp", line, g, &d.rng, lists)
         });
-        let z =
-            sim::mapgen::map_heights::heights(&grid, &mut coord, seed, &groups.templates, &meshes)
-                .map_err(|e| Refusal::Unported(format!("the heights: {e:?}")))?;
+        let (z, cliffs) = if which == Style::SouthwestMesa {
+            // Southwest Mesa's heights in `Terrain::init`'s order
+            // (`crate::mapgen::mesa::southwest_mesa_at_894`, item 3890):
+            // the land and the coast, the doobers, the troughs
+            // (`RIVERLIST` empty: none), `adjust_for_mountains`, then
+            // `Cliffs::init` on the cells `place_all`'s cliffs flagged
+            // 0x40, where `heights` refuses the slope arm.
+            let f = sim::mapgen::map_heights::fractals(xs, ys, seed);
+            let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+            sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, seed);
+            sim::mapgen::map_heights::create_doobers(&grid, &mut z);
+            let troughs = sim::mapgen::map_troughs::calculate_all(
+                &mut grid,
+                &mut coord,
+                &mut z,
+                ts.riverbase,
+                combo,
+                0,
+                None,
+            )
+            .map_err(|e| Refusal::Unported(format!("the troughs: {e:?}")))?;
+            if !troughs.sections.is_empty() {
+                return Err(Refusal::Unported("a trough on Southwest Mesa".into()));
+            }
+            sim::mapgen::map_heights::adjust_for_mountains(
+                &grid,
+                &mut z,
+                &groups.templates,
+                &meshes,
+            );
+            let cliffs = sim::mapgen::cliffs::init(
+                &mut grid,
+                &mut coord,
+                &mut z,
+                &groups.cliffs,
+                &rows.goods,
+                combo,
+            )
+            .map_err(|e| Refusal::Unported(format!("Cliffs::init: {e:?}")))?;
+            (z, Some(cliffs))
+        } else {
+            let z = sim::mapgen::map_heights::heights(
+                &grid,
+                &mut coord,
+                seed,
+                &groups.templates,
+                &meshes,
+            )
+            .map_err(|e| Refusal::Unported(format!("the heights: {e:?}")))?;
+            (z, None)
+        };
         say("Terrain.cpp", 894, &grid, &d.rng, lists);
         grid.mark_forest();
         say("setup.cpp", 884, &grid, &d.rng, lists);
@@ -350,6 +415,7 @@ pub fn composed_map(
                 weatherbase: ts.weatherbase as u8,
                 combo,
             },
+            cliffs,
         });
     }
     // §10, §16: `Terrain::init` — the heights to 706, the half-land (720),
@@ -414,5 +480,6 @@ pub fn composed_map(
             weatherbase: ts.weatherbase as u8,
             combo,
         },
+        cliffs: None,
     })
 }

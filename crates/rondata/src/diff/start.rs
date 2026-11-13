@@ -27,7 +27,9 @@ use super::*;
 /// same calls Great Lakes' runs ([`crate::mapgen::lakes::composed_map`]);
 /// then 143 (+29): `build_units`' and `small_city_buildings`' nation arms,
 /// a Spanish, Dutch, Korean, Greek or American seat on the three maps.
-pub const START_BUILT: usize = 143;
+/// 146 at item 4196 (+3): Southwest Mesa composed, its three lobbies (15,
+/// 114, 115) whole, `Cliffs::init` and all.
+pub const START_BUILT: usize = 146;
 
 /// **The lobby's word on the built start** (`docs/START.md` §7.4, item
 /// 4057): `(map, word, length)` — the harness lobby's long capture (run53,
@@ -846,8 +848,8 @@ pub fn world_extent(root: &std::path::Path, map_size: i32, map_style: i32) -> Op
 /// 3. `Setup::build_game`'s re-seed from `info.seed` and `world->seed =
 ///    rand % 0xffff + 1`;
 /// 4. **the map** — `Map::make`, `Terrain::init` — composed for Great
-///    Lakes, East Indies and Great Sahara
-///    ([`crate::mapgen::lakes::composed_map`], items 4047, 4186); on any
+///    Lakes, East Indies, Great Sahara and Southwest Mesa
+///    ([`crate::mapgen::lakes::composed_map`], items 4047, 4186, 4196); on any
 ///    other style the walk stops here, and every step after it (the start
 ///    permutation, `Leader::init`'s personality, each `build_empire`,
 ///    `Herd::create_units`, `compute_all_territory`) is listed as not
@@ -905,7 +907,7 @@ pub fn from_lobby(
         let root = loaded.install_root.as_deref()?;
         let Some(which) = int("MAP_STYLE").and_then(crate::mapgen::lakes::Style::of) else {
             notes.push(format!(
-                "the map: style {:?} has no composed chain (Great Lakes, 14, and East Indies, 18, have)",
+                "the map: style {:?} has no composed chain",
                 int("MAP_STYLE")
             ));
             return None;
@@ -936,9 +938,11 @@ pub fn from_lobby(
     let mut goods: Vec<Option<(i32, i32, i32)>> = Vec::new();
     let mut mountains: Vec<(i32, i32, usize)> = Vec::new();
     let mut region_map: Vec<(i64, u16)> = Vec::new();
+    let mut cliff_mining: Option<Vec<Vec<(i32, i32)>>> = None;
     let world = match map {
         Some((m, sea)) => {
             rng = m.draws.rng;
+            cliff_mining = m.cliffs.map(|c| c.mining);
             goods = m.grid.goods.clone();
             // `World.start_x/start_y` (+0x80, +0x9c): the map maker's
             // start cells, which `build_cities` reads by slot.
@@ -985,6 +989,13 @@ pub fn from_lobby(
     install_art(&mut sim, loaded, &mut notes);
     if map_built {
         notes.extend(lay_map_objects(&mut sim, loaded, &goods, &mountains));
+        // A Southwest Mesa map's cliffs (item 4196): `Cliffs::init`'s
+        // mining lists by queue index, as `build_sim` lays them from the
+        // same chain at the setup trace's 7805 seed (item 3943) — here at
+        // the stream the lobby's own `world->seed` draw left.
+        if let Some(mining) = &cliff_mining {
+            sim.setup().place_cliffs(mining);
+        }
         // `Map::make`'s copy of the style's six territory limits into
         // `world+0x38..+0x4c`; `Map::load_map_data` seeds them from the
         // rules' `TERRITORY_LIMIT_BASE/CIVIC/CITY` for both the player and
@@ -1744,10 +1755,11 @@ mod tests {
 
     /// **The census**: every lobby's first parting by record and field,
     /// counted (items 4034, 4186; the value diff per lobby is each item's
-    /// journal's). The map is the 17 lobbies of the fourteen styles with no
+    /// journal's). The map is the 14 lobbies of the thirteen styles with no
     /// composed chain, each at its first cell — the seven `CELL land`, the
-    /// eight `CELL region` and two of the 31 `CELL flags` (item 4186
-    /// composed East Indies and Great Sahara: 60 → 7 and 55 → 8). The
+    /// five `CELL region` and two of the 31 `CELL flags` (item 4186
+    /// composed East Indies and Great Sahara: 60 → 7 and 55 → 8; item 4196
+    /// Southwest Mesa, 8 → 5). The
     /// nation arms (`docs/START.md` §2 step 7, the same item) took the
     /// other 29 `CELL flags` (31 → 2): a Spanish, American, Dutch, Korean
     /// or Greek seat on Great Lakes (8), East Indies (11, one the fuzz
@@ -1759,9 +1771,9 @@ mod tests {
     const START_CENSUS: &[(&str, usize)] = &[
         ("CELL flags", 2),
         ("CELL land", 7),
-        ("CELL region", 8),
+        ("CELL region", 5),
         ("LEADER at_war", 1),
-        ("built", 143),
+        ("built", 146),
     ];
 
     /// A computer leader's `PERSONALITY` block under the start dump's
