@@ -16,6 +16,18 @@ unsafe_code = "forbid"
 [workspace.lints.clippy]
 mod_module_files = "deny"
 
+# The dev profile keeps line tables and nothing else, and the dependencies
+# keep none (item 4216, stage 0). Measured on a clean build of every
+# workspace test target: 3,969,920 KiB and 38.3 s with full debug info,
+# 3,003,948 KiB and 33.2 s with this. A panic's backtrace still names each
+# frame's file and line; a frame's function loses its module path, and a
+# debugger no longer prints a local.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
 [profile.release]
 # Determinism: identical codegen assumptions across builds.
 overflow-checks = true

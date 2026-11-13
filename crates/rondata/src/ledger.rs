@@ -207,6 +207,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "its UNREAD pin names the keys nothing reads",
     ),
     (
+        "diff/corpus_floor.rs",
+        "every scored word walked once in one process by the floor tests' own stand-up and walk (item 4216): it compares no field itself, and its measure is the draw stream's length, third.rs's and second.rs's",
+    ),
+    (
         "diff/coverage_pair.rs",
         "the coverage pair's walks and fixture checks: per-record comparisons live in harness.rs (item 1466)",
     ),

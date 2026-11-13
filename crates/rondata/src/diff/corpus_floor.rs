@@ -1,13 +1,24 @@
-//! **SPIKE, not for landing** (pass 1113b): every scored game stood up and
-//! walked ONCE, in one process, on a pool of std threads, with the same
-//! stand-up and walk the floor tests use (`third::stand_up_from` +
-//! `third::walk_word`, the melees under their staged script, the second
-//! pair through `second::walk_second`). Prints per-word frames and
-//! seconds and the pool's totals. `CORPUS_FLOOR_THREADS` sets N (default
-//! cores - 2); `CORPUS_FLOOR_ONLY=<family,...>` narrows the families;
+//! **The corpus floor's instrument** (item 4216, stage 0; DECISIONS 132
+//! §11): every scored game stood up and walked ONCE, in one process, on a
+//! pool of std threads, with the same stand-up and walk the floor tests use
+//! (`third::stand_up_from` + `third::walk_word`, the melees under their
+//! staged script, the second pair through `second::walk_second`). It
+//! prints per-word frames and seconds and the pool's totals, and it is the
+//! number the suite's form is read against: what the scoreboard's walks
+//! cost when each game is walked once, beside what the tests on those
+//! games cost one process a test. Ignored: it is a measurement, and every
+//! word it walks has its own floor test.
+//!
+//! `CORPUS_FLOOR_THREADS` sets N (default cores - 2);
+//! `CORPUS_FLOOR_ONLY=<family,...>` narrows the families;
 //! `CORPUS_FLOOR_SPLIT=1` additionally times the original's side (trace
 //! parse, dump read+parse) and the install load per word, outside the
 //! measured walk.
+//!
+//! Written as a spike by the second pass of 2026-11-13
+//! (`docs/audit/2026-11-13-fable-pass-supply-2.md`, "One walk a game").
+//! Not walked: the first pair's three 1,850-frame words and the two
+//! 24,000-frame long captures, which are the harness's own replay.
 
 use super::battery::Lobby;
 use super::coverage_pair::Pair;
@@ -57,125 +68,136 @@ struct Done {
     ok: Result<(), String>,
 }
 
+/// A word's constant beside the floor test that walks it, which every
+/// pair and word module names `<module>_first_parting`.
+macro_rules! floor {
+    ($module:ident, $word:ident) => {
+        (
+            &crate::diff::$module::$word,
+            concat!(stringify!($module), "_first_parting"),
+        )
+    };
+}
+
 const PAIRS: &[(&Pair, &str)] = &[
-    (&crate::diff::american_enlightenment_pair::AMERICAN_ENLIGHTENMENT, "american_enlightenment_pair_first_parting"),
-    (&crate::diff::american_industrial_pair::AMERICAN_INDUSTRIAL, "american_industrial_pair_first_parting"),
-    (&crate::diff::american_information_pair::AMERICAN_INFORMATION, "american_information_pair_first_parting"),
-    (&crate::diff::american_modern_pair::AMERICAN_MODERN, "american_modern_pair_first_parting"),
-    (&crate::diff::aztec_alltech_pair::AZTEC_ALLTECH, "aztec_alltech_pair_first_parting"),
-    (&crate::diff::aztec_ancient_pair::AZTEC_ANCIENT, "aztec_ancient_pair_first_parting"),
-    (&crate::diff::aztec_medieval_pair::AZTEC_MEDIEVAL, "aztec_medieval_pair_first_parting"),
-    (&crate::diff::aztec_modern_pair::AZTEC_MODERN, "aztec_modern_pair_first_parting"),
-    (&crate::diff::bantu_ancient_pair::BANTU_ANCIENT, "bantu_ancient_pair_first_parting"),
-    (&crate::diff::bantu_medieval_pair::BANTU_MEDIEVAL, "bantu_medieval_pair_first_parting"),
-    (&crate::diff::bantu_modern_pair::BANTU_MODERN, "bantu_modern_pair_first_parting"),
-    (&crate::diff::british_classical_pair::BRITISH_CLASSICAL, "british_classical_pair_first_parting"),
-    (&crate::diff::british_enlightenment_pair::BRITISH_ENLIGHTENMENT, "british_enlightenment_pair_first_parting"),
-    (&crate::diff::british_industrial_pair::BRITISH_INDUSTRIAL, "british_industrial_pair_first_parting"),
-    (&crate::diff::british_medieval_pair::BRITISH_MEDIEVAL, "british_medieval_pair_first_parting"),
-    (&crate::diff::british_modern_pair::BRITISH_MODERN, "british_modern_pair_first_parting"),
-    (&crate::diff::chinese_enlightenment_pair::CHINESE_ENLIGHTENMENT, "chinese_enlightenment_pair_first_parting"),
-    (&crate::diff::chinese_gunpowder_pair::CHINESE_GUNPOWDER, "chinese_gunpowder_pair_first_parting"),
-    (&crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL, "chinese_industrial_pair_first_parting"),
-    (&crate::diff::chinese_medieval_pair::CHINESE_MEDIEVAL, "chinese_medieval_pair_first_parting"),
-    (&crate::diff::chinese_modern_pair::CHINESE_MODERN, "chinese_modern_pair_first_parting"),
-    (&crate::diff::coverage_pair::COVERAGE, "coverage_pair_first_parting"),
-    (&crate::diff::dutch_medieval_pair::DUTCH_MEDIEVAL, "dutch_medieval_pair_first_parting"),
-    (&crate::diff::egyptian_classical_pair::EGYPTIAN_CLASSICAL, "egyptian_classical_pair_first_parting"),
-    (&crate::diff::egyptian_gunpowder_pair::EGYPTIAN_GUNPOWDER, "egyptian_gunpowder_pair_first_parting"),
-    (&crate::diff::egyptian_industrial_pair::EGYPTIAN_INDUSTRIAL, "egyptian_industrial_pair_first_parting"),
-    (&crate::diff::egyptian_information_pair::EGYPTIAN_INFORMATION, "egyptian_information_pair_first_parting"),
-    (&crate::diff::egyptian_modern_pair::EGYPTIAN_MODERN, "egyptian_modern_pair_first_parting"),
-    (&crate::diff::french_classical_pair::FRENCH_CLASSICAL, "french_classical_pair_first_parting"),
-    (&crate::diff::french_enlightenment_pair::FRENCH_ENLIGHTENMENT, "french_enlightenment_pair_first_parting"),
-    (&crate::diff::french_information_pair::FRENCH_INFORMATION, "french_information_pair_first_parting"),
-    (&crate::diff::french_medieval_pair::FRENCH_MEDIEVAL, "french_medieval_pair_first_parting"),
-    (&crate::diff::german_alltech_pair::GERMAN_ALLTECH, "german_alltech_pair_first_parting"),
-    (&crate::diff::german_ancient_pair::GERMAN_ANCIENT, "german_ancient_pair_first_parting"),
-    (&crate::diff::german_industrial_moderate_pair::GERMAN_INDUSTRIAL_MODERATE, "german_industrial_moderate_pair_first_parting"),
-    (&crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL, "german_industrial_pair_first_parting"),
-    (&crate::diff::german_modern_pair::GERMAN_MODERN, "german_modern_pair_first_parting"),
-    (&crate::diff::greek_classical_pair::GREEK_CLASSICAL, "greek_classical_pair_first_parting"),
-    (&crate::diff::greek_enlightenment_pair::GREEK_ENLIGHTENMENT, "greek_enlightenment_pair_first_parting"),
-    (&crate::diff::greek_gunpowder_pair::GREEK_GUNPOWDER, "greek_gunpowder_pair_first_parting"),
-    (&crate::diff::greek_medieval_pair::GREEK_MEDIEVAL, "greek_medieval_pair_first_parting"),
-    (&crate::diff::inca_classical_pair::INCA_CLASSICAL, "inca_classical_pair_first_parting"),
-    (&crate::diff::inca_enlightenment_pair::INCA_ENLIGHTENMENT, "inca_enlightenment_pair_first_parting"),
-    (&crate::diff::inca_industrial_pair::INCA_INDUSTRIAL, "inca_industrial_pair_first_parting"),
-    (&crate::diff::indian_enlightenment_pair::INDIAN_ENLIGHTENMENT, "indian_enlightenment_pair_first_parting"),
-    (&crate::diff::iroquois_ancient_pair::IROQUOIS_ANCIENT, "iroquois_ancient_pair_first_parting"),
-    (&crate::diff::iroquois_enlightenment_pair::IROQUOIS_ENLIGHTENMENT, "iroquois_enlightenment_pair_first_parting"),
-    (&crate::diff::japanese_ancient_pair::JAPANESE_ANCIENT, "japanese_ancient_pair_first_parting"),
-    (&crate::diff::japanese_enlightenment_pair::JAPANESE_ENLIGHTENMENT, "japanese_enlightenment_pair_first_parting"),
-    (&crate::diff::japanese_gunpowder_pair::JAPANESE_GUNPOWDER, "japanese_gunpowder_pair_first_parting"),
-    (&crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL, "japanese_industrial_pair_first_parting"),
-    (&crate::diff::japanese_medieval_pair::JAPANESE_MEDIEVAL, "japanese_medieval_pair_first_parting"),
-    (&crate::diff::japanese_modern_pair::JAPANESE_MODERN, "japanese_modern_pair_first_parting"),
-    (&crate::diff::korean_ancient_pair::KOREAN_ANCIENT, "korean_ancient_pair_first_parting"),
-    (&crate::diff::korean_classical_pair::KOREAN_CLASSICAL, "korean_classical_pair_first_parting"),
-    (&crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL, "korean_medieval_pair_first_parting"),
-    (&crate::diff::lakota_enlightenment_pair::LAKOTA_ENLIGHTENMENT, "lakota_enlightenment_pair_first_parting"),
-    (&crate::diff::lakota_gunpowder_pair::LAKOTA_GUNPOWDER, "lakota_gunpowder_pair_first_parting"),
-    (&crate::diff::lakota_medieval_pair::LAKOTA_MEDIEVAL, "lakota_medieval_pair_first_parting"),
-    (&crate::diff::lakota_pair::LAKOTA, "lakota_pair_first_parting"),
-    (&crate::diff::maya_ancient_pair::MAYA_ANCIENT, "maya_ancient_pair_first_parting"),
-    (&crate::diff::maya_information_pair::MAYA_INFORMATION, "maya_information_pair_first_parting"),
-    (&crate::diff::mongol_classical_pair::MONGOL_CLASSICAL, "mongol_classical_pair_first_parting"),
-    (&crate::diff::mongol_enlightenment_pair::MONGOL_ENLIGHTENMENT, "mongol_enlightenment_pair_first_parting"),
-    (&crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER, "mongol_gunpowder_pair_first_parting"),
-    (&crate::diff::mongol_medieval_pair::MONGOL_MEDIEVAL, "mongol_medieval_pair_first_parting"),
-    (&crate::diff::mongol_pair::MONGOL, "mongol_pair_first_parting"),
-    (&crate::diff::persian_classical_pair::PERSIAN_CLASSICAL, "persian_classical_pair_first_parting"),
-    (&crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER, "persian_gunpowder_pair_first_parting"),
-    (&crate::diff::persian_medieval_pair::PERSIAN_MEDIEVAL, "persian_medieval_pair_first_parting"),
-    (&crate::diff::roman_classical_pair::ROMAN_CLASSICAL, "roman_classical_pair_first_parting"),
-    (&crate::diff::roman_gunpowder_pair::ROMAN_GUNPOWDER, "roman_gunpowder_pair_first_parting"),
-    (&crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL, "roman_medieval_pair_first_parting"),
-    (&crate::diff::roman_modern_pair::ROMAN_MODERN, "roman_modern_pair_first_parting"),
-    (&crate::diff::russian_gunpowder_pair::RUSSIAN_GUNPOWDER, "russian_gunpowder_pair_first_parting"),
-    (&crate::diff::russian_information_pair::RUSSIAN_INFORMATION, "russian_information_pair_first_parting"),
-    (&crate::diff::russian_medieval_pair::RUSSIAN_MEDIEVAL, "russian_medieval_pair_first_parting"),
-    (&crate::diff::russian_modern_pair::RUSSIAN_MODERN, "russian_modern_pair_first_parting"),
-    (&crate::diff::sahara_coverage::SAHARA_COVERAGE, "sahara_coverage_first_parting"),
-    (&crate::diff::sahara_mongol::SAHARA_MONGOL, "sahara_mongol_first_parting"),
-    (&crate::diff::spanish_classical_pair::SPANISH_CLASSICAL, "spanish_classical_pair_first_parting"),
-    (&crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER, "spanish_gunpowder_pair_first_parting"),
-    (&crate::diff::spanish_industrial_pair::SPANISH_INDUSTRIAL, "spanish_industrial_pair_first_parting"),
-    (&crate::diff::spanish_information_pair::SPANISH_INFORMATION, "spanish_information_pair_first_parting"),
-    (&crate::diff::spanish_modern_pair::SPANISH_MODERN, "spanish_modern_pair_first_parting"),
-    (&crate::diff::turkish_enlightenment_pair::TURKISH_ENLIGHTENMENT, "turkish_enlightenment_pair_first_parting"),
-    (&crate::diff::turkish_information_pair::TURKISH_INFORMATION, "turkish_information_pair_first_parting"),
+    floor!(american_enlightenment_pair, AMERICAN_ENLIGHTENMENT),
+    floor!(american_industrial_pair, AMERICAN_INDUSTRIAL),
+    floor!(american_information_pair, AMERICAN_INFORMATION),
+    floor!(american_modern_pair, AMERICAN_MODERN),
+    floor!(aztec_alltech_pair, AZTEC_ALLTECH),
+    floor!(aztec_ancient_pair, AZTEC_ANCIENT),
+    floor!(aztec_medieval_pair, AZTEC_MEDIEVAL),
+    floor!(aztec_modern_pair, AZTEC_MODERN),
+    floor!(bantu_ancient_pair, BANTU_ANCIENT),
+    floor!(bantu_medieval_pair, BANTU_MEDIEVAL),
+    floor!(bantu_modern_pair, BANTU_MODERN),
+    floor!(british_classical_pair, BRITISH_CLASSICAL),
+    floor!(british_enlightenment_pair, BRITISH_ENLIGHTENMENT),
+    floor!(british_industrial_pair, BRITISH_INDUSTRIAL),
+    floor!(british_medieval_pair, BRITISH_MEDIEVAL),
+    floor!(british_modern_pair, BRITISH_MODERN),
+    floor!(chinese_enlightenment_pair, CHINESE_ENLIGHTENMENT),
+    floor!(chinese_gunpowder_pair, CHINESE_GUNPOWDER),
+    floor!(chinese_industrial_pair, CHINESE_INDUSTRIAL),
+    floor!(chinese_medieval_pair, CHINESE_MEDIEVAL),
+    floor!(chinese_modern_pair, CHINESE_MODERN),
+    floor!(coverage_pair, COVERAGE),
+    floor!(dutch_medieval_pair, DUTCH_MEDIEVAL),
+    floor!(egyptian_classical_pair, EGYPTIAN_CLASSICAL),
+    floor!(egyptian_gunpowder_pair, EGYPTIAN_GUNPOWDER),
+    floor!(egyptian_industrial_pair, EGYPTIAN_INDUSTRIAL),
+    floor!(egyptian_information_pair, EGYPTIAN_INFORMATION),
+    floor!(egyptian_modern_pair, EGYPTIAN_MODERN),
+    floor!(french_classical_pair, FRENCH_CLASSICAL),
+    floor!(french_enlightenment_pair, FRENCH_ENLIGHTENMENT),
+    floor!(french_information_pair, FRENCH_INFORMATION),
+    floor!(french_medieval_pair, FRENCH_MEDIEVAL),
+    floor!(german_alltech_pair, GERMAN_ALLTECH),
+    floor!(german_ancient_pair, GERMAN_ANCIENT),
+    floor!(german_industrial_moderate_pair, GERMAN_INDUSTRIAL_MODERATE),
+    floor!(german_industrial_pair, GERMAN_INDUSTRIAL),
+    floor!(german_modern_pair, GERMAN_MODERN),
+    floor!(greek_classical_pair, GREEK_CLASSICAL),
+    floor!(greek_enlightenment_pair, GREEK_ENLIGHTENMENT),
+    floor!(greek_gunpowder_pair, GREEK_GUNPOWDER),
+    floor!(greek_medieval_pair, GREEK_MEDIEVAL),
+    floor!(inca_classical_pair, INCA_CLASSICAL),
+    floor!(inca_enlightenment_pair, INCA_ENLIGHTENMENT),
+    floor!(inca_industrial_pair, INCA_INDUSTRIAL),
+    floor!(indian_enlightenment_pair, INDIAN_ENLIGHTENMENT),
+    floor!(iroquois_ancient_pair, IROQUOIS_ANCIENT),
+    floor!(iroquois_enlightenment_pair, IROQUOIS_ENLIGHTENMENT),
+    floor!(japanese_ancient_pair, JAPANESE_ANCIENT),
+    floor!(japanese_enlightenment_pair, JAPANESE_ENLIGHTENMENT),
+    floor!(japanese_gunpowder_pair, JAPANESE_GUNPOWDER),
+    floor!(japanese_industrial_pair, JAPANESE_INDUSTRIAL),
+    floor!(japanese_medieval_pair, JAPANESE_MEDIEVAL),
+    floor!(japanese_modern_pair, JAPANESE_MODERN),
+    floor!(korean_ancient_pair, KOREAN_ANCIENT),
+    floor!(korean_classical_pair, KOREAN_CLASSICAL),
+    floor!(korean_medieval_pair, KOREAN_MEDIEVAL),
+    floor!(lakota_enlightenment_pair, LAKOTA_ENLIGHTENMENT),
+    floor!(lakota_gunpowder_pair, LAKOTA_GUNPOWDER),
+    floor!(lakota_medieval_pair, LAKOTA_MEDIEVAL),
+    floor!(lakota_pair, LAKOTA),
+    floor!(maya_ancient_pair, MAYA_ANCIENT),
+    floor!(maya_information_pair, MAYA_INFORMATION),
+    floor!(mongol_classical_pair, MONGOL_CLASSICAL),
+    floor!(mongol_enlightenment_pair, MONGOL_ENLIGHTENMENT),
+    floor!(mongol_gunpowder_pair, MONGOL_GUNPOWDER),
+    floor!(mongol_medieval_pair, MONGOL_MEDIEVAL),
+    floor!(mongol_pair, MONGOL),
+    floor!(persian_classical_pair, PERSIAN_CLASSICAL),
+    floor!(persian_gunpowder_pair, PERSIAN_GUNPOWDER),
+    floor!(persian_medieval_pair, PERSIAN_MEDIEVAL),
+    floor!(roman_classical_pair, ROMAN_CLASSICAL),
+    floor!(roman_gunpowder_pair, ROMAN_GUNPOWDER),
+    floor!(roman_medieval_pair, ROMAN_MEDIEVAL),
+    floor!(roman_modern_pair, ROMAN_MODERN),
+    floor!(russian_gunpowder_pair, RUSSIAN_GUNPOWDER),
+    floor!(russian_information_pair, RUSSIAN_INFORMATION),
+    floor!(russian_medieval_pair, RUSSIAN_MEDIEVAL),
+    floor!(russian_modern_pair, RUSSIAN_MODERN),
+    floor!(sahara_coverage, SAHARA_COVERAGE),
+    floor!(sahara_mongol, SAHARA_MONGOL),
+    floor!(spanish_classical_pair, SPANISH_CLASSICAL),
+    floor!(spanish_gunpowder_pair, SPANISH_GUNPOWDER),
+    floor!(spanish_industrial_pair, SPANISH_INDUSTRIAL),
+    floor!(spanish_information_pair, SPANISH_INFORMATION),
+    floor!(spanish_modern_pair, SPANISH_MODERN),
+    floor!(turkish_enlightenment_pair, TURKISH_ENLIGHTENMENT),
+    floor!(turkish_information_pair, TURKISH_INFORMATION),
 ];
 
 const WORDS: &[(&Lobby, &str)] = &[
-    (&crate::diff::american_lakes_word::AMERICAN_LAKES, "american_lakes_word_first_parting"),
-    (&crate::diff::american_word::AMERICAN, "american_word_first_parting"),
-    (&crate::diff::aztec_word::AZTEC, "aztec_word_first_parting"),
-    (&crate::diff::bantu_word::BANTU, "bantu_word_first_parting"),
-    (&crate::diff::dutch_sahara_word::DUTCH_SAHARA, "dutch_sahara_word_first_parting"),
-    (&crate::diff::dutch_word::DUTCH, "dutch_word_first_parting"),
-    (&crate::diff::egyptian_word::EGYPTIAN, "egyptian_word_first_parting"),
-    (&crate::diff::french_word::FRENCH, "french_word_first_parting"),
-    (&crate::diff::german_sahara_word::GERMAN_SAHARA, "german_sahara_word_first_parting"),
-    (&crate::diff::german_word::GERMAN, "german_word_first_parting"),
-    (&crate::diff::greek_word::GREEK, "greek_word_first_parting"),
-    (&crate::diff::inca_sahara_word::INCA_SAHARA, "inca_sahara_word_first_parting"),
-    (&crate::diff::inca_word::INCA, "inca_word_first_parting"),
-    (&crate::diff::indian_sahara_word::INDIAN_SAHARA, "indian_sahara_word_first_parting"),
-    (&crate::diff::indian_word::INDIAN, "indian_word_first_parting"),
-    (&crate::diff::iroquois_sahara_word::IROQUOIS_SAHARA, "iroquois_sahara_word_first_parting"),
-    (&crate::diff::iroquois_word::IROQUOIS, "iroquois_word_first_parting"),
-    (&crate::diff::japanese_word::JAPANESE, "japanese_word_first_parting"),
-    (&crate::diff::korean_word::KOREAN, "korean_word_first_parting"),
-    (&crate::diff::lakota_word::LAKOTA, "lakota_word_first_parting"),
-    (&crate::diff::maya_word::MAYA, "maya_word_first_parting"),
-    (&crate::diff::persian_word::PERSIAN, "persian_word_first_parting"),
-    (&crate::diff::roman_word::ROMAN, "roman_word_first_parting"),
-    (&crate::diff::russian_word::RUSSIAN, "russian_word_first_parting"),
-    (&crate::diff::spanish_east_word::SPANISH_EAST, "spanish_east_word_first_parting"),
-    (&crate::diff::spanish_lakes_word::SPANISH_LAKES, "spanish_lakes_word_first_parting"),
-    (&crate::diff::spanish_word::SPANISH, "spanish_word_first_parting"),
-    (&crate::diff::turkish_word::TURKISH, "turkish_word_first_parting"),
+    floor!(american_lakes_word, AMERICAN_LAKES),
+    floor!(american_word, AMERICAN),
+    floor!(aztec_word, AZTEC),
+    floor!(bantu_word, BANTU),
+    floor!(dutch_sahara_word, DUTCH_SAHARA),
+    floor!(dutch_word, DUTCH),
+    floor!(egyptian_word, EGYPTIAN),
+    floor!(french_word, FRENCH),
+    floor!(german_sahara_word, GERMAN_SAHARA),
+    floor!(german_word, GERMAN),
+    floor!(greek_word, GREEK),
+    floor!(inca_sahara_word, INCA_SAHARA),
+    floor!(inca_word, INCA),
+    floor!(indian_sahara_word, INDIAN_SAHARA),
+    floor!(indian_word, INDIAN),
+    floor!(iroquois_sahara_word, IROQUOIS_SAHARA),
+    floor!(iroquois_word, IROQUOIS),
+    floor!(japanese_word, JAPANESE),
+    floor!(korean_word, KOREAN),
+    floor!(lakota_word, LAKOTA),
+    floor!(maya_word, MAYA),
+    floor!(persian_word, PERSIAN),
+    floor!(roman_word, ROMAN),
+    floor!(russian_word, RUSSIAN),
+    floor!(spanish_east_word, SPANISH_EAST),
+    floor!(spanish_lakes_word, SPANISH_LAKES),
+    floor!(spanish_word, SPANISH),
+    floor!(turkish_word, TURKISH),
 ];
 
 const MELEES: &[(
@@ -272,7 +294,15 @@ fn entries() -> Vec<Entry> {
     for l in super::battery::BATTERY {
         let pins = (l.length, l.count, l.sequence);
         let t = "battery_floors_hold";
-        v.push(entry("battery", l.name, l.start, l.long, pins, How::From, t));
+        v.push(entry(
+            "battery",
+            l.name,
+            l.start,
+            l.long,
+            pins,
+            How::From,
+            t,
+        ));
     }
     for (p, t) in PAIRS {
         let pins = (p.length, p.count, p.sequence);
@@ -280,7 +310,15 @@ fn entries() -> Vec<Entry> {
     }
     for (name, m, start, long, script, t) in MELEES {
         let pins = (m.length, m.count, m.sequence);
-        v.push(entry("melee", name, start, *long, pins, How::Staged(*script), t));
+        v.push(entry(
+            "melee",
+            name,
+            start,
+            *long,
+            pins,
+            How::Staged(*script),
+            t,
+        ));
     }
     for (map, start, long, t) in [
         (
@@ -451,7 +489,7 @@ fn print(d: &Done) {
 }
 
 #[test]
-#[ignore = "spike: a measurement, pass 1113b"]
+#[ignore = "the corpus floor: a measurement, not a check (item 4216)"]
 fn every_word_walked_once() {
     if crate::testenv::install().is_none() {
         eprintln!("skipping: no install");
@@ -530,4 +568,12 @@ fn every_word_walked_once() {
     for d in &bad {
         eprintln!("NOT OK {} {}: {:?} last {}", d.family, d.name, d.ok, d.last);
     }
+    // A measurement of walks that fell short of their pins is no floor.
+    // Seen red with one melee's pinned length raised by a frame.
+    assert!(
+        bad.is_empty(),
+        "{} of {} words did not reach their pins",
+        bad.len(),
+        done.len()
+    );
 }
