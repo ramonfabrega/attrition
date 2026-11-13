@@ -33,7 +33,7 @@ Blind: never 336 · residue 336 · open 0
 Rubric: ported 733 · replaced by design 332 · open 574 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3721
-Renderer: K 59 of M 59 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,171,784 of 1,171,799 objects over 110 lobbies
+Renderer: K 59 of M 59 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,171,779 of 1,171,794 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
 Start: 143 of 161 lobbies · GreatLakes walked w24000 of 24,000
 Lobby: the page sets 161 of 161 lobbies · the harness lobby's start built from it
