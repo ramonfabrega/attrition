@@ -945,23 +945,15 @@ fn every_packet_is_wired_to_its_game_or_named() {
         .collect();
     let root = std::env::var("RON_GOLDEN_DIR")
         .unwrap_or_else(|_| format!("{}/ron-golden", std::env::var("HOME").unwrap_or_default()));
-    let Ok(dirs) = std::fs::read_dir(&root) else {
+    // The tree's packets, not the machine's: a packet another worktree
+    // filed and this tree's `docs/RUNS.md` does not head is skipped and
+    // named (`crate::corpus`, the pass of 2026-11-13).
+    let ledger = crate::corpus::Ledger::of_tree();
+    let Ok(listed) = crate::corpus::listed(root.as_ref(), ledger, crate::corpus::is_packet) else {
         eprintln!("skipping the disk's half: no {root} (RON_GOLDEN_DIR)");
         return;
     };
-    let mut on_disk: Vec<String> = dirs
-        .flatten()
-        .filter(|d| {
-            std::fs::read_dir(d.path()).is_ok_and(|maps| {
-                maps.flatten().any(|m| {
-                    m.file_name().to_string_lossy().starts_with("map-")
-                        && m.path().join("frame-snapshot.bin").is_file()
-                })
-            })
-        })
-        .map(|d| d.file_name().to_string_lossy().into_owned())
-        .collect();
-    on_disk.sort();
+    let on_disk = listed.kept;
     assert_eq!(
         on_disk.iter().map(String::as_str).collect::<Vec<_>>(),
         sorted,

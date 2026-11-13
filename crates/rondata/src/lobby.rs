@@ -827,13 +827,13 @@ pub struct OnDisk {
 /// `gamelog-*.txt` under `dir` whose `GAME` carries start records ahead of
 /// its first frame, grouped by its `GAMEINFO` block's text, in the order of
 /// each group's first capture. Each file is read only to that point.
-pub fn lobbies_on_disk(dir: &Path) -> std::io::Result<Vec<OnDisk>> {
-    let mut names: Vec<String> = std::fs::read_dir(dir)?
-        .filter_map(|e| e.ok())
-        .map(|e| e.file_name().to_string_lossy().into_owned())
-        .filter(|n| n.starts_with("gamelog-") && n.ends_with(".txt"))
-        .collect();
-    names.sort();
+///
+/// Only the captures `ledger` puts in the corpus are read
+/// ([`crate::corpus`]): a test pins this count, so a capture another
+/// worktree filed and the tree's `docs/RUNS.md` does not head is skipped
+/// and named, never counted (the pass of 2026-11-13).
+pub fn lobbies_on_disk(dir: &Path, ledger: &crate::corpus::Ledger) -> std::io::Result<Vec<OnDisk>> {
+    let names = crate::corpus::listed(dir, ledger, crate::corpus::is_gamelog)?.kept;
     let mut out: Vec<OnDisk> = Vec::new();
     let mut key_at: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
     for name in names {
@@ -942,7 +942,7 @@ mod tests {
             eprintln!("skipping: no gamelog directory (set RON_GAMELOG_DIR)");
             return;
         };
-        let lobbies = lobbies_on_disk(&dir).expect("the logs");
+        let lobbies = lobbies_on_disk(&dir, crate::corpus::Ledger::of_tree()).expect("the logs");
         assert_eq!(
             lobbies.len(),
             crate::diff::START_LOBBIES,
