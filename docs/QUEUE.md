@@ -52,13 +52,12 @@ and an `input` item (`docs/CLIENT_INPUT.md`: events mint a script's orders and t
 residue or chapter item books only when another track's frame needs one.
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 128 §3, 129 §5,
-131 §1 to §3; builders, one after another). `LEADERS_HELD_OUT` 47, all unheld. A leaf leaves where it moves on a dump or a packet
-our walk holds, or frozen by construction. **S is done** (4205: 30 of 59 words, 41 of 87 packets, walk from the built start; lines 147 → 150; the other 29 seated on two
-start causes, parked 4205a East Indies frame 2, 4205b Great Lakes late ages frame 0). **VII-a is done** (4206: run1575, run1482's lobby at style 0, walked to 1099 of 1150; ten
-leaves move on its record; the kill: our `set_diplo` runs `Armies::diplo_change` only on a declaration, the original's on every
-level, parked 4206a). Next: **VII-a′** (4207), that call on peace and alliance, run1575 whole; **VII-b**, the leaves that moved; then the frozen scan
-(`score_explored`, `score_pop`, `last_spoke`; 4187c) and the residue of III, IV and VI (4176a–c, 4177a–c, 4187a, 4187b). Each
-step's first act and kill is in the pass's record; each mints its number at its cut.
+131 §1 to §3; builders). `LEADERS_HELD_OUT` 47. A leaf leaves where it moves on a dump or packet our walk holds, or frozen.
+**Done:** S (4205: 41 of 87 word packets from the built start, lines 147 → 150; 4205a, 4205b seat the rest); VII-a (4206: run1575,
+style 0, ten leaves move); VII-a′ (4207: `set_diplo` runs this leader's armies on every level; run1575 whole, 1150 of 1150, **the
+French accept staged off the record**, not our AI's; parked 4207a the offers arm, 4207b the rest of `set_diplo`). **Next, the
+pass's to order:** the offers arm, **VII-b** (the leaves that moved), the frozen scan (`score_explored`, `score_pop`,
+`last_spoke`; 4187c), the residue of III, IV and VI (4176a–c, 4177a–c, 4187a, 4187b).
 
 4196. **The start track: Southwest Mesa, then British Isles** (start; **whole**). `Start: 143 of 161`; lobbies 15, 114 and 115 part
 at their first cell and the chain to `Cliffs::init` is in `rondata::mapgen::mesa`; British Isles has two; eleven styles have one
