@@ -239,6 +239,42 @@ host is its baseline**, taken first (`tools/suite_timings.py <install> --out`).
 - **`tranche.py --base`** still prints no rows for `Book N` subjects without
   the word "item" (41 of the last 60 bookings). Not fixed.
 
+## After the commit: four notes from `lore`, weighed while the gate ran
+
+`lore` answered the pass's rulings with four notes, none a ruling. Each is
+weighed here; this section and nothing else was added after the gated commit.
+
+- **The 4.7 times inside a gate is not the background clamp.** `lore`'s
+  hypothesis: macOS confines a background-policy process to the efficiency
+  cores. Measured on this host (M4 Max, 12 performance and 4 efficiency
+  cores), the 9,632-frame word test alone: 1.98 s of wall and 5.73 G cycles
+  as it runs; 1.31 s and 5.31 G under `nice -n 10`, which is what
+  `tools/memcap.sh` gives a test; **6.46 s and 8.72 G cycles under `taskpolicy
+  -b`, 4.9 times**, on the same 30 G instructions. So the clamp would
+  explain the gate's figure exactly, and it is not there: the gate's own
+  test processes, sampled three times as its guard step ran, read priority
+  31 to 46 at nice 15, and the host's load read 6.5, 34.0 and 64.5 over
+  those fifty seconds on 16 cores. The slowdown is more runnable threads
+  than cores. What runs them at a gate's start, past the budget's twenty
+  slots, is not read; item 4216's first stage reads it, because a group
+  runner changes it. One more sample, eight minutes into this pass's own
+  gate with no lane out: the load read 89.5, one `rondata` process held 7.2
+  cores, six `python3` processes 4.9 between them, and `fseventsd` one.
+- **The dev profile carries full debug info**: `Cargo.toml` sets only
+  `[profile.release]`. `target/debug` is 15 GiB in the integration tree and
+  10 in the gate's. `lore` cites `debug = "line-tables-only"` with the
+  dependencies' off. Not measured here. It rides with item 4216's stage 0:
+  the bytes of `target/debug` and a clean debug build's seconds, before and
+  after, and a panic's backtrace still naming its line.
+- **The widening rule as data.** Fifty of sixty landings widen a scoped
+  gate, and seventeen of those touched `rondata` code that was mostly a
+  test module of its own. A leaf test module that nothing else names
+  cannot move another module's pin; a script can tell one. Not built:
+  item 4216 shrinks what a widening costs, and the next pass reads whether
+  the rule is still worth narrowing.
+- **The documents and the tools as one CLI with an index** is a pass of its
+  own and is not this one's.
+
 ## The gate
 
 Whole, on the commit that carries this record, by `tools/gate_run.sh`, started
@@ -250,3 +286,12 @@ three reds it forced (an index row for entry 132, the queue's header a line
 over its pin, two items that read as capture bookings with no map); the 128
 tools tests and the 994 of the offline step green on the lane gate's
 changes; the corpus builder's 56 tests green on its branch.
+
+**The receipt, added with the last section**: `gate exit 0` on `8a0b2a0e7`, 7
+of 7 steps, release 27.5 minutes (offline 1.9, guard 1.0), admission 25.0 s
+over 2,392 leases, load 3.1 at its start and 6.5 at its end, `Rows: one
+driver row at most: steer 2186a1cf (working)`, 231 GB free. No lane and no
+builder ran beside it, and its release step took what the whole gates beside
+four workers took (the median 27.9): the gate's minutes are its own, not the
+lanes'. The section above and the queue's handoff lines are gated scoped
+over that commit (`gate-pass-1113d.log`).
