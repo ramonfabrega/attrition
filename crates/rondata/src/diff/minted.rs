@@ -2057,3 +2057,302 @@ const BOXED_AGAINST_ATTACKED: (i64, &str, &str, Option<i64>, usize) =
 /// — no Slinger, and the Scout 4,152 units east of where the attacked walk
 /// has it, untouched at 50. Seen red first: pinned `(true, (0, 0), 0)`.
 const BOXED_ON_THE_BLOW: (bool, (i64, i64), i32) = (false, (8472, 33213), 50);
+
+/// The followed file's gzip length (item 4202).
+const FOLLOWED_RCX_BYTES: usize = 59_435;
+
+/// **The followed script, minted** (item 4202, `docs/CLIENT_INPUT.md`
+/// §10): the attacked file and two packages more, the Scout's fog press on
+/// [`crate::script::FOG_FRAME`] and its follow beside the Slinger's attack;
+/// it round-trips through the file. With `RON_RCX_OUT=<file>` it writes the
+/// `.rcx` the playback takes open.
+#[test]
+fn the_followed_minted_packages_round_trip() {
+    use crate::script::{ATTACK_FRAME, FOG_FRAME, FOLLOW_FRAME, attacked, followed};
+    let (Some(rec), Some(first)) = (minted(&followed()), minted(&attacked())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "followed").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in followed().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<i32> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| p.frame)
+        .collect();
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (14, 12));
+    assert_eq!(
+        added,
+        vec![FOG_FRAME, ATTACK_FRAME, FOLLOW_FRAME, last.frame],
+        "the packages the attacked file does not hold: the attack's stamp moves by one"
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    eprintln!("FOLLOWED RCX {} bytes", gz.len());
+    assert_eq!(gz.len(), FOLLOWED_RCX_BYTES, "FOLLOWED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The frames the followed script is read on (item 4202): the fog press's
+/// frame, the attack's, the follow's and the one after it, the
+/// Slinger's first blow under this script, and the window's last record.
+const FOLLOW_READ_AT: [i64; 6] = [6702, 6703, 6704, 6705, 6805, 6899];
+
+/// The followed script, read off one frame: [`AttackEffect`]'s target and
+/// Slinger, and the Scout `0/0`'s position and order list by class, front
+/// first.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct FollowEffect {
+    pub attack: AttackEffect,
+    pub scout: ((i64, i64), Vec<&'static str>),
+}
+
+/// The dump's order block names, as [`FollowEffect`]'s Scout classes them.
+fn follow_class(name: &str) -> &'static str {
+    match name {
+        "FOLLOWORDER" => "follow",
+        "MOVEORDER" => "move",
+        _ => "other",
+    }
+}
+
+fn follow_effect_theirs(f: &crate::gamelog::Frame) -> FollowEffect {
+    let sc = f
+        .units
+        .iter()
+        .find(|u| u.who == 0 && u.o == i64::from(crate::script::SCOUT_OBJECT))
+        .unwrap();
+    FollowEffect {
+        attack: attack_effect_theirs(f),
+        scout: (
+            (sc.pos.x, sc.pos.y),
+            sc.orders_front_first()
+                .map(|o| follow_class(&o.kind))
+                .collect(),
+        ),
+    }
+}
+
+fn follow_effect_ours(b: &Built) -> FollowEffect {
+    let s = &b.sim;
+    let sc = &s.units[s.unit_by_o(0, crate::script::SCOUT_OBJECT).unwrap()];
+    FollowEffect {
+        attack: attack_effect_ours(b),
+        scout: (
+            (i64::from(sc.pos.x), i64::from(sc.pos.y)),
+            sc.orders
+                .iter()
+                .map(|o| match &o.body {
+                    sim::orders::Body::Follow(_) => "follow",
+                    sim::orders::Body::Move(_) => "move",
+                    _ => "other",
+                })
+                .collect(),
+        ),
+    }
+}
+
+/// Our walk under the pump on `orders`' file, read on [`FOLLOW_READ_AT`].
+fn follow_effects_ours(orders: &[Order]) -> Vec<FollowEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in &FOLLOW_READ_AT {
+        tick_to(&mut built, Some(&mut stream), n);
+        ours.push(follow_effect_ours(&built));
+    }
+    ours
+}
+
+/// The original's, off the take's records on [`FOLLOW_READ_AT`].
+fn follow_effects_theirs(take: &str) -> Option<Vec<FollowEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for i in 0..source.frames().len() {
+        if FOLLOW_READ_AT.contains(&source.frames()[i].number) {
+            theirs.push(follow_effect_theirs(&source.frame_state(i).unwrap()));
+        }
+    }
+    Some(theirs)
+}
+
+/// **The followed script's effects** (item 4202), our walk's values
+/// pinned before the original's playback was read, and run1573's equal to
+/// them on every frame: the Scout idle on
+/// 6702, moving to the fog press's ground from 6703, and `move`, `follow`
+/// from 6705, the frame after its package, closing on `1/0` from the
+/// east; the Slinger's attack as the attacked script's, its first blow
+/// on 6805 (50 hits to 47).
+fn followed_effects() -> Vec<FollowEffect> {
+    type Side = ((i64, i64), &'static [&'static str]);
+    let row = |frame, t: ((i64, i64), i64), sl: Side, sc: Side| FollowEffect {
+        attack: AttackEffect {
+            frame,
+            target: t,
+            slinger: (sl.0, sl.1.to_vec()),
+        },
+        scout: (sc.0, sc.1.to_vec()),
+    };
+    const CHASE: &[&str] = &["move", "attack"];
+    const FOLLOW: &[&str] = &["move", "follow"];
+    vec![
+        row(
+            6702,
+            ((6792, 31099), 50),
+            ((1176, 32760), &[]),
+            ((5883, 31896), &[]),
+        ),
+        row(
+            6703,
+            ((6762, 31117), 50),
+            ((1176, 32760), &[]),
+            ((5908, 31874), &["move"]),
+        ),
+        row(
+            6704,
+            ((6731, 31133), 50),
+            ((1202, 32744), CHASE),
+            ((5933, 31852), &["move"]),
+        ),
+        row(
+            6705,
+            ((6700, 31148), 50),
+            ((1228, 32729), CHASE),
+            ((5959, 31831), FOLLOW),
+        ),
+        row(
+            6805,
+            ((4320, 32118), 47),
+            ((3135, 31512), CHASE),
+            ((4506, 31571), FOLLOW),
+        ),
+        row(
+            6899,
+            ((2122, 32090), 31),
+            ((3240, 31944), &["attack"]),
+            ((2641, 32500), FOLLOW),
+        ),
+    ]
+}
+
+/// **What the followed orders do on our walk** (item 4202), on
+/// [`FOLLOW_READ_AT`].
+#[test]
+fn the_followed_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::followed()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = follow_effects_ours(&crate::script::followed());
+    for e in &ours {
+        eprintln!("FOLLOW EFFECT ours {e:?}");
+    }
+    assert_eq!(ours, followed_effects());
+}
+
+/// The followed file's playback (`docs/RUNS.md` run1573): `(take, trace,
+/// frames agreeing, frames walked, records, parted)`.
+pub(crate) const FOLLOWED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1573-greatlakes-playback-of-followed-6900.txt",
+    "rontrace-run1573.log",
+    6900,
+    6900,
+    210,
+    0,
+)];
+
+/// **The original plays the followed file in lockstep** (item 4202): the
+/// built start walked under the pump against run1573, every frame's draws
+/// against its trace and every record of its window whole
+/// ([`FOLLOWED_WALKED`]); and the fog press's move, the follow and the
+/// attack read on both sides on [`FOLLOW_READ_AT`].
+#[test]
+fn the_original_s_playback_of_the_followed_file_walks_in_lockstep() {
+    let followed = crate::script::followed();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in FOLLOWED_WALKED {
+        let Some((w, _)) = walk_minted(&followed, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "FOLLOWED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs = follow_effects_theirs(FOLLOWED_WALKED[0].0).unwrap();
+    let ours = follow_effects_ours(&followed);
+    for (o, t) in ours.iter().zip(&theirs) {
+        eprintln!("FOLLOW EFFECT ours {o:?}\n              theirs {t:?}");
+    }
+    assert_eq!(walked, FOLLOWED_WALKED, "the walked table");
+    assert_eq!(theirs, followed_effects(), "the original's effects");
+    assert_eq!(ours, followed_effects(), "our effects");
+}
+
+/// **Made to fail** (item 4202): our walk under the attacked file — no fog
+/// press, no follow — against run1573; and the attacked walk's Scout on
+/// the follow's next frame, the control's values.
+#[test]
+fn the_attacked_script_against_the_followed_playback_parts() {
+    let (take, take_trace, ..) = FOLLOWED_WALKED[0];
+    let Some((w, _)) = walk_minted(&crate::script::attacked(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    eprintln!(
+        "ATTACKED AGAINST FOLLOWED: record {frame}: {partings:?}; draws part {:?}; records {} parted {}",
+        w.first_sequence, w.records, w.records_parted
+    );
+    let seen = (
+        frame,
+        partings[0].0,
+        partings[0].2.clone(),
+        w.first_sequence,
+        w.records_parted,
+    );
+    let (f, kind, row, draws, parted) = ATTACKED_AGAINST_FOLLOWED;
+    assert_eq!(
+        seen,
+        (f, kind, row.to_string(), draws, parted),
+        "ATTACKED_AGAINST_FOLLOWED"
+    );
+}
+
+/// The attacked script's walk against run1573: `(the first parted record's
+/// frame, its kind, its row, the first frame whose draws part, records
+/// parted)`. It parts first on 6703, the frame after the fog press: the
+/// Scout `0/0` idle at (5883, 31896) on ours, moving at (5908, 31874) with
+/// one order on run1573's; 197 of 210 records part, and the draws from
+/// 6725. Seen red first: pinned `(0, "", "", None, 0)`.
+const ATTACKED_AGAINST_FOLLOWED: (i64, &str, &str, Option<i64>, usize) = (
+    6703,
+    "diverged",
+    "Divergence { frame: 6703, who: 0, o: 0, ours: Pos { x: 5883, y: 31896 }, theirs: Pos { x: 5908, y: 31874 } }",
+    Some(6725),
+    197,
+);

@@ -16,6 +16,7 @@
 //! 4. It reports and does not interpret: no culling, no draw order, no
 //!    "visible on screen".
 
+use crate::combat::Obj;
 use crate::movement::Angle;
 use crate::territory::attrition::Domain;
 use crate::{Owner, Player, Pos, Sim};
@@ -126,6 +127,21 @@ pub struct UnitScene {
     pub facing: Angle,
     pub health: i32,
     pub max_health: i32,
+    /// `SubObjectData::is_seen` (vslot `+0x48`, named by the PDB's
+    /// `SubObjectData` field list) of the viewer, `UnitData::is_seen@00607a60`
+    /// as [`Sim::target_seen_by`] ports it; `true` when there is no viewer.
+    /// `Console::find_target_daemon@007c5930` takes no object that answers
+    /// no, so a right press on a unit the fog hides finds nothing (item 4202,
+    /// `docs/CLIENT_INPUT.md` §10).
+    pub seen: bool,
+    /// `GroupData::count(COUNT_ATTACK)@00711720`'s member test: its type's
+    /// `attack` (`+0x1e8`) is nonzero and it `is_captain` (`ObjectData`
+    /// vslot `+0xe8`, named by the PDB's `ObjectData` field list). A
+    /// selection none of whose members answers yes draws
+    /// `Console::execute_at_cursor`'s follow or guard on a unit (item 4202).
+    /// The count's other arm, a `TRANSPORTBARGE` carrying such a unit, is
+    /// not carried here.
+    pub attacks: bool,
     /// Its figures, one per guy.
     pub figures: Vec<FigureScene>,
 }
@@ -211,6 +227,10 @@ pub struct BuildingScene {
     /// (`BuildData::gather_down`) and its slot count (`gather_max`, `None`
     /// uncapped); `None` for every other building.
     pub gather: Option<(i32, Option<i32>)>,
+    /// `BuildData::is_seen@0062e1a0` of the viewer, as
+    /// [`Sim::build_is_seen`] ports it; `true` when there is no viewer
+    /// (item 4202, [`UnitScene::seen`]).
+    pub seen: bool,
 }
 
 /// A farm's `FarmStruct`, as `FarmsOut::draw@008d75f0` reads it
@@ -352,6 +372,10 @@ impl Sim {
                     facing,
                     health: u.health,
                     max_health: u.max_health,
+                    seen: viewer.is_none_or(|p| self.target_seen_by(p, Obj::Unit(i))),
+                    attacks: u.captain
+                        && u.ty
+                            .is_some_and(|t| self.tables.unit_types[t].combat.attack != 0),
                     figures: u
                         .guys
                         .iter()
@@ -417,6 +441,7 @@ impl Sim {
                             != 0
                     })
                     .map(|_| (b.gatherers.len() as i32, b.gather_max)),
+                seen: viewer.is_none_or(|p| self.build_is_seen(i, p)),
             })
             .collect();
         let projectiles = self

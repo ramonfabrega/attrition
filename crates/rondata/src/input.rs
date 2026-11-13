@@ -1673,6 +1673,14 @@ impl Stream {
                 ignore,
                 queued,
             } => group_attack(built, it.play, &objects, *ox, *whom, *ignore, *queued),
+            // A right press on a unit by a selection that cannot attack, or
+            // on one's own unit (item 4202, `docs/CLIENT_INPUT.md` §10).
+            Command::Follow { ox, whom, queued } => {
+                group_follow(built, it.play, &objects, *ox, *whom, *queued)
+            }
+            Command::Guard { ox, whom, queued } => {
+                group_guard(built, it.play, &objects, *ox, *whom, *queued)
+            }
             _ => return false,
         };
         if n == 0 {

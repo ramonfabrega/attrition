@@ -561,7 +561,10 @@ impl App {
             .map(|(w, ..)| w.inner_size())
             .map(|s| (s.width as i32, s.height as i32));
         let frame = self.world.runner.frame() as i32;
-        let (scene, terrain) = (self.world.runner.scene(None), self.world.runner.terrain());
+        // The session's own sight: what the fog hides is no target (item
+        // 4202, `docs/CLIENT_INPUT.md` §10).
+        let viewer = Some(self.input.player);
+        let (scene, terrain) = (self.world.runner.scene(viewer), self.world.runner.terrain());
         let view = input::View {
             matrix: self.camera.to_screen_matrix(),
             screen: pinned_screen(),

@@ -285,8 +285,11 @@ impl View<'_> {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Hit {
     /// Another slot's unit or building: `Console::execute_at_cursor`'s
-    /// enemy arm (`docs/CLIENT_INPUT.md` §6).
-    Enemy(ObjId),
+    /// enemy arm (`docs/CLIENT_INPUT.md` §6), and for a unit the follow
+    /// arm of a selection that cannot attack (§10).
+    Enemy { id: ObjId, unit: bool },
+    /// One of the issuing slot's own units: the guard arm (§10).
+    Friend(ObjId),
     /// One of the issuing slot's buildings, as the dispatch tests it: built
     /// (`is_active`), damaged (`ObjectData +0x24`), and for a gather type
     /// whether a gatherer can join (`num_gatherers < gather_max`).
@@ -305,11 +308,15 @@ impl View<'_> {
     /// `Console::execute_at_cursor` looks: another slot's unit first
     /// (`find_target(SEARCH_ENEMY, units)`), then a building of `who`'s
     /// (`find_target(SEARCH_ALLIED, buildings)`), then another slot's
-    /// building (the attack's search, units and buildings). Each look takes
-    /// the nearest anchor within [`PICK_RADIUS`], as a press does (ours:
-    /// the original's ±5 px box and bounding volumes are not read). The
-    /// issuing slot's own units are no target: the press falls to the
-    /// ground.
+    /// building (the attack's search, units and buildings), then one of
+    /// `who`'s own units (the follow arm's `find_target(SEARCH_ALL, units)`,
+    /// which `LeaderData::is_ally` answers yes for the slot itself: item
+    /// 4202). Each look takes the nearest anchor within [`PICK_RADIUS`], as
+    /// a press does (ours: the original's ±5 px box and bounding volumes are
+    /// not read), and only an object the viewer sees:
+    /// `Console::find_target_daemon@007c5930` admits none whose `is_seen`
+    /// (vslot `+0x48`) answers no, so a press on what the fog hides falls
+    /// to the ground (§10).
     pub fn target(&self, who: u8, px: i32, py: i32) -> Option<Hit> {
         let near = |p: Pos, z: i32| {
             let (ax, ay) = self.pixel(p.x, p.y, z);
@@ -323,11 +330,11 @@ impl View<'_> {
                 .scene
                 .units
                 .iter()
-                .filter(|u| u.id.who != who)
+                .filter(|u| u.id.who != who && u.seen)
                 .filter_map(|u| Some((near(u.pos, u.z)?, u.id))),
         );
         if let Some((_, id)) = enemy_unit {
-            return Some(Hit::Enemy(id));
+            return Some(Hit::Enemy { id, unit: true });
         }
         let own = self
             .scene
@@ -349,10 +356,29 @@ impl View<'_> {
                 .scene
                 .buildings
                 .iter()
-                .filter(|b| b.id.who != who)
+                .filter(|b| b.id.who != who && b.seen)
                 .filter_map(|b| Some((near(b.pos, b.z)?, b.id))),
         );
-        enemy_building.map(|(_, id)| Hit::Enemy(id))
+        if let Some((_, id)) = enemy_building {
+            return Some(Hit::Enemy { id, unit: false });
+        }
+        let friend = nearest(
+            &mut self
+                .scene
+                .units
+                .iter()
+                .filter(|u| u.id.who == who)
+                .filter_map(|u| Some((near(u.pos, u.z)?, u.id))),
+        );
+        friend.map(|(_, id)| Hit::Friend(id))
+    }
+
+    /// `GroupData::count(COUNT_ATTACK)` of a selection, as far as nonzero:
+    /// whether any member on the map attacks ([`sim::observe::UnitScene::attacks`]).
+    pub fn attacks(&self, selection: &[ObjId]) -> bool {
+        selection
+            .iter()
+            .any(|id| self.scene.units.iter().any(|u| u.id == *id && u.attacks))
     }
 }
 
@@ -490,8 +516,15 @@ impl Input {
     /// the command `Console::execute_at_cursor` issues for a selection of
     /// units with no modifier held, or none.
     ///
-    /// - another slot's unit or building: `attack(ox, whom, ignore 0,
-    ///   QUEUE_NEW)` (`GroupOut::issue_attack`);
+    /// - another slot's unit or building, with a member that attacks:
+    ///   `attack(ox, whom, ignore 0, QUEUE_NEW)` (`GroupOut::issue_attack`);
+    /// - another slot's unit, with none (`COUNT_ATTACK` 0, item 4202):
+    ///   `follow(ox, whom, QUEUE_NEW)` (`GroupOut::issue_follow`); the layer
+    ///   names no ally, so it never draws the arm's `guard` there;
+    /// - another slot's building, with none: nothing here, and the press
+    ///   falls to the ground (ours: the arms past the follow are not read);
+    /// - one of the slot's own units: `guard(ox, whom, QUEUE_NEW)`
+    ///   (`GroupOut::issue_guard`; `is_ally` of the slot itself);
     /// - one's own unfinished building: `swarm_around(ox, whom, QUEUE_NEW,
     ///   BUILD_AT)`, citizens sent to help build it;
     /// - one's own finished gather building with room: `gather(ox,
@@ -500,12 +533,23 @@ impl Input {
     ///   gather type: `swarm_around(…, REPAIR)`;
     /// - one's own finished building that is undamaged and not a gather
     ///   building with room (the city, a full camp): nothing.
-    fn on_object(&self, hit: Hit) -> Option<Command> {
+    fn on_object(&self, hit: Hit, attacks: bool) -> Option<Command> {
         match hit {
-            Hit::Enemy(id) => Some(Command::Attack {
+            Hit::Enemy { id, .. } if attacks => Some(Command::Attack {
                 ox: i32::from(id.o),
                 whom: i32::from(id.who),
                 ignore: 0,
+                queued: QUEUE_NEW,
+            }),
+            Hit::Enemy { id, unit: true } => Some(Command::Follow {
+                ox: i32::from(id.o),
+                whom: i32::from(id.who),
+                queued: QUEUE_NEW,
+            }),
+            Hit::Enemy { unit: false, .. } => None,
+            Hit::Friend(id) => Some(Command::Guard {
+                ox: i32::from(id.o),
+                whom: i32::from(id.who),
                 queued: QUEUE_NEW,
             }),
             Hit::Own {
@@ -582,9 +626,16 @@ impl Input {
                 if self.selection.is_empty() || self.building {
                     return None;
                 }
-                if let Some(hit) = view.target(self.player, x, y) {
-                    let cmd = self.on_object(hit)?;
+                let hit = view.target(self.player, x, y);
+                if let Some(cmd) =
+                    hit.and_then(|h| self.on_object(h, view.attacks(&self.selection)))
+                {
                     return Some((frame, play, vec![self.group(), cmd]));
+                }
+                if matches!(hit, Some(Hit::Own { .. })) {
+                    // One's own finished, undamaged building with no room:
+                    // nothing (§6.1).
+                    return None;
                 }
                 let at = ground_at(view, x, y)?;
                 // The main view's formation, for one unit as for many
@@ -920,7 +971,9 @@ pub(crate) mod tests {
             while r.frame() < i64::from(frame) {
                 r.step();
             }
-            let (scene, terrain) = (r.scene(None), r.terrain());
+            // The issuing slot's own sight: what the fog hides is no
+            // target (item 4202).
+            let (scene, terrain) = (r.scene(Some(input.player)), r.terrain());
             let c = camera(at);
             if let Some(order) = through(&mut input, frame, ev, &view(&c, &scene, &terrain)) {
                 r.issue(&order);
@@ -1503,7 +1556,7 @@ pub(crate) mod tests {
         let mut anchors = Vec::new();
         for f in 0..=script::ATTACK_FRAME {
             if ATTACK_ANCHORS.iter().any(|a| a.0 == f) {
-                let (scene, terrain) = (r.scene(None), r.terrain());
+                let (scene, terrain) = (r.scene(Some(0)), r.terrain());
                 let v = view(&c, &scene, &terrain);
                 for &(af, (who, o), _) in ATTACK_ANCHORS.iter().filter(|a| a.0 == f) {
                     let u = scene.units.iter().find(|u| u.id == ObjId { who, o });
@@ -1521,7 +1574,10 @@ pub(crate) mod tests {
                     let (_, (who, o), (x, y)) = ATTACK_ANCHORS[4];
                     assert_eq!(
                         v.target(0, x, y),
-                        Some(Hit::Enemy(ObjId { who, o })),
+                        Some(Hit::Enemy {
+                            id: ObjId { who, o },
+                            unit: true
+                        }),
                         "the right press finds slot 1's Scout"
                     );
                     let slinger = scene
@@ -1584,6 +1640,172 @@ pub(crate) mod tests {
     const ATTACKED_RCX: &str = "ron-golden/recordings/item4195-attacked-greatlakes-24000.rcx";
     const ATTACKED_RCX_BYTES: usize = 59_404;
 
+    /// **Stage 0 of the followed script** (item 4202, `docs/CLIENT_INPUT.md`
+    /// §10): on the fog press's frame and the follow's, under
+    /// [`script::followed`], the anchor each press and right press lands on
+    /// at the opening camera, `(frame, (who, o), pixel)`.
+    const FOLLOW_ANCHORS: [AttackAnchor; 4] = [
+        (script::FOG_FRAME, (0, script::SCOUT_OBJECT), (1384, 862)),
+        (script::FOG_FRAME, script::ATTACKED, (1652, 882)),
+        (script::FOLLOW_FRAME, (0, script::SCOUT_OBJECT), (1399, 860)),
+        (script::FOLLOW_FRAME, script::ATTACKED, (1637, 883)),
+    ];
+
+    /// The attacked events with the Scout's two presses: on
+    /// [`script::FOG_FRAME`] a press on it and a right press on `1/0`, which
+    /// the fog hides; on [`script::FOLLOW_FRAME`] the same on the seen
+    /// `1/0`.
+    fn follow_events() -> Vec<Scripted> {
+        let mut e = attack_events();
+        let ev = |k: usize, right: bool| {
+            let (f, _, (x, y)) = FOLLOW_ANCHORS[k];
+            let ev = if right {
+                Event::RightPress { x, y }
+            } else {
+                Event::Press { x, y }
+            };
+            (f, None, ev)
+        };
+        let at = e
+            .iter()
+            .position(|s| s.0 == script::ATTACK_FRAME)
+            .expect("the attack's press");
+        e.splice(at..at, [ev(0, false), ev(1, true)]);
+        e.extend([ev(2, false), ev(3, true)]);
+        e
+    }
+
+    /// **`INPUT_FOLLOWED`** (item 4202): the attacked events and the
+    /// Scout's four, under the opening camera, mint [`script::followed`]
+    /// field for field, of 12. Was 10: the layer minted the fog press as an
+    /// attack, wanting `is_seen`, and the follow as an attack, wanting
+    /// `COUNT_ATTACK`.
+    const INPUT_FOLLOWED: usize = 12;
+
+    /// **The followed count**: stage 0's anchors on the two frames; on the
+    /// fog press's frame `1/0` is under the pixel and unseen, so the right
+    /// press finds nothing and names the ground; on the follow's it is
+    /// seen, and the Scout has no attack; then the events mint the followed
+    /// script, and the file written from them is the followed file.
+    #[test]
+    fn minted_followed_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let followed = script::followed();
+        let c = camera(None);
+        let mut next = 0;
+        let mut anchors = Vec::new();
+        for f in 0..=script::FOLLOW_FRAME {
+            if FOLLOW_ANCHORS.iter().any(|a| a.0 == f) {
+                let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+                let v = view(&c, &scene, &terrain);
+                for &(af, (who, o), _) in FOLLOW_ANCHORS.iter().filter(|a| a.0 == f) {
+                    let u = scene
+                        .units
+                        .iter()
+                        .find(|u| u.id == ObjId { who, o })
+                        .unwrap();
+                    anchors.push((af, (who, o), v.pixel(u.pos.x, u.pos.y, u.z)));
+                }
+                let (who, o) = script::ATTACKED;
+                let enemy = scene
+                    .units
+                    .iter()
+                    .find(|u| u.id == ObjId { who, o })
+                    .unwrap();
+                let scout = scene
+                    .units
+                    .iter()
+                    .find(|u| {
+                        u.id == ObjId {
+                            who: 0,
+                            o: script::SCOUT_OBJECT,
+                        }
+                    })
+                    .unwrap();
+                let (ex, ey) = v.pixel(enemy.pos.x, enemy.pos.y, enemy.z);
+                println!(
+                    "FOLLOW STAGE0 f{f} enemy {:?} seen {} scout {:?} attacks {} target {:?} ground {:?} form {:?}",
+                    enemy.pos,
+                    enemy.seen,
+                    scout.pos,
+                    scout.attacks,
+                    v.target(0, ex, ey),
+                    ground_at(&v, ex, ey),
+                    v.formation(&[scout.id])
+                );
+                assert_eq!(scout.type_index, 69, "the Scout");
+                assert!(!scout.attacks, "a Scout has no attack");
+                if f == script::FOG_FRAME {
+                    assert!(!enemy.seen, "the fog hides 1/0");
+                    assert_eq!(v.target(0, ex, ey), None, "the press finds nothing");
+                    assert_eq!(ground_at(&v, ex, ey), Some(script::FOG_TO));
+                    // Seen, the same pixel would draw the follow: the fog
+                    // test is what turns it into a move.
+                    let mut lit = scene.clone();
+                    lit.units.iter_mut().for_each(|u| u.seen = true);
+                    let lv = view(&c, &lit, &terrain);
+                    assert_eq!(
+                        lv.target(0, ex, ey),
+                        Some(Hit::Enemy {
+                            id: enemy.id,
+                            unit: true
+                        })
+                    );
+                } else {
+                    assert!(enemy.seen, "1/0 is seen");
+                    assert_eq!(
+                        v.target(0, ex, ey),
+                        Some(Hit::Enemy {
+                            id: enemy.id,
+                            unit: true
+                        })
+                    );
+                }
+            }
+            while next < followed.len() && followed[next].0 == f {
+                r.issue(&followed[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        assert_eq!(anchors, FOLLOW_ANCHORS.to_vec(), "stage 0's anchors");
+        drop(r);
+
+        let Some((ours, r)) = mint_events(follow_events()) else {
+            return;
+        };
+        let whole = ours.iter().zip(&followed).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (followed.len(), INPUT_FOLLOWED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, followed);
+        drop(r);
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(attacked_file), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(ATTACKED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(FOLLOWED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {ATTACKED_RCX} or {FOLLOWED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), FOLLOWED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the followed orders");
+        assert!(written != attacked_file, "not the attacked file");
+    }
+
+    /// The followed file (`docs/CLIENT_INPUT.md` §10), written by rondata's
+    /// `the_followed_minted_packages_round_trip` under `RON_RCX_OUT`; the
+    /// file the original's playback takes open (run 1573).
+    const FOLLOWED_RCX: &str = "ron-golden/recordings/item4202-followed-greatlakes-24000.rcx";
+    const FOLLOWED_RCX_BYTES: usize = 59_435;
+
     /// A unit for the walk-free box tests: slot `who`'s `o` of type `ti`,
     /// standing at `(x, 0)` with its formation bytes.
     fn unit(who: u8, o: i16, ti: i32, x: i32, form: i8, width: i8) -> sim::observe::UnitScene {
@@ -1599,6 +1821,8 @@ pub(crate) mod tests {
             facing: sim::movement::Angle(0),
             health: 1,
             max_health: 1,
+            seen: true,
+            attacks: true,
             figures: vec![],
         }
     }
