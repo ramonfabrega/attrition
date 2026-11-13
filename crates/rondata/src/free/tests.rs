@@ -1542,6 +1542,9 @@ fn the_draw_list_s_buildings_are_in_register() {
             foundation: None,
             scaffold: None,
             age: 0,
+            health: 0,
+            hits: 0,
+            construct_hits: 0,
         }
     };
     let tag = |i: usize, n: i64, id: ObjId| format!("b{i}/{n}/{}/{}", id.who, id.o);

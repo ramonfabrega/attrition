@@ -2541,6 +2541,113 @@ photograph:** the rows.
 - The patch's vertex colour (stage 0 `MODULATE(TEXTURE, DIFFUSE)`): ours
   draws the texel alone.
 
+## 3.20 A burning building's fire and smoke, where the original anchors them (item 4201)
+
+*2026-11-13, Opus 5.5. `render::fire` (the ladder, the slots, the
+anchor); `client::fire` (each building's slots from its `zbuffer` model,
+the stand-ins); `PlacedBuilding::health`, `hits`, `construct_hits`, filled
+from the door's `BuildingScene` as it stood. Scored on run1559b's and
+run1570's photographs.*
+
+**The card.** On run1566b's pass after 3279, the effect textures are bound
+by draws 216 to 229, after the figures and before the HUD:
+`UnitParticles2.tga`, then `BuildingFX.tga` on 220, 221, 222 and 224 among
+`DirtDebris.tga`, `UnitParticles.tga`, `UnitMovement.tga` and
+`BattleshipBlast.tga`. Each is lit off, alpha-tested, vertex colour on,
+stage 1 unbound (`TEX1_NOT_BOUND`), drawn from one shared vertex buffer
+(each draw's first vertex is the last's plus its count). It returns into
+`Particle::batch_draw@008da3f0`, under `ParticleEmitter::flush_particles
+@008dc210` and `GraphicPieces::draw_particles@009034b0`. The probe dumps no
+stream of that buffer, so the card names the systems and their state but
+not where a particle stands. run1570 has no card trace.
+
+**The emitters, off the packets.** `draw_particles` walks
+`MiscAccess::graphic_pieces`' three lists, `particle_emitters` (+0xadc),
+`perm_` (+0xaf8) and `stopped_` (+0xb14). Each `ParticleEmitter`'s
+`desc` (+0x20) holds `pos`, `gpiece`, `who`, `o`, `node_num` and
+`system_type`. On both packets the city `0/2000` (piece 57144) holds eight
+live emitters, two at each of four points: system 36 (`BUILDING FIRE`,
+`quick_particle_lookups[0x86]`) and 37 (`BUILDING SMOKE`, `[0x85]`), on
+nodes 8, 9, 10 and 11. The two packets agree to the bit. The "four
+buildings" the pass saw burning are one city's four slots.
+
+**The mechanism, read.**
+
+- **The ladder** (`Wall::inc_time@0063fb60`, which is `Build`'s `inc_time`).
+  On a finished building, each frame, the health level
+  (`ObjectData::health_level@006534b0`) picks the slots. Level 2 (under
+  75 % of `BuildData::hits(0)`, which is `construct_hits`) burns slot 11,
+  level 3 (under 50 %) adds 10, level 4 (under 25 %) adds 9, and level 5
+  (under 10 %) adds 8. Each slot takes `BUILDING FIRE` and `BUILDING SMOKE`
+  through `GraphicPieces::emit_build_particles@00909590`, and
+  `GraphicPieces::ensure_emitter@00904e60` keeps one emitter for each
+  (who, o, system, node, piece).
+- **The slots** (`BH3Method::load_hier@00915010`). A node named
+  `ammo node i` or `node i` is slot i, `pivot node i` is slot i + 4 and
+  `smoke node i` is slot i + 8 (strings 220–223). So the burning slots are
+  the `zbuffer` model's four smoke nodes; 275 of the install's `.BH3` files
+  name one.
+- **The point.** `GraphicEvents::verify_load@008e4780` records slots 7 to
+  11 of a building's piece through `GraphicPieces::init_position@00901820`,
+  at the rest pose, moved `32 · build_half_tcoord` on x and y.
+  `GraphicPieces::get_position@0090b750` turns the record by 270° about z,
+  negates y and scales by `build_scale` (3.0, `0x00c062d0`). The emitter is
+  the building's point plus that: `(x − 3·s.y, y − 3·s.x, z + 3·s.z)`.
+
+**Diffed on the packets**, both sides off the original's own state:
+
+- The piece's `AttachPos` records 36 to 40 are `village_6tz.bh3`'s
+  `pivot node 3` and its four smoke nodes at rest, plus (32, 32, 0), to the
+  hundredth.
+- Each emitter's `pos` is the city's (3168, 30816, 536) plus the turned
+  record.
+- The city's `construct_hits` is 1,200, its damage 1,107 on 3294 and 1,133
+  on 3331. Its level is 5.
+
+Ours equals both values on both frames (`client::fire::tests`).
+
+**The row** (the rule committed before its count): each burning slot of
+the packet is an anchor. It agrees when the client draws a slot of the
+same building and number within a tile, 192 world units, of it. The row
+also counts ours past theirs. `RUN1559B_3279_FIRE` on frame 3279 and
+`RUN1570_FIRE` on 3327 (the photographs' frames, §3.13), read off
+`World::drawn_emitters`, which are what the stand-ins are laid at:
+
+| row | before | drawn | unturned (the made-to-fail) |
+|---|---|---|---|
+| `RUN1559B_3279_FIRE` | 0 of 4 | **4 of 4**, 0 past | 2 of 4 |
+| `RUN1570_FIRE` | 0 of 4 | **4 of 4**, 0 past | 2 of 4 |
+
+Every drawn slot is 0.0 units from the packet's and on its pixel. Slot 8,
+for instance, is (3207.27, 30518.4, 726.74) at (1180, 464) on run1559b's
+camera and at (1013, 380) on run1570's. Unturned, slots 9 and 11 still lie
+inside the tile, because they stand near the quarter turn's diagonal
+(52 and 183 units off).
+
+**The stand-ins, not the particles.** The client draws, through the sprite
+pass, `BuildingFX.tga`'s fire cell at each slot and its smoke cell tinted
+(40, 40, 30) above it, sized by eye on run1559b's photograph. By eye, three
+of the photograph's four flames stand on them; slot 11's lies behind the
+front house. No particle is compared.
+
+**Diff-backed:** the four anchors on both packets, the attach records and
+the hit points. **Read, not diffed:** the ladder's other levels, a slot no
+node names (`init_position` records zero, so the emitter stands on the
+building's point), `BuildData::hits`' queued-upgrade arm (4197c) and a
+piece with an `anim=` (the rest pose is assumed).
+
+**What is not established.**
+
+- The particles: emission, motion, wind, lifetime, size and the two blends.
+  The stand-ins are alpha-tested at half, so the smoke reads as hard dark
+  blocks (4201a).
+- An emitter outliving its level: `ensure_emitter` refreshes `end_time`
+  each frame, so a repaired building's fire outlasts the repair by the
+  system's own duration, and ours goes out at once.
+- `Building Spark` (`[0x87]`, slot 8 while `+0x60` is negative), the ships'
+  and walls' own ladders (`GuyOut::graph_inc_frame@005dd200` on types
+  0x3d, 0x3e and 400), and every other system the card binds.
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
@@ -3095,6 +3202,9 @@ Each line names what would settle it.
   and `GraphicPieces::draw`'s gate on `draw_flags` for the ammo range; the
   client draws it opaque, at rest, always. The dock's foundation model
   beside its sprite (parked 4163b): the client draws the sprite alone.
+- **A burning building's particles** (§3.20, parked 4201a): the anchors
+  are the original's; what is drawn there is a stand-in sprite, alpha-
+  tested, with none of the systems' emission, motion or blend.
 - **Whether `sim` builds for `wasm32-unknown-unknown`.** It is untried, and
   matters only if option A's live variant is wanted.
 - **The licence of ptasev/Rise-of-Nations.** Reading it is fine under the
