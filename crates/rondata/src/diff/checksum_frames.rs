@@ -351,6 +351,156 @@ fn minted_packets_dir() -> String {
 type PacketRow = (&'static str, usize, usize, usize, &'static str);
 const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &[
     (
+        "run1579",
+        "rontrace-run1579.log",
+        1,
+        &[
+            ("units", 1077, 1077, 2, "0 0 flags: flags 65|73"),
+            (
+                "leaders",
+                267,
+                267,
+                2,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|c7000000",
+            ),
+        ],
+    ),
+    (
+        "run1582",
+        "rontrace-run1582.log",
+        129,
+        &[
+            ("units", 1107, 1147, 41, "0 0 flags: flags 65|73"),
+            (
+                "builds",
+                519,
+                519,
+                1,
+                "305 2000 queue[k]: type 0|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|27",
+            ),
+            (
+                "guys",
+                375,
+                389,
+                14,
+                "375 0 guys.length: +0x0 of 4|0: 01000000|",
+            ),
+            (
+                "leaders",
+                267,
+                267,
+                2,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|d9000000",
+            ),
+        ],
+    ),
+    (
+        "run1583",
+        "rontrace-run1583.log",
+        987,
+        &[
+            ("units", 1181, 1441, 266, "0 0 flags: flags 65|73"),
+            (
+                "builds",
+                557,
+                557,
+                5,
+                "14 2000 queue[k]: type -1|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|25",
+            ),
+            (
+                "guys",
+                396,
+                487,
+                91,
+                "396 0 guys.length: +0x0 of 4|0: 01000000|",
+            ),
+            (
+                "leaders",
+                267,
+                267,
+                2,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|e7000000",
+            ),
+            ("items", 105, 110, 24, "15 3 ever_seen: +0x0 of 1|1: 02|00"),
+        ],
+    ),
+    (
+        "run1584",
+        "rontrace-run1584.log",
+        3246,
+        &[
+            ("units", 1389, 1901, 1173, "0 0 flags: flags 65|73"),
+            (
+                "builds",
+                703,
+                703,
+                8,
+                "14 2000 queue[k]: type -1|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|25",
+            ),
+            (
+                "guys",
+                442,
+                617,
+                175,
+                "442 0 guys.length: +0x0 of 4|0: 01000000|",
+            ),
+            (
+                "leaders",
+                267,
+                267,
+                2,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|fd000000",
+            ),
+            ("items", 90, 110, 42, "0 0 ever_seen: +0x0 of 1|1: 02|00"),
+            ("goods", 180, 180, 1, "95 19 ever_seen: +0x0 of 1|1: 00|02"),
+            (
+                "world",
+                8000,
+                8000,
+                3,
+                "1495 1471 cell: +0x8 of 21|21: fdff0600|ffff0600",
+            ),
+        ],
+    ),
+    (
+        "run1585",
+        "rontrace-run1585.log",
+        4030,
+        &[
+            ("units", 1507, 2014, 1315, "0 0 flags: flags 65|73"),
+            (
+                "builds",
+                723,
+                723,
+                11,
+                "14 2000 queue[k]: type -1|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|25",
+            ),
+            (
+                "guys",
+                483,
+                658,
+                175,
+                "483 0 guys.length: +0x0 of 4|0: 01000000|",
+            ),
+            (
+                "leaders",
+                267,
+                267,
+                2,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|05010000",
+            ),
+            ("cities", 17, 17, 1, "4 0 city..ter: traded_with[1] 4|2"),
+            ("items", 85, 110, 47, "0 0 ever_seen: +0x0 of 1|1: 02|00"),
+            (
+                "world",
+                8022,
+                8022,
+                4,
+                "1495 1471 cell: +0x8 of 21|21: fdff0600|ffff0600",
+            ),
+        ],
+    ),
+    (
         "run1580",
         "rontrace-run1580.log",
         61,
@@ -447,11 +597,14 @@ fn first_text(line: &str, f: &(usize, i16, String, String, String)) -> String {
 /// **The packets name the partings.** Our walk under the pump to each
 /// packet's frame, its twelve lines held range by range against the
 /// packet's stream ([`MINTED_PACKETS`]); and the hook's set on the same
-/// take is the instrument's values on that frame, 15 of 15.
+/// take is the instrument's values on that frame, 15 of 15, and so is
+/// run1578's on the same frame.
 #[test]
 fn the_minted_packets_name_each_first_parting() {
     use super::checksum_lines::packets::{STATE_LINES, compare, our_lines, packet_stream_in};
     let dir = minted_packets_dir();
+    let whole = hook(RUN1578_TRACE);
+    let whole = whole.as_deref().map(per_frame);
     for &(run, trace, frame, pinned) in MINTED_PACKETS {
         let (Some((logger, theirs)), Some(sets)) = (packet_stream_in(&dir, run), hook(trace))
         else {
@@ -473,6 +626,14 @@ fn the_minted_packets_name_each_first_parting() {
             "{run}: the hook's set on {} is the instrument's",
             frame - 1
         );
+        if let Some(whole) = &whole {
+            assert_eq!(
+                whole[&(frame - 1)].lines,
+                set.lines,
+                "run1578's set on {} is {run}'s",
+                frame - 1
+            );
+        }
         let (Some((_, mut built, _)), Some(pieces)) = (
             built_start(),
             super::checksum_lines::packets::Pieces::read(),
@@ -499,4 +660,55 @@ fn the_minted_packets_name_each_first_parting() {
             .collect();
         assert_eq!(seen, pinned, "MINTED_PACKETS {run}");
     }
+}
+
+/// run1579's dump: the minted file's playback with an `@dumpall` on frame
+/// 0, whose first record (3201) is printed before frame 0's tick — the
+/// hook's frame `-1`, our built start.
+const RUN1579: &str = "gamelog-run1579-greatlakes-playback-of-minted-packet-1.txt";
+
+/// **The world on the start, by section**: the sections of the world line
+/// whose Adler on our built start parts from record 3201 of [`RUN1579`],
+/// as `(section, ours, theirs)`; every other of the fifteen agrees.
+/// Section 8 alone, `danger[0..8]` (`sim::checksum::world`'s table).
+const WORLD_START_PARTS: &[(usize, u32, u32)] = &[(8, 1_887_436_801, 2_995_557_468)];
+
+/// The world line parts only on frame 0 ([`CHECKSUM_FRAMES`]); no packet
+/// stands before frame 0's tick, but the record printed there carries the
+/// fifteen sections' own sums, so the parting is named by section.
+#[test]
+fn the_world_parts_on_the_start_by_section() {
+    let Some(recs) = records(RUN1579) else {
+        eprintln!("skipping: {RUN1579} not filed (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let Some((_, built, _)) = built_start() else {
+        eprintln!("skipping: no install or lobby dump");
+        return;
+    };
+    assert_eq!(built.sim.frame, 0, "the built start");
+    let record = recs.iter().find(|r| r.number == 3201).expect("record 3201");
+    let parts = record.world_parts();
+    assert_eq!(parts.len(), 16, "sections 0 to 14 and the whole");
+    let image = built.sim.world_image();
+    let whole = built.sim.checksum_world().adler();
+    let mut seen = Vec::new();
+    for (s, theirs) in parts.iter().take(15).enumerate() {
+        let ours = image
+            .iter()
+            .filter(|r| usize::from(r.section) == s)
+            .fold(1, |a, r| sim::checksum::adler32(a, &r.bytes()));
+        if ours != *theirs {
+            seen.push((s, ours, *theirs));
+        }
+    }
+    eprintln!(
+        "WORLD START whole ours {whole} theirs {}; sections parted {seen:?}",
+        parts[15]
+    );
+    assert_ne!(
+        whole, parts[15],
+        "the world parts on the start (CHECKSUM_FRAMES)"
+    );
+    assert_eq!(seen, WORLD_START_PARTS, "WORLD_START_PARTS");
 }
