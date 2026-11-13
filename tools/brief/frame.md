@@ -437,11 +437,11 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   `check.sh test` runs (a worktree has no `../../game`; the gate exports
   it) and put `uv` on `PATH` for the camera oracle; a `skipping:` line
   is a vacuous pass — grep the log, and the journal says none printed.
-- **Your gate is scoped**, the line under Landing: the `render` crate's
-  tests, `rondata`'s `free::` and `artdata::`, `coverage::`, `census::`
-  and the guards. **A branch that touches `crates/sim` (the door,
-  `sim::observe`) gates `--lane --whole`**; otherwise the lanes row's
-  `first_parting` is moot.
+- **Your gate is scoped**, the line under Landing. **A branch that
+  touches `crates/sim` (the door, `sim::observe`) says so in its done
+  line and keeps it** (`--no-widen`), never `--lane --whole`: the sim
+  crate's tests run in it, the corpus at the booking gate; the lanes
+  row's `first_parting` is moot.
 
 ## start
 
@@ -464,9 +464,11 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
 - **The draws are the spine** (§1): a row that parts on a draw is settled
   by a sibling's setup trace (`check_all_level=14`); grep the archive for
   one before booking a take.
-- **Your gate is whole**, the line under Landing, no `--tests`: the lobby
-  walked from the built start and the original's playback of our files
-  stand on the builder, so a start change is certified by every test.
+- **Your gate is scoped**, the line under Landing: the tests that stand
+  on the built start (`diff::start`, `lobby::`, `minted::`, the packets),
+  `mapgen::`, the guards. **A branch that touches `crates/sim` says so in
+  its done line and keeps it** (`--no-widen`), never `--lane --whole`:
+  the sim crate's tests run in it, the corpus at the booking gate.
 
 ## input
 
@@ -491,7 +493,9 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
 - **The pins are yours** (`INPUT_*`, the script's constants,
   `*_WALKED`); the queue's `Recording:` line is mine.
 - **Your gate is scoped**, the line under Landing; **a branch that
-  touches `crates/sim` (the `command` door) gates `--lane --whole`**.
+  touches `crates/sim` (the `command` door) says so in its done line and
+  keeps it** (`--lane --tests … --no-widen`), never `--lane --whole`:
+  the sim crate's tests run in it, the corpus at the booking gate.
 
 ## build
 

@@ -1019,18 +1019,18 @@ garbage line
                 'crates/rondata/src/diff/greek_gunpowder_pair.rs', 'docs/AI.md', 'docs/RUNS.md']
         command, policy = self.release_command(touched=rows, row_only=rows[:3], lane=True, tests=WORD)
         self.assertEqual(command[command.index('--no-fail-fast'):command.index('--')],
-                         ['--no-fail-fast', '--workspace', '--exclude', 'sim'])
+                         ['--no-fail-fast', '--workspace', '--exclude', 'sim', '--exclude', 'client'])
         self.assertIn('--skip', command)
         self.assertEqual(policy['lane']['sim_crate'], 'left to the booking gate')
         # A sweep lane touches `sweep/`, which never widens: the timed set is
         # still left, and its own sweeps run.
         command, policy = self.release_command(touched=['crates/sim/src/sweep/x.rs'], lane=True, tests=WORD)
-        self.assertNotIn('--exclude', command)
+        self.assertNotIn('sim', left_packages(command))
         self.assertIn('--skip', command)
         self.assertEqual(policy['lane']['sim_crate'], 'run')
         # A sim edit widens, and runs everything.
         command, policy = self.release_command(touched=['crates/sim/src/fight.rs'], lane=True, tests=WORD)
-        self.assertNotIn('--exclude', command)
+        self.assertNotIn('sim', left_packages(command))
         self.assertNotIn('--skip', command)
         self.assertEqual(policy['lane']['sim_crate'], 'run')
         # `--lane --whole` runs every test; the booking gate is never cut.
@@ -1049,7 +1049,7 @@ garbage line
         self.assertEqual(command[command.index('--exclude-package') + 1], 'sim')
         self.assertEqual(policy['lane']['sim_crate'], 'left to the booking gate')
         command, policy = self.release_command(touched=['crates/sim/src/sweep/x.rs'], lane=True, tests=WORD, isolated=True)
-        self.assertNotIn('--exclude-package', command)
+        self.assertNotIn('sim', left_packages(command))
         command, policy = self.release_command(touched=rows, scope='abc1234', isolated=True)
         self.assertNotIn('--exclude-package', command)
 
@@ -1067,7 +1067,7 @@ garbage line
                                                lane=True, tests=WORD)
         self.assertNotIn('--skip', command)
         self.assertEqual(command[command.index('--no-fail-fast'):command.index('--')],
-                         ['--no-fail-fast', '--workspace', '--exclude', 'sim'])
+                         ['--no-fail-fast', '--workspace', '--exclude', 'sim', '--exclude', 'client'])
         self.assertEqual(policy['lane']['sim_crate'], 'left to the booking gate')
         command, policy = self.release_command(touched=['crates/rondata/src/diff/harness.rs'],
                                                lane=True, tests=WORD, isolated=True)
@@ -1076,7 +1076,7 @@ garbage line
         # manifest, the lock, the toolchain pin and cargo's config keep them.
         for path in ('Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.cargo/config.toml'):
             command, policy = self.release_command(touched=[path, 'docs/AI.md'], lane=True, tests=WORD)
-            self.assertNotIn('--exclude', command, path)
+            self.assertNotIn('sim', left_packages(command), path)
             self.assertEqual(policy['lane']['sim_crate'], 'run', path)
 
     def test_a_branch_that_touches_only_the_emulator_keeps_the_sim_crate(self):
@@ -1087,10 +1087,10 @@ garbage line
         # those binaries' verdicts. It keeps the sim crate.
         for path in ('tools/emu/x.py', 'tools/emu/sweep_obj.tsv'):
             command, policy = self.release_command(touched=[path], lane=True, tests=WORD)
-            self.assertNotIn('--exclude', command, path)
+            self.assertNotIn('sim', left_packages(command), path)
             self.assertEqual(policy['lane']['sim_crate'], 'run', path)
             command, policy = self.release_command(touched=[path], lane=True, tests=WORD, isolated=True)
-            self.assertNotIn('--exclude-package', command, path)
+            self.assertNotIn('sim', left_packages(command), path)
         # Another tool is not an input: the cut stands.
         command, policy = self.release_command(touched=['tools/emu_receipts.py'], lane=True, tests=WORD)
         self.assertEqual(policy['lane']['sim_crate'], 'left to the booking gate')
@@ -1626,8 +1626,87 @@ garbage line
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             policy=json.loads((path/'report/gate-policy.json').read_text())
         suite=next(l for l in said.splitlines() if l.startswith('Lane suite:'))
+        # Under the lane's own zero budget (DECISIONS 132) the 0.12 s writer
+        # guard is over it too, and kept with the three.
+        self.assertIn('4 over budget kept as paperwork', suite)
+        self.assertEqual(policy['lane']['paperwork_kept'], 4)
+
+    # The pass of 2026-11-13 (second), DECISIONS 132: an unwidened lane
+    # gate's release step was 11.0–12.6 minutes, its filters 645–740
+    # test-seconds and its paperwork 11–18; the rest was ~920 rows the
+    # timings file has under a second, 1.6–2.0 s each on a loaded host, which
+    # the booking gate runs again on the merged tree. A lane's own budget is
+    # zero; the scoped booking gate keeps its second. Red first: the old
+    # `lane_skips` took no budget and skipped no row under a second.
+    BUDGET_TIMINGS = ('3.00\tdiff::harness::tests::a_slow_walk_no_filter_names\n'
+                      '0.40\tdiff::golden::a_fast_walk_no_filter_names\n'
+                      '0.00\tdiff::audit::a_row_timed_at_nothing\n'
+                      '0.40\tdiff::second::tests::run589_s_word_frame_is_widened_whole\n'
+                      '0.12\twriters::compared_fields_have_writers\n'
+                      '0.01\tdiff::floors::tests::a_golden_widening_holds_its_word\n'
+                      '0.72\tcensus::tests::the_census_s_simulation_share_is_pinned\n')
+
+    def test_a_lane_s_own_budget_leaves_every_timed_row_and_the_scope_keeps_its_second(self):
+        lane = gate.lane_skips(self.BUDGET_TIMINGS, ['run589'], gate.LANE_OWN_BUDGET_SECONDS, gate.LANE_KEPT)
+        self.assertEqual(gate.LANE_OWN_BUDGET_SECONDS, 0.0)
+        self.assertEqual(gate.LANE_BUDGET_SECONDS, 1.0)
+        self.assertEqual(lane, ['diff::audit::a_row_timed_at_nothing',
+                                'diff::golden::a_fast_walk_no_filter_names',
+                                'diff::harness::tests::a_slow_walk_no_filter_names'])
+        # The scope's budget: only the row over a second.
+        self.assertEqual(gate.lane_skips(self.BUDGET_TIMINGS, [], gate.LANE_BUDGET_SECONDS),
+                         ['diff::harness::tests::a_slow_walk_no_filter_names'])
+        # End to end on the suite's own file: the lane gate leaves the rows
+        # under a second too, the scoped booking gate does not, and each
+        # receipt says the budget it used.
+        text = gate.TIMINGS.read_text()
+        fast = sorted(name for seconds, name in gate._timed_rows(text)
+                      if seconds <= 1.0 and not gate.is_kept(name, gate.LANE_KEPT))
+        self.assertGreater(len(fast), 300)
+        command, policy = self.release_command(touched=['docs/AI.md'], lane=True, tests=WORD)
+        skipped = [command[i + 1] for i, a in enumerate(command) if a == '--skip']
+        self.assertIn(fast[0], skipped)
+        self.assertEqual(policy['lane']['budget_seconds'], 0.0)
+        scoped, scope_policy = self.release_command(touched=['docs/AI.md'], scope='abc1234')
+        self.assertNotIn(fast[0], [scoped[i + 1] for i, a in enumerate(scoped) if a == '--skip'])
+        self.assertEqual(scope_policy['scope']['budget_seconds'], 1.0)
+        self.assertGreater(policy['lane']['skipped'], scope_policy['scope']['skipped'] + 300)
+
+    def test_a_lane_s_own_budget_keeps_the_paperwork_its_filters_and_the_pins_its_rows_answer_to(self):
+        kept = [n for _, n in gate._timed_rows(self.BUDGET_TIMINGS)
+                if n not in gate.lane_skips(self.BUDGET_TIMINGS, ['run589'], gate.LANE_OWN_BUDGET_SECONDS,
+                                            gate.LANE_KEPT)]
+        self.assertEqual(sorted(kept), ['census::tests::the_census_s_simulation_share_is_pinned',
+                                        'diff::floors::tests::a_golden_widening_holds_its_word',
+                                        'diff::second::tests::run589_s_word_frame_is_widened_whole',
+                                        'writers::compared_fields_have_writers'])
+        # The `Lane suite:` line counts what the lane's budget kept for the
+        # paperwork and the pins, and the filter's row is no paperwork.
+        self.assertEqual(gate.lane_paperwork(self.BUDGET_TIMINGS, gate.LANE_OWN_BUDGET_SECONDS, gate.LANE_KEPT),
+                         ['census::tests::the_census_s_simulation_share_is_pinned',
+                          'diff::floors::tests::a_golden_widening_holds_its_word',
+                          'writers::compared_fields_have_writers'])
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            def run(command, **kwargs):
+                if '--release' in command:
+                    release_ran(kwargs, log=RELEASE_LOG.replace(' ... FAILED', ' ... ok'))
+            (path/'timings.txt').write_text(self.BUDGET_TIMINGS)
+            with patch('builtins.print') as printed, patch.object(gate, 'TIMINGS', path/'timings.txt'), \
+                 patch.object(gate, 'ROOT', path):
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
+                          git=UNMOVED, isolated=False)
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            policy=json.loads((path/'report/gate-policy.json').read_text())
+        suite=next(l for l in said.splitlines() if l.startswith('Lane suite:'))
+        # The fixture's release log ran no `run589` test, so the gate names
+        # no such filter, and that row is left with the three.
+        self.assertIn('4 timed tests', suite)
+        self.assertIn('budget 0 s', suite)
         self.assertIn('3 over budget kept as paperwork', suite)
-        self.assertEqual(policy['lane']['paperwork_kept'], 3)
+        self.assertIn('DECISIONS 132', suite)
+        self.assertEqual((policy['lane']['skipped'], policy['lane']['paperwork_kept']), (4, 3))
+        self.assertEqual(policy['lane']['budget_seconds'], 0.0)
 
     def test_the_timings_file_is_the_suite_s(self):
         # The constant names a file that exists, holds the two coverage pins
@@ -1636,6 +1715,95 @@ garbage line
         skips=gate.lane_skips(text, [])
         self.assertIn('diff::coverage::every_key_the_dump_prints_is_read_or_pinned', skips)
         self.assertGreater(len(skips), 400)
+
+
+def left_packages(command):
+    """The packages a release command leaves out: `--exclude P` (cargo) or
+    `--exclude-package P` (the isolated runner)."""
+    return [command[i + 1] for i, a in enumerate(command) if a in ('--exclude', '--exclude-package')]
+
+
+class ClientCrateLeft(unittest.TestCase):
+    """The pass of 2026-11-13 (second), DECISIONS 132 §6: the client's clock
+    test (`crates/client/tests/clock.rs`) is a wall-clock ceiling test that
+    ran 218–362 s beside the rondata lib on lanes 4200 and 4203 and is behind
+    2 of the 7 red gate logs on disk, both under load. A lane whose branch
+    touches no path under `crates/client/` or `crates/render/` leaves the
+    client crate's targets to the booking gate, which runs them on the
+    merged tree. Red first: the client ran in every lane gate."""
+
+    release_command = GateTests.release_command
+
+    def test_a_lane_that_touches_only_the_data_crate_leaves_the_client_targets(self):
+        touched = ['crates/rondata/src/diff/start.rs', 'docs/START.md']
+        command, policy = self.release_command(touched=touched, lane=True, tests=WORD)
+        self.assertIn('client', left_packages(command))
+        self.assertEqual(command[command.index('--no-fail-fast') + 1], '--workspace')
+        self.assertEqual(policy['lane']['client_crate'], 'left to the booking gate')
+        # The isolated runner, the default, carries it too.
+        command, policy = self.release_command(touched=touched, lane=True, tests=WORD, isolated=True)
+        self.assertIn('tools/isolated_tests.py', command)
+        self.assertIn('client', left_packages(command))
+        # Widened or not: a sim edit widens a residue lane and leaves the
+        # client, as a data-crate edit leaves the sim crate.
+        command, policy = self.release_command(touched=['crates/sim/src/fight.rs'], lane=True, tests=WORD)
+        self.assertEqual(left_packages(command), ['client'])
+        self.assertEqual(policy['lane']['client_crate'], 'left to the booking gate')
+        # The line says so, and why.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            def run(command, **kwargs):
+                if '--release' in command:
+                    release_ran(kwargs, log=RELEASE_LOG.replace(' ... FAILED', ' ... ok'))
+            with patch('builtins.print') as printed, patch.object(gate, 'branch_paths', return_value=touched):
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED,
+                          isolated=False)
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+        suite=next(l for l in said.splitlines() if l.startswith('Lane suite:'))
+        for words in ("the client crate's test targets left to the booking gate", 'crates/client/',
+                      'crates/render/', 'clock', 'DECISIONS 132'):
+            self.assertIn(words, suite)
+
+    def test_a_lane_that_touches_the_client_or_the_render_crate_keeps_the_client_targets(self):
+        for path in ('crates/client/src/x.rs', 'crates/render/src/y.rs', 'crates/client/tests/clock.rs',
+                     'Cargo.lock'):
+            for isolated in (False, True):
+                command, policy = self.release_command(touched=['crates/rondata/src/lobby.rs', path], lane=True,
+                                                       tests=WORD, isolated=isolated)
+                self.assertNotIn('client', left_packages(command), (path, isolated))
+                self.assertEqual(policy['lane']['client_crate'], 'run', path)
+
+    def test_a_lane_that_left_the_client_drops_its_client_only_filters_and_names_them(self):
+        # As Loop 3823 for the sim crate: a filter whose every live match is
+        # a client test matches nothing that ran, and would turn the gate
+        # red for it; it is dropped and named. One with a data-crate match
+        # (`lobby::`) stays.
+        crates = {'client': {'clock::the_great_lakes_lobby_plays': False, 'lobby::tests::a': False},
+                  'rondata': {'lobby::tests::b': False, WORD[0]: False}, 'sim': {}}
+        self.assertEqual(gate.client_only_filters(['clock::', 'lobby::', WORD[0]], crates), ['clock::'])
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            def run(command, **kwargs):
+                if '--release' in command:
+                    release_ran(kwargs, log=RELEASE_LOG.replace(' ... FAILED', ' ... ok'))
+            with patch('builtins.print') as printed, \
+                    patch.object(gate, 'branch_paths', return_value=['crates/rondata/src/lobby.rs']), \
+                    patch.object(gate, 'crate_tests', return_value=crates):
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD + ['clock::'],
+                          git=UNMOVED, isolated=False)
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            policy=json.loads((path/'report/gate-policy.json').read_text())
+        self.assertIn('Lane filter dropped: clock:: — every match is in crates/client', said)
+        self.assertEqual(policy['lane']['dropped'], ['clock::'])
+
+    def test_whole_and_the_booking_gate_keep_the_client_targets(self):
+        touched = ['crates/rondata/src/diff/start.rs']
+        for kw in ({'lane': True, 'whole': True}, {}, {'scope': 'abc1234'}):
+            for isolated in (False, True):
+                command, policy = self.release_command(touched=touched, isolated=isolated, **kw)
+                self.assertNotIn('client', left_packages(command), (kw, isolated))
+                if kw.get('lane'):
+                    self.assertEqual(policy['lane']['client_crate'], 'run')
 
 
 class WholeLaneGate(unittest.TestCase):

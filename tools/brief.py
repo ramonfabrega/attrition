@@ -22,7 +22,8 @@ Kinds: `residue` — a word on the AI track, a pair's or the third map's;
 that each name their falsifying capture (DECISIONS 84); `coverage` — a
 pinned lobby's `cover=1` trace; `structure` — a `docs/STRUCTURE.md` §5
 move, gated whole; `render` — a `docs/RENDERER.md` §6 item (Loop 4022); `start` — a
-`docs/START.md` §5 lobby, gated whole; `input` — a `docs/CLIENT_INPUT.md` item, the orders
+`docs/START.md` §5 lobby, gated on the tests that stand on the built start (DECISIONS 132);
+`input` — a `docs/CLIENT_INPUT.md` item, the orders
 track's (the steering pass of 2026-11-12). A refusal is a `ValueError` and exit 2: an
 item the queue does not book has no brief, and a `--tests` filter that matches no test in the
 workspace, or only `#[ignore]` ones, has no lane gate (Loop 3818, 3227); one whose every match is
@@ -79,7 +80,8 @@ KINDS = {
     'render': ('opening', 'booked', 'lanes', 'render', 'landing'),
     # A start item (the steering pass of 2026-11-12; `docs/START.md` §3, §5):
     # lobbies whose start block the builder reproduces from `GAMEINFO`, the
-    # oracle each lobby's `[Start Game]` dump on disk; gated whole.
+    # oracle each lobby's `[Start Game]` dump on disk; gated on the tests
+    # that stand on the built start (`ALWAYS_TESTS`, DECISIONS 132).
     'start': ('opening', 'booked', 'lanes', 'start', 'landing'),
     # An input item (the same pass; `docs/CLIENT_INPUT.md`): a person's events
     # minted as the script's orders, the original's playback of their file
@@ -132,21 +134,36 @@ ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors', 'bl
                 # nothing; the crate's modules are named instead.
                 'render': ('free::', 'artdata::', 'bh3::', 'bha::', 'camera', 'chunk::', 'draw::',
                            'coverage::', 'census::', 'blind::'),
-                # A start lane gates whole (`WHOLE`): the lobby walked from the
-                # built start and the original's playback of our files stand on it.
-                'start': (),
+                # A start lane (the pass of 2026-11-13 (second), DECISIONS
+                # 132; it gated whole until then): the tests that stand on the
+                # built start — `diff::start` (the block, every lobby's, and
+                # `start_walk`: the lobby walked from it and the original's
+                # playback of our file), `lobby::` (the page's harness lobby,
+                # both crates), `minted::` (the minted files walk from it),
+                # `checksum_lines::packets::` (a word's game stands up from its
+                # lobby's built start since item 4205) — and `mapgen::`, the
+                # chains the builder composes (4186 and 4196 edited
+                # `mapgen/lakes.rs`); the census and blind pins. The booking
+                # gate runs the corpus.
+                'start': ('diff::start', 'lobby::', 'minted::', 'checksum_lines::packets::', 'mapgen::',
+                          'census::', 'blind::'),
                 # An input lane: the client's `input::tests`, `rondata`'s
                 # `diff::minted` (the script's and the clicked file's pins,
                 # `CLICKED_WALKED`) and `recgame::tests`. Never `script::`:
                 # `rondata::script` has no test of its own, and the filter
                 # matches nothing (Loop 3818).
                 'input': ('input::', 'minted::', 'recgame::', 'coverage::', 'blind::')}
-# The kinds whose lane gate names no filter of its own: no word moves.
+# The kinds whose lane gate needs no filter from the commander: no word
+# moves, and the kind's own (`ALWAYS_TESTS`) are its gate's.
 NO_WORD = ('sweep', 'reading', 'coverage', 'structure', 'render', 'start', 'input')
 # The kinds whose lane gate is `--lane --whole` (Loop 4022, the seventy-fifth
-# pass): a structure move certifies no behaviour change by every test; a
-# start change sits under the milestone's lockstep pins (the 2026-11-12 pass).
-WHOLE = ('structure', 'start')
+# pass): a structure move certifies no behaviour change by every test. A
+# start lane gated whole from the 2026-11-12 pass until the pass of
+# 2026-11-13 (second, DECISIONS 132): its whole gates sat 18–21 minutes on
+# the host-wide whole-lane lock before a 20-minute run, and the corpus they
+# ran is the booking gate's on every merge. It names its own filters now,
+# as `render` and `input` do.
+WHOLE = ('structure',)
 # Rows of the checklist that are the commander's to follow in composing, or
 # the pass's, and say nothing to a worker.
 NOT_A_BRIEF_S = frozenset()
@@ -314,10 +331,17 @@ def sim_only(tests, by_crate):
     elsewhere, at least one there (Loop 3823). A lane gate that leaves the
     sim crate to the booking gate (`sim_crate_left`, Loop 3653) runs none
     of their tests; one that matches nothing anywhere is not among them."""
-    def live(crate, t):
-        return any(t in n and not ignored for n, ignored in by_crate.get(crate, {}).items())
-    return [t for t in tests if live(SIM_CRATE, t)
-            and not any(live(c, t) for c in by_crate if c != SIM_CRATE)]
+    return only_in(tests, by_crate, SIM_CRATE)
+
+
+def only_in(tests, by_crate, crate):
+    """The filters whose every live match is a test of `crate` — the rule
+    `sim_only` reads for the sim crate and `release_gate.py` for the client
+    (`client_crate_left`, DECISIONS 132 §6)."""
+    def live(c, t):
+        return any(t in n and not ignored for n, ignored in by_crate.get(c, {}).items())
+    return [t for t in tests if live(crate, t)
+            and not any(live(c, t) for c in by_crate if c != crate)]
 
 
 def filters(kind, tests):
