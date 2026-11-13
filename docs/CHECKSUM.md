@@ -2398,15 +2398,17 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 | units | 1 | 1380746621 | 3361244557 | 230: 1–30, 96, 101–299 |
 | builds | 100 | 2036616519 | 1941983632 | 200: 100–299 |
 | groups | 61 | 3641636078 | 3844076871 | 5: 61–65 |
-| guys | 129 | 4018927185 | 1262538754 | 171: 129–299 |
+| guys | 129 | 4020237905 | 1262538754 | 171: 129–299 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
 | cities | 4030 | 66197007 | 38147597 | 0 |
-| items | 987 | 1602836503 | 3605812239 | 0 |
+| items | whole, 24,000 | | | 0 |
 | goods | 3246 | 1994224488 | 2043245418 | 0 |
 | world | 0 | 1459647454 | 823986248 | 1: 0 |
 
 On run1577's 120 the same walk gives the same first frames inside 120; guys, cities, items and goods are whole on all
-120. The 8 of 12 lines whole on frame 91 (§22) are whole there and around it; **a line whole on a packet frame is not
+120. On the base before item 4209 the items line first parted on 987 (ours 1602836503, theirs 3605812239: item 3's
+`ever_seen`, and one box theirs had closed); item 4209's `Item::close` makes it whole on all 24,000. The 8 of 12 lines
+whole on frame 91 (§22) are whole there and around it; **a line whole on a packet frame is not
 a line whole on the game**. Measured: the walk to cities' 4030 takes 5.4 s in release.
 
 ### 24.4 Where each first parting is (diff-backed)
@@ -2421,7 +2423,6 @@ line's field reader where it has one:
 | groups | 61 | 1580 | group record 1: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34 |
 | builds | 100 | 1581 | building 2000 `queue[k]`: type 0, 50; `cost[0]` 0, 27 |
 | guys | 129 | 1582 | 389 ranges against 375 (units 1,147 against 1,107): a figure ours holds and theirs does not yet |
-| items | 987 | 1583 | item 3 `ever_seen`: 0x02, 0x00; 110 ranges against 105 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2 |
 | leaders | 1 to 4030 | all | leader 0's long range at +0x10: ours 0 on every packet, theirs 0xc7 on 1 and 0x105 on 4030 (§20; item 4159) |
@@ -2440,8 +2441,9 @@ on synthetic records.
 
 Not established:
 - Whether a non-playback game's sets pair the same way. The solo arm calls `check_all` once a turn, with no read loop.
-- The parted lines' causes: each is a parked row of `docs/journal/2026-11-13-item-4214.md` (4214a to 4214h).
-- What parts past a line's first parting outside `DIAG`. The world parts again on 3246 (cell (1495, 1471), +0x8 of
-  its 21 bytes) once units and guys have diverged.
+- The parted lines' causes: each is a parked row of `docs/journal/2026-11-13-item-4214.md` (4214a to 4214h; 4214e
+  closed by item 4209).
+- What parts past a line's first parting outside `DIAG`. On every packet past frame 0 the world line agrees, and so
+  does items since item 4209.
 - Walls, ammo and deaths, which have no emitter. On this game they stay at Adler 1 on both sides to 4030 on every
   packet.

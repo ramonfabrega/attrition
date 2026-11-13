@@ -183,7 +183,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
             ("guys", 129, 171),
             ("leaders", 0, 300),
             ("cities", 4030, 0),
-            ("items", 987, 0),
+            ("items", 24000, 0),
             ("goods", 3246, 0),
             ("world", 0, 1),
         ],
@@ -400,7 +400,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "rontrace-run1583.log",
         987,
         &[
-            ("units", 1181, 1441, 266, "0 0 flags: flags 65|73"),
+            ("units", 1181, 1441, 265, "0 0 flags: flags 65|73"),
             (
                 "builds",
                 557,
@@ -422,7 +422,6 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 2,
                 "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|e7000000",
             ),
-            ("items", 105, 110, 24, "15 3 ever_seen: +0x0 of 1|1: 02|00"),
         ],
     ),
     (
@@ -435,7 +434,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 "builds",
                 703,
                 703,
-                8,
+                7,
                 "14 2000 queue[k]: type -1|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|25",
             ),
             (
@@ -452,15 +451,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 2,
                 "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|fd000000",
             ),
-            ("items", 90, 110, 42, "0 0 ever_seen: +0x0 of 1|1: 02|00"),
             ("goods", 180, 180, 1, "95 19 ever_seen: +0x0 of 1|1: 00|02"),
-            (
-                "world",
-                8000,
-                8000,
-                3,
-                "1495 1471 cell: +0x8 of 21|21: fdff0600|ffff0600",
-            ),
         ],
     ),
     (
@@ -473,7 +464,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 "builds",
                 723,
                 723,
-                11,
+                10,
                 "14 2000 queue[k]: type -1|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|25",
             ),
             (
@@ -491,14 +482,6 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|05010000",
             ),
             ("cities", 17, 17, 1, "4 0 city..ter: traded_with[1] 4|2"),
-            ("items", 85, 110, 47, "0 0 ever_seen: +0x0 of 1|1: 02|00"),
-            (
-                "world",
-                8022,
-                8022,
-                4,
-                "1495 1471 cell: +0x8 of 21|21: fdff0600|ffff0600",
-            ),
         ],
     ),
     (
