@@ -926,6 +926,8 @@ impl World {
                 alpha_mips: std::sync::Arc::new(crate::ground::water_ramp()),
                 mountain: false,
             };
+            let ramp = std::sync::Arc::new(crate::ground::water_ramp());
+            let mut fades: BTreeMap<usize, PatchMesh> = BTreeMap::new();
             for ((tri, uv), &k) in base.tris.iter().zip(&base.uvs).zip(&base.of) {
                 if let (Some(f), true) = (floor.as_mut(), Some(k) == ocean) {
                     f.positions.extend_from_slice(tri);
@@ -935,6 +937,29 @@ impl World {
                     }));
                     shade.positions.extend_from_slice(tri);
                     shade.uvs.extend_from_slice(&[[0.5, 0.5]; 3]);
+                    continue;
+                }
+                // Item 4192 (§3.16): every land-pass
+                // draw blends at its corners' `light_land_vert` alpha, 255
+                // down to −52 and 0 from −271, over the clear colour; a
+                // triangle with a corner below −52 leaves the opaque pass
+                // for its texture's faded layer.
+                let alpha = tri.map(|p| crate::ground::land_alpha(p[2]));
+                if alpha.iter().any(|&a| a < 255) {
+                    let m = fades.entry(k).or_insert_with(|| PatchMesh {
+                        piece: -1 - k as i32,
+                        positions: Vec::new(),
+                        uvs: Vec::new(),
+                        alpha_uvs: Vec::new(),
+                        mips: g.flat[k].clone(),
+                        alpha: WATER_ALPHA,
+                        alpha_mips: ramp.clone(),
+                        mountain: false,
+                    });
+                    m.positions.extend_from_slice(tri);
+                    m.uvs.extend_from_slice(uv);
+                    m.alpha_uvs
+                        .extend(alpha.map(|a| [(f32::from(a) + 0.5) / 256.0, 0.5]));
                     continue;
                 }
                 meshes[k].positions.extend_from_slice(tri);
@@ -970,11 +995,15 @@ impl World {
                     m.alpha_uvs.extend_from_slice(&laid.alpha_uvs[i]);
                 }
             }
-            let mut patches: Vec<PatchMesh> = patches.into_values().collect();
+            // The faded land first: the card draws it in the land pass,
+            // before the floor and every transition patch.
+            let faded = fades.len();
+            let mut patches: Vec<PatchMesh> =
+                fades.into_values().chain(patches.into_values()).collect();
             let mut layers = (None, None);
             if !shade.positions.is_empty() {
-                layers.1 = Some(0);
-                patches.insert(0, shade);
+                layers.1 = Some(faded);
+                patches.insert(faded, shade);
             }
             // Item 4164: the water over every cell that holds it, at the
             // water's alpha on a linear ramp so the patch's shader takes it

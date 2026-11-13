@@ -121,9 +121,12 @@ fn walk_chapter(run: &str, n: u32, staged: usize, length: i64) -> Option<Walk> {
     walk_script(run, &format!("chapter{n}"), n, staged, length)
 }
 
-/// [`walk_chapter`] on a script named by its stem: chapter seven's control
-/// (`chapter7_control`, item 578) walks through here.
-fn walk_script(run: &str, stem: &str, n: u32, staged: usize, length: i64) -> Option<Walk> {
+/// [`walk_script`]'s frame zero: the golden capture `run` stood up, and the
+/// script `stem` read, with the data layer and the trace beside them.
+fn stand_up_script(
+    run: &str,
+    stem: &str,
+) -> Option<(Built, Script, crate::load::Loaded, crate::trace::Trace)> {
     let inst = crate::testenv::install()?;
     let Some((dump, tracepath)) = golden(run) else {
         eprintln!("skipping: no golden capture {run} (see docs/RUNS.md)");
@@ -133,9 +136,38 @@ fn walk_script(run: &str, stem: &str, n: u32, staged: usize, length: i64) -> Opt
         .expect("a finalized golden trace")
         .expect("missing RONT header");
     let loaded = crate::load::load(&inst).unwrap();
-    let (mut built, _) = build_golden(run, &dump, &loaded, &trace, true)?;
+    let (built, _) = build_golden(run, &dump, &loaded, &trace, true)?;
+    Some((built, script_named(stem), loaded, trace))
+}
+
+/// **A chapter walked to chosen frames** (item 4188): [`walk_script`]'s
+/// walk — the script pumped and staged before each tick, in its order —
+/// handing `probe` the simulation on each of `frames` (ascending), where
+/// `sim.frame` is the frame. `None` on a machine without the capture.
+pub(crate) fn walk_script_to(
+    run: &str,
+    stem: &str,
+    frames: &[i64],
+    probe: &mut dyn FnMut(i64, &Built),
+) -> Option<()> {
+    let (mut built, mut script, loaded, _) = stand_up_script(run, stem)?;
+    for &f in frames {
+        assert!(built.sim.frame <= f, "the frames ascend");
+        while built.sim.frame < f {
+            script.pump(built.sim.frame, &mut built);
+            script.stage(built.sim.frame, &mut built, &loaded);
+            built.tick();
+        }
+        probe(f, &built);
+    }
+    Some(())
+}
+
+/// [`walk_chapter`] on a script named by its stem: chapter seven's control
+/// (`chapter7_control`, item 578) walks through here.
+fn walk_script(run: &str, stem: &str, n: u32, staged: usize, length: i64) -> Option<Walk> {
+    let (mut built, mut script, loaded, trace) = stand_up_script(run, stem)?;
     built.sim.trace.trace_phases = true;
-    let mut script = script_named(stem);
     assert_eq!(
         script.lines().len(),
         staged,

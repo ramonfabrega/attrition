@@ -714,10 +714,16 @@ pub fn checksum_line() -> String {
         }
         out
     };
+    // Step P (item 4188): the packets compared on their own game's frame
+    // and the lines agreeing of those counted there.
+    let (packets, agree, counted) = super::checksum_lines::packets::PACKETS_SCORE;
+    let on_disk = super::checksum_lines::packets::PACKETS_ON_DISK;
     format!(
-        "Checksum: instrument {lines} of {of_lines} lines ({run} f{frame}) \u{b7} state {state} of {of_state} lines, {} of {} bytes",
+        "Checksum: instrument {lines} of {of_lines} lines ({run} f{frame}) \u{b7} state {state} of {of_state} lines, {} of {} bytes \u{b7} packets {packets} of {on_disk} \u{b7} lines {} of {}",
         grouped(bytes),
         grouped(of_bytes),
+        grouped(agree as u64),
+        grouped(counted as u64),
     )
 }
 
@@ -1448,7 +1454,8 @@ mod tests {
     #[test]
     fn the_checksum_line_groups_its_bytes() {
         assert!(
-            checksum_line().ends_with(" of 425,499 bytes"),
+            checksum_line().contains(" of 425,499 bytes")
+                && checksum_line().ends_with(" lines 147 of 1,058"),
             "{}",
             checksum_line()
         );
