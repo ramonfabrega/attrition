@@ -11,6 +11,7 @@
 
 use super::minted::{built_start, minted, script, tick_to};
 
+pub(super) mod packets;
 mod world;
 use crate::checksum::CHECKSUM_PACKET;
 use sim::checksum::{COORD_MASK, Line};
@@ -31,19 +32,43 @@ fn stream(line: &str) -> Option<Vec<(String, String, Vec<u8>)>> {
         CHECKSUM_PACKET.0, CHECKSUM_PACKET.2
     );
     let text = std::fs::read_to_string(path).ok()?;
+    Some(
+        stream_lines(&text, |l| l == line)
+            .remove(line)
+            .unwrap_or_default(),
+    )
+}
+
+/// The rows of an instrument stream's text, by line, for every line `keep`
+/// takes: `(walker, call site, bytes)` in walk order. A line `keep` takes
+/// with no row is absent from the map.
+fn stream_lines(
+    text: &str,
+    keep: impl Fn(&str) -> bool,
+) -> std::collections::BTreeMap<String, StreamRows> {
     let hex = |s: &str| -> Vec<u8> {
         (0..s.len() / 2)
             .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("the stream's hex"))
             .collect()
     };
-    Some(
-        text.lines()
-            .skip(1)
-            .map(|l| l.split('\t').collect::<Vec<_>>())
-            .filter(|c| c.len() == 8 && c[0] == line)
-            .map(|c| (c[2].to_string(), c[4].to_string(), hex(c[7])))
-            .collect(),
-    )
+    let mut out: std::collections::BTreeMap<String, StreamRows> = Default::default();
+    for l in text.lines().skip(1) {
+        let Some((line, _)) = l.split_once('\t') else {
+            continue;
+        };
+        if !keep(line) {
+            continue;
+        }
+        let c: Vec<&str> = l.split('\t').collect();
+        if c.len() == 8 {
+            out.entry(line.to_string()).or_default().push((
+                c[2].to_string(),
+                c[4].to_string(),
+                hex(c[7]),
+            ));
+        }
+    }
+    out
 }
 
 /// The printed value of `label` in record [`CHECKSUM_PACKET`]'s `.2` of
@@ -627,8 +652,18 @@ fn build_pieces(sim: &sim::Sim) -> std::collections::BTreeMap<usize, i32> {
     let loaded = crate::load::load(&inst).unwrap();
     let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
     let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+    build_pieces_with(sim, &look, &tribes)
+}
+
+/// [`build_pieces`] on a look and tribes read once, for a walk that takes
+/// the builds line on many frames (item 4188, [`packets`]).
+fn build_pieces_with(
+    sim: &sim::Sim,
+    look: &crate::artdata::BuildLook,
+    tribes: &[crate::TribeDef],
+) -> std::collections::BTreeMap<usize, i32> {
     let scene = sim.observe(None);
-    let placed = crate::free::placed_buildings(&scene, &look, &tribes);
+    let placed = crate::free::placed_buildings(&scene, look, tribes);
     let mut out = std::collections::BTreeMap::new();
     for (i, b) in sim.buildings.iter().enumerate() {
         if let Some(p) = placed

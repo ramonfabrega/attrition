@@ -119,9 +119,15 @@ pub(crate) fn walk_sahara_from(start: &str, (gamelog, tracelog): (&str, &str)) -
     walk_from(start, (gamelog, tracelog))
 }
 
-/// The same draw-stream walk with an explicit full-start sibling on any map.
-/// No map-specific state is supplied beyond the named captures.
-pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Option<Word> {
+/// [`walk_from`]'s frame zero: the long capture's own initial state with the
+/// start sibling's head and the long trace's pasture borrowed, built — the
+/// state every word on the scoreboard walks from — and the trace. Item 4188
+/// ticks it to a packet's frame (`diff::checksum_lines::packets`). `None`
+/// when the captures are not on this machine.
+pub(crate) fn stand_up_from(
+    start: &str,
+    (gamelog, tracelog): (&str, &str),
+) -> Option<(Built, crate::trace::Trace)> {
     let inst = install()?;
     let (Some(path), Some(sib), Some(tr)) = (dump(gamelog), dump(start), trace(tracelog)) else {
         eprintln!("skipping: no {gamelog}/{start} (set RON_GAMELOG_DIR)");
@@ -136,7 +142,13 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
     let mut init = log.initial().unwrap();
     borrow_from_siblings(&mut init, &[&sib_init]);
     borrow_pasture(&mut init, &tr);
-    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    Some((build_sim(&loaded, &init, Tuning::RON), tr))
+}
+
+/// The same draw-stream walk with an explicit full-start sibling on any map.
+/// No map-specific state is supplied beyond the named captures.
+pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Option<Word> {
+    let (mut built, tr) = stand_up_from(start, (gamelog, tracelog))?;
     built.sim.trace.trace_phases = true;
     let difficulty = built.sim.ai.lobby.difficulty;
     let last = tr.frames.last().map_or(0, |(n, _)| *n);

@@ -331,6 +331,9 @@ them). `diff::checksum_lines` holds each ported line's bytes and its
 share of `CHECKSUM_STATE`. An item that ports a line re-pins
 `CHECKSUM_STATE`. The driver writes the queue's line.
 
+Step P's clause, the lines on every packet on disk, is §23.5's
+`PACKETS_SCORE`: `packets 107 of 108 · lines 147 of 1,058` (item 4188).
+
 ## 6. Ledger: units and guys
 
 Offsets are in the walked object's record. A local is a value the walker
@@ -1877,9 +1880,13 @@ counter, a slot mark, a setup rule, a never-reached constant, a held leaf and
 
 **Not established**:
 
-- Every frame but 91.
+- ~~Every frame but 91.~~ The line is compared on 107 packets since item
+  4188 (§23.4): the long range parts on every one, and no held-out leaf
+  but `tech.ptr` has a value to compare.
 - A leader the crate seats from a dump.
-- `mil_trainers`' elements and a `SimpleArray<int>`'s `size` past ten.
+- ~~`mil_trainers`' elements and a `SimpleArray<int>`'s `size` past ten.~~
+  Both corrected on the packets (§23.4): the elements are the trainers'
+  object numbers, and the size grows by ten.
 - `sites[k].reg` for a kept site at cell `(0, 0)`.
 - `leader_flags` bits `0x10` and `0x80000` (run1100's computers), and every
   `leader_flags2` bit but the two.
@@ -2052,10 +2059,157 @@ machine each line's walkers are the stream's owners.
 | groups | `the_groups_line_is_the_original_s_range_by_range` | `Group::walk_data@00708400` (548), `CheckSums::check_groups@00937530` (8) |
 | world | `the_world_line_is_the_original_s_by_section` | `World::walk_data@006b5cf0` (7265), `SimpleArray<WCoord>::walk_data@0047c660` (22), `Array<WCoordData>::walk_data@00478990` (696), `SimpleArray<int>::walk_data@00473120` (11) |
 
-**Not established**: every frame but 91 of one game. A walker's arms that state
+**Not established**: ~~every frame but 91 of one game~~ — item 4188
+compares every line on 107 packets (§23), and no line is whole on any of
+them but the minted packet, so this table still rests on frame 91. A
+walker's arms that state
 on frame 91 does not reach are a reading: an order type the packet's
 units do not carry (only `AttackToOrder`, `TargetOrder` and `GatherOrder`
 walk here), a wall's own walk (no wall stands), a building's arms past
 the fifteen. Every other `walk_data` the territory holds — the save
 walks of state these lines do not print — stays open under the
 checksum track's name.
+
+## 23. Step P: the twelve lines on every packet on disk (item 4188)
+
+Item 4188, step P of the leaders chain (`docs/DECISIONS.md` entry 129 §5).
+Until this section the twelve state lines were compared on one frame,
+run 1562's 91, where most leaves are zero and three lines are empty. Now
+**107 of the 108 packets under `~/ron-golden`** are compared, each on its
+own game's frame, range by range
+(`rondata::diff::checksum_lines::packets`). No capture was taken.
+
+### 23.1 The census
+
+Each packet is wired to its game and frame by its run's `receipt.json`
+(map, lobby profile, AI tribe, seats) and `rontrace.cmd` (the staged
+script), and its logger frame by the instrument's own values file. The
+journal (`docs/journal/2026-11-12-item-4188.md`) has the table.
+
+| held by | packets | games | the walk |
+|---|---|---|---|
+| a word on the scoreboard | 87 | 59 late-age pairs and battery words | `third::stand_up_from`, the frame zero `walk_from` ticks |
+| a golden chapter | 7 | chapters 64, 65, 75, 94, 95, 100 | `golden::walk_script_to`, the chapter's own walk with its script |
+| a melee | 12 | the gunpowder, classical, information, sea and airbase melees | the word's stand-up inside the melee's staged script (`seat_walk`'s) |
+| the minted walk | 1 | run 1562's frame 91 | `ours_at_packet`, the frame-91 pair's own |
+| **not held** | 1 | run1100 | run1090's lobby with `100 ally 1` and `5404 explore all`; no word walks it |
+
+A packet is held when its game's word is whole to a length that reaches
+the packet's frame. Every chapter and melee packet's `rontrace.cmd` is its
+script up to the packet's frame (run839's and run938b's carry lines past
+it). `every_packet_is_wired_to_its_game_or_named` holds the table against
+the disk: each run once, each frame inside its walk's length, the packets
+on disk exactly these, each values file naming the table's frame.
+
+### 23.2 The instrument on 108 packets
+
+`tools/recomp/checksum.py --stream --values` ran on all 108, 10 to 13 s
+each, every one exiting 0 with its own Adler equal to the original's on
+all fifteen lines. The streams stay outside git
+(`~/ron-data/lab-experiments/2026-11-12-item-4188/<run>/`, `RON_PACKETS_DIR`).
+Only run1100 and run 1562 hold a printed windowed record at their frame,
+and both were reproduced at item 4060 and 4088 (§3). For the other 106 the
+instrument's two proofs stand in for a print.
+
+### 23.3 The boundary
+
+**The hypothesis holds: a packet at logger frame `n` is our walk with
+`sim.frame == n`**, on a word's stand-up as on the minted walk. On run1161
+(logger frame 4) frame 4 agrees on four of nine counted lines, with 535
+units ranges and 13 builds ranges parting. Frame 3 agrees on three, with
+2,772 and 53 parting, and frame 5 on four, with 2,765 and 15.
+`a_packet_s_comparison_can_part` pins it: frames 3 and 5 are not the
+packet's outcome and agree on no more lines.
+
+### 23.4 What agrees
+
+**147 of 1,058 counted lines agree on the 107 packets.** A line is counted
+when either side walks a range of it (entry 120 §2). By line:
+
+| line | agree / counted | the first parting, mostly |
+|---|---|---|
+| units | 1 / 107 | the first unit's `flags`, ours `0x41` theirs `0x49` (87) |
+| builds | 1 / 107 | `myhits..launch_frames`, a chain word ours 2000 theirs −1 (84) |
+| walls | 0 / 0 | no packet walks a wall |
+| ammo | 0 / 56 | no emitter: the crate does not emit the line |
+| deaths | 0 / 39 | no emitter |
+| groups | 31 / 107 | a group record's word ours 0 theirs −1 (62) |
+| guys | 1 / 107 | a guy's range (94) |
+| leaders | 0 / 107 | the flag words (79); the long range parts everywhere (§20) |
+| cities | 26 / 107 | `city..ter` (81) |
+| items | 11 / 107 | `ever_seen`, ours 2 theirs 0 (83) |
+| goods | 75 / 107 | `ever_seen` (32) |
+| world | 1 / 107 | `start_x.num` ours 0 theirs 2 or 3 (106 of 106 off the minted walk) |
+
+By walk: the minted packet 8 of 9 (frame 91's own pins); the chapters 28 of
+68, their groups, cities, items and goods agreeing on all seven; the melees
+23 of 127; the words 88 of 854. **The words' and the melees' starts are
+seated from a dump, not built from the lobby** (`docs/START.md`), and the
+lines carry what a dump does not print: the world line's start arrays
+(`start_x.num` 0), every item's `ever_seen`. The unit and guy lines part
+past the draw stream's lockstep, which the words score: a word is the draw
+stream, not the state.
+
+**The leaders line, leaf by leaf, on the 226 walked leaders.** Every leaf
+of `LEADERS_HELD_OUT` is unheld (the crate holds no value) except
+`tech.ptr`, which parts on all 226. So **no held leaf is released by entry
+129 §5**: the unprinted ones need a value first (item 4187). Two leaves
+outside the list were wrong on the line, and are corrected here, each
+with its value diff:
+
+- `mil_trainers.elements` emitted our building handle. The original's
+  `SimpleArray<int>` holds the building's object number. On run1359's
+  who 1 (frame 5619) ours read 25, 20, 24, 19, … and theirs 2018, 2013,
+  2017, 2012, …. It now agrees on all 97 walked leaders that hold one.
+- A `SimpleArray<int>`'s `size` is its capacity, which grows by ten. Ours
+  emitted `max(10, length)`; on run1359's who 1, 12 trainers, ours 12 and
+  theirs 20. It now agrees on all 226 for `mil_trainers`, `new_rares` and
+  `oil_patches`.
+
+The leaves that still part outside the list are pinned per packet
+(`PACKET_LEAF_PARTINGS`), 106 packets. They are findings
+(the journal's 4188a–4188d):
+
+| leaf | slots parting of 226 | value diff |
+|---|---|---|
+| `cities_built` | 224 | run1496's who 0 (frame 1539), ours 0 theirs 1: off the minted walk ours is one short everywhere |
+| `aggression` | 216 | run1496's who 0, ours all 0, theirs 1 on every other slot |
+| `flags.leader_flags` | 171 of 856 flag words | run1496's who 0, ours 7 theirs 917511 (`0xe0007`) |
+| `resources_controlled` | 79 | run1359's who 1, ours 0 theirs 6 |
+| `reg_unpack_merch` | 49 | run1359's who 1, region 1 ours 7 theirs 6 |
+| `oil_patches.elements` | 10 | run854's who 0, ours 1, 2, 8, 15 theirs 8, 2, 1, 15 |
+| the `encrypt` buckets, `reg_gatherers`, `diplos`, `num_units`, `explored`, `gather_stamp`, `active`, `escrow`, `collected` | 1 to 10 each | the game's own state parting (run1359's who 1 `bucket[0]` ours 5714 theirs 5930) |
+
+### 23.5 The score
+
+The queue's clause is `PACKETS_SCORE`, `(packets compared, lines agreeing,
+lines counted)` over `PINNED`, pinned as found first as a regression gate,
+not a target: `Checksum: packets 107 of 108 · lines 147 of 1,058`.
+`the_packets_score_is_the_pins` holds the sum and a pin for every held
+packet. Each game's test (`<word>_packets`, `chapter<N>_packets`,
+`<melee>_packets`, `minted_packet`) holds each of its packets' twelve
+`(the stream's ranges, ours, ranges parted)` and its leaves parting
+outside the list.
+
+**Made to fail.** The goods line emptied on our side turned
+`chapter64_packets`, `minted_packet`, `spanish_word_packets` and
+`russian_modern_pair_packets` red, each on the goods line alone
+(`(180, 0, 180)` against `(180, 180, 0)` on chapter 64). A run renamed in
+`NOT_HELD` turned the census red. One bent byte of the items line parts on
+that range alone, and run1165's later stream against our frame 4 agrees
+on fewer lines (`a_packet_s_comparison_can_part`). The walks take 80 s
+for all 74 game tests together.
+
+### 23.6 How it was established, and what it has not established
+
+- Diff-backed: all of it. Every number above is a range-by-range
+  comparison against the original's walk on its own memory.
+- The games are identified by their lobby and script, not by a value. The
+  agreeing lines (goods on 75 packets, groups on 31) say the packet is
+  that game. A packet whose game differed from its word's capture would
+  read like a walk far out of step, and no test tells the two apart.
+- Not established: run1100 (no word walks its lobby); the walls line (no
+  packet walks a wall); the ammo and deaths lines (no emitter); every
+  line's agreement on a lobby-built start past frame 91 (only the minted
+  packet is one); which of the dump-seated parts are the seat's and which
+  the walk's (4188a); a `SimpleArray<int>` that has shrunk.

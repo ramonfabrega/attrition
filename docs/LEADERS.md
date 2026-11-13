@@ -89,6 +89,22 @@ step bent parts on a named pair (`the_bent_steps_part_on_a_named_pair`).
 A pair touching a repeated frame label (run27's and run29's 15101) is not
 a step's pair and is not counted.
 
+**The packets** (item 4188, step P; `docs/DECISIONS.md` entry 129 §5;
+`docs/CHECKSUM.md` §23). The leaders line is compared leaf by leaf on 107
+packets, 226 walked leaders. **No leaf leaves `LEADERS_HELD_OUT`** (61):
+every held-out leaf but `tech.ptr` is unheld, so it has no value to agree,
+and `tech.ptr` parts on all 226. Of the unprinted ones, theirs is nonzero
+somewhere for `last_building_finished`, `last_unit_finished`, the score and
+nine of its parts (every slot for `score`, `score_buildings`,
+`score_economy`, `score_territory`); `incoming*`, `score_explored`,
+`score_pop`, `tribute_received` and `tribute_sent` are zero on every
+packet, so 129 §5 cannot release them even once held: no packet moves
+them. The packets corrected two leaves the line already held,
+`mil_trainers`' elements (object numbers) and the `SimpleArray<int>`
+sizes (capacity in tens), and pinned the leaves still parting outside the
+list (`cities_built`, `aggression`, `leader_flags`, `resources_controlled`,
+`reg_unpack_merch` and ten more; `docs/CHECKSUM.md` §23.4).
+
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
 at the end (the vbtable pointer at +0x6ee4), so a `Leader*`'s `field_0xNN` is
