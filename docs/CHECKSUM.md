@@ -2250,10 +2250,14 @@ dump-seated (`packets::SEATED_WORDS`), in two clusters:
   frame 2, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271` at draw 0,
   theirs `Farms::inc_time+0x1ae` (run1149's game, ours 7 draws theirs 4).~~
   Closed by item 4208: the built start's whales had no piece. Below.
-- **4205b, the Great Lakes Modern and Information words (5, 8 packets)**:
+- ~~**4205b, the Great Lakes Modern and Information words (5, 8 packets)**:
   the count parts on frame 0, `Unit::think_scout+0x64c` against `+0x436`
   at draw 36 or 37, the fog's sign (`docs/START.md` §7.2). On run1429's
-  game four fog cells differ, the first `world.fog[5981]` built 0 dump 2.
+  game four fog cells differ, the first `world.fog[5981]` built 0 dump 2.~~
+  Closed by item 4210: a starting citizen's step lit no disc
+  (`docs/START.md` §7.2). **59 of 59 words, 87 of 87 packets, walk from
+  the built start**; no line turns, and world parting drops to 1–10 a
+  packet (run1441 5,229 → 9).
 
 **4205a's cause (item 4208): the whales' piece.** The three draws are
 three whales' clocks wrapping: run1149's `8/8`, `8/10` and `8/13`
@@ -2282,8 +2286,8 @@ on frame 2. All 24 East Indies words hold to their last packet. **54 of
 59 words, 79 of 87 packets, walk from the built start** (`BY_START`
 ((54, 79), (5, 8))). Every other packet's pin is unchanged.
 
-`the_seated_words_part_from_the_built_start` pins 4205b's parting, run1149's
-game holding to frame 4, and the counts (`BY_START`): the lockstep
+`the_seated_words_part_from_the_built_start` pins run1149's and run1429's
+games holding to frame 4, and the counts (`BY_START`): the lockstep
 assertion is sighted. Each word's own floor test still walks from its
 dump-seated stand-up (`third::walk_from`, now `stand_up_from` and
 `walk_word`).
@@ -2334,7 +2338,7 @@ trace's draws per frame. Red first: `spanish_word_packets` at the built
 start's pins, walked seated, part on four lines. The whales' piece (item
 4208) is backed by the start dump's `gpiece` 60075, by the dump's frame-0
 clocks (anim 0, end 387), and by the draw stream: run1149 to its end, and
-24 words to their last packets. **Not established**: 4205b's cause;
+24 words to their last packets. **Not established**: ~~4205b's cause~~ (item 4210);
 ~~4205a's~~ (item 4208, above); whether the built start holds a
 seated word past where its draws part; the chapters' and melees' packets,
 which stand up as before; ~~the cell `down` copy (4205c, `docs/START.md`

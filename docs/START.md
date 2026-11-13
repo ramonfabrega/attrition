@@ -559,6 +559,27 @@ pasture).
   carried). Ported as `Sim::update_seen_ally_build`
   (`crates/sim/src/vision/seen_ally.rs`); the per-cell `WData.was_seen`
   byte it also sets is not kept. After it every fog cell agrees.
+- **A starting citizen's step lights its disc** (item 4210). The five
+  Great Lakes Modern and Information words still parted on frame 0 at
+  the same pair of sites (run1429's game: ours 142 draws, theirs 141, at
+  draw 37). Four `seen2` cells differed, all seat 1's bit: fog (101, 49),
+  (102, 50), (103, 51) and (104, 51), built 0 against the dump's 2. The
+  radius was not it: `LeaderData::get_radius` reads no age, the city's
+  disc round (110, 42) is lit on both sides to r² 110, and its ring at 11
+  is dark on both. The four are a radius-4 disc round (105, 47), where
+  citizen `1/7` (`TypeIndex` `0x32`, land) stands after `come_out` steps
+  it off `1/2001`'s point at (105, 46). Its birth disc at (105, 46) is lit
+  on both sides. `Unit::come_out@00617c10`'s no-host arm calls
+  `set_new_location(·, ·, 1, 1)` (`:518`) without first storing the spot
+  as the inside arms do. So `005f8d20`'s half-cell test sees the step
+  cross a fog cell and calls vslot `+0x174` with `param_3 == 0`:
+  `update_seen(0)`, the whole disc at the new spot.
+  `Sim::come_out_own_point` moved the unit and lit nothing. It now ends
+  in `moved_to(u, from, false)`. A lobby starting with eight more
+  citizens (`STARTING_RESOURCES 7`) steps more of them across a fog
+  cell. Only where a new disc pokes outside the city's are cells lit
+  that nothing else lit. After the fix every `seen2` cell agrees, and
+  all eight packets hold the draws.
 - **The install's takes before the first unit.** The walk then parted on
   frame 40, draw 0: theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
   ours a farm's. Every guy of the built start had `gpiece −1`:
@@ -639,7 +660,10 @@ walk's word is 0, first parting `Unit::think_scout+0x64c` against
   whole comparison; the fog, the goods' positions, the goody boxes, the
   mountains, the territory limits and the buildings' `ever_seen` by
   `start_wide`; the whole start by the walk — 24,000 frames of draws and
-  2,770 records alike from both starts.
+  2,770 records alike from both starts. A starting citizen's step disc
+  (§7.2, item 4210) by run1428's `[Start Game]` fog, every `seen2` cell
+  equal, and by the draws of all five late-age Great Lakes words to
+  their last packets.
 - **Read once, from the decompile**: `update_seen_ally`'s reach (the
   allied and human arms; no capture has an ally or two humans), its
   non-city radius (the building's line of sight unscaled; only villages
