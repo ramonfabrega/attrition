@@ -299,26 +299,25 @@ pub(super) fn hold(game: &Game, packets: &[(&'static str, i64)]) {
 /// `docs/CHECKSUM.md` §23.7): walked from the lobby's built start their
 /// draw stream parts from the long trace before their first packet, so
 /// the lines would be read off a walk out of step. `(the word, why)`, the
-/// why the journal's parked finding: **4205b**, the Great Lakes Modern and
-/// Information words, part on frame 0 (`Unit::think_scout+0x64c` against
-/// `+0x436`, the fog's sign, `docs/START.md` §7.2). Every other word walks
-/// from the built start ([`walk_packets_built`]) and holds the draws to
-/// every packet's frame. The 24 East Indies words of **4205a** left at item
-/// 4208: their whales had no piece, so each kept an idle variant its packet
-/// lacks and wrapped on frame 2 (`Sim::gaia_piece`, `docs/START.md` §6).
-pub(super) const SEATED_WORDS: &[(&str, &str)] = &[
-    ("GreatLakesAmericanInformation", "4205b"),
-    ("GreatLakesAztecModern", "4205b"),
-    ("GreatLakesEgyptianInformation", "4205b"),
-    ("GreatLakesEgyptianModern", "4205b"),
-    ("GreatLakesJapaneseModern", "4205b"),
-];
+/// why the journal's parked finding. **None is left since item 4210**:
+/// every word walks from the built start ([`walk_packets_built`]) and
+/// holds the draws to every packet's frame. The 24 East Indies words of
+/// **4205a** left at item 4208: their whales had no piece, so each kept an
+/// idle variant its packet lacks and wrapped on frame 2 (`Sim::gaia_piece`,
+/// `docs/START.md` §6). The five Great Lakes Modern and Information words
+/// of **4205b** left at item 4210. They parted on frame 0
+/// (`Unit::think_scout+0x64c` against `+0x436`) because a starting
+/// citizen's step off its building lit no disc (`Sim::come_out_own_point`,
+/// `docs/START.md` §7.2): run1429's four `seen2` cells, fog (101, 49),
+/// (102, 50), (103, 51) and (104, 51), built 0 against the dump's 2.
+pub(super) const SEATED_WORDS: &[(&str, &str)] = &[];
 
 /// The word packets by their walk: `((words, packets) from the built
 /// start, (words, packets) dump-seated)` (item 4205). ((30, 41), (29, 46))
-/// at item 4205; **((54, 79), (5, 8))** at item 4208, the 24 East Indies
-/// words and their 38 packets walked from the built start.
-const BY_START: ((usize, usize), (usize, usize)) = ((54, 79), (5, 8));
+/// at item 4205; ((54, 79), (5, 8)) at item 4208, the 24 East Indies
+/// words and their 38 packets walked from the built start; **((59, 87),
+/// (0, 0))** at item 4210, 4205b's five words and their 8 packets.
+const BY_START: ((usize, usize), (usize, usize)) = ((59, 87), (0, 0));
 
 /// Where a built start's draws first part from `tr`'s by frame `to`:
 /// `(frame, ours, theirs, the draw, our site, theirs)`.
@@ -326,11 +325,13 @@ type BuiltParting = (i64, usize, usize, usize, String, String);
 
 /// **The seat is named, and the built start's lockstep can fail** (item
 /// 4205): every [`SEATED_WORDS`] row is a held word, the counts are
-/// [`BY_START`]'s; 4205b's word walked from the built start parts where
-/// its row says, on frame 0 (run1429's, ours 142 theirs 141, at draw 37),
-/// so [`hold`]'s lockstep assertion is sighted. And run1149's game, which
-/// parted on frame 2 (ours 7 draws theirs 4) until item 4208 gave the
-/// built start's whales their piece, holds to frame 4.
+/// [`BY_START`]'s. run1149's game, which parted on frame 2 (ours 7 draws
+/// theirs 4) until item 4208 gave the built start's whales their piece,
+/// holds to frame 4; so does run1429's, which parted on frame 0 (ours 142
+/// theirs 141, at draw 37, `Unit::think_scout+0x64c` against `+0x436`)
+/// until item 4210 lit a starting citizen's disc where it steps off its
+/// building. With that reveal removed the case goes red on that frame and
+/// draw again, so [`hold`]'s lockstep assertion is sighted.
 #[test]
 fn the_seated_words_part_from_the_built_start() {
     let words: std::collections::BTreeMap<&str, usize> =
@@ -359,17 +360,7 @@ fn the_seated_words_part_from_the_built_start() {
     type Want = (i64, usize, usize, usize, &'static str, &'static str);
     let cases: [((&str, &str), Option<Want>); 2] = [
         (crate::diff::russian_modern_pair::RUSSIAN_MODERN.long, None),
-        (
-            crate::diff::aztec_modern_pair::AZTEC_MODERN.long,
-            Some((
-                0,
-                142,
-                141,
-                37,
-                "Unit::think_scout+0x64c",
-                "Unit::think_scout+0x436",
-            )),
-        ),
+        (crate::diff::aztec_modern_pair::AZTEC_MODERN.long, None),
     ];
     for (long, want) in cases {
         let Some(got) = built_parting(long, 4) else {
@@ -2383,22 +2374,25 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: builds (2033, 2033, 75) -> (2033, 2033, 74); items (60, 110,
     // 69) -> (60, 60, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4406, 4486, 3414) -> (4406,
+    // 4486, 3351); builds (2033, 2033, 74) -> (2033, 2033, 56); guys (1231, 1336, 141) -> (1231,
+    // 1336, 105); cities (27, 27, 2) -> (27, 27, 1); world (8434, 7715, 5388) -> (8434, 8434, 2).
     (
         "run1419b",
         3212,
         [
-            (4406, 4486, 3414),
-            (2033, 2033, 74),
+            (4406, 4486, 3351),
+            (2033, 2033, 56),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (544, 544, 2),
-            (1231, 1336, 141),
+            (1231, 1336, 105),
             (271, 271, 4),
-            (27, 27, 2),
+            (27, 27, 1),
             (60, 60, 0),
             (180, 180, 0),
-            (8434, 7715, 5388),
+            (8434, 8434, 2),
         ],
     ),
     // Item 4205, the built start: units (5583, 5614, 4645) -> (5583, 5614, 4588); builds (2515,
@@ -2425,60 +2419,69 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (90, 110, 44) -> (90, 90, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4129, 4318, 3389) -> (4129,
+    // 4318, 3325); builds (2025, 2025, 48) -> (2025, 2025, 32); guys (1138, 1278, 177) -> (1138,
+    // 1278, 141); cities (27, 27, 3) -> (27, 27, 1); world (8344, 7625, 5328) -> (8344, 8344, 2).
     (
         "run1424",
         3156,
         [
-            (4129, 4318, 3389),
-            (2025, 2025, 48),
+            (4129, 4318, 3325),
+            (2025, 2025, 32),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (550, 550, 3),
-            (1138, 1278, 177),
+            (1138, 1278, 141),
             (271, 271, 4),
-            (27, 27, 3),
+            (27, 27, 1),
             (90, 90, 0),
             (180, 180, 0),
-            (8344, 7625, 5328),
+            (8344, 8344, 2),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (80, 110, 52) -> (80, 80, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4175, 4291, 3481) -> (4175,
+    // 4291, 3429); builds (2266, 2265, 861) -> (2266, 2265, 848); guys (1227, 1332, 146) -> (1227,
+    // 1332, 110); cities (27, 27, 3) -> (27, 27, 2); world (8284, 7565, 5190) -> (8284, 8284, 10).
     (
         "run1426b",
         3722,
         [
-            (4175, 4291, 3481),
-            (2266, 2265, 861),
+            (4175, 4291, 3429),
+            (2266, 2265, 848),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (544, 544, 1),
-            (1227, 1332, 146),
+            (1227, 1332, 110),
             (271, 271, 4),
-            (27, 27, 3),
+            (27, 27, 2),
             (80, 80, 0),
             (180, 180, 0),
-            (8284, 7565, 5190),
+            (8284, 8284, 10),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (85, 110, 49) -> (85, 85, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4789, 4721, 3966) -> (4789,
+    // 4721, 3908); builds (2154, 2151, 619) -> (2154, 2151, 604); guys (1208, 1348, 183) -> (1208,
+    // 1348, 147); cities (30, 30, 3) -> (30, 30, 1); world (8414, 7695, 5513) -> (8414, 8414, 1).
     (
         "run1437",
         3894,
         [
-            (4789, 4721, 3966),
-            (2154, 2151, 619),
+            (4789, 4721, 3908),
+            (2154, 2151, 604),
             (0, 0, 0),
             (3, 0, 3),
             (4, 0, 4),
             (538, 538, 0),
-            (1208, 1348, 183),
+            (1208, 1348, 147),
             (271, 271, 6),
-            (30, 30, 3),
+            (30, 30, 1),
             (85, 85, 0),
             (180, 180, 0),
-            (8414, 7695, 5513),
+            (8414, 8414, 1),
         ],
     ),
     (
@@ -2519,22 +2522,25 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4274, 4219, 3527) -> (4274,
+    // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
+    // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     (
         "run1441",
         3294,
         [
-            (4274, 4219, 3527),
-            (1890, 1887, 527),
+            (4274, 4219, 3476),
+            (1890, 1887, 518),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (550, 550, 3),
-            (1108, 1171, 100),
+            (1108, 1171, 64),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 2),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 7557, 5229),
+            (8276, 8276, 9),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (125, 135, 37) -> (125, 125, 0).
@@ -2728,22 +2734,25 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4274, 4219, 3527) -> (4274,
+    // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
+    // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     (
         "run1559b",
         3294,
         [
-            (4274, 4219, 3527),
-            (1890, 1887, 527),
+            (4274, 4219, 3476),
+            (1890, 1887, 518),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (550, 550, 3),
-            (1108, 1171, 100),
+            (1108, 1171, 64),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 2),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 7557, 5229),
+            (8276, 8276, 9),
         ],
     ),
     (
@@ -2765,41 +2774,47 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4274, 4219, 3527) -> (4274,
+    // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
+    // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     (
         "run1564",
         3294,
         [
-            (4274, 4219, 3527),
-            (1890, 1887, 527),
+            (4274, 4219, 3476),
+            (1890, 1887, 518),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (550, 550, 3),
-            (1108, 1171, 100),
+            (1108, 1171, 64),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 2),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 7557, 5229),
+            (8276, 8276, 9),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4240, 4197, 3409) -> (4240,
+    // 4197, 3360); builds (1890, 1887, 528) -> (1890, 1887, 519); guys (1112, 1175, 101) -> (1112,
+    // 1175, 65); world (8294, 7575, 5253) -> (8294, 8294, 9).
     (
         "run1570",
         3331,
         [
-            (4240, 4197, 3409),
-            (1890, 1887, 528),
+            (4240, 4197, 3360),
+            (1890, 1887, 519),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
             (556, 556, 2),
-            (1112, 1175, 101),
+            (1112, 1175, 65),
             (271, 271, 4),
             (30, 30, 3),
             (75, 75, 0),
             (180, 180, 0),
-            (8294, 7575, 5253),
+            (8294, 8294, 9),
         ],
     ),
     // Item 4208, the whales' piece: units (4969, 4983, 4166) -> (4969, 4983, 4139); builds (1731,
@@ -3557,7 +3572,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run1417", "flags.leader_flags resources_controlled"),
     (
         "run1419b",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1420",
@@ -3565,21 +3580,21 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1424",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1426b",
-        "aggression cities_built explored flags.leader_flags reg_unpack_merch resources_controlled",
+        "explored flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1437",
-        "aggression cities_built encrypt.bucket[2] encrypt.bucket[5] flags.leader_flags reg_unpack_merch resources_controlled",
+        "encrypt.bucket[2] encrypt.bucket[5] flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run1438", "aggression cities_built flags.leader_flags"),
     ("run1440", "aggression cities_built flags.leader_flags"),
     (
         "run1441",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run1451", "aggression cities_built flags.leader_flags"),
     ("run1457", "aggression cities_built flags.leader_flags"),
@@ -3608,15 +3623,15 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1559b",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1564",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1570",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run785",
@@ -3826,7 +3841,9 @@ fn probe_built_packet() {
 /// **Probe** (item 4205): one word's two frame zeros, the dump-seated and
 /// the lobby-built, compared whole (`start_walk::whole_diff`, take by
 /// take), and the seated start's corrections by frame. `RON_PACKET_TAKE`
-/// filters the takes printed by a substring.
+/// filters the takes printed by a substring. `RON_PACKET_FOG` prints each
+/// `seen2` cell the two starts differ on, and both sides' buildings and
+/// units by fog cell (item 4210); `RON_PACKET_FOGALL` every cell.
 #[test]
 #[ignore = "a probe: RON_PACKET_START, RON_PACKET_LONG, RON_PACKET_TRACE"]
 fn probe_built_start_whole() {
@@ -3864,6 +3881,51 @@ fn probe_built_start_whole() {
         for (p, v) in &a {
             if p.starts_with(prefix.as_str()) && bm.get(p.as_str()) != Some(&v.as_str()) {
                 eprintln!("LEAF {p}: built {v} seated {:?}", bm.get(p.as_str()));
+            }
+        }
+    }
+    if std::env::var_os("RON_PACKET_FOG").is_some() {
+        let w = built.sim.world.width() * 2;
+        for fy in 0..w {
+            for fx in 0..w {
+                let (a, b) = (
+                    built.sim.world.seen2(fx, fy),
+                    seated.sim.world.seen2(fx, fy),
+                );
+                if a != b {
+                    eprintln!("FOG ({fx},{fy}) built {a:?} seated {b:?}");
+                }
+                if std::env::var_os("RON_PACKET_FOGALL").is_some() {
+                    eprintln!("CELL {fx} {fy} {} {}", a.unwrap_or(0), b.unwrap_or(0));
+                }
+            }
+        }
+        for (side, s) in [("built", &built.sim), ("seated", &seated.sim)] {
+            for (i, b) in s.buildings.iter().enumerate() {
+                eprintln!(
+                    "BLD {side} {i} {}/{} ty {:?} {:?} fog ({},{}) mylos {} city {}",
+                    b.owner,
+                    b.index,
+                    b.ty,
+                    b.ty.map(|t| s.tables.build_types[t].ident),
+                    sim::vision::fog_of(b.pos.x),
+                    sim::vision::fog_of(b.pos.y),
+                    b.mylos,
+                    s.building_is_city(i)
+                );
+            }
+            for (i, u) in s.units.iter().enumerate() {
+                eprintln!(
+                    "UNIT {side} {}/{} ty {:?} TI {:#x} {:?} fog ({},{}) los {}",
+                    u.owner,
+                    u.index,
+                    u.ty,
+                    u.type_index,
+                    u.kind.domain,
+                    sim::vision::fog_of(u.pos.x),
+                    sim::vision::fog_of(u.pos.y),
+                    s.unit_los(i)
+                );
             }
         }
     }
