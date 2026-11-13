@@ -12879,7 +12879,7 @@ record and is not decided here.
    (each gate records its test binaries' SHA-256, the fixture audit records
    what each test read), but seven of the last sixty landings left the test
    binaries unchanged, and none of the last eight.
-9. **The lanes' items are 4208 to 4215** (`docs/QUEUE.md`).
+9. **The lanes' items are 4208 to 4216** (`docs/QUEUE.md`).
 10. **Parity is zero mismatched frames on the twelve state checksums over a
    declared set of games** — Ramon's, on this row, to the pass's
    recommendation: "yeah parity definition as you say makes sense". It is
@@ -12888,8 +12888,42 @@ record and is not decided here.
    after. On what exists it reads 0 games. He left the day-one rules as they
    are ("im ok with challenging/considering all. both seem fine as is") and
    gave the word for one sentence of `CLAUDE.md`, on a worker's gate (§6).
+11. **The suite takes the form of one walk a game** (item 4216), on Ramon's
+   ask: "ideally we make tests work and stop having to constantly go back
+   and speed it up", "can we see / feel out improvements?". Felt out in the
+   pass. The gate runs one process a test: 1,650 tests stand 814 kept games
+   up from frame 0, and about ten in-process caches the code already has
+   never share (each of 129 map-generation tests reads 1,203 dumps'
+   preambles again). Where the tree does share, it pays: one test walks 436
+   windows over 123 games in 160 s where their 589 standalone twins cost
+   1,272. A spike walked all 136 scoreboard games once, with the floors' own
+   functions, in 29.6 s of wall on 14 threads and 325 to 372 CPU-seconds;
+   the 130 tests that walk those games to their floor cost 291 s and all
+   1,051 tests of their modules 2,247, most of it windows and closing states
+   that walk the game again. So the form is: a game is stood up and walked
+   once in a process, every check on it rides that walk, and a new check on
+   a game already walked costs a probe. Staged, every floor unchanged at
+   each stage: the runner's group unit; a standalone window resuming the
+   group's kept walk; takes of one lobby and seed keyed as one game, on a
+   draw-stream diff; the two corpus drivers observing the shared walks; the
+   literal pins as data, last. Estimated, not measured end to end: 2.3 to
+   2.5 times less CPU over the suite. Its counter is the stand-ups from zero
+   in a whole gate, which does not move with the host's load. **It goes
+   out as a fifth lane** — Ramon: "im ok with either doing a 5th lane for
+   this, or keep working here ... would like your tkae" — because holding
+   the `steer` row holds the driver and four workers, and the work needs a
+   quiet measure, not a quiet tree. The pass's take on its model is Fable
+   5.2, stage 2 being design; the roster is Ramon's and he may say Opus.
+   He offered a pause of everything for the suite as well ("or we simply
+   pause and fully focus on testing/suite/gates in general? either is fine
+   by me"); the pass's take is a lane, the stages being serial.
 
-**Not established:** whether the hook's values on a frame are the printed
+**Not established:** whether the audit's, the chapters' and the
+phase-traced walks follow the plain walk's trajectory byte for byte (read,
+not diffed; stage 2 of item 4216 diffs it); whether two takes of one lobby
+are one trajectory; a grouped process's peak memory; the suite's seconds on
+a quiet host (2,171 of the timings file's rows are of 2026-11-09 and read
+high); whether the hook's values on a frame are the printed
 record's (the call sits before the packages in playback and after the mode
 arms); what a lane's gate costs once it runs its filters alone; how many
 booking gates go red on a test a lane no longer runs; whether a recording

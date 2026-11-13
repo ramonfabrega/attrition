@@ -22082,3 +22082,26 @@ adopt; the reading found the naga test validating five of seven modules,
 fixed by one list. Built by three Opus builders, red first. The rubric:
 the territory 733 · 332 · 574 from item 4186. **DECISIONS 129.**
 `docs/audit/2026-11-12-fable-pass-load.md`.
+
+## 2026-11-13 — the second pass by supply: the draws are blind to state, the gate is cut by rule, and the suite gets a form (Fable 5.2, steering)
+
+`commander` handed over with the chain unordered and one item on the queue.
+The pass ordered the chain by leaves a decompiled line: the declaration,
+the taunt's answer, the frozen scan, the offers arm, found short; and ruled
+that run1575's word is 1150 with one decision staged and 1099 computed, so
+no leaf leaves on a block after a staged decision. A capture filed mid-gate
+had turned four gates red: a tree's tests now count a capture only when the
+tree's own `docs/RUNS.md` heads it. The `lore` row brought Ramon's
+question, the thirty-minute gate, and he joined the row. Measured: no red
+in 43 gate logs was a test a scoped gate skips; a lane's gate spent half
+its release step on tests the booking gate runs again; the draw stream is
+blind to state, on two files three units apart that agree for 24,001
+frames. Decided: booking gates scoped, a lane's gate its own filters, and
+with Ramon, parity as zero mismatched frames on the twelve state checksums
+over a declared set, counted once a trace hook prints the original's
+values every frame (item 4214). He asked to feel out the suite's form. A
+spike walked all 136 scoreboard games once in 30 s on 14 threads; their
+modules' tests cost 2,247 s. Booked as item 4216, a fifth lane: one walk a
+game. Also booked: 4208 to 4215. Built by two Opus builders, red first.
+The pass moved no score. **DECISIONS 132.**
+`docs/audit/2026-11-13-fable-pass-supply-2.md`.

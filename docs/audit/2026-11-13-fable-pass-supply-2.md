@@ -6,39 +6,36 @@ step unordered (`docs/DECISIONS.md` entry 126 §4). The charter: the staged
 accept of item 4207, supply for three lanes, a capture filed mid-gate, a
 literal the merge pins missed; then, by a message from the `lore` row it said
 was at Ramon's request, the gate's cost, what parity means and a function
-census. Ramon was on the row from about 14:00. Decisions in entry 132. Five
-scouts and two builders ran, each a `lean` agent on Opus 5.5; their reports are
+census. Ramon was on the row from about 14:00. Decisions in entry 132. Six
+scouts, two builders and a spike ran, each a `lean` agent on Opus 5.5; their reports are
 under `~/Library/Caches/attrition/pass-1113b/`. The pass before it is
 `2026-11-13-fable-pass-supply.md`.*
 
 ## For Ramon
 
+Ramon was on the row; what he decided is entry 132 §10 and §11. What stands
+for him to read:
+
 - **The words are whole on draws, and draws are blind to state.** Two recorded
   files three units apart in one Scout's target agree on all 24,001
-  random-number words, and our walk under the wrong file holds 24,000 frames.
-  On 41 packets in draw lockstep the units, builds and guys lines agree on 0.
-- **Parity as zero checksum mismatches over a declared set reads 0 games
-  today**, and nothing on disk can score it: the original computes its
-  fifteen checksums every turn and prints them only in a dump window. Step H
-  (item 4214) hooks them every frame. **Recommended: adopt that definition
-  for the rules' finish line once H prints its first number**; the draw
-  floors stay as the gate.
-- **The gate is cut by rule, not made instant.** A lane's gate runs its
-  filters alone (about 6 minutes by the scout's estimate, from 11 to 12.6)
-  and a booking gate is scoped (20.0 minutes by the median, from 33.0).
-  Reusing verdicts would hit 7 of 60 landings. The suite's own form, each
-  game replayed once and tests as slices, cuts at most 24 %. **Recommended:
-  measure one tranche under the new rules before spending on it.**
-- **The XML and the decompiler rules: no change recommended.** The install's
-  XML is the input today. `lore` read 561 modules flagged `ltcg`; its own
-  reading, untested, is that byte-matching decompilation is impractical.
-- **A census of all 48,233 functions exists** (`tools/census.py --layers`); a
-  one-state table is 60 lines and moves no score. The AI layer's 1,661
-  functions have no state at all.
-- **A fifth worker**: after one tranche's numbers. `fseventsd` is still at a
-  core and 27.9 GiB, 29 days up, swap 15.1 of 16 GB.
-- The tranche: ten landings in 3.9 hours on six booking gates, six lanes at
-  64.59 USD (10.77 a landing). The pass moved no score.
+  random-number words; on 41 packets in draw lockstep the units, builds and
+  guys lines agree on 0. **Parity is now the checksum's** (his word): zero
+  mismatched frames on the twelve state lines over a declared set. It reads
+  0 games today, and step H (item 4214) is what lets it be counted.
+- **The gate is cut by rule**: a lane's gate runs its filters, a booking gate
+  is scoped (20.0 minutes by the median, from 33.0). Neither is measured yet
+  under the new rules; the next pass reads both.
+- **The suite's form is item 4216, a fifth lane.** Measured: 136 games walked
+  once in 30 s on 14 threads; their modules' 1,051 tests cost 2,247 s. The
+  estimate over the whole suite is 2.3 to 2.5 times less CPU, not measured
+  end to end. **The lane's model is his**: the pass's take is Fable 5.2.
+- **A sixth worker** has one independent piece to take, the literal pins as
+  data, once 4216's second stage lands.
+- **The XML and the decompiler rules stand** ("both seem fine as is").
+- **`fseventsd`** still holds a core and 27.9 GiB, 29 days up, swap 15.1 of
+  16 GB. `sudo killall fseventsd`, or a restart, is his.
+- The tranche before the pass: ten landings in 3.9 hours on six booking
+  gates, six lanes at 64.59 USD (10.77 a landing). The pass moved no score.
 
 ## What was measured
 
@@ -56,7 +53,9 @@ under `~/Library/Caches/attrition/pass-1113b/`. The pass before it is
 | the checksum oracle (scout; the call sites checked by the pass in the export) | `check_all` is called from `process_turn` on every turn, twice in playback; printed only in a dump window; no recording carries it; playback's own desync check compares recorded slots with each other. Our sim plays one recording of the original's (run7); the order pump maps 10 of 82 command variants; the client writes a recording only inside tests. A 24,000-frame playback takes about 28.5 minutes on the lane |
 | the diplomacy ports (scout: `wc -l` over the export, run1575's record) | the declaration 317 lines for 3 leaves; the taunt's answer 674 for 4, and 5 more on the packet; the offers arm's accept 750 more for 1; found short 250 more for 1. Every mover of the first two is on a block at or before 1002 |
 | the census (scout: `census.py --layers`, `--territory`, a cross-tab) | simulation 3,611, AI 1,661, engine 9,375, interface 3,303, no line record 30,283. Assignable by script: ported and swept 625, ported 108, out of scope 43,454, cited outside the simulation layer 653, unexplored 3,393. 569 of the 574 open simulation functions carry a reader's ruling of 2026-11-06 |
-| the window (`lore limits`) | the week 33 % at 18:01Z and 35 % at 18:57Z, Fable's 21 % and 23 %; both close 2026-11-14 06:00 −05:00; the stop 95 % |
+| the suite by phase and shape (scout: 51 tests alone, the timings file by family and by game) | by family, in the file's seconds: words 2,081 over 946 tests, golden 974, map generation 526, harness 471, audit 252, coverage 221, packets 129. By the game a test replays: 814 kept games, 1,650 tests, 4,316 s, each game's longest test alone 2,363. A window: standing up 0.34 to 0.64 s, ticking 0.2 to 3.6, decoding 0.2 to 0.39, comparing 0.09 to 0.21. **Where the tree shares**: one test walks 436 windows over 123 games, 202 resumed from a kept prefix, in 159.8 s of wall and 604.7 CPU-seconds, and their 589 standalone twins cost 1,272 s; another walks 110 whole games in 294.6 thread-seconds where the 773 tests on those games cost 1,784. Each of 129 map-generation tests reads the preambles of 1,203 dumps again, about 3.2 s. 1,480 of 3,578 pins hold a literal in the test's body. **The file is stale**: 2,171 of its 2,360 rows are of 2026-11-09 and the sampled big ones ran at 0.01 to 0.45 of their row |
+| the floor (a spike: `diff::corpus_floor::every_word_walked_once`, branch `worktree-agent-a5aaf4d6276762f1d`, tip `9e5aee8e0`, unmerged) | 136 scoreboard games, 1,201,580 frames, each stood up and walked once by the floors' own functions, every word at its pinned length: 82.4 s of wall and 324.8 CPU-seconds on 4 threads, 43.0 and 334.3 on 8, 29.6 and 372.1 on 14; peak footprint 3.3, 4.5 and 5.5 GiB; the host's load 6 to 22 beside it. The 130 tests that walk those games to their floor cost 291 s one at a time; all 1,051 tests of their 126 modules 2,247. Standing up is 104 s of 381 (the install's load 46.7, 0.34 s a game); ticking and the draw comparison 72 %. Not walked: the first pair's three words and the two 24,000-frame captures |
+| the window (`lore limits`) | the week 33 % at 18:01Z, 35 % at 18:57Z and 36 % at 19:25Z, Fable's 21 %, 23 % and 24 %; both close 2026-11-14 06:00 −05:00; the stop 95 % |
 | the disk (`df -g ~`) | 224 GB at the start, 228 after `afsctool` over both archives |
 
 ## What the pass looked at
@@ -91,7 +90,10 @@ pass before, beside its photograph; under
 - **A lane's gate runs what its brief names; no lane gates whole but a
   `structure` lane** (§6). The fourth parked item of 4198, the memcap guard
   under load, needs no ruling: no red on disk names it since the fixture's fix.
-- **No verdict cache** (§8).
+- **No verdict cache** (§8). **The suite's form is one walk a game** (§11).
+- **The builder's two calls on the lane gate stand**: the floors and census
+  pins run in every lane gate, and a lock or toolchain change keeps the
+  client's targets.
 - **4199b's ratio waits on 4212**: 0.89 on all three channels is what one
   transform of the photograph looks like, and 4212's first act measures it.
 - **The census is not booked.** It moves no number; the tool exists.
@@ -144,9 +146,36 @@ Each is the sizing scout's, from the export and the record, unadjudicated.
 | 4213 the lake | render | `RUN1564_3279_GROUND_STILL` 1,028 of 1,920 | 892 tiles part |
 | 4214 step H | input, with the capture section | `Checksum: frames`, per line the first parting frame of 24,000 | no per-frame checksum of the original exists |
 | 4215 the page starts any lobby | lobby | `Lobby:` the page starts N of 161 | the client composes Great Lakes alone |
+| 4216 one walk a game | structure, whole | `Suite:` stand-ups from zero in a whole gate, and its test CPU-seconds | 1,650 tests stand 814 games up from frame 0 |
 
 Order: the builder on the chain. The start lane: 4208, 4209, 4210, 4211,
-4204. The render lane: 4212, 4213. The third lane: 4214, 4215.
+4204. The render lane: 4212, 4213. The third lane: 4214, 4215. The fifth
+lane: 4216.
+
+## One walk a game: the stages of item 4216
+
+The form: a kept game is stood up and walked once in a process, every check
+on it rides that walk, and a check added to a game already walked costs a
+probe. The gate's unit today is one process a test, chosen on 2026-10-17 for
+latency and a memory ceiling a test (`docs/TEST_PERFORMANCE.md`, the isolated
+runner); no decision makes the process boundary a rule of correctness.
+
+| stage | what | its number | first act | it stops and says so when |
+|---|---|---|---|---|
+| 0 | the spike's instrument merged as an ignored test, on the differ ledger and the shape pins | the floor: 136 games, 325 to 372 CPU-seconds | the test green on the merged tree | — |
+| 1 | the runner's group unit: the tests of one game, in ascending frame order, in one process on test-named threads; one group for map generation | stand-ups from zero in a whole gate; map generation's 526 s | the count of tests run equal to the count listed, seen red on a group that drops one | the fixture audit stops matching test for test, or a group's memory passes the ceiling |
+| 2 | a standalone window resumes the group's kept walk, through the scope the coverage test already uses | the words' 2,247 s; stand-ups from zero toward the 814 games | the audit's, a chapter's and a phase-traced walk each diffed against the plain walk on one game, frame for frame | a walk differs: that shape keeps its own stand-up and is named |
+| 3 | takes of one lobby and seed keyed as one game | stand-ups toward the distinct games | `rngcmp` over two takes' common frames, 0 differing, on every pair folded | a pair differs: it stays two games |
+| 4 | the coverage and ages tests observe the shared walks | their 406 and 335 s in a gate | the recorder fed from a group's walk on one module, its record equal to the driver's | the recorder needs a walk the tests do not make |
+| 5 | the 1,480 literal pins as rows | none on the clock; a re-pin becomes a line of data | one module's pins moved, its re-pin seen as a one-line diff | — |
+
+What the lane is told: a game's checks share a walk, so a panic mid-walk
+must still report every check it did not reach as not run, never as green;
+a test that changes the walk (`harness::checkpoint`'s interventions, the
+built-start packets) stays alone; the ground guard reads the thread's name
+(`Drop for Built`), so a group keeps test-named threads; the install's load
+is 0.34 s a game and is taken once a process. **A whole re-time on a quiet
+host is its baseline**, taken first (`tools/suite_timings.py <install> --out`).
 
 ## Built
 
@@ -170,8 +199,19 @@ Order: the builder on the chain. The start lane: 4208, 4209, 4210, 4211,
   of `e9aff36b` read a roster a tick old, saw the row it had just removed
   and printed `forget kept the row; ccc archive: exit 1`. The row was gone.
 - **The suite re-timed** (`docs/audit/2026-10-15-suite-timings.txt`).
-- **The lane gate's own budget** and the `start` kind off the whole gate:
-  below, under "The gate", with its builder's tip.
+- **The lane gate's own budget** (an Opus 5.5 builder, branch
+  `worktree-agent-a24fc4dd1e7538004`, tip `17e990f92`, three commits). A
+  lane's gate skips every timed test its filters and the paperwork do not
+  name (`LANE_OWN_BUDGET_SECONDS` 0; the scoped booking gate keeps one
+  second); it keeps `diff::floors::` and the census pin, which two older
+  rules need in every lane gate. A `start` brief names filters (`diff::start
+  lobby:: minted:: checksum_lines::packets:: mapgen:: census:: blind::`) and
+  no longer gates whole. A lane leaves the client crate's targets to the
+  booking gate unless it touches `crates/client/` or `crates/render/`: the
+  clock test ran 8 to 362 s on four lane gates and is behind two of the
+  seven red logs. **Red first**: `lane_skips` on the old code skipped 1,340
+  of 2,171 rows and none under a second; the client test read `'client' not
+  found in ['sim']`. 128 tools tests and the 994 of the offline step green.
 - **The documents**: entry 132; `docs/LOOP.md`'s roster, booking gate,
   corpus, chain and pass clauses; `docs/RUNS.md`'s head; the queue; the
   tracks page; one sentence of `CLAUDE.md` on a worker's gate, on Ramon's
@@ -183,10 +223,14 @@ Order: the builder on the chain. The start lane: 4208, 4209, 4210, 4211,
 - **The recordings are not on the ledger.** `RECORDINGS_ON_DISK` lists
   `Playback - <date>.rcx` files with no run token; a capture that leaves one
   in `Logs\` would turn another tree red. No capture did this tranche.
-- **The suite's form is not changed**: 156 games are still replayed by two or
-  more tests each.
-- **The timings file still ages a test a landing.** The pass re-times it; a
-  whole gate holds every test's seconds and writes them nowhere a lane reads.
+- **The suite's form is not changed**; it is item 4216. The spike's branch is
+  pushed and not merged.
+- **The timings file is re-timed for its 189 new tests alone.** Its other
+  2,171 rows are four days old and read high. A whole re-time takes about
+  ninety minutes one test at a time and is 4216's first act. A whole gate
+  holds every test's seconds and writes them nowhere a lane reads.
+- **A lane's gate and a scoped booking gate are not measured under the new
+  rules.** No lane ran in the pass.
 - **Minting a `Declare` through `Command`** is not booked; it follows VII-b1,
   which builds what it would do on our side.
 - **`docs/audit/census-backed.txt` is stale** (dated 2026-10-21, 1,696 rows
@@ -197,3 +241,12 @@ Order: the builder on the chain. The start lane: 4208, 4209, 4210, 4211,
 
 ## The gate
 
+Whole, on the commit that carries this record, by `tools/gate_run.sh`, started
+at 14:45 −05:00: `~/Library/Caches/attrition/gates/gate-pass-1113c.log`. The
+record is written before the gate runs, so its verdict is that log's last
+line, and neither the push nor the handover happens on anything but `gate
+exit 0`. Before it: `tools/guard.sh --built` green on the documents after
+three reds it forced (an index row for entry 132, the queue's header a line
+over its pin, two items that read as capture bookings with no map); the 128
+tools tests and the 994 of the offline step green on the lane gate's
+changes; the corpus builder's 56 tests green on its branch.
