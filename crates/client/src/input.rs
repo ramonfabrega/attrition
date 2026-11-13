@@ -96,6 +96,10 @@ pub enum Event {
     /// minimap's `form`/`width` −1/−1, the fields the scripts before
     /// [`rondata::script::clicked_main_view`] carry. Ours: the minimap is
     /// not drawn, so the event carries the point rather than a pixel.
+    #[cfg_attr(
+        not(test),
+        expect(dead_code, reason = "the window draws no minimap; the tests send it")
+    )]
     MapRightPress {
         x: i32,
         y: i32,
