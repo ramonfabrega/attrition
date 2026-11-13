@@ -1194,13 +1194,15 @@ silhouette's red over flat green (4171a), 0.159 → 0.850.
 
 **The shadows (item 4182; read on the listing, the rule committed before its count, `53f6cfdfd`).** A shadow is
 a decal. `DecalTransformMethod::execute@00923a70` lays a flat world-space quad from a `DecalRDataStruct`, and
-`DecalFlushMethod::execute@00923fd0` draws it under an identity transform. Both axes are turned by the angle
-(truncated, mod 360). Then `x = loc.x + (±hw·r1.x ± hh·r2.x − xoffset)·xstretch`, `y = loc.y ± hw·r1.y ±
+`DecalFlushMethod::execute@00923fd0` draws it under an identity transform. The angle is truncated and folded, a
+negative `a` to `359 − (−a mod 360)`; `Point<float>::rotate@00420b10` then turns both axes by **−a**, `r1 = (cos a,
+−sin a)`, `r2 = (sin a, cos a)` (item 4193; `sim::combat::quat_rotate`, diff-backed on run1471). Then `x = loc.x + (±hw·r1.x ± hh·r2.x − xoffset)·xstretch`, `y = loc.y ± hw·r1.y ±
 hh·r2.y`, `z = loc.z`. The texcoords cover the whole texture, or a quarter for corners 0–3 (`render::decal`).
 - `draw_tree_shadow@00905910` runs at every placed tree (`sort_trees`): 192 × 192, angle 0, stretch 1.5, offset
   38.4, corner `(int)(x + y) % 4` of the tileset's eighth `TREE_TEXTURES0` line.
 - `draw_unit_shadow@008e8fa0` runs from `GuyOut::draw_shadows@005dc070`: `shadowwidth`/`shadowheight` × 3, the
-  `<SHADOW>` that `shadowtype` names, angle `180 − fast_angle_to_degrees`, stretch 1.25, offset 0.25, at the point
+  `<SHADOW>` that `shadowtype` names, angle `180 − fast_angle_to_degrees(get_render_angle)`, unfolded, stretch
+  1.25, offset 0.25, at the point
   plus `shadow_offset`. On run1559b's packet 31 of 32 offsets lie within 11 units (`tree_points.py --guytree`).
 - On run1566b's pass after 3279 they are draws 116–118, 124 and 119. Each is `BLACK` (alpha 255), alpha
   `MODULATE` texel and vertex, enables 0x20084 (no depth test). They come after the land, roads, borders and
@@ -1210,13 +1212,14 @@ hh·r2.y`, `z = loc.z`. The texcoords cover the whole texture, or a quarter for 
 (every tree `tree_list` stands, every drawn guy whose piece names a `<SHADOW>`). The decals' `1 − Π(1 − α)` there
 (level 0, nearest) is at least `1 − 1/1.2`. And `ground_why` calls it ground or window. A tile scores on 40 such
 pixels. Both sides' means over those pixels are read by `HUE` and `LUMA_READER`, the still against the
-photograph. *Counted* (`client::shadows`), luma, hue at 92 throughout:
-- **The before draw, `World::shadows` off: 41 of 105.** Tree tiles 13 of 68, figure tiles 28 of 37.
+photograph. *Counted* (`client::shadows`), luma, hue at 92 (93 of 104 since 4193's turn moved the selection):
+- **The before draw, `World::shadows` off: 41 of 105.** Tree tiles 13 of 68, figure tiles 28 of 37 (36 since 4193).
 - **Blended after the tone map, as a plain alpha blend: 24.** Ours is 0.79 of theirs.
 - **Taken before it, `T(T⁻¹(g)·keep)` (`client::gpu`'s keep map and shade pass, §3.14's curve): 89.** Trees 61 of
   68, 1.29 → 0.93. This is drawn.
-- **The guys' decals as read: 66.** Figure tiles 5 of 37: not drawn (4182c).
-- **Mirrored, the made-to-fail: 59 of 108.**
+- **The guys' decals as 4182 read them: 66.** Figure tiles 5 of 37. **Turned by −a (4193): 78 of 104**, figure
+  tiles 17 of 36. Not drawn: drawn without them, 89 of 104 and figures 28 (4193a).
+- **Mirrored, the made-to-fail: 59 of 108** (60 since 4193).
 
 **What is not established.**
 - ~~The leaves' alpha~~: read and applied, above (item 4082).
@@ -1239,9 +1242,10 @@ photograph. *Counted* (`client::shadows`), luma, hue at 92 throughout:
 - ~~The trees' shadows: draw 119 of the pass, `tree_t_shadows.tga`, `SELECTARG2(TEXTURE)` at enables 0x20084, the
   dark patch under each tree on the photograph; not drawn (parked 4173c)~~: read and drawn, the figures' with them
   (item 4182, "The shadows" above).
-- What the guys' decals miss. As read they darken the row's figure tiles past the photograph (28 → 5 of 37,
-  0.99 → 0.82), and they are not drawn (parked 4182c). Also not established: the city's paved base, which is
-  `RoadsOut`'s (4182a), and the `shadow_offset` (4182d).
+- What the guys' decals still miss (4193a). ~~4182c's 28 → 5~~: the turn's hand, 5 → 17 of 36. The
+  photograph's figure shadows now fall where ours do, broader and shallower; one level, `MIP_POINT` at bias +1,
+  the tint, the vertex alpha, the size and the corners are read and are not it (journal 4193). Also not
+  established: the city's paved base, `RoadsOut`'s (4182a), and the `shadow_offset` (4182d).
 - Why 0/1 behind the pine agrees with the raw texel under its silhouette (81 of 159) and not with the drawn leaf
   (66), nor with the blend before the tone map (11) (parked 4173b).
 - Why tree models 9–15 agree at 0.71–0.81 and the rest at 0.34–0.63, the photograph greener on the latter's opaque
