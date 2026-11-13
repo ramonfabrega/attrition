@@ -1399,7 +1399,7 @@ their counts; `CHECKSUM_STATE` does not count it (§5).
 
 | # | site | range | bytes | what |
 |---|---|---|---|---|
-| 1 | `006621fe` | `SubObjectData::flags` | 1 | `1`, `0x10` (`cant_reach`), `0x40` (below) |
+| 1 | `006621fe` | `SubObjectData::flags` | 1 | `1`, `0x08` (the idle latch, item 4218), `0x10` (`cant_reach`), `0x40` (below) |
 | 2 | `0060d07f` | a local | 1 | `Unit::must_walk@0060d040`, `SubObject::walk_data`'s vcall: 1 |
 | 3 | `0066221c` | `who`..`y_internal` | 15 | the owner, `o`, `z`/`x`/`y` masked; `z` is `World::object_z` |
 | 4 | `00662287` | a local | 4 | the type's `TypeIndex` |
@@ -2395,7 +2395,7 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
-| units | 1 | 1380746621 | 3361244557 | 230: 1–30, 96, 101–299 |
+| units | 129 | 2850640222 | 2564863054 | 171: 129–299 |
 | builds | 100 | 2036616519 | 1941983632 | 200: 100–299 |
 | groups | 61 | 3641636078 | 3844076871 | 5: 61–65 |
 | guys | 129 | 4020237905 | 1262538754 | 171: 129–299 |
@@ -2403,13 +2403,19 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 | cities | 4030 | 66197007 | 38147597 | 0 |
 | items | whole, 24,000 | | | 0 |
 | goods | 3246 | 1994224488 | 2043245418 | 0 |
-| world | 0 | 1459647454 | 823986248 | 1: 0 |
+| world | whole, 24,000 | | | 0 |
 
 On run1577's 120 the same walk gives the same first frames inside 120; guys, cities, items and goods are whole on all
 120. On the base before item 4209 the items line first parted on 987 (ours 1602836503, theirs 3605812239: item 3's
 `ever_seen`, and one box theirs had closed); item 4209's `Item::close` makes it whole on all 24,000. The 8 of 12 lines
 whole on frame 91 (§22) are whole there and around it; **a line whole on a packet frame is not
 a line whole on the game**. Measured: the walk to cities' 4030 takes 5.4 s in release.
+
+**Item 4218 moved two.** Units 1 → 129: the parting on 1 to 30, 96 and 101 to 299 was `SubObjectData::flags & 0x08`,
+the latch `Unit::check_idle@006032c0:64` raises (`| 0x18`) on a unit's first idle frame and `Unit::work@0060d180:276`
+drops (`& 0xf7`) when an order reaches it. The crate held it (`Unit::idle_latch`) and the emitter left the bit out.
+Value diff on frame 1: unit 0 (`0/0`) `flags` ours 0x41, theirs 0x49 → both 0x49. Units now first part on 129, guys'
+frame (4214d), ours 2850640222 theirs 2564863054. World 0 → whole on all 24,000 (§24.4, the start).
 
 ### 24.4 Where each first parting is (diff-backed)
 
@@ -2428,9 +2434,13 @@ line's field reader where it has one:
 | leaders | 1 to 4030 | all | leader 0's long range at +0x10: ours 0 on every packet, theirs 0xc7 on 1 and 0x105 on 4030 (§20; item 4159) |
 
 **The world on the start** has no packet: the first boundary is frame 0's `end_frame`. run1579's `@dumpall` on 0 prints
-record 3201 before frame 0's tick (the hook's frame −1). Of its fifteen sections, **section 8 alone parts, `danger[0..8]`**:
-ours 1887436801, theirs 2995557468. The whole world, 823986248, is the hook's −1 (`the_world_parts_on_the_start_by_section`,
-`WORLD_START_PARTS`). From frame 1 to 299 the world line is the original's.
+record 3201 before frame 0's tick (the hook's frame −1). Of its fifteen sections, section 8 alone parted, `danger[0..8]`:
+ours 1887436801, theirs 2995557468. **Ours was the zeros' sum** (`0x70800001`: Adler-32's low half 1, 28,800 zero bytes),
+so the original acted, not ours: `Game::run@00584590:721` calls `GameDaemon::calc_danger` once past `build_game` and
+`Leaders::init_production_script`, before the first frame, and nothing on the built start did (item 4218). The built start
+now runs it (`Setup::calc_danger`, the last of `from_lobby`'s steps), and the fifteen sections and the whole, 823986248,
+are the record's (`the_world_is_the_original_s_on_the_start_by_section`, `WORLD_START_DANGER`; its red half clears the
+rows and parts on section 8 at the zeros' sum). The world line is the original's on all 24,000 frames.
 
 ### 24.5 How it was established, and what it has not established
 
@@ -2442,7 +2452,9 @@ on synthetic records.
 Not established:
 - Whether a non-playback game's sets pair the same way. The solo arm calls `check_all` once a turn, with no read loop.
 - The parted lines' causes: each is a parked row of `docs/journal/2026-11-13-item-4214.md` (4214a to 4214h; 4214e
-  closed by item 4209).
+  closed by item 4209, 4214a and 4214h by item 4218).
+- `Game::run@00584590:722`'s `GameDaemon::update_all_seen`, the call after `calc_danger`, is not run on the built start
+  (item 4218). Every section of the world line agrees on the start without it; what else it writes is not compared.
 - What parts past a line's first parting outside `DIAG`. On every packet past frame 0 the world line agrees, and so
   does items since item 4209.
 - Walls, ammo and deaths, which have no emitter. On this game they stay at Adler 1 on both sides to 4030 on every
