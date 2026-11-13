@@ -376,6 +376,13 @@ impl Command<'_> {
         self.sim.resign(who)
     }
 
+    /// [`Sim::action_declare`] (`leaders/declare.rs`): a `declare`
+    /// command's (`CommandPackage::process_declare@009472b0`, `quiet` and
+    /// `force` clear).
+    pub fn action_declare(&mut self, me: Player, t: Player, level: i32, quiet: bool, force: bool) {
+        self.sim.action_declare(me, t, level, quiet, force)
+    }
+
     // The clock: one frame, every mechanic, in the original's order.
     /// [`Sim::tick`] (`core/frame.rs`).
     pub fn tick(&mut self) -> Vec<Tick> {
