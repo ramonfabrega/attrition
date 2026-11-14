@@ -440,7 +440,8 @@ fn run855_s_word_frame_is_widened_whole() {
     // Item 4176: 104 -> 105, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
     // Item 4177: 105 -> 107, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4777 ours 0 theirs 1; who=1 `hits_current_frame` 4777 ours 0 theirs 1 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 108 -> 105, item 4177's two blows on 4777 (who 0 `damage_current_frame`, who 1 `hits_current_frame`, ours 0 theirs 1) agree, and `score`: the nuke strikes the city building at its ceiling (4177a).
-    pin_eq!(w.firsts.len(), 105, "initial run855 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4159's third residue: 105 -> 101, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 101, "initial run855 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 3333: who=1's `bucket` timber 8265/8000 and metal 9997/9732,
     // standing from 4538, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).
@@ -504,7 +505,8 @@ fn run861_s_word_frame_is_widened_whole() {
     // Item 4176: 98 -> 99, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
     // Item 4177: 99 -> 103, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 4853 ours 702 theirs 445; who=0 `damage_fifteen_seconds` 4853 ours 21 theirs 22; who=1 `average_hit_rate` 4853 ours 702 theirs 445; who=1 `hits_fifteen_seconds` 4853 ours 21 theirs 22 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 104 -> 99, item 4177's four combat-rate firsts on 4853 agree, and `score` (4177a; docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 99, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4159's third residue: 99 -> 97, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 97, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 3333: who=1's `bucket` timber 7707/7282 and metal 6422/5997,
     // standing from 4853, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).
@@ -574,7 +576,8 @@ fn run866_s_word_frame_is_widened_whole() {
     // Item 4176: 121 -> 122, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
     // Item 4177: 122 -> 128, +6 firsts, the combat rates' own: who=0 `average_damage_rate` 5129 ours 358 theirs 226; who=0 `damage_fifteen_seconds` 5129 ours 21 theirs 22; who=1 `average_hit_rate` 5129 ours 358 theirs 226; who=1 `hits_fifteen_seconds` 5129 ours 21 theirs 22 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 129 -> 122, item 4177's six combat-rate firsts on 5129 agree, and `score` (4177a; docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 122, "initial run866 baseline");
+    // Item 4159's third residue: 122 -> 121, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 121, "initial run866 baseline");
     // Item 3333: who=1's `bucket` metal 5716/5231, standing from 5129, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row, ours above theirs till now, parts on 5183 with ours below
@@ -666,7 +669,8 @@ fn run867_s_word_frame_is_widened_whole() {
     // Item 4176: 137 -> 138, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
     // Item 4177: 138 -> 142, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 5401 ours 372 theirs 378; who=0 `damage_fifteen_seconds` 5401 ours 39 theirs 41; who=1 `average_hit_rate` 5401 ours 455 theirs 461; who=1 `hits_fifteen_seconds` 5401 ours 44 theirs 46 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 142 -> 138, item 4177's four combat-rate firsts agree (4177a).
-    pin_eq!(w.firsts.len(), 138, "initial run867 baseline");
+    // Item 4159's third residue: 138 -> 137, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 137, "initial run867 baseline");
     // Item 3333: who=1's `bucket` metal 5815/5330, standing from 5401, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -791,7 +795,8 @@ fn run879_s_word_frame_is_widened_whole() {
     // Item 4176: 160 -> 161, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
     // Item 4177: 161 -> 164, +3 firsts, the combat rates' own: who=0 `damage_fifteen_seconds` 5976 ours 51 theirs 53; who=1 `average_hit_rate` 5976 ours 365 theirs 366; who=1 `hits_fifteen_seconds` 5976 ours 56 theirs 58 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 165 -> 161, item 4177's three combat-rate firsts agree, and `score` (4177a; docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 161, "initial run879 baseline");
+    // Item 4159's third residue: 161 -> 154, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 154, "initial run879 baseline");
     // Item 3333: who=1's `bucket` metal 4998/4453, standing from 5976, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -857,7 +862,8 @@ fn run881_s_word_frame_is_widened_whole() {
     // Item 4176: 201 -> 202, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
     // Item 4177: 202 -> 205, +3 firsts, the combat rates' own: who=0 `damage_fifteen_seconds` 6446 ours 59 theirs 61; who=1 `average_hit_rate` 6446 ours 217 theirs 218; who=1 `hits_fifteen_seconds` 6446 ours 64 theirs 66 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 205 -> 202, item 4177's three combat-rate firsts agree (4177a).
-    pin_eq!(w.firsts.len(), 202, "initial run881 baseline");
+    // Item 4159's third residue: 202 -> 142, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 142, "initial run881 baseline");
     // Item 3333: who=1's `bucket` metal 5193/4648, standing from 6446, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -928,7 +934,8 @@ fn run882_s_word_frame_is_widened_whole() {
     // Item 4176: 178 -> 179, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
     // Item 4177: 179 -> 181, +2 firsts, the combat rates' own: who=0 `damage_fifteen_seconds` 6802 ours 71 theirs 73; who=1 `hits_fifteen_seconds` 6802 ours 76 theirs 78 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 181 -> 179, item 4177's two combat-rate firsts agree (4177a).
-    pin_eq!(w.firsts.len(), 179, "initial run882 baseline");
+    // Item 4159's third residue: 179 -> 112, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 112, "initial run882 baseline");
     // Item 3333: who=1's `bucket` metal 5378/4833, standing from 6802, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -1001,7 +1008,8 @@ fn run883_s_closing_frame_is_widened_whole() {
     // Item 4176: 176 -> 177, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
     // Item 4177: 177 -> 179, +2 firsts, the combat rates' own: who=0 `damage_fifteen_seconds` 6815 ours 71 theirs 73; who=1 `hits_fifteen_seconds` 6815 ours 76 theirs 78 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 179 -> 177, item 4177's two combat-rate firsts agree (4177a).
-    pin_eq!(w.firsts.len(), 177, "run883 baseline");
+    // Item 4159's third residue: 177 -> 110, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 110, "run883 baseline");
     // Item 3333: who=1's `bucket` metal 5389/4844, standing from 6815, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.

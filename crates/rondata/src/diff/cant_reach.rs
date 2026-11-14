@@ -95,16 +95,12 @@ pub(crate) fn check() -> Option<String> {
 /// --write` rewrites it from a suite run's `cant_reach tally` lines.
 pub(crate) const PINNED: &[(&str, usize)] = &[
     (
-        "diff::aztec_alltech_pair::aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole",
-        2,
-    ),
-    (
         "diff::british_modern_pair::british_modern_pair_run1433b_s_closing_frame_is_widened_whole",
         1,
     ),
     (
         "diff::coverage_pair::run1075_s_garrison_window_is_widened_whole",
-        73,
+        34,
     ),
     (
         "diff::golden::chapter_thirty_eight_s_word_frame_is_widened_whole",
@@ -114,28 +110,12 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
         "diff::harness::tests::run96_s_word_frame_is_widened_whole",
         5,
     ),
-    ("diff::lakota_pair::run881_s_word_frame_is_widened_whole", 1),
-    ("diff::lakota_pair::run882_s_word_frame_is_widened_whole", 1),
-    (
-        "diff::lakota_pair::run883_s_closing_frame_is_widened_whole",
-        1,
-    ),
-    (
-        "diff::mongol_pair::run844_s_closing_frame_is_widened_whole",
-        3,
-    ),
-    (
-        "diff::sahara_coverage::run790_s_word_frame_is_widened_whole",
-        4,
-    ),
-    (
-        "diff::sahara_coverage::run817_s_word_frame_is_widened_whole",
-        2,
-    ),
-    (
-        "diff::sahara_mongol::run834_s_word_frame_is_widened_whole",
-        2,
-    ),
+    // Item 4159's third residue: run1075's walk 73 -> 34 (the staged
+    // Battleships' turrets born at rest move the window's first gameplay
+    // parting from 2060 to 2123); and eight walks to 0, the rows leave —
+    // run1147b 2, the Lakota pair's run881, run882, run883 1 each,
+    // run844 3, run790 4, run817 2 and run834 2 — the bleed reading the
+    // record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4204 (second lane): the six melees' word windows 7 -> 0 and
     // run80's 5 -> 0 (the rows leave): the head quit's `clear_orders` stops
     // the human's citizens on the closing block (2601; run80's 24001), so

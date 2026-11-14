@@ -359,6 +359,12 @@ impl Sim {
         let unit = &self.units[i];
         let ground = self.world.owner_at(unit.pos);
         let victim = &self.territory.players[unit.owner as usize];
+        // `get_attrition`'s Foraging arm asks `UnitData::is_idle@0046fa40`:
+        // an empty order list (item 4159's third residue).
+        let kind = crate::territory::attrition::UnitKind {
+            idle: unit.orders.is_empty(),
+            ..unit.kind
+        };
         let at_war = ground
             .player()
             .is_none_or(|o| self.leaders.at_war[unit.owner as usize][o as usize]);
@@ -373,7 +379,7 @@ impl Sim {
         };
         crate::territory::attrition::process(
             &self.tables.tuning,
-            &unit.kind,
+            &kind,
             unit.owner,
             victim,
             &situation,

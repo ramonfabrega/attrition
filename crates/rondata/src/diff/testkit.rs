@@ -7689,6 +7689,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // stands over: 85 to the capture's last block 2820.
     ("run1075_s_garrison_counts_part_by_the_record", 85),
     ("run1075_s_garrison_window_is_widened_whole", 85),
+    // Item 4159's third residue: the same walk to 2066, its launches'
+    // frames.
+    (
+        "run1075_s_staged_battleships_release_on_the_original_s_frames",
+        4,
+    ),
     // Item 3970: chapter one hundred and twenty-six, run1541 walked to its
     // end 1100 — one inexact corner under the Chariots' and the arrows'
     // reads (three before the City's arrow struck the Temple, 804).

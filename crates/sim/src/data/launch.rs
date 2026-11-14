@@ -1745,6 +1745,44 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 115,
         },
     ),
+    // **Piece 86, the Fusiliers in the default art style** (unit type 136,
+    // `FUSILIER`; item 4159's third residue): run1185's packet holds its
+    // three attack `AttachPos` rows (node 0, frames 6, 6 and 8), `RData
+    // +0x88` 1.0, and `fit_bay.py` fits each sweep to piece 790's rows
+    // exactly (48, 207 and 1679 lattice points, the same centroids). Without
+    // them the British Fusiliers left from the figure's own point and flew
+    // a frame long: run1185b's blow on the capital `0/2000` of 5275 landed
+    // on 5276 in ours (`damage` 604 against 610).
+    (
+        86,
+        11,
+        6,
+        Bay {
+            right: 21_445,
+            fwd: 111_997,
+            dz: 110,
+        },
+    ),
+    (
+        86,
+        12,
+        6,
+        Bay {
+            right: 4_874,
+            fwd: 96_147,
+            dz: 116,
+        },
+    ),
+    (
+        86,
+        13,
+        8,
+        Bay {
+            right: 16_206,
+            fwd: 100_152,
+            dz: 115,
+        },
+    ),
     // **Piece 1105, `MUSKETEERS-ASIAN`** (unit type 99, `musketeer_asian.bh3`,
     // the Mongols' Musketeer; item 3692, `docs/AI.md` §352.1): run1361's
     // `RON_STATE_FRAME=4840` packet on the Mongol Enlightenment Great Lakes

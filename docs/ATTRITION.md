@@ -248,6 +248,14 @@ Liberty works.
   the shipped 300%, so four times the rate.
 - Everything else: `scale * anti_att / 256`. Additionally, a player holding
   Foraging tier 1 takes **no** attrition while the unit is idle.
+  **Wired since item 4159's third residue** (the crate read
+  `Resistance::BASE` until then, and never asked the Foraging arm): the
+  record's single, `(int)((float)scale × anti_att × 2⁻⁸)`, and "idle" is
+  `UnitData::is_idle@0046fa40`, an empty order list. The Lakota pair's
+  Citizen `1/6` is its witness: All Technologies, so Logistics, and its
+  peace-arm refresh on 3770 takes `PEACE_ATTRITION`'s 8 where the unwired
+  crate computed 6. SEAM: `ages_ahead` reads the crate's `age`, which no
+  writer sets, so the aged-up arm is never taken here.
 - **Merchants, Dutch merchants and fur trappers** halve the result, and so
   does any **air** unit (type domain `2`; see below). Those three are
   `TypeIndex` 61, 62 and 400 — the economic units whose whole job is to stand

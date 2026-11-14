@@ -1798,7 +1798,8 @@ fn run763_s_closing_frame_is_widened_whole() {
     // Item 2384: 190 -> 191, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 190 → 186 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 161, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4159's third residue: 161 -> 128, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 128, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1828,7 +1829,8 @@ fn run762_s_word_frame_is_widened_whole() {
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 196 → 192 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 4159's residue: 168 -> 167, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 167, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4159's third residue: 167 -> 137, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 137, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1860,7 +1862,8 @@ fn run754_s_word_frame_is_widened_whole() {
     // Item 3961: +1, `healing` on `1/116` (4025, ours 45 theirs 0): our civilian heal on a
     // citizen whose hits already part from 3923 (its attrition, 3917); theirs is whole.
     // Item 4159's residue: 143 -> 142, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 142, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4159's third residue: 142 -> 138, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 138, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -2373,7 +2376,8 @@ fn run1075_s_garrison_counts_part_by_the_record() {
     // where theirs' 1/5 goes in behind 1/3 and ours' is still walking:
     // its collision stagger drew 5 on 2089 against theirs' 2, a stream
     // already apart (parked 3984a). By 2820 theirs holds 5, ours 13.
-    pin_eq!(parted.len(), 432, "the garrison counts' parted records");
+    // Item 4159's third residue: 432 -> 0, the staged Battleships' turrets born at rest; the window's first gameplay parting 2060 -> 2123 (parked 4159r3a).
+    pin_eq!(parted.len(), 0, "the garrison counts' parted records");
 }
 
 /// run1075's window, 2034..2820: the capture whole — the citizens' orders
@@ -2425,7 +2429,8 @@ fn run1075_s_garrison_window_is_widened_whole() {
     }
     pin_eq!(w.blocks, 787, "every captured block");
     // who=1's `peasants_garr`, first on 2188: ours 3 theirs 4 (above).
-    pin_eq!(garr.len(), 1, "the garrison counts' rows");
+    // Item 4159's third residue: 1 -> 0, the staged Battleships' turrets born at rest; the window's first gameplay parting 2060 -> 2123 (parked 4159r3a).
+    pin_eq!(garr.len(), 0, "the garrison counts' rows");
     // **9062** first partings (9217 before the peasant arm: the four
     // repairers of `1/2033` on 2073, spilled on by the Battleship `0/23`'s
     // hit, where theirs' first rang the bell and the other three left on
@@ -2446,5 +2451,141 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // Item 4167: 9070 -> 9073, +3 firsts, who=1: `air_queued` 2583 ours 10 theirs 13 and `factory_queued` 2583 ours 1 theirs 8, beside `num_queued[261]` 0/3 and `[223]` 0/7; `supply_mark` 2805 ours 4 theirs 3, beside `num_units[13]` 4/3 (the bins and the mark follow the arrays' own partings).
     // Item 4176: 9073 -> 9081, +8 firsts: the victim stamp rows on 2060, 2063, 2079 and 2552 (who=1's `attack_stamp[0]` ours 2059 theirs 0 beside `1/59`'s damage 10 against 0), and `units_killed`/`units_lost` on 2247 (ours 15 theirs 16) and 2386 (ours 2 theirs 1), beside the units' own hits.
     // Item 4177: 9081 -> 9105, +24 firsts, the combat rates' own: who=0 `hits_current_frame` 2060 ours 1 theirs 0; who=1 `damage_current_frame` 2060 ours 1 theirs 0; who=0 `damage_current_frame` 2079 ours 1 theirs 0; who=1 `hits_current_frame` 2079 ours 1 theirs 0 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 9109, "initial run1075 baseline");
+    // Item 4159's third residue: 9109 -> 7746, the staged Battleships' turrets born at rest; the window's first gameplay parting 2060 -> 2123 (parked 4159r3a).
+    pin_eq!(w.firsts.len(), 7746, "initial run1075 baseline");
+}
+
+/// `Ammo::init+0xcd9` (`0x67c8c9`): the first of a round's two landing
+/// scatter draws, one a launched round (`docs/COMBAT.md` §50).
+const AMMO_SCATTER_X: u32 = 0x0067_c8c9;
+
+/// A guy at rest: `(type, turret_angles, des_turret_angles)`.
+type Rest = (i32, [i32; 4], [i32; 4]);
+
+/// One guy of a packet's guys line at rest: `(type, turret_angles,
+/// des_turret_angles)` for every `GuyData::walk_data` range whose
+/// `des_node_flags` is 0 (no `set_all_pivots` has aimed it). `None` on a
+/// machine without the packet (item 4188's streams, outside git).
+fn packet_rests(run: &str) -> Option<Vec<Rest>> {
+    let dir = std::env::var("RON_PACKETS_DIR").unwrap_or_else(|_| {
+        let home = std::env::var("HOME").unwrap_or_default();
+        format!("{home}/ron-data/lab-experiments/2026-11-12-item-4188")
+    });
+    let text = std::fs::read_to_string(format!("{dir}/{run}/stream.tsv")).ok()?;
+    let word = |b: &[u8], at: usize| i32::from_le_bytes(b[at..at + 4].try_into().unwrap());
+    let mut out = Vec::new();
+    for line in text.lines() {
+        let f: Vec<&str> = line.split('\t').collect();
+        // The range opens at `+0x8` (`type`) and runs 155 bytes.
+        if f.len() < 8 || f[0] != "guys" || f[2] != "GuyData::walk_data" || f[6] != "155" {
+            continue;
+        }
+        let b: Vec<u8> = (0..f[7].len() / 2)
+            .map(|i| u8::from_str_radix(&f[7][2 * i..2 * i + 2], 16).unwrap())
+            .collect();
+        let dnf = i16::from_le_bytes([b[0x98 - 8], b[0x99 - 8]]);
+        if dnf != 0 {
+            continue;
+        }
+        let four = |at: usize| std::array::from_fn(|k| word(&b, at + 4 * k));
+        out.push((word(&b, 0), four(0x20 - 8), four(0x30 - 8)));
+    }
+    Some(out)
+}
+
+/// **run1075's staged Battleships release on the original's frames**
+/// (item 4159's third residue, parked 4159r2a): the rounds launched on
+/// each frame of 2042..2066, ours (the projectile pool's new entries)
+/// against the original's `Ammo::init+0xcd9` draws in
+/// `rontrace-run1075.log`. The eleven Battleships staged on 2050..2053
+/// loose 1, 1, 0, 3 rounds on 2058..2061 and 3, 2, 3, 3 on 2063..2066:
+/// the bow turret (node 6, the wrapped `50..-50`) is born at its rest,
+/// half a turn round, and turns 15° a frame to the bearing, so the
+/// frame-7 release finds it aimed on fewer ships than a turret born at
+/// zero (`Guy::init_real@005db6b0:148`, `reset_pivots(this, 1)`). This
+/// crate's turret was born at zero and loosed 3, 2, 3, 3 and 3, 2, 3, 3.
+///
+/// The rest itself is the original's: run1165's packet reads its
+/// Battleship (type 349) at `[0, 0, 0x8000_0000, 0]` both ways before
+/// a shot, and the staged ships are born with the same four words.
+#[test]
+fn run1075_s_staged_battleships_release_on_the_original_s_frames() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(start), Some(tr)) = (dump(COVERAGE.start), trace("rontrace-run1075.log")) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let mut built = crate::diff::testkit::with_named_sibling_initials(&[COVERAGE.start], |refs| {
+        let mut source = crate::capture::indexed::IndexedCapture::open(&start).unwrap();
+        let text = source.read_replay_setup().unwrap();
+        let log = Log::parse(&text);
+        let mut init = log.replay_initial().unwrap();
+        borrow_from_siblings(&mut init, refs);
+        if let Some(t) = trace(COVERAGE.long.1) {
+            borrow_pasture(&mut init, &t);
+        }
+        crate::diff::setup::with_staged_script(navy_script(), || {
+            build_sim(&loaded, &init, Tuning::RON)
+        })
+    });
+    let (lo, hi) = (2042i64, 2066i64);
+    let mut ours: std::collections::BTreeMap<i64, usize> = (lo..=hi).map(|f| (f, 0)).collect();
+    let mut seen = std::collections::BTreeSet::new();
+    let mut born: Vec<[i32; 4]> = Vec::new();
+    let mut staged = std::collections::BTreeSet::new();
+    while built.sim.frame <= hi {
+        built.tick();
+        let n = built.sim.frame;
+        for (u, unit) in built.sim.units.iter().enumerate() {
+            let battleship = unit
+                .ty
+                .is_some_and(|t| built.sim.tables.unit_types[t].type_index == 349);
+            if (2050..=2054).contains(&n) && unit.owner == 0 && battleship && staged.insert(u) {
+                born.push(unit.guys[0].turret.angles);
+            }
+        }
+        for p in &built.sim.combat.projectiles {
+            // A round reads `cur_time` 1 at the end of the frame after the
+            // one that launched it, so its launch is `n − cur_time`.
+            let launched = n - i64::from(p.cur_time);
+            if seen.insert((p.slot, launched))
+                && let Some(c) = ours.get_mut(&launched)
+            {
+                *c += 1;
+            }
+        }
+    }
+    let theirs: std::collections::BTreeMap<i64, usize> = (lo..=hi)
+        .map(|f| {
+            let n = tr
+                .frame_draws(f)
+                .iter()
+                .filter(|d| d.sync() && d.site == AMMO_SCATTER_X)
+                .count();
+            (f, n)
+        })
+        .collect();
+    let launches = |m: &std::collections::BTreeMap<i64, usize>| -> Vec<usize> {
+        (2058..=2066).map(|f| m[&f]).collect()
+    };
+    assert_eq!(
+        launches(&theirs),
+        [1, 1, 0, 3, 0, 3, 2, 3, 3],
+        "the original's launches"
+    );
+    assert_eq!(staged.len(), 11, "the eleven staged Battleships");
+    assert_eq!(ours, theirs, "rounds launched a frame, 2042..2066");
+    let rest = [0, 0, i32::MIN, 0];
+    assert!(born.iter().all(|t| *t == rest), "born at rest: {born:?}");
+    if let Some(guys) = packet_rests("run1165") {
+        let ships: Vec<_> = guys.iter().filter(|g| g.0 == 349).collect();
+        assert!(!ships.is_empty(), "run1165's Battleship");
+        assert!(
+            ships.iter().all(|g| g.1 == rest && g.2 == rest),
+            "run1165's Battleship at rest: {ships:?}"
+        );
+    }
 }

@@ -76,18 +76,18 @@ pub const LEAVES: [&str; 16] = [
     "nukes_launched",
 ];
 
-/// Of [`LEAVES`], the six the leaders line emits unheld although the crate
+/// Of [`LEAVES`], the five the leaders line emits unheld although the crate
 /// holds them: the record diff parts each — the counters and the stamp rows
-/// beside their units' and rounds' own partings, `attrition_stamp2` on the
-/// Lakota and Mongol pairs with none visible (`docs/LEADERS.md` §2.5, §4.5,
-/// §5.5; item 4176, parked 4176a and 4176b).
-pub const OFF_THE_LINE: [&str; 6] = [
+/// beside their units' and rounds' own partings (`docs/LEADERS.md` §2.5,
+/// §4.5; item 4176, parked 4176a). `attrition_stamp2` left with item 4159's
+/// third residue: the bleed reads the record's `anti_att`, and the Lakota,
+/// Mongol, German and Aztec pairs' partings are gone (§5.5).
+pub const OFF_THE_LINE: [&str; 5] = [
     "units_killed",
     "units_lost",
     "attack_stamp",
     "raid_stamp",
     "ally_stamp",
-    "attrition_stamp2",
 ];
 
 /// `frame − stamp > window`, the strict test every stamp here shares.

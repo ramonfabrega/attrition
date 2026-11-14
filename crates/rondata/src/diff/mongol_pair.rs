@@ -694,5 +694,6 @@ fn run844_s_closing_frame_is_widened_whole() {
     // supplier's pool takes the supply upgrade's multiple (`docs/AI.md`
     // §331.1).
     // Item 4176: 185 -> 186, +1 firsts: who=1's `attrition_stamp2` standing at 4940, ours 4871 theirs 0 (parked 4176b).
-    pin_eq!(w.firsts.len(), 186, "run844 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 4159's third residue: 186 -> 125, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 125, "run844 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
 }

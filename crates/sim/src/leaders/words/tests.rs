@@ -55,3 +55,26 @@ fn a_tribe_mate_takes_the_step_and_the_owner_takes_one() {
     name_step(&mut tied, &tribes, 1);
     assert_eq!(tied, [3, 2, 0]);
 }
+
+/// **The bleed reads the record** (item 4159's third residue, parked
+/// 4162b): `calc_anti_attrition` hands its single to the player's
+/// attrition state, which `UnitData::get_attrition` divides by the
+/// claimant's strength. Until then the state kept `Resistance::BASE`
+/// whatever the leader held, and a disabled leader (anti_att 0.0) still
+/// bled.
+#[test]
+fn the_anti_attrition_single_reaches_the_bleed() {
+    use crate::territory::attrition::Resistance;
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, crate::World::new(8, 8), 2);
+    sim.territory.players[1].take_disabled = true;
+    for who in 0..2 {
+        sim.calc_anti_attrition(who);
+    }
+    assert_eq!(sim.leader_anti_att(0), super::ANTI_ATT_BASE);
+    assert_eq!(
+        sim.territory.players[0].resistance,
+        Resistance::Single(super::ANTI_ATT_BASE)
+    );
+    assert_eq!(sim.territory.players[1].resistance, Resistance::Single(0));
+    assert!(!sim.territory.players[0].foraging_1);
+}

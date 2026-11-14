@@ -521,6 +521,32 @@ fn an_empty_search_of_a_v_type_resets_the_pivots_and_only_that() {
     }
 }
 
+/// **A newborn figure's turret stands at its rest, both ways**
+/// (`Guy::init_real@005db6b0:148`, `reset_pivots(this, 1)`; item 4159's
+/// third residue): the Battleship's three rows, `-135..135`, `-110..110`
+/// and the wrapped `50..-50`, rest at 0, 0 and half a turn, which is what
+/// run1165's packet reads on its Battleship and every Cruiser before a
+/// shot (`turret_angles` and `des_turret_angles` `[0, 0, 180°, 0]`). A
+/// fourth turret with no row stays at the clear's zero, and the node
+/// flags are left to `Guy::process`.
+#[test]
+fn a_newborn_turret_stands_at_its_rest_both_ways() {
+    let (mut sim, ty) = field(false);
+    let ti = sim.tables.unit_types[ty].type_index;
+    sim.roster.art.pivots.insert(
+        ti,
+        [(4, (-135, 135)), (5, (-110, 110)), (6, (50, -50))]
+            .into_iter()
+            .collect(),
+    );
+    let me = put(&mut sim, 0, ty, Pos::new(3000, 3000));
+    sim.init_guys(me, Some(ty));
+    let t = sim.units[me].guys[0].turret;
+    assert_eq!(t.angles, [0, 0, i32::MIN, 0], "turret_angles");
+    assert_eq!(t.des, [0, 0, i32::MIN, 0], "des_turret_angles");
+    assert_eq!((t.node_flags, t.des_flags), (0, 0));
+}
+
 /// **A request for `CHAR_ATTACKWALK` asks the reload** (`Guy::set_anim@
 /// 005da300`'s head, run772's Dragoon on 1021 and 1022, `docs/GOLDEN.md`
 /// §65): from another animation, a reload under six frames is cleared and
