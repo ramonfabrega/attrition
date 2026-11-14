@@ -1289,10 +1289,11 @@ fn unit_site_field(site: &str) -> &'static str {
         "00730291" => "orders.count",
         "007303ac" => "order.type",
         "007303be" => "order.node",
-        "0047f243" | "00482e93" | "00486e83" => "order.flags",
-        "0047f251" | "00486e91" => "order.target",
+        "0047f243" | "00482e93" | "00486e83" | "00483283" => "order.flags",
+        "0047f251" | "00486e91" | "00483291" => "order.target",
         "00482ea1" => "order.move",
         "00486e9f" => "order.gather",
+        "0048329f" => "order.trade",
         "005d7f26" => "ox..aid",
         s => guy_site_field(s),
     }
@@ -1303,7 +1304,9 @@ fn unit_site_field(site: &str) -> &'static str {
 /// `Coord`s unmasked, a figure by [`guy_range_fields`], anything else as
 /// its one value.
 fn unit_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
-    use sim::checksum::units::{GATHER_FIELDS, MOVE_FIELDS, TARGET_FIELDS, UNIT_FIELDS};
+    use sim::checksum::units::{
+        GATHER_FIELDS, MOVE_FIELDS, TARGET_FIELDS, TRADE_FIELDS, UNIT_FIELDS,
+    };
     let le = |s: &[u8]| -> i64 {
         match s.len() {
             1 => i64::from(s[0] as i8),
@@ -1322,6 +1325,7 @@ fn unit_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
         "order.move" => table(MOVE_FIELDS, 0x4),
         "order.target" => table(TARGET_FIELDS, 0x8),
         "order.gather" => table(GATHER_FIELDS, 0x14),
+        "order.trade" => table(TRADE_FIELDS, 0x14),
         "who..y_internal" => {
             let c = |at: usize| le(&b[at..at + 4]) ^ i64::from(COORD_MASK);
             vec![

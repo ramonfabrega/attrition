@@ -37113,3 +37113,27 @@ SHA-256 `73d1d3988efc3879957f5ed3bfb1200d8592daa27049cd5c378c260a485b49ec`; `ron
 SHA-256 `138d411199419d46fe26ea354e48a7eb1712b979c8ad0c1056f73ccdd185dbe3`.
 
 **What it holds**: the units line's first parting on 189, named by record and field.
+
+## run1587 — the minted file's playback with a packet at 3166: units' first parting (2026-11-14, item 4230, `att-4230`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the units line out on frame 3166, its
+first parting on run1578 since item 4228. The hook carries only the line's Adler, and no packet stood on 3166. The
+take: run1586's line moved to 3166, `--end-frame 3169 --log-window 3165 3168 --tracer-def RON_STATE_FRAME=3166`,
+through `viadriver.sh golden_capture.sh ~/ron-golden/run1587`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 02:29:06 −05:00, exited 02:33:04: **237.4 s launch to exit**, exit 0, `success`, 3,170
+  frames, `last_frame` 3169, no page fault, no relaunch. `df -g ~` read 167 GB free before it. Minutes waited on
+  another lane: none. DLL `fef82597…`. No `.rcx` left in `Logs\`.
+- The packet at logger frame 3166, trace frame 3165, `frame-snapshot.bin`, 783,694,596 bytes, SHA-256
+  `64e3b1f89922cc523cfd5736188298a44e4cb251fe9b44a81c99ac4b1477f8eb`. `checksum.py --stream --values`: the stream's
+  sums equal the original's on every line. Kept under `~/ron-data/lab-experiments/2026-11-13-item-4214/run1587/`
+  beside the other minted packets. Its units value, 3594226250, is run1578's theirs on 3166.
+- **Units on frame 3166**: theirs 1,355 ranges, ours 1,352, 660 parted from range 536. Record 14 (`1/14`) holds its
+  first `TRADE_ROUTE`, and `TradeOrder::walk_data@00483260` hands over three ranges the emitter left out
+  (`MINTED_PACKETS`). Item 4230 makes the line whole.
+- Filed with `filerun.py run1587 greatlakes-playback-of-minted-packet-3166`.
+
+Archive `gamelog-run1587-greatlakes-playback-of-minted-packet-3166.txt`, 2,450 bytes,
+SHA-256 `726a439d18c7edf7d648483f9426688cd0320eb06283bd28cec247df754f20f4`; `rontrace-run1587.log`, 22,202,048 bytes,
+SHA-256 `0a28bac09cd4d861c26ebdbdba707b3cc9d7216da945c3897deb1329715053fd`.
+
+**What it holds**: the units line's first parting on 3166, named by record and field.

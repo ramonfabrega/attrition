@@ -182,6 +182,14 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// theirs 0x02 → 0x02 on both); cities 4030 → 24,000, `City::new_caravan`'s
 /// bit the partner's index in its owner's cities (run1585 on 4030: city 0
 /// `traded_with[1]` ours 4, theirs 2 → 2 on both).
+/// Item 4230 moved one on run1578: units 3166 → 3596, the emitter walking
+/// a `TRADE_ROUTE` (`TradeOrder::walk_data@00483260`'s three ranges) and a
+/// caravan's path taking its road stack's doubled `size`. Value diff on
+/// 3166 (run1587): record 14 (`1/14`, its first trade order) ours 1,352
+/// ranges, theirs 1,355, from range 536 → whole, its order `ox` 2000,
+/// `whom` 1, `uid` 0, `oxx` −1, `whose` −1, `started` 0, `loaded` 0,
+/// `uid2` −1 on both; on 3246 (run1584) `1/14`'s `path.size` ours 50,
+/// theirs 64 → 64.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -203,7 +211,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 3166, 0),
+            ("units", 3596, 0),
             ("builds", 7383, 0),
             ("groups", 2746, 0),
             ("guys", 6537, 0),
@@ -416,6 +424,22 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         )],
     ),
     (
+        "run1587",
+        "rontrace-run1587.log",
+        3166,
+        // Item 4230: units whole; before it, 1355 ranges theirs, 1352 ours,
+        // 660 parted from range 536: record 14's `TRADE_ROUTE`, whose
+        // `TradeOrder::walk_data` hands over three ranges the emitter left
+        // out (`order.flags`, `order.target`, `order.trade`).
+        &[(
+            "leaders",
+            267,
+            267,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|fc000000",
+        )],
+    ),
+    (
         "run1583",
         "rontrace-run1583.log",
         987,
@@ -434,15 +458,11 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "rontrace-run1584.log",
         3246,
         &[
-            // Item 4228: 661 → 656 parted, range 167 `path.size` 20|60 →
-            // agreeing; the first is now a size no block of 10 makes.
-            (
-                "units",
-                1389,
-                1386,
-                656,
-                "524 14 path.size..increment: path.size 50|64",
-            ),
+            // Item 4230: units whole. Item 4228: 661 → 656 parted, range
+            // 167 `path.size` 20|60 → agreeing, the first range 524, record
+            // 14 `path.size` 50|64 — the road stack's doubled allocation
+            // `do_trade`'s `operator=` hands the caravan — and then the
+            // `TradeOrder`'s three unwalked ranges (1386 ours, 1389 theirs).
             (
                 "leaders",
                 267,
@@ -458,12 +478,13 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         4030,
         &[
             // Item 4228: 809 → 804 parted, range 167 `path.size` 10|60 →
-            // agreeing.
+            // agreeing. Item 4230: 804 → 1, the `TradeOrder`'s three ranges
+            // walked (1504 → 1507 ours).
             (
                 "units",
                 1507,
-                1504,
-                804,
+                1507,
+                1,
                 "492 14 collide_frame..play: unit_masks 262152|262664",
             ),
             (
