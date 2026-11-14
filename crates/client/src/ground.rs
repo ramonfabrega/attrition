@@ -1007,6 +1007,12 @@ pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1104, 1109);
 /// unmoved by the surf.
 pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[701, 772], [422, 437]];
 
+/// **`RUN1564_3279_SURF_DRAWN`** (item 4239; `docs/RENDERER.md` §3.27):
+/// `SANDY` and `OCEAN` `[agree, scored]` on run1564's still with the
+/// client's own surf drawn, then with the packet's types.
+#[cfg(test)]
+pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 2] = [[[0, 0], [0, 0]], [[0, 0], [0, 0]]];
+
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
 /// `(agree, scored)`, then by kind `[agree, scored]`, `KINDS`' order.
 /// Item 4178: **1,237 → 1,373**, the water on its own mesh at z 0 with
@@ -3610,6 +3616,9 @@ pub(crate) mod tests {
         let Some(mut p) = probe_at(run1564()) else {
             return;
         };
+        // Item 4239: the client's own surf off, so the packet's is the
+        // only one composited.
+        p.world.surf = false;
         let size = (p.photo.width as u32, p.photo.height as u32);
         let camera = p.camera;
         let still = crate::still_of(
@@ -3749,6 +3758,82 @@ pub(crate) mod tests {
                 .collect::<Vec<_>>(),
             "the surf moves no kind but the beach"
         );
+    }
+
+    /// **The surf drawn, and drawn with the session's types** (item 4239;
+    /// `docs/RENDERER.md` §3.27): run1564's still with the client's own
+    /// surf (§3.27, every type after a wave's first wrap the client's own
+    /// generator's), then with each wave's type replaced by the packet's
+    /// (`surf_init_lays_the_packet_s_waves`' dump, frame 3294), the
+    /// `SANDY` and `OCEAN` rows read on each; and the types the two agree
+    /// on. [`RUN1564_3279_SURF_DRAWN`].
+    #[test]
+    fn the_surf_drawn_on_the_still() {
+        use crate::gpu::SilhouetteOrder;
+        let Some(pk) = crate::surf::init_tests::packet() else {
+            println!("skipping: no surf init dump");
+            return;
+        };
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let mut row = |p: &mut Probe| {
+            let still = crate::still_of(
+                &mut p.world,
+                &camera,
+                size,
+                SilhouetteOrder::Before,
+                wgpu::TextureFormat::Rgba8Unorm,
+            );
+            let got = still_ground_row(p, &still);
+            let t = p.world.runner.terrain();
+            let mountains: std::collections::BTreeSet<(i32, i32)> =
+                t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+            let mut by = [[0u32; 2]; 7];
+            for b in &got {
+                let k = kind_of(&t, &mountains, b.0);
+                by[k][1] += 1;
+                by[k][0] += u32::from(b.3);
+            }
+            (still, [by[5], by[6]])
+        };
+        let (ours, drawn) = row(&mut p);
+        let frame = p.world.runner.frame();
+        let (agree, of) = {
+            let s = p
+                .world
+                .surf_layer()
+                .and_then(|l| l.surf().cloned())
+                .unwrap();
+            let pairs: Vec<(usize, usize)> = s
+                .waves
+                .iter()
+                .chain(&s.breakers)
+                .zip(pk.waves.iter().chain(&pk.breakers))
+                .map(|(a, b)| (a.kind, b.kind))
+                .collect();
+            (pairs.iter().filter(|(a, b)| a == b).count(), pairs.len())
+        };
+        let kinds = |v: &[crate::surf::WaveStruct]| v.iter().map(|w| w.kind).collect::<Vec<_>>();
+        p.world
+            .set_surf_kinds(frame, &kinds(&pk.waves), &kinds(&pk.breakers));
+        let (theirs, typed) = row(&mut p);
+        if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+            let dir = PathBuf::from(dir);
+            for (name, px) in [
+                ("still-run1564-surf-drawn.bmp", &ours),
+                ("still-run1564-surf-typed.bmp", &theirs),
+            ] {
+                std::fs::write(dir.join(name), crate::gpu::bmp(px, size))
+                    .expect("the still writes");
+            }
+        }
+        println!(
+            "run1564 surf drawn at frame {frame}: SANDY, OCEAN {drawn:?}; with the packet's types {typed:?}; types agreeing {agree} of {of}"
+        );
+        assert_eq!([drawn, typed], RUN1564_3279_SURF_DRAWN);
     }
 
     /// **Item 4227: the floor's second layer clamps** (`docs/RENDERER.md`

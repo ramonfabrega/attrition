@@ -12,6 +12,7 @@
 //! are the next word, so the binary does not call this module yet.
 #![cfg_attr(not(test), allow(dead_code))]
 
+pub mod mesh;
 pub mod shore;
 
 /// `internal_random`'s draws before `Surf::init`'s first, on run1567's
@@ -497,6 +498,121 @@ impl Surf {
     }
 }
 
+impl Surf {
+    /// `Surf::inc_time@008a1a00`, once a frame: every clock steps by one;
+    /// one that reaches `wavetime` restarts at `−stalltime` with a type
+    /// drawn afresh from its shape's row, the waves before the breakers.
+    pub fn inc_time(&mut self, class: &rondata::artdata::SurfClass, rng: &mut InternalRandom) {
+        let (total, stall) = (self.total, self.stall);
+        for w in self.waves.iter_mut().chain(self.breakers.iter_mut()) {
+            w.time += 1;
+            if w.time >= total {
+                let row: Vec<usize> = (0..class.waves.len())
+                    .filter(|&k| class.waves[k].shape == w.shape)
+                    .collect();
+                w.kind = row[rng.get(0, row.len() as i32) as usize];
+                w.time = -stall;
+            }
+        }
+    }
+}
+
+/// **The surf as the client draws it** (item 4239; `docs/RENDERER.md`
+/// §3.27): laid at load by [`Surf::init`] along the client's own shore
+/// ([`shore::ShoreWorld`]), with `internal_random` at
+/// [`DRAWS_BEFORE_SURF_1567`] (the GreatLakes map's; another map's count
+/// is not read, 4236c), then stepped a frame at a time by
+/// [`Surf::inc_time`] on the same generator and nothing else (4236a: the
+/// original's particles, wakes and ammo draw on it between, so a wave's
+/// type after its first wrap is ours, not the session's). Every wave and
+/// breaker is built ([`mesh::SurfArt::build`]); the original builds only
+/// those on a visible cell, which the screen clips.
+pub struct SurfLayer {
+    pub class: rondata::artdata::SurfClass,
+    pub art: mesh::SurfArt,
+    /// The frame `surf` stands at, the surf, and the generator.
+    state: Option<(i64, Surf, InternalRandom)>,
+}
+
+impl SurfLayer {
+    pub fn new(install: &rondata::Install) -> Result<SurfLayer, String> {
+        let class = rondata::artdata::surf_class(install).map_err(|e| format!("{e:?}"))?;
+        let art = mesh::SurfArt::load(&class)?;
+        Ok(SurfLayer {
+            class,
+            art,
+            state: None,
+        })
+    }
+
+    /// Whether [`Self::lists_at`] at `frame` lays the surf afresh, and so
+    /// reads the terrain.
+    pub fn needs_terrain(&self, frame: i64) -> bool {
+        self.state.as_ref().is_none_or(|s| s.0 > frame)
+    }
+
+    /// The surf at `frame`: laid along `terrain`'s shore when it has not
+    /// been or `frame` is behind it, stepped to `frame`, and built at
+    /// `graphic_dt` 0 (the photographs' lists were).
+    pub fn lists_at(
+        &mut self,
+        frame: i64,
+        terrain: Option<&sim::observe::TerrainScene>,
+    ) -> Vec<mesh::FinalList> {
+        if self.needs_terrain(frame) {
+            let Some(t) = terrain else {
+                return Vec::new();
+            };
+            let (chains, _) = shore::ShoreWorld::of(t).sorted_waterline_tcoords();
+            let world = SurfWorld {
+                width_tiles: t.width,
+                wcoords: (t.width * 4, t.height * 4),
+                flags: t.tiles.clone(),
+            };
+            let mut rng = InternalRandom::after(DRAWS_BEFORE_SURF_1567);
+            let surf = Surf::init(&self.class, &chains, &world, &mut rng);
+            self.state = Some((0, surf, rng));
+        }
+        let (at, surf, rng) = self.state.as_mut().unwrap();
+        while *at < frame {
+            surf.inc_time(&self.class, rng);
+            *at += 1;
+        }
+        self.art
+            .build(surf.waves.iter().chain(&surf.breakers), frame as i32, 0)
+    }
+
+    /// The types the surf stands at replaced (a test's: the session's
+    /// types, off a packet), each list by its index.
+    #[cfg(test)]
+    pub fn set_kinds(&mut self, waves: &[usize], breakers: &[usize]) {
+        if let Some((_, surf, _)) = self.state.as_mut() {
+            for (w, &k) in surf.waves.iter_mut().zip(waves) {
+                w.kind = k;
+            }
+            for (w, &k) in surf.breakers.iter_mut().zip(breakers) {
+                w.kind = k;
+            }
+        }
+    }
+
+    /// The surf as it stands, a test's.
+    #[cfg(test)]
+    pub fn surf(&self) -> Option<&Surf> {
+        self.state.as_ref().map(|s| &s.1)
+    }
+
+    /// Each slot's mask: the `tex1` its sections name
+    /// (`Surf::surf_texture_alpha_index`), `None` where no section draws.
+    pub fn masks(&self) -> Vec<Option<usize>> {
+        let mut out = vec![None; self.class.textures.len()];
+        for s in self.class.waves.iter().flat_map(|w| &w.sections) {
+            out[s.tex0].get_or_insert(s.tex1);
+        }
+        out
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -620,7 +736,7 @@ mod tests {
 }
 
 #[cfg(test)]
-mod init_tests {
+pub(crate) mod init_tests {
     use super::*;
     use std::path::PathBuf;
 
@@ -792,6 +908,200 @@ mod init_tests {
 
     /// How far a wave may sit from the packet's, in world units.
     const PLACE: f32 = 0.05;
+
+    /// run1564's `final_*` lists as `surf_packet.py` dumps them (item
+    /// 4239): the on-screen indices, `last_time`, and per slot its
+    /// vertices `x y z u0 v0 u1 v1 alpha` and faces.
+    pub(crate) struct Finals {
+        pub waves: Vec<usize>,
+        pub breakers: Vec<usize>,
+        pub last_time: i32,
+        pub lists: Vec<(usize, Vec<[f32; 8]>, Vec<u16>)>,
+    }
+
+    pub(crate) fn finals() -> Option<Finals> {
+        let home = PathBuf::from(std::env::var_os("HOME").unwrap_or_default());
+        let path = std::env::var_os("RON_SURF_FINALS_1564")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                home.join("ron-data/lab-experiments/2026-11-14-item-4239/run1564-surf.txt")
+            });
+        let text = std::fs::read_to_string(path).ok()?;
+        let mut out = Finals {
+            waves: vec![],
+            breakers: vec![],
+            last_time: 0,
+            lists: vec![],
+        };
+        for line in text.lines() {
+            let f: Vec<&str> = line.split_whitespace().collect();
+            let rest = || {
+                f[1..]
+                    .iter()
+                    .map(|v| v.parse().unwrap())
+                    .collect::<Vec<usize>>()
+            };
+            match f[0] {
+                "on_screen_waves" => out.waves = rest(),
+                "on_screen_breakers" => out.breakers = rest(),
+                "last_time" => out.last_time = f[1].parse().unwrap(),
+                "list" => out.lists.push((f[1].parse().unwrap(), vec![], vec![])),
+                "v" => out
+                    .lists
+                    .last_mut()
+                    .unwrap()
+                    .1
+                    .push(std::array::from_fn(|i| f[i + 1].parse().unwrap())),
+                "f" => out
+                    .lists
+                    .last_mut()
+                    .unwrap()
+                    .2
+                    .extend(f[1..].iter().map(|v| v.parse::<u16>().unwrap())),
+                _ => {}
+            }
+        }
+        Some(out)
+    }
+
+    /// **The meshes, off the packet's waves** (item 4239;
+    /// `docs/RENDERER.md` §3.27): [`mesh::SurfArt::build`] over run1564's
+    /// on-screen waves and breakers as the packet holds them, at the
+    /// rebuild's frame (`last_time`), against the packet's `final_*`
+    /// lists, slot for slot: every vertex's place, both texcoords and
+    /// alpha, and every face.
+    #[test]
+    fn the_meshes_are_the_packet_s() {
+        let Some(inst) = install() else {
+            println!("skipping: no install");
+            return;
+        };
+        let (Some(p), Some(fin)) = (packet(), finals()) else {
+            println!("skipping: no surf packet dumps");
+            return;
+        };
+        let class = rondata::artdata::surf_class(&inst).unwrap();
+        let art = mesh::SurfArt::load(&class).unwrap();
+        let frame = (0..)
+            .take_while(|f| f * 200 / 3 <= fin.last_time)
+            .last()
+            .unwrap();
+        let dt = fin.last_time - frame * 200 / 3;
+        let drawn = fin
+            .waves
+            .iter()
+            .map(|&i| &p.waves[i])
+            .chain(fin.breakers.iter().map(|&i| &p.breakers[i]));
+        // The packet's times are its frame's (3294); the lists were rebuilt
+        // at `last_time`'s, 14 frames before, so each wave is stepped back
+        // (`stalltime` 75, a period 325).
+        let back = frame - p.frame;
+        let drawn: Vec<WaveStruct> = drawn
+            .map(|w| WaveStruct {
+                time: (w.time + 75 + back).rem_euclid(325) - 75,
+                ..*w
+            })
+            .collect();
+        // A wave whose clock wrapped between the rebuild and the packet had
+        // its type redrawn in between (`Surf::inc_time`), so the lists hold
+        // its type before. Each such wave takes, of its shape's row, the
+        // type that lays its vertices where the lists have them.
+        let wrapped: Vec<usize> = fin
+            .waves
+            .iter()
+            .map(|&i| &p.waves[i])
+            .chain(fin.breakers.iter().map(|&i| &p.breakers[i]))
+            .enumerate()
+            .filter(|(_, w)| w.time + back < -75)
+            .map(|(i, _)| i)
+            .collect();
+        let placed = |d: &[WaveStruct]| -> usize {
+            let o = art.build(d, frame, dt);
+            fin.lists
+                .iter()
+                .map(|(k, vs, _)| {
+                    vs.iter()
+                        .zip(&o[*k].verts)
+                        .filter(|(v, q)| (v[0] - q[0]).abs() <= 0.01 && (v[1] - q[1]).abs() <= 0.01)
+                        .count()
+                })
+                .sum()
+        };
+        let mut drawn = drawn;
+        let mut redrawn = vec![];
+        for &i in &wrapped {
+            let row: Vec<usize> = (0..class.waves.len())
+                .filter(|&k| class.waves[k].shape == drawn[i].shape)
+                .collect();
+            let was = drawn[i].kind;
+            let best = row
+                .iter()
+                .copied()
+                .max_by_key(|&k| {
+                    let mut d = drawn.clone();
+                    d[i].kind = k;
+                    (placed(&d), usize::from(k == was))
+                })
+                .unwrap();
+            drawn[i].kind = best;
+            redrawn.push((i, was, best));
+        }
+        println!(
+            "surf mesh: wrapped since the rebuild (drawn, the packet's type, the lists') {redrawn:?}"
+        );
+        let ours = art.build(&drawn, frame, dt);
+        let kept: Vec<usize> = (0..ours.len())
+            .filter(|&k| !ours[k].verts.is_empty())
+            .collect();
+        assert_eq!(
+            kept,
+            fin.lists.iter().map(|l| l.0).collect::<Vec<_>>(),
+            "the slots drawn"
+        );
+        // [vertices, place, tex0, tex1, alpha] agreeing, then faces.
+        let mut agree = [0usize; 5];
+        let mut worst = [0.0f32; 3];
+        for (k, vs, fs) in &fin.lists {
+            let o = &ours[*k];
+            assert_eq!(o.verts.len(), vs.len(), "slot {k}'s vertices");
+            assert_eq!(&o.faces, fs, "slot {k}'s faces");
+            for (i, v) in vs.iter().enumerate() {
+                let d = |a: f32, b: f32| (a - b).abs();
+                let place = d(o.verts[i][0], v[0]).max(d(o.verts[i][1], v[1]));
+                let t0 = d(o.tex0[i][0], v[3]).max(d(o.tex0[i][1], v[4]));
+                let t1 = d(o.tex1[i][0], v[5]).max(d(o.tex1[i][1], v[6]));
+                worst = [worst[0].max(place), worst[1].max(t0), worst[2].max(t1)];
+                let ok = [
+                    true,
+                    place <= 0.01,
+                    t0 <= 1e-5,
+                    t1 == 0.0,
+                    f32::from(o.alpha[i]) == v[7],
+                ];
+                if ok.contains(&false) && agree[0] - agree[1].min(agree[2]) < 3 {
+                    println!(
+                        "surf mesh: slot {k} vertex {i}: ours {:?} {:?} {:?} {}, theirs {v:?}",
+                        o.verts[i], o.tex0[i], o.tex1[i], o.alpha[i]
+                    );
+                }
+                for (n, b) in agree.iter_mut().zip(ok) {
+                    *n += usize::from(b);
+                }
+            }
+        }
+        println!(
+            "surf mesh: frame {frame} dt {dt}; [vertices, place, tex0, tex1, alpha] {agree:?}; worst place {}, tex0 {}, tex1 {}",
+            worst[0], worst[1], worst[2]
+        );
+        assert_eq!(agree, SURF_MESH_AGREE);
+    }
+
+    /// [`the_meshes_are_the_packet_s`]' vertices agreeing, of 2,256 in
+    /// seven lists (item 4239): all of them, place and both texcoords bit
+    /// for bit (worst 0), once the seven waves whose clock wrapped between
+    /// the rebuild (frame 3280) and the packet (3294) take the type the
+    /// lists were drawn with; four of the seven had been redrawn.
+    const SURF_MESH_AGREE: [usize; 5] = [2256; 5];
 
     /// **The shore, the client's own** (item 4239; `docs/RENDERER.md`
     /// §3.27): `sort_waterline_wcoords` and `connect_waterline_regions`

@@ -53,3 +53,24 @@ fn fs_water(i: VOut) -> @location(0) vec4<f32> {
     let o = under * (1.0 - a) + over * a;
     return vec4<f32>(land_tone(o.x), land_tone(o.y), land_tone(o.z), 1.0);
 }
+
+// Item 4239 (`docs/RENDERER.md` §3.27): one of the surf's lists, the card's
+// draws 163 to 169. Stage 0 `MODULATE(TEXTURE, CURRENT)` on colour and
+// alpha, stage 1 `SELECTARG2` on the colour and `MODULATE(TEXTURE,
+// CURRENT)` on the alpha: the colour the texel's under the vertex's white,
+// the alpha the texel's times the vertex's (carried where a patch carries
+// its N·L) times the mask's. `TL_FAKE_LIGHT` without lighting raises the
+// colour to the power and the HDR scale; blended source alpha over the
+// frame under it before the tone map, as the water is, the frame copied
+// before each list.
+@fragment
+fn fs_surf(i: VOut) -> @location(0) vec4<f32> {
+    let t0 = textureSample(tex, samp, i.uv);
+    let m = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    let a = t0.a * i.nl * m;
+    let s = {SURF_HDR} * pow(clamp(t0.rgb, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({SURF_POWER}));
+    let d = textureLoad(lake, vec2<i32>(i.pos.xy), 0).rgb;
+    let under = vec3<f32>(water_untone(d.r), water_untone(d.g), water_untone(d.b));
+    let o = under * (1.0 - a) + s * a;
+    return vec4<f32>(land_tone(o.x), land_tone(o.y), land_tone(o.z), 1.0);
+}
