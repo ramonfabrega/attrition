@@ -79,6 +79,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import time
 import sys
@@ -541,6 +542,34 @@ def sim_source_moved(touched):
     return sorted(p for p in (touched or [])
                   if p.startswith(SIM_SOURCE) and p.endswith('.rs')
                   and not p.endswith('tests.rs') and '/tests/' not in p)
+
+
+# **A gate keeps four days of report directories** (Loop 4156; the pass of
+# 2026-11-14, second). Each gate made one under the temp dir, up to 73 MB,
+# and nothing removed any: 2,318 were swept by hand on 2026-11-11 and 295
+# stood three days later. They are also the only record of a lane's gate,
+# which a pass reads for its tranche (the tables of DECISIONS 133), so the
+# sweep keeps what a pass can still want and runs where the directory is
+# made. A gate runs under an hour; four days cannot touch a live one.
+REPORT_KEEP_DAYS = 4
+REPORT_PREFIX = 'attrition-gate-'
+
+
+def sweep_reports(tmp, now=None, keep_days=REPORT_KEEP_DAYS):
+    """Remove the gate report directories under `tmp` last modified more
+    than `keep_days` ago; the count removed. Never raises: a directory
+    another process holds is left for the next gate."""
+    now = time.time() if now is None else now
+    removed = 0
+    for path in sorted(Path(tmp).glob(REPORT_PREFIX + '*')):
+        try:
+            if path.is_symlink() or not path.is_dir() or now - path.stat().st_mtime <= keep_days * 86400:
+                continue
+            shutil.rmtree(path)
+            removed += 1
+        except OSError:
+            continue
+    return removed
 
 
 def sim_crate_left(touched, *, lane, whole):
@@ -1011,7 +1040,11 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         print(dropped_line(t, 'crates/client', 'DECISIONS 132 §6'), flush=True)
     dropped = dropped + client_dropped
     if report_dir is None:
-        report_dir = Path(tempfile.mkdtemp(prefix='attrition-gate-'))
+        swept = sweep_reports(tempfile.gettempdir())
+        if swept:
+            print(f"Reports: {swept} gate report director{'y' if swept == 1 else 'ies'} older than "
+                  f"{REPORT_KEEP_DAYS} days removed from the temp dir (Loop 4156)", flush=True)
+        report_dir = Path(tempfile.mkdtemp(prefix=REPORT_PREFIX))
     else:
         report_dir = Path(report_dir).resolve()
         report_dir.mkdir(parents=True, exist_ok=False)

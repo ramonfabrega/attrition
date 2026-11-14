@@ -1403,6 +1403,28 @@ garbage line
                 self.assertEqual(policy['lane']['tests'], WORD)
         self.assertEqual(gate.sim_source_moved(None), [])
 
+    def test_a_gate_removes_the_report_directories_past_their_keep(self):
+        # Loop 4156, and lore's canon audit of 2026-11-13: every gate made
+        # an `attrition-gate-*` directory under the temp dir and nothing
+        # removed one; 2,318 were swept by hand on 2026-11-11 (about 20 GiB)
+        # and 295 stood again three days later. They are also the only
+        # record of a lane's gate, which a pass reads for its tranche, so a
+        # gate keeps `REPORT_KEEP_DAYS` of them and removes the rest.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            now = 1_000_000_000.0
+            for name, age_days in (('attrition-gate-old', 9), ('attrition-gate-edge', 3.9),
+                                   ('attrition-gate-new', 0.1), ('other-old', 9)):
+                (tmp/name/'isolated').mkdir(parents=True)
+                (tmp/name/'isolated/x.log').write_text('x')
+                os.utime(tmp/name, (now - age_days * 86400,) * 2)
+            (tmp/'attrition-gate-file').write_text('not a directory')
+            os.utime(tmp/'attrition-gate-file', (now - 9 * 86400,) * 2)
+            self.assertEqual(gate.sweep_reports(tmp, now=now), 1)
+            self.assertEqual(sorted(p.name for p in tmp.iterdir()),
+                             ['attrition-gate-edge', 'attrition-gate-file', 'attrition-gate-new', 'other-old'])
+            self.assertEqual(gate.sweep_reports(tmp, now=now), 0)
+
     def test_a_scoped_booking_gate_runs_the_timed_tests_only_when_a_merge_can_move_a_pin(self):
         # The thirty-fifth steer, Ramon's word: the booking gate after every
         # merge was 22 whole suites a tranche; scoped to the merges since the
