@@ -37,9 +37,10 @@ fn fs_textured(i: VOut) -> @location(0) vec4<f32> {
     return vec4<f32>(mix(i.owner, t.rgb, t.a), 1.0);
 }
 
+// Item 4217 (§3.22): a ground mesh's `owner.x` is the corner's N·L.
 @fragment
 fn fs_ground(i: VOut) -> @location(0) vec4<f32> {
-    return vec4<f32>(land_lit(textureSample(tex, samp, i.uv).rgb), 1.0);
+    return vec4<f32>(land_lit(textureSample(tex, samp, i.uv).rgb, i.owner.x), 1.0);
 }
 
 @fragment

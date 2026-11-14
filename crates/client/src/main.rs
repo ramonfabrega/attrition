@@ -143,6 +143,9 @@ struct Args {
     /// Draw the ground in its land kind's debug colour
     /// (`world::World::debug_ground`, item 4127), not its texture.
     debug_ground: bool,
+    /// Light each land corner by its own normal and vertex colour
+    /// (`world::World::set_land_light`, item 4217); off by default.
+    land_light: bool,
     /// Walk the minted script's lobby, built from its choices
     /// (`rondata::free::FreeRunner::from_lobby`, item 4145), in place of
     /// the pair's game: the lobby a person's orders are counted on.
@@ -175,6 +178,7 @@ fn parse() -> Result<Args, String> {
         trees: true,
         textured: true,
         debug_ground: false,
+        land_light: false,
         lobby: false,
         headless: false,
         page_still: None,
@@ -204,6 +208,7 @@ fn parse() -> Result<Args, String> {
             "--no-trees" => a.trees = false,
             "--tint" => a.textured = false,
             "--debug-ground" => a.debug_ground = true,
+            "--land-light" => a.land_light = true,
             "--lobby" => a.lobby = true,
             "--headless" => a.headless = true,
             "--page-still" => a.page_still = Some(v()?.into()),
@@ -522,6 +527,7 @@ impl App {
                             w.trees = self.world.trees;
                             w.textured = self.world.textured;
                             w.debug_ground = self.world.debug_ground;
+                            w.set_land_light(self.args.land_light);
                             self.world = w;
                             self.opened = Some(choices);
                         }
@@ -808,6 +814,7 @@ fn main() {
     world.trees = args.trees;
     world.textured = args.textured;
     world.debug_ground = args.debug_ground;
+    world.set_land_light(args.land_light);
     session.mark("frame zero");
     if page.is_none() {
         session.phase("run to the frame", || world.run_to(args.frame));
