@@ -752,12 +752,6 @@ fn probe_4231_group_slot() {
             })
             .collect();
         let now = now.join("\n    ");
-        if let Some(u) = built.sim.units.iter().find(|u| u.owner == 1 && u.index == 0) {
-            eprintln!(
-                "PROBE frame {} unit 1/0 pos {:?} ty {:?}",
-                built.sim.frame, u.pos, u.ty
-            );
-        }
         if now != last {
             eprintln!("PROBE frame {} slot {slot}:\n    {now}", built.sim.frame);
             last = now;
