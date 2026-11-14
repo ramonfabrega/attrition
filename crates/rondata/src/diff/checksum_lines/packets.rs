@@ -490,9 +490,6 @@ pub(super) fn check(name: &str, walked: &[Walked]) {
                     cut(&f.3),
                     cut(&f.4)
                 );
-                if std::env::var_os("RON_PROBE_4229").is_some() && (*n == "cities" || *n == "goods") {
-                    eprintln!("PROBE4229\t{}\t{n}\t{}\t{}\t{}\t{}\t{}", w.run, f.0, f.1, f.2, f.3, f.4);
-                }
             }
         }
         if print {
