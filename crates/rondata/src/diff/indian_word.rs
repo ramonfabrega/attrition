@@ -329,7 +329,8 @@ fn run970d_s_gap_is_widened_whole() {
     // 96/56 ours against 81/47 — fifteen percent, `get_cost`'s Indian
     // elephant arm. **67 → 62** with the arm: the standing set alone.
     // Item 4159's residue: 63 -> 62, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 62, "keys that part in the gap");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 62 -> 50.
+    pin_eq!(w.firsts.len(), 50, "keys that part in the gap");
 }
 
 /// run970e: the word 14594's window, blocks 14588..14845 at run970's

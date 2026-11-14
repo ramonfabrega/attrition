@@ -1844,9 +1844,10 @@ mod bodies {
             .filter(|((f, _, _), _)| *f > RUN226_TAIL)
             .map(|((f, w, o), n)| (*f, *w, *o, *n))
             .collect();
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): [(19840, 1, -1, 1), (19840, 1, 80, 1)] -> [(19840, 1, -1, 1)].
         pin_eq!(
             parted,
-            [(19840, 1, -1, 1), (19840, 1, 80, 1)],
+            [(19840, 1, -1, 1)],
             "who first parts past run226, and on how many keys"
         );
         pin_eq!(
