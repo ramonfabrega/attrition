@@ -37137,3 +37137,60 @@ SHA-256 `726a439d18c7edf7d648483f9426688cd0320eb06283bd28cec247df754f20f4`; `ron
 SHA-256 `0a28bac09cd4d861c26ebdbdba707b3cc9d7216da945c3897deb1329715053fd`.
 
 **What it holds**: the units line's first parting on 3166, named by record and field.
+
+## run1588 — the minted file's playback with a packet at 2746: groups' first parting (2026-11-14, item 4231, `att-4231`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the groups line out on frame 2746, its
+first parting on run1578 since item 4222. The hook carries only the line's Adler, and no packet stood on 2746. The
+take: run1587's line moved to 2746, `--recording <the minted file> --end-frame 2749 --cover cover=1 --log-window 2745
+2748 --detail end:MISC --timeout 900 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=2746
+--tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`, through `viadriver.sh golden_capture.sh
+~/ron-golden/run1588`, waited on with `waitrun.sh` in the background lane.
+- **The first launch was refused by the runner**: `--map 14` beside `--recording` (`--recording owns the lobby`). No
+  game ran and no directory was written. It was relaunched without it under the same number.
+- Pool lane 1, launched 05:50:51 −05:00, exited 05:54:18: **207.0 s launch to exit**, exit 0, `success`, 2,750
+  frames, `last_frame` 2749, no page fault, no relaunch. `df -g ~` read 207 GB free before it. Minutes waited on
+  another lane: none. DLL `e9d4979e…`. No `.rcx` left in `Logs\`.
+- The packet at logger frame 2746, trace frame 2745, `frame-snapshot.bin`, 783,235,928 bytes, SHA-256
+  `1780b12d9314ea73e16a8faef647bd41c5a579fd8e6d527d478aeedd85ef5ddd`. `checksum.py --stream --values`: the stream's
+  sums equal the original's on every line. Kept under `~/ron-data/lab-experiments/2026-11-13-item-4214/run1588/`
+  beside the other minted packets. Its groups value, 3860919709, is run1578's theirs on 2746.
+- **Groups on frame 2746**: 1 of 544 ranges parted, range 83, group record 65 (`id..march`): `role` ours 0, theirs
+  0x40110; `new_speed` and `speed` ours 0, theirs 34; the other 18 fields agree (`MINTED_PACKETS`). Item 4231 makes it
+  whole.
+- Filed with `filerun.py run1588 greatlakes-playback-of-minted-packet-2746`.
+
+Archive `gamelog-run1588-greatlakes-playback-of-minted-packet-2746.txt`, 2,451 bytes,
+SHA-256 `69ff212f86d371f1706edc9347672141d9577d093e94f3715c0432993f0b816d`; `rontrace-run1588.log`, 17,223,680 bytes,
+SHA-256 `77f2b1ea58b5fe72416de7321aea4353b5928685665130ff4a086ba5fd1bc256`.
+
+**What it holds**: the groups line's first parting on 2746, named by record and field.
+
+## run1589 — the minted file's playback with a packet at 2745: the push the groups line parts on (2026-11-14, item 4231, `att-4231`)
+
+`docs/CHECKSUM.md` §24, `docs/GROUPS.md` §3.4. **What the disk could not answer**: which call writes slot 65's `role`
+and speeds on tick 2745. run1588's packet is the state after that tick, and the groups line agrees on 2745, so the
+write is inside it. The take: run1588's line moved one frame earlier, `--end-frame 2748 --log-window 2744 2747
+--tracer-def RON_STATE_FRAME=2745`, the rest as run1588, through `viadriver.sh golden_capture.sh ~/ron-golden/run1589`,
+waited on with `waitrun.sh` in the background lane. The number was minted by `commander` at the item's request.
+- Pool lane 1, launched 06:08:55 −05:00, exited 06:12:25: **209.3 s launch to exit**, exit 0, `success`, 2,749
+  frames, `last_frame` 2748, no page fault, no relaunch. `df -g ~` read 193 GB free before it. Minutes waited on
+  another lane: none. DLL `91194c14…`. No `.rcx` left in `Logs\`.
+- The packet at logger frame 2745, trace frame 2744, `frame-snapshot.bin`, 767,499,152 bytes, SHA-256
+  `23b05452e37324fa60c4cc796c2525da8e9eb9e44ff959885de130ba9fad7e12`. Not put through `checksum.py`: it is read with
+  `step4.py`, not held by a test.
+- **`step4.py` on it**: `Unit::work@0060d180` entered on the Scout `1/0` (`unitaddr.py` at 25990, 23567:
+  `0x15ccab5c`), with `fs:0x2c` poked to a stand-in TLS block whose guard word is past `_TSS0` (the capturing
+  thread's TEB holds 0 there, and `action_move_near`'s static `grouppath` guard read it). The frame returned in 11,487
+  instructions. Path: `do_explore_to` → `get_goody_box` → `push_group` (`last_group[1]` is slot 64; `get_open_slot`
+  gives 65; `copy_group`; `Group::kill` on 66) → `action_move_to` → `action_move_near` at `QUEUE_FIRST`. Watched on
+  slot 65 (record `0x12487ef4`): `copy_group+0x35` writes `speed` 0, then `find_role+0x82` writes `role` 0x40110 and
+  `normalize+0x1ba`/`+0x1bd` write `speed` and `new_speed` 34, under `get_num_cap` called from
+  `action_move_near+0x531`'s return (`704ebe`).
+- Filed with `filerun.py run1589 greatlakes-playback-of-minted-packet-2745`.
+
+Archive `gamelog-run1589-greatlakes-playback-of-minted-packet-2745.txt`, 2,450 bytes,
+SHA-256 `abb2c4a54db33db1a6d7572de1129c0d40e51c6bacb27987194c8cd2725a2c86`; `rontrace-run1589.log`, 17,265,056 bytes,
+SHA-256 `04a10b36a22616af8653eeb5d9d1f081c06e6c81c3b599a6144fc43f646eb911`.
+
+**What it holds**: the writer of the groups line's first parting on 2746, named by call.

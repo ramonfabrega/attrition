@@ -1246,6 +1246,48 @@ fn the_slot_scan_calls_get_num_on_every_slot_it_reaches() {
     );
 }
 
+/// **A `QUEUE_FIRST` move normalizes its record** (item 4231): the arm asks
+/// `this` for `get_num_cap` between `set_up_insert` and `action_halt`
+/// (`action_move_near@00704990`, `704ebe`), and on a record with an `id`
+/// and fewer than four members that is `normalize` whole — so a slot just
+/// copied from a cleared one takes its member's `role` and its leader's
+/// speed before the move is laid out. The minted game's Scout `1/0`,
+/// pushed onto slot 65 by `Unit::get_goody_box` on 2745, reads `role`
+/// 0x40110 and `speed`/`new_speed` 34 on run1588's packet.
+#[test]
+fn a_queue_first_move_normalizes_its_record() {
+    let mut s = sim();
+    let t = fighter(&mut s);
+    let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+    let mut g = group_of(1, &[a]);
+    assert!(s.push_group(&mut g, true));
+    let slot = g.pushed.expect("seated");
+    // As `copy_group` leaves a slot a cleared record held: `role` and
+    // `new_speed` the previous occupant's 0, `speed` the stack group's 0.
+    let st = &mut s.orders.pushed[slot].state;
+    st.role = 0;
+    st.speed = 0;
+    st.new_speed = 0;
+    s.group_action_move_to(
+        &g,
+        Pos::new(0x4000, 0x4000),
+        QueuePos::First,
+        false,
+        Angle(0),
+        MoveKind::ExploreTo,
+        false,
+    );
+    let st = &s.orders.pushed[slot].state;
+    assert_eq!(st.role, s.tables.unit_types[t].cols.role, "find_role ran");
+    let leader = s.units[a].movement.speed;
+    assert_ne!(leader, 0);
+    assert_eq!(
+        (st.speed, st.new_speed),
+        (leader, leader),
+        "the speed tail ran"
+    );
+}
+
 /// **The cross-region arm re-points its member** (group 15; A9 row 34):
 /// a listed member whose `+0x80` named another slot names this group
 /// after the arm; an unseated group writes nothing.

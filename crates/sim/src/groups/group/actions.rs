@@ -280,6 +280,31 @@ impl Sim {
         if queue == QueuePos::First {
             let stack = Self::seat_of_group(g).is_some_and(|seat| *self.seat_list(seat) != g.list);
             let insert = self.group_set_up_insert(g);
+            // `704ebe`: between `set_up_insert` and `action_halt` the arm asks
+            // `this` for `get_num_cap` (vslot `+0x8`), and on a record with an
+            // `id` and fewer than four members that is `normalize` whole —
+            // the prune, `find_role` and the speed tail (`Group::get_num`'s
+            // first arm, §23). So a slot `push_group` has just copied into
+            // carries its role and its leader's speed by the time the move is
+            // laid out (item 4231: the minted game's Scout `1/0`, pushed onto
+            // slot 65 by `Unit::get_goody_box` on 2745, reads `role` 0x40110
+            // and `speed`/`new_speed` 34 on run1588's packet; run1589's
+            // `step4.py` watch names `action_move_near+0x531`). The recursion
+            // then walks the pruned list, as the original's `this` does.
+            // SEAM: the answer gates the leader's `+0x68 & 0x100` carry
+            // across the halt; the crate keeps no such bit.
+            let pruned;
+            let g = match Self::seat_of_group(g) {
+                Some(seat) if !stack => {
+                    self.seat_get_num_cap(seat);
+                    pruned = Group {
+                        list: self.seat_list(seat).clone(),
+                        ..g.clone()
+                    };
+                    &pruned
+                }
+                _ => g,
+            };
             self.group_action_halt(g, 0);
             self.group_action_move_to(g, to, QueuePos::New, set_angle, angle, kind, action);
             let now = match Self::seat_of_group(g) {
