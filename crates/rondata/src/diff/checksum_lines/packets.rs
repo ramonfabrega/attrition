@@ -615,6 +615,13 @@ pub(super) const PACKET_RELEASED: &[(&str, &str, i16)] = &[
     ("score_research", "run1161", 1),
     // run1487, frame 1980, leader 2: 666.
     ("score_wonders", "run1487", 2),
+    // Item 4159's residue: run1496, frame 1539, leader 1: 84 (was ours 96,
+    // the empty Transport Freighter sunk on 818 priced at 12).
+    ("score_combat", "run1496", 1),
+    // run912e, frame 12753, leader 1: 672 and 549 (was ours 665 and 532,
+    // stale since the Merchant Fleet's close on 12610 raised no bit).
+    ("score_units", "run912e", 1),
+    ("score_units_2", "run912e", 1),
 ];
 
 /// Every [`PACKET_RELEASED`] witness is a held packet, no pinned parting

@@ -525,7 +525,15 @@ impl Sim {
             match (head, prev) {
                 (None, _) => {
                     head = Some(u);
-                    self.track_unit_type(who, ty, 1);
+                    // `Unit::set_type@00612fa0`'s `+1` block counts the
+                    // captain only for a type with population, or one of
+                    // population 0 that is `is(FIGHTERBOMBER)` or a
+                    // governor-hero: the gate `Unit::close` takes it back
+                    // behind (item 4159, the residue's 4187a). A scripted
+                    // Transport Freighter (`POP` 0) is in no `num_units`.
+                    if self.type_counts_in_muster(ty) {
+                        self.track_unit_type(who, ty, 1);
+                    }
                 }
                 (Some(h), Some(p)) => {
                     // `Objects::init_unit@0065e0c0:92,174`: a follower's
@@ -722,10 +730,13 @@ impl Sim {
     /// no; `+0x68 & 1` has no state here.
     pub(crate) fn counts_in_muster(&self, u: usize) -> bool {
         let unit = &self.units[u];
-        unit.captain
-            && unit
-                .ty
-                .is_some_and(|t| self.tables.unit_types[t].price.pop != 0 || self.type_is_hero(t))
+        unit.captain && unit.ty.is_some_and(|t| self.type_counts_in_muster(t))
+    }
+
+    /// [`Sim::counts_in_muster`]'s type half: population, or a
+    /// governor-hero (the `is(0x134)` arm answers no, as there).
+    pub(crate) fn type_counts_in_muster(&self, ty: usize) -> bool {
+        self.tables.unit_types[ty].price.pop != 0 || self.type_is_hero(ty)
     }
 
     /// **`UnitData::is_gov_hero@0046ce70`** on a unit of type `ty`: the
