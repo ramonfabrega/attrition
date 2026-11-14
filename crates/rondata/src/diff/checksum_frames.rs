@@ -505,6 +505,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             "1 0 who..ally_mask: +0x11 of 26914|26914: 00000000|01000000",
         )],
     ),
+    ("run1591", "rontrace-run1591.log", 6537, &[]),
     (
         "run1583",
         "rontrace-run1583.log",
