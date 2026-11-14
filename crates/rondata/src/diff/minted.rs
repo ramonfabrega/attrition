@@ -3348,16 +3348,17 @@ fn market_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<MarketEffect>> {
             if let Some(w) = t.strip_prefix("who ") {
                 who = w.parse().ok()?;
             }
-        } else if who == 0 && at.contains(&frame) {
-            if let Some(b) = t.strip_prefix("bucket ") {
-                got.push(b.parse().ok()?);
-                if got.len() == 6 {
-                    out.push(MarketEffect {
-                        frame,
-                        bucket: got.clone().try_into().unwrap(),
-                    });
-                    who = -1;
-                }
+        } else if who == 0
+            && at.contains(&frame)
+            && let Some(b) = t.strip_prefix("bucket ")
+        {
+            got.push(b.parse().ok()?);
+            if got.len() == 6 {
+                out.push(MarketEffect {
+                    frame,
+                    bucket: got.clone().try_into().unwrap(),
+                });
+                who = -1;
             }
         }
     }
