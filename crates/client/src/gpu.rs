@@ -165,6 +165,44 @@ fn land_shader() -> String {
         .replace("{white}", &format!("{white:?}"))
 }
 
+/// **The lake lit and blended in HDR** (item 4232; `docs/RENDERER.md`
+/// §3.24), appended to [`PATCH_SHADER`] after [`LAND_SHADER`]: `fs_floor`,
+/// the floor's stage per pixel through the lit branch, and `fs_water`, the
+/// water lit at its material and blended over the frame under it in HDR.
+const WATER_SHADER: &str = include_str!("../shaders/water.wgsl");
+
+/// The names [`WATER_SHADER`] leaves a hole for, each filled once.
+#[cfg(test)]
+const WATER_HOLES: [&str; 10] = [
+    "WATER_POWER",
+    "WATER_R",
+    "WATER_G",
+    "WATER_B",
+    "WATER_N_DOT_L",
+    "WATER_AMBIENT",
+    "SCENE_R",
+    "SCENE_G",
+    "SCENE_B",
+    "WATER_HDR",
+];
+
+/// [`WATER_SHADER`] with its holes filled.
+fn water_shader() -> String {
+    use crate::ground::{WATER_AMBIENT, WATER_DIFFUSE};
+    use render::silhouette::{HDR_SCALE, LAND_N_DOT_L, LIT_POWER, SCENE_AMBIENT};
+    WATER_SHADER
+        .replace("{WATER_POWER}", &format!("{LIT_POWER:?}"))
+        .replace("{WATER_R}", &format!("{:?}", WATER_DIFFUSE[0]))
+        .replace("{WATER_G}", &format!("{:?}", WATER_DIFFUSE[1]))
+        .replace("{WATER_B}", &format!("{:?}", WATER_DIFFUSE[2]))
+        .replace("{WATER_N_DOT_L}", &format!("{LAND_N_DOT_L:?}"))
+        .replace("{WATER_AMBIENT}", &format!("{WATER_AMBIENT:?}"))
+        .replace("{SCENE_R}", &format!("{:?}", SCENE_AMBIENT[0]))
+        .replace("{SCENE_G}", &format!("{:?}", SCENE_AMBIENT[1]))
+        .replace("{SCENE_B}", &format!("{:?}", SCENE_AMBIENT[2]))
+        .replace("{WATER_HDR}", &format!("{HDR_SCALE:?}"))
+}
+
 /// The names [`SHADE_SHADER`] leaves a hole for, each filled once.
 #[cfg(test)]
 const SHADE_HOLES: [&str; 2] = ["EXPOSURE", "white"];
@@ -191,7 +229,10 @@ fn shader_sources() -> [(&'static str, String); 9] {
             format!("{TEXTURED_SHADER}{}{}", land_shader(), tree_shader()),
         ),
         ("shade", shade_shader()),
-        ("patch", format!("{PATCH_SHADER}{}", land_shader())),
+        (
+            "patch",
+            format!("{PATCH_SHADER}{}{}", land_shader(), water_shader()),
+        ),
         ("luminance", crate::expose::luminance_shader()),
         ("expose", crate::expose::expose_shader()),
     ]
@@ -270,25 +311,42 @@ pub enum SilhouetteOrder {
 /// A mesh on the GPU: its vertices, their count and its texture.
 type Uploaded = (wgpu::Buffer, u32, wgpu::BindGroup);
 
-/// A patch mesh on the GPU: [`Uploaded`], its alpha's bind group and
-/// whether it is a mountain's layer (item 4141).
+/// A patch mesh on the GPU: [`Uploaded`], its alpha's bind group,
+/// whether it is a mountain's layer (item 4141), and how it is shaded.
 type UploadedPatch = (
     wgpu::Buffer,
     u32,
     wgpu::BindGroup,
     wgpu::BindGroup,
     bool,
-    bool,
+    PatchKind,
 );
 
-/// **Whether a patch mesh takes the land's light** (item 4212;
-/// `docs/RENDERER.md` §3.21): a land texture's layer (keyed `-1 − index`,
-/// the faded land and the transition patches) and the coral, which the
-/// card draws `ENABLE_LIGHTING`; not the water, the floor's shade, the
-/// roads or the weathering, which the client draws as their colours stand.
-fn lit_patch(piece: i32) -> bool {
-    use crate::world::{CORAL_PIECE, WATER_PIECE};
-    (WATER_PIECE + 1..0).contains(&piece) || piece == CORAL_PIECE
+/// **How a patch mesh is shaded** (items 4212, 4232).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PatchKind {
+    /// Its colour as it stands: the roads and the weathering.
+    Plain,
+    /// The land's light (item 4212; `docs/RENDERER.md` §3.21): a land
+    /// texture's layer (keyed `-1 − index`, the faded land and the
+    /// transition patches) and the coral, which the card draws
+    /// `ENABLE_LIGHTING`.
+    Lit,
+    /// The ocean floor's stage under its vertex grey, lit (item 4232).
+    Floor,
+    /// The water, lit and blended over the frame under it in HDR (item
+    /// 4232): its draw is a pass of its own, after the frame is copied.
+    Water,
+}
+
+fn patch_kind(piece: i32) -> PatchKind {
+    use crate::world::{CORAL_PIECE, FLOOR_PIECE, WATER_PIECE};
+    match piece {
+        WATER_PIECE => PatchKind::Water,
+        FLOOR_PIECE => PatchKind::Floor,
+        p if (WATER_PIECE + 1..0).contains(&p) || p == CORAL_PIECE => PatchKind::Lit,
+        _ => PatchKind::Plain,
+    }
 }
 
 /// The ground's base layer and its patch on the GPU, at a terrain version.
@@ -313,6 +371,11 @@ pub struct Gpu {
     patch: wgpu::RenderPipeline,
     /// The land's patches, lit (item 4212).
     patch_lit: wgpu::RenderPipeline,
+    /// The ocean floor, lit per pixel, depth written; the water, blended in
+    /// HDR over the frame under it, and that copy's layout (item 4232).
+    floor: wgpu::RenderPipeline,
+    water: wgpu::RenderPipeline,
+    lake_layout: wgpu::BindGroupLayout,
     alpha_sampler: wgpu::Sampler,
     /// A mountain's layers (item 4141, §3.10): their pass, and the alphas'
     /// linear, clamped sampler (`MIP_LINEAR`, `TEXADD_CLAMP`).
@@ -764,49 +827,78 @@ impl Gpu {
             bind_group_layouts: &[Some(&bgl), Some(&sprite_layout), Some(&sprite_layout)],
             immediate_size: 0,
         });
-        let blended = |label: &str, entry: &str| {
-            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some(label),
-                layout: Some(&patch_layout),
-                vertex: wgpu::VertexState {
-                    module: &patch_module,
-                    entry_point: Some("vs_patch"),
-                    compilation_options: Default::default(),
-                    buffers: &[Some(wgpu::VertexBufferLayout {
-                        array_stride: 32,
-                        step_mode: wgpu::VertexStepMode::Vertex,
-                        attributes: &textured_attributes,
-                    })],
+        let lake_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("lake"),
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Texture {
+                    sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    multisampled: false,
                 },
-                primitive: wgpu::PrimitiveState {
-                    cull_mode: None,
-                    ..Default::default()
-                },
-                depth_stencil: Some(wgpu::DepthStencilState {
-                    format: DEPTH_FORMAT,
-                    depth_write_enabled: Some(false),
-                    depth_compare: Some(wgpu::CompareFunction::LessEqual),
-                    stencil: Default::default(),
-                    bias: Default::default(),
-                }),
-                multisample: Default::default(),
-                fragment: Some(wgpu::FragmentState {
-                    module: &patch_module,
-                    entry_point: Some(entry),
-                    compilation_options: Default::default(),
-                    targets: &[Some(wgpu::ColorTargetState {
-                        format,
-                        blend: Some(wgpu::BlendState::ALPHA_BLENDING),
-                        write_mask: wgpu::ColorWrites::ALL,
-                    })],
-                }),
-                multiview_mask: None,
-                cache: None,
-            })
-        };
+                count: None,
+            }],
+        });
+        let water_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("water"),
+            bind_group_layouts: &[
+                Some(&bgl),
+                Some(&sprite_layout),
+                Some(&sprite_layout),
+                Some(&lake_layout),
+            ],
+            immediate_size: 0,
+        });
+        let patch_pass =
+            |label: &str, entry: &str, layout: &wgpu::PipelineLayout, depth_write: bool| {
+                device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                    label: Some(label),
+                    layout: Some(layout),
+                    vertex: wgpu::VertexState {
+                        module: &patch_module,
+                        entry_point: Some("vs_patch"),
+                        compilation_options: Default::default(),
+                        buffers: &[Some(wgpu::VertexBufferLayout {
+                            array_stride: 32,
+                            step_mode: wgpu::VertexStepMode::Vertex,
+                            attributes: &textured_attributes,
+                        })],
+                    },
+                    primitive: wgpu::PrimitiveState {
+                        cull_mode: None,
+                        ..Default::default()
+                    },
+                    depth_stencil: Some(wgpu::DepthStencilState {
+                        format: DEPTH_FORMAT,
+                        depth_write_enabled: Some(depth_write),
+                        depth_compare: Some(wgpu::CompareFunction::LessEqual),
+                        stencil: Default::default(),
+                        bias: Default::default(),
+                    }),
+                    multisample: Default::default(),
+                    fragment: Some(wgpu::FragmentState {
+                        module: &patch_module,
+                        entry_point: Some(entry),
+                        compilation_options: Default::default(),
+                        targets: &[Some(wgpu::ColorTargetState {
+                            format,
+                            blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                            write_mask: wgpu::ColorWrites::ALL,
+                        })],
+                    }),
+                    multiview_mask: None,
+                    cache: None,
+                })
+            };
+        let blended = |label: &str, entry: &str| patch_pass(label, entry, &patch_layout, false);
         let patch = blended("patch", "fs_patch");
         let patch_lit = blended("patch_lit", "fs_patch_lit");
         let mountain = blended("mountain", "fs_mountain");
+        // Item 4232: the floor writes its depth, as the base layer it
+        // replaced did; the water reads the frame under it.
+        let floor = patch_pass("floor", "fs_floor", &patch_layout, true);
+        let water = patch_pass("water", "fs_water", &water_layout, false);
         let alpha_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             label: Some("alpha"),
             address_mode_u: wgpu::AddressMode::ClampToEdge,
@@ -863,6 +955,9 @@ impl Gpu {
             ground_meshes: std::sync::Mutex::new(None),
             patch,
             patch_lit,
+            floor,
+            water,
+            lake_layout,
             alpha_sampler,
             mountain,
             mountain_sampler,
@@ -1086,7 +1181,7 @@ impl Gpu {
                     self.figure_texture(m.piece, &m.mips),
                     self.alpha_texture(m.alpha, &m.alpha_mips, m.mountain),
                     m.mountain,
-                    lit_patch(m.piece),
+                    patch_kind(m.piece),
                 )
             })
             .collect()
@@ -1340,39 +1435,33 @@ impl Gpu {
                     pass.draw(0..*n, 0..1);
                 }
             }
-            let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("under"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &under.create_view(&Default::default()),
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(CLEAR),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_view,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(0),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                }),
-                timestamp_writes: None,
-                occlusion_query_set: None,
-                multiview_mask: None,
-            });
-            self.draw_ground(&mut pass, cache.as_ref(), Some(meshes), &patches[..split]);
+            self.ground_passes(
+                &mut enc,
+                under,
+                &depth_view,
+                size,
+                cache.as_ref(),
+                meshes,
+                &patches[..split],
+            );
+        } else {
+            // Item 4232: the ground in passes of its own, so the water can
+            // read the frame under it; the frame pass loads it.
+            self.ground_passes(
+                &mut enc,
+                &exposed.scene,
+                &depth_view,
+                size,
+                cache.as_ref(),
+                meshes,
+                patches,
+            );
         }
         {
-            let (depth_load, stencil_load) = if shade.is_some() {
-                (wgpu::LoadOp::Load, wgpu::LoadOp::Load)
+            let colour_load = if shade.is_some() {
+                wgpu::LoadOp::Clear(CLEAR)
             } else {
-                (wgpu::LoadOp::Clear(1.0), wgpu::LoadOp::Clear(0))
+                wgpu::LoadOp::Load
             };
             let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("frame"),
@@ -1381,18 +1470,18 @@ impl Gpu {
                     depth_slice: None,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(CLEAR),
+                        load: colour_load,
                         store: wgpu::StoreOp::Store,
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &depth_view,
                     depth_ops: Some(wgpu::Operations {
-                        load: depth_load,
+                        load: wgpu::LoadOp::Load,
                         store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: Some(wgpu::Operations {
-                        load: stencil_load,
+                        load: wgpu::LoadOp::Load,
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
@@ -1400,15 +1489,14 @@ impl Gpu {
                 occlusion_query_set: None,
                 multiview_mask: None,
             });
-            match &shade {
-                Some((_, _, bind)) => {
-                    pass.set_pipeline(&self.shade);
-                    pass.set_bind_group(0, bind, &[]);
-                    pass.draw(0..3, 0..1);
-                    self.draw_ground(&mut pass, None, None, &patches[split..]);
-                }
-                None => self.draw_ground(&mut pass, cache.as_ref(), Some(meshes), patches),
+            if let Some((_, _, bind)) = &shade {
+                pass.set_pipeline(&self.shade);
+                pass.set_bind_group(0, bind, &[]);
+                pass.draw(0..3, 0..1);
+                self.draw_ground(&mut pass, None, None, &patches[split..], None);
             }
+            pass.set_bind_group(0, &self.bind, &[]);
+            pass.set_pipeline(&self.world);
             if !quads.is_empty() {
                 pass.set_pipeline(&self.sprite);
                 pass.set_bind_group(0, &self.sprite_bind, &[]);
@@ -1497,12 +1585,111 @@ impl Gpu {
     /// patches given — the transition patch after the base (item 4139,
     /// §3.9) and a mountain's layers after it (item 4141, §3.10) — leaving
     /// the world's pipeline and camera bound.
+    /// **The ground's passes** (item 4232): the base layer and the patches
+    /// up to the water into `target`, cleared; then, when there is water,
+    /// the frame so far copied to the lake texture, and the water and the
+    /// patches after it in a second pass over the first, the water reading
+    /// the copy (`fs_water`).
+    #[allow(clippy::too_many_arguments)]
+    fn ground_passes(
+        &self,
+        enc: &mut wgpu::CommandEncoder,
+        target: &wgpu::Texture,
+        depth_view: &wgpu::TextureView,
+        size: (u32, u32),
+        terrain: Option<&(u32, wgpu::Buffer, u32)>,
+        meshes: &[Uploaded],
+        patches: &[UploadedPatch],
+    ) {
+        let view = target.create_view(&Default::default());
+        let water = patches.iter().position(|p| p.5 == PatchKind::Water);
+        let (first, rest) = patches.split_at(water.unwrap_or(patches.len()));
+        fn begin<'e>(
+            enc: &'e mut wgpu::CommandEncoder,
+            view: &wgpu::TextureView,
+            depth_view: &wgpu::TextureView,
+            clear: bool,
+        ) -> wgpu::RenderPass<'e> {
+            let (colour, depth, stencil) = if clear {
+                (
+                    wgpu::LoadOp::Clear(CLEAR),
+                    wgpu::LoadOp::Clear(1.0),
+                    wgpu::LoadOp::Clear(0),
+                )
+            } else {
+                (wgpu::LoadOp::Load, wgpu::LoadOp::Load, wgpu::LoadOp::Load)
+            };
+            enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("ground"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: colour,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: depth,
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: Some(wgpu::Operations {
+                        load: stencil,
+                        store: wgpu::StoreOp::Store,
+                    }),
+                }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            })
+        }
+        {
+            let mut pass = begin(enc, &view, depth_view, true);
+            self.draw_ground(&mut pass, terrain, Some(meshes), first, None);
+        }
+        if rest.is_empty() {
+            return;
+        }
+        let extent = wgpu::Extent3d {
+            width: size.0,
+            height: size.1,
+            depth_or_array_layers: 1,
+        };
+        let lake = self.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("lake"),
+            size: extent,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: self.format,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+        enc.copy_texture_to_texture(target.as_image_copy(), lake.as_image_copy(), extent);
+        let bind = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("lake"),
+            layout: &self.lake_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::TextureView(
+                    &lake.create_view(&Default::default()),
+                ),
+            }],
+        });
+        let mut pass = begin(enc, &view, depth_view, false);
+        self.draw_ground(&mut pass, None, None, rest, Some(&bind));
+    }
+
     fn draw_ground(
         &self,
         pass: &mut wgpu::RenderPass<'_>,
         terrain: Option<&(u32, wgpu::Buffer, u32)>,
         meshes: Option<&[Uploaded]>,
         patches: &[UploadedPatch],
+        lake: Option<&wgpu::BindGroup>,
     ) {
         pass.set_bind_group(0, &self.bind, &[]);
         pass.set_pipeline(&self.world);
@@ -1518,14 +1705,21 @@ impl Gpu {
                 pass.draw(0..*n, 0..1);
             }
         }
-        for (b, n, t, a, mountain, lit) in patches {
-            pass.set_pipeline(if *mountain {
-                &self.mountain
-            } else if *lit {
-                &self.patch_lit
-            } else {
-                &self.patch
-            });
+        for (b, n, t, a, mountain, kind) in patches {
+            let pipeline = match (*mountain, kind) {
+                (true, _) => &self.mountain,
+                (_, PatchKind::Plain) => &self.patch,
+                (_, PatchKind::Lit) => &self.patch_lit,
+                (_, PatchKind::Floor) => &self.floor,
+                (_, PatchKind::Water) => {
+                    // The water reads the frame under it: drawn only by
+                    // `ground_passes`' second pass.
+                    let Some(lake) = lake else { continue };
+                    pass.set_bind_group(3, lake, &[]);
+                    &self.water
+                }
+            };
+            pass.set_pipeline(pipeline);
             pass.set_bind_group(1, t, &[]);
             pass.set_bind_group(2, a, &[]);
             pass.set_vertex_buffer(0, b.slice(..));
@@ -1550,11 +1744,13 @@ impl Gpu {
                 dimension: wgpu::TextureDimension::D2,
                 format,
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT
-                    | wgpu::TextureUsages::TEXTURE_BINDING,
+                    | wgpu::TextureUsages::TEXTURE_BINDING
+                    | wgpu::TextureUsages::COPY_SRC,
                 view_formats: &[],
             })
         };
         let under = texture("under", self.format);
+        // Item 4232: the water's pass copies it (`ground_passes`).
         let keep = texture("keep", KEEP_FORMAT);
         let (uv, kv) = (
             under.create_view(&Default::default()),
@@ -1715,6 +1911,21 @@ mod tests {
             "fn fs_ground(i: VOut) -> @location(0) vec4<f32> {\n    \
              return vec4<f32>(land_lit(textureSample(tex, samp, i.uv).rgb, i.owner.x), 1.0);"
         ));
+    }
+
+    /// Item 4232: the water template's every hole is filled, once.
+    #[test]
+    fn the_water_template_s_holes_are_filled() {
+        for h in WATER_HOLES {
+            assert_eq!(WATER_SHADER.matches(&format!("{{{h}}}")).count(), 1, "{h}");
+        }
+        let t = water_shader();
+        assert!(
+            !t.chars()
+                .zip(t.chars().skip(1))
+                .any(|(a, b)| a == '{' && b.is_ascii_alphabetic()),
+            "a hole the template names and the code does not fill"
+        );
     }
 
     /// Item 4212: the land template's every hole is filled, once.
