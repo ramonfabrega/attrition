@@ -479,10 +479,11 @@ read are in `docs/audit/2026-11-09-loop-retired-clauses.md`, "Retired
 7. **Its rubric** — `python3 tools/rubric.py --record "<the pass>"`: the
    content view (ages held, unit types seen, source groups wholly backed)
    as a row in `docs/audit/rubric.tsv` and a table against the pass
-   before, in the record beside the clock. The `--record` row is the
-   pass's and never a booking's (Ramon, the forty-ninth steer, DECISIONS
-   88); the queue's `Rubric:` line is written at a booking from the pins
-   the worker re-pinned (DECISIONS 90).
+   before, in the record beside the clock. The `--record` row, `census::RUBRIC_*` and
+   the queue's `Rubric:` line are the pass's to re-pin from it and never a
+   booking's (Ramon, the forty-ninth steer, DECISIONS 88), but for
+   `RUBRIC_UNIT_TYPES_SEEN`, which the worker re-pins and the commander
+   writes at the booking (DECISIONS 90).
 8. **Its blind list's open rows scanned for references** —
    `tools/trace/report.py <exe> refs -` over `blind::NEVER` net of
    `RESIDUE` — **and the dead ratified by family, each row with the

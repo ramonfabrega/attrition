@@ -64,7 +64,7 @@ The pass before it is `2026-11-13-fable-pass-supply-2.md`.*
 | the pace (scout: `~/.lore/limits.jsonl`, `lore.db` with subagent transcripts, `tranche.py`) | the week 38 % → 86 % over the tranche, 941.6 USD at list: 19.2 a point. Attrition 475: Opus lanes 201.7, builders 137.1, Fable lanes 91.3, commander 34.6, steer 10.6. Workers never passed six, and that for half an hour; 3.8 on average at 02:00 to 03:00. The driver worked 96.7 of 783 minutes, peak context 549 k |
 | the suite re-timed (`suite_timings.py --stale-only`) | 40 stale tests timed: 2,397 tests, 4,910 s one at a time. The longest: the coverage census 216 s, the checksum frames' walk 144, every lobby's page 92, the ages' draw list 91 |
 | the disk (`df -g ~`) | 153 GB at the start (the pass before left 228), 196 after `afsctool` over both archives and `cargo clean --profile dev` (86,464 files, 42.5 GiB) |
-| the rubric (`rubric.py --record`) | unchanged from the pass before: the tranche moved no rubric pin (`Rubric:` on the queue) |
+| the rubric (`rubric.py --record`, the row in `rubric.tsv`) | the territory 733 · 332 · 574 → **734 · 332 · 573**: one function more ported, re-pinned by the pass (`census::RUBRIC_TERRITORY_*`, the queue's `Rubric:`). The rest as the pass before: 44 of 112 groups whole, 1,456 of 3,611 backed, ages 8 of 8, unit types 296 of 302, lockstep bytes 78.1 % |
 | the window (`lore limits`) | the week 86 % at 03:50, 88 % at 04:50; Fable's 83 % and 84 %; both close 06:00 −05:00; the stop 99 % |
 
 ## What the pass looked at
