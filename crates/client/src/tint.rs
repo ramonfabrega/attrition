@@ -235,9 +235,13 @@ pub(crate) mod tests {
     /// Item 4221 (the trees tinted and blended, §3.23): run1559b off luma
     /// 1,029 → 1,036, on hue 960 → 959; run1570 off luma 1,118 → 1,121, on
     /// 1,152 → 1,153. Lit still beats unlit on no hue row: off.
+    /// Item 4223 (run1564's photograph matched to sRGB, and the coral
+    /// layer drawn, §3.18): run1564 off row 1,021 → 1,412, luma 1,396 →
+    /// 1,710; on hue 665 → 666, row 1,001 → 1,389, luma 1,410 → 1,672. Off
+    /// still beats on: off.
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
         ([959, 1104, 1036], [959, 1104, 1079]),
-        ([674, 1021, 1396], [665, 1001, 1410]),
+        ([674, 1412, 1710], [666, 1389, 1672]),
         ([1042, 1171, 1121], [1041, 1171, 1153]),
     ];
 
@@ -250,9 +254,11 @@ pub(crate) mod tests {
     /// 4208 (the gaia figures' shipped variant), run1564's untinted 605 → 607.
     /// Item 4221: the untinted side now untints the trees too (§3.23):
     /// run1564's 607 → 605, run1570's 1,044 → 1,045; the drawn side holds.
+    /// Item 4223: run1564's photograph matched to sRGB (§3.18), its
+    /// untinted side 605 → 621; the drawn side holds at 674.
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
         ((961, 986), (959, 986)),
-        ((605, 679), (674, 679)),
+        ((621, 679), (674, 679)),
         ((1045, 1073), (1042, 1073)),
     ];
 }

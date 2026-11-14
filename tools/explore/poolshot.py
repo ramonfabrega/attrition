@@ -33,6 +33,11 @@ built around the traps each one paid for once:
   growing, so a quiet trace is no signal (3460's first recon); and a
   sparse-detail take buffers its gamelog, so the take's `gamelog.ini` must
   print the frame on the frame (3444's first) — `--timeout` ends the wait.
+- **The grab is in the display's colour space** (4223): on a display
+  whose profile is not sRGB, `screencapture` writes the window server's
+  match of the frame to it, tagged with that profile. The tool writes the
+  sRGB match beside the grab (`tools/render/photo_srgb.py`), and the
+  rows' TGA is cut from that.
 - **Cropping is the caller's.** `sips --cropOffset` ignores the offset on
   this macOS and crops the centre (3463); read a corner off the full window
   image, or crop with CoreGraphics' `CGImageCreateWithImageInRect`.
@@ -349,7 +354,21 @@ def main(argv=None):
     wait_png(out, 60, launched)
     print(f'window {window.id} pid {window.pid} {window.width}x{window.height} '
           f'frame {seen} -> {out}')
+    profile, matched = srgb_match(out)
+    if matched is not None:
+        print(f'the grab is tagged {profile!r}, not sRGB: matched -> {matched} (cut the rows\' TGA from it)')
     return 0
+
+
+def srgb_match(out, to_srgb=None):
+    """Item 4223: a grab on a display whose profile is not sRGB holds the
+    window server's match of the frame to that display (run1564's, `Mi
+    monitor`); `tools/render/photo_srgb.py` writes its sRGB match beside
+    it as `<stem>-srgb.png`. The grab itself is kept."""
+    if to_srgb is None:
+        sys.path.insert(0, str(ROOT / 'tools/render'))
+        from photo_srgb import to_srgb
+    return to_srgb(out)
 
 
 if __name__ == '__main__':

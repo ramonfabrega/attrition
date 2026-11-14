@@ -1222,11 +1222,39 @@ impl World {
                     }
                 }
             }
+            // Items 4213, 4223: `scene_coral` (draw 131; RENDERER §3.18),
+            // the coral on the sand layer's own triangles and texcoords at
+            // the complement of its depth alpha, after every transition
+            // patch, at the flat light the coral patches keep: where the
+            // sand fades out under the water, the coral fades in.
+            let coral_layer: Option<PatchMesh> = coral.as_ref().map(|c| {
+                let mut m = PatchMesh {
+                    piece: CORAL_PIECE,
+                    positions: Vec::new(),
+                    uvs: Vec::new(),
+                    alpha_uvs: Vec::new(),
+                    mips: c.clone(),
+                    alpha: WATER_ALPHA,
+                    alpha_mips: ramp.clone(),
+                    mountain: false,
+                    light: Vec::new(),
+                };
+                for f in fades.values() {
+                    m.positions.extend_from_slice(&f.positions);
+                    m.uvs.extend_from_slice(&f.uvs);
+                    m.alpha_uvs
+                        .extend(f.alpha_uvs.iter().map(|a| [1.0 - a[0], a[1]]));
+                }
+                m
+            });
             // The faded land first: the card draws it in the land pass,
             // before the floor and every transition patch.
             let faded = fades.len();
-            let mut patches: Vec<PatchMesh> =
-                fades.into_values().chain(patches.into_values()).collect();
+            let mut patches: Vec<PatchMesh> = fades
+                .into_values()
+                .chain(patches.into_values())
+                .chain(coral_layer.filter(|m| !m.positions.is_empty()))
+                .collect();
             let mut layers = (None, None);
             if !shade.positions.is_empty() {
                 layers.1 = Some(faded);
