@@ -9746,6 +9746,22 @@ node_flags` (`anim::Turret`):
   with `guy_flags & 0x100`: each turret on its `des` sets its bit; one
   within 15° snaps there and sets it; any other turns 15° toward it.
 
+- **A figure is born at its rest** (item 4159's third residue):
+  `Guy::init_real@005db6b0` zeroes `+0x20..+0x3c` and calls
+  `Guy::reset_pivots(this, 1)` (`:148`), whose `param_1` writes each
+  node's rest, `degrees_to_angle((lo + hi) / 2)` plus half a turn on a
+  wrapped arc, into `turret_angles` as well as `des`. This crate bore
+  every turret at zero until then. It matters only where the rest is not
+  zero: the wrapped rows of the Battleship, Cruiser, Destroyer, Super
+  Battleship (node 6) and Dreadnought (node 5), and the PT boat's three
+  asymmetric rows. **Diff-backed twice**: run1165's packet reads its
+  Battleship and every Cruiser at `[0, 0, 180°, 0]` both ways before a
+  shot, and run1075's eleven staged Battleships loose 1, 1, 0, 3 rounds
+  on 2058..2061 in the original's trace, where a turret born at zero
+  loosed 3, 2, 3, 3 (the bow turret turned up to three frames further,
+  so the frame-7 release found it unaimed;
+  `diff::coverage_pair::run1075_s_staged_battleships_release_on_the_original_s_frames`).
+
 run147's `GUYS=4` shows the result on 684–686. `turret_angles[0]` equals
 `des_turret_angles[0]` on every chariot. `0/8`'s moves from
 `−382227797` to `−496063829` on 685 in one step, a 9.5° snap. And

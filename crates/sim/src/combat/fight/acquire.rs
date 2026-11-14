@@ -701,28 +701,40 @@ impl Sim {
         let Some(ty) = self.units[i].ty else {
             return;
         };
+        if g >= self.units[i].guys.len() {
+            return;
+        }
+        for (k, a) in self.pivot_rests(ty) {
+            self.units[i].guys[g].turret.des[k] = a;
+        }
+    }
+
+    /// **Each turret's rest**, `(k, angle)` for every restricted node
+    /// `4 + k` of type `ty` below four: `Guy::reset_pivots@005d8a80`'s
+    /// `degrees_to_angle((lo + hi) / 2)`, plus half a turn when `hi < lo`
+    /// (the wrapped arc). Empty for a type with no `<RESTRICTION>` rows.
+    pub(crate) fn pivot_rests(&self, ty: usize) -> Vec<(usize, i32)> {
         let Some(nodes) = self
             .roster
             .art
             .pivots
             .get(&self.tables.unit_types[ty].type_index)
-            .cloned()
         else {
-            return;
+            return Vec::new();
         };
-        if g >= self.units[i].guys.len() {
-            return;
-        }
-        for node in 4..4 + nodes.len() as i32 {
-            let (lo, hi) = nodes.get(&node).copied().unwrap_or((0, 0));
-            let mut a = crate::movement::degrees_to_angle((lo + hi) / 2).0;
-            if hi < lo {
-                a = a.wrapping_add(i32::MIN);
-            }
-            if let Some(k) = usize::try_from(node - 4).ok().filter(|&k| k < 4) {
-                self.units[i].guys[g].turret.des[k] = a;
-            }
-        }
+        (4..4 + nodes.len() as i32)
+            .filter_map(|node| {
+                let (lo, hi) = nodes.get(&node).copied().unwrap_or((0, 0));
+                let mut a = crate::movement::degrees_to_angle((lo + hi) / 2).0;
+                if hi < lo {
+                    a = a.wrapping_add(i32::MIN);
+                }
+                usize::try_from(node - 4)
+                    .ok()
+                    .filter(|&k| k < 4)
+                    .map(|k| (k, a))
+            })
+            .collect()
     }
 
     /// **The search's `flags` word, which `find_melee_target` derives from

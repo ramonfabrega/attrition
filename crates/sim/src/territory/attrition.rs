@@ -96,6 +96,11 @@ pub enum Resistance {
         num: i64,
         den: i64,
     },
+    /// **`LeaderData::anti_att` itself** (`+0x7f4`), the single's bits as
+    /// `Leader::calc_anti_attrition` leaves them ([`crate::Sim::leader_anti_att`]):
+    /// `UnitData::get_attrition@00608fd0` reads the record's float, so the
+    /// sim reads the same bits (item 4159's third residue; parked 4162b).
+    Single(u32),
 }
 
 impl Resistance {
@@ -323,6 +328,16 @@ pub fn susceptibility(
             // One truncation, at the same place the original's single
             // float-to-int conversion lands.
             Resistance::Scaled { num, den } => (i64::from(scale) * num / (den * 256)) as i32,
+            // `(int)((float)scale * anti_att * 2⁻⁸)` (`0x3b800000`), the
+            // products in scalar single precision and the conversion a
+            // truncation.
+            Resistance::Single(bits) => {
+                use crate::num::single::Single;
+                Single::from_i32(scale)
+                    .mulss(Single::from_bits(bits))
+                    .mulss(Single::from_bits(0x3b80_0000))
+                    .to_i32()
+            }
         }
     };
 

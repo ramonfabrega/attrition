@@ -1704,7 +1704,7 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 ## 20. The leaders line, held out on the long range (items 4121, 4124)
 
 **265 of 267 ranges and 4,515 of 58,343 bytes agree** on run 1562's frame
-91, and `LEADERS_HELD_OUT` names **24** leaves, from 140. Agreeing: all
+91, and `LEADERS_HELD_OUT` names **23** leaves, from 140. Agreeing: all
 eight slots' flag words, and the two walked leaders' diplomacy records,
 personalities, masks (each `tech` array since item 4187), sites, make
 lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
@@ -1741,6 +1741,7 @@ not count it (§5).
 | VII-d | `counteroffer` | 30 | §8 |
 | the residue (4187a) | `score_units`, `score_units_2`, `score_combat` | 27 | §18.5 |
 | the residue, second builder | `barracks_queued`, `combat_queued`, `pop_issues` | 24 | §12.6, §14.5 |
+| the residue, third builder | `attrition_stamp2` | 23 | §5.5 |
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
@@ -1819,13 +1820,8 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
   - the victim stamps (4): `attack_stamp`, `raid_stamp`, `ally_stamp`,
     `ctw_hero_stamp`, `Object::do_damage` (and `attack_stamp` in
     `Leader::plan_strategy` and `end_process`).
-  - attrition (~~5~~ 4): `attrition_stamp` (`Unit::process_attrition`,
-    `gain_tech`), `attrition_stamp2` (`Unit::suffer_attrition`),
-    `attrition_stamp3` (`Wall::process`), ~~`att`
-    (`Leader::calc_attrition`)~~ — carried by item 4154,
-    `territory.players[w].strength`, 0 on both sides,
-    `give_att_disabled` (~~`Leader::plan_strategy`~~ the scenario
-    triggers, `docs/LEADERS.md` §5.2).
+  - ~~attrition (5)~~: all carried (items 4154, 4176; `attrition_stamp2`
+    by item 4159's third residue; `docs/LEADERS.md` §5).
   - the diplomacy actions (~~15~~ ~~12~~ ~~10~~ ~~9~~ ~~6~~ 5): ~~`dow`, `blacken`, `broke_alliance`,~~
     carried by item 4159's VII-b1; ~~`made_peace`,~~ `tributes`, ~~`tribute_sent`, `tribute_received`,~~
     carried by VII-c; ~~`tribute_stamp`, `gift_stamp`,~~ carried by VII-b2; `hire_stamp`, `hire_who`, `good_deeds`,

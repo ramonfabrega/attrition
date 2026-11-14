@@ -1155,11 +1155,22 @@ impl Sim {
                 .unwrap_or(0)
         });
         let mut guys = Vec::with_capacity(count);
+        // **A turret is born at its rest, not at zero** (item 4159's third
+        // residue): `init_real` zeroes `+0x20..+0x3c` and then calls
+        // `Guy::reset_pivots(this, 1)` (`005db6b0:148`), whose `param_1`
+        // writes the rest into `turret_angles` as well as `des`. A wrapped
+        // arc rests half a turn round: run1165's packet reads every Cruiser
+        // and its Battleship at `[0, 0, 180°]` both ways before a shot.
+        let rests = ty.map(|t| self.pivot_rests(t)).unwrap_or_default();
         for n in 0..count {
             let piece = ty
                 .and_then(|t| self.piece_of(who, t, o, n as u8, packed))
                 .unwrap_or(-1);
             let mut g = Guy::fresh(piece);
+            for &(k, a) in &rests {
+                g.turret.angles[k] = a;
+                g.turret.des[k] = a;
+            }
             self.mark(SITE_INIT_REAL);
             let p = self.rng.roll() % 100;
             g.anim = init_variant(p);

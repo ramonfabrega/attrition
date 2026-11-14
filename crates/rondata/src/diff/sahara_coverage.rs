@@ -1233,7 +1233,8 @@ fn run790_s_word_frame_is_widened_whole() {
     // theirs does not), has its tick of 4010 vetoed by a wagon that now
     // reaches it — `sheltered` ours 1 against 0. Downstream of the
     // standing `attrition` row, not a new parting of its own.
-    pin_eq!(w.firsts.len(), 85, "initial run790 baseline");
+    // Item 4159's third residue: 85 -> 60, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 60, "initial run790 baseline");
 }
 
 /// run817, item 2055: the lobby's blocks 4260..4341 at run790's detail —
@@ -1318,5 +1319,6 @@ fn run817_s_word_frame_is_widened_whole() {
     // `hits:damage`.
     // Item 3708: 229 → 223, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
-    pin_eq!(w.firsts.len(), 223, "initial run817 baseline");
+    // Item 4159's third residue: 223 -> 63, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
+    pin_eq!(w.firsts.len(), 63, "initial run817 baseline");
 }

@@ -586,7 +586,11 @@ No kept-dump value is cited.
   (parked 4176a). run1075 is the only window either parts on (item 4159's
   second residue), and its parent is a staged Battleship's first rounds
   (parked 4159r2a: the original's trace launches 1, 1, 0 rounds on 2058–2060
-  where ours launches 3, 2, 3).
+  where ours launches 3, 2, 3). ~~That parent~~ is closed by item 4159's
+  third residue: a turret is born at its rest (`docs/COMBAT.md` §55.3), and
+  the launches agree on 2042..2066. The pair still parts on run1075, from
+  2392 (who 0 `units_lost` ours 18 theirs 19), past the window's next
+  parting on 2123 (parked 4159r3a).
 
 ## 3. The combat rates
 
@@ -776,6 +780,10 @@ record. The other twelve part, each named:
   against 610; run585, run588, run1189b, run1211, run1344b, run1360,
   run1364b, run1366b, run1422, run1431b, run1423c, run1170 alike), beside
   run1075's staged Battleships (2060, ours 1 theirs 0, 4176a's parent), and
+  ~~run1185b's 5276~~ (item 4159's third residue: the British Fusiliers'
+  piece 86 had no launch row, so `1/58`'s round left the figure's square and
+  struck on 5276 against the original's 5275; its rows are piece 790's,
+  off run1185's packet, and the window's capital row is gone), and
   on two **nuke landings** with nothing beside them (run855's 4777 and
   run1405b's 3494, ours 0 and 1 against theirs 1 and 2, the frame
   `nuke_stamp` moves; parked 4177a); the averages and totals follow;
@@ -840,7 +848,10 @@ listing. The verdicts cite no kept-dump value for these leaves.
   runs `do_damage` on a target `struck` refuses (non-active unit, dead or
   combat-less building). If it does, the original counts the blow and the
   crate as placed cannot. A per-frame `LeadersSync` diff of
-  `hits_current_frame` over a fight settles it.
+  `hits_current_frame` over a fight settles it. Two of the "one blow
+  short" windows were not this: run1185b's 5276 and run1075's 2123 are a
+  round that flies a frame long from a piece with no launch row, its
+  blow landing a frame late (item 4159's third residue; 4159r3a).
 - **The disband arm's reach.** Which types carry flag `0x2000` and which
   leaders hold `leader_flags & 4`; and whether the crate's `damage_building`
   disbands at all. A reading of the flag's loader, then a diff of
@@ -1246,7 +1257,8 @@ and `calc_attrition` 6cdea6 (`att = 0`). `log_data` does not print it.
   (`crates/rondata/src/diff/checksum_lines.rs:1757, 1759–1761, 1791`); each
   port removes its entry.~~ `att` left `LEADERS_HELD_OUT` at item 4154 and
   `attrition_stamp`, `attrition_stamp3` and `give_att_disabled` at item
-  4176; of the five, `attrition_stamp2` alone is in it still (2026-11-14).
+  4176; ~~of the five, `attrition_stamp2` alone is in it still (2026-11-14)~~
+  and `attrition_stamp2` at item 4159's third residue: none of the five is.
 
 ### 5.4 Reached by a plain game
 
@@ -1281,7 +1293,12 @@ three stamps**: `attrition_stamp` (the peace arm, the Lakota peace pair
 among them) and `attrition_stamp3` agree on every scored dump;
 `attrition_stamp2` parts on the Lakota pair (who 1, ours 3774 theirs
 3770, standing from run855's 4538), run844's 4940 (ours 4871 theirs 0),
-run1147b's 4376 and run1145c's 4169 (parked 4176b). `give_att_disabled`
+run1147b's 4376 and run1145c's 4169 (parked 4176b). ~~Those partings~~
+are gone since item 4159's third residue: the bleed divides the record's
+`anti_att` and answers 0 for an idle unit of a Foraging holder
+(`docs/ATTRITION.md` §3; ours 3774 → 3770 on the Lakota pair), and the
+leaders line emits the leaf, 226 of 226 packet leaders agreeing (run1359,
+frame 5619, leader 1, 3153 both). `give_att_disabled`
 has the leaders line alone (0 = 0 on run 1562's frame 91).
 
 | leaf | confirmed | corrected | open |
@@ -1324,10 +1341,13 @@ fit the formula. run1072's `attrition_stamp` 1392 on block 1393
   (frame 4500 is outside run1072's window). A peace-pair capture across
   4500 and a `TEAM_STYLE 2` capture settle them.
 - **`attrition_stamp3`'s 16-frame mask**: decompile only, and unmodelled.
-- **`attrition_stamp2`'s Lakota tick** (parked 4159r2c): ours stamps on the
+- ~~**`attrition_stamp2`'s Lakota tick** (parked 4159r2c): ours stamps on the
   Citizen `1/6`'s bleed at period 6 on 3774; the original's 3770 is its
   refresh frame and fits a period of 8 (`PEACE_ATTRITION`), so the computed
-  period there is 8 or more, or none, in the original.
+  period there is 8 or more, or none, in the original.~~ Closed by item
+  4159's third residue: the crate's `get_attrition` read `Resistance::BASE`
+  and never asked the Foraging arm; an All Technologies Lakota holds
+  Logistics, so the computed period is 8 or more, or none.
 - ~~**No value diff for any leaf**: a `LEADERS` capture diffed on the five
   leaves (run981 for the floor) would make them one.~~ `att` has a value diff
   since item 4154: run647, not run981. run981 is the held-out battery's
@@ -1557,7 +1577,13 @@ witness, not a pinned diff.~~ Since item 4162 the record diff compares
 `anti_att` on every scored dump that prints the record, and the leaders
 checksum line holds it on run 1562's frame 91 (`0x43800000` both sides);
 a class 2 row is backed wherever a scored dump reaches one. Its reader
-(`get_attrition`'s divisor) is not wired, parked 4162b.
+(`get_attrition`'s divisor) ~~is not wired, parked 4162b~~ is wired by item
+4159's third residue: `calc_anti_attrition` hands the single to the
+player's attrition state (`Resistance::Single`), `get_attrition` takes
+`(int)((float)scale × anti_att × 2⁻⁸)` in scalar single precision, and its
+Foraging arm (`has_preq(FORAGING_1)` with `UnitData::is_idle`, an empty
+order list) answers 0. The Lakota pair's `attrition_stamp2` parting is its
+witness (§5).
 
 Verdicts: 33 confirmed, 6 corrected, 3 open (§6.6 lists four). The
 corrections that changed a rule: the tier is "holds Logistics / Supply /

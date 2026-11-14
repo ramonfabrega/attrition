@@ -1152,6 +1152,29 @@ fn run1323c_s_inca_fusilier_leaves_from_piece_790_s_bay() {
     assert_eq!(662 + release_dz(790, 11, 6, 0).unwrap(), 772);
 }
 
+/// **The default Fusiliers' piece 86 leaves from piece 790's bays** (item
+/// 4159's third residue): run1185's packet holds its three attack
+/// `AttachPos` rows (node 0, frames 6, 6 and 8, `RData +0x88` 1.0), and
+/// `fit_bay.py` fits their sweeps to piece 790's three rows exactly (48,
+/// 207 and 1679 lattice points, the same centroids). Made to fail with the
+/// rows out of `BAYS`: the round leaves the figure's own square.
+#[test]
+fn the_default_fusiliers_leave_from_piece_790_s_bays() {
+    for (anim, start) in [(11, 6), (12, 6), (13, 8)] {
+        for d in 0..360 {
+            let facing = crate::movement::degrees_to_angle(d);
+            let at = Pos::new(6240, 7008);
+            let ours = launch_point(at, facing, 86, anim, start, 0);
+            assert_ne!(ours, at, "piece 86 anim {anim} at {d}°");
+            assert_eq!(ours, launch_point(at, facing, 790, anim, start, 0));
+        }
+        assert_eq!(
+            release_dz(86, anim, start, 0),
+            release_dz(790, anim, start, 0)
+        );
+    }
+}
+
 /// **The Man o' War broadsides from piece 294's bays** (item 3660,
 /// `docs/AI.md` §340): run1324's `1/97` on block 4082, the hull at
 /// (3000, 8472) and angle −354811904 on 4081, its round at the

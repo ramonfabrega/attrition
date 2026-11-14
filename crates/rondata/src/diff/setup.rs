@@ -143,8 +143,11 @@ pub(crate) fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::units::anim::Guy> {
         follow: None,
         // A pivot figure's turret (`GuyData +0x20`/`+0x30`/`+0x96`) is
         // printed at `GUYS=4` only. Every capture that stands one up
-        // stands it up before its first attack, when all three are
-        // `Guy::clear`'s zero.
+        // stands it up before its first attack. That is `Guy::clear`'s
+        // zero only where every node rests at zero: `init_real` bears a
+        // wrapped arc at half a turn (`Sim::init_guys`; run1165's packet
+        // reads its Battleship at `[0, 0, 180°, 0]`). SEAM: a seated ship
+        // with a wrapped row starts at zero here.
         turret: sim::units::anim::Turret::ZERO,
         last: None,
     })

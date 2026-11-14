@@ -269,5 +269,6 @@ fn british_enlightenment_pair_run1185b_s_closing_frame_is_widened_whole() {
     // block 5276 city `0/2000`'s `build:damage` reads ours 604 and 6/16
     // against theirs 610 and 0 (parked 3542a); the closing block agrees.
     // Item 4177: 110 -> 112, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 5276 ours 15 theirs 16; who=1 `hits_current_frame` 5276 ours 15 theirs 16 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 112, "run1185b baseline");
+    // Item 4159's third residue: 112 -> 108, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long: the capital `0/2000`'s `damage` on 5276 (604 / 610) and the two rates beside it.
+    pin_eq!(w.firsts.len(), 108, "run1185b baseline");
 }

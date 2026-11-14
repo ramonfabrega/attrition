@@ -329,12 +329,15 @@ fn french_enlightenment_pair_run1360_s_closing_window_is_widened_whole() {
     // and 161 both sides) — parked 3691c.
     // Item 4177: 113 -> 119, +6 firsts, the combat rates' own: who=0 `damage_current_frame` 4691 ours 26 theirs 27; who=1 `hits_current_frame` 4691 ours 26 theirs 27; who=0 `average_damage_rate` 4851 ours 3351 theirs 3401; who=0 `damage_fifteen_seconds` 4851 ours 254 theirs 255 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 120 -> 119, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 119, "run1360 baseline");
-    pin_eq!(w.rounds_read, (465, 477), "the rounds read");
+    // Item 4159's third residue: 119 -> 111, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
+    pin_eq!(w.firsts.len(), 111, "run1360 baseline");
+    // Item 4159's third residue: (465, 477) -> (465, 465), the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
+    pin_eq!(w.rounds_read, (465, 465), "the rounds read");
     // 202 parting: 195 rows on the six Fusiliers' (TY 136) rounds (parked
     // 3691a) and the Musketeers' slot swaps on 4724, 4725, 4900 and 4902,
     // a slot index, never an identity.
-    pin_eq!(w.rounds.len(), 202, "the rounds that part");
+    // Item 4159's third residue: 202 -> 0, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// run1344b: the word 4505's window, blocks 4495..4756 at the long's
@@ -416,12 +419,15 @@ fn french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole() {
     // patriot's): `1/29`'s `healing`, `damage_frac`, `hits:damage_frac`, `hits:damage` and
     // `hits_left` on 4552 agree (20, 0, 0, 4 and 157 both sides) — 3961a's run1344b row.
     // Item 4177: 118 -> 120, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4642 ours 23 theirs 24; who=1 `hits_current_frame` 4642 ours 23 theirs 24 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 120, "run1344b baseline");
+    // Item 4159's third residue: 120 -> 116, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
+    pin_eq!(w.firsts.len(), 116, "run1344b baseline");
     // Every round, both directions: 421 round-blocks theirs, 446 ours, 255
     // parting, the first on the window's first block 4495. Item 3691: 428
     // ours, 139 parting — 129 rows on six Fusiliers' (TY 136) rounds;
     // the Musketeers' `ox`/`whom` (ours −1) on three rounds; and two slot
     // swaps on 4724–4725.
-    pin_eq!(w.rounds_read, (421, 428), "the rounds read");
-    pin_eq!(w.rounds.len(), 139, "the rounds that part");
+    // Item 4159's third residue: (421, 428) -> (421, 421), the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
+    pin_eq!(w.rounds_read, (421, 421), "the rounds read");
+    // Item 4159's third residue: 139 -> 6, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
+    pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }

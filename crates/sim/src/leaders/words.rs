@@ -138,9 +138,9 @@ impl Sim {
     /// event that raises that flag: a tech's gain, a rare's gather, a
     /// wonder's activation or close.
     ///
-    /// SEAM: the reader, `UnitData::get_attrition`, still reads
-    /// [`crate::territory::attrition::Resistance::BASE`]: the leaf is held,
-    /// the bleed it divides is not wired to it (parked 4162b). The
+    /// The reader, `UnitData::get_attrition`, divides the single itself
+    /// ([`crate::territory::attrition::Resistance::Single`], written here
+    /// with `has_preq(FORAGING_1)`; item 4159's third residue). The
     /// conquest arms (`rare_conquest`, `conquest_wonders`,
     /// `conquest_racial_powers`) and `leader_flags2 & 0x40` are not carried.
     pub(crate) fn calc_anti_attrition(&mut self, who: Player) {
@@ -167,6 +167,19 @@ impl Sim {
             tier,
             [liberty, mongol, titanium],
         );
+        // The bleed reads the record (item 4159's third residue): the
+        // resistance is the single itself, and `has_preq(FORAGING_1)` the
+        // first row of the ladder.
+        let forage = rows[0].is_some_and(|t| {
+            self.tables
+                .tech_tree
+                .has_tech(&self.tables.setup, &self.tech[w], t)
+        });
+        if let Some(p) = self.territory.players.get_mut(w) {
+            p.resistance =
+                crate::territory::attrition::Resistance::Single(self.leaders.anti_att[w]);
+            p.foraging_1 = forage;
+        }
     }
 }
 

@@ -268,6 +268,33 @@ fn foraging_one_makes_idle_units_immune_but_not_moving_ones() {
     );
 }
 
+/// **The record's single is the resistance** (item 4159's third residue,
+/// parked 4162b): `get_attrition` takes `(int)((float)scale × anti_att ×
+/// 2⁻⁸)`, so the three Foraging tiers' singles (`341.33334`, `512.0`,
+/// `1024.0`) give the exact rationals' answers on the plain scale, and 0.0
+/// (a disabled leader) gives none.
+#[test]
+fn the_record_s_single_is_the_resistance() {
+    let owner = owner_with(1);
+    for (bits, want) in [
+        (0x4380_0000, 256),
+        (0x43aa_aaab, 341),
+        (0x4400_0000, 512),
+        (0x4480_0000, 1024),
+        (0, 0),
+    ] {
+        let victim = PlayerState {
+            resistance: Resistance::Single(bits),
+            ..PlayerState::default()
+        };
+        assert_eq!(
+            susceptibility(&T, &UnitKind::default(), &victim, &owner),
+            want,
+            "{bits:#x}"
+        );
+    }
+}
+
 #[test]
 fn the_worst_the_shipped_data_can_do_is_one_frame() {
     // Everything at once: four tech steps, the Colosseum, the Russians, a

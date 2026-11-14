@@ -2058,11 +2058,20 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// leader 1, `pop_issues` 4 (`docs/LEADERS.md` §12.5, §14.5). The two bins
 /// do not transfer (parked 4159Ta: run462's 10367 moves them with no
 /// `num_queued` move beside it), but our walk of run462 holds them there.
-/// The long range stays out on the other 24.
+///
+/// Item 4159's third residue: 24 → 23 names, `attrition_stamp2`, agreeing
+/// on frame 91 (0 on both leaders). `UnitData::get_attrition` divides the
+/// record's `anti_att` and answers 0 for an idle unit of a Foraging holder,
+/// where the crate read `Resistance::BASE` (parked 4162b); the Lakota
+/// pair's eight windows (ours 3774 theirs 3770), run844 (4871 / never),
+/// run1145c (3814 / 3844) and run1147b (4227 / 4239) agree since, and no
+/// widening parts it. On the packets it agrees on all 226 walked leaders,
+/// non-zero on 20: run1359, frame 5619, leader 1, 3153; run1496, frame
+/// 1539, leader 0, 1266 (`docs/LEADERS.md` §5.5). The long range stays out
+/// on the other 23.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
-    ("attrition_stamp2 (unheld)", 2),
     ("average_damage_rate (unheld)", 2),
     ("average_death_rate (unheld)", 2),
     ("average_hit_rate (unheld)", 2),

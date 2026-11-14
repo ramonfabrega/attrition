@@ -1451,6 +1451,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (6004, 5953, 4838) -> (6004, 5953, 4824).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0), goods (330, 330, 2) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6004, 5953, 4824) -> (6004, 5962, 4707).
+    // Item 4159's third residue: guys (1890, 1890, 2) -> (1890, 1890, 1), a newborn ship's turret at its rest (the Battleship and Cruisers at `[0, 0, 180°]`).
     (
         "run1165",
         3719,
@@ -1461,7 +1462,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (287, 0, 287),
             (0, 0, 0),
             (676, 676, 1),
-            (1890, 1890, 2),
+            (1890, 1890, 1),
             (271, 271, 4),
             (30, 30, 0),
             (15, 15, 0),
@@ -1480,6 +1481,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (6004, 5950, 4771) -> (6004, 5950, 4756).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0), goods (330, 330, 2) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6004, 5950, 4756) -> (6004, 5959, 4748).
+    // Item 4159's third residue: guys (1935, 1935, 3) -> (1935, 1935, 2), a newborn ship's turret at its rest.
     (
         "run1166",
         3920,
@@ -1490,7 +1492,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (10, 0, 10),
             (688, 688, 1),
-            (1935, 1935, 3),
+            (1935, 1935, 2),
             (271, 271, 7),
             (30, 30, 0),
             (15, 15, 0),
@@ -1510,6 +1512,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (7749, 7683, 6335) -> (7749, 7683, 6302).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 3) -> (27, 27, 0), goods (330, 330, 2) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (7749, 7683, 6302) -> (7749, 7692, 6191).
+    // Item 4159's third residue: guys (1934, 1934, 16) -> (1934, 1934, 11), a newborn ship's turret at its rest.
     (
         "run1169",
         3769,
@@ -1520,7 +1523,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (12, 0, 12),
             (0, 0, 0),
             (628, 628, 5),
-            (1934, 1934, 16),
+            (1934, 1934, 11),
             (271, 271, 4),
             (27, 27, 0),
             (20, 20, 0),
@@ -2767,6 +2770,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (6953, 6899, 5767) -> (6953, 6899, 5737).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (33, 33, 1) -> (33, 33, 0), goods (330, 330, 2) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6953, 6899, 5737) -> (6953, 6908, 5824).
+    // Item 4159's third residue: guys (1829, 1829, 14) -> (1829, 1829, 12), a newborn ship's turret at its rest.
     (
         "run1416",
         4016,
@@ -2777,7 +2781,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (18, 0, 18),
             (0, 0, 0),
             (634, 634, 9),
-            (1829, 1829, 14),
+            (1829, 1829, 12),
             (271, 271, 4),
             (33, 33, 0),
             (5, 5, 0),
@@ -3719,11 +3723,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (11125, 10302, 9875) -> (11125, 10302, 9851).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (64, 64, 4) -> (64, 64, 0), goods (330, 330, 2) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (11125, 10302, 9851) -> (11125, 10326, 9965).
+    // Item 4159's third residue: units (11125, 10326, 9965) -> (11125, 10326, 9962), the bleed reading `anti_att`.
     (
         "run882b",
         6808,
         [
-            (11125, 10326, 9965),
+            (11125, 10326, 9962),
             (2737, 2732, 1918),
             (0, 0, 0),
             (15, 0, 15),
@@ -3748,11 +3753,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (11180, 10297, 9964) -> (11180, 10297, 9942).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (64, 64, 4) -> (64, 64, 0), goods (330, 330, 2) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (11180, 10297, 9942) -> (11180, 10321, 10105).
+    // Item 4159's third residue: units (11180, 10321, 10105) -> (11180, 10321, 10103), the bleed reading `anti_att`.
     (
         "run883b",
         6821,
         [
-            (11180, 10321, 10105),
+            (11180, 10321, 10103),
             (2737, 2732, 1919),
             (0, 0, 0),
             (36, 0, 36),

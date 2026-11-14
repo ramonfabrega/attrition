@@ -2776,8 +2776,12 @@ mod tests {
         // Item 3603: 33 → 6 — piece 48's bays (the Arquebusiers' art the
         // Egyptian Gunpowder pair measured, run1254c) put every Arquebusier
         // round here on theirs' launch point; `1/80`'s round of 17693 is
-        // the one left (`sx, sy, sz`, `ex`, `angle`, `v1z`).
-        assert_eq!(w.firsts.len(), 6, "unmeasured pieces remain visible");
+        // the one left (`sx, sy, sz`, `ex`, `angle`, `v1z`). Item 4159's
+        // third residue: 6 → 0, with the default Fusiliers' piece 86 given
+        // piece 790's rows (run1185's packet) and the newborn turret at its
+        // rest (the two landed together; which one moved `1/80` is not
+        // separated here).
+        assert_eq!(w.firsts.len(), 0, "every round agrees");
         assert_eq!(w.unmodelled, (19, 0x80fd_4385_9445_ed39));
     }
 
@@ -2803,6 +2807,7 @@ mod tests {
                 eprintln!("  first {f} {who}/{o} {what}: {r}");
             }
         }
+        // Item 4159's third residue: 86 -> 76, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
         pin_eq!(w.blocks, 82, "the complete run594 window");
         pin!(
             w.missing.is_empty(),
@@ -2824,7 +2829,7 @@ mod tests {
         // = theirs 0: who=1's `barracks_queued`, `combat_queued`,
         // `epochs_queued`, `num_queued[0]`, `[504]`, `[64]` and `queue:queued`
         // on `1/2005`, `1/2020`, `1/2044` (ours 1 each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2).
-        pin_eq!(w.firsts.len(), 86, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
+        pin_eq!(w.firsts.len(), 76, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))
@@ -2839,6 +2844,7 @@ mod tests {
             None,
             "the cannon crew timer agrees throughout the window"
         );
+        // Item 4159's third residue: (1326, 1339, 31824) -> (1326, 1326, 31824), the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
         pin_eq!(
             w.firsts
                 .get(&(1, 190, "pos".into()))
@@ -2868,10 +2874,11 @@ mod tests {
             a.unmodelled
         );
         pin_eq!(a.frames, 81, "run594 ammo window");
+        // Item 4159's third residue: 251 -> 0, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
         pin_eq!(
             (a.theirs, a.ours, a.fields),
             // Item 4175: a field more a paired round, `gpiece`: 30,498 → 31,824.
-            (1326, 1339, 31824),
+            (1326, 1326, 31824),
             "all live rounds and paired fields"
         );
         // Item 3679: twenty-three fields a round with the live bit.
@@ -2883,7 +2890,7 @@ mod tests {
         // onto theirs' launch points. Item 3661: 256 → 251 with piece 218's
         // bays (the Cannon, run1325c): `1/132`'s round on 18093 left (7512,
         // 11016, 173) against theirs' (7466, 10876, 273), and now agrees.
-        pin_eq!(a.firsts.len(), 251, "run594 projectile baseline");
+        pin_eq!(a.firsts.len(), 0, "run594 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (115, 16282458979908766585),
@@ -2913,6 +2920,7 @@ mod tests {
                 eprintln!("  first {f} {who}/{o} {what}: {r}");
             }
         }
+        // Item 4159's third residue: 91 -> 83, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
         pin_eq!(w.blocks, 64, "the complete run589 window");
         pin!(
             w.missing.is_empty(),
@@ -2927,7 +2935,7 @@ mod tests {
         // Item 1586: 158 → 157; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 101 -> 85.
         // Item 4177: 85 -> 91, +6 firsts, the combat rates' own: who=0 `average_damage_rate` 17890 ours 3893 theirs 3943; who=0 `damage_current_frame` 17890 ours 43 theirs 42; who=0 `damage_fifteen_seconds` 17890 ours 150 theirs 151; who=1 `average_hit_rate` 17890 ours 3893 theirs 3943 (docs/LEADERS.md §3.5).
-        pin_eq!(w.firsts.len(), 91, "run589 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 83, "run589 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "order:kind".into()))
@@ -2947,6 +2955,7 @@ mod tests {
             .get(&17_908)
             .expect("the successor closing block");
         for o in [155, 156, 157] {
+            // Item 4159's third residue: (1084, 1093, 26016) -> (1084, 1084, 26016), the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
             pin_eq!(
                 word.get(&(1, o, "inside".into())).map(String::as_str),
                 None,
@@ -2973,10 +2982,11 @@ mod tests {
             a.unmodelled
         );
         pin_eq!(a.frames, 64, "run589 ammo window");
+        // Item 4159's third residue: 185 -> 0, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
         pin_eq!(
             (a.theirs, a.ours, a.fields),
             // Item 4175: a field more a paired round, `gpiece`: 24,932 → 26,016.
-            (1084, 1093, 26016),
+            (1084, 1084, 26016),
             "all live rounds and paired fields"
         );
         // 279 → 276 at item 2304 (`docs/GOLDEN.md` §83): the Bark's, the
@@ -2987,7 +2997,7 @@ mod tests {
         // onto theirs' launch points. Item 3679: 209 → 185 and twenty-three
         // fields a round, theirs' spent arrows compared and ours' held
         // (`docs/COMBAT.md` §46.7).
-        pin_eq!(a.firsts.len(), 185, "run589 projectile baseline");
+        pin_eq!(a.firsts.len(), 0, "run589 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (90, 4975466785581637854),
@@ -3017,6 +3027,7 @@ mod tests {
                 eprintln!("  first {f} {who}/{o} {what}: {r}");
             }
         }
+        // Item 4159's third residue: 70 -> 66, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
         pin_eq!(w.blocks, 64, "the complete run588 window");
         pin!(
             w.missing.is_empty(),
@@ -3029,7 +3040,7 @@ mod tests {
         // Item 1502: 158 → 134 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 84 -> 68.
         // Item 4177: 68 -> 70, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 17778 ours 24 theirs 25; who=1 `hits_current_frame` 17778 ours 24 theirs 25 (docs/LEADERS.md §3.5).
-        pin_eq!(w.firsts.len(), 70, "run588 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 66, "run588 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         let word = w.standing.get(&17_786).expect("the word's closing state");
         for field in ["group:66.num", "group:66.list"] {
             pin!(
@@ -3038,6 +3049,7 @@ mod tests {
             );
         }
         // Item 1458: Some("ours 0 theirs 1") → None; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
+        // Item 4159's third residue: (973, 975, 23352) -> (973, 973, 23352), the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
         pin_eq!(
             word.get(&(1, 154, "path_recursion".into()))
                 .map(String::as_str),
@@ -3066,10 +3078,11 @@ mod tests {
             a.unmodelled
         );
         pin_eq!(a.frames, 64, "run588 ammo window");
+        // Item 4159's third residue: 82 -> 0, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
         pin_eq!(
             (a.theirs, a.ours, a.fields),
             // Item 4175: a field more a paired round, `gpiece`: 22,379 → 23,352.
-            (973, 975, 23352),
+            (973, 973, 23352),
             "all live rounds and paired fields"
         );
         // Item 3603: ours' rounds 978 → 975 and the baseline 173 → 106 once
@@ -3077,7 +3090,7 @@ mod tests {
         // onto theirs' launch points. Item 3679: 106 → 82 and twenty-three
         // fields a round, theirs' spent arrows compared and ours' held
         // (`docs/COMBAT.md` §46.7).
-        pin_eq!(a.firsts.len(), 82, "run588 projectile baseline");
+        pin_eq!(a.firsts.len(), 0, "run588 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (71, 10002085738206419128),
@@ -3110,6 +3123,7 @@ mod tests {
                 eprintln!("  first {f} {who}/{o} {what}: {r}");
             }
         }
+        // Item 4159's third residue: 88 -> 83, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
         pin_eq!(w.blocks, 257, "run585 whole: blocks 17501..17758");
         pin!(
             w.missing.is_empty(),
@@ -3177,7 +3191,7 @@ mod tests {
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 102 -> 86.
         // Item 4177: 86 -> 88, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 17647 ours 3 theirs 4; who=1 `hits_current_frame` 17647 ours 3 theirs 4 (docs/LEADERS.md §3.5).
         // Item 4159's residue: 89 -> 88, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-        pin_eq!(w.firsts.len(), 88, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 83, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**
