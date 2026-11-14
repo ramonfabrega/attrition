@@ -2442,7 +2442,10 @@ three steps, each a rule of the queue's array (§14, `docs/PRODUCTION.md` "The q
   to 1585): building 2005 of leader 1, a Library, a vacated slot's `cost[0]` ours 120, theirs 108 → 108.
 
 run1577 is whole on all 120 in both lines; no minted packet parts on either line now. run1575's take packet
-parts on 27 builds ranges, 35 before (`TAKE_PINNED`).
+parts on 27 builds ranges, 35 before (`TAKE_PINNED`). **Step P's census, 280 → 285 of 1,053 lines** (§23.7,
+`PACKETS_SCORE`): the builds line agrees on run1247, run893b, run958b, run984b and run984c, and parts on fewer
+ranges on 92 more packets, none on more. The pool's speed rows on golden chapters forty (882) and 135 (930,
+parked 3994b) agree with the normalize.
 
 ### 24.4 Where each first parting is (diff-backed)
 

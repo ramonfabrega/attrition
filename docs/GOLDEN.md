@@ -19599,7 +19599,8 @@ disband_time(building type):
 **The word**: **1250 of 1,250**, closed whole on the first take. The widening over 605..1250 parts 20 rows: run1498's
 eleven standing `form` rows; the Chariot's family from 809 — the Helicopter's first round, 12 damage on both sides,
 lands on theirs on 809 (`damage_frame 808`) and on ours on 810 (parked 3994a); and pool slot 2's `speed`/`new_speed`
-on 930, ours 0 and theirs 25, after the site's building group is pushed (parked 3994b). Nothing parts on the three arms.
+on 930, ours 0 and theirs 25, after the site's building group is pushed (parked 3994b; ~~parts~~ agrees since item 4222: the push
+normalizes `last_group`'s slot, `docs/GROUPS.md` §3.4). Nothing parts on the three arms.
 
 **Mutations** (`tools/mutate.py`, each against `chapter_one_hundred_and_thirty_five`; all held):
 - the Helicopter skipped in `group_max_range`: the word falls to 736 and the widening fails — 3967a's change is held;
@@ -19609,7 +19610,7 @@ on 930, ours 0 and theirs 25, after the site's building group is pushed (parked 
 
 **Not established**: a building selection of two or more and `OPTION_DISBAND_ALL`'s walk past a site; a building
 whose queue counts a `0x29a` or `0x286` entry when Delete lands (the refusals are read, not captured); the Helicopter's round a
-frame late (3994a) and pool slot 2's speed (3994b). No cover twin was taken.
+frame late (3994a) and pool slot 2's speed (3994b, closed by item 4222). No cover twin was taken.
 
 **Coverage.** Diff-backed: the stand-off point with an armed Helicopter, both building arms, the Disband clock's 16800
 and the razing frame. Reading only: the two `count_queue` refusals.
