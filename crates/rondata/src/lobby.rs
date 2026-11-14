@@ -920,6 +920,17 @@ fn head(path: &Path) -> std::io::Result<Option<(String, String)>> {
 /// (`tests::the_page_s_harness_lobby_builds_the_built_start`).
 pub const LOBBY_PAGE: usize = 161;
 
+/// **The page's starts** (item 4215, `docs/LOBBY.md` §5): the lobbies on
+/// disk whose start built from the page's choices
+/// ([`crate::free::FreeRunner::from_choices`]) is the lobby's built start
+/// ([`crate::free::FreeRunner::from_lobby`] on its capture), whole, on
+/// frame 0 and again after [`LOBBY_WALK`] frames, of
+/// [`crate::diff::START_LOBBIES`].
+pub const LOBBY_STARTS: usize = 161;
+
+/// The frames [`LOBBY_STARTS`] walks each start before comparing again.
+pub const LOBBY_WALK: usize = 600;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1085,6 +1096,207 @@ mod tests {
             print(&bent) != print(&fresh),
             "a bent seed builds the same start"
         );
+    }
+
+    /// **The page starts every lobby on disk** (item 4215, `docs/LOBBY.md`
+    /// §5): each lobby set on a blank page by [`events_for`], started
+    /// through [`crate::free::FreeRunner::from_choices`], against
+    /// [`crate::free::FreeRunner::from_lobby`] on the lobby's first
+    /// capture — the built start the start track scores — the whole `Sim`
+    /// compared by its `{:?}` print on frame 0, then both walked
+    /// [`LOBBY_WALK`] frames and compared again. `RON_LOBBY_ONLY=<name>`
+    /// takes the lobbies whose first capture's name holds it.
+    #[test]
+    fn the_page_starts_every_lobby_on_disk() {
+        let Some(roster) = roster() else { return };
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let Some(dir) = crate::testenv::gamelog_dir() else {
+            eprintln!("skipping: no gamelog directory (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let tuning = sim::Tuning::RON;
+        let lobbies = lobbies_on_disk(&dir, crate::corpus::Ledger::of_tree()).expect("the logs");
+        assert_eq!(lobbies.len(), crate::diff::START_LOBBIES);
+        let only = std::env::var("RON_LOBBY_ONLY").ok();
+        let print = |r: &crate::free::FreeRunner| format!("{:?}", r.sim());
+        let first_line = |a: &str, b: &str| -> String {
+            let (a, b): (Vec<&str>, Vec<&str>) = (a.lines().collect(), b.lines().collect());
+            let k = (0..a.len().max(b.len()))
+                .find(|&k| a.get(k) != b.get(k))
+                .unwrap_or(0);
+            format!("line {k}: ours {:?} theirs {:?}", a.get(k), b.get(k))
+        };
+        let (mut started, mut tried, mut parted) = (0, 0, Vec::new());
+        let (mut grounds, mut seeds) = (0, 0);
+        for l in &lobbies {
+            let name = &l.captures[0];
+            if only.as_deref().is_some_and(|o| !name.contains(o)) {
+                continue;
+            }
+            tried += 1;
+            let t0 = std::time::Instant::now();
+            let theirs_block = Lobby::parse(&l.block).expect("the dump's block parses");
+            let mut page = Choices::blank();
+            for e in events_for(&theirs_block, &roster) {
+                page.apply(&e, &roster).expect("the page takes the lobby");
+            }
+            let (mut ours, notes) = crate::free::FreeRunner::from_choices(&loaded, &page, tuning);
+            let mut theirs =
+                crate::free::FreeRunner::from_lobby(&loaded, &dir.join(name), tuning).unwrap();
+            let style = theirs_block.get("MAP_STYLE").unwrap_or("?").to_string();
+            // The ground the client draws (`FreeRunner::ground`) against
+            // the dump's: `WORLD seed`, and the tileset `init_map_data`'s
+            // draw left, stepped back from the `map.cpp` 7805 word where
+            // the capture prints one.
+            let world_seed: Option<i64> =
+                crate::capture::indexed::IndexedCapture::open(&dir.join(name))
+                    .unwrap()
+                    .with_replay_initial(|init| {
+                        init.world
+                            .iter()
+                            .find(|(k, _)| *k == "seed")
+                            .and_then(|(_, v)| v.trim().parse().ok())
+                    })
+                    .unwrap();
+            let word_7805 = crate::mapgen::start_head(&dir.join(name))
+                .unwrap()
+                .and_then(|h| {
+                    crate::mapgen::start_grid(&h)
+                        .at("map.cpp", 7805)
+                        .map(|r| r.2)
+                });
+            let file = theirs_block
+                .get("MAP_STYLE")
+                .and_then(|v| v.trim().parse().ok())
+                .and_then(crate::mapgen::lakes::Style::of)
+                .expect("a composed style")
+                .file();
+            let chances = crate::mapgen::tile_chances(inst.root(), file).unwrap();
+            let tileset = match &chances[..] {
+                [(only, _)] => Some(only.clone()),
+                _ => word_7805.and_then(|w| crate::mapgen::tileset_before(&chances, w)),
+            };
+            let ground = ours.ground().map(|(t, s)| (t.to_string(), s));
+            if world_seed.is_some_and(|w| ground.as_ref().map(|g| i64::from(g.1)) != Some(w))
+                || ground.is_none()
+                || tileset
+                    .as_ref()
+                    .is_some_and(|t| Some(t) != ground.as_ref().map(|g| &g.0))
+                || ours.ground() != theirs.ground()
+            {
+                parted.push(format!(
+                    "{name} (style {style}): the ground ours {ground:?} theirs seed {world_seed:?} tileset {tileset:?}"
+                ));
+                continue;
+            }
+            grounds += usize::from(tileset.is_some());
+            seeds += usize::from(world_seed.is_some());
+            let (a, b) = (print(&ours), print(&theirs));
+            if a != b {
+                parted.push(format!(
+                    "{name} (style {style}): frame 0 {}",
+                    first_line(&a, &b)
+                ));
+                continue;
+            }
+            let mut at = None;
+            for f in 1..=LOBBY_WALK {
+                ours.step();
+                theirs.step();
+                if f == LOBBY_WALK {
+                    let (a, b) = (print(&ours), print(&theirs));
+                    if a != b {
+                        at = Some(first_line(&a, &b));
+                    }
+                }
+            }
+            match at {
+                Some(p) => parted.push(format!("{name} (style {style}): frame {LOBBY_WALK} {p}")),
+                None => {
+                    started += 1;
+                    println!(
+                        "started: {name} (style {style}) in {:.1} s; notes {notes:?}",
+                        t0.elapsed().as_secs_f64()
+                    );
+                }
+            }
+        }
+        for p in &parted {
+            println!("parted: {p}");
+        }
+        println!(
+            "the page starts {started} of {tried} lobbies; the ground's seed dump-backed on \
+             {seeds}, its tileset on {grounds}"
+        );
+        if only.is_none() {
+            assert_eq!(started, LOBBY_STARTS, "LOBBY_STARTS; parted: {parted:#?}");
+        }
+    }
+
+    /// **The starts' comparison can fail** (item 4215): East Indies'
+    /// first lobby set on the page, then one choice bent — the seed one on,
+    /// and the difficulty — and each bent page's start compared with the
+    /// built start as [`the_page_starts_every_lobby_on_disk`] compares it,
+    /// on frame 0 and after [`LOBBY_WALK`] frames.
+    #[test]
+    fn a_bent_page_parts_the_east_indies_start() {
+        let Some(roster) = roster() else { return };
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let Some(dir) = crate::testenv::gamelog_dir() else {
+            eprintln!("skipping: no gamelog directory (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let tuning = sim::Tuning::RON;
+        let lobbies = lobbies_on_disk(&dir, crate::corpus::Ledger::of_tree()).expect("the logs");
+        let l = lobbies
+            .iter()
+            .find(|l| {
+                Lobby::parse(&l.block).and_then(|b| b.get("MAP_STYLE").map(str::to_string))
+                    == Some("18".into())
+            })
+            .expect("an East Indies lobby on disk");
+        let block = Lobby::parse(&l.block).unwrap();
+        let mut page = Choices::blank();
+        for e in events_for(&block, &roster) {
+            page.apply(&e, &roster).unwrap();
+        }
+        let print = |r: &crate::free::FreeRunner| format!("{:?}", r.sim());
+        let parts = |page: &Choices| -> (bool, bool) {
+            let (mut ours, _) = crate::free::FreeRunner::from_choices(&loaded, page, tuning);
+            let mut theirs =
+                crate::free::FreeRunner::from_lobby(&loaded, &dir.join(&l.captures[0]), tuning)
+                    .unwrap();
+            let zero = print(&ours) != print(&theirs);
+            for _ in 0..LOBBY_WALK {
+                ours.step();
+                theirs.step();
+            }
+            (zero, print(&ours) != print(&theirs))
+        };
+        assert_eq!(parts(&page), (false, false), "{}", l.captures[0]);
+        let seed: u32 = block.get("(int)seed").unwrap().trim().parse().unwrap();
+        let mut bent = page.clone();
+        bent.apply(&Event::Seed(seed.wrapping_add(1)), &roster)
+            .unwrap();
+        assert_eq!(parts(&bent), (true, true), "the seed one on");
+        let difficulty: u8 = block.get("DIFFICULTY").unwrap().trim().parse().unwrap();
+        let setting = SETTINGS.iter().position(|s| *s == "DIFFICULTY").unwrap();
+        let mut bent = page.clone();
+        bent.apply(
+            &Event::Set {
+                setting,
+                value: (difficulty + 1) % 6,
+            },
+            &roster,
+        )
+        .unwrap();
+        assert_eq!(parts(&bent), (true, true), "the difficulty one on");
     }
 
     /// The page refuses what it cannot hold, and leaves the choices.

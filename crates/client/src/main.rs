@@ -10,6 +10,7 @@
 //!        [--still OUT.bmp] [--frames N] [--play] [--trace OUT.json]
 //!        [--look X,Y] [--zoom F] [--silhouette OUT.bmp] [--rest]
 //!        [--lobby] [--headless] [--page-still OUT.bmp] [--select O[,O…]]
+//!        [--page-of CAPTURE]
 //! client --read-trace SESSION.json
 //! ```
 //!
@@ -19,6 +20,9 @@
 //! and runs it to `--frame`. With `--still`, `--headless` or `--silhouette`
 //! there is no page and no person, and `--lobby` builds the minted script's
 //! lobby as before. `--page-still OUT.bmp` writes the page itself.
+//! `--page-of CAPTURE` sets the page to that capture's lobby by the page's
+//! own keys (item 4215): in a window the page opens on it, and with
+//! `--still` or `--headless` the game starts from it at once.
 //!
 //! `--still` draws one frame off-screen and writes it; otherwise a window
 //! opens (arrows pan, `+`/`-` zoom, space plays, `Q` or Escape quits), and
@@ -154,6 +158,10 @@ struct Args {
     headless: bool,
     /// Write the lobby page, as the window opens on it, and quit (item 4184).
     page_still: Option<PathBuf>,
+    /// The page set to this capture's lobby (a name under `--logs`) by its
+    /// own keys, and the game started from it (item 4215): in a window the
+    /// page opens on it; off-screen the game starts at once.
+    page_of: Option<String>,
     /// Slot 0's objects selected before `--still` draws, with the HUD
     /// (item 4197): `--select O[,O…]`.
     select: Vec<i16>,
@@ -182,6 +190,7 @@ fn parse() -> Result<Args, String> {
         lobby: false,
         headless: false,
         page_still: None,
+        page_of: None,
         select: Vec::new(),
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
@@ -212,6 +221,7 @@ fn parse() -> Result<Args, String> {
             "--lobby" => a.lobby = true,
             "--headless" => a.headless = true,
             "--page-still" => a.page_still = Some(v()?.into()),
+            "--page-of" => a.page_of = Some(v()?),
             "--select" => {
                 a.select = v()?
                     .split(',')
@@ -766,8 +776,14 @@ fn main() {
     };
     // The lobby page (item 4184): a window under `--lobby` opens on it.
     let windowed = args.still.is_none() && !args.headless && args.silhouette.is_none();
-    let page = if args.lobby && (windowed || args.page_still.is_some()) {
-        let made = rondata::lobby::Roster::read(&args.install).and_then(lobby::Page::new);
+    // `--page-of` (item 4215): the page set to a capture's lobby by its keys.
+    let shown = windowed || args.page_still.is_some();
+    let made = if args.page_of.is_some() || (args.lobby && shown) {
+        let roster = rondata::lobby::Roster::read(&args.install);
+        let made = match &args.page_of {
+            Some(name) => roster.and_then(|r| lobby::Page::of_capture(&args.logs.join(name), r)),
+            None => roster.and_then(lobby::Page::new),
+        };
         match made {
             Ok(p) => Some(p),
             Err(e) => {
@@ -777,6 +793,13 @@ fn main() {
         }
     } else {
         None
+    };
+    // In a window (or `--page-still`) the page is shown; off-screen a
+    // `--page-of` page starts its game at once.
+    let (page, off_screen) = if shown {
+        (made, None)
+    } else {
+        (None, made.map(|p| p.choices))
     };
     if let (Some(out), Some(page)) = (&args.page_still, &page) {
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
@@ -794,10 +817,10 @@ fn main() {
         return;
     }
     let from_page = page.as_ref().map(|p| p.choices.clone());
-    let game = match &from_page {
-        Some(c) => world::Game::Page(Box::new(c.clone())),
-        None if args.lobby => world::Game::Lobby,
-        None => world::Game::Pair,
+    let game = match (&from_page, &off_screen) {
+        (Some(c), _) | (None, Some(c)) => world::Game::Page(Box::new(c.clone())),
+        (None, None) if args.lobby => world::Game::Lobby,
+        (None, None) => world::Game::Pair,
     };
     let opened = session.phase("open the install and the captures", || {
         World::open_game(&args.install, &args.logs, game)
