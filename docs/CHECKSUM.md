@@ -2404,7 +2404,7 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
 | units | 129 | 2850640222 | 2564863054 | 171: 129–299 |
-| builds | 159 | 2785889832 | 1066356204 | 141: 159–299 |
+| builds | 7383 | 1242831600 | 4226882033 | 0 |
 | groups | 2746 | 810153284 | 3860919709 | 0 |
 | guys | 129 | 4020237905 | 1262538754 | 171: 129–299 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
@@ -2428,12 +2428,21 @@ frame (4214d), ours 2850640222 theirs 2564863054. World 0 → whole on all 24,00
 **Item 4222 moved two.** Groups 61 → 2746: `Groups::push_group@0070f9e0`'s `Group::equals_group@00708000`
 normalizes `last_group`'s slot before it compares, and the crate's push of buildings skipped it
 (`docs/GROUPS.md` §3.4). Value diff on 61 (run1580): group record 1, the Scout's slot, `role` ours 0, theirs
-0x40110; `new_speed` and `speed` ours 0, theirs 34 → the original's on both sides. Builds 100 → 159: a
-queue slot past `queued` keeps the bytes the last entry left (`BuildQueue::un_queue@00630ad0`, §14,
-`docs/PRODUCTION.md` "The queue record"), and the emitter printed it empty. Value diff on 100 (run1581):
-building 2000 of leader 1, the AI's Town Center, `queue[2]` ours empty (type 0, cost 0), theirs type 50 at
-`cost[0]` 27, the third Citizen's copy after the first finished on 99 → the original's. run1577 is whole on
-all 120 in both lines.
+0x40110; `new_speed` and `speed` ours 0, theirs 34 → the original's on both sides. Builds 100 → 7383, in
+three steps, each a rule of the queue's array (§14, `docs/PRODUCTION.md` "The queue record"):
+- 100 → 159: a slot past `queued` keeps the bytes the last entry left (`BuildQueue::un_queue@00630ad0`),
+  and the emitter printed it empty. Value diff on 100 (run1581): building 2000 of leader 1, the AI's Town
+  Center, `queue[2]` ours empty (type 0, cost 0), theirs type 50 at `cost[0]` 27, the third Citizen's copy
+  after the first finished on 99 → the original's.
+- 159 → 202: `Build::unqueue@006207c0` zeroes the removed slot's `job_counter` first, so a removed last
+  entry leaves 0. Value diff on 987 (run1583): building 2000 of leader 0, `queue[0]` `job_counter` ours 9750,
+  theirs 0 → 0.
+- 202 → 7383: `Build::do_queue@0061e410` unqueues a finished technology after `finished` (and so
+  `gain_tech`'s re-price) returns, and the crate unqueued first. Value diff on 987, 3246 and 4030 (runs 1583
+  to 1585): building 2005 of leader 1, a Library, a vacated slot's `cost[0]` ours 120, theirs 108 → 108.
+
+run1577 is whole on all 120 in both lines; no minted packet parts on either line now. run1575's take packet
+parts on 27 builds ranges, 35 before (`TAKE_PINNED`).
 
 ### 24.4 Where each first parting is (diff-backed)
 
@@ -2444,8 +2453,8 @@ line's field reader where it has one:
 | line | frame | run | record, field: ours, theirs |
 |---|---|---|---|
 | units | 1 | 1579 | unit 0 `flags`: 65 (0x41), 73 (0x49); 2 of 1,077 ranges |
-| groups | 61 | 1580 | group record 1: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34 |
-| builds | 100 | 1581 | building 2000 `queue[k]`: type 0, 50; `cost[0]` 0, 27 |
+| groups | 61 | 1580 | group record 1: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34; whole since item 4222 |
+| builds | 100 | 1581 | building 2000 `queue[k]`: type 0, 50; `cost[0]` 0, 27; whole since item 4222 |
 | guys | 129 | 1582 | 389 ranges against 375 (units 1,147 against 1,107): a figure ours holds and theirs does not yet |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2 |
@@ -2470,7 +2479,7 @@ on synthetic records.
 Not established:
 - Whether a non-playback game's sets pair the same way. The solo arm calls `check_all` once a turn, with no read loop.
 - The parted lines' causes: each is a parked row of `docs/journal/2026-11-13-item-4214.md` (4214a to 4214h; 4214e
-  closed by item 4209, 4214a and 4214h by item 4218).
+  closed by item 4209, 4214a and 4214h by item 4218, 4214b and 4214c by item 4222).
 - `Game::run@00584590:722`'s `GameDaemon::update_all_seen`, the call after `calc_danger`, is not run on the built start
   (item 4218). Every section of the world line agrees on the start without it; what else it writes is not compared.
 - What parts past a line's first parting outside `DIAG`. On every packet past frame 0 the world line agrees, and so
