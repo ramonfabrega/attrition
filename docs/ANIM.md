@@ -2211,7 +2211,7 @@ both sides. What they share is their type: they are every figure walking
 on 11921 with guy type 132, and on 11922 it reads 133. Player 1's leader
 record moves on the same block: `discovered_get()` 11 → 12, and
 `barracks_queued` 1 → 0. That is `Leader::gain_tech`'s conversion loop
-(TECH §7), and this crate makes it on the same frame. The listing then
+(TECH §"`gain_tech`: owning it", step 7), and this crate makes it on the same frame. The listing then
 named the fields. `Guy::fresh`, the new-guy arm, already wrote all of them;
 the kept arm did not.
 

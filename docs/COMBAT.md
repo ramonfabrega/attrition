@@ -2684,7 +2684,7 @@ and who=1 is the computer leader.~~ **It does not fire at all** — neither on
 `leader_flags & 4` gate above is the *second* conjunct of the call's `if`;
 the **first** is `local_30`, which only the city-alarm arms of `do_damage`'s
 **building** branch ever set, so a soldier taking a hit never reaches the
-emergency (item 399, §23; `docs/ARMY.md` §15.8). What cost this crate frame
+emergency (item 399, §23; `docs/ARMY.md` §15, item 8). What cost this crate frame
 617 stands: the march was ours alone.
 
 **The word: 617 → 618.** The value diff moves with it, 618 → 619.
@@ -3333,7 +3333,7 @@ said.
 and reads `+0x72 city` — and both beside a city alarm: the non-capital
 city's `S_CITY_BEING_ATTACKED` (under `city_flags & 0x10 == 0`, the alarm
 threshold `local_34`, and `300 < frame − city.attack_stamp`) and the
-capital's `S_YOUR_CAPITAL_ATTACKED`. `docs/ARMY.md` §15.8 carries the full
+capital's `S_YOUR_CAPITAL_ATTACKED`. `docs/ARMY.md` §15, item 8, carries the full
 predicate and what this crate implements of it.
 
 At golden 618 `0/7` strikes `1/6` — a **unit**. `local_30` stays 0, no
@@ -4441,7 +4441,7 @@ if (iVar2 == 0) return 0;
 ```
 
 `+0x138` on `Unit::vftable` is **`ObjectData::valid_target_const`**
-(`tools/ghidra/decomp/vtables.txt`; the rest of `Object::valid_target`
+(`vtables.txt` in the export, `~/ghidra-projects/decomp`, outside the repo; the rest of `Object::valid_target`
 is the *capture* ladder — `check_capture_eligible`, `Build::check_capture`
 — and a unit target falls straight through it to `return 1`).
 
@@ -12896,7 +12896,7 @@ block 5012. The booking named no mechanism and no direction.
 |---|---|---|
 | `check_target_path`'s fleeing arm (§67) on the corpse | `Unit::close@0060ee50` ends in `close_orders@005e37f0`, which kills every order whose `get_type` is non-zero, so the corpse's `is_moving@00610af0` answers 0 and the flank triple cannot hold | killed |
 | the review's range arm | `is_in_range@006486b0` returns 0 for a slot whose `flags & 1` is down, so the review returns 0 there | killed |
-| the suspended search (`+0x104`, `do_move`'s head) | `start_dist` is 0 on every block of `1/13` (`docs/PATHFINDER.md` §18.6) | killed |
+| the suspended search (`+0x104`, `do_move`'s head) | `start_dist` is 0 on every block of `1/13` (`docs/PATHFINDER.md` §19) | killed |
 | `do_move`'s captain retarget, `fight`'s chase | each rolls a draw, and the four frames spend none of `1/13`'s | killed |
 | `check_target_path`'s `+0x8` jump | below | **held** |
 

@@ -14,7 +14,7 @@ units do it at all, which units may, where the docks are kept and what
 they mark, how a citizen or a scout decides to leave its island, and how
 an AI army goes "transporting". The boat itself — its movement, the
 boarding path, the unloading — belongs to the pathfinder and the orders
-(`docs/PATHFINDER.md` §4.6, `docs/ORDERS.md` §4.6) and is cited, not
+(`docs/PATHFINDER.md` §5's transport tail, `docs/ORDERS.md` §4.6) and is cited, not
 re-read, here.
 
 **Confidence.** The predicates and the registry (§2–§6) are read line by
@@ -94,7 +94,7 @@ anything else → `TRANSPORT_MILITARY`.
 `(unit_masks & 0x800000) && !(unit_masks2 & 0x2000)`, **or** the type's
 `unit_flags & 0x10` (letter `e` in `unitrules.xml`'s `FLAGS`,
 `docs/DATALAYER.md`): a type that always transports, whatever the leader's
-level. `docs/PATHFINDER.md` §4.6 cites this as the "can take a transport"
+level. `docs/PATHFINDER.md` §5 cites this as the "can take a transport"
 test in `calc_cost`; `GroupData::can_transport` requires it of **every**
 on-map unit in the group for the toggle (§3.4).
 

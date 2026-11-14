@@ -9,7 +9,7 @@ the one recording there that names EE, saved under the gitignored
 decompile and checked byte-for-byte against that file.
 
 **How this was established.** Every function named here was read in the
-Ghidra export (`tools/ghidra/decomp/`): `RecordGame::read_header` /
+Ghidra export (`~/ghidra-projects/decomp`, outside the repo): `RecordGame::read_header` /
 `write_header` (0x953710 / 0x952a50), `read_package` / `write_package`
 (0x952d90 / 0x952fb0), `read_random_game_info` / `write_random_game_info`
 (0x9533e0 / 0x9534e0), `read_rules` / `write_rules`, `init_playback`,

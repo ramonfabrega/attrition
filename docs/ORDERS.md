@@ -2056,7 +2056,7 @@ differential check and never by a reading** (`docs/JOURNAL.md`, 2026-08-26,
   `|=` above are its only writers (`Unit::think:82` and
   `kill_current_order:107` clear it). Reading `goto_build` instead makes a
   citizen's first walk to its camp a `WALK_WITH_WOOD` and costs the
-  arrival stand at the end of it — `docs/ANIM.md` §4.4.
+  arrival stand at the end of it — `docs/ANIM.md` §4, step 4.
 - **A walk goes in *front* of the order that issued it, and the order is
   still the order.** The function holds `go` for its whole body, so the
   `goto_build = 1` / `wait = 32` written after `add_move_order(…, 1, …)`

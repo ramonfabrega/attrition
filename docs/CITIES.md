@@ -528,7 +528,7 @@ zero standing. The count is `calc_gather`'s, the same number
 the *survey* when `exclude_o` or `who` is negative and from the named
 object's own `MiningList` otherwise. The reader that matters is
 `Leader::produce_building`, which scores a woodcutter's camp site by the
-**cube** of it and refuses a site under three (`docs/AI.md` §4.4); a
+**cube** of it and refuses a site under three (`docs/AI.md` §19); a
 one-tile ring of forest tiles, which is what this crate counted until
 2026-09-01, is zero at every site a camp can actually stand on, so the AI
 built no camp at all after frame 0.
