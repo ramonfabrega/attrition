@@ -218,15 +218,13 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         // Item 4255: groups whole; before it, 1 of 544 ranges from 91,
         // record 67 `ox`/`oy` 30552/21144 ours, 0/0 theirs (here and on
         // 8281): `equals_group`'s `get_num` on an emptied last slot.
-        &[
-            (
-                "leaders",
-                271,
-                271,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|2f010000",
-            ),
-        ],
+        &[(
+            "leaders",
+            271,
+            271,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|2f010000",
+        )],
     ),
     (
         8281,
@@ -257,7 +255,42 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             ),
         ],
     ),
-    (9810, &[]),
+    (
+        9810,
+        // Item 4255: groups' next first parting, record 64 (army 1/1, 21
+        // members, the same list on both sides) `role` 0x150c00 ours,
+        // 0x150c03 theirs.
+        &[
+            (
+                "units",
+                2330,
+                2330,
+                12,
+                "913 30 myhits..launch_frames: inside_down -1|42",
+            ),
+            (
+                "builds",
+                1142,
+                1142,
+                1,
+                "856 2018 myhits..launch_frames: inside_down 54|30",
+            ),
+            (
+                "groups",
+                550,
+                550,
+                1,
+                "76 64 id..march: role 1379328|1379331",
+            ),
+            (
+                "leaders",
+                271,
+                271,
+                2,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|3e010000",
+            ),
+        ],
+    ),
     (
         10541,
         // Item 4253's next guys word: record 14's figure `last_angle`.
