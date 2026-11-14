@@ -406,13 +406,26 @@ def run_numbers(text):
     return set(re.findall(r'\brun ?(\d{3,4})\b', text))
 
 
-def reserved_once(item, runs, note, briefs):
+def filed_runs(runs_text):
+    """The run numbers `docs/RUNS.md` holds a section for (`## run1578 —`;
+    a twin's letter is its number's)."""
+    return set(re.findall(r'(?m)^## run(\d+)', runs_text))
+
+
+def reserved_once(item, runs, note, briefs, filed=()):
     """Loop 3176: a run number is reserved by `--runs` and nowhere else.
     A note that names a run the list does not carry is refused — two
     notes offered run 923 "if needed" and a third brief reserved it — and
-    a run another item's brief on the box names is refused."""
+    a run another item's brief on the box names is refused. **A filed run
+    is a reference** (the pass of 2026-11-14, second; items 4231, 4234): a
+    note may name one, and `--runs` refuses it, since a reservation is a
+    number no capture has."""
     mine = {re.sub(r'\D', '', r) for r in runs}
-    loose = run_numbers(note) - mine
+    taken = sorted(mine & set(filed))
+    if taken:
+        raise ValueError(f"run{', run'.join(taken)} is a filed capture (docs/RUNS.md): --runs reserves "
+                         "a number no capture has; name a filed run in the note")
+    loose = run_numbers(note) - mine - set(filed)
     if loose:
         raise ValueError(f"the note names run {', '.join(sorted(loose))} and --runs does not: "
                          "a note's run goes through --runs (Loop 3176)")
@@ -448,10 +461,10 @@ def note_gates_run(note):
 
 
 def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read, note, tests=(),
-            park=None, seams=None, briefs=None):
+            park=None, seams=None, briefs=None, filed=()):
     if kind not in KINDS:
         raise ValueError(f'no such kind of brief: {kind}; one of {sorted(KINDS)}')
-    reserved_once(item, runs, note, briefs)
+    reserved_once(item, runs, note, briefs, filed)
     note_gates_run(note)
     tests = filters(kind, tests)
     items = open_items_text(queue)
@@ -574,7 +587,8 @@ def main():
                        sections=args.sections, read=args.read,
                        note=args.note_file.read_text() if args.note_file else '',
                        tests=args.tests, park=args.park,
-                       seams=None if args.no_seams else run_seams, briefs=briefs)
+                       seams=None if args.no_seams else run_seams, briefs=briefs,
+                       filed=filed_runs((ROOT / 'docs/RUNS.md').read_text()))
     except ValueError as e:
         print(f'brief.py: {e}', file=sys.stderr)
         sys.exit(2)

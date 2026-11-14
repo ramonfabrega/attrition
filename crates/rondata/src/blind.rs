@@ -3826,6 +3826,36 @@ mod tests {
         out
     }
 
+    /// The refusal's line for a new row: the name and the address apart,
+    /// so the line is no citation where it is quoted.
+    fn refusal_new(name: &str, a: u32, docs: &[&str]) -> String {
+        format!(
+            "  new on the blind list: `{name}` at {a:08x} is cited ({}) and no trace in TRACES enters it",
+            docs.join(", ")
+        )
+    }
+
+    /// The refusal's line for a row that left.
+    fn refusal_off(name: &str, a: u32, why: &str) -> String {
+        format!("  off the blind list: `{name}` at {a:08x} {why}")
+    }
+
+    /// **A refusal quoted into a document cites nothing** (the pass of
+    /// 2026-11-14, second). The refusal named its function in the form the
+    /// scanner reads, so a lane that quoted its gate's red line into its
+    /// journal cited the function again: three merges of one tranche went
+    /// red on it (items 4236, 4240, 4241), each for a quote of the one
+    /// before. The line says the name and the address apart.
+    #[test]
+    fn a_refusal_quoted_into_a_document_cites_nothing() {
+        let new = refusal_new("Random::Random", 0x0040_0000, &["journal/x.md"]);
+        let off = refusal_off("Unit::do_patrol", 0x005f_1910, "is now entered");
+        assert!(new.contains("Random::Random") && new.contains("00400000"));
+        assert!(off.contains("Unit::do_patrol") && off.contains("005f1910"));
+        assert_eq!(cited(&new), Vec::<u32>::new(), "{new}");
+        assert_eq!(cited(&off), Vec::<u32>::new(), "{off}");
+    }
+
     /// **The blind list is the pinned residue, function for function.**
     ///
     /// Fails in either direction and names each function that moved: one
@@ -3876,11 +3906,7 @@ mod tests {
         let mut failures = Vec::new();
         for a in never.difference(&pinned) {
             let docs: Vec<&str> = cites[a].iter().map(String::as_str).collect();
-            failures.push(format!(
-                "  new on the blind list: `{}@{a:08x}` is cited ({}) and no trace in TRACES enters it",
-                name(a),
-                docs.join(", ")
-            ));
+            failures.push(refusal_new(name(a), *a, &docs));
         }
         for a in pinned.difference(&never) {
             let why = if entered_any.contains(a) {
@@ -3888,7 +3914,7 @@ mod tests {
             } else {
                 "is no longer cited"
             };
-            failures.push(format!("  off the blind list: `{}@{a:08x}` {why}", name(a)));
+            failures.push(refusal_off(name(a), *a, why));
         }
         assert!(
             failures.is_empty(),

@@ -1370,6 +1370,39 @@ garbage line
         with self.assertRaises(ValueError):
             self.release_command(touched=[], scope='abc1234', no_widen=True)
 
+    def test_a_no_widen_lane_that_moves_the_sim_s_source_keeps_the_widenings(self):
+        # The pass of 2026-11-14, second. Item 4231's one call in
+        # `crates/sim/src/groups/group/actions.rs` moved four widening pins
+        # its `--no-widen` lane gate never ran: the booking gate was red on
+        # them (gate-4231, 15.8 minutes) and green 14.7 minutes later. The
+        # driver wrote the widening run into every later brief by hand, and
+        # 4242's lane found its four there. The timings file prices the 405
+        # widenings at 919 s one at a time, so a lane whose branch moves the
+        # sim's own source keeps them under `--no-widen`; its tests, a
+        # document and another crate's source do not.
+        widening = 'diff::second::tests::run420_s_word_frame_is_widened_whole'
+        gap = 'diff::second::tests::run421_s_gap_is_walked_whole'
+        census = 'diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned'
+        def skipped(touched):
+            command, policy = self.release_command(touched=touched, lane=True, tests=WORD, no_widen=True)
+            return [command[i+1] for i, a in enumerate(command) if a == '--skip'], policy
+        skips, policy = skipped(['crates/sim/src/groups/group/actions.rs', 'docs/GROUPS.md'])
+        self.assertNotIn(widening, skips)
+        self.assertNotIn(gap, skips)
+        self.assertIn(census, skips)
+        self.assertEqual(policy['lane']['sim_source'], ['crates/sim/src/groups/group/actions.rs'])
+        self.assertEqual(policy['lane']['tests'], WORD)
+        for touched in (['crates/sim/src/groups/group/tests.rs'], ['crates/sim/src/harness_tests.rs'],
+                        ['crates/sim/tests/soak.rs'], ['crates/rondata/src/diff/checksum_frames.rs'],
+                        ['docs/GROUPS.md']):
+            with self.subTest(touched=touched):
+                skips, policy = skipped(touched)
+                self.assertIn(widening, skips)
+                self.assertIn(gap, skips)
+                self.assertEqual(policy['lane']['sim_source'], [])
+                self.assertEqual(policy['lane']['tests'], WORD)
+        self.assertEqual(gate.sim_source_moved(None), [])
+
     def test_a_scoped_booking_gate_runs_the_timed_tests_only_when_a_merge_can_move_a_pin(self):
         # The thirty-fifth steer, Ramon's word: the booking gate after every
         # merge was 22 whole suites a tranche; scoped to the merges since the

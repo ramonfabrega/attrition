@@ -1,6 +1,6 @@
-# Every rondata release test's CPU alone, 2026-11-14, tools/suite_timings.py (tree 38674149).
+# Every rondata release test's CPU alone, 2026-11-14, tools/suite_timings.py (tree e089bc81).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 6,251 CPU-seconds and 120.23e12 instructions over 2397 tests; the host's load 11.8 at the start and 8.6 at the end.
+# Sum 6,253 CPU-seconds and 120.26e12 instructions over 2405 tests; the host's load 4.0 at the start and 4.0 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 144.32	3295.19	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
@@ -1117,6 +1117,7 @@
 1.30	24.25	diff::golden::run875_start_seen3_plane_is_compared_cell_for_cell
 1.30	25.01	diff::inca_enlightenment_pair::inca_enlightenment_pair_run1310b_s_word_frame_is_widened_whole
 1.30	25.84	diff::russian_medieval_pair::russian_medieval_pair_run1258b_s_word_frame_is_widened_whole
+1.30	27.21	diff::coverage_pair::run1075_s_staged_battleships_release_on_the_original_s_frames
 1.29	27.32	diff::american_modern_pair::american_modern_pair_the_long_s_stride_walks_back_from_4488
 1.29	27.67	diff::checksum_lines::packets::the_seated_words_part_from_the_built_start
 1.29	29.06	diff::coverage_pair::run1066_s_carrier_queue_parts_against_the_crate_s_zero
@@ -1993,6 +1994,7 @@
 0.05	1.42	diff::turkish_enlightenment_pair::turkish_enlightenment_pair_is_no_other_lobby
 0.05	1.03	writers::every_exemption_still_names_a_field
 0.05	1.02	writers::every_no_reader_row_still_names_a_field
+0.05	0.51	artdata::tests::every_surf_section_model_the_install_ships_decodes
 0.04	0.90	capture::indexed::tests::ambiguous_tail_is_rejected_instead_of_silently_losing_a_frame
 0.04	0.90	capture::indexed::tests::reopening_shares_offsets_and_a_changed_length_invalidates_them
 0.04	1.06	diff::checksum_lines::the_coverage_section_is_the_whole_lines_walkers
@@ -2398,3 +2400,9 @@
 0.00	0.03	testenv::fixture_audit::a_resumed_stand_up_s_requests_are_written_each_time
 0.00	0.03	testenv::fixture_audit::a_shared_cache_credits_each_reader_with_the_fill_s_requests
 0.00	0.03	trace::checksums::tests::a_set_is_four_records_read_whole
+0.00	0.07	artdata::tests::the_surf_s_sections_and_timings_are_the_packet_s
+0.00	0.03	diff::audit::the_closed_form_owes_the_same_audits
+0.00	0.03	diff::floors::tests::a_lowered_row_turns_the_closed_line_red
+0.00	0.03	diff::floors::tests::the_closed_form_is_every_row_whole
+0.00	0.03	diff::floors::tests::the_handoff_reads_in_the_closed_form
+0.00	0.11	diff::harness::trunk::tests::the_game_s_other_stand_up_rides_the_trunk_and_carries_its_own_fields

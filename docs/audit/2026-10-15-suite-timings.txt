@@ -1,7 +1,7 @@
-# Every rondata release test timed alone, 2026-11-14, tools/suite_timings.py (tree 38674149).
+# Every rondata release test timed alone, 2026-11-14, tools/suite_timings.py (tree e089bc81).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 4,910 s over 2397 tests; --stale-only merged. Top 10 = 744 s, top 30 = 994, top 100 = 1491; 1023 tests under 1 s.
-# By module: mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 123 tests, coverage 266 s / 6 tests, harness 227 s / 99 tests.
+# Sum 4,912 s over 2405 tests; --stale-only merged. Top 10 = 744 s, top 30 = 994, top 100 = 1491; 1030 tests under 1 s.
+# By module: mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, coverage 266 s / 6 tests, harness 227 s / 100 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 144.47	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
 91.51	lobby::tests::the_page_starts_every_lobby_on_disk
@@ -1010,6 +1010,7 @@
 1.59	diff::american_information_pair::american_information_pair_run1409b_s_word_frame_is_widened_whole
 1.59	diff::audit::bantu_medieval_pair_corrections_change_nothing
 1.59	diff::minted::the_minimap_s_clicked_file_against_the_main_view_playback
+1.58	diff::coverage_pair::run1075_s_staged_battleships_release_on_the_original_s_frames
 1.58	diff::russian_modern_pair::russian_modern_pair_run1162e_s_wealth_is_widened_whole
 1.58	diff::third_pair::run617_s_word_frame_is_widened_whole
 1.58	diff::audit::turkish_information_pair_corrections_change_nothing
@@ -1966,6 +1967,7 @@
 0.17	diff::indian_sahara_word::indian_sahara_word_is_no_other_lobby
 0.17	diff::dutch_sahara_word::dutch_sahara_word_is_no_other_lobby
 0.17	diff::greek_word::greek_word_is_no_other_lobby
+0.17	artdata::tests::every_surf_section_model_the_install_ships_decodes
 0.16	diff::japanese_word::japanese_word_is_no_other_lobby
 0.16	diff::aztec_word::aztec_word_is_no_other_lobby
 0.16	gamelog::tests::the_lazy_tree_is_the_eager_tree
@@ -2059,6 +2061,7 @@
 0.02	diff::korean_ancient_pair::korean_ancient_pair_is_no_other_lobby
 0.02	capture::archive::tests::lz4_payload_crc_is_checked_even_with_valid_metadata
 0.02	mapgen::tests::great_sahara_s_groups_parse_as_read
+0.02	diff::harness::trunk::tests::the_game_s_other_stand_up_rides_the_trunk_and_carries_its_own_fields
 0.01	artdata::tests::the_tileset_light_is_read
 0.01	diff::harness::trunk::tests::a_rider_s_later_run_ups_take_the_rungs_past_where_it_stands
 0.01	diff::testkit::whole_capture::tests::bounded_bodies_keep_frame_offset_first_match_and_last_nonempty_position
@@ -2339,6 +2342,11 @@
 0.01	diff::diplomacy_take::diplomacy4206_s_taunt_is_minted_from_its_chat
 0.01	stores::tests::a_small_image_is_scanned_and_seen_red
 0.01	testenv::fixture_audit::a_cache_filled_inside_another_is_credited_once_a_reader
+0.01	artdata::tests::the_surf_s_sections_and_timings_are_the_packet_s
+0.01	diff::audit::the_closed_form_owes_the_same_audits
+0.01	diff::floors::tests::a_lowered_row_turns_the_closed_line_red
+0.01	diff::floors::tests::the_handoff_reads_in_the_closed_form
+0.01	diff::floors::tests::the_closed_form_is_every_row_whole
 0.00	testenv::fixture_audit::a_resumed_stand_up_s_requests_are_written_each_time
 0.00	testenv::fixture_audit::a_shared_cache_credits_each_reader_with_the_fill_s_requests
 0.00	testenv::fixture_audit::a_fill_inside_a_fill_is_on_both_tapes_and_a_panic_closes_its_tape

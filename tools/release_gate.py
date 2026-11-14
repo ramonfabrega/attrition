@@ -520,6 +520,29 @@ SIM_BUILD_INPUTS = (SIM_CRATE, 'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml'
                     'tools/emu/')
 
 
+# **A `--no-widen` lane that moves the sim's own source keeps the widenings**
+# (the pass of 2026-11-14, second). DECISIONS 83 left every timed pin to the
+# booking gate because fifteen of twenty sim-touching lanes moved none. On
+# parity's lanes the rate is the other way: two of four fixes (4231's and
+# 4242's `get_num_cap` calls) each moved four widening pins, 4231's seen
+# first by a red booking gate (15.8 minutes, then 14.7), 4242's seen by the
+# lane only because the driver had written the widening run into its brief
+# by hand. The 405 widenings are 919 s one at a time by the timings file;
+# the census and the rest of the timed corpus stay the booking gate's. The
+# sim's tests move no state a dump comparator reads, so they do not count.
+SIM_WIDENINGS = ('_word_frame_is_widened_whole', '_gap_is_walked_whole')
+SIM_SOURCE = 'crates/sim/src/'
+
+
+def sim_source_moved(touched):
+    """The paths of a branch that are the sim's own source: under
+    `SIM_SOURCE` and not a test file (`tests.rs`, `*_tests.rs`, a `tests/`
+    directory)."""
+    return sorted(p for p in (touched or [])
+                  if p.startswith(SIM_SOURCE) and p.endswith('.rs')
+                  and not p.endswith('tests.rs') and '/tests/' not in p)
+
+
 def sim_crate_left(touched, *, lane, whole):
     """Whether a lane gate leaves the sim crate's test binaries to the
     booking gate: a lane, not `--whole`, whose branch (`touched`, None when
@@ -941,7 +964,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
             raise ValueError(f"the base moved under this branch and both sides touched "
                              f"{', '.join(blocking)}: refused before the offline step, nothing ran; "
                              "take `ccc update <your ref>` and gate again (Loop 3341, item 3366)")
-    skips, widened, touched, paperwork, row_only = [], [], None, [], []
+    skips, widened, touched, paperwork, row_only, sim_source = [], [], None, [], [], []
     # The budget the release step used: None where it skipped nothing
     # (`--whole`, a widened lane or scope, the whole booking gate).
     budget, kept = None, PAPERWORK_GUARDS
@@ -956,12 +979,16 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         # at four threads (6–26 minutes, median 18.9) while fifteen of the
         # twenty moved no pin. The AI lane's brief widens; a sweep's or a
         # chapter's says `--no-widen`, and the booking gate holds the pins.
+        if lane and no_widen and not whole:
+            sim_source = sim_source_moved(touched)
+            # Kept beside the word, not in it: the word's filters must each
+            # match a test that ran, and that is the lane's own promise.
         if (not widened or no_widen) and not whole:
             # DECISIONS 132: a lane's own budget is zero, the scope's a second.
             budget, kept = ((LANE_OWN_BUDGET_SECONDS, LANE_KEPT) if lane
                             else (LANE_BUDGET_SECONDS, PAPERWORK_GUARDS))
             timings = TIMINGS.read_text()
-            skips = lane_skips(timings, tests, budget, kept)
+            skips = lane_skips(timings, tests + (list(SIM_WIDENINGS) if sim_source else []), budget, kept)
             paperwork = lane_paperwork(timings, budget, kept)
     sim_left = sim_crate_left(touched, lane=lane, whole=whole)
     sim_clause = ("; the sim crate's test binaries left to the booking gate — no path under "
@@ -1028,7 +1055,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                           'whole': bool(whole),
                           'budget_seconds': budget, 'skipped': len(skips),
                           'paperwork_kept': len(paperwork), 'base': base, 'widened': widened,
-                          'row_only': row_only, 'dropped': dropped,
+                          'row_only': row_only, 'dropped': dropped, 'sim_source': sim_source,
                           'base_overlap': base_overlap,
                           'sim_crate': 'left to the booking gate' if sim_left else 'run',
                           'client_crate': 'left to the booking gate' if client_left else 'run'}
@@ -1089,7 +1116,11 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         print(f"Lane suite: {budget_clause(skips, budget)} "
               f"booking gate by the brief's --no-widen, though the branch touches {len(widened)} path(s) "
               f"that can move a pin ({widened[0]}{', …' if len(widened) > 1 else ''}); the booking gate "
-              "holds the pins (DECISIONS 83)" + kept_line(paperwork, kept) + client_clause, flush=True)
+              "holds the pins (DECISIONS 83)"
+              + (f"; the widenings kept ({', '.join(SIM_WIDENINGS)}): the branch moves the sim's source "
+                 f"({sim_source[0]}{', …' if len(sim_source) > 1 else ''}; the pass of 2026-11-14)"
+                 if sim_source else '')
+              + kept_line(paperwork, kept) + client_clause, flush=True)
     elif lane and widened:
         print(f"Lane suite: every timed test — the branch touches {len(widened)} path(s) that can move "
               f"the diff:: pins ({widened[0]}{', …' if len(widened) > 1 else ''}; Loop 2415); "

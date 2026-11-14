@@ -420,6 +420,24 @@ class ABriefIsComposed(unittest.TestCase):
         self.compose(1133, briefs={'brief1133.md': '- **Run numbers**: run423, run424.\n'})  # its own earlier brief
         self.compose(1133, briefs={'brief1127.md': '- **Run numbers**: run500.\n'})
 
+    def test_a_filed_run_is_a_reference_and_never_a_reservation(self):
+        # The pass of 2026-11-14, second. Items 4231 and 4234's notes named
+        # run1578 and run1587, captures already filed, as what to read from;
+        # the rule above sent them through `--runs`, and both briefs
+        # "reserved" two filed runs beside the one free number. Each lane
+        # then asked the driver for a number. A note may name a filed run,
+        # and `--runs` refuses one. Red first: the note was refused and the
+        # reservation composed.
+        self.compose(1133, note='Read run 1578 and run 1587 first.', filed={'1578', '1587'})
+        with self.assertRaises(ValueError) as e:
+            self.compose(1133, note='Take run 925 if the first is short.', filed={'1578'})
+        self.assertIn('925', str(e.exception))
+        with self.assertRaises(ValueError) as e:
+            self.compose(1133, filed={'423'})
+        self.assertIn('run423 is a filed capture', str(e.exception))
+        runs = '## run1578 — the hook\ntext\n## run92b — a twin\n### run7\n## run1587 — x\n'
+        self.assertEqual(brief.filed_runs(runs), {'1578', '92', '1587'})
+
     def test_the_commander_s_own_note_is_last_before_the_landing(self):
         text = self.compose(1133, note='Read `1/2`\'s path on block 6 first.')
         self.assertLess(text.index("Read `1/2`'s path"), text.index('## Landing'))

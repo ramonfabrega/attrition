@@ -252,7 +252,8 @@ fn pin_of(lines: &[LineOutcome]) -> [(usize, usize, usize); 12] {
 /// Hold one game's walked packets against [`PINNED`] and
 /// [`PACKET_LEAF_PARTINGS`]: each line's ranges and partings, and every leaf
 /// of the leaders line that parts outside [`LEADERS_HELD_OUT`].
-/// `RON_PACKETS_PRINT` prints the pins and every leaf row.
+/// `RON_PACKETS_PRINT` prints the pins and every leaf row, asserts none,
+/// and prints a `MOVED` line for each pin the walk moved.
 pub(super) fn hold(game: &Game, packets: &[(&'static str, i64)]) {
     if std::env::var_os("RON_PACKETS_BUILT").is_some() {
         let Some((walked, parts)) = walk_packets_built(game, packets) else {
@@ -511,7 +512,20 @@ pub(super) fn check(name: &str, walked: &[Walked]) {
             }
             eprintln!("EXTRA\t(\"{}\", \"{}\"),", w.run, extra_leaves(w, &held));
             // Printing is the measurement, every packet of the walk: the
-            // pins are read off it, so they are not held here.
+            // pins are read off it, so they are not held here. It says so,
+            // and names a pin the walk moved (item 4238 read a print run
+            // as "nothing moved" and its lane gate went red on two rows).
+            match PINNED.iter().find(|p| p.0 == w.run) {
+                Some(p) if (p.1, p.2) != (w.frame, pin_of(&w.lines)) => {
+                    eprintln!("MOVED\t{}\tpinned {:?}", w.run, p.2);
+                }
+                Some(_) => {}
+                None => eprintln!("MOVED\t{}\tno pinned outcome", w.run),
+            }
+            eprintln!(
+                "PRINT\t{}\tRON_PACKETS_PRINT asserts no pin: a MOVED line is a pin this walk moved",
+                w.run
+            );
             continue;
         }
         let pinned = PINNED
