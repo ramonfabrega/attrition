@@ -1419,7 +1419,7 @@ impl Sim {
     fn hand_over_orders(&mut self, boat: usize, r: usize) {
         let orders = std::mem::take(&mut self.units[boat].orders);
         self.units[r].orders.extend(orders);
-        let path = std::mem::take(&mut self.units[boat].path);
+        let path = self.units[boat].path.take();
         self.units[r].path.extend(path);
         if let Some(top) = self.units[r].path.last_mut() {
             top.flags &= !crate::orders::path_flag::BOARDS_TRANSPORT;

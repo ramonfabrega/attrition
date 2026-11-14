@@ -175,7 +175,7 @@ fn a_road_waypoint_built_over_verifies_the_route_and_drops_the_flag() {
         tolerance: 0x60,
         flags: path_flag::ROAD_LAID,
     };
-    sim.units[u].path = vec![flagged(road), flagged(built)];
+    sim.units[u].path = vec![flagged(road), flagged(built)].into();
     sim.economy.caravans[1].slots[v].road = vec![flagged(road), flagged(built)];
     let m = sim.world.tile_mask(road.tile());
     sim.world.set_tile_mask(road.tile(), m | tile::SURFACE_ROAD);

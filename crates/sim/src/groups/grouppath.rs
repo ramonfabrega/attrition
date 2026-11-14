@@ -23,7 +23,7 @@
 
 use crate::groups::form::Form;
 use crate::groups::group::{Group, Member};
-use crate::orders::{MoveKind, PathData, path_flag};
+use crate::orders::{MoveKind, PathData, PathStack, path_flag};
 use crate::territory::attrition::Domain;
 use crate::world::{Pos, UNITS_PER_CELL, vector_dist};
 
@@ -104,9 +104,9 @@ impl Sim {
                 // object for its modes, its `toff` and its `calc_cost`, and
                 // the original passes exactly that object — then take it
                 // back, leaving the leader's own stack as it was.
-                let saved = std::mem::replace(&mut self.units[l].path, chain);
+                let saved = std::mem::replace(&mut self.units[l].path, PathStack::from_nodes(chain));
                 self.find_wpath_from(l, start, g.army.is_some() || self.slot_keeps_army_link(g));
-                chain = std::mem::replace(&mut self.units[l].path, saved);
+                chain = std::mem::replace(&mut self.units[l].path, saved).into_nodes();
             }
         }
 
@@ -258,9 +258,9 @@ impl Sim {
                 flags: path_flag::FINAL,
             };
             let start = self.units[u].path.last().map_or(from, |p| p.to);
-            let saved = std::mem::replace(&mut self.units[u].path, vec![goal]);
+            let saved = std::mem::replace(&mut self.units[u].path, PathStack::from_nodes(vec![goal]));
             self.find_wpath_from(u, start, false);
-            let mut chain = std::mem::replace(&mut self.units[u].path, saved);
+            let mut chain = std::mem::replace(&mut self.units[u].path, saved).into_nodes();
             if chain.is_empty() {
                 // The search refused: the goal goes on by itself, off the
                 // copy `action_move_near` kept before the call.

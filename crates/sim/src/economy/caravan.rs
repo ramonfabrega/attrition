@@ -498,7 +498,7 @@ impl Sim {
         }
         let mut path = self.economy.caravans[who].slots[v].road.clone();
         offset_road(&mut path);
-        self.units[u].path = path;
+        self.units[u].path.set(path);
         self.units[u].path.pop();
         let goal = self.units[u].path[0].to;
         // `add_move_order`'s facing is the bearing to the goal (§4.1's
@@ -946,7 +946,7 @@ impl Sim {
         if let Some(v) = self.units[u].caravan {
             self.caravan_verify_road(self.units[u].owner, v);
         }
-        for p in &mut self.units[u].path {
+        for p in self.units[u].path.iter_mut() {
             p.flags &= !path_flag::ROAD_LAID;
         }
     }

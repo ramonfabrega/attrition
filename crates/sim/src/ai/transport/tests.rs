@@ -834,11 +834,11 @@ fn the_boat_s_orders_queue_behind_what_the_passenger_s_tail_gave_it() {
         tolerance: 0,
         flags,
     };
-    f.sim.units[rider].path = vec![node(attack, 1), node(tile_pos(25, 17), 0)];
+    f.sim.units[rider].path = vec![node(attack, 1), node(tile_pos(25, 17), 0)].into();
     f.sim.units[boat].path = vec![
         node(explore, 1),
         node(tile_pos(29, 12), path_flag::BOARDS_TRANSPORT),
-    ];
+    ].into();
     f.sim.hand_over_orders(boat, rider);
     let kinds: Vec<_> = f.sim.units[rider]
         .orders
@@ -1613,7 +1613,7 @@ fn a_trade_walker_s_region_push_carries_the_stripped_road_flag() {
             tolerance: 96,
             flags: path_flag::ROAD_LAID,
         },
-    ];
+    ].into();
     assert_ne!(
         f.sim.world.tregion_alt(goal.tile()),
         f.sim.world.tregion_alt(f.sim.units[boat].pos.tile()),
