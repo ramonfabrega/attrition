@@ -359,6 +359,20 @@ impl Sim {
             self.units[u].movement.body.pos = pos;
             self.coll_follow(u);
             self.crew_des(u, pos, angle, true);
+            // **The seating writes every figure's `last`** (item 4238):
+            // `Unit::set_new_location@005f8d20:162/234`'s `param_3` hands
+            // each figure to `Guy::set_new_location(…, 1)`, whose `:66–70`
+            // copy the point into `last_x`/`last_y` and the new `z` into
+            // `last_z`; `param_4`'s `Guy::set_angle(guy, +0x50, 1)` writes
+            // `last_angle` (`+0x1c`) beside `angle`. So a unit walking on the
+            // age's tick ends it with `last` on its point, not one step
+            // behind (run1591, frame 6537). An aircraft's figure 0 keeps
+            // `airframe.last_z`: the air arm's climb is not ported here.
+            let m = self.units[u].movement;
+            for g in &mut self.units[u].guys {
+                let at = g.follow.map_or(m.body.pos, |f| f.body.pos);
+                g.last = Some((at, angle));
+            }
         }
     }
 

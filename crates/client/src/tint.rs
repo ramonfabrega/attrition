@@ -245,10 +245,12 @@ pub(crate) mod tests {
     /// Item 4232 (the lake lit and blended in HDR, §3.24): run1564 off hue
     /// 674 → 678, row 1,565 → 1,706, luma 1,705 → 1,805; on hue 666 → 676,
     /// row 1,543 → 1,686, luma 1,664 → 1,795. Off still beats on: off.
+    /// Item 4233: luma run1559b off 1,036 → 1,038, on 1,079 → 1,081;
+    /// run1570 off 1,121 → 1,122, on 1,153 → 1,154: the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21).
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
-        ([959, 1104, 1036], [959, 1104, 1079]),
+        ([959, 1104, 1038], [959, 1104, 1081]),
         ([678, 1706, 1805], [676, 1686, 1795]),
-        ([1042, 1171, 1121], [1041, 1171, 1153]),
+        ([1042, 1171, 1122], [1041, 1171, 1154]),
     ];
 
     /// **`GRASS_HUE`**, `[(untinted, tinted)]` on run1559b, run1564 and

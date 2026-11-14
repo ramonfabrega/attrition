@@ -23,15 +23,18 @@
 //!   build_half_tcoord`, `RData +0x98 → +0x2c`). `get_position` turns it by
 //!   270° about z, negates y and scales by `build_scale` (3.0); the emitter
 //!   stands at the building's point plus that ([`anchor`]).
+//! - **The direction** (item 4240; §3.25). `init_position(…, 3)` records the
+//!   node's third axis at rest, normalised, as the place's `vel`;
+//!   `get_position` turns it as it turns the place and does not scale it
+//!   ([`direction`]): `desc.vel`, which a particle's start takes.
 //!
 //! Diffed on run1559b's and run1570's packets (`docs/RENDERER.md` §3.20): the
 //! city `0/2000` burns on all four slots, and every emitter's `desc.pos` is
-//! this arithmetic on `village_6tz.bh3`'s nodes. The particles themselves —
-//! their timing, motion and blend — are not read.
+//! this arithmetic on `village_6tz.bh3`'s nodes, and its `desc.vel` this
+//! direction to 2e-7. The particles themselves are `particle`'s.
 
 use crate::bh3::Model;
 use crate::draw::PlacedBuilding;
-use crate::figure::apply;
 
 /// `?build_scale@@3MA` (`0x00c062d0`), read off run1559b's packet: 3.0.
 pub const BUILD_SCALE: f32 = 3.0;
@@ -90,17 +93,30 @@ pub fn burning_slots(level: u8) -> &'static [u8] {
 /// node `, `pivot node `, `smoke node `, `node `, each followed by its
 /// number and compared whole); a slot no node names is `None`. A later node
 /// that names a slot again takes it, as `NodePacket::set_node` overwrites.
-pub fn attach_slots(model: &Model) -> [Option<[f32; 3]>; SLOTS] {
-    let origins = rest_origins(model);
+pub fn attach_slots(model: &Model) -> [Option<Slot>; SLOTS] {
     let mut out = [None; SLOTS];
-    for (n, o) in model.nodes.iter().zip(origins) {
+    for (n, m) in model.nodes.iter().zip(rest_matrices(model)) {
         if let Some(slot) = slot_of(&n.name)
             && slot < SLOTS
         {
-            out[slot] = Some(o);
+            let m = &m.0;
+            out[slot] = Some(Slot {
+                origin: [m[12], m[13], m[14]],
+                axis: [m[8], m[9], m[10]],
+            });
         }
     }
     out
+}
+
+/// **One attach slot's node at rest**: its origin in the model's space, and
+/// its matrix's third row, the axis `verify_load`'s `init_position(…, 3)`
+/// records as the place's direction (`AttachPos::vel`, row `3 − 1` of
+/// `fill_matrix`, normalised).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Slot {
+    pub origin: [f32; 3],
+    pub axis: [f32; 3],
 }
 
 /// The slot `load_hier` files a node name in: for each `i` below 14 in
@@ -124,9 +140,9 @@ fn slot_of(name: &str) -> Option<usize> {
     None
 }
 
-/// Every node's origin in the model's space at rest, as
+/// Every node's matrix in the model's space at rest, as
 /// [`crate::figure::rest_pose`] carries a vertex.
-fn rest_origins(model: &Model) -> Vec<[f32; 3]> {
+fn rest_matrices(model: &Model) -> Vec<crate::camera::Mat4> {
     let mut world: Vec<crate::camera::Mat4> = Vec::with_capacity(model.nodes.len());
     for n in &model.nodes {
         let local = crate::camera::fill(Some(n.loaded_rotation()), n.loaded_translation());
@@ -136,7 +152,7 @@ fn rest_origins(model: &Model) -> Vec<[f32; 3]> {
         };
         world.push(m);
     }
-    world.iter().map(|m| apply(m, [0.0; 3])).collect()
+    world
 }
 
 /// **The emitter's point** for a slot at `origin` (its node at rest, or
@@ -159,6 +175,22 @@ pub fn anchor(b: &PlacedBuilding, origin: Option<[f32; 3]>) -> [f32; 3] {
     ]
 }
 
+/// **The emitter's direction** (`desc.vel`, `get_position`'s second
+/// vector) for a slot whose node's axis is `axis`: the axis normalised
+/// (`Vector::norm`), then turned as [`anchor`] turns a place, `(−y, −x,
+/// z)`, and not scaled. A slot no node names records `(0, 0, 1)`, which
+/// the turn leaves.
+pub fn direction(axis: Option<[f32; 3]>) -> [f32; 3] {
+    let Some(v) = axis else {
+        return [0.0, 0.0, 1.0];
+    };
+    let n = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt();
+    if n == 0.0 {
+        return v;
+    }
+    [-v[1] / n, -v[0] / n, v[2] / n]
+}
+
 /// One burning slot: a building's fire and smoke emitters at one point.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Emitter {
@@ -167,6 +199,8 @@ pub struct Emitter {
     /// The attach slot, 8 to 11.
     pub slot: u8,
     pub pos: [f32; 3],
+    /// `desc.vel`, a unit vector ([`direction`]).
+    pub dir: [f32; 3],
 }
 
 /// **The building's burning slots** (`Wall::inc_time`): none before it is
@@ -174,7 +208,7 @@ pub struct Emitter {
 /// [`burning_slots`], from `slots` (its model's [`attach_slots`]). The
 /// level reads `construct_hits` against `hits − health`; the queued
 /// upgrade's arm of `BuildData::hits` is not taken (parked 4197c).
-pub fn emitters(b: &PlacedBuilding, slots: &[Option<[f32; 3]>; SLOTS]) -> Vec<Emitter> {
+pub fn emitters(b: &PlacedBuilding, slots: &[Option<Slot>; SLOTS]) -> Vec<Emitter> {
     if !b.active {
         return Vec::new();
     }
@@ -185,7 +219,8 @@ pub fn emitters(b: &PlacedBuilding, slots: &[Option<[f32; 3]>; SLOTS]) -> Vec<Em
             who: b.who,
             o: b.o,
             slot,
-            pos: anchor(b, slots[slot as usize]),
+            pos: anchor(b, slots[slot as usize].map(|s| s.origin)),
+            dir: direction(slots[slot as usize].map(|s| s.axis)),
         })
         .collect()
 }
@@ -247,8 +282,8 @@ mod tests {
         };
         let s = attach_slots(&model);
         // `load_hier` keeps the translation to hundredths, truncated.
-        let near = |p: Option<[f32; 3]>, q: [f32; 3]| {
-            p.is_some_and(|p| (0..3).all(|k| (p[k] - q[k]).abs() < 0.02))
+        let near = |p: Option<Slot>, q: [f32; 3]| {
+            p.is_some_and(|p| (0..3).all(|k| (p.origin[k] - q[k]).abs() < 0.02))
         };
         assert!(near(s[8], [77.2, -45.09, 63.58]), "{:?}", s[8]);
         assert!(near(s[7], [11.0, 2.0, 3.0]), "{:?}", s[7]);
@@ -289,11 +324,20 @@ mod tests {
         let near = |p: [f32; 3], q: [f32; 3]| (0..3).all(|k| (p[k] - q[k]).abs() < 0.05);
         assert!(near(a, [3207.27, 30518.4, 726.74]), "{a:?}");
         let mut slots = [None; SLOTS];
-        slots[8] = Some([67.2, -45.09, 63.58]);
+        slots[8] = Some(Slot {
+            origin: [67.2, -45.09, 63.58],
+            axis: [0.0, 0.0, 2.0],
+        });
         let e = emitters(&city, &slots);
         assert_eq!(e.iter().map(|e| e.slot).collect::<Vec<_>>(), [11, 10, 9, 8]);
         // A slot no node names stands on the building's own point.
         assert_eq!(e[0].pos, [3168.0, 30816.0, 536.0]);
+        assert_eq!(e[0].dir, [0.0, 0.0, 1.0]);
+        assert_eq!(e[3].dir, [0.0, 0.0, 1.0]);
+        assert_eq!(
+            direction(Some([1.0, 2.0, 2.0])),
+            [-2.0 / 3.0, -1.0 / 3.0, 2.0 / 3.0]
+        );
         assert!(near(e[3].pos, a));
         // Unfinished, it does not burn.
         assert!(

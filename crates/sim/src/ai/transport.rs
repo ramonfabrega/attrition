@@ -1374,6 +1374,8 @@ impl Sim {
                 let who = self.units[boat].owner as usize;
                 let slot = self.units[boat].caravan.take();
                 self.units[r].caravan = slot;
+                // `:245`–`:251`: the `0x200` bit follows (item 4234).
+                self.units[r].trade_unloaded = self.units[boat].trade_unloaded;
                 if let Some(van) = slot.and_then(|v| self.economy.caravans[who].slots.get_mut(v)) {
                     van.unit = Some(r);
                 }

@@ -2899,7 +2899,7 @@ camera and at (1013, 380) on run1570's. Unturned, slots 9 and 11 still lie
 inside the tile, because they stand near the quarter turn's diagonal
 (52 and 183 units off).
 
-**The stand-ins, not the particles.** The client draws, through the sprite
+**The stand-ins, not the particles** (replaced by §3.25's particles). The client drew, through the sprite
 pass, `BuildingFX.tga`'s fire cell at each slot and its smoke cell tinted
 (40, 40, 30) above it, sized by eye on run1559b's photograph. By eye, three
 of the photograph's four flames stand on them; slot 11's lies behind the
@@ -2913,9 +2913,9 @@ piece with an `anim=` (the rest pose is assumed).
 
 **What is not established.**
 
-- The particles: emission, motion, wind, lifetime, size and the two blends.
+- ~~The particles: emission, motion, wind, lifetime, size and the two blends.
   The stand-ins are alpha-tested at half, so the smoke reads as hard dark
-  blocks (4201a).
+  blocks (4201a).~~ → §3.25: the particles replace the stand-ins.
 - An emitter outliving its level: `ensure_emitter` refreshes `end_time`
   each frame, so a repaired building's fire outlasts the repair by the
   system's own duration, and ours goes out at once.
@@ -3204,11 +3204,256 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
 - a lit floor texel above the curve's white (stage 1, about 5.26 against 4.9) clips in the copy and comes back at
   the white;
 - the surf, now worth `SANDY` +128 by composite (4225a). Its section models are read (item 4235: `render::mot`,
-  `docs/FORMATS.md`, "The surf's section models"). The shore's splines, `internal_random`'s state at load and
-  `SURFTIMING*` are not;
+  `docs/FORMATS.md`, "The surf's section models"). ~~The shore's splines, `internal_random`'s state at load and
+  `SURFTIMING*` are not~~ read by item 4236 (§3.26): `Surf::init` is in register with the packet when fed the
+  packet's shore; the client's own shore chains and the draw are not;
 - the fish herds' blot and the whitecaps;
 - the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
 - the screen reflection and the specular.
+
+## 3.25 A burning building's particles (item 4233)
+
+*2026-11-14, Opus 5.5. `render::particle` (the system, the look, the motion, the wind, the plume, the quad);
+`client::particle` (the systems loaded, each drawn slot's plumes, the meshes); `client::gpu`'s smoke and fire
+passes and `shaders/particle.wgsl`. They replace §3.20's stand-ins. Scored on run1559b's and run1570's photographs.
+Item 4237 (Opus 5.5): the particles taken through `TL_FAKE_LIGHT` and blended in HDR, `client::gpu`'s plume pass
+and `shaders/shade.wgsl`'s `fs_plume`. Item 4240 (Opus 5.5): the emission, `render::fire::direction` and
+`render::particle`'s `Random`, `seed` and `start`.*
+
+**The row** (committed before any draw, `814500f5d`). A pixel's class is its luma in hundredths of the luma of our
+still with the fires off, the scene without its smoke: clear at 85 and over, haze from 35, dense under, and clear
+wherever the scene is black. The window is each packet anchor's pixel, 64 left and right, 192 up and 16 down, and
+the row is taken over their union. Theirs is every pixel of the photograph that is not clear. A pixel agrees when
+ours is of its class; ours past is a pixel ours darkens where the photograph is clear. A blended plume is haze over a
+dense core; an alpha-tested sprite is dense or clear. `RUN1559B_3279_PLUME` and `RUN1570_PLUME` (`client::fire`)
+each pin four columns: as drawn, fires off (0), the photograph taken for ours (the whole), and the packet's own
+particles through our pass (the draw apart from the emission).
+
+| row | 4201's stand-ins | the packet's particles | drawn | in HDR (4237): the packet's, drawn |
+|---|---|---|---|---|
+| `RUN1559B_3279_PLUME` | 336 of 19,378, 185 past | 11,518, 1,702 past | 9,138, 5,617 past | 11,806, 2,042 past; **9,728**, 5,538 past |
+| `RUN1570_PLUME` | 316 of 18,871, 254 past | 11,847, 1,353 past | 9,232, 5,055 past | 12,219, 1,555 past; **9,403**, 5,075 past |
+
+**The dense column** (ours' dense pixels against the photographs' 2,415 and 2,470), in toned space and then in
+HDR: the packet's particles **468 → 1,716** and **676 → 2,099**; as drawn **120 → 487** and **182 → 770**.
+
+**The emission** (item 4240), as drawn: the node's direction, then the original's draws.
+
+| row | 4237 | the direction | the draws (pinned) | 24 phases: the hash, (0, 0, −1); the hash, the node; the draws |
+|---|---|---|---|---|
+| `RUN1559B_3279_PLUME` | 9,728, 5,538 past, dense 487 | 10,616, 3,984, 861 | **11,251**, 2,168, **876** | rows 9,871, 10,280, 10,191 (sd 399, 366, 592); dense 589, 912, 804 |
+| `RUN1570_PLUME` | 9,403, 5,075 past, dense 770 | 10,897, 2,660, 787 | **11,547**, 1,895, **942** | rows 9,776, 10,713, 11,104 (sd 494, 365, 558); dense 606, 907, 669 |
+
+The phases are counts added to every birth's (0 to 15, 17, 23, 31, 50, 97, 200, 1,000 and 5,000), the
+hash's the key's. The direction is the gain: past falls by about four deviations. The draws are not a mean
+gain on the row, and their mean dense is under the hash's. The pinned phase stands in the top quarter of the
+draws' 24.
+
+Made to fail: with haze and dense merged into one class, the stand-ins read 1,012 and 944 against the pinned 336
+and 316. That is what the split guards against.
+
+**The systems, off the packets** (`particles.py` in the item's lab directory). On both packets each burning slot
+has 18 live smoke particles and about 7 fire particles in its emitters' `particles` (`ParticleEmitter +0x4`). Each
+particle carries `pos`, `angle`, `color` and `time_left`. `GraphicPieces +0xb30` holds systems 36 and 37.
+`System::from_xml` reads `effects_graphics.xml`: the timings are game frames of 67 ms, `start_speed` is divided by
+6,700, gravity by 6,700,000, `drag_coef` by 1,000 and `uses_wind` by 255. The texture coordinates are over
+`BuildingFX.tga`'s 64 texels. The result equals both packets' `ParticleSystem`s field for field, to an ulp
+(`particle::tests::the_systems_are_the_packets`). The render states: `enables` 0x20085 (the depth tested, not
+written, the alpha test at 0) and `src_blend` 5. The smoke has `dst_blend` 6 and `colorop` 4, which `rise.pdb`'s
+`TextureOp` names `TOP_MODULATE2X`. The fire has `dst_blend` 2 (`ONE`) and `colorop` 3 (`MODULATE`).
+
+**The look** (`Particle::draw@008da6b0`). Age is `fade[2] − time_left`.
+- Under `fade[0]`, the alpha is `hold_alpha · t` and the size runs from key 0 to key 1.
+- Until `fade[1]`, the alpha holds and the size runs from key 1 to key 2.
+- After that, both fade to 0 and to key 3.
+- The quad's half extent is 1.5 times the size, along `xvec` and `yvec` (the render matrix's first two columns),
+  turned by the angle.
+- The colour's alpha byte is the faded alpha. The system colour packs red in the low byte: (40, 40, 30) is
+  `ff1e2828`.
+
+**The motion** (`Particle::pass_time@008db470`). In each step of `dt` ms the acceleration is `gravity + wind ·
+wind_use`, the wind only from `min_wind_height` over the ground (`find_data_z`). The position moves by `(v +
+a·dt/2)·drag·dt` and the velocity becomes `(v + a·dt)·drag`. On run1559b, slot 9's particles in our plume stand
+within the noise of the packet's age for age: the oldest are about (+500, +540, +1,120) from the anchor on both
+sides.
+
+**The wind** (`Scene::render@008b3270`, its listing at `0x008b33ca` to `0x008b350c`). It is `(4, 4, 3)/67000`,
+turned by `Transform::rotate_z` through `⌊22.5·(sin(t/0.8) + cos(t/1.2))⌋` degrees clamped to ±45. Here `t =
+(frame + graphic_dt·3/200)·π/180` and 0.8 and 1.2 are the scene's `wind_scalar`. On run1570's packet the turn is
+the stored −14 and the vector matches to 2e-7 (`particle::tests::the_wind_on_run1570_s_frame`). On run1559b's the
+stored turn is −4 where the formula gives −7 at the packet's frame and `graphic_dt`. The turn swings through tens
+of degrees within one smoke life, so the plume steps each particle under its own frame's wind. Taking the current
+wind for the whole life read run1570 at 5,772.
+
+**The start** (`Particle::init@008db7c0`, `emit_build_particles@00909590`; item 4240).
+- **The direction.** `desc.vel` is `get_position`'s second vector: the slot's `AttachPos::vel`, which
+  `verify_load` has `init_position@00901820` record with axis 3, the third row of the node's placed matrix,
+  normalised. `get_position` turns it as it turns the place, `(−y, −x, z)`, and does not scale it; a slot no node
+  names records (0, 0, 1) (`render::fire::direction`). On both packets the four slots' vectors are ours to 2e-7
+  (slot 8: (0.3066, 0.8202, −0.4830); `fire::tests`' anchor tests).
+- **The seed** (the listing at `0x008db840` to `0x008db88e`, SSE single precision). With `S` the anchor's `(y + x)
+  + z` and `k = random · counter · 47`, `r`'s seed is `cvttss2si(frame · S · k + S) + k`. `emit_build_particles`
+  sets `random` 1, `counter` is the emitter's births since its `init`, and past `i32` the conversion gives
+  `0x80000000`. On any frame past the first few, then, the `counter`th birth's seed is `0x80000000 + 47 ·
+  counter`, the same for all four slots.
+- **The draws** (`Random::get@00a39d70`): the seed steps `· 0x19660d + 0x3c6ef35f` and a draw in `lo..hi` is `lo +
+  ((seed & 0xffff) · (hi − lo) >> 16)`, never `hi`. The velocity is `desc.vel · start_speed` plus three draws of
+  `0..2n` less `n`, over 340, with `n = ⌊|v|·vel_noise⌋` (1 for the smoke, 8 for the fire). The point is the
+  anchor plus three draws of `0..2·pos_noise` less `pos_noise`. Successive counts' draws step by a near-constant
+  amount (slot 8's z: 9, 6, 3, 0, −3, …), so a life's starts sweep rather than scatter. Diffed:
+  `particle::tests::the_starts_are_the_packets` gives each packet particle its count (the emitter's `counter`, `+0x50`,
+  less its rank, newest first) and moves our start for its age. It stands on the packet's z within half a unit for
+  141 of 144 smoke particles; the count shifted by one lands none. The three are slot 10's oldest on run1559b,
+  which the ground (`find_data_z`) kept out of the wind for about a second. z is the axis the capture's cadence
+  cannot move, since the wind turns about z only.
+- **The angle** is `internal_random`'s `0..360`, turning at `(0..rotation − rotation/2)/67` a millisecond. That
+  generator is shared with the map, wakes and ammo (item 4236), so ours draws the angle from a hash.
+- **The births** (`ParticleEmitter::prep@008dc520`, `back_calc@008dc5f0`): while the emitter is in view, each
+  render births at `left_over + max(last_view_time, now − life)` and on every `freq` to `now`. The overshoot past
+  `now` is carried in `left_over`; out of view, the particles are cleared and `last_view_time` returns to the
+  start. The packets' smoke births are runs of exactly 400 broken by short gaps (58, 363, 315, 90, 379): 18 live
+  where `freq` gives 15 or 16, and `counter` 156 and 165, the fire's 239 and 253. A `prep` once a game frame from
+  the emitters' start (`+0x48`, frame 2483) gives 148 and 250, whatever the calls a frame. The schedule is the
+  capture's render cadence and view, not the game's, so ours births on every multiple of `freq` with the count
+  `born / freq`.
+
+**The pass.** Particles are drawn after the figures, as draws 216–229 are, sorted far to near. The smoke uses
+`SRCALPHA`/`INVSRCALPHA` with `min(2·texel·colour, 1)`. The fire uses `SRCALPHA`/`ONE` with `texel·colour`. Both
+depth-test `LessEqual` and write no depth, under the trees' linear, clamped sampler.
+
+**The fake light, and the blend in HDR** (item 4237). `rise.pdb`'s `RenderEnables` names bit 0x20000
+`TL_FAKE_LIGHT`; 0x20085 is `ZENABLE | ALPHAENABLE | ALPHATESTENABLE | TL_FAKE_LIGHT`. On run1567's card trace,
+both passes, `D3D11GLSys` compiles the shader option `TL_FAKE_LIGHT` into a draw exactly when its `enables` carry
+the bit: 55 draws with it, 366 without, none apart. The surf, the city radius and the fish's churn are among the 55.
+The card holds no particle draw, so the systems' own states are read off the packets (`states.py`, `ParticleSystem
++0xbc`). On both, the fire is 0x20085 with `dst_blend` 2 and the smoke 0x20085 with 6
+(`particle::tests::the_particles_take_the_fake_light`). The install's `ps_global.hlsl` takes such a draw's
+saturated stage colour to `pow(c, 1.9) · 5` and writes it to the HDR target, where the blend runs; the tone map
+follows (§3.14, §3.21). The smoke's (50, 50, 38) is light (0.23, 0.23, 0.14) there, and it tones to about (25, 25,
+15) at run1559b's white: under the photograph's (47, 42, 22) blue. The LDR blend could not reach that colour, since
+its core converged on (50, 50, 38).
+
+The client draws each particle into the plume target, `Rgba16Float`, cleared to no light and the whole frame left,
+under the frame's depth. The light blends as the original's target does, and the alpha keeps what is left of the
+frame: `τ · (1 − a)` under the smoke and `τ` under the fire. `fs_plume` then composes `T(T⁻¹(g) · τ + L)` per
+channel onto a copy of the frame, as the shade and water passes do: the same as each draw blended in turn in HDR.
+**The value diff** (run1559b, pixel (1123, 433), the packet's particles): the photograph (24, 24, 13), the scene
+(74, 66, 41), our LDR pass (34, 33, 25), in HDR (18, 17, 10). The photograph's dense pixels average (43.9, 37.6,
+21.0); the packet's through our pass, (72.5, 70.0, 51.5) → (67.4, 63.2, 42.4). On run1570, (41.8, 37.3, 20.8)
+against (65.0, 63.2, 44.9) → (58.2, 55.0, 34.3).
+
+*Coverage.* Diff-backed: the systems against the packets, the wind on run1570, and the motion on slot 9. Also the
+direction on all four slots and each smoke particle's start for its count on z (item 4240), the
+`TL_FAKE_LIGHT` bit against the card's option on 421 draws, and both systems' states off the packets. On a reading:
+the fake-light branch's arithmetic (the install's `ps_global.hlsl`). On the photographs alone: the rows. *Not
+established:*
+- ~~the emission's random draws: the original seeds each particle from its birth frame and `internal_random`, and
+  ours from a hash, so the plume is the original's in size, speed, spread and fade, not particle for particle;
+  another seed moves the row by about 1,000 (4233c);~~ answered above, "The start": a birth's start is the
+  original's for its count; its count and its angle are not (4240a);
+- ~~the dense core: even the packet's particles through our pass read dense 468 and 676 against the photographs'
+  2,415 and 2,470. The smoke's own colour under `MODULATE2X` is about (50, 50, 38), and the photograph's densest
+  pixels are (47, 42, 22) (4233a);~~ answered above, "The fake light, and the blend in HDR": the packet's dense
+  1,716 and 2,099;
+- what is left of the dense core: the packet's particles reach 71 % and 85 % of the photographs' dense, and ours
+  drawn 876 and 942 at the pinned phase (804 and 669 over 24). The rest is the births, 18 live where ours are 15 or
+  16 and their counts the capture's (4240a), and the x and y of the motion under the capture's cadence. By eye,
+  the photographs' tower plume stands darker and taller than even the packet's particles through our pass (4240b);
+  `gTLAlpha` is taken at 1, as the surf's is on the card (§3.18); no particle draw is on a card trace;
+- the fire's look through the fake light in HDR: it glows hotter than it did, and no row scores it (4233d);
+- ~~`desc.vel`'s direction off the model: ours is (0, 0, −1) (4233b);~~ answered above, "The start": the node's
+  third axis, turned, on all four slots to 2e-7;
+- an emitter's start: ours has burned for a whole life, the original's from when its level was reached (4201b
+  stands);
+- the run1559b wind's three degrees and `graphic_dt` taken at 0. The packet's particles have aged about 940 ms
+  less than the game's clock: run1559b's newest smoke birth, at 219,616, is 144 ms old on the packet, frame 3280's
+  clock, where `end_time` says frame 3293 (4240a).
+
+## 3.26 The surf, laid (item 4236)
+
+**The class, against the packet.** `rondata::artdata::surf_class` reads what `Surf::init_class@0089f050`
+keeps of `<SURF>`: `wavetime` 250, `stalltime` 75, the 13 `<TEXTURE>`s, the 14 `SURFTIMING`s (each
+`percent` through `wcstod` to an `f32`, each `alpha`), the 13 `<WAVE>`s and the two `<SURFTYPE>`s.
+A `<WAVE>` of type `Large` is shape row 1, every other row 0. A `SurfWave` keeps its sections in one
+slot per texture, at its `tex0`'s index, so run1564's lists 0, 2, 4, 7, 8, 9, 11 are slots.
+`tools/render/surf_packet.py --sections` walks run1564's packet from `Surf::waves` `0x00c8c1b8`.
+`the_surf_s_sections_and_timings_are_the_packet_s` holds it to the reader:
+- 33 of 33 sections and 507 of 507 frames equal `Mot::section_verts` bit for bit, so the ×3 and the
+  dropped `z` rest on a value;
+- every texcoord, face, timing index and mapping agrees. `SurfWaveSection::init` turns a 0 into −1 on
+  a model whose texcoords do not move (`surf_flat_0_bigwash`, `_bigcrash`);
+- all 28 timelines agree, and both `wave_shape_index` rows: breakers 5 to 12, large waves 0 to 4.
+
+A vertex nudged by 2 ulp turns it red.
+
+**`internal_random` at load is the map's.** `Random::get@00a39d70` is an LCG (×`0x19660d`,
++`0x3c6ef35f`). Its result scales the word's low 16 bits onto `[lo, hi)`, and it does not step when
+`lo == hi`. `internal_random` (`0x00eb697c`) starts at 0 (a static the trace finds at 0 on its first draw), and no site
+reseeds it. On run1567's trace (`client::surf`, `internal_random_at_surf_init_is_the_map_s`):
+- its first draw finds it at 0, and every draw follows the last by one step;
+- 59,244 draws come before `Surf::init`'s first, in five runs:
+  - 45 `RiverDooberType::init@00887b00`;
+  - 58,081 `Terrain::init@00850f70`'s `random_map_pool`, `(4 · 60 + 1)²`;
+  - 45 `RiverDooberType::init` again;
+  - 360 `TerrainOil::add_rocky_patch@008a2b30`;
+  - 713 `RiverSectionOut::create_doobers@0088a4f0`.
+
+Nothing in the menu or the lobby draws it. After setup it is drawn by `Surf::inc_time@008a1a00`, the
+river wakes, the ocean floor's clock, `Particle::init@008db7c0` and the ammo.
+
+**`Surf::init@008a0cf0`, ported** (`client::surf`). The walk:
+- Each chain of `TerrainOut::sorted_waterline_tcoords` holding at least 16 tcoords gives a control
+  point at every fourth, `(t mod 4W, t div 4W) · 192`. The `Spline` through them is clamped uniform,
+  degree 4 at depth 1000.
+- Its normals cross `(1, 1, √3)` with each segment, normalized, and are averaged with the last.
+- One draw, `r`, is taken on `[−75, 250)` for the chain.
+- The large waves come in pairs, every half `dist_along_shore` (400 · 0.5), at
+  `pos + normal · 320` (`Spline::next_at_dist@00912b70`, end 0.1). A pair is kept unless the tile's
+  `TData` carries `RIVER` (0x800). The pair's second is a further half step on, phased
+  `(325 / 2 + r) mod 325 − 75`. It is laid even past the end, where the walk leaves the position as
+  it was.
+- The breakers each take two draws: a distance on `[500, 1000)` and a phase on `[−75, 250)`. Each sits
+  at `pos + normal · 700` on an ocean tile (`TData & 0x30 == 0x20`).
+- `Surf::add_wave@0089d5a0` (read off the listing; the decompiler lost its floats):
+  - the angle is `find_angle@0092d130` of the normal times 1000, read through
+    `fast_angle_to_degrees@00a28f70`;
+  - the axes are `fast_angle_to_cosine@00a28a70` and `_sine` of the angle plus 180° and plus 270°;
+  - the type is a draw on the shape's row;
+  - the time is `((x + y) / 24 + base) mod 325 − 75`.
+
+  The fast readers are 256-entry tables on the angle's top byte, of whole degrees
+  (`angle_to_degrees@00a28e00`).
+
+**In register with run1564's packet, fed the packet's shore** (`surf_init_lays_the_packet_s_waves`;
+`surf_packet.py --init`):
+
+| field of 1,205 waves and breakers | agree |
+|---|---|
+| tile `wx`, `wy` | 1,205 |
+| shape | 1,205 |
+| time, stepped 3,294 frames through `inc_time` | **1,205** |
+| axes, to 1e-6 | 1,204 |
+| place, within 0.05 units | 1,193 (worst 0.16) |
+
+Record 240's normal falls on a table step: 211° against 210°. `Surf::init` takes 1,721 draws (6
+chains, 1,205 shapes, 255 · 2 breaker draws), so the generator leaves at 60,965, the trace's setup
+total.
+
+**The shape at a frame is the session's.** `Surf::inc_time` redraws a wave's type each time its clock
+wraps (every 325 frames). Its draws interleave with the particles', the wakes' and the ammo's. Replayed
+from run1567's own `inc_time` draws, the types agree with run1564's packet on 224 of 1,205, which is
+chance. The reset frames agree on all 3,294 frames. So the phase is reachable from the client's own
+load, and the type at frame 3294 is not (4236a). All five large waves share their textures and
+timings, as do all eight breakers. A type changes only the `.mot`'s shape.
+
+*Coverage.* Diff-backed: the sections, the timelines, the class's data, the generator's census and
+`Surf::init`'s output on the packet's shore. On one packet: the place's tolerance. *Not established:*
+- the client's own shore: `TerrainOut::sort_waterline_wcoords@00872f30`,
+  `connect_waterline_regions@00867890` and `tcoord_is_surfline@00867470` over `WorldData`'s 0x1c-byte
+  records (4236b). The flags are the sim's `TData` mask;
+- the draws before `Surf::init` on another map: the 360 and 713 are rejection sampling, value by value
+  (4236c);
+- the type at a frame (4236a), the draw (`SurfWaveSection::draw@0089e360`), and its row on the still.
 
 ## 4. The stack
 

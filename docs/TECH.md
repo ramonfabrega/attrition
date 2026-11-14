@@ -753,6 +753,15 @@ the turn would have taken.
 completes on frame *n* lands its snap **after** that frame's own step: the
 step is taken along the old facing and the next one starts from the heading.
 
+**The `last` words were left out until item 4238** (`docs/CHECKSUM.md` §24.3):
+`Sim::age_snap_units` took the facing and the bodies and wrote no figure's
+`last`, because nothing in the simulation reads it; the checksum's units and
+guys lines walk it. Since then every figure's `last` is its point after the
+seating and the unit's heading, so a unit walking on the age's tick ends it
+with `last` on its point rather than one step behind (run1591, frame 6537,
+diff-backed by `MINTED_PACKETS`). An aircraft's figure 0 keeps
+`airframe.last_z`: the air arm's climb is not ported here.
+
 ### The piece moves with the age (item 1281, 2026-09-30)
 
 `Unit::update_gpiece@005e2920` runs `Guy::update_gpiece@005d8530` on every

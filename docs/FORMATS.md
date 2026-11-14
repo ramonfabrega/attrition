@@ -1158,13 +1158,18 @@ id 0  file          num_chunks = 1 + frames   (the .BH3's chunk container)
 **Checked by a run over the install**, on every gate that has `RON_INSTALL`:
 every structural claim above (`every_surf_section_model_the_install_ships_decodes`,
 and the survey's "the install's surf section models decode whole", 31 of 31).
-**Reading alone**: the field names, the ×3 and the dropped `z` (the listing
-and the PE's bytes, not a packet); the string `SurfWaveSection::init` appends
+**Diffed against run1564's packet** (item 4236, `docs/RENDERER.md` §3.26;
+`the_surf_s_sections_and_timings_are_the_packet_s`): ~~the ×3 and the
+dropped `z` rest on a reading alone~~ every section's every frame equals
+`Mot::section_verts` bit for bit (33 sections, 507 frames), with its
+texcoords, faces, timing index and mapping, a 0 kept as −1 on a static model.
+**Reading alone**: the field names; the string `SurfWaveSection::init` appends
 to `model=` is taken to be `.mot` from the files on disk, not read from the
-string table. **Not established**: how `Surf::init_class@0089f050` walks
-`<SURF>` (read here by tag name); what the draw computes for tex0 when
-`world_tex_coords` is 0 or positive; how `SURFTIMING*` maps a wave's clock to
-a frame pair, and the vertex alpha.
+string table. **Not established**: ~~how `Surf::init_class@0089f050` walks
+`<SURF>` (read here by tag name)~~ the class's data is diffed whole
+(`rondata::artdata::surf_class`, item 4236); what the draw computes for tex0
+when `world_tex_coords` is 0 or positive; how `SURFTIMING*` maps a wave's
+clock to a frame pair, and the vertex alpha.
 
 ## Open questions
 

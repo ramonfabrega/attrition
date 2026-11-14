@@ -68,6 +68,15 @@ pub struct Unit {
     /// special's and a hold doober's slot, kept beside it as
     /// [`Unit::hero`], [`Unit::special`] and [`Unit::doober`].
     pub caravan: Option<usize>,
+    /// `UnitData::unit_masks & 0x200` (`+0x68`): **the caravan has
+    /// unloaded on its route**. `Unit::do_trade@005ed270:470` sets it on the
+    /// arrival that turns `loaded` from 1 to 0, ahead of the decoy test;
+    /// `Unit::add_trade_order@005e4dc0:29` and `end_trade_route@005e3bd0:18`
+    /// clear it; `eject_contents@0064cd20:245` and `cast_transport@00670db0:125`
+    /// copy it to the unit that takes the caravan's slot. Read only by the
+    /// checksum and the interface's `draw_unit_text` (item 4234,
+    /// `docs/CARAVAN.md` §7).
+    pub trade_unloaded: bool,
     /// `UnitData +0x86` for a **hero** (`unit_flags2 & 0x20`): its slot in
     /// the owner's heroes list, `Heroes::init_hero@0073a330`'s, taken at
     /// birth and given back at `Unit::close` (`docs/SCOUT.md` §16).
@@ -929,6 +938,7 @@ impl Unit {
             on_map: true,
             supply_slot: None,
             caravan: None,
+            trade_unloaded: false,
             hero: None,
             special: None,
             doober: None,

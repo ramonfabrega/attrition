@@ -1082,11 +1082,12 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4223: run1564 **1,396 → 1,437**, the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]) (`ROCK` 21 → 25, `SANDY` 397 → 400, `OCEAN` 299 → 333); then **1,437 → 1,710**, the coral layer drawn (`SANDY` 400 → 649, `OCEAN` 333 → 357); run1559b unchanged.
 /// Item 4227: run1564 **1,710 → 1,705** (`SANDY` 649 → 650, `OCEAN` 357 → 351), the floor's clamped second layer at its offset (§3.12): the lake's hue in, six of its tiles a shade bright; run1559b unchanged.
 /// Item 4232: run1564 **1,705 → 1,805** (`SANDY` 650 → 681, `OCEAN` **351 → 420**), the floor lit per pixel and the water blended over it in HDR (`shaders/water.wgsl`, §3.24); run1559b unchanged.
+/// Item 4233: run1559b **1,036 → 1,038** (plain 954 → 956): the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21); run1564 unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1036, 1109),
+        (1038, 1109),
         [
-            [954, 986],
+            [956, 986],
             [66, 106],
             [16, 17],
             [0, 0],

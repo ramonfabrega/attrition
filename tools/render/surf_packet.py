@@ -2,6 +2,8 @@
 """surf_packet.py — the surf as a packet holds it (item 4225).
 
     python3 tools/render/surf_packet.py <frame-snapshot.bin> <install> > <run>-surf.txt
+    python3 tools/render/surf_packet.py --sections <frame-snapshot.bin> > <run>-sections.txt
+    python3 tools/render/surf_packet.py --init <frame-snapshot.bin> > <run>-surf-init.txt
 
 `docs/RENDERER.md` §3.18, "The surf, off the packet". No function is called:
 this reads the meshes `Surf::draw@0089d6f0` left in the image's statics at
@@ -27,6 +29,26 @@ One header line `surf …`; then per non-empty list `list k texture mask rs
 verts triangles`, its vertices `v x y z u0 v0 u1 v1 alpha` (floats as
 decimals; the colour's rgb is asserted white) and its faces `f a b c`.
 Nothing it prints enters the repository.
+
+`--sections` (item 4236, `docs/RENDERER.md` §3.26): the class's own state,
+walked from `Surf::waves` `0x00c8c1b8` (`PtrArray<SurfWave>`, a
+`SurfWave` one `PtrArray<SurfWaveSection>` with one slot per texture)
+to each `SurfWaveSection` (0x5c): `section w k frames texframes faces
+timing world_tex`, then `fv f x,y …` per `switch_node_verts` frame, `ft f
+u,v …` per `switch_node_texs0` frame and `faces …`; then
+`Surf::percent_timeline` `0x00c8c228` and `alpha_timeline` `0x00c8c244`
+as `percent t …`, `alpha t …`, and `Surf::wave_shape_index` `0x00ebf7c4`
+(two inline `SimpleArray<int>`) as `shape s [..]`.
+
+`--init` (item 4236): what `Surf::init@008a0cf0` reads and writes. The
+header `surf frame F width W wcoords X Y river_deltas D location_offset
+L` (`World` at `*0x00c061d0`: +0 `xs`, +0x18 `tile_xs`, +0x1c `tile_ys`;
+`surf` +0xfc; `0x00c062ac`); `chain c t …` per
+`TerrainOut::sorted_waterline_tcoords` (`*0x00c06218` +0x47c4 count,
++0x47d0 data, 0x1c an element); `flags y <hex>` per row of
+`WorldData::tdata` (+0x138, a little-endian `u16` per tile); and `wave
+…`/`breaker …` per `WaveStruct`: `wx wy x y x_axis_x x_axis_y y_axis_x
+y_axis_y shape type time`.
 """
 
 import os
@@ -100,8 +122,75 @@ def main(path, install):
             print("f " + " ".join(str(u16(df + 2 * (3 * i + j))) for j in range(3)))
 
 
+def sections(path):
+    s = Snapshot(path)
+    u32 = lambda a: struct.unpack("<I", s.read(a, 4))[0]  # noqa: E731
+    i32 = lambda a: struct.unpack("<i", s.read(a, 4))[0]  # noqa: E731
+
+    def arr(a):
+        return i32(a + 4), u32(a + 0x10)
+
+    def pairs(ta):
+        nv, dv = arr(ta)
+        return " ".join("{!r},{!r}".format(*struct.unpack("<2f", s.read(dv + 8 * i, 8))) for i in range(nv))
+
+    nw, dw = arr(0x00C8C1B8)
+    print(f"frame {s.frame} waves {nw}")
+    for w in range(nw):
+        ns, ds = arr(u32(dw + 4 * w))
+        for k in range(ns):
+            sec = u32(ds + 4 * k)
+            if sec == 0:
+                continue
+            (nf, df), (nt, dt), (nfa, dfa) = arr(sec), arr(sec + 0x1C), arr(sec + 0x38)
+            print(f"section {w} {k} frames {nf} texframes {nt} faces {nfa} timing {i32(sec + 0x54)} "
+                  f"world_tex {i32(sec + 0x58)}")
+            for f in range(nf):
+                print("fv", f, pairs(u32(df + 4 * f)))
+            for f in range(nt):
+                print("ft", f, pairs(u32(dt + 4 * f)))
+            print("faces", " ".join(str(struct.unpack("<H", s.read(dfa + 2 * i, 2))[0]) for i in range(nfa)))
+    for name, at, fmt in (("percent", 0x00C8C228, "f"), ("alpha", 0x00C8C244, "i")):
+        n, d = arr(at)
+        for t in range(n):
+            m, dd = arr(u32(d + 4 * t))
+            print(name, t, " ".join(repr(struct.unpack("<" + fmt, s.read(dd + 4 * i, 4))[0]) for i in range(m)))
+    for sh in range(2):
+        m, dd = arr(0x00EBF7C4 + 0x1C * sh)
+        print("shape", sh, [i32(dd + 4 * i) for i in range(m)])
+
+
+def init(path):
+    s = Snapshot(path)
+    u32 = lambda a: struct.unpack("<I", s.read(a, 4))[0]  # noqa: E731
+    i32 = lambda a: struct.unpack("<i", s.read(a, 4))[0]  # noqa: E731
+    terrain, world = u32(0x00C06218), u32(0x00C061D0)
+    w18, h1c = i32(world + 0x18), i32(world + 0x1C)
+    print(f"surf frame {s.frame} width {i32(world)} wcoords {w18} {h1c} river_deltas {s.read(SURF + 0xFC, 1)[0]} "
+          f"location_offset {i32(0x00C062AC)}")
+    n, d = i32(terrain + 0x47C4), u32(terrain + 0x47D0)
+    for c in range(n):
+        m, dd = i32(d + 0x1C * c + 4), u32(d + 0x1C * c + 0x10)
+        print("chain", c, " ".join(str(i32(dd + 4 * i)) for i in range(m)))
+    raw = s.read(u32(world + 0x138), 2 * w18 * h1c)
+    for y in range(h1c):
+        print("flags", y, raw[2 * w18 * y:2 * w18 * (y + 1)].hex())
+    for name, at in (("wave", SURF + 0x40), ("breaker", SURF + 0x5C)):
+        k, dd = i32(at + 4), u32(at + 0x10)
+        for i in range(k):
+            b = dd + 0x2C * i
+            f = struct.unpack("<6f", s.read(b + 8, 24))
+            print(name, i32(b), i32(b + 4), " ".join(repr(v) for v in f), i32(b + 0x20), i32(b + 0x24),
+                  i32(b + 0x28))
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) == 3 and sys.argv[1] == "--sections":
+        sections(sys.argv[2])
+    elif len(sys.argv) == 3 and sys.argv[1] == "--init":
+        init(sys.argv[2])
+    elif len(sys.argv) == 3:
+        main(sys.argv[1], sys.argv[2])
+    else:
         print(__doc__)
         sys.exit(2)
-    main(sys.argv[1], sys.argv[2])

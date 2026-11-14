@@ -45,6 +45,7 @@ pub mod draw;
 pub mod figure;
 pub mod fire;
 pub mod mot;
+pub mod particle;
 pub mod silhouette;
 pub mod slope;
 pub mod terrain;

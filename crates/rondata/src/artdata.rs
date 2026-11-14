@@ -2526,6 +2526,140 @@ pub fn surf_waves(install: &Install) -> Result<Vec<Vec<PathBuf>>, ArtFailure> {
     Ok(waves)
 }
 
+/// **The surf's class data** (item 4236; `docs/RENDERER.md` §3.26): what
+/// `Surf::init_class@0089f050` keeps of `Data/effects_graphics.xml`'s
+/// `<SURF>`, and `Surf::init@008a0cf0` of its `<SURFTYPE>`s.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SurfClass {
+    /// `wavetime`, `Surf::wave_total_time`.
+    pub wave_time: i32,
+    /// `stalltime`, `Surf::wave_stall_time`.
+    pub stall_time: i32,
+    /// Each `<TEXTURE>`'s `name` and file, in order: `Surf::surf_texture`,
+    /// and the index a section's `tex0` and `tex1` name.
+    pub textures: Vec<(String, PathBuf)>,
+    /// Each `<SURFTIMING>`, in order: `Surf::percent_timeline` (each
+    /// `percent` through `wcstod`, kept as an `f32`) and
+    /// `Surf::alpha_timeline` (each `alpha`).
+    pub timings: Vec<(Vec<f32>, Vec<i32>)>,
+    /// Each `<WAVE>`, in order: `Surf::waves`.
+    pub waves: Vec<SurfWaveDef>,
+    /// Each `<SURFTYPE>`'s `dist_from_shore` and `dist_along_shore`, in
+    /// order (`Breaker`, then `Wave`): `Surf::wave_dist_from_spline` and
+    /// `wave_dist_along_shore` before `Surf::init` floors the second at
+    /// 192.
+    pub types: Vec<(f32, f32)>,
+}
+
+/// One `<WAVE>`: its shape (`Surf::wave_shape_index`'s row: 1 for
+/// `Large`, 0 otherwise) and its sections.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SurfWaveDef {
+    pub shape: usize,
+    pub sections: Vec<SurfSectionDef>,
+}
+
+/// One `<WAVESECTION>`. The wave keeps it at the slot of its `tex0`
+/// (`SurfWave::sections`, one slot per texture; run1564's packet).
+#[derive(Clone, Debug, PartialEq)]
+pub struct SurfSectionDef {
+    /// The `.mot` file, `model=` with `.mot` appended.
+    pub model: PathBuf,
+    pub tex0: usize,
+    pub tex1: usize,
+    pub renderstate: String,
+    /// `world_coord_mapping`; `SurfWaveSection::init` turns a 0 into −1
+    /// when the model's texcoords are equal across its frames.
+    pub mapping: i32,
+    /// The `<SURFTIMING>` its `timing` names.
+    pub timing: usize,
+}
+
+/// [`SurfClass`], read.
+pub fn surf_class(install: &Install) -> Result<SurfClass, ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let path = install.data("effects_graphics.xml");
+    let text = crate::read(&path).map_err(|_| unnamed("effects_graphics.xml"))?;
+    let doc = crate::parse(&path, &text).map_err(|_| unnamed("effects_graphics.xml"))?;
+    let surf = doc
+        .descendants()
+        .find(|n| n.has_tag_name("SURF"))
+        .ok_or_else(|| unnamed("SURF"))?;
+    fn attr<'a>(n: roxmltree::Node<'a, '_>, a: &str) -> Result<&'a str, ArtFailure> {
+        n.attribute(a)
+            .map(str::trim)
+            .ok_or_else(|| ArtFailure::Unnamed(format!("{}/{a}", n.tag_name().name())))
+    }
+    let int = |n: roxmltree::Node, a: &str| -> Result<i32, ArtFailure> {
+        attr(n, a)?
+            .parse()
+            .map_err(|_| unnamed(&format!("{}/{a}", n.tag_name().name())))
+    };
+    let real = |n: roxmltree::Node, a: &str| -> Result<f32, ArtFailure> {
+        attr(n, a)?
+            .parse::<f64>()
+            .map(|v| v as f32)
+            .map_err(|_| unnamed(&format!("{}/{a}", n.tag_name().name())))
+    };
+    let kids = |tag: &'static str| surf.children().filter(move |n| n.has_tag_name(tag));
+    let mut textures = Vec::new();
+    for t in kids("TEXTURE") {
+        let file = attr(t, "file")?;
+        let p = resolve(install.root(), file).ok_or_else(|| unnamed(file))?;
+        textures.push((attr(t, "name")?.to_string(), p));
+    }
+    let mut timings = Vec::new();
+    let mut timing_names = Vec::new();
+    for t in kids("SURFTIMING") {
+        timing_names.push(attr(t, "name")?.to_string());
+        let (mut pct, mut alpha) = (Vec::new(), Vec::new());
+        for k in t.children().filter(|n| n.has_tag_name("TIME")) {
+            pct.push(real(k, "percent")?);
+            alpha.push(int(k, "alpha")?);
+        }
+        timings.push((pct, alpha));
+    }
+    let texture = |name: &str| {
+        textures
+            .iter()
+            .position(|t| t.0 == name)
+            .ok_or_else(|| unnamed(name))
+    };
+    let mut waves = Vec::new();
+    for w in kids("WAVE") {
+        let mut sections = Vec::new();
+        for s in w.children().filter(|n| n.has_tag_name("WAVESECTION")) {
+            let rel = format!("{}.mot", attr(s, "model")?);
+            let timing = attr(s, "timing")?;
+            sections.push(SurfSectionDef {
+                model: resolve(install.root(), &rel).ok_or_else(|| unnamed(&rel))?,
+                tex0: texture(attr(s, "tex0")?)?,
+                tex1: texture(attr(s, "tex1")?)?,
+                renderstate: attr(s, "renderstate")?.to_string(),
+                mapping: int(s, "world_coord_mapping")?,
+                timing: timing_names
+                    .iter()
+                    .position(|n| n == timing)
+                    .ok_or_else(|| unnamed(timing))?,
+            });
+        }
+        let shape = usize::from(w.attribute("type") == Some("Large"));
+        waves.push(SurfWaveDef { shape, sections });
+    }
+    let mut types = Vec::new();
+    for t in kids("SURFTYPE") {
+        types.push((real(t, "dist_from_shore")?, real(t, "dist_along_shore")?));
+    }
+    Ok(SurfClass {
+        wave_time: int(surf, "wavetime")?,
+        stall_time: int(surf, "stalltime")?,
+        textures,
+        timings,
+        waves,
+        types,
+    })
+}
+
 /// **The tileset's light** (item 4217; `docs/RENDERER.md` §3.22): the
 /// `<LIGHTING>` element's `<AMBIENT>` and `<DIFFUSE>` under `tileset`,
 /// each `<COLOR name>`'s `red`, `green`, `blue` and `alpha` as written.
@@ -2943,6 +3077,144 @@ mod tests {
             (0..5)
                 .map(|i| format!("surf_flat_{i}_bigwave.mot"))
                 .collect::<Vec<_>>()
+        );
+    }
+
+    /// **The surf's sections and timings are the packet's** (item 4236;
+    /// `docs/RENDERER.md` §3.26): run1564's packet at frame 3294, walked
+    /// from `Surf::waves` (`0x00c8c1b8`) through each `SurfWave`'s
+    /// `sections` to each `SurfWaveSection`'s `switch_node_verts`,
+    /// `switch_node_texs0`, `switch_node_face`, `timing_index` and
+    /// `world_tex_coords`, and `Surf::percent_timeline`,
+    /// `Surf::alpha_timeline` and `Surf::wave_shape_index`. Against
+    /// [`surf_class`] and [`render::mot`]: every section at its `tex0`'s
+    /// slot, every frame's vertices `Mot::section_verts` bit for bit (the
+    /// ×3 and the dropped z on a value), every texcoord and face, the
+    /// timing's index, the mapping (a 0 on a static model kept as −1),
+    /// both timelines and the two shape rows.
+    #[test]
+    fn the_surf_s_sections_and_timings_are_the_packet_s() {
+        let Some(inst) = crate::testenv::install() else {
+            println!("skipping: no install");
+            return;
+        };
+        let home = PathBuf::from(std::env::var_os("HOME").unwrap_or_default());
+        let path = std::env::var_os("RON_SURF_SECTIONS_1564")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                home.join("ron-data/lab-experiments/2026-11-14-item-4236/run1564-sections.txt")
+            });
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no surf section dump at {}", path.display());
+            return;
+        };
+        let class = surf_class(&inst).unwrap();
+        assert_eq!((class.wave_time, class.stall_time), (250, 75));
+        assert_eq!(class.textures.len(), 13);
+        assert_eq!(class.types, [(700.0, 1000.0), (320.0, 400.0)]);
+        let pair = |s: &str| -> [f32; 2] {
+            let (a, b) = s.split_once(',').unwrap();
+            [a.parse().unwrap(), b.parse().unwrap()]
+        };
+        let bits =
+            |v: &[[f32; 2]]| -> Vec<[u32; 2]> { v.iter().map(|p| p.map(f32::to_bits)).collect() };
+        let (mut sections, mut frames, mut timelines) = (0, 0, 0);
+        let mut shapes = vec![];
+        let mut cur: Option<(&SurfSectionDef, render::mot::Mot)> = None;
+        for line in text.lines() {
+            let f: Vec<&str> = line.split_whitespace().collect();
+            match f[0] {
+                "section" => {
+                    let (w, k): (usize, usize) = (f[1].parse().unwrap(), f[2].parse().unwrap());
+                    let n = |i: usize| f[i].parse::<i32>().unwrap();
+                    let def = class.waves[w]
+                        .sections
+                        .iter()
+                        .find(|s| s.tex0 == k)
+                        .unwrap_or_else(|| panic!("wave {w}: no section at slot {k}"));
+                    let mot = render::mot::decode(&std::fs::read(&def.model).unwrap()).unwrap();
+                    let mapping = if def.mapping == 0 && mot.texcoords_static() {
+                        -1
+                    } else {
+                        def.mapping
+                    };
+                    assert_eq!(
+                        [n(4), n(6), n(8), n(10), n(12)],
+                        [
+                            mot.frames.len() as i32,
+                            mot.frames.len() as i32,
+                            mot.faces.len() as i32,
+                            def.timing as i32,
+                            mapping
+                        ],
+                        "wave {w} slot {k}: frames, texframes, faces, timing, mapping"
+                    );
+                    sections += 1;
+                    cur = Some((def, mot));
+                }
+                "fv" | "ft" => {
+                    let (def, mot) = cur.as_ref().unwrap();
+                    let i: usize = f[1].parse().unwrap();
+                    let got: Vec<[f32; 2]> = f[2..].iter().map(|s| pair(s)).collect();
+                    let want = if f[0] == "fv" {
+                        frames += 1;
+                        mot.section_verts(i)
+                    } else {
+                        mot.frames[i].texs.clone()
+                    };
+                    assert_eq!(
+                        bits(&got),
+                        bits(&want),
+                        "{} {line:.60}",
+                        def.model.display()
+                    );
+                }
+                "faces" => {
+                    let (def, mot) = cur.as_ref().unwrap();
+                    let got: Vec<u16> = f[1..].iter().map(|s| s.parse().unwrap()).collect();
+                    assert_eq!(got, mot.faces, "{}", def.model.display());
+                }
+                "percent" | "alpha" => {
+                    let t: usize = f[1].parse().unwrap();
+                    if f[0] == "percent" {
+                        let got: Vec<u32> = f[2..]
+                            .iter()
+                            .map(|s| s.parse::<f32>().unwrap().to_bits())
+                            .collect();
+                        let want: Vec<u32> =
+                            class.timings[t].0.iter().map(|v| v.to_bits()).collect();
+                        assert_eq!(got, want, "SURFTIMING{t}'s percents");
+                    } else {
+                        let got: Vec<i32> = f[2..].iter().map(|s| s.parse().unwrap()).collect();
+                        assert_eq!(got, class.timings[t].1, "SURFTIMING{t}'s alphas");
+                    }
+                    timelines += 1;
+                }
+                "shape" => {
+                    let s: usize = f[1].parse().unwrap();
+                    let got: Vec<usize> = line
+                        .split_once('[')
+                        .unwrap()
+                        .1
+                        .trim_end_matches(']')
+                        .split(',')
+                        .map(|v| v.trim().parse().unwrap())
+                        .collect();
+                    let want: Vec<usize> = (0..class.waves.len())
+                        .filter(|&w| class.waves[w].shape == s)
+                        .collect();
+                    assert_eq!(got, want, "wave_shape_index[{s}]");
+                    shapes.push(s);
+                }
+                _ => {}
+            }
+        }
+        let named: usize = class.waves.iter().map(|w| w.sections.len()).sum();
+        // The two `bigfoam` sections of a large wave share a model and
+        // differ in `tex0`, so each lands at its own slot.
+        assert_eq!(
+            (sections, named, frames, timelines, shapes),
+            (33, 33, 507, 28, vec![0, 1])
         );
     }
 

@@ -251,3 +251,72 @@ fn a_path_stack_walks_the_size_it_grew_to() {
         "a scratch installed and taken back leaves it"
     );
 }
+
+/// **A cast walks `CastOrder::walk_data@004860a0`'s three ranges** (item
+/// 4234, `docs/CHECKSUM.md` §24.3): the flags byte, `TargetOrder`'s `ox`,
+/// `whom`, `uid` (`+0x8..+0x12`) and its own `x`, `y`, `paid`, `spell`
+/// (`+0x14..+0x24`). run1590 on 3596: record 16's untargeted
+/// `UNPACK_MERCHANT`, `ff` ×10 then −1, −1, 0, 0x290.
+#[test]
+fn a_cast_walks_its_target_and_its_own_sixteen_bytes() {
+    use crate::combat::Obj;
+    use crate::orders::{Body, CastOrder, Order, spell};
+    use crate::world::Pos;
+    let after_node = |s: &crate::Sim, u: usize| -> Vec<(&'static str, Vec<u8>)> {
+        let record = s.units[u].index;
+        let ranges = s.checksum_units().ranges;
+        let at = ranges
+            .iter()
+            .position(|r| r.record == record && r.field == "order.type")
+            .expect("the order's type");
+        ranges[at + 2..]
+            .iter()
+            .take_while(|r| r.field.starts_with("order."))
+            .map(|r| (r.field, r.bytes.clone()))
+            .collect()
+    };
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let u = sim.add_unit(crate::Unit::new(1, 16, Pos::new(480, 480), 10));
+    let v = sim.add_unit(crate::Unit::new(0, 3, Pos::new(960, 480), 10));
+    let cast = |target, at, paid| Order {
+        flags: 0,
+        body: Body::Cast(CastOrder {
+            spell: spell::UNPACK_MERCHANT,
+            paid,
+            target,
+            at,
+        }),
+    };
+    sim.units[u]
+        .orders
+        .push_back(cast(None, Pos::new(-1, -1), false));
+    let mut own = Vec::new();
+    for x in [-1i32, -1, 0, 0x290] {
+        own.extend_from_slice(&x.to_le_bytes());
+    }
+    assert_eq!(
+        after_node(&sim, u),
+        vec![
+            ("order.flags", vec![0]),
+            ("order.target", vec![0xff; 10]),
+            ("order.cast", own),
+        ],
+        "run1590's record 16"
+    );
+    sim.units[u].orders[0] = cast(Some(Obj::Unit(v)), Pos::new(960, 480), true);
+    let uid = sim.units[v].uid;
+    let mut target = Vec::new();
+    target.extend_from_slice(&3i32.to_le_bytes());
+    target.extend_from_slice(&0i32.to_le_bytes());
+    target.extend_from_slice(&uid.to_le_bytes());
+    let walked = after_node(&sim, u);
+    assert_eq!(
+        walked[1],
+        ("order.target", target),
+        "a unit target's index, owner, uid"
+    );
+    assert_eq!(
+        &walked[2].1[..12],
+        &[960i32, 480, 1].map(i32::to_le_bytes).concat()[..]
+    );
+}

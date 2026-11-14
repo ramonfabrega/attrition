@@ -359,9 +359,19 @@ axis independently — not a radius. Inside it:
   `caravan_flags |= 4`, `City::compute_trade` on **both** cities, and
   `City::new_caravan` on the home city naming the far one.
 
-A **decoy** (`unit_masks & 1`) turns `loaded` over and does none of the
-rest. `unit_masks & 0x200` has no reader anywhere in the export — this is
-its only mention — so it is not modelled.
+A **decoy** (`unit_masks & 1`) turns `loaded` over, takes the `0x200` bit,
+and does none of the rest: `do_trade:470` sets the bit ahead of the decoy
+test at `:471`. ~~`unit_masks & 0x200` has no reader anywhere in the export
+— this is its only mention — so it is not modelled.~~ Wrong (item 4234):
+`CheckSums::check_units` walks `unit_masks` (`+0x68`) whole, so the bit is
+on the units line; `eject_contents@0064cd20:245` and
+`cast_transport@00670db0:125` test it to copy it to the unit that takes the
+caravan's slot, and `draw_unit_text@0081c9a0:798` reads it. The other
+writers are clears: `add_trade_order@005e4dc0:29` on every trade order, and
+`end_trade_route@005e3bd0:18`. It is `Unit::trade_unloaded`, set where
+`loaded` turns 1 → 0 in `trade_legs`. **Diff-backed**: run1585 on 4030,
+record 14 (`1/14`, the caravan) `unit_masks` ours 262152, theirs 262664
+(bit 0x200) → the original's.
 
 ### 7.1 `LAB_005ee01a` — walking the route
 

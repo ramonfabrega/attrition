@@ -27,8 +27,9 @@
 //!
 //! `MARINES` is built (item 3661, `docs/AI.md` §341): the boat takes
 //! [`crate::combat::umask2::MARINES`], `update_hits` and `update_speed`.
-//! Still seams, in [`SimTransport`]: the sounds, the caravan's `0x200` bit, the selection group's
-//! swap and `replace_hotunit` — none of them is state this crate keeps.
+//! Still seams, in [`SimTransport`]: the sounds, the selection group's swap and
+//! `replace_hotunit` — none of them is state this crate keeps. The caravan's `0x200` bit is
+//! [`crate::Unit::trade_unloaded`] (item 4234).
 //! ~~The caravan's slot hand-over~~ is built (item 3370, `docs/AI.md`
 //! §286): the slot is [`crate::Unit::caravan`].
 
@@ -362,10 +363,12 @@ impl TransportView for SimTransport<'_> {
             van.unit = Some(b as usize);
         }
     }
-    fn has_200(&self, _o: i32) -> bool {
-        false
+    fn has_200(&self, o: i32) -> bool {
+        self.sim.units[o as usize].trade_unloaded
     }
-    fn set_200(&mut self, _o: i32, _on: bool) {}
+    fn set_200(&mut self, o: i32, on: bool) {
+        self.sim.units[o as usize].trade_unloaded = on;
+    }
     fn orders_left(&self, g: i32) -> i32 {
         self.sim.units[g as usize].orders.len() as i32
     }
