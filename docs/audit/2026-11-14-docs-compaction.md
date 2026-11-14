@@ -94,12 +94,13 @@ measurable; the question is his.
 | R12 | the memory index | 7,324 | hooks to one line; one stale pointer | ~2,500 | outside git |
 | R13 | `tools/brief/frame.md`, "booked", "lanes", "landing": a word's clauses in every live kind's brief | 3,280 | `booked` to the kinds with a booking; split "landing" | ~1,200 a lane brief | the pass (its file); S26, S27 |
 | S1 | DECISIONS, "Index" | 15,985 of 16,000 | split at entry 100; retitle; reorder; fix 121's row | 0 (frees ~8,000) | none |
-| S2–S28 | twenty-seven syncs, Part 2 | | | | |
+| S2–S29 | twenty-eight syncs, Part 2 | | | | |
 | G1 | the eight sections pinned in `OVER`, and 45 of the 77 at 15,000 B or more | 284,070; 831,211 | promote their numbered `###` parts to `##` (run dry: 28 of 29 guards green, the red is the `OVER` rows) | 0 (largest read 70,859 → 16,448; 45 sections off the ceiling) | delete seven `OVER` rows, add one |
 | G2 | `docs/JOURNAL.md`, the chronicle to 2026-09-17 | 1,185,526 | leave, or archive at a revision | 0 or 1.19 MB | `queueledger.py`; Ramon (`CLAUDE.md`'s table) |
 | G3 | `docs/DECISIONS.md` | 843,219 | an index by topic; no entry moved | 0 | the pass |
 | G4–G7 | `AI.md`, `GOLDEN.md`, `COMBAT.md`, `ORDERS.md`, `RUNS.md`, struck text, the audit README | 8.2 MB | leave; number the unnumbered sections | 0 | |
 | G8, G11 | `ORACLE.md` and `TEST_PERFORMANCE.md`: each sends its reader to the first design, not the standing one | 179,422; 68,519 | a head that says what stands; S22's strikes | 0 | the pass; S10 (Ramon's word) |
+| G13 | `docs/LEADERS.md`: 80 of the tree's 81 file:line cites into `crates/`; eight held-out bullets (S29) | 270,550 | cite by name; a pin that may only fall | 0 | `docs_guard`; the chain's builders |
 | G9 | `docs/audit/`: the gate's live timings under a dated name | 528,058 in three files | an undated path | 0 | `release_gate.py`'s `TIMINGS`; `suite_timings.py` |
 
 Read-first total: about 25,400 B of the 101,371 in QUEUE, TRACKS, LOOP,
@@ -578,6 +579,7 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S26 | `tools/brief/frame.md`, "landing" (every lane carries it); `docs/audit/README.md`, rows 1637 and 1638 | "**at 300 k, one line to me** (1637, 1638): draft, commit, end the turn **done**" | entry 131 §6: "A lane is cleared at 400 k, not 230", measured (a clear at 230 k lost 3.49 USD a lane); LOOP: "A waiter on a lane is armed with `--deep 400`"; the pass's record: "The clear at 230 k is withdrawn for 400". The frame's line has read 300 since 2026-10-17 (`a65a2a596`) and neither move of the driver's threshold (230 at entry 116, 400 at 131) reached it. A lane that follows its brief stops and writes to the driver 100 k before the figure the driver clears at, and the line it sends wakes the driver on its whole context. | the frame says 400, or says nothing and leaves the trigger to the waiter's `DEEP` exit; the checklist rows with it (`test_brief.py` holds the frame to them) |
 | S27 | `tools/brief/frame.md`, "landing" (every lane carries it) | "a "for the Loop" line: `none`, or a finding I file"; "**A red on the journal-quote or Loop-line guard alone is forgiven** (3277, 3328)" | entry 125 §3: "There is no Loop backlog. A journal's "for the Loop" line stays in the journal and is filed nowhere"; §4: `docs_guard.rs` loses "the Loop line's filing", and "Entry 84's forgiveness of the Loop-line guard on a lane goes with the guard". No test or tool names a Loop-line guard now (`grep -i` over `docs_guard.rs` and `release_gate.py`). The line is still written: 68 of the 73 journals since 2026-11-12 carry it, 22 with something to say (items 4159T, 4162, 4165, 4167, 4168, 4170, 4176, 4177, 4185, 4186, 4188, 4189, 4190, 4198, 4199, 4205, 4206, 4207, 4214, 4222, 4223, 4225). Two pass records took up four of them (4167, 4176, 4177, 4185); nothing lists the other eighteen. | "or a finding for the pass", and drop the guard's name; the eighteen are D8's question again |
 | S28 | LOOP, "Ratification, and the passes" and "The brief" | "An unattended pass ... ratifies the marked rows, rules the Loop items, builds the loop's tools and guards"; "a worker's "for the Loop" line that names a brief's omission is a candidate row"; and three Loop numbers LOOP still carries as owed (4051 and 4055 on the waiter, 4053 on a builder's wait) | entry 125 §3: "There is no Loop backlog ... the handoff counts nothing; what the driver would raise at a pass goes in that pass's record"; LOOP's own "The lanes": the line "is filed nowhere". With no backlog a pass has no Loop items to rule, and the three numbers are a backlog of three kept in the rules file, unruled since 2026-11-09 (R5). | "rules what the tranche's journals and its own record raise"; the three numbers ruled once by the pass, or struck with R5 |
+| S29 | `docs/LEADERS.md` §13, §16, §19, §20 ("In the crate", the Checksum bullet), and §5, §12, §18 in part | "Each sits in `LEADERS_HELD_OUT` at count 2 (`crates/rondata/src/diff/checksum_lines.rs:1787, 1788, 1817, 1835, 1837, 1850, 1851`)"; "Each is a `(unheld)` entry of `LEADERS_HELD_OUT` with count 2: `cannon_time` at ...`:1771`, `handicap` at `:1793`, `multi_diff` at `:1815`"; "all twelve are `(unheld)` in `LEADERS_HELD_OUT`, count 2 each" | `LEADERS_HELD_OUT` holds 30 leaves, at lines 2027 to 2058: none of §13's seven, §16's three, §19's two or §20's three is among them; of §18's twelve, `score`, `score_combat`, `score_units` and `score_units_2` are; of §12's two, `pop_issues`. The queue: "`LEADERS_HELD_OUT` 30 ... from 140". G13 has the count of line cites. | each bullet struck or dated at the step that released its leaves, as §7's was; the line numbers dropped |
 
 Also seen, and not a contradiction: `CLAUDE.md` gives the gate as
 `--test-threads 4` and QUEUE and LOOP give the booking gate as
@@ -991,6 +993,51 @@ left: S20 and S21.
   cites one by heading, so nothing breaks on a move.
 - **Confidence:** high on the order and on S22; the choice between a head
   and a reorder is the pass's.
+
+### G13. `docs/LEADERS.md`: the one document that cites the code by line
+
+The chain's document (270,550 B; item 4159 amends it at every step). Not
+read whole; two mechanical probes in the second session.
+
+- **Line cites.** `docs/*.md` hold 81 unstruck cites of the form
+  `crates/<path>.rs:<line>`, and 80 are in `LEADERS.md` (one in
+  `GOLDEN.md`); with the short forms beside them (`:949`, `:105–108`) it
+  carries about 295 line numbers. They are item 4152's readers' of
+  2026-11-11. Every other specification cites the code by name and the
+  original by `name@address`, both of which a guard checks.
+- **Three days on:** of the 43 cites written as a name beside its line
+  (`` `Sim::leader_long` (`…:949`) ``), **17 still have the name within
+  three lines of the line cited and 26 do not** (a crude test: a cite of
+  a call site and not a definition can fail it honestly). All 30 cites
+  into `checksum_lines.rs` point at lines 1755 to 1851, where
+  `LEADERS_HELD_OUT` stood on 2026-11-11; the list is at lines 2027 to
+  2058 today, after 37 commits to that file. No cite names a missing
+  file or a line past its file's end, so nothing fails loudly.
+- **Present-tense status** (S29): eight "Checksum" bullets say each leaf
+  of their section "is `(unheld)` in `LEADERS_HELD_OUT`, count 2". The
+  list held 140 leaves when they were written and holds 30. Four are
+  wholly stale (§13's seven build counters, §16's `cannon_time`,
+  `handicap` and `multi_diff`, §19's two and §20's three: none of the
+  fifteen is in the list), and at least three partly (§12: `misery` has
+  left and `pop_issues` has not; §18: "all twelve" where four `score*`
+  leaves remain; §5: `attrition_stamp2` remains). §7 was amended
+  by the steps that released its leaves ("off `LEADERS_HELD_OUT` since
+  VII-b1 (47 → 44)"), and §3 says "the map as it stood before"; the
+  others say neither.
+- **Action:** the bullets cite the constant and the leaf by name and say
+  whose reading the status is ("as item 4152 read it, 2026-11-11"), or a
+  step that releases a leaf strikes its section's bullet as §7's did
+  (the definition of done already asks it: "Any open question this
+  closes in another document is struck through there"). The line
+  numbers go at the next amendment of each bullet, never in a sweep. A
+  guard is cheap and in the tree's manner: `docs_guard` counts
+  `crates/…rs:<line>` cites per document against a pin that may only
+  fall, as `UNBUILT` does for constants, so the form does not spread.
+- **Saved:** nothing in bytes. A builder reading §13 or §16 before the
+  residue step is told seven and three leaves are held that left days
+  ago.
+- **Confidence:** high on the counts; the crude test's 26 is a ceiling
+  on the cites that moved and the 30 into the list are certain.
 
 ### G12. The track documents against their queue lines: they agree
 
