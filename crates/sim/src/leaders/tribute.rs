@@ -77,14 +77,20 @@ impl Diplomacy {
     }
 }
 
-/// The leaves the leaders line emits: the two stamps, which move on
-/// run1575's block 967. `tribute_sent` and `tribute_received` are held
-/// ([`Sim::leader_tribute_leaf`] answers them) and stay off the line: their
-/// only witness is run1575's packet at 1090, which follows the staged accept
-/// of 1027 (`docs/DECISIONS.md` entry 132 §1), so they wait on step VII-c.
+/// The leaves [`Sim::leader_tribute_leaf`] answers and the leaders line
+/// emits: the two stamps, which move on run1575's block 967, and the two
+/// totals, written by the gift's exchange on 966 and witnessed on run1575's
+/// packet at 1090, which our walk holds unstaged since step VII-c computes
+/// the accept of 1027 (an exchange of no goods, which leaves both alone).
 /// `counteroffer`, `tribute_demanded` and `tributes` are held and stay off
-/// too: nothing our walks hold moves them (`docs/LEADERS.md` §8.5).
-pub const TRIBUTE_LEAVES: [&str; 2] = ["tribute_stamp", "gift_stamp"];
+/// the line: nothing our walks hold moves them by a decision we compute
+/// (`docs/LEADERS.md` §8.5).
+pub const TRIBUTE_LEAVES: [&str; 4] = [
+    "tribute_stamp",
+    "gift_stamp",
+    "tribute_sent",
+    "tribute_received",
+];
 
 /// One leader's tribute leaves and deal records (`docs/LEADERS.md` §8.1).
 /// `Leader::init` zeroes the leaves and clears every record; nothing in a
@@ -128,7 +134,7 @@ impl Sim {
     }
 
     /// Whether `me` and `p` are two distinct slots of the deal records.
-    fn deal_pair(&self, me: Player, p: Player) -> Option<(usize, usize)> {
+    pub(crate) fn deal_pair(&self, me: Player, p: Player) -> Option<(usize, usize)> {
         let (m, x) = (me as usize, p as usize);
         let n = self.leaders.tribute.len().min(SLOTS);
         (m < n && x < n && m != x).then_some((m, x))
@@ -136,7 +142,7 @@ impl Sim {
 
     /// `LeaderData::type_avail(r, 1) == 4` on a good: the crate's goods
     /// availability ([`crate::economy::Holdings::available`]).
-    fn deal_good(&self, who: usize, r: usize) -> bool {
+    pub(crate) fn deal_good(&self, who: usize, r: usize) -> bool {
         self.economy.holdings[who].available[r]
     }
 
@@ -197,7 +203,7 @@ impl Sim {
     /// back to the bucket, per good — first `min(tributes, dows)`, then, for
     /// a positive offer, `min(tributes, offers)` — the escrow is not
     /// refunded, and `dows` is cleared. Then `agree` and `any_offer` are 0.
-    fn clear_agree(&mut self, m: usize, x: usize) {
+    pub(crate) fn clear_agree(&mut self, m: usize, x: usize) {
         if self.leaders.tribute[m].dip[x].agree == 1 {
             let d = self.leaders.tribute[m].dip[x];
             for r in 0..RESOURCES {
@@ -235,20 +241,18 @@ impl Sim {
     ///   side's `dows` back to its own bucket, then per good each side's
     ///   positive give credited to the other through the giver's
     ///   [`Sim::scale_tribute`], counted in `tribute_sent` and the other's
-    ///   `tribute_received`, and stamped by [`Sim::consider_tribute`]; both
-    ///   records cleared.
+    ///   `tribute_received`, and stamped by [`Sim::consider_tribute`]; then
+    ///   the treaty arm and the hires (a treaty is asked by
+    ///   [`Sim::action_treaty`], item 4159's step VII-c); both records
+    ///   cleared.
     /// - **Reject**: both sides' agreement withdrawn and both records
     ///   cleared.
     ///
-    /// SEAM: the treaty arm (a treaty asked: the relation set both ways,
-    /// `made_peace` on a peace, the neutral propagation), the alliance's
-    /// team gate (`num_team_members`, `num_allies`) and the hires (an
-    /// attack request: `hire_stamp`, `hire_who` and a declaration for each
-    /// party) are steps VII-c's and VII-d's. Nothing in the crate asks a
-    /// treaty or an attack in a deal record (`Leader::action_treaty@006d1570`
-    /// is not carried, nor the leader's attack request), so no caller
-    /// reaches them; the reject's human-ally attack arm likewise. The
-    /// messages and sounds are the interface's.
+    /// SEAM: the alliance's team gate (`LeaderData::num_team_members`,
+    /// `num_allies`) is step VII-d's; the reject's human-ally attack arm
+    /// needs an attack request, which nothing in the crate sets
+    /// (the leader's attack request, 006d14e0, is not carried). The messages and sounds
+    /// are the interface's.
     pub fn action_respond(&mut self, t: Player, p: Player, code: i32) {
         let Some((m, x)) = self.deal_pair(t, p) else {
             return;
@@ -298,13 +302,71 @@ impl Sim {
             return;
         }
         // SEAM: `treaty == 2` runs the alliance's team gate first
-        // (`LeaderData::num_team_members`, `num_allies`; step VII-d); no
-        // caller sets a treaty, so the exchange is taken.
+        // (`LeaderData::num_team_members`, `num_allies`; step VII-d). Only
+        // the computer's offers arm executes an alliance, and it stops before
+        // answering one, so the exchange is taken.
         self.exchange(m, x);
-        // SEAM: the treaty arm and the hires (step VII-c), unreachable with
-        // no `treaty` and no `attacks` set.
+        self.treaty_and_hires(m, x);
         self.leaders.tribute[m].dip[x] = Diplomacy::default();
         self.leaders.tribute[x].dip[m] = Diplomacy::default();
+    }
+
+    /// The executed deal's treaty arm and hires (`Leader::action_respond
+    /// @006d03c0` after the exchange, item 4159's step VII-c), `t = m`
+    /// answering `p = x`, before both records are cleared.
+    ///
+    /// - **The treaty**, `w = t.dip[p].treaty`, when one was asked:
+    ///   `set_diplo(t, p, max(w, diplos[t][p]))`, then `set_diplo(p, t,
+    ///   max(w, diplos[p][t]))`, both signed. The first stores both
+    ///   directions, so the second is equal and returns before its armies:
+    ///   only `t`'s armies run. On a peace (`w == 1`) both `made_peace`
+    ///   slots are this frame, even when the pair stays allied.
+    /// - **The hires**, when war is allowed: for each third slot `X` that
+    ///   `t.dip[p].attacks` names, both `hire_stamp[X]` are this frame and
+    ///   each party's `hire_who[X]` is the other; then `t`, then `p`, if not
+    ///   already `X`'s enemy, declares on `X` (`action_declare(party, X, 0,
+    ///   quiet = !human)`), so a human party's declaration counts.
+    ///
+    /// SEAM: the neutral propagation (`LeaderData::is_neutral`, a team-8
+    /// leader under team style 7: each leader on one side's team and not the
+    /// other's lifted to the treaty, with its message) is not carried. scan:
+    /// `grep -h -m1 '^  TEAM_STYLE' gamelog-*.txt | sort | uniq -c` — 1,205
+    /// dumps at style 1 and 4 at style 0, none at 7, over 1,210 kept dumps
+    /// (2026-11-13). No attack request is ever set in the crate
+    /// (the leader's attack request, 006d14e0, is not carried), so the hires are read and
+    /// never reached.
+    fn treaty_and_hires(&mut self, m: usize, x: usize) {
+        let frame = self.frame;
+        let d = self.leaders.tribute[m].dip[x];
+        if d.treaty != -1 {
+            let level = d.treaty.max(self.diplos(m, x));
+            self.set_diplo(m as Player, x as Player, level);
+            let level = d.treaty.max(self.diplos(x, m));
+            self.set_diplo(x as Player, m as Player, level);
+            if d.treaty == 1 {
+                self.leaders.declare[m].made_peace[x] = frame;
+                self.leaders.declare[x].made_peace[m] = frame;
+            }
+        }
+        if !self.war_allowed() {
+            return;
+        }
+        let players = self.leaders.tribute.len().min(SLOTS);
+        for k in (0..players).filter(|&k| k != m && k != x) {
+            if d.attacks[k] == 0 {
+                continue;
+            }
+            self.leaders.declare[m].hire_stamp[k] = frame;
+            self.leaders.declare[x].hire_stamp[k] = frame;
+            self.leaders.declare[m].hire_who[k] = x as i32;
+            self.leaders.declare[x].hire_who[k] = m as i32;
+            for party in [m, x] {
+                if !self.is_enemy(party as Player, k as Player) {
+                    let quiet = !self.cities.nation[party].human;
+                    self.action_declare(party as Player, k as Player, 0, quiet, false);
+                }
+            }
+        }
     }
 
     /// The commit of [`Sim::action_respond`]'s accept: `false` when the
