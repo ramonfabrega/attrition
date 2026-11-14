@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). The sha
 `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6; gate scoped, DECISIONS 115 §3), a `start`
 item (`docs/START.md` §5: the frame-zero state built from the lobby's choices, the `[Start Game]` dump its oracle)
 and an `input` item (`docs/CLIENT_INPUT.md`: events mint a script's orders and the original plays the file; gate scoped). A
-residue or chapter item books only when another track's frame needs one. **The lanes** (DECISIONS 132 §9): start none; render 4225; third 4226; the suite 4224.
+residue or chapter item books only when another track's frame needs one. **The lanes** (DECISIONS 132 §9): start 4204; render 4225; third 4226; the suite 4224.
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2; builders). `LEADERS_HELD_OUT` 31 (VII-c the offers arm's accept: `made_peace` on 1028 and the packet's five; the frozen scan, `rondata::stores`: `score_explored`, `score_pop`, `last_spoke`; VII-b1 the declaration three; VII-b2 the taunt's answer four on 967, the gift's food equal). A leaf leaves where it moves on a dump or packet our walk holds, on a block no staged
@@ -68,6 +68,12 @@ PNG carried a display profile) and landed the coral layer: `RUN1564_3279_GROUND_
 hue. The 179 left are the surf and whitecaps theirs draws on the open water and ours does not (draws 163–169: white, about
 2.7 % a layer), and the lake's dark patch. Score: `OCEAN` on hue past 258. First act: the surf's geometry and vertex alpha,
 which the pass does not stream. Kill: the surf is not on the card: parked with the draw named.
+
+4204. **The quit's `clear_orders`, timed past the frame's body** (rules; **whole**; parked 4189a). Landed and reverted
+(`9b47bd4ce`, `a774e028e`): on `worktree-att-4204` (`f05b52098`) it timed the defeat's `clear_orders` past the frame's body for the 110
+of 124 closings that quit there (run667 159 → 108, run609 42 → 29, `cant_reach` 5 → 0), and turned red the 13 that quit at the
+head: the six melees' and run80's word windows widened whole, and run82's ride. First act: those eight on the branch, by frame
+and record. Score: as landed, the eight green. Kill: the head quits need their own timing, named, and the 110 land alone.
 
 4226. **Parity's units and guys on 129** (rules; scoped; parked 4214d; CHECKSUM §24). After 4218 and 4222 the minted game's
 lines first part: leaders 0 (the chain's), units and guys 129, goods 3246, cities 4030, groups 2746, builds 7383; items and world
