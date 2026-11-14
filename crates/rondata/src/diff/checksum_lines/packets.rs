@@ -307,26 +307,25 @@ pub(super) fn hold(game: &Game, packets: &[(&'static str, i64)]) {
 /// `docs/CHECKSUM.md` §23.7): walked from the lobby's built start their
 /// draw stream parts from the long trace before their first packet, so
 /// the lines would be read off a walk out of step. `(the word, why)`, the
-/// why the journal's parked finding: **4205b**, the Great Lakes Modern and
-/// Information words, part on frame 0 (`Unit::think_scout+0x64c` against
-/// `+0x436`, the fog's sign, `docs/START.md` §7.2). Every other word walks
-/// from the built start ([`walk_packets_built`]) and holds the draws to
-/// every packet's frame. The 24 East Indies words of **4205a** left at item
-/// 4208: their whales had no piece, so each kept an idle variant its packet
-/// lacks and wrapped on frame 2 (`Sim::gaia_piece`, `docs/START.md` §6).
-pub(super) const SEATED_WORDS: &[(&str, &str)] = &[
-    ("GreatLakesAmericanInformation", "4205b"),
-    ("GreatLakesAztecModern", "4205b"),
-    ("GreatLakesEgyptianInformation", "4205b"),
-    ("GreatLakesEgyptianModern", "4205b"),
-    ("GreatLakesJapaneseModern", "4205b"),
-];
+/// why the journal's parked finding. **None is left since item 4210**:
+/// every word walks from the built start ([`walk_packets_built`]) and
+/// holds the draws to every packet's frame. The 24 East Indies words of
+/// **4205a** left at item 4208: their whales had no piece, so each kept an
+/// idle variant its packet lacks and wrapped on frame 2 (`Sim::gaia_piece`,
+/// `docs/START.md` §6). The five Great Lakes Modern and Information words
+/// of **4205b** left at item 4210. They parted on frame 0
+/// (`Unit::think_scout+0x64c` against `+0x436`) because a starting
+/// citizen's step off its building lit no disc (`Sim::come_out_own_point`,
+/// `docs/START.md` §7.2): run1429's four `seen2` cells, fog (101, 49),
+/// (102, 50), (103, 51) and (104, 51), built 0 against the dump's 2.
+pub(super) const SEATED_WORDS: &[(&str, &str)] = &[];
 
 /// The word packets by their walk: `((words, packets) from the built
 /// start, (words, packets) dump-seated)` (item 4205). ((30, 41), (29, 46))
-/// at item 4205; **((54, 79), (5, 8))** at item 4208, the 24 East Indies
-/// words and their 38 packets walked from the built start.
-const BY_START: ((usize, usize), (usize, usize)) = ((54, 79), (5, 8));
+/// at item 4205; ((54, 79), (5, 8)) at item 4208, the 24 East Indies
+/// words and their 38 packets walked from the built start; **((59, 87),
+/// (0, 0))** at item 4210, 4205b's five words and their 8 packets.
+const BY_START: ((usize, usize), (usize, usize)) = ((59, 87), (0, 0));
 
 /// Where a built start's draws first part from `tr`'s by frame `to`:
 /// `(frame, ours, theirs, the draw, our site, theirs)`.
@@ -334,11 +333,13 @@ type BuiltParting = (i64, usize, usize, usize, String, String);
 
 /// **The seat is named, and the built start's lockstep can fail** (item
 /// 4205): every [`SEATED_WORDS`] row is a held word, the counts are
-/// [`BY_START`]'s; 4205b's word walked from the built start parts where
-/// its row says, on frame 0 (run1429's, ours 142 theirs 141, at draw 37),
-/// so [`hold`]'s lockstep assertion is sighted. And run1149's game, which
-/// parted on frame 2 (ours 7 draws theirs 4) until item 4208 gave the
-/// built start's whales their piece, holds to frame 4.
+/// [`BY_START`]'s. run1149's game, which parted on frame 2 (ours 7 draws
+/// theirs 4) until item 4208 gave the built start's whales their piece,
+/// holds to frame 4; so does run1429's, which parted on frame 0 (ours 142
+/// theirs 141, at draw 37, `Unit::think_scout+0x64c` against `+0x436`)
+/// until item 4210 lit a starting citizen's disc where it steps off its
+/// building. With that reveal removed the case goes red on that frame and
+/// draw again, so [`hold`]'s lockstep assertion is sighted.
 #[test]
 fn the_seated_words_part_from_the_built_start() {
     let words: std::collections::BTreeMap<&str, usize> =
@@ -367,17 +368,7 @@ fn the_seated_words_part_from_the_built_start() {
     type Want = (i64, usize, usize, usize, &'static str, &'static str);
     let cases: [((&str, &str), Option<Want>); 2] = [
         (crate::diff::russian_modern_pair::RUSSIAN_MODERN.long, None),
-        (
-            crate::diff::aztec_modern_pair::AZTEC_MODERN.long,
-            Some((
-                0,
-                142,
-                141,
-                37,
-                "Unit::think_scout+0x64c",
-                "Unit::think_scout+0x436",
-            )),
-        ),
+        (crate::diff::aztec_modern_pair::AZTEC_MODERN.long, None),
     ];
     for (long, want) in cases {
         let Some(got) = built_parting(long, 4) else {
@@ -560,7 +551,16 @@ fn at_init_image(leaf: &str, theirs: &[i64]) -> bool {
 /// its seated image there, ours equal to it — and bent on our side, it
 /// joins the leaves parting outside the list (the comparison can fail).
 fn hold_released(w: &Walked, held: &std::collections::BTreeSet<&str>) {
-    for &(leaf, run, slot) in PACKET_RELEASED {
+    hold_witnesses(w, held, PACKET_RELEASED);
+}
+
+/// [`hold_released`] over any list of `(leaf, run, slot)` witnesses.
+fn hold_witnesses(
+    w: &Walked,
+    held: &std::collections::BTreeSet<&str>,
+    witnesses: &[(&str, &str, i16)],
+) {
+    for &(leaf, run, slot) in witnesses {
         if run != w.run {
             continue;
         }
@@ -851,28 +851,25 @@ held_melees! {
 
 /// **Every packet our walk does not hold**, with why: `(run, logger frame,
 /// why)` (`docs/CHECKSUM.md` §23.1).
-pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
-    (
-        "run1100",
-        5408,
-        "run1090's lobby with `100 ally 1` and `5404 explore all` staged; no word walks it",
-    ),
-    // Item 4206 (step VII-a): `diff::diplomacy_take` walks the take from
-    // run1482's start re-read at style 0 and holds it to 1099, past this
-    // frame, but that walk is a pin as found, not a word with a pinned
-    // length and a stand-up the packet lines read; step VII-b holds it.
-    (
-        "run1575",
-        1090,
-        "the diplomacy take (run1482's lobby at style 0, `diplomacy4206.cmd`); its walk is \
-         `diff::diplomacy_take`, held to 1099 but no word's; step VII-b wires it",
-    ),
-];
+pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[(
+    "run1100",
+    5408,
+    "run1090's lobby with `100 ally 1` and `5404 explore all` staged; no word walks it",
+)];
+
+/// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
+/// (`diff::diplomacy_take`), which stages a computer's decision off the
+/// record, so no scoreboard line counts them (`docs/DECISIONS.md` entry
+/// 132 §1) and [`PINNED`] does not hold them. `(run, logger frame, the
+/// take, the length its staged walk is whole to)`.
+pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] =
+    &[("run1575", 1090, "the diplomacy take (1099 computed)", 1150)];
 
 /// The census's counts: `(packets on disk, held by a word's walk, by a
-/// chapter's, by a melee's, by the minted walk, not held)`.
+/// chapter's, by a melee's, by the minted walk, by a take's, not held)`.
 // Item 4206: (108, …, 1) → (109, …, 2), run1575's packet at 1090 named.
-const CENSUS: (usize, usize, usize, usize, usize, usize) = (109, 87, 7, 12, 1, 2);
+// Item 4159, step VII-b2: run1575's packet held by its take, (…, 1, 1).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (109, 87, 7, 12, 1, 1, 1);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.
@@ -900,6 +897,7 @@ fn every_held() -> Vec<(&'static str, i64, &'static str, i64)> {
 fn every_packet_is_wired_to_its_game_or_named() {
     let held = every_held();
     let mut runs: Vec<&str> = held.iter().map(|h| h.0).collect();
+    runs.extend(TAKES_HELD.iter().map(|t| t.0));
     runs.extend(NOT_HELD.iter().map(|n| n.0));
     let mut sorted = runs.clone();
     sorted.sort_unstable();
@@ -912,17 +910,19 @@ fn every_packet_is_wired_to_its_game_or_named() {
             CHAPTERS_HELD.len(),
             MELEES_HELD.len(),
             1,
+            TAKES_HELD.len(),
             NOT_HELD.len()
         ),
         CENSUS,
         "the census's counts"
     );
-    for (run, frame, game, length) in &held {
+    for (run, frame, game, length) in held.iter().chain(TAKES_HELD) {
         assert!(frame <= length, "{run}: {frame} past {game}'s {length}");
     }
     let frames: std::collections::BTreeMap<&str, i64> = held
         .iter()
         .map(|h| (h.0, h.1))
+        .chain(TAKES_HELD.iter().map(|t| (t.0, t.1)))
         .chain(NOT_HELD.iter().map(|n| (n.0, n.1)))
         .collect();
     let root = std::env::var("RON_GOLDEN_DIR")
@@ -2408,22 +2408,25 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: builds (2033, 2033, 75) -> (2033, 2033, 74); items (60, 110,
     // 69) -> (60, 60, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4406, 4486, 3414) -> (4406,
+    // 4486, 3351); builds (2033, 2033, 74) -> (2033, 2033, 56); guys (1231, 1336, 141) -> (1231,
+    // 1336, 105); cities (27, 27, 2) -> (27, 27, 1); world (8434, 7715, 5388) -> (8434, 8434, 2).
     (
         "run1419b",
         3212,
         [
-            (4406, 4486, 3414),
-            (2033, 2033, 74),
+            (4406, 4486, 3351),
+            (2033, 2033, 56),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (544, 544, 2),
-            (1231, 1336, 141),
+            (1231, 1336, 105),
             (271, 271, 4),
-            (27, 27, 2),
+            (27, 27, 1),
             (60, 60, 0),
             (180, 180, 0),
-            (8434, 7715, 5388),
+            (8434, 8434, 2),
         ],
     ),
     // Item 4205, the built start: units (5583, 5614, 4645) -> (5583, 5614, 4588); builds (2515,
@@ -2450,60 +2453,69 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (90, 110, 44) -> (90, 90, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4129, 4318, 3389) -> (4129,
+    // 4318, 3325); builds (2025, 2025, 48) -> (2025, 2025, 32); guys (1138, 1278, 177) -> (1138,
+    // 1278, 141); cities (27, 27, 3) -> (27, 27, 1); world (8344, 7625, 5328) -> (8344, 8344, 2).
     (
         "run1424",
         3156,
         [
-            (4129, 4318, 3389),
-            (2025, 2025, 48),
+            (4129, 4318, 3325),
+            (2025, 2025, 32),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (550, 550, 3),
-            (1138, 1278, 177),
+            (1138, 1278, 141),
             (271, 271, 4),
-            (27, 27, 3),
+            (27, 27, 1),
             (90, 90, 0),
             (180, 180, 0),
-            (8344, 7625, 5328),
+            (8344, 8344, 2),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (80, 110, 52) -> (80, 80, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4175, 4291, 3481) -> (4175,
+    // 4291, 3429); builds (2266, 2265, 861) -> (2266, 2265, 848); guys (1227, 1332, 146) -> (1227,
+    // 1332, 110); cities (27, 27, 3) -> (27, 27, 2); world (8284, 7565, 5190) -> (8284, 8284, 10).
     (
         "run1426b",
         3722,
         [
-            (4175, 4291, 3481),
-            (2266, 2265, 861),
+            (4175, 4291, 3429),
+            (2266, 2265, 848),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (544, 544, 1),
-            (1227, 1332, 146),
+            (1227, 1332, 110),
             (271, 271, 4),
-            (27, 27, 3),
+            (27, 27, 2),
             (80, 80, 0),
             (180, 180, 0),
-            (8284, 7565, 5190),
+            (8284, 8284, 10),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (85, 110, 49) -> (85, 85, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4789, 4721, 3966) -> (4789,
+    // 4721, 3908); builds (2154, 2151, 619) -> (2154, 2151, 604); guys (1208, 1348, 183) -> (1208,
+    // 1348, 147); cities (30, 30, 3) -> (30, 30, 1); world (8414, 7695, 5513) -> (8414, 8414, 1).
     (
         "run1437",
         3894,
         [
-            (4789, 4721, 3966),
-            (2154, 2151, 619),
+            (4789, 4721, 3908),
+            (2154, 2151, 604),
             (0, 0, 0),
             (3, 0, 3),
             (4, 0, 4),
             (538, 538, 0),
-            (1208, 1348, 183),
+            (1208, 1348, 147),
             (271, 271, 6),
-            (30, 30, 3),
+            (30, 30, 1),
             (85, 85, 0),
             (180, 180, 0),
-            (8414, 7695, 5513),
+            (8414, 8414, 1),
         ],
     ),
     (
@@ -2544,22 +2556,25 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4274, 4219, 3527) -> (4274,
+    // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
+    // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     (
         "run1441",
         3294,
         [
-            (4274, 4219, 3527),
-            (1890, 1887, 527),
+            (4274, 4219, 3476),
+            (1890, 1887, 518),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (550, 550, 3),
-            (1108, 1171, 100),
+            (1108, 1171, 64),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 2),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 7557, 5229),
+            (8276, 8276, 9),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (125, 135, 37) -> (125, 125, 0).
@@ -2753,22 +2768,25 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4274, 4219, 3527) -> (4274,
+    // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
+    // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     (
         "run1559b",
         3294,
         [
-            (4274, 4219, 3527),
-            (1890, 1887, 527),
+            (4274, 4219, 3476),
+            (1890, 1887, 518),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (550, 550, 3),
-            (1108, 1171, 100),
+            (1108, 1171, 64),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 2),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 7557, 5229),
+            (8276, 8276, 9),
         ],
     ),
     (
@@ -2790,41 +2808,47 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4274, 4219, 3527) -> (4274,
+    // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
+    // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     (
         "run1564",
         3294,
         [
-            (4274, 4219, 3527),
-            (1890, 1887, 527),
+            (4274, 4219, 3476),
+            (1890, 1887, 518),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (550, 550, 3),
-            (1108, 1171, 100),
+            (1108, 1171, 64),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 2),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 7557, 5229),
+            (8276, 8276, 9),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
+    // Item 4210, walked from the built start (4205b's words): units (4240, 4197, 3409) -> (4240,
+    // 4197, 3360); builds (1890, 1887, 528) -> (1890, 1887, 519); guys (1112, 1175, 101) -> (1112,
+    // 1175, 65); world (8294, 7575, 5253) -> (8294, 8294, 9).
     (
         "run1570",
         3331,
         [
-            (4240, 4197, 3409),
-            (1890, 1887, 528),
+            (4240, 4197, 3360),
+            (1890, 1887, 519),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
             (556, 556, 2),
-            (1112, 1175, 101),
+            (1112, 1175, 65),
             (271, 271, 4),
             (30, 30, 3),
             (75, 75, 0),
             (180, 180, 0),
-            (8294, 7575, 5253),
+            (8294, 8294, 9),
         ],
     ),
     // Item 4208, the whales' piece: units (4969, 4983, 4166) -> (4969, 4983, 4139); builds (1731,
@@ -3582,7 +3606,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run1417", "flags.leader_flags resources_controlled"),
     (
         "run1419b",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1420",
@@ -3590,21 +3614,21 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1424",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1426b",
-        "aggression cities_built explored flags.leader_flags reg_unpack_merch resources_controlled",
+        "explored flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1437",
-        "aggression cities_built encrypt.bucket[2] encrypt.bucket[5] flags.leader_flags reg_unpack_merch resources_controlled",
+        "encrypt.bucket[2] encrypt.bucket[5] flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run1438", "aggression cities_built flags.leader_flags"),
     ("run1440", "aggression cities_built flags.leader_flags"),
     (
         "run1441",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run1451", "aggression cities_built flags.leader_flags"),
     ("run1457", "aggression cities_built flags.leader_flags"),
@@ -3633,15 +3657,15 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1559b",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1564",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1570",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run785",
@@ -3851,7 +3875,9 @@ fn probe_built_packet() {
 /// **Probe** (item 4205): one word's two frame zeros, the dump-seated and
 /// the lobby-built, compared whole (`start_walk::whole_diff`, take by
 /// take), and the seated start's corrections by frame. `RON_PACKET_TAKE`
-/// filters the takes printed by a substring.
+/// filters the takes printed by a substring. `RON_PACKET_FOG` prints each
+/// `seen2` cell the two starts differ on, and both sides' buildings and
+/// units by fog cell (item 4210); `RON_PACKET_FOGALL` every cell.
 #[test]
 #[ignore = "a probe: RON_PACKET_START, RON_PACKET_LONG, RON_PACKET_TRACE"]
 fn probe_built_start_whole() {
@@ -3889,6 +3915,51 @@ fn probe_built_start_whole() {
         for (p, v) in &a {
             if p.starts_with(prefix.as_str()) && bm.get(p.as_str()) != Some(&v.as_str()) {
                 eprintln!("LEAF {p}: built {v} seated {:?}", bm.get(p.as_str()));
+            }
+        }
+    }
+    if std::env::var_os("RON_PACKET_FOG").is_some() {
+        let w = built.sim.world.width() * 2;
+        for fy in 0..w {
+            for fx in 0..w {
+                let (a, b) = (
+                    built.sim.world.seen2(fx, fy),
+                    seated.sim.world.seen2(fx, fy),
+                );
+                if a != b {
+                    eprintln!("FOG ({fx},{fy}) built {a:?} seated {b:?}");
+                }
+                if std::env::var_os("RON_PACKET_FOGALL").is_some() {
+                    eprintln!("CELL {fx} {fy} {} {}", a.unwrap_or(0), b.unwrap_or(0));
+                }
+            }
+        }
+        for (side, s) in [("built", &built.sim), ("seated", &seated.sim)] {
+            for (i, b) in s.buildings.iter().enumerate() {
+                eprintln!(
+                    "BLD {side} {i} {}/{} ty {:?} {:?} fog ({},{}) mylos {} city {}",
+                    b.owner,
+                    b.index,
+                    b.ty,
+                    b.ty.map(|t| s.tables.build_types[t].ident),
+                    sim::vision::fog_of(b.pos.x),
+                    sim::vision::fog_of(b.pos.y),
+                    b.mylos,
+                    s.building_is_city(i)
+                );
+            }
+            for (i, u) in s.units.iter().enumerate() {
+                eprintln!(
+                    "UNIT {side} {}/{} ty {:?} TI {:#x} {:?} fog ({},{}) los {}",
+                    u.owner,
+                    u.index,
+                    u.ty,
+                    u.type_index,
+                    u.kind.domain,
+                    sim::vision::fog_of(u.pos.x),
+                    sim::vision::fog_of(u.pos.y),
+                    s.unit_los(i)
+                );
             }
         }
     }
@@ -3953,5 +4024,153 @@ fn probe_built_clocks() {
         }
         built.tick();
         seated.tick();
+    }
+}
+
+/// run1575's packet at 1090, pinned as found (item 4159, step VII-b2):
+/// each line's (the stream's ranges, ours, ranges parted), our walk the
+/// take's ([`run1575_take_packet`]). One line agrees, the cities' (12
+/// ranges).
+const TAKE_PINNED: Pinned = (
+    "run1575",
+    1090,
+    [
+        (3907, 4015, 3084),
+        (1709, 1709, 35),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (556, 556, 2),
+        (1289, 1331, 166),
+        (407, 407, 8),
+        (12, 12, 0),
+        (25, 25, 0),
+        (405, 405, 1),
+        (8981, 7447, 5432),
+    ],
+);
+
+/// The leaves of run1575's leaders line that part outside
+/// [`LEADERS_HELD_OUT`] at 1090, as found: `cities_built` (theirs 1, 1, 2
+/// on the three seats, ours 0, 0, 1); `dip.treaty` (the alliance asked on
+/// 1041, `treaty` 2 on both seats' records, ours −1: `action_treaty`, step
+/// VII-d); `diplos` (slots 3..7 read 1 there, `Leader::init`'s peace at
+/// style 0 on every slot, which the take's re-read lobby writes on 0..2
+/// only); `flags.leader_flags` (high bits on every seat).
+const TAKE_LEAF_PARTINGS: &str = "cities_built dip.treaty diplos flags.leader_flags";
+
+/// **The unprinted leaves the take's packet witnesses, held and off the
+/// line** (item 4159, step VII-b2): each written on 906 (the ring) or 966
+/// (the drain and the gift) in our walk. They stay on [`LEADERS_HELD_OUT`]:
+/// 1090 follows the staged accept of 1027, and `docs/DECISIONS.md` entry 132
+/// §1 releases a leaf only on a block no staged decision precedes (the
+/// driver's ruling). `(leaf, run, slot)`, each off its seated image on the
+/// packet, our held value equal; they leave when VII-c retires the staging.
+pub(super) const TAKE_WITNESSED: &[(&str, &str, i16)] = &[
+    // The French ring: the cursor 1, the request 1, due 966.
+    ("incoming", "run1575", 1),
+    ("incoming_taunt", "run1575", 1),
+    ("incoming_taunt_frame", "run1575", 1),
+    // The French gave 3,290 food, the human received 1,909.
+    ("tribute_sent", "run1575", 1),
+    ("tribute_received", "run1575", 0),
+];
+
+/// **run1575's packet at 1090, held by the take** (item 4159, step
+/// VII-b2): the take's walk (`diff::diplomacy_take`: run1482's start at
+/// style 0, the script, the window's diplomacy off the record, the chat
+/// minted) ticked to the packet's frame, its twelve lines against the
+/// instrument's stream. Off the scoreboard ([`TAKES_HELD`]). The five
+/// unprinted leaves of the taunt's answer, held off the line, are
+/// witnessed here ([`TAKE_WITNESSED`]): our held value against the
+/// packet's, a bent one parting.
+#[test]
+fn run1575_take_packet() {
+    use crate::diff::diplomacy_take as take;
+    let (run, frame, name, length) = TAKES_HELD[0];
+    let (Some(diplomacy), Some(taunts)) = (
+        take::take_diplomacy(take::RUN1575.0),
+        take::script_taunts("diplomacy4206.cmd"),
+    ) else {
+        eprintln!("skipping: no {} or install", take::RUN1575.0);
+        return;
+    };
+    // Our held values of the witnessed leaves on the packet's frame:
+    // `(leaf, slot) → values`, read off the sim, not off the line.
+    let mut ours_held: std::collections::BTreeMap<(&str, i16), Vec<i64>> = Default::default();
+    let Some(walked) = walk_packets_with(name, length, &[(run, frame)], &mut |frames, probe| {
+        let script = take::coverage_script("diplomacy4206.cmd");
+        let (_, mut built) = take::stand_up_sea_style_zero(take::RUN1575, script)?;
+        for &f in frames {
+            while built.sim.frame < f {
+                take::stage_frame(&mut built, 3, &[], &diplomacy, &taunts);
+                built.tick();
+            }
+            for &(leaf, _, slot) in TAKE_WITNESSED {
+                let who = slot as sim::Player;
+                let v = built
+                    .sim
+                    .leader_taunt_leaf(who, leaf)
+                    .or_else(|| built.sim.leader_tribute_leaf(who, leaf))
+                    .unwrap_or_else(|| panic!("{leaf} is held"));
+                ours_held.insert((leaf, slot), v);
+            }
+            probe(f, &built);
+        }
+        Some(())
+    }) else {
+        return;
+    };
+    let w = &walked[0];
+    let held: std::collections::BTreeSet<&str> = LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
+    for (n, l) in STATE_LINES.iter().zip(&w.lines) {
+        if let Some(f) = &l.first {
+            eprintln!(
+                "  {n}: {} of {} ranges part; first range {} record {} {}",
+                l.parted, l.theirs, f.0, f.1, f.2
+            );
+        }
+    }
+    for (slot, field, leaf, ours, t, _) in &w.leaves {
+        if ours.as_ref() != Some(t) {
+            eprintln!(
+                "LEAF\t{slot}\t{}\t{}\t{}",
+                leader_held_name(field, leaf, ours.is_none()),
+                leaf_text(t),
+                ours.as_deref().map_or("-".into(), leaf_text)
+            );
+        }
+    }
+    eprintln!("PIN\t(\"{}\", {}, {:?}),", w.run, w.frame, pin_of(&w.lines));
+    eprintln!("EXTRA\t{}", extra_leaves(w, &held));
+    assert_eq!(
+        (TAKE_PINNED.0, TAKE_PINNED.1, TAKE_PINNED.2),
+        (w.run, w.frame, pin_of(&w.lines)),
+        "run1575: each line's (the stream's ranges, ours, ranges parted)"
+    );
+    assert_eq!(
+        extra_leaves(w, &held),
+        TAKE_LEAF_PARTINGS,
+        "run1575: the leaders line's leaves parting outside LEADERS_HELD_OUT"
+    );
+    for &(leaf, _, slot) in TAKE_WITNESSED {
+        assert!(
+            held.contains(format!("{leaf} (unheld)").as_str()),
+            "{leaf} is held out"
+        );
+        let row = w
+            .leaves
+            .iter()
+            .find(|r| r.0 == slot && r.1 == "who..ally_mask" && r.2 == leaf)
+            .unwrap_or_else(|| panic!("run1575: slot {slot}'s {leaf}"));
+        assert!(
+            !at_init_image(leaf, &row.4),
+            "run1575: slot {slot}'s {leaf} is its seated image, no witness"
+        );
+        let ours = &ours_held[&(leaf, slot)];
+        assert_eq!(ours, &row.4, "run1575: slot {slot}'s held {leaf}");
+        let mut bent = ours.clone();
+        bent[0] ^= 1;
+        assert_ne!(bent, row.4, "run1575: a bent {leaf} parts");
     }
 }

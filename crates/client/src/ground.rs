@@ -1896,6 +1896,130 @@ pub(crate) mod tests {
         );
     }
 
+    /// **The lake's layers at the card** (item 4213; `docs/RENDERER.md`
+    /// §3.18): run1567's pass after 3279, the setters of every draw that
+    /// lays the lake between the floor (36) and the land's last decal, and
+    /// of the surf after the water. Draws 121–130 pair `sand.tga` and
+    /// `coralblend.tga` under one mask each, `MODULATE(TEXTURE, DIFFUSE)`
+    /// then the mask's alpha alone, lit at the land's light; 131 lays the
+    /// coral over the sand layer at the complement of its vertex alpha,
+    /// stage 1 off; 163–169 are the surf, `TL_FAKE_LIGHT` at `gTLAlpha`
+    /// 1, the texture's alpha times the vertex's times the mask's.
+    #[test]
+    fn the_lake_s_layers_at_the_card() {
+        use rondata::trace::card::{
+            self, TA_CURRENT, TA_DIFFUSE, TA_TEXTURE, TOP_MODULATE, TOP_SELECTARG2,
+        };
+        const TOP_DISABLE: i32 = 0;
+        const TOP_SELECTARG1: i32 = 1;
+        const COMPLEMENT: i32 = i32::MIN;
+        let path = std::env::var_os("RON_CARD_TRACE_1567")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home).join("ron-golden/run1567/map-14/rontrace.log")
+            });
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no card trace at {}", path.display());
+            return;
+        };
+        let pass: Vec<card::CardDraw> = card::draws(&bytes)
+            .into_iter()
+            .filter(|d| d.frame == 3279)
+            .collect();
+        let at = |i: u32| pass.iter().find(|d| d.index == i).expect("the draw");
+        let land_light = |d: &card::CardDraw| {
+            let (m, l) = (d.material(), d.light());
+            d.has("ENABLE_LIGHTING")
+                && d.has("ENABLE_VERTEX_COLOR_DIFFUSE")
+                && m[0] == [1.0; 4]
+                && m[1] == [1.0; 4]
+                && l[2] == [1.36; 4]
+        };
+        let tl_alpha =
+            |d: &card::CardDraw| f32::from_le_bytes(d.cbuf[0x1bc..0x1c0].try_into().unwrap());
+        for i in 121..=130 {
+            let d = at(i);
+            let sand = i % 2 == 1;
+            assert_eq!(
+                d.file(0),
+                if sand { "sand.tga" } else { "coralblend.tga" },
+                "draw {i}"
+            );
+            assert_eq!(
+                d.names[1],
+                at(i - u32::from(!sand)).names[1],
+                "draw {i}: one mask a pair"
+            );
+            assert_eq!(
+                d.colour_op(0),
+                (TOP_MODULATE, TA_TEXTURE, TA_DIFFUSE),
+                "draw {i}"
+            );
+            assert_eq!(
+                d.colour_op(1),
+                (TOP_SELECTARG2, TA_TEXTURE, TA_CURRENT),
+                "draw {i}"
+            );
+            assert_eq!(
+                d.alpha_op(0),
+                (TOP_SELECTARG1, TA_TEXTURE, TA_DIFFUSE),
+                "draw {i}"
+            );
+            assert_eq!(
+                d.alpha_op(1),
+                (TOP_SELECTARG1, TA_TEXTURE, TA_CURRENT),
+                "draw {i}: the mask alone"
+            );
+            assert!(land_light(d), "draw {i} at the land's light");
+            assert_eq!(
+                d.has("NORMAL_MAP"),
+                sand,
+                "draw {i}: the sand's material map, not the coral's"
+            );
+        }
+        let c = at(131);
+        assert_eq!((c.file(0), c.file(1)), ("coralblend.tga", "coralblend.tga"));
+        assert_eq!(c.colour_op(0), (TOP_MODULATE, TA_TEXTURE, TA_DIFFUSE));
+        assert_eq!(
+            c.alpha_op(0),
+            (TOP_SELECTARG2, TA_TEXTURE, TA_DIFFUSE | COMPLEMENT),
+            "the sand's fade, complemented"
+        );
+        assert_eq!(
+            (c.colour_op(1).0, c.alpha_op(1).0),
+            (TOP_DISABLE, TOP_DISABLE)
+        );
+        assert!(land_light(c), "the coral layer at the land's light");
+        for i in 163..=169 {
+            let d = at(i);
+            assert!(d.file(0).starts_with("surf_"), "draw {i}: {}", d.file(0));
+            assert!(
+                d.has("TL_FAKE_LIGHT") && !d.has("ENABLE_LIGHTING"),
+                "draw {i}"
+            );
+            assert_eq!(
+                d.colour_op(0),
+                (TOP_MODULATE, TA_TEXTURE, TA_CURRENT),
+                "draw {i}"
+            );
+            assert_eq!(
+                d.alpha_op(0),
+                (TOP_MODULATE, TA_TEXTURE, TA_CURRENT),
+                "draw {i}"
+            );
+            assert_eq!(
+                d.alpha_op(1),
+                (TOP_MODULATE, TA_TEXTURE, TA_CURRENT),
+                "draw {i}"
+            );
+            assert_eq!(tl_alpha(d), 1.0, "draw {i}'s gTLAlpha");
+        }
+        println!(
+            "run1567, the pass after 3279: the lake's patches 121–130, the coral layer 131 and the surf 163–169 as read"
+        );
+    }
+
     /// **The water's lattice off the packet** (item 4178): run1564's
     /// drawn water (`modify_water`'s statics, `tools/render/water_packet.py`)
     /// against [`water_grid`] on our own terrain. Every drawn corner is a
@@ -1922,6 +2046,8 @@ pub(crate) mod tests {
         let mut corners: BTreeMap<(i32, i32), u8> = BTreeMap::new();
         let mut centres: Vec<((i32, i32), u8)> = Vec::new();
         let (mut lines, mut off_zero) = (0, 0);
+        // Item 4213: what the lit water draw (162) takes from each vertex.
+        let (mut up, mut no_red, mut most) = (0usize, 0usize, 0u8);
         let mut above: std::collections::BTreeSet<(i32, i32)> = Default::default();
         let sx = t.width * render::terrain::TILES_PER_CELL + 1;
         for line in text.lines() {
@@ -1931,8 +2057,12 @@ pub(crate) mod tests {
             }
             lines += 1;
             let (x, y, z) = (num(f[1]), num(f[2]), num(f[3]));
-            let a = (u32::from_str_radix(f[4], 16).expect("a colour") >> 24) as u8;
+            let colour = u32::from_str_radix(f[4], 16).expect("a colour");
+            let a = (colour >> 24) as u8;
             off_zero += usize::from(z != 0.0);
+            up += usize::from((num(f[5]), num(f[6]), num(f[7])) == (0.0, 0.0, 1.0));
+            no_red += usize::from(colour & 0xff == 0);
+            most = most.max(a);
             let (gx, gy) = ((x / WATER_STEP) as i32, (y / WATER_STEP) as i32);
             if x % WATER_STEP == 0.0 && y % WATER_STEP == 0.0 {
                 corners.insert((gx, gy), a);
@@ -2005,6 +2135,14 @@ pub(crate) mod tests {
             (lines, off_zero),
             (1755, 0),
             "every drawn water vertex at z 0"
+        );
+        // Item 4213 (§3.18): the lit water's own inputs carry no red and
+        // no tilt — every normal straight up, every red byte 0 — and its
+        // deepest alpha, 189, lets 26 % of what lies beneath through.
+        assert_eq!(
+            (up, no_red, most),
+            (1755, 1755, 189),
+            "the water's normals, red bytes and deepest alpha"
         );
         assert_eq!(
             (corners.len(), centres.len(), above.len()),

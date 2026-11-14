@@ -620,7 +620,7 @@ mod tests {
         // Item 4176: 1229 -> 1264, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
         // Item 4177: 1264 -> 1277, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
         // Item 4185: 1277 -> 1285, +8: of the end of the game's and the lost capital's nine, the eight this record does not print (`defeated_by` prints).
-        pin_eq!(w.missing.len(), 1626, "the keys run382 does not print");
+        pin_eq!(w.missing.len(), 1658, "the keys run382 does not print");
         pin!(
             w.missing.contains("gaia:cur_anim") && w.missing.contains("resources[0:food]"),
             "gaia's clocks and the long leader record are unprinted"

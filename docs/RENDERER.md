@@ -2532,15 +2532,52 @@ cyan takes back the red that the sand's gave.
 pairs, their alpha, and the coral layer's vertices. **Resting on one
 photograph:** the rows.
 
+**The lake's layers, read at the card (item 4213).** Every setter of
+run1567's draws 121–131 and 163–169 on the pass after 3279
+(`the_lake_s_layers_at_the_card`), and run1564's 1,755 water vertices
+(`the_water_s_lattice_off_the_packet`):
+
+- 121–130: `sand.tga` and `coralblend.tga` in pairs, one mask each,
+  `MODULATE(TEXTURE, DIFFUSE)`; the alpha is the mask alone. All are lit
+  at the land's light (material white, light 1.36); only the sand carries
+  the material map.
+- 131: the coral over the sand layer, `MODULATE(TEXTURE, DIFFUSE)`, alpha
+  `1 − vertex α`, stage 1 off, at the land's light.
+- 162, the water: every normal is (0, 0, 1) and every red byte 0. Its
+  deepest alpha is **189**, so 26 % of what lies beneath shows. The
+  floor's texture is cyan, mean (71, 203, 237).
+- 163–169, the surf: `TL_FAKE_LIGHT`, `gTLAlpha` 1.0. The two lake-wide
+  layers, 166 and 167, are pure white at mean alpha 17 under a mask of
+  mean 102: about 2.7 % a layer.
+- The pixel shader's stage ops are D3D's own (`shader_texture_data.h`),
+  and the tone map runs per channel at saturation 1 with the tint's
+  alpha 0 (`ps_tonemap.hlsl`).
+
+**So no input read carries the lake's red.** The photograph's `OCEAN`
+reads (47, 113, 158) and ours (10.6, 146.7, 211.3). At 26 %, a layer
+beneath would need red near 180 to give 47, and no layer under the water
+has it: sand would, but the coral patch covers it at the mask alone.
+
+**Drawn in a scratch tree and not landed: the coral layer** (131, on the
+sand layer's faded triangles at `255 − α`). The light, tile-stepped
+`OCEAN` polygon (4200d) goes, because the deep sand now shows coral
+where the clear colour's black showed. On run1564 luma moves
+**1,396 → 1,611** (`SANDY` 397 → 581, `OCEAN` 299 → 327). Hue falls
+**1,021 → 900** (`SANDY` 311 → 190): beneath water at 189, the cyan
+pulls HSV hue from 205° to 199.5°, and the photograph's deep sand
+reads 206°. Parked 4213b.
+
 **What is not established.**
 
-- **The lake's red** (4174a, 4192b): no input read so far carries it, and
-  sand under the water is the only layer that has matched it.
+- **The lake's red** (4174a, 4192b; parked 4213a): no input read carries
+  it. The floor (36), the patches and coral (121–131), the water (162),
+  the surf (163–169) and the tone map are each read, and none has it.
 - ~~The tileset's tint, (18, 18, 0) on `early_autumn`, which
   `ImageIO::set_tint` lays on every tileset texture at load; the client
   takes the files untinted.~~ Drawn, with the land's light (§3.21).
 - The coral layer itself (draw 131) and the floor's light: neither is
-  drawn.
+  drawn. Item 4213 read 131's setters and drew it in a scratch tree
+  (4213b, above).
 - The patch's vertex colour (stage 0 `MODULATE(TEXTURE, DIFFUSE)`): ours
   draws the texel alone.
 
