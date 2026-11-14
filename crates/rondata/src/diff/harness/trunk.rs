@@ -1,6 +1,6 @@
 //! **The trunk**: checkpoints left along a silent run-up, keyed by the
 //! state itself (item 4220, DECISIONS 132 §11; `docs/TEST_PERFORMANCE.md`,
-//! "The trunk").
+//! "The group unit").
 //!
 //! The kept walk ([`super::prefix`]) hands one state from a widening to the
 //! next, keyed by the inputs' names, and libtest runs a group's tests in
@@ -261,7 +261,8 @@ fn ride(built: &mut Built, root: Print, to: i64) {
         "trunk {:016x}/{}: a run-up from {here} to {to} resumed on {from}",
         root.hash, root.len
     );
-    if verifying() {
+    let verified = verifying();
+    if verified {
         while built.sim.frame < to {
             built.tick();
         }
@@ -272,6 +273,7 @@ fn ride(built: &mut Built, root: Print, to: i64) {
         );
         eprintln!("trunk: the rung on {from} matches a fresh walk on {to}");
     }
+    tally_line(here, to, from, verified);
     // The test's own state (verifying, its own walk) gives way to the
     // equal one; it answers for no ground of its own.
     std::mem::replace(built, resumed).retire();
@@ -358,6 +360,29 @@ impl Leaves {
         });
         rung.retire();
     }
+}
+
+/// `RON_TRUNK_LOG=<directory>`: one line a rung taken — the test, the
+/// frame the run-up stood on, the frame it reached, the rung's frame and
+/// whether the verifier held it — in a file a process. libtest keeps a
+/// passing test's output, so this is how a run counts what its verifier
+/// checked: a verifier that never fired reads as green too.
+fn tally_line(here: i64, to: i64, from: i64, verified: bool) {
+    use std::io::Write as _;
+    let Some(dir) = std::env::var_os("RON_TRUNK_LOG") else {
+        return;
+    };
+    let path = std::path::Path::new(&dir).join(format!("trunk-{}.tsv", std::process::id()));
+    let test = std::thread::current()
+        .name()
+        .unwrap_or_default()
+        .to_string();
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .unwrap_or_else(|e| panic!("RON_TRUNK_LOG: {}: {e}", path.display()));
+    writeln!(file, "{test}\t{here}\t{to}\t{from}\t{verified}").expect("a tally line");
 }
 
 /// `frames saved, rungs taken`, for the suite's log.
