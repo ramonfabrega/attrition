@@ -341,7 +341,8 @@ impl Sim {
     /// (`docs/CHECKSUM.md` §17, §18). `0x8` is [`crate::Unit::line_ok`],
     /// the verified line `do_move`, `find_path`, `move_step` and
     /// `go_around_building` already keep (`docs/MOVEMENT.md`, "The verified
-    /// line's lifecycle"). `0x200` is [`crate::Unit::trade_unloaded`]
+    /// line's lifecycle"). `0x4` is [`crate::Unit::in_danger`],
+    /// `Unit::set_in_danger`'s latch (item 4251, run1600's records 27..29). `0x200` is [`crate::Unit::trade_unloaded`]
     /// (`Unit::do_trade`'s, item 4234). `0x200000` (`Unit::init`'s
     /// `can_carry(AIR)`) is not held.
     fn unit_masks_word(&self, u: usize) -> u32 {
@@ -349,6 +350,7 @@ impl Sim {
         let bits = [
             (0x1, un.decoy),
             (0x2, un.movement.mirror),
+            (0x4, un.in_danger),
             (0x8, un.line_ok),
             (0x10, un.contact),
             (0x20, un.gather_here),
