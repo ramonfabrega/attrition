@@ -693,9 +693,6 @@ fn the_minted_packets_name_each_first_parting() {
     let whole = whole.as_deref().map(per_frame);
     let mut moved = Vec::new();
     for &(run, trace, frame, pinned) in MINTED_PACKETS {
-        if std::env::var("RON_MINTED_ONLY").is_ok_and(|o| o != run) {
-            continue;
-        }
         let (Some((logger, theirs)), Some(sets)) = (packet_stream_in(&dir, run), hook(trace))
         else {
             eprintln!("skipping {run}: no stream under {dir} or no {trace}");
