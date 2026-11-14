@@ -1247,7 +1247,7 @@ fn the_slot_scan_calls_get_num_on_every_slot_it_reaches() {
 }
 
 /// **A push zeroes the origin of an emptied last slot** (item 4255,
-/// `docs/GROUPS.md` §36.3): `Group::equals_group@00708000` calls vslot
+/// `docs/GROUPS.md` §36.2): `Group::equals_group@00708000` calls vslot
 /// `+0x4`, `Group::get_num`, on `last_group`'s record after normalizing it,
 /// and an empty record's `num < 1` arm zeroes `ox`/`oy`. The minted game's
 /// slot 67, emptied of `1/39..1/41` after its move on 8171, reads 30552/21144

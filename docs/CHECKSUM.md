@@ -2399,7 +2399,7 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 |---|---|---|---|---|
 | units | 7195 | 1033027300 | 186629872 | 0 |
 | builds | 8281 | 4092534757 | 2135105497 | 0 |
-| groups | 8206 | 1227700410 | 2455910145 | 0 |
+| groups | 9810 | 793472871 | 2931519338 | 0 |
 | guys | 7273 | 3102114080 | 2138275448 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
 | cities | whole, 24,000 | | | 0 |
@@ -2708,12 +2708,22 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 | 7195 | units | 1,697, 1,697, 3 | 832 27 `collide_frame..play`: `unit_masks` 262144 (0x40000), 262148 (0x40004); whole since item 4251 (run1600's packet the same) |
 | 7273 | units | 1,692, 1,692, 1 | 891 30 guy: `angle` and `last_angle` 1431655765, 0 |
 | 7273 | guys | 560, 560, 1 | 279 30 guy: `angle` and `last_angle` 1431655765, 0 |
-| 8206 | groups | 544, 544, 1 | 91 67 `id..march`: `ox` 30552, 0; `oy` 21144, 0 |
+| 8206 | groups | 544, 544, 1 | 91 67 `id..march`: `ox` 30552, 0; `oy` 21144, 0; whole since item 4255 |
+| 9810 | groups | 550, 550, 1 | 76 64 `id..march`: `role` 1379328 (0x150c00), 1379331 (0x150c03) |
 
 On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Builds' 7383 row, record 2019's `mtn`
 −1 against 0, left with item 4244, and builds is whole on the record at 7383 and 8206. Its next first parting, 8281, is
 pinned: building 2018's `inside_down` (the garrison's top), ours 42, theirs 30, on a frame where units first parts
-on unit 30's (item 4244's journal). Measured on the tree after item 4243,
+on unit 30's (item 4244's journal). **Item 4255 moved groups 8206 → 9810** (`CHECKSUM_FRAMES`). Record 67 is player 1's slot 3. The Longbowmen
+`1/39..1/41` (TI 177) left it after its move on 8171, and its `num` is 0 on both sides by 8205. Theirs zeroes its
+`ox`/`oy` on 8206, the frame player 1 pushes into slot 65 (`last_group` 67 → 65). **The direction**: the original
+acted. `Group::equals_group@00708000` calls vslot `+0x4` (`Group::get_num`) on `last_group`'s record after its
+`normalize`, and `get_num`'s empty arm zeroes `ox`/`oy`. The crate normalized the slot and never called it
+(`docs/GROUPS.md` §36.2). After the fix it is 0/0 on both sides, and groups is whole on the record at 8206 and 8281.
+The next first parting is 9810: army 1/1's record (64). Both sides list the same 21 members, and only `role` parts,
+by the low bits 0x3. Unit 30 is not a member.
+
+Measured on the tree after item 4243,
 which made units whole on 6907 (run1593). Before it the record's 6907 showed what 4243's packet showed: units nine
 ranges short (1,639 of 1,648), first at range 784.
 

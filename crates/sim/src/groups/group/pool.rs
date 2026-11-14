@@ -214,7 +214,7 @@ impl Sim {
         // (`docs/GROUPS.md` §36.2).
         //
         // Then it calls vslot `+0x4`, `Group::get_num@00714700`, on each
-        // side (§36.3): on the last slot, an emptied record's `num < 1` arm
+        // side (§36.2): on the last slot, an emptied record's `num < 1` arm
         // zeroes `ox`/`oy` (`+0x18`, `+0x1c`). On the minted game player 1
         // pushes into slot 65 while `last_group` is slot 67, emptied of
         // `1/39..1/41` since its move on 8171: run1597's record reads slot
@@ -1091,7 +1091,7 @@ impl Sim {
         // `last_group` is the Scout's slot 1, which reads `role` 0x40110 and
         // speed 34 from 61 in the original (run1580; item 4222), where this
         // crate waited for `Groups::process`' turn on 65.
-        // Its `get_num` on the same slot follows (§36.3), as there.
+        // Its `get_num` on the same slot follows (§36.2), as there.
         if let Some(seat) = self.pool_seat(who, last) {
             self.seat_normalize(seat);
             self.seat_get_num(seat);

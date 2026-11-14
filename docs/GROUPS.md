@@ -5052,6 +5052,22 @@ On run630, `Unit::go_to`'s push on 10766 (the army walk, `docs/ARMY.md`
 §4.3) normalizes slot 71, and its speed reads 28 on 10767. Here it read 0
 until item 1457. Built as the first step of `Sim::push_group`.
 
+**Then it calls `get_num` on both sides** (item 4255). After the two
+`normalize`s, `equals_group` compares vslot `+0x4` of `this` and of the last
+slot, which is `Group::get_num@00714700`. On an empty record its first arm
+writes `num`, `ox` and `oy` (`+0xc`, `+0x18`, `+0x1c`) to 0. So the push
+after a slot's members leave it zeroes that slot's origin. On a slot of one
+to three members it normalizes again. On the minted game, player 1's slot 67
+moved the Longbowmen `1/39..1/41` (TI 177) on 8171 and was empty by 8205.
+run1597's record reads its `ox`/`oy` as 30552/21144 on 8205 and 0/0 on 8206,
+when player 1 pushes into slot 65 (diff-backed:
+`the_ranges_record_names_each_first_parting`, `CHECKSUM_FRAMES` groups 8206 →
+9810). The crate normalized the last slot and never asked `get_num`.
+`Sim::push_group_slot` and `Sim::push_buildings_group` now call
+`seat_get_num` after the normalize. The stack group's own `get_num` is not
+modelled. Its `id` is −1, so it drops dead members only, and a push's list
+is built from live units.
+
 ### 36.3 What moved
 
 No floor or word moves; French East Indies stays at 10802. 85 widening
