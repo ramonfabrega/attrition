@@ -341,15 +341,18 @@ corpus caches and `harness::closing_quit`'s per-capture cell are `Shared`. The r
 a new process-wide cache over fixtures: make it a `Shared`, or the audit comparison
 below turns red on the tests that read it second.
 
-**The kept walk (off).** `harness::prefix` can hand the state a widening leaves to the
-next test of the process (`RON_SHARE_WALKS=on`, which the runner says to a group when
-`isolated_tests.SHARE_WALKS` or `RON_SUITE_SHARE_WALKS` is `on`). The rule is the
+**The kept walk (on since item 4219).** `harness::prefix` hands the state a widening
+leaves to the next test of the process (`RON_SHARE_WALKS=on`, which the runner says to a
+group: `isolated_tests.SHARE_WALKS`, and `RON_SUITE_SHARE_WALKS=off` for a run without
+it). A lone test's process is told nothing and shares nothing. The rule is the
 coverage batch's: the same inputs by path, length and time, and a first block strictly
 after the retained frame; no verdict, comparison or recorded field is shared. The
 stand-up's fixture requests travel with the state and are replayed to the test that
 resumes it, and the ground guard is answered at the hand-back by the test that walked.
-**It is off in every gate as landed**; the measurements below say what turning it on
-buys and what has been checked.
+A state past a replayed quit is no other walk's prefix and is never kept. One game is
+kept: a widening of other inputs retires the state, and a window that starts at or
+before the kept frame falls back to the state the last walk started from, then to a
+stand-up.
 
 **The install's load.** `load::load` keeps the canonical test install's load and clones
 it after (`load::memo`, tests only; another root is read every time;
@@ -357,11 +360,24 @@ it after (`load::memo`, tests only; another root is read every time;
 
 **Which gate does what.** Groups are on wherever the library runs through the isolated
 runner: a lane's gate, a scoped booking gate and the whole gate alike, each over the
-tests it selects (a group's *selected* members share a process). No gate turns them
-off; `RON_SUITE_GROUPS=off` is a hand's. The whole booking gate alone sets
-`RON_VERIFY_ORACLE`, under which every widening is walked a second time fresh from
-frame 0 and compared whole, so once the kept walk is on the whole gate is its standing
-check and a lane's gate is not.
+tests it selects (a group's *selected* members share a process), and the kept walk is
+on in each. No gate turns either off; `RON_SUITE_GROUPS=off` and
+`RON_SUITE_SHARE_WALKS=off` are a hand's. The whole booking gate alone sets
+`RON_VERIFY_ORACLE`, under which every widening is walked a second time, uncached and
+fresh from frame 0, and compared whole: **the whole gate is the kept walk's standing
+check, and a lane's or a scoped gate is not.**
+
+**What the whole gate's verifiers cost** (the updated tree's binary, the library as the
+whole gate runs it, the kept walk on, 2,371 of 2,371 green): 184,176 G and 9,707 test
+CPU-seconds, against 76,124 G unverified (item 4219's lane gate, sixteen commits of the
+base later and four tests more), so the second walks are about 108,000 G, 1.4 times the
+suite they check. One process a test they were 113,157 G
+(226,747 against 113,590): grouping and the kept walk took nothing off them, because a
+verifying walk shares nothing by design. By unit, verified against unverified: the
+coverage walk 54,717 G against 11,874 G, the games' groups 91,308 G against 41,013 G,
+the lone tests 36,410 G against 21,493 G, map generation 1,741 G against 1,745 G. The cheaper verifier,
+`RON_VERIFY_PREFIX_REUSE` (the second walk keeps the on-disk oracle cache), is 111,652 G
+whole: it checks the kept walk and not the cache.
 
 **Measured** (2026-11-13, the whole library through the runner at 8 slots with the
 fixture audit on and no verifiers, beside other lanes' gates at a load of 20 to 40; the
@@ -380,8 +396,10 @@ rank at all):
 
 The first three and the last green, 2,361 and 2,362 of them; the fourth ran while its
 tree was updated under it and five tests that read the tree's own files were red. The
-lane gate of the landing, on the updated tree at 4 threads: `Suite: 1242 processes for
-2371 tests: 145 groups hold 1274, 1097 ran alone; 4570 test CPU-seconds`. **The fixture audit, test for test as multisets**
+lane gates, on the updated tree at 4 threads: item 4216's, the kept walk off, `Suite:
+1242 processes for 2371 tests: 145 groups hold 1274, 1097 ran alone; 4570 test
+CPU-seconds` and 83,019 G; item 4219's, the kept walk on, `Suite: 1246 processes for
+2375 tests: 145 groups hold 1274, 1101 ran alone; 3875 test CPU-seconds` and 76,124 G. **The fixture audit, test for test as multisets**
 (`suite_groups.py --audit`, 1,924 tests with rows): groups against off, one test
 differs, the coverage test (8 against 7 requests of two files of one game), which is
 wider than a slot and ran alone in its own process in both runs; kept walk against off,
@@ -398,7 +416,9 @@ widened windows, which are 12 of that group's 28 tests and a quarter of its time
 walk-to-the-word, closing-state, audit, stride and packet shapes each still stand the
 game up and walk it whole.
 
-**Not established.** (1) The wall: three runs on a loaded host do not rank, and groups
+**Not established.** (0) The updated tree's groups-off number: stage 1's audit equality
+was taken before 51 commits of the base were merged; none of them adds a process-wide
+cache (grepped), and the kept walk's equality was retaken after them. (1) The wall: three runs on a loaded host do not rank, and groups
 are long serial units that may pack worse than single tests. (2) Why the coverage
 test's own rows differ run to run; it was not a group's doing, since it never runs in
 one. (3) libtest runs a filter's tests in name order, so a window that starts before

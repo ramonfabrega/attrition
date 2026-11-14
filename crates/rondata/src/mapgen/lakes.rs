@@ -168,10 +168,17 @@ pub enum Style {
     EastMeetsWest,
     SeaPower,
     NileDelta,
+    /// `MAP_STYLE` 22, `MapBritishIsles::make_continents@00695130` (item
+    /// 4211; `docs/MAPGEN.md` §37): islands on a ring, its own port.
+    BritishIsles,
+    /// `MAP_STYLE` 15, `MapWarringStates::make_continents@00698b60` (item
+    /// 4211; `docs/MAPGEN.md` §37): a walk of regions grown into one
+    /// continent, and islands placed by the fairness tally.
+    WarringStates,
 }
 
 /// Every composed style, `MAP_STYLE` order aside.
-const STYLES: [Style; 15] = [
+const STYLES: [Style; 17] = [
     Style::GreatLakes,
     Style::EastIndies,
     Style::GreatSahara,
@@ -187,6 +194,8 @@ const STYLES: [Style; 15] = [
     Style::EastMeetsWest,
     Style::SeaPower,
     Style::NileDelta,
+    Style::BritishIsles,
+    Style::WarringStates,
 ];
 
 impl Style {
@@ -213,6 +222,8 @@ impl Style {
             Style::EastMeetsWest => "EASTWEST.xml",
             Style::SeaPower => "SEAPOWER.xml",
             Style::NileDelta => "NILEDELTA.xml",
+            Style::BritishIsles => "BRITISHISLES.xml",
+            Style::WarringStates => "WARRINGSTATES.xml",
         }
     }
 
@@ -234,6 +245,8 @@ impl Style {
             Style::EastMeetsWest => 19,
             Style::SeaPower => 20,
             Style::NileDelta => 21,
+            Style::BritishIsles => 22,
+            Style::WarringStates => 15,
         }
     }
 }
@@ -411,6 +424,27 @@ pub fn composed_map(
             &mut d,
         )
         .map(|_| ()),
+        Style::BritishIsles => {
+            sim::mapgen::map_british_isles::british_isles_make_continents(
+                &mut grid,
+                lobby.nations,
+                style()?,
+                &mut d,
+            )
+            .map_err(|e| Refusal::Unported(format!("British Isles' mask: {e:?}")))?;
+            Some(())
+        }
+        Style::WarringStates => {
+            sim::mapgen::map_warring_states::warring_states_make_continents(
+                &mut grid,
+                lobby.nations,
+                &lobby.teams,
+                style()?,
+                &mut d,
+            )
+            .map_err(|e| Refusal::Unported(format!("Warring States' mask: {e:?}")))?;
+            Some(())
+        }
     };
     made.ok_or(Refusal::Continents)?;
     say("map.cpp", 7807, &grid, &d.rng, empty);
