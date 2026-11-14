@@ -3,6 +3,8 @@
 mod checkpoint;
 #[cfg(test)]
 pub(crate) mod prefix;
+#[cfg(test)]
+pub(crate) mod trunk;
 pub use checkpoint::ReplaySession;
 
 use super::*;
@@ -5113,6 +5115,13 @@ pub(crate) mod tests {
                 .and_then(|c| quits[c])
                 .is_some_and(|q| q == (n - 1, head))
         };
+        // The approach to the window compares nothing: a state fresh from
+        // its stand-up rides the game's trunk to the frame before the first
+        // block (`trunk`, item 4220). A verifying walk takes no prefix and
+        // rides nothing.
+        if prefix {
+            super::trunk::advance(&mut built, first_block - 1);
+        }
         // Frame `f` writes block `f + 1`, so the window's last block is
         // frame `tail - 1`'s. `0..=tail` read block `tail + 1` too, which no
         // chain held until run211 followed run202 (item 722).
