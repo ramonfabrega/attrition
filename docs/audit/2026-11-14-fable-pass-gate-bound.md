@@ -177,7 +177,23 @@ run1564 is the sRGB-matched grab the row reads (item 4223). By eye.
 
 ## The gate
 
-Whole, on the commit that carries this record, by `tools/gate_run.sh`:
-`~/Library/Caches/attrition/gates/gate-pass-1114.log`. The record is written
-before the gate runs; its verdict is that log's last line, and neither the push
-nor the handover happens on anything but `gate exit 0`.
+Whole, by `tools/gate_run.sh`, twice.
+
+- **`gate-pass-1114.log`, red at the offline step in two minutes**:
+  `test_the_seams_a_door_outlived_are_the_pinned_count`, 13 against a pinned
+  14. The pass's own: the adjudication re-worded `diplomacy`'s stale SEAM,
+  which was one of the fourteen. The doors pin is on `docs/LOOP.md`'s list of
+  pins a merge moves, to be run before the gate, and the pass ran the floors,
+  the audit and the checksum frames and not that one. Re-pinned with its
+  reason (`fe7231338`). The same pre-run did catch one: a sentence of the
+  queue's maintenance notes that the new closed-form recogniser read as a
+  scoreboard line.
+- **`gate-pass-1114b.log`: `gate exit 0` on `fe7231338`**, 7 of 7 steps,
+  release 22.2 minutes (offline 2.0, guard 1.4), `Suite: 1272 processes for
+  2401 tests: 145 groups hold 1274, 1127 ran alone; 9508 test CPU-seconds`,
+  admission 7.5 s over 1,307 leases, load 2.5 at its start and 9.9 at its
+  end, `Rows: one driver row at most: steer 7d5e286d (working)`, 213 GB free.
+  Pushed, and `origin/main` fast-forwarded to it.
+
+This section and the queue's handoff lines are gated scoped over that commit
+(`gate-pass-1114c.log`).
