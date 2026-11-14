@@ -649,6 +649,12 @@ pub fn land_alpha_of(h: f32, land_height: f32) -> u8 {
 pub const WATER_TOP: [u8; 3] = [0, 159, 255];
 pub const WATER_BOT: [u8; 3] = [0, 111, 218];
 
+/// **The water's material** (item 4227; item 4232 draws it): run1567's
+/// draw 162, the diffuse (1, 1, 1.5) and the ambient 0.2, which the lit
+/// branch takes the water's vertex colour through (`shaders/water.wgsl`).
+pub const WATER_DIFFUSE: [f32; 3] = [1.0, 1.0, 1.5];
+pub const WATER_AMBIENT: f32 = 0.2;
+
 /// **The screen's ramp** (item 4174): `TerrainOut::determine_frustum_
 /// intersect@00854770`'s two ground points — under the screen's top-left
 /// pixel and its bottom-left — and the fraction a world point lies along
@@ -721,6 +727,7 @@ pub fn water_rgb(f: f32) -> [u8; 3] {
 /// on 0–255 channels. Item 4227: clamped once, at the end, as the
 /// install's `do_texture_operation` leaves the stages unclamped and
 /// `ps_global.hlsl` saturates their product (`shaders/shader_texture_data.h`).
+#[cfg(test)]
 pub fn floor_stage(t0: [f32; 3], t1: [f32; 3], grey: u8) -> [f32; 3] {
     let g = f32::from(grey) / 255.0;
     [0, 1, 2].map(|k| (2.0 * t0[k] * g * t1[k] / 255.0).min(255.0))
@@ -739,15 +746,17 @@ pub fn floor_corner(tex: &render::tga::Image) -> [f32; 3] {
     [0, 1, 2].map(|k| f32::from(tex.rgba[i + k]))
 }
 
-/// **The floor's two layers as one texture** (item 4178; item 4227):
-/// `render_ocean_floor` binds `<OCEAN>`'s texture twice, and stage 1's
-/// clamp leaves the second layer one texel, [`floor_corner`];
-/// [`floor_stage`] combines them under `grey`. Texel `(x, y)` is the
-/// stage's colour at the first layer's texel `(x, y)`; the first layer's
-/// texcoord samples it, at [`FLOOR_OFFSETS`]' first. Item 4178 had baked
-/// the second layer mirrored about the packet's summed offsets, as a
-/// wrapping sampler would read it.
-pub fn floor_texture(tex: &render::tga::Image, grey: u8) -> render::tga::Image {
+/// **The floor's two layers as one texture** (item 4178; item 4227; item
+/// 4232): `render_ocean_floor` binds `<OCEAN>`'s texture twice, and stage
+/// 1's clamp leaves the second layer one texel, [`floor_corner`]. Texel
+/// `(x, y)` is the first layer's texel `(x, y)` times the corner, out of
+/// 255; the first layer's texcoord samples it, at [`FLOOR_OFFSETS`]'
+/// first. `fs_floor` doubles it under the vertex grey and saturates, so
+/// the stage is [`floor_stage`]'s, per pixel, before the lit branch. Item
+/// 4178 had baked the second layer mirrored about the packet's summed
+/// offsets, as a wrapping sampler would read it, and items 4178 to 4227
+/// baked the stage at the brightest grey under a black layer in LDR.
+pub fn floor_product(tex: &render::tga::Image) -> render::tga::Image {
     let corner = floor_corner(tex);
     let rgba = tex
         .rgba
@@ -755,8 +764,11 @@ pub fn floor_texture(tex: &render::tga::Image, grey: u8) -> render::tga::Image {
         .0
         .iter()
         .flat_map(|t| {
-            let f = floor_stage([0, 1, 2].map(|k| f32::from(t[k])), corner, grey);
-            let [r, g, b] = f.map(|v| v.round().clamp(0.0, 255.0) as u8);
+            let [r, g, b] = [0, 1, 2].map(|k| {
+                (f32::from(t[k]) * corner[k] / 255.0)
+                    .round()
+                    .clamp(0.0, 255.0) as u8
+            });
             [r, g, b, 255]
         })
         .collect();
@@ -794,15 +806,6 @@ pub fn water_colour_ramp() -> Mips {
 /// A ramp fraction as a texcoord into a 256-texel ramp (item 4178).
 pub fn ramp_uv(f: f32) -> [f32; 2] {
     [(f.clamp(0.0, 1.0) * 255.0 + 0.5) / 256.0, 0.5]
-}
-
-/// **The floor's shade** (item 4178): the floor is baked at its brightest
-/// vertex grey ([`floor_grey`] at 0, 153) and drawn opaque; a black layer
-/// over it at alpha `1 − grey / 153` leaves `texel · grey / 153`, the
-/// stage's product wherever `MODULATE2X` does not clamp. Out of 255.
-pub fn floor_shade(f: f32) -> f32 {
-    let top = f32::from(floor_grey(0.0));
-    255.0 * (1.0 - f32::from(floor_grey(f)) / top)
 }
 
 /// **The floor's layers' offsets on run1564's packet** (item 4178; item
@@ -997,7 +1000,12 @@ pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1104, 1109);
 /// still's `SANDY` 443 → 442 and `OCEAN` 258 → 412; with the surf, (484,
 /// 258) → (484, 412): `SANDY` 442 → 484, 42 crossing up, `OCEAN` still
 /// unmoved by the surf.
-pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[484, 772], [412, 437]];
+/// Item 4232, on the lake lit and blended in HDR: the still's (442, 412)
+/// → (573, 422); with the surf, (484, 412) → **(701, 422)**: `SANDY` 573
+/// → 701, 128 crossing up and none down (tile (162, 197), theirs (38,
+/// 122, 163), the still's (18, 110, 159) → (27, 115, 163)), `OCEAN`
+/// unmoved by the surf.
+pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[701, 772], [422, 437]];
 
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
 /// `(agree, scored)`, then by kind `[agree, scored]`, `KINDS`' order.
@@ -1033,16 +1041,20 @@ pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[484, 772], [412, 437]];
 /// lake's centre: theirs (36.9, 141.5, 181.7), the still's (4.6, 151.2,
 /// 213.2) → (28.5, 154.0, 215.1), parted → agrees. The clamp alone, the
 /// first layer at no offset: 1,493 (`OCEAN` 339).
+/// Item 4232: **1,565 → 1,706**, the floor lit per pixel at its grey and
+/// the water lit and blended over the frame under it in HDR
+/// (`shaders/water.wgsl`, `docs/RENDERER.md` §3.24): `SANDY` **442 →
+/// 573**, `OCEAN` **412 → 422**; plain and `ROCK` unchanged.
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1565, 1920),
+    (1706, 1920),
     [
         [679, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [442, 772],
-        [412, 437],
+        [573, 772],
+        [422, 437],
     ],
 );
 
@@ -1069,6 +1081,7 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4221: run1559b **1,029 → 1,036** (plain 952 → 954, under a mountain 61 → 66): the trees tinted and blended (§3.23) change the frame's mean, so its white; run1564 unchanged.
 /// Item 4223: run1564 **1,396 → 1,437**, the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]) (`ROCK` 21 → 25, `SANDY` 397 → 400, `OCEAN` 299 → 333); then **1,437 → 1,710**, the coral layer drawn (`SANDY` 400 → 649, `OCEAN` 333 → 357); run1559b unchanged.
 /// Item 4227: run1564 **1,710 → 1,705** (`SANDY` 649 → 650, `OCEAN` 357 → 351), the floor's clamped second layer at its offset (§3.12): the lake's hue in, six of its tiles a shade bright; run1559b unchanged.
+/// Item 4232: run1564 **1,705 → 1,805** (`SANDY` 650 → 681, `OCEAN` **351 → 420**), the floor lit per pixel and the water blended over it in HDR (`shaders/water.wgsl`, §3.24); run1559b unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
         (1036, 1109),
@@ -1083,15 +1096,15 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1705, 1920),
+        (1805, 1920),
         [
             [679, 679],
             [0, 0],
             [25, 32],
             [0, 0],
             [0, 0],
-            [650, 772],
-            [351, 437],
+            [681, 772],
+            [420, 437],
         ],
     ),
 ];
@@ -1109,7 +1122,10 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Item 4227: run1564's 1,605 → 1,737, the floor's clamped second layer at
 /// its offset; **now above the row it fails on run1564** (1,565), while
 /// run1559b's 992 stays under its 1,104 (parked 4227a).
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1737, 1920)];
+/// Item 4232: run1564's 1,737 → 1,709, the lake lit and blended in HDR
+/// (`shaders/water.wgsl`), against the drawn row's 1,706: the made-to-fail
+/// side still leads by three tiles on run1564 (4227a stands).
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1709, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1364,6 +1380,56 @@ pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1018, 878), (985, 1502), (8
 /// model mirrored (10.0, 159.1, 208.1) and parted, clamped (41.9, 161.0,
 /// 208.2) and agreeing.
 pub const RUN1564_3279_LAKE_HDR: [[u32; 2]; 2] = [[217, 437], [398, 437]];
+
+/// **The texture reader** (item 4232; `docs/RENDERER.md` §3.24): a
+/// tile's texture is the standard deviation of its ground pixels'
+/// luminance (`0.3 r + 0.59 g + 0.11 b`), and two tiles' agree when the
+/// larger over the smaller is at most `ratio`, each floored at `floor`
+/// so two flat tiles agree. The hue and luma rows read a tile's mean and
+/// cannot see a mottle; this reads its spread.
+#[cfg(test)]
+pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
+    floor: 2.0,
+    ratio: 1.5,
+    min_pixels: 40,
+};
+
+/// **`RUN1564_3279_TEXTURE_STILL`** (item 4232; `docs/RENDERER.md`
+/// §3.24): [`TEXTURE`]'s row on the client's still of run1564, by kind
+/// `[agree, scored]`, [`RUN1564_3279_GROUND_STILL`]'s tiles. **Plain 665
+/// of 679, `ROCK` 8 of 32, `SANDY` 223 of 772, `OCEAN` 21 of 437**: the
+/// land's grass carries its photograph's mottle (mean spread 8.05 against
+/// 8.88), the lake does not (2.17 against 6.96; quartiles theirs 4.77,
+/// 6.00, 7.58, ours 1.69, 2.07, 2.57). Tile (170, 187): theirs 4.45,
+/// ours 2.66, parted. The photograph against itself agrees on 1,920 of
+/// 1,920.
+///
+/// Item 4232, the floor lit per pixel and the water blended over it in
+/// HDR (`shaders/water.wgsl`): **`OCEAN` 21 → 232**, `SANDY` 223 → 326,
+/// `ROCK` 8 → 9, plain 665 unchanged. The lake's mean spread 2.17 → 4.15
+/// against theirs 6.96 (quartiles ours 2.81, 3.97, 5.22); tile (170, 187)
+/// 2.66 → 4.69 against 4.45, agrees. The card's model on the CPU, which
+/// samples the floor's level 0 at the nearest texel, read 323
+/// ([`RUN1564_3279_LAKE_HDR_TEXTURE`]); the GPU's mipmapped draw reads
+/// less spread.
+#[cfg(test)]
+pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
+    [665, 679],
+    [0, 0],
+    [9, 32],
+    [0, 0],
+    [0, 0],
+    [326, 772],
+    [232, 437],
+];
+
+/// **`RUN1564_3279_LAKE_HDR_TEXTURE`** (item 4232): [`TEXTURE`]'s
+/// `OCEAN` `[agree, scored]` on [`RUN1564_3279_LAKE_HDR`]'s two CPU
+/// composites, mirrored then clamped: 284 and **323** of 437, from the
+/// still's 21. The kill ("the composite's row does not rise with the lit
+/// floor") did not fire.
+#[cfg(test)]
+pub const RUN1564_3279_LAKE_HDR_TEXTURE: [[u32; 2]; 2] = [[284, 437], [323, 437]];
 
 /// [`RUN1559B_3279_GROUND`] on the base layer alone, as item 4127 pinned it.
 #[cfg(test)]
@@ -2760,7 +2826,8 @@ pub(crate) mod tests {
         );
         // Item 4164: the water before the mountains. Item 4178: on its own
         // mesh, sixteen triangles over every cell that holds it, and the
-        // floor's shade over every `OCEAN` tile, once.
+        // floor's shade over every `OCEAN` tile, once. Item 4232: the
+        // floor itself is that layer, its grey on the alpha ramp.
         let water: Vec<_> = laid
             .iter()
             .filter(|m| m.piece == crate::world::WATER_PIECE)
@@ -2784,10 +2851,13 @@ pub(crate) mod tests {
         let sea = base.of.iter().filter(|&&k| Some(k) == ocean).count();
         let shade: Vec<_> = laid
             .iter()
-            .filter(|m| m.piece == crate::world::FLOOR_PIECE - 1)
+            .filter(|m| m.piece == crate::world::FLOOR_PIECE)
             .collect();
-        assert_eq!(shade.len(), 1, "one floor shade");
+        assert_eq!(shade.len(), 1, "one floor layer");
         assert_eq!(shade[0].positions.len(), sea * 3, "every OCEAN tile, once");
+        assert_eq!(shade[0].uvs.len(), sea * 3);
+        assert_eq!(shade[0].alpha_uvs.len(), sea * 3);
+        let floor_drawn = shade[0].positions.len();
         // Item 4192: and the land's faded layers, one per texture whose
         // triangles reach below the fade's top, each before the shade.
         let faded: Vec<_> = laid
@@ -2795,7 +2865,7 @@ pub(crate) mod tests {
             .filter(|m| {
                 m.alpha == crate::world::WATER_ALPHA
                     && m.piece != crate::world::WATER_PIECE
-                    && m.piece != crate::world::FLOOR_PIECE - 1
+                    && m.piece != crate::world::FLOOR_PIECE
                     && m.piece != crate::world::CORAL_PIECE
             })
             .collect();
@@ -2844,9 +2914,9 @@ pub(crate) mod tests {
         );
         assert!(
             laid.iter()
-                .position(|m| m.piece == crate::world::FLOOR_PIECE - 1)
+                .position(|m| m.piece == crate::world::FLOOR_PIECE)
                 == Some(faded.len()),
-            "the faded land before the shade"
+            "the faded land before the floor"
         );
         let mut faded_of = std::collections::BTreeMap::<usize, usize>::new();
         for m in &faded {
@@ -2875,25 +2945,19 @@ pub(crate) mod tests {
         assert!(laid > 0, "the transition patch is laid");
         let drawn: usize = ground.iter().map(|m| m.positions.len()).sum();
         assert!(drawn > 0, "the ground is textured");
-        assert_eq!(drawn + fade_drawn, base.tris.len() * 3);
+        assert_eq!(drawn + fade_drawn + floor_drawn, base.tris.len() * 3);
         assert_eq!(
-            rest.positions.len() + drawn + fade_drawn,
+            rest.positions.len() + drawn + fade_drawn + floor_drawn,
             full.positions.len()
         );
         for m in ground {
             assert_eq!(m.positions.len(), m.uvs.len());
-            // Item 4178: the `OCEAN` tiles draw the floor, not their base.
-            let k = if m.piece == crate::world::FLOOR_PIECE {
-                ocean.expect("the floor is the ocean's")
-            } else {
-                (-1 - m.piece) as usize
-            };
+            // Item 4178: the `OCEAN` tiles draw the floor, not their base;
+            // item 4232: in its own layer, among the patches.
+            assert_ne!(m.piece, crate::world::FLOOR_PIECE);
+            let k = (-1 - m.piece) as usize;
             let tris = base.of.iter().filter(|&&o| o == k).count();
-            let fade = if m.piece == crate::world::FLOOR_PIECE {
-                0
-            } else {
-                faded_of.get(&k).copied().unwrap_or(0)
-            };
+            let fade = faded_of.get(&k).copied().unwrap_or(0);
             assert_eq!(m.positions.len() + fade, tris * 3, "texture {k}");
         }
         assert!(
@@ -3825,8 +3889,8 @@ pub(crate) mod tests {
             let grey = floor_grey(ramp.at(fx, fy));
             let over = lit(
                 water_rgb(ramp.at(wx, wy)).map(f32::from),
-                [1.0, 1.0, 1.5],
-                0.2,
+                WATER_DIFFUSE,
+                WATER_AMBIENT,
             );
             let al = alpha_at(wx, wy).unwrap_or(0.0) / 255.0;
             for (out, t1) in outs.iter_mut().zip([mirrored, clamped]) {
@@ -3852,6 +3916,7 @@ pub(crate) mod tests {
         }
         let before = still_ground_row(&mut p, &still);
         let mut got = Vec::new();
+        let mut textures = Vec::new();
         for (name, out) in ["mirrored", "clamped"].iter().zip(&outs) {
             let after = still_ground_row(&mut p, out);
             let mut by = [[0u32; 2]; 7];
@@ -3898,8 +3963,136 @@ pub(crate) mod tests {
                 mean(&|a| a.2)
             );
             got.push(by[6]);
+            let tex = still_texture_row(&mut p, out);
+            let tby = texture_by_kind(&p, &tex);
+            println!(
+                "4232 {name}: texture by kind {tby:?}; {}",
+                texture_summary(&p, &tex, 6)
+            );
+            textures.push(tby[6]);
         }
         assert_eq!(got, RUN1564_3279_LAKE_HDR);
+        assert_eq!(textures, RUN1564_3279_LAKE_HDR_TEXTURE);
+    }
+
+    /// One tile on [`TEXTURE`]'s row (item 4232): the tile, the
+    /// photograph's luminance spread, ours, and whether they agree.
+    pub(crate) type TextureTile = ((i32, i32), f32, f32, bool);
+
+    /// The standard deviation of `px`'s luminances.
+    fn luma_spread(px: &[[f32; 3]]) -> f32 {
+        let y: Vec<f32> = px
+            .iter()
+            .map(|&c| render::silhouette::luminance(c))
+            .collect();
+        let n = y.len().max(1) as f32;
+        let m = y.iter().sum::<f32>() / n;
+        (y.iter().map(|v| (v - m).powi(2)).sum::<f32>() / n).sqrt()
+    }
+
+    /// **The texture row on a still** (item 4232): [`still_ground_row`]'s
+    /// tiles, each the photograph's luminance spread over its ground
+    /// pixels against `still`'s over the same pixels, under [`TEXTURE`].
+    pub(crate) fn still_texture_row(p: &mut Probe, still: &[u8]) -> Vec<TextureTile> {
+        let g = ground(p);
+        let px = |rgba: &[u8], i: usize| [0, 1, 2].map(|c| f32::from(rgba[i * 4 + c]));
+        type Px = Vec<[f32; 3]>;
+        let mut tiles: BTreeMap<(i32, i32), (Px, Px)> = BTreeMap::new();
+        for (i, tt) in g.tile.iter().enumerate() {
+            let Some(tt) = *tt else { continue };
+            let e = tiles.entry(tt).or_default();
+            e.0.push(px(&p.photo.rgba, i));
+            e.1.push(px(still, i));
+        }
+        tiles
+            .into_iter()
+            .filter(|(_, (th, _))| th.len() as u32 >= TEXTURE.min_pixels)
+            .map(|(tt, (th, us))| {
+                let (a, b) = (luma_spread(&th), luma_spread(&us));
+                (tt, a, b, TEXTURE.agrees(b, a))
+            })
+            .collect()
+    }
+
+    /// A texture row by kind, `[agree, scored]`.
+    fn texture_by_kind(p: &Probe, row: &[TextureTile]) -> [[u32; 2]; 7] {
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let mut by = [[0u32; 2]; 7];
+        for (tt, _, _, ok) in row {
+            let k = kind_of(&t, &mountains, *tt);
+            by[k][1] += 1;
+            by[k][0] += u32::from(*ok);
+        }
+        by
+    }
+
+    /// One kind's spreads on a texture row, for the journal: the tiles'
+    /// mean spread theirs and ours, and theirs' quartiles.
+    fn texture_summary(p: &Probe, row: &[TextureTile], kind: usize) -> String {
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let of: Vec<_> = row
+            .iter()
+            .filter(|q| kind_of(&t, &mountains, q.0) == kind)
+            .collect();
+        let n = of.len().max(1) as f32;
+        let q = |mut v: Vec<f32>| {
+            v.sort_by(|a, b| a.total_cmp(b));
+            [0.25, 0.5, 0.75].map(|f| v.get((f * v.len() as f32) as usize).copied().unwrap_or(0.0))
+        };
+        format!(
+            "{}: mean spread theirs {:.2} ours {:.2}; quartiles theirs {:.2?} ours {:.2?}",
+            KINDS[kind],
+            of.iter().map(|q| q.1).sum::<f32>() / n,
+            of.iter().map(|q| q.2).sum::<f32>() / n,
+            q(of.iter().map(|q| q.1).collect()),
+            q(of.iter().map(|q| q.2).collect()),
+        )
+    }
+
+    /// **Item 4232: the lake's texture on the still** (`docs/RENDERER.md`
+    /// §3.24). [`TEXTURE`]'s row on the client's still of run1564, by kind,
+    /// pinned at [`RUN1564_3279_TEXTURE_STILL`]; the photograph read
+    /// against itself agrees on every tile, so the row can pass.
+    #[test]
+    fn the_lake_s_texture_on_the_still() {
+        use crate::gpu::SilhouetteOrder;
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let still = crate::still_of(
+            &mut p.world,
+            &camera,
+            size,
+            SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+        );
+        let photo = p.photo.rgba.clone();
+        let itself = still_texture_row(&mut p, &photo);
+        let itself = texture_by_kind(&p, &itself);
+        println!("4232: the photograph against itself, by kind {itself:?}");
+        assert!(
+            itself.iter().all(|k| k[0] == k[1]),
+            "the photograph's texture agrees with itself"
+        );
+        let row = still_texture_row(&mut p, &still);
+        let by = texture_by_kind(&p, &row);
+        for k in [0, 5, 6] {
+            println!("4232 still {}", texture_summary(&p, &row, k));
+        }
+        if let Some(q) = row.iter().find(|q| q.0 == (170, 187)) {
+            println!(
+                "4232 still: tile {:?}, spread theirs {:.2} ours {:.2} agrees {}",
+                q.0, q.1, q.2, q.3
+            );
+        }
+        println!("4232 still: texture by kind [agree, scored] {by:?}");
+        assert_eq!(by, RUN1564_3279_TEXTURE_STILL);
     }
 
     /// One scored tile on the still (item 4171): the photograph's mean,
