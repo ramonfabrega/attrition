@@ -263,7 +263,8 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 "units",
                 2549,
                 2549,
-                14,
+                // 14 → 2 by item 4257 (the garrison chain's words).
+                2,
                 "570 14 guy: last_angle 682461312|968792448",
             ),
             (
