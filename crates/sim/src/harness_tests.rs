@@ -1449,7 +1449,9 @@ fn an_age_writes_each_figure_s_last_on_its_point() {
     let u = walkers[0];
     let (pos, heading) = (sim.units[u].pos, sim.units[u].movement.heading);
     for (g, guy) in sim.units[u].guys.iter().enumerate() {
-        let at = guy.follow.map_or(sim.units[u].movement.body.pos, |f| f.body.pos);
+        let at = guy
+            .follow
+            .map_or(sim.units[u].movement.body.pos, |f| f.body.pos);
         assert_eq!(
             guy.last,
             Some((at, heading)),
