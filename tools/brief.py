@@ -225,6 +225,25 @@ def open_items_text(queue):
     return out
 
 
+def queue_mark(text):
+    """`'whole'`, `'scoped'` or None: the queue's own mark on an item, read
+    in the first parenthesis after its bold headline (`(rules; scoped; …)`,
+    `(structure; **whole**; …)`). DECISIONS 133 §2: the mark decides the
+    lane gate's widening before the kind does. Item 4204 was marked whole,
+    went out on a start lane's filters with `--no-widen`, and its eight
+    reds were the booking gate's to find; six residue lanes on scoped
+    items skipped nothing (the pass of 2026-11-14)."""
+    m = re.search(r'\*\*.*?\*\*\s*\((.*?)\)', text, re.S)
+    if not m:
+        return None
+    words = [w.strip() for w in m.group(1).split(';')]
+    if '**whole**' in words or 'whole' in words:
+        return 'whole'
+    if 'scoped' in words:
+        return 'scoped'
+    return None
+
+
 def open_items(queue):
     """`[(number, headline)]`, the bold opening of each open item."""
     out = []
@@ -443,13 +462,18 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
     if missing:
         raise ValueError(f'tools/brief/frame.md has no section {missing}')
 
+    # The widening: the queue's mark first, the kind's default without one.
+    mark = queue_mark(items[item])
+    widen = {'whole': '', 'scoped': ' --no-widen'}.get(
+        mark, '' if kind == 'residue' else ' --no-widen')
+
     def fill(text):
         if kind in WHOLE:
             text = text.replace('--tests {tests}{widen}', '--whole')
         return (text.replace('{item}', str(item)).replace('{model}', model)
                 .replace('{base}', base).replace('{track}', TRACKS[kind])
                 .replace('{tests}', ' '.join(tests))
-                .replace('{widen}', '' if kind == 'residue' else ' --no-widen'))
+                .replace('{widen}', widen))
 
     others = [(n, h) for n, h in open_items(queue) if n != item]
     # The other sweep lanes' worktrees, for `census.py --unbacked --claimed`

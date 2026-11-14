@@ -154,6 +154,20 @@ class ABriefIsComposed(unittest.TestCase):
         # but the blind list: the fast suite and `blind::`, no widening.
         self.assertIn('--tests blind:: --no-widen`', self.compose(1131, 'reading', tests=[]))
 
+    def test_the_queue_s_own_mark_decides_the_widening_before_the_kind_does(self):
+        # DECISIONS 133 §2: item 4204 was marked whole, went out on a start
+        # lane's filters with --no-widen, and its eight reds were found by
+        # the booking gate; six residue lanes on scoped items skipped
+        # nothing. The mark is the queue's, in the item's first parenthesis.
+        head = '1133. **Great Sahara\'s word: frame 8, ours 6 draws against 7** (1066),'
+        whole = QUEUE.replace(head, head.replace('(1066),', '(rules; **whole**; 1066),'))
+        scoped = QUEUE.replace(head, head.replace('(1066),', '(rules; scoped; 1066),'))
+        self.assertNotIn('--no-widen', self.compose(1133, 'chapter', queue=whole))
+        self.assertIn(' --no-widen`', self.compose(1133, 'residue', queue=scoped))
+        self.assertEqual(brief.queue_mark(brief.open_items_text(whole)[1133]), 'whole')
+        self.assertEqual(brief.queue_mark(brief.open_items_text(scoped)[1133]), 'scoped')
+        self.assertIsNone(brief.queue_mark(brief.open_items_text(QUEUE)[1133]))
+
     def test_a_note_s_lane_gate_without_tests_or_whole_is_refused(self):
         # Loop 3489: `--lane --item N` with no `--tests` is refused by the
         # gate (exit 2), so a note that briefs it hands the lane a gate that
