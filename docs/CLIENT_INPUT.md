@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -869,9 +869,9 @@ files. Every package of every file decodes. An order is a command `rondata::inpu
 `camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
 as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
 
-**`INPUT_KINDS`: 11 of 26 kinds, 2,240 of 2,429 orders (92.2 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
+**`INPUT_KINDS`: 13 of 26 kinds, 2,286 of 2,429 orders (94.1 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
 was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 10 and 2,216 (91.2 %) once the chat
-(§12) was, and is 11 since the pause (§13). The kinds the layer mints are `input::MINTS`, held to the
+(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, and is 13 since the market's sale and purchase (§16). The kinds the layer mints are `input::MINTS`, held to the
 `Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
 `input_kinds_of_the_recordings_on_disk`.
 
@@ -885,11 +885,11 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `attack` | 80 | 3.2 % | yes |
 | `leader_options` | 50 | 2.0 % | |
 | `build` | 31 | 1.2 % | yes |
-| `sell` | 28 | 1.1 % | |
+| `sell` | 28 | 1.1 % | yes (§16) |
 | `swarm_around` | 28 | 1.1 % | yes |
 | `pause` | 24 | 0.9 % | yes (§13) |
 | `city_gather` | 20 | 0.8 % | |
-| `buy` | 18 | 0.7 % | |
+| `buy` | 18 | 0.7 % | yes (§16) |
 | `spell` | 17 | 0.6 % | |
 | `unqueue` | 13 | 0.5 % | |
 | `gather` | 11 | 0.4 % | yes |
@@ -1334,3 +1334,131 @@ exact fits, −256,363,008 to −250,333,696 stepped by 65,536: **−253,348,352
   shot; another facing would narrow it. The same holds for the Crossbowmen's one-shot rows (`docs/COMBAT.md` §22).
 - The minted game's other Slinger swings move with the row wherever a `CHAR_ATTACK3` releases. The booking gate's
   corpus says whether any floor moved.
+
+## 16. The market's sale and purchase, from its panel (item 4259)
+
+*Item 4259, 2026-11-14. The score is the census (§11.1): `INPUT_KINDS` 11 → 13 of 26 kinds, 2,240 → 2,286 of 2,429
+orders. The HUD gains the market's row; the layer mints `sell` and `buy` as the original's market panel does; our walk
+carries both out; the original plays the file (run1604) with every draw and every record in lockstep and the
+leader's buckets equal on both sides.*
+
+### 16.1 What the panel issues, and what the orders do
+
+**The panel.** `BuildOut::make_options@00629ed0` fills a finished Market's panel (`is_active`, `is(0x1b4)`). With
+`has_tribe_bonus(4)` (the Nubians' power) or `has_preq(BUY_SELL)` (Coinage), for each good but wealth and knowledge
+that `type_avail(g, 1)` admits, it adds `OPTION_SELL` and `OPTION_BUY` with the good as the option's object. The sale
+is added disabled under a hundred of the good, the purchase under the wealth its buy price
+(`LeaderData::calc_market_prices`) asks.
+
+**The issue.** `Options::exec@007188c0`'s `OPTION_SELL`, `_500` and `_ALL` arms call
+`LeaderOut::issue_sell@006d3eb0(good, 0, 1 or 2)` on the console's leader; `OPTION_BUY` and its two the same through
+`issue_buy@006d3ef0`. `CommandManager::issue_sell@00942a80` writes command `0x2f`, `sell(who, good, flags)`, `who`
+the leader's own number, and adds no group; `issue_buy` writes `0x2e`, `buy`, the same way. The resource bar
+(`IFaceResources::on_button_clicked@0081b570`) reaches the same options, with the shift for `_500` and the alt for
+`_ALL`.
+
+**The recordings agree.** All 46 sales and purchases on disk, 28 and 18, carry `flags` 0 and stand in a package of
+their own with no `group`: the 2017 sample's 44, slot 3's, and one of each in the bottle's capture of 2026-08-24
+10'15'53, slot 0's, a sale of food on 1276 and a purchase of timber on 1280.
+
+**What they do.** `CommandPackage::process_sell@009468a0`: with the ability (the bonus or the prerequisite), a market
+(`LeaderData::has_market@006d5410`) and no nuclear embargo, `Leader::do_sell@006cfc60` until it refuses, once, five
+times with bit 0, every hundred with bit 1. `process_buy@00946a20` is `Leader::action_buy@006cfa20` whole: the gate
+`can_buy_sell@006d53e0` (`has_bonus(BUY_SELL)`, which admits the Nubians, and a market) and the embargo, then
+`do_buy@006cfbd0` once, five times with bit 0, ten (or a hundred beside bit 0) with bit 2, every hundred with bit 1.
+`do_sell` and `do_buy` were already ported for the AI (`docs/AI.md` §40), and so was the gate
+(`Sim::market_gate`); `Sim::process_sell` and `Sim::process_buy` are the counts around them, behind the order door.
+
+### 16.2 What the layer does
+
+- **The scene** (`crates/sim/src/observe.rs`, reads only): `BuildingScene::market`, the type's `is(MARKET)`; and
+  `LeaderScene::market`, per good the `(buy, sell)` price where the panel has a button, `None` elsewhere
+  (`Sim::market_offer`, the panel's gate and its goods without the building's).
+- **The HUD** (`hud::market_menu`, `docs/HUD.md` §1): with the slot's own finished Market the selection, a sell and a
+  buy button for each good offered, in the goods' order, each with its price. A press on one is `Event::Sell(good)` or
+  `Event::Buy(good)`.
+- **The layer**: `sell(who, good, 0)` or `buy(who, good, 0)`, `who` the slot, in a package of its own, when the
+  button is live (`input::trades`); otherwise nothing.
+
+**The script.** `rondata::script::marketed` is the paused script (§13) and two packages more:
+- on `SELL_FRAME` 6714, `sell(0, food, 0)` from slot 0's Market `0/2006`;
+- on `BUY_FRAME` 6716, `buy(0, timber, 0)`.
+
+Slot 0 is the Nubians, so the market trades in the Ancient age without Coinage.
+
+**Stage 0.** On 6714 at the opening camera, the Market stands at (2688, 29568), `z` 515, its anchor at pixel
+(1248, 389). Its row offers food and timber: SELL FOOD 81, BUY FOOD 106, SELL TIMBER 82, BUY TIMBER 107, all live, at
+centres (1258, 1054), (1446, 1054), (1634, 1054), (1822, 1054) at 1920×1080. Slot 0 holds food 721, timber 425,
+wealth 249.
+
+**The counts.**
+- `INPUT_MARKETED`: **20 of 20**. The paused events and three more, through the HUD and the layer (a press on the
+  Market, its SELL FOOD button, then its BUY TIMBER button), mint the marketed script field for field
+  (`minted_marketed_at_the_opening_camera`). The file written from them is the marketed file. Seen red with the arm
+  adding the selection's `group` before the order: 20 orders, 18 whole.
+- `INPUT_TRADED`: **46 of 46**. Every recorded sale and purchase, pressed from its leader's market panel, mints the
+  recorded order (`minted_trades_equal_the_recordings`). Seen red the same way: 0 of 46.
+- `minted_market_button_edges`: no row for another slot's market or an unfinished one, no button for a good not
+  offered, a dead button at a hundred less one or a price less one mints nothing.
+
+**The file.** `~/ron-golden/recordings/item4259-marketed-greatlakes-24000.rcx`, 59,535 bytes, SHA-256
+`6affa99f9f45bd2b6b8263fb5f8c19af3a2a187323c7aea7eef809c117e6e3de`. It is the paused file plus the two packages,
+stamped 20 and 21; the closing stamp goes from 20 to 22 (`the_marketed_minted_packages_round_trip`; seen red pinned 0).
+
+### 16.3 The playback, and each order's effect
+
+**Our walk under the marketed file against run1601** (`MARKETED_AGAINST_PAUSED`, pinned before run1604 was read):
+whole, draws on 7,000 of 7,000 frames and 300 of 300 records. A sale and a purchase write the leader's buckets and
+the market's prices; run1601 prints neither, and player 1's Market reads the prices only from its first market draw,
+on 8582 of this game.
+
+**run1604** (`docs/RUNS.md`): run1601's line with this file and `LEADERS=2` added, so the take prints the leaders'
+buckets. Draws agree on 7,000 of 7,000 frames, count and sequence; 300 records compared whole, none parted
+(`MARKETED_WALKED`).
+
+**Each order's effect, equal on both sides** (`marketed_effects`, pinned from our walk before run1604 was read; the
+take's leader 0 `bucket` lines read as text, `market_effects_theirs`):
+
+| frame | food | timber | wealth | without the orders (our walk on the paused file) |
+| --- | ---: | ---: | ---: | --- |
+| 6714 | 721 | 425 | 249 | 721, 425, 249 |
+| 6715 | 622 | 425 | 330 | 722, 425, 249 |
+| 6716 | 622 | 425 | 330 | 722, 425, 249 |
+| 6717 | 622 | 526 | 223 | 722, 426, 249 |
+| 6999 | 653 | 544 | 229 | 753, 444, 255 |
+
+The sale takes a hundred food and pays the sell price, 81; the purchase pays the buy price, 107, for a hundred timber.
+Both prices are the ones the HUD shows on 6714 and 6716. Knowledge, metal and oil stay 0. **Made to fail:** the take's
+buckets from 6715 differ from the walk without the orders. The reader reads run1577's `@dumpall` of frame 91 as
+printed, (182, 153, 102, 0, 0, 0), where our walk on the minted script agrees, and reads nothing from run1601
+(`the_bucket_reader_reads_a_known_dump`).
+
+**The functions** (`MARKET_ENTRIES`, pinned before the read): `process_sell` and `do_sell` are first entered on 6713,
+the tick that consumes 6714's package, and `process_buy`, `action_buy` and `do_buy` on 6715. run1601 enters none of
+the five.
+
+### 16.4 Confidence, and what is not established
+
+**Backed by the playback.** run1604 plays a sale and a purchase minted from the market's buttons, and slot 0's six
+buckets are ours on the five frames read. The sale's and the purchase's counts at `flags` 0, the gate's Nubian arm,
+and the sell and buy prices on those frames are all inside that.
+
+**Reading only**, one reader, no blind second reading:
+- the panel's gate and its goods (`make_options`), and the disabled states;
+- the counts for `flags` 1, 2 and 4; the emulator sweep of `process_sell` (item 3014) agrees on its counts;
+- the embargo's arm.
+
+**Ours, not the original's:**
+- the row's place, size and labels; the original's market interface (`IFaceMarket`) is not read;
+- a dead button mints nothing; whether the original's disabled option can be pressed is not read;
+- the shift and the alt are not read, so the layer mints `flags` 0 alone;
+- the market's buttons are no key's event.
+
+**Not established:**
+- **The market's price**: `Game`'s `market[6]` is not printed by the take, so the price's fall by
+  `MARKET_SUPPLY_DEMAND` after a sale and its rise after a purchase are checked only through the next order's price,
+  inside the buckets.
+- **`flags` 1 and 2** (the shift's five hundred, the alt's all). No recording carries one.
+- **The resource bar's buttons** (`IFaceResources`), the other door to the same options.
+- **A market of the Ancient age offers no metal or oil**: `type_avail` is read through `Holdings::available`, and the
+  take checks food and timber alone.

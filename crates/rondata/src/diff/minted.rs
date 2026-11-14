@@ -3426,3 +3426,125 @@ fn the_marketed_script_against_the_paused_playback() {
 /// market draw, on 8582 of this game (`docs/AI.md` §40). Seen red first:
 /// pinned `(Some(0), 0, 1)`.
 const MARKETED_AGAINST_PAUSED: (Option<i64>, usize, usize) = (None, 300, 0);
+
+/// The marketed file's playback (`docs/RUNS.md` run1604): `(take, trace,
+/// frames agreeing, frames walked, records, parted)`. Pinned before
+/// run1604 was read, from our walk against run1601
+/// ([`MARKETED_AGAINST_PAUSED`]): whole.
+pub(crate) const MARKETED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1604-greatlakes-playback-of-marketed-7000.txt",
+    "rontrace-run1604.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// The functions a sale and a purchase run on the original's side: the
+/// package's two arms, the leader's sale, the purchase's loop and the
+/// leader's purchase, by entry address.
+const MARKET_FUNCTIONS: [(u32, &str); 5] = [
+    (0x0094_68a0, "CommandPackage::process_sell"),
+    (0x006c_fc60, "Leader::do_sell"),
+    (0x0094_6a20, "CommandPackage::process_buy"),
+    (0x006c_fa20, "Leader::action_buy"),
+    (0x006c_fbd0, "Leader::do_buy"),
+];
+
+/// Each take's first entry into [`MARKET_FUNCTIONS`], in sim-frames,
+/// pinned before run1604 was read: run1601 enters none (the AI's first
+/// market draw on this game is on 8582); run1604 the sale's two on 6713,
+/// the tick that consumes [`crate::script::SELL_FRAME`]'s package, and the
+/// purchase's three on 6715.
+const MARKET_ENTRIES: &[(&str, [Option<i64>; 5])] = &[
+    ("rontrace-run1601.log", [None; 5]),
+    (
+        "rontrace-run1604.log",
+        [Some(6713), Some(6713), Some(6715), Some(6715), Some(6715)],
+    ),
+];
+
+/// **The original plays the marketed file in lockstep** (item 4259): the
+/// built start walked under the pump against run1604, every frame's draws
+/// against its trace and every record of its window whole
+/// ([`MARKETED_WALKED`]); the market's own functions on the original's
+/// side ([`MARKET_ENTRIES`]); and slot 0's buckets on
+/// [`MARKET_READ_AT`], read off the take's `LEADERS=2` records, equal to
+/// our walk's ([`marketed_effects`]).
+#[test]
+fn the_original_s_playback_of_the_marketed_file_walks_in_lockstep() {
+    let marketed = crate::script::marketed();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in MARKETED_WALKED {
+        let Some((w, _)) = walk_minted(&marketed, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "MARKETED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let mut entries = Vec::new();
+    for &(take_trace, _) in MARKET_ENTRIES {
+        let tr = trace(take_trace).expect("the take's trace");
+        let first = MARKET_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+        for ((_, name), f) in MARKET_FUNCTIONS.iter().zip(&first) {
+            eprintln!("MARKET ENTRY {take_trace} {name}: {f:?}");
+        }
+        entries.push((take_trace, first));
+    }
+    let theirs = market_effects_theirs(MARKETED_WALKED[0].0, &MARKET_READ_AT)
+        .expect("the take prints leader 0's buckets");
+    for t in &theirs {
+        eprintln!("MARKET EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, MARKETED_WALKED, "the walked table");
+    assert_eq!(entries, MARKET_ENTRIES, "the market's functions");
+    assert_eq!(theirs, marketed_effects(), "the original's effects");
+    // Made to fail: the paused file's walk, without the two orders, holds
+    // other buckets from 6715 on, so an original that ignored them would
+    // part here.
+    let without = market_effects_ours(&crate::script::paused(), &MARKET_READ_AT);
+    assert_ne!(theirs[1..], without[1..], "the orders' effect is visible");
+}
+
+/// **The bucket reader can see and can fail** (item 4259): on run1577's
+/// `@dumpall` of frame 91, the minted file's playback, it reads leader 0's
+/// six buckets as the record prints them, and our walk under the minted
+/// script holds the same on that frame; on run1601, which prints no
+/// leader record, it reads nothing rather than agreeing.
+#[test]
+fn the_bucket_reader_reads_a_known_dump() {
+    let Some(theirs) = market_effects_theirs(
+        "gamelog-run1577-greatlakes-playback-of-minted-checksums-120.txt",
+        &[91],
+    ) else {
+        eprintln!("skipping: run1577 not filed");
+        return;
+    };
+    let want = vec![MarketEffect {
+        frame: 91,
+        bucket: [182, 153, 102, 0, 0, 0],
+    }];
+    assert_eq!(theirs, want, "run1577's record");
+    if built_start().is_some() && minted(&script()).is_some() {
+        assert_eq!(
+            market_effects_ours(&script(), &[91]),
+            want,
+            "our walk on 91"
+        );
+    }
+    assert_eq!(
+        market_effects_theirs(PAUSED_WALKED[0].0, &MARKET_READ_AT),
+        None,
+        "run1601 prints no leader record"
+    );
+}
