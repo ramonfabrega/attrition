@@ -67,8 +67,8 @@ range is another line's record or a draw the walk stages. The same lane then tak
 
 4244. **Parity's builds, from 7383, then groups' 8206** (rules, scoped; `docs/CHECKSUM.md` §24, §25; the suite's seat). The score:
 the builds line's first parting frame, 7383. **First act:** the parting read off run1597's record on the merged tree
-(`RECORD_PARTINGS`: building 2019, `mtn` −1 ours, 0 theirs; `tools/trace/ranges.py`, §25.2), no capture. A packet (run1594) is
-taken only when the original's own function must be run on its state. It stops and says so when the range is one the units
+(`RECORD_PARTINGS`: building 2019, `mtn` −1 ours, 0 theirs; `tools/trace/ranges.py`, §25.2), no capture. A packet on the Great Lakes game (run1594;
+run87 spans the frame on another game, not the minted file) is taken only when the original's own function must be run on its state. It stops and says so when the range is one the units
 line already parts on at that frame. The same lane then takes groups' 8206 (record 67, `ox`/`oy` 30552/21144 ours, 0 theirs).
 
 4245. **The city's buildings in the photograph's colour** (render, scoped; `docs/RENDERER.md` §5.4, a new §3.28). The pass's eye
