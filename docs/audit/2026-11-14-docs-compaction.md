@@ -83,7 +83,7 @@ measurable; the question is his.
 | R11 | `CLAUDE.md` | 25,606 of 26,000 | candidates only | up to ~4,500 | Ramon |
 | R12 | the memory index | 7,324 | hooks to one line; one stale pointer | ~2,500 | outside git |
 | S1 | DECISIONS, "Index" | 15,985 of 16,000 | split at entry 100; retitle; reorder; fix 121's row | 0 (frees ~8,000) | none |
-| S2–S16 | fifteen syncs, Part 2 | | | | |
+| S2–S18 | seventeen syncs, Part 2 | | | | |
 | G1 | the eight sections pinned in `OVER`, and 45 of the 77 at 15,000 B or more | 284,070; 831,211 | promote their numbered `###` parts to `##` | 0 (largest read 70,859 → 16,594; 45 sections off the ceiling) | delete seven `OVER` rows; three tools to check |
 | G2 | `docs/JOURNAL.md`, the chronicle to 2026-09-17 | 1,185,526 | leave, or archive at a revision | 0 or 1.19 MB | `queueledger.py`; Ramon (`CLAUDE.md`'s table) |
 | G3 | `docs/DECISIONS.md` | 843,219 | an index by topic; no entry moved | 0 | the pass |
@@ -128,6 +128,11 @@ METHOD and `CLAUDE.md`, and R0 on top for lanes.
 
 The queue's opener sends the next driver to entry 132 (10,895 B) and five
 sections of the pass's record (10,142 B).
+
+By a crude count about a fifth of LOOP is the case behind a rule: 5,061 B
+in parentheses that cite a Loop item, a parked id, an entry or a date, and
+about 3,062 B in sentences that tell one (METHOD 5 %, `CLAUDE.md` under 1
+%). R5 to R8 are where it sits.
 
 The named things in these files resolve. Checked mechanically, each check
 made to fail first on a planted name: 59 constants, 28 module paths and 60
@@ -414,6 +419,9 @@ not use, by measured size:
 | 413–424 | prior art | 651 | not operational. |
 | 147–150 | "Read `docs/QUEUE.md` first ... then `docs/TRACKS.md`" | 280 | not what lanes do (D7); scope it to a session with no brief. |
 | 408 | "(`docs/ORACLE.md`, last section)" | | S10: that is no longer the last section. |
+| 336 | "the gate: before a commit" | | S17: line 304 says the other order. |
+| 108 | phase 4: "**Open**, with the start, checksum, orders, lobby and save tracks beside it" | | the queue reads "The start track: closed", `Lobby: ... 161 of 161` and step 4 closed; the list is three tracks long now. |
+| 140 | the table's row for `docs/JOURNAL.md`: "the passes' entries since" | | G2: four entries against 61 pass records since 2026-10-01. |
 
 ### R12. The memory index
 
@@ -454,6 +462,8 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S13 | twelve doc-to-doc section cites | a section that does not exist: `AI` §4.4 (CITIES line 531) and §9.3 (ORACLE 1841); `ANIM` §4.4 (ORDERS 2059); `ARMY` §15.8 (COMBAT 2687, four times) and §16.3 (INPUT 454); `COMBAT` §14.1 (MOVEMENT 107); `NATIONS` §5 (DECISIONS 6619); `ORDERS` §714 (INPUT 203, a line number); `PATHFINDER` §18.6 (COMBAT 12899) and §4.6 (TRANSPORT 17, twice); `TECH` §13 (AI 14501) and §7 (ANIM 2214) | `a_section_the_code_cites_is_one_the_document_holds` reads `crates/` only; the same parser over `docs/*.md` finds these. Six of the twelve are sections its `NO_SUCH_SECTION` already pins for the code. | mend each; or extend the guard to the documents with these pinned |
 | S14 | four paths | `crates/rondata/src/mapped.rs` (DATALAYER line 131); `tools/gamelog/handdriver.sh` (CENSUS 619; RUNS twice); `tools/ghidra/decomp` (VISION 9, RECGAME 12, COMBAT 4444) | none exists in the tree (`tools/ghidra` holds `analyze.sh`, `export.sh`, `run.sh`, `scripts`); the export is outside the repo by rule | name the file that holds it now; say "the export" without a repo path |
 | S15 | `docs_guard.rs`, `OVER` | four pins: `ORDERS.md` §4 37,583; `AI.md` §2 70,933, §15 26,923, §99 51,530 | the guard's own stderr asks for each to be lowered: "shrank to 37575 ... 70859 ... 26922 ... 51527; lower its pin" (86 B of slack; a passing test's stderr is captured, so nobody sees it) | lower the four; or make the slack a failure, as the queue's pins are |
+| S17 | `CLAUDE.md` lines 304 and 336 (and METHOD line 244) | "it commits before it gates"; "The full `--release` diff suite remains the gate: before a commit and after a document rewrite" | the two orders stand thirty lines apart. LOOP ("A worker commits before it gates") and entry 43's title ("a landing is committed before it is gated") hold the first. | "before a landing" for "before a commit" (Ramon's word) |
+| S18 | QUEUE, "The queue", first line | "The shapes are DECISIONS 90–94 and 100 §3" | written 2026-11-07. Entries 90 to 94 score the fifty-first to fifty-fifth tranches and shape a late-age pair; 100 §3 a territory row. Six entries, 49,820 B, behind a pointer no open item uses: the five items are a chain step, a structure item, a render item and two rules items, each of which names its own document. | keep the four shapes the line goes on to name; drop the six numbers or say which kind they are for |
 | S16 | DECISIONS, "Index": statuses | 116 "amended by 121"; 100 "standing"; 59 "extended by 60" | entry 126 §1: "Entry 116's single row and entry 122's roster line are superseded here"; entry 103: "amends entry 100 §3's "next cell""; entry 61: "amends ... entry 59's clause 1". Three read; a mechanical pass (a later entry's sentence that names an earlier one beside amend, replace, retire, withdraw or supersede) lists 7 rows the index calls standing (57, 64, 71, 72, 99, 100, 121) and 16 whose list of successors is short; 16 entries carry an "Amended <date>" note while their row says something other than "amended in place" (4, 9, 24, 29, 34, 55, 63, 64, 68, 71, 72, 77, 78, 87, 88, 121). Candidates, not verdicts: the heuristic is noisy, and a successor does not always name what it changes (entry 126 returns the two rows without a sentence that says "amends entry 116" in those words). | the pass that splits the index (S1) checks these rows; G3's index by topic is the durable fix |
 
 Also seen, and not a contradiction: `CLAUDE.md` gives the gate as
@@ -665,6 +675,57 @@ from the eighteenth to the sixty-second, held to the frame by
 story behind any row", on demand. The frame is the digest and this is its
 history, read a row at a time. Leave it; a pointer into it could name the
 section.
+
+## Left to do
+
+Written at 02:10 −05:00 on the commander's word (this session's context
+passed 400 k); a fresh session continues from here until 05:00. The
+scripts were scratch in the first session's job directory and are restated
+in the appendix; `tools/retire.py` and `lore` need nothing rebuilt.
+
+**Not reached.**
+
+- `docs/audit/` as a set (8.3 MB, 225 files): only the README's outline
+  was read. Its largest files and whether any pass record repeats another
+  are unmeasured.
+- `docs/lab/` (2.2 MB) and `docs/journal/README.md`: not opened.
+- The mid-size specifications as documents: `LEADERS.md`, `MAPGEN.md`,
+  `COLLISION.md`, `RENDERER.md`, `CHECKSUM.md`, `PATHFINDER.md` were
+  measured by section and citation, never read for a stale claim.
+- `docs/TEST_PERFORMANCE.md` (68,519 B; 24 of its 30 sections unnamed by
+  `retire.py`): whether it leads with the suite's current form (item 4216
+  to 4224) or with experiments since rejected.
+- `docs/RUBRIC.md`, `docs/CENSUS.md`, `docs/HUD.md`, `docs/LOBBY.md`
+  against their queue lines; `STRUCTURE.md` and `START.md` were looked at
+  and hold dated baselines, not stale state.
+- `tools/brief/frame.md`'s sections for kinds no item is booked under
+  (`sweep`, `coverage-item`, `reading-item`, `chapter`, `capture`,
+  `reading`: 17,555 B). Selected by kind, so no lane carries them; not
+  checked for staleness.
+- DECISIONS entries read whole: 35, 125, 126, 130, 131, 132. LOOP was
+  checked against those; entries 128 and 129, which LOOP cites eleven
+  times, were not read.
+
+**Half-checked.**
+
+- S16: three statuses read, the other rows are a heuristic's list.
+- G3's seven topic chains are read off the index's titles; a chain is
+  true only once its entries are read.
+- R2's "about 1,500 B" of restated numbers is by reading, not measured
+  span by span as the 1,109 B of restated rules was.
+- S12 ("For the pass"): the part may exist only at a hand-over to the
+  pass; one earlier handoff would settle it (`git log -S'For the pass' --
+  docs/QUEUE.md`).
+- D6: `--cc` cannot tell a conflict a lane resolved from a hunk git
+  combined; `git log --grep=keep-conflicts` or the lanes' journals would.
+- R11's candidates are measured by line range; none was weighed against
+  what each kind of lane uses.
+- G8: `ORACLE.md` by title only.
+
+**Asked of Ramon on the row, unanswered when this was written** (D5, D7,
+D3): whether the milestone retired the never-empty headline slots; what a
+briefed lane should read of the handoff; whether he wants more of
+DECISIONS than an index by topic.
 
 ## Not established
 
