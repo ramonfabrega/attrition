@@ -162,6 +162,9 @@ fn the_ranges_record_is_each_packet_s_stream() {
     );
 }
 
+/// One line's parting as the test sees it: [`PacketRow`] with the text owned.
+type SeenRow = (&'static str, usize, usize, usize, String);
+
 /// Lines 0 to 7, the record's mask.
 const STATE_LINES_KEPT: [&str; 8] = [
     "units", "builds", "walls", "ammo", "deaths", "groups", "guys", "leaders",
@@ -301,7 +304,7 @@ fn the_ranges_record_names_each_first_parting() {
         super::super::minted::tick_to(&mut built, Some(&mut stream), frame);
         let theirs = stream_at(&mut rec, frame).expect("the record has the frame");
         let outcome = compare(&our_lines(&built.sim, &pieces), &theirs);
-        let mut seen: Vec<(&str, usize, usize, usize, String)> = Vec::new();
+        let mut seen: Vec<SeenRow> = Vec::new();
         for (name, o) in STATE_LINES.iter().zip(&outcome).take(8) {
             if let Some(f) = &o.first {
                 eprintln!(
@@ -313,7 +316,7 @@ fn the_ranges_record_names_each_first_parting() {
         }
         seen_all.push((frame, seen));
     }
-    let pinned: Vec<(i64, Vec<(&str, usize, usize, usize, String)>)> = RECORD_PARTINGS
+    let pinned: Vec<(i64, Vec<SeenRow>)> = RECORD_PARTINGS
         .iter()
         .map(|(f, rows)| {
             (
