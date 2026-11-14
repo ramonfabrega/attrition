@@ -16,6 +16,7 @@
 //! a `SEAM` that names it.
 
 use super::Sim;
+use super::alliance::Rivals;
 use crate::Player;
 
 /// `Leader::diplomacy+0x1b12`'s coin is [`super::SITE_QUIET_COIN`]; the
@@ -85,36 +86,40 @@ impl Sim {
     }
 
     /// **The arms of team styles 0, 8 and 11** (`LAB_006bdf83` to
-    /// `LAB_006be428`), after the view is stored: `false` when an arm ends
-    /// the pass at `t`.
+    /// `LAB_006be428`), after the view is stored: `None` when an arm ends
+    /// the pass at `t`, else the two third parties they noted
+    /// ([`Rivals`], which only an alliance's price reads).
     ///
     /// - **Elimination** (`ELIMINATION` 1): when my capital is held by
     ///   another, by neither `t` nor an ally of `t`, `aggression[t]` is
-    ///   cleared; held by `t` or `t`'s ally, I answer a committed proposal
-    ///   of `t`'s and turn on `t` ([`Sim::turn_on`]).
+    ///   cleared and the holder noted; held by `t` or `t`'s ally, I answer
+    ///   a committed proposal of `t`'s and turn on `t` ([`Sim::turn_on`]).
     /// - **Victory** (`VICTORY` 0): a target neither me nor my mutual ally
     ///   that runs a territory or wonder clock (`popwin_timer`,
     ///   `wonderwin_timer`), or is researching Global Government, is turned
-    ///   on the same way.
+    ///   on the same way; else a third party racing a clock is noted
+    ///   (`LAB_006be372`).
     ///
     /// SEAM: the top-scorer arm (`LAB_006be004`'s `bVar33`) needs the score
     /// count and the top scorer, which this pass takes as never the target
     /// (the head's own `SEAM`), so it is false; the victory arm's
     /// `GLOBAL_GOVERNMENT_BONUS` preq is read as held by no one (the crate
     /// keeps no such preq); the human third party racing a clock that
-    /// `LAB_006be372` finds (`local_58`) feeds only the attack valuation,
-    /// which is not carried; the elimination arm reads `gamec`'s flag as
-    /// the game's.
-    pub(super) fn style_zero_arms(&mut self, me: usize, t: usize) -> bool {
+    /// `LAB_006be372` finds (`local_58`) feeds the attack valuation, which
+    /// is not carried, and the alliance's price; the elimination arm reads
+    /// `gamec`'s flag as the game's.
+    pub(super) fn style_zero_arms(&mut self, me: usize, t: usize) -> Option<Rivals> {
+        let mut rivals = Rivals::default();
         if self.ai.lobby.elimination == 1 {
             // `LeaderData::find_capital(−1, −1)@006eb930`'s holder.
             let holder = self.capital_holder(me as Player) as usize;
             if holder != me {
                 if holder != t && !self.allied_both(t, holder) {
                     self.ai.ai[me].aggression[t] = 0;
+                    rivals.capital = Some(holder);
                 } else {
                     self.turn_on(me, t);
-                    return false;
+                    return None;
                 }
             }
         }
@@ -134,10 +139,11 @@ impl Sim {
                 || gg.is_some_and(|g| self.researching(t as Player, g));
             if racing {
                 self.turn_on(me, t);
-                return false;
+                return None;
             }
         }
-        true
+        rivals.racer = self.racing_third_party(me, t);
+        Some(rivals)
     }
 
     /// The elimination and victory arms' tail (`LAB_006be17f` to
@@ -186,7 +192,7 @@ impl Sim {
     /// `semaphore[2] & 2` with `ScenarioData::diplomacy_setting`) is not
     /// carried; the demand arm (`LAB_006be54c` at team styles 0, 8 and 11,
     /// `tribute_demanded`) is step VII-d's and later.
-    pub(super) fn diplomacy_tail(&mut self, me: usize, t: usize, forced: bool) {
+    pub(super) fn diplomacy_tail(&mut self, me: usize, t: usize, forced: bool, rivals: Rivals) {
         let frame = self.frame;
         let aggression = self.ai.ai[me].aggression[t];
         if self.leaders.tribute[me].dip[t].agree != 1
@@ -239,13 +245,15 @@ impl Sim {
             self.leaders.agendas[me][t] |= 0x40;
             return;
         }
-        self.offers_arm(me, t, cleared);
+        self.offers_arm(me, t, cleared, rivals);
     }
 
     /// **The offers arm** (`LAB_006bf0e0`): `t` has committed to a
     /// proposal to me (`t.dip[me].agree`), and I value it.
     ///
-    /// 1. `S` is seeded with `good_deeds[t]`.
+    /// 1. `S` is seeded with `good_deeds[t]`. An alliance asked runs its
+    ///    gates first ([`Sim::alliance_asked`]): they answer the proposal,
+    ///    or take the alliance's price off `S`.
     /// 2. **The valuation**, per good in `me.dip[t].offers` (positive, mine
     ///    to give; negative, asked of `t`): a good either side cannot use
     ///    answers the deal (withdraw if I had committed, else reject) and
@@ -280,16 +288,13 @@ impl Sim {
     ///    with no give of mine is a counteroffer: `counteroffer[t] = 1` and
     ///    both agreements withdrawn; the good it names is the message's.
     ///
-    /// SEAM: an alliance asked (`treaty == 2`: the victory timer, the team
-    /// styles' automatic answer, `LeaderData::num_allies` and
-    /// `num_team_members`, the alliance price) is step VII-d's; the attack
-    /// requests' valuation needs a request this crate never sets
+    /// SEAM: the attack requests' valuation needs a request this crate never sets
     /// (the leader's attack request, 006d14e0, is not carried); a positive need with a give
     /// of mine (`6c035d`: a coin and a war) is not carried; with nothing
     /// committed to me, the computer's own proposals (`6c08f4` on: the
     /// top-scorer arm, read as never the target, then a peace at war and an
     /// alliance at peace) are not carried; nor the scenario's fixed answers.
-    fn offers_arm(&mut self, me: usize, t: usize, cleared: bool) {
+    pub(super) fn offers_arm(&mut self, me: usize, t: usize, cleared: bool, rivals: Rivals) {
         let frame = self.frame;
         let aggression = self.ai.ai[me].aggression[t];
         if cleared && aggression == 0 {
@@ -305,8 +310,11 @@ impl Sim {
         }
         let mut s = self.leaders.declare[me].good_deeds[t];
         if self.leaders.tribute[me].dip[t].treaty == 2 {
-            // SEAM: the alliance asked (step VII-d).
-            return;
+            // Item 4159's step VII-d: the alliance's gates and price.
+            let Some(price) = self.alliance_asked(me, t, rivals) else {
+                return;
+            };
+            s = s.wrapping_sub(price);
         }
         let weak = self.ai.ai[me].weak[t];
         let mut gives = false;

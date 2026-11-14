@@ -1446,7 +1446,9 @@ impl Sim {
             // `tribute_sent`, `tribute_received`, `incoming`,
             // `incoming_taunt` and `incoming_taunt_frame` on its packet at
             // 1090, each computed by our walk and agreeing there; the accept
-            // of 1027 between is computed since step VII-c.
+            // of 1027 between is computed since step VII-c. Step VII-d's
+            // `counteroffer` moves on run1575's 1052, the French answer to
+            // the alliance found short, computed and agreeing.
             _ if crate::leaders::tribute::TRIBUTE_LEAVES.contains(&name) => {
                 self.leader_tribute_leaf(who, name)
             }

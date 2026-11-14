@@ -1662,6 +1662,19 @@ goods exchange (§8):
 **`good_deeds`**, in `diplomacy`'s offers arm (`me` computer, `t` the
 proposer, committed; read from the listing at VII-c, `6bf143`–`6c08b5`):
 
+- **An alliance asked** (`treaty` 2; VII-d, from the listing,
+  `6bf15a`–`6bf4b2`) runs gates first. Refused (withdraw if I committed,
+  else reject) at styles 0/8/11 when `num_allies (006d6250)` is not 0, at
+  any style but 0/7/8/11, or while `Game::is_victory_timer (00594950)`
+  (`VICTORY` 0, a live leader's `wonderwin_timer` or `popwin_timer`). Two
+  computers with `aggression[t]` 0 ally at once, then `counteroffer[t] =
+  0`. Else `S −= (epoch_me + 1) · 200` (at war `· 400`), +100 for a
+  rusher, else −100 for a boomer below epoch 4, −400 with the elimination
+  arm's third-party capital holder (`-0x68`), −200 with `LAB_006be372`'s
+  racing third party (`-0x54`; dead, since the clock gate refused).
+  `action_respond`'s accept refuses an alliance (both withdrawn, both
+  records cleared) unless each party's allies are all teammates, `1 −
+  num_team_members (006ebf90)(·, 1) + num_allies == 0`.
 - `S` is seeded with `good_deeds[me][t]`. Per good in `me.dip[t].offers`
   (positive: mine to give), a give over my decrypted stock sets the
   over-ask flag (`-0x50`). A give, and an ask after a give, is ×4 before
@@ -1746,15 +1759,15 @@ sim reader.
   `weak` divisor, the peace arm's clearing gate, the race coin) and the
   two hire readers (6bdc8a, 6bdce2) read the leaves since VII-c.
   **SEAMs** left: the third parties' hire arms (6bdd57 cannot pass;
-  6bdd87 needs a mutual ally, whose pass ends in the allied arm), an
-  alliance asked (VII-d), the computer's own proposals, the `6c035d`
-  arm, the demand arm, the neutral propagation.
-- **Traps.** `diplomacy.rs:453–454` says two hire arms; three read the
-  words there (a fourth, 6be680, is in the demand arm).
-  ~~`crates/rondata/src/diff/leader.rs:47` labels `blacken` "fog
-  bookkeeping"~~ (gone in VII-b1); `blacken` is a human's repeat-declaration count.
-  `crates/sim/src/combat/take_damage_view.rs:34` names `0x4` `LEADER_OUT`;
-  it is HUMAN (its uses are right: "skip a human declarer").
+  6bdd87 needs a mutual ally, whose pass ends in the allied arm), style
+  7's alliance gate, the computer's own proposals, the `6c035d` arm, the
+  demand arm, the neutral propagation.
+- **The alliance** (VII-d): `leaders/diplomacy/alliance.rs` (the gates,
+  `num_allies`, `num_team_members` off `LeadersState::team`,
+  `is_victory_timer`, `alliance_open`; tests
+  `leaders::diplomacy::alliance::tests`).
+- **Trap.** `crates/sim/src/combat/take_damage_view.rs:34` names `0x4`
+  `LEADER_OUT`; it is HUMAN.
 - **Checksum.** `blacken`, `dow`, `broke_alliance`: `leader_declare_leaf`,
   off `LEADERS_HELD_OUT` since VII-b1 (47 → 44); `made_peace` since
   VII-c (37 → 31, with §8's and §9's five); `good_deeds`, `hire_stamp` and
@@ -1770,13 +1783,11 @@ writers.** No `action_respond` is ever called there (§8.4), so
 `any_proposals`) stay at their reset. No computer passes `quiet = 0`, so
 `dow` and `blacken` stay 0. `broke_alliance` is open (7.6).
 
-With a human: his Declare counts `dow`, and a second counted declaration on
-the same slot counts `blacken` (run1078, style 0, shows `dow[1]` 0 → 1). A
-human proposal or answer reaches `made_peace` and `good_deeds`; an executed
-attack deal with three or more leaders and war allowed reaches the hires,
-where a human party's declaration also counts. Team styles 0/8/11 reach the
-deal writers without a human. `ScenarioFuncSet::*` is triggers. No Conquer
-the World or multiplayer path is needed.
+With a human: his Declare counts `dow`, a second on the slot `blacken`; a
+proposal or answer reaches `made_peace` and `good_deeds`; an attack deal
+with three leaders and war allowed reaches the hires. Styles 0/8/11 reach
+the deal writers without a human. No Conquer the World or multiplayer path
+is needed.
 
 ### 7.5 How established, and how confident
 
@@ -1784,27 +1795,15 @@ Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/diplomacy-relations-*.md`); ~~no diff backs
 it yet~~ the declaration is diff-backed since VII-b1 (below). Verdicts: 87 confirmed, 12 corrected, 2 open.
 
-Corrections that changed a rule:
-
-- `take_damage` and `Nuke::do_damage` never pass `quiet = 0`: only the
-  Declare command and a human hire party count `dow`/`blacken`.
-- 6c0966 reads the diagonal `dow[t][t]`, not `dow[t][me]`.
-- `blacken`'s readers re-mapped by address: 6be667 is a `< 4` gate and
-  6be7ec the demand size; the `(blacken != 0) + 1` terms are 6bf8d5/6bf940;
-  6bfcf4 is the alliance `need`.
-- `diplomacy` 6beceb is dead; the live explicit break is 6bed1c.
-- The 6bdd57 hire arm is a test that cannot pass, not a live third-leader
-  rule; 6bf7a5 reads `diplos[k]`, not `hire_who`.
-- `good_deeds` is in the dump.
+The corrections that changed a rule are in 7.2 (listed in
+`docs/journal/2026-11-13-item-4159-VII-d.md`).
 
 Confidence is **high** on every store, gate and reset, each read in the
 listing, and on `S` since VII-c read it term by term there.
 
 **Diff-backed (VII-b1).** `diff::leader` compares the three leaves on
-every dump that prints the record; each human Declare is the command's
-`action_declare`. run1575: on 987 `dow[1]` 1, `broke_alliance[1]` 986,
-wealth 119,381 (ours was 120,021); on 1002 `dow[1]` 2, `blacken` 1,
-wealth 118,742. run1078's 912: `dow[1]` 1 and its wealth.
+every record; run1575's 987 (`dow[1]` 1, `broke_alliance[1]` 986) and
+1002 (`dow[1]` 2, `blacken` 1) with the wealth, run1078's 912.
 
 **Diff-backed (VII-c): the French accept of 1027, computed** off the
 human's `process_treaty 1 1 1021` and `process_accept 1 1027` (inputs).
@@ -1815,22 +1814,24 @@ both ways and `treaty` −1; `treaty` 1 on 1022, 2 on 1042; ours equal
 `..._parts_without_the_human_s_proposal`). The rest of the arm rests on
 the reading and the fixtures.
 
+**Diff-backed (VII-d): the French answer of 1051, computed** off the
+human's `process_treaty 1 2 1041` and `process_accept 1 1051`. No ally,
+no clock, a human asking: price `(1 + 1) · 200` = 400 at peace, `S` −400,
+need 400, the counteroffer. On 1052 `counteroffer[0]` 1 and both `agree`
+0, ours equal (`run1575_s_alliance_is_found_short`; it parts without the
+proposal). Forced to accept, the word parts on 1052. The other gates and
+terms rest on the listing and `leaders::diplomacy::alliance::tests`.
+
 **The take (items 4206, 4207; the story is
-`docs/journal/2026-11-13-item-4159-VII-c.md`).** run1575 is run1482's
-three-seat lobby at style 0, the human allied with the French; it moves
-every §7 leaf the window reaches (987 and 1002 the Declares, 1028
-`made_peace`). `hire_stamp`, `hire_who` and `good_deeds` stay at reset.
-The walk parted on 1099 until `Sim::set_diplo` (`relations.rs:134`) ran
-`Armies::diplo_change(this)` on every level, as `Leader::set_diplo
-(006ec6a0)` does after a change (a set equal to `this->diplos[whom]`
-returns first; only `this`'s armies run), and the accept's `this` is the
-French. `Sim::init_diplos` does not run it (`Leader::init` writes
-`diplos` directly). Item 4207 then staged the accept off the record;
-VII-c retired that, and the word is **1150 of 1150 computed**
-(`run1575_s_word_is_pinned_as_found`). Not ported from `set_diplo`'s
-body: the alliance-break eject, the `ally_mask` bits (4206c), the
-third-party message, the alliance's victory test (§10.2) and
-`recalc_borders`.
+`docs/journal/2026-11-13-item-4159-VII-c.md`).** run1575, run1482's
+three-seat lobby at style 0, moves every §7 leaf the window reaches but
+`hire_stamp`, `hire_who` and `good_deeds`. `Sim::set_diplo` runs
+`Armies::diplo_change(this)` on every level (`Leader::set_diplo
+(006ec6a0)`; an equal set returns first), which held the word past 1099;
+it is **1150 of 1150 computed** (`run1575_s_word_is_pinned_as_found`).
+Not ported from `set_diplo`: the alliance-break eject, the `ally_mask`
+bits (4206c), the third-party message, the alliance's victory test
+(§10.2), `recalc_borders`.
 
 ### 7.6 Not established
 
@@ -1847,9 +1848,8 @@ third-party message, the alliance's victory test (§10.2) and
   stamp, the refusals, a forced ask, the price's rares and redirect. Not
   carried: the team tail (`is_team` is false at style 0) and `has_spell`'s
   false arm (every craft ships `PREQ0 None`).
-- ~~`good_deeds`'s `S` term by term; which offers carry `treaty == 1`~~:
-  both read at VII-c (7.2; `action_treaty`). Not carried: the scenario's
-  fixed answers, the attack requests' flat terms.
+- ~~`good_deeds`'s `S` term by term~~ (VII-c, 7.2). Not carried: the
+  scenario's fixed answers, the attack requests' flat terms.
 - `walk_data` and `load_leaders_chunk` copy `last_spoke` and the rest on a
   load; neither originates a value.
 
@@ -1975,7 +1975,9 @@ these two.
     `action_respond(me, k, agree == 1 ? 0 : 2)`. The over-ask's refusal
     (`6bfe47`–`6bffea`) stores only through `action_respond`.
   - At style 0/8/11 (or 7's case), `num_allies == 0`, no victory timer,
-    both computers, `aggression[k] == 0`: `counteroffer[k] = 0`.
+    both computers, `aggression[k] == 0`: `counteroffer[k] = 0` (an
+    alliance accepted at once; otherwise its price enters `s`, §7.2, and a
+    human's alliance asked for nothing is found short: run1575's 1052).
 - **`tribute_demanded`.** The demand arm runs at team style 0/8/11, or
   style 7 with team 8; any other style skips it. It needs peace both ways,
   `aggression[k] != 0`, the rush rules passed, `!is_tribute_period(me, k)`,
@@ -2031,21 +2033,21 @@ wait and the exchange), `consider_tribute`, `scale_tribute` (`Tuning`'s
   `crates/sim/src/ai/army/target_gate.rs:527`, `find_target`).
 - **`Sim::diplomacy_with`'s cadence** reads `agree`, `tribute_demanded`
   and `counteroffer` (`crates/sim/src/leaders/diplomacy.rs:176`). The
-  offers arm sets `counteroffer` on a peace found short (VII-c,
+  offers arm sets `counteroffer` on a deal found short (VII-c, VII-d,
   `leaders/diplomacy/offers.rs`); the demand arm is not carried.
 - **The treaty arm and the hires** are carried (VII-c,
   `Sim::treaty_and_hires`); `Sim::action_treaty` writes `treaty`.
-  **SEAMs**: the alliance's team gate (VII-d), the reject's human-ally
-  attack arm (`action_attack` is not carried, so no `attacks`).
+  The alliance's team gate is `Sim::alliance_open` (VII-d).
+  **SEAMs**: the reject's human-ally attack arm (`action_attack` is not carried, so no `attacks`).
   `is_tribute_period` at frame 0 answers no (every stamp is 0 there) and
   skips no style-7 neutral.
 - **Checksum**: `tribute_stamp` and `gift_stamp` are emitted
   (`Sim::leader_tribute_leaf`), and since VII-c `tribute_sent` and
   `tribute_received`, released on run1575's packet at 1090: the accept of
-  1027 is computed, and its exchange gives no goods. `counteroffer`,
-  `tribute_demanded` and `tributes` are held, emitted unheld and stay on
-  the list: `counteroffer` moves on 1052 by the alliance's short answer,
-  step VII-d's, and nothing our walks compute moves the other two.
+  1027 is computed, and its exchange gives no goods; since VII-d
+  `counteroffer`, released on run1575's 1052 (31 → 30). `tribute_demanded`
+  and `tributes` are held, emitted unheld and stay on the list: nothing
+  our walks compute moves them.
   `coverage.rs` still lists `tributes`.
 
 ### 8.4 Reached by a plain game
@@ -2109,12 +2111,13 @@ Witness, **not a pinned diff**: run1086's taunt gift (`docs/audit/parked-archive
 3470a). There the ally's `gift_stamp[0]` reads the frame, and every
 `tributes` and `escrow` slot reads 0 at frame end.
 
-**run1575 also moves** `counteroffer`: the French `counteroffer[0]` goes 0
-→ 1 on 1052, on an alliance asked for nothing (`process_treaty 1 2 1041`,
-`process_accept 1 1051`), step VII-d's arm; ours stops before answering,
-so the human's record keeps `agree` 1 where theirs reads 0 (the take's
-packet at 1090 parts on `dip.agree`). A peace asked at war for nothing was
-accepted (1027), `need` 0, computed since VII-c.
+**Diff-backed on run1575 (VII-d)**, `counteroffer`: the French
+`counteroffer[0]` 0 → 1 on 1052 and both `agree` 0, on an alliance asked
+for nothing (`process_treaty 1 2 1041`, `process_accept 1 1051`), need
+400 (§7.5), ours equal (`run1575_s_alliance_is_found_short`); the take's
+packet at 1090 no longer parts on `dip.agree`. So the counteroffer's two
+stores (the flag, `clear_agree` both ways) are backed; its message's good
+is the interface's.
 
 `tribute_demanded` and `tributes` did not move. One scale reading comes
 off recon4206-4's buckets, a rehearsal that was not filed: the human's
@@ -2458,9 +2461,7 @@ head**, before any `game_random` draw, in a live game (run609's 5638,
 run667's 17379, the melees' 2600, run80's 24000); or **past the body**, from
 the end window of a game over (run1200's 5639, run1250's 8777, run1262's
 6106, run958f's 22700, run600's 17379), the count advanced (run600's
-re-stamp 17380). Past the body is the common close: 110 of 124 closing
-walks (item 4204, `walk_to_close_traced`). The defeat then clears every
-non-plane unit's orders (`Unit::clear_orders@005e3860`).
+re-stamp 17380).
 
 **The wonder arm**, in `process_victory`, every frame under `VICTORY` ∈
 {0, 1, 6}, with `W = Game::wonder_winning (005948a0)` read once. For slots
@@ -2545,8 +2546,7 @@ landed:
   winner's armies stay (4189b). `rondata`'s `widen_walk` resigns at the
   trace's quit (`quit_in_trace`), before or after the frame's tick.
 - **Not built:** the `w44c` reader (4185b); `Wall::process`'s reader;
-  ~~`Sim::resign`'s `clear_orders` (4189a)~~ (4204). All nine are on the
-  line.
+  `Sim::resign`'s `clear_orders` (4189a). All nine are on the line.
 
 ### 10.4 Reached by a plain game
 
@@ -2622,9 +2622,7 @@ run1113/1114. `wonderwin_timer` 1 in 30 captures (run652 … run1423c).
   the conquest victory's won flag (§10.2; item 4189), backed by run667's
   17380 by elimination; `Player::win` draws only for the console player,
   so the trace cannot show it.
-- ~~**The quit's timing outside the window walk** (4189a)~~ (4204).
-  Unread: run847's quit on its dump's own label (4204a); `clear_orders`'
-  `unit_masks & ~0x4000000` (4204b).
+- **The quit's timing outside the window walk** (4189a).
 - **`lost_a_city`'s `param_1`, `param_2` and captor** are derived by its
   callers (`Build::close`), owned by §11.
 - **The pins:** run1200's loss is held by `korean_ancient_pair`'s closing

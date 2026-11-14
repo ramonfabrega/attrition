@@ -4885,12 +4885,7 @@ pub(crate) mod tests {
     /// capture's `gamelog-runN-…` name; its trace is `rontrace-runN.log`.
     pub(crate) fn quit_in_trace(name: &str) -> Option<(i64, bool)> {
         let run = name.strip_prefix("gamelog-")?.split('-').next()?;
-        quit_in_named_trace(&format!("rontrace-{run}.log"))
-    }
-
-    /// [`quit_in_trace`] by the trace's own name, `rontrace-runN.log`.
-    pub(crate) fn quit_in_named_trace(tracelog: &str) -> Option<(i64, bool)> {
-        let t = trace(tracelog)?;
+        let t = trace(&format!("rontrace-{run}.log"))?;
         let draws = t.draws();
         let at = draws
             .iter()

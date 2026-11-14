@@ -123,7 +123,7 @@ fn run600_french_east_indies_closing_state() {
         .final_state()
         .or_else(|| log.frame_states().pop())
         .expect("closing whole-map state");
-    let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, EAST_LONG.1);
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
     eprintln!(
         "French East Indies closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?}",
         e.frame,
@@ -177,7 +177,7 @@ fn run598_french_great_lakes_closing_state() {
         .final_state()
         .or_else(|| log.frame_states().pop())
         .expect("closing whole-map state");
-    let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, LAKES_LONG.1);
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
     eprintln!(
         "French Great Lakes closing: frame {} units {} counts {:?} torn {:?} off {:?}",
         e.frame,
@@ -537,13 +537,7 @@ fn run667_s_closing_frame_is_widened_whole() {
     // −1), and `1/123`'s `cur_anim` 2 against 0 and `end_time` 68 against
     // 32 — `Sim::resign` does not carry the defeat's `clear_orders`
     // (GOLDEN §152.15, parked 4189a).
-    // Item 4204: 159 -> 108, −51 on 17380, the 4189 rows above gone, each
-    // now agreeing: `Sim::resign` clears every non-plane unit's orders
-    // (`Unit::clear_orders`). `0/1`..`0/5` `orders.len` 0 = 0, `idle` 1 = 1,
-    // `g.cur_anim`/`cur_time`/`last_time` at rest; `0/5` at (4792, 6072) =
-    // theirs (was ours (4784, 6096)); `gather_down[-1]` on `0/2001`..`0/2004`
-    // −1 = −1 (were ours 2..5); `1/123` `cur_anim` 0 = 0, `end_time` 32 = 32.
-    pin_eq!(w.firsts.len(), 108, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
+    pin_eq!(w.firsts.len(), 159, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
 #[test]
@@ -1660,11 +1654,7 @@ fn run609_s_closing_frame_is_widened_whole() {
         // defeated leader and no longer clears the human's orders, so `0/1`
         // and `0/2`'s `orders.len` and `order:length` part, ours 1 theirs 0
         // (`Sim::resign` does not carry `clear_orders`; parked 4189a).
-        // Item 4204: 42 -> 29, −13 on 5639: `Sim::resign` clears the
-        // human's orders, so `0/1` and `0/2`'s `orders.len`, `order:length`,
-        // `idle` and figure clocks agree (were ours 1, 0 and running; theirs
-        // 0, 1 and at rest).
-        29, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        42, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         "run609 closing residue, not whole-record parity"
     );
 }

@@ -3,6 +3,7 @@
 //! run1575's accept of 1027 is the diff (`rondata::diff::diplomacy_take`).
 
 use crate::economy::Resource;
+use crate::leaders::diplomacy::alliance::Rivals;
 use crate::{Sim, Tuning, World};
 
 const FOOD: usize = Resource::Food.index();
@@ -65,7 +66,7 @@ fn a_peace_asked_for_nothing_is_accepted() {
         4,
         "the commit forces the pass"
     );
-    sim.offers_arm(1, 0, false);
+    sim.offers_arm(1, 0, false, Rivals::default());
     assert_eq!((sim.diplos(0, 1), sim.diplos(1, 0)), (1, 1));
     let d = &sim.leaders.declare;
     assert_eq!((d[0].made_peace[1], d[1].made_peace[0]), (5_000, 5_000));
@@ -82,7 +83,7 @@ fn a_fresh_tribute_skips_the_adjustments() {
     let mut sim = at_war();
     sim.leaders.tribute[0].tribute_stamp[1] = 4_000;
     propose(&mut sim, 1);
-    sim.offers_arm(1, 0, false);
+    sim.offers_arm(1, 0, false, Rivals::default());
     assert_eq!(sim.diplos(1, 0), 1);
     assert_eq!(sim.leaders.declare[1].good_deeds[0], 0);
 }
@@ -97,13 +98,13 @@ fn found_short_is_a_counteroffer_and_its_grace_accepts() {
     sim.ai.ai[1].strong[0] = 64;
     sim.ai.ai[0].census.wars = 1;
     propose(&mut sim, 1);
-    sim.offers_arm(1, 0, false);
+    sim.offers_arm(1, 0, false, Rivals::default());
     assert_eq!(sim.leaders.tribute[1].counteroffer[0], 1);
     assert_eq!(sim.leaders.tribute[0].dip[1].agree, 0, "withdrawn");
     assert_eq!(sim.leaders.tribute[0].dip[1].treaty, 1, "still asked");
     assert_eq!(sim.diplos(1, 0), 0);
     sim.action_respond(0, 1, 1);
-    sim.offers_arm(1, 0, false);
+    sim.offers_arm(1, 0, false, Rivals::default());
     assert_eq!(sim.diplos(1, 0), 1);
     assert_eq!(sim.leaders.tribute[1].counteroffer[0], 0);
     assert_eq!(sim.leaders.declare[1].good_deeds[0], 35, "need 64 − 99");
@@ -118,13 +119,13 @@ fn aggression_selects_the_price_of_peace() {
     let mut sim = at_war();
     sim.ai.ai[1].aggression[0] = 1;
     propose(&mut sim, 1);
-    sim.offers_arm(1, 0, false);
+    sim.offers_arm(1, 0, false, Rivals::default());
     assert_eq!(sim.diplos(1, 0), 1, "a need of 0");
     let mut sim = at_war();
     sim.ai.ai[1].aggression[0] = 1;
     sim.leaders.declare[0].blacken = 1;
     propose(&mut sim, 1);
-    sim.offers_arm(1, 0, false);
+    sim.offers_arm(1, 0, false, Rivals::default());
     assert_eq!(sim.diplos(1, 0), 0);
     assert_eq!(sim.leaders.tribute[1].counteroffer[0], 1, "a need of 100");
 }
@@ -138,7 +139,7 @@ fn an_over_ask_refuses() {
     sim.leaders.tribute[1].dip[0].offers[FOOD] = 6_000;
     sim.leaders.tribute[0].dip[1].offers[FOOD] = -6_000;
     propose(&mut sim, 1);
-    sim.offers_arm(1, 0, false);
+    sim.offers_arm(1, 0, false, Rivals::default());
     assert_eq!(sim.diplos(1, 0), 0);
     let (a, b) = (sim.leaders.tribute[0].dip[1], sim.leaders.tribute[1].dip[0]);
     assert_eq!((a.treaty, b.treaty, a.offers[FOOD]), (-1, -1, 0));
@@ -154,7 +155,7 @@ fn an_ask_is_valued_at_its_worth_to_me() {
     let mut sim = at_war();
     sim.action_offer(1, 0, Resource::Food, -300);
     propose(&mut sim, 1);
-    sim.offers_arm(1, 0, false);
+    sim.offers_arm(1, 0, false, Rivals::default());
     assert_eq!(sim.diplos(1, 0), 1);
     assert_eq!(sim.leaders.declare[1].good_deeds[0], 200 + 300 * 0xaa / 256);
     assert_eq!(
@@ -169,7 +170,7 @@ fn an_ask_is_valued_at_its_worth_to_me() {
 fn an_uncommitted_proposal_waits() {
     let mut sim = at_war();
     sim.action_treaty(0, 1, 1);
-    sim.offers_arm(1, 0, false);
+    sim.offers_arm(1, 0, false, Rivals::default());
     assert_eq!(sim.diplos(1, 0), 0);
     assert_eq!(sim.leaders.tribute[1].dip[0].treaty, 1);
 }
@@ -183,12 +184,12 @@ fn a_target_racing_a_clock_is_turned_on() {
     sim.ai.lobby.victory = 0;
     sim.ai.ai[0].popwin_timer = 1;
     propose(&mut sim, 1);
-    assert!(!sim.style_zero_arms(1, 0));
+    assert!(sim.style_zero_arms(1, 0).is_none());
     assert_eq!(sim.leaders.agendas[1][0] & 0x20, 0x20);
     assert_eq!(sim.leaders.tribute[0].dip[1].treaty, -1, "rejected");
     assert_eq!(sim.diplos(1, 0), 0);
     sim.ai.ai[0].popwin_timer = 0;
-    assert!(sim.style_zero_arms(1, 0), "no clock, no arm");
+    assert!(sim.style_zero_arms(1, 0).is_some(), "no clock, no arm");
 }
 
 /// The hires: an executed deal that names a third slot to attack stamps
