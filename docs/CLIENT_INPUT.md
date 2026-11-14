@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -1238,9 +1238,56 @@ The whole first-entry diff of the two traces adds only these, the rally point's 
   blow lands on 6872, and our walk under the paused file lands it where run1599 does. From 6872 the unit's flee target
   differs too (`orders_x` 1272 on run1601, 504 on run1599). Before 6866 our walk follows run1601 on every record,
   including player 1's units that move differently from run1599 from about 6830 (`1/3`'s target, a new move order).
-  So the moved rally point's consequences are modelled up to there. Whether the pause's three turns or the new
-  situation sets off the early blow is not separated. A take of the chatted file with the rally point moved and no
-  pause would separate them.
+  So the moved rally point's consequences are modelled up to there. ~~Whether the pause's three turns or the new
+  situation sets off the early blow is not separated.~~ **Separated by run1602 (§14.1): the pause moves nothing; the
+  moved rally point sets off the early blow, and our walk misses it.**
 - **The pause notice**, `do_pause_notice`'s text and sound, and the game standing with nothing issued.
 - **A paused game's own clock**: the original keeps processing turns while paused; ours steps no frame and issues
   orders on the held frame, which is the recorded shape, but nothing reads what else a paused turn runs.
+
+## 14. The paused file without its pause (item 4254)
+
+*Item 4254, 2026-11-14. Item 4252 left one question open (§13.4, 4252a): on run1601, forty records part from 6866,
+and either the pause's three turns or the moved rally point could be the cause. One take answers it. The pause moves
+nothing; the parting is in our walk. No score moves: `INPUT_KINDS` stays 11 of 26.*
+
+### 14.1 The separation
+
+**The rallied script** (`rondata::script::rallied`) is the paused script without `pause(1)` and `pause(0)`: the
+chatted script plus one package on 6712, the capital's rally point to (4655, 31075). Its file is 59,504 bytes
+(`RALLIED_RCX_BYTES`, seen red at 0) and round-trips (`the_rallied_minted_packages_round_trip`). Our walk under it is
+our walk under the paused script, because `Stream`'s pause arm applies nothing.
+
+**run1602** plays that file on run1601's line (`docs/RUNS.md` run1602).
+- **Its window is run1601's, byte for byte**: 64,832,328 bytes from the first `BEGIN FRAME` on. run1599's window
+  differs. So a pause given, an order given while paused and the unpause leave no dumped trace beyond the order's own.
+- **Our walk against it** (`RALLIED_WALKED`): draws agree on 7,000 of 7,000 frames. 40 of 300 records part, the first
+  on 6866 at player 1's `1/0`, `damage` ours 13 and theirs 16. Pinned at 0 before the take was read and seen red.
+- The rally point's effects are the paused file's on both sides, and none of the pause's four functions is entered.
+- `the_original_s_playback_of_the_rallied_file_separates_the_pause` holds all of this. It also asserts that run1602's
+  window is not run1599's, which is the side that can fail.
+
+**The blow itself** (a dump reading, run1599 against run1601):
+- `1/0` flees west at 34 a frame on both takes, with identical records to 6865. It takes blows of 3 and 5/16 each:
+  on 6837, 6838 and 6858 on both takes. Then on 6866 and 6870 on run1601 and run1602, and on 6870 and 6872 on run1599
+  and on our walk. The total by 6872 is 19 and 14/16 on every side.
+- The 6866 blow leaves `damage_frame` at 6836: it lands 29 frames after the last refresh, inside `overkill_frames`.
+- `damage_o` 7, `damage_who` 0: the captain of player 0's group 1, `0/7`, `0/8` and `0/9`. Their records are
+  identical on both takes through 6875, recharges included: `0/7` fires on 6830, `0/8` on 6844, `0/9` on 6846.
+- At 6865 the two takes differ only in the Citizen `0/10`'s place, the capital's gather list, and two far units
+  (`1/3` and player 8's `8/3`). So what lands the 6866 blow is state the dump does not print. A missile in
+  flight is the candidate. Its flight would then depend on something the Citizen's walk changes.
+- From 6872, `1/0`'s flee target differs (`orders_x` 1272 against 504). That follows the blow.
+
+### 14.2 Confidence, and what is not established
+
+**Backed by a diff:** the separation. run1602's window equals run1601's, and our walk parts from both on the same
+record.
+
+**Not established:**
+- **4254a. What lands `1/0`'s blow on 6866.** The candidate is a missile from `0/9`'s shot on 6846, or `0/8`'s on
+  6844. The dump prints no missile. The next instrument is a packet at `RON_STATE_FRAME` 6860 on run1602's file,
+  reading the missiles in flight and their targets, then the same on run1599's. The question to answer: why the
+  Citizen walking to (4632, 31080) instead of standing at (4296, 30984) changes when a blow lands about 2,400 units from it.
+  The fix follows from that.
+
