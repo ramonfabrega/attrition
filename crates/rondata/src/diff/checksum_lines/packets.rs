@@ -4126,7 +4126,9 @@ fn probe_built_clocks() {
 /// each line's (the stream's ranges, ours, ranges parted), our walk the
 /// take's ([`run1575_take_packet`]). One line agrees, the cities' (12
 /// ranges). Item 4218, the idle latch (`flags & 0x08`): units (3907, 4015,
-/// 3084) -> (3907, 4015, 3077).
+/// 3084) -> (3907, 4015, 3077). Item 4159's step VII-c, `action_treaty` and
+/// the computed accept: leaders (407, 407, 8) -> (407, 407, 7), the deal
+/// records' `treaty` (2 on both seats' records, ours −1 before) agreeing.
 const TAKE_PINNED: Pinned = (
     "run1575",
     1090,
@@ -4138,7 +4140,7 @@ const TAKE_PINNED: Pinned = (
         (0, 0, 0),
         (556, 556, 2),
         (1289, 1331, 166),
-        (407, 407, 8),
+        (407, 407, 7),
         (12, 12, 0),
         (25, 25, 0),
         (405, 405, 1),
@@ -4148,21 +4150,26 @@ const TAKE_PINNED: Pinned = (
 
 /// The leaves of run1575's leaders line that part outside
 /// [`LEADERS_HELD_OUT`] at 1090, as found: `cities_built` (theirs 1, 1, 2
-/// on the three seats, ours 0, 0, 1); `dip.treaty` (the alliance asked on
-/// 1041, `treaty` 2 on both seats' records, ours −1: `action_treaty`, step
-/// VII-d); `diplos` (slots 3..7 read 1 there, `Leader::init`'s peace at
-/// style 0 on every slot, which the take's re-read lobby writes on 0..2
-/// only); `flags.leader_flags` (high bits on every seat).
-const TAKE_LEAF_PARTINGS: &str = "cities_built dip.treaty diplos flags.leader_flags";
+/// on the three seats, ours 0, 0, 1); `dip.agree` (the human's record of the
+/// French: theirs 0, ours 1 — the French answer to the alliance accepted on
+/// 1051 is found short and withdraws both agreements, an arm step VII-d
+/// ports; ours stops before answering, so the human's commitment stands);
+/// `diplos` (slots 3..7 read 1 there, `Leader::init`'s peace at style 0 on
+/// every slot, which the take's re-read lobby writes on 0..2 only);
+/// `flags.leader_flags` (high bits on every seat). Until step VII-c
+/// `dip.treaty` parted too (the alliance asked on 1041, ours −1 with no
+/// `action_treaty`).
+const TAKE_LEAF_PARTINGS: &str = "cities_built dip.agree diplos flags.leader_flags";
 
-/// **The unprinted leaves the take's packet witnesses, held and off the
-/// line** (item 4159, step VII-b2): each written on 906 (the ring) or 966
-/// (the drain and the gift) in our walk. They stay on [`LEADERS_HELD_OUT`]:
-/// 1090 follows the staged accept of 1027, and `docs/DECISIONS.md` entry 132
-/// §1 releases a leaf only on a block no staged decision precedes (the
-/// driver's ruling). `(leaf, run, slot)`, each off its seated image on the
-/// packet, our held value equal; they leave when VII-c retires the staging.
-pub(super) const TAKE_WITNESSED: &[(&str, &str, i16)] = &[
+/// **The unprinted leaves the take's packet releases** (item 4159, step
+/// VII-c; `docs/DECISIONS.md` entry 131 §1): each written on 906 (the
+/// ring) or 966 (the drain and the gift) and by nothing after in our walk,
+/// which holds the game unstaged to the packet since the French accept of
+/// 1027 is computed (entry 132 §1); the accept's exchange gives no goods.
+/// `(leaf, run, slot)`, each off its seated image on the packet, ours equal
+/// ([`hold_witnesses`]). Held off the line at VII-b2 (the driver's ruling)
+/// while 1090 followed a staged decision.
+pub(super) const TAKE_RELEASED: &[(&str, &str, i16)] = &[
     // The French ring: the cursor 1, the request 1, due 966.
     ("incoming", "run1575", 1),
     ("incoming_taunt", "run1575", 1),
@@ -4174,12 +4181,11 @@ pub(super) const TAKE_WITNESSED: &[(&str, &str, i16)] = &[
 
 /// **run1575's packet at 1090, held by the take** (item 4159, step
 /// VII-b2): the take's walk (`diff::diplomacy_take`: run1482's start at
-/// style 0, the script, the window's diplomacy off the record, the chat
-/// minted) ticked to the packet's frame, its twelve lines against the
-/// instrument's stream. Off the scoreboard ([`TAKES_HELD`]). The five
-/// unprinted leaves of the taunt's answer, held off the line, are
-/// witnessed here ([`TAKE_WITNESSED`]): our held value against the
-/// packet's, a bent one parting.
+/// style 0, the script, the human's window commands off the record, the
+/// chat minted) ticked to the packet's frame, its twelve lines against the
+/// instrument's stream. Off the scoreboard ([`TAKES_HELD`]). Since step
+/// VII-c no decision on the way is staged, and the five unprinted leaves
+/// of the taunt's answer are released here ([`TAKE_RELEASED`]).
 #[test]
 fn run1575_take_packet() {
     use crate::diff::diplomacy_take as take;
@@ -4191,9 +4197,6 @@ fn run1575_take_packet() {
         eprintln!("skipping: no {} or install", take::RUN1575.0);
         return;
     };
-    // Our held values of the witnessed leaves on the packet's frame:
-    // `(leaf, slot) → values`, read off the sim, not off the line.
-    let mut ours_held: std::collections::BTreeMap<(&str, i16), Vec<i64>> = Default::default();
     let Some(walked) = walk_packets_with(name, length, &[(run, frame)], &mut |frames, probe| {
         let script = take::coverage_script("diplomacy4206.cmd");
         let (_, mut built) = take::stand_up_sea_style_zero(take::RUN1575, script)?;
@@ -4201,15 +4204,6 @@ fn run1575_take_packet() {
             while built.sim.frame < f {
                 take::stage_frame(&mut built, 3, &[], &diplomacy, &taunts);
                 built.tick();
-            }
-            for &(leaf, _, slot) in TAKE_WITNESSED {
-                let who = slot as sim::Player;
-                let v = built
-                    .sim
-                    .leader_taunt_leaf(who, leaf)
-                    .or_else(|| built.sim.leader_tribute_leaf(who, leaf))
-                    .unwrap_or_else(|| panic!("{leaf} is held"));
-                ours_held.insert((leaf, slot), v);
             }
             probe(f, &built);
         }
@@ -4249,24 +4243,5 @@ fn run1575_take_packet() {
         TAKE_LEAF_PARTINGS,
         "run1575: the leaders line's leaves parting outside LEADERS_HELD_OUT"
     );
-    for &(leaf, _, slot) in TAKE_WITNESSED {
-        assert!(
-            held.contains(format!("{leaf} (unheld)").as_str()),
-            "{leaf} is held out"
-        );
-        let row = w
-            .leaves
-            .iter()
-            .find(|r| r.0 == slot && r.1 == "who..ally_mask" && r.2 == leaf)
-            .unwrap_or_else(|| panic!("run1575: slot {slot}'s {leaf}"));
-        assert!(
-            !at_init_image(leaf, &row.4),
-            "run1575: slot {slot}'s {leaf} is its seated image, no witness"
-        );
-        let ours = &ours_held[&(leaf, slot)];
-        assert_eq!(ours, &row.4, "run1575: slot {slot}'s held {leaf}");
-        let mut bent = ours.clone();
-        bent[0] ^= 1;
-        assert_ne!(bent, row.4, "run1575: a bent {leaf} parts");
-    }
+    hold_witnesses(w, &held, TAKE_RELEASED);
 }

@@ -80,9 +80,10 @@ pub(crate) const DAMAGE_PRINTED: [&str; 14] = [
 const DAMAGE_ROWS: [&str; 3] = ["attack_stamp", "raid_stamp", "ally_stamp"];
 
 /// The declaration's two `int[8]` rows (`docs/LEADERS.md` §7.1, item 4159's
-/// step VII-b1), eight `name[scan]` lines each, keyed `name[i]` by target;
-/// `blacken`, the third leaf, is a scalar.
-const DECLARE_ROWS: [&str; 2] = ["dow", "broke_alliance"];
+/// step VII-b1) and the accepted peace's `made_peace` (step VII-c), eight
+/// `name[scan]` lines each, keyed `name[i]` by target or other party;
+/// `blacken`, the declaration's third leaf, is a scalar.
+const DECLARE_ROWS: [&str; 3] = ["dow", "broke_alliance", "made_peace"];
 
 /// The taunt's answer's four printed `int[8]` rows (`docs/LEADERS.md` §8.1,
 /// §9.1, item 4159's step VII-b2): `tribute_stamp` by giver, `gift_stamp`,
@@ -605,8 +606,9 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         out.push((k.to_string(), s.leader_endgame_leaf(p, k).unwrap_or(0)));
     }
     // **Item 4159, step VII-b1** (`docs/LEADERS.md` §7): the declaration's
-    // `blacken`, and `dow` and `broke_alliance` by target. The same values
-    // the leaders line emits.
+    // `blacken`, and `dow` and `broke_alliance` by target; step VII-c's
+    // `made_peace` by the other party. The same values the leaders line
+    // emits.
     for k in sim::leaders::declare::DECLARE_LEAVES {
         let v = s.leader_declare_leaf(p, k).unwrap_or_default();
         if DECLARE_ROWS.contains(&k) {
@@ -616,6 +618,16 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         } else {
             out.push((k.to_string(), v.first().copied().unwrap_or(0)));
         }
+    }
+    // **Item 4159, step VII-c** (`docs/LEADERS.md` §8.2): the deal records'
+    // `treaty`, one per partner (`Diplomacy +8`), which the record prints in
+    // its eight `DIPLOMACY` blocks. Past `LeaderData::walk_data`'s range, so
+    // on no checksum line: `Leader::action_treaty` writes it into both
+    // records and `Diplomacy::clear_all` resets it to −1.
+    let deal = s.leaders.tribute.get(p as usize);
+    for i in 0..8 {
+        let w = deal.and_then(|t| t.dip.get(i)).map_or(-1, |d| d.treaty);
+        out.push((format!("dip.treaty[{i}]"), i64::from(w)));
     }
     // **Item 4159, step VII-b2** (`docs/LEADERS.md` §8, §9): the taunt's
     // answer's printed rows. The same values the leaders line emits.
@@ -1089,11 +1101,18 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
             out.insert(format!("{key}[{i}]"), *x);
         }
     }
-    // The declaration's two rows (§7), eight `[scan]` lines each, by
-    // target; and the taunt's answer's four (§8, §9).
+    // The declaration's two rows and `made_peace` (§7), eight `[scan]`
+    // lines each, by target; and the taunt's answer's four (§8, §9).
     for key in DECLARE_ROWS.iter().chain(&TAUNT_ROWS) {
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
+        }
+    }
+    // The deal records' `treaty` (§8.2, item 4159's step VII-c), one per
+    // `DIPLOMACY` block, by partner.
+    for (i, d) in block.kids("DIPLOMACY").take(8).enumerate() {
+        if let Some(x) = d.int("treaty") {
+            out.insert(format!("dip.treaty[{i}]"), x);
         }
     }
     // `anti_att` is the record's one float: `log_data` prints it `%f`, six
@@ -1677,7 +1696,8 @@ mod tests {
             // item 4187: 205_600 -> 257_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 257_600 -> 260_320, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
             // item 4159 VII-b2: 260_320 -> 265_440, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
-            265_440, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-c: 265_440 -> 268_000, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
+            268_000, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1793,7 +1813,8 @@ mod tests {
             // item 4187: 221_020 -> 276_920, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 276_920 -> 279_844, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
             // item 4159 VII-b2: 279_844 -> 285_348, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
-            285_348, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-c: 285_348 -> 288_100, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
+            288_100, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -2000,7 +2021,8 @@ mod tests {
             // item 4187: 46_260 -> 57_960, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 57_960 -> 58_572, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
             // item 4159 VII-b2: 58_572 -> 59_724, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
-            59_724, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-c: 59_724 -> 60_300, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
+            60_300, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -2151,7 +2173,8 @@ mod tests {
             // item 4187: 334_100 -> 418_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 418_600 -> 423_020, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
             // item 4159 VII-b2: 423_020 -> 431_340, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
-            431_340, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-c: 431_340 -> 435_500, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
+            435_500, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -2302,7 +2325,8 @@ mod tests {
             // item 4187: 77_100 -> 96_600, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 96_600 -> 97_620, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
             // item 4159 VII-b2: 97_620 -> 99_540, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
-            99_540, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-c: 99_540 -> 100_500, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
+            100_500, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3412,7 +3436,8 @@ mod tests {
             // item 4187: 629_650 -> 788_900, +325 keys a leader block (`score`, `territory_high`, `tech`, `num_buildings[·]`, `high_buildings[·]`, `reg_terr[·]`).
             // item 4159 VII-b1: 788_900 -> 797_230, +17 keys a leader block (`blacken`, `dow[·]`, `broke_alliance[·]`).
             // item 4159 VII-b2: 797_230 -> 812_910, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
-            812_910, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159 VII-c: 812_910 -> 820_750, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
+            820_750, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
@@ -3747,6 +3772,8 @@ mod tests {
                 "lost_capital_modifier",
                 "lost_capital_stamp",
                 "lost_capital_timer",
+                // Item 4159's step VII-c: the accepted peace's stamp.
+                "made_peace",
                 "misery",
                 "missiles_used",
                 "multi_diff",

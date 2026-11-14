@@ -1434,17 +1434,19 @@ impl Sim {
             // `docs/LEADERS.md` §7): the declaration's `blacken`, `dow` and
             // `broke_alliance`, each moved on run1575's blocks 987 and 1002
             // (and `dow` on run1078's 912) by a human's Declare our walk
-            // computes, and agreeing there.
+            // computes, and agreeing there; step VII-c's `made_peace`, moved
+            // on run1575's 1028 by the French accept our walk computes.
             _ if crate::leaders::declare::DECLARE_LEAVES.contains(&name) => {
                 self.leader_declare_leaf(who, name)
             }
             // Item 4159, step VII-b2 (`crate::leaders::tribute`,
             // `crate::leaders::taunt`, `docs/LEADERS.md` §8, §9): the
             // taunt's answer. `tribute_stamp`, `gift_stamp`, `last_taunt`
-            // and `taunt_frame` move on run1575's block 967, computed by our
-            // walk and agreeing there. The ring and the two totals are held
-            // and stay off the line: their only witness, run1575's packet
-            // at 1090, follows the staged accept of 1027 (step VII-c).
+            // and `taunt_frame` move on run1575's block 967, and
+            // `tribute_sent`, `tribute_received`, `incoming`,
+            // `incoming_taunt` and `incoming_taunt_frame` on its packet at
+            // 1090, each computed by our walk and agreeing there; the accept
+            // of 1027 between is computed since step VII-c.
             _ if crate::leaders::tribute::TRIBUTE_LEAVES.contains(&name) => {
                 self.leader_tribute_leaf(who, name)
             }
