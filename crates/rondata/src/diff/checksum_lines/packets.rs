@@ -125,6 +125,11 @@ pub(in crate::diff) fn compare(
         .map(|(name, o)| {
             let t = theirs.get(*name).unwrap_or(&empty);
             let p = parting(o, t);
+            if std::env::var_os("RON_PROBE_4258").is_some() && *name == "groups" {
+                for r in &p {
+                    eprintln!("PROBE4258 {} {} {} ours {} theirs {}", r.0, r.1, r.2, r.3, r.4);
+                }
+            }
             LineOutcome {
                 theirs: t.len(),
                 ours: o.ranges.len(),
