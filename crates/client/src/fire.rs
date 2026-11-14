@@ -324,23 +324,28 @@ mod tests {
     /// **336 → 9,138**, past 185 → 5,617, the particles drawn (§3.25); the
     /// packet's particles read 11,518, past 1,702. Ours' dense core is
     /// thin, 120 against 2,415, and the packet's through our pass 468
-    /// (4233a).
+    /// (4233a). Item 4237: the particles through `TL_FAKE_LIGHT` and
+    /// blended in HDR (§3.25): **dense 120 → 487**, the row 9,138 → 9,728,
+    /// past 5,617 → 5,538; the packet's dense **468 → 1,716**, its row
+    /// 11,518 → 11,806, past 1,702 → 2,042. The LDR blend is the before.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((9138, 19378, 5617), (16313, 120)),
+        ((9728, 19378, 5538), (16570, 487)),
         ((0, 19378, 0), (0, 0)),
         ((19378, 19378, 0), (16963, 2415)),
-        ((11518, 19378, 1702), (14767, 468)),
+        ((11806, 19378, 2042), (14210, 1716)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
     /// 9,232**, past 254 → 5,055; the wind taken at birth for the whole
     /// life read 5,772, past 9,742. The packet's particles read 11,847,
-    /// past 1,353.
+    /// past 1,353. Item 4237, in HDR: **dense 182 → 770**, the row 9,232 →
+    /// 9,403, past 5,055 → 5,075; the packet's dense **676 → 2,099**, its
+    /// row 11,847 → 12,219, past 1,353 → 1,555.
     const RUN1570_PLUME: PlumeRows = [
-        ((9232, 18871, 5055), (15821, 182)),
+        ((9403, 18871, 5075), (15668, 770)),
         ((0, 18871, 0), (0, 0)),
         ((18871, 18871, 0), (16401, 2470)),
-        ((11847, 18871, 1353), (14580, 676)),
+        ((12219, 18871, 1555), (13771, 2099)),
     ];
 
     #[test]
