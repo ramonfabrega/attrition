@@ -260,7 +260,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         // Item 4258: groups whole; before it, 1 of 550 ranges from 76,
         // record 64 (army 1/1, 21 members, the same list on both sides)
         // `role` 0x150c00 ours, 0x150c03 theirs: `Group::add`'s OR of the
-        // Pikemen's role, which `seat_add` left out.
+        // Hoplites' role (TI 132), which `seat_add` left out.
         &[
             (
                 "units",

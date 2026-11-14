@@ -805,8 +805,8 @@ impl Sim {
         // `Group::add`'s in-use arm ORs the new member's type `role`
         // (`UnitType +0x2c8`) into the record's `+0x34` as it lists it —
         // not only `find_role` writes it (`docs/GROUPS.md` §3.4, item
-        // 4258). Army 1/1's 18 members on the minted game take three
-        // Pikemen on 9809 with no normalize, theirs 0x150c00 → 0x150c03.
+        // 4258). Army 1/1's 18 Longbowmen on the minted game take three
+        // Hoplites (TI 132) on 9809, no normalize: 0x150c00 → 0x150c03.
         let added_role = self.group_find_role(&[o]);
         let (list, st) = self.seat_parts(seat);
         if list.contains(&o) || list.len() >= 128 {

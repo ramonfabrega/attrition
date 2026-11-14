@@ -238,10 +238,21 @@ scout groups, normalized since their pushes, read the Scout's `0x40110`.
 Its readers: `Army::add_group@006f8c00` ORs it into the army's role (not
 carried here), and the checksum's groups line (`docs/CHECKSUM.md` §19).
 
+**`Group::add` ORs it too** (item 4258). `Group::add@00714350`'s in-use arm
+(vslot `+0x8` on the object) ORs the new member's type `role` into `+0x34`
+as it lists it. It does this before the `o_down` recursion and the speed
+tail, and with no `find_role`. So a seated group of four or more takes the
+new member's bits even though its `get_num` does not normalize. The crate's
+`Sim::seat_add` does the OR. Diff-backed on the minted game: army 1/1's
+record 64 holds 18 Longbowmen and reads `role` 0x150c00 on 9809. The
+Hoplites `1/56..1/58` (TI 132, land) join it on 9809, and theirs reads 0x150c03 on 9810
+(run1597's record). Ours read 0x150c00 until the OR, and the groups line
+is now the original's on all 24,000 (`docs/CHECKSUM.md` §25.4).
+
 The crate writes it wherever it stands in for `normalize` —
 `Sim::seat_normalize`, `Sim::group_set_speed` (the speed tail of the
 normalize-opening sites), `Army::normalize`'s seat tail — and in both arms
-of `Sim::groups_process`; `GroupState::emptied` zeroes it, and
+of `Sim::groups_process`; `Sim::seat_add` ORs a new member's in; `GroupState::emptied` zeroes it, and
 `GroupState::copied` leaves the previous occupant's.
 
 **A push of buildings normalizes `last_group`'s slot too** (item 4222):

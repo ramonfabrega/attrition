@@ -1293,7 +1293,7 @@ fn a_push_zeroes_the_origin_of_an_emptied_last_slot() {
 /// `role` into `+0x34` as it lists it, with no `find_role` — so a seated
 /// group of four or more, whose `get_num` does not normalize, still takes
 /// the new type's bits. The minted game's army 1/1 (record 64), 18
-/// Longbowmen, takes three Pikemen on 9809: theirs reads `role` 0x150c00
+/// Longbowmen, takes three Hoplites (TI 132) on 9809: theirs reads `role` 0x150c00
 /// on 9809 and 0x150c03 on 9810 (run1597).
 #[test]
 fn a_seated_add_ors_the_member_s_role() {
