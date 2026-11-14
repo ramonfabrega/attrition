@@ -245,6 +245,14 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// ranges from 832, records 27, 28, 29 (player 1's Longbowmen, TI 177)
 /// `unit_masks` ours 0x40000, 0x4000a, 0x4000a, theirs 0x40004, 0x4000e,
 /// 0x4000e → the original's on all three, the line whole.
+///
+/// Item 4253 moved two on run1578: units 7273 → 8281 and guys 7273 →
+/// 10541, one rule, a scholar's seating (`Unit::go_inside@0061a2e0`'s
+/// `set_angle(0, _, 1)`, `61a547`) setting its figure's `angle` and
+/// `last_angle` rather than turning it. Value diff on 7273 (run1597's
+/// record): units range 891 and guys range 279, record 30 (`1/30`, a
+/// Scholar, TI 52, seated in its University on 7272) `angle` and
+/// `last_angle` ours 0x55555555, theirs 0 → 0 on both, both lines whole.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -266,10 +274,10 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 7273, 0),
+            ("units", 8281, 0),
             ("builds", 7383, 0),
             ("groups", 8206, 0),
-            ("guys", 7273, 0),
+            ("guys", 10541, 0),
             ("leaders", 0, 300),
             ("cities", 24000, 0),
             ("items", 24000, 0),

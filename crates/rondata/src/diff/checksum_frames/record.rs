@@ -191,21 +191,11 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     ),
     (
         7273,
+        // Item 4253: units and guys whole; before it, 1 of 1692 and 1 of
+        // 560 ranges, 891 and 279, record 30 (`1/30`, a Scholar, TI 52,
+        // seated in its University on 7272) guy `angle` and `last_angle`
+        // 0x55555555|0 (`Unit::go_inside`'s `set_angle(0, _, 1)` snap).
         &[
-            (
-                "units",
-                1692,
-                1692,
-                1,
-                "891 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
-            (
-                "guys",
-                560,
-                560,
-                1,
-                "279 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
             (
                 "leaders",
                 271,
@@ -218,21 +208,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     (
         7383,
         &[
-            (
-                "units",
-                1657,
-                1657,
-                1,
-                "856 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
             ("builds", 1142, 1142, 1, "903 2019 mtn..cliff: mtn -1|0"),
-            (
-                "guys",
-                560,
-                560,
-                1,
-                "279 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
             (
                 "leaders",
                 271,
@@ -245,13 +221,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     (
         8206,
         &[
-            (
-                "units",
-                1937,
-                1937,
-                1,
-                "878 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
             ("builds", 1142, 1142, 1, "903 2019 mtn..cliff: mtn -1|0"),
             (
                 "groups",
@@ -259,13 +228,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 544,
                 1,
                 "91 67 id..march: ox 30552|0, oy 21144|0",
-            ),
-            (
-                "guys",
-                637,
-                637,
-                1,
-                "279 30 guy: angle 1431655765|0, last_angle 1431655765|0",
             ),
             (
                 "leaders",
@@ -276,6 +238,8 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             ),
         ],
     ),
+    (8281, &[]),
+    (10541, &[]),
 ];
 
 /// **The record names the partings**: our walk under the pump to each of
