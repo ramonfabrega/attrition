@@ -313,6 +313,30 @@ fn the_start_list_s_target_is_the_next_live_leader() {
     assert_eq!(sim.start_list_target(0), 0, "nobody left but me: me");
 }
 
+/// **An army's pushed group is normalized by `add_group`** (item 4242):
+/// `Army::add_unit@006f9f40`'s push arm hands the slot to
+/// `Army::add_group@006f8c00`, which calls the record's vslot `+0x8`,
+/// `Group::get_num_cap` (`6f8dae`); a group of fewer than four is
+/// `normalize`d whole, so `find_role` and the speed tail run on the copy
+/// `copy_group` left. The minted game's Longbowmen `1/24..1/26`, pushed
+/// into army 1/1 on 6780, read `role` 0x150c00 and speed 26 on run1592.
+#[test]
+fn an_army_s_pushed_group_takes_add_group_s_normalize() {
+    use crate::ai::ai_load::role;
+    let (mut sim, c) = sim_with_city();
+    let t = soldier_type(&mut sim);
+    sim.tables.unit_types[t].cols.role |= role::ROLE_HOPLITE;
+    let slot = sim.init_army(1, Some(c));
+    let u = put(&mut sim, 1, t, Pos::new(0x3000, 0x3000));
+    sim.army_add_unit(1, slot, u);
+    let st = &sim.ai.armies[1].list[slot].group;
+    assert!(st.pool.is_some(), "the push seats the group");
+    assert_eq!(st.role, role::ROLE_HOPLITE, "find_role ran");
+    assert_eq!((st.speed, st.new_speed), (25, 25), "the speed tail ran");
+    assert_eq!(sim.units[u].group_ptr, st.pool, "the member names the slot");
+    assert_eq!(sim.ai.armies[1].list[slot].units, vec![u], "the prune kept it");
+}
+
 /// **A full pool's takeover leaves the old group seated** (group 4; A5
 /// #10): `Army::init` touches no group, so the evicted army's members
 /// still name a group the pool holds.
