@@ -519,6 +519,33 @@ pub fn paused() -> Vec<Order> {
     orders
 }
 
+/// **The rallied script** (item 4254, `docs/CLIENT_INPUT.md` §14.1): the
+/// paused script without its pause. The chatted script and one package
+/// more, on [`PAUSE_FRAME`]: the capital's rally point moved to
+/// [`PAUSE_GATHER_AT`], with no `pause` before or after it. Its playback
+/// (run1602) separates the moved rally point from the pause's three turns
+/// (parked 4252a).
+pub fn rallied() -> Vec<Order> {
+    let mut orders = chatted();
+    orders.push((
+        PAUSE_FRAME,
+        0,
+        vec![
+            Command::Group {
+                who: 0,
+                objects: vec![CAPITAL],
+            },
+            Command::GatherPoint {
+                x: PAUSE_GATHER_AT.x,
+                y: PAUSE_GATHER_AT.y,
+                action: 0,
+                add_to_end: 0,
+            },
+        ],
+    ));
+    orders
+}
+
 /// The frame the game is paused on, two after [`CHAT_FRAME`], before the
 /// Citizen [`GATHER_TRAIN_FRAME`] queues comes out.
 pub const PAUSE_FRAME: i32 = 6712;

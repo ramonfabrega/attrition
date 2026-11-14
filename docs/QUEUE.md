@@ -38,7 +38,7 @@ Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame
 Start: 161 of 161 lobbies · GreatLakes walked w24000 of 24,000
 Lobby: the page sets 161 of 161 lobbies · starts 161 of 161, walked 600 frames
 Hud: buttons mint the clicked file byte for byte, 2 of 2 keyed orders · the panel equals run1568's dump, 628 of 628 values · the bar equals the LEADERDATA record, 57,420 of 57,420 values · the clock reads the photographs' time, 3 of 3, and Game::tick on 109 of 109 packets · a wounded unit's panel equals run1571's dump, 840 of 840 values
-Recording: 50 of 50 round-tripped · the original plays ours: GreatLakes 24,000 of 24,000 frames in lockstep (run1560) · with a person's orders (move_to, queue_up, build): 24,000 of 24,000 frames in lockstep, 299 records whole, each order's effect equal on both sides (run1561, run1561a) · right presses: 300 of 300 frames, each effect equal (run1568) · a box: 300 of 300 (run1569) · an attack: 6,900 of 6,900 frames, 210 records whole, the blow's hits equal (run1571) · a follow: 6,900 of 6,900 (run1573) · a gather point: 7,000 of 7,000 frames, 300 records whole (run1598) · a chat: 7,000 of 7,000 (run1599) · a pause: 7,000 of 7,000 draws, 260 of 300 records whole (run1601; 4254)
+Recording: 50 of 50 round-tripped · the original plays ours: GreatLakes 24,000 of 24,000 frames in lockstep (run1560) · with a person's orders (move_to, queue_up, build): 24,000 of 24,000 frames in lockstep, 299 records whole, each order's effect equal on both sides (run1561, run1561a) · right presses: 300 of 300 frames, each effect equal (run1568) · a box: 300 of 300 (run1569) · an attack: 6,900 of 6,900 frames, 210 records whole, the blow's hits equal (run1571) · a follow: 6,900 of 6,900 (run1573) · a gather point: 7,000 of 7,000 frames, 300 records whole (run1598) · a chat: 7,000 of 7,000 (run1599) · a pause: 7,000 of 7,000 draws, 260 of 300 records whole (run1601; the rally point's, not the pause's: run1602, 4256)
 Checksum: instrument 15 of 15 lines (run1562 f91) · state 8 of 12 lines, 367,156 of 425,499 bytes · packets 107 of 109 · lines 425 of 1,053
 
 **Opener: the tranche (`commander`, Opus 5.5)** — reap the steer's row first (`python3 tools/handover.py reap <ref>`); check `gate-pass-1114f.log` ends `gate exit 0`; read this file and entry 134; then cut the lanes the line under "The queue" names, each brief from `tools/brief.py`, three gating seats on a day's budget of about fourteen points (`docs/LOOP.md`, the stop).
@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11): the third takes 4253 (units and guys at 7273, one field; 4243 and 4251 landed); the suite's seat takes 4255, groups off Step R's record (4248 and 4244 landed); render takes 4254 (Ramon: playing first; 4249, 4250 and 4252 landed), then 4245 to 4247; the chain's builder takes 4159's order when a seat is idle.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11): the third takes 4253 (units and guys at 7273, one field; 4243 and 4251 landed); the suite's seat takes 4255, groups off Step R's record (4248 and 4244 landed); render takes 4256 (Ramon: playing first; 4249, 4250, 4252 and 4254 landed), then 4245 to 4247; the chain's builder takes 4159's order when a seat is idle.
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2; builders). `LEADERS_HELD_OUT` 23 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
@@ -87,12 +87,11 @@ says so when the card trace on disk holds no normal or colour stream for those d
 photograph's is dark terrain. The score: a new row on those pixels, seen at 0. **First act:** the row, then the draws the card
 trace lays there. It stops and says so when no draw on a trace on disk covers them. Slot 10's flame (parked 4241a) rides after it.
 
-4254. **The paused file's forty records, then the market's sell and buy and the city's gather** (input, scoped;
-`docs/CLIENT_INPUT.md` §13.4, a new §14; the render seat, before 4245). Item 4252 minted pause (`INPUT_KINDS` 11 of 26, 2,240
-of 2,429 orders); the original played run1601 in lockstep for 7,000 of 7,000 draws, but 40 of 300 records part from 6866, a
-blow on player 1's `1/0` six turns early (4252a). The score: run1601's records whole, 260 of 300. **First act:** a take of the
-chatted file on the Great Lakes game with the rally point moved and no pause (run1602), which separates the pause from the
-rally point; the fix if the parting is ours. Then sell 28 and buy 18 (the market panel), city_gather 20, one a landing.
+4256. **The rally point's forty records: what lands `1/0`'s blow, then the market and the city's gather** (input, scoped;
+`docs/CLIENT_INPUT.md` §14.2, a new §15; the render seat, before 4245). Item 4254 showed the pause moves nothing (run1602's
+window is run1601's byte for byte): the parting is in our walk, set off by the moved rally point (4254a). The score: run1601's
+records whole, 260 of 300. **First act:** a packet on the Great Lakes game at 6860 (run1603), the round in flight named on
+it, and the fix. Then sell 28 and buy 18 (the market panel), city_gather 20, one a landing.
 
 ## How to maintain this file
 
