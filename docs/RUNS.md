@@ -36570,7 +36570,15 @@ SHA-256 `721788fad0d6273cff7447ca481101613ff4d843c3e77bbac370669e9460e9be`.
 Photograph `~/ron-data/lab-experiments/2026-11-12-item-4160/run1564-3294.png`: window 16600, 1920×1112, the
 gamelog at 3295. SHA-256 `a141fd83f4a2507dfc3d3c744d97de9c3ec27f75ad2411c6a07955cc7a90787e`. The 32-row title bar
 is cropped (PIL) to `run1564-3294-view.png`, which is converted by `sips -s format tga` to `run1564-3294.tga`, SHA-256
-`8ea21bccc5032306282449c9852e5a7861a29917bd0fc4a613c4df6a95a8f89c`. That TGA is the one the tests read.
+`8ea21bccc5032306282449c9852e5a7861a29917bd0fc4a613c4df6a95a8f89c`. ~~That TGA is the one the tests read.~~
+
+**The grab is in the display's colour space** (item 4223; `docs/RENDERER.md` §3.18). The PNG carries an `iCCP`
+profile, `Mi monitor` (a near-P3 gamut at gamma 1.96), where every other photograph on disk carries the `sRGB`
+chunk: the window server had matched the frame to that display. `tools/render/photo_srgb.py` matches it back to
+sRGB, into `~/ron-data/lab-experiments/2026-11-13-item-4223/run1564-3294-srgb.png` (SHA-256
+`70da373e6c3071729e3ba860dac83627825df385780b66943b1c865a09a6b2bd`). It is cropped and converted as above to
+`run1564-3294-srgb.tga` (SHA-256 `c3bf00df0f03b3c397b954c26f3dde7e3336370975c47494f0649413a7437c58`), **the TGA
+the tests read** since item 4223. The lake's centre goes (47, 116, 148) → (21, 130, 160).
 
 **What it holds**:
 - `packet_points.py`'s `state 0` line is the client's pinned camera with only `loc` changed: `47106000` `47166000`,

@@ -1903,7 +1903,10 @@ one photograph: the rows.
 
 **What is not established.**
 
-- **The water's red** (4174a). The photograph's lake reads r ≈ 40, and
+- ~~**The water's red** (4174a).~~ Settled by item 4223 (§3.18, "The
+  lake's red is the grab's"): run1564's photograph was matched to its
+  display's profile; in sRGB the lake reads r ≈ 20. The rest of this
+  bullet stands as a reading. The photograph's lake reads r ≈ 40, and
   every packet input to the floor and the water gives 0 to 20. The
   specular, by the reading's terms at roughness 0.3 and the light
   (0.707, 0, 0.707), is about 0.05 in HDR, a few bytes. The coral layer
@@ -2352,9 +2355,11 @@ on one photograph**: the rows.
   and ours is unlit. Luma `OCEAN` would go 215 → 276; not drawn.
   Item 4200 (§3.18): the floor's own texture does not show in the
   photograph.
-- **The water's tone** (4174a). Over every water class the photograph is
-  close to `0.6 · ours + 45`. ~~The lit water and the screen reflection~~:
-  both are ruled out over the deep water (§3.18), and the red is open.
+- ~~**The water's tone** (4174a). Over every water class the photograph is
+  close to `0.6 · ours + 45`. The lit water and the screen reflection:
+  both are ruled out over the deep water (§3.18), and the red is open.~~
+  Settled by item 4223 (§3.18): the desaturation is the grab's display
+  match, not the frame's.
 - ~~**The beach's edge against the grass**~~: drawn by item 4200, §3.18.
 
 ## 3.17 The paved base under a city: the footprint weathering (item 4190)
@@ -2569,17 +2574,63 @@ where the clear colour's black showed. On run1564 luma moves
 pulls HSV hue from 205° to 199.5°, and the photograph's deep sand
 reads 206°. Parked 4213b.
 
+**The lake's red is the grab's (item 4223).** run1564's photograph is
+the only one on disk whose PNG carries an embedded profile:
+`screencapture` tagged it `Mi monitor`, a near-P3 gamut (red primary x
+0.678) at gamma 1.96. Every other photograph (run1559, run1559b,
+run1566b, run1570) carries the PNG's `sRGB` chunk. On a display whose
+profile is not sRGB, the window server has already matched the frame to
+that display before `screencapture` reads it. A saturated cyan then
+gains red and loses green and blue: that is 4192b's `0.6 · ours + 45`.
+`tools/render/photo_srgb.py` matches the grab back to sRGB with
+ColorSync (`sips -m`). The profile's own matrices give the same
+numbers within one count: the lake's centre (47, 116, 148) → (20, 130,
+160), against our still's (10, 145, 213). The rows read the matched
+TGA; `every_photograph_a_row_reads_is_tagged_srgb` holds every
+photograph's source to the `sRGB` chunk. It reads the raw grab's `iCCP`
+as its failing case. **The interface is the match's own witness**
+(`the_interface_s_pure_red_survives_the_match`). The panel's banner is
+pure red, (255, 0, 0), on 3,770 pixels of run1559b's grab. run1564's raw
+grab holds none: its reddest is (235, 49, 21), because a match into a
+wider gamut cannot reach the corner. The matched grab holds 3,771.
+
+On the still (`RUN1564_3279_GROUND_STILL`, `OCEAN` 437 tiles, mean of
+tile means, the row's reader):
+
+| | theirs, as grabbed | theirs, sRGB | ours |
+|---|---|---|---|
+| `OCEAN` | (47.4, 113.3, 158.1) | (27, 127, 170)¹ | (10.6, 146.7, 211.3) |
+| tile (161, 191), pixel (296, 1) | (43, 113, 156), r share 0.139 | (12, 127, 168), 0.039 | (12, 156, 217), 0.030 |
+
+¹ the mean matched by the profile's matrices.
+
+The row goes **1,021 → 1,384** of 1,920: `OCEAN` **0 → 258** of 437,
+`SANDY` 311 → 415, `ROCK` 31 → 32, plain 679 unchanged. Luma goes
+1,396 → 1,437. With the match in place, **the coral layer (draw 131,
+4213b) lands**: the row goes 1,384 → 1,412 (`SANDY` 415 → 443) and luma
+1,437 → 1,710 (`SANDY` 400 → 649, `OCEAN` 333 → 357). run1559b's rows
+stay at 1,104 and 1,036. The painter's own rows on run1564 fall
+(`RUN1564_3279_GROUND` 1,233 → 1,018, `OCEAN` 233 → 87): its water had
+agreed with the grab, not with the frame.
+
 **What is not established.**
 
-- **The lake's red** (4174a, 4192b; parked 4213a): no input read carries
+- ~~**The lake's red** (4174a, 4192b; parked 4213a): no input read carries
   it. The floor (36), the patches and coral (121–131), the water (162),
-  the surf (163–169) and the tone map are each read, and none has it.
+  the surf (163–169) and the tone map are each read, and none has it.~~
+  Settled by item 4223 (above): the grab's display match. The frame
+  between the card's last draw and the photograph (FXAA, the swap) was
+  not read; with the match, nothing is left for it to explain on hue.
+- **`OCEAN`'s 179 tiles still parted on hue** (item 4223): after the
+  match, ours stays more saturated than theirs (the centre's green 145
+  against 130). The surf's own geometry and vertex alpha are not
+  streamed on the pass, and are not drawn (parked 4223a). The lake's
+  dark patch near pixel (1,050, 190) is not read (4223b).
 - ~~The tileset's tint, (18, 18, 0) on `early_autumn`, which
   `ImageIO::set_tint` lays on every tileset texture at load; the client
   takes the files untinted.~~ Drawn, with the land's light (§3.21).
-- The coral layer itself (draw 131) and the floor's light: neither is
-  drawn. Item 4213 read 131's setters and drew it in a scratch tree
-  (4213b, above).
+- ~~The coral layer itself (draw 131)~~: drawn by item 4223 (above),
+  4213b's layer at the flat light. The floor's light is not drawn.
 - The patch's vertex colour (stage 0 `MODULATE(TEXTURE, DIFFUSE)`): ours
   draws the texel alone.
 
@@ -3488,8 +3539,9 @@ lines and fog shading, projectiles and corpses, then candidate C.
 - ~~The water's normal, which its vertices do not carry (§3.12, 4168a). Settled by the water VB's input layout
   in `d3dgl.dll` and the vertex shader's default for a missing normal.~~ Settled by item 4174: `modify_water`'s
   mesh, the one drawn, carries (0, 0, 1) at all 1,755 vertices on run1564's packet (§3.12).
-- The water's red: the photograph's lake reads r ≈ 40, and no packet input to the floor or the water carries
-  any (§3.12, 4174a); the screen reflection's reach is read, not counted (item 4178). ~~Its alpha past
+- ~~The water's red: the photograph's lake reads r ≈ 40, and no packet input to the floor or the water carries
+  any (§3.12, 4174a)~~ (settled by item 4223, §3.18: the grab's display match); the screen reflection's reach is
+  read, not counted (item 4178). ~~Its alpha past
   `create_water_verts` (4174b).~~ Settled by item 4178: 597 of 597 drawn corners (§3.12, "The water drawn").
   The shore's blend, `sand.tga`'s own layer and its patches, is not drawn (§3.12, 4178b).
 
