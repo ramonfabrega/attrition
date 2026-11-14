@@ -46,3 +46,24 @@ fn fs_shade(@builtin(position) p: vec4<f32>) -> @location(0) vec4<f32> {
     }
     return vec4<f32>(tone(untone(g.r) * k), tone(untone(g.g) * k), tone(untone(g.b) * k), 1.0);
 }
+
+// Item 4237 (`docs/RENDERER.md` §3.25): the particles' share, gathered off
+// screen in HDR (`client::gpu`'s plume pass): binding 1's rgb the light the
+// particles laid in, its alpha the share of the frame under them that is
+// left, so `T(T⁻¹(g) · τ + L)` is the original's blend, draw after draw, in
+// its HDR target before the tone map.
+@fragment
+fn fs_plume(@builtin(position) p: vec4<f32>) -> @location(0) vec4<f32> {
+    let c = vec2<i32>(p.xy);
+    let g = textureLoad(under, c, 0).rgb;
+    let s = textureLoad(keep, c, 0);
+    if (s.a >= 1.0 && s.r <= 0.0 && s.g <= 0.0 && s.b <= 0.0) {
+        return vec4<f32>(g, 1.0);
+    }
+    return vec4<f32>(
+        tone(untone(g.r) * s.a + s.r),
+        tone(untone(g.g) * s.a + s.g),
+        tone(untone(g.b) * s.a + s.b),
+        1.0,
+    );
+}
