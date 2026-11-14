@@ -1979,6 +1979,25 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// show. Held, and agreeing there (`packets::run1575_take_packet`), they
 /// leave when VII-c retires the staging. The long range stays out on the
 /// other 40.
+///
+/// Item 4159's frozen scan: 40 → 37 names, `score_explored`, `score_pop`
+/// and `last_spoke`, each 0 = 0 on frame 91, both leaders. Released by
+/// entry 131 §1's second way out, a leaf nothing can move: every store the
+/// executable makes to each writes the 0 our walk holds, and the writer set
+/// is pinned by a scan of the executable's stores by displacement, told
+/// apart by the base register's provenance (`crate::stores`, seen red on
+/// `dow`, whose increments it finds and loses at the wrong displacement or
+/// with `this` unknown). `score_explored` (+0x1c): `compute_explore_score`,
+/// `reset_score` and `compute_score`'s two stores; `score_pop` (+0x34): the
+/// same four in `compute_pop_score`, `reset_score`, `compute_score`;
+/// `last_spoke` (+0x2f4): `Leader::init`'s per-slot clear alone; each
+/// beside the whole-record clears (0) and the save game's walk
+/// (`docs/LEADERS.md` §7.5, §18.5). Sighted: `score_territory` (+0x20) and
+/// `score_economy`, `score_unit_upgrades` (+0x30, +0x38) left by moving on
+/// the packets, `broke_alliance` (+0x2b0) and `last_taunt` (+0x354) on
+/// run1575; `score_explored`'s left neighbour, `score`, is still held, and
+/// the nearest moving leaf below it is `defeated_by` (+0x10). The long
+/// range stays out on the other 37.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
@@ -2004,14 +2023,11 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("incoming_taunt_who (unheld)", 2),
     ("kills_current_frame (unheld)", 2),
     ("kills_fifteen_seconds (unheld)", 2),
-    ("last_spoke (unheld)", 2),
     ("made_peace (unheld)", 2),
     ("pop_issues (unheld)", 2),
     ("raid_stamp (unheld)", 2),
     ("score (unheld)", 2),
     ("score_combat (unheld)", 2),
-    ("score_explored (unheld)", 2),
-    ("score_pop (unheld)", 2),
     ("score_units (unheld)", 2),
     ("score_units_2 (unheld)", 2),
     ("tribute_demanded (unheld)", 2),
@@ -2117,6 +2133,11 @@ const LEADERS_BENT: &[&str] = &[
     "gift_stamp",
     "last_taunt",
     "taunt_frame",
+    // Item 4159's frozen scan: the three released as frozen (`crate::stores`),
+    // each 0 = 0 on run 1562's frame 91.
+    "score_explored",
+    "score_pop",
+    "last_spoke",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

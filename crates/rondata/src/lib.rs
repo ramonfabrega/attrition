@@ -50,6 +50,7 @@ pub mod pe;
 pub mod recgame;
 pub mod scalar;
 pub mod script;
+pub mod stores;
 pub mod table;
 pub mod trace;
 pub mod tuning;

@@ -488,14 +488,11 @@ fn array_head(
 /// **Step VI's leaves held and not emitted** (item 4187, `docs/LEADERS.md`
 /// §17–§20): the crate keeps each, and no release rule (`docs/DECISIONS.md`
 /// entries 128 §3, 129 §5) has carried it onto the line yet.
-pub const STEP_VI_OFF_THE_LINE: &[&str] = &[
-    "score",
-    "score_explored",
-    "score_pop",
-    "score_units",
-    "score_units_2",
-    "score_combat",
-];
+/// `score_explored` and `score_pop` left as frozen (item 4159's scan,
+/// entry 131 §1): every store the executable makes to either writes 0
+/// (`rondata::stores`, `docs/LEADERS.md` §18.5).
+pub const STEP_VI_OFF_THE_LINE: &[&str] =
+    &["score", "score_units", "score_units_2", "score_combat"];
 
 /// `Leader::init`'s `plunder_scale`, −1.0 as its IEEE-754 single's bits.
 const PLUNDER_SCALE_BITS: i32 = 0xbf80_0000_u32 as i32;
@@ -1064,6 +1061,10 @@ impl Sim {
             "weak" => six(&a.weak),
             "invaders" => six(&c.invaders),
             "got_diplo_message" => one(a.got_diplo_message),
+            // Frozen (item 4159's scan, entry 131 §1): `Leader::init`'s
+            // per-slot clear is the one store the executable makes to it,
+            // and it writes 0 (`rondata::stores`, `docs/LEADERS.md` §7.5).
+            "last_spoke" => Some(vec![0; 8]),
             "city_num" => one(self
                 .cities
                 .cities
