@@ -292,8 +292,8 @@ const UNREAD: &[(&str, &str)] = &[
     // 3982 read `ages_queued` and `epochs_queued` (`docs/AI.md` §414).
     // Item 4162 read `att`, `anti_att`, `multi_diff`, `handicap`, `misery`
     // and `city_name` (`docs/LEADERS.md`'s census), and `theirs` parses
-    // `pop_issues`, which the crate emits no row for: it left this row for
-    // `SKIPPED_BY_THE_LEADER_COMPARATOR` (parked 4162a). Item 4167 read
+    // `pop_issues`, which the crate emitted no row for until item 4159's
+    // second residue (parked 4162a). Item 4167 read
     // the three marks, `senates_built`, `scholar_militia` and the six
     // `*_queued` bins (`docs/LEADERS.md` §13, §14). Item 4176 read the
     // damage path's fourteen (§2, §4, §5, §15): the three victim stamp
@@ -3907,10 +3907,6 @@ const SKIPPED_BY_THE_LEADER_COMPARATOR: &[(&str, &str, usize)] = &[
     ("LEADERDATA", "aggression[]", 6),
     ("LEADERDATA", "diplos[]", 6),
     ("LEADERDATA", "num_queued[]", 319),
-    // Item 4162: `pop_issues` is parsed and held out of `rows` (it parts
-    // once, run667's closing frame 17380, who 1, ours 2 theirs 0; parked
-    // 4162a), so the comparator skips it.
-    ("LEADERDATA", "pop_issues", 1),
     ("LEADERDATA", "strong[]", 6),
     ("LEADERDATA", "treaties[]", 6),
     ("LEADERDATA", "weak[]", 6),

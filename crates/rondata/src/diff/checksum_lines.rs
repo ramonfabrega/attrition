@@ -2046,6 +2046,19 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// (run912e 665, 532 against 672, 549; run823 and run825 6294, 5299
 /// against 6379, 5332; run865 5637 against 5629). `docs/LEADERS.md`
 /// §18.5. The long range stays out on the other 27.
+///
+/// Item 4159's second residue: 27 → 24 names, `barracks_queued`,
+/// `combat_queued` and `pop_issues`, each agreeing on frame 91 (0 on both
+/// leaders). Released by entry 131 §1's first way: a probe of every
+/// leader-record parting of a held leaf over the whole `diff::` suite found
+/// none for the three (item 4167's closing-frame partings of the two bins
+/// left at item 4189, and run667's `pop_issues` at 17380 with them), and
+/// each moves on packets our walk holds, ours equal: run1359, frame 5619,
+/// leader 1, `barracks_queued` and `combat_queued` 12; run1217, frame 7728,
+/// leader 1, `pop_issues` 4 (`docs/LEADERS.md` §12.5, §14.5). The two bins
+/// do not transfer (parked 4159Ta: run462's 10367 moves them with no
+/// `num_queued` move beside it), but our walk of run462 holds them there.
+/// The long range stays out on the other 24.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
@@ -2053,8 +2066,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("average_damage_rate (unheld)", 2),
     ("average_death_rate (unheld)", 2),
     ("average_hit_rate (unheld)", 2),
-    ("barracks_queued (unheld)", 2),
-    ("combat_queued (unheld)", 2),
     ("damage_current_frame (unheld)", 2),
     ("damage_fifteen_seconds (unheld)", 2),
     ("deaths_current_frame (unheld)", 2),
@@ -2067,7 +2078,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("incoming_taunt_who (unheld)", 2),
     ("kills_current_frame (unheld)", 2),
     ("kills_fifteen_seconds (unheld)", 2),
-    ("pop_issues (unheld)", 2),
     ("raid_stamp (unheld)", 2),
     ("score (unheld)", 2),
     ("tribute_demanded (unheld)", 2),

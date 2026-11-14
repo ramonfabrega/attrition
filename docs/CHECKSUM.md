@@ -1704,7 +1704,7 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 ## 20. The leaders line, held out on the long range (items 4121, 4124)
 
 **265 of 267 ranges and 4,515 of 58,343 bytes agree** on run 1562's frame
-91, and `LEADERS_HELD_OUT` names **27** leaves, from 140. Agreeing: all
+91, and `LEADERS_HELD_OUT` names **24** leaves, from 140. Agreeing: all
 eight slots' flag words, and the two walked leaders' diplomacy records,
 personalities, masks (each `tech` array since item 4187), sites, make
 lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
@@ -1740,6 +1740,7 @@ not count it (§5).
 | VII-c | `made_peace`, `incoming`, `incoming_taunt`, `incoming_taunt_frame`, `tribute_sent`, `tribute_received` | 31 | §7, §8, §9 |
 | VII-d | `counteroffer` | 30 | §8 |
 | the residue (4187a) | `score_units`, `score_units_2`, `score_combat` | 27 | §18.5 |
+| the residue, second builder | `barracks_queued`, `combat_queued`, `pop_issues` | 24 | §12.6, §14.5 |
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
@@ -1844,13 +1845,13 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     is a partial copy of the stamp~~ — carried by item 4185
     (`sim::leaders::capital`); the tally's copy is gone.
   - `misery` (`calc_misery`, `calc_pop_cap`, `gain_tech`) and `pop_issues`
-    (`Leader::process`, `Build::do_queue`, `Unit::process`).
+    (`Leader::process`, `Build::do_queue`, `Unit::process`); both carried.
   - the slot marks and build counters (7): `fort_mark`, `oil_well_mark`,
     `supply_mark` (their registries' `init_*`/`close_*`), `forts_built`
     (`Fort::init`), `wonders_built`, `senates_built` (`Build::activate`),
     `wonders_held` (`Wonders::init_wonder`).
   - the six `*_queued`: `Leader::track_queued`, each with its own zero floor,
-    and `Unit::process`; not a sum of `num_queued`.
+    and `Unit::process`; not a sum of `num_queued`. All six carried.
   - `scholar_militia`: `track_unit_type`'s arm for a militia whose unit
     came from a Scholar (the unit's `+0x54`).
   - `repair_stamp` (`Unit::do_repair`), `units_bribed` (`cast_bribe`),
@@ -2401,7 +2402,7 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 |---|---|---|---|---|
 | units | 3596 | 2047504409 | 1981448857 | 0 |
 | builds | 7383 | 1242831600 | 4226882033 | 0 |
-| groups | 2746 | 810153284 | 3860919709 | 0 |
+| groups | 6781 | 3029922239 | 2663182868 | 0 |
 | guys | 6537 | 2410482783 | 3433827539 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
 | cities | whole, 24,000 | | | 0 |
@@ -2490,6 +2491,16 @@ surviving `clear_road` and the slot's reuse (`Caravans::init_caravan@0073e1f0`).
 from 804 (§24.5). **Step P's census does not move** (`PACKETS_SCORE`, 421 with item 4229). The units triple moved
 on 84 packets, none to whole or from it (`docs/journal/2026-11-14-item-4230.md`).
 
+**Item 4231 moved one.** Groups 2746 → 6781, none of 0..299 parted. On 2746 (run1588) group record 65 parts on
+`role` ours 0, theirs 0x40110, and `new_speed` and `speed` ours 0, theirs 34. It is the Scout `1/0`'s slot,
+which `Unit::get_goody_box` pushes on 2745 (`push_group` copies into slot 65 and kills the Scout out of slot 66)
+and orders at `QUEUE_FIRST`. **The direction**: the original acted. `Group::action_move_near@00704990`'s
+`QUEUE_FIRST` arm asks `this` for `get_num_cap` (`704ebe`, between `set_up_insert` and `action_halt`), and on a
+record with an `id` and fewer than four members that is `normalize` whole (`docs/GROUPS.md` §3.4). run1589's packet
+at 2745 under `step4.py` names the writes: `find_role` 0x40110 and `normalize`'s tail 34, under that call. The crate
+left the call out. Value diff on 2746: 0x40110, 34, 34 on both, and the line whole. **Step P's census does not
+move**: the groups triple's parted count fell 2 → 1 on three melee packets (run1438, run1457, run1460).
+
 ## 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
@@ -2504,6 +2515,7 @@ line's field reader where it has one:
 | guys | 129 | 1582 | 389 ranges against 375 (units 1,147 against 1,107): two birds on slot 9, which neither line walks; whole since item 4226 |
 | units | 189 | 1586 | unit `1/6` `path.size`: 10, 20 (`path.length` 6 both); 1 of 1,127 ranges; whole since item 4228 |
 | units | 3166 | 1587 | record 14's `TradeOrder`: three ranges theirs walks, ours not (1,352 against 1,355); whole since item 4230 |
+| groups | 2746 | 1588 | group record 65: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34; whole since item 4231 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02; whole since item 4229 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2; whole since item 4229 |
 | leaders | 1 to 4030 | all | leader 0's long range at +0x10: ours 0 on every packet, theirs 0xc7 on 1 and 0x105 on 4030 (§20; item 4159) |
@@ -2534,7 +2546,11 @@ Not established:
 - Arm 5's reader, `Sim::animal_is_seen`'s `ever_seen` test, is not wired (parked 4229a).
 - ~~Units on 189 and guys on 6537: no packet stands on either frame (parked 4226a, 4226b).~~ Units on 189: run1586,
   whole since item 4228 (4226a closed). ~~Guys on 6537 and units on 3166: no packet stands on either (4226b).~~
-  Units on 3166: run1587, whole since item 4230. Guys on 6537 and units on 3596: no packet stands on either.
+  Units on 3166: run1587, whole since item 4230. ~~Guys on 6537 and units on 3596: no packet stands on either.~~
+  Groups on 2746: run1588, whole since item 4231. Units on 3596, guys on 6537 and groups on 6781: no packet stands on
+  any of them.
+- The leader's `+0x68 & 0x100` carry across a `QUEUE_FIRST` move's halt, which `get_num_cap`'s answer gates
+  (`704ec1`–`704eea`): the crate keeps no such bit (item 4231).
 - ~~Whether 3246's `1/14` `path.size` (ours 50, theirs 64) is `Unit::do_trade@005ed270:501`'s
   `Stack<PathData>::operator=` (4228a).~~ It is: §24.3, item 4230 (4228a closed).
 - Record 14's `unit_masks` bit 0x200 on 4030 (ours 262152, theirs 262664). `do_trade@005ed270:470` sets it on an

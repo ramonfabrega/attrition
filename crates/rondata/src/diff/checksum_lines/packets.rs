@@ -2967,6 +2967,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1890, 1890, 24).
     // Item 4226, a bird walked on neither line: units (2475, 2702, 2279) -> (2475, 2382, 2059), guys (672, 784, 113) -> (672, 672, 1).
     // Item 4228, a path stack's `size` its high water: units (2475, 2382, 2059) -> (2475, 2382, 2058).
+    // Item 4231, a QUEUE_FIRST move's `get_num_cap` normalizing its record: groups (574, 574, 2) -> (574, 574, 1).
     (
         "run1438",
         684,
@@ -2976,7 +2977,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (15, 0, 15),
             (0, 0, 0),
-            (574, 574, 2),
+            (574, 574, 1),
             (672, 672, 1),
             (399, 399, 6),
             (9, 9, 0),
@@ -3066,6 +3067,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1144, 1144, 24).
     // Item 4226, a bird walked on neither line: units (2655, 2718, 2279) -> (2655, 2538, 2239), guys (725, 788, 64) -> (725, 725, 1).
     // Item 4228, a path stack's `size` its high water: units (2655, 2538, 2239) -> (2655, 2538, 2238).
+    // Item 4231, a QUEUE_FIRST move's `get_num_cap` normalizing its record: groups (574, 574, 2) -> (574, 574, 1).
     (
         "run1457",
         700,
@@ -3075,7 +3077,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (21, 0, 21),
             (2, 0, 2),
-            (574, 574, 2),
+            (574, 574, 1),
             (725, 725, 1),
             (399, 399, 4),
             (9, 9, 0),
@@ -3113,6 +3115,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1296, 1296, 24).
     // Item 4226, a bird walked on neither line: units (2380, 2455, 1941) -> (2380, 2275, 1872), guys (686, 749, 64) -> (686, 686, 1).
     // Item 4228, a path stack's `size` its high water: units (2380, 2275, 1872) -> (2380, 2275, 1874).
+    // Item 4231, a QUEUE_FIRST move's `get_num_cap` normalizing its record: groups (568, 568, 3) -> (568, 568, 2).
     (
         "run1460",
         760,
@@ -3122,7 +3125,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (9, 0, 9),
             (16, 0, 16),
-            (568, 568, 3),
+            (568, 568, 2),
             (686, 686, 1),
             (403, 403, 5),
             (9, 9, 0),

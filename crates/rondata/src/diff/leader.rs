@@ -40,10 +40,6 @@ pub(crate) type Row = (String, i64);
 /// than an omission. Every other scalar the record prints is in [`rows`].
 pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     (
-        "pop_issues",
-        "held (docs/LEADERS.md §12.2, item 4162); parts once: run667's closing frame 17380, who 1 ours 2 theirs 0 (parked 4162a)",
-    ),
-    (
         "explored",
         "ported (VISION §13); leader 0 one or two under in twelve late-age pairs (parked 4153a)",
     ),
@@ -555,6 +551,9 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         ("multi_diff", built.sim.leader_multi_diff(p)),
         ("handicap", built.sim.leader_handicap(p)),
         ("misery", built.sim.leader_misery(p)),
+        // Item 4159's second residue: the count this frame's capped visits
+        // made (§12.2), compared since; it was parsed and never read.
+        ("pop_issues", built.sim.leader_pop_issues(p)),
         ("city_name", built.sim.leader_city_name(p)),
     ] {
         out.push((k.to_string(), i64::from(v)));
@@ -1711,7 +1710,8 @@ mod tests {
             // item 4159 VII-b2: 260_320 -> 265_440, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
             // item 4159 VII-c: 265_440 -> 268_000, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 268_000 -> 270_560, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
-            270_560, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159's second residue: 270_560 -> 270_720, +1 key a leader block (`pop_issues`).
+            270_720, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1829,7 +1829,8 @@ mod tests {
             // item 4159 VII-b2: 279_844 -> 285_348, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
             // item 4159 VII-c: 285_348 -> 288_100, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 288_100 -> 290_852, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
-            290_852, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159's second residue: 290_852 -> 291_024, +1 key a leader block (`pop_issues`).
+            291_024, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -2038,7 +2039,8 @@ mod tests {
             // item 4159 VII-b2: 58_572 -> 59_724, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
             // item 4159 VII-c: 59_724 -> 60_300, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 60_300 -> 60_876, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
-            60_876, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159's second residue: 60_876 -> 60_912, +1 key a leader block (`pop_issues`).
+            60_912, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -2191,7 +2193,8 @@ mod tests {
             // item 4159 VII-b2: 423_020 -> 431_340, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
             // item 4159 VII-c: 431_340 -> 435_500, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 435_500 -> 439_660, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
-            439_660, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159's second residue: 439_660 -> 439_920, +1 key a leader block (`pop_issues`).
+            439_920, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -2344,7 +2347,8 @@ mod tests {
             // item 4159 VII-b2: 97_620 -> 99_540, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
             // item 4159 VII-c: 99_540 -> 100_500, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 100_500 -> 101_460, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
-            101_460, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159's second residue: 101_460 -> 101_520, +1 key a leader block (`pop_issues`).
+            101_520, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3456,7 +3460,8 @@ mod tests {
             // item 4159 VII-b2: 797_230 -> 812_910, +32 keys a leader block (`tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]`, `taunt_frame[·]`).
             // item 4159 VII-c: 812_910 -> 820_750, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 820_750 -> 828_590, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
-            828_590, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159's second residue: 828_590 -> 829_080, +1 key a leader block (`pop_issues`).
+            829_080, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
@@ -3800,6 +3805,8 @@ mod tests {
                 "multi_diff",
                 "nukes_launched",
                 "oil_well_mark",
+                // Item 4159's second residue: `pop_issues`, compared since.
+                "pop_issues",
                 "raid_stamp",
                 "reg_terr",
                 "repair_stamp",

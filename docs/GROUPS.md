@@ -228,7 +228,8 @@ speed from drifting; `docs/ORDERS.md` §8.3 reads the consumer.
 in use (the object's vslot `+0x8`) of its type's `role` word (`UnitType
 +0x2c8`, `determine_roles`' — `UnitCols::role`). Its callers are two:
 `Group::normalize@00711540`, after the prune, and `Groups::process` (§3.3)
-on the cursor's slot. `Group::clear` zeroes it; `Groups::copy_group` does
+on the cursor's slot. `normalize`'s own callers include `get_num` and
+`get_num_cap`, so any small seated group asked its count is re-roled. `Group::clear` zeroes it; `Groups::copy_group` does
 not copy it, so **a pushed group keeps its slot's last `role` until the
 slot is next normalized**. That makes it state, not a value the walk can
 derive: on run 1562's frame 91 the Citizen group pushed on frame 90 (slot
@@ -253,6 +254,22 @@ while the Scout's slot 1 is `last_group`, and run1580's packet reads slot 1's
 `role` 0x40110 and `new_speed`/`speed` 34 on 61, ours 0 until
 `Groups::process`' turn on 65; with the normalize the groups line is the
 original's to 2746 (`docs/CHECKSUM.md` §24.3).
+
+**A `QUEUE_FIRST` move normalizes its record too** (item 4231):
+`Group::action_move_near@00704990`'s `QUEUE_FIRST` arm calls `get_num_cap`
+(vslot `+0x8`) on `this` at `704ebe`, between `set_up_insert` and
+`action_halt`, and `get_num`'s first arm makes that `normalize` whole on a
+record with an `id` and fewer than four members. A slot `push_group` has
+just copied from a cleared record therefore takes its member's `role` and
+its leader's speed before the move is laid out. The crate's
+`group_action_move_to` calls `seat_get_num_cap` there and walks the pruned
+list after it. Diff-backed on the minted game: `Unit::get_goody_box` pushes
+the Scout `1/0` onto slot 65 on 2745, and run1588's packet reads `role`
+0x40110 and `new_speed`/`speed` 34 on 2746 where ours read 0. run1589's
+packet at 2745 under `step4.py` names the writes under
+`action_move_near+0x531`. With it the groups line is the original's to
+6781. Its answer also gates the leader's `+0x68 & 0x100` carry across the
+halt, which the crate does not keep (SEAM).
 
 Three more words of the record have no state here because no writer
 stores anything but a constant (every writer in the export, grepped by

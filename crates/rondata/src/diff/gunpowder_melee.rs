@@ -1293,7 +1293,8 @@ fn gunpowder_melee_s_leaders_are_compared_on_every_seat() {
         // Item 4176: 1142 -> 1177, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
         // Item 4177: 1177 -> 1190, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
         // Item 4185: 1190 -> 1198, +8: of the end of the game's and the lost capital's nine, the eight this record does not print (`defeated_by` prints).
-        1603,
+        // Item 4159's second residue: 1603 -> 1604, +1, `pop_issues`, which this record does not print.
+        1604,
         "keys run1461's `LEADERS=2` does not print"
     );
     // Item 3791: the standing family on frames 1 and 37 on every seat,
@@ -1305,9 +1306,10 @@ fn gunpowder_melee_s_leaders_are_compared_on_every_seat() {
     // `is_gov_hero`, so the Despot `1/28` comes off on 1463.
     // Item 4177: the human's trailing record one empty fold short
     // (`v·7 >> 3` of ours; `docs/LEADERS.md` §3.5, parked 4177b).
+    // Item 4159's second residue: none; who=0's `average_damage_rate` agrees at 2601 (11): the fold is read on the state the computers are read on (4177b closed).
     pin_eq!(
         w.rest(),
-        vec!["who=0 average_damage_rate 2601: ours 13 theirs 11 (1, to 2601)".to_string()],
+        Vec::<String>::new(),
         "the keys that part, by seat"
     );
 }
@@ -1381,6 +1383,8 @@ pub(crate) fn seat_walk(
             read(&log, false);
         }
         let mut w = SeatWalk::new(players);
+        // A human's trailing record whose fold leaves are read a tick later.
+        let mut held_fold: Vec<(i64, usize, BTreeMap<String, i64>)> = Vec::new();
         let last = theirs
             .keys()
             .chain(trailing.keys())
@@ -1394,6 +1398,24 @@ pub(crate) fn seat_walk(
             for who in 0..players {
                 if let Some(t) = theirs.get(&(n, who)) {
                     w.compare(n, who, &crate::diff::leader::rows(&loaded, &built, who), t);
+                }
+            }
+            // **The fold is read where the computers are** (item 4159's
+            // second residue, parked 4177b): a human's trailing record is
+            // read one frame early below, but it already holds
+            // `Leader::process_event_frame`'s fold of the frame before it,
+            // which sits at `Game::do_frame`'s tail ahead of everything the
+            // dump's frame does. Its thirteen rate leaves are compared here,
+            // on the state the computers are read on.
+            for (at, who, t) in std::mem::take(&mut held_fold) {
+                if at == n {
+                    let mine: Vec<_> = crate::diff::leader::rows(&loaded, &built, who)
+                        .into_iter()
+                        .filter(|(k, _)| sim::leaders::rates::RATE_LEAVES.contains(&k.as_str()))
+                        .collect();
+                    w.compare_part(n, who, &mine, &t);
+                } else {
+                    held_fold.push((at, who, t));
                 }
             }
             // The quit is the closing frame's first act (item 3841,
@@ -1426,13 +1448,19 @@ pub(crate) fn seat_walk(
                 // does not take. Its human is read off a copy that resigns on
                 // that frame, so the record's `defeat_type` 6 and
                 // `defeat_stamp` are the quit's on both sides.
-                if built.sim.cities.nation[who].human && !(closing && at == last) {
+                let human = built.sim.cities.nation[who].human;
+                let mut mine = if human && !(closing && at == last) {
                     let mut quit = built.clone();
                     quit.sim.command().resign(who as sim::Player);
-                    w.compare(at, who, &crate::diff::leader::rows(&loaded, &quit, who), t);
+                    crate::diff::leader::rows(&loaded, &quit, who)
                 } else {
-                    w.compare(at, who, &crate::diff::leader::rows(&loaded, &built, who), t);
+                    crate::diff::leader::rows(&loaded, &built, who)
+                };
+                if human {
+                    mine.retain(|(k, _)| !sim::leaders::rates::RATE_LEAVES.contains(&k.as_str()));
+                    held_fold.push((at, who, t.clone()));
                 }
+                w.compare(at, who, &mine, t);
             }
         }
         Some(w)
@@ -1474,6 +1502,18 @@ impl SeatWalk {
         theirs: &BTreeMap<String, i64>,
     ) {
         self.records[who] += 1;
+        self.compare_part(n, who, mine, theirs);
+    }
+
+    /// The rest of a record [`Self::compare`] counted: `mine`'s keys
+    /// against `theirs`, without counting the record again.
+    pub(crate) fn compare_part(
+        &mut self,
+        n: i64,
+        who: usize,
+        mine: &[(String, i64)],
+        theirs: &BTreeMap<String, i64>,
+    ) {
         for (k, v) in mine {
             let Some(&y) = theirs.get(k) else {
                 self.unprinted.insert(k.clone());

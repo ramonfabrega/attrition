@@ -190,6 +190,13 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// `whom` 1, `uid` 0, `oxx` −1, `whose` −1, `started` 0, `loaded` 0,
 /// `uid2` −1 on both; on 3246 (run1584) `1/14`'s `path.size` ours 50,
 /// theirs 64 → 64.
+///
+/// Item 4231 moved one on run1578: groups 2746 → 6781, a `QUEUE_FIRST`
+/// move's `get_num_cap` on its record (`action_move_near@00704990+0x52e`)
+/// normalizing a group of fewer than four. Value diff on 2746 (run1588):
+/// group record 65 (the Scout `1/0`, pushed by `Unit::get_goody_box` on
+/// 2745) `role` ours 0, theirs 0x40110, `new_speed` and `speed` ours 0,
+/// theirs 34 → the original's on both.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -213,7 +220,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         [
             ("units", 3596, 0),
             ("builds", 7383, 0),
-            ("groups", 2746, 0),
+            ("groups", 6781, 0),
             ("guys", 6537, 0),
             ("leaders", 0, 300),
             ("cities", 24000, 0),
@@ -382,7 +389,8 @@ fn minted_packets_dir() -> String {
 /// ranges parted, the first parting as `range record field: ours |
 /// theirs`, each side's bytes in hex cut to 32 digits))`. Each packet
 /// stands on a frame [`CHECKSUM_FRAMES`] names as a line's first parting;
-/// a line that agrees there is not listed.
+/// a line that agrees there is not listed. run1589 stands on 2745, the
+/// frame before groups' 2746, whose tick item 4231 read under `step4.py`.
 type PacketRow = (&'static str, usize, usize, usize, &'static str);
 pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &[
     (
@@ -437,6 +445,36 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             3,
             "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|fc000000",
+        )],
+    ),
+    (
+        // Item 4231: the frame before groups' 2746, the push's tick still
+        // ahead (`step4.py`'s packet; `docs/RUNS.md` run1589). Every line
+        // but leaders agrees.
+        "run1589",
+        "rontrace-run1589.log",
+        2745,
+        &[(
+            "leaders",
+            267,
+            267,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|f9000000",
+        )],
+    ),
+    (
+        "run1588",
+        "rontrace-run1588.log",
+        2746,
+        // Item 4231: groups whole; before it, 1 of 544 ranges, range 83,
+        // group record 65 (the Scout `1/0`, pushed on 2745) `role` 0|0x40110,
+        // `new_speed` 0|34, `speed` 0|34.
+        &[(
+            "leaders",
+            267,
+            267,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|f9000000",
         )],
     ),
     (

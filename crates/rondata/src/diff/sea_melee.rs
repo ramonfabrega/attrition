@@ -565,7 +565,8 @@ fn sea_melee_s_leaders_are_compared_on_every_seat() {
     // `average_hit_rate` at the closing 2601, ours 329/27/20 theirs 287/23/17: the human's
     // trailing record one empty fold short (`v·7 >> 3` of ours; docs/LEADERS.md §3.5, parked 4177b).
     // Item 4159's residue: 8 -> 4, the two computer seats' `score` and `num_units[272]` (ours 1 theirs 0, the scripted Transport Freighter) agree at 2601 (docs/LEADERS.md §18.5).
-    pin_eq!(w.rest().len(), 4, "the keys that part, by seat");
+    // Item 4159's second residue: 4 -> 1, who=0's three averages agree at 2601 (287, 23, 17): the fold is read on the state the computers are read on (`seat_walk`; docs/LEADERS.md §3.5, 4177b closed).
+    pin_eq!(w.rest().len(), 1, "the keys that part, by seat");
     pin_eq!(
         w.rest()
             .iter()
