@@ -254,7 +254,12 @@ pub struct World {
     /// (`render::fire::attach_slots`), `None` where none decodes.
     pub(crate) fire_slots: BTreeMap<i32, Option<[Option<[f32; 3]>; render::fire::SLOTS]>>,
     /// `BuildingFX.tga`'s fire and smoke cells as sprite images, read once.
-    pub(crate) fire_images: Option<[Option<std::sync::Arc<SpriteImage>>; 2]>,
+    /// The burning slots' particle systems and texture (item 4233), loaded
+    /// once; `Some(None)` where the install has none.
+    pub(crate) particle_art: Option<Option<std::sync::Arc<crate::particle::ParticleArt>>>,
+    /// Particles a test lays in place of the plumes (item 4233: the
+    /// packets' own, to read the draw apart from the emission).
+    pub particles_given: Option<Vec<(usize, render::particle::Particle)>>,
     /// Modern's base (`WEATHERELEM age="2"`'s `file2`); `None` where it
     /// does not read, and no weathering is laid.
     weather_mips: Option<std::sync::Arc<render::silhouette::Mips>>,
@@ -893,7 +898,8 @@ impl World {
             corpse_shift: (0, 0),
             fires: true,
             fire_slots: BTreeMap::new(),
-            fire_images: None,
+            particle_art: None,
+            particles_given: None,
             weather_mips,
             weather_laid: (-1, false, (0, 0), Vec::new()),
             roads: true,

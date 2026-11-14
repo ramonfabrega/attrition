@@ -49,8 +49,9 @@ mod tests {
     /// Item 4212: toned (92, 77) → (78, 90), display (93, 21) → (72, 83): composed over the before still, which is now the land lit at the frame's white (§3.21); the compose's own curve is the floor's.
     /// Item 4221: display luma 83 → 81, the trees tinted and blended
     /// under the composed decals (§3.23); toned holds.
+    /// Item 4233: toned luma 90 → 91, display 81 → 83: the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21).
     const RUN1559B_3279_SHADOW_CPU: [[(usize, usize); 2]; 2] =
-        [[(78, 104), (90, 104)], [(72, 104), (81, 104)]];
+        [[(78, 104), (91, 104)], [(72, 104), (83, 104)]];
     /// The row with the guys' decals drawn too (`World::unit_shadows`), as
     /// `draw_unit_shadow` reads: 4182's luma 89 → 66, the figure tiles 28
     /// → 5 of 37, median ours/theirs 0.99 → 0.82 (parked 4182c). **Item
@@ -65,10 +66,12 @@ mod tests {
     /// tiles, each `[hue, luma]`.
     /// Item 4212: drawn, the tree tiles' hue 63 → 51 (parked 4212b), the figures' 30 → 29: the land lit at the frame's white, §3.21.
     /// Item 4221: with the guys', the tree tiles' luma 59 → 60 (§3.23).
+    /// Item 4233: with the guys', the tree tiles' luma 60 → 59 and the
+    /// figures' 29 → 30: the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21).
     const RUN1559B_3279_SHADOW_BY_KIND: [[[(usize, usize); 2]; 2]; 3] = [
         [[(43, 68), (1, 68)], [(29, 36), (20, 36)]],
         [[(51, 68), (59, 68)], [(29, 36), (20, 36)]],
-        [[(51, 68), (60, 68)], [(27, 36), (29, 36)]],
+        [[(51, 68), (59, 68)], [(27, 36), (30, 36)]],
     ];
 
     /// One scored tile: the tile, the photograph's mean, the still's, and

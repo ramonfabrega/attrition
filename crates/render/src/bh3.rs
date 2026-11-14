@@ -147,7 +147,7 @@ impl Model {
 
 /// An array chunk's count and the offset its elements start at, held to
 /// `12 + count · stride == size`.
-fn array(bytes: &[u8], c: &Chunk, stride: usize) -> Result<(usize, usize), DecodeError> {
+pub(crate) fn array(bytes: &[u8], c: &Chunk, stride: usize) -> Result<(usize, usize), DecodeError> {
     let count = u32_at(bytes, c.body())?;
     let size = (c.end - c.at) as u32;
     if 12 + count as usize * stride != c.end - c.at {

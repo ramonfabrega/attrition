@@ -1105,6 +1105,67 @@ channel that carries anything. Which stage samples it and the blend
 state are unread (parked 4132b). How a patch lays it: `docs/RENDERER.md`
 §3.6, "The transition patch".
 
+## The surf's section models — `.mot` (item 4235, 2026-11-14)
+
+(`render::mot`, `rondata::artdata::surf_waves`.) The surf (`docs/RENDERER.md`
+§3.18, "The surf, off the packet") draws each wave as sections, and each
+section's shape is a `.mot` file: 31 ship under `art/`. **How it was
+established**: the loaders read in the decompile (`MOTMethod::load@009164e0`,
+`load_mot@00914a70`, `load_anim_header@00914970`, `load_frames@009146e0`).
+They fill an `AnimMeshPacket`, whose fields the PDB names (`num_frames` +0xc,
+`verts_list` +0x10, `texs_list` +0x2c, `faces` +0x48). The one consumer is
+`SurfWaveSection::init@0089e8f0`, which fills `switch_node_verts`,
+`switch_node_texs0`, `switch_node_face`, `timing_index` and `world_tex_coords`.
+A strict walk of all 31 files then proved the arithmetic.
+
+```text
+id 0  file          num_chunks = 1 + frames   (the .BH3's chunk container)
+  id 11 header      u32 num_frames, u32 n, n × u16 face indices
+  id 12 frame       num_chunks 2              load_frames, once per frame
+    id 2  vertices  u32 n, n × {f32 x, y, z}  Vert3Array: n · 12 bytes
+    id 4  texcoords u32 n, n × {f32 u, v}     TexArray: n · 8 bytes
+```
+
+- **The header is exactly `16 + 2n` bytes and comes first**, in every file.
+  `load_frames` returns `LIBERR_INVALID_PARAM` until the header's packet
+  exists. `load_anim_header` copies `n` indices.
+- **Each array chunk is exactly `12 + count · stride`**, at 12 and 8 bytes.
+  A vertex here is three floats, against the `.BH3`'s four.
+- **`num_frames`, the vertex arrays' count and the texcoord arrays' count are
+  one number.** `SurfWaveSection::init` keeps a section only when they agree,
+  and reports an error otherwise. Within a file, every frame has the same
+  vertex count, and texcoords match vertices one for one. The faces are whole
+  triangles whose indices are vertices.
+- **By family**, as (frames, vertices, indices), each the same across the
+  family's files: `0..2wave` (11, 10, 24); `surf_0..7_breaker` (14, 12, 30);
+  `surf_flat_*_bigcrash` (12, 10, 24); `_bigfoam` (16, 9, 24); `_bigwash`
+  (24, 10, 24); `_bigwave` (15, 30, 120).
+- **What the section keeps is less than the file.** It keeps each frame's
+  vertices as `(3x, 3y)`: the loop at `0x89eb6d` multiplies both by the
+  `.rdata` float at `0x00b695c8`, which is 3.0, at a 12-byte stride. It drops
+  `z`, which `SurfWaveSection::draw@0089e360` writes as 0. It keeps each
+  frame's texcoords whole, and the face list. `z` is not constant within most
+  files (a breaker's is −0.0101 throughout; a wave's spans 69 values).
+- **`world_tex_coords`.** When its argument (`<WAVESECTION
+  world_coord_mapping>`) is 0, init sets it to −1 if every frame's texcoords
+  equal the first frame's, and to 0 if not (`Mot::texcoords_static`). The
+  eight breakers, the five `bigfoam` files, `surf_flat_0_bigcrash` and
+  `surf_flat_0_bigwash` keep static texcoords; the other 15 do not.
+- **`<SURF>` names 26 of the 31.** It holds 13 `<WAVE>`s with 33
+  `<WAVESECTION>`s; `model=` takes `.mot` appended. The five
+  `surf_flat_*_bigwave` files are never named.
+
+**Checked by a run over the install**, on every gate that has `RON_INSTALL`:
+every structural claim above (`every_surf_section_model_the_install_ships_decodes`,
+and the survey's "the install's surf section models decode whole", 31 of 31).
+**Reading alone**: the field names, the ×3 and the dropped `z` (the listing
+and the PE's bytes, not a packet); the string `SurfWaveSection::init` appends
+to `model=` is taken to be `.mot` from the files on disk, not read from the
+string table. **Not established**: how `Surf::init_class@0089f050` walks
+`<SURF>` (read here by tag name); what the draw computes for tex0 when
+`world_tex_coords` is 0 or positive; how `SURFTIMING*` maps a wave's clock to
+a frame pair, and the vertex alpha.
+
 ## Open questions
 
 - Where is a nation's *bonus* loaded from? The per-nation files themselves are
