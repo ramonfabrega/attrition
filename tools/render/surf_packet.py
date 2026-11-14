@@ -25,7 +25,8 @@ the packet's frame boundary, the ones the card draws as 163–169 on run1567.
   `on_screen_waves` +0x78, `on_screen_breakers` +0x94, `wave_total_time`
   +0xb8, `wave_stall_time` +0xbc.
 
-One header line `surf …`; then per non-empty list `list k texture mask rs
+One header line `surf …`; `on_screen_waves …`, `on_screen_breakers …` and
+`last_time T` (item 4239); then per non-empty list `list k texture mask rs
 verts triangles`, its vertices `v x y z u0 v0 u1 v1 alpha` (floats as
 decimals; the colour's rgb is asserted white) and its faces `f a b c`.
 Nothing it prints enters the repository.
@@ -99,6 +100,13 @@ def main(path, install):
     print(f"surf frame {s.frame} waves {array(SURF + 0x40)[0]} breakers {array(SURF + 0x5C)[0]} "
           f"on_screen {array(SURF + 0x78)[0]} {array(SURF + 0x94)[0]} "
           f"total_time {i32(SURF + 0xB8)} stall_time {i32(SURF + 0xBC)}")
+    # Item 4239: what the lists were built from — `last_time` (+0xb0,
+    # `frame · 200 / 3 + graphic_dt` at the rebuild) and the on-screen
+    # indices into `wave_structs` and `breaker_structs`.
+    for name, at in (("on_screen_waves", SURF + 0x78), ("on_screen_breakers", SURF + 0x94)):
+        n, d = array(at)
+        print(name + "".join(f" {i32(d + 4 * i)}" for i in range(n)))
+    print(f"last_time {u32(SURF + 0xB0)}")
     lists, _ = array(FINAL_VERTS)
     for k in range(lists):
         nv, dv = entry(FINAL_VERTS, k)
