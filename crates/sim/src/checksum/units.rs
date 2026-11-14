@@ -321,7 +321,7 @@ impl Sim {
     }
 
     /// The unit's 34 `ObjectData` bytes ([`super::builds::OBJECT_FIELDS`]).
-    fn unit_object_bytes(&self, u: usize) -> Vec<u8> {
+    pub(crate) fn unit_object_bytes(&self, u: usize) -> Vec<u8> {
         let un = &self.units[u];
         let mut v = vec![0u8; 0x42 - 0x20];
         let mut p = |at, w, x: i64| put(&mut v, 0x20, at, w, x);
@@ -419,7 +419,7 @@ impl Sim {
     }
 
     /// The unit's 111 `UnitData` bytes ([`UNIT_FIELDS`]).
-    fn unit_record_bytes(&self, u: usize) -> Vec<u8> {
+    pub(crate) fn unit_record_bytes(&self, u: usize) -> Vec<u8> {
         let un = &self.units[u];
         let mut v = vec![0u8; 0xb7 - 0x48];
         let mut p = |at, w, x: i64| put(&mut v, 0x48, at, w, x);

@@ -176,7 +176,7 @@ impl Sim {
     }
 
     /// The building's 34 `ObjectData` bytes ([`OBJECT_FIELDS`]).
-    fn object_bytes(&self, b: usize) -> Vec<u8> {
+    pub(crate) fn object_bytes(&self, b: usize) -> Vec<u8> {
         let bd = &self.buildings[b];
         let mut v = vec![0u8; 0x42 - 0x20];
         let mut p = |at, w, x: i64| put(&mut v, 0x20, at, w, x);
