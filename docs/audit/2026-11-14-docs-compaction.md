@@ -20,6 +20,14 @@ spans are not counted). "B" is bytes. Token figures assume 3.3 bytes a
 token and are estimates. Session figures are `lore`'s, as of its last
 index, at its own dated list prices.
 
+**Two sessions wrote it.** The first ran to 02:10 −05:00 and stopped on
+its context. The second (02:12 to 05:00, the same model, a fresh context)
+worked through the first's "Left to do": it corrected three of the first's
+figures where a measurement replaced a reading (R2, G1's largest part, two
+of G3's chains), ran G1 dry against the guards, and added S19 to S25 and
+G9 to G12. Where the two disagree the text says which session measured
+what.
+
 ## The finding
 
 **What compaction can buy is small and it is all at the top.** 108 lane
@@ -37,7 +45,8 @@ its size costs a session nothing measurable.
 **What compaction should buy instead is a true first read.** The read-first
 set is where the stale and the contradicted are (Part 2: a queue opener 21
 commits behind its own file, a tracks table seven facts behind the queue, a
-sentence cut off mid-clause, two counts of lanes in one file), and it is
+sentence cut off mid-clause, two counts of lanes in one file, three pin
+counts in the handoff that the code left two days ago), and it is
 where a byte ceiling has become a target: the handoff has stood within 100 B
 of 16,000 on 91 of its last 120 commits. A wrong read costs a wrong act, and
 a fitting loop costs the edits it forces. Those are the returns.
@@ -83,7 +92,7 @@ measurable; the question is his.
 | R11 | `CLAUDE.md` | 25,606 of 26,000 | candidates only | up to ~4,500 | Ramon |
 | R12 | the memory index | 7,324 | hooks to one line; one stale pointer | ~2,500 | outside git |
 | S1 | DECISIONS, "Index" | 15,985 of 16,000 | split at entry 100; retitle; reorder; fix 121's row | 0 (frees ~8,000) | none |
-| S2–S24 | twenty-three syncs, Part 2 | | | | |
+| S2–S25 | twenty-four syncs, Part 2 | | | | |
 | G1 | the eight sections pinned in `OVER`, and 45 of the 77 at 15,000 B or more | 284,070; 831,211 | promote their numbered `###` parts to `##` (run dry: 28 of 29 guards green, the red is the `OVER` rows) | 0 (largest read 70,859 → 16,448; 45 sections off the ceiling) | delete seven `OVER` rows, add one |
 | G2 | `docs/JOURNAL.md`, the chronicle to 2026-09-17 | 1,185,526 | leave, or archive at a revision | 0 or 1.19 MB | `queueledger.py`; Ramon (`CLAUDE.md`'s table) |
 | G3 | `docs/DECISIONS.md` | 843,219 | an index by topic; no entry moved | 0 | the pass |
@@ -96,16 +105,22 @@ METHOD and `CLAUDE.md`, and R0 on top for lanes.
 
 ## The three to take first
 
-1. **The syncs S9, S2, S5, S6 and S4.** They cost minutes and each is a
-   place where a fresh session is told something false today: an opener
-   that reaps a row long gone and cuts builders on landed steps; a start
-   track "158 of 161" beside a queue that reads 161; a rule that stops
-   mid-sentence; one lane in one paragraph and three in another.
+1. **The syncs S9, S24, S2, S19, S5, S6 and S4.** They cost minutes and
+   each is a place where a fresh session is told something false today:
+   an opener that reaps a row long gone and cuts builders on landed
+   steps; three render counts the code has moved past; a start track "158
+   of 161" beside a queue that reads 161; a stop of 95 % one line above a
+   stop of 99 %; a rule that stops mid-sentence; one lane in one
+   paragraph and three in another. The appendix has the exact text for
+   six of them.
 2. **R1 with S1: take the two rewritten sections off the ceiling.** One
    parser change and the handoff stands near 10,700 B, not 15,983; one
    heading and the index has 8,000 B of room. Both end a fitting loop
    (D1) that has run on most commits for weeks, and R1 is self-correcting:
    the closed form is accepted only while every row is at its length.
+   With them, **G1**: it is one character a heading, it was run dry and
+   28 of 29 guards stayed green, and it takes 45 more sections off the
+   ceiling before their next amendment has to fit.
 3. **R0, then R7 and R5.** R0 is one sentence of the frame and decides
    whether 93 of 98 lanes read 18 KB or 1 KB. R7 is the section of LOOP
    drivers open with (31 of 43 sessions): a quarter of it is the gate's
@@ -519,6 +534,7 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S24 | QUEUE, "Where things stand", the renderer's bullet | "`RUN1559B_3279_TRACED` 33 of 33, `_COLOUR` 17"; "`_GROUND_LUMA` 1,029 of 1,109"; "`RUN1559B_3279_SHADOW` 41 → 89 of 105" | `crates/render/src/silhouette.rs`: `RUN1559B_3279_COLOUR = (21, 33)`, "21 of 33 since item 4221 (from 17)". `crates/client/src/ground.rs`: `GROUND_LUMA_STILL`'s run1559b row `(1036, 1109)`, "Item 4221: run1559b 1,029 → 1,036". `crates/client/src/shadows.rs`: `RUN1559B_3279_SHADOW = [(80, 104), (79, 104)]`, "Item 4193 ... 105 → 104 scored", "Item 4212: hue 93 → 80, luma 89 → 79". All three still so on `origin/worktree-replan-pdb` at `78b2b9140`. A fourth reads two ways: "`_COLOUR_STILL` 14 of 33 (18)" where the pin is `(18, 33)`. The other 21 constants with a count agree with the code (checked one by one: the `INPUT_*` six, `_TRACED`, `_DEVICE_STATE`, `_GROUND_BASE`, `_BLEND`, `_PACKET_PATCH`, `_GROUND`, `RUN1570_DEAD`, `RUN1564_3279_GROUND`, the two `_GROUND_STILL`, `_LUMA`, `GRASS_HUE`, the two `_RING`, the two `_PLAZA`). | the three counts; then R2's action, so the next one cannot drift |
 | S22 | `docs/TEST_PERFORMANCE.md`, "Shared isolated runner" (the fourteenth-from-last section; `CLAUDE.md` sends a reader to this file for the host budget's "design and its limits") | "Every cooperating worktree shares `~/Library/Caches/attrition/resources-v1`: sixteen CPU slots and 32 GiB reserved RSS"; "guards reserve eight slots/32 GiB"; "Each nonignored rondata library test runs in a fresh process" | `tools/resource_budget.py`: `CPU = 20`, `MEMORY_MIB = 98304`, `resources-v3`; `tools/guard.sh`: `--cpu 2 --memory-mib 4096`; the same file's last section ("Trial terms") says so, 700 lines on; and "The group unit" (item 4216): "The isolated runner's unit was one process a test ... A group is the tests of one game". None of the three earlier sentences is struck. | strike the three in place and point at the section that stands; G11 for the order |
 | S23 | `docs/TEST_PERFORMANCE.md`, eleven sections of 2026-10-15 to 10-17 | "Independent review remains owed", eleven times (lines 65, 107, 192, 298, 667, 707, 890, 912, 933, 949, 965) | no item, decision or pass record names the review: `grep -i 'independent review'` over QUEUE, DECISIONS, LOOP, TRACKS and the pass records of 2026-10-15 to 10-29 is empty. Entries 75 and 76 put the branch on trial and kept it on the tranche's waiting and admission figures. A promise with no item is one nobody holds. | the pass rules once: the trial's verdict (entry 76) and a month of gates stand for the review, said in one line at the head; or it books the review as an item with a score |
+| S25 | LOOP, "The driver", the roster's first bullet | "**The pass**: the `steer` row, Fable 5.2, armed at a boundary (DECISIONS 126 ...)" | the same section, eighty lines up: "a handover is a spawn and a reap (DECISIONS 130, 131 §8)", "No prompt is typed into a pane"; entry 131 §8 withdrew the arm of the other row. The only "armed" left in the read-first files that means a handover. | "spawned at a boundary (DECISIONS 126, 131 §8)" |
 | S16 | DECISIONS, "Index": statuses | 116 "amended by 121"; 100 "standing"; 59 "extended by 60" | entry 126 §1: "Entry 116's single row and entry 122's roster line are superseded here"; entry 103: "amends entry 100 §3's "next cell""; entry 61: "amends ... entry 59's clause 1". Three read; a mechanical pass (a later entry's sentence that names an earlier one beside amend, replace, retire, withdraw or supersede) lists 7 rows the index calls standing (57, 64, 71, 72, 99, 100, 121) and 16 whose list of successors is short; 16 entries carry an "Amended <date>" note while their row says something other than "amended in place" (4, 9, 24, 29, 34, 55, 63, 64, 68, 71, 72, 77, 78, 87, 88, 121). Two more read in the second session: entry 71 carries "Amended 2026-10-15, Ramon's word mid-tranche" and entry 72 "Amended by the forty-fifth pass (entry 84, Loop 3344)", and the index calls both standing. Candidates, not verdicts: the heuristic is noisy, and a successor does not always name what it changes (entry 126 returns the two rows without a sentence that says "amends entry 116" in those words). | the pass that splits the index (S1) checks these rows; G3's index by topic is the durable fix |
 
 Also seen, and not a contradiction: `CLAUDE.md` gives the gate as
@@ -706,6 +722,14 @@ history ("until item 4113"), none a stale promise. Not pursued.
   write from the entries. About twenty such lines, each ending on the entry that
   stands, is the page Ramon can read to find what to review. It can live
   in the index's second half; the rows by number can then be bare.
+  **One constraint, read off the guard in the second session:**
+  `every_decision_has_an_index_row` treats every `- ` line under a
+  heading that starts with `Index` as a row, and panics on one that does
+  not open with an entry number and one of its five statuses. So the
+  page by topic sits under a heading of another name ("What stands, by
+  topic"), or its lines are not `- ` items. The same reading confirms S1:
+  the rows are gathered across every heading that starts with `Index`,
+  so the split needs no change to the guard.
 - **A first draft of that page, for the rules of the loop as they stand**
   (entries 128 to 132 read whole in the second session, 126 in the
   first; the older links are the chains above). Each line ends on what
@@ -960,7 +984,10 @@ against their queue lines (G12), the parked rows' afterlife (D8),
 every constant the handoff quotes against the code (S24), and G3's
 chains against their entries' sentences of succession (two corrected),
 G1 run dry against the guards, R1's change read off its three readers,
-and entries 130 to 132 read whole for a first draft of G3's page.
+and entries 130 to 132 read whole for a first draft of G3's page; the
+frame's live kinds were scanned for clauses entries 131 and 132
+superseded (230 k, `--lane --whole`, every third landing, the parked
+file, the stop's old figures) and carry none.
 
 **Not reached.**
 
