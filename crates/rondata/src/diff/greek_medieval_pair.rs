@@ -328,7 +328,8 @@ fn greek_medieval_pair_run1388_s_closing_frame_is_widened_whole() {
     // `order:target` on 5875 (`0/4` against `0/10`, parked 3711a). Nothing
     // parts on the closing block 5943, and no draw parts to 5942.
     // Item 4159's residue: 142 -> 141, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 141, "run1388 baseline");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 141 -> 138.
+    pin_eq!(w.firsts.len(), 138, "run1388 baseline");
     // Every round, both directions: 1239 each side, 133 parting: 3703a's
     // launch points a unit or two off, and the Trebuchet `1/132`'s (TI 266)
     // `ammo[3]` on 5817, which leaves from the figure's own (6456, 10680,

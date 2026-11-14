@@ -362,5 +362,6 @@ fn run982d_s_last_blocks_are_widened_whole() {
     // section 318.2): who=1's `leftover[2:wealth]` on 16740 agrees.
     // Item 3784: 29 -> 27, `1/43`'s defensive point on 16740 agrees at
     // (8712, 31272) through the invalid-target branch's post arm (§149.10.1).
-    pin_eq!(w.firsts.len(), 27, "run982d, the last blocks");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 27 -> 26.
+    pin_eq!(w.firsts.len(), 26, "run982d, the last blocks");
 }

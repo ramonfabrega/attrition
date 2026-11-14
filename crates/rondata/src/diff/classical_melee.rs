@@ -594,7 +594,8 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
     //   `0/1`..`0/7` `orders.len`/`order:length` 0 = 0, `idle` 1 = 1; the
     //   walker `0/6` stops at theirs' (35450, 33316) (was ours (35472, 33327)),
     //   `heading`/`g.angle` 1366556672 = theirs (were 1354694656).
-    pin_eq!(w.firsts.len(), 120, "run1450's word window");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 120 -> 106.
+    pin_eq!(w.firsts.len(), 106, "run1450's word window");
     pin_eq!(w.rounds_read, (6, 6), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
