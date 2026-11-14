@@ -3309,7 +3309,7 @@ A vertex nudged by 2 ulp turns it red.
 
 **`internal_random` at load is the map's.** `Random::get@00a39d70` is an LCG (×`0x19660d`,
 +`0x3c6ef35f`). Its result scales the word's low 16 bits onto `[lo, hi)`, and it does not step when
-`lo == hi`. `internal_random` (`0x00eb697c`) starts at 0 (`Random::Random@00a39d50`), and no site
+`lo == hi`. `internal_random` (`0x00eb697c`) starts at 0 (a static the trace finds at 0 on its first draw), and no site
 reseeds it. On run1567's trace (`client::surf`, `internal_random_at_surf_init_is_the_map_s`):
 - its first draw finds it at 0, and every draw follows the last by one step;
 - 59,244 draws come before `Surf::init`'s first, in five runs:

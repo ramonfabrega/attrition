@@ -21,7 +21,7 @@
 pub const DRAWS_BEFORE_SURF_1567: u32 = 59_244;
 
 /// `internal_random`: `Random`'s generator (`Random::get@00a39d70`), a
-/// 32-bit LCG that starts at 0 (`Random::Random@00a39d50`) and that no
+/// 32-bit LCG that starts at 0 (its first draw on run1567 finds 0) and that no
 /// site reseeds.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct InternalRandom(pub u32);
