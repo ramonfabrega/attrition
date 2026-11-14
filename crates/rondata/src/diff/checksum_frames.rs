@@ -246,6 +246,12 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// `unit_masks` ours 0x40000, 0x4000a, 0x4000a, theirs 0x40004, 0x4000e,
 /// 0x4000e → the original's on all three, the line whole.
 ///
+/// Item 4244 moved one on run1578: builds 7383 → 8281, a mine keeping
+/// `MiningList::mtn`/`cliff` (`find_gather_tcoords@0063bdc0`'s store,
+/// `Build::close`'s reset). Value diff on 7383 (run1597's record): builds
+/// range 903, record 2019 (1/2019, a Mine, TI 0x1a3) `mtn` ours −1, theirs
+/// 0 → 0 on both.
+///
 /// Item 4253 moved two on run1578: units 7273 → 8281 and guys 7273 →
 /// 10541, one rule, a scholar's seating (`Unit::go_inside@0061a2e0`'s
 /// `set_angle(0, _, 1)`, `61a547`) setting its figure's `angle` and
@@ -275,7 +281,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         24000,
         [
             ("units", 8281, 0),
-            ("builds", 7383, 0),
+            ("builds", 8281, 0),
             ("groups", 8206, 0),
             ("guys", 10541, 0),
             ("leaders", 0, 300),

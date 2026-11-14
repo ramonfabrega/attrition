@@ -1616,6 +1616,8 @@ impl Sim {
             gatherers: Vec::new(),
             gather_max: None,
             gather_from: Vec::new(),
+            mtn: -1,
+            cliff: -1,
             gather_bumped: false,
             dock_slot: None,
             farm: crate::Farm::default(),

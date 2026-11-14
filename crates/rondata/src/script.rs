@@ -486,6 +486,46 @@ pub const CHAT_TEXT: &str = "good luck";
 /// The recipients: slot 0 itself and slot 1.
 pub const CHAT_BITS: i32 = 0b11;
 
+/// **The paused script** (item 4252, `docs/CLIENT_INPUT.md` §13): the
+/// chatted script and three packages more, all on [`PAUSE_FRAME`], the
+/// shape of every recorded pause (`rondata::input::PAUSES_HELD`):
+/// `pause(1)`, the pause key's (`TurnControl::issue_toggle_pause@00956b40`
+/// with the bit clear); the capital's rally point moved to
+/// [`PAUSE_GATHER_AT`] while the game stands paused; and `pause(0)`, the key
+/// again. The frame does not move between them. The client's
+/// `minted_paused_at_the_opening_camera` mints these field for field.
+pub fn paused() -> Vec<Order> {
+    let mut orders = chatted();
+    orders.extend([
+        (PAUSE_FRAME, 0, vec![Command::Pause { state: 1 }]),
+        (
+            PAUSE_FRAME,
+            0,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![CAPITAL],
+                },
+                Command::GatherPoint {
+                    x: PAUSE_GATHER_AT.x,
+                    y: PAUSE_GATHER_AT.y,
+                    action: 0,
+                    add_to_end: 0,
+                },
+            ],
+        ),
+        (PAUSE_FRAME, 0, vec![Command::Pause { state: 0 }]),
+    ]);
+    orders
+}
+
+/// The frame the game is paused on, two after [`CHAT_FRAME`], before the
+/// Citizen [`GATHER_TRAIN_FRAME`] queues comes out.
+pub const PAUSE_FRAME: i32 = 6712;
+/// The rally point given while paused: bare ground the layer's inverse
+/// names at the opening camera (stage 0).
+pub const PAUSE_GATHER_AT: Pos = Pos { x: 4655, y: 31075 };
+
 /// slot 0's Library, `0/2005` (`TypeIndex` 435).
 pub const LIBRARY_OBJECT: i16 = 2005;
 /// The Art of War's `TypeIndex`: `BASE_TECHTYPES` (0x220) plus its record,

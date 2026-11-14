@@ -205,21 +205,17 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     ),
     (
         7383,
-        &[
-            ("builds", 1142, 1142, 1, "903 2019 mtn..cliff: mtn -1|0"),
-            (
-                "leaders",
-                271,
-                271,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|27010000",
-            ),
-        ],
+        &[(
+            "leaders",
+            271,
+            271,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|27010000",
+        )],
     ),
     (
         8206,
         &[
-            ("builds", 1142, 1142, 1, "903 2019 mtn..cliff: mtn -1|0"),
             (
                 "groups",
                 544,
@@ -253,7 +249,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 "builds",
                 1142,
                 1142,
-                2,
+                1,
                 "856 2018 myhits..launch_frames: inside_down 42|30",
             ),
             (
@@ -287,7 +283,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 "builds",
                 1142,
                 1142,
-                2,
+                1,
                 "856 2018 myhits..launch_frames: inside_down 54|30",
             ),
             (

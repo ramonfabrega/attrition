@@ -630,3 +630,33 @@ fn a_verified_camp_drops_the_ground_another_player_holds() {
         "the dropped tiles are unmarked"
     );
 }
+
+/// **A mine keeps the range it was filled from** (`MiningList::mtn`,
+/// `find_gather_tcoords@0063bdc0`'s store): the placed index of the
+/// nearest range, not the first placed one, ahead of the tiles; and
+/// `Build::close` puts it back to −1 with the list (item 4244, run1597's
+/// building 2019 on 7383: ours −1, theirs 0).
+#[test]
+fn a_mine_keeps_the_range_it_was_filled_from() {
+    let mut s = sim();
+    let ty = s.add_build_type(bt(Ident::Mine, 2, 2));
+    mountain_cell(&mut s, Cell::new(5, 5));
+    let t = MountainTemplate {
+        tiles: (0..4).flat_map(|v| (0..4).map(move |u| (u, v))).collect(),
+        solid: vec![(0, 0)],
+    };
+    // Range 0 is far; range 1, placed second, is one cell from the site.
+    s.place_mountains(&[(Cell::new(14, 5), 0), (Cell::new(5, 5), 0)], &[t]);
+    let b = s.add_building(0, centre(Cell::new(4, 5)), 0);
+    s.buildings[b].ty = Some(ty);
+    assert_eq!((s.buildings[b].mtn, s.buildings[b].cliff), (-1, -1));
+    s.find_gather_tiles(b);
+    assert!(!s.buildings[b].gather_from.is_empty(), "the range's tiles");
+    assert_eq!((s.buildings[b].mtn, s.buildings[b].cliff), (1, -1));
+    // A re-find keeps it.
+    s.find_gather_tiles(b);
+    assert_eq!(s.buildings[b].mtn, 1);
+    s.give_back_gather_tiles(b);
+    assert!(s.buildings[b].gather_from.is_empty());
+    assert_eq!((s.buildings[b].mtn, s.buildings[b].cliff), (-1, -1));
+}
