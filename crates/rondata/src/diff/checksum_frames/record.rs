@@ -238,8 +238,76 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             ),
         ],
     ),
-    (8281, &[]),
-    (10541, &[]),
+    (
+        8281,
+        // Item 4253's next units word: the garrison chain's order in the
+        // University 1/2018 (record 30 `inside_down` -1|42, the building's
+        // 42|30).
+        &[
+            (
+                "units",
+                1909,
+                1909,
+                2,
+                "842 30 myhits..launch_frames: inside_down -1|42",
+            ),
+            (
+                "builds",
+                1142,
+                1142,
+                2,
+                "856 2018 myhits..launch_frames: inside_down 42|30",
+            ),
+            (
+                "groups",
+                544,
+                544,
+                1,
+                "91 67 id..march: ox 30552|0, oy 21144|0",
+            ),
+            (
+                "leaders",
+                271,
+                271,
+                3,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|30010000",
+            ),
+        ],
+    ),
+    (
+        10541,
+        // Item 4253's next guys word: record 14's figure `last_angle`.
+        &[
+            (
+                "units",
+                2549,
+                2549,
+                14,
+                "570 14 guy: last_angle 682461312|968792448",
+            ),
+            (
+                "builds",
+                1142,
+                1142,
+                2,
+                "856 2018 myhits..launch_frames: inside_down 54|30",
+            ),
+            (
+                "guys",
+                776,
+                776,
+                2,
+                "160 14 guy: last_angle 682461312|968792448",
+            ),
+            (
+                "leaders",
+                271,
+                271,
+                2,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|46010000",
+            ),
+        ],
+    ),
 ];
 
 /// **The record names the partings**: our walk under the pump to each of

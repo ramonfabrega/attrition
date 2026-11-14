@@ -2397,10 +2397,10 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
-| units | 7195 | 1033027300 | 186629872 | 0 |
+| units | 8281 | 3125684161 | 3011454242 | 0 |
 | builds | 7383 | 1242831600 | 4226882033 | 0 |
 | groups | 8206 | 1227700410 | 2455910145 | 0 |
-| guys | 7273 | 3102114080 | 2138275448 | 0 |
+| guys | 10541 | 88563580 | 4151468002 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
 | cities | whole, 24,000 | | | 0 |
 | items | whole, 24,000 | | | 0 |
@@ -2577,6 +2577,7 @@ line's field reader where it has one:
 | groups | 6781 | 1592 | group record 64 (army 1/1): `role` 0, 1379328 (0x150c00); `new_speed` 0, 26; `speed` 0, 26; whole since item 4242 |
 | units | 6907 | 1593 | record 24's `GroupMoveOrder`: three ranges theirs walks after the move, ours not (1,639 against 1,648); whole since item 4243 |
 | units | 7195 | 1600 | records 27..29 `unit_masks`: 0x40000, 0x40004 (bit 0x4, `in_danger`); 3 of 1,697 ranges; whole since item 4251 |
+| units, guys | 7273 | 1597's record | record 30 (`1/30`, a Scholar, TI 52) figure `angle` and `last_angle`: 0x55555555, 0 (`Unit::go_inside`'s `set_angle(0, _, 1)` snap); 1 of 1,692 and 1 of 560 ranges; whole since item 4253 |
 | units, guys | 6537 | 1591 | `1/0` figure 0 `last_x` 7824, 7848, `last_y` 21648, 21672; six figure records on each line (6 of 1,546, 6 of 511); whole since item 4238 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02; whole since item 4229 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2; whole since item 4229 |
@@ -2704,8 +2705,8 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 | frame | line | record's ranges, ours, parted | first parting: range record field: ours, theirs |
 |---|---|---|---|
 | 7195 | units | 1,697, 1,697, 3 | 832 27 `collide_frame..play`: `unit_masks` 262144 (0x40000), 262148 (0x40004); whole since item 4251 (run1600's packet the same) |
-| 7273 | units | 1,692, 1,692, 1 | 891 30 guy: `angle` and `last_angle` 1431655765, 0 |
-| 7273 | guys | 560, 560, 1 | 279 30 guy: `angle` and `last_angle` 1431655765, 0 |
+| 7273 | units | 1,692, 1,692, 1 | 891 30 guy: `angle` and `last_angle` 1431655765, 0; whole since item 4253 (the scholar's seating `set_angle(0, _, 1)`) |
+| 7273 | guys | 560, 560, 1 | 279 30 guy: `angle` and `last_angle` 1431655765, 0; whole since item 4253 |
 | 7383 | builds | 1,142, 1,142, 1 | 903 2019 `mtn..cliff`: `mtn` −1, 0 |
 | 8206 | groups | 544, 544, 1 | 91 67 `id..march`: `ox` 30552, 0; `oy` 21144, 0 |
 
