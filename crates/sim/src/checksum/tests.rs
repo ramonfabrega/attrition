@@ -252,6 +252,67 @@ fn a_path_stack_walks_the_size_it_grew_to() {
     );
 }
 
+/// **A grouped move walks `GroupMoveOrder::walk_data@004855c0`'s three
+/// ranges after its move** (item 4243, `docs/CHECKSUM.md` §24.3): the flags
+/// byte again, `oxx`..`group_angle` (`+0x54..+0x68`) and `in_group`
+/// (`+0x68`). run1593 on 6907: record 24, a Longbowman of army 1/1's
+/// `GROUP_ATTACK_TO`, `05`, then 24, 1, 0x697990, 0, the move's angle, then
+/// 0. A plain move walks `MoveOrder::walk_data` and stops at the move.
+#[test]
+fn a_grouped_move_walks_its_group_order_after_the_move() {
+    use crate::orders::{GroupMove, MoveKind, QueuePos};
+    use crate::world::Pos;
+    let after_node = |s: &crate::Sim, u: usize| -> Vec<(&'static str, Vec<u8>)> {
+        let record = s.units[u].index;
+        let ranges = s.checksum_units().ranges;
+        let at = ranges
+            .iter()
+            .position(|r| r.record == record && r.field == "order.type")
+            .expect("the order's type");
+        ranges[at + 2..]
+            .iter()
+            .take_while(|r| r.field.starts_with("order."))
+            .map(|r| (r.field, r.bytes.clone()))
+            .collect()
+    };
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let leader = sim.add_unit(crate::Unit::new(1, 24, Pos::new(480, 480), 10));
+    let u = sim.add_unit(crate::Unit::new(1, 25, Pos::new(528, 480), 10));
+    let to = Pos::new(1440, 480);
+    sim.add_move_order(u, to, MoveKind::AttackTo, QueuePos::New, false);
+    let plain: Vec<&str> = after_node(&sim, u).iter().map(|r| r.0).collect();
+    assert_eq!(
+        plain,
+        vec!["order.flags", "order.move"],
+        "a plain ATTACK_TO stops at its move"
+    );
+    let angle = sim.units[u].orders[0].move_mut().expect("a move").angle;
+    sim.units[u].orders[0].move_mut().expect("a move").group = Some(GroupMove {
+        leader,
+        id: 0x0069_7990,
+        form_id: 1,
+        group_angle: angle,
+        in_group: true,
+        orig: to,
+    });
+    let walked = after_node(&sim, u);
+    let flags = sim.units[u].orders[0].flags;
+    let names: Vec<&str> = walked.iter().map(|r| r.0).collect();
+    assert_eq!(
+        names,
+        vec!["order.flags", "order.move", "order.flags", "order.group", "order.in_group"],
+        "GroupMoveOrder::walk_data's five ranges"
+    );
+    assert_eq!(walked[2].1, vec![flags], "the virtual base's flags, again");
+    let index = i32::from(sim.units[leader].index);
+    let mut group = Vec::new();
+    for x in [index, 1, 0x0069_7990, 1, angle.0] {
+        group.extend_from_slice(&x.to_le_bytes());
+    }
+    assert_eq!(walked[3].1, group, "the leader's index and owner, id, form_id, group_angle");
+    assert_eq!(walked[4].1, 1i32.to_le_bytes().to_vec(), "in_group");
+}
+
 /// **A cast walks `CastOrder::walk_data@004860a0`'s three ranges** (item
 /// 4234, `docs/CHECKSUM.md` §24.3): the flags byte, `TargetOrder`'s `ox`,
 /// `whom`, `uid` (`+0x8..+0x12`) and its own `x`, `y`, `paid`, `spell`

@@ -559,6 +559,24 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         )],
     ),
     (
+        "run1593",
+        "rontrace-run1593.log",
+        6907,
+        // Item 4243: units whole; before it, theirs 1648 ranges, ours 1639,
+        // 781 parted from range 784, record 24 (a Longbowman of army 1/1,
+        // `GROUP_ATTACK_TO`): `GroupMoveOrder::walk_data@004855c0` hands
+        // three ranges after `order.move` the emitter left out — the flags
+        // byte again (05), `oxx`..`group_angle` (24, 1, 0x697990, 0, the
+        // move's angle) and `in_group` (0) — on each of three members.
+        &[(
+            "leaders",
+            271,
+            271,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|21010000",
+        )],
+    ),
+    (
         "run1583",
         "rontrace-run1583.log",
         987,
