@@ -723,3 +723,39 @@ fn the_world_is_the_original_s_on_the_start_by_section() {
         "the start without Game::run's calc_danger"
     );
 }
+
+/// PROBE item 4231 (reverted whole): group slot `RON_PROBE_SLOT` per frame.
+#[test]
+fn probe_4231_group_slot() {
+    let Ok(slot) = std::env::var("RON_PROBE_SLOT") else {
+        return;
+    };
+    let slot: i16 = slot.parse().unwrap();
+    let lo: i64 = std::env::var("RON_PROBE_LO").map_or(2700, |v| v.parse().unwrap());
+    let hi: i64 = std::env::var("RON_PROBE_HI").map_or(2746, |v| v.parse().unwrap());
+    let Some((_, mut built, _)) = built_start() else {
+        return;
+    };
+    let mut stream = crate::input::Stream::pump(&minted(&script()).unwrap());
+    super::minted::tick_to(&mut built, Some(&mut stream), lo);
+    let mut last = String::new();
+    while built.sim.frame <= hi {
+        let line = built.sim.checksum_groups();
+        let now: Vec<String> = line
+            .ranges
+            .iter()
+            .filter(|r| r.record == slot)
+            .map(|r| {
+                let f = super::checksum_lines::range_fields("groups", r.field, &r.bytes)
+                    .unwrap_or_default();
+                format!("{} {:?}", r.field, f)
+            })
+            .collect();
+        let now = now.join("\n    ");
+        if now != last {
+            eprintln!("PROBE frame {} slot {slot}:\n    {now}", built.sim.frame);
+            last = now;
+        }
+        super::minted::tick_to(&mut built, Some(&mut stream), built.sim.frame + 1);
+    }
+}
