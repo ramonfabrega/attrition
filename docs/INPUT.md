@@ -315,7 +315,7 @@ run confirms. Read-only for `tech`, the epoch verbs, `human`/`computer` and
 the building arm of `add` — implemented, unit-tested, and **not** yet
 exercised by a capture. Everything else in the channel is refused by name.
 
-### 11.1 The script
+## 11.1 The script
 
 `<sim-frame> <text>`, `#` a comment anywhere on the line, `!` selecting the
 console-only half of `run_cmd`'s two disjoint switches, lines in file order,
@@ -331,7 +331,7 @@ The two halves are **disjoint** — 56 console-only cases, 45 chat-reachable —
 so a line on the wrong side reaches a case that is not there. The
 interpreter refuses it rather than running it anyway.
 
-### 11.2 `parse_who`: a bare number is not always a player
+## 11.2 `parse_who`: a bare number is not always a player
 
 `parse_who(arg, default)` computes `param_2 = (default < 0) ? 0 : 1`; a
 `who=` prefix sets it to 1 and is stripped; and the digit arm at the tail is
@@ -349,7 +349,7 @@ default>` stands immediately above it. So:
 player 0's third. The original also matches the eight player names, the
 eight colour names and `gaia`; the interpreter says the number.
 
-### 11.3 `parse_coord`: a bare number is a **tile**, and the runbook is wrong
+## 11.3 `parse_coord`: a bare number is a **tile**, and the runbook is wrong
 
 `parse_coord@007e5390` has three arms: a leading `c` (or a bare digit under
 `coord_mode == 3`) is a raw internal coordinate; a leading `t` (or a bare
@@ -368,7 +368,7 @@ footprint` for the staged channel, and it closes the open question
 calibrate the way the runbook says"): the runbook records the *world* arm and
 the channel reads the tile one.
 
-### 11.4 `ai off` is one flag with three readers
+## 11.4 `ai off` is one flag with three readers
 
 `run_cmd` case 0xc calls `CommandManager::issue_cheat_ai_toggle`, so the
 cheat travels the order stream and `Game::action_cheat_ai_toggle@005930c0`
@@ -407,7 +407,7 @@ SEAM: the toggle is a *replicated command*, so the original flips the flag
 when the turn pump walks the package; the interpreter flips it at the line's
 own frame. No capture can separate the two — frame 0 is identical either way.
 
-### 11.5 `add`: a squad is three units, and the count is not a count
+## 11.5 `add`: a squad is three units, and the count is not a count
 
 `run_cmd` case 0x4d/0x4e reads `[#] typename [who=RED] [x,y]`, where the
 leading count is a count only when it parses as one (`String::number`'s 0
@@ -443,7 +443,7 @@ takes no draw, so the stream never knew the difference — but the second
 stays free and this crate put `who=1`'s captain at `(1080, 7800)`,
 eighteen tiles from the original's.
 
-### 11.6 `ally`/`peace`/`war`, and the bare form that does nothing
+## 11.6 `ally`/`peace`/`war`, and the bare form that does nothing
 
 Cases 0x2c–0x2e are one body. With **no further token** it prints the
 diplomacy table and changes nothing; with `all` it calls
@@ -466,7 +466,7 @@ past `leaders`), gaia's leaders 8 and 9 are outside it, and at zero it calls
 writes the row and not the victory; nothing staged past a two-player `ally`
 has a frame to compare.
 
-### 11.7 What the golden record's harness must refuse
+## 11.7 What the golden record's harness must refuse
 
 The golden record's `GAMEINFO` is **byte-identical to run11's** — map 14,
 seed 12345, size 2, every one of the 34 option fields — and its setup
@@ -488,7 +488,7 @@ fourteen and run53's word is 9182 either way
 (`refusing_the_borrowed_frame_stream_does_not_move_great_lakes_word`); East
 Indies' setup word is `793793043` and it takes none.
 
-### 11.8 What is not established
+## 11.8 What is not established
 
 - **The residue at the word.** ~~Chapter one's golden word is **617** and one
   draw stands in the way: `Guy::set_anim@005da300+0xf2f`, the variant roll
@@ -518,7 +518,7 @@ Indies' setup word is `793793043` and it takes none.
   observation (`hoplite` → `Hoplites`) plus `parse_who`'s shape. The
   `String::ignore` third argument was not resolved in the decompile.
 
-### 11.9 What `ai off` leaves a human's civilians: all of it (2026-09-23, item 578)
+## 11.9 What `ai off` leaves a human's civilians: all of it (2026-09-23, item 578)
 
 **Measured, both directions, on a pair.** `docs/GOLDEN.md` §11 staged five
 civilians for player 0 — Citizen, Caravan, Merchant, Scholar, Fur Trapper

@@ -3235,7 +3235,7 @@ renderer needs a number a test can pin, a floor that can only rise, and a
 denominator that comes from outside the work. Here are three candidates and a
 recommendation.
 
-### 5.1 Candidate A: frames in register
+## 5.1 Candidate A: frames in register
 
 **Definition.** On a pinned capture, the client is driven by the free runner
 (§2.4) from the start dump and the order stream. Score the consecutive
@@ -3260,7 +3260,7 @@ steer.
 integers and only rounding separates them. *Alternative:* a tolerance in
 world units, which is independent of the camera but hides a wrong zoom.
 
-### 5.2 Candidate B: asset files decoded
+## 5.2 Candidate B: asset files decoded
 
 **Definition.** The count of the install's files of each kind that decode
 under a self-checking reader. The denominators are the counts in §3.2:
@@ -3272,7 +3272,7 @@ under a self-checking reader. The denominators are the counts in §3.2:
 place. It also counts files the game never loads, such as editor leftovers,
 the same as the citizen's walk.
 
-### 5.3 Candidate C: scene silhouettes against the original's frame
+## 5.3 Candidate C: scene silhouettes against the original's frame
 
 **Definition.** For each pinned (capture, frame, camera), the overlap of
 per-object footprints between the client's frame and the original's
@@ -3361,7 +3361,7 @@ rows are their pins'.
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 
-### 5.4 Recommended: pieces in register, K of M
+## 5.4 Recommended: pieces in register, K of M
 
 **Definition.**
 

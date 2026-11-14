@@ -2235,7 +2235,7 @@ counts come from a scratch port of the predicate run over the dumps and
 the ported grids. It is not committed, and it backs no claim as a diff
 would.
 
-### 19.1 The gate is `check_blocks` alone
+## 19.1 The gate is `check_blocks` alone
 
 `TerrainOut::create_transition_renderables@00862c60` walks the list at
 `+0x66f0`: data at `+0x6700`, count at `+0x66f4`, and cursor at `+0x6708`,
@@ -2267,7 +2267,7 @@ Its one other 1 (a lower land beside sub 0) needs no shipped land (item
 It is never 1 both ways. **The arm is entered only when each side's field
 is 0 with M → C not 1, or is 7 with C → M 1.**
 
-### 19.2 Who is listed, and what writes a shift-6 field
+## 19.2 Who is listed, and what writes a shift-6 field
 
 `TerrainOut::mark_trans_flags@008625a0` runs row-major from
 `TerrainOut::mark_nodes@0085bc20`, which `Terrain::init@00850f70` calls at
@@ -2292,7 +2292,7 @@ at shift 3. Its values are 7 from (A), and 4, 1 and 5 from
 `TerrainOut::create_nodes@0085bc70`'s `memset` and the pass. **A full
 field is (A)'s 7, and nothing else writes one.**
 
-### 19.3 The predicate
+## 19.3 The predicate
 
 - **An (A) cell never reaches the arm.** `check_blocks` makes the first
   M's side 7, and only C → M 1 clears it, which cannot hold since M → C
@@ -2325,7 +2325,7 @@ field is (A)'s 7, and nothing else writes one.**
   reaches the arm under `COAST_BASE` 3. With the land at any of the other
   three corners, it does not. (Not on the original: §20.)
 
-### 19.4 No grid on file holds P1 or P2
+## 19.4 No grid on file holds P1 or P2
 
 - **The initial pass.** `Terrain::init` builds the transitions at line
   760, before `Terrain::convert_beach_to_sandy@0084b8e0` at line 904. On
@@ -2370,7 +2370,7 @@ nowhere in the image (the pass's scan; the byte before it is the
 preceding function's own `ret`) and is a `RESIDUE` row; `River::calculate`
 was entered by the console's `river calc` (run1499, §21).
 
-### 19.5 What would kill it, and what is not established
+## 19.5 What would kill it, and what is not established
 
 - **Killers.**
   - A `cover=1` trace that enters `008595f0` on a grid with no P1 or P2
@@ -2393,7 +2393,7 @@ was entered by the console's `river calc` (run1499, §21).
 - **Out of scope.** `ConsoleWin::run_cmd@007d6a70` and the scenario
   editor also reach `spot_update_land`; both are cheat or cut.
 
-### 19.6 The flood's depth, writer by writer (item 3870)
+## 19.6 The flood's depth, writer by writer (item 3870)
 
 The sources are the decompile and the listing. The counts come from a
 scratch model of the flood as read, run over the first `WORLD` block of
