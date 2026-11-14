@@ -422,7 +422,8 @@ fn turkish_information_pair_run1454_s_closing_frame_is_widened_whole() {
     // `SITE[0..9].reg` (65 against 0) and `aggression[1]` (0 against 1), the
     // Tornado `1/89`'s `g.z[0]` aboard its carrier, and `mirror` on `1/132`,
     // `1/139` and `1/145`. No draw parts to 5036.
-    pin_eq!(w.firsts.len(), 86, "run1454 baseline");
+    // Item 4159's residue: 86 -> 85, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 85, "run1454 baseline");
     pin_eq!(w.rounds_read, (360, 360), "the rounds read");
     // Every round, both directions: 360 against 360; the 174 that part, from
     // 4830, are the Advanced Battleships' launch points — `sx`/`sy`/`sz`,

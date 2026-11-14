@@ -516,7 +516,8 @@ fn american_enlightenment_pair_run1325d_s_closing_window_is_widened_whole() {
     // groups' `held` and pools, `form` (each new figure's, ours −1 against
     // 0), `SITE[i].reg`, `aggression[1]` — and the Scholar `1/14`'s figure
     // `angle`.
-    pin_eq!(w.firsts.len(), 148, "run1325d baseline");
+    // Item 4159's residue: 148 -> 147, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 147, "run1325d baseline");
     // 82 a side, none parting. Before piece 218's bays who=1's Cannons'
     // (type 268) four rounds left the carriage's own point, 100 low —
     // `1/96`'s on 6475 from (9480, 9864, 318) against (9369, 9768, 418).

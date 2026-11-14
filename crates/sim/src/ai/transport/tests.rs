@@ -2035,3 +2035,29 @@ fn coasts_are_computed_from_the_cells() {
     // A sea region counts itself, and nothing else (`Region::num_coasts`).
     assert_eq!(f.sim.world.num_coasts(f.sea), 1);
 }
+
+/// **A boat added outright takes the same gate** (item 4159's residue,
+/// §16): `Objects::init_unit` → `Unit::set_type`'s `+1` block counts a
+/// captain only for a type with population (or a governor-hero), so a
+/// scripted `add transport_freighter` — `POP` 0 — is in no `num_units`.
+/// The sea and airbase melees' computers each held one, ours counting it
+/// (`num_units[272]` 1 against 0, `score_units` 12 over).
+///
+/// Made to fail by counting every head again: the barge's count is 1.
+#[test]
+fn an_added_boat_of_no_population_is_never_counted() {
+    let mut f = fix();
+    let b = barge(&mut f.sim);
+    // The fixture's tree holds no barge record for `init_figure` to read.
+    f.sim.tables.unit_types[b].tree = None;
+    for (pop, counted) in [(0, 0), (1, 1)] {
+        f.sim.tables.unit_types[b].price.pop = pop;
+        let before = f.sim.roster.muster[1].by_type[b];
+        f.sim.init_unit(1, b, tile_pos(40, 14));
+        assert_eq!(
+            f.sim.roster.muster[1].by_type[b] - before,
+            counted,
+            "POP {pop}"
+        );
+    }
+}

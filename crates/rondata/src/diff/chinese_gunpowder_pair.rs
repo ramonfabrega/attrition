@@ -301,7 +301,8 @@ fn chinese_gunpowder_pair_run1283b_s_word_frame_is_widened_whole() {
     // Item 3639: **167 → 148**. The Dragoon `1/97`'s round of 5130 leaves
     // piece 1195's pivot and lands on 5132 on both sides; the window is the
     // standing families alone (`form`, who=1's groups' `held` and pools).
-    pin_eq!(w.firsts.len(), 149, "run1283b baseline");
+    // Item 4159's residue: 149 -> 148, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 148, "run1283b baseline");
 }
 
 /// run1299: the word 5196's window, blocks 5190..5446 at run1283b's detail

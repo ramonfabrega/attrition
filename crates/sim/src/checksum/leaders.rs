@@ -490,9 +490,10 @@ fn array_head(
 /// entries 128 §3, 129 §5) has carried it onto the line yet.
 /// `score_explored` and `score_pop` left as frozen (item 4159's scan,
 /// entry 131 §1): every store the executable makes to either writes 0
-/// (`rondata::stores`, `docs/LEADERS.md` §18.5).
-pub const STEP_VI_OFF_THE_LINE: &[&str] =
-    &["score", "score_units", "score_units_2", "score_combat"];
+/// (`rondata::stores`, `docs/LEADERS.md` §18.5). `score_units`,
+/// `score_units_2` and `score_combat` on since item 4159's residue: each
+/// agrees on all 226 walked packet leaders (§18.5).
+pub const STEP_VI_OFF_THE_LINE: &[&str] = &["score"];
 
 /// `Leader::init`'s `plunder_scale`, −1.0 as its IEEE-754 single's bits.
 const PLUNDER_SCALE_BITS: i32 = 0xbf80_0000_u32 as i32;

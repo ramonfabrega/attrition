@@ -130,3 +130,46 @@ fn the_units_part_waits_on_its_dirty_bit() {
     assert!(!s.tech[0].score_dirty);
     s.score_units_dirty(8);
 }
+
+/// **A sunk transport is priced as its first passenger** (§18.2,
+/// `take_damage@00652020:520`-`:528`): a victim whose type is a transport
+/// (`unit_flags & 0x10`) is redirected to the head of its `inside_down`,
+/// that unit's type and owner; an empty one scores nothing. Any other
+/// victim is itself. run1496's airbase melee: each computer sank the
+/// other's scripted, empty Transport Freighter, which the original's
+/// `score_combat` never took (ours 96 and 415 against 84 and 403).
+#[test]
+fn a_sunk_transport_is_priced_as_its_first_passenger() {
+    use crate::ai::ai_load::{UnitCols, uflags};
+    let mut s = sim();
+    let ty = |s: &mut Sim, unit_flags: u32, cost: i32| {
+        let mut t = crate::UnitType {
+            cols: UnitCols {
+                unit_flags,
+                ..UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        };
+        t.price.base = [cost, 0, 0, 0, 0, 0];
+        s.add_unit_type(t)
+    };
+    let freighter = ty(&mut s, uflags::FLAG_TRANSPORT, 6);
+    let rifle = ty(&mut s, 0, 9);
+    let at = crate::world::Pos::new(30 * 0x300, 30 * 0x300);
+    let put = |s: &mut Sim, who: Player, t: usize, o: i16| {
+        let mut u = crate::Unit::new(who, o, at, 100);
+        u.ty = Some(t);
+        u.captain = true;
+        s.add_unit(u)
+    };
+    let boat = put(&mut s, 1, freighter, 5);
+    assert_eq!(s.score_victim(boat), None, "empty: no kill on the score");
+    let man = put(&mut s, 0, rifle, 6);
+    assert_eq!(s.score_victim(man), Some((rifle, 0)), "a rifle is itself");
+    s.units[man].inside_unit = Some(boat);
+    assert_eq!(
+        s.score_victim(boat),
+        Some((rifle, 0)),
+        "the passenger's type and owner"
+    );
+}

@@ -2028,6 +2028,24 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// French `counteroffer[0]` 0 → 1), ours equal
 /// (`diff::diplomacy_take::run1575_s_alliance_is_found_short`). The long
 /// range stays out on the other 30.
+///
+/// Item 4159's residue (4187a): 30 → 27 names, `score_units`,
+/// `score_units_2` and `score_combat`, each agreeing on frame 91 (leader 0
+/// 38, 22, 0; leader 1 38, 22, 0). Released by entry 129 §5: each agrees
+/// on all 226 walked packet leaders, non-zero on 217, 217 and 52
+/// (witnesses run912e, frame 12753, leader 1: 672 and 549; run1496, frame
+/// 1539, leader 1: 84). Three faults, each found on a parting:
+/// `Sim::init_unit` counted a scripted Transport Freighter (`POP` 0) in
+/// `num_units[272]`, `set_type`'s gate refusing it there (the melees'
+/// computer seats, `score_units` 12 over: run1484 501, 508 against 489,
+/// 496); each seat sank the other's, empty, which `take_damage` prices as
+/// the head of its `inside_down` and so not at all (`Sim::score_victim`;
+/// run1496 `score_combat` 96, 415 against 84, 403, run1487 368, 493
+/// against 356, 481); and `Unit::close`'s units bit was raised by the kill
+/// paths alone, so a Merchant Fleet put ashore left the part stale
+/// (run912e 665, 532 against 672, 549; run823 and run825 6294, 5299
+/// against 6379, 5332; run865 5637 against 5629). `docs/LEADERS.md`
+/// §18.5. The long range stays out on the other 27.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
@@ -2052,9 +2070,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("pop_issues (unheld)", 2),
     ("raid_stamp (unheld)", 2),
     ("score (unheld)", 2),
-    ("score_combat (unheld)", 2),
-    ("score_units (unheld)", 2),
-    ("score_units_2 (unheld)", 2),
     ("tribute_demanded (unheld)", 2),
     ("tributes (unheld)", 2),
     ("units_killed (unheld)", 2),

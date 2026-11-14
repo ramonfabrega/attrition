@@ -564,7 +564,8 @@ fn sea_melee_s_leaders_are_compared_on_every_seat() {
     // Item 4177: 3 -> 6, +3, who=0's `average_damage_rate`, `average_death_rate` and
     // `average_hit_rate` at the closing 2601, ours 329/27/20 theirs 287/23/17: the human's
     // trailing record one empty fold short (`v·7 >> 3` of ours; docs/LEADERS.md §3.5, parked 4177b).
-    pin_eq!(w.rest().len(), 8, "the keys that part, by seat");
+    // Item 4159's residue: 8 -> 4, the two computer seats' `score` and `num_units[272]` (ours 1 theirs 0, the scripted Transport Freighter) agree at 2601 (docs/LEADERS.md §18.5).
+    pin_eq!(w.rest().len(), 4, "the keys that part, by seat");
     pin_eq!(
         w.rest()
             .iter()

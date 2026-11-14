@@ -570,7 +570,8 @@ fn spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole() {
     // (a sea-only attacker, `valid_target_const`'s `0x102000` arm), and no
     // unit parts past the standing families but `1/122`'s `half_step` on
     // 4878 (ours 1, theirs 0).
-    pin_eq!(w.firsts.len(), 136, "run1304b baseline");
+    // Item 4159's residue: 136 -> 135, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 135, "run1304b baseline");
     // **Every round, both directions** (item 3645's walk, Loop 3644): 608
     // round-blocks a side. What parts is three rounds on block 5002 (`1/56`,
     // `1/57`, `1/73`) whose target `0/12` has left the dump: theirs keep
@@ -661,7 +662,8 @@ fn spanish_gunpowder_pair_run1306_s_closing_window_is_widened_whole() {
             .is_none(),
         "no unit parts"
     );
-    pin_eq!(w.firsts.len(), 138, "run1306 baseline");
+    // Item 4159's residue: 138 -> 137, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 137, "run1306 baseline");
     // **Every round, both directions** (item 3645's walk): 439 round-blocks
     // a side, and none parts.
     pin_eq!(w.rounds_read, (439, 439), "the rounds read");

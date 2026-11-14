@@ -615,6 +615,13 @@ pub(super) const PACKET_RELEASED: &[(&str, &str, i16)] = &[
     ("score_research", "run1161", 1),
     // run1487, frame 1980, leader 2: 666.
     ("score_wonders", "run1487", 2),
+    // Item 4159's residue: run1496, frame 1539, leader 1: 84 (was ours 96,
+    // the empty Transport Freighter sunk on 818 priced at 12).
+    ("score_combat", "run1496", 1),
+    // run912e, frame 12753, leader 1: 672 and 549 (was ours 665 and 532,
+    // stale since the Merchant Fleet's close on 12610 raised no bit).
+    ("score_units", "run912e", 1),
+    ("score_units_2", "run912e", 1),
 ];
 
 /// Every [`PACKET_RELEASED`] witness is a held packet, no pinned parting
@@ -4238,17 +4245,17 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "aggression cities_built flags.leader_flags gather_stamp",
     ),
     ("run1472", "aggression cities_built flags.leader_flags"),
-    (
-        "run1484",
-        "active aggression cities_built flags.leader_flags num_units",
-    ),
+    // Item 4159's residue: `active` and `num_units` agree on run1484, and
+    // `num_units` on run1487 and run1496: the scripted Transport Freighter
+    // is in neither count (`num_units[272]` ours 1 theirs 0, each computer).
+    ("run1484", "aggression cities_built flags.leader_flags"),
     (
         "run1487",
-        "aggression cities_built flags.leader_flags num_units reg_unpack_merch resources_controlled",
+        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1496",
-        "aggression cities_built flags.leader_flags num_units reg_unpack_merch",
+        "aggression cities_built flags.leader_flags reg_unpack_merch",
     ),
     (
         "run1559b",

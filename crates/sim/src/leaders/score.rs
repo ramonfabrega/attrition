@@ -272,6 +272,26 @@ impl Sim {
         };
     }
 
+    /// **The unit `score_combat` prices on a kill** (§18.2,
+    /// `Object::take_damage@00652020:520`-`:528`): the victim's own record
+    /// and owner, except that a victim whose type is a transport
+    /// (`unit_flags & 0x10`, `FLAGS` letter `e`) is redirected to the head
+    /// of its `inside_down` chain (`inside_down_who`, `inside_down`), and
+    /// one carrying nothing scores nothing. A scripted, empty Transport
+    /// Freighter sunk is no kill on the score (item 4159's 4187a).
+    pub(crate) fn score_victim(&self, u: usize) -> Option<(usize, Player)> {
+        let ty = self.units[u].ty?;
+        let transport = self.tables.unit_types[ty].cols.unit_flags
+            & crate::ai::ai_load::uflags::FLAG_TRANSPORT
+            != 0;
+        if !transport {
+            return Some((ty, self.units[u].owner));
+        }
+        let head = (0..self.units.len())
+            .find(|&p| self.units[p].inside_unit == Some(u) && self.units[p].alive())?;
+        Some((self.units[head].ty?, self.units[head].owner))
+    }
+
     /// **`Leader::compute_score@006ec560`** (§18.2), `forced` its argument:
     /// nothing on a frame that is not the leader's; otherwise the parts in
     /// the original's order and their sum.

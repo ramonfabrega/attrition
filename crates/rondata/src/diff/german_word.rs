@@ -421,7 +421,8 @@ fn run910_s_word_frame_is_widened_whole() {
         }
     }
     // Item 3279: −1, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 59, "initial run910 baseline");
+    // Item 4159's residue: 59 -> 58, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 58, "initial run910 baseline");
     // Item 2974: 967 keys part on blocks 12809..13066, the word's own block
     // being 12816 (frame 12815: ours 9 draws, theirs 8, index 1 — ours
     // `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a <

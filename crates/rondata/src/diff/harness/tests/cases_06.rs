@@ -834,11 +834,9 @@ mod bodies {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         // Item 4187: `score` (held, `docs/LEADERS.md` §18.5) parts on
         // 10880: who 1 ours 1286 theirs 1315.
-        pin_eq!(
-            leader,
-            vec!["10880 1/-1 leader:score: ours 1286 theirs 1315".to_string()],
-            "the leader record"
-        );
+        // Item 4159's residue: 10880's `score` (who 1, ours 1286 theirs
+        // 1315) agrees (docs/LEADERS.md §18.5).
+        pin_eq!(leader, Vec::<String>::new(), "the leader record");
         // **Who changes animation, both sides** (`docs/COMBAT.md`
         // §44.2.1). Until the fix the citizen `1/11` turned on 10983 in the
         // original only, sent to the original's Mine.
@@ -909,7 +907,7 @@ mod bodies {
         // Item 1291 took (148, 151, 153) → (148, 150, 152): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (148, 150, 152).
         // Item 1330 took 29 (141/143/144 → 112/114/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under, firsts.len()), (41, 42, 42), "the floor");
+        pin_eq!((first, under, firsts.len()), (41, 41, 41), "the floor");
     }
 
     pub(in super::super) fn run149_s_word_frame_is_widened_whole() {
