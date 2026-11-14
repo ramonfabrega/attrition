@@ -1152,7 +1152,7 @@ mod tests {
             // draw left, stepped back from the `map.cpp` 7805 word where
             // the capture prints one.
             let world_seed: Option<i64> =
-                crate::capture::indexed::IndexedCapture::open(&dir.join(name))
+                crate::capture::indexed::IndexedCapture::open(dir.join(name))
                     .unwrap()
                     .with_replay_initial(|init| {
                         init.world
