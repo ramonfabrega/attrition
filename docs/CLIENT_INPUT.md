@@ -906,8 +906,8 @@ The shares are cut to the tenth, not rounded.
 
 **Where the orders come from.** Twelve of the 50 files carry anything past `leader_options`. The 2017 sample
 (`seifer008 - Toughest AI 4 v 1`, 21,044 frames) carries 2,104 of the 2,429 orders and 22 of the 26 kinds. The other
-eleven are the bottle's captures of 2026-08-20 to 08-26, before any file of ours was minted (item 4058 is
-2026-11-08), so no order in the census is one this layer made. In lockstep only real input travels, so the AI
+eleven are the bottle's captures of 2026-08-20 to 08-26, months before any file of ours was minted
+(item 4058's, in November), so no order in the census is one this layer made. In lockstep only real input travels, so the AI
 players' orders are in no file.
 
 **What the census counts and what it does not.**

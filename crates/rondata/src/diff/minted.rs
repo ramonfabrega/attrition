@@ -2356,3 +2356,281 @@ const ATTACKED_AGAINST_FOLLOWED: (i64, &str, &str, Option<i64>, usize) = (
     Some(6725),
     197,
 );
+
+/// The gathered file's gzip length (item 4249).
+/// Seen red first: pinned 0, it printed 59,459.
+const GATHERED_RCX_BYTES: usize = 59_459;
+
+/// **The gathered script, minted** (item 4249, `docs/CLIENT_INPUT.md`
+/// §11): the followed file and two packages more, the capital's rally
+/// point on [`crate::script::GATHER_FRAME`] and its Citizen on
+/// [`crate::script::GATHER_TRAIN_FRAME`]; it round-trips through the file.
+/// With `RON_RCX_OUT=<file>` it writes the `.rcx` the playback takes open.
+#[test]
+fn the_gathered_minted_packages_round_trip() {
+    use crate::script::{GATHER_FRAME, GATHER_TRAIN_FRAME, followed, gathered};
+    let (Some(rec), Some(first)) = (minted(&gathered()), minted(&followed())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "gathered").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in gathered().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<i32> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| p.frame)
+        .collect();
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (16, 14));
+    assert_eq!(
+        added,
+        vec![GATHER_FRAME, GATHER_TRAIN_FRAME, last.frame],
+        "the packages the followed file does not hold"
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    eprintln!("GATHERED RCX {} bytes", gz.len());
+    assert_eq!(gz.len(), GATHERED_RCX_BYTES, "GATHERED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The frames the gathered script is read on (item 4249): the rally
+/// point's frame and the one after it, the Citizen's queue, the first
+/// frame it stands on the map, the first it stands at the point, and the
+/// window's last record.
+const GATHER_READ_AT: [i64; 6] = [6706, 6707, 6709, 6814, 6832, 6999];
+
+/// The trained Citizen, `0/10`.
+const GATHERED_CITIZEN: i16 = 10;
+
+/// The gathered script, read off one frame: the capital's gather list
+/// (`BuildData::gather`, `(x, y, action)`), and the trained Citizen's
+/// position and order list by class, front first, if it is on the map.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct GatherEffect {
+    pub frame: i64,
+    pub gather: Vec<(i64, i64, i64)>,
+    pub citizen: Option<((i64, i64), Vec<&'static str>)>,
+}
+
+fn gather_class(name: &str) -> &'static str {
+    match name {
+        "MOVEORDER" => "move",
+        "GATHERORDER" => "gather",
+        _ => "other",
+    }
+}
+
+fn gather_effect_theirs(f: &crate::gamelog::Frame) -> GatherEffect {
+    let cap = f
+        .builds
+        .iter()
+        .find(|b| b.who == 0 && b.o == i64::from(crate::script::CAPITAL))
+        .unwrap();
+    let citizen = f
+        .units
+        .iter()
+        .find(|u| u.who == 0 && u.o == i64::from(GATHERED_CITIZEN))
+        .map(|u| {
+            (
+                (u.pos.x, u.pos.y),
+                u.orders_front_first()
+                    .map(|o| gather_class(&o.kind))
+                    .collect(),
+            )
+        });
+    GatherEffect {
+        frame: f.n,
+        gather: cap.gather.clone(),
+        citizen,
+    }
+}
+
+fn gather_effect_ours(b: &Built) -> GatherEffect {
+    let s = &b.sim;
+    let cap = &s.buildings[s.building_by_o(0, crate::script::CAPITAL).unwrap()];
+    let citizen = s.unit_by_o(0, GATHERED_CITIZEN).map(|i| {
+        let u = &s.units[i];
+        (
+            (i64::from(u.pos.x), i64::from(u.pos.y)),
+            u.orders
+                .iter()
+                .map(|o| match &o.body {
+                    sim::orders::Body::Move(_) => "move",
+                    sim::orders::Body::Gather(_) => "gather",
+                    _ => "other",
+                })
+                .collect(),
+        )
+    });
+    GatherEffect {
+        frame: s.frame,
+        gather: cap
+            .gather
+            .iter()
+            .map(|g| (i64::from(g.pos.x), i64::from(g.pos.y), i64::from(g.action)))
+            .collect(),
+        citizen,
+    }
+}
+
+/// Our walk under the pump on `orders`' file, read on [`GATHER_READ_AT`].
+fn gather_effects_ours(orders: &[Order]) -> Vec<GatherEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in &GATHER_READ_AT {
+        tick_to(&mut built, Some(&mut stream), n);
+        ours.push(gather_effect_ours(&built));
+    }
+    ours
+}
+
+/// The original's, off the take's records on [`GATHER_READ_AT`].
+fn gather_effects_theirs(take: &str) -> Option<Vec<GatherEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for i in 0..source.frames().len() {
+        if GATHER_READ_AT.contains(&source.frames()[i].number) {
+            theirs.push(gather_effect_theirs(&source.frame_state(i).unwrap()));
+        }
+    }
+    Some(theirs)
+}
+
+/// **The gathered script's effects** (item 4249), our walk's values pinned
+/// before the original's playback was read: the capital's gather list
+/// empty on 6706 and `(4306, 31001, 0)` from 6707, the frame after the
+/// package; the Citizen out of the capital on 6814, moving, and idle at
+/// the point's arrival on 6832; gathering by 6999. Seen red first: pinned
+/// empty.
+fn gathered_effects() -> Vec<GatherEffect> {
+    let row =
+        |frame, gather: &[(i64, i64, i64)], citizen: Option<((i64, i64), &[&'static str])>| {
+            GatherEffect {
+                frame,
+                gather: gather.to_vec(),
+                citizen: citizen.map(|(p, o)| (p, o.to_vec())),
+            }
+        };
+    const AT: &[(i64, i64, i64)] = &[(4306, 31001, 0)];
+    vec![
+        row(6706, &[], None),
+        row(6707, AT, None),
+        row(6709, AT, None),
+        row(6814, AT, Some(((4008, 31320), &["move"]))),
+        row(6832, AT, Some(((4296, 30984), &[]))),
+        row(6999, AT, Some(((4271, 30624), &["move", "gather"]))),
+    ]
+}
+
+/// **What the gathered orders do on our walk** (item 4249), on
+/// [`GATHER_READ_AT`].
+#[test]
+fn the_gathered_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::gathered()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = gather_effects_ours(&crate::script::gathered());
+    for e in &ours {
+        eprintln!("GATHER EFFECT ours {e:?}");
+    }
+    assert_eq!(ours, gathered_effects());
+}
+
+/// The gathered file's playback (`docs/RUNS.md` run1598): `(take, trace,
+/// frames agreeing, frames walked, records, parted)`.
+pub(crate) const GATHERED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1598-greatlakes-playback-of-gathered-7000.txt",
+    "rontrace-run1598.log",
+    0,
+    0,
+    0,
+    0,
+)];
+
+/// **The original plays the gathered file in lockstep** (item 4249): the
+/// built start walked under the pump against run1598, every frame's draws
+/// against its trace and every record of its window whole
+/// ([`GATHERED_WALKED`]); and the rally point, the Citizen's walk to it and
+/// its gather read on both sides on [`GATHER_READ_AT`].
+#[test]
+fn the_original_s_playback_of_the_gathered_file_walks_in_lockstep() {
+    let gathered = crate::script::gathered();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in GATHERED_WALKED {
+        let Some((w, _)) = walk_minted(&gathered, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "GATHERED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs = gather_effects_theirs(GATHERED_WALKED[0].0).unwrap();
+    let ours = gather_effects_ours(&gathered);
+    for (o, t) in ours.iter().zip(&theirs) {
+        eprintln!("GATHER EFFECT ours {o:?}\n              theirs {t:?}");
+    }
+    assert_eq!(walked, GATHERED_WALKED, "the walked table");
+    assert_eq!(theirs, gathered_effects(), "the original's effects");
+    assert_eq!(ours, gathered_effects(), "our effects");
+}
+
+/// **Made to fail** (item 4249): our walk under the followed file — no
+/// rally point, no Citizen — against run1598.
+#[test]
+fn the_followed_script_against_the_gathered_playback_parts() {
+    let (take, take_trace, ..) = GATHERED_WALKED[0];
+    let Some((w, _)) = walk_minted(&crate::script::followed(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    eprintln!(
+        "FOLLOWED AGAINST GATHERED: record {frame}: {partings:?}; draws part {:?}; records {} parted {}",
+        w.first_sequence, w.records, w.records_parted
+    );
+    let seen = (
+        frame,
+        partings[0].0,
+        partings[0].2.clone(),
+        w.first_sequence,
+        w.records_parted,
+    );
+    let (f, kind, row, draws, parted) = FOLLOWED_AGAINST_GATHERED;
+    assert_eq!(
+        seen,
+        (f, kind, row.to_string(), draws, parted),
+        "FOLLOWED_AGAINST_GATHERED"
+    );
+}
+
+/// The followed script's walk against run1598: `(the first parted
+/// record's frame, its kind, its row, the first frame whose draws part,
+/// records parted)`.
+const FOLLOWED_AGAINST_GATHERED: (i64, &str, &str, Option<i64>, usize) = (0, "", "", None, 0);

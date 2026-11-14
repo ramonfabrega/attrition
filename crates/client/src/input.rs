@@ -90,6 +90,7 @@ pub const MINTS: &[&str] = &[
     "gather",
     "build",
     "queue_up",
+    "gather_point",
 ];
 
 /// One input event, at a screen pixel where it has one.
@@ -389,6 +390,35 @@ impl View<'_> {
         friend.map(|(_, id)| Hit::Friend(id))
     }
 
+    /// `GroupData::count(COUNT_GATHER_POINT)` of a building selection, as
+    /// far as nonzero, on its training arm alone: whether a selected
+    /// building trains ([`sim::observe::BuildingScene::trains`]; item 4249,
+    /// `docs/CLIENT_INPUT.md` §11). Ours: the garrison-limit and type-ability
+    /// arms of the count are not read.
+    pub fn takes_gather_point(&self, selection: &[ObjId]) -> bool {
+        selection
+            .iter()
+            .any(|id| self.scene.buildings.iter().any(|b| b.id == *id && b.trains))
+    }
+
+    /// Whether a right press at `(px, py)` names any object the viewer
+    /// sees, of any slot, unit or building: the gather point's first look,
+    /// `find_target(SEARCH_ALL, …, FILTER_ALL)`, then its friendly one
+    /// (item 4249). Each look is [`View::target`]'s nearest anchor within
+    /// [`PICK_RADIUS`].
+    pub fn names_object(&self, px: i32, py: i32) -> bool {
+        let near = |p: Pos, z: i32| {
+            let (ax, ay) = self.pixel(p.x, p.y, z);
+            i64::from(ax - px).pow(2) + i64::from(ay - py).pow(2) <= i64::from(PICK_RADIUS).pow(2)
+        };
+        self.scene.units.iter().any(|u| u.seen && near(u.pos, u.z))
+            || self
+                .scene
+                .buildings
+                .iter()
+                .any(|b| b.seen && near(b.pos, b.z))
+    }
+
     /// `GroupData::count(COUNT_ATTACK)` of a selection, as far as nonzero:
     /// whether any member on the map attacks ([`sim::observe::UnitScene::attacks`]).
     pub fn attacks(&self, selection: &[ObjId]) -> bool {
@@ -639,8 +669,26 @@ impl Input {
                 None
             }
             Event::RightPress { x, y } => {
-                if self.selection.is_empty() || self.building {
+                if self.selection.is_empty() {
                     return None;
+                }
+                if self.building {
+                    // The building arm (`execute_at_cursor`, item 4249): a
+                    // selection that takes a gather point, and no object
+                    // under the press, names the ground, `action` 0 and
+                    // `add_to_end` the shift's, 0 here. On an object the
+                    // arms' actions 1 to 3 are not read: nothing.
+                    if !view.takes_gather_point(&self.selection) || view.names_object(x, y) {
+                        return None;
+                    }
+                    let at = ground_at(view, x, y)?;
+                    let cmd = Command::GatherPoint {
+                        x: at.x,
+                        y: at.y,
+                        action: 0,
+                        add_to_end: 0,
+                    };
+                    return Some((frame, play, vec![self.group(), cmd]));
                 }
                 let hit = view.target(self.player, x, y);
                 if let Some(cmd) =
@@ -1816,6 +1864,113 @@ pub(crate) mod tests {
         assert!(written != attacked_file, "not the attacked file");
     }
 
+    /// **Stage 0 of the gathered script** (item 4249): on
+    /// [`script::GATHER_FRAME`] the capital's anchor, and the bare ground
+    /// pixel the right press names, at the opening camera.
+    const GATHER_ANCHORS: [AttackAnchor; 2] = [
+        (script::GATHER_FRAME, (0, script::CAPITAL), (1127, 521)),
+        (script::GATHER_FRAME, (0, -1), (1277, 611)),
+    ];
+
+    /// The followed events and the capital's three: on
+    /// [`script::GATHER_FRAME`] a press on it and a right press on the
+    /// ground; on [`script::GATHER_TRAIN_FRAME`] the key `c`.
+    fn gather_events() -> Vec<Scripted> {
+        let mut e = follow_events();
+        let (f, _, (cx, cy)) = GATHER_ANCHORS[0];
+        let (_, _, (gx, gy)) = GATHER_ANCHORS[1];
+        e.extend([
+            (f, None, Event::Press { x: cx, y: cy }),
+            (f, None, Event::RightPress { x: gx, y: gy }),
+            (script::GATHER_TRAIN_FRAME, None, Event::Key('c')),
+        ]);
+        e
+    }
+
+    /// **`INPUT_GATHERED`** (item 4249): the followed events and the
+    /// capital's three, under the opening camera, mint [`script::gathered`]
+    /// field for field, of 14. Seen red with the building arm minting
+    /// nothing, as the layer did before: 13 orders, 12 whole in place.
+    const INPUT_GATHERED: usize = 14;
+
+    /// **The gathered count**: stage 0's anchors on the rally point's
+    /// frame — the capital trains, and no object is under the ground's
+    /// pixel, whose inverse is [`script::GATHER_AT`]; then the events mint
+    /// the gathered script, and the file written from them is the gathered
+    /// file.
+    #[test]
+    fn minted_gathered_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let gathered = script::gathered();
+        let c = camera(None);
+        let mut next = 0;
+        for f in 0..=script::GATHER_FRAME {
+            if f == script::GATHER_FRAME {
+                let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+                let v = view(&c, &scene, &terrain);
+                let id = ObjId {
+                    who: 0,
+                    o: script::CAPITAL,
+                };
+                let cap = scene.buildings.iter().find(|b| b.id == id).unwrap();
+                let (gx, gy) = GATHER_ANCHORS[1].2;
+                println!(
+                    "GATHER STAGE0 f{f} capital {:?} z {} pixel {:?} trains {} ground {:?} names {}",
+                    cap.pos,
+                    cap.z,
+                    v.pixel(cap.pos.x, cap.pos.y, cap.z),
+                    cap.trains,
+                    ground_at(&v, gx, gy),
+                    v.names_object(gx, gy)
+                );
+                assert_eq!(v.pixel(cap.pos.x, cap.pos.y, cap.z), GATHER_ANCHORS[0].2);
+                assert!(v.takes_gather_point(&[id]), "the capital trains");
+                assert!(!v.names_object(gx, gy), "bare ground");
+                assert_eq!(ground_at(&v, gx, gy), Some(script::GATHER_AT));
+            }
+            while next < gathered.len() && gathered[next].0 == f {
+                r.issue(&gathered[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_events(gather_events()) else {
+            return;
+        };
+        let whole = ours.iter().zip(&gathered).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (gathered.len(), INPUT_GATHERED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, gathered);
+        drop(r);
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(followed_file), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(FOLLOWED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(GATHERED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {FOLLOWED_RCX} or {GATHERED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), GATHERED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the gathered orders");
+        assert!(written != followed_file, "not the followed file");
+    }
+
+    /// The gathered file (`docs/CLIENT_INPUT.md` §11), written by rondata's
+    /// `the_gathered_minted_packages_round_trip` under `RON_RCX_OUT`; the
+    /// file the original's playback takes open (run 1598).
+    const GATHERED_RCX: &str = "ron-golden/recordings/item4249-gathered-greatlakes-24000.rcx";
+    const GATHERED_RCX_BYTES: usize = 59_459;
+
     /// The followed file (`docs/CLIENT_INPUT.md` §10), written by rondata's
     /// `the_followed_minted_packages_round_trip` under `RON_RCX_OUT`; the
     /// file the original's playback takes open (run 1573).
@@ -1980,13 +2135,12 @@ pub(crate) mod tests {
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (8, 26);
+    const INPUT_KINDS: (usize, usize) = (9, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (1879, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2056, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
-        "gather_point",
         "chat",
         "leader_options",
         "sell",
