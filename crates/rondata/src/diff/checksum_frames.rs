@@ -163,6 +163,12 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// queue's vacated slots walked as the array holds them (100 → 159), a
 /// removed last entry's `job_counter` zeroed (159 → 202), and the tech
 /// arm's unqueue after `gain_tech` (202 → 7383).
+///
+/// Item 4226 moved two on run1578: units 129 → 189 and guys 129 → 6537,
+/// both lines walking slots 0 to 8 as `check_units@009371d0` and
+/// `check_guys@00937430` do, so the two Wild Birds (`TypeIndex` 402, slot
+/// 9) the sampling made on 128 are on neither (run1582 on 129: units 1,147
+/// ranges against 1,107 and guys 389 against 375 → the stream's counts).
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -184,10 +190,10 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 129, 171),
+            ("units", 189, 111),
             ("builds", 7383, 0),
             ("groups", 2746, 0),
-            ("guys", 129, 171),
+            ("guys", 6537, 0),
             ("leaders", 0, 300),
             ("cities", 4030, 0),
             ("items", 24000, 0),
@@ -374,23 +380,13 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "run1582",
         "rontrace-run1582.log",
         129,
-        &[
-            ("units", 1107, 1147, 40, "1107 0 flags: +0x0 of 1|0: 01|"),
-            (
-                "guys",
-                375,
-                389,
-                14,
-                "375 0 guys.length: +0x0 of 4|0: 01000000|",
-            ),
-            (
-                "leaders",
-                267,
-                267,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|d9000000",
-            ),
-        ],
+        &[(
+            "leaders",
+            267,
+            267,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|d9000000",
+        )],
     ),
     (
         "run1583",
@@ -400,16 +396,9 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             (
                 "units",
                 1181,
-                1441,
-                264,
+                1181,
+                4,
                 "177 0 path.size..increment: path.size 10|50",
-            ),
-            (
-                "guys",
-                396,
-                487,
-                91,
-                "396 0 guys.length: +0x0 of 4|0: 01000000|",
             ),
             (
                 "leaders",
@@ -428,16 +417,9 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             (
                 "units",
                 1389,
-                1901,
-                1172,
+                1386,
+                661,
                 "167 0 path.size..increment: path.size 20|60",
-            ),
-            (
-                "guys",
-                442,
-                617,
-                175,
-                "442 0 guys.length: +0x0 of 4|0: 01000000|",
             ),
             (
                 "leaders",
@@ -457,16 +439,9 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             (
                 "units",
                 1507,
-                2014,
-                1315,
+                1504,
+                809,
                 "167 0 path.size..increment: path.size 10|60",
-            ),
-            (
-                "guys",
-                483,
-                658,
-                175,
-                "483 0 guys.length: +0x0 of 4|0: 01000000|",
             ),
             (
                 "leaders",

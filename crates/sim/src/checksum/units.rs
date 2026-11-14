@@ -132,15 +132,25 @@ fn put(b: &mut [u8], base: usize, at: usize, width: usize, v: i64) {
     b[at - base..at - base + width].copy_from_slice(&bytes[..width]);
 }
 
+/// **The slots the units and guys lines walk: 0 to 8, never the birds' 9**
+/// (`docs/CHECKSUM.md` §24.3, item 4226). `CheckSums::check_units@009371d0`
+/// and `CheckSums::check_guys@00937430` step a `Leader` (`0x6eec` bytes) at a
+/// time from `leaders` (`0xe3a390`) while below `0xe789dc`, which is
+/// `0xe3a390 + 9 · 0x6eec`, though `Leaders::list` holds ten. A bird is
+/// `init_unit`'s on slot 9 ([`crate::gaia::BIRD_OWNER`]), so the original
+/// makes it, flies it and draws for it, and neither line ever walks it.
+pub(super) const WALKED_SLOTS: crate::Player = 9;
+
 impl Sim {
     /// **The units line** (`CheckSums::check_units@009371d0`): per leader in
-    /// slot order, per live unit in `o` order, [`Sim::checksum_unit`].
+    /// slot order, slots 0 to 8 ([`WALKED_SLOTS`]), per live unit in `o`
+    /// order, [`Sim::checksum_unit`].
     pub fn checksum_units(&self) -> Line {
         let mut ranges = Vec::new();
         let last = self
             .units
             .iter()
-            .filter(|u| u.alive())
+            .filter(|u| u.alive() && u.owner < WALKED_SLOTS)
             .map(|u| u.owner)
             .max();
         if let Some(last) = last {
