@@ -735,7 +735,7 @@ impl Sim {
     /// `Group::get_num_cap@007145c0` on a seat: an empty group answers zero
     /// untouched; one of fewer than four members is `normalize`d whole, a
     /// larger one only loses its dead; the answer is the captains standing.
-    pub(crate) fn seat_get_num_cap(&mut self, seat: Seat) -> usize {
+    pub(super) fn seat_get_num_cap(&mut self, seat: Seat) -> usize {
         if self.seat_list(seat).is_empty() {
             return 0;
         }
@@ -745,6 +745,30 @@ impl Sim {
             .filter(|&&u| self.units[u].alive() && self.is_captain(u))
             .count()
     } // twin of Group::get_num_cap
+
+    /// **`Army::add_unit`'s push arm, after `push_group`** (item 4242,
+    /// `docs/GROUPS.md` §3.4): `push_group`'s member loop points every live
+    /// member's `+0x80` at the slot before it returns, and
+    /// `Army::add_group@006f8c00` then calls the record's vslot `+0x8`,
+    /// `Group::get_num_cap` (`6f8dae`, `this` the record), after writing its
+    /// `army` — so a group of fewer than four is `normalize`d whole,
+    /// `find_role` and the speed tail. The minted game's Longbowmen
+    /// `1/24..1/26`, pushed into army 1/1 on 6780, read `role` 0x150c00 and
+    /// speed 26 on theirs (run1592).
+    pub(crate) fn army_add_group_get_num_cap(
+        &mut self,
+        who: Player,
+        slot: usize,
+        chain: &[usize],
+        s: u8,
+    ) {
+        for &f in chain {
+            if self.units[f].alive() {
+                self.units[f].group_ptr = Some(s);
+            }
+        }
+        self.seat_get_num_cap(Seat::Army(who, slot));
+    } // part of Army::add_group
 
     /// `Group::add(o, who, keep_captain, const)@00714350` on a seated group,
     /// whole (§4.1, §23). Unlike [`Sim::group_add_keeping`], which builds a

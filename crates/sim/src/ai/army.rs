@@ -500,8 +500,7 @@ impl Sim {
             // `facing`, `form`, `form_num`, `new_speed` and `march`, as a
             // pushed group does. An equal group is not copied at all.
             let prev = self.pool_record(who, s).1;
-            // The walk's kill half: the group each figure's `+0x80` names
-            // loses the squad, and is cleared if that empties it.
+            // The walk's kill half: each figure's `+0x80` group loses the squad, cleared if emptied.
             for a in self.kill_from_named(who, &chain, s) {
                 if a != slot {
                     self.army_normalize(who, a);
@@ -526,21 +525,7 @@ impl Sim {
                 a.num_units += 1;
                 a.num_captains += i32::from(captain);
             }
-            // `push_group`'s member loop points every live member's `+0x80`
-            // at the slot before it returns, and `Army::add_group@006f8c00`
-            // then calls the record's vslot `+0x8`, `Group::get_num_cap`
-            // (`6f8dae`, `this` the record), after writing its `army`: a
-            // group of fewer than four is `normalize`d whole — `find_role`
-            // and the speed tail (`docs/GROUPS.md` §3.4). The minted game's
-            // three Longbowmen `1/24..1/26` pushed into army 1/1 on 6780
-            // read `role` 0x150c00 and speed 26 on theirs (run1592,
-            // item 4242).
-            for &f in &chain {
-                if self.units[f].alive() {
-                    self.units[f].group_ptr = Some(s);
-                }
-            }
-            self.seat_get_num_cap(crate::groups::group::Seat::Army(who, slot));
+            self.army_add_group_get_num_cap(who, slot, &chain, s);
             s
         } else {
             let seat = crate::groups::group::Seat::Army(who, slot);
