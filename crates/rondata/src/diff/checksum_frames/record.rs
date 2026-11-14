@@ -231,7 +231,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 1,
                 "856 30 guy: angle 1431655765|0, last_angle 1431655765|0",
             ),
-            ("builds", 1142, 1142, 1, "903 2019 mtn..cliff: mtn -1|0"),
             (
                 "guys",
                 560,
@@ -258,7 +257,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 1,
                 "878 30 guy: angle 1431655765|0, last_angle 1431655765|0",
             ),
-            ("builds", 1142, 1142, 1, "903 2019 mtn..cliff: mtn -1|0"),
             (
                 "groups",
                 544,
@@ -282,6 +280,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             ),
         ],
     ),
+    (8281, &[]),
 ];
 
 /// **The record names the partings**: our walk under the pump to each of
