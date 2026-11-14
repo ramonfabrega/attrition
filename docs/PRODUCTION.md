@@ -2129,6 +2129,10 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
 
 ## What is not established
 
+- **A dump-seated walk's vacated slots** (item 4222, parked 4222a): a seat installs the live entries, and
+  the dump prints no slot past `queued`, so a seated building's `Queue::vacated` starts empty.
+- **`set_queue`'s partial writes** (item 4222, parked 4222b): with a null cost array the slot keeps its stale
+  `good`/`cost` pairs, and with `param_4` set its `job_counter`; `Queue::lay` overwrites the whole slot.
 - **The never-entered functions this document cites (item 3414).** Four are in `blind::NEVER` on the base
   `6d3ffc37`, and none is read again here. `ObjectData::is_in_range@0064e4a0` is accepted residue.
   `LeaderData::get_vehicle_speed_upgrade@006da8a0` is read in `docs/NATIONS.md` §9.1, and its capture is in §9.2:
