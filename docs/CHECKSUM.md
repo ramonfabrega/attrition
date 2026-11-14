@@ -2523,7 +2523,9 @@ stands, through `Unit::set_new_location(u, x, y, 1, 1)`, and its `param_3` hands
 `Guy::set_angle(…, 1)` writes `last_angle`. The crate's `Sim::age_snap_units` took the facing and the bodies and left
 `last` out. run86's test had shown the same on the original's dump (all 22 figures placed on its age block 6937),
 but it read theirs only. Value diff on 6537: the original's `last` on all six, and both lines whole. **Step P's
-census does not move**: no `PINNED` row moved.
+census, 421 → 422** (`PACKETS_SCORE`): the guys line agrees on run1236 (33 ranges parting → 0) and parts on fewer on
+run1238c (7 → 1) and run1264b (20 → 12); the units line parts on fewer on run1236 (149 → 116) and run1238c (4079 →
+4073). Nothing else moved.
 
 ## 24.4 Where each first parting is (diff-backed)
 
