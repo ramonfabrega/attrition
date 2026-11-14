@@ -334,3 +334,31 @@ fn a_queue_refuses_when_it_is_full() {
     q.push(1, &c);
     assert!(!q.has_room());
 }
+
+/// **A vacated slot keeps the last entry's bytes** (item 4222):
+/// `BuildQueue::un_queue@00630ad0` copies the entries above the removed one
+/// down a slot and leaves the last slot as it was, and `set_queue` overwrites
+/// it when an entry is laid there. The minted game's AI Town Center `1/2000`
+/// on 100: three Citizens at 25, 26 and 27, the first finished, and slot 2
+/// still reads the 27 (run1581).
+#[test]
+fn an_unqueued_slot_keeps_the_last_entry_s_bytes() {
+    let food = |n| charges(&[(Resource::Food, n)]);
+    let mut q = Queue::new(20);
+    for n in [25, 26, 27] {
+        q.push(0, &food(n));
+    }
+    let mut ledger = Ledger::default();
+    q.unqueue(0, false, &mut ledger);
+    let costs = |v: &[Item]| v.iter().map(|i| i.cost[0]).collect::<Vec<_>>();
+    assert_eq!(costs(&q.items), [26, 27]);
+    assert_eq!(costs(&q.vacated), [27], "slot 2 keeps the third entry's copy");
+    // Removing the last entry leaves its own bytes: slot 1 now, slot 2 still.
+    q.unqueue(1, false, &mut ledger);
+    assert_eq!(costs(&q.items), [26]);
+    assert_eq!(costs(&q.vacated), [27, 27]);
+    // A lay overwrites the slot at `queued` and no other.
+    q.push(0, &food(30));
+    assert_eq!(costs(&q.items), [26, 30]);
+    assert_eq!(costs(&q.vacated), [27]);
+}
