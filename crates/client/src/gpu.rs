@@ -195,7 +195,7 @@ use crate::expose::PLUME_FORMAT;
 
 /// The names [`WATER_SHADER`] leaves a hole for, each filled once.
 #[cfg(test)]
-const WATER_HOLES: [&str; 10] = [
+const WATER_HOLES: [&str; 12] = [
     "WATER_POWER",
     "WATER_R",
     "WATER_G",
@@ -206,12 +206,14 @@ const WATER_HOLES: [&str; 10] = [
     "SCENE_G",
     "SCENE_B",
     "WATER_HDR",
+    "SURF_POWER",
+    "SURF_HDR",
 ];
 
 /// [`WATER_SHADER`] with its holes filled.
 fn water_shader() -> String {
     use crate::ground::{WATER_AMBIENT, WATER_DIFFUSE};
-    use render::silhouette::{HDR_SCALE, LAND_N_DOT_L, LIT_POWER, SCENE_AMBIENT};
+    use render::silhouette::{FAKE_LIGHT_POWER, HDR_SCALE, LAND_N_DOT_L, LIT_POWER, SCENE_AMBIENT};
     WATER_SHADER
         .replace("{WATER_POWER}", &format!("{LIT_POWER:?}"))
         .replace("{WATER_R}", &format!("{:?}", WATER_DIFFUSE[0]))
@@ -223,6 +225,8 @@ fn water_shader() -> String {
         .replace("{SCENE_G}", &format!("{:?}", SCENE_AMBIENT[1]))
         .replace("{SCENE_B}", &format!("{:?}", SCENE_AMBIENT[2]))
         .replace("{WATER_HDR}", &format!("{HDR_SCALE:?}"))
+        .replace("{SURF_POWER}", &format!("{FAKE_LIGHT_POWER:?}"))
+        .replace("{SURF_HDR}", &format!("{HDR_SCALE:?}"))
 }
 
 /// The names [`SHADE_SHADER`] leaves a hole for, each filled once.
@@ -310,6 +314,9 @@ pub struct Frame<'a> {
     /// The patches' version (item 4178): uploaded again when it moves,
     /// the terrain's version standing.
     pub patch_version: u32,
+    /// The surf's version (item 4239): when only it moves, the surf's
+    /// lists alone are uploaded again.
+    pub surf_version: u32,
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
     /// The shadows (item 4182), one mesh a decal texture.
@@ -363,6 +370,9 @@ enum PatchKind {
     /// The water, lit and blended over the frame under it in HDR (item
     /// 4232): its draw is a pass of its own, after the frame is copied.
     Water,
+    /// The surf (item 4239, §3.27): stage 0's texel, its alpha times the
+    /// vertex's and the mask's, over the frame.
+    Surf,
 }
 
 fn patch_kind(piece: i32) -> PatchKind {
@@ -370,6 +380,7 @@ fn patch_kind(piece: i32) -> PatchKind {
     match piece {
         WATER_PIECE => PatchKind::Water,
         FLOOR_PIECE => PatchKind::Floor,
+        p if crate::world::is_surf(p) => PatchKind::Surf,
         p if (WATER_PIECE + 1..0).contains(&p) || p == CORAL_PIECE => PatchKind::Lit,
         _ => PatchKind::Plain,
     }
@@ -377,7 +388,8 @@ fn patch_kind(piece: i32) -> PatchKind {
 
 /// The ground's base layer and its patch on the GPU, at a terrain version.
 /// Item 4178: and the patches' own version, which the screen's ramp moves.
-type GroundUploads = (u32, Vec<Uploaded>, Vec<UploadedPatch>, u32);
+/// Item 4239: and the surf's version.
+type GroundUploads = (u32, Vec<Uploaded>, Vec<UploadedPatch>, u32, u32);
 
 pub struct Gpu {
     pub device: wgpu::Device,
@@ -401,6 +413,8 @@ pub struct Gpu {
     /// HDR over the frame under it, and that copy's layout (item 4232).
     floor: wgpu::RenderPipeline,
     water: wgpu::RenderPipeline,
+    /// The surf's lists (item 4239, §3.27).
+    surf: wgpu::RenderPipeline,
     lake_layout: wgpu::BindGroupLayout,
     alpha_sampler: wgpu::Sampler,
     /// A mountain's layers (item 4141, §3.10): their pass, and the alphas'
@@ -1024,6 +1038,7 @@ impl Gpu {
         let patch = blended("patch", "fs_patch");
         let patch_lit = blended("patch_lit", "fs_patch_lit");
         let mountain = blended("mountain", "fs_mountain");
+        let surf = patch_pass("surf", "fs_surf", &water_layout, false);
         // Item 4232: the floor writes its depth, as the base layer it
         // replaced did; the water reads the frame under it.
         let floor = patch_pass("floor", "fs_floor", &patch_layout, true);
@@ -1087,6 +1102,7 @@ impl Gpu {
             patch_lit,
             floor,
             water,
+            surf,
             lake_layout,
             alpha_sampler,
             mountain,
@@ -1287,8 +1303,16 @@ impl Gpu {
     /// texcoord (in the third attribute's `xy`), beside its base's and its
     /// alpha's bind groups (item 4139).
     fn patch_meshes(&self, meshes: &[crate::world::PatchMesh]) -> Vec<UploadedPatch> {
+        self.patch_meshes_of(meshes.iter())
+    }
+
+    /// [`Self::patch_meshes`] over any run of meshes (item 4239: the
+    /// surf's alone).
+    fn patch_meshes_of<'m>(
+        &self,
+        meshes: impl Iterator<Item = &'m crate::world::PatchMesh>,
+    ) -> Vec<UploadedPatch> {
         meshes
-            .iter()
             .filter(|m| !m.positions.is_empty())
             .map(|m| {
                 let mut bytes = Vec::with_capacity(m.positions.len() * 32);
@@ -1555,17 +1579,34 @@ impl Gpu {
         let mut ground = self.ground_meshes.lock().unwrap();
         if ground
             .as_ref()
-            .is_none_or(|(v, _, _, _)| *v != frame.terrain_version)
+            .is_none_or(|(v, _, _, _, _)| *v != frame.terrain_version)
         {
             *ground = Some((
                 frame.terrain_version,
                 self.textured_meshes(frame.ground),
                 self.patch_meshes(frame.patch),
                 frame.patch_version,
+                frame.surf_version,
             ));
         } else if let Some(g) = ground.as_mut().filter(|g| g.3 != frame.patch_version) {
             g.2 = self.patch_meshes(frame.patch);
             g.3 = frame.patch_version;
+            g.4 = frame.surf_version;
+        } else if let Some(g) = ground.as_mut().filter(|g| g.4 != frame.surf_version) {
+            // Item 4239: the surf alone moved. Its lists are uploaded again
+            // and put back after the water, where the world lays them.
+            let surf = frame
+                .patch
+                .iter()
+                .filter(|m| crate::world::is_surf(m.piece));
+            g.2.retain(|p| p.5 != PatchKind::Surf);
+            let at =
+                g.2.iter()
+                    .position(|p| p.5 == PatchKind::Water)
+                    .map_or(g.2.len(), |w| w + 1);
+            let uploaded = self.patch_meshes_of(surf);
+            g.2.splice(at..at, uploaded);
+            g.4 = frame.surf_version;
         }
         let figures = self.vertices(frame.figures);
         let overlay = self.vertices(frame.overlay);
@@ -1573,8 +1614,8 @@ impl Gpu {
         let empty = (Vec::new(), Vec::new());
         let (meshes, patches) = ground
             .as_ref()
-            .filter(|(_, m, _, _)| !m.is_empty())
-            .map_or((&empty.0, &empty.1), |(_, m, p, _)| (m, p));
+            .filter(|(_, m, _, _, _)| !m.is_empty())
+            .map_or((&empty.0, &empty.1), |(_, m, p, _, _)| (m, p));
         // Item 4182: with shadows, the ground up to its first mountain layer
         // is drawn off screen, the decals into the keep map, and the shade
         // pass composes the two onto the target before everything else —
@@ -1936,29 +1977,51 @@ impl Gpu {
             height: size.1,
             depth_or_array_layers: 1,
         };
-        let lake = self.device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("lake"),
-            size: extent,
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: self.format,
-            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
-            view_formats: &[],
-        });
-        enc.copy_texture_to_texture(target.as_image_copy(), lake.as_image_copy(), extent);
-        let bind = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("lake"),
-            layout: &self.lake_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: wgpu::BindingResource::TextureView(
-                    &lake.create_view(&Default::default()),
-                ),
-            }],
-        });
-        let mut pass = begin(enc, &view, depth_view, false);
-        self.draw_ground(&mut pass, None, None, rest, Some(&bind));
+        let copy = |enc: &mut wgpu::CommandEncoder| {
+            let lake = self.device.create_texture(&wgpu::TextureDescriptor {
+                label: Some("lake"),
+                size: extent,
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: self.format,
+                usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+                view_formats: &[],
+            });
+            enc.copy_texture_to_texture(target.as_image_copy(), lake.as_image_copy(), extent);
+            self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("lake"),
+                layout: &self.lake_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(
+                        &lake.create_view(&Default::default()),
+                    ),
+                }],
+            })
+        };
+        let bind = copy(enc);
+        // Item 4239: each of the surf's lists over a copy of the frame as
+        // the lists before it leave it; the rest over the water's copy.
+        let mut i = 0;
+        while i < rest.len() {
+            let j = rest[i..]
+                .iter()
+                .position(|p| p.5 == PatchKind::Surf)
+                .map_or(rest.len(), |k| i + k);
+            if j > i {
+                let mut pass = begin(enc, &view, depth_view, false);
+                self.draw_ground(&mut pass, None, None, &rest[i..j], Some(&bind));
+            }
+            if j < rest.len() {
+                let under = copy(enc);
+                let mut pass = begin(enc, &view, depth_view, false);
+                self.draw_ground(&mut pass, None, None, &rest[j..j + 1], Some(&under));
+                i = j + 1;
+            } else {
+                i = j;
+            }
+        }
     }
 
     fn draw_ground(
@@ -1989,6 +2052,13 @@ impl Gpu {
                 (_, PatchKind::Plain) => &self.patch,
                 (_, PatchKind::Lit) => &self.patch_lit,
                 (_, PatchKind::Floor) => &self.floor,
+                (_, PatchKind::Surf) => {
+                    // Over a copy of the frame under it: drawn only by
+                    // `ground_passes`' surf steps.
+                    let Some(lake) = lake else { continue };
+                    pass.set_bind_group(3, lake, &[]);
+                    &self.surf
+                }
                 (_, PatchKind::Water) => {
                     // The water reads the frame under it: drawn only by
                     // `ground_passes`' second pass.

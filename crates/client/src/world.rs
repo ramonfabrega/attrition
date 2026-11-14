@@ -231,6 +231,9 @@ pub struct World {
     laid_ramp: Option<crate::ground::ScreenRamp>,
     screen_layers: (Option<usize>, Option<usize>),
     patch_version: u32,
+    /// The surf's own version (item 4239): moved each frame the surf is
+    /// laid again, so only its lists are uploaded again.
+    surf_version: u32,
     /// The building types, which the footprint weathering's rule reads
     /// (item 4190, [`crate::weathering::footprint`]).
     build_types: Vec<sim::cities::build::BuildType>,
@@ -279,6 +282,85 @@ pub struct World {
     /// The pieces laid among the patches, at the frame and the switches
     /// they were laid at.
     roads_laid: (i64, bool, (i32, i32), Vec<crate::roads::Laid>),
+    /// Draw the surf (item 4239, §3.27). On by default; the row's count as
+    /// drawn before turns it off.
+    pub surf: bool,
+    /// The surf's layer and each slot's texture and mask; `None` where
+    /// `<SURF>` or a model or texture does not read, and no surf is laid.
+    surf_art: Option<SurfArt>,
+    /// The frame and the switch the surf was laid at.
+    surf_laid: (i64, bool),
+}
+
+impl World {
+    /// The surf laid at `frame` with the types given (a test's, item
+    /// 4239): laid again on the next draw.
+    #[cfg(test)]
+    pub fn set_surf_kinds(&mut self, frame: i64, waves: &[usize], breakers: &[usize]) {
+        let t = self.runner.terrain();
+        if let Some(art) = self.surf_art.as_mut() {
+            art.layer.lists_at(frame, Some(&t));
+            art.layer.set_kinds(waves, breakers);
+        }
+        self.surf_laid = (-1, false);
+    }
+
+    /// The surf's layer, a test's.
+    #[cfg(test)]
+    pub fn surf_layer(&mut self) -> Option<&mut crate::surf::SurfLayer> {
+        self.surf_art.as_mut().map(|a| &mut a.layer)
+    }
+}
+
+/// What the surf's draw takes (item 4239, §3.27): the layer, and each
+/// texture slot's texture and its mask's index and image.
+struct SurfArt {
+    layer: crate::surf::SurfLayer,
+    slots: Vec<Option<SurfSlot>>,
+}
+
+/// A surf slot's texture, its mask's index and its mask (item 4239).
+type SurfSlot = (
+    std::sync::Arc<render::silhouette::Mips>,
+    usize,
+    std::sync::Arc<render::silhouette::Mips>,
+);
+
+/// The surf's texture slot `k` among the ground's textures (item 4239):
+/// `SURF_PIECE - k`; its mask's key among the alphas, `SURF_ALPHA + `
+/// the mask's texture index.
+pub const SURF_PIECE: i32 = -200_040;
+pub const SURF_ALPHA: usize = 920;
+
+/// Whether `piece` is one of the surf's slots.
+pub fn is_surf(piece: i32) -> bool {
+    (SURF_PIECE - 63..=SURF_PIECE).contains(&piece)
+}
+
+/// One `final_*` list as a patch (item 4239): its faces' corners, `tex0`
+/// on the base, `tex1` on the mask, the vertex's alpha where a patch
+/// carries its N·L (`fs_surf` reads it there).
+fn surf_mesh(k: usize, l: &crate::surf::mesh::FinalList, art: &SurfSlot) -> Option<PatchMesh> {
+    if l.faces.is_empty() {
+        return None;
+    }
+    let (mips, mask, alpha_mips) = art;
+    let at = |f: &u16| *f as usize;
+    Some(PatchMesh {
+        piece: SURF_PIECE - k as i32,
+        positions: l.faces.iter().map(|f| l.verts[at(f)]).collect(),
+        uvs: l.faces.iter().map(|f| l.tex0[at(f)]).collect(),
+        alpha_uvs: l.faces.iter().map(|f| l.tex1[at(f)]).collect(),
+        mips: mips.clone(),
+        alpha: SURF_ALPHA + mask,
+        alpha_mips: alpha_mips.clone(),
+        mountain: false,
+        light: l
+            .faces
+            .iter()
+            .map(|f| f32::from(l.alpha[at(f)]) / 255.0)
+            .collect(),
+    })
 }
 
 /// What the roads' draw takes (item 4199, §3.19).
@@ -849,6 +931,24 @@ impl World {
                 fractal: None,
             })
         });
+        // Item 4239 (§3.27): the surf's class, its models and its textures.
+        let surf_art = crate::surf::SurfLayer::new(&install).ok().map(|layer| {
+            let open = |p: &std::path::Path| -> Option<std::sync::Arc<render::silhouette::Mips>> {
+                let img = render::tga::decode(&std::fs::read(p).ok()?).ok()?;
+                Some(std::sync::Arc::new(render::silhouette::Mips::new(img)))
+            };
+            let textures: Vec<_> = layer.class.textures.iter().map(|t| open(&t.1)).collect();
+            let slots = layer
+                .masks()
+                .into_iter()
+                .enumerate()
+                .map(|(k, m)| {
+                    let m = m?;
+                    Some((textures[k].clone()?, m, textures[m].clone()?))
+                })
+                .collect();
+            SurfArt { layer, slots }
+        });
         Ok(World {
             names: crate::hud::Names::new(&loaded),
             look: BuildLook::new(&install).with_types(&loaded.build_types),
@@ -891,6 +991,7 @@ impl World {
             laid_ramp: None,
             screen_layers: (None, None),
             patch_version: 0,
+            surf_version: 0,
             build_types: loaded.build_types.clone(),
             weathering: true,
             weathering_shift: (0, 0),
@@ -906,6 +1007,9 @@ impl World {
             roads_shift: (0, 0),
             road_art,
             roads_laid: (-1, false, (0, 0), Vec::new()),
+            surf: true,
+            surf_art,
+            surf_laid: (-1, false),
         })
     }
 
@@ -997,6 +1101,12 @@ impl World {
     /// moves when the screen's ramp lays them again, the terrain unmoved.
     pub fn patch_version(&self) -> u32 {
         self.patch_version
+    }
+
+    /// The surf's version (item 4239): when it alone moves, the GPU
+    /// uploads the surf's lists again and keeps every other patch.
+    pub fn surf_version(&self) -> u32 {
+        self.surf_version
     }
 
     /// **What the client draws of the terrain** (item 4127): the
@@ -1318,6 +1428,7 @@ impl World {
             self.laid_ramp = None;
             self.weather_laid = (-1, false, (0, 0), Vec::new());
             self.roads_laid = (-1, false, (0, 0), Vec::new());
+            self.surf_laid = (-1, false);
         }
         // Item 4190 (§3.17): the footprint weathering, laid again when the
         // frame or its switches move, after the land's patches and the
@@ -1374,6 +1485,33 @@ impl World {
                 self.patch_version = self.patch_version.wrapping_add(1);
             }
             self.roads_laid = (key.0, key.1, key.2, want);
+        }
+        // Item 4239 (§3.27): the surf, after the water (the card's draws
+        // 163 to 169 follow the water's 162), laid again each frame.
+        let key = (frame, self.surf);
+        if self.surf_laid != key {
+            self.drawn.3.retain(|m| !is_surf(m.piece));
+            if let Some(art) = self.surf_art.as_mut().filter(|_| self.surf) {
+                let t = art
+                    .layer
+                    .needs_terrain(frame)
+                    .then(|| self.runner.terrain());
+                let lists = art.layer.lists_at(frame, t.as_ref());
+                let at = self
+                    .drawn
+                    .3
+                    .iter()
+                    .position(|p| p.piece == WATER_PIECE)
+                    .map_or(self.drawn.3.len(), |w| w + 1);
+                let meshes: Vec<PatchMesh> = lists
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(k, l)| surf_mesh(k, l, art.slots[k].as_ref()?))
+                    .collect();
+                self.drawn.3.splice(at..at, meshes);
+            }
+            self.surf_version = self.surf_version.wrapping_add(1);
+            self.surf_laid = key;
         }
         // Item 4178: the water's colour and the floor's grey follow the
         // screen's ramp; only their texcoords are laid again when it moves.

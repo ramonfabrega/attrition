@@ -247,11 +247,14 @@ pub(crate) mod tests {
     /// row 1,543 → 1,686, luma 1,664 → 1,795. Off still beats on: off.
     /// Item 4233: luma run1559b off 1,036 → 1,038, on 1,079 → 1,081;
     /// run1570 off 1,121 → 1,122, on 1,153 → 1,154: the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21).
-    /// Item 4241: off luma run1559b 1,038 → 1,031, run1564 1,805 → 1,804,
-    /// run1570 1,122 → 1,120; on unchanged: the bloom drawn and a plume's pixel clamped after the white (§3.25). Off still beats on: off.
+    /// Item 4239 (the surf drawn, §3.27): run1564 off row 1,706 → 1,786,
+    /// luma 1,805 → 1,851; on row 1,686 → 1,778, luma 1,795 → 1,843. Off
+    /// still beats on: off.
+    /// Item 4241: off luma run1559b 1,038 → 1,031, run1564 (on 4239's tree)
+    /// 1,851 → 1,852, run1570 1,122 → 1,120; on unchanged: the bloom drawn and a plume's pixel clamped after the white (§3.25). Off still beats on: off.
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
         ([959, 1104, 1031], [959, 1104, 1081]),
-        ([678, 1706, 1804], [676, 1686, 1795]),
+        ([678, 1786, 1852], [676, 1778, 1843]),
         ([1042, 1171, 1120], [1041, 1171, 1154]),
     ];
 
@@ -268,11 +271,13 @@ pub(crate) mod tests {
     /// untinted side 605 → 621; the drawn side holds at 674.
     /// Item 4232: the lake lit and blended in HDR (§3.24) moves the frame's
     /// mean, so its white: run1564's untinted 621 → 600, drawn 674 → 678.
-    /// Item 4241: untinted 961 → 955, 600 → 559, 1,045 → 1,034; the drawn
+    /// Item 4239: the surf drawn (§3.27) moves it again, run1564's
+    /// untinted 600 → 602; the drawn side holds.
+    /// Item 4241: untinted 961 → 955, 602 → 566 (on 4239's tree), 1,045 → 1,034; the drawn
     /// side holds: the bloom drawn and a plume's pixel clamped after the white (§3.25).
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
         ((955, 986), (959, 986)),
-        ((559, 679), (678, 679)),
+        ((566, 679), (678, 679)),
         ((1034, 1073), (1042, 1073)),
     ];
 }
