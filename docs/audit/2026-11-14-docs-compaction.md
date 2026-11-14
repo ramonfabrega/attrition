@@ -63,7 +63,7 @@ measurable; the question is his.
 | D5 | "Neither headline slot is ever empty" (entry 41; QUEUE "How to maintain this file"; METHOD "Booking an item") | It contradicts the queue's own "A residue or chapter item books only when another track's frame needs one" forty lines above it, and TRACKS's "no item stands". | Entry 41's reason holds for the `Golden:` line, which a guard keeps. | Confirm that the milestone (entry 116) retired the two-slot rule, so both clauses can be struck (S3). |
 | D6 | A track's stub pool holds two unassigned sections (`docs_guard`; parked 1718, 1741) | The guard holds `AI.md` and `GOLDEN.md` only: the two tracks the handoff calls whole. Eight stubs stand there (`AI.md` §412, §417 to §419; `GOLDEN.md` §195 to §198). The documents four workers do append to (`RENDERER.md`, `CHECKSUM.md`, `LEADERS.md`, `CLIENT_INPUT.md`) have no pool. Since 2026-11-09, 9 of the 18 merges that touched `RENDERER.md` carry a hunk that is neither parent's (`git show --cc`, non-empty), 1 of 17 on `CHECKSUM.md`, 1 of 1 on `CLIENT_INPUT.md`; none on `AI.md` (no merge touched it) or `GOLDEN.md` (one did). `f1c41c606`'s subject says what they are: "both sides' ground pins and RENDERER §3.18 and §3.19 kept". **The journals, read in the second session, say which were conflicts:** 12 of the 132 item journals of 2026-11-10 to 11-14 record a `ccc update --keep-conflicts`; six name `docs/RENDERER.md` (4160, 4165, 4168, 4169, 4174, 4199), one `docs/CHECKSUM.md` (4209), one the parked file (4089), none `AI.md` or `GOLDEN.md`; the other four are code (`gpu.rs`, `ground.rs`, `world.rs`, `main.rs`, `observe.rs`). 4169's "merged them cleanly", so a `--cc` hunk over-counts; three say "both sides kept". The gate already has a word for it: `release_gate.py`'s `row_list_overlap` (Loop 3694) calls any `docs/*.md` both sides touched "row lists on the base's side" and lets the landing stand on its verdict. Before the pool, the same scan over 2026-11-03 to 11-09 reads `docs/PARKED.md` 15 times (archived since, entry 125), `MAPGEN.md` 7, `AI.md` 4. | Seven of twenty-four merges backed out before the pool. | Move the pool to the documents lanes append to (`RENDERER.md` first), or retire it where no lane lands? |
 | D7 | The brief's frame: "Read `docs/QUEUE.md`'s opener, then what the item cites" | Lanes read it as the head of the file. Of 98 lane worktrees with a session since 2026-11-10, 93 touched the queue and at least 61 ran `head -N docs/QUEUE.md` (41 at 60 lines, 18,475 B; 14 at 40 lines, 15,259 B; `lore search --lane tool`, a floor). In `CLAUDE.md`'s words the opener is the handoff's last line, 717 B, written to the driver. No lane read `docs/TRACKS.md` whole (0 of 98; 6 read a part), though `CLAUDE.md` says to. | A lane with the headline in view parks better. | What does a briefed lane need from the handoff: all of it, the first bullet, or nothing its brief does not carry? R0. And `CLAUDE.md`'s "then `docs/TRACKS.md`" is not what lanes do; scope it to a session with no brief? His file. |
-| D8 | A finding that names no score parks in its item's journal (entry 125) | 187 parked rows in the 73 journals of 2026-11-12 to 11-14; the queue cites 21 parked ids. Nothing lists the rest: `brief.py` and `queueledger.py` read the rows only to check a cite. `docs/PARKED.md` held 1,832 rows when it was archived. | It ended a second, uncapped queue no session could read. | Is a parked row meant to be read again? If yes, a pass-time listing (a tool, not a file) is the missing half; if no, the rule is working as designed and this is only its size. |
+| D8 | A finding that names no score parks in its item's journal (entry 125) | 187 parked rows in the 73 journals of 2026-11-12 to 11-14; the queue cites 21 parked ids. Nothing lists the rest: `brief.py` and `queueledger.py` read the rows only to check a cite. `docs/PARKED.md` held 1,832 rows when it was archived. **Measured in the second session:** of the 174 rows that open with an id (`4212a`) under `## Parked` in the journals of 2026-11-10 to 11-14 (63 journals), 128 are named by another file: 97 by a specification, 53 by another journal, 40 by the code, 28 by the queue, 24 by a pass record. Six are struck where they stand, answered. **46 are named by nothing but their own journal**, and those are the rows no session will meet again unless it greps for them. | It ended a second, uncapped queue no session could read. | Is a parked row meant to be read again? Three in four already are, from the document or the code that carries the gap, so the rule works. The missing half is small: a pass-time listing of the rows nothing else names (a tool, not a file; 46 in five days) is what would close it, if he wants it closed. |
 
 ## Summary
 
@@ -215,6 +215,25 @@ what it points at.
 - **Confidence:** high on the saving and the precedent. The code change is
   two readers, `ai_line_verdict` and the audit's `audit_gaps`; both
   already hold `AI_WORDS`.
+- **The change, read off the two functions in the second session** (a
+  description, not a patch). `floors.rs`'s `ai_line_verdict(line, prefix,
+  rows)` parses the line with `ai_line_closes` and compares the parts
+  with the pinned rows. One branch ahead of the parse: a body that reads
+  `every word whole · <N>` (and `, 0 off` on a closing line) is accepted
+  when `rows` holds N rows, each with word equal to length and, where it
+  carries a close, a close of 0; any other row state is the error the
+  per-row form gets today, with "write the rows out" added. In
+  `audit.rs`, `whole_words` already takes every closed word from the
+  pinned rows as well as from the line (Loop 3998), so the audit loses
+  nothing; it only has to skip the parse on a closed-form line, where
+  `ai_line_parts` would otherwise panic on "unreadable part".
+  `an_ai_line_is_read_against_its_rows` gains the closed form's cases: N
+  wrong, one row a frame short, a close of 1. **A third place, which the
+  first session missed:** `every_whole_scoreboard_word_is_audited` finds
+  a scoreboard line nobody listed by whether `ai_line_parts` reads it
+  ("a new line cannot slip past the audit"). A new line written in the
+  closed form would not parse and would slip past, so that filter takes
+  the closed form's recogniser beside the parser.
 
 ### R2. The handoff's prose
 
@@ -534,6 +553,21 @@ to 0.03. Between each DECISIONS entry from 57 on and its nearest pass
 record: median 0.09; with `docs/JOURNAL.md`, 0.01. The section and the
 journal tell one landing in different words and neither is a copy. So
 nothing in the giants can be deleted as a duplicate.
+
+**Three more, empty, from the second session.** "The read-first files
+repeat each other": by sentences whose six-word shingles are 60 % or more
+in the other file, only METHOD and `CLAUDE.md` share anything (28 of
+METHOD's sentences, 4,724 B, are `CLAUDE.md`'s or its long forms: R9,
+which counted the 2,139 B that are word for word). No other pair among
+`CLAUDE.md`, QUEUE, TRACKS, LOOP, METHOD and the frame shares 300 B; the
+frame shares 1,427 B with the audit README's checklist, which it is the
+digest of. So a lane that inherits `CLAUDE.md` and is handed the frame
+reads nothing twice. "The journals have grown a boilerplate": the 132
+journals since 2026-11-10 have a median of 9,151 B (5,928 for the 204
+before them in November, 5,362 in October); lines quoting the gate are
+1.5 % of their bytes and the `## Parked` part 5.3 % (0.4 % before entry
+125). The growth is prose, one landing's story each. "The pass records
+repeat each other": G9, median 0.07.
 
 **A second, also empty.** "The specifications still speak of landed items
 in the future tense." A scan for unstruck sentences that pair an item
@@ -861,7 +895,8 @@ in the appendix; `tools/retire.py` and `lore` need nothing rebuilt.
 S20, S21), entries 128 and 129 against LOOP (they agree; S11 gained its
 ruling), and the half-checks R2 (re-measured, lower), S12 (settled) and D6
 (the journals name the conflicts); then `docs/TEST_PERFORMANCE.md`
-(G11, S22, S23), the track documents against their queue lines (G12),
+(G11, S22, S23), `ORACLE.md`'s reading order (G8), the track documents
+against their queue lines (G12), the parked rows' afterlife (D8),
 every constant the handoff quotes against the code (S24), and G3's
 chains against their entries' sentences of succession (two corrected).
 
