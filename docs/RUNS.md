@@ -37194,3 +37194,28 @@ SHA-256 `abb2c4a54db33db1a6d7572de1129c0d40e51c6bacb27987194c8cd2725a2c86`; `ron
 SHA-256 `04a10b36a22616af8653eeb5d9d1f081c06e6c81c3b599a6144fc43f646eb911`.
 
 **What it holds**: the writer of the groups line's first parting on 2746, named by call.
+
+## run1590 — the minted file's playback with a packet at 3596: units' first parting (2026-11-14, item 4234, `att-4234`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the units line out on frame 3596, its
+first parting on run1578 since item 4230 (re-read on the merged tree after item 4231: still 3596). The hook carries
+only the line's Adler, and no packet stood on 3596. The take: run1587's line moved to 3596, `--end-frame 3599
+--log-window 3595 3598 --tracer-def RON_STATE_FRAME=3596`, the rest as run1588, through `viadriver.sh
+golden_capture.sh ~/ron-golden/run1590`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 07:36:18 −05:00, exited 07:40:47: **269.2 s launch to exit**, exit 0, `success`, 3,600
+  frames, `last_frame` 3599, no page fault, no relaunch. `df -g ~` read 174 GB free before it. Minutes waited on
+  another lane: none. No `.rcx` left in `Logs\`.
+- The packet at logger frame 3596, trace frame 3595, `frame-snapshot.bin`, 818,879,412 bytes, SHA-256
+  `fdfb60277a1a4211c9096a2c749993e66b8180c032eb4865057513177e266b6d`. `checksum.py --stream --values`: the stream's
+  sums equal the original's on every line. Kept under `~/ron-data/lab-experiments/2026-11-13-item-4214/run1590/`
+  beside the other minted packets. Its units value, 1981448857, is run1578's theirs on 3596.
+- **Units on frame 3596**: theirs 1,440 ranges, ours 1,437, 710 parted from range 566. Record 16 holds an
+  `ATTACK_TO` and then a `CAST_SPELL` (`UNPACK_MERCHANT`, 0x290), and `CastOrder::walk_data@004860a0` hands over three
+  ranges the emitter left out (`MINTED_PACKETS`). Item 4234 makes the line whole.
+- Filed with `filerun.py run1590 greatlakes-playback-of-minted-packet-3596`.
+
+Archive `gamelog-run1590-greatlakes-playback-of-minted-packet-3596.txt`, 2,450 bytes,
+SHA-256 `115ef378fcddfc77144507d9dd101e75063d7be50d8f68df0563f51a72144dfa`; `rontrace-run1590.log`, 23,096,736 bytes,
+SHA-256 `efd87cbc5e6aaaffb6f7b38ffa39cf0fb8eef1dba0db46ac52c32de3bd12dd51`.
+
+**What it holds**: the units line's first parting on 3596, named by record and field.
