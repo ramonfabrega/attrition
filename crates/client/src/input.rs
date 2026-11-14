@@ -98,7 +98,18 @@ pub const MINTS: &[&str] = &[
     "build",
     "queue_up",
     "gather_point",
+    "chat",
 ];
+
+/// **The entry line's text limit**, in UTF-16 units: `ChatBox::exec
+/// @0093cf80` sets the edit box's `text_limit` to `0x80`.
+pub const CHAT_LIMIT: usize = 0x80;
+/// **The cheat prefix** `ChatBox::on_modal_end@0093d560` tests a line
+/// against (`get_cheat_string@00497c00`, a localised string; the install's
+/// `CHEAT `, compared without case by `String::ignore`'s `_wcsnicmp` over
+/// its length). Every chat the recordings on disk carry begins with it
+/// (`docs/CLIENT_INPUT.md` §12).
+pub const CHEAT_PREFIX: &str = "CHEAT ";
 
 /// One input event, at a screen pixel where it has one.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -132,6 +143,15 @@ pub enum Event {
         y: i32,
     },
     Key(char),
+    /// Return: opens the entry line, or sends what it holds
+    /// (`OPTION_CHAT`, `Options::exec@007188c0`'s `ChatBox::exec(0)`; item
+    /// 4250, `docs/CLIENT_INPUT.md` §12).
+    Enter,
+    /// Takes the entry line's last character.
+    Backspace,
+    /// Closes the entry line and sends nothing (`on_modal_end` with a
+    /// nonzero `result`).
+    Escape,
 }
 
 /// What the layer sees: the camera's matrix and screen as the draw takes
@@ -547,6 +567,8 @@ pub struct Input {
     pub building: bool,
     /// The building chosen to place, by `TypeIndex`.
     pub placing: Option<i32>,
+    /// The chat entry line, open with what it holds, or closed (item 4250).
+    pub line: Option<String>,
 }
 
 impl Input {
@@ -633,11 +655,97 @@ impl Input {
         }
     }
 
+    /// **A line sent from the entry line** (item 4250, `docs/CLIENT_INPUT.md`
+    /// §12): the `chat` the original's chat box issues for it in a solo
+    /// game, or none.
+    ///
+    /// - A line that begins with [`CHEAT_PREFIX`] is `on_modal_end`'s cheat
+    ///   arm: `CommandManager::issue_chat(who, line, 0, 0, 1 << who)`.
+    /// - Any other line is the plain box's (`special_flags` 0), through
+    ///   `LeaderOut::issue_chat@006d2c50`'s default arm: the recipients are
+    ///   the slot itself and every live leader whose `chat_status` toward
+    ///   the slot is 0, which `Game::init_teams` leaves on every seated slot
+    ///   of a game that is not cooperative; with fewer than three nations the
+    ///   text goes unchanged; `taunt` is `Taunts::check_for_order`'s −1, no
+    ///   taunt holding the index 0 that a line not beginning with a digit
+    ///   converts to; `taunt_num` 0.
+    /// - `CommandManager::issue_chat@00942b10` trims the spaces at both ends
+    ///   and adds nothing for a line left empty.
+    ///
+    /// Ours, and none minted: a line whose first character picks the
+    /// targeted arms (`*`, `!`, `;`, `:`, `@`), a game of three nations or
+    /// more (the prefixes are localised strings not read), and a line that
+    /// begins with a digit or a sign (a taunt, parked as 4250a). Every
+    /// leader the scene carries is taken as live and seated.
+    pub fn chat(&self, frame: i32, line: &str, view: &View) -> Option<Order> {
+        let own = 1i32 << self.player;
+        let text = line.trim_matches(' ').to_string();
+        let cheat = line
+            .get(..CHEAT_PREFIX.len())
+            .is_some_and(|p| p.eq_ignore_ascii_case(CHEAT_PREFIX));
+        let cmd = if cheat {
+            Command::Chat {
+                bits: own,
+                taunt: 0,
+                taunt_num: 0,
+                text,
+            }
+        } else {
+            let first = line.chars().next()?;
+            let starts_taunt = text
+                .chars()
+                .next()
+                .is_some_and(|c| c.is_ascii_digit() || c == '-' || c == '+');
+            if "*!;:@".contains(first) || view.scene.leaders.len() >= 3 || starts_taunt {
+                return None;
+            }
+            let bits = view
+                .scene
+                .leaders
+                .iter()
+                .fold(own, |b, l| b | 1i32 << l.who);
+            Command::Chat {
+                bits,
+                taunt: -1,
+                taunt_num: 0,
+                text,
+            }
+        };
+        if matches!(&cmd, Command::Chat { text, .. } if text.is_empty()) {
+            return None;
+        }
+        Some((frame, i32::from(self.player), vec![cmd]))
+    }
+
     /// One event on `frame` (the recording frame the package is consumed
     /// on): the order it makes, if any.
     pub fn event(&mut self, frame: i32, ev: Event, view: &View) -> Option<Order> {
         let play = i32::from(self.player);
         match ev {
+            Event::Enter => match self.line.take() {
+                None => {
+                    self.line = Some(String::new());
+                    None
+                }
+                Some(line) => self.chat(frame, &line, view),
+            },
+            Event::Backspace => {
+                if let Some(line) = &mut self.line {
+                    line.pop();
+                }
+                None
+            }
+            Event::Escape => {
+                self.line = None;
+                None
+            }
+            Event::Key(k) if self.line.is_some() => {
+                let line = self.line.as_mut().unwrap();
+                if line.encode_utf16().count() + k.len_utf16() <= CHAT_LIMIT {
+                    line.push(k);
+                }
+                None
+            }
             Event::Press { x, y } => {
                 if let Some(ty) = self.placing {
                     let at = ground_at(view, x, y)?;
@@ -1984,6 +2092,231 @@ pub(crate) mod tests {
     const FOLLOWED_RCX: &str = "ron-golden/recordings/item4202-followed-greatlakes-24000.rcx";
     const FOLLOWED_RCX_BYTES: usize = 59_435;
 
+    /// A line typed into the entry line and sent: Return, each character,
+    /// Return.
+    fn typed(frame: i32, line: &str) -> Vec<Scripted> {
+        let mut e = vec![(frame, None, Event::Enter)];
+        e.extend(line.chars().map(|c| (frame, None, Event::Key(c))));
+        e.push((frame, None, Event::Enter));
+        e
+    }
+
+    /// The gathered events and the line [`script::CHAT_TEXT`] typed on
+    /// [`script::CHAT_FRAME`] (item 4250).
+    fn chat_events() -> Vec<Scripted> {
+        let mut e = gather_events();
+        e.extend(typed(script::CHAT_FRAME, script::CHAT_TEXT));
+        e
+    }
+
+    /// **`INPUT_CHATTED`** (item 4250, `docs/CLIENT_INPUT.md` §12): the
+    /// gathered events and the typed line, under the opening camera, mint
+    /// [`script::chatted`] field for field, of 15. Seen red with the
+    /// line's Return minting nothing: 14 orders, 14 whole in place.
+    const INPUT_CHATTED: usize = 15;
+
+    /// **The chatted count**: on the chat's frame the scene seats two
+    /// leaders, so the plain box names both; then the events mint the
+    /// chatted script, and the file written from them is the chatted file.
+    #[test]
+    fn minted_chatted_at_the_opening_camera() {
+        let Some((ours, r)) = mint_events(chat_events()) else {
+            return;
+        };
+        let leaders: Vec<u8> = r.scene(Some(0)).leaders.iter().map(|l| l.who).collect();
+        println!("CHAT STAGE0 f{} leaders {leaders:?}", r.frame());
+        assert_eq!(leaders, vec![0, 1], "two nations, both seated");
+        let chatted = script::chatted();
+        let whole = ours.iter().zip(&chatted).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (chatted.len(), INPUT_CHATTED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, chatted);
+        drop(r);
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(gathered_file), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(GATHERED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(CHATTED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {GATHERED_RCX} or {CHATTED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), CHATTED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the chatted orders");
+        assert!(written != gathered_file, "not the gathered file");
+    }
+
+    /// The chatted file (`docs/CLIENT_INPUT.md` §12), written by rondata's
+    /// `the_chatted_minted_packages_round_trip` under `RON_RCX_OUT`; the
+    /// file the original's playback takes open (run 1599).
+    const CHATTED_RCX: &str = "ron-golden/recordings/item4250-chatted-greatlakes-24000.rcx";
+    const CHATTED_RCX_BYTES: usize = 59_491;
+
+    /// The recordings on disk, as `rondata::recgame`'s census reads them:
+    /// the bottle's `Logs\` and the install's `external-recgames/`.
+    fn recordings_on_disk() -> Vec<std::path::PathBuf> {
+        let home = std::env::var("HOME").unwrap_or_default();
+        let logs = std::env::var("RON_RECGAME_DIR")
+            .or_else(|_| std::env::var("RON_GAMELOG_DIR"))
+            .unwrap_or_else(|_| {
+                format!("{home}/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
+            });
+        let install = std::env::var_os("RON_INSTALL")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| "../../game".into());
+        let mut out: Vec<std::path::PathBuf> = [logs.into(), install.join("external-recgames")]
+            .iter()
+            .filter_map(|d: &std::path::PathBuf| std::fs::read_dir(d).ok())
+            .flatten()
+            .filter_map(|e| {
+                let p = e.ok()?.path();
+                (p.extension()? == "rcx").then_some(p)
+            })
+            .collect();
+        out.sort();
+        out
+    }
+
+    /// **`INPUT_CHEATED`** (item 4250): of the chats the recordings on disk
+    /// carry, those the entry line mints field for field when their text
+    /// is typed into it by their own slot on their own frame, of all of
+    /// them. Every one is a cheat line, the original's own mint
+    /// (`ChatBox::on_modal_end`'s cheat arm). Seen red with the cheat arm
+    /// taken out: 0 of 160, each parting at the plain box's `taunt` −1.
+    const INPUT_CHEATED: (usize, usize) = (160, 160);
+
+    /// The cheat arm against the original's own chats.
+    #[test]
+    fn minted_cheat_lines_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() {
+            println!("skipping: no .rcx on disk (RON_RECGAME_DIR, RON_INSTALL)");
+            return;
+        }
+        let (scene, terrain) = (Scene::default(), TerrainScene::default());
+        let c = crate::pinned_camera();
+        let v = view(&c, &scene, &terrain);
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for it in rondata::input::input(&rec) {
+                let Command::Chat { text, .. } = &it.cmd else {
+                    continue;
+                };
+                all += 1;
+                let mut input = Input::new(it.play as u8);
+                let mut got = None;
+                for (_, _, ev) in typed(it.frame, text) {
+                    got = got.or(input.event(it.frame, ev, &v));
+                }
+                if got == Some((it.frame, it.play, vec![it.cmd.clone()])) {
+                    whole += 1;
+                } else if all - whole <= 3 {
+                    println!("CHEAT PARTS {it:?}: {got:?}");
+                }
+            }
+        }
+        println!("CHEATED {whole} of {all}");
+        assert_eq!((whole, all), INPUT_CHEATED);
+    }
+
+    /// **The entry line's edges** (item 4250): it opens on Return and takes
+    /// keys from the layer while open, Backspace takes a character, Escape
+    /// sends nothing, the spaces at both ends are trimmed and a blank line
+    /// sends nothing, the limit holds, and the arms the layer does not read
+    /// mint nothing — a targeting first character, a taunt's digit, a game
+    /// of three nations.
+    #[test]
+    fn minted_chat_line_edges() {
+        let leader = |who| sim::observe::LeaderScene {
+            who,
+            tribe: 0,
+            nation: String::new(),
+            ages: 0,
+            bucket: [0; 6],
+            income: [0; 6],
+            over_cap: [false; 6],
+            control: 0,
+            pop_cap: 0,
+        };
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let two = Scene {
+            leaders: vec![leader(0), leader(1)],
+            ..Scene::default()
+        };
+        let three = Scene {
+            leaders: vec![leader(0), leader(1), leader(2)],
+            ..Scene::default()
+        };
+        let send = |scene: &Scene, evs: &[Event]| {
+            let v = view(&c, scene, &terrain);
+            let mut input = Input::new(1);
+            input.selection = vec![ObjId { who: 1, o: 2000 }];
+            input.building = true;
+            let mut got = None;
+            for ev in evs {
+                got = got.or(input.event(7, *ev, &v));
+            }
+            (got, input)
+        };
+        let keys = |s: &str| -> Vec<Event> {
+            let mut e = vec![Event::Enter];
+            e.extend(s.chars().map(Event::Key));
+            e.push(Event::Enter);
+            e
+        };
+        let chat = |bits, text: &str| {
+            Some((
+                7,
+                1,
+                vec![Command::Chat {
+                    bits,
+                    taunt: -1,
+                    taunt_num: 0,
+                    text: text.to_string(),
+                }],
+            ))
+        };
+        // `c` would train at the selected building; the open line takes it.
+        assert_eq!(send(&two, &keys("  cc hi ")).0, chat(3, "cc hi"));
+        let mut bs = keys("hix");
+        bs.insert(4, Event::Backspace);
+        assert_eq!(send(&two, &bs).0, chat(3, "hi"));
+        let (got, input) = send(&two, &[Event::Enter, Event::Key('h'), Event::Escape]);
+        assert_eq!((got, input.line), (None, None));
+        assert_eq!(send(&two, &keys("   ")).0, None);
+        assert_eq!(send(&two, &keys("")).0, None);
+        for s in ["*hi", "!hi", ";hi", ":hi", "@hi", "4", "12 food", "-3"] {
+            assert_eq!(send(&two, &keys(s)).0, None, "{s}");
+        }
+        assert_eq!(send(&three, &keys("hi")).0, None);
+        let long: String = std::iter::repeat_n('a', CHAT_LIMIT + 5).collect();
+        let want: String = std::iter::repeat_n('a', CHAT_LIMIT).collect();
+        assert_eq!(send(&two, &keys(&long)).0, chat(3, &want));
+        // The cheat arm: the slot's own bit, `taunt` 0, any case.
+        assert_eq!(
+            send(&three, &keys("Cheat select 6 ")).0,
+            Some((
+                7,
+                1,
+                vec![Command::Chat {
+                    bits: 2,
+                    taunt: 0,
+                    taunt_num: 0,
+                    text: "Cheat select 6".to_string(),
+                }],
+            ))
+        );
+        // Closed, Return opens the line and nothing else changes.
+        let (got, input) = send(&two, &[Event::Enter]);
+        assert_eq!((got, input.line.as_deref()), (None, Some("")));
+    }
+
     /// A unit for the walk-free box tests: slot `who`'s `o` of type `ti`,
     /// standing at `(x, 0)` with its formation bytes.
     fn unit(who: u8, o: i16, ti: i32, x: i32, form: i8, width: i8) -> sim::observe::UnitScene {
@@ -2142,13 +2475,12 @@ pub(crate) mod tests {
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (9, 26);
+    const INPUT_KINDS: (usize, usize) = (10, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2056, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2216, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
-        "chat",
         "leader_options",
         "sell",
         "pause",

@@ -566,8 +566,25 @@ impl App {
         if self.page.is_some() {
             return self.page_key(el, key);
         }
+        // The chat entry line (item 4250, `docs/CLIENT_INPUT.md` §12): open,
+        // it takes every typed key, Return sends it and Escape closes it.
+        if self.input.line.is_some() {
+            let ev = match key {
+                Key::Named(NamedKey::Enter) => Some(input::Event::Enter),
+                Key::Named(NamedKey::Escape) => Some(input::Event::Escape),
+                Key::Named(NamedKey::Backspace) => Some(input::Event::Backspace),
+                Key::Named(NamedKey::Space) => Some(input::Event::Key(' ')),
+                Key::Character(c) => c.chars().next().map(input::Event::Key),
+                _ => None,
+            };
+            if let Some(ev) = ev {
+                self.input(ev);
+            }
+            return;
+        }
         let step = 256.0 * self.camera.parallel_distance / 10429.4;
         match key {
+            Key::Named(NamedKey::Enter) => self.input(input::Event::Enter),
             Key::Named(NamedKey::Escape) => el.exit(),
             Key::Character(c) if c.as_str() == "q" => el.exit(),
             Key::Named(NamedKey::Space) => self.playing = !self.playing,
