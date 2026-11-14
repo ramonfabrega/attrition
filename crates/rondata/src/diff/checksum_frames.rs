@@ -259,6 +259,15 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// record): units range 891 and guys range 279, record 30 (`1/30`, a
 /// Scholar, TI 52, seated in its University on 7272) `angle` and
 /// `last_angle` ours 0x55555555, theirs 0 → 0 on both, both lines whole.
+///
+/// Item 4257 moved two on run1578: units 8281 → 10541 and builds 8281 →
+/// 14312, one rule, the garrison chain's order
+/// (`Object::insert_inside@00647e90` appends at the bottom). Value diff on
+/// 8281 (run1597's record): the University 1/2018 holds two Scholars (TI
+/// 52), 1/30 then 1/42. Builds range 856, record 2018 `inside_down` ours
+/// 42, theirs 30; units range 842, record 30 `inside_down` ours −1, theirs
+/// 42 (and record 42's `inside_up`, ours 2018, theirs 30) → the
+/// original's on both, both lines whole there.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -280,8 +289,8 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 8281, 0),
-            ("builds", 8281, 0),
+            ("units", 10541, 0),
+            ("builds", 14312, 0),
             ("groups", 8206, 0),
             ("guys", 10541, 0),
             ("leaders", 0, 300),
