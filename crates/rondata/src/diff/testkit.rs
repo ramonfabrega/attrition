@@ -7307,8 +7307,10 @@ pub(crate) const LEADERS_TWO_KEYS: usize = 94;
 /// 1675 since step VII-c compares `made_peace[·]` and the deal records'
 /// `dip.treaty[·]` (+16 a leader; `LEADERS=2` prints neither); 1691 since
 /// step VII-d compares `counteroffer[·]` and the deal records'
-/// `dip.agree[·]` (+16 a leader; `LEADERS=2` prints neither).
-pub(crate) const LEADERS_NINE_KEYS: usize = 1691;
+/// `dip.agree[·]` (+16 a leader; `LEADERS=2` prints neither); 1692 since
+/// item 4159's second residue compares `pop_issues` (+1 a leader; neither
+/// `LEADERS=2` nor `LEADERS=8` prints it).
+pub(crate) const LEADERS_NINE_KEYS: usize = 1692;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,
