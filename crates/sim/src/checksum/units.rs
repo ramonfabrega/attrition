@@ -143,7 +143,7 @@ pub const CAST_FIELDS: &[(&str, usize, usize)] = &[
 /// part is `+0x0..+0x50`, `GroupOrder`'s `+0x50..+0x68`, its vbptr first;
 /// `GroupMoveOrder::walk_data@004855c0`, item 4243). `in_group` (`+0x68`)
 /// is the walk's next range, four bytes of its own.
-pub const GROUP_FIELDS: &[(&str, usize, usize)] = &[
+pub const GROUP_ORDER_FIELDS: &[(&str, usize, usize)] = &[
     ("oxx", 0x54, 4),
     ("whose", 0x58, 4),
     ("id", 0x5c, 4),
@@ -595,7 +595,7 @@ impl Sim {
                     put("order.flags", vec![o.flags]);
                     let leader = &self.units[g.leader];
                     let mut b = vec![0u8; 0x68 - 0x54];
-                    debug_assert_eq!(GROUP_FIELDS.len(), 5);
+                    debug_assert_eq!(GROUP_ORDER_FIELDS.len(), 5);
                     let mut p = |at: usize, w, x: i64| put_raw(&mut b, at - 0x54, w, x);
                     p(0x54, 4, i64::from(leader.index));
                     p(0x58, 4, i64::from(leader.owner));

@@ -1309,7 +1309,7 @@ fn unit_site_field(site: &str) -> &'static str {
 /// its one value.
 fn unit_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
     use sim::checksum::units::{
-        CAST_FIELDS, GATHER_FIELDS, GROUP_FIELDS, MOVE_FIELDS, TARGET_FIELDS, TRADE_FIELDS,
+        CAST_FIELDS, GATHER_FIELDS, GROUP_ORDER_FIELDS, MOVE_FIELDS, TARGET_FIELDS, TRADE_FIELDS,
         UNIT_FIELDS,
     };
     let le = |s: &[u8]| -> i64 {
@@ -1332,7 +1332,7 @@ fn unit_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
         "order.gather" => table(GATHER_FIELDS, 0x14),
         "order.trade" => table(TRADE_FIELDS, 0x14),
         "order.cast" => table(CAST_FIELDS, 0x14),
-        "order.group" => table(GROUP_FIELDS, 0x54),
+        "order.group" => table(GROUP_ORDER_FIELDS, 0x54),
         "who..y_internal" => {
             let c = |at: usize| le(&b[at..at + 4]) ^ i64::from(COORD_MASK);
             vec![
