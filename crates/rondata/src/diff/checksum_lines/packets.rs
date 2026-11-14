@@ -2704,17 +2704,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (6407, 6008, 5543) -> (6407, 6026, 5590).
     // Item 4234, a cast's three ranges walked: units (6407, 6026, 5590) -> (6407, 6029, 5580).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6407, 6029, 5580) -> (6407, 6101, 5554).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6407, 6101, 5554) -> (6407, 6101, 5553); guys (1598, 1598, 4) -> (1598, 1598, 3).
     (
         "run1359c",
         5678,
         [
-            (6407, 6101, 5554),
+            (6407, 6101, 5553),
             (2974, 2974, 33),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (556, 556, 4),
-            (1598, 1598, 4),
+            (1598, 1598, 3),
             (271, 271, 5),
             (48, 48, 0),
             (55, 55, 0),
