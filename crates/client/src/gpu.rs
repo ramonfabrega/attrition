@@ -313,6 +313,9 @@ pub struct Frame<'a> {
     /// The patches' version (item 4178): uploaded again when it moves,
     /// the terrain's version standing.
     pub patch_version: u32,
+    /// The surf's version (item 4239): when only it moves, the surf's
+    /// lists alone are uploaded again.
+    pub surf_version: u32,
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
     /// The shadows (item 4182), one mesh a decal texture.
@@ -384,7 +387,8 @@ fn patch_kind(piece: i32) -> PatchKind {
 
 /// The ground's base layer and its patch on the GPU, at a terrain version.
 /// Item 4178: and the patches' own version, which the screen's ramp moves.
-type GroundUploads = (u32, Vec<Uploaded>, Vec<UploadedPatch>, u32);
+/// Item 4239: and the surf's version.
+type GroundUploads = (u32, Vec<Uploaded>, Vec<UploadedPatch>, u32, u32);
 
 pub struct Gpu {
     pub device: wgpu::Device,
@@ -1296,8 +1300,16 @@ impl Gpu {
     /// texcoord (in the third attribute's `xy`), beside its base's and its
     /// alpha's bind groups (item 4139).
     fn patch_meshes(&self, meshes: &[crate::world::PatchMesh]) -> Vec<UploadedPatch> {
+        self.patch_meshes_of(meshes.iter())
+    }
+
+    /// [`Self::patch_meshes`] over any run of meshes (item 4239: the
+    /// surf's alone).
+    fn patch_meshes_of<'m>(
+        &self,
+        meshes: impl Iterator<Item = &'m crate::world::PatchMesh>,
+    ) -> Vec<UploadedPatch> {
         meshes
-            .iter()
             .filter(|m| !m.positions.is_empty())
             .map(|m| {
                 let mut bytes = Vec::with_capacity(m.positions.len() * 32);
@@ -1564,17 +1576,34 @@ impl Gpu {
         let mut ground = self.ground_meshes.lock().unwrap();
         if ground
             .as_ref()
-            .is_none_or(|(v, _, _, _)| *v != frame.terrain_version)
+            .is_none_or(|(v, _, _, _, _)| *v != frame.terrain_version)
         {
             *ground = Some((
                 frame.terrain_version,
                 self.textured_meshes(frame.ground),
                 self.patch_meshes(frame.patch),
                 frame.patch_version,
+                frame.surf_version,
             ));
         } else if let Some(g) = ground.as_mut().filter(|g| g.3 != frame.patch_version) {
             g.2 = self.patch_meshes(frame.patch);
             g.3 = frame.patch_version;
+            g.4 = frame.surf_version;
+        } else if let Some(g) = ground.as_mut().filter(|g| g.4 != frame.surf_version) {
+            // Item 4239: the surf alone moved. Its lists are uploaded again
+            // and put back after the water, where the world lays them.
+            let surf = frame
+                .patch
+                .iter()
+                .filter(|m| crate::world::is_surf(m.piece));
+            g.2.retain(|p| p.5 != PatchKind::Surf);
+            let at =
+                g.2.iter()
+                    .position(|p| p.5 == PatchKind::Water)
+                    .map_or(g.2.len(), |w| w + 1);
+            let uploaded = self.patch_meshes_of(surf);
+            g.2.splice(at..at, uploaded);
+            g.4 = frame.surf_version;
         }
         let figures = self.vertices(frame.figures);
         let overlay = self.vertices(frame.overlay);
@@ -1582,8 +1611,8 @@ impl Gpu {
         let empty = (Vec::new(), Vec::new());
         let (meshes, patches) = ground
             .as_ref()
-            .filter(|(_, m, _, _)| !m.is_empty())
-            .map_or((&empty.0, &empty.1), |(_, m, p, _)| (m, p));
+            .filter(|(_, m, _, _, _)| !m.is_empty())
+            .map_or((&empty.0, &empty.1), |(_, m, p, _, _)| (m, p));
         // Item 4182: with shadows, the ground up to its first mountain layer
         // is drawn off screen, the decals into the keep map, and the shade
         // pass composes the two onto the target before everything else —

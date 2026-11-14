@@ -352,9 +352,9 @@ fn draw(
     let b = session.phase("scene", || build(world, camera, size, frame_ms, hud));
     let version = world.runner.terrain().version;
     world.set_screen(camera, size);
-    let patch_version = session.phase("ground", || {
+    let (patch_version, surf_version) = session.phase("ground", || {
         world.drawn_terrain();
-        world.patch_version()
+        (world.patch_version(), world.surf_version())
     });
     let (t, ground, patch) = world.drawn_terrain();
     let frame = gpu::Frame {
@@ -363,6 +363,7 @@ fn draw(
         ground,
         patch,
         patch_version,
+        surf_version,
         figures: (&b.figures.positions, &b.figures.colours),
         textured: &b.textured,
         trees: &b.trees,
@@ -401,7 +402,7 @@ pub(crate) fn still_of(
     let version = world.runner.terrain().version;
     world.set_screen(camera, size);
     world.drawn_terrain();
-    let patch_version = world.patch_version();
+    let (patch_version, surf_version) = (world.patch_version(), world.surf_version());
     let (t, ground, patch) = world.drawn_terrain();
     let frame = gpu::Frame {
         terrain_version: version,
@@ -409,6 +410,7 @@ pub(crate) fn still_of(
         ground,
         patch,
         patch_version,
+        surf_version,
         figures: (&b.figures.positions, &b.figures.colours),
         textured: &b.textured,
         trees: &b.trees,
@@ -442,6 +444,7 @@ fn draw_page(
     let frame = gpu::Frame {
         terrain_version: u32::MAX,
         patch_version: u32::MAX,
+        surf_version: u32::MAX,
         terrain: (&[], &[]),
         ground: &[],
         patch: &[],

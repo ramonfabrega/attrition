@@ -231,6 +231,9 @@ pub struct World {
     laid_ramp: Option<crate::ground::ScreenRamp>,
     screen_layers: (Option<usize>, Option<usize>),
     patch_version: u32,
+    /// The surf's own version (item 4239): moved each frame the surf is
+    /// laid again, so only its lists are uploaded again.
+    surf_version: u32,
     /// The building types, which the footprint weathering's rule reads
     /// (item 4190, [`crate::weathering::footprint`]).
     build_types: Vec<sim::cities::build::BuildType>,
@@ -988,6 +991,7 @@ impl World {
             laid_ramp: None,
             screen_layers: (None, None),
             patch_version: 0,
+            surf_version: 0,
             build_types: loaded.build_types.clone(),
             weathering: true,
             weathering_shift: (0, 0),
@@ -1097,6 +1101,12 @@ impl World {
     /// moves when the screen's ramp lays them again, the terrain unmoved.
     pub fn patch_version(&self) -> u32 {
         self.patch_version
+    }
+
+    /// The surf's version (item 4239): when it alone moves, the GPU
+    /// uploads the surf's lists again and keeps every other patch.
+    pub fn surf_version(&self) -> u32 {
+        self.surf_version
     }
 
     /// **What the client draws of the terrain** (item 4127): the
@@ -1500,7 +1510,7 @@ impl World {
                     .collect();
                 self.drawn.3.splice(at..at, meshes);
             }
-            self.patch_version = self.patch_version.wrapping_add(1);
+            self.surf_version = self.surf_version.wrapping_add(1);
             self.surf_laid = key;
         }
         // Item 4178: the water's colour and the floor's grey follow the
