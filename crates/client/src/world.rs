@@ -739,7 +739,14 @@ impl World {
                     .iter()
                     .map(|t| {
                         let bytes = std::fs::read(resolve_art(&root, t)?).ok()?;
-                        render::tga::decode(&bytes).ok()
+                        let mut img = render::tga::decode(&bytes).ok()?;
+                        // Item 4221 (§3.23): `TreeTransformMethod::load@00921aa0`
+                        // hands each of the seven `GraphicPieces::tint_color`
+                        // (`TintColor`, `init_tree_data@008eeb30`) through
+                        // `ImageIO::set_tint`: the tileset's tint, 12 12 00 on
+                        // run1559b's and run1564's packets.
+                        img.tint(tint);
+                        Some(img)
                     })
                     .collect();
                 // Item 4173: each texture on its one level, as
@@ -1572,6 +1579,20 @@ impl World {
     #[cfg(test)]
     pub fn tree_meshes(&self) -> Option<&TreeMeshes> {
         self.tree_art.as_ref()
+    }
+
+    /// Item 4221: tree texture `k` of `tileset` as its file decodes, beside
+    /// the one the world draws (tinted at load).
+    #[cfg(test)]
+    pub fn tree_texture_pair(
+        &self,
+        tileset: &str,
+        k: usize,
+    ) -> Option<(render::tga::Image, render::tga::Image)> {
+        let drawn = self.tree_art.as_ref()?.textures.get(k)?.clone()?;
+        let art = rondata::artdata::tree_art(&self.install, tileset).ok()?;
+        let bytes = std::fs::read(resolve_art(&self.root, art.textures.get(k)?)?).ok()?;
+        Some((render::tga::decode(&bytes).ok()?, drawn))
     }
 
     /// **Every tree of the map as it stands now** (item 4080): each forest

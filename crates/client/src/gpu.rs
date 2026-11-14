@@ -727,7 +727,7 @@ impl Gpu {
             "fs_tree",
             true,
             wgpu::CompareFunction::LessEqual,
-            None,
+            Some(wgpu::BlendState::ALPHA_BLENDING),
             Default::default(),
         );
         let textured = figure_pass(
@@ -1753,7 +1753,8 @@ mod tests {
         let t = tree_shader();
         assert!(t.contains("let stage = clamp(t.rgb + vec3<f32>(0.5019608 - 0.5)"));
         assert!(t.contains("pow(stage, vec3<f32>(1.9)) * 5.0"));
-        assert!(t.contains("return vec4<f32>(toned, 1.0);"));
+        // Item 4221: blended by the texel's alpha (§3.23).
+        assert!(t.contains("return vec4<f32>(toned, t.a);"));
         assert!(!t.contains("encoded("));
         assert!(t.contains("if (t.a <= 0.0)"));
     }

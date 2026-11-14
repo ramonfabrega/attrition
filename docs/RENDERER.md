@@ -1194,6 +1194,8 @@ named regression. 0/1's 159 behind pixels agree 81 → 66 (80 needed); composed 
 `_COLOUR_STILL` holds 14 (0/1 30 → 64, the painter's 66), `_TRACED_STILL` **31 → 32**: 0/1's ring no longer holds a
 silhouette's red over flat green (4171a), 0.159 → 0.850.
 
+**The trees' own light** (item 4221): the leaves blend and their textures take the tileset's tint, §3.23.
+
 **The shadows (item 4182; read on the listing, the rule committed before its count, `53f6cfdfd`).** A shadow is
 a decal. `DecalTransformMethod::execute@00923a70` lays a flat world-space quad from a `DecalRDataStruct`, and
 `DecalFlushMethod::execute@00923fd0` draws it under an identity transform. The angle is truncated and folded, a
@@ -2951,7 +2953,48 @@ On the photographs alone: the rows.
 - The mountains' own normals and vertex colour (draws 143, 144): flat and white.
 - `vs_global.hlsl`'s per-pixel normal against the interpolated N·L the client takes, and the
   vertex colour taken from that N·L rather than interpolated.
-- The trees' and the roads' `TL_FAKE_LIGHT` stage colours against each other (parked 4217a).
+- ~~The trees' and the roads' `TL_FAKE_LIGHT` stage colours against each other (parked 4217a).~~ Answered by
+  §3.23: the stage colours agree; the trees blend and take the tileset's tint.
+
+## 3.23 The trees' own light (item 4221)
+
+*2026-11-13, Opus 5.5. `client::world` (the tree textures tinted at load), `shaders/tree.wgsl`, `client::gpu`'s tree
+pass; `tools/render/tree_tint_packet.py`. Scored on run1559b's photograph.*
+
+*The question:* after §3.21 the trees took the frame's white and their luma on
+the still fell 54 → 39 of 56, while the asphalt, drawn by the same `TL_FAKE_LIGHT` branch, read the photograph's
+(§3.22). *The card's stage colours, run1567's 3279 pass:* every tree draw (148–154) holds `gTexFactor`, the
+tfactor, the material's `gTLAlpha` and the light all at 1. The `TL_FAKE_LIGHT` branch of `ps_global.hlsl` reads no
+light constant: it is `do_texture_operation`'s output raised to 1.9 times the HDR 5. So no constant on the stage
+carries the 17 % (the kill as booked), and the fall lies in two inputs the first act's dump named:
+- *The blend.* `D3D11GLGraphicCard::set_blend_state` (d3dgl `0x1002b900`) sets `BlendEnable` from `enables & 4`
+  (`1002ba07`) and takes the factors from `RenderState` +0x74/+0x78. Every tree draw on the card holds enables
+  0x20087 and `SRCALPHA`/`INVSRCALPHA` (5, 6) (`the_trees_draw_on_the_card`). The leaves blend by their stage alpha,
+  the texel's (the diffuse's alpha 1, `gTLAlpha` 1), over what is behind them. The client drew them opaque. Blended
+  alone, the still's colour row is 38 → 56 and its luma 39 → 16: per tree, theirs over ours in Y has a median of
+  1.209, since what lies behind the leaves is darker than they are.
+- *The tint.* `GraphicPieces::init_tree_data@008eeb30` sets each tree rdata's `TintColor` to
+  `GraphicPieces::tint_color`, and `TreeTransformMethod::load@00921aa0` hands it to `ImageIO::set_tint` before each
+  of the seven `Texture::init`s. On run1559b's and run1564's packets the global (`0x00e896d8` +0xf54) is `12 12 00
+  ff`, the tileset's (18, 18, 0) (`tools/render/tree_tint_packet.py`; `the_trees_take_the_tileset_s_tint`). The
+  decompile shows no writer of its rgb but a console command, so the packet settles it. The client loaded the trees
+  untinted.
+
+*Drawn, both* (`client::world`'s tree textures tinted at load; `shaders/tree.wgsl` returns the texel's alpha and
+the tree pass blends `ALPHA_BLENDING` over the toned target): **`RUN1559B_3279_TREES_STILL` colour 38 → 56, luma
+39 → 56 of 56**. Per tree, theirs over ours in Y has a median of 1.003 (0.965–1.088). Made to fail at run1441's
+camera: 1 of 57, luma 11. The painter's trees are tinted and stay opaque: `RUN1559B_3279_TREES` 37 → 52, `_LUMA` 54
+→ 49, the stage alone 21 → 28 (luma 56 → 21). The rule still picks FakeLight. *What else moved* (all up):
+`RUN1559B_3279_COLOUR` 17 → 21 (the tree under a silhouette is tinted), run1559b's ground luma 1,029 → 1,036
+(plain 952 → 954, under a mountain 61 → 66; the trees move the frame's mean), `RUN1559B_3279_RING`'s luma 8, 19, 7
+→ 9, 20, 9, and the units' shadows' luma 88 → 89. **The land's switch stays off**: lit, run1564's grass hue is
+still 665 against 674.
+
+*Coverage.* Diff-backed: the trees' blend state and stage constants on the card; the tint on both packets. On a
+reading: the tint reaching the texels (`Texture::init`, as the land's does, §3.21). On the photograph alone: the
+rows. *Not established:* the blend in HDR before the tone map, which the client approximates by blending toned
+values (4221a); the painter's trees, opaque where the client blends (4221a); run1567's bark draw, which carries no
+vertex diffuse where run1566b's does (4221b).
 
 ## 4. The stack
 
