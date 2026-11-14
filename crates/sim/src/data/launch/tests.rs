@@ -2814,7 +2814,9 @@ fn an_unmeasured_piece_launches_from_the_unit() {
 ///
 /// Piece **127** is the Longbowman's six (run109, §22.1); **472** and
 /// **384** are chapter two's bowmen and slingers, three keys and two,
-/// from run112's own `AMMO` records (item 485, §41.3). The Trireme's
+/// from run112's own `AMMO` records (item 485, §41.3); the slinger's
+/// third, `CHAR_ATTACK3` at 16, is run1603's packet round (item 4256,
+/// `docs/CLIENT_INPUT.md` §15.1). The Trireme's
 /// three, **290**, were rows here from run127's (item 542, §50.2) and
 /// are [`BAYS`] rows since run437 turned them (item 1200); their keys
 /// are 5, 9 and 17 because the frame is `starttime / 67` (§50.1):
@@ -2844,6 +2846,7 @@ fn the_table_is_every_release_event_a_capture_has_measured() {
             (127, crate::units::anim::ATTACK3, 24),
             (384, crate::units::anim::ATTACK1, 21),
             (384, crate::units::anim::ATTACK2, 22),
+            (384, crate::units::anim::ATTACK3, 16),
             (472, crate::units::anim::ATTACK1, 12),
             (472, crate::units::anim::ATTACK2, 9),
             (472, crate::units::anim::ATTACK3, 15),

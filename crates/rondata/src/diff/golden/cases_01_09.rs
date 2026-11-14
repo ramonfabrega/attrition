@@ -1952,7 +1952,10 @@ pub(super) fn chapter_two_s_word_frame_is_widened_whole() {
     // spends a draw. **Item 1281 closed the `g.gpiece` rows**: the stand-up
     // lands the chapter's third age before 606, and the age now re-pieces
     // every figure (`docs/TECH.md`, "The piece moves with the age").
-    let measured = [("damage 1/6", 680)];
+    // **Item 4256 closed `damage 1/6` at 680**: the slinger's
+    // `CHAR_ATTACK3` releases from its node (run1603's packet round,
+    // `docs/CLIENT_INPUT.md` §15.1), and the word frame widens nothing.
+    let measured: [(&str, i64); 0] = [];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     pin_eq!(
         got,
