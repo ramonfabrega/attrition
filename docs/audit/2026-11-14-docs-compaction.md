@@ -107,16 +107,19 @@ METHOD and `CLAUDE.md`, and R0 on top for lanes.
 
 ## The three to take first
 
-1. **The syncs S9, S24, S2, S19, S5, S6 and S4.** They cost minutes and
-   each is a place where a fresh session is told something false today:
-   an opener that reaps a row long gone and cuts builders on landed
-   steps; three render counts the code has moved past; a start track "158
-   of 161" beside a queue that reads 161; a stop of 95 % one line above a
-   stop of 99 %; a rule that stops mid-sentence; one lane in one
-   paragraph and three in another. The appendix has the exact text for
-   six of them.
+1. **The syncs S9, S24, S26, S27, S2, S19, S5, S6 and S4.** They cost
+   minutes and each is a place where a fresh session is told something
+   false today: an opener that reaps a row long gone and cuts builders on
+   landed steps; three render counts the code has moved past; a brief
+   that stops every lane at 300 k where the decision measured 400, and
+   promises to file a line a decision said is filed nowhere; a start
+   track "158 of 161" beside a queue that reads 161; a stop of 95 % one
+   line above a stop of 99 %; a rule that stops mid-sentence; one lane in
+   one paragraph and three in another. The appendix has the exact text
+   for seven of them.
 2. **R1 with S1: take the two rewritten sections off the ceiling.** One
-   parser change and the handoff stands near 10,700 B, not 15,983; one
+   branch in the parser, two lines in the audit, and the handoff stands
+   near 10,700 B, not 15,983; one
    heading and the index has 8,000 B of room. Both end a fitting loop
    (D1) that has run on most commits for weeks, and R1 is self-correcting:
    the closed form is accepted only while every row is at its length.
@@ -259,8 +262,7 @@ what it points at.
 - **Rule touched:** the queue's "The floors and these lines move together
   ... read literally" bullet gains the closed form. No decision forbids it.
 - **Confidence:** high on the saving and the precedent. The code change is
-  two readers, `ai_line_verdict` and the audit's `audit_gaps`; both
-  already hold `AI_WORDS`.
+  two readers and one filter, each of which already holds `AI_WORDS`.
 - **The change, read off the two functions in the second session** (a
   description, not a patch). `floors.rs`'s `ai_line_verdict(line, prefix,
   rows)` parses the line with `ai_line_closes` and compares the parts
@@ -308,7 +310,7 @@ what it points at.
   carry a count (799 B in all: `RUN1559B_3279_GROUND` 1,097 of 1,109 and
   the like), each pinned by a test in `crates/` and by no line of the
   handoff. **Nothing checks a count there against its constant, and three
-  of the 25 have drifted (S24):** each was written by the booking that
+  have drifted (S24):** each was written by the booking that
   set the pin and not rewritten by the later booking that moved it. The
   handoff is the only place a reader sees them together; it is also the
   one place they can be wrong.
@@ -365,6 +367,9 @@ what it points at.
 - **What cites it:** nothing in `crates/` or `tools/` parses TRACKS and
   `docs_guard` names it nowhere. LOOP and QUEUE cite it for the milestone
   and the workers, never for a state.
+- **Why it drifts:** the pass does maintain it. Eleven commits touched
+  the page from 2026-11-08 to 11-13, six of them a pass's, and each
+  added its state to a cell and left the states before it.
 - **Rule touched:** none ("The steering pass maintains this page").
 - **Confidence:** high.
 
@@ -565,13 +570,13 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S18 | QUEUE, "The queue", first line | "The shapes are DECISIONS 90–94 and 100 §3" | written 2026-11-07. Entries 90 to 94 score the fifty-first to fifty-fifth tranches and shape a late-age pair; 100 §3 a territory row. Six entries, 49,820 B, behind a pointer no open item uses: the five items are a chain step, a structure item, a render item and two rules items, each of which names its own document. | keep the four shapes the line goes on to name; drop the six numbers or say which kind they are for |
 | S20 | `docs/journal/README.md`, first rule | "The first line is the heading the single file used: `## <date> — item <N>: <title> (<model>)`" | of the 132 item journals of 2026-11-10 to 11-14, 118 open `# Item <N>: <title>` with the model on the italic line under it; 13 use the README's form. `queueledger.py`'s `item N` regex is case-insensitive since item 279 and reads both; all 132 name a model in their first six lines. | the README states the form in use |
 | S21 | `docs/journal/README.md`, last rule; `CLAUDE.md`'s table row for `docs/JOURNAL.md` | "A steering pass writes to `docs/JOURNAL.md`, not here ... the chronicle is its record" | G2: four entries in `docs/JOURNAL.md` since 2026-10-01 against 61 pass records under `docs/audit/`; the last entry (2026-11-13) is the first since 2026-10-24. LOOP names "the pass's own record under `docs/audit/`" and never asks a pass for a journal entry. | "a pass's story is its record under `docs/audit/`; `docs/JOURNAL.md` takes an entry when the pass chooses" (the `CLAUDE.md` row is Ramon's word) |
-| S24 | QUEUE, "Where things stand", the renderer's bullet | "`RUN1559B_3279_TRACED` 33 of 33, `_COLOUR` 17"; "`_GROUND_LUMA` 1,029 of 1,109"; "`RUN1559B_3279_SHADOW` 41 → 89 of 105" | `crates/render/src/silhouette.rs`: `RUN1559B_3279_COLOUR = (21, 33)`, "21 of 33 since item 4221 (from 17)". `crates/client/src/ground.rs`: `GROUND_LUMA_STILL`'s run1559b row `(1036, 1109)`, "Item 4221: run1559b 1,029 → 1,036". `crates/client/src/shadows.rs`: `RUN1559B_3279_SHADOW = [(80, 104), (79, 104)]`, "Item 4193 ... 105 → 104 scored", "Item 4212: hue 93 → 80, luma 89 → 79". All three still so on `origin/worktree-replan-pdb` at `78b2b9140`. A fourth reads two ways: "`_COLOUR_STILL` 14 of 33 (18)" where the pin is `(18, 33)`. The other 21 constants with a count agree with the code (checked one by one: the `INPUT_*` six, `_TRACED`, `_DEVICE_STATE`, `_GROUND_BASE`, `_BLEND`, `_PACKET_PATCH`, `_GROUND`, `RUN1570_DEAD`, `RUN1564_3279_GROUND`, the two `_GROUND_STILL`, `_LUMA`, `GRASS_HUE`, the two `_RING`, the two `_PLAZA`). | the three counts; then R2's action, so the next one cannot drift |
+| S24 | QUEUE, "Where things stand", the renderer's bullet | "`RUN1559B_3279_TRACED` 33 of 33, `_COLOUR` 17"; "`_GROUND_LUMA` 1,029 of 1,109"; "`RUN1559B_3279_SHADOW` 41 → 89 of 105" | `crates/render/src/silhouette.rs`: `RUN1559B_3279_COLOUR = (21, 33)`, "21 of 33 since item 4221 (from 17)". `crates/client/src/ground.rs`: `GROUND_LUMA_STILL`'s run1559b row `(1036, 1109)`, "Item 4221: run1559b 1,029 → 1,036". `crates/client/src/shadows.rs`: `RUN1559B_3279_SHADOW = [(80, 104), (79, 104)]`, "Item 4193 ... 105 → 104 scored", "Item 4212: hue 93 → 80, luma 89 → 79". All three still so on `origin/worktree-replan-pdb` at `78b2b9140`. A fourth reads two ways: "`_COLOUR_STILL` 14 of 33 (18)" where the pin is `(18, 33)`. The other 22 constants with a count agree with the code (checked one by one: the `INPUT_*` six, `_TRACED`, `_TRACED_STILL`, `_DEVICE_STATE`, `_GROUND_BASE`, `_BLEND`, `_PACKET_PATCH`, `_GROUND`, `RUN1570_DEAD`, `RUN1564_3279_GROUND`, the two `_GROUND_STILL`, `_LUMA`, `GRASS_HUE`, the two `_RING`, the two `_PLAZA`); `RUN1564_3294_COAST_PATCH` is a table of four rows whose first two sum to the handoff's 439 and was not checked further. | the three counts; then R2's action, so the next one cannot drift |
 | S22 | `docs/TEST_PERFORMANCE.md`, "Shared isolated runner" (the fourteenth-from-last section; `CLAUDE.md` sends a reader to this file for the host budget's "design and its limits") | "Every cooperating worktree shares `~/Library/Caches/attrition/resources-v1`: sixteen CPU slots and 32 GiB reserved RSS"; "guards reserve eight slots/32 GiB"; "Each nonignored rondata library test runs in a fresh process" | `tools/resource_budget.py`: `CPU = 20`, `MEMORY_MIB = 98304`, `resources-v3`; `tools/guard.sh`: `--cpu 2 --memory-mib 4096`; the same file's last section ("Trial terms") says so, 700 lines on; and "The group unit" (item 4216): "The isolated runner's unit was one process a test ... A group is the tests of one game". None of the three earlier sentences is struck. | strike the three in place and point at the section that stands; G11 for the order |
 | S23 | `docs/TEST_PERFORMANCE.md`, eleven sections of 2026-10-15 to 10-17 | "Independent review remains owed", eleven times (lines 65, 107, 192, 298, 667, 707, 890, 912, 933, 949, 965) | no item, decision or pass record names the review: `grep -i 'independent review'` over QUEUE, DECISIONS, LOOP, TRACKS and the pass records of 2026-10-15 to 10-29 is empty. Entries 75 and 76 put the branch on trial and kept it on the tranche's waiting and admission figures. A promise with no item is one nobody holds. | the pass rules once: the trial's verdict (entry 76) and a month of gates stand for the review, said in one line at the head; or it books the review as an item with a score |
 | S25 | LOOP, "The driver", the roster's first bullet | "**The pass**: the `steer` row, Fable 5.2, armed at a boundary (DECISIONS 126 ...)" | the same section, eighty lines up: "a handover is a spawn and a reap (DECISIONS 130, 131 §8)", "No prompt is typed into a pane"; entry 131 §8 withdrew the arm of the other row. The only "armed" left in the read-first files that means a handover. | "spawned at a boundary (DECISIONS 126, 131 §8)" |
 | S26 | `tools/brief/frame.md`, "landing" (every lane carries it); `docs/audit/README.md`, rows 1637 and 1638 | "**at 300 k, one line to me** (1637, 1638): draft, commit, end the turn **done**" | entry 131 §6: "A lane is cleared at 400 k, not 230", measured (a clear at 230 k lost 3.49 USD a lane); LOOP: "A waiter on a lane is armed with `--deep 400`"; the pass's record: "The clear at 230 k is withdrawn for 400". The frame's line has read 300 since 2026-10-17 (`a65a2a596`) and neither move of the driver's threshold (230 at entry 116, 400 at 131) reached it. A lane that follows its brief stops and writes to the driver 100 k before the figure the driver clears at, and the line it sends wakes the driver on its whole context. | the frame says 400, or says nothing and leaves the trigger to the waiter's `DEEP` exit; the checklist rows with it (`test_brief.py` holds the frame to them) |
 | S27 | `tools/brief/frame.md`, "landing" (every lane carries it) | "a "for the Loop" line: `none`, or a finding I file"; "**A red on the journal-quote or Loop-line guard alone is forgiven** (3277, 3328)" | entry 125 §3: "There is no Loop backlog. A journal's "for the Loop" line stays in the journal and is filed nowhere"; §4: `docs_guard.rs` loses "the Loop line's filing", and "Entry 84's forgiveness of the Loop-line guard on a lane goes with the guard". No test or tool names a Loop-line guard now (`grep -i` over `docs_guard.rs` and `release_gate.py`). The line is still written: 68 of the 73 journals since 2026-11-12 carry it, 22 with something to say (items 4159T, 4162, 4165, 4167, 4168, 4170, 4176, 4177, 4185, 4186, 4188, 4189, 4190, 4198, 4199, 4205, 4206, 4207, 4214, 4222, 4223, 4225). Two pass records took up four of them (4167, 4176, 4177, 4185); nothing lists the other eighteen. | "or a finding for the pass", and drop the guard's name; the eighteen are D8's question again |
-| S28 | LOOP, "Ratification, and the passes": "An unattended pass ... ratifies the marked rows, rules the Loop items, builds the loop's tools and guards"; "The brief": "a worker's "for the Loop" line that names a brief's omission is a candidate row"; and three Loop numbers LOOP still carries as owed (4051 and 4055 on the waiter, 4053 on a builder's wait) | entry 125 §3: "There is no Loop backlog ... the handoff counts nothing; what the driver would raise at a pass goes in that pass's record"; LOOP's own "The lanes": the line "is filed nowhere". With no backlog a pass has no Loop items to rule, and the three numbers are a backlog of three kept in the rules file, unruled since 2026-11-09 (R5). | "rules what the tranche's journals and its own record raise"; the three numbers ruled once by the pass, or struck with R5 |
+| S28 | LOOP, "Ratification, and the passes" and "The brief" | "An unattended pass ... ratifies the marked rows, rules the Loop items, builds the loop's tools and guards"; "a worker's "for the Loop" line that names a brief's omission is a candidate row"; and three Loop numbers LOOP still carries as owed (4051 and 4055 on the waiter, 4053 on a builder's wait) | entry 125 §3: "There is no Loop backlog ... the handoff counts nothing; what the driver would raise at a pass goes in that pass's record"; LOOP's own "The lanes": the line "is filed nowhere". With no backlog a pass has no Loop items to rule, and the three numbers are a backlog of three kept in the rules file, unruled since 2026-11-09 (R5). | "rules what the tranche's journals and its own record raise"; the three numbers ruled once by the pass, or struck with R5 |
 | S16 | DECISIONS, "Index": statuses | 116 "amended by 121"; 100 "standing"; 59 "extended by 60" | entry 126 §1: "Entry 116's single row and entry 122's roster line are superseded here"; entry 103: "amends entry 100 §3's "next cell""; entry 61: "amends ... entry 59's clause 1". Three read; a mechanical pass (a later entry's sentence that names an earlier one beside amend, replace, retire, withdraw or supersede) lists 7 rows the index calls standing (57, 64, 71, 72, 99, 100, 121) and 16 whose list of successors is short; 16 entries carry an "Amended <date>" note while their row says something other than "amended in place" (4, 9, 24, 29, 34, 55, 63, 64, 68, 71, 72, 77, 78, 87, 88, 121). Two more read in the second session: entry 71 carries "Amended 2026-10-15, Ramon's word mid-tranche" and entry 72 "Amended by the forty-fifth pass (entry 84, Loop 3344)", and the index calls both standing. Candidates, not verdicts: the heuristic is noisy, and a successor does not always name what it changes (entry 126 returns the two rows without a sentence that says "amends entry 116" in those words). | the pass that splits the index (S1) checks these rows; G3's index by topic is the durable fix |
 
 Also seen, and not a contradiction: `CLAUDE.md` gives the gate as
@@ -638,8 +643,8 @@ history ("until item 4113"), none a stale promise. Not pursued.
 - **Measured:** every one is built of `### ` parts, and in seven the parts
   are numbered (`AI.md` §2 has twenty, the largest 12,100 B). The only part
   over 16,000 is one of `GROUPS.md` §6's, §6.4, at 16,448 by the guard's
-  own count in the dry run (the first session's port read 16,594). `DATALAYER.md` §2's
-  seven parts are not numbered.
+  own count in the dry run (the first session's port read 16,594).
+  `DATALAYER.md` §2's seven parts are not numbered.
 - **Action:** promote each numbered `### N.M` to `## N.M`. It is the split
   the guard's comment asks for ("a `## ` heading is the split, and it costs
   nothing a reader needs") and `docs/RENDERER.md` already numbers its
@@ -943,8 +948,9 @@ section.
   tracked file outside `docs/journal/`: among them the suite's timings of
   2026-10-16 (three files, 183,318 B), three of the four `astra-reader`
   suite dumps of 2026-10-15 (236,968 B the four), fourteen `astra-*`
-  notes of about 1 KB, and small JSON. The timings of 2026-10-06, 10-07 and 10-13 (162,072 B) are each
-  named once, by the pass that took them. All are evidence a dated
+  notes of about 1 KB, and small JSON. The timings of 2026-10-06, 10-07
+  and 10-13 (162,072 B) are each named once or twice, by the pass that
+  took them. All are evidence a dated
   document rests on (`docs/journal/2026-10-15-astra-reader.md`,
   `TEST_PERFORMANCE.md`'s experiments). Leave; they cost a `grep -r
   docs/` and nothing else.
@@ -1109,6 +1115,14 @@ been applied.
   "`RUN1559B_3279_SHADOW` 41 → 89 of 105"; the pin is hue 80, luma 79 of
   104 since item 4212. Now "`_COLOUR_STILL` 14 of 33 (18)"; then
   "`_COLOUR_STILL` 18 of 33".
+- **S26** and **S27**, `tools/brief/frame.md`, "landing". Now: "a "for
+  the Loop" line: `none`, or a finding I file; **at 300 k, one line to
+  me** (1637, 1638)". Then: "a "for the Loop" line: `none`, or a finding
+  for the pass; **at 400 k, one line to me** (1637, 1638; DECISIONS 131
+  §6)". Now: "**A red on the journal-quote or Loop-line guard alone is
+  forgiven** (3277, 3328)". Then: "**A red on the journal-quote guard
+  alone is forgiven** (3277)". Rows 1637, 1638 and 3328 of the checklist
+  in `docs/audit/README.md` move with them, or `test_brief.py` is red.
 - **S22**, `docs/TEST_PERFORMANCE.md`, "Shared isolated runner": strike
   "`resources-v1`: sixteen CPU slots and 32 GiB reserved RSS" and "guards
   reserve eight slots/32 GiB", each followed by "(twenty slots and 96
