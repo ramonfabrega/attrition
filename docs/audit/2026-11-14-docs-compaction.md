@@ -83,7 +83,7 @@ measurable; the question is his.
 | R12 | the memory index | 7,324 | hooks to one line; one stale pointer | ~2,500 | outside git |
 | S1 | DECISIONS, "Index" | 15,985 of 16,000 | split at entry 100; retitle; reorder; fix 121's row | 0 (frees ~8,000) | none |
 | S2–S16 | fifteen syncs, Part 2 | | | | |
-| G1 | the eight sections pinned in `OVER` | 284,070 | promote their numbered `###` parts to `##` | 0 (largest read 70,859 → 16,594) | delete seven `OVER` rows |
+| G1 | the eight sections pinned in `OVER`, and 45 of the 77 at 15,000 B or more | 284,070; 831,211 | promote their numbered `###` parts to `##` | 0 (largest read 70,859 → 16,594; 45 sections off the ceiling) | delete seven `OVER` rows; three tools to check |
 | G2 | `docs/JOURNAL.md`, the chronicle to 2026-09-17 | 1,185,526 | leave, or archive at a revision | 0 or 1.19 MB | `queueledger.py`; Ramon (`CLAUDE.md`'s table) |
 | G3 | `docs/DECISIONS.md` | 843,219 | an index by topic; no entry moved | 0 | the pass |
 | G4–G7 | `AI.md`, `GOLDEN.md`, `COMBAT.md`, `ORDERS.md`, `RUNS.md`, struck text | 8.1 MB | leave | 0 | |
@@ -103,10 +103,12 @@ METHOD and `CLAUDE.md`, and R0 on top for lanes.
    heading and the index has 8,000 B of room. Both end a fitting loop
    (D1) that has run on most commits for weeks, and R1 is self-correcting:
    the closed form is accepted only while every row is at its length.
-3. **R0, then R5.** R0 is one sentence of the frame and decides whether 93
-   of 98 lanes read 18 KB or 1 KB. R5 removes 4,931 B the file itself has
-   called unverified since 2026-11-09, by pointing at the tool header that
-   already holds every exit.
+3. **R0, then R7 and R5.** R0 is one sentence of the frame and decides
+   whether 93 of 98 lanes read 18 KB or 1 KB. R7 is the section of LOOP
+   drivers open with (31 of 43 sessions): a third of it is the gate's and
+   the tree's rules, which belong with the merge. R5 removes 4,931 B the
+   file itself has called unverified since 2026-11-09, by pointing at the
+   tool header that already holds every exit.
 
 ## Part 1. The read-first set
 
@@ -116,10 +118,10 @@ METHOD and `CLAUDE.md`, and R0 on top for lanes.
 |---|---|---|---|
 | `CLAUDE.md` | 25,606 | every session and subagent, whole | ceiling 26,000 (394 B of room) |
 | memory index | 7,324 | every session and subagent | none (outside git) |
-| `docs/QUEUE.md` | 24,235 | lanes read its head: 93 of 98 lane worktrees since 2026-11-10 touched it, 61 or more by `head -N` | handoff 32 lines and the 16,000 B section ceiling; 18 items of 8 lines; two line pins |
-| `docs/TRACKS.md` | 11,817 | the driver and the pass; 0 of 98 lane worktrees read it whole | section ceiling only |
-| `docs/LOOP.md` | 37,586 | the driver; 16 lane worktrees grepped it | section ceiling only ("The driver" 13,382, "The chain" 10,990) |
-| `docs/METHOD.md` | 22,127 | residue, chapter, coverage, reading and sweep items; 9 lane worktrees touched it | section ceiling only |
+| `docs/QUEUE.md` | 24,235 | lanes read its head: 93 of 98 lane worktrees since 2026-11-10 touched it, 61 or more by `head -N`; 26 of 43 driver sessions read it whole | handoff 32 lines and the 16,000 B section ceiling; 18 items of 8 lines; two line pins |
+| `docs/TRACKS.md` | 11,817 | the driver and the pass: 10 of 43 driver sessions read it whole, 15 a range; 0 of 98 lane worktrees read it whole | section ceiling only |
+| `docs/LOOP.md` | 37,586 | the driver, by section: 36 of 43 driver sessions touched it, 31 by line ranges (most often "The driver", lines 11 to about 166), 4 whole; 16 lane worktrees grepped it | section ceiling only ("The driver" 13,382, "The chain" 10,990) |
+| `docs/METHOD.md` | 22,127 | residue, chapter, coverage, reading and sweep items, of which few are booked now: one driver session read a range of it and 9 lane worktrees touched it, none whole. R9 and R10 are hygiene, not tokens | section ceiling only |
 | `tools/brief/frame.md` | 33,632 | a lane, by kind: `brief.py` selects sections, so a render lane does not carry the sweep's 5,759 B | a test holds it to the checklist |
 | DECISIONS entries the five files cite | 364,270 over 51 entries | on a pointer | 16,000 a section |
 
@@ -315,7 +317,24 @@ what it points at.
 
 ### R7. The driver section's history
 
-- **Where:** `docs/LOOP.md`, "The driver", 13,382 B.
+- **Where:** `docs/LOOP.md`, "The driver", 13,382 B. This is the part of
+  LOOP a driver does read (31 of 43 sessions, by range), so a byte here is
+  worth more than one in "The chain".
+- **Its fourteen paragraphs, in bytes:** one session drives 1,594; Ramon
+  steers 317; banks and clears 1,735; supply calls the pass 547; who builds
+  1,503; the roster 1,713; the kill rule and the stop 947; three things
+  reach Ramon 134; the trunk 501; the booking gate takes every landing
+  865; the booking gate is scoped 751; a tree's corpus 645; the gate clears
+  the disk 1,192; the harness moved 909. The last five (4,362 B) are rules
+  of the gate and the tree a driver needs at a merge, not at its start,
+  and "The chain" is where the merge is; moving them there costs no bytes
+  and takes a third off the section drivers open with.
+- **History inside the rules:** in "one session drives", the two failures
+  the handover mechanism answers ("312,347 tokens written", "the pass
+  armed at 01:30 on 2026-11-13 never started") are entry 131 §8's; in
+  "banks and clears", the 230 k figure's three measurements are entry 131
+  §6's and entry 116's; in "the gate clears the disk", the 0 GB reading
+  and its counts are entry 128's and 129's.
 - **Items:** "The harness moved under this file" (909 B) is a changelog of
   2026-11-09: two of its five bullets are rules (a message to a running
   lane wakes it mid-gate, so it is sent only when the lane must act first;
@@ -481,12 +500,30 @@ nothing in the giants can be deleted as a duplicate.
   falls from 70,859 B to 16,594, and seven rows leave `OVER` (the guard
   demands the deletion once a section is under the ceiling). `GROUPS.md`
   §6's one part stays pinned, or splits again.
+- **The same move, where lanes are landing now.** Of the 77 sections at
+  15,000 B or more outside QUEUE, DECISIONS, RUNS and the journal, **45
+  (831,211 B) are made wholly of numbered `###` parts that are each under
+  16,000**: promotion alone takes them off the ceiling (`AI.md` 12,
+  `COMBAT.md` 9, `ORDERS.md` 7, `LEADERS.md` 4). 27 have no `###` part and
+  need an authored split. The ones on live tracks, by what changed since
+  2026-11-07: `RENDERER.md` §5 "The counter" grew from 4,449 B to 15,975 in
+  the week and stopped there (four numbered parts; 124 commits touched the
+  file); `LEADERS.md` §7 (15,901), §8, §10 and §18, which the chain's item
+  4159 amends at every step; `ORDERS.md` §8 (13,625 to 15,485).
+  `CHECKSUM.md` §20, the chain's own section, is 15,995 B in one block
+  with no part to promote: its next amendment is a fitting episode unless
+  it is split first. Sections of `AI.md` that no item is booked on moved
+  by 3 to 12 B in the same week and stayed within 20 B of the ceiling
+  (§331 15,984 to 15,996), which is what an amendment under a full
+  section looks like.
 - **What cites it:** `AI.md` §2 and its parts: 71 citations in `crates/`,
   33 in other documents; `GROUPS.md` §6: see the appendix's citation
   counter. None cites a heading level.
-- **Guard:** `a_section_over_the_ceiling_may_not_grow`. Not checked: whether
-  `tools/brief.py --section` or any tool reads "the `## N.` section" as a
-  unit and would now get the head alone.
+- **Guard:** `a_section_over_the_ceiling_may_not_grow`. Three tools split
+  a document on `## ` and were not read by this lane: `tools/retire.py`,
+  `tools/runwiring.py`, `tools/seams.py`; `tools/brief.py --section` only
+  passes its string through. Check each before promoting in a document it
+  reads.
 - **Confidence:** medium-high.
 
 ### G2. `docs/JOURNAL.md`
@@ -594,6 +631,8 @@ section.
 - The statuses in the DECISIONS index were checked for entry 121 alone.
 - The topic chains under G3 are read off the index, not off the entries.
 - Whether merges conflict on the live tracks' documents (D6).
+- What `tools/retire.py`, `tools/runwiring.py` and `tools/seams.py` do with
+  a `## ` heading (G1).
 
 ## Appendix. The measuring scripts
 
