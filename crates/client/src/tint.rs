@@ -242,9 +242,12 @@ pub(crate) mod tests {
     /// Item 4227 (the floor's clamped second layer at its offset, §3.12):
     /// run1564 off row 1,412 → 1,565, luma 1,710 → 1,705; on row 1,389 →
     /// 1,543, luma 1,672 → 1,664. Off still beats on: off.
+    /// Item 4232 (the lake lit and blended in HDR, §3.24): run1564 off hue
+    /// 674 → 678, row 1,565 → 1,706, luma 1,705 → 1,805; on hue 666 → 676,
+    /// row 1,543 → 1,686, luma 1,664 → 1,795. Off still beats on: off.
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
         ([959, 1104, 1036], [959, 1104, 1079]),
-        ([674, 1565, 1705], [666, 1543, 1664]),
+        ([678, 1706, 1805], [676, 1686, 1795]),
         ([1042, 1171, 1121], [1041, 1171, 1153]),
     ];
 
@@ -259,9 +262,11 @@ pub(crate) mod tests {
     /// run1564's 607 → 605, run1570's 1,044 → 1,045; the drawn side holds.
     /// Item 4223: run1564's photograph matched to sRGB (§3.18), its
     /// untinted side 605 → 621; the drawn side holds at 674.
+    /// Item 4232: the lake lit and blended in HDR (§3.24) moves the frame's
+    /// mean, so its white: run1564's untinted 621 → 600, drawn 674 → 678.
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
         ((961, 986), (959, 986)),
-        ((621, 679), (674, 679)),
+        ((600, 679), (678, 679)),
         ((1045, 1073), (1042, 1073)),
     ];
 }
