@@ -580,7 +580,7 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S27 | `tools/brief/frame.md`, "landing" (every lane carries it) | "a "for the Loop" line: `none`, or a finding I file"; "**A red on the journal-quote or Loop-line guard alone is forgiven** (3277, 3328)" | entry 125 §3: "There is no Loop backlog. A journal's "for the Loop" line stays in the journal and is filed nowhere"; §4: `docs_guard.rs` loses "the Loop line's filing", and "Entry 84's forgiveness of the Loop-line guard on a lane goes with the guard". No test or tool names a Loop-line guard now (`grep -i` over `docs_guard.rs` and `release_gate.py`). The line is still written: 68 of the 73 journals since 2026-11-12 carry it, 22 with something to say (items 4159T, 4162, 4165, 4167, 4168, 4170, 4176, 4177, 4185, 4186, 4188, 4189, 4190, 4198, 4199, 4205, 4206, 4207, 4214, 4222, 4223, 4225). Two pass records took up four of them (4167, 4176, 4177, 4185); nothing lists the other eighteen. | "or a finding for the pass", and drop the guard's name; the eighteen are D8's question again |
 | S28 | LOOP, "Ratification, and the passes" and "The brief" | "An unattended pass ... ratifies the marked rows, rules the Loop items, builds the loop's tools and guards"; "a worker's "for the Loop" line that names a brief's omission is a candidate row"; and three Loop numbers LOOP still carries as owed (4051 and 4055 on the waiter, 4053 on a builder's wait) | entry 125 §3: "There is no Loop backlog ... the handoff counts nothing; what the driver would raise at a pass goes in that pass's record"; LOOP's own "The lanes": the line "is filed nowhere". With no backlog a pass has no Loop items to rule, and the three numbers are a backlog of three kept in the rules file, unruled since 2026-11-09 (R5). | "rules what the tranche's journals and its own record raise"; the three numbers ruled once by the pass, or struck with R5 |
 | S29 | `docs/LEADERS.md` §13, §16, §19, §20 ("In the crate", the Checksum bullet), and §5, §12, §18 in part | "Each sits in `LEADERS_HELD_OUT` at count 2 (`crates/rondata/src/diff/checksum_lines.rs:1787, 1788, 1817, 1835, 1837, 1850, 1851`)"; "Each is a `(unheld)` entry of `LEADERS_HELD_OUT` with count 2: `cannon_time` at ...`:1771`, `handicap` at `:1793`, `multi_diff` at `:1815`"; "all twelve are `(unheld)` in `LEADERS_HELD_OUT`, count 2 each" | `LEADERS_HELD_OUT` holds 30 leaves, at lines 2027 to 2058: none of §13's seven, §16's three, §19's two or §20's three is among them; of §18's twelve, `score`, `score_combat`, `score_units` and `score_units_2` are; of §12's two, `pop_issues`. The queue: "`LEADERS_HELD_OUT` 30 ... from 140". G13 has the count of line cites. | each bullet struck or dated at the step that released its leaves, as §7's was; the line numbers dropped |
-| S30 | `docs/RENDERER.md` §3.12 (line 1912) and §7.1 (line 3593) | "The coral layer (draws 130–131, `coralblend.tga`), the surf (163–169) and the frame's mean luminance are not drawn"; "The shore's blend, `sand.tga`'s own layer and its patches, is not drawn (§3.12, 4178b)" | the same section, thirty lines on, struck and answered: "~~... and the coral are not drawn.~~ ... the coral is drawn"; §3.16 "The shore's sand (item 4192)"; §3.18 "The coast's patches, and what lies under the lake (item 4200)", `RUN1564_3294_COAST_PATCH` 439 of 439; §3.21 the frame's white (item 4212). Each claim stood in two places and was struck in one. A scan of the nine unstruck "is not drawn" sentences in the file found these two; the surf (parked 4225a) and the other six read current or were not checked. | strike the two with their answers; the habit that prevents the next is a grep of the document for the parked id (`4178b`) when the item that answers it lands |
+| S30 | `docs/RENDERER.md` §3.12 (line 1912), §7.1 (line 3593) and §3.22 (line 3038) | "The coral layer (draws 130–131, `coralblend.tga`), the surf (163–169) and the frame's mean luminance are not drawn"; "The shore's blend, `sand.tga`'s own layer and its patches, is not drawn (§3.12, 4178b)" | the same section, thirty lines on, struck and answered: "~~... and the coral are not drawn.~~ ... the coral is drawn"; §3.16 "The shore's sand (item 4192)"; §3.18 "The coast's patches, and what lies under the lake (item 4200)", `RUN1564_3294_COAST_PATCH` 439 of 439; §3.21 the frame's white (item 4212). Each claim stood in two places and was struck in one. A scan of the nine unstruck "is not drawn" sentences in the file found these two; the surf (parked 4225a) and the other six read current or were not checked. A second scan, for a parked id struck in its own journal and still cited open in a document, finds one more of the same shape: §3.22, "the fall is in one of the two draws' stage colour (parked 4217a)", sixteen lines above "~~... (parked 4217a).~~ Answered by". Of the six rows struck in their journals (4199b, 4200c, 4212a, 4214d, 4214e, 4217a) it is the only one a document still cites open. | strike the three with their answers; the habit that prevents the next is a grep of the document for the parked id (`4178b`) when the item that answers it lands |
 
 Also seen, and not a contradiction: `CLAUDE.md` gives the gate as
 `--test-threads 4` and QUEUE and LOOP give the booking gate as
@@ -1064,53 +1064,58 @@ to be current, it found S24.
 
 ## Left to do
 
-Written at 02:10 −05:00 on the commander's word (this session's context
-passed 400 k); a fresh session continues from here until 05:00. The
-scripts were scratch in the first session's job directory and are restated
-in the appendix; `tools/retire.py` and `lore` need nothing rebuilt.
-
-**Reached by the second session** (02:12 to 05:00 −05:00, Fable 5.2):
-`docs/audit/` as a set (G9), `docs/lab/` and the journal's README (G10,
-S20, S21), entries 128 and 129 against LOOP (they agree; S11 gained its
-ruling), and the half-checks R2 (re-measured, lower), S12 (settled) and D6
-(the journals name the conflicts); then `docs/TEST_PERFORMANCE.md`
-(G11, S22, S23), `ORACLE.md`'s reading order (G8), the track documents
-against their queue lines (G12), the parked rows' afterlife (D8),
-every constant the handoff quotes against the code (S24), and G3's
-chains against their entries' sentences of succession (two corrected),
-G1 run dry against the guards, R1's change read off its three readers,
-and entries 130 to 132 read whole for a first draft of G3's page; the
-frame's live kinds were scanned for clauses entries 131 and 132
-superseded (230 k, `--lane --whole`, every third landing, the parked
-file, the stop's old figures) and carry none.
+The first session stopped at 02:10 −05:00 on its context and left a list.
+The second took that list from 02:12 on a fresh context. What it reached
+is in the text where it belongs, each marked "second session": the
+half-checks R2, S12 and D6; `docs/audit/` as a set (G9), `docs/lab/` and
+the journal's README (G10); `TEST_PERFORMANCE.md` (G11) and `ORACLE.md`'s
+reading order (G8); the track documents against their queue lines (G12);
+entries 128 to 132 read whole, LOOP and the frame read against them (S25
+to S28, R13) and a first draft of G3's page; every constant the handoff
+quotes against the code (S24); the parked rows' afterlife (D8); R1's
+change read off its three readers; G1 run dry against the guards;
+`LEADERS.md`'s line cites and `RENDERER.md`'s twice-stated claims (G13,
+S29, S30). What follows is what neither session reached.
 
 **Not reached.**
 
-- The mid-size specifications as documents: `LEADERS.md`, `MAPGEN.md`,
-  `COLLISION.md`, `RENDERER.md`, `CHECKSUM.md`, `PATHFINDER.md` were
-  measured by section and citation, never read for a stale claim.
+- The mid-size specifications read as documents: `MAPGEN.md`,
+  `COLLISION.md`, `PATHFINDER.md` and `CHECKSUM.md` were measured by
+  section and citation and never read; `LEADERS.md` and `RENDERER.md`
+  were probed mechanically (G13, S29, S30), which finds a claim of a
+  known shape and nothing else.
 - `tools/brief/frame.md`'s sections for kinds no item is booked under
   (`sweep`, `coverage-item`, `reading-item`, `chapter`, `capture`,
-  `reading`: 17,555 B). Selected by kind, so no lane carries them; not
-  checked for staleness.
-- DECISIONS entries read whole: 35, 125, 126, 128 to 132. LOOP's
-  citations of them hold.
+  `reading`, `before-reading`: about 17,500 B). Selected by kind, so no
+  lane carries them today.
+- `ORACLE.md`'s other thirty sections, past the preamble, the recipe and
+  the lane sections' heads.
+- The release suite on G1's promoted tree: the dry run was the reflex's
+  guards.
+- DECISIONS before entry 125, read whole: entry 35 alone.
 
 **Half-checked.**
 
 - S16: six statuses read (59, 71, 72, 100, 116, 121), the other rows are
   a heuristic's list.
-- G3's seven topic chains are now checked against each entry's
-  sentences of succession, not against the entries read whole.
+- G3's seven topic chains are checked against each entry's sentences of
+  succession, not against the entries read whole; the draft page's lines
+  for entries 128 to 132 are.
 - R11's candidates are measured by line range; none was weighed against
   what each kind of lane uses.
-- G8: `ORACLE.md`'s preamble, recipe and lane sections' heads were
-  read; the other thirty sections by title only.
+- S24: `RUN1564_3294_COAST_PATCH` was not checked past its first two
+  rows.
+- S29: §4's bullet (four leaves) was not checked leaf by leaf.
+- G13: the 26 cites that fail the three-line test were not each read;
+  the 30 into the held-out list were.
+- S30: of nine unstruck "is not drawn" sentences in `RENDERER.md`, three
+  were read against the later sections.
 
-**Asked of Ramon on the row, unanswered when this was written** (D5, D7,
-D3): whether the milestone retired the never-empty headline slots; what a
-briefed lane should read of the handoff; whether he wants more of
-DECISIONS than an index by topic.
+**For Ramon, unanswered when this closed:** D5 (whether the milestone
+retired the never-empty headline slots), D7 (what a briefed lane should
+read of the handoff), D3 (whether he wants more of DECISIONS than an
+index by topic), and, new in the second session, D9 (whether
+`CLAUDE.md`'s phase 3 says what "done" was counted in).
 
 ## Not established
 
