@@ -121,7 +121,10 @@ made them agree: the harness's dump seat activated a start's buildings
 counted where the original's frame-0 arm does not (§19), and the start's
 building pass set the Senate's bit (§17.4a). `score_explored` and
 `score_pop` agree and are zero on every packet; `score_units`,
-`score_units_2` and `score_combat` part (parked 4187a).
+`score_units_2` and `score_combat` part (parked 4187a). **Item 4159's
+frozen scan released `score_explored`, `score_pop` and `last_spoke`**
+(entry 131 §1's second way out; §7.5, §18.5): every store the executable
+makes to each writes 0.
 
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
@@ -1676,7 +1679,8 @@ goods exchange (§8):
   surplus (+99 for a pending counteroffer) (−50 when weak)`. Port it
   doubled; it is what the listing does.
 
-**`last_spoke`** has no writer and no sim reader; carry 0.
+**`last_spoke`** has no writer but `Leader::init`'s per-slot clear to 0
+and no sim reader; carry 0 (the frozen scan, §7.5).
 
 **Readers that change a decision.**
 
@@ -1847,6 +1851,19 @@ the same staged walk parts on 1099, as before, so the rule is what moves
 the word. Not ported from the same body: the alliance-break eject, the
 `ally_mask` bits (4206c), the third-party message, the alliance's victory
 test (§10.2) and `recalc_borders`.
+
+**The frozen scan** (item 4159; `rondata::stores`, `docs/DECISIONS.md`
+entry 131 §1). It scans the executable's stores by displacement and tells
+them apart by the base's provenance. Its census confirms `dow`'s writers:
+`action_declare`'s two increments (6dad3e, 6dad61) and `Leader::init`'s
+clear (6e3d44). `pay_dow (006d2b10)` stores no `dow`; it pays the price
+out of `escrow`. **`last_spoke` is frozen**: its one store is
+`Leader::init`'s per-slot clear (6e3d6f, `[esi + 0x220]` with `esi` at
+`+0xd4` and stepping by 4), which writes 0. Beside it are the
+whole-record clears (`_memset` in `Leader::close (006b7f80)`,
+`Leader::init` and `Leaders::clear (006ed5d0)`) and the save game's walk
+of `[+0x8, +0x692a)`. It left `LEADERS_HELD_OUT` on that census, 0 = 0
+on frame 91, both leaders.
 
 ### 7.6 Not established
 
@@ -4479,8 +4496,8 @@ packets, 226 walked leaders (`docs/CHECKSUM.md` §23):
 | `score_unit_upgrades` | agree 226, non-zero 20 | 129 §5 | **released** (run938b, frame 630, leader 1: 208) |
 | `score_research` | agree 226, non-zero 113 | 129 §5 | **released** (run1161 leader 1: 56) |
 | `score_wonders` | agree 226, non-zero 65 | 129 §5 | **released** (run1487, frame 1980, leader 2: 666) |
-| `score_explored` | agree 226, zero everywhere | 129 §5 | held: no packet moves it |
-| `score_pop` | agree 226, zero everywhere | 129 §5 | held: no packet moves it |
+| `score_explored` | agree 226, zero everywhere | 131 §1, frozen | **released** (item 4159's scan: four stores, each 0) |
+| `score_pop` | agree 226, zero everywhere | 131 §1, frozen | **released** (item 4159's scan: four stores, each 0) |
 | `score_units` | parts on 10 | 129 §5 | held (4187a) |
 | `score_units_2` | parts on 3 | 129 §5 | held (4187a) |
 | `score_combat` | parts on 4 | 129 §5 | held (4187a) |
@@ -4501,6 +4518,22 @@ not the reverse; the razed building is out of `n` when priced (settled). The
 crate has `kill_value_by` and `cast_counterintel`. New: the gaia `is_ally`
 read and the `rare.flags` write. No kept dump was consulted;
 `LeaderData::log_data (006e5110)` prints `score` for a later value diff.
+
+**The frozen scan** (item 4159; `rondata::stores`, `docs/DECISIONS.md`
+entry 131 §1, the step after 4187c) settles the two leaves no packet
+moves. Every store the executable makes to each writes 0:
+- `score_explored` (+0x1c): `Leader::compute_explore_score (006bc5e0)`,
+  `reset_score` (6e37fc), and `compute_score`'s head and Armageddon arm
+  (6ec5a0, 6ec636);
+- `score_pop` (+0x34): `Leader::compute_pop_score (006bc190)`,
+  `reset_score` (6e380e), and `compute_score` (6ec5ca, 6ec659).
+At each displacement the scan meets 1,453 and 660 stores of other
+records. The base's provenance clears every one but jump-table bytes
+decoded as code, which no path reaches (6c1741 in `Leader::diplomacy`;
+7c3783 and 7c3797 in `Console::exec_keymap`). Both left
+`LEADERS_HELD_OUT`, 0 = 0 on frame 91, both leaders. On the sides
+`score_territory`, `score_economy` and `score_unit_upgrades` left by
+moving; `score` (+0x18) is still held.
 
 ### 18.6 Not established
 
