@@ -282,11 +282,22 @@ mod tests {
         ((agree, theirs, past), (haze, dense))
     }
 
-    /// The plume row on one photograph: as drawn, with the fires off (the
-    /// count before any smoke), and the photograph taken for ours (the
-    /// made-to-fail's other side: a row that cannot reach its whole is
-    /// blind). Each `((agree, theirs, past), (haze, dense))`.
-    fn plumes(shot: Photo, name: &str, dump_name: &str) -> Option<PlumeRows> {
+    /// **The four sides a burning city's rows read** (items 4233, 4241):
+    /// the photograph, our still as drawn, with the fires off (the scene
+    /// without its smoke or flames), and with the packet's own particles
+    /// through our pass (the draw apart from the emission; the scene when
+    /// no packet is on disk), at the photograph's size, with each of
+    /// [`THEIRS`]' slots' pixels.
+    struct Sides {
+        photo: Vec<u8>,
+        drawn: Vec<u8>,
+        scene: Vec<u8>,
+        packet: Vec<u8>,
+        size: (usize, usize),
+        anchors: Vec<(i32, i32)>,
+    }
+
+    fn sides(shot: Photo, name: &str, dump_name: &str) -> Option<Sides> {
         let mut p = probe_at(shot)?;
         let size = (p.photo.width, p.photo.height);
         let m = p.camera.to_screen_matrix();
@@ -309,8 +320,6 @@ mod tests {
         let scene = crate::weathering::tests::still(&mut p, &format!("{name}-fires-off"));
         p.world.fires = true;
         let drawn = crate::weathering::tests::still(&mut p, &format!("{name}-fires"));
-        // The packet's own particles through our pass: the draw apart from
-        // the emission.
         let packet = crate::particle::tests::dump(dump_name).map(|d| {
             let given = d
                 .particles
@@ -322,20 +331,122 @@ mod tests {
             p.world.particles_given = None;
             s
         });
-        let photo = p.photo.rgba.clone();
-        let out = [
-            plume_row(&photo, &drawn, &scene, size, &anchors),
-            plume_row(&photo, &scene, &scene, size, &anchors),
-            plume_row(&photo, &photo, &scene, size, &anchors),
-            plume_row(
-                &photo,
-                packet.as_deref().unwrap_or(&scene),
-                &scene,
-                size,
-                &anchors,
-            ),
-        ];
+        Some(Sides {
+            photo: p.photo.rgba.clone(),
+            packet: packet.unwrap_or_else(|| scene.clone()),
+            drawn,
+            scene,
+            size,
+            anchors,
+        })
+    }
+
+    /// The plume row on one photograph: as drawn, with the fires off (the
+    /// count before any smoke), and the photograph taken for ours (the
+    /// made-to-fail's other side: a row that cannot reach its whole is
+    /// blind). Each `((agree, theirs, past), (haze, dense))`.
+    fn plumes(shot: Photo, name: &str, dump_name: &str) -> Option<PlumeRows> {
+        let s = sides(shot, name, dump_name)?;
+        let row = |ours: &[u8]| plume_row(&s.photo, ours, &s.scene, s.size, &s.anchors);
+        let out = [row(&s.drawn), row(&s.scene), row(&s.photo), row(&s.packet)];
         println!("{name}: drawn, fires off, the photograph, the packet's: {out:?}");
+        Some(out)
+    }
+
+    /// **The flame's window** (item 4241; §3.25): about each of
+    /// [`THEIRS`]' slots' pixels, `(left, right, up, down)`. The
+    /// photographs' flames stand from about 70 pixels over their slot to
+    /// 30 under it, and a slot's glow reaches some 30 to either side.
+    const FLAME_WINDOW: (i32, i32, i32, i32) = (40, 40, 96, 32);
+
+    /// **The flame's column** (item 4241): a slot's vertical extent is
+    /// counted over its pixel's 24 to either side, narrower than
+    /// [`FLAME_WINDOW`] so a neighbour's flame stays out of it.
+    const FLAME_COLUMN: i32 = 24;
+
+    /// **A pixel's flame class** (item 4241; §3.25, the rule committed
+    /// before its count): lit when the fire has brightened it and it reads
+    /// as fire, not wall: red at 200 and over, green at least 35
+    /// hundredths of red (a roof's red stripe is not a flame), its luma at
+    /// least 24 over the scene's (our still with the fires off), and either
+    /// warm (red at least 90 over blue) or bright (luma 215 and over).
+    /// A lit pixel is **flame** (2) when warm and **pale** (1) when only
+    /// bright: the photographs' cores are yellow-white at 255 and their
+    /// bodies orange; a core clipped to a neutral white is pale.
+    fn flame_class(p: &[u8], scene: &[u8]) -> u8 {
+        let (r, g, b) = (u32::from(p[0]), u32::from(p[1]), u32::from(p[2]));
+        let l = luma(p);
+        let warm = r >= b + 90;
+        if r < 200 || 100 * g < 35 * r || l < luma(scene) + 24 || !(warm || l >= 215) {
+            0
+        } else if warm {
+            2
+        } else {
+            1
+        }
+    }
+
+    /// One photograph's flame row on one side, `((agree, theirs, ours
+    /// past), (ours' pale, flame), extents)`: theirs every lit pixel of
+    /// the photograph over the windows' union; a pixel agrees when ours is
+    /// of its class; ours past is a pixel ours lights that the photograph
+    /// leaves unlit. Each slot's extent is `(theirs, ours)`: the rows of
+    /// its column holding at least two lit pixels.
+    type FlameRow = ((usize, usize, usize), (usize, usize), [(usize, usize); 4]);
+
+    fn flame_row(
+        photo: &[u8],
+        ours: &[u8],
+        scene: &[u8],
+        (w, h): (usize, usize),
+        anchors: &[(i32, i32)],
+    ) -> FlameRow {
+        let (left, right, up, down) = FLAME_WINDOW;
+        let class = |side: &[u8], i: usize| flame_class(&side[i * 4..], &scene[i * 4..]);
+        let mut inside = vec![false; w * h];
+        for &(x, y) in anchors {
+            for yy in (y - up).max(0)..(y + down).min(h as i32) {
+                for xx in (x - left).max(0)..(x + right).min(w as i32) {
+                    inside[yy as usize * w + xx as usize] = true;
+                }
+            }
+        }
+        let (mut agree, mut theirs, mut past, mut pale, mut flame) = (0, 0, 0, 0, 0);
+        for (i, _) in inside.iter().enumerate().filter(|(_, on)| **on) {
+            let t = class(photo, i);
+            let o = class(ours, i);
+            theirs += usize::from(t > 0);
+            agree += usize::from(t > 0 && o == t);
+            past += usize::from(t == 0 && o > 0);
+            pale += usize::from(o == 1);
+            flame += usize::from(o == 2);
+        }
+        let mut extents = [(0, 0); 4];
+        for (e, &(x, y)) in extents.iter_mut().zip(anchors) {
+            let rows = |side: &[u8]| {
+                ((y - up).max(0)..(y + down).min(h as i32))
+                    .filter(|&yy| {
+                        ((x - FLAME_COLUMN).max(0)..(x + FLAME_COLUMN).min(w as i32))
+                            .filter(|&xx| class(side, yy as usize * w + xx as usize) > 0)
+                            .count()
+                            >= 2
+                    })
+                    .count()
+            };
+            *e = (rows(photo), rows(ours));
+        }
+        ((agree, theirs, past), (pale, flame), extents)
+    }
+
+    /// One photograph's flame row in four columns, as [`PlumeRows`]: as
+    /// drawn, fires off, the photograph for ours, the packet's particles.
+    type FlameRows = [FlameRow; 4];
+
+    fn flames(shot: Photo, name: &str, dump_name: &str) -> Option<FlameRows> {
+        let s = sides(shot, name, dump_name)?;
+        let row = |ours: &[u8]| flame_row(&s.photo, ours, &s.scene, s.size, &s.anchors);
+        let out = [row(&s.drawn), row(&s.scene), row(&s.photo), row(&s.packet)];
+        println!("{name}: flames drawn, fires off, the photograph, the packet's: {out:?}");
         Some(out)
     }
 
@@ -360,11 +471,15 @@ mod tests {
     /// read 9,139 to 11,431 (mean 10,191), dense 230 to 1,319 (mean 804);
     /// the hash on the node's direction, mean 10,280, dense 912; the hash
     /// on (0, 0, −1), mean 9,871, dense 589.
+    /// Item 4241: a plume's pixel clamped after the white, 11,251 →
+    /// 11,259, dense 876 → 880; then the bloom, which brightens the
+    /// fires-off scene and so moves theirs 19,378 → 19,675: **11,322**,
+    /// past 2,099, **dense 924** of 2,463; the packet's 11,878, dense 1,750.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((11251, 19378, 2168), (14850, 876)),
-        ((0, 19378, 0), (0, 0)),
-        ((19378, 19378, 0), (16963, 2415)),
-        ((11806, 19378, 2042), (14210, 1716)),
+        ((11322, 19675, 2099), (14853, 924)),
+        ((0, 19675, 0), (0, 0)),
+        ((19675, 19675, 0), (17212, 2463)),
+        ((11878, 19675, 1943), (14197, 1750)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -378,11 +493,14 @@ mod tests {
     /// Over 24 phases the draws read 10,006 to 11,873 (mean 11,104), dense
     /// 266 to 956 (mean 669); the hash on the node, mean 10,713, dense 907;
     /// on (0, 0, −1), mean 9,776, dense 606.
+    /// Item 4241: clamped after the white, 11,547 → 11,548, dense 942 →
+    /// 948; the bloom, theirs 18,871 → 19,045: **11,560**, past 1,794,
+    /// **dense 975** of 2,511; the packet's 12,257, dense 2,124.
     const RUN1570_PLUME: PlumeRows = [
-        ((11547, 18871, 1895), (14951, 942)),
-        ((0, 18871, 0), (0, 0)),
-        ((18871, 18871, 0), (16401, 2470)),
-        ((12219, 18871, 1555), (13771, 2099)),
+        ((11560, 19045, 1794), (14874, 975)),
+        ((0, 19045, 0), (0, 0)),
+        ((19045, 19045, 0), (16534, 2511)),
+        ((12257, 19045, 1463), (13720, 2124)),
     ];
 
     #[test]
@@ -399,6 +517,82 @@ mod tests {
             return;
         };
         assert_eq!(c, RUN1570_PLUME);
+    }
+
+    /// **`RUN1559B_3279_FLAME`** (item 4241; §3.25, the rule committed
+    /// before this count): [`FlameRow`]s as drawn, with the fires off,
+    /// with the photograph for ours, and with the packet's own particles
+    /// through our pass. Seen at **163** of 712, past 459: ours' core
+    /// clips to a neutral white (212 pale pixels against the photograph's
+    /// 154), and slot 10's flame, under the tower, is not drawn (extent 0
+    /// against 16). Made to fail, pale and flame merged into one class,
+    /// the row reads 226. The packet's particles read 205, past 331.
+    /// Item 4241, the tone map's own order (§3.25): a plume's pixel
+    /// clamped after the white scales it, **163 → 183**, past 459 → 522,
+    /// pale 212 → 167, flame 473 → 591 (merged 236); then the bloom,
+    /// **→ 206** of 699, past 584, pale 176, flame 678 (merged 270). The
+    /// bloom brightens the fires-off scene too, so theirs moves 712 → 699.
+    /// The packet's particles read 233, then 266, past 425. With the fire's
+    /// depth test off, slot 10 is drawn where the photograph's flame is
+    /// (extent 17 against 16) and the row reads 322 at the clamp (4241a).
+    const RUN1559B_3279_FLAME: FlameRows = [
+        (
+            (206, 699, 584),
+            (176, 678),
+            [(19, 15), (25, 21), (16, 0), (31, 20)],
+        ),
+        ((0, 699, 0), (0, 0), [(19, 0), (25, 0), (16, 0), (31, 0)]),
+        (
+            (699, 699, 0),
+            (148, 551),
+            [(19, 19), (25, 25), (16, 16), (31, 31)],
+        ),
+        (
+            (266, 699, 425),
+            (108, 666),
+            [(19, 15), (25, 18), (16, 0), (31, 19)],
+        ),
+    ];
+    /// to fail, 283). The packet's particles read 303, past 251. Item
+    /// 4241: clamped after the white, **245 → 321**, past 213 → 316, pale
+    /// 92 → 95, flame 404 → 584 (merged 363); the bloom, **→ 346** of 627,
+    /// past 393, pale 102, flame 680 (merged 389). The packet's particles
+    /// read 370, then 407, past 441; four frames from the photograph, they
+    /// stand as tall as its flames on slots 8 and 9 (15 and 28 rows against
+    /// 13 and 27). Depth test off, 444 (4241a).
+    const RUN1570_FLAME: FlameRows = [
+        (
+            (346, 627, 393),
+            (102, 680),
+            [(13, 11), (27, 26), (5, 0), (19, 24)],
+        ),
+        ((0, 627, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
+        (
+            (627, 627, 0),
+            (43, 584),
+            [(13, 13), (27, 27), (5, 5), (19, 19)],
+        ),
+        (
+            (407, 627, 441),
+            (105, 780),
+            [(13, 15), (27, 28), (5, 0), (19, 28)],
+        ),
+    ];
+
+    #[test]
+    fn the_flames_over_the_burning_city_on_run1559b() {
+        let Some(c) = flames(run1559b(), "1559b", "run1559b") else {
+            return;
+        };
+        assert_eq!(c, RUN1559B_3279_FLAME);
+    }
+
+    #[test]
+    fn the_flames_over_the_burning_city_on_run1570() {
+        let Some(c) = flames(run1570(), "1570", "run1570") else {
+            return;
+        };
+        assert_eq!(c, RUN1570_FLAME);
     }
 
     #[test]

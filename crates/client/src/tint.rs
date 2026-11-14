@@ -250,10 +250,12 @@ pub(crate) mod tests {
     /// Item 4239 (the surf drawn, §3.27): run1564 off row 1,706 → 1,786,
     /// luma 1,805 → 1,851; on row 1,686 → 1,778, luma 1,795 → 1,843. Off
     /// still beats on: off.
+    /// Item 4241: off luma run1559b 1,038 → 1,031, run1564 (on 4239's tree)
+    /// 1,851 → 1,852, run1570 1,122 → 1,120; on unchanged: the bloom drawn and a plume's pixel clamped after the white (§3.25). Off still beats on: off.
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
-        ([959, 1104, 1038], [959, 1104, 1081]),
-        ([678, 1786, 1851], [676, 1778, 1843]),
-        ([1042, 1171, 1122], [1041, 1171, 1154]),
+        ([959, 1104, 1031], [959, 1104, 1081]),
+        ([678, 1786, 1852], [676, 1778, 1843]),
+        ([1042, 1171, 1120], [1041, 1171, 1154]),
     ];
 
     /// **`GRASS_HUE`**, `[(untinted, tinted)]` on run1559b, run1564 and
@@ -271,10 +273,12 @@ pub(crate) mod tests {
     /// mean, so its white: run1564's untinted 621 → 600, drawn 674 → 678.
     /// Item 4239: the surf drawn (§3.27) moves it again, run1564's
     /// untinted 600 → 602; the drawn side holds.
+    /// Item 4241: untinted 961 → 955, 602 → 566 (on 4239's tree), 1,045 → 1,034; the drawn
+    /// side holds: the bloom drawn and a plume's pixel clamped after the white (§3.25).
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
-        ((961, 986), (959, 986)),
-        ((602, 679), (678, 679)),
-        ((1045, 1073), (1042, 1073)),
+        ((955, 986), (959, 986)),
+        ((566, 679), (678, 679)),
+        ((1034, 1073), (1042, 1073)),
     ];
 }
 

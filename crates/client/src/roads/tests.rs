@@ -386,11 +386,9 @@ const RING_MOVE: (i32, i32) = (12, 0);
 /// Item 4221: luma before 8 → 9, drawn 19 → 20, moved 7 → 9: the trees tinted and blended move the frame's white (§3.23).
 /// Item 4233: before and moved hue 1 → 2, luma 9 → 10; drawn luma 20 → 21: the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21).
 /// Item 4237: before and moved hue 2 → 1: the smoke's dense core blended in HDR (§3.25) moves the frame's mean, so its white (§3.21).
-const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
-    [(1, 24), (10, 24)],
-    [(21, 24), (21, 24)],
-    [(1, 24), (10, 24)],
-];
+/// Item 4241: luma before 10 → 9, drawn 21 → 20, moved 10 → 7: the bloom drawn and a plume's pixel clamped after the white (§3.25).
+const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] =
+    [[(1, 24), (9, 24)], [(21, 24), (20, 24)], [(1, 24), (7, 24)]];
 /// **`RUN1570_RING`** (item 4199), the same on run1570's photograph: hue
 /// **0 → 22** of 24, luma 14 → 14. The two that part on hue: (18, 163),
 /// (86, 41, 33), the name plate; (19, 163), the T.
@@ -399,11 +397,9 @@ const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
 /// Item 4233: drawn luma 15 → 16, the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21).
 /// Item 4237: before luma 10 → 11, the smoke blended in HDR moving the frame's white (§3.25).
 /// Item 4240: before luma 11 → 10, moved 10 → 9: the emission's starts (the node's direction and the original's draws, §3.25) move the frame's mean, so its white (§3.21).
-const RUN1570_RING: [[(usize, usize); 2]; 3] = [
-    [(0, 24), (10, 24)],
-    [(22, 24), (16, 24)],
-    [(0, 24), (9, 24)],
-];
+/// Item 4241: before luma 10 → 9, the bloom drawn and a plume's pixel clamped after the white (§3.25).
+const RUN1570_RING: [[(usize, usize); 2]; 3] =
+    [[(0, 24), (9, 24)], [(22, 24), (16, 24)], [(0, 24), (9, 24)]];
 
 /// **The ring's row** (item 4199, §3.19): on run1559b's and run1570's
 /// photographs, before, drawn, and moved.

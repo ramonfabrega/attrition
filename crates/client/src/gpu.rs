@@ -188,10 +188,10 @@ fn particle_shader() -> String {
         .replace("{HDR_SCALE}", &format!("{HDR_SCALE:?}"))
 }
 
-/// **The plume target** (item 4237; `docs/RENDERER.md` §3.25): the light
-/// the particles lay in, in rgb, and the share of the frame under them
-/// left, in alpha, each in HDR.
-const PLUME_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba16Float;
+// **The plume target** (item 4237; `docs/RENDERER.md` §3.25): the light
+// the particles lay in, in rgb, and the share of the frame under them
+// left, in alpha, each in HDR; item 4241 keeps it on the expose frame.
+use crate::expose::PLUME_FORMAT;
 
 /// The names [`WATER_SHADER`] leaves a hole for, each filled once.
 #[cfg(test)]
@@ -241,7 +241,7 @@ const SHADE_HOLES: [&str; 2] = ["EXPOSURE", "white"];
 /// [`DECAL_SHADER`] appended), the tree (the textured with the filled
 /// [`TREE_SHADER`] appended), the shade, the patch, the luminance and the
 /// expose (item 4212).
-fn shader_sources() -> [(&'static str, String); 10] {
+fn shader_sources() -> [(&'static str, String); 11] {
     [
         ("client", SHADER.to_string()),
         ("sprites", SPRITE_SHADER.to_string()),
@@ -262,6 +262,7 @@ fn shader_sources() -> [(&'static str, String); 10] {
         ("luminance", crate::expose::luminance_shader()),
         ("expose", crate::expose::expose_shader()),
         ("particle", particle_shader()),
+        ("bloom", crate::expose::BLOOM_SHADER.to_string()),
     ]
 }
 
@@ -505,6 +506,7 @@ impl Gpu {
             luminance_module,
             expose_module,
             particle_module,
+            bloom_module,
         ] = shader_sources().map(|(label, source)| {
             device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some(label),
@@ -1081,6 +1083,7 @@ impl Gpu {
             &device,
             &luminance_module,
             &expose_module,
+            &bloom_module,
             format,
             DEPTH_FORMAT,
         );
@@ -1752,12 +1755,13 @@ impl Gpu {
         }
         // Item 4233 (§3.25): the particles after the figures, as draws
         // 216–229 come after them on the card; item 4237: blended in HDR.
-        if !particles.is_empty() {
-            self.plume_passes(&mut enc, &exposed.scene, &depth_view, size, &particles);
-        }
+        // Item 4241: the light target is cleared even when nothing burns,
+        // since the expose pass reads it.
+        self.plume_passes(&mut enc, &exposed, &depth_view, size, &particles);
         // Item 4212 (§3.21): the tone map's white at the frame's mean, then
         // the overlay, which the tone map does not take.
         self.expose.measure(&mut enc, &exposed);
+        self.expose.bloom(&mut enc, &exposed);
         {
             let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("shown"),
@@ -1803,7 +1807,7 @@ impl Gpu {
     fn plume_passes(
         &self,
         enc: &mut wgpu::CommandEncoder,
-        target: &wgpu::Texture,
+        exposed: &crate::expose::ExposeFrame,
         depth_view: &wgpu::TextureView,
         size: (u32, u32),
         particles: &[(wgpu::Buffer, u32, wgpu::BindGroup, bool)],
@@ -1813,28 +1817,7 @@ impl Gpu {
             height: size.1,
             depth_or_array_layers: 1,
         };
-        let texture = |label: &str, format, usage| {
-            self.device.create_texture(&wgpu::TextureDescriptor {
-                label: Some(label),
-                size: extent,
-                mip_level_count: 1,
-                sample_count: 1,
-                dimension: wgpu::TextureDimension::D2,
-                format,
-                usage,
-                view_formats: &[],
-            })
-        };
-        let light = texture(
-            "plume",
-            PLUME_FORMAT,
-            wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
-        );
-        let under = texture(
-            "under the plume",
-            self.format,
-            wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
-        );
+        let (target, light, under) = (&exposed.scene, &exposed.light, &exposed.under);
         let light_view = light.create_view(&Default::default());
         {
             let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -1875,6 +1858,9 @@ impl Gpu {
                 pass.set_vertex_buffer(0, b.slice(..));
                 pass.draw(0..*n, 0..1);
             }
+        }
+        if particles.is_empty() {
+            return;
         }
         enc.copy_texture_to_texture(target.as_image_copy(), under.as_image_copy(), extent);
         let bind = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -2513,7 +2499,7 @@ mod tests {
             }
         }
         assert_eq!(built, 1, "call sites building a shader module");
-        assert_eq!(shader_sources().len(), 10);
+        assert_eq!(shader_sources().len(), 11);
     }
 
     #[test]
