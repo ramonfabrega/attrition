@@ -2188,6 +2188,29 @@ pub fn walk_to_close(built: &mut Built, fin: &Frame, players: usize) -> Endpoint
     walk_to_close_quitting(built, fin, players, true)
 }
 
+/// [`walk_to_close`] with the quit where the capture's own trace puts it
+/// (item 4204, `docs/LEADERS.md` §10.2): the resign's sound under
+/// `Player::quit` on the frame before the closing dump's label, at that
+/// frame's head when a `game_random` draw of the frame follows it and past
+/// its body otherwise. Of the 124 closings walked this way, 110 quit past
+/// the body — a game already over, quit from its end window — and 13 at the
+/// head (the six melees and the seven 24,000-frame games); a trace with no
+/// quit on that frame (run847's, on the label's own frame 6822) keeps the
+/// head, as [`walk_to_close`] does.
+#[cfg(test)]
+pub(crate) fn walk_to_close_traced(
+    built: &mut Built,
+    fin: &Frame,
+    players: usize,
+    tracelog: &str,
+) -> EndpointResult {
+    let head = match super::harness::tests::quit_in_named_trace(tracelog) {
+        Some((q, head)) if q + 1 == fin.n => head,
+        _ => true,
+    };
+    walk_to_close_quitting(built, fin, players, head)
+}
+
 /// [`walk_to_close`] with the quit at the frame's head (`head`) or past
 /// its body ([`compare_shutdown_quitting`], item 4189).
 pub fn walk_to_close_quitting(
@@ -2373,7 +2396,7 @@ mod tests {
         check_setup(row, &init);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         let started = std::time::Instant::now();
-        let mut r = walk_to_close(&mut built, &fin, 8);
+        let mut r = walk_to_close_traced(&mut built, &fin, 8, row.trace);
         // **The extras, typed** (item 370). `extra` is what this crate holds
         // and the capture's dump does not, so nothing on disk says what they
         // are; the simulation that produced them is still standing here.
