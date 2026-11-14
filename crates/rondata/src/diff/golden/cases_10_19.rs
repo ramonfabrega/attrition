@@ -651,7 +651,8 @@ pub(super) fn chapter_sixteen_s_word_frame_is_widened_whole() {
     // ~~`ox`/`oy` on the box leg's slot~~: the re-issue's group point, the
     // click there and the snap here until `orig` was carried.
     //
-    // **`speed`/`new_speed` on 685 and 804 stand.** `Groups::
+    // ~~**`speed`/`new_speed` on 685 and 804 stand.**~~ They agree since
+    // item 4231 (below). `Groups::
     // get_open_slot@006fa460` asks each live slot it walks past for
     // `get_num` (vslot `+4`), which normalizes a seated group of fewer
     // than four and so re-seats its speed (`docs/GROUPS.md` §3.1, §4.1,
@@ -659,15 +660,10 @@ pub(super) fn chapter_sixteen_s_word_frame_is_widened_whole() {
     // fresh slot takes its leader's. This crate does not model the slot
     // allocation (`docs/GROUPS.md`'s table of what the pool leaves out),
     // and no step of an explore or a flee reads a group's speed.
-    let mut want_pool: Vec<String> = [
-        "685 slot 2 new_speed",
-        "685 slot 2 speed",
-        "804 slot 1 new_speed",
-        "804 slot 1 speed",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    // Item 4231: 4 rows -> none; a `QUEUE_FIRST` move's `get_num_cap`
+    // normalizes its record (`docs/GROUPS.md` §3.4), so slot 2 on 685 and
+    // slot 1 on 804 take their leader's speed as the original's do.
+    let mut want_pool: Vec<String> = Vec::new();
     want_pool.sort();
     // Item 1457: 6 rows → 4 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch16: what parts in the pool moved");
