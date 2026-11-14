@@ -560,5 +560,6 @@ fn inca_classical_pair_run1270b_s_closing_frame_is_widened_whole() {
     // Item 3710: 2 keys fewer — who=1's leader `free_peasants` and
     // `gatherers` agree now that `produce_city` walks its citizens by
     // object number (`docs/AI.md` §358.4).
-    pin_eq!(w.firsts.len(), 94, "run1270b baseline");
+    // Item 4159's residue: 94 -> 93, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 93, "run1270b baseline");
 }

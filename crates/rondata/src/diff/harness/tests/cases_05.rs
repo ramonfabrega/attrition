@@ -578,9 +578,11 @@ mod bodies {
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 4187: `score` (held, `docs/LEADERS.md` §18.5) first parts
         // past the word, on 16790: who 1 ours 1935 theirs 1946.
+        // Item 4159's residue: 16790's `score` (who 1, ours 1935 theirs
+        // 1946) agrees, the score's units and combat parts (docs/LEADERS.md §18.5).
         pin_eq!(
             past,
-            vec!["16790 1/-1 leader:score: ours 1935 theirs 1946".to_string()],
+            Vec::<String>::new(),
             "every key first parting past the word"
         );
         // **The floor**: 284 keys standing on the window's first block —
@@ -608,7 +610,7 @@ mod bodies {
         // Item 1291 took (159, 166, 167) → (159, 166, 166): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (159, 166, 166).
         // Item 1330 took 41 (153/158/158 → 112/115/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (36, 37, 38), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (36, 37, 37), "the floor");
     }
 
     pub(in super::super) fn run233_s_word_frame_is_widened_whole() {
@@ -879,7 +881,7 @@ mod bodies {
         // Item 1330 took 43 (155/165/172/178 → 112/118/122/128): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (37, 38, 38, 38),
+            (36, 37, 37, 37),
             "the floor"
         );
     }

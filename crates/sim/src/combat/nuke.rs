@@ -257,7 +257,13 @@ impl Sim {
             }
             for b in 0..self.buildings.len() {
                 let o = Obj::Building(b);
-                if !self.active(o) || self.combat.nukes.blasts[i].struck.contains(&o) {
+                // `Nuke::do_damage@0092bc80`'s building arm walks each
+                // tile's object chain and asks only `been_damaged_before`
+                // and vslot `+0xc`: nothing about hit points, so a city
+                // building at its ceiling (`health` 0) takes the blow, its
+                // hit points unmoved (item 4159's residue, 4177a: run855's
+                // 4777 and run1405b's 3494, theirs one blow more).
+                if !self.struck(o) || self.combat.nukes.blasts[i].struck.contains(&o) {
                     continue;
                 }
                 let tp = self.profile(o);

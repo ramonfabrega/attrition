@@ -4360,8 +4360,9 @@ victim's owner. Its only stores: `Object::do_damage (0064a480)`,
   leaves. Else it must be a captain (vslot `+0xe8`) on its last figure
   (`curr_uber_size(0) == 1`), not a decoy (`unit_masks & 1`): victim owner
   `+0x810 += 1`. Then **only if the killer id `param_7 >= 0`**: `+0xa58`,
-  `+0xa5a`, `+0x80c` move; `unit_flags & 0x10` redirects the victim to
-  `(+0x3e, +0x28)`; a negative id or a false vslot `+0x18` scores nothing;
+  `+0xa5a`, `+0x80c` move; a transport (`unit_flags & 0x10`) is priced as
+  its first passenger, `(inside_down_who, inside_down)`; a negative id
+  (empty) or a false vslot `+0x18` scores nothing;
   `sc[K] = is_ally(K, o) ? max(sc[K] − v, 0) : sc[K] + v`. No killer-kind or
   splash test. It runs before the victim's `die`: `n` counts the victim.
 - **Building razed** (`do_damage`): type captured before `take_damage`; when
@@ -4399,9 +4400,9 @@ and the unit's `research_premium_cost`; the factors are each type's own
 `score_combat`'s four sites: `take_damage_typed`'s countable death (beside
 `note_unit_death`, before `close_count`), `do_damage`'s raze (the type read
 before the take, the owner's count after it), `cast_sniper_unit`,
-`cast_sabotage_building` and `cast_counterintel`. SEAMs: the Armageddon arm
-and the `Game+0x820 & 0x40` latch (not carried), the `unit_flags & 0x10`
-victim redirect, and a gaia owner's `is_ally` (taken as not allied). The
+`cast_sabotage_building` and `cast_counterintel`; the unit arm prices
+`Sim::score_victim`. SEAMs: the Armageddon arm and the `Game+0x820 &
+0x40` latch (not carried), and a gaia owner's `is_ally` (not allied). The
 readers (`diplomacy`, `find_target`) stay on their seams: wiring them is an
 AI change, not this leaf's. The reading's map, which the port followed:
 
@@ -4413,8 +4414,8 @@ AI change, not this leaf's. The reading's map, which the port followed:
   `Ledger::bucket`/`income`, `Holdings::starting`/`rare`
   (`economy.rs:679`–`699`). Building `num_queued` as `num_sites_of` is the
   crate's own claim.
-- **Dirty-bit hooks**: `add_unit` (`units/store.rs:48`), `close_unit`
-  (`combat/fight/delivery.rs:1245`), `tech/gain.rs:189`.
+- **Dirty-bit hooks**: `add_unit` (`units/store.rs:48`), `close_count`
+  and `hold_dead_slot` (every close), `tech/gain.rs:189`.
 - **Kill value**: `economy::cost::kill_value_by` (`economy/cost.rs:1258`)
   ports the building form, swept in
   `crates/sim/tests/sweep/build_type_data_get_kill_value.rs`, uncalled;
@@ -4470,10 +4471,15 @@ packets, 226 walked leaders (`docs/CHECKSUM.md` §23):
 | `score_wonders` | agree 226, non-zero 65 | 129 §5 | **released** (run1487, frame 1980, leader 2: 666) |
 | `score_explored` | agree 226, zero everywhere | 131 §1, frozen | **released** (item 4159's scan: four stores, each 0) |
 | `score_pop` | agree 226, zero everywhere | 131 §1, frozen | **released** (item 4159's scan: four stores, each 0) |
-| `score_units` | parts on 10 | 129 §5 | held (4187a) |
-| `score_units_2` | parts on 3 | 129 §5 | held (4187a) |
-| `score_combat` | parts on 4 | 129 §5 | held (4187a) |
+| `score_units` | agree 226, non-zero 217 | 129 §5 | **released** (run912e, frame 12753, leader 1: 672) |
+| `score_units_2` | agree 226, non-zero 217 | 129 §5 | **released** (run912e leader 1: 549) |
+| `score_combat` | agree 226, non-zero 52 | 129 §5 | **released** (run1496, frame 1539, leader 1: 84) |
 | `score` | parts on 10 | 128 §3 | held: parts in the record diff (4187b) |
+
+**Item 4159's residue (4187a)** fixed three faults: `init_unit` counted
+a `POP` 0 Transport Freighter, an empty transport sunk was priced, and
+`Unit::close`'s units bit was raised on kills alone (now in
+`hold_dead_slot`). Value diffs: its journal.
 
 `score` is printed; its sum takes `score_combat` and `score_units`, an
 accumulator and a part gated on a dirty bit, neither printed, so the
@@ -4510,12 +4516,13 @@ twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
   `type_avail` for goods (`has_preq`, `type_eligible` unread).
 - **Territory**: whether the crate's `territory` is current at
   `strategy_all`.
-- **Units**: whether every removal goes through `Unit::close`; the crate's
-  `queued_by_type` for units.
+- **Units**: whether every crate close reaches `hold_dead_slot`; the
+  crate's `queued_by_type` for units.
 - **Upgrades, research**: `has_tech` past its head; `researching`'s vslot
   `+0x4c` "active" test.
-- **Combat**: the `unit_flags & 0x10` redirect's meaning; whether the
-  computer casts sabotage or counterintelligence.
+- **Combat**: the redirect's head on a boat of several squads (the crate
+  takes the first `inside_unit`); whether the computer casts sabotage or
+  counterintelligence.
 - **Rest**: `get_team_score` past its head; the three non-latch bit-6
   setters' contexts; `LeaderData::walk_data (006d6750)` on load (off the
   frame path).

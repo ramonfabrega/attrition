@@ -313,7 +313,8 @@ fn egyptian_classical_pair_run1241_walks_the_market_s_queue_back() {
     // After the re-zero (`docs/AI.md` section 318.1): **109**, the
     // standing families, `1/84`'s `orders_x`/`orders_y` on 5759 (7224,
     // 12168 against 7227, 12158) and the groups' `held`/`pool` on 5697.
-    pin_eq!(w.firsts.len(), 110, "run1241 baseline");
+    // Item 4159's residue: 110 -> 109, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 109, "run1241 baseline");
 }
 
 /// run1241b: the word 6537's window, blocks 6532..6748 — six blocks before

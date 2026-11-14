@@ -652,12 +652,14 @@ impl Sim {
                         // priced before `die` takes it off its owner's
                         // count; an ally's (itself included) comes off,
                         // floored at 0. No killer-kind or splash test.
-                        // SEAM: the `unit_flags & 0x10` victim redirect.
-                        if let Some(r) = self.units[i].ty {
+                        // A transport (`unit_flags & 0x10`) is priced as
+                        // the head of its `inside_down` (`:520`-`:528`),
+                        // and an empty one scores nothing.
+                        if let Some((r, o)) = self.score_victim(i) {
                             self.note_score_kill(
                                 by,
                                 crate::leaders::score::Victim::Unit(r),
-                                victim,
+                                o,
                                 true,
                             );
                         }
@@ -1704,6 +1706,13 @@ impl Sim {
     /// the transport that dies putting its passenger ashore
     /// ([`Sim::disembark`]), attrition, the upgrade's squad trim.
     pub(crate) fn hold_dead_slot(&mut self, i: usize) {
+        // `Unit::close@0060ee50:79`'s `leader_flags |= 0x800000` is on
+        // every close, ahead of the count's gates: a boat put ashore
+        // ([`Sim::transport_dies`]), a missile, the upgrade's trimmed
+        // follower raise the score's units bit as a kill does (item
+        // 4159's residue: run912e's Merchant Fleet closed on 12610, and
+        // the original's `score_units` 672 is the recount after it).
+        self.score_units_dirty(self.units[i].owner);
         // The type's `+0x1fc` gate is a field this crate does not carry (no
         // shipped type with a round in flight is known to hold it zero), so
         // it is read as set; `die_hold_steps` takes it for the sweep.
