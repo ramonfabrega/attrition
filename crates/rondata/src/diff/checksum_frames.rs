@@ -163,6 +163,12 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// queue's vacated slots walked as the array holds them (100 → 159), a
 /// removed last entry's `job_counter` zeroed (159 → 202), and the tech
 /// arm's unqueue after `gain_tech` (202 → 7383).
+///
+/// Item 4226 moved two on run1578: units 129 → 189 and guys 129 → 6537,
+/// both lines walking slots 0 to 8 as `check_units@009371d0` and
+/// `check_guys@00937430` do, so the two Wild Birds (`TypeIndex` 402, slot
+/// 9) the sampling made on 128 are on neither (run1582 on 129: units 1,147
+/// ranges against 1,107 and guys 389 against 375 → the stream's counts).
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (

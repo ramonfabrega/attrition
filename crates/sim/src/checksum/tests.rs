@@ -160,3 +160,39 @@ fn a_bare_building_walks_eighteen_ranges_and_its_queue() {
     assert_eq!(line.ranges[14].bytes[4..6], (-1i16).to_le_bytes());
     assert!(line.ranges[15].bytes.iter().all(|&x| x == 0));
 }
+
+/// **A bird is on neither the units nor the guys line** (item 4226,
+/// `docs/CHECKSUM.md` §24.3): `check_units@009371d0` and
+/// `check_guys@00937430` walk slots 0 to 8, and a bird is slot 9's. A herd
+/// animal on slot 8 is walked, so the bound is nine, not eight.
+#[test]
+fn a_bird_on_slot_nine_is_on_neither_the_units_nor_the_guys_line() {
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    sim.add_unit(crate::Unit::new(0, 0, Pos::new(480, 480), 10));
+    let lines = |s: &crate::Sim| (s.checksum_units().ranges, s.checksum_guys().ranges);
+    let (units, guys) = lines(&sim);
+    sim.add_unit(crate::Unit::new(
+        crate::gaia::BIRD_OWNER,
+        0,
+        Pos::new(960, 960),
+        1,
+    ));
+    assert_eq!(
+        lines(&sim),
+        (units.clone(), guys.clone()),
+        "a bird enters neither line"
+    );
+    sim.add_unit(crate::Unit::new(
+        crate::world::PLAYER_SLOTS,
+        0,
+        Pos::new(1440, 1440),
+        1,
+    ));
+    let (u8s, g8s) = lines(&sim);
+    assert!(
+        u8s.len() > units.len(),
+        "slot 8's animal is on the units line"
+    );
+    assert!(g8s.len() > guys.len(), "and on the guys line");
+}
