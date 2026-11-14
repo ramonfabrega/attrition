@@ -1937,9 +1937,9 @@ one photograph: the rows.
   is a sawtooth too. It is unlit; the card lights it (its light diffuse
   1.36).
 - **The floor's texcoord offsets** drift with
-  `modify_ocean_floor_texture`'s clock; the client lays run1564's. The surf
+  `modify_ocean_floor_texture`'s clock; the client lays run1564's. ~~The surf
   (`<COASTAL>`'s `COASTALPHA*`, `SANDDRY`, `SANDWET`) and the coral are not
-  drawn.
+  drawn.~~ The surf is `Surf`'s, read in §3.18 (item 4225); the coral is drawn.
 
 ## 3.13 The draw list across the ages (item 4166)
 
@@ -2613,6 +2613,45 @@ stay at 1,104 and 1,036. The painter's own rows on run1564 fall
 (`RUN1564_3279_GROUND` 1,233 → 1,018, `OCEAN` 233 → 87): its water had
 agreed with the grab, not with the frame.
 
+**The surf, off the packet (item 4225).** The surf is its own class,
+`Surf`. At load `Surf::init@008a0cf0` lays waves and breakers along
+splines of the shore (`wave_structs`, `breaker_structs`). It draws
+each wave's start time from `internal_random`, and `add_wave@0089d5a0`
+draws its shape the same way. `Surf::draw@0089d6f0` keeps the waves
+whose cell the terrain's visibility byte marks. `SurfWave::draw` and
+`SurfWaveSection::draw` then lerp each section's shape between two
+keyframes of its timing (`<SURF>` in `Data/effects_graphics.xml`:
+`SURFTIMING*`, the `.mot` models, `wavetime` 250, `stalltime` 75). The
+vertices are placed at z 0 by the wave's 2 × 2 axes and appended to
+the image's statics `Surf::final_*`, one list for each of `<SURF>`'s
+13 textures. Each vertex is white, at the timing's alpha.
+`tools/render/surf_packet.py` reads them off run1564's packet:
+
+- 950 waves and 255 breakers, of which 102 and 27 are on screen;
+- seven non-empty lists, 0, 2, 4, 7, 8, 9 and 11: the breaker foam,
+  two big washes, the two big foams, the big wave and the big crash;
+- 2,256 vertices and 1,926 triangles, every vertex white at z 0;
+- the vertex alpha's mean between 92 and 199 a list, its peak 255.
+
+The lists are the card's draws 163–169, in order and by file. The
+card blends each source alpha over (`SRCALPHA`, `INVSRCALPHA`, alpha
+test `GREATER` 0). Its colour is the texel times the vertex, and its
+alpha the texel's times the vertex's times the mask's. 4213's "two
+lake-wide layers" (166, 167) are the big foam's two textures on the
+same waves: they lie on the shore, like the rest.
+
+**Composited on the client's still and counted**
+(`the_surf_off_the_packet`, `RUN1564_3279_SURF`): `SANDY` goes **443 →
+484**, with 41 tiles crossing up and none down. On tile (164, 199)
+theirs reads (41, 129, 167), and the still's goes (14, 142, 201) →
+(29, 148, 203). **`OCEAN` stays 258**, and no `OCEAN` verdict changes,
+even with the masks dropped. So the surf does not part the lake.
+
+**The lake's dark patch is a fish herd.** Draws 155–161 bind
+`fishherd.tga` and `fishherd_churn.tga` before the water. Three of
+them (157, 159, 160) stand at (35112, 35832), and the card's own view
+puts that at pixel (1088, 186): 4223b's blot near (1,050, 190).
+
 **What is not established.**
 
 - ~~**The lake's red** (4174a, 4192b; parked 4213a): no input read carries
@@ -2623,9 +2662,17 @@ agreed with the grab, not with the frame.
   not read; with the match, nothing is left for it to explain on hue.
 - **`OCEAN`'s 179 tiles still parted on hue** (item 4223): after the
   match, ours stays more saturated than theirs (the centre's green 145
-  against 130). The surf's own geometry and vertex alpha are not
+  against 130). ~~The surf's own geometry and vertex alpha are not
   streamed on the pass, and are not drawn (parked 4223a). The lake's
-  dark patch near pixel (1,050, 190) is not read (4223b).
+  dark patch near pixel (1,050, 190) is not read (4223b).~~ Read by
+  item 4225 (above): the surf lies on the beach, and the dark patch is
+  the fish herd. The parted tiles are the lake's interior, where theirs
+  is redder than where it agrees ((32, 131, 173) against (19, 124,
+  168)), and ours reads (8, 141, 205). The cause is not read (parked
+  4225b). The surf is not drawn by the client (parked 4225a), nor are
+  the fish herds. With its masks dropped, the composite reads `SANDY`
+  630: the photograph's beach is whiter than the packet's surf gives on
+  our bytes, where the card blends in HDR before the tone map (4225c).
 - ~~The tileset's tint, (18, 18, 0) on `early_autumn`, which
   `ImageIO::set_tint` lays on every tileset texture at load; the client
   takes the files untinted.~~ Drawn, with the land's light (§3.21).
