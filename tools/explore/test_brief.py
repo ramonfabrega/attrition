@@ -660,6 +660,38 @@ class AStartOrInputItemHasItsKind(unittest.TestCase):
         self.assertEqual(brief.TRACKS['input'], 'the orders track')
 
 
+class AKindCarriesTheSectionsThatSpeakToIt(unittest.TestCase):
+    """The docs-compaction pass of 2026-11-14 (R13): `booked` (a residue
+    item's booking: the frame, the draw delta, the unit by `TypeIndex`) and
+    a word's landing (the value diff and its widening, `runwiring.py`, the
+    RUNS row) rode in every kind's brief, and a render lane read a third of
+    its last section for another kind of item. Red first: the render brief
+    carried both."""
+
+    def test_a_render_start_input_or_structure_brief_carries_no_word_s_landing_and_no_booking(self):
+        frame = brief.FRAME.read_text()
+        for kind in ('structure', 'render', 'start', 'input'):
+            text = brief.compose(4008, kind, queue=QUEUE_TRACKS, frame=frame, base='abc1234',
+                                 model='Opus 5.5', runs=[], sections=[], read=[], note='', tests=[])
+            for gone in ("## A word's landing", 'runwiring.py', 'TypeIndex', 'say if you moved a word'):
+                self.assertNotIn(gone, text, kind)
+            self.assertIn('## Landing', text, kind)
+            self.assertIn('Lane verdict:', text, kind)
+
+    def test_a_word_s_brief_carries_both_and_the_note_comes_before_them(self):
+        text = brief.compose(1133, 'residue', queue=QUEUE, frame=brief.FRAME.read_text(), base='abc1234',
+                             model='Opus 5.5', runs=[], sections=[], read=[], note='The note.',
+                             tests=['floors::'])
+        for want in ("## A word's landing", 'runwiring.py', 'TypeIndex', 'say if you moved a word'):
+            self.assertIn(want, text)
+        self.assertLess(text.index('The note.'), text.index("## A word's landing"))
+        self.assertLess(text.index("## A word's landing"), text.index('## Landing'))
+        for kind, names in brief.KINDS.items():
+            self.assertEqual('booked' in names, kind in ('residue', 'chapter', 'reading'), kind)
+            self.assertEqual('landing-word' in names, kind in ('residue', 'chapter', 'sweep', 'coverage'),
+                             kind)
+
+
 class TheFrameNamesRowsTheWayCccDoes(unittest.TestCase):
     def test_every_ccc_verb_the_frame_spells_names_a_row_by_lane(self):
         # Loop 4023 (4021's journal): the frame's landing row spelt `ccc
