@@ -1616,6 +1616,14 @@ impl Stream {
                 // order's, and staging cheats are outside the simulation.
                 done.skip(&it.cmd, "a cheat line, not an order");
             }
+            Command::Pause { .. } => {
+                // The turn control's (`TurnControl::process_pause@00956990`,
+                // item 4252): a solo game's pause stops the frame, not the
+                // turns, and writes nothing the simulation keeps. The
+                // packages a paused game issues share the frame they stood
+                // on, and the stream applies them in order before its tick.
+                done.skip(&it.cmd, "the turn control's, not the simulation's");
+            }
             _ => done.skip(&it.cmd, "not mapped"),
         }
     }
@@ -1749,6 +1757,12 @@ pub const KINDS_ON_DISK: &[(&str, usize)] = &[
     ("unitmask", 1),
 ];
 
+/// **The recordings' pauses** (item 4252): `(pairs, packages)` — every
+/// `pause(1)` on disk has its `pause(0)` on the same frame, with this many
+/// packages issued between them while the game stood paused
+/// (`every_recorded_pause_holds_its_frame`).
+pub const PAUSES_HELD: (usize, usize) = (12, 70);
+
 /// Every input command of the recordings, by kind, most first (ties by
 /// name): the census [`KINDS_ON_DISK`] pins.
 pub fn kinds(recs: &[RecGame]) -> Vec<(&'static str, usize)> {
@@ -1770,6 +1784,61 @@ mod tests {
     /// **The census, against the disk** (item 4249): every recording the
     /// corpus reads decodes whole, and its input commands by kind are
     /// [`KINDS_ON_DISK`]. Install-gated, and loud when the corpus is absent.
+    /// **Every recorded pause holds its frame** (item 4252,
+    /// `docs/CLIENT_INPUT.md` §13): each `pause(1)` the recordings on disk
+    /// carry is followed, on the same frame, by the orders issued while
+    /// the game stood paused, one package a turn, and then by its
+    /// `pause(0)`; the next package after it is on a later frame. The shape
+    /// [`crate::recgame::minted_packages`] admits. Pinned as [`PAUSES_HELD`]:
+    /// (pairs, packages issued between them).
+    #[test]
+    fn every_recorded_pause_holds_its_frame() {
+        let files = crate::recgame::tests::recordings_on_disk();
+        if files.is_empty() {
+            eprintln!("skipping: no .rcx on disk (set RON_RECGAME_DIR / RON_INSTALL)");
+            return;
+        }
+        let (mut pairs, mut between) = (0, 0);
+        for f in &files {
+            let r = crate::recgame::read(f).unwrap();
+            let states: Vec<Option<u8>> = r
+                .packages
+                .iter()
+                .map(|p| {
+                    crate::commands::decode(&p.data)
+                        .unwrap()
+                        .iter()
+                        .find_map(|c| match c {
+                            Command::Pause { state } => Some(*state),
+                            _ => None,
+                        })
+                })
+                .collect();
+            let mut i = 0;
+            while i < states.len() {
+                if states[i] != Some(1) {
+                    assert_ne!(states[i], Some(0), "{f}: an unpause with no pause");
+                    i += 1;
+                    continue;
+                }
+                let frame = r.packages[i].frame;
+                let mut j = i + 1;
+                while states[j] != Some(0) {
+                    assert_eq!(states[j], None, "{f}: a pause inside a pause");
+                    assert_eq!(r.packages[j].frame, frame, "{f}: an order while paused");
+                    j += 1;
+                }
+                assert_eq!(r.packages[j].frame, frame, "{f}: the unpause's frame");
+                assert!(r.packages[j + 1].frame > frame, "{f}: the frame after");
+                pairs += 1;
+                between += j - i - 1;
+                i = j + 1;
+            }
+        }
+        eprintln!("PAUSES HELD: {pairs} pairs, {between} packages between");
+        assert_eq!((pairs, between), PAUSES_HELD);
+    }
+
     #[test]
     fn the_order_kinds_on_disk() {
         let files = crate::recgame::tests::recordings_on_disk();
