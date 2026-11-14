@@ -389,7 +389,8 @@ fn minted_packets_dir() -> String {
 /// ranges parted, the first parting as `range record field: ours |
 /// theirs`, each side's bytes in hex cut to 32 digits))`. Each packet
 /// stands on a frame [`CHECKSUM_FRAMES`] names as a line's first parting;
-/// a line that agrees there is not listed.
+/// a line that agrees there is not listed. run1589 stands on 2745, the
+/// frame before groups' 2746, whose tick item 4231 read under `step4.py`.
 type PacketRow = (&'static str, usize, usize, usize, &'static str);
 pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &[
     (
@@ -444,6 +445,21 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             3,
             "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|fc000000",
+        )],
+    ),
+    (
+        // Item 4231: the frame before groups' 2746, the push's tick still
+        // ahead (`step4.py`'s packet; `docs/RUNS.md` run1589). Every line
+        // but leaders agrees.
+        "run1589",
+        "rontrace-run1589.log",
+        2745,
+        &[(
+            "leaders",
+            267,
+            267,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|f9000000",
         )],
     ),
     (
