@@ -6,7 +6,7 @@ when it is finished
 callers that decide when they run.
 
 **How this was established.** Entirely from the decompile and the listing —
-`tools/ghidra/decomp` for the bodies, `llvm-objdump` over
+the export (`~/ghidra-projects/decomp`, outside the repo; `tools/ghidra/export.sh` writes it) for the bodies, `llvm-objdump` over
 `00651b80`–`00651e00` and `00681920`–`00681b1e` for the two things the
 decompiler dropped (the radius division and `project`'s register
 arguments), and the PE's own `.rdata` bytes for `ring_init`'s offset
