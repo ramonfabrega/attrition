@@ -1276,6 +1276,10 @@ pub fn from_lobby(
         steps.push(("Herd::create_units", herds_built));
         words.push(("setup.cpp", 1240, sim.rng.seed));
         words.push(("setup.cpp", 1244, sim.rng.seed));
+        // 9. `Game::run@00584590:721`, past `build_game`: the danger map
+        // filled once before the first frame (item 4218). It draws nothing.
+        sim.setup().calc_danger();
+        steps.push(("Game::run: calc_danger", true));
     } else {
         steps.push(("the start permutation", false));
         steps.push(("Leader::init (the personality roll)", false));
@@ -1289,6 +1293,7 @@ pub fn from_lobby(
             "World::analyze_map",
             "World::compute_all_territory",
             "Herd::create_units",
+            "Game::run: calc_danger",
         ] {
             steps.push((step, false));
         }

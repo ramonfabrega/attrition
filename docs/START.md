@@ -249,6 +249,15 @@ it (**not built**).
 Then `Setup::reinit_game_units` re-reads every object's `z` from the
 terrain, and `begin_game` dumps.
 
+9. **`Game::run@00584590:720–722`, past `build_game` and before the
+   loop**: `Leaders::init_production_script`, then
+   `GameDaemon::calc_danger` and `update_all_seen`. **`calc_danger` built**
+   (item 4218, `Setup::calc_danger`, the last of `from_lobby`'s steps): it
+   draws nothing, the `[Start Game]` block prints no danger, and the
+   checksum's world line before frame 0's tick does (`docs/CHECKSUM.md`
+   §24.4: section 8 was the zeros' sum ours, the record's now).
+   `update_all_seen` is not run here; the world line agrees without it.
+
 ## 3. The start block, as compared
 
 `rondata::diff::start::start_block` reads a `Sim` at frame 0 as records in
