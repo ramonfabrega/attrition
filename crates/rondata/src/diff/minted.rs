@@ -51,8 +51,6 @@ pub(crate) fn tick_to(built: &mut Built, stream: Option<&mut crate::input::Strea
             s.apply(built.sim.frame as i32, built);
         }
         built.tick();
-        super::harness::debug_watch(built, built.sim.frame);
-        super::harness::debug_armies(built, built.sim.frame);
     }
 }
 
