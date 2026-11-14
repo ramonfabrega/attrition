@@ -2586,8 +2586,9 @@ Not established:
   Groups on 2746: run1588, whole since item 4231. ~~Units on 3596, guys on 6537 and groups on 6781: no packet stands on
   any of them.~~ Units on 3596: run1590, whole since item 4234. ~~Units and guys on 6537 and groups on 6781: no
   packet stands on any of them.~~ Units and guys on 6537: run1591, whole since item 4238. ~~Units on 6907, groups on
-  6781 and guys on 7273: no packet stands on any of them.~~ Groups on 6781: run1592, whole since item 4242. Units on
-  6907, guys on 7273 and groups on 8206: no packet stands on any of them.
+  6781 and guys on 7273: no packet stands on any of them.~~ Groups on 6781: run1592, whole since item 4242. ~~Units on
+  6907, guys on 7273 and groups on 8206: no packet stands on any of them.~~ None needs one: step R's record holds
+  every frame's ranges on the open lines (§25.4, item 4248).
 - An aircraft's figure 0 under the age's seating: `Guy::set_new_location`'s air arm climbs `z` toward the ground
   plus 1000, at most 30 a call, before `last_z` takes it. `Sim::age_snap_units` leaves `airframe` alone (item 4238);
   no packet holds an airborne aircraft on an age tick.
@@ -2605,3 +2606,96 @@ Not established:
   does items since item 4209.
 - Walls, ammo and deaths, which have no emitter. On this game they stay at Adler 1 on both sides to 4030 on every
   packet.
+
+## 25. Step R: the open lines' ranges, on every frame (item 4248)
+
+Each parity item took one packet on its frame (run1592: 494 s to 6,785), and the frames only rise. This section is
+one playback that keeps, for every due `check_all` set, every range the fold takes on the lines our walk does not yet
+hold. A frame of it is a packet's stream on those lines, read without a capture.
+
+## 25.1 The hook
+
+`tools/trace/ranges.h`, built under `-DRON_RANGES` beside `-DRON_CHECKSUMS` (`--tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES`). Three entry stubs:
+- `CheckSums::check_all@00936560` opens a set and records the thread that runs it.
+- `CheckSum::walk_function@00936ff0` (`__thiscall (start, end)`, `ret 8`), the fold every walk hands its byte
+  ranges to.
+- zlib's `adler32@005089d0`, kept only from the call that returns to 0x937587: `check_groups` folds eight words it
+  copies to a stack local there.
+
+The fold and the zlib stubs pass the entry's esp, as §24.1's stub does. A range belongs to the line whose value
+`check_all` logs next, the attribution `checksum.py` uses. Lines in `RNG_MASK` are copied into the set's buffer at
+the fold's entry, so a stack local's bytes are the ones folded. Those lines are 0 to 7: units, builds, walls, ammo,
+deaths, groups, guys, leaders; cities to world are whole (§24.3), and the world alone would double the record. Each
+range keeps its site, start, length and bytes. The set is written only when §24.1's hook calls it due. A frame's many
+calls on an unmoved state cost a copy and no write.
+
+The record is `rontrace.ranges` beside the exe, and `ranges.h`'s header states its layout. Per set: the sixteen
+words, the frame, the place and the caller, then the entries, then the bytes. A set that does not fit (2^20 ranges or
+64 MB) is flagged and empty. Past `RON_RANGES_CAP_MB` (20,480, the queue's ceiling) the hook writes nothing more.
+`I_RNG` (INFO 36) at detach gives the sets, the overfull ones, the megabytes written and whether the cap stopped it.
+
+## 25.2 The readers
+
+- `tools/trace/ranges.py <record> summary | check [--hook <rontrace.log>] | slice --frame F --out DIR | compare
+  --frame F --stream <stream.tsv>`.
+  - `check` re-sums every kept line of every set against the set's own word, and with `--hook` holds the sixteen
+    words against another take's K_CSUM sets.
+  - `slice` writes a frame as `checksum.py` writes a packet: `stream.tsv` (owners named from INDEX.tsv) and
+    `values.tsv`. `packet_stream_in` reads it unchanged.
+  - `--frame` is the logger frame, our `sim.frame`; the set is the first of trace frame F − 1 (§24.1).
+- `rondata::trace::ranges` is the same reader in Rust. `diff::checksum_frames::record` holds the record
+  (`RON_RANGES_RECORD`, default `~/ron-golden/run1597/map-14/rontrace.ranges`).
+
+## 25.3 The record (diff-backed)
+
+run1597 (`RUNS.md`): the minted file to 24,000, 1,957 s launch to exit. **5,722,729,936 bytes**: 24,004 sets on trace
+frames −1 to 23,999, 112,985,285 ranges, 3,912,624,706 bytes of the original's memory, none over, the cap not
+reached.
+- **The kill did not fire**: every set's frame, place and sixteen words are run1578's, 24,004 of 24,004
+  (`the_ranges_record_is_the_hook_s_take`, `RANGES_TAKE`). The hook perturbs nothing the checksum sees.
+- **Every set's ranges are its words**: on all 24,004 sets each of the eight lines re-sums by Adler-32 to the set's
+  word (`ranges.py check`, 35 s). The test re-sums one set in 97 (`RESUM_EVERY`).
+- **The first act**: on trace frame 90, run1597a's and run1597's 2,794 ranges are run1562's packet stream
+  (`stream-3201.tsv`) byte for byte: line, owner, site, length and bytes. Only the start differs, a heap address in
+  another process.
+- **The record is every packet's stream**: on run1562's packet and each of the 14 minted packets (runs 1579 to
+  1592), every range of lines 0 to 7 has the packet's site and bytes, in order
+  (`the_ranges_record_is_each_packet_s_stream`).
+- Mutations: one added to Adler's high half turns the take's test red; dropping one-byte ranges turns the packets'
+  test red.
+
+## 25.4 The score: a parity item's first act is a diff
+
+The parity items whose first act needs a capture: every one before, none now on this game. The open lines' first
+partings on run1578 (§24.3), read off the record by our walk under the pump (`the_ranges_record_names_each_first_parting`,
+`RECORD_PARTINGS`), where each was booked to take a packet:
+
+| frame | line | record's ranges, ours, parted | first parting: range record field: ours, theirs |
+|---|---|---|---|
+| 6907 | units | 1,648, 1,639, 781 | 784 24 `guys.length`: ours 4 bytes `01000000`, theirs 1 byte `05` (nine ranges fewer from here) |
+| 7273 | units | 1,692, 1,692, 1 | 891 30 guy: `angle` and `last_angle` 1431655765, 0 |
+| 7273 | guys | 560, 560, 1 | 279 30 guy: `angle` and `last_angle` 1431655765, 0 |
+| 7383 | builds | 1,142, 1,142, 1 | 903 2019 `mtn..cliff`: `mtn` −1, 0 |
+| 8206 | groups | 544, 544, 1 | 91 67 `id..march`: `ox` 30552, 0; `oy` 21144, 0 |
+
+On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Units parts on 781 ranges at 6907
+because its walk is nine ranges short and every range after the gap is shifted. By 7273 the count agrees and the units
+line parts on one range, the guy's.
+
+## 25.5 How it was established, and what it has not established
+
+The sites and calling conventions are read from the listing (`walk_function`'s prologue and `ret 8`;
+`check_groups`' call at 0x937582, cdecl; `check_all`'s prologue). The attribution, the record and its values are
+diff-backed (§25.3). The buffer logic is tested on the host (`ranges_test.c`, red with the mask cleared).
+
+Not established:
+- Any game but the minted Great Lakes one. Another lobby's record is one take: the same line with that recording,
+  checked the same way against its own hook.
+- Ranges on lines 8 to 14. They are whole on this game (§24.3) and the mask leaves them out. `-DRNG_MASK=…` widens
+  it, and the world line alone is about 295,000 bytes a frame.
+- Whether a fold outside `check_all`, or on another thread, ever reaches `walk_function` during a set. The hook
+  drops both. Every set's lines re-sum to its words, so none was dropped from a kept line in this take.
+- The `this` of each range's walker. `checksum.py` tracks the live walker frames and the hook does not; a slice
+  writes it as 0. No reader of the Rust side uses it.
+

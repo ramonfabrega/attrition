@@ -37275,3 +37275,50 @@ SHA-256 `934e298d48a72d35f936eec2e15494a2ebc594e5a3d4ec487066ca0381a408c4`; `ron
 SHA-256 `63b560258dbf0a7291758ba675ab50711d039acca1cd68ca7bdfd1def77e4936`.
 
 **What it holds**: the groups line's first parting on 6781, named by record and field.
+
+## run1597a — the minted file's playback with the checksum and ranges hooks, 0..120: step R's first act (2026-11-14, item 4248, `att-4248`)
+
+`docs/CHECKSUM.md` §25. **What the disk could not answer**: whether the ranges an in-game hook on the fold takes are
+the instrument's on a packet. No take carries a range outside a packet. The hook (`tools/trace/ranges.h`) is new. The
+take: run1578's line to 120, `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1597a --recording ~/ron-golden/recordings/item4059-minted-greatlakes-24000.rcx --end-frame 120
+--cover cover=1 --log-window 0 121 --detail end:MISC --timeout 900 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 2, launched 13:49:32 −05:00, exited 13:49:56: **23.9 s launch to exit**, exit 0, `success`, 121 frames,
+  `last_frame` 120, no page fault, no relaunch. The pool waited for a lane another take held. `df -g ~` read 209 GB
+  free before it. DLL `6e00c803…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES`.
+- `rontrace.ranges`, 21,536,948 bytes, SHA-256 `201c4b0a5201df968866f4c41e69eb020863f1b9c49e96631975b756f5bf6df7`, kept
+  at `~/ron-golden/run1597a/map-14/`: 124 sets, 344,079 ranges, none over. Every set's eight lines re-sum to its words.
+  The sets are run1577's, 124 of 124.
+- **Trace frame 90's 2,794 ranges are run1562's packet stream, byte for byte** (`ranges.py compare`).
+- Filed with `filerun.py run1597a greatlakes-playback-of-minted-ranges-120`.
+
+Archive `gamelog-run1597a-greatlakes-playback-of-minted-ranges-120.txt`, 2,448 bytes,
+SHA-256 `0ad074e68fe0a294485386474caa06c8e87745d68dbf0557f49118b3825e7cf9`; `rontrace-run1597a.log`, 9,283,904 bytes,
+SHA-256 `2fd95030d7011ec5d2d80a0aa895ae0712a08deb2e1172a99bc38b8f44a766df`.
+
+**What it holds**: step R's first act on 121 frames.
+
+## run1597 — the minted file's playback with the checksum and ranges hooks, 0..24000: step R's record (2026-11-14, item 4248, `att-4248`)
+
+`docs/CHECKSUM.md` §25. **What the disk could not answer**: the ranges of lines 0 to 7 on the minted game's frames
+past the packets'. Every parity item had taken a packet for its own frame. The take: run1597a's line to 24,000,
+`--end-frame 24000 --log-window 0 24001 --timeout 7200`, the rest as run1597a, through `viadriver.sh
+golden_capture.sh ~/ron-golden/run1597`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 2, launched 13:51:32 −05:00, exited 14:24:09: **1,957.4 s launch to exit**, exit 0, `success`, 24,001
+  frames, `last_frame` 24000, `!ffwd 27`, no page fault, no relaunch. `df -g ~` read 207 GB free before it and 193
+  after. Minutes waited on another lane: none.
+- **The record**, `~/ron-golden/run1597/map-14/rontrace.ranges`, **5,722,729,936 bytes**, SHA-256
+  `53b3ca423890d30b9fb9df62cb9d3b86f7129d072169b0c2f2684e454fd9792a`: 24,004 sets on trace frames −1 to 23,999,
+  112,985,285 ranges, 3,912,624,706 bytes, none over, the cap not reached. `ranges.py check --hook <run1578's log>`
+  passes: every set's eight lines re-sum to its words, and the sets are run1578's, 24,004 of 24,004 (35 s).
+- Its own `rontrace.log`'s K_CSUM sets are run1578's, 24,004 of 24,004.
+- Filed with `filerun.py run1597 greatlakes-playback-of-minted-ranges-24000`. The record stays where the take left
+  it. It is the original's memory, outside git.
+
+Archive `gamelog-run1597-greatlakes-playback-of-minted-ranges-24000.txt`, 2,453 bytes,
+SHA-256 `5d28018e04f6b67a59f34164d37cff49a2bdf813c22ca1c1fb198bc01c266a48`; `rontrace-run1597.log`, 133,221,312 bytes,
+SHA-256 `071e136aa31559a86f3f1e5e7ff10b49785266086fc8d3290038aaa58d98dcee`.
+
+**What it holds**: `diff::checksum_frames::record`. Lines 0 to 7 of the minted game, every frame, as a packet's
+stream.
