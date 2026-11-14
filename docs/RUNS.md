@@ -37301,3 +37301,35 @@ SHA-256 `0bf348a5f5571c47bfc977e174023012b6986c6972b4ef96f213f4c426d9dbde`; `ron
 SHA-256 `758300fc33970b8cc2d6abd4b0267b5a4b1eb64b858bb8e099ee0c66517df8e1`.
 
 **What it holds**: the units line's first parting on 6907, named by record and field.
+## run1598 — the original playing the file a capital's rally point minted (2026-11-14, item 4249, `att-4249`)
+
+`docs/CLIENT_INPUT.md` §11.2. **What the disk could not answer**: whether the original plays a `gather_point` minted
+from a right press, and sends the Citizen trained after it to the point as our walk does. No playback of a minted
+file carries one. The file: `~/ron-golden/recordings/item4249-gathered-greatlakes-24000.rcx`, 59,459 bytes, SHA-256
+`d419163f63fbb82abe40e2f38aef75ab2f1869bdafdc39202b432b7ed179ae01`. It was written by `RON_RCX_OUT=<it> … test
+--release -p rondata the_gathered_minted_packages_round_trip`. It is run1573's file plus two packages:
+- the capital `0/2000`'s `gather_point` at (4306, 31001), `action` 0, `add_to_end` 0, on 6706;
+- the capital's Citizen, `queue_up` 50, on 6708.
+
+The take is run1573's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1598 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7 --timeout 1800 --stall-seconds 120`. It was waited on with
+`waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 13:57:06 −05:00, exited 14:05:21; **495.3 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault. Minutes waited on another lane: none.
+- **The built walk under the pump on the file** (`GATHERED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence. **300 records compared whole (6700..6999), none parted.**
+- **Each order's effect is equal on both sides** on 6706, 6707, 6709, 6814, 6832 and 6999 (`gathered_effects`).
+  - The capital's gather list holds (4306, 31001, 0) from 6707.
+  - The Citizen `0/10` comes out on 6814 at (4008, 31320) and stands at (4296, 30984) from 6832.
+- **The followed file walked against it parts first on 6707**, at the capital's `gather_len`, ours 0 and theirs 1.
+  293 of 300 records part, and the draws part from 6813 (`FOLLOWED_AGAINST_GATHERED`).
+- Filed with `filerun.py run1598 greatlakes-playback-of-gathered-7000`.
+
+Archive `gamelog-run1598-greatlakes-playback-of-gathered-7000.txt`, 64,827,222 bytes,
+SHA-256 `68e8495403bb9b0139d4651ecd24f3e986d840ff34ee04ddcf04009bf7261bec`; `rontrace-run1598.log`, 34,298,208 bytes,
+SHA-256 `0aa42c8608630f7124848a32d2817ae442f57b85452ad1189bc42d0e727fda0a`.
+
+**What it holds**: a rally point minted from a right press, played, and a trained Citizen sent to it.
+
