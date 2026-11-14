@@ -268,6 +268,14 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// TI 177, since their move on 8171) `ox`/`oy` ours 30552/21144, theirs
 /// 0/0 (theirs 30552/21144 on 8205, when player 1's push into slot 65
 /// follows) → 0/0 on both.
+///
+/// Item 4258 moved one on run1578: groups 9810 → 24000, the line whole on
+/// every frame of the minted game. `Group::add@00714350`'s in-use arm ORs
+/// the new member's type `role` into the record's `+0x34`; `seat_add` did
+/// not. Value diff on 9810 (run1597's record): groups range 76, record 64
+/// (army 1/1, 18 Longbowmen joined on 9809 by the Pikemen `1/56..1/58`)
+/// `role` ours 0x150c00, theirs 0x150c03 (theirs 0x150c00 on 9809) →
+/// 0x150c03 on both.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -291,7 +299,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         [
             ("units", 8281, 0),
             ("builds", 8281, 0),
-            ("groups", 9810, 0),
+            ("groups", 24000, 0),
             ("guys", 10541, 0),
             ("leaders", 0, 300),
             ("cities", 24000, 0),

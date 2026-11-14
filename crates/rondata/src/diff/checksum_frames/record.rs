@@ -257,9 +257,10 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     ),
     (
         9810,
-        // Item 4255: groups' next first parting, record 64 (army 1/1, 21
-        // members, the same list on both sides) `role` 0x150c00 ours,
-        // 0x150c03 theirs.
+        // Item 4258: groups whole; before it, 1 of 550 ranges from 76,
+        // record 64 (army 1/1, 21 members, the same list on both sides)
+        // `role` 0x150c00 ours, 0x150c03 theirs: `Group::add`'s OR of the
+        // Pikemen's role, which `seat_add` left out.
         &[
             (
                 "units",
@@ -274,13 +275,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 1142,
                 1,
                 "856 2018 myhits..launch_frames: inside_down 54|30",
-            ),
-            (
-                "groups",
-                550,
-                550,
-                1,
-                "76 64 id..march: role 1379328|1379331",
             ),
             (
                 "leaders",
