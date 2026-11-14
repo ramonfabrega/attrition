@@ -245,22 +245,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         9810,
         // Item 4255: groups' next first parting, record 64 (army 1/1, 21
         // members, the same list on both sides) `role` 0x150c00 ours,
-        // 0x150c03 theirs.
+        // 0x150c03 theirs. Its units and builds rows (the University's
+        // chain) went with item 4257.
         &[
-            (
-                "units",
-                2330,
-                2330,
-                12,
-                "913 30 myhits..launch_frames: inside_down -1|42",
-            ),
-            (
-                "builds",
-                1142,
-                1142,
-                1,
-                "856 2018 myhits..launch_frames: inside_down 54|30",
-            ),
             (
                 "groups",
                 550,
