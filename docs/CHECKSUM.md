@@ -1827,10 +1827,10 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     `territory.players[w].strength`, 0 on both sides,
     `give_att_disabled` (~~`Leader::plan_strategy`~~ the scenario
     triggers, `docs/LEADERS.md` §5.2).
-  - the diplomacy actions (~~15~~ ~~12~~ ~~10~~ ~~9~~ 6): ~~`dow`, `blacken`, `broke_alliance`,~~
+  - the diplomacy actions (~~15~~ ~~12~~ ~~10~~ ~~9~~ ~~6~~ 5): ~~`dow`, `blacken`, `broke_alliance`,~~
     carried by item 4159's VII-b1; ~~`made_peace`,~~ `tributes`, ~~`tribute_sent`, `tribute_received`,~~
     carried by VII-c; ~~`tribute_stamp`, `gift_stamp`,~~ carried by VII-b2; `hire_stamp`, `hire_who`, `good_deeds`,
-    ~~`last_spoke`~~ (frozen), `counteroffer`, `tribute_demanded`: the `action_*` family,
+    ~~`last_spoke`~~ (frozen), ~~`counteroffer`~~ (VII-d, run1575's 1052), `tribute_demanded`: the `action_*` family,
     `consider_tribute` and `Leader::diplomacy`'s arms the crate stops at a
     SEAM.
   - the taunts (~~6~~ ~~4~~ 1): `receive_taunt`, `process_taunt`, `end_process`;

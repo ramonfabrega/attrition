@@ -37,7 +37,10 @@ fn answer(sim: &mut Sim, t: usize, rivals: Rivals) {
 fn an_alliance_asked_for_nothing_is_found_short() {
     let mut sim = three();
     ask(&mut sim, 0);
-    assert_eq!(sim.leaders.tribute[0].dip[1].agree, 1, "the human committed");
+    assert_eq!(
+        sim.leaders.tribute[0].dip[1].agree, 1,
+        "the human committed"
+    );
     answer(&mut sim, 0, Rivals::default());
     let (a, b) = (sim.leaders.tribute[0].dip[1], sim.leaders.tribute[1].dip[0]);
     assert_eq!(sim.leaders.tribute[1].counteroffer[0], 1);
@@ -98,7 +101,10 @@ fn a_rusher_asks_more_and_a_boomer_less() {
     sim.leaders.declare[1].good_deeds[0] = 200;
     ask(&mut sim, 0);
     answer(&mut sim, 0, Rivals::default());
-    assert_eq!(sim.leaders.tribute[1].counteroffer[0], 1, "the rusher's 300");
+    assert_eq!(
+        sim.leaders.tribute[1].counteroffer[0], 1,
+        "the rusher's 300"
+    );
 }
 
 /// An ally of mine refuses the alliance at team style 0 (`num_allies`):
@@ -171,7 +177,10 @@ fn the_counts_and_the_team_gate() {
     sim.leaders.defeated[2] = true;
     assert_eq!((sim.num_allies(0), sim.num_team_members(0, true)), (0, 1));
     sim.leaders.defeated[2] = false;
-    assert!(sim.alliance_open(0, 1), "the human's one ally is his teammate");
+    assert!(
+        sim.alliance_open(0, 1),
+        "the human's one ally is his teammate"
+    );
     sim.leaders.team = vec![0, 1, 1];
     assert!(!sim.alliance_open(0, 1), "an ally off his team");
     // The gate on an executed alliance: both committed, nothing exchanged.

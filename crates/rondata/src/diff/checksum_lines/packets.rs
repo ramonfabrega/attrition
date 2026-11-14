@@ -4129,6 +4129,9 @@ fn probe_built_clocks() {
 /// 3084) -> (3907, 4015, 3077). Item 4159's step VII-c, `action_treaty` and
 /// the computed accept: leaders (407, 407, 8) -> (407, 407, 7), the deal
 /// records' `treaty` (2 on both seats' records, ours −1 before) agreeing.
+/// Step VII-d, the alliance found short: leaders (407, 407, 7) -> (407, 407,
+/// 6), the human's `dip.agree` of the French (theirs 0, ours 1 before)
+/// agreeing, and `counteroffer` (the French 1) on the line, agreeing.
 const TAKE_PINNED: Pinned = (
     "run1575",
     1090,
@@ -4140,7 +4143,7 @@ const TAKE_PINNED: Pinned = (
         (0, 0, 0),
         (556, 556, 2),
         (1289, 1331, 166),
-        (407, 407, 7),
+        (407, 407, 6),
         (12, 12, 0),
         (25, 25, 0),
         (405, 405, 1),
