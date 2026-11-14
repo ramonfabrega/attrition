@@ -287,7 +287,7 @@ fn american_industrial_pair_run1338b_s_word_frame_is_widened_whole() {
     // Item 3755: 76 → 59, `get_cost`'s American aircraft arm built —
     // who=1's Biplanes, its `MAKE[2]` and the wealth and oil buckets that
     // stood from the window's first block agree (parked 3669a).
-    pin_eq!(w.firsts.len(), 59, "run1338b baseline");
+    pin_eq!(w.firsts.len(), 58, "run1338b baseline");
     // Rounds are in flight on both sides over the window.
     pin_eq!(w.rounds_read, (326, 326), "the rounds read");
     pin_eq!(w.rounds.len(), 2, "the rounds that part");
@@ -467,7 +467,7 @@ fn american_industrial_pair_run1356_s_word_frame_is_widened_whole() {
     // Item 3755: 78 → 76, `get_cost`'s American aircraft arm built —
     // who=1's Biplanes, its `MAKE[2]` and the wealth and oil buckets that
     // stood from the window's first block agree (parked 3669a).
-    pin_eq!(w.firsts.len(), 76, "run1356 after item 3693");
+    pin_eq!(w.firsts.len(), 75, "run1356 after item 3693");
     pin_eq!(w.rounds_read, (166, 166), "the rounds read");
     pin_eq!(w.rounds.len(), 5, "the rounds that part");
 }

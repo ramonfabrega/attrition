@@ -1332,7 +1332,7 @@ cites and what it still cites.
 
 `Unit::go_inside(o, who)`: climb to the captain; `insert_inside`; a squad
 (`uber_size > 1`) entering a building clears its orders; the followers follow
-down the `o_down` chain; **a scholar is seated on the container, faced to
+down the `o_down` chain; **a scholar is seated on the container, set to
 angle 0 and given a forced `CHAR_DEFAULT` — one draw, §6.5.2**.
 Callers: `do_garrison`, `action_garrison`, **`Build::train` (every trained
 unit is born inside)**, the flamethrower citizens, `do_gather`/`do_board`,
@@ -1470,6 +1470,17 @@ has a name in the executable's own symbols. It is this crate's
 `Worker::Scholar`. The block is inside the per-unit recursion, after
 `Object::insert_inside`, so each member of a squad takes it in turn — which
 for a scholar (`uber_size` 1) is once.
+
+**`set_angle`'s third argument is 1, so the figure is set, not turned**
+(item 4253; diff-backed). The listing pushes `1, ecx, 0` at `61a547`..`61a54e`
+ahead of `Unit::set_angle@00605400`, which hands `param_3` to
+`Guy::set_angle@005d9010`: set, it writes guy 0's `angle` (`+0x18`) and
+`last_angle` (`+0x1c`) beside `des_angle`. The crate passed 0 until item 4253,
+so a seated scholar kept the newborn's `0x55555555` facing and turned toward 0
+afterwards; run1597's record parted on the units and guys lines on 7273 at
+`1/30`'s figure, `angle` and `last_angle` ours 0x55555555, theirs 0
+(`docs/CHECKSUM.md` §25.4). The units line's first parting moved to 8281,
+the guys line's to 10541.
 
 **`set_anim(CHAR_DEFAULT, 1, 1)` is the draw, and its `force` is the point.**
 The second argument skips `Guy::set_anim`'s "already playing" early returns,

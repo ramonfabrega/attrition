@@ -258,7 +258,7 @@ fn dutch_medieval_pair_run1273b_s_word_frame_is_widened_whole() {
     // `avoid` (33384, 35064) and takes the no-spot arm; the Citizen's rows
     // and their cascade are gone, and what stands is block 7057's
     // families and two births' `form` (`1/307` on 7063, `1/308` on 7093).
-    pin_eq!(w.firsts.len(), 152, "run1273b baseline");
+    pin_eq!(w.firsts.len(), 145, "run1273b baseline");
 }
 
 /// **The closing state** (item 3621): run1273's closing block 7096, the

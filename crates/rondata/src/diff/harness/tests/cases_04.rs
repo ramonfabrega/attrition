@@ -1492,17 +1492,15 @@ mod bodies {
         // `Guy::init_real+0x52` and `Guy::set_anim+0x97a <
         // Unit::go_inside+0x280`, the word's two extra draws — and this
         // crate had no such unit. It is born now, and what is left is the
-        // birth record every seated Scholar in the window carries.
+        // birth record every seated Scholar in the window carries. Item
+        // 4253 took that too: the record was its figure's `angle`, 0x55555555
+        // here and 0 there (`Unit::go_inside`'s `set_angle(0, _, 1)`).
         let scholar: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (SCHOLAR_BLOCK - 2..=SCHOLAR_BLOCK).contains(f))
             .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
             .collect();
-        pin_eq!(
-            scholar,
-            ["9712 1/28 g.angle[0]: ours 1431655765 theirs 0"],
-            "the sixth Scholar's birth"
-        );
+        pin_eq!(scholar, Vec::<String>::new(), "the sixth Scholar's birth");
         // **The purchase, block 9577**, 135 blocks under the birth: the
         // original's University `1/2015` queues one Scholar on sim-frame
         // 9576 (`queue[scan].type 52`, `cost[0] 42` wealth), through
@@ -1664,7 +1662,7 @@ mod bodies {
         // crate's cache now holds back too (`docs/VISION.md` §2).
         // Item 2997: 67 → 22, the Citizens' `myhits` — a gained Militia
         // reaches the pool at the next leader pass (`docs/AI.md` §244).
-        pin_eq!(under, 22, "the floor under the word");
+        pin_eq!(under, 13, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -1865,7 +1863,7 @@ mod bodies {
         let counts: Vec<(i64, usize)> = by_block.iter().map(|(f, r)| (*f, r.len())).collect();
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was [(9960, 101), (9982, 7), (9992, 1)].
         // Item 1458: [(9960, 77)] → [(9960, 76)]; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(counts, [(9960, 36)], "first partings per block");
+        pin_eq!(counts, [(9960, 29)], "first partings per block");
         // **The lists agree on block 9982, `create_units`' frame** (sim-frame
         // 9981). Both are empty on 9979, and `research_techs`,
         // `upgrade_units` and `create_units` fill them slot for slot. Until
@@ -2030,7 +2028,7 @@ mod bodies {
         // 66: who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (147, 147, 151).
         // Item 1330 took 30 (139/139/143 → 109/109/112): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (38, 38, 38), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (26, 26, 26), "the floor");
     }
 
     pub(in super::super) fn run159_s_word_frame_is_widened_whole() {
@@ -2099,7 +2097,7 @@ mod bodies {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             under,
-            ["11363 1/42 g.angle[0]: ours 1431655765 theirs 0"],
+            Vec::<String>::new(),
             "the rows under the word and on it"
         );
         let scout: Vec<(i64, usize)> = {
@@ -2263,6 +2261,6 @@ mod bodies {
         // who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (148, 158, 159).
         // Item 1330 took 31 (140/149/150 → 109/115/116): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (37, 38, 39), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (25, 25, 26), "the floor");
     }
 }

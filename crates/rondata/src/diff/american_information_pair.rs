@@ -291,7 +291,7 @@ fn american_information_pair_run1409b_s_word_frame_is_widened_whole() {
     // gone; past the standing families the first row is the second
     // Airbase's Strategic Bomber (305), `1/2021`'s `queue[3].cost` 91
     // against 86 on 2583 (§372.1).
-    pin_eq!(w.firsts.len(), 60, "run1409b baseline");
+    pin_eq!(w.firsts.len(), 59, "run1409b baseline");
     // Every round, both directions: `AMMO=5` was staged and none prints
     // on either side over 2295..2635.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
@@ -370,7 +370,7 @@ fn american_information_pair_run1434b_s_word_frame_is_widened_whole() {
     // (110, 110) and 7 → **0** parting: `1/29`'s round of 3895 leaves
     // (4153, 33763, 605) as theirs, and `0/12` agrees (`docs/AI.md`
     // §372.3). What still parts is the standing families and `mirror`.
-    pin_eq!(w.firsts.len(), 71, "run1434b baseline");
+    pin_eq!(w.firsts.len(), 70, "run1434b baseline");
     pin_eq!(w.rounds_read, (110, 110), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -441,7 +441,7 @@ fn american_information_pair_run1437b_s_word_frame_is_widened_whole() {
     // TOW's rows and the Abrams' tracers: 154 → **68**, the standing
     // families alone (`form`, `mirror`, who=1's groups, pools and buckets,
     // `1/14`'s `g.angle[0]`); no building's `damage` parts (§372.4).
-    pin_eq!(w.firsts.len(), 68, "run1437b baseline");
+    pin_eq!(w.firsts.len(), 67, "run1437b baseline");
     pin_eq!(w.rounds_read, (493, 493), "the rounds read");
     // Every round, both directions: 291 parting. On 4285 the Strategic
     // Bombers' (`1/45`, TI 305; `1/57`, `1/88`) already part on

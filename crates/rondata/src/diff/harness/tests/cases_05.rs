@@ -139,7 +139,7 @@ mod bodies {
         // `1/49`, `1/52` 69 against 68, and `1/53`'s on 13594 (`docs/GROUPS.md` §29).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (153, 162, 162).
         // Item 1330 took 40 (153/155/155 → 113/114/114): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (36, 36, 36), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (23, 23, 23), "the floor");
     }
 
     pub(in super::super) fn run78_s_old_word_keeps_its_value_diff() {
@@ -373,7 +373,7 @@ mod bodies {
             // `1/11` 64 against −1, army 1's `1/48`..`1/60` 71 against 70
             // (`docs/GROUPS.md` §29).
             // Item 1330 took 40 (151 → 110): the births' `form` (`docs/GROUPS.md` §24.3).
-            36,
+            23,
             "every row standing on the word's block"
         );
         // **Past the word to the window's end** (the word left for 16683,
@@ -408,7 +408,7 @@ mod bodies {
         // Item 1115 took the caravan's four rows here ((261, 261, 271) → (257, 257, 267); `docs/CARAVAN.md` §11.3).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (157, 157, 163).
         // Item 1330 took 40 (151/151/156 → 111/111/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (36, 36, 36), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (23, 23, 23), "the floor");
     }
 
     pub(in super::super) fn run227_s_word_frame_is_widened_whole() {
@@ -553,7 +553,7 @@ mod bodies {
             // against 68, `1/11` 64 against −1, army 1's `1/48`..`1/60` 71
             // against 70 among them — who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 274/274, who=1's `territory` 305 against 302, summed at the border pass's end (`docs/AI.md` §84).
-            [37, 37],
+            [24, 24],
             "every row standing on the word's pre-state and its block"
         );
         // **Past the word to the window's end** (the word left for 16982,
@@ -613,7 +613,7 @@ mod bodies {
         // Item 1291 took (159, 166, 167) → (159, 166, 166): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (159, 166, 166).
         // Item 1330 took 41 (153/158/158 → 112/115/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (36, 37, 37), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (23, 24, 24), "the floor");
     }
 
     pub(in super::super) fn run233_s_word_frame_is_widened_whole() {
@@ -705,37 +705,36 @@ mod bodies {
             e.1 += 1;
         }
         let got: Vec<(String, usize)> = per_unit.into_values().map(|((_, r), n)| (r, n)).collect();
-        let want: Vec<(String, usize)> = [
-            // Item 1605 took the human's `production_step` on 17001
-            // (`docs/AI.md` §169).
-            // who=1's wealth family (`income`, `resources`, `leftover`,
-            // `bucket` and `rate` of wealth, 1234 against 1380 from 17184)
-            // left with item 839: the British take the territory tax twice
-            // (`docs/ECONOMY.md` §16).
-            // `1/0`'s `group` (71 against 70 from 17139) left with item
-            // 829 for the first block, 70 against 69: a closed army's group
-            // holds its slot (`docs/ARMY.md` §22), and the pool id is one
-            // higher here from the window's start (689).
-            // Item 1330 took the births' `form` (`docs/GROUPS.md` §24.3):
-            // `1/63`'s first row is its guy angle now, and `1/64`..`1/67`
-            // part on nothing; `1/68`'s and `1/69`'s is `orders_x`.
-            // Item 1458: 4 → 3, the recycled slot's `path_recursion` (`docs/GROUPS.md` §37.2).
-            ("16971 1/63 g.angle[0]: ours 1431655765 theirs 0", 1),
-            // Item 870 took one each from `1/64`..`1/66` (2 → 1): their
-            // `group` on 17113, 69 here against 68, agrees — who=1's pool
-            // numbering is the original's (`docs/GROUPS.md` §29).
+        // Every unit's first row under the word is gone since item 4253.
+        // Item 1605 took the human's `production_step` on 17001
+        // (`docs/AI.md` §169).
+        // who=1's wealth family (`income`, `resources`, `leftover`,
+        // `bucket` and `rate` of wealth, 1234 against 1380 from 17184)
+        // left with item 839: the British take the territory tax twice
+        // (`docs/ECONOMY.md` §16).
+        // `1/0`'s `group` (71 against 70 from 17139) left with item
+        // 829 for the first block, 70 against 69: a closed army's group
+        // holds its slot (`docs/ARMY.md` §22), and the pool id is one
+        // higher here from the window's start (689).
+        // Item 1330 took the births' `form` (`docs/GROUPS.md` §24.3):
+        // `1/63`'s first row is its guy angle now, and `1/64`..`1/67`
+        // part on nothing; `1/68`'s and `1/69`'s is `orders_x`.
+        // Item 1458: 4 → 3, the recycled slot's `path_recursion` (`docs/GROUPS.md` §37.2).
+        // Item 4253 took `1/63`'s `g.angle[0]` (0x55555555 here, 0
+        // there): a scholar's seating sets its figure's angle
+        // (`Unit::go_inside`'s `set_angle(0, _, 1)`).
+        // Item 870 took one each from `1/64`..`1/66` (2 → 1): their
+        // `group` on 17113, 69 here against 68, agrees — who=1's pool
+        // numbering is the original's (`docs/GROUPS.md` §29).
 
-            // Item 882 took one each from `1/67`..`1/69` (2/4/4 → 1/3/3):
-            // their `group` on 17363, 69 on both sides (ours −1 before) —
-            // the trained squad's birth push, `come_out`'s (parked 689,
-            // `docs/GROUPS.md` §31). `form` is `Unit::init`'s (646).
-            // Item 1457 took `1/68`'s and `1/69`'s `orders_x/y`: the
-            // member's own `come_out` gives it its orders (`docs/CITIES.md`
-            // §6.5.3).
-        ]
-        .iter()
-        .map(|(r, n)| ((*r).to_string(), *n))
-        .collect();
+        // Item 882 took one each from `1/67`..`1/69` (2/4/4 → 1/3/3):
+        // their `group` on 17363, 69 on both sides (ours −1 before) —
+        // the trained squad's birth push, `come_out`'s (parked 689,
+        // `docs/GROUPS.md` §31). `form` is `Unit::init`'s (646).
+        // Item 1457 took `1/68`'s and `1/69`'s `orders_x/y`: the
+        // member's own `come_out` gives it its orders (`docs/CITIES.md`
+        // §6.5.3).
+        let want: Vec<(String, usize)> = Vec::new();
         // `1/55`, `1/57` and `1/58` are gone (item 773), and so are `1/60`'s
         // 52 rows and `1/15`'s two (item 800). Item 773 left the word on
         // 17403, where the original's `1/60` walked under an `ATTACK_TO` (2)
@@ -853,7 +852,7 @@ mod bodies {
             // (`docs/ECONOMY.md` §16). Item 870: → 284/284/283/283, the
             // `group` rows of `1/0`, `1/11`, `1/31`..`1/38`, army 0's
             // column and the squad (`docs/GROUPS.md` §29).
-            [37, 37, 37, 37],
+            [23, 23, 23, 23],
             "every row standing on each word's pre-state and its block"
         );
         // **The floor**: 293 keys standing on the window's first block —
@@ -885,7 +884,7 @@ mod bodies {
         // Item 1330 took 43 (155/165/172/178 → 112/118/122/128): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (36, 37, 37, 37),
+            (23, 23, 23, 23),
             "the floor"
         );
     }
@@ -1020,7 +1019,7 @@ mod bodies {
             // `group` on 17575, 64 on both sides (ours −1 before): the
             // trained squad's birth push, `come_out`'s (parked 689,
             // `docs/GROUPS.md` §31).
-            (37, 0, 37, 38),
+            (23, 0, 23, 24),
             "the floor"
         );
     }
@@ -1172,7 +1171,7 @@ mod bodies {
             // 29 `group` rows (`1/11` 64 against −1, `1/48`..`1/71` 72
             // against 71): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 275/4/279/285, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 2380 against 2372 on 18177.
-            (37, 0, 37, 37),
+            (23, 0, 23, 23),
             "the floor"
         );
     }
@@ -1423,7 +1422,7 @@ mod bodies {
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
             // Item 1106: → 287/1/288/289, who=1's `leftover[2:wealth]` 3588 against 3580 on the first block, the border pass's economy flag (`docs/AI.md` §84).
-            (37, 0, 38, 38),
+            (23, 0, 24, 24),
             "the floor"
         );
     }
@@ -1577,7 +1576,7 @@ mod bodies {
             // 29 `group` rows (`1/0` 65 here against 72, `1/11` 64 against
             // −1, army 1's 70 against 69): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 288/0/289/290, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 1938 against 1930 on 19408.
-            (38, 0, 39, 39),
+            (24, 0, 25, 25),
             "the floor"
         );
     }
@@ -1706,7 +1705,7 @@ mod bodies {
         // Item 1330 took 46 (162/0/162/167 → 116/0/116/119): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (38, 0, 38, 39),
+            (24, 0, 24, 25),
             "the floor"
         );
     }

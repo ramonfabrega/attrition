@@ -214,5 +214,5 @@ fn aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole() {
     // other frames.
     // Item 4176: 277 -> 278, +1 firsts: who=1's `attrition_stamp2` standing at 4376, ours 4227 theirs 4239, beside who=1's `hits_left` standing apart (parked 4176b).
     // Item 4159's third residue: 278 -> 85, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
-    pin_eq!(w.firsts.len(), 85, "run1147b baseline");
+    pin_eq!(w.firsts.len(), 77, "run1147b baseline");
 }

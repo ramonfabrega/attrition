@@ -201,7 +201,7 @@ fn aztec_ancient_pair_run1256b_s_word_frame_is_widened_whole() {
     // collides in theirs alone (`collide_o` 3, path 4 against 1); the word's
     // extra draw is theirs' `Guy::set_anim < Unit::move_step`, at index 2.
     // Item 3613, with piece 36's bays: 136, the standing families alone.
-    pin_eq!(w.firsts.len(), 136, "run1256b baseline");
+    pin_eq!(w.firsts.len(), 121, "run1256b baseline");
 }
 
 /// **The long's stride, walked back from the word 8716** (item 3604):
