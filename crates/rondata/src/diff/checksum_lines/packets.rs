@@ -1057,6 +1057,12 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// run1460, run1459, run1417, run1420, run1438, run1440, run1451, run1237,
 /// run1263, run1361, run1224b, run1304) and parts on fewer on 27 more, none
 /// on more: 55 ranges fewer over 40 rows.
+/// **452** at item 4257, the garrison chain's order
+/// (`Object::insert_inside@00647e90` appends at the bottom): the builds
+/// line agrees on six more packets — run912e (2 → 0), run1007b (4 → 0),
+/// run943c (2 → 0), run991d (2 → 0), run959 (2 → 0), run954b (2 → 0) —
+/// and 40 rows fall, none rises (units on ten, run1011b 1854 → 1830 the
+/// most).
 pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 452, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
