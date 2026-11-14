@@ -756,6 +756,7 @@ fn probe_4231_group_slot() {
             eprintln!("PROBE frame {} slot {slot}:\n    {now}", built.sim.frame);
             last = now;
         }
-        super::minted::tick_to(&mut built, Some(&mut stream), built.sim.frame + 1);
+        let next = built.sim.frame + 1;
+        super::minted::tick_to(&mut built, Some(&mut stream), next);
     }
 }
