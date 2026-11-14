@@ -36642,6 +36642,8 @@ STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES
 - Six sites hooked, none refused, d3dgl at `0x786f0000`. Two passes, after 3263 (211 draws) and 3279 (210).
 - **What it holds**: on the 3279 pass, the water is draw 162, the pass's one with `SCREEN_REFLECTIONS`, and the
   ocean floor draw 36 (`the_water_and_the_floor_at_the_card`).
+- Item 4227 (`docs/RENDERER.md` §3.18): draw 36's address modes, `RenderState +0xdc`/`+0xe4`, are stage 0
+  `TEXADD_WRAP` and stage 1 `TEXADD_CLAMP` (`the_floor_s_second_layer_clamps`). No capture was taken.
 
 Trace `~/ron-golden/run1567/map-14/rontrace.log`, 71,258,304 bytes, SHA-256
 `8b93076c43a57cd4ed2417a2df3c411550c328323a36cb7809b0d7c1eb5f9d24`.

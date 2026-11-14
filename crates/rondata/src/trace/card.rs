@@ -61,6 +61,10 @@ pub const TOP_MODULATE: i32 = 3;
 /// stage 0 (item 4168).
 pub const TOP_MODULATE2X: i32 = 4;
 pub const TOP_BLENDTEXTUREALPHA: i32 = 12;
+/// `TexAddress` (`rise.pdb`'s enumerators): `TEXADD_WRAP` and
+/// `TEXADD_CLAMP` (item 4227).
+pub const TEXADD_WRAP: i32 = 0;
+pub const TEXADD_CLAMP: i32 = 2;
 /// `TextureArg`: `TA_CURRENT`, `TA_DIFFUSE`, `TA_TEXTURE`, `TA_TFACTOR`.
 pub const TA_CURRENT: i32 = 0;
 pub const TA_DIFFUSE: i32 = 1;
@@ -150,6 +154,11 @@ impl CardDraw {
             self.i32_at(0xcc + 4 * s),
             self.i32_at(0xd4 + 4 * s),
         )
+    }
+    /// Stage `s`'s texture address modes, `RenderState::address_u` and
+    /// `address_v` (`+0xdc`, `+0xe4`; item 4227).
+    pub fn address(&self, s: usize) -> (i32, i32) {
+        (self.i32_at(0xdc + 4 * s), self.i32_at(0xe4 + 4 * s))
     }
     /// `PerScene::gView` and `gProjection`, as the buffer holds them: the
     /// translation in each row's fourth word.
@@ -341,6 +350,8 @@ mod tests {
         b.extend(rec([K_CARD, 2, 0x50, 0x287, 0, 0, tf, 3279]));
         // stage 0 BLENDTEXTUREALPHA at +0xac
         b.extend(rec([K_CARD, 2, 0xac, 12, 3, 5, 0, 3279]));
+        // address_u at +0xdc, address_v at +0xe4: stage 1 clamps
+        b.extend(rec([K_CARD, 2, 0xdc, 0, 2, 0, 2, 3279]));
         b.extend(rec([
             K_CARD,
             3,
@@ -374,6 +385,10 @@ mod tests {
         assert_eq!(d.tfactor(), [0x22, 0x52, 0xff, 0xff]);
         assert_eq!(d.colour_op(0), (12, 5, 0));
         assert_eq!(d.colour_op(1), (3, 0, 0));
+        assert_eq!(
+            [d.address(0), d.address(1)],
+            [(TEXADD_WRAP, TEXADD_WRAP), (TEXADD_CLAMP, TEXADD_CLAMP)]
+        );
         assert_eq!(d.origin()[0], 4104.0);
         assert_eq!(
             d.option_names(),

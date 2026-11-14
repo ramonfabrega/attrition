@@ -239,9 +239,12 @@ pub(crate) mod tests {
     /// layer drawn, §3.18): run1564 off row 1,021 → 1,412, luma 1,396 →
     /// 1,710; on hue 665 → 666, row 1,001 → 1,389, luma 1,410 → 1,672. Off
     /// still beats on: off.
+    /// Item 4227 (the floor's clamped second layer at its offset, §3.12):
+    /// run1564 off row 1,412 → 1,565, luma 1,710 → 1,705; on row 1,389 →
+    /// 1,543, luma 1,672 → 1,664. Off still beats on: off.
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
         ([959, 1104, 1036], [959, 1104, 1079]),
-        ([674, 1412, 1710], [666, 1389, 1672]),
+        ([674, 1565, 1705], [666, 1543, 1664]),
         ([1042, 1171, 1121], [1041, 1171, 1153]),
     ];
 
