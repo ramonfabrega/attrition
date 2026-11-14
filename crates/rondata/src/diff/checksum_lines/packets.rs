@@ -125,6 +125,31 @@ pub(in crate::diff) fn compare(
         .map(|(name, o)| {
             let t = theirs.get(*name).unwrap_or(&empty);
             let p = parting(o, t);
+            if std::env::var_os("RON_PARTED_ALL").is_some() {
+                for f in &p {
+                    let bytes = |h: &str| -> Vec<u8> {
+                        (0..h.len() / 2)
+                            .filter_map(|i| u8::from_str_radix(&h[2 * i..2 * i + 2], 16).ok())
+                            .collect()
+                    };
+                    let (ob, tb) = (bytes(&f.3), bytes(&f.4));
+                    let d = super::range_fields(name, &f.2, &ob)
+                        .zip(super::range_fields(name, &f.2, &tb))
+                        .map(|(a, b)| {
+                            a.iter()
+                                .zip(&b)
+                                .filter(|(x, y)| x.1 != y.1)
+                                .map(|(x, y)| format!("{} {}|{}", x.0, x.1, y.1))
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        })
+                        .unwrap_or_default();
+                    eprintln!(
+                        "PARTED {name} range {} record {} {}: {d}\n  ours   {}\n  theirs {}",
+                        f.0, f.1, f.2, f.3, f.4
+                    );
+                }
+            }
             LineOutcome {
                 theirs: t.len(),
                 ours: o.ranges.len(),
