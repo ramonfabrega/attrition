@@ -2730,11 +2730,11 @@ texcoords' span (the packet). **On one photograph:** the rows.
   4213b's layer at the flat light. The floor's light is not drawn.
 - The patch's vertex colour (stage 0 `MODULATE(TEXTURE, DIFFUSE)`): ours
   draws the texel alone.
-- The floor's light and the HDR blend (item 4227): unlit in LDR, the
-  floor's mottle shows far fainter than the photograph's.
+- ~~The floor's light and the HDR blend (item 4227): unlit in LDR, the
+  floor's mottle shows far fainter than the photograph's.~~ Drawn, §3.24.
 - The lake's small figures stand apart on the still (parked 4227b).
-- `GROUND_STILL_SRGB`'s sRGB target now reads 1,737 on run1564, above
-  the drawn 1,565; run1559b keeps the drawn target (parked 4227a).
+- `GROUND_STILL_SRGB`'s sRGB target reads 1,709 on run1564 (§3.24),
+  above the drawn 1,706; run1559b keeps the drawn target (parked 4227a).
 
 ## 3.19 The asphalt ring around a city: the roads (item 4199)
 
@@ -3158,6 +3158,55 @@ reading: the tint reaching the texels (`Texture::init`, as the land's does, §3.
 rows. *Not established:* the blend in HDR before the tone map, which the client approximates by blending toned
 values (4221a); the painter's trees, opaque where the client blends (4221a); run1567's bark draw, which carries no
 vertex diffuse where run1566b's does (4221b); 0/6's silhouette over the blended tree (4221c).
+
+## 3.24 The lake lit and blended in HDR (item 4232)
+
+**The texture row.** The hue and luma rows read a tile's mean and cannot see a mottle. `TEXTURE` reads each scored
+tile's spread: the standard deviation of its ground pixels' luminance, ours against the photograph's, agreeing when
+the larger over the smaller is at most 1.5, each floored at 2. On run1564's still at the base it read plain 665 of
+679 (the grass carries its photograph's mottle, mean spread 8.05 against 8.88) and **`OCEAN` 21 of 437** (2.17
+against 6.96). The photograph against itself agrees on every tile; the reader at ratio 4 reads `OCEAN` 386.
+
+**The card's model clears the kill.** On §3.18's composite (`the_floor_s_second_layer_clamps`: the floor lit at
+the land's light, the water lit at draw 162's material, blended in HDR, toned), the row reads `OCEAN` **323**
+clamped and 284 mirrored (`RUN1564_3279_LAKE_HDR_TEXTURE`), so the mottle is the floor's, seen through the
+water at the card's light.
+
+**Drawn.**
+- **The floor** is one patch layer: the first layer times the clamped corner texel (`floor_product`), its vertex
+  grey on the alpha ramp's texcoord. `fs_floor` takes `min(2 · grey · texel, 1)` through the land's lit branch
+  per pixel. Items 4178 to 4227 baked the stage at the brightest grey and darkened it with a black layer in LDR.
+- **The water** is drawn in a pass of its own (`Gpu::ground_passes`). The frame so far is copied (`lake`), and
+  `fs_water` lights the water's colour at `WATER_DIFFUSE` (1, 1, 1.5) and `WATER_AMBIENT` 0.2 on the scene's
+  ambient. It blends that over each channel taken back through the curve, and tones the result:
+  `T(T⁻¹(g) · (1 − a) + W · a)`, as §3.7's shade pass composes the shadows. Over the shore the land, the coast's
+  patches and the coral enter at their drawn colour's HDR value.
+
+| row on run1564's still | base | drawn |
+|---|---|---|
+| texture, `OCEAN` of 437 (`RUN1564_3279_TEXTURE_STILL`) | 21 | **232** |
+| texture, `SANDY` of 772 | 223 | 326 |
+| hue, ground of 1,920 (`RUN1564_3279_GROUND_STILL`) | 1,565 | **1,706** |
+| hue, `SANDY` · `OCEAN` | 442 · 412 | 573 · 422 |
+| luma, ground of 1,920 (`GROUND_LUMA_STILL`) | 1,705 | 1,805 |
+| luma, `SANDY` · `OCEAN` | 650 · 351 | 681 · 420 |
+| grass hue, run1564 (`GRASS_HUE`) | 674 | 678 |
+| the surf composited, `SANDY` (`RUN1564_3279_SURF`) | 484 | 701 |
+
+Tile (170, 187) spreads 2.66 → 4.69 against theirs 4.45, and agrees. The lake's mean spread is 4.15. The CPU
+composite samples the floor's level 0 at the nearest texel and reads 6.04, while the GPU samples mipmapped. **The
+blend carries it, not the floor's light:** `fs_water` blending toned values (LDR), with the floor still lit per
+pixel, reads `OCEAN` 18. run1559b's rows and run1570's are unchanged but for the grass row's white.
+
+*Coverage.* Diff-backed: the floor's address modes, offsets and texcoords (§3.18). The water's material rests on
+item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *Not established:*
+- the floor's parallax to its plane at −283, not drawn (§3.18 found it moves no hue);
+- a lit floor texel above the curve's white (stage 1, about 5.26 against 4.9) clips in the copy and comes back at
+  the white;
+- the surf, now worth `SANDY` +128 by composite (4225a);
+- the fish herds' blot and the whitecaps;
+- the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
+- the screen reflection and the specular.
 
 ## 4. The stack
 

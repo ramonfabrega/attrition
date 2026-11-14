@@ -227,7 +227,7 @@ pub struct World {
     /// [`World::set_screen`]; `None` lays [`crate::ground::ScreenRamp::MIDDLE`].
     ramp: Option<crate::ground::ScreenRamp>,
     /// The ramp the drawn layers were last laid at, the water's and the
-    /// floor shade's places among the patches, and the patches' version.
+    /// floor's places among the patches, and the patches' version.
     laid_ramp: Option<crate::ground::ScreenRamp>,
     screen_layers: (Option<usize>, Option<usize>),
     patch_version: u32,
@@ -326,8 +326,8 @@ pub const WATER_ALPHA: usize = 900;
 /// apart from every base's `-1 - index` and the mountains'.
 pub const WATER_PIECE: i32 = -200_000;
 
-/// The ocean floor's baked layers' piece (item 4178), and one less its
-/// shade's.
+/// The ocean floor's layer's piece (item 4178; item 4232: one patch
+/// layer, its grey on the alpha ramp).
 pub const FLOOR_PIECE: i32 = -200_010;
 
 /// The footprint weathering's base's piece among the ground's textures
@@ -1086,41 +1086,27 @@ impl World {
                 })
                 .collect();
             // Item 4178 (§3.12): the land pass draws no `OCEAN` tile;
-            // `render_ocean_floor` draws the floor there, its two layers
-            // baked at the brightest vertex grey, and a black layer over it
-            // takes it to the ramp's grey ([`crate::ground::floor_shade`]).
-            // Item 4227: the second layer is the clamped corner texel.
+            // `render_ocean_floor` draws the floor there. Item 4227: the
+            // second layer is the clamped corner texel. Item 4232: the
+            // floor is one layer, its two textures' product
+            // ([`crate::ground::floor_product`]), its vertex grey riding the
+            // alpha ramp's texcoord, so `fs_floor` takes the stage
+            // (`MODULATE2X` under the grey) through the lit branch per pixel.
             let ocean = g.textures.index_land(render::terrain::OCEAN, 0, 0, 0);
             let mut floor = ocean.filter(|&k| k < g.flat.len()).map(|k| {
-                let top = crate::ground::floor_grey(0.0);
-                let tex = crate::ground::floor_texture(&g.flat[k].levels[0], top);
-                TexturedMesh {
+                let tex = crate::ground::floor_product(&g.flat[k].levels[0]);
+                PatchMesh {
                     piece: FLOOR_PIECE,
-                    who: 0,
                     positions: Vec::new(),
                     uvs: Vec::new(),
+                    alpha_uvs: Vec::new(),
                     mips: std::sync::Arc::new(render::silhouette::Mips::new(tex)),
+                    alpha: WATER_ALPHA,
+                    alpha_mips: std::sync::Arc::new(crate::ground::water_ramp()),
+                    mountain: false,
                     light: Vec::new(),
                 }
             });
-            let mut shade = PatchMesh {
-                piece: FLOOR_PIECE - 1,
-                positions: Vec::new(),
-                uvs: Vec::new(),
-                alpha_uvs: Vec::new(),
-                mips: std::sync::Arc::new(render::silhouette::Mips::new(render::tga::Image {
-                    width: 1,
-                    height: 1,
-                    kind: 2,
-                    bits: 32,
-                    footer: false,
-                    rgba: vec![0, 0, 0, 255],
-                })),
-                alpha: WATER_ALPHA,
-                alpha_mips: std::sync::Arc::new(crate::ground::water_ramp()),
-                mountain: false,
-                light: Vec::new(),
-            };
             let ramp = std::sync::Arc::new(crate::ground::water_ramp());
             let mut fades: BTreeMap<usize, PatchMesh> = BTreeMap::new();
             for ((tri, uv), &k) in base.tris.iter().zip(&base.uvs).zip(&base.of) {
@@ -1131,8 +1117,7 @@ impl World {
                         let (r, o) = (crate::ground::FLOOR_REPEAT, crate::ground::FLOOR_OFFSETS[0]);
                         [p[0] / r + o[0], p[1] / r + o[1]]
                     }));
-                    shade.positions.extend_from_slice(tri);
-                    shade.uvs.extend_from_slice(&[[0.5, 0.5]; 3]);
+                    f.alpha_uvs.extend_from_slice(&[[0.5, 0.5]; 3]);
                     continue;
                 }
                 // Item 4192 (§3.16): every land-pass
@@ -1164,7 +1149,6 @@ impl World {
                 meshes[k].uvs.extend_from_slice(uv);
                 meshes[k].light.extend(tri.iter().map(nl_at));
             }
-            meshes.extend(floor);
             meshes.retain(|m| !m.positions.is_empty());
             // Keyed `(texture, alpha, layer)`: layer 1 is the coral
             // `TerrainOut::render` lays over a patch in `oceanindex`'s
@@ -1254,9 +1238,9 @@ impl World {
                 .chain(coral_layer.filter(|m| !m.positions.is_empty()))
                 .collect();
             let mut layers = (None, None);
-            if !shade.positions.is_empty() {
+            if let Some(f) = floor.filter(|f| !f.positions.is_empty()) {
                 layers.1 = Some(faded);
-                patches.insert(faded, shade);
+                patches.insert(faded, f);
             }
             // Item 4164: the water over every cell that holds it, at the
             // water's alpha on a linear ramp so the patch's shader takes it
@@ -1401,7 +1385,9 @@ impl World {
                 m.alpha_uvs = m
                     .positions
                     .iter()
-                    .map(|p| crate::ground::ramp_uv(crate::ground::floor_shade(at(p)) / 255.0))
+                    .map(|p| {
+                        crate::ground::ramp_uv(f32::from(crate::ground::floor_grey(at(p))) / 255.0)
+                    })
                     .collect();
             }
             self.laid_ramp = Some(ramp);
