@@ -1027,12 +1027,13 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// whose asphalt is 0.89 of ours (parked 4199b); run1564 unchanged.
 #[cfg(test)]
 /// Item 4212: run1559b **1,075 → 1,029** (plain 979 → 952, under a mountain 80 → 61); run1564 **1,377 → 1,396** (`ROCK` 27 → 21, `SANDY` 499 → 397, `OCEAN` 172 → 299): the land lit at the frame's white, §3.21.
+/// Item 4221: run1559b **1,029 → 1,036** (plain 952 → 954, under a mountain 61 → 66): the trees tinted and blended (§3.23) change the frame's mean, so its white; run1564 unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1029, 1109),
+        (1036, 1109),
         [
-            [952, 986],
-            [61, 106],
+            [954, 986],
+            [66, 106],
             [16, 17],
             [0, 0],
             [0, 0],
@@ -2317,6 +2318,162 @@ pub(crate) mod tests {
     pub(crate) fn probe() -> Option<Probe> {
         probe_at(run1559b())
     }
+
+    /// `tools/render/land_light_packet.py`'s dump of `run`'s packet: each
+    /// corner's normal, render height and colour as the packet's bits.
+    fn land_light_packet(run: &str) -> Option<Vec<([u32; 3], u32, u32)>> {
+        let path = std::env::var_os(format!("RON_LAND_LIGHT_{}", run.to_uppercase()))
+            .map(PathBuf::from)
+            .or_else(|| {
+                std::env::var_os("HOME").map(|h| {
+                    PathBuf::from(h).join(format!(
+                        "ron-data/lab-experiments/2026-11-13-item-4217/{run}-land-light.txt"
+                    ))
+                })
+            })?;
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no land light dump at {}", path.display());
+            return None;
+        };
+        let hex = |w: &str| u32::from_str_radix(w, 16).expect("a hex word");
+        Some(
+            text.lines()
+                .skip(1)
+                .map(|l| {
+                    let w: Vec<&str> = l.split_whitespace().collect();
+                    ([hex(w[2]), hex(w[3]), hex(w[4])], hex(w[5]), hex(w[6]))
+                })
+                .collect(),
+        )
+    }
+
+    /// **The land's normals and vertex colours are the packet's** (item
+    /// 4217; `docs/RENDERER.md` §3.22): on run1559b's and run1564's
+    /// packets, `TerrainOut`'s render heights against our corners,
+    /// `calculate_norms`' normals against [`render::terrain::land_normals`]
+    /// on our corners, and `light_vert`'s colours against
+    /// [`render::terrain::light_vert`] with the tileset's light, red in the
+    /// low byte. A colour that is not ours is the ocean floor's: every
+    /// such corner lies at or below −82.
+    #[test]
+    fn the_land_s_normals_and_colours_are_the_packet_s() {
+        use render::silhouette::{LAND_AMBIENT, LAND_DIFFUSE};
+        use render::terrain::{Heightfield, land_n_dot_l, land_normals, light_vert};
+        let mut got = Vec::new();
+        for (name, shot) in [("run1559b", run1559b()), ("run1564", run1564())] {
+            let Some(packet) = land_light_packet(name) else {
+                return;
+            };
+            let Some(p) = probe_at(shot) else { return };
+            let tileset = crate::world::lobby_tileset(
+                &p.root,
+                &crate::world::gamelog_dir().join(crate::world::START_DUMP),
+            )
+            .expect("the lobby's tileset");
+            let [ambient, diffuse] =
+                rondata::artdata::tileset_light(&rondata::Install::new(&p.root), &tileset)
+                    .expect("the tileset's light");
+            assert_eq!(ambient[..3], LAND_AMBIENT, "{tileset}'s ambient");
+            assert_eq!(diffuse.map(|c| c * diffuse[3])[..3], [LAND_DIFFUSE; 3]);
+            let t = p.world.runner.terrain();
+            assert_eq!(packet.len(), t.corners.len(), "{name}: one corner a line");
+            let ours = land_normals(&Heightfield {
+                width: t.width,
+                height: t.height,
+                corners: &t.corners,
+            });
+            let (mut z_bits, mut z_near, mut n_bits, mut n_near, mut c_eq) = (0, 0, 0, 0, 0);
+            let stride = (t.width * 4 + 1) as usize;
+            let mut p = p;
+            let on_screen: std::collections::BTreeSet<(i32, i32)> = ground_row(&mut p)
+                .map(|r| r.scored.iter().map(|q| q.0).collect())
+                .unwrap_or_default();
+            let t = p.world.runner.terrain();
+            let mut parted_on_screen = 0;
+            // The placed ranges' tiles: a corner is by a range when a
+            // tile within one of its four is one.
+            let ranges: std::collections::BTreeSet<(i32, i32)> =
+                t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+            let by_range = |x: i32, y: i32| {
+                (x - 2..=x + 1).any(|tx| (y - 2..=y + 1).any(|ty| ranges.contains(&(tx, ty))))
+            };
+            let (mut parted_by_range, mut bits_by_range) = (0, 0);
+            let mut floor_top = f32::MIN;
+            for (i, (n, h, c)) in packet.iter().enumerate() {
+                let (zp, zo) = (f32::from_bits(*h), f32::from_bits(t.corners[i]));
+                z_bits += usize::from(*h == t.corners[i]);
+                z_near += usize::from((zp - zo).abs() <= 1e-5);
+                let o = ours[i];
+                n_bits += usize::from(o.map(f32::to_bits) == *n);
+                n_near += usize::from((0..3).all(|k| (o[k] - f32::from_bits(n[k])).abs() <= 1e-5));
+                // `light_vert` on the packet's own normal: our arithmetic.
+                let rgb = light_vert(
+                    land_n_dot_l(n.map(f32::from_bits)),
+                    LAND_AMBIENT,
+                    LAND_DIFFUSE,
+                );
+                let theirs = [*c as u8, (*c >> 8) as u8, (*c >> 16) as u8];
+                if rgb == theirs {
+                    c_eq += 1;
+                } else {
+                    floor_top = floor_top.max(zp);
+                }
+                // Where our normal parts: by a range, on screen.
+                let (x, y) = ((i % stride) as i32, (i / stride) as i32);
+                if o.map(f32::to_bits) != *n {
+                    bits_by_range += usize::from(by_range(x, y));
+                }
+                if !(0..3).all(|k| (o[k] - f32::from_bits(n[k])).abs() <= 1e-5) {
+                    parted_by_range += usize::from(by_range(x, y));
+                    parted_on_screen += usize::from(
+                        on_screen.contains(&(x, y))
+                            || on_screen.contains(&(x - 1, y))
+                            || on_screen.contains(&(x, y - 1))
+                            || on_screen.contains(&(x - 1, y - 1)),
+                    );
+                }
+            }
+            println!(
+                "{name}: {} corners; heights {z_bits} bit for bit, {z_near} within 1e-5; normals {n_bits} bit for bit, {n_near} within 1e-5; of those not bit for bit {bits_by_range} by a range; of those parted {parted_by_range} by a range, {parted_on_screen} on the row's tiles; colours {c_eq} ours on their normals, the rest at or below {floor_top}",
+                packet.len()
+            );
+            assert!(
+                floor_top <= -82.0,
+                "{name}: a land corner's colour is not ours"
+            );
+            got.push([
+                z_bits,
+                z_near,
+                n_bits,
+                n_near,
+                bits_by_range,
+                parted_by_range,
+                parted_on_screen,
+                c_eq,
+            ]);
+        }
+        assert_eq!(got, LAND_LIGHT_PACKET);
+    }
+
+    /// The counts [`the_land_s_normals_and_colours_are_the_packet_s`]
+    /// reads, run1559b's then run1564's: heights bit for bit and within
+    /// 1e-5; normals likewise; of the normals not bit for bit, those by a
+    /// placed range; of those parted past 1e-5, those by a range and those
+    /// at the ground row's corners; colours ours on the packet's normals.
+    /// Every height within 1e-5 (56,660 bit for bit). Our normals bit for
+    /// bit on 54,095 of 58,081 corners and within 1e-5 on 56,079. The
+    /// 2,002 that part lie in six clusters, the largest 1,210 corners at
+    /// (191–238, 78–135), the second 312 around run1559b's capital
+    /// (6–25, 146–171; 240 at its row's corners), none at run1564's row,
+    /// and 38 by a range: 1,692 of them are one adjacent tile's
+    /// contribution alone, `calculate_norms(x, y)`'s local form (parked
+    /// 4217b). `light_vert` on the packet's own normals is its colour on
+    /// 48,898 corners; every other one is the ocean floor's, at or below
+    /// −82.07.
+    const LAND_LIGHT_PACKET: [[usize; 8]; 2] = [
+        [56_660, 58_081, 54_095, 56_079, 38, 38, 240, 48_898],
+        [56_660, 58_081, 54_095, 56_079, 38, 38, 0, 48_898],
+    ];
 
     pub(crate) fn probe_at(shot: Photo) -> Option<Probe> {
         let root = std::env::var_os("RON_INSTALL")

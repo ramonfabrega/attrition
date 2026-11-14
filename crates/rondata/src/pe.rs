@@ -169,6 +169,56 @@ impl Pe {
         out
     }
 
+    /// The virtual address of every `HIGHLOW` fixup the base relocation
+    /// directory lists: every word of the image the loader rebases, which is
+    /// every absolute address the linker wrote.
+    pub fn fixups(&self) -> std::collections::BTreeSet<u32> {
+        let mut out = std::collections::BTreeSet::new();
+        let Some(mut at) = self.offset_of(self.image_base + self.reloc.0) else {
+            return out;
+        };
+        let end = at + self.reloc.1 as usize;
+        while at + 8 <= end {
+            let (Some(page), Some(size)) = (u32_at(&self.bytes, at), u32_at(&self.bytes, at + 4))
+            else {
+                break;
+            };
+            if size < 8 {
+                break;
+            }
+            for k in (at + 8..at + size as usize).step_by(2) {
+                let Some(e) = u16_at(&self.bytes, k) else {
+                    break;
+                };
+                if e >> 12 == 3 {
+                    out.insert(self.image_base + page + u32::from(e & 0xfff));
+                }
+            }
+            at += size as usize;
+        }
+        out
+    }
+
+    /// Every word in `[lo, hi)` that the relocation directory rebases, by
+    /// address, in each section but the one that holds `skip` (the code):
+    /// the static pointers into a table (`crate::stores`).
+    pub fn words_in(&self, lo: u32, hi: u32, skip: u32) -> Vec<(u32, u32)> {
+        let skip_rva = skip.wrapping_sub(self.image_base);
+        let code = self
+            .sections
+            .iter()
+            .find(|&&(sva, vsize, _, _)| (sva..sva + vsize).contains(&skip_rva))
+            .map(|&(sva, vsize, _, _)| self.image_base + sva..self.image_base + sva + vsize);
+        self.fixups()
+            .into_iter()
+            .filter(|va| !code.as_ref().is_some_and(|c| c.contains(va)))
+            .filter_map(|va| {
+                let v = u32_at(&self.bytes, self.offset_of(va)?)?;
+                (lo..hi).contains(&v).then_some((va, v))
+            })
+            .collect()
+    }
+
     /// `n` little-endian `i32`s at a virtual address.
     pub fn i32s(&self, va: u32, n: usize) -> Option<Vec<i32>> {
         let o = self.offset_of(va)?;

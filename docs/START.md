@@ -106,8 +106,11 @@ it (**not built**).
    `TERRITORY_LIMIT_*` (`rondata::mapgen::territory_limits`; Nile
    Delta and Sea Power 48/8/8, New World 44/4/4 and 32/4/4). East Meets
    West refuses a team game, and Colonial Powers refuses team style 7
-   (both arms unread). **Not built**: Warring States and British Isles,
-   which have no mask port.
+   (both arms unread). Warring States and British Isles are composed by
+   their own mask ports (item 4211, `docs/MAPGEN.md` §37) on the same
+   shared tail; Warring States' mask writes `randomize_starts` 0 too, so
+   step 5 draws nothing there. Both refuse a lobby past the map size's
+   allowance, and Warring States a seat no walk end seats.
 5. **The start permutation**: `Game::start_list[k]`, a random permutation
    when the map randomises starts (`rand & 7`, 8 draws here), else
    identity; teammates placed consecutively in a team game unless `world
@@ -198,8 +201,12 @@ it (**not built**).
    scholars' arm is inert while `GREEK_START_SCHOLARS` is 0, as shipped;
    its `go_inside` is refused by name past 0.
    **Not built**: `place_unit`'s Nomad ring and its `Build::train` after
-   sixty refusals (each refused by name); the Large Town list; the
-   Iroquois' Senate (parked 4047b). **The
+   sixty refusals (each refused by name); the
+   Iroquois' Senate (parked 4047b). **The Large Town list built** (item
+   4211): `large_city_buildings@005aac80` — the Woodcutter's Camp, five
+   Farms unless bonus 0x13, four `TOWER` (0x1b7), the Library — then
+   `build_civ_specific`, as `build_cities` calls them; `build_units`
+   already carried town 3 (10 citizens, 5 ordered). **The
    pasture built** (item 4034): a starting farm `Farms::add`'s coin makes
    type 1 is stocked inside its `Build::activate` — five owner-9 animals,
    four draws each — because the builder walks the setup stream
@@ -241,6 +248,15 @@ it (**not built**).
 
 Then `Setup::reinit_game_units` re-reads every object's `z` from the
 terrain, and `begin_game` dumps.
+
+9. **`Game::run@00584590:720–722`, past `build_game` and before the
+   loop**: `Leaders::init_production_script`, then
+   `GameDaemon::calc_danger` and `update_all_seen`. **`calc_danger` built**
+   (item 4218, `Setup::calc_danger`, the last of `from_lobby`'s steps): it
+   draws nothing, the `[Start Game]` block prints no danger, and the
+   checksum's world line before frame 0's tick does (`docs/CHECKSUM.md`
+   §24.4: section 8 was the zeros' sum ours, the record's now).
+   `update_all_seen` is not run here; the world line agrees without it.
 
 ## 3. The start block, as compared
 
@@ -367,8 +383,17 @@ A dump that prints no cells, no `diplos`, or a building without its
 `orig_type` leaves the installer on its own defaults there. Those rows
 are stand-ins. The rows such a dump does print stay compared: on the
 thin lobby, the buildings' places and the units. A one-unit nudge to
-either parts it. The three left are Warring States (run1122) and British
-Isles (run1127, run316), at their first cell, with no mask port.
+either parts it. **161 of 161** at item 4211: Warring States (lobby 19,
+run1122) and British Isles (lobbies 24 and 119, run1127 and run316), which
+parted at `CELL 0 0 land`, ours 0 theirs 2 (9,778, 9,112 and 9,107
+fields agreeing), on their mask ports (`docs/MAPGEN.md` §37). Lobby 24 was
+whole on the mask; lobby 119 is a Large Town and needed its list (§2
+step 7). Lobbies 19 and 119 then each parted from the installer on one
+cell's `ROAD` bit (`CELL 7 38 flags` ours 0 theirs 128, `CELL 15 21
+flags` ours 512 theirs 640). The dump prints 0 and 512 there, ours: the
+installer's `activate` lays the city's roads again on the dump's cells.
+So the census holds every `CELL flags` row to the dump's printed word, not the
+installer's. That moved no other lobby.
 
 ## 6. Confidence, and what is not established
 
@@ -431,13 +456,20 @@ Isles (run1127, run316), at their first cell, with no mask port.
   row and three buildings' types (0/2005, 0/2006, 1/2005, which
   `start_of_game`'s object-number list does not name) are stand-ins
   (4,330 rows).
-- **Not established**: the team assignment and the handicaps; a
-  composed chain for Warring States or British Isles (no mask port);
+- **Diff-backed on 3 more** (item 4211): Warring States and British
+  Isles composed, every cell, building and unit of lobbies 19, 24 and
+  119, and run316's sync word (the only one of the three with a setup
+  trace); each mask's draws site for site against its trace (§37 there).
+  The Large Town list on lobby 119's buildings and units. `CELL flags` on
+  every lobby that prints cells is now the dump's own word.
+- **Not established**: the team assignment and the handicaps; Warring
+  States and British Isles past two nations or past 60×60, a Warring
+  States team game, and either style's restart arms (§37 there);
   East Meets West in a team game and Colonial Powers' outsiders (both
   refused); the default tileset
   draw's unavailable-name arm (a second
   draw, parked 3819b); a team game's consecutive teammates; the Large
-  Town list; `build_units` on a Nomad or City-only start (`place_unit`'s
+  Town list for the Lakota (bonus 0x13) or past one lobby; `build_units` on a Nomad or City-only start (`place_unit`'s
   rings 8 and 24, its `Build::train` arm), or with `starting_resources`
   8; the Spaniards' `reveal_map > 1` scout, the Greek scholars past 0 and
   the Americans' citizens past 3 farms (read only, item 4186); a
@@ -451,7 +483,7 @@ Isles (run1127, run316), at their first cell, with no mask port.
   "steps off the footprint" is not what the no-host arm does (parked
   4063a); the port is right in both.
 - **Coverage**: every lobby compared, 161 of 161 (item 4034); 35 whole,
-  114 and then 143 at item 4186, 158 at item 4196.
+  114 and then 143 at item 4186, 158 at item 4196, 161 at item 4211.
   Two of the 35 have no setup trace on disk (run1515b's and run1541b's
   lobbies), so their sync word is not backed; four have neither a
   bracket nor a `PERSONALITY` block for the computer leader (run3's,

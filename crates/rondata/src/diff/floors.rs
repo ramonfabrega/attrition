@@ -626,14 +626,19 @@ pub fn start_line() -> String {
 /// The queue's `Lobby:` line (item 4184, `docs/LOBBY.md` §5): the lobbies
 /// on disk whose `GAMEINFO` block the lobby page's events reproduce field
 /// for field ([`crate::lobby::LOBBY_PAGE`]) of those with a `[Start Game]`
-/// dump ([`crate::diff::START_LOBBIES`]), and the harness lobby's start
-/// built from the page.
+/// dump ([`crate::diff::START_LOBBIES`]), and the lobbies whose start the
+/// page's choices build whole, on frame 0 and after
+/// [`crate::lobby::LOBBY_WALK`] frames ([`crate::lobby::LOBBY_STARTS`],
+/// item 4215).
 #[cfg(test)]
 pub fn lobby_line() -> String {
     format!(
-        "Lobby: the page sets {} of {} lobbies \u{b7} the harness lobby's start built from it",
+        "Lobby: the page sets {} of {} lobbies \u{b7} starts {} of {}, walked {} frames",
         crate::lobby::LOBBY_PAGE,
         crate::diff::START_LOBBIES,
+        crate::lobby::LOBBY_STARTS,
+        crate::diff::START_LOBBIES,
+        crate::lobby::LOBBY_WALK,
     )
 }
 
@@ -1398,7 +1403,8 @@ mod tests {
 
     /// **The handoff's lobby line is the pinned counter** (item 4184,
     /// `docs/LOBBY.md` §5): the queue's `Lobby:` line is [`lobby_line`] of
-    /// `lobby::LOBBY_PAGE` and `diff::START_LOBBIES`. A driver's line
+    /// `lobby::LOBBY_PAGE`, `lobby::LOBBY_STARTS` (item 4215) and
+    /// `diff::START_LOBBIES`. A driver's line
     /// (`release_gate.py`'s `COMMANDERS_LINES`): the worker re-pins the
     /// counter and the driver writes the line at the merge. Made to fail
     /// first on the handoff before 4184's merge, which had none.
@@ -1415,7 +1421,7 @@ mod tests {
             line,
             Some(want.as_str()),
             "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::lobby_line`: \
-             `lobby::LOBBY_PAGE`, `diff::START_LOBBIES`); it says {line:?}"
+             `lobby::LOBBY_PAGE`, `lobby::LOBBY_STARTS`, `diff::START_LOBBIES`); it says {line:?}"
         );
     }
 

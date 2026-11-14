@@ -303,7 +303,31 @@ pub fn place_start_in_region(
     min_dist: i32,
     draws: &mut Draws,
 ) -> Option<(i32, i32)> {
-    let list = coords(grid, id);
+    let starts = (&grid.starts[0].list[..], &grid.starts[1].list[..]);
+    place_start_in_list(grid, &coords(grid, id), starts, min_dist, draws)
+}
+
+/// [`place_start_in_region`]'s body on a region's list as the caller's
+/// record holds it, measured against the start arrays `param_6`/`param_7`
+/// name — the world's `start_x`/`start_y` when they are null, a caller's
+/// own lists otherwise (British Isles', `crate::mapgen::map_british_isles`,
+/// whose record lists are in growth order and whose starts are not yet the
+/// world's).
+pub(crate) fn place_start_in_list(
+    grid: &MapGrid,
+    list: &[(i32, i32)],
+    starts: (&[i32], &[i32]),
+    min_dist: i32,
+    draws: &mut Draws,
+) -> Option<(i32, i32)> {
+    let least_dist = |_: &MapGrid, x: i32, y: i32| {
+        starts
+            .0
+            .iter()
+            .zip(starts.1)
+            .map(|(&sx, &sy)| vector_dist(x - sx, y - sy))
+            .fold(9999, i32::min)
+    };
     let n = list.len() as i32;
     for pass in 1..=2 {
         let (edge, high) = if pass == 1 { (5, 6) } else { (3, 4) };
@@ -431,9 +455,21 @@ fn walk_out(
 /// `min(avoid_continent, 10)` that is not water belongs to another region
 /// whose list holds more than four cells.
 pub(crate) fn check_player_land(grid: &mut MapGrid, lists: &mut [Vec<(i32, i32)>], avoid: i32) {
+    check_player_land_guarded(grid, lists, Some(avoid));
+}
+
+/// [`check_player_land`] with its `ecx` flag: `Some(avoid_continent)` is
+/// the guarded arm (`ecx` 1); `None` is `ecx` 0, Warring States' call
+/// (`crate::mapgen::map_warring_states`), where every circle cell to ring 5
+/// becomes the city cell's region with no neighbour test.
+pub(crate) fn check_player_land_guarded(
+    grid: &mut MapGrid,
+    lists: &mut [Vec<(i32, i32)>],
+    avoid: Option<i32>,
+) {
     let t = circle::table();
     let ring = 5usize;
-    let guard = MOVE_RADIUS[avoid.min(10) as usize];
+    let guard = avoid.map_or(0, |a| MOVE_RADIUS[a.min(10) as usize]);
     let cities: Vec<(i32, i32)> = grid.starts[2]
         .list
         .iter()

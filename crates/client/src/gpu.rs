@@ -128,7 +128,7 @@ const LAND_SHADER: &str = include_str!("../shaders/land.wgsl");
 
 /// The names [`LAND_SHADER`] leaves a hole for, each filled once.
 #[cfg(test)]
-const LAND_HOLES: [&str; 9] = [
+const LAND_HOLES: [&str; 12] = [
     "LIT_POWER",
     "HDR_SCALE",
     "LAND_DIFFUSE",
@@ -136,6 +136,9 @@ const LAND_HOLES: [&str; 9] = [
     "AMBIENT_R",
     "AMBIENT_G",
     "AMBIENT_B",
+    "VAMBIENT_R",
+    "VAMBIENT_G",
+    "VAMBIENT_B",
     "EXPOSURE",
     "white",
 ];
@@ -143,8 +146,8 @@ const LAND_HOLES: [&str; 9] = [
 /// [`LAND_SHADER`] with its holes filled.
 fn land_shader() -> String {
     use render::silhouette::{
-        EXPOSURE, HDR_SCALE, LAND_DIFFUSE, LAND_N_DOT_L, LIT_POWER, MIN_LUMINANCE, SCENE_AMBIENT,
-        WHITE_POINT, filmic,
+        EXPOSURE, HDR_SCALE, LAND_AMBIENT, LAND_DIFFUSE, LAND_N_DOT_L, LIT_POWER, MIN_LUMINANCE,
+        SCENE_AMBIENT, WHITE_POINT, filmic,
     };
     let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
     LAND_SHADER
@@ -155,6 +158,9 @@ fn land_shader() -> String {
         .replace("{AMBIENT_R}", &format!("{:?}", SCENE_AMBIENT[0]))
         .replace("{AMBIENT_G}", &format!("{:?}", SCENE_AMBIENT[1]))
         .replace("{AMBIENT_B}", &format!("{:?}", SCENE_AMBIENT[2]))
+        .replace("{VAMBIENT_R}", &format!("{:?}", LAND_AMBIENT[0]))
+        .replace("{VAMBIENT_G}", &format!("{:?}", LAND_AMBIENT[1]))
+        .replace("{VAMBIENT_B}", &format!("{:?}", LAND_AMBIENT[2]))
         .replace("{EXPOSURE}", &format!("{EXPOSURE:?}"))
         .replace("{white}", &format!("{white:?}"))
 }
@@ -721,7 +727,7 @@ impl Gpu {
             "fs_tree",
             true,
             wgpu::CompareFunction::LessEqual,
-            None,
+            Some(wgpu::BlendState::ALPHA_BLENDING),
             Default::default(),
         );
         let textured = figure_pass(
@@ -1057,8 +1063,12 @@ impl Gpu {
             .filter(|m| !m.positions.is_empty())
             .map(|m| {
                 let mut bytes = Vec::with_capacity(m.positions.len() * 32);
-                for ((p, uv), a) in m.positions.iter().zip(&m.uvs).zip(&m.alpha_uvs) {
-                    for f in p.iter().chain(uv).chain(a).chain(&[0.0]) {
+                for (i, ((p, uv), a)) in
+                    m.positions.iter().zip(&m.uvs).zip(&m.alpha_uvs).enumerate()
+                {
+                    // Item 4217: the corner's N·L in the third attribute's `z`.
+                    let nl = m.light.get(i).copied().unwrap_or(crate::world::LIGHT_FLAT);
+                    for f in p.iter().chain(uv).chain(a).chain(&[nl]) {
                         bytes.extend_from_slice(&f.to_le_bytes());
                     }
                 }
@@ -1091,7 +1101,14 @@ impl Gpu {
             .map(|m| {
                 let mut bytes = Vec::with_capacity(m.positions.len() * 32);
                 let owner = render::silhouette::team_unit(m.who).map(|c| f32::from(c) / 255.0);
-                for (p, uv) in m.positions.iter().zip(&m.uvs) {
+                for (i, (p, uv)) in m.positions.iter().zip(&m.uvs).enumerate() {
+                    // Item 4217: a ground mesh's owner is the corner's N·L.
+                    let owner = if m.piece < 0 {
+                        let nl = m.light.get(i).copied().unwrap_or(crate::world::LIGHT_FLAT);
+                        [nl, 0.0, 0.0]
+                    } else {
+                        owner
+                    };
                     for f in p.iter().chain(uv).chain(&owner) {
                         bytes.extend_from_slice(&f.to_le_bytes());
                     }
@@ -1696,7 +1713,7 @@ mod tests {
     fn the_ground_draws_the_texel_lit() {
         assert!(TEXTURED_SHADER.contains(
             "fn fs_ground(i: VOut) -> @location(0) vec4<f32> {\n    \
-             return vec4<f32>(land_lit(textureSample(tex, samp, i.uv).rgb), 1.0);"
+             return vec4<f32>(land_lit(textureSample(tex, samp, i.uv).rgb, i.owner.x), 1.0);"
         ));
     }
 
@@ -1723,7 +1740,7 @@ mod tests {
     #[test]
     fn the_mountain_adds_on_the_stored_bytes() {
         assert!(PATCH_SHADER.contains(
-            "return vec4<f32>(land_lit(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0))), a);"
+            "return vec4<f32>(land_lit(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), i.nl), a);"
         ));
         assert!(!PATCH_SHADER.contains("encoded("));
     }
@@ -1736,7 +1753,8 @@ mod tests {
         let t = tree_shader();
         assert!(t.contains("let stage = clamp(t.rgb + vec3<f32>(0.5019608 - 0.5)"));
         assert!(t.contains("pow(stage, vec3<f32>(1.9)) * 5.0"));
-        assert!(t.contains("return vec4<f32>(toned, 1.0);"));
+        // Item 4221: blended by the texel's alpha (§3.23).
+        assert!(t.contains("return vec4<f32>(toned, t.a);"));
         assert!(!t.contains("encoded("));
         assert!(t.contains("if (t.a <= 0.0)"));
     }

@@ -1662,7 +1662,11 @@ reading-only, the route's falsifier a `cover=1` take §22.3 writes.
   `World+0x84` and Σy by `World+0xa0` (§18.3, item 3856). Whether the two
   counts are ever unequal is unread (§18.3).
 - Warring States' fairness break compares +0x4c with +0x48 as the
-  decompile prints it, and the compare is not listing-read (§18.2).
+  decompile prints it, and the compare is not listing-read (§18.2). It
+  is now held by run1122's 9,112-draw mask stream, on one lobby (§37.2).
+- British Isles' and Warring States' masks beyond one 2-player 60×60
+  lobby each, their unreached arms, and Warring States' stale word:
+  §37.4.
 - Whether `create_doobers`' rock-bit test decides a height: every
   Great Sahara oil cell carries the rock bit, so the conjunction is
   untested there. The flag-1 arm (a good the console's leader cannot
@@ -2107,6 +2111,8 @@ What would kill the claim: a Warring States checksum trace whose seed and
 part 2 at 7807 part from an integer port of this scorer. The lobby is
 run1122's at `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start
 `WORLD` dump.
+Taken without a checksum trace: run1122's draw-site trace holds the
+whole mask, scorer included, site for site (§37.2, item 4211).
 
 ### 18.3 The cliff chain
 
@@ -4319,9 +4325,151 @@ read holds one; the crate's `Sim::land_size` filters land as well); a
 game the crate builds from a dump keeps no tallies (no `World::record`);
 a saved game's restore, which walks the record back whole, was not read.
 
-## 37. Reserved for the next item on the map track
+## 37. British Isles' and Warring States' masks (item 4211)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The start track's last three lobbies (`docs/START.md` §5) each parted at
+their first cell, `CELL 0 0 land` 0 against 2, because neither style had a
+composed chain. Lobby 19 is run1122 (Warring States, style 15); lobbies 24
+and 119 are run1127 and run316 (British Isles, style 22). This section is
+the two masks. Lobby 119's Large Town building list is `docs/START.md`'s.
+Both masks were read from the listing and ported onto Great Lakes' region
+growers (`map_lakes`) and East Meets West's start and land helpers
+(`map_east_west`, §24). Neither calls `invert_land`: each grows land on the
+wiped, all-water world, and the land stays.
+
+### 37.1 British Isles: islands on a ring
+
+`MapBritishIsles::make_continents@00695130` is `sim::mapgen::map_british_isles`.
+Its four draw sites are 0x695425 (the island count), 0x6954f5 and 0x69550d
+(the ring's angle, high and low halves) and 0x695a3f (the seats' order).
+
+1. Once: `avoid_continent` (+0x30) becomes `max(4,
+   scale_land_area(avoid_continent))`. The angle's step is `0xffffffff /
+   players`, unsigned.
+2. Each generation: `World::wipe`, `Regions::clear_all`. Under three
+   players, each player gets an island. Otherwise the island count is
+   `min(players, 2 + r % players)`, from one draw. Island `i` holds
+   `(players + i % islands) / islands` players, and at least 1.
+3. The ring's radius is `R = ((m/2)·6)/8`, `m` the shorter side. The angle
+   is `(r % 0xffff) << 16 + r2 % 0xffff`. A player's share is `S =
+   max(0x78, scale_land_area((cells/players)·5/9))`.
+4. Island `i` opens region `i + 1` at the point `R` along the angle from the
+   map's middle. It grows to a quarter of `counts[i]·S` within `R/6`, and
+   the growth's return is dropped. The angle then steps by half of
+   `counts[i]` steps plus half of `counts[next]` steps.
+5. Each island then grows to `counts[i]·S` within `R/3`. An island short of
+   half that, or short of 0x78 cells, takes the island count down by one.
+   If the short island is the new last one, the island before it is
+   credited the player (the listing's `incl`) and the loop runs on. If not,
+   the generation starts again.
+6. The starts: each island's players, in island order, take
+   `place_start_in_region(i + 1, min 10)` against the starts already found.
+   That body is now `map_east_west::place_start_in_list`, because British
+   Isles passes the records' growth-order lists and not a region scan.
+   The seats then take the starts in a drawn order: `r % players`, drawn
+   again while that start is taken.
+7. `check_player_land` at ring 5, guarded by `avoid_continent` (`ecx` 1),
+   on the records' lists as they grew. Then `eliminate_pools(ENTIRE_WORLD)`.
+
+On run316 (2 players, 60×60) there were 2 islands, `S` 1000 and `R` 22,
+with no restart. **19,644 draws, every site and word agreeing, on the first
+walk** (`rondata::mapgen::tests::british_isles_s_mask_is_the_traced_stream`).
+The same test lends two more traces whose segment opens on run316's word,
+run1127 among them. Neither has a setup trace in its preamble, so neither
+is in the archive.
+
+### 37.2 Warring States: a walked continent and fair islands
+
+`MapWarringStates::make_continents@00698b60` is `sim::mapgen::map_warring_states`.
+Its draw sites are 0x698c9d and 0x698cb5 (the walk's angle), 0x698ed4
+(each step's turn), 0x69967c (the islands' odd one), 0x6999d2 (an island's
+spacing) and 0x699a2c (its first candidate).
+
+1. `avoid_continent` becomes `max(4, scale_land_area(avoid_continent))`.
+   `randomize_starts` (+0x2ec) is set to 0, so style 15's start
+   permutation is the identity (`diff::start`).
+2. **The walk.** `D = m/2 − avoid_edge[0] − avoid_continent`. The walk
+   opens `D` along a two-draw angle from the middle. Its step is `2D/e`,
+   where `e` is the players rounded up to even and doubled until it is at
+   least 6. `start_dist` (+0x28) is a quarter of the step. Each step opens
+   a region with flag bit 1 and turns by `(r % 0x4000 + 0x6000) << 16`.
+   The walk stops past `D + avoid_continent` from the middle, or past
+   `m − avoid_continent`.
+3. **The seats.** An odd seat `j` takes the walk's index `n − (j−1 >> s) −
+   1` and an even seat takes `j >> s` from the far end. `fill_cont` gives
+   each team its continent, and each live seat calls
+   `add_starting_location`.
+4. **The continent.** Each walk region grows by 0x30 cells a pass. Growth
+   stops when the regions sum to `cells/7` and region 1 touches all of
+   them, or when a pass is short on every region. Then the regions merge
+   into region 1, followed by `clear_all` and `find_all`.
+5. **The islands.** The count is `xs/15 + r % 2`, rounded up to even, and
+   at least the players when the allowance does not exceed them. The
+   candidates are the first sea region's cells. Each island draws a
+   spacing `d = max(5, (avoid_continent + isqrt(r % 55 + 193))/2)` and a
+   first candidate. A candidate with `land_dist ≥ d` is scored by
+   `MapFairness::calc_distances` (§18.2, integer-exact). It is taken when
+   an earlier attempt has failed, or when its nearest start
+   (`lowest_dist`, +0x4c) is `highest_player` (+0x48). A taken island
+   grows to 0xdc cells within `d + 1`, and a whole one adds to the tally.
+   A short island, or a search with no candidate, fails the attempt and
+   takes its distances back off the tally. That happens four times; after
+   the fourth, each failure gives the island up. `MapFairness` is ported
+   as integers.
+6. `check_player_land` at ring 5, unguarded. That is the listing's `ecx`
+   0 arm, now `map_east_west::check_player_land_guarded` with no guard.
+
+**The stale word.** `highest_player` is not written before the first
+island's test. The constructor and both `MapFairness::clear` calls leave
+it, so the test reads whatever word the frame holds. With −1, ours parted
+at draw 4,662: the original took a candidate on its first attempt and ours
+took none. With 0 every draw agrees, and with 1 the stream parts at draw
+5,226. So `STALE_HIGHEST` is 0, **measured from the trace, not read**.
+
+On run1122 (2 seats on team 8, 60×60) the walk has 14 regions; 4 islands
+are asked for, 3 grow, in 9 attempts. **All 9,112 draws agree site for
+site** (`rondata::mapgen::tests::warring_states_s_mask_is_the_traced_stream`).
+That stream also holds §18.2's scorer and the +0x4c/+0x48 break on one
+lobby.
+
+### 37.3 What a diff backs
+
+- Both mask streams, every site and word: run316's 19,644 draws (and the
+  two traces lent to it) and run1122's 9,112.
+- Every cell of the three start dumps. With the masks in, lobby 24 was
+  whole (18,604 of 18,604). Lobbies 19 and 119 each parted on one `ROAD`
+  bit, at `CELL 7 38 flags` (0 against 128) and `CELL 15 21 flags` (512
+  against 640). The dump prints our side. The "theirs" was `build_sim`'s
+  install, whose `activate` lays the city's roads again on the dump's
+  cells. So every `CELL flags` row is now held to the dump's own printed
+  word (`docs/START.md` §6). The census is **161 of 161**, and no other
+  lobby moved.
+- run316's 7805 sync word, checked by the start harness.
+
+**Made to fail**, each change applied alone and then reverted:
+
+- `STALE_HIGHEST` set to 1: Warring States' stream parts at draw 5,226, and
+  lobby 19 at `CELL 22 2 land`, ours 1 against 2.
+- British Isles' angle step on `counts[next]` shifted `>> 2`: the stream
+  parts at run316's draw 2,315, and lobbies 24 and 119 at `CELL 34 1
+  land`.
+- The dump-flags check fed `flags ^ 0x80` at cell 1830: all three lobbies
+  part at `CELL 30 30 flags`.
+
+### 37.4 What is not established
+
+- Other nation counts and sizes: each style has one lobby, 2 players on
+  60×60.
+- British Isles: the island-count draw past two players; the restart and
+  credit arms of step 5; and the lone island grown short, which the port
+  refuses (`Unported::LoneIslandShort`; the original increments the word
+  before its count array). The guard of `check_player_land` and its
+  adoption arm rest on East Meets West's port.
+- Warring States: the overage path, where `scale_land_area` goes float and
+  `MapFairness` groups seats into teams; team games; a walk step off the
+  grid; and a search whose first candidate is 1 and that accepts nothing,
+  which never ends in the original (`Unported::EndlessSearch`).
+- That 0 is the stale word in every game. It is the value on run1122's
+  frame. A different call path could leave a different word, and a
+  different lobby could then part.
+- The +0x4c/+0x48 compare is held by one stream, not read off the listing.

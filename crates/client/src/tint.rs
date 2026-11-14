@@ -169,6 +169,78 @@ pub(crate) mod tests {
         assert_eq!(got, GRASS_HUE);
     }
 
+    /// **The land lit by its normal** (item 4217; `docs/RENDERER.md`
+    /// §3.22): on each photograph, the still with [`crate::world::World`]'s
+    /// land light off (item 4212's flat N·L, the drawn side) and on (each
+    /// corner's `calculate_norms` N·L and `light_vert` colour): the grass's
+    /// hue row on [`GRASS_HUE_BAR`], the ground row's verdicts and its
+    /// luminance row over every scored tile. The off side is the other
+    /// tests' pins read again.
+    #[test]
+    fn the_land_lit_by_its_normal() {
+        use render::silhouette::{LUMA_READER, luminance};
+        let mut got = Vec::new();
+        for (name, shot) in photos() {
+            let Some(mut p) = probe_at(shot) else { return };
+            let mut sides = Vec::new();
+            for lit in [false, true] {
+                p.world.set_land_light(lit);
+                let s = still(&mut p);
+                let tiles = still_ground_row(&mut p, &s);
+                let t = p.world.runner.terrain();
+                let mountains: BTreeSet<(i32, i32)> =
+                    t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+                let (mut hue_ok, mut row, mut luma) = (0, 0, 0);
+                let mut mean = [[0f64; 3]; 2];
+                let plain = tiles
+                    .iter()
+                    .filter(|q| kind_of(&t, &mountains, q.0) == 0)
+                    .count();
+                for (tt, th, us, ok) in &tiles {
+                    row += usize::from(*ok);
+                    luma += usize::from(LUMA_READER.agrees(luminance(*us), luminance(*th)));
+                    if kind_of(&t, &mountains, *tt) == 0 {
+                        hue_ok += usize::from((hue(*th) - hue(*us)).abs() <= GRASS_HUE_BAR);
+                        for c in 0..3 {
+                            mean[0][c] += f64::from(th[c]) / plain as f64;
+                            mean[1][c] += f64::from(us[c]) / plain as f64;
+                        }
+                    }
+                }
+                println!(
+                    "{name} land light {}: grass hue {hue_ok} of {plain}, ground row {row} and luma {luma} of {}; the grass theirs ({:.1}, {:.1}, {:.1}), ours ({:.1}, {:.1}, {:.1})",
+                    if lit { "on" } else { "off" },
+                    tiles.len(),
+                    mean[0][0],
+                    mean[0][1],
+                    mean[0][2],
+                    mean[1][0],
+                    mean[1][1],
+                    mean[1][2],
+                );
+                sides.push([hue_ok, row, luma]);
+            }
+            got.push((sides[0], sides[1]));
+        }
+        assert_eq!(got, LAND_LIGHT_ROWS);
+    }
+
+    /// [`the_land_lit_by_its_normal`]'s counts, `(off, on)` on run1559b,
+    /// run1564 and run1570, each `[grass hue, ground row, luma]`. Off is
+    /// `GRASS_HUE`'s drawn side, `RUN1559B_3279_GROUND_STILL`,
+    /// `RUN1564_3279_GROUND_STILL` and `GROUND_LUMA_STILL`. On, the luma
+    /// rises on all three (1,029 → 1,079, 1,396 → 1,410, 1,118 → 1,152) and
+    /// run1564's grass hue and ground row fall (674 → 665, 1,021 → 1,001,
+    /// its `SANDY` 311 → 290): the switch stays off (§3.22).
+    /// Item 4221 (the trees tinted and blended, §3.23): run1559b off luma
+    /// 1,029 → 1,036, on hue 960 → 959; run1570 off luma 1,118 → 1,121, on
+    /// 1,152 → 1,153. Lit still beats unlit on no hue row: off.
+    pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
+        ([959, 1104, 1036], [959, 1104, 1079]),
+        ([674, 1021, 1396], [665, 1001, 1410]),
+        ([1042, 1171, 1121], [1041, 1171, 1153]),
+    ];
+
     /// **`GRASS_HUE`**, `[(untinted, tinted)]` on run1559b, run1564 and
     /// run1570, both sides lit at the frame's white. At the base (`06e08d98`,
     /// the texel unlit) the row read 17 of 986, 1 of 679 and 17 of 1,073
@@ -176,10 +248,12 @@ pub(crate) mod tests {
     /// hue 57.9, ours (160.5, 138.9, 64.8) hue 46.4. The tint alone, unlit,
     /// read 16, 1 and 17. Drawn: 959, 674 and 1,042. On the tree merged with
     /// 4208 (the gaia figures' shipped variant), run1564's untinted 605 → 607.
+    /// Item 4221: the untinted side now untints the trees too (§3.23):
+    /// run1564's 607 → 605, run1570's 1,044 → 1,045; the drawn side holds.
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
         ((961, 986), (959, 986)),
-        ((607, 679), (674, 679)),
-        ((1044, 1073), (1042, 1073)),
+        ((605, 679), (674, 679)),
+        ((1045, 1073), (1042, 1073)),
     ];
 }
 

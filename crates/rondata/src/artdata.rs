@@ -2496,6 +2496,49 @@ pub fn tileset_tint(install: &Install, tileset: &str) -> Result<[u8; 3], ArtFail
     Ok(out)
 }
 
+/// **The tileset's light** (item 4217; `docs/RENDERER.md` §3.22): the
+/// `<LIGHTING>` element's `<AMBIENT>` and `<DIFFUSE>` under `tileset`,
+/// each `<COLOR name>`'s `red`, `green`, `blue` and `alpha` as written.
+/// `TerrainOut::light_vert@00866f90` makes a land corner's colour from
+/// them (the colour times its alpha, plus the ambient); the card's
+/// `gLight` carries the diffuse at the same product and the ambient at
+/// twice its colour (run1567's 3279 pass: 1.36 and (0.02, 0.06, 0.36)).
+/// `[red, green, blue, alpha]` each.
+pub fn tileset_light(install: &Install, tileset: &str) -> Result<[[f32; 4]; 2], ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let set = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?;
+    let light = set
+        .children()
+        .find(|n| n.has_tag_name("LIGHTING"))
+        .ok_or_else(|| unnamed(&format!("{tileset}/LIGHTING")))?;
+    let mut out = [[0.0f32; 4]; 2];
+    for (o, tag) in out.iter_mut().zip(["AMBIENT", "DIFFUSE"]) {
+        let e = light
+            .children()
+            .find(|n| n.has_tag_name(tag))
+            .ok_or_else(|| unnamed(&format!("{tileset}/LIGHTING/{tag}")))?;
+        for (v, name) in o.iter_mut().zip(["red", "green", "blue", "alpha"]) {
+            let what = || unnamed(&format!("{tileset}/LIGHTING/{tag}/{name}"));
+            let c = e
+                .children()
+                .find(|n| n.has_tag_name("COLOR") && n.attribute("name") == Some(name))
+                .ok_or_else(what)?;
+            *v = c.text().unwrap_or("").trim().parse().map_err(|_| what())?;
+        }
+    }
+    Ok(out)
+}
+
 /// **The footprint weathering's textures** (item 4190; `docs/RENDERER.md`
 /// §3.17): `Data/tilesets.xml`'s `<COMMON><WEATHERING>` `WEATHERELEM`s, one
 /// per age bucket as `age=` numbers them, each `(file1, file2)` as written.
@@ -2801,6 +2844,23 @@ mod tests {
         assert_eq!(tileset_tint(&inst, "early_autumn").unwrap(), [18, 18, 0]);
         assert_eq!(tileset_tint(&inst, "Snowy").unwrap(), [0, 9, 38]);
         assert!(tileset_tint(&inst, "no such tileset").is_err());
+    }
+
+    /// **The tileset's light** (item 4217; `docs/RENDERER.md` §3.22):
+    /// `early_autumn`'s `<AMBIENT>` (0.01, 0.03, 0.18) at alpha 2 and its
+    /// `<DIFFUSE>` white at alpha 1.36, and a tileset the file does not
+    /// hold is refused.
+    #[test]
+    fn the_tileset_light_is_read() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        assert_eq!(
+            tileset_light(&inst, "early_autumn").unwrap(),
+            [[0.01, 0.03, 0.18, 2.0], [1.0, 1.0, 1.0, 1.36]]
+        );
+        assert!(tileset_light(&inst, "no such tileset").is_err());
     }
 
     /// **Every image the install ships is read whole** (item 4037,

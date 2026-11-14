@@ -58,7 +58,11 @@ if (game->frame % 200 == 0) calc_danger()
 ```
 
 Third in that function, after the repath decay and `process_victory` and
-before `update_all_seen`. **Nothing decays the map between rebuilds** — it
+before `update_all_seen`. **And once before the first frame**:
+`Game::run@00584590:721` calls it past `build_game` and
+`Leaders::init_production_script`, so frame 0's own rebuild is the second
+and the map is never all zeros in play (item 4218, `docs/CHECKSUM.md`
+§24.4; the built start's `Setup::calc_danger`). **Nothing decays the map between rebuilds** — it
 is thrown away and reassembled from the live objects — so every read is of
 a map up to 199 frames stale. A building finished on frame 201 weighs
 nothing until 400. That staleness is diff-backed and visibly so: run25's

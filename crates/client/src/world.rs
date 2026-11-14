@@ -213,6 +213,12 @@ pub struct World {
     /// Draw the ground in its land kind's debug colour, the row's floor
     /// (item 4127); off by default, `--debug-ground` turns it on.
     pub debug_ground: bool,
+    /// **Light each land corner by its own normal** (item 4217, §3.22):
+    /// `calculate_norms`' N·L and `light_vert`'s vertex colour, as the
+    /// packet holds them. Off by default, the flat N·L and a white vertex
+    /// (item 4212's draw): on, the rows it was measured on fall
+    /// (`tint::tests::LAND_LIGHT_ROWS`). [`World::set_land_light`] moves it.
+    land_light: bool,
     /// The drawn terrain without the textured tiles, the textured tiles
     /// and the transition patch laid over them, at the terrain version
     /// they were built at.
@@ -376,7 +382,15 @@ pub struct PatchMesh {
     /// A mountain's layer (item 4141): `TOP_ADDSIGNED` under the alpha,
     /// A the two texels' product, the alpha linear and clamped.
     pub mountain: bool,
+    /// Each corner's N·L (item 4217, §3.22), one a position; empty for a
+    /// layer that keeps the flat N·L and a white vertex ([`LIGHT_FLAT`]).
+    pub light: Vec<f32>,
 }
+
+/// **The light a corner with none of its own carries** (item 4217): over
+/// 1.5, so `land.wgsl`'s `land_lit` takes the flat N·L and a white vertex,
+/// item 4212's draw.
+pub const LIGHT_FLAT: f32 = 2.0;
 
 /// The tileset's tree models, decoded once: `TileSetData::tree_scale` (the
 /// `treescale` times [`render::trees::TREESCALE_FACTOR`]) and each model's
@@ -576,8 +590,9 @@ impl World {
     /// The install's tables are loaded once, and only the runner `game`
     /// names is built (item 4161: `--lobby` loaded them twice and built the
     /// pair's runner only to drop it, 0.68 s of its 1.47 s to frame zero).
-    /// The ground's art is the pair's start's in both (its tileset and
-    /// seed; the lobby is the same map, run53's `game_random seed 12345`).
+    /// The ground's art is the pair's start's for the pair, and a built
+    /// start's own composed map's — its tileset and `World.seed`
+    /// ([`FreeRunner::ground`]) — for the lobby and the page (item 4215).
     pub fn open_game(install_root: &Path, logs: &Path, game: Game) -> Result<World, String> {
         let install = Install::new(install_root);
         if !install.looks_valid() {
@@ -662,14 +677,22 @@ impl World {
                 });
             }
         }
-        let tileset = lobby_tileset(install_root, &start);
+        // A built start's ground is its own composed map's (item 4215):
+        // the tileset it drew and `World.seed`. A capture's game reads
+        // both off the pair's start dump.
+        let (tileset, seed) = match runner.ground() {
+            Some((t, s)) => (Some(t.to_string()), Some(s)),
+            None => (
+                lobby_tileset(install_root, &start),
+                rondata::mapgen::start_head(&start)
+                    .ok()
+                    .flatten()
+                    .map(|h| rondata::mapgen::start_grid(&h).seed as u32),
+            ),
+        };
         let tint = tileset
             .as_deref()
             .map_or([0; 3], |t| crate::tint::of(install.root(), t));
-        let seed = rondata::mapgen::start_head(&start)
-            .ok()
-            .flatten()
-            .map(|h| rondata::mapgen::start_grid(&h).seed as u32);
         let ground = tileset.as_deref().and_then(|t| {
             let textures = crate::ground::GroundTextures::load(install.root(), t).ok()?;
             let flat = textures
@@ -725,7 +748,14 @@ impl World {
                     .iter()
                     .map(|t| {
                         let bytes = std::fs::read(resolve_art(&root, t)?).ok()?;
-                        render::tga::decode(&bytes).ok()
+                        let mut img = render::tga::decode(&bytes).ok()?;
+                        // Item 4221 (§3.23): `TreeTransformMethod::load@00921aa0`
+                        // hands each of the seven `GraphicPieces::tint_color`
+                        // (`TintColor`, `init_tree_data@008eeb30`) through
+                        // `ImageIO::set_tint`: the tileset's tint, 12 12 00 on
+                        // run1559b's and run1564's packets.
+                        img.tint(tint);
+                        Some(img)
                     })
                     .collect();
                 // Item 4173: each texture on its one level, as
@@ -850,6 +880,7 @@ impl World {
             tree_art,
             ground,
             debug_ground: false,
+            land_light: false,
             drawn: (u32::MAX, TerrainMesh::default(), Vec::new(), Vec::new()),
             ramp: None,
             laid_ramp: None,
@@ -873,6 +904,14 @@ impl World {
     }
 
     /// Step the game to `frame` (the dump's `FRAME frame`).
+    /// The ground art's `(tileset, World.seed)`, as the transition patch
+    /// holds them: what a test checks a built start's ground against.
+    #[cfg(test)]
+    pub fn ground_art(&self) -> Option<(&str, u32)> {
+        let p = self.ground.as_ref()?.patch.as_ref()?;
+        Some((p.tileset.as_str(), p.seed))
+    }
+
     pub fn run_to(&mut self, frame: i64) {
         while self.runner.frame() < frame {
             if self.runner.frame() + 1 == frame {
@@ -965,6 +1004,16 @@ impl World {
     /// Item 4139: and the transition patch, our own choice on our own
     /// cells, as one [`PatchMesh`] per (patch's base, alpha), drawn after
     /// the base.
+    /// Turn [`World::land_light`] on or off; the ground is laid again.
+    pub fn set_land_light(&mut self, on: bool) {
+        if self.land_light != on {
+            self.land_light = on;
+            self.drawn.1.positions.clear();
+            self.drawn.2.clear();
+            self.drawn.3.clear();
+        }
+    }
+
     pub fn drawn_terrain(&mut self) -> (&TerrainMesh, &[TexturedMesh], &[PatchMesh]) {
         let version = self.runner.terrain().version;
         if self.debug_ground || self.ground.is_none() {
@@ -990,6 +1039,28 @@ impl World {
                 &mountains
             };
             let base = crate::ground::ground_base(&t, under, &g.textures, &self.terrain.1);
+            // Item 4217 (§3.22): each land corner's N·L, from
+            // `calculate_norms`' normal on our corners.
+            let normals = render::terrain::land_normals(&Heightfield {
+                width: t.width,
+                height: t.height,
+                corners: &t.corners,
+            });
+            let stride = (t.width * render::terrain::TILES_PER_CELL + 1) as usize;
+            let lit = self.land_light;
+            let nl_at = |p: &[f32; 3]| -> f32 {
+                if !lit {
+                    return LIGHT_FLAT;
+                }
+                let per = render::terrain::UNITS_PER_TILE as f32;
+                let (cx, cy) = ((p[0] / per).round(), (p[1] / per).round());
+                if cx < 0.0 || cy < 0.0 {
+                    return LIGHT_FLAT;
+                }
+                normals
+                    .get(cy as usize * stride + cx as usize)
+                    .map_or(LIGHT_FLAT, |n| render::terrain::land_n_dot_l(*n))
+            };
             let textured: std::collections::BTreeSet<(i32, i32)> =
                 base.tile.iter().copied().collect();
             let field = Heightfield {
@@ -1011,6 +1082,7 @@ impl World {
                     positions: Vec::new(),
                     uvs: Vec::new(),
                     mips: mips.clone(),
+                    light: Vec::new(),
                 })
                 .collect();
             // Item 4178 (§3.12): the land pass draws no `OCEAN` tile;
@@ -1031,6 +1103,7 @@ impl World {
                     positions: Vec::new(),
                     uvs: Vec::new(),
                     mips: std::sync::Arc::new(render::silhouette::Mips::new(tex)),
+                    light: Vec::new(),
                 }
             });
             let mut shade = PatchMesh {
@@ -1049,6 +1122,7 @@ impl World {
                 alpha: WATER_ALPHA,
                 alpha_mips: std::sync::Arc::new(crate::ground::water_ramp()),
                 mountain: false,
+                light: Vec::new(),
             };
             let ramp = std::sync::Arc::new(crate::ground::water_ramp());
             let mut fades: BTreeMap<usize, PatchMesh> = BTreeMap::new();
@@ -1079,15 +1153,18 @@ impl World {
                         alpha: WATER_ALPHA,
                         alpha_mips: ramp.clone(),
                         mountain: false,
+                        light: Vec::new(),
                     });
                     m.positions.extend_from_slice(tri);
                     m.uvs.extend_from_slice(uv);
                     m.alpha_uvs
                         .extend(alpha.map(|a| [(f32::from(a) + 0.5) / 256.0, 0.5]));
+                    m.light.extend(tri.iter().map(nl_at));
                     continue;
                 }
                 meshes[k].positions.extend_from_slice(tri);
                 meshes[k].uvs.extend_from_slice(uv);
+                meshes[k].light.extend(tri.iter().map(nl_at));
             }
             meshes.extend(floor);
             meshes.retain(|m| !m.positions.is_empty());
@@ -1132,10 +1209,16 @@ impl World {
                             alpha: a,
                             alpha_mips: alpha_mips.clone(),
                             mountain: false,
+                            light: Vec::new(),
                         });
                         m.positions.extend_from_slice(&laid.tris[i]);
                         m.uvs.extend_from_slice(&laid.uvs[i]);
                         m.alpha_uvs.extend_from_slice(&laid.alpha_uvs[i]);
+                        // The coral keeps the flat light: its corners'
+                        // colours are the floor's (§3.22).
+                        if layer == 0 {
+                            m.light.extend(laid.tris[i].iter().map(nl_at));
+                        }
                     }
                 }
             }
@@ -1165,6 +1248,7 @@ impl World {
                     alpha: WATER_ALPHA,
                     alpha_mips: std::sync::Arc::new(crate::ground::water_ramp()),
                     mountain: false,
+                    light: Vec::new(),
                 };
                 for (tri, a) in water.tris.iter().zip(&water.alpha) {
                     m.positions.extend_from_slice(tri);
@@ -1202,6 +1286,7 @@ impl World {
                             alpha: MOUNTAIN_ALPHA + 2 * k + 1 - layer,
                             alpha_mips: alpha_mips.clone(),
                             mountain: true,
+                            light: Vec::new(),
                         });
                         m.positions.extend_from_slice(&range.tris[i]);
                         for px in range.uvs[i] {
@@ -1405,6 +1490,7 @@ impl World {
             alpha: ROAD_ALPHA,
             alpha_mips: mips,
             mountain: false,
+            light: Vec::new(),
         };
         let cuts = |a: f32, b: f32| {
             let mut v = vec![a];
@@ -1474,6 +1560,7 @@ impl World {
                 rgba: vec![255, 255, 255, 255],
             })),
             mountain: false,
+            light: Vec::new(),
         };
         for f in feet {
             for (x, y) in f.tiles() {
@@ -1509,6 +1596,20 @@ impl World {
     #[cfg(test)]
     pub fn tree_meshes(&self) -> Option<&TreeMeshes> {
         self.tree_art.as_ref()
+    }
+
+    /// Item 4221: tree texture `k` of `tileset` as its file decodes, beside
+    /// the one the world draws (tinted at load).
+    #[cfg(test)]
+    pub fn tree_texture_pair(
+        &self,
+        tileset: &str,
+        k: usize,
+    ) -> Option<(render::tga::Image, render::tga::Image)> {
+        let drawn = self.tree_art.as_ref()?.textures.get(k)?.clone()?;
+        let art = rondata::artdata::tree_art(&self.install, tileset).ok()?;
+        let bytes = std::fs::read(resolve_art(&self.root, art.textures.get(k)?)?).ok()?;
+        Some((render::tga::decode(&bytes).ok()?, drawn))
     }
 
     /// **Every tree of the map as it stands now** (item 4080): each forest
@@ -1643,6 +1744,7 @@ impl World {
                     positions,
                     uvs,
                     mips: art.leaf_mips.get(k)?.clone()?,
+                    light: Vec::new(),
                 })
             })
             .collect()
@@ -1734,6 +1836,7 @@ impl World {
                     positions,
                     uvs,
                     mips: self.shadow_texture(piece)?.clone(),
+                    light: Vec::new(),
                 })
             })
             .collect()
@@ -2204,6 +2307,7 @@ impl World {
                     positions: d.tris.iter().flatten().copied().collect(),
                     uvs: d.uvs.iter().flatten().copied().collect(),
                     mips,
+                    light: Vec::new(),
                 });
                 continue;
             }
@@ -2232,6 +2336,10 @@ pub struct TexturedMesh {
     pub positions: Vec<[f32; 3]>,
     pub uvs: Vec<[f32; 2]>,
     pub mips: std::sync::Arc<render::silhouette::Mips>,
+    /// A ground mesh's corners' N·L (item 4217, §3.22), one a position;
+    /// empty for the flat N·L and a white vertex ([`LIGHT_FLAT`]). Read only
+    /// where `piece` is negative.
+    pub light: Vec<f32>,
 }
 
 /// One drawn object, placed: a draw-list entry's owner, object and piece,

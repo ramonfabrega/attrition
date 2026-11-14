@@ -2337,9 +2337,13 @@ mod tests {
         assert_eq!(ol, s::RUN1441_CAMERA_3279_LUMA);
         // The rule (committed before the count): the winner on brightness
         // is drawn when its colour row is not under 18. The candidate wins
-        // and falls under it, so the drawn stays.
+        // and falls under it, so the drawn stays. The 18 was the drawn
+        // colour row when item 4172 committed it; since item 4221's tinted
+        // trees the drawn row is 21 and the candidate's 20, so the bar is
+        // the drawn row's pin.
         assert!(ll.0 > dl.0, "the candidate wins on brightness");
-        assert!(lc.0 < 18, "and its colour row is under 18: not drawn");
+        let bar = render::silhouette::RUN1559B_3279_COLOUR.0;
+        assert!(lc.0 < bar, "and its colour row is under {bar}: not drawn");
         // The reader can fail where the colour reader cannot: the drawn
         // colours under a white light half again as strong.
         let brighter = drawn
@@ -6909,7 +6913,7 @@ mod tests {
         // The packets hold every tone-map input but the mean (§3.14). The
         // kill (c), written before the count: no mean in 1.6..4 raises the
         // row past its 18 or brings tank 1/27 to passing, so clipping does
-        // not part it.
+        // not part it (the row is the drawn row's pin since item 4221).
         let key_1_27 = scene
             .who
             .iter()
@@ -6947,7 +6951,9 @@ mod tests {
                 "mean {mean}: colour row {row} under the candidate; tank 1/27 agreeing {}, passing {}",
                 tank.0, tank.1
             );
-            assert!(row <= 18, "the mean {mean} raises the row to {row}");
+            // The kill's "18" was the drawn row then; item 4221 tied it to the pin.
+            let drawn = render::silhouette::RUN1559B_3279_COLOUR.0;
+            assert!(row <= drawn, "the mean {mean} raises the row to {row}");
             assert!(!tank.1, "the mean {mean} brings 1/27 to passing");
         }
 
@@ -7004,7 +7010,8 @@ mod tests {
         assert_eq!((count(0, &full), count(1, &full)), (564, 13_335));
         assert_eq!((count(0, &every), count(1, &every)), (1_150, 15_482));
         assert_eq!(tot[1].1, 8_119, "the painter's blend on every lit pixel");
-        assert_eq!((leaf.len(), leaf_texel, leaf_power), (3_136, 514, 1_946));
+        // Item 4221: the leaf tinted, (3,136, 514, 1,946) → these.
+        assert_eq!((leaf.len(), leaf_texel, leaf_power), (3_138, 1_512, 2_477));
         assert!(
             apart_pairs
                 .iter()
@@ -7888,8 +7895,8 @@ mod tests {
         // pixels than the texel, and the row goes down.
         assert_eq!((stored_total, every_stored), (6_565, 7_475));
         // 18, 16 until item 4173: 0/1 out of both, the drawn tree under
-        // its silhouette.
-        assert_eq!(passing, (17, 15));
+        // its silhouette. 17, 15 until item 4221's tinted trees.
+        assert_eq!(passing, (21, 19));
         assert!(
             (stored_total as usize) <= texel_total,
             "the stored candidate beats the texel: kill (a) does not hold"

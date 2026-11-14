@@ -916,6 +916,7 @@ mod tests;
 // The files of `mapgen/` (item 4011, `docs/STRUCTURE.md` §3).
 pub mod cliffs;
 pub mod halfland;
+pub mod map_british_isles;
 pub mod map_colonial;
 pub mod map_east_indies;
 pub mod map_east_west;
@@ -930,6 +931,7 @@ pub mod map_rivers;
 pub mod map_sea_power;
 pub mod map_troughs;
 pub mod map_values;
+pub mod map_warring_states;
 pub mod map_watering_hole;
 pub mod terrain_groups;
 pub mod terrain_init;
