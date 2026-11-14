@@ -2196,6 +2196,10 @@ pub fn walk_to_close_quitting(
     players: usize,
     head: bool,
 ) -> EndpointResult {
+    // The run-up compares nothing: in a group's process it rides the
+    // game's trunk (`harness::trunk`, item 4220).
+    #[cfg(test)]
+    super::harness::trunk::advance(built, fin.n - 1);
     while built.sim.frame < fin.n - 1 {
         built.tick();
     }

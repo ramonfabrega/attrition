@@ -163,13 +163,14 @@ pub(super) struct Walked {
 /// saying why, on a machine without the captures, the install or a stream.
 pub(super) fn walk_packets(game: &Game, packets: &[(&'static str, i64)]) -> Option<Vec<Walked>> {
     walk_packets_with(game.name, game.length, packets, &mut |frames, probe| {
-        let (mut built, _) = stand_up_from(game.start, game.long)?;
+        let (built, _) = stand_up_from(game.start, game.long)?;
+        // Each run-up compares nothing: in a group's process it rides the
+        // game's trunk (`harness::trunk`, item 4220).
+        let mut rider = crate::diff::harness::trunk::Rider::new(built);
         for &f in frames {
-            assert!(built.sim.frame <= f, "the packets ascend");
-            while built.sim.frame < f {
-                built.tick();
-            }
-            probe(f, &built);
+            assert!(rider.state().sim.frame <= f, "the packets ascend");
+            rider.advance(f);
+            probe(f, rider.state());
         }
         Some(())
     })

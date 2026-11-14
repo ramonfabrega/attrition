@@ -121,6 +121,12 @@ fn diagnostic() -> bool {
     })
 }
 
+/// Whether this thread's walks ride the process's kept states: a group's
+/// process, outside a batch of its own ([`super::trunk`]).
+pub(super) fn kept_walks_shared() -> bool {
+    sharing() && !batch_active()
+}
+
 fn batch_active() -> bool {
     BATCH.with(|batch| batch.borrow().active)
 }

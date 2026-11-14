@@ -358,6 +358,33 @@ stand-up.
 it after (`load::memo`, tests only; another root is read every time;
 `RON_LOAD_MEMO=off`). Seen red on a perturbed kept copy.
 
+**The trunk (item 4220).** `harness::trunk` keys a checkpoint by the state itself. A
+state fresh from its stand-up is printed whole (its derived `Debug`, hashed, 6 MB and
+10 ms on run1429's game), and a silent run-up from an equal state takes the highest
+rung at or before its frame: `trunk::advance`, which is `while frame < to { tick }` and
+nothing else to a caller. Three shapes ride it: a closing state's walk
+(`endpoint::walk_to_close`), a packet's walk (`trunk::Rider`, one descent over several
+frames) and a window's approach to its first block when the kept walk hands it nothing.
+The walk to the word compares every frame and resumes nothing, but leaves rungs as it
+ticks (`trunk::Leaves`). A rung is a clone on a multiple of the cadence (256 frames,
+doubled each time a trunk would pass 12 rungs; two trunks a process). The test still
+stands its own game up, so its fixture rows are its own; the ground guard's count
+travels in the state. Sound because `Built::tick` reads nothing but the state: the
+simulation holds no hash map and no mutable static, and the diagnostics that read the
+environment turn sharing off. A staged walk rides nothing. **The standing check** is
+the whole gate's: under `RON_VERIFY_ORACLE` (or `RON_VERIFY_PREFIX_REUSE`) a run-up that
+took a rung also ticks its own state from where it stood, and the two prints must be
+equal; `RON_TRUNK_LOG=<dir>` writes one line a rung taken, which is how a run counts
+what its verifier checked. `RON_DISABLE_TRUNK` is a hand's.
+
+**A game has two trunks, not one.** The closing state, the walk to the word and the
+packets stand up one state (equal prints: the whole capture through `Log::initial`). A
+window stands up another, from the capture's replay setup: on run1429 it prints 143 KB
+less, in `frame_guys` (the guys of frames no seed is installed on), in
+`sim.roster.art.lengths` (51 lengths the later frames show) and in one note. Ticked side
+by side to the close the two are equal less those three fields on every hundredth frame
+and on the last, but the key is the state and it does not join them.
+
 **Which gate does what.** Groups are on wherever the library runs through the isolated
 runner: a lane's gate, a scoped booking gate and the whole gate alike, each over the
 tests it selects (a group's *selected* members share a process), and the kept walk is
@@ -416,6 +443,21 @@ widened windows, which are 12 of that group's 28 tests and a quarter of its time
 walk-to-the-word, closing-state, audit, stride and packet shapes each still stand the
 game up and walk it whole.
 
+**The trunk, measured** (item 4220; one binary of `8fb040c69`, the whole library
+through the runner at 8 slots beside other lanes' gates, the fixture audit on): trunk
+off 76,463 G, the games' groups 41,063 G; trunk on **73,611 G, the games' groups
+38,248 G**; the lone tests, the coverage walk and map generation do not move (20,600,
+12,908 and 1,893 G against 20,644, 12,868 and 1,851). The audit, on against off: 1,933
+tests in both, none differ. Under `RON_VERIFY_PREFIX_REUSE` with the tally on, 2,381 of
+2,381 green and 113,066 G: **140 rungs taken, 691,526 frames not ticked, 140 of 140
+print-equal to the test's own walk.** The groups' peaks were rewritten from the
+trunk-on run (largest 3,936 MiB, from 3,751; nine groups peak over 1.5 times their old
+number, `game:run1256` 1,717 to 3,689 MiB): a rung holds every frame's sites so far.
+On `game:run1149`: 914 G off, 908 G on; its Russian closing state runs before its word
+walk and finds no rung. The lane gate on the merged tree (`751f9deba`, 18 tests of the
+base's more, all alone): `Suite: 1264 processes for 2393 tests: 145 groups hold 1274,
+1119 ran alone; 4062 test CPU-seconds`, 78,470 G, the games' groups 38,156 G.
+
 **Not established.** (0) The updated tree's groups-off number: stage 1's audit equality
 was taken before 51 commits of the base were merged; none of them adds a process-wide
 cache (grepped), and the kept walk's equality was retaken after them. (1) The wall: three runs on a loaded host do not rank, and groups
@@ -424,7 +466,11 @@ test's own rows differ run to run; it was not a group's doing, since it never ru
 one. (3) libtest runs a filter's tests in name order, so a window that starts before
 the kept frame falls back to the last walk's start or to frame 0: on `game:run1149` the
 twelve windows walked 26,638 frames where one ascending walk a game is 9,232 and twelve
-stand-ups are 42,631. An order the process imposes is not built. (4) `checksum_lines::
+stand-ups are 42,631. An order the process imposes is not built; the trunk serves the window the kept walk
+hands nothing, from its own stand-up. (3a) Whether a window's stand-up and the closing
+state's are one trajectory on every game: equal less three fields on run1429's, and
+the trunk does not assume it. (3b) A closing state that runs before its game's word
+walk (9 of 121 in item 4219's gate) walks whole. (4) `checksum_lines::
 ours_at_packet` and `transfer::corpus_records` are process-wide caches over fixtures
 that are not `Shared`; their tests are in no group today. (5) The isolated profile
 (`2026-10-16-isolated-profile.json`) is stale by about 1,500 tests; a group's memory no

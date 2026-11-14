@@ -590,8 +590,9 @@ impl World {
     /// The install's tables are loaded once, and only the runner `game`
     /// names is built (item 4161: `--lobby` loaded them twice and built the
     /// pair's runner only to drop it, 0.68 s of its 1.47 s to frame zero).
-    /// The ground's art is the pair's start's in both (its tileset and
-    /// seed; the lobby is the same map, run53's `game_random seed 12345`).
+    /// The ground's art is the pair's start's for the pair, and a built
+    /// start's own composed map's — its tileset and `World.seed`
+    /// ([`FreeRunner::ground`]) — for the lobby and the page (item 4215).
     pub fn open_game(install_root: &Path, logs: &Path, game: Game) -> Result<World, String> {
         let install = Install::new(install_root);
         if !install.looks_valid() {
@@ -676,14 +677,22 @@ impl World {
                 });
             }
         }
-        let tileset = lobby_tileset(install_root, &start);
+        // A built start's ground is its own composed map's (item 4215):
+        // the tileset it drew and `World.seed`. A capture's game reads
+        // both off the pair's start dump.
+        let (tileset, seed) = match runner.ground() {
+            Some((t, s)) => (Some(t.to_string()), Some(s)),
+            None => (
+                lobby_tileset(install_root, &start),
+                rondata::mapgen::start_head(&start)
+                    .ok()
+                    .flatten()
+                    .map(|h| rondata::mapgen::start_grid(&h).seed as u32),
+            ),
+        };
         let tint = tileset
             .as_deref()
             .map_or([0; 3], |t| crate::tint::of(install.root(), t));
-        let seed = rondata::mapgen::start_head(&start)
-            .ok()
-            .flatten()
-            .map(|h| rondata::mapgen::start_grid(&h).seed as u32);
         let ground = tileset.as_deref().and_then(|t| {
             let textures = crate::ground::GroundTextures::load(install.root(), t).ok()?;
             let flat = textures
@@ -739,7 +748,14 @@ impl World {
                     .iter()
                     .map(|t| {
                         let bytes = std::fs::read(resolve_art(&root, t)?).ok()?;
-                        render::tga::decode(&bytes).ok()
+                        let mut img = render::tga::decode(&bytes).ok()?;
+                        // Item 4221 (§3.23): `TreeTransformMethod::load@00921aa0`
+                        // hands each of the seven `GraphicPieces::tint_color`
+                        // (`TintColor`, `init_tree_data@008eeb30`) through
+                        // `ImageIO::set_tint`: the tileset's tint, 12 12 00 on
+                        // run1559b's and run1564's packets.
+                        img.tint(tint);
+                        Some(img)
                     })
                     .collect();
                 // Item 4173: each texture on its one level, as
@@ -888,6 +904,14 @@ impl World {
     }
 
     /// Step the game to `frame` (the dump's `FRAME frame`).
+    /// The ground art's `(tileset, World.seed)`, as the transition patch
+    /// holds them: what a test checks a built start's ground against.
+    #[cfg(test)]
+    pub fn ground_art(&self) -> Option<(&str, u32)> {
+        let p = self.ground.as_ref()?.patch.as_ref()?;
+        Some((p.tileset.as_str(), p.seed))
+    }
+
     pub fn run_to(&mut self, frame: i64) {
         while self.runner.frame() < frame {
             if self.runner.frame() + 1 == frame {
@@ -1572,6 +1596,20 @@ impl World {
     #[cfg(test)]
     pub fn tree_meshes(&self) -> Option<&TreeMeshes> {
         self.tree_art.as_ref()
+    }
+
+    /// Item 4221: tree texture `k` of `tileset` as its file decodes, beside
+    /// the one the world draws (tinted at load).
+    #[cfg(test)]
+    pub fn tree_texture_pair(
+        &self,
+        tileset: &str,
+        k: usize,
+    ) -> Option<(render::tga::Image, render::tga::Image)> {
+        let drawn = self.tree_art.as_ref()?.textures.get(k)?.clone()?;
+        let art = rondata::artdata::tree_art(&self.install, tileset).ok()?;
+        let bytes = std::fs::read(resolve_art(&self.root, art.textures.get(k)?)?).ok()?;
+        Some((render::tga::decode(&bytes).ok()?, drawn))
     }
 
     /// **Every tree of the map as it stands now** (item 4080): each forest

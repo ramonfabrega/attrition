@@ -1738,8 +1738,8 @@ the window harness does not replay (4185a). The ranges and bytes do not
 move: the long range still parts on the other 61, so 263 of 267 ranges
 and 4,313 of 58,343 bytes agree as before. ~~**61**~~ 61 since step V,
 and ~~**49**~~ 49 since item 4187 (step VI), which released twelve (`docs/LEADERS.md`
-§17–§20 name them and the rule each met); six of the score's twelve stay
-held out (4187a–c). **47** since item 4189, which put `defeat_type` and
+§17–§20 name them and the rule each met); four of the score's twelve stay
+held out (4187a, b; c frozen). **47** since item 4189, which put `defeat_type` and
 `victory_type` on the line (0 = 0 on frame 91): the window harness replays
 the human's quit where the capture's trace dates it, and both agree on
 every dump the record diff reads (`docs/LEADERS.md` §10.5). With the spell bits each `tech` array agrees: **265 of
@@ -1819,7 +1819,7 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     `Object::do_damage`, `cast_sabotage`, `cast_counterintel`.
   - the combat rates (13): the `*_current_frame` words from
     `Leader::inc_*_event`, folded by `Leader::process_event_frame` into the
-    fifteen-second words, the averages and `frame_battle`.
+    fifteen-second words and averages, and `frame_battle`.
   - the victim stamps (4): `attack_stamp`, `raid_stamp`, `ally_stamp`,
     `ctw_hero_stamp`, `Object::do_damage` (and `attack_stamp` in
     `Leader::plan_strategy` and `end_process`).
@@ -1827,13 +1827,13 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     `gain_tech`), `attrition_stamp2` (`Unit::suffer_attrition`),
     `attrition_stamp3` (`Wall::process`), ~~`att`
     (`Leader::calc_attrition`)~~ — carried by item 4154,
-    `territory.players[w].strength`, 0 and 0 on both sides (`docs/LEADERS.md`
-    §5.2), `give_att_disabled` (~~`Leader::plan_strategy`~~ the scenario
+    `territory.players[w].strength`, 0 on both sides,
+    `give_att_disabled` (~~`Leader::plan_strategy`~~ the scenario
     triggers, `docs/LEADERS.md` §5.2).
-  - the diplomacy actions (~~15~~ ~~12~~ 10): ~~`dow`, `blacken`, `broke_alliance`,~~
+  - the diplomacy actions (~~15~~ ~~12~~ ~~10~~ 9): ~~`dow`, `blacken`, `broke_alliance`,~~
     carried by item 4159's VII-b1; `made_peace`, `tributes`, `tribute_sent`, `tribute_received`,
     ~~`tribute_stamp`, `gift_stamp`,~~ carried by VII-b2; `hire_stamp`, `hire_who`, `good_deeds`,
-    `last_spoke`, `counteroffer`, `tribute_demanded`: the `action_*` family,
+    ~~`last_spoke`~~ (frozen), `counteroffer`, `tribute_demanded`: the `action_*` family,
     `consider_tribute` and `Leader::diplomacy`'s arms the crate stops at a
     SEAM.
   - the taunts (~~6~~ 4): `receive_taunt`, `process_taunt`, `end_process`;

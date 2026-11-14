@@ -12033,7 +12033,7 @@ have a costly resume after lims clear."
    in-session builders, Opus 5.5 for a line's port. Entry 116's first
    rule stands: a floor pushed down unnamed.
 2. **A soft stop takes its place, and its number is Ramon's to move at
-   will: 85 % today (95 % since 2026-11-11, below; 98 % since that evening, entry 124).** At or past it the driver cuts no builder and
+   will: 85 % today (95 % since 2026-11-11, below; 98 % since that evening, entry 124; 99 % since 2026-11-13, below).** At or past it the driver cuts no builder and
    refills no lane; what is in flight finishes, is merged, gated and
    booked; the driver banks and ends its turn with a report that names
    the reading. It governs every worker, the render lane included. Ramon
@@ -12069,6 +12069,15 @@ set on the whole week; the driver is on Fable (Loop 4146).
 by the wall can be resumed rather than re-cut; what a line of step 5
 should cost, which the next bookings measure.
 
+
+**Amended 2026-11-13, evening: the stop is 99 %.** Ramon, on the commander's
+row at 21:15 −05:00, with the week at 61 % and Fable's at 55 %, nine hours
+before the reset: "fwiw i presume we'll lift 95% stop/can lift it now to 99.
+goal was simply not to waste all toks too early in case we left running for
+too long." The stop was a guard against a loop left running burning the
+week early, not a reserve. Fable's week is account-wide and binds first; a
+Fable lane is drafted before it meets the wall, which kills what is in
+flight.
 ## 122. The driver is Opus 5.5; Fable 5.2 is the outside observer, a talk row that owns no tree (2026-11-11)
 
 *Amended by entry 126 (2026-11-12): the driver's row is `commander`, and the observer is the `steer` row, given the tree for the length of a pass. §3 is spent; §4 stands.*
@@ -12674,7 +12683,9 @@ ccc if you wish".
    scan of the executable's stores to its displacement (an install-backed
    test, seen red once on a displacement that has a live writer), and a
    leaf on each side of it in the record has left by moving**, so the
-   comparison is sighted on its bytes. That is 4187c's ruling
+   comparison is sighted on its bytes. (Read 2026-11-13 by the commander, on 4159sd: the nearest
+   leaf on each side that has left by moving, a held leaf between them
+   allowed, since a shift in the emitter parts one of the two.) That is 4187c's ruling
    (`score_explored`, `score_pop`), and `last_spoke`'s, which nothing
    writes. The quiet printed leaves that left before entry 128 by holding
    their reset value (item 4162's `misery`, `handicap` and the rest) are

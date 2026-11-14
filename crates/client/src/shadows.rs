@@ -47,8 +47,10 @@ mod tests {
     /// with the guys' drawn within one (77; 65 against 66 before 4193's
     /// turn); in display space, the first draw's 24 within three (21).
     /// Item 4212: toned (92, 77) → (78, 90), display (93, 21) → (72, 83): composed over the before still, which is now the land lit at the frame's white (§3.21); the compose's own curve is the floor's.
+    /// Item 4221: display luma 83 → 81, the trees tinted and blended
+    /// under the composed decals (§3.23); toned holds.
     const RUN1559B_3279_SHADOW_CPU: [[(usize, usize); 2]; 2] =
-        [[(78, 104), (90, 104)], [(72, 104), (83, 104)]];
+        [[(78, 104), (90, 104)], [(72, 104), (81, 104)]];
     /// The row with the guys' decals drawn too (`World::unit_shadows`), as
     /// `draw_unit_shadow` reads: 4182's luma 89 → 66, the figure tiles 28
     /// → 5 of 37, median ours/theirs 0.99 → 0.82 (parked 4182c). **Item
@@ -57,14 +59,16 @@ mod tests {
     /// the guys' decals: theirs Y 128.3, ours undarkened 128.8, darkened
     /// 101.0. Still not drawn (parked 4193a).
     /// Item 4212: hue 93 → 78, luma 78 → 88, the land lit at the frame's white, §3.21.
-    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(78, 104), (88, 104)];
+    /// Item 4221: luma 88 → 89, the trees tinted and blended (§3.23).
+    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(78, 104), (89, 104)];
     /// Before, drawn and with the guys': the tree tiles, then the figure
     /// tiles, each `[hue, luma]`.
     /// Item 4212: drawn, the tree tiles' hue 63 → 51 (parked 4212b), the figures' 30 → 29: the land lit at the frame's white, §3.21.
+    /// Item 4221: with the guys', the tree tiles' luma 59 → 60 (§3.23).
     const RUN1559B_3279_SHADOW_BY_KIND: [[[(usize, usize); 2]; 2]; 3] = [
         [[(43, 68), (1, 68)], [(29, 36), (20, 36)]],
         [[(51, 68), (59, 68)], [(29, 36), (20, 36)]],
-        [[(51, 68), (59, 68)], [(27, 36), (29, 36)]],
+        [[(51, 68), (60, 68)], [(27, 36), (29, 36)]],
     ];
 
     /// One scored tile: the tile, the photograph's mean, the still's, and

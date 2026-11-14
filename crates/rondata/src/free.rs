@@ -40,6 +40,10 @@ pub struct FreeRunner {
     stream: Option<Stream>,
     /// Ticks run. After `n` ticks the state is the dump's `FRAME n`.
     frame: i64,
+    /// A built start's ground, `(tileset, world->seed)`
+    /// ([`crate::diff::FromLobby::ground`]); `None` for a capture's game,
+    /// whose ground the client reads off the start dump.
+    ground: Option<(String, u32)>,
 }
 
 impl FreeRunner {
@@ -50,6 +54,7 @@ impl FreeRunner {
             built: build_sim(loaded, init, tuning),
             stream: None,
             frame: 0,
+            ground: None,
         }
     }
 
@@ -88,14 +93,16 @@ impl FreeRunner {
     /// setup block is read, and no correction is installed.
     pub fn from_lobby(loaded: &Loaded, lobby: &Path, tuning: Tuning) -> std::io::Result<Self> {
         let mut source = IndexedCapture::open(lobby)?;
-        let built = source.with_replay_initial(|init| {
+        let (built, ground) = source.with_replay_initial(|init| {
             let ours = crate::diff::from_lobby(loaded, &init.game_info, &init.players, tuning);
-            crate::diff::built_from_lobby(loaded, ours).0
+            let ground = ours.ground.clone();
+            (crate::diff::built_from_lobby(loaded, ours).0, ground)
         })?;
         Ok(Self {
             built,
             stream: None,
             frame: 0,
+            ground,
         })
     }
 
@@ -113,15 +120,26 @@ impl FreeRunner {
         let lobby = choices.lobby();
         let (info, players) = lobby.borrowed();
         let ours = crate::diff::from_lobby(loaded, &info, &players, tuning);
+        let ground = ours.ground.clone();
         let (built, notes) = crate::diff::built_from_lobby(loaded, ours);
         (
             Self {
                 built,
                 stream: None,
                 frame: 0,
+                ground,
             },
             notes,
         )
+    }
+
+    /// The built start's ground, `(tileset, world->seed)`: the tileset its
+    /// composed map drew and `World.seed`, which the client's ground art
+    /// reads (item 4215). `None` for a capture's game
+    /// ([`from_captures`](Self::from_captures)), and where the map was not
+    /// composed.
+    pub fn ground(&self) -> Option<(&str, u32)> {
+        self.ground.as_ref().map(|(t, s)| (t.as_str(), *s))
     }
 
     /// The simulation, for a comparison of two runners' whole state.

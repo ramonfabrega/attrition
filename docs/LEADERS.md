@@ -121,7 +121,10 @@ made them agree: the harness's dump seat activated a start's buildings
 counted where the original's frame-0 arm does not (§19), and the start's
 building pass set the Senate's bit (§17.4a). `score_explored` and
 `score_pop` agree and are zero on every packet; `score_units`,
-`score_units_2` and `score_combat` part (parked 4187a).
+`score_units_2` and `score_combat` part (parked 4187a). **Item 4159's
+frozen scan released `score_explored`, `score_pop` and `last_spoke`**
+(entry 131 §1's second way out; §7.5, §18.5): every store the executable
+makes to each writes 0.
 
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
@@ -1676,7 +1679,8 @@ goods exchange (§8):
   surplus (+99 for a pending counteroffer) (−50 when weak)`. Port it
   doubled; it is what the listing does.
 
-**`last_spoke`** has no writer and no sim reader; carry 0.
+**`last_spoke`**'s one store is `Leader::init`'s clear to 0; no
+sim reader.
 
 **Readers that change a decision.**
 
@@ -4479,8 +4483,8 @@ packets, 226 walked leaders (`docs/CHECKSUM.md` §23):
 | `score_unit_upgrades` | agree 226, non-zero 20 | 129 §5 | **released** (run938b, frame 630, leader 1: 208) |
 | `score_research` | agree 226, non-zero 113 | 129 §5 | **released** (run1161 leader 1: 56) |
 | `score_wonders` | agree 226, non-zero 65 | 129 §5 | **released** (run1487, frame 1980, leader 2: 666) |
-| `score_explored` | agree 226, zero everywhere | 129 §5 | held: no packet moves it |
-| `score_pop` | agree 226, zero everywhere | 129 §5 | held: no packet moves it |
+| `score_explored` | agree 226, zero everywhere | 131 §1, frozen | **released** (item 4159's scan: four stores, each 0) |
+| `score_pop` | agree 226, zero everywhere | 131 §1, frozen | **released** (item 4159's scan: four stores, each 0) |
 | `score_units` | parts on 10 | 129 §5 | held (4187a) |
 | `score_units_2` | parts on 3 | 129 §5 | held (4187a) |
 | `score_combat` | parts on 4 | 129 §5 | held (4187a) |
@@ -4501,6 +4505,12 @@ not the reverse; the razed building is out of `n` when priced (settled). The
 crate has `kill_value_by` and `cast_counterintel`. New: the gaia `is_ally`
 read and the `rare.flags` write. No kept dump was consulted;
 `LeaderData::log_data (006e5110)` prints `score` for a later value diff.
+
+**The frozen scan** (item 4159, `rondata::stores`; entry 131 §1) settles
+4187c: every store to either leaf writes 0. `score_explored`:
+`compute_explore_score (006bc5e0)`, `reset_score`, `compute_score` twice;
+`score_pop`: `compute_pop_score (006bc190)`, `reset_score`, `compute_score`
+twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
 
 ### 18.6 Not established
 

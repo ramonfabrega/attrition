@@ -191,6 +191,29 @@ mod tests {
                 &HUE,
                 |_, _| false,
             );
+            // The value diff (item 4221): the tree's own pixels' mean,
+            // ours and the photograph's, on the still.
+            if still.is_some() {
+                let (mut a, mut b, mut n) = ([0f64; 3], [0f64; 3], 0f64);
+                for (k, t) in ours.iter().enumerate() {
+                    let (x, y) = (x0 as usize + k % ww, y0 as usize + k / ww);
+                    if t.is_none() || off(x as i32, y as i32) || scene.keys.at(x, y) != key {
+                        continue;
+                    }
+                    let i = (y * size.0 + x) * 4;
+                    for c in 0..3 {
+                        a[c] += f64::from(t.unwrap().rgb[c]);
+                        b[c] += f64::from(photo.rgba[i + c]);
+                    }
+                    n += 1.0;
+                }
+                let m = |v: [f64; 3]| v.map(|c| (c / n.max(1.0) * 10.0).round() / 10.0);
+                println!(
+                    "still rgb: tree {j} n {n} ours {:?} theirs {:?}",
+                    m(a),
+                    m(b)
+                );
+            }
             out.push((j, key, c));
         }
         out
@@ -305,6 +328,15 @@ mod tests {
                 );
             }
         }
+        for (j, _, c) in &on_still {
+            let [ya, yb] = c.luma_means();
+            println!(
+                "still: tree {j:>2} Y ours {ya:.1} theirs {yb:.1} ratio {:.3} lit {} agree {}",
+                yb / ya.max(1.0),
+                c.lit,
+                c.agree
+            );
+        }
         let (still_colour, still_luma) = count(&on_still);
         println!(
             "on the still: colour {still_colour:?} luma {still_luma:?}; {close} of {} trees agree within 5 % of the painter's ({px} lit pixels)",
@@ -399,9 +431,73 @@ mod tests {
                 (d.enables(), d.alpha_func(), d.alpha_ref()),
                 (0x20087, 4, 0)
             );
+            // Item 4221: blended, `set_blend_state`'s `enables & 4`
+            // (d3dgl `1002ba07`), `SRCALPHA` over `INVSRCALPHA` — the
+            // client's tree pass.
+            assert!(d.enables() & 4 != 0);
+            assert_eq!((d.src_blend(), d.dst_blend()), (5, 6));
             assert!(d.has("TL_FAKE_LIGHT") && d.has("ENABLE_VERTEX_COLOR_DIFFUSE"));
             assert!(d.has("ENABLE_ALPHA_TEST"));
             assert!(!d.has("ENABLE_LIGHTING") && !d.has("NO_HDR"));
         }
+    }
+
+    /// **The trees' textures load tinted** (item 4221; §3.23): `GraphicPieces::tint_color`, which
+    /// `GraphicPieces::init_tree_data@008eeb30` hands each tree rdata as
+    /// `TintColor` and `TreeTransformMethod::load@00921aa0` sets before its
+    /// seven textures load, is on run1559b's and run1564's packets
+    /// (`tools/render/tree_tint_packet.py`) the tileset's own tint, the one
+    /// `crate::tint::of` gives the land; and the world's tree textures are
+    /// the files' texels with it added. Made to fail: untinted.
+    #[test]
+    fn the_trees_take_the_tileset_s_tint() {
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let dir = std::env::var_os("RON_TREE_TINT_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home).join("ron-data/lab-experiments/2026-11-13-item-4221")
+            });
+        let tint = crate::tint::of(&install, "early_autumn");
+        if tint == [0; 3] {
+            println!("skipping: no tileset tint under {}", install.display());
+            return;
+        }
+        for run in ["run1559b", "run1564"] {
+            let path = dir.join(format!("{run}-tree-tint.txt"));
+            let Ok(text) = std::fs::read_to_string(&path) else {
+                println!("skipping: no tree tint row at {}", path.display());
+                return;
+            };
+            let f: Vec<&str> = text.split_whitespace().collect();
+            let at = |k: &str| f[f.iter().position(|x| *x == k).expect("a key") + 1];
+            assert_eq!(at("frame"), "3294", "{run}");
+            let got: Vec<u8> = at("tree_tint")
+                .split(',')
+                .map(|v| v.parse().expect("a byte"))
+                .collect();
+            assert_eq!(
+                got[..3],
+                tint,
+                "{run}: the packet's tree tint is the tileset's"
+            );
+            assert_ne!(got[..3], [0, 0, 0], "{run}: made to fail, untinted");
+        }
+        let world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let (raw, drawn) = world
+            .tree_texture_pair("early_autumn", 1)
+            .expect("a leaf layer");
+        let mut want = raw.clone();
+        want.tint(tint);
+        assert_eq!(drawn.rgba, want.rgba, "the leaf's texels tinted at load");
+        assert_ne!(drawn.rgba, raw.rgba, "made to fail: the file's own texels");
     }
 }
