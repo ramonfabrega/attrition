@@ -968,6 +968,18 @@ pub const RUN1559B_3279_GROUND: (usize, usize) = (1097, 1109);
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1104, 1109);
 
+/// **`RUN1564_3279_SURF`** (item 4225; `docs/RENDERER.md` §3.18, "The
+/// surf, off the packet"): `SANDY` and `OCEAN` `[agree, scored]` on the
+/// client's still with run1564's own surf (the card's draws 163–169, off
+/// the packet's `Surf::final_*`) composited over it. The surf is not
+/// drawn by the client; this is the row it would move. `SANDY` **443 →
+/// 484**, 41 tiles crossing up and none down: tile (164, 199), theirs
+/// (41, 129, 167), the still's (14, 142, 201) → (29, 148, 203). `OCEAN`
+/// **258 → 258**: no `OCEAN` verdict changes, so the surf is not what
+/// parts the lake (4223a's hypothesis, killed).
+#[cfg(test)]
+pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[484, 772], [258, 437]];
+
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
 /// `(agree, scored)`, then by kind `[agree, scored]`, `KINDS`' order.
 /// Item 4178: **1,237 → 1,373**, the water on its own mesh at z 0 with
@@ -3381,6 +3393,234 @@ pub(crate) mod tests {
         }
         println!("RUN1564_3279_WATER: {rows:?}");
         assert_eq!(rows, RUN1564_3279_WATER);
+    }
+
+    /// **The surf off the packet** (item 4225; `docs/RENDERER.md` §3.18,
+    /// "The surf, off the packet"): run1564's `Surf::final_*` statics
+    /// (`tools/render/surf_packet.py`), the meshes the card draws as
+    /// 163–169, composited on the client's still as the card's stages
+    /// leave them — colour the texel times the vertex's white, alpha the
+    /// texel's times the vertex's times the mask's, source alpha over —
+    /// and the row read again. The lists are the card's draws, in order and
+    /// by file; every vertex is white at z 0. The surf lies on the beach:
+    /// [`RUN1564_3279_SURF`].
+    #[test]
+    fn the_surf_off_the_packet() {
+        use crate::gpu::SilhouetteOrder;
+        let home = PathBuf::from(std::env::var_os("HOME").unwrap_or_default());
+        let path = std::env::var_os("RON_SURF_PACKET_1564")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                home.join("ron-data/lab-experiments/2026-11-13-item-4225/run1564-surf.txt")
+            });
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no surf packet dump at {}", path.display());
+            return;
+        };
+        type Vertex = [f32; 8];
+        // (list, texture, mask, vertices, faces)
+        type List = (usize, String, String, Vec<Vertex>, Vec<[usize; 3]>);
+        let mut lists: Vec<List> = Vec::new();
+        for line in text.lines() {
+            let f: Vec<&str> = line.split_whitespace().collect();
+            match f[0] {
+                "list" => lists.push((
+                    f[1].parse().unwrap(),
+                    f[2].into(),
+                    f[3].into(),
+                    vec![],
+                    vec![],
+                )),
+                "v" => lists
+                    .last_mut()
+                    .unwrap()
+                    .3
+                    .push(std::array::from_fn(|i| f[i + 1].parse().unwrap())),
+                "f" => lists
+                    .last_mut()
+                    .unwrap()
+                    .4
+                    .push(std::array::from_fn(|i| f[i + 1].parse().unwrap())),
+                _ => {}
+            }
+        }
+        assert_eq!(
+            lists.iter().map(|l| (l.0, l.3.len())).collect::<Vec<_>>(),
+            [
+                (0, 132),
+                (2, 150),
+                (4, 260),
+                (7, 657),
+                (8, 657),
+                (9, 200),
+                (11, 200)
+            ],
+            "run1564's surf lists and their vertices"
+        );
+        assert!(
+            lists.iter().all(|l| l.3.iter().all(|v| v[2] == 0.0)),
+            "every surf vertex at z 0"
+        );
+        let trace = home.join("ron-golden/run1567/map-14/rontrace.log");
+        if let Ok(bytes) = std::fs::read(&trace) {
+            let card: Vec<(String, String)> = rondata::trace::card::draws(&bytes)
+                .iter()
+                .filter(|d| d.frame == 3279 && d.file(0).starts_with("surf_"))
+                .map(|d| (d.file(0).to_lowercase(), d.file(1).to_lowercase()))
+                .collect();
+            let ours: Vec<(String, String)> = lists
+                .iter()
+                .map(|l| (l.1.to_lowercase(), l.2.to_lowercase()))
+                .collect();
+            assert_eq!(card, ours, "the packet's lists are the card's surf draws");
+        } else {
+            println!(
+                "skipping the card's half: no card trace at {}",
+                trace.display()
+            );
+        }
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let still = crate::still_of(
+            &mut p.world,
+            &camera,
+            size,
+            SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+        );
+        let m = camera.to_screen_matrix().0;
+        let (w, h) = (size.0 as f32, size.1 as f32);
+        let screen = |v: &Vertex| {
+            let sx = m[4] * v[1] + m[0] * v[0] + m[8] * v[2] + m[12];
+            let sy = m[5] * v[1] + m[1] * v[0] + m[9] * v[2] + m[13];
+            let q = m[7] * v[1] + m[3] * v[0] + m[11] * v[2] + m[15];
+            ((sx / q + 1.0) * w * 0.5, (1.0 - sy / q) * h * 0.5)
+        };
+        // The card's sampler wraps; the nearest texel is enough to count.
+        let sample = |t: &render::tga::Image, u: f32, v: f32| {
+            let x = ((u - u.floor()) * t.width as f32) as usize % t.width;
+            let y = ((v - v.floor()) * t.height as f32) as usize % t.height;
+            let i = (y * t.width + x) * 4;
+            [0, 1, 2, 3].map(|c| f32::from(t.rgba[i + c]) / 255.0)
+        };
+        let mut out = still.clone();
+        for (_, t0, t1, vs, fs) in &lists {
+            let open = |n: &str| {
+                let bytes = std::fs::read(p.root.join("art").join(n)).expect(n);
+                render::tga::decode(&bytes).expect(n)
+            };
+            let (a, b) = (open(t0), open(t1));
+            for f in fs {
+                let q = f.map(|i| vs[i]);
+                let s = q.map(|v| screen(&v));
+                let area =
+                    (s[1].0 - s[0].0) * (s[2].1 - s[0].1) - (s[2].0 - s[0].0) * (s[1].1 - s[0].1);
+                if area.abs() < 1e-6 {
+                    continue;
+                }
+                let lo = |c: fn(&(f32, f32)) -> f32, hi: f32| {
+                    let v: Vec<f32> = s.iter().map(c).collect();
+                    let (a, b) = (
+                        v.iter().copied().fold(f32::MAX, f32::min),
+                        v.iter().copied().fold(f32::MIN, f32::max),
+                    );
+                    (a.max(0.0) as i32, b.min(hi - 1.0) as i32)
+                };
+                let ((x0, x1), (y0, y1)) = (lo(|p| p.0, w), lo(|p| p.1, h));
+                for y in y0..=y1 {
+                    for x in x0..=x1 {
+                        let (px, py) = (x as f32 + 0.5, y as f32 + 0.5);
+                        let l0 =
+                            ((s[1].0 - px) * (s[2].1 - py) - (s[2].0 - px) * (s[1].1 - py)) / area;
+                        let l1 =
+                            ((s[2].0 - px) * (s[0].1 - py) - (s[0].0 - px) * (s[2].1 - py)) / area;
+                        let l2 = 1.0 - l0 - l1;
+                        if l0 < 0.0 || l1 < 0.0 || l2 < 0.0 {
+                            continue;
+                        }
+                        let at = |c: usize| l0 * q[0][c] + l1 * q[1][c] + l2 * q[2][c];
+                        let ta = sample(&a, at(3), at(4));
+                        let tb = sample(&b, at(5), at(6));
+                        let alpha = ta[3] * at(7) / 255.0 * tb[3];
+                        let i = (y as usize * size.0 as usize + x as usize) * 4;
+                        for c in 0..3 {
+                            let d = f32::from(out[i + c]);
+                            out[i + c] = (ta[c] * 255.0 * alpha + d * (1.0 - alpha))
+                                .round()
+                                .clamp(0.0, 255.0) as u8;
+                        }
+                    }
+                }
+            }
+        }
+        if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+            let o = PathBuf::from(dir).join("still-run1564-surf.bmp");
+            std::fs::write(&o, crate::gpu::bmp(&out, size)).expect("the still writes");
+        }
+        let (before, after) = (
+            still_ground_row(&mut p, &still),
+            still_ground_row(&mut p, &out),
+        );
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let (mut was, mut now) = ([[0u32; 2]; 7], [[0u32; 2]; 7]);
+        let mut crossed = [[0u32; 2]; 7];
+        for (b, a) in before.iter().zip(&after) {
+            let k = kind_of(&t, &mountains, b.0);
+            was[k][1] += 1;
+            now[k][1] += 1;
+            was[k][0] += u32::from(b.3);
+            now[k][0] += u32::from(a.3);
+            if b.3 != a.3 {
+                let c = &mut crossed[k][usize::from(a.3)];
+                if *c == 0 {
+                    println!(
+                        "run1564 surf: {} crosses {}: tile {:?}, theirs ({:.0}, {:.0}, {:.0}), the still's ({:.0}, {:.0}, {:.0}) -> ({:.0}, {:.0}, {:.0})",
+                        KINDS[k],
+                        if a.3 { "up" } else { "down" },
+                        b.0,
+                        b.1[0],
+                        b.1[1],
+                        b.1[2],
+                        b.2[0],
+                        b.2[1],
+                        b.2[2],
+                        a.2[0],
+                        a.2[1],
+                        a.2[2]
+                    );
+                }
+                *c += 1;
+            }
+        }
+        println!(
+            "run1564 surf: by kind [agree, scored] {was:?} -> {now:?}, crossed [down, up] {crossed:?}"
+        );
+        let (sandy, ocean) = (5, 6);
+        assert_eq!(
+            [was[sandy], was[ocean]],
+            [
+                RUN1564_3279_GROUND_STILL.1[sandy],
+                RUN1564_3279_GROUND_STILL.1[ocean]
+            ],
+            "the still before the surf is the row's"
+        );
+        assert_eq!([now[sandy], now[ocean]], RUN1564_3279_SURF);
+        assert_eq!(
+            (0..7)
+                .filter(|&k| k != sandy)
+                .map(|k| now[k])
+                .collect::<Vec<_>>(),
+            (0..7)
+                .filter(|&k| k != sandy)
+                .map(|k| was[k])
+                .collect::<Vec<_>>(),
+            "the surf moves no kind but the beach"
+        );
     }
 
     /// One scored tile on the still (item 4171): the photograph's mean,

@@ -36585,6 +36585,10 @@ the tests read** since item 4223. The lake's centre goes (47, 116, 148) → (21,
   that is (36960, 38496), the centre of tile (192, 200) (`RUN1564_LOC`).
 - The view shows the south-east lake, its beach and a rock patch, unfogged under the lane's `StartReveal=1`.
 - By the client's census it holds 488 `OCEAN` tiles, 901 `SANDY` tiles and 32 `ROCK` tiles (`RUN1564_3279_CENSUS`).
+- The packet holds the surf as drawn (item 4225; `docs/RENDERER.md` §3.18). `tools/render/surf_packet.py <packet>
+  <install>` wrote `~/ron-data/lab-experiments/2026-11-13-item-4225/run1564-surf.txt` (4,190 lines, SHA-256
+  `029fe5871c9d515ae2d7e13df5093372dc1f2566c86090ec990aec678e6b185e`), the dump `the_surf_off_the_packet` reads:
+  seven lists, 2,256 vertices, 1,926 triangles.
 
 ## run1566 — run1559's take with the card probe: the device's state at each draw, frames 3260–3300 (2026-11-12, item 4165, `att-4165`)
 
