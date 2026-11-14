@@ -29,6 +29,7 @@ fn run12_s_herd_walk() {
         wy: 34,
         kind: 408,
         alive: true,
+        good_o: -1,
     });
     s.gaia.gaia.herds.push(Herd {
         cx: 44,
@@ -37,6 +38,7 @@ fn run12_s_herd_walk() {
         wy: 21,
         kind: 411,
         alive: true,
+        good_o: -1,
     });
     s.herd_walk(0);
     assert_eq!((s.gaia.gaia.herds[0].wx, s.gaia.gaia.herds[0].wy), (22, 35));
@@ -60,6 +62,7 @@ fn a_second_herd_walk_jitters_about_home_again() {
         wy: 35,
         kind: 408,
         alive: true,
+        good_o: -1,
     });
     s.herd_walk(0);
     assert_eq!((s.gaia.gaia.herds[0].wx, s.gaia.gaia.herds[0].wy), (22, 35));
@@ -87,6 +90,7 @@ fn the_cadences() {
         wy: 5,
         kind: 1,
         alive: true,
+        good_o: -1,
     });
     let seed = s.rng.seed;
     s.process_gaia(0);
@@ -223,4 +227,58 @@ fn an_animal_beyond_0x180_of_its_order_walks_at_three_halves() {
     );
     s.units[a].kind.domain = crate::territory::attrition::Domain::Land;
     assert_eq!(s.get_speed(a, 0), 3, "and on the ground, the floor");
+}
+
+/// **`Animal::work@005d7330:36–58`, the herd arm** (item 4229): an animal
+/// of a herd whose `good_o` names a good, on a frame where `(o + frame)` is
+/// a multiple of 16, sets that good's `ever_seen` bit of each slot that
+/// currently sees its half-cell, and of no other — run1584's good 19,
+/// `ever_seen` 0x02 on 3246, a herd good leader 1 saw an animal of before
+/// any footprint cell of it. The animal stands far from its good, so the
+/// footprint arms cannot be what set the bit.
+#[test]
+fn a_seen_herd_animal_marks_its_herd_s_good() {
+    let mut s = sim_at(1);
+    let cell = |c: i32| c * 0x300 + 0x180;
+    let gi = s.world.add_good(crate::world::Good {
+        pos: Pos::new(cell(20), cell(20)),
+        ty: 0x17,
+        alive: true,
+    });
+    s.gaia.gaia.herds.push(Herd {
+        cx: 20,
+        cy: 20,
+        wx: 20,
+        wy: 20,
+        kind: 0x199,
+        alive: true,
+        good_o: gi as i32,
+    });
+    let at = Pos::new(cell(40), cell(40));
+    let mut u = crate::Unit::new(8, 3, at, 10);
+    u.herd = Some(0);
+    let a = s.add_unit(u);
+    assert!(s.world.set_fog(vec![0; 60 * 60 * 4]), "the fog planes");
+    let fog = crate::vision::UNITS_PER_FOG;
+    s.world.set_seen(at.x / fog, at.y / fog, 1 << 1);
+    s.herd_sighting(a, 12);
+    assert_eq!(
+        s.good_ever_seen_byte(gi),
+        0,
+        "(3 + 12) % 16 is off the phase"
+    );
+    s.herd_sighting(a, 13);
+    assert_eq!(
+        s.good_ever_seen_byte(gi),
+        2,
+        "leader 1 sees it; leader 0 does not"
+    );
+    s.gaia.gaia.herds[0].good_o = -1;
+    s.world.set_seen(at.x / fog, at.y / fog, 1);
+    s.herd_sighting(a, 29);
+    assert_eq!(
+        s.good_ever_seen_byte(gi),
+        2,
+        "a herd with no good marks none"
+    );
 }

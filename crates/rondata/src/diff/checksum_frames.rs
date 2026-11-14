@@ -169,6 +169,13 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// `check_guys@00937430` do, so the two Wild Birds (`TypeIndex` 402, slot
 /// 9) the sampling made on 128 are on neither (run1582 on 129: units 1,147
 /// ranges against 1,107 and guys 389 against 375 → the stream's counts).
+///
+/// Item 4229 moved two on run1578, each to whole on all 24,000: goods 3246
+/// → 24,000, `Animal::work@005d7330`'s herd arm setting a seen herd's
+/// good's `ever_seen` bit (run1584 on 3246: good 19 `ever_seen` ours 0x00,
+/// theirs 0x02 → 0x02 on both); cities 4030 → 24,000, `City::new_caravan`'s
+/// bit the partner's index in its owner's cities (run1585 on 4030: city 0
+/// `traded_with[1]` ours 4, theirs 2 → 2 on both).
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -195,9 +202,9 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
             ("groups", 2746, 0),
             ("guys", 6537, 0),
             ("leaders", 0, 300),
-            ("cities", 4030, 0),
+            ("cities", 24000, 0),
             ("items", 24000, 0),
-            ("goods", 3246, 0),
+            ("goods", 24000, 0),
             ("world", 24000, 0),
         ],
     ),
@@ -428,7 +435,6 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 2,
                 "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|fd000000",
             ),
-            ("goods", 180, 180, 1, "95 19 ever_seen: +0x0 of 1|1: 00|02"),
         ],
     ),
     (
@@ -450,7 +456,6 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 2,
                 "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|05010000",
             ),
-            ("cities", 17, 17, 1, "4 0 city..ter: traded_with[1] 4|2"),
         ],
     ),
     (

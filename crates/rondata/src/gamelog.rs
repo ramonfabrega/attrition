@@ -3164,6 +3164,9 @@ pub struct HerdDump {
     pub wy: i64,
     pub t: i64,
     pub herd_flags: i64,
+    /// `good_o` (`HerdData::log_data@0045f020:99`): the herd's good, as
+    /// the goods list's slot; −1 where the record does not print it.
+    pub good_o: i64,
 }
 
 /// One `FarmStruct` of `Farms`' list: the building it belongs to, whether
@@ -4239,6 +4242,7 @@ impl<'a> Log<'a> {
                     wy: b.int("wy").unwrap_or(0),
                     t: b.int("t").unwrap_or(0),
                     herd_flags: b.int("herd_flags").unwrap_or(0),
+                    good_o: b.int("good_o").unwrap_or(-1),
                 })
                 .collect();
         }

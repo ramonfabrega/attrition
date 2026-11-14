@@ -853,15 +853,19 @@ first). Every writer in the export:
    put there, and each set the same bit.
 5. `Animal::work@005d7330:53`, the herd arm: every 16 frames, phased by
    the animal's `o`, an animal of a herd whose `HerdData::good_o` names
-   a good sets the bit of every live leader that `WorldData::is_seen`
-   the animal's fog cell. On Great Lakes the herds name goods 19 and
-   24..35.
+   a good sets the bit of every slot `0..8` that `WorldData::is_seen`
+   the animal's fog cell. ~~every live leader~~: the listing
+   (`5d73a0`–`5d73b1`) tests `leaders[animal.who].flags & 1`, the
+   animal's own owner's leader, on every pass, never slot `i`'s (item
+   4229). On Great Lakes the herds name goods 19 and 24..35.
 
 This crate holds the field as `territory.good_seen_bits`, written by
-`Sim::mark_good_seen` from arms 2 and 3 (items 1555 and 3332), and from
-arm 3 at setup since item 4093 (`Sim::claim_rares_from_owners`).
-`Sim::good_ever_seen_byte` reads it for the image. Arms 4 and 5 are not
-modelled.
+`Sim::mark_good_seen` from arms 2 and 3 (items 1555 and 3332), from
+arm 3 at setup since item 4093 (`Sim::claim_rares_from_owners`), and
+from arm 5 since item 4229 (`Sim::herd_sighting`, after the animal's
+work; `gaia::Herd::good_o`, filled by the built start and from the
+dump's `HERD good_o`). `Sim::good_ever_seen_byte` reads it for the
+image. Arm 4 is not modelled.
 
 **The value diff, ported (item 4093)**: 180 of 180 ranges equal, and
 792 of 792 bytes. Every good's nine fields agree. One good of 36 has a
@@ -2412,9 +2416,9 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 | groups | 2746 | 810153284 | 3860919709 | 0 |
 | guys | 6537 | 2410482783 | 3433827539 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
-| cities | 4030 | 66197007 | 38147597 | 0 |
+| cities | whole, 24,000 | | | 0 |
 | items | whole, 24,000 | | | 0 |
-| goods | 3246 | 1994224488 | 2043245418 | 0 |
+| goods | whole, 24,000 | | | 0 |
 | world | whole, 24,000 | | | 0 |
 
 On run1577's 120 the same walk gives the same first frames inside 120; guys, cities, items and goods are whole on all
@@ -2461,6 +2465,14 @@ stream's count, whole on 28; the units line is whole on run1161. Units on 189 ha
 parted unit range is a path stack's `size` (ours 10, theirs 50), the original's high-water allocation against
 ours' current length (parked 4226a).
 
+**Item 4229 moved two, each to whole on all 24,000.** Goods 3246 → 24,000: §13's arm 5, `Animal::work@005d7330`'s
+herd arm, had no counterpart; leader 1 saw an animal of good 19's herd before any footprint cell of the good, so
+neither footprint arm marked it. Value diff on 3246 (run1584): good 19 `ever_seen` ours 0x00, theirs 0x02 → 0x02 on
+both. Cities 4030 → 24,000: `City::new_caravan@00739750`'s bit is the partner's index in its owner's cities
+(`Unit::do_trade@005ed270:479, 637` pass `BuildData +0x72`), and the crate passed its global index (`docs/CARAVAN.md`
+§7.3). Value diff on 4030 (run1585): city 0 `traded_with[1]` ours 4 (city 2's bit), theirs 2 (leader 1's city 1) → 2
+on both. No minted packet parts on either line now.
+
 ### 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
@@ -2473,8 +2485,8 @@ line's field reader where it has one:
 | groups | 61 | 1580 | group record 1: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34; whole since item 4222 |
 | builds | 100 | 1581 | building 2000 `queue[k]`: type 0, 50; `cost[0]` 0, 27; whole since item 4222 |
 | guys | 129 | 1582 | 389 ranges against 375 (units 1,147 against 1,107): two birds on slot 9, which neither line walks; whole since item 4226 |
-| goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02 |
-| cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2 |
+| goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02; whole since item 4229 |
+| cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2; whole since item 4229 |
 | leaders | 1 to 4030 | all | leader 0's long range at +0x10: ours 0 on every packet, theirs 0xc7 on 1 and 0x105 on 4030 (§20; item 4159) |
 
 **The world on the start** has no packet: the first boundary is frame 0's `end_frame`. run1579's `@dumpall` on 0 prints
@@ -2496,7 +2508,11 @@ on synthetic records.
 Not established:
 - Whether a non-playback game's sets pair the same way. The solo arm calls `check_all` once a turn, with no read loop.
 - The parted lines' causes: each is a parked row of `docs/journal/2026-11-13-item-4214.md` (4214a to 4214h; 4214e
-  closed by item 4209, 4214a and 4214h by item 4218, 4214b and 4214c by item 4222, 4214d by item 4226).
+  closed by item 4209, 4214a and 4214h by item 4218, 4214b and 4214c by item 4222, 4214d by item 4226, 4214f and
+  4214g by item 4229).
+- A captured city's `BuildData +0x72` in its new owner's list: the crate counts the owner's earlier cities in its own
+  vector, dead ones too (`Sim::city_index_in_owner`); no capture on the minted game reaches it.
+- Arm 5's reader, `Sim::animal_is_seen`'s `ever_seen` test, is not wired (parked 4229a).
 - Units on 189 and guys on 6537: no packet stands on either frame (parked 4226a, 4226b).
 - `Game::run@00584590:722`'s `GameDaemon::update_all_seen`, the call after `calc_danger`, is not run on the built start
   (item 4218). Every section of the world line agrees on the start without it; what else it writes is not compared.
