@@ -146,16 +146,19 @@ pub(crate) mod tests {
     /// 158), (15, 159), (16, 159), (16, 160), theirs Y 92 to 100 against
     /// ours 165 to 174: the smoke and fire over the burning buildings,
     /// which run1570's photograph of the same tiles has at Y 110 to 161.
-    const RUN1559B_3279_PLAZA: [(usize, usize); 2] = [(18, 18), (14, 18)];
+    /// Item 4240: luma 14 → 15, the emission's starts (the node's direction and the original's draws, §3.25) move the frame's mean, so its white (§3.21).
+    const RUN1559B_3279_PLAZA: [(usize, usize); 2] = [(18, 18), (15, 18)];
     /// The same row with no weathering drawn (`World::weathering` off):
     /// the count as drawn, pinned first.
     /// Item 4212: luma 6 → 14, the bare grass lit at the frame's white, §3.21.
-    const RUN1559B_3279_PLAZA_BEFORE: [(usize, usize); 2] = [(0, 18), (14, 18)];
+    /// Item 4240: luma 14 → 15, as the drawn row's.
+    const RUN1559B_3279_PLAZA_BEFORE: [(usize, usize); 2] = [(0, 18), (15, 18)];
     /// The made-to-fail: every footprint moved by its own width
     /// (`World::weathering_shift` (1, 0)), drawn so: the plaza's tiles are
     /// bare grass again.
     /// Item 4212: luma 6 → 14, the bare grass lit at the frame's white, §3.21.
-    const RUN1559B_3279_PLAZA_MOVED: [(usize, usize); 2] = [(0, 18), (14, 18)];
+    /// Item 4240: luma 14 → 15, as the drawn row's.
+    const RUN1559B_3279_PLAZA_MOVED: [(usize, usize); 2] = [(0, 18), (15, 18)];
     /// **`RUN1570_PLAZA`** (item 4190), the same three on run1570's
     /// photograph ([`run1570`]): hue **0 → 19**, luma **9 → 15** of 19, and
     /// the moved patch back to bare grass. Drawn at 3331 instead, the same
@@ -168,10 +171,11 @@ pub(crate) mod tests {
     /// (`crate::roads`, §3.19); drawn, unchanged.
     /// Item 4212: before and moved luma 10 → 15, the bare grass lit at the frame's white, §3.21; drawn unchanged.
     /// Item 4233: before and moved luma 15 → 16, the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21); drawn unchanged.
+    /// Item 4240: before and moved luma 16 → 15, the emission's starts (the node's direction and the original's draws, §3.25) move the frame's mean, so its white (§3.21); drawn unchanged.
     const RUN1570_PLAZA: [[(usize, usize); 2]; 3] = [
-        [(0, 19), (16, 19)],
+        [(0, 19), (15, 19)],
         [(19, 19), (15, 19)],
-        [(0, 19), (16, 19)],
+        [(0, 19), (15, 19)],
     ];
 
     /// The frame run1570's photograph is drawn at ([`run1570`]): 3327,

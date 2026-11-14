@@ -3218,7 +3218,8 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
 `client::particle` (the systems loaded, each drawn slot's plumes, the meshes); `client::gpu`'s smoke and fire
 passes and `shaders/particle.wgsl`. They replace §3.20's stand-ins. Scored on run1559b's and run1570's photographs.
 Item 4237 (Opus 5.5): the particles taken through `TL_FAKE_LIGHT` and blended in HDR, `client::gpu`'s plume pass
-and `shaders/shade.wgsl`'s `fs_plume`.*
+and `shaders/shade.wgsl`'s `fs_plume`. Item 4240 (Opus 5.5): the emission, `render::fire::direction` and
+`render::particle`'s `Random`, `seed` and `start`.*
 
 **The row** (committed before any draw, `814500f5d`). A pixel's class is its luma in hundredths of the luma of our
 still with the fires off, the scene without its smoke: clear at 85 and over, haze from 35, dense under, and clear
@@ -3236,6 +3237,18 @@ particles through our pass (the draw apart from the emission).
 
 **The dense column** (ours' dense pixels against the photographs' 2,415 and 2,470), in toned space and then in
 HDR: the packet's particles **468 → 1,716** and **676 → 2,099**; as drawn **120 → 487** and **182 → 770**.
+
+**The emission** (item 4240), as drawn: the node's direction, then the original's draws.
+
+| row | 4237 | the direction | the draws (pinned) | 24 phases: the hash, (0, 0, −1); the hash, the node; the draws |
+|---|---|---|---|---|
+| `RUN1559B_3279_PLUME` | 9,728, 5,538 past, dense 487 | 10,616, 3,984, 861 | **11,251**, 2,168, **876** | rows 9,871, 10,280, 10,191 (sd 399, 366, 592); dense 589, 912, 804 |
+| `RUN1570_PLUME` | 9,403, 5,075 past, dense 770 | 10,897, 2,660, 787 | **11,547**, 1,895, **942** | rows 9,776, 10,713, 11,104 (sd 494, 365, 558); dense 606, 907, 669 |
+
+The phases are counts added to every birth's (0 to 15, 17, 23, 31, 50, 97, 200, 1,000 and 5,000), the
+hash's the key's. The direction is the gain: past falls by about four deviations. The draws are not a mean
+gain on the row, and their mean dense is under the hash's. The pinned phase stands in the top quarter of the
+draws' 24.
 
 Made to fail: with haze and dense merged into one class, the stand-ins read 1,012 and 944 against the pinned 336
 and 316. That is what the split guards against.
@@ -3273,11 +3286,37 @@ stored turn is −4 where the formula gives −7 at the packet's frame and `grap
 of degrees within one smoke life, so the plume steps each particle under its own frame's wind. Taking the current
 wind for the whole life read run1570 at 5,772.
 
-**The start** (`Particle::init@008db7c0`, `emit_build_particles@00909590`).
-- The velocity is `desc.vel · start_speed` plus `±⌊|v|·vel_noise⌋/340` an axis.
-- The point is the anchor plus `±pos_noise` an axis.
-- The angle is a random degree turning at `(r − rotation/2)/67` a millisecond.
-- `desc.vel` is `get_position`'s second vector. On the packets it is a unit vector of z −0.48 to −0.54.
+**The start** (`Particle::init@008db7c0`, `emit_build_particles@00909590`; item 4240).
+- **The direction.** `desc.vel` is `get_position`'s second vector: the slot's `AttachPos::vel`, which
+  `verify_load` has `init_position@00901820` record with axis 3, the third row of the node's placed matrix,
+  normalised. `get_position` turns it as it turns the place, `(−y, −x, z)`, and does not scale it; a slot no node
+  names records (0, 0, 1) (`render::fire::direction`). On both packets the four slots' vectors are ours to 2e-7
+  (slot 8: (0.3066, 0.8202, −0.4830); `fire::tests`' anchor tests).
+- **The seed** (the listing at `0x008db840` to `0x008db88e`, SSE single precision). With `S` the anchor's `(y + x)
+  + z` and `k = random · counter · 47`, `r`'s seed is `cvttss2si(frame · S · k + S) + k`. `emit_build_particles`
+  sets `random` 1, `counter` is the emitter's births since its `init`, and past `i32` the conversion gives
+  `0x80000000`. On any frame past the first few, then, the `counter`th birth's seed is `0x80000000 + 47 ·
+  counter`, the same for all four slots.
+- **The draws** (`Random::get@00a39d70`): the seed steps `· 0x19660d + 0x3c6ef35f` and a draw in `lo..hi` is `lo +
+  ((seed & 0xffff) · (hi − lo) >> 16)`, never `hi`. The velocity is `desc.vel · start_speed` plus three draws of
+  `0..2n` less `n`, over 340, with `n = ⌊|v|·vel_noise⌋` (1 for the smoke, 8 for the fire). The point is the
+  anchor plus three draws of `0..2·pos_noise` less `pos_noise`. Successive counts' draws step by a near-constant
+  amount (slot 8's z: 9, 6, 3, 0, −3, …), so a life's starts sweep rather than scatter. Diffed:
+  `particle::tests::the_starts_are_the_packets` gives each packet particle its count (the emitter's `counter`, `+0x50`,
+  less its rank, newest first) and moves our start for its age. It stands on the packet's z within half a unit for
+  141 of 144 smoke particles; the count shifted by one lands none. The three are slot 10's oldest on run1559b,
+  which the ground (`find_data_z`) kept out of the wind for about a second. z is the axis the capture's cadence
+  cannot move, since the wind turns about z only.
+- **The angle** is `internal_random`'s `0..360`, turning at `(0..rotation − rotation/2)/67` a millisecond. That
+  generator is shared with the map, wakes and ammo (item 4236), so ours draws the angle from a hash.
+- **The births** (`ParticleEmitter::prep@008dc520`, `back_calc@008dc5f0`): while the emitter is in view, each
+  render births at `left_over + max(last_view_time, now − life)` and on every `freq` to `now`. The overshoot past
+  `now` is carried in `left_over`; out of view, the particles are cleared and `last_view_time` returns to the
+  start. The packets' smoke births are runs of exactly 400 broken by short gaps (58, 363, 315, 90, 379): 18 live
+  where `freq` gives 15 or 16, and `counter` 156 and 165, the fire's 239 and 253. A `prep` once a game frame from
+  the emitters' start (`+0x48`, frame 2483) gives 148 and 250, whatever the calls a frame. The schedule is the
+  capture's render cadence and view, not the game's, so ours births on every multiple of `freq` with the count
+  `born / freq`.
 
 **The pass.** Particles are drawn after the figures, as draws 216–229 are, sorted far to near. The smoke uses
 `SRCALPHA`/`INVSRCALPHA` with `min(2·texel·colour, 1)`. The fire uses `SRCALPHA`/`ONE` with `texel·colour`. Both
@@ -3305,24 +3344,31 @@ channel onto a copy of the frame, as the shade and water passes do: the same as 
 against (65.0, 63.2, 44.9) → (58.2, 55.0, 34.3).
 
 *Coverage.* Diff-backed: the systems against the packets, the wind on run1570, and the motion on slot 9. Also the
+direction on all four slots and each smoke particle's start for its count on z (item 4240), the
 `TL_FAKE_LIGHT` bit against the card's option on 421 draws, and both systems' states off the packets. On a reading:
 the fake-light branch's arithmetic (the install's `ps_global.hlsl`). On the photographs alone: the rows. *Not
 established:*
-- the emission's random draws: the original seeds each particle from its birth frame and `internal_random`, and
+- ~~the emission's random draws: the original seeds each particle from its birth frame and `internal_random`, and
   ours from a hash, so the plume is the original's in size, speed, spread and fade, not particle for particle;
-  another seed moves the row by about 1,000 (4233c);
+  another seed moves the row by about 1,000 (4233c);~~ answered above, "The start": a birth's start is the
+  original's for its count; its count and its angle are not (4240a);
 - ~~the dense core: even the packet's particles through our pass read dense 468 and 676 against the photographs'
   2,415 and 2,470. The smoke's own colour under `MODULATE2X` is about (50, 50, 38), and the photograph's densest
   pixels are (47, 42, 22) (4233a);~~ answered above, "The fake light, and the blend in HDR": the packet's dense
   1,716 and 2,099;
 - what is left of the dense core: the packet's particles reach 71 % and 85 % of the photographs' dense, and ours
-  drawn 487 and 770, because our plume spreads where the packet's is compact (the emission, 4233b and 4233c).
+  drawn 876 and 942 at the pinned phase (804 and 669 over 24). The rest is the births, 18 live where ours are 15 or
+  16 and their counts the capture's (4240a), and the x and y of the motion under the capture's cadence. By eye,
+  the photographs' tower plume stands darker and taller than even the packet's particles through our pass (4240b);
   `gTLAlpha` is taken at 1, as the surf's is on the card (§3.18); no particle draw is on a card trace;
 - the fire's look through the fake light in HDR: it glows hotter than it did, and no row scores it (4233d);
-- `desc.vel`'s direction off the model: ours is (0, 0, −1) (4233b);
+- ~~`desc.vel`'s direction off the model: ours is (0, 0, −1) (4233b);~~ answered above, "The start": the node's
+  third axis, turned, on all four slots to 2e-7;
 - an emitter's start: ours has burned for a whole life, the original's from when its level was reached (4201b
   stands);
-- the run1559b wind's three degrees, `graphic_dt` taken at 0, and the 18 births a life where `freq` gives 15 or 16.
+- the run1559b wind's three degrees and `graphic_dt` taken at 0. The packet's particles have aged about 940 ms
+  less than the game's clock: run1559b's newest smoke birth, at 219,616, is 144 ms old on the packet, frame 3280's
+  clock, where `end_time` says frame 3293 (4240a).
 
 ## 3.26 The surf, laid (item 4236)
 

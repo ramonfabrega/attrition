@@ -252,7 +252,7 @@ pub struct World {
     pub fires: bool,
     /// Each building piece's attach slots from its `zbuffer` model
     /// (`render::fire::attach_slots`), `None` where none decodes.
-    pub(crate) fire_slots: BTreeMap<i32, Option<[Option<[f32; 3]>; render::fire::SLOTS]>>,
+    pub(crate) fire_slots: BTreeMap<i32, Option<[Option<render::fire::Slot>; render::fire::SLOTS]>>,
     /// `BuildingFX.tga`'s fire and smoke cells as sprite images, read once.
     /// The burning slots' particle systems and texture (item 4233), loaded
     /// once; `Some(None)` where the install has none.
