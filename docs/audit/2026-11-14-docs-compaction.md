@@ -83,7 +83,7 @@ measurable; the question is his.
 | R11 | `CLAUDE.md` | 25,606 of 26,000 | candidates only | up to ~4,500 | Ramon |
 | R12 | the memory index | 7,324 | hooks to one line; one stale pointer | ~2,500 | outside git |
 | S1 | DECISIONS, "Index" | 15,985 of 16,000 | split at entry 100; retitle; reorder; fix 121's row | 0 (frees ~8,000) | none |
-| S2–S21 | twenty syncs, Part 2 | | | | |
+| S2–S24 | twenty-three syncs, Part 2 | | | | |
 | G1 | the eight sections pinned in `OVER`, and 45 of the 77 at 15,000 B or more | 284,070; 831,211 | promote their numbered `###` parts to `##` | 0 (largest read 70,859 → 16,594; 45 sections off the ceiling) | delete seven `OVER` rows; three tools to check |
 | G2 | `docs/JOURNAL.md`, the chronicle to 2026-09-17 | 1,185,526 | leave, or archive at a revision | 0 or 1.19 MB | `queueledger.py`; Ramon (`CLAUDE.md`'s table) |
 | G3 | `docs/DECISIONS.md` | 843,219 | an index by topic; no entry moved | 0 | the pass |
@@ -241,12 +241,20 @@ what it points at.
   pinned line. They are 6 of the prose's 25 backticked constants that
   carry a count (799 B in all: `RUN1559B_3279_GROUND` 1,097 of 1,109 and
   the like), each pinned by a test in `crates/` and by no line of the
-  handoff. Whether the handoff should carry a code pin's value at all is
-  the driver's call: it is the only place a reader sees them together,
-  and nothing checks a count there against its constant.
+  handoff. **Nothing checks a count there against its constant, and three
+  of the 25 have drifted (S24):** each was written by the booking that
+  set the pin and not rewritten by the later booking that moved it. The
+  handoff is the only place a reader sees them together; it is also the
+  one place they can be wrong.
 - **Action:** the prose says what no pinned line can: what moved and what
   did not, the held-out leaves and their parked ids, the open readings,
-  who is out. A rule is cited by its file, not restated.
+  who is out. A rule is cited by its file, not restated. A code pin is
+  named without its count (the `Renderer:` line carries the score, K of
+  M), or it keeps its count and a test reads it: `floors.rs` already
+  parses the handoff by prefix, and "a backticked constant followed by
+  `N of M` equals the constant" is the same kind of reader. The first
+  costs nothing and saves the 799 B; the second keeps the page a person
+  can read the renderer's state from.
 - **Saved:** about 2,050 B (1,109 of rules, 947 of pinned numbers).
 - **What cites it:** `tools/queueledger.py` reads the numbers the queue
   refers to (`item N`, `(N)`, `parked 4118a`): a cite that leaves the prose
@@ -467,7 +475,7 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S8 | METHOD, "The definition of done" | "the lane gate runs those, the fast tests and the guards"; "the commander's booking gate takes no flag" | entry 132 §6: a lane's gate "leaves every timed test to the booking gate but its filters and the paperwork guards, and runs whatever the timings file has never timed"; §5: the booking gate takes `--scope`. `CLAUDE.md` carries the new form. | amend in place |
 | S9 | QUEUE, the dated line and the opener | "handing back to `commander`"; "cut a builder on **VII-b1** and spawn three lanes, 4208 ... 4212 ... 4214 ... and a fifth on 4216" | all landed: `docs/journal/2026-11-13-item-4208.md`, `-4212`, `-4214`, `-4216` exist, and the queue's item 4159 says VII-b1 to VII-d landed. 21 commits edited the queue since the pass's gate (`git log 8a0b2a0e7..HEAD -- docs/QUEUE.md`); none rewrote these lines. A row that died now would hand a fresh session an opener that reaps a row long gone and cuts builders on landed steps. | the booking commit keeps the opener true, or the mid-tranche opener is "continue the tranche" with the lanes that are out |
 | S10 | `CLAUDE.md` line 408; METHOD line 112 | the behavioural check is "(`docs/ORACLE.md`, last section)" | ORACLE's last section is "The click-free lanes are a pool (2026-10-07 ...)". The recipe is "Running a check: the recipe in one place", the fourth section. | name the section (in `CLAUDE.md`, Ramon's word) |
-| S11 | LOOP, "The chain" | the chain ends "`ccc rm <ref>`, and `git push origin --delete <the lane's branch>`" | LOOP, "The driver": "a remote branch delete is refused from every row". Entry 129 §9 ruled it: "The merged branches on origin are Ramon's to delete, or his to allow: 65 stood, and the classifier refuses a session the delete"; he ran the line during that pass. Two days on, 36 of 41 remote branches are merged into `origin/main` again (`git branch -r --merged origin/main`, 2026-11-14 03:00). | the chain's last step cites entry 129 §9 and drops the delete; the pass's record carries the line for Ramon, as it did |
+| S11 | LOOP, "The chain" | the chain ends "`ccc rm <ref>`, and `git push origin --delete <the lane's branch>`" | LOOP, "The driver": "a remote branch delete is refused from every row". Entry 129 §9 ruled it: "The merged branches on origin are Ramon's to delete, or his to allow: 65 stood, and the classifier refuses a session the delete"; he ran the line during that pass. Two days on, 36 of 41 remote branches are merged into `origin/main` again (`git branch -r --merged origin/main`, 2026-11-14 02:15 −05:00). | the chain's last step cites entry 129 §9 and drops the delete; the pass's record carries the line for Ramon, as it did |
 | S12 | LOOP, "The lanes" | "The handoff's `For the pass` counts are the tables'" | the handoff has no "For the pass" part (`grep -c 'For the pass' docs/QUEUE.md` is 0). **Settled in the second session:** `git log -S'For the pass' -- docs/QUEUE.md` shows the part written when a tranche is banked for a pass (`05e9edc97`, `d64f135cc`, `ef794025c`) and removed by the pass's own commit (`f35f57351`, `471755ade`). The clause is true of a banked handoff and silent on the rest. | "a handoff banked for a pass carries a `For the pass` part, and its counts are the tables'" |
 | S19 | QUEUE, "Where things stand", the dated line | "The week 36 % at 19:25Z ... the stop 95 %" | the bullet under it: "a soft stop at 99 % of the window, Ramon's to move (DECISIONS 121)"; entry 121: "Amended 2026-11-13, evening: the stop is 99 %"; LOOP: "99 % of the weekly window since 2026-11-13". The dated line is the pass's reading at 15:15 and was true then; the amendment rewrote the bullet and not the line. Still so on `origin/worktree-replan-pdb` at `78b2b9140`. | a dated reading says its hour ("the stop then 95 %"), or the line drops the stop and leaves it to the bullet |
 | S13 | twelve doc-to-doc section cites | a section that does not exist: `AI` §4.4 (CITIES line 531) and §9.3 (ORACLE 1841); `ANIM` §4.4 (ORDERS 2059); `ARMY` §15.8 (COMBAT 2687, four times) and §16.3 (INPUT 454); `COMBAT` §14.1 (MOVEMENT 107); `NATIONS` §5 (DECISIONS 6619); `ORDERS` §714 (INPUT 203, a line number); `PATHFINDER` §18.6 (COMBAT 12899) and §4.6 (TRANSPORT 17, twice); `TECH` §13 (AI 14501) and §7 (ANIM 2214) | `a_section_the_code_cites_is_one_the_document_holds` reads `crates/` only; the same parser over `docs/*.md` finds these. Six of the twelve are sections its `NO_SUCH_SECTION` already pins for the code. | mend each; or extend the guard to the documents with these pinned |
@@ -477,6 +485,9 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S18 | QUEUE, "The queue", first line | "The shapes are DECISIONS 90–94 and 100 §3" | written 2026-11-07. Entries 90 to 94 score the fifty-first to fifty-fifth tranches and shape a late-age pair; 100 §3 a territory row. Six entries, 49,820 B, behind a pointer no open item uses: the five items are a chain step, a structure item, a render item and two rules items, each of which names its own document. | keep the four shapes the line goes on to name; drop the six numbers or say which kind they are for |
 | S20 | `docs/journal/README.md`, first rule | "The first line is the heading the single file used: `## <date> — item <N>: <title> (<model>)`" | of the 132 item journals of 2026-11-10 to 11-14, 118 open `# Item <N>: <title>` with the model on the italic line under it; 13 use the README's form. `queueledger.py`'s `item N` regex is case-insensitive since item 279 and reads both; all 132 name a model in their first six lines. | the README states the form in use |
 | S21 | `docs/journal/README.md`, last rule; `CLAUDE.md`'s table row for `docs/JOURNAL.md` | "A steering pass writes to `docs/JOURNAL.md`, not here ... the chronicle is its record" | G2: four entries in `docs/JOURNAL.md` since 2026-10-01 against 61 pass records under `docs/audit/`; the last entry (2026-11-13) is the first since 2026-10-24. LOOP names "the pass's own record under `docs/audit/`" and never asks a pass for a journal entry. | "a pass's story is its record under `docs/audit/`; `docs/JOURNAL.md` takes an entry when the pass chooses" (the `CLAUDE.md` row is Ramon's word) |
+| S24 | QUEUE, "Where things stand", the renderer's bullet | "`RUN1559B_3279_TRACED` 33 of 33, `_COLOUR` 17"; "`_GROUND_LUMA` 1,029 of 1,109"; "`RUN1559B_3279_SHADOW` 41 → 89 of 105" | `crates/render/src/silhouette.rs`: `RUN1559B_3279_COLOUR = (21, 33)`, "21 of 33 since item 4221 (from 17)". `crates/client/src/ground.rs`: `GROUND_LUMA_STILL`'s run1559b row `(1036, 1109)`, "Item 4221: run1559b 1,029 → 1,036". `crates/client/src/shadows.rs`: `RUN1559B_3279_SHADOW = [(80, 104), (79, 104)]`, "Item 4193 ... 105 → 104 scored", "Item 4212: hue 93 → 80, luma 89 → 79". All three still so on `origin/worktree-replan-pdb` at `78b2b9140`. A fourth reads two ways: "`_COLOUR_STILL` 14 of 33 (18)" where the pin is `(18, 33)`. The other 21 constants with a count agree with the code (checked one by one: the `INPUT_*` six, `_TRACED`, `_DEVICE_STATE`, `_GROUND_BASE`, `_BLEND`, `_PACKET_PATCH`, `_GROUND`, `RUN1570_DEAD`, `RUN1564_3279_GROUND`, the two `_GROUND_STILL`, `_LUMA`, `GRASS_HUE`, the two `_RING`, the two `_PLAZA`). | the three counts; then R2's action, so the next one cannot drift |
+| S22 | `docs/TEST_PERFORMANCE.md`, "Shared isolated runner" (the fourteenth-from-last section; `CLAUDE.md` sends a reader to this file for the host budget's "design and its limits") | "Every cooperating worktree shares `~/Library/Caches/attrition/resources-v1`: sixteen CPU slots and 32 GiB reserved RSS"; "guards reserve eight slots/32 GiB"; "Each nonignored rondata library test runs in a fresh process" | `tools/resource_budget.py`: `CPU = 20`, `MEMORY_MIB = 98304`, `resources-v3`; `tools/guard.sh`: `--cpu 2 --memory-mib 4096`; the same file's last section ("Trial terms") says so, 700 lines on; and "The group unit" (item 4216): "The isolated runner's unit was one process a test ... A group is the tests of one game". None of the three earlier sentences is struck. | strike the three in place and point at the section that stands; G11 for the order |
+| S23 | `docs/TEST_PERFORMANCE.md`, eleven sections of 2026-10-15 to 10-17 | "Independent review remains owed", eleven times (lines 65, 107, 192, 298, 667, 707, 890, 912, 933, 949, 965) | no item, decision or pass record names the review: `grep -i 'independent review'` over QUEUE, DECISIONS, LOOP, TRACKS and the pass records of 2026-10-15 to 10-29 is empty. Entries 75 and 76 put the branch on trial and kept it on the tranche's waiting and admission figures. A promise with no item is one nobody holds. | the pass rules once: the trial's verdict (entry 76) and a month of gates stand for the review, said in one line at the head; or it books the review as an item with a score |
 | S16 | DECISIONS, "Index": statuses | 116 "amended by 121"; 100 "standing"; 59 "extended by 60" | entry 126 §1: "Entry 116's single row and entry 122's roster line are superseded here"; entry 103: "amends entry 100 §3's "next cell""; entry 61: "amends ... entry 59's clause 1". Three read; a mechanical pass (a later entry's sentence that names an earlier one beside amend, replace, retire, withdraw or supersede) lists 7 rows the index calls standing (57, 64, 71, 72, 99, 100, 121) and 16 whose list of successors is short; 16 entries carry an "Amended <date>" note while their row says something other than "amended in place" (4, 9, 24, 29, 34, 55, 63, 64, 68, 71, 72, 77, 78, 87, 88, 121). Candidates, not verdicts: the heuristic is noisy, and a successor does not always name what it changes (entry 126 returns the two rows without a sentence that says "amends entry 116" in those words). | the pass that splits the index (S1) checks these rows; G3's index by topic is the durable fix |
 
 Also seen, and not a contradiction: `CLAUDE.md` gives the gate as
@@ -603,13 +614,22 @@ history ("until item 4113"), none a stale promise. Not pursued.
   121's row.
 - **Tier 0, additive: an index by topic.** The question a session has is
   "what stands about the gate", and the answer is a chain. From the
-  index's own rows and titles (not from reading the entries): the booking
-  gate, 72 → 79 → 131 §4 → 132 §5; a lane's own gate, 53 → 72 → 80 → 96 →
-  132 §6; the roster and the count, 59 → 61 → 114 → 116 → 126 → 128 §4 →
-  129 §1; the rows and the handover, 61 → 116 → 122 → 126 → 130 → 131 §8;
-  the stop, 118 → 121 → 124 → 121 again, amended in place (99 %); the parked
-  file, 39 → 67 → 125; the finish line, 24 → 26 → 29 → 41 → 53 → 114 → 116
-  → 132 §10. About twenty such lines, each ending on the entry that
+  index's own rows and titles, then checked in the second session against
+  each entry's own sentences of succession ("amends", "replaces", "is
+  superseded", "is withdrawn"; not a whole read): the booking gate, 72 →
+  79 → 131 §4 → 132 §5 (132: "This replaces ... entry 79's every third
+  landing"); a lane's own gate, 53 → 72 → 80 → 132 §6; the roster and the
+  count, 59 → 61 → 94 §1 → 96 → 114 → 116 → 126 → 128 §4 → 129 §1 → 131
+  §5; the rows and the handover, 61 → 116 → 122 → 126 → 130 → 131 §8
+  (131: "Entry 130 §3's interim rule ... is withdrawn"); the stop, 118 →
+  121 → 124 (98 %) → 126 §2 (95 % after the reset) → 121 again, amended in
+  place (99 %); the parked file, 39 → 67 → 125; the finish line, 24 → 26 →
+  29 → 41 → 53 → 114 → 116 → 132 §10. **Two corrections from the check:**
+  the first session put entry 96 in the lane's-gate chain, and its clause
+  is the lane *count* ("The lane rule holds two lanes", on entry 94 §1);
+  and the stop's chain passed over entry 126 §2. Both are what a chain
+  read off titles gets wrong, and the reason the page is the pass's to
+  write from the entries. About twenty such lines, each ending on the entry that
   stands, is the page Ramon can read to find what to review. It can live
   in the index's second half; the rows by number can then be bare.
 - **Tier 1, a rule change: freeze the tranche-scoring entries at a
@@ -736,6 +756,54 @@ guards do not scan it and `CLAUDE.md` says so (entry 38). Not a compaction
 target. `docs/journal/README.md` (1,673 B) carries two rules practice has
 left: S20 and S21.
 
+### G11. `docs/TEST_PERFORMANCE.md`: the standing form is the fourteenth section
+
+- **Measured (second session):** 68,519 B in 29 sections, in the order
+  things were tried. Thirteen sections of 2026-10-15 to 10-17 come first
+  (the scoped replay, the coverage recording, the allocator, the parsed
+  windows, a rejected lookup, the process isolation *experiment*); "The
+  group unit" (item 4216, 13,048 B: what the suite's unit is today), "The
+  rondata library's length" and "The release step's lanes" stand at lines
+  301 to 628; twelve more of October follow, and "Trial terms", which
+  holds the budget's live numbers, is last. 56 commits have touched it,
+  13 of them since 2026-11-07.
+- **Who is sent there:** `CLAUDE.md` and METHOD, for the host budget's
+  "design and its limits". That reader meets the first design (S22:
+  sixteen slots, `resources-v1`) 700 lines before the one that stands
+  (twenty slots, `resources-v3`).
+- **Action:** no cut. Three moves, none of which rewrites a sentence: a
+  five-line head that says what stands and where ("the unit is the group,
+  §The group unit; the budget is twenty slots and 96 GiB, §Trial terms;
+  the sections between are the measurements each rests on"); S22's three
+  strikes; S23's ruling. Or the order: the three standing sections first,
+  the October experiments after, as G8 proposes for `ORACLE.md`.
+  `tools/retire.py` calls 24 of its sections unnamed because nothing
+  cites one by heading, so nothing breaks on a move.
+- **Confidence:** high on the order and on S22; the choice between a head
+  and a reorder is the pass's.
+
+### G12. The track documents against their queue lines: they agree
+
+`docs/HUD.md` and `docs/LOBBY.md` state the numbers their queue lines
+carry (`Hud:` 2 of 2, 628 of 628, 57,420 of 57,420, 3 of 3, 840 of 840;
+`Lobby:` 161 of 161 twice, 600 frames), each beside the constant that
+pins it. `docs/CENSUS.md` and `docs/RUBRIC.md` are ledgers of readings by
+item, each dated or headed by its item, and the newest is the queue's
+less the landings since (`RUBRIC.md` §0's last reading is item 4170's 731
+· 332 · 576; the queue's 733 · 332 · 574 is 4186's). One undated line:
+`RUBRIC.md` §0 opens its readings "On this tree: **ported 529 · replaced
+by design 318 · open 1305 of 3611**", the first reading of three, with
+nothing to say which tree. A date or an item number on that line is the
+whole fix.
+
+A mechanical check was tried on these and on `RENDERER.md`,
+`CHECKSUM.md`, `LEADERS.md`, `CLIENT_INPUT.md`, `START.md` and
+`RECGAME.md`: each document's last statement of a backticked constant's
+count against the constant in `crates/`. It is too noisy to keep as it
+stands (a specification states a pin's history, and "the last mention"
+is often a "from"); on the queue's handoff, where every count is meant
+to be current, it found S24.
+
 ## Left to do
 
 Written at 02:10 −05:00 on the commander's word (this session's context
@@ -747,19 +815,16 @@ in the appendix; `tools/retire.py` and `lore` need nothing rebuilt.
 `docs/audit/` as a set (G9), `docs/lab/` and the journal's README (G10,
 S20, S21), entries 128 and 129 against LOOP (they agree; S11 gained its
 ruling), and the half-checks R2 (re-measured, lower), S12 (settled) and D6
-(the journals name the conflicts).
+(the journals name the conflicts); then `docs/TEST_PERFORMANCE.md`
+(G11, S22, S23), the track documents against their queue lines (G12),
+every constant the handoff quotes against the code (S24), and G3's
+chains against their entries' sentences of succession (two corrected).
 
 **Not reached.**
 
 - The mid-size specifications as documents: `LEADERS.md`, `MAPGEN.md`,
   `COLLISION.md`, `RENDERER.md`, `CHECKSUM.md`, `PATHFINDER.md` were
   measured by section and citation, never read for a stale claim.
-- `docs/TEST_PERFORMANCE.md` (68,519 B; 24 of its 30 sections unnamed by
-  `retire.py`): whether it leads with the suite's current form (item 4216
-  to 4224) or with experiments since rejected.
-- `docs/RUBRIC.md`, `docs/CENSUS.md`, `docs/HUD.md`, `docs/LOBBY.md`
-  against their queue lines; `STRUCTURE.md` and `START.md` were looked at
-  and hold dated baselines, not stale state.
 - `tools/brief/frame.md`'s sections for kinds no item is booked under
   (`sweep`, `coverage-item`, `reading-item`, `chapter`, `capture`,
   `reading`: 17,555 B). Selected by kind, so no lane carries them; not
@@ -770,8 +835,8 @@ ruling), and the half-checks R2 (re-measured, lower), S12 (settled) and D6
 **Half-checked.**
 
 - S16: three statuses read, the other rows are a heuristic's list.
-- G3's seven topic chains are read off the index's titles; a chain is
-  true only once its entries are read.
+- G3's seven topic chains are now checked against each entry's
+  sentences of succession, not against the entries read whole.
 - R11's candidates are measured by line range; none was weighed against
   what each kind of lane uses.
 - G8: `ORACLE.md` by title only.
@@ -790,7 +855,8 @@ DECISIONS than an index by topic.
   61" is a floor.
 - The statuses in the DECISIONS index were read for entries 59, 100, 116
   and 121; the rest of S16 is a heuristic's list.
-- The topic chains under G3 are read off the index, not off the entries.
+- The topic chains under G3 rest on the index and on each entry's
+  sentences of succession; no chain's entries were read whole.
 - Which of the nine `RENDERER.md` merges with a `--cc` hunk were
   conflicts: the journals name six updates on that file and say one
   merged cleanly (D6); the two counts were not joined merge by merge.
