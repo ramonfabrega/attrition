@@ -281,7 +281,8 @@ it ORs the record's `role` into the army's `+0xc`. On fewer than four
 members the `get_num_cap` is `normalize` whole, so the new slot takes
 `find_role` and its leader's speed. `push_group` has already pointed every
 live member's `+0x80` at the slot, so the prune keeps them. The crate's push
-arm in `Sim::army_add_unit` does both: the members' `group_ptr` and
+arm in `Sim::army_add_unit` does both through
+`Sim::army_add_group_get_num_cap`: the members' `group_ptr`, then
 `seat_get_num_cap` on the army's seat. Diff-backed on the minted game: the
 Longbowmen `1/24..1/26` pushed into army 1/1 on 6780 read `role` 0x150c00
 and speed 26 on run1592's packet at 6781 where ours read 0. With it the
