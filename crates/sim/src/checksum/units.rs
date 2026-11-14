@@ -129,6 +129,15 @@ pub const TRADE_FIELDS: &[(&str, usize, usize)] = &[
     ("uid2", 0x24, 2),
 ];
 
+/// **`CastOrder`'s own walked 16 bytes** (`+0x14..+0x24`, `x`..`spell`,
+/// the PDB's field list; `CastOrder::walk_data@004860a0`, item 4234).
+pub const CAST_FIELDS: &[(&str, usize, usize)] = &[
+    ("x", 0x14, 4),
+    ("y", 0x18, 4),
+    ("paid", 0x1c, 4),
+    ("spell", 0x20, 4),
+];
+
 /// `Stack<PathData>`'s growth step as `Unit::init` leaves it (`increment`):
 /// 10 on every unit of run 1562's frame 91. Its `size` is
 /// [`crate::orders::PathStack::size`], the high water a long path left
@@ -319,8 +328,9 @@ impl Sim {
     /// (`docs/CHECKSUM.md` §17, §18). `0x8` is [`crate::Unit::line_ok`],
     /// the verified line `do_move`, `find_path`, `move_step` and
     /// `go_around_building` already keep (`docs/MOVEMENT.md`, "The verified
-    /// line's lifecycle"). `0x200` (`Unit::do_trade`'s) and `0x200000`
-    /// (`Unit::init`'s `can_carry(AIR)`) are not held.
+    /// line's lifecycle"). `0x200` is [`crate::Unit::trade_unloaded`]
+    /// (`Unit::do_trade`'s, item 4234). `0x200000` (`Unit::init`'s
+    /// `can_carry(AIR)`) is not held.
     fn unit_masks_word(&self, u: usize) -> u32 {
         let un = &self.units[u];
         let bits = [
@@ -330,6 +340,7 @@ impl Sim {
             (0x10, un.contact),
             (0x20, un.gather_here),
             (0x40, un.waiting_on),
+            (0x200, un.trade_unloaded),
             (0x400, un.was_builder),
             (0x800, un.cloak),
             (0x1000, un.blown),
@@ -495,7 +506,8 @@ impl Sim {
     /// 1562's frame are a move (`MoveOrder` `x`..`off_y`), a `BUILD_AT`
     /// (`TargetOrder` `ox`, `whom`, `uid`) and a `GATHER` (that, and
     /// `tx`..`been_there`); a `TRADE_ROUTE` (that target, and `oxx`..
-    /// `uid2`, item 4230) first held one on the minted game's 3166; any
+    /// `uid2`, item 4230) first held one on the minted game's 3166; a
+    /// `CAST_SPELL` (that target, and `x`..`spell`, item 4234) on 3596; any
     /// other kind hands over its type and node byte alone here, its walker
     /// not ported (`docs/CHECKSUM.md` §17).
     fn checksum_order(&self, ranges: &mut Vec<Range>, u: usize, k: usize) {
@@ -610,6 +622,41 @@ impl Sim {
                 p(0x1c, 4, i64::from(t.started));
                 p(0x20, 4, i64::from(t.loaded));
                 put("order.trade", b);
+            }
+            Body::Cast(c) => {
+                // `CastOrder::walk_data@004860a0` (item 4234): the flags
+                // byte, `TargetOrder`'s `ox`, `whom`, `uid` (`+0x8..+0x12`)
+                // and its own `x`, `y`, `paid`, `spell` (`+0x14..+0x24`).
+                // An untargeted cast keeps what `CastOrder::CastOrder@00486390`
+                // and `clear@00486350` write: −1, −1, 0xffff and a point of
+                // (−1, −1).
+                put("order.flags", vec![o.flags]);
+                let mut t = vec![0u8; 10];
+                match c.target {
+                    Some(obj) => {
+                        let (index, owner) = match obj {
+                            Obj::Unit(v) => (self.units[v].index, self.units[v].owner),
+                            Obj::Building(b) => (self.buildings[b].index, self.buildings[b].owner),
+                        };
+                        put_raw(&mut t, 0, 4, i64::from(index));
+                        put_raw(&mut t, 4, 4, i64::from(owner));
+                        put_raw(&mut t, 8, 2, i64::from(self.obj_uid(obj)));
+                    }
+                    None => {
+                        put_raw(&mut t, 0, 4, -1);
+                        put_raw(&mut t, 4, 4, -1);
+                        put_raw(&mut t, 8, 2, -1);
+                    }
+                }
+                put("order.target", t);
+                let mut b = vec![0u8; 0x24 - 0x14];
+                debug_assert_eq!(CAST_FIELDS.len(), 4);
+                let mut p = |at: usize, w, x: i64| put_raw(&mut b, at - 0x14, w, x);
+                p(0x14, 4, i64::from(c.at.x));
+                p(0x18, 4, i64::from(c.at.y));
+                p(0x1c, 4, i64::from(c.paid));
+                p(0x20, 4, i64::from(c.spell));
+                put("order.cast", b);
             }
             _ => {}
         }

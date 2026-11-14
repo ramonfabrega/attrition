@@ -295,3 +295,36 @@ fn a_caravan_s_path_takes_the_road_stack_s_doubled_size() {
     assert_eq!(sim.units[u].path.len(), 42, "the copy, its top popped");
     assert_eq!(sim.units[u].path.size(), 64, "the road's size, not 50");
 }
+
+/// **`unit_masks & 0x200`, the caravan has unloaded** (item 4234,
+/// `docs/CARAVAN.md` §7): `do_trade:470` sets it on the unload (run1585's
+/// `1/14` on 4030, which the minted packets hold), the checksum walks it in
+/// `unit_masks`, and every trade order (`add_trade_order:29`) and
+/// `end_trade_route:18` clear it.
+#[test]
+fn a_trade_order_and_a_route_s_end_clear_the_unloaded_bit() {
+    let masks = |s: &Sim| {
+        let r = s
+            .checksum_units()
+            .ranges
+            .into_iter()
+            .find(|r| r.field == "collide_frame..play")
+            .unwrap();
+        u32::from_le_bytes(r.bytes[0x68 - 0x48..0x6c - 0x48].try_into().unwrap())
+    };
+    let mut sim = bare();
+    let u = sim.add_unit(crate::Unit::new(1, 14, Pos::new(960, 960), 10));
+    let clear = masks(&sim);
+    assert_eq!(clear & 0x200, 0);
+    sim.units[u].trade_unloaded = true;
+    assert_eq!(
+        masks(&sim),
+        clear | 0x200,
+        "run1585's 262664 against 262152"
+    );
+    sim.add_trade_order(u, 0);
+    assert!(!sim.units[u].trade_unloaded, "a trade order starts clear");
+    sim.units[u].trade_unloaded = true;
+    sim.end_trade_route(u);
+    assert!(!sim.units[u].trade_unloaded, "a route's end clears it");
+}

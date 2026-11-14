@@ -197,6 +197,17 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// group record 65 (the Scout `1/0`, pushed by `Unit::get_goody_box` on
 /// 2745) `role` ours 0, theirs 0x40110, `new_speed` and `speed` ours 0,
 /// theirs 34 → the original's on both.
+///
+/// Item 4234 moved one on run1578: units 3596 → 4030, the emitter walking
+/// a `CAST_SPELL` (`CastOrder::walk_data@004860a0`'s three ranges). Value
+/// diff on 3596 (run1590): record 16's second order, an untargeted
+/// `UNPACK_MERCHANT`, ours 1,437 ranges, theirs 1,440, from range 566 →
+/// whole, its `ox` −1, `whom` −1, `uid` 0xffff, `x` −1, `y` −1, `paid` 0,
+/// `spell` 0x290 on both. And 4030 → 6537, a caravan's `unit_masks`
+/// taking `do_trade@005ed270:470`'s `| 0x200` on its unload (cleared by
+/// `add_trade_order` and `end_trade_route`). Value diff on 4030 (run1585):
+/// record 14 (`1/14`, the caravan) `unit_masks` ours 262152, theirs 262664
+/// → 262664 on both, the line whole.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -218,7 +229,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 3596, 0),
+            ("units", 6537, 0),
             ("builds", 7383, 0),
             ("groups", 6781, 0),
             ("guys", 6537, 0),
@@ -478,6 +489,23 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         )],
     ),
     (
+        "run1590",
+        "rontrace-run1590.log",
+        3596,
+        // Item 4234: units whole; before it, 1440 ranges theirs, 1437 ours,
+        // 710 parted from range 566: record 16's `CAST_SPELL`
+        // (`UNPACK_MERCHANT`), whose `CastOrder::walk_data@004860a0` hands
+        // over three ranges the emitter left out (`order.flags`,
+        // `order.target`, `order.cast`).
+        &[(
+            "leaders",
+            267,
+            267,
+            2,
+            "1 0 who..ally_mask: +0x11 of 26914|26914: 00000000|01000000",
+        )],
+    ),
+    (
         "run1583",
         "rontrace-run1583.log",
         987,
@@ -517,14 +545,10 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         &[
             // Item 4228: 809 → 804 parted, range 167 `path.size` 10|60 →
             // agreeing. Item 4230: 804 → 1, the `TradeOrder`'s three ranges
-            // walked (1504 → 1507 ours).
-            (
-                "units",
-                1507,
-                1507,
-                1,
-                "492 14 collide_frame..play: unit_masks 262152|262664",
-            ),
+            // walked (1504 → 1507 ours). Item 4234: units whole; before it,
+            // 1 of 1507, range 492, record 14 (`1/14`, the caravan)
+            // `unit_masks` 262152|262664, `do_trade:470`'s `| 0x200` on its
+            // unload.
             (
                 "leaders",
                 267,
