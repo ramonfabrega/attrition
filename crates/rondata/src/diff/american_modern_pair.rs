@@ -451,7 +451,7 @@ fn american_modern_pair_the_long_s_stride_walks_back_from_4488() {
     // `order:air.mandatory` on 3501, ours' later groups and `1/140`'s
     // `g.z[0]` on 4401 (a Mustang in the Airbase `1/105`, ours 0 against
     // 398).
-    pin_eq!(w.firsts.len(), 116, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 115, "the stride's baseline"); // Item 4258: 116 → 115, `Group::add`'s role OR.
 }
 
 /// run1163: the walk back from the word 4488, blocks 4396..4482 at
@@ -515,5 +515,5 @@ fn american_modern_pair_run1163_s_walk_back_is_widened_whole() {
     // reads 115 against 100 on 4396, the buckets with it (parked 3755a).
     // Item 4177: 62 -> 66, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 4396 ours 74 theirs 91; who=0 `damage_fifteen_seconds` 4396 ours 25 theirs 26; who=1 `average_hit_rate` 4396 ours 107 theirs 124; who=1 `hits_fifteen_seconds` 4396 ours 26 theirs 27 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 66 -> 62, item 4177's four combat-rate firsts on 4396 agree: the nuke strikes the city building at its ceiling (4177a).
-    pin_eq!(w.firsts.len(), 62, "run1163 baseline");
+    pin_eq!(w.firsts.len(), 61, "run1163 baseline"); // Item 4258: 62 → 61, `Group::add`'s role OR.
 }

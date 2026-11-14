@@ -1415,12 +1415,12 @@ mod tests {
         // Item 1451, `largest_gather` (AI §115): 102 → 100.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(17140, 38), (17176, 1)], // Item 3343: −2, the rares' tail. Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(17140, 24), (17176, 1)], // Item 3343: −2, the rares' tail. Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 4258: [(17140, 38), (17176, 1)] → [(17140, 24), (17176, 1)], `Group::add`'s role OR.
             "the blocks keys first part on"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 172.
         // Item 1451, `largest_gather` (AI §115): 119 → 117.
-        pin_eq!(w.firsts.len(), 39, "every key parted on run457"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 25, "every key parted on run457"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 4258: 39 → 25, `Group::add`'s role OR.
     }
 
     /// **The third map's word at its end, widened whole** (item 1206):

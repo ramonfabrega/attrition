@@ -1353,7 +1353,7 @@ fn run952b_s_gap_is_widened_whole() {
     // Item 3369: 59 -> 32, an unpacked merchant's "over time" piece
     // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3385: 32 -> 30 (the General's rally armour, `Sim::rally_armor`).
-    pin_eq!(w.firsts.len(), 30, "run952b with the Despot's cut");
+    pin_eq!(w.firsts.len(), 28, "run952b with the Despot's cut"); // Item 4258: 30 → 28, `Group::add`'s role OR.
 }
 
 /// **The Despot's Ambush holds its craft** (item 3297, `docs/AI.md`

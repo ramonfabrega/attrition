@@ -363,7 +363,7 @@ fn run658_dates_the_gap_before_17171() {
     // and Napata's `raid_stamp` 0 against 17053 on 17054, the first strike.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 120 -> 96.
-    pin_eq!(w.firsts.len(), 97, "initial run658 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    pin_eq!(w.firsts.len(), 85, "initial run658 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 4258: 97 → 85, `Group::add`'s role OR.
     // **The date, on the original's side** (`docs/AI.md` §131). Leader 0's
     // economy-dirty bit, `leader_flags & 0x2000000`, which no row compares:
     // the blocks of the window it stands on, read off the dump (the closing
@@ -738,7 +738,7 @@ fn run649_s_decision_frame_is_widened_whole() {
     // run642 also stands on); nothing on 15087..15090, the decision's block
     // 15089 among them.
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 56 -> 32.
-    pin_eq!(w.firsts.len(), 33, "run649 whole");
+    pin_eq!(w.firsts.len(), 30, "run649 whole"); // Item 4258: 33 → 30, `Group::add`'s role OR.
 }
 
 #[test]
@@ -1103,7 +1103,7 @@ fn run627_s_food_frame_is_widened_whole() {
     // Item 1458: 100 → 95; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     pin_eq!(
         w.firsts.len(),
-        38,
+        25, // Item 4258: 38 → 25, `Group::add`'s role OR.
         "initial run627 baseline: its standing keys on 7776"
     );
 }
@@ -1329,7 +1329,7 @@ fn run613_s_contact_frame_is_widened_whole() {
     // Item 1455: 106 → 102, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 102 → 100; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 100 → 95; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 38, "run613 after the idle push-back");
+    pin_eq!(w.firsts.len(), 25, "run613 after the idle push-back"); // Item 4258: 38 → 25, `Group::add`'s role OR.
     pin!(
         !w.firsts
             .keys()
@@ -1413,7 +1413,7 @@ fn run620_s_ship_window_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1457: 86 → 84; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 84 → 83; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 35, "run620 after the idle push-back");
+    pin_eq!(w.firsts.len(), 28, "run620 after the idle push-back"); // Item 4258: 35 → 28, `Group::add`'s role OR.
     // `form` is the standing new-unit residue (−1 here, 0 there) every
     // window carries for a unit born after the start; nothing else of
     // either ship parts.
@@ -1453,7 +1453,7 @@ fn run618_s_boarding_window_is_widened_whole() {
     // Item 1457: 111 → 109; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 109 → 104; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 4159's residue: 44 -> 43, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 43, "run618 after the idle push-back");
+    pin_eq!(w.firsts.len(), 29, "run618 after the idle push-back"); // Item 4258: 43 → 29, `Group::add`'s role OR.
 }
 
 /// run615: the builder `1/51`'s birth beside the wonder, blocks
@@ -1483,7 +1483,7 @@ fn run615_s_birth_window_is_widened_whole() {
     // Item 1455: 109 → 105, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 105 → 103; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 103 → 98; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 39, "run615 after the idle push-back");
+    pin_eq!(w.firsts.len(), 25, "run615 after the idle push-back"); // Item 4258: 39 → 25, `Group::add`'s role OR.
     // **The recruit at birth** (item 1449): city `1/2008` trains citizen
     // `1/51` on frame 7962, the wonder `1/2022` recruits it on its phase the
     // same frame, and it walks to the original's spot. With the queues in a
@@ -1523,7 +1523,7 @@ fn run614_s_builder_window_is_widened_whole() {
     // Item 1455: 111 → 108, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 108 → 106; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 106 → 101; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 39, "run614 after the idle push-back");
+    pin_eq!(w.firsts.len(), 25, "run614 after the idle push-back"); // Item 4258: 39 → 25, `Group::add`'s role OR.
     pin!(
         !w.firsts
             .keys()
@@ -1544,7 +1544,7 @@ fn run611_s_contact_window_is_widened_whole() {
     // Item 1457: 107 → 105; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 105 → 100; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 4159's residue: 40 -> 39, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 39, "run611 after the idle push-back");
+    pin_eq!(w.firsts.len(), 25, "run611 after the idle push-back"); // Item 4258: 39 → 25, `Group::add`'s role OR.
 }
 
 /// run603: the successor word after French timber capacity, frame 7356.
@@ -1670,7 +1670,7 @@ fn run609_s_closing_frame_is_widened_whole() {
         // human's orders, so `0/1` and `0/2`'s `orders.len`, `order:length`,
         // `idle` and figure clocks agree (were ours 1, 0 and running; theirs
         // 0, 1 and at rest).
-        29, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        27, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 4258: 29 → 27, `Group::add`'s role OR.
         "run609 closing residue, not whole-record parity"
     );
 }

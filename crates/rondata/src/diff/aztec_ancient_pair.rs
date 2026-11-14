@@ -250,7 +250,7 @@ fn aztec_ancient_pair_the_long_s_stride_walks_back_from_8716() {
     // parts in the gap 8602..8700. Item 3613, with piece 36's bays: 306 —
     // the wounds agree, and `1/107`'s `mylos` and the standing families
     // stay.
-    pin_eq!(w.firsts.len(), 306, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 294, "the stride's baseline"); // Item 4258: 306 → 294, `Group::add`'s role OR.
 }
 
 /// run1266: the gap's window, blocks 8596..8710 at run1256b's detail with
@@ -309,7 +309,7 @@ fn aztec_ancient_pair_run1266_s_gap_is_widened_whole() {
     // With the bays: 141, the standing families and `1/175`'s
     // `dest_angle` alone.
     // Item 4159's residue: 142 -> 141, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 141, "run1266 baseline");
+    pin_eq!(w.firsts.len(), 129, "run1266 baseline"); // Item 4258: 141 → 129, `Group::add`'s role OR.
 }
 
 /// **The closing state** (item 3613): run1256's closing block 9259, the
@@ -406,5 +406,5 @@ fn aztec_ancient_pair_run1266d_s_closing_frame_is_widened_whole() {
     );
     // Item 3613: 163 keys, the standing families alone, through the
     // closing block 9259.
-    pin_eq!(w.firsts.len(), 163, "run1266d baseline");
+    pin_eq!(w.firsts.len(), 145, "run1266d baseline"); // Item 4258: 163 → 145, `Group::add`'s role OR.
 }

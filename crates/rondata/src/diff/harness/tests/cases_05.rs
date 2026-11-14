@@ -195,7 +195,7 @@ mod bodies {
             // Item 919 208 fewer: run78's `GUY` records are the short form,
             // so gaia's 104 animals' `cur_anim` and `cur_time` read `theirs
             // None` and are named unprinted now, not parting.
-            25,
+            12, // Item 4258: 25 → 12, `Group::add`'s role OR.
             "every row standing on the old word's block"
         );
         // **The floor**: 437 keys standing on the window's first block,
@@ -217,7 +217,7 @@ mod bodies {
         // Item 1164 took two (106/109 → 106/107): `1/0`'s `orders_x/y` on
         // 15800, above.
         // Item 1330 took 40 (106/107 → 66/66): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, firsts.len()), (25, 25), "the floor");
+        pin_eq!((first, firsts.len()), (12, 12), "the floor"); // Item 4258: (25, 25) → (12, 12), `Group::add`'s role OR.
     }
 
     pub(in super::super) fn run221_s_word_frame_is_widened_whole() {

@@ -760,7 +760,7 @@ mod bodies {
             // (`1/11` 64 against −1, `1/48`..`1/71` 72 against 71)
             // (`docs/GROUPS.md` §29).
             // Item 1106: → 284/1/283/285, who=1's wealth, the border pass's economy flag (`docs/AI.md` §84): `leftover[2:wealth]` on 18428 and `bucket[2:wealth]` on 18511.
-            (37, 0, 37, 37),
+            (23, 0, 23, 23), // Item 4258: (37, 0, 37, 37) → (23, 0, 23, 23), `Group::add`'s role OR.
             "the floor"
         );
     }

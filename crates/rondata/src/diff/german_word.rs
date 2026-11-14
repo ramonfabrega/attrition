@@ -552,7 +552,7 @@ fn run912_s_gap_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 97, "initial run912 baseline");
+    pin_eq!(w.firsts.len(), 88, "initial run912 baseline"); // Item 4258: 97 → 88, `Group::add`'s role OR.
     // Item 2997: the gap between run893c (ends 6836) and run910 (starts
     // 12809), at `UNITS=3,GUYS=2` only, so every `build:extra` row (the
     // buildings this crate holds and the dump does not print) is the

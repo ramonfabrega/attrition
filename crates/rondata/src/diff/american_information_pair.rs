@@ -214,7 +214,7 @@ fn american_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // the same families on the six blocks 3701..4201 — `build:extra` on
     // nine more buildings, `mirror` on more of who=1's units, and groups
     // 69..71 with their pools. No position, order or hit parts.
-    pin_eq!(w.firsts.len(), 121, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 120, "the stride's baseline"); // Item 4258: 121 → 120, `Group::add`'s role OR.
 }
 
 /// run1409b: the word 2385's window, blocks 2295..2635 at the long's
@@ -514,7 +514,7 @@ fn american_information_pair_run1439_s_gap_is_widened_whole() {
     // short in ours) and nothing else. Before the rows, building
     // `0/2006`'s `damage_frac` parted on 4242, 8 against 11, under the Jet
     // Fighter `1/57`'s splash (`docs/AI.md` §372.4).
-    pin_eq!(w.firsts.len(), 76, "run1439 baseline");
+    pin_eq!(w.firsts.len(), 75, "run1439 baseline"); // Item 4258: 76 → 75, `Group::add`'s role OR.
     pin_eq!(w.rounds_read, (420, 420), "the rounds read");
     // Every round, both directions: **21** parting, on `angle` (the
     // strafers' rounds: theirs carries the figure's own angle), `accuracy`

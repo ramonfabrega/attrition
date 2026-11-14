@@ -2682,7 +2682,7 @@ mod tests {
         // Item 1461: its rows leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(9032, 28)],
+            [(9032, 24)], // Item 4258: [(9032, 28)] → [(9032, 24)], `Group::add`'s role OR.
             "the blocks keys first part on"
         );
         // Item 1326 re-pinned on the tree merged with 1318's: was 158.
@@ -2694,7 +2694,7 @@ mod tests {
         // Item 1461: 93 → 77, the crew rows from 9222 leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             w.firsts.len(),
-            28,
+            24, // Item 4258: 28 → 24, `Group::add`'s role OR.
             "every key parted on run517 (1,154 without the march's speed)"
         );
     }

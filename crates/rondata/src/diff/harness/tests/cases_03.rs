@@ -1846,7 +1846,7 @@ mod bodies {
             .collect();
         pin_eq!(
             parted,
-            [(19840, 1, -1, 1), (19840, 1, 80, 1)],
+            [(19840, 1, -1, 1)], // Item 4258: [(19840, 1, -1, 1), (19840, 1, 80, 1)] → [(19840, 1, -1, 1)], `Group::add`'s role OR.
             "who first parts past run226, and on how many keys"
         );
         pin_eq!(

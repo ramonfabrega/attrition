@@ -1009,7 +1009,7 @@ fn run883_s_closing_frame_is_widened_whole() {
     // Item 4177: 177 -> 179, +2 firsts, the combat rates' own: who=0 `damage_fifteen_seconds` 6815 ours 71 theirs 73; who=1 `hits_fifteen_seconds` 6815 ours 76 theirs 78 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 179 -> 177, item 4177's two combat-rate firsts agree (4177a).
     // Item 4159's third residue: 177 -> 110, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
-    pin_eq!(w.firsts.len(), 110, "run883 baseline");
+    pin_eq!(w.firsts.len(), 103, "run883 baseline"); // Item 4258: 110 → 103, `Group::add`'s role OR.
     // Item 3333: who=1's `bucket` metal 5389/4844, standing from 6815, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
