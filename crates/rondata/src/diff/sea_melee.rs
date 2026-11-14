@@ -601,7 +601,7 @@ fn sea_melee_run1483_s_closing_state() {
             .final_state()
             .or_else(|| log.frame_states().pop())
             .expect("closing whole-map state");
-        let e = endpoint::walk_to_close(&mut built, &fin, 8);
+        let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, MELEE_LONG.1);
         eprintln!(
             "Sea melee closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
             e.frame,

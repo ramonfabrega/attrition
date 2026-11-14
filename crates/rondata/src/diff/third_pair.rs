@@ -123,7 +123,7 @@ fn run600_french_east_indies_closing_state() {
         .final_state()
         .or_else(|| log.frame_states().pop())
         .expect("closing whole-map state");
-    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, EAST_LONG.1);
     eprintln!(
         "French East Indies closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?}",
         e.frame,
@@ -177,7 +177,7 @@ fn run598_french_great_lakes_closing_state() {
         .final_state()
         .or_else(|| log.frame_states().pop())
         .expect("closing whole-map state");
-    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, LAKES_LONG.1);
     eprintln!(
         "French Great Lakes closing: frame {} units {} counts {:?} torn {:?} off {:?}",
         e.frame,

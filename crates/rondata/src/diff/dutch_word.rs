@@ -381,7 +381,7 @@ fn run917_dutch_closing_state() {
         .final_state()
         .or_else(|| log.frame_states().pop())
         .expect("closing whole-map state");
-    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, DUTCH.long.1);
     eprintln!(
         "Dutch closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
         e.frame,
