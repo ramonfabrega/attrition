@@ -173,6 +173,9 @@ fn put(b: &mut [u8], base: usize, at: usize, width: usize, v: i64) {
 /// makes it, flies it and draws for it, and neither line ever walks it.
 pub(super) const WALKED_SLOTS: crate::Player = 9;
 
+/// An object's `(o, who)` as a chain word holds it: its index and owner.
+type ObjRef = (i16, crate::Player);
+
 impl Sim {
     /// **The units line** (`CheckSums::check_units@009371d0`): per leader in
     /// slot order, slots 0 to 8 ([`WALKED_SLOTS`]), per live unit in `o`
@@ -297,21 +300,49 @@ impl Sim {
             | if detect { 0x40 } else { 0 }
     }
 
+    /// A garrisoned captain's two neighbours in its building's chain, as
+    /// `(index, owner)`: the object above it (the building for the head)
+    /// and the captain below it (`None` at the tail). `None` when `u` is
+    /// not a captain in any building's [`garrison`](crate::cities::building::Building::garrison),
+    /// whose order is the chain's: `Object::insert_inside@00647e90`
+    /// appends at the bottom and `Object::remove_from_inside@006480f0`
+    /// unlinks in place (`docs/CITIES.md` §6, item 4257).
+    pub(crate) fn garrison_links(&self, u: usize) -> Option<(ObjRef, Option<ObjRef>)> {
+        let un = &self.units[u];
+        let b = un.inside?;
+        let bd = &self.buildings[b];
+        let k = bd.garrison.iter().position(|&c| c == u)?;
+        let unit = |x: usize| (self.units[x].index, self.units[x].owner);
+        let above = match k {
+            0 => (bd.index, bd.owner),
+            _ => unit(bd.garrison[k - 1]),
+        };
+        Some((above, bd.garrison.get(k + 1).map(|&x| unit(x))))
+    }
+
     /// The unit's 34 `ObjectData` bytes ([`super::builds::OBJECT_FIELDS`]).
-    fn unit_object_bytes(&self, u: usize) -> Vec<u8> {
+    pub(crate) fn unit_object_bytes(&self, u: usize) -> Vec<u8> {
         let un = &self.units[u];
         let mut v = vec![0u8; 0x42 - 0x20];
         let mut p = |at, w, x: i64| put(&mut v, 0x20, at, w, x);
         p(0x20, 4, i64::from(un.max_health));
         p(0x24, 4, i64::from(un.max_health - un.health));
-        // `inside_down`: the last unit seated inside this one, −1 for none
-        // (a carrier's chain; no unit holds another on the scored frame).
-        let inside = self
-            .units
-            .iter()
-            .filter(|x| x.alive() && x.inside_unit == Some(u))
-            .map(|x| (i64::from(x.index), i64::from(x.owner)))
-            .next_back();
+        // `inside_down`: the next object down the chain this one is in.
+        // For a captain inside a building, the captain that entered after
+        // it — `Object::insert_inside@00647e90` appends at the bottom
+        // (`ObjectData::inside_bottom@00644000`), so the bottom's `+0x28`
+        // names the newcomer; −1 at the tail (item 4257). Otherwise the
+        // last unit seated inside this one (a carrier's chain; no unit
+        // holds another on the scored frame).
+        let inside = match self.garrison_links(u) {
+            Some((_, below)) => below.map(|x| (i64::from(x.0), i64::from(x.1))),
+            None => self
+                .units
+                .iter()
+                .filter(|x| x.alive() && x.inside_unit == Some(u))
+                .map(|x| (i64::from(x.index), i64::from(x.owner)))
+                .next_back(),
+        };
         p(0x28, 2, inside.map_or(-1, |x| x.0));
         let (up, down, down_who, up_who) = self.unit_chain_words(u);
         p(0x2a, 2, i64::from(up));
@@ -388,7 +419,7 @@ impl Sim {
     }
 
     /// The unit's 111 `UnitData` bytes ([`UNIT_FIELDS`]).
-    fn unit_record_bytes(&self, u: usize) -> Vec<u8> {
+    pub(crate) fn unit_record_bytes(&self, u: usize) -> Vec<u8> {
         let un = &self.units[u];
         let mut v = vec![0u8; 0xb7 - 0x48];
         let mut p = |at, w, x: i64| put(&mut v, 0x48, at, w, x);
@@ -423,12 +454,21 @@ impl Sim {
             un.group_ptr
                 .map_or(-1, |g| i64::from(un.owner) * 64 + i64::from(g)),
         );
-        let inside = un
-            .inside
-            .map(|b| (i64::from(self.buildings[b].index), self.buildings[b].owner))
-            .or(un
-                .inside_unit
-                .map(|b| (i64::from(self.units[b].index), self.units[b].owner)));
+        // `inside_up`/`inside_up_who`: the object above this one in its
+        // container's chain. `insert_inside` writes the bottom it appends
+        // under — the building for the first captain in, the captain
+        // before it for the rest (item 4257). A squad's followers are not
+        // linked (`Unit::go_inside@0061a2e0` climbs to the captain before
+        // its one `insert_inside`) and keep the container.
+        let inside = match self.garrison_links(u) {
+            Some((above, _)) => Some((i64::from(above.0), above.1)),
+            None => un
+                .inside
+                .map(|b| (i64::from(self.buildings[b].index), self.buildings[b].owner))
+                .or(un
+                    .inside_unit
+                    .map(|b| (i64::from(self.units[b].index), self.units[b].owner))),
+        };
         p(0x82, 2, inside.map_or(-1, |x| x.0));
         p(
             0x84,

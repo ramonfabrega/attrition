@@ -9038,6 +9038,65 @@ fn a_scholar_is_seated_facing_north_on_its_frame() {
     );
 }
 
+/// **The garrison chain's words are the original's order** (item 4257,
+/// `Object::insert_inside@00647e90`, which appends at the bottom, and
+/// `Object::remove_from_inside@006480f0`, which unlinks in place):
+/// the building's `inside_down` is the first captain in, each captain's
+/// `inside_down` the one that entered after it (−1 at the tail) and its
+/// `inside_up` the one before it (the building for the head). run1597's
+/// 8281: the University 1/2018 holds 1/30 then 1/42, and the original
+/// prints 2018 → 30 → 42.
+///
+/// Made to fail with the building's head at `garrison.last()`, and with
+/// a captain's `inside_down` and `inside_up` off the building's chain.
+#[test]
+fn the_garrison_chain_s_words_name_the_order_of_entry() {
+    let (mut sim, t, _, militia) = alarm_sim();
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let us: Vec<usize> = (0..3)
+        .map(|k| sim.init_unit(0, militia, tile_pos(36 + 2 * k, 36)))
+        .collect();
+    for &u in &us {
+        sim.go_inside(u, b);
+    }
+    let word = |v: &[u8], at: usize| i16::from_le_bytes([v[at], v[at + 1]]);
+    let idx = |sim: &Sim, u: usize| sim.units[u].index;
+    let words = |sim: &Sim, u: usize| {
+        (
+            word(&sim.unit_object_bytes(u), 0x28 - 0x20),
+            word(&sim.unit_record_bytes(u), 0x82 - 0x48),
+        )
+    };
+    let head = |sim: &Sim| word(&sim.object_bytes(b), 0x28 - 0x20);
+    let bi = sim.buildings[b].index;
+    assert_eq!(
+        head(&sim),
+        idx(&sim, us[0]),
+        "the building names the first in"
+    );
+    assert_eq!(words(&sim, us[0]), (idx(&sim, us[1]), bi), "the head");
+    assert_eq!(
+        words(&sim, us[1]),
+        (idx(&sim, us[2]), idx(&sim, us[0])),
+        "the middle"
+    );
+    assert_eq!(words(&sim, us[2]), (-1, idx(&sim, us[1])), "the tail");
+    // The middle leaves: its neighbours close over it.
+    assert!(sim.come_out(us[1]));
+    assert_eq!(head(&sim), idx(&sim, us[0]));
+    assert_eq!(
+        words(&sim, us[0]),
+        (idx(&sim, us[2]), bi),
+        "the head, after"
+    );
+    assert_eq!(
+        words(&sim, us[2]),
+        (-1, idx(&sim, us[0])),
+        "the tail, after"
+    );
+    assert_eq!(words(&sim, us[1]), (-1, -1), "out of the chain");
+}
+
 /// **A type with no block comes out past a unit standing on the ring**
 /// (item 3780, `docs/AI.md` §378.1): `come_out`'s `block_radius == 0` arm
 /// asks `FILTER_ALL` with the unit's own `(o, who)`, and

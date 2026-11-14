@@ -176,13 +176,16 @@ impl Sim {
     }
 
     /// The building's 34 `ObjectData` bytes ([`OBJECT_FIELDS`]).
-    fn object_bytes(&self, b: usize) -> Vec<u8> {
+    pub(crate) fn object_bytes(&self, b: usize) -> Vec<u8> {
         let bd = &self.buildings[b];
         let mut v = vec![0u8; 0x42 - 0x20];
         let mut p = |at, w, x: i64| put(&mut v, 0x20, at, w, x);
         p(0x20, 4, i64::from(bd.hits));
         p(0x24, 4, i64::from(bd.damage));
-        let inside = bd.garrison.last().map(|&u| {
+        // `inside_down`: the chain's head, the first captain in
+        // (`Object::insert_inside@00647e90` appends at the bottom; item
+        // 4257: run1597's 8281 has the University 1/2018's 30 above 42).
+        let inside = bd.garrison.first().map(|&u| {
             (
                 i64::from(self.units[u].index),
                 i64::from(self.units[u].owner),
