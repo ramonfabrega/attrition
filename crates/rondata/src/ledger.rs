@@ -195,6 +195,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "scoped replay state and installation reuse; all oracle comparisons remain in harness.rs",
     ),
     (
+        "diff/harness/trunk.rs",
+        "checkpoints along a silent run-up, keyed by the state's own print; a run-up compares nothing against the oracle",
+    ),
+    (
         "diff/audit.rs",
         "the correction audit pinned at zero on every whole pair (Loop 3728): it reads the harness's own install counters and compares no field of the original's records",
     ),
