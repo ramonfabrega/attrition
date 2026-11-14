@@ -87,7 +87,8 @@ measurable; the question is his.
 | G1 | the eight sections pinned in `OVER`, and 45 of the 77 at 15,000 B or more | 284,070; 831,211 | promote their numbered `###` parts to `##` | 0 (largest read 70,859 → 16,594; 45 sections off the ceiling) | delete seven `OVER` rows; three tools to check |
 | G2 | `docs/JOURNAL.md`, the chronicle to 2026-09-17 | 1,185,526 | leave, or archive at a revision | 0 or 1.19 MB | `queueledger.py`; Ramon (`CLAUDE.md`'s table) |
 | G3 | `docs/DECISIONS.md` | 843,219 | an index by topic; no entry moved | 0 | the pass |
-| G4–G8 | `AI.md`, `GOLDEN.md`, `COMBAT.md`, `ORDERS.md`, `RUNS.md`, struck text, the audit README, `ORACLE.md` | 8.4 MB | leave; number the unnumbered sections | 0 | |
+| G4–G7 | `AI.md`, `GOLDEN.md`, `COMBAT.md`, `ORDERS.md`, `RUNS.md`, struck text, the audit README | 8.2 MB | leave; number the unnumbered sections | 0 | |
+| G8, G11 | `ORACLE.md` and `TEST_PERFORMANCE.md`: each sends its reader to the first design, not the standing one | 179,422; 68,519 | a head that says what stands; S22's strikes | 0 | the pass; S10 (Ramon's word) |
 | G9 | `docs/audit/`: the gate's live timings under a dated name | 528,058 in three files | an undated path | 0 | `release_gate.py`'s `TIMINGS`; `suite_timings.py` |
 
 Read-first total: about 25,400 B of the 101,371 in QUEUE, TRACKS, LOOP,
@@ -452,6 +453,17 @@ such heading; the fan-out rules are the last paragraph of LOOP's
 "Ratification, and the passes" (entry 83 moved them). Saved: about 2,500 B
 if every hook is held to 150.
 
+Behind the index are 32 files, 113,145 B, read on a pointer. The one a
+driver opens most is `ccc-orchestrated-loop.md` (16,438 B): its
+frontmatter description reads "One driver since 2026-11-09 (the steer
+row; the commander row is retired, DECISIONS 116)", its first paragraph
+says the same, and its last five paragraphs reverse it (two rows since
+2026-11-12, a handover by `tools/handover.py` since 11-13); it names
+"`CLAUDE.md`'s fan-out rules" three times. The index's hook for it is
+current, so a session is sent to a file whose opening contradicts the
+hook that sent it. A memory is a session's own to rewrite: the machine
+facts about `ccc` verbs, newest first, and the history out.
+
 ## Part 2. Doc syncs
 
 Each row is a claim a later decision, the code or the tree contradicts,
@@ -488,7 +500,7 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S24 | QUEUE, "Where things stand", the renderer's bullet | "`RUN1559B_3279_TRACED` 33 of 33, `_COLOUR` 17"; "`_GROUND_LUMA` 1,029 of 1,109"; "`RUN1559B_3279_SHADOW` 41 → 89 of 105" | `crates/render/src/silhouette.rs`: `RUN1559B_3279_COLOUR = (21, 33)`, "21 of 33 since item 4221 (from 17)". `crates/client/src/ground.rs`: `GROUND_LUMA_STILL`'s run1559b row `(1036, 1109)`, "Item 4221: run1559b 1,029 → 1,036". `crates/client/src/shadows.rs`: `RUN1559B_3279_SHADOW = [(80, 104), (79, 104)]`, "Item 4193 ... 105 → 104 scored", "Item 4212: hue 93 → 80, luma 89 → 79". All three still so on `origin/worktree-replan-pdb` at `78b2b9140`. A fourth reads two ways: "`_COLOUR_STILL` 14 of 33 (18)" where the pin is `(18, 33)`. The other 21 constants with a count agree with the code (checked one by one: the `INPUT_*` six, `_TRACED`, `_DEVICE_STATE`, `_GROUND_BASE`, `_BLEND`, `_PACKET_PATCH`, `_GROUND`, `RUN1570_DEAD`, `RUN1564_3279_GROUND`, the two `_GROUND_STILL`, `_LUMA`, `GRASS_HUE`, the two `_RING`, the two `_PLAZA`). | the three counts; then R2's action, so the next one cannot drift |
 | S22 | `docs/TEST_PERFORMANCE.md`, "Shared isolated runner" (the fourteenth-from-last section; `CLAUDE.md` sends a reader to this file for the host budget's "design and its limits") | "Every cooperating worktree shares `~/Library/Caches/attrition/resources-v1`: sixteen CPU slots and 32 GiB reserved RSS"; "guards reserve eight slots/32 GiB"; "Each nonignored rondata library test runs in a fresh process" | `tools/resource_budget.py`: `CPU = 20`, `MEMORY_MIB = 98304`, `resources-v3`; `tools/guard.sh`: `--cpu 2 --memory-mib 4096`; the same file's last section ("Trial terms") says so, 700 lines on; and "The group unit" (item 4216): "The isolated runner's unit was one process a test ... A group is the tests of one game". None of the three earlier sentences is struck. | strike the three in place and point at the section that stands; G11 for the order |
 | S23 | `docs/TEST_PERFORMANCE.md`, eleven sections of 2026-10-15 to 10-17 | "Independent review remains owed", eleven times (lines 65, 107, 192, 298, 667, 707, 890, 912, 933, 949, 965) | no item, decision or pass record names the review: `grep -i 'independent review'` over QUEUE, DECISIONS, LOOP, TRACKS and the pass records of 2026-10-15 to 10-29 is empty. Entries 75 and 76 put the branch on trial and kept it on the tranche's waiting and admission figures. A promise with no item is one nobody holds. | the pass rules once: the trial's verdict (entry 76) and a month of gates stand for the review, said in one line at the head; or it books the review as an item with a score |
-| S16 | DECISIONS, "Index": statuses | 116 "amended by 121"; 100 "standing"; 59 "extended by 60" | entry 126 §1: "Entry 116's single row and entry 122's roster line are superseded here"; entry 103: "amends entry 100 §3's "next cell""; entry 61: "amends ... entry 59's clause 1". Three read; a mechanical pass (a later entry's sentence that names an earlier one beside amend, replace, retire, withdraw or supersede) lists 7 rows the index calls standing (57, 64, 71, 72, 99, 100, 121) and 16 whose list of successors is short; 16 entries carry an "Amended <date>" note while their row says something other than "amended in place" (4, 9, 24, 29, 34, 55, 63, 64, 68, 71, 72, 77, 78, 87, 88, 121). Candidates, not verdicts: the heuristic is noisy, and a successor does not always name what it changes (entry 126 returns the two rows without a sentence that says "amends entry 116" in those words). | the pass that splits the index (S1) checks these rows; G3's index by topic is the durable fix |
+| S16 | DECISIONS, "Index": statuses | 116 "amended by 121"; 100 "standing"; 59 "extended by 60" | entry 126 §1: "Entry 116's single row and entry 122's roster line are superseded here"; entry 103: "amends entry 100 §3's "next cell""; entry 61: "amends ... entry 59's clause 1". Three read; a mechanical pass (a later entry's sentence that names an earlier one beside amend, replace, retire, withdraw or supersede) lists 7 rows the index calls standing (57, 64, 71, 72, 99, 100, 121) and 16 whose list of successors is short; 16 entries carry an "Amended <date>" note while their row says something other than "amended in place" (4, 9, 24, 29, 34, 55, 63, 64, 68, 71, 72, 77, 78, 87, 88, 121). Two more read in the second session: entry 71 carries "Amended 2026-10-15, Ramon's word mid-tranche" and entry 72 "Amended by the forty-fifth pass (entry 84, Loop 3344)", and the index calls both standing. Candidates, not verdicts: the heuristic is noisy, and a successor does not always name what it changes (entry 126 returns the two rows without a sentence that says "amends entry 116" in those words). | the pass that splits the index (S1) checks these rows; G3's index by topic is the durable fix |
 
 Also seen, and not a contradiction: `CLAUDE.md` gives the gate as
 `--test-threads 4` and QUEUE and LOOP give the booking gate as
@@ -669,18 +681,51 @@ heading runs on. So an unnumbered section is one nothing can check a
 pointer to (S10 is that failure); numbering them is the fix, not removing
 them.
 
-### G8. `docs/ORACLE.md`: a pointer for the pass, not a proposal
+### G8. `docs/ORACLE.md`: the recipe section is the first path of three
 
-179,422 B in 35 sections, in the order things were found. `CLAUDE.md`
-calls it the runbook and points at it five times. By title alone, six
-sections are the story of a fault since closed ("The fourth permission,
-and the probe that did not test it", "The window nobody can see —
-CrossOver's expired bottle", "226: the fault is the bop, not the
-handler", "The falsifier for 226, costed", "Coverage is back", "`restart`
-from the channel wedges the game": 32,085 B), and the recipe a session is
-sent for is the fourth section of 35. Not read by this lane. If a pass
-reorders it, runbook first and the stories after, the pointers in
-`CLAUDE.md` and METHOD should name sections (S10) before anything moves.
+179,422 B in 35 sections, in the order things were found; its preamble
+says so ("written as the method was discovered, each correcting the one
+before, and they are kept that way") and calls the file "the runbook
+only" since 2026-09-18. `CLAUDE.md` points at it five times. The first
+session judged it by title. The second read the preamble, the recipe
+section and the heads of the lane sections.
+
+- **The designated reading order is of 2026-08-20.** "Running a check:
+  the recipe in one place" (the fourth section, 4,352 B) calls itself "the
+  reading order for someone about to *run* a check". Its five steps are
+  the hand-driven path: the lobby by `-config` and then "Solo Game → Quick
+  Battle → Start", cheats typed into the chat box by `cheat.sh` and read
+  back, orders by `rclick.sh`, keys by `osascript`, the quit through the
+  in-game menu. Every script it names still exists (`setlog.py`,
+  `cheat.sh`, `rclick.sh`, `lastframe.py`, `objs.py`, `one.py`,
+  `track.py`, `aim.py`), so nothing in it is false.
+- **What it does not name is how a capture is taken now.** Each has a
+  later section and none is in the reading order: a scenario from a file
+  (`rontrace.cmd`, "The cheat channel", 2026-08-24); the stanza and
+  `longtrace.sh` ("The capture lane", 08-31); free Wine and
+  `winelaunch.sh` ("Off CrossOver", 09-04); the click-free lane
+  (`unattended_capture.py`, 09-18); the pool, where "no caller names a
+  lane" (10-07, the last section). A briefed lane is told by the frame's
+  `capture` section: `viadriver.sh golden_capture.sh`, `waitrun.sh`,
+  `filerun.py`. A session with no brief is told by `CLAUDE.md`'s Tooling
+  bullet, which describes the first path ("play a minute, quit through
+  the in-game menu") and points at "last section", which is the third.
+- **By title, six sections are the story of a fault since closed** ("The
+  fourth permission, and the probe that did not test it", "The window
+  nobody can see — CrossOver's expired bottle", "226: the fault is the
+  bop, not the handler", "The falsifier for 226, costed", "Coverage is
+  back", "`restart` from the channel wedges the game": 32,085 B). Not
+  read; a runbook can keep a fault's story as the reason for a trap.
+- **Proposal:** the recipe section becomes today's reading order, about a
+  kilobyte, nothing moved and nothing struck below it: which of the three
+  paths a question takes (a lobby's capture on the pool; a staged
+  scenario by the channel's file; the hand-driven path for what needs a
+  mouse), each a pointer to its section, with the 2026-08-20 steps kept
+  under the third. Then S10's pointer names that section, and the bullet
+  in `CLAUDE.md` says which path it means (Ramon's word).
+- **Confidence:** high that the reading order predates the lanes; the
+  three-path split is this lane's reading of the headings and the
+  frame, and the pass that knows the lanes writes it.
 
 ### G5. `docs/RUNS.md`: leave
 
@@ -839,7 +884,8 @@ chains against their entries' sentences of succession (two corrected).
   sentences of succession, not against the entries read whole.
 - R11's candidates are measured by line range; none was weighed against
   what each kind of lane uses.
-- G8: `ORACLE.md` by title only.
+- G8: `ORACLE.md`'s preamble, recipe and lane sections' heads were
+  read; the other thirty sections by title only.
 
 **Asked of Ramon on the row, unanswered when this was written** (D5, D7,
 D3): whether the milestone retired the never-empty headline slots; what a
@@ -860,6 +906,50 @@ DECISIONS than an index by topic.
 - Which of the nine `RENDERER.md` merges with a `--cc` hunk were
   conflicts: the journals name six updates on that file and say one
   merged cleanly (D6); the two counts were not joined merge by merge.
+
+## Appendix. Ready text for the cheap syncs
+
+The exact strings, so the pass that takes them spends minutes. Each "now"
+is copied from the tree at `0430a0321` and checked to occur once; each
+"then" is this lane's wording and the pass's to change. Nothing here has
+been applied.
+
+- **S5**, `docs/LOOP.md`, the last line of "The chain". Now: "The turn
+  does not end with a lane empty and the queue not, and it never asks
+  whether to". Then, appended: "continue — the queue's opener is the
+  answer." (the words `75ffba6d1` had).
+- **S4**, `docs/QUEUE.md` line 102. Now: "The chain — merge, book, spawn,
+  gate, push, reap — is `CLAUDE.md`'s." Then: "... is `docs/LOOP.md`'s."
+- **S6**, `docs/LOOP.md`, "The lanes". Now: "(DECISIONS 114 and 116): one
+  ccc lane on the render track and the driver's builders on the chain."
+  Then: "(DECISIONS 114, 116 and 129 §1): the roster above holds the
+  count."
+- **S7**, `docs/LOOP.md`, "The chain". Now: "(DECISIONS 132 §5; every
+  third landing whose merge widened, before it) (the thirty-fifth steer,
+  DECISIONS 72: a scoped gate runs the timed tests only when a merge
+  since the last whole one can move a pin; the forty-first pass,
+  DECISIONS 79: a sweep or document landing in third position drew the
+  whole gate by position, twice in one tranche)". Then: "(DECISIONS 132
+  §5)". The two cases are in entries 72 and 79, which 132 §5 names.
+- **S12**, `docs/LOOP.md`, "The lanes". Now: "**The handoff's `For the
+  pass` counts are the tables'**". Then: "**A handoff banked for a pass
+  carries a `For the pass` part, and its counts are the tables'**".
+- **S19**, `docs/QUEUE.md`, the dated line. Now: "the stop 95 %". Then:
+  "the stop then 95 %".
+- **S24**, `docs/QUEUE.md`, the renderer's bullet. Now "`_COLOUR` 17";
+  then "`_COLOUR` 21" (`RUN1559B_3279_COLOUR`, item 4221). Now
+  "`_GROUND_LUMA` 1,029 of 1,109"; the painter's pin of that name is
+  1,075 and the still's (`GROUND_LUMA_STILL`, which 4212 and 4221 moved)
+  is 1,036, so the driver names the one it means. Now
+  "`RUN1559B_3279_SHADOW` 41 → 89 of 105"; the pin is hue 80, luma 79 of
+  104 since item 4212. Now "`_COLOUR_STILL` 14 of 33 (18)"; then
+  "`_COLOUR_STILL` 18 of 33".
+- **S22**, `docs/TEST_PERFORMANCE.md`, "Shared isolated runner": strike
+  "`resources-v1`: sixteen CPU slots and 32 GiB reserved RSS" and "guards
+  reserve eight slots/32 GiB", each followed by "(twenty slots and 96
+  GiB now, a guard 2 slots and 4 GiB: Trial terms, below)";
+  after "Each nonignored rondata library test runs in a fresh process",
+  "(a group's tests share one since item 4216: The group unit, below)".
 
 ## Appendix. The measuring scripts
 
