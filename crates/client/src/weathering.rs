@@ -167,10 +167,11 @@ pub(crate) mod tests {
     /// before and moved stills' luma **9 → 10**, the roads drawn in both
     /// (`crate::roads`, §3.19); drawn, unchanged.
     /// Item 4212: before and moved luma 10 → 15, the bare grass lit at the frame's white, §3.21; drawn unchanged.
+    /// Item 4233: before and moved luma 15 → 16, the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21); drawn unchanged.
     const RUN1570_PLAZA: [[(usize, usize); 2]; 3] = [
-        [(0, 19), (15, 19)],
+        [(0, 19), (16, 19)],
         [(19, 19), (15, 19)],
-        [(0, 19), (15, 19)],
+        [(0, 19), (16, 19)],
     ];
 
     /// The frame run1570's photograph is drawn at ([`run1570`]): 3327,
