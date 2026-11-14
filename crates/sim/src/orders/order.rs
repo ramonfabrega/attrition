@@ -347,13 +347,13 @@ pub struct PathStack {
 
 impl PathStack {
     /// `Stack<PathData>::init(10)`'s block, and its growth step on a unit.
-    pub const BLOCK: i32 = 10;
+    pub const INCREMENT: i32 = 10;
 
     /// The stack as `Unit::init` leaves it: empty, `size` 10.
     pub fn new() -> Self {
         Self {
             nodes: Vec::new(),
-            size: Self::BLOCK,
+            size: Self::INCREMENT,
         }
     }
 
@@ -367,7 +367,7 @@ impl PathStack {
     fn grow(&mut self) {
         let len = self.nodes.len() as i32;
         while self.size < len {
-            self.size += Self::BLOCK;
+            self.size += Self::INCREMENT;
         }
     }
 

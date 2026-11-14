@@ -123,7 +123,7 @@ pub const GATHER_FIELDS: &[(&str, usize, usize)] = &[
 /// 10 on every unit of run 1562's frame 91. Its `size` is
 /// [`crate::orders::PathStack::size`], the high water a long path left
 /// (run1100's 20 and 110; `docs/CHECKSUM.md` §17).
-const PATH_BLOCK: i32 = crate::orders::PathStack::BLOCK;
+const PATH_BLOCK: i32 = crate::orders::PathStack::INCREMENT;
 
 use crate::ids::order as kind;
 
