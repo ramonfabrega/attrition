@@ -12683,7 +12683,9 @@ ccc if you wish".
    scan of the executable's stores to its displacement (an install-backed
    test, seen red once on a displacement that has a live writer), and a
    leaf on each side of it in the record has left by moving**, so the
-   comparison is sighted on its bytes. That is 4187c's ruling
+   comparison is sighted on its bytes. (Read 2026-11-13 by the commander, on 4159sd: the nearest
+   leaf on each side that has left by moving, a held leaf between them
+   allowed, since a shift in the emitter parts one of the two.) That is 4187c's ruling
    (`score_explored`, `score_pop`), and `last_spoke`'s, which nothing
    writes. The quiet printed leaves that left before entry 128 by holding
    their reset value (item 4162's `misery`, `handicap` and the rest) are
