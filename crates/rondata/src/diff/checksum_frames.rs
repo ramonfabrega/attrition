@@ -21,6 +21,8 @@ use super::minted::{built_start, minted, script};
 use crate::checksum::{CHECKSUM_LINES, Record};
 use crate::trace::checksums::{Set, per_frame, sets, summary};
 
+mod record;
+
 /// The 120-frame take: the minted file's playback with the hook and an
 /// `@dumpall` on 91 (`docs/RUNS.md` run1577).
 const RUN1577: &str = "gamelog-run1577-greatlakes-playback-of-minted-checksums-120.txt";

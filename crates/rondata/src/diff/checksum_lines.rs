@@ -71,6 +71,15 @@ fn stream_lines(
     out
 }
 
+/// [`stream_lines`] for a sibling (item 4248's record test reads run
+/// 1562's stream through it).
+pub(in crate::diff) fn stream_lines_of(
+    text: &str,
+    keep: impl Fn(&str) -> bool,
+) -> std::collections::BTreeMap<String, StreamRows> {
+    stream_lines(text, keep)
+}
+
 /// The printed value of `label` in record [`CHECKSUM_PACKET`]'s `.2` of
 /// run 1562's archived log.
 fn printed(label: &str) -> Option<u32> {
