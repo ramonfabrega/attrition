@@ -28,10 +28,12 @@ is closed and stands as a floor, and the succession rules are entries 53 to
 the queue names — and the item nearest the headline's first divergence is
 the default. **A finding that names no score parks in its item's journal**
 (`docs/DECISIONS.md` entry 125) rather than queues: the queue holds only what names the headline's frame,
-a floor, or a takes-chain to one. **And the headline slot is never
+a floor, or a takes-chain to one. ~~**And the headline slot is never
 empty**: when no open item names the current word's frame and draw, the
 next brief is to widen every dumped record on that frame and name the
-cause, not to run the nearest residue row. An item that turns out to be
+cause, not to run the nearest residue row.~~ (Retired with the milestone:
+a residue or chapter item books only when another track's frame needs
+one, `docs/DECISIONS.md` entry 133 §7.) An item that turns out to be
 something else writes its successors in its own journal, and a session
 that moved no score says so in the handoff. **A word that moved lands with the
 value diff beside it** — the dump's own coordinates on the frame it moved —

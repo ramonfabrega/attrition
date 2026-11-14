@@ -147,6 +147,7 @@ is append-only and amended in place, as it always was.
 - 130 amended by 131 — no idle driver row; §3 withdrawn
 - 131 extended by 132 — a leaf leaves where it moves; VII's capture; step S; a gate takes all merged; 400 k
 - 132 standing — staged decisions; the chain's order; the corpus ledger; scoped gates; step H; parity
+- 133 standing — The pass of 2026-11-14: the loop is bound by test CPU, a lane's gate reads the queue's mark, the second reading moves no leaf, the lanes follow parity and the eye, the documents compacted
 
 ## 1. Fidelity before divergence
 
@@ -12945,3 +12946,114 @@ booking gates go red on a test a lane no longer runs; whether a recording
 left in `Logs\` by a capture turns another tree red (`RECORDINGS_ON_DISK`
 lists files that carry no run token); the two readings the sizing scout
 left open (`docs/audit/2026-11-13-fable-pass-supply-2.md`, "Readings").
+
+## 133. The loop is bound by test CPU, a lane's gate reads the queue's mark, the diplomacy's second reading moves no leaf, the lanes follow parity's first partings and what the eye sees, and the documents are compacted (2026-11-14)
+
+**What happened.** `commander` handed over at 04:20 −05:00 on `e8b6a8359` after
+the tranche of entry 132: 28 landings, the diplomacy chain ported, parity
+printed every frame, the start track closed. The `steer` row's pass had a
+proposal to rule (Fable's docs compaction, asked for by Ramon on the
+commander's row), a blind second reading to adjudicate, and three things
+entry 132 left to measure. Three Opus 5.5 scouts, an Opus 5.5 adjudicator and
+four Opus 5.5 builders ran. The tables are in
+`docs/audit/2026-11-14-fable-pass-gate-bound.md`.
+
+**§1. The second reading of the diplomacy is adjudicated, and it moves no
+leaf.** `docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`. Of the second
+reader's 47 claims 38 agree with `docs/LEADERS.md` §7 to §9 and the crate, 5
+are true where the document was silent, 3 correct the document; the crate was
+right wherever it carries an arm. The five points the handover named: the
+alliance's price is halved under `semaphore[0] & 4` (a seam: the crate reads
+multiplayer as clear); a zero stamp ends `is_tribute_period` and an old one
+passes on (the crate already did); a human's attack price is assigned, not
+summed (already so); a forced level 0 on an ally pays twice, and no caller
+reaches it; the style byte is `team_style`. **A code-changing verdict the
+corpus cannot reach is recorded with its falsifier and not built**: a port of
+an arm no capture enters pins what no diff can check. One is parked that way:
+the computer's own alliance proposal draws the game's random before it asks
+whether its target is human, so a game with five live leaders can part on the
+random stream where no floor does today (`docs/LEADERS.md` §7.6).
+
+**§2. A lane's gate widens by the queue's own mark, before the brief's kind.**
+Measured: 2 of the tranche's 3 booking reds fell on tests the landing lane had
+not run, and one of those (item 4204: marked whole, sent out on a start lane's
+filters with `--no-widen`) is entry 132 §6's own cost, 35.2 booking minutes and
+a 20.9-minute lane gate. In the other direction six lanes on scoped rules items
+skipped nothing, 6,142 to 6,211 tests a gate at a median of 18.9 minutes,
+because `tools/brief.py` left `--no-widen` off every `residue` brief. The kind
+was the wrong key both ways. An item's first parenthesis says **whole** or
+scoped; whole widens, scoped takes `--no-widen`, and the kind's default stands
+only where the queue gives no mark. Built red first (`queue_mark`). Entry 132
+§6 otherwise stands: its saving is not measurable in any lane's release step
+(by the timings file, 263 to 364 s a lane gate), and its one red is what a
+whole mark now prevents.
+
+**§3. The loop is bound by test CPU-seconds, and item 4224 is scored on them.**
+The tranche landed 2.24 an hour with 4.7 workers out on average and 2.20 with
+3.6. A booking gate ran 73 % of every hour; a lane waited 67.8 of its 89.8
+minutes, 34.2 on its own gate and 15.5 on its own suites. The host budget's
+twenty slots made the waits (a booking gate takes eight, a lane gate four),
+not the cores: gate-4228 waited 2,616 s for admission at a load of 10. On a
+quiet host the whole gate ran 9,474 test CPU-seconds in 23.6 minutes and a
+scoped one runs about 4,200. The fall in the booking gate's release step over
+the tranche, 25 to 29 minutes down to 12 to 17, was mostly the host emptying:
+the suite's CPU-seconds held after item 4220, which bought 3.7 %. So item 4224
+stays, renamed and re-scored: a scoped booking gate's test CPU-seconds, opened
+with the table by family, closed with that table if no family holds a fifth.
+**The worker count is Ramon's** and the pass recommends under "For Ramon": a
+fifth or sixth worker adds landings only where it reserves no slots.
+
+**§4. The third lane follows parity's first partings.** Parity (entry 132 §10)
+reads 0 of 1 games; on the minted game the lines first part at leaders 0,
+groups 2746, units 3166, guys 6537 and builds 7383, with world, items, goods
+and cities whole. An item on that lane is one line's first parting frame, its
+first act a packet on that frame, and it is booked in frame order: 4230 (units,
+out as a draft at 3596), then 4231 (groups, 2746). The leaders line is the
+chain's (item 4159's residue).
+
+**§5. The render lane takes what the eye sees, and each item opens with a row
+that can see it.** The pass looked (entry 129): the land now agrees in colour;
+the lake is an even cyan under a hue row that reads ocean 412 of 437, whose 25
+parted tiles are a blot, small figures and whitecaps; the lit floor's composite
+reads 14 lower on hue; theirs burns with smoke no row scores. Item 4232 opens
+with a texture row on the ocean tiles, seen red on today's still, and builds
+the lit HDR floor and the surf against it. Item 4233 opens with a row of the
+plume's dark pixels, seen at 0. "The lake's last 25 tiles" is not booked: it
+would chase figures.
+
+**§6. The docs compaction is taken, and a section stays under 16,000 bytes
+with the pressure off.** The proposal's own finding stands: the return is a
+true first read, not bytes (about 3 % of a lane's bill). Taken: the numbered
+parts of 46 full sections become sections (272 headings; no number changes;
+seven `OVER` rows gone); a scoreboard line whose every pinned row is whole may
+read `every word whole · <rows>`, accepted only while every row is whole (the
+ten lines 5,738 B → 355, and the handoff 15,983 → 8,993); the decisions index
+in two sections; `LOOP.md`, `METHOD.md` and `TRACKS.md` synced and cut, every
+moved clause kept verbatim in `docs/audit/2026-11-09-loop-retired-clauses.md`;
+a briefed lane reads the handoff to its `Scoreboard:` line; the specifications'
+dead cites, struck-in-one-place claims and released leaves mended. **A count
+in the handoff's prose is the code's pin as it stands, without its history,
+and a pass checks each against the code** (eight had drifted in two days; a
+guard for it is named and not built). Left as they are: the journal, the
+entries of this file, the giants' item-ordered sections. `CLAUDE.md`'s rows
+(the phase list against parity by the checksum, the recipe's section, "before
+a commit") are Ramon's and are in the record's "For Ramon".
+
+**§7. The opener names no item between passes, and the two never-empty slots
+are retired.** The opener the tranche left would have sent a fresh session to
+reap a row long gone and cut builders on four landed steps: 21 commits edited
+the queue and none rewrote it. Mid-tranche the opener reads "continue the
+tranche"; the lanes line under "The queue" says what is out and what each lane
+takes next, and a booking rewrites that line. Entry 41's rule that neither
+headline slot is ever empty contradicted the queue's own "a residue or chapter
+item books only when another track's frame needs one" since the milestone
+(entry 116); it is struck in the queue and in `docs/METHOD.md`. Ramon's to
+reverse.
+
+**What this does not establish.** What a lane gate costs in CPU (its logs are
+not kept); whether a scoped rules lane that touches the sim crate now sends
+more reds to the booking gate than the six widened lanes saved; whether a
+texture row on the lake rises with the lit floor; the taunts' second reading
+(`docs/LEADERS.md` §9 rests on item 4152's pair); how the week divides once
+the other projects' rows are counted against it, which is not this
+repository's to decide.
