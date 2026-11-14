@@ -60,7 +60,8 @@ run647's start record. Of the 98:
 
 Item 4162 made `theirs` read `att`, `pop_issues`, `misery`, `city_name`,
 `handicap`, `multi_diff` and `anti_att` (the record's one float, as `%f`
-millionths), and `rows` compare them. Item 4167 (step II) made `theirs`
+millionths), and `rows` compare them (all but `pop_issues`, which `rows`
+read from item 4159's second residue on, §12.6). Item 4167 (step II) made `theirs`
 read `fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`,
 `scholar_militia` and the six `*_queued`, and `rows` compare them (§13.5,
 §14.5). Item 4176 (step III) made `theirs` read the damage path's
@@ -124,7 +125,11 @@ building pass set the Senate's bit (§17.4a). `score_explored` and
 `score_units_2` and `score_combat` part (parked 4187a). **Item 4159's
 frozen scan released `score_explored`, `score_pop` and `last_spoke`**
 (entry 131 §1's second way out; §7.5, §18.5): every store the executable
-makes to each writes 0.
+makes to each writes 0. **Item 4159's second residue released
+`barracks_queued`, `combat_queued` and `pop_issues`** (entry 131 §1's first
+way; §12.6, §14.5): a probe of every leader-record parting over the whole
+`diff::` suite finds none for the three, and emitted, each agrees on all
+226 packet leaders and moves there.
 
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
@@ -578,7 +583,10 @@ No kept-dump value is cited.
   checksum arms meet the leaders line of a kept run.~~ The record diff
   backs all four since item 4176 (§2.5); the leaders line emits the two
   building counters, and the unit pair stays unheld while run1075 parts
-  (parked 4176a).
+  (parked 4176a). run1075 is the only window either parts on (item 4159's
+  second residue), and its parent is a staged Battleship's first rounds
+  (parked 4159r2a: the original's trace launches 1, 1, 0 rounds on 2058–2060
+  where ours launches 3, 2, 3).
 
 ## 3. The combat rates
 
@@ -774,10 +782,19 @@ record. The other twelve part, each named:
 - the **deaths and kills** words on run1075 alone, 2247 and 2386, by the
   same amount and on the same frames as `units_killed` and `units_lost`
   (4176a);
-- **every average on the four melees' closing record**, the human's
+- ~~**every average on the four melees' closing record**, the human's
   (who 0 at 2601), one empty fold short: ours 294 against theirs 257 on
   airbase_melee's `average_damage_rate`, and `257 = 294·7 >> 3` (parked
-  4177b).
+  4177b).~~ **A harness read, closed by item 4159's second residue**: the
+  melees' seat walk read the human's trailing record one frame early whole
+  (`docs/GOLDEN.md` §151, measured on `leftover`), and the fold of the frame
+  before sits at `Game::do_frame`'s tail, ahead of anything the dump's frame
+  does. The thirteen are now read on the state the computers are read on
+  (`gunpowder_melee::seat_walk`), and every average agrees on all four
+  closing records (airbase 2601, who 0: `average_damage_rate`,
+  `average_death_rate`, `average_hit_rate` 257, 28, 19 both sides; sea 287,
+  23, 17; gunpowder's `average_damage_rate` 11; information's
+  `average_damage_rate` and `average_hit_rate` 3 and 0).
 
 A port with the decay perturbed (`·7 >> 3` to `·6 >> 3`) parts run855's
 window on 4751, `average_death_rate` ours 48402 theirs 56469 (the
@@ -1307,6 +1324,10 @@ fit the formula. run1072's `attrition_stamp` 1392 on block 1393
   (frame 4500 is outside run1072's window). A peace-pair capture across
   4500 and a `TEAM_STYLE 2` capture settle them.
 - **`attrition_stamp3`'s 16-frame mask**: decompile only, and unmodelled.
+- **`attrition_stamp2`'s Lakota tick** (parked 4159r2c): ours stamps on the
+  Citizen `1/6`'s bleed at period 6 on 3774; the original's 3770 is its
+  refresh frame and fits a period of 8 (`PEACE_ATTRITION`), so the computed
+  period there is 8 or more, or none, in the original.
 - ~~**No value diff for any leaf**: a `LEADERS` capture diffed on the five
   leaves (run981 for the floor) would make them one.~~ `att` has a value diff
   since item 4154: run647, not run981. run981 is the held-out battery's
@@ -3039,8 +3060,9 @@ A port holds 0 for every leader on every frame.
 - **Checksum**: both are in the layout (`checksum/leaders.rs:148`, `:149`)
   and ~~both are `(unheld)` in `LEADERS_HELD_OUT` with count 2
   (`crates/rondata/src/diff/checksum_lines.rs`)~~ `misery` left
-  `LEADERS_HELD_OUT` at item 4162; `pop_issues` is in it still
-  (2026-11-14). Holding `misery` as 0
+  `LEADERS_HELD_OUT` at item 4162; ~~`pop_issues` is in it still
+  (2026-11-14)~~ `pop_issues` left it with item 4159's second residue
+  (12.6). Holding `misery` as 0
   removes its entry at no risk; `pop_issues` leaves the list once both
   arms are built.
 - **`misery` needs no code** beyond emitting `Some(0)` and turning
@@ -3064,8 +3086,15 @@ Two readings and an adjudication
 yet.~~ Since item 4162 the record diff compares `misery` on every scored
 dump that prints the record, and the checksum line holds it on run 1562's
 frame 91 (0 against 0); it is quiet everywhere, so only the zero is backed.
-`pop_issues` is held but not compared: it parts once, on run667's closing
-frame 17380, who 1, ours 2 theirs 0 (parked 4162a), and stays unmodelled.
+~~`pop_issues` is held but not compared: it parts once, on run667's closing
+frame 17380, who 1, ours 2 theirs 0 (parked 4162a), and stays unmodelled.~~
+**Since item 4159's second residue `pop_issues` is compared** in the record
+diff (`rows` read it from no side before: `theirs` parsed it and the
+comparator skipped it) and agrees on every dump the suite reads, run667's
+17380 included (that parting went with item 4189's quit replay). It is
+emitted on the leaders line and agrees on all 226 walked packet leaders,
+non-zero on 11 (run1217, frame 7728, leader 1: 4), so it left
+`LEADERS_HELD_OUT` by entry 131 §1.
 
 - `pop_issues`: 25 confirmed, 4 corrected, 1 open. High confidence on the
   writers, predicates, reset and the one-per-building bound; every one is
@@ -3093,9 +3122,11 @@ no dump prints a nonzero `misery`.
   target; a capture with an emergency retarget by a capped leader would.
 - **`Console::hurry_action`'s call to `do_queue(0)`** rests on one reading's
   listing citation, not re-traced. It is outside the order stream.
-- **No diff yet.** A `pop_issues` diff against the dump, once the building
+- ~~**No diff yet.** A `pop_issues` diff against the dump, once the building
   arm is built, turns this section into an assertion; the dump key exists
-  (`diff/leader.rs:49`). A constant-0 `misery` diff is cheaper still.
+  (`diff/leader.rs:49`). A constant-0 `misery` diff is cheaper still.~~
+  Both are diffed (12.6): `misery` since item 4162, `pop_issues` since item
+  4159's second residue.
 - That `misery` was a live mechanic emptied before ship is a guess from its
   shape; nothing in the sim depends on it.
 
@@ -3536,8 +3567,9 @@ is not carried.
   `combat_queued :1773`, `dock_queued :1783`, `air_queued :1754`).~~
   `scholar_militia` and `dock_queued` left `LEADERS_HELD_OUT` at item 4167,
   `stable_queued`, `factory_queued` and `air_queued` at item 4159's step T;
-  `barracks_queued` and `combat_queued` are in it still (2026-11-14). A port
-  adds the arm to `leader_long` and removes the entry.
+  ~~`barracks_queued` and `combat_queued` are in it still (2026-11-14).~~
+  `barracks_queued` and `combat_queued` at item 4159's second residue
+  (14.5). A port adds the arm to `leader_long` and removes the entry.
 
 ### 14.4 Reached by a plain game
 
@@ -3573,7 +3605,15 @@ who 1, 10367 → 10368, ours 2 theirs 1, where building 2020's queue
 retargets an entry from `TypeIndex` 134 to 84 and `num_queued` does not
 move (134 has drifted to its floor, three entries queued against a count
 of 0, the graft-chain arm's residue), so the step's input is not what the
-array prints. They stay held (parked 4159Ta).
+array prints. ~~They stay held (parked 4159Ta).~~ **They left
+`LEADERS_HELD_OUT` with item 4159's second residue**, by entry 131 §1 and
+not by transfer: the closing-frame partings above went with item 4189 (the
+human's quit replayed, whose conquest victory empties the computer's
+queues), our walk of run462 holds both bins across 10367 → 10368 where the
+transfer cannot, and a probe of every leader-record parting over the whole
+`diff::` suite finds none for either. Emitted, they agree on all 226 walked
+packet leaders, non-zero on 49 and 51 (run1359, frame 5619, leader 1: 12
+each).
 
 Verdicts: `scholar_militia` 13 confirmed, 1 corrected, 1 open; each queued
 leaf 16 confirmed, 1 corrected, 1 open. The writer nets over the listing

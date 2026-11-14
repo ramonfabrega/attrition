@@ -1157,6 +1157,10 @@ impl Sim {
             "handicap" => one(i64::from(self.leader_handicap(who))),
             "cannon_time" => one(i64::from(self.leader_cannon_time(who))),
             "misery" => one(i64::from(self.leader_misery(who))),
+            // Emitted since item 4159's second residue: it agrees on every
+            // dump the record diff reads and moves on the packets
+            // (`docs/LEADERS.md` §12.5).
+            "pop_issues" => one(i64::from(self.leader_pop_issues(who))),
             "city_name" => one(i64::from(self.leader_city_name(who))),
             // The single's bits (`docs/LEADERS.md` §6.2; entry 120 §3, class
             // 1 at 256.0, class 2 under a source).
@@ -1175,11 +1179,14 @@ impl Sim {
             // `air_queued` are emitted since item 4159's step T: each parts
             // in the record diff only beside its array's own parting (parked
             // 4167b), and transfers (`rondata::diff::transfer`). The barracks
-            // and combat bins are held (`leader_armed_queued`) and not
-            // emitted: one pair the dumps hold, run462's 10367, moves them
-            // with no `num_queued` move beside it (parked 4159Ta).
+            // and combat bins do not transfer (run462's 10367 moves them with
+            // no `num_queued` move beside it, parked 4159Ta), but our walk of
+            // run462 holds them there, and since item 4159's second residue
+            // they agree on every dump the record diff reads and move on the
+            // packets, so they are emitted too (`docs/LEADERS.md` §14.5).
             "supply_mark" => one(i64::from(self.leader_supply_mark(who))),
-            "dock_queued" | "stable_queued" | "factory_queued" | "air_queued" => self
+            "dock_queued" | "stable_queued" | "factory_queued" | "air_queued"
+            | "barracks_queued" | "combat_queued" => self
                 .leader_armed_queued(who, name)
                 .map(|v| vec![i64::from(v)]),
             "tech_cat_frame" => Some(a.tech_cat_frame.to_vec()),

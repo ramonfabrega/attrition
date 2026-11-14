@@ -625,12 +625,10 @@ fn information_melee_s_leaders_are_compared_on_every_seat() {
     pin_eq!(w.standing(), vec![12, 9, 7], "standing keys, by seat");
     // Item 4177: the human's trailing record one empty fold short
     // (`v·7 >> 3` of ours; `docs/LEADERS.md` §3.5, parked 4177b).
+    // Item 4159's second residue: none; who=0's `average_damage_rate` and `average_hit_rate` agree at 2601 (3, 0): the fold is read on the state the computers are read on (4177b closed).
     pin_eq!(
         w.rest(),
-        vec![
-            "who=0 average_damage_rate 2601: ours 4 theirs 3 (1, to 2601)".to_string(),
-            "who=0 average_hit_rate 2601: ours 1 theirs 0 (1, to 2601)".to_string(),
-        ],
+        Vec::<String>::new(),
         "the keys that part, by seat"
     );
 }

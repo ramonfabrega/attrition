@@ -1704,7 +1704,7 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 ## 20. The leaders line, held out on the long range (items 4121, 4124)
 
 **265 of 267 ranges and 4,515 of 58,343 bytes agree** on run 1562's frame
-91, and `LEADERS_HELD_OUT` names **27** leaves, from 140. Agreeing: all
+91, and `LEADERS_HELD_OUT` names **24** leaves, from 140. Agreeing: all
 eight slots' flag words, and the two walked leaders' diplomacy records,
 personalities, masks (each `tech` array since item 4187), sites, make
 lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
@@ -1740,6 +1740,7 @@ not count it (§5).
 | VII-c | `made_peace`, `incoming`, `incoming_taunt`, `incoming_taunt_frame`, `tribute_sent`, `tribute_received` | 31 | §7, §8, §9 |
 | VII-d | `counteroffer` | 30 | §8 |
 | the residue (4187a) | `score_units`, `score_units_2`, `score_combat` | 27 | §18.5 |
+| the residue, second builder | `barracks_queued`, `combat_queued`, `pop_issues` | 24 | §12.6, §14.5 |
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
@@ -1844,13 +1845,13 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     is a partial copy of the stamp~~ — carried by item 4185
     (`sim::leaders::capital`); the tally's copy is gone.
   - `misery` (`calc_misery`, `calc_pop_cap`, `gain_tech`) and `pop_issues`
-    (`Leader::process`, `Build::do_queue`, `Unit::process`).
+    (`Leader::process`, `Build::do_queue`, `Unit::process`); both carried.
   - the slot marks and build counters (7): `fort_mark`, `oil_well_mark`,
     `supply_mark` (their registries' `init_*`/`close_*`), `forts_built`
     (`Fort::init`), `wonders_built`, `senates_built` (`Build::activate`),
     `wonders_held` (`Wonders::init_wonder`).
   - the six `*_queued`: `Leader::track_queued`, each with its own zero floor,
-    and `Unit::process`; not a sum of `num_queued`.
+    and `Unit::process`; not a sum of `num_queued`. All six carried.
   - `scholar_militia`: `track_unit_type`'s arm for a militia whose unit
     came from a Scholar (the unit's `+0x54`).
   - `repair_stamp` (`Unit::do_repair`), `units_bribed` (`cast_bribe`),
