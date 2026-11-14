@@ -29,6 +29,11 @@
 //! The sixth is candidate C's measure (`silhouette`; item 4038): the drawn
 //! objects rasterized into a key buffer, and each one's footprint against
 //! the original's photograph of the frame (`docs/RENDERER.md` §5.3).
+//!
+//! The seventh is the surf's section models (`mot`; item 4235): the
+//! install's `.mot` files read whole and self-checking, as
+//! `SurfWaveSection::init` keeps them (`docs/FORMATS.md`, "The surf's
+//! section models").
 
 pub mod bh3;
 pub mod bha;
@@ -39,6 +44,7 @@ pub mod decal;
 pub mod draw;
 pub mod figure;
 pub mod fire;
+pub mod mot;
 pub mod silhouette;
 pub mod slope;
 pub mod terrain;

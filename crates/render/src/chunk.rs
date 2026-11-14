@@ -75,6 +75,10 @@ pub enum Reason {
     VertexW { w_bits: u32 },
     /// A file with no geometry or no hierarchy.
     Missing { id: u16 },
+    /// A `.mot` whose header's `num_frames` is not its frame chunks' count.
+    FrameCount { declared: u32, found: usize },
+    /// A `.mot` header chunk that is not `16 + 2 · indices` bytes.
+    HeaderSize { indices: u32, size: u32 },
 }
 
 impl fmt::Display for DecodeError {
