@@ -276,6 +276,9 @@ impl Sim {
     /// `Unit::add_trade_order@005e4dc0` with `QUEUE_NEW` and no far city:
     /// the order list is cleared and one `TRADE_ROUTE` put on it.
     fn add_trade_order(&mut self, u: usize, home: usize) {
+        // `005e4dc0:29`: every trade order starts with `unit_masks & 0x200`
+        // clear (item 4234).
+        self.units[u].trade_unloaded = false;
         // `think_caravan` passes 0 as `add_trade_order`'s last argument,
         // which clears the order's bit 4 (`005e4dc0`); run357's block 5773
         // prints `flags 0`. A trade order is never a transit move, so
@@ -463,10 +466,11 @@ impl Sim {
         if (here.x - c.x).abs() <= span + 0x306 && (here.y - c.y).abs() <= span + 0x306 {
             ord.loaded = !ord.loaded;
             self.set_trade_order(u, ord);
-            // `unit_masks |= 0x200` goes with the unload, and nothing in
-            // the export reads the bit back — `do_trade` is its only
-            // mention — so it is not modelled.
-            //
+            // `unit_masks |= 0x200` goes with the unload (`do_trade:470`,
+            // item 4234), ahead of the decoy test; the checksum walks it.
+            if !ord.loaded {
+                self.units[u].trade_unloaded = true;
+            }
             // A **decoy** does none of the rest: `unit_masks & 1`.
             if !self.units[u].decoy {
                 if ord.loaded {
@@ -1092,6 +1096,8 @@ impl Sim {
     /// `Unit::end_trade_route@005e3bd0`: the route is given up — the pair
     /// forgotten, the plan and any parked search with it.
     pub fn end_trade_route(&mut self, u: usize) {
+        // `005e3bd0:18`: `unit_masks & 0x200` cleared first (item 4234).
+        self.units[u].trade_unloaded = false;
         let Some(v) = self.units[u].caravan else {
             return;
         };
