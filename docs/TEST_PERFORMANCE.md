@@ -369,11 +369,13 @@ check, and a lane's or a scoped gate is not.**
 
 **What the whole gate's verifiers cost** (the updated tree's binary, the library as the
 whole gate runs it, the kept walk on, 2,371 of 2,371 green): 184,176 G and 9,707 test
-CPU-seconds, against PENDING-GATE G unverified (the item's lane gate), so the second walks are
-PENDING-GATE G, PENDING-GATE times the suite they check. One process a test they were 113,157 G
+CPU-seconds, against 76,124 G unverified (item 4219's lane gate, sixteen commits of the
+base later and four tests more), so the second walks are about 108,000 G, 1.4 times the
+suite they check. One process a test they were 113,157 G
 (226,747 against 113,590): grouping and the kept walk took nothing off them, because a
-verifying walk shares nothing by design. By unit: the coverage walk 54,717 G, the games'
-groups 91,308 G, the lone tests 36,410 G, map generation 1,741 G. The cheaper verifier,
+verifying walk shares nothing by design. By unit, verified against unverified: the
+coverage walk 54,717 G against 11,874 G, the games' groups 91,308 G against 41,013 G,
+the lone tests 36,410 G against 21,493 G, map generation 1,741 G against 1,745 G. The cheaper verifier,
 `RON_VERIFY_PREFIX_REUSE` (the second walk keeps the on-disk oracle cache), is 111,652 G
 whole: it checks the kept walk and not the cache.
 
@@ -394,8 +396,10 @@ rank at all):
 
 The first three and the last green, 2,361 and 2,362 of them; the fourth ran while its
 tree was updated under it and five tests that read the tree's own files were red. The
-lane gate of the landing, on the updated tree at 4 threads: `Suite: 1242 processes for
-2371 tests: 145 groups hold 1274, 1097 ran alone; 4570 test CPU-seconds`. **The fixture audit, test for test as multisets**
+lane gates, on the updated tree at 4 threads: item 4216's, the kept walk off, `Suite:
+1242 processes for 2371 tests: 145 groups hold 1274, 1097 ran alone; 4570 test
+CPU-seconds` and 83,019 G; item 4219's, the kept walk on, `Suite: 1246 processes for
+2375 tests: 145 groups hold 1274, 1101 ran alone; 3875 test CPU-seconds` and 76,124 G. **The fixture audit, test for test as multisets**
 (`suite_groups.py --audit`, 1,924 tests with rows): groups against off, one test
 differs, the coverage test (8 against 7 requests of two files of one game), which is
 wider than a slot and ran alone in its own process in both runs; kept walk against off,
