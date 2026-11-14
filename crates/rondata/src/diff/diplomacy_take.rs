@@ -262,19 +262,18 @@ pub(crate) fn stage_frame(
             built.sim.armies_diplo_change(w);
         }
     }
-    // The window's diplomacy, staged off the take's own record
-    // ([`take_diplomacy`]): the human's Declare as `Leader::action_declare`,
-    // a computer's answer as `Leader::set_diplo` with the original's own
-    // `this`.
+    // The window's diplomacy, the human's commands read off the take's own
+    // record ([`take_diplomacy`]): a Declare as `Leader::action_declare`, a
+    // proposal as `Leader::action_treaty`, an accept as
+    // `Leader::action_respond`. A computer's answer is its own offers arm's
+    // (item 4159, step VII-c).
     for d in diplomacy {
         if d.frame == at {
-            if d.declare {
-                built
-                    .sim
-                    .command()
-                    .action_declare(d.this, d.whom, d.level, false, false);
-            } else {
-                built.sim.setup().set_diplo(d.this, d.whom, d.level);
+            let mut c = built.sim.command();
+            match d.kind {
+                TakeKind::Declare => c.action_declare(d.this, d.whom, d.level, false, false),
+                TakeKind::Treaty => c.action_treaty(d.this, d.whom, d.level),
+                TakeKind::Accept => c.action_respond(d.this, d.whom, 1),
             }
         }
     }
@@ -571,20 +570,31 @@ pub(crate) fn stand_up_sea_style_zero(
     Some((loaded, built))
 }
 
-/// One diplomacy call the take's own record shows, on the frame its
-/// command ran: the human's `Leader::action_declare(this, whom, level, 0,
-/// 0)` when `declare`, else a computer's `Leader::set_diplo(this, whom,
-/// level)`.
+/// Which of the window's commands a [`TakeDiplo`] is: the three
+/// `CommandPackage::process_*` lines the dump prints.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum TakeKind {
+    /// `process_declare <whom> <treaty> <frame>`:
+    /// `Leader::action_declare(who, whom, treaty, 0, 0)`.
+    Declare,
+    /// `process_treaty <whom> <treaty> <frame>`:
+    /// `Leader::action_treaty(who, whom, treaty)`.
+    Treaty,
+    /// `process_accept <whom> <frame>`: `Leader::action_respond(who, whom,
+    /// 1)`.
+    Accept,
+}
+
+/// One of the window's commands the take's own record shows, on the frame
+/// it ran: issued by `this` (the console's seat) to `whom`, `level` the
+/// treaty asked or declared (1 for an accept).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct TakeDiplo {
     pub frame: i64,
     pub this: sim::Player,
     pub whom: sim::Player,
     pub level: i32,
-    /// The human's Declare, an input: `Sim::action_declare` computes it
-    /// (item 4159, step VII-b1). A computer's answer read off the record
-    /// is not (`docs/DECISIONS.md` entry 132 §1).
-    pub declare: bool,
+    pub kind: TakeKind,
 }
 
 /// The seat that issues the window's commands: the console's leader, who 0
@@ -593,37 +603,33 @@ pub(crate) struct TakeDiplo {
 /// `Log::say`; its `logToMemory` twin carries `who`).
 const ISSUER: sim::Player = 0;
 
-/// **The window's diplomacy, read off a take's own dump** (item 4207): the
-/// `Leader::set_diplo` calls our staging cannot reach, with the original's
-/// own `this`, so that `Sim::set_diplo` runs the armies of the leader the
-/// original's does.
+/// **The window's commands, read off a take's own dump**: each
+/// `CommandPackage::process_*` line the record prints is the console
+/// human's command on that frame, an input as a script's line is
+/// (`docs/DECISIONS.md` entry 132 §1).
 ///
-/// - `process_declare <whom> <treaty> <frame>` is `CommandPackage::
-///   process_declare@009472b0`'s `Leader::action_declare(issuer, whom,
-///   treaty, 0, 0)` — staged as that, a human's command and so an input
-///   (item 4159, step VII-b1; before it, the `set_diplo` it ends in).
-/// - `process_accept <whom> <frame>` is the issuer's `action_respond(whom,
-///   1)`: it commits the proposal and forces `whom`'s next
-///   `Leader::diplomacy` pass, whose offers arm decides — a decision this
-///   crate does not carry (the offers arm is a SEAM in
-///   `sim::leaders::diplomacy`). So the answer is read off the record: when
-///   `whom`'s `diplos[issuer]` moves between the block of the accept's frame
-///   and the next, the answer was `action_respond`'s treaty arm, and it is
-///   staged as `set_diplo(whom, issuer, <the new level>)` — `whom` as
-///   `this`. An answer the record shows unmoved stages nothing.
+/// - `process_declare <whom> <treaty> <frame>`: `Leader::action_declare
+///   (issuer, whom, treaty, 0, 0)` (item 4159, step VII-b1).
+/// - `process_treaty <whom> <treaty> <frame>`: `Leader::action_treaty
+///   (issuer, whom, treaty)`, the proposal (step VII-c).
+/// - `process_accept <whom> <frame>`: `Leader::action_respond(issuer, whom,
+///   1)`, the human committing to the proposal, which forces `whom`'s next
+///   `Leader::diplomacy` pass (step VII-c).
 ///
-/// This is staging from the oracle, not the AI's decision; VII-b ports the
-/// offers arm and retires it.
+/// No computer's answer is read here. Until step VII-c an accept that
+/// moved `whom`'s `diplos` on the record was staged as the answerer's
+/// `set_diplo` (item 4207): the oracle's own output fed back, retired now
+/// that the offers arm computes it.
 pub(crate) fn take_diplomacy(capture: &str) -> Option<Vec<TakeDiplo>> {
     use std::io::BufRead;
     let path = take_file(capture)?;
     let file = std::fs::File::open(&path).ok()?;
-    let mut lines: Vec<(String, Vec<i64>)> = Vec::new();
+    let mut out = Vec::new();
     for line in std::io::BufReader::new(file).split(b'\n') {
         let line = line.ok()?;
         let line = String::from_utf8_lossy(&line);
         let t = line.trim();
-        let Some(verb) = ["process_declare", "process_accept"]
+        let Some(verb) = ["process_declare", "process_treaty", "process_accept"]
             .into_iter()
             .find(|v| t.starts_with(&format!("{v} ")))
         else {
@@ -633,48 +639,19 @@ pub(crate) fn take_diplomacy(capture: &str) -> Option<Vec<TakeDiplo>> {
             .split_whitespace()
             .filter_map(|x| x.parse().ok())
             .collect();
-        lines.push((verb.to_string(), nums));
-    }
-    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).ok()?;
-    let numbers: Vec<i64> = ix.frames().iter().map(|f| f.number).collect();
-    let mut diplos = |n: i64, who: sim::Player, of: sim::Player| -> Option<i64> {
-        let at = numbers.iter().position(|&b| b == n)?;
-        let raw = ix.read_frame(at).ok()?;
-        let blog = Log::parse(&raw);
-        let block = blog.leader_block(n, i64::from(who))?;
-        diplomacy_leaves(&block)
-            .get(&format!("diplos[{of}]"))
-            .copied()
-    };
-    let mut out = Vec::new();
-    for (verb, nums) in lines {
-        match (verb.as_str(), nums.as_slice()) {
-            ("process_declare", &[whom, treaty, frame]) => out.push(TakeDiplo {
-                frame,
-                this: ISSUER,
-                whom: whom as sim::Player,
-                level: treaty as i32,
-                declare: true,
-            }),
-            ("process_accept", &[whom, frame]) => {
-                let whom = whom as sim::Player;
-                let (Some(before), Some(after)) =
-                    (diplos(frame, whom, ISSUER), diplos(frame + 1, whom, ISSUER))
-                else {
-                    continue;
-                };
-                if before != after {
-                    out.push(TakeDiplo {
-                        frame,
-                        this: whom,
-                        whom: ISSUER,
-                        level: after as i32,
-                        declare: false,
-                    });
-                }
-            }
+        let (kind, whom, level, frame) = match (verb, nums.as_slice()) {
+            ("process_declare", &[whom, treaty, frame]) => (TakeKind::Declare, whom, treaty, frame),
+            ("process_treaty", &[whom, treaty, frame]) => (TakeKind::Treaty, whom, treaty, frame),
+            ("process_accept", &[whom, frame]) => (TakeKind::Accept, whom, 1, frame),
             _ => panic!("{capture}: an unread {verb} line: {nums:?}"),
-        }
+        };
+        out.push(TakeDiplo {
+            frame,
+            this: ISSUER,
+            whom: whom as sim::Player,
+            level: level as i32,
+            kind,
+        });
     }
     Some(out)
 }
@@ -733,16 +710,19 @@ pub(crate) const RUN1575: (&str, &str) = (
 );
 
 /// The frame the French answer the human's peace (`process_accept 1 1027`):
-/// `Leader::diplomacy@006bc950`'s offers arm accepts, `Leader::
+/// the human's accept (`Leader::action_respond(0, 1, 1)`) forces the French
+/// pass, `Leader::diplomacy@006bc950`'s offers arm accepts, `Leader::
 /// action_respond@006d03c0`'s treaty arm calls `Leader::set_diplo
 /// @006ec6a0(French, human, 1)`, and that ends in `Armies::diplo_change
 /// @006f30f0(1)`.
 pub(crate) const RUN1575_ACCEPT: i64 = 1027;
 
-/// **The window's diplomacy on run1575's record** (item 4207,
-/// [`take_diplomacy`]): the two Declares as the human's `set_diplo`, and
-/// the accepted peace as the French one; the alliance asked for on 1041
-/// and answered short on 1051 (`counteroffer`) stages nothing.
+/// **The window's commands on run1575's record** ([`take_diplomacy`]): the
+/// human's two Declares, the peace asked on 1021 and accepted on 1027, the
+/// alliance asked on 1041 and accepted on 1051, each the human's own
+/// command. Until item 4159's step VII-c the accept of 1027 was staged as
+/// the French `set_diplo` read off the record's `diplos` move, and the
+/// proposals were not staged at all.
 #[test]
 fn run1575_s_window_diplomacy_is_read_off_its_record() {
     let _pins = Pins::hold();
@@ -750,28 +730,29 @@ fn run1575_s_window_diplomacy_is_read_off_its_record() {
         eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", RUN1575.0);
         return;
     };
-    let got: Vec<(i64, sim::Player, sim::Player, i32, bool)> = d
+    let got: Vec<(i64, sim::Player, sim::Player, i32, TakeKind)> = d
         .iter()
-        .map(|d| (d.frame, d.this, d.whom, d.level, d.declare))
+        .map(|d| (d.frame, d.this, d.whom, d.level, d.kind))
         .collect();
-    // Item 4159, step VII-b1: the two Declares are `action_declare`, the
-    // accept stays the French `set_diplo`.
     pin_eq!(
         got,
         vec![
-            (986, 0, 1, 1, true),
-            (1001, 0, 1, 0, true),
-            (RUN1575_ACCEPT, 1, 0, 1, false)
+            (986, 0, 1, 1, TakeKind::Declare),
+            (1001, 0, 1, 0, TakeKind::Declare),
+            (1021, 0, 1, 1, TakeKind::Treaty),
+            (RUN1575_ACCEPT, 0, 1, 1, TakeKind::Accept),
+            (1041, 0, 1, 2, TakeKind::Treaty),
+            (1051, 0, 1, 1, TakeKind::Accept),
         ],
-        "the take's staged diplomacy calls"
+        "the take's window commands"
     );
 }
 
-/// **The take's word** (items 4206, 4207): our walk of run1575 from
-/// run1482's start re-read at style 0, the script staged, and the window's
-/// diplomacy staged off the take's own record ([`take_diplomacy`]) — the
-/// taunt and the proposals' bookkeeping are not carried (`docs/LEADERS.md`
-/// §7.4).
+/// **The take's word** (items 4206, 4207, 4159): our walk of run1575 from
+/// run1482's start re-read at style 0, the script staged, the chat minted,
+/// and the human's window commands read off the take's own record
+/// ([`take_diplomacy`]). Since item 4159's step VII-c no computer's answer
+/// is staged: the French accept of 1027 is their offers arm's.
 #[test]
 fn run1575_s_word_is_pinned_as_found() {
     let _pins = Pins::hold();
@@ -798,7 +779,15 @@ fn run1575_s_word_is_pinned_as_found() {
     // level, and the staged accept's `this` is the French. The same walk
     // under the declaration-only rule holds this pin's old 1099 exactly
     // (count, sequence and row; item 4207's journal), so the staging alone
-    // moves no draw: the rule does.
+    // moves no draw: the rule does. Item 4159, step VII-c: **1150 of 1150
+    // computed**, the staging retired. The human's proposal (1021) and
+    // accept (1027) are staged as his commands, the accept forces the
+    // French pass on 1027, and their offers arm answers it (a need of 0:
+    // `S` is `good_deeds` 0, the shortfall's adjustments skipped while the
+    // human holds the French gift of 966 as tribute). Before it, quoted
+    // both ways (`docs/DECISIONS.md` entry 132 §1): 1150 staged, 1099
+    // computed; with the arm's answer forced to refuse, this walk parts on
+    // 1099 again (the journal's red first).
     pin_eq!(w.count, 1150, "the draw count's first parting");
     pin_eq!(w.sequence, 1150, "the draw sequence's first parting");
     pin_eq!(w.row.as_str(), "", "no parting");
@@ -895,10 +884,10 @@ fn run1575_s_diplomacy_movers_are_the_script_s() {
 }
 
 /// The last block of run1575 no staged decision precedes (`docs/DECISIONS.md`
-/// entry 132 §1): the French accept of 1027 is read off the record, so a
-/// leaf leaves on a mover at or before this block. Quoted both ways, the
-/// word is 1150 of 1150 staged and 1099 computed.
-pub(crate) const RUN1575_HELD: i64 = 1026;
+/// entry 132 §1). Until item 4159's step VII-c it was 1026, the French
+/// accept of 1027 read off the record; since the offers arm computes it,
+/// no decision is staged and the whole take is held, 1150 of 1150 computed.
+pub(crate) const RUN1575_HELD: i64 = 1150;
 
 /// Whether a leader row is one of the declaration's (`docs/LEADERS.md`
 /// §7.1): `blacken`, `dow[t]`, `broke_alliance[t]`.
@@ -964,6 +953,135 @@ fn run1575_s_declarations_are_ours() {
         Vec::<String>::new(),
         "the declaration's leaves and wealth, ours against the record"
     );
+}
+
+/// Whether a leader row is one the accepted peace moves (`docs/LEADERS.md`
+/// §7.1, §8.2): `made_peace[t]`, `diplos[t]`, and the deal records'
+/// `dip.treaty[t]`.
+fn peace_row(k: &str) -> bool {
+    k.starts_with("made_peace[") || k.starts_with("diplos[") || k.starts_with("dip.treaty[")
+}
+
+/// **The French answer to the human's peace, ours against the record**
+/// (item 4159, step VII-c): run1575 walked with the human's window commands
+/// off its record and nothing of the French staged. The human asks a peace
+/// on 1021 (`action_treaty`: `treaty` 1 on both records, block 1022) and
+/// commits to it on 1027 (`action_respond`, which forces the French pass);
+/// the French offers arm accepts on 1027, the treaty arm sets the peace
+/// both ways and stamps `made_peace` 1027 on both, and both records are
+/// cleared (block 1028). The alliance asked on 1041 (`treaty` 2, block
+/// 1042) is answered short on 1051 by an arm step VII-d ports; ours stops
+/// before answering and the records keep `treaty` 2, as theirs do. Pinned:
+/// the record's movers of the three rows, and no parting of them over the
+/// whole walk.
+#[test]
+fn run1575_s_peace_is_the_french_answer() {
+    let _pins = Pins::hold();
+    let (Some(diplomacy), Some(taunts)) = (
+        take_diplomacy(RUN1575.0),
+        script_taunts("diplomacy4206.cmd"),
+    ) else {
+        eprintln!(
+            "skipping: no {} or install (RON_GAMELOG_DIR, RON_INSTALL)",
+            RUN1575.0
+        );
+        return;
+    };
+    let Some(w) = walk_sea_style_zero(
+        RUN1575,
+        coverage_script("diplomacy4206.cmd"),
+        &[],
+        &diplomacy,
+        &taunts,
+    ) else {
+        return;
+    };
+    let movers: Vec<String> = w
+        .movers
+        .iter()
+        .filter(|(n, _, k, _, _)| peace_row(k) && *n > RUN1575_ACCEPT - 10)
+        .map(|(n, who, k, b, a)| format!("{n} {who} {k} {b}->{a}"))
+        .collect();
+    pin_eq!(
+        movers,
+        vec![
+            "1028 0 diplos[1] 0->1".to_string(),
+            "1028 0 made_peace[1] 0->1027".to_string(),
+            "1028 1 diplos[0] 0->1".to_string(),
+            "1028 1 made_peace[0] 0->1027".to_string(),
+        ],
+        "the record's peace movers from 1018 (`diplomacy_leaves` reads no deal record)"
+    );
+    let parted: Vec<String> = w
+        .leader_parted
+        .iter()
+        .filter(|(_, _, k, _, _)| peace_row(k))
+        .map(|(n, who, k, t, m)| format!("{n} {who} {k}: theirs {t} ours {m}"))
+        .collect();
+    for p in &parted {
+        eprintln!("  parted {p}");
+    }
+    pin_eq!(
+        parted,
+        Vec::<String>::new(),
+        "the peace's rows, ours against the record"
+    );
+    pin_eq!(w.count, 1150, "the draw count, computed");
+    pin_eq!(w.sequence, 1150, "the draw sequence, computed");
+}
+
+/// **The comparison can part** (item 4159, step VII-c): the same walk with
+/// the human's proposal and accept left unstaged — the Declares and the
+/// taunt only — never asks the French, who never answer. The deal records
+/// part on 1022 and 1042 (`treaty`), the peace and its stamps on 1028, and
+/// the word on 1099, as the staging's isolation found (item 4206). The
+/// stub's first partings, per row, and its word.
+#[test]
+fn run1575_s_peace_parts_without_the_human_s_proposal() {
+    let _pins = Pins::hold();
+    let (Some(diplomacy), Some(taunts)) = (
+        take_diplomacy(RUN1575.0),
+        script_taunts("diplomacy4206.cmd"),
+    ) else {
+        eprintln!(
+            "skipping: no {} or install (RON_GAMELOG_DIR, RON_INSTALL)",
+            RUN1575.0
+        );
+        return;
+    };
+    let declares: Vec<TakeDiplo> = diplomacy
+        .into_iter()
+        .filter(|d| d.kind == TakeKind::Declare)
+        .collect();
+    let Some(w) = walk_sea_style_zero(
+        RUN1575,
+        coverage_script("diplomacy4206.cmd"),
+        &[],
+        &declares,
+        &taunts,
+    ) else {
+        return;
+    };
+    let mut firsts: Vec<String> = Vec::new();
+    let mut seen = std::collections::BTreeSet::new();
+    for (n, who, k, t, m) in &w.leader_parted {
+        if peace_row(k) && seen.insert((*who, k.clone())) {
+            firsts.push(format!("{n} {who} {k}: theirs {t} ours {m}"));
+        }
+    }
+    pin_eq!(
+        firsts,
+        vec![
+            "1022 0 dip.treaty[1]: theirs 1 ours -1".to_string(),
+            "1022 1 dip.treaty[0]: theirs 1 ours -1".to_string(),
+            "1028 0 diplos[1]: theirs 1 ours 0".to_string(),
+            "1028 0 made_peace[1]: theirs 1027 ours 0".to_string(),
+            "1028 1 diplos[0]: theirs 1 ours 0".to_string(),
+            "1028 1 made_peace[0]: theirs 1027 ours 0".to_string(),
+        ],
+        "the stub's first partings"
+    );
+    pin_eq!(w.count, 1099, "the stub's draw count");
 }
 
 /// Whether a leader row is one of the taunt's answer's printed rows

@@ -80,9 +80,10 @@ pub(crate) const DAMAGE_PRINTED: [&str; 14] = [
 const DAMAGE_ROWS: [&str; 3] = ["attack_stamp", "raid_stamp", "ally_stamp"];
 
 /// The declaration's two `int[8]` rows (`docs/LEADERS.md` §7.1, item 4159's
-/// step VII-b1), eight `name[scan]` lines each, keyed `name[i]` by target;
-/// `blacken`, the third leaf, is a scalar.
-const DECLARE_ROWS: [&str; 2] = ["dow", "broke_alliance"];
+/// step VII-b1) and the accepted peace's `made_peace` (step VII-c), eight
+/// `name[scan]` lines each, keyed `name[i]` by target or other party;
+/// `blacken`, the declaration's third leaf, is a scalar.
+const DECLARE_ROWS: [&str; 3] = ["dow", "broke_alliance", "made_peace"];
 
 /// The taunt's answer's four printed `int[8]` rows (`docs/LEADERS.md` §8.1,
 /// §9.1, item 4159's step VII-b2): `tribute_stamp` by giver, `gift_stamp`,
@@ -605,8 +606,9 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         out.push((k.to_string(), s.leader_endgame_leaf(p, k).unwrap_or(0)));
     }
     // **Item 4159, step VII-b1** (`docs/LEADERS.md` §7): the declaration's
-    // `blacken`, and `dow` and `broke_alliance` by target. The same values
-    // the leaders line emits.
+    // `blacken`, and `dow` and `broke_alliance` by target; step VII-c's
+    // `made_peace` by the other party. The same values the leaders line
+    // emits.
     for k in sim::leaders::declare::DECLARE_LEAVES {
         let v = s.leader_declare_leaf(p, k).unwrap_or_default();
         if DECLARE_ROWS.contains(&k) {
@@ -616,6 +618,16 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         } else {
             out.push((k.to_string(), v.first().copied().unwrap_or(0)));
         }
+    }
+    // **Item 4159, step VII-c** (`docs/LEADERS.md` §8.2): the deal records'
+    // `treaty`, one per partner (`Diplomacy +8`), which the record prints in
+    // its eight `DIPLOMACY` blocks. Past `LeaderData::walk_data`'s range, so
+    // on no checksum line: `Leader::action_treaty` writes it into both
+    // records and `Diplomacy::clear_all` resets it to −1.
+    let deal = s.leaders.tribute.get(p as usize);
+    for i in 0..8 {
+        let w = deal.and_then(|t| t.dip.get(i)).map_or(-1, |d| d.treaty);
+        out.push((format!("dip.treaty[{i}]"), i64::from(w)));
     }
     // **Item 4159, step VII-b2** (`docs/LEADERS.md` §8, §9): the taunt's
     // answer's printed rows. The same values the leaders line emits.
@@ -1089,11 +1101,18 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
             out.insert(format!("{key}[{i}]"), *x);
         }
     }
-    // The declaration's two rows (§7), eight `[scan]` lines each, by
-    // target; and the taunt's answer's four (§8, §9).
+    // The declaration's two rows and `made_peace` (§7), eight `[scan]`
+    // lines each, by target; and the taunt's answer's four (§8, §9).
     for key in DECLARE_ROWS.iter().chain(&TAUNT_ROWS) {
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
+        }
+    }
+    // The deal records' `treaty` (§8.2, item 4159's step VII-c), one per
+    // `DIPLOMACY` block, by partner.
+    for (i, d) in block.kids("DIPLOMACY").take(8).enumerate() {
+        if let Some(x) = d.int("treaty") {
+            out.insert(format!("dip.treaty[{i}]"), x);
         }
     }
     // `anti_att` is the record's one float: `log_data` prints it `%f`, six
@@ -3747,6 +3766,8 @@ mod tests {
                 "lost_capital_modifier",
                 "lost_capital_stamp",
                 "lost_capital_timer",
+                // Item 4159's step VII-c: the accepted peace's stamp.
+                "made_peace",
                 "misery",
                 "missiles_used",
                 "multi_diff",

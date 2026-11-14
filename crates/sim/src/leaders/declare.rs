@@ -36,12 +36,15 @@ const INVADERS_JUSTIFY: i32 = 5;
 /// `SPELL_COST_FACTOR`.
 const INVADER_DISCOUNT: i32 = 10;
 
-/// The leaves [`Sim::leader_declare_leaf`] answers, in the record's order.
-pub const DECLARE_LEAVES: [&str; 3] = ["blacken", "dow", "broke_alliance"];
+/// The leaves [`Sim::leader_declare_leaf`] answers, in the record's order:
+/// the declaration's three (step VII-b1) and the accepted peace's
+/// `made_peace` (step VII-c).
+pub const DECLARE_LEAVES: [&str; 4] = ["blacken", "dow", "broke_alliance", "made_peace"];
 
-/// One leader's declaration leaves (`docs/LEADERS.md` §7.1). `Leader::init`
-/// zeroes all three; nothing decays them.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+/// One leader's relation leaves (`docs/LEADERS.md` §7.1). `Leader::init`
+/// zeroes all of them but `hire_who`, which it sets to −1 per slot; nothing
+/// decays them.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Declared {
     /// `dow` (`+0x270`), by target: the counted declarations.
     pub dow: [i32; 8],
@@ -52,17 +55,48 @@ pub struct Declared {
     /// broken through a declaration. The target's mirror slot is not
     /// written.
     pub broke_alliance: [i64; 8],
+    /// `good_deeds` (`+0xd4`), by target: the offers arm's running balance
+    /// (`Leader::diplomacy@006bc950`), the seed of the next valuation and
+    /// charged by each deal it accepts.
+    pub good_deeds: [i32; 8],
+    /// `made_peace` (`+0x2d0`), by the other party: the frame a peace
+    /// treaty was executed (`Leader::action_respond@006d03c0`'s treaty arm,
+    /// both records, even when the pair stays allied).
+    pub made_peace: [i64; 8],
+    /// `hire_stamp` (`+0x1b4`), by the hired-against slot: the frame an
+    /// attack deal against it executed (the hire loop, both parties).
+    pub hire_stamp: [i64; 8],
+    /// `hire_who` (`+0x1d4`), by the hired-against slot: the other party of
+    /// that deal, −1 for none.
+    pub hire_who: [i32; 8],
+}
+
+impl Default for Declared {
+    /// `Leader::init@006e3930`'s reset: every leaf 0, `hire_who` −1.
+    fn default() -> Self {
+        Declared {
+            dow: [0; 8],
+            blacken: 0,
+            broke_alliance: [0; 8],
+            good_deeds: [0; 8],
+            made_peace: [0; 8],
+            hire_stamp: [0; 8],
+            hire_who: [-1; 8],
+        }
+    }
 }
 
 impl Sim {
     /// One of [`DECLARE_LEAVES`] as the leaders line and the record print
-    /// it: `blacken` one word, `dow` and `broke_alliance` eight.
+    /// it: `blacken` one word, `dow`, `broke_alliance` and `made_peace`
+    /// eight.
     pub fn leader_declare_leaf(&self, who: Player, name: &str) -> Option<Vec<i64>> {
         let d = self.leaders.declare.get(who as usize)?;
         match name {
             "blacken" => Some(vec![i64::from(d.blacken)]),
             "dow" => Some(d.dow.iter().map(|&x| i64::from(x)).collect()),
             "broke_alliance" => Some(d.broke_alliance.to_vec()),
+            "made_peace" => Some(d.made_peace.to_vec()),
             _ => None,
         }
     }

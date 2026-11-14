@@ -383,6 +383,20 @@ impl Command<'_> {
         self.sim.action_declare(me, t, level, quiet, force)
     }
 
+    /// [`Sim::action_treaty`] (`leaders/diplomacy/offers.rs`): a `treaty`
+    /// command's (`CommandPackage::process_treaty@009473c0`, `who` asking
+    /// `whom` for treaty `w`).
+    pub fn action_treaty(&mut self, me: Player, p: Player, w: i32) {
+        self.sim.action_treaty(me, p, w)
+    }
+
+    /// [`Sim::action_respond`] (`leaders/tribute.rs`): an `accept` command's
+    /// (`CommandPackage::process_accept@00946fb0`, `who` accepting `whom`'s
+    /// proposal, code 1).
+    pub fn action_respond(&mut self, t: Player, p: Player, code: i32) {
+        self.sim.action_respond(t, p, code)
+    }
+
     /// [`Sim::receive_taunt`] (`leaders/taunt.rs`): a chat command's taunt
     /// delivered to `r` (`CommandPackage::process_chat@009454f0`'s
     /// `Leader::receive_taunt`, sender `s`).
