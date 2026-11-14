@@ -678,18 +678,24 @@ mod tests {
         built
     }
 
+    /// A stand-up's notes, animation lengths and the frames it holds guys on.
+    type StandUp = (
+        &'static [&'static str],
+        &'static [((i32, i8), u32)],
+        &'static [i64],
+    );
+
     #[test]
     fn the_game_s_other_stand_up_rides_the_trunk_and_carries_its_own_fields() {
         let _alone = alone();
         let _on = Forced::on(true);
         let seed = 0x4224_0001;
-        let whole: (&[&str], &[((i32, i8), u32)], &[i64]) = (
+        let whole: StandUp = (
             &["anim: 2 lengths"],
             &[((7, 1), 61), ((8, 2), 90)],
             &[5, 300],
         );
-        let window: (&[&str], &[((i32, i8), u32)], &[i64]) =
-            (&["anim: 1 length", "another note"], &[((7, 1), 61)], &[5]);
+        let window: StandUp = (&["anim: 1 length", "another note"], &[((7, 1), 61)], &[5]);
         let mut first = stood_up(seed, whole.0, whole.1, whole.2);
         advance(&mut first, 700);
         assert_eq!(
