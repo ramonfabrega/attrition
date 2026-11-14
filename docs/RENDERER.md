@@ -2848,13 +2848,110 @@ which textures take it, the shaders' formulas (the install's own HLSL). On the p
 the rows.
 
 **What is not established.**
-- **N·L.** The terrain's normals and the `_mtrl` normal, spec and gloss maps are not drawn; flat
+- ~~**N·L.** The terrain's normals and the `_mtrl` normal, spec and gloss maps are not drawn; flat
   N·L is 0.707. A lower mean N·L would darken the land, lower the frame's mean and lift the scale:
-  the grass's 4 % surplus on run1559b and the trees' fall both point that way.
-- The vertex colour (`light_vert`), the bloom (`OUT.Bright`), and the mip chain's own mean against
-  ours; pixels at 255 untone to the curve's top, 4.9.
+  the grass's 4 % surplus on run1559b and the trees' fall both point that way.~~ Answered by §3.22:
+  the normals and the vertex colour are the packet's, the on-screen mean N·L is 0.709 and 0.683, and
+  they do not lift the trees; the `_mtrl` maps' term is under 1 %.
+- ~~The vertex colour (`light_vert`),~~ (§3.22) the bloom (`OUT.Bright`), ~~and the mip chain's own
+  mean against ours~~ (§3.22: the luminance target is 512² with its mips generated, so mip 10 is
+  the 1×1 mean); pixels at 255 untone to the curve's top, 4.9.
 - The shadowed grass under the trees reads orange on the photograph (parked 4212b).
 - The weathering's lighting (draw 90 enables it, §3.17); the water's and the floor's.
+
+## 3.22 The land's normals and vertex colour (item 4217)
+
+*2026-11-13, Opus 5.5. `render::terrain::{land_normals, land_n_dot_l, light_vert,
+MIN_POLY_SIZE}`; `render::silhouette::LAND_AMBIENT`; `rondata::artdata::tileset_light`;
+`client::world::World::set_land_light`, `LIGHT_FLAT`; `shaders/land.wgsl`'s `land_lit(c, nl)`;
+`tools/render/land_light_packet.py`. Measured on run1559b's, run1564's and run1570's photographs.*
+
+**The question.** §3.21 lit the land at the flat N·L, and the frame's white then darkened the
+trees (luma 54 → 39 of 56), run1559b's ground luma (1,075 → 1,029) and the trees' shadows. The
+booked hypothesis: the land lit by its own normal has a lower mean N·L, so the frame's mean falls
+and the white rises.
+
+**The card cannot answer it; the packet can.** The land's vertex buffers are static, so run1567's
+card trace holds none of their bytes. It does show that the land's draws light through
+`ps_global.hlsl` with `NORMAL_MAP SPEC_MAP GLOSS_MAP ENABLE_LIGHTING ENABLE_VERTEX_COLOR_DIFFUSE`,
+under an orthonormal view and an identity world, so a normal (0, 0, 1) lights at exactly 0.7071.
+The buffers' sources are on the packet: `TerrainOut` (`0x00C0B0F0`) `+0x3f4` holds the normals,
+`+0x410` the vertex colours and `+0x4a4` the render heights, one per corner of the 241 × 241
+grid (`land_light_packet.py`).
+
+**The normals.** `calculate_norms@008710b0` adds two vectors per tile, rows outer: the first
+triangle's `(−(z[x+1,y] − z[x,y]), −(z[x,y+1] − z[x,y]), MinPolySize)` to `(x, y)`, `(x+1, y)` and
+`(x, y+1)`, then the second's `(−(z[x+1,y+1] − z[x,y+1]), (z[x+1,y] − z[x,y+1]) + (z[x+1,y+1] −
+z[x,y+1]), MinPolySize)` to `(x, y+1)`, `(x+1, y)` and `(x+1, y+1)`. That second y is the listing's
+own sum (`87152e`–`87155b`), not a geometric normal's, and the decompile hides it. `MinPolySize`
+is 192.0 (`0x00b21764`). Each corner is then scaled by `1 / sqrt(x² + y² + z²)`. Our heights are
+the packet's (all 58,081 within 1e-5, 56,660 bit for bit), and on them our normals are the packet's
+bit for bit on **54,095 of 58,081 corners**, and within 1e-5 on 56,079.
+
+The 2,002 that part lie in six clusters. The largest is 1,210 corners at (191–238, 78–135); the
+second is 312 around run1559b's capital (6–25, 146–171), 240 of them at that photograph's ground
+row. Only 38 sit by a placed range. **1,692 of the 2,002 are exactly one adjacent tile's
+contribution**: the local form, `calculate_norms(x, y)`, zeroes a tile's four corners and re-adds
+that tile alone. When and where it runs is not read (parked 4217b).
+
+**The vertex colour.** `light_vert@00866f90` makes each land corner's colour, `min(1, diffuse ·
+alpha · N·L + ambient)` truncated to a byte, from `GraphicPieces::init_lighting@00904a30`'s
+`land_material`. That is the tileset's `<LIGHTING>` read positionally by `TileSet::init`
+(`<COLOR>`s alpha, red, green, blue) and reordered to r, g, b, a. `early_autumn` gives ambient
+(0.01, 0.03, 0.18) and diffuse 1.36. Red goes in the low byte (`+0x140`/`+0x130`), and d3dgl's
+input layout reads `DIFFUSE` as `R8G8B8A8_UNORM` (`0x100dce34`), so red is red. Flat ground is
+(247, 252, 255). On the packet's own normals, our colour is the packet's on **48,898 corners, every
+land corner**; every other corner is the ocean floor's grey at or below −82.07
+(`the_land_s_normals_and_colours_are_the_packet_s`). Stage 0 modulates the texel by it before the
+lit branch's power. The card's `gLight` carries the ambient at twice the colour (0.02, 0.06, 0.36),
+which the shader does not read.
+
+**What is small.** The `_mtrl` maps: the grass's normal map has a mean z of 0.997 and mean x of
+−0.003. Its specular is the map's blue, 0.043, at a gloss of 0.069 · 512 ≈ 35. The camera's V is
+(0.612, 0.612, 0.5) and H·(0, 0, 1) is 0.639, so the term is about 10⁻⁷. Neither is drawn.
+
+**The frame's mean is the whole frame's.** `D3D11ToneMapper::create_luminance_buffer` makes the
+luminance target 512 × 512, `R16_FLOAT`, with a full mip chain and `GENERATE_MIPS`
+(`10043e9f`–`10043ef1`), so `SampleLevel(…, 10)` clamps to the 1 × 1 mip: §3.21's mean as
+modelled.
+
+**The result.** On the ground row's corners the mean N·L is **0.7087** on run1559b and **0.6834**
+on run1564 (the packet's own normals give 0.7025 and 0.6828). `light_vert`'s colour there averages
+(0.989, 0.990, 0.998) and (0.999, 1.000, 1.000). The frame's mean moves about 1 %. Drawn
+(`World::set_land_light(true)`; `tint::tests::LAND_LIGHT_ROWS`, off → on):
+
+| photograph | grass hue | ground row | luma |
+|---|---|---|---|
+| run1559b | 959 → 960 of 986 | 1,104 → 1,104 of 1,109 | 1,029 → **1,079** |
+| run1564 | 674 → **665** of 679 | 1,021 → **1,001** of 1,920 (`SANDY` 311 → 290) | 1,396 → 1,410 |
+| run1570 | 1,042 → 1,041 of 1,073 | 1,171 → 1,171 of 1,174 | 1,118 → 1,152 |
+
+On run1559b, the trees' luma 39 → 40 of 56, `_COLOUR_STILL` 14 → 13, the shadows' hue 80 → 75
+and luma 79 → 82, and `RUN1559B_3279_RING`'s luma 19 → 20. **The switch stays off**: `GRASS_HUE`
+falls and the trees do not come back. The grass reads (171.5, 168.6, 78.9) against theirs (162.3,
+158.5, 77.4) on run1564 lit.
+
+**The trees' fall is their own.** At the floor's white the painter's trees are already 5 % under
+the photograph (theirs over ours 1.052, weighted over 56 trees; the luma row 54 of 56). The
+asphalt, drawn by the same `TL_FAKE_LIGHT` branch (the card's draws 133–154), is 0.895 at that
+white (§3.21, tile (19, 160)). No white serves both, and the land lies between neither: the fall
+is in one of the two draws' stage colour (parked 4217a). The frame's white is 0.898 against the
+asphalt's 0.895.
+
+**Coverage.** Diff-backed: the heights, the normals (54,095 bit for bit) and the vertex colours
+(48,898 of 48,898) against the packet; the tileset's light (`the_tileset_light_is_read`); the land
+draws' options on the card. On a reading: the second triangle's y, the colour's byte order on the
+card (the input layout and `vs_global.hlsl`'s pass-through), the luminance target's description.
+On the photographs alone: the rows.
+
+**What is not established.**
+- The 2,002 normals the local `calculate_norms` leaves (parked 4217b); none is at run1564's row.
+- The colour of a land draw's corner under the ocean floor's grey (the coral, the faded land):
+  drawn white and flat.
+- The mountains' own normals and vertex colour (draws 143, 144): flat and white.
+- `vs_global.hlsl`'s per-pixel normal against the interpolated N·L the client takes, and the
+  vertex colour taken from that N·L rather than interpolated.
+- The trees' and the roads' `TL_FAKE_LIGHT` stage colours against each other (parked 4217a).
 
 ## 4. The stack
 

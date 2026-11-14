@@ -162,7 +162,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1577_TRACE,
         120,
         [
-            ("units", 1, 50),
+            ("units", 120, 0),
             ("builds", 100, 20),
             ("groups", 61, 5),
             ("guys", 120, 0),
@@ -170,14 +170,14 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
             ("cities", 120, 0),
             ("items", 120, 0),
             ("goods", 120, 0),
-            ("world", 0, 1),
+            ("world", 120, 0),
         ],
     ),
     (
         RUN1578_TRACE,
         24000,
         [
-            ("units", 1, 230),
+            ("units", 129, 171),
             ("builds", 100, 200),
             ("groups", 61, 5),
             ("guys", 129, 171),
@@ -185,7 +185,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
             ("cities", 4030, 0),
             ("items", 24000, 0),
             ("goods", 3246, 0),
-            ("world", 0, 1),
+            ("world", 24000, 0),
         ],
     ),
 ];
@@ -355,23 +355,20 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "run1579",
         "rontrace-run1579.log",
         1,
-        &[
-            ("units", 1077, 1077, 2, "0 0 flags: flags 65|73"),
-            (
-                "leaders",
-                267,
-                267,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|c7000000",
-            ),
-        ],
+        &[(
+            "leaders",
+            267,
+            267,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|c7000000",
+        )],
     ),
     (
         "run1582",
         "rontrace-run1582.log",
         129,
         &[
-            ("units", 1107, 1147, 41, "0 0 flags: flags 65|73"),
+            ("units", 1107, 1147, 40, "1107 0 flags: +0x0 of 1|0: 01|"),
             (
                 "builds",
                 519,
@@ -400,7 +397,13 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "rontrace-run1583.log",
         987,
         &[
-            ("units", 1181, 1441, 265, "0 0 flags: flags 65|73"),
+            (
+                "units",
+                1181,
+                1441,
+                264,
+                "177 0 path.size..increment: path.size 10|50",
+            ),
             (
                 "builds",
                 557,
@@ -429,7 +432,13 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "rontrace-run1584.log",
         3246,
         &[
-            ("units", 1389, 1901, 1173, "0 0 flags: flags 65|73"),
+            (
+                "units",
+                1389,
+                1901,
+                1172,
+                "167 0 path.size..increment: path.size 20|60",
+            ),
             (
                 "builds",
                 703,
@@ -459,7 +468,13 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "rontrace-run1585.log",
         4030,
         &[
-            ("units", 1507, 2014, 1315, "0 0 flags: flags 65|73"),
+            (
+                "units",
+                1507,
+                2014,
+                1315,
+                "167 0 path.size..increment: path.size 10|60",
+            ),
             (
                 "builds",
                 723,
@@ -589,6 +604,7 @@ fn the_minted_packets_name_each_first_parting() {
     let dir = minted_packets_dir();
     let whole = hook(RUN1578_TRACE);
     let whole = whole.as_deref().map(per_frame);
+    let mut moved = Vec::new();
     for &(run, trace, frame, pinned) in MINTED_PACKETS {
         let (Some((logger, theirs)), Some(sets)) = (packet_stream_in(&dir, run), hook(trace))
         else {
@@ -642,8 +658,12 @@ fn the_minted_packets_name_each_first_parting() {
             .iter()
             .map(|&(l, t, o, p, f)| (l, t, o, p, f.to_string()))
             .collect();
-        assert_eq!(seen, pinned, "MINTED_PACKETS {run}");
+        if seen != pinned {
+            eprintln!("MINTED_PACKETS {run} moved: {seen:#?}");
+            moved.push(run);
+        }
     }
+    assert!(moved.is_empty(), "MINTED_PACKETS moved on {moved:?}");
 }
 
 /// run1579's dump: the minted file's playback with an `@dumpall` on frame
@@ -651,17 +671,22 @@ fn the_minted_packets_name_each_first_parting() {
 /// hook's frame `-1`, our built start.
 const RUN1579: &str = "gamelog-run1579-greatlakes-playback-of-minted-packet-1.txt";
 
-/// **The world on the start, by section**: the sections of the world line
-/// whose Adler on our built start parts from record 3201 of [`RUN1579`],
-/// as `(section, ours, theirs)`; every other of the fifteen agrees.
-/// Section 8 alone, `danger[0..8]` (`sim::checksum::world`'s table).
-const WORLD_START_PARTS: &[(usize, u32, u32)] = &[(8, 1_887_436_801, 2_995_557_468)];
+/// **The world on the start, by section** (item 4218): record 3201 of
+/// [`RUN1579`]'s section 8, `danger[0..8]`, as `(theirs, ours with every
+/// row cleared)`. Theirs is not zero: `Game::run@00584590:721` calls
+/// `GameDaemon::calc_danger` once past `build_game`, before the first
+/// frame, and the built start runs it (`Setup::calc_danger`). Before item
+/// 4218 ours was the zeros' Adler (`0x70800001`, 28,800 zero bytes) and
+/// section 8 alone parted.
+const WORLD_START_DANGER: (u32, u32) = (2_995_557_468, 1_887_436_801);
 
-/// The world line parts only on frame 0 ([`CHECKSUM_FRAMES`]); no packet
-/// stands before frame 0's tick, but the record printed there carries the
-/// fifteen sections' own sums, so the parting is named by section.
+/// The world line on the built start, every one of the fifteen sections
+/// against record 3201 printed before frame 0's tick (no packet stands
+/// there; the record carries each section's own sum). Red half: the same
+/// start with every danger row cleared parts on section 8 alone, at the
+/// zeros' sum — the state before `Game::run`'s call.
 #[test]
-fn the_world_parts_on_the_start_by_section() {
+fn the_world_is_the_original_s_on_the_start_by_section() {
     let Some(recs) = records(RUN1579) else {
         eprintln!("skipping: {RUN1579} not filed (set RON_GAMELOG_DIR)");
         return;
@@ -674,25 +699,42 @@ fn the_world_parts_on_the_start_by_section() {
     let record = recs.iter().find(|r| r.number == 3201).expect("record 3201");
     let parts = record.world_parts();
     assert_eq!(parts.len(), 16, "sections 0 to 14 and the whole");
-    let image = built.sim.world_image();
-    let whole = built.sim.checksum_world().adler();
-    let mut seen = Vec::new();
-    for (s, theirs) in parts.iter().take(15).enumerate() {
-        let ours = image
+    let parted = |sim: &sim::Sim| -> Vec<(usize, u32, u32)> {
+        let image = sim.world_image();
+        parts
             .iter()
-            .filter(|r| usize::from(r.section) == s)
-            .fold(1, |a, r| sim::checksum::adler32(a, &r.bytes()));
-        if ours != *theirs {
-            seen.push((s, ours, *theirs));
-        }
-    }
+            .take(15)
+            .enumerate()
+            .filter_map(|(s, theirs)| {
+                let ours = image
+                    .iter()
+                    .filter(|r| usize::from(r.section) == s)
+                    .fold(1, |a, r| sim::checksum::adler32(a, &r.bytes()));
+                (ours != *theirs).then_some((s, ours, *theirs))
+            })
+            .collect()
+    };
+    let whole = built.sim.checksum_world().adler();
+    let seen = parted(&built.sim);
     eprintln!(
         "WORLD START whole ours {whole} theirs {}; sections parted {seen:?}",
         parts[15]
     );
-    assert_ne!(
-        whole, parts[15],
-        "the world parts on the start (CHECKSUM_FRAMES)"
+    assert_eq!(
+        parts[8], WORLD_START_DANGER.0,
+        "record 3201's danger section"
     );
-    assert_eq!(seen, WORLD_START_PARTS, "WORLD_START_PARTS");
+    assert!(seen.is_empty(), "the world parts on the start: {seen:?}");
+    assert_eq!(whole, parts[15], "the world line on the start");
+    let mut cleared = built.sim.clone();
+    for who in 0..8u8 {
+        if !cleared.world.danger_row(who).is_empty() {
+            cleared.world.clear_danger(who);
+        }
+    }
+    assert_eq!(
+        parted(&cleared),
+        vec![(8, WORLD_START_DANGER.1, WORLD_START_DANGER.0)],
+        "the start without Game::run's calc_danger"
+    );
 }

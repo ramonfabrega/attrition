@@ -667,9 +667,17 @@ pub const SCENE_AMBIENT: [f32; 3] = [0.6, 0.716, 0.745];
 /// material's diffuse and ambient are 1.
 pub const LAND_DIFFUSE: f32 = 1.36;
 /// The flat ground's N·L under the land's light, direction
-/// (−0.707, 0, −0.707) on the same draws: the terrain's normals and the
-/// `_mtrl` normal map are not drawn.
+/// (−0.707, 0, −0.707) on the same draws. Item 4217 (§3.22): each land
+/// corner takes its own, `render::terrain::land_n_dot_l` on
+/// `land_normals`; this is the flat case, and what the ocean floor, the
+/// coral and the mountains keep. The `_mtrl` normal map is not drawn.
 pub const LAND_N_DOT_L: f32 = std::f32::consts::FRAC_1_SQRT_2;
+/// **The land's vertex ambient** (item 4217; §3.22): `early_autumn`'s
+/// `<LIGHTING><AMBIENT>` red, green and blue, which
+/// `TerrainOut::light_vert@00866f90` adds to `LAND_DIFFUSE · N·L` for a
+/// land corner's colour (`render::terrain::light_vert`); the card's
+/// stage 0 modulates the texel by it.
+pub const LAND_AMBIENT: [f32; 3] = [0.01, 0.03, 0.18];
 /// The tone mapper's exposure plus its adjustment, defaults. **Live on
 /// both packets** (item 4168, `RENDERER.md` §3.14): run1559b's and
 /// run1564's `GSToneMapper` hold exposure 1.0 and adjustment 0, and the

@@ -1339,6 +1339,44 @@ pub fn nile_delta_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a British Isles setup path: from its
+/// first `MapBritishIsles::make_continents@00695130` draw, every draw whose
+/// site is that function, `Map::grow_region`, `Map::large_stamp`,
+/// `Map::grow_valid` or `Map::place_start_in_region@0068ac00`
+/// (`docs/MAPGEN.md` §37, item 4211), up to the first that is none.
+pub fn british_isles_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let bi = 0x0069_5130..0x0069_5bf0;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let starts = 0x0068_ac00..0x0068_ae50;
+    let Some(from) = setup.iter().position(|(s, _)| bi.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !bi.contains(s) && !growers.contains(s) && !starts.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
+/// The `make_continents` segment of a Warring States setup path: from its
+/// first `MapWarringStates::make_continents@00698b60` draw, every draw whose
+/// site is that function, `Map::grow_region`, `Map::large_stamp`,
+/// `Map::grow_valid` or `Map::fill_cont@0068a960` (`docs/MAPGEN.md` §37,
+/// item 4211), up to the first that is none.
+pub fn warring_states_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let ws = 0x0069_8b60..0x0069_9e40;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let fill = 0x0068_a960..0x0068_ac00;
+    let Some(from) = setup.iter().position(|(s, _)| ws.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !ws.contains(s) && !growers.contains(s) && !fill.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `make_continents` segment of a Colonial Powers setup path: from
 /// its first `MapColonialPowers::make_continents@00697dd0` draw, every
 /// draw whose site is that function, `Map::grow_region`,
@@ -3423,6 +3461,139 @@ mod tests {
 
     /// The East Indies files carrying 7805 and 7807: a floor.
     const ISLAND_FILES: usize = 202;
+
+    /// **Warring States' mask, draw for draw** (`docs/MAPGEN.md` §37, item
+    /// 4211): run1122's trace (`cover=1`, no setup trace in its preamble, so
+    /// no file of the archive) against the port from the segment's first
+    /// word, on its lobby as `GAMEINFO` prints it — Small (60×60, the start
+    /// harness's extent, diff-backed), two seats on team 8 — every draw's
+    /// site and word ([`warring_states_part`]).
+    #[test]
+    fn warring_states_s_mask_is_the_traced_stream() {
+        let (Some(path), Some(root)) = (
+            crate::testenv::dump("rontrace-run1122.log"),
+            crate::testenv::install_root(),
+        ) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let setup = setup_draws(Path::new(&path))
+            .expect("a readable trace")
+            .expect("a trace");
+        let seg = warring_states_part(&setup);
+        let &(_, seed) = seg.first().expect("run1122 holds Warring States' draws");
+        let (n, nations, map_size) = (60, 2, 2);
+        let style = lake_style(
+            root,
+            "WARRINGSTATES.xml",
+            (n, n, nations, map_size),
+            base_edge_before(seed),
+            max_range_349(root),
+        )
+        .expect("the style's `Map` fields");
+        let mut teams = [None; 8];
+        teams[0] = Some(8);
+        teams[1] = Some(8);
+        let mut grid = MapGrid::new(n, n);
+        let mut d = Draws::new(seed);
+        let m = sim::mapgen::map_warring_states::warring_states_make_continents(
+            &mut grid, nations, &teams, style, &mut d,
+        );
+        eprintln!(
+            "run1122: {} draws theirs, {} ours, {m:?}",
+            seg.len(),
+            d.log.len()
+        );
+        let parted = stream_parts("run1122", "the mask", &d.log, seg);
+        assert!(parted.is_none(), "{}", parted.unwrap_or_default());
+        assert!(m.is_ok(), "the port refused: {m:?}");
+    }
+
+    /// **British Isles' mask, draw for draw** (`docs/MAPGEN.md` §37, item
+    /// 4211): on every British Isles start dump whose run kept a draw-site
+    /// trace, the port run from the trace's first `make_continents` word
+    /// draws the trace's segment ([`british_isles_part`]), site and word.
+    /// Run1127 carries no checkpoint, so the stream's first word stands in
+    /// for 7805's seed; run316's 7805 is checked by the start harness.
+    #[test]
+    fn british_isles_s_mask_is_the_traced_stream() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let run_of = |n: &str| {
+            n.strip_prefix("gamelog-")
+                .and_then(|r| r.split('-').next())
+                .map(str::to_string)
+        };
+        let mut walked: Vec<(String, Vec<SetupDraw>)> = Vec::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 22 && g.xs > 0) {
+            let Some(run) = run_of(name) else { continue };
+            let Some(path) = crate::testenv::dump(&format!("rontrace-{run}.log")) else {
+                continue;
+            };
+            let setup = setup_draws(Path::new(&path))
+                .expect("a readable trace")
+                .expect("a trace");
+            let seg = british_isles_part(&setup);
+            let Some(&(_, seed)) = seg.first() else {
+                panic!("{name}: the trace holds no British Isles draw");
+            };
+            let style = lake_style(
+                root,
+                "BRITISHISLES.xml",
+                (g.xs, g.ys, g.nations, g.map_size),
+                base_edge_before(seed),
+                range,
+            )
+            .expect("the style's `Map` fields");
+            let mut grid = MapGrid::new(g.xs, g.ys);
+            let mut d = Draws::new(seed);
+            let m = sim::mapgen::map_british_isles::british_isles_make_continents(
+                &mut grid, g.nations, style, &mut d,
+            )
+            .expect("a lobby the port carries");
+            eprintln!("{name}: {} draws, {m:?}", seg.len());
+            let parted = stream_parts(name, "the mask", &d.log, seg);
+            assert!(parted.is_none(), "{}", parted.unwrap_or_default());
+            walked.push((run, d.log));
+        }
+        // A British Isles capture with no setup trace in its preamble
+        // (run1127) is not in the archive; its trace's segment is held to the
+        // walked stream that opens on the same word — the same lobby's map.
+        let names = filed_names(|n| n.starts_with("gamelog-") && n.contains("britishisles"))
+            .unwrap_or_default();
+        let mut lent = 0;
+        for name in names {
+            let Some(run) = run_of(&name) else { continue };
+            if walked.iter().any(|(r, _)| *r == run) {
+                continue;
+            }
+            let Some(path) = crate::testenv::dump(&format!("rontrace-{run}.log")) else {
+                continue;
+            };
+            let setup = setup_draws(Path::new(&path))
+                .expect("a readable trace")
+                .expect("a trace");
+            let seg = british_isles_part(&setup);
+            let (_, ours) = walked
+                .iter()
+                .find(|(_, log)| log.first() == seg.first())
+                .unwrap_or_else(|| panic!("{name}: no walked stream opens on {:x?}", seg.first()));
+            let parted = stream_parts(&name, "the mask", ours, seg);
+            assert!(parted.is_none(), "{}", parted.unwrap_or_default());
+            lent += 1;
+        }
+        eprintln!("British Isles mask: {} walked, {lent} lent", walked.len());
+        assert!(
+            walked.len() + lent >= 2,
+            "the mask checked {} traces",
+            walked.len() + lent
+        );
+    }
 
     /// **East Indies' mask at `map.cpp` 7807** (`docs/MAPGEN.md` §5, §15
     /// step 1): from the seed at 7805, the port lands on 7807's seed, part

@@ -199,6 +199,16 @@ impl Setup<'_> {
         self.sim.settle_borders()
     }
 
+    /// **`Game::run@00584590:721`'s `GameDaemon::calc_danger`**, the one
+    /// call of it outside `process_all`: after `build_game` and
+    /// `Leaders::init_production_script`, before the first frame, so frame
+    /// 0's tick reads a filled map and the checksum's world line before it
+    /// prints one (`docs/CHECKSUM.md` §24.4, item 4218). [`Sim::calc_danger`]
+    /// (`world/danger.rs`).
+    pub fn calc_danger(&mut self) {
+        self.sim.calc_danger()
+    }
+
     /// [`Sim::sync_territory`] (`cities/city.rs`).
     pub fn sync_territory(&mut self) {
         self.sim.sync_territory()

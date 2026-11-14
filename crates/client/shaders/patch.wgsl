@@ -14,6 +14,8 @@ struct VOut {
     @builtin(position) pos: vec4<f32>,
     @location(0) uv: vec2<f32>,
     @location(1) auv: vec2<f32>,
+    // Item 4217 (§3.22): the corner's N·L, the third attribute's `z`.
+    @location(2) nl: f32,
 };
 
 @vertex
@@ -30,6 +32,7 @@ fn vs_patch(
     o.pos = vec4<f32>(clip.xy, z * clip.w, clip.w);
     o.uv = uv;
     o.auv = auv.xy;
+    o.nl = auv.z;
     return o;
 }
 
@@ -43,7 +46,7 @@ fn fs_patch(i: VOut) -> @location(0) vec4<f32> {
 @fragment
 fn fs_patch_lit(i: VOut) -> @location(0) vec4<f32> {
     let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
-    return vec4<f32>(land_lit(textureSample(tex, samp, i.uv).rgb), a);
+    return vec4<f32>(land_lit(textureSample(tex, samp, i.uv).rgb, i.nl), a);
 }
 
 // Item 4141 (`docs/RENDERER.md` §3.10): one layer of a mountain's own draw,
@@ -62,5 +65,5 @@ fn fs_mountain(i: VOut) -> @location(0) vec4<f32> {
     if (a <= 0.0) {
         discard;
     }
-    return vec4<f32>(land_lit(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0))), a);
+    return vec4<f32>(land_lit(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), i.nl), a);
 }

@@ -35,8 +35,13 @@ use super::*;
 /// Nile Delta, Sea Power and New World once the style's territory limits
 /// are read (`crate::mapgen::territory_limits`), East Meets West once its
 /// permutation is the identity; then 158 (+1): 4033a's thin lobby, its
-/// unprinted rows stand-ins and its printed ones whole (4034a).
-pub const START_BUILT: usize = 158;
+/// unprinted rows stand-ins and its printed ones whole (4034a). 161 at
+/// item 4211 (+3): British Isles' and Warring States' masks ported
+/// (`docs/MAPGEN.md` §37) — lobby 24 (run1127) whole on the mask alone,
+/// lobbies 19 (run1122) and 119 (run316, a Large Town, its
+/// `large_city_buildings` list built) once `CELL flags` is held to the
+/// dump's printed word rather than the installer's re-laid roads.
+pub const START_BUILT: usize = 161;
 
 /// **The lobby's word on the built start** (`docs/START.md` §7.4, item
 /// 4057): `(map, word, length)` — the harness lobby's long capture (run53,
@@ -338,9 +343,10 @@ pub struct FromLobby {
 /// `GREEK_UNIVERSITY_EARLY > 1`, a Temple for 0x10 when
 /// `KOREAN_TEMPLE_UPGRADES > 1`, a Granary for 7 when
 /// `EGYPTIAN_GRANARY_EARLY > 1`, a Lumber Mill for 10 when
-/// `FRENCH_LUMBERMILL_EARLY > 1`. Refused, with the reason: a Large Town
-/// (`starting_town` 3, `large_city_buildings`), the Iroquois' Senate (its
-/// constant is not loaded), and a refused placement. The Americans' farm
+/// `FRENCH_LUMBERMILL_EARLY > 1`. A Large Town (`starting_town` 3) takes
+/// `Setup::large_city_buildings@005aac80`'s list first instead (item 4211).
+/// Refused, with the reason: the Iroquois' Senate (its constant is not
+/// loaded), and a refused placement. The Americans' farm
 /// count is `AMERICANS_STARTING_FARMS` (item 4186).
 pub fn pre_placed_buildings(
     sim: &mut Sim,
@@ -368,6 +374,7 @@ pub fn pre_placed_buildings(
                 0x1a2 => "woodcutter",
                 0x1a1 => "farm",
                 0x1b3 => "library",
+                0x1b7 => "tower",
                 _ => "civ-specific",
             };
             words.push((who, name, sim.rng.seed));
@@ -394,7 +401,21 @@ pub fn pre_placed_buildings(
             }
             produce(sim, 0x1b3)?;
         }
-        3 => return Err("a Large Town's list is not built".into()),
+        3 => {
+            // `large_city_buildings@005aac80` (item 4211): the Woodcutter's
+            // Camp, five Farms unless `has_tribe_bonus(0x13)` (the Lakota),
+            // four of `TOWER` (0x1b7), the Library — no Americans' arm.
+            produce(sim, 0x1a2)?;
+            if !bonus(sim, 0x13) {
+                for _ in 0..5 {
+                    produce(sim, 0x1a1)?;
+                }
+            }
+            for _ in 0..4 {
+                produce(sim, 0x1b7)?;
+            }
+            produce(sim, 0x1b3)?;
+        }
         _ => {}
     }
     let tt = &sim.tables.tech_tree;
@@ -650,8 +671,9 @@ pub fn herds_from_goods(
 /// 5): `Game::start_list[k]` for the eight seats, each a fresh index — a
 /// `Random::get(0, 0xffff) & 7`, re-drawn until it is one no earlier `k`
 /// took, when the map randomises its starts (`Map::Map@006a06e0` sets
-/// `randomize_starts`, and of the styles only East Meets West's
-/// `make_continents` writes it again); `k` itself when it does not.
+/// `randomize_starts`, and of the styles only East Meets West's and
+/// Warring States' `make_continents` write it again); `k` itself when it
+/// does not.
 pub fn start_permutation(rng: &mut sim::combat::Rng, randomize: bool) -> [usize; 8] {
     let mut list = [0usize; 8];
     let mut used = [false; 8];
@@ -1101,11 +1123,12 @@ pub fn from_lobby(
     let mut empire_words = Vec::new();
     if map_built {
         // 5. The start permutation, off the map's stream (`setup.cpp` 884
-        // -> 955). `Map::Map@006a06e0` sets `randomize_starts`, and only
-        // East Meets West's `make_continents@00696640` writes it again, to
-        // 0 at its head (`Map+0x2ec`, item 4196): its seats keep the
-        // continents it placed them on, and the permutation draws nothing.
-        let randomize = int("MAP_STYLE") != Some(19);
+        // -> 955). `Map::Map@006a06e0` sets `randomize_starts`, and East
+        // Meets West's `make_continents@00696640` writes it again, to 0 at
+        // its head (`Map+0x2ec`, item 4196), as Warring States' does at
+        // 0x698b95 (item 4211): their seats keep the starts the mask
+        // placed them on, and the permutation draws nothing.
+        let randomize = !matches!(int("MAP_STYLE"), Some(19 | 15));
         let start_list = start_permutation(&mut sim.rng, randomize);
         words.push(("setup.cpp", 955, sim.rng.seed));
         steps.push(("the start permutation", true));
@@ -1253,6 +1276,10 @@ pub fn from_lobby(
         steps.push(("Herd::create_units", herds_built));
         words.push(("setup.cpp", 1240, sim.rng.seed));
         words.push(("setup.cpp", 1244, sim.rng.seed));
+        // 9. `Game::run@00584590:721`, past `build_game`: the danger map
+        // filled once before the first frame (item 4218). It draws nothing.
+        sim.setup().calc_danger();
+        steps.push(("Game::run: calc_danger", true));
     } else {
         steps.push(("the start permutation", false));
         steps.push(("Leader::init (the personality roll)", false));
@@ -1266,6 +1293,7 @@ pub fn from_lobby(
             "World::analyze_map",
             "World::compute_all_territory",
             "Herd::create_units",
+            "Game::run: calc_danger",
         ] {
             steps.push((step, false));
         }
@@ -1705,7 +1733,42 @@ mod tests {
             // stand-ins; the rows such a dump does print (the buildings'
             // places, the units, `WORLD`'s extent and seed, the nations)
             // are what it can fail on, and stay compared.
-            let no_cells = crate::gamelog::world_cells(&init.world).is_empty();
+            let printed = crate::gamelog::world_cells(&init.world);
+            let no_cells = printed.is_empty();
+            // **`CELL flags` is held to the dump's printed word** (item
+            // 4211): the installer stands every dumped building up through
+            // `activate`, which lays the city's roads again on the dump's
+            // cells, so its `ROAD` bit is the crate's road plan, not the
+            // original's. Warring States' and British Isles' starts each
+            // part from the installer on one cell (run1122 `CELL 7 38`, run316
+            // `CELL 15 21`) where the dump prints no road and ours lays none.
+            let parted: Vec<Parting> = if no_cells {
+                parted
+            } else {
+                let xs = ours.sim.world.width();
+                let flags_of = |fs: &[Field], rec: &str| {
+                    fs.iter()
+                        .find(|(r, f, _)| r == rec && *f == "flags")
+                        .map(|(_, _, v)| v.clone())
+                };
+                let mut kept: Vec<Parting> = parted
+                    .into_iter()
+                    .filter(|p| !(p.field == "flags" && p.record.starts_with("CELL ")))
+                    .collect();
+                for (i, c) in printed.iter().enumerate() {
+                    let rec = format!("CELL {} {}", i as i32 % xs, i as i32 / xs);
+                    let mine = flags_of(&a, &rec);
+                    if mine.as_deref() != Some(c.flags.to_string().as_str()) {
+                        kept.push(Parting {
+                            record: rec,
+                            field: "flags",
+                            ours: mine,
+                            theirs: Some(c.flags.to_string()),
+                        });
+                    }
+                }
+                kept
+            };
             let no_diplos = init.leaders.iter().all(|l| l.diplos.is_empty());
             let untyped: Vec<String> = init
                 .builds
@@ -1827,9 +1890,9 @@ mod tests {
 
     /// **The census**: every lobby's first parting by record and field,
     /// counted (items 4034, 4186; the value diff per lobby is each item's
-    /// journal's). The three left are Warring States (run1122) and British
-    /// Isles (run1127, run316), with no mask port, at their first cell
-    /// (item 4186 composed East Indies and Great Sahara; item 4196
+    /// journal's). None is left (item 4211: Warring States, run1122, and
+    /// British Isles, run1127 and run316, parted at `CELL 0 0 land`, ours 0
+    /// theirs 2, with no mask port; item 4186 composed East Indies and Great Sahara; item 4196
     /// Southwest Mesa and the eleven chained styles, and 4034a: 4033a's
     /// scratch lobby, a Great Sahara dump that prints neither cells nor
     /// `diplos`, its unprinted rows stand-ins). The nation arms
@@ -1837,7 +1900,7 @@ mod tests {
     /// Spanish, American, Dutch, Korean or Greek seat on Great Lakes (8),
     /// East Indies (11, one the fuzz lobby) and Great Sahara (10, one a
     /// classical melee).
-    const START_CENSUS: &[(&str, usize)] = &[("CELL land", 3), ("built", 158)];
+    const START_CENSUS: &[(&str, usize)] = &[("built", 161)];
 
     /// A computer leader's `PERSONALITY` block under the start dump's
     /// `LEADERDATA` (`LEADERS=9`), as the crate's record; none below that

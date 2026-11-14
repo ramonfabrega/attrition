@@ -239,17 +239,22 @@ impl Sim {
     }
 
     /// `SubObjectData::flags` (`+0x8`) of a unit: `1` (walked only when
-    /// set), `0x10` [`crate::Unit::cant_reach`], and `0x40`, which
-    /// `Object::init@00647750:39` sets when the type's `objmask` carries
-    /// `0x2000000` — [`crate::combat::mask::DETECT`], the type's
-    /// `obj_masks` (`docs/CHECKSUM.md` §17). The `0x8` run1100 carries is
-    /// not read.
+    /// set), `0x08` [`crate::Unit::idle_latch`] (`Unit::check_idle@006032c0:64`
+    /// raises it with `0x10`, `Unit::work@0060d180:276` drops it; item
+    /// 4218: unit 0 read 0x41 ours, 0x49 theirs on the minted game's
+    /// frames 1 to 30 without it), `0x10` [`crate::Unit::cant_reach`], and
+    /// `0x40`, which `Object::init@00647750:39` sets when the type's
+    /// `objmask` carries `0x2000000` — [`crate::combat::mask::DETECT`], the
+    /// type's `obj_masks` (`docs/CHECKSUM.md` §17). `0x20` and `0x80` are
+    /// not emitted.
     fn unit_flags_byte(&self, u: usize) -> u8 {
         let un = &self.units[u];
         let detect = un.ty.is_some_and(|t| {
             self.tables.unit_types[t].combat.obj_masks & crate::combat::mask::DETECT != 0
         });
-        1 | if un.cant_reach { 0x10 } else { 0 } | if detect { 0x40 } else { 0 }
+        1 | if un.idle_latch { 0x08 } else { 0 }
+            | if un.cant_reach { 0x10 } else { 0 }
+            | if detect { 0x40 } else { 0 }
     }
 
     /// The unit's 34 `ObjectData` bytes ([`super::builds::OBJECT_FIELDS`]).
