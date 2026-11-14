@@ -37275,3 +37275,29 @@ SHA-256 `934e298d48a72d35f936eec2e15494a2ebc594e5a3d4ec487066ca0381a408c4`; `ron
 SHA-256 `63b560258dbf0a7291758ba675ab50711d039acca1cd68ca7bdfd1def77e4936`.
 
 **What it holds**: the groups line's first parting on 6781, named by record and field.
+
+## run1593 — the minted file's playback with a packet at 6907: units' first parting (2026-11-14, item 4243, `att-4243`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the units line out on frame 6907, its
+first parting on run1578 since item 4238 (re-read on this lane's base, `51aca3ff`: still 6907). The hook carries only
+the line's Adler, and no packet stood on 6907. The take: run1592's line moved to 6907, `--end-frame 6910 --log-window
+6906 6909 --timeout 1500 --tracer-def RON_STATE_FRAME=6907`, the rest as run1592, through `viadriver.sh
+golden_capture.sh ~/ron-golden/run1593`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 13:45:53 −05:00, exited 13:54:12: **498.9 s launch to exit**, exit 0, `success`, 6,911
+  frames, `last_frame` 6910, no page fault, no relaunch. `df -g ~` read 212 GB free before it. Minutes waited on
+  another lane: none.
+- The packet at logger frame 6907, trace frame 6906, `frame-snapshot.bin`, 828,447,936 bytes, SHA-256
+  `9d3175f0f0682bf6f5bcb2efd05afa6cc3106ab8e28b133ca3621fb95db38ebd`. `checksum.py --stream --values`: the stream's
+  sums equal the original's on every line. Kept under `~/ron-data/lab-experiments/2026-11-13-item-4214/run1593/`
+  beside the other minted packets. Its units value, 1253377436, is run1578's theirs on 6907.
+- **Units on frame 6907**: theirs 1,648 ranges, ours 1,639, 781 parted from range 784, record 24 (army 1/1's
+  Longbowman, `GROUP_ATTACK_TO`). `GroupMoveOrder::walk_data@004855c0` hands three ranges after `order.move` the
+  emitter left out: the flags byte again, `oxx`..`group_angle` (`+0x54..+0x68`) and `in_group`, on each of three
+  members (`MINTED_PACKETS`). Guys, groups and builds agree there. Item 4243 makes the units line whole.
+- Filed with `filerun.py run1593 greatlakes-playback-of-minted-packet-6907`.
+
+Archive `gamelog-run1593-greatlakes-playback-of-minted-packet-6907.txt`, 2,451 bytes,
+SHA-256 `0bf348a5f5571c47bfc977e174023012b6986c6972b4ef96f213f4c426d9dbde`; `rontrace-run1593.log`, 34,916,480 bytes,
+SHA-256 `758300fc33970b8cc2d6abd4b0267b5a4b1eb64b858bb8e099ee0c66517df8e1`.
+
+**What it holds**: the units line's first parting on 6907, named by record and field.

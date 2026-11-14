@@ -603,7 +603,10 @@ impl Sim {
                     p(0x60, 4, g.form_id as i64);
                     p(0x64, 4, i64::from(g.group_angle.0));
                     put("order.group", b);
-                    put("order.in_group", i32::from(g.in_group).to_le_bytes().to_vec());
+                    put(
+                        "order.in_group",
+                        i32::from(g.in_group).to_le_bytes().to_vec(),
+                    );
                 }
             }
             Body::Build(b) if o.index() == kind::BUILD_AT => {

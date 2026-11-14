@@ -300,7 +300,13 @@ fn a_grouped_move_walks_its_group_order_after_the_move() {
     let names: Vec<&str> = walked.iter().map(|r| r.0).collect();
     assert_eq!(
         names,
-        vec!["order.flags", "order.move", "order.flags", "order.group", "order.in_group"],
+        vec![
+            "order.flags",
+            "order.move",
+            "order.flags",
+            "order.group",
+            "order.in_group"
+        ],
         "GroupMoveOrder::walk_data's five ranges"
     );
     assert_eq!(walked[2].1, vec![flags], "the virtual base's flags, again");
@@ -309,7 +315,10 @@ fn a_grouped_move_walks_its_group_order_after_the_move() {
     for x in [index, 1, 0x0069_7990, 1, angle.0] {
         group.extend_from_slice(&x.to_le_bytes());
     }
-    assert_eq!(walked[3].1, group, "the leader's index and owner, id, form_id, group_angle");
+    assert_eq!(
+        walked[3].1, group,
+        "the leader's index and owner, id, form_id, group_angle"
+    );
     assert_eq!(walked[4].1, 1i32.to_le_bytes().to_vec(), "in_group");
 }
 
