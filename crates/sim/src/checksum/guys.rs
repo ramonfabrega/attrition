@@ -84,13 +84,14 @@ const GUYS_INCREMENT: i16 = 1;
 
 impl Sim {
     /// **The guys line** (`CheckSums::check_guys@00937430`): per leader in
-    /// slot order, per live unit in `o` order, [`Sim::checksum_guy_array`].
+    /// slot order, slots 0 to 8 ([`super::units::WALKED_SLOTS`]: never a
+    /// bird's), per live unit in `o` order, [`Sim::checksum_guy_array`].
     pub fn checksum_guys(&self) -> Line {
         let mut ranges = Vec::new();
         let last = self
             .units
             .iter()
-            .filter(|u| u.alive())
+            .filter(|u| u.alive() && u.owner < super::units::WALKED_SLOTS)
             .map(|u| u.owner)
             .max();
         if let Some(last) = last {
