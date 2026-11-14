@@ -71,6 +71,44 @@ impl Page {
         Ok(Page::on(choices, roster))
     }
 
+    /// **The page set to a capture's lobby by its own keys** (item 4215,
+    /// `--page-of`): a blank page, and for each of the lobby's events
+    /// (`rondata::lobby::events_for`) the keys a person presses to make it
+    /// (`keys_for`), pressed one by one. Refused when a key is refused or
+    /// the page does not end on the capture's `GAMEINFO` block, field for
+    /// field.
+    pub fn of_capture(path: &std::path::Path, roster: Roster) -> Result<Page, String> {
+        use std::io::BufRead;
+        let file = std::fs::File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
+        let mut text = String::new();
+        for line in std::io::BufReader::new(file).split(b'\n') {
+            let line = line.map_err(|e| e.to_string())?;
+            let line: String = line.iter().map(|&b| b as char).collect();
+            let line = line.trim_end_matches('\r');
+            if line == "BEGIN GAME" || line.trim_start().starts_with("BEGIN FRAME") {
+                break;
+            }
+            text.push_str(line);
+            text.push('\n');
+        }
+        let lobby = rondata::lobby::Lobby::parse(&text)
+            .ok_or_else(|| format!("{}: no GAMEINFO block", path.display()))?;
+        let mut page = Page::on(Choices::blank(), roster);
+        let roster = page.roster.clone();
+        for e in rondata::lobby::events_for(&lobby, &roster) {
+            for k in page.keys_for(&e) {
+                if let Outcome::Refused(e, why) = page.key(k) {
+                    return Err(format!("{e:?} refused: {why}"));
+                }
+            }
+        }
+        let parted = page.choices.lobby().partings(&lobby);
+        if !parted.is_empty() {
+            return Err(format!("the page parts: {}", parted.join("; ")));
+        }
+        Ok(page)
+    }
+
     /// The page holding `choices`.
     pub fn on(choices: Choices, roster: Roster) -> Page {
         Page {
@@ -349,8 +387,8 @@ impl Page {
 
     /// **The keys a person presses to make `e`** from where the page
     /// stands: down to its row, then the arrows, the typing or Enter that
-    /// row takes. The test door that replays a lobby as key presses.
-    #[cfg(test)]
+    /// row takes. The door that replays a lobby as key presses: the tests'
+    /// and `--page-of`'s ([`Page::of_capture`], item 4215).
     pub fn keys_for(&self, e: &Event) -> Vec<Key> {
         let c = &self.choices;
         let (row, mut keys) = match e {
@@ -499,6 +537,76 @@ mod tests {
         assert_eq!(set, rondata::lobby::LOBBY_PAGE);
     }
 
+    /// **East Indies from the page, through the client** (item 4215): the
+    /// first East Indies lobby on disk set by the page's own keys, opened
+    /// as Start opens it (`Game::Page`), against the lobby's built start
+    /// (`FreeRunner::from_lobby` on its capture): the scene on frame 0 and
+    /// after `LOBBY_WALK` frames walked off-screen, and the ground the
+    /// client draws — the built start's own tileset and `World.seed`, the
+    /// capture's `WORLD seed`, not the pair's Great Lakes.
+    #[test]
+    fn east_indies_from_the_page_opens_its_own_start() {
+        let Some(root) = install() else {
+            eprintln!("skipping: no install (set RON_INSTALL)");
+            return;
+        };
+        let dir = crate::world::gamelog_dir();
+        let Ok(lobbies) = lobbies_on_disk(&dir, rondata::corpus::Ledger::of_tree()) else {
+            eprintln!("skipping: no gamelog directory (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some((l, theirs)) = lobbies
+            .iter()
+            .filter_map(|l| Some((l, Lobby::parse(&l.block)?)))
+            .find(|(_, b)| b.get("MAP_STYLE") == Some("18"))
+        else {
+            eprintln!("skipping: no East Indies lobby under {}", dir.display());
+            return;
+        };
+        let roster = Roster::read(&root).unwrap();
+        let page = Page::of_capture(&dir.join(&l.captures[0]), roster).unwrap();
+        assert_eq!(page.choices.lobby(), theirs, "{}", l.captures[0]);
+        let mut ours = crate::world::World::open_game(
+            &root,
+            &dir,
+            crate::world::Game::Page(Box::new(page.choices.clone())),
+        )
+        .unwrap();
+        let loaded = rondata::load::load(&rondata::Install::new(&root)).unwrap();
+        let capture = dir.join(&l.captures[0]);
+        let mut built =
+            rondata::free::FreeRunner::from_lobby(&loaded, &capture, sim::Tuning::RON).unwrap();
+        let seed: u32 = rondata::capture::indexed::IndexedCapture::open(&capture)
+            .unwrap()
+            .with_replay_initial(|init| {
+                init.world
+                    .iter()
+                    .find(|(k, _)| *k == "seed")
+                    .and_then(|(_, v)| v.trim().parse().ok())
+            })
+            .unwrap()
+            .expect("the start's WORLD seed");
+        let ground = ours.ground_art().map(|(t, s)| (t.to_string(), s));
+        println!(
+            "{}: the client's ground {ground:?}, the dump's WORLD seed {seed}",
+            l.captures[0]
+        );
+        assert_eq!(
+            ground.as_ref().map(|g| (g.0.as_str(), g.1)),
+            built.ground(),
+            "the client draws the built start's ground"
+        );
+        assert_eq!(ground.map(|g| g.1), Some(seed), "World.seed");
+        assert!(ours.runner.scene(None) == built.scene(None), "frame 0");
+        let walk = rondata::lobby::LOBBY_WALK as i64;
+        ours.run_to(walk);
+        while built.frame() < walk {
+            built.step();
+        }
+        assert!(ours.runner.scene(None) == built.scene(None), "frame {walk}");
+        assert!(!built.scene(None).units.is_empty(), "a scene with units");
+    }
+
     /// **Start on the page opens the minted lobby's game**: the page's
     /// opening through `Game::Page` (the window's Start) against
     /// `Game::Lobby` (the headless `--lobby`, run53's block), the scene
@@ -520,6 +628,22 @@ mod tests {
         let open = |g| crate::world::World::open_game(&root, &logs, g).unwrap();
         let mut ours = open(crate::world::Game::Page(Box::new(page.choices.clone())));
         let mut theirs = open(crate::world::Game::Lobby);
+        // Item 4215: a built start draws its own ground; on the harness
+        // lobby that is the ground the client drew before from the pair's
+        // start dump (the same map: Great Lakes, seed 12345).
+        let start = logs.join(crate::world::START_DUMP);
+        let pair = (
+            crate::world::lobby_tileset(&root, &start),
+            rondata::mapgen::start_head(&start)
+                .ok()
+                .flatten()
+                .map(|h| rondata::mapgen::start_grid(&h).seed as u32),
+        );
+        let built = theirs.ground_art().map(|(t, s)| (t.to_string(), s));
+        println!("the harness lobby's ground {built:?}, the pair's {pair:?}");
+        assert_eq!(built.as_ref().map(|g| g.0.clone()), pair.0);
+        assert_eq!(built.map(|g| g.1), pair.1);
+        assert_eq!(ours.ground_art(), theirs.ground_art());
         assert!(
             ours.runner.scene(None) == theirs.runner.scene(None),
             "frame 0"

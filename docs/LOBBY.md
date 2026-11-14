@@ -94,9 +94,11 @@ ones; `numberofplayers` is "Other Nations:").
 
 ## 5. The counter
 
-`Lobby: the page sets N of 161 lobbies · the harness lobby's start built
-from it`: **`lobby::LOBBY_PAGE`, 161 of `diff::START_LOBBIES` 161** at item
-4184. The parser is `diff::floors::lobby_line` with
+`Lobby: the page sets N of 161 lobbies · starts M of 161, walked 600
+frames`: **`lobby::LOBBY_PAGE`, 161 of `diff::START_LOBBIES` 161** at item
+4184, and **`lobby::LOBBY_STARTS`, 161 of 161** at item 4215 (from no
+clause; the line's second clause was "the harness lobby's start built from
+it"). The parser is `diff::floors::lobby_line` with
 `the_handoff_s_lobby_line_is_the_pinned_counter`, a driver's line.
 
 The two sides, and what builds each:
@@ -140,18 +142,54 @@ frame 0 and again after 40 frames. That is the start `START_WALKED` walks
 24,000 of 24,000 frames from. `client::lobby::tests::start_on_the_page_opens_the_minted_lobby_s_game`
 does the same through the client's `World`, scene for scene.
 
+**Every lobby's start** (item 4215). `lobby::tests::the_page_starts_every_lobby_on_disk`
+sets each of the 161 lobbies on a blank page (`events_for`), starts it
+through `from_choices`, and builds the lobby's built start through
+`from_lobby` on its first capture: the `Sim`s whole by their `{:?}` print
+on frame 0, then both walked `LOBBY_WALK` 600 frames and compared again.
+`LOBBY_STARTS` counts the lobbies equal at both. Each lobby also checks the
+ground the client draws, `FreeRunner::ground` — the tileset the composed
+map drew (`LakesMap::tileset`) and `World.seed` — against the capture: its
+`WORLD seed`, and the tileset `mapgen::tileset_before` steps back from its
+`map.cpp` 7805 word, or the style's one `TILECHANCE`: the seed is
+dump-backed on 160 lobbies (one start prints no `WORLD`), the tileset on 142
+(the rest print no 7805 word and draw among several). The two `Sim`s are built from one parser's fields,
+so the frame-0 comparison holds what the block's 161 already hold, carried
+through `from_lobby`; what it adds is the 600 frames, and that nothing of
+the capture past its `GAMEINFO` enters the start.
+
+**East Indies through the client.**
+`client::lobby::tests::east_indies_from_the_page_opens_its_own_start`: the
+first East Indies lobby (`MAP_STYLE 18`) set by the page's own keys
+(`Page::of_capture`), opened as Start opens it (`Game::Page`), against
+`from_lobby` on its capture: the scene on frame 0 and after 600 frames, and
+the ground art's `(tileset, World.seed)` the built start's and the
+capture's `WORLD seed`. Before item 4215 the client drew every game's ground
+with the Great Lakes pair's tileset and seed (`lobby_tileset` on
+`START_DUMP`); a built start now draws its own (`World::open_game`), and
+the pair keeps the dump's. `client --page-of <capture> --headless --play
+--frames 600` draws the page's game off-screen.
+
 **Red, three ways.** A bent seed (12346) builds another `Sim`. On the
 counter: the page's nation mapping off by one gives 0 of 161, the harness
 lobby first parting on `PLAYER 0 tribe`, ours 5 theirs 4; the difficulty
 control dropped gives 30 of 161 (the lobbies at `DIFFICULTY 0`), run1000
 first parting on `DIFFICULTY`, ours 0 theirs 3. Each was one line,
 reverted. `a_bent_event_parts_the_lobby` keeps a bent nation red as a test.
+The starts (item 4215): `a_bent_page_parts_the_east_indies_start` keeps two
+bends red, on the first East Indies lobby: the seed one on, and the
+difficulty one on, each part on frame 0 and still after 600 frames.
 
 ## 6. Confidence, and what is not established
 
 **Diff-backed**: that the page's events reproduce all 161 lobbies' blocks,
 line for line and field for field; that the harness lobby's start built
-from the page is run53's built start, whole, on frames 0 and 40.
+from the page is run53's built start, whole, on frames 0 and 40; that every
+lobby's start built from the page is its built start, whole, on frames 0
+and 600 (item 4215; the built start itself is scored against each lobby's
+dump by `Start:`, `docs/START.md` §5); and that the ground the client
+draws for a built start has the capture's `WORLD seed`, and its tileset
+where the capture prints the 7805 word or the style has one tileset.
 
 **What the page cannot set** (`lobby::NOT_SET`). The block prints each of
 these at the value every lobby on disk holds, so a lobby that held another
@@ -183,10 +221,14 @@ would part and be counted out. None does.
   printed meaning (every seat on disk prints `team 8` and `handicap 0`);
 - that the original prints a typed name or a leader's name exactly as
   typed: names here are ASCII, one space between words;
-- whether a lobby with a map style other than Great Lakes starts. The
-  page sets any style, but `from_lobby` composes only Great Lakes (14), and
-  the client prints the walk's notes for any other style (`docs/START.md`
-  §2). The counter scores the block, not the start;
+- ~~whether a lobby with a map style other than Great Lakes starts~~: every
+  lobby on disk starts from the page, on all 17 composed styles (item 4215,
+  §5, `LOBBY_STARTS`). A style or a lobby no capture holds is not scored;
+- the client's ground past its tileset and seed for a style other than
+  Great Lakes: the art the tileset names is loaded as Great Lakes' is, and
+  no photograph of another style's ground is compared. The camera is the
+  pair's pinned one on every game, so a page's game opens on that point of
+  its map, not on its person's capital (4215a);
 - the window session by a person: the keys are tested through `Page::key`,
   and the window's own key mapping (`App::page_key`) was not driven by
   hand.

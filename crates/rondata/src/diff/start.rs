@@ -331,6 +331,11 @@ pub struct FromLobby {
     /// city's `reg` through, as [`Built::region_map`]. Empty when the map
     /// was not composed.
     pub region_map: Vec<(i64, u16)>,
+    /// The composed map's ground, `(tileset, world->seed)`: the tileset
+    /// `Map::init_map_data` drew (`LakesMap::tileset`) and the word
+    /// `build_game` wrote to `World.seed`, which the client's ground art
+    /// reads (item 4215). `None` when the map was not composed.
+    pub ground: Option<(String, u32)>,
 }
 
 /// **`Setup::small_city_buildings@005aae10` and
@@ -978,9 +983,11 @@ pub fn from_lobby(
     let mut mountains: Vec<(i32, i32, usize)> = Vec::new();
     let mut region_map: Vec<(i64, u16)> = Vec::new();
     let mut cliff_mining: Option<Vec<Vec<(i32, i32)>>> = None;
+    let mut ground = None;
     let world = match map {
         Some((m, sea)) => {
             rng = m.draws.rng;
+            ground = Some((m.tileset.clone(), game_seed as u32));
             cliff_mining = m.cliffs.map(|c| c.mining);
             goods = m.grid.goods.clone();
             // `World.start_x/start_y` (+0x80, +0x9c): the map maker's
@@ -1309,6 +1316,7 @@ pub fn from_lobby(
         words,
         empire_words,
         region_map,
+        ground,
     }
 }
 
