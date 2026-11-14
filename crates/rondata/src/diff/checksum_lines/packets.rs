@@ -1057,7 +1057,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// run1460, run1459, run1417, run1420, run1438, run1440, run1451, run1237,
 /// run1263, run1361, run1224b, run1304) and parts on fewer on 27 more, none
 /// on more: 55 ranges fewer over 40 rows.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 446, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 451, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1208,12 +1208,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2445, 2376, 1453) -> (2445, 2376, 1450).
     // Item 4244, a mine's `mtn`: builds (2028, 2028, 5) -> (2028, 2028, 3).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (701, 701, 1) -> (701, 701, 0).
+    // Item 4257, the garrison chain's order: units (2445, 2376, 1450) -> (2445, 2376, 1439); builds (2028, 2028, 3) -> (2028, 2028, 1).
     (
         "run1001d",
         13760,
         [
-            (2445, 2376, 1450),
-            (2028, 2028, 3),
+            (2445, 2376, 1439),
+            (2028, 2028, 1),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -1241,12 +1242,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (2939, 2840, 1598) -> (2939, 2843, 1618).
     // Item 4244, a mine's `mtn`: builds (2417, 2417, 5) -> (2417, 2417, 4).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (916, 916, 5) -> (916, 916, 0).
+    // Item 4257, the garrison chain's order: units (2939, 2843, 1618) -> (2939, 2843, 1601); builds (2417, 2417, 4) -> (2417, 2417, 0).
     (
         "run1007b",
         15915,
         [
-            (2939, 2843, 1618),
-            (2417, 2417, 4),
+            (2939, 2843, 1601),
+            (2417, 2417, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1273,12 +1275,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (3219, 3054, 1858) -> (3219, 3054, 1856).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3219, 3054, 1856) -> (3219, 3054, 1854).
     // Item 4244, a mine's `mtn`: builds (2060, 2060, 5) -> (2060, 2060, 3).
+    // Item 4257, the garrison chain's order: units (3219, 3054, 1854) -> (3219, 3054, 1830); builds (2060, 2060, 3) -> (2060, 2060, 1).
     (
         "run1011b",
         13105,
         [
-            (3219, 3054, 1854),
-            (2060, 2060, 3),
+            (3219, 3054, 1830),
+            (2060, 2060, 1),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -1432,12 +1435,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4193, 4022, 3121) -> (4193, 4022, 3120).
     // Item 4244, a mine's `mtn`: builds (2371, 2371, 9) -> (2371, 2371, 7).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 2) -> (550, 550, 1).
+    // Item 4257, the garrison chain's order: builds (2371, 2371, 7) -> (2371, 2371, 4).
     (
         "run1155c",
         3003,
         [
             (4193, 4022, 3120),
-            (2371, 2371, 7),
+            (2371, 2371, 4),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -1523,12 +1527,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159's third residue: guys (1890, 1890, 2) -> (1890, 1890, 1), a newborn ship's turret at its rest (the Battleship and Cruisers at `[0, 0, 180°]`).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6004, 5962, 4706) -> (6004, 5962, 4704).
     // Item 4244, a mine's `mtn`: builds (2267, 2266, 384) -> (2267, 2266, 383).
+    // Item 4257, the garrison chain's order: builds (2267, 2266, 383) -> (2267, 2266, 382).
     (
         "run1165",
         3719,
         [
             (6004, 5962, 4704),
-            (2267, 2266, 383),
+            (2267, 2266, 382),
             (0, 0, 0),
             (287, 0, 287),
             (0, 0, 0),
@@ -1793,12 +1798,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (4271, 4271, 30) -> (4271, 4271, 25).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2735, 2735, 7) -> (2735, 2735, 0).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 1) -> (556, 556, 0).
+    // Item 4257, the garrison chain's order: builds (4271, 4271, 25) -> (4271, 4271, 24).
     (
         "run1224b",
         9745,
         [
             (11740, 10933, 10438),
-            (4271, 4271, 25),
+            (4271, 4271, 24),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -2029,12 +2035,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (3789, 3789, 23) -> (3789, 3789, 20).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2913, 2913, 5) -> (2913, 2913, 0).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 1) -> (556, 556, 0).
+    // Item 4257, the garrison chain's order: builds (3789, 3789, 20) -> (3789, 3789, 19).
     (
         "run1263",
         8362,
         [
             (11229, 10431, 9894),
-            (3789, 3789, 20),
+            (3789, 3789, 19),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
@@ -2099,12 +2106,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (3796, 3796, 26) -> (3796, 3796, 17).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (3210, 3210, 21) -> (3210, 3210, 9).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (682, 682, 10) -> (682, 682, 8).
+    // Item 4257, the garrison chain's order: builds (3796, 3796, 17) -> (3796, 3796, 14).
     (
         "run1266c",
         8700,
         [
             (11161, 11053, 7561),
-            (3796, 3796, 17),
+            (3796, 3796, 14),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -2606,12 +2614,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4512, 4341, 3401) -> (4512, 4341, 3400).
     // Item 4244, a mine's `mtn`: builds (2143, 2143, 7) -> (2143, 2143, 6).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 3) -> (556, 556, 2).
+    // Item 4257, the garrison chain's order: builds (2143, 2143, 6) -> (2143, 2143, 4).
     (
         "run1351c",
         3521,
         [
             (4512, 4341, 3400),
-            (2143, 2143, 6),
+            (2143, 2143, 4),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -2640,12 +2649,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3610, 3439, 2708) -> (3610, 3439, 2704).
     // Item 4244, a mine's `mtn`: builds (1836, 1836, 6) -> (1836, 1836, 5).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 4) -> (556, 556, 2).
+    // Item 4257, the garrison chain's order: builds (1836, 1836, 5) -> (1836, 1836, 3).
     (
         "run1355",
         2933,
         [
             (3610, 3439, 2704),
-            (1836, 1836, 5),
+            (1836, 1836, 3),
             (0, 0, 0),
             (3, 0, 3),
             (2, 0, 2),
@@ -2706,12 +2716,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6464, 6044, 5583) -> (6464, 6137, 5632).
     // Item 4244, a mine's `mtn`: builds (2974, 2974, 33) -> (2974, 2974, 31).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6464, 6137, 5632) -> (6464, 6137, 5631); guys (1584, 1584, 4) -> (1584, 1584, 3).
+    // Item 4257, the garrison chain's order: builds (2974, 2974, 31) -> (2974, 2974, 29).
     (
         "run1359",
         5619,
         [
             (6464, 6137, 5631),
-            (2974, 2974, 31),
+            (2974, 2974, 29),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2877,12 +2888,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (5014, 4753, 4000) -> (5014, 4759, 4044).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (5014, 4759, 4044) -> (5014, 4759, 4043).
     // Item 4244, a mine's `mtn`: builds (2015, 2015, 7) -> (2015, 2015, 6).
+    // Item 4257, the garrison chain's order: builds (2015, 2015, 6) -> (2015, 2015, 3).
     (
         "run1382",
         3228,
         [
             (5014, 4759, 4043),
-            (2015, 2015, 6),
+            (2015, 2015, 3),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3040,12 +3052,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4518, 4326, 3481) -> (4518, 4326, 3480).
     // Item 4244, a mine's `mtn`: builds (2321, 2321, 9) -> (2321, 2321, 8).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (544, 544, 1) -> (544, 544, 0).
+    // Item 4257, the garrison chain's order: builds (2321, 2321, 8) -> (2321, 2321, 6).
     (
         "run1417",
         4016,
         [
             (4518, 4326, 3480),
-            (2321, 2321, 8),
+            (2321, 2321, 6),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3074,12 +3087,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4406, 4196, 3407) -> (4406, 4196, 3404).
     // Item 4244, a mine's `mtn`: builds (2033, 2033, 6) -> (2033, 2033, 5).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (544, 544, 2) -> (544, 544, 1).
+    // Item 4257, the garrison chain's order: builds (2033, 2033, 5) -> (2033, 2033, 4).
     (
         "run1419b",
         3212,
         [
             (4406, 4196, 3404),
-            (2033, 2033, 5),
+            (2033, 2033, 4),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3141,12 +3155,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4129, 3928, 3112) -> (4129, 3928, 3110).
     // Item 4244, a mine's `mtn`: builds (2025, 2025, 5) -> (2025, 2025, 4).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 3) -> (550, 550, 2).
+    // Item 4257, the garrison chain's order: builds (2025, 2025, 4) -> (2025, 2025, 3).
     (
         "run1424",
         3156,
         [
             (4129, 3928, 3110),
-            (2025, 2025, 4),
+            (2025, 2025, 3),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3561,12 +3576,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (5026, 4936, 4629) -> (5026, 4939, 4500).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (5026, 4939, 4500) -> (5026, 4939, 4499).
     // Item 4244, a mine's `mtn`: builds (2180, 2180, 30) -> (2180, 2180, 29).
+    // Item 4257, the garrison chain's order: builds (2180, 2180, 29) -> (2180, 2180, 27).
     (
         "run1496",
         1539,
         [
             (5026, 4939, 4499),
-            (2180, 2180, 29),
+            (2180, 2180, 27),
             (0, 0, 0),
             (230, 0, 230),
             (2, 0, 2),
@@ -3799,12 +3815,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (9526, 9363, 8551) -> (9526, 9387, 8667).
     // Item 4234, a cast's three ranges walked: units (9526, 9387, 8667) -> (9526, 9396, 8822).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (9526, 9396, 8822) -> (9526, 9402, 8740).
+    // Item 4257, the garrison chain's order: builds (2384, 2381, 1400) -> (2384, 2381, 1399).
     (
         "run810",
         3631,
         [
             (9526, 9402, 8740),
-            (2384, 2381, 1400),
+            (2384, 2381, 1399),
             (0, 0, 0),
             (156, 0, 156),
             (0, 0, 0),
@@ -3952,12 +3969,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (5770, 5593, 4579) -> (5770, 5602, 4804).
     // Item 4234, a cast's three ranges walked: units (5770, 5602, 4804) -> (5770, 5605, 4899).
     // Item 4244, a mine's `mtn`: builds (2095, 2095, 15) -> (2095, 2095, 13).
+    // Item 4257, the garrison chain's order: builds (2095, 2095, 13) -> (2095, 2095, 11).
     (
         "run854",
         3301,
         [
             (5770, 5605, 4899),
-            (2095, 2095, 13),
+            (2095, 2095, 11),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4140,12 +4158,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1508, 1508, 5) -> (1508, 1508, 2).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (1352, 1352, 5) -> (1352, 1352, 3).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 5) -> (568, 568, 4).
+    // Item 4257, the garrison chain's order: units (4112, 4091, 2835) -> (4112, 4091, 2823); builds (1508, 1508, 2) -> (1508, 1508, 0).
     (
         "run912e",
         12753,
         [
-            (4112, 4091, 2835),
-            (1508, 1508, 2),
+            (4112, 4091, 2823),
+            (1508, 1508, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4194,12 +4213,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (2726, 2657, 1897) -> (2726, 2657, 1896).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2726, 2657, 1896) -> (2726, 2657, 1895).
     // Item 4244, a mine's `mtn`: builds (1580, 1580, 4) -> (1580, 1580, 2).
+    // Item 4257, the garrison chain's order: builds (1580, 1580, 2) -> (1580, 1580, 0).
     (
         "run943c",
         10674,
         [
             (2726, 2657, 1895),
-            (1580, 1580, 2),
+            (1580, 1580, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4321,12 +4341,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1832, 1832, 4) -> (1832, 1832, 2).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (4466, 4397, 3128) -> (4466, 4397, 3114); guys (1514, 1514, 14) -> (1514, 1514, 0).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (562, 562, 5) -> (562, 562, 4).
+    // Item 4257, the garrison chain's order: units (4466, 4397, 3114) -> (4466, 4397, 3090); builds (1832, 1832, 2) -> (1832, 1832, 0).
     (
         "run959",
         18368,
         [
-            (4466, 4397, 3114),
-            (1832, 1832, 2),
+            (4466, 4397, 3090),
+            (1832, 1832, 0),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
@@ -4353,12 +4374,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (3135, 2958, 2399) -> (3135, 2970, 1737).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (3135, 2970, 1737) -> (3135, 2970, 1734).
     // Item 4244, a mine's `mtn`: builds (2052, 2052, 5) -> (2052, 2052, 3).
+    // Item 4257, the garrison chain's order: units (3135, 2970, 1734) -> (3135, 2970, 1716); builds (2052, 2052, 3) -> (2052, 2052, 1).
     (
         "run973g",
         12286,
         [
-            (3135, 2970, 1734),
-            (2052, 2052, 3),
+            (3135, 2970, 1716),
+            (2052, 2052, 1),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -4449,12 +4471,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3289, 3112, 2188) -> (3289, 3112, 2186).
     // Item 4244, a mine's `mtn`: builds (2783, 2783, 7) -> (2783, 2783, 4).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (1012, 1012, 1) -> (1012, 1012, 0).
+    // Item 4257, the garrison chain's order: units (3289, 3112, 2186) -> (3289, 3112, 2173); builds (2783, 2783, 4) -> (2783, 2783, 2).
     (
         "run985b",
         16762,
         [
-            (3289, 3112, 2186),
-            (2783, 2783, 4),
+            (3289, 3112, 2173),
+            (2783, 2783, 2),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4484,12 +4507,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3178, 3010, 2143) -> (3178, 3010, 2142).
     // Item 4244, a mine's `mtn`: builds (2006, 2006, 4) -> (2006, 2006, 2).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (961, 961, 4) -> (961, 961, 0).
+    // Item 4257, the garrison chain's order: units (3178, 3010, 2142) -> (3178, 3010, 2130); builds (2006, 2006, 2) -> (2006, 2006, 0).
     (
         "run991d",
         15256,
         [
-            (3178, 3010, 2142),
-            (2006, 2006, 2),
+            (3178, 3010, 2130),
+            (2006, 2006, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),

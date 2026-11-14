@@ -231,15 +231,13 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         // Item 4257 took units and builds here: the garrison chain's order
         // in the University 1/2018 (record 30 `inside_down` -1|42, the
         // building's 42|30), whole since; item 4255 took groups.
-        &[
-            (
-                "leaders",
-                271,
-                271,
-                3,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|30010000",
-            ),
-        ],
+        &[(
+            "leaders",
+            271,
+            271,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|30010000",
+        )],
     ),
     (
         9810,
