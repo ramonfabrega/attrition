@@ -464,8 +464,10 @@ pub struct Guy {
     /// `last_angle` (`+0x1c`), which `Guy::move@005d9240:44–50` copies
     /// from `x`/`y` and `angle` at its head, before anything in it moves
     /// or turns the figure (`docs/CHECKSUM.md` §16). Written at the head of
-    /// [`Sim::process_movement_on`] for every figure the frame walks; read
-    /// only by the guys line. `None` until the first walk, which the line
+    /// [`Sim::process_movement_on`] for every figure the frame walks, and by
+    /// an age's seating ([`Sim::age_snap_units`], `Guy::set_new_location(…,
+    /// 1)` writing the point, item 4238); read only by the units and guys
+    /// lines. `None` until the first walk, which the line
     /// takes as the figure's own point and facing — `Unit::init`'s seating
     /// (`Guy::set_new_location(…, 1)`, `005d86f0:66`) writes `last` equal
     /// to the point.

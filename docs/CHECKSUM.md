@@ -2400,10 +2400,10 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
-| units | 3596 | 2047504409 | 1981448857 | 0 |
+| units | 6907 | 1535573329 | 1253377436 | 0 |
 | builds | 7383 | 1242831600 | 4226882033 | 0 |
 | groups | 6781 | 3029922239 | 2663182868 | 0 |
-| guys | 6537 | 2410482783 | 3433827539 | 0 |
+| guys | 7273 | 3102114080 | 2138275448 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
 | cities | whole, 24,000 | | | 0 |
 | items | whole, 24,000 | | | 0 |
@@ -2512,6 +2512,21 @@ test), `add_trade_order@005e4dc0:29` and `end_trade_route@005e3bd0:18` clear it,
 census does not move**: the units triple moved on 36 packets for the cast and 25 for the bit, none to whole or from it
 (`docs/journal/2026-11-14-item-4234.md`).
 
+**Item 4238 moved two, with one rule.** Units 6537 → 6907 and guys 6537 → 7273, none of 0..299 parted. On 6537
+(run1591) both lines part on the same six figure records: `1/0` (Scout, TI 69, two figures), `1/12` (Citizen, TI 50)
+and `1/14` (Caravan, TI 59, three), every one walking on tick 6536. `last_x`/`last_y` part, and `last_z` on the last
+two. Ours is one step behind the figure's point, theirs is on it: range 187 `last_x` 7824, 7848, `last_y` 21648,
+21672. Tick 6536 is player 1's age (`cover=1`: `Leader::gain_tech`'s notice arm, `Units::operator[]` first entered
+there). **The direction**: the original acted. `gain_tech@006dcb60:2376` seats every unit of the leader where it
+stands, through `Unit::set_new_location(u, x, y, 1, 1)`, and its `param_3` hands each figure to
+`Guy::set_new_location(…, 1)` (`:66–70`), which copies the point into `last_x`/`last_y`/`last_z`; `param_4`'s
+`Guy::set_angle(…, 1)` writes `last_angle`. The crate's `Sim::age_snap_units` took the facing and the bodies and left
+`last` out. run86's test had shown the same on the original's dump (all 22 figures placed on its age block 6937),
+but it read theirs only. Value diff on 6537: the original's `last` on all six, and both lines whole. **Step P's
+census, 421 → 422** (`PACKETS_SCORE`): the guys line agrees on run1236 (33 ranges parting → 0) and parts on fewer on
+run1238c (7 → 1) and run1264b (20 → 12); the units line parts on fewer on run1236 (149 → 116) and run1238c (4079 →
+4073). Nothing else moved.
+
 ## 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
@@ -2529,6 +2544,7 @@ line's field reader where it has one:
 | groups | 2746 | 1588 | group record 65: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34; whole since item 4231 |
 | units | 3596 | 1590 | record 16's `CastOrder`: three ranges theirs walks, ours not (1,437 against 1,440); whole since item 4234 |
 | units | 4030 | 1585 | record 14 `unit_masks`: 262152, 262664 (bit 0x200); 1 of 1,507 ranges; whole since item 4234 |
+| units, guys | 6537 | 1591 | `1/0` figure 0 `last_x` 7824, 7848, `last_y` 21648, 21672; six figure records on each line (6 of 1,546, 6 of 511); whole since item 4238 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02; whole since item 4229 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2; whole since item 4229 |
 | leaders | 1 to 4030 | all | leader 0's long range at +0x10: ours 0 on every packet, theirs 0xc7 on 1 and 0x105 on 4030 (§20; item 4159) |
@@ -2561,8 +2577,12 @@ Not established:
   whole since item 4228 (4226a closed). ~~Guys on 6537 and units on 3166: no packet stands on either (4226b).~~
   Units on 3166: run1587, whole since item 4230. ~~Guys on 6537 and units on 3596: no packet stands on either.~~
   Groups on 2746: run1588, whole since item 4231. ~~Units on 3596, guys on 6537 and groups on 6781: no packet stands on
-  any of them.~~ Units on 3596: run1590, whole since item 4234. Units and guys on 6537 and groups on 6781: no packet
-  stands on any of them.
+  any of them.~~ Units on 3596: run1590, whole since item 4234. ~~Units and guys on 6537 and groups on 6781: no
+  packet stands on any of them.~~ Units and guys on 6537: run1591, whole since item 4238. Units on 6907, groups on
+  6781 and guys on 7273: no packet stands on any of them.
+- An aircraft's figure 0 under the age's seating: `Guy::set_new_location`'s air arm climbs `z` toward the ground
+  plus 1000, at most 30 a call, before `last_z` takes it. `Sim::age_snap_units` leaves `airframe` alone (item 4238);
+  no packet holds an airborne aircraft on an age tick.
 - The leader's `+0x68 & 0x100` carry across a `QUEUE_FIRST` move's halt, which `get_num_cap`'s answer gates
   (`704ec1`–`704eea`): the crate keeps no such bit (item 4231).
 - ~~Whether 3246's `1/14` `path.size` (ours 50, theirs 64) is `Unit::do_trade@005ed270:501`'s

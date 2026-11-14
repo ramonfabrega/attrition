@@ -208,6 +208,17 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// `add_trade_order` and `end_trade_route`). Value diff on 4030 (run1585):
 /// record 14 (`1/14`, the caravan) `unit_masks` ours 262152, theirs 262664
 /// → 262664 on both, the line whole.
+///
+/// Item 4238 moved two on run1578: units 6537 → 6907 and guys 6537 → 7273,
+/// one rule, the age's seating (`Leader::gain_tech@006dcb60:2376`'s
+/// `Unit::set_new_location(u, x, y, 1, 1)`) writing every figure's `last`
+/// through `Guy::set_new_location(…, 1)`. Value diff on 6537 (run1591):
+/// the same six figure records on both lines — `1/0` (Scout, TI 69, two
+/// figures), `1/12` (Citizen, TI 50), `1/14` (Caravan, TI 59, three) —
+/// walking on player 1's age tick 6536; range 187 (guys 58) `last_x` ours
+/// 7824, theirs 7848, `last_y` 21648|21672; `1/12` 36584|36607,
+/// 23806|23798, `last_z` 339|341; `1/14` 39056|39074, 18478|18460, 44|45
+/// → the original's on all six, both lines whole.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -229,10 +240,10 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 6537, 0),
+            ("units", 6907, 0),
             ("builds", 7383, 0),
             ("groups", 6781, 0),
-            ("guys", 6537, 0),
+            ("guys", 7273, 0),
             ("leaders", 0, 300),
             ("cities", 24000, 0),
             ("items", 24000, 0),
@@ -503,6 +514,25 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             2,
             "1 0 who..ally_mask: +0x11 of 26914|26914: 00000000|01000000",
+        )],
+    ),
+    (
+        "run1591",
+        "rontrace-run1591.log",
+        6537,
+        // Item 4238: units and guys whole; before it, units 6 of 1546
+        // ranges from 187, guys 6 of 511 from 58 — the same six figure
+        // records on both lines (`1/0` Scout TI 69 ×2, `1/12` Citizen TI 50,
+        // `1/14` Caravan TI 59 ×3), `last_x`/`last_y` (and `last_z` on the
+        // last two) one step behind: range 187 `last_x` 7824|7848, `last_y`
+        // 21648|21672. Player 1's age on tick 6536: `gain_tech:2376`'s
+        // seating writes every figure's `last`.
+        &[(
+            "leaders",
+            267,
+            267,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|1e010000",
         )],
     ),
     (

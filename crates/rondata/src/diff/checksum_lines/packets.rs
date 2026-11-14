@@ -1022,7 +1022,11 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// line parts on one more range on four, run1484, run1487, run1496 and
 /// run839, each a walk whose units line already parts on most of its
 /// ranges (a named regression, `docs/journal/2026-11-14-item-4229.md`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 421, 1053);
+/// **422** at item 4238, an age's seating writing each figure's `last`:
+/// the guys line agrees on run1236 (2070 ranges, 33 parting → 0), and
+/// parts on fewer on run1238c (7 → 1) and run1264b (20 → 12); the units
+/// line parts on fewer on run1236 (149 → 116) and run1238c (4079 → 4073).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 422, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1767,17 +1771,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (6610, 6595, 4954) -> (6610, 6607, 3799).
     // Item 4234, a cast's three ranges walked: units (6610, 6607, 3799) -> (6610, 6610, 152).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (6610, 6610, 152) -> (6610, 6610, 149).
+    // Item 4238, the age's seating writes each figure's `last`: units (6610, 6610, 149) -> (6610, 6610, 116); guys (2070, 2070, 33) -> (2070, 2070, 0).
     (
         "run1236",
         4179,
         [
-            (6610, 6610, 149),
+            (6610, 6610, 116),
             (1762, 1762, 5),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (658, 658, 4),
-            (2070, 2070, 33),
+            (2070, 2070, 0),
             (271, 271, 4),
             (44, 44, 0),
             (15, 15, 0),
@@ -1828,17 +1833,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (49, 49, 1) -> (49, 49, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6417, 6387, 4737) -> (6417, 6402, 4082).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (6417, 6402, 4082) -> (6417, 6402, 4079).
+    // Item 4238, the age's seating writes each figure's `last`: units (6417, 6402, 4079) -> (6417, 6402, 4073); guys (2151, 2151, 7) -> (2151, 2151, 1).
     (
         "run1238c",
         5021,
         [
-            (6417, 6402, 4079),
+            (6417, 6402, 4073),
             (2494, 2494, 8),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (646, 646, 4),
-            (2151, 2151, 7),
+            (2151, 2151, 1),
             (271, 271, 4),
             (49, 49, 0),
             (10, 10, 0),
@@ -1950,6 +1956,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (43, 43, 4) -> (43, 43, 0), goods (330, 330, 1) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6468, 6369, 5344) -> (6468, 6384, 5412).
     // Item 4234, a cast's three ranges walked: units (6468, 6384, 5412) -> (6468, 6387, 5338).
+    // Item 4238, the age's seating writes each figure's `last`: guys (1895, 1895, 20) -> (1895, 1895, 12).
     (
         "run1264b",
         4919,
@@ -1960,7 +1967,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (3, 0, 3),
             (2, 0, 2),
             (586, 586, 7),
-            (1895, 1895, 20),
+            (1895, 1895, 12),
             (271, 271, 3),
             (43, 43, 0),
             (15, 15, 0),
