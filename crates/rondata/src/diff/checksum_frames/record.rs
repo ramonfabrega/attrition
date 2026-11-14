@@ -243,6 +243,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     ),
     (
         8206,
+        // Item 4255: groups whole; before it, 1 of 544 ranges from 91,
+        // record 67 `ox`/`oy` 30552/21144 ours, 0/0 theirs (here and on
+        // 8281): `equals_group`'s `get_num` on an emptied last slot.
         &[
             (
                 "units",
@@ -250,13 +253,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 1937,
                 1,
                 "878 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
-            (
-                "groups",
-                544,
-                544,
-                1,
-                "91 67 id..march: ox 30552|0, oy 21144|0",
             ),
             (
                 "guys",
@@ -292,13 +288,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 "856 2018 myhits..launch_frames: inside_down 42|30",
             ),
             (
-                "groups",
-                544,
-                544,
-                1,
-                "91 67 id..march: ox 30552|0, oy 21144|0",
-            ),
-            (
                 "guys",
                 644,
                 644,
@@ -311,6 +300,49 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 271,
                 3,
                 "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|30010000",
+            ),
+        ],
+    ),
+    (
+        9810,
+        // Item 4255: groups' next first parting, record 64 (army 1/1, 21
+        // members, the same list on both sides) `role` 0x150c00 ours,
+        // 0x150c03 theirs.
+        &[
+            (
+                "units",
+                2330,
+                2330,
+                19,
+                "913 30 myhits..launch_frames: inside_down -1|42",
+            ),
+            (
+                "builds",
+                1142,
+                1142,
+                1,
+                "856 2018 myhits..launch_frames: inside_down 54|30",
+            ),
+            (
+                "groups",
+                550,
+                550,
+                1,
+                "76 64 id..march: role 1379328|1379331",
+            ),
+            (
+                "guys",
+                758,
+                758,
+                7,
+                "279 30 guy: angle 1431655765|0, last_angle 1431655765|0",
+            ),
+            (
+                "leaders",
+                271,
+                271,
+                2,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|3e010000",
             ),
         ],
     ),

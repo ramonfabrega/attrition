@@ -1246,6 +1246,48 @@ fn the_slot_scan_calls_get_num_on_every_slot_it_reaches() {
     );
 }
 
+/// **A push zeroes the origin of an emptied last slot** (item 4255,
+/// `docs/GROUPS.md` §36.3): `Group::equals_group@00708000` calls vslot
+/// `+0x4`, `Group::get_num`, on `last_group`'s record after normalizing it,
+/// and an empty record's `num < 1` arm zeroes `ox`/`oy`. The minted game's
+/// slot 67, emptied of `1/39..1/41` after its move on 8171, reads 30552/21144
+/// on run1597's 8205 and 0/0 on 8206, where player 1 pushes into slot 65.
+#[test]
+fn a_push_zeroes_the_origin_of_an_emptied_last_slot() {
+    let mut s = sim();
+    let t = fighter(&mut s);
+    let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+    let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+    let mut first = group_of(1, &[a, b]);
+    assert!(s.push_group(&mut first, true));
+    let slot = first.pushed.expect("seated");
+    let pool = s.orders.pushed[slot].state.pool.expect("a pool slot");
+    assert_eq!(s.orders.last_group[1], pool, "the push is the last group");
+    s.orders.pushed[slot].state.o = Pos::new(30552, 21144);
+    // Its members leave it: the record keeps its origin until asked.
+    s.orders.pushed[slot].list.clear();
+    let c = spawn(&mut s, 1, t, Pos::new(0x2000, 0x1000));
+    let d = spawn(&mut s, 1, t, Pos::new(0x2100, 0x1000));
+    let mut second = group_of(1, &[c, d]);
+    assert!(s.push_group(&mut second, false));
+    let at = |s: &Sim| {
+        s.orders
+            .pushed
+            .iter()
+            .find(|x| x.who == 1 && x.state.pool == Some(pool))
+            .map(|x| x.state.o)
+    };
+    assert_ne!(
+        second.pushed.and_then(|i| s.orders.pushed[i].state.pool),
+        Some(pool)
+    );
+    assert_eq!(
+        at(&s),
+        Some(Pos::new(0, 0)),
+        "equals_group's get_num zeroed it"
+    );
+}
+
 /// **A `QUEUE_FIRST` move normalizes its record** (item 4231): the arm asks
 /// `this` for `get_num_cap` between `set_up_insert` and `action_halt`
 /// (`action_move_near@00704990`, `704ebe`), and on a record with an `id`
