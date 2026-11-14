@@ -77,8 +77,10 @@ checkable; then breadth — the other lobbies' start blocks, M on more
 lobbies, the census filler — as filler for an idle worker. The rules track
 is whole and stays whole: its floors run on every gate forever.
 
-**The workers** (entries 116, 126, 128 §4, 129 §1): the driver's builders on
-the chain and three lanes, four in all, confirmed at the pass by load. At
+**The workers** (entries 116, 126, 128 §4, 129 §1, 134 §2): three gating
+seats since 2026-11-14, on a day's budget of about fourteen points: two
+lanes on parity and one on render, and the driver's builders on the chain
+when a seat is idle. At
 most one lane holds an item the queue marks whole. No lane gates whole but
 a `structure` lane since entry 132 §6: a lane's gate runs its brief's
 filters and the booking gate, scoped, runs the corpus. The count is

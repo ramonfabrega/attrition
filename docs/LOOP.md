@@ -129,7 +129,11 @@ another model takes that model's own default effort, not the driver's.
 that falls with no named regression and is pushed — on it the chain goes
 to an Opus lane under the frame, and Ramon is told at once. **The stop:
 99 % of the weekly window since 2026-11-13 (95 % from 2026-11-11, 85 % before), Ramon's to move
-at will by a word on this row.** At or past it the driver cuts no builder and refills no lane; what
+at will by a word on this row.** **The day's budget: about fourteen points of the week a day,
+since 2026-11-14 (Ramon, DECISIONS 134 §1).** The driver reads the week at each booking; when it reads
+more than fourteen times the days begun since the reset, the driver is ahead of the day's line and
+drains and banks as at the stop, until the next day begins. **Fable's week stops at 90 %** (the same
+entry): at it the steer row starts no pass, and one in flight writes its record and hands back. At or past the stop the driver cuts no builder and refills no lane; what
 is in flight finishes and is booked; the driver banks and ends its turn
 with a report. Inside three points of it nothing is cut that cannot be
 booked before it. The wall is never met mid-work: it kills every agent in

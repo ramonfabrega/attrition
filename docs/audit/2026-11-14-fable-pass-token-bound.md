@@ -36,6 +36,10 @@ item) and the worker count, open since the week reset. Decisions in entry
   rewritten to today's; five guards built (below); the render lane's next
   three items are what the pass saw, not what the lanes parked.
 - The pass moved no score.
+- **Your answers, taken on the row:** fourteen points a day and three gating
+  seats; a stop on Fable's week, set at 90 %; the second reading narrowed in
+  `CLAUDE.md`; the loop's 45 merged branches deleted on origin (the seven
+  merged `codex/*` ones stand). Open: the three `CLAUDE.md` rows, `AGENTS.md`.
 
 ## What was measured
 

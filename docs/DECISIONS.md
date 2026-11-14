@@ -13084,10 +13084,12 @@ about 210 landings whatever the worker count. Entry 133 found the loop
 bound by test CPU; that held while the week had points to spare. So a pass
 reports **points a landing** beside landings an hour, and a lane's cost is
 what a tranche is judged on: 4.00 to 16.73 USD a lane here, the six past
-300 k of context the dearest (4239 at 422 k, 16.73). **What is Ramon's and
-is not decided here:** a day's budget in points and the worker count. The
-pass recommends about fourteen points a day and three gating seats; the
-roster stands as entry 129 §1 left it until he moves it.
+300 k of context the dearest (4239 at 422 k, 16.73). **Decided by Ramon on the row, after the record:** "lets go with your
+rec, and aim at 14 points a day. we'll adjust as we keep adjusting/improving
+loop". So the day's budget is about fourteen points, read at each booking,
+and a driver ahead of the day's line drains (`docs/LOOP.md`, the stop); the
+seats are three gating ones (§2); the models on the rows are unchanged.
+**Fable's week stops at 90 %**, his "yes" to a stop on both, to be felt out.
 
 **§2. The lanes follow parity on two seats and the eye on one.** Parity's
 four open lines are four chains, and a fix on one has moved another twice
@@ -13136,8 +13138,11 @@ the only record of a lane's gate).
 The tranche took none and needed none: each parity fix was settled by a
 packet and the original's own function run on it, and each render fix by a
 row. `CLAUDE.md` asks a blind second reading of every reading-only claim.
-The pass does not narrow that rule, which is Ramon's file; it records that
-under §1 a fan-out is a spend to be named with its score, and asks him.
+Ramon, asked: narrow it "to where a score rests on reading if you think it
+makes sense". The pass thinks it does, and `CLAUDE.md` now reads so: a
+reading-only claim a score rests on gets the second reading; the rest stay
+listed in their document's coverage section as one reading until a diff
+reaches them. A fan-out is a spend named with its score.
 
 **§7. The render lane's next three are what the eye found.** The lanes' own
 parked next words were the fire's and the surf's details (4241a, 4239a,
@@ -13157,7 +13162,7 @@ stop has no number for Fable's week: both Ramon's, in the record.
 said `lore`'s repository had no Fable 5.2 rate; it has, since its landing of
 2026-11-14.
 
-**Not decided.** The day's budget and the count (§1), the narrowing of the
-second-reading rule (§6), a stop for Fable's week, `AGENTS.md`, three
-`CLAUDE.md` rows carried from entry 133, and the delete of 52 merged
-branches on origin.
+**Not decided.** `AGENTS.md`, and three `CLAUDE.md` rows carried from entry
+133. **Done on Ramon's word:** the loop's 45 merged branches on origin are
+deleted; the seven merged `codex/*` branches stand, since Codex may take a
+turn.

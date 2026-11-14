@@ -267,12 +267,13 @@ The clauses these were distilled from, each with the case that taught it,
 are `docs/METHOD.md`. A residue, chapter, coverage, reading or sweep item
 reads that file before its first probe.
 
-**Every reading-only claim gets a blind second reading before it is called
-done.** A claim a diff against the original's dump has confirmed needs no
-reader — the dump is the stronger oracle, and it keeps checking on every
-commit — so each document's coverage section says which of its claims are
-diff-backed and which rest on a reading alone, and the readers are briefed
-with the second list. For those: one
+**A reading-only claim a score rests on gets a blind second reading before
+it is called done.** A claim a diff against the original's dump has confirmed
+needs no reader — the dump is the stronger oracle, and it keeps checking on
+every commit — so each document's coverage section says which of its claims
+are diff-backed and which rest on a reading alone, and the readers are briefed
+with those of the second list a score rests on; the rest stay listed as one
+reading until a diff reaches them (`docs/DECISIONS.md` entry 134). For those: one
 reader writes the document from the decompile; a second, who has not seen the
 document or the implementation, re-derives the same mechanic from the same
 export and writes a report; a third adjudicates every disagreement back to the
