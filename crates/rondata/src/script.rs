@@ -455,6 +455,37 @@ pub const GATHER_AT: Pos = Pos { x: 4306, y: 31001 };
 /// The frame the capital's Citizen is queued on.
 pub const GATHER_TRAIN_FRAME: i32 = 6708;
 
+/// **The chatted script** (item 4250, `docs/CLIENT_INPUT.md` §12): the
+/// gathered script and one line more, typed into the entry line and sent
+/// on [`CHAT_FRAME`]: `chat(bits, taunt −1, taunt_num 0, CHAT_TEXT)`, the
+/// plain box's default arm (`LeaderOut::issue_chat@006d2c50`) in a game of
+/// two nations, each seated and live, so `bits` names both, [`CHAT_BITS`].
+/// The package carries the chat alone, as every recorded chat's does. The
+/// client's `minted_chatted_at_the_opening_camera` mints these field for
+/// field.
+pub fn chatted() -> Vec<Order> {
+    let mut orders = gathered();
+    orders.push((
+        CHAT_FRAME,
+        0,
+        vec![Command::Chat {
+            bits: CHAT_BITS,
+            taunt: -1,
+            taunt_num: 0,
+            text: CHAT_TEXT.to_string(),
+        }],
+    ));
+    orders
+}
+
+/// The frame the chat is consumed on, two after [`GATHER_TRAIN_FRAME`].
+pub const CHAT_FRAME: i32 = 6710;
+/// The line typed: no digit first (no taunt), no targeting character, not
+/// the cheat prefix.
+pub const CHAT_TEXT: &str = "good luck";
+/// The recipients: slot 0 itself and slot 1.
+pub const CHAT_BITS: i32 = 0b11;
+
 /// slot 0's Library, `0/2005` (`TypeIndex` 435).
 pub const LIBRARY_OBJECT: i16 = 2005;
 /// The Art of War's `TypeIndex`: `BASE_TECHTYPES` (0x220) plus its record,

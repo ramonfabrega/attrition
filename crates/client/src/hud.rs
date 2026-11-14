@@ -32,6 +32,12 @@
 //!   figures circled on the ground at the original's radius, a selected
 //!   building's footprint outlined, in the owner's colour ([`rings`]).
 //!
+//! - **The entry line** (item 4250, `docs/CLIENT_INPUT.md` §12): Return
+//!   opens it over the menu's row, it shows what is typed after `SAY:`,
+//!   and Return sends it, as the original's chat box does
+//!   ([`crate::input::Input::chat`]); Escape closes it. Drawn only while
+//!   open ([`line_rect`]).
+//!
 //! Where the buttons stand is ours, anchored to the window's bottom-left
 //! corner, and pinned as pixels at the scripts' 1920×1080 by the tests.
 //! The HUD is drawn in a window, and under `--still` only with `--select`;
@@ -474,6 +480,25 @@ pub fn rings(input: &Input, scene: &Scene, names: &Names) -> Vec<Ring> {
     out
 }
 
+/// The entry line's text as drawn: `SAY: `, what it holds, and a cursor.
+pub fn line_text(line: &str) -> String {
+    format!("SAY: {line}_")
+}
+
+/// **Where the entry line stands** on a `size` window: one row above the
+/// menu's, from the left margin, as wide as the panel at least and as its
+/// text needs.
+pub fn line_rect(text: &str, size: (i32, i32)) -> Rect {
+    let w = (text.chars().count() as i32 * overlay::advance(SCALE) + 4 * SCALE).max(PANEL_WIDTH);
+    let h = overlay::line_height(SCALE) + 4 * SCALE;
+    Rect {
+        x: MARGIN,
+        y: size.1 - 2 * MARGIN - BUTTON.1 - h,
+        w,
+        h,
+    }
+}
+
 /// The button's label: its key, then the type's name.
 pub fn label(b: &Button, names: &Names) -> String {
     format!("{} {}", b.key, names.of_type_index(b.ty))
@@ -524,6 +549,13 @@ pub fn paint(
                 overlay::INK,
             );
         }
+    }
+    if let Some(line) = &input.line {
+        let text = line_text(line);
+        let r = line_rect(&text, size);
+        p.rect(r.x, r.y, r.w, r.h, overlay::PANEL);
+        p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
+        p.text(r.x + 2 * SCALE, r.y + 2 * SCALE, &text, SCALE, overlay::INK);
     }
     for b in menu(input, size) {
         let r = b.rect;

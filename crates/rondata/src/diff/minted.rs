@@ -2643,3 +2643,157 @@ const FOLLOWED_AGAINST_GATHERED: (i64, &str, &str, Option<i64>, usize) = (
     Some(6813),
     293,
 );
+
+/// The chatted file's gzip length (item 4250).
+/// Seen red first: pinned 0, it printed 59,491.
+const CHATTED_RCX_BYTES: usize = 59_491;
+
+/// **The chatted script, minted** (item 4250, `docs/CLIENT_INPUT.md`
+/// §12): the gathered file and one package more, the typed line on
+/// [`crate::script::CHAT_FRAME`]; it round-trips through the file. With
+/// `RON_RCX_OUT=<file>` it writes the `.rcx` the playback takes open.
+#[test]
+fn the_chatted_minted_packages_round_trip() {
+    use crate::script::{CHAT_FRAME, chatted, gathered};
+    let (Some(rec), Some(first)) = (minted(&chatted()), minted(&gathered())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "chatted").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in chatted().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<i32> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| p.frame)
+        .collect();
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (17, 16));
+    assert_eq!(
+        added,
+        vec![CHAT_FRAME, last.frame],
+        "the packages the gathered file does not hold"
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    eprintln!("CHATTED RCX {} bytes", gz.len());
+    assert_eq!(gz.len(), CHATTED_RCX_BYTES, "CHATTED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The chatted file's playback (`docs/RUNS.md` run1599): `(take, trace,
+/// frames agreeing, frames walked, records, parted)`. Pinned from our walk
+/// against run1598 before run1599 was read: the chat moves no record.
+pub(crate) const CHATTED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1599-greatlakes-playback-of-chatted-7000.txt",
+    "rontrace-run1599.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// The functions a chat runs on the original's side
+/// (`CommandPackage::process_chat` and what it calls for each recipient),
+/// by entry address.
+const CHAT_FUNCTIONS: [(u32, &str); 5] = [
+    (0x0094_54f0, "CommandPackage::process_chat"),
+    (0x006b_8ab0, "Leader::receive_chat"),
+    (0x006d_3320, "LeaderOut::display_chat"),
+    (0x006b_8bf0, "Leader::receive_taunt"),
+    (0x0098_0cf0, "Taunts::play"),
+];
+
+/// Each take's first entry into [`CHAT_FUNCTIONS`], in sim-frames, pinned
+/// before run1599 was read: run1598 enters none; run1599 runs the chat on
+/// 6709, the tick that consumes [`crate::script::CHAT_FRAME`]'s package
+/// (run1598's rally point, on 6706, is first entered on 6705), and never
+/// the taunt's two, `taunt` −1 and `taunt_num` 0. Seen red first: run1599
+/// pinned as run1598's.
+const CHAT_ENTRIES: &[(&str, [Option<i64>; 5])] = &[
+    ("rontrace-run1598.log", [None; 5]),
+    (
+        "rontrace-run1599.log",
+        [Some(6709), Some(6709), Some(6709), None, None],
+    ),
+];
+
+/// **The original plays the chatted file in lockstep** (item 4250): the
+/// built start walked under the pump against run1599, every frame's draws
+/// against its trace and every record of its window whole
+/// ([`CHATTED_WALKED`]); and the chat's own effect on the original's
+/// side, the functions it enters ([`CHAT_ENTRIES`]), against run1598's.
+#[test]
+fn the_original_s_playback_of_the_chatted_file_walks_in_lockstep() {
+    let chatted = crate::script::chatted();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in CHATTED_WALKED {
+        let Some((w, _)) = walk_minted(&chatted, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "CHATTED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let mut entries = Vec::new();
+    for &(take_trace, _) in CHAT_ENTRIES {
+        let tr = trace(take_trace).expect("the take's trace");
+        let first = CHAT_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+        for ((_, name), f) in CHAT_FUNCTIONS.iter().zip(&first) {
+            eprintln!("CHAT ENTRY {take_trace} {name}: {f:?}");
+        }
+        entries.push((take_trace, first));
+    }
+    assert_eq!(walked, CHATTED_WALKED, "the walked table");
+    assert_eq!(entries, CHAT_ENTRIES, "the chat's functions");
+}
+
+/// **The chat moves no record** (item 4250): our walk under the chatted
+/// file against run1598, the gathered file's playback, is as whole as the
+/// gathered walk is ([`GATHERED_WALKED`]): a plain chat writes nothing the
+/// dump prints, on our side by construction (`Stream`'s chat arm applies
+/// nothing) and on the original's by the playback's own records.
+#[test]
+fn the_chatted_script_against_the_gathered_playback_is_whole() {
+    let (take, take_trace, agree, last, records, parted) = GATHERED_WALKED[0];
+    let Some((w, _)) = walk_minted(&crate::script::chatted(), take, take_trace) else {
+        return;
+    };
+    eprintln!(
+        "CHATTED AGAINST GATHERED: to {}; draws part {:?}; records {} parted {}, first {:?}",
+        w.last, w.first_sequence, w.records, w.records_parted, w.first_record
+    );
+    assert_eq!(
+        (
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted
+        ),
+        (agree, last, records, parted)
+    );
+}
