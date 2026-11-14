@@ -61,7 +61,7 @@ measurable; the question is his.
 | D3 | `docs/DECISIONS.md`: append, amend in place, never delete | 843,219 B. 54 entries that score a tranche or a pass hold 478,745 B (58 %); 70 entries (427,951 B) are cited by no code and no tool. Nobody reads it whole, so the bytes cost little. What costs is the walk: a rule's standing form is at the end of a chain (entry 128 is "amended by 129, 130, 131, 132"), and the index that should shorten the walk is by number and squeezed (S1). | It is where a considered decision is told from an accident, and a retelling drops findings. | G3: three tiers. This lane recommends the index split now and an index **by topic** (additive, no rule change); it recommends against freezing or rewriting entries unless he wants a file he can read end to end, which is a different product. |
 | D4 | A mechanic document's sections are appended per item and their numbers are an API | `AI.md` is 438 sections in landing order, 2.8 MB, 349 titled by an item. It is a notebook with stable addresses, not a text a session can read to learn the AI. | The addresses work: 2,374 code citations resolve and a guard checks each. | Is a digest by mechanism wanted on top (a new file citing the numbered sections)? An editorial job of days. Not before the milestone, in this lane's view. |
 | D5 | "Neither headline slot is ever empty" (entry 41; QUEUE "How to maintain this file"; METHOD "Booking an item") | It contradicts the queue's own "A residue or chapter item books only when another track's frame needs one" forty lines above it, and TRACKS's "no item stands". | Entry 41's reason holds for the `Golden:` line, which a guard keeps. | Confirm that the milestone (entry 116) retired the two-slot rule, so both clauses can be struck (S3). |
-| D6 | A track's stub pool holds two unassigned sections (`docs_guard`; parked 1718, 1741) | The guard holds `AI.md` and `GOLDEN.md` only: the two tracks the handoff calls whole. Eight stubs stand there (`AI.md` §412, §417 to §419; `GOLDEN.md` §195 to §198). The documents four workers do append to (`RENDERER.md`, `CHECKSUM.md`, `LEADERS.md`, `CLIENT_INPUT.md`) have no pool. Since 2026-11-09, 9 of the 18 merges that touched `RENDERER.md` carry a hunk that is neither parent's (`git show --cc`, non-empty), 1 of 17 on `CHECKSUM.md`, 1 of 1 on `CLIENT_INPUT.md`; none on `AI.md` (no merge touched it) or `GOLDEN.md` (one did). `f1c41c606`'s subject says what they are: "both sides' ground pins and RENDERER §3.18 and §3.19 kept". | Seven of twenty-four merges backed out before the pool. | Move the pool to the documents lanes append to (`RENDERER.md` first), or retire it where no lane lands? |
+| D6 | A track's stub pool holds two unassigned sections (`docs_guard`; parked 1718, 1741) | The guard holds `AI.md` and `GOLDEN.md` only: the two tracks the handoff calls whole. Eight stubs stand there (`AI.md` §412, §417 to §419; `GOLDEN.md` §195 to §198). The documents four workers do append to (`RENDERER.md`, `CHECKSUM.md`, `LEADERS.md`, `CLIENT_INPUT.md`) have no pool. Since 2026-11-09, 9 of the 18 merges that touched `RENDERER.md` carry a hunk that is neither parent's (`git show --cc`, non-empty), 1 of 17 on `CHECKSUM.md`, 1 of 1 on `CLIENT_INPUT.md`; none on `AI.md` (no merge touched it) or `GOLDEN.md` (one did). `f1c41c606`'s subject says what they are: "both sides' ground pins and RENDERER §3.18 and §3.19 kept". **The journals, read in the second session, say which were conflicts:** 12 of the 132 item journals of 2026-11-10 to 11-14 record a `ccc update --keep-conflicts`; six name `docs/RENDERER.md` (4160, 4165, 4168, 4169, 4174, 4199), one `docs/CHECKSUM.md` (4209), one the parked file (4089), none `AI.md` or `GOLDEN.md`; the other four are code (`gpu.rs`, `ground.rs`, `world.rs`, `main.rs`, `observe.rs`). 4169's "merged them cleanly", so a `--cc` hunk over-counts; three say "both sides kept". The gate already has a word for it: `release_gate.py`'s `row_list_overlap` (Loop 3694) calls any `docs/*.md` both sides touched "row lists on the base's side" and lets the landing stand on its verdict. Before the pool, the same scan over 2026-11-03 to 11-09 reads `docs/PARKED.md` 15 times (archived since, entry 125), `MAPGEN.md` 7, `AI.md` 4. | Seven of twenty-four merges backed out before the pool. | Move the pool to the documents lanes append to (`RENDERER.md` first), or retire it where no lane lands? |
 | D7 | The brief's frame: "Read `docs/QUEUE.md`'s opener, then what the item cites" | Lanes read it as the head of the file. Of 98 lane worktrees with a session since 2026-11-10, 93 touched the queue and at least 61 ran `head -N docs/QUEUE.md` (41 at 60 lines, 18,475 B; 14 at 40 lines, 15,259 B; `lore search --lane tool`, a floor). In `CLAUDE.md`'s words the opener is the handoff's last line, 717 B, written to the driver. No lane read `docs/TRACKS.md` whole (0 of 98; 6 read a part), though `CLAUDE.md` says to. | A lane with the headline in view parks better. | What does a briefed lane need from the handoff: all of it, the first bullet, or nothing its brief does not carry? R0. And `CLAUDE.md`'s "then `docs/TRACKS.md`" is not what lanes do; scope it to a session with no brief? His file. |
 | D8 | A finding that names no score parks in its item's journal (entry 125) | 187 parked rows in the 73 journals of 2026-11-12 to 11-14; the queue cites 21 parked ids. Nothing lists the rest: `brief.py` and `queueledger.py` read the rows only to check a cite. `docs/PARKED.md` held 1,832 rows when it was archived. | It ended a second, uncapped queue no session could read. | Is a parked row meant to be read again? If yes, a pass-time listing (a tool, not a file) is the missing half; if no, the rule is working as designed and this is only its size. |
 
@@ -71,7 +71,7 @@ measurable; the question is his.
 |---|---|---|---|---|---|
 | R0 | `tools/brief/frame.md`, "opening"; `brief.py` line 458 | 18,475 read by a lane | say what a lane reads of the queue | up to 18,475 a lane session | the pass (its file); D7 |
 | R1 | QUEUE, "Where things stand": ten lines whose every row is whole | 5,738 | a closed form, as `Golden:` has | ~5,300 | `rondata::diff::floors` and `::audit` |
-| R2 | QUEUE, handoff prose: rules and pinned numbers restated | ~2,600 of 6,967 | strike | ~2,600 | the driver |
+| R2 | QUEUE, handoff prose: rules and pinned numbers restated | 2,056 of 6,967 | strike | ~2,050 | the driver |
 | R3 | QUEUE, "How to maintain this file" | 3,454 | one pointer, two superseded bullets, two moved | ~1,300 | lower `QUEUE_SECTIONS` |
 | R4 | TRACKS, "The tracks": the state column | ~6,300 of 7,777 | one state a cell, or name the queue's line | ~4,500 | the pass |
 | R5 | LOOP, "The chain": the waiter block | 4,931 | point at `tools/lanewait.py`'s header | ~4,000 | closes Loop 4051, 4055 |
@@ -83,13 +83,14 @@ measurable; the question is his.
 | R11 | `CLAUDE.md` | 25,606 of 26,000 | candidates only | up to ~4,500 | Ramon |
 | R12 | the memory index | 7,324 | hooks to one line; one stale pointer | ~2,500 | outside git |
 | S1 | DECISIONS, "Index" | 15,985 of 16,000 | split at entry 100; retitle; reorder; fix 121's row | 0 (frees ~8,000) | none |
-| S2–S18 | seventeen syncs, Part 2 | | | | |
+| S2–S21 | twenty syncs, Part 2 | | | | |
 | G1 | the eight sections pinned in `OVER`, and 45 of the 77 at 15,000 B or more | 284,070; 831,211 | promote their numbered `###` parts to `##` | 0 (largest read 70,859 → 16,594; 45 sections off the ceiling) | delete seven `OVER` rows; three tools to check |
 | G2 | `docs/JOURNAL.md`, the chronicle to 2026-09-17 | 1,185,526 | leave, or archive at a revision | 0 or 1.19 MB | `queueledger.py`; Ramon (`CLAUDE.md`'s table) |
 | G3 | `docs/DECISIONS.md` | 843,219 | an index by topic; no entry moved | 0 | the pass |
 | G4–G8 | `AI.md`, `GOLDEN.md`, `COMBAT.md`, `ORDERS.md`, `RUNS.md`, struck text, the audit README, `ORACLE.md` | 8.4 MB | leave; number the unnumbered sections | 0 | |
+| G9 | `docs/audit/`: the gate's live timings under a dated name | 528,058 in three files | an undated path | 0 | `release_gate.py`'s `TIMINGS`; `suite_timings.py` |
 
-Read-first total: about 26,000 B of the 101,371 in QUEUE, TRACKS, LOOP,
+Read-first total: about 25,400 B of the 101,371 in QUEUE, TRACKS, LOOP,
 METHOD and `CLAUDE.md`, and R0 on top for lanes.
 
 ## The three to take first
@@ -155,7 +156,7 @@ what it points at.
   10 KB. `CLAUDE.md`'s "Read `docs/QUEUE.md` first" then needs scoping to a
   session with no brief (R11).
 - **Saved:** up to 18,475 B a lane session (about 5,600 tokens, 2.9 % of a
-  lane request's mean context). With R1 and R2 alone, about 7,900 B.
+  lane request's mean context). With R1 and R2 alone, about 7,400 B.
 - **What cites it:** `tools/explore/test_brief.py` holds the frame's
   sections to the checklist in `docs/audit/README.md`; the opening line has
   no row number.
@@ -225,19 +226,28 @@ what it points at.
   "The workers"); "The passes ...: the gate takes every merged landing and
   is scoped ... a lane clears at 400 k; a handover is `tools/handover.py`"
   (637 B; LOOP, and TRACKS for parity's definition).
-- **What repeats a pinned line fifteen lines below it** (about 1,500 B, by
-  reading): the `INPUT_*` counts and "24,000 of 24,000" (`Recording:`);
-  "Eight of twelve lines", three times (`Checksum:`); "107 of 109 packets
-  ... 314 of 1,053 lines" (`Checksum:`); "The territory 733 · 332 · 574"
-  (`Rubric:`); "The blind list: open 0 (never 336 · residue 336)"
-  (`Blind:`); "The rules track: whole, 130 closed" (`Golden:`); "`Start:
-  161 of 161 lobbies`" (`Start:`); "K 59 of M 60 ... frames 35 of 35,
-  pieces 1,465 of 1,478" (`Renderer:`); the HUD's and the lobby's counts
-  (`Hud:`, `Lobby:`).
+- **What repeats a pinned line fifteen lines below it** (947 B, measured
+  span by span in the second session; the first session's "about 1,500"
+  was by reading and too high): "24,000 of 24,000", three times, 160 B
+  (`Recording:`); "8 of 12 lines" and "Eight of twelve lines are the
+  original's ...", 118 B, and "107 of 109 packets ... 314 of 1,053 lines
+  agree", 109 B (`Checksum:`); "The territory 733 · 332 · 574", 45 B
+  (`Rubric:`); "The blind list: open 0 (never 336 · residue 336)", 82 B
+  (`Blind:`); "The rules track: whole, 130 closed", 55 B (`Golden:`);
+  "`Start: 161 of 161 lobbies`", 56 B (`Start:`); "K 59 of M 60 ... frames
+  35 of 35, pieces 1,465 of 1,478", 92 B (`Renderer:`); the HUD's and the
+  lobby's sentences, 230 B (`Hud:`, `Lobby:`). **Not a restatement, and
+  the first session called it one:** the `INPUT_*` counts are on no
+  pinned line. They are 6 of the prose's 25 backticked constants that
+  carry a count (799 B in all: `RUN1559B_3279_GROUND` 1,097 of 1,109 and
+  the like), each pinned by a test in `crates/` and by no line of the
+  handoff. Whether the handoff should carry a code pin's value at all is
+  the driver's call: it is the only place a reader sees them together,
+  and nothing checks a count there against its constant.
 - **Action:** the prose says what no pinned line can: what moved and what
   did not, the held-out leaves and their parked ids, the open readings,
   who is out. A rule is cited by its file, not restated.
-- **Saved:** about 2,600 B.
+- **Saved:** about 2,050 B (1,109 of rules, 947 of pinned numbers).
 - **What cites it:** `tools/queueledger.py` reads the numbers the queue
   refers to (`item N`, `(N)`, `parked 4118a`): a cite that leaves the prose
   needs no ledger line; a booked item that leaves does. No guard parses the
@@ -457,13 +467,16 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S8 | METHOD, "The definition of done" | "the lane gate runs those, the fast tests and the guards"; "the commander's booking gate takes no flag" | entry 132 §6: a lane's gate "leaves every timed test to the booking gate but its filters and the paperwork guards, and runs whatever the timings file has never timed"; §5: the booking gate takes `--scope`. `CLAUDE.md` carries the new form. | amend in place |
 | S9 | QUEUE, the dated line and the opener | "handing back to `commander`"; "cut a builder on **VII-b1** and spawn three lanes, 4208 ... 4212 ... 4214 ... and a fifth on 4216" | all landed: `docs/journal/2026-11-13-item-4208.md`, `-4212`, `-4214`, `-4216` exist, and the queue's item 4159 says VII-b1 to VII-d landed. 21 commits edited the queue since the pass's gate (`git log 8a0b2a0e7..HEAD -- docs/QUEUE.md`); none rewrote these lines. A row that died now would hand a fresh session an opener that reaps a row long gone and cuts builders on landed steps. | the booking commit keeps the opener true, or the mid-tranche opener is "continue the tranche" with the lanes that are out |
 | S10 | `CLAUDE.md` line 408; METHOD line 112 | the behavioural check is "(`docs/ORACLE.md`, last section)" | ORACLE's last section is "The click-free lanes are a pool (2026-10-07 ...)". The recipe is "Running a check: the recipe in one place", the fourth section. | name the section (in `CLAUDE.md`, Ramon's word) |
-| S11 | LOOP, "The chain" | the chain ends "`ccc rm <ref>`, and `git push origin --delete <the lane's branch>`" | LOOP, "The driver": "a remote branch delete is refused from every row". 37 of 39 remote branches are merged into `origin/main` (`git branch -r --merged origin/main`). | say whose the delete is (Ramon's), or what reaps a merged remote branch |
-| S12 | LOOP, "The lanes" | "The handoff's `For the pass` counts are the tables'" | the handoff has no "For the pass" part (`grep -c 'For the pass' docs/QUEUE.md` is 0) | say when the part exists (at a hand-over to the pass), or strike |
+| S11 | LOOP, "The chain" | the chain ends "`ccc rm <ref>`, and `git push origin --delete <the lane's branch>`" | LOOP, "The driver": "a remote branch delete is refused from every row". Entry 129 §9 ruled it: "The merged branches on origin are Ramon's to delete, or his to allow: 65 stood, and the classifier refuses a session the delete"; he ran the line during that pass. Two days on, 36 of 41 remote branches are merged into `origin/main` again (`git branch -r --merged origin/main`, 2026-11-14 03:00). | the chain's last step cites entry 129 §9 and drops the delete; the pass's record carries the line for Ramon, as it did |
+| S12 | LOOP, "The lanes" | "The handoff's `For the pass` counts are the tables'" | the handoff has no "For the pass" part (`grep -c 'For the pass' docs/QUEUE.md` is 0). **Settled in the second session:** `git log -S'For the pass' -- docs/QUEUE.md` shows the part written when a tranche is banked for a pass (`05e9edc97`, `d64f135cc`, `ef794025c`) and removed by the pass's own commit (`f35f57351`, `471755ade`). The clause is true of a banked handoff and silent on the rest. | "a handoff banked for a pass carries a `For the pass` part, and its counts are the tables'" |
+| S19 | QUEUE, "Where things stand", the dated line | "The week 36 % at 19:25Z ... the stop 95 %" | the bullet under it: "a soft stop at 99 % of the window, Ramon's to move (DECISIONS 121)"; entry 121: "Amended 2026-11-13, evening: the stop is 99 %"; LOOP: "99 % of the weekly window since 2026-11-13". The dated line is the pass's reading at 15:15 and was true then; the amendment rewrote the bullet and not the line. Still so on `origin/worktree-replan-pdb` at `78b2b9140`. | a dated reading says its hour ("the stop then 95 %"), or the line drops the stop and leaves it to the bullet |
 | S13 | twelve doc-to-doc section cites | a section that does not exist: `AI` §4.4 (CITIES line 531) and §9.3 (ORACLE 1841); `ANIM` §4.4 (ORDERS 2059); `ARMY` §15.8 (COMBAT 2687, four times) and §16.3 (INPUT 454); `COMBAT` §14.1 (MOVEMENT 107); `NATIONS` §5 (DECISIONS 6619); `ORDERS` §714 (INPUT 203, a line number); `PATHFINDER` §18.6 (COMBAT 12899) and §4.6 (TRANSPORT 17, twice); `TECH` §13 (AI 14501) and §7 (ANIM 2214) | `a_section_the_code_cites_is_one_the_document_holds` reads `crates/` only; the same parser over `docs/*.md` finds these. Six of the twelve are sections its `NO_SUCH_SECTION` already pins for the code. | mend each; or extend the guard to the documents with these pinned |
 | S14 | four paths | `crates/rondata/src/mapped.rs` (DATALAYER line 131); `tools/gamelog/handdriver.sh` (CENSUS 619; RUNS twice); `tools/ghidra/decomp` (VISION 9, RECGAME 12, COMBAT 4444) | none exists in the tree (`tools/ghidra` holds `analyze.sh`, `export.sh`, `run.sh`, `scripts`); the export is outside the repo by rule | name the file that holds it now; say "the export" without a repo path |
 | S15 | `docs_guard.rs`, `OVER` | four pins: `ORDERS.md` §4 37,583; `AI.md` §2 70,933, §15 26,923, §99 51,530 | the guard's own stderr asks for each to be lowered: "shrank to 37575 ... 70859 ... 26922 ... 51527; lower its pin" (86 B of slack; a passing test's stderr is captured, so nobody sees it) | lower the four; or make the slack a failure, as the queue's pins are |
 | S17 | `CLAUDE.md` lines 304 and 336 (and METHOD line 244) | "it commits before it gates"; "The full `--release` diff suite remains the gate: before a commit and after a document rewrite" | the two orders stand thirty lines apart. LOOP ("A worker commits before it gates") and entry 43's title ("a landing is committed before it is gated") hold the first. | "before a landing" for "before a commit" (Ramon's word) |
 | S18 | QUEUE, "The queue", first line | "The shapes are DECISIONS 90–94 and 100 §3" | written 2026-11-07. Entries 90 to 94 score the fifty-first to fifty-fifth tranches and shape a late-age pair; 100 §3 a territory row. Six entries, 49,820 B, behind a pointer no open item uses: the five items are a chain step, a structure item, a render item and two rules items, each of which names its own document. | keep the four shapes the line goes on to name; drop the six numbers or say which kind they are for |
+| S20 | `docs/journal/README.md`, first rule | "The first line is the heading the single file used: `## <date> — item <N>: <title> (<model>)`" | of the 132 item journals of 2026-11-10 to 11-14, 118 open `# Item <N>: <title>` with the model on the italic line under it; 13 use the README's form. `queueledger.py`'s `item N` regex is case-insensitive since item 279 and reads both; all 132 name a model in their first six lines. | the README states the form in use |
+| S21 | `docs/journal/README.md`, last rule; `CLAUDE.md`'s table row for `docs/JOURNAL.md` | "A steering pass writes to `docs/JOURNAL.md`, not here ... the chronicle is its record" | G2: four entries in `docs/JOURNAL.md` since 2026-10-01 against 61 pass records under `docs/audit/`; the last entry (2026-11-13) is the first since 2026-10-24. LOOP names "the pass's own record under `docs/audit/`" and never asks a pass for a journal entry. | "a pass's story is its record under `docs/audit/`; `docs/JOURNAL.md` takes an entry when the pass chooses" (the `CLAUDE.md` row is Ramon's word) |
 | S16 | DECISIONS, "Index": statuses | 116 "amended by 121"; 100 "standing"; 59 "extended by 60" | entry 126 §1: "Entry 116's single row and entry 122's roster line are superseded here"; entry 103: "amends entry 100 §3's "next cell""; entry 61: "amends ... entry 59's clause 1". Three read; a mechanical pass (a later entry's sentence that names an earlier one beside amend, replace, retire, withdraw or supersede) lists 7 rows the index calls standing (57, 64, 71, 72, 99, 100, 121) and 16 whose list of successors is short; 16 entries carry an "Amended <date>" note while their row says something other than "amended in place" (4, 9, 24, 29, 34, 55, 63, 64, 68, 71, 72, 77, 78, 87, 88, 121). Candidates, not verdicts: the heuristic is noisy, and a successor does not always name what it changes (entry 126 returns the two rows without a sentence that says "amends entry 116" in those words). | the pass that splits the index (S1) checks these rows; G3's index by topic is the durable fix |
 
 Also seen, and not a contradiction: `CLAUDE.md` gives the gate as
@@ -676,6 +689,53 @@ story behind any row", on demand. The frame is the digest and this is its
 history, read a row at a time. Leave it; a pointer into it could name the
 section.
 
+### G9. `docs/audit/` as a set: leave the records; one file is not a record
+
+- **Measured (second session):** 319 files, 8,042,196 B. At the top level
+  176 `.md` (4,302,646 B), 27 `.txt` (1,151,294), 19 `.json` (446,513), a
+  patch and `rubric.tsv`; two directories, the orders' first readings (8
+  files) and item 4152's readings and verdicts for `LEADERS.md` (87 files,
+  1,805,660 B). By kind among the `.md`: 81 pass records (1,786,588 B,
+  median 21,548), 40 territory readings of 2026-11-06 (1,237,653), 19
+  audits of 2026-08-25 (403,433), 12 item records, 24 others.
+- **The pass records do not repeat each other.** Six-word shingles of each
+  against the one before it: median 0.07, largest 0.185 (the
+  fifty-seventh). Their headings are a form (`Rulings` in 78 of 81, `What
+  was measured` 59, `For Ramon` 58, `The roster, lane by lane` 46), and a
+  form is not a copy. Nothing to cut.
+- **One file there is live, under a date.** `docs/audit/2026-10-15-suite-timings.txt`
+  is `release_gate.py`'s `TIMINGS` (line 281): the table a lane's gate
+  reads to decide which tests it leaves to the booking gate. 32 commits
+  have rewritten it, the last on 2026-11-13, and `-suite-memory.txt`
+  beside it 28 times. `CLAUDE.md` calls it "the timings file" and names no
+  path. Every other file in the directory is a record of its date; this
+  one is an input the gate reads, and its name says it is a month old.
+  **Proposal:** an undated path for the pair and the `-suite-cpu.txt`
+  beside them (528,058 B), one constant in `release_gate.py`, one line of
+  `suite_timings.py`'s header and `TEST_PERFORMANCE.md` line 500. The
+  twelve pass records that cite the dated name cite what was true of
+  their day and stay.
+- **Snapshots nothing names.** 26 data files (588,203 B) are named by no
+  tracked file outside `docs/journal/`: among them the suite's timings of
+  2026-10-16 (three files, 183,318 B), three of the four `astra-reader`
+  suite dumps of 2026-10-15 (236,968 B the four), fourteen `astra-*`
+  notes of about 1 KB, and small JSON. The timings of 2026-10-06, 10-07 and 10-13 (162,072 B) are each
+  named once, by the pass that took them. All are evidence a dated
+  document rests on (`docs/journal/2026-10-15-astra-reader.md`,
+  `TEST_PERFORMANCE.md`'s experiments). Leave; they cost a `grep -r
+  docs/` and nothing else.
+- **Confidence:** high on the measurement. The rename is small and the
+  pass's.
+
+### G10. `docs/lab/` and `docs/journal/README.md`
+
+`docs/lab/` is 90 files, 2.2 MB, of which three observation dumps are 1.5
+MB (`2026-09-19-jev-*.json` and two `.json.gz`), read by
+`tools/explore/jev_lab_analyze.py` and `jev_evidence_analyze.py`. The
+guards do not scan it and `CLAUDE.md` says so (entry 38). Not a compaction
+target. `docs/journal/README.md` (1,673 B) carries two rules practice has
+left: S20 and S21.
+
 ## Left to do
 
 Written at 02:10 −05:00 on the commander's word (this session's context
@@ -683,12 +743,14 @@ passed 400 k); a fresh session continues from here until 05:00. The
 scripts were scratch in the first session's job directory and are restated
 in the appendix; `tools/retire.py` and `lore` need nothing rebuilt.
 
+**Reached by the second session** (02:12 to 05:00 −05:00, Fable 5.2):
+`docs/audit/` as a set (G9), `docs/lab/` and the journal's README (G10,
+S20, S21), entries 128 and 129 against LOOP (they agree; S11 gained its
+ruling), and the half-checks R2 (re-measured, lower), S12 (settled) and D6
+(the journals name the conflicts).
+
 **Not reached.**
 
-- `docs/audit/` as a set (8.3 MB, 225 files): only the README's outline
-  was read. Its largest files and whether any pass record repeats another
-  are unmeasured.
-- `docs/lab/` (2.2 MB) and `docs/journal/README.md`: not opened.
 - The mid-size specifications as documents: `LEADERS.md`, `MAPGEN.md`,
   `COLLISION.md`, `RENDERER.md`, `CHECKSUM.md`, `PATHFINDER.md` were
   measured by section and citation, never read for a stale claim.
@@ -702,22 +764,14 @@ in the appendix; `tools/retire.py` and `lore` need nothing rebuilt.
   (`sweep`, `coverage-item`, `reading-item`, `chapter`, `capture`,
   `reading`: 17,555 B). Selected by kind, so no lane carries them; not
   checked for staleness.
-- DECISIONS entries read whole: 35, 125, 126, 130, 131, 132. LOOP was
-  checked against those; entries 128 and 129, which LOOP cites eleven
-  times, were not read.
+- DECISIONS entries read whole: 35, 125, 126, 128 to 132. LOOP's
+  citations of them hold.
 
 **Half-checked.**
 
 - S16: three statuses read, the other rows are a heuristic's list.
 - G3's seven topic chains are read off the index's titles; a chain is
   true only once its entries are read.
-- R2's "about 1,500 B" of restated numbers is by reading, not measured
-  span by span as the 1,109 B of restated rules was.
-- S12 ("For the pass"): the part may exist only at a hand-over to the
-  pass; one earlier handoff would settle it (`git log -S'For the pass' --
-  docs/QUEUE.md`).
-- D6: `--cc` cannot tell a conflict a lane resolved from a hunk git
-  combined; `git log --grep=keep-conflicts` or the lanes' journals would.
 - R11's candidates are measured by line range; none was weighed against
   what each kind of lane uses.
 - G8: `ORACLE.md` by title only.
@@ -737,8 +791,9 @@ DECISIONS than an index by topic.
 - The statuses in the DECISIONS index were read for entries 59, 100, 116
   and 121; the rest of S16 is a heuristic's list.
 - The topic chains under G3 are read off the index, not off the entries.
-- Whether each of the nine `RENDERER.md` merges was a conflict a lane
-  resolved or a hunk git combined; `--cc` shows both alike (D6).
+- Which of the nine `RENDERER.md` merges with a `--cc` hunk were
+  conflicts: the journals name six updates on that file and say one
+  merged cleanly (D6); the two counts were not joined merge by merge.
 
 ## Appendix. The measuring scripts
 
