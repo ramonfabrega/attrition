@@ -181,15 +181,13 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         // Item 4251: units whole; before it, 3 of 1697 ranges from 832,
         // records 27..29 `unit_masks` 0x40000|0x40004 (bit 0x4,
         // `in_danger`, left out of the emitter; run1600's packet agrees).
-        &[
-            (
-                "leaders",
-                271,
-                271,
-                3,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|24010000",
-            ),
-        ],
+        &[(
+            "leaders",
+            271,
+            271,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|24010000",
+        )],
     ),
     (
         7273,
