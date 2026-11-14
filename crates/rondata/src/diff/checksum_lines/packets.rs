@@ -1189,6 +1189,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (2445, 2367, 1733) -> (2445, 2376, 1454).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (2445, 2376, 1454) -> (2445, 2376, 1453).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2445, 2376, 1453) -> (2445, 2376, 1450).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (701, 701, 1) -> (701, 701, 0).
     (
         "run1001d",
         13760,
@@ -1199,7 +1200,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (3, 0, 3),
             (0, 0, 0),
             (544, 544, 0),
-            (701, 701, 1),
+            (701, 701, 0),
             (271, 271, 2),
             (30, 30, 0),
             (5, 5, 0),
@@ -1220,6 +1221,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (2939, 2837, 1616) -> (2939, 2840, 1600).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (2939, 2840, 1600) -> (2939, 2840, 1598).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (2939, 2840, 1598) -> (2939, 2843, 1618).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (916, 916, 5) -> (916, 916, 0).
     (
         "run1007b",
         15915,
@@ -1230,7 +1232,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (532, 532, 0),
-            (916, 916, 5),
+            (916, 916, 0),
             (271, 271, 2),
             (30, 30, 0),
             (45, 45, 0),
@@ -1458,17 +1460,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 2) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6053, 5443, 5305) -> (6053, 5452, 5251).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6053, 5452, 5251) -> (6053, 5629, 5302).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6053, 5629, 5302) -> (6053, 5629, 5301); guys (1321, 1321, 4) -> (1321, 1321, 3).
     (
         "run1164",
         4528,
         [
-            (6053, 5629, 5302),
+            (6053, 5629, 5301),
             (2140, 2136, 782),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
             (550, 550, 2),
-            (1321, 1321, 4),
+            (1321, 1321, 3),
             (271, 271, 6),
             (30, 30, 0),
             (75, 75, 0),
@@ -1749,6 +1752,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (11740, 10915, 10395) -> (11740, 10927, 10351).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (11740, 10927, 10351) -> (11740, 10933, 10441).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (11740, 10933, 10441) -> (11740, 10933, 10438).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2735, 2735, 7) -> (2735, 2735, 0).
     (
         "run1224b",
         9745,
@@ -1759,7 +1763,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (6, 0, 6),
             (0, 0, 0),
             (556, 556, 1),
-            (2735, 2735, 7),
+            (2735, 2735, 0),
             (271, 271, 6),
             (62, 62, 0),
             (30, 30, 0),
@@ -1976,6 +1980,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (11229, 10401, 9771) -> (11229, 10407, 9827).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (11229, 10407, 9827) -> (11229, 10431, 9895).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (11229, 10431, 9895) -> (11229, 10431, 9894).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2913, 2913, 5) -> (2913, 2913, 0).
     (
         "run1263",
         8362,
@@ -1986,7 +1991,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (9, 0, 9),
             (0, 0, 0),
             (556, 556, 1),
-            (2913, 2913, 5),
+            (2913, 2913, 0),
             (271, 271, 4),
             (54, 54, 0),
             (50, 50, 0),
@@ -2043,6 +2048,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (11161, 11026, 7710) -> (11161, 11026, 7705).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (11161, 11026, 7705) -> (11161, 11053, 7581).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (11161, 11053, 7581) -> (11161, 11053, 7561).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (3210, 3210, 21) -> (3210, 3210, 9).
     (
         "run1266c",
         8700,
@@ -2053,7 +2059,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (6, 0, 6),
             (0, 0, 0),
             (682, 682, 10),
-            (3210, 3210, 21),
+            (3210, 3210, 9),
             (271, 271, 4),
             (54, 54, 0),
             (5, 5, 0),
@@ -2369,17 +2375,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (10367, 10298, 7068) -> (10367, 10352, 6938).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (10367, 10352, 6938) -> (10367, 10352, 6935).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (10367, 10352, 6935) -> (10367, 10352, 6933).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (10367, 10352, 6933) -> (10367, 10352, 6932); guys (2706, 2706, 14) -> (2706, 2706, 13).
     (
         "run1325c",
         5578,
         [
-            (10367, 10352, 6933),
+            (10367, 10352, 6932),
             (2521, 2521, 12),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (682, 682, 8),
-            (2706, 2706, 14),
+            (2706, 2706, 13),
             (271, 271, 4),
             (43, 43, 2),
             (10, 10, 0),
@@ -2624,17 +2631,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (6464, 6023, 5626) -> (6464, 6041, 5597).
     // Item 4234, a cast's three ranges walked: units (6464, 6041, 5597) -> (6464, 6044, 5583).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6464, 6044, 5583) -> (6464, 6137, 5632).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6464, 6137, 5632) -> (6464, 6137, 5631); guys (1584, 1584, 4) -> (1584, 1584, 3).
     (
         "run1359",
         5619,
         [
-            (6464, 6137, 5632),
+            (6464, 6137, 5631),
             (2974, 2974, 33),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (568, 568, 3),
-            (1584, 1584, 4),
+            (1584, 1584, 3),
             (271, 271, 5),
             (48, 48, 0),
             (60, 60, 0),
@@ -3098,17 +3106,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (4789, 4316, 3906) -> (4789, 4325, 3938).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4789, 4325, 3938) -> (4789, 4343, 3883).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4789, 4343, 3883) -> (4789, 4343, 3880).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (4789, 4343, 3880) -> (4789, 4343, 3879); guys (1208, 1208, 7) -> (1208, 1208, 6).
     (
         "run1437",
         3894,
         [
-            (4789, 4343, 3880),
+            (4789, 4343, 3879),
             (2154, 2151, 571),
             (0, 0, 0),
             (3, 0, 3),
             (4, 0, 4),
             (538, 538, 0),
-            (1208, 1208, 7),
+            (1208, 1208, 6),
             (271, 271, 6),
             (30, 30, 0),
             (85, 85, 0),
@@ -3902,6 +3911,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (11125, 10326, 9965) -> (11125, 10656, 9933).
     // Item 4159's third residue: units (11125, 10656, 9933) -> (11125, 10656, 9930), the bleed reading `anti_att` (measured on the tree merged with item 4234's).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (11125, 10656, 9930) -> (11125, 10662, 9730).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2832, 2832, 33) -> (2832, 2832, 26).
     (
         "run882b",
         6808,
@@ -3912,7 +3922,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (15, 0, 15),
             (0, 0, 0),
             (616, 616, 10),
-            (2832, 2832, 33),
+            (2832, 2832, 26),
             (271, 271, 5),
             (64, 64, 0),
             (0, 0, 0),
@@ -3996,6 +4006,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (4112, 4076, 2883) -> (4112, 4076, 2882).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4112, 4076, 2882) -> (4112, 4091, 2837).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4112, 4091, 2837) -> (4112, 4091, 2835).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (1352, 1352, 5) -> (1352, 1352, 3).
     (
         "run912e",
         12753,
@@ -4006,7 +4017,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (568, 568, 5),
-            (1352, 1352, 5),
+            (1352, 1352, 3),
             (271, 271, 3),
             (27, 27, 0),
             (5, 5, 0),
@@ -4113,6 +4124,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (2832, 2730, 2084) -> (2832, 2739, 2054).
     // Item 4234, a cast's three ranges walked: units (2832, 2739, 2054) -> (2832, 2742, 2099).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (2832, 2742, 2099) -> (2832, 2742, 2098).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (875, 875, 4) -> (875, 875, 0).
     (
         "run954b",
         12155,
@@ -4123,7 +4135,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (9, 0, 9),
             (2, 0, 2),
             (532, 532, 0),
-            (875, 875, 4),
+            (875, 875, 0),
             (271, 271, 3),
             (27, 27, 0),
             (35, 35, 0),
@@ -4170,17 +4182,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (17, 17, 1) -> (17, 17, 0), goods (330, 330, 1) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4466, 4394, 3543) -> (4466, 4397, 3129).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (4466, 4397, 3129) -> (4466, 4397, 3128).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (4466, 4397, 3128) -> (4466, 4397, 3114); guys (1514, 1514, 14) -> (1514, 1514, 0).
     (
         "run959",
         18368,
         [
-            (4466, 4397, 3128),
+            (4466, 4397, 3114),
             (1832, 1832, 4),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
             (562, 562, 5),
-            (1514, 1514, 14),
+            (1514, 1514, 0),
             (271, 271, 3),
             (17, 17, 0),
             (0, 0, 0),
@@ -4295,6 +4308,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (3289, 3103, 2604) -> (3289, 3112, 2189).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (3289, 3112, 2189) -> (3289, 3112, 2188).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3289, 3112, 2188) -> (3289, 3112, 2186).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (1012, 1012, 1) -> (1012, 1012, 0).
     (
         "run985b",
         16762,
@@ -4305,7 +4319,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (544, 544, 1),
-            (1012, 1012, 1),
+            (1012, 1012, 0),
             (271, 271, 2),
             (33, 33, 0),
             (40, 40, 0),
@@ -4328,6 +4342,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (3178, 3004, 2150) -> (3178, 3004, 2149).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (3178, 3004, 2149) -> (3178, 3010, 2143).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3178, 3010, 2143) -> (3178, 3010, 2142).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (961, 961, 4) -> (961, 961, 0).
     (
         "run991d",
         15256,
@@ -4338,7 +4353,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (532, 532, 0),
-            (961, 961, 4),
+            (961, 961, 0),
             (271, 271, 2),
             (30, 30, 0),
             (55, 55, 0),
