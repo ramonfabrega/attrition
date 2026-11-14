@@ -1502,9 +1502,12 @@ that diff on this frame: `los_x`'s one writer, the animal's overrides,
   `attrition`, `num_queued`, `cavarch_o`, `damage_o`, `cavarch_uid`,
   `cavarch_who`, `damage_who`, `full`, `waiting`, `recharging`, `safe`,
   `guy_mark`, the animal's three.
-- The path stack's `size` past 10 nodes (run1100 carries 20 and 110; the
+- ~~The path stack's `size` past 10 nodes (run1100 carries 20 and 110; the
   emitter rounds the node count up to the next 10, the stack's growth not
-  read) and after a long path shrinks; `inside_down` of a carrier; a
+  read) and after a long path shrinks~~ — read and built by item 4228
+  (§24.3): `size` is the high water, a block of 10 at a time, never lowered
+  but by `Unit::init`; `do_trade`'s `operator=` alone is not built.
+  `inside_down` of a carrier; a
   `TRADE_ROUTE`'s walker and every order kind but a move, a `BUILD_AT` and a
   `GATHER` (their type and node byte alone are emitted); `flags & 0x8`
   (run1100's); `unit_masks & 0x200000` (`Unit::init`'s `can_carry(AIR)`)
@@ -2411,7 +2414,7 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
-| units | 189 | 1097459564 | 2235033462 | 111: 189–299 |
+| units | 3166 | 362381180 | 3594226250 | 0 |
 | builds | 7383 | 1242831600 | 4226882033 | 0 |
 | groups | 2746 | 810153284 | 3860919709 | 0 |
 | guys | 6537 | 2410482783 | 3433827539 | 0 |
@@ -2461,9 +2464,26 @@ slots, and a bird is slot 9's (§16). The sampling on 128 made two Wild Birds (`
 the original makes them too and walks neither. Value diff on 129 (run1582): units ours 1,147 ranges, theirs 1,107;
 guys ours 389, theirs 375, the birds' 40 and 14 → the stream's counts on both, every minted packet's guys line
 whole. **Step P's census, 285 → 314** (`PACKETS_SCORE`): on 106 of 107 packets the guys line's ranges become the
-stream's count, whole on 28; the units line is whole on run1161. Units on 189 have no packet; on 987 the first
+stream's count, whole on 28; the units line is whole on run1161. ~~Units on 189 have no packet; on 987 the first
 parted unit range is a path stack's `size` (ours 10, theirs 50), the original's high-water allocation against
-ours' current length (parked 4226a).
+ours' current length (parked 4226a).~~ Item 4228 below.
+
+**Item 4228 moved one.** Units 189 → 3166, none of 0..299 parted (111 before). A packet on 189 (run1586) parts on
+1 of 1,127 units ranges: range 303, unit `1/6` (`TypeIndex` 50, a Citizen), `path.size` ours 10, theirs 20,
+`path.length` 6 on both. `Stack<PathData>` (`list`, `size`, `length`, `increment`) gets one `init@0046d720` on a
+unit, `Unit::init@00612100:382`'s: `size` 10, `increment` 10. Every writer that lengthens a unit's path afterwards
+is `push@0046d820` or its inlined twin (`Unit::find_path@005fb910:161`, `Unit::do_group_move@005e79a0:247`,
+`Unit::do_air_physics@005e86d0:145`). At `size <= length` each calls `increase_size@0046e8c0` by `increment`. A pop
+or a clear moves only `length`, so `size` is the unit's high-water path length, rounded up to a block of 10. The
+emitter rounded the current length instead. The crate's `orders::PathStack` holds the size. It derefs to the
+nodes, and every call that changes the length raises `size` the way the pushes would. The two `grouppath` swaps
+install a scratch stack and give the unit its own back. Value diff on 189: `path.size` ours 10 → 20, theirs 20;
+the line whole. On 987 (run1583) units become whole (range 177's 10 | 50 agreeing). On 3246 and 4030 the old
+first range (range 167, 20 | 60 and 10 | 60) agrees. Their new first ranges are range 524, record 14,
+`path.size` 50 | 64, and range 492, record 14's `unit_masks` (262152 | 262664). No block of 10 makes 64.
+**Step P's census, 314 → 318** (`PACKETS_SCORE`): the units line becomes whole on run893b, run958b, run1186b and
+run1383, and parts on fewer ranges on 92 more packets. run1460 parts on two more (1872 → 1874). Three of our units there are compared
+out of step with theirs (ours walks 2,275 ranges, theirs 2,380), against one aligned range (`0/2`) now agreeing.
 
 **Item 4229 moved two, each to whole on all 24,000.** Goods 3246 → 24,000: §13's arm 5, `Animal::work@005d7330`'s
 herd arm, had no counterpart; leader 1 saw an animal of good 19's herd before any footprint cell of the good, so
@@ -2487,6 +2507,7 @@ line's field reader where it has one:
 | groups | 61 | 1580 | group record 1: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34; whole since item 4222 |
 | builds | 100 | 1581 | building 2000 `queue[k]`: type 0, 50; `cost[0]` 0, 27; whole since item 4222 |
 | guys | 129 | 1582 | 389 ranges against 375 (units 1,147 against 1,107): two birds on slot 9, which neither line walks; whole since item 4226 |
+| units | 189 | 1586 | unit `1/6` `path.size`: 10, 20 (`path.length` 6 both); 1 of 1,127 ranges; whole since item 4228 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02; whole since item 4229 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2; whole since item 4229 |
 | leaders | 1 to 4030 | all | leader 0's long range at +0x10: ours 0 on every packet, theirs 0xc7 on 1 and 0x105 on 4030 (§20; item 4159) |
@@ -2515,7 +2536,13 @@ Not established:
 - A captured city's `BuildData +0x72` in its new owner's list: the crate counts the owner's earlier cities in its own
   vector, dead ones too (`Sim::city_index_in_owner`); no capture on the minted game reaches it.
 - Arm 5's reader, `Sim::animal_is_seen`'s `ever_seen` test, is not wired (parked 4229a).
-- Units on 189 and guys on 6537: no packet stands on either frame (parked 4226a, 4226b).
+- ~~Units on 189 and guys on 6537: no packet stands on either frame (parked 4226a, 4226b).~~ Units on 189: run1586,
+  whole since item 4228 (4226a closed). Guys on 6537 and units on 3166: no packet stands on either (4226b).
+- A unit's `size` after `Unit::do_trade@005ed270:501`'s `Stack<PathData>::operator=`, which grows a path to the
+  source stack's `size` rather than its length. The crate lays the caravan's road by `PathStack::set`, a block of
+  10 at a time; the caravan road's own stack `size` is not held. 3246's record 14 is `1/14`, `TypeIndex` 59
+  (`CARA`, a land caravan), `path.length` 43 on both, `size` ours 50, theirs 64. No push at `increment` 10 from
+  10 reaches 64, so the writer is not a push. Whether it is this `operator=` is not shown.
 - `Game::run@00584590:722`'s `GameDaemon::update_all_seen`, the call after `calc_danger`, is not run on the built start
   (item 4218). Every section of the world line agrees on the start without it; what else it writes is not compared.
 - What parts past a line's first parting outside `DIAG`. On every packet past frame 0 the world line agrees, and so

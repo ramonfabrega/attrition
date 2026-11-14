@@ -118,7 +118,7 @@ pub struct Unit {
     /// The order list — front is the current order. `docs/ORDERS.md` §1.4.
     pub orders: std::collections::VecDeque<orders::Order>,
     /// The path stack; the top is the current waypoint (§4.2).
-    pub path: Vec<orders::PathData>,
+    pub path: orders::PathStack,
     /// **A 48-grid search this unit suspended** — `UnitData +0x104..0x148`,
     /// the five containers and the nine scalars `astar_path` hands over
     /// when it runs out of `limit` short of the goal
@@ -947,7 +947,7 @@ impl Unit {
             inside_unit: None,
             max_health: health,
             orders: std::collections::VecDeque::new(),
-            path: Vec::new(),
+            path: orders::PathStack::new(),
             tolerance: 0,
             line_ok: false,
             path_recursion: 0,

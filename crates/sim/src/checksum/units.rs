@@ -119,11 +119,11 @@ pub const GATHER_FIELDS: &[(&str, usize, usize)] = &[
     ("been_there", 0x27, 1),
 ];
 
-/// `Stack<PathData>`'s allocation and growth as `Unit::init` leaves them
-/// (`size`, `increment`): 10 and 10 on every unit of run 1562's frame 91;
-/// run1100's carry sizes 20 and 110 where a long path grew the stack
-/// (`docs/CHECKSUM.md` §17).
-const PATH_BLOCK: i32 = 10;
+/// `Stack<PathData>`'s growth step as `Unit::init` leaves it (`increment`):
+/// 10 on every unit of run 1562's frame 91. Its `size` is
+/// [`crate::orders::PathStack::size`], the high water a long path left
+/// (run1100's 20 and 110; `docs/CHECKSUM.md` §17).
+const PATH_BLOCK: i32 = crate::orders::PathStack::INCREMENT;
 
 use crate::ids::order as kind;
 
@@ -210,10 +210,8 @@ impl Sim {
             // `Unit::walk_data`'s inlined `must_walk`.
             put("must_walk", vec![1]);
             put("collide_frame..play", self.unit_record_bytes(u));
-            let mut stack = PATH_BLOCK
-                .max(unit.path.len().div_ceil(PATH_BLOCK as usize) as i32 * PATH_BLOCK)
-                .to_le_bytes()
-                .to_vec();
+            // `size` is the stack's high water, not its length (item 4228).
+            let mut stack = unit.path.size().to_le_bytes().to_vec();
             stack.extend_from_slice(&(unit.path.len() as i32).to_le_bytes());
             stack.push(PATH_BLOCK as u8);
             put("path.size..increment", stack);

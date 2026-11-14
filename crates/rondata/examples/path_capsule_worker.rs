@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         unit.discard_current_path_segment();
         write!(output, "{}", unit.path.len())?;
-        for p in unit.path {
+        for p in unit.path.iter() {
             write!(
                 output,
                 " {} {} {} {}",
