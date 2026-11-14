@@ -409,6 +409,22 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         )],
     ),
     (
+        "run1587",
+        "rontrace-run1587.log",
+        3166,
+        // Item 4230: units whole; before it, 1355 ranges theirs, 1352 ours,
+        // 660 parted from range 536: record 14's `TRADE_ROUTE`, whose
+        // `TradeOrder::walk_data` hands over three ranges the emitter left
+        // out (`order.flags`, `order.target`, `order.trade`).
+        &[(
+            "leaders",
+            267,
+            267,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|fc000000",
+        )],
+    ),
+    (
         "run1583",
         "rontrace-run1583.log",
         987,
@@ -427,15 +443,11 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "rontrace-run1584.log",
         3246,
         &[
-            // Item 4228: 661 → 656 parted, range 167 `path.size` 20|60 →
-            // agreeing; the first is now a size no block of 10 makes.
-            (
-                "units",
-                1389,
-                1386,
-                656,
-                "524 14 path.size..increment: path.size 50|64",
-            ),
+            // Item 4230: units whole. Item 4228: 661 → 656 parted, range
+            // 167 `path.size` 20|60 → agreeing, the first range 524, record
+            // 14 `path.size` 50|64 — the road stack's doubled allocation
+            // `do_trade`'s `operator=` hands the caravan — and then the
+            // `TradeOrder`'s three unwalked ranges (1386 ours, 1389 theirs).
             (
                 "leaders",
                 267,
@@ -452,12 +464,13 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         4030,
         &[
             // Item 4228: 809 → 804 parted, range 167 `path.size` 10|60 →
-            // agreeing.
+            // agreeing. Item 4230: 804 → 1, the `TradeOrder`'s three ranges
+            // walked (1504 → 1507 ours).
             (
                 "units",
                 1507,
-                1504,
-                804,
+                1507,
+                1,
                 "492 14 collide_frame..play: unit_masks 262152|262664",
             ),
             (

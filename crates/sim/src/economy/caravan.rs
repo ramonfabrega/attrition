@@ -64,6 +64,17 @@ pub struct Caravan {
     /// tolerances and flags are `build_road`'s, not the search's (§5.3), and
     /// it is what the legs walk (§7.1).
     pub road: Vec<PathData>,
+    /// `road.size` (+0x14): the road stack's allocation. `Caravan::Caravan`
+    /// leaves it 0 with `increment` (+0x1c, a `char`) −1, so every push past
+    /// it **doubles** it (`increase_size@0046e8c0`: a negative step adds
+    /// `size`, or 1 from 0). Its pushes are `find_road@00688a40`'s two ends
+    /// on a fresh search and `astar_caravan_road@00685990`'s answer, so it
+    /// is the high-water of those rounded up to a power of two. Nothing
+    /// lowers it: `clear_road` moves only the length, and a slot is never
+    /// freed (`Caravans::init_caravan@0073e1f0` reuses the object), so it
+    /// survives [`Sim::close_caravan`] and the next route on the slot. It is
+    /// what `do_trade`'s copy hands a caravan's path (item 4230).
+    pub road_size: i32,
     /// `making_road` (+0x20): a search is parked and wants another frame.
     pub making_road: bool,
     /// `reset_road` (+0x24): somebody else's road changed the map, so throw
@@ -75,6 +86,16 @@ pub struct Caravan {
     /// `traversed` (+0x40) is written beside them and **never read back**,
     /// which is why a resumed frame starts its budget again at zero.
     pub search: Option<RoadSearch>,
+}
+
+/// A road stack's allocation after pushes reaching `len` entries:
+/// `increase_size` at `size <= length` by the stack's `increment` −1, which
+/// adds `size` (or 1 from 0), so the allocation doubles until it holds them.
+pub(crate) fn road_grow(size: &mut i32, len: usize) {
+    let len = len as i32;
+    while *size < len {
+        *size += (*size).max(1);
+    }
 }
 
 /// One leader's list — `PtrArray<Caravan>` and `LeaderData::caravan_mark`.
@@ -111,9 +132,12 @@ impl Sim {
             .find(|&i| !list.slots[i].alive)
             .or_else(|| (list.mark < list.slots.len()).then_some(list.mark))?;
         list.mark = list.mark.max(slot + 1);
+        // The object is reused, so its road stack's allocation stays.
+        let road_size = list.slots[slot].road_size;
         list.slots[slot] = Caravan {
             alive: true,
             unit: Some(unit),
+            road_size,
             ..Caravan::default()
         };
         Some(slot)
@@ -126,7 +150,11 @@ impl Sim {
         let Some(list) = self.economy.caravans.get_mut(who as usize) else {
             return;
         };
-        list.slots[slot] = Caravan::default();
+        let road_size = list.slots[slot].road_size;
+        list.slots[slot] = Caravan {
+            road_size,
+            ..Caravan::default()
+        };
         while list.mark > 0 && !list.slots[list.mark - 1].alive {
             list.mark -= 1;
         }
@@ -498,7 +526,10 @@ impl Sim {
         }
         let mut path = self.economy.caravans[who].slots[v].road.clone();
         offset_road(&mut path);
-        self.units[u].path.set(path);
+        // `do_trade@005ed270:501`'s `Stack<PathData>::operator=`: the
+        // unit's `size` grows to the road stack's own, not a block of 10.
+        let road_size = self.economy.caravans[who].slots[v].road_size;
+        self.units[u].path.assign(path, road_size);
         self.units[u].path.pop();
         let goal = self.units[u].path[0].to;
         // `add_move_order`'s facing is the bearing to the goal (§4.1's
@@ -829,6 +860,9 @@ impl Sim {
             let Some(st) = self.start_road(ends.0, ends.1) else {
                 return -1;
             };
+            // `find_road@00688a40:99`, `:104`: a fresh search pushes its two
+            // ends onto the cleared road stack before the search pops them.
+            road_grow(&mut self.economy.caravans[w].slots[v].road_size, 2);
             st
         };
         // `find_road@00688a40+0x2ac` sets `pathfinder+0x98` from the
@@ -850,6 +884,12 @@ impl Sim {
                 0
             }
             RoadPlan::Road(nodes) => {
+                // `astar_caravan_road@00685990:329` pushes the answer onto
+                // the road stack; `build_road`'s push-back keeps fewer.
+                road_grow(
+                    &mut self.economy.caravans[w].slots[v].road_size,
+                    nodes.len(),
+                );
                 let road = self.lay_caravan_road(&nodes);
                 let van = &mut self.economy.caravans[w].slots[v];
                 van.road = road;

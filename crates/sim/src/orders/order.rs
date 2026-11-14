@@ -420,6 +420,18 @@ impl PathStack {
         self.grow();
     }
 
+    /// `Stack<PathData>::operator=@0046d7e0` from a source stack holding
+    /// `nodes` with allocation `src_size`: `size` grows to the source's
+    /// own `size` when that is larger (`increase_size` by the difference,
+    /// no block rounding), and the nodes are copied whole. Its one caller on
+    /// a unit's path is `Unit::do_trade@005ed270:501`, the caravan's road
+    /// (item 4230, `docs/CHECKSUM.md` §24.3).
+    pub fn assign(&mut self, nodes: Vec<PathData>, src_size: i32) {
+        debug_assert!(src_size >= nodes.len() as i32);
+        self.size = self.size.max(src_size);
+        self.nodes = nodes;
+    }
+
     /// The nodes taken out and the stack left empty, `size` kept.
     pub fn take(&mut self) -> Vec<PathData> {
         std::mem::take(&mut self.nodes)

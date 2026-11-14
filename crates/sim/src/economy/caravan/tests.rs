@@ -233,3 +233,40 @@ fn a_restart_consumes_the_reset_flag() {
     assert!(!Sim::road_gate(&mut bare));
     assert!(!bare.making_road);
 }
+
+/// **A caravan's path takes the road stack's allocation** (item 4230,
+/// `docs/CHECKSUM.md` §24.3): the road stack doubles from 0
+/// (`Caravan::Caravan`'s `increment` −1), keeps its high water through a
+/// shorter road and through the slot's reuse, and `do_trade`'s
+/// `Stack<PathData>::operator=` raises the unit's `size` to it — 64 for a
+/// 43-node road, where pushes of 10 make 50. Run1584's caravan `1/14` on
+/// 3246: `path.length` 43, `size` 64 theirs.
+#[test]
+fn a_caravan_s_path_takes_the_road_stack_s_doubled_size() {
+    let mut size = 0;
+    road_grow(&mut size, 2);
+    assert_eq!(size, 2, "a fresh search's two ends");
+    road_grow(&mut size, 43);
+    assert_eq!(size, 64, "and doubles past them");
+    road_grow(&mut size, 5);
+    assert_eq!(size, 64, "a shorter road keeps the high water");
+
+    let mut sim = bare();
+    let u = sim.add_unit(crate::Unit::new(1, 0, Pos::new(960, 960), 10));
+    let v = sim.init_caravan(1, u).expect("a slot");
+    sim.units[u].caravan = Some(v);
+    sim.economy.caravans[1].slots[v].road_size = 64;
+    sim.close_caravan(1, v);
+    let v = sim.init_caravan(1, u).expect("the same slot");
+    assert_eq!(
+        sim.economy.caravans[1].slots[v].road_size, 64,
+        "the slot's object is reused, its allocation with it"
+    );
+    sim.units[u].caravan = Some(v);
+    let road: Vec<PathData> = (0..43).map(|i| node(960 + 192 * i, 960)).collect();
+    sim.economy.caravans[1].slots[v].road = road;
+    assert_eq!(sim.units[u].path.size(), 10);
+    sim.trade_walk(u, v, 0, 0);
+    assert_eq!(sim.units[u].path.len(), 42, "the copy, its top popped");
+    assert_eq!(sim.units[u].path.size(), 64, "the road's size, not 50");
+}

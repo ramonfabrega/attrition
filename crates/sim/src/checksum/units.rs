@@ -119,6 +119,16 @@ pub const GATHER_FIELDS: &[(&str, usize, usize)] = &[
     ("been_there", 0x27, 1),
 ];
 
+/// **`TradeOrder`'s own walked 18 bytes** (`+0x14..+0x26`, `oxx`..`uid2`,
+/// the PDB's field list; `TradeOrder::walk_data@00483260`, item 4230).
+pub const TRADE_FIELDS: &[(&str, usize, usize)] = &[
+    ("oxx", 0x14, 4),
+    ("whose", 0x18, 4),
+    ("started", 0x1c, 4),
+    ("loaded", 0x20, 4),
+    ("uid2", 0x24, 2),
+];
+
 /// `Stack<PathData>`'s growth step as `Unit::init` leaves it (`increment`):
 /// 10 on every unit of run 1562's frame 91. Its `size` is
 /// [`crate::orders::PathStack::size`], the high water a long path left
@@ -484,8 +494,10 @@ impl Sim {
     /// the virtual base's `UnitOrder::flags` byte first. The kinds on run
     /// 1562's frame are a move (`MoveOrder` `x`..`off_y`), a `BUILD_AT`
     /// (`TargetOrder` `ox`, `whom`, `uid`) and a `GATHER` (that, and
-    /// `tx`..`been_there`); any other kind hands over its type and node
-    /// byte alone here, its walker not ported (`docs/CHECKSUM.md` §17).
+    /// `tx`..`been_there`); a `TRADE_ROUTE` (that target, and `oxx`..
+    /// `uid2`, item 4230) first held one on the minted game's 3166; any
+    /// other kind hands over its type and node byte alone here, its walker
+    /// not ported (`docs/CHECKSUM.md` §17).
     fn checksum_order(&self, ranges: &mut Vec<Range>, u: usize, k: usize) {
         let unit = &self.units[u];
         let record = unit.index;
@@ -566,6 +578,38 @@ impl Sim {
                 p(0x26, 1, i64::from(g.dist_mod));
                 p(0x27, 1, i64::from(g.been_there));
                 put("order.gather", b);
+            }
+            Body::Trade(t) => {
+                // `TradeOrder::walk_data@00483260` (item 4230): the flags
+                // byte, `TargetOrder`'s `ox`, `whom`, `uid` (`+0x8..+0x12`)
+                // and its own `oxx`..`uid2` (`+0x14..+0x26`). The two ends
+                // are each city's building: `Unit::add_trade_order@005e4dc0`
+                // writes the home's object, owner and uid, and `oxx`/`whose`
+                // −1 with `uid2` 0xffff; `do_trade@005ed270:276`–`:278`
+                // writes the far one's when it picks it.
+                put("order.flags", vec![o.flags]);
+                put("order.target", target(self.cities.cities[t.home].building));
+                let mut b = vec![0u8; 0x26 - 0x14];
+                debug_assert_eq!(TRADE_FIELDS.len(), 5);
+                let mut p = |at: usize, w, x: i64| put_raw(&mut b, at - 0x14, w, x);
+                match t
+                    .dest
+                    .map(|c| &self.buildings[self.cities.cities[c].building])
+                {
+                    Some(bd) => {
+                        p(0x14, 4, i64::from(bd.index));
+                        p(0x18, 4, i64::from(bd.owner));
+                        p(0x24, 2, i64::from(bd.uid));
+                    }
+                    None => {
+                        p(0x14, 4, -1);
+                        p(0x18, 4, -1);
+                        p(0x24, 2, -1);
+                    }
+                }
+                p(0x1c, 4, i64::from(t.started));
+                p(0x20, 4, i64::from(t.loaded));
+                put("order.trade", b);
             }
             _ => {}
         }
