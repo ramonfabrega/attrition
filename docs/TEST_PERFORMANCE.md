@@ -454,7 +454,9 @@ print-equal to the test's own walk.** The groups' peaks were rewritten from the
 trunk-on run (largest 3,936 MiB, from 3,751; nine groups peak over 1.5 times their old
 number, `game:run1256` 1,717 to 3,689 MiB): a rung holds every frame's sites so far.
 On `game:run1149`: 914 G off, 908 G on; its Russian closing state runs before its word
-walk and finds no rung.
+walk and finds no rung. The lane gate on the merged tree (`751f9deba`, 18 tests of the
+base's more, all alone): `Suite: 1264 processes for 2393 tests: 145 groups hold 1274,
+1119 ran alone; 4062 test CPU-seconds`, 78,470 G, the games' groups 38,156 G.
 
 **Not established.** (0) The updated tree's groups-off number: stage 1's audit equality
 was taken before 51 commits of the base were merged; none of them adds a process-wide
