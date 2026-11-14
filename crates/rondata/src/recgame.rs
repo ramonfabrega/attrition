@@ -865,6 +865,14 @@ pub type Order = (i32, i32, Vec<crate::commands::Command>);
 /// Refuses a script whose frames are not strictly inside `(0, last)` and
 /// strictly increasing (the pump writes at most one package a turn), or
 /// whose package would pass `add_command`'s 0x200-byte buffer.
+///
+/// **A paused game holds its frame** (item 4252, `docs/CLIENT_INPUT.md`
+/// §13): while the script stands paused — a `pause` whose `state` differs
+/// from the bit has toggled it, as `TurnControl::process_pause@00956990`
+/// does — the turns go on and the frame does not
+/// (`check_new_frame_solo@00956320` answers 0), so the next package may
+/// share the frame, as every recorded pause's does. A script that ends
+/// paused is refused: the playback would stand still before `last`.
 pub fn minted_packages(
     leader_options: crate::commands::Command,
     orders: &[Order],
@@ -878,13 +886,22 @@ pub fn minted_packages(
         data: crate::commands::encode(&[leader_options]),
     }];
     let mut frame = 0;
+    let mut paused = false;
     for (f, play, cmds) in orders {
-        if *f <= frame || *f >= last {
+        let held = paused && *f == frame;
+        if (*f <= frame && !held) || *f >= last {
             return Err(format!(
                 "an order on frame {f} after frame {frame}, before {last}"
             ));
         }
         frame = *f;
+        for c in cmds {
+            if let crate::commands::Command::Pause { state } = c
+                && *state != u8::from(paused)
+            {
+                paused = !paused;
+            }
+        }
         let data = crate::commands::encode(cmds);
         if data.is_empty() || data.len() > 0x200 {
             return Err(format!("frame {f}: a package of {} bytes", data.len()));
@@ -896,6 +913,9 @@ pub fn minted_packages(
             stamp: out.len() as u32 + 1,
             data,
         });
+    }
+    if paused {
+        return Err(format!("the script ends paused on frame {frame}"));
     }
     out.push(Package {
         frame: last,
@@ -1324,5 +1344,39 @@ pub(crate) mod tests {
         assert_eq!(back.slots, rec.slots);
         assert_eq!(back.packages, rec.packages);
         assert_eq!(back.random_info, rec.random_info);
+    }
+
+    /// **A paused script holds its frame** (item 4252): the recorded shape
+    /// — `pause(1)`, an order, `pause(0)`, all on one frame, then a later
+    /// frame — is three packages with contiguous stamps; the same frame
+    /// unpaused, a second `pause(1)` that toggles nothing, a frame after the
+    /// unpause that repeats it, and a script that ends paused are refused.
+    #[test]
+    fn a_paused_script_holds_its_frame() {
+        use crate::commands::Command as C;
+        let lo = C::Pause { state: 9 };
+        let order = |f: i32, c: C| (f, 0, vec![c]);
+        let mv = || C::Stance { stance: 1 };
+        let held = [
+            order(5, C::Pause { state: 1 }),
+            order(5, mv()),
+            order(5, C::Pause { state: 0 }),
+            order(6, mv()),
+        ];
+        let p = minted_packages(lo.clone(), &held, 10).unwrap();
+        let shape: Vec<(i32, u32)> = p.iter().map(|q| (q.frame, q.stamp)).collect();
+        assert_eq!(shape, [(0, 1), (5, 2), (5, 3), (5, 4), (6, 5), (10, 6)]);
+        for bad in [
+            vec![order(5, mv()), order(5, mv())],
+            vec![
+                order(5, C::Pause { state: 1 }),
+                order(5, C::Pause { state: 0 }),
+                order(5, mv()),
+            ],
+            vec![order(5, C::Pause { state: 0 }), order(5, mv())],
+            vec![order(5, C::Pause { state: 1 }), order(5, mv())],
+        ] {
+            assert!(minted_packages(lo.clone(), &bad, 10).is_err(), "{bad:?}");
+        }
     }
 }

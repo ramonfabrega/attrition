@@ -2492,10 +2492,15 @@ fn gather_effect_ours(b: &Built) -> GatherEffect {
 
 /// Our walk under the pump on `orders`' file, read on [`GATHER_READ_AT`].
 fn gather_effects_ours(orders: &[Order]) -> Vec<GatherEffect> {
+    gather_effects_ours_at(orders, &GATHER_READ_AT)
+}
+
+/// [`gather_effects_ours`], read on the frames `at`, ascending.
+fn gather_effects_ours_at(orders: &[Order], at: &[i64]) -> Vec<GatherEffect> {
     let (_, mut built, _) = built_start().unwrap();
     let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
     let mut ours = Vec::new();
-    for &n in &GATHER_READ_AT {
+    for &n in at {
         tick_to(&mut built, Some(&mut stream), n);
         ours.push(gather_effect_ours(&built));
     }
@@ -2504,10 +2509,15 @@ fn gather_effects_ours(orders: &[Order]) -> Vec<GatherEffect> {
 
 /// The original's, off the take's records on [`GATHER_READ_AT`].
 fn gather_effects_theirs(take: &str) -> Option<Vec<GatherEffect>> {
+    gather_effects_theirs_at(take, &GATHER_READ_AT)
+}
+
+/// [`gather_effects_theirs`], read on the frames `at`.
+fn gather_effects_theirs_at(take: &str, at: &[i64]) -> Option<Vec<GatherEffect>> {
     let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
     let mut theirs = Vec::new();
     for i in 0..source.frames().len() {
-        if GATHER_READ_AT.contains(&source.frames()[i].number) {
+        if at.contains(&source.frames()[i].number) {
             theirs.push(gather_effect_theirs(&source.frame_state(i).unwrap()));
         }
     }
@@ -2797,3 +2807,154 @@ fn the_chatted_script_against_the_gathered_playback_is_whole() {
         (agree, last, records, parted)
     );
 }
+
+/// The paused file's gzip length (item 4252).
+/// Seen red first: pinned 0, it printed 59,515.
+const PAUSED_RCX_BYTES: usize = 59_515;
+
+/// **The paused script, minted** (item 4252, `docs/CLIENT_INPUT.md`
+/// §13): the chatted file and three packages more, all on
+/// [`crate::script::PAUSE_FRAME`], stamped one a turn; it round-trips
+/// through the file. With `RON_RCX_OUT=<file>` it writes the `.rcx` the
+/// playback takes open.
+#[test]
+fn the_paused_minted_packages_round_trip() {
+    use crate::script::{PAUSE_FRAME, chatted, paused};
+    let (Some(rec), Some(first)) = (minted(&paused()), minted(&chatted())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "paused").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in paused().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<(i32, u32)> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| (p.frame, p.stamp))
+        .collect();
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (20, 17));
+    assert_eq!(
+        added,
+        vec![
+            (PAUSE_FRAME, 17),
+            (PAUSE_FRAME, 18),
+            (PAUSE_FRAME, 19),
+            (last.frame, 20)
+        ],
+        "the packages the chatted file does not hold"
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    eprintln!("PAUSED RCX {} bytes", gz.len());
+    assert_eq!(gz.len(), PAUSED_RCX_BYTES, "PAUSED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The frames the paused script is read on (item 4252): the pause's frame
+/// and the one after it, the Citizen's first frame on the map, the first
+/// it stands at the moved point, and the window's last record.
+const PAUSE_READ_AT: [i64; 5] = [6712, 6713, 6814, 6844, 6999];
+
+/// **The paused script's effects** (item 4252), our walk's values pinned
+/// before the original's playback was read: the capital's gather list
+/// `(4306, 31001, 0)` on the pause's frame and `(4655, 31075, 0)` from
+/// 6713, the frame after it, though the three packages share one frame;
+/// the Citizen out of the capital on 6814, moving, idle at the moved point
+/// on 6844 and gathering by 6999. Seen red first: pinned empty.
+fn paused_effects() -> Vec<GatherEffect> {
+    let row =
+        |frame, gather: &[(i64, i64, i64)], citizen: Option<((i64, i64), &[&'static str])>| {
+            GatherEffect {
+                frame,
+                gather: gather.to_vec(),
+                citizen: citizen.map(|(p, o)| (p, o.to_vec())),
+            }
+        };
+    const BEFORE: &[(i64, i64, i64)] = &[(4306, 31001, 0)];
+    const AT: &[(i64, i64, i64)] = &[(4655, 31075, 0)];
+    vec![
+        row(6712, BEFORE, None),
+        row(6713, AT, None),
+        row(6814, AT, Some(((3960, 31320), &["move"]))),
+        row(6844, AT, Some(((4632, 31080), &[]))),
+        row(6999, AT, Some(((4632, 31080), &["gather"]))),
+    ]
+}
+
+/// **What the paused orders do on our walk** (item 4252), on
+/// [`PAUSE_READ_AT`]: the rally point given while the game stands paused
+/// is the capital's from the frame after the pause's, and the Citizen
+/// walks to it.
+#[test]
+fn the_paused_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::paused()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = gather_effects_ours_at(&crate::script::paused(), &PAUSE_READ_AT);
+    for e in &ours {
+        eprintln!("PAUSE EFFECT ours {e:?}");
+    }
+    assert_eq!(ours, paused_effects());
+}
+
+/// **The value diff against the previous playback** (item 4252): our walk
+/// under the paused file against run1599, the chatted file's playback,
+/// pinned before run1601 was read.
+#[test]
+fn the_paused_script_against_the_chatted_playback_parts() {
+    let (take, take_trace, ..) = CHATTED_WALKED[0];
+    let Some((w, _)) = walk_minted(&crate::script::paused(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    eprintln!(
+        "PAUSED AGAINST CHATTED: record {frame}: {partings:?}; draws part {:?}; records {} parted {}",
+        w.first_sequence, w.records, w.records_parted
+    );
+    let seen = (
+        frame,
+        partings[0].0,
+        partings[0].2.clone(),
+        w.first_sequence,
+        w.records_parted,
+    );
+    let (f, kind, row, draws, parted) = PAUSED_AGAINST_CHATTED;
+    assert_eq!(
+        seen,
+        (f, kind, row.to_string(), draws, parted),
+        "PAUSED_AGAINST_CHATTED"
+    );
+}
+
+/// The paused script's walk against run1599: `(the first parted record's
+/// frame, its kind, its row, the first frame whose draws part, records
+/// parted)`. It parts first on 6713, the frame after the pause's, at the
+/// capital's rally point: ours the point given while paused, run1599's
+/// the gathered one; 287 of 300 records part, and the draws from 6832,
+/// where the Citizen stands at the old point on run1599 and walks on
+/// toward the new one on ours. Seen red first: pinned
+/// `(0, "", "", None, 0)`.
+const PAUSED_AGAINST_CHATTED: (i64, &str, &str, Option<i64>, usize) = (
+    6713,
+    "build_diverged",
+    "BuildDivergence { frame: 6713, who: 0, o: 2000, field: \"gather[0].x\", ours: 4655, theirs: 4306 }",
+    Some(6832),
+    287,
+);

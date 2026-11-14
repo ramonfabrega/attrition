@@ -99,6 +99,7 @@ pub const MINTS: &[&str] = &[
     "queue_up",
     "gather_point",
     "chat",
+    "pause",
 ];
 
 /// **The entry line's text limit**, in UTF-16 units: `ChatBox::exec
@@ -152,6 +153,10 @@ pub enum Event {
     /// Closes the entry line and sends nothing (`on_modal_end` with a
     /// nonzero `result`).
     Escape,
+    /// The pause key (`OPTION_PAUSE`, `Options::exec@007188c0`'s
+    /// `TurnControl::issue_toggle_pause@00956b40`; item 4252,
+    /// `docs/CLIENT_INPUT.md` §13).
+    Pause,
 }
 
 /// What the layer sees: the camera's matrix and screen as the draw takes
@@ -569,6 +574,10 @@ pub struct Input {
     pub placing: Option<i32>,
     /// The chat entry line, open with what it holds, or closed (item 4250).
     pub line: Option<String>,
+    /// Whether the slot's own pause stands (item 4252): the turn control's
+    /// bit, as the layer last set it. While it stands the window steps no
+    /// frame, and every order is minted on the frame it stopped on.
+    pub paused: bool,
 }
 
 impl Input {
@@ -738,6 +747,14 @@ impl Input {
             Event::Escape => {
                 self.line = None;
                 None
+            }
+            Event::Pause => {
+                // `issue_toggle_pause`: `pause(state)`, the bit's complement,
+                // in a package of its own; the bit itself turns when the
+                // package is processed, in a solo game the same turn.
+                let state = u8::from(!self.paused);
+                self.paused = !self.paused;
+                Some((frame, play, vec![Command::Pause { state }]))
             }
             Event::Key(k) if self.line.is_some() => {
                 let line = self.line.as_mut().unwrap();
@@ -2156,6 +2173,128 @@ pub(crate) mod tests {
     const CHATTED_RCX: &str = "ron-golden/recordings/item4250-chatted-greatlakes-24000.rcx";
     const CHATTED_RCX_BYTES: usize = 59_491;
 
+    /// **Stage 0 of the paused script** (item 4252): on
+    /// [`script::PAUSE_FRAME`] the bare ground pixel the right press names
+    /// while the game stands paused, at the opening camera; the capital is
+    /// still the selection the gathered events made.
+    const PAUSE_ANCHOR: AttackAnchor = (script::PAUSE_FRAME, (0, -1), (1320, 650));
+
+    /// The chatted events and the pause's three, all on
+    /// [`script::PAUSE_FRAME`]: the pause key, a right press on the ground,
+    /// the pause key again.
+    fn pause_events() -> Vec<Scripted> {
+        let mut e = chat_events();
+        let (f, _, (x, y)) = PAUSE_ANCHOR;
+        e.extend([
+            (f, None, Event::Pause),
+            (f, None, Event::RightPress { x, y }),
+            (f, None, Event::Pause),
+        ]);
+        e
+    }
+
+    /// **`INPUT_PAUSED`** (item 4252, `docs/CLIENT_INPUT.md` §13): the
+    /// chatted events and the pause's three, under the opening camera, mint
+    /// [`script::paused`] field for field, of 18.
+    const INPUT_PAUSED: usize = 18;
+
+    /// **The paused count**: stage 0 on the pause's frame — the capital
+    /// still takes a rally point, and no object is under the ground's
+    /// pixel, whose inverse is [`script::PAUSE_GATHER_AT`]; then the events
+    /// mint the paused script, three packages on one frame, and the file
+    /// written from them is the paused file.
+    #[test]
+    fn minted_paused_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let chatted = script::chatted();
+        let c = camera(None);
+        let mut next = 0;
+        while r.frame() < i64::from(script::PAUSE_FRAME) {
+            let f = r.frame() as i32;
+            while next < chatted.len() && chatted[next].0 == f {
+                r.issue(&chatted[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+            let v = view(&c, &scene, &terrain);
+            let id = ObjId {
+                who: 0,
+                o: script::CAPITAL,
+            };
+            let (gx, gy) = PAUSE_ANCHOR.2;
+            println!(
+                "PAUSE STAGE0 f{} ground {:?} names {}",
+                r.frame(),
+                ground_at(&v, gx, gy),
+                v.names_object(gx, gy)
+            );
+            assert!(v.takes_gather_point(&[id]), "the capital trains");
+            assert!(!v.names_object(gx, gy), "bare ground");
+            assert_eq!(ground_at(&v, gx, gy), Some(script::PAUSE_GATHER_AT));
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_events(pause_events()) else {
+            return;
+        };
+        let paused = script::paused();
+        let whole = ours.iter().zip(&paused).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (paused.len(), INPUT_PAUSED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, paused);
+        drop(r);
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(chatted_file), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(CHATTED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(PAUSED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {CHATTED_RCX} or {PAUSED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), PAUSED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the paused orders");
+        assert!(written != chatted_file, "not the chatted file");
+    }
+
+    /// The paused file (`docs/CLIENT_INPUT.md` §13), written by rondata's
+    /// `the_paused_minted_packages_round_trip` under `RON_RCX_OUT`; the
+    /// file the original's playback takes open (run 1601).
+    const PAUSED_RCX: &str = "ron-golden/recordings/item4252-paused-greatlakes-24000.rcx";
+    const PAUSED_RCX_BYTES: usize = 59_515;
+
+    /// **The pause key without a walk** (item 4252): a first press mints
+    /// `pause(1)` alone and the pause stands; a press while it stands mints
+    /// `pause(0)` on the same frame and lifts it. With nothing selected and
+    /// the entry line closed, the key still mints: a pause names no object.
+    #[test]
+    fn minted_pause_key_toggles() {
+        let (scene, terrain) = (Scene::default(), TerrainScene::default());
+        let c = crate::pinned_camera();
+        let v = view(&c, &scene, &terrain);
+        let mut input = Input::new(0);
+        assert_eq!(
+            input.event(7, Event::Pause, &v),
+            Some((7, 0, vec![Command::Pause { state: 1 }]))
+        );
+        assert!(input.paused);
+        assert_eq!(
+            input.event(7, Event::Pause, &v),
+            Some((7, 0, vec![Command::Pause { state: 0 }]))
+        );
+        assert!(!input.paused);
+    }
+
     /// The recordings on disk, as `rondata::recgame`'s census reads them:
     /// the bottle's `Logs\` and the install's `external-recgames/`.
     fn recordings_on_disk() -> Vec<std::path::PathBuf> {
@@ -2475,15 +2614,14 @@ pub(crate) mod tests {
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (10, 26);
+    const INPUT_KINDS: (usize, usize) = (11, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2216, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2240, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
         "leader_options",
         "sell",
-        "pause",
         "city_gather",
         "buy",
         "spell",
