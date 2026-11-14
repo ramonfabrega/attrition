@@ -2802,13 +2802,17 @@ impl Sim {
             self.clean_queue(b, true);
             return;
         };
+        // The closing library's own array is left as it stood: `queued`
+        // drops, the slots keep their bytes ([`Queue::vacated`]).
         let items = std::mem::take(&mut self.buildings[b].queue.items);
-        for (i, item) in items.into_iter().enumerate() {
-            if i == 0 && item.disband {
-                self.buildings[b].queue.items.push(item);
-                continue;
-            }
-            self.buildings[next].queue.items.push(item);
+        let keep = usize::from(items.first().is_some_and(|i| i.disband));
+        let q = &mut self.buildings[b].queue;
+        let mut raw: Vec<_> = items[keep..].to_vec();
+        raw.append(&mut q.vacated);
+        q.vacated = raw;
+        q.items.extend(items[..keep].iter().cloned());
+        for item in items.into_iter().skip(keep) {
+            self.buildings[next].queue.lay(item);
         }
     }
 
