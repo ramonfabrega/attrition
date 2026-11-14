@@ -400,7 +400,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Unit::plunder@00605b00` | 0 | modelled at plunder.rs | `aztec_slay_bonus` |
 | `Unit::update_los@0060e4d0` | 8 9 18 | carried at vision.rs | `0060e4d0` |
 | `Unit::update_hits@0060e930` | 4 18 22 | carried at unit_update_hits.rs | `0060e930` |
-| `Unit::close@0060ee50` | 19 20 | carried at fight.rs | `0060ee50` |
+| `Unit::close@0060ee50` | 19 20 | carried at delivery.rs | `0060ee50` |
 | `UnitData::max_range@0060fe90` | 8 | carried at stats.rs | `0060fe90` |
 | `Unit::init@00612100` | 18 19 20 | carried at store.rs | `00612100` |
 | `Build::process@0061edf0` | 8 23 | carried at city.rs | `0061edf0` |
