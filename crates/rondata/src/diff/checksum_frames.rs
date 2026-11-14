@@ -226,6 +226,16 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// (run1592): group record 64 (army 1/1, the Longbowmen `1/24..1/26`, TI
 /// 177, pushed on 6780) `role` ours 0, theirs 0x150c00, `new_speed` and
 /// `speed` ours 0, theirs 26 → the original's on both.
+///
+/// Item 4243 moved one on run1578: units 6907 → 7195, a grouped move's
+/// walk (`GroupMoveOrder::walk_data@004855c0`, which
+/// `GroupAttackToOrder::walk_data` is whole) handing three ranges after
+/// `order.move` the emitter left out. Value diff on 6907 (run1593): theirs
+/// 1648 ranges, ours 1639, 781 parted from range 784, record 24 (army 1/1's
+/// Longbowman, `GROUP_ATTACK_TO`): the flags byte again 05, `oxx` 24,
+/// `whose` 1, `id` 0x697990, `form_id` 0, `group_angle` the move's,
+/// `in_group` 0, on each of three members — ours had none of the nine →
+/// 1648 on both, the line whole.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -247,7 +257,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 6907, 0),
+            ("units", 7195, 0),
             ("builds", 7383, 0),
             ("groups", 8206, 0),
             ("guys", 7273, 0),
@@ -555,6 +565,24 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             271,
             271,
             3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|21010000",
+        )],
+    ),
+    (
+        "run1593",
+        "rontrace-run1593.log",
+        6907,
+        // Item 4243: units whole; before it, theirs 1648 ranges, ours 1639,
+        // 781 parted from range 784, record 24 (a Longbowman of army 1/1,
+        // `GROUP_ATTACK_TO`): `GroupMoveOrder::walk_data@004855c0` hands
+        // three ranges after `order.move` the emitter left out — the flags
+        // byte again (05), `oxx`..`group_angle` (24, 1, 0x697990, 0, the
+        // move's angle) and `in_group` (0) — on each of three members.
+        &[(
+            "leaders",
+            271,
+            271,
+            2,
             "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|21010000",
         )],
     ),
