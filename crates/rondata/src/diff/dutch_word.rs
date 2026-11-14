@@ -242,7 +242,7 @@ fn run963b_s_word_frame_is_widened_whole() {
     // `pool:n`, `aggression` and the newborn `g.angle[0]`, 53 on 5577 and
     // ten later as new members join those kinds (`1/27`'s `form` on 5601
     // through `1/36`'s `g.angle[0]` on 5811).
-    pin_eq!(w.firsts.len(), 63, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 58, "keys that part in the window");
 }
 
 /// run963c: the word 22935's window, blocks 22929..23185 at run963's
@@ -294,7 +294,7 @@ fn run963c_s_word_frame_is_widened_whole() {
     // Item 3336: −4, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
     // Item 3369: 112 -> 74, an unpacked merchant's "over time" piece
     // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 75, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 74, "keys that part in the window");
 }
 
 /// run963d: the word 23782's window to the trace's last frame, blocks

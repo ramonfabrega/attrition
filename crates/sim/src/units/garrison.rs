@@ -330,7 +330,10 @@ impl Sim {
             // `0x34` or `0x35`), which is this crate's
             // [`Worker::Scholar`](crate::orders::Worker::Scholar). Three
             // statements: snap onto the container's own point with
-            // `param_3 = 1`, turn to angle 0, and `set_anim(CHAR_DEFAULT,
+            // `param_3 = 1`, **set** to angle 0 (`Unit::set_angle(0, _, 1)`,
+            // `61a547`..`61a54e` push 1, `ecx`, 0: `Guy::set_angle`'s snap,
+            // so the figure's `angle` and `last_angle` are 0 on the seating's
+            // frame, run1597's 7273; item 4253), and `set_anim(CHAR_DEFAULT,
             // 1, 1)` — the **forced** idle, whose roll is
             // [`SITE_GO_INSIDE`](crate::units::anim::SITE_GO_INSIDE). The draw is
             // the point: without it the new guy keeps `Guy::init_real`'s
@@ -341,7 +344,7 @@ impl Sim {
                 let host = self.buildings[b].pos;
                 self.mark(crate::units::anim::SITE_GO_INSIDE);
                 self.set_new_location(f, host, true);
-                self.unit_set_angle(f, crate::movement::Angle(0));
+                self.unit_set_angle_as(f, crate::movement::Angle(0), true);
                 self.set_anim(f, crate::units::anim::DEFAULT, true, true);
             }
         }

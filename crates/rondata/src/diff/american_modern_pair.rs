@@ -291,7 +291,7 @@ fn american_modern_pair_run1151b_s_word_frame_is_widened_whole() {
     // Item 3755: 72 → 57, `get_cost`'s American aircraft arm built —
     // the Airbase's fighters and the buckets with them agree; the Bomber
     // (304) still reads 67 against 57 on 2186 (parked 3755a).
-    pin_eq!(w.firsts.len(), 57, "run1151b baseline");
+    pin_eq!(w.firsts.len(), 56, "run1151b baseline");
 }
 
 /// run1151c: the word 4488's window, blocks 4482..4549 — six blocks before
@@ -359,7 +359,7 @@ fn american_modern_pair_run1151c_s_word_frame_is_widened_whole() {
     // reads 115 against 100 on 4482, the buckets with it (parked 3755a).
     // Item 4177: 59 -> 63, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 4482 ours 56 theirs 69; who=0 `damage_fifteen_seconds` 4482 ours 25 theirs 26; who=1 `average_hit_rate` 4482 ours 81 theirs 94; who=1 `hits_fifteen_seconds` 4482 ours 26 theirs 27 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 63 -> 59, item 4177's four combat-rate firsts on 4482 agree: the nuke strikes the city building at its ceiling (4177a, `Nuke::do_damage (0092bc80)`).
-    pin_eq!(w.firsts.len(), 59, "run1151c baseline");
+    pin_eq!(w.firsts.len(), 58, "run1151c baseline");
 }
 
 /// **The heal's clock agrees on every block of run1151c** (item 3961,

@@ -242,7 +242,7 @@ fn mongol_classical_pair_run1198b_s_word_frame_is_widened_whole() {
     // of `1/2017`'s and `1/2022`'s queues, ours 116/86 against 110/82.
     // Item 3595: 77 -> 75, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 8438, and `bucket[2:wealth]` on 8455, agrees.
-    pin_eq!(w.firsts.len(), 75, "run1198b baseline");
+    pin_eq!(w.firsts.len(), 70, "run1198b baseline");
 }
 
 /// run1218: the word 9744's window, blocks 9738..9885 at the long's detail —
@@ -319,7 +319,7 @@ fn mongol_classical_pair_run1218_s_word_frame_is_widened_whole() {
     // 9783 (parked 3581a).
     // Item 3595: 96 -> 95, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 9738, agrees.
-    pin_eq!(w.firsts.len(), 96, "run1218 baseline");
+    pin_eq!(w.firsts.len(), 89, "run1218 baseline");
 }
 
 /// **The long's stride, walked back from the word 9744** (item 3575):
@@ -490,7 +490,7 @@ fn mongol_classical_pair_run1224_s_word_frame_is_widened_whole() {
     // against 16856 (parked 3581a), and the `dest_angle` family (3574b).
     // Item 3595: 93 -> 92, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 9740, agrees.
-    pin_eq!(w.firsts.len(), 93, "run1224 baseline");
+    pin_eq!(w.firsts.len(), 86, "run1224 baseline");
 }
 
 /// **The closing state** (item 3581): with the draw stream whole to the

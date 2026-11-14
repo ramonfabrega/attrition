@@ -1217,7 +1217,7 @@ mod bodies {
         // Item 1477: 106 → 104; the census circle walk starts at entry 1 (`docs/AI.md` §122).
         pin_eq!(
             under, // Item 1444: the ruins guard removes stale site fields (batch replay).
-            36,    // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            25,    // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor under the word"
         );
         let pair: Vec<String> = firsts
@@ -1473,7 +1473,7 @@ mod bodies {
             .collect();
         pin_eq!(
             head,
-            [(1, -1, 1), (1, 80, 1)],
+            [(1, -1, 1)],
             "who the gap carried onto 20500, and on how many keys"
         );
         let tail = standing.get(&RUN226_TAIL).map_or(0, BTreeMap::len);
@@ -1493,7 +1493,7 @@ mod bodies {
             // 28 before item 899: `1/60`'s 23 went.
             // Item 1072 took four (307 → 303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (36, 2), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (23, 1), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "run226's standing rows on its last block, and the gap's on run243's first"
         );
         // **The old word's value diff** (item 795): on 20569 the
@@ -1558,7 +1558,7 @@ mod bodies {
             ),
             // Item 1072 took four (307/5/1/313 → 303/5/1/309): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (36, 2, 0, 38), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (23, 1, 0, 24), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
         // Item 1115 took the caravan's four rows here (308 → 304; `docs/CARAVAN.md` §11.3).
@@ -1568,7 +1568,7 @@ mod bodies {
             // `production_step` (0 here, 1 there) stands on this block and
             // not on 20800. Item 1072 took four (312 → 308): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            38, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            24, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every row standing on the old word's block"
         );
     }
@@ -1640,7 +1640,7 @@ mod bodies {
             // ours 402): the quit on 24000's head, replayed from run80's trace.
             // Item 4204: 24001 48 -> 43, the head quit's `clear_orders`: `0/1`..`0/5`
             //   `orders.len` 0 = 0 (were ours 1).
-            [(23960, 37), (24001, 43)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(23960, 23), (24001, 43)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, and how many"
         );
         let end: Vec<&String> = firsts
@@ -1664,7 +1664,7 @@ mod bodies {
                 .map_or(0, BTreeMap::len),
             // Item 1072 took four (310 → 306): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            37, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            23, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor stands on the second block, and nothing joins it"
         );
     }
@@ -1741,7 +1741,7 @@ mod bodies {
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(23960, 37), (24001, 49)],
+            [(23960, 23), (24001, 49)],
             "the blocks keys first part on, and how many"
         );
         let end: Vec<String> = firsts
@@ -1768,7 +1768,7 @@ mod bodies {
             standing
                 .get(&(WIDENING_EAST_INDIES_END.0 + 1))
                 .map_or(0, BTreeMap::len),
-            37,
+            23,
             "the floor stands on the second block, and nothing joins it"
         );
     }

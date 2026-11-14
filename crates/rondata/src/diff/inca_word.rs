@@ -153,7 +153,7 @@ fn run987_s_word_frame_is_widened_whole() {
     // What stands: the standing family alone (`SITE[·].reg` 65 against 0,
     // `aggression`, `form` −1 against 0/9, the army `pool:n` and
     // `group:n.held` with no `GROUPDATA` printed, the newborn `g.angle[0]`).
-    pin_eq!(w.firsts.len(), 49, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 46, "keys that part in the window");
 }
 
 /// run987b: the word 16516's window, blocks 16510..16766 at `GUYS=4`,
