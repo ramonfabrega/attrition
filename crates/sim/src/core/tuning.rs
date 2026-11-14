@@ -1422,6 +1422,15 @@ pub struct Tuning {
     /// map-size scaling of `Game::wonder_timer@005944f0`
     /// (`docs/LEADERS.md` §10.2). `4500 frames`.
     pub wonder_timer: i32,
+    /// `BASE_TRIBUTE`: the percentage of a gift that gets through,
+    /// `LeaderData::scale_tribute@006d5240`'s constant term, loaded whole
+    /// by `Constants::init@00569a90`'s `get_item` (`docs/LEADERS.md` §8.2).
+    /// `51% of gift gets through`.
+    pub base_tribute: i32,
+    /// `COMMERCE_TRIBUTE`: the percentage more per Commerce level, the
+    /// giver's `epoch[2]` its multiplier in `scale_tribute`. `7% additional
+    /// gift gets through`.
+    pub commerce_tribute: i32,
 }
 
 impl Tuning {
@@ -1943,6 +1952,8 @@ impl Tuning {
         popwin_timer: 3600,
         retake_capital: 3600,
         wonder_timer: 4500,
+        base_tribute: 51,
+        commerce_tribute: 7,
     };
 
     /// Every value in [`Tuning::RON`] that comes from a named constant in
@@ -2948,6 +2959,8 @@ impl Tuning {
             ("POPWIN_TIMER", Slot::Value(T.popwin_timer)),
             ("RETAKE_CAPITAL", Slot::Value(T.retake_capital)),
             ("WONDER_TIMER", Slot::Value(T.wonder_timer)),
+            ("BASE_TRIBUTE", Slot::Value(T.base_tribute)),
+            ("COMMERCE_TRIBUTE", Slot::Value(T.commerce_tribute)),
         ]
     }
 }

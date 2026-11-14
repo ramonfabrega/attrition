@@ -1389,7 +1389,9 @@ mod tests {
     use sim::mapgen::{
         Fractal, MapGrid, Regions, fertile_partitions, great_sahara_make_continents,
     };
-    use std::sync::OnceLock;
+    // Each cache below is read by many tests of one process: `Shared`
+    // credits every reader with the fill's fixture requests (item 4216).
+    use crate::testenv::Shared;
 
     mod east_west;
 
@@ -1424,7 +1426,7 @@ mod tests {
     /// archive's files whose preamble carries the setup trace. `None` on a
     /// machine without the archive.
     fn archive() -> Option<&'static [(String, StartGrid)]> {
-        static ALL: OnceLock<Option<Vec<(String, StartGrid)>>> = OnceLock::new();
+        static ALL: Shared<Option<Vec<(String, StartGrid)>>> = Shared::new();
         ALL.get_or_init(|| {
             let names = filed_names(|n| n.starts_with("gamelog") && n.ends_with(".txt"))?;
             let paths: Vec<(String, String)> = names
@@ -1929,7 +1931,7 @@ mod tests {
     /// ([`make_draws`]), read once. `None` without the archive.
     fn make_traces() -> Option<&'static [(String, Vec<SetupDraw>)]> {
         type Segments = Vec<(String, Vec<SetupDraw>)>;
-        static ALL: OnceLock<Option<Segments>> = OnceLock::new();
+        static ALL: Shared<Option<Segments>> = Shared::new();
         ALL.get_or_init(|| {
             let names = filed_names(|n| n.starts_with("rontrace-") && n.ends_with(".log"))?;
             let paths: Vec<(String, String)> = names
@@ -2909,7 +2911,7 @@ mod tests {
     /// Every Great Lakes trace's `make_continents` segment ([`lakes_part`]
     /// of its setup path), read once.
     fn lake_traces() -> &'static [(String, Vec<SetupDraw>)] {
-        static ALL: OnceLock<Vec<(String, Vec<SetupDraw>)>> = OnceLock::new();
+        static ALL: Shared<Vec<(String, Vec<SetupDraw>)>> = Shared::new();
         ALL.get_or_init(|| {
             let paths: Vec<(String, String)> = traces_of("greatlakes")
                 .into_iter()
@@ -3309,7 +3311,7 @@ mod tests {
     /// ([`islands_part`] of its setup path), read once; a trace whose
     /// segment is empty is not East Indies after all, and is dropped.
     fn island_traces(all: &[(String, StartGrid)]) -> &'static [(String, Vec<SetupDraw>)] {
-        static ALL: OnceLock<Vec<(String, Vec<SetupDraw>)>> = OnceLock::new();
+        static ALL: Shared<Vec<(String, Vec<SetupDraw>)>> = Shared::new();
         ALL.get_or_init(|| {
             let paths: Vec<(String, String)> = east_indies_trace_names(all)
                 .into_iter()
@@ -4493,7 +4495,7 @@ mod tests {
     /// straight after the values' last (`World::compute_val`), as long as
     /// each is `make_riverlist`'s or `astar_river`'s. Read once.
     fn lake_river_traces() -> &'static [(String, Vec<SetupDraw>)] {
-        static ALL: OnceLock<Vec<(String, Vec<SetupDraw>)>> = OnceLock::new();
+        static ALL: Shared<Vec<(String, Vec<SetupDraw>)>> = Shared::new();
         ALL.get_or_init(|| {
             let paths: Vec<(String, String)> = traces_of("greatlakes")
                 .into_iter()
@@ -7865,7 +7867,7 @@ mod tests {
         lays_rivers: bool,
         /// The files whose start dump prints the heights: a floor.
         height_files: usize,
-        walks: OnceLock<Option<Vec<ChainWalk>>>,
+        walks: Shared<Option<Vec<ChainWalk>>>,
     }
 
     /// Old World (style 6, §25): run1527, item 3944 — 21 records 734..815
@@ -7885,7 +7887,7 @@ mod tests {
         moves_a_good: true,
         lays_rivers: true,
         height_files: 1,
-        walks: OnceLock::new(),
+        walks: Shared::new(),
     };
 
     /// Amazon Basin (style 8, §26): run1528, item 3945 — 22 records
@@ -7905,7 +7907,7 @@ mod tests {
         moves_a_good: true,
         lays_rivers: true,
         height_files: 1,
-        walks: OnceLock::new(),
+        walks: Shared::new(),
     };
 
     /// Himalayas (style 9, §27): run1529, item 3946, and the AI track's
@@ -7928,7 +7930,7 @@ mod tests {
         moves_a_good: false,
         lays_rivers: false,
         height_files: 2,
-        walks: OnceLock::new(),
+        walks: Shared::new(),
     };
 
     /// Mediterranean (style 12, §29): run1531, item 3948 — its own
@@ -7948,7 +7950,7 @@ mod tests {
         moves_a_good: false,
         lays_rivers: false,
         height_files: 1,
-        walks: OnceLock::new(),
+        walks: Shared::new(),
     };
 
     /// African Watering Hole (style 11, §28): run1530, item 3947 — 22
@@ -7969,7 +7971,7 @@ mod tests {
         moves_a_good: false,
         lays_rivers: false,
         height_files: 1,
-        walks: OnceLock::new(),
+        walks: Shared::new(),
     };
 
     /// Australian Outback (style 13, §30): run1532, item 3949.
@@ -7988,7 +7990,7 @@ mod tests {
         moves_a_good: false,
         lays_rivers: false,
         height_files: 1,
-        walks: OnceLock::new(),
+        walks: Shared::new(),
     };
 
     /// New World (style 16, §31): run1533, item 3950.
@@ -8007,7 +8009,7 @@ mod tests {
         moves_a_good: false,
         lays_rivers: true,
         height_files: 1,
-        walks: OnceLock::new(),
+        walks: Shared::new(),
     };
 
     /// Sea Power (style 20, §33): run1535, item 3952 — its own
@@ -8027,7 +8029,7 @@ mod tests {
         moves_a_good: false,
         lays_rivers: false,
         height_files: 1,
-        walks: OnceLock::new(),
+        walks: Shared::new(),
     };
 
     /// Nile Delta (style 21, §34): run1536, item 3953.
@@ -8046,7 +8048,7 @@ mod tests {
         moves_a_good: false,
         lays_rivers: false,
         height_files: 1,
-        walks: OnceLock::new(),
+        walks: Shared::new(),
     };
 
     /// Colonial Powers (style 17, §32): run1534, item 3951.
@@ -8065,7 +8067,7 @@ mod tests {
         moves_a_good: false,
         lays_rivers: false,
         height_files: 1,
-        walks: OnceLock::new(),
+        walks: Shared::new(),
     };
 
     /// A chain's tileset (`docs/MAPGEN.md` §4, §25): the style file's own

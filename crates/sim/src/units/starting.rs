@@ -112,10 +112,22 @@ impl Sim {
     /// computer's unit takes) is not walked: a Citizen or Scholar
     /// (`0x32..=0x35`) is exempt from it, and a fresh unit has nothing to
     /// wipe.
+    ///
+    /// **And the step lights its disc** (item 4210, `docs/START.md` §7.2).
+    /// The no-host arm does not store the spot before
+    /// `set_new_location(·, ·, 1, 1)` (`00617c10:518`), as every inside arm
+    /// does. So `005f8d20`'s half-cell test sees the unit's old fog cell,
+    /// and a step that crosses one calls vslot `+0x174` with
+    /// `param_3 == 0`: `update_seen(0)`, the whole disc at the new spot.
+    /// run1429's Aztec citizen `1/7`, born on `1/2001`'s point at fog
+    /// (105, 46) and stepped to (105, 47), lights (101, 49), (102, 50),
+    /// (103, 51) and (104, 51) for its owner in the `[Start Game]` dump.
     pub fn come_out_own_point(&mut self, u: usize) -> Pos {
         let spot = SimComeOut::own_point(self, u).run();
-        let at = spot.unwrap_or(self.units[u].pos);
+        let from = self.units[u].pos;
+        let at = spot.unwrap_or(from);
         self.set_new_location(u, at, true);
+        self.moved_to(u, from, false);
         at
     }
 }

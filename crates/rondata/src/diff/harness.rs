@@ -4906,20 +4906,29 @@ pub(crate) mod tests {
     /// the frame before the capture's last block, or a quit past the body
     /// whose capture closes with an ordinary block and its closing records
     /// beside it (the block was written before the quit). Read once per
-    /// capture and process.
+    /// capture and process, and **every test that reads it is credited
+    /// with the trace the read asked for** (item 4216): in a group's
+    /// process the first test of a capture fills the entry, and
+    /// `american_modern_pair_run1151c_s_word_frame_is_widened_whole` lost
+    /// its `rontrace-run1151c.log` row to another test's fill.
     fn closing_quit(
         name: &str,
         ix: &mut crate::capture::indexed::IndexedCapture,
     ) -> Option<(i64, bool)> {
+        use crate::testenv::Shared;
         use std::collections::HashMap;
-        use std::sync::{Mutex, OnceLock};
-        type Quits = Mutex<HashMap<String, Option<(i64, bool)>>>;
-        static QUITS: OnceLock<Quits> = OnceLock::new();
-        let cache = QUITS.get_or_init(Default::default);
-        if let Some(q) = cache.lock().unwrap().get(name) {
-            return *q;
-        }
-        let found = (|| {
+        use std::sync::Mutex;
+        type Quit = Shared<Option<(i64, bool)>>;
+        static QUITS: Mutex<Option<HashMap<String, &'static Quit>>> = Mutex::new(None);
+        // One cell a capture, kept for the process: a few dozen words a
+        // capture, in a test binary.
+        let cell: &'static Quit = QUITS
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .get_or_insert_with(HashMap::new)
+            .entry(name.to_string())
+            .or_insert_with(|| Box::leak(Box::new(Shared::new())));
+        *cell.get_or_init(|| {
             let (q, head) = quit_in_trace(name)?;
             let last = ix.frames().last()?.number;
             if q + 1 != last {
@@ -4941,9 +4950,7 @@ pub(crate) mod tests {
                 }
             );
             Some((q, head))
-        })();
-        cache.lock().unwrap().insert(name.to_string(), found);
-        found
+        })
     }
 
     #[expect(
@@ -5008,18 +5015,27 @@ pub(crate) mod tests {
             .and_then(|key| super::prefix::take(key, first_block));
         let mut parse_time = std::time::Duration::ZERO;
         let mut built = resumed.unwrap_or_else(|| {
-            crate::diff::testkit::with_named_sibling_initials(siblings, |refs| {
-                let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
-                let text = source.read_replay_setup().unwrap();
-                let log = Log::parse(&text);
-                let mut init = log.replay_initial().unwrap();
-                borrow_from_siblings(&mut init, refs);
-                if let Some(t) = trace(base_trace) {
-                    borrow_pasture(&mut init, &t);
-                }
-                parse_time = started.elapsed();
-                build_sim(&loaded, &init, Tuning::RON)
-            })
+            let mut build = || {
+                crate::diff::testkit::with_named_sibling_initials(siblings, |refs| {
+                    let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+                    let text = source.read_replay_setup().unwrap();
+                    let log = Log::parse(&text);
+                    let mut init = log.replay_initial().unwrap();
+                    borrow_from_siblings(&mut init, refs);
+                    if let Some(t) = trace(base_trace) {
+                        borrow_pasture(&mut init, &t);
+                    }
+                    parse_time = started.elapsed();
+                    build_sim(&loaded, &init, Tuning::RON)
+                })
+            };
+            // A walk that may be handed to the next test of the process
+            // keeps its stand-up's fixture requests beside it.
+            if prefix {
+                super::prefix::stand_up(build)
+            } else {
+                build()
+            }
         });
         if let Some(key) = &prefix_key {
             super::prefix::mark_start(key, &built);

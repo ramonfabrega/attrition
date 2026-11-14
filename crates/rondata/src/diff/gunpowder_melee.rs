@@ -1290,7 +1290,7 @@ fn gunpowder_melee_s_leaders_are_compared_on_every_seat() {
         // Item 4176: 1142 -> 1177, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
         // Item 4177: 1177 -> 1190, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
         // Item 4185: 1190 -> 1198, +8: of the end of the game's and the lost capital's nine, the eight this record does not print (`defeated_by` prints).
-        1539,
+        1571,
         "keys run1461's `LEADERS=2` does not print"
     );
     // Item 3791: the standing family on frames 1 and 37 on every seat,

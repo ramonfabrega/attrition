@@ -422,7 +422,106 @@ pub fn parse_graphic_masks(doc: &roxmltree::Document<'_>) -> Vec<(String, String
 }
 
 /// Reads every table of an install and loads them.
+///
+/// In this crate's tests the canonical install's load is read once a
+/// process and cloned after ([`memo`], item 4216): a group of one game's
+/// tests runs in one process, and each of them asked for the same tables.
 pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
+    #[cfg(test)]
+    if let Some(kept) = memo::get(install) {
+        return Ok(kept);
+    }
+    let loaded = read_install(install)?;
+    #[cfg(test)]
+    memo::keep(install, &loaded);
+    Ok(loaded)
+}
+
+/// **The test install's load, once a process** (item 4216). The load is a
+/// function of the install's files and nothing else, it takes a third of
+/// a second, and 411 call sites in this crate's tests make it; one
+/// process a test, each paid it once, and a group of 28 tests of one game
+/// paid it 28 times in one process. The first load of the canonical
+/// install ([`crate::testenv::install_root`]) is kept and every later one
+/// is a clone of it.
+///
+/// Only that root is served: it is the user's install, which nothing in
+/// this repository writes, so within one process its files are the files
+/// the first load read. An install a test authors under another path is
+/// read every time. `RON_LOAD_MEMO=off` reads every time.
+#[cfg(test)]
+mod memo {
+    use super::Loaded;
+    use crate::Install;
+    use std::path::{Path, PathBuf};
+    use std::sync::Mutex;
+
+    static KEPT: Mutex<Option<(PathBuf, Loaded)>> = Mutex::new(None);
+
+    fn on() -> bool {
+        static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        *ON.get_or_init(|| match std::env::var("RON_LOAD_MEMO").as_deref() {
+            Ok("on") | Err(std::env::VarError::NotPresent) => true,
+            Ok("off") => false,
+            other => panic!("RON_LOAD_MEMO must be on or off, not {other:?}"),
+        })
+    }
+
+    /// Whether loads of `root` are served from the kept one.
+    pub(super) fn serves(root: &Path) -> bool {
+        on() && crate::testenv::install_root()
+            .is_some_and(|canonical| Path::new(&canonical) == root)
+    }
+
+    pub(super) fn get(install: &Install) -> Option<Loaded> {
+        if !serves(install.root()) {
+            return None;
+        }
+        let kept = KEPT
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        kept.as_ref()
+            .filter(|(root, _)| root == install.root())
+            .map(|(_, loaded)| loaded.clone())
+    }
+
+    pub(super) fn keep(install: &Install, loaded: &Loaded) {
+        if serves(install.root()) {
+            *KEPT
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner) =
+                Some((install.root().to_owned(), loaded.clone()));
+        }
+    }
+
+    #[test]
+    fn a_kept_load_is_the_load_a_fresh_read_builds() {
+        let Some(install) = crate::testenv::install() else {
+            eprintln!("skipping: no install (set RON_INSTALL)");
+            return;
+        };
+        assert!(serves(install.root()));
+        // Only the canonical root: a test's own install is read every time.
+        assert!(!serves(&install.root().join("data")));
+        assert!(!serves(Path::new("/nowhere")));
+        let first = super::load(&install).unwrap();
+        let again = super::load(&install).unwrap();
+        assert!(
+            KEPT.lock().unwrap().is_some(),
+            "the second load was served from the first"
+        );
+        let fresh = super::read_install(&install).unwrap();
+        let fresh = format!("{fresh:?}");
+        assert!(fresh.len() > 100_000, "the comparison reads a whole load");
+        assert!(format!("{first:?}") == fresh, "the first load is a read");
+        assert!(
+            format!("{again:?}") == fresh,
+            "a kept load differs from a fresh read"
+        );
+    }
+}
+
+fn read_install(install: &Install) -> Result<Loaded, crate::Error> {
     let rules = install.rules()?;
     let units = install.units()?;
     let buildings = install.buildings()?;

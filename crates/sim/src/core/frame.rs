@@ -208,6 +208,10 @@ impl Sim {
                 self.refresh_victory_timers(who);
                 self.refresh_wonder_timer(who);
             }
+            // And the slot step's last act, off frame 0: the taunt ring's
+            // requests due this frame (`docs/LEADERS.md` §9.2, item 4159's
+            // step VII-b2).
+            self.drain_taunts(player);
         }
 
         // The peace's end, between the two (`Game::do_frame:202`).

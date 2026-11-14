@@ -298,6 +298,118 @@ assertion logs are read in bounded chunks.
 No result or comparison verdict is reused. Independent review remains owed.
 
 
+## The group unit (item 4216, DECISIONS 132 §11)
+
+**What it is.** The isolated runner's unit was one process a test, so nothing the code
+caches in a process was ever shared: each of map generation's 131 tests read the 1,203
+kept preambles again, and every test of a kept game stood the game up from frame 0. A
+**group** is the tests of one game, or of one corpus sweep, and its selected members run
+in one process: `<binary> --exact a b c --test-threads=1`, on libtest's own threads, each
+named after its test, so the fixture audit and the ground guard read the names they
+always did. A test no group names, a group with one selected member and a test the
+profile runs wider than one slot run alone, as before.
+
+**Where the groups come from.** `tools/suite_groups.py --from <report>` writes
+`docs/audit/2026-11-13-suite-groups.json` from a gate's own fixture audit, never from a
+rule on names: a game's tests are those joined by a draw-site trace they both ask for,
+among the tests that ask for at most 20 files and 2 traces (one endpoint test asks for
+eleven traces, and without the bound it joined 157 tests of six modules); a sweep is a
+module's tests that each ask for more than 100 files. Today: 145 groups hold 1,274 tests
+(`sweep:mapgen` 129; 144 games, the largest 43). A test the audit never saw is in no
+group and runs alone, so a stale file costs seconds and never a verdict.
+
+**Verdicts.** A test's row is green on its own `... ok` line, or on libtest's result line
+counting every listed test passed. A test its process never reached is **not run** and
+red; a group that exits zero one verdict short is 125. A test that printed `ok` in a
+process that was then stopped stays red: a stopped process prints no clock, and a row
+with no clock is not green. The runner prints `Suite: N processes for T tests: G groups
+hold K, A ran alone; C test CPU-seconds`.
+
+**Memory.** A group's process holds what each of its tests left in the code's caches.
+The 145 groups peaked at a median 1.7 times, and up to 3.7 times, their largest member
+alone (4,130 MiB the largest), and the first cut's ceiling of 1.5 times a member's
+profile row stopped `game:run346` (28 tests) at 789 MiB. A group reserves 1.5 times its
+own measured peak (`memory_mib` in the groups file, `suite_groups.py --peaks <report>`),
+or the unknown test's 8 GiB when no run has measured it, under the unknown test's 32 GiB
+ceiling: a stale number then costs admission and never a verdict.
+
+**What a cache owes the audit.** In one process the first test fills a cache and the
+rest read it, and the fixture audit (which test asked for which kept file, how many
+times) would keep only the first test's rows. `testenv::Shared` keeps a fill's requests
+and writes them again, once, under each other reader's name. Map generation's five
+corpus caches and `harness::closing_quit`'s per-capture cell are `Shared`. The rule for
+a new process-wide cache over fixtures: make it a `Shared`, or the audit comparison
+below turns red on the tests that read it second.
+
+**The kept walk (off).** `harness::prefix` can hand the state a widening leaves to the
+next test of the process (`RON_SHARE_WALKS=on`, which the runner says to a group when
+`isolated_tests.SHARE_WALKS` or `RON_SUITE_SHARE_WALKS` is `on`). The rule is the
+coverage batch's: the same inputs by path, length and time, and a first block strictly
+after the retained frame; no verdict, comparison or recorded field is shared. The
+stand-up's fixture requests travel with the state and are replayed to the test that
+resumes it, and the ground guard is answered at the hand-back by the test that walked.
+**It is off in every gate as landed**; the measurements below say what turning it on
+buys and what has been checked.
+
+**The install's load.** `load::load` keeps the canonical test install's load and clones
+it after (`load::memo`, tests only; another root is read every time;
+`RON_LOAD_MEMO=off`). Seen red on a perturbed kept copy.
+
+**Which gate does what.** Groups are on wherever the library runs through the isolated
+runner: a lane's gate, a scoped booking gate and the whole gate alike, each over the
+tests it selects (a group's *selected* members share a process). No gate turns them
+off; `RON_SUITE_GROUPS=off` is a hand's. The whole booking gate alone sets
+`RON_VERIFY_ORACLE`, under which every widening is walked a second time fresh from
+frame 0 and compared whole, so once the kept walk is on the whole gate is its standing
+check and a lane's gate is not.
+
+**Measured** (2026-11-13, the whole library through the runner at 8 slots with the
+fixture audit on and no verifiers, beside other lanes' gates at a load of 20 to 40; the
+first three rows are one binary of `901f866c9` less the load memo, the last two that
+commit's own. **Instructions retired are the record**, summed over every test process's
+`time -l`: a CPU-second on this host is worth less under load, and the wall does not
+rank at all):
+
+| run | processes | instructions | test CPU-seconds | map generation | the games' groups | alone |
+|---|---|---|---|---|---|---|
+| `RON_SUITE_GROUPS=off` | 2,361 | 113,766 G | 6,091 | 1,574 | 2,784 | 1,733 |
+| groups | 1,232 | 88,163 G | 4,805 | 109 | 2,891 | 1,806 |
+| groups, kept walk on | 1,232 | 79,589 G | 4,129 | 123 | 2,235 | 1,771 |
+| groups, load memo | 1,233 | 82,771 G | 4,126 | | | |
+| groups, kept walk on, load memo | 1,233 | 75,814 G | 3,798 | 98 | 2,030 | 1,669 |
+
+The first three and the last green, 2,361 and 2,362 of them; the fourth ran while its
+tree was updated under it and five tests that read the tree's own files were red. The
+lane gate of the landing, on the updated tree at 4 threads: `Suite: 1242 processes for
+2371 tests: 145 groups hold 1274, 1097 ran alone; 4570 test CPU-seconds`. **The fixture audit, test for test as multisets**
+(`suite_groups.py --audit`, 1,924 tests with rows): groups against off, one test
+differs, the coverage test (8 against 7 requests of two files of one game), which is
+wider than a slot and ran alone in its own process in both runs; kept walk against off,
+none differ, on either binary. With the kept walk on and `RON_VERIFY_PREFIX_REUSE=1`,
+the whole library is green: 508 tests' widenings each walked a second time fresh from
+frame 0 and compared whole (their audit rows doubled, which is how they are counted).
+On `game:run1149` (28 tests, one process, instructions retired): 1,217 G alone, 1,208 G
+grouped, 1,017 G with the kept walk, 922 G with the load memo beside it.
+
+**What the numbers say.** Stage 1's whole gain is map generation (14 times less). One
+process for a game's tests buys nothing by itself: the cost is the walks, not the
+processes. The kept walk takes a fifth off the games' groups, and it helps only the
+widened windows, which are 12 of that group's 28 tests and a quarter of its time; the
+walk-to-the-word, closing-state, audit, stride and packet shapes each still stand the
+game up and walk it whole.
+
+**Not established.** (1) The wall: three runs on a loaded host do not rank, and groups
+are long serial units that may pack worse than single tests. (2) Why the coverage
+test's own rows differ run to run; it was not a group's doing, since it never runs in
+one. (3) libtest runs a filter's tests in name order, so a window that starts before
+the kept frame falls back to the last walk's start or to frame 0: on `game:run1149` the
+twelve windows walked 26,638 frames where one ascending walk a game is 9,232 and twelve
+stand-ups are 42,631. An order the process imposes is not built. (4) `checksum_lines::
+ours_at_packet` and `transfer::corpus_records` are process-wide caches over fixtures
+that are not `Shared`; their tests are in no group today. (5) The isolated profile
+(`2026-10-16-isolated-profile.json`) is stale by about 1,500 tests; a group's memory no
+longer reads it, a lone test's still does.
+
 ## The rondata library's length (item 4072, Loop 4042)
 
 **What was measured.** The whole gate on `dc1e1fd39` (2026-11-09, `--test-threads 8`,

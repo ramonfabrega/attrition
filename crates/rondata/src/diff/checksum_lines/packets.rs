@@ -307,26 +307,25 @@ pub(super) fn hold(game: &Game, packets: &[(&'static str, i64)]) {
 /// `docs/CHECKSUM.md` §23.7): walked from the lobby's built start their
 /// draw stream parts from the long trace before their first packet, so
 /// the lines would be read off a walk out of step. `(the word, why)`, the
-/// why the journal's parked finding: **4205b**, the Great Lakes Modern and
-/// Information words, part on frame 0 (`Unit::think_scout+0x64c` against
-/// `+0x436`, the fog's sign, `docs/START.md` §7.2). Every other word walks
-/// from the built start ([`walk_packets_built`]) and holds the draws to
-/// every packet's frame. The 24 East Indies words of **4205a** left at item
-/// 4208: their whales had no piece, so each kept an idle variant its packet
-/// lacks and wrapped on frame 2 (`Sim::gaia_piece`, `docs/START.md` §6).
-pub(super) const SEATED_WORDS: &[(&str, &str)] = &[
-    ("GreatLakesAmericanInformation", "4205b"),
-    ("GreatLakesAztecModern", "4205b"),
-    ("GreatLakesEgyptianInformation", "4205b"),
-    ("GreatLakesEgyptianModern", "4205b"),
-    ("GreatLakesJapaneseModern", "4205b"),
-];
+/// why the journal's parked finding. **None is left since item 4210**:
+/// every word walks from the built start ([`walk_packets_built`]) and
+/// holds the draws to every packet's frame. The 24 East Indies words of
+/// **4205a** left at item 4208: their whales had no piece, so each kept an
+/// idle variant its packet lacks and wrapped on frame 2 (`Sim::gaia_piece`,
+/// `docs/START.md` §6). The five Great Lakes Modern and Information words
+/// of **4205b** left at item 4210. They parted on frame 0
+/// (`Unit::think_scout+0x64c` against `+0x436`) because a starting
+/// citizen's step off its building lit no disc (`Sim::come_out_own_point`,
+/// `docs/START.md` §7.2): run1429's four `seen2` cells, fog (101, 49),
+/// (102, 50), (103, 51) and (104, 51), built 0 against the dump's 2.
+pub(super) const SEATED_WORDS: &[(&str, &str)] = &[];
 
 /// The word packets by their walk: `((words, packets) from the built
 /// start, (words, packets) dump-seated)` (item 4205). ((30, 41), (29, 46))
-/// at item 4205; **((54, 79), (5, 8))** at item 4208, the 24 East Indies
-/// words and their 38 packets walked from the built start.
-const BY_START: ((usize, usize), (usize, usize)) = ((54, 79), (5, 8));
+/// at item 4205; ((54, 79), (5, 8)) at item 4208, the 24 East Indies
+/// words and their 38 packets walked from the built start; **((59, 87),
+/// (0, 0))** at item 4210, 4205b's five words and their 8 packets.
+const BY_START: ((usize, usize), (usize, usize)) = ((59, 87), (0, 0));
 
 /// Where a built start's draws first part from `tr`'s by frame `to`:
 /// `(frame, ours, theirs, the draw, our site, theirs)`.
@@ -334,11 +333,13 @@ type BuiltParting = (i64, usize, usize, usize, String, String);
 
 /// **The seat is named, and the built start's lockstep can fail** (item
 /// 4205): every [`SEATED_WORDS`] row is a held word, the counts are
-/// [`BY_START`]'s; 4205b's word walked from the built start parts where
-/// its row says, on frame 0 (run1429's, ours 142 theirs 141, at draw 37),
-/// so [`hold`]'s lockstep assertion is sighted. And run1149's game, which
-/// parted on frame 2 (ours 7 draws theirs 4) until item 4208 gave the
-/// built start's whales their piece, holds to frame 4.
+/// [`BY_START`]'s. run1149's game, which parted on frame 2 (ours 7 draws
+/// theirs 4) until item 4208 gave the built start's whales their piece,
+/// holds to frame 4; so does run1429's, which parted on frame 0 (ours 142
+/// theirs 141, at draw 37, `Unit::think_scout+0x64c` against `+0x436`)
+/// until item 4210 lit a starting citizen's disc where it steps off its
+/// building. With that reveal removed the case goes red on that frame and
+/// draw again, so [`hold`]'s lockstep assertion is sighted.
 #[test]
 fn the_seated_words_part_from_the_built_start() {
     let words: std::collections::BTreeMap<&str, usize> =
@@ -367,17 +368,7 @@ fn the_seated_words_part_from_the_built_start() {
     type Want = (i64, usize, usize, usize, &'static str, &'static str);
     let cases: [((&str, &str), Option<Want>); 2] = [
         (crate::diff::russian_modern_pair::RUSSIAN_MODERN.long, None),
-        (
-            crate::diff::aztec_modern_pair::AZTEC_MODERN.long,
-            Some((
-                0,
-                142,
-                141,
-                37,
-                "Unit::think_scout+0x64c",
-                "Unit::think_scout+0x436",
-            )),
-        ),
+        (crate::diff::aztec_modern_pair::AZTEC_MODERN.long, None),
     ];
     for (long, want) in cases {
         let Some(got) = built_parting(long, 4) else {
@@ -560,7 +551,16 @@ fn at_init_image(leaf: &str, theirs: &[i64]) -> bool {
 /// its seated image there, ours equal to it — and bent on our side, it
 /// joins the leaves parting outside the list (the comparison can fail).
 fn hold_released(w: &Walked, held: &std::collections::BTreeSet<&str>) {
-    for &(leaf, run, slot) in PACKET_RELEASED {
+    hold_witnesses(w, held, PACKET_RELEASED);
+}
+
+/// [`hold_released`] over any list of `(leaf, run, slot)` witnesses.
+fn hold_witnesses(
+    w: &Walked,
+    held: &std::collections::BTreeSet<&str>,
+    witnesses: &[(&str, &str, i16)],
+) {
+    for &(leaf, run, slot) in witnesses {
         if run != w.run {
             continue;
         }
@@ -851,28 +851,25 @@ held_melees! {
 
 /// **Every packet our walk does not hold**, with why: `(run, logger frame,
 /// why)` (`docs/CHECKSUM.md` §23.1).
-pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
-    (
-        "run1100",
-        5408,
-        "run1090's lobby with `100 ally 1` and `5404 explore all` staged; no word walks it",
-    ),
-    // Item 4206 (step VII-a): `diff::diplomacy_take` walks the take from
-    // run1482's start re-read at style 0 and holds it to 1099, past this
-    // frame, but that walk is a pin as found, not a word with a pinned
-    // length and a stand-up the packet lines read; step VII-b holds it.
-    (
-        "run1575",
-        1090,
-        "the diplomacy take (run1482's lobby at style 0, `diplomacy4206.cmd`); its walk is \
-         `diff::diplomacy_take`, held to 1099 but no word's; step VII-b wires it",
-    ),
-];
+pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[(
+    "run1100",
+    5408,
+    "run1090's lobby with `100 ally 1` and `5404 explore all` staged; no word walks it",
+)];
+
+/// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
+/// (`diff::diplomacy_take`), which stages a computer's decision off the
+/// record, so no scoreboard line counts them (`docs/DECISIONS.md` entry
+/// 132 §1) and [`PINNED`] does not hold them. `(run, logger frame, the
+/// take, the length its staged walk is whole to)`.
+pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] =
+    &[("run1575", 1090, "the diplomacy take (1099 computed)", 1150)];
 
 /// The census's counts: `(packets on disk, held by a word's walk, by a
-/// chapter's, by a melee's, by the minted walk, not held)`.
+/// chapter's, by a melee's, by the minted walk, by a take's, not held)`.
 // Item 4206: (108, …, 1) → (109, …, 2), run1575's packet at 1090 named.
-const CENSUS: (usize, usize, usize, usize, usize, usize) = (109, 87, 7, 12, 1, 2);
+// Item 4159, step VII-b2: run1575's packet held by its take, (…, 1, 1).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (109, 87, 7, 12, 1, 1, 1);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.
@@ -900,6 +897,7 @@ fn every_held() -> Vec<(&'static str, i64, &'static str, i64)> {
 fn every_packet_is_wired_to_its_game_or_named() {
     let held = every_held();
     let mut runs: Vec<&str> = held.iter().map(|h| h.0).collect();
+    runs.extend(TAKES_HELD.iter().map(|t| t.0));
     runs.extend(NOT_HELD.iter().map(|n| n.0));
     let mut sorted = runs.clone();
     sorted.sort_unstable();
@@ -912,17 +910,19 @@ fn every_packet_is_wired_to_its_game_or_named() {
             CHAPTERS_HELD.len(),
             MELEES_HELD.len(),
             1,
+            TAKES_HELD.len(),
             NOT_HELD.len()
         ),
         CENSUS,
         "the census's counts"
     );
-    for (run, frame, game, length) in &held {
+    for (run, frame, game, length) in held.iter().chain(TAKES_HELD) {
         assert!(frame <= length, "{run}: {frame} past {game}'s {length}");
     }
     let frames: std::collections::BTreeMap<&str, i64> = held
         .iter()
         .map(|h| (h.0, h.1))
+        .chain(TAKES_HELD.iter().map(|t| (t.0, t.1)))
         .chain(NOT_HELD.iter().map(|n| (n.0, n.1)))
         .collect();
     let root = std::env::var("RON_GOLDEN_DIR")
@@ -1084,12 +1084,11 @@ fn a_packet_s_comparison_can_part() {
 
 /// The pinned outcomes, one a packet, pinned as found first (item 4188).
 pub(super) const PINNED: &[Pinned] = &[
-    // Item 4218, the idle latch (`flags & 0x08`): units (1116, 1296, 309) -> (1116, 1296, 306).
     (
         "ch94p",
         846,
         [
-            (1116, 1296, 306),
+            (1116, 1296, 309),
             (517, 517, 13),
             (0, 0, 0),
             (0, 0, 0),
@@ -1103,12 +1102,11 @@ pub(super) const PINNED: &[Pinned] = &[
             (7996, 7277, 4488),
         ],
     ),
-    // Item 4218, the idle latch (`flags & 0x08`): units (1284, 1426, 1224) -> (1284, 1426, 1222).
     (
         "ch95pkt",
         1117,
         [
-            (1284, 1426, 1222),
+            (1284, 1426, 1224),
             (517, 517, 13),
             (0, 0, 0),
             (0, 0, 0),
@@ -1170,12 +1168,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 2060, 49) -> (2060, 2060, 36); world (7479, 7463, 4220) -> (7479, 7479, 11).
     // Item 4209, the box's `clear_down`: builds (2060, 2060, 36) -> (2060, 2060, 35); items (50, 110,
     // 77) -> (50, 50, 0); world (7479, 7479, 11) -> (7479, 7479, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (3219, 3345, 2592) -> (3219, 3345, 2593).
     (
         "run1011b",
         13105,
         [
-            (3219, 3345, 2593),
+            (3219, 3345, 2592),
             (2060, 2060, 35),
             (0, 0, 0),
             (3, 0, 3),
@@ -1193,12 +1190,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 2080, 47) -> (2080, 2080, 34); world (7537, 7521, 4366) -> (7537, 7537, 11).
     // Item 4209, the box's `clear_down`: builds (2080, 2080, 34) -> (2080, 2080, 33); items (50, 110,
     // 77) -> (50, 50, 0); world (7537, 7537, 11) -> (7537, 7537, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (3193, 3298, 2588) -> (3193, 3298, 2589).
     (
         "run1011c",
         13225,
         [
-            (3193, 3298, 2589),
+            (3193, 3298, 2588),
             (2080, 2080, 33),
             (0, 0, 0),
             (6, 0, 6),
@@ -1283,12 +1279,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4490) -> (7583, 7583, 8).
     // Item 4209, the box's `clear_down`: items (75, 110, 56) -> (75, 75, 0); world (7583, 7583, 8) ->
     // (7583, 7583, 2).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4193, 4310, 3249) -> (4193, 4310, 3246).
     (
         "run1155c",
         3003,
         [
-            (4193, 4310, 3246),
+            (4193, 4310, 3249),
             (2371, 2371, 52),
             (0, 0, 0),
             (6, 0, 6),
@@ -1305,12 +1300,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4208, the whales' piece: units (2760, 2965, 535) -> (2760, 2965, 213); builds (520, 520,
     // 13) -> (520, 520, 0); guys (924, 994, 174) -> (924, 994, 70); world (8850, 7263, 4860) -> (8850,
     // 8850, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2760, 2965, 213) -> (2760, 2965, 205).
     (
         "run1161",
         4,
         [
-            (2760, 2965, 205),
+            (2760, 2965, 213),
             (520, 520, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1329,12 +1323,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4525) -> (7597, 7597, 22).
     // Item 4209, the box's `clear_down`: items (75, 110, 56) -> (75, 75, 0); world (7597, 7597, 22) ->
     // (7597, 7597, 15).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6053, 5910, 5268) -> (6053, 5910, 5265).
     (
         "run1164",
         4528,
         [
-            (6053, 5910, 5265),
+            (6053, 5910, 5268),
             (2140, 2136, 811),
             (0, 0, 0),
             (3, 0, 3),
@@ -1353,12 +1346,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1890, 2051, 163); world (9290, 7703, 6027) -> (9290, 9290, 15).
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9290, 9290, 15) ->
     // (9290, 9290, 11).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6004, 6418, 5252) -> (6004, 6418, 5248).
     (
         "run1165",
         3719,
         [
-            (6004, 6418, 5248),
+            (6004, 6418, 5252),
             (2267, 2266, 431),
             (0, 0, 0),
             (287, 0, 287),
@@ -1400,12 +1392,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // (1934, 2095, 177); world (9438, 7851, 6516) -> (9438, 9438, 4).
     // Item 4209, the box's `clear_down`: items (20, 35, 22) -> (20, 20, 0); world (9438, 9438, 4) ->
     // (9438, 9438, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (7749, 8143, 6726) -> (7749, 8143, 6718).
     (
         "run1169",
         3769,
         [
-            (7749, 8143, 6718),
+            (7749, 8143, 6726),
             (1813, 1813, 73),
             (0, 0, 0),
             (12, 0, 12),
@@ -1425,12 +1416,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 5).
     // Item 4209, the box's `clear_down`: units (6735, 7099, 5981) -> (6735, 7099, 5980); items (5, 35,
     // 31) -> (5, 5, 0); world (9268, 9268, 5) -> (9268, 9268, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6735, 7099, 5980) -> (6735, 7099, 5978).
     (
         "run1185",
         4582,
         [
-            (6735, 7099, 5978),
+            (6735, 7099, 5980),
             (1911, 1911, 59),
             (0, 0, 0),
             (3, 0, 3),
@@ -1448,12 +1438,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 1164, 23) -> (1164, 1164, 9); world (7361, 7345, 3930) -> (7361, 7361, 1).
     // Item 4209, the box's `clear_down`: items (105, 110, 25) -> (105, 105, 0); world (7361, 7361, 1)
     // -> (7361, 7361, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (1060, 1345, 303) -> (1060, 1345, 295).
     (
         "run1186b",
         1377,
         [
-            (1060, 1345, 295),
+            (1060, 1345, 303),
             (1164, 1164, 9),
             (0, 0, 0),
             (0, 0, 0),
@@ -1473,12 +1462,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: units (10607, 10674, 9057) -> (10607, 10674, 9056); builds
     // (3412, 3412, 126) -> (3412, 3412, 124); items (0, 35, 35) -> (0, 0, 0); world (9486, 9486, 5)
     // -> (9486, 9486, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (10607, 10674, 9056) -> (10607, 10674, 9057).
     (
         "run1217",
         7728,
         [
-            (10607, 10674, 9057),
+            (10607, 10674, 9056),
             (3412, 3412, 124),
             (0, 0, 0),
             (6, 0, 6),
@@ -1497,12 +1485,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4673) -> (7663, 7663, 4).
     // Item 4209, the box's `clear_down`: items (90, 110, 44) -> (90, 90, 0); world (7663, 7663, 4) ->
     // (7663, 7663, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4091, 4338, 3296) -> (4091, 4338, 3291).
     (
         "run1220b",
         2976,
         [
-            (4091, 4338, 3291),
+            (4091, 4338, 3296),
             (1817, 1817, 28),
             (0, 0, 0),
             (9, 0, 9),
@@ -1521,12 +1508,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // (1768, 1992, 239); world (9162, 7575, 5806) -> (9162, 9162, 4).
     // Item 4209, the box's `clear_down`: items (10, 35, 29) -> (10, 10, 0); world (9162, 9162, 4) ->
     // (9162, 9162, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6445, 6949, 5874) -> (6445, 6949, 5873).
     (
         "run1221",
         4287,
         [
-            (6445, 6949, 5873),
+            (6445, 6949, 5874),
             (1719, 1719, 30),
             (0, 0, 0),
             (6, 0, 6),
@@ -1568,12 +1554,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // (2097, 2188, 97); world (9352, 7765, 6266) -> (9352, 9352, 3).
     // Item 4209, the box's `clear_down`: builds (1733, 1733, 46) -> (1733, 1733, 45); items (15, 35,
     // 26) -> (15, 15, 0); world (9352, 9352, 3) -> (9352, 9352, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (7490, 7627, 6482) -> (7490, 7627, 6479).
     (
         "run1235b",
         4127,
         [
-            (7490, 7627, 6479),
+            (7490, 7627, 6482),
             (1733, 1733, 45),
             (0, 0, 0),
             (12, 0, 12),
@@ -1593,12 +1578,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 5).
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9312, 9312, 5) ->
     // (9312, 9312, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6610, 7349, 5764) -> (6610, 7349, 5753).
     (
         "run1236",
         4179,
         [
-            (6610, 7349, 5753),
+            (6610, 7349, 5764),
             (1762, 1762, 44),
             (0, 0, 0),
             (0, 0, 0),
@@ -1617,12 +1601,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4645) -> (7703, 7703, 5).
     // Item 4209, the box's `clear_down`: items (85, 110, 48) -> (85, 85, 0); world (7703, 7703, 5) ->
     // (7703, 7703, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (3448, 3542, 2651) -> (3448, 3542, 2644).
     (
         "run1237",
         2674,
         [
-            (3448, 3542, 2644),
+            (3448, 3542, 2651),
             (1650, 1650, 18),
             (0, 0, 0),
             (3, 0, 3),
@@ -1642,12 +1625,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 5).
     // Item 4209, the box's `clear_down`: builds (2494, 2494, 44) -> (2494, 2494, 43); items (10, 35,
     // 29) -> (10, 10, 0); world (9318, 9318, 5) -> (9318, 9318, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6417, 7136, 5546) -> (6417, 7136, 5516).
     (
         "run1238c",
         5021,
         [
-            (6417, 7136, 5516),
+            (6417, 7136, 5546),
             (2494, 2494, 43),
             (0, 0, 0),
             (0, 0, 0),
@@ -1666,12 +1648,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // (1748, 1972, 225); world (9158, 7571, 5816) -> (9158, 9158, 5).
     // Item 4209, the box's `clear_down`: items (10, 35, 29) -> (10, 10, 0); world (9158, 9158, 5) ->
     // (9158, 9158, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (5942, 6521, 5195) -> (5942, 6521, 5183).
     (
         "run1247",
         4306,
         [
-            (5942, 6521, 5183),
+            (5942, 6521, 5195),
             (1692, 1692, 27),
             (0, 0, 0),
             (6, 0, 6),
@@ -1690,12 +1671,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4540) -> (7669, 7669, 5).
     // Item 4209, the box's `clear_down`: items (85, 110, 49) -> (85, 85, 0); world (7669, 7669, 5) ->
     // (7669, 7669, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4388, 4364, 3388) -> (4388, 4364, 3384).
     (
         "run1254c",
         3115,
         [
-            (4388, 4364, 3384),
+            (4388, 4364, 3388),
             (1674, 1674, 37),
             (0, 0, 0),
             (9, 0, 9),
@@ -1713,12 +1693,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // (3789, 3789, 109) -> (3789, 3789, 92); world (7867, 7851, 5107) -> (7867, 7867, 10).
     // Item 4209, the box's `clear_down`: builds (3789, 3789, 92) -> (3789, 3789, 90); items (50, 110,
     // 77) -> (50, 50, 0); world (7867, 7867, 10) -> (7867, 7867, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (11229, 10998, 9831) -> (11229, 10998, 9830).
     (
         "run1263",
         8362,
         [
-            (11229, 10998, 9830),
+            (11229, 10998, 9831),
             (3789, 3789, 90),
             (0, 0, 0),
             (9, 0, 9),
@@ -1737,12 +1716,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // (1895, 2119, 244); world (9330, 7743, 6143) -> (9330, 9330, 5).
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9330, 9330, 5) ->
     // (9330, 9330, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6468, 7014, 5902) -> (6468, 7014, 5901).
     (
         "run1264b",
         4919,
         [
-            (6468, 7014, 5901),
+            (6468, 7014, 5902),
             (1770, 1770, 43),
             (0, 0, 0),
             (3, 0, 3),
@@ -1761,12 +1739,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 3413, 324) -> (3210, 3413, 224); world (9704, 8117, 6778) -> (9704, 9704, 6).
     // Item 4209, the box's `clear_down`: items (5, 35, 31) -> (5, 5, 0); world (9704, 9704, 6) ->
     // (9704, 9704, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (11161, 11622, 10220) -> (11161, 11622, 10213).
     (
         "run1266c",
         8700,
         [
-            (11161, 11622, 10213),
+            (11161, 11622, 10220),
             (3796, 3796, 100),
             (0, 0, 0),
             (6, 0, 6),
@@ -1785,12 +1762,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4828) -> (7773, 7773, 4).
     // Item 4209, the box's `clear_down`: items (90, 110, 42) -> (90, 90, 0); world (7773, 7773, 4) ->
     // (7773, 7773, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4744, 4798, 3708) -> (4744, 4798, 3699).
     (
         "run1268",
         3347,
         [
-            (4744, 4798, 3699),
+            (4744, 4798, 3708),
             (1908, 1908, 50),
             (0, 0, 0),
             (24, 0, 24),
@@ -1809,12 +1785,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (25, 25, 1); world (9230, 7643, 5878) -> (9230, 9230, 3).
     // Item 4209, the box's `clear_down`: items (20, 35, 22) -> (20, 20, 0); world (9230, 9230, 3) ->
     // (9230, 9230, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (9512, 9862, 8560) -> (9512, 9862, 8555).
     (
         "run1293",
         3606,
         [
-            (9512, 9862, 8555),
+            (9512, 9862, 8560),
             (1938, 1938, 50),
             (0, 0, 0),
             (0, 0, 0),
@@ -1833,12 +1808,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2242, 2473, 238); world (9490, 7903, 6488) -> (9490, 9490, 5).
     // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9490, 9490, 5) ->
     // (9490, 9490, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (8216, 8852, 7208) -> (8216, 8852, 7202).
     (
         "run1294",
         4473,
         [
-            (8216, 8852, 7202),
+            (8216, 8852, 7208),
             (2123, 2123, 59),
             (0, 0, 0),
             (3, 0, 3),
@@ -1857,12 +1831,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2172, 2403, 240); world (9470, 7883, 6497) -> (9470, 9470, 5).
     // Item 4209, the box's `clear_down`: items (5, 35, 32) -> (5, 5, 0); world (9470, 9470, 5) ->
     // (9470, 9470, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (9905, 10501, 9324) -> (9905, 10501, 9322).
     (
         "run1296",
         4632,
         [
-            (9905, 10501, 9322),
+            (9905, 10501, 9324),
             (2163, 2163, 64),
             (0, 0, 0),
             (0, 0, 0),
@@ -1882,12 +1855,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4).
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9448, 9448, 4) ->
     // (9448, 9448, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (5488, 5902, 4638) -> (5488, 5902, 4636).
     (
         "run1304",
         3865,
         [
-            (5488, 5902, 4636),
+            (5488, 5902, 4638),
             (2029, 2029, 64),
             (0, 0, 0),
             (0, 0, 0),
@@ -1906,12 +1878,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4445) -> (7585, 7585, 8).
     // Item 4209, the box's `clear_down`: items (70, 110, 62) -> (70, 70, 0); world (7585, 7585, 8) ->
     // (7585, 7585, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4968, 4832, 4054) -> (4968, 4832, 4048).
     (
         "run1305b",
         4181,
         [
-            (4968, 4832, 4048),
+            (4968, 4832, 4054),
             (1882, 1882, 42),
             (0, 0, 0),
             (0, 0, 0),
@@ -1931,12 +1902,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 7).
     // Item 4209, the box's `clear_down`: items (5, 35, 31) -> (5, 5, 0); world (9476, 9476, 7) ->
     // (9476, 9476, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (8490, 8757, 7392) -> (8490, 8757, 7384).
     (
         "run1320b",
         5066,
         [
-            (8490, 8757, 7384),
+            (8490, 8757, 7392),
             (2140, 2140, 67),
             (0, 0, 0),
             (9, 0, 9),
@@ -1955,12 +1925,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4535) -> (7615, 7615, 4).
     // Item 4209, the box's `clear_down`: items (90, 110, 44) -> (90, 90, 0); world (7615, 7615, 4) ->
     // (7615, 7615, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (3933, 4098, 3168) -> (3933, 4098, 3164).
     (
         "run1323b",
         3052,
         [
-            (3933, 4098, 3164),
+            (3933, 4098, 3168),
             (1792, 1792, 28),
             (0, 0, 0),
             (3, 0, 3),
@@ -1979,12 +1948,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (27, 27, 1); world (9466, 7879, 6370) -> (9466, 9466, 4).
     // Item 4209, the box's `clear_down`: items (20, 35, 21) -> (20, 20, 0); world (9466, 9466, 4) ->
     // (9466, 9466, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (7276, 7557, 6127) -> (7276, 7557, 6122).
     (
         "run1324c",
         4904,
         [
-            (7276, 7557, 6122),
+            (7276, 7557, 6127),
             (1918, 1918, 75),
             (0, 0, 0),
             (15, 0, 15),
@@ -2003,12 +1971,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // (2706, 2965, 273); world (9666, 8079, 6675) -> (9666, 9666, 6).
     // Item 4209, the box's `clear_down`: items (10, 35, 27) -> (10, 10, 0); world (9666, 9666, 6) ->
     // (9666, 9666, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (10367, 11043, 9288) -> (10367, 11043, 9283).
     (
         "run1325c",
         5578,
         [
-            (10367, 11043, 9283),
+            (10367, 11043, 9288),
             (2521, 2521, 79),
             (0, 0, 0),
             (0, 0, 0),
@@ -2028,12 +1995,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 3).
     // Item 4209, the box's `clear_down`: builds (2161, 2161, 72) -> (2161, 2161, 71); items (15, 35,
     // 26) -> (15, 15, 0); world (9244, 9244, 3) -> (9244, 9244, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6268, 6911, 5474) -> (6268, 6911, 5466).
     (
         "run1326",
         4567,
         [
-            (6268, 6911, 5466),
+            (6268, 6911, 5474),
             (2161, 2161, 71),
             (0, 0, 0),
             (3, 0, 3),
@@ -2052,12 +2018,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // (8592, 7873, 5834) -> (8592, 8592, 16).
     // Item 4209, the box's `clear_down`: builds (4230, 4230, 98) -> (4230, 4230, 97); items (25, 110,
     // 94) -> (25, 25, 0); world (8592, 8592, 16) -> (8592, 8592, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (13393, 13427, 11927) -> (13393, 13427, 11925).
     (
         "run1327",
         10930,
         [
-            (13393, 13427, 11925),
+            (13393, 13427, 11927),
             (4230, 4230, 97),
             (0, 0, 0),
             (0, 0, 0),
@@ -2099,12 +2064,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 7609, 5258) -> (8328, 8328, 7).
     // Item 4209, the box's `clear_down`: builds (2237, 2237, 60) -> (2237, 2237, 59); items (75, 110,
     // 56) -> (75, 75, 0); world (8328, 8328, 7) -> (8328, 8328, 2).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4745, 4928, 3885) -> (4745, 4928, 3883).
     (
         "run1351",
         4303,
         [
-            (4745, 4928, 3883),
+            (4745, 4928, 3885),
             (2237, 2237, 59),
             (0, 0, 0),
             (3, 0, 3),
@@ -2123,12 +2087,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 30, 2) -> (30, 30, 1); world (8298, 7579, 5257) -> (8298, 8298, 7).
     // Item 4209, the box's `clear_down`: builds (2143, 2143, 61) -> (2143, 2143, 60); items (75, 110,
     // 56) -> (75, 75, 0); world (8298, 8298, 7) -> (8298, 8298, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4512, 4732, 3067) -> (4512, 4732, 3062).
     (
         "run1351c",
         3521,
         [
-            (4512, 4732, 3062),
+            (4512, 4732, 3067),
             (2143, 2143, 60),
             (0, 0, 0),
             (3, 0, 3),
@@ -2147,12 +2110,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4777) -> (7777, 7777, 6).
     // Item 4209, the box's `clear_down`: items (80, 110, 51) -> (80, 80, 0); world (7777, 7777, 6) ->
     // (7777, 7777, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (3610, 3841, 2904) -> (3610, 3841, 2898).
     (
         "run1355",
         2933,
         [
-            (3610, 3841, 2898),
+            (3610, 3841, 2904),
             (1836, 1836, 29),
             (0, 0, 0),
             (3, 0, 3),
@@ -2171,12 +2133,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 30, 3) -> (30, 30, 1); world (8528, 7809, 5790) -> (8528, 8528, 7).
     // Item 4209, the box's `clear_down`: items (75, 110, 59) -> (75, 75, 0); world (8528, 8528, 7) ->
     // (8528, 8528, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (5707, 5937, 4771) -> (5707, 5937, 4766).
     (
         "run1357",
         3439,
         [
-            (5707, 5937, 4766),
+            (5707, 5937, 4771),
             (1977, 1977, 43),
             (0, 0, 0),
             (0, 0, 0),
@@ -2218,12 +2179,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4791) -> (7717, 7717, 13).
     // Item 4209, the box's `clear_down`: items (55, 110, 74) -> (55, 55, 0); world (7717, 7717, 13) ->
     // (7717, 7717, 2).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6408, 6424, 5539) -> (6408, 6424, 5541).
     (
         "run1359b",
         5677,
         [
-            (6408, 6424, 5541),
+            (6408, 6424, 5539),
             (2974, 2974, 96),
             (0, 0, 0),
             (0, 0, 0),
@@ -2242,12 +2202,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4789) -> (7715, 7715, 13).
     // Item 4209, the box's `clear_down`: items (55, 110, 74) -> (55, 55, 0); world (7715, 7715, 13) ->
     // (7715, 7715, 2).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6407, 6423, 5536) -> (6407, 6423, 5538).
     (
         "run1359c",
         5678,
         [
-            (6407, 6423, 5538),
+            (6407, 6423, 5536),
             (2974, 2974, 96),
             (0, 0, 0),
             (0, 0, 0),
@@ -2266,12 +2225,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 37, 3) -> (37, 37, 2); world (8476, 7757, 5586) -> (8476, 8476, 10).
     // Item 4209, the box's `clear_down`: builds (2544, 2544, 57) -> (2544, 2544, 56); items (50, 110,
     // 78) -> (50, 50, 0); world (8476, 8476, 10) -> (8476, 8476, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6810, 6671, 5721) -> (6810, 6671, 5720).
     (
         "run1361",
         4840,
         [
-            (6810, 6671, 5720),
+            (6810, 6671, 5721),
             (2544, 2544, 56),
             (0, 0, 0),
             (0, 0, 0),
@@ -2290,12 +2248,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 27, 3) -> (27, 27, 1); world (8334, 7615, 5331) -> (8334, 8334, 3).
     // Item 4209, the box's `clear_down`: builds (2147, 2147, 49) -> (2147, 2147, 48); items (90, 110,
     // 44) -> (90, 90, 0); world (8334, 8334, 3) -> (8334, 8334, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (5194, 5195, 3876) -> (5194, 5195, 3875).
     (
         "run1381",
         3262,
         [
-            (5194, 5195, 3875),
+            (5194, 5195, 3876),
             (2147, 2147, 48),
             (0, 0, 0),
             (3, 0, 3),
@@ -2314,12 +2271,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 20, 1) -> (20, 20, 0); world (8340, 7621, 5320) -> (8340, 8340, 7).
     // Item 4209, the box's `clear_down`: items (70, 110, 61) -> (70, 70, 0); world (8340, 8340, 7) ->
     // (8340, 8340, 2).
-    // Item 4218, the idle latch (`flags & 0x08`): units (5014, 5130, 4106) -> (5014, 5130, 4101).
     (
         "run1382",
         3228,
         [
-            (5014, 5130, 4101),
+            (5014, 5130, 4106),
             (2015, 2015, 52),
             (0, 0, 0),
             (0, 0, 0),
@@ -2338,12 +2294,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // (8876, 8876, 1).
     // Item 4209, the box's `clear_down`: items (30, 35, 11) -> (30, 30, 0); world (8876, 8876, 1) ->
     // (8876, 8876, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2933, 3253, 339) -> (2933, 3253, 333).
     (
         "run1383",
         1180,
         [
-            (2933, 3253, 333),
+            (2933, 3253, 339),
             (1184, 1184, 7),
             (0, 0, 0),
             (0, 0, 0),
@@ -2363,12 +2318,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 3).
     // Item 4209, the box's `clear_down`: items (20, 35, 21) -> (20, 20, 0); world (9252, 9252, 3) ->
     // (9252, 9252, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (5193, 5463, 4532) -> (5193, 5463, 4526).
     (
         "run1385p",
         2775,
         [
-            (5193, 5463, 4526),
+            (5193, 5463, 4532),
             (1774, 1774, 28),
             (0, 0, 0),
             (0, 0, 0),
@@ -2387,12 +2341,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1927, 2088, 165); world (9408, 7821, 6277) -> (9408, 9408, 3).
     // Item 4209, the box's `clear_down`: units (6512, 6830, 5761) -> (6512, 6830, 5759); items (10, 35,
     // 28) -> (10, 10, 0); world (9408, 9408, 3) -> (9408, 9408, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6512, 6830, 5759) -> (6512, 6830, 5755).
     (
         "run1391",
         4174,
         [
-            (6512, 6830, 5755),
+            (6512, 6830, 5759),
             (1830, 1830, 58),
             (0, 0, 0),
             (0, 0, 0),
@@ -2412,12 +2365,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 9554, 15).
     // Item 4209, the box's `clear_down`: units (6953, 7259, 6070) -> (6953, 7259, 6069); items (5, 35,
     // 31) -> (5, 5, 0); world (9554, 9554, 15) -> (9554, 9554, 10).
-    // Item 4218, the idle latch (`flags & 0x08`): units (6953, 7259, 6069) -> (6953, 7259, 6066).
     (
         "run1416",
         4016,
         [
-            (6953, 7259, 6066),
+            (6953, 7259, 6069),
             (2128, 2127, 669),
             (0, 0, 0),
             (18, 0, 18),
@@ -2436,12 +2388,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 33, 3) -> (33, 33, 2); world (8274, 7555, 5208) -> (8274, 8274, 8).
     // Item 4209, the box's `clear_down`: items (75, 110, 54) -> (75, 75, 0); world (8274, 8274, 8) ->
     // (8274, 8274, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4518, 4705, 3703) -> (4518, 4705, 3700).
     (
         "run1417",
         4016,
         [
-            (4518, 4705, 3700),
+            (4518, 4705, 3703),
             (2321, 2321, 61),
             (0, 0, 0),
             (0, 0, 0),
@@ -2457,23 +2408,25 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: builds (2033, 2033, 75) -> (2033, 2033, 74); items (60, 110,
     // 69) -> (60, 60, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4406, 4486, 3414) -> (4406, 4486, 3411).
+    // Item 4210, walked from the built start (4205b's words): units (4406, 4486, 3414) -> (4406,
+    // 4486, 3351); builds (2033, 2033, 74) -> (2033, 2033, 56); guys (1231, 1336, 141) -> (1231,
+    // 1336, 105); cities (27, 27, 2) -> (27, 27, 1); world (8434, 7715, 5388) -> (8434, 8434, 2).
     (
         "run1419b",
         3212,
         [
-            (4406, 4486, 3411),
-            (2033, 2033, 74),
+            (4406, 4486, 3351),
+            (2033, 2033, 56),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (544, 544, 2),
-            (1231, 1336, 141),
+            (1231, 1336, 105),
             (271, 271, 4),
-            (27, 27, 2),
+            (27, 27, 1),
             (60, 60, 0),
             (180, 180, 0),
-            (8434, 7715, 5388),
+            (8434, 8434, 2),
         ],
     ),
     // Item 4205, the built start: units (5583, 5614, 4645) -> (5583, 5614, 4588); builds (2515,
@@ -2481,12 +2434,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // (8466, 7747, 5536) -> (8466, 8466, 9).
     // Item 4209, the box's `clear_down`: items (70, 110, 59) -> (70, 70, 0); world (8466, 8466, 9) ->
     // (8466, 8466, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (5583, 5614, 4588) -> (5583, 5614, 4589).
     (
         "run1420",
         4586,
         [
-            (5583, 5614, 4589),
+            (5583, 5614, 4588),
             (2515, 2513, 737),
             (0, 0, 0),
             (0, 0, 0),
@@ -2501,71 +2453,76 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (90, 110, 44) -> (90, 90, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4129, 4318, 3389) -> (4129, 4318, 3384).
+    // Item 4210, walked from the built start (4205b's words): units (4129, 4318, 3389) -> (4129,
+    // 4318, 3325); builds (2025, 2025, 48) -> (2025, 2025, 32); guys (1138, 1278, 177) -> (1138,
+    // 1278, 141); cities (27, 27, 3) -> (27, 27, 1); world (8344, 7625, 5328) -> (8344, 8344, 2).
     (
         "run1424",
         3156,
         [
-            (4129, 4318, 3384),
-            (2025, 2025, 48),
+            (4129, 4318, 3325),
+            (2025, 2025, 32),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (550, 550, 3),
-            (1138, 1278, 177),
+            (1138, 1278, 141),
             (271, 271, 4),
-            (27, 27, 3),
+            (27, 27, 1),
             (90, 90, 0),
             (180, 180, 0),
-            (8344, 7625, 5328),
+            (8344, 8344, 2),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (80, 110, 52) -> (80, 80, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4175, 4291, 3481) -> (4175, 4291, 3480).
+    // Item 4210, walked from the built start (4205b's words): units (4175, 4291, 3481) -> (4175,
+    // 4291, 3429); builds (2266, 2265, 861) -> (2266, 2265, 848); guys (1227, 1332, 146) -> (1227,
+    // 1332, 110); cities (27, 27, 3) -> (27, 27, 2); world (8284, 7565, 5190) -> (8284, 8284, 10).
     (
         "run1426b",
         3722,
         [
-            (4175, 4291, 3480),
-            (2266, 2265, 861),
+            (4175, 4291, 3429),
+            (2266, 2265, 848),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (544, 544, 1),
-            (1227, 1332, 146),
+            (1227, 1332, 110),
             (271, 271, 4),
-            (27, 27, 3),
+            (27, 27, 2),
             (80, 80, 0),
             (180, 180, 0),
-            (8284, 7565, 5190),
+            (8284, 8284, 10),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (85, 110, 49) -> (85, 85, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4789, 4721, 3966) -> (4789, 4721, 3959).
+    // Item 4210, walked from the built start (4205b's words): units (4789, 4721, 3966) -> (4789,
+    // 4721, 3908); builds (2154, 2151, 619) -> (2154, 2151, 604); guys (1208, 1348, 183) -> (1208,
+    // 1348, 147); cities (30, 30, 3) -> (30, 30, 1); world (8414, 7695, 5513) -> (8414, 8414, 1).
     (
         "run1437",
         3894,
         [
-            (4789, 4721, 3959),
-            (2154, 2151, 619),
+            (4789, 4721, 3908),
+            (2154, 2151, 604),
             (0, 0, 0),
             (3, 0, 3),
             (4, 0, 4),
             (538, 538, 0),
-            (1208, 1348, 183),
+            (1208, 1348, 147),
             (271, 271, 6),
-            (30, 30, 3),
+            (30, 30, 1),
             (85, 85, 0),
             (180, 180, 0),
-            (8414, 7695, 5513),
+            (8414, 8414, 1),
         ],
     ),
-    // Item 4218, the idle latch (`flags & 0x08`): units (2475, 2702, 2286) -> (2475, 2702, 2279).
     (
         "run1438",
         684,
         [
-            (2475, 2702, 2279),
+            (2475, 2702, 2286),
             (1890, 1890, 26),
             (0, 0, 0),
             (15, 0, 15),
@@ -2580,12 +2537,11 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 28) -> (130, 130, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2308, 2539, 2166) -> (2308, 2539, 2160).
     (
         "run1440",
         809,
         [
-            (2308, 2539, 2160),
+            (2308, 2539, 2166),
             (1968, 1968, 25),
             (0, 0, 0),
             (18, 0, 18),
@@ -2600,32 +2556,33 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4274, 4219, 3527) -> (4274, 4219, 3525).
+    // Item 4210, walked from the built start (4205b's words): units (4274, 4219, 3527) -> (4274,
+    // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
+    // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     (
         "run1441",
         3294,
         [
-            (4274, 4219, 3525),
-            (1890, 1887, 527),
+            (4274, 4219, 3476),
+            (1890, 1887, 518),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (550, 550, 3),
-            (1108, 1171, 100),
+            (1108, 1171, 64),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 2),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 7557, 5229),
+            (8276, 8276, 9),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (125, 135, 37) -> (125, 125, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2022, 2281, 1870) -> (2022, 2281, 1864).
     (
         "run1451",
         945,
         [
-            (2022, 2281, 1864),
+            (2022, 2281, 1870),
             (1968, 1968, 29),
             (0, 0, 0),
             (18, 0, 18),
@@ -2640,12 +2597,11 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2655, 2718, 2286) -> (2655, 2718, 2279).
     (
         "run1457",
         700,
         [
-            (2655, 2718, 2279),
+            (2655, 2718, 2286),
             (1144, 1144, 28),
             (0, 0, 0),
             (21, 0, 21),
@@ -2660,12 +2616,11 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2362, 2425, 1982) -> (2362, 2425, 1974).
     (
         "run1459",
         780,
         [
-            (2362, 2425, 1974),
+            (2362, 2425, 1982),
             (1316, 1316, 26),
             (0, 0, 0),
             (0, 0, 0),
@@ -2680,12 +2635,11 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2380, 2455, 1949) -> (2380, 2455, 1941).
     (
         "run1460",
         760,
         [
-            (2380, 2455, 1941),
+            (2380, 2455, 1949),
             (1296, 1296, 27),
             (0, 0, 0),
             (9, 0, 9),
@@ -2700,12 +2654,11 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 29) -> (130, 130, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (1392, 1679, 1048) -> (1392, 1679, 1040).
     (
         "run1469",
         627,
         [
-            (1392, 1679, 1040),
+            (1392, 1679, 1048),
             (1777, 1777, 29),
             (0, 0, 0),
             (228, 0, 228),
@@ -2720,12 +2673,11 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 29) -> (130, 130, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (1401, 1685, 1056) -> (1401, 1685, 1049).
     (
         "run1469b",
         628,
         [
-            (1401, 1685, 1049),
+            (1401, 1685, 1056),
             (1777, 1777, 29),
             (0, 0, 0),
             (190, 0, 190),
@@ -2740,12 +2692,11 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2180, 2393, 2009) -> (2180, 2393, 2002).
     (
         "run1472",
         707,
         [
-            (2180, 2393, 2002),
+            (2180, 2393, 2009),
             (1777, 1777, 30),
             (0, 0, 0),
             (339, 0, 339),
@@ -2760,12 +2711,11 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (25, 45, 28) -> (25, 25, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4145, 4206, 3495) -> (4145, 4206, 3484).
     (
         "run1484",
         676,
         [
-            (4145, 4206, 3484),
+            (4145, 4206, 3495),
             (1446, 1446, 28),
             (0, 0, 0),
             (304, 0, 304),
@@ -2780,12 +2730,11 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (25, 45, 28) -> (25, 25, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (5340, 5621, 4718) -> (5340, 5621, 4710).
     (
         "run1487",
         1980,
         [
-            (5340, 5621, 4710),
+            (5340, 5621, 4718),
             (2736, 2736, 66),
             (0, 0, 0),
             (208, 0, 208),
@@ -2800,12 +2749,11 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (25, 45, 28) -> (25, 25, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (5026, 5286, 4896) -> (5026, 5286, 4889).
     (
         "run1496",
         1539,
         [
-            (5026, 5286, 4889),
+            (5026, 5286, 4896),
             (2180, 2180, 47),
             (0, 0, 0),
             (230, 0, 230),
@@ -2820,23 +2768,25 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4274, 4219, 3527) -> (4274, 4219, 3525).
+    // Item 4210, walked from the built start (4205b's words): units (4274, 4219, 3527) -> (4274,
+    // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
+    // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     (
         "run1559b",
         3294,
         [
-            (4274, 4219, 3525),
-            (1890, 1887, 527),
+            (4274, 4219, 3476),
+            (1890, 1887, 518),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (550, 550, 3),
-            (1108, 1171, 100),
+            (1108, 1171, 64),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 2),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 7557, 5229),
+            (8276, 8276, 9),
         ],
     ),
     (
@@ -2858,43 +2808,47 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4274, 4219, 3527) -> (4274, 4219, 3525).
+    // Item 4210, walked from the built start (4205b's words): units (4274, 4219, 3527) -> (4274,
+    // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
+    // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     (
         "run1564",
         3294,
         [
-            (4274, 4219, 3525),
-            (1890, 1887, 527),
+            (4274, 4219, 3476),
+            (1890, 1887, 518),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
             (550, 550, 3),
-            (1108, 1171, 100),
+            (1108, 1171, 64),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 2),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 7557, 5229),
+            (8276, 8276, 9),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4240, 4197, 3409) -> (4240, 4197, 3408).
+    // Item 4210, walked from the built start (4205b's words): units (4240, 4197, 3409) -> (4240,
+    // 4197, 3360); builds (1890, 1887, 528) -> (1890, 1887, 519); guys (1112, 1175, 101) -> (1112,
+    // 1175, 65); world (8294, 7575, 5253) -> (8294, 8294, 9).
     (
         "run1570",
         3331,
         [
-            (4240, 4197, 3408),
-            (1890, 1887, 528),
+            (4240, 4197, 3360),
+            (1890, 1887, 519),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
             (556, 556, 2),
-            (1112, 1175, 101),
+            (1112, 1175, 65),
             (271, 271, 4),
             (30, 30, 3),
             (75, 75, 0),
             (180, 180, 0),
-            (8294, 7575, 5253),
+            (8294, 8294, 9),
         ],
     ),
     // Item 4208, the whales' piece: units (4969, 4983, 4166) -> (4969, 4983, 4139); builds (1731,
@@ -2902,12 +2856,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (47, 47, 1); world (9108, 7521, 5669) -> (9108, 9108, 14).
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9108, 9108, 14) ->
     // (9108, 9108, 10).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4969, 4983, 4139) -> (4969, 4983, 4140).
     (
         "run785",
         2178,
         [
-            (4969, 4983, 4140),
+            (4969, 4983, 4139),
             (1731, 1729, 958),
             (0, 0, 0),
             (0, 0, 0),
@@ -2926,12 +2879,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 7939, 6468) -> (9526, 9526, 15).
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9526, 9526, 15) ->
     // (9526, 9526, 11).
-    // Item 4218, the idle latch (`flags & 0x08`): units (5889, 5855, 4979) -> (5889, 5855, 4982).
     (
         "run789",
         2799,
         [
-            (5889, 5855, 4982),
+            (5889, 5855, 4979),
             (2157, 2155, 1278),
             (0, 0, 0),
             (281, 0, 281),
@@ -2950,12 +2902,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 7833, 6400) -> (9420, 9420, 15).
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9420, 9420, 15) ->
     // (9420, 9420, 11).
-    // Item 4218, the idle latch (`flags & 0x08`): units (5860, 5823, 4860) -> (5860, 5823, 4862).
     (
         "run795",
         2681,
         [
-            (5860, 5823, 4862),
+            (5860, 5823, 4860),
             (2059, 2057, 1202),
             (0, 0, 0),
             (0, 0, 0),
@@ -2974,12 +2925,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2341, 2425, 95); world (9442, 7855, 6428) -> (9442, 9442, 16).
     // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9442, 9442, 16) ->
     // (9442, 9442, 11).
-    // Item 4218, the idle latch (`flags & 0x08`): units (9526, 9603, 8609) -> (9526, 9603, 8610).
     (
         "run810",
         3631,
         [
-            (9526, 9603, 8610),
+            (9526, 9603, 8609),
             (2384, 2381, 1417),
             (0, 0, 0),
             (156, 0, 156),
@@ -2998,12 +2948,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 7965, 6484) -> (9552, 9552, 15).
     // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9552, 9552, 15) ->
     // (9552, 9552, 11).
-    // Item 4218, the idle latch (`flags & 0x08`): units (9339, 9413, 8412) -> (9339, 9413, 8415).
     (
         "run823",
         4238,
         [
-            (9339, 9413, 8415),
+            (9339, 9413, 8412),
             (2473, 2469, 1553),
             (0, 0, 0),
             (0, 0, 0),
@@ -3022,12 +2971,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2471, 2555, 94); world (9560, 7973, 6527) -> (9560, 9560, 15).
     // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9560, 9560, 15) ->
     // (9560, 9560, 11).
-    // Item 4218, the idle latch (`flags & 0x08`): units (9362, 9436, 8376) -> (9362, 9436, 8379).
     (
         "run825",
         4204,
         [
-            (9362, 9436, 8379),
+            (9362, 9436, 8376),
             (2473, 2469, 1553),
             (0, 0, 0),
             (0, 0, 0),
@@ -3041,12 +2989,11 @@ pub(super) const PINNED: &[Pinned] = &[
             (9560, 9560, 11),
         ],
     ),
-    // Item 4218, the idle latch (`flags & 0x08`): units (1201, 1312, 1056) -> (1201, 1312, 1053).
     (
         "run839",
         634,
         [
-            (1201, 1312, 1053),
+            (1201, 1312, 1056),
             (479, 479, 13),
             (0, 0, 0),
             (9, 0, 9),
@@ -3060,12 +3007,11 @@ pub(super) const PINNED: &[Pinned] = &[
             (8020, 7301, 4558),
         ],
     ),
-    // Item 4218, the idle latch (`flags & 0x08`): units (1149, 1303, 1028) -> (1149, 1303, 1027).
     (
         "run842",
         777,
         [
-            (1149, 1303, 1027),
+            (1149, 1303, 1028),
             (583, 583, 14),
             (0, 0, 0),
             (0, 0, 0),
@@ -3079,12 +3025,11 @@ pub(super) const PINNED: &[Pinned] = &[
             (8004, 7285, 4510),
         ],
     ),
-    // Item 4218, the idle latch (`flags & 0x08`): units (1154, 1308, 1028) -> (1154, 1308, 1027).
     (
         "run842b",
         776,
         [
-            (1154, 1308, 1027),
+            (1154, 1308, 1028),
             (583, 583, 14),
             (0, 0, 0),
             (0, 0, 0),
@@ -3145,12 +3090,11 @@ pub(super) const PINNED: &[Pinned] = &[
             (9534, 9534, 12),
         ],
     ),
-    // Item 4218, the idle latch (`flags & 0x08`): units (1636, 1776, 294) -> (1636, 1776, 263).
     (
         "run870",
         901,
         [
-            (1636, 1776, 263),
+            (1636, 1776, 294),
             (517, 517, 13),
             (0, 0, 0),
             (0, 0, 0),
@@ -3169,12 +3113,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 7) -> (64, 64, 4); world (9518, 7931, 6568) -> (9518, 9518, 18).
     // Item 4209, the box's `clear_down`: items (0, 35, 35) -> (0, 0, 0); world (9518, 9518, 18) ->
     // (9518, 9518, 12).
-    // Item 4218, the idle latch (`flags & 0x08`): units (11125, 10562, 9821) -> (11125, 10562, 9823).
     (
         "run882b",
         6808,
         [
-            (11125, 10562, 9823),
+            (11125, 10562, 9821),
             (2737, 2732, 1946),
             (0, 0, 0),
             (15, 0, 15),
@@ -3216,12 +3159,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // (8966, 8966, 1).
     // Item 4209, the box's `clear_down`: items (30, 35, 11) -> (30, 30, 0); world (8966, 8966, 1) ->
     // (8966, 8966, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2652, 2987, 343) -> (2652, 2987, 341).
     (
         "run893b",
         3975,
         [
-            (2652, 2987, 341),
+            (2652, 2987, 343),
             (709, 709, 7),
             (0, 0, 0),
             (0, 0, 0),
@@ -3240,12 +3182,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 5619) -> (9122, 9122, 6).
     // Item 4209, the box's `clear_down`: items (5, 35, 32) -> (5, 5, 0); world (9122, 9122, 6) ->
     // (9122, 9122, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4112, 4387, 3617) -> (4112, 4387, 3620).
     (
         "run912e",
         12753,
         [
-            (4112, 4387, 3620),
+            (4112, 4387, 3617),
             (1508, 1508, 26),
             (0, 0, 0),
             (0, 0, 0),
@@ -3259,12 +3200,11 @@ pub(super) const PINNED: &[Pinned] = &[
             (9122, 9122, 0),
         ],
     ),
-    // Item 4218, the idle latch (`flags & 0x08`): units (1118, 1235, 925) -> (1118, 1235, 924).
     (
         "run938b",
         630,
         [
-            (1118, 1235, 924),
+            (1118, 1235, 925),
             (479, 479, 13),
             (0, 0, 0),
             (0, 0, 0),
@@ -3283,12 +3223,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 2) -> (27, 27, 1); world (8150, 7431, 4899) -> (8150, 8150, 14).
     // Item 4209, the box's `clear_down`: items (40, 110, 84) -> (40, 40, 0); world (8150, 8150, 14) ->
     // (8150, 8150, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2726, 3048, 2260) -> (2726, 3048, 2259).
     (
         "run943c",
         10674,
         [
-            (2726, 3048, 2259),
+            (2726, 3048, 2260),
             (1580, 1580, 21),
             (0, 0, 0),
             (0, 0, 0),
@@ -3307,12 +3246,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 2) -> (27, 27, 1); world (8164, 7445, 4942) -> (8164, 8164, 14).
     // Item 4209, the box's `clear_down`: items (40, 110, 84) -> (40, 40, 0); world (8164, 8164, 14) ->
     // (8164, 8164, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2838, 3119, 2277) -> (2838, 3119, 2276).
     (
         "run946",
         10842,
         [
-            (2838, 3119, 2276),
+            (2838, 3119, 2277),
             (1580, 1580, 20),
             (0, 0, 0),
             (15, 0, 15),
@@ -3331,12 +3269,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 7377, 4771) -> (8096, 8096, 15).
     // Item 4209, the box's `clear_down`: items (35, 110, 87) -> (35, 35, 0); world (8096, 8096, 15) ->
     // (8096, 8096, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2832, 3140, 2402) -> (2832, 3140, 2399).
     (
         "run954b",
         12155,
         [
-            (2832, 3140, 2399),
+            (2832, 3140, 2402),
             (1598, 1598, 24),
             (0, 0, 0),
             (9, 0, 9),
@@ -3353,12 +3290,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4205, the built start: units (490, 550, 108) -> (490, 550, 62); builds (455, 455,
     // 15) -> (455, 455, 2); guys (160, 181, 23) -> (160, 181, 21); world (7291, 7275, 3748) ->
     // (7291, 7291, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (490, 550, 62) -> (490, 550, 61).
     (
         "run958b",
         375,
         [
-            (490, 550, 61),
+            (490, 550, 62),
             (455, 455, 2),
             (0, 0, 0),
             (0, 0, 0),
@@ -3377,12 +3313,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (17, 17, 1); world (9056, 7469, 5567) -> (9056, 9056, 7).
     // Item 4209, the box's `clear_down`: items (0, 35, 35) -> (0, 0, 0); world (9056, 9056, 7) ->
     // (9056, 9056, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (4466, 4844, 3921) -> (4466, 4844, 3924).
     (
         "run959",
         18368,
         [
-            (4466, 4844, 3924),
+            (4466, 4844, 3921),
             (1832, 1832, 35),
             (0, 0, 0),
             (9, 0, 9),
@@ -3401,12 +3336,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4325) -> (7513, 7513, 9).
     // Item 4209, the box's `clear_down`: items (60, 110, 69) -> (60, 60, 0); world (7513, 7513, 9) ->
     // (7513, 7513, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (3135, 3263, 2517) -> (3135, 3263, 2518).
     (
         "run973g",
         12286,
         [
-            (3135, 3263, 2518),
+            (3135, 3263, 2517),
             (2052, 2052, 33),
             (0, 0, 0),
             (3, 0, 3),
@@ -3425,12 +3359,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4648) -> (8052, 8052, 7).
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0); world (8052, 8052, 7) ->
     // (8052, 8052, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (2003, 2230, 1723) -> (2003, 2230, 1722).
     (
         "run984b",
         6011,
         [
-            (2003, 2230, 1722),
+            (2003, 2230, 1723),
             (789, 789, 7),
             (0, 0, 0),
             (0, 0, 0),
@@ -3449,12 +3382,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4721) -> (8078, 8078, 7).
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0); world (8078, 8078, 7) ->
     // (8078, 8078, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (1903, 2165, 1594) -> (1903, 2165, 1593).
     (
         "run984c",
         6251,
         [
-            (1903, 2165, 1593),
+            (1903, 2165, 1594),
             (827, 827, 8),
             (0, 0, 0),
             (3, 0, 3),
@@ -3472,12 +3404,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 2783, 54) -> (2783, 2783, 43); world (7443, 7427, 4174) -> (7443, 7443, 15).
     // Item 4209, the box's `clear_down`: items (40, 110, 85) -> (40, 40, 0); world (7443, 7443, 15) ->
     // (7443, 7443, 1).
-    // Item 4218, the idle latch (`flags & 0x08`): units (3289, 3742, 3041) -> (3289, 3742, 3042).
     (
         "run985b",
         16762,
         [
-            (3289, 3742, 3042),
+            (3289, 3742, 3041),
             (2783, 2783, 43),
             (0, 0, 0),
             (0, 0, 0),
@@ -3495,12 +3426,11 @@ pub(super) const PINNED: &[Pinned] = &[
     // 2006, 47) -> (2006, 2006, 32); world (7461, 7445, 4143) -> (7461, 7461, 11).
     // Item 4209, the box's `clear_down`: items (55, 110, 74) -> (55, 55, 0); world (7461, 7461, 11) ->
     // (7461, 7461, 0).
-    // Item 4218, the idle latch (`flags & 0x08`): units (3178, 3504, 2733) -> (3178, 3504, 2735).
     (
         "run991d",
         15256,
         [
-            (3178, 3504, 2735),
+            (3178, 3504, 2733),
             (2006, 2006, 32),
             (0, 0, 0),
             (0, 0, 0),
@@ -3676,7 +3606,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run1417", "flags.leader_flags resources_controlled"),
     (
         "run1419b",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1420",
@@ -3684,21 +3614,21 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1424",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1426b",
-        "aggression cities_built explored flags.leader_flags reg_unpack_merch resources_controlled",
+        "explored flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1437",
-        "aggression cities_built encrypt.bucket[2] encrypt.bucket[5] flags.leader_flags reg_unpack_merch resources_controlled",
+        "encrypt.bucket[2] encrypt.bucket[5] flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run1438", "aggression cities_built flags.leader_flags"),
     ("run1440", "aggression cities_built flags.leader_flags"),
     (
         "run1441",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run1451", "aggression cities_built flags.leader_flags"),
     ("run1457", "aggression cities_built flags.leader_flags"),
@@ -3727,15 +3657,15 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1559b",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1564",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1570",
-        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run785",
@@ -3945,7 +3875,9 @@ fn probe_built_packet() {
 /// **Probe** (item 4205): one word's two frame zeros, the dump-seated and
 /// the lobby-built, compared whole (`start_walk::whole_diff`, take by
 /// take), and the seated start's corrections by frame. `RON_PACKET_TAKE`
-/// filters the takes printed by a substring.
+/// filters the takes printed by a substring. `RON_PACKET_FOG` prints each
+/// `seen2` cell the two starts differ on, and both sides' buildings and
+/// units by fog cell (item 4210); `RON_PACKET_FOGALL` every cell.
 #[test]
 #[ignore = "a probe: RON_PACKET_START, RON_PACKET_LONG, RON_PACKET_TRACE"]
 fn probe_built_start_whole() {
@@ -3983,6 +3915,51 @@ fn probe_built_start_whole() {
         for (p, v) in &a {
             if p.starts_with(prefix.as_str()) && bm.get(p.as_str()) != Some(&v.as_str()) {
                 eprintln!("LEAF {p}: built {v} seated {:?}", bm.get(p.as_str()));
+            }
+        }
+    }
+    if std::env::var_os("RON_PACKET_FOG").is_some() {
+        let w = built.sim.world.width() * 2;
+        for fy in 0..w {
+            for fx in 0..w {
+                let (a, b) = (
+                    built.sim.world.seen2(fx, fy),
+                    seated.sim.world.seen2(fx, fy),
+                );
+                if a != b {
+                    eprintln!("FOG ({fx},{fy}) built {a:?} seated {b:?}");
+                }
+                if std::env::var_os("RON_PACKET_FOGALL").is_some() {
+                    eprintln!("CELL {fx} {fy} {} {}", a.unwrap_or(0), b.unwrap_or(0));
+                }
+            }
+        }
+        for (side, s) in [("built", &built.sim), ("seated", &seated.sim)] {
+            for (i, b) in s.buildings.iter().enumerate() {
+                eprintln!(
+                    "BLD {side} {i} {}/{} ty {:?} {:?} fog ({},{}) mylos {} city {}",
+                    b.owner,
+                    b.index,
+                    b.ty,
+                    b.ty.map(|t| s.tables.build_types[t].ident),
+                    sim::vision::fog_of(b.pos.x),
+                    sim::vision::fog_of(b.pos.y),
+                    b.mylos,
+                    s.building_is_city(i)
+                );
+            }
+            for (i, u) in s.units.iter().enumerate() {
+                eprintln!(
+                    "UNIT {side} {}/{} ty {:?} TI {:#x} {:?} fog ({},{}) los {}",
+                    u.owner,
+                    u.index,
+                    u.ty,
+                    u.type_index,
+                    u.kind.domain,
+                    sim::vision::fog_of(u.pos.x),
+                    sim::vision::fog_of(u.pos.y),
+                    s.unit_los(i)
+                );
             }
         }
     }
@@ -4047,5 +4024,153 @@ fn probe_built_clocks() {
         }
         built.tick();
         seated.tick();
+    }
+}
+
+/// run1575's packet at 1090, pinned as found (item 4159, step VII-b2):
+/// each line's (the stream's ranges, ours, ranges parted), our walk the
+/// take's ([`run1575_take_packet`]). One line agrees, the cities' (12
+/// ranges).
+const TAKE_PINNED: Pinned = (
+    "run1575",
+    1090,
+    [
+        (3907, 4015, 3084),
+        (1709, 1709, 35),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (556, 556, 2),
+        (1289, 1331, 166),
+        (407, 407, 8),
+        (12, 12, 0),
+        (25, 25, 0),
+        (405, 405, 1),
+        (8981, 7447, 5432),
+    ],
+);
+
+/// The leaves of run1575's leaders line that part outside
+/// [`LEADERS_HELD_OUT`] at 1090, as found: `cities_built` (theirs 1, 1, 2
+/// on the three seats, ours 0, 0, 1); `dip.treaty` (the alliance asked on
+/// 1041, `treaty` 2 on both seats' records, ours −1: `action_treaty`, step
+/// VII-d); `diplos` (slots 3..7 read 1 there, `Leader::init`'s peace at
+/// style 0 on every slot, which the take's re-read lobby writes on 0..2
+/// only); `flags.leader_flags` (high bits on every seat).
+const TAKE_LEAF_PARTINGS: &str = "cities_built dip.treaty diplos flags.leader_flags";
+
+/// **The unprinted leaves the take's packet witnesses, held and off the
+/// line** (item 4159, step VII-b2): each written on 906 (the ring) or 966
+/// (the drain and the gift) in our walk. They stay on [`LEADERS_HELD_OUT`]:
+/// 1090 follows the staged accept of 1027, and `docs/DECISIONS.md` entry 132
+/// §1 releases a leaf only on a block no staged decision precedes (the
+/// driver's ruling). `(leaf, run, slot)`, each off its seated image on the
+/// packet, our held value equal; they leave when VII-c retires the staging.
+pub(super) const TAKE_WITNESSED: &[(&str, &str, i16)] = &[
+    // The French ring: the cursor 1, the request 1, due 966.
+    ("incoming", "run1575", 1),
+    ("incoming_taunt", "run1575", 1),
+    ("incoming_taunt_frame", "run1575", 1),
+    // The French gave 3,290 food, the human received 1,909.
+    ("tribute_sent", "run1575", 1),
+    ("tribute_received", "run1575", 0),
+];
+
+/// **run1575's packet at 1090, held by the take** (item 4159, step
+/// VII-b2): the take's walk (`diff::diplomacy_take`: run1482's start at
+/// style 0, the script, the window's diplomacy off the record, the chat
+/// minted) ticked to the packet's frame, its twelve lines against the
+/// instrument's stream. Off the scoreboard ([`TAKES_HELD`]). The five
+/// unprinted leaves of the taunt's answer, held off the line, are
+/// witnessed here ([`TAKE_WITNESSED`]): our held value against the
+/// packet's, a bent one parting.
+#[test]
+fn run1575_take_packet() {
+    use crate::diff::diplomacy_take as take;
+    let (run, frame, name, length) = TAKES_HELD[0];
+    let (Some(diplomacy), Some(taunts)) = (
+        take::take_diplomacy(take::RUN1575.0),
+        take::script_taunts("diplomacy4206.cmd"),
+    ) else {
+        eprintln!("skipping: no {} or install", take::RUN1575.0);
+        return;
+    };
+    // Our held values of the witnessed leaves on the packet's frame:
+    // `(leaf, slot) → values`, read off the sim, not off the line.
+    let mut ours_held: std::collections::BTreeMap<(&str, i16), Vec<i64>> = Default::default();
+    let Some(walked) = walk_packets_with(name, length, &[(run, frame)], &mut |frames, probe| {
+        let script = take::coverage_script("diplomacy4206.cmd");
+        let (_, mut built) = take::stand_up_sea_style_zero(take::RUN1575, script)?;
+        for &f in frames {
+            while built.sim.frame < f {
+                take::stage_frame(&mut built, 3, &[], &diplomacy, &taunts);
+                built.tick();
+            }
+            for &(leaf, _, slot) in TAKE_WITNESSED {
+                let who = slot as sim::Player;
+                let v = built
+                    .sim
+                    .leader_taunt_leaf(who, leaf)
+                    .or_else(|| built.sim.leader_tribute_leaf(who, leaf))
+                    .unwrap_or_else(|| panic!("{leaf} is held"));
+                ours_held.insert((leaf, slot), v);
+            }
+            probe(f, &built);
+        }
+        Some(())
+    }) else {
+        return;
+    };
+    let w = &walked[0];
+    let held: std::collections::BTreeSet<&str> = LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
+    for (n, l) in STATE_LINES.iter().zip(&w.lines) {
+        if let Some(f) = &l.first {
+            eprintln!(
+                "  {n}: {} of {} ranges part; first range {} record {} {}",
+                l.parted, l.theirs, f.0, f.1, f.2
+            );
+        }
+    }
+    for (slot, field, leaf, ours, t, _) in &w.leaves {
+        if ours.as_ref() != Some(t) {
+            eprintln!(
+                "LEAF\t{slot}\t{}\t{}\t{}",
+                leader_held_name(field, leaf, ours.is_none()),
+                leaf_text(t),
+                ours.as_deref().map_or("-".into(), leaf_text)
+            );
+        }
+    }
+    eprintln!("PIN\t(\"{}\", {}, {:?}),", w.run, w.frame, pin_of(&w.lines));
+    eprintln!("EXTRA\t{}", extra_leaves(w, &held));
+    assert_eq!(
+        (TAKE_PINNED.0, TAKE_PINNED.1, TAKE_PINNED.2),
+        (w.run, w.frame, pin_of(&w.lines)),
+        "run1575: each line's (the stream's ranges, ours, ranges parted)"
+    );
+    assert_eq!(
+        extra_leaves(w, &held),
+        TAKE_LEAF_PARTINGS,
+        "run1575: the leaders line's leaves parting outside LEADERS_HELD_OUT"
+    );
+    for &(leaf, _, slot) in TAKE_WITNESSED {
+        assert!(
+            held.contains(format!("{leaf} (unheld)").as_str()),
+            "{leaf} is held out"
+        );
+        let row = w
+            .leaves
+            .iter()
+            .find(|r| r.0 == slot && r.1 == "who..ally_mask" && r.2 == leaf)
+            .unwrap_or_else(|| panic!("run1575: slot {slot}'s {leaf}"));
+        assert!(
+            !at_init_image(leaf, &row.4),
+            "run1575: slot {slot}'s {leaf} is its seated image, no witness"
+        );
+        let ours = &ours_held[&(leaf, slot)];
+        assert_eq!(ours, &row.4, "run1575: slot {slot}'s held {leaf}");
+        let mut bent = ours.clone();
+        bent[0] ^= 1;
+        assert_ne!(bent, row.4, "run1575: a bent {leaf} parts");
     }
 }

@@ -1,8 +1,31 @@
 //! A single movable replay prefix inside an explicit, immutable-fixture batch.
 //! Never caches verdicts or comparison records; every requested block is compared.
+//!
+//! **Two holders** (item 4216, DECISIONS 132 §11). A [`Scope`] is one
+//! thread's batch: the coverage walk opens one a walker and runs a module's
+//! windows through it. The **kept walk** is the process's: a thread with no
+//! batch of its own takes the state the last widening left, when
+//! `RON_SHARE_WALKS=on` — which `tools/isolated_tests.py` says to a group
+//! of one game's tests, and nothing else does. The rule is the same for
+//! both — the same inputs by path, length and modification time, and a
+//! first block strictly after the retained frame — and so is what is never
+//! shared: a verdict, a comparison, a recorded field. What the kept walk
+//! adds, because its state crosses from one test's thread to the next's:
+//!
+//! * **the stand-up's fixture requests travel with the state**, and a test
+//!   that resumes it is credited with them ([`crate::testenv::replay`]), so
+//!   the fixture audit's rows are those the test wrote standing the game up
+//!   itself; its key asks the audit for nothing ([`crate::testenv::locate`]);
+//! * **the ground guard is answered at the hand-back** by the test that
+//!   walked ([`Built::answer_for_the_ground`]), and a kept state dropped on
+//!   another test's thread answers nothing ([`Built::retire`]);
+//! * a test that panics holding the state drops it, and the next stands
+//!   its own up: nothing is inherited from a walk that did not finish.
 use crate::diff::Built;
+use crate::testenv::Tape;
 use std::cell::RefCell;
 use std::path::PathBuf;
+use std::sync::Mutex;
 use std::time::SystemTime;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -11,13 +34,22 @@ pub(super) struct Key {
     inputs: Vec<Option<(PathBuf, u64, SystemTime)>>,
 }
 impl Key {
+    /// A batch's key requests each input, as it always has; the kept
+    /// walk's only locates them, so a resuming test's audit rows are its
+    /// stand-up's and no more.
     pub(super) fn new(install: &std::path::Path, names: &[&str]) -> Self {
+        let batch = BATCH.with(|batch| batch.borrow().active);
+        let find = if batch {
+            crate::testenv::dump
+        } else {
+            crate::testenv::locate
+        };
         Self {
             install: install.to_owned(),
             inputs: names
                 .iter()
                 .map(|name| {
-                    crate::testenv::dump(name).map(|path| {
+                    find(name).map(|path| {
                         let meta = std::fs::metadata(&path).expect("finalized replay input");
                         (PathBuf::from(path), meta.len(), meta.modified().unwrap())
                     })
@@ -39,6 +71,75 @@ struct Batch {
 }
 thread_local! {
     static BATCH: RefCell<Batch> = RefCell::new(Batch::default());
+    /// The tape of the stand-up behind the state this thread is walking,
+    /// between [`take`] or [`stand_up`] and the hand-back.
+    static IN_HAND: RefCell<Option<Tape>> = const { RefCell::new(None) };
+}
+
+/// The process's kept walk: the state the last widening handed back, the
+/// state that widening started from, each with its stand-up's tape, and
+/// the loaded install.
+#[derive(Default)]
+struct Kept {
+    prefix: Option<(Key, Built, Tape)>,
+    start: Option<(Key, Built, Tape)>,
+    loaded: Option<(PathBuf, std::sync::Arc<crate::load::Loaded>)>,
+}
+static KEPT: Mutex<Option<Kept>> = Mutex::new(None);
+
+fn kept<T>(with: impl FnOnce(&mut Kept) -> T) -> T {
+    // A test that panicked inside left nothing half-written: every slot is
+    // whole or empty.
+    let mut guard = KEPT
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    with(guard.get_or_insert_with(Kept::default))
+}
+
+/// Whether this process shares a kept walk between its tests.
+fn sharing() -> bool {
+    static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ON.get_or_init(|| {
+        let asked = match std::env::var("RON_SHARE_WALKS").as_deref() {
+            Ok("on") => true,
+            Ok("off") | Err(std::env::VarError::NotPresent) => false,
+            other => panic!("RON_SHARE_WALKS must be on or off, not {other:?}"),
+        };
+        asked && !diagnostic() && std::env::var_os("RON_DISABLE_PREFIX_REUSE").is_none()
+    })
+}
+
+/// Diagnostic runs promise a complete from-zero trace of watched state.
+fn diagnostic() -> bool {
+    std::env::vars_os().any(|(key, _)| {
+        let key = key.to_string_lossy();
+        key.starts_with("RON_DEBUG")
+            || matches!(
+                key.as_ref(),
+                "RON_SWEEP" | "RON_ROW_WALK" | "RON_SITE_SET" | "RON_STANDING"
+            )
+    })
+}
+
+fn batch_active() -> bool {
+    BATCH.with(|batch| batch.borrow().active)
+}
+
+fn retire(slot: Option<(Key, Built, Tape)>) {
+    if let Some((_, built, _)) = slot {
+        built.retire();
+    }
+}
+
+/// Stand a state up with `build`, keeping the fixture requests it makes
+/// when the kept walk may later hand the state to another test.
+pub(super) fn stand_up(build: impl FnOnce() -> Built) -> Built {
+    if batch_active() || !sharing() {
+        return build();
+    }
+    let (built, tape) = crate::testenv::taped_requests(build);
+    IN_HAND.with(|hand| *hand.borrow_mut() = Some(tape));
+    built
 }
 
 /// Inputs, install and tuning remain immutable until this guard drops.
@@ -49,16 +150,7 @@ impl Scope {
         BATCH.with(|batch| {
             let mut batch = batch.borrow_mut();
             assert!(!batch.active, "nested replay prefix batch");
-            // Diagnostic runs promise a complete from-zero trace of watched state.
-            let diagnostic = std::env::vars_os().any(|(key, _)| {
-                let key = key.to_string_lossy();
-                key.starts_with("RON_DEBUG")
-                    || matches!(
-                        key.as_ref(),
-                        "RON_SWEEP" | "RON_ROW_WALK" | "RON_SITE_SET" | "RON_STANDING"
-                    )
-            });
-            batch.active = !diagnostic && std::env::var_os("RON_DISABLE_PREFIX_REUSE").is_none();
+            batch.active = !diagnostic() && std::env::var_os("RON_DISABLE_PREFIX_REUSE").is_none();
         });
         Self(std::marker::PhantomData)
     }
@@ -78,10 +170,26 @@ impl Drop for Scope {
 }
 
 pub(super) fn enabled() -> bool {
-    BATCH.with(|batch| batch.borrow().active)
+    batch_active() || sharing()
 }
 
 pub(super) fn loaded(install: &crate::Install) -> std::sync::Arc<crate::load::Loaded> {
+    if !batch_active() {
+        assert!(sharing());
+        // Loaded outside the lock: a second test of the process waits on
+        // nothing but its own read.
+        if let Some(loaded) = kept(|kept| {
+            kept.loaded
+                .as_ref()
+                .filter(|(path, _)| path == install.root())
+                .map(|(_, loaded)| loaded.clone())
+        }) {
+            return loaded;
+        }
+        let loaded = std::sync::Arc::new(crate::load::load(install).unwrap());
+        kept(|kept| kept.loaded = Some((install.root().to_owned(), loaded.clone())));
+        return loaded;
+    }
     BATCH.with(|batch| {
         let mut batch = batch.borrow_mut();
         assert!(batch.active);
@@ -96,7 +204,37 @@ pub(super) fn loaded(install: &crate::Install) -> std::sync::Arc<crate::load::Lo
     })
 }
 
+/// The kept walk's state for `key`, when it stands before `first_block`:
+/// the state the last widening handed back, else the state that widening
+/// started from. A state of other inputs, or one at or past the block, is
+/// retired: one game is kept, and the next hand-back replaces it.
+fn take_kept(key: &Key, first_block: i64) -> Option<Built> {
+    let (found, stale) = kept(|kept| {
+        let fits = |slot: &Option<(Key, Built, Tape)>| {
+            slot.as_ref().is_some_and(|(previous, built, _)| {
+                previous == key && built.sim.frame < first_block
+            })
+        };
+        if fits(&kept.prefix) {
+            (kept.prefix.take(), None)
+        } else if fits(&kept.start) {
+            (kept.start.take(), kept.prefix.take())
+        } else {
+            (None, kept.prefix.take())
+        }
+    });
+    retire(stale);
+    let (_, built, tape) = found?;
+    // This test stood nothing up: the stand-up's requests are its rows.
+    crate::testenv::replay(&tape);
+    IN_HAND.with(|hand| *hand.borrow_mut() = Some(tape));
+    Some(built)
+}
+
 pub(super) fn take(key: &Key, first_block: i64) -> Option<Built> {
+    if !batch_active() {
+        return sharing().then(|| take_kept(key, first_block)).flatten();
+    }
     BATCH.with(|batch| {
         let mut batch = batch.borrow_mut();
         if !batch.active {
@@ -124,6 +262,16 @@ pub(super) fn take(key: &Key, first_block: i64) -> Option<Built> {
 }
 /// Keep a copy of the state a walk starts from, for [`take`]'s fallback.
 pub(super) fn mark_start(key: &Key, built: &Built) {
+    if !batch_active() {
+        if sharing() {
+            let tape = IN_HAND
+                .with(|hand| hand.borrow().clone())
+                .unwrap_or_default();
+            let copy = (key.clone(), built.clone(), tape);
+            retire(kept(|kept| kept.start.replace(copy)));
+        }
+        return;
+    }
     BATCH.with(|batch| {
         let mut batch = batch.borrow_mut();
         if batch.active {
@@ -132,6 +280,18 @@ pub(super) fn mark_start(key: &Key, built: &Built) {
     });
 }
 pub(super) fn put(key: Key, built: Built) {
+    if !batch_active() {
+        if sharing() {
+            // The walk is this test's to answer for; the state is the
+            // process's from here.
+            built.answer_for_the_ground();
+            let tape = IN_HAND
+                .with(|hand| hand.borrow_mut().take())
+                .unwrap_or_default();
+            retire(kept(|kept| kept.prefix.replace((key, built, tape))));
+        }
+        return;
+    }
     BATCH.with(|batch| {
         let mut batch = batch.borrow_mut();
         if batch.active {
