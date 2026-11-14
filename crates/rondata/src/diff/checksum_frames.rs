@@ -478,6 +478,23 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         )],
     ),
     (
+        "run1590",
+        "rontrace-run1590.log",
+        3596,
+        // Item 4234: units whole; before it, 1440 ranges theirs, 1437 ours,
+        // 710 parted from range 566: record 16's `CAST_SPELL`
+        // (`UNPACK_MERCHANT`), whose `CastOrder::walk_data@004860a0` hands
+        // over three ranges the emitter left out (`order.flags`,
+        // `order.target`, `order.cast`).
+        &[(
+            "leaders",
+            267,
+            267,
+            2,
+            "1 0 who..ally_mask: +0x11 of 26914|26914: 00000000|01000000",
+        )],
+    ),
+    (
         "run1583",
         "rontrace-run1583.log",
         987,
