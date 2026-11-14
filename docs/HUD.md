@@ -32,6 +32,10 @@ already holds, so 4197 touches `crates/client` alone and gates scoped. The
 bar needs a leader's record through `sim::observe`, a new door, so 4198
 gates whole and takes the whole slot's turn (DECISIONS 129 §1).
 
+**The entry line** (item 4250) is a fourth part, drawn only while open:
+the chat being typed, after `SAY:`, above the menu's row. Return opens it
+and sends it; what it mints is `docs/CLIENT_INPUT.md` §12.
+
 ## 2. The menu (item 4197)
 
 - **A button is a key's event and nothing else.** A press inside a
