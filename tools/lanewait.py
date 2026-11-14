@@ -24,7 +24,12 @@ session. A lane is named as `ccc list` names it. The exits:
                                              turn on "this session is done"
     4  QUIET <lanes> <minutes>               nothing in --quiet-after minutes
     5  DEEP <lane> <ctx>k                    a lane's next turn would carry --deep k
-                                             tokens or more (lore's `ctx`), once a lane
+                                             tokens or more (lore's `ctx`), once a lane:
+                                             one line to the lane — journal as a draft
+                                             (its head says `draft`, or a `Left to do`
+                                             heading stands in it, Loop 3925), commit,
+                                             push, end the turn done — or, if the item
+                                             is finished, land instead (Loop 3833)
     6  STALLED <lane> <minutes>              a working row idle --stalled-after minutes
                                              with no child process but its servers, or
                                              behind a child older than

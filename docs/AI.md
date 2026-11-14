@@ -67,7 +67,7 @@ from frame 0 does not exercise it before the armies do.
 
 ## 2. The production AI — read
 
-### 2.1 The frame hook
+## 2.1 The frame hook
 
 `Game::do_frame@00591ef0`, in order (decompile line numbers):
 
@@ -94,7 +94,7 @@ enters `plan_strategy`; the "human gate" inside `production_ai` is for the
 whose `seen2` sample has bit `who` (`docs/VISION.md` §13, item 4153). Pure
 recount, no decision.
 
-### 2.2 `plan_strategy`'s cadence
+## 2.2 `plan_strategy`'s cadence
 
 `Leader::plan_strategy@006b9620` (read, 1,754 lines), head:
 
@@ -125,7 +125,7 @@ is checked *before* the phase test, a step machine still running when the
 next sweep frame arrives delays that sweep to the next frame on which it
 has finished — the phase is a floor, not a schedule.
 
-### 2.3 The sweep: `plan_strategy` is the census
+## 2.3 The sweep: `plan_strategy` is the census
 
 Everything after the cadence check is one long recount into `LeaderData`,
 in this order. Field names are the PDB's (`struct /rise.pdb/LeaderData`);
@@ -306,7 +306,7 @@ zeroes and does not own between sweeps: `xport_peasants` and
 (`docs/TRANSPORT.md` §7), so a mid-cycle record can read higher than step
 10 alone would give.
 
-### 2.4 The step machine — `production_ai@006c1960`
+## 2.4 The step machine — `production_ai@006c1960`
 
 Read whole (114 lines). Bail to `production_step = 0` when `leader_flags &
 4 && !(leader_flags & 8)` (a human that is not being AI-driven), `ai_off`
@@ -362,7 +362,7 @@ and advances to step 2 as though the script had returned 2.
 `*_mod` fields to `0x100` (`wonder_mod` 0), `pop_cap`, `misery`, `att`
 etc. to 0.
 
-### 2.5 The goods picture — `production_ai_setup@006c83e0`
+## 2.5 The goods picture — `production_ai_setup@006c83e0`
 
 Read whole (316 lines). Writes `econ[6]` (a flag word per good),
 `worst_good`, `best_good`, `shortages`, the AI's own `rate[6]`, and on easy
@@ -411,7 +411,7 @@ Every figure below is in the ledger's own units (rates in sixteenths,
    short at a time, and never the later goods.
 6. `market_speculation()` — §2.15.
 
-### 2.6 The make list — `MakeList`, `make_stuff`, `make_this`
+## 2.6 The make list — `MakeList`, `make_stuff`, `make_this`
 
 `make_list` (`+0x6ec8`, `Array<MakeObject>`; `list` at `+0x10` is what the
 decompile prints as `field_0x6ed8`) holds **eleven** `MakeObject`s (`0x28`
@@ -488,7 +488,7 @@ real overread and reproduced as one**) `< 2`; a **tech** in `0x220..0x274` →
 0 (bought) → `slot.val /= 100` (demoted a hundredfold, not cleared).
 `sys.ai_logging` bit `who` gates on-screen messages only.
 
-### 2.7 The sites — `compute_sites@006cc950`
+## 2.7 The sites — `compute_sites@006cc950`
 
 Read whole (308 lines). `sites` (`+0x6e34`, `Array<Site>`, list at
 `+0x6e44`) holds **ten** `Site`s (`wx, wy, val, reg, dist, rank`). At frame
@@ -518,7 +518,7 @@ is §4's reading. **`compute_sites(0)` runs at the end of every sweep,
 including frame 0, so the sync stream takes these draws at frame 0 for
 every computer leader** with a 200-tile region.
 
-### 2.8 The orphan check — `check_orphaned_buildings@006c9f20`
+## 2.8 The orphan check — `check_orphaned_buildings@006c9f20`
 
 Read whole (294 lines). Computer leaders only. For every building of mine
 (build and wall lists, in id order):
@@ -544,7 +544,7 @@ step 8 and §2.17.** `world+0x13c` is **`WorldData::danger[8]`**;
 `docs/DANGER.md` has the writer, the index, and the one thing these
 readers do differently from `calc_cost` — they take the grid **whole**.
 
-### 2.9 What the driver leaves to the producers
+## 2.9 What the driver leaves to the producers
 
 Written when none of these had been read. **Most of them now have their own
 section**: `compute_site_stats` §2.13, `found_cities` §2.12,
@@ -560,7 +560,7 @@ AI-relevant fields beyond the ones named in §2.4. They are implemented —
 written derivation is in the module docstrings, so the blind second reading
 has nothing here to compare against and should treat them as new ground.
 
-### 2.10 Slots named by use, to settle in the listing
+## 2.10 Slots named by use, to settle in the listing
 
 The vtable export prints a colliding name for these; the decompile's own
 direct calls (`is_captain`, `is_on_map`, `ObjectData::is`, `WallData::
@@ -580,7 +580,7 @@ is_active`, `TypeData::is_*`, `get_cost`, `can_pay_cost`) are trusted.
 | `+0xfc` | BuildType | `is_fort` — `is(FORTX, 0)` at every devirtualised site (settled by the `create_buildings` reading; `docs/CITIES.md` §1.5) | settled |
 | `+0x64` on `Type` | Type | the `create_units` reading resolved `UnitType`'s table from the PE: `+0x60 is`, `+0x78 get_cost`, `+0x84 can_pay_cost`, `+0xe8 get_age_slow`, `+0xec get_age`, `+0x10c is_siege`, `+0x114 is_missile`, `+0x130 is_caravan`; `+0x64` is an ICF-folded trivial there — on a *build* type it is `is_city` (`docs/CITIES.md` §1.5), and `make_this`'s use of it routes a city-kind slot to `produce_city` | settled |
 
-### 2.11 The make list's insertion — `MakeList::make_me@006c9be0`
+## 2.11 The make list's insertion — `MakeList::make_me@006c9be0`
 
 Read whole. `make_me(t, val, escrow, cat, city, up, o, num, wx, wy)` —
 `cat` is **the slot index** of the entry's category (4..10), and the first
@@ -624,7 +624,7 @@ category slot 5 and, until the temple outbid it, at rank 0; the temple at
 rank 0 and category slot 8; and the citizen's rank-0 copy simply gone,
 because a new best overwrites the head instead of shifting it down.
 
-### 2.12 The city AI — `found_cities@006c7a60`
+## 2.12 The city AI — `found_cities@006c7a60`
 
 Read whole (281 lines). Returns at once when `leader_flags2 & 0x10`.
 The type loop runs over `BASE_BUILDTYPES .. 0x19e` — i.e. **only `0x19e
@@ -697,7 +697,7 @@ and each call after a successful buy returns −1 without a draw, so the
 frame's word says whether the city was bought (`rondata::diff`,
 `run40_s_census_prices_the_ai_s_second_city_at_sixty`).
 
-### 2.13 The site score — `compute_site_stats@006cd040`
+## 2.13 The site score — `compute_site_stats@006cd040`
 
 Read whole (506 lines). `compute_site_stats(wx, wy, city, unit, reg, &val,
 &dist, keep, &out_wx, &out_wy)`; `val = dist = 0` on every early return:
@@ -821,7 +821,7 @@ territory owner, `+0x28` = the next tile's `+0xc` (used by the 2×2 sum).
 ring-2 border at 9..24; `[81..121]` is the 11×11 border, clockwise from
 `(−5, −5)`; `corner_x/y` is `(0,0), (−1,−1), (1,−1), (1,1), (−1,1)`.
 
-### 2.14 Research — `research_techs@006c6ba0`
+## 2.14 Research — `research_techs@006c6ba0`
 
 Read whole (689 lines). Capital-countdown elimination (`elimination == 1`):
 the gate is `find_capital(&city, &owner, −1, −1); if (owner != who) return`,
@@ -956,7 +956,7 @@ and they are the kind a reading alone does not catch:
   Large City as their `WHERE`, so a loop that includes them adds twelve to
   the Medieval Age's `ai[1]` that the original never adds.
 
-### 2.15 The market — `use_market@006c91c0`, `market_speculation@006c8110`
+## 2.15 The market — `use_market@006c91c0`, `market_speculation@006c8110`
 
 Both read whole. Both require the market ability — tribe bonus 4 or
 `has_preq(BUY_SELL)`, which is **Coinage** (§40) — a market
@@ -985,7 +985,7 @@ such good when wealth minus its escrow covers the buy price, `bucket <
 2000`, price `< 201`, and (`bucket < 500` or price `< 26`) and (`< 200`
 or `< 51`) and (`< 100` or `< 101`). No draws.
 
-### 2.16 `queued_units`, `compute_score`
+## 2.16 `queued_units`, `compute_score`
 
 `queued_units@006ce000` (read): over my buildings from id 2000 that are
 active and complete (vslots `+0xc`, `+0x4c`), Σ `control_cost` of every
@@ -1000,7 +1000,7 @@ components (`score_units` on the `0x1800000` flags, `compute_build_score`,
 zeroed after Armageddon. No decision reads it in the production AI; it is
 the score screen's, and the `LEADERDATA` dump carries `score`.
 
-### 2.17 Two producers — `produce_tech@006ca980`, `produce_city@006cb120`
+## 2.17 Two producers — `produce_tech@006ca980`, `produce_city@006cb120`
 
 Both read whole; `produce_unit`, `produce_building`, `produce_upgrade`,
 `produce_spell` are the two readers' (§4 reports). A producer returns
@@ -1064,7 +1064,7 @@ game from 0). `who = 1`'s sweep is at 775 (`175 + 200·3`), so 776 is
 would have been 778. By the same convention the farm in `FRAME 2` is game
 frame 1, step 1 again: the script's `place_farm`.
 
-### 2.18 Units — `create_units@006c40a0`
+## 2.18 Units — `create_units@006c40a0`
 
 **Provenance, and it is weaker than the sections above.** §2 was written
 before this function was read; what follows is the *implementation*
@@ -1097,7 +1097,7 @@ has a claim to compare against. The derivation is
    the infantry `0x100000` are **exclusive arms**, not a pair, and the whole
    word reproduces for 364 of 364 types.
 
-### 2.19 Buildings — `create_buildings@006c1be0`
+## 2.19 Buildings — `create_buildings@006c1be0`
 
 Same provenance as §2.18 (was §14.6; `crates/sim/src/ai/ai_build.rs`).
 
@@ -1139,7 +1139,7 @@ Same provenance as §2.18 (was §14.6; `crates/sim/src/ai/ai_build.rs`).
    corrected — whether it is load-bearing for the shipped AI is still open
    (§13).
 
-### 2.20 Placing one — `produce_building`
+## 2.20 Placing one — `produce_building`
 
 Same provenance as §2.18 (was §14.7; `crates/sim/src/ai/ai_place.rs`).
 
@@ -2052,7 +2052,7 @@ the tech the tick requires (§2.2); and run18a's per-frame draw counts for
 frames 0–11 are `120, 54, 6, 6, 6, 6, 6, 6, 6, 6, 226, 254`, **identical
 to run14's**, so `ffwd` moves no draw and the sim never reads the clock.
 
-### 15.1 The script's end, and the two ladders
+## 15.1 The script's end, and the two ladders
 
 `defensive` reaches **`case 29`** and returns `SCRIPT_DONE` on **sim-frame
 6376**, the step-1 call of the sweep at 6375 (`(25 + 6375) % 200 == 0`).
@@ -2099,7 +2099,7 @@ that is the *script* calling `place_city_with_cost`, which reaches
 §5's table). So a function's first-entry frame is not the step machine's;
 only the step in the dump settles which caller it was.
 
-### 15.2 The make list, observed
+## 15.2 The make list, observed
 
 Eleven slots, and the dump fills **0, 5 and 8 and nothing else** — which is
 `make_me` exactly (§2.11): a top-four insertion at 0–3 over a
@@ -2130,7 +2130,7 @@ Three things fall out, all of them predicted:
   *whole*: the three slots that held a `val` at 6576 read `val −1` at 6577
   (§15.7).
 
-### 15.3 The expiry, settled against the original's own seeds
+## 15.3 The expiry, settled against the original's own seeds
 
 `make_stuff` step 4 draws once per slot holding the head's type. The trace
 records the seed *before* each `Random::get` and the dump records which
@@ -2156,7 +2156,7 @@ type"). Pinned as
 `ai_make::tests::run18_s_expiry_rolls_decide_exactly_the_slots_the_dump_kept`,
 which fails if the predicate is put back the way the prose had it.
 
-### 15.4 The rest, in one list
+## 15.4 The rest, in one list
 
 - **`val /= 100` on a buy, not a clear** (§2.6, `make_this`): the citizen
   bought out of slot 5 at 6582 reads **`val 7`** in the next block, from
@@ -2178,7 +2178,7 @@ which fails if the predicate is put back the way the prose had it.
   two cities, `pop_cap 50`, `territory 488` — the state every producer in
   §2.13–§2.17 reads, now available as a fixture for the second reading.
 
-### 15.5 What it does not establish
+## 15.5 What it does not establish
 
 - ~~**`research_techs`' and `found_cities`' outputs.** Both ran, neither
   bought inside the window: `produce_tech` first runs at **8182** and
@@ -2197,7 +2197,7 @@ which fails if the predicate is put back the way the prose had it.
 - **One nation, one personality, one difficulty.** Everything above is the
   British `defensive` leader of run8's roll on Easiest.
 
-### 15.6 run19 — the second pass, and the head clause (2026-08-25)
+## 15.6 run19 — the second pass, and the head clause (2026-08-25)
 
 run18's §15.5 left `produce_tech`'s output unscored: it first runs at frame
 **8182**, outside that window. run19 is the bracket, and it cost **a minute and a
@@ -2268,7 +2268,7 @@ insertions above are read off end states, not traced call by call. Slot 5
 and slot 6 were never occupied in either run. And `found_cities`' purchases
 still sit at frame 576, in the script's era, unscored.
 
-### 15.7 The whole record, diffed — 2026-08-25
+## 15.7 The whole record, diffed — 2026-08-25
 
 Audit B7-f asked for it and the `SITES` widening (audit, "B4-f, confirmed
 behaviourally") showed the shape: **every consecutive pair of `LEADERS=9`
@@ -2316,7 +2316,7 @@ Still not established here: every *value* a producer computes (§15.5's
 second item stands), and the purchases themselves — the replay takes the
 bought slots from the dump and checks only what follows from them.
 
-### 15.8 run20 and run21 — the islands map, and the coastal ring's guard (2026-08-25)
+## 15.8 run20 and run21 — the islands map, and the coastal ring's guard (2026-08-25)
 
 Audit B4-k's guard needed a capture whose `compute_site_stats` reaches
 step 5, and none on disk did: every run through run19 was on the
@@ -2421,7 +2421,7 @@ day, `docs/TRANSPORT.md`, with run22 as its capture.
 `PLAYERn_TRIBE` are the profile's, not `check.ini`'s, on every run — and
 Save to Profile does not survive a killed process (`docs/ORACLE.md`).
 
-### 15.9 `space_at_corner`'s walk order — run20's `space[0..1]` (2026-08-25)
+## 15.9 `space_at_corner`'s walk order — run20's `space[0..1]` (2026-08-25)
 
 The one field of run20's `CITY` record the widening (§15.7, `docs/
 TRANSPORT.md`'s session) left unmatched: `space[0]` and `space[1]` ours 48,
@@ -12296,7 +12296,7 @@ to the second pair's, `DIFFICULTY 5`, Toughest (§80.1). Its row in
 `AI_WORDS` is `GreatSaharaToughest`, on the `Third map` line after the
 closed `GreatSahara`. No mechanism is named here.
 
-### 99.1 The lever, and the read-back
+## 99.1 The lever, and the read-back
 
 `profile: DIFFICULTY=5` on both stanzas, as run346's; and on the start,
 `startcapture.sh`'s new fourth argument, which writes the same profile
@@ -12306,7 +12306,7 @@ and it is run381's with one line apart, `DIFFICULTY 5` against 0**
 run471's read `DIFFICULTY 5` back. The harness stands the simulation up at
 difficulty 5 from the dump's own `GAME INFO` (the lobby gate, §80.5).
 
-### 99.2 Standing up, the score, and where the game ends
+## 99.2 Standing up, the score, and where the game ends
 
 run468 stands the map up exactly as run381 does (146 checksum records,
 58,081 heights). Frame 0 spends **100 draws against 100**, one more than
@@ -12320,7 +12320,7 @@ draw stream agrees on all 1,850 frames (`run469_s_trace_holds_to_its_end`).
 block 15433, the AI's score 8,165. That is the row's length. At Easiest the
 same game ran to 24,000 with nobody defeated.
 
-### 99.3 The word, 5376
+## 99.3 The word, 5376
 
 **Frame 5376: ours 45 draws against the original's 40, parting at index
 1** (`run470_is_great_sahara_at_toughest_and_its_word_holds`). By site:
@@ -12336,7 +12336,7 @@ same game ran to 24,000 with nobody defeated.
 Both sides open on one `produce_building` draw; ours then spends three more
 before the birds.
 
-### 99.4 The widening, run471
+## 99.4 The widening, run471
 
 run471 is run470's game at run449's detail over blocks 5371..5627
 (`rngcmp.py`: 5,642 frames, 0 differing), and
@@ -12368,7 +12368,7 @@ standing families this crate reads (`tools/standing.py`: 58 readers of `reg`
 in `sim`, `ai_build.rs` among them). So does who=1's food bucket, 381 against
 417 from the window's first block.
 
-### 99.5 What this has *not* established
+## 99.5 What this has *not* established
 
 - ~~**Why the Granary goes elsewhere.** The site list agrees and `.reg` does
   not. Whether `.reg` or the food bucket enters `produce_building`'s
@@ -12386,7 +12386,7 @@ in `sim`, `ai_build.rs` among them). So does who=1's food bucket, 381 against
   the Granary placed as the original places it, frame 5376 agrees draw for
   draw (§99.7).
 
-### 99.6 Coverage
+## 99.6 Coverage
 
 **Diff-backed**: §99.1 by `run469_is_great_sahara_at_toughest_and_nothing_else_moved`;
 §99.2 by `run469_s_score_holds`, `run469_s_trace_holds_to_its_end` and
@@ -12399,7 +12399,7 @@ and item 1286 to run500's 8785..8788 (§99.11), and item 1293 to its
 8855..8858 (§99.12), and item 1305 to run511's 9322..9325 (§99.13); the
 coverage driver drives each. **Read only**: nothing; §99.5's third bullet is open.
 
-### 99.7 The Granary's friends: `find_friends`' enhancer arm (item 1241)
+## 99.7 The Granary's friends: `find_friends`' enhancer arm (item 1241)
 
 **The event, both sides.** On frame 5376 both sides place who=1's first
 Granary from the script — the original's draw is `Leader::produce_building
@@ -12461,7 +12461,7 @@ the only gather buildings around this Granary are farms; the unit test
 Mill counts the camp, not the farm). A Lumber Mill, Smelter or Refinery
 placed beside a mixed ring is the arm no capture holds.
 
-### 99.8 Empire's price: `get_cost`'s library-line tail (item 1251)
+## 99.8 Empire's price: `get_cost`'s library-line tail (item 1251)
 
 **The frame, both sides.** On 5782 both sides spend `Leader::use_market
 +0x1ed` and two `Leader::make_stuff+0x221`; then ours queues a Hoplite at
@@ -12549,7 +12549,7 @@ item 1268. The Americans' step ships as 0.
 Read only: the Despotism tier's `has_preq`, read through the first
 prerequisite of each bonus as the Republic tier is.
 
-### 99.9 The road beside the Farm: `leech_codes` in the mesh's redo pass (item 1260)
+## 99.9 The road beside the Farm: `leech_codes` in the mesh's redo pass (item 1260)
 
 **The frame, both sides.** On 7070 both sides open with the same two
 `GameAccess::rnd` draws. Then each spends one road search, caravan slot 2's:
@@ -12636,7 +12636,7 @@ the word falls back to 7070) and
 The early return on a road neighbour with no element is held by the unit test
 `leech_codes_stops_at_a_road_with_no_element` alone.
 
-### 99.10 The Keep and the trade: 7785 → 8182 → 8377 (items 1264 and 1275)
+## 99.10 The Keep and the trade: 7785 → 8182 → 8377 (items 1264 and 1275)
 
 **7785, both sides.** Frame 7785: ours 23 draws against 17, parting at
 index 4 — both spend two `Leader::use_market+0x1ed` and open a placement,
@@ -12748,7 +12748,7 @@ and `run483_s_word_frame_is_widened_whole`; the unit test
 conversion, by 1264's pins and `gaining_the_keep_turns_the_leader_s_standing_tower_into_one`.
 **Held by no walk**: the hits lines (above).
 
-### 99.11 The fourth city's price: `get_cost` counts the city line (item 1286)
+## 99.11 The fourth city's price: `get_cost` counts the city line (item 1286)
 
 **8377, both sides.** Frame 8377: ours 17 draws against 19, parting at
 index 0. The original spends two `Leader::use_market+0x1ed < make_stuff
@@ -12817,7 +12817,7 @@ that `num_queued` of a city counts what this crate counts as an alive,
 unfinished city; the two differ only while a city is ordered and not yet
 placed.
 
-### 99.12 A slot in a wood: `add_flock` (item 1293)
+## 99.12 A slot in a wood: `add_flock` (item 1293)
 
 **8786, both sides.** Ours 10 draws against 49, parting at index 1. Both
 spend `1/9`'s `move_step` roll; the original then spends
@@ -12924,7 +12924,7 @@ the landing) — measured against the proxy here and pinned by nothing
 until the word passes 8992; the stamp's refusal (no second flock inside
 225 frames on this game); `take_damage`'s flock (no capture reaches it).
 
-### 99.13 A General's coin: `use_generals`, the hero arm and Forced March (item 1305)
+## 99.13 A General's coin: `use_generals`, the hero arm and Forced March (item 1305)
 
 **The turn** (`Army::process@006f93d0`, `6f9437`–`6f9489`): after
 `normalize` and `num_captains`, `num_standard != 0` and a non-decoy
@@ -12969,7 +12969,7 @@ walks 9112..9262 at its own speed here~~ — built by item 1318, §99.15; `cast_
 `run500_s_word_frame_is_widened_whole`; unit tests in `sim::spellcaster`.
 Held by no walk: ~~the decoy arm~~ (held by the East Indies walk since
 item 1302, §99.14), Ambush's cast, the march's expiry (9368).
-### 99.14 A General's copies: Create Decoys from the army's turn (item 1302)
+## 99.14 A General's copies: Create Decoys from the army's turn (item 1302)
 
 **11637, both sides.** Ours 2 draws against 38, parting at index 1: the
 original spends eighteen `Guy::init_real+0x52 < Unit::init+0xb97 <
@@ -13063,7 +13063,7 @@ and `an_interrupted_cast_hands_its_craft_back_and_its_clock_restarts`.
 - Why a reused slot keeps `path_recursion`. `Unit::init` does not write
   it, as far as this reading goes, and nothing draws on it.
 
-### 99.15 Forced March's speed (item 1318)
+## 99.15 Forced March's speed (item 1318)
 
 **`UnitData::speed@0060aae0`**, layer two (`docs/MOVEMENT.md`, "The speed
 pipeline"): a type not of the land (`+0x218 != 0`) returns `myspeed`. Under
@@ -13115,7 +13115,7 @@ walk, run511 and run517 pass; every follower of the march stood inside the
 Senator's ten tiles). The value diff: without the march, run517 parts on
 block 9114, all 26 walkers; with it, no army position parts.
 
-### 99.16 The Gunpowder Age's price: Silver, and the cheap tick's escrow (item 1346)
+## 99.16 The Gunpowder Age's price: Silver, and the cheap tick's escrow (item 1346)
 
 **`TypeData::get_cost@00664090`'s Silver arm** (`00666af0`–`00666b51`):
 a type whose `is_age_type` slot (`+0x34`) answers `0x220..0x226`, priced
@@ -14498,7 +14498,7 @@ if has_tribe_bonus(0xa) and constants[+0x6c4]: # french_lumbermill_upgrades
         esi += 1
 ```
 
-That is `docs/TECH.md` §13's French row, in [`tech::Shape::PreqMatch`]'s
+That is `docs/TECH.md` §"`gain_tech`: owning it" step 13's French row, in [`tech::Shape::PreqMatch`]'s
 shape. The loader built the five predicate blocks and none of the range
 blocks ("each endpoint is its own reading and no capture reaches any of
 them"). `FRENCH_LUMBERMILL_UPGRADES` was loaded into `Tuning` and read by
@@ -27680,7 +27680,7 @@ and enter the ledger with the pair whole (§315.4).
 `BANTU_ANCIENT_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds the row on `Late
 ages`. Nothing in this section is reading-only: the parting is a dump comparison.
 
-### 315.1 The lobby's type ages: the word 4185 → 5072 (item 3589)
+## 315.1 The lobby's type ages: the word 4185 → 5072 (item 3589)
 
 **Ours acted.** run1236 dumps who=1's `LEADERDATA` from block 3970 to 4186. That covers two make passes, the
 Classical age at 3991 between them, and six blocks over run1206b's first. The make list agrees on every block
@@ -27741,7 +27741,7 @@ The 49 other lobbies' `first_parting` hold.
 Reading-only: that `finalize_grafting` runs once per game after the lobby (`Game::init_data`'s order). The packet
 shows the result of that order, not the order itself.
 
-### 315.2 The Umpakati's bays: the word 5072 → 5322 (item 3591)
+## 315.2 The Umpakati's bays: the word 5072 → 5322 (item 3591)
 
 **Walked back.** run1206's stride (blocks 101..5001) parts no unit field, so the state parts between 5001 and
 5066. run1238 (4995..5073) first parts on **block 5036**: both leaders' `treaties[·]` (bit 2, the struck mark) and
@@ -27787,7 +27787,7 @@ other `BAYS` row's third key does. The squad's other figures do not arise: the U
 `AttachPos` sweep is the packet's own `get_position`, run under unicorn. It is an oracle on the original's state,
 not a reading.
 
-### 315.3 The Archers' bays: the word 5322 → 5523 (item 3592)
+## 315.3 The Archers' bays: the word 5322 → 5523 (item 3592)
 
 **The 5107 and 5253 rows are no parting.** Both sides retarget `1/86` (TI 94, land) to `0/13` on 5107, and `1/41`
 (TI 171, land) to `0/3` on 5253: the current `ATTACKORDER`s agree. The rows are theirs' **buried** attack slot
@@ -27828,7 +27828,7 @@ round's shooter, its `g` piece, and whether `launch` has a row for it.~~ Answere
 **Coverage.** Diff-backed: the word's move and the blows. The sweep is the packet's `get_position`. Reading-only:
 nothing.
 
-### 315.4 A rolled round's aim: the word 5523 → 6210, whole (item 3593)
+## 315.4 A rolled round's aim: the word 5523 → 6210, whole (item 3593)
 
 **The frame, both sides** (`RON_DEBUG_SITES=5517-5530`). Ours spends `Ammo::do_damage+0xc59`, `+0xc7e` at 26–27,
 the puncture pair (COMBAT §39); theirs' 29 are ours' less those two. run1238d's own trace has theirs' pair on
@@ -28360,7 +28360,7 @@ and the fourth `make_stuff+0x63d` draw (theirs). That draw's arm and the `MAKE` 
 ours 31 draws against 29 at index 16.~~ Answered in §320.1: the list held the Senate twice, and the original's
 `type_avail` refuses the second while the first's site stands unfinished.
 
-### 320.1 The Senate arm of `type_avail`: 4182 → 4324 (item 3597)
+## 320.1 The Senate arm of `type_avail`: 4182 → 4324 (item 3597)
 
 **The make list, walked back** (run1234b, `LEADERS=9`, every block from 4177). Who=1's list holds two `596`
 entries alone from 4179 to 4181 and is rebuilt for the 4182 pass, on both sides alike. On block 4182 it lists
@@ -28434,7 +28434,7 @@ pins 4324. Three mutations through `tools/mutate.py` on the committed tree **hel
   with the state apart on block 4311.~~ Answered in §320.2: both sides throw the same stone, and theirs' leaves
   from the Balamob Slinger's hand.
 
-### 320.2 The Balamob Slingers' bays: 4324 → 4429 (item 3599)
+## 320.2 The Balamob Slingers' bays: 4324 → 4429 (item 3599)
 
 **The blow on 4310** (`RON_DEBUG_AMMO=4280-4312` on the walk, `report.py rontrace-run1234b.log draws`). Theirs
 spends one draw for it, `SoundGlobal::play < Object::do_damage < Ammo::do_damage` on the sound generator, so the game
@@ -28493,7 +28493,7 @@ pins 167. One mutation through `tools/mutate.py` on the committed tree **held** 
 - ~~Piece 38's `CHAR_ATTACK3` row~~ (§320.3), and the Royal Balamob Slingers' piece (parked 3599a).
 - ~~Why `0/10`'s damage parts on block 4338.~~ §320.3: `1/46`'s arrow, from piece 824's bays.
 
-### 320.3 The Bowmen's bays: 4429 → whole, 5935 of 5935 (item 3600)
+## 320.3 The Bowmen's bays: 4429 → whole, 5935 of 5935 (item 3600)
 
 **The blow.** run1234b's Citizen `0/10` (TypeIndex 50) takes one point on each of blocks 4334, 4336 and 4338. Ours
 lands the first two, the Balamob Slingers `1/27`'s and `1/43`'s stones. The third is the Bowmen **`1/46`'s**
@@ -28855,7 +28855,7 @@ both enter it when the pair closes. The other 16 are in the lockstep set: Citize
 59, Merchant 61, Supply Wagon 63, Explorer 71, Arquebusiers 98, Elite Pikemen 135, Crossbowmen 172, Heavy Knight
 229, Bombard 267, The Senator 353, The President 355, and the sheep and peacock herds.
 
-### 324.1. The squad's dead tail: 3238 → 3281 (item 3612)
+## 324.1. The squad's dead tail: 3238 → 3281 (item 3612)
 
 **The draws.** On 3238 ours draws 8 against theirs' 7, parting at index 5: ours `Guy::set_anim+0x97a <
 Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`. The draws are where the state, apart since block 3225,
@@ -28915,7 +28915,7 @@ widening (run1254b, the same window, which still holds the word's block 3282) go
 **What is not established.** ~~Whether the slot is held by the dead tail's link or by something else `Unit::close`
 leaves behind.~~ The link: §324.2 (item 3614).
 
-### 324.2. A dead tail's number is held while its squad lives: 3281 → whole (item 3614)
+## 324.2. A dead tail's number is held while its squad lives: 3281 → whole (item 3614)
 
 **The direction.** Theirs' who=1 slots over run1254b, every block (a scratch scan of each record's `uid`, `o_up`,
 `o_down`), name it without a capture. The Arquebusiers (TypeIndex 98, land) die in two squads:
@@ -29343,7 +29343,7 @@ lockstep set: Citizen 50, General 54, Caravan 59, Merchant 61, Scout 69, Phalanx
 Galley 341), and the horse, fish and whale herds: 19 types. `rubric.py` on this tree reads unit types seen **186
 of 302**, unmoved, because the pair is open.
 
-### 327.1 The Dromon's bays: 4501 → 5357 (item 3616)
+## 327.1 The Dromon's bays: 4501 → 5357 (item 3616)
 
 **The direction.** Theirs acts on 4501. A round lands in theirs a frame before ours, and ours spends the frame's
 Farms draws where theirs wounds the Farm. Both sides launch the Dromon `1/24`'s first round on the same frame: its
@@ -29415,7 +29415,7 @@ orders part. A window from the stride's last block, 5301, would hold the first p
 **The lines.** ~~The pair is open, so `rubric.py` still reads unit types seen 186 of 302, and the Inti Clubmen (91)
 enter when the pair closes.~~ They entered with the pair whole (§327.2).
 
-### 327.2 The Inca Archers' bays: 5357 → 6073, the pair whole (item 3617)
+## 327.2 The Inca Archers' bays: 5357 → 6073, the pair whole (item 3617)
 
 **The direction: theirs acts.** run1270 (blocks 5301..5360 at run1269's detail, from the stride's last block)
 walked from run1259 parts first on **block 5344**, past the standing families. On frame 5343 the Scout `0/0`
@@ -30049,7 +30049,7 @@ unmoved: the pair is open. Its own dumps see 24 types, and two are new to
 the ledger: **`Horde` (203), the booking's line, fielded** (×4256), and the
 Bomb Vessel (346, sea, ×754). Both enter when the pair closes.
 
-### 331.1 The gap: a supplier's pool takes the supply upgrade, 1973 → 4499 (item 3630)
+## 331.1 The gap: a supplier's pool takes the supply upgrade, 1973 → 4499 (item 3630)
 
 *Item 3630, 2026-10-25, Opus 5.5. Runs 1292, 1292b and 1292c.*
 
@@ -30131,7 +30131,7 @@ next item's hypothesis, unread; `0/5`'s striker is not yet named.~~
 **Answered by item 3632 (§331.2)**: theirs, by a hit — the Horde `1/21`'s
 round strikes `0/5` a frame before ours' does.
 
-### 331.2 The Horde looses through its saddle pivot, 4499 → 4632 (item 3632)
+## 331.2 The Horde looses through its saddle pivot, 4499 → 4632 (item 3632)
 
 *Item 3632, 2026-10-25, Opus 5.5. Run 1294, a packet.*
 
@@ -30207,7 +30207,7 @@ path; the Hussars (211) `1/93` `order:kind` 2 against 10, `1/94` and
 `1/95` 21 against 2. Which side issued the group's order, and why, is the
 next item's, unread.
 
-### 331.3 Fight's re-search hands its find to the group, 4632 → 5047 (item 3634)
+## 331.3 Fight's re-search hands its find to the group, 4632 → 5047 (item 3634)
 
 *Item 3634, 2026-10-25, Opus 5.5. Run 1296, a packet at `RON_STATE_FRAME=4632`;
 run1296b, the new word's window.*
@@ -30250,7 +30250,7 @@ by item 3636 (§331.4)**.
 **Not established.** Whether `Group::target_opportunity`'s member arm
 hands its find to the group (parked 3634a).
 
-### 331.4 A splash walks one cell past its square: the pair whole, 5047 → 5399 (item 3636)
+## 331.4 A splash walks one cell past its square: the pair whole, 5047 → 5399 (item 3636)
 
 *Item 3636, 2026-10-25, Opus 5.5. Run 1298, the closing window.*
 
@@ -30404,7 +30404,7 @@ six frames have moved. **Answered by item 3637** (§333.1): with the roll
 kept, frame 4884 agrees, so the road-cost run was downstream of the six
 frames.
 
-### 333.1 The planner's roll is the order's: 4884 → 5196 (item 3637)
+## 333.1 The planner's roll is the order's: 4884 → 5196 (item 3637)
 
 **The direction.** On frame 4861 both sides spend `Unit::do_move+0xe84`
 (the grid draw) and `PathFinder::astar_path+0x1697 < find_upath`: `1/215`'s
@@ -30468,7 +30468,7 @@ later. By 5190 the who=1 unit `1/39` aims at (7272, 8664) against theirs'
 3639** (§333.2): the Dragoon `1/97`'s round, from its pivot; with it the
 word 5196 agrees, so the extra `do_idle` was downstream of the wound.
 
-### 333.2 The Chinese Dragoon releases from its pivot: 5196 → 5384 (item 3639)
+## 333.2 The Chinese Dragoon releases from its pivot: 5196 → 5384 (item 3639)
 
 **The direction.** run1283b's `AMMO=5` records hold one round at `0/10`:
 who=1's `o` 97, `ox` 10, `total_time` 3, printed on blocks 5131 and 5132
@@ -30560,7 +30560,7 @@ windows' pins); piece 1195's rows (run1237's packet, bit for bit, in the
 pivot test). Reading-backed: none new; the branch is §280's and COMBAT
 §55's.
 
-### 333.3 The supply radius reads the research: 5384 → 5568, the pair whole (item 3641)
+## 333.3 The supply radius reads the research: 5384 → 5568, the pair whole (item 3641)
 
 **The direction.** run1299's Bombard `1/98` (TypeIndex 267, uid 141) stands
 at (7608, 10680) throughout. Theirs' `recharging` reads 120 on block 5205,
@@ -30726,7 +30726,7 @@ booking's line, fielded** (×2088). It enters when the pair closes. `Royal
 Tercios` (152) is Enlightenment's, is not fielded here, and is already in
 the lockstep set.
 
-### 335.1 The Galleon unloads at its army's shore: `think_carry`'s eject (item 3640, 2026-10-25)
+## 335.1 The Galleon unloads at its army's shore: `think_carry`'s eject (item 3640, 2026-10-25)
 
 *Item 3640, Opus 5.5. Run 1301 (the gap) and run1301b (the next word's
 window).* **The word moves 2168 → 3866** (the sequence; the count 3877).
@@ -30805,7 +30805,7 @@ On the stride's 3801 both sides walk it on an `ATTACKTOORDER` to (1896,
 gap, is the next item's to place.~~ *Theirs' own idle search, on 3859:
 §335.2.*
 
-### 335.2 A raiding computer ship zeroes only a dock: `compare_target`'s `is_dock` (item 3642, 2026-10-25)
+## 335.2 A raiding computer ship zeroes only a dock: `compare_target`'s `is_dock` (item 3642, 2026-10-25)
 
 *Item 3642, Opus 5.5. Run 1303 (the gap).* **The word moves 3866 →
 3876** (the count and the sequence).
@@ -30893,7 +30893,7 @@ walk's comparison, is the next take.~~ *Compared since §335.4.*
 **The rubric.** The pair is open (3876 of 6128). `RUBRIC_UNIT_TYPES_SEEN`
 stays 194.
 
-### 335.3 The Frigate fires from its bays: piece 293 (item 3643, 2026-10-25)
+## 335.3 The Frigate fires from its bays: piece 293 (item 3643, 2026-10-25)
 
 *Item 3643, Opus 5.5; runs 1304 (packet) and 1304b.* **3876 → 4859.** run1301b's `AMMO` rounds from `1/29` (piece
 293) leave (1809, 5233) for 12 frames on both release ticks; ours left
@@ -30907,7 +30907,7 @@ Mutation: piece 293 out of `launch::bay` → back to 3876.
 
 **The next word: 4859**, §335.4.
 
-### 335.4 A sea-only attacker takes only a sea unit: `valid_target_const`'s `0x102000` arm (item 3646, 2026-10-26)
+## 335.4 A sea-only attacker takes only a sea unit: `valid_target_const`'s `0x102000` arm (item 3646, 2026-10-26)
 
 *Item 3646, Opus 5.5; run1306 (the closing window).* **4859 → 6128 of 6128,
 by the count and the sequence: the pair is whole.**
@@ -33967,7 +33967,7 @@ Pikemen's mask after `Types::finalize_grafting`, which takes the Persians out of
 landing, unmoved by this pair: it parts, so it is not lockstep. The booking's line **is fielded**: `Arqimmortal` (165), 528 figure rows over run1370 and run1370b
 (`rubric.py --tables 3 --dumps`). It stays in the never list until a lockstep game holds it.
 
-### 358.2 The Elite Pikemen are not Persian: `finalize_grafting`'s mask (item 3706)
+## 358.2 The Elite Pikemen are not Persian: `finalize_grafting`'s mask (item 3706)
 
 *Item 3706, 2026-10-27, Opus 5.5. The word 1180 moves to **3020 of 5673**.*
 
@@ -34052,7 +34052,7 @@ barbarian term of the rewrite is carried but unexercised: the roster's `barbaria
 **The rubric** does not move: the word does not close.
 
 
-### 358.3 A fort counts when it is built: `find_fort` and the site sweep (item 3708)
+## 358.3 A fort counts when it is built: `find_fort` and the site sweep (item 3708)
 
 *Item 3708, 2026-10-27, Opus 5.5. The word 3020 moves to **3130 of 5673**.*
 
@@ -39043,7 +39043,7 @@ functions no pinned trace entered and no document cited. Each is read here to it
 (`docs/COMMANDS.md` §3). The result is either the click-free staging that enters it, with the killer that would show
 it did not, or `RESIDUE` on scope. Nothing here was run.
 
-### 391.1 The issuers: six bytes, and the keys that reach them
+## 391.1 The issuers: six bytes, and the keys that reach them
 
 Byte 0x0d (`transport`) is the exception: no `add_command` site writes it. The listing of all 102 functions that
 call `add_command` holds no `mov byte […], 0xd`, so `CommandPackage::process_transport@00949050` →
@@ -39074,7 +39074,7 @@ each staging's first killer.
 - **The one existing verb.** The DLL's `@alarm` would reach `action_alarm`'s unit arm, but it refuses a unit
   (refusal 3, "not a building"). This item builds no verb.
 
-### 391.2 The rows, each with its staging
+## 391.2 The rows, each with its staging
 
 The lobbies are the golden chapters' own lines. Chapter seventeen's and thirty-three's (§25, §42) give an
 Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enemy Barracks `1/2006`.
@@ -39190,7 +39190,7 @@ Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enem
       selected, `process_flight` on 807 (GOLDEN §158, item 3911). Out of range, the click is refused at the
       cursor and lays nothing; no take has clicked out of range.
 
-### 391.3 On scope, and the one left open
+## 391.3 On scope, and the one left open
 
 - **`GroupData::show_interface@0070ce70` is `RESIDUE` on scope (interface).** Its callers are
   `IFaceMainBase::update_visibility@00811d40:106` (whether the selection panel opens) and

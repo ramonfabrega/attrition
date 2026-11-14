@@ -1703,58 +1703,43 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 
 ## 20. The leaders line, held out on the long range (items 4121, 4124)
 
-**263 of 267 ranges and 4,313 of 58,343 bytes agree** on run 1562's frame
-91. That is all eight slots' flag words, and the two walked leaders'
-diplomacy records, personalities, masks but `tech`'s array, sites, make
+**265 of 267 ranges and 4,515 of 58,343 bytes agree** on run 1562's frame
+91, and `LEADERS_HELD_OUT` names **27** leaves, from 140. Agreeing: all
+eight slots' flag words, and the two walked leaders' diplomacy records,
+personalities, masks (each `tech` array since item 4187), sites, make
 lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
-decrypted words. The four ranges that part are each walked leader's
-`[+0x8, +0x692a)` (26,914 bytes) and its `tech` array (101 bytes). Ours sums
-to 4257695306 against the printed `Leaders` 2813959641.
-`Sim::checksum_leaders` (`crates/sim/src/checksum/leaders.rs`) emits it, leaf
-by leaf (`Sim::leader_image`, a `None` leaf being one the crate holds no value
+decrypted words. Parting: each walked leader's `[+0x8, +0x692a)` (26,914
+bytes). Until item 4187 its `tech` array (101 bytes) parted too, 263 of 267
+ranges and 4,313 bytes agreeing; item 4121's image summed to 4257695306
+against the printed `Leaders` 2813959641. `Sim::checksum_leaders`
+(`crates/sim/src/checksum/leaders.rs`) emits it, leaf by leaf
+(`Sim::leader_image`, a `None` leaf being one the crate holds no value
 for). `diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`
-holds it range by range and leaf by leaf, with `LEADERS_HELD_OUT` naming 140
-leaves at item 4121, 100 at item 4124 (the census of the 140 is item
-4124's journal), 99 at item 4153, which carried `explored`, ~~**98**~~ 98
-at item 4154, which carried `att`, ~~**92**~~ 92 at item 4162, which
-carried `cannon_time`, `handicap`, `multi_diff`, `misery`,
-`city_name` and `anti_att` (`docs/LEADERS.md` §1, §6, §12, §16; the census
-of which held-out leaves the record prints is `docs/LEADERS.md`'s head),
-~~**84**~~ 84 at item 4167, which carried `fort_mark`, `oil_well_mark`,
-`wonders_built`, `wonders_held`, `senates_built`, `forts_built`,
-`scholar_militia` and `dock_queued` (`docs/LEADERS.md` §13, §14),
-~~**74**~~ 74 at item 4176, which carried ten of the damage path's sixteen:
-`buildings_razed`, `buildings_lost`, `ctw_hero_stamp`, `attrition_stamp`,
-`attrition_stamp3`, `give_att_disabled`, `repair_stamp`, `missiles_used`,
-`units_bribed` and `nukes_launched` (`docs/LEADERS.md` §2, §4, §5, §15);
-`units_killed`, `units_lost`, the three victim stamps and
-`attrition_stamp2` are held by the crate and stay held out, each parting
-where its parent parts (4176a, 4176b), ~~**73**~~ 73 at item 4177, which
-carried `frame_battle` (`docs/LEADERS.md` §3); the other twelve combat
-rates are held by the crate and stay held out, each parting in the record
-diff (4177a, 4177b, and beside 4176a's parents), and **68** since item
-4159's step T, which released five on transfer (`docs/DECISIONS.md` entry
-128 §3; `rondata::diff::transfer`; `docs/LEADERS.md`'s head):
-`stable_queued`, `factory_queued`, `air_queued`, `supply_mark` and
-`average_kill_rate`, each 0 = 0 on frame 91 on both leaders, ~~**68**~~
-68 since step T, and **61** since item 4185 (step V), which carried seven
-of the end of the game's and the lost capital's nine (`docs/LEADERS.md`
-§10, §11): `defeated_by` (−1 = −1), `defeat_stamp`, `wonderwin_stamp`,
-`wonderwin_timer`, `lost_capital_stamp`, `lost_capital_timer` and
-`lost_capital_modifier` (0 = 0), each agreeing on every dump the record
-diff reads and moving there; `victory_type` and `defeat_type` are held by
-the crate and stay held out, each parting on a closing block whose quit
-the window harness does not replay (4185a). The ranges and bytes do not
-move: the long range still parts on the other 61, so 263 of 267 ranges
-and 4,313 of 58,343 bytes agree as before. ~~**61**~~ 61 since step V,
-and ~~**49**~~ 49 since item 4187 (step VI), which released twelve (`docs/LEADERS.md`
-§17–§20 name them and the rule each met); four of the score's twelve stay
-held out (4187a, b; c frozen). **47** since item 4189, which put `defeat_type` and
-`victory_type` on the line (0 = 0 on frame 91): the window harness replays
-the human's quit where the capture's trace dates it, and both agree on
-every dump the record diff reads (`docs/LEADERS.md` §10.5). With the spell bits each `tech` array agrees: **265 of
-267 ranges and 4,515 bytes** agree on frame 91, the long ranges parting.
-`CHECKSUM_STATE` does not count it (§5).
+holds it range by range and leaf by leaf. Which held-out leaves the record
+prints is `docs/LEADERS.md`'s head. A leaf the crate holds stays held out
+while the record diff parts it (the parked ids below). `CHECKSUM_STATE` does
+not count it (§5).
+
+| step | leaves it carried | held out after | `docs/LEADERS.md` |
+|---|---|---|---|
+| item 4121 | the first image | 140 | head |
+| item 4124 | 40 (its journal has the census of the 140) | 100 | head |
+| item 4153 | `explored` | 99 | (`docs/VISION.md` §13) |
+| item 4154 | `att` | 98 | §5 |
+| item 4162 | `cannon_time`, `handicap`, `multi_diff`, `misery`, `city_name`, `anti_att` | 92 | §1, §6, §12, §16 |
+| item 4167 | `fort_mark`, `oil_well_mark`, `wonders_built`, `wonders_held`, `senates_built`, `forts_built`, `scholar_militia`, `dock_queued` | 84 | §13, §14 |
+| item 4176 | ten of the damage path's sixteen: `buildings_razed`, `buildings_lost`, `ctw_hero_stamp`, `attrition_stamp`, `attrition_stamp3`, `give_att_disabled`, `repair_stamp`, `missiles_used`, `units_bribed`, `nukes_launched`; `units_killed`, `units_lost`, the three victim stamps and `attrition_stamp2` held, still out (4176a, 4176b) | 74 | §2, §4, §5, §15 |
+| item 4177 | `frame_battle`; the other twelve combat rates held, still out (4177a, 4177b) | 73 | §3 |
+| item 4159, step T | five on transfer (`docs/DECISIONS.md` entry 128 §3; `rondata::diff::transfer`): `stable_queued`, `factory_queued`, `air_queued`, `supply_mark`, `average_kill_rate` | 68 | head |
+| item 4185, step V | seven: `defeated_by`, `defeat_stamp`, `wonderwin_stamp`, `wonderwin_timer`, `lost_capital_stamp`, `lost_capital_timer`, `lost_capital_modifier`; `victory_type`, `defeat_type` held, still out (4185a); ranges and bytes unmoved | 61 | §10, §11 |
+| item 4187, step VI | twelve; four of the score's twelve stay (4187a, b; c frozen); each `tech` array agrees, 265 of 267 ranges and 4,515 bytes | 49 | §17–§20 |
+| item 4189 | `defeat_type`, `victory_type` (the window harness replays the human's quit) | 47 | §10.5 |
+| item 4159, VII-b1 | `blacken`, `dow`, `broke_alliance` | 44 | §7 |
+| VII-b2 | `tribute_stamp`, `gift_stamp`, `last_taunt`, `taunt_frame` | 40 | §8, §9 |
+| the frozen scan | `score_explored`, `score_pop`, `last_spoke` | 37 | §7.5, §18.5 |
+| VII-c | `made_peace`, `incoming`, `incoming_taunt`, `incoming_taunt_frame`, `tribute_sent`, `tribute_received` | 31 | §7, §8, §9 |
+| VII-d | `counteroffer` | 30 | §8 |
+| the residue (4187a) | `score_units`, `score_units_2`, `score_combat` | 27 | §18.5 |
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
@@ -2103,7 +2088,7 @@ run 1562's 91, where most leaves are zero and three lines are empty. Now
 own game's frame, range by range
 (`rondata::diff::checksum_lines::packets`). No capture was taken.
 
-### 23.1 The census
+## 23.1 The census
 
 Each packet is wired to its game and frame by its run's `receipt.json`
 (map, lobby profile, AI tribe, seats) and `rontrace.cmd` (the staged
@@ -2125,7 +2110,7 @@ it). `every_packet_is_wired_to_its_game_or_named` holds the table against
 the disk: each run once, each frame inside its walk's length, the packets
 on disk exactly these, each values file naming the table's frame.
 
-### 23.2 The instrument on 108 packets
+## 23.2 The instrument on 108 packets
 
 `tools/recomp/checksum.py --stream --values` ran on all 108, 10 to 13 s
 each, every one exiting 0 with its own Adler equal to the original's on
@@ -2135,7 +2120,7 @@ Only run1100 and run 1562 hold a printed windowed record at their frame,
 and both were reproduced at item 4060 and 4088 (§3). For the other 106 the
 instrument's two proofs stand in for a print.
 
-### 23.3 The boundary
+## 23.3 The boundary
 
 **The hypothesis holds: a packet at logger frame `n` is our walk with
 `sim.frame == n`**, on a word's stand-up as on the minted walk. On run1161
@@ -2145,7 +2130,7 @@ units ranges and 13 builds ranges parting. Frame 3 agrees on three, with
 `a_packet_s_comparison_can_part` pins it: frames 3 and 5 are not the
 packet's outcome and agree on no more lines.
 
-### 23.4 What agrees
+## 23.4 What agrees
 
 **147 of 1,058 counted lines agree on the 107 packets.** A line is counted
 when either side walks a range of it (entry 120 §2). By line:
@@ -2211,7 +2196,7 @@ The leaves that still part outside the list are pinned per packet
 | `oil_patches.elements` | 10 | run854's who 0, ours 1, 2, 8, 15 theirs 8, 2, 1, 15 |
 | the `encrypt` buckets, `reg_gatherers`, `diplos`, `num_units`, `explored`, `gather_stamp`, `active`, `escrow`, `collected` | 1 to 10 each | the game's own state parting (run1359's who 1 `bucket[0]` ours 5714 theirs 5930) |
 
-### 23.5 The score
+## 23.5 The score
 
 The queue's clause is `PACKETS_SCORE`, `(packets compared, lines agreeing,
 lines counted)` over `PINNED`, pinned as found first as a regression gate,
@@ -2231,7 +2216,7 @@ that range alone, and run1165's later stream against our frame 4 agrees
 on fewer lines (`a_packet_s_comparison_can_part`). The walks take 80 s
 for all 74 game tests together.
 
-### 23.6 How it was established, and what it has not established
+## 23.6 How it was established, and what it has not established
 
 - Diff-backed: all of it. Every number above is a range-by-range
   comparison against the original's walk on its own memory.
@@ -2246,7 +2231,7 @@ for all 74 game tests together.
   dump-seated parts are the seat's and which the walk's (4188a; §23.7
   answers it for the 41); a `SimpleArray<int>` that has shrunk.
 
-### 23.7 Step S: the words' packets from the lobby's built start (item 4205)
+## 23.7 Step S: the words' packets from the lobby's built start (item 4205)
 
 Item 4205, step S of the leaders chain (`docs/DECISIONS.md` entry 131 §3,
 parked 4188a). Each word's game is stood up from its lobby's built start
@@ -2377,7 +2362,7 @@ window, and the per-frame oracle the words stand on, the draw stream, is blind t
 original's fifteen lines on every frame, the pairing that puts them beside our walk, and the first frame each of our
 emitted lines parts on the minted game.
 
-### 24.1 The hook
+## 24.1 The hook
 
 `tools/trace/checksums.h`, built under `-DRON_CHECKSUMS` (`--tracer-def RON_CHECKSUMS`; absent, nothing is hooked).
 `check_all` hands each line and its wrapping `total` to `SyncLogger::logToMemory<unsigned_long_&>@00463930` as
@@ -2395,7 +2380,7 @@ record**, and our walk's state at `sim.frame == f + 1` before that frame's packa
 order's package has two sets: the read loop's `check_all` before `process_all` (return 0x93f108), then the turn's own
 after it (0x93fb68). The first is the end of the tick. Frame −1 is setup's call, our built start.
 
-### 24.2 The hook is the record (diff-backed)
+## 24.2 The hook is the record (diff-backed)
 
 run1577 (`RUNS.md`): the minted file, 120 frames, `@dumpall` on 91. 124 sets, 0 torn, one on each trace frame −1 to
 119, two on 29, 59 and 89. **The first set of trace frame 90 is record 3201, 15 of 15, and of 91 is record 3202, 15 of
@@ -2405,7 +2390,7 @@ part: 3201 against 89, 9 of 15 (units, builds, groups, guys, leaders, world part
 seven packets (§24.4) the hook's set on the packet's trace frame is `tools/recomp/checksum.py`'s values, 15 of 15, and
 so is run1578's on that frame. The kill the item booked (the hook's values not the record's on frame 91) did not fire.
 
-### 24.3 The score: `Checksum: frames`
+## 24.3 The score: `Checksum: frames`
 
 Per line our walk emits, the first of our frames whose Adler parts from the hook's first set of the frame before, on
 the minted game's 24,000 (run1578; `our_lines_part_from_the_hook_s_on_their_first_frame`, `CHECKSUM_FRAMES`).
@@ -2505,7 +2490,7 @@ surviving `clear_road` and the slot's reuse (`Caravans::init_caravan@0073e1f0`).
 from 804 (§24.5). **Step P's census does not move** (`PACKETS_SCORE`, 421 with item 4229). The units triple moved
 on 84 packets, none to whole or from it (`docs/journal/2026-11-14-item-4230.md`).
 
-### 24.4 Where each first parting is (diff-backed)
+## 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
 by range (`the_minted_packets_name_each_first_parting`, `MINTED_PACKETS`). The first parted range, decoded by the
@@ -2532,7 +2517,7 @@ now runs it (`Setup::calc_danger`, the last of `from_lobby`'s steps), and the fi
 are the record's (`the_world_is_the_original_s_on_the_start_by_section`, `WORLD_START_DANGER`; its red half clears the
 rows and parts on section 8 at the zeros' sum). The world line is the original's on all 24,000 frames.
 
-### 24.5 How it was established, and what it has not established
+## 24.5 How it was established, and what it has not established
 
 The hook's site, its arguments and the call's place in the frame are read from the export and the listing
 (`process_turn@0093ef10` lines 532 and 539, `do_frame_solo`, `Game::loop`). The pairing and the values are diff-backed

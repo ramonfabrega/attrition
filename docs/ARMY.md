@@ -350,7 +350,7 @@ marks weak — behind its city search, unreached by any trace;
 (built and diff-backed by item 1297, `docs/SCOUT.md` §13 item 1b);
 and `Unit::come_out@00617c10:1614`, below.
 
-### 4.1 `come_out`'s tail — the army coin (2026-09-01)
+## 4.1 `come_out`'s tail — the army coin (2026-09-01)
 
 The fifth caller, and the only one with a draw in it. It is the last thing
 `come_out` does, after the exit spot is taken, and the two `is` calls the
@@ -409,7 +409,7 @@ AI-controlled siege unit's army when it is fought or damaged;
 and clears `target_o` on every army targeting it;
 **`Cities::capture_city@00733380:250`** → `Armies::update_city` (§15.7).
 
-### 4.2 `think_attack`'s head — how the AI's first soldier joins (2026-09-04)
+## 4.2 `think_attack`'s head — how the AI's first soldier joins (2026-09-04)
 
 The **sixth** caller, and the one every capture on disk actually reaches
 first. `Unit::add_to_army@005f7740` is entered on frame **6612** of run53
@@ -505,7 +505,7 @@ member calls `do_move`; in the original only the *leader* does and the
 followers take `move_step`. So the word is still 6650, and what stands
 there now is `Unit::do_group_move` rather than the missing order.
 
-### 4.3 The walk to the army — `go_to_unit` and `go_to` (2026-09-07)
+## 4.3 The walk to the army — `go_to_unit` and `go_to` (2026-09-07)
 
 `add_to_army` is not only a join. Between picking the army and adding the
 unit it **orders the newcomer to walk to the army's first member**, and

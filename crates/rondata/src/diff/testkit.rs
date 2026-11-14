@@ -12792,6 +12792,7 @@ pub(crate) use pin;
 /// event was wrong under an agreeing stream, item 1099). An open row names
 /// the function that walks its word's window with the recorder on, and
 /// `coverage`'s compared pin walks every one.
+#[derive(Clone, Copy)]
 pub(crate) struct AiWord {
     /// The handoff line that carries it, without its colon.
     pub line: &'static str,
@@ -14712,6 +14713,36 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_268,
         // Item 2107: closed at the game's last frame.
         endpoint: Some("run831_sahara_mongol_closing_state"),
+        window: None,
+    },
+];
+
+/// **The `Long captures:` line's rows** (the pass of 2026-11-14, R1 of
+/// `docs/audit/2026-11-14-docs-compaction.md`): the two long tests' words,
+/// [`LONG_WORD_EAST_INDIES`] and [`LONG_WORD_GREAT_LAKES`], each of its
+/// trace's length — run54's and run53's traces are 0..23999, and the word
+/// is the trace's last frame. Not in [`AI_WORDS`]: those rows owe an
+/// endpoint or a window, and these are scored by the floors and the long
+/// tests. The handoff's guards (`floors::ai_line_rows`) and the correction
+/// audit read the line against these as they read the others against
+/// [`AI_WORDS`], so the line may take the closed form too.
+pub(crate) const LONG_CAPTURES: &[AiWord] = &[
+    AiWord {
+        line: "Long captures",
+        map: "EastIndies",
+        named: "East Indies",
+        word: LONG_WORD_EAST_INDIES,
+        length: 24_000,
+        endpoint: None,
+        window: None,
+    },
+    AiWord {
+        line: "Long captures",
+        map: "GreatLakes",
+        named: "Great Lakes",
+        word: LONG_WORD_GREAT_LAKES,
+        length: 24_000,
+        endpoint: None,
         window: None,
     },
 ];

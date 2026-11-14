@@ -154,6 +154,20 @@ class ABriefIsComposed(unittest.TestCase):
         # but the blind list: the fast suite and `blind::`, no widening.
         self.assertIn('--tests blind:: --no-widen`', self.compose(1131, 'reading', tests=[]))
 
+    def test_the_queue_s_own_mark_decides_the_widening_before_the_kind_does(self):
+        # DECISIONS 133 §2: item 4204 was marked whole, went out on a start
+        # lane's filters with --no-widen, and its eight reds were found by
+        # the booking gate; six residue lanes on scoped items skipped
+        # nothing. The mark is the queue's, in the item's first parenthesis.
+        head = '1133. **Great Sahara\'s word: frame 8, ours 6 draws against 7** (1066),'
+        whole = QUEUE.replace(head, head.replace('(1066),', '(rules; **whole**; 1066),'))
+        scoped = QUEUE.replace(head, head.replace('(1066),', '(rules; scoped; 1066),'))
+        self.assertNotIn('--no-widen', self.compose(1133, 'chapter', queue=whole))
+        self.assertIn(' --no-widen`', self.compose(1133, 'residue', queue=scoped))
+        self.assertEqual(brief.queue_mark(brief.open_items_text(whole)[1133]), 'whole')
+        self.assertEqual(brief.queue_mark(brief.open_items_text(scoped)[1133]), 'scoped')
+        self.assertIsNone(brief.queue_mark(brief.open_items_text(QUEUE)[1133]))
+
     def test_a_note_s_lane_gate_without_tests_or_whole_is_refused(self):
         # Loop 3489: `--lane --item N` with no `--tests` is refused by the
         # gate (exit 2), so a note that briefs it hands the lane a gate that
@@ -658,6 +672,38 @@ class AStartOrInputItemHasItsKind(unittest.TestCase):
             self.assertIn('booking gate', body[kind], kind)
         self.assertEqual(brief.TRACKS['start'], 'the start track')
         self.assertEqual(brief.TRACKS['input'], 'the orders track')
+
+
+class AKindCarriesTheSectionsThatSpeakToIt(unittest.TestCase):
+    """The docs-compaction pass of 2026-11-14 (R13): `booked` (a residue
+    item's booking: the frame, the draw delta, the unit by `TypeIndex`) and
+    a word's landing (the value diff and its widening, `runwiring.py`, the
+    RUNS row) rode in every kind's brief, and a render lane read a third of
+    its last section for another kind of item. Red first: the render brief
+    carried both."""
+
+    def test_a_render_start_input_or_structure_brief_carries_no_word_s_landing_and_no_booking(self):
+        frame = brief.FRAME.read_text()
+        for kind in ('structure', 'render', 'start', 'input'):
+            text = brief.compose(4008, kind, queue=QUEUE_TRACKS, frame=frame, base='abc1234',
+                                 model='Opus 5.5', runs=[], sections=[], read=[], note='', tests=[])
+            for gone in ("## A word's landing", 'runwiring.py', 'TypeIndex', 'say if you moved a word'):
+                self.assertNotIn(gone, text, kind)
+            self.assertIn('## Landing', text, kind)
+            self.assertIn('Lane verdict:', text, kind)
+
+    def test_a_word_s_brief_carries_both_and_the_note_comes_before_them(self):
+        text = brief.compose(1133, 'residue', queue=QUEUE, frame=brief.FRAME.read_text(), base='abc1234',
+                             model='Opus 5.5', runs=[], sections=[], read=[], note='The note.',
+                             tests=['floors::'])
+        for want in ("## A word's landing", 'runwiring.py', 'TypeIndex', 'say if you moved a word'):
+            self.assertIn(want, text)
+        self.assertLess(text.index('The note.'), text.index("## A word's landing"))
+        self.assertLess(text.index("## A word's landing"), text.index('## Landing'))
+        for kind, names in brief.KINDS.items():
+            self.assertEqual('booked' in names, kind in ('residue', 'chapter', 'reading'), kind)
+            self.assertEqual('landing-word' in names, kind in ('residue', 'chapter', 'sweep', 'coverage'),
+                             kind)
 
 
 class TheFrameNamesRowsTheWayCccDoes(unittest.TestCase):

@@ -478,7 +478,7 @@ call sites are `move_step` (`quick 0` for the proposed step, `quick 1` for
 the path top), `resolve_unit_collision` (`quick 1`, four times) and
 `do_move`.
 
-### 4.1 The gates, in order
+## 4.1 The gates, in order
 
 1. `domain == 2` (air) → no collision, ever.
 2. `top_only != 0` → the test runs only when the path top's `flags & 8`
@@ -503,7 +503,7 @@ Falling out of any of these clears `collide_o = collide_who = −1`, clears
 `unit_masks & 0x40`, zeroes `collide` if `collide_frame < frame − 5`, and
 returns 0.
 
-### 4.2 The probe
+## 4.2 The probe
 
 `CollCheck::collide_here(o, who, ucx, ucy, coll_size, &hit_x, &hit_y,
 nocoll)` walks `move_x[0 .. radius[coll_size])` around `(ucx, ucy)` and
@@ -621,7 +621,7 @@ the widening's parted keys fall 772 → 403 (`docs/GROUPS.md` §21).
 made to fail by restoring the fixed stride. *Listing-backed, and no run
 reaches it*: the probe-side region gate, and the y arm's identical skip.
 
-### 4.3 Naming the other unit, and the exemptions
+## 4.3 Naming the other unit, and the exemptions
 
 With a hit cell in hand, `detect_unit_collision` returns 1 at once if
 `quick`. Otherwise it walks the **3×3 world cells** around the proposal

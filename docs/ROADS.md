@@ -868,7 +868,7 @@ That is the whole of this section, and it is what Great Lakes' word was
 short of for a month. `crate::mesh` is the implementation and its `dir`,
 `tables` and `Elem` are the names below.
 
-### 9.1 The one door, and what is behind it
+## 9.1 The one door, and what is behind it
 
 `World::set_road_at@006b43b0` with `set != 0` writes two bits and then
 hands over:
@@ -913,7 +913,7 @@ NW 0x80000000   NE 0x20000000   SE 0x08000000   SW 0x02000000
 nothing else. It answers **zero for a tile with no element**, which is a
 gate and not an accident.
 
-### 9.2 `mark_and_trim_directions` — where the cardinals come from
+## 9.2 `mark_and_trim_directions` — where the cardinals come from
 
 `RoadsOut::fill_cache@00893b30` fills two nine-entry compass caches for the
 tile being worked, `[0]` being the tile itself:
@@ -944,7 +944,7 @@ there puts the neighbour on the redo list.
 Its tail is a repair. If the tile ends with **exactly one** connection, it
 takes every road neighbour it has, gates and all.
 
-### 9.3 `set_diags` — the pass that lays road
+## 9.3 `set_diags` — the pass that lays road
 
 `Roads::set_diags@0088e9d0` runs over the four corners, `corner_x/corner_y`
 indices 1 to 4 — NW, NE, SE, SW, whose compass indices are the odd ones 1,
@@ -990,7 +990,7 @@ this.support_codes |= 0x2000  (| 0x80 if corner_x[i] == 1)
 The queue entry lands in the very list `add_roads`' second pass is walking,
 so the new tile is processed inside the same call.
 
-### 9.4 What run72 says, and what is not established
+## 9.4 What run72 says, and what is not established
 
 **The measurement.** run72's frame 4803 is player 1's Market `o 2015`
 planning its road to London. `place_roads` lays the ring — sixteen tiles,
@@ -1075,7 +1075,7 @@ under it is taken away when the farm starts. The residue is **32** now, bit
   `TerrainOut::road_changed`'s patch allocation: visual, and unmodelled by
   design.
 
-### 9.5 The other door — a footprint's own road, laid and taken away
+## 9.5 The other door — a footprint's own road, laid and taken away
 
 `BuildType::mask_me@006312a0` writes roads, and for a month nothing here
 knew it. Its footprint loop runs once per tile of the rectangle, and with

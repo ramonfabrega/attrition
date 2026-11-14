@@ -264,7 +264,7 @@ get_garrison_limit`, `+0x188 is_under_attack`, `+0x18c construct_time`,
 
 ## 2. Placement
 
-### 2.1 The chain
+## 2.1 The chain
 
 ```
 CommandPackage::process_build → Group::action_build            (the player's order)
@@ -285,7 +285,7 @@ The AI (`Leader::found_cities`, `produce_city`, `produce_building`) reaches
 `blocked_town(wx, wy, who)` is `blocked_site(wx·0x300, wy·0x300, who, −1, 0)`
 for a cell coordinate. Both sim calls pass `exclude_o = −1`.
 
-### 2.2 Geometry — `snap_center`, `tile_corner`
+## 2.2 Geometry — `snap_center`, `tile_corner`
 
 `snap_center(x, y, who)`: an oil well/platform snaps to the oil cell under or
 adjacent (the eight `move_x/move_y` neighbours, seen by `who`); a dock, or a
@@ -295,7 +295,7 @@ tile(x)·192 + (x_size odd ? 96 : 0)`, same for `y`. `tile_corner`: `tx =
 tile(x) − x_size/2`, so the footprint is tiles `[tx, tx+x_size) × [ty,
 ty+y_size)`. `corner_tile` inverts it: `x = (x_size + 2·tx)·96`.
 
-### 2.3 The tile layer — `TData.mask` and `WData.flags`
+## 2.3 The tile layer — `TData.mask` and `WData.flags`
 
 One `ushort` per tile (`World +0x138`) and one `WData` per cell (`+0x134`,
 28 bytes). Bits this mechanic reads, as the placement code names them:
@@ -311,7 +311,7 @@ started) here; `0x100` **inside some city's radius** (`Wall::mask_city`);
 `0x800` oil, `0x4000` a building's centre cell (`mask_me`). `WData +0xf who`
 is the territory owner (`docs/ATTRITION.md`); `+0x4 region`; `+0x14 was_seen`.
 
-### 2.4 `blocked_site` — the per-site driver
+## 2.4 `blocked_site` — the per-site driver
 
 `blocked_site(x, y, who, exclude_o, *gather_out) → BlockIndex`:
 
@@ -337,7 +337,7 @@ modelled.) `gather_out` is written by `blocked_location` alone and only on
 its last path — §2.6.7; `Sim::blocked_site_slots` is the form that hands it
 back, and `Sim::blocked_site` is that form's first half.
 
-### 2.5 `blocked_tcoord` — one tile
+## 2.5 `blocked_tcoord` — one tile
 
 Every reason needs the half-cell `was_seen` by `who` (else `BLOCKED_SEEN`,
 0x24); ruins, building and rare additionally need `was_really_seen` (else
@@ -373,7 +373,7 @@ or fort (built or placed) in that region** — the foothold. Every later one
 must be inside friendly territory (§2.6.1). The Lakota skip the test;
 `DUTCH_FORT_PLACEMENT` ships 0.
 
-### 2.6 `blocked_location` — the site
+## 2.6 `blocked_location` — the site
 
 `cx, cy` = the cell of `(x, y)`; `reg = tregion(tile(x), tile(y))`. The whole
 first half (§2.6.1–2.6.4) runs only with a player.
@@ -528,7 +528,7 @@ zero standing. The count is `calc_gather`'s, the same number
 the *survey* when `exclude_o` or `who` is negative and from the named
 object's own `MiningList` otherwise. The reader that matters is
 `Leader::produce_building`, which scores a woodcutter's camp site by the
-**cube** of it and refuses a site under three (`docs/AI.md` §4.4); a
+**cube** of it and refuses a site under three (`docs/AI.md` §19); a
 one-tile ring of forest tiles, which is what this crate counted until
 2026-09-01, is zero at every site a camp can actually stand on, so the AI
 built no camp at all after frame 0.
@@ -540,7 +540,7 @@ for `who = −1`. No caller in this crate passes it.
 Never returned by anything read: `BLOCKED_NEARBY 8`, `CITY_RADIUS 0x13`,
 `PEACEFUL_TERRITORY 0x1b`, `ROAD 0x25`, `NEED_ROAD 0x26`.
 
-### 2.7 How many cities — `LeaderData::get_city_limit`
+## 2.7 How many cities — `LeaderData::get_city_limit`
 
 ```
 civic = epoch[1]                                     # the Civic level, docs/TECH.md
@@ -556,7 +556,7 @@ total` with `S_CITY_LIMIT_REACHED`. Nothing in `blocked_*` tests it.
 
 ## 3. Construction
 
-### 3.1 Placement: `Objects::init_build`, `Build::init`, `Wall::init`
+## 3.1 Placement: `Objects::init_build`, `Build::init`, `Wall::init`
 
 `Objects::init_build(who, type, x, y, restore)`: a free slot in 2000–2999,
 `snap_center`, then `Build::init(who, type, o, x, y, restore)`; `restore` is
@@ -584,7 +584,7 @@ two"); **`update_construct_time`** (§3.2); **`update_hits(0)`** (§3.4);
 **A placed-but-unstarted building already blocks other placements on its
 tiles** (`blocked_tcoord`'s `0x80` test) but not movement.
 
-### 3.2 The construction clock
+## 3.2 The construction clock
 
 **The stored base — `Wall::update_construct_time@0063d560`**, called once
 from `Wall::init`:
@@ -657,7 +657,7 @@ return max(t, 1)
 `docs/PRODUCTION.md`'s open item on this function closes here: it is the
 foundation clock, not the queue path; the two share only `TypeData::time`.
 
-### 3.3 Progress — `Unit::do_build` → `Wall::do_construct`
+## 3.3 Progress — `Unit::do_build` → `Wall::do_construct`
 
 The builder's per-frame step (`Unit::do_build@005eebf0`): target dead → kill
 the order; target already active → kill the order, and a builder with no
@@ -731,7 +731,7 @@ Three smaller things the same run pinned:
   `job_counter` resets to 0 and `flags` goes 3 → 7 in one frame — the
   `activate(0, 1, 1)` of §4.
 
-### 3.4 Hit points during construction — `Wall::update_hits@0063f0d0`
+## 3.4 Hit points during construction — `Wall::update_hits@0063f0d0`
 
 Called from `Wall::init`, from `activate`, and **every frame while not
 active** from `Wall::inc_time` — which `Objects::inc_time` drives from
@@ -770,7 +770,7 @@ Senate bonus: **every non-defensive member of a Large City has 35 % more hit
 points, of a Major City 70 %** (`SENATE_HP_BONUS` 35); `BUILDING_HP_UPGRADE`
 is 10 % per level. `town_hits` in the data is dead.
 
-### 3.5 Start — `Wall::start`, `Build::start`
+## 3.5 Start — `Wall::start`, `Build::start`
 
 `flags |= 2`; `frame_started = frame`; **`kill_competing_buildings`** — every
 *other* not-started building placed on a double-placed footprint tile is
@@ -781,7 +781,7 @@ is 10 % per level. `town_hits` in the data is dead.
 the terrain marked, and for a city the radius mask is laid. Before that the
 building is a ghost a rival's start can delete.
 
-### 3.6 What a building marks — `Wall::mask_me` → `BuildType::mask_me`
+## 3.6 What a building marks — `Wall::mask_me` → `BuildType::mask_me`
 
 With `radius = CityData::get_radius(city)` for a city that has its record,
 `LeaderData::get_radius(who, type)` for a city building without one, 0 for
@@ -825,7 +825,7 @@ rest cheap — `Console Coord Mode=2`, `add NEW library 32,137`, `cheat add 1
 citizen 32,141`, `cheat camera 32,137` and a right-click at the viewport
 centre.
 
-### 3.7 Every frame — `Wall::process`
+## 3.7 Every frame — `Wall::process`
 
 `Build::process` begins with `Wall::process` and **returns if not active**.
 `Wall::process`, phased by `o`: frame `& 7 == who` → `targeted >>= 2`; every

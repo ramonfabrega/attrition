@@ -104,7 +104,7 @@ document.** A walking unit points where it is going: read frame by frame at
 `UNITS=3`, a squad stepping south-east logged `angle` 133.90° falling to
 133.45° against a per-frame position delta whose `find_angle` is exactly
 135.00°, and one stepping north-west logged −43.20° rising to −42.85° against
-−45.00°. `tools/gamelog/heading.py` is the reader. `docs/COMBAT.md` §14.1
+−45.00°. `tools/gamelog/heading.py` is the reader. `docs/COMBAT.md` §14, question 1,
 rested its flank convention on exactly this, and it is what makes level 1 the
 rear.
 

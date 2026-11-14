@@ -144,49 +144,27 @@ const SECTION_CEILING: usize = 16_000;
 /// is not measured: it is the append-only chronicle and is meant to grow.
 /// A section that wants to grow past its pin splits — a `## ` heading is
 /// the split, and it costs nothing a reader needs.
+///
+/// **The pass of 2026-11-14 split seven rows away** (proposal G1 of
+/// `docs/audit/2026-11-14-docs-compaction.md`): `AI.md` §2, §15 and §99,
+/// `CITIES.md` §3, `GROUPS.md` §6 and `ORDERS.md` §4 and §5 were built of
+/// numbered `### N.M` parts, and promoting each to `## N.M` is the split
+/// this comment asks for — no number moved, since [`sections_of`] reads a
+/// number at any heading level. The same move took 39 more sections at
+/// 15,000 bytes or more off the ceiling before they reached it.
 const OVER: &[(&str, &str, usize)] = &[
-    // 71_928 -> 71_076 by the tenth pass, struck text no longer counted;
-    // `AI.md` §15 left this table the same day as "5,650 live bytes" —
-    // a measurement of a strike §9 never closed, which paired every
-    // later marker of the file with the wrong one (parked 1357, the
-    // twenty-second pass). Paired within the section, §15 is 26,923 live
-    // and §99 51,545; both are pinned below at that size and may only
-    // shrink.
-    ("AI.md", "2. The production AI — read", 70_933),
-    (
-        "AI.md",
-        "15. The behavioural run — run18, 2026-08-25",
-        26_923,
-    ),
-    (
-        "AI.md",
-        "99. Great Sahara at Toughest: the closed map in the second pair's lobby, and its first word 5376 (2026-09-30, item 1221)",
-        51_530,
-    ),
-    ("CITIES.md", "3. Construction", 16_280),
-    // The three rows below were lowered by the tenth pass (2026-09-22)
-    // when struck text stopped counting (parked 480): a section's pin is
-    // its live bytes now, so each fell by what it had already struck.
+    // Lowered by the tenth pass (2026-09-22) when struck text stopped
+    // counting (parked 480): a section's pin is its live bytes now. Its
+    // seven `### ` parts carry no number, so G1 left it whole.
     (
         "DATALAYER.md",
         "2. The loader — the tables into the sim's types",
         20_130,
     ),
-    (
-        "GROUPS.md",
-        "6. The move — `Group::action_move_near@00704990`",
-        44_660,
-    ),
-    // Lowered 37_601 -> 37_590 by item 405: §4.4 step 4 gains the ATTACK
-    // arm's `max_range` gate and loses a gloss `docs/COLLISION.md` §5.1
-    // already carries; 37_590 -> 37_584 by the tenth pass, the strike
-    // item 475 paid for with a reflow.
-    ("ORDERS.md", "4. The move order", 37_583),
-    (
-        "ORDERS.md",
-        "5. Build, repair, garrison — and what a citizen does next",
-        16_056,
-    ),
+    // Promoted out of §6 by G1 at its size then. Its `#### ` parts carry
+    // no number and 27 citations name §6.4 whole, so it is pinned rather
+    // than split at a seam a citation would have to guess.
+    ("GROUPS.md", "6.4 The slot table", 16_448),
 ];
 
 /// `(heading, bytes)` for every `## ` section of a document, the preamble

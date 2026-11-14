@@ -380,7 +380,7 @@ range. `min_range()` is the type's.
 
 ## 5. The combat table
 
-### 5.1 What it is
+## 5.1 What it is
 
 `Balance::combat_table.final_balance_table` is a `short[493][493]`: for an
 attacker type `a` and a target type `b`, both `TypeIndex` values in
@@ -448,7 +448,7 @@ computes once before the first frame. The simulation takes it as an input
 `balance.xml` for the other — and the document records the rules rather than
 the numbers.
 
-### 5.2 `Balance::type_damage` — the hardcoded half
+## 5.2 `Balance::type_damage` — the hardcoded half
 
 A single ordered chain of integer percentage multiplications starting from
 100, each `p = (p * k) / 100` truncating, keyed on the attacker's and target's
@@ -470,7 +470,7 @@ unit), any other tech's `AGE` as written; no tech prerequisite is 0. The
 loader's first draft returned the age tech's index without the +1 and put
 306 of 364 units one age early; the dump's per-type `age` caught it (§15.2).
 
-### 5.3 The `type_damage` chain
+## 5.3 The `type_damage` chain
 
 The chain below is the function in execution order, as read by the second
 reader of this mechanic and spot-checked block by block against the decompile
@@ -1185,7 +1185,7 @@ reloads in a third of the time.
 
 ## 9. Projectiles — `Object::fire_ammo`, `Ammo::init`, `Ammo::inc_time`, `Ammo::do_damage`
 
-### 9.0 A unit's shot is launched by its **animation**, not by `fight` (item 389, 2026-09-18)
+## 9.0 A unit's shot is launched by its **animation**, not by `fight` (item 389, 2026-09-18)
 
 Everything below §9.1 describes what happens once an `Ammo` exists. This
 is about **when** one comes into existence, and for a unit it is not on
@@ -1308,7 +1308,7 @@ whatever its draw count says.
   here has a melee unit in a fight: run53's first `Object::do_damage` is
   9451, and it is an arrow landing.
 
-### 9.1 Launch — `fire_ammo(o, who)`
+## 9.1 Launch — `fire_ammo(o, who)`
 
 A **unit** adds one `Ammo` **per figure** on this `UnitData` (`guy_mark`), at
 the figure's position, `z + 100`, with the unit's facing, `gpiece =
@@ -1387,7 +1387,7 @@ be. Not for ground shots, bombers or missiles (AI §174).
 `splash_area = A.type.splash_area`; `flags |= 2` (live); `cur_time = 0`;
 `num_guys = A.guy_mark` (unit) or 0.
 
-### 9.2 Flight — `Ammo::inc_time` (every frame, all ammo, after the objects)
+## 9.2 Flight — `Ammo::inc_time` (every frame, all ammo, after the objects)
 
 `cur_time += 1`; ~~a target that is no longer active has its `hold_frames`
 bumped~~ — **the shooter's slot, not the target's: §42.3.**
@@ -1402,7 +1402,7 @@ that a rolling miss can land on something further along — open question 5~~
 — **not cosmetic; §42.2 is the frame it cost**);
 then `graphic_finish` and, unless cosmetic (flag 0x10), `Ammo::do_damage`.
 
-### 9.3 Impact — `Ammo::do_damage`
+## 9.3 Impact — `Ammo::do_damage`
 
 If the target is no longer active it is forgotten (`whom = ox = −1`). Then:
 
@@ -1435,7 +1435,7 @@ axis floored at zero (the listing, ORDERS §35.3); `count` likewise; `do_damage`
 argument is what makes `get_damage` apply step 15 and lets the fringe do
 nothing (step 26).
 
-### 9.4 The hit test — `Ammo::hit_target` and `check_hit`
+## 9.4 The hit test — `Ammo::hit_target` and `check_hit`
 
 `hit_target`: the target must be active and on the map. For a **unit**:
 `vector_dist(landing, T) ≤ T.type.target_size` — with the distance **halved
@@ -1455,7 +1455,7 @@ building it lands on, and does full damage to it.** Not gaia's, though:
 `find_unit`'s leader loop stops at eight (§12.1), so an arrow that comes
 down on a sheep passes through it.
 
-### 9.5 What a shot costs in random draws
+## 9.5 What a shot costs in random draws
 
 In order: two per shot when a building is the shooter (the launch offset,
 x then y, each only when the footprint axis exceeds one unit;
@@ -1529,7 +1529,7 @@ HOLD_FIRE 5`; `UnitData::get_combat_stance` is the unit's stance if its type's
 stance type is combat, else `STAND_GROUND` (built by item 2265, `docs/GOLDEN.md`
 §82: until then this crate gave a packer, a worker and a caster AGGRESSIVE).
 
-### 12.1 Validity — `ObjectData::valid_target_const(o, who)`
+## 12.1 Validity — `ObjectData::valid_target_const(o, who)`
 
 All of, in order: the target exists, **its owner is a leader below eight**,
 and it is not mine; **the owners are at war**
@@ -1565,7 +1565,7 @@ valid_target` is "any captain in the group passes". `LeaderData::get_target`
 is the diplomatic target (the next in-play leader in start order), not a
 combat one.
 
-### 12.2 The search — `Object::find_nearby_target(max_dist, &who, add_order, cavarch, flags)`
+## 12.2 The search — `Object::find_nearby_target(max_dist, &who, add_order, cavarch, flags)`
 
 Returns the best `o` or −1. An attacker with `ObjectData::attack() == 0`
 finds nothing. `rings = 32` when `max_dist == 0`, else `ceil(max_dist /
@@ -1624,7 +1624,7 @@ on a move order that is faster than me, heading away (the `flanking` test
 says its back is to me), and more than a tile off (a cavalry archer: more
 than `max_range` tiles).
 
-### 12.3 Ranking — `Object::compare_target(o, who, in_range, ai)`
+## 12.3 Ranking — `Object::compare_target(o, who, in_range, ai)`
 
 `v = 4 × Type::sum_rules_cost(T)` (a wonder: `/25`). An active building:
 `ai` → `×10`; not raiding and not human: a **city** `×5` (`ai`: 100), else
@@ -1700,7 +1700,7 @@ branches as inputs. See `combat::compare_target`. **The raid arm is built
 computer's land raider takes `+900,000` for a peasant or a caravan and
 `+10,000` for a combat unit; the `+9,000,000` is a human raider's.
 
-### 12.4 Switching and opportunity
+## 12.4 Switching and opportunity
 
 - **Idle**: `Unit::think` runs when `(o + frame) & 0xf == 0` once the unit has
   been idle more than two frames; on frames where `(o + frame) & 0x1f != 0`
@@ -2189,7 +2189,7 @@ exact, and the word parts at 8187. Writing the code found **four** errors
 below that the reading had not, each struck in place with its successor
 named (the story is in `docs/journal/2026-09-17-item-328.md`).
 
-### 17.1 It is reached twice in 24,000 frames, and both times it is a raid
+## 17.1 It is reached twice in 24,000 frames, and both times it is a raid
 
 `tools/trace/report.py rontrace-run53.log when Unit::find_attack_pos 1`
 answers with two frames: **8186** (48 draws) and **17656** (14), both
@@ -2238,7 +2238,7 @@ probe**:
 changes."~~ That comment was false — the probe is the whole of frame 8186
 — and item 328 replaced it with `Sim::find_target_probe`.
 
-### 17.2 The ring
+## 17.2 The ring
 
 The candidate positions are a walk around the target's footprint, eight
 **sides** numbered 1..8 anticlockwise from the north-west corner: the odd
@@ -2278,7 +2278,7 @@ of it and takes `q = 0x20000000` — two steps to the quarter turn — and
 `+0x1fc` is `max_range`, so that arm is the **melee** asker
 (`determine_roles@0061c320:58` sets `role & 0x400` from `+0x1fc != 0`).
 
-### 17.3 The stand-off `local_18`, and the arms that never reach the ring
+## 17.3 The stand-off `local_18`, and the arms that never reach the ring
 
 `local_18` is set before the ring from `ObjectData::attack_dist` — asked
 from the asker's **own** position, not from the approach point
@@ -2327,7 +2327,7 @@ its failure arm (`5fe3f8`), not to the target's position (`docs/AI.md`
 When the ring finds nothing the function falls back to
 `UnitType::find_nearby_spot@0061de70`.
 
-### 17.4 The draw, and the ceiling on a call
+## 17.4 The draw, and the ceiling on a call
 
 Per iteration the candidate is snapped to the quarter-tile centre
 (`div_3_table[v >> 4] × 0x30 + 0x18`) and then tested, in order:
@@ -2368,7 +2368,7 @@ arm and 4 on the near one**, whatever the map looks like —
 lower bound on the cast of any frame, taken from the draw stream alone:
 8186's forty-six chase draws need **at least four** calls.
 
-### 17.5 What run19 says the frame did
+## 17.5 What run19 says the frame did
 
 `gamelog-run19-window-8174-8192.txt` holds blocks 8174–8191 of this map's
 own game, and the probe's orders land in block **8187**. Six of player 1's
@@ -2406,7 +2406,7 @@ per-call split is `1/27` 15, `1/28` 12, `1/29` 11, `1/40` 2, `1/41` 2,
 2208`, the three melee figures take §17.3's `0x30` arm and the near
 budget's ceiling of 4.
 
-### 17.6 Confidence, and what this has not established
+## 17.6 Confidence, and what this has not established
 
 ~~Diff-backed: the frame's draw sequence and the two chains' sizes
 (run53's trace); the cast, the target, the stance, the group and the six
@@ -2464,7 +2464,7 @@ Not established:
   two tails and their unequal gates are `docs/PATHFINDER.md` §21. Great
   Lakes' word parts at **8201**.
 
-### 17.7 The asker cannot ride while it searches (item 2845)
+## 17.7 The asker cannot ride while it searches (item 2845)
 
 At `6014ef`–`601505`, on every path, a set `unit_masks & 0x800000`
 (`Unit::auto_transport`) is cleared, and every exit ORs it back
@@ -2684,7 +2684,7 @@ and who=1 is the computer leader.~~ **It does not fire at all** — neither on
 `leader_flags & 4` gate above is the *second* conjunct of the call's `if`;
 the **first** is `local_30`, which only the city-alarm arms of `do_damage`'s
 **building** branch ever set, so a soldier taking a hit never reaches the
-emergency (item 399, §23; `docs/ARMY.md` §15.8). What cost this crate frame
+emergency (item 399, §23; `docs/ARMY.md` §15, item 8). What cost this crate frame
 617 stands: the march was ours alone.
 
 **The word: 617 → 618.** The value diff moves with it, 618 → 619.
@@ -3333,7 +3333,7 @@ said.
 and reads `+0x72 city` — and both beside a city alarm: the non-capital
 city's `S_CITY_BEING_ATTACKED` (under `city_flags & 0x10 == 0`, the alarm
 threshold `local_34`, and `300 < frame − city.attack_stamp`) and the
-capital's `S_YOUR_CAPITAL_ATTACKED`. `docs/ARMY.md` §15.8 carries the full
+capital's `S_YOUR_CAPITAL_ATTACKED`. `docs/ARMY.md` §15, item 8, carries the full
 predicate and what this crate implements of it.
 
 At golden 618 `0/7` strikes `1/6` — a **unit**. `local_30` stays 0, no
@@ -4441,7 +4441,7 @@ if (iVar2 == 0) return 0;
 ```
 
 `+0x138` on `Unit::vftable` is **`ObjectData::valid_target_const`**
-(`tools/ghidra/decomp/vtables.txt`; the rest of `Object::valid_target`
+(`vtables.txt` in the export, `~/ghidra-projects/decomp`, outside the repo; the rest of `Object::valid_target`
 is the *capture* ladder — `check_capture_eligible`, `Build::check_capture`
 — and a unit target falls straight through it to `return 1`).
 
@@ -4851,7 +4851,7 @@ correct ranking exposes a defect in `find_open_slots` that would turn a
 pinned assertion red — §33.4 has the reasoning and item 470 carries
 both. The values still part at **635**, on the hoplites' three rows.
 
-### 33.1 `ObjectData::targeted` is a decaying penalty, not a reference count
+## 33.1 `ObjectData::targeted` is a decaying penalty, not a reference count
 
 §12.2's ranking shapes the distance before the divide:
 
@@ -4908,7 +4908,7 @@ The halving above is §12.2's `dist /= 2` arm, and it is what puts `1/6`
 and `1/8` in one bucket while `1/7` is two away: `maxr` is 1920 here, so
 `1392 + 0x180` and `1440 + 0x180` clear it and `1536 + 0x180` does not.
 
-### 33.2 `compare_target`'s fourth argument inverts the damage weight — established, not landed
+## 33.2 `compare_target`'s fourth argument inverts the damage weight — established, not landed
 
 **Status — landed on item 470** (2026-09-21). Everything in this
 subsection was established against run112's own dump on item 466,
@@ -4991,7 +4991,7 @@ all three hoplites. The dump's `near_o 10` is consistent with both, because
 `near_o` is the nearest *acceptable* candidate and `0/10` is nearest on
 every reading (§30).
 
-### 33.3 What the widening ruled out, so nobody runs it twice
+## 33.3 What the widening ruled out, so nobody runs it twice
 
 Each of these was a hypothesis the 635 frame invited, and each was killed
 by reading the dump rather than by argument:
@@ -5019,7 +5019,7 @@ by reading the dump rather than by argument:
   from `0/9` at 1507 while keeping `0/10` at 1083 — §30's argument, in
   distances rather than cells.
 
-### 33.4 Why §33.2 is not in the tree, and what its absence hides
+## 33.4 Why §33.2 is not in the tree, and what its absence hides
 
 `chapter_two_s_word_frame_is_widened_whole` walks `[633, 641)`; with
 §33.1 alone its map is `order 1/6`/`1/7`/`1/8` at **635**, `order 0/11`
@@ -5074,7 +5074,7 @@ slots and `1/8` strikes. The **destinations** are still wrong, and for a
 different reason: the original's `0/11` is *moving* when the hoplites
 ask, so `find_melee_pos` is never called there at all.
 
-### 33.6 Re-measured against 464, which landed alongside
+## 33.6 Re-measured against 464, which landed alongside
 
 Item 464 landed while this one was held, so everything above was measured
 again on the merged tree. **Nothing moved**: word **637** (sequence 637,
@@ -5099,7 +5099,7 @@ so a divergence in any of them left the map silent. All four are in the
 walk now and the map is **unchanged**, which is the only way to learn
 they were empty rather than ignored.
 
-### 33.5 Coverage
+## 33.5 Coverage
 
 **Diff-backed**: §33.1's table and the three bowman rows it closes (the
 distances and buckets are this crate's own; the picks are
@@ -5768,7 +5768,7 @@ directions, every field, every unit — goes to **nought**.
 **8 of 9 → 9 of 9**: every one of chapter two's nine first strikes now
 lands on the original's own frame.
 
-### 37.1 `near_o` is the search's footprint, and this crate had no term for it
+## 37.1 `near_o` is the search's footprint, and this crate had no term for it
 
 `ObjectData::near_o`/`near_who` (`+0x34`/`+0x36` by the type record) are
 written by `Object::find_nearby_target@00648da0` and by nothing else in
@@ -5822,7 +5822,7 @@ site. **SEAM**: the original's is an `ObjectData` member and a building
 carries one too; this crate holds it on a unit only, which nothing
 either side models reads.
 
-### 37.2 The arm, `005f803f`-`005f8216`
+## 37.2 The arm, `005f803f`-`005f8216`
 
 Inside `do_move`'s `ptype->max_range != 0` gate — a **block**, whose
 brace closes past this whole arm, so the retarget is a ranged
@@ -5912,7 +5912,7 @@ for a siege type, and a find in range stands in for `near`. This crate
 keeps a `c != t` test before `change_target` that the arm does not
 have (noted, not changed).
 
-### 37.3 `poor_target` refuses a futile chase, and the conjunct that decides is the speed
+## 37.3 `poor_target` refuses a futile chase, and the conjunct that decides is the speed
 
 `Object::poor_target@0064a270`, three conjuncts and a floor:
 
@@ -5946,7 +5946,7 @@ of its reach; ~~`role & 0x400` is unloaded, this crate's
 tile~~ **built by item 1711** (`docs/GOLDEN.md` §64): the bit is `+0x1fc
 max_range != 0`, and a ranged searcher's floor is `max_range * 0xc0`.
 
-### 37.4 `change_target` is one decision written down the squad in place
+## 37.4 `change_target` is one decision written down the squad in place
 
 `Unit::change_target@005e36c0` is a walk of `o_down`, and it is the
 whole of why three slingers retarget on one block:
@@ -5990,7 +5990,7 @@ deriving `TargetOrder`; this crate asks for an `ATTACK` body instead.
 They agree wherever the action is an attack, which is every frame of
 every capture that reaches this.
 
-### 37.5 `Unit::think`'s own `near_o` arm, which is not implemented
+## 37.5 `Unit::think`'s own `near_o` arm, which is not implemented
 
 `near_o` has a second reader and it is a bigger one.
 `Unit::think@005f6e40:104`-`134`, above the step-3 cadence gate: on the
@@ -6015,7 +6015,7 @@ idle captain in every capture does.~~ **Built by item 2049**
 (`docs/AI.md` §205): it moved no floor but the successor pair's, whose
 raiding `1/113` it hands a ceiling city on 3647.
 
-### 37.6 What moved
+## 37.6 What moved
 
 Word **645 → 680**, sequence 680, values 681. 680's own extra draw is
 `Guy::set_anim+0x97a < Unit::move_step+0x823` against the original's
@@ -6051,7 +6051,7 @@ original's own frames.
 
 `rondata`'s endpoints do not move and neither ladder rung moves.
 
-### 37.7 Coverage
+## 37.7 Coverage
 
 **Diff-backed**, by `chapter_two_s_word_frame_is_widened_whole` over
 `[606, 684)` and `chapter_two_s_visible_byte_is_the_dump_s_on_every_
@@ -6762,7 +6762,7 @@ on the original's own block, `pos 1/4` is gone, and `damage 1/6` moves
 657 → 680. The word **holds at 683** and its cause has changed; §41.5
 names what stands there now, with an address each.
 
-### 41.1 The firing record, and what `recharging` settled in one run
+## 41.1 The firing record, and what `recharging` settled in one run
 
 `UnitData` prints four fields at its **own** indent that no comparison
 read: `recharging`, the reload clock, and the overkill window
@@ -6804,7 +6804,7 @@ comes from an ordered list, and neither of these is one. The dump's own
 `total_time` in §41.2 is the third independent statement of the same
 sign.
 
-### 41.2 `AMMO=5` was in the capture's own detail line
+## 41.2 `AMMO=5` was in the capture's own detail line
 
 `tools/gamelog/golden/chapter2.cmd`'s capture command asks for
 `--detail end:UNITS=3,GUYS=2,AMMO=5,…`, so run112 has carried **373
@@ -6868,7 +6868,7 @@ is stepped before the test and the ammo list is walked in the same frame
 the animation pass adds to it (§9.2), which the table's right-hand
 columns confirm nine times over.
 
-### 41.3 Five release nodes, solved from run112's arrows
+## 41.3 Five release nodes, solved from run112's arrows
 
 The offsets, `sx, sy` less the shooter's guy position (which is the
 unit's position exactly on all nine blocks, and whose `angle` is the
@@ -6912,7 +6912,7 @@ capture that raises `AMMO` on a slinger volley at longer range, or a
 window whose slinger fires from further off, closes it; nothing on disk
 does.
 
-### 41.4 A figure falls at its share, not its squad's
+## 41.4 A figure falls at its share, not its squad's
 
 §40.6's hypothesis, measured rather than read: `Sim::take_damage` passed
 `u.health` — the squad-sized `myhits` less this figure's damage — as the
@@ -6943,7 +6943,7 @@ squad's hit points. That is the same defect on the other caller of
 death to score it against — which is exactly why it survived. Named
 here, not fixed here.
 
-### 41.5 What moved, and what 683 is now
+## 41.5 What moved, and what 683 is now
 
 The map over `[606, 687)`, eight rows to five:
 
@@ -7004,7 +7004,7 @@ the parting have a name:
   which is where the rolled arrow comes down, and that stays open as the
   successor 491 parked (§42.5).
 
-### 41.6 Coverage
+## 41.6 Coverage
 
 **Diff-backed**:
 
@@ -7363,7 +7363,7 @@ Naming the unit needed no hypothesis: the walk's marks carry it
 clocks this crate runs in perfect lockstep from the frame they all
 started an attack (666) to the frame they all end one (695).
 
-### 43.1 `unit_masks2 & 0x10` — the step is zero, and the dump says so
+## 43.1 `unit_masks2 & 0x10` — the step is zero, and the dump says so
 
 `Guy::inc_time@005d9e10` opens with the step, and the step has three
 values rather than two:
@@ -7411,7 +7411,7 @@ exactly **six unit-frames of the whole capture** — `0/6` at 696, `1/6` at
 and the first of them is this item's frame. (Seven unit-frames over
 **six** blocks: `0/7` and `0/8` share 756.)
 
-### 43.2 What sets it: the frame a unit finds its target gone
+## 43.2 What sets it: the frame a unit finds its target gone
 
 ~~`Unit::fight@005fd4d0`'s only writer is `LAB_005fe502`~~ — **wrong, and
 corrected by item 502 (§44.1): `Unit::fight` writes the bit at three
@@ -7485,7 +7485,7 @@ search at all: a **follower takes its captain's target in place, before the
 validity test is ever reached**. §44.2 has the block and the two dumped
 fields that tell it apart from a fresh order.
 
-### 43.3 The comparison could not see the target at all
+## 43.3 The comparison could not see the target at all
 
 The three `order` rows the widening reports at 696 are not where this
 crate and the original first disagree about these orders. They part at
@@ -7526,7 +7526,7 @@ searches only on the captain, and `chapter_two_s_hit_points` gains
 `(0, 10)`. The three landing together is the successor, and it is a
 mechanic rather than a residue: §43.5.
 
-### 43.3.1 The rule, because the next comparator will have the same hole
+## 43.3.1 The rule, because the next comparator will have the same hole
 
 State it as a rule about comparators rather than as this item's fix.
 
@@ -7557,7 +7557,7 @@ drops on the floor for want of a value on this side. This is the second
 kind, and it is the more expensive one, because the first shows up as a
 key with no reader and the second shows up as green.
 
-### 43.4 The golden walk's own site window
+## 43.4 The golden walk's own site window
 
 `walk_chapter` now reads `RON_GOLDEN_SITES=<lo>-<hi>` and prints each
 draw of those frames with the unit that spent it, and the original's
@@ -7568,7 +7568,7 @@ hand as a scratch test before noticing, which is the second time that has
 happened (item 432 was the first), so it graduates. `CLAUDE.md`: a probe
 shape reached for a third time.
 
-### 43.5 What is not established
+## 43.5 What is not established
 
 - ~~**That the captain's search is what costs it the frame.**~~ **Closed
   by item 502, and the answer was a different mechanism** (§44.2). The
@@ -7614,7 +7614,7 @@ shape reached for a third time.
   `GUYS=2` per block — so it covers 605–846 and stops mid-record.
   Everything above is inside it; nothing here reads past 700.
 
-### 43.6 Coverage
+## 43.6 Coverage
 
 **Diff-backed**: the three `order` rows at 684, both directions, on the
 widening window — this crate's attack order names no target from the
@@ -12017,7 +12017,7 @@ The widening (run356, block 4780) had the citizen `0/4` struck on 4779
 there and not here. No mechanism was named. Two came out of the record,
 one behind the other.
 
-### 70.1 The frame, from the disk
+## 70.1 The frame, from the disk
 
 - **The striker.** Every order on block 4774–4782 of run356 that names
   `0/4` is `1/24`'s, a who=1 Slinger (type 82, piece 32) standing at
@@ -12040,7 +12040,7 @@ one behind the other.
   from before the strike. The original's stack is unchanged on 4780 and
   4781. Ours pushed an `ATTACK` on `1/24`.
 
-### 70.2 The Slinger's three bays, from run17
+## 70.2 The Slinger's three bays, from run17
 
 No dump on this disk has `AMMO` and `GUYS=4` over a Slinger. run17 has
 `AMMO=5` over a Slinger fight at `GUY` detail 1, so it prints no
@@ -12092,7 +12092,7 @@ truncated points and run448's two `AMMO` rounds exactly:
 A packet holds a piece's entries only if its game fielded the piece (item
 603).
 
-### 70.3 `on_duty`'s return, from the listing
+## 70.3 `on_duty`'s return, from the listing
 
 `Unit::target_opportunity@005fffc0`, after the flee arm:
 
@@ -12120,7 +12120,7 @@ So a citizen with any order never answers a hit. A soldier answers one
 only while it attack-moves, patrols or guards. An idle unit of any kind
 still answers (`local_20` is `NONE`).
 
-### 70.4 The readings, and what killed each
+## 70.4 The readings, and what killed each
 
 | reading | killer | verdict |
 |---|---|---|
@@ -12129,7 +12129,7 @@ still answers (`local_20` is `NONE`).
 | the launch point | with the bays, `1/24`'s stone lands on 4779 and the city's strikes on the original's frames. With piece 32's rows keyed away (the mutation), the unit test fails and `0/4`'s strike row returns on 4780 | **held** |
 | a busy citizen does not retaliate | with the gate, 4780 agrees and `0/4` keeps its stack. With the gate off (the mutation), the walk falls back to 4780 at index 0 on `0/4`'s `fight+0x9b0` | **held** |
 
-### 70.5 The fix, and its killers
+## 70.5 The fix, and its killers
 
 - **Built**:
   - `sim::launch::BAYS`: three rows for piece 32, appended;
@@ -12157,7 +12157,7 @@ still answers (`local_20` is `NONE`).
   | the side arm answering `None` (on `179f2fc2`) | fails | falls back to 4846, index 2 | none then; run356's `1/22` row is asserted since |
   | the retarget's mark off (on `179f2fc2`) | fails | falls back to 4852, index 1 | `1/24`'s clock parts on 4853 (run373) |
 
-### 70.6 A building is struck square to its side
+## 70.6 A building is struck square to its side
 
 The same item's second word, 4846 (ours 8 draws, the original 9, at index
 2): the original spends `Guy::set_anim+0xf2f < Unit::set_anim+0x56 <
@@ -12197,7 +12197,7 @@ widening.
   of the swing's own `set_anim` call, so the trace's `+0x19f6` is the
   ordinary path.
 
-### 70.7 The one-in-five retarget freezes the frame
+## 70.7 The one-in-five retarget freezes the frame
 
 The third word, 4852 (ours 6 draws, the original 5, at index 1): ours
 spends `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, an attack slot's wrap
@@ -12217,7 +12217,7 @@ to the idle. Both sides spend `1/24`'s `fight+0x9b0` first (roll 54128,
   search naming `fight`'s entry arguments), which re-enters `fight` from
   its head.
 
-### 70.8 What moved
+## 70.8 What moved
 
 - **Great Lakes 4781 → 4846** (§70.1–§70.3). On run356:
   - `1/24`'s stone of 4775 strikes `0/4` on 4779 on both sides (block
@@ -12253,7 +12253,7 @@ to the idle. Both sides spend `1/24`'s `fight+0x9b0` first (roll 54128,
     `0/4` have taken more damage here since run356's window closed (block
     4841: `0/4`'s `damage` 6 10/16 against 5 0/16).
 
-### 70.9 What is not established
+## 70.9 What is not established
 
 - **An attack action with no target** takes the `600516` arm in the
   original, whose own returns and `kill_current_order` this crate does not
@@ -12274,7 +12274,7 @@ to the idle. Both sides spend `1/24`'s `fight+0x9b0` first (roll 54128,
 - **The side arm's west, north and east answers** have no capture. Only
   the south face is struck on disk (§70.6).
 
-### 70.10 Coverage
+## 70.10 Coverage
 
 - **Diff-backed**:
   - the bays, by run356's block 4780 and the city's strike blocks, and by
@@ -12896,7 +12896,7 @@ block 5012. The booking named no mechanism and no direction.
 |---|---|---|
 | `check_target_path`'s fleeing arm (§67) on the corpse | `Unit::close@0060ee50` ends in `close_orders@005e37f0`, which kills every order whose `get_type` is non-zero, so the corpse's `is_moving@00610af0` answers 0 and the flank triple cannot hold | killed |
 | the review's range arm | `is_in_range@006486b0` returns 0 for a slot whose `flags & 1` is down, so the review returns 0 there | killed |
-| the suspended search (`+0x104`, `do_move`'s head) | `start_dist` is 0 on every block of `1/13` (`docs/PATHFINDER.md` §18.6) | killed |
+| the suspended search (`+0x104`, `do_move`'s head) | `start_dist` is 0 on every block of `1/13` (`docs/PATHFINDER.md` §19) | killed |
 | `do_move`'s captain retarget, `fight`'s chase | each rolls a draw, and the four frames spend none of `1/13`'s | killed |
 | `check_target_path`'s `+0x8` jump | below | **held** |
 

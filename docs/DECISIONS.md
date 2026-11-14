@@ -3,7 +3,7 @@
 Newest last. Each entry records what was chosen, what it was chosen over, and
 why — so a future session can tell a considered decision from an accident.
 
-## Index — what stands, as of 2026-10-06
+## Index, 1 to 99
 
 Nobody reads this file whole; a session reads the entry it is pointed at,
 and an entry that has been amended or superseded does not say so at its
@@ -70,7 +70,7 @@ is append-only and amended in place, as it always was.
 - 56 extended by 57 — A closed map takes the newest pair's setting, the rules track stages what the AI track built, and a price is read at one table
 - 57 standing — The frame has a ceiling, the lane is held through its restore, and a landing's price is its waiting
 - 58 extended by 59 — The seam is read on the field, a strike pairs within its section, and the waiting is the machine's
-- 59 extended by 60 — The workers run Sonnet, the commander subscribes to its lanes' idle, and three reaches are three tools
+- 59 extended by 60, amended by 61 — The workers run Sonnet, the commander subscribes to its lanes' idle, and three reaches are three tools
 - 60 extended by 61 — Codex's direct tranche is accepted whole, and the model question becomes the architecture question
 - 61 extended by 62 — The loop returns with a mixed roster, the pass and the commander spawn each other, and a pair is chosen for what it covers
 - 62 standing — The mixed roster runs once more on two lanes, and the coverage pair is the French pair's successor
@@ -82,8 +82,8 @@ is append-only and amended in place, as it always was.
 - 68 standing — The third Sonnet tranche is scored, the captures are the price, the sweep generator takes its thirteen reaches, and the dump gets a unit printer
 - 69 standing — The Opus medium trial is scored against three Sonnet tranches, the waiter names an uncleared lane, and eight Loop items become tools
 - 70 standing — The Opus medium trial's second tranche is scored, the roster goes to the steer, the census's pinned mode is mended, and seven Loop items become tools or rows
-- 71 standing — The Opus medium trial's third tranche is scored, the waiting breaks a fifth for the first time, the census pin becomes the commander's, and nine Loop items become tools or rows
-- 72 standing — The mixed roster's first tranche is scored, the kill rules' one route is closed in the lane gate, and fifteen Loop items become tools, rows or closes
+- 71 amended in place — The Opus medium trial's third tranche is scored, the waiting breaks a fifth for the first time, the census pin becomes the commander's, and nine Loop items become tools or rows
+- 72 amended in place — The mixed roster's first tranche is scored, the kill rules' one route is closed in the lane gate, and fifteen Loop items become tools, rows or closes
 - 73 standing — The mixed roster's second tranche is scored, the fourth lane is added under entry 61 §5, the build cache is measured moot, and twenty-two Loop items become tools, rows or closes
 - 74 standing — The mixed roster's third tranche is scored, the fourth lane goes by entry 61 §5, the sweep's cycle is measured as the box's cost, and twenty-two Loop items become tools, rows or closes
 - 75 standing — Astra's test-suite branch is fast-forwarded whole, adapted at four points, and tried for one tranche with a kill switch and two numbers
@@ -93,12 +93,17 @@ is append-only and amended in place, as it always was.
 - 79 amended by 132 — The forty-first tranche scored; the census splits port from layout; the whole gate counts widening landings
 - 80 standing — The forty-second tranche: four lanes at the loop's price, the lane gate named the loop's bottleneck and given a clock, the gate table graduates, the nations tool round-trips again, twenty-one Loop items become tools, rows, closes or Ramon's
 - 81 standing — The forty-third tranche: four lanes at less and slower, the sweep lanes' fan-outs read as their own, the lane gate two to four runs a landing and its quote guarded, a regen keeps every hand item, twenty-two Loop items ruled
+- 82 standing — The forty-fourth tranche: four lanes at more and slower, the lane gate's first red was the guard asking for its own quote, a hung mutant and a compile failure get verdicts, cleanup is by ownership, an unread field the sim carries is owed by name
 - 83 standing — The forty-fourth steer: three lanes, two Opus wide on battery words and one Sonnet sweep, a lane gate that widens only on the AI kind, and the fan-out rules move to docs/LOOP.md
 - 84 standing — The forty-fifth tranche: three lanes at three times the price a landing, the lane gate reads how far its base moved, the click-free lane refuses a windowless launch, the held-out unit is the lobby
 - 85 standing — The forty-sixth tranche: four lanes at less a landing, the held-out battery six of eight whole, the sim lib's cap follows the thread count, a push under a clear is a draft, the oracle cache is a directory a gc removes
-- 82 standing — The forty-fourth tranche: four lanes at more and slower, the lane gate's first red was the guard asking for its own quote, a hung mutant and a compile failure get verdicts, cleanup is by ownership, an unread field the sim carries is owed by name
 - 86 standing — The forty-seventh tranche: four lanes at the loop's cheapest landing, the held-out battery eight of eight whole so the battery track stops, the forty-eighth booked on the blind list, nineteen Loop items ruled
+- 87 standing — The forty-eighth tranche: five readings and two sweeps, forty-five residue rows ratified, the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, a pinned `Blind:` line
+- 88 amended by 90 — the forty-ninth tranche, two Opus lanes
+- 89 amended in place — the fiftieth tranche, two Opus lanes
+- 90 amended in place — the fifty-first tranche, two Opus lanes
 - 91 standing — The fifty-second tranche: two Opus lanes, twenty in 11 h 25 on six late-age pairs, four whole, ages 8 of 8, unit types 152 of 302, the drain's clear its last act, the lane rule's trip a recommendation
+- 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 93 standing — The fifty-fourth tranche: three Opus lanes, twenty in 9 h 55, five pairs stand, the Persian word closes, the third lane taken away, age 0 an Ancient start capped at Classical
 - 94 standing — The fifty-fifth tranche: two Opus lanes, twenty in 11 h 19, thirteen pairs stand and twelve run whole, the Mongol word closes, unit types 179 of 302, two lanes held on the gate, row-list edits stop widening the lane gate
 - 95 standing — The fifty-sixth tranche: two Opus lanes, twenty in 11 h 45, eleven pairs stand, the Maya word closes, unit types 189 of 302, Loop 3608 measured at zero, the fifty-seventh booked on the Roman word and seven pairs
@@ -106,7 +111,10 @@ is append-only and amended in place, as it always was.
 - 97 standing — The fifty-eighth tranche: two Opus lanes, twenty in 12 h 34, nine pairs stand, unit types 205 of 302, the cut read on the branch's paths alone, the third lane returns, the fifty-ninth booked on the Korean word and nine pairs
 - 98 standing — The fifty-ninth tranche: three Opus lanes, twenty in 11 h 34, nine words close, unit types 220 of 302, waiting 57.3 on lane gates re-run after `Base moved:`, the third lane goes, the sixtieth booked on ten pairs
 - 99 standing — The sixtieth tranche: two Opus lanes, twenty in 10 h 46, six words close, unit types 229 of 302, waiting 37.4 on fifteen row-list re-gates, Loop 3694's lever built, the Modern and Information ages next
-- 100 standing — The sixtieth pass's sequel: the territory map, five layers replaced by design, the audit at zero on seventy replays, the melee booked, map generation in scope, Astra retired
+
+## Index, 100 on
+
+- 100 amended by 103 — The sixtieth pass's sequel: the territory map, five layers replaced by design, the audit at zero on seventy replays, the melee booked, map generation in scope, Astra retired
 - 101 extended by 102 — The sixty-first tranche: two Opus lanes with the lever, twenty in 12 h 41, eight words close, seven late-age pairs stand, unit types 250 of 302, waiting 44.6 so the third lane stays out
 - 102 extended by 103 — The sixty-second tranche: two Opus lanes, twenty in 13 h 07, every late-age word whole, the first melee 182 → 863, map generation read, unit types 261 of 302, waiting 42.3 and the gate 26.8 so the third lane stays out
 - 103 extended by 104 — The sixty-third tranche: two Opus lanes, twenty in 13 h 07, both melees and every queued word whole, unit types 263 of 302, waiting 42.0 and the gate 26.2 so two lanes stay, the sim crate's gate minutes cached away
@@ -122,12 +130,12 @@ is append-only and amended in place, as it always was.
 - 113 extended by 114 — rows booked
 - 114 extended by 116 — finish line
 - 115 extended by 116 — the start track opens
-- 116 amended by 121 — one driver, the milestone
+- 116 amended by 121; its single row superseded by 126 §1 — one driver, the milestone
 - 117 standing — the gate in its own tree, an experiment
 - 118 amended by 121 — kill rule, arm's close
 - 119 standing — step 5: twelve lines, an instrument first
 - 120 standing — step 5's frame; the floats
-- 121 standing — no kill rule; soft stop 95 %
+- 121 amended in place — no kill rule; soft stop 99 %
 - 122 amended by 126 — Opus drives, Fable talks
 - 123 standing — two workers out
 - 124 amended by 126 — the stop at 98
@@ -139,11 +147,6 @@ is append-only and amended in place, as it always was.
 - 130 amended by 131 — no idle driver row; §3 withdrawn
 - 131 extended by 132 — a leaf leaves where it moves; VII's capture; step S; a gate takes all merged; 400 k
 - 132 standing — staged decisions; the chain's order; the corpus ledger; scoped gates; step H; parity
-- 92 amended by 93 — the fifty-third tranche, two Opus lanes
-- 90 amended in place — the fifty-first tranche, two Opus lanes
-- 89 amended in place — the fiftieth tranche, two Opus lanes
-- 88 amended by 90 — the forty-ninth tranche, two Opus lanes
-- 87 standing — The forty-eighth tranche: five readings and two sweeps, forty-five residue rows ratified, the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, a pinned `Blind:` line
 
 ## 1. Fidelity before divergence
 
@@ -6616,7 +6619,7 @@ and two captures landed under one number.
 `--port-file` inside a file.
 
 **The nations tool round-trips again** (Loop 3222): `nations_census.py
---write` rewrote fifteen rows of NATIONS §5 on an unchanged tree because
+--write` rewrote fifteen rows of NATIONS §5.1–5.2 on an unchanged tree because
 its hand tables (`HAND`, `LOBBY`) were three landings behind the
 document the guard checks; the tables were synced to the document and
 the document's five rows the tool answers better (four `get_cost`

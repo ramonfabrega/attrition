@@ -997,9 +997,11 @@ is cut from v1. In a plain game the leaf is 0 for the whole game.
 - **Checksum**: `crates/sim/src/checksum/leaders.rs` lists all four (`:61`,
   `:72`), and `leader_image` has no arm for them (`_ => None`, `:1305`).
   `ctw_hero_stamp` belongs in the cut-track zero arm (`:1246`..`:1273`,
-  `Some(vec![0; count])`). In `LEADERS_HELD_OUT`
+  `Some(vec![0; count])`). ~~In `LEADERS_HELD_OUT`
   (`crates/rondata/src/diff/checksum_lines.rs:1755, 1758, 1775, 1819`) each
-  leaf is `(unheld)`, count 2. Each port removes its entry.
+  leaf is `(unheld)`, count 2.~~ `ctw_hero_stamp` left `LEADERS_HELD_OUT` at
+  item 4176; `attack_stamp`, `raid_stamp` and `ally_stamp` are in it still
+  (2026-11-14). Each port removes its entry.
 - `city_alarm`'s own comment notes that the dump prints the three arrays
   only at `LEADERS=9` (`delivery.rs:279`).
 
@@ -1183,7 +1185,7 @@ and `calc_attrition` 6cdea6 (`att = 0`). `log_data` does not print it.
 ### 5.3 In the crate
 
 - **`att`** is `territory.players[w].strength`, written by
-  `Sim::calc_attrition` (`crates/sim/src/territory/upkeep.rs:24`) through
+  `Sim::calc_attrition` (`crates/sim/src/territory/upkeep.rs`) through
   `attrition::strength` (`territory/attrition.rs:42`). Four faults:
   1. ~~**Trap**: `if tech_steps == 0 { return 0; }` (`attrition.rs:43–45`) is
      wrong, as is `docs/ATTRITION.md` §"1. Strength" step 1. Every Russian
@@ -1221,11 +1223,13 @@ and `calc_attrition` 6cdea6 (`att = 0`). `log_data` does not print it.
 - **`attrition_stamp3`**: both arms of the enemy-territory block in
   `Sim::process_building` (`cities/city.rs:2947`, ~2997–3010). The crate
   runs the 32-frame cadence only (`cities/build.rs:1083`).
-- **Checksum** (from the code, not the verdicts): leaves at
-  `crates/sim/src/checksum/leaders.rs:69–71, 150, 152`, no value arm; each
+- **Checksum** (from the code, not the verdicts): leaves in `LEADER_FIELDS`
+  (`crates/sim/src/checksum/leaders.rs`), ~~no value arm; each
   `(unheld)`, count 2, in `LEADERS_HELD_OUT`
   (`crates/rondata/src/diff/checksum_lines.rs:1757, 1759–1761, 1791`); each
-  port removes its entry.
+  port removes its entry.~~ `att` left `LEADERS_HELD_OUT` at item 4154 and
+  `attrition_stamp`, `attrition_stamp3` and `give_att_disabled` at item
+  4176; of the five, `attrition_stamp2` alone is in it still (2026-11-14).
 
 ### 5.4 Reached by a plain game
 
@@ -1570,7 +1574,7 @@ back every row of the pattern table at once.
 
 ## 7. Diplomacy: relations, declarations and hires
 
-### 7.1 Leaves
+## 7.1 Leaves
 
 - `good_deeds`, +0xd4, `int[8]`, by target; the valuation's own units.
 - `hire_stamp`, +0x1b4, `int[8]`, by the hired-against slot; a frame.
@@ -1587,7 +1591,7 @@ per-slot loop): all to 0, except `hire_who[j] = −1`. `Leaders::clear`'s
 memset leaves 0 in all, `hire_who` included, until the next `Leader::init`.
 `Leader::reset_score (006e37f0)` touches none. Nothing decays.
 
-### 7.2 The rule
+## 7.2 The rule
 
 Three writers own the seven live leaves: `Leader::action_declare
 (006dab50)` for `dow`, `blacken` and `broke_alliance`;
@@ -1609,7 +1613,8 @@ Three writers own the seven live leaves: `Leader::action_declare
    - block B: if `allied(me, t)` still holds: the same pair again.
 
    `blacken` reads `dow` before that block's own increment. A forced level 0
-   on an ally would count twice; no caller reaches it, since the only
+   on an ally would count twice and pay twice (`pay_dow` at `6dacf6` and
+   again at `6dad0f`); no caller reaches it, since the only
    `force = 1` caller, `DropControl::process_drop`, passes `quiet = 1`;
 5. **for any `quiet`:** if the pair is still allied both ways,
    `broke_alliance[me][t] = frame`. The target's mirror slot is not written;
@@ -1629,12 +1634,15 @@ unless allied both ways; else each usable bucket must hold the price.
 Declare (`CommandPackage::process_declare`, 9473aa) and a human party's leg
 of the hire loop below. `Object::take_damage` and `Nuke::do_damage` pass
 `!(declarer & 4)`, but each skips a human declarer before the call, so they
-never pass 0. `Leader::diplomacy`, `action_respond`'s treaty call
-(6d04ed), `DropControl` and `ScenarioFuncSet::declare_war` pass 1. So
+never pass 0. `Leader::diplomacy`, `action_respond`'s reject arm
+(6d04ed; dead, below), `DropControl` and `ScenarioFuncSet::declare_war` pass 1. So
 `dow` and `blacken` move only for a human declarer. `broke_alliance` moves
 on any break through `action_declare`: `diplomacy` 6bed1c, a level-0 call
-on a mutual ally, 6d04ed, the human's Declare, `DropControl`. The 6beceb
-call is dead (it needs `t == me`, which the per-target loop skips). The
+on a mutual ally, ~~6d04ed,~~ the human's Declare, `DropControl`. The 6beceb
+call is dead (it needs `t == me`, which the per-target loop skips), and so
+is 6d04ed, the reject's ally-attack arm: it asks `is_enemy(leaders[P], P)`
+(`6d04a9`), which is 0 for a leader asked about itself (the adjudication
+of 2026-11-14, 4.5). The
 original's `Game::do_frame` peace-ending and the console verb call
 `set_diplo` directly and must not stamp.
 
@@ -1662,13 +1670,19 @@ goods exchange (§8):
 **`good_deeds`**, in `diplomacy`'s offers arm (`me` computer, `t` the
 proposer, committed; read from the listing at VII-c, `6bf143`–`6c08b5`):
 
+- The arm is skipped (`6bf0e0`) when this pass already cleared the record
+  (I had committed, `6be47a`, or `t` had rejected, `6be48d`) and
+  `aggression[t]` is 0.
 - **An alliance asked** (`treaty` 2; VII-d, from the listing,
   `6bf15a`–`6bf4b2`) runs gates first. Refused (withdraw if I committed,
-  else reject) at styles 0/8/11 when `num_allies (006d6250)` is not 0, at
+  else reject) at styles 0/8/11 (the type record's `team_style`,
+  `Game+0x24`) when `num_allies (006d6250)` is not 0, at
   any style but 0/7/8/11, or while `Game::is_victory_timer (00594950)`
   (`VICTORY` 0, a live leader's `wonderwin_timer` or `popwin_timer`). Two
   computers with `aggression[t]` 0 ally at once, then `counteroffer[t] =
-  0`. Else `S −= (epoch_me + 1) · 200` (at war `· 400`), +100 for a
+  0`. Else `S −= (epoch_me + 1) · 200` (at war `· 400`; either halved
+  toward zero under `semaphore[0] & 4`, `6bf45a`, which the crate reads as
+  clear), +100 for a
   rusher, else −100 for a boomer below epoch 4, −400 with the elimination
   arm's third-party capital holder (`-0x68`), −200 with `LAB_006be372`'s
   racing third party (`-0x54`; dead, since the clock gate refused).
@@ -1682,8 +1696,12 @@ proposer, committed; read from the listing at VII-c, `6bf143`–`6c08b5`):
   (`-0x40` is `&weak[t]` and `-0x48` `&strong[t]`, `6bcd8a`). Then `S −=
   resource_value · v / 256`, truncating; a give to a mutual ally of at
   most a third of my stock is free at styles 0/8/11, and elsewhere free
-  unless `gift_stamp[t]` is within 4500 frames. The attack requests add
-  flat terms (not carried: no request is set).
+  unless `gift_stamp[t]` is within 4500 frames. A good either leader
+  cannot use ends the loop with a refusal (`6bf4de`, `6bf4f1`), and
+  `any_proposals` is asked next (`6bf6a5`). ~~The attack requests add flat
+  terms~~ The attack requests' terms are scaled by epoch and `blacken`, and
+  three of them refuse (`6bf6b2`–`6bfa57`; the adjudication of 2026-11-14,
+  A.3′); not carried: no request is set.
 - **The shortfall's selector is `aggression[t]`**, not the treaty:
   `6bfa6f` tests `*-0x28`, `&aggression[t]`, whose one store is `6bcd78`.
   `epoch` is `data_encrypted + 0xe8`, the Military line; `x` is 100 at
@@ -1743,7 +1761,7 @@ sim reader.
   checksum words a port still writes.
 - `good_deeds`: only the next valuation's seed.
 
-### 7.3 In the crate
+## 7.3 In the crate
 
 - **The declaration** (VII-b1): `Sim::action_declare`, `afford_dow`,
   `pay_dow`, `dow_price` in `crates/sim/src/leaders/declare.rs`, beside
@@ -1775,7 +1793,7 @@ sim reader.
   The answer is a constant for all eight in an all-computer
   style-1 game: 0, and `hire_who` −1 per slot after `Leader::init`.
 
-### 7.4 Reached by a plain game
+## 7.4 Reached by a plain game
 
 **An all-computer skirmish at team style 1 reaches none of the event
 writers.** No `action_respond` is ever called there (§8.4), so
@@ -1789,11 +1807,17 @@ with three leaders and war allowed reaches the hires. Styles 0/8/11 reach
 the deal writers without a human. No Conquer the World or multiplayer path
 is needed.
 
-### 7.5 How established, and how confident
+## 7.5 How established, and how confident
 
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/diplomacy-relations-*.md`); ~~no diff backs
 it yet~~ the declaration is diff-backed since VII-b1 (below). Verdicts: 87 confirmed, 12 corrected, 2 open.
+**A blind second reading of the five decision arms** (the alliance gate,
+the counteroffer, the peace accept, the computers' alliance, the
+declaration's price) was adjudicated on 2026-11-14
+(`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`): of 47
+claims 38 agree, 5 are true where this section was silent, 3 are
+corrected in 7.2 and 8.2; what still rests on one reading is listed there.
 
 The corrections that changed a rule are in 7.2 (listed in
 `docs/journal/2026-11-13-item-4159-VII-d.md`).
@@ -1833,7 +1857,7 @@ Not ported from `set_diplo`: the alliance-break eject, the `ally_mask`
 bits (4206c), the third-party message, the alliance's victory test
 (§10.2), `recalc_borders`.
 
-### 7.6 Not established
+## 7.6 Not established
 
 - **Declare on a locked teammate.** Whether the interface offers it under
   style 1 (then it becomes level 1, counts `dow` once and stamps
@@ -1849,13 +1873,20 @@ bits (4206c), the third-party message, the alliance's victory test
   carried: the team tail (`is_team` is false at style 0) and `has_spell`'s
   false arm (every craft ships `PREQ0 None`).
 - ~~`good_deeds`'s `S` term by term~~ (VII-c, 7.2). Not carried: the
-  scenario's fixed answers, the attack requests' flat terms.
+  scenario's fixed answers, the attack requests' terms.
+- **The computer's own alliance proposal draws before it asks who its
+  target is** (`6c0980`, ahead of the human test `6c0993`, the style test
+  and `aggression`'s at `6c0a2e`). With four or more leaders outscoring
+  `me` and the top scorer its target, a style-1 game draws `game_random`
+  there and the crate does not. No floor has five live leaders standing
+  so; a capture that does is its falsifier (the adjudication of
+  2026-11-14, X.1).
 - `walk_data` and `load_leaders_chunk` copy `last_spoke` and the rest on a
   load; neither originates a value.
 
 ## 8. Diplomacy: tribute, gifts and counteroffers
 
-### 8.1 Leaves
+## 8.1 Leaves
 
 - `tribute_stamp`, +0x174, `int[8]`, receiver's record, by giver; a frame.
 - `gift_stamp`, +0x194, `int[8]`, giver's record, by receiver; a frame.
@@ -1867,12 +1898,14 @@ bits (4206c), the third-party message, the alliance's victory test
 
 `frame` is `Game::frame`; every comparison is signed.
 
-### 8.2 The rule
+## 8.2 The rule
 
 **The deal record.** Each leader holds `dip[8]` (`Diplomacy`, at +0x692c):
 `agree` +0, `any_offer` +4, `treaty` +8, `offers[6]` +0xc, `dows[6]` +0x24,
 `attacks[8]` +0x3c. `Leader::action_offer (006d1780)` adds an amount to
-`A.dip[B].offers[r]` and subtracts it from `B.dip[A].offers[r]`. A positive
+`A.dip[B].offers[r]` and subtracts it from `B.dip[A].offers[r]`; it
+refuses a positive amount the giver's bucket cannot cover on top of what
+is offered, and runs `clear_agree` both ways. A positive
 slot in `A.dip[B]` means "A gives B". `action_tribute` and
 `action_demand_tribute` route through it; none writes a leaf here.
 `Leader::init` sets every record to `Diplomacy::clear_all (0047e030)`
@@ -1900,7 +1933,9 @@ header's bulk writers, these are the only resets; none runs in a match.
        tributes[r] += o            (the unclamped o)
 
    A second pass does the same with `price[r]`, an attack request's price
-   in `T.dip[P].attacks[]` (0 unless `T` is human, `leader_flags & 4`), and
+   in `T.dip[P].attacks[]` (0 unless `T` is human, `leader_flags & 4`;
+   assigned per named slot, not summed, so the last one named sets it,
+   `6d06a4`), and
    stores `T.dip[P].dows[r] = price[r]`. Then `agree = 1`, and
    **`P.agendas[T] |= 4`** (`6d088c`, right after the `agree` store at
    `6d0873`): `P`'s next `Leader::diplomacy` pass at `T` runs off its
@@ -1973,7 +2008,12 @@ these two.
   - Reject, the `6c035d` arm's tail (a positive `s` with a give of mine):
     `k.got_diplo_message = frame`, `counteroffer[k] = 0`, then
     `action_respond(me, k, agree == 1 ? 0 : 2)`. The over-ask's refusal
-    (`6bfe47`–`6bffea`) stores only through `action_respond`.
+    (`6bfe47`–`6bffea`) stores only through `action_respond`. The arm
+    goes to this tail with no draw at `treaty` 2, `aggression[k]` 0, war
+    either way, a mutual alliance or `war_allowed` 0; else it draws
+    `game_random` (`6c03e1`) and on an odd draw declares
+    (`action_declare(me, k, 0, 1, 0)`) with no store of its own. Not
+    carried.
   - At style 0/8/11 (or 7's case), `num_allies == 0`, no victory timer,
     both computers, `aggression[k] == 0`: `counteroffer[k] = 0` (an
     alliance accepted at once; otherwise its price enters `s`, §7.2, and a
@@ -1998,8 +2038,9 @@ these two.
 - `is_tribute_period (006d5b90)` reads `tribute_stamp`: over slots `i`
   (not `me`, `leader_flags & 1`), the first that qualifies (`i == p`;
   `is_ally(L[i], p)` after frame 0, equal lobby team `0..3` at frame 0; not
-  a team-8 `i` or `p` under style 7) decides: stamp 0 → 0, `frame − stamp <
-  3000` → 1. Callers: `diplomacy` ×3, `Army::do_marching (006f3df0)`,
+  a team-8 `i` or `p` under style 7) decides: stamp 0 → 0 for the whole
+  call (`6d5c8e`), `frame − stamp < 3000` → 1; an older stamp passes to
+  the next slot (`6d5c9d`). Callers: `diplomacy` ×3, `Army::do_marching (006f3df0)`,
   `Army::find_target (006f69b0)`.
 - `gift_stamp`: the taunt refusal, and `diplomacy`'s ally pricing: my
   give to an ally up to `stock/3` (×4 before frame 4500, ×3/2 before 9000,
@@ -2017,7 +2058,7 @@ these two.
 - `tribute_sent`, `tribute_received`: only `AchieveChartPane::set_chart_data
   (007f2c40)`, no sim reader.
 
-### 8.3 In the crate
+## 8.3 In the crate
 
 `crates/sim/src/leaders/tribute.rs` (item 4159's step VII-b2):
 `Diplomacy`, `dip[8]` and the seven leaves per leader
@@ -2050,7 +2091,7 @@ wait and the exchange), `consider_tribute`, `scale_tribute` (`Tuning`'s
   our walks compute moves them.
   `coverage.rs` still lists `tributes`.
 
-### 8.4 Reached by a plain game
+## 8.4 Reached by a plain game
 
 **An all-computer skirmish at team style 1 reaches no event writer**, so
 all seven leaves read 0 throughout and the crate's stubs are exact. Command
@@ -2064,7 +2105,7 @@ to an allied computer at any style), or at team style 0/8/11, human or
 not. The `dows` residue needs a human. No Conquer the World or multiplayer
 path is needed.
 
-### 8.5 How established, and how confident
+## 8.5 How established, and how confident
 
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/diplomacy-tribute-*.md`). Verdicts: 63
@@ -2124,7 +2165,7 @@ off recon4206-4's buckets, a rehearsal that was not filed: the human's
 2,000 metal came to 1020 for the French, `pct` 51. A filed capture is
 needed before it is cited.
 
-### 8.6 Not established
+## 8.6 Not established
 
 - ~~**The shortfall formula** (decompile `:2676`–`:2777`) is unread~~ (read
   from the listing at VII-c, §7.2); the `6c035d` arm (a positive shortfall
@@ -2362,7 +2403,7 @@ Defeat, victory and the wonder clock. `Leader::defeat (006ecb00)` and
 `Leader::victory (006ec9b0)` write four leaves; the victory pass writes the
 wonder pair.
 
-### 10.1 Leaves
+## 10.1 Leaves
 
 - `defeated_by`, +0x10, `int`: the captor's slot, −1 when none.
 - `wonderwin_stamp`, +0x448, `int`: frames; the start frame while running,
@@ -2376,7 +2417,7 @@ wonder pair.
 `tribe < 0` the wonder pair is zero by the memset alone (`init` returns
 before its explicit stores; same value). Nothing else resets any of them.
 
-### 10.2 The rule
+## 10.2 The rule
 
 **`defeat(who, type, by, instant)`**, in this order:
 
@@ -2499,7 +2540,7 @@ ratio == 0`, `wonderwin_stamp < 0` and the flag is 0: `stamp += 1`.
 not allied to the owner with the flag adds one). The rest feed UI, stats
 and the save.
 
-### 10.3 In the crate
+## 10.3 In the crate
 
 Item 4185 (step V of 4159) built it: `crates/sim/src/leaders/endgame.rs`
 (tests in `endgame/tests.rs`), one `EndGame` a slot in `LeadersState`, which
@@ -2551,7 +2592,7 @@ landed:
   ~~`Sim::resign`'s `clear_orders` (4189a)~~ (4204). All nine are on the
   line.
 
-### 10.4 Reached by a plain game
+## 10.4 Reached by a plain game
 
 The captures' lobby is elimination 1 and VICTORY 0 (run600's dump line
 4727; the crate's default, `crates/sim/src/ai.rs:1132`). So a skirmish
@@ -2563,7 +2604,7 @@ options: `lost_a_city` types 2 and 3 (elimination 2, 3), armageddon (8),
 VICTORY 9's type 3. Behind the scenario: type 9. Multiplayer: drop (7)
 and the shared-`who` arm. Type 10: a load only.
 
-### 10.5 How established, and how confident
+## 10.5 How established, and how confident
 
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/end-of-game-*.md`); ~~no diff backs it
@@ -2609,7 +2650,7 @@ run1256, run1316. run1200: slot 0
 `process_elimination`). `defeat_type` 6 in the start captures, 9 in
 run1113/1114. `wonderwin_timer` 1 in 30 captures (run652 … run1423c).
 
-### 10.6 Not established
+## 10.6 Not established
 
 - **The stop, the banked stamp, the pay-back** (and the crate's missing
   alive gate): no capture holds a negative `wonderwin_stamp`.
@@ -2972,10 +3013,10 @@ A port holds 0 for every leader on every frame.
 
 - **No `pop_issues` storage exists.** The reset belongs beside
   `self.combat.retargets[who] = 0` in `Sim::tick`
-  (`crates/sim/src/core/frame.rs:98`). Trap: that loop runs every player,
+  (`crates/sim/src/core/frame.rs`). Trap: that loop runs every player,
   while the original resets only leaders with `leader_flags & 2`; gate the
   new store on the crate's image of that bit.
-- **Carrier arm**: `carrier_queue_tick` (`crates/sim/src/air/carrier_queue.rs:137`).
+- **Carrier arm**: `carrier_queue_tick` (`crates/sim/src/air/carrier_queue.rs`).
   The capped arm at `:155` already takes back the accel and returns; the +1
   goes there.
 - **Building arm: missing.** The crate tests the cap only at completion
@@ -2990,17 +3031,21 @@ A port holds 0 for every leader on every frame.
   `:144`; the live implementation returns 0 at `:453` (and `ai/army.rs:38`
   lists `pop_issues` among the fields whose multipliers are ×1). Wire it to
   the live count.
-- **Mislabel**: `crates/rondata/src/diff/leader.rs:49` calls `pop_issues`
+- ~~**Mislabel**: `crates/rondata/src/diff/leader.rs:49` calls `pop_issues`
   "unread"; `find_target` reads it. `diff/leader.rs:44` calling `misery`
-  unread is right.
+  unread is right.~~ Mended since: `UNMODELLED` in
+  `crates/rondata/src/diff/leader.rs` calls `pop_issues` held (item 4162),
+  and `misery` is a compared row.
 - **Checksum**: both are in the layout (`checksum/leaders.rs:148`, `:149`)
-  and both are `(unheld)` in `LEADERS_HELD_OUT` with count 2
-  (`crates/rondata/src/diff/checksum_lines.rs`). Holding `misery` as 0
+  and ~~both are `(unheld)` in `LEADERS_HELD_OUT` with count 2
+  (`crates/rondata/src/diff/checksum_lines.rs`)~~ `misery` left
+  `LEADERS_HELD_OUT` at item 4162; `pop_issues` is in it still
+  (2026-11-14). Holding `misery` as 0
   removes its entry at no risk; `pop_issues` leaves the list once both
   arms are built.
 - **`misery` needs no code** beyond emitting `Some(0)` and turning
   `diff/leader.rs:44` from an unmodelled key into a compared one.
-  `crates/sim/src/economy.rs:305` (which cites `calc_pop_cap`'s tail) is a
+  The comment in `crates/sim/src/economy.rs` that cites `calc_pop_cap`'s tail is a
   pointer, not a store site.
 
 ### 12.5 Reached by a plain game
@@ -3188,9 +3233,9 @@ them back under §13.2's predicates. `senates_built_inc` is wired.
 counter beside the mark. The bullets below are the plan as it stood.
 
 - **Marks.** `fort_mark` and `oil_well_mark` have no registry.
-  `units::slots::SlotList` (`crates/sim/src/units/slots.rs:24`) is the exact
+  `units::slots::SlotList` (`crates/sim/src/units/slots.rs`) is the exact
   shape: one per leader per mark, taken in `Sim::activate` beside the
-  `is_fort` test (`crates/sim/src/cities/city.rs:2533`) and given back in
+  `is_fort` test (`crates/sim/src/cities/city.rs`) and given back in
   `Sim::close_building`'s fort arm (`~2905`). Wells are found by kind in
   `economy/holdings.rs` today. `supply_mark` is already modelled:
   `SupplyList` (`territory/supply.rs:171`) pops free tails, so `len()`
@@ -3221,9 +3266,11 @@ counter beside the mark. The bullets below are the plan as it stood.
   `:261`) reaches `SimArms::senates_built_inc` (`:394`), an empty SEAM.
 - **`forts_built`.** None; increment with the `fort_mark` take.
 - **Checksum.** `checksum/leaders.rs` lists all seven leaves (`:105–108`,
-  `:175–177`, `:189`); `leader_long` (`:949`) has an arm for none. Each sits
+  `:175–177`, `:189`); ~~`leader_long` (`:949`) has an arm for none. Each sits
   in `LEADERS_HELD_OUT` at count 2 (`crates/rondata/src/diff/
-  checksum_lines.rs:1787, 1788, 1817, 1835, 1837, 1850, 1851`); a port of a
+  checksum_lines.rs:1787, 1788, 1817, 1835, 1837, 1850, 1851`);~~ None of the
+  seven is in `LEADERS_HELD_OUT`: six left it at item 4167 and
+  `supply_mark` at item 4159's step T; `leader_long` has their arms. A port of a
   leaf adds its arm and drops its entry. The verdicts give no figure beyond
   that.
 
@@ -3482,11 +3529,14 @@ is not carried.
   `queued_by_group[BARRACKS] + queued_by_group[STABLE]`, which is exact
   while all three move by paired ±1 from zero. That holds in a plain game,
   because `-n` is FB-only and FB is air.
-- **Checksum.** `Sim::leader_long` has no arm for the seven. Each is
+- **Checksum.** ~~`Sim::leader_long` has no arm for the seven. Each is
   `("<leaf> (unheld)", 2)` in `LEADERS_HELD_OUT`
   (`crates/rondata/src/diff/checksum_lines.rs`: `scholar_militia :1822`,
   `barracks_queued :1766`, `stable_queued :1836`, `factory_queued :1786`,
-  `combat_queued :1773`, `dock_queued :1783`, `air_queued :1754`). A port
+  `combat_queued :1773`, `dock_queued :1783`, `air_queued :1754`).~~
+  `scholar_militia` and `dock_queued` left `LEADERS_HELD_OUT` at item 4167,
+  `stable_queued`, `factory_queued` and `air_queued` at item 4159's step T;
+  `barracks_queued` and `combat_queued` are in it still (2026-11-14). A port
   adds the arm to `leader_long` and removes the entry.
 
 ### 14.4 Reached by a plain game
@@ -3732,8 +3782,8 @@ and `nukes_launched` in `sim::leaders::tallies` (behind
   (`orders/order_list.rs:1854`, `:1873`) converts a missile's valid strafe.
 - **Checksum.** Rows `checksum/leaders.rs:74`, `:141`, `:190`, `:259`. Each
   port removes its `("<leaf> (unheld)", 2)` entry from `LEADERS_HELD_OUT`
-  (`crates/rondata/src/diff/checksum_lines.rs:1814`, `:1816`, `:1821`,
-  `:1846`).
+  ~~(`crates/rondata/src/diff/checksum_lines.rs:1814`, `:1816`, `:1821`,
+  `:1846`)~~; all four left it at item 4176.
 
 ### 15.4 Reached by a plain game
 
@@ -3926,38 +3976,40 @@ as stored). A builder must not emit 0.
 
 ### 16.3 In the crate
 
-- **No leaf is held.** All three are in `LEADER_FIELDS`
-  (`crates/sim/src/checksum/leaders.rs:53-55`), and `Sim::leader_long`
-  (`:949`) has no arm for them. Each is a `(unheld)` entry of
+- ~~**No leaf is held.**~~ **Held since item 4162**, which released all
+  three from `LEADERS_HELD_OUT`. All three are in `LEADER_FIELDS`
+  (`crates/sim/src/checksum/leaders.rs`), and `Sim::leader_long`
+  ~~(`:949`) has no arm for them. Each is a `(unheld)` entry of
   `LEADERS_HELD_OUT` with count 2: `cannon_time` at
   `crates/rondata/src/diff/checksum_lines.rs:1771`, `handicap` at `:1793`,
-  `multi_diff` at `:1815`. Each arm below removes its entry.
+  `multi_diff` at `:1815`.~~ has an arm for each. Each arm below removed its
+  entry; the bullets are the plan as it stood.
 - **`multi_diff`:** add an arm returning `i64::from(self.ai.lobby.difficulty)`
   for each seated slot. The walk already skips unseated slots.
-  `Sim::ai_difficulty` (`crates/sim/src/ai/ai_types.rs:137`) is `get_diff`'s
-  solo arm, and `diff_of` (`crates/sim/src/ai/army/target_gate.rs:133`)
+  `Sim::ai_difficulty` (`crates/sim/src/ai/ai_types.rs`) is `get_diff`'s
+  solo arm, and `diff_of` (`crates/sim/src/ai/army/target_gate.rs`)
   uses it.
 - **Trap: the live `lmulti` answers −1** (`target_gate.rs:397`). The
   original holds the lobby byte. Nothing reads it while `semaphore()`
   answers `[0; 3]`, but the port points `lmulti` at the same value as the
   checksum arm so the two cannot drift.
 - **Trap: the default lobby is not the answer.** `impl Default for Lobby`
-  (`crates/sim/src/ai.rs:1113-1119`) sets `difficulty: 0`, but the harness
+  (`crates/sim/src/ai.rs`) sets `difficulty: 0`, but the harness
   fills the lobby per capture. The pinned pairs carry 5
-  (`crates/rondata/src/diff/persian_classical_pair.rs:24`), 4
+  (`crates/rondata/src/diff/persian_classical_pair.rs`'s `difficulty`), 4
   (`french_medieval_pair.rs:23`) and 2 (`aztec_word.rs:22`). A constant 0
-  is wrong on all of them. `crates/rondata/src/diff/leader.rs:58` lists the
+  is wrong on all of them. `crates/rondata/src/diff/leader.rs` listed the
   leaf as unmodelled ("an input, not state").
 - **`cannon_time`:** add `cannon_times` to `ai::Lobby`, parsed from the
   dump's `CANNON_TIMES`, and an arm returning the row's count.
-  `Command::CannonTime` is decoded (`crates/rondata/src/commands.rs:996`)
+  `Command::CannonTime` is decoded (`crates/rondata/src/commands.rs`)
   and consumed by nothing. The step needs a 0x4d arm only for a
   multiplayer stream.
 - **`handicap`:** an arm returning 0 for every seated slot is right only
   while the lobby carries no per-player handicap. The full computation needs
   each `Player`'s `team`, `handicap` and `flags`, and `num_teams`, which
   `rondata::recgame::Slot` carries and `ai::Lobby` does not.
-  `Holdings::handicap` (`crates/rondata/src/diff/leader.rs:55`) is a
+  `Holdings::handicap` (`crates/rondata/src/diff/leader.rs`) is a
   different quantity.
 
 ### 16.4 Reached by a plain game
@@ -4160,7 +4212,8 @@ clause is the crate's own `type_eligible` clause (an age preq past
   first) and `type_eligible` each refuse a `-2` slot alone. A port may skip
   one only knowing the other still refuses the eight rows.
 - **Checksum.** The port removes `("tech.ptr", 2)` from `LEADERS_HELD_OUT`
-  (`crates/rondata/src/diff/checksum_lines.rs:1839`). It should also turn
+  ~~(`crates/rondata/src/diff/checksum_lines.rs:1839`)~~ (done at item
+  4187). It should also turn
   agreeing the two 101-byte `tech` array ranges (one per walked leader)
   that the pinned `LEADERS` tuple (`:1746`) counts among its four parted
   ranges.
@@ -4246,7 +4299,7 @@ Ancient start. No test pins it. A port turns it into the leaders line's own
 
 ## 18. The score and its eleven parts
 
-### 18.1 Leaves
+## 18.1 Leaves
 
 - `score` (+0x18), i32: the sum.
 - `score_explored` (+0x1c), i32: always 0.
@@ -4261,7 +4314,7 @@ Ancient start. No test pins it. A port turns it into the leaders line's own
 - `score_wonders` (+0x40), i32.
 - `score_combat` (+0x44), i32: an accumulator, never recounted.
 
-### 18.2 The rule
+## 18.2 The rule
 
 **Reset**: `reset_score (006e37f0)` zeroes all twelve, called only from
 `Leader::init (006e3930)` and `Setup::build_game (005ac190)` (default 0).
@@ -4383,7 +4436,7 @@ with `victory == 5` defeats the live leader with the strictly lowest score; a
 tie at the minimum defeats nobody. `Leader::diplomacy` counts live leaders
 scoring above me and finds the top scorer.
 
-### 18.3 In the crate
+## 18.3 In the crate
 
 **Held since item 4187** (`crate::leaders::score`): `Score`, one a slot,
 with the units part's dirty bit (`dirty_units`, raised by `add_unit` and
@@ -4406,7 +4459,7 @@ before the take, the owner's count after it), `cast_sniper_unit`,
 readers (`diplomacy`, `find_target`) stay on their seams: wiring them is an
 AI change, not this leaf's. The reading's map, which the port followed:
 
-- **Step site**: `Sim::strategy_all` (`crates/sim/src/ai/ai_drive.rs:73`,
+- **Step site**: `Sim::strategy_all` (`crates/sim/src/ai/ai_drive.rs`,
   comment `:87`). **Trap**: the human arm `continue`s at `:82`–`:85`, ahead
   of the site; the score must run before it.
 - **Inputs**: `Muster::by_type`/`queued_by_type` (`units/unit.rs:838`,
@@ -4435,12 +4488,12 @@ AI change, not this leaf's. The reading's map, which the port followed:
   `diplos[8]` = `treaties[0]` (`+0x94`) and `leaders[8].diplos[K]`. The
   crate's `Sim::is_ally` (`leaders/relations.rs:99`) assumes no such caller;
   do not answer "not allied" from its guard (18.6).
-- **Checksum**: slots `checksum/leaders.rs:41`–`52`; all twelve are
-  `(unheld)` in `LEADERS_HELD_OUT`, count 2 each
-  (`crates/rondata/src/diff/checksum_lines.rs:1823`–`1834`). Each port removes
+- **Checksum**: slots `checksum/leaders.rs:41`–`52`; of the twelve, only
+  `score` is `(unheld)` in `LEADERS_HELD_OUT`, count 2 (2026-11-14; the
+  rest left at items 4187 and 4159). Each port removes
   its entry; explored and pop need only the hold.
 
-### 18.4 Reached by a plain game
+## 18.4 Reached by a plain game
 
 A skirmish against the computer reaches `compute_score` for every live slot,
 every part, both combat arms, and the `victory == 5`, `find_target` and
@@ -4449,7 +4502,7 @@ every part, both combat arms, and the `victory == 5`, `find_target` and
 Armageddon arm and `defeat_all` need the Armageddon count reached. The spells
 need a spy or commando cast; whether the computer casts them is open.
 
-### 18.5 How established, and how confident
+## 18.5 How established, and how confident
 
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/score-*.md`). Every integer formula, both
@@ -4503,7 +4556,7 @@ read and the `rare.flags` write. No kept dump was consulted;
 `score_pop`: `compute_pop_score (006bc190)`, `reset_score`, `compute_score`
 twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
 
-### 18.6 Not established
+## 18.6 Not established
 
 - **Gaia ally read**: whether `treaties[0]` and `leaders[8].diplos[K]` are
   ever both 2. If not, every gaia kill with a killer object adds
@@ -4636,16 +4689,16 @@ released by entry 129 §5 (below). The rest of this subsection is the
 reading's map, which the port followed.
 
 - **Building hook**: `activate_head_steps`
-  (`crates/sim/src/cities/activate.rs:53`) tests the predicate at `:74` and
+  (`crates/sim/src/cities/activate.rs`) tests the predicate at `:74` and
   calls the empty `SimHead::record_last_built` (`:139`; `:349` is the test
   view). It is reached from `Sim::activate`
-  (`crates/sim/src/cities/city.rs:2420`, head at `:2454`). The head already
+  (`crates/sim/src/cities/city.rs`, head at `:2454`). The head already
   orders the Chinese branch before the type read (`activate.rs:65–76`).
   - **Index**: `buildings[b].ty`, read after the head's `set_type`
     (`activate.rs:118–131`). The crate's building record is
-    `TypeIndex − 0x19e` (`crates/rondata/src/load.rs:220`).
+    `TypeIndex − 0x19e` (`BASE_BUILDTYPES`, `crates/rondata/src/load.rs`).
   - **Value**: `buildings[b].index`, the crate's `SubObjectData::o` in
-    `[2000, 3000)` (`crates/sim/src/cities/building.rs:14–17`), **not** the
+    `[2000, 3000)` (its `index` field, `crates/sim/src/cities/building.rs`), **not** the
     vector position `b`.
 - ~~**Trap, the frame-0 `counted` flag.** `Leader::produce_building` passes
   counted 0. The crate's frame-0 arm calls `self.activate(o, false, true)`
@@ -4658,28 +4711,29 @@ reading's map, which the port followed.
   against theirs −1. After both, no packet line but the leaders' moved and
   the frame-91 pair's lines held; two windows run with the seat's flag put
   back (run1275b, run1314b) parted exactly as with it.
-- **Unit hook**: `Sim::build_train` (`crates/sim/src/cities/queue.rs:1693`),
-  right after `init_unit` (`crates/sim/src/units/store.rs:504`), with
+- **Unit hook**: `Sim::build_train` (`crates/sim/src/cities/queue.rs`),
+  right after `init_unit` (`crates/sim/src/units/store.rs`), with
   `table[who][ty] = units[unit].index as i32`.
   - **Index**: the crate's unit record `ty` already equals
     `TypeIndex − 0x32` (`load.rs:1468`, `:212–216`). `.tree` is a tech-tree
     id, so subtracting 50 from it would be wrong.
   - **Value**: `units[unit].index` is `SubObjectData::o`
-    (`crates/sim/src/units/unit.rs:40–47`). `init_unit` returns the squad
+    (its `index` field, `crates/sim/src/units/unit.rs`). `init_unit` returns the squad
     head, and its `index` is what the members take as their captain, which
     matches the original.
   - **Callers that inherit the write**: `queue.rs:1612`, `:1675`,
     `cities/activate.rs:391`, `cities/city_views.rs:591`, and
     `cities/nations.rs:432, 524, 583, 655, 686`.
 - **SEAM**: `Sim::place_unit` stops at `Err(PlaceRefused::Train)`
-  (`crates/sim/src/units/starting.rs:26–27, 68`). When the fallback is
+  (`Sim::place_unit`, `crates/sim/src/units/starting.rs`). When the fallback is
   built, it must go through `build_train` so the write follows.
 - **No failure path**: the crate's `init_unit` returns `usize` and cannot
   fail, so "negative return → no write" has no counterpart until
   object-table exhaustion is modelled.
-- **Checksum**: both leaves are `(unheld)` in `LEADERS_HELD_OUT`, count 2
+- **Checksum**: ~~both leaves are `(unheld)` in `LEADERS_HELD_OUT`, count 2
   each (`crates/rondata/src/diff/checksum_lines.rs:1805, 1808`; pile
-  `out:finish` in the 4124 journal). Each port removes its entry.
+  `out:finish` in the 4124 journal).~~ both left `LEADERS_HELD_OUT` at item
+  4187 (pile `out:finish` in the 4124 journal). Each port removes its entry.
 
 ### Reached by a plain game
 
@@ -4890,7 +4944,7 @@ record diff compares all three and `num_buildings`, `high_buildings`' named
 input. The reading's map, which the port followed:
 
 - ~~**`territory_high`: not held.**~~ The fold belongs in
-  `Sim::update_territory_holdings` (`crates/sim/src/territory/upkeep.rs:129`).
+  `Sim::update_territory_holdings` (`crates/sim/src/territory/upkeep.rs`).
   That function is called from `start_border_pass`
   (`territory/border_pass.rs:56`, pre-play), `settle_borders` (`:170`) and
   the pass-complete tail of `advance_border_pass` (`:248`), and those are
@@ -4914,7 +4968,7 @@ input. The reading's map, which the port followed:
   placed there must be gated on `leader_flags & 1`, or a dead slot's row
   parts.
 - **`high_buildings`: held**, as `Cities::building_high`
-  (`crates/sim/src/cities.rs:51`). It is written by
+  (`crates/sim/src/cities.rs`). It is written by
   `Sim::claim_building_high` (`cities/nations.rs:219`) from `Sim::activate`
   (`cities/city.rs:2420`, call `:2578`). The guard at `nations.rs:234`,
   `building_high[w][root] >= n || captured`, is the original's predicate,
@@ -4939,11 +4993,11 @@ input. The reading's map, which the port followed:
     (`nations.rs:238`), so the crate can pay free units on a frame-0
     building where the original pays none. Book it against the units
     score, not this leaf (§19 names the same flag).
-- **Checksum.** The rows are at `crates/sim/src/checksum/leaders.rs:236`
-  (`territory_high`), `:294` (`reg_terr`) and `:297` (`high_buildings`).
-  Each leaf is `(unheld)` in `LEADERS_HELD_OUT` with count 2
+- **Checksum.** The rows are `territory_high`, `reg_terr` and
+  `high_buildings` in `LEADER_FIELDS` (`crates/sim/src/checksum/leaders.rs`).
+  ~~Each leaf is `(unheld)` in `LEADERS_HELD_OUT` with count 2
   (`crates/rondata/src/diff/checksum_lines.rs:1794, 1820, 1840`), and each
-  port removes its entry.
+  port removes its entry.~~ All three left `LEADERS_HELD_OUT` at item 4187.
 
 ### 20.4 Reached by a plain game
 
@@ -5009,7 +5063,7 @@ The corrections that changed a rule:
   zero `[+0, +0x6929)`. Both readings' nets missed `Leaders::clear`,
   because its size is 0x6929, not the struct size.
 - **The −2 arm tests `CityData::race` (+0x5f)**, not an owner byte. The
-  crate's `Owner::Ambiguous` doc (`crates/sim/src/world.rs:172`) has the
+  crate's `Owner::Ambiguous` doc (`crates/sim/src/world.rs`) has the
   same naming gap.
 - **`compute_all_territory` clears live slots only**, with eight 16-byte
   stores (64 ushorts).

@@ -17,34 +17,10 @@ driver reads it when it books one. Where this file and `CLAUDE.md` differ,
 
 ## Phase 3's scoring and succession
 
-As `CLAUDE.md` stated phase 3 while it was open. Every word it names is
-closed and stands as a floor.
-
-3. **Sim skeleton** — the rules of a match, mechanic by mechanic, diffed
-   against the original's own per-frame dumps. **The score is ticks before
-   divergence** on each of the two maps the finish line names — the lower
-   map first, and the default item is its nearest divergence — pinned as
-   floors in `rondata::diff` and stated first in `docs/QUEUE.md`. **Done when** a
-   fixed-seed, traced human-versus-AI capture on two maps stays in lockstep
-   — no position or order disagreement — for its full length. This is the
-   long middle, and the number is how anyone can tell where in it we are.
-   Closing the current captures is the milestone, not the phase:
-   `docs/DECISIONS.md` entry 29 names the three counters that define the
-   sim complete, and the renderer waits on them. **A pair that closes is
-   succeeded by the one whose lobby reaches the most census rows no
-   trace has entered** — it names those rows before its capture is
-   booked, and it may vary more than one setting — and the AI's word
-   is the newest pair's; a closed pair's pins stay as floors
-   (`docs/DECISIONS.md` entry 53, amended by 61). **A third map is
-   scored in the first pair's lobby beside them, and the held-out map
-   is measured and never debugged against** (entry 54) — **and so is
-   a held-out battery, at every pass**: games nobody tuned for, each
-   scored by how far it runs on its first try, which is the number
-   that says when minting pairs can stop (entry 61). **A game that ends closes
-   with its closing state scored, and the lower map is the lower open
-   word** (entry 55). **A closed map is succeeded by the same map in
-   the newest pair's lobby, and the rules track stages the arms the AI
-   track built and no walk holds** (entry 56).
+Retired whole on 2026-11-14 to `docs/audit/2026-11-09-loop-retired-clauses.md`,
+"Retired 2026-11-14: phase 3's scoring and succession": every word it names
+is closed and stands as a floor, and the succession rules are entries 53 to
+56 and 61.
 
 ## Booking an item
 
@@ -90,17 +66,18 @@ booking is a frame, never a promise to build a name.
   `python3 tools/release_gate.py <install> --test-threads 4` in one
   command, under the memory cap, with the fixture audit and the paperwork
   guards; that is the gate a landing names. **A worker's is the same
-  line with `--lane --tests <the word's filters>`** — the brief names
-  the filters and adds every lobby's `first_parting` (parked 1910, 2000:
-  a fix on one map broke another lobby's floor and took a capture to
-  read); the lane gate runs those, the fast tests and the guards,
-  and leaves the timed ones to the booking gate (item 1567: 703 s → 74
-  s) — red only on the queue's lines — the commander's to write at the
-  merge — or on the journal's own gate quote, which cannot exist before
-  the gate has run (3277: fourteen first gates of one tranche were red
-  on it alone) — it goes on to the guards and exits 0, and red on anything
-  else it stops and names the test; the commander's booking
-  gate takes no flag and forgives nothing. The debug profile is for the
+  line with `--lane --tests <its filters>`** — the brief names the
+  filters and adds every lobby's `first_parting` to a word lane's (parked
+  1910, 2000: a fix on one map broke another lobby's floor and took a
+  capture to read) — **it runs those, the guards and the tests no timing
+  names, and leaves the rest to the booking gate** (item 1567: 703 s → 74
+  s; DECISIONS 132 §6) — red only on the queue's lines — the commander's
+  to write at the merge — or on the journal's own gate quote, which cannot
+  exist before the gate has run (3277: fourteen first gates of one tranche
+  were red on it alone) — it goes on to the guards and exits 0, and red on
+  anything else it stops and names the test; **the booking gate takes
+  `--scope`; whole at a drain and a pass** (DECISIONS 132 §5), and
+  forgives nothing. The debug profile is for the
   reflex (`tools/guard.sh`) and for stepping through one test; a debug
   run that reaches a kept dump refuses, by design.
 - Committed. Any open question this closes in another document is struck
@@ -109,7 +86,7 @@ booking is a frame, never a promise to build a name.
 ## The behavioural check
 
 **A behavioural check is a logged run, and it is cheap.** The original runs
-here (`docs/ORACLE.md`, last section): fix the seed in `rise.ini`, enable the
+here (`docs/ORACLE.md`, "Running a check: the recipe in one place"): fix the seed in `rise.ini`, enable the
 mechanic's categories under `[End Frame]` in `gamelog.ini`, play a minute, quit
 through the in-game menu, read `Logs\gamelog.txt`. A claim that needs a
 behavioural check is still written into the document's open questions with the
@@ -221,14 +198,9 @@ lights up a function.
 ## Conventions as they stood
 
 The host admission clause and the waiting clause, with their measurements.
+The bullets `CLAUDE.md` carries word for word went on 2026-11-14 (its
+"Conventions" and "Tooling" are the rule, and a copy here could only drift).
 
-- **Earn every dependency.** Crates appear in this workspace when they have
-  real code, not in anticipation. Same for third-party deps.
-- **A probe shape reached for a third time graduates into `tools/`.** The
-  recurring dump probes — a slicer, a draw tracker, an entity scanner —
-  are authored once and invoked thereafter; one-off hypothesis probes
-  stay scratch scripts, because a wrong abstraction costs more than the
-  typing it saves.
 - **Host admission stays** (`docs/DECISIONS.md` entries 75 and 76: the
   thirty-eighth tranche waited 32.0 minutes a landing against 36.5 with
   the admission waiting 2–41 s a gate): `tools/guard.sh` and every gate
@@ -239,10 +211,6 @@ The host admission clause and the waiting clause, with their measurements.
   worktree at once. A standalone `cargo test …` joins the budget as `zsh
   tools/check.sh test …`; nothing wraps `guard.sh` or a gate again. The
   design and its limits are `docs/TEST_PERFORMANCE.md`.
-- **`tools/guard.sh [filter …]` is the reflex between edits** — the
-  paperwork guards plus the current item's tests, debug, seconds. The
-  full `--release` diff suite remains the gate: before a commit and
-  after a document rewrite.
 - **A wait on an external process is backgrounded** (`run_in_background`,
   Monitor), never a foreground sleep-and-grep loop — every poll turn
   re-bills the whole context — **and then the turn ENDS.** The harness
@@ -270,26 +238,9 @@ The host admission clause and the waiting clause, with their measurements.
   names its source**: the first figure written here was wrong by 3x.
   **And a price names the day of its rate table**: a tranche once read
   half as dear as the one before and had cost the same (entry 56).
-- **A multi-line Rust patch from Bash rides the python-heredoc pattern**
-  (`python3 - <<'PYEOF'` with `old="""…"""`/`new="""…"""`), chained with
-  its test run in the same call — edit and verify in one turn, and safer
-  than `sed` across lines. **Never chain a `git checkout <file>` onto an
-  edit that can fail**: the checkout runs when the edit does not, and it
-  reverts the work already there.
-- Toolchain is pinned in `rust-toolchain.toml` so the Solana toolchain on this
-  machine can never leak in.
-- Format recon notes live in `docs/FORMATS.md`; decisions and their rationale
-  in `docs/DECISIONS.md`. A decision that gets overturned is amended in place
-  with its successor named, never deleted.
-- One document per mechanic, written from the original and implemented from the
-  document — `docs/ATTRITION.md` is the first. Each states how confident it is
-  and lists what it has not established, so a reader can tell a derived formula
-  from a plausible guess.
 
 ## Tooling as it stood
 
-- `llvm-pdbutil` (Homebrew LLVM) reads `rise.pdb` on macOS. `dump --types`
-  works; `pretty` needs the Windows DIA SDK and does not.
 - Ghidra 12.1.3 (`brew install ghidra` — a formula now, not a cask; it wants
   `openjdk@21`). With the PDB loaded it gives named, typed decompilation.
   **`tools/ghidra/` holds everything**: `analyze.sh` builds the project once
@@ -335,13 +286,6 @@ The host admission clause and the waiting clause, with their measurements.
   second game on the single capture lane, ~4 min and 843 MB; and lifted
   C is a reading tool exactly as the decompiler is — never a source,
   never in git.
-- Constants are not all loaded in the representation the file writes. At least
-  one rational arrives scaled to 8.8 fixed point. Read the consumer before
-  believing the digits.
-- `cargo run -p rondata -- <install>` surveys the data layer and re-derives
-  every structural claim in `docs/FORMATS.md` from the user's own files. If a
-  claim stops being true it exits non-zero. Run it after touching anything
-  that reads the game's data.
 - **The lab** (`docs/lab/`, `tools/explore/`, `tools/viewer/`) is a second
   harness's exploration, merged whole on 2026-09-17 (`docs/DECISIONS.md`
   entry 38). Its claim ledger is `docs/lab/LEDGER.md`; the guards do not

@@ -14,7 +14,7 @@ units do it at all, which units may, where the docks are kept and what
 they mark, how a citizen or a scout decides to leave its island, and how
 an AI army goes "transporting". The boat itself — its movement, the
 boarding path, the unloading — belongs to the pathfinder and the orders
-(`docs/PATHFINDER.md` §4.6, `docs/ORDERS.md` §4.6) and is cited, not
+(`docs/PATHFINDER.md` §5's transport tail, `docs/ORDERS.md` §4.6) and is cited, not
 re-read, here.
 
 **Confidence.** The predicates and the registry (§2–§6) are read line by
@@ -94,7 +94,7 @@ anything else → `TRANSPORT_MILITARY`.
 `(unit_masks & 0x800000) && !(unit_masks2 & 0x2000)`, **or** the type's
 `unit_flags & 0x10` (letter `e` in `unitrules.xml`'s `FLAGS`,
 `docs/DATALAYER.md`): a type that always transports, whatever the leader's
-level. `docs/PATHFINDER.md` §4.6 cites this as the "can take a transport"
+level. `docs/PATHFINDER.md` §5 cites this as the "can take a transport"
 test in `calc_cost`; `GroupData::can_transport` requires it of **every**
 on-map unit in the group for the toggle (§3.4).
 
@@ -390,7 +390,7 @@ land unit is now cargo. Run21 enters `cast_transport` at frame 3608, 29
 frames after the dock, with `detect_boat_collision` the same frame: the
 AI's first citizen sailing.
 
-### 6.1 Who casts it, and where the order comes from (2026-09-01)
+## 6.1 Who casts it, and where the order comes from (2026-09-01)
 
 **`Unit::set_new_location@005f8d20` is the adder**, and it is the only one:
 a step that would put a unit across the waterline is *converted* rather
@@ -467,7 +467,7 @@ The three draws are frame 3608 of run54/run57 exactly: two
 `Guy::set_anim+0x97a < Unit::set_anim < Unit::do_cast+0xc89` and the boat's
 `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`.
 
-### 6.2 What `cast_transport` does, in order
+## 6.2 What `cast_transport` does, in order
 
 The boat is born at the **caster's own** (48-snapped) position and walked
 to the water; the caster never enters it.
@@ -505,7 +505,7 @@ run57 block 3609 backs 5–7 field for field: the barge's eleven `PATHDATA`
 entries are the scout's, and the top's `flags` is `0` where the scout's
 was `4`.
 
-### 6.3 What lets the path cross water at all
+## 6.3 What lets the path cross water at all
 
 Three predicates, and none of them is `can_transport` alone:
 
@@ -528,7 +528,7 @@ Three predicates, and none of them is `can_transport` alone:
   the unit's own island, and the search then plans a route to the shore
   and stops. `docs/PATHFINDER.md` §14.
 
-### 6.4 Coming ashore — `eject_contents` and `come_out`, the cast run backwards (2026-09-01)
+## 6.4 Coming ashore — `eject_contents` and `come_out`, the cast run backwards (2026-09-01)
 
 **How a barge reaches the shore at all** (item 1143). The boat's goal is
 on land, and a sea unit's `invalid_loc` refuses land unless the path's top

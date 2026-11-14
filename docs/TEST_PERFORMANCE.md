@@ -1,5 +1,17 @@
 # Test-suite performance
 
+**What stands (2026-11-14).** The standing design is in three places: the
+host budget and its figures, "Trial terms (2026-10-17, DECISIONS 75)" (twenty
+CPU slots and 96 GiB in `resources-v3`; `tools/guard.sh` 2 slots and 4 GiB);
+the suite's unit, "The group unit (item 4216, DECISIONS 132 §11)", which also
+holds the kept walk (item 4219) and `harness::trunk` (item 4220); and what a
+lane's own gate runs, DECISIONS 132 §6, measured in "The release step's lanes
+(Loop 4042)". The sections before "The group unit", and the October ones
+between it and "Trial terms", are the history of how it got there, kept as
+written. The independent review they call owed is ruled:
+the trial's verdict (DECISIONS 76) and a month of gates on that branch stand
+for it, and no separate review is owed.
+
 ## Target and measurements
 
 The user-authorized target is 10× lower complete-suite elapsed time, with lower
@@ -62,7 +74,7 @@ See [coverage journal](journal/2026-10-16-coverage-walk.md) for measurements and
 validation status. Warm coverage CPU falls21–25%; four/six-suite samples save
 15%/14% CPU and16%/18% elapsed. Memory falls6% in the four-suite sample and
 is flat in the six-suite sample; no consistent memory-reduction claim.
-Independent review of these optimizations remains owed.
+~~Independent review of these optimizations remains owed.~~ (ruled 2026-11-14: see What stands)
 
 ## Decoded containers and visibility ticking
 
@@ -104,14 +116,14 @@ memory varies upward 5%, so do not extrapolate the contention memory saving to
 one complete suite. New or renamed isolated tests use the system policy until
 measurements justify inclusion; ordinary resource caps still apply. See the
 [ticking/decoding journal](journal/2026-10-16-ticking-decoding.md) for differential
-checks, contention results and landing validation. Independent review remains owed.
+checks, contention results and landing validation. ~~Independent review remains owed.~~ (ruled 2026-11-14: see What stands)
 
 The final required-fixture gate passes on `3b7e6846`: 427.11 seconds,
 1,438.50 CPU seconds, 8,089 MiB sampled tree peak. Compared with the preceding
 recorded gate, time/CPU are roughly flat and peak memory is 18% lower. The selected
 four/six-suite contention samples save 6%/7% CPU and 15%/20% memory; six-suite
 elapsed falls 9%, four-suite elapsed is flat. All fixture request multisets match.
-These observations preserve the unmet 10× target and outstanding independent review.
+These observations preserve the unmet 10× target ~~and outstanding independent review~~ (ruled 2026-11-14: see What stands).
 
 ## Trace frame lookup
 
@@ -189,7 +201,7 @@ no 10× result is established. A fresh full profile is the next decision point.
 
 See `journal/2026-10-16-suite-replay-batch.md` for measurements, executable audits
 and validation state. No claim of 10× is established yet. Scope compatibility is
-also reviewed directly in code; independent review remains owed. Future shared
+also reviewed directly in code; ~~independent review remains owed~~ (ruled 2026-11-14: see What stands). Future shared
 replays must distinguish different corrections, interventions and tuning. The
 parsed store is initially limited to generic widening windows.
 
@@ -256,8 +268,10 @@ This is1.60× full-gate latency, with roughly unchanged CPU; rondata itself
 established no aggregate throughput improvement. See
 `docs/audit/2026-10-16-shared-runner-final.json` for scope and limitations.
 Cargo discovers every workspace release test executable; all non-rondata
-executables and all workspace doctests still run. Each nonignored rondata library
-test runs in a fresh process with exact-name selection and one test thread.
+executables and all workspace doctests still run. ~~Each nonignored rondata library
+test runs in a fresh process~~ (since item 4216 a group's selected tests share one
+process and only a test no group names runs alone: The group unit, below) with
+exact-name selection and one test thread.
 A successful zero-test execution cannot pass. Manifests, individual logs,
 measurements and failures are retained in a fresh report directory. Assertions,
 fixture auditing, survey, offline checks, clippy, formatting and guards remain.
@@ -265,13 +279,15 @@ Scoped/lane gates pass their unchanged exact skip list to this runner. New tests
 still run; manifests record selected, ignored and filtered names. `--combined`
 retains the original combined execution and identical selection.
 
-Every cooperating worktree shares `~/Library/Caches/attrition/resources-v1`:
-sixteen CPU slots and 32 GiB reserved RSS, with admission serialized by flock.
+Every cooperating worktree shares ~~`~/Library/Caches/attrition/resources-v1`:
+sixteen CPU slots and 32 GiB reserved RSS~~ `~/Library/Caches/attrition/resources-v3`:
+twenty CPU slots and 96 GiB reserved RSS (DECISIONS 78; Trial terms, below), with
+admission serialized by flock.
 Each suite uses at most eight isolated workers. An immutable policy file rejects
 worktrees configured with different limits. Workloads run at nice+10, preserving
 the existing monitor's preference for interactive/capture work.
-Builds, clippy, survey and unknown executables reserve eight CPU slots and all
-32 GiB, draining concurrent workloads. Offline checks and formatting reserve two slots/1 GiB; guards reserve eight slots/32 GiB because they can rebuild after source edits.
+Builds, clippy, survey and unknown executables reserve eight CPU slots and ~~all
+32 GiB, draining concurrent workloads~~ 32 of the 96 GiB (`release_gate.phase_budget`). Offline checks and formatting reserve two slots/1 GiB; ~~guards reserve eight slots/32 GiB because they can rebuild after source edits~~ `tools/guard.sh` reserves 2 slots / 4 GiB under a 16 GiB ceiling for its rebuild (Trial terms, below).
 Fixed and sim binaries reserve their requested thread width and 512 MiB/4 GiB
 respectively, allowing smaller checks from different suites to coexist. Known
 tests reserve measured RSS rounded to 256 MiB (minimum 256 MiB), with a separate
@@ -295,7 +311,7 @@ used. Admission is opportunistic, with no strict fairness guarantee. A malformed
 manifest, absent counters, nonzero child exit, changed executable or incomplete
 result set fails. Build revision and executable SHA256 digests are retained;
 assertion logs are read in bounded chunks.
-No result or comparison verdict is reused. Independent review remains owed.
+No result or comparison verdict is reused. ~~Independent review remains owed.~~ (ruled 2026-11-14: see What stands)
 
 
 ## The group unit (item 4216, DECISIONS 132 §11)
@@ -664,7 +680,7 @@ hits/misses/publication. Whole original-reader comparisons additionally cover
 all87 Golden source entries in fresh processes, with confirmed disk hits.
 Source observations remain outside git. See the shared-runner journal for cold,
 warm, CPU, RSS and final gate evidence; local setup speedups are not a10× suite
-claim. Independent review remains owed.
+claim. ~~Independent review remains owed.~~ (ruled 2026-11-14: see What stands)
 
 
 ## Third-pair window replay
@@ -704,7 +720,7 @@ costs extra CPU/memory and is not the normal execution mode.
 Focused tests reject incompatible identities, horizon changes and overlap;
 mutation killers cover RNG state, draw history, object maps, notes, seed order,
 clock omission and site history. Performance and final gate verdict are recorded
-in `docs/journal/2026-10-16-third-pair-replay.md`. Independent review remains owed;
+in `docs/journal/2026-10-16-third-pair-replay.md`. ~~Independent review remains owed;~~ (ruled 2026-11-14: see What stands);
 no simulation behavior, fidelity pin or value floor is intentionally changed.
 
 Measured third-pair result:24 windows/360 compared frames,256890→23016 ticks;
@@ -887,7 +903,7 @@ speedup is inferred. The complete required-fixture gate passes on `5491fe87`:
 271.28s/1472.54CPU/8864MiB,892 rondata and2586 sim tests, exact3276 fixture
 requests retained. Whole-gate cost rises versus the previous successful run;
 this is a rebuild improvement, not a suite-runtime gain. See the [harness journal](journal/2026-10-16-harness-boundary.md) and
-[audit](audit/2026-10-16-harness-boundary.json). Independent review remains owed.
+[audit](audit/2026-10-16-harness-boundary.json). ~~Independent review remains owed.~~ (ruled 2026-11-14: see What stands)
 
 ## Golden near and East Indies observation reuse
 
@@ -909,7 +925,7 @@ rondata161.22→145.58s, CPU1158.05→1037.78 (about10% lower); sampled tree8186
 Schema repopulation makes the gate rondata phase165.20s/1185.64CPU. Whole-suite
 10×, sub-minute/sub-GiB and concurrent-agent capacity remain unproven.
 See [journal](journal/2026-10-16-golden-replay.md) and
-[audit](audit/2026-10-16-golden-replay.json). Independent review remains owed.
+[audit](audit/2026-10-16-golden-replay.json). ~~Independent review remains owed.~~ (ruled 2026-11-14: see What stands)
 
 ## Golden civilian observations
 
@@ -930,7 +946,7 @@ decodes against raw readers. Complete warm rondata145.58→134.05s,
 CPU1037.78→934.29; golden CPU283.12→164.85. Sampled tree memory rises8186→8541MiB;
 no aggregate memory improvement is claimed. Whole-suite10× remains unmet. See
 [journal](journal/2026-10-16-golden-civilian.md) and
-[audit](audit/2026-10-16-golden-civilian.json). Independent review remains owed.
+[audit](audit/2026-10-16-golden-civilian.json). ~~Independent review remains owed.~~ (ruled 2026-11-14: see What stands)
 
 ## Bounded whole-capture consumers
 
@@ -946,7 +962,7 @@ This selected pressure experiment is not four complete suites. Full required-fix
 gate passes on `d68ee904`:899 rondata/2586 sim; exact3276 requests retained.
 Complete warm suite134.05→132.21s, CPU934.29→924.28s; sampled tree8541→7184MiB
 (16% lower). Whole-suite10× remains unmet. See [journal](journal/2026-10-17-whole-capture.md)
-and [audit](audit/2026-10-17-whole-capture.json). Independent review remains owed.
+and [audit](audit/2026-10-17-whole-capture.json). ~~Independent review remains owed.~~ (ruled 2026-11-14: see What stands)
 
 ## Bounded world and harness consumers
 
@@ -962,7 +978,7 @@ fixture requests retained. Complete warm suite132.21→132.86s, CPU924.28→923.
 sampled peak7184→7813MiB (no full-suite memory win). Nearby original-binary control:
 133.53s/930.32CPU/7384MiB. Whole-suite10× remains unmet. See
 [journal](journal/2026-10-17-world-harness.md) and
-[audit](audit/2026-10-17-world-harness.json). Independent review remains owed.
+[audit](audit/2026-10-17-world-harness.json). ~~Independent review remains owed.~~ (ruled 2026-11-14: see What stands)
 
 ## Trial terms (2026-10-17, DECISIONS 75)
 

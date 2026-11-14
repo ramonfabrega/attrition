@@ -9,8 +9,6 @@ number is its checklist row (`docs/audit/README.md`).
 You are a worker lane on the attrition repo, running on **{model}**. Your
 item is **{item}**, on {track}. I am `commander`, the driver, on `worktree-replan-pdb`; your base is `{base}`.
 
-Read `docs/QUEUE.md`'s opener, then what the item cites.
-
 ## booked
 
 **The frame and the draw delta are the booking; the rest is the item
@@ -529,18 +527,25 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   **`no verdict (error)` is an outage: a Monitor, five minutes to an
   hour**; a human's need: one line (1315).
 
-## landing
+## landing-word
 
 - **The word moves with its value diff beside it**: the record, the
   field and both sides' values on the word's frame, or the frame the
   state first parted, walked back; the constant re-pinned, its delta in
   its comment, its block in its widening, its window in the coverage
   driver's slice (1959).
+- **At a trace's end, `runwiring.py runNNN` says what the word owes**
+  (1729); a `Pair`'s word and a golden `WANT_CH*` list are consts
+  `repin.py --write` rewrites (1767, 2071).
+- Read your RUNS row (1285); say if you moved a word (1289).
+
+## landing
+
 - **Your journal is `docs/journal/<the day you land>-item-{item}.md`**,
   yours alone, before the gate (3089): the modules touched; a "for the
-  Loop" line: `none`, or a finding I file; **at 300 k, one line to me** (1637,
-  1638): draft, commit, end the turn **done**: a `blocked` row or a
-  suggested reply holds the clear (3931); **a harness the draft commits
+  Loop" line: `none`, or a finding for the pass; **at 400 k, one line to me**
+  (1637, 1638; DECISIONS 131 §6): draft, commit, end the turn **done**:
+  a `blocked` row or a suggested reply holds the clear (3931); **a harness the draft commits
   has run once, its exit in the journal** (3954).
 - **Documents and journal by the file tool, never in a backgrounded `&&`
   chain (1781); commit, then gate, no suite first (2409, 2415).** Parks:
@@ -549,19 +554,14 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   --lane --item {item} --tests {tests}{widen}` (1567, 1623, 3313), to a
   file, backgrounded; read its exit; quote `Lane verdict:`, `Gate
   steps:` and `Gate minutes:` (969, 3224); its verdict: a second commit.
-  **A red on the journal-quote or Loop-line guard alone is forgiven**
-  (3277, 3328).
+  **A red on the journal-quote guard alone is forgiven** (3277).
 - **`ccc update lane-{item}` takes the row, never a SHA** (1557);
   `--keep-conflicts` on a conflict, keep both, commit (1161); **a `Base
   moved:` past the paperwork and row lists is an update and a second
   gate; on row lists alone, the line's steps, then land** (3341, 3366,
-  3401, 3694); a re-pinned count is the merged tree's (1151); read your
-  RUNS row (1285); say if you moved a word (1289). **`check.sh` exits as
+  3401, 3694); a re-pinned count is the merged tree's (1151). **`check.sh` exits as
   cargo does, never a pipe's** (3327); **paperwork guards run under
   `--lane`** (3373); **never delete under `~/ron-data`** (3375).
-- **At a trace's end, `runwiring.py runNNN` says what the word owes**
-  (1729); a `Pair`'s word and a golden `WANT_CH*` list are consts
-  `repin.py --write` rewrites (1767, 2071).
 - **Constants and widenings are yours to pin; the queue's lines mine**: say what books and parks, the next word by frame and delta.
 - **Done and pushed: one line to me** (1412; 3503) —
   `SendMessage` to `commander`: your origin tip SHA,

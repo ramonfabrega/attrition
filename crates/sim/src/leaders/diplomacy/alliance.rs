@@ -144,7 +144,8 @@ impl Sim {
     /// 2. **Accepted at once** between two computers with `aggression[t]`
     ///    0: `action_respond(me, t, 1)`, then `counteroffer[t] = 0`.
     /// 3. **The price**: `(epoch + 1) · 200` at peace, `· 400` at war, my
-    ///    own Military epoch (`data_encrypted + 0xe8`); +100 for a rusher,
+    ///    own Military epoch (`data_encrypted + 0xe8`); SEAM: halved under
+    ///    `semaphore[0] & 4` (6bf45a, multiplayer), never set; +100 for a rusher,
     ///    else −100 for a boomer below epoch 4; −400 with
     ///    [`Rivals::capital`], −200 with [`Rivals::racer`].
     ///

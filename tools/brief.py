@@ -54,14 +54,20 @@ METHOD_KINDS = {'residue', 'chapter', 'coverage', 'reading', 'sweep'}
 QUEUE = ROOT / 'docs/QUEUE.md'
 
 # The frame's sections a kind of brief carries, in the order they are read.
+# `booked` is a residue item's booking (the frame and the draw delta, the
+# unit by `TypeIndex`): a residue, chapter or reading item has one, and the
+# other kinds are told nothing about it. `landing-word` is what a word's lane
+# lands beside the common `landing` (the value diff and the widening, the
+# trace's `runwiring.py`, the RUNS row), for the kinds that move a word, a
+# sweep row or a trace (the docs-compaction pass of 2026-11-14, R13).
 KINDS = {
     'residue': ('opening', 'booked', 'lanes', 'before-reading', 'reading',
-                'capture', 'build', 'landing'),
+                'capture', 'build', 'landing-word', 'landing'),
     'chapter': ('opening', 'booked', 'lanes', 'before-reading', 'reading',
-                'chapter', 'capture', 'build', 'landing'),
+                'chapter', 'capture', 'build', 'landing-word', 'landing'),
     # A sweep batch (DECISIONS 63 (iv), parked 1629): no word, no booking
     # paragraph — its section says how a fanned batch is cut and merged.
-    'sweep': ('opening', 'lanes', 'sweep', 'landing'),
+    'sweep': ('opening', 'lanes', 'sweep', 'landing-word', 'landing'),
     # A reading lane (DECISIONS 84): the decompile, for the functions its
     # document cites and no trace enters (`blind::NEVER`), into claims each
     # naming the capture that would falsify it. No capture, no packet, no
@@ -71,22 +77,22 @@ KINDS = {
     # retaken at `cover=1` on the click-free pool, checked against its `cover=0`
     # twin and pinned into `blind::TRACES`, so the functions a reading's
     # captures-owed table names leave `blind::NEVER`. No word moves.
-    'coverage': ('opening', 'lanes', 'capture', 'coverage-item', 'landing'),
+    'coverage': ('opening', 'lanes', 'capture', 'coverage-item', 'landing-word', 'landing'),
     # A structure move (Loop 4022; `docs/STRUCTURE.md` §1, §5): no behaviour
     # change, every floor unchanged, gated whole; its number is `shape.py`'s.
-    'structure': ('opening', 'booked', 'lanes', 'structure', 'landing'),
+    'structure': ('opening', 'lanes', 'structure', 'landing'),
     # A render item (Loop 4022; `docs/RENDERER.md` §5.4, §6): K of M, the
     # oracle's rungs, and the render tests' preconditions (4018's Loop line).
-    'render': ('opening', 'booked', 'lanes', 'render', 'landing'),
+    'render': ('opening', 'lanes', 'render', 'landing'),
     # A start item (the steering pass of 2026-11-12; `docs/START.md` §3, §5):
     # lobbies whose start block the builder reproduces from `GAMEINFO`, the
     # oracle each lobby's `[Start Game]` dump on disk; gated on the tests
     # that stand on the built start (`ALWAYS_TESTS`, DECISIONS 132).
-    'start': ('opening', 'booked', 'lanes', 'start', 'landing'),
+    'start': ('opening', 'lanes', 'start', 'landing'),
     # An input item (the same pass; `docs/CLIENT_INPUT.md`): a person's events
     # minted as the script's orders, the original's playback of their file
     # the oracle, so it carries the capture rows.
-    'input': ('opening', 'booked', 'lanes', 'input', 'capture', 'landing'),
+    'input': ('opening', 'lanes', 'input', 'capture', 'landing'),
 }
 TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the sweep track',
           'reading': 'the reading track', 'coverage': 'the coverage track',
@@ -217,6 +223,25 @@ def open_items_text(queue):
     for m in re.finditer(rf'^({N})\. \*\*.*?(?=^{N}\. \*\*|\Z)', body, re.S | re.M):
         out[int(m.group(1))] = m.group(0).rstrip('\n')
     return out
+
+
+def queue_mark(text):
+    """`'whole'`, `'scoped'` or None: the queue's own mark on an item, read
+    in the first parenthesis after its bold headline (`(rules; scoped; …)`,
+    `(structure; **whole**; …)`). DECISIONS 133 §2: the mark decides the
+    lane gate's widening before the kind does. Item 4204 was marked whole,
+    went out on a start lane's filters with `--no-widen`, and its eight
+    reds were the booking gate's to find; six residue lanes on scoped
+    items skipped nothing (the pass of 2026-11-14)."""
+    m = re.search(r'\*\*.*?\*\*\s*\((.*?)\)', text, re.S)
+    if not m:
+        return None
+    words = [w.strip() for w in m.group(1).split(';')]
+    if '**whole**' in words or 'whole' in words:
+        return 'whole'
+    if 'scoped' in words:
+        return 'scoped'
+    return None
 
 
 def open_items(queue):
@@ -437,13 +462,18 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
     if missing:
         raise ValueError(f'tools/brief/frame.md has no section {missing}')
 
+    # The widening: the queue's mark first, the kind's default without one.
+    mark = queue_mark(items[item])
+    widen = {'whole': '', 'scoped': ' --no-widen'}.get(
+        mark, '' if kind == 'residue' else ' --no-widen')
+
     def fill(text):
         if kind in WHOLE:
             text = text.replace('--tests {tests}{widen}', '--whole')
         return (text.replace('{item}', str(item)).replace('{model}', model)
                 .replace('{base}', base).replace('{track}', TRACKS[kind])
                 .replace('{tests}', ' '.join(tests))
-                .replace('{widen}', '' if kind == 'residue' else ' --no-widen'))
+                .replace('{widen}', widen))
 
     others = [(n, h) for n, h in open_items(queue) if n != item]
     # The other sweep lanes' worktrees, for `census.py --unbacked --claimed`
@@ -455,7 +485,13 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
     if 'booked' in KINDS[kind]:
         out += [fill(body['booked']), '']
     out += ['## Read first', '']
-    out += [f'- `docs/QUEUE.md`: the opener, and item {item}.']
+    # The docs-compaction pass of 2026-11-14 (R0): a lane read `head -60` of
+    # the queue, 18 KB of which its own item, already above, was 600 B. The
+    # frame's opening said the same as this line, and the frame stands at its
+    # ceiling, so the line alone says it.
+    out += ['- `docs/QUEUE.md`: its handoff to the `Scoreboard:` line (the dated line and the two '
+            'bullets: the headline and who is out), then what the item cites; the lines below the '
+            'handoff are pins a test reads, not reading.']
     if kind in METHOD_KINDS:
         out += ['- `docs/METHOD.md`, before your first probe: the booking, widening, capture and '
                 'reading clauses `CLAUDE.md` keeps in a sentence each.']
@@ -497,11 +533,12 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
               'reading-item': 'A reading item', 'coverage-item': 'A coverage capture',
               'structure': 'A structure item', 'render': 'A render item',
               'start': 'A start item', 'input': 'An input item',
-              'build': 'Build', 'landing': 'Landing'}
+              'build': 'Build', 'landing-word': "A word's landing", 'landing': 'Landing'}
+    first_landing = next(n for n in KINDS[kind] if n in ('landing-word', 'landing'))
     for name in KINDS[kind]:
         if name in ('opening', 'booked', 'lanes'):
             continue
-        if name == 'landing' and note.strip():
+        if name == first_landing and note.strip():
             out += ['', '## This item', '', note.strip()]
         out += ['', f'## {titles[name]}', '', fill(body[name])]
     return '\n'.join(out) + '\n'

@@ -4194,7 +4194,7 @@ the window — `order_num` is stepped by every `Group::action_*`. With the
 army's own cadence frames at 508 and 764 (`docs/ARMY.md` §5), that means no
 tick reached it at all, which is what `docs/COMBAT.md` §23 then explains:
 `Armies::emergency` is the city alarm's and a unit taking a hit never
-reaches it. `docs/ARMY.md` §15.8 carries the corrected predicate; the golden
+reaches it. `docs/ARMY.md` §15, item 8, carries the corrected predicate; the golden
 word moved **624 → 621** and the value diff with it, four blocks of six
 units now exact.
 
@@ -21369,7 +21369,7 @@ SHA-256 `67a0be9aed9be2c33fce5bcf82c3f5840d001b7e02f6a9a7d327aafe4df80d13`.
 `tools/gamelog/captures.txt`'s run1032 stanza through `viadriver.sh tools/gamelog/runqueue.sh - 1032`. It is chapter
 eleven's golden lobby (`cfg: -`, map 14, seed 12345) and its three `add` lines, `616 select 6 who=0`, `616 camera
 16,44`, no `!ffwd`, the per-frame dump from 605 at `end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2` and
-`misc:COMMANDMANAGER=1` (the stanza's new `misc:` key). The clicks came from `tools/gamelog/handdriver.sh`, which
+`misc:COMMANDMANAGER=1` (the stanza's new `misc:` key). The clicks came from `tools/gamelog/handdriver.sh` (removed since; see item 3485, `docs/DECISIONS.md` 89), which
 reads them from `/tmp/ron-runs/hand-1032/cmd` while the game runs. The first was written before the launch: wait for
 block 622, then right-click the viewport's centre (960, 445) on the Supply Wagon `0/7`. The second and third were
 aimed from that click's screenshot: the card's Move button (34, 935), then a pick on the wagon (958, 492). The game
@@ -21449,7 +21449,7 @@ SHA-256 `eabe1f120aea0bcc77967fbc702eb1f0b067719d74cb07b0e12ae4d3cae7cf1d`.
 **What the disk could not answer**: no trace enters `GroupOut::issue_attack@0070b060`. Chapter fifteen's `734 @attack`
 calls the manager's copy (GOLDEN §144.3). The take is chapter fifteen's lines with `620 @move` kept and `734 @attack`
 dropped, plus `700 select 6 who=0`, `700 select 9 who=0 +` and `700 camera 16,58`, at the twin's `end:`/`start:` and
-`misc: COMMANDMANAGER=1` from 605. The driver is `tools/gamelog/handdriver.sh`, and its clicks were aimed from the
+`misc: COMMANDMANAGER=1` from 605. The driver is `tools/gamelog/handdriver.sh` (removed since; see item 3485, `docs/DECISIONS.md` 89), and its clicks were aimed from the
 run's own screenshots.
 - Queue lane (lane 1). DLL `d6ef5de1…`, rebuilt from this tree. Minutes waited on another lane: none (the lane was
   free at 18:11).

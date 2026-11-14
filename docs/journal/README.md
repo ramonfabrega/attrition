@@ -15,9 +15,11 @@ drops or duplicates an entry silently. A file per landing cannot conflict.
 
 The rules that ride with it:
 
-- **The first line is the heading the single file used**: `## <date> —
-  item <N>: <title> (<model>)`. The ledger's `item N` and heading regexes
-  read it, so a deletion from the queue is still caught.
+- **The first line is `# Item <N>: <title>`, with the model on the
+  italic line under it** (118 of the 132 journals of 2026-11-10 to 11-14);
+  the single file's heading, `## <date> — item <N>: <title> (<model>)`,
+  stays legal. The ledger's `item N` and heading regexes read both, so a
+  deletion from the queue is still caught.
 - **Everything the working agreement asks of a journal entry still
   applies** — the score before and after, the value diff on the frame the
   word moved, what was established and what was not.
@@ -25,5 +27,5 @@ The rules that ride with it:
   reports its numbers in its done message; the commander books findings
   and writes the scoreboard line. The floors test in `rondata::diff` stays
   the worker's, so a commander who forgets the line fails the gate.
-- **A steering pass writes to `docs/JOURNAL.md`**, not here: it is the
-  main thread, the only writer that day, and the chronicle is its record.
+- **A pass's story is its record under `docs/audit/`; `docs/JOURNAL.md`
+  takes an entry when the pass chooses.** A pass never writes here.

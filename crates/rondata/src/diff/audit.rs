@@ -425,7 +425,10 @@ const UNAUDITED_LINES: &[&str] = &["Scoreboard"];
 /// closes without its row is named here rather than passing unseen. The
 /// queue's lines are read with the floors guards' own parser
 /// (`floors::ai_line_parts`), and a line of `w<N> of` parts that neither
-/// list names fails too, so a new line cannot slip past the audit.
+/// list names fails too, so a new line cannot slip past the audit. **A
+/// line in the closed form** (`every word whole · <n>`, the pass of
+/// 2026-11-14, R1; `floors::ai_line_whole`) names no word: its whole words
+/// are its pinned rows', and the same recogniser finds an unlisted one.
 #[test]
 fn every_whole_scoreboard_word_is_audited() {
     let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
@@ -437,15 +440,8 @@ fn every_whole_scoreboard_word_is_audited() {
             "docs/QUEUE.md has no `{head}` line"
         );
     }
-    let (missing, stale) = audit_gaps(&q, AUDITED_LINES, AI_WORDS, OWED);
-    // Any other line the same parser reads whole is a scoreboard line too.
-    let unlisted: Vec<&str> = q
-        .lines()
-        .filter_map(|l| l.split_once(':').map(|(p, _)| (p, l)))
-        .filter(|(p, _)| !AUDITED_LINES.contains(p) && !UNAUDITED_LINES.contains(p))
-        .filter(|(p, l)| super::floors::ai_line_parts(l, p).is_ok())
-        .map(|(p, _)| p)
-        .collect();
+    let (missing, stale) = audit_gaps(&q, AUDITED_LINES, &pinned_rows(), OWED);
+    let unlisted = unlisted_lines(&q);
     assert!(
         unlisted.is_empty(),
         "docs/QUEUE.md carries `w<N> of <length>` lines the audit's guard does not \
@@ -464,14 +460,40 @@ fn every_whole_scoreboard_word_is_audited() {
     );
 }
 
+/// Every pinned row an audited line is read against: `AI_WORDS`, and the
+/// `Long captures:` line's `LONG_CAPTURES` (`floors::ai_line_rows`).
+fn pinned_rows() -> Vec<AiWord> {
+    AI_WORDS.iter().chain(LONG_CAPTURES).copied().collect()
+}
+
+/// The queue's lines that read as a scoreboard line — `w<N> of` parts the
+/// floors guards' parser reads, or the closed form its recogniser does —
+/// and that neither [`AUDITED_LINES`] nor [`UNAUDITED_LINES`] names.
+fn unlisted_lines(q: &str) -> Vec<&str> {
+    q.lines()
+        .filter_map(|l| l.split_once(':').map(|(p, _)| (p, l)))
+        .filter(|(p, _)| !AUDITED_LINES.contains(p) && !UNAUDITED_LINES.contains(p))
+        .filter(|(p, l)| {
+            super::floors::ai_line_parts(l, p).is_ok()
+                || super::floors::ai_line_whole(l, p).is_some()
+        })
+        .map(|(p, _)| p)
+        .collect()
+}
+
 /// The words whole on `prefix`'s line: the handoff's `w<N> of <N>` parts,
 /// and every `pinned` row of that line whose word has reached its length
 /// (Loop 3998). The line is the commander's, written at the merge; the pin
-/// is the lane's own, so a word its lane closes is owed its audit there.
+/// is the lane's own, so a word its lane closes is owed its audit there. A
+/// line in the closed form names no part, and its words are the pins'
+/// alone (the floors guards hold the form to every row whole).
 fn whole_words(q: &str, prefix: &str, pinned: &[AiWord]) -> Vec<String> {
     let line = q.lines().find(|l| l.starts_with(&format!("{prefix}:")));
-    let parts =
-        line.map(|l| super::floors::ai_line_parts(l, prefix).unwrap_or_else(|e| panic!("{e}")));
+    let parts = line.map(|l| match super::floors::ai_line_whole(l, prefix) {
+        Some(Ok(_)) => Vec::new(),
+        Some(Err(e)) => panic!("{e}"),
+        None => super::floors::ai_line_parts(l, prefix).unwrap_or_else(|e| panic!("{e}")),
+    });
     let mut out: Vec<String> = parts
         .unwrap_or_default()
         .into_iter()
@@ -559,6 +581,49 @@ fn a_word_the_pin_closes_is_owed_before_the_handoff_says_so() {
         audit_gaps(q, &["Melee"], &[row(744)], &staged).1,
         ["Melee: GreatSaharaCorpseMelee"]
     );
+}
+
+/// **The audit reads the handoff in the closed form** (the pass of
+/// 2026-11-14, R1): the queue as it stands, with every line whose rows are
+/// all whole rewritten as `every word whole · <n>`, owes the same audits
+/// as the per-row queue — none lost where the line names no word — and a
+/// new line written in the closed form is found unlisted.
+#[test]
+fn the_closed_form_owes_the_same_audits() {
+    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+    let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+    let mut lines = super::floors::AI_LINES.to_vec();
+    let mut audited = AUDITED_LINES.to_vec();
+    lines.sort_unstable();
+    audited.sort_unstable();
+    assert_eq!(lines, audited, "the lines the closed form is written on");
+    let closed = super::floors::closed_form_queue(&q);
+    assert!(
+        super::floors::closed_form_took(&closed),
+        "a line's rows are all whole and no line took the closed form"
+    );
+    let pinned = pinned_rows();
+    for row in &pinned {
+        assert!(
+            AUDITED_LINES.contains(&row.line),
+            "{} names no audited line",
+            row.line
+        );
+    }
+    for prefix in AUDITED_LINES {
+        let mut per_row = whole_words(&q, prefix, &pinned);
+        let mut whole = whole_words(&closed, prefix, &pinned);
+        per_row.sort();
+        whole.sort();
+        assert_eq!(per_row, whole, "{prefix}: the closed form's whole words");
+    }
+    assert_eq!(
+        audit_gaps(&q, AUDITED_LINES, &pinned, OWED),
+        audit_gaps(&closed, AUDITED_LINES, &pinned, OWED)
+    );
+    assert!(unlisted_lines(&closed).is_empty());
+    let new = format!("{closed}Fourth map: every word whole \u{b7} 3\n");
+    assert_eq!(unlisted_lines(&new), ["Fourth map"]);
 }
 
 audited! {
