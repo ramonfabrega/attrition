@@ -1,8 +1,9 @@
-# Every rondata release test's peak resident set alone, 2026-11-13, tools/suite_timings.py (tree e95706d5).
+# Every rondata release test's peak resident set alone, 2026-11-14, tools/suite_timings.py (tree 38674149).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
 2826	free::ages::the_draw_list_across_the_ages_resolves
+2261	lobby::tests::the_page_starts_every_lobby_on_disk
 1932	diff::testkit::indexed_road_setups_preserve_every_initial_field_except_audit_bodies
 1753	diff::unit::tests::run89_s_window_is_great_lakes_word_frame
 1679	diff::unit::tests::the_install_s_piece_lengths_match_the_dumps
@@ -1043,6 +1044,7 @@
 447	diff::maya_word::maya_word_first_parting
 447	diff::golden::chapter_one_hundred_and_twenty_s_window_is_widened_whole
 447	diff::golden::chapter_one_hundred_and_sixteen_holds_to_the_golden_word
+446	mapgen::tests::british_isles_s_mask_is_the_traced_stream
 446	diff::golden::chapter_one_hundred_and_twenty_four_holds_to_the_golden_word
 446	diff::golden::chapter_fifty_six_s_word_frame_is_widened_whole
 446	diff::golden::chapter_one_hundred_and_twenty_three_holds_to_the_golden_word
@@ -1397,6 +1399,7 @@
 392	diff::classical_melee::classical_melee_s_kushite_archers_loose_from_the_bow
 392	diff::audit::greek_word_corrections_change_nothing
 392	diff::greek_word::run961c_s_gap_is_widened_whole
+391	diff::setup::tests::a_gaia_figure_s_piece_is_the_gaia_arm_s
 391	diff::roman_word::run956_s_word_frame_is_widened_whole
 391	diff::indian_sahara_word::run1007c_s_word_frame_is_widened_whole
 390	diff::egyptian_gunpowder_pair::egyptian_gunpowder_pair_run1267_s_closing_frame_is_widened_whole
@@ -1515,6 +1518,7 @@
 358	diff::harness::tests::run12_s_end_of_frame_words_are_read
 358	diff::iroquois_word::run932_s_word_frame_is_widened_whole
 358	diff::iroquois_enlightenment_pair::iroquois_enlightenment_pair_captures_say_their_lobby
+358	diff::diplomacy_take::run1575_s_declarations_are_ours
 357	diff::checksum_lines::packets::spanish_word_packets
 357	diff::diplomacy_take::run1575_s_diplomacy_movers_are_the_script_s
 357	diff::iroquois_word::run930_s_squad_is_widened_whole
@@ -1530,6 +1534,7 @@
 354	diff::start_walk::the_original_s_playback_of_our_file_walks_in_lockstep
 354	diff::persian_medieval_pair::persian_medieval_pair_captures_say_their_lobby
 354	diff::unit::tests::every_dumped_unit_has_crew_size_plus_one_figures
+353	diff::checksum_lines::packets::run1575_take_packet
 353	diff::iroquois_word::run926_s_word_frame_is_widened_whole
 353	diff::iroquois_word::run928_s_word_frame_is_widened_whole
 353	diff::sea_melee::sea_melee_run1487_s_window_is_widened_whole
@@ -1539,6 +1544,7 @@
 352	diff::diplomacy_take::run1575_s_word_is_pinned_as_found
 352	diff::third::tests::run442_s_word_frame_is_widened_whole
 352	diff::turkish_information_pair::turkish_information_pair_captures_say_their_lobby
+352	diff::diplomacy_take::run1575_s_alliance_parts_without_the_human_s_proposal
 351	diff::aztec_medieval_pair::aztec_medieval_pair_the_long_s_stride_walks_back_from_2556
 351	diff::checksum_lines::packets::german_modern_pair_packets
 350	diff::lakota_gunpowder_pair::lakota_gunpowder_pair_the_long_s_stride_walks_back_from_4187
@@ -1550,6 +1556,8 @@
 348	diff::french_enlightenment_pair::french_enlightenment_pair_captures_say_their_lobby
 348	diff::setup::tests::the_style_s_six_territory_limits_are_the_start_dump_s
 347	diff::iroquois_ancient_pair::iroquois_ancient_pair_captures_say_their_lobby
+347	diff::diplomacy_take::run1575_s_peace_is_the_french_answer
+346	diff::diplomacy_take::run1575_s_taunt_is_answered_as_the_original_s
 346	diff::sahara_toughest::tests::run547_s_word_frame_is_widened_whole
 346	diff::audit::maya_information_pair_corrections_change_nothing
 346	diff::maya_information_pair::maya_information_pair_the_long_s_stride_is_widened
@@ -1557,9 +1565,12 @@
 346	diff::chinese_enlightenment_pair::chinese_enlightenment_pair_the_long_s_stride_walks_back_from_3263
 345	diff::spanish_information_pair::spanish_information_pair_run1489b_s_closing_frame_is_widened_whole
 345	diff::audit::chinese_enlightenment_pair_corrections_change_nothing
+345	diff::diplomacy_take::run1575_s_taunt_parts_without_its_chat
 344	mapgen::tests::old_world_s_place_all_and_tail_are_7859_to_7870
 344	diff::unit::tests::the_walk_gives_every_dumped_guy_its_own_piece
+344	diff::diplomacy_take::run1575_s_peace_parts_without_the_human_s_proposal
 343	diff::greek_enlightenment_pair::greek_enlightenment_pair_captures_say_their_lobby
+342	diff::diplomacy_take::run1575_s_alliance_is_found_short
 342	diff::maya_word::run973_s_word_frame_is_widened_whole
 342	diff::sahara_toughest::tests::run529_s_word_frame_is_widened_whole
 342	diff::audit::iroquois_sahara_word_corrections_change_nothing
@@ -1604,6 +1615,7 @@
 331	diff::inca_enlightenment_pair::inca_enlightenment_pair_run1323_s_gap_is_widened_whole
 331	diff::british_modern_pair::british_modern_pair_the_long_s_stride_is_widened
 330	diff::sahara_toughest::tests::run500_s_word_frame_is_widened_whole
+329	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
 328	diff::turkish_enlightenment_pair::turkish_enlightenment_pair_run1159b_s_word_frame_is_widened_whole
 327	diff::german_industrial_pair::german_industrial_pair_captures_say_their_lobby
 327	mapgen::tests::himalayas_s_mask_is_the_traced_7807_and_stream
@@ -1659,6 +1671,7 @@
 307	diff::egyptian_information_pair::egyptian_information_pair_captures_say_their_lobby
 306	diff::egyptian_gunpowder_pair::egyptian_gunpowder_pair_captures_say_their_lobby
 306	diff::lakota_enlightenment_pair::lakota_enlightenment_pair_captures_say_their_lobby
+306	diff::checksum_frames::the_minted_packets_name_each_first_parting
 305	diff::world::tests::the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well
 305	diff::battery::the_mesa_game_s_closing_mines_take_our_cliffs
 304	diff::corpse_melee::corpse_melee_staging_walk
@@ -1877,7 +1890,9 @@
 149	diff::city::tests::run8_s_frame_2_income_is_the_city_and_nothing_the_citizens_have_reached
 148	diff::minted::the_main_view_s_scout_holds_the_move_s_formation_on_both_sides
 148	diff::minted::the_minted_packages_round_trip_and_name_the_built_start_s_objects
+147	lobby::tests::a_bent_page_parts_the_east_indies_start
 143	diff::unit::tests::the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture
+142	diff::checksum_frames::the_hook_s_values_are_the_printed_record_s
 138	diff::japanese_ancient_pair::japanese_ancient_pair_is_no_other_lobby
 135	diff::minted::the_clicked_main_view_minted_packages_round_trip
 135	artdata::tests::the_pieces_decode
@@ -1902,15 +1917,21 @@
 102	diff::unit::tests::the_frozen_frame_s_figures_do_not_step_their_clocks
 101	diff::chinese_medieval_pair::chinese_medieval_pair_is_no_other_lobby
 93	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_is_no_other_lobby
+85	diff::checksum_frames::the_world_is_the_original_s_on_the_start_by_section
 80	writers::a_field_the_sim_writes_is_read_by_something
 79	diff::build::tests::a_british_barracks_pays_one_bowmen_as_three_chained_units
 77	diff::turkish_enlightenment_pair::turkish_enlightenment_pair_is_no_other_lobby
 76	diff::setup::tests::a_leader_s_opening_units_are_its_own_nation_s
 75	recgame::tests::what_our_file_borrows_is_constant_for_one_lobby_s_options
 72	diff::shutdown::tests::the_closing_dump_lags_one_tick_on_one_unit
+66	load::memo::a_kept_load_is_the_load_a_fresh_read_builds
 64	diff::start::tests::the_harness_lobby_s_map_is_the_traced_setup_path
 64	diff::leader::tests::run111_s_block_9381_list_is_make_me_s_from_four_offers
 63	diff::world::tests::run61_s_birds_fly_where_the_original_s_do
+62	stores::tests::the_scan_finds_dow_s_writers_and_a_perturbed_scan_misses_them
+60	stores::tests::the_frozen_leaves_every_store_writes_zero
+60	stores::tests::the_scan_s_premises_hold_on_the_image
+60	stores::tests::the_quiet_releases_writers_are_the_documented_ones
 59	capture::archive::tests::byte_roundtrip_seeks_and_chunk_boundaries
 56	diff::harness::tests::great_lakes_s_word_draws_are_a_road_search_and_8186_spends_none
 55	diff::order::tests::two_order_lists_that_agree_are_walked_front_first_and_report_nothing
@@ -1919,6 +1940,7 @@
 54	diff::order::tests::the_path_stack_is_compared_bottom_first
 53	recgame::tests::the_embedded_combat_table_is_the_composed_one
 53	diff::unit::tests::run92_says_great_lakes_7674_takes_get_loc_s_second_arm
+52	mapgen::tests::warring_states_s_mask_is_the_traced_stream
 51	typesdump::tests::run3_s_type_dump_is_the_program_s_on_every_check
 51	load::tests::a_sim_can_be_built_from_the_load
 51	load::tests::the_citizen_loads_as_the_harness_transcribed_it
@@ -1944,6 +1966,7 @@
 47	diff::golden::chapter_seven_b_s_pair_is_one_game_until_the_gate
 41	diff::golden::chapter_four_s_two_captures_are_one_game
 40	blind::tests::the_issuer_guard_reads_through_the_coverage_jmp
+40	blind::tests::the_checksum_hook_folds_a_frame_s_calls
 39	capture::archive::tests::indexed_raw_and_archive_preserve_duplicates_setup_and_siblings
 39	diff::third_pair::run596_is_refused_as_a_complete_pair_capture
 39	blind::tests::the_log_stride_opens_one_block_in_n
@@ -2019,6 +2042,8 @@
 9	diff::floors::tests::a_widening_s_test_holds_its_pins_under_the_guard
 9	diff::golden::run223_s_air_orders_are_read_whole
 9	ledger::tests::every_differ_module_is_on_the_ledger
+9	diff::harness::trunk::tests::a_trunk_past_its_rungs_doubles_its_cadence
+8	diff::harness::trunk::tests::a_run_up_resumes_the_rung_an_equal_state_left_and_reaches_the_plain_state
 8	lobby::tests::a_bent_event_parts_the_lobby
 8	lobby::tests::the_page_refuses_what_it_cannot_hold
 8	mapgen::tests::great_sahara_s_groups_parse_as_read
@@ -2028,6 +2053,10 @@
 8	capture::indexed::tests::eof_is_a_valid_boundary_but_a_changed_file_is_not
 8	diff::coverage::the_recorder_tells_one_object_block_from_another
 8	artdata::tests::every_model_and_animation_the_install_ships_decodes_but_two
+8	diff::harness::trunk::tests::a_rider_s_later_run_ups_take_the_rungs_past_where_it_stands
+8	diff::harness::trunk::tests::the_verifier_refuses_a_rung_that_is_not_the_plain_walk_s_state
+8	diff::harness::trunk::tests::a_walk_that_ticks_itself_leaves_the_rungs_a_run_up_takes
+7	diff::harness::trunk::tests::a_state_past_frame_zero_a_short_run_up_and_a_process_not_sharing_tick_plainly
 7	artdata::tests::the_whole_animation_reader_agrees_with_key_times
 7	gamelog::tests::an_attack_ground_order_is_read_whole
 7	gamelog::tests::world_cells_split_the_flat_run_at_each_flags_line
@@ -2057,6 +2086,8 @@
 6	diff::harness::prefix::tests::an_overlapping_walk_resumes_from_the_last_walk_s_start
 6	golden::tests::every_chapter_stages_what_it_says_it_stages
 6	golden::tests::an_issuer_line_naming_a_missing_object_is_refused_whole
+5	artdata::tests::the_tileset_light_is_read
+5	artdata::tests::the_tileset_tint_is_read
 5	diff::oracle::a_leader_compare_walks_the_lobby_s_seats_never_a_literal
 5	lobby::tests::the_roster_reads_every_offered_list
 5	diff::floors::tests::every_pinned_golden_word_is_on_the_line_s_list
@@ -2184,6 +2215,15 @@
 5	golden::tests::meet_is_the_met_bit_by_target
 5	load::tests::masks_txt_reads_the_first_grid_of_each_section
 5	recgame::tests::a_truncated_stream_is_refused
+5	stores::tests::a_small_image_is_scanned_and_seen_red
+5	diff::diplomacy_take::diplomacy4206_s_taunt_is_minted_from_its_chat
+5	testenv::fixture_audit::a_resumed_stand_up_s_requests_are_written_each_time
+5	testenv::fixture_audit::a_fill_inside_a_fill_is_on_both_tapes_and_a_panic_closes_its_tape
+5	testenv::fixture_audit::a_cache_filled_inside_another_is_credited_once_a_reader
+5	testenv::fixture_audit::a_shared_cache_credits_each_reader_with_the_fill_s_requests
+5	stores::tests::listing_lines_are_read
+5	trace::checksums::tests::a_set_is_four_records_read_whole
+5	stores::tests::decorated_names_are_read
 4	commands::tests::the_empty_group_is_the_same_selection
 4	commands::tests::the_mp_obfuscation_reverses
 4	diff::floors::tests::the_handoff_s_golden_line_is_the_pinned_word
