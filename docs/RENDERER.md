@@ -3206,7 +3206,8 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
 - the surf, now worth `SANDY` +128 by composite (4225a). Its section models are read (item 4235: `render::mot`,
   `docs/FORMATS.md`, "The surf's section models"). ~~The shore's splines, `internal_random`'s state at load and
   `SURFTIMING*` are not~~ read by item 4236 (§3.26): `Surf::init` is in register with the packet when fed the
-  packet's shore; the client's own shore chains and the draw are not;
+  packet's shore; ~~the client's own shore chains and the draw are not~~ drawn by item 4239 (§3.27): `SANDY`
+  573 → 653 on the still, the composite's 701 the ceiling, 684 with the session's types;
 - the fish herds' blot and the whitecaps;
 - the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
 - the screen reflection and the specular.
@@ -3369,12 +3370,117 @@ timings, as do all eight breakers. A type changes only the `.mot`'s shape.
 
 *Coverage.* Diff-backed: the sections, the timelines, the class's data, the generator's census and
 `Surf::init`'s output on the packet's shore. On one packet: the place's tolerance. *Not established:*
-- the client's own shore: `TerrainOut::sort_waterline_wcoords@00872f30`,
+- ~~the client's own shore: `TerrainOut::sort_waterline_wcoords@00872f30`,
   `connect_waterline_regions@00867890` and `tcoord_is_surfline@00867470` over `WorldData`'s 0x1c-byte
-  records (4236b). The flags are the sim's `TData` mask;
+  records (4236b)~~ ported by item 4239 (§3.27), the packet's six chains tcoord for tcoord;
 - the draws before `Surf::init` on another map: the 360 and 713 are rejection sampling, value by value
   (4236c);
-- the type at a frame (4236a), the draw (`SurfWaveSection::draw@0089e360`), and its row on the still.
+- the type at a frame (4236a); ~~the draw (`SurfWaveSection::draw@0089e360`), and its row on the still~~
+  drawn by item 4239 (§3.27).
+
+## 3.27 The surf drawn (item 4239)
+
+**The shore, the client's own** (`client::surf::shore`). `sort_waterline_wcoords@00872f30` walks the
+cells in row order. A cell with neither the half-land flag (`0x100`) nor a nonzero `land` has no surf
+line. In any other, each of its 16 tiles that `tcoord_is_surfline@00867470` answers starts a chain, unless
+the tile is already walked. A chain steps to the first orthogonal neighbour that is a surf line and not
+yet walked, else to the last such diagonal one, and stops when there is none. Every cell a step enters is
+marked done, so the outer walk never starts a chain there.
+
+`tcoord_is_surfline` holds for an ocean tile (`land != 0` or `COAST` on a whole cell; on a half-land cell,
+`is_tocean_slow@006b2400`, the tile's `TData` surface) with land on an orthogonal side. It answers that
+land's sea region: the first region or `region2` above `0x40` among the nine cells around a whole land
+cell, or a half-land cell's `region2` whatever it holds.
+
+`connect_waterline_regions@00867890` joins two chains of one sea whose ends lie within a tile either way,
+and starts again from the top after every join. The four ways are:
+- first to last, the second's after the first;
+- last to first;
+- first to first, the second reversed before the first;
+- last to last, the first reversed after the second.
+
+The removal keeps the order. Then a chain turns when two of its first three steps have land on their left
+(`land_left_of_vector@00867730`; its table, read off the PE at `0x00b698d0` and `0x00b69940`, gives NW
+the spot itself). It empties when two of its last three steps do too. `sim::observe::TerrainScene` now
+carries each cell's `region` and `region2` as the original numbers them, and each tile's `TData`.
+
+On run1564's world at load (`the_shore_is_the_packet_s`), the six chains are the packet's, 200, 150, 167,
+41, 212 and 172 tcoords. That is 942 of 942 in place on the first run, seas 65 to 70. Taking the first
+diagonal for the last parts chains 2 and 4 whole.
+
+**The meshes** (`client::surf::mesh`, read off the listing of `SurfWaveSection::draw@0089e360`; the
+decompiler lost its floats). `Surf::draw@0089d6f0` rebuilds one `final_*` list per texture slot. Each
+wave's sections draw in slot order through `SurfWave::draw@0089df10`, the waves before the breakers. A
+wave with a negative clock is skipped. Its phase is `t = (time · 200 / 3 + graphic_dt) / (wavetime · 200
+/ 3)`. The section's timeline is searched for the pair `pct[lo] < t ≤ pct[hi]`; past the last entry, `hi`
+is frame 0 at 1.0. With `f = (pct[hi] − t) / (pct[hi] − pct[lo])`:
+- the alpha is `(int)(α[hi] · (1 − f) + α[lo] · f)`, and a section below 1 is not drawn;
+- each vertex is the two frames' `(u, v)` mixed the same way, laid at `u · x_axis + pos + v · y_axis`;
+- `tex0` depends on the section's `world_coord_mapping`:
+  - −1 (a model whose texcoords do not move): frame `lo`'s;
+  - 0: the two frames' mixed;
+  - above 0: the world point times 1/576 (`0x00b69428`) plus `surf_xoffset`/`surf_yoffset[m − 1]`, each
+    `frame · world_tex*_speed` (−0.00083333 on one axis, read off the packet);
+- `tex1` is always frame 0's;
+- the colour is white at the alpha.
+
+`SurfWave::draw`'s cache skips only rewrites that would be equal, so a full rebuild is equivalent.
+
+**In register with the packet** (`the_meshes_are_the_packet_s`; `surf_packet.py` now prints
+`on_screen_waves`, `on_screen_breakers` and `last_time`). The packet is game frame 3294 (`gamec` +0x550)
+with `graphic_dt` 59. Its lists were rebuilt at `last_time` 218,666, which is frame 3280 at 0 ms, and
+never since: the renderer drew no new surf for 14 frames. Each wave's clock is stepped back 14 frames to
+the rebuild. Seven waves wrapped in between, and `inc_time` redrew the type of four of them. Those seven
+take the type that lays their vertices where the lists have them. Then all 2,256 vertices of the seven
+lists agree bit for bit: place, both texcoords, alpha and every face. Before the step back, no vertex
+agreed. A texture scale one ulp off leaves `tex0` on 2,007.
+
+**The clock.** `Surf::inc_time@008a1a00` steps every clock once a frame. One that reaches `wavetime`
+restarts at −`stalltime`, with a type drawn on `internal_random` from its shape's row. The client lays
+the surf at load with the generator at `DRAWS_BEFORE_SURF_1567` and steps it to the runner's frame. Its
+generator is stepped by `inc_time` alone (4236a), so after a wave's first wrap its type is the client's.
+On run1564's still (runner frame 3280, the lists' frame) the client's types agree with the packet's on
+217 of 1,205, which is chance.
+
+**The draw, off the card** (run1567, the pass after 3279, draws 163 to 169):
+- blend `SRCALPHA`/`INVSRCALPHA`;
+- stage 0 `MODULATE(TEXTURE, CURRENT)` on colour and alpha;
+- stage 1 `SELECTARG2(TEXTURE, CURRENT)` on colour and `MODULATE(TEXTURE, CURRENT)` on alpha;
+- wrap on both stages, alpha test always;
+- `TL_FAKE_LIGHT` with vertex colour and no lighting.
+
+So the colour is the texel and the alpha is texel × vertex × mask. The unlit branch raises the colour to
+1.9 and multiplies it by the HDR 5. The card blends before the tone map, as the water does (§3.24). The
+client draws each list as a patch kind of its own (`fs_surf`, `shaders/water.wgsl`), after the water. Each
+list is drawn over a copy of the frame as the lists before it leave it: `T(T⁻¹(g) · (1 − a) + 5 · c^1.9 ·
+a)`. Every wave and breaker is built; the original builds only those on a visible cell.
+
+| `SANDY` of 772 on run1564's still (`RUN1564_3279_SURF_DRAWN`) | HDR (drawn) | LDR source over |
+|---|---|---|
+| surf off | 573 | 573 |
+| the client's surf | **653** | 655 |
+| with the packet's types | 684 | 676 |
+| item 4225's CPU composite of the packet's own lists | — | 701 |
+
+`OCEAN` moves on none, and the rest of the ground row neither. 84 `SANDY` tiles cross up and 4 cross
+down. Up: tile (163, 201), theirs (97.1, 133.4, 140.3), the still's (58.0, 119.7, 142.3) → (76.3, 125.5,
+144.4). Down: tile (189, 197), theirs (10.5, 102.4, 149.4), ours (14.0, 120.2, 164.7) → (37.0, 128.3,
+168.3), a crest of ours where theirs is dark water. Level 0 alone (no mipmaps) reads 654 and 670. The
+depth test off changes nothing. With the rows:
+- the ground row 1,706 → **1,786**;
+- texture `SANDY` 326 → 408;
+- luma 1,805 → 1,851;
+- the sRGB made-to-fail side 1,709 → 1,754, so the drawn row now leads it by 32 (4227a's three the other
+  way).
+
+*Coverage.* Diff-backed: the chains (942 of 942), the meshes (2,256 of 2,256 at the packet's types), the
+card's states for draws 163 to 169. On the photograph alone: the rows. *Not established:*
+- the type at a frame (4236a): 31 tiles lie between the client's types and the session's;
+- the 17 between the GPU draw at the session's types (684) and the CPU composite (701), which samples at
+  the nearest texel, interpolates the texcoords in screen space, and blends in LDR;
+- the draws before `Surf::init` on another map (4236c), and so the phase anywhere but GreatLakes;
+- the culling to visible cells, which moves only an overlap's order;
+- the photograph's lake-wide whitecaps (§3.24).
 
 ## 4. The stack
 

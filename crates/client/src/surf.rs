@@ -6,11 +6,10 @@
 //! shape are draws on **`internal_random`** (`0x00eb697c`), the renderer's
 //! own generator, which the simulation never steps.
 //!
-//! **Not drawn yet** (item 4236): `Surf::init` is in register with
-//! run1564's packet when fed the packet's shore chains; the client's own
-//! chains (`TerrainOut::sort_waterline_wcoords@00872f30`) and the draw
-//! are the next word, so the binary does not call this module yet.
-#![cfg_attr(not(test), allow(dead_code))]
+//! **Drawn** (item 4239, §3.27): laid along the client's own shore
+//! ([`shore`]), stepped each frame ([`Surf::inc_time`]), built as the
+//! original's `final_*` lists ([`mesh`]) and drawn after the water in HDR
+//! ([`SurfLayer`], `client::world`).
 
 pub mod mesh;
 pub mod shore;

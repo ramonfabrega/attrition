@@ -313,14 +313,15 @@ impl World {
 /// texture slot's texture and its mask's index and image.
 struct SurfArt {
     layer: crate::surf::SurfLayer,
-    slots: Vec<
-        Option<(
-            std::sync::Arc<render::silhouette::Mips>,
-            usize,
-            std::sync::Arc<render::silhouette::Mips>,
-        )>,
-    >,
+    slots: Vec<Option<SurfSlot>>,
 }
+
+/// A surf slot's texture, its mask's index and its mask (item 4239).
+type SurfSlot = (
+    std::sync::Arc<render::silhouette::Mips>,
+    usize,
+    std::sync::Arc<render::silhouette::Mips>,
+);
 
 /// The surf's texture slot `k` among the ground's textures (item 4239):
 /// `SURF_PIECE - k`; its mask's key among the alphas, `SURF_ALPHA + `
@@ -336,15 +337,7 @@ pub fn is_surf(piece: i32) -> bool {
 /// One `final_*` list as a patch (item 4239): its faces' corners, `tex0`
 /// on the base, `tex1` on the mask, the vertex's alpha where a patch
 /// carries its N·L (`fs_surf` reads it there).
-fn surf_mesh(
-    k: usize,
-    l: &crate::surf::mesh::FinalList,
-    art: &(
-        std::sync::Arc<render::silhouette::Mips>,
-        usize,
-        std::sync::Arc<render::silhouette::Mips>,
-    ),
-) -> Option<PatchMesh> {
+fn surf_mesh(k: usize, l: &crate::surf::mesh::FinalList, art: &SurfSlot) -> Option<PatchMesh> {
     if l.faces.is_empty() {
         return None;
     }
@@ -936,26 +929,23 @@ impl World {
             })
         });
         // Item 4239 (§3.27): the surf's class, its models and its textures.
-        let surf_art = crate::surf::SurfLayer::new(&install)
-            .ok()
-            .and_then(|layer| {
-                let open =
-                    |p: &std::path::Path| -> Option<std::sync::Arc<render::silhouette::Mips>> {
-                        let img = render::tga::decode(&std::fs::read(p).ok()?).ok()?;
-                        Some(std::sync::Arc::new(render::silhouette::Mips::new(img)))
-                    };
-                let textures: Vec<_> = layer.class.textures.iter().map(|t| open(&t.1)).collect();
-                let slots = layer
-                    .masks()
-                    .into_iter()
-                    .enumerate()
-                    .map(|(k, m)| {
-                        let m = m?;
-                        Some((textures[k].clone()?, m, textures[m].clone()?))
-                    })
-                    .collect();
-                Some(SurfArt { layer, slots })
-            });
+        let surf_art = crate::surf::SurfLayer::new(&install).ok().map(|layer| {
+            let open = |p: &std::path::Path| -> Option<std::sync::Arc<render::silhouette::Mips>> {
+                let img = render::tga::decode(&std::fs::read(p).ok()?).ok()?;
+                Some(std::sync::Arc::new(render::silhouette::Mips::new(img)))
+            };
+            let textures: Vec<_> = layer.class.textures.iter().map(|t| open(&t.1)).collect();
+            let slots = layer
+                .masks()
+                .into_iter()
+                .enumerate()
+                .map(|(k, m)| {
+                    let m = m?;
+                    Some((textures[k].clone()?, m, textures[m].clone()?))
+                })
+                .collect();
+            SurfArt { layer, slots }
+        });
         Ok(World {
             names: crate::hud::Names::new(&loaded),
             look: BuildLook::new(&install).with_types(&loaded.build_types),
