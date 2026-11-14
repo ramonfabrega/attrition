@@ -51,6 +51,15 @@ pub(crate) fn tick_to(built: &mut Built, stream: Option<&mut crate::input::Strea
             s.apply(built.sim.frame as i32, built);
         }
         built.tick();
+        #[cfg(test)]
+        if std::env::var_os("RON_PROBE_4238").is_some() && (6528..=6537).contains(&built.sim.frame) {
+            let f = built.sim.frame;
+            for u in built.sim.units.iter().filter(|u| u.alive() && u.owner == 1 && [0, 12, 14].contains(&u.index)) {
+                let lasts: Vec<String> = u.guys.iter().map(|g| format!("{:?}", g.last.map(|l| l.0))).collect();
+                eprintln!("PROBE4238 f{f} 1/{} pos {:?} body {:?} path {} lasts {:?}", u.index, u.pos, u.movement.body.pos, u.path.len(), lasts);
+                crate::diff::harness::debug_unit(built, u, f);
+            }
+        }
     }
 }
 
