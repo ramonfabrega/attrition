@@ -1065,11 +1065,14 @@ changes.
 - **The queue**: each live entry from the queue (`type` the unit's
   `TypeIndex`, a technology's `0x220` plus its distance from the first
   age in the tree, `DISBAND` 0x29a); a slot past the live ones is
-  `BuildQueue::init`'s: zero, slot 0's `type` −1.
+  `BuildQueue::init`'s: zero, slot 0's `type` −1, until an entry has
+  sat there.
   `BuildQueue::un_queue@00630ad0` shifts without clearing, so a slot a
-  finished or cancelled entry vacated keeps that entry's bytes; this crate
-  does not keep them (none had been vacated on frame 91: every slot past
-  the live ones reads init's zeros on both sides).
+  finished or cancelled entry vacated keeps the old last entry's bytes;
+  ~~this crate does not keep them (none had been vacated on frame 91:
+  every slot past the live ones reads init's zeros on both sides)~~ kept
+  since item 4222 (`Queue::vacated`, `docs/PRODUCTION.md` "The queue
+  record"): the minted game's builds line parted on 100 for it (§24.3).
 - **The mining list**: the tiles hold (`gather_from`); `mtn`/`cliff` −1
   (no mine stands on the frame); `size` derives as the least 5·2ᵏ not
   below `length` — an empty list reports 5 on every record of the
@@ -2401,8 +2404,8 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
 | units | 129 | 2850640222 | 2564863054 | 171: 129–299 |
-| builds | 100 | 2036616519 | 1941983632 | 200: 100–299 |
-| groups | 61 | 3641636078 | 3844076871 | 5: 61–65 |
+| builds | 159 | 2785889832 | 1066356204 | 141: 159–299 |
+| groups | 2746 | 810153284 | 3860919709 | 0 |
 | guys | 129 | 4020237905 | 1262538754 | 171: 129–299 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
 | cities | 4030 | 66197007 | 38147597 | 0 |
@@ -2421,6 +2424,16 @@ the latch `Unit::check_idle@006032c0:64` raises (`| 0x18`) on a unit's first idl
 clears it when an order reaches it. The crate held it (`Unit::idle_latch`) and the emitter left the bit out.
 Value diff on frame 1: unit 0 (`0/0`) `flags` ours 0x41, theirs 0x49 → both 0x49. Units now first part on 129, guys'
 frame (4214d), ours 2850640222 theirs 2564863054. World 0 → whole on all 24,000 (§24.4, the start).
+
+**Item 4222 moved two.** Groups 61 → 2746: `Groups::push_group@0070f9e0`'s `Group::equals_group@00708000`
+normalizes `last_group`'s slot before it compares, and the crate's push of buildings skipped it
+(`docs/GROUPS.md` §3.4). Value diff on 61 (run1580): group record 1, the Scout's slot, `role` ours 0, theirs
+0x40110; `new_speed` and `speed` ours 0, theirs 34 → the original's on both sides. Builds 100 → 159: a
+queue slot past `queued` keeps the bytes the last entry left (`BuildQueue::un_queue@00630ad0`, §14,
+`docs/PRODUCTION.md` "The queue record"), and the emitter printed it empty. Value diff on 100 (run1581):
+building 2000 of leader 1, the AI's Town Center, `queue[2]` ours empty (type 0, cost 0), theirs type 50 at
+`cost[0]` 27, the third Citizen's copy after the first finished on 99 → the original's. run1577 is whole on
+all 120 in both lines.
 
 ### 24.4 Where each first parting is (diff-backed)
 
