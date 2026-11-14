@@ -2501,6 +2501,17 @@ at 2745 under `step4.py` names the writes: `find_role` 0x40110 and `normalize`'s
 left the call out. Value diff on 2746: 0x40110, 34, 34 on both, and the line whole. **Step P's census does not
 move**: the groups triple's parted count fell 2 → 1 on three melee packets (run1438, run1457, run1460).
 
+**Item 4234 moved one, twice.** Units 3596 → 4030 → 6537, none of 0..299 parted; units now part where guys do. On
+3596 (run1590) record 16's second order is a `CAST_SPELL` (`UNPACK_MERCHANT`, 0x290, untargeted), and
+`CastOrder::walk_data@004860a0` hands over three ranges the emitter left out: the flags byte, `TargetOrder`'s `ox`,
+`whom`, `uid`, and `x`, `y`, `paid`, `spell` (`+0x14..+0x24`, raw). Value diff on 3596: 0; −1, −1, 0xffff; −1, −1, 0,
+0x290 on both, and the line whole. On 4030 (run1585) record 14 (`1/14`, the caravan) parts on `unit_masks`, ours
+262152, theirs 262664: `Unit::do_trade@005ed270:470` sets `0x200` on the unload (`loaded` 1 → 0, ahead of the decoy
+test), `add_trade_order@005e4dc0:29` and `end_trade_route@005e3bd0:18` clear it, and the transport hand-overs copy it
+(`Unit::trade_unloaded`, `docs/CARAVAN.md` §7). Value diff on 4030: 262664 on both, and the line whole. **Step P's
+census does not move**: the units triple moved on 36 packets for the cast and 25 for the bit, none to whole or from it
+(`docs/journal/2026-11-14-item-4234.md`).
+
 ## 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
@@ -2516,6 +2527,8 @@ line's field reader where it has one:
 | units | 189 | 1586 | unit `1/6` `path.size`: 10, 20 (`path.length` 6 both); 1 of 1,127 ranges; whole since item 4228 |
 | units | 3166 | 1587 | record 14's `TradeOrder`: three ranges theirs walks, ours not (1,352 against 1,355); whole since item 4230 |
 | groups | 2746 | 1588 | group record 65: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34; whole since item 4231 |
+| units | 3596 | 1590 | record 16's `CastOrder`: three ranges theirs walks, ours not (1,437 against 1,440); whole since item 4234 |
+| units | 4030 | 1585 | record 14 `unit_masks`: 262152, 262664 (bit 0x200); 1 of 1,507 ranges; whole since item 4234 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02; whole since item 4229 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2; whole since item 4229 |
 | leaders | 1 to 4030 | all | leader 0's long range at +0x10: ours 0 on every packet, theirs 0xc7 on 1 and 0x105 on 4030 (§20; item 4159) |
@@ -2547,14 +2560,15 @@ Not established:
 - ~~Units on 189 and guys on 6537: no packet stands on either frame (parked 4226a, 4226b).~~ Units on 189: run1586,
   whole since item 4228 (4226a closed). ~~Guys on 6537 and units on 3166: no packet stands on either (4226b).~~
   Units on 3166: run1587, whole since item 4230. ~~Guys on 6537 and units on 3596: no packet stands on either.~~
-  Groups on 2746: run1588, whole since item 4231. Units on 3596, guys on 6537 and groups on 6781: no packet stands on
-  any of them.
+  Groups on 2746: run1588, whole since item 4231. ~~Units on 3596, guys on 6537 and groups on 6781: no packet stands on
+  any of them.~~ Units on 3596: run1590, whole since item 4234. Units and guys on 6537 and groups on 6781: no packet
+  stands on any of them.
 - The leader's `+0x68 & 0x100` carry across a `QUEUE_FIRST` move's halt, which `get_num_cap`'s answer gates
   (`704ec1`–`704eea`): the crate keeps no such bit (item 4231).
 - ~~Whether 3246's `1/14` `path.size` (ours 50, theirs 64) is `Unit::do_trade@005ed270:501`'s
   `Stack<PathData>::operator=` (4228a).~~ It is: §24.3, item 4230 (4228a closed).
-- Record 14's `unit_masks` bit 0x200 on 4030 (ours 262152, theirs 262664). `do_trade@005ed270:470` sets it on an
-  arrival; its clearers are not counted.
+- ~~Record 14's `unit_masks` bit 0x200 on 4030 (ours 262152, theirs 262664). `do_trade@005ed270:470` sets it on an
+  arrival; its clearers are not counted (4230a).~~ Counted and built: §24.3, item 4234 (4230a closed).
 - The road stack's size where a search is resumed (`find_road_restore`, no ends pushed) and where `build_road`
   answers 0 after a fresh start. Neither is on a packet.
 - `Game::run@00584590:722`'s `GameDaemon::update_all_seen`, the call after `calc_danger`, is not run on the built start
