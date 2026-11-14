@@ -1040,7 +1040,14 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// the guys line agrees on run1236 (2070 ranges, 33 parting → 0), and
 /// parts on fewer on run1238c (7 → 1) and run1264b (20 → 12); the units
 /// line parts on fewer on run1236 (149 → 116) and run1238c (4079 → 4073).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 422, 1053);
+/// **430** at item 4253, a scholar's seating setting its figure's angle
+/// (`Unit::go_inside@0061a2e0`'s `set_angle(0, _, 1)`): the guys line
+/// agrees on eight more packets — run985b (1 → 0), run1007b (5 → 0),
+/// run1001d (1 → 0), run954b (4 → 0), run991d (4 → 0), run1263 (5 → 0),
+/// run1224b (7 → 0), run959 (14 → 0) — and parts on fewer on nine
+/// (run1266c 21 → 9, run882b 33 → 26, run883b 31 → 24, the most); the
+/// units line parts on fewer on seven (run959 3128 → 3114, the most).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 430, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2664,17 +2671,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (6408, 6009, 5546) -> (6408, 6027, 5594).
     // Item 4234, a cast's three ranges walked: units (6408, 6027, 5594) -> (6408, 6030, 5584).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6408, 6030, 5584) -> (6408, 6102, 5553).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6408, 6102, 5553) -> (6408, 6102, 5552); guys (1598, 1598, 4) -> (1598, 1598, 3).
     (
         "run1359b",
         5677,
         [
-            (6408, 6102, 5553),
+            (6408, 6102, 5552),
             (2974, 2974, 33),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (556, 556, 4),
-            (1598, 1598, 4),
+            (1598, 1598, 3),
             (271, 271, 5),
             (48, 48, 0),
             (55, 55, 0),
@@ -3945,6 +3953,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159's third residue: units (11180, 10654, 10052) -> (11180, 10654, 10050), the bleed reading `anti_att` (measured on the tree merged with item 4234's).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (11180, 10654, 10050) -> (11180, 10660, 9041).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (11180, 10660, 9041) -> (11180, 10660, 9040).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2832, 2832, 31) -> (2832, 2832, 24).
     (
         "run883b",
         6821,
@@ -3955,7 +3964,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (36, 0, 36),
             (0, 0, 0),
             (616, 616, 10),
-            (2832, 2832, 31),
+            (2832, 2832, 24),
             (271, 271, 5),
             (64, 64, 0),
             (0, 0, 0),
