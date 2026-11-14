@@ -94,7 +94,7 @@ measurable; the question is his.
 | R12 | the memory index | 7,324 | hooks to one line; one stale pointer | ~2,500 | outside git |
 | R13 | `tools/brief/frame.md`, "booked", "lanes", "landing": a word's clauses in every live kind's brief | 3,280 | `booked` to the kinds with a booking; split "landing" | ~1,200 a lane brief | the pass (its file); S26, S27 |
 | S1 | DECISIONS, "Index" | 15,985 of 16,000 | split at entry 100; retitle; reorder; fix 121's row | 0 (frees ~8,000) | none |
-| S2–S30 | twenty-nine syncs, Part 2 | | | | |
+| S2–S31 | thirty syncs, Part 2 | | | | |
 | G1 | the eight sections pinned in `OVER`, and 45 of the 77 at 15,000 B or more | 284,070; 831,211 | promote their numbered `###` parts to `##` (run dry: 28 of 29 guards green, the red is the `OVER` rows) | 0 (largest read 70,859 → 16,448; 45 sections off the ceiling) | delete seven `OVER` rows, add one |
 | G2 | `docs/JOURNAL.md`, the chronicle to 2026-09-17 | 1,185,526 | leave, or archive at a revision | 0 or 1.19 MB | `queueledger.py`; Ramon (`CLAUDE.md`'s table) |
 | G3 | `docs/DECISIONS.md` | 843,219 | an index by topic; no entry moved | 0 | the pass |
@@ -581,6 +581,7 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S28 | LOOP, "Ratification, and the passes" and "The brief" | "An unattended pass ... ratifies the marked rows, rules the Loop items, builds the loop's tools and guards"; "a worker's "for the Loop" line that names a brief's omission is a candidate row"; and three Loop numbers LOOP still carries as owed (4051 and 4055 on the waiter, 4053 on a builder's wait) | entry 125 §3: "There is no Loop backlog ... the handoff counts nothing; what the driver would raise at a pass goes in that pass's record"; LOOP's own "The lanes": the line "is filed nowhere". With no backlog a pass has no Loop items to rule, and the three numbers are a backlog of three kept in the rules file, unruled since 2026-11-09 (R5). | "rules what the tranche's journals and its own record raise"; the three numbers ruled once by the pass, or struck with R5 |
 | S29 | `docs/LEADERS.md` §13, §16, §19, §20 ("In the crate", the Checksum bullet), and §5, §12, §18 in part | "Each sits in `LEADERS_HELD_OUT` at count 2 (`crates/rondata/src/diff/checksum_lines.rs:1787, 1788, 1817, 1835, 1837, 1850, 1851`)"; "Each is a `(unheld)` entry of `LEADERS_HELD_OUT` with count 2: `cannon_time` at ...`:1771`, `handicap` at `:1793`, `multi_diff` at `:1815`"; "all twelve are `(unheld)` in `LEADERS_HELD_OUT`, count 2 each" | `LEADERS_HELD_OUT` holds 30 leaves, at lines 2027 to 2058: none of §13's seven, §16's three, §19's two or §20's three is among them; of §18's twelve, `score`, `score_combat`, `score_units` and `score_units_2` are; of §12's two, `pop_issues`. The queue: "`LEADERS_HELD_OUT` 30 ... from 140". G13 has the count of line cites. | each bullet struck or dated at the step that released its leaves, as §7's was; the line numbers dropped |
 | S30 | `docs/RENDERER.md` §3.12 (line 1912), §7.1 (line 3593) and §3.22 (line 3038) | "The coral layer (draws 130–131, `coralblend.tga`), the surf (163–169) and the frame's mean luminance are not drawn"; "The shore's blend, `sand.tga`'s own layer and its patches, is not drawn (§3.12, 4178b)" | the same section, thirty lines on, struck and answered: "~~... and the coral are not drawn.~~ ... the coral is drawn"; §3.16 "The shore's sand (item 4192)"; §3.18 "The coast's patches, and what lies under the lake (item 4200)", `RUN1564_3294_COAST_PATCH` 439 of 439; §3.21 the frame's white (item 4212). Each claim stood in two places and was struck in one. A scan of the nine unstruck "is not drawn" sentences in the file found these two; the surf (parked 4225a) and the other six read current or were not checked. A second scan, for a parked id struck in its own journal and still cited open in a document, finds one more of the same shape: §3.22, "the fall is in one of the two draws' stage colour (parked 4217a)", sixteen lines above "~~... (parked 4217a).~~ Answered by". Of the six rows struck in their journals (4199b, 4200c, 4212a, 4214d, 4214e, 4217a) it is the only one a document still cites open. | strike the three with their answers; the habit that prevents the next is a grep of the document for the parked id (`4178b`) when the item that answers it lands |
+| S31 | `docs/CHECKSUM.md` §20, "The leaders line, held out on the long range", its first paragraph (3,777 B of a section at 15,995) | it opens "**263 of 267 ranges and 4,313 of 58,343 bytes agree**"; its newest bold count is "**47** since item 4189" | the paragraph's own last lines: "**265 of 267 ranges and 4,515 bytes** agree on frame 91", which is the queue's figure; and `LEADERS_HELD_OUT` holds 30 (the queue: "VII-b1 three, VII-b2 four, the scan three, VII-c six, VII-d one"). The five steps after 4189 are recorded 140 lines down, as strikes inside the census list ("the diplomacy actions (~~15~~ ~~12~~ ~~10~~ ~~9~~ ~~6~~ 5)"), and nowhere as a count. The paragraph is one sentence of twelve counts, 140 to 47, with eight numbers struck and restated beside themselves ("~~**98**~~ 98", "~~**92**~~ 92", ... "~~**49**~~ 49"): each step demoted the last bold figure by striking it. | the paragraph becomes a table, one row a step (item, the leaves it carried, the count after, where `LEADERS.md` has them), its last row the standing one, and the lead sentence the standing figures; shorter than the prose, and the section comes off the ceiling without a split. D1's case in one paragraph |
 
 Also seen, and not a contradiction: `CLAUDE.md` gives the gate as
 `--test-threads 4` and QUEUE and LOOP give the booking gate as
@@ -670,7 +671,7 @@ history ("until item 4113"), none a stale promise. Not pursued.
   4159 amends at every step; `ORDERS.md` §8 (13,625 to 15,485).
   `CHECKSUM.md` §20, the chain's own section, is 15,995 B in one block
   with no part to promote: its next amendment is a fitting episode unless
-  it is split first. Sections of `AI.md` that no item is booked on moved
+  it is split first. S31 is what fitting has already done to it. Sections of `AI.md` that no item is booked on moved
   by 3 to 12 B in the same week and stayed within 20 B of the ceiling
   (§331 15,984 to 15,996), which is what an amendment under a full
   section looks like.
@@ -1030,7 +1031,11 @@ read whole; two mechanical probes in the second session.
   step that releases a leaf strikes its section's bullet as §7's did
   (the definition of done already asks it: "Any open question this
   closes in another document is struck through there"). The line
-  numbers go at the next amendment of each bullet, never in a sweep. A
+  numbers go at the next amendment of each bullet, never in a sweep.
+  `CHECKSUM.md` shows the cheap form for a section titled by an item:
+  the heading itself is amended with its successor ("17. The units
+  line, held out on three fields (item 4109; whole since item 4113,
+  §18)"), so the present tense under it reads as of its item. A
   guard is cheap and in the tree's manner: `docs_guard` counts
   `crates/…rs:<line>` cites per document against a pin that may only
   fall, as `UNBUILT` does for constants, so the form does not spread.
