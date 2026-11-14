@@ -2471,7 +2471,9 @@ neither footprint arm marked it. Value diff on 3246 (run1584): good 19 `ever_see
 both. Cities 4030 → 24,000: `City::new_caravan@00739750`'s bit is the partner's index in its owner's cities
 (`Unit::do_trade@005ed270:479, 637` pass `BuildData +0x72`), and the crate passed its global index (`docs/CARAVAN.md`
 §7.3). Value diff on 4030 (run1585): city 0 `traded_with[1]` ours 4 (city 2's bit), theirs 2 (leader 1's city 1) → 2
-on both. No minted packet parts on either line now.
+on both. No minted packet parts on either line now. **Step P's census, 314 → 417** (`PACKETS_SCORE`): the cities
+line agrees on 77 more packets and the goods line on 30 more; the goods line parts on one more range on four (run1484,
+run1487, run1496, run839) and on run1575's take, each a walk whose units line already parts on most of its ranges.
 
 ### 24.4 Where each first parting is (diff-backed)
 
