@@ -244,9 +244,15 @@ fn corpse_melee_run1542_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 276, "run1542's word window");
+    // Item 4204: 276 -> 248, −28 on 2601, the head quit's `clear_orders`:
+    //   `0/1`..`0/7` `orders.len`/`order:length` 0 = 0, `idle` 1 = 1; the
+    //   walker `0/5` stops at theirs' (37171, 34301) (was ours (37188, 34284)).
+    //   Rounds 6 -> 5: `2/160` `ammo[13].ex` 2661 = theirs (was ours 2654); `2/159`
+    //   `ammo[12]` lands farther off, `ex` ours 2590 (was 2697) theirs 2656, `ey`
+    //   24470 (was 24408) theirs 24424 — its target, the walker, stood still.
+    pin_eq!(w.firsts.len(), 248, "run1542's word window");
     pin_eq!(w.rounds_read, (30, 30), "the rounds read");
-    pin_eq!(w.rounds.len(), 6, "the rounds that part");
+    pin_eq!(w.rounds.len(), 5, "the rounds that part");
 }
 
 /// **Every seat's leader** (the shape item 3791 gave the first two,
@@ -305,7 +311,7 @@ fn corpse_melee_run1542_s_closing_state() {
             .final_state()
             .or_else(|| log.frame_states().pop())
             .expect("closing whole-map state");
-        let e = endpoint::walk_to_close(&mut built, &fin, 8);
+        let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, MELEE_LONG.1);
         eprintln!(
             "Corpse melee closing: frame {} units {} counts {:?}",
             e.frame,

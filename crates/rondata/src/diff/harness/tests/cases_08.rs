@@ -1556,10 +1556,14 @@ mod bodies {
             (28, 0),
             "the shutdown dump's 28 player units all link"
         );
+        // Item 4204: the tear is gone. `compare_shutdown`'s head quit now
+        // carries the defeat's `clear_orders`, so `0/3` stops where theirs
+        // holds it instead of taking the (-18, 18) step: the "one-tick tear"
+        // was a walker the quit stops, as on the East Indies census.
         assert_eq!(
             end.torn,
-            vec![(0, 3)],
-            "`0/3` is the closing dump's tear, not a divergence"
+            Vec::<(i64, i64)>::new(),
+            "the closing dump is whole: `0/3` stops on the quit"
         );
 
         // **`1/20` is exact at 6946 — the whole of item 241 in one row.**

@@ -194,7 +194,7 @@ fn run898b_turkish_closing_state() {
         .final_state()
         .or_else(|| log.frame_states().pop())
         .expect("closing whole-map state");
-    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, TURKISH.long.1);
     eprintln!(
         "Turkish closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
         e.frame,
