@@ -216,6 +216,14 @@ pub(super) fn walk_packets_with(
         );
         at += 1;
         let lines = compare(&our_lines(&built.sim, &pieces), theirs);
+        if std::env::var("RON_PROBE_4228").is_ok_and(|r| r == *run) {
+            let ours = our_lines(&built.sim, &pieces);
+            let empty = StreamRows::new();
+            let t = theirs.get("units").unwrap_or(&empty);
+            for p in super::parting(&ours[0], t) {
+                eprintln!("PROBE4228\t{run}\t{}\t{}\t{}\t{}\t{}", p.0, p.1, p.2, p.3, p.4);
+            }
+        }
         let empty = StreamRows::new();
         let leaves = leader_leaf_rows(&built.sim, theirs.get("leaders").unwrap_or(&empty));
         out.push(Walked {
