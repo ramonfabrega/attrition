@@ -1365,6 +1365,39 @@ pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1018, 878), (985, 1502), (8
 /// 208.2) and agreeing.
 pub const RUN1564_3279_LAKE_HDR: [[u32; 2]; 2] = [[217, 437], [398, 437]];
 
+/// **The texture reader** (item 4232; `docs/RENDERER.md` §3.18): a
+/// tile's texture is the standard deviation of its ground pixels'
+/// luminance (`0.3 r + 0.59 g + 0.11 b`), and two tiles' agree when the
+/// larger over the smaller is at most `ratio`, each floored at `floor`
+/// so two flat tiles agree. The hue and luma rows read a tile's mean and
+/// cannot see a mottle; this reads its spread.
+#[cfg(test)]
+pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
+    floor: 2.0,
+    ratio: 1.5,
+    min_pixels: 40,
+};
+
+/// **`RUN1564_3279_TEXTURE_STILL`** (item 4232; `docs/RENDERER.md`
+/// §3.18): [`TEXTURE`]'s row on the client's still of run1564, by kind
+/// `[agree, scored]`, [`RUN1564_3279_GROUND_STILL`]'s tiles. **Plain 665
+/// of 679, `ROCK` 8 of 32, `SANDY` 223 of 772, `OCEAN` 21 of 437**: the
+/// land's grass carries its photograph's mottle (mean spread 8.05 against
+/// 8.88), the lake does not (2.17 against 6.96; quartiles theirs 4.77,
+/// 6.00, 7.58, ours 1.69, 2.07, 2.57). Tile (170, 187): theirs 4.45,
+/// ours 2.66, parted. The photograph against itself agrees on 1,920 of
+/// 1,920.
+#[cfg(test)]
+pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
+    [665, 679],
+    [0, 0],
+    [8, 32],
+    [0, 0],
+    [0, 0],
+    [223, 772],
+    [21, 437],
+];
+
 /// [`RUN1559B_3279_GROUND`] on the base layer alone, as item 4127 pinned it.
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND_BARE: (usize, usize) = (949, 1109);
@@ -3898,8 +3931,134 @@ pub(crate) mod tests {
                 mean(&|a| a.2)
             );
             got.push(by[6]);
+            let tex = still_texture_row(&mut p, out);
+            println!(
+                "4232 {name}: texture by kind {:?}; {}",
+                texture_by_kind(&p, &tex),
+                texture_summary(&p, &tex, 6)
+            );
         }
         assert_eq!(got, RUN1564_3279_LAKE_HDR);
+    }
+
+    /// One tile on [`TEXTURE`]'s row (item 4232): the tile, the
+    /// photograph's luminance spread, ours, and whether they agree.
+    pub(crate) type TextureTile = ((i32, i32), f32, f32, bool);
+
+    /// The standard deviation of `px`'s luminances.
+    fn luma_spread(px: &[[f32; 3]]) -> f32 {
+        let y: Vec<f32> = px
+            .iter()
+            .map(|&c| render::silhouette::luminance(c))
+            .collect();
+        let n = y.len().max(1) as f32;
+        let m = y.iter().sum::<f32>() / n;
+        (y.iter().map(|v| (v - m).powi(2)).sum::<f32>() / n).sqrt()
+    }
+
+    /// **The texture row on a still** (item 4232): [`still_ground_row`]'s
+    /// tiles, each the photograph's luminance spread over its ground
+    /// pixels against `still`'s over the same pixels, under [`TEXTURE`].
+    pub(crate) fn still_texture_row(p: &mut Probe, still: &[u8]) -> Vec<TextureTile> {
+        let g = ground(p);
+        let px = |rgba: &[u8], i: usize| [0, 1, 2].map(|c| f32::from(rgba[i * 4 + c]));
+        type Px = Vec<[f32; 3]>;
+        let mut tiles: BTreeMap<(i32, i32), (Px, Px)> = BTreeMap::new();
+        for (i, tt) in g.tile.iter().enumerate() {
+            let Some(tt) = *tt else { continue };
+            let e = tiles.entry(tt).or_default();
+            e.0.push(px(&p.photo.rgba, i));
+            e.1.push(px(still, i));
+        }
+        tiles
+            .into_iter()
+            .filter(|(_, (th, _))| th.len() as u32 >= TEXTURE.min_pixels)
+            .map(|(tt, (th, us))| {
+                let (a, b) = (luma_spread(&th), luma_spread(&us));
+                (tt, a, b, TEXTURE.agrees(b, a))
+            })
+            .collect()
+    }
+
+    /// A texture row by kind, `[agree, scored]`.
+    fn texture_by_kind(p: &Probe, row: &[TextureTile]) -> [[u32; 2]; 7] {
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let mut by = [[0u32; 2]; 7];
+        for (tt, _, _, ok) in row {
+            let k = kind_of(&t, &mountains, *tt);
+            by[k][1] += 1;
+            by[k][0] += u32::from(*ok);
+        }
+        by
+    }
+
+    /// One kind's spreads on a texture row, for the journal: the tiles'
+    /// mean spread theirs and ours, and theirs' quartiles.
+    fn texture_summary(p: &Probe, row: &[TextureTile], kind: usize) -> String {
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let of: Vec<_> = row
+            .iter()
+            .filter(|q| kind_of(&t, &mountains, q.0) == kind)
+            .collect();
+        let n = of.len().max(1) as f32;
+        let q = |mut v: Vec<f32>| {
+            v.sort_by(|a, b| a.total_cmp(b));
+            [0.25, 0.5, 0.75].map(|f| v.get((f * v.len() as f32) as usize).copied().unwrap_or(0.0))
+        };
+        format!(
+            "{}: mean spread theirs {:.2} ours {:.2}; quartiles theirs {:.2?} ours {:.2?}",
+            KINDS[kind],
+            of.iter().map(|q| q.1).sum::<f32>() / n,
+            of.iter().map(|q| q.2).sum::<f32>() / n,
+            q(of.iter().map(|q| q.1).collect()),
+            q(of.iter().map(|q| q.2).collect()),
+        )
+    }
+
+    /// **Item 4232: the lake's texture on the still** (`docs/RENDERER.md`
+    /// §3.18). [`TEXTURE`]'s row on the client's still of run1564, by kind,
+    /// pinned at [`RUN1564_3279_TEXTURE_STILL`]; the photograph read
+    /// against itself agrees on every tile, so the row can pass.
+    #[test]
+    fn the_lake_s_texture_on_the_still() {
+        use crate::gpu::SilhouetteOrder;
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let still = crate::still_of(
+            &mut p.world,
+            &camera,
+            size,
+            SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+        );
+        let photo = p.photo.rgba.clone();
+        let itself = still_texture_row(&mut p, &photo);
+        let itself = texture_by_kind(&p, &itself);
+        println!("4232: the photograph against itself, by kind {itself:?}");
+        assert!(
+            itself.iter().all(|k| k[0] == k[1]),
+            "the photograph's texture agrees with itself"
+        );
+        let row = still_texture_row(&mut p, &still);
+        let by = texture_by_kind(&p, &row);
+        for k in [0, 5, 6] {
+            println!("4232 still {}", texture_summary(&p, &row, k));
+        }
+        if let Some(q) = row.iter().find(|q| q.0 == (170, 187)) {
+            println!(
+                "4232 still: tile {:?}, spread theirs {:.2} ours {:.2} agrees {}",
+                q.0, q.1, q.2, q.3
+            );
+        }
+        println!("4232 still: texture by kind [agree, scored] {by:?}");
+        assert_eq!(by, RUN1564_3279_TEXTURE_STILL);
     }
 
     /// One scored tile on the still (item 4171): the photograph's mean,
