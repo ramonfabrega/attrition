@@ -319,7 +319,8 @@ fn run956c_s_gap_is_widened_whole() {
         }
     }
     pin_eq!(w.blocks, 344, "every captured block");
-    pin_eq!(w.firsts.len(), 51, "keys that part in the window");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 51 -> 37.
+    pin_eq!(w.firsts.len(), 37, "keys that part in the window");
     // Item 3314: run956b's 51 standing keys, and one more — `0/2000`'s
     // `damage` on block 18369, ours 868 against theirs 869, from tick
     // 18368. **Item 3322: the second point is a decoy's round.** Two rounds

@@ -200,7 +200,8 @@ fn russian_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // `1/99`'s (TI 273) `attack[1].mandatory`, 0 against 1.
     // Item 3744, the siege-city arm: 293 — the MLRS `1/99`'s
     // `attack[1].mandatory` on 5901 goes (`docs/AI.md` §368.1).
-    pin_eq!(w.firsts.len(), 288, "the stride's baseline");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 288 -> 284.
+    pin_eq!(w.firsts.len(), 284, "the stride's baseline");
 }
 
 /// run1401b: the word 6153's window, blocks 6095..6403 at the long's
@@ -351,7 +352,8 @@ fn russian_information_pair_run1423_s_gap_is_widened_whole() {
     // `attack[0].mandatory` on 5908.
     // Item 4177: 163 -> 167, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 5895 ours 19 theirs 36; who=0 `damage_fifteen_seconds` 5895 ours 23 theirs 25; who=1 `average_hit_rate` 5895 ours 19 theirs 36; who=1 `hits_fifteen_seconds` 5895 ours 23 theirs 25 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 167 -> 163, item 4177's four combat-rate firsts agree (4177a).
-    pin_eq!(w.firsts.len(), 163, "run1423 baseline");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 163 -> 159.
+    pin_eq!(w.firsts.len(), 159, "run1423 baseline");
     pin_eq!(w.rounds_read, (408, 408), "the rounds read");
     // 94 parting: the MLRS `1/99`'s launch point from 5913 (3744a). Item
     // 3760, the Strategic Bomber's bays and the Jet Fighter's guns: 94 →
@@ -422,7 +424,8 @@ fn russian_information_pair_run1423b_s_gap_is_widened_whole() {
     // adds the attack `mandatory` 0 in ours against 1.
     // Item 4177: 170 -> 174, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 5795 ours 26 theirs 49; who=0 `damage_fifteen_seconds` 5795 ours 23 theirs 25; who=1 `average_hit_rate` 5795 ours 26 theirs 49; who=1 `hits_fifteen_seconds` 5795 ours 23 theirs 25 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 174 -> 170, item 4177's four combat-rate firsts agree (4177a).
-    pin_eq!(w.firsts.len(), 170, "run1423b baseline");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 170 -> 167.
+    pin_eq!(w.firsts.len(), 167, "run1423b baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -490,7 +493,8 @@ fn russian_information_pair_run1423c_s_closing_frame_is_widened_whole() {
     // Item 4176: 152 -> 155, +3 firsts: who=0's `attack_stamp[1]`, `raid_stamp[1]` and `ally_stamp[1]` on 6636, ours 6310 theirs 6635, on a closing frame whose state already parts.
     // Item 4177: 155 -> 159, +4 firsts, the combat rates' own: who=0 `damage_fifteen_seconds` 6450 ours 127 theirs 129; who=1 `hits_fifteen_seconds` 6450 ours 127 theirs 129; who=0 `damage_current_frame` 6636 ours 0 theirs 1; who=1 `hits_current_frame` 6636 ours 0 theirs 1 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 160 -> 157, three of item 4177's four combat-rate firsts agree (4177a).
-    pin_eq!(w.firsts.len(), 157, "run1423c baseline");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 157 -> 153.
+    pin_eq!(w.firsts.len(), 153, "run1423c baseline");
     pin_eq!(w.rounds_read, (29, 30), "the rounds read");
     // 29 against 30, 12 parting, every one the T80 `1/59`'s (TI 260)
     // launch point from 6605 (3744d).

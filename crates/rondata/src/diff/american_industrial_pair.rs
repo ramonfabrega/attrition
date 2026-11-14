@@ -203,7 +203,8 @@ fn american_industrial_pair_the_long_s_stride_walks_back_from_3174() {
     // figure's unset facing, against theirs' 0; the American Modern
     // pair's standing row). **No unit row parts on any stride block to
     // 3101**: the parting is in 3102..3174, which is run1338b's.
-    pin_eq!(w.firsts.len(), 100, "the stride's baseline");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 100 -> 99.
+    pin_eq!(w.firsts.len(), 99, "the stride's baseline");
 }
 
 /// run1338b: the word 3174's window, blocks 3095..3425 at the long's

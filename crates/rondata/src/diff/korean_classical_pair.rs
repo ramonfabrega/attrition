@@ -320,5 +320,6 @@ fn korean_classical_pair_run1250_s_closing_frame_is_widened_whole() {
     // `[159]` (5), `[33]` (4), `[506]`, `[528]`, `[542]`, `[83]` (1 each),
     // and `queue:queued` on `1/2005` (2), `1/2006` (1), `1/2017`, `1/2019`,
     // `1/2020` (3 each), `1/2022`, `1/2026` (2 each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2).
-    pin_eq!(w.firsts.len(), 162, "the closing walk's baseline");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 162 -> 155.
+    pin_eq!(w.firsts.len(), 155, "the closing walk's baseline");
 }

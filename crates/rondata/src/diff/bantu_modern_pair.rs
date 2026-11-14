@@ -232,7 +232,8 @@ fn bantu_modern_pair_the_long_s_late_stride_walks_back_from_4304() {
     // and on 4301 two units: the Helicopter `1/34` (TI 310) `mirror`, ours
     // 1 theirs 0, and the garrisoned Scholar `1/35` (TI 52, in `1/2006`)
     // `g.angle[0]`, ours 1431655765 theirs 0.
-    pin_eq!(w.firsts.len(), 98, "the late stride's baseline");
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 98 -> 97.
+    pin_eq!(w.firsts.len(), 97, "the late stride's baseline");
 }
 
 /// run1405b: the word 3410's window, blocks 3395..3661 at the long's
