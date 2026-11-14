@@ -180,8 +180,9 @@ impl Sim {
         // (`tribute_demanded`, `+0x334`) stretches the period to `0x2000`
         // and a counteroffer (`counteroffer`, `+0x314`) doubles it. The
         // demand arm is not carried; the counteroffer is set by the offers
-        // arm on a peace found short (step VII-c), never on a walked game,
-        // whose one short answer is an alliance's (step VII-d).
+        // arm on a deal found short (steps VII-c, VII-d): run1575's French
+        // on the alliance of 1051, which doubles their period on the human
+        // from 1052.
         let forced = agenda & 4 != 0;
         if !forced {
             let mut period: i64 = 0x800;
@@ -495,14 +496,16 @@ impl Sim {
         if plan_war && plan_frame <= frame {
             aggression = 1;
         }
+        let mut rivals = alliance::Rivals::default();
         match self.ai.lobby.team_style {
             // Item 4159, step VII-c: the elimination and victory arms of
             // team styles 0, 8 and 11 (`offers.rs`), then `LAB_006be428`.
             0 | 8 | 11 => {
                 self.store_view(me, t, aggression, strong, weak);
-                if !self.style_zero_arms(me, t) {
+                let Some(r) = self.style_zero_arms(me, t) else {
                     return;
-                }
+                };
+                rivals = r;
             }
             7 => {
                 // SEAM: team style 7's arms (a neutral team-8 leader); every
@@ -518,7 +521,7 @@ impl Sim {
         // `LAB_006be428` onward: the quiet coin, the clear of a committed
         // deal, the offers arm (item 4159, step VII-c) and the rush rules'
         // message.
-        self.diplomacy_tail(me, t, forced);
+        self.diplomacy_tail(me, t, forced, rivals);
     }
 
     /// The three per-target words, as `Leader::diplomacy` leaves them.
@@ -530,6 +533,7 @@ impl Sim {
     }
 }
 
+mod alliance;
 mod offers;
 
 #[cfg(test)]

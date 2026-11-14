@@ -4331,6 +4331,9 @@ fn probe_built_clocks() {
 /// records' `treaty` (2 on both seats' records, ours −1 before) agreeing.
 /// Item 4222, a queue's vacated slots and the tech arm's unqueue after
 /// `gain_tech`: builds (1709, 1709, 35) -> (1709, 1709, 27).
+/// Step VII-d, the alliance found short: leaders (407, 407, 7) -> (407, 407,
+/// 6), the human's `dip.agree` of the French (theirs 0, ours 1 before)
+/// agreeing, and `counteroffer` (the French 1) on the line, agreeing.
 const TAKE_PINNED: Pinned = (
     "run1575",
     1090,
@@ -4342,7 +4345,7 @@ const TAKE_PINNED: Pinned = (
         (0, 0, 0),
         (556, 556, 2),
         (1289, 1331, 166),
-        (407, 407, 7),
+        (407, 407, 6),
         (12, 12, 0),
         (25, 25, 0),
         (405, 405, 1),
@@ -4352,16 +4355,15 @@ const TAKE_PINNED: Pinned = (
 
 /// The leaves of run1575's leaders line that part outside
 /// [`LEADERS_HELD_OUT`] at 1090, as found: `cities_built` (theirs 1, 1, 2
-/// on the three seats, ours 0, 0, 1); `dip.agree` (the human's record of the
-/// French: theirs 0, ours 1 — the French answer to the alliance accepted on
-/// 1051 is found short and withdraws both agreements, an arm step VII-d
-/// ports; ours stops before answering, so the human's commitment stands);
-/// `diplos` (slots 3..7 read 1 there, `Leader::init`'s peace at style 0 on
+/// on the three seats, ours 0, 0, 1); `diplos` (slots 3..7 read 1 there, `Leader::init`'s peace at style 0 on
 /// every slot, which the take's re-read lobby writes on 0..2 only);
 /// `flags.leader_flags` (high bits on every seat). Until step VII-c
 /// `dip.treaty` parted too (the alliance asked on 1041, ours −1 with no
-/// `action_treaty`).
-const TAKE_LEAF_PARTINGS: &str = "cities_built dip.agree diplos flags.leader_flags";
+/// `action_treaty`); until step VII-d `dip.agree` (the human's record of the
+/// French: theirs 0, ours 1 — the French answer to the alliance committed
+/// on 1051 is found short and withdraws both agreements, which ours now
+/// computes).
+const TAKE_LEAF_PARTINGS: &str = "cities_built diplos flags.leader_flags";
 
 /// **The unprinted leaves the take's packet releases** (item 4159, step
 /// VII-c; `docs/DECISIONS.md` entry 131 §1): each written on 906 (the

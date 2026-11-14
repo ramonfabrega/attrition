@@ -180,12 +180,17 @@ impl Sim {
     /// loop's `treaties` (`reveal_map == 3` or'd with the team bit), which
     /// the start block does not compare.
     pub fn init_diplos(&mut self, who: Player, seats: &[Seat]) {
+        let w = who as usize;
+        let seat = |p: usize| seats.iter().find(|s| s.who as usize == p);
+        // The seat's team, kept for `LeaderData::is_team`'s readers in play
+        // (`num_team_members`, item 4159's step VII-d).
+        if let (Some(t), Some(s)) = (self.leaders.team.get_mut(w), seat(w)) {
+            *t = s.team;
+        }
         let lobby = &self.ai.lobby;
         if lobby.conquest {
             return;
         }
-        let w = who as usize;
-        let seat = |p: usize| seats.iter().find(|s| s.who as usize == p);
         let is_team = |a: usize, b: usize| -> bool {
             if a == b {
                 return true;

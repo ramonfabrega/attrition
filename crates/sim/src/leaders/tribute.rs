@@ -81,15 +81,17 @@ impl Diplomacy {
 /// emits: the two stamps, which move on run1575's block 967, and the two
 /// totals, written by the gift's exchange on 966 and witnessed on run1575's
 /// packet at 1090, which our walk holds unstaged since step VII-c computes
-/// the accept of 1027 (an exchange of no goods, which leaves both alone).
-/// `counteroffer`, `tribute_demanded` and `tributes` are held and stay off
-/// the line: nothing our walks hold moves them by a decision we compute
+/// the accept of 1027 (an exchange of no goods, which leaves both alone);
+/// and `counteroffer`, which the French answer to run1575's alliance moves
+/// on 1052 (step VII-d). `tribute_demanded` and `tributes` are held and stay
+/// off the line: nothing our walks hold moves them by a decision we compute
 /// (`docs/LEADERS.md` §8.5).
-pub const TRIBUTE_LEAVES: [&str; 4] = [
+pub const TRIBUTE_LEAVES: [&str; 5] = [
     "tribute_stamp",
     "gift_stamp",
     "tribute_sent",
     "tribute_received",
+    "counteroffer",
 ];
 
 /// One leader's tribute leaves and deal records (`docs/LEADERS.md` §8.1).
@@ -121,7 +123,8 @@ pub struct Tribute {
 
 impl Sim {
     /// One of [`TRIBUTE_LEAVES`] as the leaders line and the record print
-    /// it: the two stamps eight words, the two totals one.
+    /// it: the two stamps and `counteroffer` eight words, the two totals
+    /// one.
     pub fn leader_tribute_leaf(&self, who: Player, name: &str) -> Option<Vec<i64>> {
         let t = self.leaders.tribute.get(who as usize)?;
         match name {
@@ -129,6 +132,7 @@ impl Sim {
             "gift_stamp" => Some(t.gift_stamp.to_vec()),
             "tribute_sent" => Some(vec![i64::from(t.tribute_sent)]),
             "tribute_received" => Some(vec![i64::from(t.tribute_received)]),
+            "counteroffer" => Some(t.counteroffer.iter().map(|&c| i64::from(c)).collect()),
             _ => None,
         }
     }
@@ -248,8 +252,10 @@ impl Sim {
     /// - **Reject**: both sides' agreement withdrawn and both records
     ///   cleared.
     ///
-    /// SEAM: the alliance's team gate (`LeaderData::num_team_members`,
-    /// `num_allies`) is step VII-d's; the reject's human-ally attack arm
+    /// An alliance asked passes the team gate before the exchange
+    /// ([`Sim::alliance_open`], item 4159's step VII-d).
+    ///
+    /// SEAM: the reject's human-ally attack arm
     /// needs an attack request, which nothing in the crate sets
     /// (the leader's attack request, 006d14e0, is not carried). The messages and sounds
     /// are the interface's.
@@ -301,10 +307,17 @@ impl Sim {
         {
             return;
         }
-        // SEAM: `treaty == 2` runs the alliance's team gate first
-        // (`LeaderData::num_team_members`, `num_allies`; step VII-d). Only
-        // the computer's offers arm executes an alliance, and it stops before
-        // answering one, so the exchange is taken.
+        // An alliance (`treaty == 2`) passes the team gate first (item
+        // 4159's step VII-d, [`Sim::alliance_open`]): with an ally outside
+        // its team on either side, both agreements are withdrawn and both
+        // records cleared, and nothing is exchanged.
+        if d.treaty == 2 && !self.alliance_open(m, x) {
+            self.clear_agree(m, x);
+            self.clear_agree(x, m);
+            self.leaders.tribute[x].dip[m] = Diplomacy::default();
+            self.leaders.tribute[m].dip[x] = Diplomacy::default();
+            return;
+        }
         self.exchange(m, x);
         self.treaty_and_hires(m, x);
         self.leaders.tribute[m].dip[x] = Diplomacy::default();

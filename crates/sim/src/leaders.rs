@@ -44,6 +44,11 @@ pub struct LeadersState {
     pub forced_march: Vec<bool>,
     /// Whether each player has been defeated — `leader_flags & 2` clear.
     pub defeated: Vec<bool>,
+    /// Each slot's lobby team (`GameInfo::player[k].team` of the seat
+    /// `LeaderData::get_player` finds; 0..3 a team, 8 none), as
+    /// [`Sim::init_diplos`] reads it. `LeaderData::is_team@006ebd30` and
+    /// so `num_team_members` read it in play (item 4159's step VII-d).
+    pub team: Vec<i32>,
     /// `LeaderData::city_name` (`+0x40c`): the cities this slot has named
     /// for its tribe, `City::generate_name`'s count ([`words`],
     /// `docs/LEADERS.md` §1).

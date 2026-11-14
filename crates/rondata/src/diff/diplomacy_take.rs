@@ -970,8 +970,9 @@ fn peace_row(k: &str) -> bool {
 /// the French offers arm accepts on 1027, the treaty arm sets the peace
 /// both ways and stamps `made_peace` 1027 on both, and both records are
 /// cleared (block 1028). The alliance asked on 1041 (`treaty` 2, block
-/// 1042) is answered short on 1051 by an arm step VII-d ports; ours stops
-/// before answering and the records keep `treaty` 2, as theirs do. Pinned:
+/// 1042) is answered short on 1051 (step VII-d,
+/// [`run1575_s_alliance_is_found_short`]); the counteroffer withdraws both
+/// agreements and the records keep `treaty` 2, as theirs do. Pinned:
 /// the record's movers of the three rows, and no parting of them over the
 /// whole walk.
 #[test]
@@ -1082,6 +1083,125 @@ fn run1575_s_peace_parts_without_the_human_s_proposal() {
         "the stub's first partings"
     );
     pin_eq!(w.count, 1099, "the stub's draw count");
+}
+
+/// Whether a leader row is one the alliance found short moves
+/// (`docs/LEADERS.md` §7.2, §8.2): `counteroffer[t]`, and the deal records'
+/// `dip.agree[t]`.
+fn alliance_row(k: &str) -> bool {
+    k.starts_with("counteroffer[") || k.starts_with("dip.agree[")
+}
+
+/// **The French answer to the human's alliance, ours against the record**
+/// (item 4159, step VII-d): the human asks an alliance on 1041
+/// (`action_treaty`, `treaty` 2 on both records, block 1042) and commits to
+/// it on 1051, which forces the French pass. Their offers arm runs the
+/// alliance's gates (`docs/LEADERS.md` §7.2): no ally of theirs, no victory
+/// clock, a human asking, so the price `(epoch + 1) · 200` at peace comes
+/// off `S` (`good_deeds` 0). The shortfall's `aggression == 0` arm adds
+/// nothing (not weak; no peace terms for a `treaty` of 2), the need is the
+/// price, and with no give of theirs it is the counteroffer:
+/// `counteroffer[0]` 1 and both agreements withdrawn (block 1052). Pinned:
+/// the record's movers of `counteroffer`, and no parting of it or of
+/// `agree` over the whole walk.
+#[test]
+fn run1575_s_alliance_is_found_short() {
+    let _pins = Pins::hold();
+    let (Some(diplomacy), Some(taunts)) = (
+        take_diplomacy(RUN1575.0),
+        script_taunts("diplomacy4206.cmd"),
+    ) else {
+        eprintln!(
+            "skipping: no {} or install (RON_GAMELOG_DIR, RON_INSTALL)",
+            RUN1575.0
+        );
+        return;
+    };
+    let Some(w) = walk_sea_style_zero(
+        RUN1575,
+        coverage_script("diplomacy4206.cmd"),
+        &[],
+        &diplomacy,
+        &taunts,
+    ) else {
+        return;
+    };
+    let movers: Vec<String> = w
+        .movers
+        .iter()
+        .filter(|(_, _, k, _, _)| alliance_row(k))
+        .map(|(n, who, k, b, a)| format!("{n} {who} {k} {b}->{a}"))
+        .collect();
+    pin_eq!(
+        movers,
+        vec!["1052 1 counteroffer[0] 0->1".to_string()],
+        "the record's counteroffer movers (`diplomacy_leaves` reads no deal record)"
+    );
+    let parted: Vec<String> = w
+        .leader_parted
+        .iter()
+        .filter(|(_, _, k, _, _)| alliance_row(k))
+        .map(|(n, who, k, t, m)| format!("{n} {who} {k}: theirs {t} ours {m}"))
+        .collect();
+    for p in &parted {
+        eprintln!("  parted {p}");
+    }
+    pin_eq!(
+        parted,
+        Vec::<String>::new(),
+        "the alliance's rows, ours against the record"
+    );
+    pin_eq!(w.count, 1150, "the draw count, computed");
+    pin_eq!(w.sequence, 1150, "the draw sequence, computed");
+}
+
+/// **The comparison can part** (item 4159, step VII-d): the same walk with
+/// the human's alliance asked on 1041 and committed on 1051 left unstaged.
+/// The French are never asked, so `counteroffer[0]` stays 0 where theirs
+/// is 1 from 1052, and the deal records part on 1042 (`treaty`). The
+/// stub's first partings of the alliance's rows and of `dip.treaty`.
+#[test]
+fn run1575_s_alliance_parts_without_the_human_s_proposal() {
+    let _pins = Pins::hold();
+    let (Some(diplomacy), Some(taunts)) = (
+        take_diplomacy(RUN1575.0),
+        script_taunts("diplomacy4206.cmd"),
+    ) else {
+        eprintln!(
+            "skipping: no {} or install (RON_GAMELOG_DIR, RON_INSTALL)",
+            RUN1575.0
+        );
+        return;
+    };
+    let early: Vec<TakeDiplo> = diplomacy.into_iter().filter(|d| d.frame < 1041).collect();
+    let Some(w) = walk_sea_style_zero(
+        RUN1575,
+        coverage_script("diplomacy4206.cmd"),
+        &[],
+        &early,
+        &taunts,
+    ) else {
+        return;
+    };
+    let mut firsts: Vec<String> = Vec::new();
+    let mut seen = std::collections::BTreeSet::new();
+    for (n, who, k, t, m) in &w.leader_parted {
+        if (alliance_row(k) || k.starts_with("dip.treaty[")) && seen.insert((*who, k.clone())) {
+            firsts.push(format!("{n} {who} {k}: theirs {t} ours {m}"));
+        }
+    }
+    for f in &firsts {
+        eprintln!("  first {f}");
+    }
+    pin_eq!(
+        firsts,
+        vec![
+            "1042 0 dip.treaty[1]: theirs 2 ours -1".to_string(),
+            "1042 1 dip.treaty[0]: theirs 2 ours -1".to_string(),
+            "1052 1 counteroffer[0]: theirs 1 ours 0".to_string(),
+        ],
+        "the stub's first partings"
+    );
 }
 
 /// Whether a leader row is one of the taunt's answer's printed rows

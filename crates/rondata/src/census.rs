@@ -286,7 +286,8 @@ pub const SIMULATION_BACKED: usize = 1456;
 /// 591 → 669 at item 4039's booking: the territory's port test is the census's `is_port_backed`, and the twins' spellings landed.
 /// 669 → 731 at item 4170's booking: CHECKSUM §22 credits the eight whole lines' walkers, and 44 twin rows were spelled by hand.
 /// 731 → 733 at item 4185's booking: step V of 4159 ports §10's end of the game and §11's lost capital (`sim::leaders::endgame`, `capital`).
-pub const SIMULATION_PORT_BACKED: usize = 733;
+/// 733 → 734 at item 4159's step VII-d: a backed function the alliance's gates spell (`sim::leaders::diplomacy::alliance`).
+pub const SIMULATION_PORT_BACKED: usize = 734;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
