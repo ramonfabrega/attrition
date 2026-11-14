@@ -1406,6 +1406,68 @@ fn an_age_snaps_the_leader_s_figures_and_a_plain_tech_does_not() {
     );
 }
 
+/// **The age's seating writes every figure's `last`** (item 4238,
+/// `docs/CHECKSUM.md` §24.4): `Unit::set_new_location(u, x, y, 1, 1)`
+/// hands each figure to `Guy::set_new_location(…, 1)`, which copies the
+/// point into `last_x`/`last_y`, and `Guy::set_angle(…, 1)` writes
+/// `last_angle`. A unit walking on the age's tick ends it with `last` on
+/// its point rather than one step behind — run1591's six figures on 6537.
+#[test]
+fn an_age_writes_each_figure_s_last_on_its_point() {
+    use crate::tech::{TechTree, TypeDef};
+
+    let mut tree = TechTree::new();
+    let classical = tree.add(TypeDef::age("Classical Age", 0));
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    sim.start_techs(1);
+
+    let mut walkers = Vec::new();
+    for who in 0..2u8 {
+        let u = sim.add_unit(Unit::new(
+            who,
+            i16::from(who),
+            centre_of(Cell::new(2 + i32::from(who), 0)),
+            100,
+        ));
+        make_mobile(&mut sim, u, movement::Angle::NORTH);
+        sim.units[u].movement.heading = movement::Angle::EAST;
+        while sim.units[u].guys.len() < 2 {
+            sim.units[u].guys.push(crate::units::anim::Guy::fresh(-1));
+        }
+        // Where the last `Guy::move` began: one step behind the point.
+        let pos = sim.units[u].pos;
+        let behind = Pos::new(pos.x - 24, pos.y - 24);
+        for g in &mut sim.units[u].guys {
+            g.last = Some((behind, movement::Angle::NORTH));
+        }
+        walkers.push(u);
+    }
+
+    sim.gain_tech(0, classical);
+    let u = walkers[0];
+    let (pos, heading) = (sim.units[u].pos, sim.units[u].movement.heading);
+    for (g, guy) in sim.units[u].guys.iter().enumerate() {
+        let at = guy.follow.map_or(sim.units[u].movement.body.pos, |f| f.body.pos);
+        assert_eq!(
+            guy.last,
+            Some((at, heading)),
+            "figure {g}: `last` is its point and the unit's heading"
+        );
+    }
+    assert_eq!(sim.units[u].guys[0].last.map(|l| l.0), Some(pos));
+    // Player 1's age has not come: its figures keep their step.
+    let v = walkers[1];
+    assert!(
+        sim.units[v]
+            .guys
+            .iter()
+            .all(|g| g.last.map(|l| l.0) != Some(sim.units[v].pos)),
+        "the loop is over one leader's units"
+    );
+}
+
 /// **An age that crosses a bracket re-pieces every figure, and each keeps
 /// the turn bit its old piece gave it** (item 1281, `docs/ANIM.md` §4.8).
 ///
