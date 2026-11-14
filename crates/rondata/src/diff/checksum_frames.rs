@@ -159,8 +159,10 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 ///
 /// Item 4222 moved two on both takes: groups 61 → 2746 (run1577 whole on
 /// 120), a building push normalizing `last_group`'s slot as
-/// `equals_group` does; builds 100 → 159 (run1577 whole on 120), a
-/// queue's vacated slots walked as the array holds them.
+/// `equals_group` does; builds 100 → 7383 (run1577 whole on 120), a
+/// queue's vacated slots walked as the array holds them (100 → 159), a
+/// removed last entry's `job_counter` zeroed (159 → 202), and the tech
+/// arm's unqueue after `gain_tech` (202 → 7383).
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -183,7 +185,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         24000,
         [
             ("units", 129, 171),
-            ("builds", 159, 141),
+            ("builds", 7383, 0),
             ("groups", 2746, 0),
             ("guys", 129, 171),
             ("leaders", 0, 300),
@@ -375,13 +377,6 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         &[
             ("units", 1107, 1147, 40, "1107 0 flags: +0x0 of 1|0: 01|"),
             (
-                "builds",
-                519,
-                519,
-                1,
-                "305 2000 queue[k]: type 0|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|27",
-            ),
-            (
                 "guys",
                 375,
                 389,
@@ -410,13 +405,6 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 "177 0 path.size..increment: path.size 10|50",
             ),
             (
-                "builds",
-                557,
-                557,
-                5,
-                "14 2000 queue[k]: type -1|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|25",
-            ),
-            (
                 "guys",
                 396,
                 487,
@@ -443,13 +431,6 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 1901,
                 1172,
                 "167 0 path.size..increment: path.size 20|60",
-            ),
-            (
-                "builds",
-                703,
-                703,
-                7,
-                "14 2000 queue[k]: type -1|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|25",
             ),
             (
                 "guys",
@@ -481,13 +462,6 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 "167 0 path.size..increment: path.size 10|60",
             ),
             (
-                "builds",
-                723,
-                723,
-                10,
-                "14 2000 queue[k]: type -1|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|25",
-            ),
-            (
                 "guys",
                 483,
                 658,
@@ -508,43 +482,25 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "run1580",
         "rontrace-run1580.log",
         61,
-        &[
-            (
-                "groups",
-                550,
-                550,
-                1,
-                "7 1 id..march: role 0|262416, new_speed 0|34, speed 0|34",
-            ),
-            (
-                "leaders",
-                267,
-                267,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|d1000000",
-            ),
-        ],
+        &[(
+            "leaders",
+            267,
+            267,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|d1000000",
+        )],
     ),
     (
         "run1581",
         "rontrace-run1581.log",
         100,
-        &[
-            (
-                "builds",
-                519,
-                519,
-                1,
-                "305 2000 queue[k]: type 0|50, good[1] 0|-1, good[2] 0|-1, cost[0] 0|27",
-            ),
-            (
-                "leaders",
-                267,
-                267,
-                3,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|db000000",
-            ),
-        ],
+        &[(
+            "leaders",
+            267,
+            267,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|db000000",
+        )],
     ),
 ];
 

@@ -4125,13 +4125,15 @@ fn probe_built_clocks() {
 /// each line's (the stream's ranges, ours, ranges parted), our walk the
 /// take's ([`run1575_take_packet`]). One line agrees, the cities' (12
 /// ranges). Item 4218, the idle latch (`flags & 0x08`): units (3907, 4015,
-/// 3084) -> (3907, 4015, 3077).
+/// 3084) -> (3907, 4015, 3077). Item 4222, a queue's vacated slots and the
+/// tech arm's unqueue after `gain_tech`: builds (1709, 1709, 35) -> (1709,
+/// 1709, 27).
 const TAKE_PINNED: Pinned = (
     "run1575",
     1090,
     [
         (3907, 4015, 3077),
-        (1709, 1709, 35),
+        (1709, 1709, 27),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),

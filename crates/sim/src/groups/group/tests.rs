@@ -4441,7 +4441,11 @@ fn a_building_push_normalizes_the_last_pushed_slot() {
     s.orders.pushed[i].state.speed = 0;
     s.orders.pushed[i].state.new_speed = 0;
     s.push_buildings_group(1, &[0]);
-    assert_eq!(s.pool_group_of(a), slot, "the building group took another slot");
+    assert_eq!(
+        s.pool_group_of(a),
+        slot,
+        "the building group took another slot"
+    );
     assert_eq!(s.group_speed_of(a), 34);
     assert_eq!(s.orders.pushed[i].state.new_speed, 34);
 }

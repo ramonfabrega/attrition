@@ -352,14 +352,21 @@ fn an_unqueued_slot_keeps_the_last_entry_s_bytes() {
     q.unqueue(0, false, &mut ledger);
     let costs = |v: &[Item]| v.iter().map(|i| i.cost[0]).collect::<Vec<_>>();
     assert_eq!(costs(&q.items), [26, 27]);
-    assert_eq!(costs(&q.vacated), [27], "slot 2 keeps the third entry's copy");
+    assert_eq!(
+        costs(&q.vacated),
+        [27],
+        "slot 2 keeps the third entry's copy"
+    );
     // Removing the last entry leaves its own bytes, its counter zeroed
     // first (`Build::unqueue`): slot 1 now, slot 2 still.
     q.items[1].job_counter = 500;
     q.unqueue(1, false, &mut ledger);
     assert_eq!(costs(&q.items), [26]);
     assert_eq!(costs(&q.vacated), [27, 27]);
-    assert_eq!(q.vacated[0].job_counter, 0, "the removed last entry's counter");
+    assert_eq!(
+        q.vacated[0].job_counter, 0,
+        "the removed last entry's counter"
+    );
     // A lay overwrites the slot at `queued` and no other.
     q.push(0, &food(30));
     assert_eq!(costs(&q.items), [26, 30]);
