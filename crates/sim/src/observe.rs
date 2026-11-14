@@ -320,6 +320,15 @@ pub struct TerrainScene {
     /// names. A client reads [`crate::world::cell::FOREST`] off it: the
     /// cells `ObjectsOut::sort_trees@00656c70` stands trees on (item 4080).
     pub flags: Vec<u16>,
+    /// Each cell's `WData.region` and `WData.region2` (`+0x4`, `+0x6`) as
+    /// the original numbers them — land `1..0x40`, sea above — row-major,
+    /// `-1` for none. The surf's shore reads them
+    /// (`TerrainOut::tcoord_is_surfline@00867470`; item 4239).
+    pub region: Vec<i16>,
+    pub region2: Vec<i16>,
+    /// Each tile's `TData.mask` (`World +0x138`), row-major over `width ×
+    /// 4` by `height × 4` tiles — the bits [`crate::world::tile`] names.
+    pub tiles: Vec<u16>,
     /// The placed mountain ranges: each range's tiles.
     pub mountains: Vec<Vec<Pos>>,
     pub version: u32,
@@ -615,7 +624,14 @@ impl Sim {
                 (d.land, d.land_sub)
             })
             .unzip();
-        let flags = cells.map(|c| w.cell_data(c).flags).collect();
+        let flags = cells.clone().map(|c| w.cell_data(c).flags).collect();
+        let number = |r: Option<u16>| r.map_or(-1, |r| w.region_number(r) as i16);
+        let region = cells.clone().map(|c| number(w.region_of(c))).collect();
+        let region2 = cells.map(|c| number(w.cell_data(c).region2)).collect();
+        let tiles = (0..height * 4)
+            .flat_map(|y| (0..width * 4).map(move |x| Pos::new(x, y)))
+            .map(|t| w.tile_mask(t))
+            .collect();
         TerrainScene {
             width,
             height,
@@ -624,6 +640,9 @@ impl Sim {
             land,
             land_sub,
             flags,
+            region,
+            region2,
+            tiles,
             mountains: self
                 .terrain
                 .mountains

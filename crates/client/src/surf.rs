@@ -12,6 +12,8 @@
 //! are the next word, so the binary does not call this module yet.
 #![cfg_attr(not(test), allow(dead_code))]
 
+pub mod shore;
+
 /// `internal_random`'s draws before `Surf::init`'s first, on run1567's
 /// trace (the GreatLakes lobby's map, item 4236): 45 under
 /// `RiverDoobers::init_class`, 58,081 in `Terrain::init`'s
@@ -790,4 +792,52 @@ mod init_tests {
 
     /// How far a wave may sit from the packet's, in world units.
     const PLACE: f32 = 0.05;
+
+    /// **The shore, the client's own** (item 4239; `docs/RENDERER.md`
+    /// §3.27): `sort_waterline_wcoords` and `connect_waterline_regions`
+    /// over the client's world at load ([`shore::ShoreWorld`], the sim's
+    /// `WData` and `TData`), against run1564's packet's
+    /// `sorted_waterline_tcoords`: every non-empty chain, in order, tcoord
+    /// for tcoord.
+    #[test]
+    fn the_shore_is_the_packet_s() {
+        let Some(inst) = install() else {
+            println!("skipping: no install");
+            return;
+        };
+        let Some(p) = packet() else {
+            println!("skipping: no surf init dump");
+            return;
+        };
+        let world = match crate::world::World::open(inst.root(), &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let t = world.runner.terrain();
+        assert_eq!(t.width, p.world.width_tiles);
+        let shore = shore::ShoreWorld::of(&t);
+        let (chains, seas) = shore.sorted_waterline_tcoords();
+        let kept: Vec<&Vec<i32>> = chains.iter().filter(|c| !c.is_empty()).collect();
+        println!(
+            "shore: {} chains, {} kept, lengths {:?}, seas {seas:?}; the packet's {:?}",
+            chains.len(),
+            kept.len(),
+            chains.iter().map(Vec::len).collect::<Vec<_>>(),
+            p.chains.iter().map(Vec::len).collect::<Vec<_>>()
+        );
+        let agree = kept
+            .iter()
+            .zip(&p.chains)
+            .map(|(a, b)| a.iter().zip(b).filter(|(x, y)| x == y).count())
+            .collect::<Vec<_>>();
+        println!("shore: tcoords agreeing in place, by chain {agree:?}");
+        assert_eq!(
+            kept.iter().map(|c| c.to_vec()).collect::<Vec<_>>(),
+            p.chains,
+            "the client's shore chains are the packet's"
+        );
+    }
 }
