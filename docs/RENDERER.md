@@ -3204,8 +3204,9 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
 - a lit floor texel above the curve's white (stage 1, about 5.26 against 4.9) clips in the copy and comes back at
   the white;
 - the surf, now worth `SANDY` +128 by composite (4225a). Its section models are read (item 4235: `render::mot`,
-  `docs/FORMATS.md`, "The surf's section models"). The shore's splines, `internal_random`'s state at load and
-  `SURFTIMING*` are not;
+  `docs/FORMATS.md`, "The surf's section models"). ~~The shore's splines, `internal_random`'s state at load and
+  `SURFTIMING*` are not~~ read by item 4236 (§3.26): `Surf::init` is in register with the packet when fed the
+  packet's shore; the client's own shore chains and the draw are not;
 - the fish herds' blot and the whitecaps;
 - the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
 - the screen reflection and the specular.
@@ -3288,6 +3289,92 @@ photographs alone: the rows. *Not established:*
 - an emitter's start: ours has burned for a whole life, the original's from when its level was reached (4201b
   stands);
 - the run1559b wind's three degrees, `graphic_dt` taken at 0, and the 18 births a life where `freq` gives 15 or 16.
+
+## 3.26 The surf, laid (item 4236)
+
+**The class, against the packet.** `rondata::artdata::surf_class` reads what `Surf::init_class@0089f050`
+keeps of `<SURF>`: `wavetime` 250, `stalltime` 75, the 13 `<TEXTURE>`s, the 14 `SURFTIMING`s (each
+`percent` through `wcstod` to an `f32`, each `alpha`), the 13 `<WAVE>`s and the two `<SURFTYPE>`s.
+A `<WAVE>` of type `Large` is shape row 1, every other row 0. A `SurfWave` keeps its sections in one
+slot per texture, at its `tex0`'s index, so run1564's lists 0, 2, 4, 7, 8, 9, 11 are slots.
+`tools/render/surf_packet.py --sections` walks run1564's packet from `Surf::waves` `0x00c8c1b8`.
+`the_surf_s_sections_and_timings_are_the_packet_s` holds it to the reader:
+- 33 of 33 sections and 507 of 507 frames equal `Mot::section_verts` bit for bit, so the ×3 and the
+  dropped `z` rest on a value;
+- every texcoord, face, timing index and mapping agrees. `SurfWaveSection::init` turns a 0 into −1 on
+  a model whose texcoords do not move (`surf_flat_0_bigwash`, `_bigcrash`);
+- all 28 timelines agree, and both `wave_shape_index` rows: breakers 5 to 12, large waves 0 to 4.
+
+A vertex nudged by 2 ulp turns it red.
+
+**`internal_random` at load is the map's.** `Random::get@00a39d70` is an LCG (×`0x19660d`,
++`0x3c6ef35f`). Its result scales the word's low 16 bits onto `[lo, hi)`, and it does not step when
+`lo == hi`. `internal_random` (`0x00eb697c`) starts at 0 (a static the trace finds at 0 on its first draw), and no site
+reseeds it. On run1567's trace (`client::surf`, `internal_random_at_surf_init_is_the_map_s`):
+- its first draw finds it at 0, and every draw follows the last by one step;
+- 59,244 draws come before `Surf::init`'s first, in five runs:
+  - 45 `RiverDooberType::init@00887b00`;
+  - 58,081 `Terrain::init@00850f70`'s `random_map_pool`, `(4 · 60 + 1)²`;
+  - 45 `RiverDooberType::init` again;
+  - 360 `TerrainOil::add_rocky_patch@008a2b30`;
+  - 713 `RiverSectionOut::create_doobers@0088a4f0`.
+
+Nothing in the menu or the lobby draws it. After setup it is drawn by `Surf::inc_time@008a1a00`, the
+river wakes, the ocean floor's clock, `Particle::init@008db7c0` and the ammo.
+
+**`Surf::init@008a0cf0`, ported** (`client::surf`). The walk:
+- Each chain of `TerrainOut::sorted_waterline_tcoords` holding at least 16 tcoords gives a control
+  point at every fourth, `(t mod 4W, t div 4W) · 192`. The `Spline` through them is clamped uniform,
+  degree 4 at depth 1000.
+- Its normals cross `(1, 1, √3)` with each segment, normalized, and are averaged with the last.
+- One draw, `r`, is taken on `[−75, 250)` for the chain.
+- The large waves come in pairs, every half `dist_along_shore` (400 · 0.5), at
+  `pos + normal · 320` (`Spline::next_at_dist@00912b70`, end 0.1). A pair is kept unless the tile's
+  `TData` carries `RIVER` (0x800). The pair's second is a further half step on, phased
+  `(325 / 2 + r) mod 325 − 75`. It is laid even past the end, where the walk leaves the position as
+  it was.
+- The breakers each take two draws: a distance on `[500, 1000)` and a phase on `[−75, 250)`. Each sits
+  at `pos + normal · 700` on an ocean tile (`TData & 0x30 == 0x20`).
+- `Surf::add_wave@0089d5a0` (read off the listing; the decompiler lost its floats):
+  - the angle is `find_angle@0092d130` of the normal times 1000, read through
+    `fast_angle_to_degrees@00a28f70`;
+  - the axes are `fast_angle_to_cosine@00a28a70` and `_sine` of the angle plus 180° and plus 270°;
+  - the type is a draw on the shape's row;
+  - the time is `((x + y) / 24 + base) mod 325 − 75`.
+
+  The fast readers are 256-entry tables on the angle's top byte, of whole degrees
+  (`angle_to_degrees@00a28e00`).
+
+**In register with run1564's packet, fed the packet's shore** (`surf_init_lays_the_packet_s_waves`;
+`surf_packet.py --init`):
+
+| field of 1,205 waves and breakers | agree |
+|---|---|
+| tile `wx`, `wy` | 1,205 |
+| shape | 1,205 |
+| time, stepped 3,294 frames through `inc_time` | **1,205** |
+| axes, to 1e-6 | 1,204 |
+| place, within 0.05 units | 1,193 (worst 0.16) |
+
+Record 240's normal falls on a table step: 211° against 210°. `Surf::init` takes 1,721 draws (6
+chains, 1,205 shapes, 255 · 2 breaker draws), so the generator leaves at 60,965, the trace's setup
+total.
+
+**The shape at a frame is the session's.** `Surf::inc_time` redraws a wave's type each time its clock
+wraps (every 325 frames). Its draws interleave with the particles', the wakes' and the ammo's. Replayed
+from run1567's own `inc_time` draws, the types agree with run1564's packet on 224 of 1,205, which is
+chance. The reset frames agree on all 3,294 frames. So the phase is reachable from the client's own
+load, and the type at frame 3294 is not (4236a). All five large waves share their textures and
+timings, as do all eight breakers. A type changes only the `.mot`'s shape.
+
+*Coverage.* Diff-backed: the sections, the timelines, the class's data, the generator's census and
+`Surf::init`'s output on the packet's shore. On one packet: the place's tolerance. *Not established:*
+- the client's own shore: `TerrainOut::sort_waterline_wcoords@00872f30`,
+  `connect_waterline_regions@00867890` and `tcoord_is_surfline@00867470` over `WorldData`'s 0x1c-byte
+  records (4236b). The flags are the sim's `TData` mask;
+- the draws before `Surf::init` on another map: the 360 and 713 are rejection sampling, value by value
+  (4236c);
+- the type at a frame (4236a), the draw (`SurfWaveSection::draw@0089e360`), and its row on the still.
 
 ## 4. The stack
 
