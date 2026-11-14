@@ -1004,9 +1004,10 @@ mod tests {
             pin_eq!(row(1, 15, what), None, "`1/15`'s {what}");
         }
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was [(5601, 130), (5682, 5), (5704, 2)].
+        // Item 4242: (5720, 3) -> (5720, 1), group 72's `speed`/`new_speed` (56) on 5720: an army's pushed group takes `add_group`'s `get_num_cap`.
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(5601, 32), (5682, 1), (5720, 3)],
+            [(5601, 32), (5682, 1), (5720, 1)],
             "the blocks keys first part on, the first three"
         );
     }
@@ -1307,7 +1308,8 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 4231: (6685, 2) gone, group 73's `speed`/`new_speed` 0|34 agree (a `QUEUE_FIRST` move's `get_num_cap` normalizes its record, `docs/GROUPS.md` §3.4).
-            [(6604, 34), (6718, 3)],
+            // Item 4242: (6718, 3) -> (6718, 1), group 69's `speed`/`new_speed` 0|26 agree (an army's pushed group takes `add_group`'s `get_num_cap`).
+            [(6604, 34), (6718, 1)],
             "the blocks keys first part on, the whole window"
         );
         // Item 1197: 298 → 189, the dead transports' numbers held
@@ -1320,7 +1322,8 @@ mod tests {
         // Item 1458: 109 → 105; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 4159's residue: 40 -> 39, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
         // Item 4231: 39 -> 37, group 73's `speed`/`new_speed` on 6685.
-        pin_eq!(w.firsts.len(), 37, "every key parted on run420");
+        // Item 4242: 37 -> 35, group 69's `speed`/`new_speed` (26) on 6718: an army's pushed group takes `add_group`'s `get_num_cap`.
+        pin_eq!(w.firsts.len(), 35, "every key parted on run420");
     }
 
     /// **The second pair's East Indies word, 7382, widened whole** (item
@@ -2128,6 +2131,7 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         // Item 1326 re-pinned on the tree merged with 1318's: was [(12577, 210), (12582, 1)].
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: [(12577, 43)] -> [(12577, 27)].
+        // Item 4242: (16625, 3) -> (16625, 1), group 75's `speed`/`new_speed` 0|25 agree (an army's pushed group takes `add_group`'s `get_num_cap`).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
@@ -2596,7 +2600,7 @@ mod tests {
                 (16476, 100),
                 (16571, 1),
                 (16609, 1),
-                (16625, 3),
+                (16625, 1),
                 (16637, 4),
                 (16649, 1),
                 (16674, 1),
@@ -2621,7 +2625,8 @@ mod tests {
         // Item 1634 removes 1/2046's standing false road flag.
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 131 -> 115.
         // Item 4159's residue: 116 -> 115, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-        pin_eq!(w.firsts.len(), 115, "every key parted on run579");
+        // Item 4242: 115 -> 113, group 75's `speed`/`new_speed` (25) on 16625: an army's pushed group takes `add_group`'s `get_num_cap`.
+        pin_eq!(w.firsts.len(), 113, "every key parted on run579");
     }
 
     type AmmoFirsts = std::collections::BTreeMap<((i64, i64, i64), &'static str), (i64, String)>;
@@ -3264,7 +3269,8 @@ mod tests {
         // Items 2193 and 2205, merged together (each gated without the other): 139 → 138.
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 137 -> 121.
         // Item 4159's residue: 122 -> 121, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-        pin_eq!(w.firsts.len(), 121, "every key parted on run583");
+        // Item 4242: 121 -> 119, group 65's `speed`/`new_speed` (26) on 16892: an army's pushed group takes `add_group`'s `get_num_cap`.
+        pin_eq!(w.firsts.len(), 119, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

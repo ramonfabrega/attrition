@@ -37249,3 +37249,29 @@ SHA-256 `8a95ec6be8b23a83eef92cb0b75bc5f52da3814ebc33a6f32ea28cfbb2e690e1`.
 
 **What it holds**: the units and guys lines' first parting on 6537, named by record and field, and the age that
 writes it.
+
+## run1592 — the minted file's playback with a packet at 6781: groups' first parting (2026-11-14, item 4242, `att-4242`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the groups line out on frame 6781, its
+first parting on run1578 since item 4231 (re-read on this lane's base: still 6781). The hook carries only the line's
+Adler, and no packet stood on 6781. The take: run1591's line moved to 6781, `--end-frame 6784 --log-window 6780 6783
+--timeout 1500 --tracer-def RON_STATE_FRAME=6781`, the rest as run1591, through `viadriver.sh golden_capture.sh
+~/ron-golden/run1592`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 10:11:43 −05:00, exited 10:19:57: **494.5 s launch to exit**, exit 0, `success`, 6,785
+  frames, `last_frame` 6784, no page fault, no relaunch. `df -g ~` read 173 GB free before it. Minutes waited on
+  another lane: none.
+- The packet at logger frame 6781, trace frame 6780, `frame-snapshot.bin`, 792,468,704 bytes, SHA-256
+  `8d0380278bb1c4089c8954e8f1b6a2765707d6349b8d07c31dbe1b335cb064a2`. `checksum.py --stream --values`: the stream's
+  sums equal the original's on every line. Kept under `~/ron-data/lab-experiments/2026-11-13-item-4214/run1592/`
+  beside the other minted packets. Its groups value, 2663182868, is run1578's theirs on 6781.
+- **Groups on frame 6781**: 1 of 544 ranges parted, range 76, group record 64 (`id..march`): army 1/1's group, the
+  three Longbowmen `1/24..1/26` (TI 177, born on tick 6780), `num` 3, `stamp` 6780; `role` ours 0, theirs 0x150c00;
+  `new_speed` and `speed` ours 0, theirs 26; the other 18 fields agree (`MINTED_PACKETS`). The units line agrees
+  there. Item 4242 makes the groups line whole.
+- Filed with `filerun.py run1592 greatlakes-playback-of-minted-packet-6781`.
+
+Archive `gamelog-run1592-greatlakes-playback-of-minted-packet-6781.txt`, 2,450 bytes,
+SHA-256 `934e298d48a72d35f936eec2e15494a2ebc594e5a3d4ec487066ca0381a408c4`; `rontrace-run1592.log`, 34,605,248 bytes,
+SHA-256 `63b560258dbf0a7291758ba675ab50711d039acca1cd68ca7bdfd1def77e4936`.
+
+**What it holds**: the groups line's first parting on 6781, named by record and field.

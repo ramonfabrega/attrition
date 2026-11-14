@@ -500,8 +500,7 @@ impl Sim {
             // `facing`, `form`, `form_num`, `new_speed` and `march`, as a
             // pushed group does. An equal group is not copied at all.
             let prev = self.pool_record(who, s).1;
-            // The walk's kill half: the group each figure's `+0x80` names
-            // loses the squad, and is cleared if that empties it.
+            // The walk's kill half: each figure's `+0x80` group loses the squad, cleared if emptied.
             for a in self.kill_from_named(who, &chain, s) {
                 if a != slot {
                     self.army_normalize(who, a);
@@ -516,7 +515,7 @@ impl Sim {
             } else {
                 crate::groups::group::GroupState::copied(prev, s, self.frame, chain.len())
             };
-            for f in chain {
+            for &f in &chain {
                 let captain = self.is_captain(f);
                 let a = &mut self.ai.armies[w].list[slot];
                 if a.units.contains(&f) {
@@ -526,6 +525,7 @@ impl Sim {
                 a.num_units += 1;
                 a.num_captains += i32::from(captain);
             }
+            self.army_add_group_get_num_cap(who, slot, &chain, s);
             s
         } else {
             let seat = crate::groups::group::Seat::Army(who, slot);
