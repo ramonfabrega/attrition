@@ -357,7 +357,10 @@ class TheLiveTree(unittest.TestCase):
     # (`leaders/score.rs`), and `diplomacy`'s SEAM still names it as not
     # modelled (its top-scorer arm stays unwired); re-pinned by the
     # commander at the booking gate that met it, 1224's to re-word.
-    DOORS = 14
+    # 14 → 13: the pass of 2026-11-14 re-worded that SEAM on the
+    # adjudication's X.1 (the score is modelled; its two readers named),
+    # so it names no built function as missing.
+    DOORS = 13
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)
