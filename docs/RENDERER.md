@@ -2984,17 +2984,25 @@ carries the 17 % (the kill as booked), and the fall lies in two inputs the first
 the tree pass blends `ALPHA_BLENDING` over the toned target): **`RUN1559B_3279_TREES_STILL` colour 38 → 56, luma
 39 → 56 of 56**. Per tree, theirs over ours in Y has a median of 1.003 (0.965–1.088). Made to fail at run1441's
 camera: 1 of 57, luma 11. The painter's trees are tinted and stay opaque: `RUN1559B_3279_TREES` 37 → 52, `_LUMA` 54
-→ 49, the stage alone 21 → 28 (luma 56 → 21). The rule still picks FakeLight. *What else moved* (all up):
-`RUN1559B_3279_COLOUR` 17 → 21 (the tree under a silhouette is tinted), run1559b's ground luma 1,029 → 1,036
-(plain 952 → 954, under a mountain 61 → 66; the trees move the frame's mean), `RUN1559B_3279_RING`'s luma 8, 19, 7
-→ 9, 20, 9, and the units' shadows' luma 88 → 89. **The land's switch stays off**: lit, run1564's grass hue is
-still 665 against 674.
+→ 49, the stage alone 21 → 28 (luma 56 → 21). The rule still picks FakeLight. The value diff, tree 594 (6,156
+pixels): theirs (129.7, 93.2, 9.7); ours (116.8, 83.0, 6.4) before, (129.6, 93.2, 10.2) after.
+
+*What else moved.* Up: `RUN1559B_3279_COLOUR` 17 → 21 and `_COLOUR_LIT` 16 → 20 (the tree under a silhouette is
+tinted); `_COLOUR_STILL` 14 → 18; run1559b's ground luma 1,029 → 1,036 (plain 952 → 954, under a mountain 61 → 66:
+the trees move the frame's mean); `RUN1559B_3279_RING`'s luma 8, 19, 7 → 9, 20, 9 and `RUN1570_RING`'s 9 → 10 on
+the before and moved sides; the shadows with the guys' 88 → 89 (their tree tiles 59 → 60). Down:
+**`_TRACED_STILL` 33 → 32**, 0/6 behind the tree, 0.601 → 0.494 (ours 393 → 257 pixels), its silhouette over the
+brighter tree read less red (4221c); the shadows' CPU compose in display space 83 → 81. The made-to-fail sides
+that untint now untint the trees too (`GRASS_HUE` 607 → 605, 1,044 → 1,045). Item 4172's rule bar, "not under
+18", was the drawn colour row then: the lit figures' candidate now reads luma 23 against 20 and colour 20, under
+the drawn 21, so the drawn stays, the bar now that pin. **The land's switch stays off**: lit, run1564's grass hue
+is still 665 against 674.
 
 *Coverage.* Diff-backed: the trees' blend state and stage constants on the card; the tint on both packets. On a
 reading: the tint reaching the texels (`Texture::init`, as the land's does, §3.21). On the photograph alone: the
 rows. *Not established:* the blend in HDR before the tone map, which the client approximates by blending toned
 values (4221a); the painter's trees, opaque where the client blends (4221a); run1567's bark draw, which carries no
-vertex diffuse where run1566b's does (4221b).
+vertex diffuse where run1566b's does (4221b); 0/6's silhouette over the blended tree (4221c).
 
 ## 4. The stack
 
