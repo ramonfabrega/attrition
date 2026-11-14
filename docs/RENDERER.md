@@ -3008,7 +3008,7 @@ the rows.
   the grass's 4 % surplus on run1559b and the trees' fall both point that way.~~ Answered by §3.22:
   the normals and the vertex colour are the packet's, the on-screen mean N·L is 0.709 and 0.683, and
   they do not lift the trees; the `_mtrl` maps' term is under 1 %.
-- ~~The vertex colour (`light_vert`),~~ (§3.22) the bloom (`OUT.Bright`), ~~and the mip chain's own
+- ~~The vertex colour (`light_vert`),~~ (§3.22) ~~the bloom (`OUT.Bright`),~~ (§3.25, item 4241) ~~and the mip chain's own
   mean against ours~~ (§3.22: the luminance target is 512² with its mips generated, so mip 10 is
   the 1×1 mean); pixels at 255 untone to the curve's top, 4.9.
 - The shadowed grass under the trees reads orange on the photograph (parked 4212b).
@@ -3218,7 +3218,8 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
 passes and `shaders/particle.wgsl`. They replace §3.20's stand-ins. Scored on run1559b's and run1570's photographs.
 Item 4237 (Opus 5.5): the particles taken through `TL_FAKE_LIGHT` and blended in HDR, `client::gpu`'s plume pass
 and `shaders/shade.wgsl`'s `fs_plume`. Item 4240 (Opus 5.5): the emission, `render::fire::direction` and
-`render::particle`'s `Random`, `seed` and `start`.*
+`render::particle`'s `Random`, `seed` and `start`. Item 4241 (Opus 5.5): the fire's row, the tone map's order and
+its bloom, `client::expose`, `shaders/expose.wgsl` and `shaders/bloom.wgsl`.*
 
 **The row** (committed before any draw, `814500f5d`). A pixel's class is its luma in hundredths of the luma of our
 still with the fires off, the scene without its smoke: clear at 85 and over, haze from 35, dense under, and clear
@@ -3342,27 +3343,41 @@ channel onto a copy of the frame, as the shade and water passes do: the same as 
 21.0); the packet's through our pass, (72.5, 70.0, 51.5) → (67.4, 63.2, 42.4). On run1570, (41.8, 37.3, 20.8)
 against (65.0, 63.2, 44.9) → (58.2, 55.0, 34.3).
 
+**The fire's row, the tone map's order and the bloom** (item 4241). *The row* (committed before any draw,
+`455ee7fc5`): about each anchor's pixel, 40 left and right, 96 up, 32 down, a pixel is lit when red is 200 or more,
+green at least 35 % of red, its luma 24 over the fires-off still's, and it is warm (red 90 over blue) or bright (luma
+215). It is flame when warm, pale when only bright. Each slot's extent is the rows of its pixel's ±24 columns holding
+two lit pixels. `RUN1559B_3279_FLAME` and `RUN1570_FLAME` (`client::fire`) read **163** of 712 and **245** of 628;
+made to fail, the classes merged, 226 and 283. *The order*: `ps_tonemap.hlsl` scales the curve by the white and the
+target clamps after it. Ours clamped at the floor's white, then scaled, so a channel stopped at 229 on run1559b. The
+expose pass now composes a plume's pixel again unclamped: **183** and **321**. Pixel (1175, 460), run1559b: (229,
+229, 229) → (255, 255, 239); the photograph's brightest there, (1176, 466), (255, 255, 249). *The bloom*:
+`Scene::render` runs the tone mapper with it when `section_scales[DRAW_SECTION_BLOOM]` is `FULL_SECTION`, and both
+packets hold that on all 25 sections. `D3D11ToneMapper::do_run` then tone maps, with `OUT.Bright` (6 · c^12.5 ·
+max(0, l − 0.6) / l) into a full-size `R10G10B10A2` target; `do_blur` draws `ps_gaussian.hlsl` under a half-size
+viewport, `gUVScale` 1, across from it into a half-size target, then down into the full one's quarter. Last,
+`ps_blend_screen.hlsl` takes `1 − (1 − A(uv/2)) · (1 − B)`. The taps fall at 0, −4.5, −6, −4.5, 0, 7.5, 18, 31.5 and
+48 screen pixels, so a glow reaches further up and left. Drawn, **206** of 699 and **346** of 627 (theirs moves with
+the fires-off scene, which blooms too); the plumes' dense **924** and **975**.
+
 *Coverage.* Diff-backed: the systems against the packets, the wind on run1570, and the motion on slot 9. Also the
 direction on all four slots and each smoke particle's start for its count on z (item 4240), the
-`TL_FAKE_LIGHT` bit against the card's option on 421 draws, and both systems' states off the packets. On a reading:
-the fake-light branch's arithmetic (the install's `ps_global.hlsl`). On the photographs alone: the rows. *Not
+`TL_FAKE_LIGHT` bit against the card's option on 421 draws, and both systems' states off the packets, and the bloom's section grade on both
+packets. On a reading: the fake-light branch's arithmetic (the install's `ps_global.hlsl`), and the bloom's chain
+(`d3dgl.dll`'s listing; its sampler, which the tone mapper does not create, taken linear). On the photographs alone: the rows. *Not
 established:*
-- ~~the emission's random draws: the original seeds each particle from its birth frame and `internal_random`, and
-  ours from a hash, so the plume is the original's in size, speed, spread and fade, not particle for particle;
-  another seed moves the row by about 1,000 (4233c);~~ answered above, "The start": a birth's start is the
-  original's for its count; its count and its angle are not (4240a);
-- ~~the dense core: even the packet's particles through our pass read dense 468 and 676 against the photographs'
-  2,415 and 2,470. The smoke's own colour under `MODULATE2X` is about (50, 50, 38), and the photograph's densest
-  pixels are (47, 42, 22) (4233a);~~ answered above, "The fake light, and the blend in HDR": the packet's dense
-  1,716 and 2,099;
+- ~~the emission's draws (4233c)~~: "The start" (its count and angle are not, 4240a); ~~the dense core
+  (4233a)~~: "The fake light, and the blend in HDR";
 - what is left of the dense core: the packet's particles reach 71 % and 85 % of the photographs' dense, and ours
   drawn 876 and 942 at the pinned phase (804 and 669 over 24). The rest is the births, 18 live where ours are 15 or
   16 and their counts the capture's (4240a), and the x and y of the motion under the capture's cadence. By eye,
   the photographs' tower plume stands darker and taller than even the packet's particles through our pass (4240b);
   `gTLAlpha` is taken at 1, as the surf's is on the card (§3.18); no particle draw is on a card trace;
-- the fire's look through the fake light in HDR: it glows hotter than it did, and no row scores it (4233d);
-- ~~`desc.vel`'s direction off the model: ours is (0, 0, −1) (4233b);~~ answered above, "The start": the node's
-  third axis, turned, on all four slots to 2e-7;
+- ~~the fire's look through the fake light in HDR (4233d)~~: the row, the order and the bloom above. Left: slot 10's
+  flame, hidden by the building sprite's flat depth (4241a, 4076b; the fire's depth test off reads 322 and 444);
+  the drag per render step, whose cadence is the capture's (4241b); the bloom of a pixel no plume covers, clamped
+  at the floor before the white scales it (4241c);
+- ~~`desc.vel`'s direction (4233b)~~: "The start";
 - an emitter's start: ours has burned for a whole life, the original's from when its level was reached (4201b
   stands);
 - the run1559b wind's three degrees and `graphic_dt` taken at 0. The packet's particles have aged about 940 ms
