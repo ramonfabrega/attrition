@@ -456,8 +456,13 @@ Sahara at Toughest's city 2 goes 176 → 184 on 6587 so (`docs/AI.md`
 
 ### 7.3 `City::new_caravan@00739750` — the one-off
 
-`traded_with[who]` (`CityData +0x2c`, `int[8]`) is a bit per partner city.
-The first time a leader's caravan reaches this city from a given partner
+`traded_with[who]` (`CityData +0x2c`, `int[8]`) is a bit per partner city,
+`who` the partner's owner and the bit **the partner's index in that
+owner's cities** — `Unit::do_trade@005ed270:479, 637` pass the partner
+building's `BuildData +0x72`, the index `cities.lists[who]` is read at,
+never a number across leaders (item 4229; diff-backed: run1585's city 0
+`traded_with[1]` 2 on 4030, where the global index made it 4, and the
+cities line whole on the minted game's 24,000). The first time a leader's caravan reaches this city from a given partner
 the bit is set and the leader is paid, into **wealth**, `(epoch[2] + 1) ·
 10` — times **twenty** instead when the leader is not this city's owner.
 ~~`epoch[1]` is the Civic library level~~ — **`epoch[2]`, the Commerce

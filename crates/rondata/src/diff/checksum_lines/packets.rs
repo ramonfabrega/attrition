@@ -1016,7 +1016,13 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// 1874), three ranges of the units ours walks out of step with theirs (ours
 /// 2,275 ranges, theirs 2,380: our `1/10`, `2/6`, `2/8` against their `1/8`,
 /// `2/3`, `2/5`) against the one aligned range now agreeing (`0/2`, 30).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 318, 1053);
+/// **421** at item 4229: the cities line agrees on 77 more packets
+/// (`City::new_caravan`'s bit, the partner's index in its owner's cities)
+/// and the goods line on 30 more (`Animal::work`'s herd arm); the goods
+/// line parts on one more range on four, run1484, run1487, run1496 and
+/// run839, each a walk whose units line already parts on most of its
+/// ranges (a named regression, `docs/journal/2026-11-14-item-4229.md`).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 421, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1160,6 +1166,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2028, 2028, 5).
     // Item 4226, a bird walked on neither line: units (2445, 2672, 1966) -> (2445, 2367, 1742), guys (701, 806, 106) -> (701, 701, 1).
     // Item 4228, a path stack's `size` its high water: units (2445, 2367, 1742) -> (2445, 2367, 1733).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     (
         "run1001d",
         13760,
@@ -1172,7 +1179,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (544, 544, 0),
             (701, 701, 1),
             (271, 271, 2),
-            (30, 30, 3),
+            (30, 30, 0),
             (5, 5, 0),
             (120, 120, 0),
             (7581, 7581, 0),
@@ -1186,6 +1193,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2417, 2417, 5).
     // Item 4226, a bird walked on neither line: units (2939, 3438, 2626) -> (2939, 2828, 2137), guys (916, 1126, 215) -> (916, 916, 5).
     // Item 4228, a path stack's `size` its high water: units (2939, 2828, 2137) -> (2939, 2828, 2131).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     (
         "run1007b",
         15915,
@@ -1198,7 +1206,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (532, 532, 0),
             (916, 916, 5),
             (271, 271, 2),
-            (30, 30, 3),
+            (30, 30, 0),
             (45, 45, 0),
             (120, 120, 0),
             (7537, 7537, 0),
@@ -1213,6 +1221,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2060, 2060, 5).
     // Item 4226, a bird walked on neither line: units (3219, 3345, 2593) -> (3219, 3045, 2483), guys (870, 975, 105) -> (870, 870, 0).
     // Item 4228, a path stack's `size` its high water: units (3219, 3045, 2483) -> (3219, 3045, 2475).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     (
         "run1011b",
         13105,
@@ -1225,7 +1234,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (538, 538, 0),
             (870, 870, 0),
             (271, 271, 3),
-            (30, 30, 3),
+            (30, 30, 0),
             (50, 50, 0),
             (120, 120, 0),
             (7479, 7479, 0),
@@ -1240,6 +1249,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2080, 2080, 5).
     // Item 4226, a bird walked on neither line: units (3193, 3298, 2589) -> (3193, 2998, 2492), guys (861, 966, 105) -> (861, 861, 0).
     // Item 4228, a path stack's `size` its high water: units (3193, 2998, 2492) -> (3193, 2998, 2485).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     (
         "run1011c",
         13225,
@@ -1252,7 +1262,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (538, 538, 0),
             (861, 861, 0),
             (271, 271, 2),
-            (30, 30, 3),
+            (30, 30, 0),
             (50, 50, 0),
             (120, 120, 0),
             (7537, 7537, 0),
@@ -1266,6 +1276,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2080, 2080, 5).
     // Item 4226, a bird walked on neither line: units (3158, 3250, 2498) -> (3158, 2945, 2416), guys (861, 966, 105) -> (861, 861, 0).
     // Item 4228, a path stack's `size` its high water: units (3158, 2945, 2416) -> (3158, 2945, 2409).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     (
         "run1011d",
         13277,
@@ -1278,7 +1289,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (538, 538, 0),
             (861, 861, 0),
             (271, 271, 2),
-            (30, 30, 3),
+            (30, 30, 0),
             (50, 50, 0),
             (120, 120, 0),
             (7553, 7553, 0),
@@ -1292,6 +1303,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2080, 2080, 5).
     // Item 4226, a bird walked on neither line: units (3117, 3189, 2437) -> (3117, 2889, 2395), guys (854, 959, 105) -> (854, 854, 0).
     // Item 4228, a path stack's `size` its high water: units (3117, 2889, 2395) -> (3117, 2889, 2389).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     (
         "run1011e",
         13296,
@@ -1304,7 +1316,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (538, 538, 0),
             (854, 854, 0),
             (271, 271, 3),
-            (30, 30, 3),
+            (30, 30, 0),
             (50, 50, 0),
             (120, 120, 0),
             (7517, 7517, 0),
@@ -1318,6 +1330,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2080, 2080, 6).
     // Item 4226, a bird walked on neither line: units (3139, 3183, 2464) -> (3139, 2878, 2441), guys (847, 952, 105) -> (847, 847, 0).
     // Item 4228, a path stack's `size` its high water: units (3139, 2878, 2441) -> (3139, 2878, 2435).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     (
         "run1015b",
         13392,
@@ -1330,7 +1343,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (538, 538, 0),
             (847, 847, 0),
             (271, 271, 2),
-            (30, 30, 3),
+            (30, 30, 0),
             (50, 50, 0),
             (120, 120, 0),
             (7419, 7419, 0),
@@ -1346,6 +1359,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2371, 2371, 9).
     // Item 4226, a bird walked on neither line: units (4193, 4310, 3246) -> (4193, 4010, 3162), guys (1129, 1234, 106) -> (1129, 1129, 1).
     // Item 4228, a path stack's `size` its high water: units (4193, 4010, 3162) -> (4193, 4010, 3143).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     (
         "run1155c",
         3003,
@@ -1358,7 +1372,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (550, 550, 2),
             (1129, 1129, 1),
             (271, 271, 3),
-            (27, 27, 1),
+            (27, 27, 0),
             (75, 75, 0),
             (120, 120, 0),
             (7583, 7583, 2),
@@ -1397,6 +1411,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2140, 2136, 782).
     // Item 4226, a bird walked on neither line: units (6053, 5910, 5265) -> (6053, 5443, 5319), guys (1321, 1475, 158) -> (1321, 1321, 4).
     // Item 4228, a path stack's `size` its high water: units (6053, 5443, 5319) -> (6053, 5443, 5305).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 2) -> (30, 30, 0).
     (
         "run1164",
         4528,
@@ -1409,7 +1424,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (550, 550, 2),
             (1321, 1321, 4),
             (271, 271, 6),
-            (30, 30, 2),
+            (30, 30, 0),
             (75, 75, 0),
             (120, 120, 0),
             (7597, 7597, 15),
@@ -1425,6 +1440,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2267, 2266, 384).
     // Item 4226, a bird walked on neither line: units (6004, 6418, 5248) -> (6004, 5953, 4838), guys (1890, 2051, 163) -> (1890, 1890, 2).
     // Item 4228, a path stack's `size` its high water: units (6004, 5953, 4838) -> (6004, 5953, 4824).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0), goods (330, 330, 2) -> (330, 330, 0).
     (
         "run1165",
         3719,
@@ -1437,9 +1453,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (676, 676, 1),
             (1890, 1890, 2),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 0),
             (15, 15, 0),
-            (330, 330, 2),
+            (330, 330, 0),
             (9290, 9290, 11),
         ],
     ),
@@ -1452,6 +1468,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2247, 2246, 442).
     // Item 4226, a bird walked on neither line: units (6004, 6310, 5070) -> (6004, 5950, 4771), guys (1935, 2061, 129) -> (1935, 1935, 3).
     // Item 4228, a path stack's `size` its high water: units (6004, 5950, 4771) -> (6004, 5950, 4756).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0), goods (330, 330, 2) -> (330, 330, 0).
     (
         "run1166",
         3920,
@@ -1464,9 +1481,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (688, 688, 1),
             (1935, 1935, 3),
             (271, 271, 7),
-            (30, 30, 3),
+            (30, 30, 0),
             (15, 15, 0),
-            (330, 330, 2),
+            (330, 330, 0),
             (9262, 9262, 13),
         ],
     ),
@@ -1480,6 +1497,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1813, 1813, 14).
     // Item 4226, a bird walked on neither line: units (7749, 8143, 6718) -> (7749, 7683, 6335), guys (1934, 2095, 177) -> (1934, 1934, 16).
     // Item 4228, a path stack's `size` its high water: units (7749, 7683, 6335) -> (7749, 7683, 6302).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 3) -> (27, 27, 0), goods (330, 330, 2) -> (330, 330, 0).
     (
         "run1169",
         3769,
@@ -1492,9 +1510,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (628, 628, 5),
             (1934, 1934, 16),
             (271, 271, 4),
-            (27, 27, 3),
+            (27, 27, 0),
             (20, 20, 0),
-            (330, 330, 2),
+            (330, 330, 0),
             (9438, 9438, 1),
         ],
     ),
@@ -1509,6 +1527,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1911, 1911, 7).
     // Item 4226, a bird walked on neither line: units (6735, 7099, 5978) -> (6735, 6639, 5619), guys (1962, 2123, 168) -> (1962, 1962, 7).
     // Item 4228, a path stack's `size` its high water: units (6735, 6639, 5619) -> (6735, 6639, 5596).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0), goods (330, 330, 2) -> (330, 330, 0).
     (
         "run1185",
         4582,
@@ -1521,9 +1540,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (640, 640, 5),
             (1962, 1962, 7),
             (271, 271, 4),
-            (27, 27, 1),
+            (27, 27, 0),
             (5, 5, 0),
-            (330, 330, 2),
+            (330, 330, 0),
             (9268, 9268, 0),
         ],
     ),
@@ -1565,6 +1584,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (3412, 3412, 24).
     // Item 4226, a bird walked on neither line: units (10607, 10674, 9057) -> (10607, 10124, 9079), guys (3247, 3436, 199) -> (3247, 3247, 10).
     // Item 4228, a path stack's `size` its high water: units (10607, 10124, 9079) -> (10607, 10124, 9057).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (56, 56, 5) -> (56, 56, 0), goods (330, 330, 1) -> (330, 330, 0).
     (
         "run1217",
         7728,
@@ -1577,9 +1597,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (700, 700, 9),
             (3247, 3247, 10),
             (271, 271, 4),
-            (56, 56, 5),
+            (56, 56, 0),
             (0, 0, 0),
-            (330, 330, 1),
+            (330, 330, 0),
             (9486, 9486, 1),
         ],
     ),
@@ -1593,6 +1613,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1817, 1817, 2).
     // Item 4226, a bird walked on neither line: units (4091, 4338, 3291) -> (4091, 3833, 3064), guys (1099, 1274, 175) -> (1099, 1099, 0).
     // Item 4228, a path stack's `size` its high water: units (4091, 3833, 3064) -> (4091, 3833, 3048).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     (
         "run1220b",
         2976,
@@ -1605,7 +1626,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (550, 550, 2),
             (1099, 1099, 0),
             (271, 271, 3),
-            (27, 27, 1),
+            (27, 27, 0),
             (90, 90, 0),
             (120, 120, 0),
             (7663, 7663, 1),
@@ -1621,6 +1642,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1719, 1719, 6).
     // Item 4226, a bird walked on neither line: units (6445, 6949, 5873) -> (6445, 6304, 5383), guys (1768, 1992, 239) -> (1768, 1768, 15).
     // Item 4228, a path stack's `size` its high water: units (6445, 6304, 5383) -> (6445, 6304, 5370).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (33, 33, 3) -> (33, 33, 0), goods (330, 330, 1) -> (330, 330, 0).
     (
         "run1221",
         4287,
@@ -1633,9 +1655,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (592, 592, 4),
             (1768, 1768, 15),
             (271, 271, 4),
-            (33, 33, 3),
+            (33, 33, 0),
             (10, 10, 0),
-            (330, 330, 1),
+            (330, 330, 0),
             (9162, 9162, 1),
         ],
     ),
@@ -1648,6 +1670,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (4271, 4271, 30).
     // Item 4226, a bird walked on neither line: units (11740, 11409, 10402) -> (11740, 10894, 10415), guys (2735, 2910, 182) -> (2735, 2735, 7).
     // Item 4228, a path stack's `size` its high water: units (11740, 10894, 10415) -> (11740, 10894, 10396).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (62, 62, 3) -> (62, 62, 0).
     (
         "run1224b",
         9745,
@@ -1660,7 +1683,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (556, 556, 1),
             (2735, 2735, 7),
             (271, 271, 6),
-            (62, 62, 3),
+            (62, 62, 0),
             (30, 30, 0),
             (120, 120, 0),
             (7873, 7873, 1),
@@ -1676,6 +1699,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1733, 1733, 3).
     // Item 4226, a bird walked on neither line: units (7490, 7627, 6479) -> (7490, 7367, 6367), guys (2097, 2188, 97) -> (2097, 2097, 6).
     // Item 4228, a path stack's `size` its high water: units (7490, 7367, 6367) -> (7490, 7367, 6354).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 2) -> (30, 30, 1).
     (
         "run1235b",
         4127,
@@ -1688,7 +1712,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (646, 646, 7),
             (2097, 2097, 6),
             (271, 271, 4),
-            (30, 30, 2),
+            (30, 30, 1),
             (15, 15, 0),
             (330, 330, 0),
             (9352, 9352, 0),
@@ -1705,6 +1729,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1762, 1762, 5).
     // Item 4226, a bird walked on neither line: units (6610, 7349, 5753) -> (6610, 6595, 5014), guys (2070, 2329, 292) -> (2070, 2070, 33).
     // Item 4228, a path stack's `size` its high water: units (6610, 6595, 5014) -> (6610, 6595, 4954).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (44, 44, 1) -> (44, 44, 0).
     (
         "run1236",
         4179,
@@ -1717,7 +1742,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (658, 658, 4),
             (2070, 2070, 33),
             (271, 271, 4),
-            (44, 44, 1),
+            (44, 44, 0),
             (15, 15, 0),
             (330, 330, 0),
             (9312, 9312, 1),
@@ -1762,6 +1787,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2494, 2494, 8).
     // Item 4226, a bird walked on neither line: units (6417, 7136, 5516) -> (6417, 6387, 4797), guys (2151, 2410, 266) -> (2151, 2151, 7).
     // Item 4228, a path stack's `size` its high water: units (6417, 6387, 4797) -> (6417, 6387, 4737).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (49, 49, 1) -> (49, 49, 0).
     (
         "run1238c",
         5021,
@@ -1774,7 +1800,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (646, 646, 4),
             (2151, 2151, 7),
             (271, 271, 4),
-            (49, 49, 1),
+            (49, 49, 0),
             (10, 10, 0),
             (330, 330, 0),
             (9318, 9318, 1),
@@ -1790,6 +1816,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1692, 1692, 0).
     // Item 4226, a bird walked on neither line: units (5942, 6521, 5183) -> (5942, 5876, 4615), guys (1748, 1972, 225) -> (1748, 1748, 1).
     // Item 4228, a path stack's `size` its high water: units (5942, 5876, 4615) -> (5942, 5876, 4589).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (38, 38, 3) -> (38, 38, 0).
     (
         "run1247",
         4306,
@@ -1802,7 +1829,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (622, 622, 6),
             (1748, 1748, 1),
             (271, 271, 4),
-            (38, 38, 3),
+            (38, 38, 0),
             (10, 10, 0),
             (330, 330, 0),
             (9158, 9158, 0),
@@ -1818,6 +1845,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1674, 1674, 2).
     // Item 4226, a bird walked on neither line: units (4388, 4364, 3384) -> (4388, 4064, 3405), guys (1134, 1239, 107) -> (1134, 1134, 2).
     // Item 4228, a path stack's `size` its high water: units (4388, 4064, 3405) -> (4388, 4064, 3385).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     (
         "run1254c",
         3115,
@@ -1830,7 +1858,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (550, 550, 0),
             (1134, 1134, 2),
             (271, 271, 3),
-            (27, 27, 1),
+            (27, 27, 0),
             (85, 85, 0),
             (120, 120, 0),
             (7669, 7669, 0),
@@ -1845,6 +1873,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (3789, 3789, 23).
     // Item 4226, a bird walked on neither line: units (11229, 10998, 9830) -> (11229, 10383, 9863), guys (2913, 3123, 215) -> (2913, 2913, 5).
     // Item 4228, a path stack's `size` its high water: units (11229, 10383, 9863) -> (11229, 10383, 9845).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (54, 54, 5) -> (54, 54, 0), goods (120, 120, 1) -> (120, 120, 0).
     (
         "run1263",
         8362,
@@ -1857,9 +1886,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (556, 556, 1),
             (2913, 2913, 5),
             (271, 271, 4),
-            (54, 54, 5),
+            (54, 54, 0),
             (50, 50, 0),
-            (120, 120, 1),
+            (120, 120, 0),
             (7867, 7867, 1),
         ],
     ),
@@ -1873,6 +1902,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1770, 1770, 4).
     // Item 4226, a bird walked on neither line: units (6468, 7014, 5901) -> (6468, 6369, 5365), guys (1895, 2119, 244) -> (1895, 1895, 20).
     // Item 4228, a path stack's `size` its high water: units (6468, 6369, 5365) -> (6468, 6369, 5344).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (43, 43, 4) -> (43, 43, 0), goods (330, 330, 1) -> (330, 330, 0).
     (
         "run1264b",
         4919,
@@ -1885,9 +1915,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (586, 586, 7),
             (1895, 1895, 20),
             (271, 271, 3),
-            (43, 43, 4),
+            (43, 43, 0),
             (15, 15, 0),
-            (330, 330, 1),
+            (330, 330, 0),
             (9330, 9330, 1),
         ],
     ),
@@ -1901,6 +1931,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (3796, 3796, 26).
     // Item 4226, a bird walked on neither line: units (11161, 11622, 10213) -> (11161, 10999, 9763), guys (3210, 3413, 224) -> (3210, 3210, 21).
     // Item 4228, a path stack's `size` its high water: units (11161, 10999, 9763) -> (11161, 10999, 9745).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (54, 54, 5) -> (54, 54, 0).
     (
         "run1266c",
         8700,
@@ -1913,7 +1944,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (682, 682, 10),
             (3210, 3210, 21),
             (271, 271, 4),
-            (54, 54, 5),
+            (54, 54, 0),
             (5, 5, 0),
             (330, 330, 0),
             (9704, 9704, 1),
@@ -1929,6 +1960,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1908, 1908, 6).
     // Item 4226, a bird walked on neither line: units (4744, 4798, 3699) -> (4744, 4393, 3674), guys (1246, 1386, 141) -> (1246, 1246, 1).
     // Item 4228, a path stack's `size` its high water: units (4744, 4393, 3674) -> (4744, 4393, 3651).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 1) -> (30, 30, 0).
     (
         "run1268",
         3347,
@@ -1941,7 +1973,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (544, 544, 0),
             (1246, 1246, 1),
             (271, 271, 4),
-            (30, 30, 1),
+            (30, 30, 0),
             (90, 90, 0),
             (120, 120, 0),
             (7773, 7773, 0),
@@ -1957,6 +1989,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1938, 1938, 6).
     // Item 4226, a bird walked on neither line: units (9512, 9862, 8555) -> (9512, 9422, 8205), guys (2191, 2345, 165) -> (2191, 2191, 11).
     // Item 4228, a path stack's `size` its high water: units (9512, 9422, 8205) -> (9512, 9422, 8166).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (25, 25, 1) -> (25, 25, 0), goods (330, 330, 1) -> (330, 330, 0).
     (
         "run1293",
         3606,
@@ -1969,9 +2002,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (586, 586, 4),
             (2191, 2191, 11),
             (271, 271, 4),
-            (25, 25, 1),
+            (25, 25, 0),
             (20, 20, 0),
-            (330, 330, 1),
+            (330, 330, 0),
             (9230, 9230, 0),
         ],
     ),
@@ -1985,6 +2018,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2123, 2123, 18).
     // Item 4226, a bird walked on neither line: units (8216, 8852, 7202) -> (8216, 8162, 6573), guys (2242, 2473, 238) -> (2242, 2242, 7).
     // Item 4228, a path stack's `size` its high water: units (8216, 8162, 6573) -> (8216, 8162, 6548).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 3) -> (27, 27, 0).
     (
         "run1294",
         4473,
@@ -1997,7 +2031,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (688, 688, 11),
             (2242, 2242, 7),
             (271, 271, 8),
-            (27, 27, 3),
+            (27, 27, 0),
             (10, 10, 0),
             (330, 330, 0),
             (9490, 9490, 0),
@@ -2013,6 +2047,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2163, 2163, 22).
     // Item 4226, a bird walked on neither line: units (9905, 10501, 9322) -> (9905, 9836, 8734), guys (2172, 2403, 240) -> (2172, 2172, 9).
     // Item 4228, a path stack's `size` its high water: units (9905, 9836, 8734) -> (9905, 9836, 8715).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 3) -> (27, 27, 0).
     (
         "run1296",
         4632,
@@ -2025,7 +2060,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (682, 682, 10),
             (2172, 2172, 9),
             (271, 271, 8),
-            (27, 27, 3),
+            (27, 27, 0),
             (5, 5, 0),
             (330, 330, 0),
             (9470, 9470, 1),
@@ -2042,6 +2077,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2029, 2029, 7).
     // Item 4226, a bird walked on neither line: units (5488, 5902, 4636) -> (5488, 5422, 4233), guys (1616, 1784, 169) -> (1616, 1616, 1).
     // Item 4228, a path stack's `size` its high water: units (5488, 5422, 4233) -> (5488, 5422, 4208).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (23, 23, 1) -> (23, 23, 0), goods (330, 330, 1) -> (330, 330, 0).
     (
         "run1304",
         3865,
@@ -2054,9 +2090,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (616, 616, 1),
             (1616, 1616, 1),
             (271, 271, 4),
-            (23, 23, 1),
+            (23, 23, 0),
             (15, 15, 0),
-            (330, 330, 1),
+            (330, 330, 0),
             (9448, 9448, 0),
         ],
     ),
@@ -2070,6 +2106,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1882, 1882, 3).
     // Item 4226, a bird walked on neither line: units (4968, 4832, 4048) -> (4968, 4632, 4065), guys (1327, 1397, 70) -> (1327, 1327, 0).
     // Item 4228, a path stack's `size` its high water: units (4968, 4632, 4065) -> (4968, 4632, 4050).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (35, 35, 1) -> (35, 35, 0).
     (
         "run1305b",
         4181,
@@ -2082,7 +2119,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (550, 550, 1),
             (1327, 1327, 0),
             (271, 271, 3),
-            (35, 35, 1),
+            (35, 35, 0),
             (70, 70, 0),
             (120, 120, 0),
             (7585, 7585, 0),
@@ -2099,6 +2136,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2140, 2140, 13).
     // Item 4226, a bird walked on neither line: units (8490, 8757, 7384) -> (8490, 8397, 7122), guys (2197, 2323, 135) -> (2197, 2197, 9).
     // Item 4228, a path stack's `size` its high water: units (8490, 8397, 7122) -> (8490, 8397, 7078).
+    // Item 4229, the herd arm and the caravan's per-leader bit: goods (330, 330, 4) -> (330, 330, 0).
     (
         "run1320b",
         5066,
@@ -2113,7 +2151,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (271, 271, 5),
             (39, 39, 1),
             (5, 5, 0),
-            (330, 330, 4),
+            (330, 330, 0),
             (9476, 9476, 1),
         ],
     ),
@@ -2127,6 +2165,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1792, 1792, 2).
     // Item 4226, a bird walked on neither line: units (3933, 4098, 3164) -> (3933, 3708, 3025), guys (1029, 1162, 133) -> (1029, 1029, 0).
     // Item 4228, a path stack's `size` its high water: units (3933, 3708, 3025) -> (3933, 3708, 3005).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     (
         "run1323b",
         3052,
@@ -2139,7 +2178,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (544, 544, 0),
             (1029, 1029, 0),
             (271, 271, 3),
-            (27, 27, 1),
+            (27, 27, 0),
             (90, 90, 0),
             (120, 120, 0),
             (7615, 7615, 0),
@@ -2155,6 +2194,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1918, 1918, 13).
     // Item 4226, a bird walked on neither line: units (7276, 7557, 6122) -> (7276, 7177, 5851), guys (2055, 2188, 142) -> (2055, 2055, 9).
     // Item 4228, a path stack's `size` its high water: units (7276, 7177, 5851) -> (7276, 7177, 5824).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0), goods (330, 330, 4) -> (330, 330, 0).
     (
         "run1324c",
         4904,
@@ -2167,9 +2207,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (676, 676, 9),
             (2055, 2055, 9),
             (271, 271, 4),
-            (27, 27, 1),
+            (27, 27, 0),
             (20, 20, 0),
-            (330, 330, 4),
+            (330, 330, 0),
             (9466, 9466, 1),
         ],
     ),
@@ -2183,6 +2223,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2521, 2521, 12).
     // Item 4226, a bird walked on neither line: units (10367, 11043, 9283) -> (10367, 10283, 8611), guys (2706, 2965, 273) -> (2706, 2706, 14).
     // Item 4228, a path stack's `size` its high water: units (10367, 10283, 8611) -> (10367, 10283, 8564).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (43, 43, 5) -> (43, 43, 2), goods (330, 330, 1) -> (330, 330, 0).
     (
         "run1325c",
         5578,
@@ -2195,9 +2236,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (682, 682, 8),
             (2706, 2706, 14),
             (271, 271, 4),
-            (43, 43, 5),
+            (43, 43, 2),
             (10, 10, 0),
-            (330, 330, 1),
+            (330, 330, 0),
             (9666, 9666, 1),
         ],
     ),
@@ -2212,6 +2253,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2161, 2161, 8).
     // Item 4226, a bird walked on neither line: units (6268, 6911, 5466) -> (6268, 6241, 4824), guys (1993, 2224, 241) -> (1993, 1993, 10).
     // Item 4228, a path stack's `size` its high water: units (6268, 6241, 4824) -> (6268, 6241, 4790).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 1) -> (30, 30, 0), goods (330, 330, 2) -> (330, 330, 0).
     (
         "run1326",
         4567,
@@ -2224,9 +2266,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (616, 616, 7),
             (1993, 1993, 10),
             (271, 271, 4),
-            (30, 30, 1),
+            (30, 30, 0),
             (15, 15, 0),
-            (330, 330, 2),
+            (330, 330, 0),
             (9244, 9244, 0),
         ],
     ),
@@ -2240,6 +2282,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (4230, 4230, 23).
     // Item 4226, a bird walked on neither line: units (13393, 13427, 11925) -> (13393, 12502, 11980), guys (3459, 3774, 325) -> (3459, 3459, 10).
     // Item 4228, a path stack's `size` its high water: units (13393, 12502, 11980) -> (13393, 12502, 11962).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (59, 59, 6) -> (59, 59, 0).
     (
         "run1327",
         10930,
@@ -2252,7 +2295,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (574, 574, 2),
             (3459, 3459, 10),
             (271, 271, 4),
-            (59, 59, 6),
+            (59, 59, 0),
             (25, 25, 0),
             (180, 180, 0),
             (8592, 8592, 1),
@@ -2267,6 +2310,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2354, 2354, 7).
     // Item 4226, a bird walked on neither line: units (5746, 5891, 4373) -> (5746, 5386, 4498), guys (1463, 1638, 175) -> (1463, 1463, 0).
     // Item 4228, a path stack's `size` its high water: units (5746, 5386, 4498) -> (5746, 5386, 4477).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     (
         "run1332a",
         3627,
@@ -2279,7 +2323,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (580, 580, 5),
             (1463, 1463, 0),
             (271, 271, 3),
-            (30, 30, 3),
+            (30, 30, 0),
             (80, 80, 0),
             (180, 180, 0),
             (8244, 8244, 0),
@@ -2295,6 +2339,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2237, 2237, 10).
     // Item 4226, a bird walked on neither line: units (4745, 4928, 3883) -> (4745, 4523, 3712), guys (1352, 1492, 143) -> (1352, 1352, 3).
     // Item 4228, a path stack's `size` its high water: units (4745, 4523, 3712) -> (4745, 4523, 3686).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0), goods (180, 180, 1) -> (180, 180, 0).
     (
         "run1351",
         4303,
@@ -2307,9 +2352,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (562, 562, 2),
             (1352, 1352, 3),
             (271, 271, 3),
-            (30, 30, 3),
+            (30, 30, 0),
             (75, 75, 0),
-            (180, 180, 1),
+            (180, 180, 0),
             (8328, 8328, 2),
         ],
     ),
@@ -2323,6 +2368,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2143, 2143, 7).
     // Item 4226, a bird walked on neither line: units (4512, 4732, 3062) -> (4512, 4332, 2977), guys (1286, 1426, 140) -> (1286, 1286, 0).
     // Item 4228, a path stack's `size` its high water: units (4512, 4332, 2977) -> (4512, 4332, 2952).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 1) -> (30, 30, 0), goods (180, 180, 1) -> (180, 180, 0).
     (
         "run1351c",
         3521,
@@ -2335,9 +2381,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (556, 556, 3),
             (1286, 1286, 0),
             (271, 271, 4),
-            (30, 30, 1),
+            (30, 30, 0),
             (75, 75, 0),
-            (180, 180, 1),
+            (180, 180, 0),
             (8298, 8298, 1),
         ],
     ),
@@ -2351,6 +2397,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1836, 1836, 6).
     // Item 4226, a bird walked on neither line: units (3610, 3841, 2898) -> (3610, 3427, 2696), guys (902, 1042, 140) -> (902, 902, 0).
     // Item 4228, a path stack's `size` its high water: units (3610, 3427, 2696) -> (3610, 3427, 2682).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     (
         "run1355",
         2933,
@@ -2363,7 +2410,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (556, 556, 4),
             (902, 902, 0),
             (271, 271, 3),
-            (27, 27, 1),
+            (27, 27, 0),
             (80, 80, 0),
             (120, 120, 0),
             (7777, 7777, 1),
@@ -2379,6 +2426,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1977, 1977, 3).
     // Item 4226, a bird walked on neither line: units (5707, 5937, 4766) -> (5707, 5422, 4648), guys (1427, 1602, 175) -> (1427, 1427, 0).
     // Item 4228, a path stack's `size` its high water: units (5707, 5422, 4648) -> (5707, 5422, 4629).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 1) -> (30, 30, 0), goods (180, 180, 1) -> (180, 180, 0).
     (
         "run1357",
         3439,
@@ -2391,9 +2439,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (568, 568, 2),
             (1427, 1427, 0),
             (271, 271, 4),
-            (30, 30, 1),
+            (30, 30, 0),
             (75, 75, 0),
-            (180, 180, 1),
+            (180, 180, 0),
             (8528, 8528, 0),
         ],
     ),
@@ -2406,6 +2454,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2974, 2974, 33).
     // Item 4226, a bird walked on neither line: units (6464, 6432, 5603) -> (6464, 6023, 5643), guys (1584, 1724, 144) -> (1584, 1584, 4).
     // Item 4228, a path stack's `size` its high water: units (6464, 6023, 5643) -> (6464, 6023, 5626).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (48, 48, 3) -> (48, 48, 0).
     (
         "run1359",
         5619,
@@ -2418,7 +2467,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (568, 568, 3),
             (1584, 1584, 4),
             (271, 271, 5),
-            (48, 48, 3),
+            (48, 48, 0),
             (60, 60, 0),
             (120, 120, 0),
             (8007, 8007, 2),
@@ -2434,6 +2483,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2974, 2974, 33).
     // Item 4226, a bird walked on neither line: units (6408, 6424, 5541) -> (6408, 6009, 5562), guys (1598, 1738, 144) -> (1598, 1598, 4).
     // Item 4228, a path stack's `size` its high water: units (6408, 6009, 5562) -> (6408, 6009, 5546).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (48, 48, 3) -> (48, 48, 0).
     (
         "run1359b",
         5677,
@@ -2446,7 +2496,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (556, 556, 4),
             (1598, 1598, 4),
             (271, 271, 5),
-            (48, 48, 3),
+            (48, 48, 0),
             (55, 55, 0),
             (120, 120, 0),
             (7717, 7717, 2),
@@ -2462,6 +2512,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2974, 2974, 33).
     // Item 4226, a bird walked on neither line: units (6407, 6423, 5538) -> (6407, 6008, 5559), guys (1598, 1738, 144) -> (1598, 1598, 4).
     // Item 4228, a path stack's `size` its high water: units (6407, 6008, 5559) -> (6407, 6008, 5543).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (48, 48, 3) -> (48, 48, 0).
     (
         "run1359c",
         5678,
@@ -2474,7 +2525,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (556, 556, 4),
             (1598, 1598, 4),
             (271, 271, 5),
-            (48, 48, 3),
+            (48, 48, 0),
             (55, 55, 0),
             (120, 120, 0),
             (7715, 7715, 2),
@@ -2490,6 +2541,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2544, 2544, 25).
     // Item 4226, a bird walked on neither line: units (6810, 6671, 5720) -> (6810, 6366, 5744), guys (1847, 1952, 105) -> (1847, 1847, 0).
     // Item 4228, a path stack's `size` its high water: units (6810, 6366, 5744) -> (6810, 6366, 5722).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (37, 37, 2) -> (37, 37, 0), goods (180, 180, 2) -> (180, 180, 0).
     (
         "run1361",
         4840,
@@ -2502,9 +2554,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (556, 556, 1),
             (1847, 1847, 0),
             (271, 271, 8),
-            (37, 37, 2),
+            (37, 37, 0),
             (50, 50, 0),
-            (180, 180, 2),
+            (180, 180, 0),
             (8476, 8476, 0),
         ],
     ),
@@ -2518,6 +2570,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2147, 2147, 5).
     // Item 4226, a bird walked on neither line: units (5194, 5195, 3875) -> (5194, 4915, 3902), guys (1419, 1517, 98) -> (1419, 1419, 0).
     // Item 4228, a path stack's `size` its high water: units (5194, 4915, 3902) -> (5194, 4915, 3872).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0), goods (180, 180, 1) -> (180, 180, 0).
     (
         "run1381",
         3262,
@@ -2530,9 +2583,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (556, 556, 2),
             (1419, 1419, 0),
             (271, 271, 3),
-            (27, 27, 1),
+            (27, 27, 0),
             (90, 90, 0),
-            (180, 180, 1),
+            (180, 180, 0),
             (8334, 8334, 1),
         ],
     ),
@@ -2631,6 +2684,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1830, 1830, 15).
     // Item 4226, a bird walked on neither line: units (6512, 6830, 5755) -> (6512, 6365, 5444), guys (1927, 2088, 165) -> (1927, 1927, 4).
     // Item 4228, a path stack's `size` its high water: units (6512, 6365, 5444) -> (6512, 6365, 5422).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (35, 35, 3) -> (35, 35, 0), goods (330, 330, 1) -> (330, 330, 0).
     (
         "run1391",
         4174,
@@ -2643,9 +2697,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (694, 694, 14),
             (1927, 1927, 4),
             (271, 271, 8),
-            (35, 35, 3),
+            (35, 35, 0),
             (10, 10, 0),
-            (330, 330, 1),
+            (330, 330, 0),
             (9408, 9408, 0),
         ],
     ),
@@ -2660,6 +2714,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2128, 2127, 613).
     // Item 4226, a bird walked on neither line: units (6953, 7259, 6066) -> (6953, 6899, 5767), guys (1829, 1955, 140) -> (1829, 1829, 14).
     // Item 4228, a path stack's `size` its high water: units (6953, 6899, 5767) -> (6953, 6899, 5737).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (33, 33, 1) -> (33, 33, 0), goods (330, 330, 2) -> (330, 330, 0).
     (
         "run1416",
         4016,
@@ -2672,9 +2727,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (634, 634, 9),
             (1829, 1829, 14),
             (271, 271, 4),
-            (33, 33, 1),
+            (33, 33, 0),
             (5, 5, 0),
-            (330, 330, 2),
+            (330, 330, 0),
             (9554, 9554, 10),
         ],
     ),
@@ -2688,6 +2743,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2321, 2321, 9).
     // Item 4226, a bird walked on neither line: units (4518, 4705, 3700) -> (4518, 4305, 3524), guys (1265, 1405, 141) -> (1265, 1265, 1).
     // Item 4228, a path stack's `size` its high water: units (4518, 4305, 3524) -> (4518, 4305, 3498).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (33, 33, 2) -> (33, 33, 0), goods (180, 180, 1) -> (180, 180, 0).
     (
         "run1417",
         4016,
@@ -2700,9 +2756,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (544, 544, 1),
             (1265, 1265, 1),
             (271, 271, 4),
-            (33, 33, 2),
+            (33, 33, 0),
             (75, 75, 0),
-            (180, 180, 1),
+            (180, 180, 0),
             (8274, 8274, 1),
         ],
     ),
@@ -2716,6 +2772,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2033, 2033, 6).
     // Item 4226, a bird walked on neither line: units (4406, 4486, 3348) -> (4406, 4181, 3413), guys (1231, 1336, 105) -> (1231, 1231, 0).
     // Item 4228, a path stack's `size` its high water: units (4406, 4181, 3413) -> (4406, 4181, 3395).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     (
         "run1419b",
         3212,
@@ -2728,7 +2785,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (544, 544, 2),
             (1231, 1231, 0),
             (271, 271, 4),
-            (27, 27, 1),
+            (27, 27, 0),
             (60, 60, 0),
             (180, 180, 0),
             (8434, 8434, 2),
@@ -2744,6 +2801,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2515, 2513, 688).
     // Item 4226, a bird walked on neither line: units (5583, 5614, 4589) -> (5583, 5204, 4600), guys (1327, 1467, 141) -> (1327, 1327, 1).
     // Item 4228, a path stack's `size` its high water: units (5583, 5204, 4600) -> (5583, 5204, 4576).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (38, 38, 3) -> (38, 38, 0).
     (
         "run1420",
         4586,
@@ -2756,7 +2814,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (544, 544, 1),
             (1327, 1327, 1),
             (271, 271, 4),
-            (38, 38, 3),
+            (38, 38, 0),
             (70, 70, 0),
             (180, 180, 0),
             (8466, 8466, 1),
@@ -2771,6 +2829,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2025, 2025, 5).
     // Item 4226, a bird walked on neither line: units (4129, 4318, 3320) -> (4129, 3913, 3142), guys (1138, 1278, 141) -> (1138, 1138, 1).
     // Item 4228, a path stack's `size` its high water: units (4129, 3913, 3142) -> (4129, 3913, 3123).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     (
         "run1424",
         3156,
@@ -2783,7 +2842,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (550, 550, 3),
             (1138, 1138, 1),
             (271, 271, 4),
-            (27, 27, 1),
+            (27, 27, 0),
             (90, 90, 0),
             (180, 180, 0),
             (8344, 8344, 2),
@@ -2798,6 +2857,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2266, 2265, 805).
     // Item 4226, a bird walked on neither line: units (4175, 4291, 3428) -> (4175, 3986, 3329), guys (1227, 1332, 110) -> (1227, 1227, 5).
     // Item 4228, a path stack's `size` its high water: units (4175, 3986, 3329) -> (4175, 3986, 3310).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 2) -> (27, 27, 0).
     (
         "run1426b",
         3722,
@@ -2810,7 +2870,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (544, 544, 1),
             (1227, 1227, 5),
             (271, 271, 4),
-            (27, 27, 2),
+            (27, 27, 0),
             (80, 80, 0),
             (180, 180, 0),
             (8284, 8284, 10),
@@ -2825,6 +2885,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2154, 2151, 571).
     // Item 4226, a bird walked on neither line: units (4789, 4721, 3901) -> (4789, 4316, 3924), guys (1208, 1348, 147) -> (1208, 1208, 7).
     // Item 4228, a path stack's `size` its high water: units (4789, 4316, 3924) -> (4789, 4316, 3906).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 1) -> (30, 30, 0).
     (
         "run1437",
         3894,
@@ -2837,7 +2898,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (538, 538, 0),
             (1208, 1208, 7),
             (271, 271, 6),
-            (30, 30, 1),
+            (30, 30, 0),
             (85, 85, 0),
             (180, 180, 0),
             (8414, 8414, 1),
@@ -2897,6 +2958,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1890, 1887, 481).
     // Item 4226, a bird walked on neither line: units (4274, 4219, 3474) -> (4274, 4039, 3483), guys (1108, 1171, 64) -> (1108, 1108, 1).
     // Item 4228, a path stack's `size` its high water: units (4274, 4039, 3483) -> (4274, 4039, 3464).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 2) -> (30, 30, 0).
     (
         "run1441",
         3294,
@@ -2909,7 +2971,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (550, 550, 3),
             (1108, 1108, 1),
             (271, 271, 4),
-            (30, 30, 2),
+            (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
             (8276, 8276, 9),
@@ -3087,6 +3149,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4222, the building push's normalize and the queue's vacated slots: builds (1446, 1446, 28)
     // -> (1446, 1446, 25).
     // Item 4226, a bird walked on neither line: units (4145, 4206, 3484) -> (4145, 4106, 3427), guys (1381, 1416, 159) -> (1381, 1381, 124).
+    // Item 4229, the herd arm and the caravan's per-leader bit: goods (405, 405, 0) -> (405, 405, 1).
     (
         "run1484",
         676,
@@ -3101,7 +3164,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (403, 403, 6),
             (9, 9, 0),
             (25, 25, 0),
-            (405, 405, 0),
+            (405, 405, 1),
             (9053, 7519, 5588),
         ],
     ),
@@ -3111,6 +3174,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2736, 2736, 31).
     // Item 4226, a bird walked on neither line: units (5340, 5621, 4710) -> (5340, 5256, 4433), guys (1718, 1844, 247) -> (1718, 1718, 121).
     // Item 4228, a path stack's `size` its high water: units (5340, 5256, 4433) -> (5340, 5256, 4421).
+    // Item 4229, the herd arm and the caravan's per-leader bit: goods (405, 405, 2) -> (405, 405, 3).
     (
         "run1487",
         1980,
@@ -3125,7 +3189,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (407, 407, 6),
             (31, 31, 0),
             (25, 25, 0),
-            (405, 405, 2),
+            (405, 405, 3),
             (9267, 7733, 6310),
         ],
     ),
@@ -3134,6 +3198,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4222, the building push's normalize and the queue's vacated slots: builds (2180, 2180, 47)
     // -> (2180, 2180, 30).
     // Item 4226, a bird walked on neither line: units (5026, 5286, 4889) -> (5026, 4936, 4629), guys (1577, 1696, 241) -> (1577, 1577, 122).
+    // Item 4229, the herd arm and the caravan's per-leader bit: goods (405, 405, 2) -> (405, 405, 3).
     (
         "run1496",
         1539,
@@ -3148,7 +3213,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (407, 407, 6),
             (23, 23, 0),
             (25, 25, 0),
-            (405, 405, 2),
+            (405, 405, 3),
             (9183, 7649, 6125),
         ],
     ),
@@ -3161,6 +3226,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1890, 1887, 481).
     // Item 4226, a bird walked on neither line: units (4274, 4219, 3474) -> (4274, 4039, 3483), guys (1108, 1171, 64) -> (1108, 1108, 1).
     // Item 4228, a path stack's `size` its high water: units (4274, 4039, 3483) -> (4274, 4039, 3464).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 2) -> (30, 30, 0).
     (
         "run1559b",
         3294,
@@ -3173,7 +3239,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (550, 550, 3),
             (1108, 1108, 1),
             (271, 271, 4),
-            (30, 30, 2),
+            (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
             (8276, 8276, 9),
@@ -3206,6 +3272,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1890, 1887, 481).
     // Item 4226, a bird walked on neither line: units (4274, 4219, 3474) -> (4274, 4039, 3483), guys (1108, 1171, 64) -> (1108, 1108, 1).
     // Item 4228, a path stack's `size` its high water: units (4274, 4039, 3483) -> (4274, 4039, 3464).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 2) -> (30, 30, 0).
     (
         "run1564",
         3294,
@@ -3218,7 +3285,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (550, 550, 3),
             (1108, 1108, 1),
             (271, 271, 4),
-            (30, 30, 2),
+            (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
             (8276, 8276, 9),
@@ -3233,6 +3300,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1890, 1887, 481).
     // Item 4226, a bird walked on neither line: units (4240, 4197, 3359) -> (4240, 4017, 3395), guys (1112, 1175, 65) -> (1112, 1112, 2).
     // Item 4228, a path stack's `size` its high water: units (4240, 4017, 3395) -> (4240, 4017, 3377).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     (
         "run1570",
         3331,
@@ -3245,7 +3313,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (556, 556, 2),
             (1112, 1112, 2),
             (271, 271, 4),
-            (30, 30, 3),
+            (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
             (8294, 8294, 9),
@@ -3261,6 +3329,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1731, 1729, 941).
     // Item 4226, a bird walked on neither line: units (4969, 4983, 4140) -> (4969, 4763, 4158), guys (1429, 1506, 78) -> (1429, 1429, 1).
     // Item 4228, a path stack's `size` its high water: units (4969, 4763, 4158) -> (4969, 4763, 4142).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (47, 47, 1) -> (47, 47, 0), goods (330, 330, 1) -> (330, 330, 0).
     (
         "run785",
         2178,
@@ -3273,9 +3342,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (640, 640, 4),
             (1429, 1429, 1),
             (271, 271, 7),
-            (47, 47, 1),
+            (47, 47, 0),
             (15, 15, 0),
-            (330, 330, 1),
+            (330, 330, 0),
             (9108, 9108, 10),
         ],
     ),
@@ -3289,6 +3358,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2157, 2155, 1258).
     // Item 4226, a bird walked on neither line: units (5889, 5855, 4982) -> (5889, 5635, 5015), guys (1765, 1842, 78) -> (1765, 1765, 1).
     // Item 4228, a path stack's `size` its high water: units (5889, 5635, 5015) -> (5889, 5635, 5001).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (52, 52, 5) -> (52, 52, 0).
     (
         "run789",
         2799,
@@ -3301,7 +3371,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (664, 664, 2),
             (1765, 1765, 1),
             (271, 271, 7),
-            (52, 52, 5),
+            (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
             (9526, 9526, 11),
@@ -3317,6 +3387,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2059, 2057, 1181).
     // Item 4226, a bird walked on neither line: units (5860, 5823, 4862) -> (5860, 5603, 4906), guys (1704, 1781, 78) -> (1704, 1704, 1).
     // Item 4228, a path stack's `size` its high water: units (5860, 5603, 4906) -> (5860, 5603, 4890).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (52, 52, 5) -> (52, 52, 0), goods (330, 330, 1) -> (330, 330, 0).
     (
         "run795",
         2681,
@@ -3329,9 +3400,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (652, 652, 2),
             (1704, 1704, 1),
             (271, 271, 7),
-            (52, 52, 5),
+            (52, 52, 0),
             (15, 15, 0),
-            (330, 330, 1),
+            (330, 330, 0),
             (9420, 9420, 11),
         ],
     ),
@@ -3345,6 +3416,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2384, 2381, 1400).
     // Item 4226, a bird walked on neither line: units (9526, 9603, 8610) -> (9526, 9363, 8566), guys (2341, 2425, 95) -> (2341, 2341, 11).
     // Item 4228, a path stack's `size` its high water: units (9526, 9363, 8566) -> (9526, 9363, 8551).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (58, 58, 5) -> (58, 58, 0), goods (330, 330, 1) -> (330, 330, 0).
     (
         "run810",
         3631,
@@ -3357,9 +3429,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (688, 688, 5),
             (2341, 2341, 11),
             (271, 271, 7),
-            (58, 58, 5),
+            (58, 58, 0),
             (10, 10, 0),
-            (330, 330, 1),
+            (330, 330, 0),
             (9442, 9442, 11),
         ],
     ),
@@ -3373,6 +3445,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2473, 2469, 1532).
     // Item 4226, a bird walked on neither line: units (9339, 9413, 8415) -> (9339, 9173, 8367), guys (2450, 2534, 95) -> (2450, 2450, 11).
     // Item 4228, a path stack's `size` its high water: units (9339, 9173, 8367) -> (9339, 9173, 8350).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (58, 58, 5) -> (58, 58, 0).
     (
         "run823",
         4238,
@@ -3385,7 +3458,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (676, 676, 6),
             (2450, 2450, 11),
             (271, 271, 7),
-            (58, 58, 5),
+            (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
             (9552, 9552, 11),
@@ -3401,6 +3474,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2473, 2469, 1532).
     // Item 4226, a bird walked on neither line: units (9362, 9436, 8379) -> (9362, 9196, 8331), guys (2471, 2555, 94) -> (2471, 2471, 10).
     // Item 4228, a path stack's `size` its high water: units (9362, 9196, 8331) -> (9362, 9196, 8314).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (58, 58, 5) -> (58, 58, 0).
     (
         "run825",
         4204,
@@ -3413,7 +3487,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (688, 688, 5),
             (2471, 2471, 10),
             (271, 271, 7),
-            (58, 58, 5),
+            (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
             (9560, 9560, 11),
@@ -3421,6 +3495,7 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4218, the idle latch (`flags & 0x08`): units (1201, 1312, 1056) -> (1201, 1312, 1053).
     // Item 4226, a bird walked on neither line: units (1201, 1312, 1053) -> (1201, 1192, 944), guys (403, 445, 78) -> (403, 403, 36).
+    // Item 4229, the herd arm and the caravan's per-leader bit: goods (180, 180, 0) -> (180, 180, 1).
     (
         "run839",
         634,
@@ -3435,7 +3510,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (267, 267, 3),
             (6, 6, 0),
             (110, 110, 0),
-            (180, 180, 0),
+            (180, 180, 1),
             (8020, 7301, 4558),
         ],
     ),
@@ -3488,6 +3563,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2095, 2095, 15).
     // Item 4226, a bird walked on neither line: units (5770, 5833, 4618) -> (5770, 5593, 4590), guys (1794, 1878, 84) -> (1794, 1794, 0).
     // Item 4228, a path stack's `size` its high water: units (5770, 5593, 4590) -> (5770, 5593, 4579).
+    // Item 4229, the herd arm and the caravan's per-leader bit: goods (330, 330, 2) -> (330, 330, 0).
     (
         "run854",
         3301,
@@ -3502,7 +3578,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (271, 271, 5),
             (36, 36, 0),
             (5, 5, 0),
-            (330, 330, 2),
+            (330, 330, 0),
             (9344, 9344, 2),
         ],
     ),
@@ -3516,6 +3592,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2288, 2283, 1536).
     // Item 4226, a bird walked on neither line: units (10342, 10233, 9553) -> (10342, 9993, 9577), guys (2210, 2294, 85) -> (2210, 2210, 1).
     // Item 4228, a path stack's `size` its high water: units (10342, 9993, 9577) -> (10342, 9993, 9567).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (64, 64, 1) -> (64, 64, 0), goods (330, 330, 2) -> (330, 330, 0).
     (
         "run865",
         4859,
@@ -3528,9 +3605,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (640, 640, 5),
             (2210, 2210, 1),
             (271, 271, 5),
-            (64, 64, 1),
+            (64, 64, 0),
             (0, 0, 0),
-            (330, 330, 2),
+            (330, 330, 0),
             (9534, 9534, 12),
         ],
     ),
@@ -3565,6 +3642,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2737, 2732, 1918).
     // Item 4226, a bird walked on neither line: units (11125, 10562, 9823) -> (11125, 10302, 9875), guys (2832, 2923, 124) -> (2832, 2832, 33).
     // Item 4228, a path stack's `size` its high water: units (11125, 10302, 9875) -> (11125, 10302, 9851).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (64, 64, 4) -> (64, 64, 0), goods (330, 330, 2) -> (330, 330, 0).
     (
         "run882b",
         6808,
@@ -3577,9 +3655,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (616, 616, 10),
             (2832, 2832, 33),
             (271, 271, 5),
-            (64, 64, 4),
+            (64, 64, 0),
             (0, 0, 0),
-            (330, 330, 2),
+            (330, 330, 0),
             (9518, 9518, 12),
         ],
     ),
@@ -3592,6 +3670,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2737, 2732, 1919).
     // Item 4226, a bird walked on neither line: units (11180, 10557, 9912) -> (11180, 10297, 9964), guys (2832, 2923, 122) -> (2832, 2832, 31).
     // Item 4228, a path stack's `size` its high water: units (11180, 10297, 9964) -> (11180, 10297, 9942).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (64, 64, 4) -> (64, 64, 0), goods (330, 330, 2) -> (330, 330, 0).
     (
         "run883b",
         6821,
@@ -3604,9 +3683,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (616, 616, 10),
             (2832, 2832, 31),
             (271, 271, 5),
-            (64, 64, 4),
+            (64, 64, 0),
             (0, 0, 0),
-            (330, 330, 2),
+            (330, 330, 0),
             (9536, 9536, 12),
         ],
     ),
@@ -3648,6 +3727,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1508, 1508, 5).
     // Item 4226, a bird walked on neither line: units (4112, 4387, 3620) -> (4112, 4067, 3348), guys (1352, 1464, 117) -> (1352, 1352, 5).
     // Item 4228, a path stack's `size` its high water: units (4112, 4067, 3348) -> (4112, 4067, 3338).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 3) -> (27, 27, 0).
     (
         "run912e",
         12753,
@@ -3660,7 +3740,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (568, 568, 5),
             (1352, 1352, 5),
             (271, 271, 3),
-            (27, 27, 3),
+            (27, 27, 0),
             (5, 5, 0),
             (330, 330, 0),
             (9122, 9122, 0),
@@ -3696,6 +3776,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1580, 1580, 4).
     // Item 4226, a bird walked on neither line: units (2726, 3048, 2259) -> (2726, 2648, 1940), guys (819, 959, 140) -> (819, 819, 0).
     // Item 4228, a path stack's `size` its high water: units (2726, 2648, 1940) -> (2726, 2648, 1928).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     (
         "run943c",
         10674,
@@ -3708,7 +3789,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (532, 532, 0),
             (819, 819, 0),
             (271, 271, 3),
-            (27, 27, 1),
+            (27, 27, 0),
             (40, 40, 0),
             (180, 180, 0),
             (8150, 8150, 0),
@@ -3724,6 +3805,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1580, 1580, 5).
     // Item 4226, a bird walked on neither line: units (2838, 3119, 2276) -> (2838, 2709, 2009), guys (826, 966, 140) -> (826, 826, 0).
     // Item 4228, a path stack's `size` its high water: units (2838, 2709, 2009) -> (2838, 2709, 1995).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     (
         "run946",
         10842,
@@ -3736,7 +3818,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (532, 532, 0),
             (826, 826, 0),
             (271, 271, 3),
-            (27, 27, 1),
+            (27, 27, 0),
             (40, 40, 0),
             (180, 180, 0),
             (8164, 8164, 0),
@@ -3752,6 +3834,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1598, 1598, 4).
     // Item 4226, a bird walked on neither line: units (2832, 3140, 2399) -> (2832, 2730, 2097), guys (875, 1015, 144) -> (875, 875, 4).
     // Item 4228, a path stack's `size` its high water: units (2832, 2730, 2097) -> (2832, 2730, 2084).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 3) -> (27, 27, 0).
     (
         "run954b",
         12155,
@@ -3764,7 +3847,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (532, 532, 0),
             (875, 875, 4),
             (271, 271, 3),
-            (27, 27, 3),
+            (27, 27, 0),
             (35, 35, 0),
             (180, 180, 0),
             (8096, 8096, 0),
@@ -3806,6 +3889,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1832, 1832, 4).
     // Item 4226, a bird walked on neither line: units (4466, 4844, 3924) -> (4466, 4394, 3554), guys (1514, 1668, 168) -> (1514, 1514, 14).
     // Item 4228, a path stack's `size` its high water: units (4466, 4394, 3554) -> (4466, 4394, 3543).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (17, 17, 1) -> (17, 17, 0), goods (330, 330, 1) -> (330, 330, 0).
     (
         "run959",
         18368,
@@ -3818,9 +3902,9 @@ pub(super) const PINNED: &[Pinned] = &[
             (562, 562, 5),
             (1514, 1514, 14),
             (271, 271, 3),
-            (17, 17, 1),
+            (17, 17, 0),
             (0, 0, 0),
-            (330, 330, 1),
+            (330, 330, 0),
             (9056, 9056, 0),
         ],
     ),
@@ -3834,6 +3918,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2052, 2052, 5).
     // Item 4226, a bird walked on neither line: units (3135, 3263, 2518) -> (3135, 2958, 2405), guys (941, 1046, 106) -> (941, 941, 1).
     // Item 4228, a path stack's `size` its high water: units (3135, 2958, 2405) -> (3135, 2958, 2399).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (35, 35, 3) -> (35, 35, 0).
     (
         "run973g",
         12286,
@@ -3846,7 +3931,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (532, 532, 0),
             (941, 941, 1),
             (271, 271, 2),
-            (35, 35, 3),
+            (35, 35, 0),
             (60, 60, 0),
             (120, 120, 0),
             (7513, 7513, 0),
@@ -3862,6 +3947,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // (789, 789, 0).
     // Item 4226, a bird walked on neither line: units (2003, 2230, 1722) -> (2003, 1910, 1500), guys (533, 638, 105) -> (533, 533, 0).
     // Item 4228, a path stack's `size` its high water: units (2003, 1910, 1500) -> (2003, 1910, 1495).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (17, 17, 1) -> (17, 17, 0).
     (
         "run984b",
         6011,
@@ -3874,7 +3960,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (538, 538, 0),
             (533, 533, 0),
             (271, 271, 2),
-            (17, 17, 1),
+            (17, 17, 0),
             (75, 75, 0),
             (180, 180, 0),
             (8052, 8052, 0),
@@ -3890,6 +3976,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // (827, 827, 0).
     // Item 4226, a bird walked on neither line: units (1903, 2165, 1593) -> (1903, 1855, 1335), guys (540, 645, 105) -> (540, 540, 0).
     // Item 4228, a path stack's `size` its high water: units (1903, 1855, 1335) -> (1903, 1855, 1329).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (17, 17, 1) -> (17, 17, 0).
     (
         "run984c",
         6251,
@@ -3902,7 +3989,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (538, 538, 0),
             (540, 540, 0),
             (271, 271, 2),
-            (17, 17, 1),
+            (17, 17, 0),
             (75, 75, 0),
             (180, 180, 0),
             (8078, 8078, 0),
@@ -3917,6 +4004,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2783, 2783, 7).
     // Item 4226, a bird walked on neither line: units (3289, 3742, 3042) -> (3289, 3103, 2611), guys (1012, 1222, 211) -> (1012, 1012, 1).
     // Item 4228, a path stack's `size` its high water: units (3289, 3103, 2611) -> (3289, 3103, 2604).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (33, 33, 3) -> (33, 33, 0).
     (
         "run985b",
         16762,
@@ -3929,7 +4017,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (544, 544, 1),
             (1012, 1012, 1),
             (271, 271, 2),
-            (33, 33, 3),
+            (33, 33, 0),
             (40, 40, 0),
             (120, 120, 0),
             (7443, 7443, 1),
@@ -3944,6 +4032,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (2006, 2006, 4).
     // Item 4226, a bird walked on neither line: units (3178, 3504, 2735) -> (3178, 2989, 2426), guys (961, 1136, 179) -> (961, 961, 4).
     // Item 4228, a path stack's `size` its high water: units (3178, 2989, 2426) -> (3178, 2989, 2415).
+    // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     (
         "run991d",
         15256,
@@ -3956,7 +4045,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (532, 532, 0),
             (961, 961, 4),
             (271, 271, 2),
-            (30, 30, 3),
+            (30, 30, 0),
             (55, 55, 0),
             (120, 120, 0),
             (7461, 7461, 0),
@@ -4561,6 +4650,8 @@ fn probe_built_clocks() {
 /// 3077) -> (3907, 3895, 2971), guys (1289, 1331, 166) -> (1289, 1289, 124).
 /// Item 4228, a path stack's `size` its high water: units (3907, 3895, 2971)
 /// -> (3907, 3895, 2964).
+// Item 4229, the herd arm: goods (405, 405, 1) -> (405, 405, 2), a named regression
+// (the units line already parts on 2,964 of 3,907 ranges).
 const TAKE_PINNED: Pinned = (
     "run1575",
     1090,
@@ -4575,7 +4666,7 @@ const TAKE_PINNED: Pinned = (
         (407, 407, 6),
         (12, 12, 0),
         (25, 25, 0),
-        (405, 405, 1),
+        (405, 405, 2),
         (8981, 7447, 5432),
     ],
 );

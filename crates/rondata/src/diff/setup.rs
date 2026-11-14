@@ -926,13 +926,18 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // dropped with a note rather than guessed, because the id is what
     // `type_avail` is asked about.
     let mut unknown: Vec<&str> = Vec::new();
+    // The dump's goods slot → this crate's goods index, for a herd's
+    // `good_o` (item 4229): an unknown good is not laid.
+    let mut good_index: Vec<Option<i32>> = Vec::new();
     for g in &init.goods {
         let Some(row) = loaded.good_names.iter().position(|n| n == g.name) else {
             if !unknown.contains(&g.name) {
                 unknown.push(g.name);
             }
+            good_index.push(None);
             continue;
         };
+        good_index.push(Some(sim.world.goods().len() as i32));
         sim.world.add_good(sim::world::Good {
             pos: Pos::new(g.x as i32, g.y as i32),
             ty: loaded.good_tree[row],
@@ -1184,6 +1189,10 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             wy: h.wy as i32,
             kind: h.t as i32,
             alive: h.herd_flags & 1 != 0,
+            good_o: usize::try_from(h.good_o)
+                .ok()
+                .and_then(|s| good_index.get(s).copied().flatten())
+                .unwrap_or(-1),
         });
     }
     if !init.herds.is_empty() {

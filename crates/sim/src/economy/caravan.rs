@@ -626,10 +626,20 @@ impl Sim {
     /// `LeaderDataEncrypt +0xf0`, and `epoch` opens at `+0xe8`, so the
     /// level is `epoch[2]` (`docs/CARAVAN.md` §7.3, item 573).
     ///
+    /// **The bit is the partner's index in its owner's cities** (item
+    /// 4229): `Unit::do_trade@005ed270:479, 637` pass the partner
+    /// building's `BuildData +0x72` (`city`), the index `cities.lists[who]`
+    /// is read at, never a number across leaders. On run1585's 4030, city
+    /// 0's `traded_with[1]` reads 2 (leader 1's city 1) where the crate's
+    /// global index made it 4.
+    ///
     /// SEAM: the feedback line and its sound are the console player's only.
     fn city_new_caravan(&mut self, city: usize, who: Player, partner: usize) {
         let w = who as usize;
-        let Some(bit) = u32::try_from(partner).ok().filter(|b| *b < 32) else {
+        let Some(bit) = u32::try_from(self.city_index_in_owner(partner))
+            .ok()
+            .filter(|b| *b < 32)
+        else {
             return;
         };
         let mask = 1u32 << bit;
@@ -644,6 +654,17 @@ impl Sim {
             level * 20
         };
         self.economy.ledgers[w].bucket[crate::economy::Resource::Wealth as usize] += pay;
+    }
+
+    /// `BuildData +0x72` of city `c`'s centre: its index in its owner's
+    /// list, dead slots counted, as `cities.lists[who]` keeps them (the
+    /// same count `LocationView::bd_city` makes).
+    pub(crate) fn city_index_in_owner(&self, c: usize) -> usize {
+        let owner = self.cities.cities[c].owner;
+        self.cities.cities[..c]
+            .iter()
+            .filter(|x| x.owner == owner)
+            .count()
     }
 
     /// Rewrite the current order's body in place.

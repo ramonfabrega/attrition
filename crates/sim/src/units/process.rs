@@ -30,7 +30,10 @@ impl Sim {
             if self.units[i].on_map {
                 crate::units::anim::animal_process_steps(
                     self,
-                    |s| s.work(i, frame),
+                    |s| {
+                        s.work(i, frame);
+                        s.herd_sighting(i, frame);
+                    },
                     |s| s.guy_walk_counts(i),
                     |s, walk| {
                         if s.units[i].alive() && s.units[i].on_map {
