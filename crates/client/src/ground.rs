@@ -994,16 +994,17 @@ pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1104, 1109);
 /// read 132 (the journal), the coral's cyan taking the sand's red back.
 #[cfg(test)]
 /// Item 4212: **1,028 → 1,021**, the land lit at the frame's white, §3.21: plain 677 → 679, `ROCK` 32 → 31, `SANDY` 319 → 311.
+/// Item 4223: **1,021 → 1,384**, the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]): `OCEAN` **0 → 258** of 437, `SANDY` 311 → 415, `ROCK` 31 → 32, plain 679 unchanged. The lake's red was the grab's: tile (161, 191) at pixel (296, 1), theirs (43, 113, 156) → (12, 127, 168), the still's (12, 156, 217), chromaticity r 0.139 → 0.039 against ours 0.030. Then **1,384 → 1,412**, the coral layer drawn (draw 131, §3.18; 4213b): `SANDY` 415 → 443.
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1021, 1920),
+    (1412, 1920),
     [
         [679, 679],
         [0, 0],
-        [31, 32],
+        [32, 32],
         [0, 0],
         [0, 0],
-        [311, 772],
-        [0, 437],
+        [443, 772],
+        [258, 437],
     ],
 );
 
@@ -1028,6 +1029,7 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 #[cfg(test)]
 /// Item 4212: run1559b **1,075 → 1,029** (plain 979 → 952, under a mountain 80 → 61); run1564 **1,377 → 1,396** (`ROCK` 27 → 21, `SANDY` 499 → 397, `OCEAN` 172 → 299): the land lit at the frame's white, §3.21.
 /// Item 4221: run1559b **1,029 → 1,036** (plain 952 → 954, under a mountain 61 → 66): the trees tinted and blended (§3.23) change the frame's mean, so its white; run1564 unchanged.
+/// Item 4223: run1564 **1,396 → 1,437**, the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]) (`ROCK` 21 → 25, `SANDY` 397 → 400, `OCEAN` 299 → 333); then **1,437 → 1,710**, the coral layer drawn (`SANDY` 400 → 649, `OCEAN` 333 → 357); run1559b unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
         (1036, 1109),
@@ -1042,15 +1044,15 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1396, 1920),
+        (1710, 1920),
         [
             [679, 679],
             [0, 0],
-            [21, 32],
+            [25, 32],
             [0, 0],
             [0, 0],
-            [397, 772],
-            [299, 437],
+            [649, 772],
+            [357, 437],
         ],
     ),
 ];
@@ -1064,7 +1066,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 #[cfg(test)]
 /// Item 4212: run1559b's 1,010 → 992, run1564's 970 → 1,043, the land lit at the frame's white, §3.21.
 /// On the tree merged with 4208 (the gaia figures' shipped variant), run1564's 1,043 → 1,044.
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1044, 1920)];
+/// Item 4223: run1564's 1,044 → 1,605, the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]) and the coral layer drawn; still under the row it fails (1,412).
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1605, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1085,17 +1088,18 @@ pub const RUN1559B_3279_GROUND_LUMA: ((usize, usize), [[u32; 2]; 3]) =
 /// of 32); the water and the shore are too bright, `OCEAN` 2 of 437
 /// (median 1.69, the lake's tiles 1.8 to 2.0) and `SANDY` 83 of 772
 /// (median 1.55): the row item 4174 carries beside its own.
+/// Item 4223: **791 → 878** on the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]): `ROCK` 27 → 28, `SANDY` 83 → 170, `OCEAN` 2 → 1.
 #[cfg(test)]
 pub const RUN1564_3279_GROUND_LUMA: ((usize, usize), [[u32; 2]; 7]) = (
-    (791, 1920),
+    (878, 1920),
     [
         [679, 679],
         [0, 0],
-        [27, 32],
+        [28, 32],
         [0, 0],
         [0, 0],
-        [83, 772],
-        [2, 437],
+        [170, 772],
+        [1, 437],
     ],
 );
 
@@ -1178,21 +1182,23 @@ pub const RUN1564_3279_CENSUS: ([[u32; 4]; 7], u32) = (
 /// +y, −x and −y. None at the camera; 0 to 3 at two tiles, up to 40 at
 /// four, up to 142 at eight. The shore holds the camera to about two tiles,
 /// the width of the `SANDY` belt the waterline falls in, and no closer.
+/// Item 4223, on the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]): still none at the camera; the moved reads gain a few blue plain
+/// tiles (at two tiles 3 → 8 and 3 → 4, at four 40 → 42, at eight 127 → 130, 142 → 143, 0 → 1, 39 → 41).
 #[cfg(test)]
 pub const RUN1564_3279_SHORE: [[u32; 2]; 13] = [
     [0, 0],
     [0, 0],
-    [3, 0],
+    [8, 0],
     [0, 0],
     [0, 0],
     [16, 0],
-    [40, 0],
+    [42, 0],
     [0, 0],
-    [3, 0],
-    [127, 0],
-    [142, 0],
-    [0, 8],
-    [39, 24],
+    [4, 0],
+    [130, 0],
+    [143, 0],
+    [1, 8],
+    [41, 24],
 ];
 
 /// **`RUN1564_3279_GROUND`** (item 4160): [`RUN1559B_3279_GROUND`]'s row,
@@ -1215,19 +1221,24 @@ pub const RUN1564_3279_SHORE: [[u32; 2]; 13] = [
 /// [`RUN1564_WATER_LATTICE`]), so three plain tiles of `BASELAND` shore
 /// cells take it; the client's still, which draws item 4178's water, holds
 /// plain at 677 ([`RUN1564_3279_GROUND_STILL`]; parked 4178a).
+///
+/// **Item 4223: 1,233 → 1,018 on the painter**, the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]): `OCEAN` 233 → 87, `SANDY` 294 → 224,
+/// plain 674 → 675; the base alone 872 → 724. The painter's water (item
+/// 4164's ocean base) had agreed with the grab's display match, not the
+/// frame; the still, the row that counts (§3.15), rises 1,021 → 1,384.
 #[cfg(test)]
 pub const RUN1564_3279_GROUND: ((usize, usize), [[u32; 2]; 7], usize) = (
-    (1233, 1920),
+    (1018, 1920),
     [
-        [674, 679],
+        [675, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [294, 772],
-        [233, 437],
+        [224, 772],
+        [87, 437],
     ],
-    872,
+    724,
 );
 
 /// **`RUN1564_3279_WATER`** (item 4164): `[SANDY, OCEAN]` agreeing under
@@ -1236,8 +1247,9 @@ pub const RUN1564_3279_GROUND: ((usize, usize), [[u32; 2]; 7], usize) = (
 /// the first of the 32 frames `graphics.txt` names, which `render_water`
 /// binds to stage 0. The photograph's water is the floor's colour: the
 /// frames' navy agrees on no `OCEAN` tile.
+/// Item 4223, on the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]): `[55, 233], [294, 233], [112, 0]` → `[56, 87], [224, 87], [113, 0]`.
 #[cfg(test)]
-pub const RUN1564_3279_WATER: [[u32; 2]; 3] = [[55, 233], [294, 233], [112, 0]];
+pub const RUN1564_3279_WATER: [[u32; 2]; 3] = [[56, 87], [224, 87], [113, 0]];
 
 /// The drawn lattice's counts, then each reading's (item 4178).
 #[cfg(test)]
@@ -1291,8 +1303,10 @@ pub const RUN1564_WATER_LATTICE: WaterLattice = (
 /// 97, 146), lit (1, 91, 180)). Neither is drawn (parked 4174a). Item
 /// 4178: (1,236, 793, 814) → (1,233, 784, 813) on the wider corner arm of
 /// [`holds_water`], the luminance unchanged.
+/// Item 4223, on the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]): (1,233, 791) → (1,018, 878) as drawn, (784, 1,426) → (986, 1,502)
+/// unlit, (813, 1,072) → (823, 1,022) lit.
 #[cfg(test)]
-pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1233, 791), (784, 1426), (813, 1072)];
+pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1018, 878), (986, 1502), (823, 1022)];
 
 /// [`RUN1559B_3279_GROUND`] on the base layer alone, as item 4127 pinned it.
 #[cfg(test)]
@@ -2296,13 +2310,21 @@ pub(crate) mod tests {
     /// (192, 200), and nothing else changed; it is drawn at
     /// [`PHOTO_FRAME`], as run1559b's photograph is (assumed, not
     /// clocked: no mover is in view). No polygon is traced on it.
+    ///
+    /// Item 4223: **the grab is matched to sRGB** before it is cut. The
+    /// window was photographed on a display whose profile is not sRGB
+    /// (`Mi monitor`, a near-P3 gamut at gamma 1.96), so `screencapture`
+    /// wrote the window server's match of the frame to that display: the
+    /// lake's (20, 130, 160) read (47, 116, 148). The TGA read here is
+    /// `tools/render/photo_srgb.py`'s match of the same PNG, cropped and
+    /// converted as before ([`PHOTO_SOURCES`]; `docs/RENDERER.md` §3.18).
     pub(crate) fn run1564() -> Photo {
         let path = std::env::var_os("RON_PHOTO_RUN1564")
             .map(PathBuf::from)
             .unwrap_or_else(|| {
                 let home = std::env::var_os("HOME").unwrap_or_default();
                 PathBuf::from(home)
-                    .join("ron-data/lab-experiments/2026-11-12-item-4160/run1564-3294.tga")
+                    .join("ron-data/lab-experiments/2026-11-13-item-4223/run1564-3294-srgb.tga")
             });
         let mut camera = crate::pinned_camera();
         camera.loc_x = f32::from_bits(RUN1564_LOC.0);
@@ -2317,6 +2339,115 @@ pub(crate) mod tests {
 
     pub(crate) fn probe() -> Option<Probe> {
         probe_at(run1559b())
+    }
+
+    /// **The PNG each photograph a row reads was cut from** (item 4223),
+    /// under `~/ron-data/lab-experiments/`: run1559b's, run1564's matched
+    /// to sRGB, run1570's. The last entry is run1564's grab as written,
+    /// which must read as not sRGB: the guard's own failing case.
+    pub(crate) const PHOTO_SOURCES: [(&str, bool); 4] = [
+        ("2026-11-09-item-4036/run1559b-3294.png", true),
+        ("2026-11-13-item-4223/run1564-3294-srgb.png", true),
+        ("2026-11-12-item-4183/run1570-3331.png", true),
+        ("2026-11-12-item-4160/run1564-3294.png", false),
+    ];
+
+    /// A PNG's colour tag, by its chunks before the first `IDAT`: `sRGB`
+    /// for an `sRGB` chunk, `iCCP <keyword>` for an embedded profile, and
+    /// `untagged` for neither. `screencapture` writes the first on an sRGB
+    /// display and the second, with the keyword `ICC Profile`, on any
+    /// other (`tools/render/photo_srgb.py` reads the profile's own name).
+    pub(crate) fn png_colour_tag(png: &[u8]) -> String {
+        assert_eq!(&png[..8], b"\x89PNG\r\n\x1a\n", "not a PNG");
+        let mut at = 8;
+        while at + 8 <= png.len() {
+            let n = u32::from_be_bytes(png[at..at + 4].try_into().unwrap()) as usize;
+            let body = &png[at + 8..(at + 8 + n).min(png.len())];
+            match &png[at + 4..at + 8] {
+                b"sRGB" => return "sRGB".into(),
+                b"iCCP" => {
+                    let k = body.iter().position(|&b| b == 0).unwrap_or(body.len());
+                    return format!("iCCP {}", String::from_utf8_lossy(&body[..k]));
+                }
+                b"IDAT" | b"IEND" => break,
+                _ => {}
+            }
+            at += 12 + n;
+        }
+        "untagged".into()
+    }
+
+    /// **Every photograph a row reads is in sRGB** (item 4223). The rows
+    /// compare the client's bytes, which are sRGB, against the
+    /// photograph's; a grab matched to another display's profile moves
+    /// every saturated colour (run1564's lake: `OCEAN` 0 → 258 of 437 on
+    /// the match). Made to fail: run1564's grab as written reads `iCCP ICC
+    /// Profile`, and is listed so.
+    #[test]
+    fn every_photograph_a_row_reads_is_tagged_srgb() {
+        let lab = PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
+            .join("ron-data/lab-experiments");
+        let mut got = Vec::new();
+        for (rel, srgb) in PHOTO_SOURCES {
+            let path = lab.join(rel);
+            let Ok(bytes) = std::fs::read(&path) else {
+                println!("skipping: no photograph at {}", path.display());
+                return;
+            };
+            let tag = png_colour_tag(&bytes);
+            println!("{rel}: {tag}");
+            got.push((rel, tag == "sRGB", srgb));
+        }
+        for (rel, is, want) in got {
+            assert_eq!(is, want, "{rel}");
+        }
+        // The rows' own paths are the sources' cuts.
+        assert!(
+            run1564()
+                .path
+                .ends_with("2026-11-13-item-4223/run1564-3294-srgb.tga")
+                || std::env::var_os("RON_PHOTO_RUN1564").is_some()
+        );
+    }
+
+    /// **The interface's pure red, the match's own witness** (item 4223):
+    /// pixels at `r ≥ 250, g ≤ 10, b ≤ 10` in the bottom 280 rows (the
+    /// panel's red banner and flags, the same interface on both takes) of
+    /// run1559b's photograph, run1564's matched to sRGB, and run1564's grab
+    /// as written. A display match cannot reach the gamut's corner: the
+    /// grab holds none (its reddest is (235, 49, 21)), the match the
+    /// sRGB grab's count within one.
+    pub(crate) const HUD_PURE_RED: [usize; 3] = [3770, 3771, 0];
+
+    #[test]
+    fn the_interface_s_pure_red_survives_the_match() {
+        let lab = PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
+            .join("ron-data/lab-experiments");
+        let mut got = [0usize; 3];
+        for (i, path) in [
+            photo_path(),
+            lab.join("2026-11-13-item-4223/run1564-3294-srgb.tga"),
+            lab.join("2026-11-12-item-4160/run1564-3294.tga"),
+        ]
+        .iter()
+        .enumerate()
+        {
+            let Ok(bytes) = std::fs::read(path) else {
+                println!("skipping: no photograph at {}", path.display());
+                return;
+            };
+            let img = render::tga::decode(&bytes).expect("the photograph decodes");
+            let (w, h) = (img.width as usize, img.height as usize);
+            got[i] = (h - 280..h)
+                .flat_map(|y| (0..w).map(move |x| 4 * (y * w + x)))
+                .filter(|&o| {
+                    let p = &img.rgba[o..o + 3];
+                    p[0] >= 250 && p[1] <= 10 && p[2] <= 10
+                })
+                .count();
+            println!("{}: {} pure red", path.display(), got[i]);
+        }
+        assert_eq!(got, HUD_PURE_RED);
     }
 
     /// `tools/render/land_light_packet.py`'s dump of `run`'s packet: each
@@ -2590,6 +2721,7 @@ pub(crate) mod tests {
                 m.alpha == crate::world::WATER_ALPHA
                     && m.piece != crate::world::WATER_PIECE
                     && m.piece != crate::world::FLOOR_PIECE - 1
+                    && m.piece != crate::world::CORAL_PIECE
             })
             .collect();
         assert!(!faded.is_empty(), "the lake's floor fades");
@@ -2597,8 +2729,43 @@ pub(crate) mod tests {
             laid.iter()
                 .filter(|m| m.alpha == crate::world::WATER_ALPHA)
                 .count(),
-            2 + faded.len(),
-            "the water, the shade and the faded land ride the alpha ramp"
+            3 + faded.len(),
+            "the water, the shade, the coral layer and the faded land ride the alpha ramp"
+        );
+        // Item 4223 (draw 131, §3.18): the coral layer, once, on every
+        // faded triangle at the complement of its alpha, after every
+        // transition patch and before the water.
+        let coral: Vec<_> = laid
+            .iter()
+            .enumerate()
+            .filter(|(_, m)| {
+                m.piece == crate::world::CORAL_PIECE && m.alpha == crate::world::WATER_ALPHA
+            })
+            .collect();
+        assert_eq!(coral.len(), 1, "one coral layer");
+        let (at, layer) = coral[0];
+        let faded_tris: usize = faded.iter().map(|m| m.positions.len()).sum();
+        assert_eq!(
+            layer.positions.len(),
+            faded_tris,
+            "every faded triangle, once"
+        );
+        let water_at = laid
+            .iter()
+            .position(|m| m.piece == crate::world::WATER_PIECE);
+        assert!(Some(at) < water_at, "the coral layer before the water");
+        assert!(
+            laid[..at].iter().filter(|m| !m.mountain).count() == at,
+            "after the faded land, the shade and every patch"
+        );
+        let pair: Vec<_> = faded
+            .iter()
+            .flat_map(|m| m.alpha_uvs.iter())
+            .zip(&layer.alpha_uvs)
+            .collect();
+        assert!(
+            pair.iter().all(|(f, c)| (f[0] + c[0] - 1.0).abs() < 1e-6),
+            "the coral's alpha the complement of the land's"
         );
         assert!(
             laid.iter()
