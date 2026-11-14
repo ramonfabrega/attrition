@@ -659,7 +659,9 @@ mod tests {
         let mut built = game(seed);
         built.notes = notes.iter().map(|n| (*n).to_string()).collect();
         built.sim.roster.art.lengths = lengths.iter().copied().collect();
-        built.frame_seeds = vec![(5, seed ^ 0x55)];
+        // The word is any other than the seed's own; a hex literal here reads
+        // as a document's constant built (`docs_guard`).
+        built.frame_seeds = vec![(5, seed.rotate_left(7))];
         built.frame_guys = guys.iter().map(|&f| (f, vec![])).collect();
         built
     }
