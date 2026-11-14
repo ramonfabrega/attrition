@@ -2364,6 +2364,11 @@ heal, ejection), then the sites' `construct_hits` refresh.
 
 ---
 
+16. **A carrier's chain in the checksum** (item 4257, parked 4257a): the
+    units emitter still prints the last unit seated inside a unit as its
+    `inside_down`; `insert_inside` appends at the bottom there too. No
+    record has a unit holding another on a scored frame.
+
 ## 12.1 The docs-versus-code pass, 2026-09-05
 
 `docs/audit/2026-09-05-cities-vs-code.md` (Opus reader, Opus adjudication).
