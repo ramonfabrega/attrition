@@ -7,7 +7,9 @@
 //!
 //! What is here is the function's head through the rush-rules arm, which
 //! is every branch the peace pair reaches before its war: two leaders, at
-//! peace, neither allied, `TEAM_STYLE 1`. Each arm the pair does not reach
+//! peace, neither allied, `TEAM_STYLE 1`; and since item 4159's step VII-c
+//! ([`offers`]) the arms of team styles 0, 8 and 11 and the offers arm
+//! that answers a committed proposal. Each arm no walked lobby reaches
 //! stops at a `SEAM` that names it, so a later lobby that reaches one
 //! parts there rather than on a guess.
 
@@ -176,9 +178,10 @@ impl Sim {
         // The cadence (`docs/LEADERS.md` §8.2): while I have not committed
         // to `t` (`dip[t].agree`, `+0x692c`), a demand outstanding
         // (`tribute_demanded`, `+0x334`) stretches the period to `0x2000`
-        // and a counteroffer (`counteroffer`, `+0x314`) doubles it. Their
-        // setters are the demand arm and the found-short arm (steps VII-c,
-        // VII-d), not carried, so both read 0 in every walked game.
+        // and a counteroffer (`counteroffer`, `+0x314`) doubles it. The
+        // demand arm is not carried; the counteroffer is set by the offers
+        // arm on a peace found short (step VII-c), never on a walked game,
+        // whose one short answer is an alliance's (step VII-d).
         let forced = agenda & 4 != 0;
         if !forced {
             let mut period: i64 = 0x800;
@@ -312,9 +315,9 @@ impl Sim {
                 }
             }
         }
-        // `weak /= max(1, dow[who])` — the leader's own `dow` slot, which
-        // nothing writes. SEAM: `dow` is not carried.
-        let weak_divisor = 1;
+        // `weak /= max(1, dow[who])` — the leader's own `dow` slot (6bcf0a),
+        // which only a self-target would count: no caller sends one.
+        let weak_divisor = self.leaders.declare[me].dow[me].max(1);
         weak /= weak_divisor;
         // Somebody at war with the target whose `weak` against it is 0.
         let someone_unafraid = (0..players).any(|l| {
@@ -406,10 +409,15 @@ impl Sim {
         // `006bc950:762–860`: a target at peace with me.
         let mut plan_war = false;
         if self.diplos(me, t) != 0 && self.diplos(t, me) != 0 && target_human {
-            // SEAM: `dow` (`+0x270`) and `blacken` (`+0x20c`) are not
-            // carried, so the clearing arm reads both as 0.
+            // The clearing arm (6bd871): the human target's `dow` on me
+            // under 2 and its `blacken` under 4 (item 4159, step VII-b1's
+            // leaves, read since step VII-c).
             let their_wars = self.ai.ai[t].census.wars;
-            if their_wars > 0 {
+            let (their_dow, their_blacken) = (
+                self.leaders.declare[t].dow[me],
+                self.leaders.declare[t].blacken,
+            );
+            if their_dow < 2 && their_blacken < 4 && their_wars > 0 {
                 let clear = match diff {
                     d if d < 2 => true,
                     2 => their_wars > 1,
@@ -452,8 +460,8 @@ impl Sim {
         }
         // SEAM: `get_diff`'s and this arm's `semaphore[0] & 4`
         // (multiplayer) is never set.
-        // SEAM: the target's `blacken` (`+0x20c`) is not carried; 0.
-        let blacken = 0;
+        // The target's `blacken` (`+0x20c`, 6bdc3b).
+        let blacken = self.leaders.declare[t].blacken;
         if theirs_mine != 0 && blacken < 2 && !rusher {
             self.mark(SITE_RACE_COIN);
             let coin = self.rng.roll();
@@ -461,15 +469,26 @@ impl Sim {
                 aggression = 0;
             }
         }
-        // SEAM: `hire_stamp`/`hire_who` (`+0x1b4`, `+0x1d4`) — hiring is
-        // not modelled, so neither of their two arms fires.
+        // The hires (`hire_stamp`, `+0x1b4`): a deal against `t` inside
+        // 13500 frames wants the war (6bdc8a), and the mine coin clears it
+        // only with none, or one older than 4500 (6bdce2). The stamps are
+        // written by an executed attack deal, which needs a request no
+        // crate path sets, so both read 0 in every walked game.
+        let hired = self.leaders.declare[me].hire_stamp[t];
+        if hired != 0 && frame - hired < 13_500 {
+            aggression = 1;
+        }
         if mine_theirs != 0 && theirs_mine == 0 {
             self.mark(SITE_MINE_COIN);
             let coin = self.rng.roll();
-            if coin % (if boomer { 2 } else { 3 }) == 0 {
+            if coin % (if boomer { 2 } else { 3 }) == 0 && (hired == 0 || frame - hired > 4500) {
                 aggression = 0;
             }
         }
+        // SEAM: the third parties' hire arms — 6bdd57 compares
+        // `leaders[l].hire_who[me]` with `l` itself, a test no deal can
+        // pass; 6bdd87 needs `t` my mutual ally, whose pass this port ends
+        // in the allied arm above.
         if self.leaders.agendas[me][t] & 0x20 != 0 {
             aggression = 1;
         }
@@ -477,48 +496,29 @@ impl Sim {
             aggression = 1;
         }
         match self.ai.lobby.team_style {
-            0 | 8 | 11 | 7 => {
-                // SEAM: the elimination and capital arms of team styles 0,
-                // 8 and 11, and team style 7's — every capture is style 1.
+            // Item 4159, step VII-c: the elimination and victory arms of
+            // team styles 0, 8 and 11 (`offers.rs`), then `LAB_006be428`.
+            0 | 8 | 11 => {
+                self.store_view(me, t, aggression, strong, weak);
+                if !self.style_zero_arms(me, t) {
+                    return;
+                }
+            }
+            7 => {
+                // SEAM: team style 7's arms (a neutral team-8 leader); every
+                // capture is style 0 or 1.
                 self.store_view(me, t, aggression, strong, weak);
                 return;
             }
             _ => {
                 aggression = 1;
+                self.store_view(me, t, aggression, strong, weak);
             }
         }
-        self.store_view(me, t, aggression, strong, weak);
-
-        // `LAB_006be428`. SEAM: `dip[t].agree` and the target's
-        // `dip[me].agree` are never 1, so `action_clear_all` is not called.
-        if !forced && aggression == 0 && self.leaders.agendas[me][t] & 8 != 0 {
-            self.mark(SITE_QUIET_COIN);
-            if self.rng.roll() % 3 != 0 {
-                return;
-            }
-        }
-        if aggression == 0 {
-            // SEAM: the offers arm (`006bc950:1225–1294`, `LAB_006bf0e0`).
-            return;
-        }
-        if !self.not_at_war(me, t) {
-            // SEAM: at war — `LAB_006bf0e0`, the peace and alliance offers.
-            return;
-        }
-        // The rush rules, inline (`war_allowed`): team style 1 goes to
-        // `LAB_006bed3f` whether war is allowed or not; the declaring arm
-        // past `LAB_006be54c` is team styles 0, 8 and 11 alone.
-        let quiet = {
-            let stamp = self.ai.ai[t].got_diplo_message;
-            stamp != 0 && frame - stamp < 0x1c2
-        };
-        if self.leaders.agendas[me][t] & 0x48 != 0 || quiet {
-            return;
-        }
-        // The message itself (`receive_chat` to the console player) draws
-        // only from the interface's own streams.
-        self.ai.ai[t].got_diplo_message = frame;
-        self.leaders.agendas[me][t] |= 0x40;
+        // `LAB_006be428` onward: the quiet coin, the clear of a committed
+        // deal, the offers arm (item 4159, step VII-c) and the rush rules'
+        // message.
+        self.diplomacy_tail(me, t, forced);
     }
 
     /// The three per-target words, as `Leader::diplomacy` leaves them.
@@ -529,6 +529,8 @@ impl Sim {
         l.weak[t] = weak;
     }
 }
+
+mod offers;
 
 #[cfg(test)]
 mod tests;
