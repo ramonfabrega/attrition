@@ -1009,9 +1009,23 @@ pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[701, 772], [422, 437]];
 
 /// **`RUN1564_3279_SURF_DRAWN`** (item 4239; `docs/RENDERER.md` §3.27):
 /// `SANDY` and `OCEAN` `[agree, scored]` on run1564's still with the
-/// client's own surf drawn, then with the packet's types.
+/// client's surf off, drawn, then drawn with the packet's types. Off,
+/// the row's base, 573 and 422. Drawn, **`SANDY` 573 → 653**, 84 up and 4
+/// down (up: tile (163, 201), theirs (97.1, 133.4, 140.3), the still's
+/// (58.0, 119.7, 142.3) → (76.3, 125.5, 144.4); down: tile (189, 197),
+/// theirs (10.5, 102.4, 149.4), the still's (14.0, 120.2, 164.7) → (37.0,
+/// 128.3, 168.3), a crest of ours where theirs is dark water). With the
+/// packet's types 684: the client's agree with them on 217 of 1,205, at
+/// chance (4236a). `OCEAN` moves on none. Blended in LDR (source over the
+/// toned frame, item 4225's composite) the three read 573, 655 and 676;
+/// item 4225's composite of the packet's own lists on the CPU, 701
+/// ([`RUN1564_3279_SURF`]).
 #[cfg(test)]
-pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 2] = [[[0, 0], [0, 0]], [[0, 0], [0, 0]]];
+pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
+    [[573, 772], [422, 437]],
+    [[653, 772], [422, 437]],
+    [[684, 772], [422, 437]],
+];
 
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
 /// `(agree, scored)`, then by kind `[agree, scored]`, `KINDS`' order.
@@ -1051,15 +1065,19 @@ pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 2] = [[[0, 0], [0, 0]], [[0, 
 /// the water lit and blended over the frame under it in HDR
 /// (`shaders/water.wgsl`, `docs/RENDERER.md` §3.24): `SANDY` **442 →
 /// 573**, `OCEAN` **412 → 422**; plain and `ROCK` unchanged.
+/// Item 4239: **1,706 → 1,786**, the surf drawn (`client::surf`,
+/// `docs/RENDERER.md` §3.27; [`RUN1564_3279_SURF_DRAWN`]): `SANDY` **573
+/// → 653**, 84 tiles up and 4 down; tile (163, 201), theirs (97.1, 133.4,
+/// 140.3), the still's (58.0, 119.7, 142.3) → (76.3, 125.5, 144.4).
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1706, 1920),
+    (1786, 1920),
     [
         [679, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [573, 772],
+        [653, 772],
         [422, 437],
     ],
 );
@@ -1089,6 +1107,7 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4227: run1564 **1,710 → 1,705** (`SANDY` 649 → 650, `OCEAN` 357 → 351), the floor's clamped second layer at its offset (§3.12): the lake's hue in, six of its tiles a shade bright; run1559b unchanged.
 /// Item 4232: run1564 **1,705 → 1,805** (`SANDY` 650 → 681, `OCEAN` **351 → 420**), the floor lit per pixel and the water blended over it in HDR (`shaders/water.wgsl`, §3.24); run1559b unchanged.
 /// Item 4233: run1559b **1,036 → 1,038** (plain 954 → 956): the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21); run1564 unchanged.
+/// Item 4239: run1564 **1,805 → 1,851** (`SANDY` 681 → 727), the surf drawn (§3.27); run1559b unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
         (1038, 1109),
@@ -1103,14 +1122,14 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1805, 1920),
+        (1851, 1920),
         [
             [679, 679],
             [0, 0],
             [25, 32],
             [0, 0],
             [0, 0],
-            [681, 772],
+            [727, 772],
             [420, 437],
         ],
     ),
@@ -1132,7 +1151,9 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Item 4232: run1564's 1,737 → 1,709, the lake lit and blended in HDR
 /// (`shaders/water.wgsl`), against the drawn row's 1,706: the made-to-fail
 /// side still leads by three tiles on run1564 (4227a stands).
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1709, 1920)];
+/// Item 4239: run1564's 1,709 → 1,754, the surf drawn (§3.27), against
+/// the drawn row's 1,786: **the drawn side leads on run1564 by 32**.
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1754, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1419,15 +1440,19 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// samples the floor's level 0 at the nearest texel, read 323
 /// ([`RUN1564_3279_LAKE_HDR_TEXTURE`]); the GPU's mipmapped draw reads
 /// less spread.
+///
+/// Item 4239, the surf drawn (§3.27): **`SANDY` 326 → 408**, `OCEAN` 232
+/// → 233, `ROCK` 9 → 8, plain unchanged; the beach's mean spread 6.82
+/// against theirs 10.28.
 #[cfg(test)]
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [665, 679],
     [0, 0],
-    [9, 32],
+    [8, 32],
     [0, 0],
     [0, 0],
-    [326, 772],
-    [232, 437],
+    [408, 772],
+    [233, 437],
 ];
 
 /// **`RUN1564_3279_LAKE_HDR_TEXTURE`** (item 4232): [`TEXTURE`]'s
@@ -3740,11 +3765,8 @@ pub(crate) mod tests {
         let (sandy, ocean) = (5, 6);
         assert_eq!(
             [was[sandy], was[ocean]],
-            [
-                RUN1564_3279_GROUND_STILL.1[sandy],
-                RUN1564_3279_GROUND_STILL.1[ocean]
-            ],
-            "the still before the surf is the row's"
+            RUN1564_3279_SURF_DRAWN[0],
+            "the still before the surf is the row's with the client's surf off"
         );
         assert_eq!([now[sandy], now[ocean]], RUN1564_3279_SURF);
         assert_eq!(
@@ -3779,7 +3801,7 @@ pub(crate) mod tests {
         };
         let size = (p.photo.width as u32, p.photo.height as u32);
         let camera = p.camera;
-        let mut row = |p: &mut Probe| {
+        let row = |p: &mut Probe| {
             let still = crate::still_of(
                 &mut p.world,
                 &camera,
@@ -3792,14 +3814,44 @@ pub(crate) mod tests {
             let mountains: std::collections::BTreeSet<(i32, i32)> =
                 t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
             let mut by = [[0u32; 2]; 7];
-            for b in &got {
-                let k = kind_of(&t, &mountains, b.0);
+            let kinds: Vec<usize> = got.iter().map(|b| kind_of(&t, &mountains, b.0)).collect();
+            for (b, &k) in got.iter().zip(&kinds) {
                 by[k][1] += 1;
                 by[k][0] += u32::from(b.3);
             }
-            (still, [by[5], by[6]])
+            (still, [by[5], by[6]], got, kinds)
         };
-        let (ours, drawn) = row(&mut p);
+        p.world.surf = false;
+        let (_, off, before, kinds) = row(&mut p);
+        p.world.surf = true;
+        let (ours, drawn, after, _) = row(&mut p);
+        // The value diff: each kind's first tile to cross, either way, and
+        // the count by kind and way.
+        let mut crossed = [[0u32; 2]; 7];
+        for ((b, a), &k) in before.iter().zip(&after).zip(&kinds) {
+            if b.3 != a.3 {
+                let c = &mut crossed[k][usize::from(a.3)];
+                if *c == 0 {
+                    println!(
+                        "run1564 surf drawn: {} crosses {}: tile {:?}, theirs ({:.1}, {:.1}, {:.1}), the still's ({:.1}, {:.1}, {:.1}) -> ({:.1}, {:.1}, {:.1})",
+                        KINDS[k],
+                        if a.3 { "up" } else { "down" },
+                        b.0,
+                        b.1[0],
+                        b.1[1],
+                        b.1[2],
+                        b.2[0],
+                        b.2[1],
+                        b.2[2],
+                        a.2[0],
+                        a.2[1],
+                        a.2[2]
+                    );
+                }
+                *c += 1;
+            }
+        }
+        println!("run1564 surf drawn: crossed by kind [down, up] {crossed:?}");
         let frame = p.world.runner.frame();
         let (agree, of) = {
             let s = p
@@ -3819,7 +3871,7 @@ pub(crate) mod tests {
         let kinds = |v: &[crate::surf::WaveStruct]| v.iter().map(|w| w.kind).collect::<Vec<_>>();
         p.world
             .set_surf_kinds(frame, &kinds(&pk.waves), &kinds(&pk.breakers));
-        let (theirs, typed) = row(&mut p);
+        let (theirs, typed, _, _) = row(&mut p);
         if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
             let dir = PathBuf::from(dir);
             for (name, px) in [
@@ -3831,9 +3883,9 @@ pub(crate) mod tests {
             }
         }
         println!(
-            "run1564 surf drawn at frame {frame}: SANDY, OCEAN {drawn:?}; with the packet's types {typed:?}; types agreeing {agree} of {of}"
+            "run1564 surf drawn at frame {frame}: SANDY, OCEAN off {off:?}, drawn {drawn:?}; with the packet's types {typed:?}; types agreeing {agree} of {of}"
         );
-        assert_eq!([drawn, typed], RUN1564_3279_SURF_DRAWN);
+        assert_eq!([off, drawn, typed], RUN1564_3279_SURF_DRAWN);
     }
 
     /// **Item 4227: the floor's second layer clamps** (`docs/RENDERER.md`

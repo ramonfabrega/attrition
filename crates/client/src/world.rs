@@ -1428,6 +1428,7 @@ impl World {
             self.laid_ramp = None;
             self.weather_laid = (-1, false, (0, 0), Vec::new());
             self.roads_laid = (-1, false, (0, 0), Vec::new());
+            self.surf_laid = (-1, false);
         }
         // Item 4190 (§3.17): the footprint weathering, laid again when the
         // frame or its switches move, after the land's patches and the
