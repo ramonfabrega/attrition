@@ -4739,8 +4739,8 @@ fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
 const WANT_CH37: &[&str] = &[
     "3218 0/6 death:extra",
     "3227 0/7 death:extra",
-    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 6604 theirs 6384.
-    "3091 0/-1 leader:score",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 6604 theirs 6384. Item 4159's
+    // residue: agrees (the score's units and combat parts, §18.5).
 ];
 
 /// Chapter thirty-seven's pool rows (item 1091): the research's building
@@ -6935,8 +6935,8 @@ const WANT_CH136: &[&str] = &[
     "600 1/3 form",
     "600 1/4 form",
     "600 1/5 form",
-    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 479 theirs 467.
-    "620 1/-1 leader:score",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 479 theirs 467. Item 4159's
+    // residue: agrees (the score's units and combat parts, §18.5).
 ];
 
 /// What parts in run1552's window, blocks 605–1250 (item 3994): the eleven
@@ -8526,8 +8526,8 @@ const WANT_CH36: &[&str] = &[
     "984 0/7 ammo[2].accuracy",
     "987 0/7 ammo[3].accuracy",
     "995 0/7 ammo[5].accuracy",
-    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 6125 theirs 6085.
-    "2711 0/-1 leader:score",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 6125 theirs 6085. Item 4159's
+    // residue: agrees (the score's units and combat parts, §18.5).
 ];
 
 /// Chapter thirty-six's pool rows (item 1078).
@@ -8683,8 +8683,8 @@ const WANT_CH35: &[&str] = &[
     "984 0/7 ammo[2].accuracy",
     "987 0/7 ammo[3].accuracy",
     "995 0/7 ammo[5].accuracy",
-    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 5925 theirs 5885.
-    "2711 0/-1 leader:score",
+    // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 5925 theirs 5885. Item 4159's
+    // residue: agrees (the score's units and combat parts, §18.5).
 ];
 
 // **What parts in the pool** on run371: chapter twenty-two's ten, and

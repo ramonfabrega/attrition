@@ -261,7 +261,8 @@ fn iroquois_enlightenment_pair_run1291b_s_word_frame_is_widened_whole() {
     // `aggression[1]`) and eleven later: `form` on `1/150`, `1/154` and
     // `1/157`, and groups 68, 82, 84 and 85's `held` and pools as each is
     // minted. No unit's position, orders or hits part.
-    pin_eq!(w.firsts.len(), 122, "run1291b baseline");
+    // Item 4159's residue: 122 -> 121, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 121, "run1291b baseline");
     // Every round, both directions: 301 round-blocks theirs, 228 ours. The
     // first to part is `1/82`'s, on the window's first block, fired in the
     // undumped gap 3902..3955 on both sides: ours leaves from (3912, 12792,

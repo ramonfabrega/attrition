@@ -491,7 +491,8 @@ fn bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole() {
     // (it came down on 5523 in ours), and the Bark's move on 5526 agrees.
     // What stands is the standing families, the buried target (3592a) and
     // eight guards' `dest_angle` (5380..5474, 3580b's shape).
-    pin_eq!(w.firsts.len(), 95, "run1238d baseline");
+    // Item 4159's residue: 95 -> 94, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 94, "run1238d baseline");
 }
 
 /// **The pair's closing state**: run1206's closing dump, block 6211, walked

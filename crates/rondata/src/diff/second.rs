@@ -1097,7 +1097,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(5970, 41), (6030, 1), (6111, 1), (6191, 1), (6218, 1)],
+            [(5970, 41), (6111, 1), (6191, 1), (6218, 1)],
             "the blocks keys first part on, the whole window"
         );
         // Item 1164 took the passengers' figure `avg_speed` (6026, 6069;
@@ -1109,7 +1109,8 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 167.
         // Item 1458: 113 → 111; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1586: 86 → 84 (6135's 2 go); an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
-        pin_eq!(w.firsts.len(), 45, "every key parted on run414");
+        // Item 4159's residue: 45 -> 44, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+        pin_eq!(w.firsts.len(), 44, "every key parted on run414");
     }
 
     /// **The second pair's East Indies word, 6321, widened whole** (item
@@ -1305,7 +1306,7 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(6604, 34), (6685, 2), (6718, 3), (6740, 1)],
+            [(6604, 34), (6685, 2), (6718, 3)],
             "the blocks keys first part on, the whole window"
         );
         // Item 1197: 298 → 189, the dead transports' numbers held
@@ -1316,7 +1317,8 @@ mod tests {
         // Item 1407: 130 → 129 (6604's 104 → 103).
         // Item 1457: 127 → 109; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 109 → 105; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 40, "every key parted on run420");
+        // Item 4159's residue: 40 -> 39, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+        pin_eq!(w.firsts.len(), 39, "every key parted on run420");
     }
 
     /// **The second pair's East Indies word, 7382, widened whole** (item
@@ -1433,7 +1435,7 @@ mod tests {
                 .filter(|(b, _)| **b <= 7_513)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7377, 28), (7480, 1), (7485, 1)],
+            [(7377, 28), (7485, 1)],
             "the blocks keys first part on, to the old word's"
         );
         // Item 1174: 1182 → 614. Item 1185: 614 → 317.
@@ -1444,7 +1446,8 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 174.
         // Item 1457: 111 → 109; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 109 → 105; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 30, "every key parted on run425");
+        // Item 4159's residue: 30 -> 29, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+        pin_eq!(w.firsts.len(), 29, "every key parted on run425");
     }
 
     /// **The second pair's East Indies word 8519, widened whole** (item
@@ -1650,7 +1653,8 @@ mod tests {
         // Item 1457: 117 → 113; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 113 → 109; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1586: 77 → 76; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
-        pin_eq!(w.firsts.len(), 31, "every key parted on run445");
+        // Item 4159's residue: 31 -> 30, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+        pin_eq!(w.firsts.len(), 30, "every key parted on run445");
     }
 
     /// **The second pair's East Indies word 10183, widened whole** (item
@@ -1782,7 +1786,8 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 187.
         // Item 1457: 119 → 112; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 112 → 107; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 33, "every key parted on run462");
+        // Item 4159's residue: 33 -> 32, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+        pin_eq!(w.firsts.len(), 32, "every key parted on run462");
     }
 
     /// **The second pair's East Indies word 10985, widened whole** (item
@@ -1960,14 +1965,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [
-                (11323, 31),
-                (11356, 1),
-                (11445, 1),
-                (11539, 1),
-                (11540, 1),
-                (11542, 1)
-            ],
+            [(11323, 31), (11356, 1), (11445, 1), (11539, 1), (11542, 1)],
             "the blocks keys first part on, to the window's end"
         );
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
@@ -1978,11 +1976,12 @@ mod tests {
         // Item 1457: 149 → 140; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 140 → 136; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 51 -> 35.
+        // Item 4159's residue: 36 -> 35, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
         pin_eq!(
             w.firsts.len(),
             // Item 1407: 153 → 152 (11445's 2 → 1).
             // Item 1586: 100 → 98 (11411's 2 go); an army's normalize puts its group's cap back to the leader's speed (`docs/AI.md` §161).
-            36,
+            35,
             "every key parted on run490 (1311 before item 1281, 382 before 1297, 229 before 1302)"
         );
     }
@@ -2059,7 +2058,7 @@ mod tests {
                 .filter(|(b, _)| **b <= 11_638)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(11632, 30)],
+            [(11632, 29)],
             "the blocks keys first part on, to 11637's"
         );
         // Item 1302 took 1151: the six squads' records, the group's list,
@@ -2068,7 +2067,8 @@ mod tests {
         // Item 1407: 139 → 138.
         // Item 1458: 136 → 131; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 52 -> 36.
-        pin_eq!(w.firsts.len(), 37, "every key parted on run506");
+        // Item 4159's residue: 37 -> 36, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+        pin_eq!(w.firsts.len(), 36, "every key parted on run506");
     }
 
     /// **run508 — the second pair's East Indies word 12582, widened whole**
@@ -2131,13 +2131,14 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(12577, 28)],
+            [(12577, 27)],
             "the blocks keys first part on, to the word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 1817.
         // Item 1458: 134 → 128; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 43 -> 27.
-        pin_eq!(w.firsts.len(), 28, "every key parted on run508");
+        // Item 4159's residue: 28 -> 27, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+        pin_eq!(w.firsts.len(), 27, "every key parted on run508");
     }
 
     /// **run523 — the second pair's East Indies word 13385, widened whole**
@@ -2292,7 +2293,7 @@ mod tests {
         // Item 1457: 159 → 149; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 149 → 141; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 48 -> 32.
-        pin_eq!(w.firsts.len(), 33, "every key parted on run535");
+        pin_eq!(w.firsts.len(), 32, "every key parted on run535");
     }
 
     /// **run544 — the second pair's East Indies word 15862, widened whole**
@@ -2412,7 +2413,7 @@ mod tests {
                 .filter(|(b, _)| **b <= 16_010)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(15857, 32), (15859, 1), (15930, 1)],
+            [(15857, 32), (15859, 1)],
             "the blocks keys first part on, to the word's"
         );
         // Item 1362, the escort: 1386 → 1380. Item 1370, the pack: 1380 → 982.
@@ -2424,7 +2425,8 @@ mod tests {
         // theirs 0) — the region check pushes the stack's stripped top
         // (`docs/AI.md` §286).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 50 -> 34.
-        pin_eq!(w.firsts.len(), 35, "every key parted on run544");
+        // Item 4159's residue: 35 -> 34, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+        pin_eq!(w.firsts.len(), 34, "every key parted on run544");
     }
 
     /// **run572 — the second pair's East Indies word 16179, widened whole**
@@ -2598,8 +2600,7 @@ mod tests {
                 (16674, 1),
                 (16679, 2),
                 (16681, 1),
-                (16685, 1),
-                (16710, 1)
+                (16685, 1)
             ],
             "the blocks keys first part on, to the word's"
         );
@@ -2617,7 +2618,8 @@ mod tests {
         // Item 1458: 257 → 253; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1634 removes 1/2046's standing false road flag.
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 131 -> 115.
-        pin_eq!(w.firsts.len(), 116, "every key parted on run579");
+        // Item 4159's residue: 116 -> 115, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+        pin_eq!(w.firsts.len(), 115, "every key parted on run579");
     }
 
     type AmmoFirsts = std::collections::BTreeMap<((i64, i64, i64), &'static str), (i64, String)>;
@@ -3172,7 +3174,8 @@ mod tests {
         // Item 2002: 105 → 103; `group:71.speed` 17527 and `new_speed` 17530, ours 26 theirs 25, agree: a member's search normalizes its group (`docs/GOLDEN.md` §73).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 102 -> 86.
         // Item 4177: 86 -> 88, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 17647 ours 3 theirs 4; who=1 `hits_current_frame` 17647 ours 3 theirs 4 (docs/LEADERS.md §3.5).
-        pin_eq!(w.firsts.len(), 89, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 4159's residue: 89 -> 88, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+        pin_eq!(w.firsts.len(), 88, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**
@@ -3258,7 +3261,8 @@ mod tests {
         // Item 1586: 202 → 199; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         // Items 2193 and 2205, merged together (each gated without the other): 139 → 138.
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 137 -> 121.
-        pin_eq!(w.firsts.len(), 122, "every key parted on run583");
+        // Item 4159's residue: 122 -> 121, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+        pin_eq!(w.firsts.len(), 121, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

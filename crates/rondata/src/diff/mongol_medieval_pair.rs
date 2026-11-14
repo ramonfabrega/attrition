@@ -422,7 +422,8 @@ fn mongol_medieval_pair_run1391b_s_closing_frame_is_widened_whole() {
     // `SITE[i].reg` and `aggression[1]`); then group-pool and `form` rows
     // on 5368, 5375, 5376, 5418 and 5576. Nothing parts on the closing
     // block 5593, and no draw parts to 5592.
-    pin_eq!(w.firsts.len(), 104, "run1391b baseline");
+    // Item 4159's residue: 104 -> 103, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 103, "run1391b baseline");
     // Every round, both directions: 1674 each side, 50 parting — every one
     // a Trebuchet's (TI 266: `1/64`, `1/74`, `1/79`), leaving from the
     // figure's own point ~700 below theirs' (`1/64`'s on 5523: (7800,

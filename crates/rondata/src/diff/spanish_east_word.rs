@@ -227,7 +227,7 @@ fn run993c_s_word_frame_is_widened_whole() {
     // broadside's round now lands on 12774 as theirs does, so `0/2004`'s
     // `damage` (2 → 3) and `damage_frac` (10 → 15) and `0/2000`'s
     // `raid_stamp` (12767 → 12773) agree. What stands is the standing family.
-    pin_eq!(w.firsts.len(), 59, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 58, "keys that part in the window");
 }
 
 /// run993d: the word 14942's window, blocks 14936..15192 at `GUYS=4`,
@@ -287,7 +287,7 @@ fn run993d_s_word_frame_is_widened_whole() {
     // 61 → 60 by item 3633's Caravel bays (piece 275): `0/2000`'s
     // `raid_stamp` agrees (ours 12774 → 12773, run993c's 12774 blow landing
     // as theirs does). `1/87`'s `dest_angle` stands.
-    pin_eq!(w.firsts.len(), 61, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 60, "keys that part in the window");
 }
 
 /// The closing state's window: run986b's closing block alone, the long's

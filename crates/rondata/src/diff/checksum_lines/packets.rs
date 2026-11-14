@@ -4057,17 +4057,17 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "aggression cities_built flags.leader_flags gather_stamp",
     ),
     ("run1472", "aggression cities_built flags.leader_flags"),
-    (
-        "run1484",
-        "active aggression cities_built flags.leader_flags num_units",
-    ),
+    // Item 4159's residue: `active` and `num_units` agree on run1484, and
+    // `num_units` on run1487 and run1496: the scripted Transport Freighter
+    // is in neither count (`num_units[272]` ours 1 theirs 0, each computer).
+    ("run1484", "aggression cities_built flags.leader_flags"),
     (
         "run1487",
-        "aggression cities_built flags.leader_flags num_units reg_unpack_merch resources_controlled",
+        "aggression cities_built flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1496",
-        "aggression cities_built flags.leader_flags num_units reg_unpack_merch",
+        "aggression cities_built flags.leader_flags reg_unpack_merch",
     ),
     (
         "run1559b",

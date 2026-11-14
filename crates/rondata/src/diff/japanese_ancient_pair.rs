@@ -236,7 +236,8 @@ fn japanese_ancient_pair_run1252b_s_word_frame_is_widened_whole() {
     // `1/51` takes the extra `Guy::set_anim < Guy::move` draw in ours.
     // Item 3610: 1962 → 82, the standing families alone, with piece
     // 1176's bays: `1/50`'s arrow lands on `0/6` on 4904 on both sides.
-    pin_eq!(w.firsts.len(), 83, "run1252b baseline");
+    // Item 4159's residue: 83 -> 82, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 82, "run1252b baseline");
 }
 
 /// **The long's stride, walked back from the word 4934** (item 3602):
@@ -439,5 +440,6 @@ fn japanese_ancient_pair_run1264c_s_closing_frame_is_widened_whole() {
     );
     // Item 3610: 59 keys, the standing families alone, through the
     // closing block 6127.
-    pin_eq!(w.firsts.len(), 60, "run1264c baseline");
+    // Item 4159's residue: 60 -> 59, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 59, "run1264c baseline");
 }

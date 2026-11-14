@@ -301,7 +301,8 @@ fn bantu_modern_pair_run1405b_s_word_frame_is_widened_whole() {
     // Item 3746: **51 keys**, the standing families at block 3395 and
     // who=1's groups 67 and 68 forming on 3399 and 3400; no unit parts.
     // Item 4177: 51 -> 57, +6 firsts, the combat rates' own: who=0 `damage_current_frame` 3494 ours 1 theirs 2; who=1 `hits_current_frame` 3494 ours 1 theirs 2; who=0 `average_damage_rate` 3501 ours 138 theirs 188; who=0 `damage_fifteen_seconds` 3501 ours 12 theirs 13 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 57, "run1405b baseline");
+    // Item 4159's residue: 57 -> 51, item 4177's six combat-rate firsts on 3494 and 3501 agree: the nuke strikes the city building at its ceiling (4177a).
+    pin_eq!(w.firsts.len(), 51, "run1405b baseline");
     // Every round, both directions: 195 against 195, none parting.
     pin_eq!(w.rounds_read, (195, 195), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -381,7 +382,8 @@ fn bantu_modern_pair_run1425_s_word_frame_is_widened_whole() {
     // Howitzers `1/84` (4320) and `1/102` (4336) and the Armored Scout Car
     // `1/82` (4367), each from its own square in ours (3748a).
     // Item 4177: 51 -> 55, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 4295 ours 23 theirs 27; who=0 `damage_fifteen_seconds` 4295 ours 14 theirs 15; who=1 `average_hit_rate` 4295 ours 23 theirs 27; who=1 `hits_fifteen_seconds` 4295 ours 14 theirs 15 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 55, "run1425 baseline");
+    // Item 4159's residue: 55 -> 51, item 4177's four combat-rate firsts on 4295 agree: the nuke strikes the city building at its ceiling (4177a).
+    pin_eq!(w.firsts.len(), 51, "run1425 baseline");
     pin_eq!(w.rounds_read, (70, 70), "the rounds read");
     pin_eq!(w.rounds.len(), 17, "the rounds that part");
 }
