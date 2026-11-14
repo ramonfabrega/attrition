@@ -21,7 +21,8 @@ token and are estimates. Session figures are `lore`'s, as of its last
 index, at its own dated list prices.
 
 **Two sessions wrote it.** The first ran to 02:10 −05:00 and stopped on
-its context. The second (02:12 to 05:00, the same model, a fresh context)
+its context. The second (02:12 to 02:55, the same model, a fresh context;
+closed early on the commander's word, the week's window at 85 %)
 worked through the first's "Left to do": it corrected three of the first's
 figures where a measurement replaced a reading (R2, G1's largest part, two
 of G3's chains), ran G1 dry against the guards, and added S19 to S25 and
@@ -1079,16 +1080,19 @@ entries 128 to 132 read whole, LOOP and the frame read against them (S25
 to S28, R13) and a first draft of G3's page; every constant the handoff
 quotes against the code (S24); the parked rows' afterlife (D8); R1's
 change read off its three readers; G1 run dry against the guards;
-`LEADERS.md`'s line cites and `RENDERER.md`'s twice-stated claims (G13,
-S29, S30). What follows is what neither session reached.
+`LEADERS.md`'s line cites, `RENDERER.md`'s twice-stated claims and
+`CHECKSUM.md` §20 (G13, S29 to S31). It closed at 02:55 −05:00, on the
+commander's word that the week's window had moved faster than planned.
+What follows is what neither session reached.
 
 **Not reached.**
 
 - The mid-size specifications read as documents: `MAPGEN.md`,
-  `COLLISION.md`, `PATHFINDER.md` and `CHECKSUM.md` were measured by
-  section and citation and never read; `LEADERS.md` and `RENDERER.md`
-  were probed mechanically (G13, S29, S30), which finds a claim of a
-  known shape and nothing else.
+  `COLLISION.md` and `PATHFINDER.md` were measured by section and
+  citation and never read; of `CHECKSUM.md` only §20's first paragraph
+  was (S31), and §23 and §24, which the chain also amends, were not;
+  `LEADERS.md` and `RENDERER.md` were probed mechanically (G13, S29,
+  S30), which finds a claim of a known shape and nothing else.
 - `tools/brief/frame.md`'s sections for kinds no item is booked under
   (`sweep`, `coverage-item`, `reading-item`, `chapter`, `capture`,
   `reading`, `before-reading`: about 17,500 B). Selected by kind, so no
