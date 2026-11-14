@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -869,7 +869,8 @@ files. Every package of every file decodes. An order is a command `rondata::inpu
 `camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
 as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
 
-**`INPUT_KINDS`: 8 of 26 kinds, 1,879 of 2,429 orders.** The kinds the layer mints are `input::MINTS`, held to the
+**`INPUT_KINDS`: 9 of 26 kinds, 2,056 of 2,429 orders (84.6 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
+was first taken, before the rally point (§11.2) was minted. The kinds the layer mints are `input::MINTS`, held to the
 `Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
 `input_kinds_of_the_recordings_on_disk`.
 
@@ -878,7 +879,7 @@ as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds
 | `group` | 1,059 | 43.5 % | yes |
 | `move_to` | 396 | 16.3 % | yes |
 | `queue_up` | 264 | 10.8 % | yes |
-| `gather_point` | 177 | 7.2 % | |
+| `gather_point` | 177 | 7.2 % | yes (§11.2) |
 | `chat` | 160 | 6.5 % | |
 | `attack` | 80 | 3.2 % | yes |
 | `leader_options` | 50 | 2.0 % | |
@@ -918,5 +919,90 @@ players' orders are in no file.
 - `chat` in the bottle's captures is the cheat console's line (`rondata::input`'s `Chat` arm); `cheat_ai_toggle` is
   a capture driver's.
 
-**The next kind by share is `gather_point`**, 177 orders: a building's rally point. Of them 153 carry `action` 0 and
-`add_to_end` 0, 12 carry `action` 3, 9 `action` 1 and 3 `action` 2.
+**The first kind taken by share was `gather_point`**, 177 orders: a building's rally point. Of them 153 carry `action`
+0 and `add_to_end` 0, 12 carry `action` 3, 9 `action` 1 and 3 `action` 2. The layer mints the first form (§11.2).
+**The next kind by share is `chat`**, 160 orders, then `leader_options` (the lobby's), `sell` 28, `pause` 24,
+`city_gather` 20 and `buy` 18.
+
+### 11.2 A building's rally point (item 4249)
+
+**What the dispatch issues.** With a building selected, `Console::execute_at_cursor@007c6630` reaches its gather arm
+when `GroupData::count(COUNT_GATHER_POINT)` is nonzero. It then looks twice: `find_target(SEARCH_ALL, …,
+FILTER_ALL)`, then `find_target(SEARCH_FRIENDLY, …)`. When neither finds an object, it calls
+`GroupOut::issue_gather_point(drag_x2, drag_y2, 0, shift)`, and `CommandManager::issue_gather_point@00941b20` adds the
+group and command `0x16`: `gather_point(x, y, action 0, add_to_end)`. A plain press has no modifier held, so
+`add_to_end` is 0. That is the form of 153 of the 177 recorded rally points (§11.1).
+
+`COUNT_GATHER_POINT` (`GroupData::count@00711720`, arm 23) admits a member that is a building with any of:
+- a garrison limit;
+- `BuildTypeData::is_training_building`;
+- one of a chain of type abilities.
+
+**What the layer does.**
+- `View::takes_gather_point` reads the training arm alone. It uses `BuildingScene::trains`, a read the scene door
+  gained (`crates/sim/src/observe.rs`, `cities::build::is_training_building`); nothing the simulation computes
+  changes.
+- `View::names_object` stands in for the two looks: any seen object of any slot within `PICK_RADIUS`.
+- A right press with such a building selected, and nothing under the cursor, mints `gather_point` at
+  `ground_at`'s point, `action` 0 and `add_to_end` 0.
+- On an object it mints nothing.
+
+**The script.** `rondata::script::gathered` is the followed script (§10) and two packages more:
+- on `GATHER_FRAME` 6706, the capital `0/2000` given a rally point at `GATHER_AT` (4306, 31001);
+- on `GATHER_TRAIN_FRAME` 6708, the capital's Citizen.
+
+**Stage 0.** On 6706 at the opening camera, the capital stands at (3168, 30816), `z` 536, pixel (1127, 521); it
+trains. The ground pixel (1277, 611) names no object, and the layer's inverse takes it to (4306, 31001). A first point
+chosen nearer, (3600, 31400), fell on the capital's own footprint. There `action_gather_point` stores (−1, −1), the
+"inside" arm, and the Citizen stays in the building. The point was moved out.
+
+**The count.** `INPUT_GATHERED`: **14 of 14**. The followed events and three more (a press on the capital, the right
+press, the key `c`) mint the gathered script field for field (`minted_gathered_at_the_opening_camera`). The file
+written from them is the gathered file. Seen red with the building arm minting nothing, as the layer did before: 13
+orders, 12 whole in place.
+
+**The file.** `~/ron-golden/recordings/item4249-gathered-greatlakes-24000.rcx`, 59,459 bytes, SHA-256
+`d419163f…179ae01`. It is the followed file plus the two packages, and the closing stamp goes from 14 to 16
+(`the_gathered_minted_packages_round_trip`).
+
+**The playback** (run1598, `docs/RUNS.md`): draws agree on 7,000 of 7,000 frames, count and sequence. 300 records
+(6700..6999) are compared whole, none parted (`GATHERED_WALKED`).
+
+**Each order's effect, equal on both sides** (`gathered_effects`, pinned from our walk before run1598 was read):
+
+| frame | the capital's gather list | the Citizen `0/10` |
+| --- | --- | --- |
+| 6706 | empty | not on the map |
+| 6707 | (4306, 31001, 0) | not on the map |
+| 6709 | (4306, 31001, 0) | queued; not on the map |
+| 6814 | (4306, 31001, 0) | (4008, 31320), `move` |
+| 6832 | (4306, 31001, 0) | (4296, 30984), idle at the point |
+| 6999 | (4306, 31001, 0) | (4271, 30624), `move`, `gather` |
+
+**The value diff against run1573**, the followed file's playback: there the capital's gather list is empty through
+6899 and no `0/10` stands on the map. **Made to fail:** the followed file walked against run1598 parts first on 6707
+at the capital's `gather_len`, ours 0 and theirs 1. 293 of 300 records part, and the draws part from 6813, the
+Citizen's coming out (`FOLLOWED_AGAINST_GATHERED`).
+
+### 11.3 Confidence, and what is not established
+
+**Backed by the playback.** run1598 plays a rally point minted from a right press on bare ground, and a Citizen trained
+after it walks to it, with every effect equal on both sides.
+
+**Reading only**, one reader, no blind second reading:
+- the gather arm's gate and its two looks;
+- `add_to_end` as the shift's;
+- `COUNT_GATHER_POINT`'s arms.
+
+**Ours, not the original's:**
+- `takes_gather_point` reads the training arm alone;
+- `names_object` is the nearest-anchor look, not `find_target`'s.
+
+**Not established:**
+- **A rally point on an object**: `action` 1 and 2 (the arm by `LeaderData::is_enemy`) and 3 (a friendly target, the
+  second look). The layer mints nothing there. Recorded: 9, 3 and 12 orders.
+- **The shift-held rally point** (`add_to_end` 1). No recording carries one.
+- **A garrisonable building that does not train**, and the type-ability arms of the count.
+- **The capital's snap** to a Woodcutter or Mine under the point (`action_gather_point`'s Village arm). The point here
+  is bare ground.
+

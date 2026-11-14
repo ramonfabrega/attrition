@@ -2560,9 +2560,9 @@ fn the_gathered_minted_script_s_effects_on_our_walk() {
 pub(crate) const GATHERED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
     "gamelog-run1598-greatlakes-playback-of-gathered-7000.txt",
     "rontrace-run1598.log",
-    0,
-    0,
-    0,
+    7000,
+    7000,
+    300,
     0,
 )];
 
@@ -2632,5 +2632,14 @@ fn the_followed_script_against_the_gathered_playback_parts() {
 
 /// The followed script's walk against run1598: `(the first parted
 /// record's frame, its kind, its row, the first frame whose draws part,
-/// records parted)`.
-const FOLLOWED_AGAINST_GATHERED: (i64, &str, &str, Option<i64>, usize) = (0, "", "", None, 0);
+/// records parted)`. It parts first on 6707, the frame after the rally
+/// point, at the capital's gather list: none on ours, one on run1598's;
+/// 293 of 300 records part, and the draws from 6813, the Citizen's
+/// coming out. Seen red first: pinned `(0, "", "", None, 0)`.
+const FOLLOWED_AGAINST_GATHERED: (i64, &str, &str, Option<i64>, usize) = (
+    6707,
+    "build_diverged",
+    "BuildDivergence { frame: 6707, who: 0, o: 2000, field: \"gather_len\", ours: 0, theirs: 1 }",
+    Some(6813),
+    293,
+);
