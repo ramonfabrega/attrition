@@ -271,6 +271,41 @@ packet at 2745 under `step4.py` names the writes under
 6781. Its answer also gates the leader's `+0x68 & 0x100` carry across the
 halt, which the crate does not keep (SEAM).
 
+**An army's pushed group is normalized by `add_group`** (item 4242):
+`Army::add_unit@006f9f40`, on an army with no live group, `Group::add`s the
+unit to a stack group and hands `push_group`'s slot to
+`Army::add_group@006f8c00`. That writes the record's `army`, adds its
+`num` to the army's members, and adds the answer of the record's vslot
+`+0x8` (`get_num_cap`, `6f8dae`, `this` the record) to its captains; then
+it ORs the record's `role` into the army's `+0xc`. On fewer than four
+members the `get_num_cap` is `normalize` whole, so the new slot takes
+`find_role` and its leader's speed. `push_group` has already pointed every
+live member's `+0x80` at the slot, so the prune keeps them. The crate's push
+arm in `Sim::army_add_unit` does both: the members' `group_ptr` and
+`seat_get_num_cap` on the army's seat. Diff-backed on the minted game: the
+Longbowmen `1/24..1/26` pushed into army 1/1 on 6780 read `role` 0x150c00
+and speed 26 on run1592's packet at 6781 where ours read 0. With it the
+groups line is the original's to 8206.
+
+**Every caller of the record's `get_num_cap`** (item 4242, at `commander`'s
+request), by name and through vslot `+0x8` on a pool record, in the export
+and the listing (a `call *0x8` within ten instructions of the pool base
+`0xe85f20`: `6f8dae`, `6f9bea` alone):
+
+| caller | normalizes | the crate |
+|---|---|---|
+| `Group::action_move_near` `QUEUE_FIRST` (`704ebe`) | yes, `this` | `group_action_move_to` (item 4231) |
+| `Army::add_group` (`6f8dae`) | yes, the pushed record | `army_add_unit`'s push arm (item 4242) |
+| `Army::normalize` (`6f9bea`, and again for the standard count) | after its own `Group::normalize` | `army_normalize`: the prune and `seat_normalize_tail` |
+| `Groups::get_open_slot`'s stamp arm | yes, each slot reached | `open_slot` |
+| `Group::action_guard` (`:232`) | no: a stack group, `id` −1 | writes no pool record |
+| `GroupData::get_num_cap_const` and the interface's callers (`Options`, `IFace*`, `BuildOut`, `UnitOut`, `ConsoleWin`) | no: the `const` twin | not the simulation |
+
+The decompiler's other `+ 8))()` sites in `Group`, `Groups`, `GroupData` and
+`Army` are an object's vslot `+0x8` (in use), on a unit from
+`GameAccess::objects`. Falsifier: a group record's `role` or speed that
+parts on a packet with no push, move or open-slot walk on its tick.
+
 Three more words of the record have no state here because no writer
 stores anything but a constant (every writer in the export, grepped by
 offset across `Group`, `GroupData`, `Groups` and `Army` and through a
@@ -2262,6 +2297,10 @@ Closed by the second reading, struck here and answered where they belong:
 - ~~**`Group::priority`** … has no writer in the export.~~ Five writers,
   and it is a one-bit "I am a control group". §1.
 - ~~**No second reading yet.**~~ Run, adjudicated and applied: §14.
+- **The army's role mask** (`ArmyData +0xc`): `Army::add_group@006f8c00`
+  and `Army::normalize@006f9b50` OR each group's `role` into it, and the
+  crate's `army_normalize` writes 0 and nothing ORs it. Nothing in the
+  simulation reads it (parked 4242a). §3.4.
 
 ## 14. Second reading — landed, and applied
 
