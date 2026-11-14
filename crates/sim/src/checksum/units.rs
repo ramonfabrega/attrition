@@ -349,6 +349,7 @@ impl Sim {
         let bits = [
             (0x1, un.decoy),
             (0x2, un.movement.mirror),
+            (0x4, un.in_danger),
             (0x8, un.line_ok),
             (0x10, un.contact),
             (0x20, un.gather_here),
