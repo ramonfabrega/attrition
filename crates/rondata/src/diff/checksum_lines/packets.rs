@@ -1281,11 +1281,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (3193, 2998, 2485) -> (3193, 3007, 1823).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (3193, 3007, 1823) -> (3193, 3007, 1821).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3193, 3007, 1821) -> (3193, 3007, 1818).
     (
         "run1011c",
         13225,
         [
-            (3193, 3007, 1821),
+            (3193, 3007, 1818),
             (2080, 2080, 5),
             (0, 0, 0),
             (6, 0, 6),
@@ -1310,11 +1311,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (3158, 2945, 2409) -> (3158, 2954, 1814).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (3158, 2954, 1814) -> (3158, 2954, 1812).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3158, 2954, 1812) -> (3158, 2954, 1810).
     (
         "run1011d",
         13277,
         [
-            (3158, 2954, 1812),
+            (3158, 2954, 1810),
             (2080, 2080, 5),
             (0, 0, 0),
             (12, 0, 12),
@@ -1339,11 +1341,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (3117, 2889, 2389) -> (3117, 2898, 1789).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (3117, 2898, 1789) -> (3117, 2898, 1787).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3117, 2898, 1787) -> (3117, 2898, 1784).
     (
         "run1011e",
         13296,
         [
-            (3117, 2898, 1787),
+            (3117, 2898, 1784),
             (2080, 2080, 5),
             (0, 0, 0),
             (9, 0, 9),
@@ -1368,11 +1371,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (3139, 2878, 2435) -> (3139, 2887, 1877).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (3139, 2887, 1877) -> (3139, 2887, 1875).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3139, 2887, 1875) -> (3139, 2887, 1872).
     (
         "run1015b",
         13392,
         [
-            (3139, 2887, 1875),
+            (3139, 2887, 1872),
             (2080, 2080, 6),
             (0, 0, 0),
             (27, 0, 27),
@@ -1519,11 +1523,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (6004, 5959, 4748) -> (6004, 5962, 4744).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (6004, 5962, 4744) -> (6004, 5962, 4743).
     // Item 4159's third residue: guys (1935, 1935, 3) -> (1935, 1935, 2), a newborn ship's turret at its rest.
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6004, 5962, 4743) -> (6004, 5962, 4742).
     (
         "run1166",
         3920,
         [
-            (6004, 5962, 4743),
+            (6004, 5962, 4742),
             (2247, 2246, 442),
             (0, 0, 0),
             (0, 0, 0),
@@ -2168,11 +2173,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (9905, 9836, 8715) -> (9905, 9845, 7275).
     // Item 4234, a cast's three ranges walked: units (9905, 9845, 7275) -> (9905, 9854, 8666).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (9905, 9854, 8666) -> (9905, 9866, 8616).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (9905, 9866, 8616) -> (9905, 9866, 8613).
     (
         "run1296",
         4632,
         [
-            (9905, 9866, 8616),
+            (9905, 9866, 8613),
             (2163, 2163, 22),
             (0, 0, 0),
             (0, 0, 0),
@@ -2491,11 +2497,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0), goods (180, 180, 1) -> (180, 180, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4745, 4523, 3686) -> (4745, 4532, 3677).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4745, 4532, 3677) -> (4745, 4541, 3675).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4745, 4541, 3675) -> (4745, 4541, 3673).
     (
         "run1351",
         4303,
         [
-            (4745, 4541, 3675),
+            (4745, 4541, 3673),
             (2237, 2237, 10),
             (0, 0, 0),
             (3, 0, 3),
@@ -3140,11 +3147,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4226, a bird walked on neither line: units (2308, 2539, 2160) -> (2308, 2194, 1945), guys (638, 757, 120) -> (638, 638, 1).
     // Item 4228, a path stack's `size` its high water: units (2308, 2194, 1945) -> (2308, 2194, 1944).
     // Item 4234, a cast's three ranges walked: units (2308, 2194, 1944) -> (2308, 2197, 1946).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2308, 2197, 1946) -> (2308, 2197, 1945).
     (
         "run1440",
         809,
         [
-            (2308, 2197, 1946),
+            (2308, 2197, 1945),
             (1968, 1968, 25),
             (0, 0, 0),
             (18, 0, 18),
@@ -3193,11 +3201,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1968, 1968, 25).
     // Item 4226, a bird walked on neither line: units (2022, 2281, 1864) -> (2022, 1941, 1613), guys (604, 723, 120) -> (604, 604, 1).
     // Item 4228, a path stack's `size` its high water: units (2022, 1941, 1613) -> (2022, 1941, 1612).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2022, 1941, 1612) -> (2022, 1941, 1611).
     (
         "run1451",
         945,
         [
-            (2022, 1941, 1612),
+            (2022, 1941, 1611),
             (1968, 1968, 25),
             (0, 0, 0),
             (18, 0, 18),
@@ -3242,11 +3251,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4222, the building push's normalize and the queue's vacated slots: builds (1316, 1316, 26)
     // -> (1316, 1316, 24).
     // Item 4226, a bird walked on neither line: units (2362, 2425, 1974) -> (2362, 2245, 1934), guys (665, 728, 64) -> (665, 665, 1).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2362, 2245, 1934) -> (2362, 2245, 1933).
     (
         "run1459",
         780,
         [
-            (2362, 2245, 1934),
+            (2362, 2245, 1933),
             (1316, 1316, 24),
             (0, 0, 0),
             (0, 0, 0),
@@ -3267,11 +3277,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4226, a bird walked on neither line: units (2380, 2455, 1941) -> (2380, 2275, 1872), guys (686, 749, 64) -> (686, 686, 1).
     // Item 4228, a path stack's `size` its high water: units (2380, 2275, 1872) -> (2380, 2275, 1874).
     // Item 4231, a QUEUE_FIRST move's `get_num_cap` normalizing its record: groups (568, 568, 3) -> (568, 568, 2).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2380, 2275, 1874) -> (2380, 2275, 1873).
     (
         "run1460",
         760,
         [
-            (2380, 2275, 1874),
+            (2380, 2275, 1873),
             (1296, 1296, 24),
             (0, 0, 0),
             (9, 0, 9),
@@ -3316,11 +3327,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1777, 1777, 27).
     // Item 4226, a bird walked on neither line: units (1401, 1685, 1049) -> (1401, 1380, 767), guys (413, 518, 106) -> (413, 413, 1).
     // Item 4228, a path stack's `size` its high water: units (1401, 1380, 767) -> (1401, 1380, 761).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (1401, 1380, 761) -> (1401, 1380, 760).
     (
         "run1469b",
         628,
         [
-            (1401, 1380, 761),
+            (1401, 1380, 760),
             (1777, 1777, 27),
             (0, 0, 0),
             (190, 0, 190),
@@ -3341,11 +3353,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4226, a bird walked on neither line: units (2180, 2393, 2002) -> (2180, 2093, 1793), guys (612, 717, 106) -> (612, 612, 1).
     // Item 4228, a path stack's `size` its high water: units (2180, 2093, 1793) -> (2180, 2093, 1791).
     // Item 4234, a cast's three ranges walked: units (2180, 2093, 1791) -> (2180, 2096, 1780).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2180, 2096, 1780) -> (2180, 2096, 1779).
     (
         "run1472",
         707,
         [
-            (2180, 2096, 1780),
+            (2180, 2096, 1779),
             (1777, 1777, 27),
             (0, 0, 0),
             (339, 0, 339),
@@ -4067,11 +4080,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (2838, 2709, 1995) -> (2838, 2718, 1493).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (2838, 2718, 1493) -> (2838, 2718, 1492).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2838, 2718, 1492) -> (2838, 2718, 1490).
     (
         "run946",
         10842,
         [
-            (2838, 2718, 1492),
+            (2838, 2718, 1490),
             (1580, 1580, 5),
             (0, 0, 0),
             (15, 0, 15),
@@ -4249,11 +4263,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (1903, 1855, 1335) -> (1903, 1855, 1329).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (17, 17, 1) -> (17, 17, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (1903, 1855, 1329) -> (1903, 1858, 1372).
+    // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (1903, 1858, 1372) -> (1903, 1858, 1369).
     (
         "run984c",
         6251,
         [
-            (1903, 1858, 1372),
+            (1903, 1858, 1369),
             (827, 827, 0),
             (0, 0, 0),
             (3, 0, 3),
