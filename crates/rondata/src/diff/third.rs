@@ -184,6 +184,10 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
 /// ([`stand_up_built`]) through it.
 pub(crate) fn walk_word(mut built: Built, tr: &crate::trace::Trace, gamelog: &str) -> Word {
     built.sim.trace.trace_phases = true;
+    // The walk compares every frame itself and resumes nothing; in a
+    // group's process it leaves its rungs for the closing state and the
+    // packets that stand the same state up (`harness::trunk`, item 4220).
+    let leaves = crate::diff::harness::trunk::Leaves::root(&built);
     let difficulty = built.sim.ai.lobby.difficulty;
     let last = tr.frames.last().map_or(0, |(n, _)| *n);
     let (mut count, mut sequence) = (None, None);
@@ -206,6 +210,7 @@ pub(crate) fn walk_word(mut built: Built, tr: &crate::trace::Trace, gamelog: &st
             built.sim.trace.sweep_watch = Some(sim::movement::collide::SweepWatch::new(sf, w, o));
         }
         built.tick();
+        leaves.passed(&built);
         // `RON_DEBUG_SLOTS=<lo>-<hi>`: player 1's births and deaths by
         // object number over a window, with the dead slots' holds — the
         // allocator's view, for a word that is a numbering (item 1594).

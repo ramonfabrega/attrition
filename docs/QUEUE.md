@@ -49,20 +49,19 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). The sha
 `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6; gate scoped, DECISIONS 115 §3), a `start`
 item (`docs/START.md` §5: the frame-zero state built from the lobby's choices, the `[Start Game]` dump its oracle)
 and an `input` item (`docs/CLIENT_INPUT.md`: events mint a script's orders and the original plays the file; gate scoped). A
-residue or chapter item books only when another track's frame needs one. **The lanes** (DECISIONS 132 §9): start 4204; render 4223; third 4222; the suite 4220.
+residue or chapter item books only when another track's frame needs one. **The lanes** (DECISIONS 132 §9): start 4204; render 4223; third 4222; the suite 4224.
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2; builders). `LEADERS_HELD_OUT` 37 (the frozen scan, `rondata::stores`: `score_explored`, `score_pop`, `last_spoke`; VII-b1 the declaration three; VII-b2 the taunt's answer four on 967, the gift's food equal; the packet at 1090 wired, its five wait on VII-c, being after the staged 1027). A leaf leaves where it moves on a dump or packet our walk holds, on a block no staged
 decision precedes, or frozen. run1575 is **1150 staged, 1099 computed**, held unstaged through block 1026. **Order:** **VII-c** the offers arm's accept (`made_peace`; retires the staging, 4207a); **VII-d** found short
 (`counteroffer`); the residue (4176a–c, 4177a–c, 4187a, 4187b, 4207b). Two readings stand open: the record, "Readings".
 
-4220. **One walk a game: the whole walks share it** (structure; **whole**; DECISIONS 132 §11; Fable 5.2). 4216 grouped the
-tests by game and 4219 turned the kept walk on: `Suite: 1246 processes for 2375 tests`, 3,875 test CPU-seconds, 76,124 G
-(113,766 G one process a test). Left, every floor unchanged at each: the whole-walk shapes (walk to the word, closing state,
-audit, packets, stride) on the group's kept walk, three quarters of a game group; takes of one lobby and seed as one game, by
-`rngcmp`; the coverage and ages drivers on the shared walks (42,843 G of the whole gate's 108,000 G second walk); the literal
-pins as rows. The whole gate keeps `RON_VERIFY_ORACLE`. Score: `Suite:` and its instructions. Kill: a floor moves, or the
-fixture audit stops matching test for test: backed out, named.
+4224. **One walk a game: the two trunks joined, the drivers on the walks** (structure; **whole**; DECISIONS 132 §11; parked
+4220a–c). 4216, 4219 and 4220 landed groups, the kept walk and `harness::trunk` (a silent run-up resumes a checkpoint keyed by
+the state's own print): `Suite: 1264 processes for 2393 tests`, 4,062 test CPU-seconds; the library 113,766 G one process a
+test → 73,611 G. Left, each its own landing: the closing state's and the window's stand-ups joined (they differ in three
+fields, so a game has two trunks); the ages driver (337 s alone) and the coverage walk on the shared walks; takes as one game;
+the pins as rows. The next pass weighs it: 4220 bought 3.7 %. Kill: a floor moves, or the audit stops matching: backed out.
 
 4204. **The quit's `clear_orders`, timed past the frame's body** (rules; **whole**; parked 4189a). Seven closing pairs quit past
 the frame's body where `compare_shutdown` and `seat_walk` resign at its head, so the walkers take a step in theirs. Each pair's
