@@ -699,3 +699,45 @@ fn the_world_is_the_original_s_on_the_start_by_section() {
         "the start without Game::run's calc_danger"
     );
 }
+
+/// Probe (item 4226), reverted whole: the units ours holds per frame on the
+/// minted game, births printed with type and name.
+#[test]
+fn probe_4226_births() {
+    let Ok(spec) = std::env::var("RON_PROBE_4226") else {
+        return;
+    };
+    let (lo, hi) = spec.split_once('-').unwrap();
+    let (lo, hi): (i64, i64) = (lo.parse().unwrap(), hi.parse().unwrap());
+    let Some((_, mut built, _)) = built_start() else {
+        return;
+    };
+    let mut stream = crate::input::Stream::pump(&minted(&script()).unwrap());
+    let mut seen: std::collections::BTreeSet<(u8, u32)> = std::collections::BTreeSet::new();
+    while built.sim.frame <= hi {
+        let f = built.sim.frame;
+        let now: Vec<&sim::Unit> = built.sim.units.iter().filter(|x| x.alive()).collect();
+        for u in &now {
+            let key = (u.owner as u8, u.index as u32);
+            if !seen.contains(&key) && f >= lo {
+                eprintln!(
+                    "P4226 f{f} born {}/{} TY {:?} TI {:?} name {:?} guys {} at ({}, {})",
+                    u.owner,
+                    u.index,
+                    u.ty,
+                    u.ty.and_then(|t| built.unit_tree.get(t)),
+                    u.ty.and_then(|t| built.unit_type_names.get(t)),
+                    u.guys.len(),
+                    u.pos.x,
+                    u.pos.y
+                );
+            }
+        }
+        if f >= lo {
+            eprintln!("P4226 f{f} alive {} guys {}", now.len(), now.iter().map(|u| u.guys.len()).sum::<usize>());
+        }
+        seen = now.iter().map(|u| (u.owner as u8, u.index as u32)).collect();
+        stream.apply(built.sim.frame as i32, &mut built);
+        built.tick();
+    }
+}
