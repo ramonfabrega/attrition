@@ -29,6 +29,19 @@
 //! the test's own walk. No verdict, comparison or recorded field is shared:
 //! a run-up compares nothing.
 //!
+//! **A game's two stand-ups ride one trunk** (item 4224). A window
+//! stands its game up from the capture's replay setup; the closing state,
+//! the walk to the word and the packets from the whole log. The two
+//! states differ in what a tick of the walk never writes: the guys of the
+//! frames no word is installed on (a tick reads `frame_guys` only beside
+//! a word), the animation lengths the capture's later blocks show, and
+//! the stand-up's own notes. The trunk's key is the frame-0 print less
+//! those ([`Root`]), and a rung taken by the other stand-up carries the
+//! taker's own of each from there on ([`Rung::carry`]). The lengths are
+//! read by a tick, so the join rests on the standing check below, not on
+//! construction: a length one stand-up holds and the other does not, read
+//! before the rung's frame, turns the verifier red.
+//!
 //! **The standing check** is the whole gate's: under `RON_VERIFY_ORACLE`
 //! (or `RON_VERIFY_PREFIX_REUSE`) a run-up that took a rung also ticks its
 //! own state from frame 0 and the two prints at the frame must be equal.
@@ -74,6 +87,69 @@ pub(crate) fn print(built: &Built) -> Print {
     }
 }
 
+/// A trunk's key and what the stand-up behind it brought: the frame-0
+/// state printed less the fields two stand-ups of one game differ in and
+/// a tick never writes (the module's header), and the stand-up's own
+/// notes, which a rung's notes begin with.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct Root {
+    print: Print,
+    notes: usize,
+}
+
+/// `built`, standing on frame 0, as a trunk's [`Root`].
+fn root(built: &Built) -> Root {
+    let mut keyed = built.clone();
+    let seeded: std::collections::BTreeSet<i64> =
+        keyed.frame_seeds.iter().map(|(frame, _)| *frame).collect();
+    keyed.frame_guys.retain(|(frame, _)| seeded.contains(frame));
+    keyed.sim.roster.art.lengths.clear();
+    keyed.notes.clear();
+    let print = print(&keyed);
+    keyed.retire();
+    Root {
+        print,
+        notes: built.notes.len(),
+    }
+}
+
+/// A checkpoint, and how many of its notes its stand-up wrote.
+#[derive(Clone)]
+struct Rung {
+    built: Built,
+    notes: usize,
+}
+
+impl Rung {
+    fn frame(&self) -> i64 {
+        self.built.sim.frame
+    }
+
+    /// The rung as `own`'s walk would have reached it: `own`'s stand-up
+    /// fields and notes, the rung's ticks' notes after them. `own` is a
+    /// state of the same trunk whose stand-up wrote `own_notes` notes.
+    /// Whether anything was carried that the rung did not already hold.
+    fn carry(self, own: &Built, own_notes: usize) -> (Built, bool) {
+        let mut built = self.built;
+        let joined = built.frame_guys != own.frame_guys
+            || built.sim.roster.art.lengths != own.sim.roster.art.lengths
+            || built.notes[..self.notes] != own.notes[..own_notes];
+        if joined {
+            built.frame_guys.clone_from(&own.frame_guys);
+            built
+                .sim
+                .roster
+                .art
+                .lengths
+                .clone_from(&own.sim.roster.art.lengths);
+            let ticked = built.notes.split_off(self.notes);
+            built.notes = own.notes[..own_notes].to_vec();
+            built.notes.extend(ticked);
+        }
+        (built, joined)
+    }
+}
+
 /// The first cadence: a rung every 256 frames, doubled each time a trunk
 /// would pass [`RUNGS`].
 const CADENCE: i64 = 256;
@@ -90,7 +166,7 @@ struct Trunk {
     root: Print,
     cadence: i64,
     /// Ascending by frame, each on a multiple of `cadence`.
-    rungs: Vec<Built>,
+    rungs: Vec<Rung>,
     used: u64,
 }
 
@@ -125,7 +201,7 @@ impl Store {
                         .min_by_key(|&i| self.trunks[i].used)
                         .expect("a full store");
                     for rung in self.trunks.swap_remove(oldest).rungs {
-                        rung.retire();
+                        rung.built.retire();
                     }
                 }
                 self.trunks.push(Trunk {
@@ -145,21 +221,21 @@ impl Store {
 impl Trunk {
     /// Whether a state on `frame` is a rung this trunk wants.
     fn wants(&self, frame: i64) -> bool {
-        frame % self.cadence == 0 && self.rungs.iter().all(|r| r.sim.frame != frame)
+        frame % self.cadence == 0 && self.rungs.iter().all(|r| r.frame() != frame)
     }
 
-    fn leave(&mut self, rung: Built) {
-        let at = self.rungs.partition_point(|r| r.sim.frame < rung.sim.frame);
+    fn leave(&mut self, rung: Rung) {
+        let at = self.rungs.partition_point(|r| r.frame() < rung.frame());
         self.rungs.insert(at, rung);
         while self.rungs.len() > RUNGS {
             self.cadence *= 2;
             let cadence = self.cadence;
-            let (kept, thinned): (Vec<Built>, Vec<Built>) = std::mem::take(&mut self.rungs)
+            let (kept, thinned): (Vec<Rung>, Vec<Rung>) = std::mem::take(&mut self.rungs)
                 .into_iter()
-                .partition(|r| r.sim.frame % cadence == 0);
+                .partition(|r| r.frame() % cadence == 0);
             self.rungs = kept;
             for rung in thinned {
-                rung.retire();
+                rung.built.retire();
             }
         }
     }
@@ -190,7 +266,7 @@ fn verifying() -> bool {
 }
 
 /// Tick `built` to `to`, leaving the rungs `root`'s trunk wants.
-fn walk(built: &mut Built, to: i64, root: Print) {
+fn walk(built: &mut Built, to: i64, root: Root) {
     let leaves = Leaves(Some(root));
     while built.sim.frame < to {
         built.tick();
@@ -234,32 +310,39 @@ fn rides(built: &Built) -> bool {
 
 /// `built`, a descendant of `root` by ticks alone, ticked to `to`: from the
 /// highest rung past it and at or before `to`, when the trunk holds one.
-fn ride(built: &mut Built, root: Print, to: i64) {
+fn ride(built: &mut Built, root: Root, to: i64) {
     let here = built.sim.frame;
     let rung = store(|s| {
-        s.trunk(root)
+        s.trunk(root.print)
             .rungs
             .iter()
-            .rfind(|r| here < r.sim.frame && r.sim.frame <= to)
+            .rfind(|r| here < r.frame() && r.frame() <= to)
             .cloned()
     });
-    let Some(mut resumed) = rung else {
+    let key = root.print;
+    let Some(rung) = rung else {
         eprintln!(
             "trunk {:016x}/{}: a run-up from {here} to {to} found no rung",
-            root.hash, root.len
+            key.hash, key.len
         );
         walk(built, to, root);
         return;
     };
-    let from = resumed.sim.frame;
+    let from = rung.frame();
+    let (mut resumed, joined) = rung.carry(built, root.notes);
     walk(&mut resumed, to, root);
     store(|s| {
         s.saved += from - here;
         s.taken += 1;
     });
+    let other = if joined {
+        " (the game's other stand-up)"
+    } else {
+        ""
+    };
     eprintln!(
-        "trunk {:016x}/{}: a run-up from {here} to {to} resumed on {from}",
-        root.hash, root.len
+        "trunk {:016x}/{}: a run-up from {here} to {to} resumed on {from}{other}",
+        key.hash, key.len
     );
     let verified = verifying();
     if verified {
@@ -273,7 +356,7 @@ fn ride(built: &mut Built, root: Print, to: i64) {
         );
         eprintln!("trunk: the rung on {from} matches a fresh walk on {to}");
     }
-    tally_line(here, to, from, verified);
+    tally_line(here, to, from, verified, joined);
     // The test's own state (verifying, its own walk) gives way to the
     // equal one; it answers for no ground of its own.
     std::mem::replace(built, resumed).retire();
@@ -285,7 +368,7 @@ fn ride(built: &mut Built, root: Print, to: i64) {
 /// an equal state left at or before `to`, and leaves its own beyond it.
 pub(crate) fn advance(built: &mut Built, to: i64) {
     if to >= SHORT && rides(built) {
-        let root = print(built);
+        let root = root(built);
         ride(built, root, to);
     }
     while built.sim.frame < to {
@@ -298,7 +381,7 @@ pub(crate) fn advance(built: &mut Built, to: i64) {
 /// last one left and the whole walk is one descent from its frame-0 print.
 pub(crate) struct Rider {
     built: Built,
-    root: Option<Print>,
+    root: Option<Root>,
 }
 
 impl Rider {
@@ -309,7 +392,7 @@ impl Rider {
     /// [`advance`], from wherever the last run-up left the state.
     pub(crate) fn advance(&mut self, to: i64) {
         if self.root.is_none() && to >= SHORT && rides(&self.built) {
-            self.root = Some(print(&self.built));
+            self.root = Some(root(&self.built));
         }
         if let Some(root) = self.root {
             ride(&mut self.built, root, to);
@@ -332,12 +415,12 @@ impl Rider {
 /// closing states run next after it in their module. The walk promises
 /// what [`advance`] does by construction: between the root and each call
 /// of [`Leaves::passed`] it has done nothing to the state but tick it.
-pub(crate) struct Leaves(Option<Print>);
+pub(crate) struct Leaves(Option<Root>);
 
 impl Leaves {
     /// `built` as the walk is about to tick it for the first time.
     pub(crate) fn root(built: &Built) -> Self {
-        Self(rides(built).then(|| print(built)))
+        Self(rides(built).then(|| root(built)))
     }
 
     /// After a tick: leave the rung the trunk wants on this frame.
@@ -346,16 +429,19 @@ impl Leaves {
             return;
         };
         let frame = built.sim.frame;
-        if frame % CADENCE != 0 || !store(|s| s.trunk(root).wants(frame)) {
+        if frame % CADENCE != 0 || !store(|s| s.trunk(root.print).wants(frame)) {
             return;
         }
         // Cloned outside the lock; a rung another thread left meanwhile
         // is found again under it.
         let mut rung = built.clone();
         store(|s| {
-            let trunk = s.trunk(root);
+            let trunk = s.trunk(root.print);
             if trunk.wants(frame) {
-                trunk.leave(std::mem::replace(&mut rung, placeholder()));
+                trunk.leave(Rung {
+                    built: std::mem::replace(&mut rung, placeholder()),
+                    notes: root.notes,
+                });
             }
         });
         rung.retire();
@@ -363,11 +449,12 @@ impl Leaves {
 }
 
 /// `RON_TRUNK_LOG=<directory>`: one line a rung taken — the test, the
-/// frame the run-up stood on, the frame it reached, the rung's frame and
-/// whether the verifier held it — in a file a process. libtest keeps a
+/// frame the run-up stood on, the frame it reached, the rung's frame,
+/// whether the verifier held it and whether the rung was the game's other
+/// stand-up's — in a file a process. libtest keeps a
 /// passing test's output, so this is how a run counts what its verifier
 /// checked: a verifier that never fired reads as green too.
-fn tally_line(here: i64, to: i64, from: i64, verified: bool) {
+fn tally_line(here: i64, to: i64, from: i64, verified: bool, joined: bool) {
     use std::io::Write as _;
     let Some(dir) = std::env::var_os("RON_TRUNK_LOG") else {
         return;
@@ -382,7 +469,7 @@ fn tally_line(here: i64, to: i64, from: i64, verified: bool) {
         .append(true)
         .open(&path)
         .unwrap_or_else(|e| panic!("RON_TRUNK_LOG: {}: {e}", path.display()));
-    writeln!(file, "{test}\t{here}\t{to}\t{from}\t{verified}").expect("a tally line");
+    writeln!(file, "{test}\t{here}\t{to}\t{from}\t{verified}\t{joined}").expect("a tally line");
 }
 
 /// `frames saved, rungs taken`, for the suite's log.
@@ -430,7 +517,7 @@ mod tests {
             s.trunks
                 .iter()
                 .find(|t| t.root == root)
-                .map_or(vec![], |t| t.rungs.iter().map(|r| r.sim.frame).collect())
+                .map_or(vec![], |t| t.rungs.iter().map(Rung::frame).collect())
         })
     }
 
@@ -448,7 +535,7 @@ mod tests {
         let _alone = alone();
         let _on = Forced::on(false);
         let seed = 0x4220_0001;
-        let root = print(&game(seed));
+        let root = root(&game(seed)).print;
         let mut first = game(seed);
         advance(&mut first, 700);
         assert_eq!(rungs(root), [256, 512]);
@@ -474,7 +561,7 @@ mod tests {
     fn a_state_past_frame_zero_a_short_run_up_and_a_process_not_sharing_tick_plainly() {
         let _alone = alone();
         let seed = 0x4220_0002;
-        let root = print(&game(seed));
+        let root = root(&game(seed)).print;
         // Not sharing: no rung is left.
         FORCED.with(|f| f.set(Some(false)));
         let mut off = game(seed);
@@ -498,7 +585,7 @@ mod tests {
         let _alone = alone();
         let _on = Forced::on(false);
         let seed = 0x4220_0003;
-        let root = print(&game(seed));
+        let root = root(&game(seed)).print;
         let mut built = game(seed);
         advance(&mut built, CADENCE * (RUNGS as i64 + 1));
         let left = rungs(root);
@@ -549,7 +636,7 @@ mod tests {
         let _alone = alone();
         let _on = Forced::on(true);
         let seed = 0x4220_0006;
-        let root = print(&game(seed));
+        let root = root(&game(seed)).print;
         let mut walked = game(seed);
         let leaves = Leaves::root(&walked);
         while walked.sim.frame < 600 {
@@ -566,11 +653,81 @@ mod tests {
         assert_eq!(print(&after), print(&plain(seed, 599)));
     }
 
+    /// `game(seed)` as a stand-up that brought `notes`, `lengths` and the
+    /// guys of `guys`' frames, with a word installed on frame 5.
+    fn stood_up(seed: u32, notes: &[&str], lengths: &[((i32, i8), u32)], guys: &[i64]) -> Built {
+        let mut built = game(seed);
+        built.notes = notes.iter().map(|n| (*n).to_string()).collect();
+        built.sim.roster.art.lengths = lengths.iter().copied().collect();
+        built.frame_seeds = vec![(5, seed ^ 0x55)];
+        built.frame_guys = guys.iter().map(|&f| (f, vec![])).collect();
+        built
+    }
+
+    fn stood_up_plain(
+        seed: u32,
+        notes: &[&str],
+        lengths: &[((i32, i8), u32)],
+        guys: &[i64],
+        to: i64,
+    ) -> Built {
+        let mut built = stood_up(seed, notes, lengths, guys);
+        while built.sim.frame < to {
+            built.tick();
+        }
+        built
+    }
+
+    #[test]
+    fn the_game_s_other_stand_up_rides_the_trunk_and_carries_its_own_fields() {
+        let _alone = alone();
+        let _on = Forced::on(true);
+        let seed = 0x4224_0001;
+        let whole: (&[&str], &[((i32, i8), u32)], &[i64]) = (
+            &["anim: 2 lengths"],
+            &[((7, 1), 61), ((8, 2), 90)],
+            &[5, 300],
+        );
+        let window: (&[&str], &[((i32, i8), u32)], &[i64]) =
+            (&["anim: 1 length", "another note"], &[((7, 1), 61)], &[5]);
+        let mut first = stood_up(seed, whole.0, whole.1, whole.2);
+        advance(&mut first, 700);
+        assert_eq!(
+            rungs(root(&first.clone()).print),
+            [] as [i64; 0],
+            "a key is a frame-0 state's"
+        );
+        // The window's stand-up: other notes, fewer lengths, no guys on an
+        // unseeded frame; it takes the rung on 512 under the verifier and
+        // stands where its own ticks would have, with its own fields.
+        let before = tally();
+        let mut second = stood_up(seed, window.0, window.1, window.2);
+        advance(&mut second, 600);
+        assert_eq!(
+            tally().0 - before.0,
+            512,
+            "resumed on the other stand-up's rung"
+        );
+        let own = stood_up_plain(seed, window.0, window.1, window.2, 600);
+        assert_eq!(print(&second), print(&own));
+        assert_eq!(second.notes, own.notes);
+        // Guys on a frame a word is installed on are read by the tick: a
+        // stand-up that differs there is another trunk.
+        let before = tally();
+        let mut third = stood_up(seed, window.0, window.1, &[]);
+        advance(&mut third, 600);
+        assert_eq!(tally(), before, "the guys of a seeded frame are in the key");
+        assert_eq!(
+            print(&third),
+            print(&stood_up_plain(seed, window.0, window.1, &[], 600))
+        );
+    }
+
     #[test]
     fn the_verifier_refuses_a_rung_that_is_not_the_plain_walk_s_state() {
         let _alone = alone();
         let seed = 0x4220_0004;
-        let root = print(&game(seed));
+        let root = root(&game(seed)).print;
         {
             let _on = Forced::on(true);
             let mut first = game(seed);
@@ -581,7 +738,7 @@ mod tests {
             assert_eq!(print(&second), print(&plain(seed, 300)));
         }
         // Perturb the rung: one word of the stream.
-        store(|s| s.trunk(root).rungs[0].sim.rng.seed ^= 1);
+        store(|s| s.trunk(root).rungs[0].built.sim.rng.seed ^= 1);
         let refused = std::panic::catch_unwind(|| {
             let _on = Forced::on(true);
             let mut third = game(seed);

@@ -393,13 +393,19 @@ took a rung also ticks its own state from where it stood, and the two prints mus
 equal; `RON_TRUNK_LOG=<dir>` writes one line a rung taken, which is how a run counts
 what its verifier checked. `RON_DISABLE_TRUNK` is a hand's.
 
-**A game has two trunks, not one.** The closing state, the walk to the word and the
-packets stand up one state (equal prints: the whole capture through `Log::initial`). A
-window stands up another, from the capture's replay setup: on run1429 it prints 143 KB
-less, in `frame_guys` (the guys of frames no seed is installed on), in
-`sim.roster.art.lengths` (51 lengths the later frames show) and in one note. Ticked side
-by side to the close the two are equal less those three fields on every hundredth frame
-and on the last, but the key is the state and it does not join them.
+**A game's two stand-ups ride one trunk** (item 4224; item 4220 found them two). The
+closing state, the walk to the word and the packets stand up one state (the whole
+capture through `Log::initial`); a window another, from the capture's replay setup: on
+run1429 it prints 143 KB less, in `frame_guys` (the guys of frames no word is installed
+on), in `sim.roster.art.lengths` (51 lengths the later frames show) and in one note.
+The key (`trunk::Root`) is the frame-0 print less those: the guys of unseeded frames
+(a tick reads `frame_guys` only beside a word), the lengths and the notes, none of
+which a tick writes. A rung the other stand-up left carries the taker's own three from
+there (`Rung::carry`). The lengths are read by a tick, so the join stands on the
+verifier and not on construction. Measured on one binary, all 144 game groups at one
+slot each, the gate's own environment: 39,228 G and 1,952 CPU-seconds before, 36,561 G
+and 1,815 after; 169 rungs taken across the two stand-ups, the run-ups that found no
+rung 205 (1,146,221 frames) to 79 (222,481).
 
 **Which gate does what.** Groups are on wherever the library runs through the isolated
 runner: a lane's gate, a scoped booking gate and the whole gate alike, each over the
