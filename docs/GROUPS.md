@@ -459,7 +459,7 @@ The longest function of the family (1,420 lines decompiled) and the one
 every other one falls back to. `action_move_to` is its `tolerance = 0`
 front. In order:
 
-### 6.1 The domain split
+## 6.1 The domain split
 
 `is_on_map()` and `num > 0` required; then `action_begin`, and the
 destination is clamped into the world.
@@ -483,7 +483,7 @@ named `uflags::TRANSPORT` since the AI mechanic
 (`crates/sim/src/ai/ai_load.rs`); it is **not** `is_special`, which is
 `unit_flags2 +0x2b8 & 0x10`.
 
-### 6.2 `QUEUE_FIRST`
+## 6.2 `QUEUE_FIRST`
 
 `set_up_insert` copies the leader's action-bit orders aside;
 `action_halt(this, 0)`; the whole call re-runs as `QUEUE_NEW`;
@@ -491,7 +491,7 @@ named `uflags::TRANSPORT` since the AI mechanic
 `unit_masks & 0x100` is preserved across it. This is `docs/ORDERS.md`
 §1.5's rotation, done at the group level.
 
-### 6.3 The formation, and the reverse flip
+## 6.3 The formation, and the reverse flip
 
 A **plane leader** of domain 2 that is not `+0x2b4 & 0x20` returns here —
 air groups do not move this way.
@@ -637,7 +637,7 @@ does not touch `o_dist`. run31 shows both: every one of its 36 members'
 bit, on all three moves — and its `o_dist` is 215 or 217 where the
 leader-slot offset is 216 (§6.4).
 
-### 6.4 The slot table
+## 6.4 The slot table
 
 **Implemented and diffed** — `crates/sim/src/groups/form.rs`, and
 `run29_s_navy_slot_table_is_reproduced_from_the_install_s_own_spacing` in
@@ -951,7 +951,7 @@ never read; and `compute_form`'s reverse negation at the tail applies to
 `off_x`/`off_y` on **both** the `Form` and the group and **not** to `to`,
 and only when `param_10 == 0` — so a guarding call never mirrors.
 
-### 6.5 The AI branch
+## 6.5 The AI branch
 
 This is the part `docs/ARMY.md` needs and the part `docs/ORDERS.md` §8.2
 did not read. At `704b6a`:
@@ -1007,7 +1007,7 @@ clear loop) still shooting and skipped. `crates/sim/src/groups/group.rs` does
 that
 (`a_hurrying_army_with_no_city_clears_and_marches_its_shooting_siege`).
 
-### 6.6 The ordinary path, per member
+## 6.6 The ordinary path, per member
 
 1. `unit +0xaa = form` unless the type's `TypeIndex` is one of 0x32..0x35 —
    `PEASANTS`, `PEASANTSKOREAN`, `SCHOLARS`, `SCHOLARSKOREAN`, the PDB's own
@@ -1120,7 +1120,7 @@ a size: it is the frame's turn, and it is at most the turn rate. `crates/sim`
 reads `Movement::heading` at all three of the `update_positions` sites and at
 both `GroupData::facing` writers.
 
-### 6.7 The path
+## 6.7 The path
 
 **Implemented 2026-08-26** — `crates/sim/src/groups/grouppath.rs`, and §16 has
 what building it corrected below.
@@ -1214,7 +1214,7 @@ every call and **written by nothing**. That arm reads uninitialised heap.
 Finally every member's stack is inverted, `group.order_num += 1`, and the
 `Form`'s tables are zeroed.
 
-### 6.8 `Group::refresh_group_order@00713a50` — the other writer of `off`
+## 6.8 `Group::refresh_group_order@00713a50` — the other writer of `off`
 
 Found 2026-08-26, and only because run31's record refused to match a table
 that had every other number in it right. **`compute_dests` is not the last

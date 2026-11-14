@@ -134,7 +134,7 @@ and scout piece, 16 on the sheep; the chop 33, the sow 47; the scout's
 `DEFAULT` 61 (piece 371) and `IDLE2` 41; the sheep's idles 90/109/250 by
 piece; the fish's 101/116/170 by piece, the same for every variant.
 
-### 3.1 The install says it outright, for the gaia types (2026-08-28)
+## 3.1 The install says it outright, for the gaia types (2026-08-28)
 
 A dump is a weak source for this: it shows a length only where something
 played it, and it shows **nothing at all for owner 9** — gaia's bird, whose
@@ -166,7 +166,7 @@ sheep pieces' `DEFAULT` (90 / 109 / 250) and the three fish pieces' idles
 (170 / 101 / 116) — and `cargo run -p rondata -- <install>` re-derives the
 header arithmetic. Two independent oracles for one table.
 
-### 3.2 And for a player's units, by the piece number itself (2026-08-29)
+## 3.2 And for a player's units, by the piece number itself (2026-08-29)
 
 ~~Only the gaia types are read.~~ All of them are. What §3.1 said needed
 `get_unit_gpiece`'s tribe/age/gender walk needs only its **arithmetic**,
@@ -244,7 +244,7 @@ of 1,337 `<UNIT>` entries — so `set_anim`'s captain gate (§4.2, the one frame
 in sixteen that skips the idle roll) can never fire. That was `Art::group_idle`,
 empty for want of a dump; it is now a fact, and the gate reads the packet.
 
-### 3.3 A non-looping animation drops its last key (2026-08-31)
+## 3.3 A non-looping animation drops its last key (2026-08-31)
 
 `AnimMgr::force_load@0053ade0` does not convert the root node's last key
 time. It converts the last key time **of a looping animation** and the
@@ -285,7 +285,7 @@ dumps. Two of gaia's are in it — `HERDHORSES` and `HERDBISON`'s
 played either. The bird's 31 and 23 are looping and stand (`docs/SYNC.md`
 §3.9).
 
-### 3.4 And the walk that hands a piece out, so a unit trained mid-game has one (2026-09-01)
+## 3.4 And the walk that hands a piece out, so a unit trained mid-game has one (2026-09-01)
 
 §3.2 inverted the `<UNIT>` names to place every piece; it did not *pick*
 one, which a unit the opening dump does not hold needs. `Art::pieces` is

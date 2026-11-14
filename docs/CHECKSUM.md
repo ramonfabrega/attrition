@@ -2103,7 +2103,7 @@ run 1562's 91, where most leaves are zero and three lines are empty. Now
 own game's frame, range by range
 (`rondata::diff::checksum_lines::packets`). No capture was taken.
 
-### 23.1 The census
+## 23.1 The census
 
 Each packet is wired to its game and frame by its run's `receipt.json`
 (map, lobby profile, AI tribe, seats) and `rontrace.cmd` (the staged
@@ -2125,7 +2125,7 @@ it). `every_packet_is_wired_to_its_game_or_named` holds the table against
 the disk: each run once, each frame inside its walk's length, the packets
 on disk exactly these, each values file naming the table's frame.
 
-### 23.2 The instrument on 108 packets
+## 23.2 The instrument on 108 packets
 
 `tools/recomp/checksum.py --stream --values` ran on all 108, 10 to 13 s
 each, every one exiting 0 with its own Adler equal to the original's on
@@ -2135,7 +2135,7 @@ Only run1100 and run 1562 hold a printed windowed record at their frame,
 and both were reproduced at item 4060 and 4088 (§3). For the other 106 the
 instrument's two proofs stand in for a print.
 
-### 23.3 The boundary
+## 23.3 The boundary
 
 **The hypothesis holds: a packet at logger frame `n` is our walk with
 `sim.frame == n`**, on a word's stand-up as on the minted walk. On run1161
@@ -2145,7 +2145,7 @@ units ranges and 13 builds ranges parting. Frame 3 agrees on three, with
 `a_packet_s_comparison_can_part` pins it: frames 3 and 5 are not the
 packet's outcome and agree on no more lines.
 
-### 23.4 What agrees
+## 23.4 What agrees
 
 **147 of 1,058 counted lines agree on the 107 packets.** A line is counted
 when either side walks a range of it (entry 120 §2). By line:
@@ -2211,7 +2211,7 @@ The leaves that still part outside the list are pinned per packet
 | `oil_patches.elements` | 10 | run854's who 0, ours 1, 2, 8, 15 theirs 8, 2, 1, 15 |
 | the `encrypt` buckets, `reg_gatherers`, `diplos`, `num_units`, `explored`, `gather_stamp`, `active`, `escrow`, `collected` | 1 to 10 each | the game's own state parting (run1359's who 1 `bucket[0]` ours 5714 theirs 5930) |
 
-### 23.5 The score
+## 23.5 The score
 
 The queue's clause is `PACKETS_SCORE`, `(packets compared, lines agreeing,
 lines counted)` over `PINNED`, pinned as found first as a regression gate,
@@ -2231,7 +2231,7 @@ that range alone, and run1165's later stream against our frame 4 agrees
 on fewer lines (`a_packet_s_comparison_can_part`). The walks take 80 s
 for all 74 game tests together.
 
-### 23.6 How it was established, and what it has not established
+## 23.6 How it was established, and what it has not established
 
 - Diff-backed: all of it. Every number above is a range-by-range
   comparison against the original's walk on its own memory.
@@ -2246,7 +2246,7 @@ for all 74 game tests together.
   dump-seated parts are the seat's and which the walk's (4188a; §23.7
   answers it for the 41); a `SimpleArray<int>` that has shrunk.
 
-### 23.7 Step S: the words' packets from the lobby's built start (item 4205)
+## 23.7 Step S: the words' packets from the lobby's built start (item 4205)
 
 Item 4205, step S of the leaders chain (`docs/DECISIONS.md` entry 131 §3,
 parked 4188a). Each word's game is stood up from its lobby's built start
@@ -2377,7 +2377,7 @@ window, and the per-frame oracle the words stand on, the draw stream, is blind t
 original's fifteen lines on every frame, the pairing that puts them beside our walk, and the first frame each of our
 emitted lines parts on the minted game.
 
-### 24.1 The hook
+## 24.1 The hook
 
 `tools/trace/checksums.h`, built under `-DRON_CHECKSUMS` (`--tracer-def RON_CHECKSUMS`; absent, nothing is hooked).
 `check_all` hands each line and its wrapping `total` to `SyncLogger::logToMemory<unsigned_long_&>@00463930` as
@@ -2395,7 +2395,7 @@ record**, and our walk's state at `sim.frame == f + 1` before that frame's packa
 order's package has two sets: the read loop's `check_all` before `process_all` (return 0x93f108), then the turn's own
 after it (0x93fb68). The first is the end of the tick. Frame −1 is setup's call, our built start.
 
-### 24.2 The hook is the record (diff-backed)
+## 24.2 The hook is the record (diff-backed)
 
 run1577 (`RUNS.md`): the minted file, 120 frames, `@dumpall` on 91. 124 sets, 0 torn, one on each trace frame −1 to
 119, two on 29, 59 and 89. **The first set of trace frame 90 is record 3201, 15 of 15, and of 91 is record 3202, 15 of
@@ -2405,7 +2405,7 @@ part: 3201 against 89, 9 of 15 (units, builds, groups, guys, leaders, world part
 seven packets (§24.4) the hook's set on the packet's trace frame is `tools/recomp/checksum.py`'s values, 15 of 15, and
 so is run1578's on that frame. The kill the item booked (the hook's values not the record's on frame 91) did not fire.
 
-### 24.3 The score: `Checksum: frames`
+## 24.3 The score: `Checksum: frames`
 
 Per line our walk emits, the first of our frames whose Adler parts from the hook's first set of the frame before, on
 the minted game's 24,000 (run1578; `our_lines_part_from_the_hook_s_on_their_first_frame`, `CHECKSUM_FRAMES`).
@@ -2495,7 +2495,7 @@ on both. No minted packet parts on either line now. **Step P's census, 318 → 4
 line agrees on 77 more packets and the goods line on 30 more; the goods line parts on one more range on four (run1484,
 run1487, run1496, run839) and on run1575's take, each a walk whose units line already parts on most of its ranges.
 
-### 24.4 Where each first parting is (diff-backed)
+## 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
 by range (`the_minted_packets_name_each_first_parting`, `MINTED_PACKETS`). The first parted range, decoded by the
@@ -2521,7 +2521,7 @@ now runs it (`Setup::calc_danger`, the last of `from_lobby`'s steps), and the fi
 are the record's (`the_world_is_the_original_s_on_the_start_by_section`, `WORLD_START_DANGER`; its red half clears the
 rows and parts on section 8 at the zeros' sum). The world line is the original's on all 24,000 frames.
 
-### 24.5 How it was established, and what it has not established
+## 24.5 How it was established, and what it has not established
 
 The hook's site, its arguments and the call's place in the frame are read from the export and the listing
 (`process_turn@0093ef10` lines 532 and 539, `do_frame_solo`, `Game::loop`). The pairing and the values are diff-backed

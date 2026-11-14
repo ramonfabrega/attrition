@@ -777,7 +777,7 @@ at several points inside `do_move`.
 
 ## 4. The move order
 
-### 4.1 The fields, from their writers and readers
+## 4.1 The fields, from their writers and readers
 
 All `Coord`s are position units (192 a tile, 768 a world cell); angles are
 `docs/MOVEMENT.md`'s binary angle.
@@ -818,7 +818,7 @@ fields; their `log_data` opens their own block and delegates. `do_job` sends
 `MOVE_TO` and `FLEE_TO` to `do_move`, `EXPLORE_TO` to `do_explore_to`,
 `ATTACK_TO` to `do_attack_to` (§7.4), which share everything from planning on.
 
-### 4.2 The unit-side state
+## 4.2 The unit-side state
 
 | `UnitData` | role |
 |---|---|
@@ -843,7 +843,7 @@ entirely** (both R2); `0x10` = a block to
 enemy → `add_attack_order`~~ an armed walker's tile plan across another
 player's footprint, `docs/GOLDEN.md` §51); `0x20` = a caravan road waypoint.
 
-### 4.3 Lifecycle
+## 4.3 Lifecycle
 
 **Created** by `Unit::add_move_facing_order@005e55c0` — the only constructor
 path; `add_move_order@00616ed0` is a thin wrapper that snaps the destination
@@ -881,7 +881,7 @@ call `add_move_order`, all with `QUEUE_FIRST`, most with `pathed = 0`.
 waypoint, from `do_move` on a dead or unreachable goal, from `repath` when a
 target order decides its transit legs are stale.
 
-### 4.4 `Unit::do_move@005f7b30` — the per-frame step
+## 4.4 `Unit::do_move@005f7b30` — the per-frame step
 
 `mo = order->get_move_order()`. Each frame, in order:
 
@@ -1027,7 +1027,7 @@ STEP: avoid_x/y = −1,−1; return move_step(mo, speed)
 `do_move` returns 0 for "nothing to do this frame" and 1 for "did something"
 (stepped, killed, re-planned); `do_group_move` reads the value.
 
-### 4.5 Arrival — the handoff into `move_step@005faf30`
+## 4.5 Arrival — the handoff into `move_step@005faf30`
 
 `move_step(mo, step)` reads `mo->dest_x/dest_y` as the target and the stack
 top's `tolerance`/`flags` by index (the top is not popped), calls
@@ -1071,7 +1071,7 @@ angle` the facing, `do_turn` the only writer of the second
 for the snap flag, so it moves the heading and not the facing, and the body
 swings onto the order's angle over the frames after the unit stops.
 
-### 4.6 `Unit::find_path@005fb910` — the straight-line verifier, and the pathfinder seam
+## 4.6 `Unit::find_path@005fb910` — the straight-line verifier, and the pathfinder seam
 
 Called with a waypoint and returns **0 = walk straight (or a detour was
 pushed and verified)** or **1 = cannot/do not — plan**. A third value, `2`
@@ -1148,7 +1148,7 @@ unreachable and the original needs no guard.
 `go_around_building@005fc350` is §4.6.1; its trigger — an invalid
 tile on the straight line — open ground never has.
 
-### 4.6.1 `Unit::go_around_building@005fc350` — the detour, and how `find_path` accepts it
+## 4.6.1 `Unit::go_around_building@005fc350` — the detour, and how `find_path` accepts it
 
 **Established 2026-08-26 from the decompile, and confirmed against the
 original's own path stack**: run20's unit `1/1` at frame 1 ends with
@@ -1293,7 +1293,7 @@ gets wrong the `find_tpath` refinement on the nearer branch (tile centres,
 tolerance `0x60`), the `find_upath` branch under collision, `tregion`
 crossings (flag 4), and the `−1`/kill exits.
 
-### 4.7 Collision — see `docs/COLLISION.md`
+## 4.7 Collision — see `docs/COLLISION.md`
 
 `detect_unit_collision@00617060` and `resolve_unit_collision@005f9d30` have
 their own document. Three call sites touch this one: `move_step`'s per-step
@@ -1301,7 +1301,7 @@ probe (§4.5, `COLLISION` §5), `do_move`'s waypoint test (§4.4, `COLLISION`
 §5.1), and the recovery, which only ever *pushes* waypoints and writes
 `dest`/`dest_x/y`/`pause` — the next `do_move` handles the rest.
 
-### 4.8 The worked example — the dump's citizen
+## 4.8 The worked example — the dump's citizen
 
 A citizen ordered to a point on open ground, 25 position units a frame
 (`gamelog-run4`, citizen `who 0 o 1`). At the end of frame 3 it stands at
@@ -1391,7 +1391,7 @@ looks like.
 
 ## 5. Build, repair, garrison — and what a citizen does next
 
-### 5.1 The structures
+## 5.1 The structures
 
 `BuildOrder`, `RepairOrder`, `BoardOrder`, `AwaitBoardOrder` are bare
 `TargetOrder`s (`ox, whom, uid`; `get_type` differs); `GarrisonOrder` adds
@@ -1404,7 +1404,7 @@ either index is negative) — the liveness key `work` step 8 compares.
 | `add_repair_order@005e4ff0` | `Group::action_repair`, `action_swarm_around`, `come_out` (`QUEUE_LAST, 0`) |
 | `add_garrison_order@005e4080(o, who, search, pos, action)` | `Group::action_garrison`, `do_garrison`'s redirect (`QUEUE_FIRST`, `search = 1`), `come_out` (`QUEUE_LAST, 0`, `search = 0`) |
 
-### 5.2 `Unit::do_build(order)@005eebf0`
+## 5.2 `Unit::do_build(order)@005eebf0`
 
 `T = objects[whom][ox]`:
 
@@ -1457,7 +1457,7 @@ re-queues `[ExploreTo(spot) → BuildOrder]` in front of everything (§5.4); the
 move runs to completion by its own rule, then the build order is current
 again and re-tests adjacency. A move that falls short swarms again.
 
-### 5.3 `Unit::check_build_order@00603470` — the queue of sites after one finishes
+## 5.3 `Unit::check_build_order@00603470` — the queue of sites after one finishes
 
 Walks the queue **with a cursor** while the order is `BUILD_AT` or `MOVE_TO`.
 A move is **stepped over, not removed** — `current_node = current_node->prev`
@@ -1487,7 +1487,7 @@ made). Then: one site → `add_build_order(site, QUEUE_FIRST,
 `QUEUE_FIRST, 1` in reverse — least-crowded first, then original order, all
 with the action bit, all ahead of whatever else was queued.
 
-### 5.4 `Group::action_swarm_around(o, who, pos, BUILD_AT|REPAIR|GATHER, action)@0070fbe0`
+## 5.4 `Group::action_swarm_around(o, who, pos, BUILD_AT|REPAIR|GATHER, action)@0070fbe0`
 
 Per member (land and sea in two passes; **an air member gets nothing at
 all** — not a plain move, as the first reading had it): skip a busy member;
@@ -1521,7 +1521,7 @@ has its footprint substituted (built: `docs/AI.md` §151); the scratch group clo
 `find_nearby_spot`'s own occupancy test**, not through any geometric
 spreading — which is why two builders never need a formation.
 
-### 5.5 `Unit::build_done(o, who, range)@00603bf0` — what a builder does next
+## 5.5 `Unit::build_done(o, who, range)@00603bf0` — what a builder does next
 
 ```
 if length > 1: return                                     # more orders queued: they run
@@ -1546,7 +1546,7 @@ index 0 — and `swarm_around(site, QUEUE_LAST, BUILD_AT, 0)`; return 1.
 
 `find_repair_spot@00604320` is §5.10 too; `find_gather_spot` is §6.6.
 
-### 5.6 `Unit::do_repair(order)@005ee420`
+## 5.6 `Unit::do_repair(order)@005ee420`
 
 `set_anim(CHAR_REPAIR)`; then:
 
@@ -1563,7 +1563,7 @@ period, helpers++, amount, the price, T.repair_damage(amount)        — exactly
 (\*the `is(…)` literal is lost in the decompile; UNIVERSITY by analogy with
 `do_build` — one listing look.)
 
-### 5.7 `Unit::do_garrison(order)@005e6b80`, `kill_garrison_order`
+## 5.7 `Unit::do_garrison(order)@005e6b80`, `kill_garrison_order`
 
 The gates are `docs/CITIES.md` §6.4 verbatim. The order-side facts it does not
 state: the helicopter/AIRBASE branch kills the garrison order and adds a
@@ -1580,7 +1580,7 @@ city's building chain, active, with room for `num_inside + control_cost`,
 `can_garrison`, nearest by `vector_dist`) → kill and `add_garrison_order(b,
 who, search = 1, QUEUE_FIRST, action)`; else kill.
 
-### 5.8 `go_inside`, and `come_out`'s rally orders
+## 5.8 `go_inside`, and `come_out`'s rally orders
 
 `Unit::go_inside(o, who, chain)@0061a2e0`: climb to the captain; `Object::
 insert_inside`; deselect; **if the container `is_unit` and `uber_size > 1`: a
@@ -1621,7 +1621,7 @@ loop continues — the waypoint chain. At the end an AI unit is `add_to_army`
 on a frame chosen by `game_random`; a land citizen leaving an OILPLATFORM is
 put into a fresh `TRANSPORTBARGE` first.
 
-### 5.9 The idle citizen — `think_peasant`
+## 5.9 The idle citizen — `think_peasant`
 
 `Unit::think@005f6e40` → `is_worker` → **`think_peasant(0)@005f5760`**:
 
@@ -1835,7 +1835,7 @@ field.
 
 ## 6. The gather order
 
-### 6.1 A registration, not a carry loop
+## 6.1 A registration, not a carry loop
 
 Rise of Nations has no gatherer carrying a load back. Income is paid by the
 economy from the building's **gatherer chain**: `BuildData+0x70 gather_down`
@@ -1899,7 +1899,7 @@ who)`; written by `Group::action_gather_point`, `action_city_gather`,
 `ScenarioFuncSet::set_rally`, `Build::train`; read only by `come_out` (§5.8).
 Logged as `GATHERPOINT { X, Y, ACTION }` inside `BUILDDATA`.
 
-### 6.2 `Unit::add_gather_order@0061a5c0(o, pos, action)`
+## 6.2 `Unit::add_gather_order@0061a5c0(o, pos, action)`
 
 1. `QUEUE_NEW` → the clear (§3.1). `unit_masks &= ~0x400`.
 2. `get_obj(GATHER)`: `ox = o, whom = who`, `uid = objects[who][o].uid`,
@@ -1918,7 +1918,7 @@ Callers: `Setup::build_units` `(site, QUEUE_NEW, 0)` (§9); `Unit::build_done`,
 QUEUE_LAST, 1)`; `find_gather_spot` `(best, QUEUE_LAST, 0)`; `Group::
 action_gather` `(o, QUEUE_LAST or QUEUE_NEW, 1)` (the UI and the AI).
 
-### 6.3 `Unit::do_gather(order)@005ef2a0` — the walk, the arrival, the stand
+## 6.3 `Unit::do_gather(order)@005ef2a0` — the walk, the arrival, the stand
 
 Shorthand: `b` the building, `n = b.num_gatherers(0,0)`, `max = gather_max`,
 "kill" = `kill_current_order(0)`, "think" = `add_think_order()`, "move(x, y)"
@@ -1973,7 +1973,7 @@ the order ends; `num_gatherers` then counts them through `count_inside`.
 `wait, tx/ty, goto_build, dist_mod` are the non-flat machine's; nothing here
 reads them.
 
-### 6.4 `Unit::do_non_flat_gather@005f0170(go)` — wood and ore
+## 6.4 `Unit::do_non_flat_gather@005f0170(go)` — wood and ore
 
 Two sides, by `goto_build`. `W = is(WOODCUTTER)`; `rnd = Random::get
 (game_random, 0, 0xffff)`.
@@ -2989,7 +2989,7 @@ differs. The compare was reverted and the key stays owed
 
 ## 7. The attack order
 
-### 7.1 `AttackOrder` — the fields, what writes them
+## 7.1 `AttackOrder` — the fields, what writes them
 
 - `ox/whom/uid` — the target; `fight` compares `uid` with the live object's on
   entry and **treats a mismatch as no target** — a recycled index does not
@@ -3016,7 +3016,7 @@ differs. The compare was reverted and the key stays owed
   reload gate — to turn and set the animation — and then also returns. "Has
   not struck yet."
 
-### 7.2 `Unit::do_attack@005f1b80` and what `fight` does to the order
+## 7.2 `Unit::do_attack@005f1b80` and what `fight` does to the order
 
 `do_attack`, every frame: a carrier (every 16th frame, strafes its planes at
 a unit target, kills on a building); an unarmed transport barge sails to
@@ -3090,7 +3090,7 @@ action_halt`). The target's death does not touch the attacker's order: it
 finds out on its next `fight` through `valid_target`; out of sight likewise
 (`is_seen`).
 
-### 7.10 The chase runs in the frame it is ordered (item 329, 2026-09-17)
+## 7.10 The chase runs in the frame it is ordered (item 329, 2026-09-17)
 
 `fight`'s chase does **not** leave the unit standing until the next frame.
 `005fd4d0`'s tail, immediately after the `add_move_order` at `005fe390`:
@@ -3123,7 +3123,7 @@ entries) and the attack order's `UNITORDER flags 20` = `ACTION | 0x10`.
 Without the re-entry this crate planned nothing until 8187 and stepped on
 8188, a frame behind on every chase in the game.
 
-### 7.11 `fight`'s entry puts the unit on its cell centre (item 336, 2026-09-17)
+## 7.11 `fight`'s entry puts the unit on its cell centre (item 336, 2026-09-17)
 
 `Unit::fight@005fd4d0`'s **first statement**, `LAB_005fd648`, before the
 target check, the one-in-five re-search, the range test and §7.10's chase:
@@ -3186,7 +3186,7 @@ is it established what the snap is *for*: the 48-grid searches downstream
 (§7.10's chase, `find_upath`) all start from a cell, which is the obvious
 reading, but no run has been made to fail by starting one off-centre.
 
-### 7.12 A dead target outlives its order by the reload (item 463, 2026-09-21)
+## 7.12 A dead target outlives its order by the reload (item 463, 2026-09-21)
 
 **`Unit::do_attack` never asks whether the target still exists** — not for a
 unit that can attack. The function tests the target object's `flags & 1` in
@@ -3378,7 +3378,7 @@ comparisons and the `OrderNames` table. A group's attack is N `AttackOrder`s
 
 ## 8. The command stream and the group orders
 
-### 8.1 The entry — `CommandPackage::process_*` → `Group::action_*`
+## 8.1 The entry — `CommandPackage::process_*` → `Group::action_*`
 
 A player's command arrives as a `Command` packet processed by `CommandPackage::
 process_all`; the selection first, as a `GroupCommand {num, who, list[]}` →
@@ -3429,7 +3429,7 @@ scripted `cheat select` + right-click path (`docs/ORACLE.md`) goes through the
 very same `MoveToCommand` as a one-member group; `Unit::go_to` builds a
 one-unit group and calls `action_move_to` with `0` for the action bit.
 
-### 8.2 `Group::action_move_near@00704990` — who gets which order
+## 8.2 `Group::action_move_near@00704990` — who gets which order
 
 For a `MoveToCommand` (tolerance 0; `action_move_to` forwards). In order: the
 scenario's `ignore_orders` filter; clamp the click into the world; **split the
@@ -3473,7 +3473,7 @@ computed once** (`find_wpath` from the leader's cell to slot 0) **and copied
 to every member translated by its slot offset**, each waypoint re-validated;
 the group paths once and offsets.
 
-### 8.3 `GroupMoveOrder` per frame — `do_group_move@005e79a0`
+## 8.3 `GroupMoveOrder` per frame — `do_group_move@005e79a0`
 
 `G` = the order: a `MoveOrder` plus `oxx/whose` = the leader, `id`, `form_id` =
 my slot, `group_angle`, `in_group`.
@@ -3535,7 +3535,7 @@ player's group move carries the action bit so the cap does not apply to it —
 the formation holds by the follower's boost, and the leader is not slowed
 (medium: `find_leader` unread).
 
-### 8.4 N independent moves plus an offset — the verdict for v1
+## 8.4 N independent moves plus an offset — the verdict for v1
 
 Almost — the engine itself degrades to exactly that through `ungroup_move_
 order`. Right with no extra work: the destinations (one per unit, from the
@@ -3554,7 +3554,7 @@ function on top of the `MoveOrder`/`move_step` the simulation has; the
 genuinely new inputs are `GroupData` (`curr_x/y`, `speed/new_speed`, `list`,
 `march`) and `Form::compute`'s slot table.
 
-### 8.5 `Group::action_attack@00712490` — N attack orders
+## 8.5 `Group::action_attack@00712490` — N attack orders
 
 A building group sets the three `Build` fields per building (§7.8). Unit
 groups: `QUEUE_FIRST` via detach/halt/recursion; a capturable city →
@@ -3601,7 +3601,7 @@ stack under it, and `do_move` no longer re-plans it a frame later. The `angles[i
 Line leans nowhere), so the byte's **sign** rides on the listing alone
 (`docs/GROUPS.md` §13).
 
-### 8.6 `GroupMoveOrder`, landed — 2026-09-04
+## 8.6 `GroupMoveOrder`, landed — 2026-09-04
 
 §8.4's verdict is overturned for an **army's** group: see §15.
 
@@ -3609,7 +3609,7 @@ Line leans nowhere), so the byte's **sign** rides on the listing alone
 
 ## 9. The start of a game
 
-### 9.1 The sequence — `Game::run@00584590`
+## 9.1 The sequence — `Game::run@00584590`
 
 `GameLog::init`; `game_random->random_seed = info.seed` (the lobby seed —
 `SEED` in `-config`, `Seed` in `rise.ini`); **`Game::init_rules_and_teams@
@@ -3625,7 +3625,7 @@ Game]` dump at `frame == 0`, **the state after `build_game` and before any
 `do_frame`**; then `Game::loop` → `do_frame` (§2.1). There is no simulation
 pass between `build_game` and `begin_game`.
 
-### 9.2 `Setup::build_game@005ac190` — the world, then one empire per player
+## 9.2 `Setup::build_game@005ac190` — the world, then one empire per player
 
 `random_seed = info.seed` again; **`frame = tick = 0`**; `world_pop/cities/
 villages/total_units = 0`, the market tables (`market[k] = 0x32`, flux 15);
@@ -3709,7 +3709,7 @@ live path: pay, `init_build`, pick the nearest idle citizen, `action_swarm_
 around(BUILD_AT)`.) **The starting sites depend on the seed and the map; the
 harness takes them from the dump and does not reimplement the placer.**
 
-### 9.3 `Setup::build_units@005aafc0(who, slot, city, starting_town)` — the units and their orders
+## 9.3 `Setup::build_units@005aafc0(who, slot, city, starting_town)` — the units and their orders
 
 The start tile `(sx, sy) = (start_x[slot], start_y[slot])`, centre `(sx ×
 0x300 + 0x180, …)`. **How many citizens**: `get_starting_citizens@005aaf50` is
@@ -3820,7 +3820,7 @@ order. `init_unit` creates `uber_size` `Unit`s per call chained by
 `Unit::init` does `close_orders(0); clear_partial_path; update_action` — **a
 fresh unit's order list is empty**. A citizen's `uber_size` is 1.
 
-### 9.4 `Game::init_starting_resources@0058a500`
+## 9.4 `Game::init_starting_resources@0058a500`
 
 For each of the six goods: `starting_resources == 12` → replaced by `rand %
 12` first; `base = Constants::starting_goods[i]` (`+0x234`), or
@@ -4939,7 +4939,7 @@ order carries `off_x ours 120 theirs 648`. 465 read that as
 **formation angle handed to it** is, and it is upstream of the layout
 entirely.
 
-### 17.1 The widening: it was never `1/28`'s row
+## 17.1 The widening: it was never `1/28`'s row
 
 The item's own row is the one 465 named, and the first thing to do with it
 was to stop looking at `1/28`. Every member of group 65 parts on the same
@@ -4988,7 +4988,7 @@ own `group_angle` is **890830848** — 74.67° — the difference being the
 quarter-tile snap the destinations are laid on. This crate's `group_angle`
 is **0**, which is why its block is axis-aligned. One number, not a table.
 
-### 17.2 The angle is `find_angle` from the *farm*, and it is exact
+## 17.2 The angle is `find_angle` from the *farm*, and it is exact
 
 `Group::compute_form@00707c80` picks it (`docs/GROUPS.md` §6.3): with no
 caller-supplied angle, a non-zero `dest − loc` takes `find_angle` of the
@@ -5045,7 +5045,7 @@ point in reach of the call misses it by a quarter-degree or more: the
 leader's own trailing move order gives 897122304, `1/27`'s 910229504,
 `1/42`'s 887881728. One candidate is exact and the rest are not close.
 
-### 17.3 `get_final_loc`, and what it walks
+## 17.3 `get_final_loc`, and what it walks
 
 ~~`get_final_loc` walks the order list **from the head**~~ (item 2055,
 `docs/AI.md` §206): it climbs from the ring's **bottom**, `orderlist
@@ -5071,7 +5071,7 @@ replaced by the unit's own position.
 `0x180` window `get_loc` uses but measured from the **final** point rather
 than from the unit (`0070c634`).
 
-### 17.4 The zero-delta arm, which was also missing
+## 17.4 The zero-delta arm, which was also missing
 
 The arm this crate fell through is real and it is now written, because the
 same call reaches it whenever nothing is queued ahead. From the listing at
@@ -5096,7 +5096,7 @@ this arm the probe's angle becomes `-1512964096` instead of `0`, which is
 wrong in a new direction. It is landed because the listing has it and this
 crate did not, and it is asserted separately.
 
-### 17.5 What it moved
+## 17.5 What it moved
 
 **The word did not move: Great Lakes holds at 10234.** What parts there is
 the draw stream and not the record — the original spends **204** draws at
@@ -5126,7 +5126,7 @@ for node. What is left is `1/28` one unit east in `x` — `pos ours (4801,
 30175) theirs (4800, 30175)` — and its two guy rows saying the same thing.
 Across the widening's window the parted keys go **440 → 322**.
 
-### 17.6 A second oracle for the word, 2,000 frames earlier ~~(read this first)~~
+## 17.6 A second oracle for the word, 2,000 frames earlier ~~(read this first)~~
 
 > **Closed by item 899**: the twenty-two were `find_wpath`'s `army` mode, off for a walk home planned under an `ATTACK` (PATHFINDER §29).
 
@@ -5193,7 +5193,7 @@ they cost a third of a second to measure against a 169-second widening.
   inside the same one — which is why that assertion is kept separate and
   kept at zero.
 
-### 17.7 Coverage
+## 17.7 Coverage
 
 **Diff-backed**: §17.1's table (run100, block 9340, all six members, both
 directions); §17.2's exactness, through the route in §17.5 — a

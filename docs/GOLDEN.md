@@ -13564,7 +13564,7 @@ Four are being swept beside this item (`Unit::check_meet_ship@00604550`, `SpellT
 **Every claim below rests on a reading alone**: no capture, packet or emulator run backs it. Each row names what kills it.
 `CM` is `[Misc Logging] COMMANDMANAGER=1`'s `process_*` line on the issue's frame + 1; `U3` is `[End Frame] UNITS=3`.
 
-### 144.1 Why the issuer chapters left these behind
+## 144.1 Why the issuer chapters left these behind
 
 The chapters' `@` lines call `CommandManager::issue_*` directly (`tools/trace/tracer.c`), so the layer above them, the
 buttons and the right-click, is never entered: `GroupOut::*`, `Options::*`, `BuildOut::issue_unqueue@00629e70`. Six of
@@ -13574,7 +13574,7 @@ those wrappers (`issue_guard`, `issue_follow`, `issue_set_transport`, `issue_bui
 pinned or not, enters none of the eleven `GroupOut`/`BuildOut`/`WorldMap` rows. run30, run47 and run50 right-clicked the main
 view (`Console::on_right_up@007cd3c0`), never one of these.
 
-### 144.2 Claims that amend an earlier section
+## 144.2 Claims that amend an earlier section
 
 | claim | read at | kills it |
 |---|---|---|
@@ -13596,7 +13596,7 @@ view (`Console::on_right_up@007cd3c0`), never one of these.
 | `ScenarioFuncSet::toggle_infinite_queue@009f45e0`'s on/off argument is dead: `Group::action_buildmask` never reads it, so the call toggles `0x40` | the export | a scripted `on` leaving a set bit set |
 | `Unit::do_flee_to@005f2480` is dead, not "pointer only" (`docs/CENSUS.md`): `do_job` folds `FLEE_TO` onto `do_move`, and its only four-byte copies are its RVA inside instructions (`5c0ad7`) | listing | a trace entering it |
 
-### 144.3 Captures owed (the forty-eighth pass books from this table)
+## 144.3 Captures owed (the forty-eighth pass books from this table)
 
 All at `cover=1`; the frame is the issue's. The `GroupOut`/`Options` rows also take a cheaper DLL route: an `@` variant that
 calls the wrapper with the `GroupOut` the tracer already builds. That checks the gate and the bytes but not the UI predicate.
@@ -13647,7 +13647,7 @@ Three of these would move to `ENTERED_BY_THE_DLL_ONLY`, because nothing in the i
 `issue_attack_ground` and `issue_come_out`. `process_stance` and `get_stance_option` would leave outright, because the game's
 own stance button reaches them.
 
-### 144.4 Residue proposals
+## 144.4 Residue proposals
 
 | function | why no capture can enter it |
 |---|---|

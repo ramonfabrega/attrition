@@ -1570,7 +1570,7 @@ back every row of the pattern table at once.
 
 ## 7. Diplomacy: relations, declarations and hires
 
-### 7.1 Leaves
+## 7.1 Leaves
 
 - `good_deeds`, +0xd4, `int[8]`, by target; the valuation's own units.
 - `hire_stamp`, +0x1b4, `int[8]`, by the hired-against slot; a frame.
@@ -1587,7 +1587,7 @@ per-slot loop): all to 0, except `hire_who[j] = −1`. `Leaders::clear`'s
 memset leaves 0 in all, `hire_who` included, until the next `Leader::init`.
 `Leader::reset_score (006e37f0)` touches none. Nothing decays.
 
-### 7.2 The rule
+## 7.2 The rule
 
 Three writers own the seven live leaves: `Leader::action_declare
 (006dab50)` for `dow`, `blacken` and `broke_alliance`;
@@ -1743,7 +1743,7 @@ sim reader.
   checksum words a port still writes.
 - `good_deeds`: only the next valuation's seed.
 
-### 7.3 In the crate
+## 7.3 In the crate
 
 - **The declaration** (VII-b1): `Sim::action_declare`, `afford_dow`,
   `pay_dow`, `dow_price` in `crates/sim/src/leaders/declare.rs`, beside
@@ -1775,7 +1775,7 @@ sim reader.
   The answer is a constant for all eight in an all-computer
   style-1 game: 0, and `hire_who` −1 per slot after `Leader::init`.
 
-### 7.4 Reached by a plain game
+## 7.4 Reached by a plain game
 
 **An all-computer skirmish at team style 1 reaches none of the event
 writers.** No `action_respond` is ever called there (§8.4), so
@@ -1789,7 +1789,7 @@ with three leaders and war allowed reaches the hires. Styles 0/8/11 reach
 the deal writers without a human. No Conquer the World or multiplayer path
 is needed.
 
-### 7.5 How established, and how confident
+## 7.5 How established, and how confident
 
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/diplomacy-relations-*.md`); ~~no diff backs
@@ -1833,7 +1833,7 @@ Not ported from `set_diplo`: the alliance-break eject, the `ally_mask`
 bits (4206c), the third-party message, the alliance's victory test
 (§10.2), `recalc_borders`.
 
-### 7.6 Not established
+## 7.6 Not established
 
 - **Declare on a locked teammate.** Whether the interface offers it under
   style 1 (then it becomes level 1, counts `dow` once and stamps
@@ -1855,7 +1855,7 @@ bits (4206c), the third-party message, the alliance's victory test
 
 ## 8. Diplomacy: tribute, gifts and counteroffers
 
-### 8.1 Leaves
+## 8.1 Leaves
 
 - `tribute_stamp`, +0x174, `int[8]`, receiver's record, by giver; a frame.
 - `gift_stamp`, +0x194, `int[8]`, giver's record, by receiver; a frame.
@@ -1867,7 +1867,7 @@ bits (4206c), the third-party message, the alliance's victory test
 
 `frame` is `Game::frame`; every comparison is signed.
 
-### 8.2 The rule
+## 8.2 The rule
 
 **The deal record.** Each leader holds `dip[8]` (`Diplomacy`, at +0x692c):
 `agree` +0, `any_offer` +4, `treaty` +8, `offers[6]` +0xc, `dows[6]` +0x24,
@@ -2017,7 +2017,7 @@ these two.
 - `tribute_sent`, `tribute_received`: only `AchieveChartPane::set_chart_data
   (007f2c40)`, no sim reader.
 
-### 8.3 In the crate
+## 8.3 In the crate
 
 `crates/sim/src/leaders/tribute.rs` (item 4159's step VII-b2):
 `Diplomacy`, `dip[8]` and the seven leaves per leader
@@ -2050,7 +2050,7 @@ wait and the exchange), `consider_tribute`, `scale_tribute` (`Tuning`'s
   our walks compute moves them.
   `coverage.rs` still lists `tributes`.
 
-### 8.4 Reached by a plain game
+## 8.4 Reached by a plain game
 
 **An all-computer skirmish at team style 1 reaches no event writer**, so
 all seven leaves read 0 throughout and the crate's stubs are exact. Command
@@ -2064,7 +2064,7 @@ to an allied computer at any style), or at team style 0/8/11, human or
 not. The `dows` residue needs a human. No Conquer the World or multiplayer
 path is needed.
 
-### 8.5 How established, and how confident
+## 8.5 How established, and how confident
 
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/diplomacy-tribute-*.md`). Verdicts: 63
@@ -2124,7 +2124,7 @@ off recon4206-4's buckets, a rehearsal that was not filed: the human's
 2,000 metal came to 1020 for the French, `pct` 51. A filed capture is
 needed before it is cited.
 
-### 8.6 Not established
+## 8.6 Not established
 
 - ~~**The shortfall formula** (decompile `:2676`–`:2777`) is unread~~ (read
   from the listing at VII-c, §7.2); the `6c035d` arm (a positive shortfall
@@ -2362,7 +2362,7 @@ Defeat, victory and the wonder clock. `Leader::defeat (006ecb00)` and
 `Leader::victory (006ec9b0)` write four leaves; the victory pass writes the
 wonder pair.
 
-### 10.1 Leaves
+## 10.1 Leaves
 
 - `defeated_by`, +0x10, `int`: the captor's slot, −1 when none.
 - `wonderwin_stamp`, +0x448, `int`: frames; the start frame while running,
@@ -2376,7 +2376,7 @@ wonder pair.
 `tribe < 0` the wonder pair is zero by the memset alone (`init` returns
 before its explicit stores; same value). Nothing else resets any of them.
 
-### 10.2 The rule
+## 10.2 The rule
 
 **`defeat(who, type, by, instant)`**, in this order:
 
@@ -2499,7 +2499,7 @@ ratio == 0`, `wonderwin_stamp < 0` and the flag is 0: `stamp += 1`.
 not allied to the owner with the flag adds one). The rest feed UI, stats
 and the save.
 
-### 10.3 In the crate
+## 10.3 In the crate
 
 Item 4185 (step V of 4159) built it: `crates/sim/src/leaders/endgame.rs`
 (tests in `endgame/tests.rs`), one `EndGame` a slot in `LeadersState`, which
@@ -2551,7 +2551,7 @@ landed:
   ~~`Sim::resign`'s `clear_orders` (4189a)~~ (4204). All nine are on the
   line.
 
-### 10.4 Reached by a plain game
+## 10.4 Reached by a plain game
 
 The captures' lobby is elimination 1 and VICTORY 0 (run600's dump line
 4727; the crate's default, `crates/sim/src/ai.rs:1132`). So a skirmish
@@ -2563,7 +2563,7 @@ options: `lost_a_city` types 2 and 3 (elimination 2, 3), armageddon (8),
 VICTORY 9's type 3. Behind the scenario: type 9. Multiplayer: drop (7)
 and the shared-`who` arm. Type 10: a load only.
 
-### 10.5 How established, and how confident
+## 10.5 How established, and how confident
 
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/end-of-game-*.md`); ~~no diff backs it
@@ -2609,7 +2609,7 @@ run1256, run1316. run1200: slot 0
 `process_elimination`). `defeat_type` 6 in the start captures, 9 in
 run1113/1114. `wonderwin_timer` 1 in 30 captures (run652 … run1423c).
 
-### 10.6 Not established
+## 10.6 Not established
 
 - **The stop, the banked stamp, the pay-back** (and the crate's missing
   alive gate): no capture holds a negative `wonderwin_stamp`.
@@ -4246,7 +4246,7 @@ Ancient start. No test pins it. A port turns it into the leaders line's own
 
 ## 18. The score and its eleven parts
 
-### 18.1 Leaves
+## 18.1 Leaves
 
 - `score` (+0x18), i32: the sum.
 - `score_explored` (+0x1c), i32: always 0.
@@ -4261,7 +4261,7 @@ Ancient start. No test pins it. A port turns it into the leaders line's own
 - `score_wonders` (+0x40), i32.
 - `score_combat` (+0x44), i32: an accumulator, never recounted.
 
-### 18.2 The rule
+## 18.2 The rule
 
 **Reset**: `reset_score (006e37f0)` zeroes all twelve, called only from
 `Leader::init (006e3930)` and `Setup::build_game (005ac190)` (default 0).
@@ -4383,7 +4383,7 @@ with `victory == 5` defeats the live leader with the strictly lowest score; a
 tie at the minimum defeats nobody. `Leader::diplomacy` counts live leaders
 scoring above me and finds the top scorer.
 
-### 18.3 In the crate
+## 18.3 In the crate
 
 **Held since item 4187** (`crate::leaders::score`): `Score`, one a slot,
 with the units part's dirty bit (`dirty_units`, raised by `add_unit` and
@@ -4440,7 +4440,7 @@ AI change, not this leaf's. The reading's map, which the port followed:
   (`crates/rondata/src/diff/checksum_lines.rs:1823`–`1834`). Each port removes
   its entry; explored and pop need only the hold.
 
-### 18.4 Reached by a plain game
+## 18.4 Reached by a plain game
 
 A skirmish against the computer reaches `compute_score` for every live slot,
 every part, both combat arms, and the `victory == 5`, `find_target` and
@@ -4449,7 +4449,7 @@ every part, both combat arms, and the `victory == 5`, `find_target` and
 Armageddon arm and `defeat_all` need the Armageddon count reached. The spells
 need a spy or commando cast; whether the computer casts them is open.
 
-### 18.5 How established, and how confident
+## 18.5 How established, and how confident
 
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/score-*.md`). Every integer formula, both
@@ -4503,7 +4503,7 @@ read and the `rare.flags` write. No kept dump was consulted;
 `score_pop`: `compute_pop_score (006bc190)`, `reset_score`, `compute_score`
 twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
 
-### 18.6 Not established
+## 18.6 Not established
 
 - **Gaia ally read**: whether `treaties[0]` and `leaders[8].diplos[K]` are
   ever both 2. If not, every gaia kill with a killer object adds
