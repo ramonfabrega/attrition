@@ -134,7 +134,7 @@ pub(crate) fn walk_second_probed(
         }
     }
     let endpoint = log.final_state().map(|fin| {
-        let r = crate::diff::endpoint::walk_to_close_traced(&mut built, &fin, 8, tracelog);
+        let r = crate::diff::endpoint::walk_to_close(&mut built, &fin, 8);
         eprintln!(
             "{gamelog}: endpoint {}: {} compared, {} off, {} unlinked, {} extra, {} torn; \
              builds {}/{} unlinked/diverged, cities {}/{}",

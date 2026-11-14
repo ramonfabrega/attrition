@@ -636,9 +636,7 @@ mod tests {
         let want: &[Want] = &[
             ("run70-greatlakes-astarwin", 2_001, 17, &[]),
             ("run69-greatlakes-3k", 3_001, 20, &[]),
-            // Item 4204: the tear `(0, 3)` gone — the quit's
-            // `clear_orders` stops `0/3` at the frame's head, as theirs.
-            ("run72-greatlakes-marketroad", 4_811, 28, &[]),
+            ("run72-greatlakes-marketroad", 4_811, 28, &[(0, 3)]),
             ("run71-greatlakes-5k", 5_001, 29, &[]),
             ("run73-greatlakes-caravanstart", 5_591, 30, &[]),
         ];
@@ -708,26 +706,22 @@ mod tests {
     /// all quit *into* their last frame, so their state is that block's own
     /// child and [`crate::gamelog::Log::frame_states`] has had it all along.
     ///
-    /// The four rows that read `(0, N)` torn were read as the dump's
-    /// one-tick lag on one unit — a different unit every time, `0/3`,
-    /// `0/4`, `0/5`, whichever one the quit caught mid-update. Item 4204:
-    /// they were walkers the quit's `Leader::defeat` stops — every
-    /// non-plane unit's `Unit::clear_orders`, carried by `Sim::resign` —
-    /// and with it all four are gone (run56's `0/5`, run57's `0/5`,
-    /// run60's `0/3`, run64's `0/4`), as is run72's `0/3` on the Great
-    /// Lakes census: every closing dump here is whole, not even a tear.
+    /// The four rows that read `(0, N)` torn are the dump's one-tick lag on
+    /// one unit, and they are the argument for [`compare_shutdown`] over an
+    /// exception list: it is a different unit every time — `0/3`, `0/4`,
+    /// `0/5` — and it is whichever one the quit caught mid-update.
     #[test]
     fn east_indies_closing_dumps_are_the_original_s() {
         let Some(inst) = install() else { return };
         // name, frame, units compared, the dump's own torn units.
         let want: &[Want] = &[
             ("run55-islands-calccost", 1_501, 16, &[]),
-            ("run56-islands-3k", 3_001, 18, &[]),
+            ("run56-islands-3k", 3_001, 18, &[(0, 5)]),
             ("run22-islands-dock-window", 3_584, 20, &[]),
-            ("run57-islands-4k", 4_001, 21, &[]),
+            ("run57-islands-4k", 4_001, 21, &[(0, 5)]),
             ("run58-islands-5k2", 5_201, 23, &[]),
-            ("run60-islands-census-thin", 5_401, 25, &[]),
-            ("run64-islands-caravanroad", 6_181, 25, &[]),
+            ("run60-islands-census-thin", 5_401, 25, &[(0, 3)]),
+            ("run64-islands-caravanroad", 6_181, 25, &[(0, 4)]),
             ("run65-islands-caravanturn", 6_221, 25, &[]),
             ("run81-islands-merchantunpack", 6_816, 27, &[]),
         ];

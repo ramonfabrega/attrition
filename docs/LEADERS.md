@@ -2458,9 +2458,7 @@ head**, before any `game_random` draw, in a live game (run609's 5638,
 run667's 17379, the melees' 2600, run80's 24000); or **past the body**, from
 the end window of a game over (run1200's 5639, run1250's 8777, run1262's
 6106, run958f's 22700, run600's 17379), the count advanced (run600's
-re-stamp 17380). Past the body is the common close: 110 of 124 closing
-walks (item 4204, `walk_to_close_traced`). The defeat then clears every
-non-plane unit's orders (`Unit::clear_orders@005e3860`).
+re-stamp 17380).
 
 **The wonder arm**, in `process_victory`, every frame under `VICTORY` ∈
 {0, 1, 6}, with `W = Game::wonder_winning (005948a0)` read once. For slots
@@ -2545,8 +2543,7 @@ landed:
   winner's armies stay (4189b). `rondata`'s `widen_walk` resigns at the
   trace's quit (`quit_in_trace`), before or after the frame's tick.
 - **Not built:** the `w44c` reader (4185b); `Wall::process`'s reader;
-  ~~`Sim::resign`'s `clear_orders` (4189a)~~ (4204). All nine are on the
-  line.
+  `Sim::resign`'s `clear_orders` (4189a). All nine are on the line.
 
 ### 10.4 Reached by a plain game
 
@@ -2622,9 +2619,7 @@ run1113/1114. `wonderwin_timer` 1 in 30 captures (run652 … run1423c).
   the conquest victory's won flag (§10.2; item 4189), backed by run667's
   17380 by elimination; `Player::win` draws only for the console player,
   so the trace cannot show it.
-- ~~**The quit's timing outside the window walk** (4189a)~~ (4204).
-  Unread: run847's quit on its dump's own label (4204a); `clear_orders`'
-  `unit_masks & ~0x4000000` (4204b).
+- **The quit's timing outside the window walk** (4189a).
 - **`lost_a_city`'s `param_1`, `param_2` and captor** are derived by its
   callers (`Build::close`), owned by §11.
 - **The pins:** run1200's loss is held by `korean_ancient_pair`'s closing

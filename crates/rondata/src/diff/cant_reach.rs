@@ -164,14 +164,19 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
         "diff::sea_melee::sea_melee_run1483_s_word_window_is_widened_whole",
         7,
     ),
-    // Item 4204: run609's closing walk 2 -> 0 (the row leaves), and
-    // run667's 5 -> 0: `Sim::resign` carries the defeat's `clear_orders`
-    // (`docs/LEADERS.md` §10.2), so the human's orders are gone on the quit.
+    (
+        "diff::third_pair::run609_s_closing_frame_is_widened_whole",
+        2,
+    ),
     // Item 4185: run667's closing walk 5 -> 0 (the row leaves): ours wins the
     // territory on 17379 and the cascade's `defeat(5)` clears the human's
     // orders, as the original's quit on that frame does (`docs/LEADERS.md`
     // §10.5). Item 4189: 0 -> 5, the row back: the quit on 17379's head is
     // replayed, its conquest victory bars the territory win and so the
     // cascade, and `Sim::resign` does not carry the defeat's `clear_orders`
-    // (GOLDEN §152.15, parked 4189a). Item 4204: 5 -> 0, above.
+    // (GOLDEN §152.15, parked 4189a).
+    (
+        "diff::third_pair::run667_s_closing_frame_is_widened_whole",
+        5,
+    ),
 ];

@@ -305,7 +305,7 @@ fn corpse_melee_run1542_s_closing_state() {
             .final_state()
             .or_else(|| log.frame_states().pop())
             .expect("closing whole-map state");
-        let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, MELEE_LONG.1);
+        let e = endpoint::walk_to_close(&mut built, &fin, 8);
         eprintln!(
             "Corpse melee closing: frame {} units {} counts {:?}",
             e.frame,

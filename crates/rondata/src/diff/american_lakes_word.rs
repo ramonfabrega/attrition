@@ -190,7 +190,7 @@ fn run1004b_american_lakes_closing_state() {
         .final_state()
         .or_else(|| log.frame_states().pop())
         .expect("closing whole-map state");
-    let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, AMERICAN_LAKES.long.1);
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
     eprintln!(
         "American (Great Lakes) closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
         e.frame,

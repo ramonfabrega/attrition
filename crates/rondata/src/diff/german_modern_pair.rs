@@ -487,7 +487,7 @@ fn german_modern_pair_run1397_s_closing_state() {
         .final_state()
         .or_else(|| log.frame_states().pop())
         .expect("closing whole-map state");
-    let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, p.long.1);
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
     eprintln!(
         "German Modern pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
         e.frame,

@@ -2004,7 +2004,7 @@ mod tests {
             .final_state()
             .or_else(|| log.frame_states().pop())
             .expect("closing whole-map state");
-        let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, TOUGHEST_LONG.1);
+        let e = endpoint::walk_to_close(&mut built, &fin, 8);
         eprintln!(
             "Great Sahara at Toughest closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
             e.frame,
