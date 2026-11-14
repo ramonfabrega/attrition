@@ -255,7 +255,8 @@ impl Sim {
     /// An alliance asked passes the team gate before the exchange
     /// ([`Sim::alliance_open`], item 4159's step VII-d).
     ///
-    /// SEAM: the reject's human-ally attack arm
+    /// SEAM: the reject's human-ally attack arm is dead in the original
+    /// (it asks whether a leader is its own enemy, 6d04a9), and it
     /// needs an attack request, which nothing in the crate sets
     /// (the leader's attack request, 006d14e0, is not carried). The messages and sounds
     /// are the interface's.

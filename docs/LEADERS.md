@@ -1609,7 +1609,8 @@ Three writers own the seven live leaves: `Leader::action_declare
    - block B: if `allied(me, t)` still holds: the same pair again.
 
    `blacken` reads `dow` before that block's own increment. A forced level 0
-   on an ally would count twice; no caller reaches it, since the only
+   on an ally would count twice and pay twice (`pay_dow` at `6dacf6` and
+   again at `6dad0f`); no caller reaches it, since the only
    `force = 1` caller, `DropControl::process_drop`, passes `quiet = 1`;
 5. **for any `quiet`:** if the pair is still allied both ways,
    `broke_alliance[me][t] = frame`. The target's mirror slot is not written;
@@ -1629,12 +1630,15 @@ unless allied both ways; else each usable bucket must hold the price.
 Declare (`CommandPackage::process_declare`, 9473aa) and a human party's leg
 of the hire loop below. `Object::take_damage` and `Nuke::do_damage` pass
 `!(declarer & 4)`, but each skips a human declarer before the call, so they
-never pass 0. `Leader::diplomacy`, `action_respond`'s treaty call
-(6d04ed), `DropControl` and `ScenarioFuncSet::declare_war` pass 1. So
+never pass 0. `Leader::diplomacy`, `action_respond`'s reject arm
+(6d04ed; dead, below), `DropControl` and `ScenarioFuncSet::declare_war` pass 1. So
 `dow` and `blacken` move only for a human declarer. `broke_alliance` moves
 on any break through `action_declare`: `diplomacy` 6bed1c, a level-0 call
-on a mutual ally, 6d04ed, the human's Declare, `DropControl`. The 6beceb
-call is dead (it needs `t == me`, which the per-target loop skips). The
+on a mutual ally, ~~6d04ed,~~ the human's Declare, `DropControl`. The 6beceb
+call is dead (it needs `t == me`, which the per-target loop skips), and so
+is 6d04ed, the reject's ally-attack arm: it asks `is_enemy(leaders[P], P)`
+(`6d04a9`), which is 0 for a leader asked about itself (the adjudication
+of 2026-11-14, 4.5). The
 original's `Game::do_frame` peace-ending and the console verb call
 `set_diplo` directly and must not stamp.
 
@@ -1662,13 +1666,19 @@ goods exchange (§8):
 **`good_deeds`**, in `diplomacy`'s offers arm (`me` computer, `t` the
 proposer, committed; read from the listing at VII-c, `6bf143`–`6c08b5`):
 
+- The arm is skipped (`6bf0e0`) when this pass already cleared the record
+  (I had committed, `6be47a`, or `t` had rejected, `6be48d`) and
+  `aggression[t]` is 0.
 - **An alliance asked** (`treaty` 2; VII-d, from the listing,
   `6bf15a`–`6bf4b2`) runs gates first. Refused (withdraw if I committed,
-  else reject) at styles 0/8/11 when `num_allies (006d6250)` is not 0, at
+  else reject) at styles 0/8/11 (the type record's `team_style`,
+  `Game+0x24`) when `num_allies (006d6250)` is not 0, at
   any style but 0/7/8/11, or while `Game::is_victory_timer (00594950)`
   (`VICTORY` 0, a live leader's `wonderwin_timer` or `popwin_timer`). Two
   computers with `aggression[t]` 0 ally at once, then `counteroffer[t] =
-  0`. Else `S −= (epoch_me + 1) · 200` (at war `· 400`), +100 for a
+  0`. Else `S −= (epoch_me + 1) · 200` (at war `· 400`; either halved
+  toward zero under `semaphore[0] & 4`, `6bf45a`, which the crate reads as
+  clear), +100 for a
   rusher, else −100 for a boomer below epoch 4, −400 with the elimination
   arm's third-party capital holder (`-0x68`), −200 with `LAB_006be372`'s
   racing third party (`-0x54`; dead, since the clock gate refused).
@@ -1682,8 +1692,12 @@ proposer, committed; read from the listing at VII-c, `6bf143`–`6c08b5`):
   (`-0x40` is `&weak[t]` and `-0x48` `&strong[t]`, `6bcd8a`). Then `S −=
   resource_value · v / 256`, truncating; a give to a mutual ally of at
   most a third of my stock is free at styles 0/8/11, and elsewhere free
-  unless `gift_stamp[t]` is within 4500 frames. The attack requests add
-  flat terms (not carried: no request is set).
+  unless `gift_stamp[t]` is within 4500 frames. A good either leader
+  cannot use ends the loop with a refusal (`6bf4de`, `6bf4f1`), and
+  `any_proposals` is asked next (`6bf6a5`). ~~The attack requests add flat
+  terms~~ The attack requests' terms are scaled by epoch and `blacken`, and
+  three of them refuse (`6bf6b2`–`6bfa57`; the adjudication of 2026-11-14,
+  A.3′); not carried: no request is set.
 - **The shortfall's selector is `aggression[t]`**, not the treaty:
   `6bfa6f` tests `*-0x28`, `&aggression[t]`, whose one store is `6bcd78`.
   `epoch` is `data_encrypted + 0xe8`, the Military line; `x` is 100 at
@@ -1794,6 +1808,12 @@ is needed.
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/diplomacy-relations-*.md`); ~~no diff backs
 it yet~~ the declaration is diff-backed since VII-b1 (below). Verdicts: 87 confirmed, 12 corrected, 2 open.
+**A blind second reading of the five decision arms** (the alliance gate,
+the counteroffer, the peace accept, the computers' alliance, the
+declaration's price) was adjudicated on 2026-11-14
+(`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`): of 47
+claims 38 agree, 5 are true where this section was silent, 3 are
+corrected in 7.2 and 8.2; what still rests on one reading is listed there.
 
 The corrections that changed a rule are in 7.2 (listed in
 `docs/journal/2026-11-13-item-4159-VII-d.md`).
@@ -1849,7 +1869,14 @@ bits (4206c), the third-party message, the alliance's victory test
   carried: the team tail (`is_team` is false at style 0) and `has_spell`'s
   false arm (every craft ships `PREQ0 None`).
 - ~~`good_deeds`'s `S` term by term~~ (VII-c, 7.2). Not carried: the
-  scenario's fixed answers, the attack requests' flat terms.
+  scenario's fixed answers, the attack requests' terms.
+- **The computer's own alliance proposal draws before it asks who its
+  target is** (`6c0980`, ahead of the human test `6c0993`, the style test
+  and `aggression`'s at `6c0a2e`). With four or more leaders outscoring
+  `me` and the top scorer its target, a style-1 game draws `game_random`
+  there and the crate does not. No floor has five live leaders standing
+  so; a capture that does is its falsifier (the adjudication of
+  2026-11-14, X.1).
 - `walk_data` and `load_leaders_chunk` copy `last_spoke` and the rest on a
   load; neither originates a value.
 
@@ -1872,7 +1899,9 @@ bits (4206c), the third-party message, the alliance's victory test
 **The deal record.** Each leader holds `dip[8]` (`Diplomacy`, at +0x692c):
 `agree` +0, `any_offer` +4, `treaty` +8, `offers[6]` +0xc, `dows[6]` +0x24,
 `attacks[8]` +0x3c. `Leader::action_offer (006d1780)` adds an amount to
-`A.dip[B].offers[r]` and subtracts it from `B.dip[A].offers[r]`. A positive
+`A.dip[B].offers[r]` and subtracts it from `B.dip[A].offers[r]`; it
+refuses a positive amount the giver's bucket cannot cover on top of what
+is offered, and runs `clear_agree` both ways. A positive
 slot in `A.dip[B]` means "A gives B". `action_tribute` and
 `action_demand_tribute` route through it; none writes a leaf here.
 `Leader::init` sets every record to `Diplomacy::clear_all (0047e030)`
@@ -1900,7 +1929,9 @@ header's bulk writers, these are the only resets; none runs in a match.
        tributes[r] += o            (the unclamped o)
 
    A second pass does the same with `price[r]`, an attack request's price
-   in `T.dip[P].attacks[]` (0 unless `T` is human, `leader_flags & 4`), and
+   in `T.dip[P].attacks[]` (0 unless `T` is human, `leader_flags & 4`;
+   assigned per named slot, not summed, so the last one named sets it,
+   `6d06a4`), and
    stores `T.dip[P].dows[r] = price[r]`. Then `agree = 1`, and
    **`P.agendas[T] |= 4`** (`6d088c`, right after the `agree` store at
    `6d0873`): `P`'s next `Leader::diplomacy` pass at `T` runs off its
@@ -1973,7 +2004,12 @@ these two.
   - Reject, the `6c035d` arm's tail (a positive `s` with a give of mine):
     `k.got_diplo_message = frame`, `counteroffer[k] = 0`, then
     `action_respond(me, k, agree == 1 ? 0 : 2)`. The over-ask's refusal
-    (`6bfe47`–`6bffea`) stores only through `action_respond`.
+    (`6bfe47`–`6bffea`) stores only through `action_respond`. The arm
+    goes to this tail with no draw at `treaty` 2, `aggression[k]` 0, war
+    either way, a mutual alliance or `war_allowed` 0; else it draws
+    `game_random` (`6c03e1`) and on an odd draw declares
+    (`action_declare(me, k, 0, 1, 0)`) with no store of its own. Not
+    carried.
   - At style 0/8/11 (or 7's case), `num_allies == 0`, no victory timer,
     both computers, `aggression[k] == 0`: `counteroffer[k] = 0` (an
     alliance accepted at once; otherwise its price enters `s`, §7.2, and a
@@ -1998,8 +2034,9 @@ these two.
 - `is_tribute_period (006d5b90)` reads `tribute_stamp`: over slots `i`
   (not `me`, `leader_flags & 1`), the first that qualifies (`i == p`;
   `is_ally(L[i], p)` after frame 0, equal lobby team `0..3` at frame 0; not
-  a team-8 `i` or `p` under style 7) decides: stamp 0 → 0, `frame − stamp <
-  3000` → 1. Callers: `diplomacy` ×3, `Army::do_marching (006f3df0)`,
+  a team-8 `i` or `p` under style 7) decides: stamp 0 → 0 for the whole
+  call (`6d5c8e`), `frame − stamp < 3000` → 1; an older stamp passes to
+  the next slot (`6d5c9d`). Callers: `diplomacy` ×3, `Army::do_marching (006f3df0)`,
   `Army::find_target (006f69b0)`.
 - `gift_stamp`: the taunt refusal, and `diplomacy`'s ally pricing: my
   give to an ally up to `stock/3` (×4 before frame 4500, ×3/2 before 9000,

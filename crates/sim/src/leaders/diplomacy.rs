@@ -154,10 +154,15 @@ impl Sim {
             .filter(|&l| !self.leaders.defeated[l] && !self.allied_both(l, me))
             .count();
         // SEAM: the score count and the top scorer (`local_64`, `local_70`,
-        // `LeaderData::score`) — `compute_score` is not modelled. Their one
-        // reader on this path is the top-scorer arm, which waits on frame
-        // 45 × 900 (30 × 900 at difficulty 3 and up) and is taken here as
-        // "the top scorer is never the target".
+        // `LeaderData::score`) are not read here, though the score is
+        // modelled (`crate::leaders::score`). They have two readers: the
+        // top-scorer arm, which waits on frame 45 × 900 (30 × 900 at
+        // difficulty 3 and up) and is taken here as "the top scorer is
+        // never the target"; and the computer's own alliance proposal
+        // (6c094d, 6c0956), which has no frame gate and draws the game's
+        // random at 6c0980 before it asks whether its target is human.
+        // With four or more leaders outscoring `me` the original draws
+        // there and this does not: `docs/LEADERS.md` §7.6.
         for t in 0..players {
             if t == me || self.leaders.defeated[t] {
                 continue;
