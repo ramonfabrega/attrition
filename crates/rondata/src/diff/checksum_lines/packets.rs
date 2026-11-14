@@ -125,21 +125,6 @@ pub(in crate::diff) fn compare(
         .map(|(name, o)| {
             let t = theirs.get(*name).unwrap_or(&empty);
             let p = parting(o, t);
-            if std::env::var_os("RON_PROBE_4243").is_some() {
-                if let Some(f0) = p.first().map(|f| f.0) {
-                    let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
-                    let lo = f0.saturating_sub(12);
-                    for i in lo..f0 + 30 {
-                        let os = o.ranges.get(i).map_or("-".to_string(), |r| {
-                            format!("{} {} {}", r.record, r.field, hex(&r.bytes))
-                        });
-                        let ts = t
-                            .get(i)
-                            .map_or("-".to_string(), |r| format!("{} {} {}", r.0, r.1, hex(&r.2)));
-                        eprintln!("PROBE4243 {name} {i}\n   ours   {os}\n   theirs {ts}");
-                    }
-                }
-            }
             LineOutcome {
                 theirs: t.len(),
                 ours: o.ranges.len(),
