@@ -2560,7 +2560,7 @@ move** (`PACKETS_SCORE` 422): the units triple moved on 70 packets, every one on
 count, which fell on each (run1266c, East Indies, 7581 → 7561, the most); none to whole or from it.
 
 **Item 4253 moved two.** Units 7273 → 8281, guys 7273 → 10541: on 7273 record 30 (a Scholar, TI 52) figure `angle`
-and `last_angle` ours 0x55555555, theirs 0, `go_inside`'s `set_angle(0, _, 1)` snap (CITIES §6.5). Step P 425 → 433 (on 4244's tree).
+and `last_angle` ours 0x55555555, theirs 0, `go_inside`'s `set_angle(0, _, 1)` snap (CITIES §6.5). Step P 425 → 433.
 The story: `docs/journal/2026-11-14-item-4253.md`.
 
 ## 24.4 Where each first parting is (diff-backed)
