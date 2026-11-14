@@ -84,7 +84,7 @@ driver chooses the shape for each step:
   The driver merges it and gates once, at the merge; on a red gate it sends
   the builder the failing test, and the builder fixes in its own context. A
   builder never runs the release gate: whether one waits cleanly on a
-  fifteen-minute gate is untested (Loop 4053). lore does not index these
+  fifteen-minute gate is untested. lore does not index these
   spawns, so their price is the weekly window's delta, read before and
   after.
 - **A ccc lane** — `ccc spawn --name lane-<N> --worktree=att-<N> --model
@@ -100,8 +100,8 @@ another model takes that model's own default effort, not the driver's.
 **The roster is Ramon's, set at a steer** (DECISIONS 116):
 
 - **The driver**: the `commander` row, Opus 5.5. **The pass**: the `steer`
-  row, Fable 5.2, armed at a boundary (DECISIONS 126; entry 122's observer,
-  given the tree for the length of a pass).
+  row, Fable 5.2, spawned at a boundary (DECISIONS 126, 131 §8; entry 122's
+  observer, given the tree for the length of a pass).
 - **The chain** — start, checksum, orders and save on one lobby, to the
   milestone `docs/TRACKS.md` names — is the driver's own, built by
   in-session builders whose model is the driver's call for each step: Opus
@@ -149,67 +149,13 @@ worktree branches from `origin/main`, and a main left behind starts a
 builder on a stale base. The root checkout is Ramon's to pull. Renaming the
 branch is his: a remote branch delete is refused from every row.
 
-**The booking gate takes every landing that is merged when it starts**
-(DECISIONS 131 §4). The tranche of 2026-11-12 ran eleven booking gates one
-landing at a time, 334.9 minutes of gate in a span of 413: the gate bound
-the loop, not the workers. The driver merges and books every lane and
-builder that is done, then gates the tip once and pushes it; a red names
-its test, and the driver reads which merge moved it before it sends anyone
-a line. **At a builder's merge the pins a merge moves are run first** — the
-census pin, the doors pin, `free::ages`, `diff::coverage`,
-`diff::checksum_lines`, `diff::transfer`, `diff::floors` — because two of
-that tranche's three reds were such a pin found by a thirty-minute gate,
-and the next tranche's first was a literal in `diff::floors` (gate-4205,
-19.8 minutes on it alone; the literal is gone, DECISIONS 132 §4).
-
-**A booking gate is scoped, and the whole gate runs at a drain and at a
-pass** (DECISIONS 132 §5). A scoped gate widens to every timed test on any
-path that can move a pin; what the whole gate adds is the caches' verifiers.
-Of nine red verdicts in the 43 gate logs of 2026-11-11 to 11-13 none was a
-test a scoped gate skips, and the verifiers caught nothing: 20.0 minutes
-against 33.0, by the medians. **A lane's own gate runs its brief's filters,
-the paperwork guards and whatever the timings file has never timed**
-(§6): the rest is the booking gate's, on the merged tree. A red at the
-booking gate names its test; the fix is its owner's second commit, and a
-merge whose fix is not in hand is reverted (`git revert -m 1`) and lands
-again with it.
-
-**A tree's corpus is what its own ledger names** (DECISIONS 132 §3;
-`rondata::corpus`). From run 1546 on, a capture in the shared archives
-counts in a tree's tests only when that tree's `docs/RUNS.md` heads a
-section with its exact run token, so a capture filed by one worker is
-skipped and printed by every other tree until the filing branch merges
-(run1575 and run1576 turned four gates red on 2026-11-13). **Each run
-token takes its own heading or is named in one; a range is not expanded.**
-A recording a capture leaves in `Logs\` carries no run token and is not
-covered: a capture that plays a file removes the `.rcx` it left, or says so.
-
-**The gate clears the disk** (DECISIONS 128 §1). After a gate that exits 0,
-`tools/gate_run.sh` runs `tools/disk.py`: every oracle cache generation but
-the gated build's **and those a process read within twelve hours** leaves
-both archives (DECISIONS 129 §2: for a tranche the sweep removed the
-generations in-flight workers were reading, 130 to 239 a gate, and they
-rebuilt cold), and a builder's tree whose tip is
-merged and whose tree is clean is removed with its branch. The log's
-`Disk:` lines say what went and what is free, `LOW` under 30 GB; the driver
-reads them beside `gate exit 0`, **and `Host top:` beside `Host load:`**:
-the five commands with the most CPU at the gate's end and start, which is
-how a tranche learns what loads the host past the budget's twenty slots.
-**A timed test that fails "unmeasured, re-run" is the host, not the
-client** (DECISIONS 129 §3): the gate is re-run when the load has fallen,
-and nothing is diagnosed. The disk read 0 GB inside a builder's run
-on 2026-11-12: about 94 generations stood in each of 133 caches and seven
-merged trees held 40 GiB of build output, and nothing removed either. A
-capture is never removed this way (entry 84 (iv)).
-
 **The harness moved under this file** (Claude Code 2.1.300 to 2.1.321, read
 on 2026-11-09). What changed, and what it makes of a clause below:
 
 - **A clear no longer kills a background agent's running commands.** A
   gate under an armed clear keeps running and its exit reaches the cleared
-  session. The waiter's `DRAFT`, `HELD` and `UNCLEARED` clauses in "the
-  chain" were written against the old behaviour and are unverified (Loop
-  4051).
+  session; what the waiter's exits mean now is `tools/lanewait.py`'s
+  header, which is the authority.
 - **A message to a running background agent arrives at once.** A line to a
   lane whose gate is running now wakes the lane mid-gate, at a full context
   read. It is sent only when the lane must act before its gate exits.
@@ -220,7 +166,6 @@ on 2026-11-09). What changed, and what it makes of a clause below:
 
 ## The brief
 
-
 **A brief is composed by `tools/brief.py`**: the frame
 (`tools/brief/frame.md`), the item in the queue's own words, what is
 reserved, and the commander's note of what the item alone needs — never
@@ -228,34 +173,17 @@ the previous brief, copied and edited. The frame and the checklist
 behind it (`docs/audit/README.md`, "The brief checklist") are the pass's
 to write, and a test holds every row of the one to a section of the
 other; a worker's "for the Loop" line that names a brief's omission is a
-candidate row. **The fourth kind is `reading`** (entry 84), beside
-`residue`, `chapter` and `sweep`: a lane that reads the never-entered
-functions its document cites into claims that each name their
-falsifying capture, and gates on `python3 tools/release_gate.py
-~/code/fun/attrition/game --test-threads 4 --lane --item <N> --tests
-blind:: --no-widen`. **The fifth is `coverage`** (entry 87): a lane
-that retakes one pinned lobby at `cover=1` **on the click-free pool**
-(entry 88: `cover=1` runs there since 3429, and a click is an `@click`
-line since 3437), checks the
-trace against its `cover=0` twin — `samegame.py --from` the first
-unshared input, where the take sends one — and pins it into
-`blind::TRACES`, so the functions a reading's captures-owed table names
-leave `NEVER`; it gates on the same line. **`structure` and `render`** (Loop 4022) **and `start` and
-`input`** (DECISIONS 128 §7) **are the sixth to ninth**: a start lane gates
-on its own filters since DECISIONS 132 §6 (`--lane --whole` before it), an
-input lane scoped with the capture section. **A need
-for the queue lane
-again is a steer, never a lane's redirect** (item 3485, DECISIONS 89).
-**A late-age pair is a `residue` item that stands a word up** (DECISIONS
-90): the Mongol pair's shape — its own start and long at `cover=0`,
-`end:UNITS=3,GUYS=2` on a stride, the age held and read back,
-`diff::<name>_pair` pinned at its first parting — scored by its first
-try, its partings residue items on that word. **The rubric reads lockstep
-games only**: the worker runs `tools/rubric.py` on its tree once the
-word is pinned, names the types new to the ledger in its journal and
-re-pins `census::RUBRIC_*`, and the commander writes the queue's
-`Rubric:` line at the booking as it writes `Blind:` — the pass's
-`--record` row stays the pass's.
+candidate row the pass reads in the journals (there is no Loop backlog:
+DECISIONS 125 §3). **The kinds and their gates are `tools/brief.py`'s
+header**; the ones no item is booked under now (`reading`, `coverage`, the
+late-age pair's shape, the rubric's re-pin) are retired to
+`docs/audit/2026-11-09-loop-retired-clauses.md` ("Retired 2026-11-14: brief
+kinds no item is booked under"). **`structure` and `render`** (Loop 4022)
+**and `start` and `input`** (DECISIONS 128 §7) **are the sixth to ninth**:
+a start lane gates on its own filters since DECISIONS 132 §6 (`--lane
+--whole` before it), an input lane scoped with the capture section. **A
+need for the queue lane again is a steer, never a lane's redirect** (item
+3485, DECISIONS 89).
 
 **A builder's brief is not composed from the frame.** The driver writes it:
 the goal, the score, what is ruled out, where to read, the machine facts,
@@ -328,10 +256,63 @@ what does not exist.
 
 ## The chain
 
-Written for the commander; the driver runs it for every ccc lane. Its
-waiter clauses are to be re-measured on the new harness (Loop 4051) and
-then shortened (Loop 4055).
+Written for the commander; the driver runs it for every ccc lane. The
+waiter's exits, and what answers each, are `tools/lanewait.py`'s header,
+which is the authority (Loop 4051 and 4055 ruled closed by the pass of
+2026-11-14).
 
+**The booking gate takes every landing that is merged when it starts**
+(DECISIONS 131 §4). The tranche of 2026-11-12 ran eleven booking gates one
+landing at a time, 334.9 minutes of gate in a span of 413: the gate bound
+the loop, not the workers. The driver merges and books every lane and
+builder that is done, then gates the tip once and pushes it; a red names
+its test, and the driver reads which merge moved it before it sends anyone
+a line. **At a builder's merge the pins a merge moves are run first** — the
+census pin, the doors pin, `free::ages`, `diff::coverage`,
+`diff::checksum_lines`, `diff::transfer`, `diff::floors` — because two of
+that tranche's three reds were such a pin found by a thirty-minute gate,
+and the next tranche's first was a literal in `diff::floors` (gate-4205,
+19.8 minutes on it alone; the literal is gone, DECISIONS 132 §4).
+
+**A booking gate is scoped, and the whole gate runs at a drain and at a
+pass** (DECISIONS 132 §5). A scoped gate widens to every timed test on any
+path that can move a pin; what the whole gate adds is the caches' verifiers.
+Of nine red verdicts in the 43 gate logs of 2026-11-11 to 11-13 none was a
+test a scoped gate skips, and the verifiers caught nothing: 20.0 minutes
+against 33.0, by the medians. **A lane's own gate runs its brief's filters,
+the paperwork guards and whatever the timings file has never timed**
+(§6): the rest is the booking gate's, on the merged tree. A red at the
+booking gate names its test; the fix is its owner's second commit, and a
+merge whose fix is not in hand is reverted (`git revert -m 1`) and lands
+again with it.
+
+**A tree's corpus is what its own ledger names** (DECISIONS 132 §3;
+`rondata::corpus`). From run 1546 on, a capture in the shared archives
+counts in a tree's tests only when that tree's `docs/RUNS.md` heads a
+section with its exact run token, so a capture filed by one worker is
+skipped and printed by every other tree until the filing branch merges
+(run1575 and run1576 turned four gates red on 2026-11-13). **Each run
+token takes its own heading or is named in one; a range is not expanded.**
+A recording a capture leaves in `Logs\` carries no run token and is not
+covered: a capture that plays a file removes the `.rcx` it left, or says so.
+
+**The gate clears the disk** (DECISIONS 128 §1). After a gate that exits 0,
+`tools/gate_run.sh` runs `tools/disk.py`: every oracle cache generation but
+the gated build's **and those a process read within twelve hours** leaves
+both archives (DECISIONS 129 §2: for a tranche the sweep removed the
+generations in-flight workers were reading, 130 to 239 a gate, and they
+rebuilt cold), and a builder's tree whose tip is
+merged and whose tree is clean is removed with its branch. The log's
+`Disk:` lines say what went and what is free, `LOW` under 30 GB; the driver
+reads them beside `gate exit 0`, **and `Host top:` beside `Host load:`**:
+the five commands with the most CPU at the gate's end and start, which is
+how a tranche learns what loads the host past the budget's twenty slots.
+**A timed test that fails "unmeasured, re-run" is the host, not the
+client** (DECISIONS 129 §3): the gate is re-run when the load has fallen,
+and nothing is diagnosed. The disk read 0 GB inside a builder's run
+on 2026-11-12: about 94 generations stood in each of 133 caches and seven
+merged trees held 40 GiB of build output, and nothing removed either. A
+capture is never removed this way (entry 84 (iv)).
 
 **The commander's chain is ccc's, and it is one line.** **A done line is
 checked against origin before anything is merged** — `git ls-remote
@@ -346,28 +327,22 @@ that commit** — `python3 tools/brief.py … > brief.md && [ -s brief.md ]
 nothing on stdout) fed to `ccc spawn -` makes a promptless `draft` row
 that sits until a person looks (Loop 3434, entry 88) — the gate to a file — **`--scope <the tip the last whole
 gate ran on> --test-threads 8` on a merge, and the whole gate, no
-`--scope`, at the drain and at a pass** (DECISIONS 132 §5; every third
-landing whose merge widened, before it)
-(the thirty-fifth steer, DECISIONS 72: a scoped gate runs the timed
-tests only when a merge since the last whole one can move a pin; the
-forty-first pass, DECISIONS 79: a sweep or document landing in third
-position drew the whole gate by position, twice in one tranche) — **`git push origin
+`--scope`, at the drain and at a pass** (DECISIONS 132 §5) — **`git push origin
 worktree-replan-pdb`, read back by `git rev-parse HEAD
 origin/worktree-replan-pdb`** — `ccc push <ref> --base` pushes the
 row's *base*, which for the integration row is `main` (parked 1742),
 and the bare verb once answered "nothing to push" with origin two
 commits behind (parked 1492) —
-`ccc rm <ref>`, and `git push origin --delete <the lane's branch>` —
+`ccc rm <ref>` —
 **the push reads the gate log's own `gate exit 0` line first, never
 the background task's exit** (Loop 3997: the seventy-second's drain
 pushed a tip whose whole gate was red on `diff::audit::`, its check
 keyed on the harness's exit line; a red tip on origin is a red tip the
-next spawn inherits) — a
-worker pushes its branch, `ccc rm` deletes only the worktree and the local
-branch, and thirty-seven merged `origin/worktree-att-*` stood on 2026-09-25
-(parked 727); **the classifier may refuse that delete** (`[Git
-Destructive]`, from the commander's row and the steer's alike, Loop 3848):
-a refusal is reported at the drain with the count, never retried — never a
+next spawn inherits) — a worker pushes its branch and `ccc rm` deletes
+only the worktree and the local branch: **the merged branches on origin
+are Ramon's to delete or to allow** (DECISIONS 129 §9; the classifier
+refuses a session the delete, `[Git Destructive]`, Loop 3848), and the
+pass's record carries their count for him — never a
 raw `git merge`, never a hand-rolled reap, **no
 spawn and no `ccc update` between the merge and its booking commit** (the
 tree is red in that window), and **nothing under `docs/` is edited while
@@ -416,85 +391,30 @@ tranche — **and only while the landings so far plus the lanes live are
 under twenty**, so the tranche drains together and no lane runs alone
 (the thirty-ninth tranche's twenty-first ran an hour by itself; Ramon,
 DECISIONS 77). **And a spawn is followed by a wait on the lanes** —
-`python3 tools/lanewait.py <every live lane>`, backgrounded, re-armed
-at its every exit: it exits on a push to a lane's branch, on a row
-that left `working` and stayed out, and on a hundred quiet minutes.
-Three lanes of one tranche wrote their landing in their own transcript
-with the message tool never loaded, and the commander slept three
-hours and thirty-four minutes until a person asked (parked 1412); the
-idle notice built against that fires at every backgrounded wait —
-three notices for one idle, none a landing
-(`docs/audit/2026-10-04-sequential-arm.md`). A done line is the
-lane's, and the wait is what wakes a commander when the line does not
-come — **and a `DRAFT <lane>` line on the waiter's stderr is a push
-under a clear, never a landing** (Loop 3368: twice in one tranche a
-lane's draft journal, pushed for its `DEEP` answer, exited the waiter
-`LANDED`) — **so a done line that arrives while a wait runs stops the wait
-(`TaskStop`) and re-arms it without that lane in the same turn**: all
-sixteen of the twenty-ninth tranche's `LANDED` exits came after the
-lane's own line, each a whole-context turn that learned nothing (parked
-1695). **And a `DEEP <lane> <ctx>k` exit is answered in its turn**: one
-line to the lane — journal as a draft (its head says `draft`, or a
-`Left to do` heading stands anywhere in it: the waiter reads both, Loop
-3925), commit, push, end the turn, **or,
-if the item is finished, land instead** (Loop 3833: four of thirteen
-`DEEP` lanes over three tranches were past their status and pushed the
-landing, every one with its lane gate still running) — **and the draft
-turn ends done, on "this session is done", never `blocked` and never
-with a reply suggested** (Loop 3931, the sixty-ninth pass: lane-3919's
-armed clear stood forty minutes on its own `blocked` row and suggested
-reply, which ccc reads as a person's unsent draft and never submits;
-the waiter exits `HELD <lane> blocked` with that remedy, where it said
-`ENDED`) — and
-the waiter re-armed with `--arm-after-push <lane>`, which arms `ccc
-clear <lane> --then "continue item <N> from the journal"` at that lane's
-next push and prints `ARMED` or `ARM-REFUSED` — **a push on a lane whose
-own gate still runs is `GATING … held, not armed`**, read again at the
-gate's exit, and a push whose journal is no draft is `PUSHED … a
-landing, not armed` (Loop 3833 built; the sixty-fifth pass) — **and
-`LANDED` needs the journal's `Lane verdict:` quote or the row's done
-line; a push with neither is `PUSHED … progress, not a landing: its
-journal quotes no lane gate yet`**, and a landing whose newest commit is
-not the quote's exits `ENDED` with the row's line (Loop 3853 built; the
-sixty-sixth pass: a fresh session's re-pin push read `LANDED` with no
-gate run) (Loop 3526: `ccc clear`
-refuses a lane with uncommitted work, so an arm in the answer's own
-turn failed twice and the commander's line had already said "armed");
-a lane's own arm is refused (DECISIONS 61) and five sessions over 300 k
-took none (parked 1637, 1638); **a `HELD <lane> <range>` line before
-any exit is a draft push still unarmed** — the re-armed wait with
-`--arm-after-push` arms it at start when the row is idle and unarmed
-(Loop 3765: two held drafts died with a wait that exited on the other
-lane); **and a `GATING <lane>` note is a row that left `working` with
-its lane gate still running, held and not an exit** (Loop 3753: 3747's
-`ENDED` within a minute of `WAITING`, twice). **And a `STALLED
-<lane> <min>` exit is answered in its turn**: one line to the lane —
-the gate or capture it waited on has exited; read its log and land —
-because a lost exit notice leaves a row `working` at `tempo=idle` with
-nothing running, where no other exit can fire, and one sat 178 minutes
-(parked 1871, DECISIONS 67) — **unless the lane holds a draft push,
-when the stall is the arm**: the waiter arms the clear itself, prints
-`ARMED`, keeps watching, and nothing is sent (Loop 3795: 3788's held
-draft sat through two `HELD` exits and a `STALLED` with the row reading
-`working`, and was armed by hand). **A message is never sent to a lane
-beside an armed clear**: the clear fires on the row's idle and the
-message lands in the fresh session as its second turn, which obeys it —
-3788's fresh session was told "end your turn" and did, until a
-correction ten minutes later (Loop 3796). A nudge and an arm are two
-answers to one stall; the arm is the one that does not need the lane
-to read anything. **And an `UNCLEARED <lane> <min>` exit is
-answered in its turn**: one message to the lane carrying the clear's
-`--then` prompt — twice in one tranche a cross-session clear fired and
-its prompt never ran, and the new session sat on its `/clear` twenty
-minutes until a message woke it (parked 2127, DECISIONS 69). A red booking gate is a second commit and one line to every
+`python3 tools/lanewait.py <every live lane>`, backgrounded, re-armed at
+its every exit. **Its header is the authority**: every exit (`LANDED`,
+`ENDED`, `HELD`, `QUIET`, `DEEP`, `STALLED`, `UNCLEARED`) and every line
+that is not one (`WAITING`, `PUSHED`, `DRAFT`, `ARMED`, `ARM-REFUSED`,
+`GATING`), each with its answer and the case that taught it; the
+clauses this file carried are retired to
+`docs/audit/2026-11-09-loop-retired-clauses.md` ("Retired 2026-11-14: the
+chain's waiter block"). Three rules the tool cannot hold: **an exit is
+answered in its turn**; **a done line that arrives while a wait runs
+stops the wait (`TaskStop`) and re-arms it without that lane in the same
+turn** (parked 1695: all sixteen of the twenty-ninth tranche's `LANDED`
+exits came after the lane's own line); and **a message is never sent to
+a lane beside an armed clear** — the clear fires on the row's idle and
+the message lands in the fresh session as its second turn, which obeys
+it (Loop 3796). A red booking gate is a second commit and one line to every
 live lane to take `ccc update`; **a landing that arrives while a gate
 runs is merged at the gate's exit**, never under it. The turn does not
 end with a lane empty and the queue not, and it never asks whether to
+continue — the queue's opener is the answer.
 
 ## The lanes
 
-**The worker count is Ramon's** (DECISIONS 114 and 116): one ccc lane on
-the render track and the driver's builders on the chain. A pass reports the
+**The worker count is Ramon's** (DECISIONS 114, 116 and 129 §1): the
+roster above holds the count. A pass reports the
 shape of the waiting and recommends; it does not move the count. The rule
 that added and removed a third lane on waiting minutes is retired, with its
 history, to `docs/audit/2026-11-09-loop-retired-clauses.md`: it moved the
@@ -508,9 +428,9 @@ a reprioritisation stops future captures only. **A finding the driver would
 raise at a pass is written in the turn it is noticed, in the journal file
 of the item it came from or in the pass's own record under `docs/audit/`**;
 a journal's own "for the Loop" line stays in the journal and is filed
-nowhere (`docs/DECISIONS.md` entry 125). **The handoff's
-`For the pass` counts are the tables'** — `tools/gates.py <tmp> --since
-<the last pass's gate log>` and `tools/tranche.py --base <base>`, pasted
+nowhere (`docs/DECISIONS.md` entry 125). **A handoff banked for a pass
+carries a `For the pass` part, and its counts are the tables'** —
+`tools/gates.py <tmp> --since <the last pass's gate log>` and `tools/tranche.py --base <base>`, pasted
 after `lore index`, never a count from memory. **A waiter on a lane is
 armed with `--deep 400`** (DECISIONS 131 §6).
 
@@ -530,43 +450,49 @@ the mandate is what the earlier passes missed, and a pass fenced to the
 floor can only ever agree with the framing that fenced it.
 
 **An unattended pass has a fence.** It measures the tranche, ratifies the
-marked rows, rules the Loop items, builds the loop's tools and guards,
-and rewrites the queue and the loop's own clauses in this file — one
-commit a person can revert. **Its subagents' worktrees are removed at
-their merge** (`git worktree remove`, before the pass's gate: the
-fifty-second pass's, locked by a live `claude bg-spare`, refused the
-fifty-third tranche's tenth booking gate until a person removed it, Loop
-3545) **and the lane rows a drain left idle are reaped at the pass's
-start** (`ccc rm <ref>` on a merged row; eight stood at the fifty-third's
-drain, Loop 3565). **Its first act is the archives' compression,
-backgrounded** — `afsctool -c -f -T LZFSE -J8` on `~/ron-data` and
-`~/ron-golden`, six minutes and 19 GiB on 2026-10-17, never beside a
-gate (DECISIONS 77) — **and the suite's re-timing beside it** (`python3
-tools/suite_timings.py <install> --stale-only`, committed; DECISIONS 132
-§6: on 2026-11-13 the file was four days old and 189 tests were untimed,
-so every lane gate ran them) — **and the integration tree's debug profile is
-cleaned beside it** (`cargo clean --profile dev`: 180,851 files and 74.2
-GiB on 2026-11-04, the disk 108 → 144; the reflex rebuilds it in minutes)
-**when `df -g ~` reads under the last pass's figure** (DECISIONS 104 §6;
-the sixty-fifth read 114 at its start, 125 after both; the sixty-sixth
-141, over 125, so the archives alone, 147 after; the sixty-seventh 138,
-under 147, so both: 48,997 files and 24.9 GiB cleaned, 151 after)
-— **and its table of the tranche's gates is
-`python3 tools/gates.py <the commander's job tmp> --since <the last
-pass's gate log>`** (DECISIONS 80), **and its rubric is `python3
-tools/rubric.py --record "<the pass>"`** — the content view (ages held,
-unit types seen, source groups wholly backed) as a row in
-`docs/audit/rubric.tsv` and a table against the pass before, in the
-record beside the clock; the queue's `Rubric:` line is the pass's to
-re-pin and never a booking's (Ramon, the forty-ninth steer, DECISIONS 88). **And its blind list's open rows are scanned for references** —
-`tools/trace/report.py <exe> refs -` over `blind::NEVER` net of
-`RESIDUE` — **and the dead ratified by family, each row with the scan's
-reason**, because 115 of 192 open rows were out-of-line copies no
-capture could enter and three tranches had booked captures against the
-list without knowing it (Loop 3465, the fiftieth pass, DECISIONS 89); a
-residue row is a claim no capture can break, and one the console's
-`!eval` or an `@` line can reach is struck, never restated on scope
-(Loop 3473). **It never moves what is the user's**: the
+marked rows, rules what the tranche's journals and its own record raise,
+builds the loop's tools and guards, and rewrites the queue and the loop's
+own clauses in this file — one commit a person can revert. Its first acts (the figures earlier passes
+read are in `docs/audit/2026-11-09-loop-retired-clauses.md`, "Retired
+2026-11-14: the pass's first acts, the figures"):
+
+1. **The archives' compression, backgrounded** — `afsctool -c -f -T LZFSE
+   -J8` on `~/ron-data` and `~/ron-golden`, never beside a gate
+   (DECISIONS 77).
+2. **The suite's re-timing beside it** — `python3 tools/suite_timings.py
+   <install> --stale-only`, committed (DECISIONS 132 §6: on 2026-11-13
+   the file was four days old and 189 tests were untimed, so every lane
+   gate ran them).
+3. **The integration tree's debug profile cleaned beside it, when `df -g
+   ~` reads under the last pass's figure** — `cargo clean --profile dev`;
+   the reflex rebuilds it in minutes (DECISIONS 104 §6).
+4. **The lane rows a drain left idle reaped at the pass's start** —
+   `ccc rm <ref>` on a merged row (eight stood at the fifty-third's
+   drain, Loop 3565).
+5. **Its subagents' worktrees removed at their merge** — `git worktree
+   remove`, before the pass's gate (the fifty-second pass's, locked by a
+   live `claude bg-spare`, refused the fifty-third tranche's tenth
+   booking gate until a person removed it, Loop 3545).
+6. **Its table of the tranche's gates** — `python3 tools/gates.py <the
+   commander's job tmp> --since <the last pass's gate log>` (DECISIONS
+   80).
+7. **Its rubric** — `python3 tools/rubric.py --record "<the pass>"`: the
+   content view (ages held, unit types seen, source groups wholly backed)
+   as a row in `docs/audit/rubric.tsv` and a table against the pass
+   before, in the record beside the clock; the queue's `Rubric:` line is
+   the pass's to re-pin and never a booking's (Ramon, the forty-ninth
+   steer, DECISIONS 88).
+8. **Its blind list's open rows scanned for references** —
+   `tools/trace/report.py <exe> refs -` over `blind::NEVER` net of
+   `RESIDUE` — **and the dead ratified by family, each row with the
+   scan's reason**, because 115 of 192 open rows were out-of-line copies
+   no capture could enter and three tranches had booked captures against
+   the list without knowing it (Loop 3465, the fiftieth pass, DECISIONS
+   89); a residue row is a claim no capture can break, and one the
+   console's `!eval` or an `@` line can reach is struck, never restated
+   on scope (Loop 3473).
+
+**It never moves what is the user's**: the
 roster, the worker count, the phase, the finish
 line, the thesis, a hard constraint, or anything a decision entry
 reserves. Those it writes as recommendations at the top of its record,
