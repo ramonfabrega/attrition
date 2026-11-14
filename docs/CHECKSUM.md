@@ -2396,7 +2396,7 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
-| units | 6907 | 1535573329 | 1253377436 | 0 |
+| units | 7195 | 1033027300 | 186629872 | 0 |
 | builds | 7383 | 1242831600 | 4226882033 | 0 |
 | groups | 8206 | 1227700410 | 2455910145 | 0 |
 | guys | 7273 | 3102114080 | 2138275448 | 0 |
@@ -2533,6 +2533,20 @@ to `Army::add_group@006f8c00`, which writes the record's `army` and then calls i
 0x150c00, 26, 26 on both, and the line whole. **Step P's census does not move**: the groups triple's parted count fell
 14 → 13 on run1391 (East Indies, the Mongols at Medieval, 4174); nothing else moved.
 
+**Item 4243 moved one.** Units 6907 → 7195, none of 0..299 parted. On 6907 (run1593) theirs walks 1,648 ranges and ours
+1,639, parting from range 784, record 24: a Longbowman of army 1/1 (item 4242's three) on a `GROUP_ATTACK_TO`.
+`GroupMoveOrder::walk_data@004855c0`, which `GroupAttackToOrder::walk_data@00482510` calls whole, makes five walks:
+the virtual base's flags byte, `MoveOrder`'s `x`..`off_y`, then `GroupOrder::walk_data` inlined — the flags byte again
+through `GroupOrder`'s own vbptr, and `oxx`..`group_angle` (`+0x54..+0x68`) — and last `in_group` (`+0x68`). The
+layout is the PDB's field list: `MoveOrder`'s non-virtual part at `+0x0`, `GroupOrder`'s at `+0x50`, `in_group`, and
+`UnitOrder` virtual at `+0x70`. The emitter walked the first two and stopped; the crate held every field
+(`orders::GroupMove`). Value diff on 6907: record 24's three ranges theirs `05`; 24, 1, 0x697990, 0, the move's
+angle; 0, on each of three members (nine ranges) → the same on both, and the line whole; `id` 0x697990 is
+`(64 + 6906 × 10) × 100 + 0`, group record 64's. **Step P's census does not move** (`PACKETS_SCORE` 422): the units
+triple moved on 49 packets, every one only in that slot and with ours' range count toward theirs and never past it,
+none to whole or from it; run1293 (East Indies, the Romans at Medieval, 3606) parts on 120 ranges where it parted on
+7,180.
+
 ## 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
@@ -2551,6 +2565,7 @@ line's field reader where it has one:
 | units | 3596 | 1590 | record 16's `CastOrder`: three ranges theirs walks, ours not (1,437 against 1,440); whole since item 4234 |
 | units | 4030 | 1585 | record 14 `unit_masks`: 262152, 262664 (bit 0x200); 1 of 1,507 ranges; whole since item 4234 |
 | groups | 6781 | 1592 | group record 64 (army 1/1): `role` 0, 1379328 (0x150c00); `new_speed` 0, 26; `speed` 0, 26; whole since item 4242 |
+| units | 6907 | 1593 | record 24's `GroupMoveOrder`: three ranges theirs walks after the move, ours not (1,639 against 1,648); whole since item 4243 |
 | units, guys | 6537 | 1591 | `1/0` figure 0 `last_x` 7824, 7848, `last_y` 21648, 21672; six figure records on each line (6 of 1,546, 6 of 511); whole since item 4238 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02; whole since item 4229 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2; whole since item 4229 |
@@ -2587,8 +2602,12 @@ Not established:
   any of them.~~ Units on 3596: run1590, whole since item 4234. ~~Units and guys on 6537 and groups on 6781: no
   packet stands on any of them.~~ Units and guys on 6537: run1591, whole since item 4238. ~~Units on 6907, groups on
   6781 and guys on 7273: no packet stands on any of them.~~ Groups on 6781: run1592, whole since item 4242. ~~Units on
-  6907, guys on 7273 and groups on 8206: no packet stands on any of them.~~ None needs one: step R's record holds
-  every frame's ranges on the open lines (§25.4, item 4248).
+  6907, guys on 7273 and groups on 8206: no packet stands on any of them.~~ Units on 6907: run1593, whole since item
+  4243. ~~Units on 7195, guys on 7273 and groups on 8206: no packet stands on any of them.~~ None needs one: step R's
+  record holds every frame's ranges on the open lines (§25.4, item 4248).
+- `GroupPatrolOrder::walk_data@00482c70`'s walk is not ported: the flags byte, four bytes of `PatrolOrder`'s (offset not
+  worked), `x_pos` and `y_pos` (`SimpleArray<Coord>`), then `GroupOrder`'s tail as a grouped move walks it. The emitter hands a
+  `GROUP_PATROL` its type and node byte alone; no packet on the minted game holds one (parked 4243a).
 - An aircraft's figure 0 under the age's seating: `Guy::set_new_location`'s air arm climbs `z` toward the ground
   plus 1000, at most 30 a call, before `last_z` takes it. `Sim::age_snap_units` leaves `airframe` alone (item 4238);
   no packet holds an airborne aircraft on an age tick.
@@ -2659,8 +2678,8 @@ reached.
 - **The first act**: on trace frame 90, run1597a's and run1597's 2,794 ranges are run1562's packet stream
   (`stream-3201.tsv`) byte for byte: line, owner, site, length and bytes. Only the start differs, a heap address in
   another process.
-- **The record is every packet's stream**: on run1562's packet and each of the 14 minted packets (runs 1579 to
-  1592), every range of lines 0 to 7 has the packet's site and bytes, in order
+- **The record is every packet's stream**: on run1562's packet and each of the 15 minted packets (runs 1579 to
+  1593), every range of lines 0 to 7 has the packet's site and bytes, in order
   (`the_ranges_record_is_each_packet_s_stream`).
 - Mutations: one added to Adler's high half turns the take's test red; dropping one-byte ranges turns the packets'
   test red.
@@ -2673,15 +2692,15 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 
 | frame | line | record's ranges, ours, parted | first parting: range record field: ours, theirs |
 |---|---|---|---|
-| 6907 | units | 1,648, 1,639, 781 | 784 24 `guys.length`: ours 4 bytes `01000000`, theirs 1 byte `05` (nine ranges fewer from here) |
+| 7195 | units | 1,697, 1,697, 3 | 832 27 `collide_frame..play`: `unit_masks` 262144 (0x40000), 262148 (0x40004) |
 | 7273 | units | 1,692, 1,692, 1 | 891 30 guy: `angle` and `last_angle` 1431655765, 0 |
 | 7273 | guys | 560, 560, 1 | 279 30 guy: `angle` and `last_angle` 1431655765, 0 |
 | 7383 | builds | 1,142, 1,142, 1 | 903 2019 `mtn..cliff`: `mtn` −1, 0 |
 | 8206 | groups | 544, 544, 1 | 91 67 `id..march`: `ox` 30552, 0; `oy` 21144, 0 |
 
-On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Units parts on 781 ranges at 6907
-because its walk is nine ranges short and every range after the gap is shifted. By 7273 the count agrees and the units
-line parts on one range, the guy's.
+On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Measured on the tree after item 4243,
+which made units whole on 6907 (run1593). Before it the record's 6907 showed what 4243's packet showed: units nine
+ranges short (1,639 of 1,648), first at range 784.
 
 ## 25.5 How it was established, and what it has not established
 

@@ -403,6 +403,58 @@ pub const FOG_TO: Pos = Pos { x: 6792, y: 31100 };
 /// [`ATTACK_FRAME`]: `1/0` is still seen.
 pub const FOLLOW_FRAME: i32 = 6704;
 
+/// **The gathered script** (item 4249, `docs/CLIENT_INPUT.md` §11): the
+/// followed script, then the capital [`CAPITAL`] given a rally point and a
+/// Citizen. On [`GATHER_FRAME`] a press on the capital and a right press
+/// on bare ground: a building that trains (`COUNT_GATHER_POINT`) and no
+/// object under the cursor draw `Console::execute_at_cursor`'s ground arm,
+/// `gather_point(x, y, action 0, add_to_end 0)` at [`GATHER_AT`]. On
+/// [`GATHER_TRAIN_FRAME`] the capital trains a Citizen, who walks to it.
+/// The client's `minted_gathered_at_the_opening_camera` mints these field
+/// for field.
+pub fn gathered() -> Vec<Order> {
+    let mut orders = followed();
+    let capital = || Command::Group {
+        who: 0,
+        objects: vec![CAPITAL],
+    };
+    orders.extend([
+        (
+            GATHER_FRAME,
+            0,
+            vec![
+                capital(),
+                Command::GatherPoint {
+                    x: GATHER_AT.x,
+                    y: GATHER_AT.y,
+                    action: 0,
+                    add_to_end: 0,
+                },
+            ],
+        ),
+        (
+            GATHER_TRAIN_FRAME,
+            0,
+            vec![
+                capital(),
+                Command::QueueUp {
+                    unit: CITIZEN,
+                    num: 1,
+                },
+            ],
+        ),
+    ]);
+    orders
+}
+
+/// The frame the rally point is consumed on, two after [`FOLLOW_FRAME`].
+pub const GATHER_FRAME: i32 = 6706;
+/// The ground the rally point names, under the layer's inverse at the
+/// opening camera.
+pub const GATHER_AT: Pos = Pos { x: 4306, y: 31001 };
+/// The frame the capital's Citizen is queued on.
+pub const GATHER_TRAIN_FRAME: i32 = 6708;
+
 /// slot 0's Library, `0/2005` (`TypeIndex` 435).
 pub const LIBRARY_OBJECT: i16 = 2005;
 /// The Art of War's `TypeIndex`: `BASE_TECHTYPES` (0x220) plus its record,

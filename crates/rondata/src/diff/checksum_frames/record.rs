@@ -105,9 +105,9 @@ fn the_ranges_record_is_the_hook_s_take() {
 }
 
 /// **A frame of the record is the packet's stream**: on run1562's packet
-/// (frame 91) and each of [`MINTED_PACKETS`]' (runs 1579 to 1592), every
+/// (frame 91) and each of [`MINTED_PACKETS`]' (runs 1579 to 1593), every
 /// range of lines 0 to 7 on the record's frame is the instrument's on the
-/// packet, site and bytes, in order — fifteen packets, no capture.
+/// packet, site and bytes, in order — sixteen packets, no capture.
 #[test]
 fn the_ranges_record_is_each_packet_s_stream() {
     use super::super::checksum_lines::packets::packet_stream_in;
@@ -177,21 +177,21 @@ const STATE_LINES_KEPT: [&str; 8] = [
 /// open lines; a walker the record names by its call site.
 const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     (
-        6907,
+        7195,
         &[
             (
                 "units",
-                1648,
-                1639,
-                781,
-                "784 24 guys.length: +0x0 of 4|1: 01000000|05",
+                1697,
+                1697,
+                3,
+                "832 27 collide_frame..play: unit_masks 262144|262148",
             ),
             (
                 "leaders",
                 271,
                 271,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|21010000",
+                3,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|24010000",
             ),
         ],
     ),
@@ -254,8 +254,8 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             (
                 "units",
                 1937,
-                1928,
-                782,
+                1937,
+                1,
                 "878 30 guy: angle 1431655765|0, last_angle 1431655765|0",
             ),
             ("builds", 1142, 1142, 1, "903 2019 mtn..cliff: mtn -1|0"),

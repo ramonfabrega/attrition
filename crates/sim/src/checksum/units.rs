@@ -138,6 +138,19 @@ pub const CAST_FIELDS: &[(&str, usize, usize)] = &[
     ("spell", 0x20, 4),
 ];
 
+/// **`GroupOrder`'s walked 20 bytes on a `GroupMoveOrder`** (`+0x54..+0x68`,
+/// `oxx`..`group_angle`, the PDB's field list: `MoveOrder`'s non-virtual
+/// part is `+0x0..+0x50`, `GroupOrder`'s `+0x50..+0x68`, its vbptr first;
+/// `GroupMoveOrder::walk_data@004855c0`, item 4243). `in_group` (`+0x68`)
+/// is the walk's next range, four bytes of its own.
+pub const GROUP_ORDER_FIELDS: &[(&str, usize, usize)] = &[
+    ("oxx", 0x54, 4),
+    ("whose", 0x58, 4),
+    ("id", 0x5c, 4),
+    ("form_id", 0x60, 4),
+    ("group_angle", 0x64, 4),
+];
+
 /// `Stack<PathData>`'s growth step as `Unit::init` leaves it (`increment`):
 /// 10 on every unit of run 1562's frame 91. Its `size` is
 /// [`crate::orders::PathStack::size`], the high water a long path left
@@ -507,7 +520,9 @@ impl Sim {
     /// (`TargetOrder` `ox`, `whom`, `uid`) and a `GATHER` (that, and
     /// `tx`..`been_there`); a `TRADE_ROUTE` (that target, and `oxx`..
     /// `uid2`, item 4230) first held one on the minted game's 3166; a
-    /// `CAST_SPELL` (that target, and `x`..`spell`, item 4234) on 3596; any
+    /// `CAST_SPELL` (that target, and `x`..`spell`, item 4234) on 3596; a
+    /// `GROUP_MOVE` or `GROUP_ATTACK_TO` (the move, then the flags again,
+    /// `oxx`..`group_angle` and `in_group`, item 4243) on 6907; any
     /// other kind hands over its type and node byte alone here, its walker
     /// not ported (`docs/CHECKSUM.md` §17).
     fn checksum_order(&self, ranges: &mut Vec<Range>, u: usize, k: usize) {
@@ -567,6 +582,32 @@ impl Sim {
                 p(0x4c, 2, i64::from(m.dest.x.rem_euclid(0x300)));
                 p(0x4e, 2, i64::from(m.dest.y.rem_euclid(0x300)));
                 put("order.move", b);
+                // `GroupMoveOrder::walk_data@004855c0` (item 4243), which
+                // `GroupAttackToOrder::walk_data@00482510` is whole: after
+                // `MoveOrder`'s two ranges, `GroupOrder::walk_data`'s two
+                // inlined — the virtual base's flags byte again, through
+                // `GroupOrder`'s own vbptr, and `oxx`..`group_angle` — then
+                // `in_group`. A plain `MOVE_TO`/`ATTACK_TO` walks
+                // `MoveOrder::walk_data` and stops at `order.move`.
+                if let Some(g) = m.group
+                    && matches!(o.index(), kind::GROUP_MOVE | kind::GROUP_ATTACK_TO)
+                {
+                    put("order.flags", vec![o.flags]);
+                    let leader = &self.units[g.leader];
+                    let mut b = vec![0u8; 0x68 - 0x54];
+                    debug_assert_eq!(GROUP_ORDER_FIELDS.len(), 5);
+                    let mut p = |at: usize, w, x: i64| put_raw(&mut b, at - 0x54, w, x);
+                    p(0x54, 4, i64::from(leader.index));
+                    p(0x58, 4, i64::from(leader.owner));
+                    p(0x5c, 4, g.id);
+                    p(0x60, 4, g.form_id as i64);
+                    p(0x64, 4, i64::from(g.group_angle.0));
+                    put("order.group", b);
+                    put(
+                        "order.in_group",
+                        i32::from(g.in_group).to_le_bytes().to_vec(),
+                    );
+                }
             }
             Body::Build(b) if o.index() == kind::BUILD_AT => {
                 put("order.flags", vec![o.flags]);

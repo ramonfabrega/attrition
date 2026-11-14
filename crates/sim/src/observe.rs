@@ -231,6 +231,11 @@ pub struct BuildingScene {
     /// [`Sim::build_is_seen`] ports it; `true` when there is no viewer
     /// (item 4202, [`UnitScene::seen`]).
     pub seen: bool,
+    /// `BuildTypeData::is_training_building@00639de0` of its type, as
+    /// [`crate::cities::build::is_training_building`] ports it: the arm of
+    /// `GroupData::count`'s `COUNT_GATHER_POINT` the client's gather point
+    /// reads (item 4249, `docs/CLIENT_INPUT.md` §11). A read only.
+    pub trains: bool,
 }
 
 /// A farm's `FarmStruct`, as `FarmsOut::draw@008d75f0` reads it
@@ -494,6 +499,9 @@ impl Sim {
                     })
                     .map(|_| (b.gatherers.len() as i32, b.gather_max)),
                 seen: viewer.is_none_or(|p| self.build_is_seen(i, p)),
+                trains: b.ty.is_some_and(|t| {
+                    crate::cities::build::is_training_building(&self.tables.build_types, t)
+                }),
             })
             .collect();
         let projectiles = self
