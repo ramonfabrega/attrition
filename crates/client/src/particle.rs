@@ -24,13 +24,6 @@ pub const SYSTEMS: [&str; 2] = ["BUILDING FIRE", "BUILDING SMOKE"];
 /// The key the particles' texture takes in the GPU's cache.
 pub const PARTICLE_KEY: i32 = -0x302;
 
-/// **The anchor's direction** (`get_position`'s second vector, `desc.vel`)
-/// is not read off the model: a unit vector, as the packets' four are,
-/// pointing down as theirs do (their z −0.48 to −0.54). It sets the
-/// start's speed (`start_speed`, 15 units a second for the smoke) and the
-/// velocity noise's scale.
-const DIRECTION: [f32; 3] = [0.0, 0.0, -1.0];
-
 /// The systems and their texture, loaded once.
 pub struct ParticleArt {
     pub systems: [System; 2],
@@ -127,7 +120,7 @@ impl World {
                     ^ ((e.o as u16 as u32) << 8)
                     ^ (u32::from(e.slot) << 1)
                     ^ k as u32;
-                for p in plume(sys, e.pos, DIRECTION, key, now, &ground) {
+                for p in plume(sys, e.pos, e.dir, key, now, &ground) {
                     out.push((k, p));
                 }
             }
@@ -286,6 +279,103 @@ pub(crate) mod tests {
                     "{id}"
                 );
             }
+        }
+    }
+
+    /// One packet's smoke emitters (`emitters.py` in item 4240's lab
+    /// directory): each one's anchor, direction (`desc.vel`), birth count
+    /// (`ParticleEmitter +0x50`), and its live particles' `(time_left,
+    /// pos)`.
+    pub(crate) type Emitters = Vec<([f32; 3], [f32; 3], u32, Vec<(u32, [f32; 3])>)>;
+
+    pub(crate) fn smoke_emitters(name: &str) -> Option<Emitters> {
+        let home = std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default());
+        let path = home
+            .join("ron-data/lab-experiments/2026-11-14-item-4240")
+            .join(format!("{name}-emitters.txt"));
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no emitters at {}", path.display());
+            return None;
+        };
+        let mut out: Emitters = Vec::new();
+        let mut on = false;
+        for line in text.lines() {
+            let w: Vec<&str> = line.split_whitespace().collect();
+            let after = |key: &str, k: usize| -> &str {
+                w[w.iter().position(|x| *x == key).expect("a key") + k]
+            };
+            let three =
+                |key: &str| [1, 2, 3].map(|k| after(key, k).parse::<f32>().expect("a number"));
+            match w.first().copied() {
+                Some("emitter") => {
+                    on = w[2] == "37";
+                    if on {
+                        let counter = after("counter", 1).parse().expect("a count");
+                        out.push((three("pos"), three("vel"), counter, Vec::new()));
+                    }
+                }
+                Some("particle") if on && after("flags", 1) != "0" => {
+                    let time_left = after("time_left", 1).parse().expect("time left");
+                    out.last_mut()
+                        .expect("its emitter")
+                        .3
+                        .push((time_left, three("pos")));
+                }
+                _ => {}
+            }
+        }
+        Some(out)
+    }
+
+    /// **Each smoke particle's start against the packet's** (item 4240;
+    /// `docs/RENDERER.md` §3.25), on run1559b's and run1570's packets. An
+    /// emitter's live particles, newest first, are its counts `counter −
+    /// 1` down, each born the life less its `time_left` ago. Ours for that
+    /// count ([`render::particle::start`] off [`render::particle::seed`]),
+    /// moved for its age with the wind always on, stands on the packet's z
+    /// within half a unit: the wind turns about z only, so z does not hang
+    /// on the capture's cadence. Slot 10's three oldest on run1559b lost
+    /// about a second of wind to the ground and stand lower. Made to fail:
+    /// the count shifted by one lands none.
+    #[test]
+    fn the_starts_are_the_packets() {
+        use render::particle::{BUILD_RANDOM, seed, start, wind};
+        let root = std::env::var_os("RON_INSTALL")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| std::path::PathBuf::from("../../game"));
+        let Some(art) = ParticleArt::load(&root) else {
+            println!("skipping: no install at {}", root.display());
+            return;
+        };
+        let smoke = &art.systems[1];
+        for (name, frame, want) in [("run1559b", 3294, 69), ("run1570", 3331, 72)] {
+            let Some(emitters) = smoke_emitters(name) else {
+                return;
+            };
+            let (mut lands, mut shifted, mut n) = (0, 0, 0);
+            for (anchor, dir, counter, mut ps) in emitters {
+                ps.sort_by_key(|p| std::cmp::Reverse(p.0));
+                for (rank, (time_left, theirs)) in ps.into_iter().enumerate() {
+                    let age = smoke.life() - time_left;
+                    let z = |c: u32| {
+                        let (mut p, mut v) =
+                            start(smoke, anchor, dir, seed(frame, anchor, BUILD_RANDOM, c));
+                        let mut t = 0;
+                        while t < age {
+                            let dt = (age - t).min(67);
+                            smoke.step(&mut p, &mut v, dt as f32, wind(frame), f32::MIN);
+                            t += dt;
+                        }
+                        p[2]
+                    };
+                    let c = counter - 1 - rank as u32;
+                    n += 1;
+                    lands += usize::from((z(c) - theirs[2]).abs() < 0.5);
+                    shifted += usize::from((z(c + 1) - theirs[2]).abs() < 0.5);
+                }
+            }
+            println!("{name}: {lands} of {n} on the packet's z, shifted {shifted}");
+            assert_eq!((lands, n, shifted), (want, 72, 0), "{name}");
         }
     }
 

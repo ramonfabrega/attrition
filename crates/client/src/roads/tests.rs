@@ -398,10 +398,11 @@ const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
 /// Item 4221: before and moved luma 9 → 10, the trees tinted and blended (§3.23).
 /// Item 4233: drawn luma 15 → 16, the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21).
 /// Item 4237: before luma 10 → 11, the smoke blended in HDR moving the frame's white (§3.25).
+/// Item 4240: before luma 11 → 10, moved 10 → 9: the emission's starts (the node's direction and the original's draws, §3.25) move the frame's mean, so its white (§3.21).
 const RUN1570_RING: [[(usize, usize); 2]; 3] = [
-    [(0, 24), (11, 24)],
-    [(22, 24), (16, 24)],
     [(0, 24), (10, 24)],
+    [(22, 24), (16, 24)],
+    [(0, 24), (9, 24)],
 ];
 
 /// **The ring's row** (item 4199, §3.19): on run1559b's and run1570's
