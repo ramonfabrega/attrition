@@ -26,9 +26,12 @@ sessions since 2026-11-10 made 11,244 requests carrying a mean of 194,292
 cache-read tokens each, 800.94 USD at list (`lore usage --by session`). A
 lane's read-first set is `CLAUDE.md` (25,606 B), the memory index (7,324 B)
 and the head of the queue (18,475 B; below): about 15,600 tokens, 8 % of
-what a request carries. Cutting a third of it is under 3 % of lane spend.
-The 14.5 MB below is read a section at a time and its size costs a session
-nothing measurable.
+what a request carries. At entry 131 §6's rates (lore, Opus 5.5,
+2026-11-13: 8.00 USD a million tokens read again, 0.20 a million carried a
+request) the 18,475 B of queue a lane reads cost about 0.16 USD a lane
+session, 17 USD over those 108, 2 % of their bill; every trim in this file
+together is about 3 %. The 14.5 MB below is read a section at a time and
+its size costs a session nothing measurable.
 
 **What compaction should buy instead is a true first read.** The read-first
 set is where the stale and the contradicted are (Part 2: a queue opener 21
@@ -52,7 +55,7 @@ measurable; the question is his.
 
 | # | the rule | what it costs today (measured) | the case for keeping it | the question |
 |---|---|---|---|---|
-| D1 | A `## ` section is held under 16,000 B (`SECTION_CEILING`, 2026-08-30) | It works as a target. The handoff's median over its last 120 commits is 15,958 B: 91 within 100 B of the ceiling, 46 within 20. The DECISIONS index has stood within 100 B on 36 of its last 60 commits and its newest rows are squeezed to four words. 30 sections of 17 files sit at 15,900 to 16,000 (`AI.md` 6, `GOLDEN.md` 5, `COMBAT.md` 3). Item 262 removed the queue's line count for this ("43 fitting episodes and 117 USD", the guard's comment); the byte ceiling rebuilt it one level down. | A section is what a session reads whole; without a bound the handoff was 70 lines in two days. | Keep the number, and take the pressure off the two sections rewritten every session (R1 for the handoff, S1 for the index)? Or give those two their own rule? This lane recommends the first. |
+| D1 | A `## ` section is held under 16,000 B (`SECTION_CEILING`, 2026-08-30) | It works as a target. The handoff's median over its last 120 commits is 15,958 B: 91 within 100 B of the ceiling, 46 within 20. The DECISIONS index has stood within 100 B on 36 of its last 60 commits and its newest rows are squeezed to four words. 30 sections of 17 files sit at 15,900 to 16,000 (`AI.md` 6, `GOLDEN.md` 5, `COMBAT.md` 3). Of the 114 commits that changed the handoff, 47 added 150 B or more, cut about as much and landed at 15,900 or over; in all they added 48,303 B and cut 48,244 from a 16,000 B section. Entry 35 removed the queue's line count for this ("43 fitting episodes ... 117 USD"; "the argument that decided it is correctness, not tokens": a global bound "is satisfied by compressing *any* item") and named its own failure measure: "If a session is seen compressing an item it did not write, it did not [work]." A booking that cuts another booking's clause to seat its number is that. | A section is what a session reads whole; without a bound the handoff was 70 lines in two days. | Keep the number, and take the pressure off the two sections rewritten every session (R1 for the handoff, S1 for the index)? Or give those two their own rule? This lane recommends the first. |
 | D2 | The handoff is at most 32 lines (`HANDOFF_LINES`) | Met by lines of 2,779, 3,285 and 3,686 B. The line bound has bound nothing since the lines stopped wrapping. | The parsers need each scoreboard line unwrapped. | Retire the line bound for the prose, or have the prose wrap and count? |
 | D3 | `docs/DECISIONS.md`: append, amend in place, never delete | 843,219 B. 54 entries that score a tranche or a pass hold 478,745 B (58 %); 70 entries (427,951 B) are cited by no code and no tool. Nobody reads it whole, so the bytes cost little. What costs is the walk: a rule's standing form is at the end of a chain (entry 128 is "amended by 129, 130, 131, 132"), and the index that should shorten the walk is by number and squeezed (S1). | It is where a considered decision is told from an accident, and a retelling drops findings. | G3: three tiers. This lane recommends the index split now and an index **by topic** (additive, no rule change); it recommends against freezing or rewriting entries unless he wants a file he can read end to end, which is a different product. |
 | D4 | A mechanic document's sections are appended per item and their numbers are an API | `AI.md` is 438 sections in landing order, 2.8 MB, 349 titled by an item. It is a notebook with stable addresses, not a text a session can read to learn the AI. | The addresses work: 2,374 code citations resolve and a guard checks each. | Is a digest by mechanism wanted on top (a new file citing the numbered sections)? An editorial job of days. Not before the milestone, in this lane's view. |
@@ -79,7 +82,7 @@ measurable; the question is his.
 | R11 | `CLAUDE.md` | 25,606 of 26,000 | candidates only | up to ~4,500 | Ramon |
 | R12 | the memory index | 7,324 | hooks to one line; one stale pointer | ~2,500 | outside git |
 | S1 | DECISIONS, "Index" | 15,985 of 16,000 | split at entry 100; retitle; reorder; fix 121's row | 0 (frees ~8,000) | none |
-| S2–S15 | fourteen syncs, Part 2 | | | | |
+| S2–S16 | fifteen syncs, Part 2 | | | | |
 | G1 | the eight sections pinned in `OVER` | 284,070 | promote their numbered `###` parts to `##` | 0 (largest read 70,859 → 16,594) | delete seven `OVER` rows |
 | G2 | `docs/JOURNAL.md`, the chronicle to 2026-09-17 | 1,185,526 | leave, or archive at a revision | 0 or 1.19 MB | `queueledger.py`; Ramon (`CLAUDE.md`'s table) |
 | G3 | `docs/DECISIONS.md` | 843,219 | an index by topic; no entry moved | 0 | the pass |
@@ -167,6 +170,20 @@ what it points at.
   accepts the closed form only when every pinned row has word equal to
   length (and `0 off` where it carries a close), so a named regression
   turns the short line red and the row is written out again.
+- **What it would read** (a sketch of the form, 380 B where 5,738 stand;
+  the wording is the pass's):
+
+      Long captures: every word whole · 2
+      Second pair: every word whole · 2
+      Third pair: every word whole · 2
+      Coverage pair: every word whole · 1
+      Successor pair: every word whole · 1
+      Peace pair: every word whole · 1
+      Late ages: every word whole · 82
+      Battery word: every word whole · 28
+      Melee: every word whole · 6, 0 off
+      Third map: every word whole · 4
+
 - **Saved:** about 5,300 B (5,700 with `Mapgen:`), a third of the section.
 - **What cites it:** `crates/rondata/src/diff/floors.rs` reads each line by
   prefix (`the_handoff_carries`, `ai_line_verdict`, `ai_line_closes`, and
@@ -408,6 +425,7 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S13 | twelve doc-to-doc section cites | a section that does not exist: `AI` §4.4 (CITIES line 531) and §9.3 (ORACLE 1841); `ANIM` §4.4 (ORDERS 2059); `ARMY` §15.8 (COMBAT 2687, four times) and §16.3 (INPUT 454); `COMBAT` §14.1 (MOVEMENT 107); `NATIONS` §5 (DECISIONS 6619); `ORDERS` §714 (INPUT 203, a line number); `PATHFINDER` §18.6 (COMBAT 12899) and §4.6 (TRANSPORT 17, twice); `TECH` §13 (AI 14501) and §7 (ANIM 2214) | `a_section_the_code_cites_is_one_the_document_holds` reads `crates/` only; the same parser over `docs/*.md` finds these. Six of the twelve are sections its `NO_SUCH_SECTION` already pins for the code. | mend each; or extend the guard to the documents with these pinned |
 | S14 | four paths | `crates/rondata/src/mapped.rs` (DATALAYER line 131); `tools/gamelog/handdriver.sh` (CENSUS 619; RUNS twice); `tools/ghidra/decomp` (VISION 9, RECGAME 12, COMBAT 4444) | none exists in the tree (`tools/ghidra` holds `analyze.sh`, `export.sh`, `run.sh`, `scripts`); the export is outside the repo by rule | name the file that holds it now; say "the export" without a repo path |
 
+| S16 | DECISIONS, "Index": statuses | 116 "amended by 121"; 100 "standing"; 59 "extended by 60" | entry 126 §1: "Entry 116's single row and entry 122's roster line are superseded here"; entry 103: "amends entry 100 §3's "next cell""; entry 61: "amends ... entry 59's clause 1". Three read; a mechanical pass (a later entry's sentence that names an earlier one beside amend, replace, retire, withdraw or supersede) lists 7 rows the index calls standing (57, 64, 71, 72, 99, 100, 121) and 16 whose list of successors is short; 16 entries carry an "Amended <date>" note while their row says something other than "amended in place" (4, 9, 24, 29, 34, 55, 63, 64, 68, 71, 72, 77, 78, 87, 88, 121). Candidates, not verdicts: the heuristic is noisy, and a successor does not always name what it changes (entry 126 returns the two rows without a sentence that says "amends entry 116" in those words). | the pass that splits the index (S1) checks these rows; G3's index by topic is the durable fix |
 | S15 | `docs_guard.rs`, `OVER` | four pins: `ORDERS.md` §4 37,583; `AI.md` §2 70,933, §15 26,923, §99 51,530 | the guard's own stderr asks for each to be lowered: "shrank to 37575 ... 70859 ... 26922 ... 51527; lower its pin" (86 B of slack; a passing test's stderr is captured, so nobody sees it) | lower the four; or make the slack a failure, as the queue's pins are |
 
 Also seen, and not a contradiction: `CLAUDE.md` gives the gate as
@@ -557,10 +575,12 @@ the ceiling, and each span is a wrong claim kept from being read as live.
 137,908 B in 46 sections; `CLAUDE.md` points an adjudicator at it for "its
 record and its lessons". "The record" is 30,524 B, the largest section in
 the tree outside `OVER` and `JOURNAL.md`, and `docs/audit/` is not under
-the ceiling. Five sections are "The brief checklist, from the Nth pass",
-held to the frame by a test. Not read by this lane beyond its outline; a
-pass that sends a reader there could check whether the pointer should name
-a section.
+the ceiling. 38 of the 46 sections are "The brief checklist", one a pass
+from the eighteenth to the sixty-second, held to the frame by
+`tools/explore/test_brief.py`; `brief.py` points a lane there for "the
+story behind any row", on demand. The frame is the digest and this is its
+history, read a row at a time. Leave it; a pointer into it could name the
+section.
 
 ## Not established
 
