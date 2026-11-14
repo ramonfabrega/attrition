@@ -855,3 +855,68 @@ No blind second reading was made of these.
   layer takes the issuing slot's own sight.
 - **`UnitData::is_seen`'s two `unit_masks` bits.** These are `0x800` and `0x1000`, which `Sim::target_seen_by` does
   not carry (`docs/VISION.md`).
+
+## 11. The kinds a game carries, and the layer's share of them (item 4249)
+
+*Item 4249, 2026-11-14. The score is the input track's census: of the order kinds the recordings on disk carry, the
+kinds this layer mints, with each kind's share of the orders. A game a person can play is one whose orders the layer
+can make; this is how far it is from one.*
+
+### 11.1 The census
+
+The corpus is `recgame`'s (`docs/RECGAME.md` §8): the 49 recordings in the bottle's `Logs\` and the 2017 sample, 50
+files. Every package of every file decodes. An order is a command `rondata::input::is_input` keeps: everything but
+`camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
+as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
+
+**`INPUT_KINDS`: 8 of 26 kinds, 1,879 of 2,429 orders.** The kinds the layer mints are `input::MINTS`, held to the
+`Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
+`input_kinds_of_the_recordings_on_disk`.
+
+| kind | orders | share | minted |
+| --- | ---: | ---: | --- |
+| `group` | 1,059 | 43.5 % | yes |
+| `move_to` | 396 | 16.3 % | yes |
+| `queue_up` | 264 | 10.8 % | yes |
+| `gather_point` | 177 | 7.2 % | |
+| `chat` | 160 | 6.5 % | |
+| `attack` | 80 | 3.2 % | yes |
+| `leader_options` | 50 | 2.0 % | |
+| `build` | 31 | 1.2 % | yes |
+| `sell` | 28 | 1.1 % | |
+| `swarm_around` | 28 | 1.1 % | yes |
+| `pause` | 24 | 0.9 % | |
+| `city_gather` | 20 | 0.8 % | |
+| `buy` | 18 | 0.7 % | |
+| `spell` | 17 | 0.6 % | |
+| `unqueue` | 13 | 0.5 % | |
+| `gather` | 11 | 0.4 % | yes |
+| `guard` | 10 | 0.4 % | yes |
+| `rename_city` | 10 | 0.4 % | |
+| `hotkey` | 8 | 0.3 % | |
+| `garrison` | 6 | 0.2 % | |
+| `buildmask` | 5 | 0.2 % | |
+| `cheat_ai_toggle` | 4 | 0.1 % | |
+| `come_out` | 4 | 0.1 % | |
+| `stance` | 4 | 0.1 % | |
+| `disband` | 1 | 0.0 % | |
+| `unitmask` | 1 | 0.0 % | |
+
+The shares are cut to the tenth, not rounded.
+
+**Where the orders come from.** Twelve of the 50 files carry anything past `leader_options`. The 2017 sample
+(`seifer008 - Toughest AI 4 v 1`, 21,044 frames) carries 2,104 of the 2,429 orders and 22 of the 26 kinds. The other
+eleven are the bottle's captures of 2026-08-20 to 08-26, before any file of ours was minted (item 4058 is
+2026-11-08), so no order in the census is one this layer made. In lockstep only real input travels, so the AI
+players' orders are in no file.
+
+**What the census counts and what it does not.**
+- `follow` is minted (§10) and carried by no file, so it is in `MINTS` but not in the 8.
+- `guard` is counted as minted, though no take has played one (§10.4).
+- `leader_options` is the lobby's, one a file: every file of ours carries it through `recgame::minted_packages`, and
+  the layer does not mint it.
+- `chat` in the bottle's captures is the cheat console's line (`rondata::input`'s `Chat` arm); `cheat_ai_toggle` is
+  a capture driver's.
+
+**The next kind by share is `gather_point`**, 177 orders: a building's rally point. Of them 153 carry `action` 0 and
+`add_to_end` 0, 12 carry `action` 3, 9 `action` 1 and 3 `action` 2.

@@ -76,6 +76,22 @@ pub const SELECT_CAP: usize = 0x80;
 /// pixels. Ours: the original's `clicking` threshold is not read.
 pub const DRAG_SLOP: i32 = 4;
 
+/// **The command kinds this layer mints** (item 4249,
+/// `docs/CLIENT_INPUT.md` §11), by `Command::name`: what [`Input::event`]
+/// can put in an order. `the_layer_mints_what_it_says` reads this file's
+/// own source and holds the list to the `Command::` values it builds.
+pub const MINTS: &[&str] = &[
+    "group",
+    "move_to",
+    "attack",
+    "follow",
+    "guard",
+    "swarm_around",
+    "gather",
+    "build",
+    "queue_up",
+];
+
 /// One input event, at a screen pixel where it has one.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Event {
@@ -1958,5 +1974,102 @@ pub(crate) mod tests {
         assert_eq!(input.event(1, Event::Key('x'), &v), None);
         let order = input.event(1, Event::Key('c'), &v).unwrap();
         assert_eq!(order.2[1], Command::QueueUp { unit: 50, num: 1 });
+    }
+
+    /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
+    /// order kinds the recordings on disk carry
+    /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
+    /// share of the recordings' orders they make.
+    const INPUT_KINDS: (usize, usize) = (8, 26);
+    /// The orders those kinds make, of every order the recordings carry.
+    const INPUT_KINDS_ORDERS: (usize, usize) = (1879, 2429);
+    /// The kinds on disk the layer does not mint, most first: the next
+    /// kind by share is the first.
+    const NOT_MINTED: &[&str] = &[
+        "gather_point",
+        "chat",
+        "leader_options",
+        "sell",
+        "pause",
+        "city_gather",
+        "buy",
+        "spell",
+        "unqueue",
+        "rename_city",
+        "hotkey",
+        "garrison",
+        "buildmask",
+        "cheat_ai_toggle",
+        "come_out",
+        "stance",
+        "disband",
+        "unitmask",
+    ];
+
+    /// The census, counted against the disk's pinned kinds.
+    #[test]
+    fn input_kinds_of_the_recordings_on_disk() {
+        let disk = rondata::input::KINDS_ON_DISK;
+        let minted: Vec<&(&str, usize)> = disk.iter().filter(|k| MINTS.contains(&k.0)).collect();
+        let orders: usize = disk.iter().map(|k| k.1).sum();
+        let ours: usize = minted.iter().map(|k| k.1).sum();
+        for (k, n) in disk {
+            let mark = if MINTS.contains(k) { "minted" } else { "" };
+            eprintln!(
+                "KIND {k:>16} {n:>5} {:>3}.{} % {mark}",
+                n * 100 / orders,
+                n * 1000 / orders % 10
+            );
+        }
+        assert_eq!((minted.len(), disk.len()), INPUT_KINDS);
+        assert_eq!((ours, orders), INPUT_KINDS_ORDERS);
+        let not: Vec<&str> = disk
+            .iter()
+            .map(|k| k.0)
+            .filter(|k| !MINTS.contains(k))
+            .collect();
+        assert_eq!(not, NOT_MINTED);
+    }
+
+    /// **The layer mints what [`MINTS`] says** (item 4249): every
+    /// `Command::` value built in this file's non-test source, by its
+    /// variant's name in `Command::name`'s spelling, is [`MINTS`], no more
+    /// and no fewer.
+    #[test]
+    fn the_layer_mints_what_it_says() {
+        let src = include_str!("input.rs");
+        let body: String = src[..src.find("#[cfg(test)]\npub(crate) mod tests").unwrap()]
+            .lines()
+            .filter(|l| !l.trim_start().starts_with("//"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let mut built: Vec<String> = Vec::new();
+        for (i, _) in body.match_indices("Command::") {
+            let rest = &body[i + "Command::".len()..];
+            let name: String = rest
+                .chars()
+                .take_while(|c| c.is_ascii_alphanumeric())
+                .collect();
+            let after = rest[name.len()..].trim_start();
+            // A value is built with its fields (`{`) or bare; a pattern
+            // (`{ .. }`) and the `use` line are not.
+            if after.starts_with("{ ..") || after.starts_with(';') || name.is_empty() {
+                continue;
+            }
+            let mut snake = String::new();
+            for (j, c) in name.chars().enumerate() {
+                if c.is_ascii_uppercase() && j > 0 {
+                    snake.push('_');
+                }
+                snake.push(c.to_ascii_lowercase());
+            }
+            if !built.contains(&snake) {
+                built.push(snake);
+            }
+        }
+        let mut want: Vec<String> = MINTS.iter().map(|s| s.to_string()).collect();
+        built.sort();
+        want.sort();
+        assert_eq!(built, want);
     }
 }

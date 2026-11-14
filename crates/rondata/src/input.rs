@@ -1713,3 +1713,82 @@ impl Stream {
             .collect()
     }
 }
+
+/// **The order kinds the recordings on disk carry** (item 4249,
+/// `docs/CLIENT_INPUT.md` §11): every [`is_input`] command of every
+/// recording `recgame`'s corpus reads (the bottle's 49 and the 2017 sample),
+/// counted by [`Command::name`], most first. The client's `INPUT_KINDS` is
+/// counted against it. Measured, and checked against the disk by
+/// `the_order_kinds_on_disk`.
+pub const KINDS_ON_DISK: &[(&str, usize)] = &[
+    ("group", 1059),
+    ("move_to", 396),
+    ("queue_up", 264),
+    ("gather_point", 177),
+    ("chat", 160),
+    ("attack", 80),
+    ("leader_options", 50),
+    ("build", 31),
+    ("sell", 28),
+    ("swarm_around", 28),
+    ("pause", 24),
+    ("city_gather", 20),
+    ("buy", 18),
+    ("spell", 17),
+    ("unqueue", 13),
+    ("gather", 11),
+    ("guard", 10),
+    ("rename_city", 10),
+    ("hotkey", 8),
+    ("garrison", 6),
+    ("buildmask", 5),
+    ("cheat_ai_toggle", 4),
+    ("come_out", 4),
+    ("stance", 4),
+    ("disband", 1),
+    ("unitmask", 1),
+];
+
+/// Every input command of the recordings, by kind, most first (ties by
+/// name): the census [`KINDS_ON_DISK`] pins.
+pub fn kinds(recs: &[RecGame]) -> Vec<(&'static str, usize)> {
+    let mut by: std::collections::BTreeMap<&'static str, usize> = Default::default();
+    for rec in recs {
+        for it in input(rec) {
+            *by.entry(it.cmd.name()).or_default() += 1;
+        }
+    }
+    let mut out: Vec<(&'static str, usize)> = by.into_iter().collect();
+    out.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(b.0)));
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// **The census, against the disk** (item 4249): every recording the
+    /// corpus reads decodes whole, and its input commands by kind are
+    /// [`KINDS_ON_DISK`]. Install-gated, and loud when the corpus is absent.
+    #[test]
+    fn the_order_kinds_on_disk() {
+        let files = crate::recgame::tests::recordings_on_disk();
+        if files.is_empty() {
+            eprintln!("skipping: no .rcx on disk (set RON_RECGAME_DIR / RON_INSTALL)");
+            return;
+        }
+        let recs: Vec<RecGame> = files
+            .iter()
+            .map(|f| crate::recgame::read(f).unwrap())
+            .collect();
+        for (f, r) in files.iter().zip(&recs) {
+            for p in &r.packages {
+                assert!(crate::commands::decode(&p.data).is_ok(), "{f}");
+            }
+        }
+        let got = kinds(&recs);
+        let total: usize = got.iter().map(|k| k.1).sum();
+        eprintln!("KINDS: {} kinds, {total} orders: {got:?}", got.len());
+        assert_eq!(got, KINDS_ON_DISK);
+    }
+}
