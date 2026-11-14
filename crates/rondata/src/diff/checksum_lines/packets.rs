@@ -1217,11 +1217,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (2939, 2828, 2131) -> (2939, 2837, 1616).
     // Item 4234, a cast's three ranges walked: units (2939, 2837, 1616) -> (2939, 2840, 1600).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (2939, 2840, 1600) -> (2939, 2840, 1598).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (2939, 2840, 1598) -> (2939, 2843, 1618).
     (
         "run1007b",
         15915,
         [
-            (2939, 2840, 1598),
+            (2939, 2843, 1618),
             (2417, 2417, 5),
             (0, 0, 0),
             (0, 0, 0),
@@ -1394,11 +1395,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4193, 4010, 3162) -> (4193, 4010, 3143).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4193, 4010, 3143) -> (4193, 4019, 3082).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4193, 4019, 3082) -> (4193, 4022, 3121).
     (
         "run1155c",
         3003,
         [
-            (4193, 4019, 3082),
+            (4193, 4022, 3121),
             (2371, 2371, 9),
             (0, 0, 0),
             (6, 0, 6),
@@ -1447,11 +1449,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (6053, 5443, 5319) -> (6053, 5443, 5305).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 2) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6053, 5443, 5305) -> (6053, 5452, 5251).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (6053, 5452, 5251) -> (6053, 5629, 5302).
     (
         "run1164",
         4528,
         [
-            (6053, 5452, 5251),
+            (6053, 5629, 5302),
             (2140, 2136, 782),
             (0, 0, 0),
             (3, 0, 3),
@@ -1576,11 +1579,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0), goods (330, 330, 2) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6735, 6639, 5596) -> (6735, 6648, 5629).
     // Item 4234, a cast's three ranges walked: units (6735, 6648, 5629) -> (6735, 6651, 5597).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (6735, 6651, 5597) -> (6735, 6657, 5587).
     (
         "run1185",
         4582,
         [
-            (6735, 6651, 5597),
+            (6735, 6657, 5587),
             (1911, 1911, 7),
             (0, 0, 0),
             (3, 0, 3),
@@ -1635,11 +1639,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (56, 56, 5) -> (56, 56, 0), goods (330, 330, 1) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (10607, 10124, 9057) -> (10607, 10145, 9335).
     // Item 4234, a cast's three ranges walked: units (10607, 10145, 9335) -> (10607, 10154, 9295).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (10607, 10154, 9295) -> (10607, 10166, 9259).
     (
         "run1217",
         7728,
         [
-            (10607, 10154, 9295),
+            (10607, 10166, 9259),
             (3412, 3412, 24),
             (0, 0, 0),
             (6, 0, 6),
@@ -1665,11 +1670,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4091, 3833, 3064) -> (4091, 3833, 3048).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4091, 3833, 3048) -> (4091, 3842, 3104).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4091, 3842, 3104) -> (4091, 3851, 3100).
     (
         "run1220b",
         2976,
         [
-            (4091, 3842, 3104),
+            (4091, 3851, 3100),
             (1817, 1817, 2),
             (0, 0, 0),
             (9, 0, 9),
@@ -1695,11 +1701,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (6445, 6304, 5383) -> (6445, 6304, 5370).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (33, 33, 3) -> (33, 33, 0), goods (330, 330, 1) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6445, 6304, 5370) -> (6445, 6313, 5367).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (6445, 6313, 5367) -> (6445, 6349, 5430).
     (
         "run1221",
         4287,
         [
-            (6445, 6313, 5367),
+            (6445, 6349, 5430),
             (1719, 1719, 6),
             (0, 0, 0),
             (6, 0, 6),
@@ -1725,11 +1732,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (62, 62, 3) -> (62, 62, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (11740, 10894, 10396) -> (11740, 10915, 10395).
     // Item 4234, a cast's three ranges walked: units (11740, 10915, 10395) -> (11740, 10927, 10351).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (11740, 10927, 10351) -> (11740, 10933, 10441).
     (
         "run1224b",
         9745,
         [
-            (11740, 10927, 10351),
+            (11740, 10933, 10441),
             (4271, 4271, 30),
             (0, 0, 0),
             (6, 0, 6),
@@ -1818,11 +1826,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4226, a bird walked on neither line: units (3448, 3542, 2644) -> (3448, 3262, 2574), guys (892, 990, 98) -> (892, 892, 0).
     // Item 4228, a path stack's `size` its high water: units (3448, 3262, 2574) -> (3448, 3262, 2558).
     // Item 4230, a trade order walked and a road stack's doubled size: units (3448, 3262, 2558) -> (3448, 3271, 2559).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (3448, 3271, 2559) -> (3448, 3274, 2560).
     (
         "run1237",
         2674,
         [
-            (3448, 3271, 2559),
+            (3448, 3274, 2560),
             (1650, 1650, 1),
             (0, 0, 0),
             (3, 0, 3),
@@ -1882,11 +1891,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (38, 38, 3) -> (38, 38, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (5942, 5876, 4589) -> (5942, 5888, 4481).
     // Item 4234, a cast's three ranges walked: units (5942, 5888, 4481) -> (5942, 5891, 4670).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (5942, 5891, 4670) -> (5942, 5897, 4766).
     (
         "run1247",
         4306,
         [
-            (5942, 5891, 4670),
+            (5942, 5897, 4766),
             (1692, 1692, 0),
             (0, 0, 0),
             (6, 0, 6),
@@ -1912,11 +1922,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4388, 4064, 3405) -> (4388, 4064, 3385).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4388, 4064, 3385) -> (4388, 4073, 3409).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4388, 4073, 3409) -> (4388, 4085, 3386).
     (
         "run1254c",
         3115,
         [
-            (4388, 4073, 3409),
+            (4388, 4085, 3386),
             (1674, 1674, 2),
             (0, 0, 0),
             (9, 0, 9),
@@ -1942,11 +1953,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (54, 54, 5) -> (54, 54, 0), goods (120, 120, 1) -> (120, 120, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (11229, 10383, 9845) -> (11229, 10401, 9771).
     // Item 4234, a cast's three ranges walked: units (11229, 10401, 9771) -> (11229, 10407, 9827).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (11229, 10407, 9827) -> (11229, 10431, 9895).
     (
         "run1263",
         8362,
         [
-            (11229, 10407, 9827),
+            (11229, 10431, 9895),
             (3789, 3789, 23),
             (0, 0, 0),
             (9, 0, 9),
@@ -2006,11 +2018,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (11161, 10999, 9745) -> (11161, 11017, 7744).
     // Item 4234, a cast's three ranges walked: units (11161, 11017, 7744) -> (11161, 11026, 7710).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (11161, 11026, 7710) -> (11161, 11026, 7705).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (11161, 11026, 7705) -> (11161, 11053, 7581).
     (
         "run1266c",
         8700,
         [
-            (11161, 11026, 7705),
+            (11161, 11053, 7581),
             (3796, 3796, 26),
             (0, 0, 0),
             (6, 0, 6),
@@ -2036,11 +2049,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4744, 4393, 3674) -> (4744, 4393, 3651).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 1) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4744, 4393, 3651) -> (4744, 4402, 3711).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4744, 4402, 3711) -> (4744, 4420, 3685).
     (
         "run1268",
         3347,
         [
-            (4744, 4402, 3711),
+            (4744, 4420, 3685),
             (1908, 1908, 6),
             (0, 0, 0),
             (24, 0, 24),
@@ -2068,11 +2082,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (9512, 9422, 8166) -> (9512, 9428, 7294).
     // Item 4234, a cast's three ranges walked: units (9512, 9428, 7294) -> (9512, 9503, 7181).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (9512, 9503, 7181) -> (9512, 9503, 7180).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (9512, 9503, 7180) -> (9512, 9512, 120).
     (
         "run1293",
         3606,
         [
-            (9512, 9503, 7180),
+            (9512, 9512, 120),
             (1938, 1938, 6),
             (0, 0, 0),
             (0, 0, 0),
@@ -2099,11 +2114,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 3) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (8216, 8162, 6548) -> (8216, 8171, 7049).
     // Item 4234, a cast's three ranges walked: units (8216, 8171, 7049) -> (8216, 8183, 6974).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (8216, 8183, 6974) -> (8216, 8189, 7046).
     (
         "run1294",
         4473,
         [
-            (8216, 8183, 6974),
+            (8216, 8189, 7046),
             (2123, 2123, 18),
             (0, 0, 0),
             (3, 0, 3),
@@ -2130,11 +2146,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 3) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (9905, 9836, 8715) -> (9905, 9845, 7275).
     // Item 4234, a cast's three ranges walked: units (9905, 9845, 7275) -> (9905, 9854, 8666).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (9905, 9854, 8666) -> (9905, 9866, 8616).
     (
         "run1296",
         4632,
         [
-            (9905, 9854, 8666),
+            (9905, 9866, 8616),
             (2163, 2163, 22),
             (0, 0, 0),
             (0, 0, 0),
@@ -2161,11 +2178,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (5488, 5422, 4233) -> (5488, 5422, 4208).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (23, 23, 1) -> (23, 23, 0), goods (330, 330, 1) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (5488, 5422, 4208) -> (5488, 5425, 4035).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (5488, 5425, 4035) -> (5488, 5431, 4036).
     (
         "run1304",
         3865,
         [
-            (5488, 5425, 4035),
+            (5488, 5431, 4036),
             (2029, 2029, 7),
             (0, 0, 0),
             (0, 0, 0),
@@ -2191,11 +2209,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4968, 4632, 4065) -> (4968, 4632, 4050).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (35, 35, 1) -> (35, 35, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4968, 4632, 4050) -> (4968, 4644, 4065).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4968, 4644, 4065) -> (4968, 4662, 4059).
     (
         "run1305b",
         4181,
         [
-            (4968, 4644, 4065),
+            (4968, 4662, 4059),
             (1882, 1882, 3),
             (0, 0, 0),
             (0, 0, 0),
@@ -2223,11 +2242,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: goods (330, 330, 4) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (8490, 8397, 7078) -> (8490, 8406, 7172).
     // Item 4234, a cast's three ranges walked: units (8490, 8406, 7172) -> (8490, 8445, 7099).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (8490, 8445, 7099) -> (8490, 8448, 7112).
     (
         "run1320b",
         5066,
         [
-            (8490, 8445, 7099),
+            (8490, 8448, 7112),
             (2140, 2140, 13),
             (0, 0, 0),
             (9, 0, 9),
@@ -2253,11 +2273,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (3933, 3708, 3025) -> (3933, 3708, 3005).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (3933, 3708, 3005) -> (3933, 3717, 2990).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (3933, 3717, 2990) -> (3933, 3720, 3013).
     (
         "run1323b",
         3052,
         [
-            (3933, 3717, 2990),
+            (3933, 3720, 3013),
             (1792, 1792, 2),
             (0, 0, 0),
             (3, 0, 3),
@@ -2283,11 +2304,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (7276, 7177, 5851) -> (7276, 7177, 5824).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0), goods (330, 330, 4) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (7276, 7177, 5824) -> (7276, 7186, 6191).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (7276, 7186, 6191) -> (7276, 7198, 6066).
     (
         "run1324c",
         4904,
         [
-            (7276, 7186, 6191),
+            (7276, 7198, 6066),
             (1918, 1918, 13),
             (0, 0, 0),
             (15, 0, 15),
@@ -2378,11 +2400,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (13393, 12502, 11980) -> (13393, 12502, 11962).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (59, 59, 6) -> (59, 59, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (13393, 12502, 11962) -> (13393, 12523, 12044).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (13393, 12523, 12044) -> (13393, 12535, 12068).
     (
         "run1327",
         10930,
         [
-            (13393, 12523, 12044),
+            (13393, 12535, 12068),
             (4230, 4230, 23),
             (0, 0, 0),
             (0, 0, 0),
@@ -2407,11 +2430,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (5746, 5386, 4498) -> (5746, 5386, 4477).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (5746, 5386, 4477) -> (5746, 5395, 4711).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (5746, 5395, 4711) -> (5746, 5407, 4697).
     (
         "run1332a",
         3627,
         [
-            (5746, 5395, 4711),
+            (5746, 5407, 4697),
             (2354, 2354, 7),
             (0, 0, 0),
             (48, 0, 48),
@@ -2437,11 +2461,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4745, 4523, 3712) -> (4745, 4523, 3686).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0), goods (180, 180, 1) -> (180, 180, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4745, 4523, 3686) -> (4745, 4532, 3677).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4745, 4532, 3677) -> (4745, 4541, 3675).
     (
         "run1351",
         4303,
         [
-            (4745, 4532, 3677),
+            (4745, 4541, 3675),
             (2237, 2237, 10),
             (0, 0, 0),
             (3, 0, 3),
@@ -2497,11 +2522,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (3610, 3427, 2696) -> (3610, 3427, 2682).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (3610, 3427, 2682) -> (3610, 3436, 2699).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (3610, 3436, 2699) -> (3610, 3439, 2708).
     (
         "run1355",
         2933,
         [
-            (3610, 3436, 2699),
+            (3610, 3439, 2708),
             (1836, 1836, 6),
             (0, 0, 0),
             (3, 0, 3),
@@ -2527,11 +2553,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (5707, 5422, 4648) -> (5707, 5422, 4629).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 1) -> (30, 30, 0), goods (180, 180, 1) -> (180, 180, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (5707, 5422, 4629) -> (5707, 5431, 4576).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (5707, 5431, 4576) -> (5707, 5434, 4597).
     (
         "run1357",
         3439,
         [
-            (5707, 5431, 4576),
+            (5707, 5434, 4597),
             (1977, 1977, 3),
             (0, 0, 0),
             (0, 0, 0),
@@ -2557,11 +2584,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (48, 48, 3) -> (48, 48, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6464, 6023, 5626) -> (6464, 6041, 5597).
     // Item 4234, a cast's three ranges walked: units (6464, 6041, 5597) -> (6464, 6044, 5583).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (6464, 6044, 5583) -> (6464, 6137, 5632).
     (
         "run1359",
         5619,
         [
-            (6464, 6044, 5583),
+            (6464, 6137, 5632),
             (2974, 2974, 33),
             (0, 0, 0),
             (0, 0, 0),
@@ -2588,11 +2616,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (48, 48, 3) -> (48, 48, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6408, 6009, 5546) -> (6408, 6027, 5594).
     // Item 4234, a cast's three ranges walked: units (6408, 6027, 5594) -> (6408, 6030, 5584).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (6408, 6030, 5584) -> (6408, 6102, 5553).
     (
         "run1359b",
         5677,
         [
-            (6408, 6030, 5584),
+            (6408, 6102, 5553),
             (2974, 2974, 33),
             (0, 0, 0),
             (0, 0, 0),
@@ -2619,11 +2648,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (48, 48, 3) -> (48, 48, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6407, 6008, 5543) -> (6407, 6026, 5590).
     // Item 4234, a cast's three ranges walked: units (6407, 6026, 5590) -> (6407, 6029, 5580).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (6407, 6029, 5580) -> (6407, 6101, 5554).
     (
         "run1359c",
         5678,
         [
-            (6407, 6029, 5580),
+            (6407, 6101, 5554),
             (2974, 2974, 33),
             (0, 0, 0),
             (0, 0, 0),
@@ -2650,11 +2680,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (37, 37, 2) -> (37, 37, 0), goods (180, 180, 2) -> (180, 180, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6810, 6366, 5722) -> (6810, 6381, 5712).
     // Item 4234, a cast's three ranges walked: units (6810, 6381, 5712) -> (6810, 6384, 5684).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (6810, 6384, 5684) -> (6810, 6393, 5700).
     (
         "run1361",
         4840,
         [
-            (6810, 6384, 5684),
+            (6810, 6393, 5700),
             (2544, 2544, 25),
             (0, 0, 0),
             (0, 0, 0),
@@ -2680,11 +2711,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (5194, 4915, 3902) -> (5194, 4915, 3872).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0), goods (180, 180, 1) -> (180, 180, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (5194, 4915, 3872) -> (5194, 4924, 3964).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (5194, 4924, 3964) -> (5194, 4942, 3888).
     (
         "run1381",
         3262,
         [
-            (5194, 4924, 3964),
+            (5194, 4942, 3888),
             (2147, 2147, 5),
             (0, 0, 0),
             (3, 0, 3),
@@ -2709,11 +2741,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4226, a bird walked on neither line: units (5014, 5130, 4101) -> (5014, 4750, 3998), guys (1349, 1482, 133) -> (1349, 1349, 0).
     // Item 4228, a path stack's `size` its high water: units (5014, 4750, 3998) -> (5014, 4750, 3975).
     // Item 4230, a trade order walked and a road stack's doubled size: units (5014, 4750, 3975) -> (5014, 4753, 4000).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (5014, 4753, 4000) -> (5014, 4759, 4044).
     (
         "run1382",
         3228,
         [
-            (5014, 4753, 4000),
+            (5014, 4759, 4044),
             (2015, 2015, 7),
             (0, 0, 0),
             (0, 0, 0),
@@ -2798,11 +2831,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (35, 35, 3) -> (35, 35, 0), goods (330, 330, 1) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6512, 6365, 5422) -> (6512, 6377, 5438).
     // Item 4242, an army's pushed group takes `add_group`'s `get_num_cap`: groups (694, 694, 14) -> (694, 694, 13).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (6512, 6377, 5438) -> (6512, 6386, 5212).
     (
         "run1391",
         4174,
         [
-            (6512, 6377, 5438),
+            (6512, 6386, 5212),
             (1830, 1830, 15),
             (0, 0, 0),
             (0, 0, 0),
@@ -2861,11 +2895,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4518, 4305, 3524) -> (4518, 4305, 3498).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (33, 33, 2) -> (33, 33, 0), goods (180, 180, 1) -> (180, 180, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4518, 4305, 3498) -> (4518, 4314, 3445).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4518, 4314, 3445) -> (4518, 4326, 3481).
     (
         "run1417",
         4016,
         [
-            (4518, 4314, 3445),
+            (4518, 4326, 3481),
             (2321, 2321, 9),
             (0, 0, 0),
             (0, 0, 0),
@@ -2891,11 +2926,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4406, 4181, 3413) -> (4406, 4181, 3395).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4406, 4181, 3395) -> (4406, 4190, 3386).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4406, 4190, 3386) -> (4406, 4196, 3407).
     (
         "run1419b",
         3212,
         [
-            (4406, 4190, 3386),
+            (4406, 4196, 3407),
             (2033, 2033, 6),
             (0, 0, 0),
             (0, 0, 0),
@@ -2921,11 +2957,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (5583, 5204, 4600) -> (5583, 5204, 4576).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (38, 38, 3) -> (38, 38, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (5583, 5204, 4576) -> (5583, 5216, 4625).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (5583, 5216, 4625) -> (5583, 5231, 4617).
     (
         "run1420",
         4586,
         [
-            (5583, 5216, 4625),
+            (5583, 5231, 4617),
             (2515, 2513, 688),
             (0, 0, 0),
             (0, 0, 0),
@@ -2951,11 +2988,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 1) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4129, 3913, 3123) -> (4129, 3922, 3162).
     // Item 4234, a cast's three ranges walked: units (4129, 3922, 3162) -> (4129, 3925, 3156).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4129, 3925, 3156) -> (4129, 3928, 3112).
     (
         "run1424",
         3156,
         [
-            (4129, 3925, 3156),
+            (4129, 3928, 3112),
             (2025, 2025, 5),
             (0, 0, 0),
             (0, 0, 0),
@@ -2980,11 +3018,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4175, 3986, 3329) -> (4175, 3986, 3310).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 2) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4175, 3986, 3310) -> (4175, 3995, 2857).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4175, 3995, 2857) -> (4175, 4001, 3196).
     (
         "run1426b",
         3722,
         [
-            (4175, 3995, 2857),
+            (4175, 4001, 3196),
             (2266, 2265, 805),
             (0, 0, 0),
             (0, 0, 0),
@@ -3009,11 +3048,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4789, 4316, 3924) -> (4789, 4316, 3906).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 1) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4789, 4316, 3906) -> (4789, 4325, 3938).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4789, 4325, 3938) -> (4789, 4343, 3883).
     (
         "run1437",
         3894,
         [
-            (4789, 4325, 3938),
+            (4789, 4343, 3883),
             (2154, 2151, 571),
             (0, 0, 0),
             (3, 0, 3),
@@ -3308,11 +3348,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: goods (405, 405, 2) -> (405, 405, 3).
     // Item 4230, a trade order walked and a road stack's doubled size: units (5340, 5256, 4421) -> (5340, 5262, 4360).
     // Item 4234, a cast's three ranges walked: units (5340, 5262, 4360) -> (5340, 5265, 4419).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (5340, 5265, 4419) -> (5340, 5268, 4324).
     (
         "run1487",
         1980,
         [
-            (5340, 5265, 4419),
+            (5340, 5268, 4324),
             (2736, 2736, 31),
             (0, 0, 0),
             (208, 0, 208),
@@ -3438,11 +3479,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4240, 4017, 3395) -> (4240, 4017, 3377).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 3) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4240, 4017, 3377) -> (4240, 4026, 3398).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4240, 4026, 3398) -> (4240, 4029, 3415).
     (
         "run1570",
         3331,
         [
-            (4240, 4026, 3398),
+            (4240, 4029, 3415),
             (1890, 1887, 481),
             (0, 0, 0),
             (0, 0, 0),
@@ -3561,11 +3603,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (58, 58, 5) -> (58, 58, 0), goods (330, 330, 1) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (9526, 9363, 8551) -> (9526, 9387, 8667).
     // Item 4234, a cast's three ranges walked: units (9526, 9387, 8667) -> (9526, 9396, 8822).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (9526, 9396, 8822) -> (9526, 9402, 8740).
     (
         "run810",
         3631,
         [
-            (9526, 9396, 8822),
+            (9526, 9402, 8740),
             (2384, 2381, 1400),
             (0, 0, 0),
             (156, 0, 156),
@@ -3743,11 +3786,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (64, 64, 1) -> (64, 64, 0), goods (330, 330, 2) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (10342, 9993, 9567) -> (10342, 10017, 9652).
     // Item 4234, a cast's three ranges walked: units (10342, 10017, 9652) -> (10342, 10056, 9510).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (10342, 10056, 9510) -> (10342, 10179, 7746).
     (
         "run865",
         4859,
         [
-            (10342, 10056, 9510),
+            (10342, 10179, 7746),
             (2288, 2283, 1536),
             (0, 0, 0),
             (0, 0, 0),
@@ -3796,11 +3840,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (11125, 10302, 9851) -> (11125, 10326, 9965).
     // Item 4234, a cast's three ranges walked: units (11125, 10326, 9965) -> (11125, 10656, 9933).
     // Item 4159's third residue: units (11125, 10656, 9933) -> (11125, 10656, 9930), the bleed reading `anti_att` (measured on the tree merged with item 4234's).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (11125, 10656, 9930) -> (11125, 10662, 9730).
     (
         "run882b",
         6808,
         [
-            (11125, 10656, 9930),
+            (11125, 10662, 9730),
             (2737, 2732, 1918),
             (0, 0, 0),
             (15, 0, 15),
@@ -3827,11 +3872,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (11180, 10297, 9942) -> (11180, 10321, 10105).
     // Item 4234, a cast's three ranges walked: units (11180, 10321, 10105) -> (11180, 10654, 10052).
     // Item 4159's third residue: units (11180, 10654, 10052) -> (11180, 10654, 10050), the bleed reading `anti_att` (measured on the tree merged with item 4234's).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (11180, 10654, 10050) -> (11180, 10660, 9041).
     (
         "run883b",
         6821,
         [
-            (11180, 10654, 10050),
+            (11180, 10660, 9041),
             (2737, 2732, 1919),
             (0, 0, 0),
             (36, 0, 36),
@@ -3886,11 +3932,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (27, 27, 3) -> (27, 27, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4112, 4067, 3338) -> (4112, 4076, 2883).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (4112, 4076, 2883) -> (4112, 4076, 2882).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (4112, 4076, 2882) -> (4112, 4091, 2837).
     (
         "run912e",
         12753,
         [
-            (4112, 4076, 2882),
+            (4112, 4091, 2837),
             (1508, 1508, 5),
             (0, 0, 0),
             (0, 0, 0),
@@ -4118,11 +4165,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (2003, 1910, 1500) -> (2003, 1910, 1495).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (17, 17, 1) -> (17, 17, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (2003, 1910, 1495) -> (2003, 1913, 1531).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (2003, 1913, 1531) -> (2003, 1958, 1484).
     (
         "run984b",
         6011,
         [
-            (2003, 1913, 1531),
+            (2003, 1958, 1484),
             (789, 789, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4209,11 +4257,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (3178, 2989, 2415) -> (3178, 2998, 2141).
     // Item 4234, a cast's three ranges walked: units (3178, 2998, 2141) -> (3178, 3004, 2150).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (3178, 3004, 2150) -> (3178, 3004, 2149).
+    // Item 4243, a grouped move's `GroupOrder` tail walked: units (3178, 3004, 2149) -> (3178, 3010, 2143).
     (
         "run991d",
         15256,
         [
-            (3178, 3004, 2149),
+            (3178, 3010, 2143),
             (2006, 2006, 4),
             (0, 0, 0),
             (0, 0, 0),
