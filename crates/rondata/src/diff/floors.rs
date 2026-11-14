@@ -755,6 +755,11 @@ pub fn checksum_line() -> String {
 /// correction audit's guard (`audit::every_whole_scoreboard_word_is_audited`)
 /// reads it for the whole words. The closing suffix is
 /// [`ai_line_closes`]', dropped here.
+///
+/// **A line may instead take the closed form** (the pass of 2026-11-14, R1
+/// of `docs/audit/2026-11-14-docs-compaction.md`), which this parser does
+/// not read: [`ai_line_whole`] recognises it, and every reader asks that
+/// first.
 #[cfg(test)]
 pub(crate) fn ai_line_parts(line: &str, prefix: &str) -> Result<Vec<(String, i64, i64)>, String> {
     Ok(ai_line_closes(line, prefix)?
@@ -800,6 +805,141 @@ pub(crate) fn ai_line_closes(line: &str, prefix: &str) -> Result<Vec<AiPart>, St
         said.push((t[0].to_string(), word, length, close));
     }
     Ok(said)
+}
+
+/// One pinned row of an AI track line: map, word, length and closing pin.
+#[cfg(test)]
+pub(crate) type AiRow = (&'static str, i64, i64, Option<usize>);
+
+/// The rows `prefix`'s handoff line is read against, in order:
+/// `testkit::AI_WORDS` and, for `Long captures`, `testkit::LONG_CAPTURES`.
+#[cfg(test)]
+pub(crate) fn ai_line_rows(prefix: &str) -> Vec<AiRow> {
+    use crate::diff::testkit::{AI_WORDS, LONG_CAPTURES};
+    AI_WORDS
+        .iter()
+        .chain(LONG_CAPTURES)
+        .filter(|w| w.line == prefix)
+        .map(|w| (w.map, w.word, w.length, w.closing_off()))
+        .collect()
+}
+
+/// The words that open the closed form of an AI track line.
+#[cfg(test)]
+pub(crate) const EVERY_WORD_WHOLE: &str = "every word whole";
+
+/// **The closed form of an AI track line** (the pass of 2026-11-14, R1 of
+/// `docs/audit/2026-11-14-docs-compaction.md`), as the `Golden:` line has
+/// `every chapter closed`: `<prefix>: every word whole · <n>`, and
+/// `<prefix>: every word whole · <n>, 0 off` on a line whose rows carry
+/// their close. The rule, held by the floors guards' verdict: the form is
+/// accepted only when `<n>` is the number of the line's pinned rows
+/// ([`ai_line_rows`]), every one of them has word equal to length, and
+/// `, 0 off` is said exactly when every row carries a close and each close
+/// is 0 (and never when none carries one). Any other state is the per-row
+/// form's error with "write the rows out" added, so the per-row form
+/// returns by itself on a named regression. A line may be written either
+/// way.
+///
+/// `None` where the line is not `prefix`'s or its body does not lead with
+/// `every word whole` — the per-row form, read by [`ai_line_closes`] (a
+/// part's second token is `w<word>`, never `word`, so the two cannot be
+/// confused). `Some(Err)` where it leads so and the rest is not `· <n>`
+/// with an optional `, <k> off`; `Some(Ok((n, k)))` is the line's claim,
+/// which the verdict holds to the rows.
+#[cfg(test)]
+pub(crate) fn ai_line_whole(
+    line: &str,
+    prefix: &str,
+) -> Option<Result<(usize, Option<usize>), String>> {
+    let body = line.strip_prefix(prefix)?.strip_prefix(':')?.trim();
+    let rest = body.strip_prefix(EVERY_WORD_WHOLE)?;
+    let bad = || {
+        format!(
+            "the `{prefix}:` line's closed form reads `{prefix}: {EVERY_WORD_WHOLE} \u{b7} \
+             <rows>` (`, 0 off` after it on a closing line): {line:?}"
+        )
+    };
+    let Some(rest) = rest.trim_start().strip_prefix('\u{b7}').map(str::trim) else {
+        return Some(Err(bad()));
+    };
+    let (count, close) = match rest.strip_suffix("off") {
+        Some(r) => match r.trim_end().rsplit_once(',') {
+            Some((n, k)) => (n, Some(k.trim())),
+            None => return Some(Err(bad())),
+        },
+        None => (rest, None),
+    };
+    let n = count.trim().replace(',', "").parse::<usize>().ok();
+    let k = close.map(|k| k.parse::<usize>().ok());
+    Some(match (n, k) {
+        (Some(n), None) => Ok((n, None)),
+        (Some(n), Some(Some(k))) => Ok((n, Some(k))),
+        _ => Err(bad()),
+    })
+}
+
+/// `prefix`'s line in the closed form, where `rows` allow it: every row's
+/// word its length, and every row's close 0 or none of them carrying one.
+#[cfg(test)]
+pub(crate) fn ai_line_closed_form(prefix: &str, rows: &[AiRow]) -> Option<String> {
+    let whole = !rows.is_empty() && rows.iter().all(|(_, w, l, _)| w == l);
+    let off = if rows.iter().all(|r| r.3 == Some(0)) {
+        ", 0 off"
+    } else if rows.iter().all(|r| r.3.is_none()) {
+        ""
+    } else {
+        return None;
+    };
+    whole.then(|| format!("{prefix}: {EVERY_WORD_WHOLE} \u{b7} {}{off}", rows.len()))
+}
+
+/// The handoff's AI track lines, each read against [`ai_line_rows`].
+#[cfg(test)]
+pub(crate) const AI_LINES: &[&str] = &[
+    "Long captures",
+    "Second pair",
+    "Third pair",
+    "Coverage pair",
+    "Successor pair",
+    "Peace pair",
+    "Late ages",
+    "Battery word",
+    "Melee",
+    "Third map",
+];
+
+/// The queue text `q` with every line of [`AI_LINES`] whose rows are all
+/// whole in the closed form — the handoff as a pass may write it, read by
+/// the floors guards and the correction audit in its own tests.
+#[cfg(test)]
+pub(crate) fn closed_form_queue(q: &str) -> String {
+    let mut out: Vec<String> = Vec::new();
+    for l in q.lines() {
+        let closed = AI_LINES.iter().find_map(|p| {
+            l.starts_with(&format!("{p}:"))
+                .then(|| ai_line_closed_form(p, &ai_line_rows(p)))
+                .flatten()
+        });
+        out.push(closed.unwrap_or_else(|| l.to_string()));
+    }
+    out.join("\n") + "\n"
+}
+
+/// Whether `closed` ([`closed_form_queue`]'s) carries a line in the
+/// closed form, or no line's rows are all whole so none could — the queue
+/// may already be written in it.
+#[cfg(test)]
+pub(crate) fn closed_form_took(closed: &str) -> bool {
+    let any_whole = AI_LINES
+        .iter()
+        .any(|p| ai_line_closed_form(p, &ai_line_rows(p)).is_some());
+    !any_whole
+        || closed.lines().any(|l| {
+            AI_LINES
+                .iter()
+                .any(|p| matches!(ai_line_whole(l, p), Some(Ok(_))))
+        })
 }
 
 #[cfg(test)]
@@ -930,33 +1070,11 @@ mod tests {
         // scored capture is closed, so the number a session is judged by
         // lives on the `Long captures:` line — and nothing checked it. Same
         // shape, one word a map, against the two long tests' own floors.
-        let long = q.lines().find(|l| l.starts_with("Long captures:")).expect(
-            "docs/QUEUE.md has no `Long captures:` line in the handoff; write \
-             `Long captures: <map> w<word> of <length> ...`, one part per row \
-             of rondata::diff::FLOORS, in order",
-        );
-        let mut said = Vec::new();
-        for part in long.trim_start_matches("Long captures:").split('\u{b7}') {
-            let t: Vec<&str> = part.split_whitespace().collect();
-            let word = t
-                .get(1)
-                .and_then(|w| w.strip_prefix('w'))
-                .unwrap_or_else(|| panic!("unreadable long-capture part {part:?}"));
-            said.push((
-                t[0].to_string(),
-                word.parse::<i64>().expect("the long capture's word"),
-            ));
-        }
-        assert_eq!(
-            said,
-            vec![
-                ("EastIndies".to_string(), LONG_WORD_EAST_INDIES),
-                ("GreatLakes".to_string(), LONG_WORD_GREAT_LAKES),
-            ],
-            "the handoff's long-capture words are not the long tests' floors: \
-             left is the queue's line, right is LONG_WORD_EAST_INDIES and \
-             LONG_WORD_GREAT_LAKES"
-        );
+        // Since the pass of 2026-11-14 (R1) it is read as the other AI
+        // track lines are, against `LONG_CAPTURES` — LONG_WORD_EAST_INDIES
+        // and LONG_WORD_GREAT_LAKES, each of its trace's length — so it
+        // may take the closed form too, and its length is read.
+        the_handoff_carries("Long captures");
     }
 
     /// **The second pair's line is its pinned words** (DECISIONS 53 §2,
@@ -1595,33 +1713,45 @@ mod tests {
     fn the_handoff_carries(prefix: &str) {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
-        let head = format!("{prefix}:");
-        let line = q.lines().find(|l| l.starts_with(&head)).unwrap_or_else(|| {
-            panic!(
-                "docs/QUEUE.md has no `{head}` line in the handoff; write \
-                 `{head} <map> w<word> of <length>`, one part per row of \
-                 `AI_WORDS` on that line, in order, parted by a middle dot \
-                 (and ` <n> off` after a closed row's length on a closing line)"
-            )
-        });
-        let rows: Vec<(&str, i64, i64, Option<usize>)> = AI_WORDS
-            .iter()
-            .filter(|w| w.line == prefix)
-            .map(|w| (w.map, w.word, w.length, w.closing_off()))
-            .collect();
-        if let Err(e) = ai_line_verdict(line, prefix, &rows) {
+        if let Err(e) = handoff_line_verdict(&q, prefix, &ai_line_rows(prefix)) {
             panic!("{e}");
         }
     }
 
+    /// `prefix`'s line of the queue text `q` against `rows`.
+    fn handoff_line_verdict(
+        q: &str,
+        prefix: &str,
+        rows: &[(&str, i64, i64, Option<usize>)],
+    ) -> Result<(), String> {
+        let head = format!("{prefix}:");
+        let line = q.lines().find(|l| l.starts_with(&head)).ok_or_else(|| {
+            format!(
+                "docs/QUEUE.md has no `{head}` line in the handoff; write \
+                 `{head} <map> w<word> of <length>`, one part per row of \
+                 `AI_WORDS` on that line, in order, parted by a middle dot \
+                 (and ` <n> off` after a closed row's length on a closing line), \
+                 or `{head} {EVERY_WORD_WHOLE} \u{b7} <rows>` (`, 0 off` after it \
+                 on a closing line) where every row is whole"
+            )
+        })?;
+        ai_line_verdict(line, prefix, rows)
+    }
+
     /// One of the AI track's lines read part by part against its rows:
     /// `<map> w<word> of <length>`, the length with or without its comma,
-    /// and ` <n> off` after it where the row carries its close.
+    /// and ` <n> off` after it where the row carries its close — or, in the
+    /// closed form ([`ai_line_whole`], whose doc states the rule), every
+    /// row whole.
     fn ai_line_verdict(
         line: &str,
         prefix: &str,
         rows: &[(&str, i64, i64, Option<usize>)],
     ) -> Result<(), String> {
+        if let Some(whole) = ai_line_whole(line, prefix) {
+            let (n, close) = whole?;
+            return ai_line_whole_verdict(prefix, n, close, rows);
+        }
         let said = ai_line_closes(line, prefix)?;
         let pinned: Vec<AiPart> = rows
             .iter()
@@ -1636,6 +1766,72 @@ mod tests {
                  (map, word, length, closing records off)"
             ))
         }
+    }
+
+    /// The closed form's claim — `n` rows, every one whole, and `close`
+    /// the line's `, <k> off` — against the pinned rows.
+    fn ai_line_whole_verdict(
+        prefix: &str,
+        n: usize,
+        close: Option<usize>,
+        rows: &[(&str, i64, i64, Option<usize>)],
+    ) -> Result<(), String> {
+        let mut wrong = Vec::new();
+        if rows.is_empty() {
+            wrong.push("no row is pinned on it".to_string());
+        }
+        if n != rows.len() {
+            wrong.push(format!("it counts {n} rows and {} are pinned", rows.len()));
+        }
+        let short: Vec<_> = rows.iter().filter(|(_, w, l, _)| w != l).collect();
+        if !short.is_empty() {
+            wrong.push(format!("rows not whole (map, word, length): {short:?}"));
+        }
+        if close.is_some_and(|k| k != 0) {
+            wrong.push("its close is not 0".to_string());
+        }
+        let off: Vec<_> = rows
+            .iter()
+            .filter(|r| r.3 != close.map(|_| 0))
+            .map(|(m, _, _, c)| (m, c))
+            .collect();
+        if !off.is_empty() {
+            wrong.push(format!(
+                "it says {}, and these rows' closes disagree (map, close): {off:?}",
+                if close.is_some() {
+                    "`, 0 off`"
+                } else {
+                    "no close"
+                }
+            ));
+        }
+        if wrong.is_empty() {
+            return Ok(());
+        }
+        let group = |v: i64| {
+            let s = v.to_string();
+            let mut out = String::new();
+            for (i, ch) in s.chars().enumerate() {
+                if i > 0 && (s.len() - i).is_multiple_of(3) {
+                    out.push(',');
+                }
+                out.push(ch);
+            }
+            out
+        };
+        let parts: Vec<String> = rows
+            .iter()
+            .map(|(m, w, l, c)| {
+                let off = c.map(|k| format!(" {k} off")).unwrap_or_default();
+                format!("{m} w{w} of {}{off}", group(*l))
+            })
+            .collect();
+        Err(format!(
+            "the handoff's `{prefix}:` line says `{EVERY_WORD_WHOLE}` and the pins are not: \
+             {}; write the rows out: `{prefix}: {}`",
+            wrong.join("; "),
+            parts.join(" \u{b7} ")
+        ))
     }
 
     #[test]
@@ -1719,6 +1915,141 @@ mod tests {
             Ok(2),
             "the three-part reading drops the close"
         );
+    }
+
+    /// **The closed form is every pinned row whole** (the pass of
+    /// 2026-11-14, R1): `<prefix>: every word whole · <n>`, and `, 0 off`
+    /// after it exactly where the rows carry their close. Any other row
+    /// state is refused and asks for the rows written out.
+    #[test]
+    fn the_closed_form_is_every_row_whole() {
+        let pair = [
+            ("EastIndies", 18_140, 18_140, None),
+            ("GreatLakes", 5_930, 5_930, None),
+        ];
+        let line = "Second pair: every word whole \u{b7} 2";
+        assert_eq!(ai_line_verdict(line, "Second pair", &pair), Ok(()));
+        assert_eq!(
+            ai_line_closed_form("Second pair", &pair).as_deref(),
+            Some(line)
+        );
+        // The count is the number of rows.
+        for wrong in [
+            "Second pair: every word whole \u{b7} 1",
+            "Second pair: every word whole \u{b7} 3",
+            "Second pair: every word whole",
+            "Second pair: every word whole \u{b7}",
+            "Second pair: every word whole \u{b7} two",
+        ] {
+            assert!(
+                ai_line_verdict(wrong, "Second pair", &pair).is_err(),
+                "{wrong:?} passed"
+            );
+        }
+        // One row a frame short of its length.
+        let short = [
+            ("EastIndies", 18_140, 18_140, None),
+            ("GreatLakes", 5_929, 5_930, None),
+        ];
+        let e = ai_line_verdict(line, "Second pair", &short).unwrap_err();
+        assert!(e.contains("write the rows out"), "{e}");
+        assert!(e.contains("GreatLakes w5929 of 5,930"), "{e}");
+        assert_eq!(ai_line_closed_form("Second pair", &short), None);
+        // No rows pinned on the line: nothing is whole.
+        assert!(
+            ai_line_verdict("Second pair: every word whole \u{b7} 0", "Second pair", &[]).is_err()
+        );
+        // A closing line: `, 0 off` where every row's close is 0.
+        let melee = [
+            ("GreatSaharaGunpowderMelee", 2_600, 2_600, Some(0)),
+            ("GreatSaharaInformationMelee", 2_600, 2_600, Some(0)),
+        ];
+        let closed = "Melee: every word whole \u{b7} 2, 0 off";
+        assert_eq!(ai_line_verdict(closed, "Melee", &melee), Ok(()));
+        assert_eq!(
+            ai_line_closed_form("Melee", &melee).as_deref(),
+            Some(closed)
+        );
+        let one_off = [
+            ("GreatSaharaGunpowderMelee", 2_600, 2_600, Some(0)),
+            ("GreatSaharaInformationMelee", 2_600, 2_600, Some(1)),
+        ];
+        let e = ai_line_verdict(closed, "Melee", &one_off).unwrap_err();
+        assert!(e.contains("write the rows out"), "{e}");
+        assert_eq!(ai_line_closed_form("Melee", &one_off), None);
+        assert!(
+            ai_line_verdict("Melee: every word whole \u{b7} 2, 1 off", "Melee", &one_off).is_err(),
+            "the closed form's close is 0"
+        );
+        // The close is said exactly where the rows carry one.
+        assert!(
+            ai_line_verdict("Melee: every word whole \u{b7} 2", "Melee", &melee).is_err(),
+            "a closing line's closed form with no close"
+        );
+        assert!(
+            ai_line_verdict(
+                "Second pair: every word whole \u{b7} 2, 0 off",
+                "Second pair",
+                &pair
+            )
+            .is_err(),
+            "a close on a line whose rows carry none"
+        );
+        // A count with its comma, as a length is written.
+        let many: Vec<(&str, i64, i64, Option<usize>)> =
+            (0..1_200).map(|_| ("M", 9, 9, None)).collect();
+        assert_eq!(
+            ai_line_verdict(
+                "Late ages: every word whole \u{b7} 1,200",
+                "Late ages",
+                &many
+            ),
+            Ok(())
+        );
+        // The per-row form is still read, and the closed form is not a part.
+        assert!(ai_line_parts(line, "Second pair").is_err());
+        let rows = "Second pair: EastIndies w18140 of 18,140 \u{b7} GreatLakes w5930 of 5,930";
+        assert_eq!(ai_line_verdict(rows, "Second pair", &pair), Ok(()));
+    }
+
+    /// **A lowered row turns the closed line red** (the pass of 2026-11-14,
+    /// R1): a queue text whose `Late ages:` line is in the closed form,
+    /// read against the pinned rows made whole, then with one of them a
+    /// frame short — the named regression the per-row form returns on.
+    #[test]
+    fn a_lowered_row_turns_the_closed_line_red() {
+        let mut rows: Vec<(&str, i64, i64, Option<usize>)> = ai_line_rows("Late ages")
+            .into_iter()
+            .map(|(m, _, l, c)| (m, l, l, c))
+            .collect();
+        assert!(rows.len() > 1, "the late ages pin their rows");
+        let line = ai_line_closed_form("Late ages", &rows).expect("whole rows");
+        let q = format!("## Where things stand\n\n{line}\nGolden: every chapter closed\n");
+        assert_eq!(handoff_line_verdict(&q, "Late ages", &rows), Ok(()));
+        rows[1].1 -= 1;
+        let e = handoff_line_verdict(&q, "Late ages", &rows).unwrap_err();
+        assert!(e.contains("write the rows out"), "{e}");
+    }
+
+    /// **The handoff reads in the closed form** (the pass of 2026-11-14,
+    /// R1): the queue as it stands with every AI track line whose rows are
+    /// all whole rewritten in the closed form, read by the same verdict.
+    #[test]
+    fn the_handoff_reads_in_the_closed_form() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let closed = closed_form_queue(&q);
+        assert!(
+            closed_form_took(&closed),
+            "a line's rows are all whole and no line took the closed form"
+        );
+        for prefix in AI_LINES {
+            assert_eq!(
+                handoff_line_verdict(&closed, prefix, &ai_line_rows(prefix)),
+                Ok(()),
+                "{prefix}"
+            );
+        }
     }
 
     /// **The rules track's headline has the guard the AI track's has** —
