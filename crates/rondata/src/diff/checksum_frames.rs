@@ -164,7 +164,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         [
             ("units", 120, 0),
             ("builds", 100, 20),
-            ("groups", 61, 5),
+            ("groups", 120, 0),
             ("guys", 120, 0),
             ("leaders", 0, 120),
             ("cities", 120, 0),
