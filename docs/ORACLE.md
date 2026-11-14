@@ -1,5 +1,16 @@
 # The oracle: how the original tells us what it did
 
+**What stands (2026-11-14).** A capture today takes the click-free pool:
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh <out> …`,
+waited on with `tools/gamelog/waitrun.sh` ("The click-free lanes are a
+pool"; it needs RonDriver's GUI session, "The click-free lane needs a
+window"), a staged scenario fed by the channel's file ("The cheat channel: a
+scenario from a file"). The mouse-driven queue lane retired with item 3485
+(DECISIONS 89): a question that needs real clicks again is a steer, not a
+lane's choice. "Running a check: the recipe in one place" is the recipe:
+what to enable, how to stage, how to read the log, written for the
+hand-driven path; the sections after it stand in the order they were found.
+
 `docs/FORMATS.md` has carried the same question at the top of its open list
 since the beginning: does a recorded game embed the checksums and the random
 log, or only the command stream? It was described there as "the highest-value
@@ -1838,7 +1849,7 @@ map** — which was settled by re-diffing run20 rather than assuming:
   evidence of the same cause.* Still a good lead, and still not one
   fuzzing found.
 - **The start-of-game gather rule does not generalise.**
-  `check_start_orders` (`docs/AI.md` §9.3) fails on one citizen: *`who 1 o
+  `check_start_orders` (`docs/ORDERS.md` §9.3) fails on one citizen: *`who 1 o
   6: we derived None, the log has Some(2001)`* — and is `[ok]` on run20.
   **This one is the map variation's**, and so far it is the only finding
   that is.
