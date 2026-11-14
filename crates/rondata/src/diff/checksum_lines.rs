@@ -139,7 +139,7 @@ fn line_inputs(line: &str, label: &str) -> Option<(StreamRows, u32, sim::Sim)> {
 /// Where an image parts from the stream, range by range: `(range index,
 /// record, field, ours, theirs)`, the bytes in hex. A range one side lacks
 /// parts against `-`.
-pub(in crate::diff) fn parting(
+fn parting(
     ours: &Line,
     theirs: &[(String, String, Vec<u8>)],
 ) -> Vec<(usize, i16, String, String, String)> {
