@@ -15343,7 +15343,7 @@ original's `0x32..0x192` does.
 `classical_melee_run1450_s_word_window_is_widened_whole`, window 1301..2601 with the closing block: **150** keys
 (686 before), rounds read (6, 6), **none parting**. Block 1301 carries the standing families alone; later blocks add
 only those families as units are born; the closing block adds the idle human's citizens `0/1`..`0/7`, ordered in
-ours and idle in theirs (parked 3793a). `classical_melee_run1450_s_closing_state`: 95 units, every count zero, no
+ours and idle in theirs (~~parked 3793a~~: the head quit's `clear_orders`, item 4204; 150 → 120). `classical_melee_run1450_s_closing_state`: 95 units, every count zero, no
 extra, one tear (`0/6`). **By mutation** (`tools/mutate.py`, the `return_modifier` term restored): `first_parting`,
 the widening and the closing state fail. Held.
 
@@ -16470,6 +16470,10 @@ walks, `american_industrial`'s run1338 and `aztec_modern`'s run1429 among them; 
 frame runs before the quit on both sides. With each closing walk quitting where its trace puts it, the clear moved
 nothing the wrong way: run667's 17380 −51 rows, run609's 5639 −13, `cant_reach` 5 → 0 and 2 → 0, and the tears
 `british_classical` `0/4` (the timing), `classical_melee` `0/6`, run56's `0/5` and run72's `0/3` (the clear) gone.
+The 13 head quits (the six melees' 2600, run80's and the 24,000s) keep the head, and there the clear stops the
+human's walkers before their step on both sides: the melees' word windows −21 to −30 each on 2601 (`0/1`..`0/7`
+`orders.len` 0 and `idle` 1, the one walker at theirs' position), run80's 24001 48 → 43, every melee's and run80's
+`cant_reach` 7 → 0 and 5 → 0, and run82's shutdown tear `0/3` gone (item 4204's second lane).
 
 The harness runs the quit where theirs does:
 - `shutdown::compare_shutdown` resigns every human seat before the closing frame's tick;

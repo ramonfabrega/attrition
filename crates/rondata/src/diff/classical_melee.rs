@@ -580,8 +580,9 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
     // 40, the groups' `held` and pools); later blocks add only those
     // families as each unit is born (a birth's `g.angle`, a new group's
     // `held`, a new building's `build:extra`); the closing block 2601 adds
-    // the idle human's citizens `0/1`..`0/7`, which hold an order in ours
-    // and stand idle in theirs (parked 3793a). The closing state is
+    // the idle human's citizens `0/1`..`0/7`, which held an order in ours
+    // and stood idle in theirs (parked 3793a) until item 4204's head-quit
+    // `clear_orders` (below). The closing state is
     // `classical_melee_run1450_s_closing_state`.
     pin_eq!(w.blocks, 14, "every stride block in the window");
     pin_eq!(
@@ -589,7 +590,11 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 150, "run1450's word window");
+    // Item 4204: 150 -> 120, −30 on 2601, the head quit's `clear_orders`:
+    //   `0/1`..`0/7` `orders.len`/`order:length` 0 = 0, `idle` 1 = 1; the
+    //   walker `0/6` stops at theirs' (35450, 33316) (was ours (35472, 33327)),
+    //   `heading`/`g.angle` 1366556672 = theirs (were 1354694656).
+    pin_eq!(w.firsts.len(), 120, "run1450's word window");
     pin_eq!(w.rounds_read, (6, 6), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

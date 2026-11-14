@@ -307,7 +307,10 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 192, "run1483's word window");
+    // Item 4204: 192 -> 164, −28 on 2601, the head quit's `clear_orders`:
+    //   `0/1`..`0/7` `orders.len`/`order:length` 0 = 0, `idle` 1 = 1; the
+    //   walker `0/4` stops at theirs' (8736, 12160) (was ours (8712, 12168)).
+    pin_eq!(w.firsts.len(), 164, "run1483's word window");
     pin_eq!(w.rounds_read, (8, 8), "the rounds read");
     pin_eq!(w.rounds.len(), 4, "the rounds that part");
 }

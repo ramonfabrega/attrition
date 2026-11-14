@@ -27,7 +27,10 @@
 //! theirs and stopped at once in ours. The step is the frame's body: 110
 //! of the 124 closings walked whole quit past it, from a game already over
 //! (each capture's trace dates the resign's sound, `docs/LEADERS.md`
-//! §10.2), so their walkers move before the clear in theirs too.
+//! §10.2), so their walkers move before the clear in theirs too. The 13
+//! that quit at the head (the melees' 2600, the 24,000s) stop at once on
+//! both sides: their closing blocks lose the held orders and the walker's
+//! step (2601's `0/1`..`0/7`, run80's 24001, run82's shutdown tear).
 //!
 //! SEAM: the building loop's `Build::clean_queue` on each active building
 //! (a refund; no closing dump on disk holds a quitter's queue), the

@@ -527,7 +527,10 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // one-step order in ours where theirs' are idle with none, and `0/3`
     // at (38136, 36600) against (38119, 36586) (parked 3788b).
     pin_eq!(w.blocks, 6, "every stride block in the window");
-    pin_eq!(w.firsts.len(), 160, "run1413's word window");
+    // Item 4204: 160 -> 131, −29 on 2601, the head quit's `clear_orders`:
+    //   `0/1`..`0/7` `orders.len`/`order:length` 0 = 0, `idle` 1 = 1; the
+    //   walker `0/3` stops at theirs' (38119, 36586) (was ours (38136, 36600)).
+    pin_eq!(w.firsts.len(), 131, "run1413's word window");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

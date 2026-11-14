@@ -308,7 +308,11 @@ fn airbase_melee_run1492_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 181, "run1492's word window");
+    // Item 4204: 181 -> 158, −23 on 2601, the head quit's `clear_orders`:
+    //   `0/1`..`0/7` `orders.len`/`order:length` 0 = 0 (were ours 1-2),
+    //   `idle` 1 = 1 (were 0); `0/2` `orders_x` 9672 and `dest_angle`
+    //   −1498415104 = theirs (were ours 10104, 1073741824).
+    pin_eq!(w.firsts.len(), 158, "run1492's word window");
     pin_eq!(w.rounds_read, (4, 4), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
