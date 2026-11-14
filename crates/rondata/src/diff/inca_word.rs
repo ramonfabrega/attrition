@@ -153,7 +153,7 @@ fn run987_s_word_frame_is_widened_whole() {
     // What stands: the standing family alone (`SITE[·].reg` 65 against 0,
     // `aggression`, `form` −1 against 0/9, the army `pool:n` and
     // `group:n.held` with no `GROUPDATA` printed, the newborn `g.angle[0]`).
-    pin_eq!(w.firsts.len(), 50, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 49, "keys that part in the window");
 }
 
 /// run987b: the word 16516's window, blocks 16510..16766 at `GUYS=4`,
@@ -210,7 +210,7 @@ fn run987b_s_word_frame_is_widened_whole() {
     // `group:n.held` with no `GROUPDATA` printed) and `1/46`'s
     // `dest_angle` on 16714 (ours 1073741824, theirs −1334181888), which
     // the draw stream never feels.
-    pin_eq!(w.firsts.len(), 49, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 48, "keys that part in the window");
 }
 
 /// The closing state's window: run969b's closing block alone, the long's

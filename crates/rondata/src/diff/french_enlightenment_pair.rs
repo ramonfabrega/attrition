@@ -328,7 +328,8 @@ fn french_enlightenment_pair_run1360_s_closing_window_is_widened_whole() {
     // `damage_frac`, `hits:damage_frac`, `hits:damage` and `hits_left` on 4685 agree (0, 0, 0
     // and 161 both sides) — parked 3691c.
     // Item 4177: 113 -> 119, +6 firsts, the combat rates' own: who=0 `damage_current_frame` 4691 ours 26 theirs 27; who=1 `hits_current_frame` 4691 ours 26 theirs 27; who=0 `average_damage_rate` 4851 ours 3351 theirs 3401; who=0 `damage_fifteen_seconds` 4851 ours 254 theirs 255 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 120, "run1360 baseline");
+    // Item 4159's residue: 120 -> 119, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
+    pin_eq!(w.firsts.len(), 119, "run1360 baseline");
     pin_eq!(w.rounds_read, (465, 477), "the rounds read");
     // 202 parting: 195 rows on the six Fusiliers' (TY 136) rounds (parked
     // 3691a) and the Musketeers' slot swaps on 4724, 4725, 4900 and 4902,

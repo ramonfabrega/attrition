@@ -343,7 +343,8 @@ fn airbase_melee_s_leaders_are_compared_on_every_seat() {
     // Item 4177: 3 -> 6, +3, who=0's `average_damage_rate`, `average_death_rate` and
     // `average_hit_rate` at the closing 2601, ours 294/32/22 theirs 257/28/19: the human's
     // trailing record one empty fold short (`v·7 >> 3` of ours; docs/LEADERS.md §3.5, parked 4177b).
-    pin_eq!(w.rest().len(), 8, "the keys that part, by seat");
+    // Item 4159's residue: 8 -> 4, who 1's and who 2's `score` (2601, ours 4461 and 5009 theirs 4437 and 4985) and `num_units[272]` (ours 1 theirs 0, the scripted Transport Freighter) agree (docs/LEADERS.md §18.5).
+    pin_eq!(w.rest().len(), 4, "the keys that part, by seat");
 }
 
 /// **The melee's closing state** (item 3868): run1492's closing block, the
