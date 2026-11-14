@@ -2397,8 +2397,8 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
-| units | 8281 | 3125684161 | 3011454242 | 0 |
-| builds | 8281 | 4092534757 | 2135105497 | 0 |
+| units | 10541 | 2177580941 | 616447987 | 0 |
+| builds | 14312 | 2824218853 | 224732903 | 0 |
 | groups | 9810 | 793472871 | 2931519338 | 0 |
 | guys | 10541 | 88563580 | 4151468002 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
@@ -2433,7 +2433,7 @@ three steps, each a rule of the queue's array (§14, `docs/PRODUCTION.md` "The q
   `gain_tech`'s re-price) returns, and the crate unqueued first. Value diff on 987, 3246 and 4030 (runs 1583
   to 1585): building 2005 of leader 1, a Library, a vacated slot's `cost[0]` ours 120, theirs 108 → 108.
 
-**Item 4244 moved builds 7383 → 8281**: a mine keeps `MiningList::mtn`/`cliff`. Value diff on 7383 (§25.4): record 2019 `mtn` ours −1, theirs 0 → 0. 8281 is unit 30's garrison entry. Step P 422 → 425 (`docs/journal/2026-11-14-item-4244.md`).
+**Item 4244 moved builds 7383 → 8281**: a mine keeps `mtn`/`cliff`; record 2019 `mtn` ours −1, theirs 0 → 0 (§25.4). Step P 422 → 425.
 
 run1577 is whole on all 120 in both lines; no minted packet parts on either line now. run1575's take packet
 parts on 27 builds ranges, 35 before (`TAKE_PINNED`). **Step P's census, 280 → 285 of 1,053 lines** (§23.7,
@@ -2559,9 +2559,11 @@ and the line whole; ours' state held the bit already, so the emitter is the whol
 move** (`PACKETS_SCORE` 422): the units triple moved on 70 packets, every one only in that slot and only in its parted
 count, which fell on each (run1266c, East Indies, 7581 → 7561, the most); none to whole or from it.
 
-**Item 4253 moved two.** Units 7273 → 8281, guys 7273 → 10541: on 7273 record 30 (a Scholar, TI 52) figure `angle`
-and `last_angle` ours 0x55555555, theirs 0, `go_inside`'s `set_angle(0, _, 1)` snap (CITIES §6.5). Step P 425 → 433.
-The story: `docs/journal/2026-11-14-item-4253.md`.
+**Item 4253 moved two.** Units 7273 → 8281, guys 7273 → 10541: a seated Scholar's `angle` and `last_angle` snap to 0
+(CITIES §6.5). Step P 425 → 433.
+
+**Item 4257 moved two.** Units 8281 → 10541, builds 8281 → 14312: the garrison chain appends at the bottom (CITIES
+§6). On 8281 (§25.4) building 2018 `inside_down` ours 42, theirs 30; record 30's −1, 42 → theirs. Step P 433 → 439.
 
 ## 24.4 Where each first parting is (diff-backed)
 
@@ -2584,6 +2586,7 @@ line's field reader where it has one:
 | units | 6907 | 1593 | record 24's `GroupMoveOrder`: three ranges theirs walks after the move, ours not (1,639 against 1,648); whole since item 4243 |
 | units | 7195 | 1600 | records 27..29 `unit_masks`: 0x40000, 0x40004 (bit 0x4, `in_danger`); 3 of 1,697 ranges; whole since item 4251 |
 | units, guys | 7273 | 1597's record | record 30 (`1/30`, a Scholar, TI 52) figure `angle` and `last_angle`: 0x55555555, 0 (`Unit::go_inside`'s `set_angle(0, _, 1)` snap); 1 of 1,692 and 1 of 560 ranges; whole since item 4253 |
+| units, builds | 8281 | 1597's record | the University `1/2018`'s chain, two Scholars (TI 52) `1/30` then `1/42`: building `inside_down` 42, 30; record 30's −1, 42; whole since item 4257 |
 | units, guys | 6537 | 1591 | `1/0` figure 0 `last_x` 7824, 7848, `last_y` 21648, 21672; six figure records on each line (6 of 1,546, 6 of 511); whole since item 4238 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02; whole since item 4229 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2; whole since item 4229 |
@@ -2715,13 +2718,15 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 | 7273 | guys | 560, 560, 1 | 279 30 guy: `angle` and `last_angle` 1431655765, 0; whole since item 4253 |
 | 8206 | groups | 544, 544, 1 | 91 67 `id..march`: `ox` 30552, 0; `oy` 21144, 0; whole since item 4255 |
 | 9810 | groups | 550, 550, 1 | 76 64 `id..march`: `role` 1379328 (0x150c00), 1379331 (0x150c03) |
-| 8281 | units | 1,909, 1,909, 2 | 842 30 `myhits..launch_frames`: `inside_down` −1, 42 (the University 1/2018's chain; builds 856 2018 `inside_down` 42, 30) |
+| 8281 | units | 1,909, 1,909, 2 | 842 30 `myhits..launch_frames`: `inside_down` −1, 42 (the University 1/2018's chain; builds 856 2018 `inside_down` 42, 30); whole since item 4257, both lines |
 | 10541 | guys | 776, 776, 2 | 160 14 guy: `last_angle` 682461312, 968792448 (units 570, 14 of 2,549) |
+| 10541 | units | 2,549, 2,549, 2 | 570 14 guy: `last_angle`, the same figure (14 parted before item 4257) |
+| 14312 | builds | 1,370, 1,370, 1 | 1258 2023 `gather_down..infiltrate2`: `wonder` −1, 0 |
 
 On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Builds' 7383 row, record 2019's `mtn`
-−1 against 0, left with item 4244, and builds is whole on the record at 7383 and 8206. Its next first parting, 8281, is
-pinned: building 2018's `inside_down` (the garrison's top), ours 42, theirs 30, on a frame where units first parts
-on unit 30's (item 4244's journal). **Item 4255 moved groups 8206 → 9810** (`CHECKSUM_FRAMES`). Record 67 is player 1's slot 3. The Longbowmen
+−1 against 0, left with item 4244, and builds is whole on the record at 7383 and 8206. 8281's, building 2018's `inside_down`
+(the garrison's head), ours 42, theirs 30, went with units' there: item 4257 emits the chain in the order of entry,
+and builds next parts on 14312. **Item 4255 moved groups 8206 → 9810** (`CHECKSUM_FRAMES`). Record 67 is player 1's slot 3. The Longbowmen
 `1/39..1/41` (TI 177) left it after its move on 8171, and its `num` is 0 on both sides by 8205. Theirs zeroes its
 `ox`/`oy` on 8206, the frame player 1 pushes into slot 65 (`last_group` 67 → 65). **The direction**: the original
 acted. `Group::equals_group@00708000` calls vslot `+0x4` (`Group::get_num`) on `last_group`'s record after its
