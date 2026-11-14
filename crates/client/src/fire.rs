@@ -6,7 +6,7 @@
 
 use crate::world::World;
 use render::draw::{Drawn, PlacedBuilding, Pose};
-use render::fire::{Emitter, SLOTS, attach_slots, emitters};
+use render::fire::{Emitter, SLOTS, Slot, attach_slots, emitters};
 
 impl World {
     /// **Every burning slot this frame** (`render::fire::emitters`) of the
@@ -24,7 +24,7 @@ impl World {
         out
     }
 
-    fn fire_slots_of(&mut self, piece: i32) -> Option<[Option<[f32; 3]>; SLOTS]> {
+    fn fire_slots_of(&mut self, piece: i32) -> Option<[Option<Slot>; SLOTS]> {
         if let Some(s) = self.fire_slots.get(&piece) {
             return *s;
         }
@@ -74,6 +74,16 @@ mod tests {
         (0, 2000, 9, [2744.46, 31203.03, 694.73]),
         (0, 2000, 10, [2802.0, 30377.16, 674.0]),
         (0, 2000, 11, [3207.99, 30905.28, 682.67]),
+    ];
+
+    /// **The packets' emitters' directions** (`ParticleEmitter +0x2c`,
+    /// `desc.vel`, `get_position`'s second vector), slot by slot as
+    /// [`THEIRS`]; the two packets agree to the bit.
+    const THEIR_DIRS: [[f32; 3]; 4] = [
+        [0.306_595_05, 0.820_159_9, -0.483_049_84],
+        [0.861_070_9, -0.174_822_06, -0.477_486_94],
+        [0.788_862_4, 0.285_311_43, -0.544_328_3],
+        [0.832_272_7, -0.268_965_93, -0.484_746_63],
     ];
 
     /// The packets' city `0/2000`: `BuildData::hits(0)` (`construct_hits`,
@@ -134,6 +144,21 @@ mod tests {
             p.world
                 .draw_list(&p.camera, &crate::pinned_screen(), (1920, 1080));
         let drawn = p.world.drawn_emitters(&buildings, &list);
+        // Each slot's direction against the packet's (item 4240, 4233b):
+        // made to fail, the stand-in (0, 0, −1) parts by more than 0.4.
+        for ((_, _, slot, _), dir) in THEIRS.iter().zip(THEIR_DIRS) {
+            let e = drawn.iter().find(|e| e.slot == *slot).expect("the slot");
+            let off = (0..3)
+                .map(|k| (e.dir[k] - dir[k]).abs())
+                .fold(0.0, f32::max);
+            println!(
+                "slot {slot}: dir ours {:?} theirs {dir:?}, off {off}",
+                e.dir
+            );
+            assert!(off < 1e-4, "slot {slot}: {:?} against {dir:?}", e.dir);
+            let old = [0.0f32, 0.0, -1.0];
+            assert!((0..3).any(|k| (old[k] - dir[k]).abs() > 0.4));
+        }
         let (as_drawn, lines) = row(&drawn, &p.camera);
         for l in lines {
             println!("{l}");
@@ -328,8 +353,15 @@ mod tests {
     /// blended in HDR (§3.25): **dense 120 → 487**, the row 9,138 → 9,728,
     /// past 5,617 → 5,538; the packet's dense **468 → 1,716**, its row
     /// 11,518 → 11,806, past 1,702 → 2,042. The LDR blend is the before.
+    /// Item 4240, the emission (§3.25): the node's direction, **9,728 →
+    /// 10,616**, past 5,538 → 3,984, dense 487 → 861; then the original's
+    /// draws for each birth's count, **→ 11,251**, past → 2,168, haze
+    /// 16,570 → 14,850, **dense → 876**. Over 24 count phases the draws
+    /// read 9,139 to 11,431 (mean 10,191), dense 230 to 1,319 (mean 804);
+    /// the hash on the node's direction, mean 10,280, dense 912; the hash
+    /// on (0, 0, −1), mean 9,871, dense 589.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((9728, 19378, 5538), (16570, 487)),
+        ((11251, 19378, 2168), (14850, 876)),
         ((0, 19378, 0), (0, 0)),
         ((19378, 19378, 0), (16963, 2415)),
         ((11806, 19378, 2042), (14210, 1716)),
@@ -340,9 +372,14 @@ mod tests {
     /// life read 5,772, past 9,742. The packet's particles read 11,847,
     /// past 1,353. Item 4237, in HDR: **dense 182 → 770**, the row 9,232 →
     /// 9,403, past 5,055 → 5,075; the packet's dense **676 → 2,099**, its
-    /// row 11,847 → 12,219, past 1,353 → 1,555.
+    /// row 11,847 → 12,219, past 1,353 → 1,555. Item 4240: the direction,
+    /// **9,403 → 10,897**, past 5,075 → 2,660, dense 770 → 787; the draws,
+    /// **→ 11,547**, past → 1,895, haze 15,668 → 14,951, **dense → 942**.
+    /// Over 24 phases the draws read 10,006 to 11,873 (mean 11,104), dense
+    /// 266 to 956 (mean 669); the hash on the node, mean 10,713, dense 907;
+    /// on (0, 0, −1), mean 9,776, dense 606.
     const RUN1570_PLUME: PlumeRows = [
-        ((9403, 18871, 5075), (15668, 770)),
+        ((11547, 18871, 1895), (14951, 942)),
         ((0, 18871, 0), (0, 0)),
         ((18871, 18871, 0), (16401, 2470)),
         ((12219, 18871, 1555), (13771, 2099)),

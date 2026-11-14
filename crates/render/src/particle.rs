@@ -17,9 +17,11 @@
 //!   acceleration is gravity plus the wind times `wind_use` (the wind only at
 //!   `min_wind_height` over the ground or higher); the position moves by
 //!   `(v + a·dt/2)·drag·dt` and the velocity becomes `(v + a·dt)·drag`.
-//! - **The start** ([`plume`]). The velocity is the anchor's direction times
-//!   `start_speed` plus a noise of `±⌊|v|·vel_noise⌋ / 340` an axis, the
-//!   point the anchor plus `±pos_noise` an axis, the angle a random degree
+//! - **The start** ([`start`]). The velocity is the anchor's direction
+//!   times `start_speed` plus a noise of `⌊|v|·vel_noise⌋ / 340` an axis,
+//!   the point the anchor plus a noise of `pos_noise` an axis, each drawn
+//!   from the engine's [`Random`] seeded by [`seed`] off the frame, the
+//!   anchor and the emitter's birth count. The angle is a random degree
 //!   turning at `(r − rotation/2) / 67` a millisecond. Each step takes the
 //!   wind of its own frame: the wind turns through tens of degrees within
 //!   a smoke particle's life.
@@ -27,13 +29,15 @@
 //!   `−⌊22.5·(sin(t/0.8) + cos(t/1.2))⌋` degrees clamped to ±45, `t` the
 //!   game's frame in radians of a degree.
 //!
-//! **What is the original's and what is not.** The look, the motion and
-//! the wind are the original's arithmetic, checked on run1559b's and
-//! run1570's packets (§3.25). The emission's random draws are not: the
-//! original seeds each particle from the frame it was born on and draws its
-//! angle from `internal_random`, and [`plume`] draws from a hash of the
-//! anchor and the particle's birth instead, so a plume is the original's in
-//! its size, speed, spread and fade, and not particle for particle.
+//! **What is the original's and what is not.** The look, the motion, the
+//! wind and a particle's start for its birth count are the original's
+//! arithmetic, checked on run1559b's and run1570's packets (§3.25). Two
+//! things are not. The births: the original's `back_calc` births on the
+//! render's cadence and carries an overshoot (`left_over`) between calls,
+//! so its births and its count are the capture's, and [`plume`] births a
+//! `freq` apart, its count the births since the clock's zero. The angle:
+//! the original draws it from `internal_random`, which other systems
+//! share, and [`plume`] draws it from a hash.
 
 /// One `<PARTICLESYSTEM>`, in the loader's units: milliseconds, world units
 /// a millisecond (squared), and texture coordinates.
@@ -242,6 +246,67 @@ pub fn wind(frame: i64) -> [f32; 3] {
     }
 }
 
+/// **The engine's `Random`** (`Random::get@00a39d70`): a linear
+/// congruence, `seed · 0x19660d + 0x3c6ef35f`.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Random(pub u32);
+
+impl Random {
+    /// A draw in `lo..hi` (`hi` itself is never drawn): the new seed's low
+    /// 16 bits scaled to the span. An empty span returns `lo` and leaves
+    /// the seed.
+    pub fn get(&mut self, lo: i32, hi: i32) -> i32 {
+        if lo == hi {
+            return lo;
+        }
+        let (lo, hi) = (lo.min(hi), lo.max(hi));
+        self.0 = self.0.wrapping_mul(0x19_660d).wrapping_add(0x3c6e_f35f);
+        (((self.0 & 0xffff) as i64 * (hi - lo) as i64) >> 16) as i32 + lo
+    }
+}
+
+/// **`Particle::init`'s seed** for the `counter`th birth of an emitter at
+/// `at` on game frame `frame` (its listing at `0x008db840` to
+/// `0x008db88e`): with `S` the anchor's `(y + x) + z` and `k` its
+/// `random · counter · 47`, `cvttss2si(frame · S · k + S) + k`, all in
+/// single precision. Past `i32`'s range the conversion gives `i32::MIN`:
+/// a building's emitter (`random` 1) at any frame past the first few has
+/// the seed `0x80000000 + 47 · counter` for every count past 0.
+pub fn seed(frame: i64, at: [f32; 3], random: u8, counter: u32) -> u32 {
+    let s = (at[1] + at[0]) + at[2];
+    let k = (u32::from(random).wrapping_mul(counter).wrapping_mul(47)) as i32;
+    let x = (frame as i32 as f32) * s * (k as f32) + s;
+    let t = if x.is_nan() || x >= 2_147_483_648.0 || x < -2_147_483_648.0 {
+        i32::MIN
+    } else {
+        x as i32
+    };
+    t.wrapping_add(k) as u32
+}
+
+/// `emit_build_particles`'s `desc.random`: 1.
+pub const BUILD_RANDOM: u8 = 1;
+
+/// **A particle's start** (`Particle::init`) from `seed`: its point and
+/// velocity. The velocity is `dir · start_speed`, then three draws of
+/// `0..2n` less `n` over 340, `n` the speed times `vel_noise` truncated;
+/// the point is the anchor, then three draws of `0..2·pos_noise` less
+/// `pos_noise`.
+pub fn start(sys: &System, at: [f32; 3], dir: [f32; 3], seed: u32) -> ([f32; 3], [f32; 3]) {
+    let mut r = Random(seed);
+    let mut vel: [f32; 3] = dir.map(|d| d * sys.start_speed);
+    let speed = (vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2]).sqrt();
+    let n = (speed * f32::from(sys.vel_noise)) as i32;
+    let dv: [i32; 3] = std::array::from_fn(|_| r.get(0, 2 * n));
+    for k in 0..3 {
+        vel[k] += (dv[k] as f32 - n as f32) * (1.0 / 340.0);
+    }
+    let m = i32::from(sys.pos_noise);
+    let dp: [i32; 3] = std::array::from_fn(|_| r.get(0, 2 * m));
+    let pos = std::array::from_fn(|k| at[k] + (dp[k] - m) as f32);
+    (pos, vel)
+}
+
 /// A 32-bit mix of `x` (the finaliser of MurmurHash3).
 fn mix(mut x: u32) -> u32 {
     x ^= x >> 16;
@@ -251,9 +316,9 @@ fn mix(mut x: u32) -> u32 {
     x ^ (x >> 16)
 }
 
-/// A draw in `0..=n` from `seed`'s `k`th.
+/// A draw in `0..n` from `seed`'s `k`th, as [`Random::get`]'s span.
 fn draw(seed: u32, k: u32, n: u32) -> u32 {
-    mix(seed ^ mix(k.wrapping_add(0x9e37_79b9))) % (n + 1)
+    mix(seed ^ mix(k.wrapping_add(0x9e37_79b9))) % n.max(1)
 }
 
 /// The game frame at `ms` milliseconds (`200/3` a frame), the clock
@@ -263,12 +328,13 @@ pub fn frame_at(ms: u32) -> i64 {
 }
 
 /// **The plume** of one emitter at `now` milliseconds: every particle born
-/// on a multiple of `freq` within the life, each moved from its birth in
-/// steps of a game frame under that frame's [`wind`], as the original
-/// moves each under the wind of the frame it passes. `at` is the anchor,
-/// `dir` its direction (`get_position`'s second vector), `key` the
-/// emitter's own seed, `ground` the ground's height under a point. The
-/// emitter is taken to have burned for a whole life.
+/// on a multiple of `freq` within the life, the `n`th birth's start drawn
+/// by [`start`] from [`seed`] with the count `n`, each moved from its
+/// birth in steps of a game frame under that frame's [`wind`], as the
+/// original moves each under the wind of the frame it passes. `at` is the
+/// anchor, `dir` its direction (`get_position`'s second vector), `key` the
+/// emitter's seed for the angle, `ground` the ground's height under a
+/// point. The emitter is taken to have burned for a whole life.
 pub fn plume(
     sys: &System,
     at: [f32; 3],
@@ -280,10 +346,6 @@ pub fn plume(
     let life = sys.life();
     let freq = sys.freq.max(1);
     let first = now.saturating_sub(life) / freq + 1;
-    let v0: [f32; 3] = dir.map(|d| d * sys.start_speed);
-    let speed = (v0[0] * v0[0] + v0[1] * v0[1] + v0[2] * v0[2]).sqrt();
-    let vn = (speed * f32::from(sys.vel_noise)) as u32;
-    let pn = u32::from(sys.pos_noise);
     let mut out = Vec::new();
     for n in first..=now / freq {
         let born = n * freq;
@@ -291,16 +353,14 @@ pub fn plume(
         if age >= life {
             continue;
         }
-        let seed = mix(key ^ mix(n));
-        let noise = |k: u32, half: u32| draw(seed, k, 2 * half) as f32 - half as f32;
-        let mut vel: [f32; 3] = std::array::from_fn(|k| v0[k] + noise(k as u32, vn) / 340.0);
-        let mut pos: [f32; 3] = std::array::from_fn(|k| at[k] + noise(3 + k as u32, pn));
+        let (mut pos, mut vel) = start(sys, at, dir, seed(frame_at(born), at, BUILD_RANDOM, n));
+        let key = mix(key ^ mix(n));
         let mut angle = 0.0;
         let mut turn = 0.0;
         if sys.rotation > 0 {
             let r = u32::from(sys.rotation);
-            angle = draw(seed, 6, 360) as f32;
-            turn = (draw(seed, 7, r) as f32 - (r / 2) as f32) / FRAME_MS;
+            angle = draw(key, 6, 360) as f32;
+            turn = (draw(key, 7, r) as f32 - (r / 2) as f32) / FRAME_MS;
         }
         let mut t = born;
         while t < now {
@@ -413,6 +473,35 @@ mod tests {
         let packet = [4.221_531e-5, 7.311_911e-5, 4.477_612e-5];
         for k in 0..3 {
             assert!((w[k] - packet[k]).abs() < 2e-7, "{w:?} {packet:?}");
+        }
+    }
+
+    /// **`Random::get`'s span leaves out its top**, and an empty span draws
+    /// nothing; **the seed overflows** to `i32::MIN` past the first count,
+    /// so a building's emitter seeds `0x80000000 + 47 · counter` past the
+    /// first few frames, whatever its anchor. On run1559b's packet, slot 8's smoke births
+    /// 155 and 147 start 9 and −16 units off the anchor on z, as
+    /// `client::particle`'s `the_starts_are_the_packets` reads them.
+    #[test]
+    fn the_seed_is_init_s() {
+        let mut r = Random(0);
+        let draws: Vec<i32> = (0..2000).map(|_| r.get(0, 2)).collect();
+        assert!(draws.iter().all(|&d| d == 0 || d == 1));
+        assert!(draws.contains(&0) && draws.contains(&1));
+        let before = r;
+        assert_eq!(r.get(3, 3), 3);
+        assert_eq!(r, before);
+        let at = [3207.27, 30518.4, 726.74];
+        assert_eq!(seed(3280, at, BUILD_RANDOM, 155), 0x8000_0000 + 47 * 155);
+        assert_eq!(seed(9, at, BUILD_RANDOM, 155), 0x8000_0000 + 47 * 155);
+        // On frame 3 the product, 7.5e8, is inside `i32` and is the seed.
+        assert_eq!(seed(3, at, BUILD_RANDOM, 155), 752_999_157);
+        // The first count is the anchor's sum, truncated.
+        assert_eq!(seed(3280, at, BUILD_RANDOM, 0), 34452);
+        let s = smoke();
+        for (counter, dz) in [(155, 9.0), (147, -16.0)] {
+            let (p, _) = start(&s, at, [0.0, 0.0, 1.0], seed(3280, at, 1, counter));
+            assert_eq!(p[2] - at[2], dz, "{counter}");
         }
     }
 
