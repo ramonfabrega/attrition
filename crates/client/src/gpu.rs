@@ -171,6 +171,11 @@ fn land_shader() -> String {
 /// water lit at its material and blended over the frame under it in HDR.
 const WATER_SHADER: &str = include_str!("../shaders/water.wgsl");
 
+/// **The particles' shader** (item 4233; `docs/RENDERER.md` §3.25): a
+/// quad facing the camera, the smoke's `MODULATE2X` and the fire's
+/// `MODULATE`.
+const PARTICLE_SHADER: &str = include_str!("../shaders/particle.wgsl");
+
 /// The names [`WATER_SHADER`] leaves a hole for, each filled once.
 #[cfg(test)]
 const WATER_HOLES: [&str; 10] = [
@@ -215,7 +220,7 @@ const SHADE_HOLES: [&str; 2] = ["EXPOSURE", "white"];
 /// [`DECAL_SHADER`] appended), the tree (the textured with the filled
 /// [`TREE_SHADER`] appended), the shade, the patch, the luminance and the
 /// expose (item 4212).
-fn shader_sources() -> [(&'static str, String); 9] {
+fn shader_sources() -> [(&'static str, String); 10] {
     [
         ("client", SHADER.to_string()),
         ("sprites", SPRITE_SHADER.to_string()),
@@ -235,6 +240,7 @@ fn shader_sources() -> [(&'static str, String); 9] {
         ),
         ("luminance", crate::expose::luminance_shader()),
         ("expose", crate::expose::expose_shader()),
+        ("particle", PARTICLE_SHADER.to_string()),
     ]
 }
 
@@ -290,6 +296,8 @@ pub struct Frame<'a> {
     pub sprites: &'a [crate::world::SpriteDrawing],
     /// The shadows (item 4182), one mesh a decal texture.
     pub shadows: &'a [crate::world::TexturedMesh],
+    /// The burning buildings' particles (item 4233), one mesh a blend.
+    pub particles: &'a [crate::particle::ParticleMesh],
 }
 
 /// **Where the figures' silhouette pass falls** (item 4171; `docs/RENDERER.md`
@@ -414,6 +422,11 @@ pub struct Gpu {
     decal_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
     /// Where the silhouette pass falls (item 4171).
     pub silhouette_order: SilhouetteOrder,
+    /// The particles' passes (item 4233): the smoke laid over, the fire
+    /// added; their texture under the trees' linear, clamped sampler.
+    smoke: wgpu::RenderPipeline,
+    fire: wgpu::RenderPipeline,
+    particle_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
 }
 
 /// Block on a future wgpu answers at once on a native backend.
@@ -457,6 +470,7 @@ impl Gpu {
             patch_module,
             luminance_module,
             expose_module,
+            particle_module,
         ] = shader_sources().map(|(label, source)| {
             device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some(label),
@@ -801,6 +815,59 @@ impl Gpu {
             None,
             Default::default(),
         );
+        // Item 4233 (§3.25): both systems' `enables` 0x20085 on the packets:
+        // the depth tested (`zfunc` LessEqual), not written, and `src_blend`
+        // 5 (`SRCALPHA`); the smoke's `dst_blend` 6 (`INVSRCALPHA`), the
+        // fire's 2 (`ONE`).
+        let particle_attributes =
+            wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x4];
+        let particle_pass = |label: &str, entry: &str, dst: wgpu::BlendFactor| {
+            let c = wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::SrcAlpha,
+                dst_factor: dst,
+                operation: wgpu::BlendOperation::Add,
+            };
+            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some(label),
+                layout: Some(&sprite_pipeline_layout),
+                vertex: wgpu::VertexState {
+                    module: &particle_module,
+                    entry_point: Some("vs_particle"),
+                    compilation_options: Default::default(),
+                    buffers: &[Some(wgpu::VertexBufferLayout {
+                        array_stride: 36,
+                        step_mode: wgpu::VertexStepMode::Vertex,
+                        attributes: &particle_attributes,
+                    })],
+                },
+                primitive: wgpu::PrimitiveState {
+                    cull_mode: None,
+                    ..Default::default()
+                },
+                depth_stencil: Some(wgpu::DepthStencilState {
+                    format: DEPTH_FORMAT,
+                    depth_write_enabled: Some(false),
+                    depth_compare: Some(wgpu::CompareFunction::LessEqual),
+                    stencil: Default::default(),
+                    bias: Default::default(),
+                }),
+                multisample: Default::default(),
+                fragment: Some(wgpu::FragmentState {
+                    module: &particle_module,
+                    entry_point: Some(entry),
+                    compilation_options: Default::default(),
+                    targets: &[Some(wgpu::ColorTargetState {
+                        format,
+                        blend: Some(wgpu::BlendState { color: c, alpha: c }),
+                        write_mask: wgpu::ColorWrites::ALL,
+                    })],
+                }),
+                multiview_mask: None,
+                cache: None,
+            })
+        };
+        let smoke = particle_pass("smoke", "fs_smoke", wgpu::BlendFactor::OneMinusSrcAlpha);
+        let fire = particle_pass("fire", "fs_fire", wgpu::BlendFactor::One);
         let silhouette = figure_pass(
             "silhouette",
             "fs_silhouette",
@@ -967,6 +1034,9 @@ impl Gpu {
             figure_sampler,
             figure_textures: std::sync::Mutex::new(Default::default()),
             silhouette_order: SilhouetteOrder::Before,
+            smoke,
+            fire,
+            particle_textures: std::sync::Mutex::new(Default::default()),
             sprite,
             sprite_uniform,
             sprite_bind,
@@ -1187,6 +1257,43 @@ impl Gpu {
             .collect()
     }
 
+    /// The particles' meshes on the GPU (item 4233), each beside its
+    /// texture's bind group and whether its blend adds.
+    fn particle_meshes(
+        &self,
+        meshes: &[crate::particle::ParticleMesh],
+    ) -> Vec<(wgpu::Buffer, u32, wgpu::BindGroup, bool)> {
+        meshes
+            .iter()
+            .filter(|m| !m.positions.is_empty())
+            .map(|m| {
+                let mut bytes = Vec::with_capacity(m.positions.len() * 36);
+                for ((p, uv), c) in m.positions.iter().zip(&m.uvs).zip(&m.colours) {
+                    for f in p.iter().chain(uv).chain(c) {
+                        bytes.extend_from_slice(&f.to_le_bytes());
+                    }
+                }
+                let buf = self.device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("particles"),
+                    size: bytes.len() as u64,
+                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+                self.queue.write_buffer(&buf, 0, &bytes);
+                let t = self
+                    .particle_textures
+                    .lock()
+                    .unwrap()
+                    .entry(m.key)
+                    .or_insert_with(|| {
+                        self.upload_mips(std::slice::from_ref(&*m.texture), &self.tree_sampler)
+                    })
+                    .clone();
+                (buf, m.positions.len() as u32, t, m.additive)
+            })
+            .collect()
+    }
+
     /// Each textured figure's corners as position and texcoord, beside its
     /// texture's bind group.
     fn textured_meshes(&self, meshes: &[crate::world::TexturedMesh]) -> Vec<Uploaded> {
@@ -1354,6 +1461,7 @@ impl Gpu {
         let textured = self.textured_meshes(frame.textured);
         let trees = self.tree_meshes(frame.trees);
         let shadows = self.decal_meshes(frame.shadows);
+        let particles = self.particle_meshes(frame.particles);
         let depth = self.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("depth"),
             size: wgpu::Extent3d {
@@ -1538,6 +1646,14 @@ impl Gpu {
                         pass.draw(0..*n, 0..1);
                     }
                 }
+            }
+            // Item 4233 (§3.25): the particles after the figures, as draws
+            // 216–229 come after them on the card.
+            for (b, n, t, additive) in &particles {
+                pass.set_pipeline(if *additive { &self.fire } else { &self.smoke });
+                pass.set_bind_group(1, t, &[]);
+                pass.set_vertex_buffer(0, b.slice(..));
+                pass.draw(0..*n, 0..1);
             }
         }
         // Item 4212 (§3.21): the tone map's white at the frame's mean, then
@@ -2128,7 +2244,7 @@ mod tests {
             }
         }
         assert_eq!(built, 1, "call sites building a shader module");
-        assert_eq!(shader_sources().len(), 9);
+        assert_eq!(shader_sources().len(), 10);
     }
 
     #[test]

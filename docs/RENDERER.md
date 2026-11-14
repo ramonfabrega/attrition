@@ -2899,7 +2899,7 @@ camera and at (1013, 380) on run1570's. Unturned, slots 9 and 11 still lie
 inside the tile, because they stand near the quarter turn's diagonal
 (52 and 183 units off).
 
-**The stand-ins, not the particles.** The client draws, through the sprite
+**The stand-ins, not the particles** (replaced by §3.25's particles). The client drew, through the sprite
 pass, `BuildingFX.tga`'s fire cell at each slot and its smoke cell tinted
 (40, 40, 30) above it, sized by eye on run1559b's photograph. By eye, three
 of the photograph's four flames stand on them; slot 11's lies behind the
@@ -2913,9 +2913,9 @@ piece with an `anim=` (the rest pose is assumed).
 
 **What is not established.**
 
-- The particles: emission, motion, wind, lifetime, size and the two blends.
+- ~~The particles: emission, motion, wind, lifetime, size and the two blends.
   The stand-ins are alpha-tested at half, so the smoke reads as hard dark
-  blocks (4201a).
+  blocks (4201a).~~ → §3.25: the particles replace the stand-ins.
 - An emitter outliving its level: `ensure_emitter` refreshes `end_time`
   each frame, so a repaired building's fire outlasts the repair by the
   system's own duration, and ours goes out at once.
@@ -3209,6 +3209,85 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
 - the fish herds' blot and the whitecaps;
 - the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
 - the screen reflection and the specular.
+
+## 3.25 A burning building's particles (item 4233)
+
+*2026-11-14, Opus 5.5. `render::particle` (the system, the look, the motion, the wind, the plume, the quad);
+`client::particle` (the systems loaded, each drawn slot's plumes, the meshes); `client::gpu`'s smoke and fire
+passes and `shaders/particle.wgsl`. They replace §3.20's stand-ins. Scored on run1559b's and run1570's photographs.*
+
+**The row** (committed before any draw, `814500f5d`). A pixel's class is its luma in hundredths of the luma of our
+still with the fires off, the scene without its smoke: clear at 85 and over, haze from 35, dense under, and clear
+wherever the scene is black. The window is each packet anchor's pixel, 64 left and right, 192 up and 16 down, and
+the row is taken over their union. Theirs is every pixel of the photograph that is not clear. A pixel agrees when
+ours is of its class; ours past is a pixel ours darkens where the photograph is clear. A blended plume is haze over a
+dense core; an alpha-tested sprite is dense or clear. `RUN1559B_3279_PLUME` and `RUN1570_PLUME` (`client::fire`)
+each pin four columns: as drawn, fires off (0), the photograph taken for ours (the whole), and the packet's own
+particles through our pass (the draw apart from the emission).
+
+| row | 4201's stand-ins | the packet's particles | drawn |
+|---|---|---|---|
+| `RUN1559B_3279_PLUME` | 336 of 19,378, 185 past | 11,518, 1,702 past | **9,138**, 5,617 past |
+| `RUN1570_PLUME` | 316 of 18,871, 254 past | 11,847, 1,353 past | **9,232**, 5,055 past |
+
+Made to fail: with haze and dense merged into one class, the stand-ins read 1,012 and 944 against the pinned 336
+and 316. That is what the split guards against.
+
+**The systems, off the packets** (`particles.py` in the item's lab directory). On both packets each burning slot
+has 18 live smoke particles and about 7 fire particles in its emitters' `particles` (`ParticleEmitter +0x4`). Each
+particle carries `pos`, `angle`, `color` and `time_left`. `GraphicPieces +0xb30` holds systems 36 and 37.
+`System::from_xml` reads `effects_graphics.xml`: the timings are game frames of 67 ms, `start_speed` is divided by
+6,700, gravity by 6,700,000, `drag_coef` by 1,000 and `uses_wind` by 255. The texture coordinates are over
+`BuildingFX.tga`'s 64 texels. The result equals both packets' `ParticleSystem`s field for field, to an ulp
+(`particle::tests::the_systems_are_the_packets`). The render states: `enables` 0x20085 (the depth tested, not
+written, the alpha test at 0) and `src_blend` 5. The smoke has `dst_blend` 6 and `colorop` 4, which `rise.pdb`'s
+`TextureOp` names `TOP_MODULATE2X`. The fire has `dst_blend` 2 (`ONE`) and `colorop` 3 (`MODULATE`).
+
+**The look** (`Particle::draw@008da6b0`). Age is `fade[2] − time_left`.
+- Under `fade[0]`, the alpha is `hold_alpha · t` and the size runs from key 0 to key 1.
+- Until `fade[1]`, the alpha holds and the size runs from key 1 to key 2.
+- After that, both fade to 0 and to key 3.
+- The quad's half extent is 1.5 times the size, along `xvec` and `yvec` (the render matrix's first two columns),
+  turned by the angle.
+- The colour's alpha byte is the faded alpha. The system colour packs red in the low byte: (40, 40, 30) is
+  `ff1e2828`.
+
+**The motion** (`Particle::pass_time@008db470`). In each step of `dt` ms the acceleration is `gravity + wind ·
+wind_use`, the wind only from `min_wind_height` over the ground (`find_data_z`). The position moves by `(v +
+a·dt/2)·drag·dt` and the velocity becomes `(v + a·dt)·drag`. On run1559b, slot 9's particles in our plume stand
+within the noise of the packet's age for age: the oldest are about (+500, +540, +1,120) from the anchor on both
+sides.
+
+**The wind** (`Scene::render@008b3270`, its listing at `0x008b33ca` to `0x008b350c`). It is `(4, 4, 3)/67000`,
+turned by `Transform::rotate_z` through `⌊22.5·(sin(t/0.8) + cos(t/1.2))⌋` degrees clamped to ±45. Here `t =
+(frame + graphic_dt·3/200)·π/180` and 0.8 and 1.2 are the scene's `wind_scalar`. On run1570's packet the turn is
+the stored −14 and the vector matches to 2e-7 (`particle::tests::the_wind_on_run1570_s_frame`). On run1559b's the
+stored turn is −4 where the formula gives −7 at the packet's frame and `graphic_dt`. The turn swings through tens
+of degrees within one smoke life, so the plume steps each particle under its own frame's wind. Taking the current
+wind for the whole life read run1570 at 5,772.
+
+**The start** (`Particle::init@008db7c0`, `emit_build_particles@00909590`).
+- The velocity is `desc.vel · start_speed` plus `±⌊|v|·vel_noise⌋/340` an axis.
+- The point is the anchor plus `±pos_noise` an axis.
+- The angle is a random degree turning at `(r − rotation/2)/67` a millisecond.
+- `desc.vel` is `get_position`'s second vector. On the packets it is a unit vector of z −0.48 to −0.54.
+
+**The pass.** Particles are drawn after the figures, as draws 216–229 are, sorted far to near. The smoke uses
+`SRCALPHA`/`INVSRCALPHA` with `min(2·texel·colour, 1)`. The fire uses `SRCALPHA`/`ONE` with `texel·colour`. Both
+depth-test `LessEqual` and write no depth, under the trees' linear, clamped sampler.
+
+*Coverage.* Diff-backed: the systems against the packets, the wind on run1570, and the motion on slot 9. On the
+photographs alone: the rows. *Not established:*
+- the emission's random draws: the original seeds each particle from its birth frame and `internal_random`, and
+  ours from a hash, so the plume is the original's in size, speed, spread and fade, not particle for particle;
+  another seed moves the row by about 1,000 (4233c);
+- the dense core: even the packet's particles through our pass read dense 468 and 676 against the photographs'
+  2,415 and 2,470. The smoke's own colour under `MODULATE2X` is about (50, 50, 38), and the photograph's densest
+  pixels are (47, 42, 22) (4233a);
+- `desc.vel`'s direction off the model: ours is (0, 0, −1) (4233b);
+- an emitter's start: ours has burned for a whole life, the original's from when its level was reached (4201b
+  stands);
+- the run1559b wind's three degrees, `graphic_dt` taken at 0, and the 18 births a life where `freq` gives 15 or 16.
 
 ## 4. The stack
 
