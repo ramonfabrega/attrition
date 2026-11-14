@@ -2928,15 +2928,81 @@ fn the_rallied_minted_packages_round_trip() {
 /// red there: **40 of 300 part, the first on 6866 at `1/0`'s `damage`,
 /// ours 13 and theirs 16**, as on run1601. The pause does not move the
 /// blow; the moved rally point does, and our walk misses it
-/// (`docs/CLIENT_INPUT.md` §14.1).
+/// (`docs/CLIENT_INPUT.md` §14.1). **Whole since item 4256**, 40 → 0: the
+/// blow is `0/8`'s round, released by the Slinger's `CHAR_ATTACK3` from its
+/// node, a row `sim::data::launch` lacked ([`RALLIED_ROUND`]).
 pub(crate) const RALLIED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
     "gamelog-run1602-greatlakes-playback-of-rallied-7000.txt",
     "rontrace-run1602.log",
     7000,
     7000,
     300,
-    40,
+    0,
 )];
+
+/// **The round in flight on 6860 of the rallied game** (item 4256, run1603):
+/// the original's whole ammo pool at logger frame 6860, read off the packet
+/// by `tools/recomp/ammo.py` — one live slot, `0/8`'s round on `1/0`, born
+/// on 6859. `(shooter, target, slot, (sx, sy, sz), (ex, ey, ez), cur_time,
+/// total_time, accuracy)`. Seen red before the Slinger's `CHAR_ATTACK3` row:
+/// ours left the unit's square at ground height, (3720, 31656, 533), for
+/// (2884, 32738, 632) in 8 frames (`docs/CLIENT_INPUT.md` §15.1).
+type Round = (
+    (i64, i64),
+    Option<(i64, i64)>,
+    u32,
+    (i32, i32, i32),
+    (i32, i32, i32),
+    i32,
+    i32,
+    i32,
+);
+const RALLIED_ROUND: (i64, &[Round]) = (
+    6860,
+    &[(
+        (0, 8),
+        Some((1, 0)),
+        0,
+        (3762, 31769, 710),
+        (2915, 32738, 632),
+        1,
+        7,
+        300,
+    )],
+);
+
+/// **Our walk's ammo pool is the packet's** on [`RALLIED_ROUND`]'s frame:
+/// the rallied script walked from the built start under the pump, every
+/// live round read field for field.
+#[test]
+fn the_rallied_game_s_round_in_flight_is_the_packet_s() {
+    let Some((_, mut built, _)) = built_start() else {
+        return;
+    };
+    let mut stream = crate::input::Stream::pump(&minted(&crate::script::rallied()).unwrap());
+    tick_to(&mut built, Some(&mut stream), RALLIED_ROUND.0);
+    let sim = &built.sim;
+    let ours: Vec<Round> = sim
+        .combat
+        .projectiles
+        .iter()
+        .filter(|p| !p.spent)
+        .map(|p| {
+            (
+                crate::diff::golden::obj_ident(sim, p.shooter),
+                p.target.map(|t| crate::diff::golden::obj_ident(sim, t)),
+                p.slot,
+                (p.launch.x, p.launch.y, p.sz),
+                (p.landing.x, p.landing.y, p.ez),
+                p.cur_time,
+                p.total_time,
+                p.accuracy,
+            )
+        })
+        .collect();
+    eprintln!("RALLIED ROUND ours {ours:?}");
+    assert_eq!(ours, RALLIED_ROUND.1, "the packet's ammo pool");
+}
 
 /// A take's dumped window, from its first `BEGIN FRAME` line to its end.
 fn window_bytes(take: &str) -> Option<Vec<u8>> {
@@ -3104,14 +3170,16 @@ const PAUSED_AGAINST_CHATTED: (i64, &str, &str, Option<i64>, usize) = (
 /// frames, but 40 of the 300 records part, the first on 6866 at player 1's
 /// `1/0`, `damage` ours 13 and theirs 16. That blow lands six frames
 /// earlier on run1601 than on run1599, where our walk's lands
-/// (`docs/CLIENT_INPUT.md` §13.4, parked 4252a).
+/// (`docs/CLIENT_INPUT.md` §13.4, parked 4252a). **Whole since item 4256**,
+/// 40 → 0: the slinger's third swing releases from its node
+/// (`docs/CLIENT_INPUT.md` §15, [`RALLIED_ROUND`]).
 pub(crate) const PAUSED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
     "gamelog-run1601-greatlakes-playback-of-paused-7000.txt",
     "rontrace-run1601.log",
     7000,
     7000,
     300,
-    40,
+    0,
 )];
 
 /// The functions a pause runs on the original's side: the package's arm,

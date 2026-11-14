@@ -5680,9 +5680,10 @@ pub(crate) mod tests {
         // Item 1330 took 44 (177/188 → 133/142): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1455: (116, 125) → (116, 123), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         // Item 1461: (112, 118) → (106, 112); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (36, 36) -> (25, 25).
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (25, 25), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260). Item 4258: (36, 36) → (25, 25), `Group::add`'s role OR.
+            (25, 25), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -5883,9 +5884,10 @@ pub(crate) mod tests {
         // Item 1354 took 29 (142/264 → 142/235): the Citizens' `mylos` on 12563, the cache (`docs/VISION.md` §2).
         // Item 1455: (125, 217) → (123, 215), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         // Item 1461: (118, 210) → (112, 204); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (36, 36) -> (25, 25).
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (25, 25), // Item 2997: (38, 125) → (38, 38), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260). Item 4258: (36, 36) → (25, 25), `Group::add`'s role OR.
+            (25, 25), // Item 2997: (38, 125) → (38, 38), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -6017,13 +6019,12 @@ pub(crate) mod tests {
         // (12976), a city site at (47, 33) that ours scored 95,326 and the
         // original never listed — `blocked_tcoord`'s rock arm refuses it
         // (`docs/AI.md` §78).
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): the seated Scholar's `g.angle[0]` rows gone.
         pin_eq!(
             mid,
             // Item 1106 closed who=0's `gather_stamp` on 14537, 14536
             // against 14080: the border pass's economy flag (`docs/AI.md` §84).
-            // Item 1468 (group 17): every unit is born snapped to the 48-grid's centre, so the
-            // trained squads' `orders_x`/`orders_y` stand where the original's do: six rows → two.
-            Vec::<String>::new(), // Item 4258: ["13556 1/74 g.angle[0]: ours 1431655765 theirs 0", "13737 1/75 g.angle[0]: ours 1431655765 theirs 0"] → [], `Group::add`'s role OR.
+            Vec::<String>::new(),
             "the rows under the word, on run178's own blocks"
         );
         // ~~**The word, 14529 (block 14530).**~~ Item 695 moved it: the
@@ -6060,9 +6061,10 @@ pub(crate) mod tests {
         // Item 1106 took one (307 → 306): who=0's `gather_stamp`, the border pass's economy flag (`docs/AI.md` §84).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 166.
         // Item 1455: 98 → 97, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 37 -> 24.
         pin_eq!(
             standing_n, // Item 1444: the ruins guard removes stale site fields (batch replay).
-            24, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 4258: 37 → 24, `Group::add`'s role OR.
+            24, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every row standing on 14651"
         );
         // **The floor**: run174's 374 to its last block, exactly as
@@ -6078,6 +6080,7 @@ pub(crate) mod tests {
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
         // Item 1455: (217, 6, 223) → (215, 6, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         // Item 1461: (210, 6, 216) → (204, 6, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (36, 2, 38) -> (25, 0, 25).
         pin_eq!(
             (under, mid.len(), firsts.len()),
             // Item 718: six trained units' `orders_x`/`orders_y`; item 723
@@ -6096,7 +6099,7 @@ pub(crate) mod tests {
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (25, 0, 25), // Item 2997: (125, 2, 127) → (38, 2, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260). Item 4258: (36, 2, 38) → (25, 0, 25), `Group::add`'s role OR.
+            (25, 0, 25), // Item 2997: (125, 2, 127) → (38, 2, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -6193,9 +6196,10 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 169.
         // Item 1330 took 51 (164 → 113): the births' `form` (`docs/GROUPS.md` §24.3).
         // Item 1455: 97 → 96, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 36 -> 23.
         pin_eq!(
             standing_n, // Item 1444: the ruins guard removes stale site fields (batch replay).
-            23, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 4258: 36 → 23, `Group::add`'s role OR.
+            23, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every row standing on 14983"
         );
         // **The floor**: run178's 416 to its last block, exactly as
@@ -6222,9 +6226,10 @@ pub(crate) mod tests {
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (38, 0, 38) -> (25, 0, 25).
         pin_eq!(
             (under, own.len(), firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260). Item 4258: (38, 0, 38) → (25, 0, 25), `Group::add`'s role OR.
+            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -6291,6 +6296,7 @@ pub(crate) mod tests {
         // item 729 took one more, `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71)).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 169.
         // Item 1455: 98 → 97, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 37 -> 24.
         pin_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             // Item 723 took one (315 → 314): the scout's formation mirror.
@@ -6299,7 +6305,7 @@ pub(crate) mod tests {
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1330 took 50 (164 → 113): the births' `form` (`docs/GROUPS.md` §24.3).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            24, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 4258: 37 → 24, `Group::add`'s role OR.
+            24, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every row standing on 15176"
         );
         // **The floor**: run192's 422 to its last block, exactly as
@@ -6333,9 +6339,10 @@ pub(crate) mod tests {
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (38, 0, 38) -> (25, 0, 25).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260). Item 4258: (38, 0, 38) → (25, 0, 25), `Group::add`'s role OR.
+            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -6449,6 +6456,7 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (169, 170).
         // Item 1330 took 50 (164/164 → 114/114): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1455: (98, 98) → (97, 97), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (37, 37) -> (24, 24).
         pin_eq!(
             (
                 standing.get(&OLD_BLOCK).map_or(0, BTreeMap::len),
@@ -6456,7 +6464,7 @@ pub(crate) mod tests {
             ),
             // Item 1072 took four (313/314 → 309/310): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (24, 24), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 4258: (37, 37) → (24, 24), `Group::add`'s role OR.
+            (24, 24), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every row standing on 15384 and on 15385"
         );
         // **The floor**: run196's walk exactly — run192's 422, and nothing
@@ -6491,9 +6499,10 @@ pub(crate) mod tests {
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (38, 0, 38) -> (25, 0, 25).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260). Item 4258: (38, 0, 38) → (25, 0, 25), `Group::add`'s role OR.
+            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -6608,6 +6617,7 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (165, 165).
         // Item 1330 took 50 (162/162 → 112/112): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1455: (96, 96) → (95, 95), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (35, 35) -> (22, 22).
         pin_eq!(
             (
                 standing.get(&OLD_BLOCK).map_or(0, BTreeMap::len),
@@ -6615,7 +6625,7 @@ pub(crate) mod tests {
             ),
             // Item 1072 took four (309/309 → 305/305): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (22, 22), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 4258: (35, 35) → (22, 22), `Group::add`'s role OR.
+            (22, 22), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every row standing on 15609 and on the word's block, 15620"
         );
         // **The floor**: run202's walk, then run211's own keys up to the
@@ -6646,9 +6656,10 @@ pub(crate) mod tests {
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (38, 0, 38) -> (25, 0, 25).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260). Item 4258: (38, 0, 38) → (25, 0, 25), `Group::add`'s role OR.
+            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -6739,6 +6750,7 @@ pub(crate) mod tests {
         // item 742, whose give-up took `1/23`'s 43 keys off it.
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 168.
         // Item 1455: 99 → 98, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 38 -> 25.
         pin_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             // Item 1072 took four (312 → 308): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
@@ -6746,7 +6758,7 @@ pub(crate) mod tests {
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1330 took 50 (165 → 114): the births' `form` (`docs/GROUPS.md` §24.3).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            25, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 4258: 38 → 25, `Group::add`'s role OR.
+            25, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every row standing on the old word's block, 16461"
         );
         // **The floor**: run211's walk (398, nothing on run211's own blocks
@@ -6770,9 +6782,10 @@ pub(crate) mod tests {
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (38, 0, 38) -> (25, 0, 25).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260). Item 4258: (38, 0, 38) → (25, 0, 25), `Group::add`'s role OR.
+            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -6872,6 +6885,7 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (167, 167, 163).
         // Item 1330 took 50 (164/164/163 → 114/114/113): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1455: (98, 98, 97) → (97, 97, 96), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (37, 37, 36) -> (24, 24, 23).
         pin_eq!(
             (
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
@@ -6890,7 +6904,7 @@ pub(crate) mod tests {
             // Item 1072 took four (311/311/307 → 307/307/303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (24, 24, 23), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 4258: (37, 37, 36) → (24, 24, 23), `Group::add`'s role OR.
+            (24, 24, 23), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every row standing on 17100 (item 742's word's block), 17129 \
              (757's) and 17182 (776's)"
         );
@@ -6914,9 +6928,10 @@ pub(crate) mod tests {
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (38, 0, 38) -> (25, 0, 25).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260). Item 4258: (38, 0, 38) → (25, 0, 25), `Group::add`'s role OR.
+            (25, 0, 25), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }

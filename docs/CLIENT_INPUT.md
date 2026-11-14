@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -1285,9 +1285,52 @@ our walk under the paused script, because `Stream`'s pause arm applies nothing.
 record.
 
 **Not established:**
-- **4254a. What lands `1/0`'s blow on 6866.** The candidate is a missile from `0/9`'s shot on 6846, or `0/8`'s on
+- ~~**4254a. What lands `1/0`'s blow on 6866.** The candidate is a missile from `0/9`'s shot on 6846, or `0/8`'s on
   6844. The dump prints no missile. The next instrument is a packet at `RON_STATE_FRAME` 6860 on run1602's file,
   reading the missiles in flight and their targets, then the same on run1599's. The question to answer: why the
   Citizen walking to (4632, 31080) instead of standing at (4296, 30984) changes when a blow lands about 2,400 units from it.
-  The fix follows from that.
+  The fix follows from that.~~ **Answered by item 4256** (§15): `0/8`'s round born on 6859, released by the
+  Slinger's `CHAR_ATTACK3` from a node our table lacked. The Citizen's walk moves the draws that pick the swing.
 
+## 15. The rally point's blow: the Slinger's third swing (item 4256)
+
+*Item 4256, 2026-11-14. Item 4254 placed the parting in our walk (§14). One packet names the round, and one row of
+the release table closes it. The score: run1601's records whole, **260 → 300 of 300**, and run1602's the same.*
+
+### 15.1 The round, and the row
+
+**The packet** (run1603, `docs/RUNS.md`): the rallied file played to 6863 with `RON_STATE_FRAME=6860`. Its ammo pool
+(`tools/recomp/ammo.py`) holds one live round: `0/8`'s on `1/0`, born on 6859, from (3762, 31769, 710) to
+(2915, 32738, 632), 1 of 7 frames. Our walk held the same round, born on the same frame, from (3720, 31656, 533) to
+(2884, 32738, 632), 1 of 8. So the shot is right and its launch point is wrong. Flying one frame longer, ours lands on
+6867, where the dump's blow is on 6866.
+
+**Why the rally point moves it.** `0/8` is a Slinger (piece 384). On the rallied script its figure swings
+`CHAR_ATTACK3` (animation 13) from 6844; on the chatted script, `CHAR_ATTACK1` (11). The swing is a draw, and the
+Citizen's walk to the moved point changes the draws before it. The draws agree with the original's on every frame of
+both takes, so both sides swing the same. `CHAR_ATTACK3` releases at its frame 16, on 6859; `CHAR_ATTACK1` at 21, on
+6864. That is the six frames between the takes' blows (§14.1).
+
+**The missing row.** `sim::data::launch::MEASURED` had piece 384's `CHAR_ATTACK1` and `CHAR_ATTACK2` rows (chapter two,
+`docs/COMBAT.md` §22) and no `CHAR_ATTACK3`. A release with no row leaves the unit's own square at ground height. The
+row is solved from the packet's one round as §22 solves a one-shot row. The unit stands at (3720, 31656) facing
+−2140667904, over ground 533. Radius 120 is the only radius that fits (3762, 31769). The bearing is the middle of its
+exact fits, −256,363,008 to −250,333,696 stepped by 65,536: **−253,348,352**. The height is 710 − 533 = **177**.
+
+**The value diff** (our walk on the rallied script, against run1602):
+- On 6860, `0/8`'s round: launch (3720, 31656, 533) → (3762, 31769, 710); landing (2884, 32738) → (2915, 32738);
+  `total_time` 8 → 7. The packet's, field for field (`the_rallied_game_s_round_in_flight_is_the_packet_s`, seen red
+  on the old row's values).
+- On 6866, `1/0`'s `damage`: ours 13 → 16, theirs 16.
+- `RALLIED_WALKED` 40 → 0 of 300 records parted; `PAUSED_WALKED` (run1601) 40 → 0 of 300. Draws on 7,000 of 7,000
+  frames on both.
+
+### 15.2 Confidence, and what is not established
+
+**Backed by a diff:** the round on 6860, against the packet; run1601's and run1602's 300 records each, whole.
+
+**Not established:**
+- The row is one shot at one facing. A bearing anywhere in the 6,029,312-wide range of exact fits reproduces this
+  shot; another facing would narrow it. The same holds for the Crossbowmen's one-shot rows (`docs/COMBAT.md` §22).
+- The minted game's other Slinger swings move with the row wherever a `CHAR_ATTACK3` releases. The booking gate's
+  corpus says whether any floor moved.

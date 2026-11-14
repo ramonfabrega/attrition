@@ -181,7 +181,8 @@ fn american_enlightenment_pair_the_long_s_stride_walks_back_from_3215() {
     // 3183 with the Marines `1/29` (TY 69, TI 119) inside: `myhits` and
     // `hits_left` ours 90 theirs 160, `myspeed` 25 against 31, `pos`
     // (35137, 43021) against (34971, 43021) (`docs/AI.md` §341).
-    pin_eq!(w.firsts.len(), 126, "the stride's baseline"); // Item 4258: 127 → 126, `Group::add`'s role OR.
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 127 -> 126.
+    pin_eq!(w.firsts.len(), 126, "the stride's baseline");
 }
 
 /// run1314b: the word 3215's window, blocks 3209..3465 at the long's
@@ -312,7 +313,8 @@ fn american_enlightenment_pair_run1325_s_clocks_are_widened_whole() {
     // the standing families (`SITE[*].reg`, `form`, who=1's groups and
     // pools) and what follows the old word; unread by the draft — the
     // next session's first job (journal 2026-10-26, item 3661).
-    pin_eq!(w.firsts.len(), 119, "run1325 baseline"); // Item 4258: 120 → 119, `Group::add`'s role OR.
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 120 -> 119.
+    pin_eq!(w.firsts.len(), 119, "run1325 baseline");
     pin_eq!(w.rounds_read, (9, 9), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -517,7 +519,8 @@ fn american_enlightenment_pair_run1325d_s_closing_window_is_widened_whole() {
     // 0), `SITE[i].reg`, `aggression[1]` — and the Scholar `1/14`'s figure
     // `angle`.
     // Item 4159's residue: 148 -> 147, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 146, "run1325d baseline"); // Item 4258: 147 → 146, `Group::add`'s role OR.
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 147 -> 146.
+    pin_eq!(w.firsts.len(), 146, "run1325d baseline");
     // 82 a side, none parting. Before piece 218's bays who=1's Cannons'
     // (type 268) four rounds left the carriage's own point, 100 low —
     // `1/96`'s on 6475 from (9480, 9864, 318) against (9369, 9768, 418).

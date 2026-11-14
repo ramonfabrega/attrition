@@ -2680,9 +2680,10 @@ mod tests {
         // Item 1326 re-pinned on the tree merged with 1318's.
         // Item 1457: [(9032, 76), (9084, 2), (9201, 1), (9222, 4), (… → [(9032, 76), (9201, 1), (9222, 4), (9223, 1), (…; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1461: its rows leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): [(9032, 28)] -> [(9032, 24)].
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(9032, 24)], // Item 4258: [(9032, 28)] → [(9032, 24)], `Group::add`'s role OR.
+            [(9032, 24)],
             "the blocks keys first part on"
         );
         // Item 1326 re-pinned on the tree merged with 1318's: was 158.
@@ -2692,9 +2693,10 @@ mod tests {
         // against −363239852 → agreeing (`docs/ANIM.md` §11).
         // Item 1457: 95 → 93; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1461: 93 → 77, the crew rows from 9222 leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 28 -> 24.
         pin_eq!(
             w.firsts.len(),
-            24, // Item 4258: 28 → 24, `Group::add`'s role OR.
+            24,
             "every key parted on run517 (1,154 without the march's speed)"
         );
     }

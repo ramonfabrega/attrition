@@ -222,7 +222,8 @@ fn run1013b_s_gap_is_widened_whole() {
     // and `1/56`'s guard order points 48 apart (theirs (8952, 31032),
     // ours (9000, 30984)). run1013c owes 13470..13484. **129 -> 39** with
     // the Monarch's siege doubling (run1013c's 13484): the 90 close.
-    pin_eq!(w.firsts.len(), 38, "keys that part in the gap"); // Item 4258: 39 → 38, `Group::add`'s role OR.
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 39 -> 38.
+    pin_eq!(w.firsts.len(), 38, "keys that part in the gap");
 }
 
 /// run1013c: the army's parting, blocks 13463..13489 at run1013's detail

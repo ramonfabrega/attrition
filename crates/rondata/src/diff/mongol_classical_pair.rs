@@ -367,7 +367,8 @@ fn mongol_classical_pair_the_long_s_stride_walks_back_from_9744() {
     // every unit's `form`, who=1's groups' `held` and pool, the `g.angle[0]`
     // of who=1's newborns on their first block. No unit row parts on a
     // stride block through 9701.
-    pin_eq!(w.firsts.len(), 141, "the stride's baseline"); // Item 4258: 148 → 141, `Group::add`'s role OR.
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 148 -> 141.
+    pin_eq!(w.firsts.len(), 141, "the stride's baseline");
 }
 
 /// run1222: the gap 9702..9737 the stride and run1218 leave undumped,
@@ -427,7 +428,8 @@ fn mongol_classical_pair_run1222_walks_the_gap_before_9744() {
     // the `dest_angle` family (3574b) from 9733.
     // Item 3595: 82 -> 81, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 9696, agrees.
-    pin_eq!(w.firsts.len(), 74, "run1222 baseline"); // Item 4258: 81 → 74, `Group::add`'s role OR.
+    // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 81 -> 74.
+    pin_eq!(w.firsts.len(), 74, "run1222 baseline");
 }
 
 /// run1224: the word 9772's window, blocks 9740..9885 at run1218's detail

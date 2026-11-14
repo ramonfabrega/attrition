@@ -754,13 +754,14 @@ mod bodies {
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (168, 1, 167, 169).
         // Item 1330 took 44 (160/1/159/161 → 116/1/115/117): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
+        // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (37, 0, 37, 37) -> (23, 0, 23, 23).
         pin_eq!(
             (first, rows.len(), on_close.len(), firsts.len()),
             // Item 870: → 285/2/284/287, the first block's 29 `group` rows
             // (`1/11` 64 against −1, `1/48`..`1/71` 72 against 71)
             // (`docs/GROUPS.md` §29).
             // Item 1106: → 284/1/283/285, who=1's wealth, the border pass's economy flag (`docs/AI.md` §84): `leftover[2:wealth]` on 18428 and `bucket[2:wealth]` on 18511.
-            (23, 0, 23, 23), // Item 4258: (37, 0, 37, 37) → (23, 0, 23, 23), `Group::add`'s role OR.
+            (23, 0, 23, 23),
             "the floor"
         );
     }
