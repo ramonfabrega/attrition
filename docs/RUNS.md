@@ -37499,3 +37499,28 @@ SHA-256 `cca724e7c31f488aa84809be85d85b8739fe95642ed94ce1008944a9da9b88a4`; `ron
 SHA-256 `6604c54aa6d2809b790aa3fba9606603758a8d5226ea7e15f6c07a8367b51a3b`.
 
 **What it holds**: the paused file's orders without the pause; the same game as run1601's, record for record.
+
+## run1603 — the rallied file's playback with a packet at 6860: the round in flight (2026-11-14, item 4256, `att-4256`)
+
+`docs/CLIENT_INPUT.md` §15. **What the disk could not answer**: what lands player 1's `1/0`'s blow on 6866 on run1601
+and run1602 (parked 4254a). No dump prints a round, and the rallied game had no packet. The take: run1602's line with
+a packet at 6860, `--recording ~/ron-golden/recordings/item4254-rallied-greatlakes-24000.rcx --end-frame 6863 --cover
+cover=1 --log-window 6855 6862 --detail end:MISC,UNITS=3,BUILDS=7 --timeout 1800 --stall-seconds 120 --tracer-def
+RON_CHECKSUMS --tracer-def RON_STATE_FRAME=6860 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`,
+through `viadriver.sh golden_capture.sh ~/ron-golden/run1603`, waited on with `waitrun.sh` in the background lane. A
+first launch without `RON_STATE_PLAN` was refused by `unattended_capture.py` before any game started.
+- Pool lane 1, launched 16:46:46 −05:00, exited 16:55:31: **525.5 s launch to exit**, exit 0, `success`, 6,864
+  frames, `last_frame` 6863, no page fault, no relaunch. Minutes waited on another lane: none.
+- The packet at logger frame 6860, trace frame 6859, `frame-snapshot.bin`, 801,782,640 bytes, SHA-256
+  `abb142ec62c0ad9d0dbec27436de1791479e4fb7541cfab4d73e0f07afb68f89`. Left in `~/ron-golden/run1603/map-14/`; the
+  census names it not held (`NOT_HELD`).
+- **Its ammo pool** (`tools/recomp/ammo.py`): one live slot. Slot 0 is `0/8`'s round on `1/0`, from (3762, 31769,
+  710) to (2915, 32738, 632), `t` 1 of 7, flags `0x6`, accuracy 300, gpiece 60348. Born on 6859. Our walk before item
+  4256 held the same round from (3720, 31656, 533) to (2884, 32738, 632), `t` 1 of 8.
+- Filed with `filerun.py run1603 greatlakes-playback-of-rallied-packet-6860`.
+
+Archive `gamelog-run1603-greatlakes-playback-of-rallied-packet-6860.txt`, 1,507,556 bytes,
+SHA-256 `2a395dc5af92386a9ad5e08adc1a2b74f32773f1f8618a3dfe8fcabde0cfd8db`; `rontrace-run1603.log`, 32,407,744 bytes,
+SHA-256 `f02dfc70be4e169c4bce29bde3148b8fc7fecebaf9e9497923964196799d4a05`.
+
+**What it holds**: the round that lands the 6866 blow, its launch point the Slinger's third swing's node.

@@ -873,11 +873,19 @@ held_melees! {
 
 /// **Every packet our walk does not hold**, with why: `(run, logger frame,
 /// why)` (`docs/CHECKSUM.md` §23.1).
-pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[(
-    "run1100",
-    5408,
-    "run1090's lobby with `100 ally 1` and `5404 explore all` staged; no word walks it",
-)];
+pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
+    (
+        "run1100",
+        5408,
+        "run1090's lobby with `100 ally 1` and `5404 explore all` staged; no word walks it",
+    ),
+    (
+        "run1603",
+        6860,
+        "the rallied file's playback (item 4256): its ammo pool is held by \
+         `minted::the_rallied_game_s_round_in_flight_is_the_packet_s`; no word walks it",
+    ),
+];
 
 /// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
 /// (`diff::diplomacy_take`), which stages a computer's decision off the
@@ -891,7 +899,8 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] =
 /// chapter's, by a melee's, by the minted walk, by a take's, not held)`.
 // Item 4206: (108, …, 1) → (109, …, 2), run1575's packet at 1090 named.
 // Item 4159, step VII-b2: run1575's packet held by its take, (…, 1, 1).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (109, 87, 7, 12, 1, 1, 1);
+// Item 4256: run1603's packet at 6860 named, not held, (110, …, 2).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (110, 87, 7, 12, 1, 1, 2);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.
