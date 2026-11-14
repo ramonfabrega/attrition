@@ -24,7 +24,7 @@ use crate::movement::Angle;
 /// The draw sites, as return addresses (the trace's `Function+0xNN`).
 pub mod site {
     /// The island count past two players: `2 + r % players`.
-    pub const ISLANDS: u32 = 0x0069_5425;
+    pub const ISLAND_COUNT: u32 = 0x0069_5425;
     /// The ring's angle: its high half…
     pub const ANGLE_HI: u32 = 0x0069_54f5;
     /// …and its low half.
@@ -130,7 +130,7 @@ pub fn british_isles_make_continents(
             players
         } else {
             let r = if players - 1 > 0 {
-                g.draws.get(site::ISLANDS) % players
+                g.draws.get(site::ISLAND_COUNT) % players
             } else {
                 0
             };

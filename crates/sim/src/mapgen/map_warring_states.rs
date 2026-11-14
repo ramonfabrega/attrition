@@ -28,7 +28,7 @@ pub mod site {
     /// Each walk step's turn, `r % 0x4000`.
     pub const STEP: u32 = 0x0069_8ed4;
     /// The islands' count's odd one, `r % 2`.
-    pub const ISLANDS: u32 = 0x0069_967c;
+    pub const ODD_ISLAND: u32 = 0x0069_967c;
     /// Each island's spacing, `r % 55 + 193`.
     pub const SPACING: u32 = 0x0069_99d2;
     /// Each island's first candidate, `r % count`.
@@ -320,7 +320,7 @@ pub fn warring_states_make_continents(
         g.lakes.points[id] = coords(g.grid, id as i16);
     }
     // 5. The islands.
-    let odd = g.draws.get(site::ISLANDS) & 1;
+    let odd = g.draws.get(site::ODD_ISLAND) & 1;
     // The listing's `edx` is `xs / 15 + r % 2` throughout (both
     // `MapFairness::clear` calls leave it): past the allowance or at it the
     // count is at least the players (0x6997f3), under it `edx` alone.
