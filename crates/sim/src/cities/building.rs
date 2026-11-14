@@ -144,6 +144,17 @@ pub struct Building {
     /// `BuildData::gather_from`: a woodcutter's or mine's resource tiles, in
     /// tiles, in the shuffled order the original keeps. An input.
     pub gather_from: Vec<Pos>,
+    /// `MiningList::mtn` (`BuildData +0xb4`): the placed mountain range a
+    /// mine's list was filled from — [`crate::Sim::find_nearest_mountain`]'s
+    /// placed index — or −1. `BuildTypeData::find_gather_tcoords@0063bdc0`
+    /// stores it when the range arm wins inside the reach, before it adds a
+    /// tile; `MiningList::MiningList` and `Build::close` write −1, and
+    /// nothing else stores it (`docs/ECONOMY.md`, "The mine's range").
+    pub mtn: i8,
+    /// `MiningList::cliff` (`+0xb5`): the cliff of [`crate::Sim::cliffs`]
+    /// the list was filled from, or −1; the cliff arm's store, beside
+    /// [`Building::mtn`]'s.
+    pub cliff: i8,
     /// `build_masks & 0x800`: a gatherer bumped `recharging` this frame.
     pub gather_bumped: bool,
     /// The farm's tile states and growth counts (§6.5).
@@ -332,6 +343,8 @@ impl Sim {
             gatherers: Vec::new(),
             gather_max: None,
             gather_from: Vec::new(),
+            mtn: -1,
+            cliff: -1,
             gather_bumped: false,
             dock_slot: None,
             farm: Farm::default(),

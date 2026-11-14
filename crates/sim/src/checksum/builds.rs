@@ -434,8 +434,8 @@ impl Sim {
             put("queue[k]", bytes);
         }
         // `MiningList::mtn`, `cliff` (+0xb4, +0xb5): −1 until a mine's list
-        // is filled from a range or a cliff.
-        put("mtn..cliff", vec![0xff, 0xff]);
+        // is filled from a range or a cliff ([`Sim::note_mine_source`]).
+        put("mtn..cliff", vec![bd.mtn as u8, bd.cliff as u8]);
         // `Array<TCoordData>::walk_data@00471c30`.
         let n = bd.gather_from.len() as i32;
         put("gather_from.length", n.to_le_bytes().to_vec());
