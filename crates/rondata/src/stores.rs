@@ -80,7 +80,7 @@ use std::collections::{BTreeMap, BTreeSet};
 /// `sizeof(Leader)` (`rise.pdb`).
 pub const LEADER_SIZE: u32 = 0x6eec;
 /// `Leaders::list` is `Leader[10]` at `+0` (`rise.pdb`).
-pub const LEADER_SLOTS: u32 = 10;
+pub const LEADERS_LIST_LEN: u32 = 10;
 
 /// The classes whose `this` is a leader record at `+0`.
 const LEADER_CLASSES: &[&str] = &["Leader", "LeaderData", "LeaderOut", "Leaders"];
@@ -205,13 +205,12 @@ fn returns_leader(name: &str) -> bool {
     for skip in [2usize, 3] {
         if let Some(t) = tail.get(skip..) {
             for p in ["PAV", "PBV", "AAV", "ABV"] {
-                if let Some(t) = t.strip_prefix(p) {
-                    if LEADER_CLASSES
+                if let Some(t) = t.strip_prefix(p)
+                    && LEADER_CLASSES
                         .iter()
                         .any(|c| t.strip_prefix(c).is_some_and(|r| r.starts_with("@@")))
-                    {
-                        return true;
-                    }
+                {
+                    return true;
                 }
             }
         }
@@ -542,7 +541,10 @@ fn string_op(op: &str, args: &str) -> bool {
 }
 
 fn is_string_store(op: &str, args: &str) -> bool {
-    let base = op.trim_start_matches("rep ").trim_start_matches("repne ").trim_start_matches("repe ");
+    let base = op
+        .trim_start_matches("rep ")
+        .trim_start_matches("repne ")
+        .trim_start_matches("repe ");
     matches!(base, "stosd" | "stosb" | "stosw" | "movsb" | "movsw")
         || (base == "movsd" && args.contains("es:[edi]"))
 }
@@ -569,7 +571,11 @@ enum V {
     /// `[off, off + span]`; `exact` when no unknown index has been added to
     /// it. A span comes from a loop that walks the record by a stride, and
     /// is capped at `SPAN_CAP`.
-    Leader { off: u32, span: u32, exact: bool },
+    Leader {
+        off: u32,
+        span: u32,
+        exact: bool,
+    },
 }
 
 /// The widest union of two paths' leader offsets kept as one span.
@@ -907,7 +913,7 @@ fn info(names: &[String]) -> FuncInfo {
 pub fn scan(ctx: &Context, listing: impl Iterator<Item = Insn>, fields: &[Field]) -> Scan {
     let geo = Geometry {
         base: ctx.leaders,
-        end: ctx.leaders + LEADER_SLOTS * LEADER_SIZE,
+        end: ctx.leaders + LEADERS_LIST_LEN * LEADER_SIZE,
     };
     let starts: Vec<u32> = ctx.map.funcs.iter().map(|f| f.start).collect();
     let infos: BTreeMap<u32, FuncInfo> = ctx
@@ -929,30 +935,34 @@ pub fn scan(ctx: &Context, listing: impl Iterator<Item = Insn>, fields: &[Field]
     let mut cur_start: Option<u32> = None;
     let mut next_idx = 0usize;
 
-    let flush = |start: Option<u32>, body: &mut Vec<Insn>, out: &mut Scan, raw: &mut Vec<(u32, Raw)>, scope: &mut [BTreeSet<u32>; 2]| {
-        if let Some(s) = start {
-            if !body.is_empty() {
-                let r = analyse(ctx, &geo, &infos, s, body, fields);
-                out.functions += 1;
-                out.instructions += body.len();
-                if !r.converged {
-                    out.unconverged.push(s);
-                }
-                let fi = &infos[&s];
-                if r.holds_leader || fi.leader_class || fi.mentions {
-                    scope[0].insert(s);
-                }
-                if fi.mentions || r.spills {
-                    scope[1].insert(s);
-                }
-                for (name, site) in r.direct {
-                    out.fields.get_mut(name).expect("field").direct.push(site);
-                }
-                for (_, site) in r.raw {
-                    raw.push((s, Raw { site }));
-                }
-                out.escapes.extend(r.escapes);
+    let flush = |start: Option<u32>,
+                 body: &mut Vec<Insn>,
+                 out: &mut Scan,
+                 raw: &mut Vec<(u32, Raw)>,
+                 scope: &mut [BTreeSet<u32>; 2]| {
+        if let Some(s) = start
+            && !body.is_empty()
+        {
+            let r = analyse(ctx, &geo, &infos, s, body, fields);
+            out.functions += 1;
+            out.instructions += body.len();
+            if !r.converged {
+                out.unconverged.push(s);
             }
+            let fi = &infos[&s];
+            if r.holds_leader || fi.leader_class || fi.mentions {
+                scope[0].insert(s);
+            }
+            if fi.mentions || r.spills {
+                scope[1].insert(s);
+            }
+            for (name, site) in r.direct {
+                out.fields.get_mut(name).expect("field").direct.push(site);
+            }
+            for (_, site) in r.raw {
+                raw.push((s, Raw { site }));
+            }
+            out.escapes.extend(r.escapes);
         }
         body.clear();
     };
@@ -991,8 +1001,14 @@ pub fn scan(ctx: &Context, listing: impl Iterator<Item = Insn>, fields: &[Field]
     }
     for f in &ctx.map.funcs {
         let reported = out.fields.values().any(|fs| {
-            fs.direct.iter().chain(&fs.unresolved).any(|s| s.func == f.start)
-        }) || out.escapes.iter().any(|e| e.func == f.start || e.callee == Some(f.start));
+            fs.direct
+                .iter()
+                .chain(&fs.unresolved)
+                .any(|s| s.func == f.start)
+        }) || out
+            .escapes
+            .iter()
+            .any(|e| e.func == f.start || e.callee == Some(f.start));
         if reported {
             out.names.insert(f.start, f.names.clone());
         }
@@ -1036,21 +1052,21 @@ fn analyse(
     // Branch targets inside the function, and jump tables' targets.
     let mut table_targets: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
     for (i, insn) in body.iter().enumerate() {
-        if insn.op == "jmp" {
-            if let [Opnd::Mem(m)] = ops[i].as_slice() {
-                if m.base.is_none() && m.index.is_some_and(|(_, s)| s == 4) {
-                    let mut ts = Vec::new();
-                    if let Some(words) = (ctx.words)(m.disp, 512) {
-                        for w in words {
-                            if !(start..end).contains(&w) {
-                                break;
-                            }
-                            ts.push(w);
-                        }
+        if insn.op == "jmp"
+            && let [Opnd::Mem(m)] = ops[i].as_slice()
+            && m.base.is_none()
+            && m.index.is_some_and(|(_, s)| s == 4)
+        {
+            let mut ts = Vec::new();
+            if let Some(words) = (ctx.words)(m.disp, 512) {
+                for w in words {
+                    if !(start..end).contains(&w) {
+                        break;
                     }
-                    table_targets.insert(insn.at, ts);
+                    ts.push(w);
                 }
             }
+            table_targets.insert(insn.at, ts);
         }
     }
 
@@ -1106,7 +1122,10 @@ fn analyse(
                 a.holds_leader = true;
             }
             if trace == Some(start) {
-                eprintln!("T{round} {:x} {:?} | {} {}", insn.at, regs, insn.op, insn.args);
+                eprintln!(
+                    "T{round} {:x} {:?} | {} {}",
+                    insn.at, regs, insn.op, insn.args
+                );
             }
             let frame_setup = insn.op == "push"
                 || (insn.op == "mov" && insn.args == "ebp, esp")
@@ -1119,7 +1138,19 @@ fn analyse(
                     pushes.clear();
                 }
             }
-            step(ctx, geo, infos, me, start, insn, &ops[i], &mut regs, &mut pushes, &mut a, fields);
+            step(
+                ctx,
+                geo,
+                infos,
+                me,
+                start,
+                insn,
+                &ops[i],
+                &mut regs,
+                &mut pushes,
+                &mut a,
+                fields,
+            );
             if a.unreached {
                 // Bytes no path reaches (a jump table's data decoded as code)
                 // send no state on: a branch there is not a branch.
@@ -1155,7 +1186,10 @@ fn analyse(
                 if insn.op == "jmp" {
                     live = false;
                 }
-            } else if matches!(insn.op.as_str(), "ret" | "int3" | "hlt" | "ud2" | "retf" | "iretd") {
+            } else if matches!(
+                insn.op.as_str(),
+                "ret" | "int3" | "hlt" | "ud2" | "retf" | "iretd"
+            ) {
                 live = false;
             }
             if !live {
@@ -1210,10 +1244,10 @@ fn step(
     if writes_first(op) && !(op == "movsd" && insn.args.contains("es:[edi]")) {
         store_at = first_mem;
     }
-    if op == "xchg" {
-        if let Some(Opnd::Mem(m)) = ops.get(1) {
-            store_at = Some(*m);
-        }
+    if op == "xchg"
+        && let Some(Opnd::Mem(m)) = ops.get(1)
+    {
+        store_at = Some(*m);
     }
     if let Some(m) = store_at {
         let value = match (op, ops.get(1)) {
@@ -1237,44 +1271,41 @@ fn step(
                 _ => V::Other,
             };
             regs.set_slot(k, v);
-        } else if points_at_stack(regs, &m) {
-            if let ("mov", Some(src)) = (op, ops.get(1)) {
-                if matches!(val(src, regs), V::Leader { .. } | V::Top) {
-                    a.spills = true;
-                }
-            }
+        } else if points_at_stack(regs, &m)
+            && let ("mov", Some(src)) = (op, ops.get(1))
+            && matches!(val(src, regs), V::Leader { .. } | V::Top)
+        {
+            a.spills = true;
         }
         // A leader pointer written to memory leaves the function.
-        if op == "mov" {
-            if let Some(Opnd::Reg(r)) = ops.get(1) {
-                if let V::Leader { off, exact, .. } = regs[*r] {
-                    if !points_at_stack(regs, &m) {
-                        a.escapes.push(Escape {
-                            at: insn.at,
-                            func: start,
-                            kind: EscapeKind::Heap,
-                            off,
-                            exact,
-                            callee: None,
-                            via: insn.at,
-                        });
-                    }
-                }
-            }
-        }
-    }
-    if is_string_store(op, &insn.args) {
-        if let V::Leader { off, exact, .. } = regs[EDI] {
+        if op == "mov"
+            && let Some(Opnd::Reg(r)) = ops.get(1)
+            && let V::Leader { off, exact, .. } = regs[*r]
+            && !points_at_stack(regs, &m)
+        {
             a.escapes.push(Escape {
                 at: insn.at,
                 func: start,
-                kind: EscapeKind::String,
+                kind: EscapeKind::Heap,
                 off,
                 exact,
                 callee: None,
                 via: insn.at,
             });
         }
+    }
+    if is_string_store(op, &insn.args)
+        && let V::Leader { off, exact, .. } = regs[EDI]
+    {
+        a.escapes.push(Escape {
+            at: insn.at,
+            func: start,
+            kind: EscapeKind::String,
+            off,
+            exact,
+            callee: None,
+            via: insn.at,
+        });
     }
 
     // Register transfer.
@@ -1370,14 +1401,12 @@ fn step(
                 regs[r] = V::Other;
             }
         }
-        "xor" => {
-            match (dst, ops.get(1)) {
-                (Some(Opnd::Reg(r)), Some(Opnd::Reg(s))) if r == *s => regs[r] = V::Const(0),
-                (Some(Opnd::Reg(r)), _) => regs[r] = V::Other,
-                (Some(Opnd::Sub(r, _)), _) => regs[r] = V::Other,
-                _ => {}
-            }
-        }
+        "xor" => match (dst, ops.get(1)) {
+            (Some(Opnd::Reg(r)), Some(Opnd::Reg(s))) if r == *s => regs[r] = V::Const(0),
+            (Some(Opnd::Reg(r)), _) => regs[r] = V::Other,
+            (Some(Opnd::Sub(r, _)), _) => regs[r] = V::Other,
+            _ => {}
+        },
         "and" => match (dst, ops.get(1)) {
             (Some(Opnd::Reg(r)), Some(Opnd::Imm(0))) => regs[r] = V::Const(0),
             (Some(Opnd::Reg(r)), _) if r == ESP => regs[r] = V::Stack,
@@ -1386,7 +1415,9 @@ fn step(
             _ => {}
         },
         "or" => match (dst, ops.get(1)) {
-            (Some(Opnd::Reg(r)), Some(Opnd::Imm(v))) if *v == u32::MAX => regs[r] = V::Const(u32::MAX),
+            (Some(Opnd::Reg(r)), Some(Opnd::Imm(v))) if *v == u32::MAX => {
+                regs[r] = V::Const(u32::MAX)
+            }
             (Some(Opnd::Reg(r)), _) => regs[r] = V::Other,
             (Some(Opnd::Sub(r, _)), _) => regs[r] = V::Other,
             _ => {}
@@ -1454,11 +1485,9 @@ fn step(
     }
 }
 
-
 /// `[ebp + k]` while `ebp` is the frame, with no index: the slot `k`.
 fn frame_slot(regs: &Regs, m: &Mem) -> Option<u32> {
-    (m.base == Some(EBP) && m.index.is_none() && regs[EBP] == V::Stack && !m.seg)
-        .then_some(m.disp)
+    (m.base == Some(EBP) && m.index.is_none() && regs[EBP] == V::Stack && !m.seg).then_some(m.disp)
 }
 
 fn points_at_stack(regs: &Regs, m: &Mem) -> bool {
@@ -1509,9 +1538,10 @@ fn address(geo: &Geometry, regs: &Regs, m: &Mem) -> V {
             exact: exact && idx.is_none(),
         },
         (V::Const(c), None) => geo.norm(c.wrapping_add(m.disp)),
-        (V::Const(c), Some((V::Const(i), s))) => {
-            geo.norm(c.wrapping_add(m.disp).wrapping_add(i.wrapping_mul(s as u32)))
-        }
+        (V::Const(c), Some((V::Const(i), s))) => geo.norm(
+            c.wrapping_add(m.disp)
+                .wrapping_add(i.wrapping_mul(s as u32)),
+        ),
         (_, Some((V::Leader { off, span, .. }, 1))) => V::Leader {
             off: off.wrapping_add(m.disp) % LEADER_SIZE,
             span,
@@ -1689,14 +1719,20 @@ pub fn scan_install(
             .data
             .get(name)
             .ok_or(format!("the map names no `{name}`"))?;
-        let held = pe.i32s(at, 1).ok_or(format!("{name} is outside the image"))?[0] as u32;
+        let held = pe
+            .i32s(at, 1)
+            .ok_or(format!("{name} is outside the image"))?[0] as u32;
         if held != leaders {
             return Err(format!("{name} holds {held:#x}, not leaders {leaders:#x}"));
         }
         refs.insert(at);
     }
     let text_start = map.funcs.first().map_or(0, |f| f.start);
-    let static_pointers = pe.words_in(leaders, leaders + LEADER_SLOTS * LEADER_SIZE, text_start);
+    let static_pointers = pe.words_in(
+        leaders,
+        leaders + LEADERS_LIST_LEN * LEADER_SIZE,
+        text_start,
+    );
     let words = |va: u32, n: usize| -> Option<Vec<u32>> {
         let mut out = Vec::new();
         for i in 0..n {

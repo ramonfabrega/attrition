@@ -137,6 +137,12 @@ fn untyped(s: &Scan, callee: Option<u32>) -> bool {
         || names.iter().any(|n| n.contains("PAX") || n.contains("PBX"))
 }
 
+/// What one call is handed: how, by whom, and the offsets.
+type Handed = (EscapeKind, Option<u32>, Vec<u32>);
+
+/// An unresolved store: `(instruction, function, reached)`.
+type Unresolved = (u32, u32, bool);
+
 /// One untyped call a leader pointer reaches a field through:
 /// `(call, function, callee)`.
 type Bulk = (u32, u32, String);
@@ -145,7 +151,7 @@ type Bulk = (u32, u32, String);
 /// `f`. A call handed two pointers (`DataWalk::walk(begin, end)`) reaches
 /// `[lowest, highest)`; one handed one reaches everything above it.
 fn bulk(s: &Scan, f: &Field) -> Vec<Bulk> {
-    let mut calls: BTreeMap<(u32, u32), (EscapeKind, Option<u32>, Vec<u32>)> = BTreeMap::new();
+    let mut calls: BTreeMap<(u32, u32), Handed> = BTreeMap::new();
     for e in &s.escapes {
         let untyped = match e.kind {
             EscapeKind::Push => untyped(s, e.callee),
@@ -201,7 +207,11 @@ fn the_scan_finds_dow_s_writers_and_a_perturbed_scan_misses_them() {
         [declare, &[(0x6e3d44, 0x6e3930, Some(0))]].concat(),
         "dow's writers"
     );
-    assert_eq!(unresolved(s, DOW.name), [], "dow: nothing left unclassified");
+    assert_eq!(
+        unresolved(s, DOW.name),
+        [],
+        "dow: nothing left unclassified"
+    );
 
     let wrong = direct(s, WRONG.name);
     assert!(
@@ -275,7 +285,7 @@ fn the_frozen_leaves_every_store_writes_zero() {
         ),
         ("last_spoke", &[(0x6e3d6f, 0x6e3930, Some(0))]),
     ];
-    let unreached: [(&str, &[(u32, u32, bool)]); 3] = [
+    let unreached: [(&str, &[Unresolved]); 3] = [
         ("score_explored", &[(0x6c1741, 0x6bc950, false)]),
         (
             "score_pop",
@@ -291,7 +301,10 @@ fn the_frozen_leaves_every_store_writes_zero() {
             "{name}: every writer stores 0"
         );
         assert_eq!(&unresolved(s, name), garbage, "{name}: unclassified stores");
-        let f = FROZEN.iter().find(|f| f.name == *name).expect("a frozen field");
+        let f = FROZEN
+            .iter()
+            .find(|f| f.name == *name)
+            .expect("a frozen field");
         assert_eq!(bulk(s, f), pins(BULK_TO_FROZEN), "{name}: untyped calls");
     }
 }
@@ -314,7 +327,10 @@ fn the_quiet_releases_writers_are_the_documented_ones() {
     let init = 0x6e3930;
     let reset = 0x6e37f0;
     let writers: &[(&str, &[Pin])] = &[
-        ("cannon_time", &[(0x6e3af3, init, None), (0x9565eb, 0x956500, None)]),
+        (
+            "cannon_time",
+            &[(0x6e3af3, init, None), (0x9565eb, 0x956500, None)],
+        ),
         (
             "handicap",
             &[
@@ -369,9 +385,15 @@ fn the_quiet_releases_writers_are_the_documented_ones() {
                 (0x6e4955, init, Some(0)),
             ],
         ),
-        ("ctw_hero_retreat_stamp", &[(0x6e3dd0, init, Some(0xffff_fc18))]),
+        (
+            "ctw_hero_retreat_stamp",
+            &[(0x6e3dd0, init, Some(0xffff_fc18))],
+        ),
         ("village_mine", &[(0x6e4011, init, Some(0))]),
-        ("base_rate", &[(0x6e3f04, init, Some(0)), (0x9fbbf6, 0x9fbb80, None)]),
+        (
+            "base_rate",
+            &[(0x6e3f04, init, Some(0)), (0x9fbbf6, 0x9fbb80, None)],
+        ),
         ("support_stamp", &[(0x6e3baa, init, Some(0))]),
         (
             "take_att_disabled",
@@ -447,7 +469,11 @@ fn the_scan_s_premises_hold_on_the_image() {
         ],
         "the functions returning a leader"
     );
-    assert!(s.unconverged.is_empty(), "unconverged: {:x?}", s.unconverged);
+    assert!(
+        s.unconverged.is_empty(),
+        "unconverged: {:x?}",
+        s.unconverged
+    );
     assert!(
         !s.escapes.iter().any(|e| e.kind == EscapeKind::Heap),
         "a leader pointer stored to the heap"
