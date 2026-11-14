@@ -4176,6 +4176,36 @@ mod tests {
         assert!(out.status.success(), "the checksum hook's fold:\n{text}");
     }
 
+    /// **Step R's range buffer** (item 4248): `ranges.h` keeps a set's
+    /// ranges on the lines in its mask, on the line whose value is logged
+    /// next, with the bytes as they were at the fold; drops another
+    /// thread's fold and a fold past `total`; and flags a set that does not
+    /// fit, compiled here as the DLL compiles it.
+    #[test]
+    fn the_ranges_hook_keeps_a_due_set_s_ranges() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tools/trace");
+        let exe = std::env::temp_dir().join(format!("ranges_test-{}", std::process::id()));
+        let built = std::process::Command::new("cc")
+            .args(["-Wall", "-Wextra", "-Werror", "-o"])
+            .arg(&exe)
+            .arg(format!("{root}/ranges_test.c"))
+            .output();
+        match built {
+            Ok(o) if o.status.success() => {}
+            Ok(o) => panic!("ranges_test.c: {}", String::from_utf8_lossy(&o.stderr)),
+            Err(e) => {
+                eprintln!("skipping: no host C compiler ({e})");
+                return;
+            }
+        }
+        let out = std::process::Command::new(&exe)
+            .output()
+            .expect("ranges_test runs");
+        let _ = std::fs::remove_file(&exe);
+        let text = String::from_utf8_lossy(&out.stdout);
+        assert!(out.status.success(), "the ranges hook's buffer:\n{text}");
+    }
+
     /// The grammar: a split citation is joined, a bare address is not a
     /// citation, and a name's template brackets are part of it.
     #[test]

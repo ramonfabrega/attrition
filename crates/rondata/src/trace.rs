@@ -40,6 +40,8 @@
 pub mod card;
 /// The checksum hook's records (item 4214): `check_all`'s fifteen, every frame.
 pub mod checksums;
+/// Step R's record (item 4248): every range the fold takes on the open lines, every frame.
+pub mod ranges;
 
 use std::path::Path;
 
