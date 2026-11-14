@@ -251,7 +251,8 @@ pub fn land_n_dot_l(n: [f32; 3]) -> f32 {
         0.0,
         -std::f32::consts::FRAC_1_SQRT_2,
     ];
-    let v = n[1] * d[1] * -1.0 + n[0] * d[0] * -1.0 + n[2] * d[2] * -1.0;
+    // Each term times −1 as the listing has it; `a + (−b)` is `a − b` exactly.
+    let v = -(n[1] * d[1]) - n[0] * d[0] - n[2] * d[2];
     v.clamp(0.0, 1.0)
 }
 
