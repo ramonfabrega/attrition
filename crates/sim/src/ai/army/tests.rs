@@ -334,7 +334,11 @@ fn an_army_s_pushed_group_takes_add_group_s_normalize() {
     assert_eq!(st.role, role::ROLE_HOPLITE, "find_role ran");
     assert_eq!((st.speed, st.new_speed), (25, 25), "the speed tail ran");
     assert_eq!(sim.units[u].group_ptr, st.pool, "the member names the slot");
-    assert_eq!(sim.ai.armies[1].list[slot].units, vec![u], "the prune kept it");
+    assert_eq!(
+        sim.ai.armies[1].list[slot].units,
+        vec![u],
+        "the prune kept it"
+    );
 }
 
 /// **A full pool's takeover leaves the old group seated** (group 4; A5
