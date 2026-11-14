@@ -164,5 +164,15 @@ Each by the pass, in this session, red first.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`, on the pass's commit: `gate-pass-1114d.log`.
-Its verdict and minutes are in the queue's handoff and the chronicle's entry.
+Whole, by `tools/gate_run.sh`.
+
+- **`gate-pass-1114d.log`: `gate exit 0` on `ebfa81aab`**, 7 of 7 steps, release
+  22.3 minutes (offline 1.9, guard 0.5), `Suite: 1277 processes for 2406 tests:
+  145 groups hold 1274, 1132 ran alone; 9614 test CPU-seconds`, admission 8.0 s
+  over 1,312 leases, load 3.2 at its start and 10.3 at its end, `Rows: one
+  driver row at most: steer 50658588 (working)`, 228 GB free. Its first line
+  is the new sweep's: nine report directories older than four days removed.
+
+Ramon's answers on the row (the budget, the seats, Fable's stop, `CLAUDE.md`'s
+narrowing), this section and the queue's handoff lines are gated scoped over
+that commit (`gate-pass-1114e.log`).
