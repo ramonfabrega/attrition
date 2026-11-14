@@ -573,6 +573,7 @@ impl Sim {
             return;
         };
         let corner = self.tile_corner(ty, pos);
+        self.note_mine_source(b, ty, corner);
         let found = self.gather_tcoords(ty, who, corner);
         // The shuffle's site marks the stream only when the list grew.
         if !found.is_empty() {
@@ -586,6 +587,40 @@ impl Sim {
         }
         self.buildings[b].gather_from = list;
         self.buildings[b].gather_max = Some(self.max_gatherers(b));
+    }
+
+    /// **`MiningList::mtn` and `cliff`, as `find_gather_tcoords`' metal
+    /// branch stores them** (`0063bdc0`): with neither set, the arm
+    /// [`Sim::mine_arm`] picks — the range's placed index
+    /// ([`Sim::find_nearest_mountain`]) or the cliff's — is stored ahead of
+    /// the tile walk, whether or not a tile is then added; a range or cliff
+    /// out of reach stores nothing. With one already set, the original
+    /// takes it again at distance 0 and stores the same value, so nothing
+    /// changes here. Without the generator's placements (the stand-in's
+    /// [`Sim::nearest_mountain_cell`]) there is no placed index and `mtn`
+    /// stays −1.
+    pub(crate) fn note_mine_source(&mut self, b: usize, ty: usize, corner: Pos) {
+        let bd = &self.buildings[b];
+        if bd.mtn >= 0 || bd.cliff >= 0 {
+            return;
+        }
+        let t = &self.tables.build_types[ty];
+        if gather_good(t.ident) != Some(Resource::Metal.index()) {
+            return;
+        }
+        let centre = self.footprint_centre(ty, corner);
+        let (mtn, cliff) = match self.mine_arm(centre) {
+            MineArm::Range => (
+                self.find_nearest_mountain(centre)
+                    .map_or(-1, |(_, i, _)| i as i8),
+                -1,
+            ),
+            MineArm::Cliff(k) => (-1, k as i8),
+            MineArm::None => (-1, -1),
+        };
+        let bd = &mut self.buildings[b];
+        bd.mtn = mtn;
+        bd.cliff = cliff;
     }
 
     /// The gate `Build::close`, `Build::process` and `Build::init` share
@@ -607,8 +642,8 @@ impl Sim {
     /// tile loses `0x1000` (`and $0xefff`), and the building's own region
     /// takes [`REGION_VERIFY_GATHER`] (`or $0x20`), so the camps around it
     /// re-walk the freed ground. Then, whatever the type, the list is
-    /// emptied (`+0x9c = 0`) and `MiningList::mtn`/`cliff` go back to −1,
-    /// which this crate does not carry.
+    /// emptied (`+0x9c = 0`) and `MiningList::mtn`/`cliff` go back to −1
+    /// (`+0xb4 = 0xffff`, `Build::close:555`).
     ///
     /// Without it a camp the script placed and destroyed on one frame —
     /// `aibestbuildlibrary.bhs`'s `place_woodcutter`, whose `destroy_building`
@@ -625,7 +660,10 @@ impl Sim {
                 self.world.or_region_flags(r, REGION_VERIFY_GATHER);
             }
         }
-        self.buildings[b].gather_from.clear();
+        let bd = &mut self.buildings[b];
+        bd.gather_from.clear();
+        bd.mtn = -1;
+        bd.cliff = -1;
     }
 
     /// `Build::verify_gather_tiles@00623570` (`docs/ECONOMY.md` §17.2): a

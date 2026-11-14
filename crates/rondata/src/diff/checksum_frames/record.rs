@@ -225,7 +225,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 1,
                 "856 30 guy: angle 1431655765|0, last_angle 1431655765|0",
             ),
-            ("builds", 1142, 1142, 1, "903 2019 mtn..cliff: mtn -1|0"),
             (
                 "guys",
                 560,
@@ -252,7 +251,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 1,
                 "878 30 guy: angle 1431655765|0, last_angle 1431655765|0",
             ),
-            ("builds", 1142, 1142, 1, "903 2019 mtn..cliff: mtn -1|0"),
             (
                 "groups",
                 544,
@@ -273,6 +271,46 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 271,
                 2,
                 "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|2f010000",
+            ),
+        ],
+    ),
+    (
+        8281,
+        &[
+            (
+                "units",
+                1909,
+                1909,
+                4,
+                "842 30 myhits..launch_frames: inside_down -1|42",
+            ),
+            (
+                "builds",
+                1142,
+                1142,
+                1,
+                "856 2018 myhits..launch_frames: inside_down 42|30",
+            ),
+            (
+                "groups",
+                544,
+                544,
+                1,
+                "91 67 id..march: ox 30552|0, oy 21144|0",
+            ),
+            (
+                "guys",
+                644,
+                644,
+                2,
+                "279 30 guy: angle 1431655765|0, last_angle 1431655765|0",
+            ),
+            (
+                "leaders",
+                271,
+                271,
+                3,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|30010000",
             ),
         ],
     ),

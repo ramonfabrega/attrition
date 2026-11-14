@@ -1219,7 +1219,14 @@ The range's tiles, in the template's own order, keeping each one that
 3. is not already gathered from (`mask & 0x1000`).
 
 `MiningList::mtn` is stamped with the range so a later `calc_gather` on the
-same building skips the search.
+same building skips the search. The store (`:146`, or `cliff` at `:196`) comes
+before the tile walk, so it is made even when no tile qualifies; with one
+already set the branch reuses it at distance 0. `Build::close` resets both to
+−1. The crate holds them as `Building::mtn`/`cliff` since item 4244
+(`Sim::note_mine_source`), diff-backed on run1597's record: player 1's Mine,
+record 2019, `mtn 0` on 7383 (`docs/CHECKSUM.md` §25.4). **Not established**:
+a re-find asks `mine_arm` again rather than reusing the stored index. The two
+agree while the placements and the site's region stand as they were.
 
 ### What `gather_size` counts, which is not the tiles
 
