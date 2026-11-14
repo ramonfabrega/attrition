@@ -1052,7 +1052,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// run1224b (7 → 0), run959 (14 → 0) — and parts on fewer on nine
 /// (run1266c 21 → 9, run882b 33 → 26, run883b 31 → 24, the most); the
 /// units line parts on fewer on seven (run959 3128 → 3114, the most).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 438, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 439, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1335,12 +1335,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (3158, 2954, 1814) -> (3158, 2954, 1812).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3158, 2954, 1812) -> (3158, 2954, 1810).
     // Item 4244, a mine's `mtn`: builds (2080, 2080, 5) -> (2080, 2080, 3).
+    // Item 4257, the garrison chain's order: units (3158, 2954, 1810) -> (3158, 2954, 1786); builds (2080, 2080, 3) -> (2080, 2080, 1).
     (
         "run1011d",
         13277,
         [
-            (3158, 2954, 1810),
-            (2080, 2080, 3),
+            (3158, 2954, 1786),
+            (2080, 2080, 1),
             (0, 0, 0),
             (12, 0, 12),
             (4, 0, 4),
@@ -2768,12 +2769,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6407, 6029, 5580) -> (6407, 6101, 5554).
     // Item 4244, a mine's `mtn`: builds (2974, 2974, 33) -> (2974, 2974, 31).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6407, 6101, 5554) -> (6407, 6101, 5553); guys (1598, 1598, 4) -> (1598, 1598, 3).
+    // Item 4257, the garrison chain's order: builds (2974, 2974, 31) -> (2974, 2974, 29).
     (
         "run1359c",
         5678,
         [
             (6407, 6101, 5553),
-            (2974, 2974, 31),
+            (2974, 2974, 29),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3811,12 +3813,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (9339, 9173, 8367) -> (9339, 9173, 8350).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (58, 58, 5) -> (58, 58, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (9339, 9173, 8350) -> (9339, 9197, 8567).
+    // Item 4257, the garrison chain's order: builds (2473, 2469, 1532) -> (2473, 2469, 1531).
     (
         "run823",
         4238,
         [
             (9339, 9197, 8567),
-            (2473, 2469, 1532),
+            (2473, 2469, 1531),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4024,12 +4027,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159's third residue: units (11125, 10656, 9933) -> (11125, 10656, 9930), the bleed reading `anti_att` (measured on the tree merged with item 4234's).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (11125, 10656, 9930) -> (11125, 10662, 9730).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2832, 2832, 33) -> (2832, 2832, 26).
+    // Item 4257, the garrison chain's order: builds (2737, 2732, 1918) -> (2737, 2732, 1917).
     (
         "run882b",
         6808,
         [
             (11125, 10662, 9730),
-            (2737, 2732, 1918),
+            (2737, 2732, 1917),
             (0, 0, 0),
             (15, 0, 15),
             (0, 0, 0),
@@ -4245,12 +4249,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (2832, 2742, 2099) -> (2832, 2742, 2098).
     // Item 4244, a mine's `mtn`: builds (1598, 1598, 4) -> (1598, 1598, 2).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (875, 875, 4) -> (875, 875, 0).
+    // Item 4257, the garrison chain's order: builds (1598, 1598, 2) -> (1598, 1598, 0).
     (
         "run954b",
         12155,
         [
             (2832, 2742, 2098),
-            (1598, 1598, 2),
+            (1598, 1598, 0),
             (0, 0, 0),
             (9, 0, 9),
             (2, 0, 2),
