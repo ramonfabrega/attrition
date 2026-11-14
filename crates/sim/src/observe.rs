@@ -99,6 +99,10 @@ pub struct LeaderScene {
     pub control: i32,
     /// `LeaderData::pop_cap` (`+0x7e4`): the cap it is measured against.
     pub pop_cap: i32,
+    /// What a market's panel offers this leader, per good: the `(buy,
+    /// sell)` price of each good it has a button for, `None` for the rest
+    /// ([`Sim::market_offer`]; item 4259). A read only.
+    pub market: [Option<(i32, i32)>; 6],
 }
 
 /// One unit on the map.
@@ -236,6 +240,10 @@ pub struct BuildingScene {
     /// `GroupData::count`'s `COUNT_GATHER_POINT` the client's gather point
     /// reads (item 4249, `docs/CLIENT_INPUT.md` §11). A read only.
     pub trains: bool,
+    /// `ObjectData::is(MARKET)` of its type: the building whose panel
+    /// carries the sell and buy buttons (`BuildOut::make_options@00629ed0`;
+    /// item 4259, `docs/CLIENT_INPUT.md` §16). A read only.
+    pub market: bool,
 }
 
 /// A farm's `FarmStruct`, as `FarmsOut::draw@008d75f0` reads it
@@ -502,6 +510,13 @@ impl Sim {
                 trains: b.ty.is_some_and(|t| {
                     crate::cities::build::is_training_building(&self.tables.build_types, t)
                 }),
+                market: b.ty.is_some_and(|t| {
+                    crate::cities::build::is(
+                        &self.tables.build_types,
+                        t,
+                        crate::cities::build::Ident::Market,
+                    )
+                }),
             })
             .collect();
         let projectiles = self
@@ -615,6 +630,7 @@ impl Sim {
                     over_cap: l.over_cap.map(|o| o != crate::economy::OverCap::Under),
                     control: m.control,
                     pop_cap: m.cap,
+                    market: self.market_offer(who as Player),
                 }
             })
             .collect()

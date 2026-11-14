@@ -3243,3 +3243,186 @@ fn the_original_s_playback_of_the_paused_file_walks_in_lockstep() {
     assert_eq!(entries, PAUSE_ENTRIES, "the pause's functions");
     assert_eq!(theirs, paused_effects(), "the original's effects");
 }
+
+/// The marketed file's gzip length (item 4259).
+/// Seen red first: pinned 0, it printed 59,535.
+const MARKETED_RCX_BYTES: usize = 59_535;
+
+/// **The marketed script, minted** (item 4259, `docs/CLIENT_INPUT.md`
+/// §16): the paused file and two packages more, the sale on
+/// [`crate::script::SELL_FRAME`] and the purchase on
+/// [`crate::script::BUY_FRAME`], each stamped one a turn; it round-trips
+/// through the file. With `RON_RCX_OUT=<file>` it writes the `.rcx` the
+/// playback takes open.
+#[test]
+fn the_marketed_minted_packages_round_trip() {
+    use crate::script::{BUY_FRAME, SELL_FRAME, marketed, paused};
+    let (Some(rec), Some(first)) = (minted(&marketed()), minted(&paused())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "marketed").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in marketed().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<(i32, u32)> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| (p.frame, p.stamp))
+        .collect();
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (22, 20));
+    assert_eq!(
+        added,
+        vec![(SELL_FRAME, 20), (BUY_FRAME, 21), (last.frame, 22)],
+        "the packages the paused file does not hold"
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    eprintln!("MARKETED RCX {} bytes", gz.len());
+    assert_eq!(gz.len(), MARKETED_RCX_BYTES, "MARKETED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// One frame of the market's effect: slot 0's six buckets, in the
+/// record's order (food, timber, wealth, knowledge, metal, oil).
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct MarketEffect {
+    frame: i64,
+    bucket: [i64; 6],
+}
+
+/// The frames the market's effects are read on: the sale's frame, the
+/// frame after it, the purchase's, the frame after it, and the last.
+const MARKET_READ_AT: [i64; 5] = [6714, 6715, 6716, 6717, 6999];
+
+/// Ours: the built start walked under `orders`' file, slot 0's ledger on
+/// each frame of `at`.
+fn market_effects_ours(orders: &[Order], at: &[i64]) -> Vec<MarketEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        ours.push(MarketEffect {
+            frame: n,
+            bucket: built.sim.economy.ledgers[0].bucket.map(i64::from),
+        });
+    }
+    ours
+}
+
+/// The original's: the take's `LEADERS=2` records read as text, leader
+/// 0's six `bucket` lines (`LeaderDataEncrypt::log_data`, after
+/// `LeaderData::log_data@006e5110`'s `set_detail(2)`) on each frame of
+/// `at`. `None` when the take is not filed or prints no bucket.
+fn market_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<MarketEffect>> {
+    use std::io::BufRead;
+    let file = std::fs::File::open(dump(take)?).ok()?;
+    let mut out = Vec::new();
+    let (mut frame, mut who, mut got) = (-1i64, -1i64, Vec::new());
+    for line in std::io::BufReader::new(file).lines() {
+        let line = line.ok()?;
+        let t = line.trim();
+        if let Some(n) = t.strip_prefix("BEGIN FRAME ") {
+            frame = n.parse().ok()?;
+            who = -1;
+        } else if t == "BEGIN LEADERDATA" {
+            who = -2;
+            got.clear();
+        } else if who == -2 {
+            if let Some(w) = t.strip_prefix("who ") {
+                who = w.parse().ok()?;
+            }
+        } else if who == 0 && at.contains(&frame) {
+            if let Some(b) = t.strip_prefix("bucket ") {
+                got.push(b.parse().ok()?);
+                if got.len() == 6 {
+                    out.push(MarketEffect {
+                        frame,
+                        bucket: got.clone().try_into().unwrap(),
+                    });
+                    who = -1;
+                }
+            }
+        }
+    }
+    (!out.is_empty()).then_some(out)
+}
+
+/// **The marketed script's effects** (item 4259), our walk's values
+/// pinned before the original's playback was read: a hundred food out and
+/// the sell price, 81, in on 6715; a hundred timber in and the buy price,
+/// 107, out on 6717 (both beside the frame's gathering). Seen red first:
+/// pinned empty.
+fn marketed_effects() -> Vec<MarketEffect> {
+    let row = |frame, bucket| MarketEffect { frame, bucket };
+    vec![
+        row(6714, [721, 425, 249, 0, 0, 0]),
+        row(6715, [622, 425, 330, 0, 0, 0]),
+        row(6716, [622, 425, 330, 0, 0, 0]),
+        row(6717, [622, 526, 223, 0, 0, 0]),
+        row(6999, [653, 544, 229, 0, 0, 0]),
+    ]
+}
+
+/// **What the marketed orders do on our walk** (item 4259), on
+/// [`MARKET_READ_AT`]; and without them, the paused file's walk, which is
+/// the value diff on our side.
+#[test]
+fn the_marketed_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::marketed()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = market_effects_ours(&crate::script::marketed(), &MARKET_READ_AT);
+    let without = market_effects_ours(&crate::script::paused(), &MARKET_READ_AT);
+    for (e, w) in ours.iter().zip(&without) {
+        eprintln!("MARKET EFFECT ours {e:?} without {w:?}");
+    }
+    assert_eq!(ours, marketed_effects());
+    assert_ne!(ours[1..], without[1..], "the orders move the buckets");
+}
+
+/// **The value diff against the previous playback** (item 4259): our walk
+/// under the marketed file against run1601, the paused file's playback,
+/// pinned before run1604 was read.
+#[test]
+fn the_marketed_script_against_the_paused_playback() {
+    let (take, take_trace, ..) = PAUSED_WALKED[0];
+    let Some((w, _)) = walk_minted(&crate::script::marketed(), take, take_trace) else {
+        return;
+    };
+    eprintln!(
+        "MARKETED AGAINST PAUSED: to {}; draws part {:?}; records {} parted {}, first {:?}",
+        w.last, w.first_sequence, w.records, w.records_parted, w.first_record
+    );
+    assert_eq!(
+        (w.first_sequence, w.records, w.records_parted),
+        MARKETED_AGAINST_PAUSED,
+        "MARKETED_AGAINST_PAUSED"
+    );
+}
+
+/// The marketed script's walk against run1601: `(the first frame whose
+/// draws part, records, parted)`. Whole: no draw parts in 7,000 frames
+/// and none of the 300 records, because a sale and a purchase write the
+/// leader's buckets and the market's prices, and the take prints neither;
+/// player 1's Market, `1/2015`, reads the moved prices only from its first
+/// market draw, on 8582 of this game (`docs/AI.md` §40). Seen red first:
+/// pinned `(Some(0), 0, 1)`.
+const MARKETED_AGAINST_PAUSED: (Option<i64>, usize, usize) = (None, 300, 0);
