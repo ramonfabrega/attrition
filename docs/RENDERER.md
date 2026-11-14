@@ -1784,7 +1784,8 @@ vertices on draw 162, and `args[1]` is the vertex count.
 - **The floor** is `build_ocean_floor@0086c7f0`'s plane: one vertex a cell
   corner, every one at **z −283**. Its texcoords are exactly `xy / 6144`
   plus one offset on the first layer and `−xy / 6144` plus another on the
-  second: **one repeat every eight cells, the second layer mirrored**. The
+  second: **one repeat every eight cells, ~~the second layer mirrored~~**
+  (stage 1 clamps it to one texel, §3.18). The
   offsets drift with `modify_ocean_floor_texture`'s clock.
 - **The floor's grey** is `modify_ocean_floor@00873960`'s: `OceanVars`'
   `floor*_top` (255) to `floor*_bot` (64) along the screen's ramp, times
@@ -1865,8 +1866,9 @@ packet's, diffed vertex by vertex against run1564's drawn water
   gpu uploads the patches again on `Frame::patch_version`, the terrain
   standing.
 - **The floor.** The land pass draws no `OCEAN` tile. They take the
-  floor's two layers: `<OCEAN>`'s texture at `xy / 6144`, and again
-  mirrored about the packet's summed offsets (`FLOOR_MIRROR`), baked into
+  floor's two layers: `<OCEAN>`'s texture at `xy / 6144`, ~~and again
+  mirrored about the packet's summed offsets (`FLOOR_MIRROR`),~~ (item
+  4227, §3.18: at its offset, times the clamped corner) baked into
   one texture by `floor_stage` at the brightest grey, 153. A black layer
   over it at alpha `1 − grey / 153` takes each vertex to
   `modify_ocean_floor`'s ramp grey. That is the stage's product wherever
@@ -2517,9 +2519,10 @@ cyan takes back the red that the sand's gave.
   stands 10 units nearer the camera than the water per step, and the
   threshold is 22 view units. So only a bottom within about 6 world units
   of the surface returns a hit.
-- **The floor's texture is not what shows.** High-passed, the photograph's
+- ~~**The floor's texture is not what shows.** High-passed, the photograph's
   mottle inside our `OCEAN` polygon correlates with our floor at its
-  packet texcoords by at most 0.08, at any shift within 60 pixels.
+  packet texcoords by at most 0.08, at any shift within 60 pixels.~~ It
+  shows: item 4227 (below), its second layer clamped.
 - **The coral layer lies under the deep water.** `scene_coral` (draw
   131) holds the sand layer's 4,928 vertices: the same positions,
   texcoords and colours (rgb 252). Its stage-0 alpha is the complement of
@@ -2652,6 +2655,48 @@ even with the masks dropped. So the surf does not part the lake.
 them (157, 159, 160) stand at (35112, 35832), and the card's own view
 puts that at pixel (1088, 186): 4223b's blot near (1,050, 190).
 
+**The floor's second layer clamps (item 4227).** Through the card's
+draws, one parted tile at the lake's centre, (170, 187): theirs (36.9,
+141.5, 181.7), the still's (4.6, 151.2, 213.2). Over an `OCEAN` tile the
+card draws only the floor (36), the fish herds (155–161, one blot) and
+the water (162); nothing full-screen follows but the interface. Composited
+by the card's model (`the_floor_s_second_layer_clamps`: the floor lit at
+its plane, the water lit at 4178's alpha, blended in HDR, toned), the
+lake's green lands, (5.8, 127, 200) against (24, 127, 170), and its red
+does not. Inverted through the water, the photograph asks for a floor
+stage near (81, 224, 222), and that stage follows the first layer
+(per-channel correlation 0.54, 0.36) and not the second (−0.02, 0.11).
+
+- **The card says why.** Draw 36's `address_u` and `address_v`
+  (`RenderState +0xdc`, `+0xe4`; `TexAddress` from the PDB) are
+  `TEXADD_WRAP` on stage 0 and `TEXADD_CLAMP` on stage 1. The second
+  layer's texcoords lie past 1 on both axes: from 2.180 over the packet's
+  624 floor vertices, from 2.432 over the view's `OCEAN` pixels. So it
+  reads one texel, the texture's `(1, 1)` corner, (182, 246, 255) in
+  `ImageIO::decode_tga`'s top-down rows. Item 4178 had baked it mirrored.
+- **The stages saturate once**, at the end (`shader_texture_data.h`);
+  `floor_stage` follows.
+- **The client's floor lay at no offset.** The first layer's own is
+  (1.178, 1.176) on the packet (`FLOOR_OFFSETS`, now diffed in
+  `the_floor_and_the_water_off_the_packet`); 4178 drew only the two
+  layers' sum.
+
+`OCEAN` of 437 on the still's row:
+
+| | `OCEAN` |
+|---|---|
+| the still at the base | 258 |
+| the card's model composited, second layer mirrored | 217 |
+| the same, clamped (`RUN1564_3279_LAKE_HDR`) | 398 |
+| **drawn: clamped** | 339 |
+| **drawn: clamped, at the first layer's offset** | **412** |
+
+The row goes **1,412 → 1,565** (`SANDY` 443 → 442); tile (170, 187)
+reads (28.5, 154.0, 215.1) and agrees. The floor's parallax to −283
+moves nothing (338). Luma 1,710 → 1,705 (`OCEAN` 357 → 351).
+**Diff-backed:** the address modes (the card), the offsets and the
+texcoords' span (the packet). **On one photograph:** the rows.
+
 **What is not established.**
 
 - ~~**The lake's red** (4174a, 4192b; parked 4213a): no input read carries
@@ -2668,8 +2713,9 @@ puts that at pixel (1088, 186): 4223b's blot near (1,050, 190).
   item 4225 (above): the surf lies on the beach, and the dark patch is
   the fish herd. The parted tiles are the lake's interior, where theirs
   is redder than where it agrees ((32, 131, 173) against (19, 124,
-  168)), and ours reads (8, 141, 205). The cause is not read (parked
-  4225b). The surf is not drawn by the client (parked 4225a), nor are
+  168)), and ours reads (8, 141, 205). ~~The cause is not read (parked
+  4225b).~~ Read by item 4227 (above): the floor's second layer clamps;
+  25 tiles part now. The surf is not drawn by the client (parked 4225a), nor are
   the fish herds. With its masks dropped, the composite reads `SANDY`
   630: the photograph's beach is whiter than the packet's surf gives on
   our bytes, where the card blends in HDR before the tone map (4225c).
@@ -2680,6 +2726,11 @@ puts that at pixel (1088, 186): 4223b's blot near (1,050, 190).
   4213b's layer at the flat light. The floor's light is not drawn.
 - The patch's vertex colour (stage 0 `MODULATE(TEXTURE, DIFFUSE)`): ours
   draws the texel alone.
+- The floor's light and the HDR blend (item 4227): unlit in LDR, the
+  floor's mottle shows far fainter than the photograph's.
+- The lake's small figures stand apart on the still (parked 4227b).
+- `GROUND_STILL_SRGB`'s sRGB target now reads 1,737 on run1564, above
+  the drawn 1,565; run1559b keeps the drawn target (parked 4227a).
 
 ## 3.19 The asphalt ring around a city: the roads (item 4199)
 

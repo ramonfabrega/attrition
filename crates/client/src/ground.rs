@@ -717,37 +717,49 @@ pub fn water_rgb(f: f32) -> [u8; 3] {
 
 /// **The floor's stage colour** (item 4174): the card's draw 36 on run1567,
 /// `MODULATE2X(TEXTURE, DIFFUSE)` then `MODULATE(TEXTURE, CURRENT)` — the
-/// first layer's texel doubled under the vertex grey, clamped, times the
-/// second's — on 0–255 channels.
+/// first layer's texel doubled under the vertex grey, times the second's —
+/// on 0–255 channels. Item 4227: clamped once, at the end, as the
+/// install's `do_texture_operation` leaves the stages unclamped and
+/// `ps_global.hlsl` saturates their product (`shaders/shader_texture_data.h`).
 pub fn floor_stage(t0: [f32; 3], t1: [f32; 3], grey: u8) -> [f32; 3] {
     let g = f32::from(grey) / 255.0;
-    [0, 1, 2].map(|k| (2.0 * t0[k] * g).min(255.0) * t1[k] / 255.0)
+    [0, 1, 2].map(|k| (2.0 * t0[k] * g * t1[k] / 255.0).min(255.0))
 }
 
-/// **The floor's two layers as one texture** (item 4178): `render_ocean_floor`
-/// binds `<OCEAN>`'s texture twice, the second layer at the first's
-/// texcoord mirrored about `c` (the two layers' offsets summed, per axis,
-/// in repeats), and [`floor_stage`] combines them under `grey`. Texel
-/// `(x, y)` is the stage's colour at the first layer's texel `(x, y)`;
-/// the first layer's texcoord samples it.
-pub fn floor_texture(tex: &render::tga::Image, c: [f32; 2], grey: u8) -> render::tga::Image {
-    let (w, h) = (tex.width as i64, tex.height as i64);
-    let at = |x: i64, y: i64| {
-        let i = (y.rem_euclid(h) * w + x.rem_euclid(w)) as usize * 4;
-        [0, 1, 2].map(|k| f32::from(tex.rgba[i + k]))
-    };
-    let (mx, my) = (
-        (c[0] * w as f32).round() as i64 - 1,
-        (c[1] * h as f32).round() as i64 - 1,
-    );
-    let mut rgba = Vec::with_capacity(tex.rgba.len());
-    for y in 0..h {
-        for x in 0..w {
-            let f = floor_stage(at(x, y), at(mx - x, my - y), grey);
-            rgba.extend(f.map(|v| v.round().clamp(0.0, 255.0) as u8));
-            rgba.push(255);
-        }
-    }
+/// **The texel the floor's second layer reads** (item 4227;
+/// `docs/RENDERER.md` §3.12): run1567's draw 36 sets stage 1's
+/// `address_u` and `address_v` to `TEXADD_CLAMP` (stage 0's are
+/// `TEXADD_WRAP`), and the second layer's texcoords, `−xy / 6144` plus the
+/// packet's offset, lie past 1 on both axes over every `OCEAN` pixel of
+/// run1564's view (2.43 to 3.70). So the layer is the texture's corner at
+/// `(1, 1)`: its last row's last texel, rows top-down as
+/// `ImageIO::decode_tga@00546e10` lays a bottom-origin file.
+pub fn floor_corner(tex: &render::tga::Image) -> [f32; 3] {
+    let i = (tex.width * tex.height - 1) * 4;
+    [0, 1, 2].map(|k| f32::from(tex.rgba[i + k]))
+}
+
+/// **The floor's two layers as one texture** (item 4178; item 4227):
+/// `render_ocean_floor` binds `<OCEAN>`'s texture twice, and stage 1's
+/// clamp leaves the second layer one texel, [`floor_corner`];
+/// [`floor_stage`] combines them under `grey`. Texel `(x, y)` is the
+/// stage's colour at the first layer's texel `(x, y)`; the first layer's
+/// texcoord samples it, at [`FLOOR_OFFSETS`]' first. Item 4178 had baked
+/// the second layer mirrored about the packet's summed offsets, as a
+/// wrapping sampler would read it.
+pub fn floor_texture(tex: &render::tga::Image, grey: u8) -> render::tga::Image {
+    let corner = floor_corner(tex);
+    let rgba = tex
+        .rgba
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .flat_map(|t| {
+            let f = floor_stage([0, 1, 2].map(|k| f32::from(t[k])), corner, grey);
+            let [r, g, b] = f.map(|v| v.round().clamp(0.0, 255.0) as u8);
+            [r, g, b, 255]
+        })
+        .collect();
     render::tga::Image {
         width: tex.width,
         height: tex.height,
@@ -793,11 +805,14 @@ pub fn floor_shade(f: f32) -> f32 {
     255.0 * (1.0 - f32::from(floor_grey(f)) / top)
 }
 
-/// **The floor's layers' offsets on run1564's packet** (item 4178), each
-/// layer's `uv − xy / 6144` (first) and `uv + xy / 6144` (second), summed:
-/// (1.178 + 8.750, 1.176 + 8.680) at logger frame 3294. They drift with
-/// `modify_ocean_floor_texture`'s clock, which is not read.
-pub const FLOOR_MIRROR: [f32; 2] = [9.928, 9.856];
+/// **The floor's layers' offsets on run1564's packet** (item 4178; item
+/// 4227): the first layer's `uv − xy / 6144` and the second's
+/// `uv + xy / 6144`, at logger frame 3294. They drift with
+/// `modify_ocean_floor_texture@0086e320`'s clock, which is not read; the
+/// client lays run1564's. Item 4178 drew their sum, (9.928, 9.856), as the
+/// second layer's mirror and laid the first at no offset; item 4227 lays
+/// the first at its own, and the second, clamped, is [`floor_corner`].
+pub const FLOOR_OFFSETS: [[f32; 2]; 2] = [[1.178, 1.176], [8.750, 8.680]];
 
 /// **The transition patch laid** (item 4139; `docs/RENDERER.md` §3.9):
 /// every `BASELAND` tile not under a placed mountain whose cell
@@ -978,7 +993,11 @@ pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1104, 1109);
 /// **258 → 258**: no `OCEAN` verdict changes, so the surf is not what
 /// parts the lake (4223a's hypothesis, killed).
 #[cfg(test)]
-pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[484, 772], [258, 437]];
+/// Item 4227, on the floor's clamped second layer at its offset: the
+/// still's `SANDY` 443 → 442 and `OCEAN` 258 → 412; with the surf, (484,
+/// 258) → (484, 412): `SANDY` 442 → 484, 42 crossing up, `OCEAN` still
+/// unmoved by the surf.
+pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[484, 772], [412, 437]];
 
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
 /// `(agree, scored)`, then by kind `[agree, scored]`, `KINDS`' order.
@@ -1007,16 +1026,23 @@ pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[484, 772], [258, 437]];
 #[cfg(test)]
 /// Item 4212: **1,028 → 1,021**, the land lit at the frame's white, §3.21: plain 677 → 679, `ROCK` 32 → 31, `SANDY` 319 → 311.
 /// Item 4223: **1,021 → 1,384**, the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]): `OCEAN` **0 → 258** of 437, `SANDY` 311 → 415, `ROCK` 31 → 32, plain 679 unchanged. The lake's red was the grab's: tile (161, 191) at pixel (296, 1), theirs (43, 113, 156) → (12, 127, 168), the still's (12, 156, 217), chromaticity r 0.139 → 0.039 against ours 0.030. Then **1,384 → 1,412**, the coral layer drawn (draw 131, §3.18; 4213b): `SANDY` 415 → 443.
+/// Item 4227: **1,412 → 1,565**, the floor's second layer clamped
+/// ([`floor_corner`]; run1567's draw 36 clamps stage 1) and its first laid
+/// at the packet's offset ([`FLOOR_OFFSETS`]), `docs/RENDERER.md` §3.12:
+/// `OCEAN` **258 → 412** of 437, `SANDY` 443 → 442. Tile (170, 187) at the
+/// lake's centre: theirs (36.9, 141.5, 181.7), the still's (4.6, 151.2,
+/// 213.2) → (28.5, 154.0, 215.1), parted → agrees. The clamp alone, the
+/// first layer at no offset: 1,493 (`OCEAN` 339).
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1412, 1920),
+    (1565, 1920),
     [
         [679, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [443, 772],
-        [258, 437],
+        [442, 772],
+        [412, 437],
     ],
 );
 
@@ -1042,6 +1068,7 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4212: run1559b **1,075 → 1,029** (plain 979 → 952, under a mountain 80 → 61); run1564 **1,377 → 1,396** (`ROCK` 27 → 21, `SANDY` 499 → 397, `OCEAN` 172 → 299): the land lit at the frame's white, §3.21.
 /// Item 4221: run1559b **1,029 → 1,036** (plain 952 → 954, under a mountain 61 → 66): the trees tinted and blended (§3.23) change the frame's mean, so its white; run1564 unchanged.
 /// Item 4223: run1564 **1,396 → 1,437**, the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]) (`ROCK` 21 → 25, `SANDY` 397 → 400, `OCEAN` 299 → 333); then **1,437 → 1,710**, the coral layer drawn (`SANDY` 400 → 649, `OCEAN` 333 → 357); run1559b unchanged.
+/// Item 4227: run1564 **1,710 → 1,705** (`SANDY` 649 → 650, `OCEAN` 357 → 351), the floor's clamped second layer at its offset (§3.12): the lake's hue in, six of its tiles a shade bright; run1559b unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
         (1036, 1109),
@@ -1056,15 +1083,15 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1710, 1920),
+        (1705, 1920),
         [
             [679, 679],
             [0, 0],
             [25, 32],
             [0, 0],
             [0, 0],
-            [649, 772],
-            [357, 437],
+            [650, 772],
+            [351, 437],
         ],
     ),
 ];
@@ -1079,7 +1106,10 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Item 4212: run1559b's 1,010 → 992, run1564's 970 → 1,043, the land lit at the frame's white, §3.21.
 /// On the tree merged with 4208 (the gaia figures' shipped variant), run1564's 1,043 → 1,044.
 /// Item 4223: run1564's 1,044 → 1,605, the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]) and the coral layer drawn; still under the row it fails (1,412).
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1605, 1920)];
+/// Item 4227: run1564's 1,605 → 1,737, the floor's clamped second layer at
+/// its offset; **now above the row it fails on run1564** (1,565), while
+/// run1559b's 992 stays under its 1,104 (parked 4227a).
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1737, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1318,7 +1348,22 @@ pub const RUN1564_WATER_LATTICE: WaterLattice = (
 /// Item 4223, on the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]): (1,233, 791) → (1,018, 878) as drawn, (784, 1,426) → (986, 1,502)
 /// unlit, (813, 1,072) → (823, 1,022) lit.
 #[cfg(test)]
-pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1018, 878), (986, 1502), (823, 1022)];
+/// Item 4227: (986, 1,502) → (985, 1,502) unlit, (823, 1,022) → (822,
+/// 1,022) lit: [`floor_stage`] clamped once at the end, as the install's
+/// stages are; the model keeps 4174's mirrored second layer.
+pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1018, 878), (985, 1502), (822, 1022)];
+
+/// **`RUN1564_3279_LAKE_HDR`** (item 4227; `docs/RENDERER.md` §3.12): the
+/// card's model of the lake composited on the client's still,
+/// `OCEAN`'s `[agree, scored]` under the still's row with the floor's
+/// second layer (1) mirrored, as a wrapping sampler reads it, and (2)
+/// clamped, as run1567's draw 36 reads it
+/// (`tests::the_floor_s_second_layer_clamps`).
+#[cfg(test)]
+/// **217 and 398**: tile (170, 187), theirs (36.9, 141.5, 181.7), the
+/// model mirrored (10.0, 159.1, 208.1) and parted, clamped (41.9, 161.0,
+/// 208.2) and agreeing.
+pub const RUN1564_3279_LAKE_HDR: [[u32; 2]; 2] = [[217, 437], [398, 437]];
 
 /// [`RUN1559B_3279_GROUND`] on the base layer alone, as item 4127 pinned it.
 #[cfg(test)]
@@ -1703,6 +1748,7 @@ pub(crate) mod tests {
         let hex = |s: &str| u32::from_str_radix(s, 16).expect("a colour");
         let (mut floors, mut waters, mut grey_off, mut rgb_off) = (0, 0, 0u32, 0u32);
         let mut offsets: Vec<[f32; 4]> = Vec::new();
+        let mut second_min = f32::MAX;
         let mut worst = (0i32, String::new());
         for line in text.lines() {
             let f: Vec<&str> = line.split_whitespace().collect();
@@ -1723,6 +1769,7 @@ pub(crate) mod tests {
                         num(f[7]) - b[0],
                         num(f[8]) - b[1],
                     ]);
+                    second_min = second_min.min(num(f[7]).min(num(f[8])));
                     let ours = i32::from(floor_grey(ramp.at(x, y)));
                     let theirs = (c & 0xff) as i32;
                     assert!(c >> 24 == 0x99 && (c >> 8) & 0xff == c & 0xff, "{c:08x}");
@@ -1783,6 +1830,22 @@ pub(crate) mod tests {
         assert!(
             (0..4).all(|k| spread(k) < 1e-3),
             "one texcoord offset a layer"
+        );
+        // Item 4227: the offsets the client lays are the packet's, and the
+        // second layer's texcoords lie past 1 on both axes at every drawn
+        // floor vertex, so its clamped sampler reads [`floor_corner`].
+        let at = offsets[0];
+        println!(
+            "run1564 packet: the floor's offsets ({:.4}, {:.4}), ({:.4}, {:.4}); the second layer's texcoords from {second_min:.3}",
+            at[0], at[1], at[2], at[3]
+        );
+        assert!(
+            (0..4).all(|k| (at[k] - FLOOR_OFFSETS[k / 2][k % 2]).abs() < 1e-3),
+            "FLOOR_OFFSETS are the packet's: {at:?}"
+        );
+        assert!(
+            second_min > 1.0,
+            "the second layer's texcoords past 1: {second_min}"
         );
         assert_eq!((grey_off, rgb_off), (0, 0), "{}", worst.1);
     }
@@ -3621,6 +3684,222 @@ pub(crate) mod tests {
                 .collect::<Vec<_>>(),
             "the surf moves no kind but the beach"
         );
+    }
+
+    /// **Item 4227: the floor's second layer clamps** (`docs/RENDERER.md`
+    /// §3.12, "The floor's second layer"). The card's half: run1567's draw
+    /// 36 wraps stage 0 and clamps stage 1. The count: a CPU composite of
+    /// the card's model on the client's still, on every pixel of an `OCEAN`
+    /// tile — the floor at its plane ([`FLOOR_Z`]), its first layer at
+    /// [`FLOOR_OFFSETS`]' first, tinted (18, 18, 0) as `ImageIO::tint`
+    /// lays the coast's textures, through the lit branch at the land's
+    /// light (draw 36); the water at z 0, [`water_grid`]'s alpha and
+    /// [`water_rgb`] of the ramp, through the lit branch at the water's
+    /// material (draw 162); blended in HDR and toned ([`tone`]) — with the
+    /// second layer read (1) mirrored, as a wrapping sampler would, and (2)
+    /// clamped, [`floor_corner`]. [`RUN1564_3279_LAKE_HDR`] pins both.
+    #[test]
+    fn the_floor_s_second_layer_clamps() {
+        use crate::gpu::SilhouetteOrder;
+        use rondata::trace::card::{TEXADD_CLAMP, TEXADD_WRAP};
+        let home = PathBuf::from(std::env::var_os("HOME").unwrap_or_default());
+        let trace = home.join("ron-golden/run1567/map-14/rontrace.log");
+        if let Ok(bytes) = std::fs::read(&trace) {
+            let floor: Vec<_> = rondata::trace::card::draws(&bytes)
+                .into_iter()
+                .filter(|d| d.frame == 3279 && d.file(0) == "ocean_floor_5.tga")
+                .map(|d| (d.index, d.file(1).to_string(), d.address(0), d.address(1)))
+                .collect();
+            println!("run1567 pass 3279, the floor's draws: {floor:?}");
+            assert_eq!(
+                floor,
+                [(
+                    36,
+                    "ocean_floor_5.tga".to_string(),
+                    (TEXADD_WRAP, TEXADD_WRAP),
+                    (TEXADD_CLAMP, TEXADD_CLAMP)
+                )],
+                "the floor's draw wraps its first layer and clamps its second"
+            );
+        } else {
+            println!(
+                "skipping the card's half: no card trace at {}",
+                trace.display()
+            );
+        }
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let still = crate::still_of(
+            &mut p.world,
+            &camera,
+            size,
+            SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+        );
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let grid = water_grid(&t);
+        let ramp = ScreenRamp::of(&camera, size);
+        let ocean = ocean_floor(&p.root);
+        let corner = floor_corner(&ocean.levels[0]);
+        let m = camera.to_screen_matrix().0;
+        let (w, h) = (size.0 as f32, size.1 as f32);
+        // The pixel's point on the plane z = `z`.
+        let on_plane = |px: f32, py: f32, z: f32| {
+            let sx = 2.0 * px / w - 1.0;
+            let sy = 1.0 - 2.0 * py / h;
+            let (a, b, e) = (
+                m[0] - sx * m[3],
+                m[4] - sx * m[7],
+                sx * (m[11] * z + m[15]) - (m[8] * z + m[12]),
+            );
+            let (c, d, f) = (
+                m[1] - sy * m[3],
+                m[5] - sy * m[7],
+                sy * (m[11] * z + m[15]) - (m[9] * z + m[13]),
+            );
+            let det = a * d - b * c;
+            [(e * d - b * f) / det, (a * f - e * c) / det]
+        };
+        // The lattice's alpha at world (x, y): the quad's four triangles
+        // about its centre, as [`water_mesh`] lays them.
+        let alpha_at = |x: f32, y: f32| -> Option<f32> {
+            let (gx, gy) = (
+                (x / WATER_STEP).floor() as i32,
+                (y / WATER_STEP).floor() as i32,
+            );
+            let q = [
+                grid.at(gx, gy)?,
+                grid.at(gx + 1, gy)?,
+                grid.at(gx + 1, gy + 1)?,
+                grid.at(gx, gy + 1)?,
+            ]
+            .map(f32::from);
+            let centre = (q.iter().map(|&a| a as u32).sum::<u32>() / 4) as f32;
+            let (u, v) = (x / WATER_STEP - gx as f32, y / WATER_STEP - gy as f32);
+            let (du, dv) = (u - 0.5, v - 0.5);
+            // The triangle on corners k and k + 1: north, east, south, west.
+            let (k, s) = if dv.abs() >= du.abs() {
+                if dv < 0.0 { (0, -dv) } else { (2, dv) }
+            } else if du > 0.0 {
+                (1, du)
+            } else {
+                (3, -du)
+            };
+            let along = match k {
+                0 => u,
+                1 => v,
+                2 => 1.0 - u,
+                _ => 1.0 - v,
+            };
+            let s = 2.0 * s;
+            let edge = q[k] * (1.0 - along) + q[(k + 1) % 4] * along;
+            Some(centre * (1.0 - s) + edge * s)
+        };
+        let tint = |c: [f32; 4]| [(c[0] + 18.0).min(255.0), (c[1] + 18.0).min(255.0), c[2]];
+        let g = ground(&mut p);
+        let [o0, o1] = FLOOR_OFFSETS;
+        let mut outs = [still.clone(), still.clone()];
+        let mut second_min = f32::MAX;
+        for (i, tt) in g.tile.iter().enumerate() {
+            let Some(tt) = *tt else { continue };
+            if kind_of(&t, &mountains, tt) != 6 {
+                continue;
+            }
+            let (px, py) = (
+                (i % size.0 as usize) as f32 + 0.5,
+                (i / size.0 as usize) as f32 + 0.5,
+            );
+            let [fx, fy] = on_plane(px, py, FLOOR_Z);
+            let [wx, wy] = on_plane(px, py, 0.0);
+            let (a, b) = floor_uvs(fx, fy);
+            let (u1, v1) = (b[0] + o1[0], b[1] + o1[1]);
+            second_min = second_min.min(u1.min(v1));
+            let t0 = tint(ocean.sample(0, a[0] + o0[0], a[1] + o0[1]));
+            let mirrored = tint(ocean.sample(0, u1, v1));
+            let clamped = tint([corner[0], corner[1], corner[2], 255.0]);
+            let grey = floor_grey(ramp.at(fx, fy));
+            let over = lit(
+                water_rgb(ramp.at(wx, wy)).map(f32::from),
+                [1.0, 1.0, 1.5],
+                0.2,
+            );
+            let al = alpha_at(wx, wy).unwrap_or(0.0) / 255.0;
+            for (out, t1) in outs.iter_mut().zip([mirrored, clamped]) {
+                let under = lit(floor_stage(t0, t1, grey), [1.36; 3], 1.0);
+                for k in 0..3 {
+                    let c = tone(under[k] * (1.0 - al) + over[k] * al);
+                    out[i * 4 + k] = c.round().clamp(0.0, 255.0) as u8;
+                }
+            }
+        }
+        println!(
+            "4227: the second layer's texcoords from {second_min:.3} on the view's OCEAN pixels"
+        );
+        assert!(
+            second_min > 1.0,
+            "the second layer clamps on every OCEAN pixel"
+        );
+        if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+            for (name, out) in ["mirrored", "clamped"].iter().zip(&outs) {
+                let o = PathBuf::from(&dir).join(format!("still-run1564-lake-{name}.bmp"));
+                std::fs::write(&o, crate::gpu::bmp(out, size)).expect("the still writes");
+            }
+        }
+        let before = still_ground_row(&mut p, &still);
+        let mut got = Vec::new();
+        for (name, out) in ["mirrored", "clamped"].iter().zip(&outs) {
+            let after = still_ground_row(&mut p, out);
+            let mut by = [[0u32; 2]; 7];
+            for (b, a) in before.iter().zip(&after) {
+                let k = kind_of(&t, &mountains, b.0);
+                by[k][1] += 1;
+                by[k][0] += u32::from(a.3);
+                if b.0 == (170, 187) {
+                    println!(
+                        "4227 {name}: tile {:?}, theirs ({:.1}, {:.1}, {:.1}), the still's ({:.1}, {:.1}, {:.1}) agrees {}, the card's model ({:.1}, {:.1}, {:.1}) agrees {}",
+                        b.0,
+                        b.1[0],
+                        b.1[1],
+                        b.1[2],
+                        b.2[0],
+                        b.2[1],
+                        b.2[2],
+                        b.3,
+                        a.2[0],
+                        a.2[1],
+                        a.2[2],
+                        a.3
+                    );
+                }
+            }
+            let ocean: Vec<_> = after
+                .iter()
+                .filter(|a| kind_of(&t, &mountains, a.0) == 6)
+                .collect();
+            let n = ocean.len() as f32;
+            let mean = |f: &dyn Fn(&StillTile) -> [f32; 3]| {
+                ocean
+                    .iter()
+                    .fold([0.0; 3], |s, a| {
+                        let v = f(a);
+                        [s[0] + v[0], s[1] + v[1], s[2] + v[2]]
+                    })
+                    .map(|v| v / n)
+            };
+            println!(
+                "4227 {name}: OCEAN [agree, scored] {:?}, tile means theirs {:?}, the card's model {:?}; by kind {by:?}",
+                by[6],
+                mean(&|a| a.1),
+                mean(&|a| a.2)
+            );
+            got.push(by[6]);
+        }
+        assert_eq!(got, RUN1564_3279_LAKE_HDR);
     }
 
     /// One scored tile on the still (item 4171): the photograph's mean,

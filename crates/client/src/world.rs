@@ -1089,14 +1089,11 @@ impl World {
             // `render_ocean_floor` draws the floor there, its two layers
             // baked at the brightest vertex grey, and a black layer over it
             // takes it to the ramp's grey ([`crate::ground::floor_shade`]).
+            // Item 4227: the second layer is the clamped corner texel.
             let ocean = g.textures.index_land(render::terrain::OCEAN, 0, 0, 0);
             let mut floor = ocean.filter(|&k| k < g.flat.len()).map(|k| {
                 let top = crate::ground::floor_grey(0.0);
-                let tex = crate::ground::floor_texture(
-                    &g.flat[k].levels[0],
-                    crate::ground::FLOOR_MIRROR,
-                    top,
-                );
+                let tex = crate::ground::floor_texture(&g.flat[k].levels[0], top);
                 TexturedMesh {
                     piece: FLOOR_PIECE,
                     who: 0,
@@ -1129,9 +1126,10 @@ impl World {
             for ((tri, uv), &k) in base.tris.iter().zip(&base.uvs).zip(&base.of) {
                 if let (Some(f), true) = (floor.as_mut(), Some(k) == ocean) {
                     f.positions.extend_from_slice(tri);
+                    // Item 4227: at the first layer's own offset.
                     f.uvs.extend(tri.iter().map(|p| {
-                        let r = crate::ground::FLOOR_REPEAT;
-                        [p[0] / r, p[1] / r]
+                        let (r, o) = (crate::ground::FLOOR_REPEAT, crate::ground::FLOOR_OFFSETS[0]);
+                        [p[0] / r + o[0], p[1] / r + o[1]]
                     }));
                     shade.positions.extend_from_slice(tri);
                     shade.uvs.extend_from_slice(&[[0.5, 0.5]; 3]);

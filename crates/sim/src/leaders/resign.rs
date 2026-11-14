@@ -21,13 +21,16 @@
 //! the loser's buildings and land units stand — run1468's 2601 holds who=0's
 //! `0/0`..`0/13` and its buildings `2000`..`2006`, and not its V2 Rocket.
 //!
-//! SEAM: **the other units' `clear_orders`**. Built with this crate's
-//! [`Sim::clear_orders`], it moved 54 closing states the wrong way (item
-//! 3841): a human unit walking on the quit frame takes its step in theirs
-//! and stops at once in ours, off by one step (~24) — while two tears
-//! (`british_classical`'s `0/4`, `classical_melee`'s `0/6`) dissolved and
-//! the Inca word's last count closed. So the original's clear lets some
-//! walkers finish a step and not others; which, is parked (3841c).
+//! **The other units' `clear_orders`** (item 4204). Carried with the quit
+//! at every closing frame's head it moved 54 closing states the wrong way
+//! (item 3841): a human unit walking on the quit frame takes its step in
+//! theirs and stopped at once in ours. The step is the frame's body: 110
+//! of the 124 closings walked whole quit past it, from a game already over
+//! (each capture's trace dates the resign's sound, `docs/LEADERS.md`
+//! §10.2), so their walkers move before the clear in theirs too. The 13
+//! that quit at the head (the melees' 2600, the 24,000s) stop at once on
+//! both sides: their closing blocks lose the held orders and the walker's
+//! step (2601's `0/1`..`0/7`, run80's 24001, run82's shutdown tear).
 //!
 //! SEAM: the building loop's `Build::clean_queue` on each active building
 //! (a refund; no closing dump on disk holds a quitter's queue), the
@@ -79,6 +82,10 @@ impl Sim {
             }
             if self.is_plane(u) {
                 self.die_quietly(u);
+            } else {
+                // Item 4204: every other unit's orders go
+                // (`Unit::clear_orders@005e3860`).
+                self.clear_orders(u);
             }
         }
         // `Leader::defeat@006ecb00`'s tail (item 4189): with the human gone

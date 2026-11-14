@@ -580,8 +580,9 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
     // 40, the groups' `held` and pools); later blocks add only those
     // families as each unit is born (a birth's `g.angle`, a new group's
     // `held`, a new building's `build:extra`); the closing block 2601 adds
-    // the idle human's citizens `0/1`..`0/7`, which hold an order in ours
-    // and stand idle in theirs (parked 3793a). The closing state is
+    // the idle human's citizens `0/1`..`0/7`, which held an order in ours
+    // and stood idle in theirs (parked 3793a) until item 4204's head-quit
+    // `clear_orders` (below). The closing state is
     // `classical_melee_run1450_s_closing_state`.
     pin_eq!(w.blocks, 14, "every stride block in the window");
     pin_eq!(
@@ -589,7 +590,11 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 150, "run1450's word window");
+    // Item 4204: 150 -> 120, −30 on 2601, the head quit's `clear_orders`:
+    //   `0/1`..`0/7` `orders.len`/`order:length` 0 = 0, `idle` 1 = 1; the
+    //   walker `0/6` stops at theirs' (35450, 33316) (was ours (35472, 33327)),
+    //   `heading`/`g.angle` 1366556672 = theirs (were 1354694656).
+    pin_eq!(w.firsts.len(), 120, "run1450's word window");
     pin_eq!(w.rounds_read, (6, 6), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -624,7 +629,7 @@ fn classical_melee_run1450_s_closing_state() {
             .final_state()
             .or_else(|| log.frame_states().pop())
             .expect("closing whole-map state");
-        let e = endpoint::walk_to_close(&mut built, &fin, 8);
+        let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, MELEE_LONG.1);
         eprintln!(
             "Classical melee closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
             e.frame,
@@ -643,7 +648,9 @@ fn classical_melee_run1450_s_closing_state() {
     // Item 3793, the game whole: 95 units compared, every count zero, no
     // extra. One unit is torn: the idle human's Citizen `0/6` stands at
     // (35472, 33327) in ours against (35450, 33316), holding two orders
-    // where theirs' stands idle (parked 3793a).
+    // where theirs' stands idle (parked 3793a). Item 4204: the tear gone —
+    // the quit at 2600's head clears `0/6`'s orders (`Sim::resign`'s
+    // `clear_orders`), and it stands where theirs does.
     pin_eq!(e.compared, 95, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(
@@ -651,7 +658,7 @@ fn classical_melee_run1450_s_closing_state() {
         CLASSICAL_MELEE_CLOSING_OFF,
         "the closing records off, the `Melee:` line's suffix"
     );
-    pin_eq!(e.torn.clone(), vec![(0, 6)], "the closing tears");
+    pin_eq!(e.torn.clone(), vec![], "the closing tears");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
 

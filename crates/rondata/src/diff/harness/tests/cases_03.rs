@@ -1637,7 +1637,9 @@ mod bodies {
             // Item 1444: the ruins guard removes stale site fields (batch replay).
             // Item 4189: 49 -> 48 on 24001, who 0's `score` 401 = 401 (was
             // ours 402): the quit on 24000's head, replayed from run80's trace.
-            [(23960, 37), (24001, 48)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            // Item 4204: 24001 48 -> 43, the head quit's `clear_orders`: `0/1`..`0/5`
+            //   `orders.len` 0 = 0 (were ours 1).
+            [(23960, 37), (24001, 43)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, and how many"
         );
         let end: Vec<&String> = firsts
