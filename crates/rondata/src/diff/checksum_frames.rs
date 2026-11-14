@@ -175,6 +175,15 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// rather than its length rounded (`crate`'s `sim::orders::PathStack`).
 /// Value diff on 189 (run1586): unit `1/6`, `TypeIndex` 50 (a Citizen),
 /// `path.size` ours 10, theirs 20, `path.length` 6 on both → 20.
+///
+/// Item 4230 moved one on run1578: units 3166 → 3596, the emitter walking
+/// a `TRADE_ROUTE` (`TradeOrder::walk_data@00483260`'s three ranges) and a
+/// caravan's path taking its road stack's doubled `size`. Value diff on
+/// 3166 (run1587): record 14 (`1/14`, its first trade order) ours 1,352
+/// ranges, theirs 1,355, from range 536 → whole, its order `ox` 2000,
+/// `whom` 1, `uid` 0, `oxx` −1, `whose` −1, `started` 0, `loaded` 0,
+/// `uid2` −1 on both; on 3246 (run1584) `1/14`'s `path.size` ours 50,
+/// theirs 64 → 64.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -196,7 +205,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 3166, 0),
+            ("units", 3596, 0),
             ("builds", 7383, 0),
             ("groups", 2746, 0),
             ("guys", 6537, 0),
