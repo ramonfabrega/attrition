@@ -53,6 +53,7 @@ mod patch;
 mod roads;
 mod shadows;
 mod silhouette;
+mod surf;
 mod tint;
 mod trace;
 mod trees;
