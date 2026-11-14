@@ -37219,3 +37219,33 @@ SHA-256 `115ef378fcddfc77144507d9dd101e75063d7be50d8f68df0563f51a72144dfa`; `ron
 SHA-256 `efd87cbc5e6aaaffb6f7b38ffa39cf0fb8eef1dba0db46ac52c32de3bd12dd51`.
 
 **What it holds**: the units line's first parting on 3596, named by record and field.
+
+## run1591 — the minted file's playback with a packet at 6537: units' and guys' first parting (2026-11-14, item 4238, `att-4238`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the units and guys lines out on frame
+6537, both lines' first parting on run1578 since item 4234 (re-read on this lane's base: still 6537). The hook carries
+only each line's Adler, and no packet stood on 6537. The take: run1590's line moved to 6537, `--end-frame 6540
+--log-window 6536 6539 --timeout 1500 --tracer-def RON_STATE_FRAME=6537`, the rest as run1590, through `viadriver.sh
+golden_capture.sh ~/ron-golden/run1591`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 08:38:04 −05:00, exited 08:45:57: **473.3 s launch to exit**, exit 0, `success`, 6,541
+  frames, `last_frame` 6540, no page fault, no relaunch. `df -g ~` read 180 GB free before it. Minutes waited on
+  another lane: none. No `.rcx` left in `Logs\`.
+- The packet at logger frame 6537, trace frame 6536, `frame-snapshot.bin`, 803,224,704 bytes, SHA-256
+  `e0162316b581dd39e7dab706100dab1cd8cb6546e9b573571d1add987068cbe6`. `checksum.py --stream --values`: the stream's
+  sums equal the original's on every line. Kept under `~/ron-data/lab-experiments/2026-11-13-item-4214/run1591/`
+  beside the other minted packets. Its units value, 3293815389, and guys value, 3433827539, are run1578's theirs on
+  6537.
+- **Units and guys on frame 6537**: 6 of 1,546 units ranges from 187 and 6 of 511 guys ranges from 58, the same six
+  figure records on both lines: `1/0` (Scout, TI 69, two figures), `1/12` (Citizen, TI 50), `1/14` (Caravan, TI 59,
+  three). `last_x`/`last_y` (and `last_z` on the last two) ours one step behind, theirs on the figure's point; range
+  187 `last_x` 7824|7848, `last_y` 21648|21672 (`MINTED_PACKETS`). Its `cover=1` coverage names player 1's age on
+  tick 6536 (`Leader::gain_tech`'s notice arm and `Units::operator[]` first entered there). Item 4238 makes both
+  lines whole.
+- Filed with `filerun.py run1591 greatlakes-playback-of-minted-packet-6537`.
+
+Archive `gamelog-run1591-greatlakes-playback-of-minted-packet-6537.txt`, 2,451 bytes,
+SHA-256 `1868448d152b47a6c6fa1aca1937e815d1fc92d14586d57d3a9908f5e4507d88`; `rontrace-run1591.log`, 33,886,784 bytes,
+SHA-256 `8a95ec6be8b23a83eef92cb0b75bc5f52da3814ebc33a6f32ea28cfbb2e690e1`.
+
+**What it holds**: the units and guys lines' first parting on 6537, named by record and field, and the age that
+writes it.
