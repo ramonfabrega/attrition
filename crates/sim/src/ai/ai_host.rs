@@ -202,7 +202,8 @@ impl Host for ScriptHost<'_> {
     fn call(&mut self, name: &str, args: &[Value]) -> Result<Value, String> {
         let a = |i: usize| args.get(i).map_or(0, Value::as_int);
         let s = |i: usize| args.get(i).map_or_else(String::new, Value::as_str);
-        Ok(match name.to_ascii_lowercase().as_str() {
+        let probe_f = self.sim.frame;
+        let r = match name.to_ascii_lowercase().as_str() {
             // ---- queries ----
             "age" => self
                 .leader(a(0))
@@ -434,7 +435,11 @@ impl Host for ScriptHost<'_> {
             }
 
             other => return Err(format!("no host function `{other}`")),
-        })
+        };
+        if std::env::var("RON_PROBE_4222").is_ok() && (0..=140).contains(&probe_f) {
+            eprintln!("H4222 f{probe_f} {name}({args:?}) -> {r:?}");
+        }
+        Ok(r)
     }
 }
 

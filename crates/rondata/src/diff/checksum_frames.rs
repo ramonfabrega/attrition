@@ -738,3 +738,55 @@ fn the_world_is_the_original_s_on_the_start_by_section() {
         "the start without Game::run's calc_danger"
     );
 }
+
+/// PROBE item 4222 (reverted whole): building 2000's queue, cap and control.
+#[test]
+fn probe_4222_queue() {
+    if std::env::var("RON_PROBE_4222").is_err() {
+        return;
+    }
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(&script()).unwrap());
+    while built.sim.frame < 140 {
+        let f = built.sim.frame;
+        if f >= 55 {
+            let s = &built.sim;
+            let m = &s.roster.muster[0];
+            let q: Vec<String> = s
+                .buildings
+                .iter()
+                .filter(|b| b.alive && b.index == 2000)
+                .flat_map(|b| b.queue.items.iter().map(move |it| (b.owner, b.queue.infinite, it)))
+                .map(|(w, inf, it)| format!("w{w} inf{inf} ty{} jc{} cost{:?}", it.ty, it.job_counter, it.cost))
+                .collect();
+            eprintln!("P4222 f{f} cap {} control {} q {:?}", m.cap, m.control, q);
+        }
+        stream.apply(f as i32, &mut built);
+        built.tick();
+    }
+}
+
+/// PROBE item 4222 (reverted whole): the hook's script_run_time per frame.
+#[test]
+fn probe_4222_script_time() {
+    if std::env::var("RON_PROBE_4222").is_err() {
+        return;
+    }
+    let trace = hook(RUN1578_TRACE).unwrap();
+    let first = per_frame(&trace);
+    let mut last = [0u32; 15];
+    for f in -1..1000i64 {
+        if let Some(s) = first.get(&f) {
+            let mut moved = Vec::new();
+            for k in [1usize, 12, 13, 14] {
+                if s.lines[k] != last[k] {
+                    moved.push(CHECKSUM_LINES[k].0);
+                }
+            }
+            if !moved.is_empty() {
+                eprintln!("S4222 f{f} moved {moved:?} srt {}", s.lines[14]);
+            }
+            last = s.lines;
+        }
+    }
+}
