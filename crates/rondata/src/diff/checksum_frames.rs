@@ -169,6 +169,12 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// `check_guys@00937430` do, so the two Wild Birds (`TypeIndex` 402, slot
 /// 9) the sampling made on 128 are on neither (run1582 on 129: units 1,147
 /// ranges against 1,107 and guys 389 against 375 → the stream's counts).
+///
+/// Item 4228 moved one on run1578: units 189 → 3166 (none of 0..299
+/// parted, from 111), a unit's path stack walking the `size` it grew to
+/// rather than its length rounded (`crate`'s `sim::orders::PathStack`).
+/// Value diff on 189 (run1586): unit `1/6`, `TypeIndex` 50 (a Citizen),
+/// `path.size` ours 10, theirs 20, `path.length` 6 on both → 20.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -190,7 +196,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 189, 111),
+            ("units", 3166, 0),
             ("builds", 7383, 0),
             ("groups", 2746, 0),
             ("guys", 6537, 0),
@@ -348,7 +354,7 @@ fn our_lines_part_from_the_hook_s_on_their_first_frame() {
 }
 
 /// The instrument's streams of the minted game's packets (runs 1579 to
-/// 1581), outside git: `<run>/values.tsv` and `<run>/stream.tsv`.
+/// 1586), outside git: `<run>/values.tsv` and `<run>/stream.tsv`.
 fn minted_packets_dir() -> String {
     std::env::var("RON_MINTED_PACKETS_DIR").unwrap_or_else(|_| {
         let home = std::env::var("HOME").unwrap_or_default();
@@ -389,37 +395,46 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         )],
     ),
     (
+        "run1586",
+        "rontrace-run1586.log",
+        189,
+        // Item 4228: units whole; before it, 1 of 1,127 ranges, range 303,
+        // unit `1/6` (`TypeIndex` 50, a Citizen) `path.size` 10|20.
+        &[(
+            "leaders",
+            267,
+            267,
+            3,
+            "0 0 flags: +0x2 of 8|8: 00000000|08000000",
+        )],
+    ),
+    (
         "run1583",
         "rontrace-run1583.log",
         987,
-        &[
-            (
-                "units",
-                1181,
-                1181,
-                4,
-                "177 0 path.size..increment: path.size 10|50",
-            ),
-            (
-                "leaders",
-                267,
-                267,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|e7000000",
-            ),
-        ],
+        // Item 4228: units whole; before it, 4 ranges, range 177 `path.size`
+        // 10|50.
+        &[(
+            "leaders",
+            267,
+            267,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|e7000000",
+        )],
     ),
     (
         "run1584",
         "rontrace-run1584.log",
         3246,
         &[
+            // Item 4228: 661 → 656 parted, range 167 `path.size` 20|60 →
+            // agreeing; the first is now a size no block of 10 makes.
             (
                 "units",
                 1389,
                 1386,
-                661,
-                "167 0 path.size..increment: path.size 20|60",
+                656,
+                "524 14 path.size..increment: path.size 50|64",
             ),
             (
                 "leaders",
@@ -436,12 +451,14 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "rontrace-run1585.log",
         4030,
         &[
+            // Item 4228: 809 → 804 parted, range 167 `path.size` 10|60 →
+            // agreeing.
             (
                 "units",
                 1507,
                 1504,
-                809,
-                "167 0 path.size..increment: path.size 10|60",
+                804,
+                "492 14 collide_frame..play: unit_masks 262152|262664",
             ),
             (
                 "leaders",

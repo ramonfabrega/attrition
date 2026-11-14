@@ -719,7 +719,8 @@ mod tests {
                     tolerance: p.tolerance as i32,
                     flags: u8::try_from(p.flags & 0xff).unwrap_or(0),
                 })
-                .collect();
+                .collect::<Vec<_>>()
+                .into();
             // `UnitData +0x80`, the record's own `group` (`docs/GROUPS.md`
             // §23): the back-pointer is state of its own, so a scene seats
             // it from the dump rather than deriving it from the lists.

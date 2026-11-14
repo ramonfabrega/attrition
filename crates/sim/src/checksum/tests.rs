@@ -196,3 +196,58 @@ fn a_bird_on_slot_nine_is_on_neither_the_units_nor_the_guys_line() {
     );
     assert!(g8s.len() > guys.len(), "and on the guys line");
 }
+
+/// **A path stack walks the `size` it grew to, not its length** (item 4228,
+/// `docs/CHECKSUM.md` §17): `Stack<PathData>::push@0046d820` raises `size`
+/// a block of 10 at `size <= length`, and nothing but `Unit::init`'s
+/// `Stack<PathData>::init@0046d720` lowers it. run1586 on 189: unit `1/6`,
+/// six nodes left of a path that had held more than ten, `path.size` 20.
+#[test]
+fn a_path_stack_walks_the_size_it_grew_to() {
+    use crate::orders::{PathData, PathStack};
+    use crate::world::Pos;
+    let size_of = |s: &crate::Sim| {
+        let r = s
+            .checksum_units()
+            .ranges
+            .into_iter()
+            .find(|r| r.field == "path.size..increment")
+            .unwrap();
+        (
+            i32::from_le_bytes(r.bytes[0..4].try_into().unwrap()),
+            i32::from_le_bytes(r.bytes[4..8].try_into().unwrap()),
+        )
+    };
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let u = sim.add_unit(crate::Unit::new(0, 0, Pos::new(480, 480), 10));
+    assert_eq!(size_of(&sim), (10, 0), "Unit::init's stack: size 10, empty");
+    let node = |i: i32| PathData {
+        to: Pos::new(480 + i, 480),
+        tolerance: 0,
+        flags: 0,
+    };
+    for i in 0..11 {
+        sim.units[u].path.push(node(i));
+    }
+    assert_eq!(size_of(&sim), (20, 11), "the eleventh push grows a block");
+    for _ in 0..5 {
+        sim.units[u].path.pop();
+    }
+    assert_eq!(
+        size_of(&sim),
+        (20, 6),
+        "a pop keeps the size: run1586's 1/6"
+    );
+    sim.units[u].path.clear();
+    sim.units[u].path.set((0..3).map(node).collect());
+    assert_eq!(size_of(&sim), (20, 3), "a fresh path laid keeps it too");
+    sim.units[u].path.set((0..31).map(node).collect());
+    assert_eq!(size_of(&sim), (40, 31), "and grows by blocks past it");
+    let scratch = std::mem::replace(&mut sim.units[u].path, PathStack::from_nodes(vec![node(0)]));
+    let _ = std::mem::replace(&mut sim.units[u].path, scratch);
+    assert_eq!(
+        size_of(&sim),
+        (40, 31),
+        "a scratch installed and taken back leaves it"
+    );
+}

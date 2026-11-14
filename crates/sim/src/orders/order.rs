@@ -325,6 +325,171 @@ pub struct PathData {
     pub flags: u8,
 }
 
+/// **A unit's path stack, with the allocation the original keeps**
+/// (`Stack<PathData>`, `UnitData +0xb8`: `list`, `size`, `length`,
+/// `increment`; `docs/CHECKSUM.md` §17, item 4228). `Unit::init@00612100:382`
+/// is the one `Stack<PathData>::init@0046d720` on it: `size` 10, `increment`
+/// 10. Every later writer that lengthens it is `Stack<PathData>::push@0046d820`
+/// or its inlined twin (`Unit::find_path@005fb910:161`,
+/// `Unit::do_group_move@005e79a0:247`, `Unit::do_air_physics@005e86d0:145`):
+/// at `size <= length`, `increase_size@0046e8c0` by `increment`. Nothing but
+/// `init` makes `size` smaller, and a pop or a clear only moves `length`. So
+/// `size` is the high-water length since the unit was made, rounded up to a
+/// block of 10, and the units line walks it (`Stack<PathData>::walk_data@0046d8b0`).
+///
+/// It derefs to the nodes as a slice: anything that changes the length goes
+/// through a method here, which raises `size` the way the pushes would.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PathStack {
+    nodes: Vec<PathData>,
+    size: i32,
+}
+
+impl PathStack {
+    /// `Stack<PathData>::init(10)`'s block, and its growth step on a unit.
+    pub const INCREMENT: i32 = 10;
+
+    /// The stack as `Unit::init` leaves it: empty, `size` 10.
+    pub fn new() -> Self {
+        Self {
+            nodes: Vec::new(),
+            size: Self::INCREMENT,
+        }
+    }
+
+    /// `size` (`+0x4`): the entries the original has allocated.
+    pub fn size(&self) -> i32 {
+        self.size
+    }
+
+    /// Raise `size` past the current length, a block at a time, as
+    /// `push` does at `size <= length`.
+    fn grow(&mut self) {
+        let len = self.nodes.len() as i32;
+        while self.size < len {
+            self.size += Self::INCREMENT;
+        }
+    }
+
+    pub fn push(&mut self, n: PathData) {
+        self.nodes.push(n);
+        self.grow();
+    }
+
+    pub fn pop(&mut self) -> Option<PathData> {
+        self.nodes.pop()
+    }
+
+    pub fn clear(&mut self) {
+        self.nodes.clear();
+    }
+
+    pub fn truncate(&mut self, len: usize) {
+        self.nodes.truncate(len);
+    }
+
+    pub fn insert(&mut self, at: usize, n: PathData) {
+        self.nodes.insert(at, n);
+        self.grow();
+    }
+
+    pub fn remove(&mut self, at: usize) -> PathData {
+        self.nodes.remove(at)
+    }
+
+    pub fn retain(&mut self, f: impl FnMut(&PathData) -> bool) {
+        self.nodes.retain(f);
+    }
+
+    pub fn extend(&mut self, it: impl IntoIterator<Item = PathData>) {
+        self.nodes.extend(it);
+        self.grow();
+    }
+
+    pub fn drain(
+        &mut self,
+        range: impl std::ops::RangeBounds<usize>,
+    ) -> std::vec::Drain<'_, PathData> {
+        self.nodes.drain(range)
+    }
+
+    /// The nodes replaced by `nodes`, as the original's writers lay a fresh
+    /// path: a clear, then pushes, so `size` keeps its high water.
+    pub fn set(&mut self, nodes: Vec<PathData>) {
+        self.nodes = nodes;
+        self.grow();
+    }
+
+    /// The nodes taken out and the stack left empty, `size` kept.
+    pub fn take(&mut self) -> Vec<PathData> {
+        std::mem::take(&mut self.nodes)
+    }
+
+    /// A stack holding `nodes`, `size` what pushing them onto a fresh one
+    /// leaves: the scratch a caller installs on a unit for one search
+    /// (`grouppath`, which is not a unit's stack).
+    pub fn from_nodes(nodes: Vec<PathData>) -> Self {
+        let mut s = Self::new();
+        s.set(nodes);
+        s
+    }
+
+    /// The nodes, the stack consumed.
+    pub fn into_nodes(self) -> Vec<PathData> {
+        self.nodes
+    }
+
+    /// The nodes as a `Vec`, for a reader that wants one.
+    pub fn to_vec(&self) -> Vec<PathData> {
+        self.nodes.clone()
+    }
+}
+
+impl Default for PathStack {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl std::ops::Deref for PathStack {
+    type Target = [PathData];
+    fn deref(&self) -> &[PathData] {
+        &self.nodes
+    }
+}
+
+impl std::ops::DerefMut for PathStack {
+    fn deref_mut(&mut self) -> &mut [PathData] {
+        &mut self.nodes
+    }
+}
+
+impl From<Vec<PathData>> for PathStack {
+    fn from(nodes: Vec<PathData>) -> Self {
+        Self::from_nodes(nodes)
+    }
+}
+
+impl PartialEq<Vec<PathData>> for PathStack {
+    fn eq(&self, other: &Vec<PathData>) -> bool {
+        self.nodes == *other
+    }
+}
+
+impl<const N: usize> PartialEq<[PathData; N]> for PathStack {
+    fn eq(&self, other: &[PathData; N]) -> bool {
+        self.nodes[..] == other[..]
+    }
+}
+
+impl<'a> IntoIterator for &'a PathStack {
+    type Item = &'a PathData;
+    type IntoIter = std::slice::Iter<'a, PathData>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.nodes.iter()
+    }
+}
+
 /// `PathData::flags`.
 pub mod path_flag {
     /// The final waypoint of an order's segment — the goal.
