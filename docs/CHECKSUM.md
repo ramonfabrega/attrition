@@ -2436,8 +2436,10 @@ three steps, each a rule of the queue's array (§14, `docs/PRODUCTION.md` "The q
 stored by `BuildTypeData::find_gather_tcoords@0063bdc0` ahead of its tiles and reset by `Build::close`; the emitter
 wrote `ff ff` (`docs/ECONOMY.md`, "The list"). Value diff on 7383, off run1597's record (§25.4): builds range 903,
 record 2019 (player 1's Mine, `TypeIndex` 0x1a3, 232 tiles on both sides), `mtn` ours −1, theirs 0 → 0 on both. On
-8281 the builds line parts on building 2018's garrison top (`Object +0x28`, ours 42, theirs 30). On the same frame
-the units line first parts on unit record 30's own `+0x28` (ours −1, theirs 42), the unit whose entry it is.
+8281 the builds line parts on building 2018's `inside_down` (`Object +0x28`, the garrison's top: ours 42, theirs 30).
+On the same frame the units line first parts on unit record 30's own `inside_down` (ours −1, theirs 42), the unit
+whose entry it is. **Step P's census, 422 → 425** (`PACKETS_SCORE`): the builds line agrees on run1237, run1383 and
+run1186b (one range parting → 0 on each) and parts on fewer on 55 more packets and on run1575's take (27 → 26).
 
 run1577 is whole on all 120 in both lines; no minted packet parts on either line now. run1575's take packet
 parts on 27 builds ranges, 35 before (`TAKE_PINNED`). **Step P's census, 280 → 285 of 1,053 lines** (§23.7,
@@ -2706,8 +2708,8 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 
 On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Builds' 7383 row, record 2019's `mtn`
 −1 against 0, left with item 4244, and builds is whole on the record at 7383 and 8206. Its next first parting, 8281, is
-on the record without a pinned row: building 2018's garrison top, ours 42, theirs 30, on a frame where units first
-parts on unit 30's (item 4244's journal). Measured on the tree after item 4243,
+pinned: building 2018's `inside_down` (the garrison's top), ours 42, theirs 30, on a frame where units first parts
+on unit 30's (item 4244's journal). Measured on the tree after item 4243,
 which made units whole on 6907 (run1593). Before it the record's 6907 showed what 4243's packet showed: units nine
 ranges short (1,639 of 1,648), first at range 784.
 
