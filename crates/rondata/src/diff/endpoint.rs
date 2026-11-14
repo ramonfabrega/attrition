@@ -2203,21 +2203,6 @@ pub fn walk_to_close_quitting(
     while built.sim.frame < fin.n - 1 {
         built.tick();
     }
-    #[cfg(test)]
-    if std::env::var_os("RON_PROBE_4204").is_some() {
-        let tr = super::testkit::PROBE_LAST_TRACE.with(|l| l.borrow().clone());
-        let run = tr.trim_start_matches("rontrace-").trim_end_matches(".log");
-        let q = super::harness::tests::quit_in_trace(&format!("gamelog-{run}-x"));
-        let humans: Vec<usize> = (0..players.min(built.sim.cities.nation.len()))
-            .filter(|&w| built.sim.cities.nation[w].human)
-            .collect();
-        eprintln!(
-            "PROBE4204 {} trace={tr} fin={} quit={q:?} head_arg={head} humans={humans:?} test={}",
-            if q.is_some_and(|q| q.0 + 1 == fin.n) { "ON" } else { "OFF" },
-            fin.n,
-            std::thread::current().name().unwrap_or("?")
-        );
-    }
     let r = compare_shutdown_quitting(built, fin, players, head);
     let whole = compare(built, fin, players);
     EndpointResult {

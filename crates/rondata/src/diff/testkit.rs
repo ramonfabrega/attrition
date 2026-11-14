@@ -104,14 +104,7 @@ pub(crate) fn initial() -> Initial<'static> {
 /// A trace beside the dumps — `RON_GAMELOG_DIR`, where `archive.sh`
 /// puts both. `None` skips the half of a check that needs it, the same
 /// way [`dump`] does.
-thread_local! {
-    /// PROBE 4204: the last trace this thread asked for.
-    pub(crate) static PROBE_LAST_TRACE: std::cell::RefCell<String> =
-        const { std::cell::RefCell::new(String::new()) };
-}
-
 pub(crate) fn trace(name: &str) -> Option<crate::trace::Trace> {
-    PROBE_LAST_TRACE.with(|l| *l.borrow_mut() = name.to_string());
     // The same default as [`dump`]: a machine with the captures but no
     // `RON_GAMELOG_DIR` used to skip every trace-backed half silently.
     let path = dump(name)?;
