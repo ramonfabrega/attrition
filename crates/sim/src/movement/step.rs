@@ -239,15 +239,6 @@ impl Sim {
                 f.body.pos = f.des;
             }
         }
-        // `Guy::set_angle(crew, des_angle, 1)` writes the crew figure's
-        // `last_angle` beside its `angle` (`005d9010:15`).
-        if snap {
-            for g in &mut self.units[u].guys {
-                if g.follow.is_some() {
-                    g.last = g.last.map(|(at, _)| (at, angle));
-                }
-            }
-        }
     }
 
     /// One crew guy's own frame — `Guy::process → Guy::move` for a guy

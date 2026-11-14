@@ -1335,6 +1335,9 @@ no `AirOrder` to walk one with (`docs/SYNC.md` §3.9).
 
 ## Open questions
 
+- **A snapped `set_angle`'s crew `last_angle`** (parked 4253a): `Guy::set_angle(crew, des_angle, 1)` writes a
+  tracked crew figure's `last_angle`; `Sim::crew_des`'s snap writes its facing only. No walk parts on it yet.
+
 **Closed since the first draft, and kept because the mistake is the useful
 part.** The quadrant fold in `sinx`/`cosx` looked wrong and was not. It sends
 `cos(north)` through the table's wrapped last step, which read as plain

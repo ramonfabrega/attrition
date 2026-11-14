@@ -990,7 +990,8 @@ impl Sim {
         // `angle` is [`crate::Movement`]'s `facing`, its `last_angle` the
         // angle of [`crate::units::anim::Guy::last`] (`None` reads the
         // facing). The crew's own `set_angle(crew, des_angle, 1)` is
-        // [`Sim::crew_des`]'s snap.
+        // [`Sim::crew_des`]'s snap, which writes the facing and not the
+        // crew's `last_angle` (item 4253, parked 4253a: no walk parts on it).
         if snap {
             let m = &mut self.units[u].movement;
             m.facing = angle;

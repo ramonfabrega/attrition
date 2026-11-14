@@ -195,15 +195,13 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         // 560 ranges, 891 and 279, record 30 (`1/30`, a Scholar, TI 52,
         // seated in its University on 7272) guy `angle` and `last_angle`
         // 0x55555555|0 (`Unit::go_inside`'s `set_angle(0, _, 1)` snap).
-        &[
-            (
-                "leaders",
-                271,
-                271,
-                3,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|26010000",
-            ),
-        ],
+        &[(
+            "leaders",
+            271,
+            271,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|26010000",
+        )],
     ),
     (
         7383,

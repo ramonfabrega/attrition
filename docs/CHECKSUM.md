@@ -2557,6 +2557,17 @@ and the line whole; ours' state held the bit already, so the emitter is the whol
 move** (`PACKETS_SCORE` 422): the units triple moved on 70 packets, every one only in that slot and only in its parted
 count, which fell on each (run1266c, East Indies, 7581 → 7561, the most); none to whole or from it.
 
+**Item 4253 moved two, with one rule.** Units 7273 → 8281 and guys 7273 → 10541, none of 0..299 parted. On 7273
+(run1597's record, §25.4) both lines part on one range each, units 891 and guys 279: record 30, `1/30`, a Scholar (TI
+52) born into its University on 7272, figure `angle` and `last_angle` ours 0x55555555, theirs 0. `Unit::go_inside@0061a2e0`
+seats a scholar with `Unit::set_angle(0, _, 1)` (the listing pushes 1, `ecx`, 0 at `61a547`), and the third argument is
+`Guy::set_angle@005d9010`'s snap, which writes guy 0's `angle` and `last_angle` outright. The crate passed 0, so its
+scholar kept the newborn's facing. Value diff on 7273: 0 and 0 on both lines, both whole there and on 7383 and 8206.
+**Step P's census rises 422 → 430** (`PACKETS_SCORE`): the guys line agrees on eight more packets and parts on fewer on
+nine (run1266c 21 → 9); the units line parts on fewer on seven. Each of the 18 moved pins fell; none rose. The next
+words, off the record (§25.4): units 8281, the University `1/2018`'s garrison chain (record 30 `inside_down` −1, 42;
+the building's 42, 30); guys 10541, record 14's figure `last_angle` 682461312, 968792448.
+
 ## 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
@@ -2709,6 +2720,8 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 | 7273 | guys | 560, 560, 1 | 279 30 guy: `angle` and `last_angle` 1431655765, 0; whole since item 4253 |
 | 7383 | builds | 1,142, 1,142, 1 | 903 2019 `mtn..cliff`: `mtn` −1, 0 |
 | 8206 | groups | 544, 544, 1 | 91 67 `id..march`: `ox` 30552, 0; `oy` 21144, 0 |
+| 8281 | units | 1,909, 1,909, 2 | 842 30 `myhits..launch_frames`: `inside_down` −1, 42 (the University 1/2018's chain; builds 856 2018 `inside_down` 42, 30) |
+| 10541 | guys | 776, 776, 2 | 160 14 guy: `last_angle` 682461312, 968792448 (units 570, 14 of 2,549) |
 
 On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Measured on the tree after item 4243,
 which made units whole on 6907 (run1593). Before it the record's 6907 showed what 4243's packet showed: units nine
