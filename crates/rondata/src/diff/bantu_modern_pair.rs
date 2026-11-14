@@ -383,7 +383,7 @@ fn bantu_modern_pair_run1425_s_word_frame_is_widened_whole() {
     // `1/82` (4367), each from its own square in ours (3748a).
     // Item 4177: 51 -> 55, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 4295 ours 23 theirs 27; who=0 `damage_fifteen_seconds` 4295 ours 14 theirs 15; who=1 `average_hit_rate` 4295 ours 23 theirs 27; who=1 `hits_fifteen_seconds` 4295 ours 14 theirs 15 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 55 -> 51, item 4177's four combat-rate firsts on 4295 agree: the nuke strikes the city building at its ceiling (4177a).
-    pin_eq!(w.firsts.len(), 51, "run1425 baseline");
+    pin_eq!(w.firsts.len(), 49, "run1425 baseline");
     pin_eq!(w.rounds_read, (70, 70), "the rounds read");
     pin_eq!(w.rounds.len(), 17, "the rounds that part");
 }

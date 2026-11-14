@@ -250,7 +250,7 @@ fn american_enlightenment_pair_run1314b_s_word_frame_is_widened_whole() {
     // against (34536, 43080): the draw on 3215, ours 15 against 16, index
     // 9, ours `Guy::set_anim+0x104b`, theirs
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`docs/AI.md` §341).
-    pin_eq!(w.firsts.len(), 98, "run1314b baseline");
+    pin_eq!(w.firsts.len(), 97, "run1314b baseline");
     // Every round, both directions: 9 round-blocks theirs, 18 ours, 3
     // parting — all the Sloop `1/61`'s (TI 327) at the human's `0/2005`:
     // its round's end point on 3240, `ex`/`ey` (4773, 7451) against
@@ -374,7 +374,7 @@ fn american_enlightenment_pair_run1325b_s_word_frame_is_widened_whole() {
     // against (7451, 9479, 418), arriving a frame late — and the human's
     // capital `0/2000` took its damage on 5583 in theirs alone
     // (`build:damage` 0 against 4): the word 5583.
-    pin_eq!(w.firsts.len(), 164, "run1325b baseline");
+    pin_eq!(w.firsts.len(), 163, "run1325b baseline");
     pin_eq!(w.rounds_read, (84, 84), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

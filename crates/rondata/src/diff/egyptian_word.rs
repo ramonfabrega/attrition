@@ -313,7 +313,7 @@ fn run967c_s_word_frame_is_widened_whole() {
     // agree whole, and the word moved 15982 → 20031, past the window.
     pin_eq!(
         w.firsts.len(),
-        36,
+        30,
         "run967c with the census's gather slots the ledger's"
     );
 }
@@ -380,7 +380,7 @@ fn run967g_s_word_frame_is_widened_whole() {
     // `Group::target_opportunity` (`docs/AI.md` §336.2): `1/92`'s and
     // `1/160`'s `attack[1].mandatory` on 20025 and `attack[0].mandatory`
     // on 20044, ours 0 against theirs 1 before, now agree. The word holds.
-    pin_eq!(w.firsts.len(), 34, "run967g on its first try");
+    pin_eq!(w.firsts.len(), 32, "run967g on its first try");
 }
 
 /// The closing state's window: run645's closing block alone, the long's

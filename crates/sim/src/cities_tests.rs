@@ -9010,6 +9010,34 @@ fn a_unit_comes_out_with_the_speeds_it_went_in_with() {
     );
 }
 
+/// **A scholar is seated facing 0, set and not turned** (item 4253,
+/// `docs/CHECKSUM.md` §25.4): `Unit::go_inside@0061a2e0`'s tail calls
+/// `Unit::set_angle(0, _, 1)` (`61a547`..`61a54e`), whose third argument
+/// is `Guy::set_angle@005d9010`'s snap — guy 0's `angle` and `last_angle`
+/// are 0 on the seating's frame. run1597's `1/30` (a Scholar, TI 52) on
+/// 7273: theirs 0 and 0, ours the newborn's 0x55555555 on both lines.
+///
+/// Made to fail with the seating's turn back at `unit_set_angle` (snap 0).
+#[test]
+fn a_scholar_is_seated_facing_north_on_its_frame() {
+    use crate::movement::Angle;
+    let (mut sim, t, _, militia) = alarm_sim();
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    sim.tables.unit_types[militia].worker = crate::orders::Worker::Scholar;
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    assert_eq!(sim.units[m].movement.facing, Angle::INITIAL);
+    let at = sim.units[m].pos;
+    sim.units[m].guys[0].last = Some((at, Angle::INITIAL));
+    sim.go_inside(m, b);
+    let mv = sim.units[m].movement;
+    assert_eq!((mv.heading, mv.facing), (Angle(0), Angle(0)), "angle");
+    assert_eq!(
+        sim.units[m].guys[0].last.map(|(_, a)| a),
+        Some(Angle(0)),
+        "last_angle"
+    );
+}
+
 /// **A type with no block comes out past a unit standing on the ring**
 /// (item 3780, `docs/AI.md` §378.1): `come_out`'s `block_radius == 0` arm
 /// asks `FILTER_ALL` with the unit's own `(o, who)`, and

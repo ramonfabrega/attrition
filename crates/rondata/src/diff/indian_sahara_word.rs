@@ -159,7 +159,7 @@ fn run1007_s_word_frame_is_widened_whole() {
     // who=1's guards at their posts (`1/51`, a Pikeman: 440991744 ours,
     // −440991744 theirs), which part no draw to the game's end (parked
     // 3383a).
-    pin_eq!(w.firsts.len(), 38, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 33, "keys that part in the window");
 }
 
 /// run1007c: the word 16548's window, blocks 16542 to the game's end at
@@ -212,7 +212,7 @@ fn run1007c_s_word_frame_is_widened_whole() {
     // (`GUNMAHOUT`, type 263): `cavarch_o/who` −2/−1 ours, 0/0 theirs (the
     // human's Scout, 1938 off), `CHAR_ATTACKWALK` theirs. Built
     // (`cavarch_fight`'s second-range bracket): 31, the 16542 rows alone.
-    pin_eq!(w.firsts.len(), 31, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 26, "keys that part in the window");
 }
 
 /// The closing state's window: run1002b's closing block alone, the long's

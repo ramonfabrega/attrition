@@ -191,55 +191,27 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     ),
     (
         7273,
-        &[
-            (
-                "units",
-                1692,
-                1692,
-                1,
-                "891 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
-            (
-                "guys",
-                560,
-                560,
-                1,
-                "279 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
-            (
-                "leaders",
-                271,
-                271,
-                3,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|26010000",
-            ),
-        ],
+        // Item 4253: units and guys whole; before it, 1 of 1692 and 1 of
+        // 560 ranges, 891 and 279, record 30 (`1/30`, a Scholar, TI 52,
+        // seated in its University on 7272) guy `angle` and `last_angle`
+        // 0x55555555|0 (`Unit::go_inside`'s `set_angle(0, _, 1)` snap).
+        &[(
+            "leaders",
+            271,
+            271,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|26010000",
+        )],
     ),
     (
         7383,
-        &[
-            (
-                "units",
-                1657,
-                1657,
-                1,
-                "856 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
-            (
-                "guys",
-                560,
-                560,
-                1,
-                "279 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
-            (
-                "leaders",
-                271,
-                271,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|27010000",
-            ),
-        ],
+        &[(
+            "leaders",
+            271,
+            271,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|27010000",
+        )],
     ),
     (
         8206,
@@ -247,20 +219,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         // record 67 `ox`/`oy` 30552/21144 ours, 0/0 theirs (here and on
         // 8281): `equals_group`'s `get_num` on an emptied last slot.
         &[
-            (
-                "units",
-                1937,
-                1937,
-                1,
-                "878 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
-            (
-                "guys",
-                637,
-                637,
-                1,
-                "279 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
             (
                 "leaders",
                 271,
@@ -272,12 +230,15 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     ),
     (
         8281,
+        // Item 4253's next units word: the garrison chain's order in the
+        // University 1/2018 (record 30 `inside_down` -1|42, the building's
+        // 42|30).
         &[
             (
                 "units",
                 1909,
                 1909,
-                4,
+                2,
                 "842 30 myhits..launch_frames: inside_down -1|42",
             ),
             (
@@ -288,13 +249,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 "856 2018 myhits..launch_frames: inside_down 42|30",
             ),
             (
-                "guys",
-                644,
-                644,
-                2,
-                "279 30 guy: angle 1431655765|0, last_angle 1431655765|0",
-            ),
-            (
                 "leaders",
                 271,
                 271,
@@ -303,18 +257,17 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             ),
         ],
     ),
+    (9810, &[]),
     (
-        9810,
-        // Item 4255: groups' next first parting, record 64 (army 1/1, 21
-        // members, the same list on both sides) `role` 0x150c00 ours,
-        // 0x150c03 theirs.
+        10541,
+        // Item 4253's next guys word: record 14's figure `last_angle`.
         &[
             (
                 "units",
-                2330,
-                2330,
-                19,
-                "913 30 myhits..launch_frames: inside_down -1|42",
+                2549,
+                2549,
+                14,
+                "570 14 guy: last_angle 682461312|968792448",
             ),
             (
                 "builds",
@@ -324,25 +277,18 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 "856 2018 myhits..launch_frames: inside_down 54|30",
             ),
             (
-                "groups",
-                550,
-                550,
-                1,
-                "76 64 id..march: role 1379328|1379331",
-            ),
-            (
                 "guys",
-                758,
-                758,
-                7,
-                "279 30 guy: angle 1431655765|0, last_angle 1431655765|0",
+                776,
+                776,
+                2,
+                "160 14 guy: last_angle 682461312|968792448",
             ),
             (
                 "leaders",
                 271,
                 271,
                 2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|3e010000",
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|46010000",
             ),
         ],
     ),

@@ -37467,3 +37467,35 @@ SHA-256 `651290375a8826d1a7977ba02e2702c58b4a9c352466ff7794ac84ad0c77a31d`; `ron
 SHA-256 `feee92c63ba1d577574f8b1c142912ebab6ead1ece8250ba3f95d779c9468973`.
 
 **What it holds**: a pause from the key, an order given while paused, and the unpause, all on one frame, played on.
+
+## run1602 — the original playing the paused file without its pause (2026-11-14, item 4254, `att-4254`)
+
+`docs/CLIENT_INPUT.md` §14.1. **What the disk could not answer**: whether the blow on player 1's `1/0` that lands on
+6866 on run1601 and on 6872 on run1599 is moved by the pause's three turns or by the moved rally point (parked 4252a).
+No take held the rally point moved without a pause. The file:
+`~/ron-golden/recordings/item4254-rallied-greatlakes-24000.rcx`, 59,504 bytes, SHA-256
+`ff47ccb6746c3d048b57dcdb27eccc121169d94f35d6e61986ca4a64376c2a98`. It was written by `RON_RCX_OUT=<it> … test
+--release -p rondata the_rallied_minted_packages_round_trip`. It is run1599's file plus one package on 6712, the
+capital's rally point to (4655, 31075), stamped 17; the closing stamp goes from 17 to 18.
+
+The take is run1601's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1602 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7 --timeout 1800 --stall-seconds 120`. It was waited on with
+`waitrun.sh` in the background.
+- **The run**: pool lane 1. The first launch stalled at startup and was relaunched after 120 s. Launched 16:13:53
+  −05:00, exited 16:24:36: **643 s launch to exit, the stall included**, exit 0, `success`. 7,001 frames,
+  `last_frame` 7000, seed 12345, map 14. Settings restored, no page fault. Minutes waited on another lane: none.
+- **The window is run1601's, byte for byte**: 64,832,328 bytes from the first `BEGIN FRAME` to the end, on both
+  takes; run1599's is 64,824,933 and differs. The pause moves no dumped byte.
+- **The built walk under the pump on the file** (`RALLIED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence. **300 records compared, 40 parted**, the first on 6866: player 1's `1/0`, `damage` ours 13 and theirs 16.
+  Pinned at 0 before the take was read and seen red there.
+- **The rally point's effects** on `PAUSE_READ_AT` are the paused file's on both sides. The pause's four functions are
+  entered nowhere.
+- Filed with `filerun.py run1602 greatlakes-playback-of-rallied-7000`.
+
+Archive `gamelog-run1602-greatlakes-playback-of-rallied-7000.txt`, 64,834,616 bytes,
+SHA-256 `cca724e7c31f488aa84809be85d85b8739fe95642ed94ce1008944a9da9b88a4`; `rontrace-run1602.log`, 33,587,072 bytes,
+SHA-256 `6604c54aa6d2809b790aa3fba9606603758a8d5226ea7e15f6c07a8367b51a3b`.
+
+**What it holds**: the paused file's orders without the pause; the same game as run1601's, record for record.

@@ -252,6 +252,14 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// range 903, record 2019 (1/2019, a Mine, TI 0x1a3) `mtn` ours −1, theirs
 /// 0 → 0 on both.
 ///
+/// Item 4253 moved two on run1578: units 7273 → 8281 and guys 7273 →
+/// 10541, one rule, a scholar's seating (`Unit::go_inside@0061a2e0`'s
+/// `set_angle(0, _, 1)`, `61a547`) setting its figure's `angle` and
+/// `last_angle` rather than turning it. Value diff on 7273 (run1597's
+/// record): units range 891 and guys range 279, record 30 (`1/30`, a
+/// Scholar, TI 52, seated in its University on 7272) `angle` and
+/// `last_angle` ours 0x55555555, theirs 0 → 0 on both, both lines whole.
+///
 /// Item 4255 moved one on run1578: groups 8206 → 9810, a push running
 /// `Group::equals_group@00708000`'s `get_num` (vslot `+0x4`) on
 /// `last_group`'s record after its `normalize`, whose empty arm zeroes
@@ -281,10 +289,10 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 7273, 0),
+            ("units", 8281, 0),
             ("builds", 8281, 0),
             ("groups", 9810, 0),
-            ("guys", 7273, 0),
+            ("guys", 10541, 0),
             ("leaders", 0, 300),
             ("cities", 24000, 0),
             ("items", 24000, 0),

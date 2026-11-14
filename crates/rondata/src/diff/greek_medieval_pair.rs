@@ -254,7 +254,7 @@ fn greek_medieval_pair_run1380b_s_word_frame_is_widened_whole() {
     // `order:target` on 5875 (`0/4` against `0/10`, parked 3711a); no
     // draw feels any of them before the game ends.
     // Item 4159's residue: 138 -> 137, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 137, "run1380b baseline");
+    pin_eq!(w.firsts.len(), 134, "run1380b baseline");
     // Every round, both directions: 1205 against 1199. The first to part
     // are launch points a unit or two off — the Heavy Horse Archer
     // `1/151`'s `ammo[4]` on 5601 (`sx` 6566 against 6565) and the

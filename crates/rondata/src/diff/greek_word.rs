@@ -311,7 +311,7 @@ fn run961d_s_word_frame_is_widened_whole() {
     // (ours 8461) and on 19182 theirs makes a second item at its capital;
     // ours, capped, did not. With the Colossus term the window parts **the
     // standing set alone**, and the word moved 19182 → 24000.
-    pin_eq!(w.firsts.len(), 41, "run961d with the Colossus' cap");
+    pin_eq!(w.firsts.len(), 33, "run961d with the Colossus' cap");
 }
 
 /// The closing state's window: run957b's closing block alone, the long's

@@ -235,7 +235,7 @@ fn run989_s_word_frame_is_widened_whole() {
     // and the newborn `g.angle[0]` on nine figures. The scout's cell,
     // the word's draw, parts in no dumped key: its cause was the fog
     // (run989b's test).
-    pin_eq!(w.firsts.len(), 38, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 29, "keys that part in the window");
 }
 
 /// run989d: the word 17394's window, blocks 17388..17554 at `GUYS=4` and
@@ -294,7 +294,7 @@ fn run989d_s_word_frame_is_widened_whole() {
     // against 0, `aggression[1]`, `pool:64`/`65`/`67` and
     // `group:64`/`65`/`67.held` with no `GROUPDATA` printed, and the
     // `g.angle[0]` of fourteen figures).
-    pin_eq!(w.firsts.len(), 42, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 28, "keys that part in the window");
 }
 
 /// The closing state's window: run895b's closing block alone, the long's

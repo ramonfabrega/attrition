@@ -854,8 +854,6 @@ impl Sim {
             // target this frame rather than turning to it, so it stands
             // (`stopped` 1) on the first frame in range. run245's 756.
             self.unit_set_angle_as(u, angle, true);
-            self.units[u].movement.facing = angle;
-            self.units[u].movement.frame_facing = angle;
         }
         // `Unit::do_cast@005ebfe0:5ec66f`..`5ec759`: a Spy (`is(0x3a, 0)`)
         // — Bribe `CHAR_ATTACK3`, the Informer `CHAR_ATTACKWALK`, a Spy

@@ -363,7 +363,7 @@ fn run978e_s_word_frame_is_widened_whole() {
     // the standing set, `group:64.held` beside it, `1/24`'s `g.angle[0]`
     // on 4467 (ours 0x55555555, theirs 0) and who=1's `SITE[1].reg` on
     // 4576.
-    pin_eq!(w.firsts.len(), 30, "run978e");
+    pin_eq!(w.firsts.len(), 29, "run978e");
 }
 
 /// run978f: the word 15582's window, blocks 15576..15832 at `GUYS=2` (item
@@ -416,7 +416,7 @@ fn run978f_s_word_frame_is_widened_whole() {
     // (15582 → 23627) and **41** stand: the standing set, the `g.angle[0]`
     // family (ours 0x55555555, theirs 0) and two `dest_angle`s on 15624 and
     // 15653.
-    pin_eq!(w.firsts.len(), 41, "run978f with the rares' tail");
+    pin_eq!(w.firsts.len(), 29, "run978f with the rares' tail");
 }
 
 /// The closing state's window: run972b's closing block alone, the long's

@@ -667,7 +667,7 @@ fn run657_s_word_frame_is_widened_whole() {
     // them. Left past the first block: `group:66.role` on 17174.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 119 -> 95.
-    pin_eq!(w.firsts.len(), 96, "initial run657 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    pin_eq!(w.firsts.len(), 84, "initial run657 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 #[test]
@@ -692,7 +692,7 @@ fn run655_s_word_frame_is_widened_whole() {
     // copy-back and the wider group-slot compare).
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 132 -> 108.
-    pin_eq!(w.firsts.len(), 109, "initial run655 baseline");
+    pin_eq!(w.firsts.len(), 97, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
@@ -758,7 +758,7 @@ fn run642_s_word_frame_is_widened_whole() {
     // 94 standing on 15339, and on 15345 sixteen of the group's members'
     // `order:group.id`, 15344609 here against 15350409 there, alone.
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 58 -> 34.
-    pin_eq!(w.firsts.len(), 35, "initial run642 baseline");
+    pin_eq!(w.firsts.len(), 32, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,
@@ -806,7 +806,7 @@ fn run639_s_word_frame_is_widened_whole() {
     // as there, and every row from 14785 leaves — what is left is the 93
     // standing on 14777.
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 58 -> 34.
-    pin_eq!(w.firsts.len(), 35, "initial run639 baseline");
+    pin_eq!(w.firsts.len(), 32, "initial run639 baseline");
 }
 
 /// run636: the successor after a French General's craft rate, frame
@@ -849,7 +849,7 @@ fn run636_s_word_frame_is_widened_whole() {
     // French Carpentry line, handed out with Chemistry on 12958 (AI §123).
     // Item 1468: 128 → 94, as run635's.
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 58 -> 34.
-    pin_eq!(w.firsts.len(), 35, "initial run636 baseline");
+    pin_eq!(w.firsts.len(), 32, "initial run636 baseline");
 }
 
 /// run635: the successor after the crew's `GuyData::get_speed`, frame
@@ -887,7 +887,7 @@ fn run635_s_word_frame_is_widened_whole() {
     // Carpentry line, handed out free with Chemistry on 12958 (AI §123).
     // Item 1468: 118 → 88; the same two groups on the French pair's trained squads.
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 55 -> 31.
-    pin_eq!(w.firsts.len(), 32, "initial run635 baseline");
+    pin_eq!(w.firsts.len(), 31, "initial run635 baseline");
 }
 
 /// run634: the successor after the French siege cost, frame 12794
@@ -916,7 +916,7 @@ fn run634_s_word_frame_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1461: 206 → 119, the word's frame now 12952 (run634's 87 keys past its first block leave, none arrive); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 55 -> 31.
-    pin_eq!(w.firsts.len(), 32, "initial run634 baseline");
+    pin_eq!(w.firsts.len(), 31, "initial run634 baseline");
 }
 
 /// run631: the successor after the member's re-placed slot and the
@@ -1196,7 +1196,7 @@ fn run617_s_word_frame_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1455: 111 → 110, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1458: 110 → 105; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 44, "run617 after the idle push-back");
+    pin_eq!(w.firsts.len(), 30, "run617 after the idle push-back");
 }
 
 /// run616: the successor after the per-building queue, frame 8385 (item
@@ -1225,7 +1225,7 @@ fn run616_s_word_frame_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1455: 109 → 108, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1458: 108 → 103; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 43, "run616 after the idle push-back");
+    pin_eq!(w.firsts.len(), 29, "run616 after the idle push-back");
 }
 
 /// run612: the successor after a wonder's start became first contact,
@@ -1255,7 +1255,7 @@ fn run612_s_word_frame_is_widened_whole() {
     // Item 1455: 106 → 104, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1458: 104 → 99; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 4159's residue: 39 -> 38, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 38, "run612 after the idle push-back");
+    pin_eq!(w.firsts.len(), 24, "run612 after the idle push-back");
 }
 
 /// run610: the successor after the university admission limit, frame 8182.
@@ -1284,7 +1284,7 @@ fn run610_s_word_frame_is_widened_whole() {
     // Item 1455: 109 → 107, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 107 → 105; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 105 → 100; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 39, "run610 after the idle push-back");
+    pin_eq!(w.firsts.len(), 25, "run610 after the idle push-back");
 }
 
 /// run611: the first capture of this game past first contact, blocks
@@ -1576,7 +1576,7 @@ fn run603_s_word_frame_is_widened_whole() {
     );
     // Item 1458: 97 → 93; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 4159's residue: 36 -> 35, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 35, "run603 after the idle push-back");
+    pin_eq!(w.firsts.len(), 23, "run603 after the idle push-back");
     assert!(
         !w.firsts.keys().any(|(who, o, field)| *who == 1
             && ((*o == 45 && field == "extra")

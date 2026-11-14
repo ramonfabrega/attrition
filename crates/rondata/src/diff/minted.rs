@@ -2866,6 +2866,145 @@ fn the_paused_minted_packages_round_trip() {
     }
 }
 
+/// The rallied file's gzip length (item 4254).
+/// Seen red first: pinned 0, it printed 59,504.
+const RALLIED_RCX_BYTES: usize = 59_504;
+
+/// **The rallied script, minted** (item 4254, `docs/CLIENT_INPUT.md`
+/// §14.1): the chatted file and one package more, the capital's rally
+/// point moved on [`crate::script::PAUSE_FRAME`] with no pause; it
+/// round-trips through the file. With `RON_RCX_OUT=<file>` it writes the
+/// `.rcx` run1602 takes open.
+#[test]
+fn the_rallied_minted_packages_round_trip() {
+    use crate::script::{PAUSE_FRAME, chatted, rallied};
+    let (Some(rec), Some(first)) = (minted(&rallied()), minted(&chatted())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "rallied").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in rallied().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<(i32, u32)> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| (p.frame, p.stamp))
+        .collect();
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (18, 17));
+    assert_eq!(
+        added,
+        vec![(PAUSE_FRAME, 17), (last.frame, 18)],
+        "the packages the chatted file does not hold"
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    eprintln!("RALLIED RCX {} bytes", gz.len());
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+    assert_eq!(gz.len(), RALLIED_RCX_BYTES, "RALLIED_RCX_BYTES");
+}
+
+/// The rallied file's playback (`docs/RUNS.md` run1602): `(take, trace,
+/// frames agreeing, frames walked, records, parted)`. Pinned before run1602
+/// was read, from our walk: the rallied script walks as the paused one
+/// does (`Stream`'s pause arm applies nothing), so this pins the blow on
+/// `1/0` where run1599 and our walk land it, on 6872, and the take whole
+/// if the pause's three turns are what moved it on run1601 (4252a). Seen
+/// red there: **40 of 300 part, the first on 6866 at `1/0`'s `damage`,
+/// ours 13 and theirs 16**, as on run1601. The pause does not move the
+/// blow; the moved rally point does, and our walk misses it
+/// (`docs/CLIENT_INPUT.md` §14.1).
+pub(crate) const RALLIED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1602-greatlakes-playback-of-rallied-7000.txt",
+    "rontrace-run1602.log",
+    7000,
+    7000,
+    300,
+    40,
+)];
+
+/// A take's dumped window, from its first `BEGIN FRAME` line to its end.
+fn window_bytes(take: &str) -> Option<Vec<u8>> {
+    let bytes = std::fs::read(dump(take)?).unwrap();
+    let at = bytes
+        .windows(13)
+        .position(|w| w == b" BEGIN FRAME ")
+        .expect("a frame");
+    Some(bytes[at..].to_vec())
+}
+
+/// **The rallied file's playback separates the pause from the rally
+/// point** (item 4254, parked 4252a): the built start walked under the
+/// pump against run1602, every frame's draws against its trace and every
+/// record of its window ([`RALLIED_WALKED`]); the rally point's effects,
+/// read on both sides on [`PAUSE_READ_AT`], as the paused file's; and the
+/// pause's functions entered nowhere ([`PAUSE_FUNCTIONS`]).
+#[test]
+fn the_original_s_playback_of_the_rallied_file_separates_the_pause() {
+    let rallied = crate::script::rallied();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in RALLIED_WALKED {
+        let Some((w, _)) = walk_minted(&rallied, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "RALLIED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let tr = trace(RALLIED_WALKED[0].1).expect("the take's trace");
+    let entries = PAUSE_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+    let ours = gather_effects_ours_at(&rallied, &PAUSE_READ_AT);
+    let theirs = gather_effects_theirs_at(RALLIED_WALKED[0].0, &PAUSE_READ_AT).unwrap();
+    for t in &theirs {
+        eprintln!("RALLIED EFFECT theirs {t:?}");
+    }
+    // The pause moves no dumped byte: run1602's window is run1601's,
+    // 7,001 frames of it, and is not run1599's.
+    let (Some(rallied_w), Some(paused_w), Some(chatted_w)) = (
+        window_bytes(RALLIED_WALKED[0].0),
+        window_bytes(PAUSED_WALKED[0].0),
+        window_bytes(CHATTED_WALKED[0].0),
+    ) else {
+        return;
+    };
+    eprintln!(
+        "RALLIED WINDOW {} bytes; paused {}; chatted {}",
+        rallied_w.len(),
+        paused_w.len(),
+        chatted_w.len()
+    );
+    assert!(rallied_w == paused_w, "run1602's window is run1601's");
+    assert!(rallied_w != chatted_w, "and is not run1599's");
+    assert_eq!(walked, RALLIED_WALKED, "the walked table");
+    assert_eq!(entries, [None; 4], "the pause's functions");
+    assert_eq!(ours, paused_effects(), "our effects");
+    assert_eq!(theirs, paused_effects(), "the original's effects");
+}
+
 /// The frames the paused script is read on (item 4252): the pause's frame
 /// and the one after it, the Citizen's first frame on the map, the first
 /// it stands at the moved point, and the window's last record.

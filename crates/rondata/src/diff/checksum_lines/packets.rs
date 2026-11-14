@@ -1045,12 +1045,14 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// (1184, 1 → 0) and run1186b (1164, 1 → 0), and parts on fewer on 78 more
 /// packets and run1575's take (27 → 26), none on more: 154 ranges fewer
 /// over 82 rows.
-/// **438** at item 4255, `equals_group`'s `get_num` zeroing an emptied last
-/// slot's `ox`/`oy`: the groups line agrees on 13 more packets (run1457,
-/// run1460, run1459, run1417, run1420, run1438, run1440, run1451, run1237,
-/// run1263, run1361, run1224b, run1304) and parts on fewer on 27 more, none
-/// on more: 55 ranges fewer over 40 rows.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 438, 1053);
+/// **433** at item 4253, a scholar's seating setting its figure's angle
+/// (`Unit::go_inside@0061a2e0`'s `set_angle(0, _, 1)`): the guys line
+/// agrees on eight more packets — run985b (1 → 0), run1007b (5 → 0),
+/// run1001d (1 → 0), run954b (4 → 0), run991d (4 → 0), run1263 (5 → 0),
+/// run1224b (7 → 0), run959 (14 → 0) — and parts on fewer on nine
+/// (run1266c 21 → 9, run882b 33 → 26, run883b 31 → 24, the most); the
+/// units line parts on fewer on seven (run959 3128 → 3114, the most).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 433, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1200,6 +1202,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (2445, 2376, 1454) -> (2445, 2376, 1453).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2445, 2376, 1453) -> (2445, 2376, 1450).
     // Item 4244, a mine's `mtn`: builds (2028, 2028, 5) -> (2028, 2028, 3).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (701, 701, 1) -> (701, 701, 0).
     (
         "run1001d",
         13760,
@@ -1210,7 +1213,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (3, 0, 3),
             (0, 0, 0),
             (544, 544, 0),
-            (701, 701, 1),
+            (701, 701, 0),
             (271, 271, 2),
             (30, 30, 0),
             (5, 5, 0),
@@ -1232,6 +1235,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (2939, 2840, 1600) -> (2939, 2840, 1598).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (2939, 2840, 1598) -> (2939, 2843, 1618).
     // Item 4244, a mine's `mtn`: builds (2417, 2417, 5) -> (2417, 2417, 4).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (916, 916, 5) -> (916, 916, 0).
     (
         "run1007b",
         15915,
@@ -1242,7 +1246,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (532, 532, 0),
-            (916, 916, 5),
+            (916, 916, 0),
             (271, 271, 2),
             (30, 30, 0),
             (45, 45, 0),
@@ -1422,7 +1426,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4193, 4019, 3082) -> (4193, 4022, 3121).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4193, 4022, 3121) -> (4193, 4022, 3120).
     // Item 4244, a mine's `mtn`: builds (2371, 2371, 9) -> (2371, 2371, 7).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 2) -> (550, 550, 1).
     (
         "run1155c",
         3003,
@@ -1432,7 +1435,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
-            (550, 550, 1),
+            (550, 550, 2),
             (1129, 1129, 1),
             (271, 271, 3),
             (27, 27, 0),
@@ -1478,18 +1481,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (6053, 5443, 5305) -> (6053, 5452, 5251).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6053, 5452, 5251) -> (6053, 5629, 5302).
     // Item 4244, a mine's `mtn`: builds (2140, 2136, 782) -> (2140, 2136, 781).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 2) -> (550, 550, 1).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6053, 5629, 5302) -> (6053, 5629, 5301); guys (1321, 1321, 4) -> (1321, 1321, 3).
     (
         "run1164",
         4528,
         [
-            (6053, 5629, 5302),
+            (6053, 5629, 5301),
             (2140, 2136, 781),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
-            (550, 550, 1),
-            (1321, 1321, 4),
+            (550, 550, 2),
+            (1321, 1321, 3),
             (271, 271, 6),
             (30, 30, 0),
             (75, 75, 0),
@@ -1617,7 +1620,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6735, 6651, 5597) -> (6735, 6657, 5587).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6735, 6657, 5587) -> (6735, 6657, 5586).
     // Item 4244, a mine's `mtn`: builds (1911, 1911, 7) -> (1911, 1911, 5).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (640, 640, 5) -> (640, 640, 4).
     (
         "run1185",
         4582,
@@ -1627,7 +1629,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (3, 0, 3),
             (4, 0, 4),
-            (640, 640, 4),
+            (640, 640, 5),
             (1962, 1962, 7),
             (271, 271, 4),
             (27, 27, 0),
@@ -1681,7 +1683,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (10607, 10154, 9295) -> (10607, 10166, 9259).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (10607, 10166, 9259) -> (10607, 10166, 9258).
     // Item 4244, a mine's `mtn`: builds (3412, 3412, 24) -> (3412, 3412, 16).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (700, 700, 9) -> (700, 700, 8).
     (
         "run1217",
         7728,
@@ -1691,7 +1692,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
-            (700, 700, 8),
+            (700, 700, 9),
             (3247, 3247, 10),
             (271, 271, 4),
             (56, 56, 0),
@@ -1715,7 +1716,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4091, 3842, 3104) -> (4091, 3851, 3100).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4091, 3851, 3100) -> (4091, 3851, 3098).
     // Item 4244, a mine's `mtn`: builds (1817, 1817, 2) -> (1817, 1817, 1).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 2) -> (550, 550, 1).
     (
         "run1220b",
         2976,
@@ -1725,7 +1725,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
-            (550, 550, 1),
+            (550, 550, 2),
             (1099, 1099, 0),
             (271, 271, 3),
             (27, 27, 0),
@@ -1781,7 +1781,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (11740, 10927, 10351) -> (11740, 10933, 10441).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (11740, 10933, 10441) -> (11740, 10933, 10438).
     // Item 4244, a mine's `mtn`: builds (4271, 4271, 30) -> (4271, 4271, 25).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 1) -> (556, 556, 0).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2735, 2735, 7) -> (2735, 2735, 0).
     (
         "run1224b",
         9745,
@@ -1791,8 +1791,8 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
-            (556, 556, 0),
-            (2735, 2735, 7),
+            (556, 556, 1),
+            (2735, 2735, 0),
             (271, 271, 6),
             (62, 62, 0),
             (30, 30, 0),
@@ -1880,7 +1880,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (3448, 3271, 2559) -> (3448, 3274, 2560).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3448, 3274, 2560) -> (3448, 3274, 2558).
     // Item 4244, a mine's `mtn`: builds (1650, 1650, 1) -> (1650, 1650, 0).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (538, 538, 1) -> (538, 538, 0).
     (
         "run1237",
         2674,
@@ -1890,7 +1889,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
-            (538, 538, 0),
+            (538, 538, 1),
             (892, 892, 0),
             (271, 271, 3),
             (27, 27, 0),
@@ -1949,7 +1948,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (5942, 5888, 4481) -> (5942, 5891, 4670).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (5942, 5891, 4670) -> (5942, 5897, 4766).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (5942, 5897, 4766) -> (5942, 5897, 4764).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (622, 622, 6) -> (622, 622, 5).
     (
         "run1247",
         4306,
@@ -1959,7 +1957,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
-            (622, 622, 5),
+            (622, 622, 6),
             (1748, 1748, 1),
             (271, 271, 4),
             (38, 38, 0),
@@ -2016,7 +2014,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (11229, 10407, 9827) -> (11229, 10431, 9895).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (11229, 10431, 9895) -> (11229, 10431, 9894).
     // Item 4244, a mine's `mtn`: builds (3789, 3789, 23) -> (3789, 3789, 20).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 1) -> (556, 556, 0).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2913, 2913, 5) -> (2913, 2913, 0).
     (
         "run1263",
         8362,
@@ -2026,8 +2024,8 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
-            (556, 556, 0),
-            (2913, 2913, 5),
+            (556, 556, 1),
+            (2913, 2913, 0),
             (271, 271, 4),
             (54, 54, 0),
             (50, 50, 0),
@@ -2085,7 +2083,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (11161, 11026, 7705) -> (11161, 11053, 7581).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (11161, 11053, 7581) -> (11161, 11053, 7561).
     // Item 4244, a mine's `mtn`: builds (3796, 3796, 26) -> (3796, 3796, 17).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (682, 682, 10) -> (682, 682, 8).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (3210, 3210, 21) -> (3210, 3210, 9).
     (
         "run1266c",
         8700,
@@ -2095,8 +2093,8 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
-            (682, 682, 8),
-            (3210, 3210, 21),
+            (682, 682, 10),
+            (3210, 3210, 9),
             (271, 271, 4),
             (54, 54, 0),
             (5, 5, 0),
@@ -2187,7 +2185,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (8216, 8183, 6974) -> (8216, 8189, 7046).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (8216, 8189, 7046) -> (8216, 8189, 7044).
     // Item 4244, a mine's `mtn`: builds (2123, 2123, 18) -> (2123, 2123, 16).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (688, 688, 11) -> (688, 688, 10).
     (
         "run1294",
         4473,
@@ -2197,7 +2194,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
-            (688, 688, 10),
+            (688, 688, 11),
             (2242, 2242, 7),
             (271, 271, 8),
             (27, 27, 0),
@@ -2222,7 +2219,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (9905, 9854, 8666) -> (9905, 9866, 8616).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (9905, 9866, 8616) -> (9905, 9866, 8613).
     // Item 4244, a mine's `mtn`: builds (2163, 2163, 22) -> (2163, 2163, 20).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (682, 682, 10) -> (682, 682, 9).
     (
         "run1296",
         4632,
@@ -2232,7 +2228,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (6, 0, 6),
-            (682, 682, 9),
+            (682, 682, 10),
             (2172, 2172, 9),
             (271, 271, 8),
             (27, 27, 0),
@@ -2256,7 +2252,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (5488, 5422, 4208) -> (5488, 5425, 4035).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (5488, 5425, 4035) -> (5488, 5431, 4036).
     // Item 4244, a mine's `mtn`: builds (2029, 2029, 7) -> (2029, 2029, 4).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (616, 616, 1) -> (616, 616, 0).
     (
         "run1304",
         3865,
@@ -2266,7 +2261,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (616, 616, 0),
+            (616, 616, 1),
             (1616, 1616, 1),
             (271, 271, 4),
             (23, 23, 0),
@@ -2425,17 +2420,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (10367, 10352, 6938) -> (10367, 10352, 6935).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (10367, 10352, 6935) -> (10367, 10352, 6933).
     // Item 4244, a mine's `mtn`: builds (2521, 2521, 12) -> (2521, 2521, 10).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (10367, 10352, 6933) -> (10367, 10352, 6932); guys (2706, 2706, 14) -> (2706, 2706, 13).
     (
         "run1325c",
         5578,
         [
-            (10367, 10352, 6933),
+            (10367, 10352, 6932),
             (2521, 2521, 10),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (682, 682, 8),
-            (2706, 2706, 14),
+            (2706, 2706, 13),
             (271, 271, 4),
             (43, 43, 2),
             (10, 10, 0),
@@ -2460,7 +2456,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (6268, 6256, 5148) -> (6268, 6256, 5147).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6268, 6256, 5147) -> (6268, 6256, 5145).
     // Item 4244, a mine's `mtn`: builds (2161, 2161, 8) -> (2161, 2161, 5).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (616, 616, 7) -> (616, 616, 4).
     (
         "run1326",
         4567,
@@ -2470,7 +2465,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
-            (616, 616, 4),
+            (616, 616, 7),
             (1993, 1993, 10),
             (271, 271, 4),
             (30, 30, 0),
@@ -2591,7 +2586,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (4512, 4332, 2952) -> (4512, 4341, 3401).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4512, 4341, 3401) -> (4512, 4341, 3400).
     // Item 4244, a mine's `mtn`: builds (2143, 2143, 7) -> (2143, 2143, 6).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 3) -> (556, 556, 2).
     (
         "run1351c",
         3521,
@@ -2601,7 +2595,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
-            (556, 556, 2),
+            (556, 556, 3),
             (1286, 1286, 0),
             (271, 271, 4),
             (30, 30, 0),
@@ -2625,7 +2619,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (3610, 3436, 2699) -> (3610, 3439, 2708).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3610, 3439, 2708) -> (3610, 3439, 2704).
     // Item 4244, a mine's `mtn`: builds (1836, 1836, 6) -> (1836, 1836, 5).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 4) -> (556, 556, 2).
     (
         "run1355",
         2933,
@@ -2635,7 +2628,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (3, 0, 3),
             (2, 0, 2),
-            (556, 556, 2),
+            (556, 556, 4),
             (902, 902, 0),
             (271, 271, 3),
             (27, 27, 0),
@@ -2691,17 +2684,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (6464, 6041, 5597) -> (6464, 6044, 5583).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6464, 6044, 5583) -> (6464, 6137, 5632).
     // Item 4244, a mine's `mtn`: builds (2974, 2974, 33) -> (2974, 2974, 31).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6464, 6137, 5632) -> (6464, 6137, 5631); guys (1584, 1584, 4) -> (1584, 1584, 3).
     (
         "run1359",
         5619,
         [
-            (6464, 6137, 5632),
+            (6464, 6137, 5631),
             (2974, 2974, 31),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (568, 568, 3),
-            (1584, 1584, 4),
+            (1584, 1584, 3),
             (271, 271, 5),
             (48, 48, 0),
             (60, 60, 0),
@@ -2724,18 +2718,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (6408, 6027, 5594) -> (6408, 6030, 5584).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6408, 6030, 5584) -> (6408, 6102, 5553).
     // Item 4244, a mine's `mtn`: builds (2974, 2974, 33) -> (2974, 2974, 31).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 4) -> (556, 556, 3).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6408, 6102, 5553) -> (6408, 6102, 5552); guys (1598, 1598, 4) -> (1598, 1598, 3).
     (
         "run1359b",
         5677,
         [
-            (6408, 6102, 5553),
+            (6408, 6102, 5552),
             (2974, 2974, 31),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (556, 556, 3),
-            (1598, 1598, 4),
+            (556, 556, 4),
+            (1598, 1598, 3),
             (271, 271, 5),
             (48, 48, 0),
             (55, 55, 0),
@@ -2758,18 +2752,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (6407, 6026, 5590) -> (6407, 6029, 5580).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6407, 6029, 5580) -> (6407, 6101, 5554).
     // Item 4244, a mine's `mtn`: builds (2974, 2974, 33) -> (2974, 2974, 31).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 4) -> (556, 556, 3).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6407, 6101, 5554) -> (6407, 6101, 5553); guys (1598, 1598, 4) -> (1598, 1598, 3).
     (
         "run1359c",
         5678,
         [
-            (6407, 6101, 5554),
+            (6407, 6101, 5553),
             (2974, 2974, 31),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (556, 556, 3),
-            (1598, 1598, 4),
+            (556, 556, 4),
+            (1598, 1598, 3),
             (271, 271, 5),
             (48, 48, 0),
             (55, 55, 0),
@@ -2793,7 +2787,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6810, 6384, 5684) -> (6810, 6393, 5700).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6810, 6393, 5700) -> (6810, 6393, 5699).
     // Item 4244, a mine's `mtn`: builds (2544, 2544, 25) -> (2544, 2544, 22).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 1) -> (556, 556, 0).
     (
         "run1361",
         4840,
@@ -2803,7 +2796,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
-            (556, 556, 0),
+            (556, 556, 1),
             (1847, 1847, 0),
             (271, 271, 8),
             (37, 37, 0),
@@ -2827,7 +2820,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (5194, 4924, 3964) -> (5194, 4942, 3888).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (5194, 4942, 3888) -> (5194, 4942, 3883).
     // Item 4244, a mine's `mtn`: builds (2147, 2147, 5) -> (2147, 2147, 3).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 2) -> (556, 556, 1).
     (
         "run1381",
         3262,
@@ -2837,7 +2829,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
-            (556, 556, 1),
+            (556, 556, 2),
             (1419, 1419, 0),
             (271, 271, 3),
             (27, 27, 0),
@@ -3022,7 +3014,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4518, 4314, 3445) -> (4518, 4326, 3481).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4518, 4326, 3481) -> (4518, 4326, 3480).
     // Item 4244, a mine's `mtn`: builds (2321, 2321, 9) -> (2321, 2321, 8).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (544, 544, 1) -> (544, 544, 0).
     (
         "run1417",
         4016,
@@ -3032,7 +3023,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (544, 544, 0),
+            (544, 544, 1),
             (1265, 1265, 1),
             (271, 271, 4),
             (33, 33, 0),
@@ -3056,7 +3047,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4406, 4190, 3386) -> (4406, 4196, 3407).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4406, 4196, 3407) -> (4406, 4196, 3404).
     // Item 4244, a mine's `mtn`: builds (2033, 2033, 6) -> (2033, 2033, 5).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (544, 544, 2) -> (544, 544, 1).
     (
         "run1419b",
         3212,
@@ -3066,7 +3056,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (544, 544, 1),
+            (544, 544, 2),
             (1231, 1231, 0),
             (271, 271, 4),
             (27, 27, 0),
@@ -3089,7 +3079,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (5583, 5204, 4576) -> (5583, 5216, 4625).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (5583, 5216, 4625) -> (5583, 5231, 4617).
     // Item 4244, a mine's `mtn`: builds (2515, 2513, 688) -> (2515, 2513, 687).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (544, 544, 1) -> (544, 544, 0).
     (
         "run1420",
         4586,
@@ -3099,7 +3088,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (8, 0, 8),
-            (544, 544, 0),
+            (544, 544, 1),
             (1327, 1327, 1),
             (271, 271, 4),
             (38, 38, 0),
@@ -3123,7 +3112,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4129, 3925, 3156) -> (4129, 3928, 3112).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4129, 3928, 3112) -> (4129, 3928, 3110).
     // Item 4244, a mine's `mtn`: builds (2025, 2025, 5) -> (2025, 2025, 4).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 3) -> (550, 550, 2).
     (
         "run1424",
         3156,
@@ -3133,7 +3121,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (550, 550, 2),
+            (550, 550, 3),
             (1138, 1138, 1),
             (271, 271, 4),
             (27, 27, 0),
@@ -3188,17 +3176,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4789, 4325, 3938) -> (4789, 4343, 3883).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4789, 4343, 3883) -> (4789, 4343, 3880).
     // Item 4244, a mine's `mtn`: builds (2154, 2151, 571) -> (2154, 2151, 570).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (4789, 4343, 3880) -> (4789, 4343, 3879); guys (1208, 1208, 7) -> (1208, 1208, 6).
     (
         "run1437",
         3894,
         [
-            (4789, 4343, 3880),
+            (4789, 4343, 3879),
             (2154, 2151, 570),
             (0, 0, 0),
             (3, 0, 3),
             (4, 0, 4),
             (538, 538, 0),
-            (1208, 1208, 7),
+            (1208, 1208, 6),
             (271, 271, 6),
             (30, 30, 0),
             (85, 85, 0),
@@ -3215,7 +3204,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (2475, 2382, 2058) -> (2475, 2385, 2066).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2475, 2385, 2066) -> (2475, 2385, 2065).
     // Item 4244, a mine's `mtn`: builds (1890, 1890, 24) -> (1890, 1890, 21).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (574, 574, 1) -> (574, 574, 0).
     (
         "run1438",
         684,
@@ -3225,7 +3213,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (15, 0, 15),
             (0, 0, 0),
-            (574, 574, 0),
+            (574, 574, 1),
             (672, 672, 1),
             (399, 399, 6),
             (9, 9, 0),
@@ -3241,7 +3229,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (2308, 2194, 1944) -> (2308, 2197, 1946).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2308, 2197, 1946) -> (2308, 2197, 1945).
     // Item 4244, a mine's `mtn`: builds (1968, 1968, 25) -> (1968, 1968, 22).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     (
         "run1440",
         809,
@@ -3251,7 +3238,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (18, 0, 18),
             (14, 0, 14),
-            (568, 568, 0),
+            (568, 568, 2),
             (638, 638, 1),
             (399, 399, 6),
             (9, 9, 0),
@@ -3272,7 +3259,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 2) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4274, 4039, 3464) -> (4274, 4048, 3420).
     // Item 4244, a mine's `mtn`: builds (1890, 1887, 481) -> (1890, 1887, 480).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 3) -> (550, 550, 1).
     (
         "run1441",
         3294,
@@ -3282,7 +3268,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
-            (550, 550, 1),
+            (550, 550, 3),
             (1108, 1108, 1),
             (271, 271, 4),
             (30, 30, 0),
@@ -3299,7 +3285,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (2022, 1941, 1613) -> (2022, 1941, 1612).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2022, 1941, 1612) -> (2022, 1941, 1611).
     // Item 4244, a mine's `mtn`: builds (1968, 1968, 25) -> (1968, 1968, 22).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     (
         "run1451",
         945,
@@ -3309,7 +3294,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (18, 0, 18),
             (32, 0, 32),
-            (568, 568, 0),
+            (568, 568, 2),
             (604, 604, 1),
             (399, 399, 6),
             (9, 9, 0),
@@ -3327,7 +3312,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4231, a QUEUE_FIRST move's `get_num_cap` normalizing its record: groups (574, 574, 2) -> (574, 574, 1).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2655, 2538, 2238) -> (2655, 2538, 2237).
     // Item 4244, a mine's `mtn`: builds (1144, 1144, 24) -> (1144, 1144, 23).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (574, 574, 1) -> (574, 574, 0).
     (
         "run1457",
         700,
@@ -3337,7 +3321,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (21, 0, 21),
             (2, 0, 2),
-            (574, 574, 0),
+            (574, 574, 1),
             (725, 725, 1),
             (399, 399, 4),
             (9, 9, 0),
@@ -3353,7 +3337,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4226, a bird walked on neither line: units (2362, 2425, 1974) -> (2362, 2245, 1934), guys (665, 728, 64) -> (665, 665, 1).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2362, 2245, 1934) -> (2362, 2245, 1933).
     // Item 4244, a mine's `mtn`: builds (1316, 1316, 24) -> (1316, 1316, 23).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     (
         "run1459",
         780,
@@ -3363,7 +3346,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (22, 0, 22),
-            (568, 568, 0),
+            (568, 568, 2),
             (665, 665, 1),
             (403, 403, 5),
             (9, 9, 0),
@@ -3381,7 +3364,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4231, a QUEUE_FIRST move's `get_num_cap` normalizing its record: groups (568, 568, 3) -> (568, 568, 2).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2380, 2275, 1874) -> (2380, 2275, 1873).
     // Item 4244, a mine's `mtn`: builds (1296, 1296, 24) -> (1296, 1296, 23).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     (
         "run1460",
         760,
@@ -3391,7 +3373,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (9, 0, 9),
             (16, 0, 16),
-            (568, 568, 0),
+            (568, 568, 2),
             (686, 686, 1),
             (403, 403, 5),
             (9, 9, 0),
@@ -3573,7 +3555,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 2) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4274, 4039, 3464) -> (4274, 4048, 3420).
     // Item 4244, a mine's `mtn`: builds (1890, 1887, 481) -> (1890, 1887, 480).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 3) -> (550, 550, 1).
     (
         "run1559b",
         3294,
@@ -3583,7 +3564,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
-            (550, 550, 1),
+            (550, 550, 3),
             (1108, 1108, 1),
             (271, 271, 4),
             (30, 30, 0),
@@ -3622,7 +3603,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (30, 30, 2) -> (30, 30, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4274, 4039, 3464) -> (4274, 4048, 3420).
     // Item 4244, a mine's `mtn`: builds (1890, 1887, 481) -> (1890, 1887, 480).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 3) -> (550, 550, 1).
     (
         "run1564",
         3294,
@@ -3632,7 +3612,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
-            (550, 550, 1),
+            (550, 550, 3),
             (1108, 1108, 1),
             (271, 271, 4),
             (30, 30, 0),
@@ -3655,7 +3635,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4240, 4026, 3398) -> (4240, 4029, 3415).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4240, 4029, 3415) -> (4240, 4029, 3414).
     // Item 4244, a mine's `mtn`: builds (1890, 1887, 481) -> (1890, 1887, 480).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 2) -> (556, 556, 1).
     (
         "run1570",
         3331,
@@ -3665,7 +3644,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
-            (556, 556, 1),
+            (556, 556, 2),
             (1112, 1112, 2),
             (271, 271, 4),
             (30, 30, 0),
@@ -3686,7 +3665,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (4969, 4763, 4158) -> (4969, 4763, 4142).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (47, 47, 1) -> (47, 47, 0), goods (330, 330, 1) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (4969, 4763, 4142) -> (4969, 4784, 4300).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (640, 640, 4) -> (640, 640, 3).
     (
         "run785",
         2178,
@@ -3696,7 +3674,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (28, 0, 28),
-            (640, 640, 3),
+            (640, 640, 4),
             (1429, 1429, 1),
             (271, 271, 7),
             (47, 47, 0),
@@ -3966,7 +3944,6 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (10342, 9993, 9567) -> (10342, 10017, 9652).
     // Item 4234, a cast's three ranges walked: units (10342, 10017, 9652) -> (10342, 10056, 9510).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (10342, 10056, 9510) -> (10342, 10179, 7746).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (640, 640, 5) -> (640, 640, 4).
     (
         "run865",
         4859,
@@ -3976,7 +3953,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (28, 0, 28),
-            (640, 640, 4),
+            (640, 640, 5),
             (2210, 2210, 1),
             (271, 271, 5),
             (64, 64, 0),
@@ -4021,7 +3998,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (11125, 10326, 9965) -> (11125, 10656, 9933).
     // Item 4159's third residue: units (11125, 10656, 9933) -> (11125, 10656, 9930), the bleed reading `anti_att` (measured on the tree merged with item 4234's).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (11125, 10656, 9930) -> (11125, 10662, 9730).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (616, 616, 10) -> (616, 616, 7).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2832, 2832, 33) -> (2832, 2832, 26).
     (
         "run882b",
         6808,
@@ -4031,8 +4008,8 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (15, 0, 15),
             (0, 0, 0),
-            (616, 616, 7),
-            (2832, 2832, 33),
+            (616, 616, 10),
+            (2832, 2832, 26),
             (271, 271, 5),
             (64, 64, 0),
             (0, 0, 0),
@@ -4055,7 +4032,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159's third residue: units (11180, 10654, 10052) -> (11180, 10654, 10050), the bleed reading `anti_att` (measured on the tree merged with item 4234's).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (11180, 10654, 10050) -> (11180, 10660, 9041).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (11180, 10660, 9041) -> (11180, 10660, 9040).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (616, 616, 10) -> (616, 616, 7).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2832, 2832, 31) -> (2832, 2832, 24).
     (
         "run883b",
         6821,
@@ -4065,8 +4042,8 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (36, 0, 36),
             (0, 0, 0),
-            (616, 616, 7),
-            (2832, 2832, 31),
+            (616, 616, 10),
+            (2832, 2832, 24),
             (271, 271, 5),
             (64, 64, 0),
             (0, 0, 0),
@@ -4118,7 +4095,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4112, 4076, 2882) -> (4112, 4091, 2837).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4112, 4091, 2837) -> (4112, 4091, 2835).
     // Item 4244, a mine's `mtn`: builds (1508, 1508, 5) -> (1508, 1508, 2).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 5) -> (568, 568, 4).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (1352, 1352, 5) -> (1352, 1352, 3).
     (
         "run912e",
         12753,
@@ -4128,8 +4105,8 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (568, 568, 4),
-            (1352, 1352, 5),
+            (568, 568, 5),
+            (1352, 1352, 3),
             (271, 271, 3),
             (27, 27, 0),
             (5, 5, 0),
@@ -4239,6 +4216,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (2832, 2739, 2054) -> (2832, 2742, 2099).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (2832, 2742, 2099) -> (2832, 2742, 2098).
     // Item 4244, a mine's `mtn`: builds (1598, 1598, 4) -> (1598, 1598, 2).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (875, 875, 4) -> (875, 875, 0).
     (
         "run954b",
         12155,
@@ -4249,7 +4227,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (9, 0, 9),
             (2, 0, 2),
             (532, 532, 0),
-            (875, 875, 4),
+            (875, 875, 0),
             (271, 271, 3),
             (27, 27, 0),
             (35, 35, 0),
@@ -4297,18 +4275,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (4466, 4394, 3543) -> (4466, 4397, 3129).
     // Item 4234, a caravan's `unit_masks & 0x200`: units (4466, 4397, 3129) -> (4466, 4397, 3128).
     // Item 4244, a mine's `mtn`: builds (1832, 1832, 4) -> (1832, 1832, 2).
-    // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (562, 562, 5) -> (562, 562, 4).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (4466, 4397, 3128) -> (4466, 4397, 3114); guys (1514, 1514, 14) -> (1514, 1514, 0).
     (
         "run959",
         18368,
         [
-            (4466, 4397, 3128),
+            (4466, 4397, 3114),
             (1832, 1832, 2),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
-            (562, 562, 4),
-            (1514, 1514, 14),
+            (562, 562, 5),
+            (1514, 1514, 0),
             (271, 271, 3),
             (17, 17, 0),
             (0, 0, 0),
@@ -4425,6 +4403,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (3289, 3112, 2189) -> (3289, 3112, 2188).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3289, 3112, 2188) -> (3289, 3112, 2186).
     // Item 4244, a mine's `mtn`: builds (2783, 2783, 7) -> (2783, 2783, 4).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (1012, 1012, 1) -> (1012, 1012, 0).
     (
         "run985b",
         16762,
@@ -4435,7 +4414,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (544, 544, 1),
-            (1012, 1012, 1),
+            (1012, 1012, 0),
             (271, 271, 2),
             (33, 33, 0),
             (40, 40, 0),
@@ -4459,6 +4438,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (3178, 3004, 2149) -> (3178, 3010, 2143).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (3178, 3010, 2143) -> (3178, 3010, 2142).
     // Item 4244, a mine's `mtn`: builds (2006, 2006, 4) -> (2006, 2006, 2).
+    // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (961, 961, 4) -> (961, 961, 0).
     (
         "run991d",
         15256,
@@ -4469,7 +4449,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (532, 532, 0),
-            (961, 961, 4),
+            (961, 961, 0),
             (271, 271, 2),
             (30, 30, 0),
             (55, 55, 0),

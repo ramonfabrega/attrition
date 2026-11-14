@@ -983,6 +983,25 @@ impl Sim {
         if turned {
             self.units[u].movement.mirror = !self.units[u].movement.mirror;
         }
+        // **Set, `Guy::set_angle@005d9010:13–16` writes guy 0's `angle`
+        // (`+0x18`) and `last_angle` (`+0x1c`) outright** — the figure faces
+        // the new way this frame, and the frame's `Guy::move` head copies
+        // the same angle back. Guy 0 is the unit's own figure here: its
+        // `angle` is [`crate::Movement`]'s `facing`, its `last_angle` the
+        // angle of [`crate::units::anim::Guy::last`] (`None` reads the
+        // facing). The crew's own `set_angle(crew, des_angle, 1)` is
+        // [`Sim::crew_des`]'s snap, which writes the facing and not the
+        // crew's `last_angle` (item 4253, parked 4253a: no walk parts on it).
+        if snap {
+            let m = &mut self.units[u].movement;
+            m.facing = angle;
+            m.frame_facing = angle;
+            if let Some(g) = self.units[u].guys.first_mut()
+                && g.follow.is_none()
+            {
+                g.last = g.last.map(|(at, _)| (at, angle));
+            }
+        }
         let from = self.units[u].movement.body.pos;
         self.crew_des(u, from, angle, snap);
         if turned {
