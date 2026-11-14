@@ -238,6 +238,12 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// `whose` 1, `id` 0x697990, `form_id` 0, `group_angle` the move's,
 /// `in_group` 0, on each of three members — ours had none of the nine →
 /// 1648 on both, the line whole.
+///
+/// Item 4244 moved one on run1578: builds 7383 → 8281, a mine keeping
+/// `MiningList::mtn`/`cliff` (`find_gather_tcoords@0063bdc0`'s store,
+/// `Build::close`'s reset). Value diff on 7383 (run1597's record): builds
+/// range 903, record 2019 (1/2019, a Mine, TI 0x1a3) `mtn` ours −1, theirs
+/// 0 → 0 on both.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (

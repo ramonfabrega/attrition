@@ -2397,7 +2397,7 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
 | units | 7195 | 1033027300 | 186629872 | 0 |
-| builds | 7383 | 1242831600 | 4226882033 | 0 |
+| builds | 8281 | 4092534757 | 2135105497 | 0 |
 | groups | 8206 | 1227700410 | 2455910145 | 0 |
 | guys | 7273 | 3102114080 | 2138275448 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
@@ -2431,6 +2431,13 @@ three steps, each a rule of the queue's array (§14, `docs/PRODUCTION.md` "The q
 - 202 → 7383: `Build::do_queue@0061e410` unqueues a finished technology after `finished` (and so
   `gain_tech`'s re-price) returns, and the crate unqueued first. Value diff on 987, 3246 and 4030 (runs 1583
   to 1585): building 2005 of leader 1, a Library, a vacated slot's `cost[0]` ours 120, theirs 108 → 108.
+
+**Item 4244 moved builds 7383 → 8281**: a mine keeps `MiningList::mtn` and `cliff` (`BuildData +0xb4`, `+0xb5`),
+stored by `BuildTypeData::find_gather_tcoords@0063bdc0` ahead of its tiles and reset by `Build::close`; the emitter
+wrote `ff ff` (`docs/ECONOMY.md`, "The list"). Value diff on 7383, off run1597's record (§25.4): builds range 903,
+record 2019 (player 1's Mine, `TypeIndex` 0x1a3, 232 tiles on both sides), `mtn` ours −1, theirs 0 → 0 on both. On
+8281 the builds line parts on building 2018's garrison top (`Object +0x28`, ours 42, theirs 30). On the same frame
+the units line first parts on unit record 30's own `+0x28` (ours −1, theirs 42), the unit whose entry it is.
 
 run1577 is whole on all 120 in both lines; no minted packet parts on either line now. run1575's take packet
 parts on 27 builds ranges, 35 before (`TAKE_PINNED`). **Step P's census, 280 → 285 of 1,053 lines** (§23.7,
@@ -2695,10 +2702,12 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 | 7195 | units | 1,697, 1,697, 3 | 832 27 `collide_frame..play`: `unit_masks` 262144 (0x40000), 262148 (0x40004) |
 | 7273 | units | 1,692, 1,692, 1 | 891 30 guy: `angle` and `last_angle` 1431655765, 0 |
 | 7273 | guys | 560, 560, 1 | 279 30 guy: `angle` and `last_angle` 1431655765, 0 |
-| 7383 | builds | 1,142, 1,142, 1 | 903 2019 `mtn..cliff`: `mtn` −1, 0 |
 | 8206 | groups | 544, 544, 1 | 91 67 `id..march`: `ox` 30552, 0; `oy` 21144, 0 |
 
-On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Measured on the tree after item 4243,
+On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Builds' 7383 row, record 2019's `mtn`
+−1 against 0, left with item 4244, and builds is whole on the record at 7383 and 8206. Its next first parting, 8281, is
+on the record without a pinned row: building 2018's garrison top, ours 42, theirs 30, on a frame where units first
+parts on unit 30's (item 4244's journal). Measured on the tree after item 4243,
 which made units whole on 6907 (run1593). Before it the record's 6907 showed what 4243's packet showed: units nine
 ranges short (1,639 of 1,648), first at range 784.
 
