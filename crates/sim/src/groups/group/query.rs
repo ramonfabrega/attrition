@@ -974,6 +974,9 @@ impl Sim {
     /// run1514c's Scout crew stands on its rotated track the cast's first
     /// frame, `stopped` 1, and plays the cast's `ATTACK2` with guy 0.
     pub(crate) fn unit_set_angle_as(&mut self, u: usize, angle: Angle, snap: bool) {
+        if std::env::var_os("RON_PROBE_4253").is_some() && self.units[u].type_index == 52 { // PROBE-4253
+            eprintln!("PROBE4253 f{} unit_set_angle_as {}/{} {:?} snap {snap}\n{}", self.frame, self.units[u].owner, self.units[u].index, angle, std::backtrace::Backtrace::force_capture());
+        }
         let turned = reversing(Angle(
             angle.0.wrapping_sub(self.units[u].movement.heading.0),
         ));

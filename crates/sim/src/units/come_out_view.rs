@@ -611,6 +611,9 @@ impl ComeOutView for SimComeOut<'_> {
         find_angle(dx, dy).0
     }
     fn set_unit_angle(&mut self, a: i32) {
+        if std::env::var_os("RON_PROBE_4253").is_some() && self.sim.units[self.unit].type_index == 52 { // PROBE-4253
+            eprintln!("PROBE4253 f{} come_out set_unit_angle {}/{} {a}\n{}", self.sim.frame, self.sim.units[self.unit].owner, self.sim.units[self.unit].index, std::backtrace::Backtrace::force_capture());
+        }
         self.sim.units[self.unit].movement.heading = Angle(a);
         self.gather = self.gather.map(|(s, _)| (s, Angle(a)));
     }
