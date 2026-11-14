@@ -170,14 +170,14 @@ impl Sim {
     /// `GoodData::ever_seen` (`+0x20`) of good `gi` as this crate holds
     /// it: the bits [`Sim::mark_good_seen`] has set — `World::reveal_fog`'s
     /// rare arm (`:87`) and `World::compute_reg_territory`'s goods scan
-    /// (`:651`), each right beside its `Leader::new_rare`. `Good::init`
-    /// zeroes it. Of its other two writers, the census's step 9
-    /// (`Leader::plan_strategy@006b9620:337`) sets a leader's bit on a good
-    /// already on that leader's `new_rares` — which, outside an alliance,
-    /// only the two arms above put there, each with the same bit — and
-    /// `Animal::work@005d7330:53`'s herd arm, the bit of every live leader
-    /// that `is_seen` a herd animal on its herd's good (`HerdData::good_o`),
-    /// is **not modelled** (`docs/CHECKSUM.md` §13).
+    /// (`:651`), each right beside its `Leader::new_rare`, and
+    /// `Animal::work@005d7330:53`'s herd arm ([`Sim::herd_sighting`], item
+    /// 4229), the bit of every slot that `is_seen` a herd animal, on its
+    /// herd's good (`HerdData::good_o`). `Good::init` zeroes it. Its last
+    /// writer, the census's step 9 (`Leader::plan_strategy@006b9620:337`),
+    /// sets a leader's bit on a good already on that leader's `new_rares` —
+    /// which, outside an alliance, only the footprint arms put there, each
+    /// with the same bit — and is **not modelled** (`docs/CHECKSUM.md` §13).
     pub fn good_ever_seen_byte(&self, gi: usize) -> u8 {
         self.territory.good_seen_bits.get(gi).copied().unwrap_or(0)
     }

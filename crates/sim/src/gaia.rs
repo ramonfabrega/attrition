@@ -25,6 +25,11 @@ pub struct Herd {
     pub kind: i32,
     /// `herd_flags & 1`.
     pub alive: bool,
+    /// `good_o` (`HerdData +0x14`): the good `Objects::init_good@00653f30`
+    /// founded the herd for (`Herds::init_herd`'s last argument), as this
+    /// crate's [`crate::World::goods`] index, or −1. Its one reader here is
+    /// [`Sim::herd_sighting`].
+    pub good_o: i32,
 }
 
 /// Gaia's state on the sim.
@@ -479,6 +484,42 @@ impl Sim {
         if let Some((x, y)) = walked {
             self.gaia.gaia.herds[h].wx = x;
             self.gaia.gaia.herds[h].wy = y;
+        }
+    }
+
+    /// **`Animal::work@005d7330:36–58`, the herd arm** (item 4229,
+    /// `docs/CHECKSUM.md` §13 arm 5), after the animal's `do_job`: an
+    /// animal of a herd (`+0x86` not −1), on a frame where `(o + frame)`
+    /// is a multiple of 16, whose herd's `good_o` names a good, sets that
+    /// good's `ever_seen` bit of every slot `0..8` for which
+    /// `WorldData::is_seen@006b55c0` lights the animal's half-cell.
+    ///
+    /// The listing (`5d73a0`–`5d73b1`) gates each slot on
+    /// `leaders[animal.who].flags & 1` — the **animal's own** owner's
+    /// leader, the same byte on every pass of the loop, never slot `i`'s.
+    /// Every animal is gaia's, and run1584's good 19 shows the arm fired,
+    /// so that leader's bit is set; it is taken as set. The herd's
+    /// `herd_flags` is not read.
+    pub(crate) fn herd_sighting(&mut self, u: usize, frame: i64) {
+        let Some(h) = self.units[u].herd else {
+            return;
+        };
+        if (i64::from(self.units[u].index) + frame).rem_euclid(16) != 0 {
+            return;
+        }
+        let Some(good) = self.gaia.gaia.herds.get(h).map(|h| h.good_o) else {
+            return;
+        };
+        if good < 0 {
+            return;
+        }
+        let fog = crate::vision::UNITS_PER_FOG;
+        let p = self.units[u].pos;
+        let (fx, fy) = (p.x / fog, p.y / fog);
+        for who in 0..8 {
+            if self.world_is_seen_fog(fx, fy, who) {
+                self.mark_good_seen(good as usize, who);
+            }
         }
     }
 }

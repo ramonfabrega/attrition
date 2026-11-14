@@ -913,7 +913,11 @@ mod tests {
     /// (`leader.rs` among them): four fields called uncompared and three
     /// called single-capture had been compared all along.
     /// Lowered 36 → 29 by item 4162: its leader keys are compared on every dump.
-    const SINGLE_CAPTURE: usize = 29;
+    /// Raised 29 → 30 by item 4229, deliberately: `HerdDump::good_o` is
+    /// parsed to seat a dump's herd on its good (`Animal::work`'s herd arm),
+    /// and only the herd block's existing reader names it; no differ
+    /// compares the `HERD` record.
+    const SINGLE_CAPTURE: usize = 30;
 
     /// **Every file under `src/diff/` is on the ledger or named as not a
     /// differ** (parked 517). The ledger's scope was a hand-kept list and

@@ -526,9 +526,10 @@ impl Sim {
     /// herd once spotted stays a legal target after the line of sight
     /// moves on.
     ///
-    /// SEAM: the herd's good (`HerdData::good_o`) is not carried, so the
-    /// good's `ever_seen` bit and its kind (the fish/`0x1f` exemption) are
-    /// not read; the kind is taken as not exempt.
+    /// SEAM: the herd's good (`HerdData::good_o`, [`crate::gaia::Herd`]) is
+    /// carried since item 4229 and its `ever_seen` bits are written, but
+    /// neither the bit nor the good's kind (the fish/`0x1f` exemption) is
+    /// read here; the kind is taken as not exempt (parked 4229a).
     pub(crate) fn animal_is_seen(&self, u: usize, who: Player) -> bool {
         let fog = crate::vision::UNITS_PER_FOG;
         let p = self.units[u].pos;

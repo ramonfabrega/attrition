@@ -853,6 +853,7 @@ fn a_wander_onto_an_occupied_cell_is_not_ordered() {
             wy: 10,
             kind: 408,
             alive: true,
+            good_o: -1,
         });
         for slot in 0..4 {
             s.roster.art.lengths.insert((60063, slot), 90);

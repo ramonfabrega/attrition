@@ -84,6 +84,13 @@ fn a_step_past_one_tile_is_not_displaced() {
 /// — twenty when the payee is not the city's own owner. The Civic
 /// level is set to something else on purpose: until item 573 this
 /// crate read it, and this test set only it.
+///
+/// **The bit is the partner's index in its owner's cities** (item 4229,
+/// `Unit::do_trade@005ed270:479`'s `BuildData +0x72`): cities 0 and 3 are
+/// leader 0's, 1 and 2 leader 1's, so partner city 2 is leader 1's city 1
+/// and sets bit 1 — run1585's city 0 `traded_with[1]` 2 on 4030, where the
+/// global index made it 4. Made to fail with the global index: `traded_with`
+/// reads 8 and 4.
 #[test]
 fn the_arrival_bonus_is_paid_once_and_doubles_for_a_foreigner() {
     let mut sim = bare();
@@ -127,25 +134,43 @@ fn the_arrival_bonus_is_paid_once_and_doubles_for_a_foreigner() {
         sim.tech[p].epoch[crate::tech::Line::Civic.index()] = 5;
     }
 
-    sim.city_new_caravan(0, 0, 5);
+    for owner in [1, 1, 0] {
+        let mut c = sim.cities.cities[0].clone();
+        c.owner = owner;
+        sim.cities.cities.push(c);
+    }
+
+    sim.city_new_caravan(0, 0, 3);
     assert_eq!(
         sim.economy.ledgers[0].bucket[wealth], 30,
         "(2 + 1) × 10, the owner's"
     );
-    sim.city_new_caravan(0, 0, 5);
+    assert_eq!(
+        sim.cities.cities[0].traded_with[0], 2,
+        "city 3 is leader 0's 1"
+    );
+    sim.city_new_caravan(0, 0, 3);
     assert_eq!(
         sim.economy.ledgers[0].bucket[wealth], 30,
         "the bit is already set"
     );
-    sim.city_new_caravan(0, 0, 6);
-    assert_eq!(
-        sim.economy.ledgers[0].bucket[wealth], 60,
-        "a different partner pays"
-    );
-    sim.city_new_caravan(0, 1, 5);
+    sim.city_new_caravan(0, 1, 2);
     assert_eq!(
         sim.economy.ledgers[1].bucket[wealth], 60,
         "(2 + 1) × 20 for a leader who does not own the city"
+    );
+    assert_eq!(
+        sim.cities.cities[0].traded_with[1], 2,
+        "city 2 is leader 1's 1"
+    );
+    sim.city_new_caravan(0, 1, 1);
+    assert_eq!(
+        sim.economy.ledgers[1].bucket[wealth], 120,
+        "a different partner pays"
+    );
+    assert_eq!(
+        sim.cities.cities[0].traded_with[1], 3,
+        "city 1 is leader 1's 0"
     );
 }
 

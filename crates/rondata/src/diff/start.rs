@@ -672,6 +672,20 @@ pub fn herds_from_goods(
         .collect()
 }
 
+/// Each of [`herds_from_goods`]' herds' `good_o` (`HerdData +0x14`,
+/// item 4229): `Objects::init_good@00653f30:113` hands `init_herd` the
+/// good's own index, here the good's index among the live slots, which is
+/// its [`sim::World::goods`] index once [`lay_map_objects`] has laid them.
+pub fn herd_goods_of(goods: &[Option<(i32, i32, i32)>]) -> Vec<i32> {
+    goods
+        .iter()
+        .flatten()
+        .enumerate()
+        .filter(|(_, (ty, _, _))| HERD_OF_GOOD.iter().any(|(g, _)| g == ty))
+        .map(|(gi, _)| gi as i32)
+        .collect()
+}
+
 /// **`Setup::build_game`'s start permutation** (`docs/START.md` §2 step
 /// 5): `Game::start_list[k]` for the eight seats, each a fresh index — a
 /// `Random::get(0, 0xffff) & 7`, re-drawn until it is one no earlier `k`
@@ -1262,8 +1276,9 @@ pub fn from_lobby(
         // `Setup::build_game`'s herd loop: each live herd's
         // `Herd::create_units`, in the herd list's order.
         let herds = herds_from_goods(&goods);
+        let herd_goods = herd_goods_of(&goods);
         let mut herds_built = true;
-        for h in &herds {
+        for (h, &good_o) in herds.iter().zip(&herd_goods) {
             sim.gaia.gaia.herds.push(sim::gaia::Herd {
                 cx: h.cx,
                 cy: h.cy,
@@ -1271,6 +1286,7 @@ pub fn from_lobby(
                 wy: h.cy,
                 kind: h.kind,
                 alive: true,
+                good_o,
             });
         }
         for h in &herds {
