@@ -415,7 +415,13 @@ impl Sim {
         let size = bd.queue.capacity;
         put("queue_size", (size as i32).to_le_bytes().to_vec());
         for k in 0..size {
-            let bytes = match bd.queue.items.get(k) {
+            let n = bd.queue.items.len();
+            let raw = bd
+                .queue
+                .items
+                .get(k)
+                .or_else(|| k.checked_sub(n).and_then(|j| bd.queue.vacated.get(j)));
+            let bytes = match raw {
                 Some(it) => self.queue_item_bytes(it),
                 None => {
                     let mut v = vec![0u8; 0x12];

@@ -1051,6 +1051,17 @@ impl Sim {
     pub(crate) fn push_buildings_group(&mut self, who: Player, list: &[usize]) {
         let w = who as usize;
         let last = self.orders.last_group[w];
+        // `Group::equals_group@00708000` opens by normalizing the last
+        // pushed slot (its `id` is never −1), equal or not, as
+        // [`Sim::push_group_slot`] does for a group of units: so a building
+        // push prunes the slot and writes its `role` and speed pair. The
+        // minted game's `queue_up` on 60 pushes building 2000 while
+        // `last_group` is the Scout's slot 1, which reads `role` 0x40110 and
+        // speed 34 from 61 in the original (run1580; item 4222), where this
+        // crate waited for `Groups::process`' turn on 65.
+        if let Some(seat) = self.pool_seat(who, last) {
+            self.seat_normalize(seat);
+        }
         let equal = self.orders.pushed.iter().any(|x| {
             x.who == who && x.state.pool == Some(last) && x.builds == list && x.list.is_empty()
         }) && !self.ai.armies[w]

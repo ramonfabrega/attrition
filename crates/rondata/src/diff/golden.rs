@@ -6943,8 +6943,10 @@ const WANT_CH136: &[&str] = &[
 /// `form` rows every golden start carries; the Chariot `1/6`'s rows from
 /// 809, where the Helicopter `0/13`'s first round lands a frame late here
 /// (12 on both sides, theirs `damage_frame 808`; parked 3994a); and pool
-/// slot 2's speed on 930, the site's building group seated over the
-/// Citizen's (parked 3994b). Nothing parts on the General `0/9`'s 702
+/// ~~slot 2's speed on 930, the site's building group seated over the
+/// Citizen's (parked 3994b)~~ — agreeing since item 4222: the building
+/// group's push normalizes `last_group`'s slot, the Citizen's, as
+/// `Group::equals_group@00708000` does (`docs/GROUPS.md` §3.4). Nothing parts on the General `0/9`'s 702
 /// stand-off move, on the Barracks `0/2007`'s `DISBAND` entry (908..1075,
 /// gone on 1076) or on the site `0/2008`'s disband on 929.
 const WANT_CH135: &[&str] = &[
@@ -6966,8 +6968,6 @@ const WANT_CH135: &[&str] = &[
     "848 1/6 damage_frac",
     "848 1/6 hits:damage_frac",
     "877 1/6 death:extra",
-    "930 slot 2 new_speed",
-    "930 slot 2 speed",
 ];
 
 /// What parts in run1549's window, blocks 605–1400 (item 3991; item 4007
@@ -8152,12 +8152,10 @@ const WANT_CH40: &[&str] = &[
 /// slot 4's `form` ~~on 702, D's group, which takes the Citizen's birth
 /// `form` 9 (parked 1169)~~ — agreeing from 702 since item 1330 bore the
 /// Citizen in form 9, and parting on 802, where the `@spell`'s group reads
-/// −1 in the original and 9 here.
-const WANT_CH40_POOL: &[&str] = &[
-    "802 slot 4 form",
-    "882 slot 4 new_speed",
-    "882 slot 4 speed",
-];
+/// −1 in the original and 9 here. Item 4222: slot 4's `new_speed`/`speed`
+/// on 882 agree since a push of buildings normalizes `last_group`'s slot,
+/// as `Group::equals_group@00708000` does (`docs/GROUPS.md` §3.4).
+const WANT_CH40_POOL: &[&str] = &["802 slot 4 form"];
 
 /// **run422 whole, both directions** (item 1111, `docs/GOLDEN.md` §48):
 /// every dumped record on every block of the capture, and the pool.

@@ -243,6 +243,17 @@ normalize-opening sites), `Army::normalize`'s seat tail — and in both arms
 of `Sim::groups_process`; `GroupState::emptied` zeroes it, and
 `GroupState::copied` leaves the previous occupant's.
 
+**A push of buildings normalizes `last_group`'s slot too** (item 4222):
+`Groups::push_group@0070f9e0` calls `Group::equals_group@00708000` against
+`last_group`'s record whatever the stack group holds, and `equals_group`
+normalizes each side whose `id` is not −1 once the two `who` bytes match.
+`Sim::push_buildings_group` skipped it where `Sim::push_group_slot` had it.
+Diff-backed on the minted game: its `queue_up` on 60 pushes the capital
+while the Scout's slot 1 is `last_group`, and run1580's packet reads slot 1's
+`role` 0x40110 and `new_speed`/`speed` 34 on 61, ours 0 until
+`Groups::process`' turn on 65; with the normalize the groups line is the
+original's to 2746 (`docs/CHECKSUM.md` §24.3).
+
 Three more words of the record have no state here because no writer
 stores anything but a constant (every writer in the export, grepped by
 offset across `Group`, `GroupData`, `Groups` and `Army` and through a

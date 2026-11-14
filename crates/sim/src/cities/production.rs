@@ -153,6 +153,18 @@ pub struct Queue {
     /// [`Queue::unqueue`] clears it when the queue empties. It lives on the
     /// queue because every writer but the button is the queue's own.
     pub infinite: bool,
+    /// **The slots past `queued`, as the array holds them**: entry `k` is
+    /// raw slot `items.len() + k`, the bytes the last entry that sat there
+    /// left. `BuildQueue::un_queue@00630ad0` is a `memcpy` of the entries
+    /// above the removed one down by a slot, and `Build::unqueue@006207c0`
+    /// only lowers `queued`, so the vacated last slot keeps its 18 bytes;
+    /// `BuildQueue::set_queue@006309f0` overwrites a slot when an entry is
+    /// laid there. Nothing reads them but `BuildQueue::walk_data@006305f0`,
+    /// which walks every slot of the array — the checksum's builds line
+    /// (`docs/CHECKSUM.md` §14). Item 4222: the minted game's AI Town
+    /// Center `1/2000` finishes its first Citizen on 99, and the original's
+    /// slot 2 still holds the third entry's copy (type 50, cost 27) on 100.
+    pub vacated: Vec<Item>,
 }
 
 impl Queue {
@@ -161,7 +173,18 @@ impl Queue {
             capacity,
             items: Vec::new(),
             infinite: false,
+            vacated: Vec::new(),
         }
+    }
+
+    /// Lays `item` in slot `queued` (`BuildQueue::set_queue`), which
+    /// overwrites whatever that slot held, and returns its slot.
+    pub fn lay(&mut self, item: Item) -> usize {
+        if !self.vacated.is_empty() {
+            self.vacated.remove(0);
+        }
+        self.items.push(item);
+        self.items.len() - 1
     }
 
     /// Whether there is room — the capacity half of `BuildData::could_queue`.
@@ -175,8 +198,7 @@ impl Queue {
     /// debits and reports, and this takes the report. The price is charged on
     /// queue, which is what makes the refund exact.
     pub fn push(&mut self, ty: usize, charges: &[i32; RESOURCES]) -> usize {
-        self.items.push(Item::queued(ty, charges));
-        self.items.len() - 1
+        self.lay(Item::queued(ty, charges))
     }
 
     /// The first slot behind the head holding a research job, if any —
@@ -198,8 +220,7 @@ impl Queue {
     pub fn push_disband(&mut self) -> usize {
         let mut item = Item::queued(0, &[0; RESOURCES]);
         item.disband = true;
-        self.items.push(item);
-        self.items.len() - 1
+        self.lay(item)
     }
 
     /// How many entries are `DISBAND` — `BuildData::count_queue(1, 0x29a)`
@@ -209,8 +230,7 @@ impl Queue {
     }
 
     pub fn push_tech(&mut self, t: usize, charges: &[i32; RESOURCES]) -> usize {
-        self.items.push(Item::tech_queued(t, charges));
-        self.items.len() - 1
+        self.lay(Item::tech_queued(t, charges))
     }
 
     /// How many entries research tree id `t` — `num_type_queued`'s line
@@ -249,6 +269,18 @@ impl Queue {
         let i = if refund { self.cancel_target(i) } else { i };
         if refund {
             unpay(&self.items[i], ledger);
+        }
+        // The array's last live slot keeps its bytes when `queued` drops
+        // past it ([`Queue::vacated`]): the last entry's, now copied one
+        // slot down too, or the removed entry's own when it was the last —
+        // whose `job_counter` `Build::unqueue@006207c0` zeroes first (the
+        // write after the skip-forward, before `un_queue`), so a lone
+        // finished entry leaves 0 (run1583's `0/2000` on 987).
+        if let Some(mut last) = self.items.last().cloned() {
+            if i + 1 == self.items.len() {
+                last.job_counter = 0;
+            }
+            self.vacated.insert(0, last);
         }
         let item = self.items.remove(i);
         // `Build::unqueue@006207c0`'s tail: `queued` reaching 0 clears

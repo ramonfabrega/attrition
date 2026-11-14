@@ -89,6 +89,23 @@ game and load-bearing in a modded one — and it decides exactly what a
 cancellation gives back, because the refund path reads these three pairs and
 nothing else.
 
+**A slot past `queued` keeps the bytes the last entry there left** (item
+4222). `Build::unqueue@006207c0` calls `BuildQueue::un_queue@00630ad0` only
+when the slot is not the last (`:169`), and `un_queue` is one `memcpy` of
+the entries above it down by a slot; then `queued` drops. Nothing clears
+the vacated slot: the old last entry stays there, twice when it was copied
+down, until `set_queue` lays the next entry at `queued`. One write comes
+first: `Build::unqueue` zeroes the removed slot's `job_counter` after the
+cancel's skip-forward, so a removed **last** entry leaves its bytes with
+`job_counter` 0 (run1583's `0/2000` on 987, a lone Citizen finished). Only
+`BuildQueue::walk_data@006305f0` reads past `queued`, since it walks every
+slot of the array: the checksum's builds line. Diff-backed by run1581's
+packet: the minted game's AI Town Center `1/2000` holds Citizens at 25, 26
+and 27 food, finishes the first on 99, and on 100 its slots read 26, 27
+and 27 with `queued` 2. In the crate the slots are `Queue::vacated`, every
+lay goes through `Queue::lay`, and `Sim::checksum_builds` walks them
+(`docs/CHECKSUM.md` §24.3).
+
 ---
 
 ## Queueing charges the price
@@ -2112,6 +2129,10 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
 
 ## What is not established
 
+- **A dump-seated walk's vacated slots** (item 4222, parked 4222a): a seat installs the live entries, and
+  the dump prints no slot past `queued`, so a seated building's `Queue::vacated` starts empty.
+- **`set_queue`'s partial writes** (item 4222, parked 4222b): with a null cost array the slot keeps its stale
+  `good`/`cost` pairs, and with `param_4` set its `job_counter`; `Queue::lay` overwrites the whole slot.
 - **The never-entered functions this document cites (item 3414).** Four are in `blind::NEVER` on the base
   `6d3ffc37`, and none is read again here. `ObjectData::is_in_range@0064e4a0` is accepted residue.
   `LeaderData::get_vehicle_speed_upgrade@006da8a0` is read in `docs/NATIONS.md` §9.1, and its capture is in §9.2:
