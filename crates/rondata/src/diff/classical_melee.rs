@@ -643,7 +643,9 @@ fn classical_melee_run1450_s_closing_state() {
     // Item 3793, the game whole: 95 units compared, every count zero, no
     // extra. One unit is torn: the idle human's Citizen `0/6` stands at
     // (35472, 33327) in ours against (35450, 33316), holding two orders
-    // where theirs' stands idle (parked 3793a).
+    // where theirs' stands idle (parked 3793a). Item 4204: the tear gone —
+    // the quit at 2600's head clears `0/6`'s orders (`Sim::resign`'s
+    // `clear_orders`), and it stands where theirs does.
     pin_eq!(e.compared, 95, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(
@@ -651,7 +653,7 @@ fn classical_melee_run1450_s_closing_state() {
         CLASSICAL_MELEE_CLOSING_OFF,
         "the closing records off, the `Melee:` line's suffix"
     );
-    pin_eq!(e.torn.clone(), vec![(0, 6)], "the closing tears");
+    pin_eq!(e.torn.clone(), vec![], "the closing tears");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
 
