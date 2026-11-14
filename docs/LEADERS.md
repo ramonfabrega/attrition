@@ -2481,7 +2481,16 @@ head**, before any `game_random` draw, in a live game (run609's 5638,
 run667's 17379, the melees' 2600, run80's 24000); or **past the body**, from
 the end window of a game over (run1200's 5639, run1250's 8777, run1262's
 6106, run958f's 22700, run600's 17379), the count advanced (run600's
-re-stamp 17380).
+re-stamp 17380). **Past the body is the common close** (item 4204): of
+the 124 closing walks on disk whose trace dates the quit on the frame
+before the closing dump's label, 110 quit past the body and 13 at the head
+(the six melees and the seven captures that run to 24000); run847's quit
+falls on the label's own frame (6822) and keeps the head. Every closing
+walk reads its own trace (`rondata`'s `walk_to_close_traced`). The
+defeat's unit walk then clears every non-plane unit's orders
+(`Unit::clear_orders@005e3860`), after the frame's walkers have stepped
+when the quit is past the body and before they step when it is at the
+head.
 
 **The wonder arm**, in `process_victory`, every frame under `VICTORY` ∈
 {0, 1, 6}, with `W = Game::wonder_winning (005948a0)` read once. For slots
@@ -2565,8 +2574,14 @@ landed:
   cleans the winner's queues. SEAM: the armageddon gate passes; the
   winner's armies stay (4189b). `rondata`'s `widen_walk` resigns at the
   trace's quit (`quit_in_trace`), before or after the frame's tick.
+- **Item 4204**: `Sim::resign` clears every non-plane unit's orders
+  (`Sim::clear_orders`), and every closing walk quits where its trace
+  puts it (`walk_to_close_traced`). Diffed: run667's 17380 −51 rows,
+  run609's 5639 −13, `cant_reach` 5 → 0 and 2 → 0, four closing tears
+  gone (§10.2).
 - **Not built:** the `w44c` reader (4185b); `Wall::process`'s reader;
-  `Sim::resign`'s `clear_orders` (4189a). All nine are on the line.
+  ~~`Sim::resign`'s `clear_orders` (4189a)~~ — built by item 4204. All
+  nine are on the line.
 
 ### 10.4 Reached by a plain game
 
@@ -2642,7 +2657,10 @@ run1113/1114. `wonderwin_timer` 1 in 30 captures (run652 … run1423c).
   the conquest victory's won flag (§10.2; item 4189), backed by run667's
   17380 by elimination; `Player::win` draws only for the console player,
   so the trace cannot show it.
-- **The quit's timing outside the window walk** (4189a).
+- ~~**The quit's timing outside the window walk** (4189a)~~: every
+  closing walk reads its trace's quit since item 4204 (§10.2). A capture
+  with no trace still quits at the head (the shutdown census's run55 to
+  run86).
 - **`lost_a_city`'s `param_1`, `param_2` and captor** are derived by its
   callers (`Build::close`), owned by §11.
 - **The pins:** run1200's loss is held by `korean_ancient_pair`'s closing

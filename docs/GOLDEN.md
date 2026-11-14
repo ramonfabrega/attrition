@@ -16464,7 +16464,12 @@ step off (about 24), because it takes its step in theirs and stops at once in ou
 (3, −25), `aztec_modern`'s `0/2` (25, 0), and up to seven units on a pair. The same arm dissolved two tears,
 `british_classical`'s `0/4` and `classical_melee`'s `0/6`, which in theirs stood still. So the original's clear lets
 some walkers finish their step and stops others. Which ones is parked as 3841c, and `shutdown.rs`'s one-tick tear is
-its candidate.
+its candidate. ~~Not built~~ — **built by item 4204**, and 3841c is answered by the quit's timing, not by the clear:
+the walkers that finish their step are those of a capture that quits past the frame's body (110 of the 124 closing
+walks, `american_industrial`'s run1338 and `aztec_modern`'s run1429 among them; `docs/LEADERS.md` §10.2), where the
+frame runs before the quit on both sides. With each closing walk quitting where its trace puts it, the clear moved
+nothing the wrong way: run667's 17380 −51 rows, run609's 5639 −13, `cant_reach` 5 → 0 and 2 → 0, and the tears
+`british_classical` `0/4` (the timing), `classical_melee` `0/6`, run56's `0/5` and run72's `0/3` (the clear) gone.
 
 The harness runs the quit where theirs does:
 - `shutdown::compare_shutdown` resigns every human seat before the closing frame's tick;
@@ -16488,7 +16493,7 @@ The harness runs the quit where theirs does:
 - The building loop's `Build::clean_queue` (a refund) is a SEAM. The human's buildings hold no queue on 2601.
 - The widening's closing block (`widen_walk` over 2501..2601) reads 2601 without the quit. The human citizens
   `0/1`..`0/7`'s one-step orders there, 3836's "3788b shape", are what the defeat's `clear_orders` would drop, and
-  that arm is unbuilt (3841a, 3841c).
+  that arm is unbuilt (3841a, 3841c). ~~That arm is unbuilt~~: built by item 4204 (above).
 - §151's "the human's `leftover` one frame early" is likely the defeated leader's skipped resource step. `seat_walk`
   still reads the human at n − 1. That, and the reader that closes the Inca `peasant_dist`, are 3841b.
 - The tribute arm for allies, `Game::check_victory` and the messages are not modelled.
