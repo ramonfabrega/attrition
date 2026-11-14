@@ -1245,7 +1245,10 @@ holds it range by range and field by field; `CHECKSUM_STATE` counts it:
 units line's loop: per leader whose `leaders.list & 1` is set, in slot
 order, per unit of that leader's band with `flags & 1`, in `o` order —
 the human's seven, the British seven, then gaia's 38 herd animals (owner
-8: four sheep, `TypeIndex` 0x198, and 36 fish, 0x19b) on frame 91.
+8: four sheep, `TypeIndex` 0x198, and 36 fish, 0x19b) on frame 91. **Slots 0 to 8
+only**: the loop stops at `0xe789dc`, `leaders` (`0xe3a390`) plus nine `0x6eec` records,
+though `Leaders::list` holds ten, so a bird (slot 9, `gaia::BIRD_OWNER`) is never walked
+(item 4226, §24.3; `checksum::units::WALKED_SLOTS`).
 
 **One unit's ranges, in walk order** (`PtrArray<Guy>::walk_data@0046df30`;
 the stream settles it, and corrects §6's order):
@@ -2404,10 +2407,10 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
-| units | 129 | 2850640222 | 2564863054 | 171: 129–299 |
+| units | 189 | 1097459564 | 2235033462 | 111: 189–299 |
 | builds | 7383 | 1242831600 | 4226882033 | 0 |
 | groups | 2746 | 810153284 | 3860919709 | 0 |
-| guys | 129 | 4020237905 | 1262538754 | 171: 129–299 |
+| guys | 6537 | 2410482783 | 3433827539 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
 | cities | 4030 | 66197007 | 38147597 | 0 |
 | items | whole, 24,000 | | | 0 |
@@ -2448,6 +2451,16 @@ parts on 27 builds ranges, 35 before (`TAKE_PINNED`). **Step P's census, 280 →
 ranges on 92 more packets, none on more. The pool's speed rows on golden chapters forty (882) and 135 (930,
 parked 3994b) agree with the normalize.
 
+**Item 4226 moved two.** Units 129 → 189 and guys 129 → 6537: `check_units@009371d0` and `check_guys@00937430`
+step a `Leader` (`0x6eec`) from `leaders` (`0xe3a390`) while below `0xe789dc`, nine of `Leaders::list`'s ten
+slots, and a bird is slot 9's (§16). The sampling on 128 made two Wild Birds (`TypeIndex` 402, `9/0` and `9/1`);
+the original makes them too and walks neither. Value diff on 129 (run1582): units ours 1,147 ranges, theirs 1,107;
+guys ours 389, theirs 375, the birds' 40 and 14 → the stream's counts on both, every minted packet's guys line
+whole. **Step P's census, 285 → 314** (`PACKETS_SCORE`): on 106 of 107 packets the guys line's ranges become the
+stream's count, whole on 28; the units line is whole on run1161. Units on 189 have no packet; on 987 the first
+parted unit range is a path stack's `size` (ours 10, theirs 50), the original's high-water allocation against
+ours' current length (parked 4226a).
+
 ### 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
@@ -2459,7 +2472,7 @@ line's field reader where it has one:
 | units | 1 | 1579 | unit 0 `flags`: 65 (0x41), 73 (0x49); 2 of 1,077 ranges |
 | groups | 61 | 1580 | group record 1: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34; whole since item 4222 |
 | builds | 100 | 1581 | building 2000 `queue[k]`: type 0, 50; `cost[0]` 0, 27; whole since item 4222 |
-| guys | 129 | 1582 | 389 ranges against 375 (units 1,147 against 1,107): a figure ours holds and theirs does not yet |
+| guys | 129 | 1582 | 389 ranges against 375 (units 1,147 against 1,107): two birds on slot 9, which neither line walks; whole since item 4226 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2 |
 | leaders | 1 to 4030 | all | leader 0's long range at +0x10: ours 0 on every packet, theirs 0xc7 on 1 and 0x105 on 4030 (§20; item 4159) |
@@ -2483,7 +2496,8 @@ on synthetic records.
 Not established:
 - Whether a non-playback game's sets pair the same way. The solo arm calls `check_all` once a turn, with no read loop.
 - The parted lines' causes: each is a parked row of `docs/journal/2026-11-13-item-4214.md` (4214a to 4214h; 4214e
-  closed by item 4209, 4214a and 4214h by item 4218, 4214b and 4214c by item 4222).
+  closed by item 4209, 4214a and 4214h by item 4218, 4214b and 4214c by item 4222, 4214d by item 4226).
+- Units on 189 and guys on 6537: no packet stands on either frame (parked 4226a, 4226b).
 - `Game::run@00584590:722`'s `GameDaemon::update_all_seen`, the call after `calc_danger`, is not run on the built start
   (item 4218). Every section of the world line agrees on the start without it; what else it writes is not compared.
 - What parts past a line's first parting outside `DIAG`. On every packet past frame 0 the world line agrees, and so
