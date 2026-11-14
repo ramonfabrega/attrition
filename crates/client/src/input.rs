@@ -80,6 +80,13 @@ pub const DRAG_SLOP: i32 = 4;
 /// `docs/CLIENT_INPUT.md` §11), by `Command::name`: what [`Input::event`]
 /// can put in an order. `the_layer_mints_what_it_says` reads this file's
 /// own source and holds the list to the `Command::` values it builds.
+#[cfg_attr(
+    not(test),
+    expect(
+        dead_code,
+        reason = "the census and the source scan read it; the window does not"
+    )
+)]
 pub const MINTS: &[&str] = &[
     "group",
     "move_to",
