@@ -686,6 +686,27 @@ fn the_minted_packets_name_each_first_parting() {
         let mut stream = crate::input::Stream::pump(&minted(&script()).unwrap());
         super::minted::tick_to(&mut built, Some(&mut stream), frame);
         let outcome = compare(&our_lines(&built.sim, &pieces), &theirs);
+        if std::env::var_os("RON_PROBE_4238").is_some() && run == "run1591" {
+            let ol = our_lines(&built.sim, &pieces);
+            for (name, o) in STATE_LINES.iter().zip(&ol) {
+                let empty = Vec::new();
+                let t = theirs.get(*name).unwrap_or(&empty);
+                for i in 0..o.ranges.len().max(t.len()) {
+                    let (a, b) = (o.ranges.get(i), t.get(i));
+                    let near = *name == "units" && (150..200).contains(&i)
+                        || *name == "guys" && (50..65).contains(&i);
+                    if near {
+                        eprintln!("PROBE4238 {name} {i} ours {:?} theirs {:?}", a.map(|r| (r.record, r.field)), b.map(|t| (&t.0, &t.1)));
+                    }
+                    if a.map(|r| &r.bytes) != b.map(|t| &t.2) {
+                        let f = (i, a.map_or(-1, |r| r.record), a.map_or("-".to_string(), |r| r.field.to_string()),
+                            a.map_or(String::new(), |r| r.bytes.iter().map(|x| format!("{x:02x}")).collect()),
+                            b.map_or(String::new(), |t| t.2.iter().map(|x| format!("{x:02x}")).collect()));
+                        eprintln!("PROBE4238 PARTED {name}: {}", first_text(name, &f));
+                    }
+                }
+            }
+        }
         let mut seen: Vec<(&str, usize, usize, usize, String)> = Vec::new();
         for (name, o) in STATE_LINES.iter().zip(&outcome) {
             if let Some(f) = &o.first {
