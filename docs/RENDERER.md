@@ -3204,8 +3204,9 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
 - a lit floor texel above the curve's white (stage 1, about 5.26 against 4.9) clips in the copy and comes back at
   the white;
 - the surf, now worth `SANDY` +128 by composite (4225a). Its section models are read (item 4235: `render::mot`,
-  `docs/FORMATS.md`, "The surf's section models"). The shore's splines, `internal_random`'s state at load and
-  `SURFTIMING*` are not;
+  `docs/FORMATS.md`, "The surf's section models"). ~~The shore's splines, `internal_random`'s state at load and
+  `SURFTIMING*` are not~~ read by item 4236 (§3.26): `Surf::init` is in register with the packet when fed the
+  packet's shore; the client's own shore chains and the draw are not;
 - the fish herds' blot and the whitecaps;
 - the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
 - the screen reflection and the specular.
@@ -3214,7 +3215,9 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
 
 *2026-11-14, Opus 5.5. `render::particle` (the system, the look, the motion, the wind, the plume, the quad);
 `client::particle` (the systems loaded, each drawn slot's plumes, the meshes); `client::gpu`'s smoke and fire
-passes and `shaders/particle.wgsl`. They replace §3.20's stand-ins. Scored on run1559b's and run1570's photographs.*
+passes and `shaders/particle.wgsl`. They replace §3.20's stand-ins. Scored on run1559b's and run1570's photographs.
+Item 4237 (Opus 5.5): the particles taken through `TL_FAKE_LIGHT` and blended in HDR, `client::gpu`'s plume pass
+and `shaders/shade.wgsl`'s `fs_plume`.*
 
 **The row** (committed before any draw, `814500f5d`). A pixel's class is its luma in hundredths of the luma of our
 still with the fires off, the scene without its smoke: clear at 85 and over, haze from 35, dense under, and clear
@@ -3225,10 +3228,13 @@ dense core; an alpha-tested sprite is dense or clear. `RUN1559B_3279_PLUME` and 
 each pin four columns: as drawn, fires off (0), the photograph taken for ours (the whole), and the packet's own
 particles through our pass (the draw apart from the emission).
 
-| row | 4201's stand-ins | the packet's particles | drawn |
-|---|---|---|---|
-| `RUN1559B_3279_PLUME` | 336 of 19,378, 185 past | 11,518, 1,702 past | **9,138**, 5,617 past |
-| `RUN1570_PLUME` | 316 of 18,871, 254 past | 11,847, 1,353 past | **9,232**, 5,055 past |
+| row | 4201's stand-ins | the packet's particles | drawn | in HDR (4237): the packet's, drawn |
+|---|---|---|---|---|
+| `RUN1559B_3279_PLUME` | 336 of 19,378, 185 past | 11,518, 1,702 past | 9,138, 5,617 past | 11,806, 2,042 past; **9,728**, 5,538 past |
+| `RUN1570_PLUME` | 316 of 18,871, 254 past | 11,847, 1,353 past | 9,232, 5,055 past | 12,219, 1,555 past; **9,403**, 5,075 past |
+
+**The dense column** (ours' dense pixels against the photographs' 2,415 and 2,470), in toned space and then in
+HDR: the packet's particles **468 → 1,716** and **676 → 2,099**; as drawn **120 → 487** and **182 → 770**.
 
 Made to fail: with haze and dense merged into one class, the stand-ins read 1,012 and 944 against the pinned 336
 and 316. That is what the split guards against.
@@ -3276,18 +3282,132 @@ wind for the whole life read run1570 at 5,772.
 `SRCALPHA`/`INVSRCALPHA` with `min(2·texel·colour, 1)`. The fire uses `SRCALPHA`/`ONE` with `texel·colour`. Both
 depth-test `LessEqual` and write no depth, under the trees' linear, clamped sampler.
 
-*Coverage.* Diff-backed: the systems against the packets, the wind on run1570, and the motion on slot 9. On the
-photographs alone: the rows. *Not established:*
+**The fake light, and the blend in HDR** (item 4237). `rise.pdb`'s `RenderEnables` names bit 0x20000
+`TL_FAKE_LIGHT`; 0x20085 is `ZENABLE | ALPHAENABLE | ALPHATESTENABLE | TL_FAKE_LIGHT`. On run1567's card trace,
+both passes, `D3D11GLSys` compiles the shader option `TL_FAKE_LIGHT` into a draw exactly when its `enables` carry
+the bit: 55 draws with it, 366 without, none apart. The surf, the city radius and the fish's churn are among the 55.
+The card holds no particle draw, so the systems' own states are read off the packets (`states.py`, `ParticleSystem
++0xbc`). On both, the fire is 0x20085 with `dst_blend` 2 and the smoke 0x20085 with 6
+(`particle::tests::the_particles_take_the_fake_light`). The install's `ps_global.hlsl` takes such a draw's
+saturated stage colour to `pow(c, 1.9) · 5` and writes it to the HDR target, where the blend runs; the tone map
+follows (§3.14, §3.21). The smoke's (50, 50, 38) is light (0.23, 0.23, 0.14) there, and it tones to about (25, 25,
+15) at run1559b's white: under the photograph's (47, 42, 22) blue. The LDR blend could not reach that colour, since
+its core converged on (50, 50, 38).
+
+The client draws each particle into the plume target, `Rgba16Float`, cleared to no light and the whole frame left,
+under the frame's depth. The light blends as the original's target does, and the alpha keeps what is left of the
+frame: `τ · (1 − a)` under the smoke and `τ` under the fire. `fs_plume` then composes `T(T⁻¹(g) · τ + L)` per
+channel onto a copy of the frame, as the shade and water passes do: the same as each draw blended in turn in HDR.
+**The value diff** (run1559b, pixel (1123, 433), the packet's particles): the photograph (24, 24, 13), the scene
+(74, 66, 41), our LDR pass (34, 33, 25), in HDR (18, 17, 10). The photograph's dense pixels average (43.9, 37.6,
+21.0); the packet's through our pass, (72.5, 70.0, 51.5) → (67.4, 63.2, 42.4). On run1570, (41.8, 37.3, 20.8)
+against (65.0, 63.2, 44.9) → (58.2, 55.0, 34.3).
+
+*Coverage.* Diff-backed: the systems against the packets, the wind on run1570, and the motion on slot 9. Also the
+`TL_FAKE_LIGHT` bit against the card's option on 421 draws, and both systems' states off the packets. On a reading:
+the fake-light branch's arithmetic (the install's `ps_global.hlsl`). On the photographs alone: the rows. *Not
+established:*
 - the emission's random draws: the original seeds each particle from its birth frame and `internal_random`, and
   ours from a hash, so the plume is the original's in size, speed, spread and fade, not particle for particle;
   another seed moves the row by about 1,000 (4233c);
-- the dense core: even the packet's particles through our pass read dense 468 and 676 against the photographs'
+- ~~the dense core: even the packet's particles through our pass read dense 468 and 676 against the photographs'
   2,415 and 2,470. The smoke's own colour under `MODULATE2X` is about (50, 50, 38), and the photograph's densest
-  pixels are (47, 42, 22) (4233a);
+  pixels are (47, 42, 22) (4233a);~~ answered above, "The fake light, and the blend in HDR": the packet's dense
+  1,716 and 2,099;
+- what is left of the dense core: the packet's particles reach 71 % and 85 % of the photographs' dense, and ours
+  drawn 487 and 770, because our plume spreads where the packet's is compact (the emission, 4233b and 4233c).
+  `gTLAlpha` is taken at 1, as the surf's is on the card (§3.18); no particle draw is on a card trace;
+- the fire's look through the fake light in HDR: it glows hotter than it did, and no row scores it (4233d);
 - `desc.vel`'s direction off the model: ours is (0, 0, −1) (4233b);
 - an emitter's start: ours has burned for a whole life, the original's from when its level was reached (4201b
   stands);
 - the run1559b wind's three degrees, `graphic_dt` taken at 0, and the 18 births a life where `freq` gives 15 or 16.
+
+## 3.26 The surf, laid (item 4236)
+
+**The class, against the packet.** `rondata::artdata::surf_class` reads what `Surf::init_class@0089f050`
+keeps of `<SURF>`: `wavetime` 250, `stalltime` 75, the 13 `<TEXTURE>`s, the 14 `SURFTIMING`s (each
+`percent` through `wcstod` to an `f32`, each `alpha`), the 13 `<WAVE>`s and the two `<SURFTYPE>`s.
+A `<WAVE>` of type `Large` is shape row 1, every other row 0. A `SurfWave` keeps its sections in one
+slot per texture, at its `tex0`'s index, so run1564's lists 0, 2, 4, 7, 8, 9, 11 are slots.
+`tools/render/surf_packet.py --sections` walks run1564's packet from `Surf::waves` `0x00c8c1b8`.
+`the_surf_s_sections_and_timings_are_the_packet_s` holds it to the reader:
+- 33 of 33 sections and 507 of 507 frames equal `Mot::section_verts` bit for bit, so the ×3 and the
+  dropped `z` rest on a value;
+- every texcoord, face, timing index and mapping agrees. `SurfWaveSection::init` turns a 0 into −1 on
+  a model whose texcoords do not move (`surf_flat_0_bigwash`, `_bigcrash`);
+- all 28 timelines agree, and both `wave_shape_index` rows: breakers 5 to 12, large waves 0 to 4.
+
+A vertex nudged by 2 ulp turns it red.
+
+**`internal_random` at load is the map's.** `Random::get@00a39d70` is an LCG (×`0x19660d`,
++`0x3c6ef35f`). Its result scales the word's low 16 bits onto `[lo, hi)`, and it does not step when
+`lo == hi`. `internal_random` (`0x00eb697c`) starts at 0 (a static the trace finds at 0 on its first draw), and no site
+reseeds it. On run1567's trace (`client::surf`, `internal_random_at_surf_init_is_the_map_s`):
+- its first draw finds it at 0, and every draw follows the last by one step;
+- 59,244 draws come before `Surf::init`'s first, in five runs:
+  - 45 `RiverDooberType::init@00887b00`;
+  - 58,081 `Terrain::init@00850f70`'s `random_map_pool`, `(4 · 60 + 1)²`;
+  - 45 `RiverDooberType::init` again;
+  - 360 `TerrainOil::add_rocky_patch@008a2b30`;
+  - 713 `RiverSectionOut::create_doobers@0088a4f0`.
+
+Nothing in the menu or the lobby draws it. After setup it is drawn by `Surf::inc_time@008a1a00`, the
+river wakes, the ocean floor's clock, `Particle::init@008db7c0` and the ammo.
+
+**`Surf::init@008a0cf0`, ported** (`client::surf`). The walk:
+- Each chain of `TerrainOut::sorted_waterline_tcoords` holding at least 16 tcoords gives a control
+  point at every fourth, `(t mod 4W, t div 4W) · 192`. The `Spline` through them is clamped uniform,
+  degree 4 at depth 1000.
+- Its normals cross `(1, 1, √3)` with each segment, normalized, and are averaged with the last.
+- One draw, `r`, is taken on `[−75, 250)` for the chain.
+- The large waves come in pairs, every half `dist_along_shore` (400 · 0.5), at
+  `pos + normal · 320` (`Spline::next_at_dist@00912b70`, end 0.1). A pair is kept unless the tile's
+  `TData` carries `RIVER` (0x800). The pair's second is a further half step on, phased
+  `(325 / 2 + r) mod 325 − 75`. It is laid even past the end, where the walk leaves the position as
+  it was.
+- The breakers each take two draws: a distance on `[500, 1000)` and a phase on `[−75, 250)`. Each sits
+  at `pos + normal · 700` on an ocean tile (`TData & 0x30 == 0x20`).
+- `Surf::add_wave@0089d5a0` (read off the listing; the decompiler lost its floats):
+  - the angle is `find_angle@0092d130` of the normal times 1000, read through
+    `fast_angle_to_degrees@00a28f70`;
+  - the axes are `fast_angle_to_cosine@00a28a70` and `_sine` of the angle plus 180° and plus 270°;
+  - the type is a draw on the shape's row;
+  - the time is `((x + y) / 24 + base) mod 325 − 75`.
+
+  The fast readers are 256-entry tables on the angle's top byte, of whole degrees
+  (`angle_to_degrees@00a28e00`).
+
+**In register with run1564's packet, fed the packet's shore** (`surf_init_lays_the_packet_s_waves`;
+`surf_packet.py --init`):
+
+| field of 1,205 waves and breakers | agree |
+|---|---|
+| tile `wx`, `wy` | 1,205 |
+| shape | 1,205 |
+| time, stepped 3,294 frames through `inc_time` | **1,205** |
+| axes, to 1e-6 | 1,204 |
+| place, within 0.05 units | 1,193 (worst 0.16) |
+
+Record 240's normal falls on a table step: 211° against 210°. `Surf::init` takes 1,721 draws (6
+chains, 1,205 shapes, 255 · 2 breaker draws), so the generator leaves at 60,965, the trace's setup
+total.
+
+**The shape at a frame is the session's.** `Surf::inc_time` redraws a wave's type each time its clock
+wraps (every 325 frames). Its draws interleave with the particles', the wakes' and the ammo's. Replayed
+from run1567's own `inc_time` draws, the types agree with run1564's packet on 224 of 1,205, which is
+chance. The reset frames agree on all 3,294 frames. So the phase is reachable from the client's own
+load, and the type at frame 3294 is not (4236a). All five large waves share their textures and
+timings, as do all eight breakers. A type changes only the `.mot`'s shape.
+
+*Coverage.* Diff-backed: the sections, the timelines, the class's data, the generator's census and
+`Surf::init`'s output on the packet's shore. On one packet: the place's tolerance. *Not established:*
+- the client's own shore: `TerrainOut::sort_waterline_wcoords@00872f30`,
+  `connect_waterline_regions@00867890` and `tcoord_is_surfline@00867470` over `WorldData`'s 0x1c-byte
+  records (4236b). The flags are the sim's `TData` mask;
+- the draws before `Surf::init` on another map: the 360 and 713 are rejection sampling, value by value
+  (4236c);
+- the type at a frame (4236a), the draw (`SurfWaveSection::draw@0089e360`), and its row on the still.
 
 ## 4. The stack
 

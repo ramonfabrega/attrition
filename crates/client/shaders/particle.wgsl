@@ -3,6 +3,12 @@
 // on the packets: stage 0 `MODULATE2X` (the smoke) or `MODULATE` (the fire)
 // of the texel and the vertex colour, its alpha the texel's times the
 // particle's, and the alpha test at 0 (`alpha_func` Greater, `alpha_ref` 0).
+//
+// Item 4237: both systems' `enables` carry `TL_FAKE_LIGHT`, so
+// `ps_global.hlsl` raises the saturated stage colour to the fake light's
+// power and scales it by the HDR multiplier, and the blend runs in the HDR
+// target. The fragment is that light; `client::gpu`'s plume pass gathers
+// it, and the transmittance it leaves, for the compose.
 struct U {
     m: mat4x4<f32>,
     d: vec4<f32>,
@@ -35,6 +41,11 @@ fn vs_particle(
     return o;
 }
 
+// `TL_FAKE_LIGHT` without `LIGHTING`: `pow(saturate(c), 1.9) · 5`.
+fn fake_light(c: vec3<f32>) -> vec3<f32> {
+    return pow(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({FAKE_LIGHT_POWER})) * {HDR_SCALE};
+}
+
 @fragment
 fn fs_smoke(i: VOut) -> @location(0) vec4<f32> {
     let t = textureSample(tex, samp, i.uv);
@@ -42,7 +53,7 @@ fn fs_smoke(i: VOut) -> @location(0) vec4<f32> {
     if a <= 0.0 {
         discard;
     }
-    return vec4<f32>(min(2.0 * t.rgb * i.col.rgb, vec3<f32>(1.0)), a);
+    return vec4<f32>(fake_light(2.0 * t.rgb * i.col.rgb), a);
 }
 
 @fragment
@@ -52,5 +63,5 @@ fn fs_fire(i: VOut) -> @location(0) vec4<f32> {
     if a <= 0.0 {
         discard;
     }
-    return vec4<f32>(t.rgb * i.col.rgb, a);
+    return vec4<f32>(fake_light(t.rgb * i.col.rgb), a);
 }

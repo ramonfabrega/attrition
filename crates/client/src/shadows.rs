@@ -61,17 +61,19 @@ mod tests {
     /// 101.0. Still not drawn (parked 4193a).
     /// Item 4212: hue 93 → 78, luma 78 → 88, the land lit at the frame's white, §3.21.
     /// Item 4221: luma 88 → 89, the trees tinted and blended (§3.23).
-    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(78, 104), (89, 104)];
+    /// Item 4237: luma 89 → 90, the smoke blended in HDR moving the frame's white (§3.25).
+    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(78, 104), (90, 104)];
     /// Before, drawn and with the guys': the tree tiles, then the figure
     /// tiles, each `[hue, luma]`.
     /// Item 4212: drawn, the tree tiles' hue 63 → 51 (parked 4212b), the figures' 30 → 29: the land lit at the frame's white, §3.21.
     /// Item 4221: with the guys', the tree tiles' luma 59 → 60 (§3.23).
     /// Item 4233: with the guys', the tree tiles' luma 60 → 59 and the
     /// figures' 29 → 30: the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21).
+    /// Item 4237: with the guys', the tree tiles' luma 59 → 60, the smoke blended in HDR moving the frame's white (§3.25).
     const RUN1559B_3279_SHADOW_BY_KIND: [[[(usize, usize); 2]; 2]; 3] = [
         [[(43, 68), (1, 68)], [(29, 36), (20, 36)]],
         [[(51, 68), (59, 68)], [(29, 36), (20, 36)]],
-        [[(51, 68), (59, 68)], [(27, 36), (30, 36)]],
+        [[(51, 68), (60, 68)], [(27, 36), (30, 36)]],
     ];
 
     /// One scored tile: the tile, the photograph's mean, the still's, and
