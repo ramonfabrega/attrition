@@ -178,14 +178,10 @@ const STATE_LINES_KEPT: [&str; 8] = [
 const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     (
         7195,
+        // Item 4251: units whole; before it, 3 of 1697 ranges from 832,
+        // records 27..29 `unit_masks` 0x40000|0x40004 (bit 0x4,
+        // `in_danger`, left out of the emitter; run1600's packet agrees).
         &[
-            (
-                "units",
-                1697,
-                1697,
-                3,
-                "832 27 collide_frame..play: unit_masks 262144|262148",
-            ),
             (
                 "leaders",
                 271,
