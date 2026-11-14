@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). The sha
 `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6; gate scoped, DECISIONS 115 §3), a `start`
 item (`docs/START.md` §5: the frame-zero state built from the lobby's choices, the `[Start Game]` dump its oracle)
 and an `input` item (`docs/CLIENT_INPUT.md`: events mint a script's orders and the original plays the file; gate scoped). A
-residue or chapter item books only when another track's frame needs one. **The lanes** (DECISIONS 132 §9): start 4204; render 4227; third 4228; the suite 4224.
+residue or chapter item books only when another track's frame needs one. **The lanes** (DECISIONS 132 §9): start none; render 4227; third 4228; the suite 4224.
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2; builders). `LEADERS_HELD_OUT` 30 (VII-d the alliance found short: `counteroffer`; VII-c the offers arm's accept: `made_peace` on 1028 and the packet's five; the frozen scan, `rondata::stores`: `score_explored`, `score_pop`, `last_spoke`; VII-b1 the declaration three; VII-b2 the taunt's answer four on 967, the gift's food equal). A leaf leaves where it moves on a dump or packet our walk holds, on a block no staged
@@ -67,12 +67,6 @@ the pins as rows. The next pass weighs it: 4220 bought 3.7 %. Kill: a floor move
 are mid-lake tiles where theirs reads redder; the cause is not read. The dark patch is the fish herd (draws 157, 159, 160).
 Score: `OCEAN` on hue past 258. First act: one mid-lake tile's colour through the card's draws, ours against theirs, on the
 sRGB-matched photograph. Kill: no draw carries it: parked with the tile named.
-
-4204. **The quit's `clear_orders`, timed past the frame's body** (rules; **whole**; parked 4189a). Landed and reverted
-(`9b47bd4ce`, `a774e028e`): on `worktree-att-4204` (`f05b52098`) it timed the defeat's `clear_orders` past the frame's body for the 110
-of 124 closings that quit there (run667 159 → 108, run609 42 → 29, `cant_reach` 5 → 0), and turned red the 13 that quit at the
-head: the six melees' and run80's word windows widened whole, and run82's ride. First act: those eight on the branch, by frame
-and record. Score: as landed, the eight green. Kill: the head quits need their own timing, named, and the 110 land alone.
 
 4228. **Parity's units on 189** (rules; scoped; parked 4226a, 4226b; CHECKSUM §24). After 4226 (the checksums walk leader
 slots 0 to 8 only, so slot 9's birds are not summed) the minted game's lines first part: leaders 0 (the chain's), units 189,
