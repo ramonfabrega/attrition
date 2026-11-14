@@ -887,6 +887,38 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         ),
     );
 
+    // The surf's section models (`docs/FORMATS.md`, "The surf's section
+    // models"; item 4235): every `.mot` read whole by `render::mot` — one
+    // header, `num_frames` frames of {vertices, texcoords}, counts equal
+    // across frames, faces whole triangles inside the vertices — and every
+    // model `<SURF>`'s `<WAVESECTION>`s name found among them.
+    let mots = rondata::artdata::art_files(install, "mot");
+    let mot_ok = mots
+        .iter()
+        .filter(|f| std::fs::read(f).is_ok_and(|b| render::mot::decode(&b).is_ok()))
+        .count();
+    let surf = rondata::artdata::surf_waves(install);
+    let (waves, named) = match &surf {
+        Ok(w) => (
+            w.len(),
+            w.iter()
+                .flatten()
+                .map(|p| p.to_string_lossy().to_ascii_lowercase())
+                .collect::<std::collections::BTreeSet<_>>()
+                .len(),
+        ),
+        Err(_) => (0, 0),
+    };
+    failures += check(
+        "the install's surf section models decode whole",
+        (mot_ok, mots.len(), waves, named) == (31, 31, 13, 26),
+        &format!(
+            ".mot {mot_ok} of {} (31 of 31); <SURF> waves {waves} (13) naming {named} \
+             models (26)",
+            mots.len()
+        ),
+    );
+
     // The claim that forces index-keyed loading. If this ever comes back
     // empty, name-keying would be safe and decision 9 deserves revisiting.
     let dups = rules.constants.duplicate_tags();

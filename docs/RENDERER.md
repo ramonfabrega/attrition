@@ -3203,7 +3203,9 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
 - the floor's parallax to its plane at −283, not drawn (§3.18 found it moves no hue);
 - a lit floor texel above the curve's white (stage 1, about 5.26 against 4.9) clips in the copy and comes back at
   the white;
-- the surf, now worth `SANDY` +128 by composite (4225a);
+- the surf, now worth `SANDY` +128 by composite (4225a). Its section models are read (item 4235: `render::mot`,
+  `docs/FORMATS.md`, "The surf's section models"). The shore's splines, `internal_random`'s state at load and
+  `SURFTIMING*` are not;
 - the fish herds' blot and the whitecaps;
 - the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
 - the screen reflection and the specular.

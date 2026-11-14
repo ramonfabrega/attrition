@@ -2496,6 +2496,36 @@ pub fn tileset_tint(install: &Install, tileset: &str) -> Result<[u8; 3], ArtFail
     Ok(out)
 }
 
+/// **The surf's waves** (item 4235; `docs/FORMATS.md`, "The surf's section
+/// models"): each `<WAVE>` under `Data/effects_graphics.xml`'s `<SURF>`, in
+/// file order, as its `<WAVESECTION>`s' `model=` files with `.mot`
+/// appended, as `SurfWaveSection::init@0089e8f0` opens them. Tag names are
+/// read here as names; `Surf::init_class@0089f050`'s own walk of the block
+/// is not read field by field.
+pub fn surf_waves(install: &Install) -> Result<Vec<Vec<PathBuf>>, ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let path = install.data("effects_graphics.xml");
+    let text = crate::read(&path).map_err(|_| unnamed("effects_graphics.xml"))?;
+    let doc = crate::parse(&path, &text).map_err(|_| unnamed("effects_graphics.xml"))?;
+    let surf = doc
+        .descendants()
+        .find(|n| n.has_tag_name("SURF"))
+        .ok_or_else(|| unnamed("SURF"))?;
+    let mut waves = Vec::new();
+    for wave in surf.children().filter(|n| n.has_tag_name("WAVE")) {
+        let mut files = Vec::new();
+        for sec in wave.children().filter(|n| n.has_tag_name("WAVESECTION")) {
+            let model = sec
+                .attribute("model")
+                .ok_or_else(|| unnamed("WAVESECTION/model"))?;
+            let rel = format!("{}.mot", model.trim());
+            files.push(resolve(install.root(), &rel).ok_or_else(|| unnamed(&rel))?);
+        }
+        waves.push(files);
+    }
+    Ok(waves)
+}
+
 /// **The tileset's light** (item 4217; `docs/RENDERER.md` §3.22): the
 /// `<LIGHTING>` element's `<AMBIENT>` and `<DIFFUSE>` under `tileset`,
 /// each `<COLOR name>`'s `red`, `green`, `blue` and `alpha` as written.
@@ -2830,6 +2860,90 @@ mod tests {
             ]
         );
         assert!(anim_failed.is_empty(), "{anim_failed:#?}");
+    }
+
+    /// **Every surf section model the install ships is read whole** (item
+    /// 4235, `docs/FORMATS.md`, "The surf's section models"): 31 of 31
+    /// `.mot` under `art/`, each one header and `num_frames` frames, every
+    /// frame the same vertex count. The `<SURF>` block names 26 of them
+    /// in 33 sections across 13 waves; the five `surf_flat_*_bigwave` are never named.
+    #[test]
+    fn every_surf_section_model_the_install_ships_decodes() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let files = art_files(&inst, "mot");
+        let mut shapes = BTreeMap::new();
+        let mut static_texs = Vec::new();
+        for f in &files {
+            let m = render::mot::decode(&std::fs::read(f).unwrap())
+                .unwrap_or_else(|e| panic!("{}: {e}", f.display()));
+            let name = f
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .to_ascii_lowercase();
+            let family = if name.ends_with("wave.mot") && !name.contains("flat") {
+                "wave"
+            } else {
+                name.trim_end_matches(".mot").rsplit('_').next().unwrap()
+            };
+            if m.texcoords_static() {
+                static_texs.push(name.clone());
+            }
+            let shape = (m.frames.len(), m.verts(), m.faces.len());
+            let prior = shapes.insert(family.to_string(), shape);
+            assert!(
+                prior.is_none_or(|p| p == shape),
+                "{name}: {shape:?} against {prior:?}"
+            );
+        }
+        assert_eq!(files.len(), 31, "the files read");
+        let want: BTreeMap<String, (usize, usize, usize)> = [
+            ("wave", (11, 10, 24)),
+            ("breaker", (14, 12, 30)),
+            ("bigcrash", (12, 10, 24)),
+            ("bigfoam", (16, 9, 24)),
+            ("bigwash", (24, 10, 24)),
+            ("bigwave", (15, 30, 120)),
+        ]
+        .into_iter()
+        .map(|(k, v)| (k.to_string(), v))
+        .collect();
+        assert_eq!(shapes, want, "(frames, vertices, indices) by family");
+        // Texcoords equal across frames: the eight breakers, the five
+        // `bigfoam`, and `surf_flat_0_bigcrash` and `_bigwash` alone.
+        let mut want_static: Vec<String> = (0..8)
+            .map(|i| format!("surf_{i}_breaker.mot"))
+            .chain((0..5).map(|i| format!("surf_flat_{i}_bigfoam.mot")))
+            .chain(["surf_flat_0_bigcrash.mot", "surf_flat_0_bigwash.mot"].map(String::from))
+            .collect();
+        want_static.sort();
+        static_texs.sort();
+        assert_eq!(static_texs, want_static, "texcoords static across frames");
+
+        // Names compare case-folded: the XML writes `surf_flat_0_bigwash`
+        // where the file is `Surf_Flat_0_Bigwash.mot`.
+        let fold = |p: &PathBuf| {
+            p.file_name()
+                .unwrap()
+                .to_string_lossy()
+                .to_ascii_lowercase()
+        };
+        let waves = surf_waves(&inst).unwrap();
+        let named: std::collections::BTreeSet<String> = waves.iter().flatten().map(fold).collect();
+        let shipped: std::collections::BTreeSet<String> = files.iter().map(fold).collect();
+        let sections: usize = waves.iter().map(Vec::len).sum();
+        assert_eq!((waves.len(), sections, named.len()), (13, 33, 26));
+        assert!(named.is_subset(&shipped), "{named:?}");
+        let unnamed: Vec<String> = shipped.difference(&named).cloned().collect();
+        assert_eq!(
+            unnamed,
+            (0..5)
+                .map(|i| format!("surf_flat_{i}_bigwave.mot"))
+                .collect::<Vec<_>>()
+        );
     }
 
     /// **The tileset's tint** (item 4212; `docs/RENDERER.md` §3.21):
