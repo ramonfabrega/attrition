@@ -116,6 +116,15 @@ impl Sim {
             self.mark(crate::units::anim::SITE_TURN_STAND);
             self.do_turn_anim(i, was, to, heading);
         }
+        if std::env::var_os("RON_PROBE_4260").is_some()
+            && self.units[i].index == 14
+            && self.units[i].owner == 1
+        {
+            eprintln!(
+                "P4260W f{} body facing {:?} -> {:?} heading {:?} was_at_des {} turned {} rate {}",
+                self.frame, facing, follow.facing, heading, was_at_des, turned, rate
+            );
+        }
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;
         // **`guy_flags & 2` is cleared here, after `Guy::move`**

@@ -2259,6 +2259,15 @@ impl Sim {
         if step.turned_in_place.is_some() {
             self.do_turn_anim(u, m.facing, step.facing, step.heading);
         }
+        if std::env::var_os("RON_PROBE_4260").is_some()
+            && self.units[u].index == 14
+            && self.units[u].owner == 1
+        {
+            eprintln!(
+                "P4260W f{} move_step facing {:?} -> {:?} heading {:?} tip {:?} rate {}",
+                self.frame, m.facing, step.facing, step.heading, step.turned_in_place, rate
+            );
+        }
         let unit = &mut self.units[u];
         unit.movement.facing = step.facing;
         // **`Guy::do_turn`'s own `set_angle(guy 0, angle, 0)`** — every
