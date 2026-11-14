@@ -425,7 +425,7 @@ fn british_classical_pair_run1316_s_closing_state() {
         .final_state()
         .or_else(|| log.frame_states().pop())
         .expect("closing whole-map state");
-    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, p.long.1);
     eprintln!(
         "British Classical pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
         e.frame,
@@ -450,7 +450,9 @@ fn british_classical_pair_run1316_s_closing_state() {
         Vec::<(i64, i64)>::new(),
         "the closing extras"
     );
-    // The dump's own tear (`0/4` at the simulation's `n − 1`), not a
-    // divergence.
-    pin_eq!(e.torn.clone(), vec![(0, 4)], "the closing tears");
+    // Item 4204: the tear `0/4` gone. run1316's trace puts the quit past
+    // 8980's body (the resign's draw after its last `game_random` draw), so
+    // the walker takes its step before the quit on both sides; with the
+    // quit at the head it stopped a step short in ours.
+    pin_eq!(e.torn.clone(), vec![], "the closing tears");
 }
