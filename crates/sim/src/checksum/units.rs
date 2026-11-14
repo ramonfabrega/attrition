@@ -211,13 +211,7 @@ impl Sim {
             put("must_walk", vec![1]);
             put("collide_frame..play", self.unit_record_bytes(u));
             // `size` is the stack's high water, not its length (item 4228).
-            let mut stack = if std::env::var_os("RON_PROBE_4228_OLD").is_some() {
-                PATH_BLOCK.max(unit.path.len().div_ceil(PATH_BLOCK as usize) as i32 * PATH_BLOCK)
-            } else {
-                unit.path.size()
-            }
-            .to_le_bytes()
-            .to_vec();
+            let mut stack = unit.path.size().to_le_bytes().to_vec();
             stack.extend_from_slice(&(unit.path.len() as i32).to_le_bytes());
             stack.push(PATH_BLOCK as u8);
             put("path.size..increment", stack);
