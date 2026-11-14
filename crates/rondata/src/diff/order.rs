@@ -1858,7 +1858,8 @@ mod tests {
                 tolerance: 384,
                 flags: 0,
             },
-        ].into();
+        ]
+        .into();
         let link = built.units[1];
         let them = |path: Vec<crate::gamelog::PathDump>| UnitDump {
             who: 0,

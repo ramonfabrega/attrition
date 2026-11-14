@@ -104,7 +104,8 @@ impl Sim {
                 // object for its modes, its `toff` and its `calc_cost`, and
                 // the original passes exactly that object — then take it
                 // back, leaving the leader's own stack as it was.
-                let saved = std::mem::replace(&mut self.units[l].path, PathStack::from_nodes(chain));
+                let saved =
+                    std::mem::replace(&mut self.units[l].path, PathStack::from_nodes(chain));
                 self.find_wpath_from(l, start, g.army.is_some() || self.slot_keeps_army_link(g));
                 chain = std::mem::replace(&mut self.units[l].path, saved).into_nodes();
             }
@@ -258,7 +259,8 @@ impl Sim {
                 flags: path_flag::FINAL,
             };
             let start = self.units[u].path.last().map_or(from, |p| p.to);
-            let saved = std::mem::replace(&mut self.units[u].path, PathStack::from_nodes(vec![goal]));
+            let saved =
+                std::mem::replace(&mut self.units[u].path, PathStack::from_nodes(vec![goal]));
             self.find_wpath_from(u, start, false);
             let mut chain = std::mem::replace(&mut self.units[u].path, saved).into_nodes();
             if chain.is_empty() {

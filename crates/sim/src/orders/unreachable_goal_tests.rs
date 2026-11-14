@@ -55,7 +55,8 @@ fn an_unreachable_goal_kills_the_move_and_keeps_the_guard() {
             tolerance: 0,
             flags: 0,
         },
-    ].into();
+    ]
+    .into();
     s.units[u].line_ok = false;
     let post = s.units[u].pos;
     s.units[u].orders.push_back(Order {

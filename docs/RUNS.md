@@ -37086,3 +37086,28 @@ SHA-256 `2e3a9db10b14fa226ec7061f37b2072c539883e626a876b71df22db7f10c8028`; `ron
 SHA-256 `daaf2327e1bc272f52c2d421737bc6b42ccc3e2a2bb68a1fb1b69f0b7c91f33d`.
 
 **What it holds**: the cities line's first parting, named by record and field.
+
+## run1586 — the minted file's playback with a packet at 189: units' first parting (2026-11-14, item 4228, `att-4228`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**: which field holds the units line out on frame 189, its
+first parting on run1578 since item 4226; the hook carries only the line's Adler, and no packet stood on 189. The
+take: run1582's line, `--recording <the minted file> --end-frame 192 --cover cover=1 --log-window 188 191 --detail
+end:MISC --timeout 900 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=189 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`, through `viadriver.sh golden_capture.sh ~/ron-golden/run1586`,
+waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 01:10:30 −05:00, exited 01:10:56: **26.7 s launch to exit**, exit 0, `success`, 193 frames,
+  `last_frame` 192, no page fault, no relaunch. `df -g ~` read 175 GB free before it. Minutes waited on another lane:
+  none. DLL `2fadf441…`. No `.rcx` left in `Logs\`.
+- The packet at logger frame 189, trace frame 188, `frame-snapshot.bin`, SHA-256
+  `08dbebfb04fc7d8153f592bac07fcc92ad2b2f6f471e23f9af6f733de29e31cd`. `checksum.py --stream --values`: the stream's
+  sums equal the original's on every line; kept under `~/ron-data/lab-experiments/2026-11-13-item-4214/run1586/`
+  beside the other minted packets. Its units value, 2235033462, is run1578's theirs on 189.
+- **Units on frame 189**: 1 of 1,127 ranges parted, range 303, unit `1/6` (`TypeIndex` 50, a Citizen) `path.size`
+  ours 10, theirs 20, `path.length` 6 on both (`MINTED_PACKETS`). Item 4228 makes it whole.
+- Filed with `filerun.py run1586 greatlakes-playback-of-minted-packet-189`.
+
+Archive `gamelog-run1586-greatlakes-playback-of-minted-packet-189.txt`, 2,449 bytes,
+SHA-256 `73d1d3988efc3879957f5ed3bfb1200d8592daa27049cd5c378c260a485b49ec`; `rontrace-run1586.log`, 9,572,448 bytes,
+SHA-256 `138d411199419d46fe26ea354e48a7eb1712b979c8ad0c1056f73ccdd185dbe3`.
+
+**What it holds**: the units line's first parting on 189, named by record and field.

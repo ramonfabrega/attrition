@@ -59,7 +59,8 @@ fn a_snap_onto_a_refused_tile_pops_the_waypoint_where_it_stands() {
             tolerance: 0,
             flags: path_flag::SIDESTEP,
         },
-    ].into();
+    ]
+    .into();
     s.units[u].line_ok = true;
     s.trace.trace_phases = true;
     let mut grid = false;
