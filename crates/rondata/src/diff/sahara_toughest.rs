@@ -2114,7 +2114,8 @@ mod tests {
         );
         // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 62 -> 30.
-        pin_eq!(w.firsts.len(), 30, "every key parted on run668"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 4231: 30 -> 28, group 68's `speed`/`new_speed` 0|35 on 15421 agree (`docs/GROUPS.md` §3.4).
+        pin_eq!(w.firsts.len(), 28, "every key parted on run668"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         // **The word 15275's frame, widened** (item 1524, `docs/AI.md`
         // §140): ours 12 draws against 11, parting at index 4 — ours
         // `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
@@ -2162,8 +2163,9 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             // Item 1605 took `production_step` on 15401 (`docs/AI.md` §169).
-            [(15_421, 2)],
-            "what parts past the word: three keys, the draws agreeing"
+            // Item 4231 took group 68's `speed`/`new_speed` on 15421: [(15_421, 2)] -> [] (`docs/GROUPS.md` §3.4).
+            [],
+            "what parts past the word: nothing, the draws agreeing"
         );
     }
 

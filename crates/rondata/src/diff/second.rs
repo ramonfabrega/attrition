@@ -1298,7 +1298,7 @@ mod tests {
         // What stands: the first block's 244 keys (249 until item 1174 fed
         // who=1's `escrow`, `docs/AI.md` §98), the barge identities
         // `1/36`/`1/38` (6718; 6735's unlinked/extra, the one that landed
-        // `1/33` on each side), one-member groups' `speed`, and from 6781
+        // `1/33` on each side), ~~one-member groups' `speed`~~ (item 4231), and from 6781
         // player 1's make list (`MAKE[].city`), `gather_stamp` (6792) and
         // player 0's `production_step` (6801), ahead of the word 7382's
         // `Leader::use_market` against `Leader::make_stuff`.
@@ -1306,7 +1306,8 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(6604, 34), (6685, 2), (6718, 3)],
+            // Item 4231: (6685, 2) gone, group 73's `speed`/`new_speed` 0|34 agree (a `QUEUE_FIRST` move's `get_num_cap` normalizes its record, `docs/GROUPS.md` §3.4).
+            [(6604, 34), (6718, 3)],
             "the blocks keys first part on, the whole window"
         );
         // Item 1197: 298 → 189, the dead transports' numbers held
@@ -1318,7 +1319,8 @@ mod tests {
         // Item 1457: 127 → 109; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 109 → 105; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 4159's residue: 40 -> 39, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-        pin_eq!(w.firsts.len(), 39, "every key parted on run420");
+        // Item 4231: 39 -> 37, group 73's `speed`/`new_speed` on 6685.
+        pin_eq!(w.firsts.len(), 37, "every key parted on run420");
     }
 
     /// **The second pair's East Indies word, 7382, widened whole** (item
@@ -3323,7 +3325,7 @@ mod tests {
         // What is left on the gap is standing or known: the first block's
         // 258 keys (263 until item 1174 fed who=1's `escrow`, `docs/AI.md`
         // §98) (run420's first block held the same families); groups'
-        // `speed`/`form`, which this crate writes on no one-member group;
+        // `form` (and `speed` until item 4231), which this crate writes on no one-member group;
         // the barge identities `1/36`/`1/38` (6574, parked since item 1143);
         // and `1/42`'s `path[16].flags` 4 against 0 on 6576.
         pin_eq!(
@@ -3339,7 +3341,8 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(6567, 33), (6576, 1), (6587, 2), (6588, 2)],
+            // Item 4231: (6587, 2) and (6588, 2) gone, groups 70 and 65's `speed`/`new_speed` 0|25 agree (a `QUEUE_FIRST` move's `get_num_cap` normalizes its record, `docs/GROUPS.md` §3.4).
+            [(6567, 33), (6576, 1)],
             "the blocks keys first part on, the whole window"
         );
         // Item 1197: 277 → 175, the dead transports' numbers held
@@ -3350,7 +3353,8 @@ mod tests {
         // Item 1407: 117 → 116, `1/42`'s `path[16].flags`.
         // Item 1457: 115 → 105; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 105 → 104; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 38, "every key parted on run421");
+        // Item 4231: 38 -> 34, groups 70 (6587) and 65 (6588) `speed`/`new_speed`.
+        pin_eq!(w.firsts.len(), 34, "every key parted on run421");
     }
 
     /// **The second pair's Great Lakes word, 4555, widened whole** (item
