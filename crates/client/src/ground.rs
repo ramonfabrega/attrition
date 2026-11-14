@@ -1083,12 +1083,13 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4227: run1564 **1,710 → 1,705** (`SANDY` 649 → 650, `OCEAN` 357 → 351), the floor's clamped second layer at its offset (§3.12): the lake's hue in, six of its tiles a shade bright; run1559b unchanged.
 /// Item 4232: run1564 **1,705 → 1,805** (`SANDY` 650 → 681, `OCEAN` **351 → 420**), the floor lit per pixel and the water blended over it in HDR (`shaders/water.wgsl`, §3.24); run1559b unchanged.
 /// Item 4233: run1559b **1,036 → 1,038** (plain 954 → 956): the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21); run1564 unchanged.
+/// Item 4241: run1559b **1,038 → 1,031** (plain 956 → 954, under a mountain 66 → 61), run1564 1,805 → 1,804 (`SANDY` 681 → 680): the bloom drawn and a plume's pixel clamped after the white (§3.25).
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1038, 1109),
+        (1031, 1109),
         [
-            [956, 986],
-            [66, 106],
+            [954, 986],
+            [61, 106],
             [16, 17],
             [0, 0],
             [0, 0],
@@ -1097,14 +1098,14 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1805, 1920),
+        (1804, 1920),
         [
             [679, 679],
             [0, 0],
             [25, 32],
             [0, 0],
             [0, 0],
-            [681, 772],
+            [680, 772],
             [420, 437],
         ],
     ),
@@ -1414,13 +1415,14 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// ([`RUN1564_3279_LAKE_HDR_TEXTURE`]); the GPU's mipmapped draw reads
 /// less spread.
 #[cfg(test)]
+/// Item 4241: `SANDY` 326 → 329, the bloom drawn and a plume's pixel clamped after the white (§3.25).
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [665, 679],
     [0, 0],
     [9, 32],
     [0, 0],
     [0, 0],
-    [326, 772],
+    [329, 772],
     [232, 437],
 ];
 

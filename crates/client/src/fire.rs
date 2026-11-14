@@ -471,11 +471,15 @@ mod tests {
     /// read 9,139 to 11,431 (mean 10,191), dense 230 to 1,319 (mean 804);
     /// the hash on the node's direction, mean 10,280, dense 912; the hash
     /// on (0, 0, −1), mean 9,871, dense 589.
+    /// Item 4241: a plume's pixel clamped after the white, 11,251 →
+    /// 11,259, dense 876 → 880; then the bloom, which brightens the
+    /// fires-off scene and so moves theirs 19,378 → 19,675: **11,322**,
+    /// past 2,099, **dense 924** of 2,463; the packet's 11,878, dense 1,750.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((11251, 19378, 2168), (14850, 876)),
-        ((0, 19378, 0), (0, 0)),
-        ((19378, 19378, 0), (16963, 2415)),
-        ((11806, 19378, 2042), (14210, 1716)),
+        ((11322, 19675, 2099), (14853, 924)),
+        ((0, 19675, 0), (0, 0)),
+        ((19675, 19675, 0), (17212, 2463)),
+        ((11878, 19675, 1943), (14197, 1750)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -489,11 +493,14 @@ mod tests {
     /// Over 24 phases the draws read 10,006 to 11,873 (mean 11,104), dense
     /// 266 to 956 (mean 669); the hash on the node, mean 10,713, dense 907;
     /// on (0, 0, −1), mean 9,776, dense 606.
+    /// Item 4241: clamped after the white, 11,547 → 11,548, dense 942 →
+    /// 948; the bloom, theirs 18,871 → 19,045: **11,560**, past 1,794,
+    /// **dense 975** of 2,511; the packet's 12,257, dense 2,124.
     const RUN1570_PLUME: PlumeRows = [
-        ((11547, 18871, 1895), (14951, 942)),
-        ((0, 18871, 0), (0, 0)),
-        ((18871, 18871, 0), (16401, 2470)),
-        ((12219, 18871, 1555), (13771, 2099)),
+        ((11560, 19045, 1794), (14874, 975)),
+        ((0, 19045, 0), (0, 0)),
+        ((19045, 19045, 0), (16534, 2511)),
+        ((12257, 19045, 1463), (13720, 2124)),
     ];
 
     #[test]
@@ -520,43 +527,55 @@ mod tests {
     /// 154), and slot 10's flame, under the tower, is not drawn (extent 0
     /// against 16). Made to fail, pale and flame merged into one class,
     /// the row reads 226. The packet's particles read 205, past 331.
+    /// Item 4241, the tone map's own order (§3.25): a plume's pixel
+    /// clamped after the white scales it, **163 → 183**, past 459 → 522,
+    /// pale 212 → 167, flame 473 → 591 (merged 236); then the bloom,
+    /// **→ 206** of 699, past 584, pale 176, flame 678 (merged 270). The
+    /// bloom brightens the fires-off scene too, so theirs moves 712 → 699.
+    /// The packet's particles read 233, then 266, past 425. With the fire's
+    /// depth test off, slot 10 is drawn where the photograph's flame is
+    /// (extent 17 against 16) and the row reads 322 at the clamp (4241a).
     const RUN1559B_3279_FLAME: FlameRows = [
         (
-            (163, 712, 459),
-            (212, 473),
-            [(19, 14), (25, 19), (16, 0), (31, 18)],
+            (206, 699, 584),
+            (176, 678),
+            [(19, 15), (25, 21), (16, 0), (31, 20)],
         ),
-        ((0, 712, 0), (0, 0), [(19, 0), (25, 0), (16, 0), (31, 0)]),
+        ((0, 699, 0), (0, 0), [(19, 0), (25, 0), (16, 0), (31, 0)]),
         (
-            (712, 712, 0),
-            (154, 558),
+            (699, 699, 0),
+            (148, 551),
             [(19, 19), (25, 25), (16, 16), (31, 31)],
         ),
         (
-            (205, 712, 331),
-            (136, 492),
-            [(19, 14), (25, 17), (16, 0), (31, 18)],
+            (266, 699, 425),
+            (108, 666),
+            [(19, 15), (25, 18), (16, 0), (31, 19)],
         ),
     ];
-    /// **`RUN1570_FLAME`**, on run1570's frame 3327: as run1559b's. Seen at
-    /// **245** of 628, past 213 (pale 92 against the photograph's 43; made
-    /// to fail, 283). The packet's particles read 303, past 251.
+    /// to fail, 283). The packet's particles read 303, past 251. Item
+    /// 4241: clamped after the white, **245 → 321**, past 213 → 316, pale
+    /// 92 → 95, flame 404 → 584 (merged 363); the bloom, **→ 346** of 627,
+    /// past 393, pale 102, flame 680 (merged 389). The packet's particles
+    /// read 370, then 407, past 441; four frames from the photograph, they
+    /// stand as tall as its flames on slots 8 and 9 (15 and 28 rows against
+    /// 13 and 27). Depth test off, 444 (4241a).
     const RUN1570_FLAME: FlameRows = [
         (
-            (245, 628, 213),
-            (92, 404),
-            [(13, 4), (27, 26), (5, 0), (19, 24)],
+            (346, 627, 393),
+            (102, 680),
+            [(13, 11), (27, 26), (5, 0), (19, 24)],
         ),
-        ((0, 628, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
+        ((0, 627, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
         (
-            (628, 628, 0),
-            (43, 585),
+            (627, 627, 0),
+            (43, 584),
             [(13, 13), (27, 27), (5, 5), (19, 19)],
         ),
         (
-            (303, 628, 251),
-            (82, 496),
-            [(13, 9), (27, 27), (5, 0), (19, 23)],
+            (407, 627, 441),
+            (105, 780),
+            [(13, 15), (27, 28), (5, 0), (19, 28)],
         ),
     ];
 

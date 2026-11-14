@@ -1333,7 +1333,9 @@ pub const RUN1559B_3279_TRACED_STILL: (usize, usize) = (32, 33);
 /// → 64 (the painter's 66, all 213 of its pixels within 8), out on both;
 /// 0/5, 0/6 and 1/34 stay the mip level's (4171b), 142, 76 and 115.
 /// **Item 4221: 14 → 18**, the trees tinted and blended (§3.23).
-pub const RUN1559B_3279_COLOUR_STILL: (usize, usize) = (18, 33);
+/// **Item 4241: 18 → 17**, the bloom drawn and a plume's pixel clamped after the white (§3.25): the frame's white and the glow move one
+/// figure's chromaticity past the reader's 0.05.
+pub const RUN1559B_3279_COLOUR_STILL: (usize, usize) = (17, 33);
 /// The still's `(TRACED, COLOUR)` under its four readings (item 4171):
 /// the silhouette pass before and after the lit one, on a plain target
 /// and on an sRGB one — the client's draw first, the draw before 4171
@@ -1345,8 +1347,9 @@ pub const RUN1559B_3279_COLOUR_STILL: (usize, usize) = (18, 33);
 /// on the first three, every colour count held.
 /// Item 4221 (§3.23): before-plain (33, 14) → (32, 18), after-plain colour
 /// 2 → 6, before-sRGB traced 33 → 32: 0/6 behind the tree (4221c).
+/// Item 4241: before-plain colour 18 → 17, the bloom drawn and a plume's pixel clamped after the white (§3.25).
 pub const RUN1559B_3279_STILL_READINGS: [((usize, usize), (usize, usize)); 4] = [
-    ((32, 33), (18, 33)),
+    ((32, 33), (17, 33)),
     ((33, 33), (6, 33)),
     ((32, 33), (11, 33)),
     ((33, 33), (2, 33)),
