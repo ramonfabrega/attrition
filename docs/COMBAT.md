@@ -6910,7 +6910,12 @@ arrow is the fourth hit on `1/6`, ours at 680 against the dump's 679,
 and it is the only launch-point row the widening still carries. A
 capture that raises `AMMO` on a slinger volley at longer range, or a
 window whose slinger fires from further off, closes it; nothing on disk
-does.
+does. **Closed by item 4256** (`docs/CLIENT_INPUT.md` §15.1): run1603's
+packet holds a slinger's `CHAR_ATTACK3` round in flight on the rallied
+Great Lakes game, and its launch point solves the row (bearing
+−253,348,352, radius 120, dz 177). Chapter two's word frame now widens
+nothing: `damage 1/6` agrees at 680
+(`chapter_two_s_word_frame_is_widened_whole`).
 
 ## 41.4 A figure falls at its share, not its squad's
 
@@ -7042,7 +7047,9 @@ body; `cur_anim 17` is the dump agreeing with the reading, which is why
 
 **What this does not establish**:
 
-- `(384, ATTACK3, 16)`'s node, which is `damage 1/6` at 680 (§41.3).
+- ~~`(384, ATTACK3, 16)`'s node, which is `damage 1/6` at 680 (§41.3).~~
+  **Closed by item 4256**: run1603's packet round (`docs/CLIENT_INPUT.md`
+  §15.1); the 680 row agrees.
 - ~~`dtype`, which is the `Unit::close` draw's gate (§41.5).~~ **Closed by
   item 491**: §42.1 derives it and the `DEATH_OBJS` row backs it.
 - ~~what the original does with an arrow whose target dies in flight
@@ -8554,7 +8561,8 @@ it spends the roll. On 771 `damage 1/7` is 24 + 10/16 on both sides, and on
 816 both `1/7`s die, carried from 817 as the dump's fourth `DEATH_OBJS`.
 
 What stands is older than this window's words and spends no draw:
-`damage 1/6` at 680 (§41.3) and ~~the ten `g.gpiece` rows at 606 (parked,
+~~`damage 1/6` at 680 (§41.3)~~ (closed by item 4256, the slinger's
+`CHAR_ATTACK3` node, `docs/CLIENT_INPUT.md` §15.1) and ~~the ten `g.gpiece` rows at 606 (parked,
 `docs/ANIM.md`)~~ (closed by item 1281: the age's `update_gpiece`,
 `docs/TECH.md`, "The piece moves with the age"). One new value row appears past the last draw either
 side differs on. On 846 the bowmen `0/7` and `0/8` drop their attack on

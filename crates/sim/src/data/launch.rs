@@ -237,6 +237,25 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             dz: 178,
         },
     ),
+    // **The slinger's third swing** (item 4256, run1603, `docs/CLIENT_INPUT.md`
+    // §15.1): the packet at logger frame 6860 on the rallied file holds
+    // `0/8`'s round born on 6859, its `CHAR_ATTACK3` release at frame 16,
+    // from (3762, 31769, 710). The unit stands at (3720, 31656) facing
+    // −2140667904 over ground 533. One shot: radius 120 is the only one
+    // that fits, and the bearing is the middle of its exact fits
+    // (−256363008 to −250333696, stepped by 65536). Without this row the
+    // round left the unit's square at ground height, flew 8 frames rather
+    // than 7, and the blow on `1/0` landed on 6867 where the dump has 6866.
+    (
+        384,
+        crate::units::anim::ATTACK3,
+        16,
+        Node {
+            bearing: -253_348_352,
+            radius: 120,
+            dz: 177,
+        },
+    ),
 ];
 
 /// **A release node the original turns by a whole degree** (item 770,
