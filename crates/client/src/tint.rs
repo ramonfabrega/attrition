@@ -232,10 +232,13 @@ pub(crate) mod tests {
     /// rises on all three (1,029 → 1,079, 1,396 → 1,410, 1,118 → 1,152) and
     /// run1564's grass hue and ground row fall (674 → 665, 1,021 → 1,001,
     /// its `SANDY` 311 → 290): the switch stays off (§3.22).
+    /// Item 4221 (the trees tinted and blended, §3.23): run1559b off luma
+    /// 1,029 → 1,036, on hue 960 → 959; run1570 off luma 1,118 → 1,121, on
+    /// 1,152 → 1,153. Lit still beats unlit on no hue row: off.
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
-        ([959, 1104, 1029], [960, 1104, 1079]),
+        ([959, 1104, 1036], [959, 1104, 1079]),
         ([674, 1021, 1396], [665, 1001, 1410]),
-        ([1042, 1171, 1118], [1041, 1171, 1152]),
+        ([1042, 1171, 1121], [1041, 1171, 1153]),
     ];
 
     /// **`GRASS_HUE`**, `[(untinted, tinted)]` on run1559b, run1564 and
@@ -245,10 +248,12 @@ pub(crate) mod tests {
     /// hue 57.9, ours (160.5, 138.9, 64.8) hue 46.4. The tint alone, unlit,
     /// read 16, 1 and 17. Drawn: 959, 674 and 1,042. On the tree merged with
     /// 4208 (the gaia figures' shipped variant), run1564's untinted 605 → 607.
+    /// Item 4221: the untinted side now untints the trees too (§3.23):
+    /// run1564's 607 → 605, run1570's 1,044 → 1,045; the drawn side holds.
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
         ((961, 986), (959, 986)),
-        ((607, 679), (674, 679)),
-        ((1044, 1073), (1042, 1073)),
+        ((605, 679), (674, 679)),
+        ((1045, 1073), (1042, 1073)),
     ];
 }
 

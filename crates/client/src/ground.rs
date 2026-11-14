@@ -1027,12 +1027,13 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// whose asphalt is 0.89 of ours (parked 4199b); run1564 unchanged.
 #[cfg(test)]
 /// Item 4212: run1559b **1,075 → 1,029** (plain 979 → 952, under a mountain 80 → 61); run1564 **1,377 → 1,396** (`ROCK` 27 → 21, `SANDY` 499 → 397, `OCEAN` 172 → 299): the land lit at the frame's white, §3.21.
+/// Item 4221: run1559b **1,029 → 1,036** (plain 952 → 954, under a mountain 61 → 66): the trees tinted and blended (§3.23) change the frame's mean, so its white; run1564 unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1029, 1109),
+        (1036, 1109),
         [
-            [952, 986],
-            [61, 106],
+            [954, 986],
+            [66, 106],
             [16, 17],
             [0, 0],
             [0, 0],
