@@ -1998,6 +1998,22 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// run1575; `score_explored`'s left neighbour, `score`, is still held, and
 /// the nearest moving leaf below it is `defeated_by` (+0x10). The long
 /// range stays out on the other 37.
+///
+/// Item 4159's step VII-c: 37 → 31 names. The French accept of run1575's
+/// 1027 is computed (`Leader::diplomacy`'s offers arm, `sim::leaders::
+/// diplomacy::offers`; `action_respond`'s treaty arm) off the human's own
+/// proposal and accept, and the staging is retired: our walk holds run1575
+/// unstaged, 1150 of 1150 computed (`docs/DECISIONS.md` entry 132 §1).
+/// `made_peace`, 0 = 0 on frame 91, both leaders, moves on the record on
+/// 1028 (1027 both ways), ours equal
+/// (`diff::diplomacy_take::run1575_s_peace_is_the_french_answer`). The
+/// five unprinted leaves the driver held at VII-b2 leave on run1575's packet
+/// at 1090, which no staged decision precedes now: the French `incoming` 1,
+/// `incoming_taunt[0]` 1, `incoming_taunt_frame[0]` 966 and `tribute_sent`
+/// 3,290, the human's `tribute_received` 1,909, ours equal on each
+/// (`packets::run1575_take_packet`); the computed accept's exchange gives
+/// no goods and leaves the two totals alone. The long range stays out on the
+/// other 31.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
@@ -2017,13 +2033,9 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("hire_who (unheld)", 2),
     ("hits_current_frame (unheld)", 2),
     ("hits_fifteen_seconds (unheld)", 2),
-    ("incoming (unheld)", 2),
-    ("incoming_taunt (unheld)", 2),
-    ("incoming_taunt_frame (unheld)", 2),
     ("incoming_taunt_who (unheld)", 2),
     ("kills_current_frame (unheld)", 2),
     ("kills_fifteen_seconds (unheld)", 2),
-    ("made_peace (unheld)", 2),
     ("pop_issues (unheld)", 2),
     ("raid_stamp (unheld)", 2),
     ("score (unheld)", 2),
@@ -2031,8 +2043,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("score_units (unheld)", 2),
     ("score_units_2 (unheld)", 2),
     ("tribute_demanded (unheld)", 2),
-    ("tribute_received (unheld)", 2),
-    ("tribute_sent (unheld)", 2),
     ("tributes (unheld)", 2),
     ("units_killed (unheld)", 2),
     ("units_lost (unheld)", 2),
@@ -2138,6 +2148,14 @@ const LEADERS_BENT: &[&str] = &[
     "score_explored",
     "score_pop",
     "last_spoke",
+    // Item 4159's step VII-c: `made_peace`, and the taunt's answer's five
+    // unprinted leaves, each agreeing on run 1562's frame 91.
+    "made_peace",
+    "incoming_taunt",
+    "incoming_taunt_frame",
+    "incoming",
+    "tribute_sent",
+    "tribute_received",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

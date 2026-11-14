@@ -39,15 +39,20 @@ const GOODS: [Resource; 5] = [
 /// The ring's length and the stamps' width: one per leader slot.
 const RING: usize = 8;
 
-/// The leaves the leaders line emits: `last_taunt` and `taunt_frame`, which
-/// move on run1575's block 967. The ring (`incoming_taunt`,
-/// `incoming_taunt_frame`, `incoming`) is held ([`Sim::leader_taunt_leaf`]
-/// answers it) and stays off the line: its only witness is run1575's packet
-/// at 1090, which follows the staged accept of 1027 (`docs/DECISIONS.md`
-/// entry 132 §1), so it waits on step VII-c. `incoming_taunt_who` is held
-/// and stays off too: the only sender any capture holds is who 0, the reset
-/// value (`docs/LEADERS.md` §9.5).
-pub const TAUNT_LEAVES: [&str; 2] = ["last_taunt", "taunt_frame"];
+/// The leaves [`Sim::leader_taunt_leaf`] answers and the leaders line emits:
+/// `last_taunt` and `taunt_frame`, which move on run1575's block 967, and
+/// the ring (`incoming_taunt`, `incoming_taunt_frame`, `incoming`), written
+/// on 906 and 966 and witnessed on run1575's packet at 1090, which our walk
+/// holds unstaged since step VII-c computes the accept of 1027.
+/// `incoming_taunt_who` is held and stays off the line: the only sender any
+/// capture holds is who 0, the reset value (`docs/LEADERS.md` §9.5).
+pub const TAUNT_LEAVES: [&str; 5] = [
+    "last_taunt",
+    "taunt_frame",
+    "incoming_taunt",
+    "incoming_taunt_frame",
+    "incoming",
+];
 
 /// One leader's taunt leaves (`docs/LEADERS.md` §9.1). All zero at game
 /// start; nothing in a match resets them.

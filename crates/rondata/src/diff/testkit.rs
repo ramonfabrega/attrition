@@ -7273,8 +7273,10 @@ pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 /// compares the declaration's `blacken`, `dow[·]` and `broke_alliance[·]`
 /// (+17 a leader); 200 since step VII-b2 compares the taunt's answer's
 /// `tribute_stamp[·]`, `gift_stamp[·]`, `last_taunt[·]` and
-/// `taunt_frame[·]` (+32 a leader).
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 200;
+/// `taunt_frame[·]` (+32 a leader); 208 since step VII-c compares
+/// `made_peace[·]` (+8 a leader; this level prints no `DIPLOMACY` block,
+/// so `dip.treaty[·]` is not compared here).
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 208;
 /// The leader keys `LEADERS=2` prints and the leader diff reads, a
 /// player: the goods block's 88, `gov` since item 706, and the three tech
 /// counters since item 883 (`docs/GOLDEN.md` §35); 93 since item 4185
@@ -7299,8 +7301,10 @@ pub(crate) const LEADERS_TWO_KEYS: usize = 94;
 /// 1627 since item 4159's step VII-b1 compares the declaration's
 /// `blacken`, `dow[·]` and `broke_alliance[·]` (+17 a leader; `LEADERS=2`
 /// prints none of them); 1659 since step VII-b2 compares the taunt's
-/// answer's four rows (+32 a leader; `LEADERS=2` prints none of them).
-pub(crate) const LEADERS_NINE_KEYS: usize = 1659;
+/// answer's four rows (+32 a leader; `LEADERS=2` prints none of them);
+/// 1675 since step VII-c compares `made_peace[·]` and the deal records'
+/// `dip.treaty[·]` (+16 a leader; `LEADERS=2` prints neither).
+pub(crate) const LEADERS_NINE_KEYS: usize = 1675;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,

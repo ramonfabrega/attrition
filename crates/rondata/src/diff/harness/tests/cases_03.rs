@@ -1612,7 +1612,7 @@ mod bodies {
             // Item 4176: 1227 -> 1262, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 1262 -> 1275, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1275 -> 1283, +8: of the end of the game's and the lost capital's nine, the eight this record does not print (`defeated_by` prints).
-            1656,
+            1672,
             "the keys run80's record does not carry"
         );
         pin_eq!(
@@ -1707,8 +1707,9 @@ mod bodies {
             // (2816 -> 3140). Item 4159's step VII-b1: +17, the
             // declaration's `blacken`, `dow[·]` and `broke_alliance[·]`
             // (3140 -> 3157). Step VII-b2: +32, the taunt's answer's
-            // four rows (3157 -> 3189).
-            1_210 + 1_531 + 2 + 6 + 11 + 35 + 13 + 8 + 324 + 17 + 32,
+            // four rows (3157 -> 3189). Step VII-c: +16, `made_peace[·]`
+            // and `dip.treaty[·]` (3189 -> 3205).
+            1_210 + 1_531 + 2 + 6 + 11 + 35 + 13 + 8 + 324 + 17 + 32 + 16,
             "the keys run96's records do not carry"
         );
         pin_eq!(
