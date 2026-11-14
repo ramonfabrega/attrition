@@ -354,6 +354,137 @@ mod tests {
     /// **`RUN1570_FIRE`**, on run1570's frame 3327: as run1559b's.
     const RUN1570_FIRE: [(usize, usize, usize); 3] = [(4, 4, 0), (0, 4, 0), (2, 4, 0)];
 
+    /// **The plume's window** (item 4233; §3.20): about each of
+    /// [`THEIRS`]' slots' pixels on the photograph's camera, `(left, right,
+    /// up, down)` pixels. The photographs' plumes rise up to 150 pixels
+    /// over their slot and drift some 60 to either side.
+    const PLUME_WINDOW: (i32, i32, i32, i32) = (64, 64, 192, 16);
+
+    /// **A pixel's class against the scene** (item 4233; §3.20): its luma
+    /// in hundredths of the luma of our still with the fires off, the scene
+    /// without its smoke. Clear at 85 and over, haze from 35, dense under.
+    /// A blended plume is haze over most of its area and dense at its core;
+    /// an alpha-tested sprite is dense or clear, with no haze between. A
+    /// black pixel of the scene cannot darken, and is clear.
+    fn plume_class(side: u32, scene: u32) -> u8 {
+        if side * 100 >= 85 * scene {
+            0
+        } else if side * 100 >= 35 * scene {
+            1
+        } else {
+            2
+        }
+    }
+
+    fn luma(p: &[u8]) -> u32 {
+        (299 * u32::from(p[0]) + 587 * u32::from(p[1]) + 114 * u32::from(p[2])) / 1000
+    }
+
+    /// One plume row: `(agree, theirs, ours past theirs)` over the windows'
+    /// union. Theirs is every pixel of the photograph not clear; a pixel
+    /// agrees when ours is of its class; ours past is a pixel ours darkens
+    /// that the photograph leaves clear. Beside it, ours' haze and dense
+    /// pixels in the windows.
+    fn plume_row(
+        photo: &[u8],
+        ours: &[u8],
+        scene: &[u8],
+        (w, h): (usize, usize),
+        anchors: &[(i32, i32)],
+    ) -> ((usize, usize, usize), (usize, usize)) {
+        let (left, right, up, down) = PLUME_WINDOW;
+        let mut inside = vec![false; w * h];
+        for &(x, y) in anchors {
+            for yy in (y - up).max(0)..(y + down).min(h as i32) {
+                for xx in (x - left).max(0)..(x + right).min(w as i32) {
+                    inside[yy as usize * w + xx as usize] = true;
+                }
+            }
+        }
+        let (mut agree, mut theirs, mut past, mut haze, mut dense) = (0, 0, 0, 0, 0);
+        for (i, _) in inside.iter().enumerate().filter(|(_, on)| **on) {
+            let base = luma(&scene[i * 4..]);
+            let t = plume_class(luma(&photo[i * 4..]), base);
+            let o = plume_class(luma(&ours[i * 4..]), base);
+            theirs += usize::from(t > 0);
+            agree += usize::from(t > 0 && o == t);
+            past += usize::from(t == 0 && o > 0);
+            haze += usize::from(o == 1);
+            dense += usize::from(o == 2);
+        }
+        ((agree, theirs, past), (haze, dense))
+    }
+
+    /// The plume row on one photograph: as drawn, with the fires off (the
+    /// count before any smoke), and the photograph taken for ours (the
+    /// made-to-fail's other side: a row that cannot reach its whole is
+    /// blind). Each `((agree, theirs, past), (haze, dense))`.
+    fn plumes(shot: Photo, name: &str) -> Option<[((usize, usize, usize), (usize, usize)); 3]> {
+        let mut p = probe_at(shot)?;
+        let size = (p.photo.width, p.photo.height);
+        let m = p.camera.to_screen_matrix();
+        let anchors: Vec<(i32, i32)> = THEIRS
+            .iter()
+            .map(|t| {
+                let q = render::camera::world_to_screen(
+                    &m,
+                    &crate::pinned_screen(),
+                    t.3[0] as i32,
+                    t.3[1] as i32,
+                    t.3[2] as i32,
+                    Some((size.0 as i32, size.1 as i32)),
+                );
+                (q.x, q.y)
+            })
+            .collect();
+        println!("{name}: anchors {anchors:?}");
+        p.world.fires = false;
+        let scene = crate::weathering::tests::still(&mut p, &format!("{name}-fires-off"));
+        p.world.fires = true;
+        let drawn = crate::weathering::tests::still(&mut p, &format!("{name}-fires"));
+        let photo = p.photo.rgba.clone();
+        let out = [
+            plume_row(&photo, &drawn, &scene, size, &anchors),
+            plume_row(&photo, &scene, &scene, size, &anchors),
+            plume_row(&photo, &photo, &scene, size, &anchors),
+        ];
+        println!("{name}: drawn, fires off, the photograph: {out:?}");
+        Some(out)
+    }
+
+    /// **`RUN1559B_3279_PLUME`** (item 4233; §3.20, the rule committed
+    /// before this count): `((agree, theirs, ours past), (ours' haze,
+    /// dense))` as drawn, with the fires off, and with the photograph for
+    /// ours. Drawn: item 4201's stand-ins, dense blocks with almost no
+    /// haze.
+    const RUN1559B_3279_PLUME: [((usize, usize, usize), (usize, usize)); 3] = [
+        ((336, 19378, 185), (233, 964)),
+        ((0, 19378, 0), (0, 0)),
+        ((19378, 19378, 0), (16963, 2415)),
+    ];
+    /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's.
+    const RUN1570_PLUME: [((usize, usize, usize), (usize, usize)); 3] = [
+        ((316, 18871, 254), (228, 970)),
+        ((0, 18871, 0), (0, 0)),
+        ((18871, 18871, 0), (16401, 2470)),
+    ];
+
+    #[test]
+    fn the_plumes_over_the_burning_city_on_run1559b() {
+        let Some(c) = plumes(run1559b(), "1559b") else {
+            return;
+        };
+        assert_eq!(c, RUN1559B_3279_PLUME);
+    }
+
+    #[test]
+    fn the_plumes_over_the_burning_city_on_run1570() {
+        let Some(c) = plumes(run1570(), "1570") else {
+            return;
+        };
+        assert_eq!(c, RUN1570_PLUME);
+    }
+
     #[test]
     fn the_city_burns_where_the_packets_anchor_it_on_run1559b() {
         let Some(c) = counts(run1559b()) else { return };
