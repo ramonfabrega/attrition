@@ -275,7 +275,7 @@ fn russian_information_pair_run1401b_s_word_frame_is_widened_whole() {
     // 95's pool from 6202) and `1/198`'s `airorder.mandatory` on 6203.
     // Item 4177: 164 -> 168, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 6095 ours 1578 theirs 1581; who=0 `damage_fifteen_seconds` 6095 ours 75 theirs 77; who=1 `average_hit_rate` 6095 ours 1578 theirs 1581; who=1 `hits_fifteen_seconds` 6095 ours 75 theirs 77 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 168 -> 164, item 4177's four combat-rate firsts agree (4177a).
-    pin_eq!(w.firsts.len(), 164, "run1401b baseline");
+    pin_eq!(w.firsts.len(), 160, "run1401b baseline");
     // Every round, both directions: 408 in ours against 227. Item 3744:
     // 408 against 408, 98 parting — the MLRS `1/99`'s launch point (40,
     // `sx`/`sy`/`sz`, 3744a) and `1/198`'s rounds (58, 3744b); none spends

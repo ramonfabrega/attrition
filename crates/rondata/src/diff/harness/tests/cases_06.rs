@@ -125,7 +125,7 @@ mod bodies {
         // Item 1330 took 46 (162/0/162/163 → 116/0/116/117): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (38, 0, 38, 38),
+            (24, 0, 24, 24),
             "the floor"
         );
     }
@@ -264,7 +264,7 @@ mod bodies {
         // Item 1330 took 46 (161/0/161/163/165 → 115/0/115/116/118): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, rows.len(), on_word, on_new, firsts.len()),
-            (37, 0, 37, 37, 37),
+            (23, 0, 23, 23, 23),
             "the floor"
         );
     }
@@ -911,7 +911,7 @@ mod bodies {
         // Item 1291 took (148, 151, 153) → (148, 150, 152): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (148, 150, 152).
         // Item 1330 took 29 (141/143/144 → 112/114/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under, firsts.len()), (41, 41, 41), "the floor");
+        pin_eq!((first, under, firsts.len()), (29, 29, 29), "the floor");
     }
 
     pub(in super::super) fn run149_s_word_frame_is_widened_whole() {
@@ -1060,7 +1060,7 @@ mod bodies {
         // Item 1291 took (148, 148, 152) → (148, 148, 151): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (148, 148, 151).
         // Item 1330 took 29 (142/142/144 → 113/113/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under, firsts.len()), (41, 41, 41), "the floor");
+        pin_eq!((first, under, firsts.len()), (29, 29, 29), "the floor");
     }
 
     pub(in super::super) fn run143_s_word_frame_is_widened_whole() {
@@ -1306,7 +1306,7 @@ mod bodies {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (127, 147, 155).
         // Item 1330 took 26 (127/142/147 → 101/114/117): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1407 took one (101/114/117 → 101/113/116): a boat's embark flag (`docs/AI.md` §105).
-        pin_eq!((first, under, firsts.len()), (37, 40, 41), "the floor");
+        pin_eq!((first, under, firsts.len()), (28, 29, 29), "the floor");
     }
 
     pub(in super::super) fn run73_s_window_clocks_are_the_original_s() {

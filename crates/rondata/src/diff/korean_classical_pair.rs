@@ -251,7 +251,7 @@ fn korean_classical_pair_run1250b_s_word_frame_is_widened_whole() {
     // 8390, 69 on 8458), and three of who=1's `orders_x`/`orders_y` a few
     // units apart (`1/69` on 8548, 11580, 30913 against 11601, 30926).
     // No `pos`, `hits` or order row parts.
-    pin_eq!(w.firsts.len(), 74, "run1250b baseline");
+    pin_eq!(w.firsts.len(), 67, "run1250b baseline");
 }
 
 /// **The pair's last blocks, from the disk** (item 3609): the word is the

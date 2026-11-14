@@ -277,7 +277,7 @@ fn run970c_s_word_frame_is_widened_whole() {
     // which this crate kept out of the group. Both read 52/35, and the
     // word moved 9985 → 14594. What stands is the control's set and the
     // newborns' `g.angle[0]`.
-    pin_eq!(w.firsts.len(), 50, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 38, "keys that part in the window");
 }
 
 /// run970d: the gap 1428..9979 at a stride of 32 (item 3335): blocks
@@ -403,7 +403,7 @@ fn run970e_s_word_frame_is_widened_whole() {
     // 33048)/(21912, 32664) → agreeing. **929 → 56**: the 54 standing on
     // 14588 and who=1's `group:71.held` and `pool:71` on 14640, the
     // control's late rows as run970's 177 and 222. The word 14631 → 24000.
-    pin_eq!(w.firsts.len(), 56, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 42, "keys that part in the window");
 }
 
 /// The closing state's window: run962b's closing block alone, the long's
