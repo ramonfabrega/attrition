@@ -239,6 +239,13 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// `in_group` 0, on each of three members — ours had none of the nine →
 /// 1648 on both, the line whole.
 ///
+/// Item 4251 moved one on run1578: units 7195 → 7273, `unit_masks` bit
+/// `0x4` (`Unit::set_in_danger@005fcfb0`'s latch, which the crate held
+/// and the emitter left out). Value diff on 7195 (run1600): 3 of 1697
+/// ranges from 832, records 27, 28, 29 (player 1's Longbowmen, TI 177)
+/// `unit_masks` ours 0x40000, 0x4000a, 0x4000a, theirs 0x40004, 0x4000e,
+/// 0x4000e → the original's on all three, the line whole.
+///
 /// Item 4244 moved one on run1578: builds 7383 → 8281, a mine keeping
 /// `MiningList::mtn`/`cliff` (`find_gather_tcoords@0063bdc0`'s store,
 /// `Build::close`'s reset). Value diff on 7383 (run1597's record): builds
@@ -265,7 +272,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 7195, 0),
+            ("units", 7273, 0),
             ("builds", 8281, 0),
             ("groups", 8206, 0),
             ("guys", 7273, 0),
@@ -592,6 +599,23 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             271,
             2,
             "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|21010000",
+        )],
+    ),
+    (
+        "run1600",
+        "rontrace-run1600.log",
+        7195,
+        // Item 4251: units whole; before it, 3 of 1697 ranges from 832,
+        // records 27, 28, 29 (player 1's Longbowmen, TI 177) `unit_masks`
+        // 262144|262148 (and 0x4000a|0x4000e on the other two): the
+        // emitter left out bit 0x4, `Unit::set_in_danger@005fcfb0`'s latch
+        // the crate already held.
+        &[(
+            "leaders",
+            271,
+            271,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|24010000",
         )],
     ),
     (

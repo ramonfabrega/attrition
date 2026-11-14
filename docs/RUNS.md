@@ -37379,6 +37379,32 @@ SHA-256 `0aa42c8608630f7124848a32d2817ae442f57b85452ad1189bc42d0e727fda0a`.
 
 **What it holds**: a rally point minted from a right press, played, and a trained Citizen sent to it.
 
+## run1600 — the minted file's playback with a packet at 7195: units' first parting (2026-11-14, item 4251, `att-4251`)
+
+`docs/CHECKSUM.md` §24. **What the disk could not answer**, when it was booked: which field holds the units line out on
+frame 7195, its first parting on run1578 since item 4243 (re-read on this lane's base, `e8f3ea59`: still 7195). No
+packet stood on 7195, and Step R's record (run1597, item 4248) had not landed on the base. It landed while this take
+ran, and its `RECORD_PARTINGS` names the same range; this packet is the original's own memory on the frame, kept for
+a function run on it. The take: run1593's line moved to 7195, `--end-frame 7198 --log-window 7194 7197 --timeout 1500
+--tracer-def RON_STATE_FRAME=7195`, the rest as run1593, through `viadriver.sh golden_capture.sh ~/ron-golden/run1600`,
+waited on with `waitrun.sh` in the background lane.
+- Pool lane 2, launched 14:42:07 −05:00, exited 14:53:29: **682.0 s launch to exit**, exit 0, `success`, 7,199
+  frames, `last_frame` 7198, no page fault, no relaunch. `df -g ~` read 191 GB free before it. Minutes waited on
+  another lane: none.
+- The packet at logger frame 7195, trace frame 7194, `frame-snapshot.bin`, 826,481,952 bytes, SHA-256
+  `dd912ac59d528f595388b230ebf99bb5899267ea53126a7dcd55950982d2bcb8`. `checksum.py --stream --values`: the stream's
+  sums equal the original's on every line. Kept under `~/ron-data/lab-experiments/2026-11-13-item-4214/run1600/`
+  beside the other minted packets. Its units value, 186629872, is run1578's theirs on 7195.
+- **Units on frame 7195**: 3 of 1,697 ranges parted from range 832, records 27, 28, 29 (player 1's Longbowmen, TI
+  177): `unit_masks` ours 0x40000, 0x4000a, 0x4000a, theirs 0x40004, 0x4000e, 0x4000e — bit `0x4`,
+  `Unit::set_in_danger`'s latch, which the emitter left out (`MINTED_PACKETS`). Item 4251 makes the units line whole.
+- Filed with `filerun.py run1600 greatlakes-playback-of-minted-packet-7195`.
+
+Archive `gamelog-run1600-greatlakes-playback-of-minted-packet-7195.txt`, 2,450 bytes,
+SHA-256 `4904792c8750f18be9be093879f5c9505f7113f45577ebccd1e1bd86e8de72bf`; `rontrace-run1600.log`, 35,069,088 bytes,
+SHA-256 `475c03c7004a4a1a6a22d85fb5b147890a35ea36633ce46f07fee4e0039c0b7e`.
+
+**What it holds**: the units line's first parting on 7195, named by record and field.
 
 ## run1599 — the original playing the file a typed chat minted (2026-11-14, item 4250, `att-4250`)
 
