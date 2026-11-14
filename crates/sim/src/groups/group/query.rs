@@ -804,6 +804,14 @@ impl Sim {
     /// so `charge`'s `QUEUE_FIRST` leaves them. `form` (`70535a`) is written
     /// before the layout, in [`Self::group_action_move_to`].
     pub(super) fn record_move(&mut self, g: &Group, to: Pos, angle: Angle, queue: QueuePos) {
+        if std::env::var("RON_PROBE_OXY").is_ok() {
+            let pool = self.gstate(g).and_then(|st| st.pool);
+            eprintln!(
+                "PROBE_OXY {} record_move who {} army {:?} pushed {:?} pool {:?} to ({},{}) queue {:?} list {:?}",
+                self.frame, g.who, g.army, g.pushed, pool, to.x, to.y, queue,
+                g.list.iter().map(|&u| (self.units[u].owner, self.units[u].index)).collect::<Vec<_>>()
+            );
+        }
         let Some(st) = self.gstate_mut(g) else { return };
         if queue != QueuePos::First {
             st.o = to;
