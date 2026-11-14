@@ -94,7 +94,10 @@ nothing else.
 when the slot is not the last (`:169`), and `un_queue` is one `memcpy` of
 the entries above it down by a slot; then `queued` drops. Nothing clears
 the vacated slot: the old last entry stays there, twice when it was copied
-down, until `set_queue` lays the next entry at `queued`. Only
+down, until `set_queue` lays the next entry at `queued`. One write comes
+first: `Build::unqueue` zeroes the removed slot's `job_counter` after the
+cancel's skip-forward, so a removed **last** entry leaves its bytes with
+`job_counter` 0 (run1583's `0/2000` on 987, a lone Citizen finished). Only
 `BuildQueue::walk_data@006305f0` reads past `queued`, since it walks every
 slot of the array: the checksum's builds line. Diff-backed by run1581's
 packet: the minted game's AI Town Center `1/2000` holds Citizens at 25, 26

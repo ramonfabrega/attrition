@@ -271,9 +271,15 @@ impl Queue {
             unpay(&self.items[i], ledger);
         }
         // The array's last live slot keeps its bytes when `queued` drops
-        // past it ([`Queue::vacated`]): the removed entry's own when it was
-        // the last, else the last entry's, now copied one slot down too.
-        if let Some(last) = self.items.last().cloned() {
+        // past it ([`Queue::vacated`]): the last entry's, now copied one
+        // slot down too, or the removed entry's own when it was the last —
+        // whose `job_counter` `Build::unqueue@006207c0` zeroes first (the
+        // write after the skip-forward, before `un_queue`), so a lone
+        // finished entry leaves 0 (run1583's `0/2000` on 987).
+        if let Some(mut last) = self.items.last().cloned() {
+            if i + 1 == self.items.len() {
+                last.job_counter = 0;
+            }
             self.vacated.insert(0, last);
         }
         let item = self.items.remove(i);
