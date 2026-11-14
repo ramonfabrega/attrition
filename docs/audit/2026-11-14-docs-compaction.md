@@ -84,7 +84,7 @@ measurable; the question is his.
 | R12 | the memory index | 7,324 | hooks to one line; one stale pointer | ~2,500 | outside git |
 | S1 | DECISIONS, "Index" | 15,985 of 16,000 | split at entry 100; retitle; reorder; fix 121's row | 0 (frees ~8,000) | none |
 | S2–S24 | twenty-three syncs, Part 2 | | | | |
-| G1 | the eight sections pinned in `OVER`, and 45 of the 77 at 15,000 B or more | 284,070; 831,211 | promote their numbered `###` parts to `##` | 0 (largest read 70,859 → 16,594; 45 sections off the ceiling) | delete seven `OVER` rows; three tools to check |
+| G1 | the eight sections pinned in `OVER`, and 45 of the 77 at 15,000 B or more | 284,070; 831,211 | promote their numbered `###` parts to `##` (run dry: 28 of 29 guards green, the red is the `OVER` rows) | 0 (largest read 70,859 → 16,448; 45 sections off the ceiling) | delete seven `OVER` rows, add one |
 | G2 | `docs/JOURNAL.md`, the chronicle to 2026-09-17 | 1,185,526 | leave, or archive at a revision | 0 or 1.19 MB | `queueledger.py`; Ramon (`CLAUDE.md`'s table) |
 | G3 | `docs/DECISIONS.md` | 843,219 | an index by topic; no entry moved | 0 | the pass |
 | G4–G7 | `AI.md`, `GOLDEN.md`, `COMBAT.md`, `ORDERS.md`, `RUNS.md`, struck text, the audit README | 8.2 MB | leave; number the unnumbered sections | 0 | |
@@ -584,7 +584,8 @@ history ("until item 4113"), none a stale promise. Not pursued.
   (16,280). 284,070 B.
 - **Measured:** every one is built of `### ` parts, and in seven the parts
   are numbered (`AI.md` §2 has twenty, the largest 12,100 B). The only part
-  over 16,000 is one of `GROUPS.md` §6's, at 16,594. `DATALAYER.md` §2's
+  over 16,000 is one of `GROUPS.md` §6's, §6.4, at 16,448 by the guard's
+  own count in the dry run (the first session's port read 16,594). `DATALAYER.md` §2's
   seven parts are not numbered.
 - **Action:** promote each numbered `### N.M` to `## N.M`. It is the split
   the guard's comment asks for ("a `## ` heading is the split, and it costs
@@ -593,7 +594,7 @@ history ("until item 4113"), none a stale promise. Not pursued.
   `sections_of` reads a number at any heading level, so every code
   citation resolves as before.
 - **Saved:** no bytes. The largest section a pointer can send a session to
-  falls from 70,859 B to 16,594, and seven rows leave `OVER` (the guard
+  falls from 70,859 B to 16,448, and seven rows leave `OVER` (the guard
   demands the deletion once a section is under the ceiling). `GROUPS.md`
   §6's one part stays pinned, or splits again.
 - **The same move, where lanes are landing now.** Of the 77 sections at
@@ -623,7 +624,34 @@ history ("until item 4113"), none a stale promise. Not pursued.
   and RUNS's run heads; `tools/retire.py` lists top-level sections, so a
   promoted part becomes a row of its own, cited by its own number.
   `tools/brief.py --section` passes its string through.
-- **Confidence:** medium-high.
+- **Run dry in the second session, and it holds.** In this lane's own
+  tree, uncommitted and restored afterwards (`git status` clean): every
+  section at 15,000 live bytes or more outside QUEUE, DECISIONS, RUNS and
+  the journal whose `### ` parts are all numbered had those parts
+  promoted. 46 sections, 271 headings, 16 files (`AI.md` 72, `COMBAT.md`
+  56, `ORDERS.md` 44, `LEADERS.md` 24, `CITIES.md` 14, and eleven more),
+  one character a heading. Then the reflex's steps, each run to its end:
+  - `docs_guard`: **28 of 29 pass**, the section-citation guard among
+    them, so every `§N.M` the code cites still resolves. The one red is
+    `a_section_over_the_ceiling_may_not_grow`, and it says what the
+    commit owes: delete seven rows of `OVER` (`CITIES.md` §3, `ORDERS.md`
+    §4 and §5, `GROUPS.md` §6, `AI.md` §2, §15 and §99, each now 20 to
+    2,229 B of head), and "`docs/GROUPS.md` `## 6.4 The slot table`:
+    16448 bytes, bound 16000", which takes a row of its own or a split.
+    `DATALAYER.md` §2 keeps its row; its parts carry no number.
+  - `test_brief`, `test_queueledger`, `shape.py --check`, the writers'
+    and ledger's guards, `queueledger.py`, `nations_census.py --check`:
+    green, unchanged.
+  - `tools/retire.py --no-ledgers`: 185 of 1,875 sections unnamed, where
+    it read 185 of 1,604; each promoted part is a row and every one is
+    named.
+  - Nothing under `crates/` or `tools/` matches a `### ` heading
+    (`grep`), outside the explore tests' fixtures.
+  After it the largest section in those sixteen files is `GROUPS.md`
+  §6.4's 16,448 B, and no other is over 15,995. **Not run:** the release
+  suite; no test in it was found that reads a heading's level, and the
+  reflex's guards are the ones that read these files.
+- **Confidence:** high, on the dry run.
 
 ### G2. `docs/JOURNAL.md`
 
@@ -678,6 +706,38 @@ history ("until item 4113"), none a stale promise. Not pursued.
   write from the entries. About twenty such lines, each ending on the entry that
   stands, is the page Ramon can read to find what to review. It can live
   in the index's second half; the rows by number can then be bare.
+- **A first draft of that page, for the rules of the loop as they stand**
+  (entries 128 to 132 read whole in the second session, 126 in the
+  first; the older links are the chains above). Each line ends on what
+  stands:
+  - the rows: 116 → 122 → 126 §1 (`commander` drives, `steer` passes);
+    no row rests on its context, 130 §1; a handover is a spawn and a
+    reap, 131 §8 (130 §3 withdrawn; 128 §2's one tree stays).
+  - the workers: four, 128 §4 → 129 §1 → 131 §5; one lane at most on a
+    whole item, 129 §1; a fifth is Ramon's (TRACKS).
+  - the booking gate: every landing merged when it starts, 131 §4;
+    scoped, whole at a drain and at a pass, 132 §5; the merge pins, 131
+    §4 and 132 §4.
+  - a lane's gate: its brief's filters, the guards and the untimed, 132
+    §6; no lane gates whole but a `structure` lane (128 §4's "a start
+    item gates whole" superseded there).
+  - the stop: 121, amended in place, 99 %.
+  - the clear: a lane at 400 k, 131 §6 (116's 230 k superseded).
+  - the disk: the gate clears it, 128 §1, keeping a generation in use,
+    129 §2; a capture never leaves this way, 84 (iv).
+  - a timed test: two sessions, 128 §8; it waits for the host, 129 §3.
+  - a held leaf's release: 126 §3 → 128 §3 (on transfer) → 129 §5 (on
+    the packets) → 131 §1 (only where it moves, or frozen by
+    construction) → 132 §1 (never on a staged decision).
+  - a tree's corpus: its own ledger's, 132 §3.
+  - parity: zero mismatched frames on the twelve state checksums over a
+    declared set, 132 §10; the hook, 132 §7.
+  - the suite's form: one walk a game, 132 §11; no verdict cached, 132
+    §8.
+  - a parked row: its item's journal, 125.
+  - the interface: a plain page and a plain HUD, 128 §6 and 129 §7;
+    porting the original's windows stays cut.
+  - merged branches on origin: Ramon's to delete, 129 §9.
 - **Tier 1, a rule change: freeze the tranche-scoring entries at a
   revision**, each keeping its heading, its index row and a paragraph of
   what still stands, the text at `git show <rev>:docs/DECISIONS.md`.
@@ -898,7 +958,9 @@ ruling), and the half-checks R2 (re-measured, lower), S12 (settled) and D6
 (G11, S22, S23), `ORACLE.md`'s reading order (G8), the track documents
 against their queue lines (G12), the parked rows' afterlife (D8),
 every constant the handoff quotes against the code (S24), and G3's
-chains against their entries' sentences of succession (two corrected).
+chains against their entries' sentences of succession (two corrected),
+G1 run dry against the guards, R1's change read off its three readers,
+and entries 130 to 132 read whole for a first draft of G3's page.
 
 **Not reached.**
 
