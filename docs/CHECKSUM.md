@@ -1703,58 +1703,43 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 
 ## 20. The leaders line, held out on the long range (items 4121, 4124)
 
-**263 of 267 ranges and 4,313 of 58,343 bytes agree** on run 1562's frame
-91. That is all eight slots' flag words, and the two walked leaders'
-diplomacy records, personalities, masks but `tech`'s array, sites, make
+**265 of 267 ranges and 4,515 of 58,343 bytes agree** on run 1562's frame
+91, and `LEADERS_HELD_OUT` names **27** leaves, from 140. Agreeing: all
+eight slots' flag words, and the two walked leaders' diplomacy records,
+personalities, masks (each `tech` array since item 4187), sites, make
 lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
-decrypted words. The four ranges that part are each walked leader's
-`[+0x8, +0x692a)` (26,914 bytes) and its `tech` array (101 bytes). Ours sums
-to 4257695306 against the printed `Leaders` 2813959641.
-`Sim::checksum_leaders` (`crates/sim/src/checksum/leaders.rs`) emits it, leaf
-by leaf (`Sim::leader_image`, a `None` leaf being one the crate holds no value
+decrypted words. Parting: each walked leader's `[+0x8, +0x692a)` (26,914
+bytes). Until item 4187 its `tech` array (101 bytes) parted too, 263 of 267
+ranges and 4,313 bytes agreeing; item 4121's image summed to 4257695306
+against the printed `Leaders` 2813959641. `Sim::checksum_leaders`
+(`crates/sim/src/checksum/leaders.rs`) emits it, leaf by leaf
+(`Sim::leader_image`, a `None` leaf being one the crate holds no value
 for). `diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`
-holds it range by range and leaf by leaf, with `LEADERS_HELD_OUT` naming 140
-leaves at item 4121, 100 at item 4124 (the census of the 140 is item
-4124's journal), 99 at item 4153, which carried `explored`, ~~**98**~~ 98
-at item 4154, which carried `att`, ~~**92**~~ 92 at item 4162, which
-carried `cannon_time`, `handicap`, `multi_diff`, `misery`,
-`city_name` and `anti_att` (`docs/LEADERS.md` §1, §6, §12, §16; the census
-of which held-out leaves the record prints is `docs/LEADERS.md`'s head),
-~~**84**~~ 84 at item 4167, which carried `fort_mark`, `oil_well_mark`,
-`wonders_built`, `wonders_held`, `senates_built`, `forts_built`,
-`scholar_militia` and `dock_queued` (`docs/LEADERS.md` §13, §14),
-~~**74**~~ 74 at item 4176, which carried ten of the damage path's sixteen:
-`buildings_razed`, `buildings_lost`, `ctw_hero_stamp`, `attrition_stamp`,
-`attrition_stamp3`, `give_att_disabled`, `repair_stamp`, `missiles_used`,
-`units_bribed` and `nukes_launched` (`docs/LEADERS.md` §2, §4, §5, §15);
-`units_killed`, `units_lost`, the three victim stamps and
-`attrition_stamp2` are held by the crate and stay held out, each parting
-where its parent parts (4176a, 4176b), ~~**73**~~ 73 at item 4177, which
-carried `frame_battle` (`docs/LEADERS.md` §3); the other twelve combat
-rates are held by the crate and stay held out, each parting in the record
-diff (4177a, 4177b, and beside 4176a's parents), and **68** since item
-4159's step T, which released five on transfer (`docs/DECISIONS.md` entry
-128 §3; `rondata::diff::transfer`; `docs/LEADERS.md`'s head):
-`stable_queued`, `factory_queued`, `air_queued`, `supply_mark` and
-`average_kill_rate`, each 0 = 0 on frame 91 on both leaders, ~~**68**~~
-68 since step T, and **61** since item 4185 (step V), which carried seven
-of the end of the game's and the lost capital's nine (`docs/LEADERS.md`
-§10, §11): `defeated_by` (−1 = −1), `defeat_stamp`, `wonderwin_stamp`,
-`wonderwin_timer`, `lost_capital_stamp`, `lost_capital_timer` and
-`lost_capital_modifier` (0 = 0), each agreeing on every dump the record
-diff reads and moving there; `victory_type` and `defeat_type` are held by
-the crate and stay held out, each parting on a closing block whose quit
-the window harness does not replay (4185a). The ranges and bytes do not
-move: the long range still parts on the other 61, so 263 of 267 ranges
-and 4,313 of 58,343 bytes agree as before. ~~**61**~~ 61 since step V,
-and ~~**49**~~ 49 since item 4187 (step VI), which released twelve (`docs/LEADERS.md`
-§17–§20 name them and the rule each met); four of the score's twelve stay
-held out (4187a, b; c frozen). **47** since item 4189, which put `defeat_type` and
-`victory_type` on the line (0 = 0 on frame 91): the window harness replays
-the human's quit where the capture's trace dates it, and both agree on
-every dump the record diff reads (`docs/LEADERS.md` §10.5). With the spell bits each `tech` array agrees: **265 of
-267 ranges and 4,515 bytes** agree on frame 91, the long ranges parting.
-`CHECKSUM_STATE` does not count it (§5).
+holds it range by range and leaf by leaf. Which held-out leaves the record
+prints is `docs/LEADERS.md`'s head. A leaf the crate holds stays held out
+while the record diff parts it (the parked ids below). `CHECKSUM_STATE` does
+not count it (§5).
+
+| step | leaves it carried | held out after | `docs/LEADERS.md` |
+|---|---|---|---|
+| item 4121 | the first image | 140 | head |
+| item 4124 | 40 (its journal has the census of the 140) | 100 | head |
+| item 4153 | `explored` | 99 | (`docs/VISION.md` §13) |
+| item 4154 | `att` | 98 | §5 |
+| item 4162 | `cannon_time`, `handicap`, `multi_diff`, `misery`, `city_name`, `anti_att` | 92 | §1, §6, §12, §16 |
+| item 4167 | `fort_mark`, `oil_well_mark`, `wonders_built`, `wonders_held`, `senates_built`, `forts_built`, `scholar_militia`, `dock_queued` | 84 | §13, §14 |
+| item 4176 | ten of the damage path's sixteen: `buildings_razed`, `buildings_lost`, `ctw_hero_stamp`, `attrition_stamp`, `attrition_stamp3`, `give_att_disabled`, `repair_stamp`, `missiles_used`, `units_bribed`, `nukes_launched`; `units_killed`, `units_lost`, the three victim stamps and `attrition_stamp2` held, still out (4176a, 4176b) | 74 | §2, §4, §5, §15 |
+| item 4177 | `frame_battle`; the other twelve combat rates held, still out (4177a, 4177b) | 73 | §3 |
+| item 4159, step T | five on transfer (`docs/DECISIONS.md` entry 128 §3; `rondata::diff::transfer`): `stable_queued`, `factory_queued`, `air_queued`, `supply_mark`, `average_kill_rate` | 68 | head |
+| item 4185, step V | seven: `defeated_by`, `defeat_stamp`, `wonderwin_stamp`, `wonderwin_timer`, `lost_capital_stamp`, `lost_capital_timer`, `lost_capital_modifier`; `victory_type`, `defeat_type` held, still out (4185a); ranges and bytes unmoved | 61 | §10, §11 |
+| item 4187, step VI | twelve; four of the score's twelve stay (4187a, b; c frozen); each `tech` array agrees, 265 of 267 ranges and 4,515 bytes | 49 | §17–§20 |
+| item 4189 | `defeat_type`, `victory_type` (the window harness replays the human's quit) | 47 | §10.5 |
+| item 4159, VII-b1 | `blacken`, `dow`, `broke_alliance` | 44 | §7 |
+| VII-b2 | `tribute_stamp`, `gift_stamp`, `last_taunt`, `taunt_frame` | 40 | §8, §9 |
+| the frozen scan | `score_explored`, `score_pop`, `last_spoke` | 37 | §7.5, §18.5 |
+| VII-c | `made_peace`, `incoming`, `incoming_taunt`, `incoming_taunt_frame`, `tribute_sent`, `tribute_received` | 31 | §7, §8, §9 |
+| VII-d | `counteroffer` | 30 | §8 |
+| the residue (4187a) | `score_units`, `score_units_2`, `score_combat` | 27 | §18.5 |
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
