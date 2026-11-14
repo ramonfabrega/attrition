@@ -13,7 +13,13 @@ deliberately a regular file rather than a symlink to it.
 
 This session is one agent working directly with the user through the queue
 sequentially. No subagents, parallel agent lanes, commander loop, model
-trial, or scheduled continuation. The paused loop stays paused. Choose the
+trial, or scheduled continuation. **The Claude loop may be live** (since
+2026-11-14, `docs/DECISIONS.md` entry 134): run `ccc list` first. While a
+`commander` or `steer` row of this tree is working, take nothing the lanes
+line under "The queue" in `docs/QUEUE.md` names, prefer work that shares no
+pin file with a lane (a tool, a structure move, the census), work on a
+`codex/*` branch, and land by fast-forward and gate as entry 60 says. When
+no driver row is working, the queue is this session's as written here. Choose the
 next item from measured evidence and leave a durable handoff at each
 landing; a natural stopping point need not exhaust the queue.
 

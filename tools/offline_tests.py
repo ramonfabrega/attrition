@@ -37,6 +37,7 @@ SUITES = (
     'test_queueledger',
     'test_release_gate',
     'test_refill',  # the sixty-second pass, Loop 3769
+    'test_ctx',  # the pass of 2026-11-14, second: a lane reads its own context
     'test_census_marks',  # the forty-seventh pass, Loop 3405
     'test_census_cites',  # the forty-eighth pass, Loop 3415
     'test_census_territory',  # item 4039: the territory's kinds and marks

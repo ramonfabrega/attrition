@@ -13162,7 +13162,47 @@ stop has no number for Fable's week: both Ramon's, in the record.
 said `lore`'s repository had no Fable 5.2 rate; it has, since its landing of
 2026-11-14.
 
-**Not decided.** `AGENTS.md`, and three `CLAUDE.md` rows carried from entry
-133. **Done on Ramon's word:** the loop's 45 merged branches on origin are
+**§9. A lane reads its own context and plans its landing.** Ramon: the
+driver's deep signal clears a lane wherever it stands, and he wondered
+whether that makes a lane go over its own ground again; could a lane know
+its depth and plan for it, without every lane overworking? `tools/ctx.py`
+prints the context the session's next turn carries (`lore agents`' `ctx`
+for its own session id). The brief's landing carries one row: read it after
+the first act; past 200 k with no build begun, land the first act (the
+journal, its value diff, the next word) and end done, and the build is the
+next item on a fresh lane. The first act is the natural boundary: it is
+where a parity item has its packet and its direction, and a render item its
+row. Nothing changes for a lane under the mark, and the driver's waiter
+keeps its 400 k. To be judged at the next pass on the lanes' peaks and
+their cost a landing.
+
+**§10. Parity's captures end with one record: Step R** (item 4248). Ramon
+asked what the ever-growing captures are for and how to stop them. They are
+parity's: the hook prints one sum a line a frame, which names the frame a
+line parts on and not the field, so each item has played the minted file
+from frame 0 to its frame for one packet of the original's memory, at about
+game speed. The hook runs inside the playing original; it can write the
+ranges themselves on every frame for the lines not yet held, in one
+playback. After it a parity item's first act is a diff on disk. A packet
+stays for the case a reading does not converge and the original's own
+function must be run (one item in four this tranche).
+
+**§11. Playing comes before the picture** (Ramon, on the row; item 4249).
+Nothing in the queue pointed at a person playing a game, and that has no
+counter. The render seat takes the order kinds the client mints, counted
+against the kinds the recordings carry, before the colour items (4245 to
+4247), which stay booked behind it. The pass's projection, an estimate and
+no measurement: a rough playable game in two to three weeks at this budget,
+the original's HUD look in six to ten.
+
+**§12. `CLAUDE.md` and `AGENTS.md`, on Ramon's word.** The three rows
+carried from entry 133 are mended: phase 3 is "done, counted in draws" with
+parity the open count; the recipe is cited by its section's name; the
+release suite runs "before a push". `AGENTS.md` says the loop may be live
+and what a Codex session takes beside it. **Models:** Fable draws the
+general week too (Ramon), so no Fable lane; a Sonnet trial is not booked,
+the last having reached no conclusion.
+
+**Done on Ramon's word:** the loop's 45 merged branches on origin are
 deleted; the seven merged `codex/*` branches stand, since Codex may take a
 turn.

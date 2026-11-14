@@ -98,7 +98,9 @@ reach it, are `docs/TRACKS.md`**; this list is the arc.
    That file, not a recording, is the per-frame ground truth the sim is diffed
    against.
 3. **Sim skeleton** — the rules of a match, mechanic by mechanic, diffed
-   against the original's own per-frame dumps. **Done**: every captured game
+   against the original's own per-frame dumps. **Done, counted in draws**
+   (parity by the twelve state checksums is the open count,
+   `docs/TRACKS.md`): every captured game
    replays in lockstep for its full length, and those lengths are floors in
    `rondata::diff` that run on every gate and fall only on a named
    regression. `docs/DECISIONS.md` entry 29 names the three counters that
@@ -334,7 +336,7 @@ and makes the eventual diff mechanical rather than a translation exercise.
   `docs/TEST_PERFORMANCE.md`.
 - **`tools/guard.sh [filter …]` is the reflex between edits** — the
   paperwork guards plus the current item's tests, debug, seconds. The
-  full `--release` diff suite remains the gate: before a commit and
+  full `--release` diff suite remains the gate: before a push and
   after a document rewrite.
 - **A wait on an external process is backgrounded** (`run_in_background`,
   Monitor), never a foreground sleep-and-grep loop — every poll turn
@@ -406,7 +408,7 @@ and makes the eventual diff mechanical rather than a translation exercise.
   (`tools/explore/unattended_capture.py`) that needs no TCC grant and no
   human at the menu.
 - **A behavioural check is a logged run, and it is cheap** (`docs/ORACLE.md`,
-  last section): fix the seed in `rise.ini`, enable the mechanic's
+  "Running a check: the recipe in one place"): fix the seed in `rise.ini`, enable the mechanic's
   categories under `[End Frame]` in `gamelog.ini`, play a minute, quit
   through the in-game menu, read `Logs\gamelog.txt`. Do not enable
   everything per frame; it slows the simulation to a crawl.

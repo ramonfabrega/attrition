@@ -39,7 +39,9 @@ item) and the worker count, open since the week reset. Decisions in entry
 - **Your answers, taken on the row:** fourteen points a day and three gating
   seats; a stop on Fable's week, set at 90 %; the second reading narrowed in
   `CLAUDE.md`; the loop's 45 merged branches deleted on origin (the seven
-  merged `codex/*` ones stand). Open: the three `CLAUDE.md` rows, `AGENTS.md`.
+  merged `codex/*` ones stand); the three `CLAUDE.md` rows and `AGENTS.md`
+  mended; playing before the picture (item 4249); Step R (item 4248) to end
+  parity's growing captures; a lane reads its own context (entry 134 §9 to §12).
 
 ## What was measured
 
@@ -175,4 +177,6 @@ Whole, by `tools/gate_run.sh`.
 
 Ramon's answers on the row (the budget, the seats, Fable's stop, `CLAUDE.md`'s
 narrowing), this section and the queue's handoff lines are gated scoped over
-that commit (`gate-pass-1114e.log`).
+that commit (`gate-pass-1114e.log`, `gate exit 0` on `e36bae1b4`), and what
+followed his second answer (items 4248 and 4249, `tools/ctx.py`, the brief's
+row, `CLAUDE.md`'s three rows, `AGENTS.md`) again (`gate-pass-1114f.log`).

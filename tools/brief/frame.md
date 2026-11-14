@@ -542,11 +542,13 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
 ## landing
 
 - **Your journal is `docs/journal/<the day you land>-item-{item}.md`**,
-  yours alone, before the gate (3089): the modules touched; a "for the
-  Loop" line: `none`, or a finding for the pass; **at 400 k, one line to me**
+  before the gate (3089): the modules touched; a "for the
+  Loop" line, `none` or a finding; **at 400 k, one line to me**
   (1637, 1638; DECISIONS 131 §6): draft, commit, end the turn **done**:
   a `blocked` row or a suggested reply holds the clear (3931); **a harness the draft commits
   has run once, its exit in the journal** (3954).
+- **`python3 tools/ctx.py` after the first act**: past 200 k, no build
+  begun: land the first act, end done (134 §9).
 - **Documents and journal by the file tool, never in a backgrounded `&&`
   chain (1781); commit, then gate, no suite first (2409, 2415).** Parks:
   your journal (1812). The gate: `python3
@@ -566,6 +568,5 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
 - **Done and pushed: one line to me** (1412; 3503) —
   `SendMessage` to `commander`: your origin tip SHA,
   `git log <base>..<branch>`, `Lane verdict:` and `Gate
-  steps:` (1406); **then end the turn done, needing no input**: a
-  `blocked` row never takes the clear (1671); at ninety minutes
+  steps:` (1406); **then end the turn done, needing no input** (1671); at ninety minutes
   unlanded: your step.
