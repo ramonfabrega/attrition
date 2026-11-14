@@ -536,6 +536,22 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         )],
     ),
     (
+        "run1592",
+        "rontrace-run1592.log",
+        6781,
+        // Item 4242: groups whole; before it, 1 of 544 ranges, range 76,
+        // group record 64 (army 1/1, the Longbowmen `1/24..1/26`, TI 177,
+        // pushed on 6780) `role` 0|0x150c00, `new_speed` 0|26, `speed`
+        // 0|26: `Army::add_group@006f8c00`'s `get_num_cap`.
+        &[(
+            "leaders",
+            271,
+            271,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|21010000",
+        )],
+    ),
+    (
         "run1583",
         "rontrace-run1583.log",
         987,

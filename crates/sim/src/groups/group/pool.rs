@@ -735,7 +735,7 @@ impl Sim {
     /// `Group::get_num_cap@007145c0` on a seat: an empty group answers zero
     /// untouched; one of fewer than four members is `normalize`d whole, a
     /// larger one only loses its dead; the answer is the captains standing.
-    pub(super) fn seat_get_num_cap(&mut self, seat: Seat) -> usize {
+    pub(crate) fn seat_get_num_cap(&mut self, seat: Seat) -> usize {
         if self.seat_list(seat).is_empty() {
             return 0;
         }
