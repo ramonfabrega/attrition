@@ -75,9 +75,9 @@ measurable; the question is his.
 | R4 | TRACKS, "The tracks": the state column | ~6,300 of 7,777 | one state a cell, or name the queue's line | ~4,500 | the pass |
 | R5 | LOOP, "The chain": the waiter block | 4,931 | point at `tools/lanewait.py`'s header | ~4,000 | closes Loop 4051, 4055 |
 | R6 | LOOP, "The brief": kinds no item is booked under | 1,823 | to the retired-clauses record | ~1,600 | none |
-| R7 | LOOP, "The driver": changelog, roster history, a doubled clause | ~2,400 | fold two rules in; move the history | ~1,700 | none |
+| R7 | LOOP, "The driver": the section drivers open with | 13,382 | four gate paragraphs to "The chain"; fold the changelog; move the history | ~1,700, and 3,453 off the opening read | none |
 | R8 | LOOP, "Ratification, and the passes": first acts | 2,062 | a list; figures to the records | ~1,000 | the pass |
-| R9 | METHOD, "Conventions as they stood", "Tooling as it stood" | 8,563 | delete ten bullets byte-identical to `CLAUDE.md` | 2,139 | none |
+| R9 | METHOD, "Conventions as they stood", "Tooling as it stood" | 8,563 | delete ten bullets that are `CLAUDE.md`'s word for word | 2,139 | none |
 | R10 | METHOD, "Phase 3's scoring and succession" | 1,911 | to the retired-clauses record | ~1,800 | none |
 | R11 | `CLAUDE.md` | 25,606 of 26,000 | candidates only | up to ~4,500 | Ramon |
 | R12 | the memory index | 7,324 | hooks to one line; one stale pointer | ~2,500 | outside git |
@@ -105,8 +105,8 @@ METHOD and `CLAUDE.md`, and R0 on top for lanes.
    the closed form is accepted only while every row is at its length.
 3. **R0, then R7 and R5.** R0 is one sentence of the frame and decides
    whether 93 of 98 lanes read 18 KB or 1 KB. R7 is the section of LOOP
-   drivers open with (31 of 43 sessions): a third of it is the gate's and
-   the tree's rules, which belong with the merge. R5 removes 4,931 B the
+   drivers open with (31 of 43 sessions): a quarter of it is the gate's
+   and the tree's rules, which belong with the merge. R5 removes 4,931 B the
    file itself has called unverified since 2026-11-09, by pointing at the
    tool header that already holds every exit.
 
@@ -121,7 +121,7 @@ METHOD and `CLAUDE.md`, and R0 on top for lanes.
 | `docs/QUEUE.md` | 24,235 | lanes read its head: 93 of 98 lane worktrees since 2026-11-10 touched it, 61 or more by `head -N`; 26 of 43 driver sessions read it whole | handoff 32 lines and the 16,000 B section ceiling; 18 items of 8 lines; two line pins |
 | `docs/TRACKS.md` | 11,817 | the driver and the pass: 10 of 43 driver sessions read it whole, 15 a range; 0 of 98 lane worktrees read it whole | section ceiling only |
 | `docs/LOOP.md` | 37,586 | the driver, by section: 36 of 43 driver sessions touched it, 31 by line ranges (most often "The driver", lines 11 to about 166), 4 whole; 16 lane worktrees grepped it | section ceiling only ("The driver" 13,382, "The chain" 10,990) |
-| `docs/METHOD.md` | 22,127 | residue, chapter, coverage, reading and sweep items, of which few are booked now: one driver session read a range of it and 9 lane worktrees touched it, none whole. R9 and R10 are hygiene, not tokens | section ceiling only |
+| `docs/METHOD.md` | 22,127 | residue, chapter, coverage, reading and sweep items, of which few are booked now: one driver session read a range of it and 9 lane worktrees touched it, by range or grep. R9 and R10 are hygiene, not tokens | section ceiling only |
 | `tools/brief/frame.md` | 33,632 | a lane, by kind: `brief.py` selects sections, so a render lane does not carry the sweep's 5,759 B | a test holds it to the checklist |
 | DECISIONS entries the five files cite | 364,270 over 51 entries | on a pointer | 16,000 a section |
 
@@ -293,7 +293,8 @@ what it points at.
   clear; an exit is answered in its turn. A case in neither the header nor
   a pass record goes to `docs/audit/2026-11-09-loop-retired-clauses.md`,
   which entry 116 made for this.
-- **Saved:** about 4,000 B of the driver's first read.
+- **Saved:** about 4,000 B of what a driver opens at a merge (drivers
+  read LOOP by range; R7 is the part they open with).
 - **Guard:** none reads LOOP.
 - **Confidence:** medium-high. Not established: Loop 4051 itself, whether
   `DRAFT`, `HELD` and `UNCLEARED` still fire. A pointer is true either way.
@@ -325,10 +326,12 @@ what it points at.
   1,503; the roster 1,713; the kill rule and the stop 947; three things
   reach Ramon 134; the trunk 501; the booking gate takes every landing
   865; the booking gate is scoped 751; a tree's corpus 645; the gate clears
-  the disk 1,192; the harness moved 909. The last five (4,362 B) are rules
-  of the gate and the tree a driver needs at a merge, not at its start,
-  and "The chain" is where the merge is; moving them there costs no bytes
-  and takes a third off the section drivers open with.
+  the disk 1,192; the harness moved 909. Four of them (the booking gate
+  takes every landing, the booking gate is scoped, a tree's corpus, the
+  gate clears the disk: 3,453 B) are rules of the gate and the tree a
+  driver needs at a merge, not at its start, and "The chain" is where the
+  merge is; moving them there costs no bytes and takes a quarter off the
+  section drivers open with.
 - **History inside the rules:** in "one session drives", the two failures
   the handover mechanism answers ("312,347 tokens written", "the pass
   armed at 01:30 on 2026-11-13 never started") are entry 131 §8's; in
@@ -366,8 +369,8 @@ what it points at.
 
 - **Where:** `docs/METHOD.md`, "Conventions as they stood" (4,284 B) and
   "Tooling as it stood" (4,280 B).
-- **Measured:** of their seventeen bullets, **ten are byte-identical** to
-  `CLAUDE.md`'s (2,139 B): earn every dependency; a probe shape graduates;
+- **Measured:** of their seventeen bullets, **ten are `CLAUDE.md`'s word
+  for word** (2,139 B; compared with the line wraps joined): earn every dependency; a probe shape graduates;
   `tools/guard.sh` is the reflex; the python-heredoc patch; the pinned
   toolchain; where format notes and decisions live; one document a
   mechanic; `llvm-pdbutil`; constants and their representation; the
@@ -443,9 +446,8 @@ with the evidence. "Fix" is the smallest edit that makes it true.
 | S12 | LOOP, "The lanes" | "The handoff's `For the pass` counts are the tables'" | the handoff has no "For the pass" part (`grep -c 'For the pass' docs/QUEUE.md` is 0) | say when the part exists (at a hand-over to the pass), or strike |
 | S13 | twelve doc-to-doc section cites | a section that does not exist: `AI` §4.4 (CITIES line 531) and §9.3 (ORACLE 1841); `ANIM` §4.4 (ORDERS 2059); `ARMY` §15.8 (COMBAT 2687, four times) and §16.3 (INPUT 454); `COMBAT` §14.1 (MOVEMENT 107); `NATIONS` §5 (DECISIONS 6619); `ORDERS` §714 (INPUT 203, a line number); `PATHFINDER` §18.6 (COMBAT 12899) and §4.6 (TRANSPORT 17, twice); `TECH` §13 (AI 14501) and §7 (ANIM 2214) | `a_section_the_code_cites_is_one_the_document_holds` reads `crates/` only; the same parser over `docs/*.md` finds these. Six of the twelve are sections its `NO_SUCH_SECTION` already pins for the code. | mend each; or extend the guard to the documents with these pinned |
 | S14 | four paths | `crates/rondata/src/mapped.rs` (DATALAYER line 131); `tools/gamelog/handdriver.sh` (CENSUS 619; RUNS twice); `tools/ghidra/decomp` (VISION 9, RECGAME 12, COMBAT 4444) | none exists in the tree (`tools/ghidra` holds `analyze.sh`, `export.sh`, `run.sh`, `scripts`); the export is outside the repo by rule | name the file that holds it now; say "the export" without a repo path |
-
-| S16 | DECISIONS, "Index": statuses | 116 "amended by 121"; 100 "standing"; 59 "extended by 60" | entry 126 §1: "Entry 116's single row and entry 122's roster line are superseded here"; entry 103: "amends entry 100 §3's "next cell""; entry 61: "amends ... entry 59's clause 1". Three read; a mechanical pass (a later entry's sentence that names an earlier one beside amend, replace, retire, withdraw or supersede) lists 7 rows the index calls standing (57, 64, 71, 72, 99, 100, 121) and 16 whose list of successors is short; 16 entries carry an "Amended <date>" note while their row says something other than "amended in place" (4, 9, 24, 29, 34, 55, 63, 64, 68, 71, 72, 77, 78, 87, 88, 121). Candidates, not verdicts: the heuristic is noisy, and a successor does not always name what it changes (entry 126 returns the two rows without a sentence that says "amends entry 116" in those words). | the pass that splits the index (S1) checks these rows; G3's index by topic is the durable fix |
 | S15 | `docs_guard.rs`, `OVER` | four pins: `ORDERS.md` §4 37,583; `AI.md` §2 70,933, §15 26,923, §99 51,530 | the guard's own stderr asks for each to be lowered: "shrank to 37575 ... 70859 ... 26922 ... 51527; lower its pin" (86 B of slack; a passing test's stderr is captured, so nobody sees it) | lower the four; or make the slack a failure, as the queue's pins are |
+| S16 | DECISIONS, "Index": statuses | 116 "amended by 121"; 100 "standing"; 59 "extended by 60" | entry 126 §1: "Entry 116's single row and entry 122's roster line are superseded here"; entry 103: "amends entry 100 §3's "next cell""; entry 61: "amends ... entry 59's clause 1". Three read; a mechanical pass (a later entry's sentence that names an earlier one beside amend, replace, retire, withdraw or supersede) lists 7 rows the index calls standing (57, 64, 71, 72, 99, 100, 121) and 16 whose list of successors is short; 16 entries carry an "Amended <date>" note while their row says something other than "amended in place" (4, 9, 24, 29, 34, 55, 63, 64, 68, 71, 72, 77, 78, 87, 88, 121). Candidates, not verdicts: the heuristic is noisy, and a successor does not always name what it changes (entry 126 returns the two rows without a sentence that says "amends entry 116" in those words). | the pass that splits the index (S1) checks these rows; G3's index by topic is the durable fix |
 
 Also seen, and not a contradiction: `CLAUDE.md` gives the gate as
 `--test-threads 4` and QUEUE and LOOP give the booking gate as
@@ -479,6 +481,13 @@ to 0.03. Between each DECISIONS entry from 57 on and its nearest pass
 record: median 0.09; with `docs/JOURNAL.md`, 0.01. The section and the
 journal tell one landing in different words and neither is a copy. So
 nothing in the giants can be deleted as a duplicate.
+
+**A second, also empty.** "The specifications still speak of landed items
+in the future tense." A scan for unstruck sentences that pair an item
+number with "owed", "until item", "is booked", "not yet" and the like,
+where the item has a journal file, lists 80 sentences in 24 documents. The
+eight read on the live tracks (`CHECKSUM.md`, `START.md`) are all dated
+history ("until item 4113"), none a stale promise. Not pursued.
 
 ### G1. The eight sections over the ceiling split where they are already numbered
 
@@ -516,9 +525,11 @@ nothing in the giants can be deleted as a duplicate.
   by 3 to 12 B in the same week and stayed within 20 B of the ceiling
   (§331 15,984 to 15,996), which is what an amendment under a full
   section looks like.
-- **What cites it:** `AI.md` §2 and its parts: 71 citations in `crates/`,
-  33 in other documents; `GROUPS.md` §6: see the appendix's citation
-  counter. None cites a heading level.
+- **What cites it** (citations of the section or a part of it, in
+  `crates/` and in other documents): `AI.md` §2, 71 and 33; §99, 46 and
+  12; §15, 8 and 8; `GROUPS.md` §6, 53 and 34; `ORDERS.md` §4, 49 and 53;
+  §5, 11 and 16; `CITIES.md` §3, 22 and 17; `DATALAYER.md` §2, 0 and 1.
+  None cites a heading level.
 - **Guard:** `a_section_over_the_ceiling_may_not_grow`. Three tools split
   a document on `## ` and were not read by this lane: `tools/retire.py`,
   `tools/runwiring.py`, `tools/seams.py`; `tools/brief.py --section` only
@@ -565,7 +576,7 @@ nothing in the giants can be deleted as a duplicate.
   gate, 72 → 79 → 131 §4 → 132 §5; a lane's own gate, 53 → 72 → 80 → 96 →
   132 §6; the roster and the count, 59 → 61 → 114 → 116 → 126 → 128 §4 →
   129 §1; the rows and the handover, 61 → 116 → 122 → 126 → 130 → 131 §8;
-  the stop, 118 → 121 (amended in place three times) → 124; the parked
+  the stop, 118 → 121 → 124 → 121 again, amended in place (99 %); the parked
   file, 39 → 67 → 125; the finish line, 24 → 26 → 29 → 41 → 53 → 114 → 116
   → 132 §10. About twenty such lines, each ending on the entry that
   stands, is the page Ramon can read to find what to review. It can live
@@ -586,7 +597,7 @@ nothing in the giants can be deleted as a duplicate.
 A section of these is read on a pointer and cited by code: of `AI.md`'s 438
 sections, 19 (37,146 B) are cited by nothing but journals and audits; of
 `GOLDEN.md`'s 240, 16 (41,024 B); `COMBAT.md` 4 of 88; `ORDERS.md` 7 of 58.
-That is 1.3 to 2.8 % of each file, not worth an edit to an addressed
+That is 1.3 to 4.4 % of each file, not worth an edit to an addressed
 document. What each does have is sections fitted to the ceiling (the last
 column above): the next amendment to any of the 30 at 15,900 to 16,000 is a
 fitting episode or a split. A split is free (G1's method), so it is the
@@ -609,10 +620,10 @@ the ceiling, and each span is a wrong claim kept from being read as live.
 
 ### G7. `docs/audit/README.md`: one section
 
-137,908 B in 46 sections; `CLAUDE.md` points an adjudicator at it for "its
+137,908 B in 45 sections; `CLAUDE.md` points an adjudicator at it for "its
 record and its lessons". "The record" is 30,524 B, the largest section in
 the tree outside `OVER` and `JOURNAL.md`, and `docs/audit/` is not under
-the ceiling. 38 of the 46 sections are "The brief checklist", one a pass
+the ceiling. 37 of the 45 sections are "The brief checklist", one a pass
 from the eighteenth to the sixty-second, held to the frame by
 `tools/explore/test_brief.py`; `brief.py` points a lane there for "the
 story behind any row", on demand. The frame is the digest and this is its
@@ -628,7 +639,8 @@ section.
   61" is a floor.
 - `NEWEST_PAIR`'s reader, and whether any tool reads a `## N.` section as a
   unit (R1, G1).
-- The statuses in the DECISIONS index were checked for entry 121 alone.
+- The statuses in the DECISIONS index were read for entries 59, 100, 116
+  and 121; the rest of S16 is a heuristic's list.
 - The topic chains under G3 are read off the index, not off the entries.
 - Whether merges conflict on the live tracks' documents (D6).
 - What `tools/retire.py`, `tools/runwiring.py` and `tools/seams.py` do with
