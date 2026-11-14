@@ -331,3 +331,250 @@ runs is Ramon's to send or waits for the next pass (Loop 3499: the one
 time it happened, a relayed decision came back hours later as a status
 line that re-read a 300 k-token context; Loop 3536: "never message" was
 once read as "never clear", and a drain stopped).
+
+## Retired 2026-11-14: the chain's waiter block
+
+The pass of 2026-11-14 (`docs/audit/2026-11-14-docs-compaction.md`, R5)
+replaced this block of `docs/LOOP.md`, "The chain", with a pointer to
+`tools/lanewait.py`'s header and the three rules the tool cannot hold: an
+exit is answered in its turn; a done line that arrives while a wait runs
+stops the wait and re-arms it without that lane; no message is sent to a
+lane beside an armed clear. It ruled Loop 4051 and 4055 closed: the header
+is the authority, whatever still fires. Every exit and line the block names
+(`LANDED`, `ENDED`, `HELD`, `QUIET`, `DEEP`, `STALLED`, `UNCLEARED`,
+`WAITING`, `PUSHED`, `DRAFT`, `ARMED`, `ARM-REFUSED`, `GATING`) is in the
+header with its answer, read one by one on the tree at `e8b6a8359`. Two
+things the block says and the header does not: **the commander's `DEEP`
+answer may be "land" when the item is finished** (Loop 3833; the header's
+`DEEP` paragraph gives the draft answer only, and its Loop 3833 paragraph
+is the waiter's side of the same case), and **a `Left to do` heading is a
+draft's word as `draft` is** (Loop 3925), which the tool holds in its code
+(the comment above its draft reader) and not in its header. The block as
+it stood, verbatim:
+
+**And a spawn is followed by a wait on the lanes** —
+`python3 tools/lanewait.py <every live lane>`, backgrounded, re-armed
+at its every exit: it exits on a push to a lane's branch, on a row
+that left `working` and stayed out, and on a hundred quiet minutes.
+Three lanes of one tranche wrote their landing in their own transcript
+with the message tool never loaded, and the commander slept three
+hours and thirty-four minutes until a person asked (parked 1412); the
+idle notice built against that fires at every backgrounded wait —
+three notices for one idle, none a landing
+(`docs/audit/2026-10-04-sequential-arm.md`). A done line is the
+lane's, and the wait is what wakes a commander when the line does not
+come — **and a `DRAFT <lane>` line on the waiter's stderr is a push
+under a clear, never a landing** (Loop 3368: twice in one tranche a
+lane's draft journal, pushed for its `DEEP` answer, exited the waiter
+`LANDED`) — **so a done line that arrives while a wait runs stops the wait
+(`TaskStop`) and re-arms it without that lane in the same turn**: all
+sixteen of the twenty-ninth tranche's `LANDED` exits came after the
+lane's own line, each a whole-context turn that learned nothing (parked
+1695). **And a `DEEP <lane> <ctx>k` exit is answered in its turn**: one
+line to the lane — journal as a draft (its head says `draft`, or a
+`Left to do` heading stands anywhere in it: the waiter reads both, Loop
+3925), commit, push, end the turn, **or,
+if the item is finished, land instead** (Loop 3833: four of thirteen
+`DEEP` lanes over three tranches were past their status and pushed the
+landing, every one with its lane gate still running) — **and the draft
+turn ends done, on "this session is done", never `blocked` and never
+with a reply suggested** (Loop 3931, the sixty-ninth pass: lane-3919's
+armed clear stood forty minutes on its own `blocked` row and suggested
+reply, which ccc reads as a person's unsent draft and never submits;
+the waiter exits `HELD <lane> blocked` with that remedy, where it said
+`ENDED`) — and
+the waiter re-armed with `--arm-after-push <lane>`, which arms `ccc
+clear <lane> --then "continue item <N> from the journal"` at that lane's
+next push and prints `ARMED` or `ARM-REFUSED` — **a push on a lane whose
+own gate still runs is `GATING … held, not armed`**, read again at the
+gate's exit, and a push whose journal is no draft is `PUSHED … a
+landing, not armed` (Loop 3833 built; the sixty-fifth pass) — **and
+`LANDED` needs the journal's `Lane verdict:` quote or the row's done
+line; a push with neither is `PUSHED … progress, not a landing: its
+journal quotes no lane gate yet`**, and a landing whose newest commit is
+not the quote's exits `ENDED` with the row's line (Loop 3853 built; the
+sixty-sixth pass: a fresh session's re-pin push read `LANDED` with no
+gate run) (Loop 3526: `ccc clear`
+refuses a lane with uncommitted work, so an arm in the answer's own
+turn failed twice and the commander's line had already said "armed");
+a lane's own arm is refused (DECISIONS 61) and five sessions over 300 k
+took none (parked 1637, 1638); **a `HELD <lane> <range>` line before
+any exit is a draft push still unarmed** — the re-armed wait with
+`--arm-after-push` arms it at start when the row is idle and unarmed
+(Loop 3765: two held drafts died with a wait that exited on the other
+lane); **and a `GATING <lane>` note is a row that left `working` with
+its lane gate still running, held and not an exit** (Loop 3753: 3747's
+`ENDED` within a minute of `WAITING`, twice). **And a `STALLED
+<lane> <min>` exit is answered in its turn**: one line to the lane —
+the gate or capture it waited on has exited; read its log and land —
+because a lost exit notice leaves a row `working` at `tempo=idle` with
+nothing running, where no other exit can fire, and one sat 178 minutes
+(parked 1871, DECISIONS 67) — **unless the lane holds a draft push,
+when the stall is the arm**: the waiter arms the clear itself, prints
+`ARMED`, keeps watching, and nothing is sent (Loop 3795: 3788's held
+draft sat through two `HELD` exits and a `STALLED` with the row reading
+`working`, and was armed by hand). **A message is never sent to a lane
+beside an armed clear**: the clear fires on the row's idle and the
+message lands in the fresh session as its second turn, which obeys it —
+3788's fresh session was told "end your turn" and did, until a
+correction ten minutes later (Loop 3796). A nudge and an arm are two
+answers to one stall; the arm is the one that does not need the lane
+to read anything. **And an `UNCLEARED <lane> <min>` exit is
+answered in its turn**: one message to the lane carrying the clear's
+`--then` prompt — twice in one tranche a cross-session clear fired and
+its prompt never ran, and the new session sat on its `/clear` twenty
+minutes until a message woke it (parked 2127, DECISIONS 69).
+
+And the sentence the harness bullet ("A clear no longer kills a background
+agent's running commands", `docs/LOOP.md`, "The driver") carried, which the
+pass replaced with "what the waiter's exits mean now is
+`tools/lanewait.py`'s header, which is the authority":
+
+The waiter's `DRAFT`, `HELD` and `UNCLEARED` clauses in "the
+  chain" were written against the old behaviour and are unverified (Loop
+  4051).
+
+## Retired 2026-11-14: brief kinds no item is booked under (a kind can be booked again: `tools/brief.py`'s header is what a driver reads)
+
+From `docs/LOOP.md`, "The brief" (R6). The queue books a residue or
+chapter item only when another track's frame needs one, and the blind list
+reads open 0. What the text says that `tools/brief.py`'s header does not:
+the reading kind's gate line (`--tests blind:: --no-widen`), which the
+frame's `reading-item` section and `ALWAYS_TESTS` carry; the coverage
+kind's pool and twin check, which the frame's `coverage-item` section
+carries; the late-age pair's whole shape, which is DECISIONS 90's; and the
+rubric's split between the worker's re-pin and the commander's line, which
+the frame's `capture` section and the queue's maintenance bullet carry.
+Verbatim:
+
+**The fourth kind is `reading`** (entry 84), beside
+`residue`, `chapter` and `sweep`: a lane that reads the never-entered
+functions its document cites into claims that each name their
+falsifying capture, and gates on `python3 tools/release_gate.py
+~/code/fun/attrition/game --test-threads 4 --lane --item <N> --tests
+blind:: --no-widen`. **The fifth is `coverage`** (entry 87): a lane
+that retakes one pinned lobby at `cover=1` **on the click-free pool**
+(entry 88: `cover=1` runs there since 3429, and a click is an `@click`
+line since 3437), checks the
+trace against its `cover=0` twin — `samegame.py --from` the first
+unshared input, where the take sends one — and pins it into
+`blind::TRACES`, so the functions a reading's captures-owed table names
+leave `NEVER`; it gates on the same line.
+**A late-age pair is a `residue` item that stands a word up** (DECISIONS
+90): the Mongol pair's shape — its own start and long at `cover=0`,
+`end:UNITS=3,GUYS=2` on a stride, the age held and read back,
+`diff::<name>_pair` pinned at its first parting — scored by its first
+try, its partings residue items on that word. **The rubric reads lockstep
+games only**: the worker runs `tools/rubric.py` on its tree once the
+word is pinned, names the types new to the ledger in its journal and
+re-pins `census::RUBRIC_*`, and the commander writes the queue's
+`Rubric:` line at the booking as it writes `Blind:` — the pass's
+`--record` row stays the pass's.
+
+## Retired 2026-11-14: the pass's first acts, the figures
+
+From `docs/LOOP.md`, "Ratification, and the passes" (R8). The acts now
+stand there as a numbered list, each with its command and its cite; the
+figures earlier passes read (the compression's six minutes and 19 GiB, the
+debug profile's 180,851 files and 74.2 GiB, the sixty-fifth to
+sixty-seventh passes' `df -g ~` readings) are here, in the paragraph as it
+stood:
+
+**Its subagents' worktrees are removed at
+their merge** (`git worktree remove`, before the pass's gate: the
+fifty-second pass's, locked by a live `claude bg-spare`, refused the
+fifty-third tranche's tenth booking gate until a person removed it, Loop
+3545) **and the lane rows a drain left idle are reaped at the pass's
+start** (`ccc rm <ref>` on a merged row; eight stood at the fifty-third's
+drain, Loop 3565). **Its first act is the archives' compression,
+backgrounded** — `afsctool -c -f -T LZFSE -J8` on `~/ron-data` and
+`~/ron-golden`, six minutes and 19 GiB on 2026-10-17, never beside a
+gate (DECISIONS 77) — **and the suite's re-timing beside it** (`python3
+tools/suite_timings.py <install> --stale-only`, committed; DECISIONS 132
+§6: on 2026-11-13 the file was four days old and 189 tests were untimed,
+so every lane gate ran them) — **and the integration tree's debug profile is
+cleaned beside it** (`cargo clean --profile dev`: 180,851 files and 74.2
+GiB on 2026-11-04, the disk 108 → 144; the reflex rebuilds it in minutes)
+**when `df -g ~` reads under the last pass's figure** (DECISIONS 104 §6;
+the sixty-fifth read 114 at its start, 125 after both; the sixty-sixth
+141, over 125, so the archives alone, 147 after; the sixty-seventh 138,
+under 147, so both: 48,997 files and 24.9 GiB cleaned, 151 after)
+— **and its table of the tranche's gates is
+`python3 tools/gates.py <the commander's job tmp> --since <the last
+pass's gate log>`** (DECISIONS 80), **and its rubric is `python3
+tools/rubric.py --record "<the pass>"`** — the content view (ages held,
+unit types seen, source groups wholly backed) as a row in
+`docs/audit/rubric.tsv` and a table against the pass before, in the
+record beside the clock; the queue's `Rubric:` line is the pass's to
+re-pin and never a booking's (Ramon, the forty-ninth steer, DECISIONS 88). **And its blind list's open rows are scanned for references** —
+`tools/trace/report.py <exe> refs -` over `blind::NEVER` net of
+`RESIDUE` — **and the dead ratified by family, each row with the scan's
+reason**, because 115 of 192 open rows were out-of-line copies no
+capture could enter and three tranches had booked captures against the
+list without knowing it (Loop 3465, the fiftieth pass, DECISIONS 89); a
+residue row is a claim no capture can break, and one the console's
+`!eval` or an `@` line can reach is struck, never restated on scope
+(Loop 3473). 
+
+## Retired 2026-11-14: phase 3's scoring and succession
+
+From `docs/METHOD.md` (R10), which kept it "as `CLAUDE.md` stated phase 3
+while it was open". Nothing under `crates/`, `tools/` or `docs/*.md` cited
+the section by name. Verbatim:
+
+As `CLAUDE.md` stated phase 3 while it was open. Every word it names is
+closed and stands as a floor.
+
+3. **Sim skeleton** — the rules of a match, mechanic by mechanic, diffed
+   against the original's own per-frame dumps. **The score is ticks before
+   divergence** on each of the two maps the finish line names — the lower
+   map first, and the default item is its nearest divergence — pinned as
+   floors in `rondata::diff` and stated first in `docs/QUEUE.md`. **Done when** a
+   fixed-seed, traced human-versus-AI capture on two maps stays in lockstep
+   — no position or order disagreement — for its full length. This is the
+   long middle, and the number is how anyone can tell where in it we are.
+   Closing the current captures is the milestone, not the phase:
+   `docs/DECISIONS.md` entry 29 names the three counters that define the
+   sim complete, and the renderer waits on them. **A pair that closes is
+   succeeded by the one whose lobby reaches the most census rows no
+   trace has entered** — it names those rows before its capture is
+   booked, and it may vary more than one setting — and the AI's word
+   is the newest pair's; a closed pair's pins stay as floors
+   (`docs/DECISIONS.md` entry 53, amended by 61). **A third map is
+   scored in the first pair's lobby beside them, and the held-out map
+   is measured and never debugged against** (entry 54) — **and so is
+   a held-out battery, at every pass**: games nobody tuned for, each
+   scored by how far it runs on its first try, which is the number
+   that says when minting pairs can stop (entry 61). **A game that ends closes
+   with its closing state scored, and the lower map is the lower open
+   word** (entry 55). **A closed map is succeeded by the same map in
+   the newest pair's lobby, and the rules track stages the arms the AI
+   track built and no walk holds** (entry 56).
+
+## Retired 2026-11-14: the chain's branch delete and the whole gate's history
+
+From `docs/LOOP.md`, "The chain" (S11, S7). The merged branches on origin
+are Ramon's to delete or to allow (DECISIONS 129 §9), so the chain no
+longer runs the delete as a step; and DECISIONS 132 §5 replaced entry 79's
+every third landing, so its parenthesis of entries 72 and 79 went. The
+chain's text as it stood:
+
+`ccc rm <ref>`, and `git push origin --delete <the lane's branch>` —
+**the push reads the gate log's own `gate exit 0` line first, never
+the background task's exit** (Loop 3997: the seventy-second's drain
+pushed a tip whose whole gate was red on `diff::audit::`, its check
+keyed on the harness's exit line; a red tip on origin is a red tip the
+next spawn inherits) — a
+worker pushes its branch, `ccc rm` deletes only the worktree and the local
+branch, and thirty-seven merged `origin/worktree-att-*` stood on 2026-09-25
+(parked 727); **the classifier may refuse that delete** (`[Git
+Destructive]`, from the commander's row and the steer's alike, Loop 3848):
+a refusal is reported at the drain with the count, never retried — never a
+raw `git merge`,
+
+(DECISIONS 132 §5; every third
+landing whose merge widened, before it)
+(the thirty-fifth steer, DECISIONS 72: a scoped gate runs the timed
+tests only when a merge since the last whole one can move a pin; the
+forty-first pass, DECISIONS 79: a sweep or document landing in third
+position drew the whole gate by position, twice in one tranche)

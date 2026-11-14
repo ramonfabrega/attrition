@@ -525,11 +525,12 @@ added these rows, each from the tranche's own receipts.
   reads the base's movement and the paths both sides touched, and
   refuses the done line while any stands but the commander's paperwork
   (`COMMANDER_PAPERWORK`, Loop 3401: an overlap there merges clean).
-- **A red on the Loop-line guard alone is forgiven on a lane, and the
+- ~~**A red on the Loop-line guard alone is forgiven on a lane, and the
   line is the commander's to file** (3328; 3314's three lane gates,
   3318's self-filed row, 3322's `none`): the guard asks that a journal's
   "for the Loop" line be filed in the parked file, which only the
-  commander does, at the merge.
+  commander does, at the merge.~~ **Struck by the pass of 2026-11-14**:
+  there is no Loop backlog and no Loop-line guard (DECISIONS 125 §3, §4).
 - **`check.sh`'s exit is cargo's; read the command's exit, never a
   pipe's** (3327; 3318's line): the wrapper returns the child's code,
   measured on a build error this pass (exit 101).
@@ -540,7 +541,7 @@ added these rows, each from the tranche's own receipts.
 - **A road-node parting's first step is a whole-game log of ours' map
   around the tile** (3323; 3314's line), **and a blow larger than ours
   with `get_damage` agreeing is a packet scan for live `Ammo` first**
-  (3328's note; 3322's method note).
+  (3328, 3322: their method notes).
 
 ## The brief checklist, from the forty-fourth pass
 
@@ -1267,7 +1268,8 @@ ceiling is each kind's own sections now (the chapter kind at 12,988 of
   skips `sweep/` by design, ratified by the pass.
 - **At 300 k of context a lane writes its journal as a draft, commits,
   and arms its own clear with "continue item N from the journal"**
-  (1637, decided with Ramon after the pass): one item runs 150 to 270
+  (1637, decided with Ramon after the pass) — 400 k since DECISIONS
+  131 §6, and the arm is the commander's, the row below: one item runs 150 to 270
   requests and grows to half a million tokens of dump greps; about half
   a lane's price is spent above 300 k (the tranche reader's deep share,
   0.46 to 0.72 on the coverage lane), and four fifths of the bill is
@@ -1327,8 +1329,8 @@ rows' wording, no number struck; the chapter kind stands at 12,990 of
 - ~~**The lane gate takes `--item N` and refuses a tree with no journal**
   (1699): 1639's chain died on a `sed` and its done line went out
   without the journal.~~ **Struck by the thirty-seventh pass**: the tool says so itself.
-- **At 300 k the waiter tells the commander, and the commander arms the
-  clear** (1637, 1638): five sessions over 300 k in two tranches took
+- **At 400 k the waiter tells the commander, and the commander arms the
+  clear** (1637, 1638) — 300 k until DECISIONS 131 §6: five sessions over 300 k in two tranches took
   the frame's self-arm none — a lane cannot read its own context, and
   the classifier refuses a session's arm of its own clear.
 - **`tools/runwiring.py runNNN` prints where a run is wired** (1729):
