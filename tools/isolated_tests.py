@@ -20,6 +20,11 @@ group names, a group with one selected member and a test wider than one
 slot run alone, exactly as before. `RON_SUITE_GROUPS=off` runs every test
 alone.
 
+**A game's group shares one kept walk** (`SHARE_WALKS`, stage 2): the runner
+says `RON_SHARE_WALKS=on` to a group's process, and a widening there resumes
+the state the last one left when it stands before its first block
+(`rondata::diff::harness::prefix`). A lone test is told nothing.
+
 **A group's memory is its own** (`group_memory`). A process that runs 28
 tests holds what each left in the code's caches, and the 145 groups of the
 first whole run peaked at a median 1.7 times, and up to 3.7 times, their
@@ -65,7 +70,11 @@ GROUP_FLOOR_SECONDS = 1800
 # Whether a group's tests share one kept walk (`harness::prefix`, stage 2 of
 # item 4216): what the runner says to a group's process as
 # `RON_SHARE_WALKS`. `RON_SUITE_SHARE_WALKS=on|off` overrides it for a run.
-SHARE_WALKS = 'off'
+# On since the whole library ran green with it under
+# `RON_VERIFY_PREFIX_REUSE` (every widening compared with a fresh walk) and
+# the fixture audit stayed equal test for test; the whole booking gate's
+# `RON_VERIFY_ORACLE` is its standing check.
+SHARE_WALKS = 'on'
 GROUP_SECONDS_FACTOR = 4
 
 
