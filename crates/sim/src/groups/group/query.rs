@@ -997,6 +997,7 @@ impl Sim {
             m.frame_facing = angle;
             if let Some(g) = self.units[u].guys.first_mut()
                 && g.follow.is_none()
+                && std::env::var_os("RON_EXP_NOLAST").is_none()
             {
                 g.last = g.last.map(|(at, _)| (at, angle));
             }

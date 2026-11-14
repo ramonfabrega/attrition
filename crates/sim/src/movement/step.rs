@@ -241,7 +241,7 @@ impl Sim {
         }
         // `Guy::set_angle(crew, des_angle, 1)` writes the crew figure's
         // `last_angle` beside its `angle` (`005d9010:15`).
-        if snap {
+        if snap && std::env::var_os("RON_EXP_CREWLAST").is_some() {
             for g in &mut self.units[u].guys {
                 if g.follow.is_some() {
                     g.last = g.last.map(|(at, _)| (at, angle));
