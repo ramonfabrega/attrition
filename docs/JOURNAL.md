@@ -22105,3 +22105,24 @@ modules' tests cost 2,247 s. Booked as item 4216, a fifth lane: one walk a
 game. Also booked: 4208 to 4215. Built by two Opus builders, red first.
 The pass moved no score. **DECISIONS 132.**
 `docs/audit/2026-11-13-fable-pass-supply-2.md`.
+
+## 2026-11-14 — the pass after the first tranche of a fresh week: the week is bound by tokens, and the render lane follows the eye (Fable 5.2, steering)
+
+`commander` drained a tranche of fifteen bookings on Ramon's word and handed
+over with three points and an empty queue. Ramon joined the row and said the
+week is normal again: no surplus, no rush to spend, no fan-outs of readers.
+Measured: about three workers moved the week a point an hour and landed 2.3
+an hour, the rate 4.7 workers had landed the tranche before; a landing is
+about 0.45 of a point, so the week holds about 210 whatever the count. The
+pass recommends three gating seats and a day's budget; both are Ramon's.
+Built, each red first: a `--no-widen` lane that moves the sim's source keeps
+the widenings (4231's booking red), the blind list's refusal cites nothing
+where a journal quotes it (three red merges), a filed run is a note's
+reference, the packets' print mode names a moved pin, and a gate keeps four
+days of report directories. The pass looked at the lanes' last stills: the
+lake and the fire have closed, and the largest gaps are the city's grey
+buildings, the pale mountain and the black ground past the map's edge.
+Booked: 4243 and 4244 on parity's units and builds, 4245 to 4247 on what
+the eye found. `lore`'s four findings were checked on the tree; the public
+README's status is rewritten. The pass spawned no agent and moved no score.
+**DECISIONS 134.** `docs/audit/2026-11-14-fable-pass-token-bound.md`.

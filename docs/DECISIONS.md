@@ -148,6 +148,7 @@ is append-only and amended in place, as it always was.
 - 131 extended by 132 — a leaf leaves where it moves; VII's capture; step S; a gate takes all merged; 400 k
 - 132 standing — staged decisions; the chain's order; the corpus ledger; scoped gates; step H; parity
 - 133 standing — The pass of 2026-11-14: the loop is bound by test CPU, a lane's gate reads the queue's mark, the second reading moves no leaf, the lanes follow parity and the eye, the documents compacted
+- 134 standing — The pass of 2026-11-14, second: the week is bound by tokens, a scoped lane that moves the sim's source keeps the widenings, a quoted refusal cites nothing, the render lane follows the eye
 
 ## 1. Fidelity before divergence
 
@@ -13058,3 +13059,105 @@ texture row on the lake rises with the lit floor; the taunts' second reading
 (`docs/LEADERS.md` §9 rests on item 4152's pair); how the week divides once
 the other projects' rows are counted against it, which is not this
 repository's to decide.
+
+## 134. The week is bound by tokens, a scoped lane that moves the sim's source keeps the widenings, a quoted refusal cites nothing, and the render lane follows the eye (2026-11-14)
+
+**What happened.** `commander` (Opus 5.5) ran a tranche from 05:46 to 12:20
+−05:00 on a fresh week and drained it on Ramon's word at 11:09: fifteen
+bookings, thirteen ccc lanes and two in-session builders, all on Opus 5.5.
+The `steer` row's pass began at 12:20 with Ramon on the row. Its handoff
+asked three things: the widenings a scoped lane cannot see, the blind list's
+refusal quoted into journals, and a queue with no designed item. The tables
+are in `docs/audit/2026-11-14-fable-pass-token-bound.md`. The pass spawned no
+agent.
+
+**§1. The week is bound by tokens, and the measure of a tranche is points a
+landing.** Ramon, on the row: last week ran on a reset, with a surplus, so
+there was no need to pace; "this week once again is 'normal', where if we
+run 24/7 we'll run out of weekly limits", so there is no rush to spend and
+no sending of numerous blind readers. The measurement agrees. The crew of
+about three (2.6 lanes by `tools/tranche.py`'s lane-minutes, and two
+builders) moved the week from 0 to between 6 and 7 points in 6.3 hours, a
+point an hour, and landed fifteen: about 0.45 of a point a landing. At that
+rate 99 % is 94 crew-hours, 3.9 of the week's 7 days, and the week holds
+about 210 landings whatever the worker count. Entry 133 found the loop
+bound by test CPU; that held while the week had points to spare. So a pass
+reports **points a landing** beside landings an hour, and a lane's cost is
+what a tranche is judged on: 4.00 to 16.73 USD a lane here, the six past
+300 k of context the dearest (4239 at 422 k, 16.73). **What is Ramon's and
+is not decided here:** a day's budget in points and the worker count. The
+pass recommends about fourteen points a day and three gating seats; the
+roster stands as entry 129 §1 left it until he moves it.
+
+**§2. The lanes follow parity on two seats and the eye on one.** Parity's
+four open lines are four chains, and a fix on one has moved another twice
+(4234's put units on guys' frame; 4238's one rule moved both). So two lanes
+take two lines each, in order: units then guys (item 4243), builds then
+groups (item 4244), each re-reading its frame on the merged tree before its
+packet. The render lane takes what the pass's look found (§7). The chain's
+builder takes item 4159's order when a seat is idle.
+
+**§3. A `--no-widen` lane that moves the sim's source keeps the
+widenings.** Entry 83 left every timed pin to the booking gate because
+fifteen of twenty sim-touching lanes moved none. On parity's lanes two of
+four fixes (4231's and 4242's `get_num_cap` calls) each moved four widening
+pins. 4231's were seen first by a red booking gate (15.8 minutes, then
+14.7); the driver then wrote the widening run into each brief by hand, and
+4242's lane found its four there. Now `tools/release_gate.py` reads the
+branch: a path under `crates/sim/src/` that is not a test file keeps
+`_word_frame_is_widened_whole` and `_gap_is_walked_whole` out of a
+`--no-widen` lane's skips (405 tests, 919 s one at a time by the timings
+file). The census and the rest of the timed corpus stay the booking gate's.
+The receipt names the paths (`sim_source`). Red first:
+`test_a_no_widen_lane_that_moves_the_sim_s_source_keeps_the_widenings`.
+
+**§4. The blind list's refusal cites nothing where it is quoted.** The
+refusal named its function in the form the scanner reads, so a lane that
+quoted its gate's red line into its journal cited the function again. Three
+merges of one tranche went red on it (4236, 4240, 4241), each on a quote of
+the one before. The refusal now prints the name and the address apart
+(`blind::tests::a_refusal_quoted_into_a_document_cites_nothing`, red on the
+old form). The first cite was a real one: 4236's journal named a
+constructor no trace enters, and the lane reworded it. That is allowed in a
+journal, which tells a story; a specification that needs the function cites
+it and takes the row.
+
+**§5. Three smaller guards.** A filed run is a note's reference and never a
+reservation: `tools/brief.py` refuses a `--runs` number that `docs/RUNS.md`
+heads, and lets a note name one (4231's and 4234's briefs "reserved" run1578
+and run1587, both filed, and each lane asked for a number). The packets'
+print mode says that it asserts no pin and prints `MOVED` for each pin the
+walk moved (4238 read a print run as "nothing moved"; seen on a bent pin).
+A gate keeps four days of its report directories and removes the older
+ones (Loop 4156, and `lore`'s audit: 295 stood in the temp dir, and they are
+the only record of a lane's gate).
+
+**§6. A second reading is taken where a score rests on a reading alone.**
+The tranche took none and needed none: each parity fix was settled by a
+packet and the original's own function run on it, and each render fix by a
+row. `CLAUDE.md` asks a blind second reading of every reading-only claim.
+The pass does not narrow that rule, which is Ramon's file; it records that
+under §1 a fan-out is a spend to be named with its score, and asks him.
+
+**§7. The render lane's next three are what the eye found.** The lanes' own
+parked next words were the fire's and the surf's details (4241a, 4239a,
+4240a). Beside the photographs, the largest differences are elsewhere: the
+city's buildings grey where theirs are lit sandstone, the mountain pale for
+a second pass, and the ground past the map's edge black where theirs is
+dark terrain. Items 4245, 4246 and 4247, each opening with its row. Slot
+10's flame (4241a) rides after them.
+
+**§8. `lore`'s four findings, each checked on the tree.** The public
+`README.md` said nothing is drawn and listed the start, the checksum, input,
+the lobby and save as not started: rewritten to today's lines (its
+"fifteen" map types is right; the queue's line holds fifteen). The gate's
+report directories: §5. `AGENTS.md` still says the loop is paused, and the
+stop has no number for Fable's week: both Ramon's, in the record.
+`docs/RENDERER.md` is no longer titled a proposal. The record of entry 133
+said `lore`'s repository had no Fable 5.2 rate; it has, since its landing of
+2026-11-14.
+
+**Not decided.** The day's budget and the count (§1), the narrowing of the
+second-reading rule (§6), a stop for Fable's week, `AGENTS.md`, three
+`CLAUDE.md` rows carried from entry 133, and the delete of 52 merged
+branches on origin.

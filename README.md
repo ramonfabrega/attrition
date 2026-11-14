@@ -56,18 +56,31 @@ The work is split into tracks. As of November 2026:
   play. A held-out battery of games that nobody tuned for measures how well
   this carries over to new games. Of the staged chapters, which cover
   commands a recorded game rarely issues, all but one are closed.
-- **Map generation:** fifteen of the original's map types generate the same
-  start, phase by phase.
-- **Structure: in progress.** The simulation crate is being reorganised into
-  subsystem directories with a public surface ([`docs/STRUCTURE.md`](docs/STRUCTURE.md)),
-  and no move may change behaviour.
-- **Renderer: started.** The camera matches the original's projection, and
-  the original's model and animation files decode in a dependency-free
-  `render` crate. The first decoder handles 1,439 of 1,452 pieces. Nothing
-  is drawn to the screen yet.
-- **Not started:** game start without a log of the original, the original's
-  full-state checksum, mouse and keyboard input, our own lobby, the computer
-  opponent's own logic, and save and replay.
+- **Map generation and the start:** fifteen of the original's map types
+  generate the same start, phase by phase, and a game starts from a lobby's
+  choices alone, with no log of the original, on all 161 lobbies on disk.
+- **Structure: done.** The simulation crate is organised into subsystem
+  directories with a public surface ([`docs/STRUCTURE.md`](docs/STRUCTURE.md)),
+  and every later move is held to no change in behaviour.
+- **Renderer: drawing.** A client draws a captured game with the original's
+  art: the ground, the water and its surf, trees, buildings, units, fire and
+  smoke. On the reference frames 59 of 60 pieces stand where the original
+  draws them. Colour still differs in places, the buildings and the
+  mountains most.
+- **Orders and recorded games:** clicks in the client mint orders, and a
+  game played here is written in the original's recorded-game container. The
+  original plays that file for 24,000 frames in lockstep with our simulation.
+- **The full-state checksum: in progress.** The original's own per-frame
+  checksums are compared on that game. The world, items, goods and cities
+  lines agree on every frame; units, figures, build queues and groups first
+  differ between frames 6,907 and 8,206; the leaders line is still being
+  ported.
+- **Lobby and HUD:** a plain lobby page starts every lobby, and a plain HUD
+  shows the menu and the selected unit's panel.
+- **The computer opponent:** its decisions are computed here, not replayed,
+  in every lockstep game, as far as the recorded games reach.
+- **Not started:** a whole game played by a person against the computer in
+  the client.
 
 [`docs/QUEUE.md`](docs/QUEUE.md) carries the exact numbers. Its scoreboard
 lines are parsed against the pinned tests, so they cannot drift.

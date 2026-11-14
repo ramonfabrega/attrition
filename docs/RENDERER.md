@@ -1,7 +1,9 @@
-# The renderer — a proposal
+# The renderer
 
-*2026-11-06. A proposal, not a decision: Ramon decides what phase 4's first
-items are, and this document is what he decides from. Every choice below is
+*2026-11-06. It began as a proposal, not a decision, and it has been the
+renderer's specification, amended in place, since items 4018 and 4026 built
+from it: Ramon decided what phase 4's first items were, and this document is
+what he decided from. Every choice below is
 marked **Choice**, with the alternative beside it. Nothing here was built
 when it was written; item 4018 built the camera (§3.4), item 4026 the draw
 list (§3.5).

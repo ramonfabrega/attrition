@@ -432,7 +432,9 @@ nowhere (`docs/DECISIONS.md` entry 125). **A handoff banked for a pass
 carries a `For the pass` part, and its counts are the tables'** —
 `tools/gates.py <tmp> --since <the last pass's gate log>` and `tools/tranche.py --base <base>`, pasted
 after `lore index`, never a count from memory. **A waiter on a lane is
-armed with `--deep 400`** (DECISIONS 131 §6).
+armed with `--deep 400`** (DECISIONS 131 §6). **A `--no-widen` lane gate
+keeps the widenings itself when its branch moves the sim's source**
+(DECISIONS 134 §3): a brief carries no line for it.
 
 ## Ratification, and the passes
 
