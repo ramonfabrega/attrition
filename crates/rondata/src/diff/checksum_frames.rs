@@ -156,6 +156,11 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// per emitted line (line, the first of our walk's frames whose Adler parts
 /// from the hook's — the take's length when none does — and the frames it
 /// parts on inside [`DIAG`]))`. Seen red first against zeros.
+///
+/// Item 4222 moved two on both takes: groups 61 → 2746 (run1577 whole on
+/// 120), a building push normalizing `last_group`'s slot as
+/// `equals_group` does; builds 100 → 159 (run1577 whole on 120), a
+/// queue's vacated slots walked as the array holds them.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -163,7 +168,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         120,
         [
             ("units", 120, 0),
-            ("builds", 100, 20),
+            ("builds", 120, 0),
             ("groups", 120, 0),
             ("guys", 120, 0),
             ("leaders", 0, 120),
@@ -178,8 +183,8 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         24000,
         [
             ("units", 129, 171),
-            ("builds", 100, 200),
-            ("groups", 61, 5),
+            ("builds", 159, 141),
+            ("groups", 2746, 0),
             ("guys", 129, 171),
             ("leaders", 0, 300),
             ("cities", 4030, 0),
