@@ -37405,3 +37405,32 @@ SHA-256 `4904792c8750f18be9be093879f5c9505f7113f45577ebccd1e1bd86e8de72bf`; `ron
 SHA-256 `475c03c7004a4a1a6a22d85fb5b147890a35ea36633ce46f07fee4e0039c0b7e`.
 
 **What it holds**: the units line's first parting on 7195, named by record and field.
+
+## run1599 — the original playing the file a typed chat minted (2026-11-14, item 4250, `att-4250`)
+
+`docs/CLIENT_INPUT.md` §12.3. **What the disk could not answer**: whether the original plays a `chat` minted from the
+entry line, and whether it runs the chat as a chat (no recording on disk carries a plain one; all 160 are cheat lines).
+The file: `~/ron-golden/recordings/item4250-chatted-greatlakes-24000.rcx`, 59,491 bytes, SHA-256
+`95817167fe807152e433c017e616fbe9deb0fb0b309e99af32d3308335c36e37`. It was written by `RON_RCX_OUT=<it> … test
+--release -p rondata the_chatted_minted_packages_round_trip`. It is run1598's file plus one package: on 6710,
+`chat(bits 3, taunt −1, taunt_num 0, "good luck")`.
+
+The take is run1598's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1599 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7 --timeout 1800 --stall-seconds 120`. It was waited on with
+`waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 14:40:44 −05:00, exited 14:49:10; **506.1 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault. Minutes waited on another lane: none.
+- **The built walk under the pump on the file** (`CHATTED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence. **300 records compared whole (6700..6999), none parted.**
+- **The chat's effect on the original's side** (`CHAT_ENTRIES`): `CommandPackage::process_chat`,
+  `Leader::receive_chat` and `LeaderOut::display_chat` are first entered on 6709. `Leader::receive_taunt` and
+  `Taunts::play` are never entered. run1598 enters none of the five.
+- Filed with `filerun.py run1599 greatlakes-playback-of-chatted-7000`.
+
+Archive `gamelog-run1599-greatlakes-playback-of-chatted-7000.txt`, 64,827,222 bytes,
+SHA-256 `147716e29fe1aa877d549a165a5ceebf770a562badbe027302e60a9234c16d34`; `rontrace-run1599.log`, 33,971,232 bytes,
+SHA-256 `58b54e3540af638efef311c8444baebe5ccbdb60af0a018bd35d850ee5fbc7b5`.
+
+**What it holds**: a chat typed into the entry line, played, and run as a chat with no taunt.

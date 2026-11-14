@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -869,8 +869,8 @@ files. Every package of every file decodes. An order is a command `rondata::inpu
 `camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
 as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
 
-**`INPUT_KINDS`: 9 of 26 kinds, 2,056 of 2,429 orders (84.6 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
-was first taken, before the rally point (§11.2) was minted. The kinds the layer mints are `input::MINTS`, held to the
+**`INPUT_KINDS`: 10 of 26 kinds, 2,216 of 2,429 orders (91.2 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
+was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, and is 10 since the chat (§12). The kinds the layer mints are `input::MINTS`, held to the
 `Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
 `input_kinds_of_the_recordings_on_disk`.
 
@@ -880,7 +880,7 @@ was first taken, before the rally point (§11.2) was minted. The kinds the layer
 | `move_to` | 396 | 16.3 % | yes |
 | `queue_up` | 264 | 10.8 % | yes |
 | `gather_point` | 177 | 7.2 % | yes (§11.2) |
-| `chat` | 160 | 6.5 % | |
+| `chat` | 160 | 6.5 % | yes (§12) |
 | `attack` | 80 | 3.2 % | yes |
 | `leader_options` | 50 | 2.0 % | |
 | `build` | 31 | 1.2 % | yes |
@@ -916,13 +916,13 @@ players' orders are in no file.
 - `guard` is counted as minted, though no take has played one (§10.4).
 - `leader_options` is the lobby's, one a file: every file of ours carries it through `recgame::minted_packages`, and
   the layer does not mint it.
-- `chat` in the bottle's captures is the cheat console's line (`rondata::input`'s `Chat` arm); `cheat_ai_toggle` is
-  a capture driver's.
+- `chat` in the bottle's captures is the cheat console's line (`rondata::input`'s `Chat` arm), all 160 of them;
+  `cheat_ai_toggle` is a capture driver's.
 
 **The first kind taken by share was `gather_point`**, 177 orders: a building's rally point. Of them 153 carry `action`
 0 and `add_to_end` 0, 12 carry `action` 3, 9 `action` 1 and 3 `action` 2. The layer mints the first form (§11.2).
-**The next kind by share is `chat`**, 160 orders, then `leader_options` (the lobby's), `sell` 28, `pause` 24,
-`city_gather` 20 and `buy` 18.
+The next kind by share was `chat`, 160 orders (§12); after it come `leader_options` (the lobby's), `sell` 28,
+`pause` 24, `city_gather` 20 and `buy` 18.
 
 ### 11.2 A building's rally point (item 4249)
 
@@ -1006,3 +1006,112 @@ after it walks to it, with every effect equal on both sides.
 - **The capital's snap** to a Woodcutter or Mine under the point (`action_gather_point`'s Village arm). The point here
   is bare ground.
 
+
+## 12. A chat, from the entry line (item 4250)
+
+*Item 4250, 2026-11-14. The next kind by share after the rally point (§11.1) is `chat`, 160 orders, and it needs a part
+of the HUD that did not exist: a line to type into. The score is `INPUT_KINDS`.*
+
+### 12.1 What the chat box issues
+
+The reading is one reader's, from the decompile; nothing here has had a blind second reading.
+
+- **The box.** `Options::exec@007188c0` opens it with `ChatBox::exec(special_flags)`: 0 for the plain chat key, 1, 2 and
+  3 for chat to all, to allies and to enemies. `ChatBox::exec@0093cf80` limits the edit box to `0x80` characters.
+  `docs/ORACLE.md` already drives it with Return.
+- **The send.** `ChatBox::on_modal_end@0093d560` takes the line when the box closes with `result` 0:
+  - A line that begins with the cheat string (`get_cheat_string@00497c00`; the install's `CHEAT `, compared without case
+    over its length by `String::ignore`) goes, in a solo game, to `CommandManager::issue_chat(who, line, 0, 0, 1 << who)`.
+  - A line that begins with `@` takes `special_flags` 5.
+  - Any other line goes to `LeaderOut::issue_chat@006d2c50` with the box's `special_flags`.
+- **The plain box** (`LeaderOut::issue_chat`, `special_flags` 0, the options not in diplomacy's negotiate mode):
+  - A first character `*` or `!`, `;`, `:` or `@` picks the targeted arms 1, 2, 3 and 5. They prefix localised strings.
+  - `taunt` is `Taunts::check_for_order@009809d0`: the line's leading integer, matched against the taunts' indices, and
+    −1 when none matches or the match has no order. The install's taunts are numbered from 1, so a line that does not
+    begin with a digit converts to 0 and gives −1.
+  - `taunt_num` is the line's number when it is shorter than four characters and names a taunt, else 0.
+  - **The recipients** (`bits`): the slot itself, and every live leader (`leader_flags & 1`) whose `chat_status` toward
+    the slot is 0. `Game::init_teams` leaves 0 on every seated slot of a game that is not cooperative (`docs/CHECKSUM.md`).
+  - With fewer than three nations the text is sent unchanged; with more, a localised prefix goes before it.
+- **The command.** `CommandManager::issue_chat@00942b10`, in a game that is not networked, trims the spaces at both ends
+  and adds `chat(bits, taunt, taunt_num, text)` to the local package, or nothing when the line is left empty. Every
+  recorded chat's package holds the chat alone, beside the frame's `camera` and `player_speed`.
+- **Its effect.** `CommandPackage::process_chat@009454f0` hands the line to each recipient: `Leader::receive_chat`, which
+  displays it (`LeaderOut::display_chat`, for the console's slot alone), and `Leader::receive_taunt` when `taunt` is not
+  −1. A cheat line goes to `ConsoleWin::parse_cmd`. **A plain line writes nothing the simulation keeps.**
+
+### 12.2 What the layer does
+
+- **The entry line** is `Input::line`: Return opens it (`Event::Enter`). While it is open every typed key goes to it,
+  Backspace takes a character, and Escape closes it and sends nothing. Return sends it (`Input::chat`). The HUD draws it
+  above the menu's row as `SAY: ` and the text (`hud::line_text`, `hud::line_rect`).
+- **The cheat arm**: `bits` the slot's own, `taunt` 0, `taunt_num` 0, the line trimmed.
+- **The plain arm**: `bits` the slot and every leader the scene carries, `taunt` −1, `taunt_num` 0, the line trimmed.
+- **What it mints nothing for**: a targeting first character, a game of three nations or more, a line whose trimmed form
+  begins with a digit or a sign, and an empty line.
+
+**`INPUT_CHEATED`: 160 of 160.** Every chat the recordings on disk carry is a cheat line, the original's own mint. Each
+one's text, typed into the line by its own slot on its own frame, mints its command field for field
+(`minted_cheat_lines_equal_the_recordings`). Seen red with the cheat arm taken out: 0 of 160, each parting at `taunt`,
+ours −1 and theirs 0.
+
+### 12.3 The chatted script, the count and the playback
+
+**The script.** `rondata::script::chatted` is the gathered script (§11.2) and one package more: on `CHAT_FRAME` 6710,
+`chat(CHAT_BITS 3, −1, 0, CHAT_TEXT "good luck")`. The lobby seats two nations, so the plain box names both.
+
+**The count.** `INPUT_CHATTED`: **15 of 15.** The gathered events and the line typed on 6710 (Return, the nine
+characters, Return) mint the chatted script field for field (`minted_chatted_at_the_opening_camera`). On 6710 the scene
+carries leaders 0 and 1. Seen red with the line's send minting nothing: 14 orders, 14 whole in place.
+
+**The file.** `~/ron-golden/recordings/item4250-chatted-greatlakes-24000.rcx`, 59,491 bytes, SHA-256
+`95817167…c36e37`. It is the gathered file plus the one package, and the closing stamp goes from 16 to 17
+(`the_chatted_minted_packages_round_trip`). Seen red first: pinned 0, it printed 59,491.
+
+**Our side, before the playback was read.** Our walk applies nothing for a chat (`rondata::input`'s `Chat` arm). Under
+the chatted file against run1598, the gathered file's playback, it is as whole as the gathered walk: draws agree on
+7,000 of 7,000 frames, 300 records compared, none parted (`the_chatted_script_against_the_gathered_playback_is_whole`).
+
+**The playback** (run1599, `docs/RUNS.md`): draws agree on 7,000 of 7,000 frames, count and sequence. 300 records
+(6700..6999) are compared whole, none parted (`CHATTED_WALKED`). The dump is the same size as run1598's, 64,827,222
+bytes, and our walk under either file is whole against either take: the chat moves no record on either side.
+
+**The chat's effect on the original's side** (`CHAT_ENTRIES`, pinned before run1599 was read; seen red first with
+run1599 pinned as run1598's). The trace's coverage dates each function's first entry, in sim-frames:
+
+| function | run1598 | run1599 |
+| --- | --- | --- |
+| `CommandPackage::process_chat@009454f0` | never | 6709 |
+| `Leader::receive_chat@006b8ab0` | never | 6709 |
+| `LeaderOut::display_chat@006d3320` | never | 6709 |
+| `Leader::receive_taunt@006b8bf0` | never | never |
+| `Taunts::play@00980cf0` | never | never |
+
+6709 is the tick that consumes 6710's package: run1598's rally point, on 6706, is first entered on 6705
+(`CommandPackage::process_gather_point`).
+
+### 12.4 Confidence, and what is not established
+
+**Backed by a diff.**
+- The cheat arm's fields, against the 160 chats the original minted.
+- The playback: run1599 plays the typed chat in lockstep, and its trace shows the original running it as a plain
+  chat, displayed and not a taunt (`CHAT_ENTRIES`).
+
+**Reading only**, one reader:
+- the plain box's `bits`, `taunt` −1 and `taunt_num` 0; the playback holds lockstep whatever they hold, and no dump
+  prints them;
+- the targeted arms, the prefixes and the `@` arm, which the layer refuses.
+
+**Ours, not the original's:**
+- Return opens and sends the line, Escape closes it, and `SAY:` is ours;
+- every leader the scene carries is taken as live and seated;
+- the limit counts UTF-16 units as `text_limit` does, but the box's own handling of a key past it is not read;
+- the cheat prefix compares ASCII without case, where `_wcsnicmp` folds by the locale.
+
+**Not established:**
+- **4250a. A taunt typed into the line** (a line that begins with a number). It reaches `Leader::receive_taunt` and the
+  AI's taunt fields (run1575 printed them: `docs/LEADERS.md`); our walk applies no chat. The layer mints none.
+- **A game of three nations or more**, whose plain line takes a localised prefix not read. The layer mints none.
+- **The targeted chats** (`*`, `!`, `;`, `:`, `@`, and the box's own 1 to 3).
+- **The chat flood guard** (`Console::chat_flood_protection`), local to the box.
+- **The original pausing a solo game while its box is open** (`docs/ORACLE.md`). Ours does not pause.
