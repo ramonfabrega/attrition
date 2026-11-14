@@ -95,24 +95,12 @@ pub(crate) fn check() -> Option<String> {
 /// --write` rewrites it from a suite run's `cant_reach tally` lines.
 pub(crate) const PINNED: &[(&str, usize)] = &[
     (
-        "diff::airbase_melee::airbase_melee_run1492_s_word_window_is_widened_whole",
-        7,
-    ),
-    (
         "diff::aztec_alltech_pair::aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole",
         2,
     ),
     (
         "diff::british_modern_pair::british_modern_pair_run1433b_s_closing_frame_is_widened_whole",
         1,
-    ),
-    (
-        "diff::classical_melee::classical_melee_run1450_s_word_window_is_widened_whole",
-        7,
-    ),
-    (
-        "diff::corpse_melee::corpse_melee_run1542_s_word_window_is_widened_whole",
-        7,
     ),
     (
         "diff::coverage_pair::run1075_s_garrison_window_is_widened_whole",
@@ -123,20 +111,8 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
         1,
     ),
     (
-        "diff::gunpowder_melee::gunpowder_melee_run1413_s_word_window_is_widened_whole",
-        7,
-    ),
-    (
-        "diff::harness::tests::run80_s_word_frame_is_widened_whole",
-        5,
-    ),
-    (
         "diff::harness::tests::run96_s_word_frame_is_widened_whole",
         5,
-    ),
-    (
-        "diff::information_melee::information_melee_run1468_s_word_window_is_widened_whole",
-        7,
     ),
     ("diff::lakota_pair::run881_s_word_frame_is_widened_whole", 1),
     ("diff::lakota_pair::run882_s_word_frame_is_widened_whole", 1),
@@ -160,23 +136,18 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
         "diff::sahara_mongol::run834_s_word_frame_is_widened_whole",
         2,
     ),
-    (
-        "diff::sea_melee::sea_melee_run1483_s_word_window_is_widened_whole",
-        7,
-    ),
-    (
-        "diff::third_pair::run609_s_closing_frame_is_widened_whole",
-        2,
-    ),
+    // Item 4204 (second lane): the six melees' word windows 7 -> 0 and
+    // run80's 5 -> 0 (the rows leave): the head quit's `clear_orders` stops
+    // the human's citizens on the closing block (2601; run80's 24001), so
+    // `cant_reach` reads theirs' 1 (ours was 0 with the order held).
+    // Item 4204: run609's closing walk 2 -> 0 (the row leaves), and
+    // run667's 5 -> 0: `Sim::resign` carries the defeat's `clear_orders`
+    // (`docs/LEADERS.md` §10.2), so the human's orders are gone on the quit.
     // Item 4185: run667's closing walk 5 -> 0 (the row leaves): ours wins the
     // territory on 17379 and the cascade's `defeat(5)` clears the human's
     // orders, as the original's quit on that frame does (`docs/LEADERS.md`
     // §10.5). Item 4189: 0 -> 5, the row back: the quit on 17379's head is
     // replayed, its conquest victory bars the territory win and so the
     // cascade, and `Sim::resign` does not carry the defeat's `clear_orders`
-    // (GOLDEN §152.15, parked 4189a).
-    (
-        "diff::third_pair::run667_s_closing_frame_is_widened_whole",
-        5,
-    ),
+    // (GOLDEN §152.15, parked 4189a). Item 4204: 5 -> 0, above.
 ];

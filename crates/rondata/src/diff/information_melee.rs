@@ -582,7 +582,9 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // Item 4189: 165 -> 164: the V2 Rocket `0/16` on 2601, which ours held
     // alone, dies with the quit on 2600's head, replayed from run1468's
     // trace (`Sim::resign`, `docs/LEADERS.md` §10.2; GOLDEN §152.15).
-    pin_eq!(w.firsts.len(), 164, "run1468's word window");
+    // Item 4204: 164 -> 143, −21 on 2601, the head quit's `clear_orders`:
+    //   `0/1`..`0/7` `orders.len`/`order:length` 0 = 0, `idle` 1 = 1.
+    pin_eq!(w.firsts.len(), 143, "run1468's word window");
     pin_eq!(w.rounds_read, (24, 24), "the rounds read");
     pin_eq!(w.rounds.len(), 107, "the rounds that part");
 }
@@ -662,7 +664,7 @@ fn information_melee_run1468_s_closing_state() {
             .final_state()
             .or_else(|| log.frame_states().pop())
             .expect("closing whole-map state");
-        let e = endpoint::walk_to_close(&mut built, &fin, 8);
+        let e = endpoint::walk_to_close_traced(&mut built, &fin, 8, MELEE_LONG.1);
         eprintln!(
             "Information melee closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
             e.frame,
