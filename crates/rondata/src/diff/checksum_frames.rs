@@ -440,6 +440,12 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         )],
     ),
     (
+        "run1588",
+        "rontrace-run1588.log",
+        2746,
+        &[],
+    ),
+    (
         "run1583",
         "rontrace-run1583.log",
         987,
