@@ -2958,3 +2958,81 @@ const PAUSED_AGAINST_CHATTED: (i64, &str, &str, Option<i64>, usize) = (
     Some(6832),
     287,
 );
+
+/// The paused file's playback (`docs/RUNS.md` run1601): `(take, trace,
+/// frames agreeing, frames walked, records, parted)`. Pinned before run1601
+/// was read with none parted, and seen red there: draws agree on all 7,000
+/// frames, but 40 of the 300 records part, the first on 6866 at player 1's
+/// `1/0`, `damage` ours 13 and theirs 16. That blow lands six frames
+/// earlier on run1601 than on run1599, where our walk's lands
+/// (`docs/CLIENT_INPUT.md` §13.4, parked 4252a).
+pub(crate) const PAUSED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1601-greatlakes-playback-of-paused-7000.txt",
+    "rontrace-run1601.log",
+    7000,
+    7000,
+    300,
+    40,
+)];
+
+/// The functions a pause runs on the original's side: the package's arm,
+/// the turn control's, the toggle and the notice, by entry address.
+const PAUSE_FUNCTIONS: [(u32, &str); 4] = [
+    (0x0094_4160, "CommandPackage::process_pause"),
+    (0x0095_6990, "TurnControl::process_pause"),
+    (0x0095_7ab0, "TurnControl::toggle_pause"),
+    (0x0080_d9e0, "IFaceMainBase::do_pause_notice"),
+];
+
+/// Each take's first entry into [`PAUSE_FUNCTIONS`], in sim-frames, pinned
+/// before run1601 was read: run1599 enters none; run1601 all four on 6711,
+/// the tick that consumes [`crate::script::PAUSE_FRAME`]'s packages.
+const PAUSE_ENTRIES: &[(&str, [Option<i64>; 4])] = &[
+    ("rontrace-run1599.log", [None; 4]),
+    ("rontrace-run1601.log", [Some(6711); 4]),
+];
+
+/// **The original plays the paused file in lockstep** (item 4252): the
+/// built start walked under the pump against run1601, every frame's draws
+/// against its trace and every record of its window whole
+/// ([`PAUSED_WALKED`]); the pause's own functions on the original's side
+/// ([`PAUSE_ENTRIES`]); and the rally point given while paused, and the
+/// Citizen's walk to it, read on both sides on [`PAUSE_READ_AT`].
+#[test]
+fn the_original_s_playback_of_the_paused_file_walks_in_lockstep() {
+    let paused = crate::script::paused();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in PAUSED_WALKED {
+        let Some((w, _)) = walk_minted(&paused, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "PAUSED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let mut entries = Vec::new();
+    for &(take_trace, _) in PAUSE_ENTRIES {
+        let tr = trace(take_trace).expect("the take's trace");
+        let first = PAUSE_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+        for ((_, name), f) in PAUSE_FUNCTIONS.iter().zip(&first) {
+            eprintln!("PAUSE ENTRY {take_trace} {name}: {f:?}");
+        }
+        entries.push((take_trace, first));
+    }
+    let theirs = gather_effects_theirs_at(PAUSED_WALKED[0].0, &PAUSE_READ_AT).unwrap();
+    for t in &theirs {
+        eprintln!("PAUSE EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, PAUSED_WALKED, "the walked table");
+    assert_eq!(entries, PAUSE_ENTRIES, "the pause's functions");
+    assert_eq!(theirs, paused_effects(), "the original's effects");
+}

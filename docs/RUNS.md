@@ -37408,3 +37408,36 @@ SHA-256 `147716e29fe1aa877d549a165a5ceebf770a562badbe027302e60a9234c16d34`; `ron
 SHA-256 `58b54e3540af638efef311c8444baebe5ccbdb60af0a018bd35d850ee5fbc7b5`.
 
 **What it holds**: a chat typed into the entry line, played, and run as a chat with no taunt.
+
+## run1601 — the original playing the file a paused game minted (2026-11-14, item 4252, `att-4252`)
+
+`docs/CLIENT_INPUT.md` §13.3. **What the disk could not answer**: whether the original plays a minted `pause`, with an
+order given while paused, all on one frame, and whether it stands at the pause or plays on. The recordings carry
+twelve pairs, but no playback of a file of ours had held a frame. The file:
+`~/ron-golden/recordings/item4252-paused-greatlakes-24000.rcx`, 59,515 bytes, SHA-256
+`495f2016097197484107a59bd76aac9f2b284a85e2e41bdf2d7e8fefc65f8ab5`. It was written by `RON_RCX_OUT=<it> … test
+--release -p rondata the_paused_minted_packages_round_trip`. It is run1599's file plus three packages on 6712:
+`pause(1)`; the capital's rally point to (4655, 31075); `pause(0)`.
+
+The take is run1599's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1601 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7 --timeout 1800 --stall-seconds 120`. It was waited on with
+`waitrun.sh` in the background.
+- **The run**: pool lane 1. The first launch stalled at startup and was relaunched after 120 s, at a pace that could
+  not have reached the pause. The relaunch began 15:36:53 −05:00 and exited 15:45:28: **515.2 s launch to exit**,
+  exit 0, `success`. 7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11
+  (flags 1). Five settings restored, no page fault. Minutes waited on another lane: none.
+- **The built walk under the pump on the file** (`PAUSED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence. **300 records compared (6700..6999), 40 parted**, the first on 6866: player 1's `1/0`, `damage` ours 13
+  and theirs 16 (parked 4252a, §13.4).
+- **Each order's effect** (`paused_effects`): the capital's rally point (4655, 31075) from 6713; the Citizen out on
+  6814, idle at the point on 6844, gathering by 6999; equal on both sides.
+- **The pause's effect on the original's side** (`PAUSE_ENTRIES`): `CommandPackage::process_pause`,
+  `TurnControl::process_pause`, `toggle_pause` and `do_pause_notice` are first entered on 6711. run1599 enters none.
+- Filed with `filerun.py run1601 greatlakes-playback-of-paused-7000`.
+
+Archive `gamelog-run1601-greatlakes-playback-of-paused-7000.txt`, 64,834,616 bytes,
+SHA-256 `651290375a8826d1a7977ba02e2702c58b4a9c352466ff7794ac84ad0c77a31d`; `rontrace-run1601.log`, 33,636,288 bytes,
+SHA-256 `feee92c63ba1d577574f8b1c142912ebab6ead1ece8250ba3f95d779c9468973`.
+
+**What it holds**: a pause from the key, an order given while paused, and the unpause, all on one frame, played on.

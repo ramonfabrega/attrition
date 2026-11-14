@@ -36,6 +36,11 @@ gates whole and takes the whole slot's turn (DECISIONS 129 §1).
 the chat being typed, after `SAY:`, above the menu's row. Return opens it
 and sends it; what it mints is `docs/CLIENT_INPUT.md` §12.
 
+**The pause notice** (item 4252) is a fifth, drawn only while the slot's
+pause stands: `PAUSED`, centred one margin below the top (`hud::pause_rect`).
+The text and the place are ours; the original's `do_pause_notice` is not
+read. What the key mints is `docs/CLIENT_INPUT.md` §13.
+
 ## 2. The menu (item 4197)
 
 - **A button is a key's event and nothing else.** A press inside a

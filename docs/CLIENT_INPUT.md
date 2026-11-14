@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -869,8 +869,9 @@ files. Every package of every file decodes. An order is a command `rondata::inpu
 `camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
 as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
 
-**`INPUT_KINDS`: 10 of 26 kinds, 2,216 of 2,429 orders (91.2 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
-was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, and is 10 since the chat (§12). The kinds the layer mints are `input::MINTS`, held to the
+**`INPUT_KINDS`: 11 of 26 kinds, 2,240 of 2,429 orders (92.2 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
+was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 10 and 2,216 (91.2 %) once the chat
+(§12) was, and is 11 since the pause (§13). The kinds the layer mints are `input::MINTS`, held to the
 `Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
 `input_kinds_of_the_recordings_on_disk`.
 
@@ -886,7 +887,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `build` | 31 | 1.2 % | yes |
 | `sell` | 28 | 1.1 % | |
 | `swarm_around` | 28 | 1.1 % | yes |
-| `pause` | 24 | 0.9 % | |
+| `pause` | 24 | 0.9 % | yes (§13) |
 | `city_gather` | 20 | 0.8 % | |
 | `buy` | 18 | 0.7 % | |
 | `spell` | 17 | 0.6 % | |
@@ -1115,3 +1116,131 @@ run1599 pinned as run1598's). The trace's coverage dates each function's first e
 - **The targeted chats** (`*`, `!`, `;`, `:`, `@`, and the box's own 1 to 3).
 - **The chat flood guard** (`Console::chat_flood_protection`), local to the box.
 - **The original pausing a solo game while its box is open** (`docs/ORACLE.md`). Ours does not pause.
+
+
+## 13. A pause, from the key (item 4252)
+
+*Item 4252, 2026-11-14. The next kind by share after the chat is `leader_options`, the lobby's (§11.1); after it come
+`sell` 28 and `pause` 24. Pause needs no panel, only a key, so it was taken first. The score is `INPUT_KINDS`.*
+
+### 13.1 What the key issues, and what a pause does
+
+The reading is one reader's, from the decompile; the recordings back its shape, and the playback (§13.3) its effect.
+
+- **The key.** `Options::exec@007188c0`'s `OPTION_PAUSE` arm, unless the scenario disables pausing, calls
+  `TurnControl::issue_toggle_pause@00956b40`. In a playback (`game.semaphore & 0x10`) that toggles locally and issues
+  nothing. Otherwise it adds `pause(state)` to the local package, `state` the complement of the turn control's pause
+  bit: 1 to pause, 0 to lift it. `CommandManager::issue_pause@00940ba0` builds the same two bytes for the console's
+  `pause 1|0`.
+- **Its processing.** `CommandPackage::process_pause@00944160` logs it to the sync log and calls
+  `TurnControl::process_pause@00956990`. When `state` equals the bit, it only logs. Otherwise it calls
+  `toggle_pause@00957ab0`, and in a solo game it resets the frame clock and puts up the notice
+  (`IFaceMainBase::do_pause_notice`).
+- **The toggle, in a solo game** (`game.semaphore & 4` clear): it sets or clears the bit and pauses or resumes the
+  sound. A networked game's arm counts each slot's `pauses` (ten allowed) and announces them. The recordings' slots all
+  carry `pauses` 0 (`docs/RECGAME.md` §3.2).
+- **What a paused game does.** `do_frame_solo@009556a0` runs `CommandManager::process_turn` on every call, paused or
+  not. While the bit is set, `check_new_frame_solo@00956320` (and `check_new_frame_playback@00956010`) answers 0, so no
+  frame is stepped. So the turns go on, and every package issued while paused carries the frame the game stopped on.
+  **A pause writes nothing the simulation keeps.**
+
+**Every recorded pause holds its frame** (`every_recorded_pause_holds_its_frame`, `rondata::input::PAUSES_HELD`).
+Twelve pairs, all slot 0, eleven in the 2017 sample and one in a bottle capture. Each `pause(1)` is followed, on the
+same frame, by the packages issued while paused, one a turn, then by its `pause(0)`. The next package is on a later
+frame. 70 packages stand between the twelve pairs: moves, builds, gathers, rally points, `city_gather`, `buy` and
+`sell`. Seen red pinned `(12, 0)`.
+
+### 13.2 What the layer does, and the file
+
+- **The key** is `Event::Pause`. It mints `pause(!paused)` in a package of its own and turns `Input::paused`. With
+  nothing selected it still mints: a pause names no object.
+- **The window** binds Pause and F3 to it, which is ours, and steps no frame while the pause stands. Space stays the
+  viewer's own stop, which mints nothing. The HUD draws `PAUSED` (`docs/HUD.md` §1).
+- **The file.** `recgame::minted_packages` refused two packages on one frame. It now admits a package on the frame
+  before it while the script stands paused, toggling as `process_pause` does. It refuses a script that ends paused,
+  because the playback would stand before the closing package. `a_paused_script_holds_its_frame` holds the shape and
+  four refusals.
+- **Our walk.** `Stream`'s pause arm applies nothing, the turn control's. The packages on a held frame are applied in
+  order before that frame's tick.
+
+**The script.** `rondata::script::paused` is the chatted script (§12) and three packages more, all on `PAUSE_FRAME`
+6712, the recorded shape:
+1. `pause(1)`;
+2. the capital `0/2000` given a rally point at `PAUSE_GATHER_AT` (4655, 31075) while paused;
+3. `pause(0)`.
+
+**Stage 0.** On 6712 at the opening camera the capital is still the selection and still trains. The ground pixel
+(1320, 650) names no object, and the layer's inverse takes it to (4655, 31075) (`PAUSE_ANCHOR`).
+
+**The count.** `INPUT_PAUSED`: **18 of 18.** The chatted events and three more on 6712 (the pause key, the right press,
+the pause key) mint the paused script field for field (`minted_paused_at_the_opening_camera`). The runner steps no
+frame between them: each event is on 6712. Seen red with the pause arm minting nothing: 16 orders, 15 whole in place.
+
+**The file.** `~/ron-golden/recordings/item4252-paused-greatlakes-24000.rcx`, 59,515 bytes, SHA-256
+`495f2016…5f8ab5`. It is the chatted file plus three packages on 6712, stamped 17, 18 and 19, and the closing stamp
+goes from 17 to 20 (`the_paused_minted_packages_round_trip`). Seen red first: pinned 0, it printed 59,515.
+
+### 13.3 The playback, and each order's effect
+
+**Our side, pinned before the playback was read** (`paused_effects`):
+
+| frame | the capital's gather list | the Citizen `0/10` |
+| --- | --- | --- |
+| 6712 | (4306, 31001, 0) | not on the map |
+| 6713 | (4655, 31075, 0) | not on the map |
+| 6814 | (4655, 31075, 0) | (3960, 31320), `move` |
+| 6844 | (4655, 31075, 0) | (4632, 31080), idle at the point |
+| 6999 | (4655, 31075, 0) | (4632, 31080), `gather` |
+
+**The value diff against run1599**, the chatted file's playback (`PAUSED_AGAINST_CHATTED`). Our walk under the paused
+file parts first on 6713 at the capital's `gather[0].x`, ours 4655 and theirs 4306. 287 of 300 records part, and the
+draws part from 6832: there run1599's Citizen stands at the old point, and ours walks on toward the new one.
+
+**The playback** (run1601, `docs/RUNS.md`): draws agree on 7,000 of 7,000 frames, count and sequence. The paused
+file plays to its end: the original's playback did not stand at the pause. Of the 300 records (6700..6999), 260 are
+whole and **40 part, the first on 6866** (`PAUSED_WALKED`, pinned at none parted before run1601 was read and seen red).
+
+**Each order's effect, equal on both sides.** run1601's values on `PAUSE_READ_AT` are the table above, row for row.
+
+**The pause's effect on the original's side** (`PAUSE_ENTRIES`, pinned before run1601 was read). The trace dates
+each function's first entry, in sim-frames:
+
+| function | run1599 | run1601 |
+| --- | --- | --- |
+| `CommandPackage::process_pause@00944160` | never | 6711 |
+| `TurnControl::process_pause@00956990` | never | 6711 |
+| `TurnControl::toggle_pause@00957ab0` | never | 6711 |
+| `IFaceMainBase::do_pause_notice@0080d9e0` | never | 6711 |
+
+The whole first-entry diff of the two traces adds only these, the rally point's `remove_current` and the notice's
+`AnimNotice` chain, all on 6711.
+
+### 13.4 Confidence, and what is not established
+
+**Backed by a diff.**
+- The pause's shape, against the twelve recorded pairs (`PAUSES_HELD`).
+- The playback: run1601 plays a pause, an order given while paused and the unpause, all on one frame, with every
+  draw in lockstep. The original runs the pause as a pause (`PAUSE_ENTRIES`). The rally point given while paused is
+  the capital's from the next frame on both sides, and the Citizen walks to it on both sides.
+
+**Reading only**, one reader: the key's arm and the scenario's `pause_disabled`; the networked arm and its ten
+`pauses`; the solo frame clock's reset.
+
+**Ours, not the original's:**
+- Pause and F3 for the key (the install's default binding is not read);
+- the `PAUSED` notice's text and place;
+- the layer turns `Input::paused` when it mints, where the original turns its bit when the package is processed. In a
+  solo game that is the same turn; two presses in one turn would mint `pause(1)` twice on the original.
+
+**Not established:**
+- **4252a. Forty records part on run1601 from 6866.** Player 1's `1/0`, at (2926, 32736) on both takes, takes a
+  blow on 6866 that leaves its `damage_frame` at 6836: `damage` 13 → 16, `damage_frac` 4 → 9. On run1599 the same
+  blow lands on 6872, and our walk under the paused file lands it where run1599 does. From 6872 the unit's flee target
+  differs too (`orders_x` 1272 on run1601, 504 on run1599). Before 6866 our walk follows run1601 on every record,
+  including player 1's units that move differently from run1599 from about 6830 (`1/3`'s target, a new move order).
+  So the moved rally point's consequences are modelled up to there. Whether the pause's three turns or the new
+  situation sets off the early blow is not separated. A take of the chatted file with the rally point moved and no
+  pause would separate them.
+- **The pause notice**, `do_pause_notice`'s text and sound, and the game standing with nothing issued.
+- **A paused game's own clock**: the original keeps processing turns while paused; ours steps no frame and issues
+  orders on the held frame, which is the recorded shape, but nothing reads what else a paused turn runs.
