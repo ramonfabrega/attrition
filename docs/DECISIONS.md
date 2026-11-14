@@ -13007,8 +13007,9 @@ fifth or sixth worker adds landings only where it reserves no slots.
 reads 0 of 1 games; on the minted game the lines first part at leaders 0,
 groups 2746, units 3166, guys 6537 and builds 7383, with world, items, goods
 and cities whole. An item on that lane is one line's first parting frame, its
-first act a packet on that frame, and it is booked in frame order: 4230 (units,
-out as a draft at 3596), then 4231 (groups, 2746). The leaders line is the
+first act a packet on that frame, and it is booked in frame order: 4231 (groups,
+2746), then 4234 (units, 3596, where item 4230 left the line when it landed in
+the pass, from 3166). The leaders line is the
 chain's (item 4159's residue).
 
 **§5. The render lane takes what the eye sees, and each item opens with a row

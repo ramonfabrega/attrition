@@ -48,7 +48,8 @@ The pass before it is `2026-11-13-fable-pass-supply-2.md`.*
   are retired (D5); a briefed lane reads the handoff to its `Scoreboard:` line
   (D7); the section ceiling stays at 16,000 with the pressure taken off (D1).
 - **28 merged branches stand on origin** of 43; the delete is yours (entry 129 §9).
-- The pass moved no score. One lane (4230) was re-armed and is out.
+- The pass's own work moved no score. Lane 4230, re-armed by the pass, landed:
+  parity's units first part at 3596, from 3166.
 
 ## What was measured
 
@@ -99,8 +100,8 @@ run1564 is the sRGB-matched grab the row reads (item 4223). By eye.
 - **Item 4224 is the gate's CPU-seconds** (§3): the remainder of "one walk a
   game" is kept, scored on a scoped gate's `Suite:` line, and opens with the
   table by family. 4220 bought 3.7 %.
-- **The third lane follows parity's first partings** (§4): 4230, then 4231 on
-  the groups line's 2746.
+- **The third lane follows parity's first partings** (§4): 4231 on the groups
+  line's 2746, then 4234 on the units line's 3596 (4230 landed in the pass).
 - **The render lane takes the lake's water, then the fire's smoke** (§5), each
   opening with a row that can see what the eye sees.
 - **The docs compaction is taken** (§6), below.
@@ -139,8 +140,8 @@ run1564 is the sRGB-matched grab the row reads (item 4223). By eye.
 | item | kind, mark | the score | first act | it stops and says so when |
 |---|---|---|---|---|
 | 4159 the residue | the chain's builders | `LEADERS_HELD_OUT` 27 | parked 4176a–c, 4177b, 4177c, 4159ra, 4207b, in that order | as each row says |
-| 4230 parity's units | rules, scoped | units' first parting frame, 3166 (3596 on the draft) | out: merge item 4229, re-measure, gate | the parting is the caravan's copy alone |
 | 4231 parity's groups | rules, scoped | groups' first parting frame, 2746 | a packet at 2746, the line's ranges against the hook's | the first parted range is a member's own |
+| 4234 parity's units | rules, scoped | units' first parting frame, 3596 (item 4230 landed in the pass: 3166 → 3596, ours 2047504409 and theirs 1981448857 on the new frame) | a packet at 3596 | the parting is a path stack's capacity again |
 | 4232 the lake reads as water | render, scoped | a texture row on the ocean tiles, seen red first; sandy 442 of 772 | the row | the composite's row does not rise with the lit floor |
 | 4233 the fire's smoke | render, scoped | a row of the plume's dark pixels, seen at 0 | the row | the plume's draws are in no trace on disk |
 | 4224 the gate's CPU-seconds | structure, whole | a scoped gate's test CPU-seconds, about 4,200 | the CPU-seconds by family from one gate's per-test file | no family holds a fifth |
