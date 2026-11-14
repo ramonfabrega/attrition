@@ -92,6 +92,10 @@ const DECLARE_ROWS: [&str; 3] = ["dow", "broke_alliance", "made_peace"];
 /// packet holds them.
 const TAUNT_ROWS: [&str; 4] = ["tribute_stamp", "gift_stamp", "last_taunt", "taunt_frame"];
 
+/// The counteroffer's printed `int[8]` row (`docs/LEADERS.md` §8.1, item
+/// 4159's step VII-d), by proposer, eight `name[scan]` lines.
+const DEAL_ROWS: [&str; 1] = ["counteroffer"];
+
 /// Whether a good's index is one the record prints in its per-good block.
 /// The six goods, **in the type record's own order** — `rise.pdb`'s
 /// `TypeIndex` enum: `0 FOOD, 1 TIMBER, 2 WEALTH, 3 KNOWLEDGE, 4 METAL,
@@ -624,14 +628,19 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // its eight `DIPLOMACY` blocks. Past `LeaderData::walk_data`'s range, so
     // on no checksum line: `Leader::action_treaty` writes it into both
     // records and `Diplomacy::clear_all` resets it to −1.
+    // Step VII-d's `agree` (`Diplomacy +0`), the commitment the found-short
+    // arm withdraws both ways (`Leader::clear_agree`).
     let deal = s.leaders.tribute.get(p as usize);
     for i in 0..8 {
         let w = deal.and_then(|t| t.dip.get(i)).map_or(-1, |d| d.treaty);
         out.push((format!("dip.treaty[{i}]"), i64::from(w)));
+        let a = deal.and_then(|t| t.dip.get(i)).map_or(0, |d| d.agree);
+        out.push((format!("dip.agree[{i}]"), i64::from(a)));
     }
     // **Item 4159, step VII-b2** (`docs/LEADERS.md` §8, §9): the taunt's
-    // answer's printed rows. The same values the leaders line emits.
-    for k in TAUNT_ROWS {
+    // answer's printed rows, and step VII-d's `counteroffer`. The same
+    // values the leaders line emits.
+    for k in TAUNT_ROWS.iter().chain(&DEAL_ROWS) {
         let v = s
             .leader_tribute_leaf(p, k)
             .or_else(|| s.leader_taunt_leaf(p, k))
@@ -1102,17 +1111,21 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         }
     }
     // The declaration's two rows and `made_peace` (§7), eight `[scan]`
-    // lines each, by target; and the taunt's answer's four (§8, §9).
-    for key in DECLARE_ROWS.iter().chain(&TAUNT_ROWS) {
+    // lines each, by target; the taunt's answer's four (§8, §9); and the
+    // counteroffer (§8).
+    for key in DECLARE_ROWS.iter().chain(&TAUNT_ROWS).chain(&DEAL_ROWS) {
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
         }
     }
-    // The deal records' `treaty` (§8.2, item 4159's step VII-c), one per
-    // `DIPLOMACY` block, by partner.
+    // The deal records' `treaty` (§8.2, item 4159's step VII-c) and
+    // `agree` (step VII-d), one per `DIPLOMACY` block, by partner.
     for (i, d) in block.kids("DIPLOMACY").take(8).enumerate() {
         if let Some(x) = d.int("treaty") {
             out.insert(format!("dip.treaty[{i}]"), x);
+        }
+        if let Some(x) = d.int("agree") {
+            out.insert(format!("dip.agree[{i}]"), x);
         }
     }
     // `anti_att` is the record's one float: `log_data` prints it `%f`, six
@@ -3747,6 +3760,8 @@ mod tests {
                 "buildings_razed",
                 "city_name",
                 "combat_queued",
+                // Item 4159's step VII-d: the alliance found short.
+                "counteroffer",
                 "ctw_hero_stamp",
                 "damage_current_frame",
                 "damage_fifteen_seconds",

@@ -2014,6 +2014,16 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// (`packets::run1575_take_packet`); the computed accept's exchange gives
 /// no goods and leaves the two totals alone. The long range stays out on the
 /// other 31.
+///
+/// Item 4159's step VII-d: 31 → 30 names. The French answer to run1575's
+/// alliance (asked 1041, committed 1051) is computed: `Leader::diplomacy`'s
+/// alliance gates (`sim::leaders::diplomacy::alliance`) price it at
+/// `(epoch + 1) · 200` = 400 off `S`, the need is 400, and the counteroffer
+/// sets `counteroffer[0]` and withdraws both agreements. `counteroffer`,
+/// 0 = 0 on frame 91, both leaders, moves on the record on 1052 (the
+/// French `counteroffer[0]` 0 → 1), ours equal
+/// (`diff::diplomacy_take::run1575_s_alliance_is_found_short`). The long
+/// range stays out on the other 30.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
@@ -2023,7 +2033,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("average_hit_rate (unheld)", 2),
     ("barracks_queued (unheld)", 2),
     ("combat_queued (unheld)", 2),
-    ("counteroffer (unheld)", 2),
     ("damage_current_frame (unheld)", 2),
     ("damage_fifteen_seconds (unheld)", 2),
     ("deaths_current_frame (unheld)", 2),
@@ -2156,6 +2165,9 @@ const LEADERS_BENT: &[&str] = &[
     "incoming",
     "tribute_sent",
     "tribute_received",
+    // Item 4159's step VII-d: the alliance found short's `counteroffer`,
+    // agreeing on run 1562's frame 91.
+    "counteroffer",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its
