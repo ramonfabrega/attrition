@@ -2496,7 +2496,10 @@ step into a doubling. The road's pushes are `find_road@00688a40`'s two ends on a
 survives the slot. `do_trade:501`'s `operator=` raises the caravan's path to it (`Caravan::road_size`,
 `PathStack::assign`). Value diff on 3246 (run1584): `1/14`'s `path.size` ours 50, theirs 64 → 64, the line whole.
 On 4030 (run1585) units part on 1 of 1,507 ranges, record 14's `unit_masks` (262152 | 262664, bit 0x200), from
-804. Step P's census is unchanged (318): no packet of its 107 holds a trade order.
+804. **Step P's census stays at 318** (`PACKETS_SCORE`). The units line's triple moved on 84 packets: ours walks
+each trade order's three ranges (run1217: 10,124 → 10,145 ranges, parted 9,057 → 9,335). On no packet does the
+line become whole, or stop being whole. The partings rise on some and fall on others because the census compares
+by index.
 
 ### 24.4 Where each first parting is (diff-backed)
 
