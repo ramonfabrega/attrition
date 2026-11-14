@@ -2661,6 +2661,12 @@ run1113/1114. `wonderwin_timer` 1 in 30 captures (run652 … run1423c).
   closing walk reads its trace's quit since item 4204 (§10.2). A capture
   with no trace still quits at the head (the shutdown census's run55 to
   run86).
+- **run847's quit on its closing dump's own label** (6822, the Lakota
+  pair's closing walk): the walk keeps the head; where that dump falls
+  against the quit is not read (parked 4204a).
+- **`Unit::clear_orders`'s `unit_masks &= ~0x4000000`** is not carried by
+  this crate's `Sim::clear_orders`; no reader of that bit is named here
+  (parked 4204b).
 - **`lost_a_city`'s `param_1`, `param_2` and captor** are derived by its
   callers (`Build::close`), owned by §11.
 - **The pins:** run1200's loss is held by `korean_ancient_pair`'s closing
