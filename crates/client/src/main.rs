@@ -49,6 +49,7 @@ mod hud;
 mod input;
 mod lobby;
 mod overlay;
+mod particle;
 mod patch;
 mod roads;
 mod shadows;
@@ -273,6 +274,8 @@ struct Built {
     sprites: Vec<world::SpriteDrawing>,
     /// The shadows (item 4182), one mesh a decal texture.
     shadows: Vec<world::TexturedMesh>,
+    /// The burning buildings' particles (item 4233), one mesh a blend.
+    particles: Vec<particle::ParticleMesh>,
     overlay: (Vec<[f32; 3]>, Vec<[f32; 3]>),
 }
 
@@ -285,15 +288,10 @@ fn build(
 ) -> Built {
     let (figures, buildings, list) =
         world.draw_list(camera, &pinned_screen(), (size.0 as i32, size.1 as i32));
-    let mut sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
-    // Item 4201: the burning buildings' stand-ins, over their sprites.
-    sprites.extend(world.fire_drawings(
-        &buildings,
-        &list,
-        camera,
-        &pinned_screen(),
-        (size.0 as i32, size.1 as i32),
-    ));
+    let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
+    // Item 4233: the burning buildings' particles, where item 4201 laid
+    // stand-ins.
+    let particles = world.particle_meshes(&buildings, &list, camera);
     let shadows = world.shadow_meshes(&world.shadows(&figures, &list));
     let (figures, list) = world.with_corpses(
         figures,
@@ -331,6 +329,7 @@ fn build(
         trees,
         sprites,
         shadows,
+        particles,
         overlay,
     }
 }
@@ -370,6 +369,7 @@ fn draw(
         overlay: (&b.overlay.0, &b.overlay.1),
         sprites: &b.sprites,
         shadows: &b.shadows,
+        particles: &b.particles,
     };
     session.phase("gpu", || match target {
         Some(view) => {
@@ -415,6 +415,7 @@ pub(crate) fn still_of(
         overlay: (&[], &[]),
         sprites: &b.sprites,
         shadows: &b.shadows,
+        particles: &b.particles,
     };
     let rgba = gpu.still(size, camera, &frame);
     assert_eq!(
@@ -450,6 +451,7 @@ fn draw_page(
         overlay: (&overlay.0, &overlay.1),
         sprites: &[],
         shadows: &[],
+        particles: &[],
     };
     let camera = pinned_camera();
     match target {
