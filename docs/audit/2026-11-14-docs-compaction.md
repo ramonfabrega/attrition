@@ -4,7 +4,8 @@ A lane on `worktree-att-docs`, Fable 5.2 (`claude-fable-5-2`), asked for by
 Ramon on the commander's row: "an openbounded fable suggest doc trims/doc
 syncs? e.g. kind of a compactor of our docs?". **This file proposes; it
 edits nothing.** No other document, guard or tool was touched. The next
-`steer` pass decides each row.
+`steer` pass decides each row. **A reader with ten minutes reads to "The
+three to take first"; everything after is the evidence.**
 
 Ramon widened it twice while the lane ran: "you may consider even condensing
 decisions/append only logs ... we are considering any sort of compaction",
@@ -60,7 +61,7 @@ measurable; the question is his.
 | D3 | `docs/DECISIONS.md`: append, amend in place, never delete | 843,219 B. 54 entries that score a tranche or a pass hold 478,745 B (58 %); 70 entries (427,951 B) are cited by no code and no tool. Nobody reads it whole, so the bytes cost little. What costs is the walk: a rule's standing form is at the end of a chain (entry 128 is "amended by 129, 130, 131, 132"), and the index that should shorten the walk is by number and squeezed (S1). | It is where a considered decision is told from an accident, and a retelling drops findings. | G3: three tiers. This lane recommends the index split now and an index **by topic** (additive, no rule change); it recommends against freezing or rewriting entries unless he wants a file he can read end to end, which is a different product. |
 | D4 | A mechanic document's sections are appended per item and their numbers are an API | `AI.md` is 438 sections in landing order, 2.8 MB, 349 titled by an item. It is a notebook with stable addresses, not a text a session can read to learn the AI. | The addresses work: 2,374 code citations resolve and a guard checks each. | Is a digest by mechanism wanted on top (a new file citing the numbered sections)? An editorial job of days. Not before the milestone, in this lane's view. |
 | D5 | "Neither headline slot is ever empty" (entry 41; QUEUE "How to maintain this file"; METHOD "Booking an item") | It contradicts the queue's own "A residue or chapter item books only when another track's frame needs one" forty lines above it, and TRACKS's "no item stands". | Entry 41's reason holds for the `Golden:` line, which a guard keeps. | Confirm that the milestone (entry 116) retired the two-slot rule, so both clauses can be struck (S3). |
-| D6 | A track's stub pool holds two unassigned sections (`docs_guard`; parked 1718, 1741) | The guard holds `AI.md` and `GOLDEN.md` only: the two tracks the handoff calls whole. Eight stubs stand there (`AI.md` §412, §417 to §419; `GOLDEN.md` §195 to §198). The documents four workers do append to (`RENDERER.md`, `CHECKSUM.md`, `LEADERS.md`, `CLIENT_INPUT.md`) have no pool. | Seven of twenty-four merges backed out before the pool. | Move the pool to the live tracks' documents, or retire it? Not measured: how many merges have conflicted on `RENDERER.md` or `CHECKSUM.md` since 2026-11-09. |
+| D6 | A track's stub pool holds two unassigned sections (`docs_guard`; parked 1718, 1741) | The guard holds `AI.md` and `GOLDEN.md` only: the two tracks the handoff calls whole. Eight stubs stand there (`AI.md` §412, §417 to §419; `GOLDEN.md` §195 to §198). The documents four workers do append to (`RENDERER.md`, `CHECKSUM.md`, `LEADERS.md`, `CLIENT_INPUT.md`) have no pool. Since 2026-11-09, 9 of the 18 merges that touched `RENDERER.md` carry a hunk that is neither parent's (`git show --cc`, non-empty), 1 of 17 on `CHECKSUM.md`, 1 of 1 on `CLIENT_INPUT.md`; none on `AI.md` (no merge touched it) or `GOLDEN.md` (one did). `f1c41c606`'s subject says what they are: "both sides' ground pins and RENDERER §3.18 and §3.19 kept". | Seven of twenty-four merges backed out before the pool. | Move the pool to the documents lanes append to (`RENDERER.md` first), or retire it where no lane lands? |
 | D7 | The brief's frame: "Read `docs/QUEUE.md`'s opener, then what the item cites" | Lanes read it as the head of the file. Of 98 lane worktrees with a session since 2026-11-10, 93 touched the queue and at least 61 ran `head -N docs/QUEUE.md` (41 at 60 lines, 18,475 B; 14 at 40 lines, 15,259 B; `lore search --lane tool`, a floor). In `CLAUDE.md`'s words the opener is the handoff's last line, 717 B, written to the driver. No lane read `docs/TRACKS.md` whole (0 of 98; 6 read a part), though `CLAUDE.md` says to. | A lane with the headline in view parks better. | What does a briefed lane need from the handoff: all of it, the first bullet, or nothing its brief does not carry? R0. And `CLAUDE.md`'s "then `docs/TRACKS.md`" is not what lanes do; scope it to a session with no brief? His file. |
 | D8 | A finding that names no score parks in its item's journal (entry 125) | 187 parked rows in the 73 journals of 2026-11-12 to 11-14; the queue cites 21 parked ids. Nothing lists the rest: `brief.py` and `queueledger.py` read the rows only to check a cite. `docs/PARKED.md` held 1,832 rows when it was archived. | It ended a second, uncapped queue no session could read. | Is a parked row meant to be read again? If yes, a pass-time listing (a tool, not a file) is the missing half; if no, the rule is working as designed and this is only its size. |
 
@@ -69,7 +70,7 @@ measurable; the question is his.
 | # | file, section | bytes now | action | saved | needs |
 |---|---|---|---|---|---|
 | R0 | `tools/brief/frame.md`, "opening"; `brief.py` line 458 | 18,475 read by a lane | say what a lane reads of the queue | up to 18,475 a lane session | the pass (its file); D7 |
-| R1 | QUEUE, "Where things stand": ten lines whose every row is whole | 5,738 | a closed form, as `Golden:` has | ~5,300 | `rondata::diff::floors` |
+| R1 | QUEUE, "Where things stand": ten lines whose every row is whole | 5,738 | a closed form, as `Golden:` has | ~5,300 | `rondata::diff::floors` and `::audit` |
 | R2 | QUEUE, handoff prose: rules and pinned numbers restated | ~2,600 of 6,967 | strike | ~2,600 | the driver |
 | R3 | QUEUE, "How to maintain this file" | 3,454 | one pointer, two superseded bullets, two moved | ~1,300 | lower `QUEUE_SECTIONS` |
 | R4 | TRACKS, "The tracks": the state column | ~6,300 of 7,777 | one state a cell, or name the queue's line | ~4,500 | the pass |
@@ -86,7 +87,7 @@ measurable; the question is his.
 | G1 | the eight sections pinned in `OVER`, and 45 of the 77 at 15,000 B or more | 284,070; 831,211 | promote their numbered `###` parts to `##` | 0 (largest read 70,859 → 16,594; 45 sections off the ceiling) | delete seven `OVER` rows; three tools to check |
 | G2 | `docs/JOURNAL.md`, the chronicle to 2026-09-17 | 1,185,526 | leave, or archive at a revision | 0 or 1.19 MB | `queueledger.py`; Ramon (`CLAUDE.md`'s table) |
 | G3 | `docs/DECISIONS.md` | 843,219 | an index by topic; no entry moved | 0 | the pass |
-| G4–G7 | `AI.md`, `GOLDEN.md`, `COMBAT.md`, `ORDERS.md`, `RUNS.md`, struck text | 8.1 MB | leave | 0 | |
+| G4–G8 | `AI.md`, `GOLDEN.md`, `COMBAT.md`, `ORDERS.md`, `RUNS.md`, struck text, the audit README, `ORACLE.md` | 8.4 MB | leave; number the unnumbered sections | 0 | |
 
 Read-first total: about 26,000 B of the 101,371 in QUEUE, TRACKS, LOOP,
 METHOD and `CLAUDE.md`, and R0 on top for lanes.
@@ -191,16 +192,22 @@ what it points at.
   prefix (`the_handoff_carries`, `ai_line_verdict`, `ai_line_closes`, and
   the per-line tests for the late ages, the battery word, the second,
   third, coverage, successor and peace pairs, the melee and the third map,
-  and `every_closing_line_row_has_its_close`); `testkit.rs` names
-  `NEWEST_PAIR = "Late ages"`, whose reader this lane did not read;
-  `bantu_word.rs` cites the line in a comment. Nothing under `tools/`
-  parses these ten.
+  and `every_closing_line_row_has_its_close`).
+  `crates/rondata/src/diff/audit.rs` reads the same lines through
+  `ai_line_parts`: `every_whole_scoreboard_word_is_audited` takes the
+  whole words *from the handoff's lines* (`audit_gaps`) and treats any
+  line the parser reads as a scoreboard line, so it must take them from
+  `AI_WORDS` under the closed form. `testkit.rs`'s `NEWEST_PAIR = "Late
+  ages"` filters `AI_WORDS`, not the queue's text, and is untouched;
+  `bantu_word.rs` and four melee modules cite the line in comments.
+  Nothing under `tools/` parses these ten.
 - **Guard:** those tests, and `docs_guard::the_handoff_is_short`. Made to
   fail first by lowering one row's word under the closed form.
 - **Rule touched:** the queue's "The floors and these lines move together
   ... read literally" bullet gains the closed form. No decision forbids it.
-- **Confidence:** high on the saving and the precedent; medium that the
-  parser change is one function and `NEWEST_PAIR`'s reader.
+- **Confidence:** high on the saving and the precedent. The code change is
+  two readers, `ai_line_verdict` and the audit's `audit_gaps`; both
+  already hold `AI_WORDS`.
 
 ### R2. The handoff's prose
 
@@ -530,11 +537,12 @@ history ("until item 4113"), none a stale promise. Not pursued.
   12; §15, 8 and 8; `GROUPS.md` §6, 53 and 34; `ORDERS.md` §4, 49 and 53;
   §5, 11 and 16; `CITIES.md` §3, 22 and 17; `DATALAYER.md` §2, 0 and 1.
   None cites a heading level.
-- **Guard:** `a_section_over_the_ceiling_may_not_grow`. Three tools split
-  a document on `## ` and were not read by this lane: `tools/retire.py`,
-  `tools/runwiring.py`, `tools/seams.py`; `tools/brief.py --section` only
-  passes its string through. Check each before promoting in a document it
-  reads.
+- **Guard:** `a_section_over_the_ceiling_may_not_grow`. Three tools read
+  `## ` headings and none blocks this: `tools/runwiring.py` matches the
+  run heads of RUNS alone; `tools/seams.py` reads the queue's "The queue"
+  and RUNS's run heads; `tools/retire.py` lists top-level sections, so a
+  promoted part becomes a row of its own, cited by its own number.
+  `tools/brief.py --section` passes its string through.
 - **Confidence:** medium-high.
 
 ### G2. `docs/JOURNAL.md`
@@ -603,6 +611,34 @@ column above): the next amendment to any of the 30 at 15,900 to 16,000 is a
 fitting episode or a split. A split is free (G1's method), so it is the
 amendment's first move and no proposal is needed.
 
+**The tree already has the instrument for this, and this lane found it
+late.** `tools/retire.py` (Loop 3486, the fifty-first pass) lists every
+top-level section no other tracked file names, by heading or by number;
+none of `CLAUDE.md`, LOOP, METHOD or the audit README names the tool. On
+this tree: `retire: 0 of 814 scripts and 185 of 1604 sections unnamed`
+with the ledgers left out, 688,165 B. Its unnamed mass is not in the
+numbered giants (`AI.md` 12 sections, `GOLDEN.md` 7) but in the documents
+whose sections carry no number: `ORACLE.md` 33 sections (170,948 B),
+`PRODUCTION.md` 15, `FORMATS.md` 15, `TEST_PERFORMANCE.md` 24, `CENSUS.md`
+7, `ECONOMY.md` 7, `TECH.md` 11. It over-counts where a cite shortens the
+heading, as its header says: `CLAUDE.md` cites "Off CrossOver" and the
+heading runs on. So an unnumbered section is one nothing can check a
+pointer to (S10 is that failure); numbering them is the fix, not removing
+them.
+
+### G8. `docs/ORACLE.md`: a pointer for the pass, not a proposal
+
+179,422 B in 35 sections, in the order things were found. `CLAUDE.md`
+calls it the runbook and points at it five times. By title alone, six
+sections are the story of a fault since closed ("The fourth permission,
+and the probe that did not test it", "The window nobody can see —
+CrossOver's expired bottle", "226: the fault is the bop, not the
+handler", "The falsifier for 226, costed", "Coverage is back", "`restart`
+from the channel wedges the game": 32,085 B), and the recipe a session is
+sent for is the fourth section of 35. Not read by this lane. If a pass
+reorders it, runbook first and the stories after, the pointers in
+`CLAUDE.md` and METHOD should name sections (S10) before anything moves.
+
 ### G5. `docs/RUNS.md`: leave
 
 A well-shaped ledger: 1,390 sections, median 1,632 B, largest 10,199, none
@@ -637,14 +673,11 @@ section.
 - `lore`'s index was not refreshed by this lane; the session counts are as
   of its last run, and a tool-lane search returns snippets, so "at least
   61" is a floor.
-- `NEWEST_PAIR`'s reader, and whether any tool reads a `## N.` section as a
-  unit (R1, G1).
 - The statuses in the DECISIONS index were read for entries 59, 100, 116
   and 121; the rest of S16 is a heuristic's list.
 - The topic chains under G3 are read off the index, not off the entries.
-- Whether merges conflict on the live tracks' documents (D6).
-- What `tools/retire.py`, `tools/runwiring.py` and `tools/seams.py` do with
-  a `## ` heading (G1).
+- Whether each of the nine `RENDERER.md` merges was a conflict a lane
+  resolved or a hunk git combined; `--cc` shows both alike (D6).
 
 ## Appendix. The measuring scripts
 
@@ -672,6 +705,10 @@ enough to restate. A probe reached for a third time would graduate to
   tested with `os.path.exists`; every backticked constant, module path's
   last segment and `--flag` grepped under `crates/` and `tools/` with
   markdown excluded. Made to fail first on a planted name of each kind.
+- **Unnamed sections:** `python3 tools/retire.py --no-ledgers`, the tree's
+  own tool; about a minute.
+- **Merges:** for each merge of `git log --merges --since=2026-11-09 --
+  <file>`, whether `git show --cc <merge> -- <file>` prints a hunk.
 - **Lanes:** `lore search '<file>' --lane tool --well attrition --since
   2026-11-10 -n 3000 --format jsonl`, grouped by worktree; `lore usage --by
   session --well worktrees-att- --since 2026-11-10 --limit 500`.
