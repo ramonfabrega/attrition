@@ -5,6 +5,12 @@
 //! models (`render::mot`) at its timing's frame. Their phase and their
 //! shape are draws on **`internal_random`** (`0x00eb697c`), the renderer's
 //! own generator, which the simulation never steps.
+//!
+//! **Not drawn yet** (item 4236): `Surf::init` is in register with
+//! run1564's packet when fed the packet's shore chains; the client's own
+//! chains (`TerrainOut::sort_waterline_wcoords@00872f30`) and the draw
+//! are the next word, so the binary does not call this module yet.
+#![cfg_attr(not(test), allow(dead_code))]
 
 /// `internal_random`'s draws before `Surf::init`'s first, on run1567's
 /// trace (the GreatLakes lobby's map, item 4236): 45 under
@@ -203,10 +209,16 @@ impl Spline {
                 break;
             }
             let mut p = [0.0f32; 3];
-            for j in span.saturating_sub(degree)..=span.min(n - 1) {
+            let lo = span.saturating_sub(degree);
+            for (j, cv) in control
+                .iter()
+                .enumerate()
+                .take(span.min(n - 1) + 1)
+                .skip(lo)
+            {
                 let b = basis(&knots, j, degree, f64::from(t)) as f32;
                 for c in 0..3 {
-                    p[c] += control[j][c] * b;
+                    p[c] += cv[c] * b;
                 }
             }
             s.verts.push(p);
