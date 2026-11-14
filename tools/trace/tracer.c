@@ -93,6 +93,10 @@
 #error RON_HIDE_SCENE requires RON_TURN_PROBE for the render-call witness
 #endif
 
+#if defined(RON_RANGES) && !defined(RON_CHECKSUMS)
+#error RON_RANGES requires RON_CHECKSUMS: a set is written when the checksum hook calls it due
+#endif
+
 #if defined(RON_STATE_FRAME) && defined(RON_RESTORE_PROBE)
 #error Frame snapshots and restore probes use separate capture lanes
 #endif
@@ -178,6 +182,9 @@ enum {
                   * a = part | ordinal << 8, then part 0: b = check_all's caller, c..f = lines
                   * 0..3; part 1: b..f = lines 4..8; part 2: b..f = lines 9..13; part 3: b =
                   * line 14, c = total, d = the frame's check_all calls so far */
+    K_RNG_OPEN = 14, /* RON_RANGES: check_all's entry opens a set; no record (`ranges.h`) */
+    K_RNG_FOLD = 15, /* RON_RANGES: CheckSum::walk_function's entry; no record, a range */
+    K_RNG_ZLIB = 16, /* RON_RANGES: adler32@005089d0's entry; a range from check_groups alone */
 };
 
 enum {
@@ -222,6 +229,8 @@ enum {
                  * console_win; 5 the text did not parse), c = cx | cy << 16, d = the stored x, e = y */
     I_CSUM = 35, /* RON_CHECKSUMS, at detach: a = sets written, b = torn sets (`checksums.h`),
                   * c = 1 when the stub passed esp (0: the hook wrote nothing) */
+    I_RNG = 36, /* RON_RANGES, at detach: a = sets written, b = sets that did not fit, c = MB
+                 * written, d = 1 when the record stopped at its cap, e = 1 when the file opened */
     I_LOGDETAIL = 34, /* an `@logdetail` line: a = frame, b = line index | refusal << 16 (0 stored; 5 the
                        * text did not parse), c = mode | type << 8, d = the byte before, e = the byte stored */
 };
@@ -246,6 +255,17 @@ static const HookSite HOOKS[] = {
      * entry's esp where the others pass arg0, since the line and the value's pointer
      * are the second and fifth arguments. */
     {0x63930, 9, K_CSUM, {0x55, 0x8b, 0xec, 0x64, 0xa1, 0x00, 0x00, 0x00, 0x00}},
+#endif
+#ifdef RON_RANGES
+    /* Item 4248, `ranges.h`. CheckSums::check_all@00936560: push ebp; mov ebp,esp; push -1;
+     * push 0xaa5228. */
+    {0x536560, 10, K_RNG_OPEN, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x28, 0x52, 0xaa, 0x00}},
+    /* CheckSum::walk_function@00936ff0: push ebp; mov ebp,esp; mov edx,[ebp+8]. The stub
+     * passes the entry's esp: [esp] the site, +4 start, +8 end. */
+    {0x536ff0, 6, K_RNG_FOLD, {0x55, 0x8b, 0xec, 0x8b, 0x55, 0x08}},
+    /* adler32@005089d0 (zlib's, cdecl): push ebp; mov ebp,esp; push esi; mov esi,[ebp+8].
+     * The entry's esp: [esp] the return, +8 the buffer, +0xc the length. */
+    {0x1089d0, 7, K_RNG_ZLIB, {0x55, 0x8b, 0xec, 0x56, 0x8b, 0x75, 0x08}},
 #endif
     /* Game::do_frame@00591ef0: push ebp; mov ebp,esp; push -1; push 0xa83e41 */
     {0x191ef0, 10, K_FRAME, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x41, 0x3e, 0xa8, 0x00}},
@@ -1832,6 +1852,56 @@ static u32 g_csum_sets;
 static i32 g_csum_ok; /* the stub passes esp: set by build_stub, never cleared */
 #endif
 
+#ifdef RON_RANGES
+#include "ranges.h"
+#ifndef RON_RANGES_CAP_MB
+#define RON_RANGES_CAP_MB 20480 /* the queue's ceiling on the record (item 4248) */
+#endif
+#define RNG_CAP_E (1u << 20)        /* ranges a set */
+#define RNG_CAP_B (64u << 20)       /* bytes a set */
+static Rng g_rng;
+static HANDLE g_rng_log = INVALID_HANDLE;
+static unsigned long long g_rng_written;
+static u32 g_rng_capped;
+
+static void rng_write(const void *p, u32 n) {
+    u32 written;
+    if (g_rng_log != INVALID_HANDLE && n) WriteFile(g_rng_log, p, n, &written, 0);
+    g_rng_written += n;
+}
+
+/* A due set: its header, its ranges and its bytes, padded to a word. Past
+ * the cap nothing more is written, and I_RNG says so at detach. */
+static void rng_flush_set(void) {
+    RngSet s;
+    rng_header(&g_rng, &s, &g_csum);
+    u32 pad = (4 - (s.nbytes & 3)) & 3;
+    unsigned long long size = sizeof s + (unsigned long long)s.nranges * sizeof(RngEntry) + s.nbytes + pad;
+    if (g_rng_capped || g_rng_written + size > (unsigned long long)RON_RANGES_CAP_MB << 20) {
+        g_rng_capped = 1;
+        return;
+    }
+    static const u8 zero[4] = {0, 0, 0, 0};
+    rng_write(&s, sizeof s);
+    rng_write(g_rng.e, s.nranges * sizeof(RngEntry));
+    rng_write(g_rng.b, s.nbytes);
+    rng_write(zero, pad);
+}
+
+static void rng_open_file(void) {
+    u32 cap_e = RNG_CAP_E, cap_b = RNG_CAP_B;
+    RngEntry *e = (RngEntry *)VirtualAlloc(0, cap_e * sizeof(RngEntry), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    u8 *b = (u8 *)VirtualAlloc(0, cap_b, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    if (!e || !b) cap_e = cap_b = 0;
+    rng_init(&g_rng, e, cap_e, b, cap_b);
+    char path[320];
+    path_join(path, "rontrace.ranges");
+    g_rng_log = CreateFileA(path, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    u32 head[8] = {RNG_MAGIC, RNG_VERSION, g_base, RNG_MASK, 0, 0, 0, 0};
+    rng_write(head, sizeof head);
+}
+#endif
+
 static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
 #ifdef RON_CHECKSUMS
     if (kind == K_CSUM) {
@@ -1843,7 +1913,13 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
         u32 line = *(u32 *)(arg0 + 8);
         u32 value = **(u32 **)(arg0 + 0x14);
         u32 up = *(u32 *)(ebp + 4);
+#ifdef RON_RANGES
+        if (g_rng.open && g_rng.tid == rd_fs(0x24)) rng_logged(&g_rng, csum_index(line));
         if (!csum_line(&g_csum, rva, line, value, up, g_frame)) return;
+        rng_flush_set();
+#else
+        if (!csum_line(&g_csum, rva, line, value, up, g_frame)) return;
+#endif
         const u32 *v = g_csum.last;
         u32 o = g_csum.ordinal << 8;
         g_csum_sets++;
@@ -1851,6 +1927,28 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
         emit(K_CSUM, o | 1, v[4], v[5], v[6], v[7], v[8]);
         emit(K_CSUM, o | 2, v[9], v[10], v[11], v[12], v[13]);
         emit(K_CSUM, o | 3, v[14], v[15], g_csum.count, 0, 0);
+        return;
+    }
+#endif
+#ifdef RON_RANGES
+    if (kind == K_RNG_OPEN) {
+        rng_begin(&g_rng, rd_fs(0x24));
+        return;
+    }
+    if (kind == K_RNG_FOLD || kind == K_RNG_ZLIB) {
+        /* arg0 is the entry's esp (build_stub), [arg0] the return address. */
+        if (!g_csum_ok || !rng_wants(&g_rng, rd_fs(0x24))) return;
+        u32 start, len;
+        if (kind == K_RNG_FOLD) {
+            start = *(u32 *)(arg0 + 4);
+            len = *(u32 *)(arg0 + 8) - start;
+        } else {
+            if (caller - g_base != RNG_ZLIB_RET) return;
+            start = *(u32 *)(arg0 + 8);
+            len = *(u32 *)(arg0 + 0xc);
+        }
+        rng_take(&g_rng, kind == K_RNG_FOLD ? RNG_VIA_FOLD : RNG_VIA_ZLIB, caller, start,
+                 (const u8 *)start, len);
         return;
     }
 #endif
@@ -1970,10 +2068,14 @@ static u32 build_stub(u8 *s, const HookSite *h) {
     /* The head's `mov eax,[esp+0x14]; push eax` (arg0, at offset 8) becomes
      * `lea eax,[esp+0x10]; push eax`: four registers are pushed by then, so
      * that is the entry's esp. Same length; nothing after it moves. */
-    if (h->kind == K_CSUM && s[8] == 0x8b && s[11] == 0x14) {
+    int esp_kind = h->kind == K_CSUM;
+#ifdef RON_RANGES
+    esp_kind = esp_kind || h->kind == K_RNG_FOLD || h->kind == K_RNG_ZLIB;
+#endif
+    if (esp_kind && s[8] == 0x8b && s[11] == 0x14) {
         s[8] = 0x8d;
         s[11] = 0x10;
-        g_csum_ok = 1;
+        if (h->kind == K_CSUM) g_csum_ok = 1;
     }
 #endif
     return n;
@@ -2464,6 +2566,9 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
 #ifdef RON_CHECKSUMS
         csum_init(&g_csum);
 #endif
+#ifdef RON_RANGES
+        rng_open_file();
+#endif
         g_nfuncs = read_file("rontrace.funcs", g_funcs, sizeof g_funcs) / sizeof(Entry);
 
         /* header: magic, version (2 = the displaced-prologue table), base,
@@ -2513,6 +2618,12 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
     } else if (reason == 0) { /* DLL_PROCESS_DETACH */
 #ifdef RON_CHECKSUMS
         emit(K_INFO, I_CSUM, g_csum_sets, g_csum.torn, (u32)g_csum_ok, 0, 0);
+#endif
+#ifdef RON_RANGES
+        emit(K_INFO, I_RNG, g_rng.sets, g_rng.over_sets, (u32)(g_rng_written >> 20), g_rng_capped,
+             g_rng_log != INVALID_HANDLE);
+        if (g_rng_log != INVALID_HANDLE) CloseHandle(g_rng_log);
+        g_rng_log = INVALID_HANDLE;
 #endif
         emit(K_INFO, I_DETACH, 0, 0, 0, 0, 0);
         flush();

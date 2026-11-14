@@ -143,6 +143,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the original's fifteen checksum values every frame (the hook, item 4214) against printed records' sums and our lines' Adler, and the minted packets' streams range by range; it reads no dump record's fields",
     ),
     (
+        "diff/checksum_frames/record.rs",
+        "step R's record (item 4248): the original's fold ranges on lines 0 to 7, every frame, against the hook's sets, the packets' streams and our lines' byte images, range by range; it reads no dump record",
+    ),
+    (
         "diff/checksum_lines/packets.rs",
         "the twelve state lines' byte images against the instrument's stream of every packet on disk, range by range (item 4188); it reads no dump record",
     ),
