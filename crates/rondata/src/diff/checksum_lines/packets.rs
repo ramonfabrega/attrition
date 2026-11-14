@@ -2780,6 +2780,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (6512, 6365, 5444) -> (6512, 6365, 5422).
     // Item 4229, the herd arm and the caravan's per-leader bit: cities (35, 35, 3) -> (35, 35, 0), goods (330, 330, 1) -> (330, 330, 0).
     // Item 4230, a trade order walked and a road stack's doubled size: units (6512, 6365, 5422) -> (6512, 6377, 5438).
+    // Item 4242, an army's pushed group takes `add_group`'s `get_num_cap`: groups (694, 694, 14) -> (694, 694, 13).
     (
         "run1391",
         4174,
@@ -2789,7 +2790,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (694, 694, 14),
+            (694, 694, 13),
             (1927, 1927, 4),
             (271, 271, 8),
             (35, 35, 0),

@@ -219,6 +219,13 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// 7824, theirs 7848, `last_y` 21648|21672; `1/12` 36584|36607,
 /// 23806|23798, `last_z` 339|341; `1/14` 39056|39074, 18478|18460, 44|45
 /// → the original's on all six, both lines whole.
+///
+/// Item 4242 moved one on run1578: groups 6781 → 8206, an army's pushed
+/// group taking `Army::add_group@006f8c00`'s `get_num_cap` (`6f8dae`) and
+/// with it `normalize` on a group of fewer than four. Value diff on 6781
+/// (run1592): group record 64 (army 1/1, the Longbowmen `1/24..1/26`, TI
+/// 177, pushed on 6780) `role` ours 0, theirs 0x150c00, `new_speed` and
+/// `speed` ours 0, theirs 26 → the original's on both.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -242,7 +249,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         [
             ("units", 6907, 0),
             ("builds", 7383, 0),
-            ("groups", 6781, 0),
+            ("groups", 8206, 0),
             ("guys", 7273, 0),
             ("leaders", 0, 300),
             ("cities", 24000, 0),
@@ -533,6 +540,22 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             3,
             "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|1e010000",
+        )],
+    ),
+    (
+        "run1592",
+        "rontrace-run1592.log",
+        6781,
+        // Item 4242: groups whole; before it, 1 of 544 ranges, range 76,
+        // group record 64 (army 1/1, the Longbowmen `1/24..1/26`, TI 177,
+        // pushed on 6780) `role` 0|0x150c00, `new_speed` 0|26, `speed`
+        // 0|26: `Army::add_group@006f8c00`'s `get_num_cap`.
+        &[(
+            "leaders",
+            271,
+            271,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|21010000",
         )],
     ),
     (

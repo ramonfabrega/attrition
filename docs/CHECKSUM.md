@@ -2402,7 +2402,7 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 |---|---|---|---|---|
 | units | 6907 | 1535573329 | 1253377436 | 0 |
 | builds | 7383 | 1242831600 | 4226882033 | 0 |
-| groups | 6781 | 3029922239 | 2663182868 | 0 |
+| groups | 8206 | 1227700410 | 2455910145 | 0 |
 | guys | 7273 | 3102114080 | 2138275448 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
 | cities | whole, 24,000 | | | 0 |
@@ -2527,6 +2527,16 @@ census, 421 → 422** (`PACKETS_SCORE`): the guys line agrees on run1236 (33 ran
 run1238c (7 → 1) and run1264b (20 → 12); the units line parts on fewer on run1236 (149 → 116) and run1238c (4079 →
 4073). Nothing else moved.
 
+**Item 4242 moved one.** Groups 6781 → 8206, none of 0..299 parted. On 6781 (run1592) group record 64 parts on
+`role` ours 0, theirs 0x150c00, and `new_speed` and `speed` ours 0, theirs 26. It is army 1/1's group: the three
+Longbowmen `1/24..1/26` (TI 177), born on tick 6780 and pushed into the army there (`num` 3, `stamp` 6780, the other
+18 fields agreeing). **The direction**: the original acted. `Army::add_unit@006f9f40`'s push arm hands the new slot
+to `Army::add_group@006f8c00`, which writes the record's `army` and then calls its vslot `+0x8`, `get_num_cap`
+(`6f8dae`; ECX the pool base plus the record's offset), and on fewer than four members that is `normalize` whole
+(`docs/GROUPS.md` §3.4). The crate's push arm counted the captains itself and called nothing. Value diff on 6781:
+0x150c00, 26, 26 on both, and the line whole. **Step P's census does not move**: the groups triple's parted count fell
+14 → 13 on run1391 (East Indies, the Mongols at Medieval, 4174); nothing else moved.
+
 ## 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
@@ -2544,6 +2554,7 @@ line's field reader where it has one:
 | groups | 2746 | 1588 | group record 65: `role` 0, 262416 (0x40110); `new_speed` 0, 34; `speed` 0, 34; whole since item 4231 |
 | units | 3596 | 1590 | record 16's `CastOrder`: three ranges theirs walks, ours not (1,437 against 1,440); whole since item 4234 |
 | units | 4030 | 1585 | record 14 `unit_masks`: 262152, 262664 (bit 0x200); 1 of 1,507 ranges; whole since item 4234 |
+| groups | 6781 | 1592 | group record 64 (army 1/1): `role` 0, 1379328 (0x150c00); `new_speed` 0, 26; `speed` 0, 26; whole since item 4242 |
 | units, guys | 6537 | 1591 | `1/0` figure 0 `last_x` 7824, 7848, `last_y` 21648, 21672; six figure records on each line (6 of 1,546, 6 of 511); whole since item 4238 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02; whole since item 4229 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2; whole since item 4229 |
@@ -2578,8 +2589,9 @@ Not established:
   Units on 3166: run1587, whole since item 4230. ~~Guys on 6537 and units on 3596: no packet stands on either.~~
   Groups on 2746: run1588, whole since item 4231. ~~Units on 3596, guys on 6537 and groups on 6781: no packet stands on
   any of them.~~ Units on 3596: run1590, whole since item 4234. ~~Units and guys on 6537 and groups on 6781: no
-  packet stands on any of them.~~ Units and guys on 6537: run1591, whole since item 4238. Units on 6907, groups on
-  6781 and guys on 7273: no packet stands on any of them.
+  packet stands on any of them.~~ Units and guys on 6537: run1591, whole since item 4238. ~~Units on 6907, groups on
+  6781 and guys on 7273: no packet stands on any of them.~~ Groups on 6781: run1592, whole since item 4242. Units on
+  6907, guys on 7273 and groups on 8206: no packet stands on any of them.
 - An aircraft's figure 0 under the age's seating: `Guy::set_new_location`'s air arm climbs `z` toward the ground
   plus 1000, at most 30 a call, before `last_z` takes it. `Sim::age_snap_units` leaves `airframe` alone (item 4238);
   no packet holds an airborne aircraft on an age tick.
