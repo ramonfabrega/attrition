@@ -14498,7 +14498,7 @@ if has_tribe_bonus(0xa) and constants[+0x6c4]: # french_lumbermill_upgrades
         esi += 1
 ```
 
-That is `docs/TECH.md` §13's French row, in [`tech::Shape::PreqMatch`]'s
+That is `docs/TECH.md` §"`gain_tech`: owning it" step 13's French row, in [`tech::Shape::PreqMatch`]'s
 shape. The loader built the five predicate blocks and none of the range
 blocks ("each endpoint is its own reading and no capture reaches any of
 them"). `FRENCH_LUMBERMILL_UPGRADES` was loaded into `Tuning` and read by

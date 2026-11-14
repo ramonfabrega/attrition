@@ -200,8 +200,8 @@ STACK<TYPE> length 2
 (955 → 19×48+24 = 936). But the bottom of the path stack holds `orig` — the
 raw click — and the harness pushes the snapped `dest` there instead.
 
-This fits what is already written down. `docs/ORDERS.md` §714 has the snap,
-§725 has `orig_x/orig_y` as "the un-snapped point the caller asked for
+This fits what is already written down. `docs/ORDERS.md` §4.1 has the snap,
+and `orig_x/orig_y` as "the un-snapped point the caller asked for
 (`action_move_near` passes the click; `add_move_order` passes −1, −1)", and
 §8.2 has the command path handing `orig = click` with `pathed = 1`. So the
 rule is plausibly *"the path goal is `orig` when the caller supplied one,
@@ -451,7 +451,7 @@ diplomacy table and changes nothing; with `all` it calls
 a target it calls it once. The level is `ally` 2, `peace` 1, `war` 0.
 
 **Chapter one's `604 war` is the bare form**, so it is a no-op — and the two
-players were already at war from the lobby (`docs/ARMY.md` §16.3: "a Quick
+players were already at war from the lobby (`docs/ARMY.md` §16.2: "a Quick
 Battle already starts at war"). The squads engage on the frame they are born
 because of that, not because of the line.
 

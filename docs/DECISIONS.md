@@ -6616,7 +6616,7 @@ and two captures landed under one number.
 `--port-file` inside a file.
 
 **The nations tool round-trips again** (Loop 3222): `nations_census.py
---write` rewrote fifteen rows of NATIONS §5 on an unchanged tree because
+--write` rewrote fifteen rows of NATIONS §5.1–5.2 on an unchanged tree because
 its hand tables (`HAND`, `LOBBY`) were three landings behind the
 document the guard checks; the tables were synced to the document and
 the document's five rows the tool answers better (four `get_cost`
