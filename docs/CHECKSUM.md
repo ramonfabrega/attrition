@@ -2425,16 +2425,14 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 | world | whole, 24,000 | | | 0 |
 
 On run1577's 120 the same walk gives the same first frames inside 120; guys, cities, items and goods are whole on all
-120. On the base before item 4209 the items line first parted on 987 (ours 1602836503, theirs 3605812239: item 3's
-`ever_seen`, and one box theirs had closed); item 4209's `Item::close` makes it whole on all 24,000. The 8 of 12 lines
+120. Items are whole since item 4209's `Item::close`. The 8 of 12 lines
 whole on frame 91 (§22) are whole there and around it; **a line whole on a packet frame is not
 a line whole on the game**. Measured: the walk to cities' 4030 takes 5.4 s in release.
 
 **Item 4218 moved two.** Units 1 → 129: the parting on 1 to 30, 96 and 101 to 299 was `SubObjectData::flags & 0x08`,
 the latch `Unit::check_idle@006032c0:64` raises (`| 0x18`) on a unit's first idle frame and `Unit::work@0060d180:276`
 clears it when an order reaches it. The crate held it (`Unit::idle_latch`) and the emitter left the bit out.
-Value diff on frame 1: unit 0 (`0/0`) `flags` ours 0x41, theirs 0x49 → both 0x49. Units now first part on 129, guys'
-frame (4214d), ours 2850640222 theirs 2564863054. World 0 → whole on all 24,000 (§24.4, the start).
+Value diff on frame 1: unit 0 (`0/0`) `flags` ours 0x41, theirs 0x49 → both 0x49. World 0 → whole on all 24,000 (§24.4, the start).
 
 **Item 4222 moved two.** Groups 61 → 2746: `Groups::push_group@0070f9e0`'s `Group::equals_group@00708000`
 normalizes `last_group`'s slot before it compares, and the crate's push of buildings skipped it
@@ -2479,8 +2477,7 @@ emitter rounded the current length instead. The crate's `orders::PathStack` hold
 nodes, and every call that changes the length raises `size` the way the pushes would. The two `grouppath` swaps
 install a scratch stack and give the unit its own back. Value diff on 189: `path.size` ours 10 → 20, theirs 20;
 the line whole. On 987 (run1583) units become whole (range 177's 10 | 50 agreeing). On 3246 and 4030 the old
-first range (range 167, 20 | 60 and 10 | 60) agrees. Their new first ranges are range 524, record 14,
-`path.size` 50 | 64, and range 492, record 14's `unit_masks` (262152 | 262664). No block of 10 makes 64.
+first range (range 167, 20 | 60 and 10 | 60) agrees; their next is item 4230's.
 **Step P's census, 314 → 318** (`PACKETS_SCORE`): the units line becomes whole on run893b, run958b, run1186b and
 run1383, and parts on fewer ranges on 92 more packets. run1460 parts on two more (1872 → 1874). Three of our units there are compared
 out of step with theirs (ours walks 2,275 ranges, theirs 2,380), against one aligned range (`0/2`) now agreeing.
@@ -2495,25 +2492,18 @@ on both. No minted packet parts on either line now. **Step P's census, 318 → 4
 line agrees on 77 more packets and the goods line on 30 more; the goods line parts on one more range on four (run1484,
 run1487, run1496, run839) and on run1575's take, each a walk whose units line already parts on most of its ranges.
 
-**Item 4230 moved one.** Units 3166 → 3596, none of 0..299 parted. A packet on 3166 (run1587) parts on 660 of
-1,355 units ranges from range 536, ours walking 1,352. Record 14 (`1/14`) holds its first `TRADE_ROUTE`, and
-`TradeOrder::walk_data@00483260` hands over three ranges the emitter left out: the flags byte, `TargetOrder`'s
-`ox`, `whom`, `uid` (`+0x8..+0x12`) and the order's own `oxx`, `whose`, `started`, `loaded`, `uid2`
-(`+0x14..+0x26`). `Unit::add_trade_order@005e4dc0` writes the home city's building, owner and uid, `oxx`/`whose`
-−1 and `uid2` 0xffff. `do_trade@005ed270:276`–`:278` writes the far city's when it picks it. The emitter walks
-them now. Value diff on 3166: 2000, 1, 0; −1, −1, 0, 0, −1 on both, and the line whole.
-The road under a caravan is the second rule. `Caravan::Caravan@0073d1e0` leaves the road stack (`+0x10`) at
-`size` 0 with `increment` −1 (a `char`, `movb $-1, 0x1c(%ecx)`), and `increase_size@0046e8c0` turns a negative
-step into a doubling. The road's pushes are `find_road@00688a40`'s two ends on a fresh search and
-`astar_caravan_road@00685990:329`'s answer. Its `size` is the high water of those, rounded up to a power of two.
-`clear_road` moves only the length, and `Caravans::init_caravan@0073e1f0` reuses a slot's object, so the size
-survives the slot. `do_trade:501`'s `operator=` raises the caravan's path to it (`Caravan::road_size`,
-`PathStack::assign`). Value diff on 3246 (run1584): `1/14`'s `path.size` ours 50, theirs 64 → 64, the line whole.
-On 4030 (run1585) units part on 1 of 1,507 ranges, record 14's `unit_masks` (262152 | 262664, bit 0x200), from
-804. **Step P's census does not move** (`PACKETS_SCORE`; 318 before item 4229, 421 with it, re-measured on the
-merged tree). The units line's triple moved on 84 packets: ours walks each trade order's three ranges (run1217:
-10,124 → 10,145 ranges, parted 9,057 → 9,335). On no packet does the line become whole, or stop being whole. The partings rise on some and fall on others because the census compares
-by index.
+**Item 4230 moved one.** Units 3166 → 3596, none of 0..299 parted. On 3166 (run1587) record 14 (`1/14`) holds the
+first `TRADE_ROUTE`, and `TradeOrder::walk_data@00483260` hands over three ranges the emitter left out: the
+flags byte, `TargetOrder`'s `ox`, `whom`, `uid` (`+0x8..+0x12`), and `oxx`, `whose`, `started`, `loaded`, `uid2`
+(`+0x14..+0x26`), as written by `Unit::add_trade_order@005e4dc0` and `do_trade@005ed270:276`–`:278`. Value diff
+on 3166: 2000, 1, 0; −1, −1, 0, 0, −1 on both, and the line whole. Second, a caravan's road stack (`+0x10`) is
+built by `Caravan::Caravan@0073d1e0` with `increment` −1 (a `char`), which `increase_size@0046e8c0` takes as a
+doubling. Its `size` is the high water of `find_road@00688a40`'s and `astar_caravan_road@00685990:329`'s pushes,
+surviving `clear_road` and the slot's reuse (`Caravans::init_caravan@0073e1f0`). `do_trade:501`'s
+`operator=` raises the caravan's path to it (`Caravan::road_size`, `PathStack::assign`). Value diff on 3246
+(run1584): `1/14`'s `path.size` ours 50, theirs 64 → 64. On 4030 (run1585) units part on 1 of 1,507 ranges, down
+from 804 (§24.5). **Step P's census does not move** (`PACKETS_SCORE`, 421 with item 4229). The units triple moved
+on 84 packets, none to whole or from it (`docs/journal/2026-11-14-item-4230.md`).
 
 ### 24.4 Where each first parting is (diff-backed)
 
@@ -2560,12 +2550,8 @@ Not established:
 - ~~Units on 189 and guys on 6537: no packet stands on either frame (parked 4226a, 4226b).~~ Units on 189: run1586,
   whole since item 4228 (4226a closed). ~~Guys on 6537 and units on 3166: no packet stands on either (4226b).~~
   Units on 3166: run1587, whole since item 4230. Guys on 6537 and units on 3596: no packet stands on either.
-- ~~A unit's `size` after `Unit::do_trade@005ed270:501`'s `Stack<PathData>::operator=`, which grows a path to the
-  source stack's `size` rather than its length. The crate lays the caravan's road by `PathStack::set`, a block of
-  10 at a time; the caravan road's own stack `size` is not held. 3246's record 14 is `1/14`, `TypeIndex` 59
-  (`CARA`, a land caravan), `path.length` 43 on both, `size` ours 50, theirs 64. No push at `increment` 10 from
-  10 reaches 64, so the writer is not a push. Whether it is this `operator=` is not shown.~~ It is: §24.3, item
-  4230 (4228a closed).
+- ~~Whether 3246's `1/14` `path.size` (ours 50, theirs 64) is `Unit::do_trade@005ed270:501`'s
+  `Stack<PathData>::operator=` (4228a).~~ It is: §24.3, item 4230 (4228a closed).
 - Record 14's `unit_masks` bit 0x200 on 4030 (ours 262152, theirs 262664). `do_trade@005ed270:470` sets it on an
   arrival; its clearers are not counted.
 - The road stack's size where a search is resumed (`find_road_restore`, no ends pushed) and where `build_road`
