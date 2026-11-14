@@ -54,6 +54,16 @@ not built by the item that killed it** — it parks with its kill; one
 was built anyway "because it was the booked hypothesis", and the
 booking is a frame, never a promise to build a name.
 
+**Two rules the queue's maintenance notes carried until 2026-11-14** (`docs/DECISIONS.md` entry 133 §6), for the kinds this file is read by:
+
+- **A capture is a draw-stream trace first, detail on demand** (DECISIONS 41): whole length at `cover=0`, then a
+  windowed re-run sized to the word, **from the last dumped block when a gap leaves it near** (3155); after 363, the
+  click-free lane unless it needs the mouse. Overlap the neighbours: six blocks each end (run83); `samegame.py` exits
+  0 on nothing in common, so assert the count; **a detached capture waits on `waitrun.sh`** (565, 656); **a `cover=1`
+  twin passes `--twin <its sibling's dir>`** (3928). **A value question takes a packet before the first print** (2303).
+- **Grep for the derived quantity, the SHAPE and the GATE**: a term zero in every dump is
+  zero-valued or switched off (117, 178); **a never-cleared field asserts a CHANGE, not a value** (`collide_frame`, run85).
+
 ## The definition of done, with the gate line in full
 
 **Definition of done**, all five:

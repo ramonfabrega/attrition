@@ -125,7 +125,7 @@ const HANDOFF_LINES: usize = 32;
 const QUEUE_SECTIONS: &[(&str, usize)] = &[
     ("", 12),
     ("The queue", 8),
-    ("How to maintain this file", 38),
+    ("How to maintain this file", 34),
 ];
 
 /// Bytes, per `## ` section. The unit is the section because that is what

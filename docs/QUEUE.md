@@ -43,7 +43,6 @@ Checksum: instrument 15 of 15 lines (run1562 f91) · state 8 of 12 lines, 367,15
 
 **Opener: the tranche (`commander`, Opus 5.5)** — reap the pass's row first (`python3 tools/handover.py reap <ref>`); check `gate-pass-1114.log` ends `gate exit 0`; read this file and `docs/audit/2026-11-14-fable-pass-gate-bound.md`'s "For Ramon" and "The queue's items"; then cut by the lanes line under "The queue", in its order. A lane's brief is composed by `tools/brief.py`, which now reads the item's own mark for its gate.
 
-
 ## The queue
 
 In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item says its kind and its mark in its first
@@ -57,7 +56,7 @@ lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when
 packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**. **Order:** the residue
 (parked 4176a–c, 4177b, 4177c, 4159ra the `score` sum in 29 tests, 4207b). The diplomacy's second reading is adjudicated
 (`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`): no leaf moved; the proposal's draw at five live leaders is parked
-in `docs/LEADERS.md` §7.6 with its capture.
+in `docs/LEADERS.md` §7.6 with what would falsify it.
 
 4224. **The gate's CPU-seconds** (structure; **whole**; DECISIONS 132 §11, 133 §3; parked 4220a–c). The loop is bound by test
 CPU: the whole gate on a quiet host ran 9,474 test CPU-seconds in 23.6 minutes, a scoped one about 4,200 (median) in 12 to 17.
@@ -86,7 +85,7 @@ with the lit floor: the mottle is elsewhere, named.
 4233. **The fire's smoke** (render; scoped; parked 4201a). On run1559b and run1570 theirs burns with black plumes over three
 buildings; ours draws flame sprites and no smoke, and no row scores a fire. First act: a row counting the plume's dark pixels
 over each burning building against the photograph, seen at 0. Score: that row. Kill: the plume's draws are in no trace on
-disk: the capture that names them is booked, by run number.
+disk: the item parks with the trace it needs.
 
 ## How to maintain this file
 
@@ -117,13 +116,6 @@ disk: the capture that names them is booked, by run number.
   instead (twice, 09-19). **A line whose every pinned row is whole may read `<line>: every word whole · <rows>`**
   (`, 0 off` after it on `Melee:`); the guards take it only while every row is whole, and a named regression asks
   for the rows written out again (DECISIONS 133 §6). The length guard counts every line to the next `## `.
-- **A capture is a draw-stream trace first, detail on demand** (DECISIONS 41): whole length at `cover=0`, then a
-  windowed re-run sized to the word, **from the last dumped block when a gap leaves it near** (3155); after 363, the
-  click-free lane unless it needs the mouse. Overlap the neighbours: six blocks each end (run83); `samegame.py` exits
-  0 on nothing in common, so assert the count; **a detached capture waits on `waitrun.sh`** (565, 656); **a `cover=1`
-  twin passes `--twin <its sibling's dir>`** (3928). **A value question takes a packet before the first print** (2303).
-- **Grep for the derived quantity, the SHAPE and the GATE**: a term zero in every dump is
-  zero-valued or switched off (117, 178); **a never-cleared field asserts a CHANGE, not a value** (`collide_frame`, run85).
 - **The gate is `python3 tools/release_gate.py <install> --test-threads 8 [--scope <tip>]`** (DECISIONS 72), to
   a file, never piped — a pipe launders the 137 — ending `Gate steps:`, `Admission wait:` and `Host load:`; **whole
   (no `--scope`) at the drain and at a pass** (DECISIONS 132 §5); **a worker's takes
