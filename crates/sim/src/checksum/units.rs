@@ -173,6 +173,9 @@ fn put(b: &mut [u8], base: usize, at: usize, width: usize, v: i64) {
 /// makes it, flies it and draws for it, and neither line ever walks it.
 pub(super) const WALKED_SLOTS: crate::Player = 9;
 
+/// An object's `(o, who)` as a chain word holds it: its index and owner.
+type ObjRef = (i16, crate::Player);
+
 impl Sim {
     /// **The units line** (`CheckSums::check_units@009371d0`): per leader in
     /// slot order, slots 0 to 8 ([`WALKED_SLOTS`]), per live unit in `o`
@@ -304,10 +307,7 @@ impl Sim {
     /// whose order is the chain's: `Object::insert_inside@00647e90`
     /// appends at the bottom and `Object::remove_from_inside@006480f0`
     /// unlinks in place (`docs/CITIES.md` §6, item 4257).
-    pub(crate) fn garrison_links(
-        &self,
-        u: usize,
-    ) -> Option<((i16, crate::Player), Option<(i16, crate::Player)>)> {
+    pub(crate) fn garrison_links(&self, u: usize) -> Option<(ObjRef, Option<ObjRef>)> {
         let un = &self.units[u];
         let b = un.inside?;
         let bd = &self.buildings[b];
