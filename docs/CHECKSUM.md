@@ -1552,8 +1552,9 @@ figure's mirror, `Movement::mirror`), `0x8` (`line_ok`), `0x400`
 keeps but clear on every unit of frame 91: `0x1`, `0x10`, `0x20`, `0x40`,
 `0x800`, `0x1000`, `0x2000`, `0x8000`, `0x10000`, `0x20000`, `0x80000`,
 `0x100000`, `0x800000`, `0x2000000` and the carrying nibble `0x78000000`
-— these agree by default here. Not emitted: `0x4` (`Unit::in_danger`,
-which the crate keeps), and `0x80`, `0x100`, `0x200`, `0x4000`,
+— these agree by default here. ~~Not emitted: `0x4` (`Unit::in_danger`,
+which the crate keeps),~~ `0x4` is emitted since item 4251 (§24.3: run1600's
+records 27..29 carry it on 7195). Not emitted: `0x80`, `0x100`, `0x200`, `0x4000`,
 `0x200000`, `0x400000`, `0x1000000`, `0x4000000`, `0x80000000`, which it
 does not; every one clear on frame 91.
 
@@ -2547,6 +2548,15 @@ triple moved on 49 packets, every one only in that slot and with ours' range cou
 none to whole or from it; run1293 (East Indies, the Romans at Medieval, 3606) parts on 120 ranges where it parted on
 7,180.
 
+**Item 4251 moved one.** Units 7195 → 7273, none of 0..299 parted. On 7195 (run1600; step R's record, §25.4, names the
+same range) theirs and ours walk 1,697 ranges, three parted from range 832: records 27, 28 and 29, player 1's
+Longbowmen (TI 177), `unit_masks` (`+0x68`) ours 0x40000, 0x4000a, 0x4000a, theirs 0x40004, 0x4000e, 0x4000e. Bit
+`0x4` is `Unit::set_in_danger@005fcfb0`'s latch, which the crate keeps (`Unit::in_danger`) and the emitter left out
+(the list under §18 named it "not emitted", clear on every unit of frame 91). Value diff on 7195: the three on both,
+and the line whole; ours' state held the bit already, so the emitter is the whole change. **Step P's census does not
+move** (`PACKETS_SCORE` 422): the units triple moved on 70 packets, every one only in that slot and only in its parted
+count, which fell on each (run1266c, East Indies, 7581 → 7561, the most); none to whole or from it.
+
 ## 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
@@ -2566,6 +2576,7 @@ line's field reader where it has one:
 | units | 4030 | 1585 | record 14 `unit_masks`: 262152, 262664 (bit 0x200); 1 of 1,507 ranges; whole since item 4234 |
 | groups | 6781 | 1592 | group record 64 (army 1/1): `role` 0, 1379328 (0x150c00); `new_speed` 0, 26; `speed` 0, 26; whole since item 4242 |
 | units | 6907 | 1593 | record 24's `GroupMoveOrder`: three ranges theirs walks after the move, ours not (1,639 against 1,648); whole since item 4243 |
+| units | 7195 | 1600 | records 27..29 `unit_masks`: 0x40000, 0x40004 (bit 0x4, `in_danger`); 3 of 1,697 ranges; whole since item 4251 |
 | units, guys | 6537 | 1591 | `1/0` figure 0 `last_x` 7824, 7848, `last_y` 21648, 21672; six figure records on each line (6 of 1,546, 6 of 511); whole since item 4238 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02; whole since item 4229 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2; whole since item 4229 |
@@ -2692,7 +2703,7 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 
 | frame | line | record's ranges, ours, parted | first parting: range record field: ours, theirs |
 |---|---|---|---|
-| 7195 | units | 1,697, 1,697, 3 | 832 27 `collide_frame..play`: `unit_masks` 262144 (0x40000), 262148 (0x40004) |
+| 7195 | units | 1,697, 1,697, 3 | 832 27 `collide_frame..play`: `unit_masks` 262144 (0x40000), 262148 (0x40004); whole since item 4251 (run1600's packet the same) |
 | 7273 | units | 1,692, 1,692, 1 | 891 30 guy: `angle` and `last_angle` 1431655765, 0 |
 | 7273 | guys | 560, 560, 1 | 279 30 guy: `angle` and `last_angle` 1431655765, 0 |
 | 7383 | builds | 1,142, 1,142, 1 | 903 2019 `mtn..cliff`: `mtn` −1, 0 |

@@ -258,6 +258,38 @@ fn a_path_stack_walks_the_size_it_grew_to() {
 /// (`+0x68`). run1593 on 6907: record 24, a Longbowman of army 1/1's
 /// `GROUP_ATTACK_TO`, `05`, then 24, 1, 0x697990, 0, the move's angle, then
 /// 0. A plain move walks `MoveOrder::walk_data` and stops at the move.
+/// **`unit_masks & 4` is walked** (item 4251, `docs/CHECKSUM.md` §24.3):
+/// `Unit::set_in_danger@005fcfb0`'s latch moves the unit's own range by
+/// that one bit, and nothing else on the line. run1600's records 27..29
+/// carried it and the emitter dropped it.
+#[test]
+fn the_in_danger_latch_is_unit_masks_bit_4() {
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let u = sim.add_unit(crate::Unit::new(1, 27, Pos::new(480, 480), 10));
+    let before = sim.checksum_units().ranges;
+    sim.set_in_danger(u);
+    assert!(sim.units[u].in_danger, "the latch is up");
+    let after = sim.checksum_units().ranges;
+    assert_eq!(before.len(), after.len(), "no range is added");
+    let parted: Vec<usize> = (0..before.len())
+        .filter(|&i| before[i].bytes != after[i].bytes)
+        .collect();
+    assert_eq!(parted.len(), 1, "one range moves");
+    let (b, a) = (&before[parted[0]].bytes, &after[parted[0]].bytes);
+    let xor: Vec<(usize, u8)> = b
+        .iter()
+        .zip(a)
+        .enumerate()
+        .filter(|(_, (x, y))| x != y)
+        .map(|(k, (x, y))| (k, x ^ y))
+        .collect();
+    assert_eq!(xor.len(), 1, "one byte moves");
+    assert_eq!(xor[0].1, 0x4, "by bit 0x4");
+    let masks_word = b[xor[0].0 - (xor[0].0 % 4)..][..4].to_vec();
+    assert_eq!(u32::from_le_bytes(masks_word.try_into().unwrap()) & 4, 0);
+}
+
 #[test]
 fn a_grouped_move_walks_its_group_order_after_the_move() {
     use crate::orders::{GroupMove, MoveKind, QueuePos};
