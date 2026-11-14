@@ -259,6 +259,15 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// record): units range 891 and guys range 279, record 30 (`1/30`, a
 /// Scholar, TI 52, seated in its University on 7272) `angle` and
 /// `last_angle` ours 0x55555555, theirs 0 → 0 on both, both lines whole.
+///
+/// Item 4255 moved one on run1578: groups 8206 → 9810, a push running
+/// `Group::equals_group@00708000`'s `get_num` (vslot `+0x4`) on
+/// `last_group`'s record after its `normalize`, whose empty arm zeroes
+/// `ox`/`oy`. Value diff on 8206 (run1597's record): groups range 91,
+/// record 67 (player 1's slot 3, emptied of the Longbowmen `1/39..1/41`,
+/// TI 177, since their move on 8171) `ox`/`oy` ours 30552/21144, theirs
+/// 0/0 (theirs 30552/21144 on 8205, when player 1's push into slot 65
+/// follows) → 0/0 on both.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -282,7 +291,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         [
             ("units", 8281, 0),
             ("builds", 8281, 0),
-            ("groups", 8206, 0),
+            ("groups", 9810, 0),
             ("guys", 10541, 0),
             ("leaders", 0, 300),
             ("cities", 24000, 0),
