@@ -1507,11 +1507,19 @@ impl Sim {
             if !done {
                 return Advanced::Pending;
             }
-            let mut ledger = economy::Ledger::default();
-            self.buildings[at].queue.unqueue(slot, false, &mut ledger);
             self.tech[who as usize].queued[t] -= 1;
             self.track_age_epoch_queued(who, t, -1);
             self.gain_tech(who, t);
+            // **The gain before the unqueue** (`Build::do_queue@0061e410`:
+            // `finished` at `61ec12`, `unqueue` after it returns): a Science
+            // level's `refund_cost` re-prices the queue's other technologies
+            // while the entry is still live, so the slot it vacates keeps the
+            // re-priced bytes ([`crate::cities::production::Queue::vacated`]). The minted game's Library
+            // `1/2005` reads `cost[0]` 108 there on 987, 120 with the unqueue
+            // first (item 4222, run1583).
+            debug_assert_eq!(self.buildings[at].queue.items[slot].tech, Some(t));
+            let mut ledger = economy::Ledger::default();
+            self.buildings[at].queue.unqueue(slot, false, &mut ledger);
             self.economy_changed(who);
             self.senate_gov_hero(at);
             return Advanced::Researched;

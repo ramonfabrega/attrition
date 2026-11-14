@@ -989,8 +989,14 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// five where theirs walks no box leave the count (run1217, run865, run882b,
 /// run883b and run959, (0, 35, 35) → (0, 0, 0)); the world line agrees on
 /// 39 of 107, 3 before (run1186b (7361, 7361, 1) → 0, its one range record
-/// 1787's `down` ours −3 theirs −1, `down_who` 2 both).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 280, 1053);
+/// 1787's `down` ours −3 theirs −1, `down_who` 2 both). **285** at item
+/// 4222, a queue's vacated slots walked as the array holds them, a removed
+/// last entry's `job_counter` zeroed and the tech arm's unqueue after
+/// `gain_tech` (`docs/PRODUCTION.md` "The queue record"): the builds line
+/// agrees on run1247 (1692 ranges, 27 parting → 0), run893b (709, 7 → 0),
+/// run958b (455, 2 → 0), run984b (789, 7 → 0) and run984c (827, 8 → 0), and
+/// parts on fewer ranges on 92 more, none on more.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 285, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1127,12 +1133,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 2028, 49) -> (2028, 2028, 36); world (7581, 7565, 4436) -> (7581, 7581, 20).
     // Item 4209, the box's `clear_down`: builds (2028, 2028, 36) -> (2028, 2028, 35); items (5, 110,
     // 107) -> (5, 5, 0); world (7581, 7581, 20) -> (7581, 7581, 0).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2028, 2028, 35)
+    // -> (2028, 2028, 5).
     (
         "run1001d",
         13760,
         [
             (2445, 2672, 1966),
-            (2028, 2028, 35),
+            (2028, 2028, 5),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -1149,12 +1157,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 2417, 58) -> (2417, 2417, 45); world (7537, 7521, 4313) -> (7537, 7537, 12).
     // Item 4209, the box's `clear_down`: units (2939, 3438, 2627) -> (2939, 3438, 2626); items (45,
     // 110, 83) -> (45, 45, 0); world (7537, 7537, 12) -> (7537, 7537, 0).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2417, 2417, 45)
+    // -> (2417, 2417, 5).
     (
         "run1007b",
         15915,
         [
             (2939, 3438, 2626),
-            (2417, 2417, 45),
+            (2417, 2417, 5),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1172,12 +1182,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: builds (2060, 2060, 36) -> (2060, 2060, 35); items (50, 110,
     // 77) -> (50, 50, 0); world (7479, 7479, 11) -> (7479, 7479, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (3219, 3345, 2592) -> (3219, 3345, 2593).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2060, 2060, 35)
+    // -> (2060, 2060, 5).
     (
         "run1011b",
         13105,
         [
             (3219, 3345, 2593),
-            (2060, 2060, 35),
+            (2060, 2060, 5),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -1195,12 +1207,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: builds (2080, 2080, 34) -> (2080, 2080, 33); items (50, 110,
     // 77) -> (50, 50, 0); world (7537, 7537, 11) -> (7537, 7537, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (3193, 3298, 2588) -> (3193, 3298, 2589).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2080, 2080, 33)
+    // -> (2080, 2080, 5).
     (
         "run1011c",
         13225,
         [
             (3193, 3298, 2589),
-            (2080, 2080, 33),
+            (2080, 2080, 5),
             (0, 0, 0),
             (6, 0, 6),
             (4, 0, 4),
@@ -1217,12 +1231,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 2080, 47) -> (2080, 2080, 34); world (7553, 7537, 4393) -> (7553, 7553, 10).
     // Item 4209, the box's `clear_down`: builds (2080, 2080, 34) -> (2080, 2080, 33); items (50, 110,
     // 77) -> (50, 50, 0); world (7553, 7553, 10) -> (7553, 7553, 0).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2080, 2080, 33)
+    // -> (2080, 2080, 5).
     (
         "run1011d",
         13277,
         [
             (3158, 3250, 2498),
-            (2080, 2080, 33),
+            (2080, 2080, 5),
             (0, 0, 0),
             (12, 0, 12),
             (4, 0, 4),
@@ -1239,12 +1255,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 2080, 47) -> (2080, 2080, 34); world (7517, 7501, 4316) -> (7517, 7517, 11).
     // Item 4209, the box's `clear_down`: builds (2080, 2080, 34) -> (2080, 2080, 33); items (50, 110,
     // 77) -> (50, 50, 0); world (7517, 7517, 11) -> (7517, 7517, 0).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2080, 2080, 33)
+    // -> (2080, 2080, 5).
     (
         "run1011e",
         13296,
         [
             (3117, 3189, 2437),
-            (2080, 2080, 33),
+            (2080, 2080, 5),
             (0, 0, 0),
             (9, 0, 9),
             (6, 0, 6),
@@ -1261,12 +1279,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 2080, 46) -> (2080, 2080, 33); world (7419, 7403, 4096) -> (7419, 7419, 11).
     // Item 4209, the box's `clear_down`: builds (2080, 2080, 33) -> (2080, 2080, 32); items (50, 110,
     // 77) -> (50, 50, 0); world (7419, 7419, 11) -> (7419, 7419, 0).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2080, 2080, 32)
+    // -> (2080, 2080, 6).
     (
         "run1015b",
         13392,
         [
             (3139, 3183, 2464),
-            (2080, 2080, 32),
+            (2080, 2080, 6),
             (0, 0, 0),
             (27, 0, 27),
             (4, 0, 4),
@@ -1285,12 +1305,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (75, 110, 56) -> (75, 75, 0); world (7583, 7583, 8) ->
     // (7583, 7583, 2).
     // Item 4218, the idle latch (`flags & 0x08`): units (4193, 4310, 3249) -> (4193, 4310, 3246).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2371, 2371, 52)
+    // -> (2371, 2371, 9).
     (
         "run1155c",
         3003,
         [
             (4193, 4310, 3246),
-            (2371, 2371, 52),
+            (2371, 2371, 9),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -1331,12 +1353,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (75, 110, 56) -> (75, 75, 0); world (7597, 7597, 22) ->
     // (7597, 7597, 15).
     // Item 4218, the idle latch (`flags & 0x08`): units (6053, 5910, 5268) -> (6053, 5910, 5265).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2140, 2136, 811)
+    // -> (2140, 2136, 782).
     (
         "run1164",
         4528,
         [
             (6053, 5910, 5265),
-            (2140, 2136, 811),
+            (2140, 2136, 782),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -1355,12 +1379,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9290, 9290, 15) ->
     // (9290, 9290, 11).
     // Item 4218, the idle latch (`flags & 0x08`): units (6004, 6418, 5252) -> (6004, 6418, 5248).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2267, 2266, 431)
+    // -> (2267, 2266, 384).
     (
         "run1165",
         3719,
         [
             (6004, 6418, 5248),
-            (2267, 2266, 431),
+            (2267, 2266, 384),
             (0, 0, 0),
             (287, 0, 287),
             (0, 0, 0),
@@ -1378,12 +1404,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // -> (1935, 2061, 129); world (9262, 7675, 5955) -> (9262, 9262, 17).
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9262, 9262, 17) ->
     // (9262, 9262, 13).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2247, 2246, 498)
+    // -> (2247, 2246, 442).
     (
         "run1166",
         3920,
         [
             (6004, 6310, 5070),
-            (2247, 2246, 498),
+            (2247, 2246, 442),
             (0, 0, 0),
             (0, 0, 0),
             (10, 0, 10),
@@ -1402,12 +1430,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (20, 35, 22) -> (20, 20, 0); world (9438, 9438, 4) ->
     // (9438, 9438, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (7749, 8143, 6726) -> (7749, 8143, 6718).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1813, 1813, 73)
+    // -> (1813, 1813, 14).
     (
         "run1169",
         3769,
         [
             (7749, 8143, 6718),
-            (1813, 1813, 73),
+            (1813, 1813, 14),
             (0, 0, 0),
             (12, 0, 12),
             (0, 0, 0),
@@ -1427,12 +1457,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: units (6735, 7099, 5981) -> (6735, 7099, 5980); items (5, 35,
     // 31) -> (5, 5, 0); world (9268, 9268, 5) -> (9268, 9268, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (6735, 7099, 5980) -> (6735, 7099, 5978).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1911, 1911, 59)
+    // -> (1911, 1911, 7).
     (
         "run1185",
         4582,
         [
             (6735, 7099, 5978),
-            (1911, 1911, 59),
+            (1911, 1911, 7),
             (0, 0, 0),
             (3, 0, 3),
             (4, 0, 4),
@@ -1450,12 +1482,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (105, 110, 25) -> (105, 105, 0); world (7361, 7361, 1)
     // -> (7361, 7361, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (1060, 1345, 303) -> (1060, 1345, 295).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1164, 1164, 9) ->
+    // (1164, 1164, 1).
     (
         "run1186b",
         1377,
         [
             (1060, 1345, 295),
-            (1164, 1164, 9),
+            (1164, 1164, 1),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1475,12 +1509,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // (3412, 3412, 126) -> (3412, 3412, 124); items (0, 35, 35) -> (0, 0, 0); world (9486, 9486, 5)
     // -> (9486, 9486, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (10607, 10674, 9056) -> (10607, 10674, 9057).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (3412, 3412, 124)
+    // -> (3412, 3412, 24).
     (
         "run1217",
         7728,
         [
             (10607, 10674, 9057),
-            (3412, 3412, 124),
+            (3412, 3412, 24),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -1499,12 +1535,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (90, 110, 44) -> (90, 90, 0); world (7663, 7663, 4) ->
     // (7663, 7663, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (4091, 4338, 3296) -> (4091, 4338, 3291).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1817, 1817, 28)
+    // -> (1817, 1817, 2).
     (
         "run1220b",
         2976,
         [
             (4091, 4338, 3291),
-            (1817, 1817, 28),
+            (1817, 1817, 2),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
@@ -1523,12 +1561,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (10, 35, 29) -> (10, 10, 0); world (9162, 9162, 4) ->
     // (9162, 9162, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (6445, 6949, 5874) -> (6445, 6949, 5873).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1719, 1719, 30)
+    // -> (1719, 1719, 6).
     (
         "run1221",
         4287,
         [
             (6445, 6949, 5873),
-            (1719, 1719, 30),
+            (1719, 1719, 6),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -1546,12 +1586,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 7857, 4963) -> (7873, 7873, 17).
     // Item 4209, the box's `clear_down`: items (30, 110, 91) -> (30, 30, 0); world (7873, 7873, 17) ->
     // (7873, 7873, 1).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (4271, 4271, 112)
+    // -> (4271, 4271, 30).
     (
         "run1224b",
         9745,
         [
             (11740, 11409, 10402),
-            (4271, 4271, 112),
+            (4271, 4271, 30),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -1570,12 +1612,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: builds (1733, 1733, 46) -> (1733, 1733, 45); items (15, 35,
     // 26) -> (15, 15, 0); world (9352, 9352, 3) -> (9352, 9352, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (7490, 7627, 6482) -> (7490, 7627, 6479).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1733, 1733, 45)
+    // -> (1733, 1733, 3).
     (
         "run1235b",
         4127,
         [
             (7490, 7627, 6479),
-            (1733, 1733, 45),
+            (1733, 1733, 3),
             (0, 0, 0),
             (12, 0, 12),
             (4, 0, 4),
@@ -1595,12 +1639,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9312, 9312, 5) ->
     // (9312, 9312, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (6610, 7349, 5764) -> (6610, 7349, 5753).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1762, 1762, 44)
+    // -> (1762, 1762, 5).
     (
         "run1236",
         4179,
         [
             (6610, 7349, 5753),
-            (1762, 1762, 44),
+            (1762, 1762, 5),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1619,12 +1665,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (85, 110, 48) -> (85, 85, 0); world (7703, 7703, 5) ->
     // (7703, 7703, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (3448, 3542, 2651) -> (3448, 3542, 2644).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1650, 1650, 18)
+    // -> (1650, 1650, 1).
     (
         "run1237",
         2674,
         [
             (3448, 3542, 2644),
-            (1650, 1650, 18),
+            (1650, 1650, 1),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -1644,12 +1692,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: builds (2494, 2494, 44) -> (2494, 2494, 43); items (10, 35,
     // 29) -> (10, 10, 0); world (9318, 9318, 5) -> (9318, 9318, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (6417, 7136, 5546) -> (6417, 7136, 5516).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2494, 2494, 43)
+    // -> (2494, 2494, 8).
     (
         "run1238c",
         5021,
         [
             (6417, 7136, 5516),
-            (2494, 2494, 43),
+            (2494, 2494, 8),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1668,12 +1718,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (10, 35, 29) -> (10, 10, 0); world (9158, 9158, 5) ->
     // (9158, 9158, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (5942, 6521, 5195) -> (5942, 6521, 5183).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1692, 1692, 27)
+    // -> (1692, 1692, 0).
     (
         "run1247",
         4306,
         [
             (5942, 6521, 5183),
-            (1692, 1692, 27),
+            (1692, 1692, 0),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -1692,12 +1744,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (85, 110, 49) -> (85, 85, 0); world (7669, 7669, 5) ->
     // (7669, 7669, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (4388, 4364, 3388) -> (4388, 4364, 3384).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1674, 1674, 37)
+    // -> (1674, 1674, 2).
     (
         "run1254c",
         3115,
         [
             (4388, 4364, 3384),
-            (1674, 1674, 37),
+            (1674, 1674, 2),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
@@ -1715,12 +1769,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: builds (3789, 3789, 92) -> (3789, 3789, 90); items (50, 110,
     // 77) -> (50, 50, 0); world (7867, 7867, 10) -> (7867, 7867, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (11229, 10998, 9831) -> (11229, 10998, 9830).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (3789, 3789, 90)
+    // -> (3789, 3789, 23).
     (
         "run1263",
         8362,
         [
             (11229, 10998, 9830),
-            (3789, 3789, 90),
+            (3789, 3789, 23),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
@@ -1739,12 +1795,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9330, 9330, 5) ->
     // (9330, 9330, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (6468, 7014, 5902) -> (6468, 7014, 5901).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1770, 1770, 43)
+    // -> (1770, 1770, 4).
     (
         "run1264b",
         4919,
         [
             (6468, 7014, 5901),
-            (1770, 1770, 43),
+            (1770, 1770, 4),
             (0, 0, 0),
             (3, 0, 3),
             (2, 0, 2),
@@ -1763,12 +1821,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (5, 35, 31) -> (5, 5, 0); world (9704, 9704, 6) ->
     // (9704, 9704, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (11161, 11622, 10220) -> (11161, 11622, 10213).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (3796, 3796, 100)
+    // -> (3796, 3796, 26).
     (
         "run1266c",
         8700,
         [
             (11161, 11622, 10213),
-            (3796, 3796, 100),
+            (3796, 3796, 26),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -1787,12 +1847,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (90, 110, 42) -> (90, 90, 0); world (7773, 7773, 4) ->
     // (7773, 7773, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (4744, 4798, 3708) -> (4744, 4798, 3699).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1908, 1908, 50)
+    // -> (1908, 1908, 6).
     (
         "run1268",
         3347,
         [
             (4744, 4798, 3699),
-            (1908, 1908, 50),
+            (1908, 1908, 6),
             (0, 0, 0),
             (24, 0, 24),
             (4, 0, 4),
@@ -1811,12 +1873,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (20, 35, 22) -> (20, 20, 0); world (9230, 9230, 3) ->
     // (9230, 9230, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (9512, 9862, 8560) -> (9512, 9862, 8555).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1938, 1938, 50)
+    // -> (1938, 1938, 6).
     (
         "run1293",
         3606,
         [
             (9512, 9862, 8555),
-            (1938, 1938, 50),
+            (1938, 1938, 6),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1835,12 +1899,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9490, 9490, 5) ->
     // (9490, 9490, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (8216, 8852, 7208) -> (8216, 8852, 7202).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2123, 2123, 59)
+    // -> (2123, 2123, 18).
     (
         "run1294",
         4473,
         [
             (8216, 8852, 7202),
-            (2123, 2123, 59),
+            (2123, 2123, 18),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -1859,12 +1925,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (5, 35, 32) -> (5, 5, 0); world (9470, 9470, 5) ->
     // (9470, 9470, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (9905, 10501, 9324) -> (9905, 10501, 9322).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2163, 2163, 64)
+    // -> (2163, 2163, 22).
     (
         "run1296",
         4632,
         [
             (9905, 10501, 9322),
-            (2163, 2163, 64),
+            (2163, 2163, 22),
             (0, 0, 0),
             (0, 0, 0),
             (6, 0, 6),
@@ -1884,12 +1952,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9448, 9448, 4) ->
     // (9448, 9448, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (5488, 5902, 4638) -> (5488, 5902, 4636).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2029, 2029, 64)
+    // -> (2029, 2029, 7).
     (
         "run1304",
         3865,
         [
             (5488, 5902, 4636),
-            (2029, 2029, 64),
+            (2029, 2029, 7),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1908,12 +1978,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (70, 110, 62) -> (70, 70, 0); world (7585, 7585, 8) ->
     // (7585, 7585, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (4968, 4832, 4054) -> (4968, 4832, 4048).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1882, 1882, 42)
+    // -> (1882, 1882, 3).
     (
         "run1305b",
         4181,
         [
             (4968, 4832, 4048),
-            (1882, 1882, 42),
+            (1882, 1882, 3),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1933,12 +2005,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (5, 35, 31) -> (5, 5, 0); world (9476, 9476, 7) ->
     // (9476, 9476, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (8490, 8757, 7392) -> (8490, 8757, 7384).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2140, 2140, 67)
+    // -> (2140, 2140, 13).
     (
         "run1320b",
         5066,
         [
             (8490, 8757, 7384),
-            (2140, 2140, 67),
+            (2140, 2140, 13),
             (0, 0, 0),
             (9, 0, 9),
             (2, 0, 2),
@@ -1957,12 +2031,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (90, 110, 44) -> (90, 90, 0); world (7615, 7615, 4) ->
     // (7615, 7615, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (3933, 4098, 3168) -> (3933, 4098, 3164).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1792, 1792, 28)
+    // -> (1792, 1792, 2).
     (
         "run1323b",
         3052,
         [
             (3933, 4098, 3164),
-            (1792, 1792, 28),
+            (1792, 1792, 2),
             (0, 0, 0),
             (3, 0, 3),
             (2, 0, 2),
@@ -1981,12 +2057,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (20, 35, 21) -> (20, 20, 0); world (9466, 9466, 4) ->
     // (9466, 9466, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (7276, 7557, 6127) -> (7276, 7557, 6122).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1918, 1918, 75)
+    // -> (1918, 1918, 13).
     (
         "run1324c",
         4904,
         [
             (7276, 7557, 6122),
-            (1918, 1918, 75),
+            (1918, 1918, 13),
             (0, 0, 0),
             (15, 0, 15),
             (2, 0, 2),
@@ -2005,12 +2083,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (10, 35, 27) -> (10, 10, 0); world (9666, 9666, 6) ->
     // (9666, 9666, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (10367, 11043, 9288) -> (10367, 11043, 9283).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2521, 2521, 79)
+    // -> (2521, 2521, 12).
     (
         "run1325c",
         5578,
         [
             (10367, 11043, 9283),
-            (2521, 2521, 79),
+            (2521, 2521, 12),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2030,12 +2110,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: builds (2161, 2161, 72) -> (2161, 2161, 71); items (15, 35,
     // 26) -> (15, 15, 0); world (9244, 9244, 3) -> (9244, 9244, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (6268, 6911, 5474) -> (6268, 6911, 5466).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2161, 2161, 71)
+    // -> (2161, 2161, 8).
     (
         "run1326",
         4567,
         [
             (6268, 6911, 5466),
-            (2161, 2161, 71),
+            (2161, 2161, 8),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -2054,12 +2136,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: builds (4230, 4230, 98) -> (4230, 4230, 97); items (25, 110,
     // 94) -> (25, 25, 0); world (8592, 8592, 16) -> (8592, 8592, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (13393, 13427, 11927) -> (13393, 13427, 11925).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (4230, 4230, 97)
+    // -> (4230, 4230, 23).
     (
         "run1327",
         10930,
         [
             (13393, 13427, 11925),
-            (4230, 4230, 97),
+            (4230, 4230, 23),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
@@ -2077,12 +2161,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 7525, 5179) -> (8244, 8244, 5).
     // Item 4209, the box's `clear_down`: builds (2354, 2354, 59) -> (2354, 2354, 58); items (80, 110,
     // 54) -> (80, 80, 0); world (8244, 8244, 5) -> (8244, 8244, 0).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2354, 2354, 58)
+    // -> (2354, 2354, 7).
     (
         "run1332a",
         3627,
         [
             (5746, 5891, 4373),
-            (2354, 2354, 58),
+            (2354, 2354, 7),
             (0, 0, 0),
             (48, 0, 48),
             (14, 0, 14),
@@ -2101,12 +2187,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: builds (2237, 2237, 60) -> (2237, 2237, 59); items (75, 110,
     // 56) -> (75, 75, 0); world (8328, 8328, 7) -> (8328, 8328, 2).
     // Item 4218, the idle latch (`flags & 0x08`): units (4745, 4928, 3885) -> (4745, 4928, 3883).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2237, 2237, 59)
+    // -> (2237, 2237, 10).
     (
         "run1351",
         4303,
         [
             (4745, 4928, 3883),
-            (2237, 2237, 59),
+            (2237, 2237, 10),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -2125,12 +2213,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: builds (2143, 2143, 61) -> (2143, 2143, 60); items (75, 110,
     // 56) -> (75, 75, 0); world (8298, 8298, 7) -> (8298, 8298, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (4512, 4732, 3067) -> (4512, 4732, 3062).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2143, 2143, 60)
+    // -> (2143, 2143, 7).
     (
         "run1351c",
         3521,
         [
             (4512, 4732, 3062),
-            (2143, 2143, 60),
+            (2143, 2143, 7),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -2149,12 +2239,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (80, 110, 51) -> (80, 80, 0); world (7777, 7777, 6) ->
     // (7777, 7777, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (3610, 3841, 2904) -> (3610, 3841, 2898).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1836, 1836, 29)
+    // -> (1836, 1836, 6).
     (
         "run1355",
         2933,
         [
             (3610, 3841, 2898),
-            (1836, 1836, 29),
+            (1836, 1836, 6),
             (0, 0, 0),
             (3, 0, 3),
             (2, 0, 2),
@@ -2173,12 +2265,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (75, 110, 59) -> (75, 75, 0); world (8528, 8528, 7) ->
     // (8528, 8528, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (5707, 5937, 4771) -> (5707, 5937, 4766).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1977, 1977, 43)
+    // -> (1977, 1977, 3).
     (
         "run1357",
         3439,
         [
             (5707, 5937, 4766),
-            (1977, 1977, 43),
+            (1977, 1977, 3),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2196,12 +2290,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 5220) -> (8007, 8007, 12).
     // Item 4209, the box's `clear_down`: items (60, 110, 69) -> (60, 60, 0); world (8007, 8007, 12) ->
     // (8007, 8007, 2).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2974, 2974, 94)
+    // -> (2974, 2974, 33).
     (
         "run1359",
         5619,
         [
             (6464, 6432, 5603),
-            (2974, 2974, 94),
+            (2974, 2974, 33),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2220,12 +2316,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (55, 110, 74) -> (55, 55, 0); world (7717, 7717, 13) ->
     // (7717, 7717, 2).
     // Item 4218, the idle latch (`flags & 0x08`): units (6408, 6424, 5539) -> (6408, 6424, 5541).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2974, 2974, 96)
+    // -> (2974, 2974, 33).
     (
         "run1359b",
         5677,
         [
             (6408, 6424, 5541),
-            (2974, 2974, 96),
+            (2974, 2974, 33),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2244,12 +2342,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (55, 110, 74) -> (55, 55, 0); world (7715, 7715, 13) ->
     // (7715, 7715, 2).
     // Item 4218, the idle latch (`flags & 0x08`): units (6407, 6423, 5536) -> (6407, 6423, 5538).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2974, 2974, 96)
+    // -> (2974, 2974, 33).
     (
         "run1359c",
         5678,
         [
             (6407, 6423, 5538),
-            (2974, 2974, 96),
+            (2974, 2974, 33),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2268,12 +2368,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: builds (2544, 2544, 57) -> (2544, 2544, 56); items (50, 110,
     // 78) -> (50, 50, 0); world (8476, 8476, 10) -> (8476, 8476, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (6810, 6671, 5721) -> (6810, 6671, 5720).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2544, 2544, 56)
+    // -> (2544, 2544, 25).
     (
         "run1361",
         4840,
         [
             (6810, 6671, 5720),
-            (2544, 2544, 56),
+            (2544, 2544, 25),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
@@ -2292,12 +2394,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: builds (2147, 2147, 49) -> (2147, 2147, 48); items (90, 110,
     // 44) -> (90, 90, 0); world (8334, 8334, 3) -> (8334, 8334, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (5194, 5195, 3876) -> (5194, 5195, 3875).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2147, 2147, 48)
+    // -> (2147, 2147, 5).
     (
         "run1381",
         3262,
         [
             (5194, 5195, 3875),
-            (2147, 2147, 48),
+            (2147, 2147, 5),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -2316,12 +2420,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (70, 110, 61) -> (70, 70, 0); world (8340, 8340, 7) ->
     // (8340, 8340, 2).
     // Item 4218, the idle latch (`flags & 0x08`): units (5014, 5130, 4106) -> (5014, 5130, 4101).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2015, 2015, 52)
+    // -> (2015, 2015, 7).
     (
         "run1382",
         3228,
         [
             (5014, 5130, 4101),
-            (2015, 2015, 52),
+            (2015, 2015, 7),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2340,12 +2446,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (30, 35, 11) -> (30, 30, 0); world (8876, 8876, 1) ->
     // (8876, 8876, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (2933, 3253, 339) -> (2933, 3253, 333).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1184, 1184, 7) ->
+    // (1184, 1184, 1).
     (
         "run1383",
         1180,
         [
             (2933, 3253, 333),
-            (1184, 1184, 7),
+            (1184, 1184, 1),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2365,12 +2473,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (20, 35, 21) -> (20, 20, 0); world (9252, 9252, 3) ->
     // (9252, 9252, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (5193, 5463, 4532) -> (5193, 5463, 4526).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1774, 1774, 28)
+    // -> (1774, 1774, 2).
     (
         "run1385p",
         2775,
         [
             (5193, 5463, 4526),
-            (1774, 1774, 28),
+            (1774, 1774, 2),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2389,12 +2499,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: units (6512, 6830, 5761) -> (6512, 6830, 5759); items (10, 35,
     // 28) -> (10, 10, 0); world (9408, 9408, 3) -> (9408, 9408, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (6512, 6830, 5759) -> (6512, 6830, 5755).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1830, 1830, 58)
+    // -> (1830, 1830, 15).
     (
         "run1391",
         4174,
         [
             (6512, 6830, 5755),
-            (1830, 1830, 58),
+            (1830, 1830, 15),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2414,12 +2526,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: units (6953, 7259, 6070) -> (6953, 7259, 6069); items (5, 35,
     // 31) -> (5, 5, 0); world (9554, 9554, 15) -> (9554, 9554, 10).
     // Item 4218, the idle latch (`flags & 0x08`): units (6953, 7259, 6069) -> (6953, 7259, 6066).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2128, 2127, 669)
+    // -> (2128, 2127, 613).
     (
         "run1416",
         4016,
         [
             (6953, 7259, 6066),
-            (2128, 2127, 669),
+            (2128, 2127, 613),
             (0, 0, 0),
             (18, 0, 18),
             (0, 0, 0),
@@ -2438,12 +2552,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (75, 110, 54) -> (75, 75, 0); world (8274, 8274, 8) ->
     // (8274, 8274, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (4518, 4705, 3703) -> (4518, 4705, 3700).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2321, 2321, 61)
+    // -> (2321, 2321, 9).
     (
         "run1417",
         4016,
         [
             (4518, 4705, 3700),
-            (2321, 2321, 61),
+            (2321, 2321, 9),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2462,12 +2578,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4486, 3351); builds (2033, 2033, 74) -> (2033, 2033, 56); guys (1231, 1336, 141) -> (1231,
     // 1336, 105); cities (27, 27, 2) -> (27, 27, 1); world (8434, 7715, 5388) -> (8434, 8434, 2).
     // Item 4218, the idle latch (`flags & 0x08`): units (4406, 4486, 3351) -> (4406, 4486, 3348).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2033, 2033, 56)
+    // -> (2033, 2033, 6).
     (
         "run1419b",
         3212,
         [
             (4406, 4486, 3348),
-            (2033, 2033, 56),
+            (2033, 2033, 6),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2486,12 +2604,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (70, 110, 59) -> (70, 70, 0); world (8466, 8466, 9) ->
     // (8466, 8466, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (5583, 5614, 4588) -> (5583, 5614, 4589).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2515, 2513, 737)
+    // -> (2515, 2513, 688).
     (
         "run1420",
         4586,
         [
             (5583, 5614, 4589),
-            (2515, 2513, 737),
+            (2515, 2513, 688),
             (0, 0, 0),
             (0, 0, 0),
             (8, 0, 8),
@@ -2509,12 +2629,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4318, 3325); builds (2025, 2025, 48) -> (2025, 2025, 32); guys (1138, 1278, 177) -> (1138,
     // 1278, 141); cities (27, 27, 3) -> (27, 27, 1); world (8344, 7625, 5328) -> (8344, 8344, 2).
     // Item 4218, the idle latch (`flags & 0x08`): units (4129, 4318, 3325) -> (4129, 4318, 3320).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2025, 2025, 32)
+    // -> (2025, 2025, 5).
     (
         "run1424",
         3156,
         [
             (4129, 4318, 3320),
-            (2025, 2025, 32),
+            (2025, 2025, 5),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2532,12 +2654,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4291, 3429); builds (2266, 2265, 861) -> (2266, 2265, 848); guys (1227, 1332, 146) -> (1227,
     // 1332, 110); cities (27, 27, 3) -> (27, 27, 2); world (8284, 7565, 5190) -> (8284, 8284, 10).
     // Item 4218, the idle latch (`flags & 0x08`): units (4175, 4291, 3429) -> (4175, 4291, 3428).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2266, 2265, 848)
+    // -> (2266, 2265, 805).
     (
         "run1426b",
         3722,
         [
             (4175, 4291, 3428),
-            (2266, 2265, 848),
+            (2266, 2265, 805),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
@@ -2555,12 +2679,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4721, 3908); builds (2154, 2151, 619) -> (2154, 2151, 604); guys (1208, 1348, 183) -> (1208,
     // 1348, 147); cities (30, 30, 3) -> (30, 30, 1); world (8414, 7695, 5513) -> (8414, 8414, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (4789, 4721, 3908) -> (4789, 4721, 3901).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2154, 2151, 604)
+    // -> (2154, 2151, 571).
     (
         "run1437",
         3894,
         [
             (4789, 4721, 3901),
-            (2154, 2151, 604),
+            (2154, 2151, 571),
             (0, 0, 0),
             (3, 0, 3),
             (4, 0, 4),
@@ -2574,12 +2700,14 @@ pub(super) const PINNED: &[Pinned] = &[
         ],
     ),
     // Item 4218, the idle latch (`flags & 0x08`): units (2475, 2702, 2286) -> (2475, 2702, 2279).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1890, 1890, 26)
+    // -> (1890, 1890, 24).
     (
         "run1438",
         684,
         [
             (2475, 2702, 2279),
-            (1890, 1890, 26),
+            (1890, 1890, 24),
             (0, 0, 0),
             (15, 0, 15),
             (0, 0, 0),
@@ -2617,12 +2745,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
     // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     // Item 4218, the idle latch (`flags & 0x08`): units (4274, 4219, 3476) -> (4274, 4219, 3474).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1890, 1887, 518)
+    // -> (1890, 1887, 481).
     (
         "run1441",
         3294,
         [
             (4274, 4219, 3474),
-            (1890, 1887, 518),
+            (1890, 1887, 481),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
@@ -2637,12 +2767,14 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: items (125, 135, 37) -> (125, 125, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (2022, 2281, 1870) -> (2022, 2281, 1864).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1968, 1968, 29)
+    // -> (1968, 1968, 25).
     (
         "run1451",
         945,
         [
             (2022, 2281, 1864),
-            (1968, 1968, 29),
+            (1968, 1968, 25),
             (0, 0, 0),
             (18, 0, 18),
             (32, 0, 32),
@@ -2657,12 +2789,14 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (2655, 2718, 2286) -> (2655, 2718, 2279).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1144, 1144, 28)
+    // -> (1144, 1144, 24).
     (
         "run1457",
         700,
         [
             (2655, 2718, 2279),
-            (1144, 1144, 28),
+            (1144, 1144, 24),
             (0, 0, 0),
             (21, 0, 21),
             (2, 0, 2),
@@ -2677,12 +2811,14 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (2362, 2425, 1982) -> (2362, 2425, 1974).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1316, 1316, 26)
+    // -> (1316, 1316, 24).
     (
         "run1459",
         780,
         [
             (2362, 2425, 1974),
-            (1316, 1316, 26),
+            (1316, 1316, 24),
             (0, 0, 0),
             (0, 0, 0),
             (22, 0, 22),
@@ -2697,12 +2833,14 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (2380, 2455, 1949) -> (2380, 2455, 1941).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1296, 1296, 27)
+    // -> (1296, 1296, 24).
     (
         "run1460",
         760,
         [
             (2380, 2455, 1941),
-            (1296, 1296, 27),
+            (1296, 1296, 24),
             (0, 0, 0),
             (9, 0, 9),
             (16, 0, 16),
@@ -2717,12 +2855,14 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 29) -> (130, 130, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (1392, 1679, 1048) -> (1392, 1679, 1040).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1777, 1777, 29)
+    // -> (1777, 1777, 27).
     (
         "run1469",
         627,
         [
             (1392, 1679, 1040),
-            (1777, 1777, 29),
+            (1777, 1777, 27),
             (0, 0, 0),
             (228, 0, 228),
             (0, 0, 0),
@@ -2737,12 +2877,14 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 29) -> (130, 130, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (1401, 1685, 1056) -> (1401, 1685, 1049).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1777, 1777, 29)
+    // -> (1777, 1777, 27).
     (
         "run1469b",
         628,
         [
             (1401, 1685, 1049),
-            (1777, 1777, 29),
+            (1777, 1777, 27),
             (0, 0, 0),
             (190, 0, 190),
             (0, 0, 0),
@@ -2757,12 +2899,14 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: items (130, 135, 30) -> (130, 130, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (2180, 2393, 2009) -> (2180, 2393, 2002).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1777, 1777, 30)
+    // -> (1777, 1777, 27).
     (
         "run1472",
         707,
         [
             (2180, 2393, 2002),
-            (1777, 1777, 30),
+            (1777, 1777, 27),
             (0, 0, 0),
             (339, 0, 339),
             (4, 0, 4),
@@ -2777,12 +2921,14 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: items (25, 45, 28) -> (25, 25, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (4145, 4206, 3495) -> (4145, 4206, 3484).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1446, 1446, 28)
+    // -> (1446, 1446, 25).
     (
         "run1484",
         676,
         [
             (4145, 4206, 3484),
-            (1446, 1446, 28),
+            (1446, 1446, 25),
             (0, 0, 0),
             (304, 0, 304),
             (0, 0, 0),
@@ -2797,12 +2943,14 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: items (25, 45, 28) -> (25, 25, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (5340, 5621, 4718) -> (5340, 5621, 4710).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2736, 2736, 66)
+    // -> (2736, 2736, 31).
     (
         "run1487",
         1980,
         [
             (5340, 5621, 4710),
-            (2736, 2736, 66),
+            (2736, 2736, 31),
             (0, 0, 0),
             (208, 0, 208),
             (8, 0, 8),
@@ -2817,12 +2965,14 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4209, the box's `clear_down`: items (25, 45, 28) -> (25, 25, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (5026, 5286, 4896) -> (5026, 5286, 4889).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2180, 2180, 47)
+    // -> (2180, 2180, 30).
     (
         "run1496",
         1539,
         [
             (5026, 5286, 4889),
-            (2180, 2180, 47),
+            (2180, 2180, 30),
             (0, 0, 0),
             (230, 0, 230),
             (2, 0, 2),
@@ -2840,12 +2990,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
     // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     // Item 4218, the idle latch (`flags & 0x08`): units (4274, 4219, 3476) -> (4274, 4219, 3474).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1890, 1887, 518)
+    // -> (1890, 1887, 481).
     (
         "run1559b",
         3294,
         [
             (4274, 4219, 3474),
-            (1890, 1887, 518),
+            (1890, 1887, 481),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
@@ -2881,12 +3033,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4219, 3476); builds (1890, 1887, 527) -> (1890, 1887, 518); guys (1108, 1171, 100) -> (1108,
     // 1171, 64); cities (30, 30, 3) -> (30, 30, 2); world (8276, 7557, 5229) -> (8276, 8276, 9).
     // Item 4218, the idle latch (`flags & 0x08`): units (4274, 4219, 3476) -> (4274, 4219, 3474).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1890, 1887, 518)
+    // -> (1890, 1887, 481).
     (
         "run1564",
         3294,
         [
             (4274, 4219, 3474),
-            (1890, 1887, 518),
+            (1890, 1887, 481),
             (0, 0, 0),
             (0, 0, 0),
             (2, 0, 2),
@@ -2904,12 +3058,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 4197, 3360); builds (1890, 1887, 528) -> (1890, 1887, 519); guys (1112, 1175, 101) -> (1112,
     // 1175, 65); world (8294, 7575, 5253) -> (8294, 8294, 9).
     // Item 4218, the idle latch (`flags & 0x08`): units (4240, 4197, 3360) -> (4240, 4197, 3359).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1890, 1887, 519)
+    // -> (1890, 1887, 481).
     (
         "run1570",
         3331,
         [
             (4240, 4197, 3359),
-            (1890, 1887, 519),
+            (1890, 1887, 481),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
@@ -2928,12 +3084,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9108, 9108, 14) ->
     // (9108, 9108, 10).
     // Item 4218, the idle latch (`flags & 0x08`): units (4969, 4983, 4139) -> (4969, 4983, 4140).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1731, 1729, 958)
+    // -> (1731, 1729, 941).
     (
         "run785",
         2178,
         [
             (4969, 4983, 4140),
-            (1731, 1729, 958),
+            (1731, 1729, 941),
             (0, 0, 0),
             (0, 0, 0),
             (28, 0, 28),
@@ -2952,12 +3110,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9526, 9526, 15) ->
     // (9526, 9526, 11).
     // Item 4218, the idle latch (`flags & 0x08`): units (5889, 5855, 4979) -> (5889, 5855, 4982).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2157, 2155, 1278)
+    // -> (2157, 2155, 1258).
     (
         "run789",
         2799,
         [
             (5889, 5855, 4982),
-            (2157, 2155, 1278),
+            (2157, 2155, 1258),
             (0, 0, 0),
             (281, 0, 281),
             (0, 0, 0),
@@ -2976,12 +3136,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (15, 35, 25) -> (15, 15, 0); world (9420, 9420, 15) ->
     // (9420, 9420, 11).
     // Item 4218, the idle latch (`flags & 0x08`): units (5860, 5823, 4860) -> (5860, 5823, 4862).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2059, 2057, 1202)
+    // -> (2059, 2057, 1181).
     (
         "run795",
         2681,
         [
             (5860, 5823, 4862),
-            (2059, 2057, 1202),
+            (2059, 2057, 1181),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3000,12 +3162,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9442, 9442, 16) ->
     // (9442, 9442, 11).
     // Item 4218, the idle latch (`flags & 0x08`): units (9526, 9603, 8609) -> (9526, 9603, 8610).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2384, 2381, 1417)
+    // -> (2384, 2381, 1400).
     (
         "run810",
         3631,
         [
             (9526, 9603, 8610),
-            (2384, 2381, 1417),
+            (2384, 2381, 1400),
             (0, 0, 0),
             (156, 0, 156),
             (0, 0, 0),
@@ -3024,12 +3188,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9552, 9552, 15) ->
     // (9552, 9552, 11).
     // Item 4218, the idle latch (`flags & 0x08`): units (9339, 9413, 8412) -> (9339, 9413, 8415).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2473, 2469, 1553)
+    // -> (2473, 2469, 1532).
     (
         "run823",
         4238,
         [
             (9339, 9413, 8415),
-            (2473, 2469, 1553),
+            (2473, 2469, 1532),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3048,12 +3214,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (10, 35, 28) -> (10, 10, 0); world (9560, 9560, 15) ->
     // (9560, 9560, 11).
     // Item 4218, the idle latch (`flags & 0x08`): units (9362, 9436, 8376) -> (9362, 9436, 8379).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2473, 2469, 1553)
+    // -> (2473, 2469, 1532).
     (
         "run825",
         4204,
         [
             (9362, 9436, 8379),
-            (2473, 2469, 1553),
+            (2473, 2469, 1532),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3128,12 +3296,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // (1794, 1878, 84); world (9344, 7757, 6056) -> (9344, 9344, 8).
     // Item 4209, the box's `clear_down`: items (5, 35, 32) -> (5, 5, 0); world (9344, 9344, 8) ->
     // (9344, 9344, 2).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2095, 2095, 61)
+    // -> (2095, 2095, 15).
     (
         "run854",
         3301,
         [
             (5770, 5833, 4618),
-            (2095, 2095, 61),
+            (2095, 2095, 15),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3152,12 +3322,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 17).
     // Item 4209, the box's `clear_down`: units (10342, 10233, 9554) -> (10342, 10233, 9553); items (0,
     // 35, 35) -> (0, 0, 0); world (9534, 9534, 17) -> (9534, 9534, 12).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2288, 2283, 1562)
+    // -> (2288, 2283, 1536).
     (
         "run865",
         4859,
         [
             (10342, 10233, 9553),
-            (2288, 2283, 1562),
+            (2288, 2283, 1536),
             (0, 0, 0),
             (0, 0, 0),
             (28, 0, 28),
@@ -3195,12 +3367,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (0, 35, 35) -> (0, 0, 0); world (9518, 9518, 18) ->
     // (9518, 9518, 12).
     // Item 4218, the idle latch (`flags & 0x08`): units (11125, 10562, 9821) -> (11125, 10562, 9823).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2737, 2732, 1946)
+    // -> (2737, 2732, 1918).
     (
         "run882b",
         6808,
         [
             (11125, 10562, 9823),
-            (2737, 2732, 1946),
+            (2737, 2732, 1918),
             (0, 0, 0),
             (15, 0, 15),
             (0, 0, 0),
@@ -3218,12 +3392,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 7) -> (64, 64, 4); world (9536, 7949, 6589) -> (9536, 9536, 18).
     // Item 4209, the box's `clear_down`: items (0, 35, 35) -> (0, 0, 0); world (9536, 9536, 18) ->
     // (9536, 9536, 12).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2737, 2732, 1947)
+    // -> (2737, 2732, 1919).
     (
         "run883b",
         6821,
         [
             (11180, 10557, 9912),
-            (2737, 2732, 1947),
+            (2737, 2732, 1919),
             (0, 0, 0),
             (36, 0, 36),
             (0, 0, 0),
@@ -3242,12 +3418,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (30, 35, 11) -> (30, 30, 0); world (8966, 8966, 1) ->
     // (8966, 8966, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (2652, 2987, 343) -> (2652, 2987, 341).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (709, 709, 7) ->
+    // (709, 709, 0).
     (
         "run893b",
         3975,
         [
             (2652, 2987, 341),
-            (709, 709, 7),
+            (709, 709, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3266,12 +3444,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (5, 35, 32) -> (5, 5, 0); world (9122, 9122, 6) ->
     // (9122, 9122, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (4112, 4387, 3617) -> (4112, 4387, 3620).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1508, 1508, 26)
+    // -> (1508, 1508, 5).
     (
         "run912e",
         12753,
         [
             (4112, 4387, 3620),
-            (1508, 1508, 26),
+            (1508, 1508, 5),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3309,12 +3489,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (40, 110, 84) -> (40, 40, 0); world (8150, 8150, 14) ->
     // (8150, 8150, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (2726, 3048, 2260) -> (2726, 3048, 2259).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1580, 1580, 21)
+    // -> (1580, 1580, 4).
     (
         "run943c",
         10674,
         [
             (2726, 3048, 2259),
-            (1580, 1580, 21),
+            (1580, 1580, 4),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3333,12 +3515,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (40, 110, 84) -> (40, 40, 0); world (8164, 8164, 14) ->
     // (8164, 8164, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (2838, 3119, 2277) -> (2838, 3119, 2276).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1580, 1580, 20)
+    // -> (1580, 1580, 5).
     (
         "run946",
         10842,
         [
             (2838, 3119, 2276),
-            (1580, 1580, 20),
+            (1580, 1580, 5),
             (0, 0, 0),
             (15, 0, 15),
             (0, 0, 0),
@@ -3357,12 +3541,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (35, 110, 87) -> (35, 35, 0); world (8096, 8096, 15) ->
     // (8096, 8096, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (2832, 3140, 2402) -> (2832, 3140, 2399).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1598, 1598, 24)
+    // -> (1598, 1598, 4).
     (
         "run954b",
         12155,
         [
             (2832, 3140, 2399),
-            (1598, 1598, 24),
+            (1598, 1598, 4),
             (0, 0, 0),
             (9, 0, 9),
             (2, 0, 2),
@@ -3379,12 +3565,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 15) -> (455, 455, 2); guys (160, 181, 23) -> (160, 181, 21); world (7291, 7275, 3748) ->
     // (7291, 7291, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (490, 550, 62) -> (490, 550, 61).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (455, 455, 2) ->
+    // (455, 455, 0).
     (
         "run958b",
         375,
         [
             (490, 550, 61),
-            (455, 455, 2),
+            (455, 455, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3403,12 +3591,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (0, 35, 35) -> (0, 0, 0); world (9056, 9056, 7) ->
     // (9056, 9056, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (4466, 4844, 3921) -> (4466, 4844, 3924).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (1832, 1832, 35)
+    // -> (1832, 1832, 4).
     (
         "run959",
         18368,
         [
             (4466, 4844, 3924),
-            (1832, 1832, 35),
+            (1832, 1832, 4),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
@@ -3427,12 +3617,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (60, 110, 69) -> (60, 60, 0); world (7513, 7513, 9) ->
     // (7513, 7513, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (3135, 3263, 2517) -> (3135, 3263, 2518).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2052, 2052, 33)
+    // -> (2052, 2052, 5).
     (
         "run973g",
         12286,
         [
             (3135, 3263, 2518),
-            (2052, 2052, 33),
+            (2052, 2052, 5),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -3451,12 +3643,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0); world (8052, 8052, 7) ->
     // (8052, 8052, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (2003, 2230, 1723) -> (2003, 2230, 1722).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (789, 789, 7) ->
+    // (789, 789, 0).
     (
         "run984b",
         6011,
         [
             (2003, 2230, 1722),
-            (789, 789, 7),
+            (789, 789, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3475,12 +3669,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0); world (8078, 8078, 7) ->
     // (8078, 8078, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (1903, 2165, 1594) -> (1903, 2165, 1593).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (827, 827, 8) ->
+    // (827, 827, 0).
     (
         "run984c",
         6251,
         [
             (1903, 2165, 1593),
-            (827, 827, 8),
+            (827, 827, 0),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -3498,12 +3694,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (40, 110, 85) -> (40, 40, 0); world (7443, 7443, 15) ->
     // (7443, 7443, 1).
     // Item 4218, the idle latch (`flags & 0x08`): units (3289, 3742, 3041) -> (3289, 3742, 3042).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2783, 2783, 43)
+    // -> (2783, 2783, 7).
     (
         "run985b",
         16762,
         [
             (3289, 3742, 3042),
-            (2783, 2783, 43),
+            (2783, 2783, 7),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3521,12 +3719,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4209, the box's `clear_down`: items (55, 110, 74) -> (55, 55, 0); world (7461, 7461, 11) ->
     // (7461, 7461, 0).
     // Item 4218, the idle latch (`flags & 0x08`): units (3178, 3504, 2733) -> (3178, 3504, 2735).
+    // Item 4222, the building push's normalize and the queue's vacated slots: builds (2006, 2006, 32)
+    // -> (2006, 2006, 4).
     (
         "run991d",
         15256,
         [
             (3178, 3504, 2735),
-            (2006, 2006, 32),
+            (2006, 2006, 4),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4129,12 +4329,14 @@ fn probe_built_clocks() {
 /// 3084) -> (3907, 4015, 3077). Item 4159's step VII-c, `action_treaty` and
 /// the computed accept: leaders (407, 407, 8) -> (407, 407, 7), the deal
 /// records' `treaty` (2 on both seats' records, ours −1 before) agreeing.
+/// Item 4222, a queue's vacated slots and the tech arm's unqueue after
+/// `gain_tech`: builds (1709, 1709, 35) -> (1709, 1709, 27).
 const TAKE_PINNED: Pinned = (
     "run1575",
     1090,
     [
         (3907, 4015, 3077),
-        (1709, 1709, 35),
+        (1709, 1709, 27),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),

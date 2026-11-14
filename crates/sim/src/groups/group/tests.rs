@@ -4418,3 +4418,34 @@ fn a_strike_on_a_mixed_group_sends_the_rest_to_attack() {
     }
     assert!(!s.units[p].orders.is_empty(), "the plane takes its strike");
 }
+
+/// **A building push normalizes `last_group`'s slot** (item 4222):
+/// `Groups::push_group`'s `Group::equals_group@00708000` normalizes the last
+/// pushed slot before it compares, for a group of buildings as for one of
+/// units. The minted game's `queue_up` on 60 pushes the capital while the
+/// Scout's slot 1 is `last_group`, and the original's slot reads the Scout's
+/// speed from 61 where this crate waited for `Groups::process`' turn on 65
+/// (run1580).
+///
+/// Made to fail with the normalize removed: the slot keeps the speed 0.
+#[test]
+fn a_building_push_normalizes_the_last_pushed_slot() {
+    let mut s = sim();
+    let t = fighter(&mut s);
+    let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+    s.units[a].movement.speed = 34;
+    let mut g = group_of(1, &[a]);
+    assert!(s.push_group(&mut g, true));
+    let slot = s.pool_group_of(a);
+    let i = s.orders.pushed.len() - 1;
+    s.orders.pushed[i].state.speed = 0;
+    s.orders.pushed[i].state.new_speed = 0;
+    s.push_buildings_group(1, &[0]);
+    assert_eq!(
+        s.pool_group_of(a),
+        slot,
+        "the building group took another slot"
+    );
+    assert_eq!(s.group_speed_of(a), 34);
+    assert_eq!(s.orders.pushed[i].state.new_speed, 34);
+}
