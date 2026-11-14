@@ -1911,9 +1911,11 @@ one photograph: the rows.
   bullet stands as a reading. The photograph's lake reads r ≈ 40, and
   every packet input to the floor and the water gives 0 to 20. The
   specular, by the reading's terms at roughness 0.3 and the light
-  (0.707, 0, 0.707), is about 0.05 in HDR, a few bytes. The coral layer
+  (0.707, 0, 0.707), is about 0.05 in HDR, a few bytes. ~~The coral layer
   (draws 130–131, `coralblend.tga`), the surf (163–169) and the frame's
-  mean luminance are not drawn. Item 4178 reads the screen reflection in
+  mean luminance are not drawn.~~ The coral is drawn (item 4223, §3.18),
+  the frame's mean luminance too (item 4212, §3.21); the surf is not
+  (parked 4225a). Item 4178 reads the screen reflection in
   the install's `ps_global.hlsl`. It marches ten 10-unit steps along the
   reflected ray, against the depth of what was drawn before the water, and
   on a hit within 0.00075 it adds `N·V` times the scene below the water
@@ -1932,8 +1934,10 @@ one photograph: the rows.
   (draw 35, flushed at `render_ocean_floor`'s entry)~~ at the land's depth
   fade (§3.16), and four
   transition-patch draws on `sand.tga` (`110000000011` to
-  `110011111111`). Ours draws `SANDY` cells whole in the land pass, so the
-  beach meets the grass on a sawtooth.
+  `110011111111`). ~~Ours draws `SANDY` cells whole in the land pass, so the
+  beach meets the grass on a sawtooth.~~ Ours draws the sand layer at the
+  land's depth fade (item 4192, §3.16) and the coast's patches (item 4200,
+  §3.18).
 - **The floor's place and light.** It is drawn on the `OCEAN` tiles' own
   triangles, not the plane at −283, so its edge against the underwater sand
   is a sawtooth too. It is unlit; the card lights it (its light diffuse
@@ -3085,8 +3089,10 @@ falls and the trees do not come back. The grass reads (171.5, 168.6, 78.9) again
 **The trees' fall is their own.** At the floor's white the painter's trees are already 5 % under
 the photograph (theirs over ours 1.052, weighted over 56 trees; the luma row 54 of 56). The
 asphalt, drawn by the same `TL_FAKE_LIGHT` branch (the card's draws 133–154), is 0.895 at that
-white (§3.21, tile (19, 160)). No white serves both, and the land lies between neither: the fall
-is in one of the two draws' stage colour (parked 4217a). The frame's white is 0.898 against the
+white (§3.21, tile (19, 160)). No white serves both, and the land lies between neither: ~~the fall
+is in one of the two draws' stage colour (parked 4217a).~~ the stage colours agree and the trees
+blend and take the tileset's tint (item 4221, §3.23; 4217a struck so in
+`docs/journal/2026-11-13-item-4217.md`, "Parked"). The frame's white is 0.898 against the
 asphalt's 0.895.
 
 **Coverage.** Diff-backed: the heights, the normals (54,095 bit for bit) and the vertex colours
@@ -3641,7 +3647,8 @@ lines and fog shading, projectiles and corpses, then candidate C.
   any (§3.12, 4174a)~~ (settled by item 4223, §3.18: the grab's display match); the screen reflection's reach is
   read, not counted (item 4178). ~~Its alpha past
   `create_water_verts` (4174b).~~ Settled by item 4178: 597 of 597 drawn corners (§3.12, "The water drawn").
-  The shore's blend, `sand.tga`'s own layer and its patches, is not drawn (§3.12, 4178b).
+  ~~The shore's blend, `sand.tga`'s own layer and its patches, is not drawn (§3.12, 4178b).~~ Drawn: the
+  shore's sand by item 4192 (§3.16), the coast's patches by item 4200 (§3.18).
 
 - ~~**What the client's own pixels show**~~ (the pass of 2026-11-12, DECISIONS 127): counted on the still by
   item 4171 (§3.15); the wash was the silhouette's place and the sRGB target. ~~The trees
