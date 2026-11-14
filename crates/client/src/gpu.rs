@@ -173,8 +173,25 @@ const WATER_SHADER: &str = include_str!("../shaders/water.wgsl");
 
 /// **The particles' shader** (item 4233; `docs/RENDERER.md` §3.25): a
 /// quad facing the camera, the smoke's `MODULATE2X` and the fire's
-/// `MODULATE`.
+/// `MODULATE`, each taken through `TL_FAKE_LIGHT` into HDR (item 4237).
 const PARTICLE_SHADER: &str = include_str!("../shaders/particle.wgsl");
+
+/// The names [`PARTICLE_SHADER`] leaves a hole for, each filled once.
+#[cfg(test)]
+const PARTICLE_HOLES: [&str; 2] = ["FAKE_LIGHT_POWER", "HDR_SCALE"];
+
+/// [`PARTICLE_SHADER`] with its holes filled.
+fn particle_shader() -> String {
+    use render::silhouette::{FAKE_LIGHT_POWER, HDR_SCALE};
+    PARTICLE_SHADER
+        .replace("{FAKE_LIGHT_POWER}", &format!("{FAKE_LIGHT_POWER:?}"))
+        .replace("{HDR_SCALE}", &format!("{HDR_SCALE:?}"))
+}
+
+/// **The plume target** (item 4237; `docs/RENDERER.md` §3.25): the light
+/// the particles lay in, in rgb, and the share of the frame under them
+/// left, in alpha, each in HDR.
+const PLUME_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba16Float;
 
 /// The names [`WATER_SHADER`] leaves a hole for, each filled once.
 #[cfg(test)]
@@ -244,7 +261,7 @@ fn shader_sources() -> [(&'static str, String); 10] {
         ),
         ("luminance", crate::expose::luminance_shader()),
         ("expose", crate::expose::expose_shader()),
-        ("particle", PARTICLE_SHADER.to_string()),
+        ("particle", particle_shader()),
     ]
 }
 
@@ -433,9 +450,12 @@ pub struct Gpu {
     /// Where the silhouette pass falls (item 4171).
     pub silhouette_order: SilhouetteOrder,
     /// The particles' passes (item 4233): the smoke laid over, the fire
-    /// added; their texture under the trees' linear, clamped sampler.
+    /// added; their texture under the trees' linear, clamped sampler. Item
+    /// 4237: each into the plume target, in HDR, and `plume` composes it
+    /// onto the frame through the tone map.
     smoke: wgpu::RenderPipeline,
     fire: wgpu::RenderPipeline,
+    plume: wgpu::RenderPipeline,
     particle_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
 }
 
@@ -828,12 +848,21 @@ impl Gpu {
         // Item 4233 (§3.25): both systems' `enables` 0x20085 on the packets:
         // the depth tested (`zfunc` LessEqual), not written, and `src_blend`
         // 5 (`SRCALPHA`); the smoke's `dst_blend` 6 (`INVSRCALPHA`), the
-        // fire's 2 (`ONE`).
+        // fire's 2 (`ONE`). Item 4237: into the plume target, cleared to
+        // no light and the whole frame left. The light blends as the
+        // original's HDR target does; the alpha keeps what is left of the
+        // frame under them, `τ · (1 − a)` for the smoke and `τ` for the
+        // fire, so the compose's `T⁻¹(g) · τ + L` is the draws in order.
         let particle_attributes =
             wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x4];
         let particle_pass = |label: &str, entry: &str, dst: wgpu::BlendFactor| {
             let c = wgpu::BlendComponent {
                 src_factor: wgpu::BlendFactor::SrcAlpha,
+                dst_factor: dst,
+                operation: wgpu::BlendOperation::Add,
+            };
+            let left = wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::Zero,
                 dst_factor: dst,
                 operation: wgpu::BlendOperation::Add,
             };
@@ -867,8 +896,11 @@ impl Gpu {
                     entry_point: Some(entry),
                     compilation_options: Default::default(),
                     targets: &[Some(wgpu::ColorTargetState {
-                        format,
-                        blend: Some(wgpu::BlendState { color: c, alpha: c }),
+                        format: PLUME_FORMAT,
+                        blend: Some(wgpu::BlendState {
+                            color: c,
+                            alpha: left,
+                        }),
                         write_mask: wgpu::ColorWrites::ALL,
                     })],
                 }),
@@ -878,6 +910,34 @@ impl Gpu {
         };
         let smoke = particle_pass("smoke", "fs_smoke", wgpu::BlendFactor::OneMinusSrcAlpha);
         let fire = particle_pass("fire", "fs_fire", wgpu::BlendFactor::One);
+        // Item 4237: the plume target composed onto the frame, `T(T⁻¹(g) ·
+        // τ + L)`, after the shade pass's layout: the frame copied, the
+        // plume target.
+        let plume = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("plume"),
+            layout: Some(&shade_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &shade_module,
+                entry_point: Some("vs_full"),
+                compilation_options: Default::default(),
+                buffers: &[],
+            },
+            primitive: Default::default(),
+            depth_stencil: None,
+            multisample: Default::default(),
+            fragment: Some(wgpu::FragmentState {
+                module: &shade_module,
+                entry_point: Some("fs_plume"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format,
+                    blend: None,
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            multiview_mask: None,
+            cache: None,
+        });
         let silhouette = figure_pass(
             "silhouette",
             "fs_silhouette",
@@ -1048,6 +1108,7 @@ impl Gpu {
             silhouette_order: SilhouetteOrder::Before,
             smoke,
             fire,
+            plume,
             particle_textures: std::sync::Mutex::new(Default::default()),
             sprite,
             sprite_uniform,
@@ -1659,14 +1720,11 @@ impl Gpu {
                     }
                 }
             }
-            // Item 4233 (§3.25): the particles after the figures, as draws
-            // 216–229 come after them on the card.
-            for (b, n, t, additive) in &particles {
-                pass.set_pipeline(if *additive { &self.fire } else { &self.smoke });
-                pass.set_bind_group(1, t, &[]);
-                pass.set_vertex_buffer(0, b.slice(..));
-                pass.draw(0..*n, 0..1);
-            }
+        }
+        // Item 4233 (§3.25): the particles after the figures, as draws
+        // 216–229 come after them on the card; item 4237: blended in HDR.
+        if !particles.is_empty() {
+            self.plume_passes(&mut enc, &exposed.scene, &depth_view, size, &particles);
         }
         // Item 4212 (§3.21): the tone map's white at the frame's mean, then
         // the overlay, which the tone map does not take.
@@ -1707,6 +1765,124 @@ impl Gpu {
             }
         }
         self.queue.submit([enc.finish()]);
+    }
+
+    /// **The particles in HDR** (item 4237; `docs/RENDERER.md` §3.25):
+    /// each drawn into the plume target under the frame's depth, then the
+    /// frame copied and composed with it through the tone map onto
+    /// `target`.
+    fn plume_passes(
+        &self,
+        enc: &mut wgpu::CommandEncoder,
+        target: &wgpu::Texture,
+        depth_view: &wgpu::TextureView,
+        size: (u32, u32),
+        particles: &[(wgpu::Buffer, u32, wgpu::BindGroup, bool)],
+    ) {
+        let extent = wgpu::Extent3d {
+            width: size.0,
+            height: size.1,
+            depth_or_array_layers: 1,
+        };
+        let texture = |label: &str, format, usage| {
+            self.device.create_texture(&wgpu::TextureDescriptor {
+                label: Some(label),
+                size: extent,
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format,
+                usage,
+                view_formats: &[],
+            })
+        };
+        let light = texture(
+            "plume",
+            PLUME_FORMAT,
+            wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+        );
+        let under = texture(
+            "under the plume",
+            self.format,
+            wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+        );
+        let light_view = light.create_view(&Default::default());
+        {
+            let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("plume"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &light_view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 0.0,
+                            g: 0.0,
+                            b: 0.0,
+                            a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    }),
+                }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
+            pass.set_bind_group(0, &self.bind, &[]);
+            for (b, n, t, additive) in particles {
+                pass.set_pipeline(if *additive { &self.fire } else { &self.smoke });
+                pass.set_bind_group(1, t, &[]);
+                pass.set_vertex_buffer(0, b.slice(..));
+                pass.draw(0..*n, 0..1);
+            }
+        }
+        enc.copy_texture_to_texture(target.as_image_copy(), under.as_image_copy(), extent);
+        let bind = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("plume"),
+            layout: &self.shade_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(
+                        &under.create_view(&Default::default()),
+                    ),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&light_view),
+                },
+            ],
+        });
+        let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("plume composed"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &target.create_view(&Default::default()),
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
+            multiview_mask: None,
+        });
+        pass.set_pipeline(&self.plume);
+        pass.set_bind_group(0, &bind, &[]);
+        pass.draw(0..3, 0..1);
     }
 
     /// The heightfield and the base layer (`meshes`, when given), then the
@@ -2188,6 +2364,29 @@ mod tests {
         }
         let t = shade_shader();
         for h in SHADE_HOLES {
+            assert!(!t.contains(&format!("{{{h}}}")), "{h} left unfilled");
+        }
+        assert!(
+            !t.chars()
+                .zip(t.chars().skip(1))
+                .any(|(a, b)| a == '{' && b.is_ascii_alphabetic()),
+            "a hole the template names and the code does not fill"
+        );
+    }
+
+    /// Item 4237: the particle template's every hole is filled, once, and
+    /// no other brace pair in it names a constant.
+    #[test]
+    fn the_particle_template_s_holes_are_filled() {
+        for h in PARTICLE_HOLES {
+            assert_eq!(
+                PARTICLE_SHADER.matches(&format!("{{{h}}}")).count(),
+                1,
+                "{h}"
+            );
+        }
+        let t = particle_shader();
+        for h in PARTICLE_HOLES {
             assert!(!t.contains(&format!("{{{h}}}")), "{h} left unfilled");
         }
         assert!(

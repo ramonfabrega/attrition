@@ -288,4 +288,65 @@ pub(crate) mod tests {
             }
         }
     }
+
+    /// `rise.pdb`'s `RenderEnables` names bit 0x20000 `TL_FAKE_LIGHT`.
+    pub(crate) const TL_FAKE_LIGHT: u32 = 0x2_0000;
+
+    /// **The particles take `ps_global.hlsl`'s fake light** (item 4237;
+    /// `docs/RENDERER.md` §3.25). On run1567's card trace, both passes,
+    /// `D3D11GLSys` compiles the option `TL_FAKE_LIGHT` into a draw's
+    /// shader exactly when its `RenderState::enables` carries the bit
+    /// [`TL_FAKE_LIGHT`]: 55 draws with it, 366 without, none apart. The
+    /// card holds no particle draw, so the systems' own states are read
+    /// off the packets (`states.py`, `ParticleSystem +0xbc`): both carry
+    /// `enables` 0x20085, so both are drawn through the branch's
+    /// `pow(c, 1.9) · 5` into the HDR target.
+    #[test]
+    fn the_particles_take_the_fake_light() {
+        use rondata::trace::card;
+        let home = std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default());
+        let path = std::env::var_os("RON_CARD_TRACE_1567")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| home.join("ron-golden/run1567/map-14/rontrace.log"));
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no card trace at {}", path.display());
+            return;
+        };
+        let draws = card::draws(&bytes);
+        let with = draws.iter().filter(|d| d.enables() & TL_FAKE_LIGHT != 0);
+        let apart: Vec<u32> = draws
+            .iter()
+            .filter(|d| (d.enables() & TL_FAKE_LIGHT != 0) != d.has("TL_FAKE_LIGHT"))
+            .map(|d| d.index)
+            .collect();
+        println!(
+            "{} draws, {} with the bit, apart {apart:?}",
+            draws.len(),
+            with.count()
+        );
+        assert_eq!(draws.len(), 421);
+        assert!(apart.is_empty(), "the bit and the option part at {apart:?}");
+        for name in ["run1559b", "run1570"] {
+            let path = home
+                .join("ron-data/lab-experiments/2026-11-14-item-4237")
+                .join(format!("{name}-states.txt"));
+            let Ok(text) = std::fs::read_to_string(&path) else {
+                println!("skipping: no states at {}", path.display());
+                return;
+            };
+            // `state <system> enables <hex> zfunc z src s dst d ...`.
+            let states: Vec<(u16, u32, i32)> = text
+                .lines()
+                .map(|l| {
+                    let w: Vec<&str> = l.split_whitespace().collect();
+                    let en = u32::from_str_radix(w[3].trim_start_matches("0x"), 16).unwrap();
+                    (w[1].parse().unwrap(), en, w[9].parse().unwrap())
+                })
+                .collect();
+            println!("{name}: {states:?}");
+            // The fire (36) adds (`dst_blend` 2), the smoke (37) lays over (6).
+            assert_eq!(states, [(36, 0x20085, 2), (37, 0x20085, 6)], "{name}");
+            assert!(states.iter().all(|s| s.1 & TL_FAKE_LIGHT != 0));
+        }
+    }
 }
