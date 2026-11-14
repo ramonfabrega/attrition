@@ -585,6 +585,9 @@ impl App {
         let step = 256.0 * self.camera.parallel_distance / 10429.4;
         match key {
             Key::Named(NamedKey::Enter) => self.input(input::Event::Enter),
+            // The pause key (item 4252, `docs/CLIENT_INPUT.md` §13): an
+            // order, not the viewer's Space; ours, Pause and F3.
+            Key::Named(NamedKey::Pause | NamedKey::F3) => self.input(input::Event::Pause),
             Key::Named(NamedKey::Escape) => el.exit(),
             Key::Character(c) if c.as_str() == "q" => el.exit(),
             Key::Named(NamedKey::Space) => self.playing = !self.playing,
@@ -741,7 +744,9 @@ impl ApplicationHandler for App {
             }
             WindowEvent::RedrawRequested => {
                 let t = Instant::now();
-                if self.playing && self.page.is_none() {
+                // A standing pause steps no frame (`check_new_frame_solo`
+                // answers 0 while the bit is set); the orders go on.
+                if self.playing && !self.input.paused && self.page.is_none() {
                     self.session.phase("step", || self.world.runner.step());
                 }
                 let Some((window, surface, gpu)) = self.window.take() else {

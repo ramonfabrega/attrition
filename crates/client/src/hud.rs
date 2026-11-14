@@ -37,6 +37,9 @@
 //!   and Return sends it, as the original's chat box does
 //!   ([`crate::input::Input::chat`]); Escape closes it. Drawn only while
 //!   open ([`line_rect`]).
+//! - **The pause notice** (item 4252, `docs/CLIENT_INPUT.md` §13):
+//!   `PAUSED`, centred at the top while the slot's pause stands
+//!   ([`pause_rect`]).
 //!
 //! Where the buttons stand is ours, anchored to the window's bottom-left
 //! corner, and pinned as pixels at the scripts' 1920×1080 by the tests.
@@ -499,6 +502,23 @@ pub fn line_rect(text: &str, size: (i32, i32)) -> Rect {
     }
 }
 
+/// The pause notice's text (ours: `IFaceMainBase::do_pause_notice`'s own
+/// is not read; item 4252).
+pub const PAUSE_TEXT: &str = "PAUSED";
+
+/// **Where the pause notice stands** on a `size` window: centred, one
+/// margin below the top.
+pub fn pause_rect(size: (i32, i32)) -> Rect {
+    let w = PAUSE_TEXT.chars().count() as i32 * overlay::advance(SCALE) + 4 * SCALE;
+    let h = overlay::line_height(SCALE) + 4 * SCALE;
+    Rect {
+        x: (size.0 - w) / 2,
+        y: MARGIN,
+        w,
+        h,
+    }
+}
+
 /// The button's label: its key, then the type's name.
 pub fn label(b: &Button, names: &Names) -> String {
     format!("{} {}", b.key, names.of_type_index(b.ty))
@@ -556,6 +576,17 @@ pub fn paint(
         p.rect(r.x, r.y, r.w, r.h, overlay::PANEL);
         p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
         p.text(r.x + 2 * SCALE, r.y + 2 * SCALE, &text, SCALE, overlay::INK);
+    }
+    if input.paused {
+        let r = pause_rect(size);
+        p.rect(r.x, r.y, r.w, r.h, overlay::PANEL);
+        p.text(
+            r.x + 2 * SCALE,
+            r.y + 2 * SCALE,
+            PAUSE_TEXT,
+            SCALE,
+            overlay::INK,
+        );
     }
     for b in menu(input, size) {
         let r = b.rect;
