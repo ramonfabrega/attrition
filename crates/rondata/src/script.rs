@@ -828,6 +828,35 @@ pub fn came_out() -> Vec<Order> {
     orders
 }
 
+/// **The stanced script** (item 4282, `docs/CLIENT_INPUT.md` §27): the
+/// came-out script and one package more. On [`STANCE_FRAME`] the capital
+/// is still selected (the come-out's press), and a press on the STANCE
+/// button mints `Options::do_stance(-1)`'s package: the selection's
+/// `group`, a repeat sent as no objects, and `stance(STANCE_CYCLE)`.
+pub fn stanced() -> Vec<Order> {
+    let mut orders = came_out();
+    orders.push((
+        STANCE_FRAME,
+        0,
+        vec![
+            Command::Group {
+                who: 0,
+                objects: vec![],
+            },
+            Command::Stance {
+                stance: STANCE_CYCLE,
+            },
+        ],
+    ));
+    orders
+}
+
+/// The frame of the stance press, ten after [`COME_OUT_FRAME`].
+pub const STANCE_FRAME: i32 = 6790;
+/// The cycling press: `Group::action_stance(-1)` steps one option forward
+/// from the group's modal one.
+pub const STANCE_CYCLE: i32 = -1;
+
 /// The frame of the come-out, after the Citizen is inside the capital
 /// (6767, `docs/CLIENT_INPUT.md` §23.4).
 pub const COME_OUT_FRAME: i32 = 6780;

@@ -110,7 +110,13 @@ pub const MINTS: &[&str] = &[
     "garrison",
     "buildmask",
     "come_out",
+    "stance",
 ];
+
+/// **The stance button's option**: `Options::do_stance@00721480`'s −1, the
+/// cycle, which `Group::action_stance@0070d440` steps one option forward
+/// from the group's modal one (item 4282, `docs/CLIENT_INPUT.md` §27).
+pub const STANCE_CYCLE: i32 = -1;
 
 /// **`OPTION_INFINITE`'s mask**, the infinite queue's bit of
 /// `WallData::build_masks`, which `Options::exec@007188c0`'s case `0x40`
@@ -247,6 +253,12 @@ pub enum Event {
     /// is `UnitOut::issue_come_out@00607be0`, command `0x31` with no
     /// group. The HUD's alone.
     ComeOut(usize),
+    /// A press on the selection's stance button (item 4282,
+    /// `docs/CLIENT_INPUT.md` §27): `Options::exec@007188c0` case `0x11`,
+    /// `Options::do_stance@00721480(-1)`, which writes the selection's
+    /// `group` and `stance(-1)` (`GroupOut::issue_stance@0070b100`
+    /// inlined). The HUD's alone.
+    Stance,
 }
 
 /// `spell(type, ox, whom, x, y)`, as `CommandManager::issue_spell@00941b80`
@@ -1281,6 +1293,19 @@ impl Input {
                 let cmd = Command::Buildmask {
                     mask: INFINITE_MASK,
                     set: 1,
+                };
+                Some((frame, play, vec![self.group(view.scene), cmd]))
+            }
+            Event::Stance => {
+                // `do_stance(-1)`: a selection that `can_activate` writes
+                // its `group` and `stance(-1)`; a negative option passes
+                // the combat-only test. Whether a member takes the option
+                // is `action_stance`'s (its stance kind).
+                if self.selection.is_empty() || self.line.is_some() {
+                    return None;
+                }
+                let cmd = Command::Stance {
+                    stance: STANCE_CYCLE,
                 };
                 Some((frame, play, vec![self.group(view.scene), cmd]))
             }
@@ -5572,22 +5597,261 @@ pub(crate) mod tests {
     const CAME_OUT_RCX: &str = "ron-golden/recordings/item4280-came-out-greatlakes-24000.rcx";
     const CAME_OUT_RCX_BYTES: usize = 59_649;
 
+    /// **`INPUT_STANCES`** (item 4282, `docs/CLIENT_INPUT.md` §27): of the
+    /// stances the recordings on disk carry, those a press on the stance
+    /// button mints field for field, the package's orders whole, from the
+    /// package's selection (an empty `group` the slot's last full one).
+    /// Seen red pinned (0, 0).
+    const INPUT_STANCES: (usize, usize) = (4, 4);
+
+    /// **Every recorded stance** (item 4282): each package carrying a
+    /// `stance` is minted from its selection and a press on the stance
+    /// button.
+    #[test]
+    fn minted_stances_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let mut last = LastSent::new();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let (who, objects, before) = behind(&last, p.play, &kept);
+                note_sent(&mut last, p.play, &kept);
+                if !kept.iter().any(|c| matches!(c, Command::Stance { .. })) {
+                    continue;
+                }
+                all += 1;
+                let scene = Scene {
+                    buildings: objects
+                        .iter()
+                        .map(|&o| {
+                            let mut b = city_building(who, o);
+                            b.trains = true;
+                            b
+                        })
+                        .collect(),
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who);
+                input.selection = objects.iter().map(|&o| ObjId { who, o }).collect();
+                input.building = objects.iter().all(|&o| o >= 2000);
+                input.sent = sent_for(&before, &scene);
+                let got = crate::hud::stance_button(&input, &scene, HUD_SIZE).and_then(|r| {
+                    let (x, y) = r.centre();
+                    crate::hud::event(&mut input, HUD_SIZE, p.frame, Event::Press { x, y }, &v)
+                });
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                } else {
+                    println!("STANCE PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("STANCES {whole} of {all}");
+        assert_eq!((whole, all), INPUT_STANCES);
+    }
+
+    /// **The stance button's edges** (item 4282): the button for a
+    /// selection of the slot's own units, or of buildings one of which is
+    /// a training building of its own; none for another slot's, a building
+    /// that trains nothing, no selection, or an open entry line; the order
+    /// is the selection's `group` and `stance(-1)`, and the same selection
+    /// again sends its `group` as no objects.
+    #[test]
+    fn minted_stance_edges() {
+        if lobby().is_err() {
+            println!("skipping: no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let mut farm = city_building(0, 2001);
+        farm.trains = false;
+        let mut theirs = city_building(1, 2000);
+        theirs.trains = true;
+        let mut capital = city_building(0, 2000);
+        capital.trains = true;
+        let scene = Scene {
+            buildings: vec![capital, farm, theirs],
+            ..Scene::default()
+        };
+        let v = view(&c, &scene, &terrain);
+        let sel = |ids: &[(u8, i16)], building: bool| {
+            let mut input = Input::new(0);
+            input.selection = ids.iter().map(|&(who, o)| ObjId { who, o }).collect();
+            input.building = building;
+            input
+        };
+        let button = |input: &Input| crate::hud::stance_button(input, &scene, HUD_SIZE);
+        assert!(button(&sel(&[(0, 2000)], true)).is_some(), "the capital");
+        assert!(
+            button(&sel(&[(0, 2001), (0, 2000)], true)).is_some(),
+            "a mixed pick"
+        );
+        assert!(button(&sel(&[(0, 2001)], true)).is_none(), "a farm");
+        assert!(button(&sel(&[(1, 2000)], true)).is_none(), "another slot's");
+        assert!(
+            button(&sel(&[(0, 7)], false)).is_some(),
+            "a unit of its own"
+        );
+        assert!(
+            button(&sel(&[(1, 7)], false)).is_none(),
+            "another slot's unit"
+        );
+        assert!(button(&Input::new(0)).is_none(), "no selection");
+        let mut typing = sel(&[(0, 2000)], true);
+        typing.line = Some(String::new());
+        assert!(button(&typing).is_none(), "the entry line open");
+        assert_eq!(typing.event(9, Event::Stance, &v), None);
+        assert_eq!(Input::new(0).event(9, Event::Stance, &v), None);
+        let stance = Command::Stance {
+            stance: STANCE_CYCLE,
+        };
+        let mut input = sel(&[(0, 2000)], true);
+        let got = input.event(9, Event::Stance, &v).unwrap();
+        assert_eq!(
+            got.2,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![2000]
+                },
+                stance.clone()
+            ]
+        );
+        let again = input.event(10, Event::Stance, &v).unwrap();
+        assert_eq!(
+            again.2,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![]
+                },
+                stance
+            ]
+        );
+    }
+
+    /// Where the stance button stands with the capital selected, under
+    /// the opening camera (`minted_stanced_at_the_opening_camera`).
+    const STANCE_AT: (i32, i32) = (1446, 966);
+
+    /// The stanced script's events: the come-out's, then a press on the
+    /// stance button on [`script::STANCE_FRAME`], the capital still
+    /// selected.
+    fn stance_events() -> Vec<Scripted> {
+        let mut e = come_out_events();
+        let (x, y) = STANCE_AT;
+        e.push((script::STANCE_FRAME, None, Event::Press { x, y }));
+        e
+    }
+
+    /// **`INPUT_STANCED`** (item 4282): the stanced script's events,
+    /// through the HUD and the layer under the opening camera, mint
+    /// [`script::stanced`] field for field, of 29.
+    const INPUT_STANCED: usize = 29;
+
+    /// **The stanced count**: stage 0 on the press's frame — the capital is
+    /// slot 0's, a finished training building, and the stance button
+    /// stands where the event presses; then the events mint the stanced
+    /// script, and the file written from them is the stanced file.
+    #[test]
+    fn minted_stanced_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let came_out = script::came_out();
+        let c = camera(None);
+        let mut next = 0;
+        while r.frame() < i64::from(script::STANCE_FRAME) {
+            let f = r.frame() as i32;
+            while next < came_out.len() && came_out[next].0 == f {
+                r.issue(&came_out[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+            let v = view(&c, &scene, &terrain);
+            let cid = ObjId {
+                who: 0,
+                o: script::CAPITAL,
+            };
+            let b = scene.buildings.iter().find(|b| b.id == cid).unwrap();
+            let mut input = Input::new(0);
+            input.selection = vec![cid];
+            input.building = true;
+            let at = crate::hud::stance_button(&input, &scene, HUD_SIZE).map(|r| r.centre());
+            println!(
+                "STANCE STAGE0 f{} capital pixel {:?} trains {} active {} button {at:?}",
+                r.frame(),
+                v.pixel(b.pos.x, b.pos.y, b.z),
+                b.trains,
+                b.active,
+            );
+            assert_eq!(v.pixel(b.pos.x, b.pos.y, b.z), COME_OUT_CAPITAL_AT);
+            assert!(b.trains && b.active);
+            assert_eq!(at, Some(STANCE_AT));
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with(stance_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let stanced = script::stanced();
+        let whole = ours.iter().zip(&stanced).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (stanced.len(), INPUT_STANCED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, stanced);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(came_out), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(CAME_OUT_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(STANCED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {CAME_OUT_RCX} or {STANCED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), STANCED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the stanced orders");
+        assert!(written != came_out, "not the came-out file");
+    }
+
+    /// The stanced file (`docs/CLIENT_INPUT.md` §27), written by rondata's
+    /// `the_stanced_minted_packages_round_trip` under `RON_RCX_OUT`.
+    const STANCED_RCX: &str = "ron-golden/recordings/item4282-stanced-greatlakes-24000.rcx";
+    const STANCED_RCX_BYTES: usize = 59_661;
+
     /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (21, 26);
+    const INPUT_KINDS: (usize, usize) = (22, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2369, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2373, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
-    const NOT_MINTED: &[&str] = &[
-        "leader_options",
-        "cheat_ai_toggle",
-        "stance",
-        "disband",
-        "unitmask",
-    ];
+    const NOT_MINTED: &[&str] = &["leader_options", "cheat_ai_toggle", "disband", "unitmask"];
 
     /// The census, counted against the disk's pinned kinds.
     #[test]

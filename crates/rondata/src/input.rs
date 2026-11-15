@@ -820,6 +820,30 @@ pub fn group_stance(built: &mut Built, who: i32, objects: &[i16], stance: i32) -
     g.list.len()
 }
 
+/// **A stance press on the package's group** (item 4282,
+/// `docs/CLIENT_INPUT.md` §27): `CommandPackage::process_stance@00949ed0`'s
+/// `Group::action_stance(g, stance)@0070d440`. A group of buildings (every
+/// object 2000 and up) takes the building arm,
+/// [`sim::Sim::action_stance_buildings`], with the group pushed as
+/// `process_group` pushes one; any other takes [`group_stance`].
+///
+/// Returns the members written, or the unit group's size.
+pub fn group_stance_any(built: &mut Built, who: i32, objects: &[i16], stance: i32) -> usize {
+    let player = who as sim::Player;
+    if !objects.is_empty() && objects.iter().all(|&o| o >= 2000) {
+        let list: Vec<usize> = objects
+            .iter()
+            .filter_map(|&o| built.sim.building_by_o(player, o))
+            .collect();
+        if list.is_empty() {
+            return 0;
+        }
+        built.sim.command().push_command_buildings(player, &list);
+        return built.sim.command().action_stance_buildings(&list, stance);
+    }
+    group_stance(built, who, objects, stance)
+}
+
 /// A `group` command (0x00) and the `swarm_around` (0x06) behind it
 /// (`docs/COMMANDS.md` §3; `docs/GOLDEN.md` §29) — [`group_spell`]'s
 /// group, then `CommandPackage::process_swarm_around@00949970`'s one call,
@@ -1763,6 +1787,9 @@ impl Stream {
             // The infinite-queue button (item 4276, `docs/CLIENT_INPUT.md`
             // §24): `process_buildmask@00947680` on the package's group.
             Command::Buildmask { mask, .. } => group_buildmask(built, it.play, &objects, *mask),
+            // The stance button (item 4282, `docs/CLIENT_INPUT.md` §27):
+            // `process_stance@00949ed0` on the package's group.
+            Command::Stance { stance } => group_stance_any(built, it.play, &objects, *stance),
             Command::Attack {
                 ox,
                 whom,

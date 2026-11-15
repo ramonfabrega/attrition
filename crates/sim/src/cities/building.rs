@@ -216,6 +216,11 @@ pub struct Building {
     /// fired, dropped at the head of the next `do_attack`; it holds
     /// [`Building::visible`] against the 32-frame clear.
     pub attacking: bool,
+    /// **`Build +0x7e` once a stance press has written it** (item 4282,
+    /// `docs/CLIENT_INPUT.md` §27): `Group::action_stance@0070d440`'s
+    /// building arm, [`crate::Sim::action_stance_buildings`]. `None` until
+    /// then, and [`crate::Sim::build_stance`] answers `Build::init`'s byte.
+    pub stance_set: Option<u8>,
 }
 
 impl Building {
@@ -328,6 +333,7 @@ impl Sim {
             hold_frames: 0,
             fort_slot: None,
             oil_slot: None,
+            stance_set: None,
             city: None,
             garrison: Vec::new(),
             launch_frames: 0,

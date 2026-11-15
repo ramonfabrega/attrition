@@ -23691,9 +23691,10 @@ age's target after the epoch landed, took 90000 and finished it on 22935. Value 
 
 **The word 23985.** Ours 13 draws, theirs 15, at 0: ours `Leader::produce_building+0x1805`, theirs
 `Leader::use_market+0x1ed`. On 23982 theirs buys an `ARTILLERY` (20 timber, 20 metal; block 23983's `bucket`) that ours
-does not; ours has carried `num_units[270]` (`ARTILLERYGERMAN`) −1 and `[271]` (`HOWITZER`) 1 against 0 and 0 since
-before run963c's first block — an upgrade that took a unit off the German variant's count. That is the next item's
-hypothesis, not this one's finding.
+does not; ours has carried `num_units[270]` (~~`ARTILLERYGERMAN`~~ TypeIndex 320, `TRANSPORTBARGE`) −1 and `[271]`
+(~~`HOWITZER`~~ `TRANSPORTGALLEON`) 1 against 0 and 0 since before run963c's first block — ~~an upgrade that took a
+unit off the German variant's count~~ the record indexes from `BASE_UNITTYPES` (50): a Barge's age upgrade, which
+`Unit::set_type`'s gate leaves uncounted, closed by item 4159's eleventh residue.
 
 **Mutations** (`tools/mutate.py`), each `exit 101`, held: build 1's leg off; build 2's key case-sensitive; the interest
 off; the ship arm back inside `0 < ahead`; each of the hit-point, attack and armour terms zeroed; build 4's slots read
@@ -23706,7 +23707,7 @@ from this session died in 3.8 s on `nodrv_CreateWindow` (`docs/ORACLE.md`, "The 
 
 **Not established.** The state parts before run963c's window and after run963b's — 5834..22928 is in no dump: on
 22929 the Dutch merchants' figure pieces (`g.gpiece` 2124/14796/27468 ours against 50689 theirs, all three figures),
-who=1's `num_units[270]` −1 and `[271]` 1 (`ARTILLERYGERMAN`, `HOWITZER`; a negative count is ours alone), and `1/201`'s
+who=1's `num_units[270]` −1 and `[271]` 1 (`TRANSPORTBARGE`, `TRANSPORTGALLEON`; closed by item 4159's eleventh residue), and `1/201`'s
 `myhits` 172 against 212. None moves a draw before 23782. The Americans' upgrade discount beside the Dutch arm
 (`get_cost:528`–`531`) is not modelled. The interest's `Barbarians at the Gates` and CtW arms are untested.
 
@@ -23883,7 +23884,7 @@ with the same row, and the unit test red; both `exit 101`, held.
 
 **What stands.** run963d's 94 keys are the standing set (`SITE[n].reg`, `form`, `group:n.held`, `pool:n`,
 `aggression`, the last on 23839) and run963c's rows from before its window, which move no draw to 24000: who=1's
-`num_units[270]` (`ARTILLERYGERMAN`) −1 and `[271]` (`HOWITZER`) 1 against 0 and 0 (parked 3333a), and the Dutch
+`num_units[270]` (`TRANSPORTBARGE`) −1 and `[271]` (`TRANSPORTGALLEON`) 1 against 0 and 0 (parked 3333a; closed by item 4159's eleventh residue), and the Dutch
 merchants' second figures (3329a). run963c's 116 held unchanged with the fix, so neither 3329a nor 3329b (`1/201`'s
 `myhits`) is this cause.
 

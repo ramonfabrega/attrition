@@ -423,6 +423,35 @@ pub fn infinite_button(input: &Input, scene: &Scene, size: (i32, i32)) -> Option
     })
 }
 
+/// **The stance button** (item 4282, `docs/CLIENT_INPUT.md` §27): with a
+/// selection of the slot's own, units, or buildings one of which is a
+/// training building ([`sim::observe::BuildingScene::trains`]), one
+/// button, STANCE, three rows above the bottom edge, third from the right;
+/// otherwise none. A press is [`Event::Stance`], `Options::do_stance(-1)`.
+/// Where it stands, its label, and when it shows are ours.
+pub fn stance_button(input: &Input, scene: &Scene, size: (i32, i32)) -> Option<Rect> {
+    if input.selection.is_empty() || input.line.is_some() {
+        return None;
+    }
+    let own = if input.building {
+        input
+            .selection
+            .iter()
+            .filter_map(|id| scene.buildings.iter().find(|b| b.id == *id))
+            .any(|b| b.owner == input.player && b.trains)
+    } else {
+        input.selection.iter().any(|id| id.who == input.player)
+    };
+    own.then_some(())?;
+    let (w, h) = MARKET_BUTTON;
+    Some(Rect {
+        x: size.0 - 3 * (w + MARGIN),
+        y: size.1 - 3 * (MARGIN + h),
+        w,
+        h,
+    })
+}
+
 /// **The building panel's garrisoned units** (item 4280,
 /// `docs/CLIENT_INPUT.md` §26): with a building selection, one icon per
 /// unit of the slot's own inside a selected building of its own
@@ -550,6 +579,11 @@ pub fn event(
                 infinite_button(input, view.scene, size)
                     .filter(|r| r.contains(x, y))
                     .map(|_| Event::Infinite)
+            })
+            .or_else(|| {
+                stance_button(input, view.scene, size)
+                    .filter(|r| r.contains(x, y))
+                    .map(|_| Event::Stance)
             })
             .or_else(|| {
                 come_out_menu(input, view.scene, size)
@@ -993,6 +1027,12 @@ pub fn paint(
         p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
         let ty = r.y + (r.h - 7 * SCALE) / 2;
         p.text(r.x + 3 * SCALE, ty, "INFINITE", SCALE, overlay::INK);
+    }
+    if let Some(r) = stance_button(input, scene, size) {
+        p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
+        p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
+        let ty = r.y + (r.h - 7 * SCALE) / 2;
+        p.text(r.x + 3 * SCALE, ty, "STANCE", SCALE, overlay::INK);
     }
     let inside = crate::input::garrisoned(scene, input.player, &input.selection);
     for (k, r) in come_out_menu(input, scene, size) {
