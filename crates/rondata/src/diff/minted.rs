@@ -5128,6 +5128,71 @@ fn the_buildmasked_minted_packages_round_trip() {
     }
 }
 
+/// **The came-out file** (item 4280, `docs/CLIENT_INPUT.md` §26): the
+/// buildmasked script and one package more, the come-out on
+/// [`crate::script::COME_OUT_FRAME`]; it round-trips through the file, and
+/// every package before it is the buildmasked file's, frame, slot and
+/// stamp. With `RON_RCX_OUT=<file>` it writes the `.rcx` the playback
+/// takes open.
+#[test]
+fn the_came_out_minted_packages_round_trip() {
+    use crate::script::{COME_OUT_FRAME, buildmasked, came_out};
+    let (Some(rec), Some(before)) = (minted(&came_out()), minted(&buildmasked())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "came-out").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in came_out().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "CAME_OUT tails {:?} against {:?}",
+        &ours[ours.len() - 3..],
+        &old[old.len() - 2..]
+    );
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 1, old[..m - 1].to_vec()));
+    assert_eq!((ours[n - 2].0, ours[n - 2].1), (COME_OUT_FRAME, 0));
+    assert_eq!(
+        (ours[n - 1].0, ours[n - 1].2),
+        (old[m - 1].0, old[m - 1].2 + 1)
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "CAME_OUT RCX {} bytes (the buildmasked file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), BUILDMASKED_RCX_BYTES, "the file run1614 played");
+    assert_eq!(gz.len(), CAME_OUT_RCX_BYTES, "CAME_OUT_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The came-out file's size, gzipped (item 4280).
+const CAME_OUT_RCX_BYTES: usize = 59_649;
+
 /// The frames the buildmask's effect is read on, on our walk's count (item
 /// 4276): the Citizen's package, the button's, the frame after it, and
 /// the window's last record.
@@ -5294,4 +5359,94 @@ fn the_original_s_playback_of_the_buildmasked_file_walks_in_lockstep() {
         buildmasked_effects(),
         "the original's capital is ours"
     );
+}
+
+/// The frames the come-out's effect is read on, on our walk's count (item
+/// 4280): the package's frame, the two after it, and the window's last
+/// record.
+const CAME_OUT_READ_AT: [i64; 4] = [6780, 6781, 6782, 6999];
+
+/// **What the come-out does on our walk** (item 4280,
+/// `docs/CLIENT_INPUT.md` §26): the Citizen
+/// [`crate::script::GARRISON_CITIZEN`] on [`CAME_OUT_READ_AT`], pinned
+/// before run1616 was read; seen red pinned empty.
+fn came_out_effects() -> Vec<GarrisonEffect> {
+    let row = |frame, at, inside_up| GarrisonEffect {
+        frame,
+        at,
+        inside_up,
+        orders: vec!["gather"],
+    };
+    vec![
+        row(6780, (3456, 30048), 2000),
+        row(6781, (3432, 29880), -1),
+        row(6782, (3432, 29880), -1),
+        row(6999, (3576, 29688), -1),
+    ]
+}
+
+/// **The come-out on our walk**, against the buildmasked file's walk,
+/// where the Citizen stays inside.
+#[test]
+fn what_the_come_out_does_on_our_walk() {
+    if built_start().is_none() {
+        eprintln!("skipping: no lobby");
+        return;
+    }
+    let ours = garrison_effects_ours(&crate::script::came_out(), &CAME_OUT_READ_AT);
+    let without = garrison_effects_ours(&crate::script::buildmasked(), &CAME_OUT_READ_AT);
+    for (a, b) in ours.iter().zip(&without) {
+        eprintln!("COME_OUT EFFECT ours {a:?}\n                without {b:?}");
+    }
+    assert_eq!(ours, came_out_effects(), "ours, pinned");
+    assert_ne!(ours, without, "the order moves the Citizen");
+}
+
+/// **The original's playback of the came-out file** (item 4280):
+/// `(take, trace, first sequence parting or the last frame, last frame,
+/// records compared, records parted)`. Pinned before run1616 was read,
+/// with none parted: the buildmasked file it extends is whole.
+pub(crate) const CAME_OUT_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1616-greatlakes-playback-of-came-out-7000.txt",
+    "rontrace-run1616.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// **The original plays the came-out file in lockstep** (item 4280,
+/// `docs/CLIENT_INPUT.md` §26): the built start walked under the pump on
+/// the came-out file against the take, every frame's draws and every
+/// record of its window ([`CAME_OUT_WALKED`]), `inside_up` among the
+/// fields compared; and the Citizen on [`CAME_OUT_READ_AT`], read off the
+/// take's records, equal to ours.
+#[test]
+fn the_original_s_playback_of_the_came_out_file_walks_in_lockstep() {
+    let came_out = crate::script::came_out();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in CAME_OUT_WALKED {
+        let Some((w, _)) = walk_minted(&came_out, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "CAME_OUT WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs =
+        garrison_effects_theirs(CAME_OUT_WALKED[0].0, &CAME_OUT_READ_AT).expect("the take");
+    for t in &theirs {
+        eprintln!("COME_OUT EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, CAME_OUT_WALKED, "the walked table");
+    assert_eq!(theirs, came_out_effects(), "the original's Citizen is ours");
 }

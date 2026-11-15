@@ -37874,3 +37874,32 @@ SHA-256 `a88d78e36b2c74f5f9c70ce465a10eeae994300175493d100b0256405a400681`.
 Archive `gamelog-run1615b-greatlakes-playback-of-buildmasked-packet-6869.txt`, 1,816,684 bytes,
 SHA-256 `6e64edf0a8353ce4bf7a39984de7ff5b3985d23e8334b6f56f6bf7f75a974e2d`; `rontrace-run1615b.log`, 34,542,528 bytes,
 SHA-256 `03e30c5f636126f255b25b630f76a4faf87ac7e987266d6ad916df18068284ad`.
+
+## run1616 — the original playing the file a garrisoned unit's icon minted (2026-11-15, item 4280, `att-4280`)
+
+`docs/CLIENT_INPUT.md` §26.4. **What the disk could not answer**: whether the original plays a minted `come_out`,
+and whether the Citizen leaves the capital where ours does. The recordings carry four come-outs, all slot 3's in the
+2017 sample, none on the minted game, and no dump on disk carries a `process_come_out`. The file:
+`~/ron-golden/recordings/item4280-came-out-greatlakes-24000.rcx`, 59,649 bytes, SHA-256
+`563fc717098372a61d7add8b1db4c42d84cc3d945fefd100e15e7620b3e57fc0`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata -- the_came_out_minted`. It is the buildmasked file with `come_out(0, 2, 9)` on 6780.
+
+The take is run1614's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1616 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --timeout 1800 --stall-seconds 120`, waited on
+with `waitrun.sh` in the background. `df -g ~` read 134 GB free before it.
+- **The run**: pool lane 1, launched 14:50:05 −05:00, exited 14:58:42: **517.1 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault, no relaunch. The receipt names the file's SHA-256. Minutes waited on another
+  lane: none.
+- **The built walk under the pump on the file** (`CAME_OUT_WALKED`): draws agree on all 7,000 frames, count and
+  sequence; 300 records compared (6700..6999), **0 part**. Pinned 0 before the read.
+- **The order's effect** (`garrison_effects_theirs` on 6780, 6781, 6782, 6999): the Citizen `0/2` inside `0/2000` at
+  (3456, 30048) on 6780; out at (3432, 29880) with its gather order on 6781 and 6782; back at (3576, 29688) on 6999.
+  Ours the same on every frame, pinned before the read.
+- Filed with `filerun.py run1616 greatlakes-playback-of-came-out-7000`.
+
+Archive `gamelog-run1616-greatlakes-playback-of-came-out-7000.txt`, 68,204,717 bytes,
+SHA-256 `82206d99c230156e9c9a9cd60fc13556bfe96f9527c84b7a3f9043e271f9df03`; `rontrace-run1616.log`, 33,778,528 bytes,
+SHA-256 `4891e7cf1ec06c225a880c28428417df569c5166ab919864c86a847241078138`.
+

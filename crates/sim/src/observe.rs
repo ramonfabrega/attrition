@@ -45,6 +45,12 @@ pub struct Scene {
     pub units: Vec<UnitScene>,
     /// Every building in use, in the store order.
     pub buildings: Vec<BuildingScene>,
+    /// **Every unit inside a building**, building by building in the
+    /// store order and each building's chain in the order its squads
+    /// entered (item 4280, `docs/CLIENT_INPUT.md` §26): one icon each on
+    /// the original's building panel, whose press is
+    /// `Options::exec@007188c0` case `0xaa`. A read only.
+    pub garrisons: Vec<GarrisonScene>,
     /// The projectiles in flight.
     pub projectiles: Vec<ProjectileScene>,
     /// The corpses fading.
@@ -183,6 +189,18 @@ pub struct UnitScene {
     pub enters: Vec<i16>,
     /// Its figures, one per guy.
     pub figures: Vec<FigureScene>,
+}
+
+/// One squad captain inside a building ([`Scene::garrisons`]): the
+/// building's `o`, and the unit's `who`, `o` and `uid` (`+0x30`), which
+/// `UnitOut::issue_come_out@00607be0` writes into command `0x31`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GarrisonScene {
+    pub building: i16,
+    pub owner: Player,
+    pub o: i16,
+    pub uid: u16,
+    pub type_index: i32,
 }
 
 /// One figure of a unit: where it stands and which piece, animation and
@@ -683,6 +701,7 @@ impl Sim {
             frame: self.frame,
             units,
             buildings,
+            garrisons: self.observe_garrisons(),
             projectiles,
             deaths,
             leaders: self.observe_leaders(),
@@ -690,6 +709,26 @@ impl Sim {
             terrain_version: self.world.terrain_version(),
             territory_version: self.world.territory_version(),
         }
+    }
+
+    /// [`Scene::garrisons`].
+    fn observe_garrisons(&self) -> Vec<GarrisonScene> {
+        self.buildings
+            .iter()
+            .filter(|b| b.alive)
+            .flat_map(|b| {
+                b.garrison.iter().filter_map(move |&c| {
+                    let u = self.units.get(c).filter(|u| u.alive())?;
+                    Some(GarrisonScene {
+                        building: b.index,
+                        owner: u.owner,
+                        o: u.index,
+                        uid: u.uid,
+                        type_index: u.type_index,
+                    })
+                })
+            })
+            .collect()
     }
 
     /// Every player slot's [`LeaderScene`]: a slot is one the tech, the

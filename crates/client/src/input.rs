@@ -109,6 +109,7 @@ pub const MINTS: &[&str] = &[
     "hotkey",
     "garrison",
     "buildmask",
+    "come_out",
 ];
 
 /// **`OPTION_INFINITE`'s mask**, the infinite queue's bit of
@@ -240,6 +241,12 @@ pub enum Event {
     /// @00708820(0x40)`, the selection's `group` and `buildmask(0x40, 1)`.
     /// The HUD's alone.
     Infinite,
+    /// A press on the `k`th garrisoned unit's icon of the selected
+    /// buildings ([`garrisoned`]; item 4280, `docs/CLIENT_INPUT.md` §26):
+    /// `Options::exec@007188c0` case `0xaa`, whose unit inside a building
+    /// is `UnitOut::issue_come_out@00607be0`, command `0x31` with no
+    /// group. The HUD's alone.
+    ComeOut(usize),
 }
 
 /// `spell(type, ox, whom, x, y)`, as `CommandManager::issue_spell@00941b80`
@@ -395,6 +402,49 @@ pub fn unqueues(scene: &Scene, player: u8, selection: &[ObjId], slot: i32) -> Op
         })
         .collect();
     (!cmds.is_empty()).then_some(cmds)
+}
+
+/// **The garrisoned units a building selection's panel shows** (item
+/// 4280, `docs/CLIENT_INPUT.md` §26): of each selected building of the
+/// slot's own, in selection order, the units its chain holds
+/// ([`sim::observe::Scene::garrisons`]), each a unit of the slot's own.
+/// Which of them the original's panel lays out, and in what order, is
+/// read only as far as `Options::exec`'s arm: ours.
+pub fn garrisoned(
+    scene: &Scene,
+    player: u8,
+    selection: &[ObjId],
+) -> Vec<sim::observe::GarrisonScene> {
+    selection
+        .iter()
+        .filter(|id| {
+            scene
+                .buildings
+                .iter()
+                .any(|b| b.id == **id && b.owner == player)
+        })
+        .flat_map(|id| {
+            scene
+                .garrisons
+                .iter()
+                .filter(move |g| g.building == id.o && g.owner == player)
+                .copied()
+        })
+        .collect()
+}
+
+/// **The icon's order** (item 4280): `Options::exec@007188c0` case
+/// `0xaa` names the unit; `ObjectData::get_inside` finds its container,
+/// and a container that is not a unit (vslot `0x18` answering 0, a
+/// building) gives `UnitOut::issue_come_out@00607be0`: `come_out(who, o,
+/// uid)`, the unit's own `+9`, `+0xa` and `+0x30`, with no group. A
+/// container that is a unit is `do_eject_all`, which is not minted.
+pub fn come_out(g: &sim::observe::GarrisonScene) -> Command {
+    Command::ComeOut {
+        who: i32::from(g.owner),
+        o: i32::from(g.o),
+        uid: g.uid as i16,
+    }
 }
 
 /// **Whether a city's gather button issues** (item 4261): the gate of
@@ -1233,6 +1283,13 @@ impl Input {
                     set: 1,
                 };
                 Some((frame, play, vec![self.group(view.scene), cmd]))
+            }
+            Event::ComeOut(k) => {
+                if !self.building || self.line.is_some() {
+                    return None;
+                }
+                let g = *garrisoned(view.scene, self.player, &self.selection).get(k)?;
+                Some((frame, play, vec![come_out(&g)]))
             }
             Event::Garrison => {
                 // `do_garrison`: a selection that can act and is not of
@@ -5204,6 +5261,123 @@ pub(crate) mod tests {
         assert_eq!((whole, all), INPUT_BUILDMASKS);
     }
 
+    /// **`INPUT_COME_OUTS`** (item 4280, `docs/CLIENT_INPUT.md` §26): of
+    /// the come-outs the recordings on disk carry, those a press on the
+    /// unit's icon mints field for field, the package's orders whole. The
+    /// command names no building, so each is minted from a selection of
+    /// one building of the slot's own holding the unit (ours). Seen red
+    /// pinned (0, 0).
+    const INPUT_COME_OUTS: (usize, usize) = (4, 4);
+
+    /// **Every recorded come-out** (item 4280): each package carrying a
+    /// `come_out` is minted from a building holding its unit and a press
+    /// on that unit's icon.
+    #[test]
+    fn minted_come_outs_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let Some(&Command::ComeOut { who, o, uid }) =
+                    kept.iter().find(|c| matches!(c, Command::ComeOut { .. }))
+                else {
+                    continue;
+                };
+                all += 1;
+                let who = who as u8;
+                let scene = Scene {
+                    buildings: vec![city_building(who, 2000)],
+                    garrisons: vec![sim::observe::GarrisonScene {
+                        building: 2000,
+                        owner: who,
+                        o: o as i16,
+                        uid: uid as u16,
+                        type_index: 50,
+                    }],
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who);
+                input.selection = vec![ObjId { who, o: 2000 }];
+                input.building = true;
+                let got = input.event(p.frame, Event::ComeOut(0), &v);
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                } else {
+                    println!("COME_OUT PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("COME_OUTS {whole} of {all}");
+        assert_eq!((whole, all), INPUT_COME_OUTS);
+    }
+
+    /// **The come-out's edges** (item 4280): the icons only for a
+    /// selection of buildings of the slot's own, one per unit of its own
+    /// inside; nothing minted for a unit selection, an icon past the last,
+    /// another slot's building, or with the entry line open; the order
+    /// carries no group.
+    #[test]
+    fn minted_come_out_edges() {
+        if lobby().is_err() {
+            println!("skipping: no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let inside = |building: i16, owner: u8, o: i16| sim::observe::GarrisonScene {
+            building,
+            owner,
+            o,
+            uid: 7,
+            type_index: 50,
+        };
+        let scene = Scene {
+            buildings: vec![city_building(0, 2000), city_building(1, 2001)],
+            garrisons: vec![inside(2000, 0, 3), inside(2000, 0, 4), inside(2001, 1, 5)],
+            ..Scene::default()
+        };
+        let v = view(&c, &scene, &terrain);
+        let sel = |who: u8, o: i16, building: bool| {
+            let mut input = Input::new(0);
+            input.selection = vec![ObjId { who, o }];
+            input.building = building;
+            input
+        };
+        let menu = |input: &Input| crate::hud::come_out_menu(input, &scene, HUD_SIZE).len();
+        assert_eq!(menu(&sel(0, 2000, true)), 2, "two of its own inside");
+        assert_eq!(menu(&sel(1, 2001, true)), 0, "another slot's building");
+        assert_eq!(menu(&sel(0, 3, false)), 0, "a unit selection");
+        let got = sel(0, 2000, true).event(9, Event::ComeOut(1), &v).unwrap();
+        assert_eq!(
+            got.2,
+            vec![Command::ComeOut {
+                who: 0,
+                o: 4,
+                uid: 7
+            }],
+            "the second icon, no group"
+        );
+        assert_eq!(sel(0, 2000, true).event(9, Event::ComeOut(2), &v), None);
+        assert_eq!(sel(1, 2001, true).event(9, Event::ComeOut(0), &v), None);
+        assert_eq!(sel(0, 3, false).event(9, Event::ComeOut(0), &v), None);
+        let mut typing = sel(0, 2000, true);
+        typing.line = Some(String::new());
+        assert_eq!(typing.event(9, Event::ComeOut(0), &v), None);
+    }
+
     /// **The buildmask's edges** (item 4276): the button only for a
     /// selection of buildings with a training building of the slot's own;
     /// the event mints nothing for a unit selection, for no selection or
@@ -5285,19 +5459,131 @@ pub(crate) mod tests {
         );
     }
 
+    /// **The come-out's pixels** (item 4280, `docs/CLIENT_INPUT.md` §26),
+    /// stage 0 on [`script::COME_OUT_FRAME`] at the opening camera: the
+    /// capital, and the icon of [`script::GARRISON_CITIZEN`] inside it
+    /// ([`crate::hud::come_out_menu`]).
+    const COME_OUT_CAPITAL_AT: (i32, i32) = (1127, 521);
+    const COME_OUT_ICON_AT: (i32, i32) = (1822, 922);
+
+    /// The buildmasked events, then a press on the capital and on the
+    /// Citizen's icon on [`script::COME_OUT_FRAME`].
+    fn come_out_events() -> Vec<Scripted> {
+        let mut e = buildmask_events();
+        let ((cx, cy), (ix, iy)) = (COME_OUT_CAPITAL_AT, COME_OUT_ICON_AT);
+        let f = script::COME_OUT_FRAME;
+        e.extend([
+            (f, None, Event::Press { x: cx, y: cy }),
+            (f, None, Event::Press { x: ix, y: iy }),
+        ]);
+        e
+    }
+
+    /// **`INPUT_CAME_OUT`** (item 4280): the come-out's events, through the
+    /// HUD and the layer under the opening camera, mint
+    /// [`script::came_out`] field for field, of 28.
+    const INPUT_CAME_OUT: usize = 28;
+
+    /// **The came-out count**: stage 0 on the come-out's frame — the
+    /// capital is slot 0's and holds the Citizen, whose `o` and `uid` are
+    /// the script's, and the press and the icon stand where the events
+    /// press; then the events mint the came-out script, and the file
+    /// written from them is the came-out file.
+    #[test]
+    fn minted_came_out_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let buildmasked = script::buildmasked();
+        let c = camera(None);
+        let mut next = 0;
+        while r.frame() < i64::from(script::COME_OUT_FRAME) {
+            let f = r.frame() as i32;
+            while next < buildmasked.len() && buildmasked[next].0 == f {
+                r.issue(&buildmasked[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+            let v = view(&c, &scene, &terrain);
+            let cid = ObjId {
+                who: 0,
+                o: script::CAPITAL,
+            };
+            let b = scene.buildings.iter().find(|b| b.id == cid).unwrap();
+            let mut input = Input::new(0);
+            input.selection = vec![cid];
+            input.building = true;
+            let inside = garrisoned(&scene, 0, &input.selection);
+            let icons = crate::hud::come_out_menu(&input, &scene, HUD_SIZE);
+            println!(
+                "COME_OUT STAGE0 f{} capital pixel {:?} inside {inside:?} icons {:?}",
+                r.frame(),
+                v.pixel(b.pos.x, b.pos.y, b.z),
+                icons
+                    .iter()
+                    .map(|(k, r)| (*k, r.centre()))
+                    .collect::<Vec<_>>(),
+            );
+            assert_eq!(v.pixel(b.pos.x, b.pos.y, b.z), COME_OUT_CAPITAL_AT);
+            let k = inside
+                .iter()
+                .position(|g| g.o == script::GARRISON_CITIZEN)
+                .unwrap();
+            assert_eq!(inside[k].uid as i16, script::COME_OUT_UID);
+            assert_eq!(icons[k].1.centre(), COME_OUT_ICON_AT);
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with(come_out_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let came_out = script::came_out();
+        let whole = ours.iter().zip(&came_out).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (came_out.len(), INPUT_CAME_OUT),
+            "{ours:?}"
+        );
+        assert_eq!(ours, came_out);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(buildmasked), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(BUILDMASKED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(CAME_OUT_RCX)),
+        ) else {
+            println!("skipping the bytes: no {BUILDMASKED_RCX} or {CAME_OUT_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), CAME_OUT_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the came-out orders");
+        assert!(written != buildmasked, "not the buildmasked file");
+    }
+
+    /// The came-out file (`docs/CLIENT_INPUT.md` §26), written by
+    /// rondata's `the_came_out_minted_packages_round_trip` under
+    /// `RON_RCX_OUT`.
+    const CAME_OUT_RCX: &str = "ron-golden/recordings/item4280-came-out-greatlakes-24000.rcx";
+    const CAME_OUT_RCX_BYTES: usize = 59_649;
+
     /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (20, 26);
+    const INPUT_KINDS: (usize, usize) = (21, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2365, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2369, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
         "leader_options",
         "cheat_ai_toggle",
-        "come_out",
         "stance",
         "disband",
         "unitmask",
