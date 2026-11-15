@@ -3631,13 +3631,19 @@ pub(crate) mod tests {
     /// client's still, and the photograph against itself, made to fail.
     #[test]
     fn the_ground_past_the_map_s_edge() {
-        let Some(mut p) = probe_at(run1559b()) else { return };
+        let Some(mut p) = probe_at(run1559b()) else {
+            return;
+        };
         let still = crate::weathering::tests::still(&mut p, "run1559b-edge");
         let row = past_the_edge(&mut p, &still);
         println!("run1559b past the edge: {row:?}");
         let photo = p.photo.rgba.clone();
         let own = past_the_edge(&mut p, &photo);
-        assert_eq!(own.map(|r| (r.1, r.1)), own, "the photograph agrees with itself");
+        assert_eq!(
+            own.map(|r| (r.1, r.1)),
+            own,
+            "the photograph agrees with itself"
+        );
         assert_ne!(own, row, "the row can fail");
         assert_eq!(row, RUN1559B_3279_PAST_THE_EDGE);
     }
