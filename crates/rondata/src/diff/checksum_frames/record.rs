@@ -407,6 +407,19 @@ fn probe_4266() {
         if f == hi {
             let theirs = stream_at(&mut rec, f).unwrap();
             let ours = our_lines(&built.sim, &pieces);
+            for (i, r) in theirs.get("units").unwrap().iter().enumerate() {
+                if r.0.starts_with("004865") {
+                    eprintln!("GUARDRAW {i} {} {:02x?}", r.0, r.2);
+                }
+            }
+            for u in built.sim.units.iter() {
+                for (k, od) in u.orders.iter().enumerate() {
+                    if let sim::orders::Body::Guard(g) = od.body {
+                        let t = &built.sim.units[g.target];
+                        eprintln!("OURGUARD {}/{} k{k} flags {} {:?} target {}/{} uid {}", u.owner, u.index, od.flags, g, t.owner, t.index, t.uid);
+                    }
+                }
+            }
             for (name, ol) in STATE_LINES.iter().zip(&ours).take(8) {
                 let empty = Vec::new();
                 let t = theirs.get(*name).unwrap_or(&empty);
