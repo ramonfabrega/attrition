@@ -3986,3 +3986,82 @@ const UNQUEUED_AGAINST_CITY_GATHERED: (i64, &str, &str, Option<i64>, usize) = (
     Some(6813),
     279,
 );
+
+/// The unqueued file's playback (`docs/RUNS.md` run1606): `(take, trace,
+/// frames agreeing, frames walked, records, parted)`. Pinned before
+/// run1606 was read: whole.
+pub(crate) const UNQUEUED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1606-greatlakes-playback-of-unqueued-7000.txt",
+    "rontrace-run1606.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// The functions the cancel runs on the original's side: the package's
+/// arm and the building's cancel, by entry address.
+const UNQUEUE_FUNCTIONS: [(u32, &str); 2] = [
+    (0x0094_66f0, "CommandPackage::process_unqueue"),
+    (0x0062_0280, "Build::action_unqueue"),
+];
+
+/// Each take's first entry into [`UNQUEUE_FUNCTIONS`], in sim-frames,
+/// pinned before run1606 was read: run1605 enters neither; run1606 both on
+/// 6719, the tick that consumes [`crate::script::UNQUEUE_FRAME`]'s package.
+const UNQUEUE_ENTRIES: &[(&str, [Option<i64>; 2])] = &[
+    ("rontrace-run1605.log", [None; 2]),
+    ("rontrace-run1606.log", [Some(6719), Some(6719)]),
+];
+
+/// **The original plays the unqueued file in lockstep** (item 4265): the
+/// built start walked under the pump against run1606, every frame's draws
+/// against its trace and every record of its window whole
+/// ([`UNQUEUED_WALKED`]); the cancel's own functions on the original's
+/// side ([`UNQUEUE_ENTRIES`]); and the capital's queue and the Citizen
+/// `0/10` on [`UNQUEUE_READ_AT`], read off the take's records, equal to
+/// our walk's ([`unqueued_effects`]).
+#[test]
+fn the_original_s_playback_of_the_unqueued_file_walks_in_lockstep() {
+    let unqueued = crate::script::unqueued();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in UNQUEUED_WALKED {
+        let Some((w, _)) = walk_minted(&unqueued, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "UNQUEUED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let mut entries = Vec::new();
+    for &(take_trace, _) in UNQUEUE_ENTRIES {
+        let tr = trace(take_trace).expect("the take's trace");
+        let first = UNQUEUE_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+        for ((_, name), f) in UNQUEUE_FUNCTIONS.iter().zip(&first) {
+            eprintln!("UNQUEUE ENTRY {take_trace} {name}: {f:?}");
+        }
+        entries.push((take_trace, first));
+    }
+    let theirs =
+        queue_effects_theirs(UNQUEUED_WALKED[0].0, &UNQUEUE_READ_AT).expect("the take's records");
+    for t in &theirs {
+        eprintln!("UNQUEUE EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, UNQUEUED_WALKED, "the walked table");
+    assert_eq!(entries, UNQUEUE_ENTRIES, "the cancel's functions");
+    assert_eq!(theirs, unqueued_effects(), "the original's effects");
+    // Made to fail: the city-gathered file's walk, without the order,
+    // still trains the Citizen on 6721 and walks it on 6999, so an original
+    // that ignored the cancel would part here.
+    let without = queue_effects_ours(&crate::script::city_gathered(), &UNQUEUE_READ_AT);
+    assert_ne!(theirs[1..], without[1..], "the order's effect is visible");
+}
