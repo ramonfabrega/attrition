@@ -475,11 +475,12 @@ mod tests {
     /// 11,259, dense 876 → 880; then the bloom, which brightens the
     /// fires-off scene and so moves theirs 19,378 → 19,675: **11,322**,
     /// past 2,099, **dense 924** of 2,463; the packet's 11,878, dense 1,750.
+    /// Item 4269: the drawn plume 11,322 → 11,314 of 19,675 → 19,658: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((11322, 19675, 2099), (14853, 924)),
-        ((0, 19675, 0), (0, 0)),
-        ((19675, 19675, 0), (17212, 2463)),
-        ((11878, 19675, 1943), (14197, 1750)),
+        ((11314, 19658, 2095), (14846, 923)),
+        ((0, 19658, 0), (0, 0)),
+        ((19658, 19658, 0), (17198, 2460)),
+        ((11869, 19658, 1943), (14187, 1753)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -496,11 +497,12 @@ mod tests {
     /// Item 4241: clamped after the white, 11,547 → 11,548, dense 942 →
     /// 948; the bloom, theirs 18,871 → 19,045: **11,560**, past 1,794,
     /// **dense 975** of 2,511; the packet's 12,257, dense 2,124.
+    /// Item 4269: the drawn plume 11,560 → 11,564 of 19,045 → 19,016: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     const RUN1570_PLUME: PlumeRows = [
-        ((11560, 19045, 1794), (14874, 975)),
-        ((0, 19045, 0), (0, 0)),
-        ((19045, 19045, 0), (16534, 2511)),
-        ((12257, 19045, 1463), (13720, 2124)),
+        ((11564, 19016, 1797), (14873, 972)),
+        ((0, 19016, 0), (0, 0)),
+        ((19016, 19016, 0), (16512, 2504)),
+        ((12251, 19016, 1472), (13718, 2127)),
     ];
 
     #[test]
@@ -535,10 +537,11 @@ mod tests {
     /// The packet's particles read 233, then 266, past 425. With the fire's
     /// depth test off, slot 10 is drawn where the photograph's flame is
     /// (extent 17 against 16) and the row reads 322 at the clamp (4241a).
+    /// Item 4269: the flame row 206 unmoved, its luma split (176, 678) → (175, 679): the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     const RUN1559B_3279_FLAME: FlameRows = [
         (
             (206, 699, 584),
-            (176, 678),
+            (175, 679),
             [(19, 15), (25, 21), (16, 0), (31, 20)],
         ),
         ((0, 699, 0), (0, 0), [(19, 0), (25, 0), (16, 0), (31, 0)]),
@@ -548,8 +551,8 @@ mod tests {
             [(19, 19), (25, 25), (16, 16), (31, 31)],
         ),
         (
-            (266, 699, 425),
-            (108, 666),
+            (266, 699, 426),
+            (109, 666),
             [(19, 15), (25, 18), (16, 0), (31, 19)],
         ),
     ];
@@ -560,10 +563,11 @@ mod tests {
     /// read 370, then 407, past 441; four frames from the photograph, they
     /// stand as tall as its flames on slots 8 and 9 (15 and 28 rows against
     /// 13 and 27). Depth test off, 444 (4241a).
+    /// Item 4269: the flame row 346 → 345 of 627: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     const RUN1570_FLAME: FlameRows = [
         (
-            (346, 627, 393),
-            (102, 680),
+            (345, 627, 390),
+            (101, 677),
             [(13, 11), (27, 26), (5, 0), (19, 24)],
         ),
         ((0, 627, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
@@ -573,9 +577,9 @@ mod tests {
             [(13, 13), (27, 27), (5, 5), (19, 19)],
         ),
         (
-            (407, 627, 441),
-            (105, 780),
-            [(13, 15), (27, 28), (5, 0), (19, 28)],
+            (408, 627, 441),
+            (103, 782),
+            [(13, 15), (27, 28), (5, 0), (19, 27)],
         ),
     ];
 

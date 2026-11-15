@@ -53,8 +53,9 @@ mod tests {
     /// Item 4233: toned luma 90 → 91, display 81 → 83: the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21).
     /// Item 4241: toned hue 78 → 80, display luma 83 → 84: the bloom drawn
     /// and a plume's pixel clamped after the white (§3.25).
+    /// Item 4269: hue 80 → 81, the second luma 84 → 83 of 104: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     const RUN1559B_3279_SHADOW_CPU: [[(usize, usize); 2]; 2] =
-        [[(80, 104), (91, 104)], [(72, 104), (84, 104)]];
+        [[(81, 104), (91, 104)], [(72, 104), (83, 104)]];
     /// The row with the guys' decals drawn too (`World::unit_shadows`), as
     /// `draw_unit_shadow` reads: 4182's luma 89 → 66, the figure tiles 28
     /// → 5 of 37, median ours/theirs 0.99 → 0.82 (parked 4182c). **Item

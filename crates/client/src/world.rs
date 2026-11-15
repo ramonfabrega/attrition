@@ -219,6 +219,11 @@ pub struct World {
     /// (item 4212's draw): on, the rows it was measured on fall
     /// (`tint::tests::LAND_LIGHT_ROWS`). [`World::set_land_light`] moves it.
     land_light: bool,
+    /// **Light each range by its own normals** (item 4269, §3.22):
+    /// `generate_normals`' N·L on the mountain's layers, the vertex white,
+    /// as run1559b's packet holds them. On by default;
+    /// [`World::set_mountain_light`] moves it.
+    mountain_light: bool,
     /// The drawn terrain without the textured tiles, the textured tiles
     /// and the transition patch laid over them, at the terrain version
     /// they were built at.
@@ -986,6 +991,7 @@ impl World {
             ground,
             debug_ground: false,
             land_light: false,
+            mountain_light: true,
             drawn: (u32::MAX, TerrainMesh::default(), Vec::new(), Vec::new()),
             ramp: None,
             laid_ramp: None,
@@ -1124,6 +1130,16 @@ impl World {
     pub fn set_land_light(&mut self, on: bool) {
         if self.land_light != on {
             self.land_light = on;
+            self.drawn.1.positions.clear();
+            self.drawn.2.clear();
+            self.drawn.3.clear();
+        }
+    }
+
+    /// Turn [`World::mountain_light`] on or off; the ground is laid again.
+    pub fn set_mountain_light(&mut self, on: bool) {
+        if self.mountain_light != on {
+            self.mountain_light = on;
             self.drawn.1.positions.clear();
             self.drawn.2.clear();
             self.drawn.3.clear();
@@ -1390,6 +1406,13 @@ impl World {
             // the patch, `render_mountains`'s order.
             if let Some(md) = g.mountains.as_ref() {
                 let range = crate::ground::ground_mountain(&t, &md.art, &self.terrain.1);
+                // Item 4269 (§3.22): each corner's N·L off the range's own
+                // normal; empty, the flat N·L.
+                let normals = if self.mountain_light {
+                    range.normals()
+                } else {
+                    Vec::new()
+                };
                 let mut layers: BTreeMap<(usize, usize), PatchMesh> = BTreeMap::new();
                 for i in 0..range.tris.len() {
                     let k = range.template[i];
@@ -1415,6 +1438,10 @@ impl World {
                             light: Vec::new(),
                         });
                         m.positions.extend_from_slice(&range.tris[i]);
+                        if let Some(n) = normals.get(i) {
+                            m.light
+                                .extend(n.iter().map(|n| render::terrain::land_n_dot_l(*n)));
+                        }
                         for px in range.uvs[i] {
                             m.uvs.push([px[0] / 16.0, px[1] / 16.0]);
                             m.alpha_uvs.push(md.art.alpha_uv(k, px));

@@ -252,10 +252,11 @@ pub(crate) mod tests {
     /// still beats on: off.
     /// Item 4241: off luma run1559b 1,038 → 1,031, run1564 (on 4239's tree)
     /// 1,851 → 1,852, run1570 1,122 → 1,120; on unchanged: the bloom drawn and a plume's pixel clamped after the white (§3.25). Off still beats on: off.
+    /// Item 4269: run1559b's luma 1,031 → 1,040 off and 1,081 → 1,086 on, run1570's 1,120 → 1,124 and 1,154 → 1,156: the range lit by its own normals (`docs/RENDERER.md` §3.22), under a mountain 61 → 70 of 106 on run1559b, and the frame's white with it.
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
-        ([959, 1104, 1031], [959, 1104, 1081]),
+        ([959, 1104, 1040], [959, 1104, 1086]),
         ([678, 1786, 1852], [676, 1778, 1843]),
-        ([1042, 1171, 1120], [1041, 1171, 1154]),
+        ([1042, 1171, 1124], [1041, 1171, 1156]),
     ];
 
     /// **`GRASS_HUE`**, `[(untinted, tinted)]` on run1559b, run1564 and
@@ -275,9 +276,10 @@ pub(crate) mod tests {
     /// untinted 600 → 602; the drawn side holds.
     /// Item 4241: untinted 961 → 955, 602 → 566 (on 4239's tree), 1,045 → 1,034; the drawn
     /// side holds: the bloom drawn and a plume's pixel clamped after the white (§3.25).
+    /// Item 4269: run1564's untinted side 566 → 561: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
         ((955, 986), (959, 986)),
-        ((566, 679), (678, 679)),
+        ((561, 679), (678, 679)),
         ((1034, 1073), (1042, 1073)),
     ];
 }

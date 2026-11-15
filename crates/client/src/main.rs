@@ -152,6 +152,9 @@ struct Args {
     /// Light each land corner by its own normal and vertex colour
     /// (`world::World::set_land_light`, item 4217); off by default.
     land_light: bool,
+    /// Draw each range at the flat N·L in place of its own normals
+    /// (`world::World::set_mountain_light`, item 4269); off by default.
+    mountain_flat: bool,
     /// Walk the minted script's lobby, built from its choices
     /// (`rondata::free::FreeRunner::from_lobby`, item 4145), in place of
     /// the pair's game: the lobby a person's orders are counted on.
@@ -189,6 +192,7 @@ fn parse() -> Result<Args, String> {
         textured: true,
         debug_ground: false,
         land_light: false,
+        mountain_flat: false,
         lobby: false,
         headless: false,
         page_still: None,
@@ -220,6 +224,7 @@ fn parse() -> Result<Args, String> {
             "--tint" => a.textured = false,
             "--debug-ground" => a.debug_ground = true,
             "--land-light" => a.land_light = true,
+            "--mountain-flat" => a.mountain_flat = true,
             "--lobby" => a.lobby = true,
             "--headless" => a.headless = true,
             "--page-still" => a.page_still = Some(v()?.into()),
@@ -544,6 +549,7 @@ impl App {
                             w.textured = self.world.textured;
                             w.debug_ground = self.world.debug_ground;
                             w.set_land_light(self.args.land_light);
+                            w.set_mountain_light(!self.args.mountain_flat);
                             self.world = w;
                             self.opened = Some(choices);
                         }
@@ -866,6 +872,7 @@ fn main() {
     world.textured = args.textured;
     world.debug_ground = args.debug_ground;
     world.set_land_light(args.land_light);
+    world.set_mountain_light(!args.mountain_flat);
     session.mark("frame zero");
     if page.is_none() {
         session.phase("run to the frame", || world.run_to(args.frame));
