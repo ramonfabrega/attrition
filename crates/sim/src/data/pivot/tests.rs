@@ -2770,7 +2770,8 @@ fn the_original_s_release_agrees_on_every_cell_for_item_4159r5() {
         let node: i8 = f[2][1..].parse().expect("node");
         let anim: i8 = f[3][1..].parse().expect("anim");
         let time: u32 = f[4][1..].parse().expect("time");
-        let r = release_node(piece, anim, time, node).unwrap_or_else(|| panic!("no row for {name}"));
+        let r =
+            release_node(piece, anim, time, node).unwrap_or_else(|| panic!("no row for {name}"));
         assert_eq!(r.node, i32::from(node), "{name}");
         let table = std::fs::read_to_string(format!("{dir}/{name}")).expect("table");
         for line in table.lines() {

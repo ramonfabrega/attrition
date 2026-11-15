@@ -344,7 +344,8 @@ fn french_medieval_pair_run1414_s_closing_frame_is_widened_whole() {
     // a piece with no `launch::BAYS` row (parked 3735c). The draws never
     // feel it.
     pin_eq!(w.rounds_read, (287, 287), "the rounds read");
-    pin_eq!(w.rounds.len(), 10, "the rounds that part");
+    // Item 4159r5: 10 -> 0, the launch rows of pieces 216 (14): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3717): run1393's closing block 4665,

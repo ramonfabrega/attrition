@@ -208,7 +208,8 @@ fn inca_industrial_pair_run1372b_s_closing_frame_is_widened_whole() {
     // the same; `1/69`'s `ammo[0]` on 4285 (slot 11) (7416, 32664, 41)
     // against (7413, 32663, 202). Each lands on the same frame both sides.
     pin_eq!(w.rounds_read, (297, 297), "the rounds read");
-    pin_eq!(w.rounds.len(), 10, "the rounds that part");
+    // Item 4159r5: 10 -> 0, the launch rows of pieces 225 (7): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3699): run1372's closing block 4472,

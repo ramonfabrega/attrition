@@ -331,7 +331,8 @@ fn roman_gunpowder_pair_run1357c_s_closing_window_is_widened_whole() {
     // 431 a side, 10 parting: who=1's Bombards (TY 267, `1/64`, `1/100`)
     // launch from their square, ours, against (6886, 30285) at `sz` 365
     // in theirs for `1/100`'s of 4048 (parked 3688a). No draw parts.
-    pin_eq!(w.rounds.len(), 10, "the rounds that part");
+    // Item 4159r5: 10 -> 0, the launch rows of pieces 217 (2): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The closing state** (item 3688): run1342's closing block 4063, the

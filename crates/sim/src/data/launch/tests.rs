@@ -1538,7 +1538,11 @@ fn every_plain_piece_the_widened_suite_fired_from_the_figure_s_square_has_its_ba
         .iter()
         .filter(|&&(p, a, t, n)| bay(p, a, t, n).is_none())
         .collect();
-    assert!(missing.is_empty(), "{} keys fall back: {missing:?}", missing.len());
+    assert!(
+        missing.is_empty(),
+        "{} keys fall back: {missing:?}",
+        missing.len()
+    );
 }
 
 /// **Four of the new rows at four headings** `(deg, x, y, z)`, read off
@@ -1684,7 +1688,12 @@ fn the_original_s_release_agrees_at_every_heading_for_item_4159r5() {
     // pivot pieces' nine past their restriction count (207, 232, 234).
     assert_eq!(files, 133, "{dir}");
     assert_eq!(rows, 133 * 361, "{dir}");
-    assert!(off.is_empty(), "{} headings disagree: {:?}", off.len(), &off[..off.len().min(20)]);
+    assert!(
+        off.is_empty(),
+        "{} headings disagree: {:?}",
+        off.len(),
+        &off[..off.len().min(20)]
+    );
 }
 
 /// **The pivot pieces' keys the widened suite fired from the figure's

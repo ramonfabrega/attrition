@@ -347,7 +347,8 @@ fn egyptian_industrial_pair_run1384_s_closing_frame_is_widened_whole() {
     // at their figures' squares, 136 low (5441..5621; 3683b's unfitted
     // bays, parked 3707b). None moves a draw.
     pin_eq!(w.rounds_read, (122, 122), "the rounds read");
-    pin_eq!(w.rounds.len(), 19, "the rounds that part");
+    // Item 4159r5: 19 -> 0, the launch rows of pieces 219 (9): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3700): run1374's closing block 5690,

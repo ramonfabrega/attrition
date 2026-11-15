@@ -386,7 +386,8 @@ fn bantu_modern_pair_run1425_s_word_frame_is_widened_whole() {
     // Item 4159's residue: 55 -> 51, item 4177's four combat-rate firsts on 4295 agree: the nuke strikes the city building at its ceiling (4177a).
     pin_eq!(w.firsts.len(), 49, "run1425 baseline");
     pin_eq!(w.rounds_read, (70, 70), "the rounds read");
-    pin_eq!(w.rounds.len(), 17, "the rounds that part");
+    // Item 4159r5: 17 -> 7, the launch rows of piece 573 (2; the Arab Armored Car 520's one `CHAR_ATTACKWALK` round stays unrowed): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 7, "the rounds that part");
 }
 
 /// run1405c: the gap before the word's window, blocks 3295..3395 at

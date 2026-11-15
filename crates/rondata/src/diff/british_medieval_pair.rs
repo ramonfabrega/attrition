@@ -203,7 +203,8 @@ fn british_medieval_pair_run1376b_s_closing_frame_is_widened_whole() {
     // `1/60`'s `ammo[0]` on 5029 (6888, 31752, 159) against (7182, 31820,
     // 852), `v1z` 209183548 against 190946716; each with its `angle`.
     pin_eq!(w.rounds_read, (296, 296), "the rounds read");
-    pin_eq!(w.rounds.len(), 10, "the rounds that part");
+    // Item 4159r5: 10 -> 0, the launch rows of pieces 216 (20): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3701): run1376's closing block 5283,

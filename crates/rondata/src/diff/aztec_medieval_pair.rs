@@ -380,7 +380,8 @@ fn aztec_medieval_pair_run1322_s_closing_window_is_widened_whole() {
     // pair the Trebuchets' stones from 4370 on, each parting on its launch
     // (3658b), and `1/29`'s one-unit launches on 4356, 4382 and 4539
     // (3658a).
-    pin_eq!(w.rounds.len(), 45, "the rounds that part");
+    // Item 4159r5: 45 -> 11, the launch rows of pieces 920 (9): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 11, "the rounds that part");
 }
 
 /// **The closing state** (item 3658): run1308's closing block 4603, the

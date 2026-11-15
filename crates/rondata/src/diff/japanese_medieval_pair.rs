@@ -249,7 +249,8 @@ fn japanese_medieval_pair_run1329b_s_closing_window_is_widened_whole() {
     // the landing (3187, 30722), the flight and every hit agree to the
     // closing block (parked 3658b, 3664a).
     pin_eq!(w.rounds_read, (143, 143), "the rounds read");
-    pin_eq!(w.rounds.len(), 4, "the rounds that part");
+    // Item 4159r5: 4 -> 0, the launch rows of pieces 1272 (13): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The closing state** (item 3664): the long's own closing block,

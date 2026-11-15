@@ -514,7 +514,8 @@ fn persian_gunpowder_pair_run1390_s_closing_frame_is_widened_whole() {
     // `1/90`, `1/94` and `1/96` at their carriages' squares, 104 low
     // (5463..5641; piece 1977 has no `BAYS` row, parked 3713c). None moves
     // a draw.
-    pin_eq!(w.rounds.len(), 40, "the rounds that part");
+    // Item 4159r5: 40 -> 0, the launch rows of pieces 1977 (13): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// run1385: the site's window, blocks 2695..2801 at run1383b's detail —

@@ -470,5 +470,6 @@ fn american_industrial_pair_run1356_s_word_frame_is_widened_whole() {
     // stood from the window's first block agree (parked 3669a).
     pin_eq!(w.firsts.len(), 75, "run1356 after item 3693");
     pin_eq!(w.rounds_read, (166, 166), "the rounds read");
-    pin_eq!(w.rounds.len(), 5, "the rounds that part");
+    // Item 4159r5: 5 -> 0, the launch rows of pieces 219 (5): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

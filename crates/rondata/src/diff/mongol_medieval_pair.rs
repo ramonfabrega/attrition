@@ -429,7 +429,8 @@ fn mongol_medieval_pair_run1391b_s_closing_frame_is_widened_whole() {
     // figure's own point ~700 below theirs' (`1/64`'s on 5523: (7800,
     // 10536, 228) against (7922, 10811, 921)), parked 3711b.
     pin_eq!(w.rounds_read, (1674, 1674), "the rounds read");
-    pin_eq!(w.rounds.len(), 50, "the rounds that part");
+    // Item 4159r5: 50 -> 0, the launch rows of pieces 1272 (12): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3702): run1378's closing block 5593,

@@ -350,17 +350,19 @@ fn persian_medieval_pair_run1189b_s_word_frame_is_widened_whole() {
     // `0/2000`'s `build:damage` ours 145 theirs 146 (`damage_frac` 14
     // against 8), both 149 13/16 on 4284.
     // Item 4177: 116 -> 118, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4283 ours 7 theirs 8; who=1 `hits_current_frame` 4283 ours 7 theirs 8 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 118, "run1189b baseline");
+    // Item 4159r5: 118 -> 114, the launch rows of pieces 1882 (1): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.firsts.len(), 114, "run1189b baseline");
     // The count cannot see the Peltasts' bays: `0/2000`'s `build:damage`
     // parts later on either tree, so the key set is the same. Its frame is
     // the pin — 4048 when the javelins leave the figure, 4193 from the bay,
     // 4241 with the Mahout past the reload gate (item 3568), 4283 with its
     // melee swing landing nothing (item 3570).
+    // Item 4159r5: Some(4283) -> None, the launch rows of pieces 1882 (1): rounds that left the figure's square leave from their bays.
     pin_eq!(
         w.firsts
             .get(&(0, 2000, "build:damage".to_string()))
             .map(|(f, _)| *f),
-        Some(4283),
+        None,
         "`0/2000`'s damage parts past the word"
     );
 }
@@ -425,7 +427,8 @@ fn persian_medieval_pair_run1211_s_word_frame_is_widened_whole() {
     // sixteenths alone: `damage_frac` ours 5 theirs 15 on 4518, and
     // `damage` 584 against 585 on 4530.
     // Item 4177: 112 -> 118, +6 firsts, the combat rates' own: who=0 `damage_current_frame` 4518 ours 14 theirs 15; who=1 `hits_current_frame` 4518 ours 14 theirs 15; who=0 `average_damage_rate` 4751 ours 4995 theirs 5045; who=0 `damage_fifteen_seconds` 4751 ours 444 theirs 445 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 118, "run1211 baseline");
+    // Item 4159r5: 118 -> 110, the launch rows of pieces 114 (18), 1882 (114): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.firsts.len(), 110, "run1211 baseline");
 }
 
 /// **The long's stride, walked back from the word 4038** (item 3554):
