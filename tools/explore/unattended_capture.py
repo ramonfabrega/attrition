@@ -525,6 +525,14 @@ def refused_playback_cmd_file(path):
     return None
 
 
+def data_override_arg(value):
+    """`REL=FILE` for `--data-override` (item 4272): FILE resolved here."""
+    rel, sep, path = value.partition('=')
+    if not sep or not rel or not path:
+        raise argparse.ArgumentTypeError('--data-override takes REL=FILE')
+    return (rel, str(Path(path).expanduser().resolve()))
+
+
 def refused_tracer_defs(defs):
     """Why a `--tracer-def` set is refused before the lane is taken, or
     None: `RON_STATE_FRAME` names a packet frame and the tracer's
@@ -812,7 +820,8 @@ def capture(args, output, style, run=None):
                                            cursor=getattr(args, 'cursor', None),
                                            hover=getattr(args, 'hover', False),
                                            dumptime=getattr(args, 'dumptime', None),
-                                           cmd_file=getattr(args, 'cmd_file', None)))
+                                           cmd_file=getattr(args, 'cmd_file', None),
+                                           data_overrides=getattr(args, 'data_overrides', None)))
         # The receipt carries what was staged, so a run's window and detail are
         # read back from the run rather than from the command that asked for it.
         full_start = getattr(args, 'dump_all_start', False)
@@ -829,6 +838,8 @@ def capture(args, output, style, run=None):
                             'console_log': getattr(args, 'console_log', None),
                             'dumptime': getattr(args, 'dumptime', None),
                             'tracer_defs': getattr(args, 'tracer_defs', None),
+                            'data_overrides': [[rel, str(path), hashlib.sha256(Path(path).read_bytes()).hexdigest()]
+                                               for rel, path in getattr(args, 'data_overrides', None) or ()],
                             'rontrace.cmd': (output/'rontrace.cmd').read_text().splitlines()
                                             if (output/'rontrace.cmd').is_file() else None}
         staged = True
@@ -1350,6 +1361,10 @@ def parser():
                     help='sim-frames the call proxies log over; default 0-END')
     ap.add_argument('--tracer-def', action='append', dest='tracer_defs', metavar='NAME',
                     help='extra tracer.c define, repeatable (e.g. RON_TARGET_PROBE)')
+    ap.add_argument('--data-override', action='append', dest='data_overrides', metavar='REL=FILE',
+                    type=data_override_arg,
+                    help='item 4272: this take reads FILE where the install has REL (e.g. '
+                         'Data/tilesets.xml=~/ron-data/.../tilesets.xml); the install is never written')
     ap.add_argument('--cmd-file',type=Path)
     ap.add_argument('--cmd-without',type=int,action='append',metavar='FRAME',
                     help='drop the staged lines at this frame: a chapter\'s control in one flag '

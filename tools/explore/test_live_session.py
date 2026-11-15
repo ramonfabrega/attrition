@@ -43,6 +43,39 @@ class SessionTest(unittest.TestCase):
         self.assertEqual((self.install / 'riseofnations.exe').read_bytes(), b'fixture only')
         self.assertEqual((self.profile / 'PlayerProfile' / 'player').read_bytes(), b'profile')
 
+    def test_a_data_override_swaps_one_file_and_never_writes_the_install(self):
+        # Item 4272: a take reads one patched data file; its siblings and the
+        # install stay the install's own.
+        (self.install / 'Data' / 'tilesets.xml').write_bytes(b'tint 18')
+        (self.install / 'Data' / 'other.xml').write_bytes(b'other')
+        (self.install / 'Data' / 'sub').mkdir()
+        patched = self.root / 'tilesets.xml'
+        patched.write_bytes(b'tint 0')
+        self.args.end_frame = 36
+        self.args.data_overrides = [('Data/tilesets.xml', str(patched))]
+        module.stage(self.args)
+        data = self.output / 'Data'
+        self.assertFalse(data.is_symlink())
+        self.assertEqual((data / 'tilesets.xml').read_bytes(), b'tint 0')
+        self.assertFalse((data / 'tilesets.xml').is_symlink())
+        self.assertTrue((data / 'other.xml').is_symlink())
+        self.assertEqual((data / 'other.xml').read_bytes(), b'other')
+        self.assertTrue((data / 'sub').is_symlink() and (data / 'sub').is_dir())
+        self.assertEqual((self.install / 'Data' / 'tilesets.xml').read_bytes(), b'tint 18')
+        module.restore(self.output)
+        self.assert_restored()
+
+    def test_a_data_override_outside_the_install_is_refused(self):
+        patched = self.root / 'x.xml'
+        patched.write_bytes(b'x')
+        for rel in ('../x.xml', 'Data/missing.xml', '/etc/hosts'):
+            self.args.end_frame = 36
+            self.args.data_overrides = [(rel, str(patched))]
+            with self.assertRaises(ValueError):
+                module.stage(self.args)
+            self.assert_restored()
+            import shutil; shutil.rmtree(self.output)
+
     def test_long_run_fast_forwards_after_the_dump_window(self):
         self.args.end_frame = 8000
         self.args.fast_forward = True
