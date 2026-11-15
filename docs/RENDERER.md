@@ -2359,6 +2359,16 @@ and 1/40, a tank the photograph's side reads by hand. Not established:
 the original's cull mode 2 on both states, which this draw does not
 take (4171c).
 
+**Past the map's edge** (item 4247): `RUN1559B_3279_PAST_THE_EDGE`
+scores the photograph's 32-pixel blocks wholly off the heightfield, a
+block's mean on the still against theirs under both readers: **0 of
+162**, ours black, theirs dark olive. Not established: what draws
+there. `TerrainOut::generate_skirts@008603c0` builds `land_skirt_ib`,
+four quads 1,536 units past the map at `sea_depth` (−380 on run1559b's
+packet), vertex-coloured `deep_*` ((7, 81, 40) there); but no draw on
+run1566b's or run1567's card trace returns to a skirt's caller, and the
+land's draws carry no stream (4247a).
+
 ## 3.16 The shore's sand (item 4192)
 
 *2026-11-12, Opus 5.5. `client::ground`: `land_alpha`, `land_alpha_of`,

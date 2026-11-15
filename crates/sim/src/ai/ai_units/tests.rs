@@ -367,6 +367,9 @@ fn the_air_arm_sets_remaining_to_the_air_cap() {
         .push(crate::cities::build::BuildType {
             ident: Ident::Airbase,
             tree: Some(airbase),
+            // The shipped Airbase's `ean`: it needs no city, so the cityless
+            // one here is in the leader's `num_buildings`.
+            flags: crate::cities::build::flags::NO_CITY,
             ..crate::cities::build::BuildType::default()
         });
     let b = sim.add_building(0, crate::Pos::default(), 8);

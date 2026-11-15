@@ -5350,7 +5350,9 @@ const WANT_CH71: &[&str] = &[
     "600 1/4 form",
     "600 1/5 form",
     // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 1277 theirs 1257.
-    "611 0/-1 leader:score",
+    // Item 4159's tenth residue: gone, the console-added Senate (`jam`, no
+    // city) is out of `num_buildings` (`Wall::activate@0063e4b0:56`), so
+    // ours is theirs from 611 to the end.
 ];
 
 /// **Chapter seventy-two** (item 2448, `docs/GOLDEN.md` §89, run859): a
@@ -5382,7 +5384,9 @@ const WANT_CH72: &[&str] = &[
     "600 1/4 form",
     "600 1/5 form",
     // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 1277 theirs 1257.
-    "611 0/-1 leader:score",
+    // Item 4159's tenth residue: gone, the console-added Senate (`jam`, no
+    // city) is out of `num_buildings` (`Wall::activate@0063e4b0:56`), so
+    // ours is theirs from 611 to the end.
 ];
 
 /// **Chapter seventy-three** (item 2474, `docs/GOLDEN.md` §90, run860): a
@@ -5509,7 +5513,9 @@ const WANT_CH76: &[&str] = &[
     "600 1/4 form",
     "600 1/5 form",
     // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 1103 theirs 1083.
-    "611 0/-1 leader:score",
+    // Item 4159's tenth residue: gone, the console-added Senate (`jam`, no
+    // city) is out of `num_buildings` (`Wall::activate@0063e4b0:56`), so
+    // ours is theirs from 611 to the end.
 ];
 
 /// **Chapter seventy-seven** (item 2598, `docs/GOLDEN.md` §96, run872): the

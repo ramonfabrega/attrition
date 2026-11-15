@@ -183,18 +183,24 @@ impl Sim {
     }
 
     /// `num_buildings[r]` and `num_queued[0x19e + r]` (the placed sites) of
-    /// one leader, every building record at once, each a `ushort`.
+    /// one leader, every building record at once, each a `ushort`. A
+    /// finished building is counted only where the leader counts it
+    /// ([`Sim::leader_counts_building`]: in a city, or of a type that needs
+    /// none).
     fn building_counts(&self, who: Player) -> (Vec<i32>, Vec<i32>) {
         let mut built = vec![0i32; BUILD_RECORDS];
         let mut sites = vec![0i32; BUILD_RECORDS];
-        for b in self.buildings.iter().filter(|b| b.alive && b.owner == who) {
+        for (i, b) in self.buildings.iter().enumerate() {
+            if !b.alive || b.owner != who {
+                continue;
+            }
             let Some(r) = b.ty.filter(|&r| r < BUILD_RECORDS) else {
                 continue;
             };
-            if b.active {
-                built[r] += 1;
-            } else {
+            if !b.active {
                 sites[r] += 1;
+            } else if self.leader_counts_building(i) {
+                built[r] += 1;
             }
         }
         let u16_of = |v: Vec<i32>| v.into_iter().map(|x| i32::from(x as u16)).collect();

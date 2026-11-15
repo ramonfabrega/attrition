@@ -4493,7 +4493,15 @@ type's `support_cost`s; `n` is owner `o`'s count of `t` **plus its
       b = value(t,0)·n + ((n−1)·((sc0+sc1)·BSF)·n) / 2
 
   `b / 3` to `score_wonders` when the own index is in `0x20e..0x21f`, else
-  `b / 5` to `score_buildings`.
+  `b / 5` to `score_buildings`. **A finished building is in `num_buildings`
+  only in a city or by a type that needs none** (item 4159's tenth
+  residue): `Wall::activate (0063e4b0)` `:56` calls `increment_stats` when
+  `build_flags & 0x10` (`e`) or the city `+0x72 >= 0`;
+  `Build::add_to_city (00622380)` `:35` counts the rest on joining one,
+  `Build::remove_from_city (00622030)` `:116` and `Build::close (00628980)`
+  `:97` take back only what was counted. A console-added Senate (`jam`)
+  joins no city: golden ch71, ch72 and ch76 scored it 20 over the original
+  from block 611 (`Sim::leader_counts_building`).
 - **Economy**, every recompute: to 0; for `g in 0..6` with
   `type_avail(g, 1) != 0`, add
   `clamp((bucket[g] − starting[g]) / 20, 0, 100) + min(income[g] / 80, 200)`
@@ -4686,6 +4694,10 @@ twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
 - **Rest**: `get_team_score` past its head; the three non-latch bit-6
   setters' contexts; `LeaderData::walk_data (006d6750)` on load (off the
   frame path).
+- **`score` in the record diff** (item 4159's tenth residue): it still parts
+  where no parent is printed beside it, so the units bit (run1013, run1014:
+  the original recounts at 13639, ours a bit later) and ch77's 25 after
+  the Porcelain Tower are open; the journal's parked rows name them.
 
 ## 19. The last building and unit finished
 
