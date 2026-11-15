@@ -476,11 +476,12 @@ mod tests {
     /// fires-off scene and so moves theirs 19,378 → 19,675: **11,322**,
     /// past 2,099, **dense 924** of 2,463; the packet's 11,878, dense 1,750.
     /// Item 4269: the drawn plume 11,322 → 11,314 of 19,675 → 19,658: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+    /// Item 4272: the drawn plume 11,314 → 11,344 of 19,658 → 19,814: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((11314, 19658, 2095), (14846, 923)),
-        ((0, 19658, 0), (0, 0)),
-        ((19658, 19658, 0), (17198, 2460)),
-        ((11869, 19658, 1943), (14187, 1753)),
+        ((11344, 19814, 2036), (14833, 928)),
+        ((0, 19814, 0), (0, 0)),
+        ((19814, 19814, 0), (17328, 2486)),
+        ((11911, 19814, 1905), (14191, 1757)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -498,11 +499,12 @@ mod tests {
     /// 948; the bloom, theirs 18,871 → 19,045: **11,560**, past 1,794,
     /// **dense 975** of 2,511; the packet's 12,257, dense 2,124.
     /// Item 4269: the drawn plume 11,560 → 11,564 of 19,045 → 19,016: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+    /// Item 4272: the drawn plume 11,564 → 11,590 of 19,016 → 19,170: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     const RUN1570_PLUME: PlumeRows = [
-        ((11564, 19016, 1797), (14873, 972)),
-        ((0, 19016, 0), (0, 0)),
-        ((19016, 19016, 0), (16512, 2504)),
-        ((12251, 19016, 1472), (13718, 2127)),
+        ((11590, 19170, 1762), (14899, 961)),
+        ((0, 19170, 0), (0, 0)),
+        ((19170, 19170, 0), (16635, 2535)),
+        ((12274, 19170, 1447), (13723, 2128)),
     ];
 
     #[test]
@@ -538,22 +540,23 @@ mod tests {
     /// depth test off, slot 10 is drawn where the photograph's flame is
     /// (extent 17 against 16) and the row reads 322 at the clamp (4241a).
     /// Item 4269: the flame row 206 unmoved, its luma split (176, 678) → (175, 679): the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+    /// Item 4272: the flame row 206 of 699 → 692 (theirs, the fires off, moves with the white), past 584 → 587: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     const RUN1559B_3279_FLAME: FlameRows = [
         (
-            (206, 699, 584),
-            (175, 679),
-            [(19, 15), (25, 21), (16, 0), (31, 20)],
+            (206, 692, 587),
+            (176, 681),
+            [(19, 15), (23, 21), (15, 0), (31, 20)],
         ),
-        ((0, 699, 0), (0, 0), [(19, 0), (25, 0), (16, 0), (31, 0)]),
+        ((0, 692, 0), (0, 0), [(19, 0), (23, 0), (15, 0), (31, 0)]),
         (
-            (699, 699, 0),
-            (148, 551),
-            [(19, 19), (25, 25), (16, 16), (31, 31)],
+            (692, 692, 0),
+            (146, 546),
+            [(19, 19), (23, 23), (15, 15), (31, 31)],
         ),
         (
-            (266, 699, 426),
-            (109, 666),
-            [(19, 15), (25, 18), (16, 0), (31, 19)],
+            (264, 692, 429),
+            (113, 666),
+            [(19, 15), (23, 18), (15, 0), (31, 19)],
         ),
     ];
     /// to fail, 283). The packet's particles read 303, past 251. Item
@@ -564,10 +567,11 @@ mod tests {
     /// stand as tall as its flames on slots 8 and 9 (15 and 28 rows against
     /// 13 and 27). Depth test off, 444 (4241a).
     /// Item 4269: the flame row 346 → 345 of 627: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+    /// Item 4272: the flame row 345 → 349 of 627: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     const RUN1570_FLAME: FlameRows = [
         (
-            (345, 627, 390),
-            (101, 677),
+            (349, 627, 397),
+            (104, 684),
             [(13, 11), (27, 26), (5, 0), (19, 24)],
         ),
         ((0, 627, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
@@ -577,9 +581,9 @@ mod tests {
             [(13, 13), (27, 27), (5, 5), (19, 19)],
         ),
         (
-            (408, 627, 441),
-            (103, 782),
-            [(13, 15), (27, 28), (5, 0), (19, 27)],
+            (410, 627, 445),
+            (107, 785),
+            [(13, 15), (27, 28), (5, 0), (19, 28)],
         ),
     ];
 
