@@ -4356,6 +4356,45 @@ pub(crate) mod tests {
                 }
                 let n = lby.iter().map(|k| k[0]).sum::<u32>();
                 println!("{name} still luma {n} of {} by {lby:?}", tiles.len());
+                // Item 4246: the mountain's body, ours against theirs
+                // tile by tile: the mean colour and luminance over the
+                // kind, and the parted tiles split by side.
+                let body: Vec<_> = tiles
+                    .iter()
+                    .filter(|q| kind_of(&t, &mountains, q.0) == 1)
+                    .collect();
+                if !body.is_empty() {
+                    let m = body.len() as f32;
+                    let sum = |f: &dyn Fn(&&StillTile) -> [f32; 3]| {
+                        body.iter()
+                            .map(f)
+                            .fold([0.0f32; 3], |a, c| [a[0] + c[0], a[1] + c[1], a[2] + c[2]])
+                            .map(|c| c / m)
+                    };
+                    let (us, th) = (sum(&|q| q.2), sum(&|q| q.1));
+                    let (mut paler, mut darker) = (0, 0);
+                    let mut ratio = 0.0f32;
+                    for q in &body {
+                        let (yo, yt) = (luminance(q.2), luminance(q.1));
+                        ratio += yo / yt.max(1.0);
+                        if !LUMA_READER.agrees(yo, yt) {
+                            if yo > yt { paler += 1 } else { darker += 1 }
+                        }
+                    }
+                    println!(
+                        "{name} the mountain's body on the still, {} tiles: ours ({:.1}, {:.1}, {:.1}) Y {:.1}, theirs ({:.1}, {:.1}, {:.1}) Y {:.1}; mean Y ratio ours/theirs {:.3}; parted {paler} paler, {darker} darker",
+                        body.len(),
+                        us[0],
+                        us[1],
+                        us[2],
+                        luminance(us),
+                        th[0],
+                        th[1],
+                        th[2],
+                        luminance(th),
+                        ratio / m
+                    );
+                }
                 ((n, tiles.len()), lby)
             };
             for (k, (b, c)) in KINDS.iter().zip(by.iter().zip(&crossed)) {
