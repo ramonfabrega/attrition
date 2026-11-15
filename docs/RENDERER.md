@@ -1646,13 +1646,24 @@ scored on run1559b's still.*
   holds one patch. Ours lays every range's, 640 tiles, and the screen clips them.
 - *The score.* `GROUND_LUMA_STILL` under a mountain **92 → 95 of 106**, the luma row
   1,059 → 1,061. The body is ours Y 146.4 → 144.6 against theirs 137.3.
+- *Its own alpha (item 4279).* The client keyed the snowcap's stage 1 at 930, which is
+  `SURF_ALPHA` 920 plus the surf's mask 10 (`<SURF>`'s masks are 1, 3, 5, 6, 10, 12). The
+  alphas' cache is first come, so on run1559b the snowcap drew the surf mask's level 0, nearly
+  opaque, over the range's right face where `t_mountainpeak`'s quadrant splat fades. Keyed
+  apart (`SNOWCAP_ALPHA` 912; the surf owns 920–983, `world::SURF_MASKS`;
+  `world::tests::the_alpha_keys_are_apart`, made to fail at 930): the photograph's bright
+  streaks across the body (parked 4278a) are the splat's. Under a mountain **95 → 100 of
+  106**, the luma row 1,061 → 1,066. The body is ours Y 143.7 → 141.0 against theirs 137.3,
+  6 tiles paler. On the still, the right face's fine detail (high-pass at σ 3)
+  correlates with the photograph's at 0.586 → 0.865; the left face, outside the patch, 0.834.
 
 *Not established, on the reading alone:* stage 1's filter (linear and clamped as a
 mountain's alpha, unread), the DXT3 quantisation of the tinted texel, the 45 draws on a
 map other than Great Lakes, and the `sm` spelling as the size-1 class (the strings are
 `int_str_array`'s; template 14's `med` draws, as the packet shows). By eye, the
 photograph's crest carries a blue-grey sheen ours lacks: ours darkens there, but brown
-(parked 4275a).
+(parked 4275a). On its own alpha (item 4279), the streaks are a little dimmer than
+the photograph's (parked 4279a).
 
 ## 3.11 The clock, under its ceilings (item 4161)
 
@@ -3315,7 +3326,7 @@ map's red and green through `(T, B = T × N, N)` and adds Blinn-Phong at the map
 are `generate_tangents@008479b0`'s: the packet's 238 bit for bit on its own mesh, ours within 1.2e-7. Drawn: the body
 Y 144.6 → 143.7 against 137.3; under a mountain holds at 95 of 106. *Coverage:* diff-backed: the tangents and stage
 0's texcoord; on a reading: the binding and the formula. *Not established:* the ring pass's stage 2; the map's three
-levels and filter; the photograph's centre-left streaks.
+levels and filter; ~~the photograph's centre-left streaks~~ (§3.10, item 4279).
 
 ## 3.23 The trees' own light (item 4221)
 
