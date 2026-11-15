@@ -731,6 +731,41 @@ pub fn hotkeyed() -> Vec<Order> {
     orders
 }
 
+/// **The garrisoned script** (item 4273, `docs/CLIENT_INPUT.md` §23):
+/// the hot-keyed script and, on [`GARRISON_FRAME`], the Citizen
+/// [`GARRISON_CITIZEN`] selected by a press, the garrison button
+/// (`Options::do_garrison@0071d6b0` sets `selecting_spot`) and a pick on
+/// the capital: `Options::picked_spot@00721c40`'s `OPTION_GARRISON` arm,
+/// `GroupOut::issue_garrison@0070a9b0(CAPITAL, 0, QUEUE_NEW)` — the
+/// Citizen's `group` in full and `garrison(CAPITAL, 0, 2)`, the form all
+/// six recorded garrisons carry. The client's
+/// `minted_garrisoned_at_the_opening_camera` mints it field for field.
+pub fn garrisoned() -> Vec<Order> {
+    let mut orders = hotkeyed();
+    orders.push((
+        GARRISON_FRAME,
+        0,
+        vec![
+            Command::Group {
+                who: 0,
+                objects: vec![GARRISON_CITIZEN],
+            },
+            Command::Garrison {
+                ox: i32::from(CAPITAL),
+                whom: 0,
+                queued: 2,
+            },
+        ],
+    ));
+    orders
+}
+
+/// The frame of the garrison, ten after [`HOTKEY_FRAME`].
+pub const GARRISON_FRAME: i32 = 6750;
+/// The Citizen sent in: slot 0's `0/2`, standing at the farm `0/2007` on
+/// [`GARRISON_FRAME`].
+pub const GARRISON_CITIZEN: i16 = 2;
+
 /// The frame of the hot key, ten after [`RENAME_FRAME`].
 pub const HOTKEY_FRAME: i32 = 6740;
 /// The key: `1`, slot 0's hot-key group 1, empty before it.

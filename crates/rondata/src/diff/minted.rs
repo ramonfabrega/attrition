@@ -4752,3 +4752,247 @@ fn the_original_s_playback_of_the_unqueued_file_walks_in_lockstep() {
     let without = queue_effects_ours(&crate::script::city_gathered(), &UNQUEUE_READ_AT);
     assert_ne!(theirs[1..], without[1..], "the order's effect is visible");
 }
+
+/// The garrisoned file's gzip length (item 4273). Seen red first: pinned
+/// 0, it printed 59,620.
+const GARRISONED_RCX_BYTES: usize = 59_620;
+
+/// **The garrisoned script, minted** (item 4273, `docs/CLIENT_INPUT.md`
+/// §23): the hot-keyed file and one package more, the Citizen's `group`
+/// and `garrison` on [`crate::script::GARRISON_FRAME`]; it round-trips
+/// through the file, and every package before it is the hot-keyed file's,
+/// frame, slot and stamp. With `RON_RCX_OUT=<file>` it writes the `.rcx`
+/// the playback takes open.
+#[test]
+fn the_garrisoned_minted_packages_round_trip() {
+    use crate::script::{GARRISON_FRAME, garrisoned, hotkeyed};
+    let (Some(rec), Some(before)) = (minted(&garrisoned()), minted(&hotkeyed())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "garrisoned").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in garrisoned().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "GARRISONED tails {:?} against {:?}",
+        &ours[ours.len() - 3..],
+        &old[old.len() - 2..]
+    );
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 1, old[..m - 1].to_vec()));
+    assert_eq!((ours[n - 2].0, ours[n - 2].1), (GARRISON_FRAME, 0));
+    assert_eq!(
+        (ours[n - 1].0, ours[n - 1].2),
+        (old[m - 1].0, old[m - 1].2 + 1)
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "GARRISONED RCX {} bytes (the hot-keyed file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), HOTKEYED_RCX_BYTES, "the file run1610 played");
+    assert_eq!(gz.len(), GARRISONED_RCX_BYTES, "GARRISONED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The frames the garrison's effect is read on, on our walk's count (item
+/// 4273): the package's frame, the one after it, the frame the Citizen is
+/// first inside and the one before it, and the window's last record.
+const GARRISON_READ_AT: [i64; 5] = [6750, 6751, 6766, 6767, 6999];
+
+/// The garrisoned script, read off one frame: the Citizen
+/// [`crate::script::GARRISON_CITIZEN`]'s position, what it is inside
+/// (`inside_up`, −1 for nothing) and its order list by class, front first.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct GarrisonEffect {
+    pub frame: i64,
+    pub at: (i64, i64),
+    pub inside_up: i64,
+    pub orders: Vec<&'static str>,
+}
+
+/// The dump's order block names, as [`GarrisonEffect`] classes them.
+fn garrison_class(name: &str) -> &'static str {
+    match name {
+        "GARRISONORDER" => "garrison",
+        "MOVEORDER" => "move",
+        "GATHERORDER" => "gather",
+        _ => "other",
+    }
+}
+
+fn garrison_effect_ours(b: &Built) -> GarrisonEffect {
+    let s = &b.sim;
+    let u = &s.units[s.unit_by_o(0, crate::script::GARRISON_CITIZEN).unwrap()];
+    GarrisonEffect {
+        frame: s.frame,
+        at: (i64::from(u.pos.x), i64::from(u.pos.y)),
+        inside_up: u
+            .inside
+            .map_or(-1, |k| i64::from(s.buildings[k].index)),
+        orders: u
+            .orders
+            .iter()
+            .map(|o| match &o.body {
+                sim::orders::Body::Garrison { .. } => "garrison",
+                sim::orders::Body::Move(_) => "move",
+                sim::orders::Body::Gather(_) => "gather",
+                _ => "other",
+            })
+            .collect(),
+    }
+}
+
+/// Our walk under the pump on `orders`' file, read on `at`.
+fn garrison_effects_ours(orders: &[Order], at: &[i64]) -> Vec<GarrisonEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        ours.push(garrison_effect_ours(&built));
+    }
+    ours
+}
+
+/// The original's, off the take's records on `at`.
+fn garrison_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<GarrisonEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for &n in at {
+        let Some(i) = source.frames().iter().position(|f| f.number == n) else {
+            continue;
+        };
+        let f = source.frame_state(i).unwrap();
+        let u = f
+            .units
+            .iter()
+            .find(|u| u.who == 0 && u.o == i64::from(crate::script::GARRISON_CITIZEN))?;
+        theirs.push(GarrisonEffect {
+            frame: n,
+            at: (u.pos.x, u.pos.y),
+            inside_up: u.inside_up.unwrap_or(-1),
+            orders: u
+                .orders_front_first()
+                .map(|o| garrison_class(&o.kind))
+                .collect(),
+        });
+    }
+    Some(theirs)
+}
+
+/// **What the garrison does on our walk** (item 4273), on
+/// [`GARRISON_READ_AT`]; and without it, the hot-keyed file's walk.
+#[test]
+fn the_garrisoned_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::garrisoned()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = garrison_effects_ours(&crate::script::garrisoned(), &GARRISON_READ_AT);
+    let without = garrison_effects_ours(&crate::script::hotkeyed(), &GARRISON_READ_AT);
+    for (e, w) in ours.iter().zip(&without) {
+        eprintln!("GARRISON EFFECT ours {e:?} without {w:?}");
+    }
+    assert_eq!(ours, garrisoned_effects());
+    assert_ne!(ours[1..], without[1..], "the order moves the Citizen");
+}
+
+/// **The garrisoned script's effects** (item 4273), our walk's values
+/// pinned before the original's playback was read: the Citizen gathering
+/// at the farm on 6750; `move`, `garrison` in front of its gather from
+/// 6751, the frame after its package; still outside on 6766; inside the
+/// capital `0/2000` on 6767, its gather kept; and so on the window's last
+/// record. Seen red pinned empty.
+fn garrisoned_effects() -> Vec<GarrisonEffect> {
+    let row = |frame, at, inside_up, orders: &[&'static str]| GarrisonEffect {
+        frame,
+        at,
+        inside_up,
+        orders: orders.to_vec(),
+    };
+    const SENT: &[&str] = &["move", "garrison", "gather"];
+    vec![
+        row(6750, (3576, 29688), -1, &["gather"]),
+        row(6751, (3576, 29688), -1, SENT),
+        row(6766, OUTSIDE_6766, -1, SENT),
+        row(6767, (3456, 30048), 2000, &["gather"]),
+        row(6999, (3456, 30048), 2000, &["gather"]),
+    ]
+}
+
+/// The Citizen's last point outside, on 6766.
+const OUTSIDE_6766: (i64, i64) = (3456, 30048);
+
+/// **The original's playback of the garrisoned file** (item 4273), pinned
+/// before run1613 was read: `(take, trace, first sequence parting or the
+/// last frame, last frame, records compared, records parted)`.
+pub(crate) const GARRISONED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1613-greatlakes-playback-of-garrisoned-7000.txt",
+    "rontrace-run1613.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// **The original plays the garrisoned file in lockstep** (item 4273,
+/// `docs/CLIENT_INPUT.md` §23): the built start walked under the pump on
+/// the garrisoned file against run1613, every frame's draws against its
+/// trace and every record of its window whole ([`GARRISONED_WALKED`]),
+/// `inside_up` among the fields compared; and the Citizen on
+/// [`GARRISON_READ_AT`], read off the take's records, equal to ours.
+#[test]
+fn the_original_s_playback_of_the_garrisoned_file_walks_in_lockstep() {
+    let garrisoned = crate::script::garrisoned();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in GARRISONED_WALKED {
+        let Some((w, _)) = walk_minted(&garrisoned, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "GARRISONED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs =
+        garrison_effects_theirs(GARRISONED_WALKED[0].0, &GARRISON_READ_AT).expect("the take");
+    for t in &theirs {
+        eprintln!("GARRISON EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, GARRISONED_WALKED, "the walked table");
+    assert_eq!(theirs, garrisoned_effects(), "the original's Citizen is ours");
+}
+

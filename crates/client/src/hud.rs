@@ -369,6 +369,33 @@ pub fn rename_button(input: &Input, scene: &Scene, size: (i32, i32)) -> Option<R
     })
 }
 
+/// **The unit's garrison button** (item 4273, `docs/CLIENT_INPUT.md`
+/// §23): with a selection of units one of whose members may enter a
+/// building of its owner's ([`sim::observe::UnitScene::enters`]), one
+/// button, GARRISON (`OPTION_GARRISON`, `Options::exec@007188c0`'s
+/// `do_garrison`); otherwise none. Two rows above the bottom edge, at the
+/// right. Where it stands, its label, and when it shows are ours: the
+/// original's `UnitOut::make_options@00615fc0` offers it by the unit's
+/// type, a predicate not read.
+pub fn garrison_button(input: &Input, scene: &Scene, size: (i32, i32)) -> Option<Rect> {
+    if input.building || input.line.is_some() {
+        return None;
+    }
+    input
+        .selection
+        .iter()
+        .filter_map(|id| scene.units.iter().find(|u| u.id == *id))
+        .any(|u| u.owner == input.player && !u.enters.is_empty())
+        .then_some(())?;
+    let (w, h) = MARKET_BUTTON;
+    Some(Rect {
+        x: size.0 - (w + MARGIN),
+        y: size.1 - 2 * (MARGIN + h),
+        w,
+        h,
+    })
+}
+
 /// One of a unit's craft buttons (item 4264, `docs/CLIENT_INPUT.md` §18):
 /// the craft's row and where it stands.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -458,6 +485,11 @@ pub fn event(
                 rename_button(input, view.scene, size)
                     .filter(|r| r.contains(x, y))
                     .map(|_| Event::Rename)
+            })
+            .or_else(|| {
+                garrison_button(input, view.scene, size)
+                    .filter(|r| r.contains(x, y))
+                    .map(|_| Event::Garrison)
             }),
         _ => None,
     };
@@ -883,6 +915,12 @@ pub fn paint(
         p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
         let ty = r.y + (r.h - 7 * SCALE) / 2;
         p.text(r.x + 3 * SCALE, ty, "RENAME", SCALE, overlay::INK);
+    }
+    if let Some(r) = garrison_button(input, scene, size) {
+        p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
+        p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
+        let ty = r.y + (r.h - 7 * SCALE) / 2;
+        p.text(r.x + 3 * SCALE, ty, "GARRISON", SCALE, overlay::INK);
     }
     for b in menu(input, size) {
         let r = b.rect;
