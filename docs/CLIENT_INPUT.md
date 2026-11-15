@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day; §26 item 4280, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -900,7 +900,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `garrison` | 6 | 0.2 % | yes (§23) |
 | `buildmask` | 5 | 0.2 % | yes (§24) |
 | `cheat_ai_toggle` | 4 | 0.1 % | |
-| `come_out` | 4 | 0.1 % | |
+| `come_out` | 4 | 0.1 % | yes (§26) |
 | `stance` | 4 | 0.1 % | |
 | `disband` | 1 | 0.0 % | |
 | `unitmask` | 1 | 0.0 % | |
@@ -2433,3 +2433,121 @@ with `RON_BAY_SWEEPS_384`; seen red with `fwd` 117,982 → 117,000: 324 headings
   whole degree, because `whole_degrees` rounds the facing first.
 - Other games' Slinger stones move with the bays wherever the planar rows stood off them. The booking gate's corpus
   says whether any floor moved. This lane ran the five widening families and `minted::` (§25's journal).
+
+
+## 26. A garrisoned unit's icon: the come-out (item 4280)
+
+*Item 4280, 2026-11-15. The score: `INPUT_KINDS` 20 → 21 of 26, and 2,365 → 2,369 of 2,429 orders (97.4 % → 97.5 %).
+The six kinds left (§26.1) were listed first. `leader_options` cannot be minted from our lobby page. Of the three that
+tie at 4 orders, `come_out` is the one whose actor slot 0 of the minted game holds: the Citizen `0/2`, inside the
+capital `0/2000` from 6767 on the garrisoned and buildmasked walks (§23.4). The layer mints it from the building
+panel's icon for that unit. The came-out script mints 28 of 28, and the recorded come-outs 4 of 4. The walk gains
+the order's processor, which is a `command` door in `crates/sim`. The original plays the file (run1616, §26.4).*
+
+### 26.1 The six kinds left, and their issuers
+
+Every order of the six on disk, read off the recordings (a scratch test, not kept):
+
+| kind | orders | where | issuer | slot 0's actor |
+| --- | ---: | --- | --- | --- |
+| `leader_options` | 50 | every file's frame-0 package, one each | `Game::run@00584590` → `LeaderOptionOut::update@006f1a60` → `CommandManager::issue_leader_option`, from `MiscAccess::my_leader_option` | the seat itself; no unit |
+| `cheat_ai_toggle` | 4 | the bottle's, slot 0, on frames 6, 6, 101, 1507 | `ConsoleWin::run_cmd@007d6a70` case `0xc`, a cheat word | the console; no unit |
+| `come_out` | 4 | the 2017 sample's, slot 3, `o` 59, 114, 92, 110 | `Options::exec@007188c0` case `0xaa` → `UnitOut::issue_come_out@00607be0` | **yes**: the Citizen `0/2` inside `0/2000` |
+| `stance` | 4 | the 2017 sample's, slot 3, each `stance(−1)` on `2048` or a repeat of it | `GroupOut::issue_stance@0070b100`; no direct caller in the export | not read |
+| `disband` | 1 | the 2017 sample's, slot 3, `disband(0)` on `2008` | `IFaceSelected::on_button_clicked@00826e00`, `Options::do_disband@0071df20` → `GroupOut::issue_disband@0070a470` | not read |
+| `unitmask` | 1 | the 2017 sample's, slot 3, `unitmask(0x100, −1)` on `0` | `Options::do_auto_explore@0071cbf0`, `Options::exec`, `Console::execute_at_cursor` → `GroupOut::issue_unitmask@00708880` | the Scout `0/0` (not taken) |
+
+**`leader_options` is the profile's, not the lobby's.** `Game::init_rules_and_teams@00589bb0` resets
+`my_leader_option` (`who` −1, the staging sentinel; `peasants` 0, `buildings` 0, `peasants_wait` 2; mask bits 1 and
+3) and calls `LeaderOption::synch_with_prefs@006f1b50`. That copies `player_profile.prefs`' `peasants` and
+`buildings`. It then turns five prefs bits into mask bits: `0x4000` → bit 1, `0x80000` → bit 3, `0x100000` → bit 4,
+`0x8000` → bit 0, `0x800000` → bit 5. A set bit zeroes the word at `+0x18`, and a clear one sets it to 2 if it is
+zero. `peasants_wait` becomes 2 when the prefs' own is nonzero, and 0 otherwise. The recordings fit this:
+- The bottle's 49 carry `who` 0, mask `0x0a`, `+0x18` 2: prefs `0x4000` and `0x80000` set.
+- The 2017 sample's carries `who` 3, mask `0x2a`, `+0x18` 0: `0x800000` set too.
+
+Our lobby page holds what the `GAMEINFO` block prints, and nothing of the profile's. So it cannot mint the order as
+it stands. Every file of ours carries a recording's value, `lo[0]`. That value changes nothing in the original:
+`process_leader_options@009441d0` pushes onto units and buildings only the fields that differ from `init`'s. A minted
+value other than that one would need the sim to carry `process_leader_options`, the SEAM `Sim::build_stance` names.
+
+### 26.2 What the icon issues, and what the order does
+
+- **The icon.** `Options::exec@007188c0` case `0xaa` names a unit, from the button. `ObjectData::get_inside` gives its
+  container. If the container's vslot `0x18` answers 0, the container is not a unit but a building, and the arm calls
+  `UnitOut::issue_come_out(unit)` and plays `S_EJECT_ACK`. Otherwise it calls `do_eject_all(−1)`, which is not minted.
+- **The issuer.** `UnitOut::issue_come_out@00607be0`, under `check_accept_issue`, writes command `0x31` with the
+  unit's own `who` (`+9`), `o` (`+0xa`) and `uid` (`+0x30`): `0xb` bytes, **with no group**.
+- **What it does.** `CommandPackage::process_come_out@009465d0` takes `units[who][o]` when it is active and its `uid`
+  is the command's, and calls `Unit::action_come_out@005e20b0`. That closes the unit's orders as
+  `Group::action_return` does: `unit_masks &= ~0x4000000`, the path stack's length (`+0xc0`) to 0, `close_orders`,
+  `clear_partial_path`, `update_action`. It then calls `come_out(this, 0)`, which this crate has carried since
+  `docs/CITIES.md` §11 (`Sim::come_out`). A merchant arm comes in between: a unit of type index `0x34` or `0x35`
+  inside a plain building of its own owner's that `is(0x1a4)` sets the leader's `0x2000000` bit and passes its trade
+  route down its chain. That arm is not ported.
+
+### 26.3 What the layer does, and the counts
+
+- **The sim** (`crates/sim/src/units/come_out_order.rs`, **a `command` door in `crates/sim`**):
+  `Sim::process_come_out(who, o, uid)` and `Sim::action_come_out(u)`, read as above, the merchant arm a SEAM. The
+  order door forwards `process_come_out`. The scene gains `Scene::garrisons`, one `GarrisonScene` per squad captain
+  inside a living building: the building's `o`, and the unit's `who`, `o`, `uid` and type index, in store and chain
+  order. It is a read only.
+- **The walk** (`crates/rondata/src/input.rs`): `come_out` goes to `process_come_out` on the order's own `who` and `o`.
+  An order that names no live unit with that `uid` is a skip.
+- **The HUD** (`hud::come_out_menu`): with a building selection, one icon, `OUT <o>`, per unit of the slot's own inside
+  a selected building of its own (`input::garrisoned`), right to left, four rows above the bottom. A press on the
+  `k`th is `Event::ComeOut(k)`.
+- **The layer**: `Event::ComeOut(k)` with a building selection and the entry line closed mints `come_out(who, o,
+  uid)` of the `k`th unit. It mints nothing for a unit selection, for an icon past the last, or for another slot's
+  building. `come_out` is added to `MINTS`.
+- **The script** (`crates/rondata/src/script.rs`): `came_out()` is the buildmasked script and one package more, on
+  `COME_OUT_FRAME` 6780: `come_out(0, 2, COME_OUT_UID)`, the uid being 9.
+
+**Stage 0** (`minted_came_out_at_the_opening_camera`), on 6780 at the opening camera:
+- the capital stands at pixel (1127, 521);
+- inside it, one unit: `0/2`, uid 9, type index 50;
+- its icon's centre is (1822, 922).
+
+**The counts.**
+- `INPUT_CAME_OUT`: **28 of 28**. The events are the buildmasked ones, then two presses on 6780: the capital and the
+  Citizen's icon. Through the HUD and the layer they mint `script::came_out()`. Seen red pinned 27.
+- `INPUT_COME_OUTS`: **4 of 4** (seen red pinned (0, 0)), the package's orders whole without its camera. The command
+  names no building, so each is minted from a selection of one building of the slot's own holding the unit (ours),
+  and a press on its icon.
+- `minted_come_out_edges` checks these cases:
+  - one icon per unit of the slot's own inside;
+  - none for another slot's building or a unit selection;
+  - the second icon's order, carrying no group;
+  - nothing minted for an icon past the last, another slot's building, a unit selection, or with the entry line
+    open.
+- `INPUT_KINDS` (21, 26), `INPUT_KINDS_ORDERS` (2,369, 2,429); `NOT_MINTED` drops `come_out`.
+
+**The file.** `~/ron-golden/recordings/item4280-came-out-greatlakes-24000.rcx`, 59,649 bytes, SHA-256
+`563fc717098372a61d7add8b1db4c42d84cc3d945fefd100e15e7620b3e57fc0` (`the_came_out_minted_packages_round_trip`;
+seen red pinned 0). It holds the buildmasked file's packages, then the come-out's on 6780, stamped 29. The closing
+stamp goes from 29 to 30. The client's events through the HUD write it byte for byte.
+
+### 26.4 The playback, and the order's effect
+
+PLAYBACK
+
+### 26.5 Confidence, and what is not established
+
+- **One reading each**: the icon's arm, the issuer, `process_come_out` and `action_come_out`. The playback backs the
+  command's bytes and the Citizen's exit (§26.4).
+- **The merchant arm** of `action_come_out` is not ported (parked 4280a, the journal).
+- **The panel's icons.** Which garrisoned units the original's building panel lays out, in what order, and whether a
+  selection of several buildings shows them all, is read only as far as `Options::exec`'s arm.
+- **`do_eject_all`**, the arm for a unit inside a unit (a transport), is not minted.
+- **`leader_options`** (§26.1): our lobby page holds no profile prefs, and the sim does not carry
+  `process_leader_options`. A page row for the auto-manage prefs would mint the 50 through `synch_with_prefs`, but a
+  file carrying any other value than the recordings' needs that processor first (parked 4280b).
+- **`stance`'s issuer**: `GroupOut::issue_stance@0070b100` has no direct caller in the export. Its caller, and what
+  `stance(−1)` on a building does, are not read.
+
+**Ours, not the original's:**
+
+- where the icons stand, their label and their order;
+- the recorded come-outs' building, which their command does not name.
+
