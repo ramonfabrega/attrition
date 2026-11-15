@@ -253,6 +253,11 @@ impl Command<'_> {
         self.sim.process_buy(who, g, flags)
     }
 
+    /// [`Sim::process_rename_city`] (`cities/rename.rs`).
+    pub fn process_rename_city(&mut self, who: Player, o: i16, name: &str) -> bool {
+        self.sim.process_rename_city(who, o, name)
+    }
+
     /// [`Sim::group_action_city_gather`] (`cities/rally.rs`).
     pub fn group_action_city_gather(&mut self, buildings: &[usize], kind: i32) {
         self.sim.group_action_city_gather(buildings, kind)

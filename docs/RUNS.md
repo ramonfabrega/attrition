@@ -37588,6 +37588,36 @@ SHA-256 `8bbca43896196d4097fd70e949b4f447b83bac57d6d88d05387123e6b899ffc8`.
 
 **What it holds**: the city-gathered game's window with the leaders' buckets on every frame; a city's gather played.
 
+## run1609 — the original playing the file a city's name popup minted (2026-11-15, item 4268, `att-4268`)
+
+`docs/CLIENT_INPUT.md` §21.4. **What the disk could not answer**: whether the original plays a minted
+`rename_city`, and whether the capital's name after it is ours. The recordings carry ten, in two of the bottle's
+files. No take of the minted game prints a `CITY` record in its window, and run1607's could not tell the files apart.
+The file: `~/ron-golden/recordings/item4268-renamed-greatlakes-24000.rcx`, 59,591 bytes, SHA-256
+`3bea7e5cd23969ae34ba40d28b428abeb22384574c96aed7b70ecc40269067e4`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata the_renamed_minted_packages_round_trip`. It is the repeated file with `rename_city(0, 2000, "Attrition")` on
+6730.
+
+The take is run1607's line with this file, and `CITIES=5` added to the detail: `TMPDIR=<fresh> zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1609 --recording <the file> --end-frame
+7000 --cover cover=1 --log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2,CITIES=5 --timeout 1800
+--stall-seconds 120`, waited on with `waitrun.sh` in the background. `df -g ~` read 193 GB free before it.
+- **The run**: pool lane 1, launched 09:29:02 −05:00, exited 09:37:32: **510.4 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault, no relaunch. The receipt names the file's SHA-256. Minutes waited on another
+  lane: none.
+- **The built walk under the pump on the file** (`RENAMED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence; 300 records compared (6700..6999), none parted.
+- **The order's effect** (`renamed_effects_theirs`): slot 0's `CITY` record with `o` 2000 prints `Napata` on 6730 and
+  `Attrition` on 6731 and 6999; ours is `Attrition` from 6731. Pinned before the read.
+- Filed with `filerun.py run1609 greatlakes-playback-of-renamed-7000`.
+
+Archive `gamelog-run1609-greatlakes-playback-of-renamed-7000.txt`, 68,639,327 bytes,
+SHA-256 `ce9a554034544cc18ac241e112661fe361f49fdf4562e5bdff7824a970256322`; `rontrace-run1609.log`, 34,486,464 bytes,
+SHA-256 `82661936978f0e2d01880eec221f1b7d841924cbeed84d6be25a7c76711fe128`.
+
+**What it holds**: the renamed game's window with every city's record on every frame; a city's rename played.
+
 ## run1607 — the original playing the unqueued file with its repeated groups as no objects (2026-11-15, item 4267, `att-4267`)
 
 `docs/CLIENT_INPUT.md` §20.4. **What the disk could not answer**: whether the original plays a minted file whose

@@ -287,6 +287,11 @@ pub struct BuildingScene {
     /// (`IFaceSelected::on_button_clicked@00826e00`'s `OPTION_QUEUE`; item
     /// 4265). A read only.
     pub queued: usize,
+    /// **`BuildData +0x72 >= 0`**: it belongs to a city, the test
+    /// `Options::exec@007188c0`'s rename arm (option `0x117`) makes before
+    /// it opens the city's name for editing (item 4268,
+    /// `docs/CLIENT_INPUT.md` §21). A read only.
+    pub in_city: bool,
 }
 
 /// A farm's `FarmStruct`, as `FarmsOut::draw@008d75f0` reads it
@@ -578,6 +583,7 @@ impl Sim {
                 village: self.building_is_city(i),
                 uid: b.uid,
                 queued: b.queue.items.len(),
+                in_city: b.city.is_some(),
             })
             .collect();
         let projectiles = self

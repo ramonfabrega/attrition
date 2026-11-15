@@ -76,6 +76,13 @@ one row above the bottom edge so a city's row keeps its place
 no key sends. The place and the labels are ours. What it mints is
 `docs/CLIENT_INPUT.md` §19.
 
+**The rename button** (item 4268) is a tenth, drawn while the selection's
+first object is a finished building of the slot's own in a city
+(`BuildingScene::in_city`): one RENAME button, three rows above the bottom
+edge at the right (`hud::rename_button`). A press on it is `Event::Rename`,
+which opens the entry line as the city's name box; Return sends it. The
+place and the label are ours. What it mints is `docs/CLIENT_INPUT.md` §21.
+
 ## 2. The menu (item 4197)
 
 - **A button is a key's event and nothing else.** A press inside a
