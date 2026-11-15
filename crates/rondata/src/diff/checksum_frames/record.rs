@@ -414,7 +414,8 @@ fn probe_4266() {
                 for i in 0..ol.ranges.len().max(t.len()) {
                     let a = ol.ranges.get(i);
                     let b = t.get(i);
-                    if a.map(|r| &r.bytes) != b.map(|t| &t.2) && { shown += 1; shown <= 40 } {
+                    let whole = a.is_some_and(|r| r.record == o) && *name == "units";
+                    if whole || (a.map(|r| &r.bytes) != b.map(|t| &t.2) && { shown += 1; shown <= 12 }) {
                         eprintln!(
                             "PARTED {name} {i} rec {:?} {:?}\n  ours   {:?}\n  theirs {:?}",
                             a.map(|r| r.record),
