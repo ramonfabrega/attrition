@@ -1412,6 +1412,41 @@ fn an_age_snaps_the_leader_s_figures_and_a_plain_tech_does_not() {
 /// point into `last_x`/`last_y`, and `Guy::set_angle(…, 1)` writes
 /// `last_angle`. A unit walking on the age's tick ends it with `last` on
 /// its point rather than one step behind — run1591's six figures on 6537.
+/// **A trackless crew figure's `last_angle` is read after guy 0's turn**
+/// (item 4260). `Guy::process` runs `Guy::move` figure by figure, guy 0
+/// first; guy 0's standing turn (`turn_towards → Guy::do_turn@005d97a0`)
+/// writes every trackless crew figure's angle, and that figure's own head
+/// then copies it. Guy 0's own `last` is its facing before the turn.
+/// run1597's Caravan 1/14 on 10541: guys 1 and 2 `last_angle` 682461312
+/// ours, 968792448 theirs (its angle), guy 0 682461312 on both.
+///
+/// Made to fail with every figure's `last` written at the head.
+#[test]
+fn a_trackless_crew_figure_s_last_angle_follows_guy_0_s_turn() {
+    let mut sim = skirmish(4);
+    let u = sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(2, 0)), 100));
+    make_mobile(&mut sim, u, movement::Angle::NORTH);
+    sim.units[u].movement.heading = movement::Angle::EAST;
+    while sim.units[u].guys.len() < 3 {
+        sim.units[u].guys.push(crate::units::anim::Guy::fresh(-1));
+    }
+    assert!(sim.units[u].guys.iter().all(|g| g.follow.is_none()));
+    assert_eq!(sim.units[u].movement.body.pos, sim.units[u].pos, "standing");
+    sim.process_movement(u);
+    let turned = sim.units[u].movement.facing;
+    assert_ne!(turned, movement::Angle::NORTH, "guy 0 turned");
+    let lasts: Vec<_> = sim.units[u]
+        .guys
+        .iter()
+        .map(|g| g.last.map(|l| l.1))
+        .collect();
+    assert_eq!(
+        lasts,
+        vec![Some(movement::Angle::NORTH), Some(turned), Some(turned)],
+        "guy 0 before its turn, the crew after it"
+    );
+}
+
 #[test]
 fn an_age_writes_each_figure_s_last_on_its_point() {
     use crate::tech::{TechTree, TypeDef};
