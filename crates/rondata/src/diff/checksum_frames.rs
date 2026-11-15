@@ -293,6 +293,15 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// ranges 570/571 and guys 160/161, the Caravan 1/14 (TI 59, land),
 /// guys 1 and 2 `last_angle` ours 682461312, theirs 968792448 (guy 0
 /// 682461312 on both) → 968792448 on both, both lines whole there.
+///
+/// Item 4263 moved two on run1578: units 11884 → 12537 and guys 11884 →
+/// whole on all 24,000, one rule, `Unit::set_type@00612fa0`'s seating
+/// (`Guy::set_new_location(guy i, x, y, 1)`) writing each figure's `last`
+/// on its point. Value diff on 11884 (run1597's record): units ranges
+/// 1570/1595/1618 and guys 463/470/477, the Hoplites 1/56..1/58 (TI 132,
+/// land) upgraded to Phalanx (TI 133) on a frame they walked; record 56's
+/// `last_x`/`last_y` ours (38275, 21337), theirs (38297, 21325), its own
+/// point → (38297, 21325) on both, both lines whole there.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -314,10 +323,10 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 11884, 0),
+            ("units", 12537, 0),
             ("builds", 14312, 0),
             ("groups", 24000, 0),
-            ("guys", 11884, 0),
+            ("guys", 24000, 0),
             ("leaders", 0, 300),
             ("cities", 24000, 0),
             ("items", 24000, 0),

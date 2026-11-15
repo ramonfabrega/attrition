@@ -268,29 +268,36 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     ),
     (
         11884,
-        // Item 4260's next units and guys word: record 56's figure
-        // `last_x`/`last_y`, ours a point behind its own.
+        // Item 4263 took units and guys here: the Hoplites `1/56..1/58`
+        // (TI 132) upgraded to Phalanx on a frame they walked, record 56's
+        // `last_x`/`last_y` 38275|38297, 21337|21325 (`Unit::set_type`'s
+        // seating writes `last` on the point); whole since.
+        &[(
+            "leaders",
+            271,
+            271,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|54010000",
+        )],
+    ),
+    (
+        12537,
+        // Item 4263's next units word: record 62's guy list, 4 figures
+        // theirs, 1 ours (14312's row, met earlier).
         &[
             (
                 "units",
-                2459,
-                2459,
-                3,
-                "1570 56 guy: last_x 38275|38297, last_y 21337|21325",
-            ),
-            (
-                "guys",
-                776,
-                776,
-                3,
-                "463 56 guy: last_x 38275|38297, last_y 21337|21325",
+                2405,
+                2396,
+                784,
+                "1539 62 guys.length: +0x0 of 4|1: 01000000|04",
             ),
             (
                 "leaders",
                 271,
                 271,
-                3,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|54010000",
+                2,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|5a010000",
             ),
         ],
     ),
