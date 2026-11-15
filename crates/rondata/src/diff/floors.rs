@@ -500,13 +500,13 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// and its domain-filtered form to `ai/army/muster.rs`, beside their new
 /// caller (3738 → 3698), and `movement/collide.rs` at 3709 is now the largest.
 #[cfg(test)]
+// Item 4159r12: `largest` 3,709 -> 3,715, the CEO step test.
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
     ("sweep-lines", 17_286),
     ("names", 15),
     ("fields", 21),
-    // Item 4159r12: 3,709 -> 3,715, the CEO step test.
     ("largest", 3_715),
 ];
 

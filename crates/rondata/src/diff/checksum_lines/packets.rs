@@ -4756,7 +4756,9 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1166",
-        "collected encrypt.bucket[0] encrypt.bucket[1] encrypt.leftover[0] escrow explored flags.leader_flags reg_unpack_merch resources_controlled",
+        // Item 4159's twelfth residue: `collected`, `encrypt.bucket[0]`, `[1]`, `encrypt.leftover[0]`
+        // and `escrow` agree, the CEO's tile step having dirtied the economy on theirs' frame.
+        "explored flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1169",

@@ -4703,6 +4703,12 @@ twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
   `Unit::close` do, so a population-0 Barge's upgrade moves no count; no
   capture sets a population-0 type of the Fighter Bomber's line, so the
   arm's yes is unread. `score` still parts in nine tests.
+- **The CEO's step** (item 4159's twelfth residue): `Unit::update_ceo_position`'s
+  tile-crossing arm is built (`docs/ECONOMY.md`), and the two Russian
+  windows' economies agree. Its `go_inside`, `come_out`, `init` and
+  `set_type` arms are unbuilt. `score` still parts in seven tests: run1184 (the
+  Porcelain Tower's rare pass, unmodelled), the Mongol windows (parted
+  before their first block), run1013, run1014 and ch77.
 
 ## 19. The last building and unit finished
 
