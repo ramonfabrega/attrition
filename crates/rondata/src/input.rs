@@ -1639,6 +1639,18 @@ impl Stream {
                 // order's, and staging cheats are outside the simulation.
                 done.skip(&it.cmd, "a cheat line, not an order");
             }
+            // **A garrisoned unit's own order to leave** (item 4280,
+            // `docs/CLIENT_INPUT.md` §26): `process_come_out@009465d0` on
+            // `units[who][o]` when its `uid` is the order's. No group.
+            Command::ComeOut { who, o, uid } => {
+                let done_it = match (sim::Player::try_from(*who), i16::try_from(*o)) {
+                    (Ok(who), Ok(o)) => built.sim.command().process_come_out(who, o, *uid as u16),
+                    _ => false,
+                };
+                if !done_it {
+                    done.skip(&it.cmd, "no live unit of that number and uid");
+                }
+            }
             // **A city's name** (item 4268, `docs/CLIENT_INPUT.md` §21):
             // `process_rename_city@00944090` on the order's own `who`, the
             // console's, and the building's `o`.

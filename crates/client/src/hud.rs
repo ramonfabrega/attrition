@@ -423,6 +423,34 @@ pub fn infinite_button(input: &Input, scene: &Scene, size: (i32, i32)) -> Option
     })
 }
 
+/// **The building panel's garrisoned units** (item 4280,
+/// `docs/CLIENT_INPUT.md` §26): with a building selection, one icon per
+/// unit of the slot's own inside a selected building of its own
+/// ([`crate::input::garrisoned`]), right to left from the right edge, four
+/// rows above the bottom; otherwise none. A press on the `k`th is
+/// [`Event::ComeOut`]`(k)`. Where the icons stand and their labels are
+/// ours.
+pub fn come_out_menu(input: &Input, scene: &Scene, size: (i32, i32)) -> Vec<(usize, Rect)> {
+    if !input.building || input.line.is_some() {
+        return Vec::new();
+    }
+    let n = crate::input::garrisoned(scene, input.player, &input.selection).len();
+    let (w, h) = MARKET_BUTTON;
+    (0..n)
+        .map(|k| {
+            (
+                k,
+                Rect {
+                    x: size.0 - (k as i32 + 1) * (w + MARGIN),
+                    y: size.1 - 4 * (MARGIN + h),
+                    w,
+                    h,
+                },
+            )
+        })
+        .collect()
+}
+
 /// One of a unit's craft buttons (item 4264, `docs/CLIENT_INPUT.md` §18):
 /// the craft's row and where it stands.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -522,6 +550,12 @@ pub fn event(
                 infinite_button(input, view.scene, size)
                     .filter(|r| r.contains(x, y))
                     .map(|_| Event::Infinite)
+            })
+            .or_else(|| {
+                come_out_menu(input, view.scene, size)
+                    .into_iter()
+                    .find(|(_, r)| r.contains(x, y))
+                    .map(|(k, _)| Event::ComeOut(k))
             }),
         _ => None,
     };
@@ -959,6 +993,14 @@ pub fn paint(
         p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
         let ty = r.y + (r.h - 7 * SCALE) / 2;
         p.text(r.x + 3 * SCALE, ty, "INFINITE", SCALE, overlay::INK);
+    }
+    let inside = crate::input::garrisoned(scene, input.player, &input.selection);
+    for (k, r) in come_out_menu(input, scene, size) {
+        p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
+        p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
+        let ty = r.y + (r.h - 7 * SCALE) / 2;
+        let label = format!("OUT {}", inside[k].o);
+        p.text(r.x + 3 * SCALE, ty, &label, SCALE, overlay::INK);
     }
     for b in menu(input, size) {
         let r = b.rect;

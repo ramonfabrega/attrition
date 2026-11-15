@@ -808,6 +808,33 @@ pub fn buildmasked() -> Vec<Order> {
     orders
 }
 
+/// **The garrisoned Citizen called out** (item 4280,
+/// `docs/CLIENT_INPUT.md` §26): [`buildmasked`], and on
+/// [`COME_OUT_FRAME`] a press on the capital and then on the icon of
+/// [`GARRISON_CITIZEN`] inside it, which `Options::exec@007188c0` case
+/// `0xaa` sends as `UnitOut::issue_come_out@00607be0`: `come_out(0,
+/// GARRISON_CITIZEN, COME_OUT_UID)`, with no group.
+pub fn came_out() -> Vec<Order> {
+    let mut orders = buildmasked();
+    orders.push((
+        COME_OUT_FRAME,
+        0,
+        vec![Command::ComeOut {
+            who: 0,
+            o: i32::from(GARRISON_CITIZEN),
+            uid: COME_OUT_UID,
+        }],
+    ));
+    orders
+}
+
+/// The frame of the come-out, after the Citizen is inside the capital
+/// (6767, `docs/CLIENT_INPUT.md` §23.4).
+pub const COME_OUT_FRAME: i32 = 6780;
+/// [`GARRISON_CITIZEN`]'s `uid` (`+0x30`) on [`COME_OUT_FRAME`], read on
+/// the walk (the client's `minted_came_out_at_the_opening_camera`).
+pub const COME_OUT_UID: i16 = 9;
+
 /// The frame the capital's Citizen is queued on, ten after
 /// [`GARRISON_FRAME`].
 pub const BUILDMASK_TRAIN_FRAME: i32 = 6760;

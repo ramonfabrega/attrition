@@ -258,6 +258,11 @@ impl Command<'_> {
         self.sim.process_hotkey(who, k)
     }
 
+    /// [`Sim::process_come_out`] (`units/come_out_order.rs`).
+    pub fn process_come_out(&mut self, who: Player, o: i16, uid: u16) -> bool {
+        self.sim.process_come_out(who, o, uid)
+    }
+
     /// [`Sim::process_rename_city`] (`cities/rename.rs`).
     pub fn process_rename_city(&mut self, who: Player, o: i16, name: &str) -> bool {
         self.sim.process_rename_city(who, o, name)

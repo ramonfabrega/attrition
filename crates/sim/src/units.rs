@@ -2,6 +2,7 @@
 
 pub mod add_to_world_view;
 pub mod anim;
+pub mod come_out_order;
 pub mod come_out_view;
 pub mod count_inside_view;
 pub mod disband;
