@@ -1618,7 +1618,8 @@ fn the_trebuchet_the_india_crossbowmen_the_strategic_bomber_and_the_catapult_lea
 /// **Item 4159r5's rows agree with the original at every heading**:
 /// `$RON_BAY_SWEEPS_4159R5` is the directory holding
 /// `sweep-<piece>-<node>-<anim>-<time>.txt` (`deg r x y z …` at every whole
-/// degree 0..=360) for the 43 plain pieces and the Armed Supply Wagon,
+/// degree 0..=360) for the 43 plain pieces, the Armed Supply Wagon and the
+/// pivot pieces' events past their restriction count,
 /// outside git (`~/ron-data/lab-experiments/2026-11-15-item-4159r5/sweeps/`),
 /// written by `init_position` and then `get_position` on run1579's packet.
 /// Every file is read and each key is looked up the way [`launch_point`]
@@ -1679,10 +1680,49 @@ fn the_original_s_release_agrees_at_every_heading_for_item_4159r5() {
         }
         files += 1;
     }
-    // 43 pieces' 120 distinct keys, and the Armed Supply Wagon's four.
-    assert_eq!(files, 124, "{dir}");
-    assert_eq!(rows, 124 * 361, "{dir}");
+    // 43 pieces' 120 distinct keys, the Armed Supply Wagon's four, and the
+    // pivot pieces' nine past their restriction count (207, 232, 234).
+    assert_eq!(files, 133, "{dir}");
+    assert_eq!(rows, 133 * 361, "{dir}");
     assert!(off.is_empty(), "{} headings disagree: {:?}", off.len(), &off[..off.len().min(20)]);
+}
+
+/// **The pivot pieces' keys the widened suite fired from the figure's
+/// square now have their rows** (item 4159r5): the node-0 events of the
+/// BMP (173), the Flak Gun (232), the American Carbineer (844), the Rifle
+/// Horse (158) and the India Dragoon (1899) in `pivot::RELEASES` (the last
+/// two through piece 139's), and the T80DES's node-1 events, past its one
+/// restriction, in [`BAYS`]. Red on the tree before the rows. The Royal
+/// Mameluke's (148) and the Arab Armored Car's (520) are `CHAR_ATTACKWALK`
+/// keys no packet on disk can serve and stay unrowed.
+#[test]
+fn the_pivot_pieces_the_widened_suite_fired_from_the_figure_s_square_have_their_rows() {
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+    for (p, a, t) in [
+        (158, ATTACK1, 12),
+        (158, ATTACK2, 13),
+        (158, ATTACK3, 18),
+        (1899, ATTACK1, 12),
+        (1899, ATTACK2, 13),
+        (1899, ATTACK3, 18),
+        (173, ATTACKWALK, 4),
+        (173, ATTACKWALK, 19),
+        (232, ATTACK1, 12),
+        (232, ATTACK2, 4),
+        (232, ATTACK3, 13),
+        (844, ATTACK3, 18),
+    ] {
+        let r = crate::data::pivot::release_node(p, a, t, 0)
+            .unwrap_or_else(|| panic!("piece {p} a{a} t{t}"));
+        assert_eq!(r.node, 0, "piece {p} a{a} t{t}");
+    }
+    for (a, t) in [(ATTACK2, 1), (ATTACK2, 7), (ATTACK3, 1), (ATTACK3, 7)] {
+        assert!(
+            crate::data::pivot::release_node(207, a, t, 1).is_none(),
+            "a{a} t{t}: the non-pivot arm"
+        );
+        assert!(bay(207, a, t, 1).is_some(), "207 a{a} t{t}");
+    }
 }
 
 /// **The default Fusiliers' piece 86 leaves from piece 790's bays** (item

@@ -6652,6 +6652,104 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 170,
         },
     ),
+    // **The pivot pieces' events past their restriction count** (item
+    // 4159r5): a node no restriction governs takes `get_position`'s
+    // non-pivot arm, so its point is a `BAYS` row like any other. Piece
+    // 207, the T80DES (four node-1 events, run1579's packet, `RData +0x88`
+    // 0.75), 232, the Flak Gun (four, read off run1164's packet, which holds
+    // its seventeen rows; run1579 lacks its `CHAR_ATTACKWALK` and stops in
+    // `ModManager::prepend_content_dir`), and 234, the Avenger (one,
+    // run1579). Each `fit_bay.py` sweep 361 of 361; the centroid is kept.
+    (
+        207,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: 15_112,
+            fwd: 148_429,
+            dz: 130,
+        },
+    ),
+    (
+        207,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 15_129,
+            fwd: 149_061,
+            dz: 126,
+        },
+    ),
+    (
+        207,
+        crate::units::anim::ATTACK3,
+        1,
+        Bay {
+            right: 15_112,
+            fwd: 148_429,
+            dz: 130,
+        },
+    ),
+    (
+        207,
+        crate::units::anim::ATTACK3,
+        7,
+        Bay {
+            right: 23_807,
+            fwd: 147_942,
+            dz: 126,
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACKWALK,
+        14,
+        Bay {
+            right: -26_034,
+            fwd: -116_044,
+            dz: 180,
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACK1,
+        14,
+        Bay {
+            right: -26_034,
+            fwd: -116_044,
+            dz: 180,
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: -21_206,
+            fwd: -111_768,
+            dz: 172,
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACK3,
+        17,
+        Bay {
+            right: -4_043,
+            fwd: -111_887,
+            dz: 177,
+        },
+    ),
+    (
+        234,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: 65_333,
+            fwd: -25_391,
+            dz: 173,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
