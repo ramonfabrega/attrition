@@ -5032,7 +5032,8 @@ pub(crate) mod tests {
     /// infinite-queue button.
     fn buildmask_events() -> Vec<Scripted> {
         let mut e = garrison_events();
-        let ((cx, cy), (tx, ty), (ix, iy)) = (BUILDMASK_CAPITAL_AT, BUILDMASK_TRAIN_AT, INFINITE_AT);
+        let ((cx, cy), (tx, ty), (ix, iy)) =
+            (BUILDMASK_CAPITAL_AT, BUILDMASK_TRAIN_AT, INFINITE_AT);
         let (f, g) = (script::BUILDMASK_TRAIN_FRAME, script::BUILDMASK_FRAME);
         e.extend([
             (f, None, Event::Press { x: cx, y: cy }),
@@ -5085,7 +5086,8 @@ pub(crate) mod tests {
                 .into_iter()
                 .find(|m| m.ty == script::CITIZEN)
                 .map(|m| m.rect.centre());
-            let infinite = crate::hud::infinite_button(&input, &scene, HUD_SIZE).map(|r| r.centre());
+            let infinite =
+                crate::hud::infinite_button(&input, &scene, HUD_SIZE).map(|r| r.centre());
             println!(
                 "BUILDMASK STAGE0 f{} capital pixel {:?} active {} trains {} queued {} train {train:?} infinite {infinite:?}",
                 r.frame(),
@@ -5107,7 +5109,11 @@ pub(crate) mod tests {
             return;
         };
         let buildmasked = script::buildmasked();
-        let whole = ours.iter().zip(&buildmasked).filter(|(a, b)| a == b).count();
+        let whole = ours
+            .iter()
+            .zip(&buildmasked)
+            .filter(|(a, b)| a == b)
+            .count();
         assert_eq!(
             (ours.len(), whole),
             (buildmasked.len(), INPUT_BUILDMASKED),
@@ -5132,8 +5138,7 @@ pub(crate) mod tests {
     /// The buildmasked file (`docs/CLIENT_INPUT.md` §24), written by
     /// rondata's `the_buildmasked_minted_packages_round_trip` under
     /// `RON_RCX_OUT`; the file run1614 takes open.
-    const BUILDMASKED_RCX: &str =
-        "ron-golden/recordings/item4276-buildmasked-greatlakes-24000.rcx";
+    const BUILDMASKED_RCX: &str = "ron-golden/recordings/item4276-buildmasked-greatlakes-24000.rcx";
     const BUILDMASKED_RCX_BYTES: usize = 59_637;
 
     /// **`INPUT_BUILDMASKS`** (item 4276): of the buildmasks the recordings
@@ -5232,8 +5237,14 @@ pub(crate) mod tests {
         };
         let button = |input: &Input| crate::hud::infinite_button(input, &scene, HUD_SIZE);
         assert!(button(&sel(&[2000], true)).is_some());
-        assert!(button(&sel(&[2001], true)).is_none(), "no training building");
-        assert!(button(&sel(&[2001, 2002], true)).is_some(), "one of them trains");
+        assert!(
+            button(&sel(&[2001], true)).is_none(),
+            "no training building"
+        );
+        assert!(
+            button(&sel(&[2001, 2002], true)).is_some(),
+            "one of them trains"
+        );
         assert!(button(&sel(&[3], false)).is_none(), "a unit selection");
         let mut other = sel(&[2000], true);
         other.player = 1;

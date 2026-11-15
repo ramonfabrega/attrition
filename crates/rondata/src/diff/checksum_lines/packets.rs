@@ -890,7 +890,8 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
         3294,
         "run1559b's take with `early_autumn`'s tint zeroed (item 4272): a renderer's \
          packet beside its photograph; no word walks it",
-    ),    (
+    ),
+    (
         "run1608",
         2553,
         "run1075's line with a packet at 2553 (item 4159's eighth residue): read by \

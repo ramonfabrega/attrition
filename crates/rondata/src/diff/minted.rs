@@ -5183,15 +5183,20 @@ fn buildmasked_effects() -> Vec<BuildmaskEffect> {
 
 /// **The original's playback of the buildmasked file** (item 4276):
 /// `(take, trace, first sequence parting or the last frame, last frame,
-/// records compared, records parted)`. Pinned before the take was read
-/// with the garrisoned file's parting.
+/// records compared, records parted)`. Pinned before run1614 was read
+/// with the garrisoned file's 33 parted; the take parts 127 of 300, from
+/// 6871, every one on the Scout `1/0`'s `damage` and `damage_frame`
+/// alone: the Slinger `0/7`'s stone, loosed on 6863 on both sides, lands
+/// on 6870 in the original and 6871 on ours (4273a), and the blows after
+/// it drift (theirs 6900 and 6930, ours 6871 and 6920). The draws agree
+/// on every frame.
 pub(crate) const BUILDMASKED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
     "gamelog-run1614-greatlakes-playback-of-buildmasked-7000.txt",
     "rontrace-run1614.log",
     7000,
     7000,
     300,
-    33,
+    127,
 )];
 
 /// **The original plays the buildmasked file in lockstep** (item 4276,

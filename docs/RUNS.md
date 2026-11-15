@@ -37810,3 +37810,34 @@ the crate did not (parked 4159r7a); no packet of run1075 near 2553 was on disk. 
   is not the goal; the crate re-pushed only on an empty stack and walked the stale `ATTACK_TO` final. `find_attack_pos`'s
   spot agrees. Not filed into the dump archive with `filerun.py`: the packet is the product.
 
+
+## run1614 — the original playing the file an infinite-queue button minted (2026-11-15, item 4276, `att-4276`)
+
+`docs/CLIENT_INPUT.md` §24.4. **What the disk could not answer**: whether the original plays a minted `buildmask`,
+and whether the capital takes the infinite queue's bit and re-queues when ours does. The recordings carry five
+buildmasks, all slot 3's in the 2017 sample, none on the minted game. The file:
+`~/ron-golden/recordings/item4276-buildmasked-greatlakes-24000.rcx`, 59,637 bytes, SHA-256
+`5e5166341d5c4d503d0ff18cee38e123a95a40a4d35b9fe838abc8c7ceea1ecb`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata -- buildmasked_minted`. It is the garrisoned file with the capital's group and `queue_up(50, 1)` on 6760, and
+the repeated group and `buildmask(64, 1)` on 6762.
+
+The take is run1613's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1614 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --timeout 1800 --stall-seconds 120`, waited on
+with `waitrun.sh` in the background. `df -g ~` read 164 GB free before it.
+- **The run**: pool lane 1, launched 12:34:45 −05:00, exited 12:43:09: **504.3 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault, no relaunch. The receipt names the file's SHA-256. Minutes waited on another
+  lane: none.
+- **The built walk under the pump on the file** (`BUILDMASKED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence. 300 records compared (6700..6999); **127 part, from 6871**, every one on the Scout `1/0`'s `damage` and
+  `damage_frame` alone: the Slinger `0/7`'s stone lands on 6870 in the original and 6871 on ours, and the blows after
+  it drift (theirs 6900 and 6930, ours 6871 and 6920). Pinned 33 before the read; 4273a.
+- **The order's effect** (`buildmask_effects_theirs`): the capital on 6760, 6762, 6763 and 6999. The bit is clear,
+  then clear with the Citizen at job 200, then **set** with job 300 on 6763, then set with the re-queued Citizen at
+  job 1900 on 6999. Ours the same on every frame, pinned before the read.
+- Filed with `filerun.py run1614 greatlakes-playback-of-buildmasked-7000`.
+
+Archive `gamelog-run1614-greatlakes-playback-of-buildmasked-7000.txt`, 68,008,387 bytes,
+SHA-256 `750415e49d1a2a302a9171bdeb30112fb5f3a4c8bb381441995714d1044dae10`; `rontrace-run1614.log`, 34,299,040 bytes,
+SHA-256 `0872d00be60a046f3e5b7d9a7045a086a405c0b2341300cbe22535a99158cef4`.
