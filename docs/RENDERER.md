@@ -3116,7 +3116,9 @@ On the photographs alone: the rows.
   land is (`ENABLE_LIGHTING`, `ENABLE_VERTEX_COLOR_DIFFUSE`, `NORMAL_MAP SPEC_MAP GLOSS_MAP`), the ring also
   `TRANSFORM_SCREEN_SPACE` (unread); a third, `t_mountainpeak` on both stages under `TL_FAKE_LIGHT`, §3.10 never
   named (parked 4269b). No card stream holds the range's mesh: it is a static buffer.
-- The `_mtrl` normal, specular and gloss maps on the mountain's draws (parked 4269a), and the body's hue (4269c).
+- The `_mtrl` normal, specular and gloss maps on the mountain's draws (parked 4269a). The body's hue (4269c) is read
+  below, "The mountain's hue (item 4271)": the stage op and the texture's tint are the original's, and what takes
+  the tint's share off the photograph's stage colour is not established (parked 4271a).
 - `vs_global.hlsl`'s per-pixel normal against the interpolated N·L the client takes, and the
   vertex colour taken from that N·L rather than interpolated.
 - ~~The trees' and the roads' `TL_FAKE_LIGHT` stage colours against each other (parked 4217a).~~ Answered by
@@ -3152,6 +3154,30 @@ stays yellower than theirs. Theirs is grey-brown, with a dark blue-grey crest an
 *Coverage:* diff-backed: the vertex colour (238 of 238 white), the heights and the normals against the packet. On a
 reading: the slot's face order and `TerrainOut`'s base offset (they are what the packet's bytes decode under). On the
 photograph alone: the row.
+
+**The mountain's hue (item 4271).** *2026-11-15, Opus 5.5. Read on run1559b's packet and photograph; no code moved.*
+The body is ours (171.1, 164.7, 89.1), theirs (148.6, 140.8, 87.4): red and green 15–17 % high and blue 2 %. Through
+the lit branch's power and the curve, that is a stage colour about (18, 16, 1) bytes high, **the tileset's tint to the
+byte** (`early_autumn` (18, 18, 0), §3.21). What was read:
+- *The stage op is the original's.* The install's `shader_texture_data.h` runs ADDSIGNED as `arg1 + arg2 − 0.5`
+  on `tex1 · vDiff`, then `saturate`, as `fs_mountain` does.
+- *The texture is tinted in the original.* `load_tga@00512ac0`'s listing (`512d48`–`512d5e`) tints each row in place
+  on the pointer `Texture::get_data` hands back, before `release_data` and `post_load`. On the packet,
+  `cur_tileset->mountain_base` (`+0x81c`) carries `tint_color` `0xff001212` and `use_tint` 1. Its device record's
+  pixels are the file's plus (18, 18, 0) on the twelve texels checked in each of three rows, and so are
+`mountain_alpha`'s. A raw
+  level 0 of each also sits in the heap, at `0x2d1f0000` beside a tinted twin at `0x2d230000` (`t_mountain_plain`),
+  and nothing owns it.
+- *Untinted, ours would fit*: with the two textures loaded without the tint (a probe, not kept), under a mountain
+  70 → **94** of 106, the body Y 133.6 against 137.3 (ratio 0.986, 8 paler and 4 darker); the grass 954 → 947
+  through the frame's white.
+
+So the tint is the original's by the reading and by the packet, and dropping it is a fit with no mechanism: **not
+drawn**. Whether the card ever samples the tinted bytes (an upload taken from the raw slab, or a mip chain built from
+it) is not established (parked 4271a). A photograph with the tint zeroed would settle it: if the range does not move,
+the tint never reaches the card.
+*Coverage:* on the packet: the tint on the device's copy. On a reading: the loop's order (the listing), the shader's
+op (the install's HLSL). On the photograph alone: the row.
 
 ## 3.23 The trees' own light (item 4221)
 
