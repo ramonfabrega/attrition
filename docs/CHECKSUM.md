@@ -2402,7 +2402,7 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 |---|---|---|---|---|
 | units | 11884 | 1006472543 | 183733389 | 0 |
 | builds | 14312 | 2824218853 | 224732903 | 0 |
-| groups | 9810 | 793472871 | 2931519338 | 0 |
+| groups | whole, 24,000 | | | 0 |
 | guys | 11884 | 3345695618 | 3215934128 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
 | cities | whole, 24,000 | | | 0 |
@@ -2721,7 +2721,7 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 | 7273 | units | 1,692, 1,692, 1 | 891 30 guy: `angle` and `last_angle` 1431655765, 0; whole since item 4253 (the scholar's seating `set_angle(0, _, 1)`) |
 | 7273 | guys | 560, 560, 1 | 279 30 guy: `angle` and `last_angle` 1431655765, 0; whole since item 4253 |
 | 8206 | groups | 544, 544, 1 | 91 67 `id..march`: `ox` 30552, 0; `oy` 21144, 0; whole since item 4255 |
-| 9810 | groups | 550, 550, 1 | 76 64 `id..march`: `role` 1379328 (0x150c00), 1379331 (0x150c03) |
+| 9810 | groups | 550, 550, 1 | 76 64 `id..march`: `role` 1379328 (0x150c00), 1379331 (0x150c03); whole since item 4258, and the line whole on all 24,000 |
 | 8281 | units | 1,909, 1,909, 2 | 842 30 `myhits..launch_frames`: `inside_down` −1, 42 (the University 1/2018's chain; builds 856 2018 `inside_down` 42, 30); whole since item 4257, both lines |
 | 10541 | units, guys | 2,549 and 776, 2 each | 570/571 and 160/161 14 guy: the Caravan 1/14's crew (guys 1, 2) `last_angle` 682461312, 968792448; whole since item 4260 |
 | 11884 | units, guys | 2,459 and 776, 3 each | 1570 and 463 56 guy: `last_x` 38275, 38297; `last_y` 21337, 21325 |
@@ -2736,8 +2736,15 @@ and builds next parts on 14312. **Item 4255 moved groups 8206 → 9810** (`CHECK
 acted. `Group::equals_group@00708000` calls vslot `+0x4` (`Group::get_num`) on `last_group`'s record after its
 `normalize`, and `get_num`'s empty arm zeroes `ox`/`oy`. The crate normalized the slot and never called it
 (`docs/GROUPS.md` §36.2). After the fix it is 0/0 on both sides, and groups is whole on the record at 8206 and 8281.
-The next first parting is 9810: army 1/1's record (64). Both sides list the same 21 members, and only `role` parts,
-by the low bits 0x3. Unit 30 is not a member.
+The next first parting was 9810: army 1/1's record (64). Both sides list the same 21 members, and only `role` parts,
+by the low bits 0x3. Unit 30 is not a member. **Item 4258 made groups whole on all 24,000.** Theirs' record 64 reads
+18 members and `role` 0x150c00 on 9809, and 21 members, `role` 0x150c03 and speed 25 on 9810. The three that joined
+are the Hoplites `1/56..1/58` (TI 132, land; read off the record's `type` range), whose role adds hoplite and melee (0x3). **The direction**: the original acted.
+`Group::add@00714350`'s in-use arm ORs each member's type `role` (`UnitType +0x2c8`) into the record's `+0x34` as
+it lists it. On 18 members `get_num` does not normalize, so `find_role` never ran there. The crate's `seat_add`
+did not OR the role (`docs/GROUPS.md` §3.4). After the fix both sides read 0x150c03. The same OR takes one
+groups range off each of three Step P packets: run1294 record 80, `role` 0x150d00 against 0x155d00; run1320b
+record 66, 0x150c00 against 0x150c0c; run865 record 68, 0x92400 against 0x92410.
 
 Measured on the tree after item 4243,
 which made units whole on 6907 (run1593). Before it the record's 6907 showed what 4243's packet showed: units nine

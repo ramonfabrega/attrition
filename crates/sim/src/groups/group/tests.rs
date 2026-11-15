@@ -1288,6 +1288,46 @@ fn a_push_zeroes_the_origin_of_an_emptied_last_slot() {
     );
 }
 
+/// **`Group::add` ORs its new member's role** (item 4258, `docs/GROUPS.md`
+/// §3.4): the in-use arm of `Group::add@00714350` ORs the member's type
+/// `role` into `+0x34` as it lists it, with no `find_role` — so a seated
+/// group of four or more, whose `get_num` does not normalize, still takes
+/// the new type's bits. The minted game's army 1/1 (record 64), 18
+/// Longbowmen, takes three Hoplites (TI 132) on 9809: theirs reads `role` 0x150c00
+/// on 9809 and 0x150c03 on 9810 (run1597).
+#[test]
+fn a_seated_add_ors_the_member_s_role() {
+    let mut s = sim();
+    let t = fighter(&mut s);
+    let mut pike = UnitType {
+        hits: 100,
+        combat: combat::Profile {
+            attack: 15,
+            uber_size: 1,
+            ..combat::Profile::default()
+        },
+        ..UnitType::default()
+    };
+    pike.cols.role |= role::ROLE_MILITARY | role::ROLE_HOPLITE | role::ROLE_MELEE;
+    let p = s.add_unit_type(pike);
+    let members: Vec<usize> = (0..4)
+        .map(|i| spawn(&mut s, 1, t, Pos::new(0x1000 + 0x100 * i, 0x1000)))
+        .collect();
+    let mut g = group_of(1, &members);
+    assert!(s.push_group(&mut g, true));
+    let slot = g.pushed.expect("seated");
+    let base = s.tables.unit_types[t].cols.role;
+    s.orders.pushed[slot].state.role = base;
+    let n = spawn(&mut s, 1, p, Pos::new(0x2000, 0x1000));
+    s.seat_add(Seat::Pushed(slot), n, false, false);
+    assert!(s.orders.pushed[slot].list.contains(&n), "listed");
+    assert_eq!(
+        s.orders.pushed[slot].state.role,
+        base | s.tables.unit_types[p].cols.role,
+        "Group::add ORed the new member's role"
+    );
+}
+
 /// **A `QUEUE_FIRST` move normalizes its record** (item 4231): the arm asks
 /// `this` for `get_num_cap` between `set_up_insert` and `action_halt`
 /// (`action_move_near@00704990`, `704ebe`), and on a record with an `id`
