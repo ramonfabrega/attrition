@@ -378,7 +378,7 @@ fn the_ranges_record_names_each_first_parting() {
 fn probe_4263() {
     use super::super::checksum_lines::packets::{STATE_LINES, our_lines};
     let Ok(o) = std::env::var("RON_PROBE_4263") else { return };
-    let o: u16 = o.parse().unwrap();
+    let o: i16 = o.parse().unwrap();
     let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(11870);
     let Some(mut rec) = record() else { return };
     let (Some((_, mut built, _)), Some(pieces)) = (
