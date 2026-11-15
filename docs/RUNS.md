@@ -37588,6 +37588,39 @@ SHA-256 `8bbca43896196d4097fd70e949b4f447b83bac57d6d88d05387123e6b899ffc8`.
 
 **What it holds**: the city-gathered game's window with the leaders' buckets on every frame; a city's gather played.
 
+## run1613 — the original playing the file a garrison button and pick minted (2026-11-15, item 4273, `att-4273`)
+
+`docs/CLIENT_INPUT.md` §23.4. **What the disk could not answer**: whether the original plays a minted `garrison`,
+and whether the Citizen it sends is inside the capital when ours is. The recordings carry six garrisons, five in the
+2017 sample and one in `20'17'33`, none on the minted game. The file:
+`~/ron-golden/recordings/item4273-garrisoned-greatlakes-24000.rcx`, 59,620 bytes, SHA-256
+`913bfd801ff3c529af07420bed4c80997ef656d0f7aafedb0a3976f2cd4d38d2`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata --lib -- --exact diff::minted::the_garrisoned_minted_packages_round_trip`. It is the hot-keyed file with the
+Citizen `0/2`'s group and `garrison(2000, 0, 2)` on 6750.
+
+The take is run1610's line with this file and no whole dump: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1613 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --timeout 1800 --stall-seconds 120`, waited on
+with `waitrun.sh` in the background. `df -g ~` read 174 GB free before it.
+- **The run**: pool lane 1, launched 11:42:28 −05:00, exited 11:50:57: **509.3 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault, no relaunch. The receipt names the file's SHA-256. Minutes waited on another
+  lane: none.
+- **The built walk under the pump on the file** (`GARRISONED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence. 300 records compared (6700..6999); **33 part, from 6871**, on the Scout `1/0`'s `damage` (ours 13,
+  theirs 16) and `damage_frame` (ours 6837, theirs 6870, `damage_o 7`: the Slinger `0/7`'s blow). Pinned 0 before
+  the read; parked 4273a.
+- **The order's effect** (`garrison_effects_theirs`): the Citizen `0/2` on 6750, 6751, 6766, 6767 and 6999 — `gather`;
+  `move`, `garrison`, `gather` from 6751; at (3456, 30048) on 6766; `inside_up 2000` from 6767. Ours the same on every
+  frame, pinned before the read.
+- Filed with `filerun.py run1613 greatlakes-playback-of-garrisoned-7000`.
+
+Archive `gamelog-run1613-greatlakes-playback-of-garrisoned-7000.txt`, 67,871,057 bytes,
+SHA-256 `da1b7e8a2e5524ec29c928ef3ec7f410de7dc7c1253f72234ac5a833c42d8d70`; `rontrace-run1613.log`, 34,128,928 bytes,
+SHA-256 `5ae269eeae6d99fa1107317594c2ff8933335dac3455017c65c3c3ad0d3e7895`.
+
+**What it holds**: the garrisoned game's window; a garrison played, and a Slinger's blow that parts after it.
+
 ## run1611 — the hot-keyed file to 6745, with a whole dump before the hot key (2026-11-15, item 4270, `att-4270`)
 
 `docs/CLIENT_INPUT.md` §22.4. **What the disk could not answer**: hot-key group 1 of slot 0 on the frame before the

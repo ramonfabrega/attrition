@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -334,7 +334,8 @@ made. Those rows are the repair, the nothing, the attack and the predicates' ord
   (§10). The counter-intelligence arm is not minted (§10.4).
 - **The garrison.** It is issued only with the profile's `0x200` set, the advanced option. Then it is issued ahead of
   the build, gather and repair arms, for any building with a garrison limit. The default profile clears it, so the
-  layer has no garrison arm (parked 4179c).
+  layer has no garrison arm on the right press (parked 4179c). ~~No garrison is minted.~~ The unit's garrison button
+  and its pick write the same bytes, and are minted and played (§23).
 - **Trees, mountains and oil.** The dispatch sends a Citizen to the nearest own Woodcutter's camp or Mine within
   `0x600` units, and gathers there. The scene does not carry the terrain object, so the layer does not mint this (parked 4179d).
 - ~~**Is seen.** The attack asks `is_seen`; an unseen enemy is moved to instead. The layer does not test the fog.~~
@@ -869,9 +870,9 @@ files. Every package of every file decodes. An order is a command `rondata::inpu
 `camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
 as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
 
-**`INPUT_KINDS`: 18 of 26 kinds, 2,354 of 2,429 orders (96.9 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
+**`INPUT_KINDS`: 19 of 26 kinds, 2,360 of 2,429 orders (97.1 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
 was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 10 and 2,216 (91.2 %) once the chat
-(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, 14 and 2,306 (94.9 %) once the city's gather (§17) was, 15 and 2,323 (95.6 %) once the craft button's spell (§18) was, which no playback has carried, 16 and 2,336 (96.1 %) once the queue button's cancel (§19) was, 17 and 2,346 (96.5 %) once the city's name (§21) was, and is 18 since the hot key (§22). The kinds the layer mints are `input::MINTS`, held to the
+(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, 14 and 2,306 (94.9 %) once the city's gather (§17) was, 15 and 2,323 (95.6 %) once the craft button's spell (§18) was, which no playback has carried, 16 and 2,336 (96.1 %) once the queue button's cancel (§19) was, 17 and 2,346 (96.5 %) once the city's name (§21) was, 18 and 2,354 (96.9 %) once the hot key (§22) was, and is 19 since the garrison (§23). The kinds the layer mints are `input::MINTS`, held to the
 `Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
 `input_kinds_of_the_recordings_on_disk`.
 
@@ -896,7 +897,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `guard` | 10 | 0.4 % | yes |
 | `rename_city` | 10 | 0.4 % | yes (§21) |
 | `hotkey` | 8 | 0.3 % | yes (§22) |
-| `garrison` | 6 | 0.2 % | |
+| `garrison` | 6 | 0.2 % | yes (§23) |
 | `buildmask` | 5 | 0.2 % | |
 | `cheat_ai_toggle` | 4 | 0.1 % | |
 | `come_out` | 4 | 0.1 % | |
@@ -2098,3 +2099,128 @@ the slot the command names (§22.4).
 
 - The layer reads ctrl from the window's modifiers; the key map's own bindings are not consulted.
 - Ctrl and F3 is a hot key; F3 alone is the pause (§13).
+
+## 23. A garrison: the unit's button, and its pick (item 4273)
+
+*Item 4273, 2026-11-15. The score: `INPUT_KINDS` 18 → 19 of 26, and 2,354 → 2,360 of 2,429 orders (96.9 % → 97.1 %).
+The census's next kind by share is `garrison` (6). All six recorded orders have the same form: the selection's
+`group`, then `garrison(ox, whom, 2)` into one of the slot's own buildings. Five are the 2017 sample's (slot 3, into
+2037, 2045 and 2047, two of them with an empty group) and one is in `20'17'33` (slot 0, a Citizen into `0/2000`).
+Slot 0 of the minted game holds both the actor and the target. On 6750 its six Citizens each pass the type test into
+the capital `0/2000`, which is finished, has limit 10 and holds nobody. The layer mints the button-and-pick form. The
+garrisoned script mints 25 of 25, and the recorded garrisons mint 6 of 6. The original plays the file (run1613).*
+
+### 23.1 What the button and the pick issue
+
+- **Two issuers write the same bytes.** `GroupOut::issue_garrison@0070a9b0(ox, whom, queue)` writes the package's
+  group (`add_group`), then command `0x14`, `[ox][whom][queue]`, `0xd` bytes. In a playback it issues nothing
+  (`semaphore & 0x10`). `CommandManager::issue_garrison@00941a70` is the same without that test.
+- **The right press.** `Console::execute_at_cursor@007c6630` issues a garrison with `QUEUE_NEW` on one of the slot's
+  own buildings, when the building's type has a garrison limit and `GroupData::test_garrison` passes. It does so only
+  with the profile's `0x200` set, the advanced option (§6), so the layer has no right-press arm.
+- **The button.** `UnitOut::make_options@00615fc0` adds `OPTION_GARRISON` to a unit's panel by its type
+  (`ptype +0x218`, `unit_flags & 0x1800` and three type tests). `Options::exec@007188c0` calls
+  `Options::do_garrison@0071d6b0`. With a selection that can act (`Group::can_activate`) and is not of buildings, it
+  sets `selecting_spot` and the cursor. With its argument set, which is the key path, it picks at the cursor at once.
+- **The pick.** `Options::picked_spot@00721c40`'s `OPTION_GARRISON` arm looks for an allied building under the
+  pick, as `find_target(SEARCH_ALLIED, 2, FILTER_ALL)`. If it finds none it returns before `reset`, so the pick
+  stands. Otherwise it calls `reset`, asks the building for a nonzero garrison limit
+  (`BuildTypeData::get_garrison_limit`), and on `GroupData::test_garrison@0070b320` issues
+  `issue_garrison(ox, whom, QUEUE_NEW)`. Failing the limit, it moves on to a second arm, for a selection holding type
+  `0x136`.
+- **`test_garrison`** refuses a group of buildings, an empty group and a target below 0. Otherwise it walks the
+  members. The first member alive that `UnitData::can_garrison@006099a0` admits decides the answer. That test needs
+  a building (`+8 & 1`), valid (`+0x20`), finished (`+0x4c`), whose type `UnitTypeData::can_garrison` admits the
+  member's type. The member fits if `num_inside(0)` plus its slots is at most the limit. A decoy (`unit_masks & 1`)
+  takes no slots; any other unit takes its type's `control_cost` (`+0x2f0`, named by the type record).
+
+### 23.2 What the layer does
+
+- **The scene** (`crates/sim/src/observe.rs`, reads only): `BuildingScene::garrison_limit` and `inside`
+  (`Sim::garrison_limit`, `Sim::num_inside`). `UnitScene::garrison_cost` holds the slots, and `UnitScene::enters` the
+  owner's buildings with a limit whose type admits the unit's (`Sim::can_garrison`). **This touches `crates/sim`.**
+- **The HUD** (`hud::garrison_button`): with a unit selection one of whose members `enters` somewhere, one button,
+  GARRISON, two rows above the bottom edge at the right. A press on it is `Event::Garrison`.
+- **The layer** (`crates/client/src/input.rs`): `Event::Garrison` with a unit selection sets `Input::garrisoning`. The
+  next left press is the pick. `View::own_building` takes the nearest of the slot's buildings within `PICK_RADIUS`,
+  and none keeps the pick. On one, `input::garrisons` is `picked_spot`'s arm and `test_garrison` read as above. It
+  mints the selection's `group` and `garrison(o, who, 2)`, or nothing, and the pick is spent either way. A right
+  press drops the pick. `garrison` is added to `MINTS`.
+- **The walk** (`crates/rondata/src/input.rs`): unchanged. The pump already takes `garrison` through
+  `group_garrison`.
+- **The script** (`crates/rondata/src/script.rs`): `garrisoned()` is the hot-keyed script and, on `GARRISON_FRAME`
+  6750, the Citizen `GARRISON_CITIZEN` `0/2`'s group in full and `garrison(2000, 0, 2)`.
+
+**Stage 0** (`minted_garrisoned_at_the_opening_camera`), on 6750 at the opening camera:
+- the Citizen `0/2` (`TypeIndex` 50) stands at pixel (1369, 468), gathering at the farm `0/2007`; it takes 1 slot
+  and `enters` `[2000]`;
+- the capital stands at pixel (1127, 521), finished, with limit 10 and nobody inside;
+- the GARRISON button's centre is (1822, 1010).
+
+### 23.3 The counts and the file
+
+- `INPUT_GARRISONED`: **25 of 25**. The events are the hot-keyed ones, then three presses on 6750: the Citizen, the
+  button and the capital. Through the HUD and the layer they mint `script::garrisoned()`. Seen red pinned 24.
+- `INPUT_GARRISONS`: **6 of 6** (seen red pinned (0, 0)), the package's orders whole without its camera. Each is
+  minted from a fresh layer. Its selection is the package's group, or for an empty group the slot's last full one
+  (`add_group`'s repeat, §20). Its units are admitted, and the building is finished with room. Then the button, and
+  a pick on the building's anchor.
+- `minted_garrison_edges` checks these cases:
+  - the button only for a unit selection with a member admitted somewhere;
+  - no pick for a building selection or no selection;
+  - a pick on no building keeps the pick;
+  - each of these spends the pick and mints nothing: a limit of 0, an unfinished building, a full building, a
+    building that admits no member;
+  - the first admitted member's slots decide;
+  - a right press drops the pick.
+- `INPUT_KINDS` (19, 26), `INPUT_KINDS_ORDERS` (2,360, 2,429); `NOT_MINTED` drops `garrison`.
+
+**The file.** `~/ron-golden/recordings/item4273-garrisoned-greatlakes-24000.rcx`, 59,620 bytes, SHA-256
+`913bfd801ff3c529af07420bed4c80997ef656d0f7aafedb0a3976f2cd4d38d2` (`the_garrisoned_minted_packages_round_trip`;
+seen red pinned 0). It holds the hot-keyed file's packages, then the garrison's on 6750, stamped 26. The closing stamp
+goes from 26 to 27. The client's events through the HUD write it byte for byte.
+
+### 23.4 The playback, and the order's effect
+
+**run1613** (`docs/RUNS.md`) is run1610's line with the garrisoned file and no whole dump. The receipt names the
+file's SHA-256. **Draws agree on 7,000 of 7,000 frames**, count and sequence. Of the window's 300 records, **267 are
+whole and 33 part**, from 6871 on (`GARRISONED_WALKED`, pinned before the read with none parted). The first parting
+is the Scout `1/0`'s `damage`, ours 13 and theirs 16, and its `damage_frame`, ours 6837 and theirs 6870. Theirs is
+`damage_o 7`, a blow of the Slinger `0/7` (the attacked script's) that lands in the original and not on our walk.
+The order itself is whole. The parting is downstream of it, on a unit the garrison does not touch (parked 4273a, the
+journal). run1610, the same window without the garrison, parts on no record.
+
+**The order's effect.** The Citizen `0/2`'s record, read on both sides: position, `inside_up` and its orders by class,
+front first (`garrison_effects_theirs`, `garrison_effects_ours`). Ours were pinned before the take was read and seen
+red pinned empty. Ours without the order is the hot-keyed file's walk.
+
+| frame | the original | ours | ours without the order |
+| --- | --- | --- | --- |
+| 6750 | (3576, 29688), outside, `gather` | the same | the same |
+| 6751 | (3576, 29688), outside, `move`, `garrison`, `gather` | the same | `gather` |
+| 6766 | (3456, 30048), outside, `move`, `garrison`, `gather` | the same | (3576, 29688), `gather` |
+| 6767 | (3456, 30048), `inside_up 2000`, `gather` | the same | outside |
+| 6999 | (3456, 30048), `inside_up 2000`, `gather` | the same | outside |
+
+The walk compares `inside_up` on every unit of every record (`diff::harness`'s inside chain), so the Citizen inside
+the capital is compared on all 233 records from 6767 to 6999.
+
+### 23.5 Confidence, and what is not established
+
+The issuers, the button, the pick and `test_garrison` are read from the decompile, one reading each. Their call
+sites were checked. The playback backs the command's bytes and the Citizen's entry (§23.4).
+
+- **The button's predicate.** When `make_options` offers GARRISON is read only as far as its tests. The HUD shows it
+  for a member that `enters` somewhere.
+- **The pick's second arm**, for a selection holding type `0x136`, is not minted.
+- **An ally's building.** The scene names no alliance, so the pick names the slot's own buildings only.
+- **The capital's `inside_down`** is written on its `BUILDDATA` record and not parsed (`gamelog::BuildDump`). The
+  walk compares the Citizen's `inside_up` on every record.
+- **The right press** with the profile's `0x200` set (§6) is not minted.
+- **The Slinger's blow on 6870** (§23.4): run1613 parts 33 of 300 records from 6871 on, on the Scout `1/0`'s damage.
+  Where it begins is not read (4273a).
+
+**Ours, not the original's:**
+
+- Where the GARRISON button stands, its label, and when it shows.
+- A right press drops the pick.
