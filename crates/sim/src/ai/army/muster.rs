@@ -68,9 +68,12 @@ pub trait MusterView {
     fn elem_next(&mut self, i: i32) -> i32;
     /// `objects[tw][i]`'s point as a cell (`div_3_table[(+0x10 ^ 0x63637) >> 8]`, `+0x14`).
     fn elem_cell(&self, i: i32) -> (i32, i32);
-    /// `find_unit(point of i, SEARCH_ENEMY, who, 0x900, 0x200, FILTER_COMBAT, ...)`.
+    /// `find_unit(point of i, SEARCH_ENEMY, who, 0x900, 0x200, FILTER_COMBAT, 0, 0,
+    /// FILTER_DOMAIN, 0, 0)`: an enemy combat unit **on land** (`type +0x218 == 0`,
+    /// `Search::valid_filter`'s `FILTER_DOMAIN` arm at `0067e06b`).
     fn find_combat(&mut self, i: i32) -> i32;
-    /// `find_unit(point of i, SEARCH_ENEMY, who, 0x1200, 0x200, FILTER_TARGET, i, tw, ...)`.
+    /// `find_unit(point of i, SEARCH_ENEMY, who, 0x1200, 0x200, FILTER_TARGET, i, tw,
+    /// FILTER_DOMAIN, 0, 0)`: an enemy land unit targeting `i`.
     fn find_target(&mut self, i: i32) -> i32;
     /// `find_building(point of i, SEARCH_ENEMY, who, 0x1200, 0x200, FILTER_COMBAT, 0, 0)`.
     fn find_building(&mut self, i: i32) -> i32;
@@ -506,7 +509,11 @@ impl MusterView for SimMuster<'_> {
     }
     fn find_combat(&mut self, i: i32) -> i32 {
         let p = self.elems[i as usize].pos;
-        match self.sim.nearest_enemy_attacker(self.who, p, 0x900) {
+        // `FILTER_DOMAIN, 0` (item 4159's sixth residue): run1075's staged
+        // ship `0/20` beside a damaged building of who=1's capital hurried
+        // army 0 on its 2300 tick in this crate alone.
+        let land = Some(crate::territory::attrition::Domain::Land);
+        match self.sim.nearest_enemy_attacker_in(self.who, p, 0x900, land) {
             Some(u) => {
                 let c = self.sim.units[u].pos.cell();
                 self.found_at(c)
@@ -524,6 +531,7 @@ impl MusterView for SimMuster<'_> {
             u.alive()
                 && u.on_map
                 && !u.is_gaia()
+                && u.kind.domain == crate::territory::attrition::Domain::Land
                 && self.sim.is_enemy(who, u.owner)
                 && u.combat.target == Some(Obj::Building(b))
                 && vector_dist((u.pos.x - p.x).abs(), (u.pos.y - p.y).abs()) <= 0x1200
@@ -611,5 +619,49 @@ impl MusterView for SimMuster<'_> {
     }
     fn move_rate(&self, _class: i32) -> i32 {
         Sim::LAND_MOVE_RATE
+    }
+}
+
+/// The muster's enemy search (item 4159's sixth residue moved it here from
+/// `ai/army.rs`, beside its domain-filtered caller in [`SimMuster`]).
+impl Sim {
+    /// `find_unit(SEARCH_ENEMY, FILTER_COMBAT)`: the nearest enemy unit of
+    /// `who` with an attack within `range` of `p`.
+    ///
+    /// The search's leader loop stops at eight (`world::PLAYER_SLOTS`), so
+    /// gaia's animals are not in its space at all — and asking the diplomacy
+    /// question about them is what panicked the first fuzzed seed.
+    pub(crate) fn nearest_enemy_attacker(&self, who: Player, p: Pos, range: i32) -> Option<usize> {
+        self.nearest_enemy_attacker_in(who, p, range, None)
+    }
+
+    /// [`Self::nearest_enemy_attacker`] with `find_unit`'s second filter
+    /// `FILTER_DOMAIN, d` when `domain` is `Some(d)`:
+    /// `Search::valid_filter@0067dbb0`'s arm for it (`0067e06b`) is
+    /// `type +0x218 == d`, [`crate::Unit::kind`]'s domain.
+    pub(crate) fn nearest_enemy_attacker_in(
+        &self,
+        who: Player,
+        p: Pos,
+        range: i32,
+        domain: Option<crate::territory::attrition::Domain>,
+    ) -> Option<usize> {
+        let mut best: Option<(i32, usize)> = None;
+        for (i, u) in self.units.iter().enumerate() {
+            if !u.alive() || !u.on_map || u.is_gaia() || !self.is_enemy(who, u.owner) {
+                continue;
+            }
+            if domain.is_some_and(|d| u.kind.domain != d) {
+                continue;
+            }
+            if self.attack_of(Obj::Unit(i)) == 0 {
+                continue;
+            }
+            let d = super::dist(u.pos, p);
+            if d <= range && best.is_none_or(|(bd, _)| d < bd) {
+                best = Some((d, i));
+            }
+        }
+        best.map(|(_, i)| i)
     }
 }

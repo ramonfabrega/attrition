@@ -494,6 +494,11 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// directories its `git mv` left on disk, which `shape.py` now ignores;
 /// `sweep-lines` held at 17286 once `tools/shape.py` read `sweep.rs`, the
 /// directory's module file, as the sweep's (it read 17.1k before).
+///
+/// Item 4159's sixth residue: `largest` 3721 → 3709 (−12). Its muster fix
+/// grew `ai/army.rs` 3721 → 3738; the booking moved `nearest_enemy_attacker`
+/// and its domain-filtered form to `ai/army/muster.rs`, beside their new
+/// caller (3738 → 3698), and `movement/collide.rs` at 3709 is now the largest.
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
@@ -501,7 +506,7 @@ pub const STRUCTURE: [(&str, u64); 6] = [
     ("sweep-lines", 17_286),
     ("names", 15),
     ("fields", 21),
-    ("largest", 3_721),
+    ("largest", 3_709),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before

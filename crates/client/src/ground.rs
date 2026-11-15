@@ -1005,7 +1005,8 @@ pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1104, 1109);
 /// → 701, 128 crossing up and none down (tile (162, 197), theirs (38,
 /// 122, 163), the still's (18, 110, 159) → (27, 115, 163)), `OCEAN`
 /// unmoved by the surf.
-pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[701, 772], [422, 437]];
+/// Item 4269: `SANDY` 701 → 700: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[700, 772], [422, 437]];
 
 /// **`RUN1564_3279_SURF_DRAWN`** (item 4239; `docs/RENDERER.md` §3.27):
 /// `SANDY` and `OCEAN` `[agree, scored]` on run1564's still with the
@@ -1109,12 +1110,13 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4233: run1559b **1,036 → 1,038** (plain 954 → 956): the particles drawn and 4201's stand-ins gone (§3.25) move the frame's mean, so its white (§3.21); run1564 unchanged.
 /// Item 4239: run1564 **1,805 → 1,851** (`SANDY` 681 → 727), the surf drawn (§3.27); run1559b unchanged.
 /// Item 4241: run1559b **1,038 → 1,031** (plain 956 → 954, under a mountain 66 → 61), on 4239's tree run1564 1,851 → 1,852 (`SANDY` 727 → 728): the bloom drawn and a plume's pixel clamped after the white (§3.25).
+/// Item 4269: run1559b **1,031 → 1,040** (under a mountain **61 → 70** of 106): the range lit by its own normals (`docs/RENDERER.md` §3.22); the body ours Y 160.0 → 158.3 against theirs 137.3; run1564 unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1031, 1109),
+        (1040, 1109),
         [
             [954, 986],
-            [61, 106],
+            [70, 106],
             [16, 17],
             [0, 0],
             [0, 0],
@@ -1447,6 +1449,7 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// against theirs 10.28.
 #[cfg(test)]
 /// Item 4241: `SANDY` 326 → 329, and on 4239's tree 408 → 413: the bloom drawn and a plume's pixel clamped after the white (§3.25).
+/// Item 4269: `OCEAN` 233 → 235: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [665, 679],
     [0, 0],
@@ -1454,7 +1457,7 @@ pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [0, 0],
     [0, 0],
     [413, 772],
-    [233, 437],
+    [235, 437],
 ];
 
 /// **`RUN1564_3279_LAKE_HDR_TEXTURE`** (item 4232): [`TEXTURE`]'s
@@ -1727,6 +1730,51 @@ pub struct GroundMountain {
     pub uvs: Vec<[[f32; 2]; 3]>,
     pub template: Vec<usize>,
     pub tile: Vec<(i32, i32)>,
+}
+
+impl GroundMountain {
+    /// **Each triangle corner's normal, the range's own** (item 4269;
+    /// `docs/RENDERER.md` §3.22): per template, the tiles' corners shared
+    /// as `MountainRange::init`'s vertices are, and each tile's two faces in
+    /// the original's order, `(a, b, d)` then `(d, b, c)` (run1559b's
+    /// packet, `tools/render/mountain_light_packet.py`), through
+    /// [`render::terrain::mountain_normals`]. Three a triangle, beside
+    /// [`GroundMountain::tris`]. The faces' order across tiles is ours,
+    /// row by row as [`ground_mountain`] lays them, not the template's.
+    pub fn normals(&self) -> Vec<[[f32; 3]; 3]> {
+        use std::collections::BTreeMap;
+        // [`ground_mountain`] pushes each tile's `[a, b, d]` then `[b, c,
+        // d]`, so a triangle's parity names which.
+        const AT: [[(i32, i32); 3]; 2] = [[(0, 0), (1, 0), (0, 1)], [(1, 0), (1, 1), (0, 1)]];
+        let mut index: BTreeMap<(usize, (i32, i32)), usize> = BTreeMap::new();
+        let mut positions: BTreeMap<usize, Vec<[f32; 3]>> = BTreeMap::new();
+        let mut faces: BTreeMap<usize, Vec<[usize; 3]>> = BTreeMap::new();
+        let mut slot = vec![[0usize; 3]; self.tris.len()];
+        for i in 0..self.tris.len() {
+            let (k, (x, y)) = (self.template[i], self.tile[i]);
+            let ps = positions.entry(k).or_default();
+            for (v, (dx, dy)) in AT[i % 2].into_iter().enumerate() {
+                slot[i][v] = *index.entry((k, (x + dx, y + dy))).or_insert_with(|| {
+                    ps.push(self.tris[i][v]);
+                    ps.len() - 1
+                });
+            }
+            let [p, q, r] = slot[i];
+            // The first is the original's `(a, b, d)` as it stands; our
+            // `[b, c, d]` is its `(d, b, c)`.
+            faces
+                .entry(k)
+                .or_default()
+                .push(if i % 2 == 0 { [p, q, r] } else { [r, p, q] });
+        }
+        let normals: BTreeMap<usize, Vec<[f32; 3]>> = positions
+            .iter()
+            .map(|(k, ps)| (*k, render::terrain::mountain_normals(ps, &faces[k])))
+            .collect();
+        (0..self.tris.len())
+            .map(|i| slot[i].map(|n| normals[&self.template[i]][n]))
+            .collect()
+    }
 }
 
 pub fn ground_mountain(
@@ -2651,6 +2699,183 @@ pub(crate) mod tests {
                 })
                 .collect(),
         )
+    }
+
+    /// `tools/render/mountain_light_packet.py`'s dump of `run`'s packet:
+    /// per template slot, each vertex's corner, z, normal and colour as the
+    /// packet's bits, and the faces.
+    #[allow(clippy::type_complexity)]
+    fn mountain_light_packet(
+        run: &str,
+    ) -> Option<BTreeMap<usize, (Vec<((i32, i32), u32, [u32; 3], u32)>, Vec<[usize; 3]>)>> {
+        let path = std::env::var_os(format!("RON_MOUNTAIN_LIGHT_{}", run.to_uppercase()))
+            .map(PathBuf::from)
+            .or_else(|| {
+                std::env::var_os("HOME").map(|h| {
+                    PathBuf::from(h).join(format!(
+                        "ron-data/lab-experiments/2026-11-15-item-4269/{run}-mountain-light.txt"
+                    ))
+                })
+            })?;
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no mountain light dump at {}", path.display());
+            return None;
+        };
+        let hex = |w: &str| u32::from_str_radix(w, 16).expect("a hex word");
+        let num = |w: &str| w.parse::<i64>().expect("a number");
+        let mut out = BTreeMap::new();
+        let mut at = 0usize;
+        for l in text.lines().skip(1) {
+            let w: Vec<&str> = l.split_whitespace().collect();
+            match w[0] {
+                "slot" => {
+                    at = num(w[1]) as usize;
+                    out.insert(at, (Vec::new(), Vec::new()));
+                }
+                "v" => out.get_mut(&at).expect("a slot").0.push((
+                    (num(w[1]) as i32, num(w[2]) as i32),
+                    hex(w[3]),
+                    [hex(w[4]), hex(w[5]), hex(w[6])],
+                    hex(w[7]),
+                )),
+                "f" => out.get_mut(&at).expect("a slot").1.push([
+                    num(w[1]) as usize,
+                    num(w[2]) as usize,
+                    num(w[3]) as usize,
+                ]),
+                _ => panic!("{}: an unread line {l:?}", path.display()),
+            }
+        }
+        Some(out)
+    }
+
+    /// **The range's normals are the packet's** (item 4269;
+    /// `docs/RENDERER.md` §3.22), on run1559b's packet, template 14's slot:
+    /// `[packet tiles, our tiles, both, packet corners, the z ours bit for
+    /// bit, white, the model on the packet's own mesh bit for bit, ours bit
+    /// for bit, ours within 1e-5, the corners of the tiles both lay]`.
+    /// The vertex colour is white on every one (`recolor_mountain_verts`);
+    /// [`render::terrain::mountain_normals`] on the packet's own faces is its
+    /// normals; [`GroundMountain::normals`] on our tiles is checked where
+    /// both meshes lay a corner's every face.
+    /// Measured: all 202 of the packet's tiles are ours; our 404 hold a
+    /// second template-14 range at (5–21, 208–225) the frame's slot does not
+    /// (no corner shared). 18 corners part by an ulp, worst 8.9e-8: the
+    /// faces' order across tiles is ours, not the template's.
+    const RUN1559B_MOUNTAIN_NORMALS: [usize; 10] =
+        [202, 404, 202, 238, 238, 238, 238, 220, 238, 238];
+
+    #[test]
+    fn the_range_s_normals_are_the_packet_s() {
+        let Some(packet) = mountain_light_packet("run1559b") else {
+            return;
+        };
+        let Some(mut p) = probe_at(run1559b()) else {
+            return;
+        };
+        assert_eq!(packet.keys().copied().collect::<Vec<_>>(), [14], "one slot");
+        let (verts, faces) = &packet[&14];
+        let mesh = p.world.terrain().clone();
+        let t = p.world.runner.terrain();
+        let tileset = crate::world::lobby_tileset(
+            &p.root,
+            &crate::world::gamelog_dir().join(crate::world::START_DUMP),
+        )
+        .expect("the lobby's tileset");
+        let art = MountainArt::untinted(&p.root, &tileset).expect("the mountains' art loads");
+        let range = ground_mountain(&t, &art, &mesh);
+        // The packet's own mesh through the model.
+        let stride = (t.width * render::terrain::TILES_PER_CELL + 1) as usize;
+        let pos: Vec<[f32; 3]> = verts
+            .iter()
+            .map(|(c, z, _, _)| {
+                let per = render::terrain::UNITS_PER_TILE as f32;
+                [c.0 as f32 * per, c.1 as f32 * per, f32::from_bits(*z)]
+            })
+            .collect();
+        let model = render::terrain::mountain_normals(&pos, faces);
+        let model_bits = verts
+            .iter()
+            .zip(&model)
+            .filter(|((_, _, n, _), m)| m.map(f32::to_bits) == *n)
+            .count();
+        let z_bits = verts
+            .iter()
+            .filter(|(c, z, _, _)| t.corners[c.1 as usize * stride + c.0 as usize] == *z)
+            .count();
+        let white = verts.iter().filter(|v| v.3 == 0xffff_ffff).count();
+        // The tiles each lays: the packet's by its faces' near corner.
+        let tile_of = |f: &[usize; 3]| {
+            let c = f.map(|i| verts[i].0);
+            (
+                c.iter().map(|q| q.0).min().unwrap(),
+                c.iter().map(|q| q.1).min().unwrap(),
+            )
+        };
+        let theirs: std::collections::BTreeSet<(i32, i32)> = faces.iter().map(tile_of).collect();
+        let ours: std::collections::BTreeSet<(i32, i32)> = range
+            .tile
+            .iter()
+            .zip(&range.template)
+            .filter(|(_, k)| **k == 14)
+            .map(|(q, _)| *q)
+            .collect();
+        let both = theirs.intersection(&ours).count();
+        // A corner whose four tiles both meshes lay alike: ours must be
+        // the packet's there.
+        let laid = |x: i32, y: i32, set: &std::collections::BTreeSet<(i32, i32)>| {
+            [(x - 1, y - 1), (x, y - 1), (x - 1, y), (x, y)].map(|q| set.contains(&q))
+        };
+        let normals = range.normals();
+        let mut by_corner: BTreeMap<(i32, i32), [f32; 3]> = BTreeMap::new();
+        const AT: [[(i32, i32); 3]; 2] = [[(0, 0), (1, 0), (0, 1)], [(1, 0), (1, 1), (0, 1)]];
+        for (i, n) in normals.iter().enumerate() {
+            if range.template[i] != 14 {
+                continue;
+            }
+            let (x, y) = range.tile[i];
+            for (v, (dx, dy)) in AT[i % 2].into_iter().enumerate() {
+                by_corner.insert((x + dx, y + dy), n[v]);
+            }
+        }
+        let (mut alike, mut bits, mut near, mut worst) = (0, 0, 0, 0.0f32);
+        for ((x, y), _, n, _) in verts {
+            if laid(*x, *y, &theirs) != laid(*x, *y, &ours) {
+                continue;
+            }
+            alike += 1;
+            let o = by_corner[&(*x, *y)];
+            bits += usize::from(o.map(f32::to_bits) == *n);
+            let d = (0..3)
+                .map(|k| (o[k] - f32::from_bits(n[k])).abs())
+                .fold(0.0f32, f32::max);
+            near += usize::from(d <= 1e-5);
+            worst = worst.max(d);
+        }
+        let got = [
+            theirs.len(),
+            ours.len(),
+            both,
+            verts.len(),
+            z_bits,
+            white,
+            model_bits,
+            bits,
+            near,
+            alike,
+        ];
+        println!(
+            "run1559b template 14: tiles theirs {} ours {} both {both}; corners {}: z {z_bits} bit for bit, {white} white; the model on their mesh {model_bits} bit for bit; where both lay alike ({alike}), ours {bits} bit for bit, {near} within 1e-5, worst {worst:e}",
+            theirs.len(),
+            ours.len(),
+            verts.len()
+        );
+        println!(
+            "theirs only {:?}; ours only {:?}",
+            theirs.difference(&ours).collect::<Vec<_>>(),
+            ours.difference(&theirs).collect::<Vec<_>>()
+        );
+        assert_eq!(got, RUN1559B_MOUNTAIN_NORMALS);
     }
 
     /// **The land's normals and vertex colours are the packet's** (item

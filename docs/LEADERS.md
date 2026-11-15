@@ -861,7 +861,10 @@ listing. The verdicts cite no kept-dump value for these leaves.
   probed the widened suite: 53 pieces, built but the Royal Mameluke's and
   the Arab Armored Car's `CHAR_ATTACKWALK` keys (no packet serves them,
   parked 4159r5a); none of the thirteen windows parts the four words now,
-  and run1075 alone still does.
+  and run1075 alone still does. The sixth residue moved its first
+  gameplay parting 2346 → 2554 (the muster chase finds land units only);
+  the words now part from 2588, past the navy army's 2552 tick, which is
+  not established (parked 4159r6a).
 - **The disband arm's reach.** Which types carry flag `0x2000` and which
   leaders hold `leader_flags & 4`; and whether the crate's `damage_building`
   disbands at all. A reading of the flag's loader, then a diff of

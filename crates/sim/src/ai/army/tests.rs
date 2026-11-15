@@ -1908,3 +1908,47 @@ fn a_gaia_unit_is_never_the_muster_point_even_at_war() {
         sim.units[foe].pos.cell()
     );
 }
+
+/// **The chase over the damaged buildings looks for land units only**
+/// (item 4159's sixth residue). Both of `find_muster_spot`'s searches,
+/// `find_unit(…, 0x900, FILTER_COMBAT, …, FILTER_DOMAIN, 0)` and
+/// `find_unit(…, 0x1200, FILTER_TARGET, …, FILTER_DOMAIN, 0)`
+/// (`006f5cc0`), carry a second filter, and `Search::valid_filter`'s
+/// `FILTER_DOMAIN` arm (`0067e06b`) is `type +0x218 == param`: 0, the
+/// land. run1075's 2300 tick: who=0's staged ship `0/20` lies within
+/// `0x900` of a damaged building of who=1's capital, and the original's army 0
+/// keeps `hurry 0` and muster (45, 47) (its `ARMY` record on 2552), so
+/// its `1/70` looks for a target on 2345 where the hurried one would not.
+#[test]
+fn an_enemy_ship_beside_a_damaged_building_is_never_the_muster_point() {
+    let (mut sim, c) = sim_with_city();
+    let t = soldier_type(&mut sim);
+    let b = sim.cities.cities[c].building;
+    sim.buildings[b].hits = 100;
+    sim.buildings[b].health = 50;
+    let slot = sim.init_army(1, Some(c));
+    sim.leaders.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    let ship = put(&mut sim, 0, t, Pos::new(0x3100, 0x3000));
+    sim.units[ship].kind.domain = crate::territory::attrition::Domain::Sea;
+    let ship_cell = sim.units[ship].pos.cell();
+    sim.find_muster_spot(1, slot, Obj::Building(b), false);
+    assert_eq!(
+        sim.ai.armies[1].list[slot].hurry, 0,
+        "FILTER_COMBAT's find is land-only"
+    );
+    assert_ne!(sim.ai.armies[1].list[slot].muster, ship_cell);
+    // The second search, the attackers of the building out to 0x1200:
+    // still the ship's domain that refuses it.
+    sim.units[ship].combat.target = Some(Obj::Building(b));
+    sim.find_muster_spot(1, slot, Obj::Building(b), false);
+    assert_eq!(
+        sim.ai.armies[1].list[slot].hurry, 0,
+        "FILTER_TARGET's find is land-only"
+    );
+    // The same unit on land is the muster point.
+    sim.units[ship].kind.domain = crate::territory::attrition::Domain::Land;
+    assert!(sim.find_muster_spot(1, slot, Obj::Building(b), false));
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 1);
+    assert_eq!(sim.ai.armies[1].list[slot].muster, ship_cell);
+}

@@ -13,17 +13,42 @@
 // that carries no light of its own carries a value over 1.5: the flat N·L and a
 // white vertex, item 4212's draw (the ocean floor, the coral, the
 // mountains). The `_mtrl` normal map and its specular are not drawn.
+fn land_diffuse() -> f32 {
+    return {LAND_DIFFUSE};
+}
+
+fn land_flat_nl() -> f32 {
+    return {N_DOT_L};
+}
+
 fn land_lit(c: vec3<f32>, nl_in: f32) -> vec3<f32> {
-    let ld = {LAND_DIFFUSE};
+    let ld = land_diffuse();
     var nl = nl_in;
     var vertex = vec3<f32>(1.0);
     if (nl_in > 1.5) {
-        nl = {N_DOT_L};
+        nl = land_flat_nl();
     } else {
         let amb = vec3<f32>({VAMBIENT_R}, {VAMBIENT_G}, {VAMBIENT_B});
         vertex = min(vec3<f32>(1.0), vec3<f32>(ld * max(nl, 0.0)) + amb);
     }
-    let s = pow(clamp(c * vertex, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({LIT_POWER}));
+    return land_shade(c * vertex, nl);
+}
+
+// Item 4269 (§3.22): a mountain's corner, lit by the range's own normal
+// (`RenderHelper::generate_normals`) with its vertex white
+// (`recolor_mountain_verts`); over 1.5, the flat N·L.
+fn land_lit_white(c: vec3<f32>, nl_in: f32) -> vec3<f32> {
+    var nl = nl_in;
+    if (nl_in > 1.5) {
+        nl = land_flat_nl();
+    }
+    return land_shade(c, nl);
+}
+
+// The lit branch on a stage colour already modulated by its vertex.
+fn land_shade(c: vec3<f32>, nl: f32) -> vec3<f32> {
+    let ld = land_diffuse();
+    let s = pow(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({LIT_POWER}));
     let diffuse = max(ld * nl / 3.14159265, 0.0);
     let ambient = vec3<f32>({AMBIENT_R}, {AMBIENT_G}, {AMBIENT_B});
     let l = {HDR_SCALE} * s * (vec3<f32>(diffuse) + ambient);

@@ -2031,29 +2031,6 @@ impl Sim {
         )
     }
 
-    /// `find_unit(SEARCH_ENEMY, FILTER_COMBAT)`: the nearest enemy unit of
-    /// `who` with an attack within `range` of `p`.
-    ///
-    /// The search's leader loop stops at eight (`world::PLAYER_SLOTS`), so
-    /// gaia's animals are not in its space at all — and asking the diplomacy
-    /// question about them is what panicked the first fuzzed seed.
-    pub(crate) fn nearest_enemy_attacker(&self, who: Player, p: Pos, range: i32) -> Option<usize> {
-        let mut best: Option<(i32, usize)> = None;
-        for (i, u) in self.units.iter().enumerate() {
-            if !u.alive() || !u.on_map || u.is_gaia() || !self.is_enemy(who, u.owner) {
-                continue;
-            }
-            if self.attack_of(Obj::Unit(i)) == 0 {
-                continue;
-            }
-            let d = dist(u.pos, p);
-            if d <= range && best.is_none_or(|(bd, _)| d < bd) {
-                best = Some((d, i));
-            }
-        }
-        best.map(|(_, i)| i)
-    }
-
     // ---- transporting (docs/TRANSPORT.md §8.2) ----
 
     /// `Region::go_here(r, who)` (`docs/TRANSPORT.md` §9.4) — all three
