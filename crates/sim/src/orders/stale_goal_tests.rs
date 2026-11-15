@@ -46,7 +46,11 @@ fn a_failed_plan_leaves_the_goal_over_the_stale_final_under_it() {
     s.units[u].path = vec![stale, goal].into();
     s.plan_unpathed(u, goal, wpath_refuses, tpath_refuses);
     let stack: Vec<PathData> = s.units[u].path.iter().copied().collect();
-    assert_eq!(stack, vec![stale, goal], "the goal is the top the walk takes");
+    assert_eq!(
+        stack,
+        vec![stale, goal],
+        "the goal is the top the walk takes"
+    );
     // An empty stack under the goal is the case this crate already had.
     s.units[u].path = vec![goal].into();
     s.plan_unpathed(u, goal, wpath_refuses, tpath_refuses);
