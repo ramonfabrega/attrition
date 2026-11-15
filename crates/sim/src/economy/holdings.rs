@@ -349,6 +349,16 @@ impl Sim {
         self.units[u].type_index == 0x165
     }
 
+    /// **The CEO's tile step** (`005f8d20:146`–`150`, item 4159r12): a tile
+    /// crossing by a unit with the CEO bit asks [`Self::update_ceo_position`]
+    /// whether it changed city. Its one caller is `set_new_location`'s
+    /// crossing (`movement/collide.rs`), which carries it here so the
+    /// largest file does not grow.
+    pub(crate) fn ceo_tile_step(&mut self, u: usize, on_map: bool, from: Pos, to: Pos) {
+        if on_map && from.tile() != to.tile() {
+            self.update_ceo_position(u, Some(from.tile()), Some(to.tile()));
+        }
+    }
     /// **`Unit::update_ceo_position@005f96b0`** (item 4159r12): for a unit
     /// with the CEO bit, `find_city_at` the owner's city on the old tile's
     /// centre and the new one's (`None` is the original's `-1`, off the map

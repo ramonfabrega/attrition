@@ -2275,12 +2275,7 @@ impl Sim {
                     self.explore_goody(u);
                 }
             }
-            // **The CEO's tile step** (`005f8d20:146`–`150`, item 4159r12):
-            // a tile crossing by a unit with the CEO bit asks
-            // `Unit::update_ceo_position` whether it changed city.
-            if on_map && from.tile() != to.tile() {
-                self.update_ceo_position(u, Some(from.tile()), Some(to.tile()));
-            }
+            self.ceo_tile_step(u, on_map, from, to);
         }
         if move_guys {
             self.units[u].movement.body.pos = to;
