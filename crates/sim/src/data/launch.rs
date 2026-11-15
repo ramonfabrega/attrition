@@ -3730,7 +3730,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // the Flamethrower in the default style** (type 131,
     // `FLAMETHROWER-DEFAULT-AGE0`): the three other pieces run1075's walk
     // launched from the figure's own square once piece 1814 had its rows.
-    // No packet holds 1837's or 1851's `AttachPos` rows; twenty-odd hold
+    // No packet holds 1837's or 1851's `AttachPos` rows; 33 hold
     // 81's (run785's among them), and no row was ever entered for it. All
     // three by piece 1814's way: `init_position@00901820` for each
     // `RELEASEEVENT` (node 0, axis 3) on run1579's packet — the same call
