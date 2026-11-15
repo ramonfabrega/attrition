@@ -348,7 +348,11 @@ mod card {
     /// vertex colour. The lighting it carries is the land's.
     #[test]
     fn the_mountain_s_draws_on_the_card() {
-        use rondata::trace::card;
+        use rondata::trace::card::{
+            self, TA_CURRENT, TA_DIFFUSE, TA_TEXTURE, TEXADD_CLAMP, TOP_MODULATE, TOP_SELECTARG2,
+        };
+        // `TextureOp`'s second enumerator (`client::ground`'s tests name it too).
+        const TOP_SELECTARG1: i32 = 1;
         let home = std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default());
         let mut seen = 0;
         for run in ["run1566b", "run1567"] {
@@ -386,6 +390,20 @@ mod card {
                     &d.material()[1][..3],
                     d.stream.as_ref().map(|s| (s.vertices, s.stride, s.before)),
                 );
+                println!(
+                    "{run} draw {}: enables {:#x}, blend {} {}, alpha test {} {}, alpha ops {:?} {:?}, address {:?} {:?}, tfactor {:?}",
+                    d.index,
+                    d.enables(),
+                    d.src_blend(),
+                    d.dst_blend(),
+                    d.alpha_func(),
+                    d.alpha_ref(),
+                    d.alpha_op(0),
+                    d.alpha_op(1),
+                    d.address(0),
+                    d.address(1),
+                    d.tfactor(),
+                );
                 assert!(
                     d.has("ENABLE_VERTEX_COLOR_DIFFUSE"),
                     "{run} draw {}",
@@ -395,6 +413,22 @@ mod card {
                 assert_eq!(d.has("ENABLE_LIGHTING"), !peak, "{run} draw {}", d.index);
                 assert_eq!(d.has("TL_FAKE_LIGHT"), peak, "{run} draw {}", d.index);
                 assert!(d.stream.is_none(), "{run} draw {}: a stream", d.index);
+                if peak {
+                    // Item 4274: the snowcap underlay, `render_weathering(4, 4)`
+                    // (§3.22, "The peak draw"): the colour the texel times the
+                    // vertex colour, the alpha stage 1's texel alone, laid
+                    // SRCALPHA over INVSRCALPHA with no alpha test, both
+                    // stages clamped.
+                    assert_eq!(d.enables(), 0x2_0004, "{run} draw {}", d.index);
+                    assert_eq!(d.colour_op(0), (TOP_MODULATE, TA_TEXTURE, TA_DIFFUSE));
+                    assert_eq!(d.colour_op(1), (TOP_SELECTARG2, TA_DIFFUSE, TA_CURRENT));
+                    assert_eq!(d.alpha_op(0), (TOP_SELECTARG2, TA_TEXTURE, TA_DIFFUSE));
+                    assert_eq!(d.alpha_op(1), (TOP_SELECTARG1, TA_TEXTURE, TA_CURRENT));
+                    assert_eq!((d.src_blend(), d.dst_blend()), (5, 6));
+                    assert_eq!(d.address(0), (TEXADD_CLAMP, TEXADD_CLAMP));
+                    assert_eq!(d.address(1), (TEXADD_CLAMP, TEXADD_CLAMP));
+                    assert_eq!(d.file(1), d.file(0));
+                }
             }
             seen += mountain.len();
         }
