@@ -3193,7 +3193,8 @@ On the photographs alone: the rows.
   land is (`ENABLE_LIGHTING`, `ENABLE_VERTEX_COLOR_DIFFUSE`, `NORMAL_MAP SPEC_MAP GLOSS_MAP`), the ring also
   `TRANSFORM_SCREEN_SPACE` (unread); a third, `t_mountainpeak` on both stages under `TL_FAKE_LIGHT`, ~~§3.10 never
   named (parked 4269b)~~ the snowcap underlay (§3.10, "The peak draw (item 4274)"). No card stream holds the range's mesh: it is a static buffer.
-- The `_mtrl` normal, specular and gloss maps on the mountain's draws (parked 4269a). The body's hue (4269c) is read
+- ~~The `_mtrl` normal, specular and gloss maps on the mountain's draws (parked 4269a).~~ Drawn on the main pass:
+  "The mountain's `_mtrl` maps (item 4278)" below. The body's hue (4269c) is read
   below, "The mountain's hue (item 4271)". ~~What takes the tint's share off the photograph's stage colour (parked
   4271a).~~ Answered by "The mountain's tint (item 4272)": ours tinted stage 1 too.
 - The body's remaining 7 % (ours Y 146.4 against 137.3, item 4272) and its yellow-green cast by eye.
@@ -3273,6 +3274,16 @@ comment). By eye the range is grey-beige now, with a faint yellow-green cast. Th
 still missing (4269b, 4269a).
 *Coverage:* diff-backed: the tint reaching the card (two photographs). On a reading: which textures take it. On the
 photograph alone: the row.
+
+**The mountain's `_mtrl` maps (item 4278).** *Opus 5.5. `render::terrain::mountain_tangents`, `client::ground::
+GroundMountain::frame`, `client::gpu`'s `mountain_mapped`, `land.wgsl`'s `land_mapped`; the story is
+`docs/journal/2026-11-15-item-4278.md`.* `mountain_mtrl` is `BASETEX`'s `_mtrl` sibling, untinted, bound to stage 2
+by `render_mountains@008551f0` on the main pass alone. `ps_global.hlsl` (no `SPEC_MODEL_TORRANCE`) perturbs N by the
+map's red and green through `(T, B = T × N, N)` and adds Blinn-Phong at the map's blue, `n = 512 · alpha`. The tangents
+are `generate_tangents@008479b0`'s: the packet's 238 bit for bit on its own mesh, ours within 1.2e-7. Drawn: the body
+Y 144.6 → 143.7 against 137.3; under a mountain holds at 95 of 106. *Coverage:* diff-backed: the tangents and stage
+0's texcoord; on a reading: the binding and the formula. *Not established:* the ring pass's stage 2; the map's three
+levels and filter; the photograph's centre-left streaks.
 
 ## 3.23 The trees' own light (item 4221)
 

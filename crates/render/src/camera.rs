@@ -236,6 +236,13 @@ impl Camera {
         (q, [t[0] + r[0], t[1] + r[1], t[2] + r[2]])
     }
 
+    /// The eye's position in world units: camera space's origin, which
+    /// `vs_global.hlsl`'s `ViewPos` is measured from (item 4278: the
+    /// specular's view vector, `−normalize(ViewPos)`).
+    pub fn eye_position(&self) -> [f32; 3] {
+        self.eye().1
+    }
+
     /// `render_matrix`: world → camera space.
     pub fn render_matrix(&self) -> Mat4 {
         let (q, t) = self.eye();

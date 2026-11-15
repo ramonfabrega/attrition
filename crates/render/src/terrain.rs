@@ -305,6 +305,60 @@ pub fn mountain_normals(positions: &[[f32; 3]], faces: &[[usize; 3]]) -> Vec<[f3
     out
 }
 
+/// **A placed range's tangents** (item 4278; `docs/RENDERER.md` §3.22,
+/// "The mountain's `_mtrl` maps"), as `RenderHelper::generate_tangents@
+/// 008479b0` builds them after [`mountain_normals`]: every vertex starts at
+/// zero; each triangle `(a, b, c)` in the face list's order, with its
+/// texcoord steps `du₁ = u_b − u_a`, `du₂ = u_c − u_a`, `dv₁ = v_b − v_a`,
+/// `dv₂ = v_c − v_a`, adds `((b − a) · dv₂ − (c − a) · dv₁) / (du₁ · dv₂ −
+/// du₂ · dv₁)` to all three of its vertices, skipping a face whose
+/// determinant is 0. Each vertex is then made orthogonal to its normal, `t
+/// − n (n · t)`, and scaled by `1 / sqrt(y² + x² + z²)` unless that is 0 or
+/// 1. One a position, beside `normals`.
+pub fn mountain_tangents(
+    positions: &[[f32; 3]],
+    uvs: &[[f32; 2]],
+    faces: &[[usize; 3]],
+    normals: &[[f32; 3]],
+) -> Vec<[f32; 3]> {
+    let mut out = vec![[0.0f32; 3]; positions.len()];
+    for f in faces {
+        let (Some(a), Some(b), Some(c), Some(ta), Some(tb), Some(tc)) = (
+            positions.get(f[0]),
+            positions.get(f[1]),
+            positions.get(f[2]),
+            uvs.get(f[0]),
+            uvs.get(f[1]),
+            uvs.get(f[2]),
+        ) else {
+            continue;
+        };
+        let (dv1, dv2) = (tb[1] - ta[1], tc[1] - ta[1]);
+        let det = (tb[0] - ta[0]) * dv2 - (tc[0] - ta[0]) * dv1;
+        if det == 0.0 {
+            continue;
+        }
+        let r = 1.0 / det;
+        let t = [0, 1, 2].map(|k| ((b[k] - a[k]) * dv2 - (c[k] - a[k]) * dv1) * r);
+        for &k in f {
+            let o = &mut out[k];
+            *o = [o[0] + t[0], o[1] + t[1], o[2] + t[2]];
+        }
+    }
+    for (t, n) in out.iter_mut().zip(normals) {
+        let d = n[0] * t[0] + n[1] * t[1] + n[2] * t[2];
+        let o = [t[0] - n[0] * d, t[1] - n[1] * d, t[2] - n[2] * d];
+        let l = o[1] * o[1] + o[0] * o[0] + o[2] * o[2];
+        *t = if l != 0.0 && l != 1.0 {
+            let r = 1.0 / l.sqrt();
+            o.map(|c| c * r)
+        } else {
+            o
+        };
+    }
+    out
+}
+
 /// **A land corner's vertex colour** (item 4217; `docs/RENDERER.md`
 /// §3.22): `light_vert@00866f90` on [`land_n_dot_l`], each channel
 /// `min(1, diffuse · alpha · N·L + ambient)` truncated to a byte, red in
