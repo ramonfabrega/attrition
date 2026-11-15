@@ -567,13 +567,9 @@ impl ScriptHost<'_> {
     }
 
     /// `LeaderData::num_buildings[t]`: live, finished buildings of exactly
-    /// this record.
+    /// this record that the leader counts ([`Sim::num_buildings_of`]).
     fn num_buildings(&self, w: Player, rec: usize) -> i32 {
-        self.sim
-            .buildings
-            .iter()
-            .filter(|b| b.alive && b.active && b.owner == w && b.ty == Some(rec))
-            .count() as i32
+        self.sim.num_buildings_of(w, rec)
     }
 
     /// `num_queued[t]` for a building: placed sites not yet active.

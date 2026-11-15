@@ -1321,10 +1321,11 @@ impl Sim {
                 // `[64][129]`, the land region by its own number, then the
                 // building record: finished buildings standing there.
                 let mut v = vec![0i64; count];
-                for b in self
+                for (_, b) in self
                     .buildings
                     .iter()
-                    .filter(|b| b.alive && b.active && b.owner == who)
+                    .enumerate()
+                    .filter(|&(i, b)| b.owner == who && self.leader_counts_building(i))
                 {
                     let (Some(rec), Some(r)) = (b.ty, self.world.region_of(b.pos.cell())) else {
                         continue;
