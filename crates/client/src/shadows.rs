@@ -32,7 +32,8 @@ mod tests {
     /// elsewhere): 105 → 104 scored, hue 92 → 93.
     /// Item 4212: hue 93 → 80, luma 89 → 79, the land lit at the frame's white, §3.21: under the trees the photograph's shadowed grass is orange, tile (10, 178) theirs (137, 107, 35), ours (120, 124, 43) (parked 4212b).
     /// Item 4241: hue 80 → 82, the bloom drawn and a plume's pixel clamped after the white (§3.25).
-    const RUN1559B_3279_SHADOW: [(usize, usize); 2] = [(82, 104), (79, 104)];
+    /// Item 4272: luma 79 → 78: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    const RUN1559B_3279_SHADOW: [(usize, usize); 2] = [(82, 104), (78, 104)];
     /// The same rows on the still drawn before item 4182, no decal drawn
     /// (`World::shadows` off): the count as drawn, pinned first. Ours
     /// 1.25× theirs on brightness (median).
@@ -42,7 +43,8 @@ mod tests {
     /// selected and drawn so: luma 59 → 60 of 108 with 4193's turn, the
     /// tree tiles 32 of 72 against the drawn 61 of 68.
     /// Item 4212: hue 98 → 83, luma 60 → 67, the land lit at the frame's white, §3.21.
-    const RUN1559B_3279_SHADOW_MIRRORED: [(usize, usize); 2] = [(83, 108), (67, 108)];
+    /// Item 4272: hue 83 → 84, luma 67 → 68: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    const RUN1559B_3279_SHADOW_MIRRORED: [(usize, usize); 2] = [(84, 108), (68, 108)];
     /// The before still composed on the CPU under the rule's own darkening,
     /// the guys' in (nearest texels): through the tone map, the GPU's 78
     /// with the guys' drawn within one (77; 65 against 66 before 4193's
@@ -54,8 +56,9 @@ mod tests {
     /// Item 4241: toned hue 78 → 80, display luma 83 → 84: the bloom drawn
     /// and a plume's pixel clamped after the white (§3.25).
     /// Item 4269: hue 80 → 81, the second luma 84 → 83 of 104: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+    /// Item 4272: hue 81 → 80, the second luma 83 → 84 of 104: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     const RUN1559B_3279_SHADOW_CPU: [[(usize, usize); 2]; 2] =
-        [[(81, 104), (91, 104)], [(72, 104), (83, 104)]];
+        [[(80, 104), (91, 104)], [(72, 104), (84, 104)]];
     /// The row with the guys' decals drawn too (`World::unit_shadows`), as
     /// `draw_unit_shadow` reads: 4182's luma 89 → 66, the figure tiles 28
     /// → 5 of 37, median ours/theirs 0.99 → 0.82 (parked 4182c). **Item
@@ -67,7 +70,8 @@ mod tests {
     /// Item 4221: luma 88 → 89, the trees tinted and blended (§3.23).
     /// Item 4237: luma 89 → 90, the smoke blended in HDR moving the frame's white (§3.25).
     /// Item 4241: hue 78 → 80, luma 90 → 89, the bloom drawn and a plume's pixel clamped after the white (§3.25).
-    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(80, 104), (89, 104)];
+    /// Item 4272: luma 89 → 87: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(80, 104), (87, 104)];
     /// Before, drawn and with the guys': the tree tiles, then the figure
     /// tiles, each `[hue, luma]`.
     /// Item 4212: drawn, the tree tiles' hue 63 → 51 (parked 4212b), the figures' 30 → 29: the land lit at the frame's white, §3.21.
@@ -77,10 +81,11 @@ mod tests {
     /// Item 4237: with the guys', the tree tiles' luma 59 → 60, the smoke blended in HDR moving the frame's white (§3.25).
     /// Item 4241: the tree tiles' hue 51 → 53 drawn and with the guys',
     /// their luma 60 → 59 with the guys': the bloom drawn and a plume's pixel clamped after the white (§3.25).
+    /// Item 4272: the tree tiles' luma 59 → 58 drawn and with the guys', the figure tiles' 30 → 29 with the guys': the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     const RUN1559B_3279_SHADOW_BY_KIND: [[[(usize, usize); 2]; 2]; 3] = [
         [[(43, 68), (1, 68)], [(29, 36), (20, 36)]],
-        [[(53, 68), (59, 68)], [(29, 36), (20, 36)]],
-        [[(53, 68), (59, 68)], [(27, 36), (30, 36)]],
+        [[(53, 68), (58, 68)], [(29, 36), (20, 36)]],
+        [[(53, 68), (58, 68)], [(27, 36), (29, 36)]],
     ];
 
     /// One scored tile: the tile, the photograph's mean, the still's, and

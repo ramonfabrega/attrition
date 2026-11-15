@@ -1567,7 +1567,8 @@ photograph, the 106 scored tiles under a mountain).
 - `TileSet::init` sets the tileset's tint on both stage 0 textures, and
   the tint is not applied.
 - The range's own vertex heights, the mid-zoom mesh and level of
-  detail, and the snowcap underlay (`CoordInfo::add_geometry`). The draw
+  detail, ~~and the snowcap underlay (`CoordInfo::add_geometry`)~~ (the
+  snowcap is read below, "The peak draw (item 4274)"). The draw
   takes our terrain mesh's tiles.
 - How the original draws the ground under a mountain cell. The count
   backs only that a ground is there (105 against 98 over the grey).
@@ -1576,6 +1577,45 @@ photograph, the 106 scored tiles under a mountain).
   the stored bytes: run in linear space it drew the body at Y 52 on the
   still against the photograph's 142, where the painter reads 0.83–0.92;
   after, 127. The layers' blend over the ground is still linear.
+
+**The peak draw (item 4274).** *2026-11-15, Opus 5.5. Read on run1559b's packet
+(`tools/render/snowcap_packet.py`) and both card traces; not drawn.* The range's third
+draw on the card, `t_mountainpeak` on both stages, is no part of `render_mountains`. It is
+the tileset's `snowcap` underlay (`<UNDERLAYS>`, the fifth entry), drawn by
+`render_weathering(4, 4)`, which `Scene::render@008b3270` calls after `render_mountains`
+and `CliffsOut::render`.
+- *Where.* `adjust_for_mountains@008703c0` marks the cell that holds a range's peak tile
+  (flag `0x200`, the tile's place in the cell in `snowcap_offsets`) when the template's
+  `mountain_size` is not 1, and sets `snowcap_size` 6 when it is 2 or 3. The peak is
+  `MountainRange::init@008998b0`'s first template vertex of greatest height, rows outer,
+  at `(px − w/2) / 4` tiles from the range's origin. `CoordInfo::add_geometry@0084bef0`
+  then calls `add_weather_underlay@00874d00` on the 6 × 6 tiles from the peak less 3,
+  clamped to the map. An odd corner steps back one and the side grows to even.
+- *Texcoords* (the listing, `874e21`–`875167`, constants read from the PE). UV1 is the
+  corner offset over the side times ½, plus a quadrant's offset of ½ on u, v or both. The
+  quadrant is `random_map_pool[(4W + 1)·x + y] · 4 / 100` at the unaligned corner, with a
+  ceiling of 3. UV0 is UV1 less that offset, times 2: the whole texture. Every vertex
+  takes the land's own vertex colour, and the first vertex alone takes alpha 127.
+- *The packet* (frame 3294): slot 4 holds 63 vertices and 96 faces over tiles (10–18,
+  138–144). m10's peak is pixel (120, 116), tile (14, 141), so the corner is (11, 138),
+  widened to 8 × 6: the slot's bounds exactly. UV0 steps ⅛ and ⅙, and UV1 half those from
+  (0, 0), the first quadrant. The colours average (177.7, 181.0, 203.4) and reach
+  (4, 9, 47) at (10, 140): the land's ambient (0.01, 0.03, 0.18) where N·L is near 0.
+  22 of 63 are white.
+- *The state* (`client::tint::card::the_mountain_s_draws_on_the_card`, on both traces):
+  enables `0x20004` with `TL_FAKE_LIGHT`. Stage 0 is `MODULATE(TEXTURE, DIFFUSE)` for
+  colour and `SELECTARG2` (the vertex alpha) for alpha. Stage 1 is `SELECTARG2(DIFFUSE,
+  CURRENT)` for colour, which passes the colour through, and `SELECTARG1(TEXTURE)` for
+  alpha. So the pixel is UV0's texel times the land colour, laid at UV1's texel alpha by
+  SRCALPHA over INVSRCALPHA, with no alpha test, clamped on both stages. The vertex alpha
+  never reaches the pixel.
+
+So the photograph's dark blue-grey crest is the land's light on the steep corners under
+the peak's texture (grey-brown, mean alpha about 100). *Coverage:* diff-backed: the state
+(the card's two traces). On the packet: the patch's tiles, texcoords and colours. On a
+reading: the peak's choice and the marking (they reproduce the slot's bounds), and the
+quadrant. *Not established:* the quadrant against our `random_map_pool` (r = 0 here), and
+`TL_FAKE_LIGHT`'s branch on a land colour.
 
 ## 3.11 The clock, under its ceilings (item 4161)
 
@@ -3114,11 +3154,12 @@ On the photographs alone: the rows.
   three draws (`client::tint::card::the_mountain_s_draws_on_the_card`), run1566b's 121–123 and run1567's 143–145; the
   ring (`t_mountain_blend` + `m*_ring_shad_0`) and the main (`t_mountain_plain` + `m*_mountain_shad_0`) lit as the
   land is (`ENABLE_LIGHTING`, `ENABLE_VERTEX_COLOR_DIFFUSE`, `NORMAL_MAP SPEC_MAP GLOSS_MAP`), the ring also
-  `TRANSFORM_SCREEN_SPACE` (unread); a third, `t_mountainpeak` on both stages under `TL_FAKE_LIGHT`, §3.10 never
-  named (parked 4269b). No card stream holds the range's mesh: it is a static buffer.
+  `TRANSFORM_SCREEN_SPACE` (unread); a third, `t_mountainpeak` on both stages under `TL_FAKE_LIGHT`, ~~§3.10 never
+  named (parked 4269b)~~ the snowcap underlay (§3.10, "The peak draw (item 4274)"). No card stream holds the range's mesh: it is a static buffer.
 - The `_mtrl` normal, specular and gloss maps on the mountain's draws (parked 4269a). The body's hue (4269c) is read
-  below, "The mountain's hue (item 4271)": the stage op and the texture's tint are the original's, and what takes
-  the tint's share off the photograph's stage colour is not established (parked 4271a).
+  below, "The mountain's hue (item 4271)". ~~What takes the tint's share off the photograph's stage colour (parked
+  4271a).~~ Answered by "The mountain's tint (item 4272)": ours tinted stage 1 too.
+- The body's remaining 7 % (ours Y 146.4 against 137.3, item 4272) and its yellow-green cast by eye.
 - `vs_global.hlsl`'s per-pixel normal against the interpolated N·L the client takes, and the
   vertex colour taken from that N·L rather than interpolated.
 - ~~The trees' and the roads' `TL_FAKE_LIGHT` stage colours against each other (parked 4217a).~~ Answered by
@@ -3174,10 +3215,27 @@ byte** (`early_autumn` (18, 18, 0), §3.21). What was read:
 
 So the tint is the original's by the reading and by the packet, and dropping it is a fit with no mechanism: **not
 drawn**. Whether the card ever samples the tinted bytes (an upload taken from the raw slab, or a mip chain built from
-it) is not established (parked 4271a). A photograph with the tint zeroed would settle it: if the range does not move,
-the tint never reaches the card.
+it) is not established (parked 4271a). ~~A photograph with the tint zeroed would settle it.~~ It did: the card
+samples the tint, and the gap was ours tinting stage 1 too ("The mountain's tint (item 4272)").
 *Coverage:* on the packet: the tint on the device's copy. On a reading: the loop's order (the listing), the shader's
 op (the install's HLSL). On the photograph alone: the row.
+
+**The mountain's tint (item 4272).** *2026-11-15, Opus 5.5. `client::ground::MountainArt::load_tinted`. run1612
+against run1559b.* run1612 is run1559b's take with `early_autumn`'s `<LIGHTING>` tint zeroed for that take alone
+(`--data-override`, `docs/RUNS.md`). Its camera sits 167.5 px left of run1559b's. Registered at that shift, the
+photograph's body moves **(−9.9, −12.5, +2.3)** (Y 147.9 → 137.9 over 44,488 grey pixels), and the crest and the
+left slope move the same. **So the card samples the tinted bytes.** The original's tint moves the body about 10 in
+Y, where item 4271's probe moved ours 25: ours laid the tint twice. `TileSet::init@0087b370` sets the tint on
+`mountain_base` and `mountain_alpha`, stage 0. A range's `MAIN_ALPHA_TEX` and `RING_ALPHA_TEX`, stage 1, load
+through `MountainRange::init@008998b0`'s plain `Texture::init@005245f0`. That copies the texture's own tint, which
+`Texture::Texture@00524170` leaves black, and no `set_tint` caller touches a range. Ours tinted stage 1 as well, and
+ADDSIGNED adds the two stages. Drawn with stage 1 untinted, `GROUND_LUMA_STILL` under a mountain goes **70 → 92 of
+106**, and the row 1,040 → 1,059 of 1,109 (plain 954 → 951). The body goes Y 158.3 → 146.4, against theirs 137.3.
+The frame's white moves the rows in `fire`, `roads`, `shadows`, `tint` and `ground` (each delta in its constant's
+comment). By eye the range is grey-beige now, with a faint yellow-green cast. The crest and the white streaks are
+still missing (4269b, 4269a).
+*Coverage:* diff-backed: the tint reaching the card (two photographs). On a reading: which textures take it. On the
+photograph alone: the row.
 
 ## 3.23 The trees' own light (item 4221)
 

@@ -96,7 +96,8 @@ pub(crate) fn check() -> Option<String> {
 pub(crate) const PINNED: &[(&str, usize)] = &[
     (
         "diff::coverage_pair::run1075_s_garrison_window_is_widened_whole",
-        6,
+        // Item 4159's eighth residue: 6 -> 0, `do_move` keeps the goal on top after a failed plan (run1608's packet).
+        0,
     ),
     (
         "diff::harness::tests::run96_s_word_frame_is_widened_whole",
