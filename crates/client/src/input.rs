@@ -103,6 +103,7 @@ pub const MINTS: &[&str] = &[
     "sell",
     "buy",
     "city_gather",
+    "spell",
 ];
 
 /// **The entry line's text limit**, in UTF-16 units: `ChatBox::exec
@@ -172,6 +173,24 @@ pub enum Event {
     /// `Options::exec@007188c0`'s `do_city_gather(0x1a1, 0x1a2, 0x1a3 or
     /// −1)`; item 4261, `docs/CLIENT_INPUT.md` §17). The HUD's alone.
     CityGather(i32),
+    /// A press on one of a unit's craft buttons, by the craft's row
+    /// (`OPTION_SPELL`, `Options::exec@007188c0`'s
+    /// `Options::do_spell@0071d7a0`; item 4264, `docs/CLIENT_INPUT.md`
+    /// §18). An untargeted craft issues at once; a targeted one waits for
+    /// the next left press, the pick. The HUD's alone.
+    Spell(i32),
+}
+
+/// `spell(type, ox, whom, x, y)`, as `CommandManager::issue_spell@00941b80`
+/// writes it (item 4264).
+fn spell(t: i32, ox: i32, whom: i32, at: Pos) -> Command {
+    Command::Spell {
+        ox,
+        whom,
+        spell: t,
+        x: at.x,
+        y: at.y,
+    }
 }
 
 /// **The city's gather buttons' types** (item 4261): Farm, Woodcutter,
@@ -664,6 +683,24 @@ pub struct Input {
     /// bit, as the layer last set it. While it stands the window steps no
     /// frame, and every order is minted on the frame it stopped on.
     pub paused: bool,
+    /// The craft whose button was pressed and whose target the next left
+    /// press picks (`Options::selecting_spot`, item 4264).
+    pub casting: Option<i32>,
+}
+
+/// **The selection's craft** (item 4264, `docs/CLIENT_INPUT.md` §18): the
+/// craft `t` as a unit of the selection offers it, `None` when no member
+/// does — the layer's stand-in for `GroupData::get_spellcaster` and
+/// `get_valid_spellcaster`, which `do_spell` asks before it issues.
+pub fn selection_craft(
+    scene: &sim::observe::Scene,
+    selection: &[ObjId],
+    t: i32,
+) -> Option<sim::observe::Craft> {
+    selection.iter().find_map(|id| {
+        let u = scene.units.iter().find(|u| u.id == *id)?;
+        u.crafts.iter().copied().find(|c| c.t == t)
+    })
 }
 
 impl Input {
@@ -877,6 +914,25 @@ impl Input {
                 let cmd = Command::CityGather { t, queued: 2 };
                 Some((frame, play, vec![self.group(), cmd]))
             }
+            Event::Spell(t) => {
+                // `do_spell`: a selection that can act, holding a caster of
+                // the craft; an untargeted one is `target_spell(t, −1, −1,
+                // 0, 0)`; a targeted one sets `selecting_spot`.
+                if self.building {
+                    return None;
+                }
+                let craft = selection_craft(view.scene, &self.selection, t)?;
+                if craft.targeted {
+                    self.placing = None;
+                    self.casting = Some(t);
+                    return None;
+                }
+                Some((
+                    frame,
+                    play,
+                    vec![self.group(), spell(t, -1, -1, Pos { x: 0, y: 0 })],
+                ))
+            }
             Event::Key(k) if self.line.is_some() => {
                 let line = self.line.as_mut().unwrap();
                 if line.encode_utf16().count() + k.len_utf16() <= CHAT_LIMIT {
@@ -885,6 +941,22 @@ impl Input {
                 None
             }
             Event::Press { x, y } => {
+                if let Some(t) = self.casting.take() {
+                    // `picked_spot`'s `OPTION_SPELL` arm: `reset`, then a
+                    // ground craft (`& 8`) at the point, else the object
+                    // `SpellTypeData::find_target` names, at the point.
+                    let at = ground_at(view, x, y)?;
+                    let craft = selection_craft(view.scene, &self.selection, t)?;
+                    let cmd = if craft.ground {
+                        spell(t, -1, -1, at)
+                    } else {
+                        let id = match view.target(self.player, x, y)? {
+                            Hit::Enemy { id, .. } | Hit::Friend(id) | Hit::Own { id, .. } => id,
+                        };
+                        spell(t, i32::from(id.o), i32::from(id.who), at)
+                    };
+                    return Some((frame, play, vec![self.group(), cmd]));
+                }
                 if let Some(ty) = self.placing {
                     let at = ground_at(view, x, y)?;
                     self.placing = None;
@@ -922,6 +994,7 @@ impl Input {
                 None
             }
             Event::RightPress { x, y } => {
+                self.casting = None;
                 if self.selection.is_empty() {
                     return None;
                 }
@@ -2655,6 +2728,197 @@ pub(crate) mod tests {
     /// Seen red with the layer's `queued` 0: 0 of 20.
     const INPUT_CITY_GATHERS: (usize, usize) = (18, 20);
 
+    /// A unit for the craft tests (item 4264): slot `who`'s `o` at `(x,
+    /// 0)`, offering `crafts`.
+    fn caster(who: u8, o: i16, x: i32, crafts: &[sim::observe::Craft]) -> sim::observe::UnitScene {
+        sim::observe::UnitScene {
+            crafts: crafts.to_vec(),
+            ..unit(who, o, 0x36, x, 0, 0)
+        }
+    }
+
+    /// **Every recorded spell a craft button issues** (item 4264,
+    /// `docs/CLIENT_INPUT.md` §18): `(whole, of)` — the recorded spells with
+    /// no target (`ox`, `whom` −1 and the point (0, 0), `do_spell`'s
+    /// `target_spell(t, −1, −1, 0, 0)`), each minted from its group's units
+    /// offering the craft and a press on its button. The five whose
+    /// `group` is empty part: that is `CommandPackage::add_group`'s repeat,
+    /// which the layer does not write (parked 4264a). Seen red with the
+    /// arm's point (1, 1): 0 of 6.
+    const INPUT_SPELLS: (usize, usize) = (1, 6);
+
+    #[test]
+    fn minted_spells_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let Some(&Command::Spell {
+                    ox: -1, spell: t, ..
+                }) = kept.iter().find(|c| matches!(c, Command::Spell { .. }))
+                else {
+                    continue;
+                };
+                all += 1;
+                let (who, objects) = match &kept[0] {
+                    Command::Group { who, objects } => (*who as u8, objects.clone()),
+                    _ => (p.play as u8, Vec::new()),
+                };
+                let craft = sim::observe::Craft {
+                    t,
+                    targeted: false,
+                    ground: false,
+                };
+                let scene = Scene {
+                    units: objects
+                        .iter()
+                        .map(|&o| caster(who, o, 0, &[craft]))
+                        .collect(),
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who);
+                input.selection = objects.iter().map(|&o| ObjId { who, o }).collect();
+                let got = input.event(p.frame, Event::Spell(t), &v);
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                } else {
+                    println!("SPELL PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("SPELLS {whole} of {all}");
+        assert_eq!((whole, all), INPUT_SPELLS);
+    }
+
+    /// **The craft buttons without a walk** (item 4264): the row a unit
+    /// selection's crafts make, each once; an untargeted craft issued at
+    /// once; a targeted one waiting for the pick, then naming the object
+    /// under it at the ground point; a ground craft naming the point alone;
+    /// nothing for a craft no member offers, a building selection, or a
+    /// pick on no object; a right press drops the pick.
+    #[test]
+    fn minted_spell_button_edges() {
+        if lobby().is_err() {
+            println!("skipping: no lobby");
+            return;
+        }
+        use sim::observe::Craft;
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let march = Craft {
+            t: 0x27c,
+            targeted: false,
+            ground: false,
+        };
+        let bribe = Craft {
+            t: 0x275,
+            targeted: true,
+            ground: false,
+        };
+        let drop = Craft {
+            t: 0x284,
+            targeted: true,
+            ground: true,
+        };
+        // The caster at x 0, another slot's unit at x 768 × 8.
+        let scene = Scene {
+            units: vec![
+                caster(0, 5, 0, &[march, bribe, drop]),
+                caster(0, 6, 768, &[march]),
+                unit(1, 9, 0x32, 768 * 8, 0, 0),
+            ],
+            ..Scene::default()
+        };
+        let v = view(&c, &scene, &terrain);
+        let selected = |o: &[i16]| {
+            let mut input = Input::new(0);
+            input.selection = o.iter().map(|&o| ObjId { who: 0, o }).collect();
+            input
+        };
+        let row: Vec<i32> = crate::hud::spell_menu(&selected(&[5, 6]), &scene, HUD_SIZE)
+            .iter()
+            .map(|b| b.t)
+            .collect();
+        assert_eq!(row, vec![0x275, 0x27c, 0x284]);
+        // Untargeted: the group and spell(t, −1, −1, 0, 0) at once.
+        let mut input = selected(&[5, 6]);
+        let got = input.event(7, Event::Spell(0x27c), &v).map(|o| o.2);
+        let group = Command::Group {
+            who: 0,
+            objects: vec![5, 6],
+        };
+        let no_point = Pos { x: 0, y: 0 };
+        assert_eq!(
+            got,
+            Some(vec![group.clone(), spell(0x27c, -1, -1, no_point)])
+        );
+        // Through the HUD: a press on the button is the same event.
+        let b = crate::hud::spell_menu(&input, &scene, HUD_SIZE)[1];
+        let (bx, by) = (b.rect.x + 1, b.rect.y + 1);
+        let got = crate::hud::event(&mut input, HUD_SIZE, 7, Event::Press { x: bx, y: by }, &v)
+            .map(|o| o.2);
+        assert_eq!(
+            got,
+            Some(vec![group.clone(), spell(0x27c, -1, -1, no_point)])
+        );
+        // Targeted: nothing on the button, then the pick on slot 1's unit.
+        let mut input = selected(&[5, 6]);
+        assert_eq!(input.event(7, Event::Spell(0x275), &v), None);
+        assert_eq!(input.casting, Some(0x275));
+        let target = scene.units[2].pos;
+        let (px, py) = v.pixel(target.x, target.y, 0);
+        let at = ground_at(&v, px, py).expect("the target stands on the map");
+        let got = input
+            .event(8, Event::Press { x: px, y: py }, &v)
+            .map(|o| o.2);
+        assert_eq!(got, Some(vec![group.clone(), spell(0x275, 9, 1, at)]));
+        assert_eq!(input.casting, None);
+        // A pick on no object: nothing, and the pick is spent.
+        let mut input = selected(&[5, 6]);
+        input.event(7, Event::Spell(0x275), &v);
+        let (ex, ey) = v.pixel(768 * 30, 768 * 30, 0);
+        assert_eq!(input.event(8, Event::Press { x: ex, y: ey }, &v), None);
+        assert_eq!(input.casting, None);
+        // A ground craft: the point alone.
+        let mut input = selected(&[5]);
+        input.event(7, Event::Spell(0x284), &v);
+        let at = ground_at(&v, ex, ey).expect("on the map");
+        let got = input
+            .event(8, Event::Press { x: ex, y: ey }, &v)
+            .map(|o| o.2);
+        let one = Command::Group {
+            who: 0,
+            objects: vec![5],
+        };
+        assert_eq!(got, Some(vec![one, spell(0x284, -1, -1, at)]));
+        // A right press drops the pick.
+        let mut input = selected(&[5]);
+        input.event(7, Event::Spell(0x275), &v);
+        input.event(8, Event::RightPress { x: ex, y: ey }, &v);
+        assert_eq!(input.casting, None);
+        // No member offers it; a building selection; another slot's unit.
+        assert_eq!(selected(&[6]).event(7, Event::Spell(0x275), &v), None);
+        let mut b = selected(&[5]);
+        b.building = true;
+        assert_eq!(b.event(7, Event::Spell(0x27c), &v), None);
+        let mut theirs = Input::new(0);
+        theirs.selection = vec![ObjId { who: 1, o: 9 }];
+        assert_eq!(theirs.event(7, Event::Spell(0x27c), &v), None);
+    }
+
     #[test]
     fn minted_city_gathers_equal_the_recordings() {
         let files = recordings_on_disk();
@@ -3156,6 +3420,7 @@ pub(crate) mod tests {
             max_health: 1,
             seen: true,
             attacks: true,
+            crafts: vec![],
             figures: vec![],
         }
     }
@@ -3297,14 +3562,13 @@ pub(crate) mod tests {
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (14, 26);
+    const INPUT_KINDS: (usize, usize) = (15, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2306, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2323, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
         "leader_options",
-        "spell",
         "unqueue",
         "rename_city",
         "hotkey",
