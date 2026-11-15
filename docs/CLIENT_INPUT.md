@@ -2010,9 +2010,10 @@ carry. The hot-keyed script mints 24 of 24 and the recorded hot keys 8 of 8. The
   frame. Then `valid` (`+0x9d8`) is 0 and the slot's name is redrawn for the console's own. With `clear` 1 it empties
   the slot (`num` 0, `valid` 0) and, with `valid`, writes the camera's point and zoom.
 - **The array**: `HotKeyGroups`, `0xa2` groups, apart from the pool. `HotKeyGroups::clear@00715230` gives each its
-  index as `id`, `priority` 1, `army` and `form` −1. `GameLog::dump_hotkey_groups@0092f920` writes it under
-  `HOTKEYGROUPS`, one `HOTKEYGROUPDATA` each with its `GROUPDATA` nested, then `loc_x`, `loc_y` and `valid`. A
-  playback prints it in a whole dump (`@dumpall`). No checksum line reads it: `check_groups` walks the pool.
+  index as `id`, `priority` 1, `army` and `form` −1. A whole dump (`@dumpall`) prints it under `HOTKEYGROUPS`,
+  one `HOTKEYGROUPDATA` each with its `GROUPDATA` nested, then `loc_x`, `loc_y` and `valid` (run1562, run1610). Which
+  writer prints it there is not read: run1610's trace does not enter `GameLog::dump_hotkey_groups`. No checksum line
+  reads the array: `check_groups` walks the pool.
 
 ### 22.2 What the layer does
 
