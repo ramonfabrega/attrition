@@ -8,13 +8,15 @@
     uv run tools/recomp/get_position.py <exe> <frame-snapshot.bin> entries <piece>
     uv run tools/recomp/get_position.py <exe> <frame-snapshot.bin> sweep <piece> <node> <anim> <time>
     uv run tools/recomp/get_position.py <exe> <frame-snapshot.bin> pivot <piece> <node> <anim> <time> <restrictions>
+    uv run tools/recomp/get_position.py <exe> <frame-snapshot.bin> --init <node,anim,time,axis> … <mode> …
 
 A release node's world offset is `GraphicPieces::get_position@0090b750`'s
 answer, and that function is packed SSE, so it does not lift (`docs/EMULATOR.md`
 §8). This runs it under unicorn on a `RON_STATE_FRAME` packet, which is the
 only place the piece's `AttachPos` entries exist: `GraphicEvents::
 init_unit_events@008e2520` fills them when a unit of the type is first built,
-so the packet must come from a game that fields the type.
+so the packet must come from a game that fields the type — or `--init`
+fills them (below).
 
 - `entries` reads the piece's `AttachPos` rows straight off the packet —
   `positions` (`GraphicPieces +0x6a8`, its data at `+0x10` as every
@@ -35,6 +37,16 @@ so the packet must come from a game that fields the type.
   **Its columns are `deg i t x y z`** — the facing degree, the turret step's
   index `i` (0..256), the step in degrees `t`, then the point — and not the
   slot-first order the Chariot tests read (parked 1813): read a row by name.
+
+- `--init node,anim,time,axis` (repeatable, before the mode) first calls
+  `GraphicPieces::init_position@00901820` for the mode's piece once per
+  tuple, as `init_unit_events` does for each `RELEASEEVENT` (`axis` 3 when
+  the art names none; `time` the event's frame), and the mode then reads
+  the rows it appended. It needs the piece's `RData` and its animations
+  resident: run1579's packet (an `@dumpall` on frame 0) holds every unit
+  piece's, and the call reproduces pieces 54's, 77's, 81's, 91's, 1462's
+  and 1809's stored rows bit for bit (item 4159's fourth residue). A
+  packet without them stops in `ModManager::prepend_content_dir`, a load.
 
 Item 1208 filed the shape: reached three times from one scratch script
 (items 602/603, 1194, 1257); this is that script with its paths and piece
@@ -58,6 +70,7 @@ from unicorn import UC_HOOK_CODE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_ECX, UC_X86_REG_ESP  # noqa: E402
 
 GET_POSITION = 0x90B750
+INIT_POSITION = 0x901820
 GRAPHIC_PIECES = 0xC06214  # the singleton's pointer
 
 
@@ -133,8 +146,20 @@ class Oracle:
         r = self.call([piece, node, anim, time, f2u(float(deg)), p6, restrictions, self.out, self.dir])
         return r, struct.unpack("<3f", bytes(uc.mem_read(self.out, 12)))
 
+    def init_position(self, piece, node, anim, time, axis):
+        """`init_position@00901820` (thiscall, five ints); 0 is `LIBERR_OK`."""
+        uc = self.uc
+        esp = step4.FRAME_STACK + step4.FRAME_STACK_SIZE - 0x200
+        words = [callfn.SENTINEL, piece, node, anim, time, axis]
+        uc.mem_write(esp, b"".join(struct.pack("<I", w & 0xFFFFFFFF) for w in words))
+        uc.reg_write(UC_X86_REG_ESP, esp)
+        uc.reg_write(UC_X86_REG_ECX, self.gp)
+        uc.emu_start(INIT_POSITION, callfn.SENTINEL, count=50_000_000)
+        return uc.reg_read(UC_X86_REG_EAX)
+
     def entries(self, piece):
-        s, gp = self.snap, self.gp
+        # Read off the machine, not the file: `--init` may have added rows.
+        s, gp = Mem(self.uc), self.gp
         # Each array's data pointer is its `+0x10` (the listing,
         # `90b776`..`90b7c4`: `+0x6f0`, `+0x6d4`, `+0x728`, `+0x6b8`).
         positions = s.u32(gp + 0x6A8 + 0x10)
@@ -154,12 +179,34 @@ class Oracle:
         return start, num, scale, flags, rows
 
 
+class Mem:
+    """The two reads `entries` makes, off the machine's memory."""
+
+    def __init__(self, uc):
+        self.uc = uc
+
+    def read(self, va, n):
+        return bytes(self.uc.mem_read(va, n))
+
+    def u32(self, va):
+        return struct.unpack("<I", self.read(va, 4))[0]
+
+
 def main():
-    if len(sys.argv) < 5:
+    argv, inits = sys.argv[1:], []
+    while "--init" in argv:
+        k = argv.index("--init")
+        inits.append(tuple(int(x) for x in argv[k + 1].split(",")))
+        del argv[k : k + 2]
+    if len(argv) < 4:
         sys.exit(__doc__)
-    exe, packet, mode = sys.argv[1], sys.argv[2], sys.argv[3]
-    args = [int(a) for a in sys.argv[4:]]
+    exe, packet, mode = argv[0], argv[1], argv[2]
+    args = [int(a) for a in argv[3:]]
     o = Oracle(exe, packet)
+    for node, anim, time, axis in inits:
+        r = o.init_position(args[0], node, anim, time, axis)
+        if r != 0:
+            sys.exit(f"init_position({args[0]}, {node}, {anim}, {time}, {axis}) answered {r}")
     if mode == "entries":
         (piece,) = args
         start, num, scale, flags, rows = o.entries(piece)

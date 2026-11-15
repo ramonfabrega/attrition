@@ -1152,6 +1152,279 @@ fn run1323c_s_inca_fusilier_leaves_from_piece_790_s_bay() {
     assert_eq!(662 + release_dz(790, 11, 6, 0).unwrap(), 772);
 }
 
+/// **The Persians' Assault Infantry, piece 1814, leaves from its own
+/// bays** (item 4159's fourth residue): no packet on disk had built the
+/// piece, so `GraphicPieces::init_position@00901820` was run for its
+/// eight `RELEASEEVENT`s under unicorn on run1579's packet, which holds
+/// every unit piece's `RData` (the same call reproduces piece 54's,
+/// 1462's and 1809's stored rows bit for bit), and `get_position`
+/// swept each key. These are four of each sweep's 361 headings,
+/// `(deg, x, y, z)`; the whole sweeps are
+/// [`the_original_s_release_agrees_at_every_heading_for_item_4159r4`]'s.
+/// Made to fail with the rows out of `BAYS`: the round leaves the
+/// figure's own square.
+#[test]
+fn the_persian_assault_infantry_leaves_from_piece_1814_s_bays() {
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3};
+    type Key = (i8, u32, [(i64, i64, i64, i32); 4]);
+    let sweeps: [Key; 7] = [
+        (
+            ATTACK1,
+            12,
+            [
+                (0, -23, 87, 167),
+                (97, -83, -34, 167),
+                (211, 65, -62, 167),
+                (305, 57, 69, 167),
+            ],
+        ),
+        (
+            ATTACK1,
+            13,
+            [
+                (0, -20, 82, 170),
+                (97, -78, -30, 170),
+                (211, 60, -59, 170),
+                (305, 55, 64, 170),
+            ],
+        ),
+        (
+            ATTACK2,
+            4,
+            [
+                (0, -9, 64, 120),
+                (97, -62, -17, 120),
+                (211, 41, -50, 120),
+                (305, 47, 44, 120),
+            ],
+        ),
+        (
+            ATTACK2,
+            14,
+            [
+                (0, -25, 60, 118),
+                (97, -56, -33, 118),
+                (211, 53, -38, 118),
+                (305, 34, 55, 118),
+            ],
+        ),
+        (
+            ATTACK2,
+            24,
+            [
+                (0, -21, 62, 121),
+                (97, -59, -28, 121),
+                (211, 50, -42, 121),
+                (305, 39, 53, 121),
+            ],
+        ),
+        (
+            ATTACK3,
+            12,
+            [
+                (0, -31, 138, 107),
+                (97, -133, -48, 107),
+                (211, 98, -102, 107),
+                (305, 95, 105, 107),
+            ],
+        ),
+        (
+            ATTACK3,
+            17,
+            [
+                (0, -40, 125, 115),
+                (97, -119, -55, 115),
+                (211, 98, -86, 115),
+                (305, 79, 104, 115),
+            ],
+        ),
+    ];
+    for (anim, start, points) in sweeps {
+        let b = bay(1814, anim, start, 0).unwrap_or_else(|| panic!("piece 1814 a{anim} t{start}"));
+        for (deg, x, y, z) in points {
+            assert_eq!(
+                b.offset((deg + 180) % 360),
+                (x, y),
+                "a{anim} t{start} at {deg}°"
+            );
+            assert_eq!(b.dz, z, "a{anim} t{start}");
+        }
+    }
+}
+
+/// **The three other pieces run1075 launched from the figure's square
+/// leave from their own bays** (item 4159's fourth residue): the
+/// Advanced Machine Gun and the Anti-Tank Missile in the India art
+/// style (pieces 1837 and 1851) and the default Flamethrower (81), by
+/// piece 1814's way on run1579's packet. Four headings `(deg, x, y, z)`
+/// of three keys each; the whole sweeps are
+/// [`the_original_s_release_agrees_at_every_heading_for_item_4159r4`]'s.
+/// Made to fail with the rows out of `BAYS`.
+#[test]
+fn the_india_machine_gun_missile_and_the_flamethrower_leave_from_their_bays() {
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3};
+    type Key = (i32, i8, u32, [(i64, i64, i64, i32); 4]);
+    let sweeps: [Key; 9] = [
+        (
+            1837,
+            ATTACK1,
+            3,
+            [
+                (0, 7, 147, 93),
+                (97, -147, -10, 93),
+                (211, 69, -130, 93),
+                (305, 124, 78, 93),
+            ],
+        ),
+        (
+            1837,
+            ATTACK2,
+            8,
+            [
+                (0, 7, 145, 103),
+                (97, -144, -10, 103),
+                (211, 68, -128, 103),
+                (305, 123, 77, 103),
+            ],
+        ),
+        (
+            1837,
+            ATTACK3,
+            42,
+            [
+                (0, 0, 145, 88),
+                (97, -144, -17, 88),
+                (211, 74, -124, 88),
+                (305, 119, 83, 88),
+            ],
+        ),
+        (
+            1851,
+            ATTACK1,
+            17,
+            [
+                (0, -28, 97, 125),
+                (97, -93, -39, 125),
+                (211, 74, -69, 125),
+                (305, 63, 78, 125),
+            ],
+        ),
+        (
+            1851,
+            ATTACK2,
+            7,
+            [
+                (0, -29, 76, 143),
+                (97, -72, -39, 143),
+                (211, 65, -50, 143),
+                (305, 45, 68, 143),
+            ],
+        ),
+        (
+            1851,
+            ATTACK3,
+            13,
+            [
+                (0, -40, 87, 140),
+                (97, -81, -50, 140),
+                (211, 79, -53, 140),
+                (305, 47, 83, 140),
+            ],
+        ),
+        (
+            81,
+            ATTACK2,
+            5,
+            [
+                (0, -14, 82, 126),
+                (97, -80, -24, 126),
+                (211, 55, -63, 126),
+                (305, 59, 59, 126),
+            ],
+        ),
+        (
+            81,
+            ATTACK2,
+            12,
+            [
+                (0, -19, 79, 129),
+                (97, -76, -29, 129),
+                (211, 57, -58, 129),
+                (305, 54, 61, 129),
+            ],
+        ),
+        (
+            81,
+            ATTACK2,
+            19,
+            [
+                (0, -16, 80, 126),
+                (97, -78, -26, 126),
+                (211, 56, -60, 126),
+                (305, 56, 60, 126),
+            ],
+        ),
+    ];
+    for (piece, anim, start, points) in sweeps {
+        let b =
+            bay(piece, anim, start, 0).unwrap_or_else(|| panic!("piece {piece} a{anim} t{start}"));
+        for (deg, x, y, z) in points {
+            assert_eq!(
+                b.offset((deg + 180) % 360),
+                (x, y),
+                "{piece} a{anim} t{start} at {deg}°"
+            );
+            assert_eq!(b.dz, z, "{piece} a{anim} t{start}");
+        }
+    }
+    // Every `RELEASEEVENT` key of the art has its row: 31 distinct of the
+    // Machine Gun's 32, three each of the others.
+    for (piece, n) in [(1814, 7), (1837, 31), (1851, 3), (81, 3)] {
+        assert_eq!(
+            BAYS.iter().filter(|r| r.0 == piece).count(),
+            n,
+            "piece {piece}"
+        );
+    }
+}
+
+/// **Item 4159r4's rows agree with the original at every heading**:
+/// `$RON_BAY_SWEEPS_4159R4` is the directory holding
+/// `sweep-<piece>-0-<anim>-<time>.txt` (`deg r x y z …` at every whole
+/// degree 0..=360) for pieces 1814, 1837, 1851 and 81, outside git
+/// (`~/ron-data/lab-experiments/2026-11-15-item-4159r4/sweeps/`), written
+/// by `init_position` and then `get_position` on run1579's packet.
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_item_4159r4() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4159R4") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4159R4 (item 4159r4's oracle, run1579)");
+        return;
+    };
+    let (mut rows, mut off) = (0, Vec::new());
+    let pieces = [1814, 1837, 1851, 81];
+    for &(p, a, t, b) in BAYS.iter().filter(|r| pieces.contains(&r.0)) {
+        let path = format!("{dir}/sweep-{p}-0-{a}-{t}.txt");
+        let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_4159R4");
+        for line in table.lines() {
+            let f: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((f[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (f[2], f[3], f[4]) {
+                off.push(format!(
+                    "{p} a{a} t{t} deg {}: {x},{y} against {},{}",
+                    f[0], f[2], f[3]
+                ));
+            }
+            rows += 1;
+        }
+    }
+    assert_eq!(rows, (7 + 31 + 3 + 3) * 361, "{dir}");
+    assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
+}
+
 /// **The default Fusiliers' piece 86 leaves from piece 790's bays** (item
 /// 4159's third residue): run1185's packet holds its three attack
 /// `AttachPos` rows (node 0, frames 6, 6 and 8, `RData +0x88` 1.0), and

@@ -3637,6 +3637,480 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 117,
         },
     ),
+    // **Piece 1814, the Assault Infantry in the India art style** (type
+    // 104, `ASSAULTINFANTRY-INDIA-AGE0`, `assault_infantry_india.bh3`:
+    // base 54 at style 5, the Persians' and the Indians'; item 4159's
+    // fourth residue): no packet on disk had built it, so its `AttachPos`
+    // rows were never filled. `GraphicPieces::init_position@00901820` was
+    // run for the art's eight `RELEASEEVENT`s (node 0 at 12 and 13 of
+    // `CHAR_ATTACK1`, 4, 14 twice and 24 of `2`, 12 and 17 of `3`, axis 3)
+    // under unicorn on run1579's packet, which holds every unit piece's
+    // `RData`; the same call reproduces piece 54's (run1487), 1462's
+    // (run854) and 1809's (run1324c) stored rows bit for bit. The eight
+    // rows are piece 1462's (`ASSAULTINFANTRY-NA-AGE0`) bit for bit,
+    // `RData +0x88` 1.0, and `fit_bay.py` fits each `get_position` sweep
+    // (49, 98, 915, 819, 348, 322 and 225 lattice points; the centroid is
+    // kept, 361 of 361 headings each). Without them run1075's Persian
+    // `1/70` loosed its round of 2120 at `0/17` from its own square, flew
+    // 5 frames against 4, and struck on 2124 against the original's 2123.
+    (
+        1814,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 23_820,
+            fwd: 87_417,
+            dz: 167,
+        },
+    ),
+    (
+        1814,
+        crate::units::anim::ATTACK1,
+        13,
+        Bay {
+            right: 20_717,
+            fwd: 82_052,
+            dz: 170,
+        },
+    ),
+    (
+        1814,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: 9_667,
+            fwd: 64_207,
+            dz: 120,
+        },
+    ),
+    (
+        1814,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_919,
+            fwd: 60_398,
+            dz: 118,
+        },
+    ),
+    (
+        1814,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 21_173,
+            fwd: 62_648,
+            dz: 121,
+        },
+    ),
+    (
+        1814,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 31_494,
+            fwd: 138_342,
+            dz: 107,
+        },
+    ),
+    (
+        1814,
+        crate::units::anim::ATTACK3,
+        17,
+        Bay {
+            right: 40_184,
+            fwd: 125_286,
+            dz: 115,
+        },
+    ),
+    // **Piece 1837, the Advanced Machine Gun in the India art style**
+    // (type 127, `ADVMACHINEGUN-INDIA-AGE0`: base 77 at style 5; item
+    // 4159's fourth residue), **piece 1851, the Anti-Tank Missile in it**
+    // (type 141, `TOW-INDIA-AGE0`: base 91 at style 5), and **piece 81,
+    // the Flamethrower in the default style** (type 131,
+    // `FLAMETHROWER-DEFAULT-AGE0`): the three other pieces run1075's walk
+    // launched from the figure's own square once piece 1814 had its rows.
+    // No packet holds 1837's or 1851's `AttachPos` rows; 33 hold
+    // 81's (run785's among them), and no row was ever entered for it. All
+    // three by piece 1814's way: `init_position@00901820` for each
+    // `RELEASEEVENT` (node 0, axis 3) on run1579's packet — the same call
+    // gives piece 77's 32 stored rows (run1472), 91's three (run1487) and
+    // 81's three (run785, run1165) bit for bit — then `get_position`
+    // swept, and `fit_bay.py` fits each sweep (1837: 23 to 3_260 lattice
+    // points; 1851: 103, 137, 156; 81: 332, 471, 1_564; the centroid is kept, 361
+    // of 361 headings each). 1837's `CHAR_ATTACK3` frame 12 is entered
+    // twice with the same bits, as piece 77's. The India rows are not the
+    // default's: 1837 and 1851 differ from 77 and 91 in every row.
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        3,
+        Bay {
+            right: -7_425,
+            fwd: 147_384,
+            dz: 93,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        9,
+        Bay {
+            right: -16_600,
+            fwd: 145_697,
+            dz: 88,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: -16_551,
+            fwd: 144_695,
+            dz: 91,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        17,
+        Bay {
+            right: -9_573,
+            fwd: 146_738,
+            dz: 90,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        20,
+        Bay {
+            right: 752,
+            fwd: 146_479,
+            dz: 84,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        24,
+        Bay {
+            right: 13_866,
+            fwd: 144_797,
+            dz: 89,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        29,
+        Bay {
+            right: 18_457,
+            fwd: 146_563,
+            dz: 86,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        32,
+        Bay {
+            right: 18_306,
+            fwd: 144_313,
+            dz: 83,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        37,
+        Bay {
+            right: 4_674,
+            fwd: 148_076,
+            dz: 90,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        39,
+        Bay {
+            right: 0,
+            fwd: 147_935,
+            dz: 91,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        46,
+        Bay {
+            right: 0,
+            fwd: 146_376,
+            dz: 88,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK1,
+        47,
+        Bay {
+            right: 0,
+            fwd: 147_224,
+            dz: 88,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: -402,
+            fwd: 146_341,
+            dz: 88,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK2,
+        2,
+        Bay {
+            right: -1_420,
+            fwd: 148_009,
+            dz: 90,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK2,
+        3,
+        Bay {
+            right: -2_732,
+            fwd: 145_714,
+            dz: 93,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK2,
+        5,
+        Bay {
+            right: -5_603,
+            fwd: 144_577,
+            dz: 98,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK2,
+        8,
+        Bay {
+            right: -7_510,
+            fwd: 145_038,
+            dz: 103,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -5_569,
+            fwd: 143_666,
+            dz: 103,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK2,
+        10,
+        Bay {
+            right: -3_051,
+            fwd: 145_130,
+            dz: 103,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK2,
+        12,
+        Bay {
+            right: 2_021,
+            fwd: 145_012,
+            dz: 103,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK3,
+        3,
+        Bay {
+            right: 2_079,
+            fwd: 146_008,
+            dz: 91,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK3,
+        4,
+        Bay {
+            right: 2_774,
+            fwd: 145_170,
+            dz: 93,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 13_610,
+            fwd: 147_369,
+            dz: 85,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK3,
+        19,
+        Bay {
+            right: 18_423,
+            fwd: 144_252,
+            dz: 89,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK3,
+        20,
+        Bay {
+            right: 18_424,
+            fwd: 146_258,
+            dz: 85,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK3,
+        27,
+        Bay {
+            right: 7_504,
+            fwd: 146_012,
+            dz: 89,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK3,
+        29,
+        Bay {
+            right: 1_218,
+            fwd: 146_171,
+            dz: 90,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK3,
+        34,
+        Bay {
+            right: 0,
+            fwd: 147_224,
+            dz: 90,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK3,
+        37,
+        Bay {
+            right: 0,
+            fwd: 145_187,
+            dz: 88,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK3,
+        42,
+        Bay {
+            right: 0,
+            fwd: 145_525,
+            dz: 88,
+        },
+    ),
+    (
+        1837,
+        crate::units::anim::ATTACK3,
+        46,
+        Bay {
+            right: 0,
+            fwd: 146_477,
+            dz: 88,
+        },
+    ),
+    (
+        1851,
+        crate::units::anim::ATTACK1,
+        17,
+        Bay {
+            right: 28_130,
+            fwd: 97_466,
+            dz: 125,
+        },
+    ),
+    (
+        1851,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 29_987,
+            fwd: 76_566,
+            dz: 143,
+        },
+    ),
+    (
+        1851,
+        crate::units::anim::ATTACK3,
+        13,
+        Bay {
+            right: 40_693,
+            fwd: 87_027,
+            dz: 140,
+        },
+    ),
+    (
+        81,
+        crate::units::anim::ATTACK2,
+        5,
+        Bay {
+            right: 14_704,
+            fwd: 82_911,
+            dz: 126,
+        },
+    ),
+    (
+        81,
+        crate::units::anim::ATTACK2,
+        12,
+        Bay {
+            right: 19_632,
+            fwd: 79_726,
+            dz: 129,
+        },
+    ),
+    (
+        81,
+        crate::units::anim::ATTACK2,
+        19,
+        Bay {
+            right: 16_955,
+            fwd: 80_963,
+            dz: 126,
+        },
+    ),
     // **Piece 1108, the Infantry in the Asian art style** (type 102,
     // `INFANTRY-ASIAN-AGE0`, `inf_asian.bh3`: base 52 at style 3; item
     // 3745, `docs/AI.md` §369.1): no packet on disk loaded it, and run1424's

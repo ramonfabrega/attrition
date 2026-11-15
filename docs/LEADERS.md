@@ -590,7 +590,11 @@ No kept-dump value is cited.
   third residue: a turret is born at its rest (`docs/COMBAT.md` §55.3), and
   the launches agree on 2042..2066. The pair still parts on run1075, from
   2392 (who 0 `units_lost` ours 18 theirs 19), past the window's next
-  parting on 2123 (parked 4159r3a).
+  parting on ~~2123 (parked 4159r3a)~~ 2346, the Persian `1/70`'s
+  `dest_angle`: item 4159's fourth residue gave four pieces the window
+  fired from the figure's square their launch rows (`docs/COMBAT.md`
+  §22), and the first blow apart moved from 2124 to 2354. What parts the
+  pair on 2392 is not established.
 
 ## 3. The combat rates
 
@@ -851,7 +855,9 @@ listing. The verdicts cite no kept-dump value for these leaves.
   `hits_current_frame` over a fight settles it. Two of the "one blow
   short" windows were not this: run1185b's 5276 and run1075's 2123 are a
   round that flies a frame long from a piece with no launch row, its
-  blow landing a frame late (item 4159's third residue; 4159r3a).
+  blow landing a frame late (item 4159's third residue; 4159r3a, closed
+  by the fourth: piece 1814's rows). Which other fielded pieces still
+  have none is not established beyond run1075's walk.
 - **The disband arm's reach.** Which types carry flag `0x2000` and which
   leaders hold `leader_flags & 4`; and whether the crate's `damage_building`
   disbands at all. A reading of the flag's loader, then a diff of
