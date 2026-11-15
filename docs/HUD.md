@@ -41,6 +41,17 @@ pause stands: `PAUSED`, centred one margin below the top (`hud::pause_rect`).
 The text and the place are ours; the original's `do_pause_notice` is not
 read. What the key mints is `docs/CLIENT_INPUT.md` §13.
 
+**The market's row** (item 4259) is a sixth, drawn only while the slot's
+own finished Market is the selection: a sell and a buy button for each
+good the original's market panel offers (`BuildOut::make_options@00629ed0`,
+food and timber in the Ancient age), each with its price, in a row along
+the bottom edge anchored to the right corner (`hud::market_menu`,
+`MARKET_BUTTON` 180 × 36). A button the original adds disabled — a sale
+under a hundred of the good, a purchase under its price — is drawn grey
+and mints nothing. Unlike the menu's buttons it is no key's event: a press
+on it is `Event::Sell` or `Event::Buy`, which no key sends. The place, the
+size and the labels are ours. What it mints is `docs/CLIENT_INPUT.md` §16.
+
 ## 2. The menu (item 4197)
 
 - **A button is a key's event and nothing else.** A press inside a

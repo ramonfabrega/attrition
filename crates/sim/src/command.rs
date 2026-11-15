@@ -243,6 +243,16 @@ impl Command<'_> {
         self.sim.group_action_recall(g)
     }
 
+    /// [`Sim::process_sell`] (`ai/ai_make.rs`).
+    pub fn process_sell(&mut self, who: Player, g: usize, flags: i32) {
+        self.sim.process_sell(who, g, flags)
+    }
+
+    /// [`Sim::process_buy`] (`ai/ai_make.rs`).
+    pub fn process_buy(&mut self, who: Player, g: usize, flags: i32) {
+        self.sim.process_buy(who, g, flags)
+    }
+
     /// [`Sim::group_action_city_gather`] (`cities/rally.rs`).
     pub fn group_action_city_gather(&mut self, buildings: &[usize], kind: i32) {
         self.sim.group_action_city_gather(buildings, kind)
