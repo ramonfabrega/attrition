@@ -197,6 +197,29 @@ impl UnitSetTypeView for SimSetType<'_> {
         if i == 0 {
             self.sim.seat_guys(self.u);
         }
+        // **The seating writes the figures' `last`** (item 4263): the
+        // call is `Guy::set_new_location(guy i, x, y, 1)`, whose
+        // `param_3` copies the point into `last_x`/`last_y` (`005d86f0:66–
+        // 70`) and writes no angle, so guy `i` keeps its `last_angle`. On
+        // guy 0 the same call seats each crew figure past the squad with
+        // `Guy::set_angle(crew, guy 0's angle, 1)` (`+0x18` and `+0x1c`) and
+        // `set_new_location(crew, its point, 1)`, so the crew's `last` is
+        // its seated point and guy 0's facing. A unit upgraded on a frame
+        // it walked ends it with `last` on its point, not one step behind
+        // (run1597, frame 11884: the Hoplites `1/56..1/58` to Phalanx).
+        let Ok(i) = usize::try_from(i) else { return };
+        let unit = &mut self.sim.units[self.u];
+        let (pos, facing) = (unit.pos, unit.movement.facing);
+        if let Some(g) = unit.guys.get_mut(i) {
+            let angle = g.last.map_or(facing, |(_, a)| a);
+            g.last = Some((pos, angle));
+        }
+        if i == 0 {
+            for g in unit.guys.iter_mut().skip(SQUAD_SIZE) {
+                let at = g.follow.map_or(pos, |f| f.body.pos);
+                g.last = Some((at, facing));
+            }
+        }
     }
     fn version_newer(&mut self) -> bool {
         false
