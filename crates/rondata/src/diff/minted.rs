@@ -2368,8 +2368,11 @@ const GATHERED_RCX_BYTES: usize = 59_459;
 /// With `RON_RCX_OUT=<file>` it writes the `.rcx` the playback takes open.
 #[test]
 fn the_gathered_minted_packages_round_trip() {
-    use crate::script::{GATHER_FRAME, GATHER_TRAIN_FRAME, followed, gathered};
-    let (Some(rec), Some(first)) = (minted(&gathered()), minted(&followed())) else {
+    use crate::script::{GATHER_FRAME, GATHER_TRAIN_FRAME, followed, full_groups, gathered};
+    let (Some(rec), Some(first)) = (
+        minted(&full_groups(&gathered())),
+        minted(&full_groups(&followed())),
+    ) else {
         eprintln!("skipping: no recording of the lobby on disk");
         return;
     };
@@ -2380,7 +2383,7 @@ fn the_gathered_minted_packages_round_trip() {
         bytes,
         "re-writes byte for byte"
     );
-    for ((f, play, cmds), p) in gathered().iter().zip(&back.packages[1..]) {
+    for ((f, play, cmds), p) in full_groups(&gathered()).iter().zip(&back.packages[1..]) {
         assert_eq!((p.frame, p.play), (*f, *play));
         assert_eq!(
             &crate::commands::decode(&p.data).unwrap(),
@@ -2664,8 +2667,11 @@ const CHATTED_RCX_BYTES: usize = 59_491;
 /// `RON_RCX_OUT=<file>` it writes the `.rcx` the playback takes open.
 #[test]
 fn the_chatted_minted_packages_round_trip() {
-    use crate::script::{CHAT_FRAME, chatted, gathered};
-    let (Some(rec), Some(first)) = (minted(&chatted()), minted(&gathered())) else {
+    use crate::script::{CHAT_FRAME, chatted, full_groups, gathered};
+    let (Some(rec), Some(first)) = (
+        minted(&full_groups(&chatted())),
+        minted(&full_groups(&gathered())),
+    ) else {
         eprintln!("skipping: no recording of the lobby on disk");
         return;
     };
@@ -2676,7 +2682,7 @@ fn the_chatted_minted_packages_round_trip() {
         bytes,
         "re-writes byte for byte"
     );
-    for ((f, play, cmds), p) in chatted().iter().zip(&back.packages[1..]) {
+    for ((f, play, cmds), p) in full_groups(&chatted()).iter().zip(&back.packages[1..]) {
         assert_eq!((p.frame, p.play), (*f, *play));
         assert_eq!(
             &crate::commands::decode(&p.data).unwrap(),
@@ -2819,8 +2825,11 @@ const PAUSED_RCX_BYTES: usize = 59_515;
 /// playback takes open.
 #[test]
 fn the_paused_minted_packages_round_trip() {
-    use crate::script::{PAUSE_FRAME, chatted, paused};
-    let (Some(rec), Some(first)) = (minted(&paused()), minted(&chatted())) else {
+    use crate::script::{PAUSE_FRAME, chatted, full_groups, paused};
+    let (Some(rec), Some(first)) = (
+        minted(&full_groups(&paused())),
+        minted(&full_groups(&chatted())),
+    ) else {
         eprintln!("skipping: no recording of the lobby on disk");
         return;
     };
@@ -2831,7 +2840,7 @@ fn the_paused_minted_packages_round_trip() {
         bytes,
         "re-writes byte for byte"
     );
-    for ((f, play, cmds), p) in paused().iter().zip(&back.packages[1..]) {
+    for ((f, play, cmds), p) in full_groups(&paused()).iter().zip(&back.packages[1..]) {
         assert_eq!((p.frame, p.play), (*f, *play));
         assert_eq!(
             &crate::commands::decode(&p.data).unwrap(),
@@ -2877,8 +2886,11 @@ const RALLIED_RCX_BYTES: usize = 59_504;
 /// `.rcx` run1602 takes open.
 #[test]
 fn the_rallied_minted_packages_round_trip() {
-    use crate::script::{PAUSE_FRAME, chatted, rallied};
-    let (Some(rec), Some(first)) = (minted(&rallied()), minted(&chatted())) else {
+    use crate::script::{PAUSE_FRAME, chatted, full_groups, rallied};
+    let (Some(rec), Some(first)) = (
+        minted(&full_groups(&rallied())),
+        minted(&full_groups(&chatted())),
+    ) else {
         eprintln!("skipping: no recording of the lobby on disk");
         return;
     };
@@ -2889,7 +2901,7 @@ fn the_rallied_minted_packages_round_trip() {
         bytes,
         "re-writes byte for byte"
     );
-    for ((f, play, cmds), p) in rallied().iter().zip(&back.packages[1..]) {
+    for ((f, play, cmds), p) in full_groups(&rallied()).iter().zip(&back.packages[1..]) {
         assert_eq!((p.frame, p.play), (*f, *play));
         assert_eq!(
             &crate::commands::decode(&p.data).unwrap(),
@@ -3256,8 +3268,11 @@ const MARKETED_RCX_BYTES: usize = 59_535;
 /// playback takes open.
 #[test]
 fn the_marketed_minted_packages_round_trip() {
-    use crate::script::{BUY_FRAME, SELL_FRAME, marketed, paused};
-    let (Some(rec), Some(first)) = (minted(&marketed()), minted(&paused())) else {
+    use crate::script::{BUY_FRAME, SELL_FRAME, full_groups, marketed, paused};
+    let (Some(rec), Some(first)) = (
+        minted(&full_groups(&marketed())),
+        minted(&full_groups(&paused())),
+    ) else {
         eprintln!("skipping: no recording of the lobby on disk");
         return;
     };
@@ -3268,7 +3283,7 @@ fn the_marketed_minted_packages_round_trip() {
         bytes,
         "re-writes byte for byte"
     );
-    for ((f, play, cmds), p) in marketed().iter().zip(&back.packages[1..]) {
+    for ((f, play, cmds), p) in full_groups(&marketed()).iter().zip(&back.packages[1..]) {
         assert_eq!((p.frame, p.play), (*f, *play));
         assert_eq!(
             &crate::commands::decode(&p.data).unwrap(),
@@ -3613,8 +3628,11 @@ const CITY_GATHERED_RCX_BYTES: usize = 59_546;
 /// playback takes open.
 #[test]
 fn the_city_gathered_minted_packages_round_trip() {
-    use crate::script::{CITY_GATHER_FRAME, city_gathered, marketed};
-    let (Some(rec), Some(first)) = (minted(&city_gathered()), minted(&marketed())) else {
+    use crate::script::{CITY_GATHER_FRAME, city_gathered, full_groups, marketed};
+    let (Some(rec), Some(first)) = (
+        minted(&full_groups(&city_gathered())),
+        minted(&full_groups(&marketed())),
+    ) else {
         eprintln!("skipping: no recording of the lobby on disk");
         return;
     };
@@ -3625,7 +3643,10 @@ fn the_city_gathered_minted_packages_round_trip() {
         bytes,
         "re-writes byte for byte"
     );
-    for ((f, play, cmds), p) in city_gathered().iter().zip(&back.packages[1..]) {
+    for ((f, play, cmds), p) in full_groups(&city_gathered())
+        .iter()
+        .zip(&back.packages[1..])
+    {
         assert_eq!((p.frame, p.play), (*f, *play));
         assert_eq!(
             &crate::commands::decode(&p.data).unwrap(),
@@ -3902,8 +3923,11 @@ const UNQUEUED_RCX_BYTES: usize = 59_559;
 /// playback takes open.
 #[test]
 fn the_unqueued_minted_packages_round_trip() {
-    use crate::script::{UNQUEUE_FRAME, city_gathered, unqueued};
-    let (Some(rec), Some(first)) = (minted(&unqueued()), minted(&city_gathered())) else {
+    use crate::script::{UNQUEUE_FRAME, city_gathered, full_groups, unqueued};
+    let (Some(rec), Some(first)) = (
+        minted(&full_groups(&unqueued())),
+        minted(&full_groups(&city_gathered())),
+    ) else {
         eprintln!("skipping: no recording of the lobby on disk");
         return;
     };
@@ -3914,7 +3938,7 @@ fn the_unqueued_minted_packages_round_trip() {
         bytes,
         "re-writes byte for byte"
     );
-    for ((f, play, cmds), p) in unqueued().iter().zip(&back.packages[1..]) {
+    for ((f, play, cmds), p) in full_groups(&unqueued()).iter().zip(&back.packages[1..]) {
         assert_eq!((p.frame, p.play), (*f, *play));
         assert_eq!(
             &crate::commands::decode(&p.data).unwrap(),
@@ -3941,6 +3965,127 @@ fn the_unqueued_minted_packages_round_trip() {
     if let Some(out) = std::env::var_os("RON_RCX_OUT") {
         std::fs::write(&out, &gz).unwrap();
         eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The repeated file's gzip length (item 4267).
+const REPEATED_RCX_BYTES: usize = 59_564;
+
+/// The frames whose `group` repeats the last one sent (item 4267): the
+/// gathered Citizen's queue, the paused rally point and the city's gather,
+/// each the capital again.
+pub(crate) const REPEATED_FRAMES: [i32; 3] = [
+    crate::script::GATHER_TRAIN_FRAME,
+    crate::script::PAUSE_FRAME,
+    crate::script::CITY_GATHER_FRAME,
+];
+
+/// **The unqueued script as `add_group` writes it, minted** (item 4267,
+/// `docs/CLIENT_INPUT.md` §20): the packages of the unqueued file, frame,
+/// slot and stamp, each `group` that repeats the last one sent written as
+/// a count of zero, on [`REPEATED_FRAMES`] alone; with each such group in
+/// full again it is the unqueued file run1606 played, byte for byte. With
+/// `RON_RCX_OUT=<file>` it writes the `.rcx` the playback takes open.
+#[test]
+fn the_repeated_minted_packages_round_trip() {
+    use crate::script::{full_groups, unqueued};
+    let (Some(rec), Some(played)) = (minted(&unqueued()), minted(&full_groups(&unqueued()))) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "repeated").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    let mut empty = Vec::new();
+    for ((f, play, cmds), p) in unqueued().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        let got = crate::commands::decode(&p.data).unwrap();
+        assert_eq!(&got, cmds, "frame {f}");
+        if matches!(got.first(), Some(crate::commands::Command::Group { objects, .. }) if objects.is_empty())
+        {
+            empty.push(*f);
+        }
+    }
+    assert_eq!(empty, REPEATED_FRAMES, "the repeated groups");
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    assert_eq!(stamps(&back), stamps(&played), "the same packages");
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&played);
+    eprintln!(
+        "REPEATED RCX {} bytes (the played file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), UNQUEUED_RCX_BYTES, "the file run1606 played");
+    assert_ne!(gz, old, "not the file run1606 played");
+    assert_eq!(gz.len(), REPEATED_RCX_BYTES, "REPEATED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// **The original's playback of the repeated file** (item 4267), pinned
+/// before run1607 was read: `(take, trace, first sequence parting or the
+/// last frame, last frame, records compared, records parted)`.
+pub(crate) const REPEATED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1607-greatlakes-playback-of-repeated-7000.txt",
+    "rontrace-run1607.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// **The original plays the repeated file in lockstep** (item 4267,
+/// `docs/CLIENT_INPUT.md` §20): the built start walked under the pump on
+/// the unqueued script as the layer writes it, its three repeated groups
+/// of no objects ([`REPEATED_FRAMES`]), against run1607: every frame's
+/// draws against its trace and every record of its window whole
+/// ([`REPEATED_WALKED`]); and the capital's queue and the Citizen `0/10` on
+/// [`UNQUEUE_READ_AT`], read off the take's records, equal to run1606's
+/// and to our walk's ([`unqueued_effects`]). Our walk is whole against
+/// both takes ([`UNQUEUED_WALKED`]), so the original's window under the
+/// repeated file is its window under the full one, record for record.
+#[test]
+fn the_original_s_playback_of_the_repeated_file_walks_in_lockstep() {
+    let repeated = crate::script::unqueued();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in REPEATED_WALKED {
+        let Some((w, _)) = walk_minted(&repeated, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "REPEATED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs =
+        queue_effects_theirs(REPEATED_WALKED[0].0, &UNQUEUE_READ_AT).expect("the take's records");
+    for t in &theirs {
+        eprintln!("REPEATED EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, REPEATED_WALKED, "the walked table");
+    assert_eq!(theirs, unqueued_effects(), "the original's effects");
+    if let Some(full) = queue_effects_theirs(UNQUEUED_WALKED[0].0, &UNQUEUE_READ_AT) {
+        assert_eq!(theirs, full, "run1606's, under the full groups");
     }
 }
 

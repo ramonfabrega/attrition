@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -1515,7 +1515,7 @@ ALL at centres (1258, 1054), (1446, 1054), (1634, 1054), (1822, 1054) at 1920×1
   the capital, then its GATHER FARM button), mint the city-gathered script field for field
   (`minted_city_gathered_at_the_opening_camera`). The file written from them is the city-gathered file. Seen red
   with the layer's `queued` 0: 21 orders, 20 whole.
-- `INPUT_CITY_GATHERS`: **18 of 20**. Every recorded city gather whose `group` names its building, that building
+- `INPUT_CITY_GATHERS`: **18 of 20** (20 of 20 since item 4267, §20.3). Every recorded city gather whose `group` names its building, that building
   pressed and the button of its type, mints the package's `group` and `city_gather` whole
   (`minted_city_gathers_equal_the_recordings`). The two with an empty group part: the panel's gate passes no empty
   selection, so the layer mints nothing. Seen red with `queued` 0: 0 of 20.
@@ -1571,7 +1571,8 @@ clearing of the rally point and the points' order are all inside that.
 **Not established:**
 - ~~**The two recorded gathers with an empty group** (7205, 8179): how the original wrote a `group` of no objects
   behind a gate that counts the selection is not read. Parked 4261a.~~ Read in §18.1: `CommandPackage::add_group`
-  writes no objects for a group equal to the last one sent. The layer does not write that yet (4264a).
+  writes no objects for a group equal to the last one sent. ~~The layer does not write that yet (4264a).~~ It
+  does since item 4267 (§20), and both mint whole.
 - **A selection of several buildings**: the panel is a single centre's here, and the layer mints the whole
   selection's group; no recording carries more than one.
 
@@ -1623,7 +1624,7 @@ answers 4261a's question (§17.4).
   `spell(−1, −1, t, x, y)`. A pick on no object mints nothing and spends the pick; a right press drops it.
 
 **The counts.**
-- `INPUT_SPELLS`: **1 of 6**. Every recorded button spell, minted from its group's units offering the craft and a
+- `INPUT_SPELLS`: **1 of 6** (6 of 6 since item 4267, §20.3). Every recorded button spell, minted from its group's units offering the craft and a
   press on its button (`minted_spells_equal_the_recordings`). The five with an empty group part, because the layer
   does not write `add_group`'s repeat (parked 4264a). Seen red with the arm's point (1, 1): 0 of 6.
 - `minted_spell_button_edges`: the row, each craft once; the untargeted spell, also through the HUD; the targeted
@@ -1654,8 +1655,9 @@ branch and was not kept.
 **Not established:**
 - **A spell the original plays from our file.** The minted game's slot 0 needs a caster first (parked 4264b).
 - **The right press's crafts** (11 recordings), `execute_at_cursor`'s Scout-line and Commando arms (parked 4264c).
-- **`add_group`'s repeat in the layer** (parked 4264a): the five button spells and 4261a's two city gathers would mint
-  whole with it. Every script whose groups repeat back to back would change bytes, so it moves the layer's pins.
+- ~~**`add_group`'s repeat in the layer** (parked 4264a): the five button spells and 4261a's two city gathers would mint
+  whole with it. Every script whose groups repeat back to back would change bytes, so it moves the layer's pins.~~
+  Built in item 4267 (§20): the five mint whole, and the scripts are re-pinned.
 
 
 ## 19. A building's queue button: the cancel (item 4265)
@@ -1758,3 +1760,98 @@ training. The capital's queue and the Citizen it no longer trains are ours on th
 - **The selector's negatives** (Shift, Ctrl, no object) and **a unit's cancel** (`UnitOut::issue_unqueue`, a
   carrier's plane): not minted.
 - **A refund** is inside the playback's records (300 whole) but is not read as a value of its own.
+
+## 20. The repeated group: a group equal to the last one sent (item 4267)
+
+*Item 4267, 2026-11-15. The score: `INPUT_SPELLS` 1 → 6 of 6 and `INPUT_CITY_GATHERS` 18 → 20 of 20. The census
+(§11.1) does not move: no new kind is minted. The layer now writes a `group` the way `CommandPackage::add_group`
+does. A group equal to the last one sent goes as no objects. The scripts from the gathered script on are re-pinned
+toward the original: each carries the original's empty group where it selects the capital again. The original plays
+the re-pinned unqueued file (run1607).*
+
+### 20.1 What `add_group` writes
+
+`CommandPackage::add_group@0094bb60` builds the group's list from the `GroupOut`'s objects. Each live object
+(`flags & 1`) goes in with its uid (`ObjectData +0x30`). It then compares `who`, the count, the objects and the uids
+against three statics: `last_who_sent`, `last_num_sent`, `last_objects_sent` and `last_uids_sent`. **When all are
+equal it writes `[0][0][who]`, a group of no objects, and leaves the statics alone.** Otherwise it keeps the new list
+in the statics and writes `[0][count][who]` and the objects. `CommandPackage::init_class@0094c440` sets `last_who_sent`
+to −1, the count to 0 and both lists to −1 when a game starts. Nothing else writes them. The state belongs to the
+sending machine, not to a package: a package with no group (a pause, a sale, a cancel) leaves it standing.
+
+The receiver is already ported. `CommandPackage::process_group@0094a0c0`'s `num = 0` arm re-adds the last list it
+recorded for that player, each object still alive with the uid it had (`Sim::process_group_play_repeat`, item
+4113). The walk's `Stream` keeps the previous selection for an empty group.
+
+### 20.2 What the layer does
+
+- **The scene** (`crates/sim/src/observe.rs`, reads only): `UnitScene::uid`, `Unit::uid`. `BuildingScene::uid` was
+  item 4265's.
+- **The layer** (`crates/client/src/input.rs`): `input::Sent` holds the statics, and its `Default` is `init_class`'s.
+  `Sent::add_group` makes the write. `Input::sent` is the session's state, and `Input::group` now takes the scene: each
+  selected object goes with the uid the scene holds for it. Every `group` the layer mints goes through it.
+- **The scripts** (`crates/rondata/src/script.rs`): `repeated()`, slot 0's group of no objects, stands in three places.
+  These are the gathered script's Citizen queue on 6708, after the rally point's `group(0, [2000])` on 6706; the
+  paused and rallied scripts' rally point on 6712; and the city-gathered script's gather on 6718. Between each and the
+  capital's last group lie only packages with no group (the chat, the pauses, the sale and purchase). The followed
+  script's Scout groups on 6702 and 6704 do not repeat, because the Slinger's attack on 6703 lies between them.
+  `script::full_groups` puts each empty group back in full: the last list of the same `who`, which `process_group`'s
+  `num = 0` arm repeats. It is the form the files before this item carried.
+
+**Stage 0.** The scripts assume the capital's uid does not change between its groups; the layer reads it off the
+walk's scene. The opening-camera tests (`minted_gathered_at_the_opening_camera` to
+`minted_unqueued_at_the_opening_camera`) mint the re-pinned scripts field for field with the layer's own uids:
+`INPUT_GATHERED` 14, `INPUT_CHATTED` 15, `INPUT_PAUSED` 18, `INPUT_MARKETED` 20, `INPUT_CITY_GATHERED` 21 and
+`INPUT_UNQUEUED` 22, all unchanged. On the first run after the layer changed, they parted only at the bytes of the
+played files, which `full_groups` now writes.
+
+### 20.3 The counts
+
+- `INPUT_SPELLS`: **6 of 6** (from 1). The test now walks each recording's packages in order and keeps, for each
+  slot, the last `group` it carried in full. A recorded group of no objects is minted with the selection that list
+  names, and with the layer's `Sent` set to it. The five that parted mint whole. Red at the old pin: (6, 6) against
+  (1, 6).
+- `INPUT_CITY_GATHERS`: **20 of 20** (from 18), the same way: 7205's and 8179's empty groups follow the same city
+  building's full group. Red at the old pin: (20, 20) against (18, 20).
+- `minted_spell_button_edges`: the craft pressed twice on one selection, through the layer and then through the HUD,
+  now writes the second `group` as no objects.
+- **The files the original played** (run1598 to run1606) stay pinned. The round trips and the opening-camera byte
+  tests write them from `full_groups` of the re-pinned scripts. They are byte for byte the gathered, chatted, paused,
+  rallied, marketed, city-gathered and unqueued files.
+
+**The file.** `~/ron-golden/recordings/item4267-repeated-greatlakes-24000.rcx`, 59,564 bytes, SHA-256
+`1efd3a672cccf3957d4a34c7daaed9196e1eae7fae709407562ae5f830d14b3c`
+(`the_repeated_minted_packages_round_trip`; seen red pinned 0). It holds the unqueued file's packages, each with its
+frame, slot and stamp. Its groups on 6708, 6712 and 6718 carry no objects, and on no other frame
+(`REPEATED_FRAMES`). Each repeat drops one object's two bytes. The gzip grows by five bytes, from 59,559. With the
+groups put back in full, it is the file run1606 played. The client's events through the HUD write it byte for byte
+(`minted_unqueued_at_the_opening_camera`).
+
+### 20.4 The playback
+
+RUN1607_PENDING
+
+### 20.5 Confidence, and what is not established
+
+**Backed by the recordings and the playback.** The recordings' 7 empty groups mint whole once the layer keeps the
+sender's last group. RUN1607_BACKED
+
+**Reading only**, one reader, no blind second reading:
+- that `init_class` is the statics' only other writer (one grep over the export: `add_group` and `init_class` alone
+  name `last_objects_sent`);
+- the live test (`flags & 1`) and the captain branch of the list's build. The layer writes every selected object;
+  §20.2's scripts select nothing dead.
+
+**Ours, not the original's:**
+- an object the scene does not hold goes with uid `u16::MAX`, where `add_group` drops a dead object from the list;
+- the recording tests keep the statics per package slot. The original keeps one set per machine, and an AI's
+  packages, if a host sent them, would share it. No recording on disk is read for that;
+- the recordings carry no uids, so the tests give each object the scene's uid. They take an empty group to mean the
+  sender's last full group with the uids unchanged, which is what `add_group`'s equality says.
+
+**Not established:**
+- **A group that repeats across a selection made again**: a press that selects the same object a second time sends
+  no group until an order. The layer keeps `Sent` across a selection change, as `add_group` does, but only the
+  capital's case is played.
+- **The `Random::get` padding** that `add_group` adds when the game's semaphore bit 4 is set is not written. The
+  layer's files never carry it, and no file the original played needed it.

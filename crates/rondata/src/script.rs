@@ -403,6 +403,49 @@ pub const FOG_TO: Pos = Pos { x: 6792, y: 31100 };
 /// [`ATTACK_FRAME`]: `1/0` is still seen.
 pub const FOLLOW_FRAME: i32 = 6704;
 
+/// **A group equal to the last one sent** (item 4267,
+/// `docs/CLIENT_INPUT.md` §20): slot 0's `group` of no objects, as
+/// `CommandPackage::add_group@0094bb60` writes one whose `who`, objects and
+/// uids equal the last group it sent. From [`gathered`] on, each script
+/// selects the capital [`CAPITAL`] again with nothing sent between but
+/// packages with no group, so its later groups are this.
+fn repeated() -> Command {
+    Command::Group {
+        who: 0,
+        objects: Vec::new(),
+    }
+}
+
+/// **The scripts as the files before item 4267 carried them**
+/// (`docs/CLIENT_INPUT.md` §20): each group of no objects replaced by the
+/// last group of the same `who` in full, which is the list
+/// `CommandPackage::process_group@0094a0c0`'s `num = 0` arm repeats. The
+/// original played these files (run1598 to run1606); the receiver reads
+/// both forms alike.
+pub fn full_groups(orders: &[Order]) -> Vec<Order> {
+    let mut last: std::collections::BTreeMap<i8, Vec<i16>> = Default::default();
+    orders
+        .iter()
+        .map(|(f, play, cmds)| {
+            let cmds = cmds
+                .iter()
+                .map(|c| match c {
+                    Command::Group { who, objects } if objects.is_empty() => Command::Group {
+                        who: *who,
+                        objects: last.get(who).cloned().unwrap_or_default(),
+                    },
+                    Command::Group { who, objects } => {
+                        last.insert(*who, objects.clone());
+                        c.clone()
+                    }
+                    _ => c.clone(),
+                })
+                .collect();
+            (*f, *play, cmds)
+        })
+        .collect()
+}
+
 /// **The gathered script** (item 4249, `docs/CLIENT_INPUT.md` §11): the
 /// followed script, then the capital [`CAPITAL`] given a rally point and a
 /// Citizen. On [`GATHER_FRAME`] a press on the capital and a right press
@@ -411,7 +454,8 @@ pub const FOLLOW_FRAME: i32 = 6704;
 /// `gather_point(x, y, action 0, add_to_end 0)` at [`GATHER_AT`]. On
 /// [`GATHER_TRAIN_FRAME`] the capital trains a Citizen, who walks to it.
 /// The client's `minted_gathered_at_the_opening_camera` mints these field
-/// for field.
+/// for field. The Citizen's `group` repeats the rally point's, so it is
+/// `repeated()` (item 4267).
 pub fn gathered() -> Vec<Order> {
     let mut orders = followed();
     let capital = || Command::Group {
@@ -436,7 +480,7 @@ pub fn gathered() -> Vec<Order> {
             GATHER_TRAIN_FRAME,
             0,
             vec![
-                capital(),
+                repeated(),
                 Command::QueueUp {
                     unit: CITIZEN,
                     num: 1,
@@ -493,7 +537,8 @@ pub const CHAT_BITS: i32 = 0b11;
 /// with the bit clear); the capital's rally point moved to
 /// [`PAUSE_GATHER_AT`] while the game stands paused; and `pause(0)`, the key
 /// again. The frame does not move between them. The client's
-/// `minted_paused_at_the_opening_camera` mints these field for field.
+/// `minted_paused_at_the_opening_camera` mints these field for field. The
+/// rally point's `group` is `repeated()` (item 4267).
 pub fn paused() -> Vec<Order> {
     let mut orders = chatted();
     orders.extend([
@@ -502,10 +547,7 @@ pub fn paused() -> Vec<Order> {
             PAUSE_FRAME,
             0,
             vec![
-                Command::Group {
-                    who: 0,
-                    objects: vec![CAPITAL],
-                },
+                repeated(),
                 Command::GatherPoint {
                     x: PAUSE_GATHER_AT.x,
                     y: PAUSE_GATHER_AT.y,
@@ -524,17 +566,14 @@ pub fn paused() -> Vec<Order> {
 /// more, on [`PAUSE_FRAME`]: the capital's rally point moved to
 /// [`PAUSE_GATHER_AT`], with no `pause` before or after it. Its playback
 /// (run1602) separates the moved rally point from the pause's three turns
-/// (parked 4252a).
+/// (parked 4252a). Its `group` is `repeated()` (item 4267).
 pub fn rallied() -> Vec<Order> {
     let mut orders = chatted();
     orders.push((
         PAUSE_FRAME,
         0,
         vec![
-            Command::Group {
-                who: 0,
-                objects: vec![CAPITAL],
-            },
+            repeated(),
             Command::GatherPoint {
                 x: PAUSE_GATHER_AT.x,
                 y: PAUSE_GATHER_AT.y,
@@ -596,17 +635,14 @@ pub fn marketed() -> Vec<Order> {
 /// selection's `group` and `city_gather(t, 2)`, `t` [`CITY_GATHER_TYPE`].
 /// Nineteen of the twenty recorded carry the Farm's type and every one
 /// `queued` 2. The client's `minted_city_gathered_at_the_opening_camera`
-/// mints it field for field.
+/// mints it field for field. Its `group` is `repeated()` (item 4267).
 pub fn city_gathered() -> Vec<Order> {
     let mut orders = marketed();
     orders.push((
         CITY_GATHER_FRAME,
         0,
         vec![
-            Command::Group {
-                who: 0,
-                objects: vec![CAPITAL],
-            },
+            repeated(),
             Command::CityGather {
                 t: CITY_GATHER_TYPE,
                 queued: 2,
