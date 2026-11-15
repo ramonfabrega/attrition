@@ -104,7 +104,8 @@ Fields this mechanic reads and writes, named from `types.txt`:
 | `+0x64 helpers` | builders or repairers that contributed **this frame** |
 | `BuildData +0x6c orig_type` | the type it was placed as |
 | `+0x72 city`, `+0x74 city_down` | the city it belongs to; the next building in that city's chain |
-| `+0x76 wonder`, `+0x78` (fort/dock/oil-well/farm slot), `+0x7a recharging`, `+0x7f founder`, `+0x80 gather_max`, `+0x82 queued`, `+0x83 max_age` | |
+| `+0x76 wonder` | the building's entry in its owner's wonder list: `Build::init` −1, `Build::activate`'s wonder arm the slot `Wonders::init_wonder` returns, `Build::close` −1 (AI §75.3; the checksum's builds word, diff-backed on run1597's 14312, item 4262) |
+| `+0x78` (fort/dock/oil-well/farm slot), `+0x7a recharging`, `+0x7f founder`, `+0x80 gather_max`, `+0x82 queued`, `+0x83 max_age` | |
 | `CityData +0x4 city_flags` | §1.4 |
 | `+0x6 city`, `+0x8 o` | its own index; the city **building's** `o` — the head of the member chain |
 | `+0xa reg`, `+0xc/+0x10 x, y` | the region of its cell; the building's position |
