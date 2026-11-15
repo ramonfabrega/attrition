@@ -53,10 +53,10 @@ lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2; builders). `LEADERS_HELD_OUT` 23 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
-packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**. **Order:** 4159r6a
-(run1075's 2552 navy tick: group 72's ships `ATTACK_TO` theirs, `MOVE_TO` ours; the only window left that parts the combat
-leaves, all past 2554), 4159r5a (pieces 148 and 520's `CHAR_ATTACKWALK`), then 4159ra (`score` in 29 tests); the residues'
-journals, fifth and sixth. 4159r3a, r3b, r4a and run1075's 2346 are built (launch rows; the muster finds land units only); no leaf moved. The diplomacy's second reading is adjudicated (`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`): no leaf
+packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**. **Order:** 4159r7a
+(run1075's 2554: the original pays a grid roll at `Unit::do_move+0xe84` on `1/84`'s re-entered chase, ours does not; a packet at
+logger frame 2553, run1608, is the falsifier), 4159r5a (pieces 148 and 520's `CHAR_ATTACKWALK`), then 4159ra; the residues'
+journals, sixth and seventh. 4159r3a, r3b, r4a and run1075's 2346 are built; 4159r6a is killed (the navy tick agrees); no leaf moved. The diplomacy's second reading is adjudicated (`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`): no leaf
 moved; the proposal's draw at five live leaders is parked in `docs/LEADERS.md` §7.6 with what would falsify it.
 
 4272. **The mountain's tint, settled by a capture** (render, scoped; `docs/RENDERER.md` §3.22; the third lane's). Item 4271 found

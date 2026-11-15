@@ -853,18 +853,17 @@ listing. The verdicts cite no kept-dump value for these leaves.
   combat-less building). If it does, the original counts the blow and the
   crate as placed cannot. A per-frame `LeadersSync` diff of
   `hits_current_frame` over a fight settles it. Two of the "one blow
-  short" windows were not this: run1185b's 5276 and run1075's 2123 are a
-  round that flies a frame long from a piece with no launch row, its
-  blow landing a frame late (item 4159's third residue; 4159r3a, closed
-  by the fourth: piece 1814's rows). ~~Which other fielded pieces still
-  have none is not established beyond run1075's walk.~~ The fifth residue
-  probed the widened suite: 53 pieces, built but the Royal Mameluke's and
-  the Arab Armored Car's `CHAR_ATTACKWALK` keys (no packet serves them,
-  parked 4159r5a); none of the thirteen windows parts the four words now,
-  and run1075 alone still does. The sixth residue moved its first
-  gameplay parting 2346 → 2554 (the muster chase finds land units only);
-  the words now part from 2588, past the navy army's 2552 tick, which is
-  not established (parked 4159r6a).
+  short" windows were not this: they were rounds from pieces with no
+  launch row (item 4159's third to fifth residues, whose journals hold the
+  pieces); none of the thirteen parts the four words now, and run1075
+  alone does, from 2588. Its first gameplay parting is 2554 (the sixth
+  residue: the muster finds land units only): ~~the navy army's 2552
+  tick~~ agrees (the seventh); on 2553 the Attack Submarine `1/84`'s
+  re-entered chase move pays one grid draw (`Unit::do_move+0xe84`, 8116)
+  in the original and none here, and every later draw of the frame
+  shifts by one. Why the chase's walk is refused there and walked here
+  is not established (parked 4159r7a); the Royal Mameluke's and the Arab
+  Armored Car's `CHAR_ATTACKWALK` launch keys are not either (4159r5a).
 - **The disband arm's reach.** Which types carry flag `0x2000` and which
   leaders hold `leader_flags & 4`; and whether the crate's `damage_building`
   disbands at all. A reading of the flag's loader, then a diff of
@@ -875,13 +874,10 @@ listing. The verdicts cite no kept-dump value for these leaves.
   so no ordinary blow reaches them. A `LeadersSync` line for slot 8 or 9
   with non-zero `deaths_current_frame` would settle it.
 - **The wall's home in the crate** for W2.
-- ~~**No diff yet** of "`_fifteen_seconds` is never reset" (a long-fight
-  dump) or of the battle event (any capture that logs one).~~ The record
-  diff backs both since item 4177 (3.5): run1075's window opens at 2034
-  with who 0's `deaths_fifteen_seconds` 44 and who 1's
-  `kills_fifteen_seconds` 44, the totals of a fight 280 frames and six
-  folds old, both agreeing, and the battle event agrees on run1075 and
-  the Lakota pair.
+- ~~**No diff yet** of "`_fifteen_seconds` is never reset" or of the
+  battle event.~~ The record diff backs both since item 4177 (3.5):
+  run1075's window opens at 2034 with the totals of a six-fold-old fight
+  agreeing, and the battle event agrees there and on the Lakota pair.
 - **The nuke's invisible blow** (parked 4177a): on run855's 4777 and
   run1405b's 3494 theirs counts one blow more than ours on the frame the
   nuke lands, and no struck object's hit points move. A candidate is the
