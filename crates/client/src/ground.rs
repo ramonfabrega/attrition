@@ -1747,6 +1747,9 @@ impl MountainArt {
     }
 }
 
+/// One vector a triangle corner, three a triangle.
+pub type Corners = [[f32; 3]; 3];
+
 /// **A mountain's triangles** (item 4141; §3.10): every tile of a placed
 /// range whose template reads, its two triangles as [`ground_base`]
 /// gives them, each corner in its range's template pixels (`4 · (tile −
@@ -1780,7 +1783,7 @@ impl GroundMountain {
     /// texcoord, a quarter a tile along x and y (`MountainRange::init`'s
     /// `tex0` on run1559b's packet is `(x + 16) / 4`, `(y − 112) / 4`; the
     /// steps alone enter).
-    pub fn frame(&self) -> (Vec<[[f32; 3]; 3]>, Vec<[[f32; 3]; 3]>) {
+    pub fn frame(&self) -> (Vec<Corners>, Vec<Corners>) {
         use std::collections::BTreeMap;
         // [`ground_mountain`] pushes each tile's `[a, b, d]` then `[b, c,
         // d]`, so a triangle's parity names which.
