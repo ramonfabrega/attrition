@@ -861,12 +861,9 @@ listing. The verdicts cite no kept-dump value for these leaves.
   tick~~ agrees (the seventh); on 2553 the Attack Submarine `1/84`'s
   re-entered chase move pays one grid draw (`Unit::do_move+0xe84`, 8116)
   in the original and none here, and every later draw of the frame
-  shifts by one. ~~Why the chase's walk is refused there and walked here
-  is not established (parked 4159r7a)~~ — `do_move` re-pushes the goal
-  after a failed planner unless it is already on top, and ours only on an
-  empty stack (the eighth residue, run1608's packet); whether the
-  fourteen combat leaves now part anywhere off run1075 is not established
-  (4159r8a); the Royal Mameluke's and the Arab
+  shifts by one: `do_move` re-pushes a failed plan's goal unless it is
+  on top, ours on an empty stack only (the eighth residue). Whether the
+  combat leaves part off run1075 is open (4159r8a); the Royal Mameluke's and the Arab
   Armored Car's `CHAR_ATTACKWALK` launch keys are not either (4159r5a).
 - **The disband arm's reach.** Which types carry flag `0x2000` and which
   leaders hold `leader_flags & 4`; and whether the crate's `damage_building`
