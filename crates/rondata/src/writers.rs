@@ -118,7 +118,9 @@ const EXEMPT: &[(&str, &str, &str)] = &[
 ///
 /// - read anywhere in `crates/sim` outside its tests — not a candidate;
 /// - read in `crates/rondata` — the harness compares it, which is what a
-///   dumped field it holds is *for*;
+///   dumped field it holds is *for* — or in `crates/client`, which is what
+///   `sim::observe`'s scene is for (item 4268: `BuildingScene::in_city`,
+///   read by the rename button alone, was this test's red);
 /// - read only in `crates/sim`'s own tests — an observation hook, written
 ///   by the simulation so a test can assert on it.
 ///
@@ -1309,6 +1311,12 @@ fn three_views() -> (String, String, String) {
     }
     walk(
         &PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/src")),
+        &mut harness,
+    );
+    // The client (item 4268): `sim::observe`'s scene is written for it,
+    // and a scene field only the HUD or the input layer reads is read.
+    walk(
+        &PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../client/src")),
         &mut harness,
     );
     (prod, tests, harness)
