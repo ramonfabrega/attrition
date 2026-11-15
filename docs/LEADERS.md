@@ -4698,6 +4698,11 @@ twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
   where no parent is printed beside it, so the units bit (run1013, run1014:
   the original recounts at 13639, ours a bit later) and ch77's 25 after
   the Porcelain Tower are open; the journal's parked rows name them.
+- **The count gate's `is(0x134)` arm** (item 4159's eleventh residue):
+  `Unit::set_type`'s two count blocks now answer it no, as the birth and
+  `Unit::close` do, so a population-0 Barge's upgrade moves no count; no
+  capture sets a population-0 type of the Fighter Bomber's line, so the
+  arm's yes is unread. `score` still parts in nine tests.
 
 ## 19. The last building and unit finished
 
