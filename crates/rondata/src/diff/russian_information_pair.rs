@@ -494,11 +494,14 @@ fn russian_information_pair_run1423c_s_closing_frame_is_widened_whole() {
     // Item 4177: 155 -> 159, +4 firsts, the combat rates' own: who=0 `damage_fifteen_seconds` 6450 ours 127 theirs 129; who=1 `hits_fifteen_seconds` 6450 ours 127 theirs 129; who=0 `damage_current_frame` 6636 ours 0 theirs 1; who=1 `hits_current_frame` 6636 ours 0 theirs 1 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 160 -> 157, three of item 4177's four combat-rate firsts agree (4177a).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 157 -> 153.
-    pin_eq!(w.firsts.len(), 153, "run1423c baseline");
-    pin_eq!(w.rounds_read, (29, 30), "the rounds read");
+    // Item 4159r5: 153 -> 144, the launch rows of pieces 210 (3): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.firsts.len(), 144, "run1423c baseline");
+    // Item 4159r5: (29, 30) -> (29, 29), the launch rows of pieces 210 (3): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds_read, (29, 29), "the rounds read");
     // 29 against 30, 12 parting, every one the T80 `1/59`'s (TI 260)
     // launch point from 6605 (3744d).
-    pin_eq!(w.rounds.len(), 12, "the rounds that part");
+    // Item 4159r5: 12 -> 0, the launch rows of pieces 210 (3): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3721): run1401's closing block 6707,

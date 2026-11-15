@@ -584,9 +584,11 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // trace (`Sim::resign`, `docs/LEADERS.md` §10.2; GOLDEN §152.15).
     // Item 4204: 164 -> 143, −21 on 2601, the head quit's `clear_orders`:
     //   `0/1`..`0/7` `orders.len`/`order:length` 0 = 0, `idle` 1 = 1.
-    pin_eq!(w.firsts.len(), 143, "run1468's word window");
+    // Item 4159r5: 143 -> 139, the launch rows of pieces 234 (1), 251 (18), 253 (4), 256 (12), 6706 (1): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.firsts.len(), 139, "run1468's word window");
     pin_eq!(w.rounds_read, (24, 24), "the rounds read");
-    pin_eq!(w.rounds.len(), 107, "the rounds that part");
+    // Item 4159r5: 107 -> 36, the launch rows of pieces 234 (1), 251 (18), 253 (4), 256 (12), 6706 (1): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 36, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the

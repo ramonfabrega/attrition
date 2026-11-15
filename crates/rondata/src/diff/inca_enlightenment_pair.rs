@@ -484,5 +484,6 @@ fn inca_enlightenment_pair_run1323c_s_closing_window_is_widened_whole() {
     // the Carbineer `1/83`'s (TypeIndex 190, piece 844, a pivot piece) on
     // 4026: from (9048, 28872, 497) against (8917, 28944, 707); it lands
     // two units apart and moves no draw (parked 3659a).
-    pin_eq!(w.rounds.len(), 7, "the rounds that part");
+    // Item 4159r5: 7 -> 0, the launch rows of pieces 844 (1): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

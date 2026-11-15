@@ -458,7 +458,8 @@ fn german_modern_pair_run1422_s_closing_frame_is_widened_whole() {
     // `v1z`: a launch point off the figure's own (parked 3742e). The draws
     // never feel it.
     pin_eq!(w.rounds_read, (228, 228), "the rounds read");
-    pin_eq!(w.rounds.len(), 13, "the rounds that part");
+    // Item 4159r5: 13 -> 3, the launch rows of pieces 59 (2): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 3, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3719): run1397's closing block 5305,

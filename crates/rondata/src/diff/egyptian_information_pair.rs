@@ -282,14 +282,16 @@ fn egyptian_information_pair_run1399b_s_word_frame_is_widened_whole() {
     // Every round, both directions: 648 in ours against 684, the first
     // parting `1/34`'s `ammo[0]` on 3205 (`sx` 5640 against 5530, `sz` 364
     // against 533, `total_time` 3 against 2).
-    pin_eq!(w.rounds_read, (648, 654), "the rounds read");
+    // Item 4159r5: (648, 654) -> (648, 648), the launch rows of pieces 207 (14): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds_read, (648, 648), "the rounds read");
     // Item 4175: 97, the `gpiece` of `1/25`'s `ammo[2]` (3403) and `1/35`'s
     // (3221), Mechanized Infantry (TI 104): `CHAR_ATTACK2`'s two releases
     // on 999 take each other's slots, theirs' `NoDamage Tracer` (60174,
     // `flags` 18) where ours holds its `InvisibleAmmo` (60164), so
     // `flags&16`, `ex`, `ey` and `total_time` part on the same keys
     // already (parked 4175d).
-    pin_eq!(w.rounds.len(), 97, "the rounds that part");
+    // Item 4159r5: 97 -> 18, the launch rows of pieces 207 (14): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 18, "the rounds that part");
 }
 
 /// run1421: the word 3519's window, blocks 3495..3770 at run1399b's
@@ -363,10 +365,12 @@ fn egyptian_information_pair_run1421_s_word_frame_is_widened_whole() {
     // Every round, both directions: 655 against 697 and 367 parting before;
     // now 655 against 662 and 74, none of them `1/55`'s — the T80DES
     // node-1 rounds (parked 3743a).
-    pin_eq!(w.rounds_read, (655, 662), "the rounds read");
+    // Item 4159r5: (655, 662) -> (655, 655), the launch rows of pieces 207 (32): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds_read, (655, 655), "the rounds read");
     // Item 4175: 75, `1/27`'s `ammo[3].gpiece` on 3733, ours 60164 theirs
     // 60174 — the same swapped pair as run1399b's (parked 4175d).
-    pin_eq!(w.rounds.len(), 75, "the rounds that part");
+    // Item 4159r5: 75 -> 0, the launch rows of pieces 207 (32): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// run1421b: the pair's closing window, blocks 3765..3798 at run1421's
@@ -436,10 +440,12 @@ fn egyptian_information_pair_run1421b_s_closing_frame_is_widened_whole() {
     // the first the T80DES `1/42`'s `ammo[1]` on 3772 (`sx, sy, sz` 4392,
     // 32088, 603 against 4245, 32066, 733: piece 207's node 1, which ours
     // fires from `WALK`; parked 3743a).
-    pin_eq!(w.rounds_read, (109, 110), "the rounds read");
+    // Item 4159r5: (109, 110) -> (109, 109), the launch rows of pieces 207 (34), 250 (3): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds_read, (109, 109), "the rounds read");
     // Item 3802: 26 → **24**, a missile leading along its figure's
     // angle and re-planned every fourth frame (`docs/GOLDEN.md` §152.2).
-    pin_eq!(w.rounds.len(), 24, "the rounds that part");
+    // Item 4159r5: 24 -> 0, the launch rows of pieces 207 (34), 250 (3): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3720): run1399's closing block 3798,

@@ -258,15 +258,18 @@ fn chinese_modern_pair_run1431b_s_closing_frame_is_widened_whole() {
     // the disc's cells (`docs/AI.md` §378.2).
     // Item 4176: 125 -> 128, +3 firsts: who=0's `attack_stamp[1]`, `raid_stamp[1]` and `ally_stamp[1]` on 4063, ours 3761 theirs 4062, beside the rounds' own partings (71 against 73).
     // Item 4177: 128 -> 130, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4063 ours 0 theirs 1; who=1 `hits_current_frame` 4063 ours 0 theirs 1 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 130, "run1431b baseline");
-    pin_eq!(w.rounds_read, (71, 73), "the rounds read");
+    // Item 4159r5: 130 -> 121, the launch rows of pieces 68 (14): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.firsts.len(), 121, "run1431b baseline");
+    // Item 4159r5: (71, 73) -> (71, 71), the launch rows of pieces 68 (14): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds_read, (71, 71), "the rounds read");
     // Every round, both directions: 71 in ours against 73, 52 parting —
     // all three who=1's Manchu Infantry (TI 118, TY 68,
     // `MANCHUINFANTRY-DEFAULT-AGE0`) `1/26`, `1/27`, `1/28`, loosed from
     // their own square in ours: `1/26`'s `ammo[0]` on 4012 at `sz` 17
     // against 184, `1/28`'s pair on 4003 at 21 against 139. The piece has
     // no `launch::BAYS` row (parked 3751b).
-    pin_eq!(w.rounds.len(), 52, "the rounds that part");
+    // Item 4159r5: 52 -> 0, the launch rows of pieces 68 (14): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3751): run1431's closing block 4131,

@@ -540,6 +540,34 @@ const NODES: &[(i32, i32, Node)] = &[
             py: -122_588,
         },
     ),
+    // **Item 4159r5's three pivot pieces**, each `(4, 0, 0)` off the packet
+    // that holds its rows: piece 173, the BMP (run1487, `(−0.1, 26.14,
+    // 38.23)`), 232, the Flak Gun (run1164, `(0.0, 37.11, 27.16)`), and 844,
+    // the American Carbineer (run1323b, `(0.0, −1.48, 31.05)`).
+    (
+        173,
+        4,
+        Node {
+            px: -100_000,
+            py: 26_139_999,
+        },
+    ),
+    (
+        232,
+        4,
+        Node {
+            px: 0,
+            py: 37_110_001,
+        },
+    ),
+    (
+        844,
+        4,
+        Node {
+            px: 0,
+            py: -1_480_000,
+        },
+    ),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -576,6 +604,11 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (280, (9, 10)),
     (300, (4, 5)),
     (223, (69, 100)),
+    // Item 4159r5: `RData +0x88` 0.7, 0.8 and 1.02 (`0x3f333333`,
+    // `0x3f4ccccd`, `0x3f828f5c`).
+    (173, (7, 10)),
+    (232, (4, 5)),
+    (844, (51, 50)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -711,6 +744,16 @@ const SAME_AS: &[(i32, i32)] = &[
     (193, 189),
     (195, 194),
     (144, 143),
+    // **Piece 158, the Rifle Horse (`RIFLEHORSE-DEFAULT-AGE0`), and 1899, the
+    // India Dragoon (`DRAGOON-INDIA-AGE0`)** (item 4159r5): no packet on disk
+    // had built either, so `init_position@00901820` was run under unicorn on
+    // run1579's packet for each `<RELEASEEVENT>`'s pivot node 4 and release
+    // node 0 (`CHAR_ATTACK1` 12, `2` 13, `3` 18), and all six rows of each
+    // are piece 139's (the French Dragoon's) bit for bit, `RData +0x88` 1.0
+    // as 139's. Their `CHAR_ATTACKWALK` row and `(4, 0, 0)` were not read:
+    // run1579 lacks the animation and stops in `prepend_content_dir`.
+    (158, 139),
+    (1899, 139),
 ];
 
 /// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
@@ -1802,7 +1845,10 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             node: 0,
             pivot: [4_308_261, -1_638_021, 31_049_999],
             at: [-3_027_300, -29_267_675, 15_569_523],
-            float_lands: &[],
+            // Item 4159r5: the original's pivot arm on these floats at every
+            // cell (run1579's packet, through pieces 158 and 1899, whose rows
+            // are these bit for bit) lands three cells from just below.
+            float_lands: &[(52, 221, 146, 43), (87, 138, 102, -68), (337, 295, 162, 18)],
         },
     ),
     (
@@ -4384,6 +4430,267 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [460_000, 33_990_000, 21_770_000],
             at: [12_530_000, 1_440_200, 68_446_014],
             float_lands: FLOAT_LANDS_223,
+        },
+    ),
+    // **Item 4159r5's pivot pieces**, each a one-restriction piece whose
+    // node-0 rounds left from the figure's own square: piece 173, the BMP
+    // (`BMP-DEFAULT-AGE0`, `<RESTRICTION name="BMP" node="4">`; run1487's
+    // packet holds its seventeen entries, the `(4, 0, 0)` [`NODES`] read and
+    // eight events' pivot and release rows, `CHAR_ATTACKWALK` and
+    // `CHAR_ATTACK1`..`3` at frames 4 and 19), 232, the Flak Gun
+    // (`FLAKGUN-DEFAULT-AGE0`; run1164's seventeen, node 0 at frame 12 of
+    // `CHAR_ATTACKWALK` and `CHAR_ATTACK1`, 4 of `2` and 13 of `3`; its node-1
+    // events take the non-pivot arm, `launch::BAYS`) and 844, the American
+    // Carbineer (`CARBINEER-AMERICAN-AGE0`; run1323b's nine, frames 12, 12,
+    // 13 and 18). `float_lands` from `get_position`'s pivot arm under unicorn
+    // on the same packet at every cell
+    // (`tests::the_original_s_release_agrees_on_every_cell_for_item_4159r5`).
+    (
+        173,
+        crate::units::anim::ATTACKWALK,
+        4,
+        Release {
+            piece: 173,
+            node: 0,
+            pivot: [663_855, 26_139_999, 38_224_354],
+            at: [-64_807, -53_119_095, 1_261_547],
+            float_lands: &[
+                (4, 132, -115, -216),
+                (94, 132, 216, -115),
+                (274, 132, -216, 115),
+                (350, 228, 96, -227),
+            ],
+        },
+    ),
+    (
+        173,
+        crate::units::anim::ATTACKWALK,
+        19,
+        Release {
+            piece: 173,
+            node: 0,
+            pivot: [-1_092_952, 26_139_999, 37_954_483],
+            at: [-122_697, -53_064_545, 1_257_236],
+            float_lands: &[
+                (24, 193, 140, -223),
+                (114, 193, 223, 140),
+                (242, 357, 77, -47),
+                (286, 31, 35, 110),
+            ],
+        },
+    ),
+    (
+        173,
+        crate::units::anim::ATTACK1,
+        4,
+        Release {
+            piece: 173,
+            node: 0,
+            pivot: [-100_000, 26_139_999, 38_360_001],
+            at: [-90_000, -53_119_095, 1_259_998],
+            float_lands: &[
+                (18, 143, -30, -252),
+                (40, 187, 186, -189),
+                (198, 143, 30, 252),
+                (288, 143, -252, 30),
+                (310, 187, -189, -186),
+            ],
+        },
+    ),
+    (
+        173,
+        crate::units::anim::ATTACK1,
+        19,
+        Release {
+            piece: 173,
+            node: 0,
+            pivot: [-100_000, 26_139_999, 38_340_000],
+            at: [-90_000, -53_064_545, 1_259_998],
+            float_lands: &[(171, 211, -53, 251), (351, 211, 53, -251)],
+        },
+    ),
+    (
+        173,
+        crate::units::anim::ATTACK2,
+        4,
+        Release {
+            piece: 173,
+            node: 0,
+            pivot: [-100_000, 26_139_999, 38_360_001],
+            at: [10_207_625, -52_128_181, 1_259_998],
+            float_lands: &[
+                (62, 267, 197, 90),
+                (332, 267, 90, -197),
+                (338, 308, 144, -66),
+            ],
+        },
+    ),
+    (
+        173,
+        crate::units::anim::ATTACK2,
+        19,
+        Release {
+            piece: 173,
+            node: 0,
+            pivot: [-100_000, 26_139_999, 38_340_000],
+            at: [21_009_197, -48_726_845, 1_259_998],
+            float_lands: &[
+                (63, 149, 105, -216),
+                (153, 149, 216, 105),
+                (243, 149, -105, 216),
+                (333, 149, -216, -105),
+            ],
+        },
+    ),
+    (
+        173,
+        crate::units::anim::ATTACK3,
+        4,
+        Release {
+            piece: 173,
+            node: 0,
+            pivot: [-100_000, 26_139_999, 38_360_001],
+            at: [-90_000, -53_119_095, 1_259_998],
+            float_lands: &[
+                (18, 143, -30, -252),
+                (40, 187, 186, -189),
+                (198, 143, 30, 252),
+                (288, 143, -252, 30),
+                (310, 187, -189, -186),
+            ],
+        },
+    ),
+    (
+        173,
+        crate::units::anim::ATTACK3,
+        19,
+        Release {
+            piece: 173,
+            node: 0,
+            pivot: [-100_000, 26_139_999, 38_340_000],
+            at: [-90_000, -53_064_545, 1_259_998],
+            float_lands: &[(171, 211, -53, 251), (351, 211, 53, -251)],
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACKWALK,
+        12,
+        Release {
+            piece: 232,
+            node: 0,
+            pivot: [0, 37_110_001, 27_159_998],
+            at: [-3_504_287, -8_035_069, 20_818_064],
+            float_lands: &[
+                (12, 31, -1, -126),
+                (102, 31, 126, -1),
+                (168, 55, 60, 126),
+                (192, 31, 1, 126),
+                (258, 55, -126, 60),
+                (282, 31, -126, 1),
+                (354, 62, -48, -135),
+            ],
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACK1,
+        12,
+        Release {
+            piece: 232,
+            node: 0,
+            pivot: [0, 37_110_001, 27_159_998],
+            at: [-3_504_287, -8_035_069, 20_818_064],
+            float_lands: &[
+                (12, 31, -1, -126),
+                (102, 31, 126, -1),
+                (168, 55, 60, 126),
+                (192, 31, 1, 126),
+                (258, 55, -126, 60),
+                (282, 31, -126, 1),
+                (354, 62, -48, -135),
+            ],
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACK2,
+        4,
+        Release {
+            piece: 232,
+            node: 0,
+            pivot: [0, 37_110_001, 27_159_998],
+            at: [-4_650_000, -10_107_552, 19_869_905],
+            float_lands: &[],
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACK3,
+        13,
+        Release {
+            piece: 232,
+            node: 0,
+            pivot: [0, 37_110_001, 27_159_998],
+            at: [-9_900_790, -7_489_422, 22_872_065],
+            float_lands: &[
+                (101, 283, 93, 37),
+                (259, 125, -186, 37),
+                (339, 48, -98, -124),
+            ],
+        },
+    ),
+    (
+        844,
+        crate::units::anim::ATTACKWALK,
+        12,
+        Release {
+            piece: 844,
+            node: 0,
+            pivot: [58_111, -1_380_116, 31_034_378],
+            at: [-13_037_903, -27_627_981, 11_367_462],
+            float_lands: &[
+                (63, 169, 140, -29),
+                (153, 169, 29, 140),
+                (243, 169, -140, 29),
+                (325, 197, 23, -143),
+            ],
+        },
+    ),
+    (
+        844,
+        crate::units::anim::ATTACK1,
+        12,
+        Release {
+            piece: 844,
+            node: 0,
+            pivot: [4_308_261, -1_638_021, 31_049_999],
+            at: [-3_007_873, -29_396_673, 15_254_765],
+            float_lands: &[],
+        },
+    ),
+    (
+        844,
+        crate::units::anim::ATTACK2,
+        13,
+        Release {
+            piece: 844,
+            node: 0,
+            pivot: [0, 6_483_696, 34_750_904],
+            at: [-8_408_590, -18_146_454, 19_734_459],
+            float_lands: &[],
+        },
+    ),
+    (
+        844,
+        crate::units::anim::ATTACK3,
+        18,
+        Release {
+            piece: 844,
+            node: 0,
+            pivot: [0, -1_480_000, 31_049_999],
+            at: [-4_858_376, -28_888_451, 11_957_130],
+            float_lands: &[],
         },
     ),
 ];

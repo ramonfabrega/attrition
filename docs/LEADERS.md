@@ -856,8 +856,12 @@ listing. The verdicts cite no kept-dump value for these leaves.
   short" windows were not this: run1185b's 5276 and run1075's 2123 are a
   round that flies a frame long from a piece with no launch row, its
   blow landing a frame late (item 4159's third residue; 4159r3a, closed
-  by the fourth: piece 1814's rows). Which other fielded pieces still
-  have none is not established beyond run1075's walk.
+  by the fourth: piece 1814's rows). ~~Which other fielded pieces still
+  have none is not established beyond run1075's walk.~~ The fifth residue
+  probed the widened suite: 53 pieces, built but the Royal Mameluke's and
+  the Arab Armored Car's `CHAR_ATTACKWALK` keys (no packet serves them,
+  parked 4159r5a); none of the thirteen windows parts the four words now,
+  and run1075 alone still does.
 - **The disband arm's reach.** Which types carry flag `0x2000` and which
   leaders hold `leader_flags & 4`; and whether the crate's `damage_building`
   disbands at all. A reading of the flag's loader, then a diff of

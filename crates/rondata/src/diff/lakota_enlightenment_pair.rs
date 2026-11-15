@@ -263,7 +263,8 @@ fn lakota_enlightenment_pair_run1364b_s_closing_frame_is_widened_whole() {
     // `dest_angle` on 4656 and 4661 (parked 3695a, 3695b). The draw stream
     // and the closing block 4674 agree.
     // Item 4177: 57 -> 59, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4461 ours 2 theirs 3; who=1 `hits_current_frame` 4461 ours 2 theirs 3 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 59, "run1364b baseline");
+    // Item 4159r5: 59 -> 56, the launch rows of pieces 158 (29), 1626 (9): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.firsts.len(), 56, "run1364b baseline");
     // Every round, both directions: 120 round-blocks ours, 123 theirs.
     // **45 rows part, every one a launch**: the Repeating Rifle Horse
     // (208, `RIFLEHORSE`) `1/71` and `1/76` and the Cannon (268) `1/75` fire
@@ -272,6 +273,8 @@ fn lakota_enlightenment_pair_run1364b_s_closing_frame_is_widened_whole() {
     // `v1z` 95724998 against 30225000, and `ex, ey` within three — and from
     // an offset launch point in theirs; `1/71`'s `ammo[0]` on 4459 flies
     // `total_time` 4 against 3 (parked 3695a).
-    pin_eq!(w.rounds_read, (120, 123), "the rounds read");
-    pin_eq!(w.rounds.len(), 45, "the rounds that part");
+    // Item 4159r5: (120, 123) -> (120, 120), the launch rows of pieces 158 (29), 1626 (9): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds_read, (120, 120), "the rounds read");
+    // Item 4159r5: 45 -> 0, the launch rows of pieces 158 (29), 1626 (9): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

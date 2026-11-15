@@ -259,7 +259,8 @@ fn japanese_enlightenment_pair_run1366b_s_closing_frame_is_widened_whole() {
     // the closing block 4702 agree.
     // Item 4176: 148 -> 151, +3 firsts: who=0's `attack_stamp[1]`, `raid_stamp[1]` and `ally_stamp[1]` on 4609, ours 4608 theirs 4307, on a closing frame whose state already parts.
     // Item 4177: 151 -> 153, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4557 ours 2 theirs 3; who=1 `hits_current_frame` 4557 ours 2 theirs 3 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 153, "run1366b baseline");
+    // Item 4159r5: 153 -> 146, the launch rows of pieces 111 (15): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.firsts.len(), 146, "run1366b baseline");
     // Every round, both directions: 102 round-blocks ours, 115 theirs.
     // **72 rows part, every one a launch** of group 66's three Gun Samurai
     // (161, `ELITESAMURAI`) `1/53`, `1/54` and `1/55` at the city: ours
@@ -268,6 +269,8 @@ fn japanese_enlightenment_pair_run1366b_s_closing_frame_is_widened_whole() {
     // `v1z` -1025000 against -66268745, `total_time` 4 against 3, and
     // `ex, ey` within ten — and theirs from an offset launch point (3695a's
     // shape).
-    pin_eq!(w.rounds_read, (102, 115), "the rounds read");
-    pin_eq!(w.rounds.len(), 72, "the rounds that part");
+    // Item 4159r5: (102, 115) -> (102, 102), the launch rows of pieces 111 (15): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds_read, (102, 102), "the rounds read");
+    // Item 4159r5: 72 -> 0, the launch rows of pieces 111 (15): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

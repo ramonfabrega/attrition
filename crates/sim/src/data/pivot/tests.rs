@@ -2738,3 +2738,63 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
     assert_eq!(fire(1, 14), 1, "node 1, past the one restriction: fired");
     assert_eq!(fire(1, 0), 1, "whatever the bits");
 }
+
+/// **Item 4159r5's pivot rows agree with the original on every cell**:
+/// `$RON_RELEASE_TABLE_4159R5` is the directory holding
+/// `pivot-<piece>-n0-a<anim>-t<time>.txt` (`deg i t x y z`, 361 facings ×
+/// 256 turret steps), outside git
+/// (`~/ron-data/lab-experiments/2026-11-15-item-4159r5/pivots/`): the
+/// original's `get_position` pivot arm under unicorn on the packet that
+/// holds each piece's rows — run1487 for the BMP (173), run1164 for the Flak
+/// Gun (232), run1323b for the American Carbineer (844), and run1579 after
+/// `init_position` for the Rifle Horse (158) and the India Dragoon (1899),
+/// which read piece 139's rows ([`SAME_AS`]). Every file is read; each
+/// disagreement prints as the `float_lands` cell it would be.
+#[test]
+fn the_original_s_release_agrees_on_every_cell_for_item_4159r5() {
+    let Ok(dir) = std::env::var("RON_RELEASE_TABLE_4159R5") else {
+        eprintln!("skipping: set RON_RELEASE_TABLE_4159R5 (item 4159r5's oracle)");
+        return;
+    };
+    let mut names: Vec<_> = std::fs::read_dir(&dir)
+        .expect("RON_RELEASE_TABLE_4159R5")
+        .map(|e| e.expect("entry").file_name().into_string().expect("utf-8"))
+        .filter(|n| n.starts_with("pivot-") && n.ends_with(".txt"))
+        .collect();
+    names.sort();
+    let (mut files, mut rows, mut off) = (0, 0, Vec::new());
+    for name in names {
+        // `pivot-<piece>-n<node>-a<anim>-t<time>.txt`
+        let f: Vec<&str> = name[..name.len() - ".txt".len()].split('-').collect();
+        let piece: i32 = f[1].parse().expect("piece");
+        let node: i8 = f[2][1..].parse().expect("node");
+        let anim: i8 = f[3][1..].parse().expect("anim");
+        let time: u32 = f[4][1..].parse().expect("time");
+        let r =
+            release_node(piece, anim, time, node).unwrap_or_else(|| panic!("no row for {name}"));
+        assert_eq!(r.node, i32::from(node), "{name}");
+        let table = std::fs::read_to_string(format!("{dir}/{name}")).expect("table");
+        for line in table.lines() {
+            let c: Vec<i32> = line
+                .split_whitespace()
+                .take(6)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let got = release_offset_at(&r, c[0], c[2]);
+            if got != (c[3], c[4], c[5]) {
+                off.push(format!(
+                    "{piece} a{anim} t{time} ({}, {}, {}, {}) ours {got:?} z {}",
+                    c[0], c[2], c[3], c[4], c[5]
+                ));
+            }
+            rows += 1;
+        }
+        files += 1;
+    }
+    for o in &off {
+        eprintln!("LAND {o}");
+    }
+    assert_eq!(files, 22, "{dir}");
+    assert_eq!(rows, 22 * 256 * 361, "{dir}");
+    assert!(off.is_empty(), "{} cells disagree", off.len());
+}

@@ -5637,6 +5637,1119 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 168,
         },
     ),
+    // **Forty plain pieces the widened suite fired from the figure's square**
+    // (item 4159's fifth residue, 4159r4a): a probe on `launch_point`'s
+    // fallback over the widened suite (`widened_whole walks_back
+    // walks_the_gap dates_the_gap old_word_keeps attrition_stamp2`, 673
+    // tests) listed 1,159 rounds from 53 pieces with no row. Each plain
+    // piece's rows were built by piece 1814's way on run1579's packet:
+    // `GraphicPieces::init_position@00901820` for each of the art's
+    // `RELEASEEVENT`s (the packet already held pieces 15's and 371's), then
+    // `get_position` swept at every whole degree, and `fit_bay.py` fits each
+    // sweep; the centroid is kept, 361 of 361 headings each. Piece 1462's
+    // seven are piece 1814's bit for bit, as its stored rows on run854 are.
+    // The three whose every event on a node leaves one point (251, 257,
+    // 1311) are [`GUNS`] rows. The Armed Supply Wagon (15) is left out: its
+    // four rows are zero, the figure's own square. The pivot pieces (148,
+    // 158, 173, 207, 232, 234, 520, 844, 1899) need `pivot::RELEASES` rows.
+    // Piece 45, the Impi, `IMPI-DEFAULT-AGE0`: lattice 42, 229, 95 (6 launches).
+    (
+        45,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 33_637,
+            fwd: 65_607,
+            dz: 185,
+        },
+    ),
+    (
+        45,
+        crate::units::anim::ATTACK2,
+        6,
+        Bay {
+            right: -13_157,
+            fwd: 50_004,
+            dz: 187,
+        },
+    ),
+    (
+        45,
+        crate::units::anim::ATTACK3,
+        27,
+        Bay {
+            right: 14_497,
+            fwd: 40_695,
+            dz: 173,
+        },
+    ),
+    // Piece 57, the Red Guard, `REDGUARD-DEFAULT-AGE0`: lattice 49, 819, 348, 322, 225 (22 launches).
+    (
+        57,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 23_820,
+            fwd: 87_417,
+            dz: 167,
+        },
+    ),
+    (
+        57,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_919,
+            fwd: 60_398,
+            dz: 118,
+        },
+    ),
+    (
+        57,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 21_173,
+            fwd: 62_648,
+            dz: 121,
+        },
+    ),
+    (
+        57,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 31_494,
+            fwd: 138_342,
+            dz: 107,
+        },
+    ),
+    (
+        57,
+        crate::units::anim::ATTACK3,
+        17,
+        Bay {
+            right: 40_184,
+            fwd: 125_286,
+            dz: 115,
+        },
+    ),
+    // Piece 59, the German Infantry, `INFANTRYGERMAN-DEFAULT-AGE0`: lattice 49, 819, 348, 322, 225 (2 launches).
+    (
+        59,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 23_820,
+            fwd: 87_417,
+            dz: 167,
+        },
+    ),
+    (
+        59,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_919,
+            fwd: 60_398,
+            dz: 118,
+        },
+    ),
+    (
+        59,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 21_173,
+            fwd: 62_648,
+            dz: 121,
+        },
+    ),
+    (
+        59,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 31_494,
+            fwd: 138_342,
+            dz: 107,
+        },
+    ),
+    (
+        59,
+        crate::units::anim::ATTACK3,
+        17,
+        Bay {
+            right: 40_184,
+            fwd: 125_286,
+            dz: 115,
+        },
+    ),
+    // Piece 63, the Royal Janissary, `JANISSARYROYAL-DEFAULT-AGE0`: lattice 277, 508, 5 (6 launches).
+    (
+        63,
+        crate::units::anim::ATTACK1,
+        6,
+        Bay {
+            right: -909,
+            fwd: 147_973,
+            dz: 164,
+        },
+    ),
+    (
+        63,
+        crate::units::anim::ATTACK2,
+        25,
+        Bay {
+            right: 26_573,
+            fwd: 133_083,
+            dz: 159,
+        },
+    ),
+    (
+        63,
+        crate::units::anim::ATTACK3,
+        23,
+        Bay {
+            right: 13_153,
+            fwd: 125_321,
+            dz: 164,
+        },
+    ),
+    // Piece 68, the Manchu Infantry, `MANCHUINFANTRY-DEFAULT-AGE0`: lattice 49, 819, 348, 322, 225 (14 launches).
+    (
+        68,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 23_820,
+            fwd: 87_417,
+            dz: 167,
+        },
+    ),
+    (
+        68,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_919,
+            fwd: 60_398,
+            dz: 118,
+        },
+    ),
+    (
+        68,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 21_173,
+            fwd: 62_648,
+            dz: 121,
+        },
+    ),
+    (
+        68,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 31_494,
+            fwd: 138_342,
+            dz: 107,
+        },
+    ),
+    (
+        68,
+        crate::units::anim::ATTACK3,
+        17,
+        Bay {
+            right: 40_184,
+            fwd: 125_286,
+            dz: 115,
+        },
+    ),
+    // Piece 71, the Marine Infantry, `MARINEINFANTRY-DEFAULT-AGE0`: lattice 49, 98, 915, 819, 348, 322 (3 launches).
+    (
+        71,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 23_820,
+            fwd: 87_417,
+            dz: 167,
+        },
+    ),
+    (
+        71,
+        crate::units::anim::ATTACK1,
+        13,
+        Bay {
+            right: 20_717,
+            fwd: 82_052,
+            dz: 170,
+        },
+    ),
+    (
+        71,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: 9_667,
+            fwd: 64_207,
+            dz: 120,
+        },
+    ),
+    (
+        71,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_919,
+            fwd: 60_398,
+            dz: 118,
+        },
+    ),
+    (
+        71,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 21_173,
+            fwd: 62_648,
+            dz: 121,
+        },
+    ),
+    (
+        71,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 31_494,
+            fwd: 138_342,
+            dz: 107,
+        },
+    ),
+    // Piece 111, the Gun Samurai, `GUNSAMURAI-DEFAULT-AGE0`: lattice 188, 668, 117 (15 launches).
+    (
+        111,
+        crate::units::anim::ATTACK1,
+        25,
+        Bay {
+            right: 33_663,
+            fwd: 104_507,
+            dz: 161,
+        },
+    ),
+    (
+        111,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 54_561,
+            fwd: 133_846,
+            dz: 158,
+        },
+    ),
+    (
+        111,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 25_189,
+            fwd: 133_072,
+            dz: 130,
+        },
+    ),
+    // Piece 114, the Athanatoi, `ATHANATOI-DEFAULT-AGE0`: lattice 105, 115 (18 launches).
+    (
+        114,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_067,
+            fwd: 104_603,
+            dz: 178,
+        },
+    ),
+    (
+        114,
+        crate::units::anim::ATTACK3,
+        6,
+        Bay {
+            right: 27_678,
+            fwd: 36_793,
+            dz: 171,
+        },
+    ),
+    // Piece 210, the Russian Heavy Tank, `RUSSHEAVYTANK-DEFAULT-AGE0`: lattice 688, 478, 1118, 1174, 478, 609, 74 (3 launches).
+    (
+        210,
+        crate::units::anim::ATTACK1,
+        11,
+        Bay {
+            right: -498,
+            fwd: 326_463,
+            dz: 33,
+        },
+    ),
+    (
+        210,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: 15_112,
+            fwd: 148_429,
+            dz: 130,
+        },
+    ),
+    (
+        210,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 15_129,
+            fwd: 149_061,
+            dz: 126,
+        },
+    ),
+    (
+        210,
+        crate::units::anim::ATTACK2,
+        23,
+        Bay {
+            right: -515,
+            fwd: 328_700,
+            dz: 33,
+        },
+    ),
+    (
+        210,
+        crate::units::anim::ATTACK3,
+        1,
+        Bay {
+            right: 15_112,
+            fwd: 148_429,
+            dz: 130,
+        },
+    ),
+    (
+        210,
+        crate::units::anim::ATTACK3,
+        7,
+        Bay {
+            right: 23_807,
+            fwd: 147_942,
+            dz: 126,
+        },
+    ),
+    (
+        210,
+        crate::units::anim::ATTACK3,
+        27,
+        Bay {
+            right: -500,
+            fwd: 289_756,
+            dz: 32,
+        },
+    ),
+    // Piece 216, the Trebuchet, `TREBUCHET-DEFAULT-AGE0`: lattice 266 (108 launches).
+    (
+        216,
+        crate::units::anim::ATTACK2,
+        8,
+        Bay {
+            right: -199,
+            fwd: -301_788,
+            dz: 693,
+        },
+    ),
+    // Piece 217, the Bombard, `BOMBARD-DEFAULT-AGE0`: lattice 924 (29 launches).
+    (
+        217,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -710,
+            fwd: 147_904,
+            dz: 104,
+        },
+    ),
+    // Piece 219, the Artillery, `ARTILLERY-DEFAULT-AGE0`: lattice 492 (22 launches).
+    (
+        219,
+        crate::units::anim::ATTACK2,
+        70,
+        Bay {
+            right: 0,
+            fwd: 53_219,
+            dz: 136,
+        },
+    ),
+    // Piece 220, the German Artillery, `ARTILLERYGERMAN-DEFAULT-AGE0`: lattice 492 (1 launches).
+    (
+        220,
+        crate::units::anim::ATTACK2,
+        70,
+        Bay {
+            right: 0,
+            fwd: 53_219,
+            dz: 136,
+        },
+    ),
+    // Piece 221, the Howitzer, `HOWITZER-DEFAULT-AGE0`: lattice 1456, 38, 261 (9 launches).
+    (
+        221,
+        crate::units::anim::ATTACK1,
+        1,
+        Bay {
+            right: 0,
+            fwd: 154_785,
+            dz: 250,
+        },
+    ),
+    (
+        221,
+        crate::units::anim::ATTACK2,
+        26,
+        Bay {
+            right: 0,
+            fwd: 176_390,
+            dz: 206,
+        },
+    ),
+    (
+        221,
+        crate::units::anim::ATTACK3,
+        8,
+        Bay {
+            right: 0,
+            fwd: 163_564,
+            dz: 262,
+        },
+    ),
+    // Piece 225, the Siege Mortar, `SIEGEMORTAR-DEFAULT-AGE0`: lattice 449, 449 (7 launches).
+    (
+        225,
+        crate::units::anim::ATTACK1,
+        48,
+        Bay {
+            right: 108,
+            fwd: 3_619,
+            dz: 161,
+        },
+    ),
+    (
+        225,
+        crate::units::anim::ATTACK2,
+        48,
+        Bay {
+            right: 108,
+            fwd: 3_619,
+            dz: 161,
+        },
+    ),
+    // Piece 226, the Basilica Bombard, `BASILICABOMBARD-DEFAULT-AGE0`: lattice 238 (1 launches).
+    (
+        226,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_722,
+            dz: 104,
+        },
+    ),
+    // Piece 227, the Basilica Cannon, `BASILICACANNON-DEFAULT-AGE0`: lattice 99 (21 launches).
+    (
+        227,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
+    // Piece 229, the Flaming Arrow, `FLAMINGARROW-DEFAULT-AGE0`: lattice 265 (19 launches).
+    (
+        229,
+        crate::units::anim::ATTACK2,
+        53,
+        Bay {
+            right: 0,
+            fwd: 154_204,
+            dz: 135,
+        },
+    ),
+    // Piece 230, the Heavy Flaming Arrow, `HVYFLAMINGARROW-DEFAULT-AGE0`: lattice 265 (6 launches).
+    (
+        230,
+        crate::units::anim::ATTACK2,
+        53,
+        Bay {
+            right: 0,
+            fwd: 154_204,
+            dz: 135,
+        },
+    ),
+    // Piece 249, the MiG, `MIG-DEFAULT-AGE0`: lattice 395, 139 (11 launches).
+    (
+        249,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: -142_352,
+            fwd: -126_701,
+            dz: -55,
+        },
+    ),
+    (
+        249,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: 140_602,
+            fwd: -126_701,
+            dz: -55,
+        },
+    ),
+    // Piece 250, the desert MiG, `MIGDES-DEFAULT-AGE0`: lattice 395, 139 (3 launches).
+    (
+        250,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: -142_352,
+            fwd: -126_701,
+            dz: -55,
+        },
+    ),
+    (
+        250,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: 140_602,
+            fwd: -126_701,
+            dz: -55,
+        },
+    ),
+    // Piece 253, the Eagle fighter-bomber, `EAGLEFB-DEFAULT-AGE0`: lattice 5, 147 (4 launches).
+    (
+        253,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: 156_855,
+            fwd: -41_553,
+            dz: -51,
+        },
+    ),
+    (
+        253,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -156_740,
+            fwd: -41_874,
+            dz: -51,
+        },
+    ),
+    // Piece 256, the Stealth Bomber, `STEALTHBOMBER-DEFAULT-AGE0`: lattice 359, 90, 73, 440 (12 launches).
+    (
+        256,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: 81_583,
+            fwd: -65_371,
+            dz: 12,
+        },
+    ),
+    (
+        256,
+        crate::units::anim::ATTACK2,
+        3,
+        Bay {
+            right: -81_802,
+            fwd: -65_359,
+            dz: 17,
+        },
+    ),
+    (
+        256,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 81_684,
+            fwd: -65_361,
+            dz: 0,
+        },
+    ),
+    (
+        256,
+        crate::units::anim::ATTACK2,
+        11,
+        Bay {
+            right: -82_048,
+            fwd: -65_357,
+            dz: 12,
+        },
+    ),
+    // Piece 260, the Helicopter, `HELICOPTER-DEFAULT-AGE0`: lattice 223, 664 (24 launches).
+    (
+        260,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: -53_724,
+            fwd: 73_841,
+            dz: 38,
+        },
+    ),
+    (
+        260,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 58_849,
+            fwd: 58_457,
+            dz: 38,
+        },
+    ),
+    // Piece 371, the Arab Scout, `SCOUT-ARAB-AGE0`: lattice 133 (1 launches).
+    (
+        371,
+        crate::units::anim::ATTACK2,
+        23,
+        Bay {
+            right: 10_650,
+            fwd: 80_505,
+            dz: 160,
+        },
+    ),
+    // Piece 568, the Arab Trebuchet, `TREBUCHET-ARAB-AGE0`: lattice 266 (15 launches).
+    (
+        568,
+        crate::units::anim::ATTACK2,
+        8,
+        Bay {
+            right: -199,
+            fwd: -301_788,
+            dz: 693,
+        },
+    ),
+    // Piece 573, the Arab Howitzer, `HOWITZER-ARAB-AGE0`: lattice 1456, 38, 261 (2 launches).
+    (
+        573,
+        crate::units::anim::ATTACK1,
+        1,
+        Bay {
+            right: 0,
+            fwd: 154_785,
+            dz: 250,
+        },
+    ),
+    (
+        573,
+        crate::units::anim::ATTACK2,
+        26,
+        Bay {
+            right: 0,
+            fwd: 176_390,
+            dz: 206,
+        },
+    ),
+    (
+        573,
+        crate::units::anim::ATTACK3,
+        8,
+        Bay {
+            right: 0,
+            fwd: 163_564,
+            dz: 262,
+        },
+    ),
+    // Piece 919, the American Catapult, `CATAPULT-AMERICAN-AGE0`: lattice 435 (70 launches).
+    (
+        919,
+        crate::units::anim::ATTACK2,
+        12,
+        Bay {
+            right: 0,
+            fwd: -33_217,
+            dz: 245,
+        },
+    ),
+    // Piece 920, the American Trebuchet, `TREBUCHET-AMERICAN-AGE0`: lattice 266 (17 launches).
+    (
+        920,
+        crate::units::anim::ATTACK2,
+        8,
+        Bay {
+            right: -199,
+            fwd: -301_788,
+            dz: 693,
+        },
+    ),
+    // Piece 1271, the Asian Catapult, `CATAPULT-ASIAN-AGE0`: lattice 435 (50 launches).
+    (
+        1271,
+        crate::units::anim::ATTACK2,
+        12,
+        Bay {
+            right: 0,
+            fwd: -33_217,
+            dz: 245,
+        },
+    ),
+    // Piece 1272, the Asian Trebuchet, `TREBUCHET-ASIAN-AGE0`: lattice 266 (26 launches).
+    (
+        1272,
+        crate::units::anim::ATTACK2,
+        8,
+        Bay {
+            right: -199,
+            fwd: -301_788,
+            dz: 693,
+        },
+    ),
+    // Piece 1273, the Asian Bombard, `BOMBARD-ASIAN-AGE0`: lattice 924 (30 launches).
+    (
+        1273,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -710,
+            fwd: 147_904,
+            dz: 104,
+        },
+    ),
+    // Piece 1274, the Asian Cannon, `CANNON-ASIAN-AGE0`: lattice 99, 99, 99 (15 launches).
+    (
+        1274,
+        crate::units::anim::ATTACK1,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
+    (
+        1274,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
+    (
+        1274,
+        crate::units::anim::ATTACK3,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
+    // Piece 1275, the Asian Artillery, `ARTILLERY-ASIAN-AGE0`: lattice 492 (8 launches).
+    (
+        1275,
+        crate::units::anim::ATTACK2,
+        70,
+        Bay {
+            right: 0,
+            fwd: 53_219,
+            dz: 136,
+        },
+    ),
+    // Piece 1462, the North American Assault Infantry, `ASSAULTINFANTRY-NA-AGE0`: lattice 49, 98, 915, 819, 348, 322, 225 (3 launches).
+    (
+        1462,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 23_820,
+            fwd: 87_417,
+            dz: 167,
+        },
+    ),
+    (
+        1462,
+        crate::units::anim::ATTACK1,
+        13,
+        Bay {
+            right: 20_717,
+            fwd: 82_052,
+            dz: 170,
+        },
+    ),
+    (
+        1462,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: 9_667,
+            fwd: 64_207,
+            dz: 120,
+        },
+    ),
+    (
+        1462,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_919,
+            fwd: 60_398,
+            dz: 118,
+        },
+    ),
+    (
+        1462,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 21_173,
+            fwd: 62_648,
+            dz: 121,
+        },
+    ),
+    (
+        1462,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 31_494,
+            fwd: 138_342,
+            dz: 107,
+        },
+    ),
+    (
+        1462,
+        crate::units::anim::ATTACK3,
+        17,
+        Bay {
+            right: 40_184,
+            fwd: 125_286,
+            dz: 115,
+        },
+    ),
+    // Piece 1623, the North American Catapult, `CATAPULT-NA-AGE0`: lattice 435 (22 launches).
+    (
+        1623,
+        crate::units::anim::ATTACK2,
+        12,
+        Bay {
+            right: 0,
+            fwd: -33_217,
+            dz: 245,
+        },
+    ),
+    // Piece 1626, the North American Cannon, `CANNON-NA-AGE0`: lattice 99, 99, 99 (9 launches).
+    (
+        1626,
+        crate::units::anim::ATTACK1,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
+    (
+        1626,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
+    (
+        1626,
+        crate::units::anim::ATTACK3,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
+    // Piece 1882, the India Crossbowmen, `CROSSBOWMEN-INDIA-AGE0`: lattice 1177, 491, 223 (115 launches).
+    (
+        1882,
+        crate::units::anim::ATTACK1,
+        5,
+        Bay {
+            right: 11_856,
+            fwd: 87_864,
+            dz: 173,
+        },
+    ),
+    (
+        1882,
+        crate::units::anim::ATTACK2,
+        3,
+        Bay {
+            right: 15_464,
+            fwd: 67_070,
+            dz: 140,
+        },
+    ),
+    (
+        1882,
+        crate::units::anim::ATTACK3,
+        6,
+        Bay {
+            right: 15_879,
+            fwd: 78_459,
+            dz: 168,
+        },
+    ),
+    // Piece 1977, the India Bombard, `BOMBARD-INDIA-AGE0`: lattice 924 (13 launches).
+    (
+        1977,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -710,
+            fwd: 147_904,
+            dz: 104,
+        },
+    ),
+    // Piece 6706, the packed Arab Partisans, `PARTISANS-ARAB-AGE0-PACKED`: lattice 751, 1022, 751 (5 launches).
+    (
+        6706,
+        crate::units::anim::ATTACK1,
+        10,
+        Bay {
+            right: 11_953,
+            fwd: 105_627,
+            dz: 170,
+        },
+    ),
+    (
+        6706,
+        crate::units::anim::ATTACK2,
+        15,
+        Bay {
+            right: 5_193,
+            fwd: 118_936,
+            dz: 124,
+        },
+    ),
+    (
+        6706,
+        crate::units::anim::ATTACK3,
+        16,
+        Bay {
+            right: 9_938,
+            fwd: 105_144,
+            dz: 170,
+        },
+    ),
+    // **The pivot pieces' events past their restriction count** (item
+    // 4159r5): a node no restriction governs takes `get_position`'s
+    // non-pivot arm, so its point is a `BAYS` row like any other. Piece
+    // 207, the T80DES (four node-1 events, run1579's packet, `RData +0x88`
+    // 0.75), 232, the Flak Gun (four, read off run1164's packet, which holds
+    // its seventeen rows; run1579 lacks its `CHAR_ATTACKWALK` and stops in
+    // `ModManager::prepend_content_dir`), and 234, the Avenger (one,
+    // run1579). Each `fit_bay.py` sweep 361 of 361; the centroid is kept.
+    (
+        207,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: 15_112,
+            fwd: 148_429,
+            dz: 130,
+        },
+    ),
+    (
+        207,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 15_129,
+            fwd: 149_061,
+            dz: 126,
+        },
+    ),
+    (
+        207,
+        crate::units::anim::ATTACK3,
+        1,
+        Bay {
+            right: 15_112,
+            fwd: 148_429,
+            dz: 130,
+        },
+    ),
+    (
+        207,
+        crate::units::anim::ATTACK3,
+        7,
+        Bay {
+            right: 23_807,
+            fwd: 147_942,
+            dz: 126,
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACKWALK,
+        14,
+        Bay {
+            right: -26_034,
+            fwd: -116_044,
+            dz: 180,
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACK1,
+        14,
+        Bay {
+            right: -26_034,
+            fwd: -116_044,
+            dz: 180,
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: -21_206,
+            fwd: -111_768,
+            dz: 172,
+        },
+    ),
+    (
+        232,
+        crate::units::anim::ATTACK3,
+        17,
+        Bay {
+            right: -4_043,
+            fwd: -111_887,
+            dz: 177,
+        },
+    ),
+    (
+        234,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: 65_333,
+            fwd: -25_391,
+            dz: 173,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
@@ -5903,6 +7016,73 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
             right: 78_500,
             fwd: 27_500,
             dz: 41,
+        },
+    ),
+    // **The planes of item 4159r5** whose every event on a node leaves one
+    // point (`BAYS`' comment above says how they were measured): the
+    // Advanced Fighter fires both guns on frame 1, so `BAYS`' frame key
+    // cannot hold it.
+    // Piece 251, the Advanced Fighter, `ADVFIGHTER-DEFAULT-AGE0`: 2 events, one point a node (18 launches).
+    (
+        251,
+        crate::units::anim::ATTACK2,
+        0,
+        Bay {
+            right: 23_349,
+            fwd: 12_939,
+            dz: -49,
+        },
+    ),
+    (
+        251,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: -23_311,
+            fwd: 11_954,
+            dz: -49,
+        },
+    ),
+    // Piece 257, the Lancaster, `LANCASTERBOMBER-DEFAULT-AGE0`: 10 events, one point a node (11 launches).
+    (
+        257,
+        crate::units::anim::ATTACK2,
+        0,
+        Bay {
+            right: -145_105,
+            fwd: 57_416,
+            dz: -30,
+        },
+    ),
+    (
+        257,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: 118_560,
+            fwd: 56_488,
+            dz: -30,
+        },
+    ),
+    // Piece 1311, the Asian Strategic Bomber, `STRATEGICBOMBER-ASIAN-AGE0`: 12 events, one point a node (206 launches).
+    (
+        1311,
+        crate::units::anim::ATTACK2,
+        0,
+        Bay {
+            right: -93_863,
+            fwd: -159_157,
+            dz: 0,
+        },
+    ),
+    (
+        1311,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: 93_870,
+            fwd: -156_288,
+            dz: 0,
         },
     ),
 ];

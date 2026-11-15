@@ -493,5 +493,6 @@ fn german_industrial_pair_run1354_s_closing_window_is_widened_whole() {
     // (7320, 31848) at `sz` 94 in ours against (7269, 31837) at 230 in
     // theirs (parked 3682a: its piece has no launch row).
     pin_eq!(w.rounds_read, (995, 995), "the rounds read");
-    pin_eq!(w.rounds.len(), 11, "the rounds that part");
+    // Item 4159r5: 11 -> 6, the launch rows of pieces 220 (1): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }

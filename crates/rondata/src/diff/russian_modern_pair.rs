@@ -480,7 +480,8 @@ fn russian_modern_pair_run1170_s_word_frame_is_widened_whole() {
     // `gatherers` agree now that `produce_city` walks its citizens by
     // object number (`docs/AI.md` §358.4).
     // Item 4177: 177 -> 179, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 5786 ours 6 theirs 7; who=1 `hits_current_frame` 5786 ours 6 theirs 7 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 179, "run1170 baseline");
+    // Item 4159r5: 179 -> 173, the launch rows of pieces 57 (22): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.firsts.len(), 173, "run1170 baseline");
 }
 
 /// run1168: the gap before the word 4097's window, blocks 3928..4098 at the
