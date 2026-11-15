@@ -44,7 +44,8 @@ mod tests {
     /// tree tiles 32 of 72 against the drawn 61 of 68.
     /// Item 4212: hue 98 → 83, luma 60 → 67, the land lit at the frame's white, §3.21.
     /// Item 4272: hue 83 → 84, luma 67 → 68: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
-    const RUN1559B_3279_SHADOW_MIRRORED: [(usize, usize); 2] = [(84, 108), (68, 108)];
+    /// Item 4275: hue 84 → 83, luma 68 → 67, the made-to-fail: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
+    const RUN1559B_3279_SHADOW_MIRRORED: [(usize, usize); 2] = [(83, 108), (67, 108)];
     /// The before still composed on the CPU under the rule's own darkening,
     /// the guys' in (nearest texels): through the tone map, the GPU's 78
     /// with the guys' drawn within one (77; 65 against 66 before 4193's
@@ -57,8 +58,9 @@ mod tests {
     /// and a plume's pixel clamped after the white (§3.25).
     /// Item 4269: hue 80 → 81, the second luma 84 → 83 of 104: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4272: hue 81 → 80, the second luma 83 → 84 of 104: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    /// Item 4275: hue 80 → 79, the second luma 84 → 85 of 104: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     const RUN1559B_3279_SHADOW_CPU: [[(usize, usize); 2]; 2] =
-        [[(80, 104), (91, 104)], [(72, 104), (84, 104)]];
+        [[(79, 104), (91, 104)], [(72, 104), (85, 104)]];
     /// The row with the guys' decals drawn too (`World::unit_shadows`), as
     /// `draw_unit_shadow` reads: 4182's luma 89 → 66, the figure tiles 28
     /// → 5 of 37, median ours/theirs 0.99 → 0.82 (parked 4182c). **Item

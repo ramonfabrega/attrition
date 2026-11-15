@@ -1115,12 +1115,13 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4241: run1559b **1,038 → 1,031** (plain 956 → 954, under a mountain 66 → 61), on 4239's tree run1564 1,851 → 1,852 (`SANDY` 727 → 728): the bloom drawn and a plume's pixel clamped after the white (§3.25).
 /// Item 4269: run1559b **1,031 → 1,040** (under a mountain **61 → 70** of 106): the range lit by its own normals (`docs/RENDERER.md` §3.22); the body ours Y 160.0 → 158.3 against theirs 137.3; run1564 unchanged.
 /// Item 4272: run1559b **1,040 → 1,059** (under a mountain **70 → 92** of 106, plain 954 → 951): the template alphas untinted, the tint laid once through `ADDSIGNED` as `MountainRange::init` loads them (§3.22; run1612 against run1559b); the body ours Y 158.3 → 146.4 against theirs 137.3; run1564 unchanged.
+/// Item 4275: run1559b **1,059 → 1,061** (under a mountain **92 → 95** of 106, plain 951 → 950): the snowcap underlay drawn, `render_weathering(4, 4)`'s texel times the land's `light_vert` colour through `TL_FAKE_LIGHT` at its alpha (`docs/RENDERER.md` §3.10, "The snowcap, drawn"; `client::snowcap`, the packet's slot 4 on 63 of 63 corners); the body ours Y 146.4 → 144.6 against theirs 137.3; tile (12, 141) crosses up, theirs (104, 101, 82), the still's (140, 132, 79); plain (23, 141) down and (12, 162) up by the frame's white; run1564 unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1059, 1109),
+        (1061, 1109),
         [
-            [951, 986],
-            [92, 106],
+            [950, 986],
+            [95, 106],
             [16, 17],
             [0, 0],
             [0, 0],
@@ -1161,7 +1162,9 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Item 4239: run1564's 1,709 → 1,754, the surf drawn (§3.27), against
 /// the drawn row's 1,786: **the drawn side leads on run1564 by 32**.
 /// Item 4272: run1559b's 992 → 993, the template alphas untinted (§3.22).
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(993, 1109), (1754, 1920)];
+/// Item 4275: run1559b's 993 → 1,005, the snowcap underlay drawn (§3.10,
+/// "The snowcap, drawn"), against the drawn row's 1,105.
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1005, 1109), (1754, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -3093,9 +3096,20 @@ pub(crate) mod tests {
             .iter()
             .position(|m| m.mountain)
             .expect("a mountain is drawn");
+        // Item 4275: then the snowcap underlay, last, `render_weathering(4,
+        // 4)` after `render_mountains`.
+        let last = laid
+            .iter()
+            .rposition(|m| m.mountain)
+            .expect("a mountain is drawn");
         assert!(
-            laid[first..].iter().all(|m| m.mountain),
+            laid[first..=last].iter().all(|m| m.mountain),
             "the mountains after the patch"
+        );
+        assert_eq!(
+            laid[last + 1..].iter().map(|m| m.piece).collect::<Vec<_>>(),
+            vec![crate::world::SNOWCAP_PIECE],
+            "the snowcap after the mountains"
         );
         // Item 4164: the water before the mountains. Item 4178: on its own
         // mesh, sixteen triangles over every cell that holds it, and the

@@ -18,6 +18,11 @@ draws: slots 0 to 3 at `render_weathering(0, 3)`, slot 4 at
   `+0xe0`; each array's data at `+0x10`, item `[cur_pass]` (`+0x124`) an
   array object, its length at `+4` and its data at `+0x10`.
 
+Item 4275: then a `pool w n` line and the `random_map_pool` bytes
+(`0x00CBE580`, `Terrain::init@00850f70`'s `(4W + 1)²` draws on
+`internal_random`), sixty-four to a line in hex, `w` being `4W + 1` read
+off `worldc`'s first word.
+
 One header line (`frame`), then per filled slot a `slot k verts n faces f`
 line, one line a vertex — `v x y` (the corner in tiles), the colour as
 hex (`0xAABBGGRR`), then UV0 and UV1 as four singles — and one line a
@@ -34,6 +39,8 @@ sys.path.insert(0, os.path.join(HERE, "..", "recomp"))
 from snapshot import Snapshot  # noqa: E402
 
 TERRAIN = 0x00C0B0F0
+POOL = 0x00CBE580
+WORLDC = 0x00C061D0
 UNDERLAYS = 0x4BF0
 HELPER = 0x13C
 UNITS_PER_TILE = 192.0
@@ -77,6 +84,11 @@ def main(path):
         idx = struct.unpack_from(f"<{nf}H", fb, 0)
         for t in range(0, nf, 3):
             out.append(f"f {idx[t]} {idx[t + 1]} {idx[t + 2]}")
+    w = 4 * s.u32(s.u32(WORLDC)) + 1
+    pool = s.read(s.u32(POOL), w * w)
+    out.append(f"pool {w} {w * w}")
+    for i in range(0, len(pool), 64):
+        out.append(pool[i : i + 64].hex())
     print("\n".join(out))
 
 

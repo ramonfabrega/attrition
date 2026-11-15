@@ -400,6 +400,8 @@ struct MountainDraw {
     blend: std::sync::Arc<render::silhouette::Mips>,
     /// Per template: its main and ring alphas.
     alphas: Vec<Option<[std::sync::Arc<render::silhouette::Mips>; 2]>>,
+    /// The snowcap underlay (item 4275, §3.10), where the tileset lays one.
+    snowcap: Option<crate::snowcap::SnowcapArt>,
 }
 
 /// The key a mountain's stage 0 texture takes beside the base layer's
@@ -430,6 +432,10 @@ pub const WEATHER_PIECE: i32 = -200_020;
 /// `OCEAN` cell's patch at its alpha.
 pub const CORAL_PIECE: i32 = -200_030;
 pub const WEATHER_ALPHA: usize = 910;
+/// The snowcap underlay's texture (item 4275, §3.10), and the same texture
+/// as its own alpha: stage 1 binds `t_mountainpeak` too.
+pub const SNOWCAP_PIECE: i32 = -200_200;
+pub const SNOWCAP_ALPHA: usize = 930;
 /// The roads' texture among the ground's, and as their own alpha (item
 /// 4199): `modern_road_pieces.tga` is both.
 pub const ROAD_PIECE: i32 = -200_021;
@@ -823,6 +829,7 @@ impl World {
                         })
                         .collect(),
                     art,
+                    snowcap: crate::snowcap::SnowcapArt::load(&install, t, tint),
                 });
             Some(GroundDraw {
                 textures,
@@ -1408,7 +1415,7 @@ impl World {
                 let range = crate::ground::ground_mountain(&t, &md.art, &self.terrain.1);
                 // Item 4269 (§3.22): each corner's N·L off the range's own
                 // normal; empty, the flat N·L.
-                let normals = if self.mountain_light {
+                let range_normals = if self.mountain_light {
                     range.normals()
                 } else {
                     Vec::new()
@@ -1438,7 +1445,7 @@ impl World {
                             light: Vec::new(),
                         });
                         m.positions.extend_from_slice(&range.tris[i]);
-                        if let Some(n) = normals.get(i) {
+                        if let Some(n) = range_normals.get(i) {
                             m.light
                                 .extend(n.iter().map(|n| render::terrain::land_n_dot_l(*n)));
                         }
@@ -1449,6 +1456,33 @@ impl World {
                     }
                 }
                 patches.extend(layers.into_values());
+                // Item 4275 (§3.10): the snowcap underlay,
+                // `render_weathering(4, 4)` after the mountains.
+                if let Some(sc) = md.snowcap.as_ref() {
+                    let pool = crate::snowcap::random_map_pool(t.width);
+                    let laid = sc.patches(&md.art.ranges(&t), t.width, &pool);
+                    let tiles = (
+                        t.width * render::terrain::TILES_PER_CELL,
+                        t.height * render::terrain::TILES_PER_CELL,
+                    );
+                    // The land's own N·L whatever `land_light` says: the
+                    // packet's colours are `light_vert`'s on every corner.
+                    let nl_land = |p: &[f32; 3]| -> f32 {
+                        let per = render::terrain::UNITS_PER_TILE as f32;
+                        let (cx, cy) = ((p[0] / per).round(), (p[1] / per).round());
+                        if cx < 0.0 || cy < 0.0 {
+                            return LIGHT_FLAT;
+                        }
+                        normals
+                            .get(cy as usize * stride + cx as usize)
+                            .map_or(LIGHT_FLAT, |n| render::terrain::land_n_dot_l(*n))
+                    };
+                    if let Some(m) =
+                        crate::snowcap::mesh(sc, &laid, &self.terrain.1.positions, tiles, &nl_land)
+                    {
+                        patches.push(m);
+                    }
+                }
             }
             self.drawn = (version, rest, meshes, patches);
             self.screen_layers = layers;

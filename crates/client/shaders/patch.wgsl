@@ -67,3 +67,16 @@ fn fs_mountain(i: VOut) -> @location(0) vec4<f32> {
     }
     return vec4<f32>(land_lit_white(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), i.nl), a);
 }
+
+// Item 4275 (`docs/RENDERER.md` §3.10, "The snowcap, drawn"): the tileset's
+// `snowcap` underlay, `render_weathering(4, 4)` after the mountains. Stage 0
+// `MODULATE(TEXTURE, DIFFUSE)`, the texel at UV0 times the land's vertex
+// colour; stage 1 passes the colour and takes the same texture's alpha at
+// UV1 (`SELECTARG1`); `TL_FAKE_LIGHT` with no lighting; SRCALPHA over
+// INVSRCALPHA, no alpha test, both stages clamped.
+@fragment
+fn fs_snowcap(i: VOut) -> @location(0) vec4<f32> {
+    let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    let t = textureSample(tex, samp, i.uv).rgb;
+    return vec4<f32>(land_fake(t * land_vertex(i.nl)), a);
+}

@@ -1614,8 +1614,45 @@ So the photograph's dark blue-grey crest is the land's light on the steep corner
 the peak's texture (grey-brown, mean alpha about 100). *Coverage:* diff-backed: the state
 (the card's two traces). On the packet: the patch's tiles, texcoords and colours. On a
 reading: the peak's choice and the marking (they reproduce the slot's bounds), and the
-quadrant. *Not established:* the quadrant against our `random_map_pool` (r = 0 here), and
-`TL_FAKE_LIGHT`'s branch on a land colour.
+quadrant. *Not established:* ~~the quadrant against our `random_map_pool` (r = 0 here)~~ (the
+pool is the packet's, below), and `TL_FAKE_LIGHT`'s branch on a land colour.
+
+**The snowcap, drawn (item 4275).** *2026-11-15, Opus 5.5. `client::snowcap`, `fs_snowcap`;
+scored on run1559b's still.*
+- *The patch.* Per placed range: the template's peak ([`rondata::mountains::peak`]) at
+  `(px − 128) / 4` tiles from the range's origin cell; none for `area="sm"` (the three
+  lists `Mountains::init@0089ad70` sorts by `area` set `mountain_size` 1, 2, 3; 1 is the
+  one `adjust_for_mountains` skips, and template 14, `med`, draws). The corner is the peak
+  less 3, clamped to `[0, 4W − 6]` on both axes (`add_geometry`'s call passes the side twice
+  and `param_8` 1, so the quadrant divides by 4). An odd corner steps back and its side
+  grows to 8. Only on a tileset whose `snowcaps` flag is set (`has_snowcaps`).
+- *The quadrant* (the listing, `874e21`–`874eb4`, all SSE single). r = 1 is ½ on u (the
+  inner loop's column term, `0x18`), r = 2 ½ on v, r = 3 both. `random_map_pool` is 45
+  `internal_random` draws in, then `(4W + 1)²` draws of `get(0, 100)` row by row
+  (`Terrain::init@00850f70`). **Diff-backed:** 58,081 of 58,081 bytes are run1559b's
+  packet's (`the_pool_is_the_packet_s`; one draw early, they part). (11, 138) holds 17,
+  so r is 0.
+- *The texture.* `t_mountainpeak.tga`, tinted at load (`TileSet::init` calls `set_tint` on
+  every underlay, `PF_DXT3`, three levels). It is bound on both stages.
+- *The pixel.* `fs_snowcap` is `land_fake(texel(UV0) · land_vertex(N·L))` at the texel's
+  alpha (UV1), blended SRCALPHA over INVSRCALPHA. `land_vertex` is `light_vert`'s colour
+  and `land_fake` is the fake light's power, ×5 and the tone map, as the trees and the
+  particles take it. The corner's N·L is the land's (`land_normals`) even while the
+  client's `land_light` switch is off: the packet's colours are `light_vert`'s.
+- **Diff-backed against the packet's slot 4** (`the_snowcap_is_the_packet_s_slot_4`, the
+  dump of `tools/render/snowcap_packet.py`): over the slot's box, 63 of 63 corners, UV0 and
+  UV1 exact on 63, `light_vert`'s colour exact on 63 (on the switch's flat N·L, 22), and
+  faces 96 of 96 shared. The original lays a snowcap only on a cell in view, so the slot
+  holds one patch. Ours lays every range's, 640 tiles, and the screen clips them.
+- *The score.* `GROUND_LUMA_STILL` under a mountain **92 → 95 of 106**, the luma row
+  1,059 → 1,061. The body is ours Y 146.4 → 144.6 against theirs 137.3.
+
+*Not established, on the reading alone:* stage 1's filter (linear and clamped as a
+mountain's alpha, unread), the DXT3 quantisation of the tinted texel, the 45 draws on a
+map other than Great Lakes, and the `sm` spelling as the size-1 class (the strings are
+`int_str_array`'s; template 14's `med` draws, as the packet shows). By eye, the
+photograph's crest carries a blue-grey sheen ours lacks: ours darkens there, but brown
+(parked 4275a).
 
 ## 3.11 The clock, under its ceilings (item 4161)
 

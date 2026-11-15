@@ -128,8 +128,9 @@ const LAND_SHADER: &str = include_str!("../shaders/land.wgsl");
 
 /// The names [`LAND_SHADER`] leaves a hole for, each filled once.
 #[cfg(test)]
-const LAND_HOLES: [&str; 12] = [
+const LAND_HOLES: [&str; 13] = [
     "LIT_POWER",
+    "FAKE_LIGHT_POWER",
     "HDR_SCALE",
     "LAND_DIFFUSE",
     "N_DOT_L",
@@ -146,12 +147,13 @@ const LAND_HOLES: [&str; 12] = [
 /// [`LAND_SHADER`] with its holes filled.
 fn land_shader() -> String {
     use render::silhouette::{
-        EXPOSURE, HDR_SCALE, LAND_AMBIENT, LAND_DIFFUSE, LAND_N_DOT_L, LIT_POWER, MIN_LUMINANCE,
-        SCENE_AMBIENT, WHITE_POINT, filmic,
+        EXPOSURE, FAKE_LIGHT_POWER, HDR_SCALE, LAND_AMBIENT, LAND_DIFFUSE, LAND_N_DOT_L, LIT_POWER,
+        MIN_LUMINANCE, SCENE_AMBIENT, WHITE_POINT, filmic,
     };
     let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
     LAND_SHADER
         .replace("{LIT_POWER}", &format!("{LIT_POWER:?}"))
+        .replace("{FAKE_LIGHT_POWER}", &format!("{FAKE_LIGHT_POWER:?}"))
         .replace("{HDR_SCALE}", &format!("{HDR_SCALE:?}"))
         .replace("{LAND_DIFFUSE}", &format!("{LAND_DIFFUSE:?}"))
         .replace("{N_DOT_L}", &format!("{LAND_N_DOT_L:?}"))
@@ -373,12 +375,16 @@ enum PatchKind {
     /// The surf (item 4239, §3.27): stage 0's texel, its alpha times the
     /// vertex's and the mask's, over the frame.
     Surf,
+    /// The snowcap underlay (item 4275, §3.10): the texel times the land's
+    /// vertex colour through `TL_FAKE_LIGHT`, at the texture's alpha.
+    Snowcap,
 }
 
 fn patch_kind(piece: i32) -> PatchKind {
-    use crate::world::{CORAL_PIECE, FLOOR_PIECE, WATER_PIECE};
+    use crate::world::{CORAL_PIECE, FLOOR_PIECE, SNOWCAP_PIECE, WATER_PIECE};
     match piece {
         WATER_PIECE => PatchKind::Water,
+        SNOWCAP_PIECE => PatchKind::Snowcap,
         FLOOR_PIECE => PatchKind::Floor,
         p if crate::world::is_surf(p) => PatchKind::Surf,
         p if (WATER_PIECE + 1..0).contains(&p) || p == CORAL_PIECE => PatchKind::Lit,
@@ -421,6 +427,8 @@ pub struct Gpu {
     /// linear, clamped sampler (`MIP_LINEAR`, `TEXADD_CLAMP`).
     mountain: wgpu::RenderPipeline,
     mountain_sampler: wgpu::Sampler,
+    /// The snowcap underlay's pass (item 4275, §3.10).
+    snowcap: wgpu::RenderPipeline,
     alpha_textures: std::sync::Mutex<std::collections::BTreeMap<usize, wgpu::BindGroup>>,
     sprite: wgpu::RenderPipeline,
     sprite_uniform: wgpu::Buffer,
@@ -1038,6 +1046,7 @@ impl Gpu {
         let patch = blended("patch", "fs_patch");
         let patch_lit = blended("patch_lit", "fs_patch_lit");
         let mountain = blended("mountain", "fs_mountain");
+        let snowcap = blended("snowcap", "fs_snowcap");
         let surf = patch_pass("surf", "fs_surf", &water_layout, false);
         // Item 4232: the floor writes its depth, as the base layer it
         // replaced did; the water reads the frame under it.
@@ -1107,6 +1116,7 @@ impl Gpu {
             alpha_sampler,
             mountain,
             mountain_sampler,
+            snowcap,
             alpha_textures: std::sync::Mutex::new(Default::default()),
             textured,
             silhouette,
@@ -1337,7 +1347,13 @@ impl Gpu {
                     buf,
                     n,
                     self.figure_texture(m.piece, &m.mips),
-                    self.alpha_texture(m.alpha, &m.alpha_mips, m.mountain),
+                    // Item 4275: the snowcap's stage 1 is linear and
+                    // clamped, as a mountain's alpha is (unread: 4275b).
+                    self.alpha_texture(
+                        m.alpha,
+                        &m.alpha_mips,
+                        m.mountain || m.piece == crate::world::SNOWCAP_PIECE,
+                    ),
                     m.mountain,
                     patch_kind(m.piece),
                 )
@@ -2052,6 +2068,7 @@ impl Gpu {
                 (_, PatchKind::Plain) => &self.patch,
                 (_, PatchKind::Lit) => &self.patch_lit,
                 (_, PatchKind::Floor) => &self.floor,
+                (_, PatchKind::Snowcap) => &self.snowcap,
                 (_, PatchKind::Surf) => {
                     // Over a copy of the frame under it: drawn only by
                     // `ground_passes`' surf steps.
