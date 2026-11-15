@@ -333,9 +333,17 @@ type SurfSlot = (
 
 /// The surf's texture slot `k` among the ground's textures (item 4239):
 /// `SURF_PIECE - k`; its mask's key among the alphas, `SURF_ALPHA + `
-/// the mask's texture index.
+/// the mask's texture index, below [`SURF_MASKS`].
 pub const SURF_PIECE: i32 = -200_040;
 pub const SURF_ALPHA: usize = 920;
+
+/// **The surf's masks own `SURF_ALPHA ..SURF_ALPHA + SURF_MASKS`** among
+/// the alphas, as its slots own 64 pieces ([`is_surf`]); a mask past it is
+/// not laid. Item 4279: the snowcap's key sat at 930, the surf's mask 10's
+/// (`<SURF>`'s masks are 1, 3, 5, 6, 10 and 12), and the alphas' cache is
+/// first come, so on run1559b the snowcap's stage 1 drew the surf's mask
+/// (`tests::the_alpha_keys_are_apart`).
+pub const SURF_MASKS: usize = 64;
 
 /// Whether `piece` is one of the surf's slots.
 pub fn is_surf(piece: i32) -> bool {
@@ -350,6 +358,9 @@ fn surf_mesh(k: usize, l: &crate::surf::mesh::FinalList, art: &SurfSlot) -> Opti
         return None;
     }
     let (mips, mask, alpha_mips) = art;
+    if *mask >= SURF_MASKS {
+        return None;
+    }
     let at = |f: &u16| *f as usize;
     Some(PatchMesh {
         piece: SURF_PIECE - k as i32,
@@ -436,9 +447,10 @@ pub const WEATHER_PIECE: i32 = -200_020;
 pub const CORAL_PIECE: i32 = -200_030;
 pub const WEATHER_ALPHA: usize = 910;
 /// The snowcap underlay's texture (item 4275, §3.10), and the same texture
-/// as its own alpha: stage 1 binds `t_mountainpeak` too.
+/// as its own alpha: stage 1 binds `t_mountainpeak` too. Item 4279: the
+/// alpha's key moved from 930, inside the surf's masks ([`SURF_MASKS`]).
 pub const SNOWCAP_PIECE: i32 = -200_200;
-pub const SNOWCAP_ALPHA: usize = 930;
+pub const SNOWCAP_ALPHA: usize = 912;
 /// The roads' texture among the ground's, and as their own alpha (item
 /// 4199): `modern_road_pieces.tga` is both.
 pub const ROAD_PIECE: i32 = -200_021;
@@ -2653,6 +2665,49 @@ pub(crate) fn shade(t: [[f32; 3]; 3]) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::{World, gamelog_dir};
+
+    /// **Every family's alpha key is its own** (item 4279): the
+    /// transitions' indices under the water's, each one-key family apart,
+    /// none inside the surf's masks, the templates' above them, and the
+    /// install's `<SURF>` masks inside their range. The alphas' cache is
+    /// keyed by these alone, so two families on one key draw whichever was
+    /// uploaded first. Made to fail with the snowcap at 930, as it stood.
+    #[test]
+    fn the_alpha_keys_are_apart() {
+        use super::{
+            MOUNTAIN_ALPHA, ROAD_ALPHA, SNOWCAP_ALPHA, SURF_ALPHA, SURF_MASKS, WATER_ALPHA,
+            WEATHER_ALPHA,
+        };
+        let surf = SURF_ALPHA..SURF_ALPHA + SURF_MASKS;
+        let ones = [WATER_ALPHA, WEATHER_ALPHA, ROAD_ALPHA, SNOWCAP_ALPHA];
+        for (i, k) in ones.iter().enumerate() {
+            assert!(
+                !surf.contains(k),
+                "key {k} inside the surf's masks {surf:?}"
+            );
+            assert!(*k < MOUNTAIN_ALPHA, "key {k} among the templates'");
+            assert!(!ones[..i].contains(k), "key {k} twice");
+        }
+        assert!(
+            surf.end <= MOUNTAIN_ALPHA,
+            "the surf's masks reach the templates'"
+        );
+        let root = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let install = rondata::Install::new(root);
+        if !install.looks_valid() {
+            println!("skipping: no install (set RON_INSTALL)");
+            return;
+        }
+        let root = install.root().to_path_buf();
+        let transitions = crate::ground::load_alphas(&root).expect("the transitions decode");
+        assert!(!transitions.is_empty() && transitions.len() <= WATER_ALPHA);
+        let layer = crate::surf::SurfLayer::new(&install).expect("the surf's class reads");
+        let masks: Vec<usize> = layer.masks().into_iter().flatten().collect();
+        assert_eq!(masks, [1, 3, 5, 6, 6, 10, 12], "the surf's masks by slot");
+        assert!(masks.iter().all(|m| *m < SURF_MASKS));
+    }
     use render::figure::{apply, guy_placement, placement};
     use std::path::PathBuf;
 

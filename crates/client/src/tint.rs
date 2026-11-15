@@ -256,10 +256,11 @@ pub(crate) mod tests {
     /// Item 4272: run1559b off row 1,104 → 1,105, luma 1,040 → 1,059; on hue 959 → 960, row 1,104 → 1,105, luma 1,086 → 1,101; run1570 off luma 1,124 → 1,138, on 1,156 → 1,164: the template alphas untinted, the tint laid once through `ADDSIGNED` (`docs/RENDERER.md` §3.22). On leads run1559b's grass hue by one (960 against 959, as at item 4221) and trails run1564's and run1570's: off.
     /// Item 4275: run1559b off luma 1,059 → 1,061 and on 1,101 → 1,103, on hue 960 → 959; run1570 off luma 1,138 → 1,140 and on 1,164 → 1,166: the snowcap underlay drawn (`docs/RENDERER.md` §3.10), whose land colour is `light_vert`'s whichever side the switch stands. The switch stays off: on now ties run1559b's grass hue (959) and trails run1564's and run1570's.
     /// Item 4278: run1559b on hue 959 → 960 and luma 1,103 → 1,104; run1570 off luma 1,140 → 1,139 and on 1,166 → 1,165: the mountain's `_mtrl` maps drawn (`docs/RENDERER.md` §3.22), the frame's white with them. The switch stays off: on leads run1559b's grass hue by one and trails run1564's and run1570's.
+    /// Item 4279: run1559b off luma 1,061 → 1,066 and on 1,104 → 1,109; run1570 off luma 1,139 → 1,140 and on 1,165 → 1,166: the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10), the frame's white with it. The switch stays off: on leads run1559b's grass hue by one and trails run1564's and run1570's.
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
-        ([959, 1105, 1061], [960, 1105, 1104]),
+        ([959, 1105, 1066], [960, 1105, 1109]),
         ([678, 1786, 1852], [676, 1778, 1843]),
-        ([1042, 1171, 1139], [1041, 1171, 1165]),
+        ([1042, 1171, 1140], [1041, 1171, 1166]),
     ];
 
     /// **`GRASS_HUE`**, `[(untinted, tinted)]` on run1559b, run1564 and

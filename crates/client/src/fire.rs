@@ -479,11 +479,12 @@ mod tests {
     /// Item 4272: the drawn plume 11,314 → 11,344 of 19,658 → 19,814: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4275: the drawn plume 11,344 → 11,347 of 19,814 → 19,853: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     /// Item 4278: the drawn plume 11,347 → 11,352 of 19,853 → 19,858: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    /// Item 4279: the drawn plume 11,352 → 11,349 of 19,858 → 19,855 (a fall of three): the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((11352, 19858, 2029), (14836, 928)),
-        ((0, 19858, 0), (0, 0)),
-        ((19858, 19858, 0), (17363, 2495)),
-        ((11905, 19858, 1892), (14176, 1757)),
+        ((11349, 19855, 2032), (14836, 929)),
+        ((0, 19855, 0), (0, 0)),
+        ((19855, 19855, 0), (17360, 2495)),
+        ((11903, 19855, 1893), (14175, 1758)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -504,11 +505,12 @@ mod tests {
     /// Item 4272: the drawn plume 11,564 → 11,590 of 19,016 → 19,170: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4275: the drawn plume 11,590 → 11,593 of 19,170 → 19,212: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     /// Item 4278: the drawn plume 11,593 → 11,596 of 19,212 → 19,215: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    /// Item 4279: the drawn plume 11,596 → 11,594 of 19,215 → 19,208 (a fall of two): the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     const RUN1570_PLUME: PlumeRows = [
-        ((11596, 19215, 1745), (14897, 958)),
-        ((0, 19215, 0), (0, 0)),
-        ((19215, 19215, 0), (16673, 2542)),
-        ((12292, 19215, 1433), (13734, 2120)),
+        ((11594, 19208, 1750), (14898, 959)),
+        ((0, 19208, 0), (0, 0)),
+        ((19208, 19208, 0), (16670, 2538)),
+        ((12287, 19208, 1435), (13725, 2125)),
     ];
 
     #[test]
@@ -547,6 +549,7 @@ mod tests {
     /// Item 4272: the flame row 206 of 699 → 692 (theirs, the fires off, moves with the white), past 584 → 587: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4275: the flame row 206 → 205 of 692 → 689 (a fall of one), past 587 → 588: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     /// Item 4278: the flame row 205 of 689 → 688 (theirs, the fires off, moves with the white): the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    /// Item 4279: the flame row 205 of 688 unmoved; the packet's particles through our pass 262 → 263: the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     const RUN1559B_3279_FLAME: FlameRows = [
         (
             (205, 688, 588),
@@ -560,8 +563,8 @@ mod tests {
             [(19, 19), (23, 23), (15, 15), (30, 30)],
         ),
         (
-            (262, 688, 431),
-            (114, 667),
+            (263, 688, 431),
+            (113, 668),
             [(19, 15), (23, 18), (15, 0), (30, 19)],
         ),
     ];
@@ -576,21 +579,22 @@ mod tests {
     /// Item 4272: the flame row 345 → 349 of 627: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4275: the flame row 349 of 627 → 626: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     /// Item 4278: the flame row 349 of 626 → 625: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    /// Item 4279: the flame row 349 of 625 → 626 (theirs, the fires off, moves with the white): the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     const RUN1570_FLAME: FlameRows = [
         (
-            (349, 625, 395),
+            (349, 626, 395),
             (103, 683),
             [(13, 11), (27, 26), (5, 0), (19, 24)],
         ),
-        ((0, 625, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
+        ((0, 626, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
         (
-            (625, 625, 0),
-            (42, 583),
+            (626, 626, 0),
+            (43, 583),
             [(13, 13), (27, 27), (5, 5), (19, 19)],
         ),
         (
-            (411, 625, 448),
-            (107, 789),
+            (411, 626, 446),
+            (107, 787),
             [(13, 15), (27, 28), (5, 0), (19, 28)],
         ),
     ];
