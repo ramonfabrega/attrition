@@ -760,6 +760,63 @@ pub fn garrisoned() -> Vec<Order> {
     orders
 }
 
+/// **The buildmasked script** (item 4276, `docs/CLIENT_INPUT.md` §24):
+/// the garrisoned script and two packages more. On
+/// [`BUILDMASK_TRAIN_FRAME`] a press on the capital and its Citizen
+/// button: the capital's `group` in full and `queue_up(CITIZEN, 1)`, so
+/// the queue holds a train job. On [`BUILDMASK_FRAME`] its infinite-queue
+/// button: `IFaceSelected::on_button_clicked@00826e00`'s
+/// `OPTION_INFINITE`, whose arm in `Options::exec@007188c0` (case `0x40`)
+/// calls `GroupOut::issue_buildmask@00708820(0x40)` for a selection of
+/// buildings — the `group`, which repeats the last one sent and so goes
+/// as no objects (`CommandPackage::add_group@0094bb60`), and
+/// `buildmask(0x40, 1)`, the form all five recorded buildmasks carry. The
+/// client's `minted_buildmasked_at_the_opening_camera` mints it field for
+/// field.
+pub fn buildmasked() -> Vec<Order> {
+    let mut orders = garrisoned();
+    orders.extend([
+        (
+            BUILDMASK_TRAIN_FRAME,
+            0,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![CAPITAL],
+                },
+                Command::QueueUp {
+                    unit: CITIZEN,
+                    num: 1,
+                },
+            ],
+        ),
+        (
+            BUILDMASK_FRAME,
+            0,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: Vec::new(),
+                },
+                Command::Buildmask {
+                    mask: BUILDMASK_INFINITE,
+                    set: 1,
+                },
+            ],
+        ),
+    ]);
+    orders
+}
+
+/// The frame the capital's Citizen is queued on, ten after
+/// [`GARRISON_FRAME`].
+pub const BUILDMASK_TRAIN_FRAME: i32 = 6760;
+/// The frame of the infinite-queue button, two after
+/// [`BUILDMASK_TRAIN_FRAME`].
+pub const BUILDMASK_FRAME: i32 = 6762;
+/// `OPTION_INFINITE`'s mask, `WallData::build_masks`' `0x40`.
+pub const BUILDMASK_INFINITE: i32 = 0x40;
+
 /// The frame of the garrison, ten after [`HOTKEY_FRAME`].
 pub const GARRISON_FRAME: i32 = 6750;
 /// The Citizen sent in: slot 0's `0/2`, standing at the farm `0/2007` on

@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -870,9 +870,9 @@ files. Every package of every file decodes. An order is a command `rondata::inpu
 `camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
 as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
 
-**`INPUT_KINDS`: 19 of 26 kinds, 2,360 of 2,429 orders (97.1 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
+**`INPUT_KINDS`: 20 of 26 kinds, 2,365 of 2,429 orders (97.4 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
 was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 10 and 2,216 (91.2 %) once the chat
-(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, 14 and 2,306 (94.9 %) once the city's gather (§17) was, 15 and 2,323 (95.6 %) once the craft button's spell (§18) was, which no playback has carried, 16 and 2,336 (96.1 %) once the queue button's cancel (§19) was, 17 and 2,346 (96.5 %) once the city's name (§21) was, 18 and 2,354 (96.9 %) once the hot key (§22) was, and is 19 since the garrison (§23). The kinds the layer mints are `input::MINTS`, held to the
+(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, 14 and 2,306 (94.9 %) once the city's gather (§17) was, 15 and 2,323 (95.6 %) once the craft button's spell (§18) was, which no playback has carried, 16 and 2,336 (96.1 %) once the queue button's cancel (§19) was, 17 and 2,346 (96.5 %) once the city's name (§21) was, 18 and 2,354 (96.9 %) once the hot key (§22) was, 19 and 2,360 (97.1 %) once the garrison (§23) was, and is 20 since the buildmask (§24). The kinds the layer mints are `input::MINTS`, held to the
 `Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
 `input_kinds_of_the_recordings_on_disk`.
 
@@ -898,7 +898,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `rename_city` | 10 | 0.4 % | yes (§21) |
 | `hotkey` | 8 | 0.3 % | yes (§22) |
 | `garrison` | 6 | 0.2 % | yes (§23) |
-| `buildmask` | 5 | 0.2 % | |
+| `buildmask` | 5 | 0.2 % | yes (§24) |
 | `cheat_ai_toggle` | 4 | 0.1 % | |
 | `come_out` | 4 | 0.1 % | |
 | `stance` | 4 | 0.1 % | |
@@ -2218,9 +2218,128 @@ sites were checked. The playback backs the command's bytes and the Citizen's ent
   walk compares the Citizen's `inside_up` on every record.
 - **The right press** with the profile's `0x200` set (§6) is not minted.
 - **The Slinger's blow on 6870** (§23.4): run1613 parts 33 of 300 records from 6871 on, on the Scout `1/0`'s damage.
-  Where it begins is not read (4273a).
+  ~~Where it begins is not read (4273a).~~ The stone leaves on 6863 on both sides and lands a frame later on ours
+  (§24.5, item 4276). Its flight time is not read.
 
 **Ours, not the original's:**
 
 - Where the GARRISON button stands, its label, and when it shows.
 - A right press drops the pick.
+
+## 24. A building's infinite queue: the buildmask (item 4276)
+
+*Item 4276, 2026-11-15. The score: `INPUT_KINDS` 19 → 20 of 26, and 2,360 → 2,365 of 2,429 orders (97.1 % → 97.4 %).
+The census's next kind by share after `leader_options` is `buildmask` (5). All five recorded
+orders are slot 3's in the 2017 sample, each a `group` of `2019` (empty when it repeats the last one sent) and
+`buildmask(64, 1)`. Slot 0 of the minted game holds the actor: its capital `0/2000` is a training building, finished,
+whose queue is empty on 6760, so the script queues a Citizen there first and then presses the infinite-queue button.
+The buildmasked script mints 27 of 27, and the recorded buildmasks mint 5 of 5. The original plays the file
+(run1614).*
+
+### 24.1 What the button issues, and what the order does
+
+- **The button.** `IFaceSelected::on_button_clicked@00826e00`, the selected panel's buttons, sends
+  `Options::exec(OPTION_INFINITE, o)` for four of its buttons, told apart by name. The keymap also binds
+  `OPTION_INFINITE` (`keymap_strings[0xc1]`).
+- **The arm.** `Options::exec@007188c0`'s case `0x40` (`OPTION_INFINITE`) tests only that the console's selection is of
+  buildings (the select group's `buildings` byte). On that it flashes the group and calls
+  `GroupOut::issue_buildmask@00708820(0x40)`. Any other selection falls through to the case below it, `do_formation`.
+  `Options::set_air_repeat@0071c740` is the same issuer's other caller, with `0x80` for an airbase's repeat.
+- **The issuer.** `issue_buildmask` writes nothing in a playback (`semaphore & 0x10`). Otherwise it writes the
+  package's group (`add_group`, with its repeat, §20), then command `0x21`, `[mask][1]`, 9 bytes. `set` is always 1.
+  `CommandManager::issue_buildmask@00941f80` is the same without that test.
+- **What it does.** `CommandPackage::process_buildmask@00947680` calls `Group::action_buildmask@006fc9a0(mask, set)`
+  on the package's group. It toggles and never reads `set`. Each member that is active and that
+  `WallData::valid_buildmask@0063e2a0` admits gets the bit: set if it lacks it and every admitted member before it was
+  set, cleared otherwise. For `0x40`, `valid_buildmask` admits a member whose `BuildData::can_infinite@0062d4d0`
+  passes: a training building with a unit's train job queued (types `0x32` to `0x19d`) that its owner may build. The
+  port has had this since item 877 (`sim::Sim::action_buildmask`, `docs/GOLDEN.md` §33), with the re-queue at a train
+  job's finish (`Sim::requeue_infinite`).
+
+### 24.2 What the layer does
+
+- **The HUD** (`hud::infinite_button`): with a building selection one of whose members is a training building of the
+  slot's own (`BuildingScene::trains`), one button, INFINITE, three rows above the bottom edge, left of RENAME. A
+  press on it is `Event::Infinite`.
+- **The layer** (`crates/client/src/input.rs`): `Event::Infinite` with a building selection mints the selection's
+  `group` and `buildmask(INFINITE_MASK, 1)`, `INFINITE_MASK` being `0x40`. Any other selection, or an open entry
+  line, mints nothing. Whether a member takes the bit is left to the walk, as the original leaves it to
+  `process_buildmask`. `buildmask` is added to `MINTS`.
+- **The walk** (`crates/rondata/src/input.rs`): the pump takes `buildmask` through `group_buildmask`, the golden
+  harness's entry since item 877.
+- **The script** (`crates/rondata/src/script.rs`): `buildmasked()` is the garrisoned script and two packages more:
+  - on `BUILDMASK_TRAIN_FRAME` 6760, the capital's `group` in full and `queue_up(CITIZEN, 1)`;
+  - on `BUILDMASK_FRAME` 6762, the `group` as no objects and `buildmask(BUILDMASK_INFINITE, 1)`.
+
+**Stage 0** (`minted_buildmasked_at_the_opening_camera`), on 6760 at the opening camera:
+- the capital stands at pixel (1127, 521). It is finished, a training building, and its queue is empty;
+- with the capital selected, the Citizen's button centre is (128, 1054), and the INFINITE button's is (1634, 966).
+
+### 24.3 The counts and the file
+
+- `INPUT_BUILDMASKED`: **27 of 27**. The events are the garrisoned ones, then three presses: the capital and the
+  Citizen's button on 6760, and the INFINITE button on 6762. Through the HUD and the layer they mint
+  `script::buildmasked()`. Seen red pinned 0.
+- `INPUT_BUILDMASKS`: **5 of 5** (seen red pinned (0, 0)), the package's orders whole. Each is minted from a fresh
+  layer. Its selection is the package's group, or for an empty group the slot's last full one, and the press is the
+  INFINITE button.
+- `minted_buildmask_edges` checks these cases:
+  - the button only for a building selection with a training building of the slot's own;
+  - nothing minted for a unit selection, for no selection, or with the entry line open;
+  - a building that takes no bit still mints;
+  - the same selection again sends its `group` as no objects.
+- `INPUT_KINDS` (20, 26), `INPUT_KINDS_ORDERS` (2,365, 2,429); `NOT_MINTED` drops `buildmask`.
+
+**The file.** `~/ron-golden/recordings/item4276-buildmasked-greatlakes-24000.rcx`, 59,637 bytes, SHA-256
+`5e5166341d5c4d503d0ff18cee38e123a95a40a4d35b9fe838abc8c7ceea1ecb` (`the_buildmasked_minted_packages_round_trip`;
+seen red pinned 0). It holds the garrisoned file's packages, then the two on 6760 and 6762, stamped 27 and 28. The
+closing stamp goes from 27 to 29. The client's events through the HUD write it byte for byte.
+
+### 24.4 The playback, and the order's effect
+
+**run1614** (`docs/RUNS.md`) is run1613's line with the buildmasked file. The receipt names the file's SHA-256.
+**Draws agree on 7,000 of 7,000 frames**, count and sequence. Of the window's 300 records, **173 are whole and 127
+part**, from 6871 on (`BUILDMASKED_WALKED`, pinned before the read with the garrisoned file's 33). Every parting is the
+Scout `1/0`'s `damage` and `damage_frame`, and nothing else. The first is the garrisoned file's (4273a, §24.5): ours
+13 and theirs 16 on 6871, `damage_frame` ours 6837 and theirs 6870. The blows after it drift: theirs land on 6900 and
+6930, ours on 6871 and 6920. So more records part than in run1613, where the two sides met again from 6904.
+
+**The order's effect.** The capital's `build_masks & 0x40` and its queue's job counters, front first, read on both
+sides (`buildmask_effects_theirs`, `buildmask_effects_ours`). Ours were pinned before the take was read and seen red
+pinned empty. Ours without the order is the same file without the button's package.
+
+| frame | the original | ours | ours without the order |
+| --- | --- | --- | --- |
+| 6760 | bit clear, queue empty | the same | the same |
+| 6762 | bit clear, `[200]`, the Citizen queued | the same | the same |
+| 6763 | **bit set**, `[300]` | the same | bit clear, `[300]` |
+| 6999 | bit set, `[1900]`, the Citizen re-queued at the first one's finish | the same | bit clear, queue empty |
+
+The walk compares `build_masks & 0x40` against the queue's `infinite` on every building of every record
+(`diff::harness`, item 877), so the bit is compared on all 237 records from 6763 to 6999.
+
+### 24.5 Confidence, and what is not established
+
+The button's arm, the issuer and `can_infinite` are read from the decompile, one reading each.
+`process_buildmask`, `action_buildmask` and `valid_buildmask` were read and run under the emulator against the port by
+items 877, 2443 and 3200. The playback backs the command's bytes, the bit and the re-queue (§24.4).
+
+- **Which buttons send `OPTION_INFINITE`.** `on_button_clicked` tells four of its buttons apart by name, through
+  `int_str_array`; which panel draws them, and when, is not read. The HUD shows INFINITE for a training building.
+- **The key** bound to `OPTION_INFINITE` (`keymap_strings[0xc1]`) is not minted.
+- **The airbase's repeat**, `Options::set_air_repeat`'s `buildmask(0x80, 1)`, is not minted. No recording carries
+  it.
+- **The Slinger's stone on 6863** (4273a): the garrisoned and buildmasked playbacks part on it. The stone leaves on
+  6863 on both sides: the Slinger `0/7`'s `recharging` reaches 0 there, and every compared field agrees. It hits the
+  Scout `1/0` on 6870 in the original and on 6871 on ours, a flight of 7 frames against 8.
+  - Ruled out: the units' cell-chain words (`up`, `down`, `down_who`, `up_who`), which the walk does not compare.
+    Ours equal the take's on every unit of every record from 6700 to 6872.
+  - Why the hot-keyed game does not part: its Scout takes other blows. There the original's Slinger reads `up -1`
+    on 6786 to 6795, not `up 4`, and the Scout's damage parts from the garrisoned game's from 6837.
+  - What is left: the round's flight time (`combat::flight_time`, `(int)(sqrtf(n) / d)`) at its launch. No dump
+    prints it without `AMMO`.
+
+**Ours, not the original's:**
+
+- Where the INFINITE button stands, its label, and when it shows.
+- The script queues a Citizen before the button, so that a member takes the bit.

@@ -419,6 +419,10 @@ pub(crate) fn walk_with(
             if w.per_capture[k].2 == 1 && std::env::var_os("RON_START_WALK_ROWS").is_some() {
                 eprintln!("FIRST {} at {}: {p:?}", captures[k].0, frame.n);
             }
+            // Every parted record, not only the first (item 4276).
+            if std::env::var_os("RON_START_WALK_ALL").is_some() {
+                eprintln!("PARTED {} at {}: {p:?}", captures[k].0, frame.n);
+            }
             if w.first_record.is_none() {
                 w.first_record = Some((frame.n, captures[k].0.to_string(), p));
             }

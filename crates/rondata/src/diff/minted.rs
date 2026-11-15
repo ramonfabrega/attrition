@@ -5002,3 +5002,239 @@ fn the_original_s_playback_of_the_garrisoned_file_walks_in_lockstep() {
         "the original's Citizen is ours"
     );
 }
+
+/// The buildmasked file's gzip length (item 4276). Seen red first: pinned
+/// 0, it printed 59,637.
+const BUILDMASKED_RCX_BYTES: usize = 59_637;
+
+/// **The buildmasked script, minted** (item 4276, `docs/CLIENT_INPUT.md`
+/// §24): the garrisoned file and two packages more, the capital's Citizen
+/// on [`crate::script::BUILDMASK_TRAIN_FRAME`] and the infinite-queue
+/// button on [`crate::script::BUILDMASK_FRAME`]; it round-trips through
+/// the file, and every package before them is the garrisoned file's,
+/// frame, slot and stamp. With `RON_RCX_OUT=<file>` it writes the `.rcx`
+/// the playback takes open.
+#[test]
+fn the_buildmasked_minted_packages_round_trip() {
+    use crate::script::{BUILDMASK_FRAME, BUILDMASK_TRAIN_FRAME, buildmasked, garrisoned};
+    let (Some(rec), Some(before)) = (minted(&buildmasked()), minted(&garrisoned())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "buildmasked").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in buildmasked().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "BUILDMASKED tails {:?} against {:?}",
+        &ours[ours.len() - 4..],
+        &old[old.len() - 2..]
+    );
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 2, old[..m - 1].to_vec()));
+    assert_eq!((ours[n - 3].0, ours[n - 3].1), (BUILDMASK_TRAIN_FRAME, 0));
+    assert_eq!((ours[n - 2].0, ours[n - 2].1), (BUILDMASK_FRAME, 0));
+    assert_eq!(
+        (ours[n - 1].0, ours[n - 1].2),
+        (old[m - 1].0, old[m - 1].2 + 2)
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "BUILDMASKED RCX {} bytes (the garrisoned file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), GARRISONED_RCX_BYTES, "the file run1613 played");
+    assert_eq!(gz.len(), BUILDMASKED_RCX_BYTES, "BUILDMASKED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The frames the buildmask's effect is read on, on our walk's count (item
+/// 4276): the Citizen's package, the button's, the frame after it, and
+/// the window's last record.
+const BUILDMASK_READ_AT: [i64; 4] = [6760, 6762, 6763, 6999];
+
+/// The buildmasked script, read off one frame: the capital's
+/// `build_masks & 0x40` (the infinite queue) and its queue's job counters,
+/// front first.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct BuildmaskEffect {
+    pub frame: i64,
+    pub infinite: bool,
+    pub queue: Vec<i64>,
+}
+
+fn buildmask_effect_ours(b: &Built) -> BuildmaskEffect {
+    let s = &b.sim;
+    let cap = &s.buildings[s.building_by_o(0, crate::script::CAPITAL).unwrap()];
+    BuildmaskEffect {
+        frame: s.frame,
+        infinite: cap.queue.infinite,
+        queue: cap
+            .queue
+            .items
+            .iter()
+            .map(|q| i64::from(q.job_counter))
+            .collect(),
+    }
+}
+
+/// Our walk under the pump on `orders`' file, read on `at`.
+fn buildmask_effects_ours(orders: &[Order], at: &[i64]) -> Vec<BuildmaskEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        ours.push(buildmask_effect_ours(&built));
+    }
+    ours
+}
+
+/// The original's, off the take's records on `at`.
+fn buildmask_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<BuildmaskEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for i in 0..source.frames().len() {
+        if !at.contains(&source.frames()[i].number) {
+            continue;
+        }
+        let f = source.frame_state(i).unwrap();
+        let cap = f
+            .builds
+            .iter()
+            .find(|b| b.who == 0 && b.o == i64::from(crate::script::CAPITAL))?;
+        let queued = cap.queued.unwrap_or(0) as usize;
+        theirs.push(BuildmaskEffect {
+            frame: f.n,
+            infinite: cap.build_masks? & 0x40 != 0,
+            queue: cap
+                .queue
+                .iter()
+                .take(queued)
+                .map(|q| q.job_counter)
+                .collect(),
+        });
+    }
+    Some(theirs)
+}
+
+/// **What the infinite-queue button does on our walk** (item 4276), on
+/// [`BUILDMASK_READ_AT`]; and without it, the walk of the garrisoned file
+/// and the Citizen's package alone.
+#[test]
+fn the_buildmasked_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::buildmasked()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let all = crate::script::buildmasked();
+    let ours = buildmask_effects_ours(&all, &BUILDMASK_READ_AT);
+    let without = buildmask_effects_ours(&all[..all.len() - 1], &BUILDMASK_READ_AT);
+    for (e, w) in ours.iter().zip(&without) {
+        eprintln!("BUILDMASK EFFECT ours {e:?} without {w:?}");
+    }
+    assert_eq!(ours, buildmasked_effects());
+    assert_ne!(ours[2..], without[2..], "the order sets the bit");
+}
+
+/// **The buildmasked script's effects** (item 4276), our walk's values
+/// pinned before the original's playback was read: the capital's queue
+/// empty on 6760; the Citizen queued from that package, job 200 on 6762,
+/// the bit still clear; set on 6763, the frame after the button's
+/// package; and on 6999 the queue holds the Citizen re-queued at the
+/// first one's finish (job 1900), where without the button it is empty.
+/// Seen red pinned empty.
+fn buildmasked_effects() -> Vec<BuildmaskEffect> {
+    let row = |frame, infinite, queue: &[i64]| BuildmaskEffect {
+        frame,
+        infinite,
+        queue: queue.to_vec(),
+    };
+    vec![
+        row(6760, false, &[]),
+        row(6762, false, &[200]),
+        row(6763, true, &[300]),
+        row(6999, true, &[1900]),
+    ]
+}
+
+/// **The original's playback of the buildmasked file** (item 4276):
+/// `(take, trace, first sequence parting or the last frame, last frame,
+/// records compared, records parted)`. Pinned before run1614 was read
+/// with the garrisoned file's 33 parted; the take parts 127 of 300, from
+/// 6871, every one on the Scout `1/0`'s `damage` and `damage_frame`
+/// alone: the Slinger `0/7`'s stone, loosed on 6863 on both sides, lands
+/// on 6870 in the original and 6871 on ours (4273a), and the blows after
+/// it drift (theirs 6900 and 6930, ours 6871 and 6920). The draws agree
+/// on every frame.
+pub(crate) const BUILDMASKED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1614-greatlakes-playback-of-buildmasked-7000.txt",
+    "rontrace-run1614.log",
+    7000,
+    7000,
+    300,
+    127,
+)];
+
+/// **The original plays the buildmasked file in lockstep** (item 4276,
+/// `docs/CLIENT_INPUT.md` §24): the built start walked under the pump on
+/// the buildmasked file against the take, every frame's draws against its
+/// trace and every record of its window ([`BUILDMASKED_WALKED`]),
+/// `build_masks & 0x40` among the fields compared; and the capital on
+/// [`BUILDMASK_READ_AT`], read off the take's records, equal to ours.
+#[test]
+fn the_original_s_playback_of_the_buildmasked_file_walks_in_lockstep() {
+    let buildmasked = crate::script::buildmasked();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in BUILDMASKED_WALKED {
+        let Some((w, _)) = walk_minted(&buildmasked, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "BUILDMASKED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs =
+        buildmask_effects_theirs(BUILDMASKED_WALKED[0].0, &BUILDMASK_READ_AT).expect("the take");
+    for t in &theirs {
+        eprintln!("BUILDMASK EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, BUILDMASKED_WALKED, "the walked table");
+    assert_eq!(
+        theirs,
+        buildmasked_effects(),
+        "the original's capital is ours"
+    );
+}
