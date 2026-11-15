@@ -3107,7 +3107,21 @@ On the photographs alone: the rows.
 - The 2,002 normals the local `calculate_norms` leaves (parked 4217b); none is at run1564's row.
 - The colour of a land draw's corner under the ocean floor's grey (the coral, the faded land):
   drawn white and flat.
-- The mountains' own normals and vertex colour (draws 143, 144): flat and white.
+- The mountains' own normals and vertex colour (draws 143, 144): flat and white. **Item 4246's first act stopped
+  here: no card trace on disk holds them.** On both traces' 3279 pass the range is three draws
+  (`client::tint::card::the_mountain_s_draws_on_the_card`): run1566b's 121–123 and run1567's 143–145. The ring
+  (`t_mountain_blend` + `m*_ring_shad_0`) and the main (`t_mountain_plain` + `m*_mountain_shad_0`) are lit as the land
+  is: `ENABLE_LIGHTING`, `ENABLE_VERTEX_COLOR_DIFFUSE`, `NORMAL_MAP SPEC_MAP GLOSS_MAP`, stage 0 `MODULATE(TEXTURE,
+  DIFFUSE)`, stage 1 op 7 `(TEXTURE, CURRENT)`, the light's diffuse 1.36, the scene's ambient (0.6, 0.716, 0.745) and
+  the material white. The ring also carries `TRANSFORM_SCREEN_SPACE` (unread). A third draw, `t_mountainpeak` on both
+  stages, takes `TL_FAKE_LIGHT` and no lighting; §3.10 never named it. **No stream precedes any of the six**: run1567's
+  pass holds none at all, and run1566b's seven come before other draws. The probe dumps only what
+  `get_internal_stream` locks, and the range's mesh is a static buffer. The score at the item's start, the still's
+  ground luma on run1559b under a mountain (`GROUND_LUMA_STILL`): **61 of 106**. All 45 parted tiles are paler and
+  none darker. Over the body, ours (173.1, 166.3, 90.0) is Y 160.0 against theirs (148.6, 140.8, 87.4) Y 137.3, a
+  mean ratio of 1.199 tile by tile. By eye, theirs has a darker right flank, a dark crest and fine white streaks, and
+  ours is one even, paler tone. Where the normals can be read instead is a packet's heap: `fill_mountain_data`'s mesh
+  and the normals `TerrainOut::render` generates for it (parked 4246a). The peak draw is parked 4246b.
 - `vs_global.hlsl`'s per-pixel normal against the interpolated N·L the client takes, and the
   vertex colour taken from that N·L rather than interpolated.
 - ~~The trees' and the roads' `TL_FAKE_LIGHT` stage colours against each other (parked 4217a).~~ Answered by
