@@ -523,7 +523,8 @@ fn british_industrial_pair_run1355c_s_closing_window_is_widened_whole() {
     // 295 a side, 37 parting: the Artillery's (`1/68`, `1/94`, `1/106`,
     // TY 269) eight launches, 136 below theirs and some 40 behind (parked
     // 3683b), and dead targets' `whom`/`ox`.
-    pin_eq!(w.rounds.len(), 37, "the rounds that part");
+    // Item 4159r5: 37 -> 0, the launch rows of pieces 219 (8): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The closing state** (item 3683): run1336's closing block 4768, the

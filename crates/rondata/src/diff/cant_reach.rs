@@ -95,21 +95,15 @@ pub(crate) fn check() -> Option<String> {
 /// --write` rewrites it from a suite run's `cant_reach tally` lines.
 pub(crate) const PINNED: &[(&str, usize)] = &[
     (
-        "diff::british_modern_pair::british_modern_pair_run1433b_s_closing_frame_is_widened_whole",
-        1,
-    ),
-    (
         "diff::coverage_pair::run1075_s_garrison_window_is_widened_whole",
         33,
-    ),
-    (
-        "diff::golden::chapter_thirty_eight_s_word_frame_is_widened_whole",
-        1,
     ),
     (
         "diff::harness::tests::run96_s_word_frame_is_widened_whole",
         5,
     ),
+    // Item 4159's fifth residue: run1433b's and ch38's walks 1 -> 0, the rows
+    // leave (the Lancaster's and the Flak Gun's launch rows).
     // Item 4159's fourth residue: run1075's walk 34 -> 33, the launch
     // rows of pieces 1814, 1837, 1851 and 81 (the first gameplay parting
     // 2123 -> 2346).

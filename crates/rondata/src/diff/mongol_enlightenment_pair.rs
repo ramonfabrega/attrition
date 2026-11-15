@@ -262,7 +262,8 @@ fn mongol_enlightenment_pair_run1346c_s_word_frame_is_widened_whole() {
     // `1/91`'s, from its own square in ours). Item 3692: 294 against 294,
     // 24 parting.
     pin_eq!(w.rounds_read, (294, 294), "the rounds read");
-    pin_eq!(w.rounds.len(), 24, "the rounds that part");
+    // Item 4159r5: 24 -> 4, the launch rows of pieces 1274 (9): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 4, "the rounds that part");
 }
 
 /// **The closing state** (item 3692): run1346's closing block 4950, the

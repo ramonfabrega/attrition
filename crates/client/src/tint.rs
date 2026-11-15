@@ -335,6 +335,68 @@ mod card {
             assert!((0..3).all(|k| near(a[k], SCENE_AMBIENT[k])), "{a:?}");
         }
     }
+
+    /// **The mountain's draws on the card** (item 4246; `docs/RENDERER.md`
+    /// §3.22): on both card traces' 3279 pass, every draw whose stage 0 is
+    /// the tileset's mountain art, with its options and the stream the
+    /// probe dumped before it. The probe dumps a stream only when the
+    /// executable locks one through `get_internal_stream`; the mountain's
+    /// mesh is a static buffer, so neither trace holds its normals or its
+    /// vertex colour. The lighting it carries is the land's.
+    #[test]
+    fn the_mountain_s_draws_on_the_card() {
+        use rondata::trace::card;
+        let home = std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default());
+        let mut seen = 0;
+        for run in ["run1566b", "run1567"] {
+            let path = home.join(format!("ron-golden/{run}/map-14/rontrace.log"));
+            let Ok(bytes) = std::fs::read(&path) else {
+                println!("skipping: no card trace at {}", path.display());
+                continue;
+            };
+            let pass: Vec<card::CardDraw> = card::draws(&bytes)
+                .into_iter()
+                .filter(|d| d.frame == 3279)
+                .collect();
+            let streams = pass.iter().filter(|d| d.stream.is_some()).count();
+            let mountain: Vec<&card::CardDraw> = pass
+                .iter()
+                .filter(|d| d.file(0).contains("mountain"))
+                .collect();
+            println!(
+                "{run}: {} draws on the 3279 pass, {streams} with a stream, {} the mountain's",
+                pass.len(),
+                mountain.len()
+            );
+            for d in &mountain {
+                let l = d.light();
+                println!(
+                    "{run} draw {}: {} + {}, options {:?}, colour ops {:?} {:?}, light diffuse {:?}, ambient {:?}, material {:?}, stream {:?}",
+                    d.index,
+                    d.file(0),
+                    d.file(1),
+                    d.option_names(),
+                    d.colour_op(0),
+                    d.colour_op(1),
+                    &l[2][..3],
+                    &d.scene_ambient()[..3],
+                    &d.material()[1][..3],
+                    d.stream.as_ref().map(|s| (s.vertices, s.stride, s.before)),
+                );
+                assert!(
+                    d.has("ENABLE_VERTEX_COLOR_DIFFUSE"),
+                    "{run} draw {}",
+                    d.index
+                );
+                let peak = d.file(0).starts_with("t_mountainpeak");
+                assert_eq!(d.has("ENABLE_LIGHTING"), !peak, "{run} draw {}", d.index);
+                assert_eq!(d.has("TL_FAKE_LIGHT"), peak, "{run} draw {}", d.index);
+                assert!(d.stream.is_none(), "{run} draw {}: a stream", d.index);
+            }
+            seen += mountain.len();
+        }
+        println!("{seen} mountain draws");
+    }
 }
 
 #[cfg(test)]

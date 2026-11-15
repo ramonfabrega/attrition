@@ -233,7 +233,8 @@ fn british_modern_pair_run1433b_s_closing_frame_is_widened_whole() {
     // `damage_frac` 3 against 10 on 3776 and `0/2000`'s 8 against 15 on
     // 3790, the bombs' landings. No draw parts to 3793.
     // Item 4177: 61 -> 63, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 3777 ours 4 theirs 3; who=1 `hits_current_frame` 3777 ours 4 theirs 3 (docs/LEADERS.md §3.5).
-    pin_eq!(w.firsts.len(), 63, "run1433b baseline");
+    // Item 4159r5: 63 -> 58, the launch rows of pieces 257 (11): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.firsts.len(), 58, "run1433b baseline");
     pin_eq!(w.rounds_read, (243, 243), "the rounds read");
     // Every round, both directions: 243 a side, 75 parting — every one a
     // Lancaster Bomber's (TI 307, `LANCASTERBOMBER`), `1/100` on 62 rows
@@ -242,7 +243,8 @@ fn british_modern_pair_run1433b_s_closing_frame_is_widened_whole() {
     // (3710, 30659, 2160) against (3698, 30814, 2130), the guy's own
     // position in ours — its `v1z` −6385656 against −4620950, and the
     // first five bombs' `accuracy` 0 against 300 or 252 (parked 3752a).
-    pin_eq!(w.rounds.len(), 75, "the rounds that part");
+    // Item 4159r5: 75 -> 6, the launch rows of pieces 257 (11): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3752): run1433's closing block 3794,

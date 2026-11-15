@@ -262,7 +262,8 @@ fn greek_medieval_pair_run1380b_s_word_frame_is_widened_whole() {
     // draws never feel them (parked 3703a). Item 3711: 1205 against 1205,
     // 115 parting.
     pin_eq!(w.rounds_read, (1205, 1205), "the rounds read");
-    pin_eq!(w.rounds.len(), 115, "the rounds that part");
+    // Item 4159r5: 115 -> 100, the launch rows of pieces 216 (3): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 100, "the rounds that part");
 }
 
 /// run1388: the pair's closing window, blocks 5686..5943 at the long's
@@ -336,7 +337,8 @@ fn greek_medieval_pair_run1388_s_closing_frame_is_widened_whole() {
     // 36) against theirs' (6476, 10981, 729) — a piece with no
     // `launch::BAYS` row (parked 3711b).
     pin_eq!(w.rounds_read, (1239, 1239), "the rounds read");
-    pin_eq!(w.rounds.len(), 133, "the rounds that part");
+    // Item 4159r5: 133 -> 113, the launch rows of pieces 216 (5): rounds that left the figure's square leave from their bays.
+    pin_eq!(w.rounds.len(), 113, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3703): run1380's closing block,
