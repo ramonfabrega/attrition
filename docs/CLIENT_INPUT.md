@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -869,9 +869,9 @@ files. Every package of every file decodes. An order is a command `rondata::inpu
 `camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
 as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
 
-**`INPUT_KINDS`: 17 of 26 kinds, 2,346 of 2,429 orders (96.5 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
+**`INPUT_KINDS`: 18 of 26 kinds, 2,354 of 2,429 orders (96.9 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
 was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 10 and 2,216 (91.2 %) once the chat
-(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, 14 and 2,306 (94.9 %) once the city's gather (§17) was, 15 and 2,323 (95.6 %) once the craft button's spell (§18) was, which no playback has carried, 16 and 2,336 (96.1 %) once the queue button's cancel (§19) was, and is 17 since the city's name (§21). The kinds the layer mints are `input::MINTS`, held to the
+(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, 14 and 2,306 (94.9 %) once the city's gather (§17) was, 15 and 2,323 (95.6 %) once the craft button's spell (§18) was, which no playback has carried, 16 and 2,336 (96.1 %) once the queue button's cancel (§19) was, 17 and 2,346 (96.5 %) once the city's name (§21) was, and is 18 since the hot key (§22). The kinds the layer mints are `input::MINTS`, held to the
 `Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
 `input_kinds_of_the_recordings_on_disk`.
 
@@ -895,7 +895,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `gather` | 11 | 0.4 % | yes |
 | `guard` | 10 | 0.4 % | yes |
 | `rename_city` | 10 | 0.4 % | yes (§21) |
-| `hotkey` | 8 | 0.3 % | |
+| `hotkey` | 8 | 0.3 % | yes (§22) |
 | `garrison` | 6 | 0.2 % | |
 | `buildmask` | 5 | 0.2 % | |
 | `cheat_ai_toggle` | 4 | 0.1 % | |
@@ -1982,3 +1982,119 @@ backs the command's bytes and the receiver's write (§21.4).
 - The RENAME button and where it stands. The original opens the popup from the city's name on the selected panel.
 - The box opens empty, because the scene does not carry the founding name.
 - A name cut inside a surrogate pair keeps the pair whole or drops it.
+
+## 22. A hot key: ctrl and a key, over a selection (item 4270)
+
+*Item 4270, 2026-11-15. The score: `INPUT_KINDS` 17 → 18 of 26, and 2,346 → 2,354 of 2,429 orders (96.5 % → 96.9 %).
+The census's next kind by share is `hotkey` (8). What it names is one of a player's hot-key groups, `who × 18` plus
+the key, and its contents, the package's selection. Slot 0 of the minted game holds both: its eighteen hot-key groups
+are 0 to 17 of the original's 162 (run1562's whole dump on frame 91 prints them, group 10, F1, already holding the
+capital `0/2000`), and the capital it selects. The layer mints the selection form, the only one the recordings
+carry. The hot-keyed script mints 24 of 24 and the recorded hot keys 8 of 8. The original plays the file (run1610).*
+
+### 22.1 What the key issues, and what the order does
+
+- **The key**: `Console::on_key_down@007cc210` takes `0`..`9` as 0 to 9 and F1..F8 (`0x70`..`0x77`) as 10 to 17, after
+  the key map and the nation hot keys (alt) have declined it. A computer leader's console (`leader_flags & 4` clear)
+  selects an army instead. With ctrl (`0x20000`) and no shift (`0x10000`), and a selection, it calls
+  `GroupOut::issue_hotkey@00708800(who × 0x12 + key)`; with an empty selection it adds a screen group itself (`clear`
+  1, `valid` 1, the camera's point and zoom). With ctrl and shift it is `Group::action_hotkey`, which issues nothing.
+- **The issuer**: `GroupOut::issue_hotkey` issues nothing in a playback (`semaphore & 0x10`). Otherwise
+  `CommandManager::issue_hotkey@00941fd0(group, key, 0)` writes the package's group (`add_group`) and the command:
+  byte `0x22`, `[group][clear][valid][x f32][y f32][zoom]`, `0x19` bytes. With a group, `clear` is 0; with the camera
+  flag clear, `valid` is 0, `x` and `y` are −1.0 and `zoom` 0.
+- **The receiver**: `CommandPackage::process_hotkey@009474d0`, with `clear` 0 and a package group, runs
+  `HotKeyGroups::copy_group@00715120`: the package's pool group (the slot `process_group@0094a0c0`'s
+  `Groups::push_group(…, 1)` handed back) is copied into the hot-key group. The fields copied are `who`, `num`, `ox`,
+  `oy`, `o_dist`, `o_angle`, `buildings`, `speed` (`+0x40`) and the six per-member arrays, and `stamp` becomes the
+  frame. Then `valid` (`+0x9d8`) is 0 and the slot's name is redrawn for the console's own. With `clear` 1 it empties
+  the slot (`num` 0, `valid` 0) and, with `valid`, writes the camera's point and zoom.
+- **The array**: `HotKeyGroups`, `0xa2` groups, apart from the pool. `HotKeyGroups::clear@00715230` gives each its
+  index as `id`, `priority` 1, `army` and `form` −1. A whole dump (`@dumpall`) prints it under `HOTKEYGROUPS`,
+  one `HOTKEYGROUPDATA` each with its `GROUPDATA` nested, then `loc_x`, `loc_y` and `valid` (run1562, run1610). Which
+  writer prints it there is not read: run1610's trace does not enter `GameLog::dump_hotkey_groups`. No checksum line
+  reads the array: `check_groups` walks the pool.
+
+### 22.2 What the layer does
+
+- **The sim** (`crates/sim/src/groups/hotkey.rs`): `Sim::process_hotkey`, through the command door
+  (`Command::process_hotkey`), copies the pool slot the player pushed last (`Groups::last_group`) into
+  `OrdersState::hotkeys` at the command's index, as `copy_group` does, with `stamp` the frame and `valid` 0; `clear` 1
+  empties it. `Sim::hotkey_slot` reads it. **This touches `crates/sim`.**
+- **The walk** (`crates/rondata/src/input.rs`): `Hotkey` pushes the package's group of buildings
+  (`push_command_buildings`, as `process_group` does) and runs `process_hotkey`. A selection of units is skipped,
+  named. It was "not mapped" before.
+- **The layer** (`crates/client/src/input.rs`): `Event::Hotkey(key)`. With a selection and no entry line open, it
+  sends the selection's `group` and `hotkey(who × HOTKEY_SLOTS + key, 0, 0, HOTKEY_NO_CAMERA, HOTKEY_NO_CAMERA, 0)`.
+  `HOTKEY_SLOTS` is `0x12`; `HOTKEY_NO_CAMERA` is −1.0f's bits, a constant, so no float is computed. `hotkey` is added
+  to `MINTS`.
+- **The window** (`crates/client/src/main.rs`): ctrl and `0`..`9`, or F1..F8, send `Event::Hotkey`.
+- **The script** (`crates/rondata/src/script.rs`): `hotkeyed()`, the renamed script and, on `HOTKEY_FRAME` 6740, the
+  capital's group (repeating the last one sent, so no objects) and `hotkey(1, 0, 0, −1.0, −1.0, 0)`.
+
+**Stage 0.** A key has no pixel. On 6740 the capital, the selection the key copies, is slot 0's and standing
+(`minted_hotkeyed_at_the_opening_camera`), and hot-key group 1 is empty on our walk (§22.4).
+
+### 22.3 The counts and the file
+
+- `INPUT_HOTKEYED`: **24 of 24**. The renamed events, then ctrl and `1` on 6740, through the HUD and the layer under the
+  opening camera, mint `script::hotkeyed()`.
+- `INPUT_HOTKEYS`: **8 of 8** (seen red pinned (0, 0)), on every field, the `group` before each included. All eight
+  are in the 2017 sample, slot 3's groups 55, 57, 58 and 59 (keys 1, 3, 4 and 5) on 973 to 12303; each carries a
+  group in full, of buildings or of units, `clear` 0, `valid` 0, −1.0 and −1.0, `zoom` 0. Each is minted from a fresh
+  layer whose selection is the package's group, and ctrl with `group − 3 × 18`.
+- `minted_hotkey_edges`: no selection sends nothing; a key past F8 sends nothing; slot 1's F8 is group 35; a key
+  while the entry line is open sends nothing.
+- `INPUT_KINDS` (18, 26), `INPUT_KINDS_ORDERS` (2,354, 2,429); `NOT_MINTED` drops `hotkey`.
+
+**The file.** `~/ron-golden/recordings/item4270-hotkeyed-greatlakes-24000.rcx`, 59,605 bytes, SHA-256
+`69906463b386719fc9ff0144d75b5c589d4b45c79a90ab8c657f952b3fa0d65c` (`the_hotkeyed_minted_packages_round_trip`; seen
+red pinned 0). It is the renamed file's packages, each with its frame, slot and stamp, then the hot key's package on
+6740, stamped 25. The closing stamp goes from 25 to 26. The client's events through the HUD write it byte for byte.
+
+### 22.4 The playback, and the order's effect
+
+**run1610** (`docs/RUNS.md`) is run1609's line with the hot-keyed file, `CITIES=5` taken out, and whole dumps
+(`@dumpall`) on 6740 and 6741. The receipt names the file's SHA-256. Draws agree on 7,000 of 7,000 frames, count and
+sequence, and 300 records are compared whole, with none parted (`HOTKEYED_WALKED`, pinned before the take was read;
+`the_original_s_playback_of_the_hotkeyed_file_walks_in_lockstep`).
+
+**Where a whole dump falls.** A `@dumpall` on frame N is written inside the take's `FRAME N` block after that frame's
+packages ran: block 6740 already holds the slot the hot key wrote, stamped 6740. So it is our walk's state at N + 1
+(`DUMPALL_LAGS`), where the end-frame records of the same block are its state at N (§21.4's `CITY` on 6730 still
+prints the founding name). run1610 therefore held no dump from before the package, and **run1611** plays the same file
+to 6745 with one whole dump in block 6739.
+
+**The order's effect.** Slot 0's hot-key group 1, the `HOTKEYGROUPDATA` record's every field (`hotkey_effects_theirs`),
+against our walk's slot (`hotkey_effects_ours`). Both were pinned before either take was read. Ours was seen red
+pinned empty, and the reader's first form red on the wrapper's fields read twice:
+
+| our frame | the take's block | the original | ours | ours without the order (the renamed file) |
+| --- | --- | --- | --- | --- |
+| 6740 | run1611 6739 | `num 0`, `stamp 0`, no member | the same | the same |
+| 6741 | run1610 6740 | `who 0`, `num 1`, `buildings 1`, `stamp 6740`, `list[0] 2000`, offsets, positions and angle 0 | the same | `num 0`, `stamp 0` |
+| 6742 | run1610 6741 | the same as 6741 | the same | `num 0`, `stamp 0` |
+
+On every row the fields `copy_group` does not write read as `HotKeyGroups::clear` left them (`army` and `form` −1,
+`priority` 1, the rest 0), with `loc_x`/`loc_y` 0.0 and `valid` 0. The order is what moves ours
+(`the_hotkeyed_minted_script_s_effects_on_our_walk`).
+
+### 22.5 Confidence, and what is not established
+
+The key's arms, the issuer and the receiver are read from the decompile, one reading each; `copy_group`'s field list
+is read off its offsets against `GroupData`'s type record. The playback backs the command's bytes and the copy into
+the slot the command names (§22.4).
+
+- **A selection of units.** The walk pushes a group of buildings alone. A unit group's pool record (its formation
+  offsets) is what `copy_group` copies; no hot key on units is played.
+- **The slot's other writers** are not carried: `HotKeyGroups::kill`, `copy` (a unit coming out), `find_group` (a
+  rename, `docs/GROUPS.md`), and whatever puts the capital in F1 before the first frame. A slot no hot key wrote reads
+  as `HotKeyGroups::clear` left it.
+- **The screen group** (ctrl and a key with nothing selected) is not minted: its `x` and `y` are the camera's floats.
+- **The ctrl-and-shift arm** (`Group::action_hotkey`) and the plain key's recall of a group are the interface's and
+  issue nothing; they are not built.
+
+**Ours, not the original's:**
+
+- The layer reads ctrl from the window's modifiers; the key map's own bindings are not consulted.
+- Ctrl and F3 is a hot key; F3 alone is the pause (§13).

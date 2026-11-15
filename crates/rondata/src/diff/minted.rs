@@ -4261,6 +4261,321 @@ fn the_original_s_playback_of_the_renamed_file_walks_in_lockstep() {
     );
 }
 
+/// The hot-keyed file's gzip length (item 4270). Seen red first: pinned 0,
+/// it printed 59,605.
+const HOTKEYED_RCX_BYTES: usize = 59_605;
+
+/// **The hot-keyed script, minted** (item 4270, `docs/CLIENT_INPUT.md`
+/// §22): the renamed file and one package more, the capital's repeated
+/// `group` and `hotkey` on [`crate::script::HOTKEY_FRAME`]; it round-trips
+/// through the file, and every package before it is the renamed file's,
+/// frame, slot and stamp. With `RON_RCX_OUT=<file>` it writes the `.rcx`
+/// the playback takes open.
+#[test]
+fn the_hotkeyed_minted_packages_round_trip() {
+    use crate::script::{HOTKEY_FRAME, hotkeyed, renamed};
+    let (Some(rec), Some(before)) = (minted(&hotkeyed()), minted(&renamed())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "hotkeyed").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in hotkeyed().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "HOTKEYED tails {:?} against {:?}",
+        &ours[ours.len() - 3..],
+        &old[old.len() - 2..]
+    );
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 1, old[..m - 1].to_vec()));
+    assert_eq!((ours[n - 2].0, ours[n - 2].1), (HOTKEY_FRAME, 0));
+    assert_eq!(
+        (ours[n - 1].0, ours[n - 1].2),
+        (old[m - 1].0, old[m - 1].2 + 1)
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "HOTKEYED RCX {} bytes (the renamed file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), RENAMED_RCX_BYTES, "the file run1609 played");
+    assert_eq!(gz.len(), HOTKEYED_RCX_BYTES, "HOTKEYED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The frames the hot key's effect is read on, on our walk's count (item
+/// 4270): the frame the package is consumed on, and the two after it.
+const HOTKEY_READ_AT: [i64; 3] = [6740, 6741, 6742];
+
+/// **Where a whole dump falls on our count**: a `@dumpall` on frame `N` is
+/// written inside the take's `FRAME N` block **after** that frame's
+/// packages ran — run1610's block 6740 holds the hot key's slot stamped
+/// 6740 — so it is our walk's state at `N + 1`, where the end-frame records
+/// of the same block are its state at `N` (the renamed take's `CITY` on
+/// 6730 still prints the founding name).
+const DUMPALL_LAGS: i64 = 1;
+
+/// Slot 0's hot-key group [`crate::script::HOTKEY_KEY`] on one frame (item
+/// 4270): the `HOTKEYGROUPDATA` record's fields in the dump's order — its
+/// `GROUPDATA`'s, each member's six arrays as `name[k]`, then `loc_x`,
+/// `loc_y` and `valid` — as `(key, value)` pairs.
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct HotKeyEffect {
+    frame: i64,
+    fields: Vec<(String, String)>,
+}
+
+/// The record as our walk holds it: the slot a hot key wrote, and
+/// `HotKeyGroups::clear@00715230`'s values for every field `copy_group`
+/// does not write (`army` and `form` −1, `priority` 1, the rest 0).
+fn hotkey_record(id: i64, s: Option<&sim::groups::hotkey::HotKeySlot>) -> Vec<(String, String)> {
+    let d = sim::groups::hotkey::HotKeySlot::default();
+    let s = s.unwrap_or(&d);
+    let mut f: Vec<(String, String)> = Vec::new();
+    let mut put = |k: &str, v: String| f.push((k.to_string(), v));
+    put("id", id.to_string());
+    put("who", s.who.to_string());
+    put("num", s.num.to_string());
+    put("army", "-1".into());
+    put("ox", s.ox.to_string());
+    put("oy", s.oy.to_string());
+    put("o_dist", s.o_dist.to_string());
+    put("o_angle", s.o_angle.to_string());
+    put("buildings", u8::from(s.buildings).to_string());
+    put("disband", "0".into());
+    put("order_num", "0".into());
+    put("priority", "1".into());
+    put("stamp", s.stamp.to_string());
+    put("role", "0".into());
+    put("form", "-1".into());
+    put("think_frame", "0".into());
+    put("facing", "0".into());
+    put("new_speed", "0".into());
+    put("speed", s.speed.to_string());
+    put("form_num", "0".into());
+    for k in 0..s.list.len() {
+        put(&format!("list[{k}]"), s.list[k].to_string());
+        put(&format!("off_x[{k}]"), s.off[k].0.to_string());
+        put(&format!("off_y[{k}]"), s.off[k].1.to_string());
+        put(&format!("curr_x[{k}]"), s.curr[k].0.to_string());
+        put(&format!("curr_y[{k}]"), s.curr[k].1.to_string());
+        put(&format!("angles[{k}]"), s.angles[k].to_string());
+    }
+    let float = |b: u32| -> String {
+        // The dump's `%f` of the bits: 0.0 and −1.0 are the two a slot
+        // holds until a screen group writes the camera's point.
+        match b {
+            0 => "0.000000".into(),
+            0xbf80_0000 => "-1.000000".into(),
+            b => format!("bits {b:#x}"),
+        }
+    };
+    put("loc_x", float(s.loc.0));
+    put("loc_y", float(s.loc.1));
+    put("valid", s.valid.to_string());
+    f
+}
+
+/// Ours, on our walk of `orders` at the frames `at`.
+fn hotkey_effects_ours(orders: &[Order], at: &[i64]) -> Vec<HotKeyEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let key = crate::script::HOTKEY_KEY;
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        ours.push(HotKeyEffect {
+            frame: built.sim.frame,
+            fields: hotkey_record(i64::from(key), built.sim.hotkey_slot(key as u16)),
+        });
+    }
+    ours
+}
+
+/// The original's, off the take's whole dumps in the `FRAME` blocks
+/// `blocks` (the first `HOTKEYGROUPS` of each), each on our count
+/// ([`DUMPALL_LAGS`]): the `HOTKEYGROUPDATA` whose `GROUPDATA` has `id`
+/// [`crate::script::HOTKEY_KEY`] (slot 0's group of that key), every field
+/// in order, a member's `name[scan]` numbered by its place. The nested
+/// `GROUPDATA` has no `END` of its own, so the parser hands it the
+/// wrapper's `loc_x`, `loc_y` and `valid` and the wrapper's `END` line;
+/// the reader keeps the three once and drops the `END`.
+fn hotkey_effects_theirs(take: &str, blocks: &[i64]) -> Option<Vec<HotKeyEffect>> {
+    let text = std::fs::read_to_string(dump(take)?).unwrap();
+    let log = crate::gamelog::Log::parse(&text);
+    let key = i64::from(crate::script::HOTKEY_KEY);
+    let mut theirs = Vec::new();
+    for (n, frame) in log.frames() {
+        if !blocks.contains(&n) {
+            continue;
+        }
+        let Some(hk) = frame.find("HOTKEYGROUPS") else {
+            continue;
+        };
+        let Some(w) = hk
+            .kids("HOTKEYGROUPDATA")
+            .find(|w| w.kid("GROUPDATA").and_then(|g| g.int("id")) == Some(key))
+        else {
+            continue;
+        };
+        let mut fields = Vec::new();
+        let mut scan: std::collections::BTreeMap<String, usize> = Default::default();
+        for (k, v) in w.kid("GROUPDATA").unwrap().fields() {
+            let k = match k.strip_suffix("[scan]") {
+                Some(name) => {
+                    let i = scan.entry(name.to_string()).or_default();
+                    *i += 1;
+                    format!("{name}[{}]", *i - 1)
+                }
+                None => k.to_string(),
+            };
+            if k != "END" {
+                fields.push((k, v.trim().to_string()));
+            }
+        }
+        theirs.push(HotKeyEffect {
+            frame: n + DUMPALL_LAGS,
+            fields,
+        });
+    }
+    Some(theirs)
+}
+
+/// **The hot key's effect on our walk** (item 4270), pinned before the
+/// original's playback was read: slot 1 empty on the package's frame, and
+/// the capital's group from the frame after, stamped with the package's
+/// frame. Seen red first: pinned empty.
+fn hotkeyed_effects_ours() -> Vec<HotKeyEffect> {
+    let key = i64::from(crate::script::HOTKEY_KEY);
+    let capital = sim::groups::hotkey::HotKeySlot {
+        who: 0,
+        num: 1,
+        buildings: true,
+        stamp: i64::from(crate::script::HOTKEY_FRAME),
+        list: vec![crate::script::CAPITAL],
+        off: vec![(0, 0)],
+        curr: vec![(0, 0)],
+        angles: vec![0],
+        ..Default::default()
+    };
+    vec![
+        HotKeyEffect {
+            frame: 6740,
+            fields: hotkey_record(key, None),
+        },
+        HotKeyEffect {
+            frame: 6741,
+            fields: hotkey_record(key, Some(&capital)),
+        },
+        HotKeyEffect {
+            frame: 6742,
+            fields: hotkey_record(key, Some(&capital)),
+        },
+    ]
+}
+
+/// **What the hot key does on our walk** (item 4270), on
+/// [`HOTKEY_READ_AT`]; and without it, the renamed file's walk, which is
+/// the value diff on our side.
+#[test]
+fn the_hotkeyed_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::hotkeyed()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = hotkey_effects_ours(&crate::script::hotkeyed(), &HOTKEY_READ_AT);
+    let without = hotkey_effects_ours(&crate::script::renamed(), &HOTKEY_READ_AT);
+    for (e, w) in ours.iter().zip(&without) {
+        eprintln!("HOTKEY EFFECT ours {e:?} without {w:?}");
+    }
+    assert_eq!(ours, hotkeyed_effects_ours());
+    assert_ne!(ours[1..], without[1..], "the order writes the slot");
+}
+
+/// run1611, the hot-keyed file played to 6745 with one whole dump in
+/// block 6739: the original's slot before the package.
+const HOTKEYED_BEFORE: &str = "gamelog-run1611-greatlakes-playback-of-hotkeyed-6745.txt";
+
+/// **The original's playback of the hot-keyed file** (item 4270), pinned
+/// before run1610 was read: `(take, trace, first sequence parting or the
+/// last frame, last frame, records compared, records parted)`.
+pub(crate) const HOTKEYED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1610-greatlakes-playback-of-hotkeyed-7000.txt",
+    "rontrace-run1610.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// **The original plays the hot-keyed file in lockstep** (item 4270,
+/// `docs/CLIENT_INPUT.md` §22): the built start walked under the pump on
+/// the hot-keyed file against run1610, every frame's draws against its
+/// trace and every record of its window whole ([`HOTKEYED_WALKED`]); and
+/// slot 0's hot-key group 1 in the take's whole dumps on
+/// [`HOTKEY_READ_AT`], equal to ours field for field.
+#[test]
+fn the_original_s_playback_of_the_hotkeyed_file_walks_in_lockstep() {
+    let hotkeyed = crate::script::hotkeyed();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in HOTKEYED_WALKED {
+        let Some((w, _)) = walk_minted(&hotkeyed, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "HOTKEYED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    // run1611's whole dump in block 6739, the frame before the package, then
+    // run1610's in blocks 6740 and 6741.
+    let mut theirs = hotkey_effects_theirs(HOTKEYED_BEFORE, &[6739]).expect("run1611");
+    theirs.extend(
+        hotkey_effects_theirs(HOTKEYED_WALKED[0].0, &[6740, 6741]).expect("the take's dumps"),
+    );
+    for t in &theirs {
+        eprintln!("HOTKEY EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, HOTKEYED_WALKED, "the walked table");
+    assert_eq!(
+        theirs,
+        hotkeyed_effects_ours(),
+        "the original's slot is ours"
+    );
+}
+
 /// **The original's playback of the repeated file** (item 4267), pinned
 /// before run1607 was read: `(take, trace, first sequence parting or the
 /// last frame, last frame, records compared, records parted)`.

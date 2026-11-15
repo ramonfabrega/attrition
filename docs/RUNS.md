@@ -37588,6 +37588,63 @@ SHA-256 `8bbca43896196d4097fd70e949b4f447b83bac57d6d88d05387123e6b899ffc8`.
 
 **What it holds**: the city-gathered game's window with the leaders' buckets on every frame; a city's gather played.
 
+## run1611 — the hot-keyed file to 6745, with a whole dump before the hot key (2026-11-15, item 4270, `att-4270`)
+
+`docs/CLIENT_INPUT.md` §22.4. **What the disk could not answer**: hot-key group 1 of slot 0 on the frame before the
+hot key. run1610's whole dumps fall after the package (a `@dumpall` in block N is written after frame N's packages),
+and no other take of the minted game past frame 91 prints `HOTKEYGROUPS`. The take is run1610's line, played to 6745
+with one line, `6739 @dumpall`: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1611 --recording <the hot-keyed file> --end-frame 6745 --allow-early-end --cover cover=1 --log-window
+6700 6745 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --cmd-file <it> --timeout 1800 --stall-seconds 120`.
+- **The run**: pool lane 1, launched 10:31:14 −05:00, exited 10:39:42: **507.6 s launch to exit**, exit 0, `success`.
+  6,746 frames, `last_frame` 6745, five settings restored, no relaunch. Minutes waited on another lane: none.
+- **The whole dump in block 6739** (our 6740): slot 0's hot-key group 1 is `HotKeyGroups::clear`'s, `num 0`,
+  `stamp 0`, no member; ours the same, pinned before the read. With run1610's two dumps after the package, the take's
+  three rows equal ours field for field (`the_original_s_playback_of_the_hotkeyed_file_walks_in_lockstep`).
+- Filed with `filerun.py run1611 greatlakes-playback-of-hotkeyed-6745`.
+
+Archive `gamelog-run1611-greatlakes-playback-of-hotkeyed-6745.txt`, 71,865,609 bytes,
+SHA-256 `5eddb634fc98658e4f6d23182c1c04d0d4dafb648b44470bea2f6ffe0da6de30`; `rontrace-run1611.log`, 33,695,712 bytes,
+SHA-256 `0d1535f4d260d97748726f09b31e3c411bbac67a63288fd9a85cce5acc5dd627`.
+
+**What it holds**: the hot-keyed game to 6745 and the whole state on the frame before the hot key.
+
+## run1610 — the original playing the file a hot key minted (2026-11-15, item 4270, `att-4270`)
+
+`docs/CLIENT_INPUT.md` §22.4. **What the disk could not answer**: whether the original plays a minted `hotkey`, and
+whether the hot-key group it writes is ours. The recordings carry eight, all in the 2017 sample. No take of the
+minted game prints `HOTKEYGROUPS` past frame 91 (run1562's whole dump). The file:
+`~/ron-golden/recordings/item4270-hotkeyed-greatlakes-24000.rcx`, 59,605 bytes, SHA-256
+`69906463b386719fc9ff0144d75b5c589d4b45c79a90ab8c657f952b3fa0d65c`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata --lib -- --exact diff::minted::the_hotkeyed_minted_packages_round_trip` (the renamed round trip writes the
+variable too: run it alone). It is the renamed file with the capital's group and `hotkey(1, 0, 0, −1.0, −1.0, 0)` on
+6740.
+
+The take is run1609's line with this file, `CITIES=5` taken out and two whole dumps added: `TMPDIR=<fresh> zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1610 --recording <the file> --end-frame
+7000 --cover cover=1 --log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --cmd-file <"6740 @dumpall",
+"6741 @dumpall"> --timeout 1800 --stall-seconds 120`, waited on with `waitrun.sh` in the background. `df -g ~` read
+188 GB free before it.
+- **The run**: pool lane 1, launched 10:20:39 −05:00, exited 10:29:10: **510.9 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault, no relaunch. The receipt names the file's SHA-256. Minutes waited on another
+  lane: none.
+- **The built walk under the pump on the file** (`HOTKEYED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence; 300 records compared (6700..6999), none parted. The whole dumps' frames are among them.
+- **The whole dumps**: `HOTKEYGROUPS` in block 6740 (one), block 6741 (two, the second at the top level) and block
+  6742 (one). The reader takes each block's first. Block 6740's already holds the hot key's slot, stamped 6740, so a
+  `@dumpall` in block N is our walk's state at N + 1 (`DUMPALL_LAGS`).
+- **The order's effect** (`hotkey_effects_theirs`): slot 0's hot-key group 1, every field, in blocks 6740 and 6741:
+  `who 0`, `num 1`, `buildings 1`, `stamp 6740`, `list[0] 2000`, its offsets, positions and angle 0, `army` and
+  `form` −1, `priority` 1, `loc_x`/`loc_y` 0.0, `valid 0`; ours on 6741 and 6742 the same, pinned before the read.
+- Filed with `filerun.py run1610 greatlakes-playback-of-hotkeyed-7000`.
+
+Archive `gamelog-run1610-greatlakes-playback-of-hotkeyed-7000.txt`, 191,199,589 bytes,
+SHA-256 `2e21c7c5270eaaf634e8649da33779080c595bfac37ae480930351a4ce8c53e1`; `rontrace-run1610.log`, 34,657,856 bytes,
+SHA-256 `62124982e75d65051ff230c7d967d87d1a3ecf2d8fe738da721b2bed17e3b66e`.
+
+**What it holds**: the hot-keyed game's window, and three whole dumps after the hot key; a hot key played.
+
 ## run1609 — the original playing the file a city's name popup minted (2026-11-15, item 4268, `att-4268`)
 
 `docs/CLIENT_INPUT.md` §21.4. **What the disk could not answer**: whether the original plays a minted

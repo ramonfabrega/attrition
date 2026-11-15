@@ -701,6 +701,43 @@ pub fn renamed() -> Vec<Order> {
     orders
 }
 
+/// **The hot-keyed script** (item 4270, `docs/CLIENT_INPUT.md` §22): the
+/// renamed script and, on [`HOTKEY_FRAME`], ctrl and [`HOTKEY_KEY`] with
+/// the capital still selected from the gather: the capital's `group`,
+/// which repeats the last one sent and so goes as no objects
+/// (`CommandPackage::add_group@0094bb60`), and `hotkey(0 × 18 + key, 0,
+/// 0, −1.0, −1.0, 0)`, as `CommandManager::issue_hotkey@00941fd0` writes
+/// a selection's.
+pub fn hotkeyed() -> Vec<Order> {
+    let mut orders = renamed();
+    orders.push((
+        HOTKEY_FRAME,
+        0,
+        vec![
+            Command::Group {
+                who: 0,
+                objects: Vec::new(),
+            },
+            Command::Hotkey {
+                group: HOTKEY_KEY,
+                clear: 0,
+                valid: 0,
+                x: HOTKEY_NO_CAMERA,
+                y: HOTKEY_NO_CAMERA,
+                zoom: 0,
+            },
+        ],
+    ));
+    orders
+}
+
+/// The frame of the hot key, ten after [`RENAME_FRAME`].
+pub const HOTKEY_FRAME: i32 = 6740;
+/// The key: `1`, slot 0's hot-key group 1, empty before it.
+pub const HOTKEY_KEY: i32 = 1;
+/// −1.0f's bits, the camera fields of a hot key with a selection.
+pub const HOTKEY_NO_CAMERA: u32 = 0xbf80_0000;
+
 /// The frame of the rename, ten after [`UNQUEUE_FRAME`].
 pub const RENAME_FRAME: i32 = 6730;
 /// The capital's new name: nine units, under the box's twenty-one and the
