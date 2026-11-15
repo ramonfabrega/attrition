@@ -262,10 +262,56 @@ pub fn market_menu(input: &Input, scene: &Scene, size: (i32, i32)) -> Vec<Market
         .collect()
 }
 
+/// One of the city's gather buttons (item 4261, `docs/CLIENT_INPUT.md`
+/// §17): the type it gathers to and where it stands.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CityButton {
+    pub t: i32,
+    pub rect: Rect,
+}
+
+impl CityButton {
+    /// Its label: the gatherer it sends to.
+    pub fn label(&self) -> &'static str {
+        match self.t {
+            0x1a1 => "GATHER FARM",
+            0x1a2 => "GATHER WOOD",
+            0x1a3 => "GATHER MINE",
+            _ => "GATHER ALL",
+        }
+    }
+}
+
+/// **The city's row**: with the slot's own city centre the selection, its
+/// panel's four gather buttons (`BuildOut::make_options@00629ed0`'s
+/// `OPTION_CITY_FARM_GATHER`, `_WOODCUTTER_`, `_MINE_`, `_ALL_`), in that
+/// order; otherwise none. One row along the bottom edge, anchored to the
+/// right corner, as the market's. Where it stands is ours.
+pub fn city_menu(input: &Input, scene: &Scene, size: (i32, i32)) -> Vec<CityButton> {
+    if !crate::input::city_panel(scene, input.player, &input.selection) {
+        return Vec::new();
+    }
+    let (w, h) = MARKET_BUTTON;
+    let n = crate::input::CITY_GATHER_TYPES.len() as i32;
+    crate::input::CITY_GATHER_TYPES
+        .iter()
+        .enumerate()
+        .map(|(k, &t)| CityButton {
+            t,
+            rect: Rect {
+                x: size.0 - (n - k as i32) * (w + MARGIN),
+                y: size.1 - MARGIN - h,
+                w,
+                h,
+            },
+        })
+        .collect()
+}
+
 /// One event through the HUD and then the layer: the window's own path
 /// (`App::input`), and the one the tests mint through. A press on one of
-/// the market's buttons is that button's event; anything else goes
-/// through [`route`].
+/// the market's or the city's buttons is that button's event; anything
+/// else goes through [`route`].
 pub fn event(
     input: &mut Input,
     size: (i32, i32),
@@ -277,7 +323,13 @@ pub fn event(
         Event::Press { x, y } => market_menu(input, view.scene, size)
             .into_iter()
             .find(|b| b.rect.contains(x, y))
-            .map(|b| b.event()),
+            .map(|b| b.event())
+            .or_else(|| {
+                city_menu(input, view.scene, size)
+                    .into_iter()
+                    .find(|b| b.rect.contains(x, y))
+                    .map(|b| Event::CityGather(b.t))
+            }),
         _ => None,
     };
     let ev = market.unwrap_or_else(|| route(input, size, ev));
@@ -675,6 +727,13 @@ pub fn paint(
         p.rect(r.x, r.y, r.w, SCALE, ink);
         let ty = r.y + (r.h - 7 * SCALE) / 2;
         p.text(r.x + 3 * SCALE, ty, &b.label(), SCALE, ink);
+    }
+    for b in city_menu(input, scene, size) {
+        let r = b.rect;
+        p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
+        p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
+        let ty = r.y + (r.h - 7 * SCALE) / 2;
+        p.text(r.x + 3 * SCALE, ty, b.label(), SCALE, overlay::INK);
     }
     for b in menu(input, size) {
         let r = b.rect;

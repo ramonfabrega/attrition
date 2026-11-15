@@ -244,6 +244,17 @@ pub struct BuildingScene {
     /// carries the sell and buy buttons (`BuildOut::make_options@00629ed0`;
     /// item 4259, `docs/CLIENT_INPUT.md` §16). A read only.
     pub market: bool,
+    /// A city's centre (`SubObjectData::flags & 0x20`): the building whose
+    /// panel carries the city's four gather buttons
+    /// (`BuildOut::make_options@00629ed0`'s `OPTION_CITY_*_GATHER`), read
+    /// as [`Sim::group_action_city_gather`] reads it, the building its city
+    /// names (item 4261, `docs/CLIENT_INPUT.md` §17). A read only.
+    pub city: bool,
+    /// `ObjectData::is(VILLAGE)` of its type, the `VILLAGE` lineage
+    /// (`GroupData::count`'s `COUNT_TYPE` 0x19e, which
+    /// `Options::do_city_gather@0071cdb0` asks of the selection; item
+    /// 4261). A read only.
+    pub village: bool,
 }
 
 /// A farm's `FarmStruct`, as `FarmsOut::draw@008d75f0` reads it
@@ -517,6 +528,10 @@ impl Sim {
                         crate::cities::build::Ident::Market,
                     )
                 }),
+                city: b
+                    .city
+                    .is_some_and(|c| self.cities.cities.get(c).is_some_and(|c| c.building == i)),
+                village: self.building_is_city(i),
             })
             .collect();
         let projectiles = self

@@ -1622,6 +1622,17 @@ impl Stream {
                     done.skip(&it.cmd, "no selected building is in the simulation");
                 }
             }
+            // **The city's gather** (item 4261, `docs/CLIENT_INPUT.md`
+            // §17): `process_city_gather@00948a10` is
+            // `Group::action_city_gather(t, …)` on the package's group, the
+            // slot's selection; `queued` is not read by it.
+            Command::CityGather { t, .. } => {
+                let slot = it.play as usize;
+                let objects = self.selection.get(slot).cloned().unwrap_or_default();
+                if group_city_gather(built, it.play, &objects, *t) == 0 {
+                    done.skip(&it.cmd, "no selected building is in the simulation");
+                }
+            }
             Command::Chat { .. } => {
                 // A cheat line. It is input — in solo it travels the order
                 // stream — but its effect is `ConsoleWin::run_cmd`'s, not an

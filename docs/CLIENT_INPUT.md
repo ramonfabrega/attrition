@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -869,9 +869,9 @@ files. Every package of every file decodes. An order is a command `rondata::inpu
 `camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
 as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
 
-**`INPUT_KINDS`: 13 of 26 kinds, 2,286 of 2,429 orders (94.1 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
+**`INPUT_KINDS`: 14 of 26 kinds, 2,306 of 2,429 orders (94.9 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
 was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 10 and 2,216 (91.2 %) once the chat
-(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, and is 13 since the market's sale and purchase (§16). The kinds the layer mints are `input::MINTS`, held to the
+(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, and is 14 since the city's gather (§17). The kinds the layer mints are `input::MINTS`, held to the
 `Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
 `input_kinds_of_the_recordings_on_disk`.
 
@@ -888,7 +888,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `sell` | 28 | 1.1 % | yes (§16) |
 | `swarm_around` | 28 | 1.1 % | yes |
 | `pause` | 24 | 0.9 % | yes (§13) |
-| `city_gather` | 20 | 0.8 % | |
+| `city_gather` | 20 | 0.8 % | yes (§17) |
 | `buy` | 18 | 0.7 % | yes (§16) |
 | `spell` | 17 | 0.6 % | |
 | `unqueue` | 13 | 0.5 % | |
@@ -1462,3 +1462,114 @@ and the sell and buy prices on those frames are all inside that.
 - **The resource bar's buttons** (`IFaceResources`), the other door to the same options.
 - **A market of the Ancient age offers no metal or oil**: `type_avail` is read through `Holdings::available`, and the
   take checks food and timber alone.
+
+## 17. The city's gather, from its panel (item 4261)
+
+*Item 4261, 2026-11-14. The score is the census (§11.1): `INPUT_KINDS` 13 → 14 of 26 kinds, 2,286 → 2,306 of 2,429
+orders. The HUD gains the city's row; the layer mints `city_gather` as the city panel's buttons do; our walk carries
+it out; the original plays the file (run1605) with every draw and every record in lockstep and the capital's gather
+list equal on both sides.*
+
+### 17.1 What the panel issues, and what the order does
+
+**The panel.** `BuildOut::make_options@00629ed0` gives a city centre's panel (`SubObjectData::flags & 0x20`) four
+buttons, `OPTION_CITY_FARM_GATHER`, `_WOODCUTTER_`, `_MINE_` and `_ALL_`, when the player profile's preference bit
+(`prefs & 2`) is set.
+
+**The issue.** `Options::exec@007188c0` maps the four to `Options::do_city_gather@0071cdb0` with 0x1a1 (Farm), 0x1a2
+(Woodcutter), 0x1a3 (Mine) and −1. `do_city_gather` issues when the console's selection can act
+(`Group::can_activate`), is of buildings (`GroupData::buildings`), counts one that takes a gather point
+(`COUNT_GATHER_POINT`) and one of type 0x19e, the `VILLAGE` lineage (`COUNT_TYPE`). It flashes the selection and calls
+`GroupOut::issue_city_gather@0070ac70`: the rally sound, then the selection's `group` and command `0x12`,
+`city_gather(t, queued 2)`, whatever the keys.
+
+**The recordings agree, in 18 of 20.** All 20 on disk are the 2017 sample's, slot 3's, `queued` 2; 19 carry `t` 417
+and one 419. Eighteen carry a `group` of one city building (`3/2000`, `2010`, `2019` or `2037`) before the order. Two,
+on 7205 and on 8179, carry a `group` of no objects; `process_city_gather` then acts on an empty group.
+
+**What it does.** `CommandPackage::process_city_gather@00948a10` is `Group::action_city_gather(t, …)` on the
+package's group; `queued` is logged and not read. The action was already ported (`Sim::group_action_city_gather`,
+item 3915, `docs/GOLDEN.md` §162): each finished centre in the group has its gather list cleared, then one point per
+building of its city whose type is `t` (all three for −1), at that building's own position, action 1. The golden
+harness reached it (`input::group_city_gather`); our walk's `Stream` did not, and now does.
+
+### 17.2 What the layer does
+
+- **The scene** (`crates/sim/src/observe.rs`, reads only): `BuildingScene::city`, the building its city names (the
+  centre, as `group_action_city_gather` tests it), and `BuildingScene::village`, `Sim::building_is_city`.
+- **The HUD** (`hud::city_menu`, `docs/HUD.md` §1): with the slot's own city centre the selection
+  (`input::city_panel`), the four buttons in `make_options`' order, in the market's place. A press on one is
+  `Event::CityGather(t)`.
+- **The layer**: with a building selection that `input::city_gathers` passes (every member a building of the scene,
+  one that trains, one a `VILLAGE`), the selection's `group` and `city_gather(t, 2)`; otherwise nothing.
+
+**The script.** `rondata::script::city_gathered` is the marketed script (§16) and one package more: on
+`CITY_GATHER_FRAME` 6718, the capital `0/2000`'s FARM button, `group(0, [2000])` and `city_gather(417, 2)`.
+
+**Stage 0.** On 6718 at the opening camera, the capital stands at (3168, 30816), `z` 536, its anchor at pixel
+(1127, 521). It is a centre, trains and is a `VILLAGE`, and it is finished. Its row holds GATHER FARM, WOOD, MINE and
+ALL at centres (1258, 1054), (1446, 1054), (1634, 1054), (1822, 1054) at 1920×1080.
+
+**The counts.**
+- `INPUT_CITY_GATHERED`: **21 of 21**. The marketed events and two more, through the HUD and the layer (a press on
+  the capital, then its GATHER FARM button), mint the city-gathered script field for field
+  (`minted_city_gathered_at_the_opening_camera`). The file written from them is the city-gathered file. Seen red
+  with the layer's `queued` 0: 21 orders, 20 whole.
+- `INPUT_CITY_GATHERS`: **18 of 20**. Every recorded city gather whose `group` names its building, that building
+  pressed and the button of its type, mints the package's `group` and `city_gather` whole
+  (`minted_city_gathers_equal_the_recordings`). The two with an empty group part: the panel's gate passes no empty
+  selection, so the layer mints nothing. Seen red with `queued` 0: 0 of 20.
+- `minted_city_gather_button_edges`: no row for another slot's building or one that is not a centre; each of the four
+  types minted; nothing without a trainer, without a `VILLAGE`, with an empty scene, or with a unit selection.
+
+**The file.** `~/ron-golden/recordings/item4261-city-gathered-greatlakes-24000.rcx`, 59,546 bytes, SHA-256
+`a823ac470a26a14acb34a2b1e90497929deac3687a3419bccc2812b58c37763c`. It is the marketed file plus the one package,
+stamped 22; the closing stamp goes from 22 to 23 (`the_city_gathered_minted_packages_round_trip`; seen red pinned 0).
+
+### 17.3 The playback, and the order's effect
+
+**Our walk under the city-gathered file against run1604** (`CITY_GATHERED_AGAINST_MARKETED`, pinned before run1605
+was read): it parts first on 6719, the frame after the package, at the capital's `gather_len`, ours 4 and theirs 1.
+281 of 300 records part, and the draws part from 6822.
+
+**run1605** (`docs/RUNS.md`): run1604's line with this file. Draws agree on 7,000 of 7,000 frames, count and sequence;
+300 records compared whole, none parted (`CITY_GATHERED_WALKED`).
+
+**The order's effect, equal on both sides** (`city_gathered_effects`, pinned from our walk before run1605 was read;
+the take's records read by `gather_effects_theirs_at`):
+
+| frame | the capital's gather list | the Citizen `0/10` | without the order (our walk on the marketed file) |
+| --- | --- | --- | --- |
+| 6718 | (4655, 31075, 0) | not on the map | the same |
+| 6719 | (2688, 32064, 1), (1920, 32064, 1), (2112, 31296, 1), (3456, 29760, 1) | not on the map | (4655, 31075, 0) |
+| 6999 | the same four | (5572, 29304), `move`, `gather` | (4655, 31075, 0); the Citizen at (4632, 31080), `gather` |
+
+The paused script's rally point (§13) is cleared, and the capital gains one point per Farm of its city, at the Farm's
+position, action 1. **Made to fail:** the take's lists from 6719 differ from the walk without the order.
+
+**The functions** (`CITY_GATHER_ENTRIES`, pinned before the read): `CommandPackage::process_city_gather` and
+`Group::action_city_gather` are first entered on 6717, the tick that consumes 6718's package. run1604 enters
+neither.
+
+### 17.4 Confidence, and what is not established
+
+**Backed by the playback.** run1605 plays a city gather minted from the capital's FARM button, and the capital's
+gather list and the Citizen it sends are ours on the three frames read. The Farm arm of `action_city_gather`, the
+clearing of the rally point and the points' order are all inside that.
+
+**Reading only**, one reader, no blind second reading:
+- the panel's gate (`flags & 0x20` and the preference bit) and `do_city_gather`'s gate;
+- the Woodcutter, Mine and all arms (`t` 418, 419, −1); the golden harness's §162 carries −1.
+
+**Ours, not the original's:**
+- the row's place, size and labels; the city panel's interface is not read;
+- the profile's preference bit is taken as set;
+- `COUNT_GATHER_POINT` is read by its training arm alone, as §11.2;
+- `Group::can_activate` is not read; the layer asks only that every member be a building of the scene;
+- the buttons are no key's event.
+
+**Not established:**
+- **The two recorded gathers with an empty group** (7205, 8179): how the original wrote a `group` of no objects
+  behind a gate that counts the selection is not read. Parked 4261a.
+- **A selection of several buildings**: the panel is a single centre's here, and the layer mints the whole
+  selection's group; no recording carries more than one.

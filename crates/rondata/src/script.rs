@@ -588,6 +588,39 @@ pub fn marketed() -> Vec<Order> {
     orders
 }
 
+/// **The city-gathered script** (item 4261, `docs/CLIENT_INPUT.md` §17):
+/// the marketed script and one package more, on [`CITY_GATHER_FRAME`],
+/// from the capital's panel: its FARM gather button,
+/// `OPTION_CITY_FARM_GATHER`, which `Options::do_city_gather@0071cdb0`
+/// issues as `GroupOut::issue_city_gather@0070ac70` writes it, the
+/// selection's `group` and `city_gather(t, 2)`, `t` [`CITY_GATHER_TYPE`].
+/// Nineteen of the twenty recorded carry the Farm's type and every one
+/// `queued` 2. The client's `minted_city_gathered_at_the_opening_camera`
+/// mints it field for field.
+pub fn city_gathered() -> Vec<Order> {
+    let mut orders = marketed();
+    orders.push((
+        CITY_GATHER_FRAME,
+        0,
+        vec![
+            Command::Group {
+                who: 0,
+                objects: vec![CAPITAL],
+            },
+            Command::CityGather {
+                t: CITY_GATHER_TYPE,
+                queued: 2,
+            },
+        ],
+    ));
+    orders
+}
+
+/// The frame of the city's gather, two after [`BUY_FRAME`].
+pub const CITY_GATHER_FRAME: i32 = 6718;
+/// The FARM button's type, `Options::exec@007188c0`'s `do_city_gather(0x1a1)`.
+pub const CITY_GATHER_TYPE: i32 = 417;
+
 /// Slot 0's Market, `0/2006` (`TypeIndex` 436), finished before the window.
 pub const MARKET_OBJECT: i16 = 2006;
 /// The frame of the sale, two after [`PAUSE_FRAME`].
