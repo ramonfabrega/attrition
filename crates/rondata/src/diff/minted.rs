@@ -4327,10 +4327,17 @@ fn the_hotkeyed_minted_packages_round_trip() {
     }
 }
 
-/// The frames the hot key's effect is read on (item 4270): the frame the
-/// package is consumed on and the one after, the two frames the playback
-/// dumps whole (`@dumpall`).
-const HOTKEY_READ_AT: [i64; 2] = [6740, 6741];
+/// The frames the hot key's effect is read on, on our walk's count (item
+/// 4270): the frame the package is consumed on, and the two after it.
+const HOTKEY_READ_AT: [i64; 3] = [6740, 6741, 6742];
+
+/// **Where a whole dump falls on our count**: a `@dumpall` on frame `N` is
+/// written inside the take's `FRAME N` block **after** that frame's
+/// packages ran — run1610's block 6740 holds the hot key's slot stamped
+/// 6740 — so it is our walk's state at `N + 1`, where the end-frame records
+/// of the same block are its state at `N` (the renamed take's `CITY` on
+/// 6730 still prints the founding name).
+const DUMPALL_LAGS: i64 = 1;
 
 /// Slot 0's hot-key group [`crate::script::HOTKEY_KEY`] on one frame (item
 /// 4270): the `HOTKEYGROUPDATA` record's fields in the dump's order — its
@@ -4409,17 +4416,21 @@ fn hotkey_effects_ours(orders: &[Order], at: &[i64]) -> Vec<HotKeyEffect> {
     ours
 }
 
-/// The original's, off the take's whole dumps on the frames `at`: the
-/// `HOTKEYGROUPDATA` whose `GROUPDATA` has `id` [`crate::script::HOTKEY_KEY`]
-/// (slot 0's group of that key), every field in order, a member's
-/// `name[scan]` numbered by its place.
-fn hotkey_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<HotKeyEffect>> {
+/// The original's, off the take's whole dumps in the `FRAME` blocks
+/// `blocks` (the first `HOTKEYGROUPS` of each), each on our count
+/// ([`DUMPALL_LAGS`]): the `HOTKEYGROUPDATA` whose `GROUPDATA` has `id`
+/// [`crate::script::HOTKEY_KEY`] (slot 0's group of that key), every field
+/// in order, a member's `name[scan]` numbered by its place. The nested
+/// `GROUPDATA` has no `END` of its own, so the parser hands it the
+/// wrapper's `loc_x`, `loc_y` and `valid` and the wrapper's `END` line;
+/// the reader keeps the three once and drops the `END`.
+fn hotkey_effects_theirs(take: &str, blocks: &[i64]) -> Option<Vec<HotKeyEffect>> {
     let text = std::fs::read_to_string(dump(take)?).unwrap();
     let log = crate::gamelog::Log::parse(&text);
     let key = i64::from(crate::script::HOTKEY_KEY);
     let mut theirs = Vec::new();
     for (n, frame) in log.frames() {
-        if !at.contains(&n) {
+        if !blocks.contains(&n) {
             continue;
         }
         let Some(hk) = frame.find("HOTKEYGROUPS") else {
@@ -4442,12 +4453,14 @@ fn hotkey_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<HotKeyEffect>> {
                 }
                 None => k.to_string(),
             };
-            fields.push((k, v.trim().to_string()));
+            if k != "END" {
+                fields.push((k, v.trim().to_string()));
+            }
         }
-        for (k, v) in w.fields() {
-            fields.push((k.to_string(), v.trim().to_string()));
-        }
-        theirs.push(HotKeyEffect { frame: n, fields });
+        theirs.push(HotKeyEffect {
+            frame: n + DUMPALL_LAGS,
+            fields,
+        });
     }
     Some(theirs)
 }
@@ -4478,6 +4491,10 @@ fn hotkeyed_effects_ours() -> Vec<HotKeyEffect> {
             frame: 6741,
             fields: hotkey_record(key, Some(&capital)),
         },
+        HotKeyEffect {
+            frame: 6742,
+            fields: hotkey_record(key, Some(&capital)),
+        },
     ]
 }
 
@@ -4498,6 +4515,10 @@ fn the_hotkeyed_minted_script_s_effects_on_our_walk() {
     assert_eq!(ours, hotkeyed_effects_ours());
     assert_ne!(ours[1..], without[1..], "the order writes the slot");
 }
+
+/// run1611, the hot-keyed file played to 6745 with one whole dump in
+/// block 6739: the original's slot before the package.
+const HOTKEYED_BEFORE: &str = "gamelog-run1611-greatlakes-playback-of-hotkeyed-6745.txt";
 
 /// **The original's playback of the hot-keyed file** (item 4270), pinned
 /// before run1610 was read: `(take, trace, first sequence parting or the
@@ -4538,8 +4559,12 @@ fn the_original_s_playback_of_the_hotkeyed_file_walks_in_lockstep() {
             w.records_parted,
         ));
     }
-    let theirs =
-        hotkey_effects_theirs(HOTKEYED_WALKED[0].0, &HOTKEY_READ_AT).expect("the take's dumps");
+    // run1611's whole dump in block 6739, the frame before the package, then
+    // run1610's in blocks 6740 and 6741.
+    let mut theirs = hotkey_effects_theirs(HOTKEYED_BEFORE, &[6739]).expect("run1611");
+    theirs.extend(
+        hotkey_effects_theirs(HOTKEYED_WALKED[0].0, &[6740, 6741]).expect("the take's dumps"),
+    );
     for t in &theirs {
         eprintln!("HOTKEY EFFECT theirs {t:?}");
     }
