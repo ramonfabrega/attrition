@@ -4851,9 +4851,7 @@ fn garrison_effect_ours(b: &Built) -> GarrisonEffect {
     GarrisonEffect {
         frame: s.frame,
         at: (i64::from(u.pos.x), i64::from(u.pos.y)),
-        inside_up: u
-            .inside
-            .map_or(-1, |k| i64::from(s.buildings[k].index)),
+        inside_up: u.inside.map_or(-1, |k| i64::from(s.buildings[k].index)),
         orders: u
             .orders
             .iter()
@@ -4948,16 +4946,21 @@ fn garrisoned_effects() -> Vec<GarrisonEffect> {
 /// The Citizen's last point outside, on 6766.
 const OUTSIDE_6766: (i64, i64) = (3456, 30048);
 
-/// **The original's playback of the garrisoned file** (item 4273), pinned
-/// before run1613 was read: `(take, trace, first sequence parting or the
-/// last frame, last frame, records compared, records parted)`.
+/// **The original's playback of the garrisoned file** (item 4273):
+/// `(take, trace, first sequence parting or the last frame, last frame,
+/// records compared, records parted)`. Pinned before run1613 was read with
+/// no record parted; the take parts 33 of 300, from 6871 on, the Scout
+/// `1/0`'s `damage` (ours 13, theirs 16) and `damage_frame` (ours 6837,
+/// theirs 6870, `damage_o 7`, the Slinger `0/7`'s blow): a blow that lands
+/// in the original and not on our walk, downstream of the garrison
+/// (parked 4273a). The draws agree on every frame.
 pub(crate) const GARRISONED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
     "gamelog-run1613-greatlakes-playback-of-garrisoned-7000.txt",
     "rontrace-run1613.log",
     7000,
     7000,
     300,
-    0,
+    33,
 )];
 
 /// **The original plays the garrisoned file in lockstep** (item 4273,
@@ -4993,6 +4996,9 @@ fn the_original_s_playback_of_the_garrisoned_file_walks_in_lockstep() {
         eprintln!("GARRISON EFFECT theirs {t:?}");
     }
     assert_eq!(walked, GARRISONED_WALKED, "the walked table");
-    assert_eq!(theirs, garrisoned_effects(), "the original's Citizen is ours");
+    assert_eq!(
+        theirs,
+        garrisoned_effects(),
+        "the original's Citizen is ours"
+    );
 }
-

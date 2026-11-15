@@ -4415,7 +4415,11 @@ pub(crate) mod tests {
     /// Citizen [`script::GARRISON_CITIZEN`]'s anchor and the capital's, at
     /// the opening camera.
     const GARRISON_ANCHORS: [AttackAnchor; 2] = [
-        (script::GARRISON_FRAME, (0, script::GARRISON_CITIZEN), (1369, 468)),
+        (
+            script::GARRISON_FRAME,
+            (0, script::GARRISON_CITIZEN),
+            (1369, 468),
+        ),
         (script::GARRISON_FRAME, (0, script::CAPITAL), (1127, 521)),
     ];
 
@@ -4511,11 +4515,7 @@ pub(crate) mod tests {
             return;
         };
         let garrisoned = script::garrisoned();
-        let whole = ours
-            .iter()
-            .zip(&garrisoned)
-            .filter(|(a, b)| a == b)
-            .count();
+        let whole = ours.iter().zip(&garrisoned).filter(|(a, b)| a == b).count();
         assert_eq!(
             (ours.len(), whole),
             (garrisoned.len(), INPUT_GARRISONED),
@@ -4672,7 +4672,10 @@ pub(crate) mod tests {
             queued: QUEUE_NEW,
         };
         let group = |objects: Vec<i16>| Command::Group { who: 0, objects };
-        let ok = scene(vec![garrison_unit(0, 5, &[2000])], garrison_building(0, 2000, 10, 0));
+        let ok = scene(
+            vec![garrison_unit(0, 5, &[2000])],
+            garrison_building(0, 2000, 10, 0),
+        );
         assert_eq!(
             mint(&ok, &[5], true),
             (true, Some(vec![group(vec![5]), garrison.clone()]), false)
@@ -4684,7 +4687,10 @@ pub(crate) mod tests {
             crate::hud::garrison_button(&input, &ok, HUD_SIZE).map(|r| r.centre()),
             Some(GARRISON_AT)
         );
-        let none = scene(vec![garrison_unit(0, 5, &[])], garrison_building(0, 2000, 10, 0));
+        let none = scene(
+            vec![garrison_unit(0, 5, &[])],
+            garrison_building(0, 2000, 10, 0),
+        );
         assert_eq!(crate::hud::garrison_button(&input, &none, HUD_SIZE), None);
         input.selection = vec![ObjId { who: 0, o: 2000 }];
         input.building = true;
@@ -4699,9 +4705,15 @@ pub(crate) mod tests {
         let mut unfinished = garrison_building(0, 2000, 10, 0);
         unfinished.active = false;
         for s in [
-            scene(vec![garrison_unit(0, 5, &[2000])], garrison_building(0, 2000, 0, 0)),
+            scene(
+                vec![garrison_unit(0, 5, &[2000])],
+                garrison_building(0, 2000, 0, 0),
+            ),
             scene(vec![garrison_unit(0, 5, &[2000])], unfinished),
-            scene(vec![garrison_unit(0, 5, &[2000])], garrison_building(0, 2000, 10, 10)),
+            scene(
+                vec![garrison_unit(0, 5, &[2000])],
+                garrison_building(0, 2000, 10, 10),
+            ),
             none.clone(),
         ] {
             assert_eq!(mint(&s, &[5], true), (true, None, false));
@@ -4711,7 +4723,11 @@ pub(crate) mod tests {
         let mut costly = garrison_unit(0, 5, &[2000]);
         costly.garrison_cost = 3;
         let two_left = scene(
-            vec![garrison_unit(0, 4, &[]), costly, garrison_unit(0, 6, &[2000])],
+            vec![
+                garrison_unit(0, 4, &[]),
+                costly,
+                garrison_unit(0, 6, &[2000]),
+            ],
             garrison_building(0, 2000, 10, 8),
         );
         assert_eq!(mint(&two_left, &[4, 5, 6], true), (true, None, false));
