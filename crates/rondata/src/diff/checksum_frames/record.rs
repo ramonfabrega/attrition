@@ -241,53 +241,56 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     ),
     (
         9810,
-        // Item 4255: groups' next first parting, record 64 (army 1/1, 21
-        // members, the same list on both sides) `role` 0x150c00 ours,
-        // 0x150c03 theirs. Its units and builds rows (the University's
-        // chain) went with item 4257.
-        &[
-            (
-                "groups",
-                550,
-                550,
-                1,
-                "76 64 id..march: role 1379328|1379331",
-            ),
-            (
-                "leaders",
-                271,
-                271,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|3e010000",
-            ),
-        ],
+        // Item 4255's groups row (record 64 `role` 0x150c00 ours, 0x150c03
+        // theirs) went with item 4258 (`Group::add`'s OR of the Hoplites'
+        // role, TI 132); its units and builds rows (the University's chain)
+        // went with item 4257.
+        &[(
+            "leaders",
+            271,
+            271,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|3e010000",
+        )],
     ),
     (
         10541,
-        // Item 4253's next guys word, and item 4257's next units word:
-        // record 14's figure `last_angle`.
+        // Item 4260 took units and guys here: the Caravan `1/14`'s crew
+        // (guys 1 and 2) `last_angle` 682461312|968792448, read before guy
+        // 0's turn; whole since.
+        &[(
+            "leaders",
+            271,
+            271,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|46010000",
+        )],
+    ),
+    (
+        11884,
+        // Item 4260's next units and guys word: record 56's figure
+        // `last_x`/`last_y`, ours a point behind its own.
         &[
             (
                 "units",
-                2549,
-                2549,
-                // 14 → 2 by item 4257 (the garrison chain's words).
-                2,
-                "570 14 guy: last_angle 682461312|968792448",
+                2459,
+                2459,
+                3,
+                "1570 56 guy: last_x 38275|38297, last_y 21337|21325",
             ),
             (
                 "guys",
                 776,
                 776,
-                2,
-                "160 14 guy: last_angle 682461312|968792448",
+                3,
+                "463 56 guy: last_x 38275|38297, last_y 21337|21325",
             ),
             (
                 "leaders",
                 271,
                 271,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|46010000",
+                3,
+                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|54010000",
             ),
         ],
     ),

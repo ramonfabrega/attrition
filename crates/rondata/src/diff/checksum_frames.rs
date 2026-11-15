@@ -277,6 +277,22 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// 42, theirs 30; units range 842, record 30 `inside_down` ours −1, theirs
 /// 42 (and record 42's `inside_up`, ours 2018, theirs 30) → the
 /// original's on both, both lines whole there.
+///
+/// Item 4258 moved one on run1578: groups 9810 → 24000, the line whole on
+/// every frame of the minted game. `Group::add@00714350`'s in-use arm ORs
+/// the new member's type `role` into the record's `+0x34`; `seat_add` did
+/// not. Value diff on 9810 (run1597's record): groups range 76, record 64
+/// (army 1/1, 18 Longbowmen joined on 9809 by the Hoplites `1/56..1/58`, TI 132)
+/// `role` ours 0x150c00, theirs 0x150c03 (theirs 0x150c00 on 9809) →
+/// 0x150c03 on both.
+///
+/// Item 4260 moved two on run1578: units 10541 → 11884 and guys 10541 →
+/// 11884, one rule, a trackless crew figure's `Guy::move` head running
+/// after guy 0's, whose `turn_towards → Guy::do_turn@005d97a0` has
+/// already turned it. Value diff on 10541 (run1597's record): units
+/// ranges 570/571 and guys 160/161, the Caravan 1/14 (TI 59, land),
+/// guys 1 and 2 `last_angle` ours 682461312, theirs 968792448 (guy 0
+/// 682461312 on both) → 968792448 on both, both lines whole there.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -298,10 +314,10 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 10541, 0),
+            ("units", 11884, 0),
             ("builds", 14312, 0),
-            ("groups", 9810, 0),
-            ("guys", 10541, 0),
+            ("groups", 24000, 0),
+            ("guys", 11884, 0),
             ("leaders", 0, 300),
             ("cities", 24000, 0),
             ("items", 24000, 0),

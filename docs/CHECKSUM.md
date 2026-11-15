@@ -1313,7 +1313,10 @@ parted on 45 ranges and summed to 2626631255.
   `Guy::set_new_location`'s seat write them too, and `Guy::clear` zeroes
   them. Carried as `Guy::last` (`docs/ANIM.md` §1), written at the head of
   `Sim::process_movement_on` for every figure the frame walks, and read
-  only by this line. Before it, ours was the figure's own point: the five
+  only by this line. **A trackless crew figure after guy 0 in the walk
+  takes its angle after guy 0's turn** (item 4260): each figure's head is
+  its own, and guy 0's `turn_towards → Guy::do_turn@005d97a0` has already
+  written that crew figure's angle (`:37`). Before it, ours was the figure's own point: the five
   moving figures parted — the scout `0/0` and its dog (5554 against
   5520, 5506 against 5472), the citizen `0/1` (4023, 28316 against 4008,
   28296), the British scout `1/0` and its dog (45082, 19586 against
@@ -2397,10 +2400,10 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
-| units | 10541 | 2177580941 | 616447987 | 0 |
+| units | 11884 | 1006472543 | 183733389 | 0 |
 | builds | 14312 | 2824218853 | 224732903 | 0 |
-| groups | 9810 | 793472871 | 2931519338 | 0 |
-| guys | 10541 | 88563580 | 4151468002 | 0 |
+| groups | whole, 24,000 | | | 0 |
+| guys | 11884 | 3345695618 | 3215934128 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
 | cities | whole, 24,000 | | | 0 |
 | items | whole, 24,000 | | | 0 |
@@ -2539,11 +2542,8 @@ to `Army::add_group@006f8c00`, which writes the record's `army` and then calls i
 **Item 4243 moved one.** Units 6907 → 7195, none of 0..299 parted. On 6907 (run1593) theirs walks 1,648 ranges and ours
 1,639, parting from range 784, record 24: a Longbowman of army 1/1 (item 4242's three) on a `GROUP_ATTACK_TO`.
 `GroupMoveOrder::walk_data@004855c0`, which `GroupAttackToOrder::walk_data@00482510` calls whole, makes five walks:
-the virtual base's flags byte, `MoveOrder`'s `x`..`off_y`, then `GroupOrder::walk_data` inlined — the flags byte again
-through `GroupOrder`'s own vbptr, and `oxx`..`group_angle` (`+0x54..+0x68`) — and last `in_group` (`+0x68`). The
-layout is the PDB's field list: `MoveOrder`'s non-virtual part at `+0x0`, `GroupOrder`'s at `+0x50`, `in_group`, and
-`UnitOrder` virtual at `+0x70`. The emitter walked the first two and stopped; the crate held every field
-(`orders::GroupMove`). Value diff on 6907: record 24's three ranges theirs `05`; 24, 1, 0x697990, 0, the move's
+the virtual base's flags byte, `MoveOrder`'s `x`..`off_y`, then `GroupOrder::walk_data` inlined, and last `in_group`
+(`+0x68`); the emitter walked the first two and stopped (the layout and the story: item 4243's journal). Value diff on 6907: record 24's three ranges theirs `05`; 24, 1, 0x697990, 0, the move's
 angle; 0, on each of three members (nine ranges) → the same on both, and the line whole; `id` 0x697990 is
 `(64 + 6906 × 10) × 100 + 0`, group record 64's. **Step P's census does not move** (`PACKETS_SCORE` 422): the units
 triple moved on 49 packets, every one only in that slot and with ours' range count toward theirs and never past it,
@@ -2564,6 +2564,10 @@ count, which fell on each (run1266c, East Indies, 7581 → 7561, the most); none
 
 **Item 4257 moved two.** Units 8281 → 10541, builds 8281 → 14312: the garrison chain appends at the bottom (CITIES
 §6). On 8281 (§25.4) building 2018 `inside_down` ours 42, theirs 30; record 30's −1, 42 → theirs. Step P 433 → 439.
+
+**Item 4260 moved two.** Units and guys 10541 → 11884: a trackless crew figure's head runs after guy 0's turn
+(§16). On 10541 (§25.4) the Caravan 1/14's guys 1, 2 `last_angle` ours 682461312, theirs 968792448 → theirs. Step P
+452 → 453.
 
 ## 24.4 Where each first parting is (diff-backed)
 
@@ -2717,10 +2721,10 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 | 7273 | units | 1,692, 1,692, 1 | 891 30 guy: `angle` and `last_angle` 1431655765, 0; whole since item 4253 (the scholar's seating `set_angle(0, _, 1)`) |
 | 7273 | guys | 560, 560, 1 | 279 30 guy: `angle` and `last_angle` 1431655765, 0; whole since item 4253 |
 | 8206 | groups | 544, 544, 1 | 91 67 `id..march`: `ox` 30552, 0; `oy` 21144, 0; whole since item 4255 |
-| 9810 | groups | 550, 550, 1 | 76 64 `id..march`: `role` 1379328 (0x150c00), 1379331 (0x150c03) |
+| 9810 | groups | 550, 550, 1 | 76 64 `id..march`: `role` 1379328 (0x150c00), 1379331 (0x150c03); whole since item 4258, and the line whole on all 24,000 |
 | 8281 | units | 1,909, 1,909, 2 | 842 30 `myhits..launch_frames`: `inside_down` −1, 42 (the University 1/2018's chain; builds 856 2018 `inside_down` 42, 30); whole since item 4257, both lines |
-| 10541 | guys | 776, 776, 2 | 160 14 guy: `last_angle` 682461312, 968792448 (units 570, 14 of 2,549) |
-| 10541 | units | 2,549, 2,549, 2 | 570 14 guy: `last_angle`, the same figure (14 parted before item 4257) |
+| 10541 | units, guys | 2,549 and 776, 2 each | 570/571 and 160/161 14 guy: the Caravan 1/14's crew (guys 1, 2) `last_angle` 682461312, 968792448; whole since item 4260 |
+| 11884 | units, guys | 2,459 and 776, 3 each | 1570 and 463 56 guy: `last_x` 38275, 38297; `last_y` 21337, 21325 |
 | 14312 | builds | 1,370, 1,370, 1 | 1258 2023 `gather_down..infiltrate2`: `wonder` −1, 0 |
 
 On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Builds' 7383 row, record 2019's `mtn`
@@ -2732,8 +2736,15 @@ and builds next parts on 14312. **Item 4255 moved groups 8206 → 9810** (`CHECK
 acted. `Group::equals_group@00708000` calls vslot `+0x4` (`Group::get_num`) on `last_group`'s record after its
 `normalize`, and `get_num`'s empty arm zeroes `ox`/`oy`. The crate normalized the slot and never called it
 (`docs/GROUPS.md` §36.2). After the fix it is 0/0 on both sides, and groups is whole on the record at 8206 and 8281.
-The next first parting is 9810: army 1/1's record (64). Both sides list the same 21 members, and only `role` parts,
-by the low bits 0x3. Unit 30 is not a member.
+The next first parting was 9810: army 1/1's record (64). Both sides list the same 21 members, and only `role` parts,
+by the low bits 0x3. Unit 30 is not a member. **Item 4258 made groups whole on all 24,000.** Theirs' record 64 reads
+18 members and `role` 0x150c00 on 9809, and 21 members, `role` 0x150c03 and speed 25 on 9810. The three that joined
+are the Hoplites `1/56..1/58` (TI 132, land; read off the record's `type` range), whose role adds hoplite and melee (0x3). **The direction**: the original acted.
+`Group::add@00714350`'s in-use arm ORs each member's type `role` (`UnitType +0x2c8`) into the record's `+0x34` as
+it lists it. On 18 members `get_num` does not normalize, so `find_role` never ran there. The crate's `seat_add`
+did not OR the role (`docs/GROUPS.md` §3.4). After the fix both sides read 0x150c03. The same OR takes one
+groups range off each of three Step P packets: run1294 record 80, `role` 0x150d00 against 0x155d00; run1320b
+record 66, 0x150c00 against 0x150c0c; run865 record 68, 0x92400 against 0x92410.
 
 Measured on the tree after item 4243,
 which made units whole on 6907 (run1593). Before it the record's 6907 showed what 4243's packet showed: units nine
