@@ -83,6 +83,62 @@ fn the_original_s_release_agrees_at_every_heading_for_piece_77() {
     assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
 }
 
+/// **Piece 384's bays agree with the original at every heading** (item
+/// 4277, `docs/CLIENT_INPUT.md` §25): `get_position.py … sweep 384 0
+/// <anim> <time>` on run1615b's packet, one file a row, `deg i x y z` at
+/// every whole degree 0..=360. `$RON_BAY_SWEEPS_384` is the directory
+/// holding `sweep-384-n0-a<anim>-t<time>.txt`, outside git
+/// (`~/ron-data/lab-experiments/2026-11-15-item-4277/sweeps/`).
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_piece_384() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_384") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_384 (item 4277's oracle, run1615b)");
+        return;
+    };
+    let (mut rows, mut off) = (0, Vec::new());
+    for &(_, a, t, b) in BAYS.iter().filter(|r| r.0 == 384) {
+        let path = format!("{dir}/sweep-384-n0-a{a}-t{t}.txt");
+        let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_384");
+        for line in table.lines() {
+            let f: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((f[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (f[2], f[3], f[4]) {
+                off.push(format!(
+                    "a{a} t{t} deg {}: {x},{y} against {},{}",
+                    f[0], f[2], f[3]
+                ));
+            }
+            rows += 1;
+        }
+    }
+    assert_eq!(rows, 3 * 361, "{dir}");
+    assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
+}
+
+/// **The Slingers' stones leave from piece 384's bays** (item 4277): the
+/// three rounds two packets hold, each beside its unit's point and facing
+/// on the frame it was loosed — run1615b's `0/8` (`CHAR_ATTACK2`, born
+/// 6866) and `0/9` (`CHAR_ATTACK2`, born 6868) on the buildmasked file,
+/// and run1603's `0/8` (`CHAR_ATTACK3`, born 6859) on the rallied one.
+/// Seen red on the planar rows that stood in `MEASURED`: the first two
+/// left from (3679, 31775) and (3391, 32213).
+#[test]
+fn the_slingers_stones_leave_from_piece_384_s_bays() {
+    use crate::units::anim::{ATTACK2, ATTACK3};
+    for (anim, t, at, facing, want) in [
+        (ATTACK2, 22, (3720, 31656), -2_140_667_904, (3679, 31773)),
+        (ATTACK2, 22, (3384, 32088), 1_889_337_344, (3389, 32212)),
+        (ATTACK3, 16, (3720, 31656), -2_140_667_904, (3762, 31769)),
+    ] {
+        let p = launch_point(Pos::new(at.0, at.1), Angle(facing), 384, anim, t, 0);
+        assert_eq!((p.x, p.y), want, "anim {anim} at {at:?} facing {facing}");
+    }
+}
+
 /// **The two Fighter Bomber lines loose from their wings** (item 3829,
 /// `docs/GOLDEN.md` §152.12): run1477's Fighter Bomber `0/15` (piece
 /// 258) at (15096, 15672), angle 1,431,655,765, looses its pair of

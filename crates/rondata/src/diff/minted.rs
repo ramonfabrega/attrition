@@ -2988,11 +2988,67 @@ const RALLIED_ROUND: (i64, &[Round]) = (
 /// live round read field for field.
 #[test]
 fn the_rallied_game_s_round_in_flight_is_the_packet_s() {
-    let Some((_, mut built, _)) = built_start() else {
+    let Some(ours) = rounds_at(&crate::script::rallied(), RALLIED_ROUND.0) else {
         return;
     };
-    let mut stream = crate::input::Stream::pump(&minted(&crate::script::rallied()).unwrap());
-    tick_to(&mut built, Some(&mut stream), RALLIED_ROUND.0);
+    eprintln!("RALLIED ROUND ours {ours:?}");
+    assert_eq!(ours, RALLIED_ROUND.1, "the packet's ammo pool");
+}
+
+/// **The rounds in flight on 6869 of the buildmasked game** (item 4277,
+/// run1615b): the original's whole ammo pool at logger frame 6869, read
+/// off the packet by `tools/recomp/ammo.py`, laid out as
+/// [`RALLIED_ROUND`]. `0/9`'s stone, born on 6868, is the blow 4273a's
+/// parting lands a frame late: its unled landing is ours, but it leaves
+/// two units nearer the Scout, 749.5 from it rather than 750.3, and at
+/// `proj_speed` 150 flies 4 frames where ours flew 5, so its lead is
+/// 4 × 31 short of ours (`docs/CLIENT_INPUT.md` §25). Seen red on
+/// `launch::MEASURED`'s planar rows: `0/8` from (3679, 31775), `0/9`
+/// from (3391, 32213) to (2702, 32740) in 5.
+const BUILDMASKED_ROUND: (i64, &[Round]) = (
+    6869,
+    &[
+        (
+            (0, 8),
+            Some((1, 0)),
+            0,
+            (3679, 31773, 684),
+            (2676, 32736, 623),
+            4,
+            8,
+            300,
+        ),
+        (
+            (0, 9),
+            Some((1, 0)),
+            1,
+            (3389, 32212, 686),
+            (2733, 32740, 633),
+            2,
+            4,
+            300,
+        ),
+    ],
+);
+
+/// **Our walk's ammo pool is the packet's** on [`BUILDMASKED_ROUND`]'s
+/// frame, the buildmasked script walked from the built start under the
+/// pump: both of the Slingers' stones, field for field.
+#[test]
+fn the_buildmasked_game_s_round_in_flight_is_the_packet_s() {
+    let Some(ours) = rounds_at(&crate::script::buildmasked(), BUILDMASKED_ROUND.0) else {
+        return;
+    };
+    eprintln!("BUILDMASKED ROUND ours {ours:?}");
+    assert_eq!(ours, BUILDMASKED_ROUND.1, "the packet's ammo pool");
+}
+
+/// Our walk's live rounds on `frame`, `script` walked from the built start
+/// under the pump; `None` without the install.
+fn rounds_at(script: &[Order], frame: i64) -> Option<Vec<Round>> {
+    let (_, mut built, _) = built_start()?;
+    let mut stream = crate::input::Stream::pump(&minted(script).unwrap());
+    tick_to(&mut built, Some(&mut stream), frame);
     let sim = &built.sim;
     let ours: Vec<Round> = sim
         .combat
@@ -3012,8 +3068,7 @@ fn the_rallied_game_s_round_in_flight_is_the_packet_s() {
             )
         })
         .collect();
-    eprintln!("RALLIED ROUND ours {ours:?}");
-    assert_eq!(ours, RALLIED_ROUND.1, "the packet's ammo pool");
+    Some(ours)
 }
 
 /// A take's dumped window, from its first `BEGIN FRAME` line to its end.
@@ -4949,18 +5004,20 @@ const OUTSIDE_6766: (i64, i64) = (3456, 30048);
 /// **The original's playback of the garrisoned file** (item 4273):
 /// `(take, trace, first sequence parting or the last frame, last frame,
 /// records compared, records parted)`. Pinned before run1613 was read with
-/// no record parted; the take parts 33 of 300, from 6871 on, the Scout
+/// no record parted; the take parted 33 of 300, from 6871 on, the Scout
 /// `1/0`'s `damage` (ours 13, theirs 16) and `damage_frame` (ours 6837,
-/// theirs 6870, `damage_o 7`, the Slinger `0/7`'s blow): a blow that lands
-/// in the original and not on our walk, downstream of the garrison
-/// (parked 4273a). The draws agree on every frame.
+/// theirs 6870): `0/9`'s stone of 6868, loosed from piece 384's planar
+/// row two units off the original's bay, flew 5 frames where it flies 4
+/// (4273a). Item 4277's bays make it whole: **0 of 300 parted**
+/// ([`BUILDMASKED_ROUND`], `docs/CLIENT_INPUT.md` §25). The draws agree
+/// on every frame.
 pub(crate) const GARRISONED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
     "gamelog-run1613-greatlakes-playback-of-garrisoned-7000.txt",
     "rontrace-run1613.log",
     7000,
     7000,
     300,
-    33,
+    0,
 )];
 
 /// **The original plays the garrisoned file in lockstep** (item 4273,
@@ -5184,19 +5241,19 @@ fn buildmasked_effects() -> Vec<BuildmaskEffect> {
 /// **The original's playback of the buildmasked file** (item 4276):
 /// `(take, trace, first sequence parting or the last frame, last frame,
 /// records compared, records parted)`. Pinned before run1614 was read
-/// with the garrisoned file's 33 parted; the take parts 127 of 300, from
+/// with the garrisoned file's 33 parted; the take parted 127 of 300, from
 /// 6871, every one on the Scout `1/0`'s `damage` and `damage_frame`
-/// alone: the Slinger `0/7`'s stone, loosed on 6863 on both sides, lands
-/// on 6870 in the original and 6871 on ours (4273a), and the blows after
-/// it drift (theirs 6900 and 6930, ours 6871 and 6920). The draws agree
-/// on every frame.
+/// alone: `0/9`'s stone of 6868 landed on 6870 in the original and 6871 on
+/// ours (4273a), and the blows after it drifted. Item 4277's bays for
+/// piece 384 make it whole: **0 of 300 parted** ([`BUILDMASKED_ROUND`],
+/// `docs/CLIENT_INPUT.md` §25). The draws agree on every frame.
 pub(crate) const BUILDMASKED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
     "gamelog-run1614-greatlakes-playback-of-buildmasked-7000.txt",
     "rontrace-run1614.log",
     7000,
     7000,
     300,
-    127,
+    0,
 )];
 
 /// **The original plays the buildmasked file in lockstep** (item 4276,
