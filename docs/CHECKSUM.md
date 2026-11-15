@@ -1316,7 +1316,11 @@ parted on 45 ranges and summed to 2626631255.
   only by this line. **A trackless crew figure after guy 0 in the walk
   takes its angle after guy 0's turn** (item 4260): each figure's head is
   its own, and guy 0's `turn_towards → Guy::do_turn@005d97a0` has already
-  written that crew figure's angle (`:37`). Before it, ours was the figure's own point: the five
+  written that crew figure's angle (`:37`). **`Unit::set_type`'s seating
+  writes `last` on the point** (item 4263): its `NORMAL` tail is
+  `Guy::set_new_location(guy i, x, y, 1)`, so a unit upgraded on a frame
+  it walked ends it with `last` on its point and its `last_angle` kept;
+  guy 0's call seats the crew with `set_angle(crew, angle, 1)`. Before it, ours was the figure's own point: the five
   moving figures parted — the scout `0/0` and its dog (5554 against
   5520, 5506 against 5472), the citizen `0/1` (4023, 28316 against 4008,
   28296), the British scout `1/0` and its dog (45082, 19586 against
@@ -2400,10 +2404,10 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
-| units | 11884 | 1006472543 | 183733389 | 0 |
+| units | 12537 | 450280345 | 1598867453 | 0 |
 | builds | whole, 24,000 | | | 0 |
 | groups | whole, 24,000 | | | 0 |
-| guys | 11884 | 3345695618 | 3215934128 | 0 |
+| guys | whole, 24,000 | | | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
 | cities | whole, 24,000 | | | 0 |
 | items | whole, 24,000 | | | 0 |
@@ -2553,15 +2557,13 @@ and the line whole; ours' state held the bit already, so the emitter is the whol
 move** (`PACKETS_SCORE` 422): the units triple moved on 70 packets, every one only in that slot and only in its parted
 count, which fell on each (run1266c, East Indies, 7581 → 7561, the most); none to whole or from it.
 
-**Item 4253 moved two.** Units 7273 → 8281, guys 7273 → 10541: a seated Scholar's `angle` and `last_angle` snap to 0
-(CITIES §6.5). Step P 425 → 433.
+**Item 4253 moved two** (units 7273 → 8281, guys → 10541; CITIES §6.5).
 
-**Item 4257 moved two.** Units 8281 → 10541, builds 8281 → 14312: the garrison chain appends at the bottom (CITIES
-§6). On 8281 (§25.4) building 2018 `inside_down` ours 42, theirs 30; record 30's −1, 42 → theirs. Step P 433 → 439.
+**Item 4257 moved two** (units 8281 → 10541, builds → 14312; CITIES §6).
 
-**Item 4260 moved two.** Units and guys 10541 → 11884: a trackless crew figure's head runs after guy 0's turn
-(§16). On 10541 (§25.4) the Caravan 1/14's guys 1, 2 `last_angle` ours 682461312, theirs 968792448 → theirs. Step P
-452 → 453.
+**Item 4260 moved two** (units and guys 10541 → 11884; a trackless crew figure's head, §16, §25.4).
+
+**Item 4263 moved two.** Units 11884 → 12537, guys → whole: a type change's seating writes `last` (§16, §25.4).
 
 **Item 4262 made builds whole on all 24,000.** `BuildData::wonder` (`+0x76`) is the entry `Wonders::init_wonder`
 returned to `Build::activate`'s wonder arm; ours wrote −1 always. On 14312 (§25.4) the Pyramids `1/2023` −1, 0 → 0.
@@ -2724,7 +2726,8 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 | 9810 | groups | 550, 550, 1 | 76 64 `id..march`: `role` 1379328 (0x150c00), 1379331 (0x150c03); whole since item 4258, and the line whole on all 24,000 |
 | 8281 | units | 1,909, 1,909, 2 | 842 30 `myhits..launch_frames`: `inside_down` −1, 42 (the University 1/2018's chain; builds 856 2018 `inside_down` 42, 30); whole since item 4257, both lines |
 | 10541 | units, guys | 2,549 and 776, 2 each | 570/571 and 160/161 14 guy: the Caravan 1/14's crew (guys 1, 2) `last_angle` 682461312, 968792448; whole since item 4260 |
-| 11884 | units, guys | 2,459 and 776, 3 each | 1570 and 463 56 guy: `last_x` 38275, 38297; `last_y` 21337, 21325 |
+| 11884 | units, guys | 2,459 and 776, 3 each | 1570 and 463 56 guy: the Hoplites 1/56..1/58 upgraded on a walking frame, `last_x` 38275, 38297; `last_y` 21337, 21325; whole since item 4263, guys on all 24,000 |
+| 12537 | units | 2,405, 2,396, 784 | 1539 62 `guys.length`: 1, 4 (record 62's crew; 14312's row too) |
 | 14312 | builds | 1,370, 1,370, 1 | 1258 2023 `gather_down..infiltrate2`: `wonder` −1, 0 (player 1's Pyramids, TI 0x20e); whole since item 4262, and the line whole on all 24,000 |
 
 On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Builds' 7383 row, record 2019's `mtn`

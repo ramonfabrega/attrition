@@ -466,7 +466,9 @@ pub struct Guy {
     /// or turns the figure (`docs/CHECKSUM.md` §16). Written at the head of
     /// [`Sim::process_movement_on`] for every figure the frame walks, and by
     /// an age's seating ([`Sim::age_snap_units`], `Guy::set_new_location(…,
-    /// 1)` writing the point, item 4238); read only by the units and guys
+    /// 1)` writing the point, item 4238) and by a type change's
+    /// (`Unit::set_type`'s `Guy::set_new_location(guy i, x, y, 1)`, item
+    /// 4263, in its adapter's `seat_guy`); read only by the units and guys
     /// lines. `None` until the first walk, which the line
     /// takes as the figure's own point and facing — `Unit::init`'s seating
     /// (`Guy::set_new_location(…, 1)`, `005d86f0:66`) writes `last` equal

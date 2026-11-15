@@ -8535,6 +8535,33 @@ fn a_set_type_to_its_own_type_reinitialises_its_guys() {
     assert_ne!(sim.rng.seed, before, "init_real's draw");
 }
 
+/// **A type change writes each figure's `last` on its point** (item 4263,
+/// `docs/CHECKSUM.md` §16): `Unit::set_type@00612fa0`'s `NORMAL` tail is
+/// `Guy::set_new_location(guy i, x, y, 1)`, whose `param_3` copies the point
+/// into `last_x`/`last_y` and leaves `last_angle`. run1597's Hoplites
+/// `1/56..1/58` walked on 11884 and took the Phalanx upgrade there, so
+/// theirs ended the frame with `last` on the point and ours one step behind.
+///
+/// Made to fail with the adapter's `last` write dropped.
+#[test]
+fn a_set_type_writes_each_figure_s_last_on_its_point() {
+    let (mut sim, [_, militia, _, foot], _) = untargeted_sim();
+    let d = sim.init_unit(0, foot, tile_pos(30, 30));
+    let pos = sim.units[d].pos;
+    let behind = crate::Pos::new(pos.x - 22, pos.y + 12);
+    let was = crate::movement::Angle::NORTH;
+    for g in &mut sim.units[d].guys {
+        g.last = Some((behind, was));
+    }
+    sim.unit_set_type(d, militia);
+    assert_eq!(sim.units[d].ty, Some(militia));
+    assert_eq!(
+        sim.units[d].guys[0].last,
+        Some((pos, was)),
+        "guy 0: the point, its own `last_angle` kept"
+    );
+}
+
 /// **A paid cast that dies before its craft hands the craft back; one
 /// that ran its course does not, and the cast clock restarts under any
 /// other order** (item 1302; run346's `1/98`: the army's `ATTACK_TO`
