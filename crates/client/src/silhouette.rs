@@ -1951,6 +1951,11 @@ mod tests {
                     },
                     if c != d { " COLOUR CROSSES" } else { "" },
                 );
+                let ([o, p], [yo, yp]) = (r.colours.rgb_means(), r.colours.luma_means());
+                println!(
+                    "    mean colour on {} held: ours ({:.0}, {:.0}, {:.0}) Y {yo:.1}, the photograph ({:.0}, {:.0}, {:.0}) Y {yp:.1}",
+                    r.colours.held, o[0], o[1], o[2], p[0], p[1], p[2]
+                );
                 for (at, a, b) in &r.sample {
                     println!(
                         "    pixel {at:?}: painter ({:.0}, {:.0}, {:.0}) still ({:.0}, {:.0}, {:.0})",
