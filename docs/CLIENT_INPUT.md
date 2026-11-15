@@ -2530,12 +2530,31 @@ stamp goes from 29 to 30. The client's events through the HUD write it byte for 
 
 ### 26.4 The playback, and the order's effect
 
-PLAYBACK
+**run1616** (`docs/RUNS.md`) is run1614's line with the came-out file. The receipt names the file's SHA-256. **Draws
+agree on 7,000 of 7,000 frames**, count and sequence, and **all 300 of the window's records are whole**
+(`CAME_OUT_WALKED`, pinned before the read with none parted). The walk compares `inside_up` on every unit of every
+record, so the Citizen is compared out of the capital on all 219 records from 6781 to 6999.
+
+**The order's effect.** The Citizen `0/2`'s record, read on both sides: position, `inside_up` and its orders by class,
+front first (`garrison_effects_theirs`, `came_out_effects`). Ours was pinned before the take was read and seen red
+pinned empty. Ours without the order is the buildmasked file's walk.
+
+| frame | the original | ours | ours without the order |
+| --- | --- | --- | --- |
+| 6780 | (3456, 30048), `inside_up 2000`, `gather` | the same | the same |
+| 6781 | (3432, 29880), outside, `gather` | the same | (3456, 30048), `inside_up 2000` |
+| 6782 | (3432, 29880), outside, `gather` | the same | (3456, 30048), `inside_up 2000` |
+| 6999 | (3576, 29688), outside, `gather` | the same | (3456, 30048), `inside_up 2000` |
+
+The Citizen comes out on the frame after the order, south-west of the capital's centre. It keeps its gather order:
+`come_out` closes what `close_orders` closes, and the gather survives it on both sides. By 6999 it is back at the
+farm `0/2007`, at the point it stood on before the garrison (§23.4's 6750 row).
 
 ### 26.5 Confidence, and what is not established
 
 - **One reading each**: the icon's arm, the issuer, `process_come_out` and `action_come_out`. The playback backs the
-  command's bytes and the Citizen's exit (§26.4).
+  command's bytes, `process_come_out`'s `uid` test on a live unit, and the Citizen's exit, its spot, its kept gather
+  order and its walk back (§26.4). The `uid` test's refusal is not reached by any take.
 - **The merchant arm** of `action_come_out` is not ported (parked 4280a, the journal).
 - **The panel's icons.** Which garrisoned units the original's building panel lays out, in what order, and whether a
   selection of several buildings shows them all, is read only as far as `Options::exec`'s arm.
