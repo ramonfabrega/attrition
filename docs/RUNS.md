@@ -37588,6 +37588,36 @@ SHA-256 `8bbca43896196d4097fd70e949b4f447b83bac57d6d88d05387123e6b899ffc8`.
 
 **What it holds**: the city-gathered game's window with the leaders' buckets on every frame; a city's gather played.
 
+## run1607 — the original playing the unqueued file with its repeated groups as no objects (2026-11-15, item 4267, `att-4267`)
+
+`docs/CLIENT_INPUT.md` §20.4. **What the disk could not answer**: whether the original plays a minted file whose
+`group`s that repeat the last one sent carry no objects, as `CommandPackage::add_group` writes them. The recordings'
+empty groups are all the original's own files. No minted file had carried one. The file:
+`~/ron-golden/recordings/item4267-repeated-greatlakes-24000.rcx`, 59,564 bytes, SHA-256
+`1efd3a672cccf3957d4a34c7daaed9196e1eae7fae709407562ae5f830d14b3c`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata the_repeated_minted_packages_round_trip`. It is run1606's file with the capital's groups on 6708, 6712 and
+6718 written as no objects.
+
+The take is run1606's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1607 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --timeout 1800 --stall-seconds 120`, waited on
+with `waitrun.sh` in the background. `df -g ~` read 195 GB free before it.
+- **The run**: pool lane 1, launched 08:31:35 −05:00, exited 08:40:06: **510.4 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault, no relaunch. The receipt names the file's SHA-256. Minutes waited on another
+  lane: none.
+- **The built walk under the pump on the file** (`REPEATED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence; 300 records compared (6700..6999), none parted.
+- **The orders' effect** (`unqueued_effects`): the capital's queue and the Citizen `0/10` on 6720, 6721 and 6999 are
+  run1606's and ours.
+- Filed with `filerun.py run1607 greatlakes-playback-of-repeated-7000`.
+
+Archive `gamelog-run1607-greatlakes-playback-of-repeated-7000.txt`, 67,852,152 bytes,
+SHA-256 `daac9a209c1f9ff38faaf2a46e1a82a4402c32594bac99b43b8d446f002cc297`; `rontrace-run1607.log`, 34,655,776 bytes,
+SHA-256 `3262b60e7ef6f32885b4cc0ee4f92885bccb0ba61e330bcb5b40c9a816c88d73`.
+
+**What it holds**: the unqueued game's window again, from a file whose repeated groups carry no objects.
+
 ## run1606 — the original playing the file a building's queue button minted (2026-11-15, item 4265, `att-4265`)
 
 `docs/CLIENT_INPUT.md` §19.3. **What the disk could not answer**: whether the original plays a minted `unqueue`, and

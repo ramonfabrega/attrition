@@ -1829,12 +1829,31 @@ groups put back in full, it is the file run1606 played. The client's events thro
 
 ### 20.4 The playback
 
-RUN1607_PENDING
+**run1607** (`docs/RUNS.md`) is run1606's line with the repeated file. The receipt names the file's SHA-256. Draws
+agree on 7,000 of 7,000 frames, count and sequence, and 300 records are compared whole, with none parted
+(`REPEATED_WALKED`, pinned before the take was read; `the_original_s_playback_of_the_repeated_file_walks_in_lockstep`).
+The window, 6700 to 6999, holds all three repeats.
+
+**Each order's effect, against the previous playback.** The capital's queue and the Citizen `0/10`, read off
+run1607's records, are run1606's under the full groups and our walk's (`unqueued_effects`):
+
+| frame | the capital's queue | the Citizen `0/10` | run1606 (full groups) |
+| --- | --- | --- | --- |
+| 6720 | [1200] | not on the map | the same |
+| 6721 | [] | not on the map | the same |
+| 6999 | [] | not on the map | the same |
+
+Each repeat's own effect is inside the 300 records. The gathered Citizen is queued on 6708, the rally point moves on
+6712 and the capital's gather list is rebuilt on 6718, each on the capital. Our walk is whole against run1606 and
+against run1607, so the two takes' windows are equal record for record. The gamelogs are the same length,
+67,852,152 bytes. **Made to fail:** the walked table and the effects were pinned before the read. A receiver that
+read an empty group as no selection would leave the Citizen unqueued and the rally point unmoved, which the capital's
+records in the window would show. No such take was made.
 
 ### 20.5 Confidence, and what is not established
 
 **Backed by the recordings and the playback.** The recordings' 7 empty groups mint whole once the layer keeps the
-sender's last group. RUN1607_BACKED
+sender's last group. run1607 plays the three repeats from our file in lockstep, with the window record for record run1606's.
 
 **Reading only**, one reader, no blind second reading:
 - that `init_class` is the statics' only other writer (one grep over the export: `add_group` and `init_class` alone
