@@ -96,12 +96,16 @@ pub(crate) fn check() -> Option<String> {
 pub(crate) const PINNED: &[(&str, usize)] = &[
     (
         "diff::coverage_pair::run1075_s_garrison_window_is_widened_whole",
-        33,
+        6,
     ),
     (
         "diff::harness::tests::run96_s_word_frame_is_widened_whole",
         5,
     ),
+    // Item 4159's sixth residue: run1075's walk 33 -> 6, the muster chase
+    // land-only (`find_muster_spot`'s `FILTER_DOMAIN, 0`): army 0 keeps
+    // `hurry` 0 on its 2300 tick, `1/70` takes `0/18` on 2346 as theirs,
+    // and the first gameplay parting moves 2346 -> 2554.
     // Item 4159's fifth residue: run1433b's and ch38's walks 1 -> 0, the rows
     // leave (the Lancaster's and the Flak Gun's launch rows).
     // Item 4159's fourth residue: run1075's walk 34 -> 33, the launch

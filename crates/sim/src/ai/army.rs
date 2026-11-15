@@ -2038,9 +2038,26 @@ impl Sim {
     /// gaia's animals are not in its space at all — and asking the diplomacy
     /// question about them is what panicked the first fuzzed seed.
     pub(crate) fn nearest_enemy_attacker(&self, who: Player, p: Pos, range: i32) -> Option<usize> {
+        self.nearest_enemy_attacker_in(who, p, range, None)
+    }
+
+    /// [`Self::nearest_enemy_attacker`] with `find_unit`'s second filter
+    /// `FILTER_DOMAIN, d` when `domain` is `Some(d)`:
+    /// `Search::valid_filter@0067dbb0`'s arm for it (`0067e06b`) is
+    /// `type +0x218 == d`, [`crate::Unit::kind`]'s domain.
+    pub(crate) fn nearest_enemy_attacker_in(
+        &self,
+        who: Player,
+        p: Pos,
+        range: i32,
+        domain: Option<crate::territory::attrition::Domain>,
+    ) -> Option<usize> {
         let mut best: Option<(i32, usize)> = None;
         for (i, u) in self.units.iter().enumerate() {
             if !u.alive() || !u.on_map || u.is_gaia() || !self.is_enemy(who, u.owner) {
+                continue;
+            }
+            if domain.is_some_and(|d| u.kind.domain != d) {
                 continue;
             }
             if self.attack_of(Obj::Unit(i)) == 0 {

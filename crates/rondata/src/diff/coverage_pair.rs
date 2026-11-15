@@ -2453,7 +2453,8 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // Item 4177: 9081 -> 9105, +24 firsts, the combat rates' own: who=0 `hits_current_frame` 2060 ours 1 theirs 0; who=1 `damage_current_frame` 2060 ours 1 theirs 0; who=0 `damage_current_frame` 2079 ours 1 theirs 0; who=1 `hits_current_frame` 2079 ours 1 theirs 0 (docs/LEADERS.md §3.5).
     // Item 4159's third residue: 9109 -> 7746, the staged Battleships' turrets born at rest; the window's first gameplay parting 2060 -> 2123 (parked 4159r3a).
     // Item 4159's fourth residue: 7746 -> 7792, the launch rows of pieces 1814, 1837, 1851 and 81; the block-2124 row leaves (`0/17` `damage` ours 6 frac 4 against 7 frac 9, who 0 `damage_current_frame` 16 against 17), the first blow apart is 2354 (`0/18` `hits_left` ours 174 theirs 173) and the first gameplay parting 2346 (`1/70`'s `dest_angle`); the later fight parts more keys.
-    pin_eq!(w.firsts.len(), 7792, "initial run1075 baseline");
+    // Item 4159's sixth residue: 7792 -> 3947, the muster chase land-only (`Army::find_muster_spot`'s two `find_unit`s carry `FILTER_DOMAIN, 0`). On the 2300 tick army 0 found who=0's staged ship `0/20` beside a damaged building of who=1's capital in ours alone and took `hurry` 1, muster (51, 59) against theirs' 0 and (45, 47) (the `ARMY` record on 2552); the hurry gate then kept `1/70` from looking on 2345. Now `1/70` takes `0/18` on 2346 as theirs (`dest_angle` 1522728960, `orders_x/y` (41931, 38098), the `ATTACKORDER` `defensive 1` with `def` (41928, 38088)); the first gameplay parting is 2554 (`1/84`'s and `1/111`'s orders), the combat leaves' first 2588 (who 0 `hits_current_frame` ours 36 theirs 35).
+    pin_eq!(w.firsts.len(), 3947, "initial run1075 baseline");
 }
 
 /// `Ammo::init+0xcd9` (`0x67c8c9`): the first of a round's two landing
