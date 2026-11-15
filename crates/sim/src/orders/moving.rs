@@ -725,6 +725,36 @@ impl Sim {
     // The move order — `Unit::do_move`
     // ------------------------------------------------------------------
 
+    /// `do_move`'s planning half for an unplanned move (`5f83f0`–`5f84a9`):
+    /// the goal (pushed by the caller) goes to `find_wpath`, and on a
+    /// failure to `find_tpath`. **A failed planner leaves the goal on top**
+    /// (item 4159): after each of them returns below 1 the goal is pushed
+    /// again unless the top already is it — the same `to`, `flags == 1`,
+    /// `tolerance == 0` — so a stale final under it (an old order's) is
+    /// never the walk's waypoint. run1075's `1/84` on 2553 (run1608's packet
+    /// under `step4`): `find_wpath` −1 pops the chase goal off the
+    /// `ATTACK_TO`'s final (43042, 44265), the goal goes back on,
+    /// `find_tpath` returns 0 and leaves it, and `find_path` then refuses
+    /// the line to it. The planners are arguments so a test can stand in
+    /// for them.
+    pub(crate) fn plan_unpathed(
+        &mut self,
+        u: usize,
+        goal: PathData,
+        wpath: fn(&mut Self, usize) -> i32,
+        tpath: fn(&mut Self, usize) -> i32,
+    ) {
+        let on_top = |s: &Self| s.units[u].path.last().is_some_and(|t| *t == goal);
+        if wpath(self, u) < 1 {
+            if !on_top(self) {
+                self.units[u].path.push(goal);
+            }
+            if tpath(self, u) < 1 && !on_top(self) {
+                self.units[u].path.push(goal);
+            }
+        }
+    }
+
     /// `Unit::do_move` (§4.4) on open ground: the planning half, the
     /// waypoint take with both arrival tests, the straight-line check, the
     /// step.
@@ -1223,16 +1253,7 @@ impl Sim {
                 flags: path_flag::FINAL,
             };
             self.units[u].path.push(goal);
-            let r = self.find_wpath(u);
-            if r < 1 {
-                if self.units[u].path.is_empty() {
-                    self.units[u].path.push(goal);
-                }
-                let r2 = self.find_tpath(u);
-                if r2 < 1 && self.units[u].path.is_empty() {
-                    self.units[u].path.push(goal);
-                }
-            }
+            self.plan_unpathed(u, goal, Self::find_wpath, Self::find_tpath);
             flags |= flag::PATHED;
             self.store_move(u, mo, flags);
             if self.units[u].path.len() > 10 {
