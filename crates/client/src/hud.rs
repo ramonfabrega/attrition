@@ -308,6 +308,46 @@ pub fn city_menu(input: &Input, scene: &Scene, size: (i32, i32)) -> Vec<CityButt
         .collect()
 }
 
+/// One of a building's queue buttons (item 4265, `docs/CLIENT_INPUT.md`
+/// §19): the queue slot it stands for and where it stands.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct QueueButton {
+    pub slot: i32,
+    pub rect: Rect,
+}
+
+impl QueueButton {
+    /// Its label: the slot, counted from one as a person reads a queue.
+    pub fn label(&self) -> String {
+        format!("CANCEL {}", self.slot + 1)
+    }
+}
+
+/// **The queue's row**: with one finished building of the slot's own the
+/// selection, a button per live entry of its production queue
+/// (`IFaceSelected::on_button_clicked@00826e00`'s `OPTION_QUEUE`, by
+/// slot), in queue order; otherwise none. One row above the bottom edge,
+/// so the city's row keeps its place. Where it stands, and its labels,
+/// are ours.
+pub fn queue_menu(input: &Input, scene: &Scene, size: (i32, i32)) -> Vec<QueueButton> {
+    if !input.building {
+        return Vec::new();
+    }
+    let n = crate::input::queue_panel(scene, input.player, &input.selection) as i32;
+    let (w, h) = MARKET_BUTTON;
+    (0..n)
+        .map(|k| QueueButton {
+            slot: k,
+            rect: Rect {
+                x: size.0 - (n - k) * (w + MARGIN),
+                y: size.1 - 2 * (MARGIN + h),
+                w,
+                h,
+            },
+        })
+        .collect()
+}
+
 /// One of a unit's craft buttons (item 4264, `docs/CLIENT_INPUT.md` §18):
 /// the craft's row and where it stands.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -386,6 +426,12 @@ pub fn event(
                     .into_iter()
                     .find(|b| b.rect.contains(x, y))
                     .map(|b| Event::Spell(b.t))
+            })
+            .or_else(|| {
+                queue_menu(input, view.scene, size)
+                    .into_iter()
+                    .find(|b| b.rect.contains(x, y))
+                    .map(|b| Event::Unqueue(b.slot))
             }),
         _ => None,
     };
@@ -793,6 +839,13 @@ pub fn paint(
         p.text(r.x + 3 * SCALE, ty, b.label(), SCALE, overlay::INK);
     }
     for b in spell_menu(input, scene, size) {
+        let r = b.rect;
+        p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
+        p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
+        let ty = r.y + (r.h - 7 * SCALE) / 2;
+        p.text(r.x + 3 * SCALE, ty, &b.label(), SCALE, overlay::INK);
+    }
+    for b in queue_menu(input, scene, size) {
         let r = b.rect;
         p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
         p.rect(r.x, r.y, r.w, SCALE, overlay::INK);

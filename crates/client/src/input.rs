@@ -104,6 +104,7 @@ pub const MINTS: &[&str] = &[
     "buy",
     "city_gather",
     "spell",
+    "unqueue",
 ];
 
 /// **The entry line's text limit**, in UTF-16 units: `ChatBox::exec
@@ -179,6 +180,13 @@ pub enum Event {
     /// §18). An untargeted craft issues at once; a targeted one waits for
     /// the next left press, the pick. The HUD's alone.
     Spell(i32),
+    /// A press on one of a building's queue buttons, by the slot it
+    /// stands for (`OPTION_QUEUE`, `IFaceSelected::on_button_clicked
+    /// @00826e00`'s `Options::exec(OPTION_QUEUE, slot)`, whose 0xa6 arm
+    /// calls `BuildOut::issue_unqueue@00629e70` per finished building of
+    /// the selection; item 4265, `docs/CLIENT_INPUT.md` §19). The HUD's
+    /// alone.
+    Unqueue(i32),
 }
 
 /// `spell(type, ox, whom, x, y)`, as `CommandManager::issue_spell@00941b80`
@@ -211,6 +219,52 @@ pub fn city_panel(scene: &Scene, player: u8, selection: &[ObjId]) -> bool {
         .buildings
         .iter()
         .any(|b| b.id == *id && b.owner == player && b.city)
+}
+
+/// **The queue the selection's panel shows** (item 4265,
+/// `docs/CLIENT_INPUT.md` §19): one building of `player`'s own, finished,
+/// and the live entries of its production queue (`BuildData::queued`), one
+/// queue button each; 0 for anything else. Ours: the panel's other rows
+/// and a selection of several buildings are not drawn.
+pub fn queue_panel(scene: &Scene, player: u8, selection: &[ObjId]) -> usize {
+    let [id] = selection else {
+        return 0;
+    };
+    scene
+        .buildings
+        .iter()
+        .find(|b| b.id == *id && b.owner == player && b.active)
+        .map_or(0, |b| b.queued)
+}
+
+/// **What a queue button issues** (item 4265): `Options::exec@007188c0`'s
+/// `OPTION_QUEUE` arm walks the selection and, for each finished building
+/// (`ObjectData::is_active_build`), calls `BuildOut::issue_unqueue
+/// @00629e70(slot)`: `unqueue(who, o, slot, uid)`, with no `group`. The
+/// layer asks that every member be a building of `player`'s in the scene
+/// (`Group::can_activate` is not read); an unfinished one issues nothing,
+/// and a selection with no finished building nothing at all.
+pub fn unqueues(scene: &Scene, player: u8, selection: &[ObjId], slot: i32) -> Option<Vec<Command>> {
+    let of = |id: &ObjId| scene.buildings.iter().find(|b| b.id == *id);
+    if selection.is_empty()
+        || !selection
+            .iter()
+            .all(|id| of(id).is_some_and(|b| b.owner == player))
+    {
+        return None;
+    }
+    let cmds: Vec<Command> = selection
+        .iter()
+        .filter_map(of)
+        .filter(|b| b.active)
+        .map(|b| Command::Unqueue {
+            who: i32::from(b.owner),
+            o: i32::from(b.id.o),
+            unit: slot,
+            uid: b.uid as i16,
+        })
+        .collect();
+    (!cmds.is_empty()).then_some(cmds)
 }
 
 /// **Whether a city's gather button issues** (item 4261): the gate of
@@ -913,6 +967,15 @@ impl Input {
                 }
                 let cmd = Command::CityGather { t, queued: 2 };
                 Some((frame, play, vec![self.group(), cmd]))
+            }
+            Event::Unqueue(slot) => {
+                // `OPTION_QUEUE`: one `unqueue` per finished building of
+                // the selection, in a package with no group.
+                if !self.building {
+                    return None;
+                }
+                let cmds = unqueues(view.scene, self.player, &self.selection, slot)?;
+                Some((frame, play, cmds))
             }
             Event::Spell(t) => {
                 // `do_spell`: a selection that can act, holding a caster of
@@ -2706,6 +2769,260 @@ pub(crate) mod tests {
         "ron-golden/recordings/item4261-city-gathered-greatlakes-24000.rcx";
     const CITY_GATHERED_RCX_BYTES: usize = 59_546;
 
+    /// **The cancel's button** (item 4265, `docs/CLIENT_INPUT.md` §19): on
+    /// [`script::UNQUEUE_FRAME`] the capital's queue row at [`HUD_SIZE`]
+    /// holds one button, CANCEL 1, here.
+    const UNQUEUE_AT: (i32, i32) = (1822, 1010);
+
+    /// The city-gathered events and the cancel's one: the capital is still
+    /// selected from the gather, so a press on its first queue button.
+    fn unqueue_events() -> Vec<Scripted> {
+        let mut e = city_gather_events();
+        let (x, y) = UNQUEUE_AT;
+        e.push((script::UNQUEUE_FRAME, None, Event::Press { x, y }));
+        e
+    }
+
+    /// **`INPUT_UNQUEUED`** (item 4265, `docs/CLIENT_INPUT.md` §19): the
+    /// city-gathered events and the cancel's press, through the HUD and the
+    /// layer under the opening camera, mint [`script::unqueued`] field for
+    /// field, of 22.
+    const INPUT_UNQUEUED: usize = 22;
+
+    /// **The unqueued count**: stage 0 on the cancel's frame — the capital
+    /// is slot 0's, finished, with one entry in its queue (the gathered
+    /// script's Citizen) and `uid` 0, and its queue row holds one button
+    /// where the event presses it; then the events mint the unqueued
+    /// script, and the file written from them is the unqueued file.
+    #[test]
+    fn minted_unqueued_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let gathered = script::city_gathered();
+        let mut next = 0;
+        while r.frame() < i64::from(script::UNQUEUE_FRAME) {
+            let f = r.frame() as i32;
+            while next < gathered.len() && gathered[next].0 == f {
+                r.issue(&gathered[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let scene = r.scene(Some(0));
+            let id = ObjId {
+                who: 0,
+                o: script::CAPITAL,
+            };
+            let b = scene.buildings.iter().find(|b| b.id == id).unwrap();
+            let mut input = Input::new(0);
+            input.selection = vec![id];
+            input.building = true;
+            let row: Vec<(String, (i32, i32))> = crate::hud::queue_menu(&input, &scene, HUD_SIZE)
+                .iter()
+                .map(|b| (b.label(), b.rect.centre()))
+                .collect();
+            println!(
+                "UNQUEUE STAGE0 f{} active {} queued {} uid {} row {row:?}",
+                r.frame(),
+                b.active,
+                b.queued,
+                b.uid
+            );
+            assert!(b.active);
+            assert_eq!((b.queued, b.uid), (1, 0));
+            assert_eq!(row, vec![("CANCEL 1".to_string(), UNQUEUE_AT)]);
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with(unqueue_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let unqueued = script::unqueued();
+        let whole = ours.iter().zip(&unqueued).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (unqueued.len(), INPUT_UNQUEUED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, unqueued);
+        drop(r);
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(gathered_file), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(CITY_GATHERED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(UNQUEUED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {CITY_GATHERED_RCX} or {UNQUEUED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), UNQUEUED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the unqueued orders");
+        assert!(written != gathered_file, "not the city-gathered file");
+    }
+
+    /// The unqueued file (`docs/CLIENT_INPUT.md` §19), written by rondata's
+    /// `the_unqueued_minted_packages_round_trip` under `RON_RCX_OUT`.
+    const UNQUEUED_RCX: &str = "ron-golden/recordings/item4265-unqueued-greatlakes-24000.rcx";
+    const UNQUEUED_RCX_BYTES: usize = 59_559;
+
+    /// A finished building of `who`'s with `queued` entries and `uid`,
+    /// every other field the lobby's own building's.
+    fn queue_building(who: u8, o: i16, queued: usize, uid: u16) -> sim::observe::BuildingScene {
+        let Ok(r) = lobby() else {
+            panic!("the queue's edges need the lobby for a building record");
+        };
+        let mut b = r.scene(None).buildings[0];
+        b.id = ObjId { who, o };
+        b.owner = who;
+        (b.active, b.queued, b.uid) = (true, queued, uid);
+        b
+    }
+
+    /// **`INPUT_UNQUEUES`** (item 4265): of the cancels the recordings on
+    /// disk carry, those a press on the building's queue button for the
+    /// recorded slot mints field for field, the package's orders whole,
+    /// with the building it names selected, of all of them. Every one is
+    /// the 2017 sample's, slot 3's, with no `group`, as the arm writes it.
+    /// Seen red pinned (0, 13).
+    const INPUT_UNQUEUES: (usize, usize) = (13, 13);
+
+    /// **Every recorded cancel a queue button issues** (item 4265): each
+    /// recorded `unqueue`'s building selected, with the recorded `uid` and
+    /// a queue long enough for its slot, then its queue button pressed.
+    #[test]
+    fn minted_unqueues_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let Some(&Command::Unqueue { who, o, unit, uid }) =
+                    kept.iter().find(|c| matches!(c, Command::Unqueue { .. }))
+                else {
+                    continue;
+                };
+                all += 1;
+                let (who, o) = (who as u8, o as i16);
+                let scene = Scene {
+                    buildings: vec![queue_building(who, o, unit as usize + 1, uid as u16)],
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who);
+                input.selection = vec![ObjId { who, o }];
+                input.building = true;
+                let got = input.event(p.frame, Event::Unqueue(unit), &v);
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                } else {
+                    println!("UNQUEUE PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("UNQUEUES {whole} of {all}");
+        assert_eq!((whole, all), INPUT_UNQUEUES);
+    }
+
+    /// **The queue's buttons without a walk** (item 4265): a row only for
+    /// one finished building of the slot's own, a button per live entry;
+    /// one `unqueue` per finished building of a selection; nothing for
+    /// another slot's building, a unit selection or an unfinished building.
+    #[test]
+    fn minted_unqueue_button_edges() {
+        if lobby().is_err() {
+            println!("skipping: no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let mint = |scene: &Scene, ids: &[i16], building: bool, slot: i32| {
+            let v = view(&c, scene, &terrain);
+            let mut input = Input::new(0);
+            input.selection = ids.iter().map(|&o| ObjId { who: 0, o }).collect();
+            input.building = building;
+            input.event(7, Event::Unqueue(slot), &v).map(|o| o.2)
+        };
+        let scene = |bs: Vec<sim::observe::BuildingScene>| Scene {
+            buildings: bs,
+            ..Scene::default()
+        };
+        let row = |s: &Scene, ids: &[i16]| {
+            let mut input = Input::new(0);
+            input.selection = ids.iter().map(|&o| ObjId { who: 0, o }).collect();
+            input.building = true;
+            crate::hud::queue_menu(&input, s, HUD_SIZE)
+                .iter()
+                .map(|b| b.slot)
+                .collect::<Vec<_>>()
+        };
+        let three = scene(vec![queue_building(0, 2000, 3, 0)]);
+        assert_eq!(row(&three, &[2000]), vec![0, 1, 2]);
+        assert_eq!(
+            row(&scene(vec![queue_building(0, 2000, 0, 0)]), &[2000]),
+            Vec::<i32>::new()
+        );
+        let cancel = |o: i32, slot: i32, uid: i16| Command::Unqueue {
+            who: 0,
+            o,
+            unit: slot,
+            uid,
+        };
+        assert_eq!(
+            mint(&three, &[2000], true, 2),
+            Some(vec![cancel(2000, 2, 0)])
+        );
+        // Through the HUD: a press on the second button is slot 1.
+        {
+            let v = view(&c, &three, &terrain);
+            let mut input = Input::new(0);
+            input.selection = vec![ObjId { who: 0, o: 2000 }];
+            input.building = true;
+            let (x, y) = crate::hud::queue_menu(&input, &three, HUD_SIZE)[1]
+                .rect
+                .centre();
+            let got = crate::hud::event(&mut input, HUD_SIZE, 7, Event::Press { x, y }, &v);
+            assert_eq!(got.map(|o| o.2), Some(vec![cancel(2000, 1, 0)]));
+        }
+        // Two buildings: one cancel each, in the selection's order; an
+        // unfinished one issues nothing, and alone nothing at all.
+        let mut site = queue_building(0, 2008, 1, 15);
+        site.active = false;
+        let two = scene(vec![
+            queue_building(0, 2000, 1, 0),
+            queue_building(0, 2006, 1, 6),
+            site,
+        ]);
+        assert_eq!(
+            mint(&two, &[2006, 2000, 2008], true, 0),
+            Some(vec![cancel(2006, 0, 6), cancel(2000, 0, 0)])
+        );
+        assert_eq!(mint(&two, &[2008], true, 0), None);
+        assert_eq!(row(&two, &[2008]), Vec::<i32>::new());
+        assert_eq!(row(&two, &[2000, 2006]), Vec::<i32>::new());
+        // Another slot's building, a unit selection, an empty scene.
+        let theirs = scene(vec![queue_building(1, 2000, 1, 0)]);
+        assert_eq!(mint(&theirs, &[2000], true, 0), None);
+        assert_eq!(mint(&three, &[2000], false, 0), None);
+        assert_eq!(mint(&Scene::default(), &[2000], true, 0), None);
+    }
+
     /// A city centre of `who`'s that trains and is a `VILLAGE`, every other
     /// field the lobby's own building's.
     fn city_building(who: u8, o: i16) -> sim::observe::BuildingScene {
@@ -3562,14 +3879,13 @@ pub(crate) mod tests {
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (15, 26);
+    const INPUT_KINDS: (usize, usize) = (16, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2323, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2336, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
         "leader_options",
-        "unqueue",
         "rename_city",
         "hotkey",
         "garrison",
