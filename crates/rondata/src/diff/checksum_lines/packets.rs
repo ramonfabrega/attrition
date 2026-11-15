@@ -890,6 +890,11 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
         3294,
         "run1559b's take with `early_autumn`'s tint zeroed (item 4272): a renderer's \
          packet beside its photograph; no word walks it",
+    ),    (
+        "run1608",
+        2553,
+        "run1075's line with a packet at 2553 (item 4159's eighth residue): read by \
+         step4 for the chase's re-pushed goal; no word walks it",
     ),
 ];
 
@@ -907,7 +912,8 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] =
 // Item 4159, step VII-b2: run1575's packet held by its take, (…, 1, 1).
 // Item 4256: run1603's packet at 6860 named, not held, (110, …, 2).
 // Item 4272: run1612's packet at 3294 named, not held, (111, …, 3).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (111, 87, 7, 12, 1, 1, 3);
+// Item 4159's eighth residue: run1608's packet at 2553 named, not held, (112, …, 4).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (112, 87, 7, 12, 1, 1, 4);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.

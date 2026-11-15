@@ -37760,3 +37760,20 @@ gamelog at 3295. SHA-256 `48e89db8eba3dfa30d0a181a0c9750946e8c999861459a4ddb192a
 +167.5), a mean absolute grey difference of 8.7 over the mountain's window). The mountain's grey pixels (44,488)
 move (−9.9, −12.5, +2.3), Y 147.9 → 137.9; the crest and the left slope move the same. So the tint reaches the card.
 The packet was taken and not read: the photograph answered the question.
+
+## run1608 — run1075's line with a packet at logger frame 2553 (2026-11-15, item 4159's eighth residue, in-session builder)
+
+`docs/LEADERS.md` §3.6; `docs/journal/2026-11-15-item-4159-residue-8.md`. **What the disk could not answer**: why the
+original pays one grid draw at `Unit::do_move+0xe84` on the Attack Submarine `1/84`'s re-entered chase on frame 2553 and
+the crate did not (parked 4159r7a); no packet of run1075 near 2553 was on disk. The take is run1075's line (`--map 18
+--ai-tribe 23`, the three profile keys, `disband3455-navy.cmd` cut at 2553, `--log-window 2550 2556 --end-frame 2556`,
+`RON_STATE_FRAME=2553`, `RON_STATE_PLAN`).
+- **Take 1**: success, no packet: the tracer's receipt was status 2, the payload past the 1 GiB cap.
+- **Take 2**, `--tracer-def FS_CAP=0xc0000000u` (`FS_CAP` made overridable in `tools/explore/live_frame_snapshot.h`; a cap
+  failure now reports status 12): pool lane 1, 39.3 s launch to exit; `~/ron-golden/run1608/map-18/frame-snapshot.bin`,
+  1,114,973,408 bytes, 229 ranges, validated by `frame_snapshot.py`. Blocks 2553 and 2554 equal run1075's but for the
+  network metrics and one interface event string.
+- **What it answered**: after `find_wpath` fails and pops the chase goal, the original pushes the goal again because the top
+  is not the goal; the crate re-pushed only on an empty stack and walked the stale `ATTACK_TO` final. `find_attack_pos`'s
+  spot agrees. Not filed into the dump archive with `filerun.py`: the packet is the product.
+
