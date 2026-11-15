@@ -897,6 +897,19 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
         "run1075's line with a packet at 2553 (item 4159's eighth residue): read by \
          step4 for the chase's re-pushed goal; no word walks it",
     ),
+    (
+        "run1615",
+        6865,
+        "the buildmasked file's playback, take 1 (item 4277): its ammo pool empty, as \
+         ours; no word walks it",
+    ),
+    (
+        "run1615b",
+        6869,
+        "the buildmasked file's playback, take 2 (item 4277): its ammo pool is held by \
+         `minted::the_buildmasked_game_s_round_in_flight_is_the_packet_s`, piece 384's \
+         bays swept on it; no word walks it",
+    ),
 ];
 
 /// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
@@ -914,7 +927,8 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] =
 // Item 4256: run1603's packet at 6860 named, not held, (110, …, 2).
 // Item 4272: run1612's packet at 3294 named, not held, (111, …, 3).
 // Item 4159's eighth residue: run1608's packet at 2553 named, not held, (112, …, 4).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (112, 87, 7, 12, 1, 1, 4);
+// Item 4277: run1615's at 6865 and run1615b's at 6869 named, not held, (114, …, 6).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (114, 87, 7, 12, 1, 1, 6);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.

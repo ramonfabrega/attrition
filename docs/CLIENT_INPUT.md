@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -2218,8 +2218,9 @@ sites were checked. The playback backs the command's bytes and the Citizen's ent
   walk compares the Citizen's `inside_up` on every record.
 - **The right press** with the profile's `0x200` set (§6) is not minted.
 - **The Slinger's blow on 6870** (§23.4): run1613 parts 33 of 300 records from 6871 on, on the Scout `1/0`'s damage.
-  ~~Where it begins is not read (4273a).~~ The stone leaves on 6863 on both sides and lands a frame later on ours
-  (§24.5, item 4276). Its flight time is not read.
+  ~~Where it begins is not read (4273a).~~ ~~The stone leaves on 6863 on both sides and lands a frame later on ours
+  (§24.5, item 4276). Its flight time is not read.~~ Settled by §25 (item 4277): the stone is `0/9`'s of 6868, loosed
+  from piece 384's planar row two units off the original's bay; run1613 is whole, 300 of 300.
 
 **Ours, not the original's:**
 
@@ -2329,9 +2330,12 @@ items 877, 2443 and 3200. The playback backs the command's bytes, the bit and th
 - **The key** bound to `OPTION_INFINITE` (`keymap_strings[0xc1]`) is not minted.
 - **The airbase's repeat**, `Options::set_air_repeat`'s `buildmask(0x80, 1)`, is not minted. No recording carries
   it.
-- **The Slinger's stone on 6863** (4273a): the garrisoned and buildmasked playbacks part on it. The stone leaves on
+- ~~**The Slinger's stone on 6863** (4273a): the garrisoned and buildmasked playbacks part on it. The stone leaves on
   6863 on both sides: the Slinger `0/7`'s `recharging` reaches 0 there, and every compared field agrees. It hits the
-  Scout `1/0` on 6870 in the original and on 6871 on ours, a flight of 7 frames against 8.
+  Scout `1/0` on 6870 in the original and on 6871 on ours, a flight of 7 frames against 8.~~ **Settled by §25** (item
+  4277): `damage_o 7` names the group's captain, not the shooter. The stone is `0/9`'s, loosed on 6868, and it flies
+  4 frames in the original and 5 here, because piece 384's planar row put its launch two units off. Both playbacks
+  are whole, 300 of 300. The sub-bullets below are this line's old reading, kept as written:
   - Ruled out: the units' cell-chain words (`up`, `down`, `down_who`, `up_who`), which the walk does not compare.
     Ours equal the take's on every unit of every record from 6700 to 6872.
   - Why the hot-keyed game does not part: its Scout takes other blows. There the original's Slinger reads `up -1`
@@ -2343,3 +2347,89 @@ items 877, 2443 and 3200. The playback backs the command's bytes, the bit and th
 
 - Where the INFINITE button stands, its label, and when it shows.
 - The script queues a Citizen before the button, so that a member takes the bit.
+
+## 25. The garrisoned file's blow: the Slingers' bays (item 4277)
+
+*Item 4277, 2026-11-15. The score: `GARRISONED_WALKED` (run1613) **33 → 0** of 300 records parted, and
+`BUILDMASKED_WALKED` (run1614) **127 → 0**. Both playbacks are now whole: draws on 7,000 of 7,000 frames and 300 of
+300 records. Two packets named the round (run1615, run1615b). The original's own `get_position`, swept on the second
+packet, replaced piece 384's three planar release rows with bays. **This item touches `crates/sim`**
+(`data::launch`).*
+
+### 25.1 Which stone it was
+
+4273a read the parting as the Slinger `0/7`'s stone, from `damage_o 7` on the Scout `1/0`. But `damage_o` is the
+captain of the striking group (`do_damage` step 2, `combat::fight::delivery`), not the shooter. Our walk's ammo pool,
+printed frame by frame over 6840..6935 on the buildmasked script, holds no `0/7` round between 6852 and 6922. Two
+rounds are aimed at `1/0` around the parting:
+
+- **`0/9`'s**, born on 6868 from `CHAR_ATTACK2` frame 22, 5 frames. It lands first: `damage` 13 → 16 on 6872,
+  `damage_frame` 6871.
+- **`0/8`'s**, born on 6866 from `CHAR_ATTACK2` frame 22, 8 frames. It lands next: 16 → 19 on 6873.
+
+In run1614's dump, `1/0` reads 16 from 6871 (`damage_frame` 6870) and 19 from 6873. So only the first stone, `0/9`'s,
+lands a frame early in the original.
+
+### 25.2 The packets
+
+Both takes are run1614's line with a packet (`docs/RUNS.md`, run1615 and run1615b).
+
+- **Take 1**, at 6865: the original's pool is empty, and so is ours. Ours is empty from 6852 to 6865. The brief named
+  6862, which is earlier still. A round is in memory only while it flies, so the packet has to be taken during the
+  flight.
+- **Take 2**, at 6869 (`tools/recomp/ammo.py`): two live slots.
+
+| round | the original | ours, before |
+| --- | --- | --- |
+| slot 0, `0/8` → `1/0` | (3679, **31773**, 684) → (2676, 32736, 623), 4 of 8 | (3679, **31775**, 684) → the same, 4 of 8 |
+| slot 1, `0/9` → `1/0` | (**3389, 32212**, 686) → (**2733**, 32740, 633), 2 of **4** | (3391, 32213, 686) → (2702, 32740, 633), 2 of 5 |
+
+**Why two units cost a frame.** `Ammo::init` times the flight on the straight line to the unled landing, then pushes
+the landing along the moving target's heading by its `avg_speed` times that time (`lead_landing`). The unled landing
+is the same on both sides, x 2857:
+
+- ours is 2702 + 5 × 31;
+- theirs is 2733 + 4 × 31.
+
+From (3391, 32213) to (2857, 32740) is 750.26; from (3389, 32212), 749.54. Ours truncates to 5 and theirs to 4, and
+`proj_speed` 150 is the only integer `d` that does both (749.54 / 5 < d ≤ 750.26 / 5). The lead then scales with the
+time: 155 against 124.
+
+### 25.3 The bays
+
+`get_position.py … entries 384` reads three `AttachPos` rows off run1615b: node 0 at frame 21 of `CHAR_ATTACK1`, 22
+of `CHAR_ATTACK2` and 16 of `CHAR_ATTACK3`, `RData +0x88` 1.0. A `sweep` of each at every whole degree, then
+`fit_bay.py`, admits one `launch::Bay` lattice region per row, matching all 361 headings:
+
+| row | lattice points | bay (centroid): right, fwd, dz |
+| --- | --- | --- |
+| `CHAR_ATTACK1` 21 | 1,696 | 69,764, 67,823, 178 |
+| `CHAR_ATTACK2` 22 | 273 | 41,238, 117,982, 151 |
+| `CHAR_ATTACK3` 16 | 592 | −42,142, 113,256, 177 |
+
+Each bay's height is the planar row's. The planar rows came from chapter two's stones (`docs/COMBAT.md` §22) and
+run1603's one stone (§15.1). They leave `launch::MEASURED`, and the bays enter `BAYS`. The sweeps sit outside git,
+under `~/ron-data/lab-experiments/2026-11-15-item-4277/sweeps/`.
+
+**The value diff** (our walk on the buildmasked script, against run1615b and run1614):
+
+- On 6869, `0/9`'s round: launch (3391, 32213) → (3389, 32212); landing x 2702 → 2733; `total_time` 5 → 4.
+  `0/8`'s launch y 31775 → 31773. The packet's, field for field (`the_buildmasked_game_s_round_in_flight_is_the_packet_s`,
+  seen red on the planar rows).
+- On 6871, `1/0`'s `damage`: ours 13 → 16, theirs 16; `damage_frame` ours 6837 → 6870, theirs 6870.
+- `BUILDMASKED_WALKED` 127 → 0; `GARRISONED_WALKED` 33 → 0. Draws on 7,000 of 7,000 frames on both.
+- run1603's round (§15.1) is unchanged, field for field (`the_rallied_game_s_round_in_flight_is_the_packet_s`).
+
+### 25.4 Confidence, and what is not established
+
+**Backed by a diff:** run1615b's two rounds; run1613's and run1614's 300 records each, whole. Every heading of
+piece 384's three rows, against the original's `get_position` (`the_original_s_release_agrees_at_every_heading_for_piece_384`,
+with `RON_BAY_SWEEPS_384`; seen red with `fwd` 117,982 → 117,000: 324 headings disagree).
+
+**Not established:**
+
+- The bay is the centroid of its lattice region. Every point of the region reproduces all 361 whole-degree headings.
+  Between them the original's float path and the bay's truncation are not compared, and neither is a heading off a
+  whole degree, because `whole_degrees` rounds the facing first.
+- Other games' Slinger stones move with the bays wherever the planar rows stood off them. The booking gate's corpus
+  says whether any floor moved. This lane ran the five widening families and `minted::` (§25's journal).
