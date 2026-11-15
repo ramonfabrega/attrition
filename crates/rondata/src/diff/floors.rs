@@ -506,7 +506,8 @@ pub const STRUCTURE: [(&str, u64); 6] = [
     ("sweep-lines", 17_286),
     ("names", 15),
     ("fields", 21),
-    ("largest", 3_709),
+    // Item 4159r12: 3,709 -> 3,715, the CEO step test.
+    ("largest", 3_715),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before

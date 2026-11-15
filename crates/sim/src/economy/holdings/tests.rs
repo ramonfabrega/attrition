@@ -214,7 +214,11 @@ fn the_ceo_s_step_across_a_city_s_edge_marks_the_economy_dirty() {
     sim.units[h].on_map = true;
     let out = tile_pos(60, 60);
     assert_eq!(sim.find_city_at(0, tile_pos(33, 33), None), Some(c));
-    assert_eq!(sim.find_city_at(0, out, None), None, "the far tile is in no city");
+    assert_eq!(
+        sim.find_city_at(0, out, None),
+        None,
+        "the far tile is in no city"
+    );
 
     sim.economy.ledgers[0].dirty = false;
     sim.set_new_location(h, tile_pos(34, 33), false);

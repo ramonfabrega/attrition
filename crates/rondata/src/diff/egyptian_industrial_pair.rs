@@ -264,7 +264,8 @@ fn egyptian_industrial_pair_run1374b_s_word_frame_is_widened_whole() {
     // who=1's `bucket[2:wealth]` one low on 4943 (3700a's family), and
     // groups 65, 83 and 84's `held` and pools as each is minted.
     // Item 4159's residue: 120 -> 119, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 119, "run1374b baseline");
+    // Item 4159's twelfth residue: 119 -> 115, the CEO's tile step marks the economy dirty.
+    pin_eq!(w.firsts.len(), 115, "run1374b baseline");
     pin_eq!(w.rounds_read, (46, 46), "the rounds read");
     // Every round, both directions: 46 round-blocks ours, 54 theirs; 13
     // rows part, the first `1/54`'s launch on 4940 (`total_time` 6 against
@@ -341,7 +342,8 @@ fn egyptian_industrial_pair_run1384_s_closing_frame_is_widened_whole() {
     // eighteen units as each is built, and groups 69 and 83 minted (5488,
     // 5516). No unit position, order, building or city row parts.
     // Item 4159's residue: 129 -> 128, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 128, "run1384 baseline");
+    // Item 4159's twelfth residue: 128 -> 124, the CEO's tile step marks the economy dirty.
+    pin_eq!(w.firsts.len(), 124, "run1384 baseline");
     // Every round, both directions: 122 a side, 19 parting — the
     // Artillery's (TY 269) seven launches from `1/81`, `1/89` and `1/91`
     // at their figures' squares, 136 low (5441..5621; 3683b's unfitted
