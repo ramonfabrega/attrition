@@ -553,6 +553,52 @@ pub const PAUSE_FRAME: i32 = 6712;
 /// names at the opening camera (stage 0).
 pub const PAUSE_GATHER_AT: Pos = Pos { x: 4655, y: 31075 };
 
+/// **The marketed script** (item 4259, `docs/CLIENT_INPUT.md` §16): the
+/// paused script and two packages more, each from slot 0's Market
+/// [`MARKET_OBJECT`]'s panel: on [`SELL_FRAME`] a hundred of
+/// [`SELL_GOOD`] sold, `sell(0, food, 0)`; on [`BUY_FRAME`] a hundred of
+/// [`BUY_GOOD`] bought, `buy(0, timber, 0)`. Each package carries its order
+/// alone and no `group`, as `CommandManager::issue_sell@00942a80` and
+/// `issue_buy` write it and as every recorded sale and purchase carries
+/// it. Slot 0 is the Nubians, whose power opens the market without
+/// Coinage. The client's `minted_marketed_at_the_opening_camera` mints
+/// these field for field.
+pub fn marketed() -> Vec<Order> {
+    let mut orders = paused();
+    orders.extend([
+        (
+            SELL_FRAME,
+            0,
+            vec![Command::Sell {
+                who: 0,
+                good: SELL_GOOD,
+                flags: 0,
+            }],
+        ),
+        (
+            BUY_FRAME,
+            0,
+            vec![Command::Buy {
+                who: 0,
+                good: BUY_GOOD,
+                flags: 0,
+            }],
+        ),
+    ]);
+    orders
+}
+
+/// Slot 0's Market, `0/2006` (`TypeIndex` 436), finished before the window.
+pub const MARKET_OBJECT: i16 = 2006;
+/// The frame of the sale, two after [`PAUSE_FRAME`].
+pub const SELL_FRAME: i32 = 6714;
+/// The good sold: food.
+pub const SELL_GOOD: i32 = 0;
+/// The frame of the purchase, two after [`SELL_FRAME`].
+pub const BUY_FRAME: i32 = 6716;
+/// The good bought: timber.
+pub const BUY_GOOD: i32 = 1;
+
 /// slot 0's Library, `0/2005` (`TypeIndex` 435).
 pub const LIBRARY_OBJECT: i16 = 2005;
 /// The Art of War's `TypeIndex`: `BASE_TECHTYPES` (0x220) plus its record,

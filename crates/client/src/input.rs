@@ -100,6 +100,8 @@ pub const MINTS: &[&str] = &[
     "gather_point",
     "chat",
     "pause",
+    "sell",
+    "buy",
 ];
 
 /// **The entry line's text limit**, in UTF-16 units: `ChatBox::exec
@@ -157,6 +159,46 @@ pub enum Event {
     /// `TurnControl::issue_toggle_pause@00956b40`; item 4252,
     /// `docs/CLIENT_INPUT.md` §13).
     Pause,
+    /// A press on the market's sell button for a good (`OPTION_SELL`,
+    /// `Options::exec@007188c0`'s `LeaderOut::issue_sell@006d3eb0`; item
+    /// 4259, `docs/CLIENT_INPUT.md` §16). The HUD's alone: no key sends it.
+    Sell(usize),
+    /// A press on the market's buy button for a good (`OPTION_BUY`,
+    /// `LeaderOut::issue_buy@006d3ef0`).
+    Buy(usize),
+}
+
+/// **The market the selection is** (item 4259, `docs/CLIENT_INPUT.md`
+/// §16): one building of `player`'s own, a finished market, whose panel
+/// `BuildOut::make_options@00629ed0` fills; the leader's offer per good,
+/// `(buy, sell)` where it has a button ([`sim::observe::LeaderScene::market`]).
+pub fn market(scene: &Scene, player: u8, selection: &[ObjId]) -> Option<[Option<(i32, i32)>; 6]> {
+    let [id] = selection else {
+        return None;
+    };
+    let b = scene.buildings.iter().find(|b| b.id == *id)?;
+    if b.owner != player || !b.market || !b.active {
+        return None;
+    }
+    Some(scene.leaders.iter().find(|l| l.who == player)?.market)
+}
+
+/// Whether the market's button for `good` is live, as `make_options` adds
+/// it: a sale with a hundred of the good in the bucket, a purchase with
+/// the wealth for its price. A button the original adds disabled mints
+/// nothing here.
+pub fn trades(scene: &Scene, player: u8, selection: &[ObjId], good: usize, buy: bool) -> bool {
+    let Some((price, _)) = market(scene, player, selection).and_then(|m| *m.get(good)?) else {
+        return false;
+    };
+    let Some(l) = scene.leaders.iter().find(|l| l.who == player) else {
+        return false;
+    };
+    if buy {
+        l.bucket[sim::economy::Resource::Wealth as usize] >= price
+    } else {
+        l.bucket[good] >= 100
+    }
 }
 
 /// What the layer sees: the camera's matrix and screen as the draw takes
@@ -431,6 +473,11 @@ impl View<'_> {
         selection
             .iter()
             .any(|id| self.scene.buildings.iter().any(|b| b.id == *id && b.trains))
+    }
+
+    /// [`trades`] on the view's scene.
+    pub fn trades(&self, player: u8, selection: &[ObjId], good: usize, buy: bool) -> bool {
+        trades(self.scene, player, selection, good, buy)
     }
 
     /// Whether a right press at `(px, py)` names any object the viewer
@@ -755,6 +802,31 @@ impl Input {
                 let state = u8::from(!self.paused);
                 self.paused = !self.paused;
                 Some((frame, play, vec![Command::Pause { state }]))
+            }
+            Event::Sell(good) | Event::Buy(good) => {
+                // The market's options (item 4259): `issue_sell` and
+                // `issue_buy` write the console's leader, the good and
+                // the flags, 0 for the plain button, in a package of their
+                // own with no group.
+                let buy = matches!(ev, Event::Buy(_));
+                if !view.trades(self.player, &self.selection, good, buy) {
+                    return None;
+                }
+                let (who, good) = (play, good as i32);
+                let cmd = if buy {
+                    Command::Buy {
+                        who,
+                        good,
+                        flags: 0,
+                    }
+                } else {
+                    Command::Sell {
+                        who,
+                        good,
+                        flags: 0,
+                    }
+                };
+                Some((frame, play, vec![cmd]))
             }
             Event::Key(k) if self.line.is_some() => {
                 let line = self.line.as_mut().unwrap();
@@ -2273,6 +2345,290 @@ pub(crate) mod tests {
     const PAUSED_RCX: &str = "ron-golden/recordings/item4252-paused-greatlakes-24000.rcx";
     const PAUSED_RCX_BYTES: usize = 59_515;
 
+    /// The window the market's buttons are pinned at (`crate::hud`'s
+    /// tests' size).
+    const HUD_SIZE: (i32, i32) = (1920, 1080);
+
+    /// **Stage 0 of the marketed script** (item 4259): on
+    /// [`script::SELL_FRAME`] slot 0's Market [`script::MARKET_OBJECT`]'s
+    /// anchor pixel at the opening camera.
+    const MARKET_PIXEL: (i32, i32) = (1248, 389);
+    /// The market's sell-food and buy-timber buttons at [`HUD_SIZE`], with
+    /// two goods offered (food and timber, the Ancient age's).
+    const SELL_FOOD_AT: (i32, i32) = (1258, 1054);
+    const BUY_TIMBER_AT: (i32, i32) = (1822, 1054);
+
+    /// The paused events and the market's three: a press on the Market,
+    /// then its sell button for food; two frames on, its buy button for
+    /// timber.
+    fn market_events() -> Vec<Scripted> {
+        let mut e = pause_events();
+        let press = |(x, y): (i32, i32)| Event::Press { x, y };
+        e.extend([
+            (script::SELL_FRAME, None, press(MARKET_PIXEL)),
+            (script::SELL_FRAME, None, press(SELL_FOOD_AT)),
+            (script::BUY_FRAME, None, press(BUY_TIMBER_AT)),
+        ]);
+        e
+    }
+
+    /// **`INPUT_MARKETED`** (item 4259, `docs/CLIENT_INPUT.md` §16): the
+    /// paused events and the market's three, through the HUD and the layer
+    /// under the opening camera, mint [`script::marketed`] field for
+    /// field, of 20.
+    const INPUT_MARKETED: usize = 20;
+
+    /// **The marketed count**: stage 0 on the sale's frame — the Market is
+    /// slot 0's, finished, and its row offers food and timber with both
+    /// buttons live where the events press them; then the events mint the
+    /// marketed script, and the file written from them is the marketed
+    /// file.
+    #[test]
+    fn minted_marketed_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let paused = script::paused();
+        let c = camera(None);
+        let mut next = 0;
+        while r.frame() < i64::from(script::SELL_FRAME) {
+            let f = r.frame() as i32;
+            while next < paused.len() && paused[next].0 == f {
+                r.issue(&paused[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+            let v = view(&c, &scene, &terrain);
+            let id = ObjId {
+                who: 0,
+                o: script::MARKET_OBJECT,
+            };
+            let anchor = v.anchors(0).find(|(a, ..)| *a == id).map(|(_, _, p)| p);
+            let mut input = Input::new(0);
+            input.selection = vec![id];
+            input.building = true;
+            let row: Vec<(String, bool, (i32, i32))> =
+                crate::hud::market_menu(&input, &scene, HUD_SIZE)
+                    .iter()
+                    .map(|b| (b.label(), b.live, b.rect.centre()))
+                    .collect();
+            println!("MARKET STAGE0 f{} anchor {anchor:?} row {row:?}", r.frame());
+            assert_eq!(anchor, Some(MARKET_PIXEL), "the Market's pixel");
+            let at = |p: (i32, i32)| {
+                row.iter()
+                    .find(|(_, _, c)| *c == p)
+                    .map(|(l, live, _)| (l.clone(), *live))
+            };
+            assert_eq!(at(SELL_FOOD_AT), Some(("SELL FOOD 81".into(), true)));
+            assert_eq!(at(BUY_TIMBER_AT), Some(("BUY TIMBER 107".into(), true)));
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with(market_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let marketed = script::marketed();
+        let whole = ours.iter().zip(&marketed).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (marketed.len(), INPUT_MARKETED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, marketed);
+        drop(r);
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(paused_file), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(PAUSED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(MARKETED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {PAUSED_RCX} or {MARKETED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), MARKETED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the marketed orders");
+        assert!(written != paused_file, "not the paused file");
+    }
+
+    /// The marketed file (`docs/CLIENT_INPUT.md` §16), written by rondata's
+    /// `the_marketed_minted_packages_round_trip` under `RON_RCX_OUT`; the
+    /// file the original's playback takes open (run 1604).
+    const MARKETED_RCX: &str = "ron-golden/recordings/item4259-marketed-greatlakes-24000.rcx";
+    const MARKETED_RCX_BYTES: usize = 59_535;
+
+    /// A scene holding one market of `who`'s at `active`, and its leader
+    /// with `market` offered and `bucket` in store.
+    fn market_scene(
+        who: u8,
+        active: bool,
+        market: [Option<(i32, i32)>; 6],
+        bucket: [i32; 6],
+    ) -> Scene {
+        let mut b = market_building();
+        b.id = ObjId { who, o: 2006 };
+        b.owner = who;
+        b.active = active;
+        Scene {
+            leaders: vec![sim::observe::LeaderScene {
+                who,
+                tribe: 4,
+                nation: String::new(),
+                ages: 0,
+                bucket,
+                income: [0; 6],
+                over_cap: [false; 6],
+                control: 0,
+                pop_cap: 0,
+                market,
+            }],
+            buildings: vec![b],
+            ..Scene::default()
+        }
+    }
+
+    /// A finished market, every other field the lobby's own building's.
+    fn market_building() -> sim::observe::BuildingScene {
+        let Ok(r) = lobby() else {
+            panic!("the market's edges need the lobby for a building record");
+        };
+        let mut b = r.scene(None).buildings[0];
+        b.market = true;
+        b.active = true;
+        b
+    }
+
+    /// **`INPUT_TRADED`** (item 4259): every sale and purchase the
+    /// recordings on disk carry, pressed from its leader's market panel,
+    /// mints the recorded order field for field, of 46.
+    const INPUT_TRADED: (usize, usize) = (46, 46);
+
+    #[test]
+    fn minted_trades_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for it in rondata::input::input(&rec) {
+                let (who, good, buy) = match it.cmd {
+                    Command::Sell { who, good, .. } => (who, good, false),
+                    Command::Buy { who, good, .. } => (who, good, true),
+                    _ => continue,
+                };
+                all += 1;
+                let mut offer = [None; 6];
+                offer[good as usize] = Some((100, 80));
+                let scene = market_scene(who as u8, true, offer, [1000; 6]);
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who as u8);
+                input.selection = vec![ObjId {
+                    who: who as u8,
+                    o: 2006,
+                }];
+                input.building = true;
+                let ev = if buy {
+                    Event::Buy(good as usize)
+                } else {
+                    Event::Sell(good as usize)
+                };
+                let got = input.event(it.frame, ev, &v);
+                if got.as_ref().map(|o| &o.2) == Some(&vec![it.cmd.clone()]) {
+                    whole += 1;
+                } else if all - whole <= 3 {
+                    println!("TRADE PARTS {it:?}: {got:?}");
+                }
+            }
+        }
+        println!("TRADED {whole} of {all}");
+        assert_eq!((whole, all), INPUT_TRADED);
+    }
+
+    /// **The market's buttons without a walk** (item 4259): a row only for
+    /// the slot's own finished market, a button only for a good offered, a
+    /// sale only with a hundred in store and a purchase only with the
+    /// price; a dead button mints nothing; nothing a key sends.
+    #[test]
+    fn minted_market_button_edges() {
+        if lobby().is_err() {
+            println!("skipping: no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let offer = [Some((106, 81)), Some((107, 82)), None, None, None, None];
+        let mint = |scene: &Scene, ev: Event| {
+            let v = view(&c, scene, &terrain);
+            let mut input = Input::new(0);
+            input.selection = vec![ObjId { who: 0, o: 2006 }];
+            input.building = true;
+            input.event(6714, ev, &v)
+        };
+        let rich = market_scene(0, true, offer, [721, 425, 249, 0, 0, 0]);
+        assert_eq!(
+            mint(&rich, Event::Sell(0)),
+            Some((
+                6714,
+                0,
+                vec![Command::Sell {
+                    who: 0,
+                    good: 0,
+                    flags: 0
+                }]
+            ))
+        );
+        assert_eq!(
+            mint(&rich, Event::Buy(1)),
+            Some((
+                6714,
+                0,
+                vec![Command::Buy {
+                    who: 0,
+                    good: 1,
+                    flags: 0
+                }]
+            ))
+        );
+        assert_eq!(mint(&rich, Event::Sell(4)), None, "metal is not offered");
+        assert_eq!(mint(&rich, Event::Buy(2)), None, "wealth has no button");
+        let poor = market_scene(0, true, offer, [99, 425, 106, 0, 0, 0]);
+        assert_eq!(mint(&poor, Event::Sell(0)), None, "under a hundred");
+        assert_eq!(mint(&poor, Event::Buy(1)), None, "under the price");
+        assert!(mint(&poor, Event::Buy(0)).is_some(), "at the price");
+        let unfinished = market_scene(0, false, offer, [721; 6]);
+        assert_eq!(mint(&unfinished, Event::Sell(0)), None, "unfinished");
+        let theirs = market_scene(1, true, offer, [721; 6]);
+        assert_eq!(mint(&theirs, Event::Sell(0)), None, "another slot's market");
+        let mut input = Input::new(0);
+        input.selection = vec![ObjId { who: 0, o: 2006 }];
+        input.building = true;
+        let row = crate::hud::market_menu(&input, &poor, HUD_SIZE);
+        let shown: Vec<(String, bool)> = row.iter().map(|b| (b.label(), b.live)).collect();
+        assert_eq!(
+            shown,
+            [
+                ("SELL FOOD 81".to_string(), false),
+                ("BUY FOOD 106".to_string(), true),
+                ("SELL TIMBER 82".to_string(), true),
+                ("BUY TIMBER 107".to_string(), false),
+            ]
+        );
+        assert_eq!(row.last().unwrap().rect.centre(), BUY_TIMBER_AT);
+        assert_eq!(row[0].rect.centre(), SELL_FOOD_AT);
+        assert!(crate::hud::market_menu(&Input::new(0), &poor, HUD_SIZE).is_empty());
+    }
+
     /// **The pause key without a walk** (item 4252): a first press mints
     /// `pause(1)` alone and the pause stands; a press while it stands mints
     /// `pause(0)` on the same frame and lifts it. With nothing selected and
@@ -2381,6 +2737,7 @@ pub(crate) mod tests {
             over_cap: [false; 6],
             control: 0,
             pop_cap: 0,
+            market: [None; 6],
         };
         let terrain = TerrainScene::default();
         let c = crate::pinned_camera();
@@ -2614,16 +2971,14 @@ pub(crate) mod tests {
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (11, 26);
+    const INPUT_KINDS: (usize, usize) = (13, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2240, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2286, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
         "leader_options",
-        "sell",
         "city_gather",
-        "buy",
         "spell",
         "unqueue",
         "rename_city",

@@ -195,8 +195,77 @@ pub fn route(input: &Input, size: (i32, i32), ev: Event) -> Event {
     }
 }
 
+/// The size of one of the market's buttons: narrower than the menu's, so
+/// four goods' eight fit beside it at 1920.
+pub const MARKET_BUTTON: (i32, i32) = (180, 36);
+
+/// One of the market's buttons (item 4259, `docs/CLIENT_INPUT.md` §16):
+/// the good, whether it buys, the price it shows, whether it is live
+/// ([`crate::input::trades`]) and where it stands.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MarketButton {
+    pub good: usize,
+    pub buy: bool,
+    pub price: i32,
+    pub live: bool,
+    pub rect: Rect,
+}
+
+impl MarketButton {
+    /// The event a press on it sends.
+    pub fn event(&self) -> Event {
+        if self.buy {
+            Event::Buy(self.good)
+        } else {
+            Event::Sell(self.good)
+        }
+    }
+
+    /// Its label: the verb, the good, the price.
+    pub fn label(&self) -> String {
+        let verb = if self.buy { "BUY" } else { "SELL" };
+        format!("{verb} {} {}", GOODS[self.good], self.price)
+    }
+}
+
+/// **The market's row**: with the slot's own finished market the
+/// selection, a sell and a buy button for each good its panel offers
+/// (`BuildOut::make_options@00629ed0`'s `OPTION_SELL`, `OPTION_BUY`), in
+/// the goods' order; otherwise none. One row along the bottom edge,
+/// anchored to the right corner. Where it stands is ours.
+pub fn market_menu(input: &Input, scene: &Scene, size: (i32, i32)) -> Vec<MarketButton> {
+    let Some(offer) = crate::input::market(scene, input.player, &input.selection) else {
+        return Vec::new();
+    };
+    let rows: Vec<(usize, bool, i32)> = offer
+        .iter()
+        .enumerate()
+        .filter_map(|(g, o)| o.map(|(buy, sell)| [(g, false, sell), (g, true, buy)]))
+        .flatten()
+        .collect();
+    let (w, h) = MARKET_BUTTON;
+    let n = rows.len() as i32;
+    rows.into_iter()
+        .enumerate()
+        .map(|(k, (good, buy, price))| MarketButton {
+            good,
+            buy,
+            price,
+            live: crate::input::trades(scene, input.player, &input.selection, good, buy),
+            rect: Rect {
+                x: size.0 - (n - k as i32) * (w + MARGIN),
+                y: size.1 - MARGIN - h,
+                w,
+                h,
+            },
+        })
+        .collect()
+}
+
 /// One event through the HUD and then the layer: the window's own path
-/// (`App::input`), and the one the tests mint through.
+/// (`App::input`), and the one the tests mint through. A press on one of
+/// the market's buttons is that button's event; anything else goes
+/// through [`route`].
 pub fn event(
     input: &mut Input,
     size: (i32, i32),
@@ -204,7 +273,14 @@ pub fn event(
     ev: Event,
     view: &View,
 ) -> Option<Order> {
-    let ev = route(input, size, ev);
+    let market = match ev {
+        Event::Press { x, y } => market_menu(input, view.scene, size)
+            .into_iter()
+            .find(|b| b.rect.contains(x, y))
+            .map(|b| b.event()),
+        _ => None,
+    };
+    let ev = market.unwrap_or_else(|| route(input, size, ev));
     input.event(frame, ev, view)
 }
 
@@ -587,6 +663,18 @@ pub fn paint(
             SCALE,
             overlay::INK,
         );
+    }
+    for b in market_menu(input, scene, size) {
+        let r = b.rect;
+        p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
+        let ink = if b.live {
+            overlay::INK
+        } else {
+            [0.45, 0.45, 0.45]
+        };
+        p.rect(r.x, r.y, r.w, SCALE, ink);
+        let ty = r.y + (r.h - 7 * SCALE) / 2;
+        p.text(r.x + 3 * SCALE, ty, &b.label(), SCALE, ink);
     }
     for b in menu(input, size) {
         let r = b.rect;
