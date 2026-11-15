@@ -237,7 +237,7 @@ impl Sim {
     }
 
     /// The building's 22 `BuildData` bytes ([`BUILD_FIELDS`]).
-    fn build_bytes(&self, b: usize) -> Vec<u8> {
+    pub(crate) fn build_bytes(&self, b: usize) -> Vec<u8> {
         let bd = &self.buildings[b];
         let mut v = vec![0u8; 0x86 - 0x70];
         let mut p = |at, w, x: i64| put(&mut v, 0x70, at, w, x);
@@ -265,7 +265,7 @@ impl Sim {
         };
         p(0x72, 2, city);
         p(0x74, 2, city_down);
-        p(0x76, 2, -1);
+        p(0x76, 2, self.build_wonder_slot(b));
         let u78 = self
             .cities
             .farm_order
@@ -287,6 +287,22 @@ impl Sim {
         p(0x84, 1, 0);
         p(0x85, 1, 0);
         v
+    }
+
+    /// `BuildData::wonder` (+0x76): the building's entry in its owner's
+    /// wonder list. `Build::init@00629740:53` writes −1, `Build::activate
+    /// @00623e20:1269` the slot `Wonders::init_wonder@0073c860` returns in
+    /// its wonder arm, and `Build::close@00628980:369` −1 again; no other
+    /// function writes the offset. The list is the census's `wonder_slots`
+    /// ([`Sim::note_wonders`]), so the word is the building's position there
+    /// (item 4262, `docs/CHECKSUM.md` §25.4).
+    pub(crate) fn build_wonder_slot(&self, b: usize) -> i64 {
+        let owner = self.buildings[b].owner as usize;
+        self.ai
+            .ai
+            .get(owner)
+            .and_then(|a| a.census.wonder_slots.iter().position(|&e| e == Some(b)))
+            .map_or(-1, |i| i as i64)
     }
 
     /// `BuildData::max_age` (+0x83): `Build::init` writes the owner's age

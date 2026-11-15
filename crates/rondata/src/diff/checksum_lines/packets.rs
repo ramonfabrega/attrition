@@ -1075,7 +1075,12 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **453** at item 4260, a trackless crew figure's `last_angle` read after
 /// guy 0's turn (`Guy::do_turn@005d97a0`): the guys line agrees on run1254c
 /// (2 → 0); no other row moved.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 453, 1053);
+/// **455** at item 4262, a wonder's `BuildData::wonder` its entry in its
+/// owner's wonder list (`Build::activate@00623e20`'s store of
+/// `Wonders::init_wonder@0073c860`): the builds line agrees on run1305b
+/// (2 → 0) and run1235b (1 → 0), and parts on fewer on 27 more, none on
+/// more: 63 ranges fewer over 29 rows, all in the builds slot.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 455, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1550,12 +1555,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6004, 5962, 4706) -> (6004, 5962, 4704).
     // Item 4244, a mine's `mtn`: builds (2267, 2266, 384) -> (2267, 2266, 383).
     // Item 4257, the garrison chain's order: builds (2267, 2266, 383) -> (2267, 2266, 382).
+    // Item 4262, a wonder's entry in its wonder list: builds (2267, 2266, 382) -> (2267, 2266, 381).
     (
         "run1165",
         3719,
         [
             (6004, 5962, 4704),
-            (2267, 2266, 382),
+            (2267, 2266, 381),
             (0, 0, 0),
             (287, 0, 287),
             (0, 0, 0),
@@ -1585,12 +1591,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6004, 5962, 4743) -> (6004, 5962, 4742).
     // Item 4244, a mine's `mtn`: builds (2247, 2246, 442) -> (2247, 2246, 441).
     // Item 4257, the garrison chain's order: builds (2247, 2246, 441) -> (2247, 2246, 440).
+    // Item 4262, a wonder's entry in its wonder list: builds (2247, 2246, 440) -> (2247, 2246, 439).
     (
         "run1166",
         3920,
         [
             (6004, 5962, 4742),
-            (2247, 2246, 440),
+            (2247, 2246, 439),
             (0, 0, 0),
             (0, 0, 0),
             (10, 0, 10),
@@ -1656,12 +1663,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6735, 6657, 5587) -> (6735, 6657, 5586).
     // Item 4244, a mine's `mtn`: builds (1911, 1911, 7) -> (1911, 1911, 5).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (640, 640, 5) -> (640, 640, 4).
+    // Item 4262, a wonder's entry in its wonder list: builds (1911, 1911, 5) -> (1911, 1911, 3).
     (
         "run1185",
         4582,
         [
             (6735, 6657, 5586),
-            (1911, 1911, 5),
+            (1911, 1911, 3),
             (0, 0, 0),
             (3, 0, 3),
             (4, 0, 4),
@@ -1720,12 +1728,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (10607, 10166, 9259) -> (10607, 10166, 9258).
     // Item 4244, a mine's `mtn`: builds (3412, 3412, 24) -> (3412, 3412, 16).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (700, 700, 9) -> (700, 700, 8).
+    // Item 4262, a wonder's entry in its wonder list: builds (3412, 3412, 16) -> (3412, 3412, 13).
     (
         "run1217",
         7728,
         [
             (10607, 10166, 9258),
-            (3412, 3412, 16),
+            (3412, 3412, 13),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -1822,12 +1831,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2735, 2735, 7) -> (2735, 2735, 0).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 1) -> (556, 556, 0).
     // Item 4257, the garrison chain's order: builds (4271, 4271, 25) -> (4271, 4271, 24).
+    // Item 4262, a wonder's entry in its wonder list: builds (4271, 4271, 24) -> (4271, 4271, 21).
     (
         "run1224b",
         9745,
         [
             (11740, 10933, 10438),
-            (4271, 4271, 24),
+            (4271, 4271, 21),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -1854,12 +1864,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (7490, 7367, 6354) -> (7490, 7376, 6438).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (7490, 7376, 6438) -> (7490, 7376, 6434).
     // Item 4244, a mine's `mtn`: builds (1733, 1733, 3) -> (1733, 1733, 1).
+    // Item 4262, a wonder's entry in its wonder list: builds (1733, 1733, 1) -> (1733, 1733, 0).
     (
         "run1235b",
         4127,
         [
             (7490, 7376, 6434),
-            (1733, 1733, 1),
+            (1733, 1733, 0),
             (0, 0, 0),
             (12, 0, 12),
             (4, 0, 4),
@@ -2060,12 +2071,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (2913, 2913, 5) -> (2913, 2913, 0).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 1) -> (556, 556, 0).
     // Item 4257, the garrison chain's order: builds (3789, 3789, 20) -> (3789, 3789, 19).
+    // Item 4262, a wonder's entry in its wonder list: builds (3789, 3789, 19) -> (3789, 3789, 16).
     (
         "run1263",
         8362,
         [
             (11229, 10431, 9894),
-            (3789, 3789, 19),
+            (3789, 3789, 16),
             (0, 0, 0),
             (9, 0, 9),
             (0, 0, 0),
@@ -2131,12 +2143,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: guys (3210, 3210, 21) -> (3210, 3210, 9).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (682, 682, 10) -> (682, 682, 8).
     // Item 4257, the garrison chain's order: builds (3796, 3796, 17) -> (3796, 3796, 14).
+    // Item 4262, a wonder's entry in its wonder list: builds (3796, 3796, 14) -> (3796, 3796, 11).
     (
         "run1266c",
         8700,
         [
             (11161, 11053, 7561),
-            (3796, 3796, 14),
+            (3796, 3796, 11),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
@@ -2164,12 +2177,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4744, 4402, 3711) -> (4744, 4420, 3685).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4744, 4420, 3685) -> (4744, 4420, 3684).
     // Item 4244, a mine's `mtn`: builds (1908, 1908, 6) -> (1908, 1908, 5).
+    // Item 4262, a wonder's entry in its wonder list: builds (1908, 1908, 5) -> (1908, 1908, 3).
     (
         "run1268",
         3347,
         [
             (4744, 4420, 3684),
-            (1908, 1908, 5),
+            (1908, 1908, 3),
             (0, 0, 0),
             (24, 0, 24),
             (4, 0, 4),
@@ -2198,12 +2212,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (9512, 9503, 7181) -> (9512, 9503, 7180).
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (9512, 9503, 7180) -> (9512, 9512, 120).
     // Item 4244, a mine's `mtn`: builds (1938, 1938, 6) -> (1938, 1938, 4).
+    // Item 4262, a wonder's entry in its wonder list: builds (1938, 1938, 4) -> (1938, 1938, 2).
     (
         "run1293",
         3606,
         [
             (9512, 9512, 120),
-            (1938, 1938, 4),
+            (1938, 1938, 2),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2234,12 +2249,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (2123, 2123, 18) -> (2123, 2123, 16).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (688, 688, 11) -> (688, 688, 10).
     // Item 4258, `Group::add`'s OR of its new member's role: groups (688, 688, 10) -> (688, 688, 9).
+    // Item 4262, a wonder's entry in its wonder list: builds (2123, 2123, 16) -> (2123, 2123, 14).
     (
         "run1294",
         4473,
         [
             (8216, 8189, 7044),
-            (2123, 2123, 16),
+            (2123, 2123, 14),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -2269,12 +2285,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (9905, 9866, 8616) -> (9905, 9866, 8613).
     // Item 4244, a mine's `mtn`: builds (2163, 2163, 22) -> (2163, 2163, 20).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (682, 682, 10) -> (682, 682, 9).
+    // Item 4262, a wonder's entry in its wonder list: builds (2163, 2163, 20) -> (2163, 2163, 17).
     (
         "run1296",
         4632,
         [
             (9905, 9866, 8613),
-            (2163, 2163, 20),
+            (2163, 2163, 17),
             (0, 0, 0),
             (0, 0, 0),
             (6, 0, 6),
@@ -2303,12 +2320,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (5488, 5425, 4035) -> (5488, 5431, 4036).
     // Item 4244, a mine's `mtn`: builds (2029, 2029, 7) -> (2029, 2029, 4).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (616, 616, 1) -> (616, 616, 0).
+    // Item 4262, a wonder's entry in its wonder list: builds (2029, 2029, 4) -> (2029, 2029, 2).
     (
         "run1304",
         3865,
         [
             (5488, 5431, 4036),
-            (2029, 2029, 4),
+            (2029, 2029, 2),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2336,12 +2354,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4968, 4644, 4065) -> (4968, 4662, 4059).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4968, 4662, 4059) -> (4968, 4662, 4058).
     // Item 4244, a mine's `mtn`: builds (1882, 1882, 3) -> (1882, 1882, 2).
+    // Item 4262, a wonder's entry in its wonder list: builds (1882, 1882, 2) -> (1882, 1882, 0).
     (
         "run1305b",
         4181,
         [
             (4968, 4662, 4058),
-            (1882, 1882, 2),
+            (1882, 1882, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2372,12 +2391,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (8490, 8448, 7112) -> (8490, 8448, 7106).
     // Item 4244, a mine's `mtn`: builds (2140, 2140, 13) -> (2140, 2140, 11).
     // Item 4258, `Group::add`'s OR of its new member's role: groups (652, 652, 5) -> (652, 652, 4).
+    // Item 4262, a wonder's entry in its wonder list: builds (2140, 2140, 11) -> (2140, 2140, 9).
     (
         "run1320b",
         5066,
         [
             (8490, 8448, 7106),
-            (2140, 2140, 11),
+            (2140, 2140, 9),
             (0, 0, 0),
             (9, 0, 9),
             (2, 0, 2),
@@ -2438,12 +2458,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (7276, 7186, 6191) -> (7276, 7198, 6066).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (7276, 7198, 6066) -> (7276, 7198, 6063).
     // Item 4244, a mine's `mtn`: builds (1918, 1918, 13) -> (1918, 1918, 11).
+    // Item 4262, a wonder's entry in its wonder list: builds (1918, 1918, 11) -> (1918, 1918, 9).
     (
         "run1324c",
         4904,
         [
             (7276, 7198, 6063),
-            (1918, 1918, 11),
+            (1918, 1918, 9),
             (0, 0, 0),
             (15, 0, 15),
             (2, 0, 2),
@@ -2473,12 +2494,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (10367, 10352, 6935) -> (10367, 10352, 6933).
     // Item 4244, a mine's `mtn`: builds (2521, 2521, 12) -> (2521, 2521, 10).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (10367, 10352, 6933) -> (10367, 10352, 6932); guys (2706, 2706, 14) -> (2706, 2706, 13).
+    // Item 4262, a wonder's entry in its wonder list: builds (2521, 2521, 10) -> (2521, 2521, 7).
     (
         "run1325c",
         5578,
         [
             (10367, 10352, 6932),
-            (2521, 2521, 10),
+            (2521, 2521, 7),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2509,12 +2531,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6268, 6256, 5147) -> (6268, 6256, 5145).
     // Item 4244, a mine's `mtn`: builds (2161, 2161, 8) -> (2161, 2161, 5).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (616, 616, 7) -> (616, 616, 4).
+    // Item 4262, a wonder's entry in its wonder list: builds (2161, 2161, 5) -> (2161, 2161, 3).
     (
         "run1326",
         4567,
         [
             (6268, 6256, 5145),
-            (2161, 2161, 5),
+            (2161, 2161, 3),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -2542,12 +2565,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (13393, 12523, 12044) -> (13393, 12535, 12068).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (13393, 12535, 12068) -> (13393, 12535, 12067).
     // Item 4244, a mine's `mtn`: builds (4230, 4230, 23) -> (4230, 4230, 19).
+    // Item 4262, a wonder's entry in its wonder list: builds (4230, 4230, 19) -> (4230, 4230, 16).
     (
         "run1327",
         10930,
         [
             (13393, 12535, 12067),
-            (4230, 4230, 19),
+            (4230, 4230, 16),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
@@ -2608,12 +2632,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4745, 4541, 3675) -> (4745, 4541, 3673).
     // Item 4244, a mine's `mtn`: builds (2237, 2237, 10) -> (2237, 2237, 9).
     // Item 4257, the garrison chain's order: builds (2237, 2237, 9) -> (2237, 2237, 6).
+    // Item 4262, a wonder's entry in its wonder list: builds (2237, 2237, 6) -> (2237, 2237, 5).
     (
         "run1351",
         4303,
         [
             (4745, 4541, 3673),
-            (2237, 2237, 6),
+            (2237, 2237, 5),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -2710,12 +2735,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (5707, 5431, 4576) -> (5707, 5434, 4597).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (5707, 5434, 4597) -> (5707, 5434, 4595).
     // Item 4244, a mine's `mtn`: builds (1977, 1977, 3) -> (1977, 1977, 2).
+    // Item 4262, a wonder's entry in its wonder list: builds (1977, 1977, 2) -> (1977, 1977, 1).
     (
         "run1357",
         3439,
         [
             (5707, 5434, 4595),
-            (1977, 1977, 2),
+            (1977, 1977, 1),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2744,12 +2770,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (2974, 2974, 33) -> (2974, 2974, 31).
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6464, 6137, 5632) -> (6464, 6137, 5631); guys (1584, 1584, 4) -> (1584, 1584, 3).
     // Item 4257, the garrison chain's order: builds (2974, 2974, 31) -> (2974, 2974, 29).
+    // Item 4262, a wonder's entry in its wonder list: builds (2974, 2974, 29) -> (2974, 2974, 25).
     (
         "run1359",
         5619,
         [
             (6464, 6137, 5631),
-            (2974, 2974, 29),
+            (2974, 2974, 25),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2780,12 +2807,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6408, 6102, 5553) -> (6408, 6102, 5552); guys (1598, 1598, 4) -> (1598, 1598, 3).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 4) -> (556, 556, 3).
     // Item 4257, the garrison chain's order: builds (2974, 2974, 31) -> (2974, 2974, 29).
+    // Item 4262, a wonder's entry in its wonder list: builds (2974, 2974, 29) -> (2974, 2974, 25).
     (
         "run1359b",
         5677,
         [
             (6408, 6102, 5552),
-            (2974, 2974, 29),
+            (2974, 2974, 25),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2816,12 +2844,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6407, 6101, 5554) -> (6407, 6101, 5553); guys (1598, 1598, 4) -> (1598, 1598, 3).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 4) -> (556, 556, 3).
     // Item 4257, the garrison chain's order: builds (2974, 2974, 31) -> (2974, 2974, 29).
+    // Item 4262, a wonder's entry in its wonder list: builds (2974, 2974, 29) -> (2974, 2974, 25).
     (
         "run1359c",
         5678,
         [
             (6407, 6101, 5553),
-            (2974, 2974, 29),
+            (2974, 2974, 25),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2851,12 +2880,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6810, 6393, 5700) -> (6810, 6393, 5699).
     // Item 4244, a mine's `mtn`: builds (2544, 2544, 25) -> (2544, 2544, 22).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 1) -> (556, 556, 0).
+    // Item 4262, a wonder's entry in its wonder list: builds (2544, 2544, 22) -> (2544, 2544, 19).
     (
         "run1361",
         4840,
         [
             (6810, 6393, 5699),
-            (2544, 2544, 22),
+            (2544, 2544, 19),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
@@ -2885,12 +2915,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (5194, 4942, 3888) -> (5194, 4942, 3883).
     // Item 4244, a mine's `mtn`: builds (2147, 2147, 5) -> (2147, 2147, 3).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 2) -> (556, 556, 1).
+    // Item 4262, a wonder's entry in its wonder list: builds (2147, 2147, 3) -> (2147, 2147, 2).
     (
         "run1381",
         3262,
         [
             (5194, 4942, 3883),
-            (2147, 2147, 3),
+            (2147, 2147, 2),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
@@ -3012,12 +3043,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (6512, 6377, 5438) -> (6512, 6386, 5212).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6512, 6386, 5212) -> (6512, 6386, 5209).
     // Item 4244, a mine's `mtn`: builds (1830, 1830, 15) -> (1830, 1830, 14).
+    // Item 4262, a wonder's entry in its wonder list: builds (1830, 1830, 14) -> (1830, 1830, 13).
     (
         "run1391",
         4174,
         [
             (6512, 6386, 5209),
-            (1830, 1830, 14),
+            (1830, 1830, 13),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3082,12 +3114,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (2321, 2321, 9) -> (2321, 2321, 8).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (544, 544, 1) -> (544, 544, 0).
     // Item 4257, the garrison chain's order: builds (2321, 2321, 8) -> (2321, 2321, 6).
+    // Item 4262, a wonder's entry in its wonder list: builds (2321, 2321, 6) -> (2321, 2321, 5).
     (
         "run1417",
         4016,
         [
             (4518, 4326, 3480),
-            (2321, 2321, 6),
+            (2321, 2321, 5),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3151,12 +3184,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (2515, 2513, 688) -> (2515, 2513, 687).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (544, 544, 1) -> (544, 544, 0).
     // Item 4257, the garrison chain's order: builds (2515, 2513, 687) -> (2515, 2513, 686).
+    // Item 4262, a wonder's entry in its wonder list: builds (2515, 2513, 686) -> (2515, 2513, 685).
     (
         "run1420",
         4586,
         [
             (5583, 5231, 4617),
-            (2515, 2513, 686),
+            (2515, 2513, 685),
             (0, 0, 0),
             (0, 0, 0),
             (8, 0, 8),
