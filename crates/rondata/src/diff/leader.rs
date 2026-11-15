@@ -665,10 +665,11 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // `num_buildings[r]`, `high_buildings`' named input (§20.2), the
     // finished buildings of each record: the same values the line emits.
     let mut counts = [0i64; HIGH_BUILDINGS];
-    for b in s
+    for (_, b) in s
         .buildings
         .iter()
-        .filter(|b| b.alive && b.active && b.owner == p)
+        .enumerate()
+        .filter(|&(i, b)| b.owner == p && s.leader_counts_building(i))
     {
         if let Some(r) = b.ty.filter(|&r| r < HIGH_BUILDINGS) {
             counts[r] += 1;
