@@ -1652,6 +1652,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: builds (2247, 2246, 441) -> (2247, 2246, 440).
     // Item 4262, a wonder's entry in its wonder list: builds (2247, 2246, 440) -> (2247, 2246, 439).
     // Item 4266, a guard order's walker: units (6004, 5962, 4742) -> (6004, 6001, 4403).
+    // Item 4159's twelfth residue, the CEO's tile step dirties the economy: leaders (271, 271, 7) -> (271, 271, 4).
     (
         "run1166",
         3920,
@@ -1663,7 +1664,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (10, 0, 10),
             (688, 688, 1),
             (1935, 1935, 2),
-            (271, 271, 7),
+            (271, 271, 4),
             (30, 30, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -4755,7 +4756,9 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1166",
-        "collected encrypt.bucket[0] encrypt.bucket[1] encrypt.leftover[0] escrow explored flags.leader_flags reg_unpack_merch resources_controlled",
+        // Item 4159's twelfth residue: `collected`, `encrypt.bucket[0]`, `[1]`, `encrypt.leftover[0]`
+        // and `escrow` agree, the CEO's tile step having dirtied the economy on theirs' frame.
+        "explored flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1169",

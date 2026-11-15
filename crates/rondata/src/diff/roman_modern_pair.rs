@@ -249,7 +249,8 @@ fn roman_modern_pair_run1444b_s_closing_frame_is_widened_whole() {
     // 13760 against 13759 and `leftover[0:food]` 5400 against 2200, parted
     // before any leader record the pair prints (parked 3771a). No draw
     // parts to 5234.
-    pin_eq!(w.firsts.len(), 127, "run1444b baseline");
+    // Item 4159's twelfth residue: 127 -> 124, the CEO's tile step marks the economy dirty.
+    pin_eq!(w.firsts.len(), 124, "run1444b baseline");
     pin_eq!(w.rounds_read, (63, 63), "the rounds read");
     // Every round, both directions: 63 against 63, none parting.
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
