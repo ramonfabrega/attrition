@@ -353,6 +353,7 @@ fn surf_mesh(k: usize, l: &crate::surf::mesh::FinalList, art: &SurfSlot) -> Opti
     let at = |f: &u16| *f as usize;
     Some(PatchMesh {
         piece: SURF_PIECE - k as i32,
+        maps: None,
         positions: l.faces.iter().map(|f| l.verts[at(f)]).collect(),
         uvs: l.faces.iter().map(|f| l.tex0[at(f)]).collect(),
         alpha_uvs: l.faces.iter().map(|f| l.tex1[at(f)]).collect(),
@@ -402,6 +403,8 @@ struct MountainDraw {
     alphas: Vec<Option<[std::sync::Arc<render::silhouette::Mips>; 2]>>,
     /// The snowcap underlay (item 4275, §3.10), where the tileset lays one.
     snowcap: Option<crate::snowcap::SnowcapArt>,
+    /// `mountain_mtrl` (item 4278), where it decodes.
+    mtrl: Option<std::sync::Arc<render::silhouette::Mips>>,
 }
 
 /// The key a mountain's stage 0 texture takes beside the base layer's
@@ -483,6 +486,19 @@ pub struct PatchMesh {
     /// Each corner's N·L (item 4217, §3.22), one a position; empty for a
     /// layer that keeps the flat N·L and a white vertex ([`LIGHT_FLAT`]).
     pub light: Vec<f32>,
+    /// A mountain's main layer's `_mtrl` maps (item 4278, §3.22): stage 2's
+    /// texture and each corner's normal and tangent.
+    pub maps: Option<MountainMaps>,
+}
+
+/// **A mountain's `_mtrl` maps** (item 4278; `docs/RENDERER.md` §3.22,
+/// "The mountain's `_mtrl` maps"): `TileSet::mountain_mtrl`, which
+/// `render_mountains` binds to stage 2 on the main pass alone, and each
+/// corner's normal and tangent (`generate_normals`, `generate_tangents`),
+/// one pair a position.
+pub struct MountainMaps {
+    pub mtrl: std::sync::Arc<render::silhouette::Mips>,
+    pub frame: Vec<[[f32; 3]; 2]>,
 }
 
 /// **The light a corner with none of its own carries** (item 4217): over
@@ -814,6 +830,7 @@ impl World {
             let mountains = crate::ground::MountainArt::load(install.root(), t)
                 .ok()
                 .map(|art| MountainDraw {
+                    mtrl: art.mtrl.clone().map(std::sync::Arc::new),
                     plain: std::sync::Arc::new(art.plain.clone()),
                     blend: std::sync::Arc::new(art.blend.clone()),
                     alphas: art
@@ -1236,6 +1253,7 @@ impl World {
                 let tex = crate::ground::floor_product(&g.flat[k].levels[0]);
                 PatchMesh {
                     piece: FLOOR_PIECE,
+                    maps: None,
                     positions: Vec::new(),
                     uvs: Vec::new(),
                     alpha_uvs: Vec::new(),
@@ -1268,6 +1286,7 @@ impl World {
                 if alpha.iter().any(|&a| a < 255) {
                     let m = fades.entry(k).or_insert_with(|| PatchMesh {
                         piece: -1 - k as i32,
+                        maps: None,
                         positions: Vec::new(),
                         uvs: Vec::new(),
                         alpha_uvs: Vec::new(),
@@ -1323,6 +1342,7 @@ impl World {
                         };
                         let m = patches.entry((k, a, layer)).or_insert_with(|| PatchMesh {
                             piece,
+                            maps: None,
                             positions: Vec::new(),
                             uvs: Vec::new(),
                             alpha_uvs: Vec::new(),
@@ -1351,6 +1371,7 @@ impl World {
             let coral_layer: Option<PatchMesh> = coral.as_ref().map(|c| {
                 let mut m = PatchMesh {
                     piece: CORAL_PIECE,
+                    maps: None,
                     positions: Vec::new(),
                     uvs: Vec::new(),
                     alpha_uvs: Vec::new(),
@@ -1390,6 +1411,7 @@ impl World {
             if !water.tris.is_empty() {
                 let mut m = PatchMesh {
                     piece: WATER_PIECE,
+                    maps: None,
                     positions: Vec::new(),
                     uvs: Vec::new(),
                     alpha_uvs: Vec::new(),
@@ -1415,10 +1437,10 @@ impl World {
                 let range = crate::ground::ground_mountain(&t, &md.art, &self.terrain.1);
                 // Item 4269 (§3.22): each corner's N·L off the range's own
                 // normal; empty, the flat N·L.
-                let range_normals = if self.mountain_light {
-                    range.normals()
+                let (range_normals, range_tangents) = if self.mountain_light {
+                    range.frame()
                 } else {
-                    Vec::new()
+                    (Vec::new(), Vec::new())
                 };
                 let mut layers: BTreeMap<(usize, usize), PatchMesh> = BTreeMap::new();
                 for i in 0..range.tris.len() {
@@ -1435,6 +1457,7 @@ impl World {
                     {
                         let m = layers.entry((k, layer)).or_insert_with(|| PatchMesh {
                             piece,
+                            maps: None,
                             positions: Vec::new(),
                             uvs: Vec::new(),
                             alpha_uvs: Vec::new(),
@@ -1448,6 +1471,17 @@ impl World {
                         if let Some(n) = range_normals.get(i) {
                             m.light
                                 .extend(n.iter().map(|n| render::terrain::land_n_dot_l(*n)));
+                            // Item 4278: the main pass binds `mountain_mtrl`
+                            // to stage 2; the ring's stage 2 is unread.
+                            if let (1, Some(mtrl), Some(t)) =
+                                (layer, md.mtrl.as_ref(), range_tangents.get(i))
+                            {
+                                let maps = m.maps.get_or_insert_with(|| MountainMaps {
+                                    mtrl: mtrl.clone(),
+                                    frame: Vec::new(),
+                                });
+                                maps.frame.extend((0..3).map(|v| [n[v], t[v]]));
+                            }
                         }
                         for px in range.uvs[i] {
                             m.uvs.push([px[0] / 16.0, px[1] / 16.0]);
@@ -1700,6 +1734,7 @@ impl World {
         let unit = render::terrain::UNITS_PER_TILE as f32;
         let mut m = PatchMesh {
             piece: ROAD_PIECE,
+            maps: None,
             positions: Vec::new(),
             uvs: Vec::new(),
             alpha_uvs: Vec::new(),
@@ -1763,6 +1798,7 @@ impl World {
         }
         let mut m = PatchMesh {
             piece: WEATHER_PIECE,
+            maps: None,
             positions: Vec::new(),
             uvs: Vec::new(),
             alpha_uvs: Vec::new(),

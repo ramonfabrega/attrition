@@ -478,11 +478,12 @@ mod tests {
     /// Item 4269: the drawn plume 11,322 → 11,314 of 19,675 → 19,658: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4272: the drawn plume 11,314 → 11,344 of 19,658 → 19,814: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4275: the drawn plume 11,344 → 11,347 of 19,814 → 19,853: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
+    /// Item 4278: the drawn plume 11,347 → 11,352 of 19,853 → 19,858: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((11347, 19853, 2032), (14835, 928)),
-        ((0, 19853, 0), (0, 0)),
-        ((19853, 19853, 0), (17359, 2494)),
-        ((11904, 19853, 1894), (14176, 1758)),
+        ((11352, 19858, 2029), (14836, 928)),
+        ((0, 19858, 0), (0, 0)),
+        ((19858, 19858, 0), (17363, 2495)),
+        ((11905, 19858, 1892), (14176, 1757)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -502,11 +503,12 @@ mod tests {
     /// Item 4269: the drawn plume 11,560 → 11,564 of 19,045 → 19,016: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4272: the drawn plume 11,564 → 11,590 of 19,016 → 19,170: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4275: the drawn plume 11,590 → 11,593 of 19,170 → 19,212: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
+    /// Item 4278: the drawn plume 11,593 → 11,596 of 19,212 → 19,215: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     const RUN1570_PLUME: PlumeRows = [
-        ((11593, 19212, 1747), (14895, 959)),
-        ((0, 19212, 0), (0, 0)),
-        ((19212, 19212, 0), (16673, 2539)),
-        ((12288, 19212, 1434), (13728, 2124)),
+        ((11596, 19215, 1745), (14897, 958)),
+        ((0, 19215, 0), (0, 0)),
+        ((19215, 19215, 0), (16673, 2542)),
+        ((12292, 19215, 1433), (13734, 2120)),
     ];
 
     #[test]
@@ -544,22 +546,23 @@ mod tests {
     /// Item 4269: the flame row 206 unmoved, its luma split (176, 678) → (175, 679): the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4272: the flame row 206 of 699 → 692 (theirs, the fires off, moves with the white), past 584 → 587: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4275: the flame row 206 → 205 of 692 → 689 (a fall of one), past 587 → 588: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
+    /// Item 4278: the flame row 205 of 689 → 688 (theirs, the fires off, moves with the white): the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     const RUN1559B_3279_FLAME: FlameRows = [
         (
-            (205, 689, 588),
+            (205, 688, 588),
             (177, 682),
-            [(19, 15), (23, 21), (15, 0), (31, 20)],
+            [(19, 15), (23, 21), (15, 0), (30, 20)],
         ),
-        ((0, 689, 0), (0, 0), [(19, 0), (23, 0), (15, 0), (31, 0)]),
+        ((0, 688, 0), (0, 0), [(19, 0), (23, 0), (15, 0), (30, 0)]),
         (
-            (689, 689, 0),
-            (145, 544),
-            [(19, 19), (23, 23), (15, 15), (31, 31)],
+            (688, 688, 0),
+            (145, 543),
+            [(19, 19), (23, 23), (15, 15), (30, 30)],
         ),
         (
-            (263, 689, 432),
-            (114, 668),
-            [(19, 15), (23, 18), (15, 0), (31, 19)],
+            (262, 688, 431),
+            (114, 667),
+            [(19, 15), (23, 18), (15, 0), (30, 19)],
         ),
     ];
     /// to fail, 283). The packet's particles read 303, past 251. Item
@@ -572,21 +575,22 @@ mod tests {
     /// Item 4269: the flame row 346 → 345 of 627: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4272: the flame row 345 → 349 of 627: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4275: the flame row 349 of 627 → 626: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
+    /// Item 4278: the flame row 349 of 626 → 625: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     const RUN1570_FLAME: FlameRows = [
         (
-            (349, 626, 395),
+            (349, 625, 395),
             (103, 683),
             [(13, 11), (27, 26), (5, 0), (19, 24)],
         ),
-        ((0, 626, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
+        ((0, 625, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
         (
-            (626, 626, 0),
-            (43, 583),
+            (625, 625, 0),
+            (42, 583),
             [(13, 13), (27, 27), (5, 5), (19, 19)],
         ),
         (
-            (411, 626, 447),
-            (107, 788),
+            (411, 625, 448),
+            (107, 789),
             [(13, 15), (27, 28), (5, 0), (19, 28)],
         ),
     ];
