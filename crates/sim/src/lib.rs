@@ -156,6 +156,7 @@ impl Sim {
             orders: crate::orders::OrdersState {
                 pushed: Vec::new(),
                 last_group: [0; 16],
+                hotkeys: std::collections::BTreeMap::new(),
                 set_aside: None,
                 spells: Vec::new(),
             },

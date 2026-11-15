@@ -1651,6 +1651,44 @@ impl Stream {
                     done.skip(&it.cmd, "the building is in no city of the simulation");
                 }
             }
+            // **A hot key** (item 4270, `docs/CLIENT_INPUT.md` §22):
+            // `process_group`'s push of the package's group, then
+            // `process_hotkey@009474d0`'s copy of that pool slot into the
+            // hot-key group the command names. The walk pushes a group of
+            // buildings alone; a selection of units is not wired.
+            Command::Hotkey {
+                group,
+                clear,
+                valid,
+                x,
+                y,
+                zoom,
+            } => {
+                let slot = it.play as usize;
+                let objects = self.selection.get(slot).cloned().unwrap_or_default();
+                let player = it.play as sim::Player;
+                if *clear == 0 {
+                    let list: Vec<usize> = objects
+                        .iter()
+                        .filter_map(|&o| built.sim.building_by_o(player, o))
+                        .collect();
+                    if list.is_empty() || list.len() != objects.len() {
+                        done.skip(&it.cmd, "a hot key on units is not wired");
+                        return;
+                    }
+                    built.sim.command().push_command_buildings(player, &list);
+                }
+                let k = sim::groups::hotkey::HotKey {
+                    group: *group,
+                    clear: *clear,
+                    valid: *valid,
+                    loc: (*x, *y),
+                    zoom: *zoom,
+                };
+                if !built.sim.command().process_hotkey(player, k) {
+                    done.skip(&it.cmd, "the package's group is not in the simulation");
+                }
+            }
             Command::Pause { .. } => {
                 // The turn control's (`TurnControl::process_pause@00956990`,
                 // item 4252): a solo game's pause stops the frame, not the
