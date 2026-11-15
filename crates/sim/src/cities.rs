@@ -19,6 +19,7 @@ pub mod production;
 pub mod queue;
 pub mod queue_disband;
 pub mod rally;
+pub mod rename;
 pub mod site_recruit;
 pub mod tcoord;
 pub mod unit_unqueue_view;
@@ -73,4 +74,9 @@ pub struct CitiesState {
     /// it for [`Sim::type_avail`] (`docs/TECH.md`, "A built wonder is
     /// built for everyone").
     pub wonders_built: u32,
+    /// `City +0x90` where a `rename_city` wrote it, by city index
+    /// (`CommandPackage::process_rename_city@00944090`; item 4268,
+    /// `crate::cities::rename`). A city absent here keeps the founding name,
+    /// which the crate does not carry.
+    pub names: std::collections::BTreeMap<usize, String>,
 }

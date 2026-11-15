@@ -677,6 +677,36 @@ pub fn unqueued() -> Vec<Order> {
     orders
 }
 
+/// **The renamed script** (item 4268, `docs/CLIENT_INPUT.md` §21): the
+/// unqueued script and one package more. On [`RENAME_FRAME`] the capital,
+/// still selected, has its name opened for editing (`Options::exec`'s
+/// option `0x117`, popup 6) and [`RENAME_NAME`] typed and sent:
+/// `Popup::on_modal_end@007c13f0`'s case 6 calls
+/// `CommandManager::issue_rename_city@009411d0(console who, CAPITAL,
+/// name)`, `rename_city(0, CAPITAL, name)`, in a package with no group.
+/// The client's `minted_renamed_at_the_opening_camera` mints it field for
+/// field.
+pub fn renamed() -> Vec<Order> {
+    let mut orders = unqueued();
+    orders.push((
+        RENAME_FRAME,
+        0,
+        vec![Command::RenameCity {
+            who: 0,
+            o: i32::from(CAPITAL),
+            name: RENAME_NAME.to_string(),
+            after_nul: Vec::new(),
+        }],
+    ));
+    orders
+}
+
+/// The frame of the rename, ten after [`UNQUEUE_FRAME`].
+pub const RENAME_FRAME: i32 = 6730;
+/// The capital's new name: nine units, under the box's twenty-one and the
+/// command's twenty.
+pub const RENAME_NAME: &str = "Attrition";
+
 /// The frame of the cancel, two after [`CITY_GATHER_FRAME`].
 pub const UNQUEUE_FRAME: i32 = 6720;
 /// The queue slot the cancel names: the entry in training.

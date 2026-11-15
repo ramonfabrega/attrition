@@ -10983,3 +10983,23 @@ fn a_dock_bleeds_only_when_every_shore_tile_of_its_ring_is_a_rival_s() {
     assert_eq!(sim.check_enemy_adjacent(b), 1);
     assert!(!sim.bleeds_in_enemy_land(b));
 }
+
+/// **A rename writes the name of the city the building belongs to**
+/// (item 4268, `CommandPackage::process_rename_city@00944090`): through the
+/// command door, on the city's own centre; a unit's `o`, or one the
+/// simulation does not hold, writes nothing.
+#[test]
+fn a_rename_names_the_city_its_building_belongs_to() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, c) = city_at(&mut sim, &t, 0, 10, 10);
+    let o = sim.buildings[b].index;
+    assert_eq!(sim.city_name_written(c), None);
+    assert!(!sim.command().process_rename_city(1, o, "Elsewhere"));
+    assert!(!sim.command().process_rename_city(0, o + 1, "Elsewhere"));
+    assert_eq!(sim.city_name_written(c), None);
+    assert!(sim.command().process_rename_city(0, o, "Attrition"));
+    assert_eq!(sim.city_name_written(c), Some("Attrition"));
+    assert!(sim.command().process_rename_city(0, o, "Norwich"));
+    assert_eq!(sim.city_name_written(c), Some("Norwich"));
+}

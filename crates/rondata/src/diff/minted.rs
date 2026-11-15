@@ -4034,6 +4034,233 @@ fn the_repeated_minted_packages_round_trip() {
     }
 }
 
+/// The renamed file's gzip length (item 4268). Seen red first: pinned 0,
+/// it printed 59,591.
+const RENAMED_RCX_BYTES: usize = 59_591;
+
+/// **The renamed script, minted** (item 4268, `docs/CLIENT_INPUT.md`
+/// §21): the repeated file and one package more, the capital's
+/// `rename_city` on [`crate::script::RENAME_FRAME`], with no group; it
+/// round-trips through the file, and every package before it is the
+/// repeated file's, frame, slot and stamp. With `RON_RCX_OUT=<file>` it
+/// writes the `.rcx` the playback takes open.
+#[test]
+fn the_renamed_minted_packages_round_trip() {
+    use crate::script::{RENAME_FRAME, renamed, unqueued};
+    let (Some(rec), Some(before)) = (minted(&renamed()), minted(&unqueued())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "renamed").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in renamed().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "RENAMED tails {:?} against {:?}",
+        &ours[ours.len() - 3..],
+        &old[old.len() - 2..]
+    );
+    // The orders' packages, then the closing one, whose stamp steps by one.
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 1, old[..m - 1].to_vec()));
+    assert_eq!((ours[n - 2].0, ours[n - 2].1), (RENAME_FRAME, 0));
+    assert_eq!(
+        (ours[n - 1].0, ours[n - 1].2),
+        (old[m - 1].0, old[m - 1].2 + 1)
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "RENAMED RCX {} bytes (the repeated file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), REPEATED_RCX_BYTES, "the file run1607 played");
+    assert_eq!(gz.len(), RENAMED_RCX_BYTES, "RENAMED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The frames the rename's effect is read on (item 4268): the frame the
+/// package is consumed on, the one after, and the window's last.
+const RENAME_READ_AT: [i64; 3] = [6730, 6731, 6999];
+
+/// The capital's city name on one frame (item 4268): the bare line
+/// `CityData::log_data@004895c0` writes after `who` in slot 0's `CITY`
+/// record, or what a rename last wrote on our walk; `None` where no name
+/// is held — on our side, the founding name the crate does not carry.
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct NameEffect {
+    frame: i64,
+    name: Option<String>,
+}
+
+/// Ours, on our walk of `orders` at the frames `at`.
+fn name_effects_ours(orders: &[Order], at: &[i64]) -> Vec<NameEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        let s = &built.sim;
+        let city = s.buildings[s.building_by_o(0, crate::script::CAPITAL).unwrap()].city;
+        ours.push(NameEffect {
+            frame: s.frame,
+            name: city
+                .and_then(|c| s.city_name_written(c))
+                .map(str::to_string),
+        });
+    }
+    ours
+}
+
+/// The original's, off the take's `CITY` records on the frames `at`: slot
+/// 0's record whose `o` is the capital, its first field after
+/// `who`. The block parser keeps a bare line as a key with an empty value
+/// and the rest of the line, past its first space, as the value.
+fn name_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<NameEffect>> {
+    let text = std::fs::read_to_string(dump(take)?).unwrap();
+    let log = crate::gamelog::Log::parse(&text);
+    let mut theirs = Vec::new();
+    for (n, frame) in log.frames() {
+        if !at.contains(&n) {
+            continue;
+        }
+        let name = frame.find("CITIES").and_then(|cities| {
+            cities
+                .kids("CITY")
+                .find(|c| {
+                    c.int("who") == Some(0) && c.int("o") == Some(i64::from(crate::script::CAPITAL))
+                })
+                .and_then(|c| {
+                    let fields = c.fields();
+                    let i = (0..fields.len()).find(|&i| fields.get(i).unwrap().0 == "who")?;
+                    let (k, v) = fields.get(i + 1)?;
+                    (k != "race").then(|| format!("{k} {v}").trim_end().to_string())
+                })
+        });
+        theirs.push(NameEffect { frame: n, name });
+    }
+    Some(theirs)
+}
+
+/// **The renamed script's effects on our walk** (item 4268), pinned before
+/// the original's playback was read: no name before the package (the
+/// founding name is not carried), [`crate::script::RENAME_NAME`] from the
+/// frame after it; without the order, no name on any of the three. Seen
+/// red first: pinned empty.
+fn renamed_effects_ours() -> Vec<NameEffect> {
+    let row = |frame, name: Option<&str>| NameEffect {
+        frame,
+        name: name.map(str::to_string),
+    };
+    let name = Some(crate::script::RENAME_NAME);
+    vec![row(6730, None), row(6731, name), row(6999, name)]
+}
+
+/// **What the rename does on our walk** (item 4268), on
+/// [`RENAME_READ_AT`]; and without it, the repeated file's walk, which is
+/// the value diff on our side.
+#[test]
+fn the_renamed_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::renamed()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = name_effects_ours(&crate::script::renamed(), &RENAME_READ_AT);
+    let without = name_effects_ours(&crate::script::unqueued(), &RENAME_READ_AT);
+    for (e, w) in ours.iter().zip(&without) {
+        eprintln!("RENAME EFFECT ours {e:?} without {w:?}");
+    }
+    assert_eq!(ours, renamed_effects_ours());
+    assert_ne!(ours[1..], without[1..], "the order writes the name");
+}
+
+/// **The original's playback of the renamed file** (item 4268), pinned
+/// before run1609 was read: `(take, trace, first sequence parting or the
+/// last frame, last frame, records compared, records parted)`.
+pub(crate) const RENAMED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1609-greatlakes-playback-of-renamed-7000.txt",
+    "rontrace-run1609.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// **The original's names**, pinned before run1609 was read: the
+/// founding name `Napata` on the package's frame (run1579's capital, the
+/// same lobby's), then [`crate::script::RENAME_NAME`].
+fn renamed_effects_theirs() -> Vec<NameEffect> {
+    let row = |frame, name: &str| NameEffect {
+        frame,
+        name: Some(name.to_string()),
+    };
+    let name = crate::script::RENAME_NAME;
+    vec![row(6730, "Napata"), row(6731, name), row(6999, name)]
+}
+
+/// **The original plays the renamed file in lockstep** (item 4268,
+/// `docs/CLIENT_INPUT.md` §21): the built start walked under the pump on
+/// the renamed file against run1609, every frame's draws against its trace
+/// and every record of its window whole ([`RENAMED_WALKED`]); and the
+/// capital's name in slot 0's `CITY` record on [`RENAME_READ_AT`]
+/// ([`renamed_effects_theirs`]), ours from the frame after the package on.
+#[test]
+fn the_original_s_playback_of_the_renamed_file_walks_in_lockstep() {
+    let renamed = crate::script::renamed();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in RENAMED_WALKED {
+        let Some((w, _)) = walk_minted(&renamed, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "RENAMED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs =
+        name_effects_theirs(RENAMED_WALKED[0].0, &RENAME_READ_AT).expect("the take's records");
+    for t in &theirs {
+        eprintln!("RENAME EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, RENAMED_WALKED, "the walked table");
+    assert_eq!(theirs, renamed_effects_theirs(), "the original's names");
+    assert_eq!(
+        theirs[1..],
+        renamed_effects_ours()[1..],
+        "ours after the package"
+    );
+}
+
 /// **The original's playback of the repeated file** (item 4267), pinned
 /// before run1607 was read: `(take, trace, first sequence parting or the
 /// last frame, last frame, records compared, records parted)`.

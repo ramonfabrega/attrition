@@ -1639,6 +1639,18 @@ impl Stream {
                 // order's, and staging cheats are outside the simulation.
                 done.skip(&it.cmd, "a cheat line, not an order");
             }
+            // **A city's name** (item 4268, `docs/CLIENT_INPUT.md` §21):
+            // `process_rename_city@00944090` on the order's own `who`, the
+            // console's, and the building's `o`.
+            Command::RenameCity { who, o, name, .. } => {
+                let done_it = match (sim::Player::try_from(*who), i16::try_from(*o)) {
+                    (Ok(who), Ok(o)) => built.sim.command().process_rename_city(who, o, name),
+                    _ => false,
+                };
+                if !done_it {
+                    done.skip(&it.cmd, "the building is in no city of the simulation");
+                }
+            }
             Command::Pause { .. } => {
                 // The turn control's (`TurnControl::process_pause@00956990`,
                 // item 4252): a solo game's pause stops the frame, not the

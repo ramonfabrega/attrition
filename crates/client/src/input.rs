@@ -105,11 +105,19 @@ pub const MINTS: &[&str] = &[
     "city_gather",
     "spell",
     "unqueue",
+    "rename_city",
 ];
 
 /// **The entry line's text limit**, in UTF-16 units: `ChatBox::exec
 /// @0093cf80` sets the edit box's `text_limit` to `0x80`.
 pub const CHAT_LIMIT: usize = 0x80;
+/// **The rename box's text limit**, in UTF-16 units: `Options::exec
+/// @007188c0`'s `0x117` arm opens the city's name in `BasePop::edit` with
+/// `0x15` (item 4268, `docs/CLIENT_INPUT.md` §21).
+pub const RENAME_LIMIT: usize = 0x15;
+/// **The units a rename carries**: `CommandManager::issue_rename_city
+/// @009411d0` copies a name of more than `0x13` units as `0x14`.
+pub const RENAME_SENT: usize = 0x14;
 /// **The cheat prefix** `ChatBox::on_modal_end@0093d560` tests a line
 /// against (`get_cheat_string@00497c00`, a localised string; the install's
 /// `CHEAT `, compared without case by `String::ignore`'s `_wcsnicmp` over
@@ -187,6 +195,12 @@ pub enum Event {
     /// the selection; item 4265, `docs/CLIENT_INPUT.md` §19). The HUD's
     /// alone.
     Unqueue(i32),
+    /// A press on the city's name (`Options::exec@007188c0`'s option
+    /// `0x117`, which opens the city's name in a popup, `popup_id` 6; item
+    /// 4268, `docs/CLIENT_INPUT.md` §21): the entry line opens as the
+    /// popup's edit box, and Return sends what it holds as
+    /// `Popup::on_modal_end@007c13f0`'s case 6 does. The HUD's alone.
+    Rename,
 }
 
 /// `spell(type, ox, whom, x, y)`, as `CommandManager::issue_spell@00941b80`
@@ -235,6 +249,48 @@ pub fn queue_panel(scene: &Scene, player: u8, selection: &[ObjId]) -> usize {
         .iter()
         .find(|b| b.id == *id && b.owner == player && b.active)
         .map_or(0, |b| b.queued)
+}
+
+/// **The city the selection can rename** (item 4268,
+/// `docs/CLIENT_INPUT.md` §21): `Options::exec@007188c0`'s `0x117` arm
+/// takes the group's first object (`GroupData::get_o`) and opens the
+/// popup only for a building (`ObjectData +0x8 & 0x20`), finished (the
+/// type's `is_active`), in a city (`BuildData +0x72 >= 0`). The layer asks
+/// too that it be `player`'s own (`Group::can_activate` is not read), and
+/// does not read the arm's `ObjectData::is` test. Its `o`, or none.
+pub fn renames(scene: &Scene, player: u8, selection: &[ObjId]) -> Option<i16> {
+    let id = selection.first()?;
+    scene
+        .buildings
+        .iter()
+        .find(|b| b.id == *id && b.owner == player && b.active && b.in_city)
+        .map(|b| b.id.o)
+}
+
+/// **The `rename_city` a closed popup sends** (item 4268): `on_modal_end`'s
+/// case 6 trims the spaces at both ends and sends nothing for a line left
+/// empty; `CommandManager::issue_rename_city@009411d0` writes the console's
+/// `who`, the object and the name cut to [`RENAME_SENT`] units, in a
+/// package of its own. A command built here pads with zeros past the
+/// terminator where the original's carries its stack (`after_nul`).
+pub fn rename(who: u8, o: i16, line: &str) -> Option<Command> {
+    let text = line.trim_matches(' ');
+    if text.is_empty() {
+        return None;
+    }
+    let mut name = String::new();
+    for c in text.chars() {
+        if name.encode_utf16().count() + c.len_utf16() > RENAME_SENT {
+            break;
+        }
+        name.push(c);
+    }
+    Some(Command::RenameCity {
+        who: i32::from(who),
+        o: i32::from(o),
+        name,
+        after_nul: Vec::new(),
+    })
 }
 
 /// **What a queue button issues** (item 4265): `Options::exec@007188c0`'s
@@ -742,6 +798,9 @@ pub struct Input {
     pub casting: Option<i32>,
     /// The last group this session sent (item 4267).
     pub sent: Sent,
+    /// The city building whose name the entry line edits, while the
+    /// rename popup is open (item 4268); `None` while the line is chat's.
+    pub renaming: Option<i16>,
 }
 
 /// **The last group sent** (item 4267, `docs/CLIENT_INPUT.md` §20):
@@ -963,12 +1022,13 @@ impl Input {
     pub fn event(&mut self, frame: i32, ev: Event, view: &View) -> Option<Order> {
         let play = i32::from(self.player);
         match ev {
-            Event::Enter => match self.line.take() {
-                None => {
+            Event::Enter => match (self.line.take(), self.renaming.take()) {
+                (None, _) => {
                     self.line = Some(String::new());
                     None
                 }
-                Some(line) => self.chat(frame, &line, view),
+                (Some(line), Some(o)) => Some((frame, play, vec![rename(self.player, o, &line)?])),
+                (Some(line), None) => self.chat(frame, &line, view),
             },
             Event::Backspace => {
                 if let Some(line) = &mut self.line {
@@ -978,6 +1038,18 @@ impl Input {
             }
             Event::Escape => {
                 self.line = None;
+                self.renaming = None;
+                None
+            }
+            Event::Rename => {
+                // Option `0x117`: the popup opens on the city's name. Ours:
+                // the box opens empty, because the scene does not carry the
+                // founding name the original's box starts with.
+                if !self.building || self.line.is_some() {
+                    return None;
+                }
+                self.renaming = Some(renames(view.scene, self.player, &self.selection)?);
+                self.line = Some(String::new());
                 None
             }
             Event::Pause => {
@@ -1052,8 +1124,13 @@ impl Input {
                 ))
             }
             Event::Key(k) if self.line.is_some() => {
+                let limit = if self.renaming.is_some() {
+                    RENAME_LIMIT
+                } else {
+                    CHAT_LIMIT
+                };
                 let line = self.line.as_mut().unwrap();
-                if line.encode_utf16().count() + k.len_utf16() <= CHAT_LIMIT {
+                if line.encode_utf16().count() + k.len_utf16() <= limit {
                     line.push(k);
                 }
                 None
@@ -4015,18 +4092,267 @@ pub(crate) mod tests {
         assert_eq!(order.2[1], Command::QueueUp { unit: 50, num: 1 });
     }
 
+    /// **The rename's button** (item 4268, `docs/CLIENT_INPUT.md` §21):
+    /// stage 0's pixel, the centre of [`crate::hud::rename_button`] under
+    /// [`HUD_SIZE`] with the capital selected.
+    const RENAME_AT: (i32, i32) = (1822, 966);
+
+    /// The unqueued events and the rename's: the capital is still selected
+    /// from the gather, so a press on its RENAME button, the name typed,
+    /// and Return, all on [`script::RENAME_FRAME`].
+    fn rename_events() -> Vec<Scripted> {
+        let mut e = unqueue_events();
+        let (x, y) = RENAME_AT;
+        let f = script::RENAME_FRAME;
+        e.push((f, None, Event::Press { x, y }));
+        e.extend(
+            script::RENAME_NAME
+                .chars()
+                .map(|k| (f, None, Event::Key(k))),
+        );
+        e.push((f, None, Event::Enter));
+        e
+    }
+
+    /// **`INPUT_RENAMED`** (item 4268, `docs/CLIENT_INPUT.md` §21): the
+    /// unqueued events and the rename's, through the HUD and the layer
+    /// under the opening camera, mint [`script::renamed`] field for field,
+    /// of 23.
+    const INPUT_RENAMED: usize = 23;
+
+    /// **The renamed count**: stage 0 on the rename's frame — the capital
+    /// is slot 0's, finished and in a city, and its RENAME button stands
+    /// where the event presses it; then the events mint the renamed
+    /// script, and the file written from them is the renamed file.
+    #[test]
+    fn minted_renamed_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let unqueued = script::unqueued();
+        let mut next = 0;
+        while r.frame() < i64::from(script::RENAME_FRAME) {
+            let f = r.frame() as i32;
+            while next < unqueued.len() && unqueued[next].0 == f {
+                r.issue(&unqueued[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let scene = r.scene(Some(0));
+            let id = ObjId {
+                who: 0,
+                o: script::CAPITAL,
+            };
+            let b = scene.buildings.iter().find(|b| b.id == id).unwrap();
+            let mut input = Input::new(0);
+            input.selection = vec![id];
+            input.building = true;
+            let at = crate::hud::rename_button(&input, &scene, HUD_SIZE).map(|r| r.centre());
+            println!(
+                "RENAME STAGE0 f{} active {} in_city {} button {at:?}",
+                r.frame(),
+                b.active,
+                b.in_city
+            );
+            assert!(b.active && b.in_city);
+            assert_eq!(at, Some(RENAME_AT));
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with(rename_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let renamed = script::renamed();
+        let whole = ours.iter().zip(&renamed).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (renamed.len(), INPUT_RENAMED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, renamed);
+        drop(r);
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(repeated), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(REPEATED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(RENAMED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {REPEATED_RCX} or {RENAMED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), RENAMED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the renamed orders");
+        assert!(written != repeated, "not the repeated file");
+    }
+
+    /// The renamed file (`docs/CLIENT_INPUT.md` §21), written by rondata's
+    /// `the_renamed_minted_packages_round_trip` under `RON_RCX_OUT`; the
+    /// file run1609 takes open.
+    const RENAMED_RCX: &str = "ron-golden/recordings/item4268-renamed-greatlakes-24000.rcx";
+    const RENAMED_RCX_BYTES: usize = 59_591;
+
+    /// **`INPUT_RENAMES`** (item 4268): of the renames the recordings on
+    /// disk carry, those the RENAME button, the recorded name typed and
+    /// Return mint field for field, of all of them, the units past the
+    /// terminator aside: all ten carry `issue_rename_city`'s stack there
+    /// (`Command::RenameCity::after_nul`), which `process_rename_city`
+    /// never reads and a command built here pads with zeros. Seen red
+    /// pinned (0, 0).
+    const INPUT_RENAMES: (usize, usize) = (10, 10);
+
+    /// **Every recorded rename the city's name popup issues** (item 4268):
+    /// each recorded `rename_city`'s building selected, finished and in a
+    /// city, then its RENAME button, its name typed, and Return.
+    #[test]
+    fn minted_renames_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let Some(Command::RenameCity { who, o, name, .. }) = kept
+                    .iter()
+                    .find(|c| matches!(c, Command::RenameCity { .. }))
+                    .cloned()
+                else {
+                    continue;
+                };
+                all += 1;
+                let (who, o) = (who as u8, o as i16);
+                let mut b = city_building(who, o);
+                b.in_city = true;
+                let scene = Scene {
+                    buildings: vec![b],
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who);
+                input.selection = vec![ObjId { who, o }];
+                input.building = true;
+                let mut got = input.event(p.frame, Event::Rename, &v);
+                for k in name.chars() {
+                    got = got.or(input.event(p.frame, Event::Key(k), &v));
+                }
+                got = got.or(input.event(p.frame, Event::Enter, &v));
+                let read: Vec<Command> = kept
+                    .iter()
+                    .map(|c| match c {
+                        Command::RenameCity { who, o, name, .. } => Command::RenameCity {
+                            who: *who,
+                            o: *o,
+                            name: name.clone(),
+                            after_nul: Vec::new(),
+                        },
+                        c => c.clone(),
+                    })
+                    .collect();
+                if got.as_ref().map(|o| &o.2) == Some(&read) {
+                    whole += 1;
+                } else {
+                    println!("RENAME PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("RENAMES {whole} of {all}");
+        assert_eq!((whole, all), INPUT_RENAMES);
+    }
+
+    /// **The rename's edges** (item 4268): the button only for a finished
+    /// building of the slot's own in a city; the box takes twenty-one
+    /// units and the command carries twenty; the spaces at both ends go,
+    /// a line left empty sends nothing, and Escape closes the box with
+    /// nothing sent and the next Return opening chat's line.
+    #[test]
+    fn minted_rename_edges() {
+        if lobby().is_err() {
+            println!("skipping: no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let mut b = city_building(0, 2000);
+        b.in_city = true;
+        let send = |b: sim::observe::BuildingScene, evs: &[Event]| {
+            let scene = Scene {
+                buildings: vec![b],
+                ..Scene::default()
+            };
+            let v = view(&c, &scene, &terrain);
+            let mut input = Input::new(0);
+            input.selection = vec![b.id];
+            input.building = true;
+            let got: Vec<Order> = evs.iter().filter_map(|e| input.event(9, *e, &v)).collect();
+            (got, input)
+        };
+        let typed = |text: &str| -> Vec<Event> {
+            let mut e = vec![Event::Rename];
+            e.extend(text.chars().map(Event::Key));
+            e.push(Event::Enter);
+            e
+        };
+        let named = |name: &str| {
+            vec![(
+                9,
+                0,
+                vec![Command::RenameCity {
+                    who: 0,
+                    o: 2000,
+                    name: name.to_string(),
+                    after_nul: Vec::new(),
+                }],
+            )]
+        };
+        assert_eq!(send(b, &typed("  Attrition ")).0, named("Attrition"));
+        // Twenty-two typed: the box keeps twenty-one, the command twenty.
+        let (got, _) = send(b, &typed("abcdefghijklmnopqrstuv"));
+        assert_eq!(got, named("abcdefghijklmnopqrst"));
+        assert_eq!(send(b, &typed("   ")).0, vec![]);
+        let (got, input) = send(b, &[Event::Rename, Event::Key('x'), Event::Escape]);
+        assert_eq!((got, input.line, input.renaming), (vec![], None, None));
+        // Not the slot's, unfinished, in no city: no box opens.
+        for edit in [
+            |b: &mut sim::observe::BuildingScene| b.owner = 1,
+            |b: &mut sim::observe::BuildingScene| b.active = false,
+            |b: &mut sim::observe::BuildingScene| b.in_city = false,
+        ] {
+            let mut other = b;
+            edit(&mut other);
+            let (got, input) = send(other, &typed("Attrition"));
+            assert!(input.renaming.is_none());
+            // The Return that would have sent the name opens chat's line.
+            assert!(got.is_empty(), "{got:?}");
+            assert_eq!(input.line, Some(String::new()));
+        }
+    }
+
     /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (16, 26);
+    const INPUT_KINDS: (usize, usize) = (17, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2336, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2346, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
         "leader_options",
-        "rename_city",
         "hotkey",
         "garrison",
         "buildmask",
