@@ -953,6 +953,9 @@ pub struct Colours {
     /// Over those, dark ones kept, the sums of our luminance and the
     /// photograph's ([`luminance`]; item 4172).
     pub luma: [f32; 2],
+    /// Over the same pixels, the sums of our colour and the photograph's
+    /// (item 4245: an object's mean colour beside the photograph's).
+    pub rgb: [[f32; 3]; 2],
     /// Of those, dark on either side.
     pub dark: u32,
     /// The rest, and how many of them agree.
@@ -989,6 +992,13 @@ impl Colours {
     pub fn luma_means(&self) -> [f32; 2] {
         let n = self.held.max(1) as f32;
         [self.luma[0] / n, self.luma[1] / n]
+    }
+
+    /// Our mean colour and the photograph's over the held pixels (item
+    /// 4245).
+    pub fn rgb_means(&self) -> [[f32; 3]; 2] {
+        let n = self.held.max(1) as f32;
+        self.rgb.map(|s| s.map(|v| v / n))
     }
 
     /// Whether the object passes the luminance reader (item 4172): scored
@@ -1033,6 +1043,10 @@ pub fn read_colours(
             let them = [0, 1, 2].map(|k| f32::from(photo.rgba[i + k]));
             c.luma[0] += luminance(ours.rgb);
             c.luma[1] += luminance(them);
+            for k in 0..3 {
+                c.rgb[0][k] += ours.rgb[k];
+                c.rgb[1][k] += them[k];
+            }
             let sum = |p: [f32; 3]| p[0] + p[1] + p[2];
             if sum(ours.rgb) < hue.dark || sum(them) < hue.dark {
                 c.dark += 1;
