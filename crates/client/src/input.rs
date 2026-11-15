@@ -108,7 +108,14 @@ pub const MINTS: &[&str] = &[
     "rename_city",
     "hotkey",
     "garrison",
+    "buildmask",
 ];
+
+/// **`OPTION_INFINITE`'s mask**, the infinite queue's bit of
+/// `WallData::build_masks`, which `Options::exec@007188c0`'s case `0x40`
+/// passes to `GroupOut::issue_buildmask@00708820` (item 4276,
+/// `docs/CLIENT_INPUT.md` §24).
+pub const INFINITE_MASK: i32 = 0x40;
 
 /// **A player's hot-key slots**: `Console::on_key_down@007cc210` numbers a
 /// group `who × 0x12` plus the key's, `0`..`9` and F1..F8 (item 4270,
@@ -226,6 +233,13 @@ pub enum Event {
     /// sets `selecting_spot`, and the next left press, the pick, names the
     /// building. The HUD's alone.
     Garrison,
+    /// A press on a building's infinite-queue button (`OPTION_INFINITE`,
+    /// `IFaceSelected::on_button_clicked@00826e00`; item 4276,
+    /// `docs/CLIENT_INPUT.md` §24): `Options::exec@007188c0`'s case `0x40`
+    /// with a selection of buildings is `GroupOut::issue_buildmask
+    /// @00708820(0x40)`, the selection's `group` and `buildmask(0x40, 1)`.
+    /// The HUD's alone.
+    Infinite,
 }
 
 /// `spell(type, ox, whom, x, y)`, as `CommandManager::issue_spell@00941b80`
@@ -1203,6 +1217,22 @@ impl Input {
                 }
                 let cmds = unqueues(view.scene, self.player, &self.selection, slot)?;
                 Some((frame, play, cmds))
+            }
+            Event::Infinite => {
+                // `Options::exec`'s case `0x40`: a selection of buildings
+                // flashes and `issue_buildmask(0x40)` writes its `group` and
+                // `buildmask(0x40, set 1)`; whether a member takes the bit
+                // is `process_buildmask`'s (`WallData::valid_buildmask`).
+                // Any other selection falls through to the formation arm,
+                // which is not minted.
+                if !self.building || self.selection.is_empty() || self.line.is_some() {
+                    return None;
+                }
+                let cmd = Command::Buildmask {
+                    mask: INFINITE_MASK,
+                    set: 1,
+                };
+                Some((frame, play, vec![self.group(view.scene), cmd]))
             }
             Event::Garrison => {
                 // `do_garrison`: a selection that can act and is not of
@@ -4985,18 +5015,276 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Stage 0 of the buildmasked script** (item 4276,
+    /// `docs/CLIENT_INPUT.md` §24): the capital's anchor on
+    /// [`script::BUILDMASK_TRAIN_FRAME`] at the opening camera.
+    const BUILDMASK_CAPITAL_AT: (i32, i32) = (1127, 521);
+    /// The Citizen's button, the menu's first with the capital selected,
+    /// and the infinite-queue button
+    /// ([`crate::hud::infinite_button`]), their centres under
+    /// [`HUD_SIZE`].
+    const BUILDMASK_TRAIN_AT: (i32, i32) = (128, 1054);
+    const INFINITE_AT: (i32, i32) = (1634, 966);
+
+    /// The garrisoned events and the buildmask's three: on
+    /// [`script::BUILDMASK_TRAIN_FRAME`] a press on the capital and one on
+    /// its Citizen button; on [`script::BUILDMASK_FRAME`] a press on the
+    /// infinite-queue button.
+    fn buildmask_events() -> Vec<Scripted> {
+        let mut e = garrison_events();
+        let ((cx, cy), (tx, ty), (ix, iy)) = (BUILDMASK_CAPITAL_AT, BUILDMASK_TRAIN_AT, INFINITE_AT);
+        let (f, g) = (script::BUILDMASK_TRAIN_FRAME, script::BUILDMASK_FRAME);
+        e.extend([
+            (f, None, Event::Press { x: cx, y: cy }),
+            (f, None, Event::Press { x: tx, y: ty }),
+            (g, None, Event::Press { x: ix, y: iy }),
+        ]);
+        e
+    }
+
+    /// **`INPUT_BUILDMASKED`** (item 4276, `docs/CLIENT_INPUT.md` §24):
+    /// the garrisoned events and the buildmask's, through the HUD and the
+    /// layer under the opening camera, mint [`script::buildmasked`] field
+    /// for field, of 27.
+    const INPUT_BUILDMASKED: usize = 27;
+
+    /// **The buildmasked count**: stage 0 on the Citizen's frame — the
+    /// capital is slot 0's, finished, a training building with an empty
+    /// queue, and stands where the press lands; both buttons stand where
+    /// the events press; then the events mint the buildmasked script, and
+    /// the file written from them is the buildmasked file.
+    #[test]
+    fn minted_buildmasked_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let garrisoned = script::garrisoned();
+        let c = camera(None);
+        let mut next = 0;
+        while r.frame() < i64::from(script::BUILDMASK_TRAIN_FRAME) {
+            let f = r.frame() as i32;
+            while next < garrisoned.len() && garrisoned[next].0 == f {
+                r.issue(&garrisoned[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+            let v = view(&c, &scene, &terrain);
+            let cid = ObjId {
+                who: 0,
+                o: script::CAPITAL,
+            };
+            let b = scene.buildings.iter().find(|b| b.id == cid).unwrap();
+            let mut input = Input::new(0);
+            input.selection = vec![cid];
+            input.building = true;
+            let train = crate::hud::menu(&input, HUD_SIZE)
+                .into_iter()
+                .find(|m| m.ty == script::CITIZEN)
+                .map(|m| m.rect.centre());
+            let infinite = crate::hud::infinite_button(&input, &scene, HUD_SIZE).map(|r| r.centre());
+            println!(
+                "BUILDMASK STAGE0 f{} capital pixel {:?} active {} trains {} queued {} train {train:?} infinite {infinite:?}",
+                r.frame(),
+                v.pixel(b.pos.x, b.pos.y, b.z),
+                b.active,
+                b.trains,
+                b.queued,
+            );
+            assert_eq!(v.pixel(b.pos.x, b.pos.y, b.z), BUILDMASK_CAPITAL_AT);
+            assert!(b.active && b.trains && b.queued == 0);
+            assert_eq!(train, Some(BUILDMASK_TRAIN_AT));
+            assert_eq!(infinite, Some(INFINITE_AT));
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with(buildmask_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let buildmasked = script::buildmasked();
+        let whole = ours.iter().zip(&buildmasked).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (buildmasked.len(), INPUT_BUILDMASKED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, buildmasked);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(garrisoned), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(GARRISONED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(BUILDMASKED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {GARRISONED_RCX} or {BUILDMASKED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), BUILDMASKED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the buildmasked orders");
+        assert!(written != garrisoned, "not the garrisoned file");
+    }
+
+    /// The buildmasked file (`docs/CLIENT_INPUT.md` §24), written by
+    /// rondata's `the_buildmasked_minted_packages_round_trip` under
+    /// `RON_RCX_OUT`; the file run1614 takes open.
+    const BUILDMASKED_RCX: &str =
+        "ron-golden/recordings/item4276-buildmasked-greatlakes-24000.rcx";
+    const BUILDMASKED_RCX_BYTES: usize = 59_637;
+
+    /// **`INPUT_BUILDMASKS`** (item 4276): of the buildmasks the recordings
+    /// on disk carry, those the infinite-queue button over the package's
+    /// selection mints field for field, the package's orders whole, from
+    /// the package's selection (an empty `group` the slot's last full one,
+    /// `add_group`'s repeat). Seen red pinned (0, 0).
+    const INPUT_BUILDMASKS: (usize, usize) = (5, 5);
+
+    /// **Every recorded buildmask** (item 4276): each package carrying a
+    /// `buildmask` is minted from its selection of buildings and a press
+    /// on the infinite-queue button.
+    #[test]
+    fn minted_buildmasks_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let mut last = LastSent::new();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let (who, objects, before) = behind(&last, p.play, &kept);
+                note_sent(&mut last, p.play, &kept);
+                if !kept.iter().any(|c| matches!(c, Command::Buildmask { .. })) {
+                    continue;
+                }
+                all += 1;
+                let scene = Scene {
+                    buildings: objects
+                        .iter()
+                        .map(|&o| {
+                            let mut b = city_building(who, o);
+                            b.trains = true;
+                            b
+                        })
+                        .collect(),
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who);
+                input.selection = objects.iter().map(|&o| ObjId { who, o }).collect();
+                input.building = true;
+                input.sent = sent_for(&before, &scene);
+                let got = input.event(p.frame, Event::Infinite, &v);
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                } else {
+                    println!("BUILDMASK PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("BUILDMASKS {whole} of {all}");
+        assert_eq!((whole, all), INPUT_BUILDMASKS);
+    }
+
+    /// **The buildmask's edges** (item 4276): the button only for a
+    /// selection of buildings with a training building of the slot's own;
+    /// the event mints nothing for a unit selection, for no selection or
+    /// with the entry line open; any selection of buildings mints, whether
+    /// or not a member takes the bit, which is `process_buildmask`'s; the
+    /// same selection again sends its `group` as no objects.
+    #[test]
+    fn minted_buildmask_edges() {
+        if lobby().is_err() {
+            println!("skipping: no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let trains = |o: i16, t: bool| {
+            let mut b = city_building(0, o);
+            b.trains = t;
+            b
+        };
+        let scene = Scene {
+            buildings: vec![trains(2000, true), trains(2001, false), trains(2002, true)],
+            units: vec![unit(0, 3, script::CITIZEN, 0, 0, 0)],
+            ..Scene::default()
+        };
+        let v = view(&c, &scene, &terrain);
+        let sel = |ids: &[i16], building: bool| {
+            let mut input = Input::new(0);
+            input.selection = ids.iter().map(|&o| ObjId { who: 0, o }).collect();
+            input.building = building;
+            input
+        };
+        let button = |input: &Input| crate::hud::infinite_button(input, &scene, HUD_SIZE);
+        assert!(button(&sel(&[2000], true)).is_some());
+        assert!(button(&sel(&[2001], true)).is_none(), "no training building");
+        assert!(button(&sel(&[2001, 2002], true)).is_some(), "one of them trains");
+        assert!(button(&sel(&[3], false)).is_none(), "a unit selection");
+        let mut other = sel(&[2000], true);
+        other.player = 1;
+        assert!(button(&other).is_none(), "another slot's");
+        assert_eq!(sel(&[3], false).event(9, Event::Infinite, &v), None);
+        assert_eq!(Input::new(0).event(9, Event::Infinite, &v), None);
+        let mut typing = sel(&[2000], true);
+        typing.line = Some(String::new());
+        assert_eq!(typing.event(9, Event::Infinite, &v), None);
+        let buildmask = Command::Buildmask {
+            mask: INFINITE_MASK,
+            set: 1,
+        };
+        let mut input = sel(&[2001], true);
+        let got = input.event(9, Event::Infinite, &v).unwrap();
+        assert_eq!(
+            got.2,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![2001]
+                },
+                buildmask.clone()
+            ],
+            "a building that takes no bit still sends"
+        );
+        let again = input.event(10, Event::Infinite, &v).unwrap();
+        assert_eq!(
+            again.2,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: Vec::new()
+                },
+                buildmask
+            ],
+            "the repeat"
+        );
+    }
+
     /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (19, 26);
+    const INPUT_KINDS: (usize, usize) = (20, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2360, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2365, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
         "leader_options",
-        "buildmask",
         "cheat_ai_toggle",
         "come_out",
         "stance",

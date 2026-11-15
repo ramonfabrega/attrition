@@ -1748,6 +1748,9 @@ impl Stream {
             Command::Garrison { ox, whom, queued } => {
                 group_garrison(built, it.play, &objects, *ox, *whom, *queued)
             }
+            // The infinite-queue button (item 4276, `docs/CLIENT_INPUT.md`
+            // §24): `process_buildmask@00947680` on the package's group.
+            Command::Buildmask { mask, .. } => group_buildmask(built, it.play, &objects, *mask),
             Command::Attack {
                 ox,
                 whom,
