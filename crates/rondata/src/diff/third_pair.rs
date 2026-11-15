@@ -364,7 +364,9 @@ fn run658_dates_the_gap_before_17171() {
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 120 -> 96.
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 97 -> 85.
-    pin_eq!(w.firsts.len(), 85, "initial run658 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 82, "initial run658 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     // **The date, on the original's side** (`docs/AI.md` §131). Leader 0's
     // economy-dirty bit, `leader_flags & 0x2000000`, which no row compares:
     // the blocks of the window it stands on, read off the dump (the closing
@@ -490,7 +492,9 @@ fn run600_s_closing_frame_is_widened_whole() {
     // who=1's eleven groups' `held` and pools 64..75, ours populated and
     // theirs empty: the winner's armies let go on the victory, as on
     // run667's 17380 (parked 4189b). Nothing of the end of the game parts.
-    pin_eq!(w.firsts.len(), 50, "run600 closing baseline");
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 47, "run600 closing baseline");
 }
 
 #[test]
@@ -544,7 +548,9 @@ fn run667_s_closing_frame_is_widened_whole() {
     // `g.cur_anim`/`cur_time`/`last_time` at rest; `0/5` at (4792, 6072) =
     // theirs (was ours (4784, 6096)); `gather_down[-1]` on `0/2001`..`0/2004`
     // −1 = −1 (were ours 2..5); `1/123` `cur_anim` 0 = 0, `end_time` 32 = 32.
-    pin_eq!(w.firsts.len(), 108, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 105, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
 #[test]
@@ -576,7 +582,9 @@ fn run662_s_word_frame_is_widened_whole() {
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 108 -> 84.
     // Item 3603: piece 48's bays (the Arquebusiers' art, run1254c) moved this pin: 84 -> 82.
-    pin_eq!(w.firsts.len(), 83, "initial run662 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 80, "initial run662 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 /// run661: the successor after the guard's leg and the fire on the move,
@@ -620,7 +628,9 @@ fn run661_s_word_frame_is_widened_whole() {
     // 76 rows after go with it.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 106 -> 82.
-    pin_eq!(w.firsts.len(), 83, "initial run661 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 80, "initial run661 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 /// run657: the successor after `move_step`'s snap stand, frame 17171
@@ -668,7 +678,9 @@ fn run657_s_word_frame_is_widened_whole() {
     // them. Left past the first block: `group:66.role` on 17174.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 119 -> 95.
-    pin_eq!(w.firsts.len(), 84, "initial run657 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 81, "initial run657 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 #[test]
@@ -693,7 +705,9 @@ fn run655_s_word_frame_is_widened_whole() {
     // copy-back and the wider group-slot compare).
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 132 -> 108.
-    pin_eq!(w.firsts.len(), 97, "initial run655 baseline");
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 94, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
@@ -740,7 +754,9 @@ fn run649_s_decision_frame_is_widened_whole() {
     // 15089 among them.
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 56 -> 32.
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 33 -> 30.
-    pin_eq!(w.firsts.len(), 30, "run649 whole");
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 27, "run649 whole");
 }
 
 #[test]
@@ -760,7 +776,9 @@ fn run642_s_word_frame_is_widened_whole() {
     // 94 standing on 15339, and on 15345 sixteen of the group's members'
     // `order:group.id`, 15344609 here against 15350409 there, alone.
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 58 -> 34.
-    pin_eq!(w.firsts.len(), 32, "initial run642 baseline");
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 29, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,
@@ -808,7 +826,9 @@ fn run639_s_word_frame_is_widened_whole() {
     // as there, and every row from 14785 leaves — what is left is the 93
     // standing on 14777.
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 58 -> 34.
-    pin_eq!(w.firsts.len(), 32, "initial run639 baseline");
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 29, "initial run639 baseline");
 }
 
 /// run636: the successor after a French General's craft rate, frame
@@ -851,7 +871,9 @@ fn run636_s_word_frame_is_widened_whole() {
     // French Carpentry line, handed out with Chemistry on 12958 (AI §123).
     // Item 1468: 128 → 94, as run635's.
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 58 -> 34.
-    pin_eq!(w.firsts.len(), 32, "initial run636 baseline");
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 29, "initial run636 baseline");
 }
 
 /// run635: the successor after the crew's `GuyData::get_speed`, frame
@@ -889,7 +911,9 @@ fn run635_s_word_frame_is_widened_whole() {
     // Carpentry line, handed out free with Chemistry on 12958 (AI §123).
     // Item 1468: 118 → 88; the same two groups on the French pair's trained squads.
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 55 -> 31.
-    pin_eq!(w.firsts.len(), 31, "initial run635 baseline");
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 28, "initial run635 baseline");
 }
 
 /// run634: the successor after the French siege cost, frame 12794
@@ -918,7 +942,9 @@ fn run634_s_word_frame_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1461: 206 → 119, the word's frame now 12952 (run634's 87 keys past its first block leave, none arrive); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 55 -> 31.
-    pin_eq!(w.firsts.len(), 31, "initial run634 baseline");
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 28, "initial run634 baseline");
 }
 
 /// run631: the successor after the member's re-placed slot and the
@@ -947,7 +973,9 @@ fn run631_s_word_frame_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1460: 216 → 120; a French unit of the Siege Factory line costs `FRENCH_SIEGE_COST` less (`docs/COSTS.md`, "A French siege unit costs less").
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 56 -> 32.
-    pin_eq!(w.firsts.len(), 33, "initial run631 baseline");
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 30, "initial run631 baseline");
 }
 
 /// run629: the successor after the Militia ramp and the French siege move,

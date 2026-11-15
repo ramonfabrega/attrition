@@ -71,15 +71,25 @@ impl UnitSetTypeView for SimSetType<'_> {
         self.cur()
             .map_or(0, |t| self.sim.tables.unit_types[t].price.pop)
     }
-    /// Answers yes so a captain is counted whatever its population, as this
-    /// crate always did: answering no narrowed the count to populated types
-    /// and moved the Spanish Lakes widening's parting keys (38 -> 40,
-    /// `run1013`); the original's own answer is not drawn by any capture.
+    /// `is(0x134)` on the unit's own type: the population-0 arm of the gate
+    /// both count blocks share with `Unit::close` and the birth
+    /// ([`Sim::type_counts_in_muster`]). It answered yes until item 4159's
+    /// eleventh residue, which counted every captain whatever its
+    /// population: a Transport Barge (`POP` 0) is born uncounted, and its
+    /// age upgrade to a Transport Galleon took it off `num_units[270]` and
+    /// put it on `[271]` — run600's who=1 held −2 and 2 from 11282, where
+    /// the original holds 0 and 0.
+    ///
+    /// SEAM: answers no, as [`Sim::close_count`] and the birth do; no
+    /// population-0 type of the Fighter Bomber's line is set here.
     fn table_unit_is_134(&mut self) -> bool {
-        true
-    }
-    fn table_unit_is_gov_hero(&mut self) -> bool {
         false
+    }
+    /// `UnitData::is_gov_hero@0046ce70` on the unit's own type
+    /// ([`Sim::type_is_hero`]): a government patriot (`POP` 0) is counted
+    /// on both sides of a type change, as it is at birth and at its close.
+    fn table_unit_is_gov_hero(&mut self) -> bool {
+        self.cur().is_some_and(|t| self.sim.type_is_hero(t))
     }
     fn old_type_index(&mut self) -> i32 {
         self.cur().map_or(0, |t| t as i32)
