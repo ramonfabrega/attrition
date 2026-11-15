@@ -1415,10 +1415,11 @@ impl Sim {
             // attrition stamps and `give_att_disabled` (§5), and the
             // missiles, repairs, bribes and nukes (§15).
             //
-            // `units_killed`, `units_lost`, the three victim stamp rows and
-            // `attrition_stamp2` are held (`Sim::leader_tally_leaf`) and not
-            // emitted: the record diff parts each (`docs/LEADERS.md` §2.5,
-            // §4.5, §5.5; parked 4176a, 4176b).
+            // The three victim stamp rows are held
+            // (`Sim::leader_tally_leaf`) and not emitted: the record diff
+            // parts each (`docs/LEADERS.md` §4.5; parked 4176b).
+            // `attrition_stamp2` came onto the line with item 4159's third
+            // residue, `units_killed` and `units_lost` with its ninth (§2.5).
             _ if crate::leaders::tallies::LEAVES.contains(&name)
                 && !crate::leaders::tallies::OFF_THE_LINE.contains(&name) =>
             {
@@ -1491,10 +1492,9 @@ impl Sim {
                 Some(self.leader_region_array(&v, count, 0))
             }
             // Item 4177 (`crate::leaders::rates`): the combat rates
-            // (`docs/LEADERS.md` §3).
-            _ if crate::leaders::rates::RATE_LEAVES.contains(&name)
-                && !crate::leaders::rates::RATES_OFF_THE_LINE.contains(&name) =>
-            {
+            // (`docs/LEADERS.md` §3), all thirteen on the line since item
+            // 4159's ninth residue (§3.5).
+            _ if crate::leaders::rates::RATE_LEAVES.contains(&name) => {
                 self.leader_rate_leaf(who, name).map(|v| vec![v])
             }
             _ => None,

@@ -2087,30 +2087,34 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// non-zero on 20: run1359, frame 5619, leader 1, 3153; run1496, frame
 /// 1539, leader 0, 1266 (`docs/LEADERS.md` §5.5). The long range stays out
 /// on the other 23.
+///
+/// Item 4159's ninth residue: 23 → 10 names, the thirteen combat leaves
+/// the line emitted unheld — `units_killed` and `units_lost`
+/// (`sim::leaders::tallies`) and the rates' `average_death_rate`,
+/// `average_damage_rate`, `average_hit_rate` and the four
+/// `*_current_frame` and four `*_fifteen_seconds` words
+/// (`sim::leaders::rates`) — each agreeing on frame 91 (0 on both
+/// leaders). Released by entry 131 §1's first way: a probe of every
+/// leader-record parting of the thirteen over the whole `diff::` suite
+/// (2,045 tests, 278 of them comparing a leader record) found **none**,
+/// where the fifth residue's found 6,172 lines, all on run1075's window,
+/// whose parent the eighth residue removed (a failed plan's goal re-pushed,
+/// `docs/LEADERS.md` §3.6); the same probe saw 1,091,793 non-zero values
+/// of theirs agree. Emitted, each agrees on all 226 walked packet leaders,
+/// and moves there (`packets::PACKET_RELEASED`'s witnesses;
+/// `docs/LEADERS.md` §2.5, §3.5). [`LEADERS`] is unmoved: the long range
+/// still parts on the other 10.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
-    ("average_damage_rate (unheld)", 2),
-    ("average_death_rate (unheld)", 2),
-    ("average_hit_rate (unheld)", 2),
-    ("damage_current_frame (unheld)", 2),
-    ("damage_fifteen_seconds (unheld)", 2),
-    ("deaths_current_frame (unheld)", 2),
-    ("deaths_fifteen_seconds (unheld)", 2),
     ("good_deeds (unheld)", 2),
     ("hire_stamp (unheld)", 2),
     ("hire_who (unheld)", 2),
-    ("hits_current_frame (unheld)", 2),
-    ("hits_fifteen_seconds (unheld)", 2),
     ("incoming_taunt_who (unheld)", 2),
-    ("kills_current_frame (unheld)", 2),
-    ("kills_fifteen_seconds (unheld)", 2),
     ("raid_stamp (unheld)", 2),
     ("score (unheld)", 2),
     ("tribute_demanded (unheld)", 2),
     ("tributes (unheld)", 2),
-    ("units_killed (unheld)", 2),
-    ("units_lost (unheld)", 2),
 ];
 
 /// The long range's leaves the test bends, one of each kind carried
@@ -2224,6 +2228,21 @@ const LEADERS_BENT: &[&str] = &[
     // Item 4159's step VII-d: the alliance found short's `counteroffer`,
     // agreeing on run 1562's frame 91.
     "counteroffer",
+    // Item 4159's ninth residue: the thirteen combat leaves, each 0 = 0 on
+    // run 1562's frame 91.
+    "units_killed",
+    "units_lost",
+    "average_death_rate",
+    "average_damage_rate",
+    "average_hit_rate",
+    "deaths_current_frame",
+    "kills_current_frame",
+    "hits_current_frame",
+    "damage_current_frame",
+    "deaths_fifteen_seconds",
+    "kills_fifteen_seconds",
+    "hits_fifteen_seconds",
+    "damage_fifteen_seconds",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

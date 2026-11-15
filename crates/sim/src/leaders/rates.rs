@@ -77,29 +77,12 @@ pub const RATE_LEAVES: [&str; 13] = [
     "damage_fifteen_seconds",
 ];
 
-/// Of [`RATE_LEAVES`], the eleven the leaders line emits unheld although
-/// the crate holds them: the record diff parts each (`docs/LEADERS.md`
-/// §3.5; parked 4177a–c). The hits and damage words part beside the
-/// struck object's own damage (a blow ours does not land on the capital)
-/// and on two nuke landings with nothing visible beside them; the deaths
-/// and kills words beside `units_killed` and `units_lost` on run1075; and
-/// three averages on the melees' closing record, the human's, one empty
-/// fold short. `frame_battle` agrees everywhere and is emitted, and so is
-/// `average_kill_rate` since item 4159's step T: it parts only beside its
-/// input on run1075 and transfers (`rondata::diff::transfer`, §3.5).
-pub const RATES_OFF_THE_LINE: [&str; 11] = [
-    "average_death_rate",
-    "average_damage_rate",
-    "average_hit_rate",
-    "deaths_current_frame",
-    "kills_current_frame",
-    "hits_current_frame",
-    "damage_current_frame",
-    "deaths_fifteen_seconds",
-    "kills_fifteen_seconds",
-    "hits_fifteen_seconds",
-    "damage_fifteen_seconds",
-];
+// Every one of [`RATE_LEAVES`] is on the leaders line since item 4159's
+// ninth residue: `frame_battle` from item 4177, `average_kill_rate` from
+// step T (on transfer), and the other eleven, which until then the line
+// emitted unheld (`RATES_OFF_THE_LINE`), once a probe of every
+// leader-record parting over the whole `rondata::diff` suite found none of
+// them parting anywhere (`docs/LEADERS.md` §3.5).
 
 /// One average's step 3 (§3.2): `c == 0 ? avg·7 >> 3 : (c + avg) >> 1`,
 /// unsigned 32-bit on the zero-extended words, stored back as a `u16`.

@@ -129,7 +129,10 @@ makes to each writes 0. **Item 4159's second residue released
 `barracks_queued`, `combat_queued` and `pop_issues`** (entry 131 §1's first
 way; §12.6, §14.5): a probe of every leader-record parting over the whole
 `diff::` suite finds none for the three, and emitted, each agrees on all
-226 packet leaders and moves there.
+226 packet leaders and moves there. **Its ninth residue released the
+thirteen combat leaves** the same way (§2.5, §3.5): `units_killed`,
+`units_lost` and the eleven rates the line emitted unheld, once run1075's
+window, the only one that parted them, stopped parting (23 → 10).
 
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
@@ -530,10 +533,14 @@ Two readings and an adjudication
 that prints the record: `buildings_razed` and `buildings_lost` agree on
 every one (run1147b's who 1 razes 6 = 6 by block 4376, and a port with
 `do_damage`'s raze removed parts there, ours 0), and `units_killed` and
-`units_lost` agree everywhere but run1075's garrison window, where both
+`units_lost` agree everywhere ~~but run1075's garrison window, where both
 part only beside the units' own hits (block 2247, who 1 killed ours 15
-theirs 16; 2386, who 0 ours 2 theirs 1). The spell writers and the abandon
-arm are not exercised by any kept dump, and rest on the readings.
+theirs 16; 2386, who 0 ours 2 theirs 1)~~: **since item 4159's eighth
+residue run1075 parts neither**, and its ninth probed every
+leader-record parting over the whole `diff::` suite and found none, and
+put both on the leaders line, each agreeing on all 226 packet leaders and
+off zero there (`packets::PACKET_RELEASED`). The spell writers and the
+abandon arm are not exercised by any kept dump, and rest on the readings.
 High confidence: every store and every test was settled at a listing
 instruction.
 
@@ -594,11 +601,14 @@ No kept-dump value is cited.
   `dest_angle`: item 4159's fourth residue gave four pieces the window
   fired from the figure's square their launch rows (`docs/COMBAT.md`
   §22), and the first blow apart moved from 2124 to 2354. What parts the
-  pair on 2392 is not established.
+  pair on 2392 is not established. ~~The pair still parts on run1075.~~
+  The eighth residue's re-push of a failed plan's goal (§3.6) removed the
+  window's parent, the ninth found the pair parting nowhere in the
+  `diff::` suite, and both are on the leaders line (§2.5).
 
 ## 3. The combat rates
 
-### 3.1 Leaves
+## 3.1 Leaves
 
 - `frame_battle`, +0xa4c, `int`. A frame number; 0 means never.
 - `average_death_rate` +0xa50, `average_kill_rate` +0xa52,
@@ -611,7 +621,7 @@ No kept-dump value is cited.
 Every add below is a 16-bit wrapping add. Slot `i`'s block sits at
 `0xe3addc + i·0x6eec`.
 
-### 3.2 The rule
+## 3.2 The rule
 
 **Writers, complete.** Four event writers feed the `_current_frame` words
 and one fold writes everything else. The four `Leader::inc_*_event` have no
@@ -723,7 +733,7 @@ displays the averages and `deaths`/`kills_current_frame` (×100), never
 `hits_current_frame`. `log_data` and the checksum walk read all thirteen.
 `Achieve::add_event (007af660)` writes no leaf.
 
-### 3.3 In the crate
+## 3.3 In the crate
 
 Item 4177 holds all thirteen in `crate::leaders::rates` (one `Rates` a slot
 in `LeadersState`; `Sim::leader_rate_leaf` answers each by its own name,
@@ -750,11 +760,12 @@ rows are death, kill, hit, damage). The words are `u16` and every add a
 - **W5**: `Sim::fold_rates` in `Sim::tick`, after `refresh_site_hits` and
   before `self.frame += 1`, for slots `0..min(seated, 8)`, the age off
   `tech[who].ages`. `Achieve::add_event` is unported and writes no leaf.
-- **Checksum**: `frame_battle` is emitted on the leaders line; the other
-  twelve are held and emitted unheld (`rates::RATES_OFF_THE_LINE`), each
-  parting in the record diff (3.5).
+- **Checksum**: all thirteen are emitted on the leaders line:
+  `frame_battle` since item 4177, `average_kill_rate` since step T, the
+  other eleven since item 4159's ninth residue (3.5). Until then those
+  eleven were emitted unheld (`rates::RATES_OFF_THE_LINE`, removed).
 
-### 3.4 Reached by a plain game
+## 3.4 Reached by a plain game
 
 A skirmish against the computer reaches W1 on every blow, W2 on every
 structure razed, W3 on every squad's last captain killed in combat, the fold
@@ -765,7 +776,7 @@ with `-1` and count nothing (triggers, cut from v1). `Leaders::clear` runs
 at game close and in multiplayer out-of-sync recovery. Gaia slots 8 and 9
 never fold.
 
-### 3.5 How established, and how confident
+## 3.5 How established, and how confident
 
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/combat-rates-*.md`). ~~no diff backs it
@@ -825,7 +836,22 @@ record frame's place: the record labelled `f` is the state before tick
 `average_kill_rate` parts in the record diff only on run1075, beside
 `kills_current_frame`, so it is released and emitted. The other three
 averages transfer too but part on frames of their own (4177a, 4177b) and
-stay held: a parting of its own is a finding, not a transfer. The four
+stay held: a parting of its own is a finding, not a transfer.
+
+**All thirteen on the line** (item 4159's ninth residue). The fifth
+residue's probe found the hits and damage family parting only on run1075,
+the nuke landings among the rest gone; the eighth residue's re-push of a
+failed plan's goal (3.6) removed run1075's partings. A probe of every
+leader-record parting of the eleven held rates and the unit pair, at every
+record-diff site (the harness's two leader loops, golden's two,
+`cases_01_09`'s two, the harness test cases' seven, the melees'
+`SeatWalk::compare_part` and `diplomacy_take`), over the whole `diff::`
+suite (2,045 tests, 278 comparing a leader record), printed **no parting**,
+and 1,091,793 non-zero values of theirs agreeing; with
+`hits_fifteen_seconds` bent by one on our side it printed run1075's
+records parting (the probe can fail). Emitted, each agrees on all 226
+walked packet leaders and is off zero on a named one
+(`packets::PACKET_RELEASED`, which bends each and sees it part). The four
 `*_current_frame` words and the four totals cannot transfer: their input
 is each tick's blows and deaths, which no record prints (a vanished unit
 does not say how it went).
@@ -846,7 +872,7 @@ take has nine object call sites. One addition: the disband arm counts in W2.
 Confidence is high throughout: every step and predicate is confirmed on the
 listing. The verdicts cite no kept-dump value for these leaves.
 
-### 3.6 Not established
+## 3.6 Not established
 
 - **The crate's `struck` return ahead of W1.** Whether the original ever
   runs `do_damage` on a target `struck` refuses (non-active unit, dead or
@@ -862,9 +888,14 @@ listing. The verdicts cite no kept-dump value for these leaves.
   re-entered chase move pays one grid draw (`Unit::do_move+0xe84`, 8116)
   in the original and none here, and every later draw of the frame
   shifts by one: `do_move` re-pushes a failed plan's goal unless it is
-  on top, ours on an empty stack only (the eighth residue). Whether the
-  combat leaves part off run1075 is open (4159r8a); the Royal Mameluke's and the Arab
+  on top, ours on an empty stack only (the eighth residue). ~~Whether the
+  combat leaves part off run1075 is open (4159r8a)~~: they part nowhere in
+  the `diff::` suite (the ninth residue, 3.5), so `struck` has no window
+  left that tests it; the Royal Mameluke's and the Arab
   Armored Car's `CHAR_ATTACKWALK` launch keys are not either (4159r5a).
+  Not established: whether the rates agree on a window none of the kept
+  dumps holds, a long fight past the ages the captures reach (the line
+  carries them now, so a later capture that parts them is a finding).
 - **The disband arm's reach.** Which types carry flag `0x2000` and which
   leaders hold `leader_flags & 4`; and whether the crate's `damage_building`
   disbands at all. A reading of the flag's loader, then a diff of

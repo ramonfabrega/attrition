@@ -76,19 +76,15 @@ pub const LEAVES: [&str; 16] = [
     "nukes_launched",
 ];
 
-/// Of [`LEAVES`], the five the leaders line emits unheld although the crate
-/// holds them: the record diff parts each — the counters and the stamp rows
-/// beside their units' and rounds' own partings (`docs/LEADERS.md` §2.5,
-/// §4.5; item 4176, parked 4176a). `attrition_stamp2` left with item 4159's
-/// third residue: the bleed reads the record's `anti_att`, and the Lakota,
-/// Mongol, German and Aztec pairs' partings are gone (§5.5).
-pub const OFF_THE_LINE: [&str; 5] = [
-    "units_killed",
-    "units_lost",
-    "attack_stamp",
-    "raid_stamp",
-    "ally_stamp",
-];
+/// Of [`LEAVES`], the three the leaders line emits unheld although the crate
+/// holds them: the record diff parts each, the stamp rows beside their
+/// rounds' own partings (`docs/LEADERS.md` §4.5; item 4176).
+/// `attrition_stamp2` left with item 4159's third residue: the bleed reads
+/// the record's `anti_att`, and the Lakota, Mongol, German and Aztec pairs'
+/// partings are gone (§5.5). `units_killed` and `units_lost` left with its
+/// ninth: a probe of every leader-record parting over the whole
+/// `rondata::diff` suite finds neither parting anywhere (§2.5).
+pub const OFF_THE_LINE: [&str; 3] = ["attack_stamp", "raid_stamp", "ally_stamp"];
 
 /// `frame − stamp > window`, the strict test every stamp here shares.
 pub fn past(frame: i64, stamp: i64, window: i64) -> bool {
