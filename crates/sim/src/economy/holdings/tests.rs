@@ -188,6 +188,49 @@ fn the_ceo_s_city_is_where_a_counted_on_map_hero_stands() {
     assert_eq!(sim.ceo_city(1), None, "another player's hero");
 }
 
+/// **The CEO's step into or out of a city marks its owner's economy
+/// dirty** (`Unit::set_new_location@005f8d20:146`–`150` →
+/// `Unit::update_ceo_position@005f96b0`, item 4159r12): a tile crossing
+/// by a unit with the CEO bit (`unit_masks2 & 0x10000`, set where the
+/// type `is(0x165, 1)`) compares `find_city_at` on the old tile's centre
+/// and the new one's and raises `0x2000000` when they differ. A step
+/// inside one city, and any other unit's step, leaves the flag down.
+#[test]
+fn the_ceo_s_step_across_a_city_s_edge_marks_the_economy_dirty() {
+    use crate::ai::ai_load::uflags2;
+    let mut sim = world_sim();
+    let t = install(&mut sim);
+    let b = build(&mut sim, 0, t.village, 32, 32);
+    let c = sim.buildings[b].city.expect("a finished city");
+    let mut ceo = UnitType {
+        type_index: 0x165,
+        hits: 50,
+        ..UnitType::default()
+    };
+    ceo.cols.unit_flags2 = uflags2::FLAG2_GENERAL;
+    let ceo = sim.add_unit_type(ceo);
+    let h = spawn(&mut sim, 0, ceo, tile_pos(33, 33));
+    sim.units[h].type_index = 0x165;
+    sim.units[h].on_map = true;
+    let out = tile_pos(60, 60);
+    assert_eq!(sim.find_city_at(0, tile_pos(33, 33), None), Some(c));
+    assert_eq!(sim.find_city_at(0, out, None), None, "the far tile is in no city");
+
+    sim.economy.ledgers[0].dirty = false;
+    sim.set_new_location(h, tile_pos(34, 33), false);
+    assert!(!sim.economy.ledgers[0].dirty, "a step inside the city");
+    sim.set_new_location(h, out, false);
+    assert!(sim.economy.ledgers[0].dirty, "the CEO left its city");
+    sim.economy.ledgers[0].dirty = false;
+    sim.set_new_location(h, tile_pos(33, 33), false);
+    assert!(sim.economy.ledgers[0].dirty, "the CEO came back");
+
+    let u = spawn(&mut sim, 0, t.citizen, tile_pos(33, 33));
+    sim.economy.ledgers[0].dirty = false;
+    sim.set_new_location(u, out, false);
+    assert!(!sim.economy.ledgers[0].dirty, "a citizen is no CEO");
+}
+
 // ------------------------------------------------------------------
 // The one that matters: a farm with a citizen on it pays.
 // ------------------------------------------------------------------

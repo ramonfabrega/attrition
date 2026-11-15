@@ -88,7 +88,7 @@ use crate::Sim;
 use crate::cities::build::{self, Ident};
 use crate::economy::{self, Resource, Site};
 use crate::tech::Line;
-use crate::world::Player;
+use crate::world::{self, Player, Pos};
 
 /// The `BONUS` types the enhancer and taxation levels are read from.
 ///
@@ -340,6 +340,40 @@ impl Sim {
             x.owner == who && x.alive() && x.on_map && x.type_index == CEO && self.is_hero_unit(h)
         })?;
         self.find_city_at(who, self.units[h].pos, None)
+    }
+
+    /// The CEO bit, `unit_masks2 & 0x10000`: `Unit::init@00612100:253`–`264`
+    /// and `Unit::set_type@00612fa0:208`–`219` set it where the type
+    /// `is(0x165, 1)`, taken as the type itself as [`Sim::ceo_city`] takes it.
+    pub(crate) fn has_ceo_bit(&self, u: usize) -> bool {
+        self.units[u].type_index == 0x165
+    }
+
+    /// **`Unit::update_ceo_position@005f96b0`** (item 4159r12): for a unit
+    /// with the CEO bit, `find_city_at` the owner's city on the old tile's
+    /// centre and the new one's (`None` is the original's `-1`, off the map
+    /// or nowhere), and on a difference raise the owner's `0x2000000`, so
+    /// the next reassembly falls within eight frames rather than at 512.
+    /// `Unit::set_new_location@005f8d20:146`–`150` calls it on a tile
+    /// crossing; `go_inside`, `come_out`, `init` and `set_type` call it
+    /// too (SEAM: those four arms are not built).
+    pub(crate) fn update_ceo_position(&mut self, u: usize, from: Option<Pos>, to: Option<Pos>) {
+        if !self.has_ceo_bit(u) {
+            return;
+        }
+        let who = self.units[u].owner;
+        let city = |sim: &Self, t: Option<Pos>| {
+            t.filter(|t| sim.world.tile_in_bounds(*t)).and_then(|t| {
+                let at = Pos::new(
+                    t.x * world::UNITS_PER_TILE + world::UNITS_PER_TILE / 2,
+                    t.y * world::UNITS_PER_TILE + world::UNITS_PER_TILE / 2,
+                );
+                sim.find_city_at(who, at, None)
+            })
+        };
+        if city(self, from) != city(self, to) {
+            self.economy.ledgers[who as usize].dirty = true;
+        }
     }
 
     /// One city, as income sees it — `City::calc_gather` and the part of

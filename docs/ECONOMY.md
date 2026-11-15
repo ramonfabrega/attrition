@@ -788,6 +788,20 @@ Between those two sits one more multiplier of the same shape: a CEO hero
 `THECEO_PRODUCTION_BONUS`, with the same reach as the Forbidden City's — the
 building walk only.
 
+The CEO's city is read only when the rate is reassembled, so **the CEO's own
+step dirties the economy** (item 4159r12). A unit whose type `is(0x165, 1)`
+carries `unit_masks2 & 0x10000` (`Unit::init@00612100:253`–`269`,
+`Unit::set_type@00612fa0:208`–`224`). `Unit::set_new_location@005f8d20:146`–
+`150` calls `Unit::update_ceo_position@005f96b0` on every tile crossing
+of such a unit. It asks `find_city_at` for the owner's city on the old tile's
+centre and the new one's, and it raises `0x2000000` when the two differ.
+`go_inside`, `come_out`, `init` and `set_type` call it with one side
+`-1`. Without it, a CEO walking into a city waits up to 512 frames to be
+paid for. run1161b has it on frame 3799: who=1's CEO `1/19` crosses from
+tile (190, 209) to (191, 210), and the reassembly falls on 3807. The crate
+builds the tile-crossing arm (`Sim::update_ceo_position`). The other four
+arms are a SEAM.
+
 **Taxes, into wealth.** `CityData::get_taxes` is:
 
 ```
