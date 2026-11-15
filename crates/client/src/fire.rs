@@ -477,11 +477,12 @@ mod tests {
     /// past 2,099, **dense 924** of 2,463; the packet's 11,878, dense 1,750.
     /// Item 4269: the drawn plume 11,322 → 11,314 of 19,675 → 19,658: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4272: the drawn plume 11,314 → 11,344 of 19,658 → 19,814: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    /// Item 4275: the drawn plume 11,344 → 11,347 of 19,814 → 19,853: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((11344, 19814, 2036), (14833, 928)),
-        ((0, 19814, 0), (0, 0)),
-        ((19814, 19814, 0), (17328, 2486)),
-        ((11911, 19814, 1905), (14191, 1757)),
+        ((11347, 19853, 2032), (14835, 928)),
+        ((0, 19853, 0), (0, 0)),
+        ((19853, 19853, 0), (17359, 2494)),
+        ((11904, 19853, 1894), (14176, 1758)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -500,11 +501,12 @@ mod tests {
     /// **dense 975** of 2,511; the packet's 12,257, dense 2,124.
     /// Item 4269: the drawn plume 11,560 → 11,564 of 19,045 → 19,016: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4272: the drawn plume 11,564 → 11,590 of 19,016 → 19,170: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    /// Item 4275: the drawn plume 11,590 → 11,593 of 19,170 → 19,212: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     const RUN1570_PLUME: PlumeRows = [
-        ((11590, 19170, 1762), (14899, 961)),
-        ((0, 19170, 0), (0, 0)),
-        ((19170, 19170, 0), (16635, 2535)),
-        ((12274, 19170, 1447), (13723, 2128)),
+        ((11593, 19212, 1747), (14895, 959)),
+        ((0, 19212, 0), (0, 0)),
+        ((19212, 19212, 0), (16673, 2539)),
+        ((12288, 19212, 1434), (13728, 2124)),
     ];
 
     #[test]
@@ -541,21 +543,22 @@ mod tests {
     /// (extent 17 against 16) and the row reads 322 at the clamp (4241a).
     /// Item 4269: the flame row 206 unmoved, its luma split (176, 678) → (175, 679): the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4272: the flame row 206 of 699 → 692 (theirs, the fires off, moves with the white), past 584 → 587: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    /// Item 4275: the flame row 206 → 205 of 692 → 689 (a fall of one), past 587 → 588: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     const RUN1559B_3279_FLAME: FlameRows = [
         (
-            (206, 692, 587),
-            (176, 681),
+            (205, 689, 588),
+            (177, 682),
             [(19, 15), (23, 21), (15, 0), (31, 20)],
         ),
-        ((0, 692, 0), (0, 0), [(19, 0), (23, 0), (15, 0), (31, 0)]),
+        ((0, 689, 0), (0, 0), [(19, 0), (23, 0), (15, 0), (31, 0)]),
         (
-            (692, 692, 0),
-            (146, 546),
+            (689, 689, 0),
+            (145, 544),
             [(19, 19), (23, 23), (15, 15), (31, 31)],
         ),
         (
-            (264, 692, 429),
-            (113, 666),
+            (263, 689, 432),
+            (114, 668),
             [(19, 15), (23, 18), (15, 0), (31, 19)],
         ),
     ];
@@ -568,21 +571,22 @@ mod tests {
     /// 13 and 27). Depth test off, 444 (4241a).
     /// Item 4269: the flame row 346 → 345 of 627: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4272: the flame row 345 → 349 of 627: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    /// Item 4275: the flame row 349 of 627 → 626: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     const RUN1570_FLAME: FlameRows = [
         (
-            (349, 627, 397),
-            (104, 684),
+            (349, 626, 395),
+            (103, 683),
             [(13, 11), (27, 26), (5, 0), (19, 24)],
         ),
-        ((0, 627, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
+        ((0, 626, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
         (
-            (627, 627, 0),
-            (43, 584),
+            (626, 626, 0),
+            (43, 583),
             [(13, 13), (27, 27), (5, 5), (19, 19)],
         ),
         (
-            (410, 627, 445),
-            (107, 785),
+            (411, 626, 447),
+            (107, 788),
             [(13, 15), (27, 28), (5, 0), (19, 28)],
         ),
     ];

@@ -246,6 +246,31 @@ pub fn template_heights(install: &Install) -> Vec<i32> {
     })
 }
 
+/// Each `<MOUNTAIN>`'s `area` as written (`lg`, `med`, `sm`), in file
+/// order (item 4275). `Mountains::init@0089ad70` sorts a template into one
+/// of three lists by it and sets `MountainRangeData::mountain_size` 1, 2 or
+/// 3; `TerrainOut::adjust_for_mountains@008703c0` marks no snowcap for size
+/// 1. Absent, empty.
+pub fn template_areas(install: &Install) -> Vec<String> {
+    mountain_elements(install, |m| {
+        m.attribute("area").unwrap_or_default().trim().to_string()
+    })
+}
+
+/// **A template's peak** (item 4275; `docs/RENDERER.md` §3.10, "The peak
+/// draw"): `MountainRange::init@008998b0`'s `peak_tx`, `peak_ty`, the first
+/// of [`mesh_pixels`]' vertices (rows outer) whose height is the greatest,
+/// as its pixel. `None` for an image with no lit vertex.
+pub fn peak(t: &Tga) -> Option<(i32, i32)> {
+    let mut best: Option<(i32, i32, u8)> = None;
+    for (x, y, h) in mesh_pixels(t) {
+        if best.is_none_or(|b| h > b.2) {
+            best = Some((x, y, h));
+        }
+    }
+    best.map(|(x, y, _)| (x, y))
+}
+
 /// Maps each `<MOUNTAIN>` under `effects_graphics.xml`'s `<MOUNTAINS>`.
 fn mountain_elements<T>(install: &Install, f: impl Fn(roxmltree::Node<'_, '_>) -> T) -> Vec<T> {
     let path = install.data("effects_graphics.xml");
@@ -316,6 +341,33 @@ mod tests {
         b[16] = 32;
         b[17] = desc;
         b
+    }
+
+    /// Item 4275: the peak is the first vertex of the greatest height,
+    /// rows outer; a later tie does not take it, and an unlit pixel of
+    /// greater red is no vertex.
+    #[test]
+    fn the_peak_is_the_first_highest_vertex() {
+        let mut t = Tga {
+            width: 32,
+            height: 32,
+            pixels: vec![[0, 0, 0, 0]; 32 * 32],
+        };
+        let mut put = |x: usize, y: usize, red: u8, a: u8| t.pixels[y * 32 + x] = [0, 0, red, a];
+        put(8, 4, 90, 255);
+        put(4, 8, 200, 255);
+        put(12, 8, 200, 255);
+        put(0, 0, 255, 0);
+        put(5, 8, 250, 255);
+        assert_eq!(peak(&t), Some((4, 8)));
+        assert_eq!(
+            peak(&Tga {
+                width: 32,
+                height: 32,
+                pixels: vec![[0; 4]; 32 * 32]
+            }),
+            None
+        );
     }
 
     #[test]

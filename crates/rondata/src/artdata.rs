@@ -2458,6 +2458,51 @@ pub fn coral_texture(install: &Install, tileset: &str) -> Result<Option<String>,
         .map(|f| f.trim().to_string()))
 }
 
+/// **The tileset's underlays** (item 4275; `docs/RENDERER.md` §3.10, "The
+/// snowcap, drawn"): `<UNDERLAYS>`' `TEXTURE` `id=` and `file=` under
+/// `tileset`, in file order, beside the `<TILESET>`'s `snowcaps` flag.
+/// `TileSet::init@0087b370` loads each into
+/// `TileSetData::weather_underlay_textures` by its id (tinted, `PF_DXT3`,
+/// three levels), and `CoordInfo::add_geometry@0084bef0` lays the
+/// `snowcap` entry only while `has_snowcaps` is set. An absent flag reads
+/// false; an absent list, empty.
+pub fn underlay_textures(
+    install: &Install,
+    tileset: &str,
+) -> Result<(bool, Vec<(String, String)>), ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let set = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?;
+    let snowcaps = set
+        .attribute("snowcaps")
+        .is_some_and(|v| v.trim().parse::<i32>().is_ok_and(|n| n != 0));
+    let list = set
+        .children()
+        .find(|n| n.has_tag_name("UNDERLAYS"))
+        .map(|u| {
+            u.children()
+                .filter(|n| n.has_tag_name("TEXTURE"))
+                .filter_map(|t| {
+                    Some((
+                        t.attribute("id")?.trim().to_string(),
+                        t.attribute("file")?.trim().to_string(),
+                    ))
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    Ok((snowcaps, list))
+}
+
 /// **The tileset's tint** (item 4212; `docs/RENDERER.md` §3.21): the
 /// `<LIGHTING>` element's `tint_red`, `tint_green` and `tint_blue` under
 /// `tileset`, as `TileSet::init@0087b370` reads them into

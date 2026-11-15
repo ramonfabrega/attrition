@@ -17,21 +17,20 @@ fn land_diffuse() -> f32 {
     return {LAND_DIFFUSE};
 }
 
+fn land_hdr() -> f32 {
+    return {HDR_SCALE};
+}
+
 fn land_flat_nl() -> f32 {
     return {N_DOT_L};
 }
 
 fn land_lit(c: vec3<f32>, nl_in: f32) -> vec3<f32> {
-    let ld = land_diffuse();
     var nl = nl_in;
-    var vertex = vec3<f32>(1.0);
     if (nl_in > 1.5) {
         nl = land_flat_nl();
-    } else {
-        let amb = vec3<f32>({VAMBIENT_R}, {VAMBIENT_G}, {VAMBIENT_B});
-        vertex = min(vec3<f32>(1.0), vec3<f32>(ld * max(nl, 0.0)) + amb);
     }
-    return land_shade(c * vertex, nl);
+    return land_shade(c * land_vertex(nl_in), nl);
 }
 
 // Item 4269 (§3.22): a mountain's corner, lit by the range's own normal
@@ -51,7 +50,25 @@ fn land_shade(c: vec3<f32>, nl: f32) -> vec3<f32> {
     let s = pow(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({LIT_POWER}));
     let diffuse = max(ld * nl / 3.14159265, 0.0);
     let ambient = vec3<f32>({AMBIENT_R}, {AMBIENT_G}, {AMBIENT_B});
-    let l = {HDR_SCALE} * s * (vec3<f32>(diffuse) + ambient);
+    let l = land_hdr() * s * (vec3<f32>(diffuse) + ambient);
+    return vec3<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z));
+}
+
+// Item 4275 (§3.10, "The snowcap, drawn"): a land corner's vertex colour,
+// `light_vert`'s `min(1, LAND_DIFFUSE · N·L + LAND_AMBIENT)`; over 1.5, white.
+fn land_vertex(nl: f32) -> vec3<f32> {
+    if (nl > 1.5) {
+        return vec3<f32>(1.0);
+    }
+    let amb = vec3<f32>({VAMBIENT_R}, {VAMBIENT_G}, {VAMBIENT_B});
+    return min(vec3<f32>(1.0), vec3<f32>(land_diffuse() * max(nl, 0.0)) + amb);
+}
+
+// Item 4275: `TL_FAKE_LIGHT` without `LIGHTING` (the snowcap underlay's
+// draw): the saturated stage colour to the fake light's power times the HDR
+// multiplier, then the tone map at the clamp, `render::silhouette::fake_light`.
+fn land_fake(c: vec3<f32>) -> vec3<f32> {
+    let l = pow(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({FAKE_LIGHT_POWER})) * land_hdr();
     return vec3<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z));
 }
 

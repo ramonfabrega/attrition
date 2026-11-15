@@ -402,8 +402,9 @@ const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] =
 /// Item 4241: before luma 10 → 9, the bloom drawn and a plume's pixel clamped after the white (§3.25).
 /// Item 4269: the first luma 9 → 10 of 24: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 /// Item 4272: the luma before 10 → 9 and moved 9 → 8 of 24: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+/// Item 4275: the luma before 9 → 8 of 24, a named fall on the grass under the ring with no road drawn: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
 const RUN1570_RING: [[(usize, usize); 2]; 3] =
-    [[(0, 24), (9, 24)], [(22, 24), (16, 24)], [(0, 24), (8, 24)]];
+    [[(0, 24), (8, 24)], [(22, 24), (16, 24)], [(0, 24), (8, 24)]];
 
 /// **The ring's row** (item 4199, §3.19): on run1559b's and run1570's
 /// photographs, before, drawn, and moved.
