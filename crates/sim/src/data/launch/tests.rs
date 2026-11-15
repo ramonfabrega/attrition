@@ -1425,6 +1425,266 @@ fn the_original_s_release_agrees_at_every_heading_for_item_4159r4() {
     assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
 }
 
+/// **Every key the widened suite fired from the figure's square now has its
+/// bay** (item 4159's fifth residue, 4159r4a): a probe on [`launch_point`]'s
+/// fallback over `widened_whole walks_back walks_the_gap dates_the_gap
+/// old_word_keeps attrition_stamp2` (673 tests, 88 of them firing) listed
+/// 1,159 rounds from 53 pieces with no row. These are the 43 plain pieces'
+/// keys `(piece, anim, starttime, node)`; the pivot pieces' (148, 158, 173,
+/// 207, 232, 234, 520, 844, 1899) need [`crate::data::pivot`] rows and the
+/// Armed Supply Wagon's (15) is the figure's own square in the original too
+/// (its four `AttachPos` rows on run1579 are zero). Red on the tree before
+/// the rows: every key fell back.
+#[test]
+fn every_plain_piece_the_widened_suite_fired_from_the_figure_s_square_has_its_bay() {
+    let keys: [(i32, i8, u32, i8); 95] = [
+        (45, 11, 12, 0),
+        (45, 12, 6, 0),
+        (45, 13, 27, 0),
+        (57, 11, 12, 0),
+        (57, 12, 14, 0),
+        (57, 12, 24, 0),
+        (57, 13, 12, 0),
+        (57, 13, 17, 0),
+        (59, 11, 12, 0),
+        (59, 13, 12, 0),
+        (63, 11, 6, 0),
+        (63, 12, 25, 0),
+        (63, 13, 23, 0),
+        (68, 11, 12, 0),
+        (68, 12, 14, 0),
+        (68, 12, 24, 0),
+        (68, 13, 12, 0),
+        (68, 13, 17, 0),
+        (71, 12, 4, 0),
+        (111, 11, 25, 1),
+        (111, 12, 14, 1),
+        (111, 13, 12, 1),
+        (114, 12, 14, 0),
+        (114, 13, 6, 0),
+        (210, 12, 1, 1),
+        (210, 12, 7, 1),
+        (210, 12, 23, 0),
+        (216, 12, 8, 0),
+        (217, 12, 9, 0),
+        (219, 12, 70, 0),
+        (220, 12, 70, 0),
+        (221, 12, 26, 0),
+        (221, 13, 8, 0),
+        (225, 11, 48, 0),
+        (225, 12, 48, 0),
+        (226, 12, 9, 0),
+        (227, 12, 9, 0),
+        (229, 12, 53, 0),
+        (230, 12, 53, 0),
+        (249, 12, 4, 1),
+        (249, 12, 9, 0),
+        (250, 12, 4, 1),
+        (250, 12, 9, 0),
+        (251, 12, 1, 0),
+        (253, 12, 4, 1),
+        (253, 12, 9, 0),
+        (256, 12, 1, 1),
+        (256, 12, 3, 2),
+        (256, 12, 7, 1),
+        (256, 12, 11, 2),
+        (257, 12, 1, 0),
+        (257, 12, 2, 1),
+        (257, 12, 4, 0),
+        (257, 12, 6, 1),
+        (257, 12, 8, 0),
+        (257, 12, 11, 1),
+        (257, 12, 13, 0),
+        (257, 12, 15, 1),
+        (257, 12, 17, 0),
+        (260, 12, 1, 0),
+        (260, 12, 7, 1),
+        (371, 12, 23, 0),
+        (568, 12, 8, 0),
+        (573, 12, 26, 0),
+        (919, 12, 12, 0),
+        (920, 12, 8, 0),
+        (1271, 12, 12, 0),
+        (1272, 12, 8, 0),
+        (1273, 12, 9, 0),
+        (1274, 11, 9, 0),
+        (1274, 12, 9, 0),
+        (1274, 13, 9, 0),
+        (1275, 12, 70, 0),
+        (1311, 12, 1, 0),
+        (1311, 12, 2, 0),
+        (1311, 12, 3, 1),
+        (1311, 12, 4, 0),
+        (1311, 12, 5, 1),
+        (1311, 12, 7, 0),
+        (1311, 12, 8, 1),
+        (1311, 12, 9, 0),
+        (1311, 12, 10, 1),
+        (1311, 12, 11, 0),
+        (1311, 12, 13, 1),
+        (1462, 11, 12, 0),
+        (1462, 11, 13, 0),
+        (1623, 12, 12, 0),
+        (1626, 11, 9, 0),
+        (1626, 12, 9, 0),
+        (1626, 13, 9, 0),
+        (1882, 11, 5, 0),
+        (1882, 12, 3, 0),
+        (1882, 13, 6, 0),
+        (1977, 12, 9, 0),
+        (6706, 12, 15, 0),
+    ];
+    let missing: Vec<_> = keys
+        .iter()
+        .filter(|&&(p, a, t, n)| bay(p, a, t, n).is_none())
+        .collect();
+    assert!(missing.is_empty(), "{} keys fall back: {missing:?}", missing.len());
+}
+
+/// **Four of the new rows at four headings** `(deg, x, y, z)`, read off
+/// item 4159r5's sweeps on run1579's packet: the Trebuchet (216, 108 of
+/// the probe's rounds), the India Crossbowmen (1882, 115), the Asian
+/// Strategic Bomber's right bay (1311, node 1, a [`GUNS`] row: 206) and
+/// the American Catapult (919, 70). The whole sweeps are
+/// [`the_original_s_release_agrees_at_every_heading_for_item_4159r5`]'s.
+#[test]
+fn the_trebuchet_the_india_crossbowmen_the_strategic_bomber_and_the_catapult_leave_from_their_bays()
+{
+    type Key = (i32, i8, u32, i8, [(i64, i64, i64, i32); 4]);
+    let sweeps: [Key; 4] = [
+        (
+            216,
+            crate::units::anim::ATTACK2,
+            8,
+            0,
+            [
+                (0, 0, -301, 693),
+                (97, 299, 36, 693),
+                (211, -155, 258, 693),
+                (305, -247, -173, 693),
+            ],
+        ),
+        (
+            1882,
+            crate::units::anim::ATTACK1,
+            5,
+            0,
+            [
+                (0, -11, 87, 173),
+                (97, -85, -22, 173),
+                (211, 55, -69, 173),
+                (305, 65, 60, 173),
+            ],
+        ),
+        (
+            1311,
+            crate::units::anim::ATTACK2,
+            3,
+            1,
+            [
+                (0, -93, -156, 0),
+                (97, 166, -74, 0),
+                (211, 0, 182, 0),
+                (305, -181, -12, 0),
+            ],
+        ),
+        (
+            919,
+            crate::units::anim::ATTACK2,
+            12,
+            0,
+            [
+                (0, 0, -33, 245),
+                (97, 32, 4, 245),
+                (211, -17, 28, 245),
+                (305, -27, -19, 245),
+            ],
+        ),
+    ];
+    for (piece, anim, start, node, points) in sweeps {
+        let b = bay(piece, anim, start, node)
+            .unwrap_or_else(|| panic!("piece {piece} a{anim} t{start} n{node}"));
+        for (deg, x, y, z) in points {
+            assert_eq!(
+                b.offset((deg + 180) % 360),
+                (x, y),
+                "{piece} a{anim} t{start} at {deg}°"
+            );
+            assert_eq!(b.dz, z, "{piece} a{anim} t{start}");
+        }
+    }
+}
+
+/// **Item 4159r5's rows agree with the original at every heading**:
+/// `$RON_BAY_SWEEPS_4159R5` is the directory holding
+/// `sweep-<piece>-<node>-<anim>-<time>.txt` (`deg r x y z …` at every whole
+/// degree 0..=360) for the 43 plain pieces and the Armed Supply Wagon,
+/// outside git (`~/ron-data/lab-experiments/2026-11-15-item-4159r5/sweeps/`),
+/// written by `init_position` and then `get_position` on run1579's packet.
+/// Every file is read and each key is looked up the way [`launch_point`]
+/// looks it up, so a [`GUNS`] row and the figure's own square (piece 15,
+/// whose rows are zero) are checked as well as [`BAYS`]'.
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_item_4159r5() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4159R5") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4159R5 (item 4159r5's oracle, run1579)");
+        return;
+    };
+    let (mut files, mut rows, mut off) = (0, 0, Vec::new());
+    let mut names: Vec<_> = std::fs::read_dir(&dir)
+        .expect("RON_BAY_SWEEPS_4159R5")
+        .map(|e| e.expect("entry").file_name().into_string().expect("utf-8"))
+        .filter(|n| n.starts_with("sweep-") && n.ends_with(".txt"))
+        .collect();
+    names.sort();
+    for name in names {
+        // `sweep-<piece>-<node>-<anim>-<time>.txt`, the node possibly `-1`.
+        let stem = &name["sweep-".len()..name.len() - ".txt".len()];
+        let (piece, rest) = stem.split_once('-').expect("piece");
+        let (node, rest) = match rest.strip_prefix('-') {
+            Some(r) => {
+                let (n, r) = r.split_once('-').expect("node");
+                (-n.parse::<i8>().expect("node"), r)
+            }
+            None => {
+                let (n, r) = rest.split_once('-').expect("node");
+                (n.parse::<i8>().expect("node"), r)
+            }
+        };
+        let (anim, time) = rest.split_once('-').expect("anim");
+        let (piece, anim, time): (i32, i8, u32) = (
+            piece.parse().expect("piece"),
+            anim.parse().expect("anim"),
+            time.parse().expect("time"),
+        );
+        let b = bay(piece, anim, time, node);
+        let table = std::fs::read_to_string(format!("{dir}/{name}")).expect("sweep");
+        for line in table.lines() {
+            let f: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y, z) = b.map_or((0, 0, 0), |b| {
+                let (x, y) = b.offset((f[0] + 180) % 360);
+                (x, y, i64::from(b.dz))
+            });
+            if (x, y, z) != (f[2], f[3], f[4]) {
+                off.push(format!(
+                    "{name} deg {}: {x},{y},{z} against {},{},{}",
+                    f[0], f[2], f[3], f[4]
+                ));
+            }
+            rows += 1;
+        }
+        files += 1;
+    }
+    // 43 pieces' 120 distinct keys, and the Armed Supply Wagon's four.
+    assert_eq!(files, 124, "{dir}");
+    assert_eq!(rows, 124 * 361, "{dir}");
+    assert!(off.is_empty(), "{} headings disagree: {:?}", off.len(), &off[..off.len().min(20)]);
+}
+
 /// **The default Fusiliers' piece 86 leaves from piece 790's bays** (item
 /// 4159's third residue): run1185's packet holds its three attack
 /// `AttachPos` rows (node 0, frames 6, 6 and 8, `RData +0x88` 1.0), and
