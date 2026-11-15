@@ -1516,7 +1516,8 @@ that diff on this frame: `los_x`'s one writer, the animal's overrides,
   but by `Unit::init`; `do_trade`'s `operator=` alone is not built.
   `inside_down` of a carrier; a
   `TRADE_ROUTE`'s walker and every order kind but a move, a `BUILD_AT` and a
-  `GATHER` (their type and node byte alone are emitted); `flags & 0x8`
+  `GATHER` (their type and node byte alone are emitted; the trade, the cast, the
+  grouped moves and the guard walk since items 4230, 4234, 4243 and 4266, §24.3); `flags & 0x8`
   (run1100's); `unit_masks & 0x200000` (`Unit::init`'s `can_carry(AIR)`)
   and the bits not listed (§18 names which agree by rule); `myarmor`'s cache timing and the cattle
   citizens' term; `los_x` of a unit the harness seats from a dump.
@@ -2404,7 +2405,7 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
-| units | 12537 | 450280345 | 1598867453 | 0 |
+| units | whole, 24,000 | | | 0 |
 | builds | whole, 24,000 | | | 0 |
 | groups | whole, 24,000 | | | 0 |
 | guys | whole, 24,000 | | | 0 |
@@ -2565,6 +2566,10 @@ count, which fell on each (run1266c, East Indies, 7581 → 7561, the most); none
 
 **Item 4263 moved two.** Units 11884 → 12537, guys → whole: a type change's seating writes `last` (§16, §25.4).
 
+**Item 4266 made units whole on all 24,000.** On 12537 record 62's `GUARD` of 1/61 hands over `GuardOrder::walk_data@00486550`'s
+three ranges (flags; `ox`, `whom`, `uid`; `dx`..`retry`, the post raw), which the emitter left out; ours held the same
+values. Step P's census does not move (75 packets' units triples; run1575's 2964 → 408 parted).
+
 **Item 4262 made builds whole on all 24,000.** `BuildData::wonder` (`+0x76`) is the entry `Wonders::init_wonder`
 returned to `Build::activate`'s wonder arm; ours wrote −1 always. On 14312 (§25.4) the Pyramids `1/2023` −1, 0 → 0.
 Step P 453 → 455.
@@ -2632,6 +2637,8 @@ Not established:
   6907, guys on 7273 and groups on 8206: no packet stands on any of them.~~ Units on 6907: run1593, whole since item
   4243. ~~Units on 7195, guys on 7273 and groups on 8206: no packet stands on any of them.~~ None needs one: step R's
   record holds every frame's ranges on the open lines (§25.4, item 4248).
+- A guard of a building: `Group::action_guard`'s building arm is a seam, so the guard walker's `TargetOrder` is always a
+  unit's (item 4266); no record holds a building guarded.
 - `GroupPatrolOrder::walk_data@00482c70`'s walk is not ported: the flags byte, four bytes of `PatrolOrder`'s (offset not
   worked), `x_pos` and `y_pos` (`SimpleArray<Coord>`), then `GroupOrder`'s tail as a grouped move walks it. The emitter hands a
   `GROUP_PATROL` its type and node byte alone; no packet on the minted game holds one (parked 4243a).
@@ -2727,7 +2734,7 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 | 8281 | units | 1,909, 1,909, 2 | 842 30 `myhits..launch_frames`: `inside_down` −1, 42 (the University 1/2018's chain; builds 856 2018 `inside_down` 42, 30); whole since item 4257, both lines |
 | 10541 | units, guys | 2,549 and 776, 2 each | 570/571 and 160/161 14 guy: the Caravan 1/14's crew (guys 1, 2) `last_angle` 682461312, 968792448; whole since item 4260 |
 | 11884 | units, guys | 2,459 and 776, 3 each | 1570 and 463 56 guy: the Hoplites 1/56..1/58 upgraded on a walking frame, `last_x` 38275, 38297; `last_y` 21337, 21325; whole since item 4263, guys on all 24,000 |
-| 12537 | units | 2,405, 2,396, 784 | 1539 62 `guys.length`: 1, 4 (record 62's crew; 14312's row too) |
+| 12537 | units | 2,405, 2,396, 784 | 1539 62 `guys.length`: 1, 4 — theirs' range is `GuardOrder::walk_data`'s flags byte (`00486573`), record 62's second order, a `GUARD` of 1/61 ours did not walk; whole since item 4266, and the line whole on all 24,000 (14312's row too) |
 | 14312 | builds | 1,370, 1,370, 1 | 1258 2023 `gather_down..infiltrate2`: `wonder` −1, 0 (player 1's Pyramids, TI 0x20e); whole since item 4262, and the line whole on all 24,000 |
 
 On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Builds' 7383 row, record 2019's `mtn`

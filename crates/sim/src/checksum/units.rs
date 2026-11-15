@@ -138,6 +138,19 @@ pub const CAST_FIELDS: &[(&str, usize, usize)] = &[
     ("spell", 0x20, 4),
 ];
 
+/// **`GuardOrder`'s own walked 24 bytes** (`+0x14..+0x2c`, `dx`..`retry`,
+/// the PDB's field list; `GuardOrder::walk_data@00486550`, item 4266). The
+/// post's two `Coord`s go over as stored, unmasked: run1597's record 62 on
+/// 12537 hands over 42840, 18408, its post.
+pub const GUARD_FIELDS: &[(&str, usize, usize)] = &[
+    ("dx", 0x14, 4),
+    ("dy", 0x18, 4),
+    ("guard_x", 0x1c, 4),
+    ("guard_y", 0x20, 4),
+    ("idle", 0x24, 4),
+    ("retry", 0x28, 4),
+];
+
 /// **`GroupOrder`'s walked 20 bytes on a `GroupMoveOrder`** (`+0x54..+0x68`,
 /// `oxx`..`group_angle`, the PDB's field list: `MoveOrder`'s non-virtual
 /// part is `+0x0..+0x50`, `GroupOrder`'s `+0x50..+0x68`, its vbptr first;
@@ -563,6 +576,7 @@ impl Sim {
     /// `tx`..`been_there`); a `TRADE_ROUTE` (that target, and `oxx`..
     /// `uid2`, item 4230) first held one on the minted game's 3166; a
     /// `CAST_SPELL` (that target, and `x`..`spell`, item 4234) on 3596; a
+    /// `GUARD` (that target, and `dx`..`retry`, item 4266) on 12537; a
     /// `GROUP_MOVE` or `GROUP_ATTACK_TO` (the move, then the flags again,
     /// `oxx`..`group_angle` and `in_group`, item 4243) on 6907; any
     /// other kind hands over its type and node byte alone here, its walker
@@ -740,6 +754,29 @@ impl Sim {
                 p(0x1c, 4, i64::from(c.paid));
                 p(0x20, 4, i64::from(c.spell));
                 put("order.cast", b);
+            }
+            Body::Guard(g) => {
+                // `GuardOrder::walk_data@00486550` (item 4266): the flags
+                // byte, `TargetOrder`'s `ox`, `whom`, `uid` (`+0x8..+0x12`)
+                // — the escorted unit, which `Unit::add_guard_order@005e3e40`
+                // writes — and its own `dx`..`retry` (`+0x14..+0x2c`).
+                put("order.flags", vec![o.flags]);
+                let t = &self.units[g.target];
+                let mut tb = vec![0u8; 10];
+                put_raw(&mut tb, 0, 4, i64::from(t.index));
+                put_raw(&mut tb, 4, 4, i64::from(t.owner));
+                put_raw(&mut tb, 8, 2, i64::from(t.uid));
+                put("order.target", tb);
+                let mut b = vec![0u8; 0x2c - 0x14];
+                debug_assert_eq!(GUARD_FIELDS.len(), 6);
+                let mut p = |at: usize, w, x: i64| put_raw(&mut b, at - 0x14, w, x);
+                p(0x14, 4, i64::from(g.dx));
+                p(0x18, 4, i64::from(g.dy));
+                p(0x1c, 4, i64::from(g.guard.x));
+                p(0x20, 4, i64::from(g.guard.y));
+                p(0x24, 4, i64::from(g.idle));
+                p(0x28, 4, i64::from(g.retry));
+                put("order.guard", b);
             }
             _ => {}
         }
