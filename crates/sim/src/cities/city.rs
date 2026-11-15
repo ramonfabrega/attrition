@@ -1597,6 +1597,7 @@ impl Sim {
             under_attack: 0,
             eject_pending: false,
             hold_frames: 0,
+            stance_set: None,
             fort_slot: None,
             oil_slot: None,
             city: None,

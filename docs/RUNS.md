@@ -37903,3 +37903,31 @@ Archive `gamelog-run1616-greatlakes-playback-of-came-out-7000.txt`, 68,204,717 b
 SHA-256 `82206d99c230156e9c9a9cd60fc13556bfe96f9527c84b7a3f9043e271f9df03`; `rontrace-run1616.log`, 33,778,528 bytes,
 SHA-256 `4891e7cf1ec06c225a880c28428417df569c5166ab919864c86a847241078138`.
 
+## run1617 — the original playing the file a stance press minted (2026-11-15, item 4282, `att-4282`)
+
+`docs/CLIENT_INPUT.md` §27.4. **What the disk could not answer**: whether the original plays a minted `stance`, and
+what a stance press on a building writes. The recordings carry four stances, all slot 3's in the 2017 sample, none on
+the minted game, and no dump on disk carries a `process_stance` on a building. The file:
+`~/ron-golden/recordings/item4282-stanced-greatlakes-24000.rcx`, 59,661 bytes, SHA-256
+`56c9882fe065b883c6b76931b5502c0c0db513df83dd9d8050fc2ebe4db879e4`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata -- stanced`. It is the came-out file with `group []` and `stance(−1)` on 6790, the capital the group repeated.
+
+The take is run1616's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1617 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --timeout 1800 --stall-seconds 120`, waited on
+with `waitrun.sh` in the background. `df -g ~` read 126 GB free before it.
+- **The run**: pool lane 1, launched 15:54:53 −05:00, exited 16:03:21: **508.1 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault, no relaunch. The receipt names the file's SHA-256. Minutes waited on another
+  lane: none.
+- **The built walk under the pump on the file** (`STANCED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence; 300 records compared (6700..6999), **0 part**. Pinned 0 before the read. The came-out script walked
+  against this take parts 209, the first on 6791, `0/2000` `stance` ours 0 against theirs 1.
+- **The order's effect** (`stance_effects_theirs` on 6790, 6791, 6866, 6999): the capital's `stance` 0 on 6790, 1 from
+  6791; `0/10` trained by 6866 with stance 1, `0/11` by 6999 with stance 1. Ours the same on every frame, pinned
+  before the read.
+- Filed with `filerun.py run1617 greatlakes-playback-of-stanced-7000`. run1618 was not used.
+
+Archive `gamelog-run1617-greatlakes-playback-of-stanced-7000.txt`, 68,204,717 bytes,
+SHA-256 `2c4e17f4151956d457a899842ed3ad2af470f8ced86044e778aaf985fe6bd248`; `rontrace-run1617.log`, 34,327,712 bytes,
+SHA-256 `cb26b95319397c8d4a47d7a4a0e36fd39b8f3b72a5ae0b4c550b9766d3dd0d37`.

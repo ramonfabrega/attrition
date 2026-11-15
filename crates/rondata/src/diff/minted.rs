@@ -5450,3 +5450,226 @@ fn the_original_s_playback_of_the_came_out_file_walks_in_lockstep() {
     assert_eq!(walked, CAME_OUT_WALKED, "the walked table");
     assert_eq!(theirs, came_out_effects(), "the original's Citizen is ours");
 }
+
+/// **The stanced file** (item 4282, `docs/CLIENT_INPUT.md` §27): the
+/// came-out script and one package more, the stance press on
+/// [`crate::script::STANCE_FRAME`]; it round-trips through the file, and
+/// every package before it is the came-out file's, frame, slot and stamp.
+/// With `RON_RCX_OUT=<file>` it writes the `.rcx` the playback takes open.
+#[test]
+fn the_stanced_minted_packages_round_trip() {
+    use crate::script::{STANCE_FRAME, came_out, stanced};
+    let (Some(rec), Some(before)) = (minted(&stanced()), minted(&came_out())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "stanced").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in stanced().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "STANCED tails {:?} against {:?}",
+        &ours[ours.len() - 3..],
+        &old[old.len() - 2..]
+    );
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 1, old[..m - 1].to_vec()));
+    assert_eq!((ours[n - 2].0, ours[n - 2].1), (STANCE_FRAME, 0));
+    assert_eq!(
+        (ours[n - 1].0, ours[n - 1].2),
+        (old[m - 1].0, old[m - 1].2 + 1)
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "STANCED RCX {} bytes (the came-out file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), CAME_OUT_RCX_BYTES, "the file run1616 played");
+    assert_eq!(gz.len(), STANCED_RCX_BYTES, "STANCED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The stanced file's size, gzipped (item 4282).
+const STANCED_RCX_BYTES: usize = 59_661;
+
+/// The frames the stance's effect is read on (item 4282): the package's
+/// frame, the frame after it, the first Citizen the capital trains after
+/// it, and the window's last record.
+const STANCE_READ_AT: [i64; 4] = [6790, 6791, 6866, 6999];
+
+/// The first unit number slot 0 trains after the opening's: the Citizens
+/// the capital's infinite queue lays (`0/10` on 6866, `0/11` on 6980).
+const STANCE_TRAINED_FROM: i64 = 10;
+
+/// The stanced script, read off one frame: the capital's `Build +0x7e`,
+/// and each living unit of slot 0 from [`STANCE_TRAINED_FROM`] with its
+/// `+0xb1`, which `Build::train` copies from its trainer's byte.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct StanceEffect {
+    pub frame: i64,
+    pub capital: i64,
+    pub trained: Vec<(i64, i64)>,
+}
+
+/// Our walk under the pump on `orders`' file, read on `at`.
+fn stance_effects_ours(orders: &[Order], at: &[i64]) -> Vec<StanceEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        let s = &built.sim;
+        let cap = s.building_by_o(0, crate::script::CAPITAL).unwrap();
+        let mut trained: Vec<(i64, i64)> = s
+            .units
+            .iter()
+            .filter(|u| u.alive() && u.owner == 0 && i64::from(u.index) >= STANCE_TRAINED_FROM)
+            .map(|u| (i64::from(u.index), i64::from(u.stance)))
+            .collect();
+        trained.sort_unstable();
+        ours.push(StanceEffect {
+            frame: s.frame,
+            capital: i64::from(s.build_stance(cap)),
+            trained,
+        });
+    }
+    ours
+}
+
+/// The original's, off the take's records on `at`.
+fn stance_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<StanceEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for &n in at {
+        let Some(i) = source.frames().iter().position(|f| f.number == n) else {
+            continue;
+        };
+        let f = source.frame_state(i).unwrap();
+        let cap = f
+            .builds
+            .iter()
+            .find(|b| b.who == 0 && b.o == i64::from(crate::script::CAPITAL))?;
+        let mut trained: Vec<(i64, i64)> = f
+            .units
+            .iter()
+            .filter(|u| u.who == 0 && u.o >= STANCE_TRAINED_FROM)
+            .map(|u| (u.o, u.stance.unwrap_or(-1)))
+            .collect();
+        trained.sort_unstable();
+        theirs.push(StanceEffect {
+            frame: n,
+            capital: cap.stance?,
+            trained,
+        });
+    }
+    Some(theirs)
+}
+
+/// **What the stance press does on our walk** (item 4282,
+/// `docs/CLIENT_INPUT.md` §27), pinned before the original's playback was
+/// read; seen red pinned empty. The press is on 6790 and the capital's
+/// worker byte goes 0 → 1 on 6791; the two Citizens its infinite queue
+/// trains after it, `0/10` on 6866 and `0/11` on 6980, take 1 from it
+/// where the came-out file's walk gives them 0.
+fn stanced_effects() -> Vec<StanceEffect> {
+    let row = |frame, capital, trained: &[(i64, i64)]| StanceEffect {
+        frame,
+        capital,
+        trained: trained.to_vec(),
+    };
+    vec![
+        row(6790, 0, &[]),
+        row(6791, 1, &[]),
+        row(6866, 1, &[(10, 1)]),
+        row(6999, 1, &[(10, 1), (11, 1)]),
+    ]
+}
+
+/// **The stance press on our walk**, against the came-out file's walk,
+/// where the capital keeps `Build::init`'s byte.
+#[test]
+fn what_the_stance_does_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::stanced()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = stance_effects_ours(&crate::script::stanced(), &STANCE_READ_AT);
+    let without = stance_effects_ours(&crate::script::came_out(), &STANCE_READ_AT);
+    for (a, b) in ours.iter().zip(&without) {
+        eprintln!("STANCE EFFECT ours {a:?}\n               without {b:?}");
+    }
+    assert_eq!(ours, stanced_effects(), "ours, pinned");
+    assert_ne!(ours[1..], without[1..], "the press writes the byte");
+}
+
+/// **The original's playback of the stanced file** (item 4282):
+/// `(take, trace, first sequence parting or the last frame, last frame,
+/// records compared, records parted)`. Pinned before the take was read,
+/// with none parted: the came-out file it extends is whole.
+pub(crate) const STANCED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1617-greatlakes-playback-of-stanced-7000.txt",
+    "rontrace-run1617.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// **The original plays the stanced file in lockstep** (item 4282,
+/// `docs/CLIENT_INPUT.md` §27): the built start walked under the pump on
+/// the stanced file against the take, every frame's draws and every record
+/// of its window ([`STANCED_WALKED`]), the buildings' `stance` and the
+/// units' among the fields compared; and the capital and its trained
+/// Citizens on [`STANCE_READ_AT`], read off the take's records, equal to
+/// ours.
+#[test]
+fn the_original_s_playback_of_the_stanced_file_walks_in_lockstep() {
+    let stanced = crate::script::stanced();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in STANCED_WALKED {
+        let Some((w, _)) = walk_minted(&stanced, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "STANCED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs = stance_effects_theirs(STANCED_WALKED[0].0, &STANCE_READ_AT).expect("the take");
+    for t in &theirs {
+        eprintln!("STANCE EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, STANCED_WALKED, "the walked table");
+    assert_eq!(theirs, stanced_effects(), "the original's capital is ours");
+}
