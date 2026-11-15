@@ -3549,3 +3549,231 @@ fn the_bucket_reader_reads_a_known_dump() {
         "run1601 prints no leader record"
     );
 }
+
+/// The frames the city's gather is read on (item 4261): its frame, the
+/// frame after it, and the window's last record.
+const CITY_GATHER_READ_AT: [i64; 3] = [6718, 6719, 6999];
+
+/// **The city-gathered script's effects** (item 4261), our walk's values
+/// pinned before the original's playback was read: the capital's list,
+/// the paused script's rally point `(4655, 31075, 0)` through 6718,
+/// cleared and given one point per Farm of its city on 6719, each at the
+/// Farm's own position with action 1; the Citizen `0/10` moving to a Farm
+/// by 6999, where without the order it gathers at the rally point. Seen
+/// red first: pinned empty.
+fn city_gathered_effects() -> Vec<GatherEffect> {
+    const RALLY: &[(i64, i64, i64)] = &[(4655, 31075, 0)];
+    const FARMS: &[(i64, i64, i64)] = &[
+        (2688, 32064, 1),
+        (1920, 32064, 1),
+        (2112, 31296, 1),
+        (3456, 29760, 1),
+    ];
+    let row =
+        |frame, gather: &[(i64, i64, i64)], citizen: Option<((i64, i64), &[&'static str])>| {
+            GatherEffect {
+                frame,
+                gather: gather.to_vec(),
+                citizen: citizen.map(|(p, o)| (p, o.to_vec())),
+            }
+        };
+    vec![
+        row(6718, RALLY, None),
+        row(6719, FARMS, None),
+        row(6999, FARMS, Some(((5572, 29304), &["move", "gather"]))),
+    ]
+}
+
+/// **What the city's gather does on our walk** (item 4261), on
+/// [`CITY_GATHER_READ_AT`]; and without it, the marketed file's walk,
+/// which is the value diff on our side.
+#[test]
+fn the_city_gathered_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::city_gathered()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = gather_effects_ours_at(&crate::script::city_gathered(), &CITY_GATHER_READ_AT);
+    let without = gather_effects_ours_at(&crate::script::marketed(), &CITY_GATHER_READ_AT);
+    for (e, w) in ours.iter().zip(&without) {
+        eprintln!("CITY GATHER EFFECT ours {e:?} without {w:?}");
+    }
+    assert_eq!(ours, city_gathered_effects());
+    assert_ne!(ours[1..], without[1..], "the order moves the gather list");
+}
+
+/// The city-gathered file's gzip length (item 4261). Seen red first:
+/// pinned 0, it printed 59,546.
+const CITY_GATHERED_RCX_BYTES: usize = 59_546;
+
+/// **The city-gathered script, minted** (item 4261, `docs/CLIENT_INPUT.md`
+/// §17): the marketed file and one package more, the capital's FARM gather
+/// on [`crate::script::CITY_GATHER_FRAME`], stamped 22; it round-trips
+/// through the file. With `RON_RCX_OUT=<file>` it writes the `.rcx` the
+/// playback takes open.
+#[test]
+fn the_city_gathered_minted_packages_round_trip() {
+    use crate::script::{CITY_GATHER_FRAME, city_gathered, marketed};
+    let (Some(rec), Some(first)) = (minted(&city_gathered()), minted(&marketed())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "city-gathered").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in city_gathered().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<(i32, u32)> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| (p.frame, p.stamp))
+        .collect();
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (23, 22));
+    assert_eq!(
+        added,
+        vec![(CITY_GATHER_FRAME, 22), (last.frame, 23)],
+        "the packages the marketed file does not hold"
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    eprintln!("CITY GATHERED RCX {} bytes", gz.len());
+    assert_eq!(gz.len(), CITY_GATHERED_RCX_BYTES, "CITY_GATHERED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// **The value diff against the previous playback** (item 4261): our walk
+/// under the city-gathered file against run1604, the marketed file's
+/// playback, pinned before the city-gathered file's playback was read.
+#[test]
+fn the_city_gathered_script_against_the_marketed_playback_parts() {
+    let (take, take_trace, ..) = MARKETED_WALKED[0];
+    let Some((w, _)) = walk_minted(&crate::script::city_gathered(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    eprintln!(
+        "CITY GATHERED AGAINST MARKETED: record {frame}: {partings:?}; draws part {:?}; records {} parted {}",
+        w.first_sequence, w.records, w.records_parted
+    );
+    let seen = (
+        frame,
+        partings[0].0,
+        partings[0].2.clone(),
+        w.first_sequence,
+        w.records_parted,
+    );
+    let (f, kind, row, draws, parted) = CITY_GATHERED_AGAINST_MARKETED;
+    assert_eq!(
+        seen,
+        (f, kind, row.to_string(), draws, parted),
+        "CITY_GATHERED_AGAINST_MARKETED"
+    );
+}
+
+/// The city-gathered script's walk against run1604: `(the first parted
+/// record's frame, its kind, its row, the first frame whose draws part,
+/// records parted)`. It parts first on 6719, the frame after the gather,
+/// at the capital's gather list: four points on ours, one on run1604's;
+/// 281 of 300 records part, and the draws from 6822. Seen red first:
+/// pinned `(0, "", "", None, 0)`.
+const CITY_GATHERED_AGAINST_MARKETED: (i64, &str, &str, Option<i64>, usize) = (
+    6719,
+    "build_diverged",
+    "BuildDivergence { frame: 6719, who: 0, o: 2000, field: \"gather_len\", ours: 4, theirs: 1 }",
+    Some(6822),
+    281,
+);
+
+/// The city-gathered file's playback (`docs/RUNS.md` run1605): `(take,
+/// trace, frames agreeing, frames walked, records, parted)`. Pinned before
+/// run1605 was read: whole.
+pub(crate) const CITY_GATHERED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1605-greatlakes-playback-of-city-gathered-7000.txt",
+    "rontrace-run1605.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// The functions the city's gather runs on the original's side: the
+/// package's arm and the group's action, by entry address.
+const CITY_GATHER_FUNCTIONS: [(u32, &str); 2] = [
+    (0x0094_8a10, "CommandPackage::process_city_gather"),
+    (0x0070_1780, "Group::action_city_gather"),
+];
+
+/// Each take's first entry into [`CITY_GATHER_FUNCTIONS`], in sim-frames,
+/// pinned before run1605 was read: run1604 enters neither; run1605 both
+/// on 6717, the tick that consumes [`crate::script::CITY_GATHER_FRAME`]'s
+/// package.
+const CITY_GATHER_ENTRIES: &[(&str, [Option<i64>; 2])] = &[
+    ("rontrace-run1604.log", [None; 2]),
+    ("rontrace-run1605.log", [Some(6717), Some(6717)]),
+];
+
+/// **The original plays the city-gathered file in lockstep** (item 4261):
+/// the built start walked under the pump against run1605, every frame's
+/// draws against its trace and every record of its window whole
+/// ([`CITY_GATHERED_WALKED`]); the gather's own functions on the
+/// original's side ([`CITY_GATHER_ENTRIES`]); and the capital's gather
+/// list and the Citizen `0/10` on [`CITY_GATHER_READ_AT`], read off the
+/// take's records, equal to our walk's ([`city_gathered_effects`]).
+#[test]
+fn the_original_s_playback_of_the_city_gathered_file_walks_in_lockstep() {
+    let gathered = crate::script::city_gathered();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in CITY_GATHERED_WALKED {
+        let Some((w, _)) = walk_minted(&gathered, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "CITY GATHERED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let mut entries = Vec::new();
+    for &(take_trace, _) in CITY_GATHER_ENTRIES {
+        let tr = trace(take_trace).expect("the take's trace");
+        let first = CITY_GATHER_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+        for ((_, name), f) in CITY_GATHER_FUNCTIONS.iter().zip(&first) {
+            eprintln!("CITY GATHER ENTRY {take_trace} {name}: {f:?}");
+        }
+        entries.push((take_trace, first));
+    }
+    let theirs = gather_effects_theirs_at(CITY_GATHERED_WALKED[0].0, &CITY_GATHER_READ_AT)
+        .expect("the take's records");
+    for t in &theirs {
+        eprintln!("CITY GATHER EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, CITY_GATHERED_WALKED, "the walked table");
+    assert_eq!(entries, CITY_GATHER_ENTRIES, "the gather's functions");
+    assert_eq!(theirs, city_gathered_effects(), "the original's effects");
+    // Made to fail: the marketed file's walk, without the order, holds the
+    // rally point from 6719 on, so an original that ignored it would part
+    // here.
+    let without = gather_effects_ours_at(&crate::script::marketed(), &CITY_GATHER_READ_AT);
+    assert_ne!(theirs[1..], without[1..], "the order's effect is visible");
+}

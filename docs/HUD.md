@@ -52,6 +52,15 @@ and mints nothing. Unlike the menu's buttons it is no key's event: a press
 on it is `Event::Sell` or `Event::Buy`, which no key sends. The place, the
 size and the labels are ours. What it mints is `docs/CLIENT_INPUT.md` §16.
 
+**The city's row** (item 4261) is a seventh, drawn only while the slot's
+own city centre is the selection: the panel's four gather buttons
+(`BuildOut::make_options@00629ed0`'s `OPTION_CITY_FARM_GATHER`,
+`_WOODCUTTER_`, `_MINE_` and `_ALL_`), GATHER FARM, WOOD, MINE and ALL, in
+the market's place (`hud::city_menu`, `MARKET_BUTTON` 180 × 36); the two
+rows never show at once. A press on one is `Event::CityGather`, which no
+key sends. The place and the labels are ours. What it mints is
+`docs/CLIENT_INPUT.md` §17.
+
 ## 2. The menu (item 4197)
 
 - **A button is a key's event and nothing else.** A press inside a

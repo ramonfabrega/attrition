@@ -102,6 +102,7 @@ pub const MINTS: &[&str] = &[
     "pause",
     "sell",
     "buy",
+    "city_gather",
 ];
 
 /// **The entry line's text limit**, in UTF-16 units: `ChatBox::exec
@@ -166,6 +167,44 @@ pub enum Event {
     /// A press on the market's buy button for a good (`OPTION_BUY`,
     /// `LeaderOut::issue_buy@006d3ef0`).
     Buy(usize),
+    /// A press on one of the city's four gather buttons, by the type it
+    /// gathers to (`OPTION_CITY_FARM_GATHER` and its three,
+    /// `Options::exec@007188c0`'s `do_city_gather(0x1a1, 0x1a2, 0x1a3 or
+    /// −1)`; item 4261, `docs/CLIENT_INPUT.md` §17). The HUD's alone.
+    CityGather(i32),
+}
+
+/// **The city's gather buttons' types** (item 4261): Farm, Woodcutter,
+/// Mine and all three, in `make_options`' order, as `Options::exec` passes
+/// each to `do_city_gather`.
+pub const CITY_GATHER_TYPES: [i32; 4] = [0x1a1, 0x1a2, 0x1a3, -1];
+
+/// **Whether the selection's panel is a city's** (item 4261,
+/// `docs/CLIENT_INPUT.md` §17): one building of `player`'s own, a city's
+/// centre (`+8 & 0x20`), whose panel `BuildOut::make_options@00629ed0`
+/// gives the four gather buttons. The profile's preference the original
+/// also asks (`prefs & 2`) is taken as set.
+pub fn city_panel(scene: &Scene, player: u8, selection: &[ObjId]) -> bool {
+    let [id] = selection else {
+        return false;
+    };
+    scene
+        .buildings
+        .iter()
+        .any(|b| b.id == *id && b.owner == player && b.city)
+}
+
+/// **Whether a city's gather button issues** (item 4261): the gate of
+/// `Options::do_city_gather@0071cdb0`, a selection of buildings
+/// (`GroupData::buildings`) of which one takes a gather point
+/// (`COUNT_GATHER_POINT`, its training arm as [`View::takes_gather_point`]
+/// reads it) and one is a `VILLAGE` (`COUNT_TYPE` 0x19e).
+pub fn city_gathers(scene: &Scene, selection: &[ObjId]) -> bool {
+    let of = |id: &ObjId| scene.buildings.iter().find(|b| b.id == *id);
+    !selection.is_empty()
+        && selection.iter().all(|id| of(id).is_some())
+        && selection.iter().any(|id| of(id).is_some_and(|b| b.trains))
+        && selection.iter().any(|id| of(id).is_some_and(|b| b.village))
 }
 
 /// **The market the selection is** (item 4259, `docs/CLIENT_INPUT.md`
@@ -827,6 +866,16 @@ impl Input {
                     }
                 };
                 Some((frame, play, vec![cmd]))
+            }
+            Event::CityGather(t) => {
+                // `do_city_gather`: the selection's `group` and
+                // `city_gather(t, 2)`, `GroupOut::issue_city_gather@0070ac70`'s
+                // `queued` 2 whatever the keys.
+                if !self.building || !city_gathers(view.scene, &self.selection) {
+                    return None;
+                }
+                let cmd = Command::CityGather { t, queued: 2 };
+                Some((frame, play, vec![self.group(), cmd]))
             }
             Event::Key(k) if self.line.is_some() => {
                 let line = self.line.as_mut().unwrap();
@@ -2463,6 +2512,283 @@ pub(crate) mod tests {
     const MARKETED_RCX: &str = "ron-golden/recordings/item4259-marketed-greatlakes-24000.rcx";
     const MARKETED_RCX_BYTES: usize = 59_535;
 
+    /// **Stage 0 of the city-gathered script** (item 4261): on
+    /// [`script::CITY_GATHER_FRAME`] the capital's anchor pixel at the
+    /// opening camera, and the city row's FARM button at [`HUD_SIZE`].
+    const CAPITAL_PIXEL: (i32, i32) = (1127, 521);
+    const CITY_FARM_AT: (i32, i32) = (1258, 1054);
+
+    /// The marketed events and the city's two: a press on the capital, then
+    /// its FARM gather button.
+    fn city_gather_events() -> Vec<Scripted> {
+        let mut e = market_events();
+        let press = |(x, y): (i32, i32)| Event::Press { x, y };
+        e.extend([
+            (script::CITY_GATHER_FRAME, None, press(CAPITAL_PIXEL)),
+            (script::CITY_GATHER_FRAME, None, press(CITY_FARM_AT)),
+        ]);
+        e
+    }
+
+    /// **`INPUT_CITY_GATHERED`** (item 4261, `docs/CLIENT_INPUT.md` §17):
+    /// the marketed events and the city's two, through the HUD and the
+    /// layer under the opening camera, mint [`script::city_gathered`] field
+    /// for field, of 21. Seen red with the layer's `queued` 0: 21 orders,
+    /// 20 whole.
+    const INPUT_CITY_GATHERED: usize = 21;
+
+    /// **The city-gathered count**: stage 0 on the gather's frame — the
+    /// capital is slot 0's city centre, it trains and is a `VILLAGE`, and
+    /// its row holds the four buttons, FARM where the event presses it;
+    /// then the events mint the city-gathered script, and the file written
+    /// from them is the city-gathered file.
+    #[test]
+    fn minted_city_gathered_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let marketed = script::marketed();
+        let c = camera(None);
+        let mut next = 0;
+        while r.frame() < i64::from(script::CITY_GATHER_FRAME) {
+            let f = r.frame() as i32;
+            while next < marketed.len() && marketed[next].0 == f {
+                r.issue(&marketed[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+            let v = view(&c, &scene, &terrain);
+            let id = ObjId {
+                who: 0,
+                o: script::CAPITAL,
+            };
+            let anchor = v.anchors(0).find(|(a, ..)| *a == id).map(|(_, _, p)| p);
+            let b = scene.buildings.iter().find(|b| b.id == id).unwrap();
+            let mut input = Input::new(0);
+            input.selection = vec![id];
+            input.building = true;
+            let row: Vec<(&str, (i32, i32))> = crate::hud::city_menu(&input, &scene, HUD_SIZE)
+                .iter()
+                .map(|b| (b.label(), b.rect.centre()))
+                .collect();
+            println!(
+                "CITY STAGE0 f{} anchor {anchor:?} pos {:?} z {} city {} trains {} village {} active {} row {row:?}",
+                r.frame(),
+                b.pos,
+                b.z,
+                b.city,
+                b.trains,
+                b.village,
+                b.active
+            );
+            assert_eq!(anchor, Some(CAPITAL_PIXEL), "the capital's pixel");
+            assert!(b.city && b.trains && b.village);
+            assert_eq!(
+                row.iter()
+                    .find(|(_, c)| *c == CITY_FARM_AT)
+                    .map(|(l, _)| *l),
+                Some("GATHER FARM")
+            );
+            assert_eq!(row.len(), 4);
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with(city_gather_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let gathered = script::city_gathered();
+        let whole = ours.iter().zip(&gathered).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (gathered.len(), INPUT_CITY_GATHERED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, gathered);
+        drop(r);
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(marketed_file), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(MARKETED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(CITY_GATHERED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {MARKETED_RCX} or {CITY_GATHERED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), CITY_GATHERED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the city-gathered orders");
+        assert!(written != marketed_file, "not the marketed file");
+    }
+
+    /// The city-gathered file (`docs/CLIENT_INPUT.md` §17), written by
+    /// rondata's `the_city_gathered_minted_packages_round_trip` under
+    /// `RON_RCX_OUT`; the file the original's playback takes open.
+    const CITY_GATHERED_RCX: &str =
+        "ron-golden/recordings/item4261-city-gathered-greatlakes-24000.rcx";
+    const CITY_GATHERED_RCX_BYTES: usize = 59_546;
+
+    /// A city centre of `who`'s that trains and is a `VILLAGE`, every other
+    /// field the lobby's own building's.
+    fn city_building(who: u8, o: i16) -> sim::observe::BuildingScene {
+        let Ok(r) = lobby() else {
+            panic!("the city's edges need the lobby for a building record");
+        };
+        let mut b = r.scene(None).buildings[0];
+        b.id = ObjId { who, o };
+        b.owner = who;
+        (b.city, b.trains, b.village, b.active) = (true, true, true, true);
+        b
+    }
+
+    /// **`INPUT_CITY_GATHERS`** (item 4261): of the city gathers the
+    /// recordings on disk carry, those the city's button mints field for
+    /// field, the package's `group` and its `city_gather` whole, when its
+    /// group's building is pressed and then the button of its type, of all
+    /// of them. The two that part carry a `group` of no objects
+    /// (`docs/CLIENT_INPUT.md` §17.4), which the panel's gate cannot pass.
+    /// Seen red with the layer's `queued` 0: 0 of 20.
+    const INPUT_CITY_GATHERS: (usize, usize) = (18, 20);
+
+    #[test]
+    fn minted_city_gathers_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let Some(Command::CityGather { t, .. }) = kept
+                    .iter()
+                    .find(|c| matches!(c, Command::CityGather { .. }))
+                else {
+                    continue;
+                };
+                all += 1;
+                let (who, objects) = match &kept[0] {
+                    Command::Group { who, objects } => (*who as u8, objects.clone()),
+                    _ => (p.play as u8, Vec::new()),
+                };
+                let scene = Scene {
+                    buildings: objects.iter().map(|&o| city_building(who, o)).collect(),
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who);
+                input.selection = objects.iter().map(|&o| ObjId { who, o }).collect();
+                input.building = true;
+                let got = input.event(p.frame, Event::CityGather(*t), &v);
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                } else {
+                    println!("CITY GATHER PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("CITY GATHERS {whole} of {all}");
+        assert_eq!((whole, all), INPUT_CITY_GATHERS);
+    }
+
+    /// **The city's buttons without a walk** (item 4261): a row only for
+    /// the slot's own city centre; a press that issues only with a building
+    /// selection holding a trainer and a `VILLAGE`; each button's type; no
+    /// key sends it.
+    #[test]
+    fn minted_city_gather_button_edges() {
+        if lobby().is_err() {
+            println!("skipping: no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let id = ObjId { who: 0, o: 2000 };
+        let mint = |scene: &Scene, ev: Event| {
+            let v = view(&c, scene, &terrain);
+            let mut input = Input::new(0);
+            input.selection = vec![id];
+            input.building = true;
+            input.event(6718, ev, &v)
+        };
+        let city = city_building(0, 2000);
+        let one = |b| Scene {
+            buildings: vec![b],
+            ..Scene::default()
+        };
+        let row = |scene: &Scene, player: u8| {
+            let mut input = Input::new(player);
+            input.selection = vec![id];
+            input.building = true;
+            crate::hud::city_menu(&input, scene, HUD_SIZE)
+                .iter()
+                .map(|b| b.t)
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(row(&one(city), 0), vec![417, 418, 419, -1]);
+        assert_eq!(row(&one(city), 1), Vec::<i32>::new(), "another slot's");
+        assert_eq!(
+            row(
+                &one(sim::observe::BuildingScene {
+                    city: false,
+                    ..city
+                }),
+                0
+            ),
+            Vec::<i32>::new(),
+            "not a centre"
+        );
+        for t in CITY_GATHER_TYPES {
+            assert_eq!(
+                mint(&one(city), Event::CityGather(t)),
+                Some((
+                    6718,
+                    0,
+                    vec![
+                        Command::Group {
+                            who: 0,
+                            objects: vec![2000]
+                        },
+                        Command::CityGather { t, queued: 2 }
+                    ]
+                ))
+            );
+        }
+        let no_trainer = sim::observe::BuildingScene {
+            trains: false,
+            ..city
+        };
+        let no_village = sim::observe::BuildingScene {
+            village: false,
+            ..city
+        };
+        assert_eq!(mint(&one(no_trainer), Event::CityGather(417)), None);
+        assert_eq!(mint(&one(no_village), Event::CityGather(417)), None);
+        assert_eq!(mint(&Scene::default(), Event::CityGather(417)), None);
+        let scene = one(city);
+        let v = view(&c, &scene, &terrain);
+        let mut units = Input::new(0);
+        units.selection = vec![id];
+        assert_eq!(
+            units.event(6718, Event::CityGather(417), &v),
+            None,
+            "a unit selection"
+        );
+    }
+
     /// A scene holding one market of `who`'s at `active`, and its leader
     /// with `market` offered and `bucket` in store.
     fn market_scene(
@@ -2971,14 +3297,13 @@ pub(crate) mod tests {
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (13, 26);
+    const INPUT_KINDS: (usize, usize) = (14, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2286, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2306, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
         "leader_options",
-        "city_gather",
         "spell",
         "unqueue",
         "rename_city",

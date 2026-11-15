@@ -37555,3 +37555,35 @@ SHA-256 `716b6bfd32656173b44b218760a2931de99140eca2f040011d8ea572554bec11`; `ron
 SHA-256 `93dbf0757b8cf39eb3eada728b692b58df37fea0fbf8ba32425381702ade2d27`.
 
 **What it holds**: the marketed game's window with the leaders' buckets on every frame; a sale and a purchase played.
+
+## run1605 — the original playing the file a city's gather button minted (2026-11-14, item 4261, `att-4261`)
+
+`docs/CLIENT_INPUT.md` §17.3. **What the disk could not answer**: whether the original plays a minted `city_gather`,
+and whether the capital's gather list after it is ours. The recordings carry 20, all the 2017 sample's; no playback
+of a file of ours had gathered a city, and no take of the minted game had entered `process_city_gather`. The file:
+`~/ron-golden/recordings/item4261-city-gathered-greatlakes-24000.rcx`, 59,546 bytes, SHA-256
+`a823ac470a26a14acb34a2b1e90497929deac3687a3419bccc2812b58c37763c`. It was written by `RON_RCX_OUT=<it> … test
+--release -p rondata the_city_gathered_minted_packages_round_trip`. It is run1604's file plus one package:
+`group(0, [2000])` and `city_gather(417, 2)` on 6718.
+
+The take is run1604's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1605 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --timeout 1800 --stall-seconds 120`. It was waited
+on with `waitrun.sh` in the background. `df -g ~` read 203 GB free before it.
+- **The run**: pool lane 1, launched 19:33:44 −05:00, exited 19:42:01: **497.4 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault, no relaunch. Minutes waited on another lane: none.
+- **The built walk under the pump on the file** (`CITY_GATHERED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence; 300 records compared (6700..6999), none parted.
+- **The order's effect** (`city_gathered_effects`): the capital `0/2000`'s gather list (4655, 31075, 0) on 6718; on
+  6719 and 6999 four points, (2688, 32064, 1), (1920, 32064, 1), (2112, 31296, 1), (3456, 29760, 1); the Citizen
+  `0/10` at (5572, 29304), `move` then `gather`, on 6999. Equal on both sides, pinned before the read.
+- **The functions** (`CITY_GATHER_ENTRIES`): `CommandPackage::process_city_gather` and `Group::action_city_gather`
+  first entered on 6717. run1604 enters neither.
+- Filed with `filerun.py run1605 greatlakes-playback-of-city-gathered-7000`.
+
+Archive `gamelog-run1605-greatlakes-playback-of-city-gathered-7000.txt`, 68,514,469 bytes,
+SHA-256 `976a17ed7680727bf22576571726c4c0cc0dcfebbecbb94a16682763eedf0f85`; `rontrace-run1605.log`, 34,869,664 bytes,
+SHA-256 `8bbca43896196d4097fd70e949b4f447b83bac57d6d88d05387123e6b899ffc8`.
+
+**What it holds**: the city-gathered game's window with the leaders' buckets on every frame; a city's gather played.
