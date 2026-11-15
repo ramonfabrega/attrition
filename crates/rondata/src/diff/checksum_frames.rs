@@ -277,6 +277,14 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// 42, theirs 30; units range 842, record 30 `inside_down` ours −1, theirs
 /// 42 (and record 42's `inside_up`, ours 2018, theirs 30) → the
 /// original's on both, both lines whole there.
+///
+/// Item 4260 moved two on run1578: units 10541 → 11884 and guys 10541 →
+/// 11884, one rule, a trackless crew figure's `Guy::move` head running
+/// after guy 0's, whose `turn_towards → Guy::do_turn@005d97a0` has
+/// already turned it. Value diff on 10541 (run1597's record): units
+/// ranges 570/571 and guys 160/161, the Caravan 1/14 (TI 59, land),
+/// guys 1 and 2 `last_angle` ours 682461312, theirs 968792448 (guy 0
+/// 682461312 on both) → 968792448 on both, both lines whole there.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -298,10 +306,10 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 10541, 0),
+            ("units", 11884, 0),
             ("builds", 14312, 0),
             ("groups", 9810, 0),
-            ("guys", 10541, 0),
+            ("guys", 11884, 0),
             ("leaders", 0, 300),
             ("cities", 24000, 0),
             ("items", 24000, 0),
