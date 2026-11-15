@@ -2452,7 +2452,8 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // Item 4176: 9073 -> 9081, +8 firsts: the victim stamp rows on 2060, 2063, 2079 and 2552 (who=1's `attack_stamp[0]` ours 2059 theirs 0 beside `1/59`'s damage 10 against 0), and `units_killed`/`units_lost` on 2247 (ours 15 theirs 16) and 2386 (ours 2 theirs 1), beside the units' own hits.
     // Item 4177: 9081 -> 9105, +24 firsts, the combat rates' own: who=0 `hits_current_frame` 2060 ours 1 theirs 0; who=1 `damage_current_frame` 2060 ours 1 theirs 0; who=0 `damage_current_frame` 2079 ours 1 theirs 0; who=1 `hits_current_frame` 2079 ours 1 theirs 0 (docs/LEADERS.md §3.5).
     // Item 4159's third residue: 9109 -> 7746, the staged Battleships' turrets born at rest; the window's first gameplay parting 2060 -> 2123 (parked 4159r3a).
-    pin_eq!(w.firsts.len(), 7746, "initial run1075 baseline");
+    // Item 4159's fourth residue: 7746 -> 7792, the launch rows of pieces 1814, 1837, 1851 and 81; the block-2124 row leaves (`0/17` `damage` ours 6 frac 4 against 7 frac 9, who 0 `damage_current_frame` 16 against 17), the first blow apart is 2354 (`0/18` `hits_left` ours 174 theirs 173) and the first gameplay parting 2346 (`1/70`'s `dest_angle`); the later fight parts more keys.
+    pin_eq!(w.firsts.len(), 7792, "initial run1075 baseline");
 }
 
 /// `Ammo::init+0xcd9` (`0x67c8c9`): the first of a round's two landing
