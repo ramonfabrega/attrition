@@ -1072,7 +1072,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// run943c (2 → 0), run991d (2 → 0), run959 (2 → 0), run954b (2 → 0) —
 /// and 40 rows fall, none rises (units on ten, run1011b 1854 → 1830 the
 /// most).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 452, 1053);
+/// **453** at item 4260, a trackless crew figure's `last_angle` read after
+/// guy 0's turn (`Guy::do_turn@005d97a0`): the guys line agrees on run1254c
+/// (2 → 0); no other row moved.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 453, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2020,6 +2023,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (4388, 4073, 3409) -> (4388, 4085, 3386).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4388, 4085, 3386) -> (4388, 4085, 3383).
     // Item 4244, a mine's `mtn`: builds (1674, 1674, 2) -> (1674, 1674, 1).
+    // Item 4260, a trackless crew's `last_angle` after guy 0's turn: guys (1134, 1134, 2) -> (1134, 1134, 0).
     (
         "run1254c",
         3115,
@@ -2030,7 +2034,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (9, 0, 9),
             (0, 0, 0),
             (550, 550, 0),
-            (1134, 1134, 2),
+            (1134, 1134, 0),
             (271, 271, 3),
             (27, 27, 0),
             (85, 85, 0),

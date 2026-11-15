@@ -37,10 +37,28 @@ impl Sim {
         // runs: `last_x`/`last_y` and `last_angle` from the figure's point
         // and facing before this frame moves or turns it (the guys line's,
         // `docs/CHECKSUM.md` §16; nothing in the simulation reads them).
+        //
+        // **Each figure's head is its own**, run when `Guy::process` reaches
+        // it in the walk, so a trackless crew figure after guy 0 is read
+        // *after* guy 0's `Guy::move`: guy 0's turn there
+        // (`turn_towards → Guy::do_turn@005d97a0`) writes the angle of
+        // every crew figure with no track (`:37`), and the crew figure's
+        // own head then copies that angle. Those take their `last` below,
+        // once guy 0's turn is known (item 4260: run1597's Caravan `1/14`
+        // on 10541, guys 1 and 2 `last_angle` 682461312 ours, 968792448
+        // theirs, guy 0 682461312 on both).
+        let mut seen_lead = false;
+        let mut late: Vec<usize> = Vec::new();
         for &g in walk {
             let Some(guy) = self.units[i].guys.get_mut(g) else {
                 continue;
             };
+            if g == 0 {
+                seen_lead = true;
+            } else if seen_lead && g >= crate::units::anim::SQUAD_SIZE && guy.follow.is_none() {
+                late.push(g);
+                continue;
+            }
             guy.last = Some(match guy.follow {
                 Some(f) => (f.body.pos, f.facing),
                 None => (m.body.pos, m.facing),
@@ -118,6 +136,10 @@ impl Sim {
         }
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;
+        // The trackless crew's heads, after guy 0's turn (above).
+        for g in late {
+            unit.guys[g].last = Some((m.body.pos, follow.facing));
+        }
         // **`guy_flags & 2` is cleared here, after `Guy::move`**
         // (`Guy::process@005e0230:28`), not at the head of the unit's
         // process. `Guy::do_turn@005d97a0` sets it on any turn that moves
