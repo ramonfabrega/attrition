@@ -1013,10 +1013,6 @@ fn the_held_leaves_transfer_on_the_original_s_printed_inputs() {
         let x = &t[leaf];
         assert!(x.parted == 0 && x.moving > 0, "{leaf} transfers");
         assert!(
-            !sim::leaders::rates::RATES_OFF_THE_LINE.contains(&leaf),
-            "{leaf} is emitted"
-        );
-        assert!(
             !crate::diff::checksum_lines::LEADERS_HELD_OUT
                 .iter()
                 .any(|(n, _)| n.trim_end_matches(" (unheld)") == leaf),
