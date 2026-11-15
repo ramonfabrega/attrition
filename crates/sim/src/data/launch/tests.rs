@@ -1166,7 +1166,8 @@ fn run1323c_s_inca_fusilier_leaves_from_piece_790_s_bay() {
 #[test]
 fn the_persian_assault_infantry_leaves_from_piece_1814_s_bays() {
     use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3};
-    let sweeps: [(i8, u32, [(i64, i64, i64, i32); 4]); 7] = [
+    type Key = (i8, u32, [(i64, i64, i64, i32); 4]);
+    let sweeps: [Key; 7] = [
         (
             ATTACK1,
             12,
