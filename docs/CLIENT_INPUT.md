@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -869,9 +869,9 @@ files. Every package of every file decodes. An order is a command `rondata::inpu
 `camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
 as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
 
-**`INPUT_KINDS`: 16 of 26 kinds, 2,336 of 2,429 orders (96.1 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
+**`INPUT_KINDS`: 17 of 26 kinds, 2,346 of 2,429 orders (96.5 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
 was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 10 and 2,216 (91.2 %) once the chat
-(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, 14 and 2,306 (94.9 %) once the city's gather (§17) was, 15 and 2,323 (95.6 %) once the craft button's spell (§18) was, which no playback has carried, and is 16 since the queue button's cancel (§19). The kinds the layer mints are `input::MINTS`, held to the
+(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, 14 and 2,306 (94.9 %) once the city's gather (§17) was, 15 and 2,323 (95.6 %) once the craft button's spell (§18) was, which no playback has carried, 16 and 2,336 (96.1 %) once the queue button's cancel (§19) was, and is 17 since the city's name (§21). The kinds the layer mints are `input::MINTS`, held to the
 `Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
 `input_kinds_of_the_recordings_on_disk`.
 
@@ -894,7 +894,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `unqueue` | 13 | 0.5 % | yes (§19) |
 | `gather` | 11 | 0.4 % | yes |
 | `guard` | 10 | 0.4 % | yes |
-| `rename_city` | 10 | 0.4 % | |
+| `rename_city` | 10 | 0.4 % | yes (§21) |
 | `hotkey` | 8 | 0.3 % | |
 | `garrison` | 6 | 0.2 % | |
 | `buildmask` | 5 | 0.2 % | |
@@ -1874,3 +1874,94 @@ sender's last group. run1607 plays the three repeats from our file in lockstep, 
   capital's case is played.
 - **The `Random::get` padding** that `add_group` adds when the game's semaphore bit 4 is set is not written. The
   layer's files never carry it, and no file the original played needed it.
+
+## 21. A city's name, from its panel (item 4268)
+
+*Item 4268, 2026-11-15. The score: `INPUT_KINDS` 16 → 17 of 26, and 2,336 → 2,346 of 2,429 orders (96.1 % → 96.5 %).
+The census's next kind by share whose actor slot 0 of the minted game holds is `rename_city` (10): its actor is a
+city, and slot 0's capital `0/2000` is one. `leader_options` (50) is the lobby's. The layer mints `rename_city` as
+the city's name popup sends it. The renamed script mints 23 of 23 and the recorded renames 10 of 10. The original
+plays the file (run1609).*
+
+### 21.1 What the panel issues, and what the order does
+
+- **The option**: `Options::exec@007188c0`'s option `0x117` takes the selection's first object
+  (`GroupData::get_o`). It returns unless that object is a building (`ObjectData +0x8 & 0x20`), passes an
+  `ObjectData::is` test, is finished (the type's `is_active`) and belongs to a city (`BuildData +0x72 >= 0`). Then it
+  opens a `Popup` with `popup_id` 6 and `extra_data` the object, whose edit box holds the city's name (`City +0x90`)
+  with a limit of `0x15` units.
+- **The popup**: `Popup::on_modal_end@007c13f0`'s case 6, on OK, trims the spaces at both ends of the box's text. A
+  line left empty sends nothing. A multiplayer game (semaphore bit 4) first shows "Renaming city…". Then it calls
+  `CommandManager::issue_rename_city@009411d0(console who, o, text)`.
+- **The command**: byte `0x4b`, `[who][o][22 units]`, `0x35` bytes, in a package of its own with no group. A name
+  of more than `0x13` units is cut to `0x14`, and a NUL is written after it. The issuer copies its whole 22-unit
+  stack buffer, so past the NUL ride whatever bytes the stack held (`Command::RenameCity::after_nul`; `RECGAME.md`).
+- **The receiver**: `CommandPackage::process_rename_city@00944090` takes `objects[who][o]`. When its flag `0x20`
+  holds, it assigns the name to the `City +0x90` of the city its `BuildData +0x72` names. It then asks
+  `HotKeyGroups::find_group` for a group holding the object, to redraw its name. The receiver reads the name up to
+  its NUL and never reads the stack bytes after it.
+- **The dump**: `CityData::log_data@004895c0` writes the name bare, after `who`, in the `CITY` record (`CITIES=5`).
+  The block parser keeps it as a key and the rest of the line as the value. `CityDump` does not carry it (§21.4).
+
+### 21.2 What the layer does
+
+- **The sim** (`crates/sim/src/cities/rename.rs`): `Sim::process_rename_city`, through the command door
+  (`Command::process_rename_city`), writes `CitiesState::names` for the building's city. `Sim::city_name_written`
+  reads it. The founding name (`City::generate_name`, the tribe's list) is not carried, so a city reads `None` until
+  a rename writes it. **This touches `crates/sim`.** `BuildingScene::in_city` is a read.
+- **The walk** (`crates/rondata/src/input.rs`): `RenameCity` is `process_rename_city` on the order's `who` and `o`.
+  It was "not mapped" before.
+- **The layer** (`crates/client/src/input.rs`): `Event::Rename`, the HUD's press. `input::renames` is the option's
+  test. `Input::renaming` makes the entry line the popup's edit box, with `RENAME_LIMIT` (`0x15`) units. Return sends
+  `input::rename`: trimmed, empty sends nothing, cut to `RENAME_SENT` (`0x14`) units, `after_nul` empty. Escape
+  closes it with nothing sent. `rename_city` is added to `MINTS`.
+- **The HUD** (`crates/client/src/hud.rs`): `rename_button`, one RENAME button three rows above the bottom edge at
+  the right; `hud::event` routes a press on it; `paint` draws it.
+- **The script** (`crates/rondata/src/script.rs`): `renamed()`, the unqueued script and `rename_city(0, 2000,
+  "Attrition")` on `RENAME_FRAME` 6730 with no group.
+
+**Stage 0.** On 6730 the capital is finished and in a city. Its RENAME button stands at (1822, 966) under the HUD's
+1920 × 1080 (`RENAME_AT`; seen red pinned (0, 0)).
+
+### 21.3 The counts and the file
+
+- `INPUT_RENAMED`: **23 of 23**. The unqueued events, then a press on RENAME, `Attrition` typed and Return, all on
+  6730, through the HUD and the layer under the opening camera, mint `script::renamed()`
+  (`minted_renamed_at_the_opening_camera`).
+- `INPUT_RENAMES`: **10 of 10** (seen red pinned (0, 0)). All ten are in two recordings: `17'27'47` renames `0/2010`
+  Norwich and `0/2000` London on 8516 to 8528, and `20'17'33` renames `0/2000` Napata on 14401 to 15153. None carries
+  a group. Each is minted from its building, RENAME, its name and Return. **All ten carry stack bytes past the
+  terminator.** The count compares every field but those, and strictly it is 0 of 10. The receiver never reads them.
+- `minted_rename_edges`: the spaces trimmed, 22 typed units kept as 21 and sent as 20, a blank line sends nothing,
+  Escape. No box opens for another slot's building, an unfinished one, or one in no city.
+- `INPUT_KINDS` (17, 26), `INPUT_KINDS_ORDERS` (2,346, 2,429); `NOT_MINTED` drops `rename_city`.
+
+**The file.** `~/ron-golden/recordings/item4268-renamed-greatlakes-24000.rcx`, 59,591 bytes, SHA-256
+`3bea7e5cd23969ae34ba40d28b428abeb22384574c96aed7b70ecc40269067e4` (`the_renamed_minted_packages_round_trip`;
+seen red pinned 0). It is the repeated file's packages, each with its frame, slot and stamp, then the rename on 6730,
+stamped 24. The closing stamp goes from 24 to 25. The client's events through the HUD write it byte for byte.
+
+### 21.4 The playback, and the order's effect
+
+PLAYBACK
+
+### 21.5 Confidence, and what is not established
+
+The option's tests, the popup's trim and the issuer's cut are read from the decompile, one reading each. The playback
+backs the command's bytes and the receiver's write (§21.4).
+
+- **The founding name.** The sim does not carry `City::generate_name`'s list, so our side has no name until a rename.
+  The effect agrees from the frame after the package.
+- **`CityDump` does not carry the name.** The effect test reads the bare line itself. Adding it to the reader
+  would change the oracle cache's generation for every lane, and only this test reads it.
+- **The arm's `ObjectData::is` test** (`vtable +0xb8`) is not read by the layer. Neither is `Group::can_activate`;
+  the layer asks for the slot's own building instead.
+- **A rename from a building that is not the centre.** Any finished building in a city opens the popup. Only the
+  capital is played.
+- **The box's starting text.** The original's box opens on the city's current name; ours opens empty (below).
+
+**Ours, not the original's:**
+
+- The RENAME button and where it stands. The original opens the popup from the city's name on the selected panel.
+- The box opens empty, because the scene does not carry the founding name.
+- A name cut inside a surrogate pair keeps the pair whole or drops it.

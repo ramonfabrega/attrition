@@ -348,6 +348,27 @@ pub fn queue_menu(input: &Input, scene: &Scene, size: (i32, i32)) -> Vec<QueueBu
         .collect()
 }
 
+/// **The city's name button** (item 4268, `docs/CLIENT_INPUT.md` §21):
+/// with a selection whose first object is a finished building of the
+/// slot's own in a city ([`crate::input::renames`]), one button, RENAME,
+/// that opens the name for editing (`Options::exec@007188c0`'s option
+/// `0x117`); otherwise none. Three rows above the bottom edge, at the
+/// right. Where it stands, and its label, are ours: the original opens it
+/// from the city's name on the selected panel.
+pub fn rename_button(input: &Input, scene: &Scene, size: (i32, i32)) -> Option<Rect> {
+    if !input.building || input.line.is_some() {
+        return None;
+    }
+    crate::input::renames(scene, input.player, &input.selection)?;
+    let (w, h) = MARKET_BUTTON;
+    Some(Rect {
+        x: size.0 - (w + MARGIN),
+        y: size.1 - 3 * (MARGIN + h),
+        w,
+        h,
+    })
+}
+
 /// One of a unit's craft buttons (item 4264, `docs/CLIENT_INPUT.md` §18):
 /// the craft's row and where it stands.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -432,6 +453,11 @@ pub fn event(
                     .into_iter()
                     .find(|b| b.rect.contains(x, y))
                     .map(|b| Event::Unqueue(b.slot))
+            })
+            .or_else(|| {
+                rename_button(input, view.scene, size)
+                    .filter(|r| r.contains(x, y))
+                    .map(|_| Event::Rename)
             }),
         _ => None,
     };
@@ -851,6 +877,12 @@ pub fn paint(
         p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
         let ty = r.y + (r.h - 7 * SCALE) / 2;
         p.text(r.x + 3 * SCALE, ty, &b.label(), SCALE, overlay::INK);
+    }
+    if let Some(r) = rename_button(input, scene, size) {
+        p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
+        p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
+        let ty = r.y + (r.h - 7 * SCALE) / 2;
+        p.text(r.x + 3 * SCALE, ty, "RENAME", SCALE, overlay::INK);
     }
     for b in menu(input, size) {
         let r = b.rect;

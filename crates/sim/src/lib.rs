@@ -203,6 +203,7 @@ impl Sim {
                 building_high: vec![Vec::new(); players],
                 wall_stats_dirty: vec![false; players],
                 wonders_built: 0,
+                names: std::collections::BTreeMap::new(),
             },
             territory: crate::territory::TerritoryState {
                 players: vec![crate::territory::attrition::PlayerState::default(); players],
