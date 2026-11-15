@@ -309,6 +309,15 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// land) upgraded to Phalanx (TI 133) on a frame they walked; record 56's
 /// `last_x`/`last_y` ours (38275, 21337), theirs (38297, 21325), its own
 /// point → (38297, 21325) on both, both lines whole there.
+///
+/// Item 4266 moved one on run1578: units 12537 → 24000, the line whole on
+/// every frame of the minted game. `GuardOrder::walk_data@00486550`'s three
+/// ranges were not handed over (the order walker's `GUARD` arm). Value
+/// diff on 12537 (run1597's record): units range 1539, record 62 (the
+/// Longbowmen 1/62, TI 177, land, guarding 1/61), theirs `00486573` `04`
+/// (the flags byte) against ours' `guys.length` 1; theirs' three ranges
+/// `04`, (61, 1, uid 84), (0, 264, 42840, 18408, 0, 0) → the same three
+/// on both, equal to the order this crate already held.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -330,7 +339,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         RUN1578_TRACE,
         24000,
         [
-            ("units", 12537, 0),
+            ("units", 24000, 0),
             ("builds", 24000, 0),
             ("groups", 24000, 0),
             ("guys", 24000, 0),

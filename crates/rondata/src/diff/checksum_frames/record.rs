@@ -282,45 +282,31 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     ),
     (
         12537,
-        // Item 4263's next units word: record 62's guy list, 4 figures
-        // theirs, 1 ours (14312's row, met earlier).
-        &[
-            (
-                "units",
-                2405,
-                2396,
-                784,
-                "1539 62 guys.length: +0x0 of 4|1: 01000000|04",
-            ),
-            (
-                "leaders",
-                271,
-                271,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|5a010000",
-            ),
-        ],
+        // Item 4266 took units here: record 62's second order, a `GUARD`
+        // of 1/61 (the Longbowmen 1/62..1/64, TI 177), whose
+        // `GuardOrder::walk_data` ranges the emitter did not hand over —
+        // range 1539 `00486573`'s flags byte `04`, read as our guy list's
+        // `length` 1 (the booking's "4 figures"); whole since.
+        &[(
+            "leaders",
+            271,
+            271,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|5a010000",
+        )],
     ),
     (
         14312,
         // Item 4257's next builds word, record 2023's `wonder` -1|0, left
-        // with item 4262: builds is whole on all 24,000.
-        &[
-            (
-                "units",
-                2416,
-                2407,
-                776,
-                "1555 62 guys.length: +0x0 of 4|1: 01000000|04",
-            ),
-            (
-                "leaders",
-                271,
-                271,
-                3,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|6b010000",
-            ),
-        ],
+        // with item 4262: builds is whole on all 24,000. Its units row, the
+        // same guard as 12537's, left with item 4266.
+        &[(
+            "leaders",
+            271,
+            271,
+            3,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|6b010000",
+        )],
     ),
 ];
 
