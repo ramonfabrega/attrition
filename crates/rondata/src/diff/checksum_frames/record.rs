@@ -241,26 +241,17 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     ),
     (
         9810,
-        // Item 4255: groups' next first parting, record 64 (army 1/1, 21
-        // members, the same list on both sides) `role` 0x150c00 ours,
-        // 0x150c03 theirs. Its units and builds rows (the University's
-        // chain) went with item 4257.
-        &[
-            (
-                "groups",
-                550,
-                550,
-                1,
-                "76 64 id..march: role 1379328|1379331",
-            ),
-            (
-                "leaders",
-                271,
-                271,
-                2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|3e010000",
-            ),
-        ],
+        // Item 4255's groups row (record 64 `role` 0x150c00 ours, 0x150c03
+        // theirs) went with item 4258 (`Group::add`'s OR of the Hoplites'
+        // role, TI 132); its units and builds rows (the University's chain)
+        // went with item 4257.
+        &[(
+            "leaders",
+            271,
+            271,
+            2,
+            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|3e010000",
+        )],
     ),
     (
         10541,
