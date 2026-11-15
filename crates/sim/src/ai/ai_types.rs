@@ -47,12 +47,34 @@ impl Sim {
     }
 
     /// `LeaderData::num_buildings[t]`: live, finished buildings of exactly
-    /// this record.
+    /// this record that the leader counts ([`Sim::leader_counts_building`]).
     pub fn num_buildings_of(&self, who: Player, rec: usize) -> i32 {
-        self.buildings
-            .iter()
-            .filter(|b| b.alive && b.active && b.owner == who && b.ty == Some(rec))
+        (0..self.buildings.len())
+            .filter(|&b| {
+                self.buildings[b].owner == who
+                    && self.buildings[b].ty == Some(rec)
+                    && self.leader_counts_building(b)
+            })
             .count() as i32
+    }
+
+    /// **A finished building in the leader's counts** (`num_buildings`,
+    /// `reg_buildings`): `Wall::activate@0063e4b0:56` calls
+    /// `Wall::increment_stats` only when the type needs no city
+    /// (`build_flags & 0x10`, `NO_CITY`) or the building belongs to one
+    /// (`+0x72 >= 0`); `Build::add_to_city@00622380:35` counts the rest when
+    /// one joins a city, `Build::remove_from_city@00622030:116` takes it
+    /// back, and `Build::close@00628980:97` takes back only what was
+    /// counted. A console-added Senate (`jam`) joins no city and is never
+    /// counted (item 4159's tenth residue, `docs/LEADERS.md` §18.2).
+    pub fn leader_counts_building(&self, b: usize) -> bool {
+        let bd = &self.buildings[b];
+        bd.alive
+            && bd.active
+            && (bd.city.is_some()
+                || bd.ty.is_some_and(|t| {
+                    self.tables.build_types[t].has(crate::cities::build::flags::NO_CITY)
+                }))
     }
 
     /// `num_queued[t]` for a building: placed sites not yet active.

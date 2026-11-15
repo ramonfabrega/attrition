@@ -173,3 +173,46 @@ fn a_sunk_transport_is_priced_as_its_first_passenger() {
         "the passenger's type and owner"
     );
 }
+
+/// **A finished building is counted only in a city, or by a type that
+/// needs none** (§18.2, item 4159's tenth residue): `Wall::activate@0063e4b0:56`
+/// calls `Wall::increment_stats` only when the type's `build_flags & 0x10`
+/// (`e`, `NO_CITY`) is set or the building's city (`+0x72`) is not −1, and
+/// `Build::add_to_city@00622380:35` counts the rest when one joins a city.
+/// The golden chapters' console-added Senate (`jam`, no `e`) joins none:
+/// ch71's who 0 scored 1277 against the original's 1257 from block 611,
+/// the Senate's `(10 × 10) / 5`. A site is counted either way
+/// (`Wall::set_type`'s `increment_stats` on the inactive arm).
+#[test]
+fn a_finished_building_outside_a_city_is_scored_only_if_it_needs_none() {
+    use crate::cities::build::{BuildType, Ident, flags};
+    let mut s = sim();
+    let senate = s.add_build_type(BuildType {
+        ident: Ident::Other,
+        x_size: 4,
+        y_size: 7,
+        hits: 1200,
+        ..BuildType::default()
+    });
+    s.tables.build_types[senate].price.base = [5, 0, 5, 0, 0, 0];
+    let pos = crate::world::Pos::new(
+        20 * crate::world::UNITS_PER_TILE,
+        20 * crate::world::UNITS_PER_TILE,
+    );
+    let b = s.init_build(0, senate, pos, false);
+    s.frame = 10;
+    s.compute_score(0, true);
+    assert_eq!(s.leader_score(0).buildings, 20, "a site counts as queued");
+    s.buildings[b].active = true;
+    s.compute_score(0, true);
+    assert_eq!(s.leader_score(0).buildings, 0, "finished, no city");
+    assert_eq!(s.num_buildings_of(0, senate), 0, "the leader's count");
+    s.tables.build_types[senate].flags |= flags::NO_CITY;
+    s.compute_score(0, true);
+    assert_eq!(s.leader_score(0).buildings, 20, "NO_CITY needs none");
+    s.tables.build_types[senate].flags &= !flags::NO_CITY;
+    s.buildings[b].city = Some(0);
+    s.compute_score(0, true);
+    assert_eq!(s.leader_score(0).buildings, 20, "a member of a city");
+    assert_eq!(s.num_buildings_of(0, senate), 1);
+}
