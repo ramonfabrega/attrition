@@ -288,7 +288,8 @@ pub const SIMULATION_BACKED: usize = 1456;
 /// 731 → 733 at item 4185's booking: step V of 4159 ports §10's end of the game and §11's lost capital (`sim::leaders::endgame`, `capital`).
 /// 733 → 734 at item 4159's step VII-d: a backed function the alliance's gates spell (`sim::leaders::diplomacy::alliance`).
 /// 734 → 735 at item 4259's booking: the market's order door spells a backed function (`process_sell`/`process_buy`, measured (1456, 735, 3611) by its lane).
-pub const SIMULATION_PORT_BACKED: usize = 735;
+/// 735 → 736 at item 4159's twelfth residue: the CEO's tile step spells a backed function (`Unit::update_ceo_position`, `sim::economy::holdings`), measured (1456, 736, 3611) at its booking gate's red.
+pub const SIMULATION_PORT_BACKED: usize = 736;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
