@@ -1943,7 +1943,24 @@ stamped 24. The closing stamp goes from 24 to 25. The client's events through th
 
 ### 21.4 The playback, and the order's effect
 
-PLAYBACK
+**run1609** (`docs/RUNS.md`) is run1607's line with the renamed file and `CITIES=5` added to the window's detail, so
+the `CITY` record prints the name. The receipt names the file's SHA-256. Draws agree on 7,000 of 7,000 frames, count
+and sequence, and 300 records are compared whole, with none parted (`RENAMED_WALKED`, pinned before the take was
+read; `the_original_s_playback_of_the_renamed_file_walks_in_lockstep`). run1607's take could not have told the files
+apart: it prints no `CITY` record, and the order moves nothing the record diff reads.
+
+**The order's effect.** The capital's name, slot 0's `CITY` record with `o` 2000, its bare line after `who`
+(`name_effects_theirs`), against our walk (`name_effects_ours`). Both were pinned before the take was read. Ours was
+seen red pinned empty:
+
+| frame | run1609 | ours | ours without the order (the repeated file) |
+| --- | --- | --- | --- |
+| 6730 | Napata | none (the founding name is not carried) | none |
+| 6731 | Attrition | Attrition | none |
+| 6999 | Attrition | Attrition | none |
+
+`Napata` is the same lobby's capital in run1579's `CITY` record. From 6731 on the two sides are equal, and the order
+is what moves ours (`the_renamed_minted_script_s_effects_on_our_walk`).
 
 ### 21.5 Confidence, and what is not established
 
