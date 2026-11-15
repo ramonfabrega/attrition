@@ -422,3 +422,57 @@ fn a_cast_walks_its_target_and_its_own_sixteen_bytes() {
         &[960i32, 480, 1].map(i32::to_le_bytes).concat()[..]
     );
 }
+
+/// **A guard walks `GuardOrder::walk_data@00486550`'s three ranges** (item
+/// 4266, `docs/CHECKSUM.md` §24.3): the flags byte, `TargetOrder`'s `ox`,
+/// `whom`, `uid` (`+0x8..+0x12`, the escorted unit) and its own `dx`, `dy`,
+/// `guard_x`, `guard_y`, `idle`, `retry` (`+0x14..+0x2c`), the post
+/// unmasked. run1597 on 12537: record 62's guard of 1/61, `04`, then
+/// `3d 00 00 00 01 00 00 00 54 00`, then 0, 264, 42840, 18408, 0, 0.
+#[test]
+fn a_guard_walks_its_target_and_its_own_twenty_four_bytes() {
+    use crate::orders::{Body, GuardOrder, Order, flag};
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let v = sim.add_unit(crate::Unit::new(1, 3, Pos::new(960, 480), 10));
+    let u = sim.add_unit(crate::Unit::new(1, 16, Pos::new(480, 480), 10));
+    sim.units[u].orders.push_back(Order {
+        flags: flag::ACTION,
+        body: Body::Guard(GuardOrder {
+            target: v,
+            dx: 0,
+            dy: 264,
+            guard: Pos::new(42840, 18408),
+            idle: 3,
+            retry: 7,
+        }),
+    });
+    let record = sim.units[u].index;
+    let ranges = sim.checksum_units().ranges;
+    let at = ranges
+        .iter()
+        .position(|r| r.record == record && r.field == "order.type")
+        .expect("the order's type");
+    assert_eq!(ranges[at].bytes, 12i32.to_le_bytes(), "GUARD");
+    let walked: Vec<(&str, Vec<u8>)> = ranges[at + 2..]
+        .iter()
+        .take_while(|r| r.field.starts_with("order."))
+        .map(|r| (r.field, r.bytes.clone()))
+        .collect();
+    let mut target = Vec::new();
+    target.extend_from_slice(&i32::from(sim.units[v].index).to_le_bytes());
+    target.extend_from_slice(&1i32.to_le_bytes());
+    target.extend_from_slice(&sim.units[v].uid.to_le_bytes());
+    let own = [0i32, 264, 42840, 18408, 3, 7]
+        .map(i32::to_le_bytes)
+        .concat();
+    assert_eq!(
+        walked,
+        vec![
+            ("order.flags", vec![4]),
+            ("order.target", target),
+            ("order.guard", own),
+        ],
+        "run1597's record 62"
+    );
+}
