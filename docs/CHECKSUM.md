@@ -2563,19 +2563,13 @@ and the line whole; ours' state held the bit already, so the emitter is the whol
 move** (`PACKETS_SCORE` 422): the units triple moved on 70 packets, every one only in that slot and only in its parted
 count, which fell on each (run1266c, East Indies, 7581 → 7561, the most); none to whole or from it.
 
-**Item 4253 moved two.** Units 7273 → 8281, guys 7273 → 10541: a seated Scholar's `angle` and `last_angle` snap to 0
-(CITIES §6.5). Step P 425 → 433.
+**Item 4253 moved two** (units 7273 → 8281, guys → 10541; CITIES §6.5).
 
-**Item 4257 moved two.** Units 8281 → 10541, builds 8281 → 14312: the garrison chain appends at the bottom (CITIES
-§6). On 8281 (§25.4) building 2018 `inside_down` ours 42, theirs 30; record 30's −1, 42 → theirs. Step P 433 → 439.
+**Item 4257 moved two** (units 8281 → 10541, builds → 14312; CITIES §6).
 
-**Item 4260 moved two.** Units and guys 10541 → 11884: a trackless crew figure's head runs after guy 0's turn
-(§16). On 10541 (§25.4) the Caravan 1/14's guys 1, 2 `last_angle` ours 682461312, theirs 968792448 → theirs. Step P
-452 → 453.
+**Item 4260 moved two** (units and guys 10541 → 11884; a trackless crew figure's head, §16, §25.4).
 
-**Item 4263 moved two.** Units 11884 → 12537, guys 11884 → whole: `Unit::set_type`'s seating writes `last` (§16). On
-11884 (§25.4) the Hoplites 1/56..1/58 (TI 132) took the Phalanx upgrade on a frame they walked; record 56's `last`
-ours (38275, 21337), theirs (38297, 21325), its point → theirs. Step P stays 453.
+**Item 4263 moved two.** Units 11884 → 12537, guys → whole: a type change's seating writes `last` (§16, §25.4).
 
 ## 24.4 Where each first parting is (diff-backed)
 
