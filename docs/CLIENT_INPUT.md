@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day; §26 item 4280, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day; §26 item 4280, the same day; §27 item 4282, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -901,7 +901,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `buildmask` | 5 | 0.2 % | yes (§24) |
 | `cheat_ai_toggle` | 4 | 0.1 % | |
 | `come_out` | 4 | 0.1 % | yes (§26) |
-| `stance` | 4 | 0.1 % | |
+| `stance` | 4 | 0.1 % | yes (§27) |
 | `disband` | 1 | 0.0 % | |
 | `unitmask` | 1 | 0.0 % | |
 
@@ -2453,7 +2453,7 @@ Every order of the six on disk, read off the recordings (a scratch test, not kep
 | `leader_options` | 50 | every file's frame-0 package, one each | `Game::run@00584590` → `LeaderOptionOut::update@006f1a60` → `CommandManager::issue_leader_option`, from `MiscAccess::my_leader_option` | the seat itself; no unit |
 | `cheat_ai_toggle` | 4 | the bottle's, slot 0, on frames 6, 6, 101, 1507 | `ConsoleWin::run_cmd@007d6a70` case `0xc`, a cheat word | the console; no unit |
 | `come_out` | 4 | the 2017 sample's, slot 3, `o` 59, 114, 92, 110 | `Options::exec@007188c0` case `0xaa` → `UnitOut::issue_come_out@00607be0` | **yes**: the Citizen `0/2` inside `0/2000` |
-| `stance` | 4 | the 2017 sample's, slot 3, each `stance(−1)` on `2048` or a repeat of it | `GroupOut::issue_stance@0070b100`; no direct caller in the export | not read |
+| `stance` | 4 | the 2017 sample's, slot 3, each `stance(−1)` on `2048` or a repeat of it | `GroupOut::issue_stance@0070b100`; no direct caller in the export | not read (§27: **yes**, the capital `0/2000`) |
 | `disband` | 1 | the 2017 sample's, slot 3, `disband(0)` on `2008` | `IFaceSelected::on_button_clicked@00826e00`, `Options::do_disband@0071df20` → `GroupOut::issue_disband@0070a470` | not read |
 | `unitmask` | 1 | the 2017 sample's, slot 3, `unitmask(0x100, −1)` on `0` | `Options::do_auto_explore@0071cbf0`, `Options::exec`, `Console::execute_at_cursor` → `GroupOut::issue_unitmask@00708880` | the Scout `0/0` (not taken) |
 
@@ -2562,11 +2562,132 @@ farm `0/2007`, at the point it stood on before the garrison (§23.4's 6750 row).
 - **`leader_options`** (§26.1): our lobby page holds no profile prefs, and the sim does not carry
   `process_leader_options`. A page row for the auto-manage prefs would mint the 50 through `synch_with_prefs`, but a
   file carrying any other value than the recordings' needs that processor first (parked 4280b).
-- **`stance`'s issuer**: `GroupOut::issue_stance@0070b100` has no direct caller in the export. Its caller, and what
-  `stance(−1)` on a building does, are not read.
+- ~~**`stance`'s issuer**: `GroupOut::issue_stance@0070b100` has no direct caller in the export. Its caller, and what
+  `stance(−1)` on a building does, are not read.~~ Read in §27.1: `Options::do_stance@00721480` writes the order
+  inline, and the building arm writes `Build +0x7e`.
 
 **Ours, not the original's:**
 
 - where the icons stand, their label and their order;
 - the recorded come-outs' building, which their command does not name.
 
+## 27. A building's stance: the STANCE button (item 4282)
+
+*Item 4282, 2026-11-15. The score: `INPUT_KINDS` 21 → 22 of 26, and 2,369 → 2,373 of 2,429 orders (97.5 % → 97.6 %).
+The four recorded stances are one person cycling a building's stance: `stance(−1)` on a full group `[2048]` (the
+2017 sample, slot 3, frame 9189), then three repeats sent as no objects (9191, 9192, 15059). Slot 0 of the minted
+game holds the actor: the capital `0/2000`, a finished training building whose stance kind is worker. The layer mints
+the press from a STANCE button. The walk gains the building arm of `Group::action_stance`, and the sim stores
+`Build +0x7e`, which it had computed. Both are in `crates/sim`. The original plays the file (run1617, §27.4).*
+
+### 27.1 What the button issues, and what the order does
+
+- **The button.** `Options::exec@007188c0` case `0x11` calls `Options::do_stance@00721480` with the button's own
+  option, and case `0x12` calls it with −2. `do_stance` writes the order inline, under `check_accept_issue`: the
+  selection's `group` (`add_group`, with its repeat, §20) and command `0x02`, `[stance]`, 5 bytes. That is why
+  `GroupOut::issue_stance@0070b100`, the same bytes, has no direct caller in the export. The gate is
+  `Group::can_activate(selection, 1, −1)` and then a negative option, or a selection whose stance kind is combat. It
+  plays `S_CHANGE_STANCE`.
+- **What it does.** `CommandPackage::process_stance@00949ed0` calls `Group::action_stance@0070d440` on the package's
+  group.
+- **The group's kind** is `GroupData::get_stance_type@0070d370`'s. For a group of buildings the leader is `list[0]`.
+  When the leader's kind is none or caster, the first member of another kind wins. If none does, the result is caster
+  when a caster was seen, and the leader's own kind otherwise.
+- **The option.** Six options for combat, four for worker, two for caster or packer. A negative option steps from
+  `GroupData::get_stance_option@0070bab0`: the modal byte over the live members of that kind, a tie going to the
+  lowest option. −1 steps forward, `(cur + 1) % n`; −2 steps back, wrapping to `n − 1`.
+- **The building arm** (`0070d440:79`–`:87`). Each live member of a building group whose kind matches, and for which
+  `is_build` holds (never a wall), takes the option in `Build +0x7e`. The unit arm (`+0xb1`, the combat arms) has
+  been ported since item 2165 (`docs/GOLDEN.md` §79).
+- **What reads the byte.** `Build::train@0062f9b0` copies it into each unit it trains when the unit's stance kind is
+  the building's own (`Sim::trained_stance`). So the press sets the stance of every Citizen a city trains from then
+  on, and a worker's stance is what `orders/jobs.rs` reads.
+
+The sim's `Sim::build_stance` comment named two writers of `+0x7e`, `process_leader_options` and
+`set_auto_peasant_level`. It missed this third one, `action_stance`. It now names all three.
+
+### 27.2 What the layer does
+
+- **The sim** (**`crates/sim`**). `Building::stance_set` holds `+0x7e` once a press writes it.
+  `Sim::build_stance` answers that byte, and `Build::init`'s computed one before it, so the builds checksum line, the
+  dump diff and `train` all read the press. `Sim::action_stance_buildings(list, s)` is the building arm, read as
+  above. The `command` door forwards it.
+- **The walk** (`crates/rondata/src/input.rs`, `group_stance_any`). `stance` on the package's group: a group of
+  buildings (every object 2000 and up) is pushed as `process_group` pushes one and takes the building arm; any other
+  group takes `group_stance`, the unit arm. Before this item the walk skipped `stance` as "not mapped".
+- **The HUD** (`hud::stance_button`). One button, STANCE, three rows above the bottom edge and third from the right.
+  It shows for a selection of the slot's own units, or of buildings one of which is a training building of its own.
+  A press on it is `Event::Stance`.
+- **The layer.** `Event::Stance` with a selection and the entry line closed mints the selection's `group` and
+  `stance(STANCE_CYCLE)`, −1. Whether a member takes the option is left to the walk, as the original leaves it to
+  `action_stance`. `stance` is added to `MINTS`.
+- **The script** (`crates/rondata/src/script.rs`). `stanced()` is the came-out script and one package more, on
+  `STANCE_FRAME` 6790: the `group` as no objects (the capital is still the last group sent) and `stance(−1)`.
+
+**Stage 0** (`minted_stanced_at_the_opening_camera`), on 6790 at the opening camera:
+- the capital stands at pixel (1127, 521), finished and a training building;
+- with it selected, the STANCE button's centre is (1446, 966).
+
+### 27.3 The counts and the file
+
+- `INPUT_STANCED`: **29 of 29**. The events are the came-out ones, then one press on the STANCE button on 6790, the
+  capital still selected from the come-out's press. Through the HUD and the layer they mint `script::stanced()`.
+  Seen red pinned 28.
+- `INPUT_STANCES`: **4 of 4** (seen red pinned (0, 0)), the package's orders whole. Each is minted from a fresh layer.
+  Its selection is the package's group, or for an empty group the slot's last full one, and the press is on the
+  STANCE button.
+- `minted_stance_edges` checks these cases:
+  - the button for the capital, for a mixed pick holding it, and for a unit of the slot's own;
+  - none for a farm (no training building), another slot's building or unit, no selection, or the entry line open;
+  - the order is `group [2000]` and `stance(−1)`, and the same selection again sends its `group` as no objects.
+- `a_stance_press_on_buildings_writes_their_byte_and_their_trainees_take_it` (sim): −1 and −2 with the wrap, a member
+  of no stance kind left alone, and a unit trained afterwards taking the written byte.
+- `INPUT_KINDS` (22, 26), `INPUT_KINDS_ORDERS` (2,373, 2,429); `NOT_MINTED` drops `stance`.
+
+**The file.** `~/ron-golden/recordings/item4282-stanced-greatlakes-24000.rcx`, 59,661 bytes, SHA-256
+`56c9882fe065b883c6b76931b5502c0c0db513df83dd9d8050fc2ebe4db879e4` (`the_stanced_minted_packages_round_trip`;
+seen red pinned 0). It holds the came-out file's packages, then the press's on 6790, stamped 30. The closing stamp
+goes from 30 to 31. The client's events through the HUD write it byte for byte.
+
+### 27.4 The playback, and the order's effect
+
+**run1617** (`docs/RUNS.md`) is run1616's line with the stanced file. The receipt names the file's SHA-256. **Draws
+agree on 7,000 of 7,000 frames**, count and sequence, and **all 300 of the window's records are whole**
+(`STANCED_WALKED`, pinned before the read with none parted). The walk compares the buildings' `stance` and the units'
+on every record.
+
+**The comparison can fail.** The came-out script, which has no press, walked against run1617 parts 209 of the 300
+records. The first parting is on 6791: `0/2000` `stance`, ours 0 against theirs 1 (a scratch test, not kept).
+
+**The order's effect.** The capital's `+0x7e`, and each unit of slot 0 from `0/10` on with its `+0xb1`, were read on
+both sides (`stance_effects_theirs`, `stance_effects_ours`). Ours were pinned before the take was read and seen red
+pinned empty. Ours without the order is the came-out file's walk.
+
+| frame | the original | ours | ours without the order |
+| --- | --- | --- | --- |
+| 6790 | capital 0 | the same | the same |
+| 6791 | **capital 1** | the same | capital 0 |
+| 6866 | capital 1; `0/10` trained, stance 1 | the same | capital 0; `0/10` stance 0 |
+| 6999 | capital 1; `0/10` 1, `0/11` 1 | the same | capital 0; `0/10` 0, `0/11` 0 |
+
+The press steps the capital's worker byte from 0 to 1 on the frame after the package. Both Citizens its infinite
+queue trains after the press (§24.4) take 1 from it. Their walk on stance 1 agrees with the original's to 6999.
+
+### 27.5 Confidence, and what is not established
+
+- **One reading each**: `do_stance`, `get_stance_type`'s building leader, `get_stance_option` and `action_stance`'s
+  building arm. The playback backs the command's bytes, the step from the modal 0 to 1 on one worker building, and
+  `train`'s copy into two Citizens (§27.4). Not reached by any take: the −2 arm, a group of several buildings, the
+  none/caster leader scan, and the combat, caster and packer kinds on a building.
+- **Which button carries −1.** Case `0x11` passes the button's own option. That the cycling button's option is −1
+  is inferred from the recordings, which carry only −1. The panel's per-option buttons (an option ≥ 0) are not minted.
+- **A unit selection** mints the same order and the walk takes it through `group_stance` (item 2165). No take of
+  ours has played one minted from the button.
+- **`process_leader_options` and `set_auto_peasant_level`**, the other writers of `+0x7e`, are not ported
+  (§26.1; parked 4280b).
+
+**Ours, not the original's:**
+
+- where the STANCE button stands, its label, and when it shows (the original's gate is `can_activate`; the stance
+  kind of the selection is not read by our HUD);
+- the recorded stances' selection, which a repeated `group` does not carry.

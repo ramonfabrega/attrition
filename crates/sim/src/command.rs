@@ -202,6 +202,11 @@ impl Command<'_> {
         self.sim.group_action_stance(g, s)
     }
 
+    /// [`Sim::action_stance_buildings`] (`units/stance.rs`).
+    pub fn action_stance_buildings(&mut self, buildings: &[usize], s: i32) -> usize {
+        self.sim.action_stance_buildings(buildings, s)
+    }
+
     /// [`Sim::group_action_build`] (`groups/group/actions.rs`).
     pub fn group_action_build(
         &mut self,

@@ -302,18 +302,24 @@ impl crate::Sim {
         )
     }
 
-    /// `Build +0x7e` for a building on the map, computed rather than stored.
+    /// `Build +0x7e` for a building on the map: the byte a stance press
+    /// stored ([`crate::cities::building::Building::stance_set`]), or else
+    /// `Build::init`'s, computed.
     ///
-    /// `Build::init` writes the byte once and only two functions ever change
-    /// it — `CommandPackage::process_leader_options@009441d0` and
-    /// `ScenarioFuncSet::set_auto_peasant_level@009ff620`, a player's click
-    /// and a scenario call. Neither runs in any capture on disk and neither
-    /// is modelled here, so the stored field and this function agree
-    /// everywhere they can be compared. **SEAM**: give the sim either writer
-    /// and the byte must become a field.
+    /// `Build::init` writes the byte once and three functions change it:
+    /// `Group::action_stance@0070d440`'s building arm, a player's stance
+    /// press ([`Sim::action_stance_buildings`], item 4282), and
+    /// `CommandPackage::process_leader_options@009441d0` and
+    /// `ScenarioFuncSet::set_auto_peasant_level@009ff620`, the profile's
+    /// prefs and a scenario call. **SEAM**: the last two are not modelled
+    /// (`docs/CLIENT_INPUT.md` §26.1, parked 4280b); either would write
+    /// [`crate::cities::building::Building::stance_set`].
     #[must_use]
     pub fn build_stance(&self, b: usize) -> u8 {
         let bl = &self.buildings[b];
+        if let Some(s) = bl.stance_set {
+            return s;
+        }
         let Some(t) = bl.ty else { return 0 };
         let human = self
             .cities
@@ -326,6 +332,95 @@ impl crate::Sim {
             human,
             self.ai.lobby.resources_unlimited(),
         )
+    }
+
+    /// A building's stance kind, [`build_stance_type`] of its type; `None`
+    /// for the bare object.
+    fn building_stance_type(&self, b: usize) -> StanceType {
+        self.buildings[b].ty.map_or(StanceType::None, |t| {
+            build_stance_type(&self.tables.build_types, t)
+        })
+    }
+
+    /// **`Group::action_stance@0070d440` on a group of buildings** (item
+    /// 4282, `docs/CLIENT_INPUT.md` §27): `CommandPackage::process_stance
+    /// @00949ed0`'s one call when the package's group is of buildings.
+    ///
+    /// - The group's kind is `GroupData::get_stance_type@0070d370`'s: for a
+    ///   group of buildings the leader is `list[0]`, and when its kind is
+    ///   `NONE` or `CASTER` the first member of another kind wins, `CASTER`
+    ///   when one was seen and nothing else was.
+    /// - A negative `s` steps from `GroupData::get_stance_option@0070bab0`,
+    ///   the modal `+0x7e` over the live members of that kind (a tie to the
+    ///   lowest option): −1 forward, −2 back, as the unit arm
+    ///   ([`Sim::group_action_stance`]).
+    /// - Every live member of that kind takes the option in `+0x7e`
+    ///   (`0070d440:85`). A wall would not (`is_build`); the simulation
+    ///   lays none here.
+    ///
+    /// Returns the members written.
+    pub fn action_stance_buildings(&mut self, buildings: &[usize], s: i32) -> usize {
+        let Some(&leader) = buildings.first() else {
+            return 0;
+        };
+        let mut ty = self.building_stance_type(leader);
+        if matches!(ty, StanceType::None | StanceType::Caster) {
+            let mut caster = false;
+            for &b in buildings {
+                match self.building_stance_type(b) {
+                    StanceType::None => {}
+                    StanceType::Caster => caster = true,
+                    k => {
+                        ty = k;
+                        caster = false;
+                        break;
+                    }
+                }
+            }
+            if caster {
+                ty = StanceType::Caster;
+            }
+        }
+        // `0070d440:21`–`:33`: six combat options, four worker, two caster
+        // or packer.
+        let n = match ty {
+            StanceType::Combat => 6,
+            StanceType::Worker => 4,
+            StanceType::Caster | StanceType::Packer => 2,
+            StanceType::None => return 0,
+        };
+        let live =
+            |sim: &Self, b: usize| sim.buildings[b].alive && sim.building_stance_type(b) == ty;
+        let mut counts = [0i32; 6];
+        for &b in buildings {
+            if live(self, b)
+                && let Some(c) = counts.get_mut(usize::from(self.build_stance(b)))
+            {
+                *c += 1;
+            }
+        }
+        let mut cur = 0usize;
+        for i in 0..n as usize {
+            if counts[i] > 0 && counts[cur] < counts[i] {
+                cur = i;
+            }
+        }
+        let cur = cur as i32;
+        let s = if s >= 0 {
+            s
+        } else if s == -2 {
+            if cur - 1 < 0 { n - 1 } else { cur - 1 }
+        } else {
+            (cur + 1) % n
+        };
+        let mut written = 0;
+        for &b in buildings {
+            if live(self, b) {
+                self.buildings[b].stance_set = Some(s.clamp(0, 255) as u8);
+                written += 1;
+            }
+        }
+        written
     }
 
     /// `Build::train@0062f9b0:86–101` — the stance a unit trained out of

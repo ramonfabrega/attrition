@@ -191,3 +191,54 @@ fn a_trained_combat_unit_takes_the_trainer_s_byte_as_its_combat_stance() {
         "and the combat stance it reads as"
     );
 }
+
+/// **`Group::action_stance@0070d440`'s building arm** (item 4282,
+/// `docs/CLIENT_INPUT.md` §27): a group of buildings takes `list[0]`'s
+/// kind; −1 steps one forward from the modal `+0x7e`, −2 back with the
+/// wrap, an option ≥ 0 is written as given; a member of another kind is
+/// not written; and a unit the trainer lays after it takes the new byte.
+#[test]
+fn a_stance_press_on_buildings_writes_their_byte_and_their_trainees_take_it() {
+    let mut s = crate::Sim::new(
+        crate::core::tuning::Tuning::RON,
+        crate::world::World::new(40, 40),
+        2,
+    );
+    s.roster.leader_options = vec![LeaderOptions::default(); 2];
+    let mut t = crate::UnitType::default();
+    t.cols.role = role::ROLE_MILITARY;
+    let ty = s.add_unit_type(t);
+    let barracks = s.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::Barracks,
+        flags: crate::cities::build::flags::TRAINS,
+        ..crate::cities::build::BuildType::default()
+    });
+    let plain = s.add_build_type(crate::cities::build::BuildType::default());
+    let a = s.add_building(0, crate::Pos::new(5000, 5000), 0);
+    let b = s.add_building(0, crate::Pos::new(9000, 5000), 0);
+    let c = s.add_building(0, crate::Pos::new(13000, 5000), 0);
+    s.buildings[a].ty = Some(barracks);
+    s.buildings[b].ty = Some(barracks);
+    s.buildings[c].ty = Some(plain);
+    let start = s.build_stance(a);
+    assert_eq!(
+        s.action_stance_buildings(&[a, b, c], -1),
+        2,
+        "c is no combat building"
+    );
+    assert_eq!(s.build_stance(a), (start + 1) % 6);
+    assert_eq!(s.build_stance(b), (start + 1) % 6);
+    assert_eq!(s.buildings[c].stance_set, None);
+    s.action_stance_buildings(&[a, b], -2);
+    s.action_stance_buildings(&[a, b], -2);
+    assert_eq!(
+        i32::from(s.build_stance(a)),
+        (i32::from(start) + 5) % 6,
+        "back, with the wrap"
+    );
+    s.action_stance_buildings(&[a], 4);
+    assert_eq!(s.build_stance(a), 4);
+    assert_eq!(s.action_stance_buildings(&[c], -1), 0, "no stance kind");
+    let u = s.build_train(a, ty).unit;
+    assert_eq!(s.units[u].stance, 4, "the trainee takes the written byte");
+}
