@@ -740,6 +740,58 @@ pub struct Input {
     /// The craft whose button was pressed and whose target the next left
     /// press picks (`Options::selecting_spot`, item 4264).
     pub casting: Option<i32>,
+    /// The last group this session sent (item 4267).
+    pub sent: Sent,
+}
+
+/// **The last group sent** (item 4267, `docs/CLIENT_INPUT.md` §20):
+/// `CommandPackage`'s `last_who_sent`, `last_objects_sent` and
+/// `last_uids_sent`, which `init_class@0094c440` sets to −1 and no objects
+/// when a game starts. `CommandPackage::add_group@0094bb60` writes a group
+/// whose `who`, objects and their uids (`ObjectData +0x30`) all equal these
+/// as a count of zero, and any other group in full, keeping it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Sent {
+    pub who: i8,
+    /// Each object and its uid, in the group's order.
+    pub objects: Vec<(i16, u16)>,
+}
+
+impl Default for Sent {
+    fn default() -> Sent {
+        Sent {
+            who: -1,
+            objects: Vec::new(),
+        }
+    }
+}
+
+impl Sent {
+    /// `add_group`'s write: the `group` for `who`'s `objects`, as no
+    /// objects when it repeats the last one sent.
+    pub fn add_group(&mut self, who: i8, objects: Vec<(i16, u16)>) -> Command {
+        if who == self.who && objects == self.objects {
+            return Command::Group {
+                who,
+                objects: Vec::new(),
+            };
+        }
+        let list = objects.iter().map(|&(o, _)| o).collect();
+        (self.who, self.objects) = (who, objects);
+        Command::Group { who, objects: list }
+    }
+}
+
+/// An object's uid as the scene holds it; `u16::MAX` for one it does not
+/// (ours: `add_group` drops a dead object, and the layer writes it).
+fn uid_of(scene: &sim::observe::Scene, id: ObjId) -> u16 {
+    scene
+        .units
+        .iter()
+        .find(|u| u.id == id)
+        .map(|u| u.uid)
+        .or_else(|| scene.buildings.iter().find(|b| b.id == id).map(|b| b.uid))
+        .unwrap_or(u16::MAX)
 }
 
 /// **The selection's craft** (item 4264, `docs/CLIENT_INPUT.md` §18): the
@@ -765,12 +817,15 @@ impl Input {
         }
     }
 
-    /// The `group` the selection makes.
-    fn group(&self) -> Command {
-        Command::Group {
-            who: self.player as i8,
-            objects: self.selection.iter().map(|id| id.o).collect(),
-        }
+    /// The `group` the selection makes, as `add_group` writes it: no
+    /// objects when it repeats the last group sent ([`Sent`]).
+    fn group(&mut self, scene: &sim::observe::Scene) -> Command {
+        let objects = self
+            .selection
+            .iter()
+            .map(|&id| (id.o, uid_of(scene, id)))
+            .collect();
+        self.sent.add_group(self.player as i8, objects)
     }
 
     /// **A right press on an object** (item 4179, `docs/CLIENT_INPUT.md` §6):
@@ -966,7 +1021,7 @@ impl Input {
                     return None;
                 }
                 let cmd = Command::CityGather { t, queued: 2 };
-                Some((frame, play, vec![self.group(), cmd]))
+                Some((frame, play, vec![self.group(view.scene), cmd]))
             }
             Event::Unqueue(slot) => {
                 // `OPTION_QUEUE`: one `unqueue` per finished building of
@@ -993,7 +1048,7 @@ impl Input {
                 Some((
                     frame,
                     play,
-                    vec![self.group(), spell(t, -1, -1, Pos { x: 0, y: 0 })],
+                    vec![self.group(view.scene), spell(t, -1, -1, Pos { x: 0, y: 0 })],
                 ))
             }
             Event::Key(k) if self.line.is_some() => {
@@ -1018,7 +1073,7 @@ impl Input {
                         };
                         spell(t, i32::from(id.o), i32::from(id.who), at)
                     };
-                    return Some((frame, play, vec![self.group(), cmd]));
+                    return Some((frame, play, vec![self.group(view.scene), cmd]));
                 }
                 if let Some(ty) = self.placing {
                     let at = ground_at(view, x, y)?;
@@ -1031,7 +1086,7 @@ impl Input {
                         build: ty,
                         queued: 2,
                     };
-                    return Some((frame, play, vec![self.group(), cmd]));
+                    return Some((frame, play, vec![self.group(view.scene), cmd]));
                 }
                 let hit = view
                     .anchors(self.player)
@@ -1077,13 +1132,13 @@ impl Input {
                         action: 0,
                         add_to_end: 0,
                     };
-                    return Some((frame, play, vec![self.group(), cmd]));
+                    return Some((frame, play, vec![self.group(view.scene), cmd]));
                 }
                 let hit = view.target(self.player, x, y);
                 if let Some(cmd) =
                     hit.and_then(|h| self.on_object(h, view.attacks(&self.selection)))
                 {
-                    return Some((frame, play, vec![self.group(), cmd]));
+                    return Some((frame, play, vec![self.group(view.scene), cmd]));
                 }
                 if matches!(hit, Some(Hit::Own { .. })) {
                     // One's own finished, undamaged building with no room:
@@ -1094,7 +1149,11 @@ impl Input {
                 // The main view's formation, for one unit as for many
                 // (`Console::down@007cd8f0`; item 4194).
                 let (form, width) = view.formation(&self.selection);
-                Some((frame, play, vec![self.group(), move_to(at, form, width)]))
+                Some((
+                    frame,
+                    play,
+                    vec![self.group(view.scene), move_to(at, form, width)],
+                ))
             }
             Event::MapRightPress { x, y } => {
                 // The minimap's arm: the point on the map, the selection
@@ -1108,7 +1167,7 @@ impl Input {
                     return None;
                 }
                 let cmd = move_to(Pos { x, y }, -1, -1);
-                Some((frame, play, vec![self.group(), cmd]))
+                Some((frame, play, vec![self.group(view.scene), cmd]))
             }
             Event::Key(k) => {
                 if self.selection.is_empty() {
@@ -1117,7 +1176,7 @@ impl Input {
                 if self.building {
                     let &(_, unit) = TRAIN_KEYS.iter().find(|(c, _)| *c == k)?;
                     let cmd = Command::QueueUp { unit, num: 1 };
-                    Some((frame, play, vec![self.group(), cmd]))
+                    Some((frame, play, vec![self.group(view.scene), cmd]))
                 } else {
                     let &(_, ty) = BUILD_KEYS.iter().find(|(c, _)| *c == k)?;
                     self.placing = Some(ty);
@@ -2349,7 +2408,7 @@ pub(crate) mod tests {
             return;
         };
         assert_eq!(file.len(), GATHERED_RCX_BYTES);
-        let written = written(&ours).unwrap();
+        let written = written(&script::full_groups(&ours)).unwrap();
         assert!(written == file, "the file from the gathered orders");
         assert!(written != followed_file, "not the followed file");
     }
@@ -2419,7 +2478,7 @@ pub(crate) mod tests {
             return;
         };
         assert_eq!(file.len(), CHATTED_RCX_BYTES);
-        let written = written(&ours).unwrap();
+        let written = written(&script::full_groups(&ours)).unwrap();
         assert!(written == file, "the file from the chatted orders");
         assert!(written != gathered_file, "not the gathered file");
     }
@@ -2519,7 +2578,7 @@ pub(crate) mod tests {
             return;
         };
         assert_eq!(file.len(), PAUSED_RCX_BYTES);
-        let written = written(&ours).unwrap();
+        let written = written(&script::full_groups(&ours)).unwrap();
         assert!(written == file, "the file from the paused orders");
         assert!(written != chatted_file, "not the chatted file");
     }
@@ -2637,7 +2696,7 @@ pub(crate) mod tests {
             return;
         };
         assert_eq!(file.len(), MARKETED_RCX_BYTES);
-        let written = written(&ours).unwrap();
+        let written = written(&script::full_groups(&ours)).unwrap();
         assert!(written == file, "the file from the marketed orders");
         assert!(written != paused_file, "not the paused file");
     }
@@ -2757,7 +2816,7 @@ pub(crate) mod tests {
             return;
         };
         assert_eq!(file.len(), CITY_GATHERED_RCX_BYTES);
-        let written = written(&ours).unwrap();
+        let written = written(&script::full_groups(&ours)).unwrap();
         assert!(written == file, "the file from the city-gathered orders");
         assert!(written != marketed_file, "not the marketed file");
     }
@@ -2861,10 +2920,30 @@ pub(crate) mod tests {
             return;
         };
         assert_eq!(file.len(), UNQUEUED_RCX_BYTES);
-        let written = written(&ours).unwrap();
+        let as_layer = written(&ours).unwrap();
+        let written = written(&script::full_groups(&ours)).unwrap();
         assert!(written == file, "the file from the unqueued orders");
         assert!(written != gathered_file, "not the city-gathered file");
+
+        // As `add_group` writes it (item 4267): the repeated file.
+        let Ok(repeated) = std::fs::read(std::path::Path::new(&home).join(REPEATED_RCX)) else {
+            println!("skipping the bytes: no {REPEATED_RCX}");
+            return;
+        };
+        assert_eq!(repeated.len(), REPEATED_RCX_BYTES);
+        assert!(
+            as_layer == repeated,
+            "the file from the unqueued orders as the layer writes them"
+        );
     }
+
+    /// **The repeated file** (item 4267, `docs/CLIENT_INPUT.md` §20): the
+    /// unqueued orders as the layer mints them, each `group` that repeats
+    /// the last one sent as no objects; written by rondata's
+    /// `the_repeated_minted_packages_round_trip` under `RON_RCX_OUT`, and
+    /// the file run1607 takes open.
+    const REPEATED_RCX: &str = "ron-golden/recordings/item4267-repeated-greatlakes-24000.rcx";
+    const REPEATED_RCX_BYTES: usize = 59_564;
 
     /// The unqueued file (`docs/CLIENT_INPUT.md` §19), written by rondata's
     /// `the_unqueued_minted_packages_round_trip` under `RON_RCX_OUT`.
@@ -3040,10 +3119,65 @@ pub(crate) mod tests {
     /// recordings on disk carry, those the city's button mints field for
     /// field, the package's `group` and its `city_gather` whole, when its
     /// group's building is pressed and then the button of its type, of all
-    /// of them. The two that part carry a `group` of no objects
-    /// (`docs/CLIENT_INPUT.md` §17.4), which the panel's gate cannot pass.
-    /// Seen red with the layer's `queued` 0: 0 of 20.
-    const INPUT_CITY_GATHERS: (usize, usize) = (18, 20);
+    /// of them. The two whose `group` carries no objects are
+    /// `add_group`'s repeat (item 4267, `docs/CLIENT_INPUT.md` §20): the
+    /// layer, its last group sent the recording's last full one from that
+    /// slot, mints them whole. Seen red with the layer's `queued` 0: 0 of
+    /// 20; at item 4261's pin, 18 of 20, before the repeat.
+    const INPUT_CITY_GATHERS: (usize, usize) = (20, 20);
+
+    /// **The last group a recording's sender sent** (item 4267): for each
+    /// package's slot, the last `group` it carried in full, `(who,
+    /// objects)`. A recorded group of no objects is `add_group`'s repeat of
+    /// it, so the selection behind it is that list.
+    type LastSent = std::collections::BTreeMap<i32, Group>;
+
+    /// A recorded `group` in full: `(who, objects)`.
+    type Group = (i8, Vec<i16>);
+
+    /// The selection behind a recorded package's `group` and the layer's
+    /// [`Sent`] before it, its uids the scene's: `(who, objects, sent)`.
+    fn behind(last: &LastSent, play: i32, kept: &[Command]) -> (u8, Vec<i16>, Option<Group>) {
+        let before = last.get(&play).cloned();
+        match kept.first() {
+            Some(Command::Group { who, objects }) if !objects.is_empty() => {
+                (*who as u8, objects.clone(), before)
+            }
+            Some(Command::Group { who, .. }) => (
+                *who as u8,
+                before.as_ref().map(|b| b.1.clone()).unwrap_or_default(),
+                before,
+            ),
+            _ => (play as u8, Vec::new(), before),
+        }
+    }
+
+    /// The layer's [`Sent`] for `before`, each object's uid the scene's.
+    fn sent_for(before: &Option<Group>, scene: &Scene) -> Sent {
+        match before {
+            Some((who, objects)) => Sent {
+                who: *who,
+                objects: objects
+                    .iter()
+                    .map(|&o| {
+                        let id = ObjId { who: *who as u8, o };
+                        (o, uid_of(scene, id))
+                    })
+                    .collect(),
+            },
+            None => Sent::default(),
+        }
+    }
+
+    /// The tracker after a recorded package: a `group` in full is the
+    /// sender's last.
+    fn note_sent(last: &mut LastSent, play: i32, kept: &[Command]) {
+        if let Some(Command::Group { who, objects }) = kept.first()
+            && !objects.is_empty()
+        {
+            last.insert(play, (*who, objects.clone()));
+        }
+    }
 
     /// A unit for the craft tests (item 4264): slot `who`'s `o` at `(x,
     /// 0)`, offering `crafts`.
@@ -3059,10 +3193,12 @@ pub(crate) mod tests {
     /// no target (`ox`, `whom` −1 and the point (0, 0), `do_spell`'s
     /// `target_spell(t, −1, −1, 0, 0)`), each minted from its group's units
     /// offering the craft and a press on its button. The five whose
-    /// `group` is empty part: that is `CommandPackage::add_group`'s repeat,
-    /// which the layer does not write (parked 4264a). Seen red with the
-    /// arm's point (1, 1): 0 of 6.
-    const INPUT_SPELLS: (usize, usize) = (1, 6);
+    /// `group` is empty are `CommandPackage::add_group`'s repeat, which the
+    /// layer writes since item 4267 (`docs/CLIENT_INPUT.md` §20), its last
+    /// group sent the recording's last full one from that slot. Seen red
+    /// with the arm's point (1, 1): 0 of 6; at item 4264's pin, 1 of 6,
+    /// before the repeat.
+    const INPUT_SPELLS: (usize, usize) = (6, 6);
 
     #[test]
     fn minted_spells_equal_the_recordings() {
@@ -3076,12 +3212,15 @@ pub(crate) mod tests {
         let (mut whole, mut all) = (0, 0);
         for f in &files {
             let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let mut last = LastSent::new();
             for p in &rec.packages {
                 let Ok(cmds) = rondata::commands::decode(&p.data) else {
                     continue;
                 };
                 let kept: Vec<Command> =
                     cmds.into_iter().filter(rondata::input::is_input).collect();
+                let (who, objects, before) = behind(&last, p.play, &kept);
+                note_sent(&mut last, p.play, &kept);
                 let Some(&Command::Spell {
                     ox: -1, spell: t, ..
                 }) = kept.iter().find(|c| matches!(c, Command::Spell { .. }))
@@ -3089,10 +3228,6 @@ pub(crate) mod tests {
                     continue;
                 };
                 all += 1;
-                let (who, objects) = match &kept[0] {
-                    Command::Group { who, objects } => (*who as u8, objects.clone()),
-                    _ => (p.play as u8, Vec::new()),
-                };
                 let craft = sim::observe::Craft {
                     t,
                     targeted: false,
@@ -3108,6 +3243,7 @@ pub(crate) mod tests {
                 let v = view(&c, &scene, &terrain);
                 let mut input = Input::new(who);
                 input.selection = objects.iter().map(|&o| ObjId { who, o }).collect();
+                input.sent = sent_for(&before, &scene);
                 let got = input.event(p.frame, Event::Spell(t), &v);
                 if got.as_ref().map(|o| &o.2) == Some(&kept) {
                     whole += 1;
@@ -3182,15 +3318,18 @@ pub(crate) mod tests {
             got,
             Some(vec![group.clone(), spell(0x27c, -1, -1, no_point)])
         );
-        // Through the HUD: a press on the button is the same event.
+        // Through the HUD: a press on the button is the same event, and
+        // its group repeats the one just sent, so it goes as no objects
+        // (`add_group`, item 4267).
         let b = crate::hud::spell_menu(&input, &scene, HUD_SIZE)[1];
         let (bx, by) = (b.rect.x + 1, b.rect.y + 1);
         let got = crate::hud::event(&mut input, HUD_SIZE, 7, Event::Press { x: bx, y: by }, &v)
             .map(|o| o.2);
-        assert_eq!(
-            got,
-            Some(vec![group.clone(), spell(0x27c, -1, -1, no_point)])
-        );
+        let repeat = Command::Group {
+            who: 0,
+            objects: vec![],
+        };
+        assert_eq!(got, Some(vec![repeat, spell(0x27c, -1, -1, no_point)]));
         // Targeted: nothing on the button, then the pick on slot 1's unit.
         let mut input = selected(&[5, 6]);
         assert_eq!(input.event(7, Event::Spell(0x275), &v), None);
@@ -3248,12 +3387,15 @@ pub(crate) mod tests {
         let (mut whole, mut all) = (0, 0);
         for f in &files {
             let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let mut last = LastSent::new();
             for p in &rec.packages {
                 let Ok(cmds) = rondata::commands::decode(&p.data) else {
                     continue;
                 };
                 let kept: Vec<Command> =
                     cmds.into_iter().filter(rondata::input::is_input).collect();
+                let (who, objects, before) = behind(&last, p.play, &kept);
+                note_sent(&mut last, p.play, &kept);
                 let Some(Command::CityGather { t, .. }) = kept
                     .iter()
                     .find(|c| matches!(c, Command::CityGather { .. }))
@@ -3261,10 +3403,6 @@ pub(crate) mod tests {
                     continue;
                 };
                 all += 1;
-                let (who, objects) = match &kept[0] {
-                    Command::Group { who, objects } => (*who as u8, objects.clone()),
-                    _ => (p.play as u8, Vec::new()),
-                };
                 let scene = Scene {
                     buildings: objects.iter().map(|&o| city_building(who, o)).collect(),
                     ..Scene::default()
@@ -3273,6 +3411,7 @@ pub(crate) mod tests {
                 let mut input = Input::new(who);
                 input.selection = objects.iter().map(|&o| ObjId { who, o }).collect();
                 input.building = true;
+                input.sent = sent_for(&before, &scene);
                 let got = input.event(p.frame, Event::CityGather(*t), &v);
                 if got.as_ref().map(|o| &o.2) == Some(&kept) {
                     whole += 1;
@@ -3726,6 +3865,7 @@ pub(crate) mod tests {
         sim::observe::UnitScene {
             id: ObjId { who, o },
             owner: who,
+            uid: 0,
             ty: None,
             type_index: ti,
             form,
