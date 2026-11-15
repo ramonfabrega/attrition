@@ -988,6 +988,24 @@ pub const RUN1559B_3279_GROUND: (usize, usize) = (1097, 1109);
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1105, 1109);
 
+/// **`RUN1559B_3279_PAST_THE_EDGE`** (item 4247; `docs/RENDERER.md`
+/// §3.15): the corner past the map's edge on run1559b's still at frame
+/// 3279, `[(hue, scored), (luma, scored), (both, scored)]` over the
+/// photograph's [`EDGE_BLOCK`]-pixel blocks wholly off the heightfield
+/// (`ground_why`'s "off the terrain"), a block's mean on the still
+/// against the photograph's under [`HUE`]'s distance and
+/// `LUMA_READER`. Seen at **0**: ours clears to black, theirs is dark
+/// terrain (the off-terrain mean (64, 59, 33),
+/// [`RUN1559B_3279_UNSCORED`]): 162 blocks, the first at pixel (160, 0),
+/// theirs (65, 61, 34), ours (3, 3, 4). Made to fail: the photograph
+/// against itself scores 162 of 162.
+#[cfg(test)]
+pub const RUN1559B_3279_PAST_THE_EDGE: [(usize, usize); 3] = [(0, 162), (0, 162), (0, 162)];
+
+/// The side of a block [`RUN1559B_3279_PAST_THE_EDGE`] scores (item 4247).
+#[cfg(test)]
+pub const EDGE_BLOCK: usize = 32;
+
 /// **`RUN1564_3279_SURF`** (item 4225; `docs/RENDERER.md` §3.18, "The
 /// surf, off the packet"): `SANDY` and `OCEAN` `[agree, scored]` on the
 /// client's still with run1564's own surf (the card's draws 163–169, off
@@ -3560,6 +3578,68 @@ pub(crate) mod tests {
         }
         let tile = (0..w * h).map(|i| any[i].filter(|_| why[i] == 0)).collect();
         (Ground { tile, tw, th }, any, why)
+    }
+
+    /// **Item 4247: the corner past the map's edge, on the still.** The
+    /// photograph's [`EDGE_BLOCK`]-pixel blocks every pixel of which is
+    /// off the heightfield, each block's mean on `still` against the
+    /// photograph's: `[(hue, n), (luma, n), (both, n)]`.
+    pub(crate) fn past_the_edge(p: &mut Probe, still: &[u8]) -> [(usize, usize); 3] {
+        use render::silhouette::{LUMA_READER, luminance};
+        let (_, _, why) = ground_why(p);
+        let (w, h) = (p.photo.width, p.photo.height);
+        let mean = |rgba: &[u8], bx: usize, by: usize| {
+            let mut m = [0f32; 3];
+            for y in by..by + EDGE_BLOCK {
+                for x in bx..bx + EDGE_BLOCK {
+                    for (c, v) in m.iter_mut().enumerate() {
+                        *v += f32::from(rgba[(y * w + x) * 4 + c]);
+                    }
+                }
+            }
+            m.map(|v| v / (EDGE_BLOCK * EDGE_BLOCK) as f32)
+        };
+        let (mut hue, mut luma, mut both, mut n) = (0, 0, 0, 0);
+        let mut first = true;
+        for by in (0..h - h % EDGE_BLOCK).step_by(EDGE_BLOCK) {
+            for bx in (0..w - w % EDGE_BLOCK).step_by(EDGE_BLOCK) {
+                let off = (by..by + EDGE_BLOCK)
+                    .all(|y| (bx..bx + EDGE_BLOCK).all(|x| why[y * w + x] == 5));
+                if !off {
+                    continue;
+                }
+                n += 1;
+                let (us, th) = (mean(still, bx, by), mean(&p.photo.rgba, bx, by));
+                let a = dist(chromaticity(us), chromaticity(th)) <= HUE.distance;
+                let b = LUMA_READER.agrees(luminance(us), luminance(th));
+                if first {
+                    first = false;
+                    println!(
+                        "past the edge: block at ({bx}, {by}), theirs ({:.0}, {:.0}, {:.0}), ours ({:.0}, {:.0}, {:.0})",
+                        th[0], th[1], th[2], us[0], us[1], us[2]
+                    );
+                }
+                hue += usize::from(a);
+                luma += usize::from(b);
+                both += usize::from(a && b);
+            }
+        }
+        [(hue, n), (luma, n), (both, n)]
+    }
+
+    /// **[`RUN1559B_3279_PAST_THE_EDGE`]** (item 4247): the row on the
+    /// client's still, and the photograph against itself, made to fail.
+    #[test]
+    fn the_ground_past_the_map_s_edge() {
+        let Some(mut p) = probe_at(run1559b()) else { return };
+        let still = crate::weathering::tests::still(&mut p, "run1559b-edge");
+        let row = past_the_edge(&mut p, &still);
+        println!("run1559b past the edge: {row:?}");
+        let photo = p.photo.rgba.clone();
+        let own = past_the_edge(&mut p, &photo);
+        assert_eq!(own.map(|r| (r.1, r.1)), own, "the photograph agrees with itself");
+        assert_ne!(own, row, "the row can fail");
+        assert_eq!(row, RUN1559B_3279_PAST_THE_EDGE);
     }
 
     /// **Item 4143, stage 0: what the ground's row leaves out.** Every
