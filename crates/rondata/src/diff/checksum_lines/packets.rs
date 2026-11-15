@@ -885,6 +885,12 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
         "the rallied file's playback (item 4256): its ammo pool is held by \
          `minted::the_rallied_game_s_round_in_flight_is_the_packet_s`; no word walks it",
     ),
+    (
+        "run1612",
+        3294,
+        "run1559b's take with `early_autumn`'s tint zeroed (item 4272): a renderer's \
+         packet beside its photograph; no word walks it",
+    ),
 ];
 
 /// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
@@ -900,7 +906,8 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] =
 // Item 4206: (108, …, 1) → (109, …, 2), run1575's packet at 1090 named.
 // Item 4159, step VII-b2: run1575's packet held by its take, (…, 1, 1).
 // Item 4256: run1603's packet at 6860 named, not held, (110, …, 2).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (110, 87, 7, 12, 1, 1, 2);
+// Item 4272: run1612's packet at 3294 named, not held, (111, …, 3).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (111, 87, 7, 12, 1, 1, 3);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.
