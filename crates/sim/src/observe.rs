@@ -122,6 +122,11 @@ pub struct Craft {
 pub struct UnitScene {
     pub id: ObjId,
     pub owner: Player,
+    /// **`ObjectData::uid` (`+0x30`)**, [`crate::Unit::uid`]: what
+    /// `CommandPackage::add_group@0094bb60` compares beside each object's
+    /// number before it writes a group equal to the last one sent as no
+    /// objects (item 4267, `docs/CLIENT_INPUT.md` §20). A read only.
+    pub uid: u16,
     /// An index into the unit types; `None` for the bare object.
     pub ty: Option<usize>,
     /// The type's `TypeIndex` (`ptype +4`), −1 when the loader named none:
@@ -466,6 +471,7 @@ impl Sim {
                         o: u.index,
                     },
                     owner: u.owner,
+                    uid: u.uid,
                     ty: u.ty,
                     type_index: u.type_index,
                     form: u.form,
