@@ -289,12 +289,15 @@ fn run963c_s_word_frame_is_widened_whole() {
     // `1/2`, `1/96`, `1/141` figure pieces (`g.gpiece` 2124/14796/27468
     // ours against 50689 for all three figures theirs) and their second
     // figure's offsets, who=1's `num_units[270]` −1 and `[271]` 1 against
-    // 0 and 0 (`ARTILLERYGERMAN`, `HOWITZER`), and `1/201`'s `myhits` 172
+    // 0 and 0 (`TRANSPORTBARGE`, `TRANSPORTGALLEON`, closed by item 4159's
+    // eleventh residue), and `1/201`'s `myhits` 172
     // against 212.
     // Item 3336: −4, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
     // Item 3369: 112 -> 74, an unpacked merchant's "over time" piece
     // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 74, "keys that part in the window");
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 71, "keys that part in the window");
 }
 
 /// run963d: the word 23782's window to the trace's last frame, blocks
@@ -346,7 +349,9 @@ fn run963d_s_word_frame_is_widened_whole() {
     // standing set, the last on 23839.
     // Item 3369: 94 -> 92, an unpacked merchant's "over time" piece
     // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 93, "keys that part in the window");
+    // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
+    // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
+    pin_eq!(w.firsts.len(), 90, "keys that part in the window");
 }
 
 /// The closing state's window: run917's closing block alone, the long's

@@ -2369,6 +2369,28 @@ packet), vertex-coloured `deep_*` ((7, 81, 40) there); but no draw on
 run1566b's or run1567's card trace returns to a skirt's caller, and the
 land's draws carry no stream (4247a).
 
+*Item 4281, off run1559b's packet (frame 3294).* **The packet holds
+both skirts whole, and nothing draws them.** The land skirt's stream
+(terrain `+0x4728`) keeps 16 vertices at a 32-byte stride. Each is at
+z −380 and coloured `0xff285107`, laid as `generate_skirts` writes it:
+the four quads from −1,536 to 47,616. Its index buffer (`+0x4770`)
+holds the 24 indices `land_skirt_faces` holds. The water skirt
+(`+0x4730`) lays `DARK_GREY` (`0xff404040`) at z 0, from −3,072 to
++192 on each edge. No function in the export reads either stream or
+either index buffer. `show_water_skirt` is registered as a debug
+variable, and no function reads it. **The land lists stop at the map**:
+3,600 of 3,600 cells, none past it (`land_buckets.py`). **The floor does
+reach past the low edges.** `build_ocean_floor@0086c7f0` walks the cells
+from −1, and a cell with a negative coordinate takes the floor
+unconditionally. The packet's `scene_ocean_floor` draws 51 of its 216
+vertices at x −768, grey `0x99999999`. But it is one cell wide at −283,
+and on this camera the land's edge hides all of it. Laid in the client,
+the row stays at 0 of 162. Raised to z +5, the strip shows as a band
+about 60 pixels wide. The photograph's surface reaches the screen's
+corner, past x −3,072 at that depth. It carries the ground's own mottle
+at about 36 % of the land's colour, with long diagonal seams on the
+tile grid's bearing. Not established: what draws it (4281a).
+
 ## 3.16 The shore's sand (item 4192)
 
 *2026-11-12, Opus 5.5. `client::ground`: `land_alpha`, `land_alpha_of`,
