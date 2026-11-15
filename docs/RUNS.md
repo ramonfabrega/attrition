@@ -37587,3 +37587,33 @@ SHA-256 `976a17ed7680727bf22576571726c4c0cc0dcfebbecbb94a16682763eedf0f85`; `ron
 SHA-256 `8bbca43896196d4097fd70e949b4f447b83bac57d6d88d05387123e6b899ffc8`.
 
 **What it holds**: the city-gathered game's window with the leaders' buckets on every frame; a city's gather played.
+
+## run1606 — the original playing the file a building's queue button minted (2026-11-15, item 4265, `att-4265`)
+
+`docs/CLIENT_INPUT.md` §19.3. **What the disk could not answer**: whether the original plays a minted `unqueue`, and
+whether the capital's queue after it is ours. The recordings carry 13, all the 2017 sample's; no take of the minted
+game had entered `process_unqueue`. The file: `~/ron-golden/recordings/item4265-unqueued-greatlakes-24000.rcx`,
+59,559 bytes, SHA-256 `0301987ecc3b5fe1d941a4cbedf7cf3b89598475f6a9b445b2b0e8ab9553e27b`, written by
+`RON_RCX_OUT=<it> … test --release -p rondata the_unqueued_minted_packages_round_trip`. It is run1605's file plus one
+package: `unqueue(0, 2000, 0, uid 0)` on 6720.
+
+The take is run1605's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1606 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --timeout 1800 --stall-seconds 120`, waited on
+with `waitrun.sh` in the background. `df -g ~` read 202 GB free before it.
+- **The run**: pool lane 1, launched 07:24:05 −05:00, exited 07:32:29: **504.3 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault, no relaunch. Minutes waited on another lane: none.
+- **The built walk under the pump on the file** (`UNQUEUED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence; 300 records compared (6700..6999), none parted.
+- **The order's effect** (`unqueued_effects`): the capital `0/2000`'s queue holds the Citizen at job 1200 on 6720 and
+  is empty on 6721 and 6999; the Citizen `0/10` is not on the map on 6999. Equal on both sides, pinned before the read.
+- **The functions** (`UNQUEUE_ENTRIES`): `CommandPackage::process_unqueue` and `Build::action_unqueue` first entered
+  on 6719. run1605 enters neither.
+- Filed with `filerun.py run1606 greatlakes-playback-of-unqueued-7000`.
+
+Archive `gamelog-run1606-greatlakes-playback-of-unqueued-7000.txt`, 67,852,152 bytes,
+SHA-256 `e8c39cc4c9ab77671fe66ce9f5c7836d4482596c95c85b0f79acc9f5974b1bea`; `rontrace-run1606.log`, 34,289,120 bytes,
+SHA-256 `3e508d5c9bb2c684ff63b5cc180a6a48242fc325558848e8f9fbde9eba2737da`.
+
+**What it holds**: the unqueued game's window with the leaders' buckets on every frame; a production cancel played.

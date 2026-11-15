@@ -68,6 +68,14 @@ craft, in row order, named as the crate names it, in the market's place
 a targeted craft's next press on the map is its pick. The place and the
 labels are ours. What it mints is `docs/CLIENT_INPUT.md` §18.
 
+**The queue row** (item 4265) is a ninth, drawn while one finished building
+of the slot's own is the selection and its production queue holds entries
+(`BuildingScene::queued`): one CANCEL button per live entry, in queue order,
+one row above the bottom edge so a city's row keeps its place
+(`hud::queue_menu`). A press on one is `Event::Unqueue` with its slot, which
+no key sends. The place and the labels are ours. What it mints is
+`docs/CLIENT_INPUT.md` §19.
+
 ## 2. The menu (item 4197)
 
 - **A button is a key's event and nothing else.** A press inside a

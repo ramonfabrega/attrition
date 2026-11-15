@@ -3777,3 +3777,291 @@ fn the_original_s_playback_of_the_city_gathered_file_walks_in_lockstep() {
     let without = gather_effects_ours_at(&crate::script::marketed(), &CITY_GATHER_READ_AT);
     assert_ne!(theirs[1..], without[1..], "the order's effect is visible");
 }
+
+/// The frames the cancel is read on (item 4265): its frame, the frame
+/// after it, and the window's last record.
+const UNQUEUE_READ_AT: [i64; 3] = [6720, 6721, 6999];
+
+/// What the cancel moves (item 4265, `docs/CLIENT_INPUT.md` §19): the
+/// capital's live queue entries' `job_counter`s (`BuildData::queued` of
+/// them) and the Citizen `0/10` the gathered script trains, its position
+/// where it is on the map.
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct QueueEffect {
+    frame: i64,
+    queue: Vec<i64>,
+    citizen: Option<(i64, i64)>,
+}
+
+fn queue_effect_theirs(f: &crate::gamelog::Frame) -> QueueEffect {
+    let cap = f
+        .builds
+        .iter()
+        .find(|b| b.who == 0 && b.o == i64::from(crate::script::CAPITAL))
+        .unwrap();
+    let queued = cap.queued.unwrap_or(0) as usize;
+    QueueEffect {
+        frame: f.n,
+        queue: cap
+            .queue
+            .iter()
+            .take(queued)
+            .map(|q| q.job_counter)
+            .collect(),
+        citizen: f
+            .units
+            .iter()
+            .find(|u| u.who == 0 && u.o == i64::from(GATHERED_CITIZEN))
+            .map(|u| (u.pos.x, u.pos.y)),
+    }
+}
+
+fn queue_effect_ours(b: &Built) -> QueueEffect {
+    let s = &b.sim;
+    let cap = &s.buildings[s.building_by_o(0, crate::script::CAPITAL).unwrap()];
+    QueueEffect {
+        frame: s.frame,
+        queue: cap
+            .queue
+            .items
+            .iter()
+            .map(|q| i64::from(q.job_counter))
+            .collect(),
+        citizen: s.unit_by_o(0, GATHERED_CITIZEN).map(|i| {
+            let u = &s.units[i];
+            (i64::from(u.pos.x), i64::from(u.pos.y))
+        }),
+    }
+}
+
+/// Our walk under the pump on `orders`' file, read on the frames `at`.
+fn queue_effects_ours(orders: &[Order], at: &[i64]) -> Vec<QueueEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        ours.push(queue_effect_ours(&built));
+    }
+    ours
+}
+
+/// The original's, off the take's records on the frames `at`.
+fn queue_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<QueueEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for i in 0..source.frames().len() {
+        if at.contains(&source.frames()[i].number) {
+            theirs.push(queue_effect_theirs(&source.frame_state(i).unwrap()));
+        }
+    }
+    Some(theirs)
+}
+
+/// **The unqueued script's effects** (item 4265), our walk's values pinned
+/// before the original's playback was read: the capital trains the
+/// gathered script's Citizen (job 1200) on 6720; on 6721, the frame after
+/// the package, its queue is empty, where without the order it reads 1300;
+/// on 6999 the Citizen `0/10` is not on the map, where without the order
+/// it walks at (5572, 29304). Seen red first: pinned empty.
+fn unqueued_effects() -> Vec<QueueEffect> {
+    let row = |frame, queue: &[i64]| QueueEffect {
+        frame,
+        queue: queue.to_vec(),
+        citizen: None,
+    };
+    vec![row(6720, &[1200]), row(6721, &[]), row(6999, &[])]
+}
+
+/// **What the cancel does on our walk** (item 4265), on
+/// [`UNQUEUE_READ_AT`]; and without it, the city-gathered file's walk,
+/// which is the value diff on our side.
+#[test]
+fn the_unqueued_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::unqueued()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = queue_effects_ours(&crate::script::unqueued(), &UNQUEUE_READ_AT);
+    let without = queue_effects_ours(&crate::script::city_gathered(), &UNQUEUE_READ_AT);
+    for (e, w) in ours.iter().zip(&without) {
+        eprintln!("UNQUEUE EFFECT ours {e:?} without {w:?}");
+    }
+    assert_eq!(ours, unqueued_effects());
+    assert_ne!(ours[1..], without[1..], "the order moves the queue");
+}
+
+/// The unqueued file's gzip length (item 4265). Seen red first: pinned 0,
+/// it printed 59,559.
+const UNQUEUED_RCX_BYTES: usize = 59_559;
+
+/// **The unqueued script, minted** (item 4265, `docs/CLIENT_INPUT.md`
+/// §19): the city-gathered file and one package more, the capital's
+/// cancel on [`crate::script::UNQUEUE_FRAME`], stamped 23; it round-trips
+/// through the file. With `RON_RCX_OUT=<file>` it writes the `.rcx` the
+/// playback takes open.
+#[test]
+fn the_unqueued_minted_packages_round_trip() {
+    use crate::script::{UNQUEUE_FRAME, city_gathered, unqueued};
+    let (Some(rec), Some(first)) = (minted(&unqueued()), minted(&city_gathered())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "unqueued").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in unqueued().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<(i32, u32)> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| (p.frame, p.stamp))
+        .collect();
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (24, 23));
+    assert_eq!(
+        added,
+        vec![(UNQUEUE_FRAME, 23), (last.frame, 24)],
+        "the packages the city-gathered file does not hold"
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    eprintln!("UNQUEUED RCX {} bytes", gz.len());
+    assert_eq!(gz.len(), UNQUEUED_RCX_BYTES, "UNQUEUED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// **The value diff against the previous playback** (item 4265): our walk
+/// under the unqueued file against run1605, the city-gathered file's
+/// playback, pinned before the unqueued file's playback was read.
+#[test]
+fn the_unqueued_script_against_the_city_gathered_playback_parts() {
+    let (take, take_trace, ..) = CITY_GATHERED_WALKED[0];
+    let Some((w, _)) = walk_minted(&crate::script::unqueued(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    eprintln!(
+        "UNQUEUED AGAINST CITY GATHERED: record {frame}: {partings:?}; draws part {:?}; records {} parted {}",
+        w.first_sequence, w.records, w.records_parted
+    );
+    let seen = (
+        frame,
+        partings[0].0,
+        partings[0].2.clone(),
+        w.first_sequence,
+        w.records_parted,
+    );
+    let (f, kind, row, draws, parted) = UNQUEUED_AGAINST_CITY_GATHERED;
+    assert_eq!(
+        seen,
+        (f, kind, row.to_string(), draws, parted),
+        "UNQUEUED_AGAINST_CITY_GATHERED"
+    );
+}
+
+/// The unqueued script's walk against run1605: `(the first parted
+/// record's frame, its kind, its row, the first frame whose draws part,
+/// records parted)`. It parts first on 6721, the frame after the cancel,
+/// at the capital's `queued`: 0 on ours, 1 on run1605's; 279 of 300
+/// records part, and the draws from 6813, the frame run1605's Citizen
+/// leaves the capital. Seen red first: pinned `(0, "", "", None, 0)`.
+const UNQUEUED_AGAINST_CITY_GATHERED: (i64, &str, &str, Option<i64>, usize) = (
+    6721,
+    "queue_diverged",
+    "QueueDivergence { frame: 6721, who: 0, o: 2000, field: \"queued\", ours: 0, theirs: 1 }",
+    Some(6813),
+    279,
+);
+
+/// The unqueued file's playback (`docs/RUNS.md` run1606): `(take, trace,
+/// frames agreeing, frames walked, records, parted)`. Pinned before
+/// run1606 was read: whole.
+pub(crate) const UNQUEUED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1606-greatlakes-playback-of-unqueued-7000.txt",
+    "rontrace-run1606.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// The functions the cancel runs on the original's side: the package's
+/// arm and the building's cancel, by entry address.
+const UNQUEUE_FUNCTIONS: [(u32, &str); 2] = [
+    (0x0094_66f0, "CommandPackage::process_unqueue"),
+    (0x0062_0280, "Build::action_unqueue"),
+];
+
+/// Each take's first entry into [`UNQUEUE_FUNCTIONS`], in sim-frames,
+/// pinned before run1606 was read: run1605 enters neither; run1606 both on
+/// 6719, the tick that consumes [`crate::script::UNQUEUE_FRAME`]'s package.
+const UNQUEUE_ENTRIES: &[(&str, [Option<i64>; 2])] = &[
+    ("rontrace-run1605.log", [None; 2]),
+    ("rontrace-run1606.log", [Some(6719), Some(6719)]),
+];
+
+/// **The original plays the unqueued file in lockstep** (item 4265): the
+/// built start walked under the pump against run1606, every frame's draws
+/// against its trace and every record of its window whole
+/// ([`UNQUEUED_WALKED`]); the cancel's own functions on the original's
+/// side ([`UNQUEUE_ENTRIES`]); and the capital's queue and the Citizen
+/// `0/10` on [`UNQUEUE_READ_AT`], read off the take's records, equal to
+/// our walk's ([`unqueued_effects`]).
+#[test]
+fn the_original_s_playback_of_the_unqueued_file_walks_in_lockstep() {
+    let unqueued = crate::script::unqueued();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in UNQUEUED_WALKED {
+        let Some((w, _)) = walk_minted(&unqueued, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "UNQUEUED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let mut entries = Vec::new();
+    for &(take_trace, _) in UNQUEUE_ENTRIES {
+        let tr = trace(take_trace).expect("the take's trace");
+        let first = UNQUEUE_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+        for ((_, name), f) in UNQUEUE_FUNCTIONS.iter().zip(&first) {
+            eprintln!("UNQUEUE ENTRY {take_trace} {name}: {f:?}");
+        }
+        entries.push((take_trace, first));
+    }
+    let theirs =
+        queue_effects_theirs(UNQUEUED_WALKED[0].0, &UNQUEUE_READ_AT).expect("the take's records");
+    for t in &theirs {
+        eprintln!("UNQUEUE EFFECT theirs {t:?}");
+    }
+    assert_eq!(walked, UNQUEUED_WALKED, "the walked table");
+    assert_eq!(entries, UNQUEUE_ENTRIES, "the cancel's functions");
+    assert_eq!(theirs, unqueued_effects(), "the original's effects");
+    // Made to fail: the city-gathered file's walk, without the order,
+    // still trains the Citizen on 6721 and walks it on 6999, so an original
+    // that ignored the cancel would part here.
+    let without = queue_effects_ours(&crate::script::city_gathered(), &UNQUEUE_READ_AT);
+    assert_ne!(theirs[1..], without[1..], "the order's effect is visible");
+}

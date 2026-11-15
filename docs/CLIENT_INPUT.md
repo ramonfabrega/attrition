@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -869,9 +869,9 @@ files. Every package of every file decodes. An order is a command `rondata::inpu
 `camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
 as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
 
-**`INPUT_KINDS`: 15 of 26 kinds, 2,323 of 2,429 orders (95.6 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
+**`INPUT_KINDS`: 16 of 26 kinds, 2,336 of 2,429 orders (96.1 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
 was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 10 and 2,216 (91.2 %) once the chat
-(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, 14 and 2,306 (94.9 %) once the city's gather (§17) was, and is 15 since the craft button's spell (§18), which no playback has carried. The kinds the layer mints are `input::MINTS`, held to the
+(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, 14 and 2,306 (94.9 %) once the city's gather (§17) was, 15 and 2,323 (95.6 %) once the craft button's spell (§18) was, which no playback has carried, and is 16 since the queue button's cancel (§19). The kinds the layer mints are `input::MINTS`, held to the
 `Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
 `input_kinds_of_the_recordings_on_disk`.
 
@@ -891,7 +891,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `city_gather` | 20 | 0.8 % | yes (§17) |
 | `buy` | 18 | 0.7 % | yes (§16) |
 | `spell` | 17 | 0.6 % | §18 (the button's 6; the right press's 11 are not minted) |
-| `unqueue` | 13 | 0.5 % | |
+| `unqueue` | 13 | 0.5 % | yes (§19) |
 | `gather` | 11 | 0.4 % | yes |
 | `guard` | 10 | 0.4 % | yes |
 | `rename_city` | 10 | 0.4 % | |
@@ -1657,3 +1657,104 @@ branch and was not kept.
 - **`add_group`'s repeat in the layer** (parked 4264a): the five button spells and 4261a's two city gathers would mint
   whole with it. Every script whose groups repeat back to back would change bytes, so it moves the layer's pins.
 
+
+## 19. A building's queue button: the cancel (item 4265)
+
+*Item 4265, 2026-11-15. The score is the census (§11.1): `INPUT_KINDS` 15 → 16 of 26 kinds, 2,323 → 2,336 of 2,429
+orders. The HUD gains a building's queue row. The layer mints `unqueue` as the queue button issues it. The original
+plays the file (run1606) with every draw and every record in lockstep, and the capital's queue is equal on both sides.*
+
+### 19.1 What the button issues, and what the order does
+
+**The button.** `IFaceSelected::on_button_clicked@00826e00` turns a press on a queue entry's button into
+`Options::exec(OPTION_QUEUE, slot)`. `OPTION_QUEUE` is 0xa6 (`docs/AI.md`'s row). In `Options::exec@007188c0`, the
+0xa6 arm asks `Group::can_activate` of the selection, plays `S_UNQUEUE_BUILDING`, then walks the selection. For each
+finished building (`ObjectData::is_active_build`) it calls `BuildOut::issue_unqueue@00629e70(slot)`: command `0x30`,
+`[who][o][slot][uid]`, the building's `+0x9`, `+0xa` and `+0x30`, 15 bytes. **No `group` is written.** A unit member
+takes `UnitOut::issue_unqueue`, or `GroupOut::issue_stop_spell` with nothing queued. That arm is not minted here. With
+no object (`slot` < 0), Shift or Ctrl turn the slot into the selector's negatives. Those are not minted either.
+
+**The recordings agree, 13 of 13.** All 13 are the 2017 sample's, slot 3's. None carries a `group`. Twelve name the
+capital `3/2000` with `uid` 0: slot 2 once, slot 0 eleven times. One names `3/2019`, `uid` 58, slot 1.
+
+**What it does.** `CommandPackage::process_unqueue@009466f0` calls `Build::action_unqueue@00620280(slot)` on the
+named building. That was already ported (`Sim::action_unqueue`, item 884, `docs/GOLDEN.md` §34), and our walk's
+`Stream` already carried it (`rondata::input::unqueue`).
+
+### 19.2 What the layer does
+
+- **The scene** (`crates/sim/src/observe.rs`, reads only): `BuildingScene::uid` and `BuildingScene::queued`.
+- **The HUD** (`hud::queue_menu`, `docs/HUD.md` §1): with one finished building of the slot's own selected
+  (`input::queue_panel`), one CANCEL button per live queue entry. A press on one is `Event::Unqueue(slot)`.
+- **The layer** (`input::unqueues`): with a building selection whose every member is the slot's own building in the
+  scene, one `unqueue(who, o, slot, uid)` per finished member, in a package with no group. It mints nothing when no
+  member is finished.
+
+**The script.** `rondata::script::unqueued` is the city-gathered script (§17) and one package more. On `UNQUEUE_FRAME`
+6720 the capital, still selected from the gather and still training the gathered script's Citizen, has its first
+queue button pressed: `unqueue(0, 2000, 0, 0)`.
+
+**Stage 0.** On 6720 the capital is finished, `queued` 1, `uid` 0. Its queue row holds CANCEL 1 centred at
+(1822, 1010) at 1920×1080.
+
+**The counts.**
+- `INPUT_UNQUEUED`: **22 of 22**. The city-gathered events and one press more, through the HUD and the layer, mint
+  the unqueued script field for field (`minted_unqueued_at_the_opening_camera`). The file written from them is the
+  unqueued file. Stage 0's button was seen red pinned (0, 0).
+- `INPUT_UNQUEUES`: **13 of 13**. Each recording's building is selected with its `uid` and a queue long enough for
+  its slot, then its button is pressed. That mints the package whole (`minted_unqueues_equal_the_recordings`). Seen
+  red pinned (0, 13).
+- `minted_unqueue_button_edges`: a row per live entry, and none for an empty queue, an unfinished building or a
+  selection of two buildings. A press through the HUD gives its slot. Two finished buildings give one cancel each,
+  in the selection's order, and an unfinished one gives none. Another slot's building, a unit selection and an empty
+  scene give nothing.
+
+**The file.** `~/ron-golden/recordings/item4265-unqueued-greatlakes-24000.rcx`, 59,559 bytes, SHA-256
+`0301987ecc3b5fe1d941a4cbedf7cf3b89598475f6a9b445b2b0e8ab9553e27b`. It is the city-gathered file plus the one package,
+stamped 23; the closing stamp goes from 23 to 24 (`the_unqueued_minted_packages_round_trip`; seen red pinned 0).
+
+### 19.3 The playback, and the order's effect
+
+**Our walk under the unqueued file against run1605** (`UNQUEUED_AGAINST_CITY_GATHERED`, pinned before run1606 was
+read): it parts first on 6721, the frame after the package, at the capital's `queued`, ours 0 and theirs 1. 279 of
+300 records part, and the draws part from 6813, the frame run1605's Citizen leaves the capital.
+
+**run1606** (`docs/RUNS.md`): run1605's line with this file. Draws agree on 7,000 of 7,000 frames, count and sequence;
+300 records compared whole, none parted (`UNQUEUED_WALKED`).
+
+**The order's effect, equal on both sides** (`unqueued_effects`, pinned from our walk before run1606 was read; the
+take's records read by `queue_effects_theirs`):
+
+| frame | the capital's live queue (`job_counter`) | the Citizen `0/10` | without the order (our walk on the city-gathered file) |
+| --- | --- | --- | --- |
+| 6720 | 1200 | not on the map | the same |
+| 6721 | empty | not on the map | 1300 |
+| 6999 | empty | not on the map | empty; the Citizen at (5572, 29304) |
+
+**Made to fail:** the take's values from 6721 differ from the walk without the order. The effect test was seen red
+pinned empty.
+
+**The functions** (`UNQUEUE_ENTRIES`, pinned before the read): `CommandPackage::process_unqueue` and
+`Build::action_unqueue` are first entered on 6719, the tick that consumes 6720's package. run1605 enters neither.
+
+### 19.4 Confidence, and what is not established
+
+**Backed by the playback.** run1606 plays a cancel minted from the capital's first queue button, on the entry in
+training. The capital's queue and the Citizen it no longer trains are ours on the three frames read.
+
+**Reading only**, one reader, no blind second reading:
+- the 0xa6 arm's walk of the selection and its finished-building test;
+- that `IFaceSelected`'s queue button passes its slot as the option's object.
+
+**Ours, not the original's:**
+- the row's place, size and labels; `IFaceSelected`'s panel is not read beyond the click;
+- the row is drawn for one building only, though the arm walks a selection of several;
+- `Group::can_activate` is not read; the layer asks that every member be the slot's own building in the scene;
+- the buttons are no key's event.
+
+**Not established:**
+- **A cancel of an entry waiting behind the one in training**: slot 1 or higher, which one recording carries. The
+  layer mints it, as the edges show, but no playback has carried one.
+- **The selector's negatives** (Shift, Ctrl, no object) and **a unit's cancel** (`UnitOut::issue_unqueue`, a
+  carrier's plane): not minted.
+- **A refund** is inside the playback's records (300 whole) but is not read as a value of its own.

@@ -273,6 +273,15 @@ pub struct BuildingScene {
     /// `Options::do_city_gather@0071cdb0` asks of the selection; item
     /// 4261). A read only.
     pub village: bool,
+    /// **`ObjectData::uid` (`+0x30`)**, which `BuildOut::issue_unqueue
+    /// @00629e70` writes into the cancel beside the building's `o` (item
+    /// 4265, `docs/CLIENT_INPUT.md` §19). A read only.
+    pub uid: u16,
+    /// **`BuildData::queued` (`+0x82`)**: the live entries of its
+    /// production queue, one queue button each on the original's panel
+    /// (`IFaceSelected::on_button_clicked@00826e00`'s `OPTION_QUEUE`; item
+    /// 4265). A read only.
+    pub queued: usize,
 }
 
 /// A farm's `FarmStruct`, as `FarmsOut::draw@008d75f0` reads it
@@ -561,6 +570,8 @@ impl Sim {
                     .city
                     .is_some_and(|c| self.cities.cities.get(c).is_some_and(|c| c.building == i)),
                 village: self.building_is_city(i),
+                uid: b.uid,
+                queued: b.queue.items.len(),
             })
             .collect();
         let projectiles = self

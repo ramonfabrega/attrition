@@ -616,6 +616,36 @@ pub fn city_gathered() -> Vec<Order> {
     orders
 }
 
+/// **The unqueued script** (item 4265, `docs/CLIENT_INPUT.md` §19): the
+/// city-gathered script and one package more. On [`UNQUEUE_FRAME`] the
+/// capital, still selected from the city's gather and still training the
+/// gathered script's Citizen, has its first queue button pressed:
+/// `IFaceSelected::on_button_clicked`'s `OPTION_QUEUE` with slot 0, whose
+/// arm calls `BuildOut::issue_unqueue@00629e70(0)` for the capital,
+/// `unqueue(0, CAPITAL, 0, uid 0)`, in a package with no group. Twelve of
+/// the thirteen recorded cancels carry slot 0 or 2 on a capital whose
+/// `uid` is 0. The client's `minted_unqueued_at_the_opening_camera` mints
+/// it field for field.
+pub fn unqueued() -> Vec<Order> {
+    let mut orders = city_gathered();
+    orders.push((
+        UNQUEUE_FRAME,
+        0,
+        vec![Command::Unqueue {
+            who: 0,
+            o: i32::from(CAPITAL),
+            unit: UNQUEUE_SLOT,
+            uid: 0,
+        }],
+    ));
+    orders
+}
+
+/// The frame of the cancel, two after [`CITY_GATHER_FRAME`].
+pub const UNQUEUE_FRAME: i32 = 6720;
+/// The queue slot the cancel names: the entry in training.
+pub const UNQUEUE_SLOT: i32 = 0;
+
 /// The frame of the city's gather, two after [`BUY_FRAME`].
 pub const CITY_GATHER_FRAME: i32 = 6718;
 /// The FARM button's type, `Options::exec@007188c0`'s `do_city_gather(0x1a1)`.
