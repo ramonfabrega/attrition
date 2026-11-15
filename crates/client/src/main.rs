@@ -467,6 +467,9 @@ fn draw_page(
 }
 
 struct App {
+    /// Whether a control key is held (`ModifiersChanged`), for the hot
+    /// keys (item 4270).
+    ctrl: bool,
     session: Session,
     world: World,
     args: Args,
@@ -581,6 +584,30 @@ impl App {
                 self.input(ev);
             }
             return;
+        }
+        // The hot keys (item 4270, `docs/CLIENT_INPUT.md` §22): ctrl and
+        // `0`..`9`, or F1..F8 as 10..17, as `Console::on_key_down` numbers
+        // them.
+        if self.ctrl {
+            let hot = match key {
+                Key::Character(c) => c
+                    .chars()
+                    .next()
+                    .and_then(|d| d.to_digit(10))
+                    .and_then(|d| u8::try_from(d).ok()),
+                Key::Named(NamedKey::F1) => Some(10),
+                Key::Named(NamedKey::F2) => Some(11),
+                Key::Named(NamedKey::F3) => Some(12),
+                Key::Named(NamedKey::F4) => Some(13),
+                Key::Named(NamedKey::F5) => Some(14),
+                Key::Named(NamedKey::F6) => Some(15),
+                Key::Named(NamedKey::F7) => Some(16),
+                Key::Named(NamedKey::F8) => Some(17),
+                _ => None,
+            };
+            if let Some(k) = hot {
+                return self.input(input::Event::Hotkey(k));
+            }
         }
         let step = 256.0 * self.camera.parallel_distance / 10429.4;
         match key {
@@ -713,6 +740,7 @@ impl ApplicationHandler for App {
                     },
                 ..
             } => self.key(el, &logical_key),
+            WindowEvent::ModifiersChanged(m) => self.ctrl = m.state().control_key(),
             WindowEvent::CursorMoved { position, .. } => {
                 self.cursor = (position.x as i32, position.y as i32);
             }
@@ -965,6 +993,7 @@ fn main() {
             std::process::exit(1);
         });
         let mut app = App {
+            ctrl: false,
             session: session.clone(),
             world,
             playing: args.play,

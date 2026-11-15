@@ -232,6 +232,9 @@ pub struct OrdersState {
     /// not hand out (`docs/GROUPS.md` §19). `Groups::clear` starts every
     /// player on its own slot 0.
     pub(crate) last_group: [u8; 16],
+    /// `HotKeyGroups`, the slots a hot key wrote, by index (item 4270,
+    /// [`crate::groups::hotkey`]).
+    pub(crate) hotkeys: std::collections::BTreeMap<u16, crate::groups::hotkey::HotKeySlot>,
     /// The record `Group::action_siege_attack_to` sets aside while its
     /// stack sub-group holds the seat (`docs/GROUPS.md` §26.3), with the
     /// seat it belongs to: owner, army, pushed slot. A member's own dying

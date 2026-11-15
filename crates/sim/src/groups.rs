@@ -18,6 +18,7 @@ pub mod group_queue_up;
 pub mod grouppath;
 pub mod groups_process_view;
 pub mod halt_view;
+pub mod hotkey;
 pub mod normalize_view;
 pub mod redo_patrol_view;
 pub mod repair_view;

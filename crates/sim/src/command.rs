@@ -253,6 +253,11 @@ impl Command<'_> {
         self.sim.process_buy(who, g, flags)
     }
 
+    /// [`Sim::process_hotkey`] (`groups/hotkey.rs`).
+    pub fn process_hotkey(&mut self, who: Player, k: crate::groups::hotkey::HotKey) -> bool {
+        self.sim.process_hotkey(who, k)
+    }
+
     /// [`Sim::process_rename_city`] (`cities/rename.rs`).
     pub fn process_rename_city(&mut self, who: Player, o: i16, name: &str) -> bool {
         self.sim.process_rename_city(who, o, name)

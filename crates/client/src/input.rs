@@ -106,7 +106,18 @@ pub const MINTS: &[&str] = &[
     "spell",
     "unqueue",
     "rename_city",
+    "hotkey",
 ];
+
+/// **A player's hot-key slots**: `Console::on_key_down@007cc210` numbers a
+/// group `who × 0x12` plus the key's, `0`..`9` and F1..F8 (item 4270,
+/// `docs/CLIENT_INPUT.md` §22).
+pub const HOTKEY_SLOTS: u8 = 0x12;
+/// **The camera fields of a hot key that carries a selection**:
+/// `CommandManager::issue_hotkey@00941fd0` writes `x` and `y` as −1.0
+/// and `zoom` 0 when its camera flag is clear; the bits of −1.0f, a
+/// constant the layer never computes.
+pub const HOTKEY_NO_CAMERA: u32 = 0xbf80_0000;
 
 /// **The entry line's text limit**, in UTF-16 units: `ChatBox::exec
 /// @0093cf80` sets the edit box's `text_limit` to `0x80`.
@@ -201,6 +212,13 @@ pub enum Event {
     /// popup's edit box, and Return sends what it holds as
     /// `Popup::on_modal_end@007c13f0`'s case 6 does. The HUD's alone.
     Rename,
+    /// Ctrl and a hot key, by the key's number: `0`..`9`, and F1..F8 as
+    /// 10..17 (`Console::on_key_down@007cc210`; item 4270,
+    /// `docs/CLIENT_INPUT.md` §22). With a selection it is
+    /// `GroupOut::issue_hotkey@00708800`: the selection's `group` and
+    /// `hotkey(who × 18 + key, 0, 0, −1.0, −1.0, 0)`. Ours: with none, the
+    /// original's screen group (the camera's floats) is not sent.
+    Hotkey(u8),
 }
 
 /// `spell(type, ox, whom, x, y)`, as `CommandManager::issue_spell@00941b80`
@@ -1051,6 +1069,24 @@ impl Input {
                 self.renaming = Some(renames(view.scene, self.player, &self.selection)?);
                 self.line = Some(String::new());
                 None
+            }
+            Event::Hotkey(key) => {
+                // `on_key_down`'s ctrl arm with no shift and a selection:
+                // `GroupOut::issue_hotkey(who × 0x12 + key)`, whose
+                // `CommandManager::issue_hotkey` writes the group and the
+                // command with `clear` 0 (a group rides) and no camera.
+                if key >= HOTKEY_SLOTS || self.selection.is_empty() || self.line.is_some() {
+                    return None;
+                }
+                let cmd = Command::Hotkey {
+                    group: i32::from(self.player) * i32::from(HOTKEY_SLOTS) + i32::from(key),
+                    clear: 0,
+                    valid: 0,
+                    x: HOTKEY_NO_CAMERA,
+                    y: HOTKEY_NO_CAMERA,
+                    zoom: 0,
+                };
+                Some((frame, play, vec![self.group(view.scene), cmd]))
             }
             Event::Pause => {
                 // `issue_toggle_pause`: `pause(state)`, the bit's complement,
@@ -4191,6 +4227,189 @@ pub(crate) mod tests {
         assert!(written != repeated, "not the repeated file");
     }
 
+    /// The renamed events and the hot key's: the capital is still selected
+    /// from the gather, so ctrl and [`script::HOTKEY_KEY`] on
+    /// [`script::HOTKEY_FRAME`] (item 4270).
+    fn hotkey_events() -> Vec<Scripted> {
+        let mut e = rename_events();
+        e.push((
+            script::HOTKEY_FRAME,
+            None,
+            Event::Hotkey(script::HOTKEY_KEY as u8),
+        ));
+        e
+    }
+
+    /// **`INPUT_HOTKEYED`** (item 4270, `docs/CLIENT_INPUT.md` §22): the
+    /// renamed events and the hot key, through the HUD and the layer under
+    /// the opening camera, mint [`script::hotkeyed`] field for field, of 24.
+    const INPUT_HOTKEYED: usize = 24;
+
+    /// **The hot-keyed count**: stage 0 on the key's frame — the capital,
+    /// the selection the key copies, is slot 0's and standing; then the
+    /// events mint the hot-keyed script, and the file written from them is
+    /// the hot-keyed file.
+    #[test]
+    fn minted_hotkeyed_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let renamed = script::renamed();
+        let mut next = 0;
+        while r.frame() < i64::from(script::HOTKEY_FRAME) {
+            let f = r.frame() as i32;
+            while next < renamed.len() && renamed[next].0 == f {
+                r.issue(&renamed[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let scene = r.scene(Some(0));
+            let id = ObjId {
+                who: 0,
+                o: script::CAPITAL,
+            };
+            let b = scene.buildings.iter().find(|b| b.id == id);
+            println!(
+                "HOTKEY STAGE0 f{} capital {:?}",
+                r.frame(),
+                b.map(|b| (b.active, b.uid))
+            );
+            assert!(b.is_some_and(|b| b.active));
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with(hotkey_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let hotkeyed = script::hotkeyed();
+        let whole = ours.iter().zip(&hotkeyed).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (hotkeyed.len(), INPUT_HOTKEYED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, hotkeyed);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(renamed), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(RENAMED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(HOTKEYED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {RENAMED_RCX} or {HOTKEYED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), HOTKEYED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the hot-keyed orders");
+        assert!(written != renamed, "not the renamed file");
+    }
+
+    /// The hot-keyed file (`docs/CLIENT_INPUT.md` §22), written by
+    /// rondata's `the_hotkeyed_minted_packages_round_trip` under
+    /// `RON_RCX_OUT`; the file run1610 takes open.
+    const HOTKEYED_RCX: &str = "ron-golden/recordings/item4270-hotkeyed-greatlakes-24000.rcx";
+    const HOTKEYED_RCX_BYTES: usize = 59_605;
+
+    /// **`INPUT_HOTKEYS`** (item 4270): of the hot keys the recordings on
+    /// disk carry, those the package's selection and ctrl with the key the
+    /// group names (`group − who × 18`) mint field for field, the `group`
+    /// before it included, of all of them. Seen red pinned (0, 0).
+    const INPUT_HOTKEYS: (usize, usize) = (8, 8);
+
+    /// **Every recorded hot key** (item 4270): each package carrying a
+    /// `hotkey` is minted from a fresh layer whose selection is the
+    /// package's group, and ctrl with the key.
+    #[test]
+    fn minted_hotkeys_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() {
+            println!("skipping: no .rcx on disk");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let Some(Command::Hotkey { group, .. }) = kept
+                    .iter()
+                    .find(|c| matches!(c, Command::Hotkey { .. }))
+                    .cloned()
+                else {
+                    continue;
+                };
+                all += 1;
+                let Some(Command::Group { who, objects }) = kept.first().cloned() else {
+                    println!("HOTKEY WITHOUT A GROUP f{} {kept:?}", p.frame);
+                    continue;
+                };
+                let (sent_who, who) = (who, who as u8);
+                let scene = Scene::default();
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who);
+                input.selection = objects.iter().map(|&o| ObjId { who, o }).collect();
+                let key = group - i32::from(sent_who) * i32::from(HOTKEY_SLOTS);
+                let got = u8::try_from(key)
+                    .ok()
+                    .and_then(|k| input.event(p.frame, Event::Hotkey(k), &v));
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                } else {
+                    println!("HOTKEY PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("HOTKEYS {whole} of {all}");
+        assert_eq!((whole, all), INPUT_HOTKEYS);
+    }
+
+    /// **The hot key's edges** (item 4270): no selection sends nothing (the
+    /// original's screen group is not sent); a key past F8 sends nothing;
+    /// slot 1's keys are numbered from 18; and a key while the entry line
+    /// is open sends nothing.
+    #[test]
+    fn minted_hotkey_edges() {
+        let scene = Scene::default();
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let v = view(&c, &scene, &terrain);
+        let mut input = Input::new(1);
+        assert_eq!(input.event(5, Event::Hotkey(3), &v), None);
+        input.selection = vec![ObjId { who: 1, o: 2001 }];
+        assert_eq!(input.event(5, Event::Hotkey(HOTKEY_SLOTS), &v), None);
+        let got = input.event(5, Event::Hotkey(17), &v).unwrap();
+        assert_eq!(
+            got.2,
+            vec![
+                Command::Group {
+                    who: 1,
+                    objects: vec![2001]
+                },
+                Command::Hotkey {
+                    group: 35,
+                    clear: 0,
+                    valid: 0,
+                    x: HOTKEY_NO_CAMERA,
+                    y: HOTKEY_NO_CAMERA,
+                    zoom: 0
+                }
+            ]
+        );
+        input.line = Some(String::new());
+        assert_eq!(input.event(5, Event::Hotkey(1), &v), None);
+    }
+
     /// The renamed file (`docs/CLIENT_INPUT.md` §21), written by rondata's
     /// `the_renamed_minted_packages_round_trip` under `RON_RCX_OUT`; the
     /// file run1609 takes open.
@@ -4346,14 +4565,13 @@ pub(crate) mod tests {
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (17, 26);
+    const INPUT_KINDS: (usize, usize) = (18, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2346, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2354, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
         "leader_options",
-        "hotkey",
         "garrison",
         "buildmask",
         "cheat_ai_toggle",
