@@ -293,6 +293,13 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// ranges 570/571 and guys 160/161, the Caravan 1/14 (TI 59, land),
 /// guys 1 and 2 `last_angle` ours 682461312, theirs 968792448 (guy 0
 /// 682461312 on both) → 968792448 on both, both lines whole there.
+///
+/// Item 4262 moved one on run1578: builds 14312 → 24000, the line whole on
+/// every frame of the minted game. `BuildData::wonder` (`+0x76`) is the
+/// entry `Wonders::init_wonder@0073c860` returned to `Build::activate`'s
+/// wonder arm; the emitter wrote −1 on every building. Value diff on 14312
+/// (run1597's record): builds range 1258, record 2023 (player 1's
+/// Pyramids, TI 0x20e) `wonder` ours −1, theirs 0 → 0 on both.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -315,7 +322,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         24000,
         [
             ("units", 11884, 0),
-            ("builds", 14312, 0),
+            ("builds", 24000, 0),
             ("groups", 24000, 0),
             ("guys", 11884, 0),
             ("leaders", 0, 300),

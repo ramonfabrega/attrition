@@ -909,6 +909,43 @@ fn the_wonder_mark_is_one_past_the_highest_entry_in_use() {
     assert_eq!(sim.ai.ai[1].census.wonder_mark, 0, "a leader's own list");
 }
 
+/// `BuildData::wonder` (+0x76), the checksum's builds word: −1 until
+/// `Build::activate`'s wonder arm stores the entry `Wonders::init_wonder`
+/// took, so a wonder reads its slot in its owner's list and an unfinished
+/// one, or any other building, −1 (item 4262: run1597's Pyramids `1/2023`
+/// on 14312, ours −1, theirs 0).
+#[test]
+fn a_wonder_s_builds_word_is_its_entry_in_the_wonder_list() {
+    let (mut sim, t) = sim();
+    let _a = city(&mut sim, &t, 0, 40, 40);
+    let _b = city(&mut sim, &t, 0, 80, 40);
+    let word = |sim: &Sim, b: usize| {
+        let v = sim.build_bytes(b);
+        i16::from_le_bytes([v[6], v[7]])
+    };
+    let one = sim
+        .place_building(0, t.wonder, tile_pos(48, 40))
+        .expect("a wonder places");
+    assert_eq!(word(&sim, one), -1, "unfinished: Build::init's -1");
+    finish(&mut sim, one);
+    let two = sim
+        .place_building(0, t.wonder, tile_pos(88, 40))
+        .expect("a wonder places");
+    finish(&mut sim, two);
+    sim.note_wonders();
+    assert_eq!(word(&sim, one), 0);
+    assert_eq!(word(&sim, two), 1);
+    sim.buildings[one].alive = false;
+    sim.note_wonders();
+    let three = sim
+        .place_building(0, t.wonder, tile_pos(48, 48))
+        .expect("a wonder places");
+    finish(&mut sim, three);
+    sim.note_wonders();
+    assert_eq!(word(&sim, three), 0, "the first clear entry under the mark");
+    assert_eq!(word(&sim, two), 1);
+}
+
 /// The wonder `t`'s listing after one pass from a copy of `sim`.
 fn wonder_listed(sim: &Sim, t: usize) -> MakeObject {
     let mut s = sim.clone();

@@ -296,7 +296,8 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     ),
     (
         14312,
-        // Item 4257's next builds word: record 2023's `wonder` -1|0.
+        // Item 4257's next builds word, record 2023's `wonder` -1|0, left
+        // with item 4262: builds is whole on all 24,000.
         &[
             (
                 "units",
@@ -304,13 +305,6 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 2407,
                 776,
                 "1555 62 guys.length: +0x0 of 4|1: 01000000|04",
-            ),
-            (
-                "builds",
-                1370,
-                1370,
-                1,
-                "1258 2023 gather_down..infiltrate2: wonder -1|0",
             ),
             (
                 "leaders",

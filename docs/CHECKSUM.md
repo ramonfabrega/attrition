@@ -2401,7 +2401,7 @@ line is taken every frame inside the first 300 (`DIAG`), and past them only unti
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
 | units | 11884 | 1006472543 | 183733389 | 0 |
-| builds | 14312 | 2824218853 | 224732903 | 0 |
+| builds | whole, 24,000 | | | 0 |
 | groups | whole, 24,000 | | | 0 |
 | guys | 11884 | 3345695618 | 3215934128 | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
@@ -2424,17 +2424,11 @@ Value diff on frame 1: unit 0 (`0/0`) `flags` ours 0x41, theirs 0x49 → both 0x
 normalizes `last_group`'s slot before it compares, and the crate's push of buildings skipped it
 (`docs/GROUPS.md` §3.4). Value diff on 61 (run1580): group record 1, the Scout's slot, `role` ours 0, theirs
 0x40110; `new_speed` and `speed` ours 0, theirs 34 → the original's on both sides. Builds 100 → 7383, in
-three steps, each a rule of the queue's array (§14, `docs/PRODUCTION.md` "The queue record"):
-- 100 → 159: a slot past `queued` keeps the bytes the last entry left (`BuildQueue::un_queue@00630ad0`),
-  and the emitter printed it empty. Value diff on 100 (run1581): building 2000 of leader 1, the AI's Town
-  Center, `queue[2]` ours empty (type 0, cost 0), theirs type 50 at `cost[0]` 27, the third Citizen's copy
-  after the first finished on 99 → the original's.
-- 159 → 202: `Build::unqueue@006207c0` zeroes the removed slot's `job_counter` first, so a removed last
-  entry leaves 0. Value diff on 987 (run1583): building 2000 of leader 0, `queue[0]` `job_counter` ours 9750,
-  theirs 0 → 0.
-- 202 → 7383: `Build::do_queue@0061e410` unqueues a finished technology after `finished` (and so
-  `gain_tech`'s re-price) returns, and the crate unqueued first. Value diff on 987, 3246 and 4030 (runs 1583
-  to 1585): building 2005 of leader 1, a Library, a vacated slot's `cost[0]` ours 120, theirs 108 → 108.
+three steps, each a rule of the queue's array (§14, `docs/PRODUCTION.md` "The queue record"): 100 → 159, a slot
+past `queued` keeps the last entry's bytes (`BuildQueue::un_queue@00630ad0`; building 2000 `queue[2]` type 0, 50 on
+run1581); 159 → 202, `Build::unqueue@006207c0` zeroes the removed slot's `job_counter` (9750, 0 on run1583); 202 →
+7383, `Build::do_queue@0061e410` unqueues a finished technology after `finished` returns (a Library's vacated
+`cost[0]` 120, 108 on runs 1583 to 1585). The values are item 4222's journal.
 
 **Item 4244 moved builds 7383 → 8281**: a mine keeps `mtn`/`cliff`; record 2019 `mtn` ours −1, theirs 0 → 0 (§25.4). Step P 422 → 425.
 
@@ -2569,6 +2563,10 @@ count, which fell on each (run1266c, East Indies, 7581 → 7561, the most); none
 (§16). On 10541 (§25.4) the Caravan 1/14's guys 1, 2 `last_angle` ours 682461312, theirs 968792448 → theirs. Step P
 452 → 453.
 
+**Item 4262 made builds whole on all 24,000.** `BuildData::wonder` (`+0x76`) is the entry `Wonders::init_wonder`
+returned to `Build::activate`'s wonder arm; ours wrote −1 always. On 14312 (§25.4) the Pyramids `1/2023` −1, 0 → 0.
+Step P 453 → 455.
+
 ## 24.4 Where each first parting is (diff-backed)
 
 A packet on each first parting's frame (runs 1579 to 1585), our walk under the pump to it, its twelve lines held range
@@ -2620,6 +2618,8 @@ Not established:
 - A captured city's `BuildData +0x72` in its new owner's list: the crate counts the owner's earlier cities in its own
   vector, dead ones too (`Sim::city_index_in_owner`); no capture on the minted game reaches it.
 - Arm 5's reader, `Sim::animal_is_seen`'s `ever_seen` test, is not wired (parked 4229a).
+- A captured wonder's `BuildData::wonder` (`+0x76`): `Wall::swap_team` re-creates the building, and whether the new
+  owner's list takes it is not read; the crate keeps the census's list (item 4262). No capture on file captures a wonder.
 - ~~Units on 189 and guys on 6537: no packet stands on either frame (parked 4226a, 4226b).~~ Units on 189: run1586,
   whole since item 4228 (4226a closed). ~~Guys on 6537 and units on 3166: no packet stands on either (4226b).~~
   Units on 3166: run1587, whole since item 4230. ~~Guys on 6537 and units on 3596: no packet stands on either.~~
@@ -2725,12 +2725,14 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 | 8281 | units | 1,909, 1,909, 2 | 842 30 `myhits..launch_frames`: `inside_down` −1, 42 (the University 1/2018's chain; builds 856 2018 `inside_down` 42, 30); whole since item 4257, both lines |
 | 10541 | units, guys | 2,549 and 776, 2 each | 570/571 and 160/161 14 guy: the Caravan 1/14's crew (guys 1, 2) `last_angle` 682461312, 968792448; whole since item 4260 |
 | 11884 | units, guys | 2,459 and 776, 3 each | 1570 and 463 56 guy: `last_x` 38275, 38297; `last_y` 21337, 21325 |
-| 14312 | builds | 1,370, 1,370, 1 | 1258 2023 `gather_down..infiltrate2`: `wonder` −1, 0 |
+| 14312 | builds | 1,370, 1,370, 1 | 1258 2023 `gather_down..infiltrate2`: `wonder` −1, 0 (player 1's Pyramids, TI 0x20e); whole since item 4262, and the line whole on all 24,000 |
 
 On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Builds' 7383 row, record 2019's `mtn`
 −1 against 0, left with item 4244, and builds is whole on the record at 7383 and 8206. 8281's, building 2018's `inside_down`
 (the garrison's head), ours 42, theirs 30, went with units' there: item 4257 emits the chain in the order of entry,
-and builds next parts on 14312. **Item 4255 moved groups 8206 → 9810** (`CHECKSUM_FRAMES`). Record 67 is player 1's slot 3. The Longbowmen
+and builds next parted on 14312. **Item 4262 made builds whole on all 24,000**: `BuildData::wonder` (`+0x76`) has three
+writers, `Build::init`'s −1, `Build::activate`'s store of the entry `Wonders::init_wonder` returns, and `Build::close`'s
+−1 (`docs/AI.md` §75.3, CITIES §1.1); the emitter wrote −1 on every building, so the original acted. **Item 4255 moved groups 8206 → 9810** (`CHECKSUM_FRAMES`). Record 67 is player 1's slot 3. The Longbowmen
 `1/39..1/41` (TI 177) left it after its move on 8171, and its `num` is 0 on both sides by 8205. Theirs zeroes its
 `ox`/`oy` on 8206, the frame player 1 pushes into slot 65 (`last_group` 67 → 65). **The direction**: the original
 acted. `Group::equals_group@00708000` calls vslot `+0x4` (`Group::get_num`) on `last_group`'s record after its
