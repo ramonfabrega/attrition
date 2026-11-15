@@ -100,7 +100,7 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
     ),
     (
         "diff::coverage_pair::run1075_s_garrison_window_is_widened_whole",
-        34,
+        33,
     ),
     (
         "diff::golden::chapter_thirty_eight_s_word_frame_is_widened_whole",
@@ -110,6 +110,9 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
         "diff::harness::tests::run96_s_word_frame_is_widened_whole",
         5,
     ),
+    // Item 4159's fourth residue: run1075's walk 34 -> 33, the launch
+    // rows of pieces 1814, 1837, 1851 and 81 (the first gameplay parting
+    // 2123 -> 2346).
     // Item 4159's third residue: run1075's walk 73 -> 34 (the staged
     // Battleships' turrets born at rest move the window's first gameplay
     // parting from 2060 to 2123); and eight walks to 0, the rows leave —
