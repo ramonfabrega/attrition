@@ -864,7 +864,13 @@ listing. The verdicts cite no kept-dump value for these leaves.
   and run1075 alone still does. The sixth residue moved its first
   gameplay parting 2346 → 2554 (the muster chase finds land units only);
   the words now part from 2588, past the navy army's 2552 tick, which is
-  not established (parked 4159r6a).
+  not established (parked 4159r6a). ~~The navy army's tick~~ The seventh
+  residue read it off the dump and the trace: the 2552 tick agrees, order
+  for order; 2554 is group 72's `Group::target_opportunity` on 2553, where
+  the Attack Submarine `1/84`'s re-entered chase move pays one grid draw
+  (`Unit::do_move+0xe84`, 8116) in the original and none here, and every
+  later draw of the frame shifts by one. Why the chase's walk is refused
+  there and walked here is not established (parked 4159r7a).
 - **The disband arm's reach.** Which types carry flag `0x2000` and which
   leaders hold `leader_flags & 4`; and whether the crate's `damage_building`
   disbands at all. A reading of the flag's loader, then a diff of
