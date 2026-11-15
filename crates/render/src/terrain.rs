@@ -256,6 +256,55 @@ pub fn land_n_dot_l(n: [f32; 3]) -> f32 {
     v.clamp(0.0, 1.0)
 }
 
+/// **A placed range's normals** (item 4269; `docs/RENDERER.md` §3.22), as
+/// `RenderHelper::generate_normals@00847f90` builds them over a template's
+/// mesh: every vertex starts at zero; each triangle `(a, b, c)`, in the
+/// face list's order, takes its two edges from `a`, `b − a` and `c − a`,
+/// each scaled by `1 / sqrt(y² + x² + z²)` unless that is 0 or 1, and adds
+/// their cross product `(b − a) × (c − a)` to all three of its vertices;
+/// each vertex is then scaled by `1 / sqrt(x² + y² + z²)` unless that is 0
+/// or 1. So a triangle weighs by the sine of its angle at `a`, not by its
+/// area. One a position; a face that names no position is skipped.
+pub fn mountain_normals(positions: &[[f32; 3]], faces: &[[usize; 3]]) -> Vec<[f32; 3]> {
+    fn edge(from: [f32; 3], to: [f32; 3]) -> [f32; 3] {
+        let e = [to[0] - from[0], to[1] - from[1], to[2] - from[2]];
+        let l = e[1] * e[1] + e[0] * e[0] + e[2] * e[2];
+        if l == 0.0 || l == 1.0 {
+            return e;
+        }
+        let r = 1.0 / l.sqrt();
+        e.map(|c| c * r)
+    }
+    let mut out = vec![[0.0f32; 3]; positions.len()];
+    for f in faces {
+        let (Some(a), Some(b), Some(c)) = (
+            positions.get(f[0]),
+            positions.get(f[1]),
+            positions.get(f[2]),
+        ) else {
+            continue;
+        };
+        let (w, u) = (edge(*a, *b), edge(*a, *c));
+        let n = [
+            w[1] * u[2] - w[2] * u[1],
+            w[2] * u[0] - w[0] * u[2],
+            w[0] * u[1] - w[1] * u[0],
+        ];
+        for &k in f {
+            let o = &mut out[k];
+            *o = [o[0] + n[0], o[1] + n[1], o[2] + n[2]];
+        }
+    }
+    for n in &mut out {
+        let l = n[0] * n[0] + n[1] * n[1] + n[2] * n[2];
+        if l != 0.0 && l != 1.0 {
+            let r = 1.0 / l.sqrt();
+            *n = n.map(|c| c * r);
+        }
+    }
+    out
+}
+
 /// **A land corner's vertex colour** (item 4217; `docs/RENDERER.md`
 /// §3.22): `light_vert@00866f90` on [`land_n_dot_l`], each channel
 /// `min(1, diffuse · alpha · N·L + ambient)` truncated to a byte, red in
@@ -383,5 +432,36 @@ mod tests {
         assert!(n[12][0] < 0.0, "{:?}", n[12]);
         assert!(land_n_dot_l(n[12]) < l);
         assert_eq!(light_vert(0.0, [0.01, 0.03, 0.18], 1.36), [2, 7, 45]);
+    }
+
+    /// Item 4269: a range's flat quad, in the original's face order
+    /// `(a, b, d)`, `(d, b, c)`, points straight up; one rising along x
+    /// tips away from the light; and a triangle weighs by its angle at its
+    /// first vertex, so the same two faces listed from another corner give
+    /// another shared normal. A face naming no position is skipped.
+    #[test]
+    fn a_range_s_normals_are_its_faces_unit_edges_crossed() {
+        let quad = |h: [f32; 4]| {
+            [
+                [0.0, 0.0, h[0]],
+                [192.0, 0.0, h[1]],
+                [192.0, 192.0, h[2]],
+                [0.0, 192.0, h[3]],
+            ]
+        };
+        let faces = [[0, 1, 3], [3, 1, 2]];
+        let flat = mountain_normals(&quad([5.0; 4]), &faces);
+        // The shared corners sum two faces' unequal weights, so they land
+        // within an ulp of straight up rather than on it.
+        let up = |v: &[f32; 3]| v[0] == 0.0 && v[1] == 0.0 && (v[2] - 1.0).abs() < 1e-6;
+        assert!(flat.iter().all(up), "{flat:?}");
+        let rising = mountain_normals(&quad([0.0, 300.0, 300.0, 0.0]), &faces);
+        assert!(rising.iter().all(|v| v[0] < 0.0), "{rising:?}");
+        assert!(land_n_dot_l(rising[1]) < std::f32::consts::FRAC_1_SQRT_2);
+        let p = quad([0.0, 100.0, 400.0, 50.0]);
+        let other = mountain_normals(&p, &[[0, 1, 3], [1, 2, 3]]);
+        let ours = mountain_normals(&p, &faces);
+        assert_ne!(ours[1], other[1], "the angle at the first vertex weighs");
+        assert_eq!(mountain_normals(&p, &[[0, 1, 9]]), vec![[0.0; 3]; 4]);
     }
 }

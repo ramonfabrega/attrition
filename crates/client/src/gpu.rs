@@ -2296,10 +2296,12 @@ mod tests {
     /// the photograph's brightness with it in linear space). Item 4171: the
     /// textures and targets are plain `Unorm`, so the sample is the byte and
     /// the sum is taken as it stands, with no encode or decode around it.
+    /// Item 4269: lit by the range's own N·L with the vertex white
+    /// (`land_lit_white`).
     #[test]
     fn the_mountain_adds_on_the_stored_bytes() {
         assert!(PATCH_SHADER.contains(
-            "return vec4<f32>(land_lit(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), i.nl), a);"
+            "return vec4<f32>(land_lit_white(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), i.nl), a);"
         ));
         assert!(!PATCH_SHADER.contains("encoded("));
     }

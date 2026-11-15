@@ -1556,9 +1556,11 @@ photograph, the 106 scored tiles under a mountain).
 - Stage 0's filter: the state reads POINT. The painter and the client
   sample it bilinear and on level 0. This is unmeasured, as parked
   4139a is for the patch.
-- The diffuse. The vertex is white and the state's `tfactor` is set to
+- ~~The diffuse. The vertex is white and the state's `tfactor` is set to
   `WHITE`. `TerrainOut::render` generates normals for the mesh, and
-  whether lighting reaches the diffuse is unread.
+  whether lighting reaches the diffuse is unread.~~ The card lights the
+  draw (§3.22, item 4246), and the range's own normals are the packet's
+  (§3.22, "The mountain's own light", item 4269).
 - `Mountains::init` adds a pixel-shader situation. Stage 2 binds
   `mountain_mtrl` (`BASETEX`'s `_mtrl` sibling) where the card answers.
   Which path ran under DXVK is not established. Neither is drawn.
@@ -3107,25 +3109,49 @@ On the photographs alone: the rows.
 - The 2,002 normals the local `calculate_norms` leaves (parked 4217b); none is at run1564's row.
 - The colour of a land draw's corner under the ocean floor's grey (the coral, the faded land):
   drawn white and flat.
-- The mountains' own normals and vertex colour (draws 143, 144): flat and white. **Item 4246's first act stopped
-  here: no card trace on disk holds them.** On both traces' 3279 pass the range is three draws
-  (`client::tint::card::the_mountain_s_draws_on_the_card`): run1566b's 121–123 and run1567's 143–145. The ring
-  (`t_mountain_blend` + `m*_ring_shad_0`) and the main (`t_mountain_plain` + `m*_mountain_shad_0`) are lit as the land
-  is: `ENABLE_LIGHTING`, `ENABLE_VERTEX_COLOR_DIFFUSE`, `NORMAL_MAP SPEC_MAP GLOSS_MAP`, stage 0 `MODULATE(TEXTURE,
-  DIFFUSE)`, stage 1 op 7 `(TEXTURE, CURRENT)`, the light's diffuse 1.36, the scene's ambient (0.6, 0.716, 0.745) and
-  the material white. The ring also carries `TRANSFORM_SCREEN_SPACE` (unread). A third draw, `t_mountainpeak` on both
-  stages, takes `TL_FAKE_LIGHT` and no lighting; §3.10 never named it. **No stream precedes any of the six**: run1567's
-  pass holds none at all, and run1566b's seven come before other draws. The probe dumps only what
-  `get_internal_stream` locks, and the range's mesh is a static buffer. The score at the item's start, the still's
-  ground luma on run1559b under a mountain (`GROUND_LUMA_STILL`): **61 of 106**. All 45 parted tiles are paler and
-  none darker. Over the body, ours (173.1, 166.3, 90.0) is Y 160.0 against theirs (148.6, 140.8, 87.4) Y 137.3, a
-  mean ratio of 1.199 tile by tile. By eye, theirs has a darker right flank, a dark crest and fine white streaks, and
-  ours is one even, paler tone. Where the normals can be read instead is a packet's heap: `fill_mountain_data`'s mesh
-  and the normals `TerrainOut::render` generates for it (parked 4246a). The peak draw is parked 4246b.
+- ~~The mountains' own normals and vertex colour (draws 143, 144): flat and white.~~ Answered below, "The
+  mountain's own light (item 4269)". Item 4246's record of the card stands: on both traces' 3279 pass the range is
+  three draws (`client::tint::card::the_mountain_s_draws_on_the_card`), run1566b's 121–123 and run1567's 143–145; the
+  ring (`t_mountain_blend` + `m*_ring_shad_0`) and the main (`t_mountain_plain` + `m*_mountain_shad_0`) lit as the
+  land is (`ENABLE_LIGHTING`, `ENABLE_VERTEX_COLOR_DIFFUSE`, `NORMAL_MAP SPEC_MAP GLOSS_MAP`), the ring also
+  `TRANSFORM_SCREEN_SPACE` (unread); a third, `t_mountainpeak` on both stages under `TL_FAKE_LIGHT`, §3.10 never
+  named (parked 4269b). No card stream holds the range's mesh: it is a static buffer.
+- The `_mtrl` normal, specular and gloss maps on the mountain's draws (parked 4269a), and the body's hue (4269c).
 - `vs_global.hlsl`'s per-pixel normal against the interpolated N·L the client takes, and the
   vertex colour taken from that N·L rather than interpolated.
 - ~~The trees' and the roads' `TL_FAKE_LIGHT` stage colours against each other (parked 4217a).~~ Answered by
   §3.23: the stage colours agree; the trees blend and take the tileset's tint.
+
+**The mountain's own light (item 4269).** *2026-11-15, Opus 5.5. `render::terrain::mountain_normals`;
+`client::ground::GroundMountain::normals`; `client::world::World::set_mountain_light`; `shaders/land.wgsl`'s
+`land_lit_white`; `tools/render/mountain_light_packet.py`. Measured on run1559b's packet and photograph.*
+The packet holds the range's mesh. `TerrainOut`'s `TerrainData` base sits at `+0x40`, so `scene_mount` (`+0x828`)
+is `+0x868`: sixteen `RenderHelper`s, one a template slot, the array `render_mountains@008551f0` draws. On
+run1559b only slot 14 is filled: 238 vertices, 404 triangles, and 238 normals, colours and tangents. Every vertex
+is a tile corner at our render height bit for bit. Every colour is `0xffffffff`: `fill_mountain_data@00869380` and
+`recolor_mountain_verts@0086cd80` both write white, so the vertex is white, as drawn. The normals are not the
+land's (a mean gap of 0.25 from `calculate_norms`' at the same corner). `TerrainOut::render` runs
+`RenderHelper::generate_normals@00847f90` on each template's `current_mount`. That function sums, per face `(a, b, c)`,
+the cross product of the two unit edges `(b − a) × (c − a)` into all three vertices, then normalizes each vertex. A
+face is weighted by its angle at `a`, not by its area. The faces come in the original's order, `(a, b, d)` then
+`(d, b, c)` per tile. On the packet's own mesh that model is the packet's normals **bit for bit on all 238**. On our
+tiles (`GroundMountain::normals`, the faces' order across tiles ours) they are 238 within 1e-5, 220 bit for bit,
+worst 8.9e-8 (`client::ground::tests::the_range_s_normals_are_the_packet_s`, `RUN1559B_MOUNTAIN_NORMALS`). The
+packet's 202 tiles are all ours. Ours lay 404 for template 14: a second range at (5–21, 208–225) that the frame's
+slot does not hold. Mean N·L on the range is **0.591** against the flat 0.7071 the client drew.
+
+Drawn (`fs_mountain` on `land_lit_white`: the corner's N·L, the vertex white; on by default), on run1559b's still:
+`GROUND_LUMA_STILL` under a mountain **61 → 70 of 106**, the row 1,031 → 1,040 of 1,109. The body goes from ours
+(173.1, 166.3, 90.0) Y 160.0 to (171.1, 164.7, 89.1) Y 158.3, against theirs (148.6, 140.8, 87.4) Y 137.3; the mean
+ratio goes from 1.199 to 1.174, and 36 tiles still part, all paler. The diffuse term is the smaller part of the lit
+branch's sum (1.36 · N·L / π against an ambient of 0.6–0.75), so the vertex normal alone cannot close a 15 % gap.
+The frame's white moves with it, on all three photographs (the rows re-pinned in `fire`, `roads`, `shadows`, `tint`
+and `ground`, each delta in its constant's comment). By eye the range now shades, the left flank lighter, but it
+stays yellower than theirs. Theirs is grey-brown, with a dark blue-grey crest and fine white streaks: the peak draw
+(4269b) and the `_mtrl` maps (4269a).
+*Coverage:* diff-backed: the vertex colour (238 of 238 white), the heights and the normals against the packet. On a
+reading: the slot's face order and `TerrainOut`'s base offset (they are what the packet's bytes decode under). On the
+photograph alone: the row.
 
 ## 3.23 The trees' own light (item 4221)
 
