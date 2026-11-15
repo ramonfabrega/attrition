@@ -178,6 +178,9 @@ mod unreachable_goal_tests;
 #[cfg(test)]
 mod snap_refusal_tests;
 
+#[cfg(test)]
+mod stale_goal_tests;
+
 pub mod build_spot_view;
 pub mod check_build_view;
 pub mod do_attack;

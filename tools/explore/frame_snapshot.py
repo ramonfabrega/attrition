@@ -17,9 +17,10 @@ def decode(stream,plan):
     require(h[9]>=65536 and h[9]!=h[8] and 65536<=h[10]<h[11]<=2**32-1,'invalid exclusions')
     require(65536<=h[12]<h[13]<=2**32-1 and 0<h[14]<=65536 and not h[14]&(h[14]-1),'invalid inventory bounds')
     require(h[12]%h[14]==h[13]%h[14]==0,'unaligned inventory')
-    require(0<h[15]<=8192 and 0<h[16]<=h[15] and 0<h[17]<=CAP,'invalid range/byte count')
+    require(CAP<=h[22]<=3*CAP,'cap out of bounds')
+    require(0<h[15]<=8192 and 0<h[16]<=h[15] and 0<h[17]<=h[22],'invalid range/byte count')
     require(h[18]==len(plan['roots'])+2<=16 and 0<h[19]<=524288,'invalid anchors')
-    require(h[20]<2000 and h[21]==0 and h[22:27]==(CAP,CHUNK,8192,2000,5000),'limits differ')
+    require(h[20]<2000 and h[21]==0 and h[23:27]==(CHUNK,8192,2000,5000),'limits differ')
     require(h[27:29]==(plan['game_slot'],plan['frame_offset']) and h[31]==0,'plan differs')
     require(h[29]>=2**31 or h[29]<=h[3]<h[30],'logger window excludes frame')
     ranges=[];cursor=h[12];observer=False

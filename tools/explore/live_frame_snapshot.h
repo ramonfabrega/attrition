@@ -5,7 +5,11 @@ IMPORT(i32, ReadProcessMemory, (HANDLE,const void *,void *,u32,u32 *));
 IMPORT(u32, VirtualQueryEx, (HANDLE,const void *,void *,u32));
 IMPORT(void, GetSystemInfo, (void *));
 IMPORT(u32, GetTickCount, (void));
+/* The payload cap; `--tracer-def FS_CAP=0xc0000000u` lifts it for a game whose
+ * private data passes 1 GiB (run1608, East Indies at 2553: status 12). */
+#ifndef FS_CAP
 #define FS_CAP (1024u*1024u*1024u)
+#endif
 #define FS_CHUNK (1024u*1024u)
 #define FS_MAX 8192u
 #define FS_MS 5000u
@@ -98,7 +102,7 @@ static void fs_capture(u32 game,u32 frame,u32 logger,u32 observer,u32 low,u32 hi
     fs_started=GetTickCount();
     if(!h[9]){fs_status=2;goto finish;}
     for(u32 i=0;i<h[15];i++)if(fs_selected(fs_ranges[i])){
-        u32 n=fs_extent(fs_ranges[i]);if(n>FS_CAP-h[17]){fs_status=2;goto finish;}h[17]+=n;h[16]++;
+        u32 n=fs_extent(fs_ranges[i]);if(n>FS_CAP-h[17]){fs_status=12;goto finish;}h[17]+=n;h[16]++;
     }
     if(!h[16]){fs_status=2;goto finish;}
     for(u32 i=0;i<fs_anchor_count;i++)if(!fs_covered(fs_anchor[i][0],fs_anchor[i][1])){fs_status=2;goto finish;}
