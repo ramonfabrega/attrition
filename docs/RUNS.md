@@ -37524,3 +37524,34 @@ SHA-256 `2a395dc5af92386a9ad5e08adc1a2b74f32773f1f8618a3dfe8fcabde0cfd8db`; `ron
 SHA-256 `f02dfc70be4e169c4bce29bde3148b8fc7fecebaf9e9497923964196799d4a05`.
 
 **What it holds**: the round that lands the 6866 blow, its launch point the Slinger's third swing's node.
+
+## run1604 — the original playing the file a market's sale and purchase minted (2026-11-14, item 4259, `att-4259`)
+
+`docs/CLIENT_INPUT.md` §16.3. **What the disk could not answer**: whether the original plays a minted `sell` and
+`buy`, and whether a leader's buckets after them are ours. The recordings carry 46, but no playback of a file of ours
+had traded, and no take of the minted game printed a leader record in its window. The file:
+`~/ron-golden/recordings/item4259-marketed-greatlakes-24000.rcx`, 59,535 bytes, SHA-256
+`6affa99f9f45bd2b6b8263fb5f8c19af3a2a187323c7aea7eef809c117e6e3de`. It was written by `RON_RCX_OUT=<it> … test
+--release -p rondata the_marketed_minted_packages_round_trip`. It is run1601's file plus two packages: `sell(0, food,
+0)` on 6714 and `buy(0, timber, 0)` on 6716.
+
+The take is run1601's line with this file and `LEADERS=2` added: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1604 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --timeout 1800 --stall-seconds 120`. It was waited
+on with `waitrun.sh` in the background. `df -g ~` read 197 GB free before it.
+- **The run**: pool lane 1, launched 18:34:55 −05:00, exited 18:43:25: **510.2 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault, no relaunch. Minutes waited on another lane: none.
+- **The built walk under the pump on the file** (`MARKETED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence; 300 records compared (6700..6999), none parted.
+- **Each order's effect** (`marketed_effects`): leader 0's buckets (food, timber, wealth) 721, 425, 249 on 6714;
+  622, 425, 330 on 6715; 622, 526, 223 on 6717; 653, 544, 229 on 6999. Equal on both sides, pinned before the read.
+- **The market's functions** (`MARKET_ENTRIES`): `CommandPackage::process_sell` and `Leader::do_sell` first entered
+  on 6713; `process_buy`, `Leader::action_buy` and `Leader::do_buy` on 6715. run1601 enters none.
+- Filed with `filerun.py run1604 greatlakes-playback-of-marketed-7000`.
+
+Archive `gamelog-run1604-greatlakes-playback-of-marketed-7000.txt`, 67,929,007 bytes,
+SHA-256 `716b6bfd32656173b44b218760a2931de99140eca2f040011d8ea572554bec11`; `rontrace-run1604.log`, 34,552,032 bytes,
+SHA-256 `93dbf0757b8cf39eb3eada728b692b58df37fea0fbf8ba32425381702ade2d27`.
+
+**What it holds**: the marketed game's window with the leaders' buckets on every frame; a sale and a purchase played.

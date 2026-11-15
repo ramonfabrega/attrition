@@ -1581,8 +1581,20 @@ impl Stream {
             Command::QueueUp { .. } => {
                 done.skip(&it.cmd, "production is not wired into the harness");
             }
-            Command::Buy { .. } | Command::Sell { .. } => {
-                done.skip(&it.cmd, "the market is not modelled");
+            // **The market** (item 4259, `docs/CLIENT_INPUT.md` §16):
+            // `process_sell` and `process_buy` on the order's own `who`,
+            // which is the leader they name, not the package's slot.
+            Command::Sell { who, good, flags } | Command::Buy { who, good, flags } => {
+                match (sim::Player::try_from(*who), usize::try_from(*good)) {
+                    (Ok(who), Ok(good)) => {
+                        if matches!(it.cmd, Command::Sell { .. }) {
+                            built.sim.command().process_sell(who, good, *flags);
+                        } else {
+                            built.sim.command().process_buy(who, good, *flags);
+                        }
+                    }
+                    _ => done.skip(&it.cmd, "the leader or the good is out of range"),
+                }
             }
             // **The rally point** (item 928): the recorded command is the
             // one the golden harness issues, `process_gather_point` on the

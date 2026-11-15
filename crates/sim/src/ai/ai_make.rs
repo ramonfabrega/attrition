@@ -787,6 +787,86 @@ impl Sim {
         true
     }
 
+    /// **A person's sale**, `CommandPackage::process_sell@009468a0` (item
+    /// 4259, `docs/CLIENT_INPUT.md` §16): the market's gate
+    /// ([`Sim::market_gate`] — the ability, a market, no embargo, the
+    /// original's three early returns in its order), then
+    /// [`Sim::do_sell`] until it refuses or the count is spent. The count
+    /// is the order's `flags`: 1, five with bit 0, every hundred with bit
+    /// 1 (`99999`). A good outside the six, or a slot outside the game,
+    /// does nothing.
+    pub fn process_sell(&mut self, who: Player, g: usize, flags: i32) {
+        if g >= RESOURCES || who as usize >= self.economy.ledgers.len() || !self.market_gate(who) {
+            return;
+        }
+        let n = if flags & 2 != 0 {
+            99999
+        } else {
+            (flags & 1) * 4 + 1
+        };
+        for _ in 0..n {
+            if !self.do_sell(who, g) {
+                break;
+            }
+        }
+    }
+
+    /// **A person's purchase**, `CommandPackage::process_buy@00946a20`,
+    /// which is `Leader::action_buy@006cfa20` whole (item 4259): the gate
+    /// `LeaderData::can_buy_sell@006d53e0` and the embargo — the same three
+    /// clauses as [`Sim::market_gate`] — then [`Sim::do_buy`] until it
+    /// refuses or the count is spent. The count: 1, five with bit 0; with
+    /// bit 2 ten (or a hundred beside bit 0); every hundred with bit 1.
+    pub fn process_buy(&mut self, who: Player, g: usize, flags: i32) {
+        if g >= RESOURCES || who as usize >= self.economy.ledgers.len() || !self.market_gate(who) {
+            return;
+        }
+        let base = (flags & 1) * 4 + 1;
+        let mut n = base;
+        if flags & 4 != 0 {
+            n = if base == 1 { 10 } else { 100 };
+        }
+        if flags & 2 != 0 {
+            n = 99999;
+        }
+        for _ in 0..n {
+            if !self.do_buy(who, g) {
+                break;
+            }
+        }
+    }
+
+    /// **What a market's panel offers**, `BuildOut::make_options@00629ed0`'s
+    /// market arm (item 4259): with the ability (tribe bonus 4 or
+    /// `has_preq(BUY_SELL)`), each good but wealth and knowledge that is
+    /// available, at its `(buy, sell)` price
+    /// ([`Sim::calc_market_prices`]); `None` for a good with no button.
+    /// The panel's own gates — the building a finished market — are the
+    /// caller's. A read only.
+    pub fn market_offer(&self, who: Player) -> [Option<(i32, i32)>; RESOURCES] {
+        let w = who as usize;
+        let mut out = [None; RESOURCES];
+        if w >= self.tech.len() || w >= self.economy.ledgers.len() {
+            return out;
+        }
+        let bonus = self
+            .tables
+            .tech_tree
+            .has_tribe_bonus(&self.tables.setup, &self.tech[w], 4);
+        if !(bonus || self.can_buy_sell(who)) {
+            return out;
+        }
+        for (g, o) in out.iter_mut().enumerate() {
+            if g != Resource::Wealth as usize
+                && g != Resource::Knowledge as usize
+                && self.good_avail(who, g)
+            {
+                *o = Some(self.calc_market_prices(who, g));
+            }
+        }
+        out
+    }
+
     /// `market_speculation@006c8110`: `production_ai_setup`'s last act, and
     /// the only place the AI trades **off** a shortfall — three passes over
     /// the six goods behind one gate.
