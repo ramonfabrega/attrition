@@ -636,6 +636,27 @@ pub(super) const PACKET_RELEASED: &[(&str, &str, i16)] = &[
     // stale since the Merchant Fleet's close on 12610 raised no bit).
     ("score_units", "run912e", 1),
     ("score_units_2", "run912e", 1),
+    // Item 4159's ninth residue, the thirteen combat leaves (released by
+    // entry 131 §1's first way: no record diff parts them; each agrees on
+    // all 226 walked leaders). run1496, frame 1539, leader 1: killed 4,
+    // lost 5; the averages 55 (death), 287 (damage), 131 (hit); this
+    // frame's hits 1 and damage 1; the fifteen-second deaths 5, kills 4,
+    // hits 132, damage 195.
+    ("units_killed", "run1496", 1),
+    ("units_lost", "run1496", 1),
+    ("average_death_rate", "run1496", 1),
+    ("average_damage_rate", "run1496", 1),
+    ("average_hit_rate", "run1496", 1),
+    ("hits_current_frame", "run1496", 1),
+    ("damage_current_frame", "run1496", 1),
+    ("deaths_fifteen_seconds", "run1496", 1),
+    ("kills_fifteen_seconds", "run1496", 1),
+    ("hits_fifteen_seconds", "run1496", 1),
+    ("damage_fifteen_seconds", "run1496", 1),
+    // run1570, frame 3331: leader 0's death this frame (1), leader 1's
+    // kill (1); ten of the 226 leaders hold either word off zero.
+    ("deaths_current_frame", "run1570", 0),
+    ("kills_current_frame", "run1570", 1),
 ];
 
 /// Every [`PACKET_RELEASED`] witness is a held packet, no pinned parting
