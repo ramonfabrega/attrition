@@ -1354,7 +1354,7 @@ is added disabled under a hundred of the good, the purchase under the wealth its
 `LeaderOut::issue_sell@006d3eb0(good, 0, 1 or 2)` on the console's leader; `OPTION_BUY` and its two the same through
 `issue_buy@006d3ef0`. `CommandManager::issue_sell@00942a80` writes command `0x2f`, `sell(who, good, flags)`, `who`
 the leader's own number, and adds no group; `issue_buy` writes `0x2e`, `buy`, the same way. The resource bar
-(`IFaceResources::on_button_clicked@0081b570`) reaches the same options, with the shift for `_500` and the alt for
+(`IFaceResources`, not entered by any trace) reaches the same options, with the shift for `_500` and the alt for
 `_ALL`.
 
 **The recordings agree.** All 46 sales and purchases on disk, 28 and 18, carry `flags` 0 and stand in a package of
