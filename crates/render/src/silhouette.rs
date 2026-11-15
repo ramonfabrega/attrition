@@ -1043,9 +1043,9 @@ pub fn read_colours(
             let them = [0, 1, 2].map(|k| f32::from(photo.rgba[i + k]));
             c.luma[0] += luminance(ours.rgb);
             c.luma[1] += luminance(them);
-            for k in 0..3 {
+            for (k, &t) in them.iter().enumerate() {
                 c.rgb[0][k] += ours.rgb[k];
-                c.rgb[1][k] += them[k];
+                c.rgb[1][k] += t;
             }
             let sum = |p: [f32; 3]| p[0] + p[1] + p[2];
             if sum(ours.rgb) < hue.dark || sum(them) < hue.dark {
