@@ -3,6 +3,8 @@ struct U {
     m: mat4x4<f32>,
     d: vec4<f32>,
     range: vec4<f32>,
+    // Item 4278: the camera's eye in world units (`render::Camera::eye_position`).
+    eye: vec4<f32>,
 };
 @group(0) @binding(0) var<uniform> u: U;
 @group(1) @binding(0) var tex: texture_2d<f32>;
@@ -66,6 +68,64 @@ fn fs_mountain(i: VOut) -> @location(0) vec4<f32> {
         discard;
     }
     return vec4<f32>(land_lit_white(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), i.nl), a);
+}
+
+// Item 4278 (`docs/RENDERER.md` §3.22, "The mountain's `_mtrl` maps"):
+// stage 2's `mountain_mtrl`, sampled at stage 0's texcoord, on the main
+// pass. Its bindings are 2 and 3 so the module's `lake` keeps group 3's 0.
+@group(3) @binding(2) var mtrl: texture_2d<f32>;
+@group(3) @binding(3) var mtrl_samp: sampler;
+
+struct MOut {
+    @builtin(position) pos: vec4<f32>,
+    @location(0) uv: vec2<f32>,
+    @location(1) auv: vec2<f32>,
+    @location(2) n: vec3<f32>,
+    @location(3) t: vec3<f32>,
+    @location(4) b: vec3<f32>,
+    // The eye less the position, linear in it, so interpolated exactly.
+    @location(5) e: vec3<f32>,
+};
+
+// `vs_global.hlsl` under `NORMAL_MAP`: the normal and the tangent passed
+// through (the world is the identity and the view rigid, so world space
+// keeps every dot product), the bitangent `cross(tangent, normal)` per
+// vertex, and the position for the view vector.
+@vertex
+fn vs_mountain_mapped(
+    @location(0) p: vec3<f32>,
+    @location(1) uv: vec2<f32>,
+    @location(2) auv: vec3<f32>,
+    @location(3) n: vec3<f32>,
+    @location(4) t: vec3<f32>,
+) -> MOut {
+    let v = vec4<f32>(p, 1.0);
+    let clip = u.m * v;
+    let depth = dot(v, u.d);
+    let z = clamp((depth - u.range.x) / (u.range.y - u.range.x), 0.0, 1.0);
+    var o: MOut;
+    o.pos = vec4<f32>(clip.xy, z * clip.w, clip.w);
+    o.uv = uv;
+    o.auv = auv.xy;
+    o.n = n;
+    o.t = t;
+    o.b = cross(t, n);
+    o.e = u.eye.xyz - p;
+    return o;
+}
+
+// `fs_mountain`'s stages, lit per pixel through the map (`land_mapped`).
+@fragment
+fn fs_mountain_mapped(i: MOut) -> @location(0) vec4<f32> {
+    let t0 = textureSample(tex, samp, i.uv);
+    let t1 = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0);
+    let m = textureSample(mtrl, mtrl_samp, i.uv);
+    let a = t0.a * t1.a;
+    if (a <= 0.0) {
+        discard;
+    }
+    let c = clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0));
+    return vec4<f32>(land_mapped(c, m, i.n, i.t, i.b, i.e), a);
 }
 
 // Item 4275 (`docs/RENDERER.md` §3.10, "The snowcap, drawn"): the tileset's

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """mountain_light_packet.py — a placed range's mesh, as a packet holds it (item 4269).
 
-    python3 tools/render/mountain_light_packet.py <frame-snapshot.bin> > <run>-mountain-light.txt
+    python3 tools/render/mountain_light_packet.py [--maps] <frame-snapshot.bin> > <run>-mountain-light.txt
 
 `docs/RENDERER.md` §3.22. No function is called: this reads the arrays
 `TerrainOut::render` left in `scene_mount` after `RenderHelper::
@@ -19,6 +19,11 @@ generate_normals@00847f90` and `reduce_scene_data` ran on each template's
   `+4` and its data at `+0x10`. `faces` is `ushort` indices, three a
   triangle; `verts` and `norms` three singles a vertex; `colors` one
   `ulong`.
+
+With `--maps` (item 4278, §3.22 "The mountain's `_mtrl` maps"), each
+vertex line is followed by a `t` line: the tangent's three singles as hex
+bits (`tangents` `+0xfc`, `RenderHelper::generate_tangents@008479b0`'s),
+then `tex0` (`+0xc4`) and `tex1` (`+0xe0`) as two singles each in hex.
 
 One header line (`frame`), then per slot with vertices a `slot k verts n
 faces f` line, one line a vertex — `v x y` (the corner, world units over
@@ -41,7 +46,7 @@ HELPER = 0x13C
 UNITS_PER_TILE = 192.0
 
 
-def main(path):
+def main(path, maps=False):
     s = Snapshot(path)
     out = [f"frame {s.frame}"]
     scene = s.u32(TERRAIN + SCENE_MOUNT)
@@ -60,6 +65,12 @@ def main(path):
         nn, nb = array(0x8C, 12)
         nc, cb = array(0xA8, 4)
         nf, fb = array(0x38, 2)
+        if maps:
+            nt, tb = array(0xFC, 12)
+            n0, t0 = array(0xC4, 8)
+            n1, t1 = array(0xE0, 8)
+            if nt != n or n0 != n or n1 != n:
+                sys.exit(f"{path}: slot {k}: {n} verts, {nt} tangents, {n0}/{n1} texcoords")
         if nn != n or nc != n or nf % 3:
             sys.exit(f"{path}: slot {k}: {n} verts, {nn} normals, {nc} colours, {nf} indices")
         out.append(f"slot {k} verts {n} faces {nf // 3}")
@@ -72,6 +83,10 @@ def main(path):
             zb = struct.unpack_from("<I", vb, 12 * i + 8)[0]
             c = struct.unpack_from("<I", cb, 4 * i)[0]
             out.append(f"v {cx} {cy} {zb:08x} {w[0]:08x} {w[1]:08x} {w[2]:08x} {c:08x}")
+            if maps:
+                tw = struct.unpack_from("<3I", tb, 12 * i)
+                uv = struct.unpack_from("<2I", t0, 8 * i) + struct.unpack_from("<2I", t1, 8 * i)
+                out.append("t " + " ".join(f"{x:08x}" for x in tw + uv))
         idx = struct.unpack_from(f"<{nf}H", fb, 0)
         for t in range(0, nf, 3):
             out.append(f"f {idx[t]} {idx[t + 1]} {idx[t + 2]}")
@@ -79,6 +94,7 @@ def main(path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    args = [a for a in sys.argv[1:] if a != "--maps"]
+    if len(args) != 1:
         sys.exit(__doc__)
-    main(sys.argv[1])
+    main(args[0], maps="--maps" in sys.argv[1:])

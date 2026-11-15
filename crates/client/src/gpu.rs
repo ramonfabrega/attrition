@@ -343,6 +343,10 @@ pub enum SilhouetteOrder {
     After,
 }
 
+/// A mountain main layer's vertex under its maps (item 4278): the patch's
+/// eight singles, then the corner's normal and tangent.
+const MAPPED_STRIDE: u64 = 56;
+
 /// A mesh on the GPU: its vertices, their count and its texture.
 type Uploaded = (wgpu::Buffer, u32, wgpu::BindGroup);
 
@@ -355,6 +359,7 @@ type UploadedPatch = (
     wgpu::BindGroup,
     bool,
     PatchKind,
+    Option<wgpu::BindGroup>,
 );
 
 /// **How a patch mesh is shaded** (items 4212, 4232).
@@ -427,9 +432,15 @@ pub struct Gpu {
     /// linear, clamped sampler (`MIP_LINEAR`, `TEXADD_CLAMP`).
     mountain: wgpu::RenderPipeline,
     mountain_sampler: wgpu::Sampler,
+    /// A mountain's main layer under its `_mtrl` maps (item 4278, §3.22):
+    /// its pass and stage 2's layout (bindings 2 and 3 of group 3).
+    mountain_mapped: wgpu::RenderPipeline,
+    mtrl_layout: wgpu::BindGroupLayout,
     /// The snowcap underlay's pass (item 4275, §3.10).
     snowcap: wgpu::RenderPipeline,
     alpha_textures: std::sync::Mutex<std::collections::BTreeMap<usize, wgpu::BindGroup>>,
+    /// `mountain_mtrl`'s bind group (item 4278), uploaded on first use.
+    mtrl_textures: std::sync::Mutex<Option<wgpu::BindGroup>>,
     sprite: wgpu::RenderPipeline,
     sprite_uniform: wgpu::Buffer,
     sprite_bind: wgpu::BindGroup,
@@ -523,7 +534,7 @@ impl Gpu {
         });
         let uniform = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("camera"),
-            size: 96,
+            size: 112,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -1043,6 +1054,79 @@ impl Gpu {
                 })
             };
         let blended = |label: &str, entry: &str| patch_pass(label, entry, &patch_layout, false);
+        // Item 4278: stage 2's `_mtrl` map, group 3's bindings 2 and 3.
+        let mtrl_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("mtrl"),
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 3,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                    count: None,
+                },
+            ],
+        });
+        let mapped_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("mountain_mapped"),
+            bind_group_layouts: &[
+                Some(&bgl),
+                Some(&sprite_layout),
+                Some(&sprite_layout),
+                Some(&mtrl_layout),
+            ],
+            immediate_size: 0,
+        });
+        let mapped_attributes = wgpu::vertex_attr_array![
+            0 => Float32x3, 1 => Float32x2, 2 => Float32x3, 3 => Float32x3, 4 => Float32x3
+        ];
+        let mountain_mapped = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("mountain_mapped"),
+            layout: Some(&mapped_layout),
+            vertex: wgpu::VertexState {
+                module: &patch_module,
+                entry_point: Some("vs_mountain_mapped"),
+                compilation_options: Default::default(),
+                buffers: &[Some(wgpu::VertexBufferLayout {
+                    array_stride: MAPPED_STRIDE,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &mapped_attributes,
+                })],
+            },
+            primitive: wgpu::PrimitiveState {
+                cull_mode: None,
+                ..Default::default()
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: DEPTH_FORMAT,
+                depth_write_enabled: Some(false),
+                depth_compare: Some(wgpu::CompareFunction::LessEqual),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: Default::default(),
+            fragment: Some(wgpu::FragmentState {
+                module: &patch_module,
+                entry_point: Some("fs_mountain_mapped"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format,
+                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            multiview_mask: None,
+            cache: None,
+        });
         let patch = blended("patch", "fs_patch");
         let patch_lit = blended("patch_lit", "fs_patch_lit");
         let mountain = blended("mountain", "fs_mountain");
@@ -1116,8 +1200,11 @@ impl Gpu {
             alpha_sampler,
             mountain,
             mountain_sampler,
+            mountain_mapped,
+            mtrl_layout,
             snowcap,
             alpha_textures: std::sync::Mutex::new(Default::default()),
+            mtrl_textures: std::sync::Mutex::new(None),
             textured,
             silhouette,
             figure_sampler,
@@ -1255,6 +1342,18 @@ impl Gpu {
         levels: &[render::tga::Image],
         sampler: &wgpu::Sampler,
     ) -> wgpu::BindGroup {
+        self.upload_mips_at(levels, sampler, &self.sprite_layout, 0)
+    }
+
+    /// [`Gpu::upload_mips`] under `layout`, the texture at `binding` and
+    /// the sampler at the next.
+    fn upload_mips_at(
+        &self,
+        levels: &[render::tga::Image],
+        sampler: &wgpu::Sampler,
+        layout: &wgpu::BindGroupLayout,
+        binding: u32,
+    ) -> wgpu::BindGroup {
         let base = &levels[0];
         let tex = self.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("figure"),
@@ -1295,14 +1394,14 @@ impl Gpu {
         let view = tex.create_view(&Default::default());
         self.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("figure"),
-            layout: &self.sprite_layout,
+            layout,
             entries: &[
                 wgpu::BindGroupEntry {
-                    binding: 0,
+                    binding,
                     resource: wgpu::BindingResource::TextureView(&view),
                 },
                 wgpu::BindGroupEntry {
-                    binding: 1,
+                    binding: binding + 1,
                     resource: wgpu::BindingResource::Sampler(sampler),
                 },
             ],
@@ -1325,7 +1424,14 @@ impl Gpu {
         meshes
             .filter(|m| !m.positions.is_empty())
             .map(|m| {
-                let mut bytes = Vec::with_capacity(m.positions.len() * 32);
+                // Item 4278: a main layer under its maps carries each
+                // corner's normal and tangent after the patch's attributes.
+                let maps = m
+                    .maps
+                    .as_ref()
+                    .filter(|mp| mp.frame.len() == m.positions.len());
+                let stride = if maps.is_some() { MAPPED_STRIDE } else { 32 };
+                let mut bytes = Vec::with_capacity(m.positions.len() * stride as usize);
                 for (i, ((p, uv), a)) in
                     m.positions.iter().zip(&m.uvs).zip(&m.alpha_uvs).enumerate()
                 {
@@ -1333,6 +1439,11 @@ impl Gpu {
                     let nl = m.light.get(i).copied().unwrap_or(crate::world::LIGHT_FLAT);
                     for f in p.iter().chain(uv).chain(a).chain(&[nl]) {
                         bytes.extend_from_slice(&f.to_le_bytes());
+                    }
+                    if let Some(mp) = maps {
+                        for f in mp.frame[i].iter().flatten() {
+                            bytes.extend_from_slice(&f.to_le_bytes());
+                        }
                     }
                 }
                 let buf = self.device.create_buffer(&wgpu::BufferDescriptor {
@@ -1356,9 +1467,23 @@ impl Gpu {
                     ),
                     m.mountain,
                     patch_kind(m.piece),
+                    maps.map(|mp| self.mtrl_texture(&mp.mtrl)),
                 )
             })
             .collect()
+    }
+
+    /// `mountain_mtrl` as group 3's bind group (item 4278), uploaded on
+    /// first use, under the figures' repeating sampler: stage 2 is sampled
+    /// with stage 0's sampler (`SamplerA`) at stage 0's texcoord.
+    fn mtrl_texture(&self, mips: &render::silhouette::Mips) -> wgpu::BindGroup {
+        let mut cache = self.mtrl_textures.lock().unwrap();
+        if let Some(b) = cache.as_ref() {
+            return b.clone();
+        }
+        let b = self.upload_mips_at(&mips.levels, &self.figure_sampler, &self.mtrl_layout, 2);
+        *cache = Some(b.clone());
+        b
     }
 
     /// The particles' meshes on the GPU (item 4233), each beside its
@@ -1554,6 +1679,8 @@ impl Gpu {
         let mut u: Vec<f32> = m.to_vec();
         u.extend([r[2], r[6], r[10], r[14]]);
         u.extend([DEPTH_RANGE.0, DEPTH_RANGE.1, 0.0, 0.0]);
+        let eye = camera.eye_position();
+        u.extend([eye[0], eye[1], eye[2], 1.0]);
         let bytes: Vec<u8> = u.iter().flat_map(|v| v.to_le_bytes()).collect();
         self.queue.write_buffer(&self.uniform, 0, &bytes);
         let screen: Vec<u8> = [size.0 as f32, size.1 as f32, 0.0, 0.0]
@@ -2062,8 +2189,12 @@ impl Gpu {
                 pass.draw(0..*n, 0..1);
             }
         }
-        for (b, n, t, a, mountain, kind) in patches {
+        for (b, n, t, a, mountain, kind, mtrl) in patches {
             let pipeline = match (*mountain, kind) {
+                (true, _) if mtrl.is_some() => {
+                    pass.set_bind_group(3, mtrl.as_ref(), &[]);
+                    &self.mountain_mapped
+                }
                 (true, _) => &self.mountain,
                 (_, PatchKind::Plain) => &self.patch,
                 (_, PatchKind::Lit) => &self.patch_lit,

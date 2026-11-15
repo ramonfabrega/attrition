@@ -209,6 +209,7 @@ pub fn mesh(
     }
     let mut m = crate::world::PatchMesh {
         piece: crate::world::SNOWCAP_PIECE,
+        maps: None,
         positions: Vec::new(),
         uvs: Vec::new(),
         alpha_uvs: Vec::new(),

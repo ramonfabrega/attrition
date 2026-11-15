@@ -1582,6 +1582,10 @@ pub const RUN1559B_3279_GROUND_BLEND_DRAWN: (u32, u32, [u32; 4], u32) =
 pub struct MountainArt {
     pub plain: Mips,
     pub blend: Mips,
+    /// `mountain_mtrl` (item 4278, §3.22): `BASETEX`'s `_mtrl` sibling
+    /// (`TileSet::init@0087b370`), untinted; `None` where it does not
+    /// decode.
+    pub mtrl: Option<Mips>,
     pub templates: Vec<Option<MountainTemplateArt>>,
 }
 
@@ -1652,7 +1656,14 @@ impl MountainArt {
                 })
             })
             .collect();
+        // Item 4278: `TileSet::init` names `mountain_mtrl` by cutting the
+        // base's name at its last dot and appending `_mtrl.` and the
+        // extension; no `set_tint` reaches it.
+        let mtrl = base
+            .rfind('.')
+            .and_then(|d| load_alpha(&format!("{}_mtrl{}", &base[..d], &base[d..])).ok());
         Ok(MountainArt {
+            mtrl,
             plain: load(&base)?,
             blend: load(&alpha)?,
             templates,
@@ -1736,6 +1747,9 @@ impl MountainArt {
     }
 }
 
+/// One vector a triangle corner, three a triangle.
+pub type Corners = [[f32; 3]; 3];
+
 /// **A mountain's triangles** (item 4141; §3.10): every tile of a placed
 /// range whose template reads, its two triangles as [`ground_base`]
 /// gives them, each corner in its range's template pixels (`4 · (tile −
@@ -1758,7 +1772,18 @@ impl GroundMountain {
     /// [`render::terrain::mountain_normals`]. Three a triangle, beside
     /// [`GroundMountain::tris`]. The faces' order across tiles is ours,
     /// row by row as [`ground_mountain`] lays them, not the template's.
+    #[cfg_attr(not(test), allow(dead_code))]
     pub fn normals(&self) -> Vec<[[f32; 3]; 3]> {
+        self.frame().0
+    }
+
+    /// **Each triangle corner's normal and tangent** (items 4269, 4278;
+    /// §3.22): [`GroundMountain::normals`], and on the same shared corners
+    /// and faces [`render::terrain::mountain_tangents`] with stage 0's
+    /// texcoord, a quarter a tile along x and y (`MountainRange::init`'s
+    /// `tex0` on run1559b's packet is `(x + 16) / 4`, `(y − 112) / 4`; the
+    /// steps alone enter).
+    pub fn frame(&self) -> (Vec<Corners>, Vec<Corners>) {
         use std::collections::BTreeMap;
         // [`ground_mountain`] pushes each tile's `[a, b, d]` then `[b, c,
         // d]`, so a triangle's parity names which.
@@ -1788,9 +1813,26 @@ impl GroundMountain {
             .iter()
             .map(|(k, ps)| (*k, render::terrain::mountain_normals(ps, &faces[k])))
             .collect();
-        (0..self.tris.len())
-            .map(|i| slot[i].map(|n| normals[&self.template[i]][n]))
-            .collect()
+        let per = render::terrain::UNITS_PER_TILE as f32;
+        let tangents: BTreeMap<usize, Vec<[f32; 3]>> = positions
+            .iter()
+            .map(|(k, ps)| {
+                let uvs: Vec<[f32; 2]> = ps
+                    .iter()
+                    .map(|p| [(p[0] / per).round() / 4.0, (p[1] / per).round() / 4.0])
+                    .collect();
+                (
+                    *k,
+                    render::terrain::mountain_tangents(ps, &uvs, &faces[k], &normals[k]),
+                )
+            })
+            .collect();
+        let corners = |of: &BTreeMap<usize, Vec<[f32; 3]>>| -> Vec<[[f32; 3]; 3]> {
+            (0..self.tris.len())
+                .map(|i| slot[i].map(|n| of[&self.template[i]][n]))
+                .collect()
+        };
+        (corners(&normals), corners(&tangents))
     }
 }
 
@@ -2781,6 +2823,147 @@ pub(crate) mod tests {
     /// faces' order across tiles is ours, not the template's.
     const RUN1559B_MOUNTAIN_NORMALS: [usize; 10] =
         [202, 404, 202, 238, 238, 238, 238, 220, 238, 238];
+
+    /// **The range's tangents are the packet's** (item 4278;
+    /// `docs/RENDERER.md` §3.22, "The mountain's `_mtrl` maps"), on
+    /// run1559b's packet, template 14's slot, off
+    /// `tools/render/mountain_light_packet.py --maps`: `[corners, the
+    /// model on the packet's own mesh, normals and texcoords bit for bit,
+    /// within 1e-6, ours where both meshes lay a corner's every face (as
+    /// [`RUN1559B_MOUNTAIN_NORMALS`]'s last), ours bit for bit, ours within
+    /// 1e-5]`, and the packet's `tex0` steps a quarter a tile on every
+    /// corner. Measured: the model is the packet's on all 238; ours part on
+    /// 18 corners by an ulp or two (worst 1.2e-7), the normals' 18 (the
+    /// faces' order across tiles is ours).
+    const RUN1559B_MOUNTAIN_TANGENTS: [usize; 6] = [238, 238, 238, 238, 220, 238];
+
+    #[test]
+    fn the_range_s_tangents_are_the_packet_s() {
+        let path = std::env::var_os("RON_MOUNTAIN_MAPS_RUN1559B")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                PathBuf::from(std::env::var_os("HOME").unwrap_or_default()).join(
+                    "ron-data/lab-experiments/2026-11-15-item-4278/run1559b-mountain-maps.txt",
+                )
+            });
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no mountain maps dump at {}", path.display());
+            return;
+        };
+        let Some(mut p) = probe_at(run1559b()) else {
+            return;
+        };
+        let hex = |w: &str| f32::from_bits(u32::from_str_radix(w, 16).expect("a hex word"));
+        let num = |w: &str| w.parse::<i32>().expect("a number");
+        let (mut corner, mut pos, mut nor, mut tan, mut tex, mut faces) = (
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+        );
+        let per = render::terrain::UNITS_PER_TILE as f32;
+        for l in text.lines().skip(1) {
+            let w: Vec<&str> = l.split_whitespace().collect();
+            match w[0] {
+                "slot" => assert_eq!(w[1], "14", "one slot"),
+                "v" => {
+                    let c = (num(w[1]), num(w[2]));
+                    corner.push(c);
+                    pos.push([c.0 as f32 * per, c.1 as f32 * per, hex(w[3])]);
+                    nor.push([hex(w[4]), hex(w[5]), hex(w[6])]);
+                }
+                "t" => {
+                    tan.push([hex(w[1]), hex(w[2]), hex(w[3])]);
+                    tex.push([hex(w[4]), hex(w[5])]);
+                }
+                "f" => faces.push([w[1], w[2], w[3]].map(|x| x.parse::<usize>().unwrap())),
+                _ => panic!("{}: an unread line {l:?}", path.display()),
+            }
+        }
+        let (u0, v0) = (
+            tex[0][0] - corner[0].0 as f32 / 4.0,
+            tex[0][1] - corner[0].1 as f32 / 4.0,
+        );
+        for (c, uv) in corner.iter().zip(&tex) {
+            assert_eq!(*uv, [c.0 as f32 / 4.0 + u0, c.1 as f32 / 4.0 + v0], "{c:?}");
+        }
+        let gap =
+            |a: [f32; 3], b: [f32; 3]| (0..3).map(|k| (a[k] - b[k]).abs()).fold(0.0f32, f32::max);
+        let model = render::terrain::mountain_tangents(&pos, &tex, &faces, &nor);
+        let model_bits = model
+            .iter()
+            .zip(&tan)
+            .filter(|(m, t)| m.map(f32::to_bits) == t.map(f32::to_bits))
+            .count();
+        let model_near = model
+            .iter()
+            .zip(&tan)
+            .filter(|(m, t)| gap(**m, **t) <= 1e-6)
+            .count();
+        // Ours on our tiles, where both meshes lay a corner's four tiles.
+        let mesh = p.world.terrain().clone();
+        let t = p.world.runner.terrain();
+        let tileset = crate::world::lobby_tileset(
+            &p.root,
+            &crate::world::gamelog_dir().join(crate::world::START_DUMP),
+        )
+        .expect("the lobby's tileset");
+        let art = MountainArt::untinted(&p.root, &tileset).expect("the mountains' art loads");
+        // `mountain_mtrl`, `BASETEX`'s `_mtrl` sibling, decodes.
+        let mtrl = art.mtrl.as_ref().expect("the mountain's _mtrl map decodes");
+        assert_eq!((mtrl.levels[0].width, mtrl.levels[0].height), (256, 256));
+        let range = ground_mountain(&t, &art, &mesh);
+        let tile_of = |f: &[usize; 3]| {
+            let c = f.map(|i| corner[i]);
+            (
+                c.iter().map(|q| q.0).min().unwrap(),
+                c.iter().map(|q| q.1).min().unwrap(),
+            )
+        };
+        let theirs: std::collections::BTreeSet<(i32, i32)> = faces.iter().map(tile_of).collect();
+        let ours: std::collections::BTreeSet<(i32, i32)> = range
+            .tile
+            .iter()
+            .zip(&range.template)
+            .filter(|(_, k)| **k == 14)
+            .map(|(q, _)| *q)
+            .collect();
+        let laid = |x: i32, y: i32, set: &std::collections::BTreeSet<(i32, i32)>| {
+            [(x - 1, y - 1), (x, y - 1), (x - 1, y), (x, y)].map(|q| set.contains(&q))
+        };
+        let (_, tangents) = range.frame();
+        let mut by_corner: BTreeMap<(i32, i32), [f32; 3]> = BTreeMap::new();
+        const AT: [[(i32, i32); 3]; 2] = [[(0, 0), (1, 0), (0, 1)], [(1, 0), (1, 1), (0, 1)]];
+        for (i, tg) in tangents.iter().enumerate() {
+            if range.template[i] != 14 {
+                continue;
+            }
+            let (x, y) = range.tile[i];
+            for (v, (dx, dy)) in AT[i % 2].into_iter().enumerate() {
+                by_corner.insert((x + dx, y + dy), tg[v]);
+            }
+        }
+        let (mut alike, mut bits, mut near, mut worst) = (0, 0, 0, 0.0f32);
+        for (c, tg) in corner.iter().zip(&tan) {
+            if laid(c.0, c.1, &theirs) != laid(c.0, c.1, &ours) {
+                continue;
+            }
+            alike += 1;
+            let o = by_corner[c];
+            bits += usize::from(o.map(f32::to_bits) == tg.map(f32::to_bits));
+            let d = gap(o, *tg);
+            near += usize::from(d <= 1e-5);
+            worst = worst.max(d);
+        }
+        let got = [corner.len(), model_bits, model_near, alike, bits, near];
+        println!(
+            "run1559b template 14 tangents: {} corners; the model on their mesh {model_bits} bit for bit, {model_near} within 1e-6; where both lay alike ({alike}) ours {bits} bit for bit, {near} within 1e-5, worst {worst:e}",
+            corner.len()
+        );
+        assert_eq!(got, RUN1559B_MOUNTAIN_TANGENTS);
+    }
 
     #[test]
     fn the_range_s_normals_are_the_packet_s() {

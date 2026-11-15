@@ -12,7 +12,8 @@
 // N·L + LAND_AMBIENT)` (stage 0 `MODULATE(TEXTURE, DIFFUSE)`). A vertex
 // that carries no light of its own carries a value over 1.5: the flat N·L and a
 // white vertex, item 4212's draw (the ocean floor, the coral, the
-// mountains). The `_mtrl` normal map and its specular are not drawn.
+// mountains). The `_mtrl` normal map and its specular are drawn on a
+// mountain's main pass alone (item 4278, `land_mapped`).
 fn land_diffuse() -> f32 {
     return {LAND_DIFFUSE};
 }
@@ -44,14 +45,62 @@ fn land_lit_white(c: vec3<f32>, nl_in: f32) -> vec3<f32> {
     return land_shade(c, nl);
 }
 
+// The stage colour, saturated, to the lit branch's power.
+fn land_power(c: vec3<f32>) -> vec3<f32> {
+    return pow(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({LIT_POWER}));
+}
+
+// The material ambient (1) times the scene's, `gAmbientLight`.
+fn land_ambient() -> vec3<f32> {
+    return vec3<f32>({AMBIENT_R}, {AMBIENT_G}, {AMBIENT_B});
+}
+
 // The lit branch on a stage colour already modulated by its vertex.
 fn land_shade(c: vec3<f32>, nl: f32) -> vec3<f32> {
     let ld = land_diffuse();
-    let s = pow(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({LIT_POWER}));
+    let s = land_power(c);
     let diffuse = max(ld * nl / 3.14159265, 0.0);
-    let ambient = vec3<f32>({AMBIENT_R}, {AMBIENT_G}, {AMBIENT_B});
+    let ambient = land_ambient();
     let l = land_hdr() * s * (vec3<f32>(diffuse) + ambient);
     return vec3<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z));
+}
+
+// Item 4278 (§3.22, "The mountain's `_mtrl` maps"): `ps_global.hlsl`'s lit
+// branch under `NORMAL_MAP SPEC_MAP GLOSS_MAP` without
+// `SPEC_MODEL_TORRANCE`, on a white vertex. The map's red and green are the
+// normal's x and y in [-1, 1], its z `sqrt(1 − x² − y²)` (held at 0 where
+// that is negative); normalized, it is taken through `(T, B, N)` (N the
+// interpolated normal normalized, T and B interpolated as they stand) and
+// not normalized again. N·L lights the diffuse (held at 0) and the
+// specular (not held); the specular is Blinn-Phong at `n = gloss · 512`
+// with `(n + 2)(n + 4) / (8π (2^(−n/2) + n))` and the map's blue,
+// `V = normalize(eye − p)`. `OUT.Color = max(0, color)`, then the curve.
+fn land_mapped(
+    c: vec3<f32>,
+    m: vec4<f32>,
+    n_in: vec3<f32>,
+    t: vec3<f32>,
+    b: vec3<f32>,
+    to_eye: vec3<f32>,
+) -> vec3<f32> {
+    let pi = 3.14159265;
+    let n0 = normalize(n_in);
+    let rxy = m.xy * 2.0 - vec2<f32>(1.0);
+    let rn = normalize(vec3<f32>(rxy, sqrt(max(1.0 - rxy.x * rxy.x - rxy.y * rxy.y, 0.0))));
+    let n = rn.x * t + rn.y * b + rn.z * n0;
+    let l = vec3<f32>(0.70710678, 0.0, 0.70710678);
+    let nl = dot(n, l);
+    let h = normalize(l + normalize(to_eye));
+    let nh = abs(dot(n, h));
+    let ld = land_diffuse();
+    let s = land_power(c);
+    let diffuse = max(ld * nl / pi, 0.0);
+    let ambient = land_ambient();
+    let g = m.w * 512.0;
+    let norm = ((g + 2.0) * (g + 4.0)) / (8.0 * pi * (pow(2.0, -g / 2.0) + g));
+    let spec = land_hdr() * m.z * norm * ld * pow(nh, g) * nl;
+    let lum = max(land_hdr() * s * (vec3<f32>(diffuse) + ambient) + vec3<f32>(spec), vec3<f32>(0.0));
+    return vec3<f32>(land_tone(lum.x), land_tone(lum.y), land_tone(lum.z));
 }
 
 // Item 4275 (§3.10, "The snowcap, drawn"): a land corner's vertex colour,
