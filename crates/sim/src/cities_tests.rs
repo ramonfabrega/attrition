@@ -8518,6 +8518,41 @@ fn a_decoy_s_type_change_is_no_count_of_its_leader_s() {
     );
 }
 
+/// **A type change of a population-0 unit is no count of its leader's**
+/// (item 4159, residue 11): both of `Unit::set_type@00612fa0`'s
+/// `track_unit_type` blocks sit behind the gate `Unit::close` and the birth
+/// share — the type's `control_cost` (`+0x2f0`), or, at 0, `is(0x134)` or
+/// `UnitData::is_gov_hero`. A Transport Barge (`POP` 0) is born uncounted,
+/// and the age's upgrade to a Transport Galleon moved nothing in the
+/// original; this crate took it off `num_units[270]` and put it on `[271]`,
+/// so run600's who=1 held −2 and 2 from 11282 to the close, and the score's
+/// units part read −2 as 65,534.
+///
+/// Made to fail with the adapter's `is(0x134)` answering yes again.
+#[test]
+fn a_population_0_unit_s_type_change_is_no_count_of_its_leader_s() {
+    let (mut sim, [_, militia, general, foot], _) = untargeted_sim();
+    for t in [militia, general, foot] {
+        sim.tables.unit_types[t].price.pop = 0;
+    }
+    let barge = sim.init_unit(0, foot, tile_pos(30, 30));
+    let counts = |sim: &Sim| {
+        let m = &sim.roster.muster[0];
+        (m.by_type[foot], m.by_type[militia], m.control)
+    };
+    assert_eq!(counts(&sim), (0, 0, 0), "born uncounted");
+    sim.unit_set_type(barge, militia);
+    assert_eq!(sim.units[barge].ty, Some(militia));
+    assert_eq!(counts(&sim), (0, 0, 0), "the upgrade moves no count");
+    // The control: a populated type moves one from the old to the new.
+    sim.tables.unit_types[general].price.pop = 1;
+    sim.tables.unit_types[militia].price.pop = 1;
+    let g = sim.init_unit(0, general, tile_pos(32, 30));
+    let before = sim.roster.muster[0].by_type[general];
+    sim.unit_set_type(g, militia);
+    assert_eq!(sim.roster.muster[0].by_type[general], before - 1);
+}
+
 /// **A type change to its own type re-initialises the guys** (item 3787,
 /// `docs/GOLDEN.md` §150.2): `Unit::set_type@00612fa0` has no same-type
 /// guard, so each figure's `Guy::init_real` spends its draw. The second
