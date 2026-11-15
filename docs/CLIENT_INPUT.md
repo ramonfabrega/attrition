@@ -1596,7 +1596,7 @@ In both cases `x`, `y` is the pressed point. `Options::target_spell@0071dda0` pa
 away (`dbg_pack_or_unpack`). Otherwise it calls `GroupOut::validate_spell`, then
 `CommandManager::issue_spell@00941b80`: the selection's `group` and command `0x17`, `spell(ox, whom, t, x, y)`.
 
-**The right press.** `Console::execute_at_cursor@007c6630` calls `GroupOut::issue_spell@00709590` with the point
+**The right press.** `Console::execute_at_cursor@007c6630` calls `GroupOut::issue_spell` with the point
 (0, 0) on a target: a Scout-line selection's Counterintelligence on an enemy Spy or its own infiltrated object, and
 the other crafts beside it. It is not minted here.
 
