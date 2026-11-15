@@ -169,6 +169,18 @@ pub struct UnitScene {
     /// row order. What `UnitOut::make_options` puts on row 1 is read only
     /// as far as this; the button's own gates are `Options::do_spell`'s.
     pub crafts: Vec<Craft>,
+    /// **The slots it takes in a garrison**, as `GroupData::test_garrison
+    /// @0070b320` counts them before it issues one (item 4273,
+    /// `docs/CLIENT_INPUT.md` §23): a decoy (`unit_masks & 1`) none,
+    /// anything else its type's `control_cost` (`+0x2f0`). A read only.
+    pub garrison_cost: i32,
+    /// **The buildings of its owner's it may enter**, by `o`: every one
+    /// with a garrison limit ([`BuildingScene::garrison_limit`] above 0)
+    /// whose type `UnitTypeData::can_garrison@0061d7d0` admits its own
+    /// ([`Sim::can_garrison`]), the type half of `UnitData::can_garrison
+    /// @006099a0`; the finished half is the building's
+    /// [`BuildingScene::active`] (item 4273). A read only.
+    pub enters: Vec<i16>,
     /// Its figures, one per guy.
     pub figures: Vec<FigureScene>,
 }
@@ -292,6 +304,14 @@ pub struct BuildingScene {
     /// it opens the city's name for editing (item 4268,
     /// `docs/CLIENT_INPUT.md` §21). A read only.
     pub in_city: bool,
+    /// **`BuildTypeData::get_garrison_limit`** of it ([`Sim::garrison_limit`])
+    /// and **`ObjectData::num_inside(0)`** ([`Sim::num_inside`]): the room
+    /// `GroupData::test_garrison@0070b320` compares a unit's slots against,
+    /// and the limit `Options::picked_spot@00721c40`'s `OPTION_GARRISON`
+    /// arm asks to be nonzero (item 4273, `docs/CLIENT_INPUT.md` §23). A
+    /// read only.
+    pub garrison_limit: i32,
+    pub inside: i32,
 }
 
 /// A farm's `FarmStruct`, as `FarmsOut::draw@008d75f0` reads it
@@ -501,6 +521,24 @@ impl Sim {
                             })
                         })
                         .collect(),
+                    garrison_cost: if u.decoy {
+                        0
+                    } else {
+                        u.ty.map_or(1, |t| self.tables.unit_types[t].price.pop)
+                    },
+                    enters: u.ty.map_or_else(Vec::new, |ut| {
+                        self.buildings
+                            .iter()
+                            .enumerate()
+                            .filter(|(b, bd)| {
+                                bd.alive
+                                    && bd.owner == u.owner
+                                    && bd.ty.is_some_and(|bt| self.can_garrison(ut, bt))
+                                    && self.garrison_limit(*b) > 0
+                            })
+                            .map(|(_, bd)| bd.index)
+                            .collect()
+                    }),
                     figures: u
                         .guys
                         .iter()
@@ -584,6 +622,8 @@ impl Sim {
                 uid: b.uid,
                 queued: b.queue.items.len(),
                 in_city: b.city.is_some(),
+                garrison_limit: self.garrison_limit(i),
+                inside: self.num_inside(i),
             })
             .collect();
         let projectiles = self

@@ -107,6 +107,7 @@ pub const MINTS: &[&str] = &[
     "unqueue",
     "rename_city",
     "hotkey",
+    "garrison",
 ];
 
 /// **A player's hot-key slots**: `Console::on_key_down@007cc210` numbers a
@@ -219,6 +220,12 @@ pub enum Event {
     /// `hotkey(who × 18 + key, 0, 0, −1.0, −1.0, 0)`. Ours: with none, the
     /// original's screen group (the camera's floats) is not sent.
     Hotkey(u8),
+    /// A press on a unit's garrison button (`OPTION_GARRISON`,
+    /// `Options::exec@007188c0`'s `Options::do_garrison@0071d6b0`; item
+    /// 4273, `docs/CLIENT_INPUT.md` §23): with a selection of units it
+    /// sets `selecting_spot`, and the next left press, the pick, names the
+    /// building. The HUD's alone.
+    Garrison,
 }
 
 /// `spell(type, ox, whom, x, y)`, as `CommandManager::issue_spell@00941b80`
@@ -283,6 +290,41 @@ pub fn renames(scene: &Scene, player: u8, selection: &[ObjId]) -> Option<i16> {
         .iter()
         .find(|b| b.id == *id && b.owner == player && b.active && b.in_city)
         .map(|b| b.id.o)
+}
+
+/// **What a garrison pick issues** (item 4273, `docs/CLIENT_INPUT.md`
+/// §23), on the building `b` it found: `Options::picked_spot@00721c40`'s
+/// `OPTION_GARRISON` arm asks for a garrison limit
+/// (`BuildTypeData::get_garrison_limit`, nonzero), then
+/// `GroupData::test_garrison@0070b320`: a selection of units, not empty;
+/// the first member on the map that `UnitData::can_garrison@006099a0`
+/// admits (the building finished, `+0x4c`, and its type admitting the
+/// member's, [`sim::observe::UnitScene::enters`]) decides, by whether
+/// its slots fit (`num_inside + slots <= limit`). Then
+/// `GroupOut::issue_garrison@0070a9b0(ox, whom, QUEUE_NEW)`. Ours: the
+/// arm's second form, for a selection holding type `0x136`, is not read;
+/// a building of an ally is not named, since the scene names no alliance.
+pub fn garrisons(
+    scene: &Scene,
+    player: u8,
+    selection: &[ObjId],
+    b: &sim::observe::BuildingScene,
+) -> Option<Command> {
+    if b.garrison_limit == 0 || selection.is_empty() {
+        return None;
+    }
+    let first = selection.iter().find_map(|id| {
+        let u = scene
+            .units
+            .iter()
+            .find(|u| u.id == *id && u.owner == player)?;
+        (b.active && b.owner == u.owner && u.enters.contains(&b.id.o)).then_some(u)
+    })?;
+    (b.inside + first.garrison_cost <= b.garrison_limit).then_some(Command::Garrison {
+        ox: i32::from(b.id.o),
+        whom: i32::from(b.id.who),
+        queued: QUEUE_NEW,
+    })
 }
 
 /// **The `rename_city` a closed popup sends** (item 4268): `on_modal_end`'s
@@ -650,6 +692,24 @@ impl View<'_> {
         friend.map(|(_, id)| Hit::Friend(id))
     }
 
+    /// The building of `who`'s a pick at `(px, py)` names, as
+    /// `Options::picked_spot@00721c40`'s `OPTION_GARRISON` arm looks
+    /// (`find_target(SEARCH_ALLIED, buildings)`): the nearest anchor within
+    /// [`PICK_RADIUS`], as [`View::target`]'s own look takes it (item 4273).
+    pub fn own_building(&self, who: u8, px: i32, py: i32) -> Option<&sim::observe::BuildingScene> {
+        self.scene
+            .buildings
+            .iter()
+            .filter(|b| b.id.who == who)
+            .filter_map(|b| {
+                let (ax, ay) = self.pixel(b.pos.x, b.pos.y, b.z);
+                let d = i64::from(ax - px).pow(2) + i64::from(ay - py).pow(2);
+                (d <= i64::from(PICK_RADIUS).pow(2)).then_some((d, b))
+            })
+            .min_by_key(|&(d, b)| (d, b.id))
+            .map(|(_, b)| b)
+    }
+
     /// `GroupData::count(COUNT_GATHER_POINT)` of a building selection, as
     /// far as nonzero, on its training arm alone: whether a selected
     /// building trains ([`sim::observe::BuildingScene::trains`]; item 4249,
@@ -819,6 +879,10 @@ pub struct Input {
     /// The city building whose name the entry line edits, while the
     /// rename popup is open (item 4268); `None` while the line is chat's.
     pub renaming: Option<i16>,
+    /// Whether the garrison button was pressed and the next left press
+    /// picks the building (`Options::selecting_spot` with
+    /// `OPTION_GARRISON`, item 4273).
+    pub garrisoning: bool,
 }
 
 /// **The last group sent** (item 4267, `docs/CLIENT_INPUT.md` §20):
@@ -1140,6 +1204,17 @@ impl Input {
                 let cmds = unqueues(view.scene, self.player, &self.selection, slot)?;
                 Some((frame, play, cmds))
             }
+            Event::Garrison => {
+                // `do_garrison`: a selection that can act and is not of
+                // buildings sets `selecting_spot`.
+                if self.building || self.selection.is_empty() {
+                    return None;
+                }
+                self.placing = None;
+                self.casting = None;
+                self.garrisoning = true;
+                None
+            }
             Event::Spell(t) => {
                 // `do_spell`: a selection that can act, holding a caster of
                 // the craft; an untargeted one is `target_spell(t, −1, −1,
@@ -1150,6 +1225,7 @@ impl Input {
                 let craft = selection_craft(view.scene, &self.selection, t)?;
                 if craft.targeted {
                     self.placing = None;
+                    self.garrisoning = false;
                     self.casting = Some(t);
                     return None;
                 }
@@ -1172,6 +1248,15 @@ impl Input {
                 None
             }
             Event::Press { x, y } => {
+                if self.garrisoning {
+                    // `picked_spot`'s `OPTION_GARRISON` arm: no building
+                    // under the pick returns before `reset`, and the pick
+                    // stands; any other spends it.
+                    let b = view.own_building(self.player, x, y)?;
+                    self.garrisoning = false;
+                    let cmd = garrisons(view.scene, self.player, &self.selection, b)?;
+                    return Some((frame, play, vec![self.group(view.scene), cmd]));
+                }
                 if let Some(t) = self.casting.take() {
                     // `picked_spot`'s `OPTION_SPELL` arm: `reset`, then a
                     // ground craft (`& 8`) at the point, else the object
@@ -1226,6 +1311,7 @@ impl Input {
             }
             Event::RightPress { x, y } => {
                 self.casting = None;
+                self.garrisoning = false;
                 if self.selection.is_empty() {
                     return None;
                 }
@@ -1292,6 +1378,7 @@ impl Input {
                     Some((frame, play, vec![self.group(view.scene), cmd]))
                 } else {
                     let &(_, ty) = BUILD_KEYS.iter().find(|(c, _)| *c == k)?;
+                    self.garrisoning = false;
                     self.placing = Some(ty);
                     None
                 }
@@ -3991,6 +4078,8 @@ pub(crate) mod tests {
             seen: true,
             attacks: true,
             crafts: vec![],
+            garrison_cost: 1,
+            enters: vec![],
             figures: vec![],
         }
     }
@@ -4321,6 +4410,341 @@ pub(crate) mod tests {
     /// before it included, of all of them. Seen red pinned (0, 0).
     const INPUT_HOTKEYS: (usize, usize) = (8, 8);
 
+    /// **Stage 0 of the garrisoned script** (item 4273,
+    /// `docs/CLIENT_INPUT.md` §23): on [`script::GARRISON_FRAME`] the
+    /// Citizen [`script::GARRISON_CITIZEN`]'s anchor and the capital's, at
+    /// the opening camera.
+    const GARRISON_ANCHORS: [AttackAnchor; 2] = [
+        (
+            script::GARRISON_FRAME,
+            (0, script::GARRISON_CITIZEN),
+            (1369, 468),
+        ),
+        (script::GARRISON_FRAME, (0, script::CAPITAL), (1127, 521)),
+    ];
+
+    /// **The garrison button** (item 4273): the centre of
+    /// [`crate::hud::garrison_button`] under [`HUD_SIZE`] with the Citizen
+    /// selected.
+    const GARRISON_AT: (i32, i32) = (1822, 1010);
+
+    /// The hot-keyed events and the garrison's three, on
+    /// [`script::GARRISON_FRAME`]: a press on the Citizen, a press on the
+    /// garrison button, and the pick on the capital.
+    fn garrison_events() -> Vec<Scripted> {
+        let mut e = hotkey_events();
+        let (f, _, (ux, uy)) = GARRISON_ANCHORS[0];
+        let (_, _, (cx, cy)) = GARRISON_ANCHORS[1];
+        let (gx, gy) = GARRISON_AT;
+        e.extend([
+            (f, None, Event::Press { x: ux, y: uy }),
+            (f, None, Event::Press { x: gx, y: gy }),
+            (f, None, Event::Press { x: cx, y: cy }),
+        ]);
+        e
+    }
+
+    /// **`INPUT_GARRISONED`** (item 4273, `docs/CLIENT_INPUT.md` §23): the
+    /// hot-keyed events and the garrison's, through the HUD and the layer
+    /// under the opening camera, mint [`script::garrisoned`] field for
+    /// field, of 25.
+    const INPUT_GARRISONED: usize = 25;
+
+    /// **The garrisoned count**: stage 0 on the garrison's frame — the
+    /// Citizen is slot 0's, on the map, and admitted into the capital,
+    /// which is finished with room; both anchors and the button stand where
+    /// the events press; then the events mint the garrisoned script, and
+    /// the file written from them is the garrisoned file.
+    #[test]
+    fn minted_garrisoned_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let hotkeyed = script::hotkeyed();
+        let c = camera(None);
+        let mut next = 0;
+        while r.frame() < i64::from(script::GARRISON_FRAME) {
+            let f = r.frame() as i32;
+            while next < hotkeyed.len() && hotkeyed[next].0 == f {
+                r.issue(&hotkeyed[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+            let v = view(&c, &scene, &terrain);
+            let uid = ObjId {
+                who: 0,
+                o: script::GARRISON_CITIZEN,
+            };
+            let cid = ObjId {
+                who: 0,
+                o: script::CAPITAL,
+            };
+            let u = scene.units.iter().find(|u| u.id == uid).unwrap();
+            let b = scene.buildings.iter().find(|b| b.id == cid).unwrap();
+            let mut input = Input::new(0);
+            input.selection = vec![uid];
+            let at = crate::hud::garrison_button(&input, &scene, HUD_SIZE).map(|r| r.centre());
+            println!(
+                "GARRISON STAGE0 f{} citizen ti {} pixel {:?} cost {} enters {:?} capital pixel {:?} active {} limit {} inside {} button {at:?}",
+                r.frame(),
+                u.type_index,
+                v.pixel(u.pos.x, u.pos.y, u.z),
+                u.garrison_cost,
+                u.enters,
+                v.pixel(b.pos.x, b.pos.y, b.z),
+                b.active,
+                b.garrison_limit,
+                b.inside
+            );
+            assert_eq!(u.type_index, script::CITIZEN);
+            assert_eq!(v.pixel(u.pos.x, u.pos.y, u.z), GARRISON_ANCHORS[0].2);
+            assert_eq!(v.pixel(b.pos.x, b.pos.y, b.z), GARRISON_ANCHORS[1].2);
+            assert!(u.enters.contains(&script::CAPITAL));
+            assert!(b.active && b.inside + u.garrison_cost <= b.garrison_limit);
+            assert_eq!(at, Some(GARRISON_AT));
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with(garrison_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let garrisoned = script::garrisoned();
+        let whole = ours.iter().zip(&garrisoned).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (garrisoned.len(), INPUT_GARRISONED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, garrisoned);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(hotkeyed), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(HOTKEYED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(GARRISONED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {HOTKEYED_RCX} or {GARRISONED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), GARRISONED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the garrisoned orders");
+        assert!(written != hotkeyed, "not the hot-keyed file");
+    }
+
+    /// The garrisoned file (`docs/CLIENT_INPUT.md` §23), written by
+    /// rondata's `the_garrisoned_minted_packages_round_trip` under
+    /// `RON_RCX_OUT`; the file run1613 takes open.
+    const GARRISONED_RCX: &str = "ron-golden/recordings/item4273-garrisoned-greatlakes-24000.rcx";
+    const GARRISONED_RCX_BYTES: usize = 59_620;
+
+    /// **`INPUT_GARRISONS`** (item 4273): of the garrisons the recordings
+    /// on disk carry, those the garrison button and a pick on the building
+    /// the order names mint field for field, the package's orders whole,
+    /// from the package's selection (an empty `group` the slot's last full
+    /// one, `add_group`'s repeat), each unit admitted and the building
+    /// finished with room. Seen red pinned (0, 0).
+    const INPUT_GARRISONS: (usize, usize) = (6, 6);
+
+    /// A building for the garrison tests: the lobby's capital record as
+    /// `who`'s `o`, finished, with `limit` and `inside`.
+    fn garrison_building(who: u8, o: i16, limit: i32, inside: i32) -> sim::observe::BuildingScene {
+        let mut b = city_building(who, o);
+        (b.active, b.garrison_limit, b.inside) = (true, limit, inside);
+        b
+    }
+
+    /// A unit of `who`'s admitted into `enters`.
+    fn garrison_unit(who: u8, o: i16, enters: &[i16]) -> sim::observe::UnitScene {
+        sim::observe::UnitScene {
+            enters: enters.to_vec(),
+            ..unit(who, o, script::CITIZEN, 0, 0, 0)
+        }
+    }
+
+    /// **Every recorded garrison** (item 4273): each package carrying a
+    /// `garrison` is minted from its selection, the button and a pick on
+    /// the building's anchor.
+    #[test]
+    fn minted_garrisons_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let mut last = LastSent::new();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let (who, objects, before) = behind(&last, p.play, &kept);
+                note_sent(&mut last, p.play, &kept);
+                let Some(&Command::Garrison { ox, whom, .. }) =
+                    kept.iter().find(|c| matches!(c, Command::Garrison { .. }))
+                else {
+                    continue;
+                };
+                all += 1;
+                let o = ox as i16;
+                let b = garrison_building(whom as u8, o, 10, 0);
+                let scene = Scene {
+                    units: objects
+                        .iter()
+                        .map(|&u| garrison_unit(who, u, &[o]))
+                        .collect(),
+                    buildings: vec![b],
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who);
+                input.selection = objects.iter().map(|&u| ObjId { who, o: u }).collect();
+                input.sent = sent_for(&before, &scene);
+                let (bx, by) = v.pixel(b.pos.x, b.pos.y, b.z);
+                assert_eq!(input.event(p.frame, Event::Garrison, &v), None);
+                let got = input.event(p.frame, Event::Press { x: bx, y: by }, &v);
+                // The other orders the package carries (a camera) are not
+                // the layer's: what is compared is its kept orders.
+                let mine: Vec<Command> = kept
+                    .iter()
+                    .filter(|c| !matches!(c, Command::Camera { .. }))
+                    .cloned()
+                    .collect();
+                if got.as_ref().map(|o| &o.2) == Some(&mine) {
+                    whole += 1;
+                } else {
+                    println!("GARRISON PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("GARRISONS {whole} of {all}");
+        assert_eq!((whole, all), INPUT_GARRISONS);
+    }
+
+    /// **The garrison's edges** (item 4273): the button only for a unit
+    /// selection with a member admitted somewhere; no pick without a unit
+    /// selection; a pick on no building keeps the pick; a building with no
+    /// limit, an unfinished one, a full one or one that admits no member
+    /// spends it and mints nothing; the first admitted member's slots
+    /// decide; a right press drops the pick.
+    #[test]
+    fn minted_garrison_edges() {
+        if lobby().is_err() {
+            println!("skipping: no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let mint = |scene: &Scene, ids: &[i16], at_building: bool| {
+            let v = view(&c, scene, &terrain);
+            let mut input = Input::new(0);
+            input.selection = ids.iter().map(|&o| ObjId { who: 0, o }).collect();
+            input.event(9, Event::Garrison, &v);
+            let armed = input.garrisoning;
+            let (x, y) = if at_building {
+                let b = &scene.buildings[0];
+                v.pixel(b.pos.x, b.pos.y, b.z)
+            } else {
+                (-500, -500)
+            };
+            let got = input.event(9, Event::Press { x, y }, &v).map(|o| o.2);
+            (armed, got, input.garrisoning)
+        };
+        let scene = |units: Vec<sim::observe::UnitScene>, b: sim::observe::BuildingScene| Scene {
+            units,
+            buildings: vec![b],
+            ..Scene::default()
+        };
+        let garrison = Command::Garrison {
+            ox: 2000,
+            whom: 0,
+            queued: QUEUE_NEW,
+        };
+        let group = |objects: Vec<i16>| Command::Group { who: 0, objects };
+        let ok = scene(
+            vec![garrison_unit(0, 5, &[2000])],
+            garrison_building(0, 2000, 10, 0),
+        );
+        assert_eq!(
+            mint(&ok, &[5], true),
+            (true, Some(vec![group(vec![5]), garrison.clone()]), false)
+        );
+        // The button.
+        let mut input = Input::new(0);
+        input.selection = vec![ObjId { who: 0, o: 5 }];
+        assert_eq!(
+            crate::hud::garrison_button(&input, &ok, HUD_SIZE).map(|r| r.centre()),
+            Some(GARRISON_AT)
+        );
+        let none = scene(
+            vec![garrison_unit(0, 5, &[])],
+            garrison_building(0, 2000, 10, 0),
+        );
+        assert_eq!(crate::hud::garrison_button(&input, &none, HUD_SIZE), None);
+        input.selection = vec![ObjId { who: 0, o: 2000 }];
+        input.building = true;
+        assert_eq!(crate::hud::garrison_button(&input, &ok, HUD_SIZE), None);
+        let v = view(&c, &ok, &terrain);
+        assert_eq!(input.event(9, Event::Garrison, &v), None);
+        assert!(!input.garrisoning, "a building selection takes no pick");
+        assert_eq!(Input::new(0).event(9, Event::Garrison, &v), None);
+        // A pick on no building keeps the pick.
+        assert_eq!(mint(&ok, &[5], false), (true, None, true));
+        // No limit, unfinished, full, not admitted: spent, nothing.
+        let mut unfinished = garrison_building(0, 2000, 10, 0);
+        unfinished.active = false;
+        for s in [
+            scene(
+                vec![garrison_unit(0, 5, &[2000])],
+                garrison_building(0, 2000, 0, 0),
+            ),
+            scene(vec![garrison_unit(0, 5, &[2000])], unfinished),
+            scene(
+                vec![garrison_unit(0, 5, &[2000])],
+                garrison_building(0, 2000, 10, 10),
+            ),
+            none.clone(),
+        ] {
+            assert_eq!(mint(&s, &[5], true), (true, None, false));
+        }
+        // The first admitted member decides: 4 is not admitted, 5 costs 3
+        // into a building with two slots left.
+        let mut costly = garrison_unit(0, 5, &[2000]);
+        costly.garrison_cost = 3;
+        let two_left = scene(
+            vec![
+                garrison_unit(0, 4, &[]),
+                costly,
+                garrison_unit(0, 6, &[2000]),
+            ],
+            garrison_building(0, 2000, 10, 8),
+        );
+        assert_eq!(mint(&two_left, &[4, 5, 6], true), (true, None, false));
+        assert_eq!(
+            mint(&two_left, &[4, 6, 5], true),
+            (true, Some(vec![group(vec![4, 6, 5]), garrison]), false)
+        );
+        // A right press drops the pick.
+        let v = view(&c, &ok, &terrain);
+        let mut input = Input::new(0);
+        input.selection = vec![ObjId { who: 0, o: 5 }];
+        input.event(9, Event::Garrison, &v);
+        assert!(input.garrisoning);
+        input.event(9, Event::RightPress { x: -500, y: -500 }, &v);
+        assert!(!input.garrisoning);
+    }
+
     /// **Every recorded hot key** (item 4270): each package carrying a
     /// `hotkey` is minted from a fresh layer whose selection is the
     /// package's group, and ctrl with the key.
@@ -4565,14 +4989,13 @@ pub(crate) mod tests {
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (18, 26);
+    const INPUT_KINDS: (usize, usize) = (19, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2354, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2360, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
     const NOT_MINTED: &[&str] = &[
         "leader_options",
-        "garrison",
         "buildmask",
         "cheat_ai_toggle",
         "come_out",
