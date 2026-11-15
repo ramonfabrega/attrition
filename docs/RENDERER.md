@@ -3578,6 +3578,54 @@ card's states for draws 163 to 169. On the photograph alone: the rows. *Not esta
 - the culling to visible cells, which moves only an overlap's order;
 - the photograph's lake-wide whitecaps (§3.24).
 
+## 3.28 The city's buildings against the photograph's colour (item 4245)
+
+**The first act, and its stop.** The pass saw run1559b's city grey and cold where the photograph's is lit
+sandstone, and booked `RUN1559B_3279_COLOUR_STILL` (17 of 33) and `RUN1559B_3279_LUMA` (20 of 33) as the score.
+Both rows score the same 33 objects: 31 figures and the two buildings' sprites. **The sixteen that part on
+the still are all figures. Both buildings pass**, so neither row moves for a change to the buildings. That is
+the item's stop condition, and it stops there. `Colours::rgb_means` (new) gives each object's mean colour over
+its held pixels, ours then the photograph's, and `the_rows_on_the_client_s_still` prints it:
+
+| object | piece | ours (r, g, b) Y | the photograph's (r, g, b) Y |
+|---|---|---|---|
+| 0/2000, building | 57144 | (104, 93, 75) 94.2 | (115, 102, 66) 101.9 — in, 23,196 of 36,670 agree |
+| 0/2001, building | 56503 | (96, 88, 75) 89.0 | (109, 99, 62) 97.8 — in, 2,694 of 4,610 agree |
+| 0/5 | 10912 | (113, 44, 34) 63.4 | (97, 46, 30) 59.5 |
+| 0/9 | 10912 | (155, 46, 43) 78.2 | (182, 53, 37) 89.5 |
+| 0/6 | 4576 | (148, 76, 57) 95.4 | (135, 76, 42) 90.1 |
+| 0/7 | 10912 | (154, 40, 38) 74.1 | (130, 39, 29) 65.6 |
+| 0/0 | 377 | (91, 62, 42) 68.8 | (65, 58, 28) 57.0 |
+| 1/26, the general | 13680 | (129, 98, 69) 104.5 | (171, 159, 112) 157.4 |
+| 1/23 | 60 | (81, 80, 76) 80.0 | (72, 79, 58) 74.4 |
+| 1/32 | 60 | (100, 94, 82) 94.5 | (71, 77, 58) 73.1 |
+| 1/40, a tank | 196 | (71, 71, 37) 67.1 | (124, 111, 56) 109.1 |
+| 1/38 | 60 | (84, 85, 80) 84.3 | (139, 119, 76) 120.2 — 36 held |
+| 1/34 | 60 | (84, 83, 79) 82.7 | (71, 76, 59) 72.5 |
+| 1/22 | 60 | (86, 85, 80) 84.9 | (76, 86, 64) 80.7 |
+| 1/37 | 60 | (51, 52, 43) 50.9 | (63, 64, 38) 61.0 |
+| 1/33 | 60 | (77, 76, 72) 76.0 | (69, 74, 58) 71.1 |
+| 1/15, a tank | 196 | (75, 74, 40) 70.9 | (73, 80, 33) 72.8 |
+| 1/16, a tank | 196 | (79, 79, 43) 75.0 | (136, 118, 60) 116.9 |
+
+What most of the sixteen share is a blue the photograph lacks. Player 1's parted figures on piece 60 read
+near-neutral, b ≈ r − 5 (1/32 r − 18), where the photograph's read b ≈ r − 11 to r − 14. Player 0's read
+redder than theirs in four of five. Two tanks (1/40, 1/16) and the general read 0.57 to 0.66 of the photograph's luminance.
+
+**What the eye sees on the buildings** (`~/ron-data/lab-experiments/2026-11-15-item-4245/pair-buildings.png`)
+is the same direction as the riflemen's. Ours are paler and greyer, theirs warmer: on 0/2000, the blue channel
+is 0.72 of the red in ours and 0.57 in theirs, and the luminance 0.92 of theirs. The colour reader's 0.05 in
+chromaticity holds that shift for most of a building's pixels, so no row counts it (4245a).
+
+**Not the photograph's softness.** FXAA (4168b) blends across an edge. A building's mean is taken over 38,779
+held pixels, mostly interior, and a shift in the blue channel throughout is not an edge's. *Not established
+by a measurement:* an interior-only mean, eroded from the footprint, was not taken.
+
+*Coverage.* Diff-backed: none (a photograph row). On the photograph alone: the table. *Not established:*
+- whether the cold cast is the frame's (the white, the tone map, §3.21 and §3.25), which the ground's agreement
+  argues against (item 4212), or the sprites' and figures' own light;
+- a row that counts a building's warmth (4245a).
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
