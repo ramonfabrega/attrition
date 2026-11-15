@@ -37734,3 +37734,29 @@ SHA-256 `e8c39cc4c9ab77671fe66ce9f5c7836d4482596c95c85b0f79acc9f5974b1bea`; `ron
 SHA-256 `3e508d5c9bb2c684ff63b5cc180a6a48242fc325558848e8f9fbde9eba2737da`.
 
 **What it holds**: the unqueued game's window with the leaders' buckets on every frame; a production cancel played.
+
+## run1612 — run1559b's take with `early_autumn`'s tint zeroed: does the card sample the tinted mountain? (2026-11-15, item 4272, `att-4272`)
+
+`docs/RENDERER.md` §3.22, "The mountain's tint (item 4272)". **What the disk could not answer**: item 4271 found the
+original tints the mountain's textures in memory, but the device's GPU copy lies behind d3dgl and DXVK (parked
+4271a). The line is run1559b's with one addition, the take's `Data/tilesets.xml` read from a copy whose
+`early_autumn` `<LIGHTING>` reads `tint_red="0" tint_green="0" tint_blue="0"` (from 18, 18, 0; one line differs):
+`--data-override Data/tilesets.xml=~/ron-data/lab-experiments/2026-11-15-item-4272/tilesets.xml` (SHA-256
+`8e4f29268815bfd5591082477257d2dd672bc24f64dc4296de60d2fe723bfb24`; new in `unattended_capture.py` with this item:
+the run directory's `Data` link unfolds into links and only the leaf is the copy, so the install is never written).
+The receipt's `staged.data_overrides` names it. `poolshot.py ~/ron-golden/run1612 3294 --map 14` ran beside it.
+- Pool lane 1, launched 10:45:32. The paused take ended as run1559b's did: `ValueError: extra lifecycle or fault
+  records` from `autostart_receipt.py`; settings restored, the lane free afterwards. 183 GB free before it and
+  178 GB after. Not filed.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1612/map-14/frame-snapshot.bin`, 914,108,772 bytes,
+SHA-256 `7383961f2d33ceedb7959b4bdd83a2848929a877606172c63f1e7267d86ea27f`.
+
+Photograph `~/ron-data/lab-experiments/2026-11-15-item-4272/run1612-3294.png`: window 19675, 1920×1080, the
+gamelog at 3295. SHA-256 `48e89db8eba3dfa30d0a181a0c9750946e8c999861459a4ddb192adcdbc0e21b`.
+
+**What it holds**: run1559b's scene with the camera 167.5 px left of its photograph (best registration (−0.5,
++167.5), a mean absolute grey difference of 8.7 over the mountain's window). The mountain's grey pixels (44,488)
+move (−9.9, −12.5, +2.3), Y 147.9 → 137.9; the crest and the left slope move the same. So the tint reaches the card.
+The packet was taken and not read: the photograph answered the question.

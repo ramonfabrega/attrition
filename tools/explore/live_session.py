@@ -170,6 +170,31 @@ def restore(output):
     print('Restored backed-up settings; capture outputs retained:', output)
 
 
+def override_file(output, install, rel, replacement):
+    """Swap `output/rel` (a path the run directory links from `install`) for a
+    copy of `replacement`; every directory on the way is unfolded into a real
+    directory of links, so siblings still read the install's own files."""
+    parts = Path(rel).parts
+    if not parts or Path(rel).is_absolute() or '..' in parts:
+        raise ValueError(f'--data-override takes a path inside the install, not {rel!r}')
+    if not (install / rel).is_file():
+        raise ValueError(f'--data-override: the install has no file {rel}')
+    if not replacement.is_file():
+        raise ValueError(f'--data-override: no such replacement file {replacement}')
+    here, source = output, install
+    for part in parts[:-1]:
+        here, source = here / part, source / part
+        if here.is_symlink():
+            here.unlink()
+            here.mkdir()
+            for child in source.iterdir():
+                (here / child.name).symlink_to(child, target_is_directory=child.is_dir())
+    leaf = here / parts[-1]
+    if leaf.is_symlink() or leaf.exists():
+        leaf.unlink()
+    shutil.copy2(replacement, leaf)
+
+
 def stage(args):
     install, output, profile = args.install.resolve(), args.output.resolve(), args.profile.resolve()
     end = getattr(args, 'end_frame', 36)
@@ -267,6 +292,12 @@ def stage(args):
             elif source.suffix.lower() != '.log':
                 target.symlink_to(source, target_is_directory=source.is_dir())
         (output / 'Logs').mkdir()
+        # Item 4272: one install file swapped for a copy outside the install,
+        # for this take alone. The run directory links the install's top-level
+        # entries, so each directory on the path becomes a real one of links
+        # and only the leaf is the override; the install is never written.
+        for rel, replacement in getattr(args, 'data_overrides', None) or ():
+            override_file(output, install, rel, Path(replacement))
         # The proxies log every call in the window, so a probe that only needs
         # a few frames says so rather than paying for the whole run.
         cw = f'{callwin[0]}-{callwin[1]}' if callwin else f'0-{end}'

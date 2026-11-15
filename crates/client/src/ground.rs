@@ -982,9 +982,11 @@ pub const RUN1559B_3279_GROUND: (usize, usize) = (1097, 1109);
 /// light — tile (6, 144), theirs (104, 100, 56), the painter's (116, 97,
 /// 65), the still's (22, 18, 6). Item 4199: **1,097 → 1,104**, the roads
 /// drawn (`crate::roads`, §3.19): seven plain tiles under the capital's
-/// ring cross up, the asphalt's mean where grass stood.
+/// ring cross up, the asphalt's mean where grass stood. Item 4272:
+/// **1,104 → 1,105**, the template alphas untinted (§3.22): tile (12,
+/// 141) under a mountain, theirs (104, 101, 82), comes into the reader.
 #[cfg(test)]
-pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1104, 1109);
+pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1105, 1109);
 
 /// **`RUN1564_3279_SURF`** (item 4225; `docs/RENDERER.md` §3.18, "The
 /// surf, off the packet"): `SANDY` and `OCEAN` `[agree, scored]` on the
@@ -1006,7 +1008,8 @@ pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1104, 1109);
 /// 122, 163), the still's (18, 110, 159) → (27, 115, 163)), `OCEAN`
 /// unmoved by the surf.
 /// Item 4269: `SANDY` 701 → 700: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
-pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[700, 772], [422, 437]];
+/// Item 4272: `SANDY` 700 → 702: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[702, 772], [422, 437]];
 
 /// **`RUN1564_3279_SURF_DRAWN`** (item 4239; `docs/RENDERER.md` §3.27):
 /// `SANDY` and `OCEAN` `[agree, scored]` on run1564's still with the
@@ -1111,12 +1114,13 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4239: run1564 **1,805 → 1,851** (`SANDY` 681 → 727), the surf drawn (§3.27); run1559b unchanged.
 /// Item 4241: run1559b **1,038 → 1,031** (plain 956 → 954, under a mountain 66 → 61), on 4239's tree run1564 1,851 → 1,852 (`SANDY` 727 → 728): the bloom drawn and a plume's pixel clamped after the white (§3.25).
 /// Item 4269: run1559b **1,031 → 1,040** (under a mountain **61 → 70** of 106): the range lit by its own normals (`docs/RENDERER.md` §3.22); the body ours Y 160.0 → 158.3 against theirs 137.3; run1564 unchanged.
+/// Item 4272: run1559b **1,040 → 1,059** (under a mountain **70 → 92** of 106, plain 954 → 951): the template alphas untinted, the tint laid once through `ADDSIGNED` as `MountainRange::init` loads them (§3.22; run1612 against run1559b); the body ours Y 158.3 → 146.4 against theirs 137.3; run1564 unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1040, 1109),
+        (1059, 1109),
         [
-            [954, 986],
-            [70, 106],
+            [951, 986],
+            [92, 106],
             [16, 17],
             [0, 0],
             [0, 0],
@@ -1156,7 +1160,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// side still leads by three tiles on run1564 (4227a stands).
 /// Item 4239: run1564's 1,709 → 1,754, the surf drawn (§3.27), against
 /// the drawn row's 1,786: **the drawn side leads on run1564 by 32**.
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(992, 1109), (1754, 1920)];
+/// Item 4272: run1559b's 992 → 993, the template alphas untinted (§3.22).
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(993, 1109), (1754, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1450,14 +1455,15 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 #[cfg(test)]
 /// Item 4241: `SANDY` 326 → 329, and on 4239's tree 408 → 413: the bloom drawn and a plume's pixel clamped after the white (§3.25).
 /// Item 4269: `OCEAN` 233 → 235: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+/// Item 4272: `SANDY` 413 → 412, `OCEAN` 235 → 233: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [665, 679],
     [0, 0],
     [8, 32],
     [0, 0],
     [0, 0],
-    [413, 772],
-    [235, 437],
+    [412, 772],
+    [233, 437],
 ];
 
 /// **`RUN1564_3279_LAKE_HDR_TEXTURE`** (item 4232): [`TEXTURE`]'s
@@ -1602,7 +1608,13 @@ impl MountainArt {
 
     fn load_tinted(root: &Path, tileset: &str, tint: [u8; 3]) -> Result<MountainArt, String> {
         let install = rondata::Install::new(root);
-        let load = |rel: &str| -> Result<Mips, String> {
+        // Item 4272 (§3.22): only stage 0 takes the tint. `TileSet::init`
+        // sets it on `mountain_base` and `mountain_alpha`; a range's
+        // `MAIN_ALPHA_TEX` and `RING_ALPHA_TEX` load through
+        // `MountainRange::init`'s plain `Texture::init`, whose texture the
+        // constructor leaves at black and unused. Tinting stage 1 too laid
+        // the tint twice through ADDSIGNED (run1612 against run1559b).
+        let load_with = |rel: &str, tint: [u8; 3]| -> Result<Mips, String> {
             let path =
                 rondata::artdata::resolve_art(root, rel).ok_or_else(|| format!("no file {rel}"))?;
             let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
@@ -1610,6 +1622,8 @@ impl MountainArt {
             image.tint(tint);
             Ok(Mips::new(image))
         };
+        let load = |rel: &str| load_with(rel, tint);
+        let load_alpha = |rel: &str| load_with(rel, [0; 3]);
         let (base, alpha) =
             rondata::artdata::mountain_textures(&install, tileset).map_err(|e| format!("{e:?}"))?;
         let shapes = rondata::mountains::templates(&install);
@@ -1629,8 +1643,8 @@ impl MountainArt {
                 }
                 Some(MountainTemplateArt {
                     tiles: shapes.get(k)?.tiles.clone(),
-                    main: load(main).ok()?,
-                    ring: load(ring).ok()?,
+                    main: load_alpha(main).ok()?,
+                    ring: load_alpha(ring).ok()?,
                     lit: [x0 as f32, y0 as f32, x1 as f32, y1 as f32],
                 })
             })
