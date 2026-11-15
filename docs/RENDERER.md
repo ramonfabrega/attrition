@@ -3117,8 +3117,9 @@ On the photographs alone: the rows.
   `TRANSFORM_SCREEN_SPACE` (unread); a third, `t_mountainpeak` on both stages under `TL_FAKE_LIGHT`, §3.10 never
   named (parked 4269b). No card stream holds the range's mesh: it is a static buffer.
 - The `_mtrl` normal, specular and gloss maps on the mountain's draws (parked 4269a). The body's hue (4269c) is read
-  below, "The mountain's hue (item 4271)": the stage op and the texture's tint are the original's, and what takes
-  the tint's share off the photograph's stage colour is not established (parked 4271a).
+  below, "The mountain's hue (item 4271)". ~~What takes the tint's share off the photograph's stage colour (parked
+  4271a).~~ Answered by "The mountain's tint (item 4272)": ours tinted stage 1 too.
+- The body's remaining 7 % (ours Y 146.4 against 137.3, item 4272) and its yellow-green cast by eye.
 - `vs_global.hlsl`'s per-pixel normal against the interpolated N·L the client takes, and the
   vertex colour taken from that N·L rather than interpolated.
 - ~~The trees' and the roads' `TL_FAKE_LIGHT` stage colours against each other (parked 4217a).~~ Answered by
@@ -3174,10 +3175,27 @@ byte** (`early_autumn` (18, 18, 0), §3.21). What was read:
 
 So the tint is the original's by the reading and by the packet, and dropping it is a fit with no mechanism: **not
 drawn**. Whether the card ever samples the tinted bytes (an upload taken from the raw slab, or a mip chain built from
-it) is not established (parked 4271a). A photograph with the tint zeroed would settle it: if the range does not move,
-the tint never reaches the card.
+it) is not established (parked 4271a). ~~A photograph with the tint zeroed would settle it.~~ It did: the card
+samples the tint, and the gap was ours tinting stage 1 too ("The mountain's tint (item 4272)").
 *Coverage:* on the packet: the tint on the device's copy. On a reading: the loop's order (the listing), the shader's
 op (the install's HLSL). On the photograph alone: the row.
+
+**The mountain's tint (item 4272).** *2026-11-15, Opus 5.5. `client::ground::MountainArt::load_tinted`. run1612
+against run1559b.* run1612 is run1559b's take with `early_autumn`'s `<LIGHTING>` tint zeroed for that take alone
+(`--data-override`, `docs/RUNS.md`). Its camera sits 167.5 px left of run1559b's. Registered at that shift, the
+photograph's body moves **(−9.9, −12.5, +2.3)** (Y 147.9 → 137.9 over 44,488 grey pixels), and the crest and the
+left slope move the same. **So the card samples the tinted bytes.** The original's tint moves the body about 10 in
+Y, where item 4271's probe moved ours 25: ours laid the tint twice. `TileSet::init@0087b370` sets the tint on
+`mountain_base` and `mountain_alpha`, stage 0. A range's `MAIN_ALPHA_TEX` and `RING_ALPHA_TEX`, stage 1, load
+through `MountainRange::init@008998b0`'s plain `Texture::init@005245f0`. That copies the texture's own tint, which
+`Texture::Texture@00524170` leaves black, and no `set_tint` caller touches a range. Ours tinted stage 1 as well, and
+ADDSIGNED adds the two stages. Drawn with stage 1 untinted, `GROUND_LUMA_STILL` under a mountain goes **70 → 92 of
+106**, and the row 1,040 → 1,059 of 1,109 (plain 954 → 951). The body goes Y 158.3 → 146.4, against theirs 137.3.
+The frame's white moves the rows in `fire`, `roads`, `shadows`, `tint` and `ground` (each delta in its constant's
+comment). By eye the range is grey-beige now, with a faint yellow-green cast. The crest and the white streaks are
+still missing (4269b, 4269a).
+*Coverage:* diff-backed: the tint reaching the card (two photographs). On a reading: which textures take it. On the
+photograph alone: the row.
 
 ## 3.23 The trees' own light (item 4221)
 
