@@ -6900,7 +6900,12 @@ is two units of Manhattan distance. Nothing integral depends on the
 residue: the flight time is a truncated `dist / proj_speed` and a unit
 of distance moves it only across a boundary, and the consequence the fix
 is measured on is the impact *frame*, which the widening now puts on the
-dump's own for every arrow whose node is here.
+dump's own for every arrow whose node is here. **One did cross a
+boundary** (item 4277, `docs/CLIENT_INPUT.md` §25): the buildmasked
+game's `0/9` loosed from `(384, ATTACK2, 22)` two units off the
+original, 750.3 from its mark against 749.5, and flew 5 frames where the
+original's flies 4. Piece 384's three rows are `launch::BAYS` now,
+fitted to the original's `get_position` at every whole degree.
 
 **What is not established, and it is `damage 1/6`'s 680 row.** The
 slingers' `(384, ATTACK3, 16)` has no measurement, because the one arrow

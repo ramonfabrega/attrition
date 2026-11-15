@@ -217,45 +217,10 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             dz: 164,
         },
     ),
-    (
-        384,
-        crate::units::anim::ATTACK2,
-        22,
-        Node {
-            bearing: 216_316_352,
-            radius: 125,
-            dz: 151,
-        },
-    ),
-    (
-        384,
-        crate::units::anim::ATTACK1,
-        21,
-        Node {
-            bearing: 532_316_352,
-            radius: 97,
-            dz: 178,
-        },
-    ),
-    // **The slinger's third swing** (item 4256, run1603, `docs/CLIENT_INPUT.md`
-    // §15.1): the packet at logger frame 6860 on the rallied file holds
-    // `0/8`'s round born on 6859, its `CHAR_ATTACK3` release at frame 16,
-    // from (3762, 31769, 710). The unit stands at (3720, 31656) facing
-    // −2140667904 over ground 533. One shot: radius 120 is the only one
-    // that fits, and the bearing is the middle of its exact fits
-    // (−256363008 to −250333696, stepped by 65536). Without this row the
-    // round left the unit's square at ground height, flew 8 frames rather
-    // than 7, and the blow on `1/0` landed on 6867 where the dump has 6866.
-    (
-        384,
-        crate::units::anim::ATTACK3,
-        16,
-        Node {
-            bearing: -253_348_352,
-            radius: 120,
-            dz: 177,
-        },
-    ),
+    // Piece 384's three rows, `(384, ATTACK2, 22)` and its `ATTACK1` and
+    // `ATTACK3` kin (the last item 4256's, §15.1 of `docs/CLIENT_INPUT.md`),
+    // are [`BAYS`] since item 4277: the planar one-shot fits stood two
+    // units off the original at the buildmasked game's facings.
 ];
 
 /// **A release node the original turns by a whole degree** (item 770,
@@ -432,6 +397,47 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **Piece 384, the Slingers** (item 4277, `docs/CLIENT_INPUT.md` §25):
+    // run1615b's packet (the buildmasked file at logger frame 6869) holds
+    // the piece's three `AttachPos` rows, node 0 at frame 21 of
+    // `CHAR_ATTACK1`, 22 of `CHAR_ATTACK2` and 16 of `CHAR_ATTACK3`, `RData
+    // +0x88` 1.0; `get_position.py … sweep 384 0 <anim> <time>` and
+    // `fit_bay.py` fit each (1696, 273 and 592 lattice points, 361 of 361
+    // headings; the centroid is kept). Until then they were planar rows in
+    // [`MEASURED`], solved from chapter two's stones and run1603's one, which
+    // put `0/9`'s stone of 6868 at (3391, 32213) where the packet's leaves
+    // (3389, 32212): 750.3 from its mark rather than 749.5, 5 frames at
+    // speed 150 rather than 4.
+    (
+        384,
+        crate::units::anim::ATTACK1,
+        21,
+        Bay {
+            right: 69_764,
+            fwd: 67_823,
+            dz: 178,
+        },
+    ),
+    (
+        384,
+        crate::units::anim::ATTACK2,
+        22,
+        Bay {
+            right: 41_238,
+            fwd: 117_982,
+            dz: 151,
+        },
+    ),
+    (
+        384,
+        crate::units::anim::ATTACK3,
+        16,
+        Bay {
+            right: -42_142,
+            fwd: 113_256,
+            dz: 177,
+        },
+    ),
     // **Piece 125, the Royal Kushite Archers** (unit type 175; item 3849,
     // `docs/GOLDEN.md` §153.1): run1484's packet holds the piece's three
     // attack `AttachPos` rows, node 0 at frame 15 of `CHAR_ATTACK1`,
