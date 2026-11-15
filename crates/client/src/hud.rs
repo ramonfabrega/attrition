@@ -308,6 +308,57 @@ pub fn city_menu(input: &Input, scene: &Scene, size: (i32, i32)) -> Vec<CityButt
         .collect()
 }
 
+/// One of a unit's craft buttons (item 4264, `docs/CLIENT_INPUT.md` §18):
+/// the craft's row and where it stands.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SpellButton {
+    pub t: i32,
+    pub rect: Rect,
+}
+
+impl SpellButton {
+    /// Its label: the craft's name as the crate names it, upper case.
+    pub fn label(&self) -> String {
+        sim::ids::spell::NAMED_SPELLS
+            .iter()
+            .find(|(_, t)| *t == self.t)
+            .map_or_else(|| format!("CRAFT {}", self.t), |(n, _)| n.to_uppercase())
+    }
+}
+
+/// **The unit's craft row**: with a unit selection, one button per craft a
+/// member offers ([`sim::observe::UnitScene::crafts`]), in row order, each
+/// once; otherwise none. The row stands where the market's does. Where it
+/// stands, and that it is one row for the whole selection, is ours.
+pub fn spell_menu(input: &Input, scene: &Scene, size: (i32, i32)) -> Vec<SpellButton> {
+    if input.building {
+        return Vec::new();
+    }
+    let mut crafts: Vec<i32> = input
+        .selection
+        .iter()
+        .filter_map(|id| scene.units.iter().find(|u| u.id == *id))
+        .flat_map(|u| u.crafts.iter().map(|c| c.t))
+        .collect();
+    crafts.sort_unstable();
+    crafts.dedup();
+    let (w, h) = MARKET_BUTTON;
+    let n = crafts.len() as i32;
+    crafts
+        .into_iter()
+        .enumerate()
+        .map(|(k, t)| SpellButton {
+            t,
+            rect: Rect {
+                x: size.0 - (n - k as i32) * (w + MARGIN),
+                y: size.1 - MARGIN - h,
+                w,
+                h,
+            },
+        })
+        .collect()
+}
+
 /// One event through the HUD and then the layer: the window's own path
 /// (`App::input`), and the one the tests mint through. A press on one of
 /// the market's or the city's buttons is that button's event; anything
@@ -329,6 +380,12 @@ pub fn event(
                     .into_iter()
                     .find(|b| b.rect.contains(x, y))
                     .map(|b| Event::CityGather(b.t))
+            })
+            .or_else(|| {
+                spell_menu(input, view.scene, size)
+                    .into_iter()
+                    .find(|b| b.rect.contains(x, y))
+                    .map(|b| Event::Spell(b.t))
             }),
         _ => None,
     };
@@ -734,6 +791,13 @@ pub fn paint(
         p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
         let ty = r.y + (r.h - 7 * SCALE) / 2;
         p.text(r.x + 3 * SCALE, ty, b.label(), SCALE, overlay::INK);
+    }
+    for b in spell_menu(input, scene, size) {
+        let r = b.rect;
+        p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
+        p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
+        let ty = r.y + (r.h - 7 * SCALE) / 2;
+        p.text(r.x + 3 * SCALE, ty, &b.label(), SCALE, overlay::INK);
     }
     for b in menu(input, size) {
         let r = b.rect;

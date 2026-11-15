@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -869,9 +869,9 @@ files. Every package of every file decodes. An order is a command `rondata::inpu
 `camera`, `player_speed` and `check_sums`. They are counted by `Command::name` (`rondata::input::kinds`), and pinned
 as `rondata::input::KINDS_ON_DISK`, checked against the disk by `the_order_kinds_on_disk`.
 
-**`INPUT_KINDS`: 14 of 26 kinds, 2,306 of 2,429 orders (94.9 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
+**`INPUT_KINDS`: 15 of 26 kinds, 2,323 of 2,429 orders (95.6 %).** It was 8 of 26 and 1,879 (77.3 %) when the census
 was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 10 and 2,216 (91.2 %) once the chat
-(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, and is 14 since the city's gather (§17). The kinds the layer mints are `input::MINTS`, held to the
+(§12) was, 11 and 2,240 (92.2 %) once the pause (§13) was, 13 and 2,286 (94.1 %) once the market's sale and purchase (§16) were, 14 and 2,306 (94.9 %) once the city's gather (§17) was, and is 15 since the craft button's spell (§18), which no playback has carried. The kinds the layer mints are `input::MINTS`, held to the
 `Command::` values the layer's own source builds by `the_layer_mints_what_it_says`. The count is
 `input_kinds_of_the_recordings_on_disk`.
 
@@ -890,7 +890,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `pause` | 24 | 0.9 % | yes (§13) |
 | `city_gather` | 20 | 0.8 % | yes (§17) |
 | `buy` | 18 | 0.7 % | yes (§16) |
-| `spell` | 17 | 0.6 % | |
+| `spell` | 17 | 0.6 % | §18 (the button's 6; the right press's 11 are not minted) |
 | `unqueue` | 13 | 0.5 % | |
 | `gather` | 11 | 0.4 % | yes |
 | `guard` | 10 | 0.4 % | yes |
@@ -1569,7 +1569,91 @@ clearing of the rally point and the points' order are all inside that.
 - the buttons are no key's event.
 
 **Not established:**
-- **The two recorded gathers with an empty group** (7205, 8179): how the original wrote a `group` of no objects
-  behind a gate that counts the selection is not read. Parked 4261a.
+- ~~**The two recorded gathers with an empty group** (7205, 8179): how the original wrote a `group` of no objects
+  behind a gate that counts the selection is not read. Parked 4261a.~~ Read in §18.1: `CommandPackage::add_group`
+  writes no objects for a group equal to the last one sent. The layer does not write that yet (4264a).
 - **A selection of several buildings**: the panel is a single centre's here, and the layer mints the whole
   selection's group; no recording carries more than one.
+
+## 18. A unit's craft button, and its pick (item 4264)
+
+*Item 4264, 2026-11-15. The score is the census (§11.1): `INPUT_KINDS` 14 → 15 of 26 kinds, 2,306 → 2,323 of 2,429
+orders. The HUD gains a unit's craft row; the layer mints `spell` as `Options::do_spell` and `picked_spot` issue it.
+**No playback carries it**: slot 0 of the minted game holds no unit with a cast the original would make (§18.3). The
+count is against the recordings, the original's own orders.*
+
+### 18.1 What the button and the pick issue
+
+**The button.** `Options::exec@007188c0`'s `OPTION_SPELL` is `Options::do_spell@0071d7a0(t, …)`. It returns unless the
+selection can act (`Group::can_activate`) and holds a caster (`GroupData::get_spellcaster`); To Arms also needs the
+leader's `has_tech(MILITIA)`, and every craft but Disband and Depopulate a valid caster
+(`get_valid_spellcaster`). A craft whose `spell_flags & 0xe` is clear is issued at once:
+`target_spell(t, −1, −1, 0, 0)`. A targeted one sets `selecting_spot` and the cursor.
+
+**The pick.** `Options::picked_spot@00721c40`'s `OPTION_SPELL` arm calls `reset`, then `target_spell(t, −1, −1, x, y)`
+for a ground craft (`& 8`), or `SpellTypeData::find_target@00674920`'s object, as `target_spell(t, ox, whom, x, y)`.
+In both cases `x`, `y` is the pressed point. `Options::target_spell@0071dda0` packs a pack or unpack craft straight
+away (`dbg_pack_or_unpack`). Otherwise it calls `GroupOut::validate_spell`, then
+`CommandManager::issue_spell@00941b80`: the selection's `group` and command `0x17`, `spell(ox, whom, t, x, y)`.
+
+**The right press.** `Console::execute_at_cursor@007c6630` calls `GroupOut::issue_spell` with the point
+(0, 0) on a target: a Scout-line selection's Counterintelligence on an enemy Spy or its own infiltrated object, and
+the other crafts beside it. It is not minted here.
+
+**The recordings.** All 17 on disk are the 2017 sample's, slot 3's:
+- six Forced March (`0x27c`), `ox`/`whom` −1 at (0, 0): the button's;
+- eleven targeted ones (Bribe ×5, Informer on a building, Sabotage ×2, Sniper ×3), each at (0, 0). The pick writes
+  the point, so these are the right press's.
+
+Thirteen of the 17 carry a `group` of no objects. **`CommandPackage::add_group@0094bb60` writes that**: when the
+group's `who`, its objects and their uids (`+0x30`) all equal the last group sent (`last_who_sent`,
+`last_objects_sent`, `last_uids_sent`), it writes a count of zero. Otherwise it writes the list and keeps it. This
+answers 4261a's question (§17.4).
+
+### 18.2 What the layer does
+
+- **The scene** (`crates/sim/src/observe.rs`, reads only): `UnitScene::crafts`, each craft row whose `FROM` line the
+  unit is and that `Sim::spell_castable` passes, with `targeted` (`& 0xe`) and `ground` (`& 8`).
+- **The HUD** (`hud::spell_menu`, `docs/HUD.md` §1): with a unit selection, one button per craft a member offers, in
+  row order. A press on one is `Event::Spell(t)`.
+- **The layer**: `Event::Spell(t)` with a unit selection one of whose members offers `t` (`input::selection_craft`).
+  An untargeted craft gives the selection's `group` and `spell(−1, −1, t, 0, 0)`. A targeted one sets
+  `Input::casting`; the next left press gives the `group` and `spell(ox, whom, t, x, y)`, where the object is the
+  one a right press would name (`View::target`) and `x`, `y` is the ground under the press. A ground craft gives
+  `spell(−1, −1, t, x, y)`. A pick on no object mints nothing and spends the pick; a right press drops it.
+
+**The counts.**
+- `INPUT_SPELLS`: **1 of 6**. Every recorded button spell, minted from its group's units offering the craft and a
+  press on its button (`minted_spells_equal_the_recordings`). The five with an empty group part, because the layer
+  does not write `add_group`'s repeat (parked 4264a). Seen red with the arm's point (1, 1): 0 of 6.
+- `minted_spell_button_edges`: the row, each craft once; the untargeted spell, also through the HUD; the targeted
+  craft's pick on another slot's unit; a ground craft's point; nothing for a craft no member offers, for a building
+  selection, for another slot's unit, or for a pick on no object; a right press dropping the pick.
+
+### 18.3 Why no playback, and what is not established
+
+**Slot 0 of the minted game cannot cast anything.** On our walk of the city-gathered file, slot 0 holds six Citizens,
+a Scout and three Slingers from 6720 to 12,000, and the same 18 techs. The Citizens' To Arms needs `has_tech(MILITIA)`,
+which slot 0 lacks: no slot-0 building researches it, and `do_spell` refuses the button. The Scout's
+Counterintelligence needs an enemy Spy, or an infiltrated object of its own or an ally's
+(`Sim::counterintel_valid_target`), and the game has neither. So the original's button or pick would issue nothing
+the original then casts. A file carrying such an order would test nothing. The probe was a scratch test on this
+branch and was not kept.
+
+**Reading only**, one reader, no blind second reading:
+- `do_spell`'s gates, `picked_spot`'s arm and `target_spell`;
+- `add_group`'s repeat.
+
+**Ours, not the original's:**
+- the row's place, size and labels; `UnitOut::make_options` is not read beyond the craft's `FROM` line;
+- `get_spellcaster`, `get_valid_spellcaster` and `validate_spell` are stood in for by `Sim::spell_castable` on one
+  member;
+- the pick's object is `View::target`'s, not `SpellTypeData::find_target`'s;
+- the pack and unpack crafts' `dbg_pack_or_unpack` is not taken: the layer would mint a spell for them.
+
+**Not established:**
+- **A spell the original plays from our file.** The minted game's slot 0 needs a caster first (parked 4264b).
+- **The right press's crafts** (11 recordings), `execute_at_cursor`'s Scout-line and Commando arms (parked 4264c).
+- **`add_group`'s repeat in the layer** (parked 4264a): the five button spells and 4261a's two city gathers would mint
+  whole with it. Every script whose groups repeat back to back would change bytes, so it moves the layer's pins.
+

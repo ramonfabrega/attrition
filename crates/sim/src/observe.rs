@@ -105,6 +105,18 @@ pub struct LeaderScene {
     pub market: [Option<(i32, i32)>; 6],
 }
 
+/// **A craft a unit can be handed** (item 4264): its row and the two
+/// flag bits the button and the pick read — `spell_flags & 0xe`, a craft
+/// that takes a target (`Options::do_spell@0071d7a0`), and `& 8`, one
+/// whose target is the ground (`Options::picked_spot@00721c40`'s
+/// `OPTION_SPELL` arm).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Craft {
+    pub t: i32,
+    pub targeted: bool,
+    pub ground: bool,
+}
+
 /// One unit on the map.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct UnitScene {
@@ -146,6 +158,12 @@ pub struct UnitScene {
     /// The count's other arm, a `TRANSPORTBARGE` carrying such a unit, is
     /// not carried here.
     pub attacks: bool,
+    /// **The crafts its panel offers** (item 4264, `docs/CLIENT_INPUT.md`
+    /// §18): every craft row (`spell::FIRST..=LAST`) whose `FROM` or
+    /// `FROM2` line the unit is and that [`Sim::spell_castable`] passes, in
+    /// row order. What `UnitOut::make_options` puts on row 1 is read only
+    /// as far as this; the button's own gates are `Options::do_spell`'s.
+    pub crafts: Vec<Craft>,
     /// Its figures, one per guy.
     pub figures: Vec<FigureScene>,
 }
@@ -452,6 +470,17 @@ impl Sim {
                     attacks: u.captain
                         && u.ty
                             .is_some_and(|t| self.tables.unit_types[t].combat.attack != 0),
+                    crafts: (crate::ids::spell::FIRST..=crate::ids::spell::LAST)
+                        .filter(|&t| self.spell_castable(t, i))
+                        .filter_map(|t| {
+                            let d = self.spell(t)?;
+                            Some(Craft {
+                                t,
+                                targeted: d.targeted(),
+                                ground: d.flags & 8 != 0,
+                            })
+                        })
+                        .collect(),
                     figures: u
                         .guys
                         .iter()

@@ -61,6 +61,13 @@ rows never show at once. A press on one is `Event::CityGather`, which no
 key sends. The place and the labels are ours. What it mints is
 `docs/CLIENT_INPUT.md` §17.
 
+**The craft row** (item 4264) is an eighth, drawn while units are the
+selection and a member offers a craft (`UnitScene::crafts`): one button per
+craft, in row order, named as the crate names it, in the market's place
+(`hud::spell_menu`). A press on one is `Event::Spell`, which no key sends;
+a targeted craft's next press on the map is its pick. The place and the
+labels are ours. What it mints is `docs/CLIENT_INPUT.md` §18.
+
 ## 2. The menu (item 4197)
 
 - **A button is a key's event and nothing else.** A press inside a
