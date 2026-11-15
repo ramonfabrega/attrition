@@ -37841,3 +37841,36 @@ with `waitrun.sh` in the background. `df -g ~` read 164 GB free before it.
 Archive `gamelog-run1614-greatlakes-playback-of-buildmasked-7000.txt`, 68,008,387 bytes,
 SHA-256 `750415e49d1a2a302a9171bdeb30112fb5f3a4c8bb381441995714d1044dae10`; `rontrace-run1614.log`, 34,299,040 bytes,
 SHA-256 `0872d00be60a046f3e5b7d9a7045a086a405c0b2341300cbe22535a99158cef4`.
+
+## run1615 and run1615b — the buildmasked file's playback with a packet, twice: the Slingers' stones in flight (2026-11-15, item 4277, `att-4277`)
+
+`docs/CLIENT_INPUT.md` §25. **What the disk could not answer**: what lands the Scout `1/0`'s blow a frame early in the
+original on run1613 and run1614 (4273a). No dump prints a round without `AMMO`, and neither playback had a packet. Both
+takes are run1614's line with a packet: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+<dir> --recording ~/ron-golden/recordings/item4276-buildmasked-greatlakes-24000.rcx --cover cover=1 --detail
+end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --timeout 1800 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_STATE_FRAME=<N> --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`, waited on with `waitrun.sh`
+in the background lane. `df -g ~` read 163 GB free before them. Minutes waited on another lane: none.
+- **Take 1, run1615**: `--end-frame 6868 --log-window 6859 6866`, `RON_STATE_FRAME=6865`. Pool lane 1, launched
+  13:05:28 −05:00, exited 13:13:50: **501.5 s launch to exit**, exit 0, `success`, 6,869 frames, `last_frame` 6868,
+  no page fault, no relaunch. The packet at logger frame 6865, trace frame 6864, `~/ron-golden/run1615/map-14/
+  frame-snapshot.bin`, 821,640,196 bytes, SHA-256 `532b5cd8012764c211e535ec98abe6a31308e5560e08550bb5cf0719a09c1507`.
+  **Its ammo pool is empty**, as ours is: the stone that parts is born on 6868, after the packet.
+- **Take 2, run1615b**: `--end-frame 6872 --log-window 6863 6871`, `RON_STATE_FRAME=6869`. Pool lane 1, launched
+  13:14:32, exited 13:22:47: **495.3 s launch to exit**, exit 0, `success`, 6,873 frames, `last_frame` 6872, no page
+  fault, no relaunch. The packet at logger frame 6869, trace frame 6868, `~/ron-golden/run1615b/map-14/
+  frame-snapshot.bin`, 823,926,012 bytes, SHA-256 `0e99465cc5bfc8dc403df5365c4586463ae747161ec220b40a4d3d25561d87dd`.
+- **What take 2 answered** (`tools/recomp/ammo.py`): two live slots. `0/8` → `1/0` from (3679, 31773, 684) to
+  (2676, 32736, 623), 4 of 8; `0/9` → `1/0` from (3389, 32212, 686) to (2733, 32740, 633), **2 of 4**, where ours
+  flew 5 from (3391, 32213). `get_position.py` swept piece 384's three release rows on it, and `fit_bay.py` fitted a
+  bay to each at 361 of 361 headings (the sweeps under `~/ron-data/lab-experiments/2026-11-15-item-4277/sweeps/`).
+- The census names both packets as not held (`NOT_HELD`).
+- Filed with `filerun.py run1615 greatlakes-playback-of-buildmasked-packet-6865` and `filerun.py run1615b
+  greatlakes-playback-of-buildmasked-packet-6869`.
+
+Archive `gamelog-run1615-greatlakes-playback-of-buildmasked-packet-6865.txt`, 1,575,983 bytes,
+SHA-256 `7ca04b6f49735247d6747e2e7205fa934b9244a359ce360b7953913a6345c94f`; `rontrace-run1615.log`, 34,227,776 bytes,
+SHA-256 `a88d78e36b2c74f5f9c70ce465a10eeae994300175493d100b0256405a400681`.
+Archive `gamelog-run1615b-greatlakes-playback-of-buildmasked-packet-6869.txt`, 1,816,684 bytes,
+SHA-256 `6e64edf0a8353ce4bf7a39984de7ff5b3985d23e8334b6f56f6bf7f75a974e2d`; `rontrace-run1615b.log`, 34,542,528 bytes,
+SHA-256 `03e30c5f636126f255b25b630f76a4faf87ac7e987266d6ad916df18068284ad`.
