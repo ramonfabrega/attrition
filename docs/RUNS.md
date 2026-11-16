@@ -38037,3 +38037,47 @@ It was waited on with `waitrun.sh` in the background. `df -g ~` read 212 GB free
 Archive `gamelog-run1627-greatlakes-playback-of-auto-explored-7500.txt`, 163,476,302 bytes,
 SHA-256 `15b89bd72b8f30d8f8b78a0d0360b85faecefcb268219139579a6a046ad96321`; `rontrace-run1627.log`, 36,254,304
 bytes, SHA-256 `faa084732d21ec1205d3ec2bdf0cf8693f43d0c145a770283bcfd2a95e2c0dbf`.
+
+## run1628 — run1575's game with the peace bought for 2,000 metal: recon4206-4 filed as is (2026-11-16, item 4159, step 4159r19, `in-session builder`)
+
+`docs/LEADERS.md` §7.5, `docs/DECISIONS.md` entry 137 §1. **What the disk could not answer**: no capture our walk
+holds moved `good_deeds` off its reset (residue 18's probe: 0 `HELD`, 0 non-zero `SEEN` over the whole suite). This
+one does, and it was already on disk: **recon4206-4**, item 4206's first dress rehearsal of `diplomacy4206.cmd`
+(run1575's section lists it), unfiled until now. No new capture was taken. It is filed **as is, in place**: the run
+is `~/ron-golden/recon4206-4/map-18/`, nothing was moved or copied into the archives, and `filerun.py` was not run,
+so no `gamelog-run1628-*` file exists. `diff::diplomacy_take::run1628` reads it there (under `RON_GOLDEN_DIR`).
+- **The line**, from its receipt: run1575's lobby (`--map 18 --end-frame 1150`, `PLAYERS=2`,
+  `STARTING_TECHNOLOGY=7`, `ENDING_TECHNOLOGY=7`, `STARTING_RESOURCES=7`, `TEAM_STYLE=0`, `--seat-tribe 1=10
+  --seat-tribe 2=13`, `--log-window 896 1151`, `--detail end:MISC,LEADERS=9 --detail misc:COMMANDMANAGER=1`,
+  `--bindkey OPTION_DIPLO=129 --bindkey OPTION_CHAT_ALLIES=125`), `cover=0`, no packet.
+- **The receipt** (`receipt.json`): pool lane 1, seed 12345 (observed 12345), `MAP_STYLE 18`, launched 10:25:32
+  −05:00 on 2026-11-13, exited 10:26:23: **51.5 s launch to exit**, exit 0, `success`, 1151 frames, `last_frame`
+  1150, no page fault, no relaunch, five settings restored. PLAYER records: who 0 (flags 7, tribe 4), who 1 (flags
+  1, tribe 10) and who 2 (flags 1, tribe 13). `riseofnations_trace.exe` SHA-256 `8ccc368e…`, `rontrace.cmd`
+  `d7bd87a4…`.
+- **`rontrace.cmd`**: run1575's script through the peace check (`37 !ffwd 1`; `900 meet who=1`, `901 resource who=0
+  all +100000`, `902 ally 1`; the taunt "4" on 905; the Declare at (955,366) on 985 and 1000; the contact button on
+  1015; the peace check (676,499) on 1020). Then **`1022 @hold 16 1027`** and four clicks at (858,405) on 1023 to
+  1026: the Tribute row under a held shift. PROPOSE on 1030, the alliance check on 1060 and PROPOSE on 1062, and
+  Escape on 1100 and 1101.
+- **The commands.** `COMMANDMANAGER=1` prints these lines:
+  - `process_declare 1 1 986` and `process_declare 1 0 1001`;
+  - `process_treaty 1 1 1021`;
+  - `process_tribute 1 4 1024`, `1025`, `1026` and `1027`: metal (good 4) to the French. The line prints no
+    amount. The human's own `dip[1].offers[4]` reads 0, 500, 1,000, 1,500 and 2,000 on blocks 1024 to 1028, so
+    each click is 500;
+  - `process_accept 1 1031` and `process_treaty 1 2 1061`.
+- **The mover**: on 1032, `made_peace` 0 → 1031 both ways and **the French `good_deeds[0]` 0 → 1328**, which
+  then reads 1328 on every block to 1150 (119 blocks). On the same block the human's metal goes 120,000 → 118,000
+  and the French 10,037 → 11,057 (`scale_tribute` at the human's `pct` 51: `(2,000 · 51 + 99) / 100` = 1,020).
+- `rngcmp.py` against run1575 (the pass of 2026-11-16): **1151 frames in common, 49 differing, the first 1100**
+  (harness word 1099).
+- **Our walk against its own trace** (`run1628_s_good_deeds_are_the_french_answer`): **count 1150, sequence 1150
+  of 1150**, the human's window commands and the four tributes staged off its record.
+
+Files in place: `gamelog.txt`, 462,588,670 bytes, SHA-256
+`7de605b9091d7e2cd2d997231c6467513fb72854b76a95dea71d29456bd9cd20`; `rontrace.log`, 17,656,896 bytes, SHA-256
+`f2d2d4f8337e7dc06c34aa66c363451abb09bc586af9604dfa0453a4d0584332`.
+
+**What it holds**: `diff::diplomacy_take`'s three `run1628_*` tests. `good_deeds` is diff-backed, and is off
+`LEADERS_HELD_OUT` (6 → 5).

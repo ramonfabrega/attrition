@@ -92,6 +92,19 @@ const TAUNT_ROWS: [&str; 4] = ["tribute_stamp", "gift_stamp", "last_taunt", "tau
 /// 4159's step VII-d), by proposer, eight `name[scan]` lines.
 const DEAL_ROWS: [&str; 1] = ["counteroffer"];
 
+/// The five printed rows the leaders line still holds out (`docs/LEADERS.md`
+/// §7.1, §8.1; item 4159's eighteenth residue): `good_deeds`, `hire_stamp`
+/// and `hire_who` by slot, `tribute_demanded` by target, eight `name[scan]`
+/// lines each, and `tributes` by good, six. Compared so the held-leaf probe
+/// (`diff::held_probe`) is sighted on them: a key nothing parses cannot part.
+const HELD_ROWS: [&str; 5] = [
+    "good_deeds",
+    "hire_stamp",
+    "hire_who",
+    "tribute_demanded",
+    "tributes",
+];
+
 /// Whether a good's index is one the record prints in its per-good block.
 /// The six goods, **in the type record's own order** — `rise.pdb`'s
 /// `TypeIndex` enum: `0 FOOD, 1 TIMBER, 2 WEALTH, 3 KNOWLEDGE, 4 METAL,
@@ -648,6 +661,25 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
             out.push((format!("{k}[{i}]"), *x));
         }
     }
+    // **Item 4159's eighteenth residue** ([`HELD_ROWS`]): the five printed
+    // rows the leaders line still emits unheld, as the crate holds them —
+    // `Declared` (`hire_who` −1 a slot, `Leader::init`'s) and `Tribute`.
+    let d = s.leaders.declare.get(p as usize);
+    let tr = s.leaders.tribute.get(p as usize);
+    for k in HELD_ROWS {
+        let v: Vec<i64> = match k {
+            "good_deeds" => d.map_or(vec![0; 8], |d| d.good_deeds.map(i64::from).to_vec()),
+            "hire_stamp" => d.map_or(vec![0; 8], |d| d.hire_stamp.to_vec()),
+            "hire_who" => d.map_or(vec![-1; 8], |d| d.hire_who.map(i64::from).to_vec()),
+            "tribute_demanded" => {
+                tr.map_or(vec![0; 8], |t| t.tribute_demanded.map(i64::from).to_vec())
+            }
+            _ => tr.map_or(vec![0; RESOURCES], |t| t.tributes.map(i64::from).to_vec()),
+        };
+        for (i, x) in v.iter().enumerate() {
+            out.push((format!("{k}[{i}]"), *x));
+        }
+    }
     // **Item 4187, step VI** (`docs/LEADERS.md` §17–§20): `score`, the
     // one of its twelve `log_data` prints; `territory_high`;
     // `high_buildings[r]` by building record, the lineage root's
@@ -1112,8 +1144,14 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     }
     // The declaration's two rows and `made_peace` (§7), eight `[scan]`
     // lines each, by target; the taunt's answer's four (§8, §9); and the
-    // counteroffer (§8).
-    for key in DECLARE_ROWS.iter().chain(&TAUNT_ROWS).chain(&DEAL_ROWS) {
+    // counteroffer (§8); and the five still held out (item 4159's
+    // eighteenth residue).
+    for key in DECLARE_ROWS
+        .iter()
+        .chain(&TAUNT_ROWS)
+        .chain(&DEAL_ROWS)
+        .chain(&HELD_ROWS)
+    {
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
         }
@@ -1712,7 +1750,8 @@ mod tests {
             // item 4159 VII-c: 265_440 -> 268_000, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 268_000 -> 270_560, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
             // item 4159's second residue: 270_560 -> 270_720, +1 key a leader block (`pop_issues`).
-            270_720, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159, step 4159r19: 270_720 -> 276_800, +6080: the five held rows (+38 keys a leader block; 4159r18a).
+            276_800, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1831,7 +1870,8 @@ mod tests {
             // item 4159 VII-c: 285_348 -> 288_100, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 288_100 -> 290_852, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
             // item 4159's second residue: 290_852 -> 291_024, +1 key a leader block (`pop_issues`).
-            291_024, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159, step 4159r19: 291_024 -> 297_560, +6536: the five held rows (+38 keys a leader block; 4159r18a).
+            297_560, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -2041,7 +2081,8 @@ mod tests {
             // item 4159 VII-c: 59_724 -> 60_300, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 60_300 -> 60_876, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
             // item 4159's second residue: 60_876 -> 60_912, +1 key a leader block (`pop_issues`).
-            60_912, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159, step 4159r19: 60_912 -> 62_280, +1368: the five held rows (+38 keys a leader block; 4159r18a).
+            62_280, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -2195,7 +2236,8 @@ mod tests {
             // item 4159 VII-c: 431_340 -> 435_500, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 435_500 -> 439_660, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
             // item 4159's second residue: 439_660 -> 439_920, +1 key a leader block (`pop_issues`).
-            439_920, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159, step 4159r19: 439_920 -> 449_800, +9880: the five held rows (+38 keys a leader block; 4159r18a).
+            449_800, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -2349,7 +2391,8 @@ mod tests {
             // item 4159 VII-c: 99_540 -> 100_500, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 100_500 -> 101_460, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
             // item 4159's second residue: 101_460 -> 101_520, +1 key a leader block (`pop_issues`).
-            101_520, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159, step 4159r19: 101_520 -> 103_800, +2280: the five held rows (+38 keys a leader block; 4159r18a).
+            103_800, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3462,7 +3505,8 @@ mod tests {
             // item 4159 VII-c: 812_910 -> 820_750, +16 keys a leader block (`made_peace[·]`, `dip.treaty[·]`).
             // item 4159 VII-d: 820_750 -> 828_590, +16 keys a leader block (`counteroffer[·]`, `dip.agree[·]`).
             // item 4159's second residue: 828_590 -> 829_080, +1 key a leader block (`pop_issues`).
-            829_080, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4159, step 4159r19: 829_080 -> 847_700, +18620: the five held rows (+38 keys a leader block; 4159r18a).
+            847_700, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
@@ -3789,8 +3833,13 @@ mod tests {
                 "frame_battle",
                 // Item 4159's step VII-b2: the taunt's answer's four rows.
                 "gift_stamp",
+                // Item 4159's eighteenth residue: the five printed rows
+                // still held out, compared so the probe is sighted.
+                "good_deeds",
                 "handicap",
                 "high_buildings",
+                "hire_stamp",
+                "hire_who",
                 "hits_current_frame",
                 "hits_fifteen_seconds",
                 "kills_current_frame",
@@ -3818,7 +3867,9 @@ mod tests {
                 "supply_mark",
                 "taunt_frame",
                 "territory_high",
+                "tribute_demanded",
                 "tribute_stamp",
+                "tributes",
                 "units_killed",
                 "units_lost",
                 "victory_type",
