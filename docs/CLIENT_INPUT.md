@@ -2839,7 +2839,7 @@ This branch does not touch `crates/sim`.*
   with 1. `OPTION_DISBAND` reaches `exec` from:
   - the command panel, which `UnitOut::make_options@00615fc0` offers for a unit only under a profile preference
     (`prefs & 2`), and `BuildOut::make_options@00629ed0` for a building;
-  - the key map's `OPTION_DISBAND` and `OPTION_DISBAND_ALL` (`KeyMap::keymap_strings` `0x93`, `0x94`);
+  - the key map's `OPTION_DISBAND` and `OPTION_DISBAND_ALL` (`KeyMap::keymap_strings`);
   - the selected panel (`IFaceSelected::on_button_clicked@00826e00`);
   - a popup's confirmation (`Popup::on_modal_end@007c13f0` case 2), whose opener was not found in the export.
 
