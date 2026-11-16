@@ -115,6 +115,56 @@ pub(crate) struct TakeWord {
     /// `(block, who, key, before, after)`: every diplomacy leaf the take's
     /// own record moves, block on block, over the blocks the walk reached.
     pub movers: Vec<(i64, usize, String, i64, i64)>,
+    /// `(block, who, key, theirs, ours)`: every diplomacy leaf ours carries
+    /// ([`our_diplomacy_leaves`]) set against the take's own record on
+    /// every block the walk reached — the leaves `diff::leader`'s record
+    /// rows do not parse (item 4298).
+    pub leaves: Vec<(i64, usize, String, i64, i64)>,
+}
+
+/// The diplomacy leaves of [`PRINTED_ARRAYS`] and `blacken` ours carries,
+/// keyed as [`diplomacy_leaves`] keys theirs (item 4298). `last_spoke` is
+/// a constant 0 and the taunt ring is printed in the ring's own order, so
+/// neither is here.
+pub(crate) fn our_diplomacy_leaves(
+    built: &Built,
+    who: usize,
+) -> std::collections::BTreeMap<String, i64> {
+    let mut out = std::collections::BTreeMap::new();
+    let (Some(d), Some(t)) = (
+        built.sim.leaders.declare.get(who),
+        built.sim.leaders.tribute.get(who),
+    ) else {
+        return out;
+    };
+    let rows: [(&str, Vec<i64>); 10] = [
+        (
+            "good_deeds",
+            d.good_deeds.iter().map(|&v| v.into()).collect(),
+        ),
+        ("hire_stamp", d.hire_stamp.to_vec()),
+        ("hire_who", d.hire_who.iter().map(|&v| v.into()).collect()),
+        ("dow", d.dow.iter().map(|&v| v.into()).collect()),
+        ("broke_alliance", d.broke_alliance.to_vec()),
+        ("made_peace", d.made_peace.to_vec()),
+        ("tribute_stamp", t.tribute_stamp.to_vec()),
+        ("gift_stamp", t.gift_stamp.to_vec()),
+        (
+            "counteroffer",
+            t.counteroffer.iter().map(|&v| v.into()).collect(),
+        ),
+        ("tributes", t.tributes.iter().map(|&v| v.into()).collect()),
+    ];
+    for (k, v) in rows {
+        for (i, x) in v.iter().enumerate() {
+            out.insert(format!("{k}[{i}]"), *x);
+        }
+    }
+    for (i, x) in t.tribute_demanded.iter().enumerate() {
+        out.insert(format!("tribute_demanded[{i}]"), i64::from(*x));
+    }
+    out.insert("blacken".to_string(), i64::from(d.blacken));
+    out
 }
 
 /// Walk `built` against `capture`'s trace to its end or its first count
@@ -140,6 +190,7 @@ pub(crate) fn walk_take_from(
     let (mut count, mut sequence) = (None, None);
     let mut leader_parted = Vec::new();
     let mut movers = Vec::new();
+    let mut leaves_seen = Vec::new();
     let mut prev: Vec<Option<std::collections::BTreeMap<String, i64>>> = vec![None; seats];
     for _ in 0..last {
         let at = built.sim.frame;
@@ -182,6 +233,12 @@ pub(crate) fn walk_take_from(
                     {
                         movers.push((n, who, k.clone(), b, v));
                     }
+                }
+            }
+            let ours_leaves = our_diplomacy_leaves(&built, who);
+            for (k, &t) in &leaves {
+                if let Some(&m) = ours_leaves.get(k) {
+                    leaves_seen.push((n, who, k.clone(), t, m));
                 }
             }
             *prev = Some(leaves);
@@ -242,6 +299,7 @@ pub(crate) fn walk_take_from(
         skipped,
         leader_parted,
         movers,
+        leaves: leaves_seen,
     })
 }
 
@@ -270,11 +328,31 @@ pub(crate) fn stage_frame(
     // (item 4159, step VII-c).
     for d in diplomacy {
         if d.frame == at {
+            // The Mutual Attack check sends the toggle of the issuer's own
+            // record (`IFaceDiploNeg::on_check_clicked@00803bd0`: `onoff =
+            // console.dip[whom].attacks[whose] == 0`).
+            let attack_on = built
+                .sim
+                .leaders
+                .tribute
+                .get(d.this as usize)
+                .and_then(|t| t.dip.get(d.whom as usize))
+                .and_then(|dip| dip.attacks.get(d.level as usize))
+                .is_some_and(|&a| a == 0);
             let mut c = built.sim.command();
             match d.kind {
                 TakeKind::Declare => c.action_declare(d.this, d.whom, d.level, false, false),
                 TakeKind::Treaty => c.action_treaty(d.this, d.whom, d.level),
                 TakeKind::Accept => c.action_respond(d.this, d.whom, 1),
+                TakeKind::Attack => c.action_attack(d.this, d.whom, d.level, i32::from(attack_on)),
+                TakeKind::Tribute => {
+                    assert!(
+                        d.amount != 0,
+                        "a tribute's amount is minted from its script"
+                    );
+                    let r = sim::economy::Resource::ALL[d.level as usize];
+                    c.action_offer(d.this, d.whom, r, d.amount)
+                }
             }
         }
     }
@@ -452,6 +530,21 @@ pub(crate) fn report(name: &str, w: &TakeWord) {
     for (n, who, k, b, a) in &w.movers {
         eprintln!("  mover {n} who={who} {k}: {b} -> {a}");
     }
+    let mut leaf_firsts: std::collections::BTreeMap<(usize, &str), (i64, i64, i64)> =
+        Default::default();
+    for (n, who, k, t, m) in w.leaves.iter().filter(|l| l.3 != l.4) {
+        leaf_firsts
+            .entry((*who, k.as_str()))
+            .or_insert((*n, *t, *m));
+    }
+    eprintln!(
+        "{name} diplomacy leaves: {} compared, {} parted",
+        w.leaves.len(),
+        w.leaves.iter().filter(|l| l.3 != l.4).count()
+    );
+    for ((who, k), (n, t, m)) in &leaf_firsts {
+        eprintln!("  leaf first {n} who={who} {k}: theirs {t} ours {m}");
+    }
 }
 
 /// **The first act** (item 4206): run1078's own trace and dump against the
@@ -584,11 +677,20 @@ pub(crate) enum TakeKind {
     /// `process_accept <whom> <frame>`: `Leader::action_respond(who, whom,
     /// 1)`.
     Accept,
+    /// `process_propose_attack <whom> <whose> <frame>`:
+    /// `Leader::action_attack(who, whom, whose, onoff)`, `onoff` the
+    /// window's toggle (item 4298).
+    Attack,
+    /// `process_tribute <whom> <good> <frame>`: `Leader::action_offer(who,
+    /// whom, good, amount)`, the amount the click's modifier keys pick
+    /// ([`tribute_amounts`], item 4298).
+    Tribute,
 }
 
 /// One of the window's commands the take's own record shows, on the frame
 /// it ran: issued by `this` (the console's seat) to `whom`, `level` the
-/// treaty asked or declared (1 for an accept).
+/// treaty asked or declared (1 for an accept), the slot to attack, or the
+/// good offered; `amount` a tribute's, else 0.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct TakeDiplo {
     pub frame: i64,
@@ -596,6 +698,7 @@ pub(crate) struct TakeDiplo {
     pub whom: sim::Player,
     pub level: i32,
     pub kind: TakeKind,
+    pub amount: i32,
 }
 
 /// The seat that issues the window's commands: the console's leader, who 0
@@ -630,10 +733,15 @@ pub(crate) fn take_diplomacy(capture: &str) -> Option<Vec<TakeDiplo>> {
         let line = line.ok()?;
         let line = String::from_utf8_lossy(&line);
         let t = line.trim();
-        let Some(verb) = ["process_declare", "process_treaty", "process_accept"]
-            .into_iter()
-            .find(|v| t.starts_with(&format!("{v} ")))
-        else {
+        let Some(verb) = [
+            "process_declare",
+            "process_treaty",
+            "process_accept",
+            "process_propose_attack",
+            "process_tribute",
+        ]
+        .into_iter()
+        .find(|v| t.starts_with(&format!("{v} "))) else {
             continue;
         };
         let nums: Vec<i64> = t[verb.len()..]
@@ -644,6 +752,10 @@ pub(crate) fn take_diplomacy(capture: &str) -> Option<Vec<TakeDiplo>> {
             ("process_declare", &[whom, treaty, frame]) => (TakeKind::Declare, whom, treaty, frame),
             ("process_treaty", &[whom, treaty, frame]) => (TakeKind::Treaty, whom, treaty, frame),
             ("process_accept", &[whom, frame]) => (TakeKind::Accept, whom, 1, frame),
+            ("process_propose_attack", &[whom, whose, frame]) => {
+                (TakeKind::Attack, whom, whose, frame)
+            }
+            ("process_tribute", &[whom, good, frame]) => (TakeKind::Tribute, whom, good, frame),
             _ => panic!("{capture}: an unread {verb} line: {nums:?}"),
         };
         out.push(TakeDiplo {
@@ -652,9 +764,56 @@ pub(crate) fn take_diplomacy(capture: &str) -> Option<Vec<TakeDiplo>> {
             whom: whom as sim::Player,
             level: level as i32,
             kind,
+            amount: 0,
         });
     }
     Some(out)
+}
+
+/// `GetKeyState`'s shift (`VK_SHIFT`, 16) and alt (`VK_MENU`, 18), the two
+/// modifiers `IFaceDiploNeg::on_button_clicked@00804320` reads.
+const VK_SHIFT: i64 = 16;
+const VK_MENU: i64 = 18;
+
+/// **A tribute's amount, minted from the take's script** (item 4298): the
+/// record prints a `process_tribute` line without its amount, which is the
+/// window's input — `IFaceDiploNeg::on_button_clicked@00804320` offers
+/// 100 a click, 500 with shift held, and the giver's whole stock with alt.
+/// The click is the script's line one frame before the command's (the
+/// window's commands run on the frame after their click, as `process_*`
+/// lines show); a key is held over `<from> @hold <vk> <to>`, both ends in.
+/// An alt-held click is refused here: no take uses one.
+pub(crate) fn tribute_amounts(diplomacy: &mut [TakeDiplo], script: &str) {
+    let path = format!(
+        "{}/../../tools/gamelog/coverage/{script}",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path}: {e}"));
+    let holds: Vec<(i64, i64, i64)> = text
+        .lines()
+        .filter_map(|l| {
+            let w: Vec<&str> = l.split_whitespace().collect();
+            match w.as_slice() {
+                [from, "@hold", vk, to] => {
+                    Some((vk.parse().ok()?, from.parse().ok()?, to.parse().ok()?))
+                }
+                _ => None,
+            }
+        })
+        .collect();
+    let held = |vk: i64, f: i64| {
+        holds
+            .iter()
+            .any(|&(k, a, b)| k == vk && (a..=b).contains(&f))
+    };
+    for d in diplomacy.iter_mut().filter(|d| d.kind == TakeKind::Tribute) {
+        let click = d.frame - 1;
+        assert!(
+            !held(VK_MENU, click),
+            "{script}: an alt-held tribute on {click}"
+        );
+        d.amount = if held(VK_SHIFT, click) { 500 } else { 100 };
+    }
 }
 
 /// A take named by `RON_TAKE=<gamelog>,<trace>` walked at style 0 on the
@@ -687,7 +846,13 @@ fn diplomacy_take_walked_by_name() {
     let diplomacy = if std::env::var_os("RON_TAKE_NO_DIPLOMACY").is_some() {
         Vec::new()
     } else {
-        take_diplomacy(g).unwrap_or_default()
+        let mut d = take_diplomacy(g).unwrap_or_default();
+        // `RON_TAKE_SCRIPT_NAME=<coverage cmd>`: the script a tribute's
+        // amount is minted from.
+        if let Ok(n) = std::env::var("RON_TAKE_SCRIPT_NAME") {
+            tribute_amounts(&mut d, &n);
+        }
+        d
     };
     eprintln!("{g}: staged {diplomacy:?}");
     // `RON_TAKE_NO_TAUNT`: leave the script's taunts unstaged.
@@ -1349,5 +1514,117 @@ fn run1575_s_taunt_parts_without_its_chat() {
             "967 1 taunt_frame[0]: theirs 966 ours 0".to_string(),
         ],
         "the stub's first partings"
+    );
+}
+
+/// **run1629, the attack deal's take** (item 4298, `docs/RUNS.md` run1629):
+/// run1575's line to its 1081 Escape, then `attack4298.cmd`'s deal — the
+/// Russians met on 1085, the alliance unticked, the human asking the French
+/// to attack the Russians with 5,000 each of metal and oil — `cover=1`, the
+/// level-9 leader record 1074..1301 and a packet at logger frame 1190.
+pub(crate) const RUN1629: (&str, &str) = (
+    "gamelog-run1629-eastindies-melee-style0-attack-deal-take-packet-1190.txt",
+    "rontrace-run1629.log",
+);
+
+/// run1629's window commands, each tribute's amount minted from the script.
+pub(crate) fn run1629_diplomacy() -> Option<Vec<TakeDiplo>> {
+    let mut d = take_diplomacy(RUN1629.0)?;
+    tribute_amounts(&mut d, "attack4298.cmd");
+    Some(d)
+}
+
+/// **run1629's word** (item 4298): our walk of the take from run1482's
+/// start re-read at style 0, `attack4298.cmd` staged, the chat minted, the
+/// human's window commands read off the take's own record — the attack
+/// asked (`process_propose_attack 1 2 1131`), twenty tributes and the
+/// accept of 1186 — and every diplomacy leaf ours carries set against the
+/// record on every block.
+#[test]
+fn run1629_s_word_is_pinned_as_found() {
+    let _pins = Pins::hold();
+    let Some(diplomacy) = run1629_diplomacy() else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", RUN1629.0);
+        return;
+    };
+    let Some(w) = walk_sea_style_zero(
+        RUN1629,
+        coverage_script("attack4298.cmd"),
+        &[],
+        &diplomacy,
+        &script_taunts("attack4298.cmd").unwrap_or_default(),
+    ) else {
+        return;
+    };
+    report("run1629", &w);
+    pin_eq!(w.last, 1300, "the take's last frame");
+    // Item 4298: whole, 1300 of 1300, with the attack asked, the tributes
+    // offered and the French answer computed by their offers arm (the
+    // attack terms, `Sim::attack_terms`).
+    pin_eq!(w.count, 1300, "the draw count's first parting");
+    pin_eq!(w.sequence, 1300, "the draw sequence's first parting");
+    pin_eq!(w.row.as_str(), "", "no parting");
+    let movers: Vec<String> = w
+        .movers
+        .iter()
+        .map(|(n, who, k, b, a)| format!("{n} {who} {k} {b}->{a}"))
+        .collect();
+    pin_eq!(
+        movers,
+        vec![
+            "1086 0 treaties[2] 0->1".to_string(),
+            "1086 2 treaties[0] 0->1".to_string(),
+            "1187 0 diplos[2] 1->0".to_string(),
+            "1187 0 dow[2] 0->1".to_string(),
+            "1187 0 gift_stamp[1] 0->1186".to_string(),
+            "1187 0 hire_stamp[2] 0->1186".to_string(),
+            "1187 0 hire_who[2] -1->1".to_string(),
+            "1187 0 tributes[2] 0->640".to_string(),
+            "1187 1 counteroffer[0] 1->0".to_string(),
+            "1187 1 diplos[2] 1->0".to_string(),
+            "1187 1 good_deeds[0] 0->6139".to_string(),
+            "1187 1 hire_stamp[2] 0->1186".to_string(),
+            "1187 1 hire_who[2] -1->0".to_string(),
+            "1187 2 diplos[0] 1->0".to_string(),
+            "1187 2 diplos[1] 1->0".to_string(),
+        ],
+        "the take's diplomacy movers, on its own record"
+    );
+    // **Every diplomacy leaf ours carries, against the record on every
+    // block** (1074..1300, three leaders): none parts. The three leaves item
+    // 4298 releases (`hire_stamp`, `hire_who`, `tributes`) agree off their
+    // reset on every block from 1187 — the hire of 1186 and the attack
+    // price's residue — and `good_deeds[0]` (the French, `−need`) with them.
+    let parted: Vec<String> = w
+        .leaves
+        .iter()
+        .filter(|l| l.3 != l.4)
+        .map(|(n, who, k, t, m)| format!("{n} {who} {k}: theirs {t} ours {m}"))
+        .collect();
+    pin_eq!(
+        parted,
+        Vec::<String>::new(),
+        "the diplomacy leaves, ours against the record"
+    );
+    pin_eq!(w.leaves.len(), 59247, "the diplomacy leaf rows compared");
+    let off_reset = |leaf: &str| {
+        w.leaves
+            .iter()
+            .filter(|(_, _, k, t, m)| {
+                k.starts_with(&format!("{leaf}["))
+                    && t == m
+                    && *t != i64::from(leaf == "hire_who") * -1
+            })
+            .count()
+    };
+    pin_eq!(
+        [
+            off_reset("hire_stamp"),
+            off_reset("hire_who"),
+            off_reset("tributes"),
+            off_reset("good_deeds")
+        ],
+        [228, 228, 114, 114],
+        "each leaf's rows off its reset, agreeing (114 blocks, 1187..1300)"
     );
 }
