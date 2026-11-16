@@ -752,7 +752,17 @@ impl ApplicationHandler for App {
                     },
                 ..
             } => self.key(el, &logical_key),
-            WindowEvent::ModifiersChanged(m) => self.ctrl = m.state().control_key(),
+            WindowEvent::ModifiersChanged(m) => {
+                let m = m.state();
+                self.ctrl = m.control_key();
+                // The modifiers each issuer reads at the press (item 4293,
+                // `docs/CLIENT_INPUT.md` §33).
+                self.input.mods = input::Mods {
+                    shift: m.shift_key(),
+                    ctrl: m.control_key(),
+                    alt: m.alt_key(),
+                };
+            }
             WindowEvent::CursorMoved { position, .. } => {
                 self.cursor = (position.x as i32, position.y as i32);
             }
