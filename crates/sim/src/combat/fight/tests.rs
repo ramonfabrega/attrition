@@ -578,7 +578,7 @@ fn a_closed_decoy_s_round_in_flight_strikes() {
     assert!(sim.buildings[b].damage > 0, "the building takes it");
 }
 
-/// **A decoy's expiry raises its owner's units bit** (`Unit::close@0060ee50`
+/// **A decoy's expiry raises its owner's units bit** (`Unit::close`'s
 /// `:79`, item 4159's fifteenth residue): `Unit::process` closes an aged
 /// decoy through vslot `+0x150`, `Unit::close`, whose `leader_flags |=
 /// 0x800000` stands ahead of every count gate, the decoy's included. run1013's
