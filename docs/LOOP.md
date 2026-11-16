@@ -319,11 +319,14 @@ when one is red. This was the driver's to do by hand, and two booking gates
 of 2026-11-15 went red on such a pin after thirteen minutes each (two of
 the tranche of 2026-11-12's three reds before them, and gate-4205's 19.8
 minutes). `diff::coverage` (266 s) is not in the list. **The clock test
-runs last and alone**: a booking gate leaves it out of its release step and
-measures it as a final step under a draining lease of the whole host
-budget, so no admitted test runs beside it; it broke two booking gates at
-loads of 13.5 to 15.6 beside lanes and reads p99 14 ms alone. A booking
-gate has nine steps.
+runs last, and alone only after a red**: a booking gate leaves it out of
+its release step and measures it as a final step, first beside load under
+a lease of two slots, and once more under a draining lease of the whole
+host budget only when that is red (DECISIONS 136 §2; the log's `Clock:`
+line says which). It broke two booking gates at loads of 13.5 to 15.6
+beside lanes and reads p99 14 ms alone; drained on every gate, it waited
+60.6 of eight gates' 193.3 minutes for the longest lease on the host to
+end. A booking gate has nine steps.
 
 **A booking gate is scoped, and the whole gate runs at a drain and at a
 pass** (DECISIONS 132 §5). A scoped gate widens to every timed test on any

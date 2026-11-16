@@ -22126,3 +22126,25 @@ Booked: 4243 and 4244 on parity's units and builds, 4245 to 4247 on what
 the eye found. `lore`'s four findings were checked on the tree; the public
 README's status is rewritten. The pass spawned no agent and moved no score.
 **DECISIONS 134.** `docs/audit/2026-11-14-fable-pass-token-bound.md`.
+
+## 2026-11-16 — the pass at a supply boundary: the wake fired and did not spawn, and the clock drained the host on every gate (Fable 5.2, steering)
+
+`commander` landed ten in four hours overnight, gated whole and banked at
+the day's line with neither lane seat designed. Its 06:07 wake started no
+row and Ramon woke it by hand near 09:03. The handoff guessed the arming
+prompt was never typed. It was: the cron fired on time, and the wake's
+script died on ccc refusing to spawn `commander` from `commander`, which
+the pass reproduced with a throwaway row and mended with the flag ccc's own
+refusal names; a failed wake now asks for a push notification. Reading the
+gate table's start parse (a log name written the afternoon before keeps
+its birth, so two gates read 443 and 481 minutes) showed what the minutes
+really were: 43.5 and 33.8, most of it the clock step waiting for the host
+to drain. Over eight booking gates the drain cost 60.6 of 193.3 minutes
+for a test that runs eight seconds. The clock now runs beside load first
+and drains only after a red (one Opus builder, red first). Ruled:
+`leader_options` from the client's own prefs, no control drawn, and the
+whole-recording count booked with its orders beside it, since 38 of its 42
+would be empty files; the panel's roster next; the auto-explored file's
+playback as a rules item with the take first; the land's light taken on
+the plain ground after a look at 1:1. Booked: 4289 to 4292. The pass moved
+no score. **DECISIONS 136.** `docs/audit/2026-11-16-fable-pass-wake.md`.

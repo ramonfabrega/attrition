@@ -75,6 +75,13 @@ lines): **checksum** — every line but leaders is whole on the minted game, `LE
 kind's file played by the original but spell's; **renderer** — under a mountain 100 of 106, the row
 past the map's edge pinned at 0 of 162. The other tracks stand as the table says.
 
+**At the pass of 2026-11-16** (entry 136): **checksum** — `LEADERS_HELD_OUT` 9, `score` on the
+line; **orders** — `INPUT_KINDS` 25 of 26 kinds and 2,379 of 2,429 orders, the last kind
+`leader_options` (item 4289, from the client's own prefs); a person's whole game first counted,
+`INPUT_WHOLE` 0 of 50 recordings and 363 of 2,429 orders shown, 990 missed, 432 of them a type no
+key binds (item 4290); **renderer** — under a mountain 106 of 106, the buildings' warmth 2 of 2,
+and the land's light taken on the plain ground (item 4292); the auto-explored file's playback is item 4291.
+
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
 on one lane, taking textures and team colours next; then the lobby screen

@@ -150,6 +150,7 @@ is append-only and amended in place, as it always was.
 - 133 standing — The pass of 2026-11-14: the loop is bound by test CPU, a lane's gate reads the queue's mark, the second reading moves no leaf, the lanes follow parity and the eye, the documents compacted
 - 134 standing — The pass of 2026-11-14, second: the week is bound by tokens, a scoped lane that moves the sim's source keeps the widenings, a quoted refusal cites nothing, the render lane follows the eye
 - 135 standing — The pass of 2026-11-15: the driver's two lines are asked at the gate and the brief, a wake is a spawn, the day's line carries no margin, a session's booking gate runs through `gate_run.sh`
+- 136 standing — The pass of 2026-11-16: a wake into its own row says `--allow-duplicate` and reports its failure, the clock drains the host only after a red beside load, a gate log says when it began, `leader_options` is the client's own prefs, the land is lit
 
 ## 1. Fidelity before divergence
 
@@ -13336,3 +13337,125 @@ trailing comment item 4258 reported lost did not reproduce.
 driver's clear (so §2 forbids the cut rather than relying on it); what the
 clock test reads between host loads of 7.5 and 13.5; whether a pass every
 twenty landings is worth its point, which the next two passes will show.
+
+## 136. A wake into its own row says so and reports its failure, the clock drains the host only after a red beside load, a gate log says when it began, `leader_options` is the client's own prefs, and the land is lit (2026-11-16)
+
+**What happened.** `commander` (Opus 5.5) ran a tranche of ten landings
+from 22:12 on 2026-11-15 to 02:24 −05:00 on 2026-11-16 (six lane items and
+four in-session builders), gated whole and banked at the day's line and at
+a supply boundary. Its 06:07 wake did not start a row; Ramon woke
+`commander` by hand at about 09:03 and it handed over to `steer`. The tables are
+in `docs/audit/2026-11-16-fable-pass-wake.md`.
+
+**§1. A wake into its own row says so, and a failed wake reaches Ramon.**
+The handoff's hypothesis was that the arming prompt was never typed. It
+was: the cleared session ran `CronCreate` at 02:56:04, the one-shot fired
+at 06:07:00, and `python3 tools/handover.py wake` exited 1 five seconds
+later on ccc 0.1.50's refusal — "'commander' is already working as
+0cc9a398 in that same folder … `--replace` … or `--allow-duplicate` to
+mean it". The row the cron fires into is `commander`, and the row the wake
+spawns is `commander`. `CronList` read empty when he looked because a one-shot
+deletes itself when it fires. The pass reproduced the refusal with a
+throwaway row in this tree (exit 1, the same sentence) and passed with the
+flag. So a handover to the caller's own name spawns with
+`--allow-duplicate` (`handover.py`, `spawn_argv`; `to commander --ungated`
+from `commander` took the same refusal and is mended with it), never
+`--replace`, which stops the caller under its own spawn: the new row reaps
+the old by its ref, as every handover does. Entry 135 §4's wake was tested
+on the queue's paragraph and never as a spawn. **And the wake's prompt now
+asks for one push notification when the script exits non-zero**: the
+session that took the wake said what was wrong, in a row nobody was
+reading, for nearly three hours.
+
+**§2. The clock is measured alone only after it is red beside load.**
+Entry 135's pass had the booking gate run the client's wall-clock test
+last, under a lease that drains the whole host, and named the drain's wait
+as unmeasured. Measured on this tranche's eight scoped booking gates: the
+drain waited 157, 0, 50, 774, 80, 1,494, 0 and 1,082 seconds, 60.6 of
+their 193.3 minutes, for a test that ran eight seconds each time. A drain
+waits for the longest lease already admitted on the host and admits no
+newcomer while it waits, so the lanes' gates stalled behind it too. The
+two clock reds of the tranche before had cost 38.7 minutes in fifty gates.
+A green beside load is a green, since foreign load can only slow a frame.
+So the `clock` step runs the test first under an ordinary lease of two
+slots, and drains the host for a second measurement only when the first is
+red; the second verdict is the step's, and the log says which on a
+`Clock:` line. Built by an in-session builder on Opus 5.5, red first. The
+test's own rule still runs inside each attempt: a broken first session
+waits up to 600 s for the load to fall to the core count before a second
+session is measured.
+
+**§3. A gate log says when it began.** `tools/gates.py` read a gate's
+start from its log's birth time, and `tools/gate_run.sh` opens the log
+with `>`, which keeps the birth of a name written before. gate-4159r12b
+and -r12c were names first written the afternoon before; the table read
+443.1 and 481.9 minutes on runs of 43.5 and 33.8, and the handoff, reading
+the table, called them "about twenty". The log's second line is now `Gate
+start: <epoch> …`; the table believes it, falls back on the steps' own
+minutes for a log older than the line, and prints the clock step's minutes
+as a column, since the 25.0 and 18.2 minutes of §2 were in the logs and in
+no table.
+
+**§4. `leader_options` is minted from the client's own prefs, and only
+the fresh profile's value is offered** (item 4289; parked 4285a). The
+order is the last of the 26 kinds and the one order every recording
+carries. The original builds it at the start of a game from the player's
+profile, not from the lobby, and no button issues it; every file our
+client writes today copies the frame-0 package out of a recording on disk.
+The handoff offered a lobby field. The ruling: the layer builds the order
+from a prefs record of its own (the five bits and two counts
+`docs/CLIENT_INPUT.md` §26.1 reads), defaulted to what the capture
+prefix's fresh profile holds, and the test mints the frame-0 package of
+all 50 recordings byte for byte from the two prefs values they carry. No
+control is drawn: a value other than the default changes units and
+buildings through a processor the sim does not carry (parked 4280b), and
+a control whose other settings the game ignores is worse than none. A
+minted game then needs nothing from a recording. **`INPUT_WHOLE` is booked
+with its orders beside it**: it goes 0 → 42 of 50 on that item, and 38 of
+those 42 are recordings that carry no other order. The count a pass steers
+by is the orders': 363 shown, 1,076 of the layer's form and unshown, 990
+missed, of 2,429.
+
+**§5. The roster a panel offers is the input seat's next item** (item
+4290). Of the 990 missed orders 432 are a `queue_up` or a `build` whose
+type the layer's keys do not bind: a person in our client cannot train or
+build most of what the original's panel offers. Its first act is the
+census of the recorded types against the panel's buttons; the other arms
+(the shift's queue 200, the right drag's facing 140, the attack-move 54)
+follow by orders.
+
+**§6. The auto-explored file's playback is a rules item with a take
+first** (item 4291, marked whole; parked 4288a). Its build is five readers of one
+unit bit in `crates/sim`, each on one reading. The file is already minted,
+so its first act is the take: the original plays it with a per-frame dump
+sized to the orders, and our walk's first parted draw names the first
+piece to build. The diff, not a second reading, is what the build rests
+on.
+
+**§7. The land is lit** (item 4292; parked 4284a, taken). With the land's own light
+on the plain ground the grass's mean nears the photograph's on all three
+photographs, run1559b's luma row comes whole (1,072 → 1,109 of 1,109) and
+`_TRACED_STILL` reads 33 of 33; run1564's sand and surf fall by 6 to 20
+tiles and the two plumes by 75 and 208 of about 11,300. The pass looked
+first (`client --frame 3279 --still`, with and without `--land-light`,
+beside run1559b's photograph at 1:1): where the range meets the grass the
+photograph's shadow fades smoothly, the switch off draws a stair along
+tile edges, and the switch on draws the photograph's fade. The original
+lights the land; the rows that fall were pinned over a ground lit flat,
+and each falls by name, with its residue parked by the item that takes
+the switch.
+
+**§8. What the journals raised.** Three "for the Loop" lines, each method
+for its item's own kind, stay in their journals: a census by recording
+before a whole-recording score is booked (4285), a probe that flips a
+standing switch in the first act of an item whose residue sits where two
+draws overlap (4284), and the card's options and stages for the parted
+object's own draw before a shared light is read (4286). The tranche took
+no second reading and left no `FABLE:` marker.
+
+**Not established:** whether a red beside load followed by the test's own
+600 s wait and then a drain is ever dearer than the drain alone (no gate
+has run it); the wake's spawn from `commander` itself, which only the next
+morning's wake exercises (the pass's probe was a throwaway name); whether
+the fresh profile's prefs are the original's defaults or this prefix's
+(item 4289's first act).
