@@ -181,4 +181,16 @@ below.
 Whole, by `tools/gate_run.sh`, the first gate to run the merge pins and the
 drained clock for real.
 
-GATEVERDICT
+- **`gate-pass-1115.log`: `gate exit 0` on `ea4fd113c`**, 9 of 9 steps
+  (pins, offline, clippy, fmt, survey, guard, merge pins, release, clock),
+  28.4 minutes: merge pins 1.4, release 22.4, clock 0.1 (offline 2.0, guard
+  1.7). `Suite: 1335 processes for 2464 tests: 145 groups hold 1274, 1190
+  ran alone; 9617 test CPU-seconds`; admission 8.5 s over 1,372 leases;
+  load 2.3 at its start and 8.3 at its end. The clock ran alone under the
+  drained lease (`"cpu_slots": 20 … "admission": "drain"`, 8.3 s, green).
+  `Rows: one driver row at most: steer 35648f6a (working)`; `Driver: 0
+  landings since the last pass (backstop 20) · context 343 k`. The disk
+  step removed 130 stale oracle generations: 212 GB free.
+
+This section and the queue's handoff lines are gated scoped over that
+commit (`gate-pass-1115b.log`).
