@@ -2718,7 +2718,7 @@ The reading is one reader's, from the decompile.
 - **The command.** `issue_cheat_ai_toggle`, under `check_accept_issue`, adds command `0x40` with no body and no
   group (`docs/COMMANDS.md`).
 - **What it does.** `CommandPackage::process_cheat_ai_toggle@00944d20` logs, then flips the flag when bit 2 of the
-  game's first semaphore byte is clear: `ai_off = !ai_off`. `Game::action_cheat_ai_toggle@005930c0` is the same
+  game's first semaphore byte is clear: `ai_off = !ai_off`. `Game::action_cheat_ai_toggle` is the same
   statement and has no caller. Bit 2 is a multiplayer bit, so in a solo game the order always flips.
 - **What reads the flag.** In a game, three readers: `Leader::production_ai@006c1960`'s head, `Leader::diplomacy
   @006bc950`'s head, and the computer block of `Unit::think@005f6e40:205` (`docs/INPUT.md` §11.4). The other two

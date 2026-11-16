@@ -6,7 +6,7 @@
 //! case `0xc`) do not act where they are typed: each calls
 //! `CommandManager::issue_cheat_ai_toggle@00940fa0`, which adds the
 //! one-byte command to the local package. The handler logs and then does
-//! what `Game::action_cheat_ai_toggle@005930c0` does, inline: when bit 2
+//! what `Game::action_cheat_ai_toggle` (no caller) does, inline: when bit 2
 //! of the game's first semaphore byte is clear, `ai_off = !ai_off`. That
 //! one flag and its three readers in a game are `docs/INPUT.md` §11.4.
 //!

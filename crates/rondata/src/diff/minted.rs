@@ -5898,7 +5898,7 @@ pub(crate) const TOGGLED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
 )];
 
 /// The toggle's handler on the original's side, by entry address:
-/// `Game::action_cheat_ai_toggle@005930c0` has no caller, and the handler
+/// `Game::action_cheat_ai_toggle` has no caller, and the handler
 /// flips the flag inline (`rondata::blind`).
 const TOGGLE_FUNCTIONS: [(u32, &str); 1] =
     [(0x0094_4d20, "CommandPackage::process_cheat_ai_toggle")];
