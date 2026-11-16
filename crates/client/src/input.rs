@@ -928,6 +928,8 @@ impl View<'_> {
 /// (`sim::ids::order`).
 const BUILD_AT: i32 = sim::ids::order::BUILD_AT as i32;
 const REPAIR: i32 = sim::ids::order::REPAIR as i32;
+/// The attack-move's `orders` byte, `OrderIndex::ATTACK_TO` (item 4297).
+const ATTACK_TO: i8 = sim::ids::order::ATTACK_TO as i8;
 /// `QUEUE_NEW`: every arm's queue with no modifier held.
 const QUEUE_NEW: i32 = 2;
 /// `QUEUE_LAST`: the shift's queue, the order after the ones standing
@@ -1038,6 +1040,24 @@ fn move_to(at: Pos, form: i8, width: i8, queued: i32) -> Command {
         queued: queued as i8,
         form,
         width,
+        disembark: 0,
+    }
+}
+
+/// **The attack-move's `move_to`** (item 4297, `docs/CLIENT_INPUT.md`
+/// §35.1): `ATTACK_TO` to `at`, no facing, `form` and `width` −1, as
+/// `Console::execute_at_cursor@007c6630` and `WorldMap::on_right_up@008c7050`
+/// both issue it under ctrl, with the issuer's queue.
+fn attack_to(at: Pos, queued: i32) -> Command {
+    Command::MoveTo {
+        to_x: at.x,
+        to_y: at.y,
+        set_angle: 0,
+        angle: 0,
+        orders: ATTACK_TO,
+        queued: queued as i8,
+        form: -1,
+        width: -1,
         disembark: 0,
     }
 }
@@ -1832,10 +1852,20 @@ impl Input {
                 }
                 if self.mods.ctrl {
                     // Ctrl is the dispatch's attack-move, asked before any
-                    // object (`execute_at_cursor`'s `ATTACK_TO` arm, item
-                    // 4293, §33.1): not built, so nothing rather than an
-                    // order the original would not issue.
-                    return None;
+                    // object (`execute_at_cursor`'s first arm, item 4297,
+                    // §35.1): `ATTACK_TO` to the release's ground point with
+                    // −1/−1. With alt read too (under the profile's `0x400`,
+                    // as the queue's), it is `MOVE_TO` with the press's
+                    // formation, `drag_form`/`drag_form_mod`.
+                    let at = ground_at(view, x, y)?;
+                    let queued = self.dispatch_queue();
+                    let cmd = if self.mods.alt && self.prefs.prefs & 0x400 == 0 {
+                        let (form, width) = view.formation(&self.selection);
+                        move_to(at, form, width, queued)
+                    } else {
+                        attack_to(at, queued)
+                    };
+                    return Some((frame, play, vec![self.group(view.scene), cmd]));
                 }
                 let hit = view.target(self.player, x, y);
                 if let Some(cmd) =
@@ -1917,17 +1947,21 @@ impl Input {
             Event::MapRightPress { x, y } => {
                 // The minimap's arm: the point on the map, the selection
                 // able to act, `MOVE_TO` with −1/−1. With ctrl it is
-                // `ATTACK_TO`, not built: nothing (item 4293, §33.1).
+                // `ATTACK_TO` in its place, alt or not (item 4297, §35.1).
                 let (w, h) = view.map_extent();
                 if self.selection.is_empty()
                     || self.building
-                    || self.mods.ctrl
                     || !(0..w).contains(&x)
                     || !(0..h).contains(&y)
                 {
                     return None;
                 }
-                let cmd = move_to(Pos { x, y }, -1, -1, self.map_queue());
+                let at = Pos { x, y };
+                let cmd = if self.mods.ctrl {
+                    attack_to(at, self.map_queue())
+                } else {
+                    move_to(at, -1, -1, self.map_queue())
+                };
                 Some((frame, play, vec![self.group(view.scene), cmd]))
             }
             Event::Train(unit) => {
@@ -4758,6 +4792,108 @@ pub(crate) mod tests {
         assert_eq!(Input::new(0).event(3, d, &v), None);
     }
 
+    /// **The attack-move** (item 4297, `docs/CLIENT_INPUT.md` §35.3): ctrl on
+    /// a unit selection's right press mints `ATTACK_TO` to the ground
+    /// point, no facing, −1/−1, the dispatch's queue, before any object
+    /// under the press; with alt too, `MOVE_TO` with the formation, unless
+    /// the profile's `0x400` hides alt. On the minimap ctrl mints
+    /// `ATTACK_TO` at the map point with the minimap's queue, alt or not.
+    /// A building's selection keeps its gather point.
+    #[test]
+    fn minted_an_attack_move_as_the_original() {
+        let terrain = TerrainScene {
+            width: 64,
+            height: 64,
+            ..TerrainScene::default()
+        };
+        let c = crate::pinned_camera();
+        let bare = Scene::default();
+        let probe = view(&c, &bare, &terrain);
+        let at = ground_at(&probe, 900, 500).unwrap();
+        // An enemy unit and one's own, both under the press.
+        let mut enemy = unit(1, 7, 2, at.x, 0, 50);
+        enemy.pos = at;
+        let mut friend = unit(0, 6, 2, at.x, 0, 50);
+        friend.pos = Pos {
+            x: at.x,
+            y: at.y + 1,
+        };
+        let scene = Scene {
+            units: vec![unit(0, 5, 2, 0, 9, 50), enemy, friend],
+            ..Scene::default()
+        };
+        let v = view(&c, &scene, &terrain);
+        assert!(v.names_object(900, 500), "the press names an object");
+        let mods = |shift, ctrl, alt| Mods { shift, ctrl, alt };
+        let press = |m: Mods, prefs: u32, e: Event| {
+            let mut input = Input {
+                selection: vec![ObjId { who: 0, o: 5 }],
+                mods: m,
+                ..Input::new(0)
+            };
+            input.prefs.prefs |= prefs;
+            input.event(3, e, &v).map(|o| o.2)
+        };
+        let ground = Event::RightPress { x: 900, y: 500 };
+        let atk = |at: Pos, q: i32| Command::MoveTo {
+            to_x: at.x,
+            to_y: at.y,
+            set_angle: 0,
+            angle: 0,
+            orders: 2,
+            queued: q as i8,
+            form: -1,
+            width: -1,
+            disembark: 0,
+        };
+        // Without ctrl the press on the enemy is the attack.
+        let got = press(mods(false, false, false), 0, ground).unwrap();
+        assert!(matches!(got[1], Command::Attack { .. }), "{got:?}");
+        for (m, prefs, want) in [
+            (mods(false, true, false), 0, atk(at, QUEUE_NEW)),
+            (mods(true, true, false), 0, atk(at, QUEUE_LAST)),
+            (mods(false, true, true), 0, move_to(at, 9, 50, QUEUE_NEW)),
+            (mods(true, true, true), 0, move_to(at, 9, 50, QUEUE_FIRST)),
+            (mods(false, true, true), 0x400, atk(at, QUEUE_NEW)),
+            (mods(true, true, true), 0x400, atk(at, QUEUE_LAST)),
+        ] {
+            let got = press(m, prefs, ground).unwrap();
+            assert_eq!(got.len(), 2, "{m:?}");
+            assert!(matches!(got[0], Command::Group { .. }));
+            assert_eq!(got[1], want, "{m:?} prefs {prefs:#x}");
+            assert_eq!(
+                rondata::commands::encode(&got[1..]),
+                rondata::commands::encode(std::slice::from_ref(&want))
+            );
+        }
+        // The minimap: `ATTACK_TO` in place of `MOVE_TO`, alt or not.
+        let to = Pos { x: 9574, y: 25876 };
+        let map = Event::MapRightPress { x: to.x, y: to.y };
+        for (m, want) in [
+            (mods(false, true, false), atk(to, QUEUE_NEW)),
+            (mods(true, true, false), atk(to, QUEUE_LAST)),
+            (mods(false, true, true), atk(to, QUEUE_FIRST)),
+            (mods(false, false, false), move_to(to, -1, -1, QUEUE_NEW)),
+        ] {
+            assert_eq!(press(m, 0, map).unwrap()[1], want, "{m:?} the minimap");
+        }
+        // Nothing for an empty selection; a building keeps its arm.
+        let ctrl = mods(false, true, false);
+        let mut empty = Input {
+            mods: ctrl,
+            ..Input::new(0)
+        };
+        assert_eq!(empty.event(3, ground, &v), None);
+        assert_eq!(empty.event(3, map, &v), None);
+        let mut building = Input {
+            selection: vec![ObjId { who: 0, o: 2000 }],
+            building: true,
+            mods: ctrl,
+            ..Input::new(0)
+        };
+        assert_eq!(building.event(3, map, &v), None);
+    }
+
     /// The angles [`minted_a_right_drag_faces_as_the_original`] mints at
     /// the pinned camera, for a drag right, down, left and up the screen
     /// from `(900, 500)`, and none: no move is `find_angle(0, 0)`, south.
@@ -6984,8 +7120,19 @@ pub(crate) mod tests {
                     )
                 } else if !QUEUES.contains(&i32::from(queued)) {
                     Verdict::Miss("queued: a value no issuer writes", Button)
+                } else if orders == ATTACK_TO {
+                    // Since item 4297 the attack-move is the layer's
+                    // (§35): no facing, −1/−1.
+                    if (set_angle, angle, form, width, disembark) == (0, 0, -1, -1, 0) {
+                        Verdict::Form
+                    } else {
+                        Verdict::Miss(
+                            "move_to orders 2: a field ctrl's issuers do not write",
+                            Button,
+                        )
+                    }
                 } else if orders != 1 {
-                    Verdict::Miss("move_to orders 2: the attack-move", Button)
+                    Verdict::Miss("move_to orders: an order no arm of ours issues", Button)
                 } else if disembark == 0 && matches!((form, width), (0, 50) | (9, 50) | (-1, -1)) {
                     Verdict::Form
                 } else {
@@ -7172,11 +7319,10 @@ pub(crate) mod tests {
     /// Every order on disk by verdict: (shown, of the layer's form but not
     /// minted from a scene, missed, all). A package's `group` takes its
     /// order's verdict.
-    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (927, 1330, 172, 2429);
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (927, 1384, 118, 2429);
     /// The missed orders by arm, most first, and who reaches each, the
     /// package's `group` counted with its order.
     const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] = &[
-        ("move_to orders 2: the attack-move", Reach::Button, 54),
         (
             "gather_point on an object: actions 1 to 3",
             Reach::Button,
@@ -7421,10 +7567,34 @@ pub(crate) mod tests {
         input.prefs.prefs |= 0x400;
         let got = input.event(1, ground, &v).unwrap().2;
         assert_eq!(queue_of(&got[1]), Some(QUEUE_LAST));
-        // Ctrl is the attack-move, not built: nothing.
-        for mods in [ctrl, shift_ctrl, ctrl_alt] {
-            assert_eq!(unit(mods).event(1, ground, &v), None, "{mods:?}");
-            assert_eq!(unit(mods).event(1, map, &v), None, "{mods:?}");
+        // Ctrl is the attack-move (item 4297, §35): the dispatch's queue
+        // on the ground, the minimap's on the map; with alt on the ground
+        // it is `MOVE_TO` with the formation.
+        for (mods, q, mapq, orders) in [
+            (ctrl, QUEUE_NEW, QUEUE_NEW, ATTACK_TO),
+            (shift_ctrl, QUEUE_LAST, QUEUE_LAST, ATTACK_TO),
+            (ctrl_alt, QUEUE_NEW, QUEUE_FIRST, 1),
+        ] {
+            let got = unit(mods).event(1, ground, &v).unwrap().2;
+            assert_eq!(queue_of(&got[1]), Some(q), "{mods:?} the ground");
+            assert!(
+                matches!(got[1], Command::MoveTo { orders: o, .. } if o == orders),
+                "{mods:?} {:?}",
+                got[1]
+            );
+            let got = unit(mods).event(1, map, &v).unwrap().2;
+            assert_eq!(queue_of(&got[1]), Some(mapq), "{mods:?} the minimap");
+            assert!(
+                matches!(
+                    got[1],
+                    Command::MoveTo {
+                        orders: ATTACK_TO,
+                        ..
+                    }
+                ),
+                "{mods:?} {:?}",
+                got[1]
+            );
         }
         // The placement: the queue, and whether the type stays armed.
         let farm = BUILD_KEYS[0].1;
@@ -7674,6 +7844,140 @@ pub(crate) mod tests {
         assert_eq!(octants, RIGHT_DRAG_OCTANTS);
         let groups: Vec<_> = groups.into_iter().collect();
         assert_eq!(groups, RIGHT_DRAG_GROUPS);
+    }
+
+    /// An attack-move's fields past its point: `(set_angle, angle, form,
+    /// width, queued, disembark)`.
+    type AttackMoveFields = (i32, i32, i8, i8, i8, i8);
+    /// **`ATTACK_MOVE_FIELDS`** (item 4297, `docs/CLIENT_INPUT.md` §35.2):
+    /// every recorded `move_to` whose `orders` is not `MOVE_TO`, by its
+    /// `orders` and its other fields. Every issuer of `ATTACK_TO` writes
+    /// `(0, 0, −1, −1, queue, 0)`: `Console::execute_at_cursor@007c6630`
+    /// under ctrl, `WorldMap::on_right_up@008c7050` under ctrl, and the
+    /// ATTACK_TO option's spot through the dispatch.
+    /// All 27 packages are the 2017 sample's; with their `group`s they
+    /// are the 54 orders §30.2 missed. Seen red pinned with `queued` 1.
+    const ATTACK_MOVE_FIELDS: &[((i8, AttackMoveFields), usize)] =
+        &[((2, (0, 0, -1, -1, 2, 0)), 27)];
+    /// Of the 27 recorded heads, those the minimap mints under ctrl at the
+    /// recorded point, byte for byte. Seen red with the layer's ctrl
+    /// minting nothing (item 4293's arm): 0.
+    const ATTACK_MOVE_MINTED: usize = 27;
+    /// The selections, by the objects the package's `group` lists; 0 is
+    /// the wire's `num = 0`, the last selection sent again (§20).
+    const ATTACK_MOVE_GROUPS: &[(usize, usize)] = &[
+        (0, 4),
+        (1, 3),
+        (2, 1),
+        (5, 1),
+        (7, 1),
+        (8, 3),
+        (10, 1),
+        (11, 1),
+        (17, 1),
+        (20, 2),
+        (21, 3),
+        (23, 1),
+        (32, 3),
+        (37, 2),
+    ];
+
+    /// The census of the attack-moves (item 4297's first act).
+    #[test]
+    fn the_attack_moves_of_the_recordings_on_disk() {
+        let files = recordings_on_disk();
+        if files.is_empty() {
+            println!("skipping: no .rcx on disk");
+            return;
+        }
+        // The minimap reaches any world point, so each recorded head is
+        // minted there under ctrl, byte for byte; the map is sized past the
+        // sample's points (its own size is not on disk).
+        let terrain = TerrainScene {
+            width: 256,
+            height: 256,
+            ..TerrainScene::default()
+        };
+        let c = crate::pinned_camera();
+        let scene = Scene::default();
+        let v = view(&c, &scene, &terrain);
+        let mut minted = 0;
+        let mut fields: std::collections::BTreeMap<(i8, AttackMoveFields), usize> =
+            Default::default();
+        let mut groups: std::collections::BTreeMap<usize, usize> = Default::default();
+        let mut files_with = std::collections::BTreeSet::new();
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let mut listed = 0;
+                for c in &kept {
+                    match *c {
+                        Command::Group { ref objects, .. } => listed = objects.len(),
+                        Command::MoveTo {
+                            to_x,
+                            to_y,
+                            set_angle,
+                            angle,
+                            orders,
+                            queued,
+                            form,
+                            width,
+                            disembark,
+                        } if orders != 1 => {
+                            println!(
+                                "ATTACK MOVE {}: frame {} play {} heads {} to ({to_x}, {to_y}) \
+                                 listed {listed} {c:?}",
+                                f.file_name().unwrap().to_string_lossy(),
+                                p.frame,
+                                p.play,
+                                kept.len()
+                            );
+                            *fields
+                                .entry((orders, (set_angle, angle, form, width, queued, disembark)))
+                                .or_default() += 1;
+                            *groups.entry(listed).or_default() += 1;
+                            let mut input = Input {
+                                selection: vec![ObjId { who: 0, o: 5 }],
+                                mods: Mods {
+                                    ctrl: true,
+                                    ..Mods::default()
+                                },
+                                ..Input::new(0)
+                            };
+                            let ours = input
+                                .event(p.frame, Event::MapRightPress { x: to_x, y: to_y }, &v)
+                                .map(|o| o.2[1].clone());
+                            minted += usize::from(
+                                ours.as_ref() == Some(c)
+                                    && rondata::commands::encode(&[ours.unwrap()])
+                                        == rondata::commands::encode(std::slice::from_ref(c)),
+                            );
+                            files_with.insert(f.file_name().unwrap().to_string_lossy().to_string());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        println!("ATTACK MOVES in {files_with:?}: {fields:?} {groups:?}; minted {minted}");
+        assert_eq!(
+            files_with.len(),
+            1,
+            "one recording carries the attack-moves"
+        );
+        assert_eq!(
+            minted, ATTACK_MOVE_MINTED,
+            "each head, minted on the minimap"
+        );
+        let fields: Vec<_> = fields.into_iter().collect();
+        assert_eq!(fields, ATTACK_MOVE_FIELDS);
+        let groups: Vec<_> = groups.into_iter().collect();
+        assert_eq!(groups, ATTACK_MOVE_GROUPS);
     }
 
     /// `find_angle`'s image, read by [`of_find_angle`]: every multiple of
