@@ -3242,6 +3242,7 @@ On the photographs alone: the rows.
   4271a).~~ Answered by "The mountain's tint (item 4272)": ours tinted stage 1 too.
 - ~~The body's remaining 7 % (ours Y 146.4 against 137.3, item 4272) and its yellow-green cast by eye.~~ Item 4284.
 - The plain ground lit too: the halo west of the range, and the step where a lit tile meets a flat one (4284a).
+- The shore's descent: on run1564 the photograph's sand strip below the waterline stays bright where `light_vert` darkens it (4292a).
 - `vs_global.hlsl`'s per-pixel normal against the interpolated N·L the client takes, and the
   vertex colour taken from that N·L rather than interpolated.
 - ~~The trees' and the roads' `TL_FAKE_LIGHT` stage colours against each other (parked 4217a).~~ Answered by
