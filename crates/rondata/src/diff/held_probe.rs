@@ -15,6 +15,13 @@
 //! A cell is a record key equal to a named leaf or starting `leaf[`. Off (no
 //! `RON_HELD_PROBE`), a call reads one initialised `OnceLock` and returns.
 //!
+//! **The probe sees only what the record diff compares.** A leaf that
+//! [`crate::diff::leader::rows`] or [`crate::diff::leader::theirs`] does not
+//! carry gives no row at all, which looks like a clean leaf. Residue 18
+//! measured `good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded` and
+//! `tributes` with both sides carrying them, on a commit that is not kept
+//! (parked 4159r18a, `docs/journal/2026-11-16-item-4159-residue-18.md`).
+//!
 //! Each `HELD` row is written as it is found, one line:
 //! `HELD <test> <run> <site> block <n> who <w> <cell> ours <v> theirs <y>`.
 //! `SEEN` rows are counted per thread and written when the thread ends (a
@@ -73,8 +80,15 @@ fn is_cell(leaves: &[String], key: &str) -> bool {
 /// One finding, before it is spelled.
 #[derive(Debug, PartialEq, Eq)]
 enum Row {
-    Held { cell: String, ours: i64, theirs: i64 },
-    Seen { cell: String, theirs: i64 },
+    Held {
+        cell: String,
+        ours: i64,
+        theirs: i64,
+    },
+    Seen {
+        cell: String,
+        theirs: i64,
+    },
 }
 
 /// The probe's judgement on one record: every cell of `leaves` the record
@@ -113,7 +127,9 @@ fn judge<'a>(
 /// Where the lines go, one writer at a time.
 fn emit(p: &Probe, text: &str) {
     static OUT: Mutex<()> = Mutex::new(());
-    let _g = OUT.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+    let _g = OUT
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     match &p.file {
         Some(path) => {
             let mut f = std::fs::OpenOptions::new()
@@ -130,7 +146,10 @@ fn emit(p: &Probe, text: &str) {
 /// `SEEN` counts by `(test, run, site, who, cell, theirs)`: rows, first and
 /// last block. Written when the thread ends.
 #[derive(Default)]
-struct Seen(BTreeMap<(String, String, String, usize, String, i64), (usize, i64, i64)>);
+struct Seen(BTreeMap<SeenKey, (usize, i64, i64)>);
+
+/// `(test, run, site, who, cell, theirs)`.
+type SeenKey = (String, String, String, usize, String, i64);
 
 impl Drop for Seen {
     fn drop(&mut self) {
@@ -182,9 +201,15 @@ fn record<'a>(
             )),
             Row::Seen { cell, theirs } => SEEN.with(|s| {
                 let mut s = s.borrow_mut();
-                let e = s
-                    .0
-                    .entry((test.clone(), run.to_string(), site.clone(), who, cell, theirs))
+                let e =
+                    s.0.entry((
+                        test.clone(),
+                        run.to_string(),
+                        site.clone(),
+                        who,
+                        cell,
+                        theirs,
+                    ))
                     .or_insert((0, n, n));
                 e.0 += 1;
                 e.1 = e.1.min(n);
