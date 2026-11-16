@@ -151,3 +151,12 @@ fn fs_snowcap(i: VOut) -> @location(0) vec4<f32> {
     let t = textureSample(tex, samp, i.uv).rgb;
     return vec4<f32>(land_fake(t * land_vertex(i.nl)), a);
 }
+
+// Item 4311 (`docs/RENDERER.md` §3.15): the map's edge border,
+// `TerrainBorder::render@008af600`. Stage 0 `SELECTARG1(TEXTURE)` on colour
+// and alpha, stage 1 off; `TL_FAKE_LIGHT` with no lighting and no vertex
+// colour; `ONE`, `ZERO`: the texel replaces what is under it.
+@fragment
+fn fs_edge(i: VOut) -> @location(0) vec4<f32> {
+    return vec4<f32>(land_fake(textureSample(tex, samp, i.uv).rgb), 1.0);
+}

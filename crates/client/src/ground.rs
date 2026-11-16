@@ -1051,8 +1051,11 @@ pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1105, 1109);
 /// [`RUN1559B_3279_UNSCORED`]): 162 blocks, the first at pixel (160, 0),
 /// theirs (65, 61, 34), ours (3, 3, 4). Made to fail: the photograph
 /// against itself scores 162 of 162.
+/// Item 4311: **0 → 162 of 162** on all three, the map's edge border drawn
+/// (`client::edge`, §3.15): the first block ours (3, 3, 4) → (65, 61, 35);
+/// made to fail, the border off, 0 of 162.
 #[cfg(test)]
-pub const RUN1559B_3279_PAST_THE_EDGE: [(usize, usize); 3] = [(0, 162), (0, 162), (0, 162)];
+pub const RUN1559B_3279_PAST_THE_EDGE: [(usize, usize); 3] = [(162, 162), (162, 162), (162, 162)];
 
 /// The side of a block [`RUN1559B_3279_PAST_THE_EDGE`] scores (item 4247).
 #[cfg(test)]
@@ -3753,7 +3756,13 @@ pub(crate) mod tests {
             own,
             "the photograph agrees with itself"
         );
-        assert_ne!(own, row, "the row can fail");
+        // Item 4311: the made-to-fail side is the edge border off, the
+        // row as item 4247 minted it.
+        p.world.edge = false;
+        let off = crate::weathering::tests::still(&mut p, "run1559b-edge-off");
+        let off = past_the_edge(&mut p, &off);
+        println!("run1559b past the edge, the border off: {off:?}");
+        assert_eq!(off, [(0, 162), (0, 162), (0, 162)], "the border off");
         assert_eq!(row, RUN1559B_3279_PAST_THE_EDGE);
     }
 

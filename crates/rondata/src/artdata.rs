@@ -2503,6 +2503,40 @@ pub fn underlay_textures(
     Ok((snowcaps, list))
 }
 
+/// **The tileset's edge border textures** (item 4311; `docs/RENDERER.md`
+/// §3.15, "Item 4307: the map's edge border draws it"): `<BORDERTEX>`'s
+/// `TEXTURE` `file=` and `outerfile=` under `tileset`. `TileSet::init
+/// @0087b370` loads them into `TileSetData::border_texture` and
+/// `border_texture_outer` (`PF_32`, three levels) and hands each the
+/// tileset's `tint_color` through `ImageIO::set_tint@00511a00`;
+/// `TerrainBorder::render@008af600` binds the first to the `small_border`
+/// draw and the second to the `large_border` draw.
+pub fn border_textures(install: &Install, tileset: &str) -> Result<(String, String), ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let set = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?;
+    let t = set
+        .children()
+        .find(|n| n.has_tag_name("BORDERTEX"))
+        .and_then(|b| b.children().find(|n| n.has_tag_name("TEXTURE")))
+        .ok_or_else(|| unnamed("BORDERTEX"))?;
+    let file = |a: &str| {
+        t.attribute(a)
+            .map(|f| f.trim().to_string())
+            .ok_or_else(|| unnamed(a))
+    };
+    Ok((file("file")?, file("outerfile")?))
+}
+
 /// **The tileset's tint** (item 4212; `docs/RENDERER.md` §3.21): the
 /// `<LIGHTING>` element's `tint_red`, `tint_green` and `tint_blue` under
 /// `tileset`, as `TileSet::init@0087b370` reads them into

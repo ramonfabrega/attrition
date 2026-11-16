@@ -383,6 +383,9 @@ enum PatchKind {
     /// The snowcap underlay (item 4275, §3.10): the texel times the land's
     /// vertex colour through `TL_FAKE_LIGHT`, at the texture's alpha.
     Snowcap,
+    /// The map's edge border (item 4311, §3.15): the texel through
+    /// `TL_FAKE_LIGHT`, opaque (`ONE`, `ZERO`), its depth written.
+    Edge,
 }
 
 fn patch_kind(piece: i32) -> PatchKind {
@@ -390,6 +393,7 @@ fn patch_kind(piece: i32) -> PatchKind {
     match piece {
         WATER_PIECE => PatchKind::Water,
         SNOWCAP_PIECE => PatchKind::Snowcap,
+        p if crate::world::is_edge(p) => PatchKind::Edge,
         FLOOR_PIECE => PatchKind::Floor,
         p if crate::world::is_surf(p) => PatchKind::Surf,
         p if (WATER_PIECE + 1..0).contains(&p) || p == CORAL_PIECE => PatchKind::Lit,
@@ -438,6 +442,8 @@ pub struct Gpu {
     mtrl_layout: wgpu::BindGroupLayout,
     /// The snowcap underlay's pass (item 4275, §3.10).
     snowcap: wgpu::RenderPipeline,
+    /// The map's edge border's pass (item 4311, §3.15).
+    edge: wgpu::RenderPipeline,
     alpha_textures: std::sync::Mutex<std::collections::BTreeMap<usize, wgpu::BindGroup>>,
     /// `mountain_mtrl`'s bind group (item 4278), uploaded on first use.
     mtrl_textures: std::sync::Mutex<Option<wgpu::BindGroup>>,
@@ -1131,6 +1137,8 @@ impl Gpu {
         let patch_lit = blended("patch_lit", "fs_patch_lit");
         let mountain = blended("mountain", "fs_mountain");
         let snowcap = blended("snowcap", "fs_snowcap");
+        // Item 4311: opaque, so its alpha of 1 replaces; its depth written.
+        let edge = patch_pass("edge", "fs_edge", &patch_layout, true);
         let surf = patch_pass("surf", "fs_surf", &water_layout, false);
         // Item 4232: the floor writes its depth, as the base layer it
         // replaced did; the water reads the frame under it.
@@ -1203,6 +1211,7 @@ impl Gpu {
             mountain_mapped,
             mtrl_layout,
             snowcap,
+            edge,
             alpha_textures: std::sync::Mutex::new(Default::default()),
             mtrl_textures: std::sync::Mutex::new(None),
             textured,
@@ -2200,6 +2209,7 @@ impl Gpu {
                 (_, PatchKind::Lit) => &self.patch_lit,
                 (_, PatchKind::Floor) => &self.floor,
                 (_, PatchKind::Snowcap) => &self.snowcap,
+                (_, PatchKind::Edge) => &self.edge,
                 (_, PatchKind::Surf) => {
                     // Over a copy of the frame under it: drawn only by
                     // `ground_passes`' surf steps.
