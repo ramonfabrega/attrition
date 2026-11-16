@@ -1828,10 +1828,12 @@ fn leaf_text(v: &[i64]) -> String {
 /// spell pass sets its 46 bits (`docs/LEADERS.md` §17). Item 4298: 2 → 0
 /// ranges parted, 4,515 → 58,343 bytes agreeing — `hire_who`'s −1 per slot
 /// (`Leader::init`'s fill) emitted, the long range agrees on both leaders,
-/// and the line's Adler is the printed 2813959641. The three leaves still
+/// and the line's Adler is the printed 2813959641. The two leaves still
 /// held hold their reset there on both sides (unheld, so ours emits the
 /// reset): the line is not counted whole while [`LEADERS_HELD_OUT`] names
-/// any ([`whole_lines`]), which is the driver's ruling to make.
+/// any ([`whole_lines`]), the driver's ruling at item 4298 — a held leaf
+/// is substituted, and a counted line carries nothing substituted
+/// (`docs/DECISIONS.md` entry 131 §1).
 const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 0, 58343);
 
 /// **The leaves the leaders line is held out on**, each with its count of
@@ -2489,7 +2491,8 @@ fn the_leaders_line_is_the_original_s_range_by_range() {
 /// The lines every range of which agrees on run 1562's packet, read off
 /// each line's pinned outcome (its ranges parted 0; the world's every
 /// section agreeing and nothing held out), in the record's order. The
-/// leaders line is not among them while [`LEADERS`] parts.
+/// leaders line is not among them while [`LEADERS`] parts or
+/// [`LEADERS_HELD_OUT`] names a leaf (item 4298's ruling).
 fn whole_lines() -> Vec<&'static str> {
     let world =
         world::WORLD.iter().all(|s| s.0 == s.2 && s.1 == s.3) && world::WORLD_HELD_OUT.is_empty();
@@ -2502,8 +2505,9 @@ fn whole_lines() -> Vec<&'static str> {
         ("units", UNITS.3 == 0),
         ("groups", GROUPS.4 == 0),
         // Item 4298: the leaders line agrees on every range of run 1562's
-        // packet with three leaves still held at their reset; it counts
-        // whole when the held-out list is empty, as the world's does.
+        // packet with two leaves still held at their reset; it counts
+        // whole when the held-out list is empty, as the world's does (the
+        // driver's ruling: a held leaf is substituted, entry 131 §1).
         ("leaders", LEADERS.3 == 0 && LEADERS_HELD_OUT.is_empty()),
         ("world", world),
     ]

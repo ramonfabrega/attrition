@@ -177,20 +177,27 @@ const STATE_LINES_KEPT: [&str; 8] = [
 /// open lines; a walker the record names by its call site. The leaders
 /// line's first parting moved from `score` at `+0x10` to `+0x1cc` on all
 /// ten frames when item 4159's sixteenth residue put `score` on the line
-/// (ours equal to theirs there, 0x124 on 7195 to 0x16b on 14312).
+/// (ours equal to theirs there, 0x124 on 7195 to 0x16b on 14312), and off
+/// `+0x1cc` (leader 0's `hire_who`, theirs −1) when item 4298 emitted it:
+/// one range fewer on every frame, the first parting now `flags` or
+/// `resources_controlled` (`+0x850`) or `reg_unpack_merch[1]` (`+0x5d8`).
 const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     (
         7195,
         // Item 4251: units whole; before it, 3 of 1697 ranges from 832,
         // records 27..29 `unit_masks` 0x40000|0x40004 (bit 0x4,
         // `in_danger`, left out of the emitter; run1600's packet agrees).
-        &[(
-            "leaders",
-            271,
-            271,
-            3,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                2,
+                "128 1 flags: +0x2 of 8|8: 00020000|80020000",
+            ),
+        ],
     ),
     (
         7273,
@@ -198,49 +205,65 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         // 560 ranges, 891 and 279, record 30 (`1/30`, a Scholar, TI 52,
         // seated in its University on 7272) guy `angle` and `last_angle`
         // 0x55555555|0 (`Unit::go_inside`'s `set_angle(0, _, 1)` snap).
-        &[(
-            "leaders",
-            271,
-            271,
-            3,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                2,
+                "128 1 flags: +0x2 of 8|8: 00020000|80020000",
+            ),
+        ],
     ),
     (
         7383,
-        &[(
-            "leaders",
-            271,
-            271,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                1,
+                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
+            ),
+        ],
     ),
     (
         8206,
         // Item 4255: groups whole; before it, 1 of 544 ranges from 91,
         // record 67 `ox`/`oy` 30552/21144 ours, 0/0 theirs (here and on
         // 8281): `equals_group`'s `get_num` on an emptied last slot.
-        &[(
-            "leaders",
-            271,
-            271,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                1,
+                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
+            ),
+        ],
     ),
     (
         8281,
         // Item 4257 took units and builds here: the garrison chain's order
         // in the University 1/2018 (record 30 `inside_down` -1|42, the
         // building's 42|30), whole since; item 4255 took groups.
-        &[(
-            "leaders",
-            271,
-            271,
-            3,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                2,
+                "128 1 flags: +0x2 of 8|8: 00020000|80020000",
+            ),
+        ],
     ),
     (
         9810,
@@ -248,26 +271,34 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         // theirs) went with item 4258 (`Group::add`'s OR of the Hoplites'
         // role, TI 132); its units and builds rows (the University's chain)
         // went with item 4257.
-        &[(
-            "leaders",
-            271,
-            271,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                1,
+                "129 1 who..ally_mask: +0x5d0 of 26914|26914: 04000000|03000000",
+            ),
+        ],
     ),
     (
         10541,
         // Item 4260 took units and guys here: the Caravan `1/14`'s crew
         // (guys 1 and 2) `last_angle` 682461312|968792448, read before guy
         // 0's turn; whole since.
-        &[(
-            "leaders",
-            271,
-            271,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                1,
+                "129 1 who..ally_mask: +0x5d0 of 26914|26914: 05000000|03000000",
+            ),
+        ],
     ),
     (
         11884,
@@ -275,13 +306,17 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         // (TI 132) upgraded to Phalanx on a frame they walked, record 56's
         // `last_x`/`last_y` 38275|38297, 21337|21325 (`Unit::set_type`'s
         // seating writes `last` on the point); whole since.
-        &[(
-            "leaders",
-            271,
-            271,
-            3,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                2,
+                "128 1 flags: +0x3 of 8|8: 02000000|03000000",
+            ),
+        ],
     ),
     (
         12537,
@@ -290,26 +325,34 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         // `GuardOrder::walk_data` ranges the emitter did not hand over —
         // range 1539 `00486573`'s flags byte `04`, read as our guy list's
         // `length` 1 (the booking's "4 figures"); whole since.
-        &[(
-            "leaders",
-            271,
-            271,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                1,
+                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|06000000",
+            ),
+        ],
     ),
     (
         14312,
         // Item 4257's next builds word, record 2023's `wonder` -1|0, left
         // with item 4262: builds is whole on all 24,000. Its units row, the
         // same guard as 12537's, left with item 4266.
-        &[(
-            "leaders",
-            271,
-            271,
-            3,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                2,
+                "128 1 flags: +0x3 of 8|8: 02000000|0e000000",
+            ),
+        ],
     ),
 ];
 

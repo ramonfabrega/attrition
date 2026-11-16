@@ -1717,7 +1717,8 @@ item 4298, our Adler the printed 2813959641 (before it 265 and 4,515, each
 walked leader's long range `[+0x8, +0x692a)` parting; the earlier counts
 are items 4121's and 4187's journals). **2** leaves stay held, at their
 reset on both sides: the line is not counted whole while any is
-(`whole_lines`), the driver's ruling. `Sim::checksum_leaders`
+(`whole_lines`; the driver's ruling, a held leaf being substituted,
+entry 131 §1), so the count stays 8 of 12. `Sim::checksum_leaders`
 (`crates/sim/src/checksum/leaders.rs`) emits it, leaf by leaf
 (`Sim::leader_image`, a `None` leaf being one the crate holds no value
 for). `diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`
