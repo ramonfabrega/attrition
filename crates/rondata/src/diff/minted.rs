@@ -6188,3 +6188,68 @@ fn the_original_s_playback_of_the_disbanded_file_walks_in_lockstep() {
     assert_eq!(theirs, disbanded_effects(), "the original's units are ours");
     assert_eq!(entries, DISBAND_ENTRIES, "the handler's entry");
 }
+
+/// **The auto-explored file** (item 4288, `docs/CLIENT_INPUT.md` §31): the
+/// disbanded script and one package more, the Scout's `group` and
+/// `unitmask(0x100, −1)` on [`crate::script::AUTO_EXPLORE_FRAME`]; it
+/// round-trips through the file, and every package before it is the
+/// disbanded file's, frame, slot and stamp. With `RON_RCX_OUT=<file>` it
+/// writes the `.rcx` a playback takes open.
+#[test]
+fn the_auto_explored_minted_packages_round_trip() {
+    use crate::script::{AUTO_EXPLORE_FRAME, auto_explored, disbanded};
+    let (Some(rec), Some(before)) = (minted(&auto_explored()), minted(&disbanded())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "auto-explored").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in auto_explored().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "AUTO_EXPLORED tails {:?} against {:?}",
+        &ours[ours.len() - 3..],
+        &old[old.len() - 2..]
+    );
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 1, old[..m - 1].to_vec()));
+    assert_eq!((ours[n - 2].0, ours[n - 2].1), (AUTO_EXPLORE_FRAME, 0));
+    assert_eq!(
+        (ours[n - 1].0, ours[n - 1].2),
+        (old[m - 1].0, old[m - 1].2 + 1)
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "AUTO_EXPLORED RCX {} bytes (the disbanded file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), DISBANDED_RCX_BYTES, "the file run1623 played");
+    assert_eq!(gz.len(), AUTO_EXPLORED_RCX_BYTES, "AUTO_EXPLORED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The auto-explored file's gzipped length (`docs/CLIENT_INPUT.md` §31.3).
+const AUTO_EXPLORED_RCX_BYTES: usize = 59_692;

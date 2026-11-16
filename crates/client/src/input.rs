@@ -113,7 +113,18 @@ pub const MINTS: &[&str] = &[
     "stance",
     "cheat_ai_toggle",
     "disband",
+    "unitmask",
 ];
+
+/// **The auto-explore button's mask and set** (item 4288,
+/// `docs/CLIENT_INPUT.md` §31): `Options::exec@007188c0` case `0x21` calls
+/// `Options::do_auto_explore@0071cbf0` with the option's object, which
+/// `UnitOut::make_options@00615fc0` adds as −1, and that calls
+/// `GroupOut::issue_unitmask@00708880(0x100, −1)`: command `0x20`, 9 bytes.
+/// `Group::action_unitmask@006fcb90` never reads the set; it toggles the
+/// member's `unit_masks & 0x100`.
+pub const AUTO_EXPLORE_MASK: i32 = 0x100;
+pub const AUTO_EXPLORE_SET: i32 = -1;
 
 /// **The disband button's `all`**: `Options::exec@007188c0` case `0xf`,
 /// `Options::do_disband@0071df20(0)`, so `Group::action_disband@0070e260`
@@ -274,6 +285,12 @@ pub enum Event {
     /// `group` and `disband(0)` (`CommandManager::issue_disband@00941ad0`).
     /// The HUD's alone.
     Disband,
+    /// A press on the selection's auto-explore button (item 4288,
+    /// `docs/CLIENT_INPUT.md` §31): `Options::exec@007188c0` case `0x21`,
+    /// `Options::do_auto_explore@0071cbf0(−1)`, which writes the
+    /// selection's `group` and `unitmask(0x100, −1)`
+    /// (`GroupOut::issue_unitmask@00708880`). The HUD's alone.
+    AutoExplore,
     /// The console's key (item 4283, `docs/CLIENT_INPUT.md` §28): opens
     /// the entry line as `ConsoleWin`'s, whose Return runs the line's
     /// word through `ConsoleWin::parse_cmd@007d6470` and `run_cmd
@@ -1389,6 +1406,21 @@ impl Input {
                     return None;
                 }
                 let cmd = Command::Disband { all: DISBAND_ONE };
+                Some((frame, play, vec![self.group(view.scene), cmd]))
+            }
+            Event::AutoExplore => {
+                // `do_auto_explore(−1)`: a selection that `can_activate`,
+                // in a game whose semaphore's `0x10` bit is clear
+                // (`issue_unitmask`'s own test), writes its `group` and
+                // `unitmask(0x100, −1)`. The flash and the two sounds are
+                // the console's.
+                if self.selection.is_empty() || self.line.is_some() || self.building {
+                    return None;
+                }
+                let cmd = Command::Unitmask {
+                    mask: AUTO_EXPLORE_MASK,
+                    set: AUTO_EXPLORE_SET,
+                };
                 Some((frame, play, vec![self.group(view.scene), cmd]))
             }
             Event::ComeOut(k) => {
@@ -6375,16 +6407,275 @@ pub(crate) mod tests {
     const DISBANDED_RCX: &str = "ron-golden/recordings/item4287-disbanded-greatlakes-24000.rcx";
     const DISBANDED_RCX_BYTES: usize = 59_681;
 
+    /// **`INPUT_UNITMASKS`** (item 4288, `docs/CLIENT_INPUT.md` §31): of the
+    /// unitmasks the recordings on disk carry, those a press on the
+    /// auto-explore button mints field for field, the package's orders
+    /// whole. Seen red pinned (0, 0).
+    const INPUT_UNITMASKS: (usize, usize) = (1, 1);
+
+    /// **Every recorded unitmask** (item 4288): each package carrying a
+    /// `unitmask` is minted from a fresh layer whose selection is the
+    /// package's group (or for an empty group the slot's last full one),
+    /// by a press on the auto-explore button.
+    #[test]
+    fn minted_unitmasks_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let mut last = LastSent::new();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let (who, objects, before) = behind(&last, p.play, &kept);
+                note_sent(&mut last, p.play, &kept);
+                if !kept.iter().any(|c| matches!(c, Command::Unitmask { .. })) {
+                    continue;
+                }
+                all += 1;
+                let scene = Scene {
+                    units: objects
+                        .iter()
+                        .map(|&o| unit(who, o, SCOUT_TYPE, 0, 0, 0))
+                        .collect(),
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who);
+                input.selection = objects.iter().map(|&o| ObjId { who, o }).collect();
+                input.sent = sent_for(&before, &scene);
+                let got = crate::hud::auto_explore_button(&input, &scene, HUD_SIZE).and_then(|r| {
+                    let (x, y) = r.centre();
+                    crate::hud::event(&mut input, HUD_SIZE, p.frame, Event::Press { x, y }, &v)
+                });
+                println!("UNITMASK f{} {kept:?}: {got:?}", p.frame);
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                }
+            }
+        }
+        println!("UNITMASKS {whole} of {all}");
+        assert_eq!((whole, all), INPUT_UNITMASKS);
+    }
+
+    /// **The auto-explore button's edges** (item 4288): it shows for a unit
+    /// of the slot's own and a mixed pick holding one; not for another
+    /// slot's unit, a building, no selection, or the entry line open; the
+    /// order is the selection's `group` and `unitmask(0x100, −1)`, and the
+    /// same selection again sends its `group` as no objects.
+    #[test]
+    fn minted_auto_explore_edges() {
+        if lobby().is_err() {
+            println!("skipping: no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let scene = Scene {
+            buildings: vec![city_building(0, 2001)],
+            units: vec![garrison_unit(0, 0, &[]), garrison_unit(1, 7, &[])],
+            ..Scene::default()
+        };
+        let v = view(&c, &scene, &terrain);
+        let sel = |ids: &[(u8, i16)], building: bool| {
+            let mut input = Input::new(0);
+            input.selection = ids.iter().map(|&(who, o)| ObjId { who, o }).collect();
+            input.building = building;
+            input
+        };
+        let button = |input: &Input| crate::hud::auto_explore_button(input, &scene, HUD_SIZE);
+        assert!(
+            button(&sel(&[(0, 0)], false)).is_some(),
+            "a unit of its own"
+        );
+        assert!(
+            button(&sel(&[(1, 7), (0, 0)], false)).is_some(),
+            "a mixed pick"
+        );
+        assert!(
+            button(&sel(&[(1, 7)], false)).is_none(),
+            "another slot's unit"
+        );
+        assert!(button(&sel(&[(0, 2001)], true)).is_none(), "a building");
+        assert!(button(&Input::new(0)).is_none(), "no selection");
+        let mut typing = sel(&[(0, 0)], false);
+        typing.line = Some(String::new());
+        assert!(button(&typing).is_none(), "the entry line open");
+        assert_eq!(typing.event(9, Event::AutoExplore, &v), None);
+        assert_eq!(Input::new(0).event(9, Event::AutoExplore, &v), None);
+        assert_eq!(
+            sel(&[(0, 2001)], true).event(9, Event::AutoExplore, &v),
+            None
+        );
+        let mask = Command::Unitmask {
+            mask: AUTO_EXPLORE_MASK,
+            set: AUTO_EXPLORE_SET,
+        };
+        let mut input = sel(&[(0, 0)], false);
+        let got = input.event(9, Event::AutoExplore, &v).unwrap();
+        assert_eq!(
+            got.2,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![0]
+                },
+                mask.clone()
+            ]
+        );
+        let again = input.event(10, Event::AutoExplore, &v).unwrap();
+        assert_eq!(
+            again.2,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![]
+                },
+                mask
+            ]
+        );
+    }
+
+    /// Where the Scout stands on [`script::AUTO_EXPLORE_FRAME`], and the
+    /// auto-explore button with it selected, under the opening camera
+    /// (`minted_auto_explored_at_the_opening_camera`).
+    /// The Scout's `TypeIndex`, 69 (`sim::ids::ty::SCOUT`), the type of
+    /// [`script::AUTO_EXPLORE_UNIT`] on stage 0.
+    const SCOUT_TYPE: i32 = sim::ids::ty::SCOUT as i32;
+    const AUTO_EXPLORE_SCOUT_AT: (i32, i32) = (1134, 699);
+    const AUTO_EXPLORE_AT: (i32, i32) = (1070, 966);
+
+    /// The auto-explored script's events: the disband's, then on
+    /// [`script::AUTO_EXPLORE_FRAME`] a press on the Scout and one on the
+    /// auto-explore button.
+    fn auto_explore_events() -> Vec<Scripted> {
+        let mut e = disband_events();
+        let (ux, uy) = AUTO_EXPLORE_SCOUT_AT;
+        let (bx, by) = AUTO_EXPLORE_AT;
+        e.extend([
+            (
+                script::AUTO_EXPLORE_FRAME,
+                None,
+                Event::Press { x: ux, y: uy },
+            ),
+            (
+                script::AUTO_EXPLORE_FRAME,
+                None,
+                Event::Press { x: bx, y: by },
+            ),
+        ]);
+        e
+    }
+
+    /// **`INPUT_AUTO_EXPLORED`** (item 4288): the auto-explored script's
+    /// events, through the HUD and the layer under the opening camera, mint
+    /// [`script::auto_explored`] field for field, of 32.
+    const INPUT_AUTO_EXPLORED: usize = 32;
+
+    /// **The auto-explored count**: stage 0 on the order's frame — the
+    /// Scout is slot 0's and alive, where the press lands, and the button
+    /// stands where the second press lands — then the events mint the
+    /// auto-explored script, and the file written from them is the
+    /// auto-explored file.
+    #[test]
+    fn minted_auto_explored_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let disbanded = script::disbanded();
+        let c = camera(None);
+        let mut next = 0;
+        while r.frame() < i64::from(script::AUTO_EXPLORE_FRAME) {
+            let f = r.frame() as i32;
+            while next < disbanded.len() && disbanded[next].0 == f {
+                r.issue(&disbanded[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+            let v = view(&c, &scene, &terrain);
+            let uid = ObjId {
+                who: 0,
+                o: script::AUTO_EXPLORE_UNIT,
+            };
+            let u = scene.units.iter().find(|u| u.id == uid).unwrap();
+            let mut input = Input::new(0);
+            input.selection = vec![uid];
+            let at = crate::hud::auto_explore_button(&input, &scene, HUD_SIZE).map(|r| r.centre());
+            println!(
+                "AUTO_EXPLORE STAGE0 f{} scout type {} at {:?} pixel {:?} button {at:?}",
+                r.frame(),
+                u.type_index,
+                u.pos,
+                v.pixel(u.pos.x, u.pos.y, u.z),
+            );
+            assert_eq!(u.type_index, SCOUT_TYPE, "the Scout");
+            assert_eq!(v.pixel(u.pos.x, u.pos.y, u.z), AUTO_EXPLORE_SCOUT_AT);
+            assert_eq!(at, Some(AUTO_EXPLORE_AT));
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with(auto_explore_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let auto_explored = script::auto_explored();
+        let whole = ours
+            .iter()
+            .zip(&auto_explored)
+            .filter(|(a, b)| a == b)
+            .count();
+        assert_eq!(
+            (ours.len(), whole),
+            (auto_explored.len(), INPUT_AUTO_EXPLORED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, auto_explored);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(disbanded), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(DISBANDED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(AUTO_EXPLORED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {DISBANDED_RCX} or {AUTO_EXPLORED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), AUTO_EXPLORED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the auto-explored orders");
+        assert!(written != disbanded, "not the disbanded file");
+    }
+
+    /// The auto-explored file (`docs/CLIENT_INPUT.md` §31), written by
+    /// rondata's `the_auto_explored_minted_packages_round_trip` under
+    /// `RON_RCX_OUT`.
+    const AUTO_EXPLORED_RCX: &str =
+        "ron-golden/recordings/item4288-auto-explored-greatlakes-24000.rcx";
+    const AUTO_EXPLORED_RCX_BYTES: usize = 59_692;
+
     /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (24, 26);
+    const INPUT_KINDS: (usize, usize) = (25, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2378, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2379, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
-    const NOT_MINTED: &[&str] = &["leader_options", "unitmask"];
+    const NOT_MINTED: &[&str] = &["leader_options"];
 
     /// The census, counted against the disk's pinned kinds.
     #[test]
