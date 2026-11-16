@@ -174,7 +174,10 @@ const STATE_LINES_KEPT: [&str; 8] = [
 /// as [`MINTED_PACKETS`] pins a packet's — `(our frame, per kept line that
 /// parts (line, the record's ranges, ours, ranges parted, the first
 /// parting))`. The frames are [`CHECKSUM_FRAMES`]' first partings of the
-/// open lines; a walker the record names by its call site.
+/// open lines; a walker the record names by its call site. The leaders
+/// line's first parting moved from `score` at `+0x10` to `+0x1cc` on all
+/// ten frames when item 4159's sixteenth residue put `score` on the line
+/// (ours equal to theirs there, 0x124 on 7195 to 0x16b on 14312).
 const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     (
         7195,
@@ -186,7 +189,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             271,
             271,
             3,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|24010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -200,7 +203,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             271,
             271,
             3,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|26010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -210,7 +213,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             271,
             271,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|27010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -223,7 +226,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             271,
             271,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|2f010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -236,7 +239,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             271,
             271,
             3,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|30010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -250,7 +253,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             271,
             271,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|3e010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -263,7 +266,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             271,
             271,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|46010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -277,7 +280,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             271,
             271,
             3,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|54010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -292,7 +295,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             271,
             271,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|5a010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -305,7 +308,7 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             271,
             271,
             3,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|6b010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
 ];

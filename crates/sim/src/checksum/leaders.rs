@@ -492,8 +492,12 @@ fn array_head(
 /// entry 131 §1): every store the executable makes to either writes 0
 /// (`rondata::stores`, `docs/LEADERS.md` §18.5). `score_units`,
 /// `score_units_2` and `score_combat` on since item 4159's residue: each
-/// agrees on all 226 walked packet leaders (§18.5).
-pub const STEP_VI_OFF_THE_LINE: &[&str] = &["score"];
+/// agrees on all 226 walked packet leaders (§18.5). `score` on since item
+/// 4159's sixteenth residue (4159r15a): a probe at every leader-record
+/// comparison site over the whole `diff::` suite holds it on no row
+/// (entry 131 §1's first way; §18.5). Empty, and kept: a later step VI
+/// leaf that is held and not yet released goes here.
+pub const STEP_VI_OFF_THE_LINE: &[&str] = &[];
 
 /// `Leader::init`'s `plunder_scale`, −1.0 as its IEEE-754 single's bits.
 const PLUNDER_SCALE_BITS: i32 = 0xbf80_0000_u32 as i32;
