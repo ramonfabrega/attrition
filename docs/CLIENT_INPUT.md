@@ -236,7 +236,8 @@ decompile's call sites (lines 885–897, 931–945 and 1225–1240).
 
 The case read is one selected Citizen of the human's, no modifier held, and the default profile's prefs
 (`PlayerProfile::default_mouse@005d01f0` clears `0x20`, `0x200`, `0x400` and `0x800`). Every arm's queue is `QUEUE_NEW`
-(2). With shift it is `QUEUE_LAST`, and with shift and alt `QUEUE_FIRST`.
+(2). With shift it is `QUEUE_LAST`, and with shift and alt `QUEUE_FIRST`. Since item 4293 the layer writes these
+(§33).
 
 | under the cursor | the command | its fields |
 | --- | --- | --- |
@@ -3030,7 +3031,8 @@ disband missed, 359 shown and 994 missed):
   Item 4289's `leader_options` moves 50 more: **413 shown, 1,076 form, 940 missed**, and drops the `leader_options`
   row of §30.2. 38 of the 42 whole recordings carry no order but this one, so the orders' count is the one to steer
   by. Item 4290's roster (§32) moves the 432 orders of an unbound type out of missed and every recorded `queue_up`
-  into shown: **927 shown, 994 form, 508 missed**; `INPUT_WHOLE` holds at 42.
+  into shown: **927 shown, 994 form, 508 missed**; `INPUT_WHOLE` holds at 42. Item 4293's shift (§33) makes the queue
+one of the layer's fields: **927 shown, 1,190 form, 312 missed**; `INPUT_WHOLE` holds at 42.
 
 **Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
 `INPUT_SPELLS against the census` 17 against 6.
@@ -3061,7 +3063,7 @@ is where the arms are.
 | arm | orders | reached by | where §6 to §28 left it |
 | --- | ---: | --- | --- |
 | ~~`queue_up` of a type no key of ours binds~~ | ~~390~~ | Button: the building's train and research buttons | the roster's buttons since item 4290 (§32): every recorded `queue_up` shown, `INPUT_ROSTER_QUEUES` 257 of 257 |
-| `queued` 1, the shift held | 200 | Button: the shift on any order | every arm writes `QUEUE_NEW` (§6.1) |
+| ~~`queued` 1, the shift held~~ | ~~200~~ | Button: the shift on any order | the issuers' queues since item 4293 (§33): 196 orders of the layer's form, and four `build` orders to the dragged line, now 10 |
 | `move_to` `set_angle` 1, the right drag's facing | 140 | Button: a right drag | the layer has no right drag |
 | `move_to` `orders` 2, `ATTACK_TO` | 54 | Button: the attack-move | not read |
 | ~~`leader_options`~~ | ~~50~~ | **Profile**: `Game::run` from the prefs (§26.1) | minted from the layer's prefs since item 4289 |
@@ -3069,7 +3071,7 @@ is where the arms are.
 | ~~`build` of a type no key of ours binds~~ | ~~42~~ | Button: the citizen's build buttons | the roster's build pages since item 4290 (§32): of the layer's form, the point unchecked |
 | two issues in one turn | 38 | **Writer**: the original's one package a turn holds every issue of the turn | `minted_packages` refuses two packages on a frame (RECGAME §9) |
 | `spell` on an object, the right press's | 22 | Button (§18) | not minted |
-| `build` along a dragged line, `(x2, y2)` ≠ `(x, y)` | 6 | Button: a drag while placing | the layer places at one point |
+| `build` along a dragged line, `(x2, y2)` ≠ `(x, y)` | 10 | Button: a drag while placing | the layer places at one point; 6 → 10 when the shift's four were reached (§33) |
 
 **The item's hypothesis, read against this.** All but two of the arms are reached by a button, key or modifier in the
 original, so "minted again" holds for the orders. The score does not: no button reaches `leader_options`, and every
@@ -3336,3 +3338,107 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   research loop (`0x275..0x2ac`). No recorded `queue_up` is a spell.
 - **Not played**: no playback was owed. A `queue_up` is a kind the original has played from a minted file since
   item 4195, and run1630 is unused.
+
+## 33. The shift's queue: the modifiers each issuer reads (item 4293)
+
+*Item 4293, 2026-11-16. Of the 508 orders the census of §30 missed, 200 carried `queued` 1, where every arm of the
+layer wrote `QUEUE_NEW`. The census of the 200 came first: all are `QUEUE_LAST`, the shift alone, of four kinds the
+layer already issues. The layer now takes the modifiers from the window, and every arm writes the queue its
+original issuer writes. `INPUT_WHOLE_ORDERS` 927 · 994 · 508 → **927 · 1,190 · 312** of 2,429; `INPUT_WHOLE` 42 of
+50, unchanged. Four `build` orders of the 200 fall to the dragged line, so the missed count fell by 196, not 200.*
+
+### 33.1 What each issuer reads
+
+`QueuePos` is `QUEUE_FIRST` 0, `QUEUE_LAST` 1 and `QUEUE_NEW` 2 (`Options::exec@007188c0` writes `~QUEUE_FIRST` for
+−1). Each issuer reads shift, ctrl and alt with `GetKeyState` (`0x10`, `0x11`, `0x12`) at the press, and the issuers
+do not agree on alt.
+
+| issuer | its queue | ctrl |
+| --- | --- | --- |
+| `Console::execute_at_cursor@007c6630` (the right press: §6's arms and the ground) | `QUEUE_NEW`; with shift, `alt ^ 1`: `QUEUE_LAST`, or `QUEUE_FIRST` with alt too. Alt is read only while `prefs & 0x400` is clear | with a unit selection (`GroupData +0x49` clear), the attack-move, asked before any object: `move_to(…, ATTACK_TO, −1, −1)` |
+| `WorldMap::on_right_up@008c7050` (the minimap) | `QUEUE_LAST` with shift, else `QUEUE_FIRST` with alt, else `QUEUE_NEW` | `ATTACK_TO` in place of `MOVE_TO` |
+| `Options::picked_spot@00721c40`, the build arm (the placement) | as the minimap's; then, unless the type is a wonder (`TypeData::is_wonder_type`, vtable `+0x1c`), with shift or ctrl held the placement stays armed and its queue is `QUEUE_FIRST` with ctrl, overruled by `QUEUE_LAST` with shift | as the queue's column says |
+| `Options::do_formation@007215b0` | as the minimap's | not read |
+| the ground's gather point in `execute_at_cursor` | no queue: `add_to_end` 1 with ctrl or shift | as the queue's column says |
+
+So shift alone gives `QUEUE_LAST` in every issuer, and the 200 recorded orders say no more than that. Alt alone is
+`QUEUE_FIRST` on the minimap and in the placement, and nothing in the dispatch. With a unit selection, alt alone
+without shift sends the dispatch to `issue_siege_attack` when the group counts siege (`COUNT_SIEGE`) and an enemy is
+under the cursor.
+
+The garrison's queue is a literal `QUEUE_NEW` in the dispatch (both `issue_garrison` calls), so §23's arm is right to
+ignore the modifiers. The city's gather writes 2 whatever the keys (§17).
+
+### 33.2 The census (`QUEUED_ORDERS`)
+
+`the_queued_orders_of_the_recordings_on_disk` (`crates/client/src/input.rs`) takes every package on disk whose head
+carries a queue other than `QUEUE_NEW`, and counts its orders (the `group` with them) by kind, queue and the census's
+verdict. The first act's census, on the base:
+
+| kind | queue | orders | the verdict with the queue set to 2 |
+| --- | ---: | ---: | --- |
+| `move_to` | 1 | 186 | form |
+| `build` | 1 | 6 | form 2, a dragged line 4 |
+| `gather` | 1 | 4 | form |
+| `swarm_around` | 1 | 4 | form |
+
+No order carries `QUEUE_FIRST`. Twelve more `move_to` orders carry `QUEUE_LAST` in packages of two issues, which
+stay the writer's miss. Every kind is one an arm of the layer issues, so the item's stop was not reached.
+
+### 33.3 What the layer does
+
+- `input::Mods` holds shift, ctrl and alt. The window sets `Input::mods` on every `ModifiersChanged`.
+- `Input::dispatch_queue` is the dispatch's queue, with alt read under the prefs' `0x400`. It feeds `on_object`'s
+  five arms and the ground's `move_to`.
+- `Input::map_queue` is the minimap's.
+- `Input::placed_queue` is the placement's queue, and whether the placement stays armed after the press.
+- The ground's gather point writes `add_to_end` from shift or ctrl.
+- **Ctrl on a unit's right press, in the main view or on the minimap, mints nothing.** The original's arm there is the
+  attack-move, which the layer has not built (4293a). Minting a `MOVE_TO` would be an order the original does not
+  issue.
+
+**The census's verdict** now takes any of the three queues as the layer's (`QUEUES`). That moves the 196 orders from
+missed to form, not to shown: the census does not mint them from a scene (§30.3).
+
+**The count**: `minted_shift_edges` mints every arm under each modifier the issuers read. That is the five object
+arms, the ground and the minimap under none, shift, shift with alt, and alt; alt under `prefs & 0x400`; ctrl's
+nothing; the placement's queue and its armed state for a Farm and a wonder under six modifiers; and the gather
+point's `add_to_end`. **Seen red**: with `QUEUE_LAST` and `QUEUE_FIRST` swapped in the dispatch, it parted at
+`Some(0)` against `Some(1)`. `QUEUED_ORDERS` pinned empty parted at the six rows. `INPUT_WHOLE_ORDERS` pinned at the
+base parted at `(927, 1190, 312, 2429)`.
+
+**The value diff**, the `queued` field of each kind, recorded against ours before and after (the other fields are of
+the layer's form and unchanged):
+
+| kind | recorded | ours before | ours, shift held |
+| --- | ---: | ---: | ---: |
+| `move_to` | `queued` 1 | 2 | 1 |
+| `build` | `queued` 1 | 2 | 1 |
+| `gather` | `queued` 1 | 2 | 1 |
+| `swarm_around` | `queued` 1 | 2 | 1 |
+
+`PANEL_ROSTER_ORDERS` moved 42 → 44 of builds. The one shifted `build` package of a type no key binds was hidden by
+the queue's miss until now. Its type was already on the pages.
+
+### 33.4 Ours, not the original's
+
+- The modifiers are the window's (`winit`'s `ModifiersChanged`), not a `GetKeyState` at the press. A modifier
+  pressed between the last change and the press is the same in both. One released without an event is not.
+- Ctrl's nothing on a right press (§33.3).
+
+### 33.5 Confidence, and what is not established
+
+- **Backed by the disk**: the census, `QUEUED_ORDERS`, and the counts of §30.1. Every recorded queue is
+  `QUEUE_LAST`, which the shift alone gives in every issuer.
+- **One reading**: the alt and ctrl arms of §33.1 (`QUEUE_FIRST`, the placement's ctrl, `prefs & 0x400`, the
+  gather point's `add_to_end`). No recording carries one, so no score rests on them. Read off the decompile of the
+  four issuers by this item's one reader.
+- **Not established**: the attack-move (ctrl on a right press). Its `move_to` is `orders` 2 with `−1`/`−1`, the
+  54 orders of §30.2's attack-move row if those are the ctrl's; this was not checked (4293a).
+- **Not established**: the siege attack under alt alone. The layer counts no siege, so a selection with siege under
+  alt mints an `attack` where the original mints `siege_attack`. No recording carries one.
+- **Not established**: whether shift changes anything in the dispatch past the queue. Its other reads (`local_40`)
+  are the gather point's `add_to_end`, `ping_dest`'s flag, and the arguments of `issue_flight` and
+  `issue_launch_patrol`, none of which the layer issues.
+- **Not played**: no playback was owed. Every kind is one the original has played from a minted file, and the queue
+  is a field the sim reads (`sim::orders`, `QUEUE_LAST`). Run1631 is unused.

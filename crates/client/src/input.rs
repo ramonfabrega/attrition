@@ -885,6 +885,23 @@ const BUILD_AT: i32 = sim::ids::order::BUILD_AT as i32;
 const REPAIR: i32 = sim::ids::order::REPAIR as i32;
 /// `QUEUE_NEW`: every arm's queue with no modifier held.
 const QUEUE_NEW: i32 = 2;
+/// `QUEUE_LAST`: the shift's queue, the order after the ones standing
+/// (item 4293, `docs/CLIENT_INPUT.md` §33).
+const QUEUE_LAST: i32 = 1;
+/// `QUEUE_FIRST`: the shift with alt in the dispatch, alt alone on the
+/// minimap and in the placement (§33.1).
+const QUEUE_FIRST: i32 = 0;
+
+/// **The modifiers held at an event** (item 4293, `docs/CLIENT_INPUT.md`
+/// §33): the three `GetKeyState` reads, shift `0x10`, ctrl `0x11` and alt
+/// `0x12`, that each issuer takes at the press. The window sets them;
+/// the layer reads them where the original's issuer does.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Mods {
+    pub shift: bool,
+    pub ctrl: bool,
+    pub alt: bool,
+}
 
 /// The continuous ground point under a pixel: the camera's equations
 /// solved for `(x, y)` at a height, the height re-read at the solution
@@ -965,15 +982,15 @@ pub fn footprint(view: &View, at: Pos, r: i32) -> Vec<Pos> {
 }
 
 /// A right press's `move_to` at `at`, the script's right-click fields with
-/// the arm's `form` and `width`.
-fn move_to(at: Pos, form: i8, width: i8) -> Command {
+/// the arm's `form` and `width`, and the issuer's queue.
+fn move_to(at: Pos, form: i8, width: i8, queued: i32) -> Command {
     Command::MoveTo {
         to_x: at.x,
         to_y: at.y,
         set_angle: 0,
         angle: 0,
         orders: 1,
-        queued: 2,
+        queued: queued as i8,
         form,
         width,
         disembark: 0,
@@ -1021,6 +1038,9 @@ pub struct Input {
     /// citizen's build pages offer. Empty until the window sets it from
     /// the install ([`Roster::new`]).
     pub roster: std::sync::Arc<Roster>,
+    /// The modifiers held (item 4293, `docs/CLIENT_INPUT.md` §33), as the
+    /// window last saw them.
+    pub mods: Mods,
 }
 
 /// **The panel's roster** (item 4290, `docs/CLIENT_INPUT.md` §32): the
@@ -1239,6 +1259,53 @@ impl Input {
         self.sent.add_group(self.player as i8, objects)
     }
 
+    /// **The dispatch's queue** (item 4293, `docs/CLIENT_INPUT.md` §33.1):
+    /// `Console::execute_at_cursor@007c6630` sets `QUEUE_NEW` and, with
+    /// shift held, `alt ^ 1`: `QUEUE_LAST`, or `QUEUE_FIRST` with alt too.
+    /// Alt is read only while the profile's `prefs & 0x400` is clear, as
+    /// the fresh profile's is.
+    fn dispatch_queue(&self) -> i32 {
+        let alt = self.mods.alt && self.prefs.prefs & 0x400 == 0;
+        match (self.mods.shift, alt) {
+            (false, _) => QUEUE_NEW,
+            (true, false) => QUEUE_LAST,
+            (true, true) => QUEUE_FIRST,
+        }
+    }
+
+    /// **The minimap's queue** (§33.1): `WorldMap::on_right_up@008c7050`
+    /// sets `QUEUE_LAST` with shift, else `QUEUE_FIRST` with alt, else
+    /// `QUEUE_NEW`; `Options::do_formation@007215b0` reads the same.
+    fn map_queue(&self) -> i32 {
+        if self.mods.shift {
+            QUEUE_LAST
+        } else if self.mods.alt {
+            QUEUE_FIRST
+        } else {
+            QUEUE_NEW
+        }
+    }
+
+    /// **The placement's queue, and whether it stays armed** (§33.1):
+    /// `Options::picked_spot@00721c40`'s build arm. A wonder
+    /// (`TypeData::is_wonder_type`) resets the placement and takes the
+    /// minimap's queue. Any other type stays armed with shift or ctrl
+    /// held, and then its queue is `QUEUE_FIRST` with ctrl, overruled by
+    /// `QUEUE_LAST` with shift; with neither, it resets with the
+    /// minimap's queue.
+    fn placed_queue(&self, ty: i32) -> (i32, bool) {
+        let q = self.map_queue();
+        if sim::core::type_index::is_wonder_type(ty) || !(self.mods.shift || self.mods.ctrl) {
+            return (q, false);
+        }
+        let q = if self.mods.shift {
+            QUEUE_LAST
+        } else {
+            QUEUE_FIRST
+        };
+        (q, true)
+    }
+
     /// **A right press on an object** (item 4179, `docs/CLIENT_INPUT.md` §6):
     /// the command `Console::execute_at_cursor` issues for a selection of
     /// units with no modifier held, or none.
@@ -1261,23 +1328,24 @@ impl Input {
     /// - one's own finished building that is undamaged and not a gather
     ///   building with room (the city, a full camp): nothing.
     fn on_object(&self, hit: Hit, attacks: bool) -> Option<Command> {
+        let queued = self.dispatch_queue();
         match hit {
             Hit::Enemy { id, .. } if attacks => Some(Command::Attack {
                 ox: i32::from(id.o),
                 whom: i32::from(id.who),
                 ignore: 0,
-                queued: QUEUE_NEW,
+                queued,
             }),
             Hit::Enemy { id, unit: true } => Some(Command::Follow {
                 ox: i32::from(id.o),
                 whom: i32::from(id.who),
-                queued: QUEUE_NEW,
+                queued,
             }),
             Hit::Enemy { unit: false, .. } => None,
             Hit::Friend(id) => Some(Command::Guard {
                 ox: i32::from(id.o),
                 whom: i32::from(id.who),
-                queued: QUEUE_NEW,
+                queued,
             }),
             Hit::Own {
                 id,
@@ -1288,7 +1356,7 @@ impl Input {
                 let swarm = |orders| Command::SwarmAround {
                     ox: i32::from(id.o),
                     whom: i32::from(id.who),
-                    queued: QUEUE_NEW,
+                    queued,
                     orders,
                 };
                 if !active {
@@ -1296,7 +1364,7 @@ impl Input {
                 } else if room == Some(true) {
                     Some(Command::Gather {
                         ox: i32::from(id.o),
-                        queued: QUEUE_NEW,
+                        queued,
                     })
                 } else if damaged {
                     Some(swarm(REPAIR))
@@ -1655,14 +1723,17 @@ impl Input {
                 }
                 if let Some(ty) = self.placing {
                     let at = ground_at(view, x, y)?;
-                    self.placing = None;
+                    let (queued, armed) = self.placed_queue(ty);
+                    if !armed {
+                        self.placing = None;
+                    }
                     let cmd = Command::Build {
                         x: at.x,
                         y: at.y,
                         x2: at.x,
                         y2: at.y,
                         build: ty,
-                        queued: 2,
+                        queued,
                     };
                     return Some((frame, play, vec![self.group(view.scene), cmd]));
                 }
@@ -1699,8 +1770,9 @@ impl Input {
                     // The building arm (`execute_at_cursor`, item 4249): a
                     // selection that takes a gather point, and no object
                     // under the press, names the ground, `action` 0 and
-                    // `add_to_end` the shift's, 0 here. On an object the
-                    // arms' actions 1 to 3 are not read: nothing.
+                    // `add_to_end` 1 with ctrl or shift held (item 4293,
+                    // §33.1). On an object the arms' actions 1 to 3 are
+                    // not read: nothing.
                     if !view.takes_gather_point(&self.selection) || view.names_object(x, y) {
                         return None;
                     }
@@ -1709,9 +1781,16 @@ impl Input {
                         x: at.x,
                         y: at.y,
                         action: 0,
-                        add_to_end: 0,
+                        add_to_end: i32::from(self.mods.shift || self.mods.ctrl),
                     };
                     return Some((frame, play, vec![self.group(view.scene), cmd]));
+                }
+                if self.mods.ctrl {
+                    // Ctrl is the dispatch's attack-move, asked before any
+                    // object (`execute_at_cursor`'s `ATTACK_TO` arm, item
+                    // 4293, §33.1): not built, so nothing rather than an
+                    // order the original would not issue.
+                    return None;
                 }
                 let hit = view.target(self.player, x, y);
                 if let Some(cmd) =
@@ -1731,21 +1810,26 @@ impl Input {
                 Some((
                     frame,
                     play,
-                    vec![self.group(view.scene), move_to(at, form, width)],
+                    vec![
+                        self.group(view.scene),
+                        move_to(at, form, width, self.dispatch_queue()),
+                    ],
                 ))
             }
             Event::MapRightPress { x, y } => {
                 // The minimap's arm: the point on the map, the selection
-                // able to act, `MOVE_TO` with −1/−1.
+                // able to act, `MOVE_TO` with −1/−1. With ctrl it is
+                // `ATTACK_TO`, not built: nothing (item 4293, §33.1).
                 let (w, h) = view.map_extent();
                 if self.selection.is_empty()
                     || self.building
+                    || self.mods.ctrl
                     || !(0..w).contains(&x)
                     || !(0..h).contains(&y)
                 {
                     return None;
                 }
-                let cmd = move_to(Pos { x, y }, -1, -1);
+                let cmd = move_to(Pos { x, y }, -1, -1, self.map_queue());
                 Some((frame, play, vec![self.group(view.scene), cmd]))
             }
             Event::Train(unit) => {
@@ -6580,6 +6664,10 @@ pub(crate) mod tests {
     const DISBANDED_RCX: &str = "ron-golden/recordings/item4287-disbanded-greatlakes-24000.rcx";
     const DISBANDED_RCX_BYTES: usize = 59_681;
 
+    /// The queues the layer's issuers write (item 4293, §33.1): `QUEUE_FIRST`,
+    /// `QUEUE_LAST` and `QUEUE_NEW`.
+    const QUEUES: [i32; 3] = [QUEUE_FIRST, QUEUE_LAST, QUEUE_NEW];
+
     /// **Who reaches a missed arm** (item 4285, `docs/CLIENT_INPUT.md` §30).
     #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
     enum Reach {
@@ -6674,8 +6762,8 @@ pub(crate) mod tests {
             } => {
                 if set_angle != 0 {
                     Verdict::Miss("move_to set_angle 1: the right drag's facing", Button)
-                } else if queued != 2 {
-                    Verdict::Miss("queued 1: the shift held", Button)
+                } else if !QUEUES.contains(&i32::from(queued)) {
+                    Verdict::Miss("queued: a value no issuer writes", Button)
                 } else if orders != 1 {
                     Verdict::Miss("move_to orders 2: the attack-move", Button)
                 } else if disembark == 0 && matches!((form, width), (0, 50) | (9, 50) | (-1, -1)) {
@@ -6686,18 +6774,28 @@ pub(crate) mod tests {
             }
             &Command::Attack {
                 ignore: 0,
-                queued: 2,
+                queued: QUEUE_FIRST..=QUEUE_NEW,
                 ..
             }
-            | &Command::Guard { queued: 2, .. }
-            | &Command::Gather { queued: 2, .. } => Verdict::Form,
+            | &Command::Guard {
+                queued: QUEUE_FIRST..=QUEUE_NEW,
+                ..
+            }
+            | &Command::Gather {
+                queued: QUEUE_FIRST..=QUEUE_NEW,
+                ..
+            } => Verdict::Form,
             &Command::SwarmAround {
-                queued: 2, orders, ..
+                queued: QUEUE_FIRST..=QUEUE_NEW,
+                orders,
+                ..
             } if orders == BUILD_AT || orders == REPAIR => Verdict::Form,
             Command::Attack { .. }
             | Command::Guard { .. }
             | Command::Gather { .. }
-            | Command::SwarmAround { .. } => Verdict::Miss("queued 1: the shift held", Button),
+            | Command::SwarmAround { .. } => {
+                Verdict::Miss("queued: a value no issuer writes", Button)
+            }
             &Command::Build {
                 x,
                 y,
@@ -6706,8 +6804,8 @@ pub(crate) mod tests {
                 build,
                 queued,
             } => {
-                if queued != 2 {
-                    Verdict::Miss("queued 1: the shift held", Button)
+                if !QUEUES.contains(&queued) {
+                    Verdict::Miss("queued: a value no issuer writes", Button)
                 } else if (x, y) != (x2, y2) {
                     Verdict::Miss("build: a dragged line", Button)
                 } else if !BUILD_KEYS.iter().any(|k| k.1 == build)
@@ -6854,11 +6952,10 @@ pub(crate) mod tests {
     /// Every order on disk by verdict: (shown, of the layer's form but not
     /// minted from a scene, missed, all). A package's `group` takes its
     /// order's verdict.
-    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (927, 994, 508, 2429);
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (927, 1190, 312, 2429);
     /// The missed orders by arm, most first, and who reaches each, the
     /// package's `group` counted with its order.
     const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] = &[
-        ("queued 1: the shift held", Reach::Button, 200),
         (
             "move_to set_angle 1: the right drag's facing",
             Reach::Button,
@@ -6876,7 +6973,7 @@ pub(crate) mod tests {
             38,
         ),
         ("spell on an object: the right press's", Reach::Button, 22),
-        ("build: a dragged line", Reach::Button, 6),
+        ("build: a dragged line", Reach::Button, 10),
     ];
 
     /// **A person's whole game, by recording** (item 4285): each recording
@@ -6977,6 +7074,277 @@ pub(crate) mod tests {
         assert_eq!(misses, INPUT_WHOLE_MISSES);
     }
 
+    /// A command's queue position, `QueuePos`, for the kinds that carry
+    /// one: `QUEUE_FIRST` 0, `QUEUE_LAST` 1, `QUEUE_NEW` 2.
+    fn queue_of(c: &Command) -> Option<i32> {
+        Some(match *c {
+            Command::Form { queued, .. }
+            | Command::Attack { queued, .. }
+            | Command::SiegeAttack { queued, .. }
+            | Command::SwarmAround { queued, .. }
+            | Command::LaunchPatrol { queued, .. }
+            | Command::BoardShip { queued, .. }
+            | Command::Repair { queued, .. }
+            | Command::Trade { queued, .. }
+            | Command::CityGather { queued, .. }
+            | Command::Gather { queued, .. }
+            | Command::Garrison { queued, .. }
+            | Command::Build { queued, .. }
+            | Command::Follow { queued, .. }
+            | Command::Guard { queued, .. } => queued,
+            Command::MoveTo { queued, .. }
+            | Command::MoveNear { queued, .. }
+            | Command::AttackGround { queued, .. }
+            | Command::Patrol { queued, .. } => i32::from(queued),
+            _ => return None,
+        })
+    }
+
+    /// **The modifiers' queue** (item 4293, `docs/CLIENT_INPUT.md` §33):
+    /// every arm that takes a queue, under each modifier the issuers read.
+    /// The dispatch's arms (the five objects and the ground): `QUEUE_NEW`,
+    /// `QUEUE_LAST` with shift, `QUEUE_FIRST` with shift and alt, and alt
+    /// ignored under `prefs & 0x400`; the minimap's: `QUEUE_FIRST` with alt
+    /// alone; ctrl on a unit's right press mints nothing. The placement:
+    /// shift or ctrl keeps it armed except for a wonder. The ground's
+    /// gather point: `add_to_end` with shift or ctrl.
+    #[test]
+    fn minted_shift_edges() {
+        let Ok(r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        // The lobby's ground, and no object on it but the gather point's
+        // building below.
+        let scene = Scene::default();
+        let terrain = r.terrain();
+        let c = crate::pinned_camera();
+        let v = view(&c, &scene, &terrain);
+        let none = Mods::default();
+        let shift = Mods {
+            shift: true,
+            ..none
+        };
+        let alt = Mods { alt: true, ..none };
+        let ctrl = Mods { ctrl: true, ..none };
+        let shift_alt = Mods { alt: true, ..shift };
+        let shift_ctrl = Mods {
+            ctrl: true,
+            ..shift
+        };
+        let ctrl_alt = Mods { alt: true, ..ctrl };
+        let unit = |mods: Mods| Input {
+            selection: vec![ObjId { who: 0, o: 5 }],
+            mods,
+            ..Input::new(0)
+        };
+        let (enemy, own) = (ObjId { who: 1, o: 7 }, ObjId { who: 0, o: 2000 });
+        let hits = [
+            (
+                Hit::Enemy {
+                    id: enemy,
+                    unit: true,
+                },
+                true,
+            ),
+            (
+                Hit::Enemy {
+                    id: enemy,
+                    unit: true,
+                },
+                false,
+            ),
+            (Hit::Friend(ObjId { who: 0, o: 6 }), true),
+            (
+                Hit::Own {
+                    id: own,
+                    active: false,
+                    damaged: false,
+                    room: None,
+                },
+                true,
+            ),
+            (
+                Hit::Own {
+                    id: own,
+                    active: true,
+                    damaged: false,
+                    room: Some(true),
+                },
+                true,
+            ),
+            (
+                Hit::Own {
+                    id: own,
+                    active: true,
+                    damaged: true,
+                    room: Some(false),
+                },
+                true,
+            ),
+        ];
+        let ground = Event::RightPress { x: 900, y: 500 };
+        let map = Event::MapRightPress { x: 100, y: 100 };
+        for (mods, q, mapq) in [
+            (none, QUEUE_NEW, QUEUE_NEW),
+            (shift, QUEUE_LAST, QUEUE_LAST),
+            (shift_alt, QUEUE_FIRST, QUEUE_LAST),
+            (alt, QUEUE_NEW, QUEUE_FIRST),
+        ] {
+            let input = unit(mods);
+            for (h, attacks) in hits {
+                let cmd = input.on_object(h, attacks).unwrap();
+                assert_eq!(queue_of(&cmd), Some(q), "{mods:?} {cmd:?}");
+            }
+            let got = unit(mods).event(1, ground, &v).unwrap().2;
+            assert_eq!(queue_of(&got[1]), Some(q), "{mods:?} the ground");
+            let got = unit(mods).event(1, map, &v).unwrap().2;
+            assert_eq!(queue_of(&got[1]), Some(mapq), "{mods:?} the minimap");
+        }
+        // Alt is not read under the profile's `0x400`.
+        let mut input = unit(shift_alt);
+        input.prefs.prefs |= 0x400;
+        let got = input.event(1, ground, &v).unwrap().2;
+        assert_eq!(queue_of(&got[1]), Some(QUEUE_LAST));
+        // Ctrl is the attack-move, not built: nothing.
+        for mods in [ctrl, shift_ctrl, ctrl_alt] {
+            assert_eq!(unit(mods).event(1, ground, &v), None, "{mods:?}");
+            assert_eq!(unit(mods).event(1, map, &v), None, "{mods:?}");
+        }
+        // The placement: the queue, and whether the type stays armed.
+        let farm = BUILD_KEYS[0].1;
+        let wonder = 0x20e;
+        assert!(!sim::core::type_index::is_wonder_type(farm));
+        for (ty, mods, q, armed) in [
+            (farm, none, QUEUE_NEW, false),
+            (farm, alt, QUEUE_FIRST, false),
+            (farm, shift, QUEUE_LAST, true),
+            (farm, shift_alt, QUEUE_LAST, true),
+            (farm, ctrl, QUEUE_FIRST, true),
+            (farm, shift_ctrl, QUEUE_LAST, true),
+            (wonder, none, QUEUE_NEW, false),
+            (wonder, ctrl, QUEUE_NEW, false),
+            (wonder, ctrl_alt, QUEUE_FIRST, false),
+            (wonder, shift, QUEUE_LAST, false),
+        ] {
+            let mut input = unit(mods);
+            input.event(1, Event::Place(ty), &v);
+            assert_eq!(input.placing, Some(ty));
+            let got = input
+                .event(1, Event::Press { x: 900, y: 500 }, &v)
+                .unwrap()
+                .2;
+            assert!(matches!(got[1], Command::Build { build, .. } if build == ty));
+            assert_eq!(queue_of(&got[1]), Some(q), "{ty} {mods:?}");
+            assert_eq!(input.placing.is_some(), armed, "{ty} {mods:?}");
+        }
+        // The ground's gather point: `add_to_end` with shift or ctrl. The
+        // building is the lobby's, trained at, its anchor far from the
+        // press.
+        drop(r);
+        let mut b = queue_building(0, 2000, 0, 0);
+        b.trains = true;
+        let trains = Scene {
+            buildings: vec![b],
+            ..Scene::default()
+        };
+        let (bx, by) = view(&c, &trains, &terrain).pixel(b.pos.x, b.pos.y, b.z);
+        assert!((bx - 900).abs() + (by - 500).abs() > 4 * PICK_RADIUS);
+        for (mods, add) in [(none, 0), (alt, 0), (shift, 1), (ctrl, 1)] {
+            let input = Input {
+                selection: vec![own],
+                building: true,
+                mods,
+                ..Input::new(0)
+            };
+            let add_to_end = |s: &Scene| {
+                let v = view(&c, s, &terrain);
+                input.clone().event(1, ground, &v).map(|o| o.2)
+            };
+            let Some(got) = add_to_end(&trains) else {
+                panic!("no gather point minted under {mods:?}");
+            };
+            assert!(
+                matches!(got[1], Command::GatherPoint { add_to_end, .. } if add_to_end == add),
+                "{mods:?} {got:?}"
+            );
+        }
+    }
+
+    /// **`QUEUED_ORDERS`** (item 4293, `docs/CLIENT_INPUT.md` §33): every
+    /// package on disk whose head carries a queue other than `QUEUE_NEW`,
+    /// its orders (the `group` with them) by the head's kind, its queue and
+    /// the census's verdict. Before the item every one but the two-issue
+    /// turns was the miss "queued 1: the shift held", 200 orders; the
+    /// shift's queue is now the layer's, and four `build` orders fall to
+    /// the dragged line. No recording carries `QUEUE_FIRST`. Seen red
+    /// pinned with the miss: the build parted it.
+    const QUEUED_ORDERS: &[(&str, i32, &str, usize)] = &[
+        ("build", 1, "build: a dragged line", 4),
+        ("build", 1, "form", 2),
+        ("gather", 1, "form", 4),
+        ("move_to", 1, "form", 186),
+        (
+            "move_to",
+            1,
+            "two issues in one turn: one package a turn",
+            12,
+        ),
+        ("swarm_around", 1, "form", 4),
+    ];
+
+    /// The census of the shifted orders (item 4293's first act).
+    #[test]
+    fn the_queued_orders_of_the_recordings_on_disk() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let roster = install_roster().unwrap_or_default();
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let scene = Scene::default();
+        let v = view(&c, &scene, &terrain);
+        let mut by: std::collections::BTreeMap<(&str, i32, &str), usize> = Default::default();
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let who = console_who(&rec);
+            let mut pauser = Input::new(0);
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let Some((head, q)) = kept
+                    .iter()
+                    .find_map(|c| queue_of(c).filter(|&q| q != QUEUE_NEW).map(|q| (c, q)))
+                else {
+                    continue;
+                };
+                let arm = match census_verdict(
+                    &kept,
+                    p.frame,
+                    p.play as u8,
+                    who,
+                    &mut pauser,
+                    &v,
+                    &roster,
+                ) {
+                    Verdict::Shown(pin) => pin,
+                    Verdict::Form => "form",
+                    Verdict::Miss(arm, _) => arm,
+                };
+                *by.entry((head.name(), q, arm)).or_default() += kept.len();
+            }
+        }
+        let by: Vec<(&str, i32, &str, usize)> =
+            by.into_iter().map(|((k, q, a), n)| (k, q, a, n)).collect();
+        println!("QUEUED {by:?}");
+        assert_eq!(by, QUEUED_ORDERS);
+    }
+
     /// The install's [`Roster`], or `None` with no install.
     pub(crate) fn install_roster() -> Option<Roster> {
         let root = std::env::var_os("RON_INSTALL")
@@ -6995,8 +7363,10 @@ pub(crate) mod tests {
     /// pinned (0, 0, 0, 0).
     const PANEL_ROSTER: (usize, usize, usize, usize) = (82, 82, 15, 15);
     /// And their orders, the package's `group` counted with its order:
-    /// (`queue_up` orders on a panel, of them; `build`, of them).
-    const PANEL_ROSTER_ORDERS: (usize, usize, usize, usize) = (390, 390, 42, 42);
+    /// (`queue_up` orders on a panel, of them; `build`, of them). Item 4293
+    /// adds the one shifted `build` package of a type no key binds, which
+    /// the queue's miss hid until then: 42 → 44, its type already counted.
+    const PANEL_ROSTER_ORDERS: (usize, usize, usize, usize) = (390, 390, 44, 44);
     /// The types on no panel, by `TypeIndex`.
     const PANEL_ROSTER_OFF: &[i32] = &[];
 
