@@ -27192,8 +27192,7 @@ by the count and the sequence, "mutation: held".
 
 run1198b falls from 6457 keys to 77: block 8438's standing families, who=1's ~~`bucket`/`leftover` (3558a)~~, the
 `g.angle[0]` of who=1's newborns, and on 8586 the ~~`cost[0]`/`cost[1]` of `1/2017`'s and `1/2022`'s queues, ours
-116/86 against 110/82 (parked 3575a)~~ (both one cause, `get_cost`'s unbuilt Mongol Stable arm; built, item
-4159r14, `docs/COSTS.md` "A Mongol Stable unit costs a tenth less"). The same fix closes the Great Sahara coverage pair's run817 rows
+116/86 against 110/82 (parked 3575a)~~ (both the Mongol Stable arm, `docs/COSTS.md`). The same fix closes the Great Sahara coverage pair's run817 rows
 (`popwin_timer` 1, `popwin_stamp` 4135 from 4260): 264 → 262 keys. The Aztec All Technologies pair's run1147b
 closes the same two rows (stamp 3919, from 4376): 308 → 306.
 
@@ -27275,8 +27274,7 @@ whole and puts `0/11`'s four rows back on 9762 (93 → 97 keys, "held").
 | 9773 | draws | index 29 | `Farms::inc_time+0x1ae` / `Object::take_damage+0xe1` (31 / 32) | agree |
 
 run1224 goes 6619 → 93 keys and run1218 6619 → 96. What stands: the standing families, ~~3558a~~, 3574b, and who=1's
-~~`bucket[2]`/`[4]` on 9783 (parked 3581a)~~ (3558a and 3581a: the Mongol Stable arm of `get_cost`, built, item
-4159r14). `run1198_mongol_classical_pair_closing_state` compares 375 units on 9885:
+~~`bucket[2]`/`[4]` on 9783 (parked 3581a)~~ (the same arm). `run1198_mongol_classical_pair_closing_state` compares 375 units on 9885:
 none torn, off or unlinked, and no field row. The Nomad enters the rubric (167 → 168).
 
 **Coverage.** `mongol_classical_pair_run1198b_s_word_frame_is_widened_whole` keeps 8444's value diff (77 keys);
