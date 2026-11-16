@@ -2400,7 +2400,61 @@ the row stays at 0 of 162. Raised to z +5, the strip shows as a band
 about 60 pixels wide. The photograph's surface reaches the screen's
 corner, past x −3,072 at that depth. It carries the ground's own mottle
 at about 36 % of the land's colour, with long diagonal seams on the
-tile grid's bearing. Not established: what draws it (4281a).
+tile grid's bearing. ~~Not established: what draws it (4281a).~~
+Answered by item 4307, below.
+
+*Item 4307: the map's edge border draws it.* **Draw 131 of run1566b's
+pass after 3279 is `TerrainBorder::render@008af600`**, called from
+`Scene::render@008b3270` on terrain `+0x4d98` (`TerrainOut::terrain_border`,
+`+0x4d58` in the type record). Its stage 0 is `bordertex_good.tga`, the
+tileset's `border_texture`. `TerrainBorder::create_borders@008af520`
+calls `build_edge@008adda0` once for each cell of each of the map's four
+edges: (x, 0) outward (0, −1), (x, W − 1) outward (0, +1), (0, y) outward
+(−1, 0) and (W − 1, y) outward (+1, 0). **So it is the map's edge, and
+not a blend between terrain types** (the 2026-11-06 census row,
+`docs/audit/2026-11-06-territory-borders-1.md`, read it from its callees
+alone). The draw, off the card:
+
+| field | draw 131 |
+|---|---|
+| callers | `Scene::render` ← `Game::loop_render` ← `Game::loop` |
+| arguments | 2,016 vertices (`0x7e0`), triangle list |
+| blend | `ONE`, `ZERO`, so opaque |
+| stage 0 colour, alpha | `SELECTARG1(TEXTURE)`, `SELECTARG1(TEXTURE)` |
+| stage 1 | off |
+| options | `USE_UV0 TL_FAKE_LIGHT POSITION_XYZ`, with no `LIGHTING` and no vertex colour |
+| world | identity |
+
+*The mesh, off run1559b's packet (frame 3294).* `small_border` (terrain
+`+0x4ed8`) holds one pass: 2,656 vertices, `tex0` 2,656 and 3,984 faces,
+FVF `0x10001`, with no colours. `large_border` (`+0x4d9c`, stage 0
+`border_texture_outer`) is empty on this camera. 236 buckets are built.
+Every vertex lies at x 0, −1,440 or −7,200. The y values run in steps of
+192 from 21,504 to 36,096, the left edge's visible run, and segments repeat
+across the visible buckets. Each 192-unit segment is two quads:
+
+| quad | x | z | u | v |
+|---|---|---|---|---|
+| inner | 0 → −1,440 | the land's height at the edge vertex (626 of 664 above 0, to 588.8) → 0 | 0 → 0.5 | 0.5 + (y − cell)/1,536, so 0.5 → 1.0 over the cell |
+| outer | −1,440 → −7,200 | 0 | 0.5 + (y − cell)/1,536 | 0 → 6 |
+
+So the inner quad lays one quarter of the texture per cell, and the outer
+quad tiles its right half six times outward. That right half restarts
+at each cell's start, every 768 units, and those restarts are the
+photograph's seams on the tile bearing. The 0 at the outer two columns
+is `build_edge`'s `max(0, *terrain +0x4a4)`, read from its first screen
+and not followed further.
+
+*The colour.* `bordertex_good.tga` is 256 × 256 × 32 and nearly uniform:
+its mean is (70, 66, 60), the same in each quadrant within 2.
+Through `render::silhouette::fake_light` that mean is (49, 45, 37). With
+the tileset's (18, 18, 0) added first, as §3.28 found the sprites tinted
+at load, it is **(72, 67, 37)**. The photograph's first block is (65, 61,
+34), and its off-terrain mean is (64, 59, 33). That is a reading of one
+mean through a nonlinear curve, not a row. Not established: whether
+`TileSetData::load_all` tints `border_texture` at load; the corners;
+`large_border`'s camera; and whether the strip covers all 162 blocks
+(4307a).
 
 ## 3.16 The shore's sand (item 4192)
 
@@ -4581,6 +4635,11 @@ Each line names what would settle it.
 - **A burning building's particles** (§3.20, parked 4201a): the anchors
   are the original's; what is drawn there is a stand-in sprite, alpha-
   tested, with none of the systems' emission, motion or blend.
+- **The map's edge border** (§3.15, item 4307; parked 4307a): the original
+  draws `TerrainBorder`'s mesh past every edge, textured with
+  `bordertex_good.tga` through `TL_FAKE_LIGHT`, and the client draws nothing
+  there. Whether the texture is tinted at load is open, as are the corners
+  and `large_border`.
 - **Whether `sim` builds for `wasm32-unknown-unknown`.** It is untried, and
   matters only if option A's live variant is wanted.
 - **The licence of ptasev/Rise-of-Nations.** Reading it is fine under the
