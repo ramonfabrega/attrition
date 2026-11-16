@@ -151,7 +151,8 @@ struct Args {
     /// (`world::World::debug_ground`, item 4127), not its texture.
     debug_ground: bool,
     /// Light each land corner by its own normal and vertex colour
-    /// (`world::World::set_land_light`, item 4217); off by default.
+    /// (`world::World::set_land_light`, item 4217); on by default since
+    /// item 4292, `--land-flat` turns it off.
     land_light: bool,
     /// Draw each range at the flat N·L in place of its own normals
     /// (`world::World::set_mountain_light`, item 4269); off by default.
@@ -192,7 +193,7 @@ fn parse() -> Result<Args, String> {
         trees: true,
         textured: true,
         debug_ground: false,
-        land_light: false,
+        land_light: true,
         mountain_flat: false,
         lobby: false,
         headless: false,
@@ -225,6 +226,7 @@ fn parse() -> Result<Args, String> {
             "--tint" => a.textured = false,
             "--debug-ground" => a.debug_ground = true,
             "--land-light" => a.land_light = true,
+            "--land-flat" => a.land_light = false,
             "--mountain-flat" => a.mountain_flat = true,
             "--lobby" => a.lobby = true,
             "--headless" => a.headless = true,

@@ -218,9 +218,10 @@ pub struct World {
     pub debug_ground: bool,
     /// **Light each land corner by its own normal** (item 4217, §3.22):
     /// `calculate_norms`' N·L and `light_vert`'s vertex colour, as the
-    /// packet holds them. Off by default, the flat N·L and a white vertex
-    /// (item 4212's draw): on, the rows it was measured on fall
-    /// (`tint::tests::LAND_LIGHT_ROWS`). [`World::set_land_light`] moves it.
+    /// packet holds them. On by default since item 4292 (the photographs'
+    /// halo where a slope meets the plain, `tint::tests::LAND_LIGHT_ROWS`);
+    /// off is the flat N·L and a white vertex (item 4212's draw).
+    /// [`World::set_land_light`] moves it.
     land_light: bool,
     /// **Light each range by its own normals** (item 4269, §3.22):
     /// `generate_normals`' N·L on the mountain's layers, the vertex white,
@@ -1046,7 +1047,7 @@ impl World {
             tree_art,
             ground,
             debug_ground: false,
-            land_light: false,
+            land_light: true,
             mountain_light: true,
             drawn: (u32::MAX, TerrainMesh::default(), Vec::new(), Vec::new()),
             ramp: None,

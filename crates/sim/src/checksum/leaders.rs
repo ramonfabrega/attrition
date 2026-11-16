@@ -1420,11 +1420,11 @@ impl Sim {
             // attrition stamps and `give_att_disabled` (§5), and the
             // missiles, repairs, bribes and nukes (§15).
             //
-            // The three victim stamp rows are held
-            // (`Sim::leader_tally_leaf`) and not emitted: the record diff
-            // parts each (`docs/LEADERS.md` §4.5; parked 4176b).
             // `attrition_stamp2` came onto the line with item 4159's third
-            // residue, `units_killed` and `units_lost` with its ninth (§2.5).
+            // residue, `units_killed` and `units_lost` with its ninth (§2.5),
+            // and the three victim stamp rows with its seventeenth: a probe
+            // at every leader-record comparison site holds none of their
+            // cells on any row (`docs/LEADERS.md` §4.5).
             _ if crate::leaders::tallies::LEAVES.contains(&name)
                 && !crate::leaders::tallies::OFF_THE_LINE.contains(&name) =>
             {
