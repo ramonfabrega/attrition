@@ -42,6 +42,7 @@
 
 mod borders;
 mod dead;
+mod edge;
 mod expose;
 mod fire;
 mod gpu;

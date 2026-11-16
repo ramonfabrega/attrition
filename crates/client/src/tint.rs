@@ -260,10 +260,11 @@ pub(crate) mod tests {
     /// Item 4284: off luma run1559b 1,066 → 1,072 and run1570 1,140 → 1,142, on unchanged: the ground beneath a range takes the land's own N·L whichever side the switch stands (`docs/RENDERER.md` §3.22, "The ground beneath a range"), so off now lights those tiles as on does. The switch stays off: on still trails run1564's grass hue and ground row (parked 4284a, the whole ledger).
     /// Item 4292: **the switch is on by default** (`docs/RENDERER.md` §3.22): the drawn side is now on, and the other tests' pins are its values; both sides unchanged.
     /// Item 4296: run1564 on row 1,778 → 1,783, luma 1,843 → 1,845: the deep corners drawn in the floor's grey plus `trans_bright` on the lit side alone (`docs/RENDERER.md` §3.27, "The beach below the waterline"); off unchanged, and still leads run1564's ground row by three.
+    /// Item 4311: off luma run1559b 1,072 → 1,079 and run1570 1,142 → 1,144, on unchanged: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
-        ([959, 1105, 1072], [960, 1105, 1109]),
+        ([959, 1105, 1079], [960, 1105, 1109]),
         ([678, 1786, 1852], [676, 1783, 1845]),
-        ([1042, 1171, 1142], [1041, 1171, 1166]),
+        ([1042, 1171, 1144], [1041, 1171, 1166]),
     ];
 
     /// **`GRASS_HUE`**, `[(untinted, tinted)]` on run1559b, run1564 and
@@ -289,8 +290,9 @@ pub(crate) mod tests {
     /// Item 4284: the untinted side run1559b 955 → 953, run1564 561 → 563; the drawn side holds: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4286: the untinted side run1559b 953 → 954, run1570 1,034 → 1,036; the drawn side holds: the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28) move the frame's mean, so its white.
     /// Item 4292: drawn run1559b 959 → 960 (a rise from 959), run1564 678 → 676 and run1570 1,042 → 1,041 (a named fall from 678 and 1,042); untinted 954 → 965, 563 → 675, 1,036 → 1,049: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22), the drawn side now [`LAND_LIGHT_ROWS`]' on. Its residue is parked 4292d.
+    /// Item 4311: run1559b's untinted side 965 → 966; the drawn side holds: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
-        ((965, 986), (960, 986)),
+        ((966, 986), (960, 986)),
         ((675, 679), (676, 679)),
         ((1049, 1073), (1041, 1073)),
     ];

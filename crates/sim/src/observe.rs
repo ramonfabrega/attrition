@@ -133,6 +133,34 @@ pub struct Craft {
     pub ground: bool,
 }
 
+/// **What a right press's spy arms ask of an object** (item 4303,
+/// `docs/CLIENT_INPUT.md` §37): `Console::execute_at_cursor@007c6630`'s
+/// Scout-line and Spy arms, which issue a craft on the object under the
+/// cursor. A read only; the default is an object of none of them.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct SpyMarks {
+    /// `is(SPY, 0)` (`0x3a`, vslot `+0xb8`): both arms' Counterintelligence
+    /// on an enemy, and the Spy arm's `COUNT_TYPE` test on a member.
+    pub spy: bool,
+    /// `is(SCOUT, 0)` (`0x45`) and `is(COMMANDO, 0)` (`0x49`): the Scout-line
+    /// arm's two `COUNT_TYPE` tests on a member.
+    pub scout_line: bool,
+    pub commando: bool,
+    /// `ObjectData::is_peasant`: the Spy arm's Informer on a unit.
+    pub peasant: bool,
+    /// `has_objmask(0x200000)`, the vehicle mask (vslot `+0x148`): the
+    /// Commando's Sabotage on a unit.
+    pub vehicle: bool,
+    /// `SpellTypeData::is_valid_target` of Bribe (`0x275`) and of the
+    /// Sniper (`0x281`) for the viewer ([`Sim::spell_valid_target`]);
+    /// `false` with no viewer.
+    pub bribe: bool,
+    pub sniper: bool,
+    /// A building: `WorldData::get_whose` of the cell under it is the
+    /// viewer, the Spy arm's Bribe on a building, its Informer otherwise.
+    pub viewer_ground: bool,
+}
+
 /// One unit on the map.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct UnitScene {
@@ -191,6 +219,8 @@ pub struct UnitScene {
     /// row order. What `UnitOut::make_options` puts on row 1 is read only
     /// as far as this; the button's own gates are `Options::do_spell`'s.
     pub crafts: Vec<Craft>,
+    /// What the right press's spy arms ask of it (item 4303).
+    pub spy: SpyMarks,
     /// **The slots it takes in a garrison**, as `GroupData::test_garrison
     /// @0070b320` counts them before it issues one (item 4273,
     /// `docs/CLIENT_INPUT.md` §23): a decoy (`unit_masks & 1`) none,
@@ -350,6 +380,9 @@ pub struct BuildingScene {
     /// read only.
     pub garrison_limit: i32,
     pub inside: i32,
+    /// What the right press's spy arms ask of it (item 4303): a building
+    /// is never a Spy, a Scout, a citizen or a vehicle.
+    pub spy: SpyMarks,
 }
 
 /// A farm's `FarmStruct`, as `FarmsOut::draw@008d75f0` reads it
@@ -560,6 +593,22 @@ impl Sim {
                             })
                         })
                         .collect(),
+                    spy: SpyMarks {
+                        spy: self.unit_is(i, crate::units::think::scout::SPY),
+                        scout_line: self.unit_is(i, crate::ids::ty::SCOUT),
+                        commando: self.unit_is(i, crate::ids::ty::COMMANDO),
+                        peasant: self.is_peasant(i),
+                        vehicle: self.profile(Obj::Unit(i)).obj_masks
+                            & crate::combat::mask::VEHICLE
+                            != 0,
+                        bribe: viewer.is_some_and(|p| {
+                            self.spell_valid_target(crate::ids::spell::BRIBE, p, Obj::Unit(i))
+                        }),
+                        sniper: viewer.is_some_and(|p| {
+                            self.spell_valid_target(crate::ids::spell::SNIPER, p, Obj::Unit(i))
+                        }),
+                        viewer_ground: false,
+                    },
                     garrison_cost: if u.decoy {
                         0
                     } else {
@@ -664,6 +713,13 @@ impl Sim {
                 in_city: b.city.is_some(),
                 garrison_limit: self.garrison_limit(i),
                 inside: self.num_inside(i),
+                spy: SpyMarks {
+                    viewer_ground: viewer.is_some_and(|p| {
+                        self.world.owner(crate::World::cell_of_tile(b.pos.tile()))
+                            == crate::world::Owner::Player(p)
+                    }),
+                    ..SpyMarks::default()
+                },
             })
             .collect();
         let projectiles = self

@@ -305,6 +305,14 @@ pub struct World {
     pub borders_shift: (i32, i32),
     /// The owner grid and the switches the borders were laid at.
     borders_laid: (Vec<sim::Owner>, bool, (i32, i32)),
+    /// Draw the map's edge border (item 4311, §3.15). On by default; the
+    /// row's count as drawn before turns it off.
+    pub edge: bool,
+    /// `<BORDERTEX>`'s two textures, tinted; `None` where they do not read,
+    /// and no edge is laid.
+    edge_art: Option<crate::edge::EdgeArt>,
+    /// The switch the edge was laid at, `None` until laid on this terrain.
+    edge_laid: Option<bool>,
     /// Draw the surf (item 4239, §3.27). On by default; the row's count as
     /// drawn before turns it off.
     pub surf: bool,
@@ -474,6 +482,17 @@ pub const SNOWCAP_ALPHA: usize = 912;
 pub const BORDER_PIECE: i32 = -200_300;
 /// The borders' alpha ramp ([`border_alpha_mips`]).
 pub const BORDER_ALPHA_INDEX: usize = 913;
+/// **The map's edge border's pieces** (item 4311, §3.15): the small list
+/// under `border_texture`, the large under `border_texture_outer`.
+pub const EDGE_PIECE: i32 = -200_400;
+pub const EDGE_OUTER_PIECE: i32 = -200_401;
+/// The edge border's white alpha: the draw is opaque.
+pub const EDGE_ALPHA: usize = 914;
+
+/// Whether a patch is the edge border's.
+pub fn is_edge(piece: i32) -> bool {
+    piece == EDGE_PIECE || piece == EDGE_OUTER_PIECE
+}
 /// **How far a border is lifted** off the ground's heights, in world
 /// units (item 4306): the original draws it with the depth test off
 /// (`Scene::init_render_states@008ba450`), the patch pass tests
@@ -883,6 +902,10 @@ impl World {
         let tint = tileset
             .as_deref()
             .map_or([0; 3], |t| crate::tint::of(install.root(), t));
+        // Item 4311 (§3.15): the edge border's textures, tinted at load.
+        let edge_art = tileset
+            .as_deref()
+            .and_then(|t| crate::edge::EdgeArt::load(&install, t, tint));
         let ground = tileset.as_deref().and_then(|t| {
             let textures = crate::ground::GroundTextures::load(install.root(), t).ok()?;
             let flat = textures
@@ -1118,6 +1141,9 @@ impl World {
             borders: true,
             borders_shift: (0, 0),
             borders_laid: (Vec::new(), false, (0, 0)),
+            edge: true,
+            edge_art,
+            edge_laid: None,
             surf: true,
             surf_art,
             surf_laid: (-1, false),
@@ -1629,6 +1655,7 @@ impl World {
             self.weather_laid = (-1, false, (0, 0), Vec::new());
             self.roads_laid = (-1, false, (0, 0), Vec::new());
             self.borders_laid = (Vec::new(), false, (0, 0));
+            self.edge_laid = None;
             self.surf_laid = (-1, false);
         }
         // Item 4190 (§3.17): the footprint weathering, laid again when the
@@ -1712,6 +1739,25 @@ impl World {
             }
             self.patch_version = self.patch_version.wrapping_add(1);
             self.borders_laid = key;
+        }
+        // Item 4311 (§3.15): the map's edge border, laid once a terrain and
+        // again when its switch moves, before the first mountain layer:
+        // opaque and outside the map, its place among the patches moves no
+        // pixel the depth test does not already settle.
+        if self.edge_laid != Some(self.edge) {
+            self.drawn.3.retain(|m| !is_edge(m.piece));
+            if self.edge {
+                let meshes = self.edge_meshes();
+                let at = self
+                    .drawn
+                    .3
+                    .iter()
+                    .position(|p| p.mountain)
+                    .unwrap_or(self.drawn.3.len());
+                self.drawn.3.splice(at..at, meshes);
+            }
+            self.patch_version = self.patch_version.wrapping_add(1);
+            self.edge_laid = Some(self.edge);
         }
         // Item 4239 (§3.27): the surf, after the water (the card's draws
         // 163 to 169 follow the water's 162), laid again each frame.
@@ -1927,6 +1973,30 @@ impl World {
             }
         }
         (!m.positions.is_empty()).then_some(m)
+    }
+
+    /// **The map's edge border as patch meshes** (item 4311, §3.15):
+    /// [`crate::edge::buckets`] on the terrain's heights, under the tinted
+    /// `<BORDERTEX>` textures. Empty where they do not read.
+    fn edge_meshes(&mut self) -> Vec<PatchMesh> {
+        let Some(art) = self.edge_art.as_ref() else {
+            return Vec::new();
+        };
+        let t = self.runner.terrain();
+        let field = Heightfield {
+            width: t.width,
+            height: t.height,
+            corners: &t.corners,
+        };
+        let white = std::sync::Arc::new(render::silhouette::Mips::new(render::tga::Image {
+            width: 1,
+            height: 1,
+            kind: 2,
+            bits: 32,
+            footer: false,
+            rgba: vec![255; 4],
+        }));
+        art.meshes(&crate::edge::buckets(&field), &white)
     }
 
     /// **The national borders as patch meshes** (item 4306, §3.29): one a
@@ -2936,11 +3006,18 @@ mod tests {
     #[test]
     fn the_alpha_keys_are_apart() {
         use super::{
-            MOUNTAIN_ALPHA, ROAD_ALPHA, SNOWCAP_ALPHA, SURF_ALPHA, SURF_MASKS, WATER_ALPHA,
-            WEATHER_ALPHA,
+            BORDER_ALPHA_INDEX, EDGE_ALPHA, MOUNTAIN_ALPHA, ROAD_ALPHA, SNOWCAP_ALPHA, SURF_ALPHA,
+            SURF_MASKS, WATER_ALPHA, WEATHER_ALPHA,
         };
         let surf = SURF_ALPHA..SURF_ALPHA + SURF_MASKS;
-        let ones = [WATER_ALPHA, WEATHER_ALPHA, ROAD_ALPHA, SNOWCAP_ALPHA];
+        let ones = [
+            WATER_ALPHA,
+            WEATHER_ALPHA,
+            ROAD_ALPHA,
+            SNOWCAP_ALPHA,
+            BORDER_ALPHA_INDEX,
+            EDGE_ALPHA,
+        ];
         for (i, k) in ones.iter().enumerate() {
             assert!(
                 !surf.contains(k),

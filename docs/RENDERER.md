@@ -2451,10 +2451,51 @@ Through `render::silhouette::fake_light` that mean is (49, 45, 37). With
 the tileset's (18, 18, 0) added first, as §3.28 found the sprites tinted
 at load, it is **(72, 67, 37)**. The photograph's first block is (65, 61,
 34), and its off-terrain mean is (64, 59, 33). That is a reading of one
-mean through a nonlinear curve, not a row. Not established: whether
+mean through a nonlinear curve, not a row. ~~Not established: whether
 `TileSetData::load_all` tints `border_texture` at load; the corners;
 `large_border`'s camera; and whether the strip covers all 162 blocks
-(4307a).
+(4307a).~~ Answered by item 4311, below, but for `large_border`'s camera.
+
+*Item 4311: the edge border, built* (`client::edge`; `client::world`'s
+`edge`, `EDGE_PIECE`, `EDGE_OUTER_PIECE`; `client::gpu`'s `fs_edge`;
+`rondata::artdata::border_textures`; `tools/render/edge_packet.py`).
+**The tint is at load:** `TileSet::init@0087b370` reads `<BORDERTEX>`'s
+`file=` and `outerfile=` into `border_texture` and `border_texture_outer`
+(`PF_32`, three levels) and calls `ImageIO::set_tint@00511a00` on each with
+`tint_color`. **The buckets are whole on the packet.** `create_borders`
+fills 236 buckets on run1559b's 60-cell map, 4W − 4: the top row's cells
+are buckets 0 to 59, the bottom row's 60 to 119, then the left column's
+and the right column's cells between the corners. A column's corner cell
+goes into its row's end bucket (0, 59, 60 and 119): first a corner patch,
+one quad into the small bucket and three into the large, then the cell's
+strip. `build_edge`'s strip is the decompile's own arithmetic: from the
+cell's edge corner, four 192-unit segments along the edge; each segment's
+inner quad runs from `max(0, h)` at its two edge corners of the `+0x4a4`
+table to 0 at 1,440 out, and its outer quad lies flat from 1,440 to
+7,200; the faces wind `(0 2 3) (0 3 1)` where the edge faces +x or −y,
+else `(0 1 2) (2 1 3)`. The corner patches' positions and texcoords reach
+`Vert3Array::add` and `TexArray::add` as x87 arguments the decompiler
+drops, so `client::edge::CORNERS` is the packet's record of them: the
+small quad spans 1,440 square off the map's corner, the large L reaches
+**14,400** out (twice the strips' 7,200), and the patterns are not mirror
+images of one another (the top-left's far vertex keeps the corner's
+height; the four take different texcoords). `the_buckets_are_the_packet_s`
+diffs every bucket's vertices and first face list against the dump:
+**7,728 of 7,728 vertices and 3,872 of 3,872 faces**, the heights one
+corner along parting bucket 0's first vertex (z 369.375 against 354.375).
+The second face list (`+0x38`, eight triangles a cell spanning two
+segments) is the one `add_render_bucket@008afdb0` appends when
+`zoom_level < 5` or the system grade is above 2. Run1559b's draw list
+holds the first, and the client draws the first.
+
+*The draw.* Each list is one patch mesh, drawn opaque before the first
+mountain layer, with its depth written. The colour is the tinted texel
+through `TL_FAKE_LIGHT` (`land_fake`), and stage 0 repeats.
+**`RUN1559B_3279_PAST_THE_EDGE` 0 → 162 of 162** on hue, luma and both.
+The first block, at pixel (160, 0), is theirs (65, 61, 34) against ours
+(3, 3, 4) → (65, 61, 35). The made-to-fail side, the border off, is 0 of
+162. Not established: when the camera reaches `large_border` (it is empty
+on run1559b's draw list), and the second face list's camera (4311a).
 
 ## 3.16 The shore's sand (item 4192)
 
@@ -4635,11 +4676,11 @@ Each line names what would settle it.
 - **A burning building's particles** (§3.20, parked 4201a): the anchors
   are the original's; what is drawn there is a stand-in sprite, alpha-
   tested, with none of the systems' emission, motion or blend.
-- **The map's edge border** (§3.15, item 4307; parked 4307a): the original
-  draws `TerrainBorder`'s mesh past every edge, textured with
-  `bordertex_good.tga` through `TL_FAKE_LIGHT`, and the client draws nothing
-  there. Whether the texture is tinted at load is open, as are the corners
-  and `large_border`.
+- **The map's edge border** (§3.15, items 4307 and 4311; parked 4311a):
+  ~~the client draws nothing there~~ built by item 4311, the buckets whole on
+  run1559b's packet. Open: the coarse face list `add_render_bucket` takes
+  at `zoom_level < 5` or a system grade above 2, which the client never
+  draws, and a camera that shows the corners' `large_border`.
 - **Whether `sim` builds for `wasm32-unknown-unknown`.** It is untried, and
   matters only if option A's live variant is wanted.
 - **The licence of ptasev/Rise-of-Nations.** Reading it is fine under the
