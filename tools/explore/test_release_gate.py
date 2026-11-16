@@ -2043,16 +2043,25 @@ class WholeLaneLock(unittest.TestCase):
             self.assertFalse(lock.exists())
 
 
-def booking_calls(touched=(), *, release_log=None, fail=None, **kw):
+def booking_calls(touched=(), *, release_log=None, fail=None, seen=None, clock_exits=None, **kw):
     """Every command a gate ran, with what it printed; `fail` names a step
-    whose command exits 101 (a red test) after leaving `release_log`."""
+    whose command exits 101 (a red test) after leaving `release_log`.
+    `seen`, a list, gets each call's `(command, kwargs)`; `clock_exits`, a
+    list, is each clock attempt's exit in turn (the pass of 2026-11-16)."""
     with tempfile.TemporaryDirectory() as tmp:
         path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
         kw.setdefault('whole_lock', path/'whole-lane.lock')
         calls=[]
+        exits = iter(clock_exits or ())
         def run(command, **kwargs):
             calls.append(command)
+            if seen is not None:
+                seen.append((command, kwargs))
             name = gate.step_name(command)
+            if name == 'clock' and clock_exits is not None:
+                if code := next(exits):
+                    raise subprocess.CalledProcessError(code, command)
+                return
             if name == 'release':
                 release_ran(kwargs, log=release_log or RELEASE_LOG.replace(' ... FAILED', ' ... ok'))
             elif name == fail:
@@ -2114,10 +2123,12 @@ class QuietClock(unittest.TestCase):
                     self.assertTrue(out.splitlines()[-4].startswith(f'Gate steps: {len(names)} of {len(names)} ran'))
 
     def test_the_clock_holds_the_whole_host_budget_and_drains_it(self):
+        # Its second attempt, after a red beside load (the pass of 2026-11-16,
+        # `ClockBesideLoad`).
         clock = gate.clock_command()
-        self.assertEqual(gate.phase_budget(clock), (gate.HOST_CPU_SLOTS, gate.HOST_MEMORY_MIB))
+        self.assertEqual(gate.phase_budget(clock, drain=True), (gate.HOST_CPU_SLOTS, gate.HOST_MEMORY_MIB))
         with patch.object(gate.subprocess, 'run') as run:
-            gate.run_logged(clock, cwd='.', env={'RON_GATE_RESOURCE_POLICY': '1'}, check=True)
+            gate.run_logged(clock, cwd='.', env={'RON_GATE_RESOURCE_POLICY': '1'}, check=True, drain=True)
         wrapped = run.call_args.args[0]
         self.assertTrue(str(wrapped[1]).endswith('resource_budget.py'), wrapped)
         self.assertEqual(wrapped[wrapped.index('--cpu') + 1], str(gate.HOST_CPU_SLOTS))
@@ -2133,7 +2144,10 @@ class QuietClock(unittest.TestCase):
     def test_a_red_clock_fails_the_booking_gate_after_the_release_step(self):
         calls, out, error = booking_calls(fail='clock')
         self.assertIsInstance(error, subprocess.CalledProcessError)
-        self.assertEqual([gate.step_name(c) for c in calls][-2:], ['release', 'clock'])
+        # Red beside load, then red alone: two attempts, one step (the pass
+        # of 2026-11-16).
+        self.assertEqual([gate.step_name(c) for c in calls][-3:], ['release', 'clock', 'clock'])
+        self.assertIn('Gate steps: 9 of 9 ran', out)
 
     def test_a_lane_gate_keeps_the_clock_where_it_was(self):
         # A lane that touches the client runs the clock in its release step as
@@ -2150,6 +2164,99 @@ class QuietClock(unittest.TestCase):
     def test_the_clock_test_is_the_one_its_file_names(self):
         source = (gate.ROOT/'crates/client/tests/clock.rs').read_text()
         self.assertIn(f'fn {gate.CLOCK_TEST}()', source)
+
+
+class ClockBesideLoad(unittest.TestCase):
+    """The pass of 2026-11-16: the drained lease of the whole host waited
+    157, 0, 50, 774, 80, 1494, 0 and 1082 s on the eight scoped booking
+    gates after 2026-11-15 (4284 to 4159r12c) — 60.6 of their 193.3
+    minutes — for a clock that ran about 8 s, and while it waited no lane
+    was admitted. Foreign load can only slow a frame, so a green beside
+    load is a green: the clock runs first under a small ordinary lease, and
+    drains the host only to re-measure a red. Red first: the one attempt
+    drained."""
+
+    def test_the_first_attempt_is_a_small_lease_that_does_not_drain(self):
+        clock = gate.clock_command()
+        self.assertEqual(gate.phase_budget(clock), gate.CLOCK_BESIDE_LOAD)
+        self.assertLess(gate.CLOCK_BESIDE_LOAD[0], gate.HOST_CPU_SLOTS)
+        self.assertLess(gate.CLOCK_BESIDE_LOAD[1], gate.HOST_MEMORY_MIB)
+        with patch.object(gate.subprocess, 'run') as run:
+            gate.run_logged(clock, cwd='.', env={'RON_GATE_RESOURCE_POLICY': '1'}, check=True)
+        wrapped = run.call_args.args[0]
+        head = wrapped[:wrapped.index('--', 2)]
+        self.assertNotIn('--drain', head)
+        self.assertEqual(head[head.index('--cpu') + 1], str(gate.CLOCK_BESIDE_LOAD[0]))
+        self.assertEqual(head[head.index('--memory-mib') + 1], str(gate.CLOCK_BESIDE_LOAD[1]))
+        self.assertEqual(wrapped[wrapped.index('--', 2) + 1:], clock)
+
+    def test_the_second_attempt_drains_the_whole_host(self):
+        clock = gate.clock_command()
+        self.assertEqual(gate.phase_budget(clock, drain=True), (gate.HOST_CPU_SLOTS, gate.HOST_MEMORY_MIB))
+        with patch.object(gate.subprocess, 'run') as run:
+            gate.run_logged(clock, cwd='.', env={'RON_GATE_RESOURCE_POLICY': '1'}, check=True, drain=True)
+        wrapped = run.call_args.args[0]
+        head = wrapped[:wrapped.index('--', 2)]
+        self.assertIn('--drain', head)
+        self.assertEqual(head[head.index('--cpu') + 1], str(gate.HOST_CPU_SLOTS))
+        self.assertEqual(head[head.index('--memory-mib') + 1], str(gate.HOST_MEMORY_MIB))
+
+    def test_a_green_beside_load_runs_no_second_attempt(self):
+        seen = []
+        calls, out, error = booking_calls(['crates/rondata/src/lobby.rs'], seen=seen, clock_exits=[0])
+        self.assertIsNone(error, out)
+        clocks = [(c, k) for c, k in seen if gate.step_name(c) == 'clock']
+        self.assertEqual(len(clocks), 1)
+        self.assertFalse(clocks[0][1].get('drain'))
+        self.assertIn('Clock: green beside load\n', out)
+        self.assertNotIn('drained lease', out)
+        # One step, one minute entry, however many attempts.
+        self.assertIn(', clock ', next(l for l in out.splitlines() if l.startswith('Gate minutes:')))
+        self.assertIn('Gate steps: 9 of 9 ran', out)
+
+    def test_a_red_beside_load_is_measured_once_more_under_the_drained_lease(self):
+        for second, verdict in ((0, 'green'), (101, 'red')):
+            with self.subTest(second=second):
+                seen = []
+                calls, out, error = booking_calls(['crates/rondata/src/lobby.rs'], seen=seen,
+                                                  clock_exits=[101, second])
+                clocks = [(c, k) for c, k in seen if gate.step_name(c) == 'clock']
+                self.assertEqual(len(clocks), 2)
+                self.assertEqual([c for c, _ in clocks], [gate.clock_command()] * 2)
+                self.assertFalse(clocks[0][1].get('drain'))
+                self.assertIs(clocks[1][1].get('drain'), True)
+                # Each attempt keeps its own log.
+                self.assertNotEqual(clocks[0][1]['log'], clocks[1][1]['log'])
+                self.assertIn(f'Clock: red beside load (exit 101), then {verdict} alone under the drained '
+                              'lease\n', out)
+                # The second exit is the step's.
+                if second:
+                    self.assertIsInstance(error, subprocess.CalledProcessError)
+                    self.assertEqual(error.returncode, 101)
+                else:
+                    self.assertIsNone(error, out)
+                self.assertIn('Gate steps: 9 of 9 ran', out)
+                minutes = next(l for l in out.splitlines() if l.startswith('Gate minutes:'))
+                self.assertEqual(minutes.count('clock'), 1, minutes)
+
+    def test_the_policy_names_both_leases_in_order(self):
+        # The policy file is written before the first step; the clock reads
+        # it from beside its own log.
+        policies = []
+        class Seen(list):
+            def append(self, call):
+                if gate.step_name(call[0]) == 'clock':
+                    policies.append(json.loads((Path(call[1]['log']).parent/'gate-policy.json').read_text()))
+                super().append(call)
+        calls, out, error = booking_calls(['crates/rondata/src/lobby.rs'], seen=Seen(), clock_exits=[0])
+        self.assertIsNone(error, out)
+        booking = policies[0]['booking']
+        self.assertEqual(booking['quiet_clock'], gate.CLOCK_TEST)
+        self.assertEqual(booking['clock_beside_load_lease'],
+                         {'cpu': gate.CLOCK_BESIDE_LOAD[0], 'memory_mib': gate.CLOCK_BESIDE_LOAD[1], 'drain': False})
+        self.assertEqual(booking['quiet_clock_lease'],
+                         {'cpu': gate.HOST_CPU_SLOTS, 'memory_mib': gate.HOST_MEMORY_MIB, 'drain': True,
+                          'when': 'only after a red beside load'})
 
 
 class MergePins(unittest.TestCase):

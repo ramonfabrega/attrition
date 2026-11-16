@@ -67,8 +67,10 @@ crates it leaves out, however many (item 4281: `ground::` in both).
 2026-11-15): `merge pins` first (`MERGE_PINS`, the pins a merge moves,
 about two test-minutes; a red stops the gate there and names the test),
 and `clock` last — the client's wall-clock test, `--skip`ped in the release
-step and run alone under a drained lease of the whole host budget
-(`CLOCK_TEST`). A lane gate has neither.
+step and run after it under a small lease beside load, and — only if that
+is red — once more alone under a drained lease of the whole host budget,
+whose verdict is the step's (`CLOCK_TEST`; the pass of 2026-11-16). A lane
+gate has neither.
 
 The census pin runs in every lane gate (a lane pin, `LANE_PINS`) and its red is
 forgiven as the commander's line (Loop 2367); since the seventy-fifth pass
@@ -107,10 +109,12 @@ RESULT = re.compile(r'^test result: (ok|FAILED)\. (\d+) passed; (\d+) failed;')
 FAILED_TEST = re.compile(r'^test (\S+) \.\.\. FAILED$')
 
 
-def phase_budget(command):
+def phase_budget(command, *, drain=False):
     """Small already-built checks can coexist; possible compilations drain slots."""
+    if drain:
+        return HOST_CPU_SLOTS, HOST_MEMORY_MIB  # the whole host: the clock's second attempt
     if is_clock(command):
-        return HOST_CPU_SLOTS, HOST_MEMORY_MIB  # the whole host, drained (`QUIET_CLOCK`)
+        return CLOCK_BESIDE_LOAD  # the clock's first attempt, beside load (`CLOCK_TARGET`)
     if (any(str(a).endswith(('offline_tests.py', 'shape.py')) for a in command)
             or 'fmt' in command):
         return 2, 1024
@@ -130,23 +134,24 @@ def phase_limit(command):
     return None
 
 
-def run_logged(command, *, cwd, env, check, log=None):
+def run_logged(command, *, cwd, env, check, log=None, drain=False):
     """`subprocess.run`, or — with `log` — the same command with its output
     copied line by line to that file as well as to stdout. No shell pipe
     stands between the command and its exit status: a `| tee` launders
     `memcap.sh`'s 137 into a 0, and the release command's exit code is the
-    gate's verdict."""
+    gate's verdict. `drain` takes the whole host budget by draining it
+    (`resource_budget.py --drain`): the clock's second attempt only."""
     dispatcher = any(str(a).endswith('tools/isolated_tests.py') for a in command)
     if env.get('RON_GATE_RESOURCE_POLICY') == '1' and not dispatcher:
         env = env.copy()
         if any(str(a).endswith('guard.sh') for a in command):
             env['RON_GUARD_ADMITTED'] = '1'
-        cpu, memory = phase_budget(command)
+        cpu, memory = phase_budget(command, drain=drain)
         limit = phase_limit(command)
         command = [sys.executable, str(ROOT / 'tools/resource_budget.py'),
                    '--cpu', str(cpu), '--memory-mib', str(memory)] + \
             (['--limit-mib', str(limit)] if limit is not None else []) + \
-            (['--drain'] if is_clock(command) else []) + ['--'] + command
+            (['--drain'] if drain else []) + ['--'] + command
     if log is None:
         return subprocess.run(command, cwd=cwd, env=env, check=check)
     with open(log, 'wb') as sink, subprocess.Popen(
@@ -643,8 +648,30 @@ def client_crate_left(touched, *, lane, whole):
 # gate's own release step is over by then. A lane gate is unchanged: one
 # that touches the client runs the clock in its release step, one that does
 # not leaves the client crate (`client_crate_left`).
+#
+# **A green beside load is a green; only a red drains** (the pass of
+# 2026-11-16). On the eight scoped booking gates after that pass (4284,
+# 4283, 4159r12a, 4286, 4287, 4159r12b, 4288, 4159r12c) the drained lease
+# waited 157, 0, 50, 774, 80, 1494, 0 and 1082 s — 60.6 of those gates'
+# 193.3 minutes — for a clock that ran about 8 s each time: a drain waits
+# for the longest lease admitted anywhere on the host (a lane's or a
+# builder's whole test run), and admits no newcomer while it waits, so the
+# lanes stalled behind it too. Foreign load can only slow a frame, so the
+# `clock` step is two attempts in one step (`_run_clock`): first under a
+# small ordinary lease (`CLOCK_BESIDE_LOAD`), and only if that is red,
+# again under the drained lease of the whole host as above, whose verdict
+# is the step's. The log says which on one `Clock:` line. The test's own
+# rule (`crates/client/tests/clock.rs`) still runs inside each attempt: a
+# broken first session waits up to 600 s for the one-minute load to fall to
+# the core count before a second session is measured, and only two broken
+# sessions are red. The first attempt's reservation: the client's own
+# session is one process whose peak resident set the ceilings pin at 320
+# MiB (`render::clock::CLOCK`), beside a one-thread test harness and cargo's
+# freshness check over binaries the release step already built — two slots
+# and 2 GiB, the reflex's slots at half its memory.
 CLOCK_TARGET = 'clock'
 CLOCK_TEST = 'the_great_lakes_lobby_plays_under_the_clock_s_ceilings'
+CLOCK_BESIDE_LOAD = (2, 2048)
 
 
 def clock_command():
@@ -1200,10 +1227,14 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     if isolated:
         policy['isolated'] = {'slots': 8, 'global_cpu_slots': HOST_CPU_SLOTS, 'global_reserved_mib': HOST_MEMORY_MIB}
     if not lane:
-        # The pass of 2026-11-15: the booking gate's merge pins and quiet clock.
+        # The pass of 2026-11-15: the booking gate's merge pins and quiet clock;
+        # the pass of 2026-11-16: the clock beside load first, drained only
+        # after a red.
         policy['booking'] = {'merge_pins': list(MERGE_PINS), 'quiet_clock': CLOCK_TEST,
+                             'clock_beside_load_lease': {'cpu': CLOCK_BESIDE_LOAD[0],
+                                                         'memory_mib': CLOCK_BESIDE_LOAD[1], 'drain': False},
                              'quiet_clock_lease': {'cpu': HOST_CPU_SLOTS, 'memory_mib': HOST_MEMORY_MIB,
-                                                   'drain': True}}
+                                                   'drain': True, 'when': 'only after a red beside load'}}
     if scope is not None:
         # The thirty-fifth steer (Ramon's word): a booking gate scoped to the
         # merges since the last whole one runs the timed tests only when one
@@ -1254,8 +1285,10 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         ['zsh', 'tools/guard.sh', '--built'],
     ]
     # The booking gate's two (the pass of 2026-11-15): the pins a merge moves
-    # before its release step (`MERGE_PINS`), and the clock after it, alone
-    # (`clock_command`), which the release step therefore skips.
+    # before its release step (`MERGE_PINS`), and the clock after it
+    # (`clock_command`; beside load first, alone under a drained lease only
+    # after a red, the pass of 2026-11-16), which the release step therefore
+    # skips.
     release_skips = skips + ([] if lane else [CLOCK_TEST])
     if isolated:
         release = ([sys.executable, 'tools/isolated_tests.py', '--release',
@@ -1511,6 +1544,28 @@ def merge_pins_line(log, returncode):
             + ' — the release step did not run (the pass of 2026-11-15)')
 
 
+def _run_clock(command, *, run, env, log, drained_log):
+    """The booking gate's `clock` step (the pass of 2026-11-16): one attempt
+    beside load under a small lease (`CLOCK_BESIDE_LOAD`); only if it is
+    red, a second alone under the drained lease of the whole host, whose
+    exit is the step's. One `Clock:` line says which happened."""
+    try:
+        run(command, cwd=ROOT, env=env, check=True, log=log)
+    except subprocess.CalledProcessError as first:
+        print(f'Clock: red beside load (exit {first.returncode}); measuring once more alone under the '
+              'drained lease', flush=True)
+        try:
+            run(command, cwd=ROOT, env=env, check=True, log=drained_log, drain=True)
+        except subprocess.CalledProcessError:
+            print(f'Clock: red beside load (exit {first.returncode}), then red alone under the drained lease',
+                  flush=True)
+            raise
+        print(f'Clock: red beside load (exit {first.returncode}), then green alone under the drained lease',
+              flush=True)
+        return
+    print('Clock: green beside load', flush=True)
+
+
 def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, reached,
                lane=False, word=(), seconds=None, verdicts=None):
     for command in commands:
@@ -1527,7 +1582,11 @@ def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, r
                                           else step_name(command).replace(' ', '-') + '.log'))}
         try:
             reached.append(command)
-            run(command, cwd=ROOT, env=child_env, check=True, **extra)
+            if is_clock(command):
+                _run_clock(command, run=run, env=child_env, log=extra['log'],
+                           drained_log=str(report_dir / 'clock-drained.log'))
+            else:
+                run(command, cwd=ROOT, env=child_env, check=True, **extra)
             completed = True
         except subprocess.CalledProcessError as failure:
             if is_merge_pins(command):
