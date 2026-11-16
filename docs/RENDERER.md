@@ -3802,10 +3802,47 @@ the_land_s_deep_corners_are_the_floor_s_grey`, `RUN1564_DEEP_CORNERS`). Tile (20
 has 215 where ours has `light_vert`'s (147, 152, 191). A probe that drew those corners flat and white, the rest lit,
 read `SANDY` 654 on the ground row and 700 on `RUN1564_3279_SURF`. That is a fit, not drawn.
 *Coverage:* diff-backed: the grey on the packet's deep corners. On a reading: the writer and its `0xdc` gate. *Not
-established:* the byte's value and type (the type record names `+0x55dc` `ocean_t_scale`, a float; the listing
-reads one byte); `water_height_modify`'s colour per water vertex against our screen ramp, the source of the
-±6; the frustum gate, which leaves corners off screen stale; how `ENABLE_VERTEX_COLOR_DIFFUSE` takes a grey
-under the land's own N·L.
+established:* ~~the byte's value and type~~ (item 4296, below); ~~the source of the ±6~~ (item 4296, below); the
+frustum gate, which leaves corners off screen stale; ~~how `ENABLE_VERTEX_COLOR_DIFFUSE` takes a grey under the
+land's own N·L~~ (item 4296, below).
+
+**The deep corners drawn (item 4296).** *Opus 5.5; the ledger: `docs/journal/2026-11-16-item-4296.md`.*
+- **The byte** is `OceanVars::trans_bright`, a `uchar`, **99** on run1564's packet. The listing at `873d5e` is
+  `movb 0x55dc(%esi), %al` on the terrain pointer. The decompile's terrain offsets sit 0x40 past `TerrainData`'s
+  type record (`tools/render/water_packet.py`), so `+0x55dc` is `TerrainData +0x559c`, `OceanVars +0x78`, and not
+  `ocean_t_scale`. `OceanVars::registration@0084f260` registers it as a byte from 0 to 255. Each channel is
+  `min(255, floor + 99)`: the listing adds and stores `0xff` at a sum of `0xff` or more.
+- **The ±6 is the floor vertex, not the camera.** `CoordInfo::add_geometry@0084bef0` runs `modify_ocean_floor` for each
+  visible cell carrying the ocean floor (`flags & 0x2000`) on every frame, and `TerrainOut::render@008558b0` lays
+  `add_patch` after those calls. Within a cell, each floor vertex at a cell corner writes its own grey to the land
+  corners of its quadrant (offsets 0 to ±2 tiles, `div_3_table` of the vertex's position over 64). So a deep corner
+  takes the grey of its nearest cell corner. A corner two tiles from both takes the higher one, `4⌊(c + 2) / 4⌋` on
+  each axis. Against the packet's own floor vertices (`run1564-water.txt`), that rule holds on 1,553 of the 1,618
+  corners whose quadrant's floor vertex is drawn. Every tie whose two vertices differ went to the higher one. The 65
+  others are one patch at 137 by vertices at 252. On the still's 1,139 on-screen corners, `client::ground::
+  deep_grey` at the still's own ramp is the packet's on **1,139 of 1,139**. The corner's own ramp agrees on 274, at
+  −7 to +4 (`RUN1564_DEEP_GREY`, in `the_land_s_deep_corners_are_the_floor_s_grey`).
+- **The draw.** `ps_global.hlsl` takes the vertex diffuse into the stage (`do_texture_operation`), saturates it, and
+  raises the stage to 1.45 before `diffuse + ambient`. So the grey is the stage's vertex colour at the corner's own
+  N·L, exactly where `light_vert`'s was (`land_lit_deep`, `shaders/land.wgsl`). The client lays it on every lit land
+  layer (the faded base and the transition patches, not the coral) whenever the screen's ramp moves (`World`'s ramp
+  re-lay). It rides the patch's third attribute as `16 + 4 · grey + (nl + 1)`, which `vs_patch` takes apart
+  (`ground::deep_light`). It is drawn with `land_light` on, behind `World::deep_corners`.
+- **The score** (`the_deep_corners_on_the_still`, `RUN1564_DEEP_STILL`): the ground row's `SANDY` **645 → 650** of
+  772, with 6 tiles up and 1 down. Up: (186, 170), theirs (73, 131, 148), off (49, 120, 150) → on (50, 121, 149). Down:
+  (182, 204), theirs (64, 122, 138), off (49, 126, 150) → on (47, 123, 147). `RUN1564_3279_SURF` 681 → **688**,
+  `RUN1564_3279_SURF_DRAWN` 553/645/678 → 552/650/680, luma 1,843 → 1,845, texture `SANDY` 428 → 439 with `OCEAN`
+  239 → 234. The sRGB made-to-fail side moves 1,777 → 1,786 and now leads the drawn row by three (4296b). The brief's
+  bars, 653 and 702, are not reached. The grey is exact, and the nine deep tiles still read far under theirs in red:
+  (200, 181) is (71, 134, 156) theirs and (48, 126, 147) ours. Another 88 `SANDY` tiles move more than 3 in red
+  without crossing. Most are shallower tiles, a mix of deep and lit corners, that darken by up to 14. Only (182, 204)
+  crosses down. What holds the rest is not the vertex colour (4296a).
+
+*Coverage:* diff-backed: the grey per deep corner, 1,139 of 1,139 on the still's screen; the quadrant rule against
+the packet's floor vertices. On a reading: the byte's name and type, the per-cell call, the stage's power. *Not
+established:* the 65 corners at 137 (off screen or stale; 4294b); the branch for a cell with no floor mesh (a
+5 × 5 per-corner ramp under `0xdd`, with scaled coordinates that read as a slip, never seen on run1564); what
+holds the nine deep tiles under theirs (4296a).
 
 ## 3.28 The city's buildings against the photograph's colour (item 4245)
 

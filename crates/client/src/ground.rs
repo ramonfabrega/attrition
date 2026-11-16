@@ -712,6 +712,58 @@ pub fn floor_grey(f: f32) -> u8 {
     (v / 255.0 * 0.6 * 255.0) as u8
 }
 
+/// **`OceanVars::trans_bright`** (item 4296; `docs/RENDERER.md` §3.27, "The
+/// beach below the waterline"): the byte `modify_ocean_floor@00873960`
+/// adds to the floor's colour before it writes it into a deep land corner
+/// (listing `873d5e`, `movb 0x55dc(%esi)`; terrain `+0x55dc` is
+/// `TerrainData +0x559c`, `OceanVars +0x78`, the 0x40 of
+/// `tools/render/water_packet.py`). 99 on run1564's packet.
+pub const TRANS_BRIGHT: u8 = 99;
+
+/// **The deep corner's gate** (item 4296): `modify_ocean_floor` writes a
+/// land corner whose alpha byte is under `0xdc`, [`land_alpha`]'s −82.07.
+pub const DEEP_ALPHA: u8 = 0xdc;
+
+/// **A deep land corner's vertex grey** (item 4296; §3.27): `None` where
+/// the corner's [`land_alpha`] is at or over [`DEEP_ALPHA`]. Otherwise
+/// `CoordInfo::add_geometry@0084bef0` has run `modify_ocean_floor` for the
+/// corner's cell on the frame, and each floor vertex at a cell's corner
+/// hands its grey plus [`TRANS_BRIGHT`], saturated, to the land corners of
+/// its quadrant: the nearest cell corner, a corner two tiles from both
+/// taking the higher (`4⌊(c + 2) / 4⌋` on each axis; on run1564's packet,
+/// every tie whose two vertices differ went that way, `docs/journal/
+/// 2026-11-16-item-4296.md`). `p` is the corner's world position.
+pub fn deep_grey(ramp: &ScreenRamp, p: &[f32; 3]) -> Option<u8> {
+    if land_alpha(p[2]) >= DEEP_ALPHA {
+        return None;
+    }
+    let per = render::terrain::UNITS_PER_TILE as f32;
+    let tiles = render::terrain::TILES_PER_CELL as f32;
+    let q = |v: f32| ((v / per).round() + 2.0).div_euclid(tiles) * tiles * per;
+    let grey = floor_grey(ramp.at(q(p[0]), q(p[1])));
+    Some(grey.saturating_add(TRANS_BRIGHT))
+}
+
+/// **A deep corner's light, as the patch's third attribute carries it**
+/// (item 4296): `DEEP_LIGHT + 4 · grey + (nl + 1)`, which `vs_patch`
+/// takes apart (`shaders/patch.wgsl`). A light under `DEEP_LIGHT` is the
+/// corner's N·L as it stands ([`crate::world::LIGHT_FLAT`] at most).
+pub const DEEP_LIGHT: f32 = 16.0;
+
+/// A deep corner's N·L `nl` and grey, packed as [`DEEP_LIGHT`] says.
+pub fn deep_light(nl: f32, grey: u8) -> f32 {
+    DEEP_LIGHT + 4.0 * f32::from(grey) + (nl.clamp(-1.0, 2.0) + 1.0)
+}
+
+/// The N·L a light carries, packed by [`deep_light`] or not.
+pub fn light_nl(light: f32) -> f32 {
+    if light < DEEP_LIGHT {
+        return light;
+    }
+    let k = light - DEEP_LIGHT;
+    k - 4.0 * (k / 4.0).floor() - 1.0
+}
+
 /// **The water's vertex colour** at ramp fraction `f` (item 4174):
 /// `modify_water`'s lerp of [`WATER_TOP`] to [`WATER_BOT`], truncated.
 pub fn water_rgb(f: f32) -> [u8; 3] {
@@ -1016,6 +1068,23 @@ pub const EDGE_BLOCK: usize = 32;
 #[cfg(test)]
 pub const RUN1564_DEEP_CORNERS: [[u32; 3]; 2] = [[9_184, 9_185, 2], [1_139, 92, 103]];
 
+/// **`RUN1564_DEEP_GREY`** (item 4296; `docs/RENDERER.md` §3.27): of the
+/// on-screen corners of [`RUN1564_DEEP_CORNERS`], `[equal to deep_grey at
+/// the still's ramp, the packet less ours at least, at most]`. The
+/// made-to-fail side is the per-corner ramp's plus [`TRANS_BRIGHT`]:
+/// `[equal, least, most]` of the same corners.
+#[cfg(test)]
+pub const RUN1564_DEEP_GREY: [[i32; 3]; 2] = [[1_139, 0, 0], [274, -7, 4]];
+
+/// **`RUN1564_DEEP_STILL`** (item 4296; `docs/RENDERER.md` §3.27): run1564's
+/// still at 3279, `SANDY` `[agree with the deep corners off, on, crossed
+/// down, crossed up]`. Off is `light_vert`'s colour on them (item 4292's
+/// 645). Up: (186, 170), theirs (73, 131, 148), off (49, 120, 150) → on
+/// (50, 121, 149); down: (182, 204), theirs (64, 122, 138), off (49, 126,
+/// 150) → on (47, 123, 147).
+#[cfg(test)]
+pub const RUN1564_DEEP_STILL: [u32; 4] = [645, 650, 1, 6];
+
 /// **`RUN1564_3279_SURF`** (item 4225; `docs/RENDERER.md` §3.18, "The
 /// surf, off the packet"): `SANDY` and `OCEAN` `[agree, scored]` on the
 /// client's still with run1564's own surf (the card's draws 163–169, off
@@ -1039,7 +1108,8 @@ pub const RUN1564_DEEP_CORNERS: [[u32; 3]; 2] = [[9_184, 9_185, 2], [1_139, 92, 
 /// Item 4272: `SANDY` 700 → 702: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
 ///
 /// Item 4292: `SANDY` 702 → 681 (a named fall from 702), `OCEAN` holds: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) darkens the beach's descent to the waterline under the composite, where the photograph's stays bright (parked 4292a).
-pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[681, 772], [422, 437]];
+/// Item 4296: `SANDY` 681 → 688, `OCEAN` holds: the deep corners drawn in the floor's grey plus `trans_bright` (item 4296, `docs/RENDERER.md` §3.27, "The beach below the waterline"; [`RUN1564_DEEP_STILL`]).
+pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[688, 772], [422, 437]];
 
 /// **`RUN1564_3279_SURF_DRAWN`** (item 4239; `docs/RENDERER.md` §3.27):
 /// `SANDY` and `OCEAN` `[agree, scored]` on run1564's still with the
@@ -1060,11 +1130,12 @@ pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[681, 772], [422, 437]];
 /// by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) darkens the
 /// beach's descent to the waterline, where the photograph's stays bright
 /// (parked 4292a).
+/// Item 4296: `SANDY` off 553 → 552, drawn 645 → 650, typed 678 → 680, `OCEAN` holds: the deep corners drawn in the floor's grey plus `trans_bright` (item 4296, `docs/RENDERER.md` §3.27, "The beach below the waterline"; [`RUN1564_DEEP_STILL`]).
 #[cfg(test)]
 pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
-    [[553, 772], [422, 437]],
-    [[645, 772], [422, 437]],
-    [[678, 772], [422, 437]],
+    [[552, 772], [422, 437]],
+    [[650, 772], [422, 437]],
+    [[680, 772], [422, 437]],
 ];
 
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
@@ -1113,15 +1184,16 @@ pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
 /// 1,786): the plain ground lit by the land's own N·L (`docs/RENDERER.md`
 /// §3.22) darkens the beach's descent to the waterline, where the
 /// photograph's stays bright (parked 4292a).
+/// Item 4296: **1,778 → 1,783** (`SANDY` 645 → 650, 6 up and 1 down): the deep corners drawn in the floor's grey plus `trans_bright` (item 4296, `docs/RENDERER.md` §3.27, "The beach below the waterline"; [`RUN1564_DEEP_STILL`]).
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1778, 1920),
+    (1783, 1920),
     [
         [679, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [645, 772],
+        [650, 772],
         [422, 437],
     ],
 );
@@ -1159,6 +1231,7 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4279: run1559b **1,061 → 1,066** (under a mountain **95 → 100** of 106, plain 950 unmoved): the snowcap's stage 1 draws `t_mountainpeak`'s own alpha, where its key (930) had been the surf's mask 10's and the alphas' cache is first come (`docs/RENDERER.md` §3.10; `world::tests::the_alpha_keys_are_apart`); the body ours Y 143.7 → 141.0 against theirs 137.3, 6 tiles paler (from 11); run1564 unchanged.
 /// Item 4284: run1559b **1,066 → 1,072** (under a mountain **100 → 106** of 106, plain 950 unmoved): the ground beneath a range takes the land's own N·L and `light_vert` colour whatever `land_light` says, as the snowcap does (`docs/RENDERER.md` §3.22, "The ground beneath a range"); the six paler tiles (5, 142)–(7, 147) on the left shoulder close from ratios 1.21–1.48 to 0.97–1.01; the body ours Y 141.0 → 136.5 against theirs 137.3; run1564 unchanged.
 /// Item 4292: run1559b **1,072 → 1,109** of 1,109 (plain **950 → 986**, `ROCK` 16 → 17): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22), the halo where the range meets the grass drawn where the photograph's is; run1564 1,852 → 1,843 (`SANDY` 728 → 723, `OCEAN` 420 → 416; a named fall from 1,852, parked 4292g).
+/// Item 4296: run1564 **1,843 → 1,845** (`SANDY` 723 → 725): the deep corners in the floor's grey plus `trans_bright` (`docs/RENDERER.md` §3.27, "The beach below the waterline"); run1559b unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
         (1109, 1109),
@@ -1173,14 +1246,14 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1843, 1920),
+        (1845, 1920),
         [
             [679, 679],
             [0, 0],
             [25, 32],
             [0, 0],
             [0, 0],
-            [723, 772],
+            [725, 772],
             [416, 437],
         ],
     ),
@@ -1212,7 +1285,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Item 4284: run1559b's 1,007 → 1,008, the ground beneath a range lit by
 /// the land's own N·L (§3.22, "The ground beneath a range").
 /// Item 4292: run1559b's 1,008 → 1,012, run1564's 1,754 → 1,777, the made-to-fail: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22).
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1012, 1109), (1777, 1920)];
+/// Item 4296: run1564's 1,777 → 1,786, the deep corners in the floor's grey plus `trans_bright` (§3.27, "The beach below the waterline"), against the drawn row's 1,783: **the made-to-fail side leads on run1564 by three** (4296b).
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1012, 1109), (1786, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1509,14 +1583,15 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// Item 4272: `SANDY` 413 → 412, `OCEAN` 235 → 233: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
 /// Item 4284: `SANDY` 412 → 413: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 /// Item 4292: plain 665 → 666, `ROCK` 8 → 9, `SANDY` 413 → 428, `OCEAN` 233 → 239 (a rise from 665, 8, 413 and 233): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) carries the relief's shading into each tile's spread.
+/// Item 4296: `SANDY` 428 → 439, `OCEAN` 239 → 234 (a named fall from 239): the deep corners in the floor's grey plus `trans_bright` (`docs/RENDERER.md` §3.27, "The beach below the waterline"), on the texture's spread.
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [666, 679],
     [0, 0],
     [9, 32],
     [0, 0],
     [0, 0],
-    [428, 772],
-    [239, 437],
+    [439, 772],
+    [234, 437],
 ];
 
 /// **`RUN1564_3279_LAKE_HDR_TEXTURE`** (item 4232): [`TEXTURE`]'s
@@ -4823,6 +4898,64 @@ pub(crate) mod tests {
             .collect()
     }
 
+    /// **The deep corners on the still** (item 4296; `docs/RENDERER.md`
+    /// §3.27, "The beach below the waterline"): run1564's still at 3279 with
+    /// [`World::set_deep_corners`] off (`light_vert`'s colour, the made-to-fail
+    /// side) and on, `SANDY` `[agree off, agree on, crossed down, crossed
+    /// up]`: [`RUN1564_DEEP_STILL`].
+    #[test]
+    fn the_deep_corners_on_the_still() {
+        use crate::gpu::SilhouetteOrder;
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let mut rows = Vec::new();
+        for on in [false, true] {
+            p.world.set_deep_corners(on);
+            let still = crate::still_of(
+                &mut p.world,
+                &camera,
+                size,
+                SilhouetteOrder::Before,
+                wgpu::TextureFormat::Rgba8Unorm,
+            );
+            rows.push(still_ground_row(&mut p, &still));
+        }
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let mut got = [0u32; 4];
+        for (a, b) in rows[0].iter().zip(&rows[1]) {
+            if kind_of(&t, &mountains, a.0) != 5 {
+                assert_eq!(a.3, b.3, "{:?}: only SANDY moves", a.0);
+                continue;
+            }
+            got[0] += u32::from(a.3);
+            got[1] += u32::from(b.3);
+            if a.3 != b.3 {
+                got[2 + usize::from(b.3)] += 1;
+                println!(
+                    "run1564 deep: tile {:?} crosses {}: theirs ({:.0}, {:.0}, {:.0}), off ({:.0}, {:.0}, {:.0}) -> on ({:.0}, {:.0}, {:.0})",
+                    a.0,
+                    if b.3 { "up" } else { "down" },
+                    a.1[0],
+                    a.1[1],
+                    a.1[2],
+                    a.2[0],
+                    a.2[1],
+                    a.2[2],
+                    b.2[0],
+                    b.2[1],
+                    b.2[2]
+                );
+            }
+        }
+        println!("run1564 deep: SANDY [off, on, down, up] {got:?}");
+        assert_eq!(got, RUN1564_DEEP_STILL);
+    }
+
     /// **The ground's rows on the client's still** (item 4171, §3.15, committed before this count): on both photographs, the still
     /// beside the painter's [`ground_row`], by kind, every tile whose verdict
     /// the still changes counted by kind and the first of each named with
@@ -7698,6 +7831,7 @@ pub(crate) mod tests {
         let (mut lo, mut hi) = (i32::MAX, i32::MIN);
         // Made to fail: `light_vert`'s red on the same corners.
         let mut lit_equal = 0u32;
+        let mut grey = [[0, i32::MAX, i32::MIN]; 2];
         for (i, (_, h, c)) in pk.iter().enumerate() {
             if (*c >> 24) as u8 >= 0xdc {
                 continue;
@@ -7722,7 +7856,18 @@ pub(crate) mod tests {
             on_screen += 1;
             let d = i32::from(rgb[0]) - i32::from(floor_grey(ramp.at(x, y)));
             (lo, hi) = (lo.min(d), hi.max(d));
+            // Item 4296: the quadrant's floor vertex, and the corner's own.
+            let ours = deep_grey(&ramp, &[x, y, z]).map_or(-1, i32::from);
+            let own = i32::from(floor_grey(ramp.at(x, y)).saturating_add(TRANS_BRIGHT));
+            for (k, v) in [ours, own].into_iter().enumerate() {
+                let e = i32::from(rgb[0]) - v;
+                grey[k][0] += i32::from(e == 0);
+                grey[k][1] = grey[k][1].min(e);
+                grey[k][2] = grey[k][2].max(e);
+            }
         }
+        println!("run1564 deep corners against deep_grey, then the corner's own ramp: {grey:?}");
+        assert_eq!(grey, RUN1564_DEEP_GREY);
         println!(
             "run1564 deep corners: {deep}, neutral {neutral}, light_vert's {lit_equal}; on screen {on_screen}, the floor's grey plus {lo} to {hi}"
         );

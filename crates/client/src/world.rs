@@ -223,6 +223,12 @@ pub struct World {
     /// off is the flat N·L and a white vertex (item 4212's draw).
     /// [`World::set_land_light`] moves it.
     land_light: bool,
+    /// **Draw a deep land corner in the floor's grey** (item 4296, §3.27,
+    /// "The beach below the waterline"): `modify_ocean_floor`'s vertex
+    /// colour on a lit land layer's corner under alpha `0xdc`. On by
+    /// default; off is `light_vert`'s there, the made-to-fail side.
+    /// [`World::set_deep_corners`] moves it.
+    deep_corners: bool,
     /// **Light each range by its own normals** (item 4269, §3.22):
     /// `generate_normals`' N·L on the mountain's layers, the vertex white,
     /// as run1559b's packet holds them. On by default;
@@ -1048,6 +1054,7 @@ impl World {
             ground,
             debug_ground: false,
             land_light: true,
+            deep_corners: true,
             mountain_light: true,
             drawn: (u32::MAX, TerrainMesh::default(), Vec::new(), Vec::new()),
             ramp: None,
@@ -1187,6 +1194,17 @@ impl World {
     pub fn set_land_light(&mut self, on: bool) {
         if self.land_light != on {
             self.land_light = on;
+            self.drawn.1.positions.clear();
+            self.drawn.2.clear();
+            self.drawn.3.clear();
+        }
+    }
+
+    /// Turn [`World::deep_corners`] on or off; the ground is laid again.
+    #[cfg(test)]
+    pub fn set_deep_corners(&mut self, on: bool) {
+        if self.deep_corners != on {
+            self.deep_corners = on;
             self.drawn.1.positions.clear();
             self.drawn.2.clear();
             self.drawn.3.clear();
@@ -1674,6 +1692,22 @@ impl World {
                         crate::ground::ramp_uv(f32::from(crate::ground::floor_grey(at(p))) / 255.0)
                     })
                     .collect();
+            }
+            // Item 4296 (§3.27, "The beach below the waterline"): a lit land
+            // layer's deep corner takes the floor's grey plus
+            // `trans_bright` as its vertex colour, at its own N·L.
+            if self.land_light && self.deep_corners {
+                for m in self.drawn.3.iter_mut().filter(|m| {
+                    (MOUNTAIN_PIECE + 1..0).contains(&m.piece)
+                        && !m.mountain
+                        && m.light.len() == m.positions.len()
+                }) {
+                    for (l, p) in m.light.iter_mut().zip(&m.positions) {
+                        if let Some(g) = crate::ground::deep_grey(&ramp, p) {
+                            *l = crate::ground::deep_light(crate::ground::light_nl(*l), g);
+                        }
+                    }
+                }
             }
             self.laid_ramp = Some(ramp);
             self.patch_version = self.patch_version.wrapping_add(1);

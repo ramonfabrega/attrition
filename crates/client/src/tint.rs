@@ -259,9 +259,10 @@ pub(crate) mod tests {
     /// Item 4279: run1559b off luma 1,061 → 1,066 and on 1,104 → 1,109; run1570 off luma 1,139 → 1,140 and on 1,165 → 1,166: the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10), the frame's white with it. The switch stays off: on leads run1559b's grass hue by one and trails run1564's and run1570's.
     /// Item 4284: off luma run1559b 1,066 → 1,072 and run1570 1,140 → 1,142, on unchanged: the ground beneath a range takes the land's own N·L whichever side the switch stands (`docs/RENDERER.md` §3.22, "The ground beneath a range"), so off now lights those tiles as on does. The switch stays off: on still trails run1564's grass hue and ground row (parked 4284a, the whole ledger).
     /// Item 4292: **the switch is on by default** (`docs/RENDERER.md` §3.22): the drawn side is now on, and the other tests' pins are its values; both sides unchanged.
+    /// Item 4296: run1564 on row 1,778 → 1,783, luma 1,843 → 1,845: the deep corners drawn in the floor's grey plus `trans_bright` on the lit side alone (`docs/RENDERER.md` §3.27, "The beach below the waterline"); off unchanged, and still leads run1564's ground row by three.
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
         ([959, 1105, 1072], [960, 1105, 1109]),
-        ([678, 1786, 1852], [676, 1778, 1843]),
+        ([678, 1786, 1852], [676, 1783, 1845]),
         ([1042, 1171, 1142], [1041, 1171, 1166]),
     ];
 
