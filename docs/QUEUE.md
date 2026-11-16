@@ -49,11 +49,11 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 136 §4 to §7): the third takes 4297 (4295 landed); the suite's seat is the chain's builder on 4159's order; render takes 4296 (4294's first act landed) (Ramon: playing first).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 136 §4 to §7): the third takes 4297 (4295 landed); the suite's seat waits on the pass for 4159's mover (4159r18b); render takes 4296 (4294's first act landed) (Ramon: playing first).
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2; builders). `LEADERS_HELD_OUT` 6 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
-packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**. **Held:** `good_deeds`, `hire_stamp`, `hire_who`, `incoming_taunt_who`, `tribute_demanded`, `tributes`. **Order:** the probe as a tool (4159r17a), then the six by the line's first parting (`hire_who`). The diplomacy's second reading is adjudicated
+packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**. **Held:** `good_deeds`, `hire_stamp`, `hire_who`, `incoming_taunt_who`, `tribute_demanded`, `tributes`. **Order:** none designed. Residue 18's probe (`RON_HELD_PROBE`) finds no held row, and none of the six moves off its reset on any walked block (`hire_who` −1, the printed four 0; `incoming_taunt_who` packets only), so none releases (entry 131 §1). A mover is a capture (4159r18b), the pass's to design. The diplomacy's second reading is adjudicated
 (`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`); the proposal's draw at five live leaders is parked in
 `docs/LEADERS.md` §7.6 with what would falsify it.
 
