@@ -5953,3 +5953,238 @@ fn the_original_s_playback_of_the_toggled_file_walks_in_lockstep() {
     assert_eq!(theirs, toggled_effects(), "the original's computer is ours");
     assert_eq!(entries, TOGGLE_ENTRIES, "the handler's entry");
 }
+
+/// **The disbanded file** (item 4287, `docs/CLIENT_INPUT.md` §29): the
+/// toggled script and one package more, the came-out Citizen's `group` and
+/// `disband(0)` on [`crate::script::DISBAND_FRAME`]; it round-trips
+/// through the file, and every package before it is the toggled file's,
+/// frame, slot and stamp. With `RON_RCX_OUT=<file>` it writes the `.rcx`
+/// the playback takes open.
+#[test]
+fn the_disbanded_minted_packages_round_trip() {
+    use crate::script::{DISBAND_FRAME, disbanded, toggled};
+    let (Some(rec), Some(before)) = (minted(&disbanded()), minted(&toggled())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "disbanded").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in disbanded().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "DISBANDED tails {:?} against {:?}",
+        &ours[ours.len() - 3..],
+        &old[old.len() - 2..]
+    );
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 1, old[..m - 1].to_vec()));
+    assert_eq!((ours[n - 2].0, ours[n - 2].1), (DISBAND_FRAME, 0));
+    assert_eq!(
+        (ours[n - 1].0, ours[n - 1].2),
+        (old[m - 1].0, old[m - 1].2 + 1)
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "DISBANDED RCX {} bytes (the toggled file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), TOGGLED_RCX_BYTES, "the file run1618 played");
+    assert_eq!(gz.len(), DISBANDED_RCX_BYTES, "DISBANDED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The disbanded file's size, gzipped (item 4287).
+const DISBANDED_RCX_BYTES: usize = 59_681;
+
+/// The frames the disband's effect is read on (item 4287): the package's
+/// frame, the frame after it, the one after that, and the window's last
+/// record.
+const DISBAND_READ_AT: [i64; 4] = [6810, 6811, 6812, 6999];
+
+/// The disbanded script, read off one frame: slot 0's units on the
+/// record, by unit number.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct DisbandEffect {
+    pub frame: i64,
+    pub units: Vec<i64>,
+}
+
+/// Our walk under the pump on `orders`' file, read on `at`: slot 0's
+/// living units.
+fn disband_effects_ours(orders: &[Order], at: &[i64]) -> Vec<DisbandEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        let s = &built.sim;
+        let mut units: Vec<i64> = s
+            .units
+            .iter()
+            .filter(|u| u.alive() && u.owner == 0)
+            .map(|u| i64::from(u.index))
+            .collect();
+        units.sort_unstable();
+        ours.push(DisbandEffect {
+            frame: s.frame,
+            units,
+        });
+    }
+    ours
+}
+
+/// The original's, off the take's records on `at`.
+fn disband_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<DisbandEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for &n in at {
+        let Some(i) = source.frames().iter().position(|f| f.number == n) else {
+            continue;
+        };
+        let f = source.frame_state(i).unwrap();
+        let mut units: Vec<i64> = f.units.iter().filter(|u| u.who == 0).map(|u| u.o).collect();
+        units.sort_unstable();
+        theirs.push(DisbandEffect { frame: n, units });
+    }
+    Some(theirs)
+}
+
+/// **What the disband does on our walk** (item 4287,
+/// `docs/CLIENT_INPUT.md` §29), pinned before the original's playback was
+/// read; seen red pinned as the toggled walk's. The Citizen `0/2` stands
+/// on 6810 and is off slot 0's living units from 6811, the tick that takes
+/// the package; nothing else of slot 0's moves, and the capital's infinite
+/// queue still trains `0/10` and `0/11` by 6999.
+fn disbanded_effects() -> Vec<DisbandEffect> {
+    let row = |frame, units: &[i64]| DisbandEffect {
+        frame,
+        units: units.to_vec(),
+    };
+    vec![
+        row(6810, &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+        row(6811, &[0, 1, 3, 4, 5, 6, 7, 8, 9]),
+        row(6812, &[0, 1, 3, 4, 5, 6, 7, 8, 9]),
+        row(6999, &[0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
+    ]
+}
+
+/// **The disband on our walk**, against the toggled file's walk, which
+/// keeps the Citizen; and against run1618, the toggled file's playback,
+/// which our reader of the take agrees with on every frame of
+/// [`DISBAND_READ_AT`] (the comparison can fail: it is the toggled walk's
+/// own value on both sides).
+#[test]
+fn what_the_disband_does_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::disbanded()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = disband_effects_ours(&crate::script::disbanded(), &DISBAND_READ_AT);
+    let without = disband_effects_ours(&crate::script::toggled(), &DISBAND_READ_AT);
+    for (a, b) in ours.iter().zip(&without) {
+        eprintln!("DISBAND EFFECT ours {a:?}\n                without {b:?}");
+    }
+    assert_eq!(ours, disbanded_effects(), "ours, pinned");
+    assert_eq!(ours[0], without[0], "nothing moves on the package's frame");
+    assert_ne!(ours[1..], without[1..], "the Citizen is gone after");
+    if let Some(run1618) = disband_effects_theirs(TOGGLED_WALKED[0].0, &DISBAND_READ_AT) {
+        assert_eq!(run1618, without, "the reader agrees without the order");
+    }
+}
+
+/// **The original's playback of the disbanded file** (item 4287):
+/// `(take, trace, first sequence parting or the last frame, last frame,
+/// records compared, records parted)`. Pinned before the take was read,
+/// with none parted. run1623 is run1622's line with `DEATHS=1`: run1622
+/// printed no `DEATH_OBJS`, so the comparer read our corpse of `0/2` as
+/// one the original does not hold, on 189 of its 300 records.
+pub(crate) const DISBANDED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1623-greatlakes-playback-of-disbanded-7000.txt",
+    "rontrace-run1623.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// The disband's handler and the object's on the original's side, by
+/// entry address.
+const DISBAND_FUNCTIONS: [(u32, &str); 2] = [
+    (0x0094_8660, "CommandPackage::process_disband"),
+    (0x0064_55c0, "Object::disband"),
+];
+
+/// Each take's first entry into [`DISBAND_FUNCTIONS`], in sim-frames,
+/// pinned before run1622 was read: run1618 never; run1622 and run1623 on 6809, the
+/// tick that consumes [`crate::script::DISBAND_FRAME`]'s package.
+const DISBAND_ENTRIES: &[(&str, [Option<i64>; 2])] = &[
+    ("rontrace-run1618.log", [None, None]),
+    ("rontrace-run1622.log", [Some(6809), Some(6809)]),
+    ("rontrace-run1623.log", [Some(6809), Some(6809)]),
+];
+
+/// **The original plays the disbanded file in lockstep** (item 4287,
+/// `docs/CLIENT_INPUT.md` §29): the built start walked under the pump on
+/// the disbanded file against the take, every frame's draws and every
+/// record of its window ([`DISBANDED_WALKED`]); slot 0's units on
+/// [`DISBAND_READ_AT`], read off the take's records, equal to ours; and
+/// the handler's entry on the original's side ([`DISBAND_ENTRIES`]).
+#[test]
+fn the_original_s_playback_of_the_disbanded_file_walks_in_lockstep() {
+    let disbanded = crate::script::disbanded();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in DISBANDED_WALKED {
+        let Some((w, _)) = walk_minted(&disbanded, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "DISBANDED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs = disband_effects_theirs(DISBANDED_WALKED[0].0, &DISBAND_READ_AT).expect("the take");
+    for t in &theirs {
+        eprintln!("DISBAND EFFECT theirs {t:?}");
+    }
+    let mut entries = Vec::new();
+    for &(take_trace, _) in DISBAND_ENTRIES {
+        let tr = trace(take_trace).expect("the take's trace");
+        let first = DISBAND_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+        eprintln!("DISBAND ENTRY {take_trace}: {first:?}");
+        entries.push((take_trace, first));
+    }
+    assert_eq!(walked, DISBANDED_WALKED, "the walked table");
+    assert_eq!(theirs, disbanded_effects(), "the original's units are ours");
+    assert_eq!(entries, DISBAND_ENTRIES, "the handler's entry");
+}

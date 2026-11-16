@@ -112,7 +112,15 @@ pub const MINTS: &[&str] = &[
     "come_out",
     "stance",
     "cheat_ai_toggle",
+    "disband",
 ];
+
+/// **The disband button's `all`**: `Options::exec@007188c0` case `0xf`,
+/// `Options::do_disband@0071df20(0)`, so `Group::action_disband@0070e260`
+/// stops after the first member it disbands (item 4287,
+/// `docs/CLIENT_INPUT.md` §29). Case `0x10` (`OPTION_DISBAND_ALL`) passes 1;
+/// it is not minted.
+pub const DISBAND_ONE: i32 = 0;
 
 /// **The stance button's option**: `Options::do_stance@00721480`'s −1, the
 /// cycle, which `Group::action_stance@0070d440` steps one option forward
@@ -260,6 +268,12 @@ pub enum Event {
     /// `group` and `stance(-1)` (`GroupOut::issue_stance@0070b100`
     /// inlined). The HUD's alone.
     Stance,
+    /// A press on the selection's disband button (item 4287,
+    /// `docs/CLIENT_INPUT.md` §29): `Options::exec@007188c0` case `0xf`,
+    /// `Options::do_disband@0071df20(0)`, which writes the selection's
+    /// `group` and `disband(0)` (`CommandManager::issue_disband@00941ad0`).
+    /// The HUD's alone.
+    Disband,
     /// The console's key (item 4283, `docs/CLIENT_INPUT.md` §28): opens
     /// the entry line as `ConsoleWin`'s, whose Return runs the line's
     /// word through `ConsoleWin::parse_cmd@007d6470` and `run_cmd
@@ -1362,6 +1376,19 @@ impl Input {
                 let cmd = Command::Stance {
                     stance: STANCE_CYCLE,
                 };
+                Some((frame, play, vec![self.group(view.scene), cmd]))
+            }
+            Event::Disband => {
+                // `do_disband(0)`: a selection that `can_activate`, in a
+                // game whose semaphore's `0x10` bit is clear, writes its
+                // `group` and `disband(0)` unless `validate_disband`
+                // refuses — never for a unit group; for buildings, the
+                // walk's `disband_refused`, which the layer leaves to the
+                // walk as `action_disband` re-asks it.
+                if self.selection.is_empty() || self.line.is_some() {
+                    return None;
+                }
+                let cmd = Command::Disband { all: DISBAND_ONE };
                 Some((frame, play, vec![self.group(view.scene), cmd]))
             }
             Event::ComeOut(k) => {
@@ -6094,6 +6121,260 @@ pub(crate) mod tests {
     const TOGGLED_RCX: &str = "ron-golden/recordings/item4283-toggled-greatlakes-24000.rcx";
     const TOGGLED_RCX_BYTES: usize = 59_670;
 
+    /// **`INPUT_DISBANDS`** (item 4287, `docs/CLIENT_INPUT.md` §29): of the
+    /// disbands the recordings on disk carry, those a press on the DISBAND
+    /// button mints field for field, the package's orders whole. Seen red
+    /// pinned (0, 0).
+    const INPUT_DISBANDS: (usize, usize) = (1, 1);
+
+    /// **Every recorded disband** (item 4287): each package carrying a
+    /// `disband` is minted from a fresh layer whose selection is the
+    /// package's group (or for an empty group the slot's last full one),
+    /// by a press on the DISBAND button.
+    #[test]
+    fn minted_disbands_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let mut last = LastSent::new();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let (who, objects, before) = behind(&last, p.play, &kept);
+                note_sent(&mut last, p.play, &kept);
+                if !kept.iter().any(|c| matches!(c, Command::Disband { .. })) {
+                    continue;
+                }
+                all += 1;
+                let building = objects.iter().all(|&o| o >= 2000);
+                let scene = Scene {
+                    buildings: objects
+                        .iter()
+                        .filter(|&&o| o >= 2000)
+                        .map(|&o| city_building(who, o))
+                        .collect(),
+                    units: objects
+                        .iter()
+                        .filter(|&&o| o < 2000)
+                        .map(|&o| garrison_unit(who, o, &[]))
+                        .collect(),
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input::new(who);
+                input.selection = objects.iter().map(|&o| ObjId { who, o }).collect();
+                input.building = building;
+                input.sent = sent_for(&before, &scene);
+                let got = crate::hud::disband_button(&input, &scene, HUD_SIZE).and_then(|r| {
+                    let (x, y) = r.centre();
+                    crate::hud::event(&mut input, HUD_SIZE, p.frame, Event::Press { x, y }, &v)
+                });
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                } else {
+                    println!("DISBAND PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("DISBANDS {whole} of {all}");
+        assert_eq!((whole, all), INPUT_DISBANDS);
+    }
+
+    /// **The disband button's edges** (item 4287): it shows for a unit or a
+    /// building of the slot's own, and for a mixed pick holding one; not
+    /// for another slot's, no selection, or the entry line open; the order
+    /// is the selection's `group` and `disband(0)`, and the same selection
+    /// again sends its `group` as no objects.
+    #[test]
+    fn minted_disband_edges() {
+        if lobby().is_err() {
+            println!("skipping: no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let scene = Scene {
+            buildings: vec![city_building(0, 2001), city_building(1, 2000)],
+            units: vec![garrison_unit(0, 2, &[]), garrison_unit(1, 7, &[])],
+            ..Scene::default()
+        };
+        let v = view(&c, &scene, &terrain);
+        let sel = |ids: &[(u8, i16)], building: bool| {
+            let mut input = Input::new(0);
+            input.selection = ids.iter().map(|&(who, o)| ObjId { who, o }).collect();
+            input.building = building;
+            input
+        };
+        let button = |input: &Input| crate::hud::disband_button(input, &scene, HUD_SIZE);
+        assert!(
+            button(&sel(&[(0, 2)], false)).is_some(),
+            "a unit of its own"
+        );
+        assert!(button(&sel(&[(0, 2001)], true)).is_some(), "a building");
+        assert!(
+            button(&sel(&[(1, 7), (0, 2)], false)).is_some(),
+            "a mixed pick"
+        );
+        assert!(
+            button(&sel(&[(1, 7)], false)).is_none(),
+            "another slot's unit"
+        );
+        assert!(
+            button(&sel(&[(1, 2000)], true)).is_none(),
+            "another slot's building"
+        );
+        assert!(button(&Input::new(0)).is_none(), "no selection");
+        let mut typing = sel(&[(0, 2)], false);
+        typing.line = Some(String::new());
+        assert!(button(&typing).is_none(), "the entry line open");
+        assert_eq!(typing.event(9, Event::Disband, &v), None);
+        assert_eq!(Input::new(0).event(9, Event::Disband, &v), None);
+        let disband = Command::Disband { all: DISBAND_ONE };
+        let mut input = sel(&[(0, 2)], false);
+        let got = input.event(9, Event::Disband, &v).unwrap();
+        assert_eq!(
+            got.2,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![2]
+                },
+                disband.clone()
+            ]
+        );
+        let again = input.event(10, Event::Disband, &v).unwrap();
+        assert_eq!(
+            again.2,
+            vec![
+                Command::Group {
+                    who: 0,
+                    objects: vec![]
+                },
+                disband
+            ]
+        );
+    }
+
+    /// Where the came-out Citizen stands on [`script::DISBAND_FRAME`], and
+    /// the DISBAND button with it selected, under the opening camera
+    /// (`minted_disbanded_at_the_opening_camera`).
+    const DISBAND_CITIZEN_AT: (i32, i32) = (1316, 471);
+    const DISBAND_AT: (i32, i32) = (1258, 966);
+
+    /// The disbanded script's events: the toggle's, then on
+    /// [`script::DISBAND_FRAME`] a press on the Citizen and one on the
+    /// DISBAND button.
+    fn disband_events() -> Vec<Scripted> {
+        let mut e = toggle_events();
+        let (ux, uy) = DISBAND_CITIZEN_AT;
+        let (bx, by) = DISBAND_AT;
+        e.extend([
+            (script::DISBAND_FRAME, None, Event::Press { x: ux, y: uy }),
+            (script::DISBAND_FRAME, None, Event::Press { x: bx, y: by }),
+        ]);
+        e
+    }
+
+    /// **`INPUT_DISBANDED`** (item 4287): the disbanded script's events,
+    /// through the HUD and the layer under the opening camera, mint
+    /// [`script::disbanded`] field for field, of 31.
+    const INPUT_DISBANDED: usize = 31;
+
+    /// **The disbanded count**: stage 0 on the disband's frame — the
+    /// Citizen is slot 0's and alive, where the press lands, and the
+    /// DISBAND button stands where the second press lands — then the
+    /// events mint the disbanded script, and the file written from them is
+    /// the disbanded file.
+    #[test]
+    fn minted_disbanded_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let toggled = script::toggled();
+        let c = camera(None);
+        let mut next = 0;
+        while r.frame() < i64::from(script::DISBAND_FRAME) {
+            let f = r.frame() as i32;
+            while next < toggled.len() && toggled[next].0 == f {
+                r.issue(&toggled[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        {
+            let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+            let v = view(&c, &scene, &terrain);
+            let uid = ObjId {
+                who: 0,
+                o: script::DISBAND_UNIT,
+            };
+            let u = scene.units.iter().find(|u| u.id == uid).unwrap();
+            let mut input = Input::new(0);
+            input.selection = vec![uid];
+            let at = crate::hud::disband_button(&input, &scene, HUD_SIZE).map(|r| r.centre());
+            println!(
+                "DISBAND STAGE0 f{} citizen pixel {:?} button {at:?}",
+                r.frame(),
+                v.pixel(u.pos.x, u.pos.y, u.z),
+            );
+            assert_eq!(v.pixel(u.pos.x, u.pos.y, u.z), DISBAND_CITIZEN_AT);
+            assert_eq!(at, Some(DISBAND_AT));
+        }
+        drop(r);
+
+        let Some((ours, mut r)) = mint_with(disband_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        r.step();
+        let gone = !r.scene(Some(0)).units.iter().any(|u| {
+            u.id == ObjId {
+                who: 0,
+                o: script::DISBAND_UNIT,
+            }
+        });
+        println!("DISBAND after the tick: the Citizen gone {gone}");
+        let disbanded = script::disbanded();
+        let whole = ours.iter().zip(&disbanded).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (disbanded.len(), INPUT_DISBANDED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, disbanded);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(toggled), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(TOGGLED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(DISBANDED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {TOGGLED_RCX} or {DISBANDED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), DISBANDED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the disbanded orders");
+        assert!(written != toggled, "not the toggled file");
+    }
+
+    /// The disbanded file (`docs/CLIENT_INPUT.md` §29), written by
+    /// rondata's `the_disbanded_minted_packages_round_trip` under
+    /// `RON_RCX_OUT`.
+    const DISBANDED_RCX: &str = "ron-golden/recordings/item4287-disbanded-greatlakes-24000.rcx";
+    const DISBANDED_RCX_BYTES: usize = 59_681;
+
     /// **Who reaches a missed arm** (item 4285, `docs/CLIENT_INPUT.md` §30).
     #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
     enum Reach {
@@ -6241,8 +6522,8 @@ pub(crate) mod tests {
             Command::GatherPoint { add_to_end: 0, .. } => {
                 Verdict::Miss("gather_point on an object: actions 1 to 3", Button)
             }
+            Command::Disband { .. } => Verdict::Shown("INPUT_DISBANDS"),
             c if minted(c) => Verdict::Form,
-            Command::Disband { .. } => Verdict::Miss("disband: not minted", Button),
             Command::Unitmask { .. } => Verdict::Miss("unitmask: not minted", Button),
             _ => Verdict::Miss("a kind the census does not read", Button),
         }
@@ -6262,7 +6543,7 @@ pub(crate) mod tests {
     /// Every order on disk by verdict: (shown, of the layer's form but not
     /// minted from a scene, missed, all). A package's `group` takes its
     /// order's verdict.
-    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (359, 1076, 994, 2429);
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (361, 1076, 992, 2429);
     /// The missed orders by arm, most first, and who reaches each, the
     /// package's `group` counted with its order.
     const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] = &[
@@ -6288,7 +6569,6 @@ pub(crate) mod tests {
         ),
         ("spell on an object: the right press's", Reach::Button, 22),
         ("build: a dragged line", Reach::Button, 6),
-        ("disband: not minted", Reach::Button, 2),
         ("unitmask: not minted", Reach::Button, 2),
     ];
 
@@ -6375,6 +6655,7 @@ pub(crate) mod tests {
             ("INPUT_STANCES", INPUT_STANCES),
             ("INPUT_TOGGLES", INPUT_TOGGLES),
             ("INPUT_SPELLS", INPUT_SPELLS),
+            ("INPUT_DISBANDS", INPUT_DISBANDS),
         ] {
             assert_eq!(minted, of, "{pin} mints every package it reads");
             assert_eq!(
@@ -6393,12 +6674,12 @@ pub(crate) mod tests {
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (23, 26);
+    const INPUT_KINDS: (usize, usize) = (24, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2377, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2378, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
-    const NOT_MINTED: &[&str] = &["leader_options", "disband", "unitmask"];
+    const NOT_MINTED: &[&str] = &["leader_options", "unitmask"];
 
     /// The census, counted against the disk's pinned kinds.
     #[test]

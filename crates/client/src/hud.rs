@@ -452,6 +452,42 @@ pub fn stance_button(input: &Input, scene: &Scene, size: (i32, i32)) -> Option<R
     })
 }
 
+/// **The disband button** (item 4287, `docs/CLIENT_INPUT.md` §29): with a
+/// selection one of whose members is the slot's own, unit or building, one
+/// button, DISBAND, three rows above the bottom edge, fourth from the
+/// right; otherwise none. A press is [`Event::Disband`],
+/// `Options::do_disband(0)`. Where it stands, its label, and when it shows
+/// are ours: the original's `UnitOut::make_options@00615fc0` offers
+/// `OPTION_DISBAND` for a unit only under a profile preference, and
+/// `BuildOut::make_options@00629ed0` for a building under predicates not
+/// read; the `OPTION_DISBAND` key is the other actor.
+pub fn disband_button(input: &Input, scene: &Scene, size: (i32, i32)) -> Option<Rect> {
+    if input.selection.is_empty() || input.line.is_some() {
+        return None;
+    }
+    let own = if input.building {
+        input
+            .selection
+            .iter()
+            .filter_map(|id| scene.buildings.iter().find(|b| b.id == *id))
+            .any(|b| b.owner == input.player)
+    } else {
+        input
+            .selection
+            .iter()
+            .filter_map(|id| scene.units.iter().find(|u| u.id == *id))
+            .any(|u| u.owner == input.player)
+    };
+    own.then_some(())?;
+    let (w, h) = MARKET_BUTTON;
+    Some(Rect {
+        x: size.0 - 4 * (w + MARGIN),
+        y: size.1 - 3 * (MARGIN + h),
+        w,
+        h,
+    })
+}
+
 /// **The building panel's garrisoned units** (item 4280,
 /// `docs/CLIENT_INPUT.md` §26): with a building selection, one icon per
 /// unit of the slot's own inside a selected building of its own
@@ -584,6 +620,11 @@ pub fn event(
                 stance_button(input, view.scene, size)
                     .filter(|r| r.contains(x, y))
                     .map(|_| Event::Stance)
+            })
+            .or_else(|| {
+                disband_button(input, view.scene, size)
+                    .filter(|r| r.contains(x, y))
+                    .map(|_| Event::Disband)
             })
             .or_else(|| {
                 come_out_menu(input, view.scene, size)
@@ -1043,6 +1084,12 @@ pub fn paint(
         p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
         let ty = r.y + (r.h - 7 * SCALE) / 2;
         p.text(r.x + 3 * SCALE, ty, "STANCE", SCALE, overlay::INK);
+    }
+    if let Some(r) = disband_button(input, scene, size) {
+        p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
+        p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
+        let ty = r.y + (r.h - 7 * SCALE) / 2;
+        p.text(r.x + 3 * SCALE, ty, "DISBAND", SCALE, overlay::INK);
     }
     let inside = crate::input::garrisoned(scene, input.player, &input.selection);
     for (k, r) in come_out_menu(input, scene, size) {

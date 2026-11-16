@@ -1797,6 +1797,10 @@ impl Stream {
             // The stance button (item 4282, `docs/CLIENT_INPUT.md` §27):
             // `process_stance@00949ed0` on the package's group.
             Command::Stance { stance } => group_stance_any(built, it.play, &objects, *stance),
+            // The disband button (item 4287, `docs/CLIENT_INPUT.md` §29):
+            // `process_disband@00948660`, `Group::action_disband(all)` on
+            // the package's group.
+            Command::Disband { all } => group_disband(built, it.play, &objects, *all != 0),
             Command::Attack {
                 ox,
                 whom,
