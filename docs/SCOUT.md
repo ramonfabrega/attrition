@@ -1269,7 +1269,12 @@ A spy with a target in range would be the capture that reads it.
    fires there.
 8. **The `think_scout` call site inside the human block** (§2), gated on
    `unit_masks & 0x100`. Not modelled — no capture reaches it, since
-   `0x100` is clear on every scout in every run on disk. (It was "the
+   `0x100` is clear on every scout in every run on disk.
+   Its issuer is named (item 4288, `docs/CLIENT_INPUT.md` §31): the
+   AUTO EXPLORE button's `unitmask(0x100, −1)`, which
+   `Group::action_unitmask@006fcb90` toggles; the minted file
+   `item4288-auto-explored-greatlakes-24000.rcx` carries it on 6820 for
+   slot 0's Scout, and no take has played it yet (parked 4288a). (It was "the
    second call site" here until 2026-09-01; there are **three**, and the
    one a capture does reach is §11.1's.)
 8b. **The order's destination is refined a frame later, and by what is

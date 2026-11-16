@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day; §26 item 4280, the same day; §27 item 4282, the same day; §28 item 4283, the same day; §29 item 4287, the same day; §30 item 4285, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day; §26 item 4280, the same day; §27 item 4282, the same day; §28 item 4283, the same day; §29 item 4287, the same day; §30 item 4285, the same day; §31 item 4288, 2026-11-16. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -2967,10 +2967,11 @@ of the other orders it mints. That is the stop the item named: the census is the
 one verdict, since the layer mints a package whole or not at all. Each order of the package, its `group` too, takes
 the package's verdict:
 
-- **shown**: a pinned test mints every recorded package of this form field for field, the package whole. The thirteen
+- **shown**: a pinned test mints every recorded package of this form field for field, the package whole. The fourteen
   pins are `INPUT_UNQUEUES`, `INPUT_CITY_GATHERS`, `INPUT_TRADED`, `INPUT_CHEATED`, `INPUT_HOTKEYS`,
   `INPUT_GARRISONS`, `INPUT_RENAMES`, `INPUT_BUILDMASKS`, `INPUT_COME_OUTS`, `INPUT_STANCES`, `INPUT_TOGGLES`,
-  `INPUT_SPELLS` (the button's ground craft, `ox` −1) and `INPUT_DISBANDS` (§29). The census checks two things for each pin: it is n of n, and
+  `INPUT_SPELLS` (the button's ground craft, `ox` −1), `INPUT_DISBANDS` (§29) and, since item 4288,
+  `INPUT_UNITMASKS` (§31). The census checks two things for each pin: it is n of n, and
   its n is the census's count of packages it names. A pause needs no scene, so the census mints each recorded
   `pause` itself through `Event::Pause`, with the layer's bit carried across the recording. All 24 are equal.
 - **form**: the kind and its fixed fields are the layer's, but no test mints the recorded order from a scene.
@@ -2988,7 +2989,8 @@ disband missed, 359 shown and 994 missed):
   frame 0 (`recgame::minted_packages`' argument) rather than minted. That is the 38 files that carry nothing else and
   four whose other orders are all shown: the pause pair of 08-20 17'06'30, the chat lines of 08-20 22'03'58 and of
   08-24 22'14'05, and the toggle of 08-24 23'41'51.
-- `INPUT_WHOLE_ORDERS`: **361 shown, 1,076 form, 992 missed, of 2,429**.
+- `INPUT_WHOLE_ORDERS`: **361 shown, 1,076 form, 992 missed, of 2,429**; item 4288's `unitmask` (§31) moves its
+  package's two orders from missed to shown, **363 shown, 990 missed**, and drops the `unitmask` row of §30.2.
 
 **Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
 `INPUT_SPELLS against the census` 17 against 6.
@@ -3028,7 +3030,6 @@ is where the arms are.
 | two issues in one turn | 38 | **Writer**: the original's one package a turn holds every issue of the turn | `minted_packages` refuses two packages on a frame (RECGAME §9) |
 | `spell` on an object, the right press's | 22 | Button (§18) | not minted |
 | `build` along a dragged line, `(x2, y2)` ≠ `(x, y)` | 6 | Button: a drag while placing | the layer places at one point |
-| `unitmask` | 2 | Button (§26.1) | not minted; §29 took `disband`, now shown |
 
 **The item's hypothesis, read against this.** All but two of the arms are reached by a button, key or modifier in the
 original, so "minted again" holds for the orders. The score does not: no button reaches `leader_options`, and every
@@ -3049,3 +3050,109 @@ stances are shown.
   profile's five bits and its two counts. That is an interface choice, not a reading. With such a field the carried
   count would become the score, 0 → 42, but it is a lobby page the cut list (`CLAUDE.md`, the `iface*` windows) does
   not name. That decision is the driver's.
+
+## 31. A unit's auto-explore: the AUTO EXPLORE button (item 4288)
+
+*Item 4288, 2026-11-16. The score: `INPUT_KINDS` 24 → 25 of 26, and 2,378 → 2,379 of 2,429 orders. The one recorded
+`unitmask` is slot 3's, on frame 7538: `group [0]` and `unitmask(0x100, −1)`. The first act read its issuer and its
+handler. The actor is the selection's AUTO EXPLORE (a panel button or the `OPTION_AUTO_EXPLORE` key, both through
+`Options::exec`). The effect is a toggle of the member's `unit_masks & 0x100`, the bit `Unit::think`'s human block
+reads to call `think_scout`. Slot 0 of the minted game sends its Scout `0/0` exploring on 6820. **Minted, not
+played**: the walk has no `unitmask` handler, and the human block's `think_scout` call is not modelled
+(`docs/SCOUT.md` §13 item 8), so a playback would part on the Scout's first think. The walk and the take are parked
+(4288a). This branch does not touch `crates/sim`.*
+
+### 31.1 What the button issues, and what the order does
+
+- **The actors.** `Options::exec@007188c0` case `0x21` calls `Options::do_auto_explore@0071cbf0` with the option's
+  object. `OPTION_AUTO_EXPLORE` reaches `exec` from:
+  - the command panel, which `UnitOut::make_options@00615fc0` offers with object −1, for a unit that is not a plane
+    (the type's `0x20` excepted) and, without the profile's `prefs & 2`, not a caravan;
+  - the key map's `OPTION_AUTO_EXPLORE` (`KeyMap::keymap_strings`).
+- **`do_auto_explore`.** The gate is `Group::can_activate(selection, 0, −1)` and a clear byte at the selection's
+  `+1`. Then it flashes the selection and calls `GroupOut::issue_unitmask@00708880(0x100, object)`, and plays
+  `S_AUTO_EXPLORE_ACK` or `S_AUTO_EXPLORE_OFF` by `GroupData::get_auto_explore@0070c1b0`; the flash and the sounds
+  are the console's.
+- **`issue_unitmask`.** While the game's first semaphore byte's `0x10` bit is clear and `check_accept_issue`
+  answers, it writes the selection's `group` (`add_group`, with its repeat, §20) and command `0x20`,
+  `[unitmask, set]`, 9 bytes.
+- **What it does.** `CommandPackage::process_unitmask@00947790` logs, then calls
+  `Group::action_unitmask@006fcb90(unitmask, set)` on the package's group. **It never reads `set`.** For a group of
+  units (`+0x49` clear) it walks the members that are alive:
+  - with mask `0x100`, a member whose vslot `+0xc0` answers (a plane, bar the type's `0x20`) is skipped;
+  - the first member's bit decides: clear, it is set; set, it is cleared. A member after one that cleared is
+    cleared too, so a mixed group ends all clear;
+  - with mask `0x100`, each member also takes `flags |= 0x10` (the bit `think`'s cadence gate reads as
+    `cant_reach`), `unit_masks &= ~0x4000000`, `+0xc0 = 0`, `close_orders(0)`, `clear_partial_path` and
+    `update_action`, whichever way its bit went.
+- **What the bit does** (`Unit::think@005f6e40`):
+  - at the head, a unit with `0x100` skips the off-phase `near_o` arm and the auto-attack arm;
+  - in the block a human leader enters (`leader_flags & 4`), a unit with `0x100` calls `think_scout(this, 0)`, ahead
+    of the tail's once-in-thirty-two gate, where without it a scout takes the spellcaster turn and the idle message;
+  - in `think_scout@005f6010`, `0x100` sends any unit down the city loop, and a unit without `0x40000` (a plain
+    human's) walks every ring around every city, to 12 for the first and 8 after, and sets the city's `+0x4c` mark
+    for its leader when it comes out at `(leader == who) · 4 + 8` (`docs/SCOUT.md` §6);
+  - `Unit::think_civilian_transport@005f40d0` issues `EXPLORE_TO` for it where it would `MOVE_TO`, and calls
+    `think_scout(this, 1)`;
+  - `World::reveal_fog@006b3d30` has a unit with the bit take a goody box it reveals (`Unit::get_goody_box`);
+  - `Unit::work@0060d180` clears it when the unit's current order is not an attack nor an `EXPLORE_TO` and carries
+    order flag `4`; `Group::action_move_near@00704990` carries it across its own halt.
+
+### 31.2 What the layer does
+
+- **The HUD** (`hud::auto_explore_button`). One button, EXPLORE, three rows above the bottom edge and fifth from the
+  right. It shows for a unit selection one of whose members is the slot's own. A press on it is
+  `Event::AutoExplore`.
+- **The layer.** `Event::AutoExplore` with a unit selection and the entry line closed mints the selection's `group`
+  and `unitmask(AUTO_EXPLORE_MASK, AUTO_EXPLORE_SET)`, `0x100` and −1. `unitmask` is added to `MINTS`.
+- **The script** (`crates/rondata/src/script.rs`). `auto_explored()` is the disbanded script and one package more,
+  on `AUTO_EXPLORE_FRAME` 6820: `group [0]` and `unitmask(0x100, −1)`. The Scout's `TypeIndex` is 69,
+  `sim::ids::ty::SCOUT`.
+- **The walk does not take it**: `Stream::pumped` skips `unitmask` as "not mapped", so our walk of the
+  auto-explored file is the disbanded file's.
+
+**Stage 0** (`minted_auto_explored_at_the_opening_camera`), on 6820 at the opening camera:
+- the Scout `0/0`, `TypeIndex` 69, stands at (4399, 32004), pixel (1134, 699);
+- with it selected, the EXPLORE button's centre is (1070, 966).
+
+### 31.3 The counts and the file
+
+- `INPUT_AUTO_EXPLORED`: **32 of 32**. The events are the disbanded ones, then on 6820 a press on the Scout and one
+  on the EXPLORE button. Through the HUD and the layer they mint `script::auto_explored()`. Seen red pinned 31.
+- `INPUT_UNITMASKS`: **1 of 1** (seen red pinned (0, 0)), the package's orders whole: slot 3's `group [0]` and
+  `unitmask(256, −1)` on 7538, minted from a fresh layer with the unit selected and a press on the button.
+- `minted_auto_explore_edges` checks these cases:
+  - the button for a unit of the slot's own and a mixed pick holding one;
+  - none for another slot's unit, a building, no selection, or the entry line open;
+  - the order is `group [0]` and `unitmask(0x100, −1)`, and the same selection again sends its `group` as no
+    objects.
+- `INPUT_KINDS` (25, 26), `INPUT_KINDS_ORDERS` (2,379, 2,429); `NOT_MINTED` is `leader_options` alone.
+- §30's census (`input_whole_recordings_on_disk`, merged from item 4285) takes `unitmask` as shown under
+  `INPUT_UNITMASKS`: `INPUT_WHOLE_ORDERS` (361, 1,076, 992, 2,429) → (363, 1,076, 990, 2,429), and the misses lose
+  their `unitmask: not minted` row. `INPUT_WHOLE` stays 0 of 50 on `leader_options`.
+
+**The file.** `~/ron-golden/recordings/item4288-auto-explored-greatlakes-24000.rcx`, 59,692 bytes, SHA-256
+`ec536de7659c161947f7f56dd2a72624a70df07c4856a6b09f759c81cf7b06f0`
+(`the_auto_explored_minted_packages_round_trip`, seen red pinned 0). It holds the disbanded file's packages, then
+the unitmask's on 6820, stamped 33. The closing stamp goes from 33 to 34. The client's events through the HUD
+write it byte for byte.
+
+### 31.4 Confidence, and what is not established
+
+- **Backed by a diff**: the command's bytes, against the one recorded and the client's file byte for byte.
+- **One reading each**: the actors' list, `do_auto_explore`'s gate, `action_unitmask`'s toggle and its tail, and
+  every reader of the bit in §31.1.
+- **Not played.** No take plays the file. The walk's `action_unitmask` and the human block's `think_scout` call
+  are the build a playback needs, with `think_scout`'s plain-human arms (every ring, the `+0x4c` mark),
+  `reveal_fog`'s goody box, `work`'s clear and `think_civilian_transport`'s `EXPLORE_TO` (parked 4288a). Until it
+  lands, a take of this file can only show what the original's Scout does, not that ours agrees.
+- **The selection's `+1` byte** that `do_auto_explore` also gates on is not named; the layer does not consult it.
+- **`set` is not read** by `action_unitmask`. The recorded −1 and ours agree because the panel's object is −1,
+  not because the walk uses it.
+
+**Ours, not the original's:**
+
+- where the EXPLORE button stands, its label, and when it shows (the original's panel refuses a plane and, without
+  a profile preference, a caravan; ours shows for any unit of the slot's own);
+- the layer refusing a building selection: `do_auto_explore` does not test it, and `action_unitmask` does nothing
+  for a group of buildings.

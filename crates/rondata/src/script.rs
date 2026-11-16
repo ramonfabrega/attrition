@@ -893,6 +893,48 @@ pub fn disbanded() -> Vec<Order> {
     orders
 }
 
+/// **The auto-explored script** (item 4288, `docs/CLIENT_INPUT.md` §31):
+/// the disbanded script and one package more. On [`AUTO_EXPLORE_FRAME`]
+/// the Scout [`AUTO_EXPLORE_UNIT`] is picked and the selection's
+/// auto-explore button pressed: `Options::exec@007188c0` case `0x21`,
+/// `Options::do_auto_explore@0071cbf0(−1)`, which after
+/// `Group::can_activate` calls `GroupOut::issue_unitmask@00708880` — the
+/// selection's `group` and command `0x20`, `[unitmask, set]`, 9 bytes.
+/// `process_unitmask@00947790` is `Group::action_unitmask@006fcb90` on the
+/// package's group, which toggles each member's `unit_masks & 0x100`. The
+/// client's `minted_auto_explored_at_the_opening_camera` mints these field
+/// for field.
+pub fn auto_explored() -> Vec<Order> {
+    let mut orders = disbanded();
+    orders.push((
+        AUTO_EXPLORE_FRAME,
+        0,
+        vec![
+            Command::Group {
+                who: 0,
+                objects: vec![AUTO_EXPLORE_UNIT],
+            },
+            Command::Unitmask {
+                mask: AUTO_EXPLORE_MASK,
+                set: AUTO_EXPLORE_SET,
+            },
+        ],
+    ));
+    orders
+}
+
+/// The frame of the auto-explore, ten after [`DISBAND_FRAME`].
+pub const AUTO_EXPLORE_FRAME: i32 = 6820;
+/// The unit sent exploring: slot 0's Scout, its first unit, the recordings'
+/// one `unitmask`'s unit too.
+pub const AUTO_EXPLORE_UNIT: i16 = SCOUT_OBJECT;
+/// `do_auto_explore`'s mask, `0x100`, the bit `Unit::think`'s human block
+/// reads.
+pub const AUTO_EXPLORE_MASK: i32 = 0x100;
+/// The option's object, −1, passed through as `set`, which
+/// `Group::action_unitmask` does not read.
+pub const AUTO_EXPLORE_SET: i32 = -1;
+
 /// The frame of the disband, ten after [`TOGGLE_FRAME`].
 pub const DISBAND_FRAME: i32 = 6810;
 /// The unit disbanded: [`GARRISON_CITIZEN`], out of the capital since
