@@ -3237,7 +3237,7 @@ On the photographs alone: the rows.
 - ~~The `_mtrl` maps (4269a), the body's hue (4269c), the tint's share (4271a).~~ Items 4278, 4271 and 4272 below.
 - ~~The body's remaining 7 % (ours Y 146.4 against 137.3, item 4272) and its yellow-green cast by eye.~~ Item 4284.
 - ~~The plain ground lit too (4284a).~~ On by default since item 4292, below.
-- run1564's beach below the waterline: bright in theirs, darkened by `light_vert` (4292a).
+- ~~run1564's beach below the waterline (4292a).~~ §3.27, "The beach below the waterline (item 4294)".
 - `vs_global.hlsl`'s per-pixel normal against the interpolated N·L the client takes, and the
   vertex colour taken from that N·L rather than interpolated.
 - ~~The trees' and the roads' `TL_FAKE_LIGHT` stage colours (4217a).~~ §3.23: they agree.
@@ -3788,6 +3788,24 @@ card's states for draws 163 to 169. On the photograph alone: the rows. *Not esta
 - the draws before `Surf::init` on another map (4236c), and so the phase anywhere but GreatLakes;
 - the culling to visible cells, which moves only an overlap's order;
 - the photograph's lake-wide whitecaps (§3.24).
+
+**The beach below the waterline (item 4294).** *Opus 5.5; the ledger: `docs/journal/2026-11-16-item-4294.md`.*
+With the land lit (item 4292) the ground row's `SANDY` fell 653 → 645 of 772. That is nine tiles down and one up,
+and none is the pale strip at the water's edge that the eye picked. All nine lie wholly under the lake, their
+corners at −112 to −218. The one up, (204, 180), is at −21 to −46. Every one of the nine parts bluer than theirs.
+In the original these corners are not lit by `light_vert`. `modify_ocean_floor@00873960` writes the floor's
+colour plus a byte at `+0x55dc` (`873d5e`) into the land's colour buffer (`+0x410`), keeping the alpha, on each
+corner whose alpha byte is under `0xdc`. That is `client::ground::land_alpha`'s −82.07. On run1564's packet that is 9,185
+corners: 9,184 are a neutral grey, and `light_vert`'s colour holds on two. All 1,139 on the still's screen read
+`floor_grey` at the still's ramp **plus 92 to 103** (`client::ground::tests::
+the_land_s_deep_corners_are_the_floor_s_grey`, `RUN1564_DEEP_CORNERS`). Tile (200, 181) shows the gap: the packet
+has 215 where ours has `light_vert`'s (147, 152, 191). A probe that drew those corners flat and white, the rest lit,
+read `SANDY` 654 on the ground row and 700 on `RUN1564_3279_SURF`. That is a fit, not drawn.
+*Coverage:* diff-backed: the grey on the packet's deep corners. On a reading: the writer and its `0xdc` gate. *Not
+established:* the byte's value and type (the type record names `+0x55dc` `ocean_t_scale`, a float; the listing
+reads one byte); `water_height_modify`'s colour per water vertex against our screen ramp, the source of the
+±6; the frustum gate, which leaves corners off screen stale; how `ENABLE_VERTEX_COLOR_DIFFUSE` takes a grey
+under the land's own N·L.
 
 ## 3.28 The city's buildings against the photograph's colour (item 4245)
 
