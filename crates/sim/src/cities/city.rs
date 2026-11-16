@@ -187,12 +187,7 @@ pub struct City {
     /// 2106). `Leader::raid`'s own stamp is not carried — a raided city
     /// reads zero here until it changes hands.
     pub raid_stamp: i64,
-    /// `CityData::scouted` (`+0x4c`): one bit per leader whose plain
-    /// human's exploring unit has walked every ring around the city
-    /// (`Unit::think_scout@005f6010`'s city loop, `docs/SCOUT.md` §5,
-    /// §13 item 8). `City::init@00737050` zeroes it and
-    /// `City::capture@00736c40` copies it from the old record; a city
-    /// whose bit is set for the scout's leader is passed over.
+    /// `CityData::scouted` (`+0x4c`), a leader's walked-whole bit (`docs/SCOUT.md` §13 item 8).
     pub scouted: u16,
     pub capture_strength: i32,
     /// `CityData::pop` (+0x5d): 1 at init, copied on capture, not the pop
