@@ -18,6 +18,9 @@ struct VOut {
     @location(1) auv: vec2<f32>,
     // Item 4217 (§3.22): the corner's N·L, the third attribute's `z`.
     @location(2) nl: f32,
+    // Item 4296 (§3.27): a deep corner's weight and its grey times it, the
+    // vertex colour `modify_ocean_floor` writes; (0, 0) elsewhere.
+    @location(3) deep: vec2<f32>,
 };
 
 @vertex
@@ -35,6 +38,14 @@ fn vs_patch(
     o.uv = uv;
     o.auv = auv.xy;
     o.nl = auv.z;
+    o.deep = vec2<f32>(0.0);
+    // Item 4296: `ground::deep_light`'s `16 + 4 · grey + (nl + 1)`.
+    if (auv.z >= 16.0) {
+        let k = auv.z - 16.0;
+        let g = floor(k / 4.0);
+        o.nl = k - 4.0 * g - 1.0;
+        o.deep = vec2<f32>(1.0, g / 255.0);
+    }
     return o;
 }
 
@@ -48,7 +59,7 @@ fn fs_patch(i: VOut) -> @location(0) vec4<f32> {
 @fragment
 fn fs_patch_lit(i: VOut) -> @location(0) vec4<f32> {
     let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
-    return vec4<f32>(land_lit(textureSample(tex, samp, i.uv).rgb, i.nl), a);
+    return vec4<f32>(land_lit_deep(textureSample(tex, samp, i.uv).rgb, i.nl, i.deep), a);
 }
 
 // Item 4141 (`docs/RENDERER.md` §3.10): one layer of a mountain's own draw,

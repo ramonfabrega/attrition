@@ -34,6 +34,19 @@ fn land_lit(c: vec3<f32>, nl_in: f32) -> vec3<f32> {
     return land_shade(c * land_vertex(nl_in), nl);
 }
 
+// Item 4296 (§3.27, "The beach below the waterline"): `land_lit` with a deep
+// corner's vertex colour in place of `light_vert`'s, `deep` its weight and
+// grey times it, interpolated: the floor's grey plus `trans_bright` that
+// `modify_ocean_floor` writes, under the corner's own N·L.
+fn land_lit_deep(c: vec3<f32>, nl_in: f32, deep: vec2<f32>) -> vec3<f32> {
+    var nl = nl_in;
+    if (nl_in > 1.5) {
+        nl = land_flat_nl();
+    }
+    let v = land_vertex(nl_in) * (1.0 - deep.x) + vec3<f32>(deep.y);
+    return land_shade(c * v, nl);
+}
+
 // Item 4269 (§3.22): a mountain's corner, lit by the range's own normal
 // (`RenderHelper::generate_normals`) with its vertex white
 // (`recolor_mountain_verts`); over 1.5, the flat N·L.
