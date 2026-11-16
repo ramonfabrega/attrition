@@ -1006,6 +1006,16 @@ pub const RUN1559B_3279_PAST_THE_EDGE: [(usize, usize); 3] = [(0, 162), (0, 162)
 #[cfg(test)]
 pub const EDGE_BLOCK: usize = 32;
 
+/// **`RUN1564_DEEP_CORNERS`** (item 4294; `docs/RENDERER.md` §3.27, "The
+/// beach below the waterline"): on run1564's packet, `[neutral grey, land
+/// corners with alpha under 0xdc, of them light_vert's colour]`, and
+/// `[those on the still's screen, the least and most their grey exceeds
+/// floor_grey at the still's ramp]`. The made-to-fail side is the third:
+/// `light_vert`'s colour, which the client draws there, is the packet's on
+/// two.
+#[cfg(test)]
+pub const RUN1564_DEEP_CORNERS: [[u32; 3]; 2] = [[9_184, 9_185, 2], [1_139, 92, 103]];
+
 /// **`RUN1564_3279_SURF`** (item 4225; `docs/RENDERER.md` §3.18, "The
 /// surf, off the packet"): `SANDY` and `OCEAN` `[agree, scored]` on the
 /// client's still with run1564's own surf (the card's draws 163–169, off
@@ -7654,5 +7664,69 @@ pub(crate) mod tests {
             read_agree[0] > agree.iter().copied().max().unwrap_or(0),
             "the read beats every stage 0 candidate"
         );
+    }
+
+    /// **The land's submerged corners take the floor's grey** (item 4294;
+    /// `docs/RENDERER.md` §3.27, "The beach below the waterline"): on
+    /// run1564's packet, every land corner whose alpha byte is under `0xdc`
+    /// (a height under −82.07, [`land_alpha`]) but two holds a neutral grey,
+    /// not `light_vert`'s colour, and every one of them on the still's
+    /// screen reads [`floor_grey`] at the still's [`ScreenRamp`] plus 92 to
+    /// 103. `modify_ocean_floor@00873960` writes the floor's colour plus a
+    /// byte at `+0x55dc` into the land's colour buffer (`+0x410`) where the
+    /// alpha is under `0xdc`, keeping the alpha. The client draws
+    /// `light_vert`'s colour there: [`RUN1564_DEEP_CORNERS`].
+    #[test]
+    fn the_land_s_deep_corners_are_the_floor_s_grey() {
+        let Some(pk) = land_light_packet("run1564") else {
+            return;
+        };
+        let Some(p) = probe_at(run1564()) else { return };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let t = p.world.runner.terrain();
+        let normals = render::terrain::land_normals(&render::terrain::Heightfield {
+            width: t.width,
+            height: t.height,
+            corners: &t.corners,
+        });
+        let stride = (t.width * TILES_PER_CELL + 1) as usize;
+        let ramp = ScreenRamp::of(&camera, size);
+        let per = render::terrain::UNITS_PER_TILE as f32;
+        let m = camera.to_screen_matrix().0;
+        let (mut deep, mut neutral, mut on_screen) = (0u32, 0u32, 0u32);
+        let (mut lo, mut hi) = (i32::MAX, i32::MIN);
+        // Made to fail: `light_vert`'s red on the same corners.
+        let mut lit_equal = 0u32;
+        for (i, (_, h, c)) in pk.iter().enumerate() {
+            if (*c >> 24) as u8 >= 0xdc {
+                continue;
+            }
+            deep += 1;
+            let rgb = [*c as u8, (*c >> 8) as u8, (*c >> 16) as u8];
+            neutral += u32::from(rgb[0] == rgb[1] && rgb[1] == rgb[2]);
+            let lv = render::terrain::light_vert(
+                render::terrain::land_n_dot_l(normals[i]),
+                render::silhouette::LAND_AMBIENT,
+                render::silhouette::LAND_DIFFUSE,
+            );
+            lit_equal += u32::from(lv == rgb);
+            let (x, y) = ((i % stride) as f32 * per, (i / stride) as f32 * per);
+            let z = f32::from_bits(*h);
+            let q = m[7] * y + m[3] * x + m[11] * z + m[15];
+            let sx = (m[4] * y + m[0] * x + m[8] * z + m[12]) / q;
+            let sy = (m[5] * y + m[1] * x + m[9] * z + m[13]) / q;
+            if sx.abs() > 1.0 || sy.abs() > 1.0 {
+                continue;
+            }
+            on_screen += 1;
+            let d = i32::from(rgb[0]) - i32::from(floor_grey(ramp.at(x, y)));
+            (lo, hi) = (lo.min(d), hi.max(d));
+        }
+        println!(
+            "run1564 deep corners: {deep}, neutral {neutral}, light_vert's {lit_equal}; on screen {on_screen}, the floor's grey plus {lo} to {hi}"
+        );
+        assert_eq!([neutral, deep, lit_equal], RUN1564_DEEP_CORNERS[0]);
+        assert_eq!([on_screen, lo as u32, hi as u32], RUN1564_DEEP_CORNERS[1]);
     }
 }
