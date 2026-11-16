@@ -173,6 +173,9 @@ pub struct World {
     /// Each building piece's sprite, `None` where its `texture=` does not
     /// resolve or decode; a foundation's under its [`foundation_key`].
     sprite_images: BTreeMap<i32, Option<std::sync::Arc<SpriteImage>>>,
+    /// The tint a building's sprite takes at load (item 4286): the
+    /// tileset's, `GraphicPieces::tint_color` as `TintColor`.
+    sprite_tint: [u8; 3],
     /// The `<CONSTRUCTION>` and `<SCAFFOLD>` entries (item 4163), read on
     /// the first foundation or scaffold drawn, so frame zero pays nothing.
     construction: Option<Vec<ConstructionArt>>,
@@ -683,6 +686,22 @@ pub fn lobby_tileset(root: &Path, start: &Path) -> Option<String> {
     rondata::mapgen::tileset_before(&chances, seed)
 }
 
+/// **A building's sprite through `TL_FAKE_LIGHT`** (item 4286;
+/// `docs/RENDERER.md` §3.28). On run1566b's card trace (the pass after
+/// 3279) a building's `_NONQUAD` draws carry the option and no
+/// `LIGHTING`, so `ps_global.hlsl` raises the saturated stage colour to
+/// 1.9 and multiplies by the HDR 5 before the tone map, as it does the
+/// trees', the roads' and the particles' ([`render::silhouette::fake_light`]).
+/// The sprite is sampled nearest, so the texel's map is the sample's.
+pub fn fake_light_sprite(image: &mut render::tga::Image) {
+    for p in image.rgba.as_chunks_mut::<4>().0 {
+        let lit = render::silhouette::fake_light([0, 1, 2].map(|k| f32::from(p[k])));
+        for k in 0..3 {
+            p[k] = lit[k].round() as u8;
+        }
+    }
+}
+
 /// A building's `texture=` decoded (`render::tga`), with its
 /// `(spritexoff, spriteyoff)`.
 pub struct SpriteImage {
@@ -1009,6 +1028,7 @@ impl World {
             sprites: true,
             sprite_zoom: crate::PINNED_SPRITE_ZOOM,
             sprite_images: BTreeMap::new(),
+            sprite_tint: tint,
             construction: None,
             scaffolds: None,
             runner,
@@ -2297,7 +2317,16 @@ impl World {
         };
         let decoded = texture.and_then(|texture| {
             let bytes = std::fs::read(resolve_art(&self.root, &texture)?).ok()?;
-            let image = render::tga::decode(&bytes).ok()?;
+            let mut image = render::tga::decode(&bytes).ok()?;
+            // Item 4286 (§3.28): `init_build_data@008f2f20` sets the
+            // piece's `TintColor` to `GraphicPieces::tint_color`, which
+            // `TileSet::load_tileset@0087b020` copies from the tileset (18,
+            // 18, 0 on run1559b's, run1564's and run1570's packets);
+            // `SpriteMethod::load@0091cce0` hands it to
+            // `SpritePacket::set_sprite@009171c0`, which sets it on the
+            // sprite's `ImageIO` before the load tints each row.
+            image.tint(self.sprite_tint);
+            fake_light_sprite(&mut image);
             let covered = image
                 .rgba
                 .as_chunks::<4>()

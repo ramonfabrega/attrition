@@ -3841,10 +3841,49 @@ is **0 of 2**: 0/2000 0.0293, 0/2001 0.0423. Over all 33 objects `RUN1559B_3279_
 (0/2, 0.0044), so the reader can pass; the next is 0.0216. Of the 33, 29 read bluer than the photograph's
 (b/r higher, by the printed means): the cast is shared.
 
-*Coverage.* Diff-backed: none (a photograph row). On the photograph alone: the table. *Not established:*
-- whether the cold cast is the frame's (the white, the tone map, §3.21 and §3.25), which the ground's agreement
-  argues against (item 4212), or the sprites' and figures' own light;
-- a row that counts a building's warmth (4245a).
+**The sprite's own light, and the tileset's tint (item 4286).** Not the frame's: the sprite's. On run1566b's card
+trace (the pass after 3279) each building's sprite is two `_NONQUAD` draws with `TL_FAKE_LIGHT` and no `LIGHTING`
+(asserted in `the_device_state_at_each_figure`). The first lays the texels at alpha 248 opaque, `MODULATE4X(TEXTURE,
+CURRENT)`, alpha test equal to 248; the second lays every other texel `SELECTARG1(TEXTURE)`, blended `SRCALPHA` /
+`INVSRCALPHA`, alpha test not equal to 248. `ps_global.hlsl` takes both through the fake light, the saturated stage
+to 1.9 times the HDR 5, then the tone map (`render::silhouette::fake_light`, as the trees, roads and particles). The
+client drew the raw texel, opaque. And the texel is tinted at load. `TileSet::load_tileset@0087b020` copies the
+tileset's tint into `GraphicPieces::tint_color`; `init_build_data@008f2f20` writes it as the piece's `TintColor`
+(string 208); `SpriteMethod::load@0091cce0` hands it to `SpritePacket::set_sprite@009171c0`, which calls
+`ImageIO::set_tint` before the load, and `ImageIO::process@00511bb0` tints each row (§3.21's `paddusb`). The trees
+take it the same way (§3.23). `graphic_pieces->tint_color` (pointer at `0x00c06214`, +3924) reads (18, 18, 0) on
+run1559b's, run1564's and run1570's packets.
+
+`World::sprite_image` now tints each sprite at load and maps it through the fake light (`fake_light_sprite`), so the
+painter and `client::gpu` draw it alike; `fs_sprite` blends a texel by its alpha, 248 opaque. The sprite's alpha
+classes, on `village_6t.tga`: 88,934 at 255 (the body, mean (130, 118, 98)), 2,573 at 145 (black, its shadow), 1,486
+at 248 (grey). The shadow was drawn opaque black, the hard wedges 4245b saw.
+
+| step | 0/2000 ours, warmth | 0/2001 ours, warmth |
+|---|---|---|
+| base | (105, 93, 75) Y 94.8, 0.0293 | (97, 89, 75) Y 89.5, 0.0423 |
+| the fake light | (101, 89, 67) Y 90.0, 0.0203 | (88, 78, 63) Y 79.6, 0.0312 |
+| and the shadow blended | (103, 90, 69) Y 91.7, 0.0206 | (90, 80, 64) Y 81.4, 0.0295 |
+| and the tint | **(118, 106, 69) Y 105.4, 0.0043** | **(108, 99, 64) Y 98.2, 0.0051** |
+| the photograph | (115, 102, 66) Y 101.9 | (109, 99, 62) Y 97.8 |
+
+**`RUN1559B_3279_BUILDINGS_WARMTH` 0 → 2 of 2**; over the 33, 1 → 3. The colour row on the still 17 → 18 (0/9).
+The frame's white moves with the brighter city, so the rest move by one or two (the constants' comments). Two named
+falls: the painter's luma rows, 20 → 19 and the lit candidate 23 → 22, because the painter takes no frame white
+and so reads 0/2000 at 1.23 of the photograph's luminance, where the still reads 1.03; and the plume and flame rows,
+whose reader classes the photograph's pixel against our fires-off scene, so the brighter buildings move its base
+(run1559b's plume 11,373 of 19,888 → 10,936 of 21,021). On the still the traced row holds at 32. 0/6 crosses up and
+0/2001 down, 0.590 → 0.436: our side is read by colour against the ring, and the warmed derrick now matches its
+ring (4286a).
+
+*Coverage.* Diff-backed: the sprite's draw state on the card (`the_device_state_at_each_figure`); the tint's value
+on three packets (a probe, not a test). On a reading: the tint's path from the tileset to the sprite's rows, and the
+shader's branch. On the photograph alone: the tables and the warmth row. *Not established:*
+- ~~whether the cold cast is the frame's~~: the sprite's own light and the tileset's tint (item 4286, above);
+- ~~a row that counts a building's warmth (4245a)~~: `RUN1559B_3279_BUILDINGS_WARMTH`, 2 of 2;
+- the 248 texels' vertex colour. The trace keeps no stream for the sprite's draws, so the team's trim is drawn as the
+  grey texel, where the photograph's is red (4286b);
+- the shadow blended over the frame after the tone map, where the original blends it in HDR.
 
 ## 4. The stack
 

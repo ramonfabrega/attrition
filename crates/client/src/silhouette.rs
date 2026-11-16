@@ -7933,8 +7933,9 @@ mod tests {
         // pixels than the texel, and the row goes down.
         assert_eq!((stored_total, every_stored), (6_565, 7_475));
         // 18, 16 until item 4173: 0/1 out of both, the drawn tree under
-        // its silhouette. 17, 15 until item 4221's tinted trees.
-        assert_eq!(passing, (21, 19));
+        // its silhouette. 17, 15 until item 4221's tinted trees. 21, 19
+        // until item 4286's buildings (§3.28) moved the frame's white.
+        assert_eq!(passing, (21, 20));
         assert!(
             (stored_total as usize) <= texel_total,
             "the stored candidate beats the texel: kill (a) does not hold"
@@ -8098,6 +8099,38 @@ mod tests {
                 });
                 let ok = hit.is_some_and(|d| whole(d));
                 matched += usize::from(ok);
+                // Item 4286 (§3.28): every one of the sprite's draws takes
+                // the fake light, unlit, and its first lays the 248 texels
+                // `MODULATE4X(TEXTURE, CURRENT)` opaque, its second the rest
+                // `SELECTARG1(TEXTURE)` blended by their alpha.
+                let nonquad: Vec<&&card::CardDraw> = pass
+                    .iter()
+                    .filter(|d| d.file(0).to_ascii_lowercase() == format!("{file}_nonquad"))
+                    .collect();
+                assert!(
+                    nonquad.len() == 2
+                        && nonquad
+                            .iter()
+                            .all(|d| d.has("TL_FAKE_LIGHT") && !d.has("ENABLE_LIGHTING")),
+                    "{name}: the sprite's draws take the fake light"
+                );
+                assert_eq!(
+                    nonquad
+                        .iter()
+                        .map(|d| (
+                            d.colour_op(0),
+                            d.alpha_func(),
+                            d.alpha_ref(),
+                            d.src_blend(),
+                            d.dst_blend()
+                        ))
+                        .collect::<Vec<_>>(),
+                    [
+                        ((5, TA_TEXTURE, TA_CURRENT), 2, 248, 2, 1),
+                        ((1, TA_TEXTURE, TA_TFACTOR), 5, 248, 5, 6),
+                    ],
+                    "{name}: the 248 texels opaque, the rest blended"
+                );
                 println!(
                     "{name:>7} building piece {} art {file}: draw {:?} whole {ok}",
                     who.2,

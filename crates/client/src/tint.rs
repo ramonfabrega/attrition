@@ -285,10 +285,11 @@ pub(crate) mod tests {
     /// Item 4275: run1570's untinted side 1,034 → 1,036: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     /// Item 4278: run1570's untinted side 1,036 → 1,034: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4284: the untinted side run1559b 955 → 953, run1564 561 → 563; the drawn side holds: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+    /// Item 4286: the untinted side run1559b 953 → 954, run1570 1,034 → 1,036; the drawn side holds: the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28) move the frame's mean, so its white.
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
-        ((953, 986), (959, 986)),
+        ((954, 986), (959, 986)),
         ((563, 679), (678, 679)),
-        ((1034, 1073), (1042, 1073)),
+        ((1036, 1073), (1042, 1073)),
     ];
 }
 
