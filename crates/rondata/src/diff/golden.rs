@@ -5547,7 +5547,10 @@ const WANT_CH77: &[&str] = &[
     "600 1/4 form",
     "600 1/5 form",
     // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 1521 theirs 1546.
-    "711 0/-1 leader:score",
+    // Item 4159r12a: gone. The Tower the human finished at 701 claims the
+    // rares of its own ground at the top of `calc_gather` (the Porcelain
+    // pass, `Sim::porcelain_rares`), so ours is theirs from 711 to the end;
+    // the pass alone moves it, `calc_rare`'s `PORCELAIN_RARE` term does not.
 ];
 
 /// **Chapter seventy-eight** (item 2627, `docs/GOLDEN.md` §97, run874): the

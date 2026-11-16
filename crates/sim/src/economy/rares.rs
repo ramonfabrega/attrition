@@ -31,12 +31,17 @@
 //! to its own deposit then arrives twenty-three frames earlier, and the word
 //! is where that arrival is.
 //!
+//! **The Porcelain Tower's pass** comes first in the walk
+//! ([`Sim::porcelain_rares`], item 4159r12a; `docs/ECONOMY.md`, "The
+//! Porcelain Tower's pass"). It sets the `rare_owned` bit of every live,
+//! seen, available good on the holder's own ground, whether anyone stands
+//! on it or not. It is the one exception to "a rare is owned only through a
+//! merchant". The same wonder's `PORCELAIN_RARE` term is `calc_rare`'s.
+//!
 //! # What is not modelled
 //!
-//! - **The Porcelain Tower's pass**, which sets `rare_owned` bits for every
-//!   rare inside the player's own territory whether anyone stands on it or
-//!   not. It is the one exception to "a rare pays only through a merchant"
-//!   and it is the wonder layer's.
+//! - ~~**The Porcelain Tower's pass**~~: built, above (run1184's `rare` and
+//!   ch77's `score` agree).
 //! - **`rare_conquest`**, Conquer-the-World's own mask; always empty here.
 //! - **Everything else `update_speed` does** — the transport bonus
 //!   (`MILITARY_TRANSPORT_BONUS`, 0 as shipped), Bantu, French siege,
@@ -118,14 +123,104 @@ impl Sim {
             .map_or(0, |i| i + 1)
     }
 
+    /// **The Porcelain Tower's pass** — `Leader::calc_gather@006ceee0:82`–
+    /// `107`, right after `rare_owned` is cleared and before any rate is
+    /// summed (`docs/ECONOMY.md`, "The Porcelain Tower's pass"). A leader
+    /// for whom `has_wonder(0x215)` answers walks the whole goods list and
+    /// takes the bit `TypeIndex − 6` of every good that is
+    ///
+    /// 1. live (`SubObjectData::flags & 1`),
+    /// 2. seen by it (`GoodData::is_seen@0066e4c0`, vslot `+0x48`, asked
+    ///    `(who, 0)`: [`Sim::good_is_seen`]),
+    /// 3. available to it (`LeaderData::type_avail(type, 1) != 0`), and
+    /// 4. on a cell whose owner byte (`WData +0xf`, at `div_3_table[x >> 8]`
+    ///    each way) is the leader itself — not an ally.
+    ///
+    /// It counts nothing into `rares_collected` and pays nothing: the bits
+    /// alone, which `Leader::gather` turns into `rare` on the same frame.
+    /// The goods below `BASE_RARE` (oil, `TypeIndex` 5) index a byte
+    /// before the mask's own and the store of `flags = 0` right after
+    /// overwrites it, so they claim nothing.
+    pub(crate) fn porcelain_rares(&self, who: Player) -> u64 {
+        if self.wonders_held(who) & (1 << crate::tech::wonder::PORCELAIN_TOWER) == 0 {
+            return 0;
+        }
+        let types = self.tables.tech_tree.types.len();
+        let mut owned = 0u64;
+        for (gi, g) in self.world.goods().iter().enumerate() {
+            if !g.alive || g.ty < economy::BASE_RARE || g.ty - economy::BASE_RARE >= economy::RARES
+            {
+                continue;
+            }
+            if !self.good_is_seen(gi, who) {
+                continue;
+            }
+            if g.ty >= types || self.type_avail(who, g.ty) == crate::tech::NOT_AVAILABLE {
+                continue;
+            }
+            if self.world.owner(g.pos.cell()).player() != Some(who) {
+                continue;
+            }
+            owned |= 1 << (g.ty - economy::BASE_RARE);
+        }
+        owned
+    }
+
+    /// `GoodData::is_seen@0066e4c0(who, 0)`: the good's `ever_seen` against
+    /// the leader's `ally_mask` first; failing that, the fog at the good's
+    /// half-cell (`div_3_table[x >> 7]`, `x / 0x180`). Which fog read is the
+    /// good's kind: anything but `FISH` (6) and `WHALES` (`0x1f`) takes
+    /// `WorldData::was_seen@006b53f0` — the read with the ally-territory
+    /// shortcut — when it is `OIL` (5) or the leader holds tribe bonus 9
+    /// (Spanish) or 4 (Nubians); every other case takes the bare
+    /// `was_really_seen@006b54f0`. The sweep
+    /// (`crates/sim/tests/sweep/good_data_is_seen.rs`) holds the original's
+    /// arms; this is their one reader in the simulation.
+    pub(crate) fn good_is_seen(&self, gi: usize, who: Player) -> bool {
+        let Some(g) = self.world.goods().get(gi) else {
+            return false;
+        };
+        let mask = self
+            .ai
+            .ai
+            .get(who as usize)
+            .map_or(0, |a| a.census.ally_mask)
+            | (1 << who);
+        if u32::from(self.good_ever_seen_byte(gi)) & mask != 0 {
+            return true;
+        }
+        let (fx, fy) = (g.pos.x.div_euclid(0x180), g.pos.y.div_euclid(0x180));
+        let tribe = |b: usize| {
+            self.tech.get(who as usize).is_some_and(|p| {
+                self.tables
+                    .tech_tree
+                    .has_tribe_bonus(&self.tables.setup, p, b)
+            })
+        };
+        let wide = g.ty != economy::FISH
+            && g.ty != economy::WHALES
+            && (g.ty == crate::world::OIL_GOOD
+                || tribe(crate::ai::tribe::SPANISH)
+                || tribe(crate::ai::tribe::NUBIANS));
+        if wide {
+            self.was_seen_fog(fx, fy, who)
+        } else {
+            self.was_really_seen_fog(fx, fy, who)
+        }
+    }
+
     /// Step 6 whole: the rates it adds and the `rare_owned` it rebuilds.
     ///
     /// Called from [`Sim::assemble_holdings`], which runs inside the same
     /// cadence gate the original's recompute does — so a rare appears on
-    /// exactly the frame it appears there.
+    /// exactly the frame it appears there. `rare_owned` starts from
+    /// [`Sim::porcelain_rares`], the pass the original runs between the
+    /// clear and the walk.
     pub(crate) fn gather_rares(&mut self, who: Player) -> ([i32; RESOURCES], u64) {
         let mut out = [0; RESOURCES];
-        let mut owned = 0u64;
+        let mut owned = self.porcelain_rares(who);
+        // `has_wonder(0x215)` again, inside `calc_rare`'s `else if ally` arm.
+        let porcelain = self.wonders_held(who) & (1 << crate::tech::wonder::PORCELAIN_TOWER) != 0;
         let mut collected = vec![0; economy::RARES];
         let candidates: Vec<usize> = (0..self.units.len())
             .filter(|&u| {
@@ -171,6 +266,7 @@ impl Sim {
                     &self.tech[who as usize],
                     crate::cities::nations::power::JAPANESE,
                 ),
+                porcelain,
             );
             let share = crowd + 1;
             for (i, r) in rate.iter().enumerate() {

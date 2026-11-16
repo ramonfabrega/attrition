@@ -4707,8 +4707,16 @@ twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
   tile-crossing arm is built (`docs/ECONOMY.md`), and the two Russian
   windows' economies agree. Its `go_inside`, `come_out`, `init` and
   `set_type` arms are unbuilt. `score` still parts in seven tests: run1184 (the
-  Porcelain Tower's rare pass, unmodelled), the Mongol windows (parted
+  ~~Porcelain Tower's rare pass, unmodelled~~), the Mongol windows (parted
   before their first block), run1013, run1014 and ch77.
+- **The Porcelain Tower** (item 4159's thirteenth residue, 4159r12a): the
+  rare pass at the top of `calc_gather` and `calc_rare`'s `PORCELAIN_RARE`
+  term are built (`docs/ECONOMY.md`, "The Porcelain Tower's pass").
+  run1184's who=1 economy agrees from block 4201, `rare`, `rare_owned`,
+  `income` and `score` alike, and so does ch77's `score` from 711. The
+  record probe's `HELD` count falls from 1,715 rows in seven tests to
+  **492 rows in five**: run1013 (100), run1014 (26), run1218 and run1224
+  (60 each), and the coverage walk over them (246). `score` stays held.
 
 ## 19. The last building and unit finished
 
