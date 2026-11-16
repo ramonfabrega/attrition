@@ -47,6 +47,7 @@ pub mod lobby;
 pub mod mapgen;
 pub mod mountains;
 pub mod pe;
+pub mod prefs;
 pub mod recgame;
 pub mod scalar;
 pub mod script;

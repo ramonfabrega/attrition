@@ -805,12 +805,17 @@ pub(crate) mod recording {
                     && r.packages.last().map(|p| p.frame) == Some(LOBBY_FRAMES)
             })
             .cloned();
+        // Frame 0's `leader_options` is the fresh profile's, the human
+        // `who` 0 (item 4289, `docs/CLIENT_INPUT.md` §26.1): built, never
+        // copied, and held to the donor's frame 0.
+        let leader = crate::prefs::Prefs::FRESH.issue_leader_option(0);
         let lo = crate::commands::decode(&donor.packages[0].data).unwrap();
-        assert!(
-            matches!(lo[..], [crate::commands::Command::LeaderOptions { .. }]),
-            "the donor's frame 0 is not the leader_options push: {lo:?}"
+        assert_eq!(
+            lo,
+            std::slice::from_ref(&leader),
+            "the donor's frame 0 is not the fresh profile's leader_options"
         );
-        let packages = minted_packages(lo[0].clone(), orders, LOBBY_FRAMES).unwrap();
+        let packages = minted_packages(leader, orders, LOBBY_FRAMES).unwrap();
         let ours = from_lobby(&init.game_info, &init.players, &donor, packages).unwrap();
         Some((ours, donor, twin))
     }

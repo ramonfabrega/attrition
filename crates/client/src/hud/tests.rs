@@ -149,11 +149,15 @@ fn the_buttons_mint_the_clicked_file() {
     assert_eq!(file.len(), CLICKED_RCX_BYTES);
     let path = std::path::Path::new(&home).join(MINTED_RCX);
     let rec = rondata::recgame::read(&path.to_string_lossy()).unwrap();
-    let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
     let last = rec.packages.last().unwrap().frame;
     let write = |orders: &[Order]| {
         let mut w = rec.clone();
-        w.packages = rondata::recgame::minted_packages(lo[0].clone(), orders, last).unwrap();
+        w.packages = rondata::recgame::minted_packages(
+            crate::input::Input::default().leader_options(0),
+            orders,
+            last,
+        )
+        .unwrap();
         rondata::recgame::write_gz(&w)
     };
     assert!(write(&ours) == file, "the file from the buttons' orders");
