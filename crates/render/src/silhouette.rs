@@ -899,6 +899,15 @@ pub const HUE: Hue = Hue {
     mask_alpha: 255.0,
 };
 
+/// **The warmth reader's bound** (item 4286; `docs/RENDERER.md` §3.28),
+/// committed before its first count: two mean colours agree when their
+/// chromaticities lie within this. A fifth of [`HUE`]'s per-pixel 0.05,
+/// because a mean over thousands of pixels averages away the per-pixel
+/// noise that tolerance exists for, and 2.4 times the plain ground's own
+/// mean agreement on the same still, 0.0042 (item 4284's 4284a table:
+/// (175.1, 171.7, 71.8) against (166.3, 164.1, 71.0)).
+pub const WARMTH: f32 = 0.01;
+
 /// `(r, g) / (r + g + b)`.
 pub fn chromaticity(rgb: [f32; 3]) -> [f32; 2] {
     let s = rgb[0] + rgb[1] + rgb[2];
@@ -999,6 +1008,23 @@ impl Colours {
     pub fn rgb_means(&self) -> [[f32; 3]; 2] {
         let n = self.held.max(1) as f32;
         self.rgb.map(|s| s.map(|v| v / n))
+    }
+
+    /// **The warmth reader's distance** (item 4286; `docs/RENDERER.md`
+    /// §3.28): the chromaticity of our mean colour over the held pixels
+    /// against the photograph's, so a cast that shifts every pixel a little
+    /// adds up where [`HUE`]'s per-pixel 0.05 absorbs it.
+    pub fn warmth(&self) -> f32 {
+        let [o, p] = self.rgb_means();
+        let (a, b) = (chromaticity(o), chromaticity(p));
+        ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)).sqrt()
+    }
+
+    /// Whether the object passes the warmth reader (item 4286): scored on
+    /// [`Hue::min_pixels`] held pixels, its means' chromaticities within
+    /// [`WARMTH`].
+    pub fn warmth_passes(&self) -> bool {
+        self.held >= HUE.min_pixels && self.warmth() <= WARMTH
     }
 
     /// Whether the object passes the luminance reader (item 4172): scored
@@ -1350,6 +1376,18 @@ pub const RUN1559B_3279_TRACED_STILL: (usize, usize) = (32, 33);
 /// **Item 4241: 18 → 17**, the bloom drawn and a plume's pixel clamped after the white (§3.25): the frame's white and the glow move one
 /// figure's chromaticity past the reader's 0.05.
 pub const RUN1559B_3279_COLOUR_STILL: (usize, usize) = (17, 33);
+/// **The buildings' warmth** (item 4286; `docs/RENDERER.md` §3.28): on
+/// the client's still (before, plain), the buildings among
+/// [`RUN1559B_3279_TRACED_STILL`]'s objects whose mean colour passes
+/// [`WARMTH`], of those scored. Minted at **0 of 2**, the reader committed
+/// before the count: 0/2000 0.0293 (ours (105, 93, 75), theirs (115, 102,
+/// 66)), 0/2001 0.0423 (ours (97, 89, 75), theirs (109, 99, 62)).
+pub const RUN1559B_3279_BUILDINGS_WARMTH: (usize, usize) = (0, 2);
+/// The same reader over every object the row scores, the figures and the
+/// buildings, on the same draw (item 4286): minted at **1 of 33**, the
+/// reader seen to pass (0/2, piece 4576, 0.0044); the next nearest 1/26
+/// piece 1008 at 0.0216.
+pub const RUN1559B_3279_WARMTH_STILL: (usize, usize) = (1, 33);
 /// The still's `(TRACED, COLOUR)` under its four readings (item 4171):
 /// the silhouette pass before and after the lit one, on a plain target
 /// and on an sRGB one — the client's draw first, the draw before 4171

@@ -3832,6 +3832,15 @@ chromaticity holds that shift for most of a building's pixels, so no row counts 
 held pixels, mostly interior, and a shift in the blue channel throughout is not an edge's. *Not established
 by a measurement:* an interior-only mean, eroded from the footprint, was not taken.
 
+**The warmth row (item 4286).** `Colours::warmth` is the distance between the chromaticities of our mean
+colour and the photograph's over an object's held pixels; `WARMTH`, 0.01, is its bound, committed before
+the count. It is a fifth of the colour reader's per-pixel 0.05, because a mean over thousands of pixels
+averages away the noise that tolerance absorbs, and 2.4 times the plain grass's own mean agreement on the
+same still (0.0042, the 4284a table). On the client's still (before, plain) `RUN1559B_3279_BUILDINGS_WARMTH`
+is **0 of 2**: 0/2000 0.0293, 0/2001 0.0423. Over all 33 objects `RUN1559B_3279_WARMTH_STILL` is 1 of 33
+(0/2, 0.0044), so the reader can pass; the next is 0.0216. Of the 33, 29 read bluer than the photograph's
+(b/r higher, by the printed means): the cast is shared.
+
 *Coverage.* Diff-backed: none (a photograph row). On the photograph alone: the table. *Not established:*
 - whether the cold cast is the frame's (the white, the tone map, §3.21 and §3.25), which the ground's agreement
   argues against (item 4212), or the sprites' and figures' own light;

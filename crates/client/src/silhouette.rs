@@ -1896,6 +1896,7 @@ mod tests {
         world.run_to(PHOTO_FRAME + 1);
         let size = (photo.width as u32, photo.height as u32);
         let mut got = Vec::new();
+        let mut warmths = Vec::new();
         use wgpu::TextureFormat::{Rgba8Unorm, Rgba8UnormSrgb};
         for (order, format) in [
             (SilhouetteOrder::Before, Rgba8Unorm),
@@ -1953,8 +1954,20 @@ mod tests {
                 );
                 let ([o, p], [yo, yp]) = (r.colours.rgb_means(), r.colours.luma_means());
                 println!(
-                    "    mean colour on {} held: ours ({:.0}, {:.0}, {:.0}) Y {yo:.1}, the photograph ({:.0}, {:.0}, {:.0}) Y {yp:.1}",
-                    r.colours.held, o[0], o[1], o[2], p[0], p[1], p[2]
+                    "    mean colour on {} held: ours ({:.0}, {:.0}, {:.0}) Y {yo:.1}, the photograph ({:.0}, {:.0}, {:.0}) Y {yp:.1}; warmth {:.4} {}",
+                    r.colours.held,
+                    o[0],
+                    o[1],
+                    o[2],
+                    p[0],
+                    p[1],
+                    p[2],
+                    r.colours.warmth(),
+                    if r.colours.warmth_passes() {
+                        "in"
+                    } else {
+                        "out"
+                    },
                 );
                 for (at, a, b) in &r.sample {
                     println!(
@@ -1977,9 +1990,20 @@ mod tests {
                     .filter(|r| r.painter_colours.passes(&HUE))
                     .count(),
             );
+            let count = |f: &dyn Fn(&StillRow) -> bool| {
+                (
+                    rows.iter()
+                        .filter(|r| f(r) && r.colours.warmth_passes())
+                        .count(),
+                    rows.iter().filter(|r| f(r)).count(),
+                )
+            };
+            let warmth = (count(&|r| r.who.3), count(&|_| true));
             println!(
-                "{order_name}: traced {traced:?} colour {colour:?} on the still; the painter's {painter:?}; pixels within 8 {within} of {pixels}"
+                "{order_name}: traced {traced:?} colour {colour:?} on the still; the painter's {painter:?}; pixels within 8 {within} of {pixels}; warmth buildings {:?} all {:?}",
+                warmth.0, warmth.1
             );
+            warmths.push(warmth);
             assert_eq!(
                 painter,
                 (s::RUN1559B_3279_TRACED.0, s::RUN1559B_3279_COLOUR.0)
@@ -1992,6 +2016,15 @@ mod tests {
             got[0],
             (s::RUN1559B_3279_TRACED_STILL, s::RUN1559B_3279_COLOUR_STILL),
             "the client's draw"
+        );
+        // The buildings' warmth (item 4286, §3.28), on the client's draw.
+        assert_eq!(
+            warmths[0],
+            (
+                s::RUN1559B_3279_BUILDINGS_WARMTH,
+                s::RUN1559B_3279_WARMTH_STILL
+            ),
+            "the warmth reader on the client's draw"
         );
     }
 
