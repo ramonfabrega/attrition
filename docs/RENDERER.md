@@ -3206,17 +3206,15 @@ on run1564 (the packet's own normals give 0.7025 and 0.6828). `light_vert`'s col
 | run1570 | 1,042 → 1,041 of 1,073 | 1,171 → 1,171 of 1,174 | 1,118 → 1,152 |
 
 On run1559b, the trees' luma 39 → 40 of 56, `_COLOUR_STILL` 14 → 13, the shadows' hue 80 → 75
-and luma 79 → 82, and `RUN1559B_3279_RING`'s luma 19 → 20. **The switch stays off**: `GRASS_HUE`
-falls and the trees do not come back. The grass reads (171.5, 168.6, 78.9) against theirs (162.3,
+and luma 79 → 82, and `RUN1559B_3279_RING`'s luma 19 → 20. The switch stayed off until item 4292
+(below): `GRASS_HUE` fell and the trees did not come back. The grass reads (171.5, 168.6, 78.9) against theirs (162.3,
 158.5, 77.4) on run1564 lit.
 
 **The trees' fall is their own.** At the floor's white the painter's trees are already 5 % under
 the photograph (theirs over ours 1.052, weighted over 56 trees; the luma row 54 of 56). The
 asphalt, drawn by the same `TL_FAKE_LIGHT` branch (the card's draws 133–154), is 0.895 at that
-white (§3.21, tile (19, 160)). No white serves both, and the land lies between neither: ~~the fall
-is in one of the two draws' stage colour (parked 4217a).~~ the stage colours agree and the trees
-blend and take the tileset's tint (item 4221, §3.23; 4217a struck so in
-`docs/journal/2026-11-13-item-4217.md`, "Parked"). The frame's white is 0.898 against the
+white (§3.21, tile (19, 160)). No white serves both, and the land lies between neither: the stage
+colours agree and the trees blend and take the tileset's tint (item 4221, §3.23). The frame's white is 0.898 against the
 asphalt's 0.895.
 
 **Coverage.** Diff-backed: the heights, the normals (54,095 bit for bit) and the vertex colours
@@ -3236,17 +3234,13 @@ On the photographs alone: the rows.
   land is (`ENABLE_LIGHTING`, `ENABLE_VERTEX_COLOR_DIFFUSE`, `NORMAL_MAP SPEC_MAP GLOSS_MAP`), the ring also
   `TRANSFORM_SCREEN_SPACE` (unread); a third, `t_mountainpeak` on both stages under `TL_FAKE_LIGHT`, ~~§3.10 never
   named (parked 4269b)~~ the snowcap underlay (§3.10, "The peak draw (item 4274)"). No card stream holds the range's mesh: it is a static buffer.
-- ~~The `_mtrl` normal, specular and gloss maps on the mountain's draws (parked 4269a).~~ Drawn on the main pass:
-  "The mountain's `_mtrl` maps (item 4278)" below. The body's hue (4269c) is read
-  below, "The mountain's hue (item 4271)". ~~What takes the tint's share off the photograph's stage colour (parked
-  4271a).~~ Answered by "The mountain's tint (item 4272)": ours tinted stage 1 too.
+- ~~The `_mtrl` maps (4269a), the body's hue (4269c), the tint's share (4271a).~~ Items 4278, 4271 and 4272 below.
 - ~~The body's remaining 7 % (ours Y 146.4 against 137.3, item 4272) and its yellow-green cast by eye.~~ Item 4284.
-- The plain ground lit too: the halo west of the range, and the step where a lit tile meets a flat one (4284a).
-- The shore's descent: on run1564 the photograph's sand strip below the waterline stays bright where `light_vert` darkens it (4292a).
+- ~~The plain ground lit too (4284a).~~ On by default since item 4292, below.
+- run1564's beach below the waterline: bright in theirs, darkened by `light_vert` (4292a).
 - `vs_global.hlsl`'s per-pixel normal against the interpolated N·L the client takes, and the
   vertex colour taken from that N·L rather than interpolated.
-- ~~The trees' and the roads' `TL_FAKE_LIGHT` stage colours against each other (parked 4217a).~~ Answered by
-  §3.23: the stage colours agree; the trees blend and take the tileset's tint.
+- ~~The trees' and the roads' `TL_FAKE_LIGHT` stage colours (4217a).~~ §3.23: they agree.
 
 **The mountain's own light (item 4269).** *2026-11-15, Opus 5.5. `render::terrain::mountain_normals`;
 `client::ground::GroundMountain::normals`; `client::world::World::set_mountain_light`; `shaders/land.wgsl`'s
@@ -3324,6 +3318,11 @@ paler, sat on the left shoulder, where the main pass's stage 1 fades and the gro
 ground was flat-lit (`land_light` off). A tile under a placed mountain now takes the land's own N·L and `light_vert`
 colour whatever the switch says, as the snowcap does: under a mountain **100 → 106 of 106**, plain unmoved, the body
 Y 136.5 against 137.3. *Coverage:* on the photograph alone: the row.
+
+**The plain ground lit (item 4292).** *Opus 5.5; the ledger: `docs/journal/2026-11-16-item-4292.md`.* On by
+default (`--land-flat` turns it off): at a range's foot the photographs' shadow fades onto the grass, where off drew
+a stair along tile edges. run1559b's luma 1,072 → **1,109 of 1,109**; the journal names the rows that fell.
+*Coverage:* on the photograph alone: the row.
 
 ## 3.23 The trees' own light (item 4221)
 

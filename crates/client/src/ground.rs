@@ -1027,7 +1027,9 @@ pub const EDGE_BLOCK: usize = 32;
 /// unmoved by the surf.
 /// Item 4269: `SANDY` 701 → 700: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 /// Item 4272: `SANDY` 700 → 702: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
-pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[702, 772], [422, 437]];
+///
+/// Item 4292: `SANDY` 702 → 681 (a named fall from 702), `OCEAN` holds: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) darkens the beach's descent to the waterline under the composite, where the photograph's stays bright (parked 4292a).
+pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[681, 772], [422, 437]];
 
 /// **`RUN1564_3279_SURF_DRAWN`** (item 4239; `docs/RENDERER.md` §3.27):
 /// `SANDY` and `OCEAN` `[agree, scored]` on run1564's still with the
@@ -1042,11 +1044,17 @@ pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[702, 772], [422, 437]];
 /// toned frame, item 4225's composite) the three read 573, 655 and 676;
 /// item 4225's composite of the packet's own lists on the CPU, 701
 /// ([`RUN1564_3279_SURF`]).
+///
+/// Item 4292: `SANDY` off 573 → 553, drawn 653 → 645, typed 684 → 678 (a
+/// named fall from 573, 653 and 684), `OCEAN` holds: the plain ground lit
+/// by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) darkens the
+/// beach's descent to the waterline, where the photograph's stays bright
+/// (parked 4292a).
 #[cfg(test)]
 pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
-    [[573, 772], [422, 437]],
-    [[653, 772], [422, 437]],
-    [[684, 772], [422, 437]],
+    [[553, 772], [422, 437]],
+    [[645, 772], [422, 437]],
+    [[678, 772], [422, 437]],
 ];
 
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
@@ -1091,15 +1099,19 @@ pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
 /// `docs/RENDERER.md` §3.27; [`RUN1564_3279_SURF_DRAWN`]): `SANDY` **573
 /// → 653**, 84 tiles up and 4 down; tile (163, 201), theirs (97.1, 133.4,
 /// 140.3), the still's (58.0, 119.7, 142.3) → (76.3, 125.5, 144.4).
+/// Item 4292: **1,786 → 1,778** (`SANDY` 653 → 645, a named fall from
+/// 1,786): the plain ground lit by the land's own N·L (`docs/RENDERER.md`
+/// §3.22) darkens the beach's descent to the waterline, where the
+/// photograph's stays bright (parked 4292a).
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1786, 1920),
+    (1778, 1920),
     [
         [679, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [653, 772],
+        [645, 772],
         [422, 437],
     ],
 );
@@ -1136,13 +1148,14 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4275: run1559b **1,059 → 1,061** (under a mountain **92 → 95** of 106, plain 951 → 950): the snowcap underlay drawn, `render_weathering(4, 4)`'s texel times the land's `light_vert` colour through `TL_FAKE_LIGHT` at its alpha (`docs/RENDERER.md` §3.10, "The snowcap, drawn"; `client::snowcap`, the packet's slot 4 on 63 of 63 corners); the body ours Y 146.4 → 144.6 against theirs 137.3; tile (12, 141) crosses up, theirs (104, 101, 82), the still's (140, 132, 79); plain (23, 141) down and (12, 162) up by the frame's white; run1564 unchanged.
 /// Item 4279: run1559b **1,061 → 1,066** (under a mountain **95 → 100** of 106, plain 950 unmoved): the snowcap's stage 1 draws `t_mountainpeak`'s own alpha, where its key (930) had been the surf's mask 10's and the alphas' cache is first come (`docs/RENDERER.md` §3.10; `world::tests::the_alpha_keys_are_apart`); the body ours Y 143.7 → 141.0 against theirs 137.3, 6 tiles paler (from 11); run1564 unchanged.
 /// Item 4284: run1559b **1,066 → 1,072** (under a mountain **100 → 106** of 106, plain 950 unmoved): the ground beneath a range takes the land's own N·L and `light_vert` colour whatever `land_light` says, as the snowcap does (`docs/RENDERER.md` §3.22, "The ground beneath a range"); the six paler tiles (5, 142)–(7, 147) on the left shoulder close from ratios 1.21–1.48 to 0.97–1.01; the body ours Y 141.0 → 136.5 against theirs 137.3; run1564 unchanged.
+/// Item 4292: run1559b **1,072 → 1,109** of 1,109 (plain **950 → 986**, `ROCK` 16 → 17): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22), the halo where the range meets the grass drawn where the photograph's is; run1564 1,852 → 1,843 (`SANDY` 728 → 723, `OCEAN` 420 → 416; a named fall from 1,852, parked 4292g).
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1072, 1109),
+        (1109, 1109),
         [
-            [950, 986],
+            [986, 986],
             [106, 106],
-            [16, 17],
+            [17, 17],
             [0, 0],
             [0, 0],
             [0, 0],
@@ -1150,15 +1163,15 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1852, 1920),
+        (1843, 1920),
         [
             [679, 679],
             [0, 0],
             [25, 32],
             [0, 0],
             [0, 0],
-            [728, 772],
-            [420, 437],
+            [723, 772],
+            [416, 437],
         ],
     ),
 ];
@@ -1188,7 +1201,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// own alpha, not the surf's mask on a shared key (§3.10).
 /// Item 4284: run1559b's 1,007 → 1,008, the ground beneath a range lit by
 /// the land's own N·L (§3.22, "The ground beneath a range").
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1008, 1109), (1754, 1920)];
+/// Item 4292: run1559b's 1,008 → 1,012, run1564's 1,754 → 1,777, the made-to-fail: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22).
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1012, 1109), (1777, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1484,14 +1498,15 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// Item 4269: `OCEAN` 233 → 235: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 /// Item 4272: `SANDY` 413 → 412, `OCEAN` 235 → 233: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
 /// Item 4284: `SANDY` 412 → 413: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+/// Item 4292: plain 665 → 666, `ROCK` 8 → 9, `SANDY` 413 → 428, `OCEAN` 233 → 239 (a rise from 665, 8, 413 and 233): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) carries the relief's shading into each tile's spread.
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
-    [665, 679],
+    [666, 679],
     [0, 0],
-    [8, 32],
+    [9, 32],
     [0, 0],
     [0, 0],
-    [413, 772],
-    [233, 437],
+    [428, 772],
+    [239, 437],
 ];
 
 /// **`RUN1564_3279_LAKE_HDR_TEXTURE`** (item 4232): [`TEXTURE`]'s

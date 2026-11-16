@@ -33,20 +33,23 @@ mod tests {
     /// Item 4212: hue 93 → 80, luma 89 → 79, the land lit at the frame's white, §3.21: under the trees the photograph's shadowed grass is orange, tile (10, 178) theirs (137, 107, 35), ours (120, 124, 43) (parked 4212b).
     /// Item 4241: hue 80 → 82, the bloom drawn and a plume's pixel clamped after the white (§3.25).
     /// Item 4272: luma 79 → 78: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
-    const RUN1559B_3279_SHADOW: [(usize, usize); 2] = [(82, 104), (78, 104)];
+    /// Item 4292: hue 82 → 77 (a named fall from 82), luma 78 → 81 (a rise from 78) of 104: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) moves the ground under the decals and the frame's white. Its residue is parked 4292c.
+    const RUN1559B_3279_SHADOW: [(usize, usize); 2] = [(77, 104), (81, 104)];
     /// The same rows on the still drawn before item 4182, no decal drawn
     /// (`World::shadows` off): the count as drawn, pinned first. Ours
     /// 1.25× theirs on brightness (median).
     /// Item 4212: hue 93 → 72, luma 41 → 21, the land lit at the frame's white, §3.21.
     /// Item 4284: luma 21 → 22: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
-    const RUN1559B_3279_SHADOW_BEFORE: [(usize, usize); 2] = [(72, 104), (22, 104)];
+    /// Item 4292: hue 72 → 69, luma 22 → 19, the made-to-fail side: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22).
+    const RUN1559B_3279_SHADOW_BEFORE: [(usize, usize); 2] = [(69, 104), (19, 104)];
     /// The made-to-fail: every decal mirrored in x (`World::shadow_mirror`),
     /// selected and drawn so: luma 59 → 60 of 108 with 4193's turn, the
     /// tree tiles 32 of 72 against the drawn 61 of 68.
     /// Item 4212: hue 98 → 83, luma 60 → 67, the land lit at the frame's white, §3.21.
     /// Item 4272: hue 83 → 84, luma 67 → 68: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4275: hue 84 → 83, luma 68 → 67, the made-to-fail: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
-    const RUN1559B_3279_SHADOW_MIRRORED: [(usize, usize); 2] = [(83, 108), (67, 108)];
+    /// Item 4292: hue 83 → 78, luma 67 → 71, the made-to-fail: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22).
+    const RUN1559B_3279_SHADOW_MIRRORED: [(usize, usize); 2] = [(78, 108), (71, 108)];
     /// The before still composed on the CPU under the rule's own darkening,
     /// the guys' in (nearest texels): through the tone map, the GPU's 78
     /// with the guys' drawn within one (77; 65 against 66 before 4193's
@@ -62,8 +65,9 @@ mod tests {
     /// Item 4275: hue 80 → 79, the second luma 84 → 85 of 104: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     /// Item 4284: toned hue 79 → 81, luma 91 → 90 of 104: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4286: toned hue 81 → 79 (a fall of two): the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28) move the frame's mean, so its white.
+    /// Item 4292: toned hue 79 → 76 (a named fall from 79) and luma 90 → 95, display hue 72 → 68 (a named fall from 72), luma 85 holding: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) under the composed decals (parked 4292c).
     const RUN1559B_3279_SHADOW_CPU: [[(usize, usize); 2]; 2] =
-        [[(79, 104), (90, 104)], [(72, 104), (85, 104)]];
+        [[(76, 104), (95, 104)], [(68, 104), (85, 104)]];
     /// The row with the guys' decals drawn too (`World::unit_shadows`), as
     /// `draw_unit_shadow` reads: 4182's luma 89 → 66, the figure tiles 28
     /// → 5 of 37, median ours/theirs 0.99 → 0.82 (parked 4182c). **Item
@@ -78,7 +82,8 @@ mod tests {
     /// Item 4272: luma 89 → 87: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4284: luma 87 → 86: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4286: luma 86 → 87: the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28) move the frame's mean, so its white.
-    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(80, 104), (87, 104)];
+    /// Item 4292: hue 80 → 75 (a named fall from 80), luma 87 → 93 (a rise from 87) of 104: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22). Its residue is parked 4292c.
+    const RUN1559B_3279_SHADOW_UNITS: [(usize, usize); 2] = [(75, 104), (93, 104)];
     /// Before, drawn and with the guys': the tree tiles, then the figure
     /// tiles, each `[hue, luma]`.
     /// Item 4212: drawn, the tree tiles' hue 63 → 51 (parked 4212b), the figures' 30 → 29: the land lit at the frame's white, §3.21.
@@ -91,10 +96,11 @@ mod tests {
     /// Item 4272: the tree tiles' luma 59 → 58 drawn and with the guys', the figure tiles' 30 → 29 with the guys': the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4284: the tree tiles' luma 1 → 2 before and 58 → 57 with the guys': the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4286: the tree tiles' luma 57 → 58 with the guys': the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28) move the frame's mean, so its white.
+    /// Item 4292: drawn, the tree tiles' hue 53 → 48 (a named fall from 53) and luma 58 → 64, the figure tiles' luma 20 → 17 (a named fall from 20); with the guys', the tree tiles' 53 → 48 and 58 → 64, the figures' holding; before, 43 → 40, 2 → 1 and the figures' 20 → 18: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22). The hue's fall is the tree tiles' (parked 4292c).
     const RUN1559B_3279_SHADOW_BY_KIND: [[[(usize, usize); 2]; 2]; 3] = [
-        [[(43, 68), (2, 68)], [(29, 36), (20, 36)]],
-        [[(53, 68), (58, 68)], [(29, 36), (20, 36)]],
-        [[(53, 68), (58, 68)], [(27, 36), (29, 36)]],
+        [[(40, 68), (1, 68)], [(29, 36), (18, 36)]],
+        [[(48, 68), (64, 68)], [(29, 36), (17, 36)]],
+        [[(48, 68), (64, 68)], [(27, 36), (29, 36)]],
     ];
 
     /// One scored tile: the tile, the photograph's mean, the still's, and
