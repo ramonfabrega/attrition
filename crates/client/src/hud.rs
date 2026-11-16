@@ -731,6 +731,23 @@ pub fn event(
     input.event(frame, ev, view)
 }
 
+/// **One turn through the HUD** (item 4302, `docs/CLIENT_INPUT.md` §36):
+/// each of the turn's events through [`event`], in order, and what they
+/// minted as one package ([`crate::input::one_package`]).
+pub fn turn(
+    input: &mut Input,
+    size: (i32, i32),
+    frame: i32,
+    events: &[Event],
+    view: &View,
+) -> Option<Order> {
+    let orders: Vec<Order> = events
+        .iter()
+        .filter_map(|&ev| event(input, size, frame, ev, view))
+        .collect();
+    crate::input::one_package(orders)
+}
+
 /// One line of the panel: the object's name and the numbers it prints,
 /// each with the word before it.
 #[derive(Clone, Debug, PartialEq, Eq)]

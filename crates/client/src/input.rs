@@ -1138,6 +1138,37 @@ fn attack_to(at: Pos, queued: i32) -> Command {
     }
 }
 
+/// **The building types whose minimap press launches a patrol** (item
+/// 4302, §36.2): `WorldMap::on_right_up@008c7050` counts the selection's
+/// `TypeIndex` `0x1bf` and `0x208` and issues `launch_patrol` for either,
+/// the gather point for neither; as indices into the building types.
+const PATROL_LAUNCHERS: [usize; 2] = [
+    (0x1bf - rondata::load::BASE_BUILDTYPES) as usize,
+    (0x208 - rondata::load::BASE_BUILDTYPES) as usize,
+];
+
+/// **One turn's package** (item 4302, `docs/CLIENT_INPUT.md` §36): every
+/// order the turn's events minted, in the order they were issued, as one
+/// package. The original's `issue_*` calls each append their `group` and
+/// command to `CommandManager::local_package` (`add_group@0094bb60`,
+/// `add_command@0094bae0`), and the single-player arm of
+/// `process_turn@0093ef10` writes it once a turn when it holds anything.
+/// The turn's orders share its frame and its seat; `None` when none was
+/// minted.
+pub fn one_package(orders: impl IntoIterator<Item = Order>) -> Option<Order> {
+    let mut out: Option<Order> = None;
+    for (frame, play, cmds) in orders {
+        match &mut out {
+            None => out = Some((frame, play, cmds)),
+            Some(o) => {
+                assert_eq!((o.0, o.1), (frame, play), "one turn, one frame, one seat");
+                o.2.extend(cmds);
+            }
+        }
+    }
+    out
+}
+
 /// The session's input state: who issues, and what is selected or chosen.
 #[derive(Clone, Debug, Default)]
 pub struct Input {
@@ -2062,12 +2093,28 @@ impl Input {
                 // able to act, `MOVE_TO` with −1/−1. With ctrl it is
                 // `ATTACK_TO` in its place, alt or not (item 4297, §35.1).
                 let (w, h) = view.map_extent();
-                if self.selection.is_empty()
-                    || self.building
-                    || !(0..w).contains(&x)
-                    || !(0..h).contains(&y)
-                {
+                if self.selection.is_empty() || !(0..w).contains(&x) || !(0..h).contains(&y) {
                     return None;
+                }
+                if self.building {
+                    // A building's arm (item 4302, §36.2): the gather
+                    // point at the map point, `action` 0, `add_to_end`
+                    // with shift or ctrl. A selection holding a patrol's
+                    // launcher issues `launch_patrol`, which is not ours.
+                    let launches = view.scene.buildings.iter().any(|b| {
+                        self.selection.contains(&b.id)
+                            && b.ty.is_some_and(|t| PATROL_LAUNCHERS.contains(&t))
+                    });
+                    if launches {
+                        return None;
+                    }
+                    let cmd = Command::GatherPoint {
+                        x,
+                        y,
+                        action: 0,
+                        add_to_end: i32::from(self.mods.shift || self.mods.ctrl),
+                    };
+                    return Some((frame, play, vec![self.group(view.scene), cmd]));
                 }
                 let at = Pos { x, y };
                 let cmd = if self.mods.ctrl {
@@ -4993,7 +5040,8 @@ pub(crate) mod tests {
         ] {
             assert_eq!(press(m, 0, map).unwrap()[1], want, "{m:?} the minimap");
         }
-        // Nothing for an empty selection; a building keeps its arm.
+        // Nothing for an empty selection; a building's selection takes the
+        // minimap's gather point, `add_to_end` 1 under ctrl (item 4302).
         let ctrl = mods(false, true, false);
         let mut empty = Input {
             mods: ctrl,
@@ -5007,7 +5055,15 @@ pub(crate) mod tests {
             mods: ctrl,
             ..Input::new(0)
         };
-        assert_eq!(building.event(3, map, &v), None);
+        assert_eq!(
+            building.event(3, map, &v).map(|o| o.2[1].clone()),
+            Some(Command::GatherPoint {
+                x: to.x,
+                y: to.y,
+                action: 0,
+                add_to_end: 1
+            })
+        );
     }
 
     /// The angles [`minted_a_right_drag_faces_as_the_original`] mints at
@@ -7182,8 +7238,22 @@ pub(crate) mod tests {
             .iter()
             .filter(|c| !matches!(c, Command::Group { .. }))
             .collect();
-        if heads.len() != 1 {
-            return Verdict::Miss("two issues in one turn: one package a turn", Writer);
+        if heads.is_empty() {
+            return Verdict::Miss("a group with no order", Writer);
+        }
+        if heads.len() > 1 {
+            // Since item 4302 the layer writes a turn's issues as one
+            // package (§36): each issue takes its own verdict, and the turn
+            // is shown when none is missed, since `INPUT_TURNS` mints every
+            // recorded turn of two issues or more byte for byte.
+            for issue in issues(kept) {
+                if let Verdict::Miss(arm, reach) =
+                    census_verdict(&issue, frame, play, who, pauser, v, roster)
+                {
+                    return Verdict::Miss(arm, reach);
+                }
+            }
+            return Verdict::Shown("INPUT_TURNS");
         }
         let minted = |c: &Command| MINTS.contains(&c.name());
         match heads[0] {
@@ -7335,6 +7405,24 @@ pub(crate) mod tests {
         }
     }
 
+    /// A package's issues (item 4302): each `group` with the orders behind
+    /// it, and an order with no `group` before it on its own.
+    fn issues(kept: &[Command]) -> Vec<Vec<Command>> {
+        let mut out: Vec<Vec<Command>> = Vec::new();
+        let mut open = false;
+        for c in kept {
+            match c {
+                Command::Group { .. } => {
+                    out.push(vec![c.clone()]);
+                    open = true;
+                }
+                _ if open => out.last_mut().unwrap().push(c.clone()),
+                _ => out.push(vec![c.clone()]),
+            }
+        }
+        out
+    }
+
     /// **The two profiles the recordings carry** (item 4289,
     /// `docs/CLIENT_INPUT.md` §26.1): the fresh one, every bottle capture's,
     /// and the 2017 sample's, whose `prefs` has `0x800000` set too. Of the
@@ -7445,15 +7533,10 @@ pub(crate) mod tests {
     /// Every order on disk by verdict: (shown, of the layer's form but not
     /// minted from a scene, missed, all). A package's `group` takes its
     /// order's verdict.
-    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (927, 1432, 70, 2429);
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (965, 1432, 32, 2429);
     /// The missed orders by arm, most first, and who reaches each, the
     /// package's `group` counted with its order.
     const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] = &[
-        (
-            "two issues in one turn: one package a turn",
-            Reach::Writer,
-            38,
-        ),
         ("spell on an object: the right press's", Reach::Button, 22),
         ("build: a dragged line", Reach::Button, 10),
     ];
@@ -7543,6 +7626,7 @@ pub(crate) mod tests {
             ("INPUT_UNITMASKS", INPUT_UNITMASKS),
             ("INPUT_LEADER_OPTIONS", INPUT_LEADER_OPTIONS),
             ("INPUT_ROSTER_QUEUES", INPUT_ROSTER_QUEUES),
+            ("INPUT_TURNS", INPUT_TURNS),
         ] {
             assert_eq!(minted, of, "{pin} mints every package it reads");
             assert_eq!(
@@ -7554,6 +7638,346 @@ pub(crate) mod tests {
         assert_eq!((whole, files.len()), INPUT_WHOLE);
         assert_eq!((shown, form, missed, all), INPUT_WHOLE_ORDERS);
         assert_eq!(misses, INPUT_WHOLE_MISSES);
+    }
+
+    /// **The minimap's gather point** (item 4302, §36.2): with buildings
+    /// selected, a minimap press is the gather point at the map point,
+    /// `action` 0, `add_to_end` with shift or ctrl and not alt; a
+    /// selection holding a patrol's launcher mints nothing; off the map,
+    /// nothing. Two presses in one turn are one package, the second
+    /// `group` empty (§20).
+    #[test]
+    fn minted_a_minimap_gather_point_as_the_original() {
+        let Ok(r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let terrain = r.terrain();
+        let mut b = r.scene(None).buildings[0];
+        drop(r);
+        let c = crate::pinned_camera();
+        (b.id, b.owner, b.ty) = (ObjId { who: 0, o: 2000 }, 0, Some(0));
+        let scene = Scene {
+            buildings: vec![b],
+            ..Scene::default()
+        };
+        let v = view(&c, &scene, &terrain);
+        let press = |mods: Mods, x: i32, y: i32, scene: &Scene| {
+            let v = view(&c, scene, &terrain);
+            let mut input = Input {
+                selection: vec![b.id],
+                building: true,
+                mods,
+                ..Input::new(0)
+            };
+            input
+                .event(1, Event::MapRightPress { x, y }, &v)
+                .map(|o| o.2)
+        };
+        let gp = |add_to_end: i32| Command::GatherPoint {
+            x: 9574,
+            y: 25876,
+            action: 0,
+            add_to_end,
+        };
+        let none = Mods::default();
+        for (m, want) in [
+            (none, gp(0)),
+            (
+                Mods {
+                    shift: true,
+                    ..none
+                },
+                gp(1),
+            ),
+            (Mods { ctrl: true, ..none }, gp(1)),
+            (Mods { alt: true, ..none }, gp(0)),
+        ] {
+            let got = press(m, 9574, 25876, &scene).unwrap();
+            assert_eq!(
+                got[0],
+                Command::Group {
+                    who: 0,
+                    objects: vec![2000]
+                },
+                "{m:?}"
+            );
+            assert_eq!(got[1], want, "{m:?}");
+        }
+        let (w, _) = v.map_extent();
+        assert_eq!(press(none, w, 25876, &scene), None, "off the map");
+        for t in PATROL_LAUNCHERS {
+            let mut s = scene.clone();
+            s.buildings[0].ty = Some(t);
+            assert_eq!(press(none, 9574, 25876, &s), None, "a launcher {t}");
+        }
+        // Two presses in one turn: one package, the second group empty.
+        let mut input = Input {
+            selection: vec![b.id],
+            building: true,
+            ..Input::new(0)
+        };
+        let ev = Event::MapRightPress { x: 9574, y: 25876 };
+        let got = crate::hud::turn(&mut input, HUD_SIZE, 5, &[ev, ev], &v).unwrap();
+        assert_eq!(
+            got,
+            (
+                5,
+                0,
+                vec![
+                    Command::Group {
+                        who: 0,
+                        objects: vec![2000]
+                    },
+                    gp(0),
+                    Command::Group {
+                        who: 0,
+                        objects: vec![]
+                    },
+                    gp(0),
+                ]
+            )
+        );
+        assert_eq!(crate::hud::turn(&mut input, HUD_SIZE, 6, &[], &v), None);
+    }
+
+    /// **`INPUT_TURNS`** (item 4302, `docs/CLIENT_INPUT.md` §36): of the
+    /// recorded packages holding two issues or more, those the layer mints
+    /// byte for byte from one turn's events through the HUD
+    /// ([`crate::hud::turn`]). Seen red pinned (0, 9).
+    const INPUT_TURNS: (usize, usize) = (9, 9);
+    /// The turns by `(kind, issues)`: all nine are the 2017 sample's, play
+    /// 0, slot 3, one issue repeated behind §20's empty `group`.
+    const TURN_KINDS: &[((&str, usize), usize)] = &[
+        (("gather_point", 2), 3),
+        (("move_to", 2), 3),
+        (("queue_up", 2), 2),
+        (("queue_up", 3), 1),
+    ];
+    /// The minted turns written as a file (`recgame::minted_packages` over
+    /// the sample's header, the paused pair inside its recorded pause) and
+    /// read back: each turn's package, its frame and its bytes, the
+    /// recording's. Seen red pinned 0.
+    const TURNS_WRITTEN: usize = 9;
+
+    /// **Two issues in one turn, from the layer** (item 4302): each
+    /// recorded package of two issues or more, its selection the package's
+    /// group (or for an empty group the slot's last full one) and the
+    /// layer's [`Sent`] the slot's last before it; then one turn of events,
+    /// one per issue: a roster button's press for a `queue_up`, a minimap
+    /// press for a `move_to` (the shift for `QUEUE_LAST`) and for a
+    /// building's `gather_point`. The turn's one package equals the
+    /// recording's byte for byte, the camera aside.
+    #[test]
+    fn minted_turns_equal_the_recordings() {
+        let files = recordings_on_disk();
+        let (Ok(r), Some(roster)) = (lobby(), install_roster()) else {
+            println!("skipping: no lobby or no install");
+            return;
+        };
+        if files.is_empty() {
+            println!("skipping: no .rcx on disk");
+            return;
+        }
+        let template = r.scene(None).buildings[0];
+        drop(r);
+        let roster = std::sync::Arc::new(roster);
+        let terrain = TerrainScene {
+            width: 256,
+            height: 256,
+            ..TerrainScene::default()
+        };
+        let c = crate::pinned_camera();
+        let (mut minted, mut all) = (0, 0);
+        let mut kinds: std::collections::BTreeMap<(&str, usize), usize> = Default::default();
+        let mut written = 0;
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let mut last = LastSent::new();
+            // The minted turns, and the recorded package each stands for.
+            let mut ours: Vec<(Order, Vec<u8>)> = Vec::new();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> = cmds
+                    .iter()
+                    .filter(|c| rondata::input::is_input(c))
+                    .cloned()
+                    .collect();
+                let (who, objects, before) = behind(&last, p.play, &kept);
+                note_sent(&mut last, p.play, &kept);
+                let heads: Vec<&Command> = kept
+                    .iter()
+                    .filter(|c| !matches!(c, Command::Group { .. }))
+                    .collect();
+                if heads.len() < 2 {
+                    continue;
+                }
+                all += 1;
+                *kinds.entry((heads[0].name(), heads.len())).or_default() += 1;
+                assert!(
+                    heads.iter().all(|h| h.name() == heads[0].name()),
+                    "one kind a turn"
+                );
+                let ids: Vec<ObjId> = objects.iter().map(|&o| ObjId { who, o }).collect();
+                let (scene, building, mods) = match *heads[0] {
+                    Command::QueueUp { unit, .. } => {
+                        let at = roster.trained_at(unit).first().copied();
+                        let buildings = ids
+                            .iter()
+                            .map(|&id| {
+                                let mut b = template;
+                                (b.id, b.owner, b.ty, b.active) = (id, who, at, true);
+                                b
+                            })
+                            .collect();
+                        let s = Scene {
+                            buildings,
+                            ..Scene::default()
+                        };
+                        (s, true, Mods::default())
+                    }
+                    Command::GatherPoint { add_to_end, .. } => {
+                        let buildings = ids
+                            .iter()
+                            .map(|&id| {
+                                let mut b = template;
+                                (b.id, b.owner, b.ty, b.active) = (id, who, None, true);
+                                b
+                            })
+                            .collect();
+                        let s = Scene {
+                            buildings,
+                            ..Scene::default()
+                        };
+                        let shift = add_to_end != 0;
+                        (
+                            s,
+                            true,
+                            Mods {
+                                shift,
+                                ..Mods::default()
+                            },
+                        )
+                    }
+                    Command::MoveTo { queued, .. } => {
+                        let units = objects
+                            .iter()
+                            .map(|&o| unit(who, o, SCOUT_TYPE, 0, 0, 0))
+                            .collect();
+                        let s = Scene {
+                            units,
+                            ..Scene::default()
+                        };
+                        let shift = i32::from(queued) == QUEUE_LAST;
+                        let alt = i32::from(queued) == QUEUE_FIRST;
+                        (
+                            s,
+                            false,
+                            Mods {
+                                shift,
+                                alt,
+                                ..Mods::default()
+                            },
+                        )
+                    }
+                    _ => panic!("a turn of a kind this test does not press: {kept:?}"),
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input {
+                    roster: roster.clone(),
+                    building,
+                    selection: ids.clone(),
+                    mods,
+                    ..Input::new(who)
+                };
+                input.sent = sent_for(&before, &scene);
+                let events: Vec<Event> = heads
+                    .iter()
+                    .map(|h| match **h {
+                        Command::QueueUp { unit, .. } => {
+                            let b = crate::hud::roster_menu(&input, &scene, HUD_SIZE)
+                                .into_iter()
+                                .find(|b| b.ev == Event::Train(unit))
+                                .expect("the roster offers the type");
+                            let (x, y) = b.rect.centre();
+                            Event::Press { x, y }
+                        }
+                        Command::GatherPoint { x, y, .. } => Event::MapRightPress { x, y },
+                        Command::MoveTo { to_x, to_y, .. } => {
+                            Event::MapRightPress { x: to_x, y: to_y }
+                        }
+                        _ => unreachable!(),
+                    })
+                    .collect();
+                let got = crate::hud::turn(&mut input, HUD_SIZE, p.frame, &events, &v);
+                let bytes = rondata::commands::encode(&kept);
+                let whole = got.as_ref().is_some_and(|o| {
+                    o.2 == kept
+                        && rondata::commands::encode(&o.2) == bytes
+                        && (kept.len() < cmds.len() || bytes == p.data)
+                });
+                println!(
+                    "TURN {} f{} play {} {} issues of {}: minted {whole}",
+                    f.file_name().unwrap().to_string_lossy(),
+                    p.frame,
+                    p.play,
+                    heads.len(),
+                    heads[0].name()
+                );
+                if whole {
+                    minted += 1;
+                    ours.push((got.unwrap(), bytes));
+                }
+            }
+            if ours.is_empty() {
+                continue;
+            }
+            // The file: the turns on their frames, the paused ones inside
+            // the recorded pause, over the recording's own header.
+            let mut script: Vec<Order> = Vec::new();
+            for (o, _) in &ours {
+                let held = script.last().is_some_and(|l| l.0 == o.0);
+                if held {
+                    let first = script.iter().rposition(|l| l.0 != o.0).map_or(0, |k| k + 1);
+                    if !matches!(script[first].2[..], [Command::Pause { state: 1 }]) {
+                        script.insert(first, (o.0, o.1, vec![Command::Pause { state: 1 }]));
+                    }
+                }
+                if let Some(l) = script.last()
+                    && l.0 != o.0
+                    && script
+                        .iter()
+                        .any(|q| q.0 == l.0 && matches!(q.2[..], [Command::Pause { state: 1 }]))
+                {
+                    let f0 = l.0;
+                    script.push((f0, o.1, vec![Command::Pause { state: 0 }]));
+                }
+                script.push(o.clone());
+            }
+            let lastf = rec.packages.last().unwrap().frame;
+            let mut w = rec.clone();
+            w.packages = rondata::recgame::minted_packages(
+                Input::default().leader_options(0),
+                &script,
+                lastf,
+            )
+            .unwrap();
+            let back = rondata::recgame::parse(&rondata::recgame::write(&w), "turns").unwrap();
+            for (o, bytes) in &ours {
+                let found = back
+                    .packages
+                    .iter()
+                    .any(|q| q.frame == o.0 && q.play == o.1 && q.data == *bytes);
+                written += usize::from(found);
+            }
+        }
+        let kinds: Vec<((&str, usize), usize)> = kinds.into_iter().collect();
+        println!("TURNS {minted} of {all}; {kinds:?}; written {written}");
+        assert_eq!(kinds, TURN_KINDS);
+        assert_eq!((minted, all), INPUT_TURNS);
+        assert_eq!(written, TURNS_WRITTEN);
     }
 
     /// **The census of `gather_point` on an object** (item 4301,
@@ -8092,13 +8516,8 @@ pub(crate) mod tests {
         ("build", 1, "build: a dragged line", 4),
         ("build", 1, "form", 2),
         ("gather", 1, "form", 4),
+        ("move_to", 1, "INPUT_TURNS", 12),
         ("move_to", 1, "form", 186),
-        (
-            "move_to",
-            1,
-            "two issues in one turn: one package a turn",
-            12,
-        ),
         ("swarm_around", 1, "form", 4),
     ];
 
@@ -8445,7 +8864,9 @@ pub(crate) mod tests {
     /// (`queue_up` orders on a panel, of them; `build`, of them). Item 4293
     /// adds the one shifted `build` package of a type no key binds, which
     /// the queue's miss hid until then: 42 → 44, its type already counted.
-    const PANEL_ROSTER_ORDERS: (usize, usize, usize, usize) = (390, 390, 44, 44);
+    /// Item 4302 adds the two turns of two `queue_up`s of type 69 (19159,
+    /// 19175), which the writer's miss hid: 390 → 398, the type counted.
+    const PANEL_ROSTER_ORDERS: (usize, usize, usize, usize) = (398, 398, 44, 44);
     /// The types on no panel, by `TypeIndex`.
     const PANEL_ROSTER_OFF: &[i32] = &[];
 
