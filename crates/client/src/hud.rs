@@ -80,6 +80,8 @@ pub struct Names {
     pub rings: Vec<i32>,
     /// Each building type's footprint, in tiles (`+0x234`, `+0x238`).
     pub footprints: Vec<(i32, i32)>,
+    /// The panel's roster (item 4290), which the window hands the layer.
+    pub roster: std::sync::Arc<crate::input::Roster>,
 }
 
 impl Names {
@@ -98,6 +100,7 @@ impl Names {
                 .iter()
                 .map(|b| (b.x_size, b.y_size))
                 .collect(),
+            roster: std::sync::Arc::new(crate::input::Roster::new(loaded)),
         }
     }
 
@@ -193,6 +196,56 @@ pub fn route(input: &Input, size: (i32, i32), ev: Event) -> Event {
             .map_or(ev, |b| Event::Key(b.key)),
         _ => ev,
     }
+}
+
+/// The size of one of the roster's buttons (item 4290).
+pub const ROSTER_BUTTON: (i32, i32) = (150, 24);
+/// The roster's buttons a row: six, so the rows end left of the
+/// right-hand buttons' columns (at 1920, `x` 932 against their 980).
+pub const ROSTER_ROW: i32 = 6;
+
+/// One of the roster's buttons (item 4290, `docs/CLIENT_INPUT.md` §32):
+/// the event a press sends ([`crate::input::Event::Train`] or
+/// [`crate::input::Event::Place`]) and where it stands.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RosterButton {
+    pub ev: Event,
+    pub rect: Rect,
+}
+
+impl RosterButton {
+    /// The `TypeIndex` it queues or chooses.
+    pub fn ty(&self) -> i32 {
+        match self.ev {
+            Event::Train(t) | Event::Place(t) => t,
+            _ => -1,
+        }
+    }
+}
+
+/// **The roster's rows** (item 4290): a button for each of
+/// [`Input::panel`]'s, [`ROSTER_ROW`] a row from the left, the rows
+/// stacked upward from above the menu's. Where they stand is ours.
+pub fn roster_menu(input: &Input, scene: &Scene, size: (i32, i32)) -> Vec<RosterButton> {
+    let (w, h) = ROSTER_BUTTON;
+    let base = size.1 - 2 * MARGIN - BUTTON.1;
+    input
+        .panel(scene)
+        .into_iter()
+        .enumerate()
+        .map(|(k, ev)| {
+            let (col, row) = (k as i32 % ROSTER_ROW, k as i32 / ROSTER_ROW);
+            RosterButton {
+                ev,
+                rect: Rect {
+                    x: MARGIN + col * (w + MARGIN / 2),
+                    y: base - (row + 1) * (h + MARGIN / 2),
+                    w,
+                    h,
+                },
+            }
+        })
+        .collect()
 }
 
 /// The size of one of the market's buttons: narrower than the menu's, so
@@ -665,6 +718,12 @@ pub fn event(
                     .into_iter()
                     .find(|(_, r)| r.contains(x, y))
                     .map(|(k, _)| Event::ComeOut(k))
+            })
+            .or_else(|| {
+                roster_menu(input, view.scene, size)
+                    .into_iter()
+                    .find(|b| b.rect.contains(x, y))
+                    .map(|b| b.ev)
             }),
         _ => None,
     };
@@ -1138,6 +1197,13 @@ pub fn paint(
         let ty = r.y + (r.h - 7 * SCALE) / 2;
         let label = format!("OUT {}", inside[k].o);
         p.text(r.x + 3 * SCALE, ty, &label, SCALE, overlay::INK);
+    }
+    for b in roster_menu(input, scene, size) {
+        let r = b.rect;
+        p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
+        p.rect(r.x, r.y, r.w, SCALE / 2, overlay::INK);
+        let name: String = names.of_type_index(b.ty()).chars().take(12).collect();
+        p.text(r.x + 2, r.y + (r.h - 7) / 2, &name, 1, overlay::INK);
     }
     for b in menu(input, size) {
         let r = b.rect;

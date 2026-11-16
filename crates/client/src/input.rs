@@ -292,6 +292,18 @@ pub enum Event {
     /// selection's `group` and `unitmask(0x100, −1)`
     /// (`GroupOut::issue_unitmask@00708880`). The HUD's alone.
     AutoExplore,
+    /// A press on one of a building's train or research buttons, by the
+    /// `TypeIndex` it queues (item 4290, `docs/CLIENT_INPUT.md` §32): the
+    /// panel's `OPTION_TRAIN` and `OPTION_RESEARCH`, which
+    /// `BuildOut::make_options@00629ed0` adds for every type
+    /// `BuildTypeData::queue_here` admits; the `queue_up` a [`TRAIN_KEYS`]
+    /// key writes. The HUD's alone ([`Input::panel`]).
+    Train(i32),
+    /// A press on one of the citizen's build buttons, by the `TypeIndex` it
+    /// chooses (item 4290): `UnitOut::make_options@00615fc0`'s
+    /// `BUILD_OPTIONS` page; the next press places it, as a
+    /// [`BUILD_KEYS`] key's choice does. The HUD's alone.
+    Place(i32),
     /// The console's key (item 4283, `docs/CLIENT_INPUT.md` §28): opens
     /// the entry line as `ConsoleWin`'s, whose Return runs the line's
     /// word through `ConsoleWin::parse_cmd@007d6470` and `run_cmd
@@ -1004,6 +1016,96 @@ pub struct Input {
     /// (item 4289, `docs/CLIENT_INPUT.md` §26.1): the fresh profile's, and
     /// no control changes them (DECISIONS 136 §4).
     pub prefs: rondata::prefs::Prefs,
+    /// The panel's roster (item 4290, `docs/CLIENT_INPUT.md` §32): what
+    /// each building type's panel trains and researches and what the
+    /// citizen's build pages offer. Empty until the window sets it from
+    /// the install ([`Roster::new`]).
+    pub roster: std::sync::Arc<Roster>,
+}
+
+/// **The panel's roster** (item 4290, `docs/CLIENT_INPUT.md` §32): the
+/// buttons the original's panels offer, read from the type tables with
+/// the panels' static predicates; the leader's (`type_eligible`,
+/// `type_avail`, the tribe's grafts, the age) are not read, so a panel
+/// here offers every type its building may ever queue. Ours, not the
+/// original's: which of them the original shows on a given frame.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Roster {
+    /// Per building type (an index into the building types), the
+    /// `TypeIndex`es its panel trains or researches, in `TypeIndex` order:
+    /// every `t` for which `BuildTypeData::queue_here(b, t)` holds, within
+    /// the two loops `BuildOut::make_options@00629ed0` runs it in (the
+    /// units `0x32..0x192`, the technologies `BASE_AGETYPES..0x275`).
+    pub trains: Vec<Vec<i32>>,
+    /// The citizen's build pages (`UnitOut::make_options@00615fc0`'s
+    /// `BUILD_OPTIONS` loop over `BASE_BUILDTYPES..=0x21e`), by their
+    /// static predicates: `preq[0]` and `preq[1]` not disabled, and the
+    /// line's base (no `FROM`) or a type with `BUILD_FLAGS & 4`. The page
+    /// (`+0x14`), the leader's masks and `type_avail` are not read.
+    pub builds: Vec<i32>,
+}
+
+impl Roster {
+    pub fn new(loaded: &rondata::load::Loaded) -> Roster {
+        use rondata::load::{BASE_BUILDTYPES, BASE_TECHTYPES};
+        let nb = loaded.build_types.len() as i32;
+        let candidates: Vec<(i32, usize)> = (0x32..0x192)
+            .chain(BASE_TECHTYPES..0x275)
+            .filter_map(|t| Some((t, tree_id(loaded, t)?)))
+            .collect();
+        let trains = (0..nb)
+            .map(|b| {
+                let Some(bid) = tree_id(loaded, BASE_BUILDTYPES + b) else {
+                    return Vec::new();
+                };
+                candidates
+                    .iter()
+                    .filter(|&&(_, t)| loaded.tree.queue_here(bid, t))
+                    .map(|&(ti, _)| ti)
+                    .collect()
+            })
+            .collect();
+        let builds = (BASE_BUILDTYPES..=0x21e.min(BASE_BUILDTYPES + nb - 1))
+            .filter(|&ti| {
+                let (Some(t), Some(b)) = (tree_id(loaded, ti), loaded.build_of_type_index(ti))
+                else {
+                    return false;
+                };
+                let def = &loaded.tree.types[t];
+                let bt = &loaded.build_types[b];
+                def.preq[0] != sim::tech::Preq::Disabled
+                    && def.preq[1] != sim::tech::Preq::Disabled
+                    && (bt.from.is_none() || bt.has(sim::cities::build::flags::UPGRADES))
+            })
+            .collect();
+        Roster { trains, builds }
+    }
+
+    /// The building types (indices) whose panel queues `ti`.
+    #[cfg_attr(not(test), expect(dead_code, reason = "the census reads it"))]
+    pub fn trained_at(&self, ti: i32) -> Vec<usize> {
+        (0..self.trains.len())
+            .filter(|&b| self.trains[b].contains(&ti))
+            .collect()
+    }
+}
+
+/// The tree id a `TypeIndex` names: the inverse of
+/// `rondata::load::Loaded::type_index`.
+fn tree_id(loaded: &rondata::load::Loaded, ti: i32) -> Option<usize> {
+    use rondata::load::{BASE_BUILDTYPES, BASE_TECHTYPES, BASE_UNITTYPES};
+    let (g, u) = (loaded.good_tree.len(), loaded.unit_tree.len());
+    let b = u + loaded.build_tree.len();
+    let id = if ti >= BASE_TECHTYPES {
+        usize::try_from(ti - BASE_TECHTYPES).ok().map(|i| g + b + i)
+    } else if ti >= BASE_BUILDTYPES {
+        usize::try_from(ti - BASE_BUILDTYPES)
+            .ok()
+            .map(|i| g + u + i)
+    } else {
+        usize::try_from(ti - BASE_UNITTYPES).ok().map(|i| g + i)
+    }?;
+    (id < loaded.tree.types.len() && loaded.type_index(id) == ti).then_some(id)
 }
 
 /// **The last group sent** (item 4267, `docs/CLIENT_INPUT.md` §20):
@@ -1077,6 +1179,37 @@ impl Input {
             player,
             ..Input::default()
         }
+    }
+
+    /// **The panel's buttons for the selection** (item 4290,
+    /// `docs/CLIENT_INPUT.md` §32), by `TypeIndex`, each a [`Event::Train`]
+    /// for a building selection and a [`Event::Place`] for units: a
+    /// building selected, the roster of the first of the slot's own
+    /// buildings in it; units selected, the citizen's build pages. Ours:
+    /// any unit selection offers the build pages, as [`BUILD_KEYS`] does,
+    /// where the original's offers them to a citizen.
+    pub fn panel(&self, scene: &Scene) -> Vec<Event> {
+        if self.selection.is_empty() || self.line.is_some() {
+            return Vec::new();
+        }
+        if !self.building {
+            return self
+                .roster
+                .builds
+                .iter()
+                .map(|&t| Event::Place(t))
+                .collect();
+        }
+        let ty = self.selection.iter().find_map(|id| {
+            scene
+                .buildings
+                .iter()
+                .find(|b| b.id == *id && b.owner == self.player)?
+                .ty
+        });
+        ty.and_then(|t| self.roster.trains.get(t))
+            .map(|r| r.iter().map(|&t| Event::Train(t)).collect())
+            .unwrap_or_default()
     }
 
     /// **The frame-0 order** (item 4289, `docs/CLIENT_INPUT.md` §26.1): no
@@ -1614,6 +1747,20 @@ impl Input {
                 }
                 let cmd = move_to(Pos { x, y }, -1, -1);
                 Some((frame, play, vec![self.group(view.scene), cmd]))
+            }
+            Event::Train(unit) => {
+                if self.selection.is_empty() || !self.building {
+                    return None;
+                }
+                let cmd = Command::QueueUp { unit, num: 1 };
+                Some((frame, play, vec![self.group(view.scene), cmd]))
+            }
+            Event::Place(ty) => {
+                if !self.selection.is_empty() && !self.building {
+                    self.garrisoning = false;
+                    self.placing = Some(ty);
+                }
+                None
             }
             Event::Key(k) => {
                 if self.selection.is_empty() {
@@ -6475,6 +6622,7 @@ pub(crate) mod tests {
         who: u8,
         pauser: &mut Input,
         v: &View,
+        roster: &Roster,
     ) -> Verdict {
         use Reach::*;
         let heads: Vec<&Command> = kept
@@ -6562,7 +6710,9 @@ pub(crate) mod tests {
                     Verdict::Miss("queued 1: the shift held", Button)
                 } else if (x, y) != (x2, y2) {
                     Verdict::Miss("build: a dragged line", Button)
-                } else if !BUILD_KEYS.iter().any(|k| k.1 == build) {
+                } else if !BUILD_KEYS.iter().any(|k| k.1 == build)
+                    && !roster.builds.contains(&build)
+                {
                     Verdict::Miss("build: a type no key of ours binds", Button)
                 } else {
                     Verdict::Form
@@ -6571,10 +6721,12 @@ pub(crate) mod tests {
             &Command::QueueUp { unit, num } => {
                 if num != 1 {
                     Verdict::Miss("queue_up: a count past one", Button)
-                } else if !TRAIN_KEYS.iter().any(|k| k.1 == unit) {
+                } else if !TRAIN_KEYS.iter().any(|k| k.1 == unit)
+                    && roster.trained_at(unit).is_empty()
+                {
                     Verdict::Miss("queue_up: a type no key of ours binds", Button)
                 } else {
-                    Verdict::Form
+                    Verdict::Shown("INPUT_ROSTER_QUEUES")
                 }
             }
             Command::GatherPoint {
@@ -6702,11 +6854,10 @@ pub(crate) mod tests {
     /// Every order on disk by verdict: (shown, of the layer's form but not
     /// minted from a scene, missed, all). A package's `group` takes its
     /// order's verdict.
-    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (413, 1076, 940, 2429);
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (927, 994, 508, 2429);
     /// The missed orders by arm, most first, and who reaches each, the
     /// package's `group` counted with its order.
     const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] = &[
-        ("queue_up: a type no key of ours binds", Reach::Button, 390),
         ("queued 1: the shift held", Reach::Button, 200),
         (
             "move_to set_angle 1: the right drag's facing",
@@ -6719,7 +6870,6 @@ pub(crate) mod tests {
             Reach::Button,
             48,
         ),
-        ("build: a type no key of ours binds", Reach::Button, 42),
         (
             "two issues in one turn: one package a turn",
             Reach::Writer,
@@ -6741,6 +6891,7 @@ pub(crate) mod tests {
             println!("skipping: no .rcx on disk or no lobby");
             return;
         }
+        let roster = install_roster().unwrap_or_default();
         let terrain = TerrainScene::default();
         let c = crate::pinned_camera();
         let scene = Scene::default();
@@ -6765,7 +6916,7 @@ pub(crate) mod tests {
                     continue;
                 }
                 let n = kept.len();
-                match census_verdict(&kept, p.frame, p.play as u8, who, &mut pauser, &v) {
+                match census_verdict(&kept, p.frame, p.play as u8, who, &mut pauser, &v, &roster) {
                     Verdict::Shown(pin) => {
                         s += n;
                         *by_pin.entry(pin).or_default() += 1;
@@ -6812,6 +6963,7 @@ pub(crate) mod tests {
             ("INPUT_DISBANDS", INPUT_DISBANDS),
             ("INPUT_UNITMASKS", INPUT_UNITMASKS),
             ("INPUT_LEADER_OPTIONS", INPUT_LEADER_OPTIONS),
+            ("INPUT_ROSTER_QUEUES", INPUT_ROSTER_QUEUES),
         ] {
             assert_eq!(minted, of, "{pin} mints every package it reads");
             assert_eq!(
@@ -6823,6 +6975,206 @@ pub(crate) mod tests {
         assert_eq!((whole, files.len()), INPUT_WHOLE);
         assert_eq!((shown, form, missed, all), INPUT_WHOLE_ORDERS);
         assert_eq!(misses, INPUT_WHOLE_MISSES);
+    }
+
+    /// The install's [`Roster`], or `None` with no install.
+    pub(crate) fn install_roster() -> Option<Roster> {
+        let root = std::env::var_os("RON_INSTALL")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| "../../game".into());
+        let install = rondata::Install::new(&root);
+        if !install.looks_valid() {
+            return None;
+        }
+        Some(Roster::new(&rondata::load::load(&install).ok()?))
+    }
+
+    /// **`PANEL_ROSTER`** (item 4290): of the types the census misses as
+    /// "a type no key of ours binds", (`queue_up` types on a panel, of
+    /// them; `build` types on the citizen's pages, of them). Seen red
+    /// pinned (0, 0, 0, 0).
+    const PANEL_ROSTER: (usize, usize, usize, usize) = (82, 82, 15, 15);
+    /// And their orders, the package's `group` counted with its order:
+    /// (`queue_up` orders on a panel, of them; `build`, of them).
+    const PANEL_ROSTER_ORDERS: (usize, usize, usize, usize) = (390, 390, 42, 42);
+    /// The types on no panel, by `TypeIndex`.
+    const PANEL_ROSTER_OFF: &[i32] = &[];
+
+    /// **The census of the panel's roster** (item 4290): every package the
+    /// whole census misses for an unbound type, its type set against the
+    /// panels the original offers it on.
+    #[test]
+    fn the_panel_roster_of_the_recordings_on_disk() {
+        let files = recordings_on_disk();
+        let root = std::env::var_os("RON_INSTALL")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| "../../game".into());
+        let install = rondata::Install::new(&root);
+        if files.is_empty() || lobby().is_err() || !install.looks_valid() {
+            println!("skipping: no .rcx on disk, no lobby or no install");
+            return;
+        }
+        let loaded = rondata::load::load(&install).unwrap();
+        let names = crate::hud::Names::new(&loaded);
+        let roster = Roster::new(&loaded);
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let scene = Scene::default();
+        let v = view(&c, &scene, &terrain);
+        let mut by: std::collections::BTreeMap<(&str, i32), usize> = Default::default();
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let who = console_who(&rec);
+            let mut pauser = Input::new(0);
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                if kept.is_empty() {
+                    continue;
+                }
+                let keys = Roster::default();
+                let verdict =
+                    census_verdict(&kept, p.frame, p.play as u8, who, &mut pauser, &v, &keys);
+                let ty = kept.iter().find_map(|c| match c {
+                    Command::QueueUp { unit, .. } => Some(("queue_up", *unit)),
+                    Command::Build { build, .. } => Some(("build", *build)),
+                    _ => None,
+                });
+                if let (Verdict::Miss(arm, _), Some(k)) = (verdict, ty)
+                    && arm.ends_with("a type no key of ours binds")
+                {
+                    *by.entry(k).or_default() += kept.len();
+                }
+            }
+        }
+        let (mut types, mut orders) = ((0, 0, 0, 0), (0, 0, 0, 0));
+        let mut off = Vec::new();
+        for (&(kind, ti), &n) in &by {
+            let (on, panel) = if kind == "queue_up" {
+                let at: Vec<String> = roster
+                    .trained_at(ti)
+                    .iter()
+                    .map(|&b| names.builds[b].clone())
+                    .collect();
+                (!at.is_empty(), format!("{at:?}"))
+            } else {
+                let on = roster.builds.contains(&ti);
+                (on, format!("the citizen's: {on}"))
+            };
+            println!(
+                "ROSTER {kind} {ti} {:?}: {n} orders, on {panel}",
+                names.of_type_index(ti)
+            );
+            let (t, o) = if kind == "queue_up" {
+                ((&mut types.0, &mut types.1), (&mut orders.0, &mut orders.1))
+            } else {
+                ((&mut types.2, &mut types.3), (&mut orders.2, &mut orders.3))
+            };
+            *t.1 += 1;
+            *o.1 += n;
+            if on {
+                *t.0 += 1;
+                *o.0 += n;
+            } else {
+                off.push(ti);
+            }
+        }
+        println!("ROSTER types {types:?}, orders {orders:?}, off {off:?}");
+        assert_eq!(types, PANEL_ROSTER);
+        assert_eq!(orders, PANEL_ROSTER_ORDERS);
+        assert_eq!(off, PANEL_ROSTER_OFF);
+    }
+
+    /// **`INPUT_ROSTER_QUEUES`** (item 4290, `docs/CLIENT_INPUT.md` §32):
+    /// of the packages the recordings on disk carry whose order is a
+    /// `queue_up` of one, those a press on the roster's button for its type
+    /// mints field for field, the package's orders whole, with the
+    /// package's group selected as buildings of the first type whose panel
+    /// queues it. Seen red pinned (0, 0), and at (256, 257) while the
+    /// roster's rows ran under the disband button.
+    const INPUT_ROSTER_QUEUES: (usize, usize) = (257, 257);
+
+    /// **Every recorded `queue_up`, from the roster** (item 4290): each
+    /// package's group (or for an empty group the slot's last full one)
+    /// made buildings of a type whose panel offers the order's type, then
+    /// that type's button pressed.
+    #[test]
+    fn minted_roster_queue_ups_equal_the_recordings() {
+        let files = recordings_on_disk();
+        let (Ok(r), Some(roster)) = (lobby(), install_roster()) else {
+            println!("skipping: no lobby or no install");
+            return;
+        };
+        if files.is_empty() {
+            println!("skipping: no .rcx on disk");
+            return;
+        }
+        let template = r.scene(None).buildings[0];
+        drop(r);
+        let roster = std::sync::Arc::new(roster);
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        let mut parted: std::collections::BTreeMap<i32, usize> = Default::default();
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let mut last = LastSent::new();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let (who, objects, before) = behind(&last, p.play, &kept);
+                note_sent(&mut last, p.play, &kept);
+                let heads: Vec<&Command> = kept
+                    .iter()
+                    .filter(|c| !matches!(c, Command::Group { .. }))
+                    .collect();
+                let [&Command::QueueUp { unit, num: 1 }] = heads[..] else {
+                    continue;
+                };
+                all += 1;
+                let at = roster.trained_at(unit).first().copied();
+                let scene = Scene {
+                    buildings: objects
+                        .iter()
+                        .map(|&o| {
+                            let mut b = template;
+                            (b.id, b.owner, b.ty, b.active) = (ObjId { who, o }, who, at, true);
+                            b
+                        })
+                        .collect(),
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let mut input = Input {
+                    roster: roster.clone(),
+                    building: true,
+                    selection: objects.iter().map(|&o| ObjId { who, o }).collect(),
+                    ..Input::new(who)
+                };
+                input.sent = sent_for(&before, &scene);
+                let got = crate::hud::roster_menu(&input, &scene, HUD_SIZE)
+                    .into_iter()
+                    .find(|b| b.ev == Event::Train(unit))
+                    .and_then(|b| {
+                        let (x, y) = b.rect.centre();
+                        crate::hud::event(&mut input, HUD_SIZE, p.frame, Event::Press { x, y }, &v)
+                    });
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                } else {
+                    *parted.entry(unit).or_default() += 1;
+                    println!("ROSTER QUEUE parted f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("ROSTER QUEUES {whole} of {all}; parted by type {parted:?}");
+        assert_eq!((whole, all), INPUT_ROSTER_QUEUES);
     }
 
     /// **`INPUT_UNITMASKS`** (item 4288, `docs/CLIENT_INPUT.md` §31): of the

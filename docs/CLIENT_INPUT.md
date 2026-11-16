@@ -3006,14 +3006,14 @@ the package's verdict:
 - **shown**: a pinned test mints every recorded package of this form field for field, the package whole. The fourteen
   pins are `INPUT_UNQUEUES`, `INPUT_CITY_GATHERS`, `INPUT_TRADED`, `INPUT_CHEATED`, `INPUT_HOTKEYS`,
   `INPUT_GARRISONS`, `INPUT_RENAMES`, `INPUT_BUILDMASKS`, `INPUT_COME_OUTS`, `INPUT_STANCES`, `INPUT_TOGGLES`,
-  `INPUT_SPELLS` (the button's ground craft, `ox` −1), `INPUT_DISBANDS` (§29) and, since item 4288,
-  `INPUT_UNITMASKS` (§31). The census checks two things for each pin: it is n of n, and
+  `INPUT_SPELLS` (the button's ground craft, `ox` −1), `INPUT_DISBANDS` (§29), since item 4288
+  `INPUT_UNITMASKS` (§31), and since item 4290 `INPUT_ROSTER_QUEUES` (§32), every `queue_up` of one. The census checks two things for each pin: it is n of n, and
   its n is the census's count of packages it names. A pause needs no scene, so the census mints each recorded
   `pause` itself through `Event::Pause`, with the layer's bit carried across the recording. All 24 are equal.
 - **form**: the kind and its fixed fields are the layer's, but no test mints the recorded order from a scene.
   Concretely: `queued` 2; `move_to` with `set_angle` 0, `orders` 1, `disembark` 0, and `(form, width)` one of the
   layer's three; `attack` with `ignore` 0; `swarm_around` with `BUILD_AT` or `REPAIR`; `gather_point` action 0; a
-  `build` or `queue_up` type the layer's keys bind. **Its point, its object and its group are not checked.**
+  `build` type the layer's keys bind or the roster's build pages offer (§32). **Its point, its object and its group are not checked.**
 - **missed**: the arm, and who reaches it. `Button` means a button, key or modifier of the original issues it.
   `Writer` means our file writer. `Profile` means the player's profile, with no button.
 
@@ -3029,7 +3029,8 @@ disband missed, 359 shown and 994 missed):
   package's two orders from missed to shown, **363 shown, 990 missed**, and drops the `unitmask` row of §30.2.
   Item 4289's `leader_options` moves 50 more: **413 shown, 1,076 form, 940 missed**, and drops the `leader_options`
   row of §30.2. 38 of the 42 whole recordings carry no order but this one, so the orders' count is the one to steer
-  by.
+  by. Item 4290's roster (§32) moves the 432 orders of an unbound type out of missed and every recorded `queue_up`
+  into shown: **927 shown, 994 form, 508 missed**; `INPUT_WHOLE` holds at 42.
 
 **Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
 `INPUT_SPELLS against the census` 17 against 6.
@@ -3059,13 +3060,13 @@ is where the arms are.
 
 | arm | orders | reached by | where §6 to §28 left it |
 | --- | ---: | --- | --- |
-| `queue_up` of a type no key of ours binds | 390 | Button: the building's train and research buttons | `TRAIN_KEYS` (ours) binds three units; the rest are research and other units |
+| ~~`queue_up` of a type no key of ours binds~~ | ~~390~~ | Button: the building's train and research buttons | the roster's buttons since item 4290 (§32): every recorded `queue_up` shown, `INPUT_ROSTER_QUEUES` 257 of 257 |
 | `queued` 1, the shift held | 200 | Button: the shift on any order | every arm writes `QUEUE_NEW` (§6.1) |
 | `move_to` `set_angle` 1, the right drag's facing | 140 | Button: a right drag | the layer has no right drag |
 | `move_to` `orders` 2, `ATTACK_TO` | 54 | Button: the attack-move | not read |
 | ~~`leader_options`~~ | ~~50~~ | **Profile**: `Game::run` from the prefs (§26.1) | minted from the layer's prefs since item 4289 |
 | `gather_point` on an object, actions 1 to 3 | 48 | Button: a right press on an object (§11.3) | the layer mints nothing there |
-| `build` of a type no key of ours binds | 42 | Button: the citizen's build buttons | `BUILD_KEYS` binds two |
+| ~~`build` of a type no key of ours binds~~ | ~~42~~ | Button: the citizen's build buttons | the roster's build pages since item 4290 (§32): of the layer's form, the point unchecked |
 | two issues in one turn | 38 | **Writer**: the original's one package a turn holds every issue of the turn | `minted_packages` refuses two packages on a frame (RECGAME §9) |
 | `spell` on an object, the right press's | 22 | Button (§18) | not minted |
 | `build` along a dragged line, `(x2, y2)` ≠ `(x, y)` | 6 | Button: a drag while placing | the layer places at one point |
@@ -3203,3 +3204,102 @@ write it byte for byte.
   a profile preference, a caravan; ours shows for any unit of the slot's own);
 - the layer refusing a building selection: `do_auto_explore` does not test it, and `action_unitmask` does nothing
   for a group of buildings.
+
+## 32. The panel's whole roster: train, research and build (item 4290)
+
+*Item 4290, 2026-11-16. Of the 940 orders the census of §30 missed, 432 were a `queue_up` (390) or a `build` (42)
+whose type no key of the layer's binds: three train keys and two build keys stood for the original's whole panel.
+The census of the recorded types against the panels the original offers came first, and found every one on a
+panel. The HUD now draws the roster and a press on a button is the order. `INPUT_WHOLE_ORDERS` 413 · 1,076 · 940 →
+**927 · 994 · 508** of 2,429; `INPUT_WHOLE` 42 of 50, unchanged.*
+
+### 32.1 The census (`PANEL_ROSTER`)
+
+`the_panel_roster_of_the_recordings_on_disk` (`crates/client/src/input.rs`) takes every package the census of §30
+misses as "a type no key of ours binds" (the census's verdict with an empty roster, the keys alone), and sets its
+type against the panels:
+
+- **A `queue_up`'s panels** are the building types `b` for which `BuildTypeData::queue_here(b, t)` holds.
+  `BuildOut::make_options@00629ed0` gates both of its loops with it: the train loop over the units `0x32..0x192` and
+  the research loop over the technologies from the ages to `0x275`. `queue_here` is the sim's port
+  (`sim::tech::TechTree::queue_here`), held to the original by the emulator's sweep.
+- **A `build`'s page** is the citizen's: `UnitOut::make_options@00615fc0`'s `BUILD_OPTIONS` loop over
+  `BASE_BUILDTYPES..=0x21e`, by its static predicates: `preq[0]` and `preq[1]` not disabled, and the line's base
+  (no `FROM`) or a type with `BUILD_FLAGS & 4`.
+
+**The count**: `PANEL_ROSTER` (82, 82, 15, 15): 82 of 82 `queue_up` types on a panel, 15 of 15 `build` types on
+the citizen's pages; `PANEL_ROSTER_ORDERS` (390, 390, 42, 42); `PANEL_ROSTER_OFF` empty. So the item's stop (a type
+on no panel) was not reached. Seen red pinned (0, 0, 0, 0).
+
+The census prints each type with its panels. Some of them:
+
+- the Scholar at the University;
+- the General, the Spy, Tactics and Fortification at the Fort's line;
+- the Caravan and the Merchant at the Market;
+- the Militia at the Tower's line;
+- the units at the Barracks, the Stable (and Auto Plant), the Siege Factory (and Factory);
+- the ages, the science, commerce and military lines at the Library;
+- Religion at the Temple, Construction at the Lumber Mill, Herbal Lore at the Granary, Forage at the Smelter;
+- Republic and Monarchy at the Senate.
+
+The 2017 sample carries all of them but two Caravans of 08-24 10'15'53. The `build` types are 15 of the
+sample's, among them the Castle and the Observation Post, which are on the page by `BUILD_FLAGS & 4`, not as
+their line's base.
+
+### 32.2 What the layer and the HUD do
+
+- `input::Roster` holds, per building type, the `TypeIndex`es its panel queues, and the citizen's build pages.
+  It is read once from the install (`hud::Names::new`), and the window hands it to the layer (`Input::roster`).
+- `Input::panel` gives the selection's buttons. A building selected: the roster of the first of the slot's own
+  buildings in it. Units selected: the build pages. Nothing while the entry line is open.
+- **Two events**, the HUD's alone. `Event::Train(t)` writes the selection's `group` and `queue_up(t, 1)`, the order
+  a `TRAIN_KEYS` key writes. `Event::Place(t)` chooses `t`, and the next press places it, as a `BUILD_KEYS`
+  key's choice does.
+- `hud::roster_menu` draws the buttons 150×24, six a row from the left edge, the rows stacked upward from above the
+  menu's row, and left of the right-hand buttons' columns (x 932 against their 980 at 1920). `hud::event` asks it
+  last, after every other button.
+
+**The count**: `INPUT_ROSTER_QUEUES` **257 of 257**. Every recorded package whose order is a `queue_up` of one
+is minted field for field, the package whole, by a press on its type's button. The package's group, or for an
+empty group the slot's last full one, is selected as buildings of the first type whose panel queues it, and the
+layer's last group sent is the recording's (§20). Seen red pinned (0, 0), and at 256 of 257: Levee en Masse at
+frame 17231 pressed the DISBAND button, because the rows ran twelve a row under it. The census of §30 now calls
+every `queue_up` of one shown under this pin. A `build` is of the layer's form, with its point unchecked as §30.3
+says: the census's "form" now takes a type on the build pages as it took a type the keys bind.
+
+`the_roster_follows_the_selection` holds the edges: no selection, the entry line open, another slot's building, the
+first button's pixels, a press's `group` and `queue_up`, and a build page's choice. `no_scripted_press_falls_under_the_roster`
+holds the longest panel's rows (118 types, 20 rows, `y` 468 to 1028) clear of every pixel the clicked and
+right-pressed scripts press, so the window mints what the tests mint without a roster.
+
+**The value diff**, the recorded package against ours, both sides the same commands. For example, the sample's
+frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 }]`. At twelve a row, ours was
+`[Group { who: 3, objects: [2061] }, Disband { all: 0 }]`. At six a row it is the recorded one.
+
+### 32.3 Ours, not the original's
+
+- **The leader's predicates are not read.** A panel here offers every type its building may ever queue, all
+  nations' units at once: the Barracks 118. The original's panel shows a type under `type_eligible`, `type_avail`,
+  the tribe's grafts (`tribe_can_type`), `check_predecessor` and the age, and greys some. A recorded order is one
+  the original offered then, so the census and the count need only the static roster.
+- **The pages.** The original splits the citizen's buildings over three pages (`OPTION_BUILD`,
+  `OPTION_BUILD_MILITARY`, `OPTION_BUILD_WONDER`, by `+0x14`). Ours is one page. Any unit selection offers it,
+  where the original offers it to a citizen.
+- **The building type in the count's scene** is ours: the first type whose panel queues the order's type, as §31's
+  count makes every unit a Scout.
+- Where the buttons stand, their size and their labels (the type's name, cut to twelve characters).
+
+### 32.4 Confidence, and what is not established
+
+- **Backed by the disk**: the census's counts and `INPUT_ROSTER_QUEUES` are read off the 50 recordings.
+- **Backed by the sweep**: `queue_here`, the panels' gate, is the sim's port, which the emulator holds to the
+  original row for row (`build_type_data_queue_here`).
+- **Not established**: what a press on `OPTION_TRAIN` or `OPTION_RESEARCH` writes beyond what the keys' arm
+  writes. `Options::exec`'s train and research arms are not read. The count shows the recorded orders are
+  `queue_up(t, 1)` behind the selection's group, and that a held key's count past one never occurs on disk.
+- **Not established**: the build pages' `objmask & 0x4000000` arm, the leader's mask at `+0x6d00`, and `has_tech`
+  of `+0x4c`. All 15 recorded types pass without them.
+- **Not established**: the research loop's fallback through the building's `+0x44` (its upgrade), and the spells'
+  research loop (`0x275..0x2ac`). No recorded `queue_up` is a spell.
+- **Not played**: no playback was owed. A `queue_up` is a kind the original has played from a minted file since
+  item 4195, and run1630 is unused.
