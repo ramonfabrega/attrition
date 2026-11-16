@@ -1616,7 +1616,8 @@ mod bodies {
             // Item 4177: 1262 -> 1275, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1275 -> 1283, +8: of the end of the game's and the lost capital's nine, the eight this record does not print (`defeated_by` prints).
             // Item 4159's second residue: 1688 -> 1689, +1, `pop_issues`, which this record does not print.
-            1689,
+            // Item 4159, step 4159r19: 1689 -> 1727, +38: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            1727,
             "the keys run80's record does not carry"
         );
         pin_eq!(
@@ -1717,7 +1718,8 @@ mod bodies {
             // and `dip.treaty[·]` (3189 -> 3205). Step VII-d: +16,
             // `counteroffer[·]` and `dip.agree[·]` (3205 -> 3221). Item
             // 4159's second residue: +1, `pop_issues` (3221 -> 3222).
-            1_210 + 1_531 + 2 + 6 + 11 + 35 + 13 + 8 + 324 + 17 + 32 + 16 + 16 + 1,
+            // Item 4159, step 4159r19: +38, the five printed held rows (4159r18a).
+            1_210 + 1_531 + 2 + 6 + 11 + 35 + 13 + 8 + 324 + 17 + 32 + 16 + 16 + 1 + 38,
             "the keys run96's records do not carry"
         );
         pin_eq!(

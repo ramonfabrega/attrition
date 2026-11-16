@@ -2121,8 +2121,16 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// same probe, at sixteen sites over the whole `diff::` suite, holds none
 /// of their 24 cells on any row (331,453 non-zero cells of theirs seen
 /// agreeing), so 4159r5a's launch rows are not what parted them.
+///
+/// Item 4159, step 4159r19: 6 → 5 names, `good_deeds` (`docs/LEADERS.md`
+/// §7.5). Released by entry 131 §1's first way on a mover: run1628
+/// (recon4206-4 filed), a peace the human bought with 2,000 metal, moves
+/// the French `good_deeds[0]` 0 → 1328 on block 1032, and our walk, the
+/// four tributes and the accept staged off the human's own record (inputs,
+/// entry 132 §1), computes the French accept and holds 1328 on all 119
+/// blocks 1032 to 1150 (`diplomacy_take::run1628_s_good_deeds_are_the_french_answer`).
+/// Emitted, it agrees on frame 91 (0 on both leaders).
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
-    ("good_deeds (unheld)", 2),
     ("hire_stamp (unheld)", 2),
     ("hire_who (unheld)", 2),
     ("incoming_taunt_who (unheld)", 2),

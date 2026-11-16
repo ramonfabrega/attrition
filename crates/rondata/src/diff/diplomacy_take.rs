@@ -115,6 +115,10 @@ pub(crate) struct TakeWord {
     /// `(block, who, key, before, after)`: every diplomacy leaf the take's
     /// own record moves, block on block, over the blocks the walk reached.
     pub movers: Vec<(i64, usize, String, i64, i64)>,
+    /// `(block, who, key) -> ours`: our value of every diplomacy leaf the
+    /// level-9 record prints ([`PRINTED_ARRAYS`], `[k]` by slot) that our
+    /// leader rows carry, on every block the walk reached.
+    pub ours: std::collections::BTreeMap<(i64, usize, String), i64>,
 }
 
 /// Walk `built` against `capture`'s trace to its end or its first count
@@ -140,6 +144,7 @@ pub(crate) fn walk_take_from(
     let (mut count, mut sequence) = (None, None);
     let mut leader_parted = Vec::new();
     let mut movers = Vec::new();
+    let mut ours = std::collections::BTreeMap::new();
     let mut prev: Vec<Option<std::collections::BTreeMap<String, i64>>> = vec![None; seats];
     for _ in 0..last {
         let at = built.sim.frame;
@@ -191,6 +196,12 @@ pub(crate) fn walk_take_from(
                     .into_iter()
                     .collect();
             crate::diff::held_probe::map("", n, who, &mine, &theirs);
+            for (k, &m) in &mine {
+                let leaf = k.split('[').next().unwrap_or(k);
+                if PRINTED_ARRAYS.contains(&leaf) {
+                    ours.insert((n, who, k.clone()), m);
+                }
+            }
             for (k, &t) in &theirs {
                 if let Some(&m) = mine.get(k)
                     && m != t
@@ -242,6 +253,7 @@ pub(crate) fn walk_take_from(
         skipped,
         leader_parted,
         movers,
+        ours,
     })
 }
 
@@ -275,6 +287,10 @@ pub(crate) fn stage_frame(
                 TakeKind::Declare => c.action_declare(d.this, d.whom, d.level, false, false),
                 TakeKind::Treaty => c.action_treaty(d.this, d.whom, d.level),
                 TakeKind::Accept => c.action_respond(d.this, d.whom, 1),
+                TakeKind::Tribute(amount) => {
+                    let good = sim::economy::Resource::ALL[d.level as usize];
+                    c.action_offer(d.this, d.whom, good, amount)
+                }
             }
         }
     }
@@ -584,6 +600,12 @@ pub(crate) enum TakeKind {
     /// `process_accept <whom> <frame>`: `Leader::action_respond(who, whom,
     /// 1)`.
     Accept,
+    /// `process_tribute <whom> <good> <frame>`: `Leader::action_offer(who,
+    /// whom, good, amount)` (`CommandPackage::process_tribute@00946d70`).
+    /// The line prints no amount (its `logToMemory` twin carries it), so
+    /// the amount is read off the issuer's own record ([`tribute_amount`]);
+    /// the good is the [`TakeDiplo`]'s `level`.
+    Tribute(i32),
 }
 
 /// One of the window's commands the take's own record shows, on the frame
@@ -630,10 +652,14 @@ pub(crate) fn take_diplomacy(capture: &str) -> Option<Vec<TakeDiplo>> {
         let line = line.ok()?;
         let line = String::from_utf8_lossy(&line);
         let t = line.trim();
-        let Some(verb) = ["process_declare", "process_treaty", "process_accept"]
-            .into_iter()
-            .find(|v| t.starts_with(&format!("{v} ")))
-        else {
+        let Some(verb) = [
+            "process_declare",
+            "process_treaty",
+            "process_accept",
+            "process_tribute",
+        ]
+        .into_iter()
+        .find(|v| t.starts_with(&format!("{v} "))) else {
             continue;
         };
         let nums: Vec<i64> = t[verb.len()..]
@@ -644,6 +670,10 @@ pub(crate) fn take_diplomacy(capture: &str) -> Option<Vec<TakeDiplo>> {
             ("process_declare", &[whom, treaty, frame]) => (TakeKind::Declare, whom, treaty, frame),
             ("process_treaty", &[whom, treaty, frame]) => (TakeKind::Treaty, whom, treaty, frame),
             ("process_accept", &[whom, frame]) => (TakeKind::Accept, whom, 1, frame),
+            ("process_tribute", &[whom, good, frame]) => {
+                let amount = tribute_amount(&path, ISSUER, whom, good, frame);
+                (TakeKind::Tribute(amount), whom, good, frame)
+            }
             _ => panic!("{capture}: an unread {verb} line: {nums:?}"),
         };
         out.push(TakeDiplo {
@@ -655,6 +685,48 @@ pub(crate) fn take_diplomacy(capture: &str) -> Option<Vec<TakeDiplo>> {
         });
     }
     Some(out)
+}
+
+/// **A tribute's amount, off the issuer's own record** (item 4159, step
+/// 4159r19): `process_tribute <whom> <good> <frame>` prints no amount, and
+/// `Leader::action_offer@006d1780` adds it to the issuer's
+/// `dip[whom].offers[good]`. The command runs after block `frame` is
+/// printed and before block `frame + 1` (the line sits between them), so
+/// the amount is that slot on block `frame + 1` less block `frame`. A
+/// human's command is an input (`docs/DECISIONS.md` entry 132 §1); the
+/// French side of the record is not read. Panics on a record that does not
+/// print both blocks, or on a slot that did not move.
+pub(crate) fn tribute_amount(
+    path: &str,
+    issuer: sim::Player,
+    whom: i64,
+    good: i64,
+    frame: i64,
+) -> i32 {
+    let mut ix = crate::capture::indexed::IndexedCapture::open(path).unwrap();
+    let blocks: Vec<i64> = ix.frames().iter().map(|f| f.number).collect();
+    let mut slot = |n: i64| -> i64 {
+        let at = blocks
+            .iter()
+            .position(|&b| b == n)
+            .unwrap_or_else(|| panic!("{path}: no block {n} for the tribute of {frame}"));
+        let raw = ix.read_frame(at).unwrap();
+        let log = Log::parse(&raw);
+        let block = log
+            .leader_block(n, i64::from(issuer))
+            .unwrap_or_else(|| panic!("{path}: no who {issuer} on block {n}"));
+        let dip = block
+            .kids("DIPLOMACY")
+            .nth(whom as usize)
+            .unwrap_or_else(|| panic!("{path}: no DIPLOMACY {whom} on block {n}"));
+        dip.all("offers[scan]")
+            .get(good as usize)
+            .and_then(|v| v.trim().parse().ok())
+            .unwrap_or_else(|| panic!("{path}: no offers[{good}] on block {n}"))
+    };
+    let amount = slot(frame + 1) - slot(frame);
+    assert_ne!(amount, 0, "{path}: the tribute of {frame} moved no offer");
+    amount as i32
 }
 
 /// A take named by `RON_TAKE=<gamelog>,<trace>` walked at style 0 on the
@@ -1349,5 +1421,196 @@ fn run1575_s_taunt_parts_without_its_chat() {
             "967 1 taunt_frame[0]: theirs 966 ours 0".to_string(),
         ],
         "the stub's first partings"
+    );
+}
+
+/// **run1628, the peace bought with metal** (item 4159, step 4159r19;
+/// `docs/RUNS.md` run1628, `docs/DECISIONS.md` entry 137 §1): recon4206-4
+/// filed as is, run1575's game with four tribute clicks before the accept.
+/// The capture is read where it was taken, under `RON_GOLDEN_DIR` (default
+/// `~/ron-golden`): its dump and trace, `None` where either is missing.
+pub(crate) fn run1628() -> Option<(String, String)> {
+    let home = std::env::var("HOME").ok()?;
+    let dir = std::env::var("RON_GOLDEN_DIR").unwrap_or(format!("{home}/ron-golden"));
+    let map = format!("{dir}/recon4206-4/map-18");
+    let (g, t) = (format!("{map}/gamelog.txt"), format!("{map}/rontrace.log"));
+    (std::path::Path::new(&g).is_file() && std::path::Path::new(&t).is_file()).then_some((g, t))
+}
+
+/// run1628's block the French answer is first printed on: the human's
+/// `process_accept 1 1031` commits, the French pass runs on 1031 and
+/// accepts, and the record moves the French `good_deeds[0]` 0 → 1328 on
+/// 1032.
+pub(crate) const RUN1628_DEED: i64 = 1032;
+
+/// The French `good_deeds[0]` the record prints on every block from
+/// [`RUN1628_DEED`] to 1150.
+pub(crate) const RUN1628_GOOD_DEEDS: i64 = 1328;
+
+/// run1628 walked as run1575 is ([`walk_sea_style_zero`],
+/// `diplomacy4206.cmd`'s console lines and taunt, which recon4206-4's own
+/// command file repeats on the same frames), with `diplomacy` staged.
+fn walk_run1628(diplomacy: &[TakeDiplo]) -> Option<TakeWord> {
+    let Some((g, t)) = run1628() else {
+        eprintln!("skipping: no recon4206-4 under RON_GOLDEN_DIR (run1628)");
+        return None;
+    };
+    walk_sea_style_zero(
+        (&g, &t),
+        coverage_script("diplomacy4206.cmd"),
+        &[],
+        diplomacy,
+        &script_taunts("diplomacy4206.cmd").unwrap_or_default(),
+    )
+}
+
+/// **The window's commands on run1628's record** ([`take_diplomacy`]):
+/// run1575's through the peace asked on 1021, then four tributes of metal
+/// (good 4) on 1024 to 1027, the accept on 1031 and the alliance asked on
+/// 1061. Each tribute's 500 is read off the human's own `dip[1].offers[4]`
+/// (0, 500, 1,000, 1,500, 2,000 on blocks 1024 to 1028).
+#[test]
+fn run1628_s_window_diplomacy_is_read_off_its_record() {
+    let _pins = Pins::hold();
+    let Some((g, _)) = run1628() else {
+        eprintln!("skipping: no recon4206-4 under RON_GOLDEN_DIR (run1628)");
+        return;
+    };
+    let d = take_diplomacy(&g).expect("run1628's record");
+    let got: Vec<(i64, sim::Player, sim::Player, i32, TakeKind)> = d
+        .iter()
+        .map(|d| (d.frame, d.this, d.whom, d.level, d.kind))
+        .collect();
+    pin_eq!(
+        got,
+        vec![
+            (986, 0, 1, 1, TakeKind::Declare),
+            (1001, 0, 1, 0, TakeKind::Declare),
+            (1021, 0, 1, 1, TakeKind::Treaty),
+            (1024, 0, 1, 4, TakeKind::Tribute(500)),
+            (1025, 0, 1, 4, TakeKind::Tribute(500)),
+            (1026, 0, 1, 4, TakeKind::Tribute(500)),
+            (1027, 0, 1, 4, TakeKind::Tribute(500)),
+            (1031, 0, 1, 1, TakeKind::Accept),
+            (1061, 0, 1, 2, TakeKind::Treaty),
+        ],
+        "run1628's window commands"
+    );
+}
+
+/// **`good_deeds`, computed** (item 4159, step 4159r19; `docs/LEADERS.md`
+/// §7.2, §8.5): run1628 walked with the human's window commands off its
+/// record, the four tributes as `Leader::action_offer`. The human commits
+/// 2,000 metal on 1031 and the French offers arm values the peace: the
+/// accept's `good_deeds[0] −= need`, a negative need, so the French
+/// `good_deeds[0]` reads [`RUN1628_GOOD_DEEDS`] from [`RUN1628_DEED`] on.
+/// Pinned: the record's mover, ours on block 1032, and no `good_deeds`
+/// parting anywhere on the walk.
+#[test]
+fn run1628_s_good_deeds_are_the_french_answer() {
+    let _pins = Pins::hold();
+    let Some((g, _)) = run1628() else {
+        eprintln!("skipping: no recon4206-4 under RON_GOLDEN_DIR (run1628)");
+        return;
+    };
+    let diplomacy = take_diplomacy(&g).expect("run1628's record");
+    let Some(w) = walk_run1628(&diplomacy) else {
+        return;
+    };
+    report("run1628", &w);
+    let deeds: Vec<String> = w
+        .movers
+        .iter()
+        .filter(|(_, _, k, _, _)| k.starts_with("good_deeds["))
+        .map(|(n, who, k, b, a)| format!("{n} {who} {k} {b}->{a}"))
+        .collect();
+    pin_eq!(
+        deeds,
+        vec![format!(
+            "{RUN1628_DEED} 1 good_deeds[0] 0->{RUN1628_GOOD_DEEDS}"
+        )],
+        "run1628's good_deeds movers"
+    );
+    let key = "good_deeds[0]".to_string();
+    let ours_on_the_deed = w.ours.get(&(RUN1628_DEED, 1, key.clone())).copied();
+    pin_eq!(
+        ours_on_the_deed,
+        Some(RUN1628_GOOD_DEEDS),
+        "our French good_deeds[0] on block 1032"
+    );
+    let held = w
+        .ours
+        .iter()
+        .filter(|((n, who, k), _)| *n >= RUN1628_DEED && *who == 1 && *k == key)
+        .count();
+    // The exchange beside it (`docs/LEADERS.md` §8.5): both metal buckets
+    // (the French +1,020, `scale_tribute` at the human's `pct` 51), the
+    // human's `gift_stamp[1]` 1031, the French `tribute_stamp[0]` left at 0
+    // (a computer receiver over 3,000 metal), `tributes` back to 0.
+    let exchange = |k: &str| {
+        ["good_deeds[", "gift_stamp[", "tribute_stamp[", "tributes["]
+            .iter()
+            .any(|p| k.starts_with(p))
+            || k == "bucket[4:metal]"
+    };
+    let parted: Vec<String> = w
+        .leader_parted
+        .iter()
+        .filter(|(_, _, k, _, _)| exchange(k))
+        .map(|(n, who, k, t, m)| format!("{n} {who} {k}: theirs {t} ours {m}"))
+        .collect();
+    eprintln!("run1628: ours on {held} French blocks from {RUN1628_DEED}");
+    pin_eq!(held, 119, "our French good_deeds[0] blocks, 1032 to 1150");
+    pin_eq!(
+        parted,
+        Vec::<String>::new(),
+        "run1628's good_deeds and exchange partings"
+    );
+    let on_the_deed: Vec<String> = w
+        .movers
+        .iter()
+        .filter(|(n, _, k, _, _)| *n == RUN1628_DEED && exchange(k))
+        .map(|(n, who, k, b, a)| format!("{n} {who} {k} {b}->{a}"))
+        .collect();
+    pin_eq!(
+        on_the_deed,
+        vec![
+            "1032 0 gift_stamp[1] 0->1031".to_string(),
+            format!("{RUN1628_DEED} 1 good_deeds[0] 0->{RUN1628_GOOD_DEEDS}"),
+        ],
+        "the record's exchange movers on 1032"
+    );
+}
+
+/// **The comparison can fail**: run1628 walked without the four tributes
+/// (every other window command staged). The French find the peace asked
+/// for nothing worth exactly nothing, as on run1575's 1027, accept it, and
+/// leave `good_deeds[0]` at 0: it parts on [`RUN1628_DEED`].
+#[test]
+fn run1628_s_good_deeds_part_without_the_tributes() {
+    let _pins = Pins::hold();
+    let Some((g, _)) = run1628() else {
+        eprintln!("skipping: no recon4206-4 under RON_GOLDEN_DIR (run1628)");
+        return;
+    };
+    let diplomacy: Vec<TakeDiplo> = take_diplomacy(&g)
+        .expect("run1628's record")
+        .into_iter()
+        .filter(|d| !matches!(d.kind, TakeKind::Tribute(_)))
+        .collect();
+    let Some(w) = walk_run1628(&diplomacy) else {
+        return;
+    };
+    let first = w
+        .leader_parted
+        .iter()
+        .find(|(_, _, k, _, _)| k.starts_with("good_deeds["))
+        .map(|(n, who, k, t, m)| format!("{n} {who} {k}: theirs {t} ours {m}"));
+    pin_eq!(
+        first,
+        Some(format!(
+            "{RUN1628_DEED} 1 good_deeds[0]: theirs {RUN1628_GOOD_DEEDS} ours 0"
+        )),
+        "the stub's first good_deeds parting"
     );
 }

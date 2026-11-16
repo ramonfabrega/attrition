@@ -1713,7 +1713,7 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 ## 20. The leaders line, held out on the long range (items 4121, 4124)
 
 **265 of 267 ranges and 4,515 of 58,343 bytes agree** on run 1562's frame
-91, and `LEADERS_HELD_OUT` names **9** leaves, from 140. Agreeing: all
+91, and `LEADERS_HELD_OUT` names **5** leaves, from 140. Agreeing: all
 eight slots' flag words, and the two walked leaders' diplomacy records,
 personalities, masks (each `tech` array since item 4187), sites, make
 lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
@@ -1754,6 +1754,7 @@ not count it (§5).
 | the residue, ninth builder | the thirteen combat leaves: `units_killed`, `units_lost`, `average_death_rate`, `average_damage_rate`, `average_hit_rate`, the four `*_current_frame` and the four `*_fifteen_seconds` words (no window parts them; witnessed on the packets) | 10 | §2.5, §3.5 |
 | the residue, sixteenth builder | `score` (4159r15a) | 9 | §18.5 |
 | seventeenth | the three victim stamps | 6 | §4.5 |
+| 4159r19 | `good_deeds` (run1628) | 5 | §7.5 |
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
@@ -1770,10 +1771,9 @@ words go **good by good**: `bucket`, `leftover`, `resource_cap`, `over_cap`,
 `resources`, `support`, `income`, `rate`, `bonus`; then `resource_cap[6]`,
 `epoch[0..4]`, `ages`, `epochs`, `discovered`.
 
-**What the crate held before this item.** The first probe of our image,
-before any writer was read, built the line's 267 ranges and 58,343 bytes on
-its first run. Leaf by leaf it agreed on 403 and 410, parted on 14 and 12,
-and held no value for 210 on each leader. The table is item 4121's journal.
+**What the crate held before this item** is item 4121's journal: our first
+image, before any writer was read, built all 267 ranges, and leaf by leaf
+agreed on 403 and 410, parted on 14 and 12, held no value for 210.
 
 **Carried by a rule, each read from its writers:**
 
