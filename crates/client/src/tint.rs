@@ -257,10 +257,11 @@ pub(crate) mod tests {
     /// Item 4275: run1559b off luma 1,059 → 1,061 and on 1,101 → 1,103, on hue 960 → 959; run1570 off luma 1,138 → 1,140 and on 1,164 → 1,166: the snowcap underlay drawn (`docs/RENDERER.md` §3.10), whose land colour is `light_vert`'s whichever side the switch stands. The switch stays off: on now ties run1559b's grass hue (959) and trails run1564's and run1570's.
     /// Item 4278: run1559b on hue 959 → 960 and luma 1,103 → 1,104; run1570 off luma 1,140 → 1,139 and on 1,166 → 1,165: the mountain's `_mtrl` maps drawn (`docs/RENDERER.md` §3.22), the frame's white with them. The switch stays off: on leads run1559b's grass hue by one and trails run1564's and run1570's.
     /// Item 4279: run1559b off luma 1,061 → 1,066 and on 1,104 → 1,109; run1570 off luma 1,139 → 1,140 and on 1,165 → 1,166: the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10), the frame's white with it. The switch stays off: on leads run1559b's grass hue by one and trails run1564's and run1570's.
+    /// Item 4284: off luma run1559b 1,066 → 1,072 and run1570 1,140 → 1,142, on unchanged: the ground beneath a range takes the land's own N·L whichever side the switch stands (`docs/RENDERER.md` §3.22, "The ground beneath a range"), so off now lights those tiles as on does. The switch stays off: on still trails run1564's grass hue and ground row (parked 4284a, the whole ledger).
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
-        ([959, 1105, 1066], [960, 1105, 1109]),
+        ([959, 1105, 1072], [960, 1105, 1109]),
         ([678, 1786, 1852], [676, 1778, 1843]),
-        ([1042, 1171, 1140], [1041, 1171, 1166]),
+        ([1042, 1171, 1142], [1041, 1171, 1166]),
     ];
 
     /// **`GRASS_HUE`**, `[(untinted, tinted)]` on run1559b, run1564 and
@@ -283,9 +284,10 @@ pub(crate) mod tests {
     /// Item 4269: run1564's untinted side 566 → 561: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4275: run1570's untinted side 1,034 → 1,036: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     /// Item 4278: run1570's untinted side 1,036 → 1,034: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+    /// Item 4284: the untinted side run1559b 955 → 953, run1564 561 → 563; the drawn side holds: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
-        ((955, 986), (959, 986)),
-        ((561, 679), (678, 679)),
+        ((953, 986), (959, 986)),
+        ((563, 679), (678, 679)),
         ((1034, 1073), (1042, 1073)),
     ];
 }
