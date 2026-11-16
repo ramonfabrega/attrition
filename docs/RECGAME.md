@@ -264,6 +264,11 @@ reading.~~ Read the same day: `docs/COMMANDS.md`, decoded by
   gap.
 - Whether `write_ctw_header`/`read_ctw_header` (Conquer the World wraps the
   container) change anything — out of v1's scope with the rest of CtW.
+- **Two issues in one turn** (item 4285, parked 4285b): the 2017 sample
+  carries nine packages holding two or three `group`-and-order pairs, 38
+  orders (`docs/CLIENT_INPUT.md` §30.2). `minted_packages` writes one order
+  a package on strictly increasing frames, so a person who issues twice
+  inside one turn is not written as the original writes them.
 
 ## 6. What the sample established
 

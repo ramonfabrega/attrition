@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day; §26 item 4280, the same day; §27 item 4282, the same day; §28 item 4283, the same day; §29 item 4287, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day; §26 item 4280, the same day; §27 item 4282, the same day; §28 item 4283, the same day; §29 item 4287, the same day; §30 item 4285, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -2952,3 +2952,100 @@ in run1618 (`DISBAND_ENTRIES`). `cur_anim` is `dtype · 2 + 0xd + roll % 2`: 19 
   profile preference, and the key works without it);
 - the layer minting for a selection `validate_disband` would refuse (a group of several buildings, or a city centre
   with buildings): the original issues nothing, and our walk refuses it at `disband_refused` instead.
+
+## 30. A person's whole game, by recording (item 4285)
+
+*Item 4285, 2026-11-15. The census of §11 counts kinds, one sample each. A recording is a person's whole game, and
+the layer plays one only when it mints every order of it. The score: **`INPUT_WHOLE` 0 of 50**, the recordings on disk
+whose every order a pinned test mints byte for byte. It is first counted here. Every recording carries
+`leader_options`, which no button issues (§26.1), so the count stays 0 until the layer mints that order, however many
+of the other orders it mints. That is the stop the item named: the census is the item, and nothing past it was built.*
+
+### 30.1 The census
+
+`input_whole_recordings_on_disk` (`crates/client/src/input.rs`) reads every package of every recording and gives it
+one verdict, since the layer mints a package whole or not at all. Each order of the package, its `group` too, takes
+the package's verdict:
+
+- **shown**: a pinned test mints every recorded package of this form field for field, the package whole. The thirteen
+  pins are `INPUT_UNQUEUES`, `INPUT_CITY_GATHERS`, `INPUT_TRADED`, `INPUT_CHEATED`, `INPUT_HOTKEYS`,
+  `INPUT_GARRISONS`, `INPUT_RENAMES`, `INPUT_BUILDMASKS`, `INPUT_COME_OUTS`, `INPUT_STANCES`, `INPUT_TOGGLES`,
+  `INPUT_SPELLS` (the button's ground craft, `ox` −1) and `INPUT_DISBANDS` (§29). The census checks two things for each pin: it is n of n, and
+  its n is the census's count of packages it names. A pause needs no scene, so the census mints each recorded
+  `pause` itself through `Event::Pause`, with the layer's bit carried across the recording. All 24 are equal.
+- **form**: the kind and its fixed fields are the layer's, but no test mints the recorded order from a scene.
+  Concretely: `queued` 2; `move_to` with `set_angle` 0, `orders` 1, `disembark` 0, and `(form, width)` one of the
+  layer's three; `attack` with `ignore` 0; `swarm_around` with `BUILD_AT` or `REPAIR`; `gather_point` action 0; a
+  `build` or `queue_up` type the layer's keys bind. **Its point, its object and its group are not checked.**
+- **missed**: the arm, and who reaches it. `Button` means a button, key or modifier of the original issues it.
+  `Writer` means our file writer. `Profile` means the player's profile, with no button.
+
+**The count** (on the merge of `966ef9843`, after item 4287's disband; first pinned on `be7a4f7dd` with the
+disband missed, 359 shown and 994 missed):
+
+- `INPUT_WHOLE` **0 of 50**.
+- `INPUT_WHOLE_CARRIED` **42 of 50**: `leader_options` taken as the file writer takes it, copied from a recording's
+  frame 0 (`recgame::minted_packages`' argument) rather than minted. That is the 38 files that carry nothing else and
+  four whose other orders are all shown: the pause pair of 08-20 17'06'30, the chat lines of 08-20 22'03'58 and of
+  08-24 22'14'05, and the toggle of 08-24 23'41'51.
+- `INPUT_WHOLE_ORDERS`: **361 shown, 1,076 form, 992 missed, of 2,429**.
+
+**Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
+`INPUT_SPELLS against the census` 17 against 6.
+
+**By recording.** 38 files carry `leader_options` alone. Of the twelve that carry more:
+
+| recording | orders | shown | form | missed, by arm |
+| --- | ---: | ---: | ---: | --- |
+| seifer008 (2017) | 2,104 | 181 | 982 | 941: every arm of §30.2 (388 of `queue_up`'s 390) |
+| 08-20 17'06'30 | 3 | 2 | 0 | 1 `leader_options` |
+| 08-20 17'27'47 | 38 | 27 | 10 | 1 `leader_options` |
+| 08-20 19'06'54 | 40 | 19 | 20 | 1 `leader_options` |
+| 08-20 20'17'33 | 91 | 66 | 24 | 1 `leader_options` |
+| 08-20 21'38'20 | 17 | 12 | 4 | 1 `leader_options` |
+| 08-20 22'03'58 | 21 | 20 | 0 | 1 `leader_options` |
+| 08-24 10'15'53 | 46 | 15 | 28 | 1 `leader_options`, 2 `queue_up` type unbound |
+| 08-24 22'14'05 | 17 | 16 | 0 | 1 `leader_options` |
+| 08-24 23'41'51 | 2 | 1 | 0 | 1 `leader_options` |
+| 08-25 23'49'02 | 4 | 1 | 2 | 1 `leader_options` |
+| 08-26 00'03'53 | 8 | 1 | 6 | 1 `leader_options` |
+
+So, `leader_options` aside, ten of the eleven bottle captures miss nothing; their unshown orders are of the layer's
+form (`group` and `move_to`, `swarm_around`, `guard`, `gather_point`, `queue_up` of a bound type). The 2017 sample
+is where the arms are.
+
+### 30.2 The misses, by arm (`INPUT_WHOLE_MISSES`)
+
+| arm | orders | reached by | where §6 to §28 left it |
+| --- | ---: | --- | --- |
+| `queue_up` of a type no key of ours binds | 390 | Button: the building's train and research buttons | `TRAIN_KEYS` (ours) binds three units; the rest are research and other units |
+| `queued` 1, the shift held | 200 | Button: the shift on any order | every arm writes `QUEUE_NEW` (§6.1) |
+| `move_to` `set_angle` 1, the right drag's facing | 140 | Button: a right drag | the layer has no right drag |
+| `move_to` `orders` 2, `ATTACK_TO` | 54 | Button: the attack-move | not read |
+| `leader_options` | 50 | **Profile**: `Game::run` from the prefs (§26.1) | carried from a recording's frame 0 |
+| `gather_point` on an object, actions 1 to 3 | 48 | Button: a right press on an object (§11.3) | the layer mints nothing there |
+| `build` of a type no key of ours binds | 42 | Button: the citizen's build buttons | `BUILD_KEYS` binds two |
+| two issues in one turn | 38 | **Writer**: the original's one package a turn holds every issue of the turn | `minted_packages` refuses two packages on a frame (RECGAME §9) |
+| `spell` on an object, the right press's | 22 | Button (§18) | not minted |
+| `build` along a dragged line, `(x2, y2)` ≠ `(x, y)` | 6 | Button: a drag while placing | the layer places at one point |
+| `unitmask` | 2 | Button (§26.1) | not minted; §29 took `disband`, now shown |
+
+**The item's hypothesis, read against this.** All but two of the arms are reached by a button, key or modifier in the
+original, so "minted again" holds for the orders. The score does not: no button reaches `leader_options`, and every
+file carries it. 4282a's arms (the stance press's untaken forms) are not among the misses, since all four recorded
+stances are shown.
+
+### 30.3 Confidence, and what is not established
+
+- **Backed by the disk**: every count in §30.1 and §30.2 is the test's, read off the 50 recordings. Each shown pin is
+  held both to n of n and to the census's own count of its packages.
+- **"Form" is not "minted".** 1,076 orders are of the layer's form, but no scene mints the recorded one. Their
+  points are unchecked: `ground_at` reaches a lattice of world points at a camera, and whether every recorded point
+  lies on one is not measured. Their groups are unchecked too: no recorded selection was rebuilt from a press or a
+  box. So the carried count's 42 rests on shown orders alone, and the form orders move no recording into it.
+- **The arm labels are ours**: read from the fields against the layer's own constants, not from the issuers' code
+  paths. `orders` 2 as the attack-move is `sim::ids::order::ATTACK_TO`'s name, not a reading of its issuer.
+- **Not established**: whether `leader_options` should be minted from a field of our lobby page holding the
+  profile's five bits and its two counts. That is an interface choice, not a reading. With such a field the carried
+  count would become the score, 0 → 42, but it is a lobby page the cut list (`CLAUDE.md`, the `iface*` windows) does
+  not name. That decision is the driver's.
