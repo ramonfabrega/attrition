@@ -120,8 +120,10 @@ class IsolatedGate(unittest.TestCase):
                     release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
             report = gate.gate(install, report_dir=Path(d)/'report', require_fixtures=True,
                                test_threads=4, isolated=True, run=run)
-            self.assertEqual(len(calls), 7)
-            self.assertIn('tools/isolated_tests.py', calls[gate.RELEASE_STEP])
+            # The booking gate's nine: the seven, and `merge pins` and `clock`
+            # around its release step (the pass of 2026-11-15).
+            self.assertEqual(len(calls), 9)
+            self.assertIn('tools/isolated_tests.py', release_of(calls))
             self.assertEqual(json.loads((report/'fixture-coverage.json').read_text())['missing_fixtures'], 0)
             self.assertEqual(json.loads((report/'gate-policy.json').read_text())['memory_cap_gib'], 32)
 
@@ -158,8 +160,8 @@ class SharedEntryPoints(unittest.TestCase):
                         release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
                 with patch.object(gate, 'branch_paths', return_value=[]):
                     gate.gate(install, report_dir=Path(d)/'report', run=run, git=UNMOVED, **options)
-                self.assertEqual('tools/isolated_tests.py' in calls[gate.RELEASE_STEP], isolated)
-                self.assertEqual(len(calls), 7)
+                self.assertEqual('tools/isolated_tests.py' in release_of(calls), isolated)
+                self.assertEqual(len(calls), 7 if options.get('lane') else 9)
 
     def test_isolated_and_combined_receive_identical_exact_exclusions(self):
         for options in [{}, {'scope': 'HEAD'}, {'lane': True, 'tests': WORD}]:
@@ -178,7 +180,11 @@ class SharedEntryPoints(unittest.TestCase):
                                   git=UNMOVED, **options)
             selections = [[c[i+1] for i, arg in enumerate(c) if arg == '--skip'] for c in commands]
             self.assertEqual(selections[0], selections[1])
-            self.assertTrue(bool(selections[1]) == bool(options))
+            # The booking gate skips the clock (it runs alone after the
+            # release step, the pass of 2026-11-15), and the whole one
+            # nothing else; a lane skips its timed rows and keeps the clock.
+            self.assertEqual(gate.CLOCK_TEST in selections[1], not options.get('lane'))
+            self.assertEqual(selections[1] == [gate.CLOCK_TEST], not options)
 
     def test_standalone_guard_enters_once_and_preserves_filters_and_lane(self):
         with tempfile.TemporaryDirectory() as d:
@@ -380,11 +386,11 @@ class GateTests(unittest.TestCase):
                 if '--release' in command:
                     release_ran(kwargs)
             gate.gate(path, report_dir=path/'report', run=run)
-            self.assertEqual(len(calls), 7)
+            self.assertEqual(len(calls), 9)
             self.assertEqual(calls[0], [sys.executable, 'tools/shape.py', '--check'])
             self.assertEqual(calls[1], [sys.executable, 'tools/offline_tests.py'])
             self.assertEqual(calls[4][:4], ['cargo','run','-p','rondata'])
-            self.assertIn('--release', calls[gate.RELEASE_STEP])
+            self.assertIn('--release', release_of(calls))
 
     def test_clippy_and_fmt_run_before_the_release_suite(self):
         # 639: a worker whose suite was red only on the queue's lines stopped
@@ -402,7 +408,7 @@ class GateTests(unittest.TestCase):
             with self.assertRaises(subprocess.CalledProcessError):
                 gate.gate(path, report_dir=path/'report', run=run)
             names=[gate.step_name(c) for c in calls]
-            self.assertEqual(names, ['pins','offline','clippy','fmt','survey','guard','release'])
+            self.assertEqual(names, ['pins','offline','clippy','fmt','survey','guard','merge pins','release'])
             self.assertLess(names.index('clippy'), names.index('release'))
             self.assertLess(names.index('fmt'), names.index('release'))
 
@@ -441,7 +447,7 @@ class GateTests(unittest.TestCase):
                 gate.gate(install, report_dir=Path(d)/'report', test_threads=4, isolated=True, run=run)
             lines = out.getvalue().splitlines()
             self.assertTrue(lines[-5].startswith('Gate minutes: pins '), lines[-5:])
-            self.assertTrue(lines[-4].startswith('Gate steps: 7 of 7 ran'), lines[-5:])
+            self.assertTrue(lines[-4].startswith('Gate steps: 9 of 9 ran'), lines[-5:])
 
     def test_the_receipt_carries_the_host_load(self):
         # Loop 3091: the admission receipt reads seconds while the lane gates
@@ -505,12 +511,12 @@ garbage line
                     if '--release' in command:
                         # The thirty-fifth steer: 20 GiB for a lane's width, 40 for the booking gate's.
                         self.assertEqual(command[:3], ['zsh','tools/memcap.sh','20' if width <= 4 else '32'])
-                        self.assertEqual(command[-2:], ['--', f'--test-threads={width}'])
-                        self.assertNotIn('--skip', command)
+                        self.assertEqual(command[-5:], ['--', f'--test-threads={width}', '--exact', '--skip',
+                                                        gate.CLOCK_TEST])
                         release_ran(kwargs)
                 with patch.dict('os.environ', RUST_TEST_THREADS='16', RON_TEST_MEMCAP_GIB='999'):
                     gate.gate(path, report_dir=path/'report', test_threads=width, run=run, isolated=False)
-                self.assertEqual(len(calls), 7)
+                self.assertEqual(len(calls), 9)
                 policy=json.loads((path/'report/gate-policy.json').read_text())
                 self.assertEqual(policy['release_test_threads'], width)
                 self.assertEqual(policy['memory_cap_gib'], 20 if width <= 4 else 32)
@@ -562,7 +568,7 @@ garbage line
                 self.assertEqual([gate.step_name(c) for c in calls], ran)
                 steps = out.getvalue().splitlines()[-4]
                 self.assertTrue(steps.startswith('Gate steps: ') and 'not reached: ' in steps, steps)
-                self.assertTrue(steps.endswith(', release') or steps.endswith(': release'), steps)
+                self.assertTrue(steps.endswith(' merge pins, release, clock'), steps)
 
     def test_failed_survey_stops_before_tests(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -643,7 +649,7 @@ garbage line
                     self.assertLess(command.index('--no-fail-fast'), command.index('--'))
                     release_ran(kwargs)
             gate.gate(path, report_dir=path/'report', run=run, isolated=False)
-            self.assertIn('--no-fail-fast', calls[gate.RELEASE_STEP])
+            self.assertIn('--no-fail-fast', release_of(calls))
 
     def test_release_without_a_test_result_is_unobserved(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1292,7 +1298,7 @@ garbage line
         self.assertEqual(policy['lane']['widened'], [])
         self.assertEqual(policy['lane']['row_only'], sorted(rows))
         command, policy = self.release_command(touched=touched, row_only=rows, scope='abc1234')
-        self.assertNotIn('--skip', command)
+        self.assertEqual(skips_of(command), [gate.CLOCK_TEST])
         self.assertEqual(policy['scope']['widened'], sorted(rows))
 
     def test_a_pair_stand_up_s_window_line_and_test_kit_rows_do_not_widen_the_lane_gate(self):
@@ -1483,17 +1489,19 @@ garbage line
         self.assertGreater(policy['scope']['skipped'], 400)
         self.assertNotIn('lane', policy)
         command, policy = self.release_command(touched=['crates/rondata/src/gamelog.rs'], scope='abc1234')
-        self.assertNotIn('--skip', command)
+        self.assertEqual(skips_of(command), [gate.CLOCK_TEST])
         self.assertEqual(policy['scope']['widened'], ['crates/rondata/src/gamelog.rs'])
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             with self.assertRaises(ValueError):
                 gate.gate(path, lane=True, tests=WORD, scope='abc1234', run=lambda *a, **k: self.fail('ran'))
 
-    def test_the_booking_gate_skips_nothing(self):
+    def test_the_booking_gate_skips_nothing_but_the_clock(self):
+        # The clock runs alone after the release step (the pass of 2026-11-15).
         command, policy = self.release_command()
-        self.assertEqual(command[-2:], ['--', '--test-threads=4'])
+        self.assertEqual(command[-5:], ['--', '--test-threads=4', '--exact', '--skip', gate.CLOCK_TEST])
         self.assertNotIn('lane', policy)
+        self.assertEqual(policy['booking']['quiet_clock'], gate.CLOCK_TEST)
 
     def test_the_skips_are_the_over_budget_rows_the_word_does_not_name(self):
         self.assertEqual(gate.lane_skips(self.TIMINGS, ['run589_s_word']), [
@@ -2033,6 +2041,228 @@ class WholeLaneLock(unittest.TestCase):
             # The kill switch skips it too.
             self.assertIsNone(gate.whole_lane_lock(lane=True, whole=True, item=1, path=lock, off=True))
             self.assertFalse(lock.exists())
+
+
+def booking_calls(touched=(), *, release_log=None, fail=None, **kw):
+    """Every command a gate ran, with what it printed; `fail` names a step
+    whose command exits 101 (a red test) after leaving `release_log`."""
+    with tempfile.TemporaryDirectory() as tmp:
+        path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+        kw.setdefault('whole_lock', path/'whole-lane.lock')
+        calls=[]
+        def run(command, **kwargs):
+            calls.append(command)
+            name = gate.step_name(command)
+            if name == 'release':
+                release_ran(kwargs, log=release_log or RELEASE_LOG.replace(' ... FAILED', ' ... ok'))
+            elif name == fail:
+                Path(kwargs['log']).write_text(release_log or '')
+            if name == fail:
+                raise subprocess.CalledProcessError(101, command)
+        out = io.StringIO()
+        error = None
+        with contextlib.redirect_stdout(out), patch.object(gate, 'branch_paths', return_value=list(touched)), \
+                patch.object(gate, 'row_only_edits', return_value=set()):
+            try:
+                gate.gate(path, report_dir=path/'report', run=run, test_threads=8, git=UNMOVED, **kw)
+            except (subprocess.CalledProcessError, ValueError) as caught:
+                error = caught
+    return calls, out.getvalue(), error
+
+
+def skips_of(command):
+    return [command[i + 1] for i, a in enumerate(command) if a == '--skip']
+
+
+def release_of(calls):
+    """The release step among a gate's commands, by its name: a booking gate
+    runs `merge pins` before it and `clock` after (the pass of 2026-11-15)."""
+    return next(c for c in calls if gate.step_name(c) == 'release')
+
+
+class QuietClock(unittest.TestCase):
+    """The pass of 2026-11-15: the client's clock test (a wall-clock ceiling,
+    p99 frame 20 ms) broke booking gates 4255 and 4263 this tranche and 4171,
+    4179 and 4219 before, each at host load 13.5 to 20.5 on 16 cores — its
+    own rule waits only above the cores — and reads p99 14 ms alone at load
+    7.5. It ran inside the release step beside the gate's eight test
+    threads and beside lanes' gates. A booking gate leaves it out of the
+    parallel run and measures it alone, after the release step, under a
+    lease of the whole host budget that drains the other leases first.
+    Red first: the release step ran it, and nothing came after it."""
+
+    def test_a_booking_gate_runs_the_clock_alone_after_the_release_step(self):
+        for kw in ({}, {'scope': 'abc1234'}):
+            for isolated in (True, False):
+                with self.subTest(kw=kw, isolated=isolated):
+                    calls, out, error = booking_calls(['crates/rondata/src/lobby.rs'], isolated=isolated, **kw)
+                    self.assertIsNone(error, out)
+                    names = [gate.step_name(c) for c in calls]
+                    self.assertEqual(names[-2:], ['release', 'clock'])
+                    release = calls[names.index('release')]
+                    self.assertIn(gate.CLOCK_TEST, skips_of(release))
+                    if not isolated:
+                        self.assertIn('--exact', release[release.index('--'):])
+                    clock = calls[-1]
+                    self.assertEqual(clock[:2], ['cargo', 'test'])
+                    self.assertEqual(clock[clock.index('--test') + 1], 'clock')
+                    self.assertEqual(clock[clock.index('--'):], ['--', '--exact', gate.CLOCK_TEST, '--test-threads=1'])
+                    # The release step's own readers key on `--release`; the
+                    # clock's build is the release profile all the same.
+                    self.assertNotIn('--release', clock)
+                    self.assertEqual(clock[clock.index('--profile') + 1], 'release')
+                    self.assertTrue(out.splitlines()[-4].startswith(f'Gate steps: {len(names)} of {len(names)} ran'))
+
+    def test_the_clock_holds_the_whole_host_budget_and_drains_it(self):
+        clock = gate.clock_command()
+        self.assertEqual(gate.phase_budget(clock), (gate.HOST_CPU_SLOTS, gate.HOST_MEMORY_MIB))
+        with patch.object(gate.subprocess, 'run') as run:
+            gate.run_logged(clock, cwd='.', env={'RON_GATE_RESOURCE_POLICY': '1'}, check=True)
+        wrapped = run.call_args.args[0]
+        self.assertTrue(str(wrapped[1]).endswith('resource_budget.py'), wrapped)
+        self.assertEqual(wrapped[wrapped.index('--cpu') + 1], str(gate.HOST_CPU_SLOTS))
+        self.assertEqual(wrapped[wrapped.index('--memory-mib') + 1], str(gate.HOST_MEMORY_MIB))
+        self.assertIn('--drain', wrapped[:wrapped.index('--', 2)])
+        # No other step drains.
+        for command in (['cargo', 'clippy'], ['zsh', 'tools/guard.sh', '--built'],
+                        ['cargo', 'test', '--release'], gate.merge_pins_command()):
+            with patch.object(gate.subprocess, 'run') as run:
+                gate.run_logged(command, cwd='.', env={'RON_GATE_RESOURCE_POLICY': '1'}, check=True)
+            self.assertNotIn('--drain', run.call_args.args[0], command)
+
+    def test_a_red_clock_fails_the_booking_gate_after_the_release_step(self):
+        calls, out, error = booking_calls(fail='clock')
+        self.assertIsInstance(error, subprocess.CalledProcessError)
+        self.assertEqual([gate.step_name(c) for c in calls][-2:], ['release', 'clock'])
+
+    def test_a_lane_gate_keeps_the_clock_where_it_was(self):
+        # A lane that touches the client runs the clock in its release step as
+        # before, and one that does not leaves the whole client crate.
+        for touched in (['crates/client/src/x.rs'], ['crates/rondata/src/lobby.rs']):
+            with self.subTest(touched=touched):
+                calls, out, error = booking_calls(touched, lane=True, tests=WORD, isolated=False)
+                self.assertIsNone(error, out)
+                names = [gate.step_name(c) for c in calls]
+                self.assertNotIn('clock', names)
+                self.assertEqual(names[-1], 'release')
+                self.assertNotIn(gate.CLOCK_TEST, skips_of(calls[-1]))
+
+    def test_the_clock_test_is_the_one_its_file_names(self):
+        source = (gate.ROOT/'crates/client/tests/clock.rs').read_text()
+        self.assertIn(f'fn {gate.CLOCK_TEST}()', source)
+
+
+class MergePins(unittest.TestCase):
+    """The pass of 2026-11-15: docs/LOOP.md told the driver to run the pins a
+    merge moves before the gate, in prose, and two booking gates of the
+    tranche went red after 10.2 and 10.9 release minutes on the census pin
+    (gate-4159r12) and the packet census (gate-4272) — as gate-4205 (19.8
+    minutes, a floors literal), 4205b (the packet census and the transfer
+    pin) and 4208 (the ages pin) had before. A booking gate runs those pins
+    as the first act of its release step and stops there, naming the test.
+    Red first: no such step."""
+
+    def test_a_booking_gate_runs_the_merge_pins_right_before_the_release_step(self):
+        for kw in ({}, {'scope': 'abc1234'}):
+            with self.subTest(kw=kw):
+                calls, out, error = booking_calls(['crates/rondata/src/lobby.rs'], **kw)
+                self.assertIsNone(error, out)
+                names = [gate.step_name(c) for c in calls]
+                self.assertEqual(names[names.index('guard'):], ['guard', 'merge pins', 'release', 'clock'])
+                pins = calls[names.index('merge pins')]
+                self.assertEqual(pins, gate.merge_pins_command())
+                self.assertEqual(pins[pins.index('--') + 1:-1], list(gate.MERGE_PINS))
+                self.assertNotIn('--exact', pins)
+                self.assertNotIn('--release', pins)
+                # They run again in the release step: nothing skips a pin.
+                release = calls[names.index('release')]
+                for pin in gate.MERGE_PINS:
+                    self.assertFalse(any(pin in s for s in skips_of(release)), pin)
+        # An unwidened scope keeps its selection (the timed pins over its
+        # second are skipped there, as before) and runs the merge pins first.
+        calls, out, error = booking_calls(['docs/AI.md'], scope='abc1234')
+        self.assertIsNone(error, out)
+        names = [gate.step_name(c) for c in calls]
+        self.assertEqual(names[names.index('guard'):], ['guard', 'merge pins', 'release', 'clock'])
+        self.assertIn('census::tests::the_census_s_simulation_share_is_pinned', skips_of(calls[names.index('release')]))
+
+    def test_a_red_merge_pin_stops_the_gate_before_the_release_step_and_names_it(self):
+        red = ('     Running unittests src/lib.rs (target/release/deps/rondata-3d4e5f)\n\nrunning 52 tests\n'
+               'test census::tests::the_census_s_simulation_share_is_pinned ... FAILED\n'
+               'test diff::floors::tests::the_pinned_shape_is_the_tree_s ... ok\n\n'
+               'test result: FAILED. 51 passed; 1 failed; 0 ignored; 0 measured; 2400 filtered out\n')
+        calls, out, error = booking_calls(release_log=red, fail='merge pins')
+        self.assertIsInstance(error, subprocess.CalledProcessError)
+        self.assertEqual([gate.step_name(c) for c in calls][-1], 'merge pins')
+        self.assertIn('Merge pins: red on rondata::census::tests::the_census_s_simulation_share_is_pinned', out)
+        self.assertIn('not reached: release, clock', out)
+
+    def test_a_lane_gate_runs_no_merge_pins(self):
+        calls, out, error = booking_calls(['crates/rondata/src/lobby.rs'], lane=True, tests=WORD, isolated=False)
+        self.assertIsNone(error, out)
+        self.assertNotIn('merge pins', [gate.step_name(c) for c in calls])
+
+    def test_each_pin_matches_a_live_rondata_test_and_the_list_costs_under_two_minutes(self):
+        rondata = gate.crate_tests()['rondata']
+        timed = dict((name, seconds) for seconds, name in gate._timed_rows(gate.TIMINGS.read_text()))
+        total = 0.0
+        for pin in gate.MERGE_PINS:
+            live = [n for n, ignored in rondata.items() if pin in n and not ignored]
+            self.assertTrue(live, pin)
+            total += sum(timed.get(n, 0.0) for n in live)
+        self.assertLess(total, 120.0)
+        self.assertIn('census::tests::the_census_s_simulation_share_is_pinned', gate.MERGE_PINS)
+        self.assertIn('diff::checksum_lines::packets::every_packet_is_wired_to_its_game_or_named', gate.MERGE_PINS)
+
+
+class SplitFilter(unittest.TestCase):
+    """Item 4281: a docs-only lane left both the sim and the client crates to
+    the booking gate, and its filters `ground::` and `roads::` matched tests
+    in both and nowhere else; the gate dropped a filter whose every match lay
+    in ONE left crate, so it refused these as unmatched and exited 2. Red
+    first: a filter split across two left crates was kept."""
+
+    CRATES = {'sim': {'ground::tests::a': False, 'roads::tests::a': False, 'lobby::tests::s': False},
+              'client': {'ground::tests::b': False, 'roads::tests::b': False, 'lobby::tests::c': False},
+              'rondata': {'lobby::tests::r': False, WORD[0]: False}, 'fixed': {}}
+
+    GREEN = RELEASE_LOG.replace(' ... FAILED', ' ... ok') + 'test lobby::tests::r ... ok\n'
+
+    def lane(self, touched, tests):
+        with patch.object(gate, 'crate_tests', return_value=self.CRATES):
+            calls, out, error = booking_calls(touched, lane=True, tests=tests, isolated=False,
+                                              release_log=self.GREEN)
+        return calls, out, error
+
+    def test_a_filter_split_across_two_left_crates_is_dropped_and_named(self):
+        calls, out, error = self.lane(['docs/ROADS.md'], ['ground::', 'roads::', 'lobby::'] + WORD)
+        self.assertIsNone(error, out)
+        for t in ('ground::', 'roads::'):
+            self.assertIn(f'Lane filter dropped: {t} — every match is in crates/sim and crates/client, which '
+                          'this lane left to the booking gate (Loop 3823, DECISIONS 132 §6)\n', out)
+        # `lobby::` matches the data crate too, which runs: kept.
+        self.assertNotIn('Lane filter dropped: lobby::', out)
+        self.assertIn("the word's: lobby::, " + WORD[0], out)
+
+    def test_a_filter_with_a_match_in_a_crate_that_runs_is_kept(self):
+        # The lane touches the client: only the sim crate is left, and a
+        # filter with client matches is kept (and is red here, for the
+        # fixture's log runs no client test).
+        calls, out, error = self.lane(['crates/client/src/x.rs'], ['ground::'] + WORD)
+        self.assertNotIn('Lane filter dropped: ground::', out)
+        self.assertIsInstance(error, ValueError)
+        self.assertIn('ground::', str(error))
+
+    def test_the_one_crate_clauses_are_unchanged(self):
+        crates = {'sim': {'map_lakes::a': False}, 'client': {'clock::b': False}, 'rondata': {WORD[0]: False}}
+        with patch.object(gate, 'crate_tests', return_value=crates):
+            calls, out, error = booking_calls(['docs/X.md'], lane=True, tests=['map_lakes', 'clock::'] + WORD,
+                                              isolated=False)
+        self.assertIsNone(error, out)
+        self.assertIn('Lane filter dropped: map_lakes — every match is in crates/sim, which this lane left to '
+                      'the booking gate (Loop 3823)\n', out)
+        self.assertIn('Lane filter dropped: clock:: — every match is in crates/client, which this lane left to '
+                      'the booking gate (DECISIONS 132 §6)\n', out)
 
 
 if __name__ == '__main__':

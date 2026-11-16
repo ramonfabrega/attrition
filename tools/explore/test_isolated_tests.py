@@ -36,6 +36,50 @@ class Admission(unittest.TestCase):
             other.close()
             memory.close()
 
+    def test_a_draining_lease_keeps_what_it_takes_until_it_holds_the_whole_host(self):
+        # The pass of 2026-11-15: the booking gate measures the client's clock
+        # alone under a lease of the whole budget. All-or-nothing admission
+        # would wait for a moment when no lane held a slot; a draining lease
+        # takes each slot as it frees and keeps it, so no new lease is
+        # admitted while it waits, and only one drains at a time.
+        with tempfile.TemporaryDirectory() as d:
+            busy = budget.Lease(d, 3, 1024)
+            self.assertTrue(busy.try_acquire())
+            whole = budget.Lease(d, budget.CPU, budget.MEMORY_MIB)
+            self.assertFalse(whole.try_drain())
+            # It holds every free slot already: a newcomer is refused.
+            self.assertEqual(len(budget.status(d)), budget.CPU)
+            late = budget.Lease(d, 1, 256)
+            self.assertFalse(late.try_acquire())
+            # A second drainer waits on the first, holding nothing.
+            second = budget.Lease(d, budget.CPU, budget.MEMORY_MIB)
+            self.assertFalse(second.try_drain())
+            self.assertEqual(second.fds, [])
+            busy.close()
+            self.assertTrue(whole.try_drain())
+            self.assertEqual(len(whole.fds), budget.CPU + budget.MEMORY_MIB // budget.QUANTUM_MIB)
+            self.assertFalse(late.try_acquire())
+            held = budget.status(d)
+            self.assertEqual(len(held), budget.CPU)
+            self.assertTrue(all(row['owner'] and row['owner']['cpu'] == budget.CPU for row in held), held)
+            whole.close()
+            self.assertEqual(budget.status(d), [])
+            self.assertTrue(late.try_acquire())
+            late.close()
+            self.assertTrue(second.try_drain())
+            second.close()
+
+    def test_supervise_drains_when_asked(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(budget, 'sample_rss', return_value=(1, 1)):
+            with patch.object(budget.Lease, 'try_acquire', side_effect=AssertionError('all-or-nothing')):
+                self.assertEqual(budget.supervise([sys.executable, '-c', 'raise SystemExit(3)'], directory=d,
+                                                  cpu=budget.CPU, memory_mib=budget.MEMORY_MIB, drain=True), 3)
+        import resource_budget
+        with patch.object(sys, 'argv', ['resource_budget.py', '--drain', '--cpu', '2', '--', 'true']), \
+                patch.object(resource_budget, 'supervise', return_value=0) as supervise:
+            self.assertEqual(resource_budget.main(), 0)
+        self.assertTrue(supervise.call_args.kwargs['drain'])
+
     def test_inherited_locks_keep_orphan_reservation(self):
         with tempfile.TemporaryDirectory() as d:
             lease = budget.Lease(d, budget.CPU, budget.MEMORY_MIB)

@@ -179,7 +179,9 @@ class RuntimePolicy(unittest.TestCase):
                     (Path(kwargs['env']['RON_FIXTURE_AUDIT_DIR']) / '123.tsv').write_text('1\t66697874757265\t74657374\n')
                     Path(kwargs['log']).write_text('     Running unittests src/lib.rs (target/release/deps/rondata-authored)\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n')
             report = gate.gate(root, report_dir=root / 'report', isolated=False, run=run)
-            self.assertEqual(len(calls), 7)  # pins and the six (Loop 4070)
+            # pins and the six (Loop 4070), and the booking gate's merge pins and
+            # clock around its release step (the pass of 2026-11-15)
+            self.assertEqual(len(calls), 9)
             self.assertEqual(json.loads((report / 'gate-policy.json').read_text())['test_allocator']['MallocLargeCache'], '0')
             self.assertNotIn('MallocLargeCache', os.environ)
 
