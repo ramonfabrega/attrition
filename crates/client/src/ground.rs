@@ -1135,12 +1135,13 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4272: run1559b **1,040 → 1,059** (under a mountain **70 → 92** of 106, plain 954 → 951): the template alphas untinted, the tint laid once through `ADDSIGNED` as `MountainRange::init` loads them (§3.22; run1612 against run1559b); the body ours Y 158.3 → 146.4 against theirs 137.3; run1564 unchanged.
 /// Item 4275: run1559b **1,059 → 1,061** (under a mountain **92 → 95** of 106, plain 951 → 950): the snowcap underlay drawn, `render_weathering(4, 4)`'s texel times the land's `light_vert` colour through `TL_FAKE_LIGHT` at its alpha (`docs/RENDERER.md` §3.10, "The snowcap, drawn"; `client::snowcap`, the packet's slot 4 on 63 of 63 corners); the body ours Y 146.4 → 144.6 against theirs 137.3; tile (12, 141) crosses up, theirs (104, 101, 82), the still's (140, 132, 79); plain (23, 141) down and (12, 162) up by the frame's white; run1564 unchanged.
 /// Item 4279: run1559b **1,061 → 1,066** (under a mountain **95 → 100** of 106, plain 950 unmoved): the snowcap's stage 1 draws `t_mountainpeak`'s own alpha, where its key (930) had been the surf's mask 10's and the alphas' cache is first come (`docs/RENDERER.md` §3.10; `world::tests::the_alpha_keys_are_apart`); the body ours Y 143.7 → 141.0 against theirs 137.3, 6 tiles paler (from 11); run1564 unchanged.
+/// Item 4284: run1559b **1,066 → 1,072** (under a mountain **100 → 106** of 106, plain 950 unmoved): the ground beneath a range takes the land's own N·L and `light_vert` colour whatever `land_light` says, as the snowcap does (`docs/RENDERER.md` §3.22, "The ground beneath a range"); the six paler tiles (5, 142)–(7, 147) on the left shoulder close from ratios 1.21–1.48 to 0.97–1.01; the body ours Y 141.0 → 136.5 against theirs 137.3; run1564 unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1066, 1109),
+        (1072, 1109),
         [
             [950, 986],
-            [100, 106],
+            [106, 106],
             [16, 17],
             [0, 0],
             [0, 0],
@@ -1185,7 +1186,9 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// "The snowcap, drawn"), against the drawn row's 1,105.
 /// Item 4279: run1559b's 1,005 → 1,007, the snowcap's stage 1 drawing its
 /// own alpha, not the surf's mask on a shared key (§3.10).
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1007, 1109), (1754, 1920)];
+/// Item 4284: run1559b's 1,007 → 1,008, the ground beneath a range lit by
+/// the land's own N·L (§3.22, "The ground beneath a range").
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1008, 1109), (1754, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1480,13 +1483,14 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// Item 4241: `SANDY` 326 → 329, and on 4239's tree 408 → 413: the bloom drawn and a plume's pixel clamped after the white (§3.25).
 /// Item 4269: `OCEAN` 233 → 235: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 /// Item 4272: `SANDY` 413 → 412, `OCEAN` 235 → 233: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
+/// Item 4284: `SANDY` 412 → 413: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [665, 679],
     [0, 0],
     [8, 32],
     [0, 0],
     [0, 0],
-    [412, 772],
+    [413, 772],
     [233, 437],
 ];
 
@@ -4903,7 +4907,24 @@ pub(crate) mod tests {
                         let (yo, yt) = (luminance(q.2), luminance(q.1));
                         ratio += yo / yt.max(1.0);
                         if !LUMA_READER.agrees(yo, yt) {
-                            if yo > yt { paler += 1 } else { darker += 1 }
+                            if yo > yt {
+                                paler += 1
+                            } else {
+                                darker += 1
+                            }
+                            // Item 4284: each parted tile named.
+                            println!(
+                                "{name} body parted: tile {:?} at pixel {:?}, theirs ({:.1}, {:.1}, {:.1}) Y {yt:.1}, ours ({:.1}, {:.1}, {:.1}) Y {yo:.1}, ratio {:.3}",
+                                q.0,
+                                r.means[&q.0].2,
+                                q.1[0],
+                                q.1[1],
+                                q.1[2],
+                                q.2[0],
+                                q.2[1],
+                                q.2[2],
+                                yo / yt.max(1.0)
+                            );
                         }
                     }
                     println!(

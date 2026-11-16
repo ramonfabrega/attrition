@@ -1216,8 +1216,14 @@ impl World {
             });
             let stride = (t.width * render::terrain::TILES_PER_CELL + 1) as usize;
             let lit = self.land_light;
-            let nl_at = |p: &[f32; 3]| -> f32 {
-                if !lit {
+            // Item 4284 (§3.22, "The ground beneath a range"): a tile under
+            // a placed mountain takes the land's own N·L whatever
+            // `land_light` says, as the snowcap does: the range's draw
+            // fades to its edge over it, and its corners are the range's
+            // own heights, where the flat N·L is far from theirs.
+            let beneath = |tile: (i32, i32)| under.is_empty() && mountains.contains(&tile);
+            let nl_at = |tile: (i32, i32), p: &[f32; 3]| -> f32 {
+                if !lit && !beneath(tile) {
                     return LIGHT_FLAT;
                 }
                 let per = render::terrain::UNITS_PER_TILE as f32;
@@ -1278,7 +1284,13 @@ impl World {
             });
             let ramp = std::sync::Arc::new(crate::ground::water_ramp());
             let mut fades: BTreeMap<usize, PatchMesh> = BTreeMap::new();
-            for ((tri, uv), &k) in base.tris.iter().zip(&base.uvs).zip(&base.of) {
+            for (((tri, uv), &k), &tile) in base
+                .tris
+                .iter()
+                .zip(&base.uvs)
+                .zip(&base.of)
+                .zip(&base.tile)
+            {
                 if let (Some(f), true) = (floor.as_mut(), Some(k) == ocean) {
                     f.positions.extend_from_slice(tri);
                     // Item 4227: at the first layer's own offset.
@@ -1312,12 +1324,12 @@ impl World {
                     m.uvs.extend_from_slice(uv);
                     m.alpha_uvs
                         .extend(alpha.map(|a| [(f32::from(a) + 0.5) / 256.0, 0.5]));
-                    m.light.extend(tri.iter().map(nl_at));
+                    m.light.extend(tri.iter().map(|p| nl_at(tile, p)));
                     continue;
                 }
                 meshes[k].positions.extend_from_slice(tri);
                 meshes[k].uvs.extend_from_slice(uv);
-                meshes[k].light.extend(tri.iter().map(nl_at));
+                meshes[k].light.extend(tri.iter().map(|p| nl_at(tile, p)));
             }
             meshes.retain(|m| !m.positions.is_empty());
             // Keyed `(texture, alpha, layer)`: layer 1 is the coral
@@ -1370,7 +1382,8 @@ impl World {
                         // The coral keeps the flat light: its corners'
                         // colours are the floor's (§3.22).
                         if layer == 0 {
-                            m.light.extend(laid.tris[i].iter().map(nl_at));
+                            m.light
+                                .extend(laid.tris[i].iter().map(|p| nl_at((tx, ty), p)));
                         }
                     }
                 }
