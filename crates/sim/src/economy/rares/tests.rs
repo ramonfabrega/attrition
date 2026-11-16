@@ -356,6 +356,7 @@ fn a_fish_pays_ten_of_each_of_its_two_goods() {
         false,
         false,
         false,
+        false,
     );
     assert_eq!(out[Resource::Food.index()], 10 * RATE_SCALE);
     assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE);
@@ -374,6 +375,7 @@ fn the_fishermen_bonus_reaches_the_food_half_alone() {
         &g[economy::FISH],
         2,
         0,
+        false,
         false,
         false,
         false,
@@ -401,6 +403,7 @@ fn a_japanese_boat_on_a_fish_pays_a_quarter_more_of_each_half() {
         false,
         false,
         true,
+        false,
     );
     assert_eq!(t.japanese_fishing_boats, 25);
     assert_eq!(out[Resource::Food.index()], 200);
@@ -414,12 +417,13 @@ fn a_japanese_boat_on_a_fish_pays_a_quarter_more_of_each_half() {
         false,
         false,
         true,
+        false,
     );
     assert_eq!(both[Resource::Food.index()], (100 + 25 + 100) * 160 / 100);
     assert_eq!(both[Resource::Wealth.index()], (120 + 25) * 160 / 100);
     let mut g = g;
     g[20].bonus = [(Some(Resource::Metal), 10), (None, 0)];
-    let land = economy::calc_rare(&t, 20, &g[20], 0, 0, true, false, true);
+    let land = economy::calc_rare(&t, 20, &g[20], 0, 0, true, false, true, false);
     assert_eq!(land[Resource::Metal.index()], 160, "a land rare");
 }
 
@@ -435,6 +439,7 @@ fn the_merchants_bonus_reaches_a_fish_s_other_half() {
         &g[economy::FISH],
         0,
         1,
+        false,
         false,
         false,
         false,
@@ -460,6 +465,7 @@ fn friendly_ground_lets_the_merchants_bonus_reach_food() {
         true,
         false,
         false,
+        false,
     );
     assert_eq!(out[Resource::Food.index()], 10 * RATE_SCALE * 120 / 100);
     assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE * 120 / 100);
@@ -472,8 +478,45 @@ fn a_land_rare_never_takes_the_fishermen_bonus() {
     let t = Tuning::RON;
     let mut g = good_table();
     g[20].bonus = [(Some(Resource::Metal), 10), (None, 0)];
-    let out = economy::calc_rare(&t, 20, &g[20], 3, 0, false, false, false);
+    let out = economy::calc_rare(&t, 20, &g[20], 3, 0, false, false, false, false);
     assert_eq!(out[Resource::Metal.index()], 10 * RATE_SCALE);
+}
+
+/// **The Porcelain Tower triples a merchant's land rare at home**
+/// (`PORCELAIN_RARE`, 200, `LeaderData::calc_rare@006e08d0`'s `else if
+/// ally` arm under `has_wonder(0x215)`). run1184's who=1 holds the Tower
+/// with Merchants on Dye and Peacocks; without the term its `income` was
+/// 640 wealth, 320 knowledge and 320 metal short on block 4201, which is
+/// `2 × 16 ×` each good's numbers. Not abroad, not on a fish; with the
+/// Nubians' 50 the two add.
+#[test]
+fn a_porcelain_tower_triples_a_merchant_s_land_rare_at_home() {
+    let t = Tuning::RON;
+    let mut g = good_table();
+    g[10].bonus = [
+        (Some(Resource::Wealth), 10),
+        (Some(Resource::Knowledge), 10),
+    ];
+    assert_eq!(t.porcelain_rare, 200);
+    let home = economy::calc_rare(&t, 10, &g[10], 0, 0, true, false, false, true);
+    assert_eq!(home[Resource::Wealth.index()], 480);
+    assert_eq!(home[Resource::Knowledge.index()], 480);
+    let abroad = economy::calc_rare(&t, 10, &g[10], 0, 0, false, false, false, true);
+    assert_eq!(abroad[Resource::Wealth.index()], 160, "abroad");
+    let both = economy::calc_rare(&t, 10, &g[10], 0, 0, true, true, false, true);
+    assert_eq!(both[Resource::Wealth.index()], (100 + 200 + 50) * 160 / 100);
+    let fish = economy::calc_rare(
+        &t,
+        economy::FISH,
+        &g[economy::FISH],
+        0,
+        0,
+        true,
+        false,
+        false,
+        true,
+    );
+    assert_eq!(fish[Resource::Wealth.index()], 10 * RATE_SCALE, "a fish");
 }
 
 /// **The Nubians take half again, on a land rare in friendly ground**
@@ -488,12 +531,12 @@ fn a_nubian_merchant_s_land_rare_pays_half_again_at_home() {
         (Some(Resource::Wealth), 10),
         (Some(Resource::Knowledge), 10),
     ];
-    let home = economy::calc_rare(&t, 10, &g[10], 0, 0, true, true, false);
+    let home = economy::calc_rare(&t, 10, &g[10], 0, 0, true, true, false, false);
     assert_eq!(home[Resource::Knowledge.index()], 240);
     assert_eq!(home[Resource::Wealth.index()], 240);
-    let abroad = economy::calc_rare(&t, 10, &g[10], 0, 0, false, true, false);
+    let abroad = economy::calc_rare(&t, 10, &g[10], 0, 0, false, true, false, false);
     assert_eq!(abroad[Resource::Knowledge.index()], 160, "abroad");
-    let other = economy::calc_rare(&t, 10, &g[10], 0, 0, true, false, false);
+    let other = economy::calc_rare(&t, 10, &g[10], 0, 0, true, false, false, false);
     assert_eq!(other[Resource::Knowledge.index()], 160, "not Nubian");
     let fish = economy::calc_rare(
         &t,
@@ -503,6 +546,7 @@ fn a_nubian_merchant_s_land_rare_pays_half_again_at_home() {
         0,
         true,
         true,
+        false,
         false,
     );
     assert_eq!(fish[Resource::Wealth.index()], 10 * RATE_SCALE, "a fish");

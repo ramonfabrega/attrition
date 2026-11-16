@@ -58,7 +58,7 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// | Seam | Answers | Why |
 /// | --- | --- | --- |
 /// | `village_num` | 0 | `LeaderData::village_num` has no counterpart here. |
-/// | `GoodData::ever_seen` | unwritten | step 9 sets the leader's bit on every rare it counts; only `GoodData::is_seen` reads it, and nothing here asks a good whether it is seen. |
+/// | `GoodData::ever_seen` | unwritten | step 9 sets the leader's bit on every rare it counts; only `GoodData::is_seen` reads it, and its one reader here is the Porcelain Tower's pass ([`Sim::good_is_seen`], item 4159r12a), where a missing step-9 bit leaves the answer to the fog read. |
 /// | step 6's `ALLY_LOS` arm | never held | the meeting runs under `reveal_map` alone ([`Sim::census_meet`], item 3763); the `has_preq(ALLY_LOS)` half of its gate is not read. Outside the gate the live paths to the met bit are the fog — `check_ever_seen` → `Leader::meet` (`docs/VISION.md` §6.2) — and a strike, `Unit::set_attacking` ([`Sim::set_attacking`]). |
 /// | `ScenarioData::ally_mask` | 0 | scenarios are cut from v1. |
 /// | `unit_masks & 1` | clear | the flag that excludes an object from the census is unmodelled. |

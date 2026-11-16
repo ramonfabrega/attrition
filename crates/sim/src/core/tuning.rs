@@ -678,6 +678,10 @@ pub struct Tuning {
     /// Percent more wealth from a market's taxes under the Porcelain Tower
     /// (`CityData::get_taxes@00737b50`; ships as `300% bonus wealth`).
     pub porcelain_market: i32,
+    /// Percent more of every slot a merchant's land rare pays on friendly
+    /// ground under the Porcelain Tower (`LeaderData::calc_rare@006e08d0`,
+    /// `Constants +0x4b0`; ships as `200% income`).
+    pub porcelain_rare: i32,
     pub space_air_speed: i32,
     /// Percent faster Nuclear Missile-line creation with the Uranium rare —
     /// `ObjectData::train_time@006508c0:79`–`85`. Ships as 10.
@@ -1670,6 +1674,7 @@ impl Tuning {
         liberty_units: 0,
         porcelain_ships: 50,
         porcelain_market: 300,
+        porcelain_rare: 200,
         space_air_speed: 100,
         uranium_nuke_speed: 10,
         relics_research_speed: 33,
@@ -2411,6 +2416,7 @@ impl Tuning {
             ("LIBERTY_UNITS", Slot::Value(T.liberty_units)),
             ("PORCELAIN_SHIPS", Slot::Value(T.porcelain_ships)),
             ("PORCELAIN_MARKET", Slot::Value(T.porcelain_market)),
+            ("PORCELAIN_RARE", Slot::Value(T.porcelain_rare)),
             ("SPACE_AIR_SPEED", Slot::Value(T.space_air_speed)),
             ("URANIUM_NUKE_SPEED", Slot::Value(T.uranium_nuke_speed)),
             (
