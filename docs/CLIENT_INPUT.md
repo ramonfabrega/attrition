@@ -3092,7 +3092,7 @@ stances are shown.
   profile's, and no control. Built in item 4289 (§26.1); the score went 0 → 42.
 - **Ours, not the original's** (item 4289): `Input::leader_options` takes the console's `who` as an argument, since
   the layer's `player` is the package's `play`. Our only prefs value is the fresh profile's. The original's prefs
-  dialogs (the auto-manage options, `OptionsWinGame::do_reset@0082b980`'s `synch_with_prefs`) are not ported.
+  dialogs (the game options window's auto-manage settings, which call `synch_with_prefs` again) are not ported.
 - **Not established** (item 4289): the 2017 sample's prefs word beyond the five bits the order reads.
   `peasants_wait` is read only as zero or not, so the sample's own count is one of the nonzero values.
 - **Not established** (item 4289): whether the frame-0 package's `play` is always 0. It is 0 in all 50, the
