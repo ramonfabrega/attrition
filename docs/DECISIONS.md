@@ -151,6 +151,7 @@ is append-only and amended in place, as it always was.
 - 134 standing — The pass of 2026-11-14, second: the week is bound by tokens, a scoped lane that moves the sim's source keeps the widenings, a quoted refusal cites nothing, the render lane follows the eye
 - 135 standing — The pass of 2026-11-15: the driver's two lines are asked at the gate and the brief, a wake is a spawn, the day's line carries no margin, a session's booking gate runs through `gate_run.sh`
 - 136 standing — The pass of 2026-11-16: a wake into its own row says `--allow-duplicate` and reports its failure, the clock drains the host only after a red beside load, a gate log says when it began, `leader_options` is the client's own prefs, the land is lit
+- 137 standing — The pass of 2026-11-16, second: the leaders line's last six leaves take four movers and the first is a rehearsal already on disk, a released leaf is compared by the record diff, the input seat finishes the missed orders, the render seat takes the borders, the host's kill is unexplained
 
 ## 1. Fidelity before divergence
 
@@ -13459,3 +13460,128 @@ has run it); the wake's spawn from `commander` itself, which only the next
 morning's wake exercises (the pass's probe was a throwaway name); whether
 the fresh profile's prefs are the original's defaults or this prefix's
 (item 4289's first act).
+
+## 137. The leaders line's last six leaves take four movers and the first is already on disk, a released leaf is compared by the record diff, the input seat finishes the missed orders, and the render seat takes the borders (2026-11-16)
+
+**What happened.** `commander` (Opus 5.5) ran a tranche of twelve merges
+from 10:07 to 13:41 −05:00 on 2026-11-16 (nine lane items and three
+in-session builders), drained every seat and gated whole
+(`gate-drain-1116b.log`, exit 0), because the chain's next step was
+undesigned (entry 126 §4): residue 18's probe found that none of the six
+leaves still held out of the leaders line moves off its reset on any dump
+our walk compares. The pass ran on the `steer` row from 14:13, with two
+Opus 5.5 scouts, no builder and no capture. The tables and the scouts'
+paths are in `docs/audit/2026-11-16-fable-pass-mover.md`.
+
+**§1. The six take four movers, cheapest first, and entry 131 §1 stands.**
+The scouts swept all 3,683 gamelogs in both archives for a non-reset value
+of the five printed leaves (the pattern shown live on run1575: 38,250 zero
+lines, 10,200 of `hire_who` at −1) and sized the arms no walk enters.
+
+- **`good_deeds` moves on a rehearsal already on disk** (step 4159r19, the
+  chain's builder, no capture). `~/ron-golden/recon4206-4` is run1575's
+  game with four tribute clicks before the accept: `process_tribute 1 4`
+  on 1024 to 1027, `process_accept 1 1031`, and the French
+  `good_deeds[0]` reads 1328 on every block from 1032 to 1150. It is the
+  only mover of the five anywhere on disk. The pass compared its draw
+  words with run1575's (`rngcmp.py`): 1,151 frames in common, the first
+  difference on 1100, harness word 1099, so the game is run1575's through
+  the mover and our walk holds run1575 unstaged past it. `docs/LEADERS.md`
+  §8.5 asked for a filed capture before the value is cited. A rehearsal is
+  the original's output as much as a filed run is; what it lacks is a
+  ledger section. So the builder files it under a run token of its own and
+  walks it. `process_tribute` prints no amount: the amount is read off the
+  human's own record, as a human's command is an input (entry 132 §1).
+- **`hire_stamp`, `hire_who` and `tributes` move on one deal** (item
+  4298): the human asks a computer to attack the third leader and the
+  computer accepts. The store that names the target is twenty decompiled
+  lines and no walk writes it; the valuation's attack terms are 262
+  instructions with no draw; the price is ported and never exercised. The
+  human pays that price at its own commit, and the exchange refunds the
+  bucket without lowering `tributes`, which is the only way that leaf
+  stays off zero at a frame's end: every other give is committed and
+  exchanged inside one frame, since the commit sends the computer's pass
+  off its cadence. The other route, the computer's own alliance proposal
+  naming a third leader, opens on that lobby at frames 19,800 and 26,100.
+  The negotiation window's control for the request is on no photograph on
+  disk, so the item's first act is a recon that photographs the window.
+- **`incoming_taunt_who` moves only for a sender seated off slot 0** (item
+  4299). The human is who 0 on all 5,027 PLAYER records of 2,458 logs and
+  in our 49 recordings; the 2017 sample seats its human at who 3, with no
+  allied computer. One reading says the profile's `LAST_WHO0` key seats
+  the human; the click-free lane's `--profile` refuses a key found once.
+  The item's first act is a recon that settles that reading on the PLAYER
+  records, and its first number is how far our walk holds the reseated
+  lobby.
+- **`tribute_demanded` needs the demand arm and a game past frame 6,000**
+  (item 4300). The arm is 548 instructions with two draw sites and is not
+  carried. On run1575's lobby its gate opens at 6,000 for who 1 and 6,300
+  for who 2; no style-0 game on disk runs past 1,150; and `aggression`
+  reads 0 between all three leaders on every frame of run1575, which keeps
+  the arm shut. One reading says a harder difficulty turns it on between
+  two computers. So the first act is two recons to 7,000 at two
+  difficulties, the leaders record printed from 5,900: which of them shows
+  the leaf at 1, and how far our walk holds each. A style-0 walk that long
+  enters arms holding five draws the crate lacks, and that count is the
+  item's real size. It is measured before anything is built.
+
+A third way off the list was weighed and refused: a leaf "frozen under the
+lobby's style" or "under the seat our lobby gives". Each rests on a
+predicate read once (a gate that dominates a store), which is where the
+audits found the errors, and a stub holding the reset passes it. Entry 131
+§1 was written against exactly that.
+
+**§2. A released leaf is compared by the record diff from its release
+on.** Parked 4159r18a (the five printed rows in `diff::leader`, with the
+count pins they move) was parked with no score. It rides with 4159r19:
+without it a released leaf is compared on frame 91's bytes and the packets
+alone, and the dumps that move it are read by nothing.
+
+**§3. The input seat finishes the missed orders, then the panel a person
+can use.** Of 2,429 recorded orders 118 are still missed, on four arms:
+`gather_point` on an object 48, two issues in one turn 38 (the writer),
+`spell` on an object 22, `build` along a dragged line 10 (items 4301 to
+4304, by orders). Then the panel's leader predicates (item 4305, parked
+4290a): the Barracks offers 118 types, every nation's at once, which a
+person cannot play from. No row counts it, so the item mints its row
+first. `INPUT_WHOLE` stays at 42 of 50 through all five: it rises only
+when a form order is shown, point and group, and that step is not
+designed.
+
+**§4. The render seat takes what the eye found** (entry 134; the pairs
+are under `~/ron-data/lab-experiments/2026-11-16-pass-2/`). The pass drew
+the client's still at the three photographs' cameras and the minted
+lobby's frame 600 before reading a row. In order of what a person playing
+meets: no national border is drawn, and run1564's photograph carries one
+along its east edge (item 4306, first because the game is played by
+them); the ground past the map's edge is black on two photographs and
+beside the player's own capital on the minted lobby (item 4307, the pinned
+row at 0 of 162, a card probe first); the lake's fish are drawn white on
+the surface where theirs are dark under it, with the blot (item 4308); a
+cracked-ground decal on run1564 has nothing under it in ours (item 4309);
+then the deep tiles' residue (item 4310, parked 4296a). The named falls
+4292c to g and the one object of 4292b stay in their journal. Seen and not
+booked: the beam over the mounted flag-bearer, dust under moving tanks,
+muzzle flashes, and the roof trim's team colour, each small beside the
+five.
+
+**§5. The host's kill is measured again and not explained.** The handoff
+said the host has killed an executable rewritten in place and run again
+since about 13:00, 27 of 30. At 14:25 the same shape died 4 times in about
+60 trials, the first run of a rewritten file included; the system log
+this session can read names nothing. Claude Code has not updated since
+2026-11-09. The capture driver is a compiled binary dated 2026-09-03, and
+a script launched through it at 14:23 ran. The tranche's two fixture
+mends stand. What is not tested is a capture: the tracer's library is
+rebuilt for each one. The first capture of the next tranche is that test,
+and a kill there is a block that goes to Ramon at once.
+
+**§6. What the journals raised.** No "for the Loop" line, no `FABLE:`
+marker and no second reading in the tranche. `brief.py` reads a queue
+mark past a comma (the handoff's fifth) and needs no ruling.
+
+**Not established:** that our walk computes 1328 (the builder's first
+number); that a computer at peace accepts an attack request at any price
+(the terms are unread beyond their size); the `LAST_WHO0` reading; whether
+any difficulty produces a demand by 7,000; what kills the rewritten
+executables.

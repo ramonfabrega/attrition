@@ -22148,3 +22148,27 @@ would be empty files; the panel's roster next; the auto-explored file's
 playback as a rules item with the take first; the land's light taken on
 the plain ground after a look at 1:1. Booked: 4289 to 4292. The pass moved
 no score. **DECISIONS 136.** `docs/audit/2026-11-16-fable-pass-wake.md`.
+
+## 2026-11-16 — the second pass of the day: the mover for the leaders line's last six leaves (Fable 5.2, steering)
+
+`commander` landed twelve in under four hours and drained every seat,
+because residue 18 had shown that none of the six leaves still held out
+of the leaders line moves on any dump our walk compares, and a mover was
+the pass's to design. Two Opus scouts looked at the disk before any
+capture was booked. One swept every gamelog in both archives and found a
+single mover: an unfiled rehearsal of run1575's script in which the human
+buys peace with 2,000 metal and the French `good_deeds` reads 1328. The
+pass compared its draw words with run1575's and found them equal past the
+mover, so the first release needs no capture, only a ledger section and a
+walk. The other five leaves take three games: one deal in which the human
+asks a computer to attack the third leader (three leaves), a taunt from a
+human seated off slot 0, and a computer's demand for tribute, which opens
+at frame 6,000 on a lobby whose longest style-0 game on disk is 1,150
+frames. That last one is measured by two recons before anything is built.
+A release for a leaf "frozen under the lobby's style" was weighed and
+refused. The pass drew the client's stills beside the three photographs:
+no national border is drawn, the ground past the map's edge is black, and
+the lake's fish are white. Booked: 4159r19 and items 4298 to 4310. The
+host's kill of rewritten executables still happens and is not explained.
+The pass moved no score and built nothing. **DECISIONS 137.**
+`docs/audit/2026-11-16-fable-pass-mover.md`.

@@ -82,6 +82,12 @@ line; **orders** — `INPUT_KINDS` 25 of 26 kinds and 2,379 of 2,429 orders, the
 key binds (item 4290); **renderer** — under a mountain 106 of 106, the buildings' warmth 2 of 2,
 and the land's light taken on the plain ground (item 4292); the auto-explored file's playback is item 4291.
 
+**At the pass of 2026-11-16, second** (entry 137): **checksum** — `LEADERS_HELD_OUT` 6, the last six leaves
+booked on four movers (4159r19, items 4298 to 4300); **orders** — `INPUT_KINDS` 26 of 26, 2,311 of 2,429
+orders shown or of the layer's form, 118 missed on four arms (items 4301 to 4304), `INPUT_WHOLE` 42 of 50;
+**renderer** — run1559b's ground luma 1,109 of 1,109; the pass's look booked the borders, the map's edge
+and the lake's fish (items 4306 to 4308).
+
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
 on one lane, taking textures and team colours next; then the lobby screen

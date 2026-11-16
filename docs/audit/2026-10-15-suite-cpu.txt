@@ -1,6 +1,6 @@
-# Every rondata release test's CPU alone, 2026-11-16, tools/suite_timings.py (tree 03dfe1a1).
+# Every rondata release test's CPU alone, 2026-11-16, tools/suite_timings.py (tree 32ee8bba).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 6,316 CPU-seconds and 121.57e12 instructions over 2471 tests; the host's load 10.3 at the start and 10.9 at the end.
+# Sum 6,320 CPU-seconds and 121.65e12 instructions over 2478 tests; the host's load 8.5 at the start and 8.3 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 144.32	3295.19	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
@@ -696,6 +696,7 @@
 2.05	42.09	diff::inca_classical_pair::inca_classical_pair_run1270_s_gap_is_widened_whole
 2.05	38.90	diff::indian_enlightenment_pair::indian_enlightenment_pair_run1324_s_gap_is_widened_whole
 2.05	43.78	diff::minted::the_original_s_playback_of_the_marketed_file_walks_in_lockstep
+2.05	41.72	diff::minted::what_the_auto_explore_does_on_both_sides
 2.04	35.15	diff::golden::chapter_thirty_three_s_word_frame_is_widened_whole
 2.04	39.55	diff::russian_gunpowder_pair::russian_gunpowder_pair_run1340b_s_word_frame_is_widened_whole
 2.04	40.34	diff::minted::the_unqueued_minted_script_s_effects_on_our_walk
@@ -956,6 +957,7 @@
 1.61	32.89	diff::chinese_modern_pair::chinese_modern_pair_first_parting
 1.61	30.85	diff::harness::tests::run155_s_word_frame_is_widened_whole
 1.61	34.11	diff::japanese_medieval_pair::japanese_medieval_pair_run1329_s_closing_state
+1.61	34.22	diff::minted::the_original_s_playback_of_the_auto_explored_file_walks_in_lockstep
 1.60	33.51	diff::audit::korean_medieval_pair_corrections_change_nothing
 1.60	28.62	diff::british_industrial_pair::british_industrial_pair_run1352_s_word_frame_is_widened_whole
 1.60	33.10	diff::japanese_medieval_pair::japanese_medieval_pair_first_parting
@@ -2472,3 +2474,8 @@
 0.00	0.03	recgame::tests::a_paused_script_holds_its_frame
 0.00	0.03	trace::ranges::tests::a_record_cut_inside_a_set_says_so
 0.00	0.03	trace::ranges::tests::a_record_reads_back_set_by_set
+0.00	0.03	diff::held_probe::tests::a_bent_cell_is_held
+0.00	0.03	diff::held_probe::tests::the_probe_is_off_unless_named
+0.00	0.03	prefs::tests::the_default_prefs_word_is_default_profile_s
+0.00	0.03	prefs::tests::the_flags_word_is_the_last_bit_s
+0.00	0.03	prefs::tests::the_fresh_profile_s_order

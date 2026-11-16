@@ -1,6 +1,6 @@
-# Every rondata release test timed alone, 2026-11-16, tools/suite_timings.py (tree 03dfe1a1).
+# Every rondata release test timed alone, 2026-11-16, tools/suite_timings.py (tree 32ee8bba).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 4,981 s over 2471 tests; --stale-only merged. Top 10 = 744 s, top 30 = 994, top 100 = 1491; 1058 tests under 1 s.
+# Sum 4,985 s over 2478 tests; --stale-only merged. Top 10 = 744 s, top 30 = 994, top 100 = 1491; 1063 tests under 1 s.
 # By module: mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, coverage 266 s / 6 tests, harness 227 s / 100 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 144.47	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
@@ -731,6 +731,7 @@
 2.09	diff::british_classical_pair::british_classical_pair_run1316c_s_gap_is_widened_whole
 2.09	diff::greek_enlightenment_pair::greek_enlightenment_pair_run1348_s_closing_state
 2.09	diff::checksum_frames::record::the_ranges_record_names_each_first_parting
+2.08	diff::minted::what_the_auto_explore_does_on_both_sides
 2.08	diff::golden::chapter_forty_six_s_word_frame_is_widened_whole
 2.08	diff::corpse_melee::corpse_melee_run1542_s_word_window_is_widened_whole
 2.08	diff::harness::tests::run130_s_word_is_1_64_s_lag
@@ -742,6 +743,7 @@
 2.07	diff::harness::tests::run116_s_sweep_is_the_original_s
 2.07	diff::greek_enlightenment_pair::greek_enlightenment_pair_first_parting
 2.07	diff::unit::tests::run79_s_window_is_every_unit_s_whole_record
+2.07	diff::minted::the_original_s_playback_of_the_auto_explored_file_walks_in_lockstep
 2.06	diff::minted::the_original_s_playback_of_the_marketed_file_walks_in_lockstep
 2.06	diff::golden::chapter_seven_s_word_frame_is_widened_whole
 2.06	diff::golden::chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase
@@ -2412,6 +2414,11 @@
 0.01	mountains::tests::the_peak_is_the_first_highest_vertex
 0.01	blind::tests::a_refusal_quoted_into_a_document_cites_nothing
 0.01	trace::ranges::tests::a_record_reads_back_set_by_set
+0.01	diff::held_probe::tests::a_bent_cell_is_held
+0.00	prefs::tests::the_default_prefs_word_is_default_profile_s
+0.00	diff::held_probe::tests::the_probe_is_off_unless_named
+0.00	prefs::tests::the_fresh_profile_s_order
+0.00	prefs::tests::the_flags_word_is_the_last_bit_s
 0.00	recgame::tests::a_paused_script_holds_its_frame
 0.00	testenv::fixture_audit::a_resumed_stand_up_s_requests_are_written_each_time
 0.00	testenv::fixture_audit::a_shared_cache_credits_each_reader_with_the_fill_s_requests
