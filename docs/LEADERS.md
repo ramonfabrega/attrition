@@ -1893,8 +1893,10 @@ sim reader.
   `LEADER_OUT`; it is HUMAN.
 - **Checksum.** `blacken`, `dow`, `broke_alliance`: `leader_declare_leaf`,
   off `LEADERS_HELD_OUT` since VII-b1 (47 → 44); `made_peace` since
-  VII-c (37 → 31, with §8's and §9's five); `good_deeds`, `hire_stamp` and
-  `hire_who` stay `(unheld)`, held with no mover a walk computes.
+  VII-c (37 → 31, with §8's and §9's five); `good_deeds` since 4159r19
+  (6 → 5, 7.5); `hire_stamp` and `hire_who` stay `(unheld)`, held with no
+  mover a walk computes. Since 4159r19 `diff::leader` compares all three
+  rows, with §8's `tribute_demanded` and `tributes` (4159r18a).
   The answer is a constant for all eight in an all-computer
   style-1 game: 0, and `hire_who` −1 per slot after `Leader::init`.
 
@@ -1950,6 +1952,24 @@ need 400, the counteroffer. On 1052 `counteroffer[0]` 1 and both `agree`
 0, ours equal (`run1575_s_alliance_is_found_short`; it parts without the
 proposal). Forced to accept, the word parts on 1052. The other gates and
 terms rest on the listing and `leaders::diplomacy::alliance::tests`.
+
+**Diff-backed (4159r19): `good_deeds`, computed** on run1628
+(recon4206-4 filed, `docs/RUNS.md`): run1575's game with the peace bought
+for 2,000 metal, four `process_tribute 1 4` (1024 to 1027, 500 each, read
+off the human's own `dip[1].offers[4]`) staged as `Sim::action_offer`,
+then `process_accept 1 1031`. The human's commit forces the French pass on
+1031; its offers arm values the 2,000 metal as a surplus, accepts, and
+stores `good_deeds[0] −= need`. The record moves the French
+`good_deeds[0]` 0 → 1328 on 1032, and ours is 1328 on all 119 blocks from
+1032 to 1150. The walk holds 1150 of 1150 against run1628's own trace
+(`run1628_s_good_deeds_are_the_french_answer`). With the tributes left
+unstaged ours stays 0 and parts on 1032
+(`..._part_without_the_tributes`). Backed: the accept's store, and the
+valuation's sum on one metal give at peace. **Not established:** how the
+1328 splits into terms. `need` is −1328 only if no other term enters (a
+metal `resource_value` of 170, `⌊170 · 2000 / 256⌋`), and that is not read
+off our walk. Also not established: the doubling with a non-zero seed (the
+balance was 0), the ×4 and ×3/2 give scales, and the `weak` +50.
 
 **The take (items 4206, 4207; the story is
 `docs/journal/2026-11-13-item-4159-VII-c.md`).** run1575, run1482's
@@ -2247,7 +2267,8 @@ pure gift's execution, the exchange for a human receiver, the
 `x >= 100` rounding, and the two constants at Commerce 1. These rest on
 the reading and `leaders::tribute::tests` alone:
 - the wait, `clear_agree`'s refund and the reject;
-- a computer receiver's predicate;
+- a computer receiver's predicate (since 4159r19, its bucket clause's
+  refusal is backed on run1628, below);
 - the `x < 20` and `x < 100` roundings;
 - the attack prices and the `dows` residue;
 - `is_tribute_period`. Its one live stamp is the human's, and a human
@@ -2265,10 +2286,18 @@ packet at 1090 no longer parts on `dip.agree`. So the counteroffer's two
 stores (the flag, `clear_agree` both ways) are backed; its message's good
 is the interface's.
 
-`tribute_demanded` and `tributes` did not move. One scale reading comes
-off recon4206-4's buckets, a rehearsal that was not filed: the human's
-2,000 metal came to 1020 for the French, `pct` 51. A filed capture is
-needed before it is cited.
+`tribute_demanded` and `tributes` did not move. ~~One scale reading comes
+off recon4206-4's buckets, a rehearsal that was not filed~~ **Diff-backed
+on run1628 (4159r19)**, recon4206-4 filed: the human's 2,000 metal
+committed on 1031 and exchanged at once, the French metal 10,037 → 11,057
+and the human's 120,000 → 118,000 on 1032. That is `(2,000 · 51 + 99) /
+100` = 1,020 at the human's Commerce 0 (`pct` 51), ours equal: no bucket
+row parts over the walk's 1150 frames. So the commit of a human's positive
+give, the exchange to a computer receiver, and `pct` 51 are backed too
+(the `x >= 100` rounding again). So are `consider_tribute`'s two outcomes
+there: the human's `gift_stamp[1]` 1031, and the French `tribute_stamp[0]`
+left at 0, refused by its bucket clause (11,057 ≥ 3,000). The four tributes are
+`Sim::action_offer`, staged off the human's record.
 
 ## 8.6 Not established
 

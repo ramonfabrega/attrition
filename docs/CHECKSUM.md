@@ -1713,7 +1713,7 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 ## 20. The leaders line, held out on the long range (items 4121, 4124)
 
 **265 of 267 ranges and 4,515 of 58,343 bytes agree** on run 1562's frame
-91, and `LEADERS_HELD_OUT` names **9** leaves, from 140. Agreeing: all
+91, and `LEADERS_HELD_OUT` names **5** leaves, from 140. Agreeing: all
 eight slots' flag words, and the two walked leaders' diplomacy records,
 personalities, masks (each `tech` array since item 4187), sites, make
 lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
@@ -1754,6 +1754,7 @@ not count it (§5).
 | the residue, ninth builder | the thirteen combat leaves: `units_killed`, `units_lost`, `average_death_rate`, `average_damage_rate`, `average_hit_rate`, the four `*_current_frame` and the four `*_fifteen_seconds` words (no window parts them; witnessed on the packets) | 10 | §2.5, §3.5 |
 | the residue, sixteenth builder | `score` (4159r15a) | 9 | §18.5 |
 | seventeenth | the three victim stamps | 6 | §4.5 |
+| 4159r19 | `good_deeds`, moved on run1628's 1032 and computed | 5 | §7.5 |
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
