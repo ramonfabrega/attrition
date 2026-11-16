@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 137 §1 to §4): the third takes 4303, then 4304 and 4305; the suite's seat takes 4298's take (run1629), the one whole item out, then 4299; the chain's builder takes 4300a; render takes 4311, then 4308 to 4310 in order (Ramon: playing first).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 137 §1 to §4): the third takes 4303, then 4304 and 4305; the suite's seat takes 4298's take (run1629), the one whole item out, then 4299; the chain's builder takes 4300b (`Farms::inc_time` at DIFFICULTY 4); render takes 4311, then 4308 to 4310 in order (Ramon: playing first).
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 5 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
@@ -71,8 +71,8 @@ is how far our walk holds the reseated lobby. It stops and says so when the key 
 
 4300. **The demand: a computer asks tribute** (a rules item, whole; `docs/LEADERS.md` §8.2; DECISIONS 137 §1). `LEADERS_HELD_OUT` → 1
 less: `tribute_demanded`. First act done (`-4300-first-act.md`): at DIFFICULTY 0 the arm stays shut, ours parts on 3034; at 4 the
-French reach it on 6080 and declare war, ours parts on 5. Second act, the chain's builder's (4300a, run1640): a packet at 6079 under
-`step4.py` names the war branch and what takes the demand. Nothing is built before the driver reads it.
+French reach it on 6080 and declare war, ours parts on 5. Second act done (4300a, run1640's packet at 6079): local `-0x30` sends the arm
+to war; the human and France allied demand 700 WEALTH, at DIFFICULTY 2 or more. Next, 4300b: the walk at DIFFICULTY 4 parts on 5.
 
 4303. **`spell` on an object, the right press's** (an `input` item, scoped; `docs/CLIENT_INPUT.md` §18, §30.2; DECISIONS 137 §3). Missed
 32 → 10. First act: the census of the 22 by craft and target.
