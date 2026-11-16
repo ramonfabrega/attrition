@@ -297,6 +297,14 @@ pub struct World {
     /// The pieces laid among the patches, at the frame and the switches
     /// they were laid at.
     roads_laid: (i64, bool, (i32, i32), Vec<crate::roads::Laid>),
+    /// Draw the national borders (item 4306, §3.29). On by default; the
+    /// row's count as drawn before turns it off.
+    pub borders: bool,
+    /// The borders' made-to-fail (item 4306): the owner grid read this
+    /// many cells away.
+    pub borders_shift: (i32, i32),
+    /// The frame and switches the borders were laid at.
+    borders_laid: (i64, bool, (i32, i32)),
     /// Draw the surf (item 4239, §3.27). On by default; the row's count as
     /// drawn before turns it off.
     pub surf: bool,
@@ -461,6 +469,36 @@ pub const WEATHER_ALPHA: usize = 910;
 /// alpha's key moved from 930, inside the surf's masks ([`SURF_MASKS`]).
 pub const SNOWCAP_PIECE: i32 = -200_200;
 pub const SNOWCAP_ALPHA: usize = 912;
+/// **The national borders' pieces** (item 4306, §3.29): one a player,
+/// `BORDER_PIECE − who`, each its owner's colour.
+pub const BORDER_PIECE: i32 = -200_300;
+/// The borders' alpha ramp ([`border_alpha_mips`]).
+pub const BORDER_ALPHA_INDEX: usize = 913;
+/// **How far a border is lifted** off the ground's heights, in world
+/// units (item 4306): the original draws it with the depth test off
+/// (`Scene::init_render_states@008ba450`), the patch pass tests
+/// `LessEqual`, and the lift keeps the ground between two of the band's
+/// vertices from covering it. Not the original's.
+pub const BORDER_LIFT: f32 = 6.0;
+
+/// Whether a patch is a border's.
+pub fn is_border(piece: i32) -> bool {
+    (BORDER_PIECE - 15..=BORDER_PIECE).contains(&piece)
+}
+
+/// A 256-texel ramp whose texel `i` has alpha `i`: a border vertex's
+/// alpha is its texcoord, the band's alpha interpolated across a
+/// triangle as the original's vertex alpha is.
+pub fn border_alpha_mips() -> std::sync::Arc<render::silhouette::Mips> {
+    std::sync::Arc::new(render::silhouette::Mips::new(render::tga::Image {
+        width: 256,
+        height: 1,
+        kind: 2,
+        bits: 32,
+        footer: false,
+        rgba: (0..=255u8).flat_map(|a| [255, 255, 255, a]).collect(),
+    }))
+}
 /// The roads' texture among the ground's, and as their own alpha (item
 /// 4199): `modern_road_pieces.tga` is both.
 pub const ROAD_PIECE: i32 = -200_021;
@@ -1077,6 +1115,9 @@ impl World {
             roads_shift: (0, 0),
             road_art,
             roads_laid: (-1, false, (0, 0), Vec::new()),
+            borders: true,
+            borders_shift: (0, 0),
+            borders_laid: (-1, false, (0, 0)),
             surf: true,
             surf_art,
             surf_laid: (-1, false),
@@ -1587,6 +1628,7 @@ impl World {
             self.laid_ramp = None;
             self.weather_laid = (-1, false, (0, 0), Vec::new());
             self.roads_laid = (-1, false, (0, 0), Vec::new());
+            self.borders_laid = (-1, false, (0, 0));
             self.surf_laid = (-1, false);
         }
         // Item 4190 (§3.17): the footprint weathering, laid again when the
@@ -1644,6 +1686,26 @@ impl World {
                 self.patch_version = self.patch_version.wrapping_add(1);
             }
             self.roads_laid = (key.0, key.1, key.2, want);
+        }
+        // Item 4306 (§3.29): the national borders, after the roads and
+        // before the first mountain layer — `Borders::process_all` draws
+        // after the terrain and the roads, before the shadows and the
+        // mountains — laid again when the frame or a switch moves.
+        let key = (frame, self.borders, self.borders_shift);
+        if self.borders_laid != key {
+            self.drawn.3.retain(|m| !is_border(m.piece));
+            if self.borders {
+                let meshes = self.border_meshes();
+                let at = self
+                    .drawn
+                    .3
+                    .iter()
+                    .position(|p| p.mountain)
+                    .unwrap_or(self.drawn.3.len());
+                self.drawn.3.splice(at..at, meshes);
+            }
+            self.patch_version = self.patch_version.wrapping_add(1);
+            self.borders_laid = key;
         }
         // Item 4239 (§3.27): the surf, after the water (the card's draws
         // 163 to 169 follow the water's 162), laid again each frame.
@@ -1859,6 +1921,122 @@ impl World {
             }
         }
         (!m.positions.is_empty()).then_some(m)
+    }
+
+    /// **The national borders as patch meshes** (item 4306, §3.29): one a
+    /// player, [`crate::borders::band`]'s halves on the ground's heights,
+    /// lifted [`BORDER_LIFT`], the texture the owner's border colour and
+    /// the alpha each vertex's off [`border_alpha_mips`].
+    fn border_meshes(&mut self) -> Vec<PatchMesh> {
+        use crate::borders::{BORDER_ALPHA, BORDER_COLOURS, FADED_ALPHA};
+        let t = self.runner.terrain();
+        let terr = self.runner.territory();
+        let field = Heightfield {
+            width: t.width,
+            height: t.height,
+            corners: &t.corners,
+        };
+        if !field.is_whole() || terr.width != t.width || terr.height != t.height {
+            return Vec::new();
+        }
+        let (w, h) = (t.width, t.height);
+        let (sx, sy) = field.stride();
+        let unit = render::terrain::UNITS_PER_TILE as f32;
+        let z = |x: f32, y: f32| {
+            let (x, y) = (x / unit, y / unit);
+            let (tx, ty) = (x.floor() as i32, y.floor() as i32);
+            let (fx, fy) = (x - tx as f32, y - ty as f32);
+            let c = |cx: i32, cy: i32| field.z(cx.clamp(0, sx - 1), cy.clamp(0, sy - 1));
+            let (a, b, c4, d) = (c(tx, ty), c(tx + 1, ty), c(tx + 1, ty + 1), c(tx, ty + 1));
+            if fx + fy <= 1.0 {
+                a + fx * (b - a) + fy * (d - a)
+            } else {
+                c4 + (1.0 - fx) * (d - c4) + (1.0 - fy) * (b - c4)
+            }
+        };
+        let ocean = |x: i32, y: i32| {
+            let i = (y * w + x) as usize;
+            t.flags[i] & sim::world::cell::HALFLAND == 0 && matches!(t.land[i], 1 | 2)
+        };
+        let (dx, dy) = self.borders_shift;
+        let owner: Vec<sim::Owner> = (0..h)
+            .flat_map(|y| (0..w).map(move |x| (x, y)))
+            .map(|(x, y)| {
+                let (ox, oy) = (x - dx, y - dy);
+                if ox < 0 || oy < 0 || ox >= w || oy >= h {
+                    sim::Owner::None
+                } else {
+                    terr.owner[(oy * w + ox) as usize]
+                }
+            })
+            .collect();
+        let sea: Vec<bool> = (0..h)
+            .flat_map(|y| (0..w).map(move |x| (x, y)))
+            .map(|(x, y)| ocean(x, y))
+            .collect();
+        let tiles_wide = w * render::terrain::TILES_PER_CELL;
+        let cell = sim::world::UNITS_PER_CELL as f32;
+        // `init_border_render`: an end beside the water or past the map,
+        // and a vertex over a tile whose `mask & 3` is 2, fade.
+        let alpha = |x: f32, y: f32, end: bool| -> u8 {
+            if end {
+                let (cx, cy) = ((x / cell).round() as i32, (y / cell).round() as i32);
+                let open = [(cx - 1, cy - 1), (cx, cy - 1), (cx - 1, cy), (cx, cy)]
+                    .into_iter()
+                    .any(|(qx, qy)| qx < 0 || qy < 0 || qx >= w || qy >= h || ocean(qx, qy));
+                if open {
+                    return FADED_ALPHA;
+                }
+            }
+            let (tx, ty) = ((x / unit).floor() as i32, (y / unit).floor() as i32);
+            let mask = (tx >= 0 && ty >= 0 && tx < tiles_wide)
+                .then(|| t.tiles.get((ty * tiles_wide + tx) as usize))
+                .flatten();
+            match mask {
+                Some(m) if m & 3 != 2 => BORDER_ALPHA,
+                _ => FADED_ALPHA,
+            }
+        };
+        let chains = crate::borders::chains(&crate::borders::edges(w, h, &owner, &sea));
+        let mut by: BTreeMap<sim::Player, PatchMesh> = BTreeMap::new();
+        let alpha_mips = border_alpha_mips();
+        for c in &chains {
+            for (who, tris) in crate::borders::band(c, &alpha) {
+                let m = by.entry(who).or_insert_with(|| {
+                    let [r, g, b] = BORDER_COLOURS
+                        .get(usize::from(who))
+                        .copied()
+                        .unwrap_or([255; 3]);
+                    PatchMesh {
+                        piece: BORDER_PIECE - i32::from(who),
+                        maps: None,
+                        positions: Vec::new(),
+                        uvs: Vec::new(),
+                        alpha_uvs: Vec::new(),
+                        mips: std::sync::Arc::new(render::silhouette::Mips::new(
+                            render::tga::Image {
+                                width: 1,
+                                height: 1,
+                                kind: 2,
+                                bits: 32,
+                                footer: false,
+                                rgba: vec![r, g, b, 255],
+                            },
+                        )),
+                        alpha: BORDER_ALPHA_INDEX,
+                        alpha_mips: alpha_mips.clone(),
+                        mountain: false,
+                        light: Vec::new(),
+                    }
+                });
+                for ([x, y], a) in tris {
+                    m.positions.push([x, y, z(x, y) + BORDER_LIFT]);
+                    m.uvs.push([0.5, 0.5]);
+                    m.alpha_uvs.push([(f32::from(a) + 0.5) / 256.0, 0.5]);
+                }
+            }
+        }
+        by.into_values().collect()
     }
 
     /// The footprints' tiles as one [`PatchMesh`] (item 4190, §3.17): each
