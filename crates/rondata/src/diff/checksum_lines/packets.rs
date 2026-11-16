@@ -1898,18 +1898,20 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: builds (4271, 4271, 25) -> (4271, 4271, 24).
     // Item 4262, a wonder's entry in its wonder list: builds (4271, 4271, 24) -> (4271, 4271, 21).
     // Item 4266, a guard order's walker: units (11740, 10933, 10438) -> (11740, 11677, 10203).
+    // Item 4159r14, the Mongol stable arm of `get_cost`: builds (4271, 4271, 21) -> (4271, 4271, 13),
+    // leaders (271, 271, 6) -> (271, 271, 4) (`encrypt.bucket[0]`/`[1]` agree).
     (
         "run1224b",
         9745,
         [
             (11740, 11677, 10203),
-            (4271, 4271, 21),
+            (4271, 4271, 13),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
             (556, 556, 0),
             (2735, 2735, 0),
-            (271, 271, 6),
+            (271, 271, 4),
             (62, 62, 0),
             (30, 30, 0),
             (120, 120, 0),
@@ -4777,7 +4779,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run1221", "flags.leader_flags resources_controlled"),
     (
         "run1224b",
-        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1235b",

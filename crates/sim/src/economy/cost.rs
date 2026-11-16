@@ -226,6 +226,14 @@ pub struct Modifiers {
     /// percent is written in the executable; `SALT_BARRACKS_COST`'s 15% is
     /// never read here (item 3318, `docs/AI.md` §264).
     pub salt: bool,
+    /// `get_cost`'s **Mongol arm** (`TypeData::get_cost@00664090:216`–`222`,
+    /// right after Salt and before the French): a Mongol leader's
+    /// (`has_tribe_bonus(0x11)`) unit whose trainer (`+0x40`) is of the
+    /// Stable line (`is(0x1ac, 0)`) takes `MONGOL_STABLE_COST` percent off
+    /// the scaled base, ahead of the research fork, so the ramp's ceiling
+    /// is still the undiscounted base's. No attack test, unlike
+    /// `train_time`'s Mongol arm (item 4159r14).
+    pub mongol_stable: i32,
     /// The **American aircraft arm** (`get_cost:268`–`282`): up to three
     /// `AMERICANS_AIRCRAFT` percentages — the Airbase trainer, then
     /// `is(0x15f, 0)`, then `is(0x134, 0)` — each its own truncating step
@@ -640,6 +648,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     let mut cost = scaled;
     if m.salt {
         cost = cost * 9 / 10;
+    }
+    if m.mongol_stable != 0 {
+        cost = (100 - m.mongol_stable) * cost / 100;
     }
     for pct in m.american_aircraft {
         cost = (100 - pct) * cost / 100;

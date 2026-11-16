@@ -2658,6 +2658,69 @@ fn a_mongol_attacker_from_the_stable_trains_faster() {
 }
 
 #[test]
+fn a_mongol_stable_unit_costs_a_tenth_less_before_the_ramp() {
+    // `TypeData::get_cost@00664090:216`–`222`, the pre-ramp tail right
+    // after the Salt arm: a Mongol leader (`has_tribe_bonus(0x11)`)'s unit
+    // whose trainer (`+0x40`) is of the Stable line (`is(0x1ac, 0)`) takes
+    // `MONGOL_STABLE_COST`, 10, off the scaled base — with no attack test,
+    // unlike `train_time`'s arm. run1198b's Mongol Light Horse at `1/2017`
+    // on block 8586 are 110/82 in the original and were 116/86 here, the
+    // undiscounted 60/40 plus the same ramp (item 4159r12b). Made to fail
+    // with the arm dropped, and with the Stable test dropped.
+    use crate::economy::Resource;
+    use crate::economy::cost::{Kind, Price};
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    while tree.types.len() < 0x1ab {
+        tree.add(TypeDef::building("pad"));
+    }
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let stable = tree.add(TypeDef::building("Stable"));
+    assert_eq!((barracks, stable), (0x1ab, 0x1ac));
+    let mut rider = TypeDef::unit("Rider", UnitTraits::default());
+    rider.where_ = Some(stable);
+    let rider_t = tree.add(rider);
+    let mut foot = TypeDef::unit("Foot", UnitTraits::default());
+    foot.where_ = Some(barracks);
+    let foot_t = tree.add(foot);
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let price = Price {
+        kind: Kind::Unit,
+        ..Price::free()
+            .with_base(Resource::Food, 6)
+            .with_base(Resource::Timber, 4)
+    };
+    let mut ty = |t, attack| {
+        let mut u = citizen_type();
+        u.tree = Some(t);
+        u.combat.attack = attack;
+        u.price = price.clone();
+        sim.add_unit_type(u)
+    };
+    let (rider, caravan, footman) = (ty(rider_t, 40), ty(rider_t, 0), ty(foot_t, 40));
+    let food_timber = |s: &Sim, ty| {
+        let p = s.price_of(0, ty);
+        [p[Resource::Food.index()], p[Resource::Timber.index()]]
+    };
+    assert_eq!(food_timber(&sim, rider), [60, 40], "not a Mongol");
+    sim.cities.nation[0].mongols = true;
+    assert_eq!(food_timber(&sim, rider), [54, 36], "a Mongol's Stable unit");
+    assert_eq!(
+        food_timber(&sim, caravan),
+        [54, 36],
+        "no attack test on the cost"
+    );
+    assert_eq!(
+        food_timber(&sim, footman),
+        [60, 40],
+        "the Barracks is not the Stable line"
+    );
+}
+
+#[test]
 fn a_government_speeds_its_trainer_lines_by_equality() {
     // `ObjectData::train_time@006508c0`'s two government arms, after the
     // wool arm: a Stable's unit under `MONARCHY_1` takes
