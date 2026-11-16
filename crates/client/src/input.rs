@@ -6094,6 +6094,301 @@ pub(crate) mod tests {
     const TOGGLED_RCX: &str = "ron-golden/recordings/item4283-toggled-greatlakes-24000.rcx";
     const TOGGLED_RCX_BYTES: usize = 59_670;
 
+    /// **Who reaches a missed arm** (item 4285, `docs/CLIENT_INPUT.md` §30).
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+    enum Reach {
+        /// A button, a key or a modifier of the original's issues it; the
+        /// layer has not taken that arm.
+        Button,
+        /// Our file writer: the original's one package a turn holds every
+        /// issue of the turn, and `recgame::minted_packages` writes one
+        /// order a package on strictly increasing frames.
+        Writer,
+        /// No button: `leader_options` is issued from the player's profile
+        /// by `Game::run` (§26.1).
+        Profile,
+    }
+
+    /// **What the census says of one recorded package** (item 4285): every
+    /// order of it takes the package's verdict, since the layer mints a
+    /// package whole or not at all.
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    enum Verdict {
+        /// A pinned test mints every recorded package of this form field
+        /// for field, the package whole; the pin is named.
+        Shown(&'static str),
+        /// Of a kind and a form the layer mints (its fixed fields equal the
+        /// layer's, its type in the layer's keys), but no test mints the
+        /// recorded one from a scene: its point, its object and its group
+        /// are not checked.
+        Form,
+        /// Not minted: the arm, and who reaches it.
+        Miss(&'static str, Reach),
+    }
+
+    /// The census's verdict on one package's kept orders. `paused` is the
+    /// layer's pause bit, minted here: a `pause` is the one kind whose
+    /// order needs no scene, so it is minted in place, byte for byte.
+    fn census_verdict(
+        kept: &[Command],
+        frame: i32,
+        play: u8,
+        pauser: &mut Input,
+        v: &View,
+    ) -> Verdict {
+        use Reach::*;
+        let heads: Vec<&Command> = kept
+            .iter()
+            .filter(|c| !matches!(c, Command::Group { .. }))
+            .collect();
+        if heads.len() != 1 {
+            return Verdict::Miss("two issues in one turn: one package a turn", Writer);
+        }
+        let minted = |c: &Command| MINTS.contains(&c.name());
+        match heads[0] {
+            Command::LeaderOptions { .. } => {
+                Verdict::Miss("leader_options: the profile's", Profile)
+            }
+            Command::Pause { .. } => {
+                pauser.player = play;
+                let got = pauser.event(frame, Event::Pause, v);
+                if got.as_ref().map(|o| o.2.as_slice()) == Some(kept) {
+                    Verdict::Shown("the census's own pause")
+                } else {
+                    Verdict::Miss("pause: the bit parts", Button)
+                }
+            }
+            Command::Unqueue { .. } => Verdict::Shown("INPUT_UNQUEUES"),
+            Command::CityGather { .. } => Verdict::Shown("INPUT_CITY_GATHERS"),
+            Command::Sell { .. } | Command::Buy { .. } => Verdict::Shown("INPUT_TRADED"),
+            Command::Chat { .. } => Verdict::Shown("INPUT_CHEATED"),
+            Command::Hotkey { .. } => Verdict::Shown("INPUT_HOTKEYS"),
+            Command::Garrison { .. } => Verdict::Shown("INPUT_GARRISONS"),
+            Command::RenameCity { .. } => Verdict::Shown("INPUT_RENAMES"),
+            Command::Buildmask { .. } => Verdict::Shown("INPUT_BUILDMASKS"),
+            Command::ComeOut { .. } => Verdict::Shown("INPUT_COME_OUTS"),
+            Command::Stance { .. } => Verdict::Shown("INPUT_STANCES"),
+            Command::CheatAiToggle { .. } => Verdict::Shown("INPUT_TOGGLES"),
+            Command::Spell { ox: -1, .. } => Verdict::Shown("INPUT_SPELLS"),
+            Command::Spell { .. } => Verdict::Miss("spell on an object: the right press's", Button),
+            &Command::MoveTo {
+                set_angle,
+                orders,
+                queued,
+                form,
+                width,
+                disembark,
+                ..
+            } => {
+                if set_angle != 0 {
+                    Verdict::Miss("move_to set_angle 1: the right drag's facing", Button)
+                } else if queued != 2 {
+                    Verdict::Miss("queued 1: the shift held", Button)
+                } else if orders != 1 {
+                    Verdict::Miss("move_to orders 2: the attack-move", Button)
+                } else if disembark == 0 && matches!((form, width), (0, 50) | (9, 50) | (-1, -1)) {
+                    Verdict::Form
+                } else {
+                    Verdict::Miss("move_to: a formation the layer does not write", Button)
+                }
+            }
+            &Command::Attack {
+                ignore: 0,
+                queued: 2,
+                ..
+            }
+            | &Command::Guard { queued: 2, .. }
+            | &Command::Gather { queued: 2, .. } => Verdict::Form,
+            &Command::SwarmAround {
+                queued: 2, orders, ..
+            } if orders == BUILD_AT || orders == REPAIR => Verdict::Form,
+            Command::Attack { .. }
+            | Command::Guard { .. }
+            | Command::Gather { .. }
+            | Command::SwarmAround { .. } => Verdict::Miss("queued 1: the shift held", Button),
+            &Command::Build {
+                x,
+                y,
+                x2,
+                y2,
+                build,
+                queued,
+            } => {
+                if queued != 2 {
+                    Verdict::Miss("queued 1: the shift held", Button)
+                } else if (x, y) != (x2, y2) {
+                    Verdict::Miss("build: a dragged line", Button)
+                } else if !BUILD_KEYS.iter().any(|k| k.1 == build) {
+                    Verdict::Miss("build: a type no key of ours binds", Button)
+                } else {
+                    Verdict::Form
+                }
+            }
+            &Command::QueueUp { unit, num } => {
+                if num != 1 {
+                    Verdict::Miss("queue_up: a count past one", Button)
+                } else if !TRAIN_KEYS.iter().any(|k| k.1 == unit) {
+                    Verdict::Miss("queue_up: a type no key of ours binds", Button)
+                } else {
+                    Verdict::Form
+                }
+            }
+            Command::GatherPoint {
+                action: 0,
+                add_to_end: 0,
+                ..
+            } => Verdict::Form,
+            Command::GatherPoint { add_to_end: 0, .. } => {
+                Verdict::Miss("gather_point on an object: actions 1 to 3", Button)
+            }
+            c if minted(c) => Verdict::Form,
+            Command::Disband { .. } => Verdict::Miss("disband: not minted", Button),
+            Command::Unitmask { .. } => Verdict::Miss("unitmask: not minted", Button),
+            _ => Verdict::Miss("a kind the census does not read", Button),
+        }
+    }
+
+    /// **`INPUT_WHOLE`** (item 4285, `docs/CLIENT_INPUT.md` §30): of the
+    /// recordings on disk, those whose every order is [`Verdict::Shown`],
+    /// of all of them. Every recording carries `leader_options`, which no
+    /// button issues, so the count is 0 until the layer mints it.
+    const INPUT_WHOLE: (usize, usize) = (0, 50);
+    /// The same count with `leader_options` taken as the file writer takes
+    /// it, copied from a recording's frame 0 rather than minted: the 38
+    /// files that carry nothing else, and the four whose other orders are
+    /// all shown (a pause pair, two of chat lines, a toggle). Seen red
+    /// pinned (41, 50).
+    const INPUT_WHOLE_CARRIED: (usize, usize) = (42, 50);
+    /// Every order on disk by verdict: (shown, of the layer's form but not
+    /// minted from a scene, missed, all). A package's `group` takes its
+    /// order's verdict.
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (359, 1076, 994, 2429);
+    /// The missed orders by arm, most first, and who reaches each, the
+    /// package's `group` counted with its order.
+    const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] = &[
+        ("queue_up: a type no key of ours binds", Reach::Button, 390),
+        ("queued 1: the shift held", Reach::Button, 200),
+        (
+            "move_to set_angle 1: the right drag's facing",
+            Reach::Button,
+            140,
+        ),
+        ("move_to orders 2: the attack-move", Reach::Button, 54),
+        ("leader_options: the profile's", Reach::Profile, 50),
+        (
+            "gather_point on an object: actions 1 to 3",
+            Reach::Button,
+            48,
+        ),
+        ("build: a type no key of ours binds", Reach::Button, 42),
+        (
+            "two issues in one turn: one package a turn",
+            Reach::Writer,
+            38,
+        ),
+        ("spell on an object: the right press's", Reach::Button, 22),
+        ("build: a dragged line", Reach::Button, 6),
+        ("disband: not minted", Reach::Button, 2),
+        ("unitmask: not minted", Reach::Button, 2),
+    ];
+
+    /// **A person's whole game, by recording** (item 4285): each recording
+    /// on disk, its every order given its package's [`Verdict`]; the
+    /// recordings whose orders are all shown, and the misses by arm. Each
+    /// shown pin is held to the disk: its recorded packages are the census's
+    /// count of packages it names, and it mints all of them.
+    #[test]
+    fn input_whole_recordings_on_disk() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let scene = Scene::default();
+        let v = view(&c, &scene, &terrain);
+        let (mut whole, mut carried) = (0, 0);
+        let (mut shown, mut form, mut missed, mut all) = (0, 0, 0, 0);
+        let mut by_pin: std::collections::BTreeMap<&str, usize> = Default::default();
+        let mut arms: std::collections::BTreeMap<(&str, Reach), usize> = Default::default();
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let mut pauser = Input::new(0);
+            let (mut s, mut fo, mut m, mut lo) = (0, 0, 0, 0);
+            let mut its: std::collections::BTreeMap<&str, usize> = Default::default();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                if kept.is_empty() {
+                    continue;
+                }
+                let n = kept.len();
+                match census_verdict(&kept, p.frame, p.play as u8, &mut pauser, &v) {
+                    Verdict::Shown(pin) => {
+                        s += n;
+                        *by_pin.entry(pin).or_default() += 1;
+                    }
+                    Verdict::Form => fo += n,
+                    Verdict::Miss(arm, reach) => {
+                        m += n;
+                        if reach == Reach::Profile {
+                            lo += n;
+                        }
+                        *arms.entry((arm, reach)).or_default() += n;
+                        *its.entry(arm).or_default() += n;
+                    }
+                }
+            }
+            let name = f.file_name().unwrap().to_string_lossy();
+            println!(
+                "WHOLE {name}: {s} shown, {fo} form, {m} missed of {}; {its:?}",
+                s + fo + m
+            );
+            whole += usize::from(fo == 0 && m == 0);
+            carried += usize::from(fo == 0 && m == lo);
+            (shown, form, missed) = (shown + s, form + fo, missed + m);
+            all += s + fo + m;
+        }
+        let mut misses: Vec<(&str, Reach, usize)> =
+            arms.into_iter().map(|((a, r), n)| (a, r, n)).collect();
+        misses.sort_by(|a, b| b.2.cmp(&a.2).then(a.0.cmp(b.0)));
+        println!(
+            "WHOLE {whole} of {}, carried {carried}; orders {shown} shown, {form} form, {missed} missed of {all}",
+            files.len()
+        );
+        println!("WHOLE PINS {by_pin:?}");
+        println!("WHOLE MISSES {misses:?}");
+        for (pin, (minted, of)) in [
+            ("INPUT_UNQUEUES", INPUT_UNQUEUES),
+            ("INPUT_CITY_GATHERS", INPUT_CITY_GATHERS),
+            ("INPUT_TRADED", INPUT_TRADED),
+            ("INPUT_CHEATED", INPUT_CHEATED),
+            ("INPUT_HOTKEYS", INPUT_HOTKEYS),
+            ("INPUT_GARRISONS", INPUT_GARRISONS),
+            ("INPUT_RENAMES", INPUT_RENAMES),
+            ("INPUT_BUILDMASKS", INPUT_BUILDMASKS),
+            ("INPUT_COME_OUTS", INPUT_COME_OUTS),
+            ("INPUT_STANCES", INPUT_STANCES),
+            ("INPUT_TOGGLES", INPUT_TOGGLES),
+            ("INPUT_SPELLS", INPUT_SPELLS),
+        ] {
+            assert_eq!(minted, of, "{pin} mints every package it reads");
+            assert_eq!(
+                by_pin.get(pin).copied().unwrap_or(0),
+                of,
+                "{pin} against the census"
+            );
+        }
+        assert_eq!((whole, files.len()), INPUT_WHOLE);
+        assert_eq!((carried, files.len()), INPUT_WHOLE_CARRIED);
+        assert_eq!((shown, form, missed, all), INPUT_WHOLE_ORDERS);
+        assert_eq!(misses, INPUT_WHOLE_MISSES);
+    }
+
     /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
