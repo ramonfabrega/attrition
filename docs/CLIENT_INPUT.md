@@ -3862,7 +3862,7 @@ layer's.
 `group` and a `spell` each, at the point (0, 0). The right press of a Spy or a Commando issues them. The layer now
 mints them from `Console::execute_at_cursor`'s two spy arms. **`INPUT_SPY_SPELLS` 11 of 11**, and
 `INPUT_WHOLE_ORDERS` 965 · 1,432 · 32 → **987 · 1,432 · 10** of 2,429. `INPUT_WHOLE` holds at 42 of 50. **This
-section touches `crates/sim`**: a read-only `SpyMarks` on the scene, and `ids::ty::SPY` and `COMMANDO`.*
+section touches `crates/sim`**: a read-only `SpyMarks` on the scene, and `ids::ty::COMMANDO`.*
 
 ### 37.1 The census
 

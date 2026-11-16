@@ -408,10 +408,10 @@ pub mod ty {
     pub const CARAVAN: TypeId = 0x3b;
     /// `SCOUT`, the Iroquois' from a Barracks.
     pub const SCOUT: TypeId = 0x45;
-    /// `SPY` and `COMMANDO`, the lineages `Console::execute_at_cursor
-    /// @007c6630`'s Spy and Scout-line arms count in a selection (item
-    /// 4303, `docs/CLIENT_INPUT.md` §37).
-    pub const SPY: TypeId = 0x3a;
+    /// `COMMANDO`, the lineage `Console::execute_at_cursor@007c6630`'s
+    /// Scout-line arm counts in a selection beside `SCOUT` (item 4303,
+    /// `docs/CLIENT_INPUT.md` §37); the Spy arm's is
+    /// `crate::units::think::scout::SPY`.
     pub const COMMANDO: TypeId = 0x49;
     /// `PEASANTS`, the Koreans' from a city.
     pub const PEASANTS: TypeId = 0x32;

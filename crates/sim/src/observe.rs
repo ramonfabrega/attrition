@@ -594,7 +594,7 @@ impl Sim {
                         })
                         .collect(),
                     spy: SpyMarks {
-                        spy: self.unit_is(i, crate::ids::ty::SPY),
+                        spy: self.unit_is(i, crate::units::think::scout::SPY),
                         scout_line: self.unit_is(i, crate::ids::ty::SCOUT),
                         commando: self.unit_is(i, crate::ids::ty::COMMANDO),
                         peasant: self.is_peasant(i),
