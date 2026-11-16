@@ -7277,14 +7277,18 @@ pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 /// `made_peace[·]` (+8 a leader; this level prints no `DIPLOMACY` block,
 /// so `dip.treaty[·]` is not compared here); 216 since step VII-d compares
 /// `counteroffer[·]` (+8 a leader; `dip.agree[·]`, like `dip.treaty[·]`,
-/// is not printed here).
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 216;
+/// is not printed here); 254 since item 4159's step 4159r19 compares the
+/// five printed held rows, `good_deeds[·]`, `hire_stamp[·]`, `hire_who[·]`,
+/// `tribute_demanded[·]` and `tributes[·]` (+38 a leader; 4159r18a).
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 254;
 /// The leader keys `LEADERS=2` prints and the leader diff reads, a
 /// player: the goods block's 88, `gov` since item 706, and the three tech
 /// counters since item 883 (`docs/GOLDEN.md` §35); 93 since item 4185
 /// compares `defeated_by`, the one of its nine this level prints; 94 since
-/// item 4187 compares `score`, which this level prints.
-pub(crate) const LEADERS_TWO_KEYS: usize = 94;
+/// item 4187 compares `score`, which this level prints; 100 since item
+/// 4159's step 4159r19 compares `tributes[·]`, the one of the five printed
+/// held rows this level prints (+6 a leader; 4159r18a).
+pub(crate) const LEADERS_TWO_KEYS: usize = 100;
 /// The leader keys `LEADERS=9` prints and the leader diff reads, a player
 /// (item 3969, chapter one hundred and twenty-five's take, the first golden
 /// window at that level); 1211 since item 3982 reads `ages_queued` and
@@ -7309,8 +7313,9 @@ pub(crate) const LEADERS_TWO_KEYS: usize = 94;
 /// step VII-d compares `counteroffer[·]` and the deal records'
 /// `dip.agree[·]` (+16 a leader; `LEADERS=2` prints neither); 1692 since
 /// item 4159's second residue compares `pop_issues` (+1 a leader; neither
-/// `LEADERS=2` nor `LEADERS=8` prints it).
-pub(crate) const LEADERS_NINE_KEYS: usize = 1692;
+/// `LEADERS=2` nor `LEADERS=8` prints it); 1730 since item 4159's step
+/// 4159r19 compares the five printed held rows (+38 a leader; 4159r18a).
+pub(crate) const LEADERS_NINE_KEYS: usize = 1730;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,

@@ -1002,12 +1002,93 @@ after it walks to it, with every effect equal on both sides.
 - `names_object` is the nearest-anchor look, not `find_target`'s.
 
 **Not established:**
-- **A rally point on an object**: `action` 1 and 2 (the arm by `LeaderData::is_enemy`) and 3 (a friendly target, the
-  second look). The layer mints nothing there. Recorded: 9, 3 and 12 orders.
+- ~~**A rally point on an object**: `action` 1 and 2 (the arm by `LeaderData::is_enemy`) and 3 (a friendly target, the
+  second look). The layer mints nothing there. Recorded: 9, 3 and 12 orders.~~ The layer's since item 4301 (§11.4):
+  the 24 heads minted byte for byte from a scene holding the object each names.
 - **The shift-held rally point** (`add_to_end` 1). No recording carries one.
 - **A garrisonable building that does not train**, and the type-ability arms of the count.
 - **The capital's snap** to a Woodcutter or Mine under the point (`action_gather_point`'s Village arm). The point here
   is bare ground.
+
+
+### 11.4 A rally point on an object (item 4301)
+
+*Item 4301, 2026-11-16. The score: `INPUT_WHOLE_ORDERS` missed 118 → 70. §30.2's largest arm was the 48 orders of a
+gather point on an object. The first act was their census against the right press's issuer, with the stop "an action
+whose issuer is not the right press". It was not reached.*
+
+**The census** (`gather_points_on_an_object_on_disk`, `GATHER_POINTS_ON_AN_OBJECT`):
+- 24 packages, every one in the 2017 sample, slot 3's on play 0, each the `gather_point` and its `group` alone. So
+  none is a two-issue turn's (item 4302).
+- By action: 1 nine times, 2 three times, 3 twelve times.
+- Actions 1 and 2 carry a world point, each a building's position. Action 3 carries `(x, 3)` with `x` one of 27, 69,
+  137 or 139: a unit index and the issuer's slot.
+
+**The reading.** All three actions come from one arm, `Console::execute_at_cursor@007c6630`'s gather arm (§11.2). It
+runs with a selection whose `COUNT_GATHER_POINT` is nonzero, and in this order:
+- **First look**: `find_target(SEARCH_INDEX_SEARCH_ALL, 2, FILTER_ALL)`, a building (kind 2) of any slot. It sees
+  only what `find_target_daemon`'s `is_seen` admits. On a hit:
+  - *refused* (`S_INVALID_ORDER`) when the building `is(0x1a4)` (the University), is the console's own, is
+    `is_active` (vslot `+0x4c`), and the selection counts a `VILLAGE` (`COUNT_TYPE 0x19e`). The `is` argument is
+    `push 0x1a4` at `0x7c7269` in the listing; the decompile drops it.
+  - *refused* when the building is a member of the selection (`GroupData::member`), unless the profile's `prefs` has
+    `0x2` or `0x200` (`0x7c736c`). The fresh profile has neither.
+  - *otherwise* `issue_gather_point(x, y, 1 + is_enemy(console->who, owner), mods)`. The point is the building's
+    `+0x10`/`+0x14`, each with `^ 0x63637` taken off.
+- **Second look**, when the first finds nothing: `find_target(SEARCH_FRIENDLY, 1, …)`, a unit (kind 1). The PDB's
+  `SearchIndex` has `SEARCH_FRIENDLY` = 1, and `Search::valid_search` case 1 admits the slot itself and nothing else.
+  On a hit: `issue_gather_point(get_captain(), slot, 3, mods)`. `get_captain` is vslot `+0xe4`, named by the vtable
+  export. The sim already reads an action-3 point as `(o, who)` naming a captain (`Build::replace_gather`, item 3989).
+- **Otherwise** the ground (§11.2).
+
+`mods` is the same on every arm: ctrl or shift. The listing's `-0x2c(%ebp)` and `-0x48(%ebp)` are both
+`GetKeyState(0x11)`, and `-0x3c` is `0x10`. The decompile's `local_30` in the object arm is ctrl's byte.
+
+**What the layer does** (`crates/client/src/input.rs`):
+- `View::gather_target` makes the two looks, each the nearest anchor within `PICK_RADIUS`.
+- `View::selects_city` is the `VILLAGE` count.
+- `Event::RightPress`'s building arm mints in the reading's order, with its two refusals, and falls to the ground.
+- **A press on an enemy unit now names the ground** (action 0). Before, the layer read any object as the first look
+  and minted nothing.
+- `names_object` stays for the trader's drag (§34) alone.
+
+The scene door gained three reads (`crates/sim/src/observe.rs`; nothing the simulation computes changes):
+- `UnitScene::captain`, `combat::State::captain`;
+- `BuildingScene::university`, `building_is(University)`;
+- `LeaderScene::enemies`, the slots `Sim::is_enemy` answers yes for.
+
+**The count.** `GATHER_POINTS_MINTED` **24 of 24**. For each recorded head the scene holds the object it names, and a
+press on that object's anchor mints the head byte for byte:
+- for actions 1 and 2, a building at the recorded point, the issuer's own or an enemy's;
+- for action 3, a unit of the issuer's whose captain is the recorded `x`.
+
+The layer is seated on the slot, as every census mint is, and the group is not compared. **Seen red:** with the
+action-3 arm minting the pressed unit's own `o` (900), 12 of 24. `minted_a_gather_point_on_an_object_as_the_original`
+holds the arm's edges: an own, an enemy's and a peaceful building (1, 2, 1), shift and ctrl, an own unit (3) and an
+enemy unit (the ground), a building over a unit, the selected building with and without `prefs & 0x202`, and the
+University three ways.
+
+**The census verdict.** `gather_point` actions 0 to 2, and 3 with `y` the recording's `who`, are of the layer's form.
+`INPUT_WHOLE_ORDERS` **927 shown, 1,432 form, 70 missed** of 2,429 (from 1,384 and 118). `INPUT_WHOLE` holds at 42
+of 50: the 2017 sample still misses the other three arms.
+
+**Backed by the disk:** the census and the 24 heads. **Reading only**, one reader, no blind second reading. No score
+rests on these beyond the form verdict:
+- the two looks' kinds;
+- the refusals;
+- `get_captain` as the point's `x`.
+
+**Ours, not the original's:**
+- `gather_target`'s nearest-anchor looks, not `find_target`'s box;
+- a scene with no leader record for the issuer answers "not an enemy";
+- the census seats the layer on the slot, where the original's `player` is the play.
+
+**Not established:**
+- **No playback.** Nothing minted here has been played by the original. The 24 are the 2017 sample's. A playback
+  needs a minted game with a building and an object under the press, and the item booked no capture.
+- **Which object** each recorded head named. The sample is not walked, so an action-1 point could be the issuer's
+  own building or a neutral one, and an action-3 `x` names a captain without its type.
+- **The shift-held arms**: no recording carries one on an object.
 
 
 ## 12. A chat, from the entry line (item 4250)
@@ -3014,7 +3095,8 @@ the package's verdict:
 - **form**: the kind and its fixed fields are the layer's, but no test mints the recorded order from a scene.
   Concretely: `queued` 2 (any of the three queues since item 4293); `move_to` with `set_angle` 0, or 1 with an angle
   `find_angle` gives (item 4295, §34), `orders` 1, `disembark` 0, and `(form, width)` one of the
-  layer's three; `attack` with `ignore` 0; `swarm_around` with `BUILD_AT` or `REPAIR`; `gather_point` action 0; a
+  layer's three; `attack` with `ignore` 0; `swarm_around` with `BUILD_AT` or `REPAIR`; `gather_point` actions 0 to 2, and 3 naming the
+  recording's `who` (item 4301); a
   `build` type the layer's keys bind or the roster's build pages offer (§32). **Its point, its object and its group are not checked.**
 - **missed**: the arm, and who reaches it. `Button` means a button, key or modifier of the original issues it.
   `Writer` means our file writer. `Profile` means the player's profile, with no button.
@@ -3036,7 +3118,8 @@ disband missed, 359 shown and 994 missed):
 one of the layer's fields: **927 shown, 1,190 form, 312 missed**; `INPUT_WHOLE` holds at 42. Item 4295's right drag
 (§34) makes `set_angle` 1 with an angle of `find_angle`'s image the layer's form: **927 shown, 1,330 form, 172
 missed**; `INPUT_WHOLE` holds at 42. Item 4297's attack-move (§35) makes `orders` 2 with no facing and −1/−1 the
-layer's form: **927 shown, 1,384 form, 118 missed**; `INPUT_WHOLE` holds at 42.
+layer's form: **927 shown, 1,384 form, 118 missed**; `INPUT_WHOLE` holds at 42. Item 4301's rally point on an
+object (§11.4) makes actions 1 to 3 the layer's form: **927 shown, 1,432 form, 70 missed**; `INPUT_WHOLE` holds at 42.
 
 **Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
 `INPUT_SPELLS against the census` 17 against 6.
@@ -3071,7 +3154,7 @@ is where the arms are.
 | ~~`move_to` `set_angle` 1, the right drag's facing~~ | ~~140~~ | Button: a right drag | the layer's right drag since item 4295 (§34): of the layer's form, the point and the angle's release unchecked |
 | ~~`move_to` `orders` 2, `ATTACK_TO`~~ | ~~54~~ | Button: the attack-move, ctrl on a right press | the layer's ctrl since item 4297 (§35): of the layer's form, each head minted on the minimap byte for byte, the point and the issuer unchecked |
 | ~~`leader_options`~~ | ~~50~~ | **Profile**: `Game::run` from the prefs (§26.1) | minted from the layer's prefs since item 4289 |
-| `gather_point` on an object, actions 1 to 3 | 48 | Button: a right press on an object (§11.3) | the layer mints nothing there |
+| ~~`gather_point` on an object, actions 1 to 3~~ | ~~48~~ | Button: a right press on an object (§11.3) | the layer's gather arm since item 4301 (§11.4): of the layer's form, each head minted byte for byte, `GATHER_POINTS_MINTED` 24 of 24 |
 | ~~`build` of a type no key of ours binds~~ | ~~42~~ | Button: the citizen's build buttons | the roster's build pages since item 4290 (§32): of the layer's form, the point unchecked |
 | two issues in one turn | 38 | **Writer**: the original's one package a turn holds every issue of the turn | `minted_packages` refuses two packages on a frame (RECGAME §9) |
 | `spell` on an object, the right press's | 22 | Button (§18) | not minted |

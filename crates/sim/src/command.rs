@@ -430,6 +430,19 @@ impl Command<'_> {
         self.sim.action_treaty(me, p, w)
     }
 
+    /// [`Sim::action_offer`] (`leaders/tribute.rs`): a `tribute` command's
+    /// (`CommandPackage::process_tribute@00946d70`, `who` offering `whom`
+    /// `amount` of good `r`; a negative amount asks for it).
+    pub fn action_offer(
+        &mut self,
+        me: Player,
+        p: Player,
+        r: crate::economy::Resource,
+        amount: i32,
+    ) {
+        self.sim.action_offer(me, p, r, amount)
+    }
+
     /// [`Sim::action_respond`] (`leaders/tribute.rs`): an `accept` command's
     /// (`CommandPackage::process_accept@00946fb0`, `who` accepting `whom`'s
     /// proposal, code 1).

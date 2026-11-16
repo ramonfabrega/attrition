@@ -114,6 +114,11 @@ pub struct LeaderScene {
     /// sell)` price of each good it has a button for, `None` for the rest
     /// ([`Sim::market_offer`]; item 4259). A read only.
     pub market: [Option<(i32, i32)>; 6],
+    /// The slots it is at war with, either way ([`Sim::is_enemy`],
+    /// `LeaderData::is_enemy`), in slot order: what a right press's gather
+    /// point on a building asks of the building's owner, action 2 against 1
+    /// (item 4301, `docs/CLIENT_INPUT.md` §11.4). A read only.
+    pub enemies: Vec<Player>,
 }
 
 /// **A craft a unit can be handed** (item 4264): its row and the two
@@ -174,6 +179,12 @@ pub struct UnitScene {
     /// The count's other arm, a `TRANSPORTBARGE` carrying such a unit, is
     /// not carried here.
     pub attacks: bool,
+    /// **`UnitData::get_captain` (vslot `+0xe4`)**, [`crate::combat::State::captain`]:
+    /// the captain's unit index, its own for a lone figure. A right press
+    /// on one's own unit with a building selected names it as a gather
+    /// point's `(captain, who)`, action 3 (item 4301, `docs/CLIENT_INPUT.md`
+    /// §11.4). A read only.
+    pub captain: i16,
     /// **The crafts its panel offers** (item 4264, `docs/CLIENT_INPUT.md`
     /// §18): every craft row (`spell::FIRST..=LAST`) whose `FROM` or
     /// `FROM2` line the unit is and that [`Sim::spell_castable`] passes, in
@@ -313,6 +324,10 @@ pub struct BuildingScene {
     /// `Options::do_city_gather@0071cdb0` asks of the selection; item
     /// 4261). A read only.
     pub village: bool,
+    /// `ObjectData::is(UNIVERSITY)` of its type (`0x1a4`): the one building
+    /// a city's gather point may not name (`Console::execute_at_cursor`'s
+    /// gather arm, item 4301, `docs/CLIENT_INPUT.md` §11.4). A read only.
+    pub university: bool,
     /// **`ObjectData::uid` (`+0x30`)**, which `BuildOut::issue_unqueue
     /// @00629e70` writes into the cancel beside the building's `o` (item
     /// 4265, `docs/CLIENT_INPUT.md` §19). A read only.
@@ -530,6 +545,7 @@ impl Sim {
                     health: u.health,
                     max_health: u.max_health,
                     seen: viewer.is_none_or(|p| self.target_seen_by(p, Obj::Unit(i))),
+                    captain: u.combat.captain as i16,
                     attacks: u.captain
                         && u.ty
                             .is_some_and(|t| self.tables.unit_types[t].combat.attack != 0),
@@ -642,6 +658,7 @@ impl Sim {
                     .city
                     .is_some_and(|c| self.cities.cities.get(c).is_some_and(|c| c.building == i)),
                 village: self.building_is_city(i),
+                university: self.building_is(i, crate::cities::build::Ident::University),
                 uid: b.uid,
                 queued: b.queue.items.len(),
                 in_city: b.city.is_some(),
@@ -783,6 +800,10 @@ impl Sim {
                     control: m.control,
                     pop_cap: m.cap,
                     market: self.market_offer(who as Player),
+                    enemies: (0..slots)
+                        .map(|b| b as Player)
+                        .filter(|&b| self.is_enemy(who as Player, b))
+                        .collect(),
                 }
             })
             .collect()

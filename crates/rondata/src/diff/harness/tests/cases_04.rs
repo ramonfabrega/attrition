@@ -1855,7 +1855,8 @@ mod bodies {
         // Item 4176: 98240 -> 101040, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
         // Item 4177: 101040 -> 102080, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
         // Item 4185: 102080 -> 102800, +720 (40 blocks × 2 × 9): the end of the game's and the lost capital's nine.
-        pin_eq!(leader_rows, 135360, "40 blocks x 2 leaders x 1,065 keys");
+        // Item 4159, step 4159r19: 135360 -> 138400, +3040: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+        pin_eq!(leader_rows, 138400, "40 blocks x 2 leaders x 1,065 keys");
         pin_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **Where each key first parts, block by block.** The 169 on the
         // window's first block are standing residue under the cycle: the
@@ -1937,7 +1938,8 @@ mod bodies {
             // Item 4177: 1397000 -> 1403500, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1403500 -> 1408000, +4500 (250 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
             // Item 4159's second residue: 1611000 -> 1611500, +1 key a leader block (`pop_issues`, compared since).
-            1611500,
+            // Item 4159, step 4159r19: 1611500 -> 1630500, +19000: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            1630500,
             "250 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(
@@ -2074,7 +2076,8 @@ mod bodies {
             // Item 4177: 3520440 -> 3536820, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 3536820 -> 3548160, +11340 (630 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
             // Item 4159's second residue: 4059720 -> 4060980, +1 key a leader block (`pop_issues`, compared since).
-            4060980,
+            // Item 4159, step 4159r19: 4060980 -> 4108860, +47880: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            4108860,
             "630 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(

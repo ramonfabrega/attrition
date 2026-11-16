@@ -1294,7 +1294,8 @@ fn gunpowder_melee_s_leaders_are_compared_on_every_seat() {
         // Item 4177: 1177 -> 1190, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
         // Item 4185: 1190 -> 1198, +8: of the end of the game's and the lost capital's nine, the eight this record does not print (`defeated_by` prints).
         // Item 4159's second residue: 1603 -> 1604, +1, `pop_issues`, which this record does not print.
-        1604,
+        // Item 4159, step 4159r19: 1604 -> 1636, +32: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+        1636,
         "keys run1461's `LEADERS=2` does not print"
     );
     // Item 3791: the standing family on frames 1 and 37 on every seat,
