@@ -1806,7 +1806,20 @@ proposer, committed; read from the listing at VII-c, `6bf143`–`6c08b5`):
   `any_proposals` is asked next (`6bf6a5`). ~~The attack requests add flat
   terms~~ The attack requests' terms are scaled by epoch and `blacken`, and
   three of them refuse (`6bf6b2`–`6bfa57`; the adjudication of 2026-11-14,
-  A.3′); not carried: no request is set.
+  A.3′); not carried: no request is set. **From the listing** (item 4298,
+  one reading; its journal has the stack slots), per target `X ∉ {me, t}`
+  with `me.dip[t].attacks[X] != 0`. Refused when `me` and `X` are mutual
+  allies, when `t` and `X` are mutual allies, or when `is_enemy(me, t)` and
+  `treaty < 1`. At peace with `X` both ways the term is
+  `(25·X.blacken − 100·((t.blacken≠0)+1))·(X.mil+1) + (t.e1+1)·(weak[X] ? 20 : 0)`,
+  with `mil` and `e1` the words at `data_encrypted + 0xe8` and `+0xec`. At war
+  either way it is 0 if `t` and `X` are at war either way, else
+  `(t.e1+1)·(weak[X] ? 120 : 20)`. Then `+X.e1·100` for the capital holder
+  (`-0x68`), `+200` for `-0x54`, a negative term halved toward zero if
+  `is_ally(me, t)`, and `S += term`. The mutual-ally branch (`6bf7b6`) is
+  unreachable (parked 4298a). **Accepted on recon4298-4** (unfiled): the
+  human's `process_propose_attack 1 2 1131` with 5,000 of each of two goods,
+  accepted on 1186; the French `good_deeds[0]` reads 6139.
 - **The shortfall's selector is `aggression[t]`**, not the treaty:
   `6bfa6f` tests `*-0x28`, `&aggression[t]`, whose one store is `6bcd78`.
   `epoch` is `data_encrypted + 0xe8`, the Military line; `x` is 100 at
@@ -1988,6 +2001,13 @@ bits (4206c), the third-party message, the alliance's victory test
   2026-11-14, X.1).
 - `walk_data` and `load_leaders_chunk` copy `last_spoke` and the rest on a
   load; neither originates a value.
+- **The hires, rehearsed and not filed** (item 4298): on recon4298-4's block
+  1187 the human reads `hire_stamp[2]` 1186, `hire_who[2]` 1 and
+  `tributes[2]` 640, and the French read `hire_stamp[2]` 1186 and
+  `hire_who[2]` 0, as 7.2's hire loop stores them. The Declare War price
+  that makes 640 is not read. A filed take and a walk would make it a diff.
+  The attack check is offered only for a leader the console has met
+  (`IFaceDiploNeg::update_visibility`, `treaties[L] & 1`).
 
 ## 8. Diplomacy: tribute, gifts and counteroffers
 
