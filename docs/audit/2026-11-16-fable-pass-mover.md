@@ -163,3 +163,31 @@ Nothing. The pass changed no tool and no code.
   unexercised; a red clock beside load is unrun; whether a builder's
   handback survives its driver's clear; `tools/tranche.py` tables no
   in-session builder.
+- **The driver fixture's launch test is not steady on this host.** It
+  went red once in the pass's own gate and green twelve times alone; the
+  first launch's line never arrived. Whether that is the kill above or a
+  race under the offline suite's load is not established.
+
+## The gate
+
+Whole, by `tools/gate_run.sh`, on `72d9845fd`, twice.
+
+- **`gate-pass-1116c.log`: `gate exit 1`**, 2 of 9 steps, 2.9 minutes
+  (`Gate start: … 14:39:38 −0500`). The offline step ran 1,073 tests and
+  failed one: `test_viadriver`'s
+  `test_a_second_launch_while_the_first_runs_still_carries_its_arguments`,
+  `'args: ' not found in ''`, the second launch's line at 0.2 s and the
+  first's never. The pass's commit changes documents only. Run alone
+  after it, the file passed 12 of 12.
+- **`gate-pass-1116d.log`: `gate exit 0`**, 9 of 9 steps, 26.2 minutes by
+  the table: offline 1.9, guard 0.3, merge pins 1.4, release 22.3, clock
+  0.1. `Clock: green beside load`. `Suite: 1349 processes for 2478 tests:
+  145 groups hold 1274, 1204 ran alone; 9665 test CPU-seconds`; admission
+  7.5 s over 1,386 leases; load 4.3 at its start and 8.8 at its end.
+  `Rows: one driver row at most: steer ecca6427 (working)`; `Driver: 0
+  landings since the last pass (backstop 20) · context 316 k`. 219 GB
+  free after it.
+
+A red on that one test is a re-run, once; a second red on the same commit
+goes to Ramon (`docs/LOOP.md`, "Three things reach Ramon at once"). This
+section is gated scoped over that commit (`gate-pass-1116e.log`).
