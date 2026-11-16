@@ -2617,7 +2617,9 @@ fn widen_civilians_walk(
                 fresh_leader = crate::diff::leader::theirs(&block);
                 &fresh_leader
             };
-            for (k, v) in crate::diff::leader::rows(&s.loaded, &s.built, who) {
+            let mine = crate::diff::leader::rows(&s.loaded, &s.built, who);
+            crate::diff::held_probe::rows(run, n, who, &mine, t);
+            for (k, v) in mine {
                 let Some(&y) = t.get(&k) else {
                     missing.insert(k);
                     continue;
@@ -3785,7 +3787,9 @@ fn widen_chapter_three(
                 continue;
             };
             let t = crate::diff::leader::theirs(&block);
-            for (k, v) in crate::diff::leader::rows(&s.loaded, &s.built, who) {
+            let mine = crate::diff::leader::rows(&s.loaded, &s.built, who);
+            crate::diff::held_probe::rows(run, n, who, &mine, &t);
+            for (k, v) in mine {
                 let Some(&y) = t.get(&k) else {
                     missing.insert(k);
                     continue;

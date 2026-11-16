@@ -92,6 +92,19 @@ const TAUNT_ROWS: [&str; 4] = ["tribute_stamp", "gift_stamp", "last_taunt", "tau
 /// 4159's step VII-d), by proposer, eight `name[scan]` lines.
 const DEAL_ROWS: [&str; 1] = ["counteroffer"];
 
+/// The five printed rows the leaders line still holds out (`docs/LEADERS.md`
+/// §7.1, §8.1; item 4159's eighteenth residue): `good_deeds`, `hire_stamp`
+/// and `hire_who` by slot, `tribute_demanded` by target, eight `name[scan]`
+/// lines each, and `tributes` by good, six. Compared so the held-leaf probe
+/// (`diff::held_probe`) is sighted on them: a key nothing parses cannot part.
+const HELD_ROWS: [&str; 5] = [
+    "good_deeds",
+    "hire_stamp",
+    "hire_who",
+    "tribute_demanded",
+    "tributes",
+];
+
 /// Whether a good's index is one the record prints in its per-good block.
 /// The six goods, **in the type record's own order** — `rise.pdb`'s
 /// `TypeIndex` enum: `0 FOOD, 1 TIMBER, 2 WEALTH, 3 KNOWLEDGE, 4 METAL,
@@ -648,6 +661,25 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
             out.push((format!("{k}[{i}]"), *x));
         }
     }
+    // **Item 4159's eighteenth residue** ([`HELD_ROWS`]): the five printed
+    // rows the leaders line still emits unheld, as the crate holds them —
+    // `Declared` (`hire_who` −1 a slot, `Leader::init`'s) and `Tribute`.
+    let d = s.leaders.declare.get(p as usize);
+    let tr = s.leaders.tribute.get(p as usize);
+    for k in HELD_ROWS {
+        let v: Vec<i64> = match k {
+            "good_deeds" => d.map_or(vec![0; 8], |d| d.good_deeds.map(i64::from).to_vec()),
+            "hire_stamp" => d.map_or(vec![0; 8], |d| d.hire_stamp.to_vec()),
+            "hire_who" => d.map_or(vec![-1; 8], |d| d.hire_who.map(i64::from).to_vec()),
+            "tribute_demanded" => tr.map_or(vec![0; 8], |t| {
+                t.tribute_demanded.map(i64::from).to_vec()
+            }),
+            _ => tr.map_or(vec![0; RESOURCES], |t| t.tributes.map(i64::from).to_vec()),
+        };
+        for (i, x) in v.iter().enumerate() {
+            out.push((format!("{k}[{i}]"), *x));
+        }
+    }
     // **Item 4187, step VI** (`docs/LEADERS.md` §17–§20): `score`, the
     // one of its twelve `log_data` prints; `territory_high`;
     // `high_buildings[r]` by building record, the lineage root's
@@ -1112,8 +1144,14 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     }
     // The declaration's two rows and `made_peace` (§7), eight `[scan]`
     // lines each, by target; the taunt's answer's four (§8, §9); and the
-    // counteroffer (§8).
-    for key in DECLARE_ROWS.iter().chain(&TAUNT_ROWS).chain(&DEAL_ROWS) {
+    // counteroffer (§8); and the five still held out (item 4159's
+    // eighteenth residue).
+    for key in DECLARE_ROWS
+        .iter()
+        .chain(&TAUNT_ROWS)
+        .chain(&DEAL_ROWS)
+        .chain(&HELD_ROWS)
+    {
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
         }
@@ -3789,8 +3827,13 @@ mod tests {
                 "frame_battle",
                 // Item 4159's step VII-b2: the taunt's answer's four rows.
                 "gift_stamp",
+                // Item 4159's eighteenth residue: the five printed rows
+                // still held out, compared so the probe is sighted.
+                "good_deeds",
                 "handicap",
                 "high_buildings",
+                "hire_stamp",
+                "hire_who",
                 "hits_current_frame",
                 "hits_fifteen_seconds",
                 "kills_current_frame",
@@ -3818,7 +3861,9 @@ mod tests {
                 "supply_mark",
                 "taunt_frame",
                 "territory_high",
+                "tribute_demanded",
                 "tribute_stamp",
+                "tributes",
                 "units_killed",
                 "units_lost",
                 "victory_type",

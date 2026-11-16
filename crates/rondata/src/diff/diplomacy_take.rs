@@ -190,6 +190,7 @@ pub(crate) fn walk_take_from(
                 crate::diff::leader::rows(loaded, &built, who)
                     .into_iter()
                     .collect();
+            crate::diff::held_probe::map("", n, who, &mine, &theirs);
             for (k, &t) in &theirs {
                 if let Some(&m) = mine.get(k)
                     && m != t
