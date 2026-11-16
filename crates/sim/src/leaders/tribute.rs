@@ -258,10 +258,11 @@ impl Sim {
     /// An alliance asked passes the team gate before the exchange
     /// ([`Sim::alliance_open`], item 4159's step VII-d).
     ///
+    /// The attack request that arm would read is carried (item 4298).
+    ///
     /// SEAM: the reject's human-ally attack arm is dead in the original
     /// (it asks whether a leader is its own enemy, 6d04a9), so it is not
-    /// carried, though the attack request is (`Sim::action_attack`, item
-    /// 4298). The messages and sounds are the interface's.
+    /// carried. The messages and sounds are the interface's.
     pub fn action_respond(&mut self, t: Player, p: Player, code: i32) {
         let Some((m, x)) = self.deal_pair(t, p) else {
             return;
@@ -341,15 +342,16 @@ impl Sim {
     ///   `t.dip[p].attacks` names, both `hire_stamp[X]` are this frame and
     ///   each party's `hire_who[X]` is the other; then `t`, then `p`, if not
     ///   already `X`'s enemy, declares on `X` (`action_declare(party, X, 0,
-    ///   quiet = !human)`), so a human party's declaration counts.
+    ///   quiet = !human)`), so a human party's declaration counts. Reached
+    ///   since item 4298 carries the attack request: run1629's accept of
+    ///   1186.
     ///
     /// SEAM: the neutral propagation (`LeaderData::is_neutral`, a team-8
     /// leader under team style 7: each leader on one side's team and not the
     /// other's lifted to the treaty, with its message) is not carried. scan:
     /// `grep -h -m1 '^  TEAM_STYLE' gamelog-*.txt | sort | uniq -c` — 1,205
     /// dumps at style 1 and 4 at style 0, none at 7, over 1,210 kept dumps
-    /// (2026-11-13). The hires are reached since item 4298 carries the
-    /// attack request (`Sim::action_attack`): run1629's accept of 1186.
+    /// (2026-11-13).
     fn treaty_and_hires(&mut self, m: usize, x: usize) {
         let frame = self.frame;
         let d = self.leaders.tribute[m].dip[x];
