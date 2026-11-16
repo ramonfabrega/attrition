@@ -38081,3 +38081,29 @@ Files in place: `gamelog.txt`, 462,588,670 bytes, SHA-256
 
 **What it holds**: `diff::diplomacy_take`'s three `run1628_*` tests. `good_deeds` is diff-backed, and is off
 `LEADERS_HELD_OUT` (6 → 5).
+
+## run1640 — recon4300-2's game (run1575's lobby at `DIFFICULTY 4`, no script) with a packet at 6079: the French war on the human (2026-11-16, item 4300, step 4300a, `in-session builder`)
+
+`docs/LEADERS.md` §8.2 (the demand arm). recon4300-2 (unfiled; `docs/journal/2026-11-16-item-4300-first-act.md`) showed
+the arm reached on 6080 and a war declared there instead of a demand. This take is the same game, with a packet one block
+before. The line: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1640 --map 18 --end-frame 6100 --timeout
+3600 --stall-seconds 300 --ffwd-minute 1 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7
+--profile STARTING_RESOURCES=7 --profile TEAM_STYLE=0 --profile DIFFICULTY=4 --seat-tribe 1=10 --seat-tribe 2=13
+--log-window 5900 6101 --detail end:MISC,LEADERS=9 --detail misc:COMMANDMANAGER=1 --cover cover=1 --tracer-def
+RON_STATE_FRAME=6079 --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345, `MAP_STYLE 18`. PLAYER records are run1575's three: who 0 (flags 7, tribe 4), who 1 (flags
+  1, tribe 10), who 2 (flags 1, tribe 13). `lobby_read` gives `DIFFICULTY 4`. Launched 17:22:35 −05:00, exited 17:29:11:
+  **395.5 s launch to exit**. `success`, 6101 frames, `last_frame` 6100, no page fault, no relaunch. DLL `0940d07d…`.
+  181 GiB free before. Minutes waited on another lane: none. The host's kill (DECISIONS 137 §5): not seen.
+- **The same game as recon4300-2.** Every block from 5900 to 5902 and from 6076 to 6100 is byte-identical to recon4300-2's
+  (a scratch block comparator; 60,926 or 60,927 lines a block). On 6081 the French `diplos[0]` reads 0, `agendas[0]` 72
+  and `aggression[0]` 1, and the human's `diplos[1]` reads 0; on 6080 they read 1, 64, 0 and 1.
+- **The packet** is `~/ron-golden/run1640/map-18/frame-snapshot.bin`, 948,577,004 bytes, logger frame 6079, trace frame
+  6078, `game->frame` 6079. SHA-256 is `ac33422a87e3f0e7bb1d5631908c4c0108fc33d0d334877bfa3d42c223fc2eb3`.
+  `frame_snapshot.py` against item 597's plan: `logger_return_roots_unchanged`, `completion_receipt_checked`.
+- **Not filed to the archive**: `gamelog.txt` (364,899,726 bytes) and `rontrace.log` (357,812,512 bytes) stay under
+  `~/ron-golden/run1640/map-18/`. `filerun.py` moves them, and this step was not to move anything under `~/ron-golden`.
+
+**What it holds**: the French pass at the human, emulated (`step4.py` on the packet, `game->frame` poked to 6080, the tick
+whose cadence fires for `k` 0). It names the war branch: local `-0x30`. The journal has the branch log
+(`docs/journal/2026-11-16-item-4300-second-act.md`). No walk holds it.
