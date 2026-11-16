@@ -481,11 +481,12 @@ mod tests {
     /// Item 4278: the drawn plume 11,347 → 11,352 of 19,853 → 19,858: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4279: the drawn plume 11,352 → 11,349 of 19,858 → 19,855 (a fall of three): the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     /// Item 4284: the drawn plume 11,349 → 11,373 of 19,855 → 19,888: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+    /// Item 4286: the drawn plume 11,373 → 10,936 of 19,888 → 21,021, past 2,021 → 1,977 (a named fall of the reader's base): the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28) brighten the fires-off scene each pixel is classed against, so theirs grows over the buildings; the packet's 11,920 → 11,826.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((11373, 19888, 2021), (14847, 926)),
-        ((0, 19888, 0), (0, 0)),
-        ((19888, 19888, 0), (17388, 2500)),
-        ((11920, 19888, 1884), (14188, 1755)),
+        ((10936, 21021, 1977), (14878, 1015)),
+        ((0, 21021, 0), (0, 0)),
+        ((21021, 21021, 0), (17676, 3345)),
+        ((11826, 21021, 1682), (14035, 1936)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -508,11 +509,12 @@ mod tests {
     /// Item 4278: the drawn plume 11,593 → 11,596 of 19,212 → 19,215: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4279: the drawn plume 11,596 → 11,594 of 19,215 → 19,208 (a fall of two): the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     /// Item 4284: the drawn plume 11,594 → 11,601 of 19,208 → 19,238: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+    /// Item 4286: the drawn plume 11,601 → 11,071 of 19,238 → 20,141 (a named fall of the reader's base, as run1559b's): the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28); the packet's 12,281 → 12,274.
     const RUN1570_PLUME: PlumeRows = [
-        ((11601, 19238, 1737), (14898, 957)),
-        ((0, 19238, 0), (0, 0)),
-        ((19238, 19238, 0), (16694, 2544)),
-        ((12281, 19238, 1427), (13723, 2120)),
+        ((11071, 20141, 1561), (14743, 1001)),
+        ((0, 20141, 0), (0, 0)),
+        ((20141, 20141, 0), (16866, 3275)),
+        ((12274, 20141, 1194), (13466, 2272)),
     ];
 
     #[test]
@@ -553,22 +555,23 @@ mod tests {
     /// Item 4278: the flame row 205 of 689 → 688 (theirs, the fires off, moves with the white): the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4279: the flame row 205 of 688 unmoved; the packet's particles through our pass 262 → 263: the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     /// Item 4284: the flame row 205 of 688 → 684 (theirs, the fires off, moves with the white), past 588 → 587; the packet's particles through our pass 263 → 262: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+    /// Item 4286: the flame row 205 → 196 of 684 → 582 (theirs, the fires off, moves with the brighter buildings), past 587 → 628; the packet's particles through our pass 262 → 250: the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28).
     const RUN1559B_3279_FLAME: FlameRows = [
         (
-            (205, 684, 587),
-            (176, 682),
-            [(19, 15), (23, 21), (15, 0), (30, 20)],
+            (196, 582, 628),
+            (166, 708),
+            [(18, 17), (19, 21), (11, 0), (23, 20)],
         ),
-        ((0, 684, 0), (0, 0), [(19, 0), (23, 0), (15, 0), (30, 0)]),
+        ((0, 582, 0), (0, 0), [(18, 0), (19, 0), (11, 0), (23, 0)]),
         (
-            (684, 684, 0),
-            (143, 541),
-            [(19, 19), (23, 23), (15, 15), (30, 30)],
+            (582, 582, 0),
+            (95, 487),
+            [(18, 18), (19, 19), (11, 11), (23, 23)],
         ),
         (
-            (262, 684, 432),
-            (115, 669),
-            [(19, 15), (23, 18), (15, 0), (30, 19)],
+            (250, 582, 470),
+            (101, 695),
+            [(18, 19), (19, 18), (11, 0), (23, 18)],
         ),
     ];
     /// to fail, 283). The packet's particles read 303, past 251. Item
@@ -584,22 +587,23 @@ mod tests {
     /// Item 4278: the flame row 349 of 626 → 625: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4279: the flame row 349 of 625 → 626 (theirs, the fires off, moves with the white): the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
     /// Item 4284: the flame row 349 of 626 → 625 (theirs, the fires off, moves with the white); the packet's particles through our pass 411 → 412: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+    /// Item 4286: the flame row 349 → 351 of 625 → 592 (theirs, the fires off, moves with the brighter buildings), past 395 → 434; the packet's 412 → 421: the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28).
     const RUN1570_FLAME: FlameRows = [
         (
-            (349, 625, 395),
-            (103, 683),
-            [(13, 11), (27, 26), (5, 0), (19, 24)],
+            (351, 592, 434),
+            (104, 718),
+            [(11, 11), (27, 27), (5, 0), (18, 24)],
         ),
-        ((0, 625, 0), (0, 0), [(13, 0), (27, 0), (5, 0), (19, 0)]),
+        ((0, 592, 0), (0, 0), [(11, 0), (27, 0), (5, 0), (18, 0)]),
         (
-            (625, 625, 0),
-            (42, 583),
-            [(13, 13), (27, 27), (5, 5), (19, 19)],
+            (592, 592, 0),
+            (34, 558),
+            [(11, 11), (27, 27), (5, 5), (18, 18)],
         ),
         (
-            (412, 625, 450),
-            (108, 791),
-            [(13, 15), (27, 28), (5, 0), (19, 28)],
+            (421, 592, 513),
+            (108, 857),
+            [(11, 15), (27, 28), (5, 0), (18, 29)],
         ),
     ];
 

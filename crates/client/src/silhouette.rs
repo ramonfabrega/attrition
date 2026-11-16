@@ -1896,6 +1896,7 @@ mod tests {
         world.run_to(PHOTO_FRAME + 1);
         let size = (photo.width as u32, photo.height as u32);
         let mut got = Vec::new();
+        let mut warmths = Vec::new();
         use wgpu::TextureFormat::{Rgba8Unorm, Rgba8UnormSrgb};
         for (order, format) in [
             (SilhouetteOrder::Before, Rgba8Unorm),
@@ -1953,8 +1954,20 @@ mod tests {
                 );
                 let ([o, p], [yo, yp]) = (r.colours.rgb_means(), r.colours.luma_means());
                 println!(
-                    "    mean colour on {} held: ours ({:.0}, {:.0}, {:.0}) Y {yo:.1}, the photograph ({:.0}, {:.0}, {:.0}) Y {yp:.1}",
-                    r.colours.held, o[0], o[1], o[2], p[0], p[1], p[2]
+                    "    mean colour on {} held: ours ({:.0}, {:.0}, {:.0}) Y {yo:.1}, the photograph ({:.0}, {:.0}, {:.0}) Y {yp:.1}; warmth {:.4} {}",
+                    r.colours.held,
+                    o[0],
+                    o[1],
+                    o[2],
+                    p[0],
+                    p[1],
+                    p[2],
+                    r.colours.warmth(),
+                    if r.colours.warmth_passes() {
+                        "in"
+                    } else {
+                        "out"
+                    },
                 );
                 for (at, a, b) in &r.sample {
                     println!(
@@ -1977,9 +1990,20 @@ mod tests {
                     .filter(|r| r.painter_colours.passes(&HUE))
                     .count(),
             );
+            let count = |f: &dyn Fn(&StillRow) -> bool| {
+                (
+                    rows.iter()
+                        .filter(|r| f(r) && r.colours.warmth_passes())
+                        .count(),
+                    rows.iter().filter(|r| f(r)).count(),
+                )
+            };
+            let warmth = (count(&|r| r.who.3), count(&|_| true));
             println!(
-                "{order_name}: traced {traced:?} colour {colour:?} on the still; the painter's {painter:?}; pixels within 8 {within} of {pixels}"
+                "{order_name}: traced {traced:?} colour {colour:?} on the still; the painter's {painter:?}; pixels within 8 {within} of {pixels}; warmth buildings {:?} all {:?}",
+                warmth.0, warmth.1
             );
+            warmths.push(warmth);
             assert_eq!(
                 painter,
                 (s::RUN1559B_3279_TRACED.0, s::RUN1559B_3279_COLOUR.0)
@@ -1992,6 +2016,15 @@ mod tests {
             got[0],
             (s::RUN1559B_3279_TRACED_STILL, s::RUN1559B_3279_COLOUR_STILL),
             "the client's draw"
+        );
+        // The buildings' warmth (item 4286, §3.28), on the client's draw.
+        assert_eq!(
+            warmths[0],
+            (
+                s::RUN1559B_3279_BUILDINGS_WARMTH,
+                s::RUN1559B_3279_WARMTH_STILL
+            ),
+            "the warmth reader on the client's draw"
         );
     }
 
@@ -7900,8 +7933,9 @@ mod tests {
         // pixels than the texel, and the row goes down.
         assert_eq!((stored_total, every_stored), (6_565, 7_475));
         // 18, 16 until item 4173: 0/1 out of both, the drawn tree under
-        // its silhouette. 17, 15 until item 4221's tinted trees.
-        assert_eq!(passing, (21, 19));
+        // its silhouette. 17, 15 until item 4221's tinted trees. 21, 19
+        // until item 4286's buildings (§3.28) moved the frame's white.
+        assert_eq!(passing, (21, 20));
         assert!(
             (stored_total as usize) <= texel_total,
             "the stored candidate beats the texel: kill (a) does not hold"
@@ -8065,6 +8099,38 @@ mod tests {
                 });
                 let ok = hit.is_some_and(|d| whole(d));
                 matched += usize::from(ok);
+                // Item 4286 (§3.28): every one of the sprite's draws takes
+                // the fake light, unlit, and its first lays the 248 texels
+                // `MODULATE4X(TEXTURE, CURRENT)` opaque, its second the rest
+                // `SELECTARG1(TEXTURE)` blended by their alpha.
+                let nonquad: Vec<&&card::CardDraw> = pass
+                    .iter()
+                    .filter(|d| d.file(0).to_ascii_lowercase() == format!("{file}_nonquad"))
+                    .collect();
+                assert!(
+                    nonquad.len() == 2
+                        && nonquad
+                            .iter()
+                            .all(|d| d.has("TL_FAKE_LIGHT") && !d.has("ENABLE_LIGHTING")),
+                    "{name}: the sprite's draws take the fake light"
+                );
+                assert_eq!(
+                    nonquad
+                        .iter()
+                        .map(|d| (
+                            d.colour_op(0),
+                            d.alpha_func(),
+                            d.alpha_ref(),
+                            d.src_blend(),
+                            d.dst_blend()
+                        ))
+                        .collect::<Vec<_>>(),
+                    [
+                        ((5, TA_TEXTURE, TA_CURRENT), 2, 248, 2, 1),
+                        ((1, TA_TEXTURE, TA_TFACTOR), 5, 248, 5, 6),
+                    ],
+                    "{name}: the 248 texels opaque, the rest blended"
+                );
                 println!(
                     "{name:>7} building piece {} art {file}: draw {:?} whole {ok}",
                     who.2,
