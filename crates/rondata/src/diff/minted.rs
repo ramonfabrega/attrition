@@ -6253,3 +6253,193 @@ fn the_auto_explored_minted_packages_round_trip() {
 
 /// The auto-explored file's gzipped length (`docs/CLIENT_INPUT.md` §31.3).
 const AUTO_EXPLORED_RCX_BYTES: usize = 59_692;
+
+/// **The original's playback of the auto-explored file** (item 4291,
+/// `docs/CLIENT_INPUT.md` §31.5): `(take, trace, first sequence parting or
+/// the last frame, last frame, records compared, records parted)`. Pinned
+/// before run1627 was read, with none parted.
+pub(crate) const AUTO_EXPLORED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1627-greatlakes-playback-of-auto-explored-7500.txt",
+    "rontrace-run1627.log",
+    7500,
+    7500,
+    700,
+    0,
+)];
+
+/// The frames the auto-explore's effect is read on, both sides: the tick
+/// that takes the package, the two after it, and three across the window.
+const AUTO_EXPLORE_READ_AT: [i64; 6] = [6819, 6820, 6821, 6900, 7200, 7499];
+
+/// The Scout `0/0` on one frame: where it stands, its head order's point,
+/// and `unit_masks & 0x100`.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct AutoExploreEffect {
+    pub frame: i64,
+    pub pos: (i64, i64),
+    pub to: Option<(i64, i64)>,
+    pub exploring: bool,
+}
+
+/// Our walk under the pump on `orders`' file, read on `at`.
+fn auto_explore_effects_ours(orders: &[Order], at: &[i64]) -> Vec<AutoExploreEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        let s = &built.sim;
+        let u = &s.units[s
+            .unit_by_o(0, crate::script::SCOUT_OBJECT)
+            .expect("the Scout")];
+        ours.push(AutoExploreEffect {
+            frame: s.frame,
+            pos: (i64::from(u.pos.x), i64::from(u.pos.y)),
+            to: u.orders.front().and_then(|o| match &o.body {
+                sim::orders::Body::Move(m) => Some((i64::from(m.dest.x), i64::from(m.dest.y))),
+                _ => None,
+            }),
+            exploring: u.auto_explore,
+        });
+    }
+    ours
+}
+
+/// The original's, off the take's records on `at`.
+fn auto_explore_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<AutoExploreEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for &n in at {
+        let Some(i) = source.frames().iter().position(|f| f.number == n) else {
+            continue;
+        };
+        let f = source.frame_state(i).unwrap();
+        let o = i64::from(crate::script::SCOUT_OBJECT);
+        let u = f
+            .units
+            .iter()
+            .find(|u| u.who == 0 && u.o == o)
+            .expect("the Scout");
+        theirs.push(AutoExploreEffect {
+            frame: n,
+            pos: (u.pos.x, u.pos.y),
+            to: u.current_order().and_then(|o| Some((o.x?, o.y?))),
+            exploring: u.unit_masks.expect("unit_masks") & 0x100 != 0,
+        });
+    }
+    Some(theirs)
+}
+
+/// **What the auto-explore does on our walk** (item 4291,
+/// `docs/CLIENT_INPUT.md` §31.5), pinned off our walk's print before
+/// run1627's records were read on these frames.
+fn auto_explored_effects() -> Vec<AutoExploreEffect> {
+    let row = |frame, pos, to, exploring| AutoExploreEffect {
+        frame,
+        pos,
+        to,
+        exploring,
+    };
+    vec![
+        row(6819, (4405, 31970), Some((4392, 32040)), false),
+        row(6820, (4399, 32004), Some((4392, 32040)), false),
+        row(6821, (4399, 32004), Some((5880, 27384)), true),
+        row(6900, (6256, 30085), Some((5880, 27384)), true),
+        row(7200, (1450, 26481), Some((504, 27384)), true),
+        row(7499, (3552, 34526), Some((3576, 35064)), true),
+    ]
+}
+
+/// **The auto-explore on our walk and on the original's** (item 4291):
+/// the Scout's path and its bit on [`AUTO_EXPLORE_READ_AT`], ours pinned,
+/// against the disbanded file's walk, which keeps the Scout's own path
+/// and never sets the bit; and run1627's records, equal to ours.
+#[test]
+fn what_the_auto_explore_does_on_both_sides() {
+    if built_start().is_none() || minted(&crate::script::auto_explored()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = auto_explore_effects_ours(&crate::script::auto_explored(), &AUTO_EXPLORE_READ_AT);
+    let without = auto_explore_effects_ours(&crate::script::disbanded(), &AUTO_EXPLORE_READ_AT);
+    for (a, b) in ours.iter().zip(&without) {
+        eprintln!("AUTO_EXPLORE EFFECT ours {a:?}\n                    without {b:?}");
+    }
+    assert_eq!(ours, auto_explored_effects(), "ours, pinned");
+    assert!(
+        without.iter().all(|e| !e.exploring),
+        "no bit without the order"
+    );
+    assert_ne!(
+        ours[1..],
+        without[1..],
+        "the Scout's path parts after the package"
+    );
+    let Some(theirs) =
+        auto_explore_effects_theirs(AUTO_EXPLORED_WALKED[0].0, &AUTO_EXPLORE_READ_AT)
+    else {
+        return;
+    };
+    for t in &theirs {
+        eprintln!("AUTO_EXPLORE EFFECT theirs {t:?}");
+    }
+    assert_eq!(theirs, ours, "the original's Scout is ours");
+}
+
+/// The unitmask's handler and the group's action on the original's side,
+/// by entry address (`docs/CLIENT_INPUT.md` §31.1). `Unit::think_scout`
+/// is no witness: slot 1's scout enters it on frame 0 of both takes.
+const UNITMASK_FUNCTIONS: [(u32, &str); 2] = [
+    (0x0094_7790, "CommandPackage::process_unitmask"),
+    (0x006f_cb90, "Group::action_unitmask"),
+];
+
+/// Each take's first entry into [`UNITMASK_FUNCTIONS`], in sim-frames,
+/// pinned before run1627 was read: run1623 never; run1627 on 6819, the
+/// tick that consumes [`crate::script::AUTO_EXPLORE_FRAME`]'s package.
+const UNITMASK_ENTRIES: &[(&str, [Option<i64>; 2])] = &[
+    ("rontrace-run1623.log", [None, None]),
+    ("rontrace-run1627.log", [Some(6819), Some(6819)]),
+];
+
+/// **The original plays the auto-explored file in lockstep** (item 4291,
+/// `docs/CLIENT_INPUT.md` §31.5): the built start walked under the pump
+/// on the auto-explored file against the take, every frame's draws and
+/// every record of its window ([`AUTO_EXPLORED_WALKED`]); and the
+/// handler's entry on the original's side ([`UNITMASK_ENTRIES`]).
+#[test]
+fn the_original_s_playback_of_the_auto_explored_file_walks_in_lockstep() {
+    let auto_explored = crate::script::auto_explored();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in AUTO_EXPLORED_WALKED {
+        let Some((w, _)) = walk_minted(&auto_explored, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "AUTO_EXPLORED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        if let Some((o, t)) = &w.sites
+            && let Some((_, d)) = first_parting(o, t)
+        {
+            eprintln!("the first parting frame, {:?}: {d}", w.first_sequence);
+        }
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let mut entries = Vec::new();
+    for &(take_trace, _) in UNITMASK_ENTRIES {
+        let tr = trace(take_trace).expect("the take's trace");
+        let first = UNITMASK_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+        eprintln!("UNITMASK ENTRY {take_trace}: {first:?}");
+        entries.push((take_trace, first));
+    }
+    assert_eq!(entries, UNITMASK_ENTRIES, "the handler's entry");
+    assert_eq!(walked, AUTO_EXPLORED_WALKED, "the walked table");
+}

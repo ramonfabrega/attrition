@@ -38008,3 +38008,32 @@ into `~/ron-golden/run1623`.
 Archive `gamelog-run1623-greatlakes-playback-of-disbanded-7000.txt`, 67,960,096 bytes,
 SHA-256 `d17422b70419bf07ef05c3a402ee0032db9098692dbdbfcfa3f8cc15cb005c9b`; `rontrace-run1623.log`, 33,667,552 bytes,
 SHA-256 `8910d19c1aee83380a4241b5dfd8b3be2bc40dabeb5a7918233e14f05c7e6d88`.
+
+## run1627 — the original playing the file an auto-explore button minted (2026-11-16, item 4291, `att-4291`)
+
+`docs/CLIENT_INPUT.md` §31.5. **What the disk could not answer**: whether the original plays a minted `unitmask`
+mid-game, and what its Scout does with the bit. No take on disk pairs a recorded `unitmask` with a dump. The file:
+`~/ron-golden/recordings/item4288-auto-explored-greatlakes-24000.rcx`, 59,692 bytes, SHA-256
+`ec536de7659c161947f7f56dd2a72624a70df07c4856a6b09f759c81cf7b06f0` (item 4288). It is the disbanded file with
+`group [0]` and `unitmask(0x100, −1)` on 6820.
+
+The take is run1623's line with this file, sized to the order: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1627 --recording <the file> --end-frame 7500 --cover cover=1
+--log-window 6800 7500 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2,DEATHS=1 --timeout 2400 --stall-seconds 120`.
+It was waited on with `waitrun.sh` in the background. `df -g ~` read 212 GB free before it.
+- **The run**: pool lane 1, launched 10:09:30 −05:00, exited 10:18:23: **533.4 s launch to exit**, exit 0,
+  `success`, no page fault, no relaunch. 7,501 frames, `last_frame` 7500, seed 12345, map 14. Players: tribe 4
+  (flags 7) and tribe 11 (flags 1). Five settings restored. The receipt names the file's SHA-256. Minutes waited on
+  another lane: none.
+- **The walk before the build**: draws part on 6820 at draw 0, where the original's are `Unit::do_idle`'s
+  `set_anim` twice, then `Unit::think_scout+0x436` and `+0x458`. 679 of 700 records part from 6821, first on
+  `0/0`'s position and order count.
+- **The built walk under the pump on the file** (`AUTO_EXPLORED_WALKED`): draws agree on all 7,500 frames, count
+  and sequence; 700 records compared (6800..7499), **0 part**. The table was pinned at 0 before the read.
+- `CommandPackage::process_unitmask` and `Group::action_unitmask` are first entered on 6819 (`UNITMASK_ENTRIES`),
+  never in run1623.
+- Filed with `filerun.py run1627 greatlakes-playback-of-auto-explored-7500`. run1628 was not used.
+
+Archive `gamelog-run1627-greatlakes-playback-of-auto-explored-7500.txt`, 163,476,302 bytes,
+SHA-256 `15b89bd72b8f30d8f8b78a0d0360b85faecefcb268219139579a6a046ad96321`; `rontrace-run1627.log`, 36,254,304
+bytes, SHA-256 `faa084732d21ec1205d3ec2bdf0cf8693f43d0c145a770283bcfd2a95e2c0dbf`.

@@ -1267,16 +1267,32 @@ A spy with a target in range would be the capture that reads it.
    Unnamed in the type record; the simulation reads it as the cell's
    first field and the harness's worlds leave it 0, so the escape never
    fires there.
-8. **The `think_scout` call site inside the human block** (§2), gated on
-   `unit_masks & 0x100`. Not modelled — no capture reaches it, since
-   `0x100` is clear on every scout in every run on disk.
-   Its issuer is named (item 4288, `docs/CLIENT_INPUT.md` §31): the
-   AUTO EXPLORE button's `unitmask(0x100, −1)`, which
-   `Group::action_unitmask@006fcb90` toggles; the minted file
-   `item4288-auto-explored-greatlakes-24000.rcx` carries it on 6820 for
-   slot 0's Scout, and no take has played it yet (parked 4288a). (It was "the
-   second call site" here until 2026-09-01; there are **three**, and the
-   one a capture does reach is §11.1's.)
+8. ~~**The `think_scout` call site inside the human block** (§2), gated on
+   `unit_masks & 0x100`. Not modelled.~~ **Modelled and diffed** (item
+   4291, `docs/CLIENT_INPUT.md` §31.5; run1627). The issuer is the AUTO
+   EXPLORE button's `unitmask(0x100, −1)` (item 4288), which
+   `Group::action_unitmask@006fcb90` toggles into
+   `Unit::auto_explore`. The readers built:
+   - `think`'s head skips the off-phase `near_o` arm, the Dutch merchant's
+     and the auto-attack for the bit;
+   - the human block calls `think_scout(this, 0)` on every think the
+     mod-16 gate lets in, then returns;
+   - `think_scout` sends the unit down the city loop whatever its type,
+     and the citizen's early `return 0` is skipped for it;
+   - a plain human's unit (`0x40000` clear) walks every ring (step 1) to
+     12, then 8, around any city; a city whose `CityData::scouted` holds
+     the leader's bit is passed over, and the bit is set when the walk
+     comes out at `(leader == who)·4 + 8`.
+
+   run1627 plays the minted file to 7500, and our walk agrees on every
+   frame's draws and all 700 records of 6800..7499. Slot 0's Scout keeps
+   the original's path on six frames read, from (4399, 32004) on 6821 to
+   (3552, 34526) on 7499. **Not established**: whether `scouted` is set
+   inside that window (the take prints no `CITIES`), `reveal_fog`'s
+   goody box, `work`'s clear, `think_civilian_transport`'s `EXPLORE_TO`,
+   and `action_move_near` carrying the bit. None of the four is built
+   (parked 4291a). (It was "the second call site" here until 2026-09-01;
+   there are **three**, and the one a capture does reach is §11.1's.)
 8b. **The order's destination is refined a frame later, and by what is
    not read.** §9 issues the move at the **tile centre**, `4·cell + 2`
    scaled to `tile·0xc0 + 0x60`. Run33's dump prints `1/0`'s new order

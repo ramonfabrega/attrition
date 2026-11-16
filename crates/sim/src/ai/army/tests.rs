@@ -118,6 +118,7 @@ fn sim_with_city_slots(slots: usize) -> (Sim, usize) {
         attack_stamp: 0,
         reduce_stamp: 0,
         raid_stamp: 0,
+        scouted: 0,
         capture_strength: 0,
         pop: 1,
         has_citizen: false,
