@@ -269,7 +269,7 @@ the units, which is why **a rare with no merchant on it pays nothing** — the
 bonus is the merchant, not the deposit. The one exception is the Porcelain
 Tower, whose pass at the top of `calc_gather` sets `rare_owned` bits directly
 for every rare inside the player's own territory (built, item 4159r12a:
-"The Porcelain Tower's pass", below).
+"The Porcelain Tower's pass", after "Assembling the rate").
 
 After the rare terms, `rare_owned | rare_conquest` is compared against the
 previous frame's `rare` mask; when it differs the player's population cap is
@@ -291,71 +291,6 @@ mask *after* the assignment. It is the same bit
 `World::compute_reg_territory@006b0bb0` tests, as an inlined
 `LeaderData::has_rare@006e0770`; `docs/ATTRITION.md`, "Territory", has the
 field derivation and the diff that pins it.
-
-### The Porcelain Tower's pass (item 4159r12a, 2026-11-15)
-
-`Leader::calc_gather@006ceee0:82`–`107` runs after `rare_owned` is cleared
-and `known_rares` is summed, before any rate. When
-`LeaderData::has_wonder(0x215)` answers, the leader walks the whole goods
-list. It sets `rare_owned` bit `TypeIndex − 6` for every good that is:
-
-1. live, `SubObjectData::flags & 1`;
-2. seen by it: `GoodData::is_seen@0066e4c0`, vslot `+0x48`, asked `(who,
-   0)`. `ever_seen & ally_mask` answers yes outright. Failing that it reads
-   the fog at the good's half-cell (`div_3_table[x >> 7]`, `x / 0x180` each
-   way). A good that is not `FISH` (6) or `WHALES` (`0x1f`) takes
-   `WorldData::was_seen@006b53f0`, the read with the ally-territory
-   shortcut, when it is `OIL` (5) or the leader holds tribe bonus 9 or 4.
-   Every other case takes the bare `was_really_seen@006b54f0`;
-3. available to it, `LeaderData::type_avail(type, 1) != 0`; and
-4. on a cell whose owner byte (`WData +0xf`, cell `div_3_table[x >> 8]`)
-   is the leader itself. An ally's ground does not count.
-
-It pays nothing and counts nothing into `rares_collected`. The bits go
-through `Leader::gather` into `rare` on the same frame, like any merchant's.
-A good below `BASE_RARE` (oil) would index the byte before the mask's own,
-and the pass stores `rare_owned.flags = 0` over that byte right after, so
-oil claims nothing. The pass runs on every recompute, the same cadence as
-step 6.
-
-The same wonder has a second arm in `LeaderData::calc_rare@006e08d0`. Its
-`else if (ally)` branch adds `PORCELAIN_RARE` (`Constants +0x4b0`, shipped
-as `200% income`) to the extra percentage, beside the Nubians' 50. So a
-merchant's land rare at home pays three times its numbers under the Tower.
-It does not apply abroad, or on the two water goods, whose arm is the
-fishermen's.
-
-Built as `Sim::porcelain_rares` and `Sim::good_is_seen`
-(`crates/sim/src/economy/rares.rs`), plus `economy::calc_rare`'s
-`porcelain` argument.
-
-**Diff-backed** on two captures:
-
-- **run1184, block 4201.** who=1 (Chinese, with a Tower standing) printed
-  `rare` and `rare_owned` bytes `148,16,8`. Ours printed `16,0,8`: Dye (bit
-  4) and Peacocks (bit 19), held by Merchants. The pass adds bits 2, 7 and
-  12, and both masks now agree. The `calc_rare` term covers the rest.
-  who=1's `income` was 4454 / 1520 / 1360 wealth / knowledge / metal
-  against ours 3814 / 1200 / 1040. The gap is `2 × 16 ×` the goods' own
-  numbers: Dye pays 10 wealth and 10 knowledge, Peacocks 10 metal and 10
-  wealth. Every economy row of the window now agrees, `score` 8590
-  included.
-- **ch77 (run872).** The human's Tower was finished at 701, and `score`
-  parted from 711 (ours 1521 against 1546). The pass alone closes it.
-
-Two tests pin the two arms, and each was seen red first:
-`crates/sim/src/cities_tests.rs`'s
-`a_held_porcelain_tower_claims_every_rare_in_its_territory` and
-`rares/tests.rs`'s `a_porcelain_tower_triples_a_merchant_s_land_rare_at_home`.
-
-**Not established:**
-
-- The `is_seen` arms past the first. No capture puts a holder's unseen
-  rare on its own ground.
-- The `was_seen` arm (oil, Spanish, Nubians) rests on a reading alone and
-  is not diffed.
-- `has_wonder`'s Conquer-the-World answer (`conquest_wonders`, the 2) is
-  cut with CtW.
 
 ### Step 6, whole (2026-09-02)
 
@@ -548,6 +483,71 @@ not hold `has_preq` for before the call — the gate is `has_preq`, not the zero
 bucket the earlier draft named. `docs/COSTS.md`, "The starting grant arrives
 with the good", writes out both halves, the nation terms that ride in the
 first, and the amount. The 240 rows `run40_s_census_…` booked are 0.
+
+## The Porcelain Tower's pass (item 4159r12a, 2026-11-15)
+
+`Leader::calc_gather@006ceee0:82`–`107` runs after `rare_owned` is cleared
+and `known_rares` is summed, before any rate. When
+`LeaderData::has_wonder(0x215)` answers, the leader walks the whole goods
+list. It sets `rare_owned` bit `TypeIndex − 6` for every good that is:
+
+1. live, `SubObjectData::flags & 1`;
+2. seen by it: `GoodData::is_seen@0066e4c0`, vslot `+0x48`, asked `(who,
+   0)`. `ever_seen & ally_mask` answers yes outright. Failing that it reads
+   the fog at the good's half-cell (`div_3_table[x >> 7]`, `x / 0x180` each
+   way). A good that is not `FISH` (6) or `WHALES` (`0x1f`) takes
+   `WorldData::was_seen@006b53f0`, the read with the ally-territory
+   shortcut, when it is `OIL` (5) or the leader holds tribe bonus 9 or 4.
+   Every other case takes the bare `was_really_seen@006b54f0`;
+3. available to it, `LeaderData::type_avail(type, 1) != 0`; and
+4. on a cell whose owner byte (`WData +0xf`, cell `div_3_table[x >> 8]`)
+   is the leader itself. An ally's ground does not count.
+
+It pays nothing and counts nothing into `rares_collected`. The bits go
+through `Leader::gather` into `rare` on the same frame, like any merchant's.
+A good below `BASE_RARE` (oil) would index the byte before the mask's own,
+and the pass stores `rare_owned.flags = 0` over that byte right after, so
+oil claims nothing. The pass runs on every recompute, the same cadence as
+step 6.
+
+The same wonder has a second arm in `LeaderData::calc_rare@006e08d0`. Its
+`else if (ally)` branch adds `PORCELAIN_RARE` (`Constants +0x4b0`, shipped
+as `200% income`) to the extra percentage, beside the Nubians' 50. So a
+merchant's land rare at home pays three times its numbers under the Tower.
+It does not apply abroad, or on the two water goods, whose arm is the
+fishermen's.
+
+Built as `Sim::porcelain_rares` and `Sim::good_is_seen`
+(`crates/sim/src/economy/rares.rs`), plus `economy::calc_rare`'s
+`porcelain` argument.
+
+**Diff-backed** on two captures:
+
+- **run1184, block 4201.** who=1 (Chinese, with a Tower standing) printed
+  `rare` and `rare_owned` bytes `148,16,8`. Ours printed `16,0,8`: Dye (bit
+  4) and Peacocks (bit 19), held by Merchants. The pass adds bits 2, 7 and
+  12, and both masks now agree. The `calc_rare` term covers the rest.
+  who=1's `income` was 4454 / 1520 / 1360 wealth / knowledge / metal
+  against ours 3814 / 1200 / 1040. The gap is `2 × 16 ×` the goods' own
+  numbers: Dye pays 10 wealth and 10 knowledge, Peacocks 10 metal and 10
+  wealth. Every economy row of the window now agrees, `score` 8590
+  included.
+- **ch77 (run872).** The human's Tower was finished at 701, and `score`
+  parted from 711 (ours 1521 against 1546). The pass alone closes it.
+
+Two tests pin the two arms, and each was seen red first:
+`crates/sim/src/cities_tests.rs`'s
+`a_held_porcelain_tower_claims_every_rare_in_its_territory` and
+`rares/tests.rs`'s `a_porcelain_tower_triples_a_merchant_s_land_rare_at_home`.
+
+**Not established:**
+
+- The `is_seen` arms past the first. No capture puts a holder's unseen
+  rare on its own ground.
+- The `was_seen` arm (oil, Spanish, Nubians) rests on a reading alone and
+  is not diffed.
+- `has_wonder`'s Conquer-the-World answer (`conquest_wonders`, the 2) is
+  cut with CtW.
 
 ## The rares a leader has seen (2026-09-02)
 
