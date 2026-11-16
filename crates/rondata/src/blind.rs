@@ -1524,8 +1524,13 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// @006d14e0`, the attack request's store, stays open, not residue: the original enters it on
 /// recon4298-4 (`process_propose_attack 1 2 1131`), which is not filed, and the take (run1629)
 /// enters it; open 9 → 10.
-/// **346 → 345** with item 4298's take: run1629's trace enters `Leader::action_attack` on trace
-/// frame 1130 (the record's `process_propose_attack 1 2 1131`); open 10 → 9.
+/// **346 → 347** with step 4159r19 (`docs/LEADERS.md` §8.5): `CommandPackage::process_tribute
+/// @00946d70`, the tribute click's command, stays open, not residue: the original enters it on
+/// run1628 (recon4206-4, `process_tribute 1 4` on 1024 to 1027), filed but read in place, whose
+/// trace joins `TRACES` when it is pinned; open 10 → 11.
+/// **347 → 345** with item 4298's take: run1629's trace enters `Leader::action_attack` on trace
+/// frame 1130 (the record's `process_propose_attack 1 2 1131`) and `CommandPackage::process_tribute`
+/// on 1146 (the record's 1147), each left `NEVER` with the trace's pinning; open 11 → 9.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,

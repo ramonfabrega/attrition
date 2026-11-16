@@ -626,7 +626,8 @@ mod tests {
         // Item 4177: 1264 -> 1277, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
         // Item 4185: 1277 -> 1285, +8: of the end of the game's and the lost capital's nine, the eight this record does not print (`defeated_by` prints).
         // Item 4159's second residue: 1690 -> 1691, +1, `pop_issues`, which this record does not print.
-        pin_eq!(w.missing.len(), 1691, "the keys run382 does not print");
+        // Item 4159, step 4159r19: 1691 -> 1729, +38: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+        pin_eq!(w.missing.len(), 1729, "the keys run382 does not print");
         pin!(
             w.missing.contains("gaia:cur_anim") && w.missing.contains("resources[0:food]"),
             "gaia's clocks and the long leader record are unprinted"

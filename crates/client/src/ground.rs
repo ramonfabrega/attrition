@@ -1286,7 +1286,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// the land's own N·L (§3.22, "The ground beneath a range").
 /// Item 4292: run1559b's 1,008 → 1,012, run1564's 1,754 → 1,777, the made-to-fail: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22).
 /// Item 4296: run1564's 1,777 → 1,786, the deep corners in the floor's grey plus `trans_bright` (§3.27, "The beach below the waterline"), against the drawn row's 1,783: **the made-to-fail side leads on run1564 by three** (4296b).
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1012, 1109), (1786, 1920)];
+/// Item 4306: run1564's 1,786 → 1,789, the national border drawn over the east edge's beach (`docs/RENDERER.md` §3.29).
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1012, 1109), (1789, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1584,13 +1585,14 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// Item 4284: `SANDY` 412 → 413: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 /// Item 4292: plain 665 → 666, `ROCK` 8 → 9, `SANDY` 413 → 428, `OCEAN` 233 → 239 (a rise from 665, 8, 413 and 233): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) carries the relief's shading into each tile's spread.
 /// Item 4296: `SANDY` 428 → 439, `OCEAN` 239 → 234 (a named fall from 239): the deep corners in the floor's grey plus `trans_bright` (`docs/RENDERER.md` §3.27, "The beach below the waterline"), on the texture's spread.
+/// Item 4306: `SANDY` 439 → 440: the national border drawn over the east edge's beach (`docs/RENDERER.md` §3.29).
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [666, 679],
     [0, 0],
     [9, 32],
     [0, 0],
     [0, 0],
-    [439, 772],
+    [440, 772],
     [234, 437],
 ];
 

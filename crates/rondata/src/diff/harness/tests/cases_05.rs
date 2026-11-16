@@ -49,7 +49,8 @@ mod bodies {
             // Item 4177: 670560 -> 673680, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 673680 -> 675840, +2160 (120 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
             // Item 4159's second residue: 773280 -> 773520, +1 key a leader block (`pop_issues`, compared since).
-            773520,
+            // Item 4159, step 4159r19: 773520 -> 782640, +9120: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            782640,
             "120 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         // **Under the word and on it, both directions.** The leader rows
@@ -264,7 +265,8 @@ mod bodies {
             // Item 4177: 1916684 -> 1925602, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1925602 -> 1931776, +6174 (343 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
             // Item 4159's second residue: 2210292 -> 2210978, +1 key a leader block (`pop_issues`, compared since).
-            2210978,
+            // Item 4159, step 4159r19: 2210978 -> 2237046, +26068: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            2237046,
             "343 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -455,7 +457,8 @@ mod bodies {
             // Item 4177: 3939540 -> 3957870, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 3957870 -> 3970560, +12690 (705 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
             // Item 4159's second residue: 4543020 -> 4544430, +1 key a leader block (`pop_issues`, compared since).
-            4544430,
+            // Item 4159, step 4159r19: 4544430 -> 4598010, +53580: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            4598010,
             "705 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -663,7 +666,8 @@ mod bodies {
             // Item 4177: 2861056 -> 2874368, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 2874368 -> 2883584, +9216 (512 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
             // Item 4159's second residue: 3299328 -> 3300352, +1 key a leader block (`pop_issues`, compared since).
-            3300352,
+            // Item 4159, step 4159r19: 3300352 -> 3339264, +38912: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            3339264,
             "512 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -933,7 +937,8 @@ mod bodies {
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
             // Item 4159's second residue: 1656108 -> 1656622, +1 key a leader block (`pop_issues`, compared since).
-            1656622,
+            // Item 4159, step 4159r19: 1656622 -> 1676154, +19532: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            1676154,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1068,7 +1073,8 @@ mod bodies {
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
             // Item 4159's second residue: 1656108 -> 1656622, +1 key a leader block (`pop_issues`, compared since).
-            1656622,
+            // Item 4159, step 4159r19: 1656622 -> 1676154, +19532: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            1676154,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1225,7 +1231,8 @@ mod bodies {
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
             // Item 4159's second residue: 1656108 -> 1656622, +1 key a leader block (`pop_issues`, compared since).
-            1656622,
+            // Item 4159, step 4159r19: 1656622 -> 1676154, +19532: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            1676154,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1472,7 +1479,8 @@ mod bodies {
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
             // Item 4159's second residue: 1656108 -> 1656622, +1 key a leader block (`pop_issues`, compared since).
-            1656622,
+            // Item 4159, step 4159r19: 1656622 -> 1676154, +19532: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            1676154,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1625,7 +1633,8 @@ mod bodies {
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
             // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
             // Item 4159's second residue: 1656108 -> 1656622, +1 key a leader block (`pop_issues`, compared since).
-            1656622,
+            // Item 4159, step 4159r19: 1656622 -> 1676154, +19532: the five held rows (`good_deeds`, `hire_stamp`, `hire_who`, `tribute_demanded`, `tributes`; 4159r18a).
+            1676154,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {

@@ -775,6 +775,23 @@ pub enum Hit {
     },
 }
 
+/// What a building selection's right press finds ([`View::gather_target`],
+/// item 4301): a building of any slot, or one of the slot's own units.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum GatherHit {
+    /// The first look's building: its position is the gather point's,
+    /// `action` 2 when its owner is the issuer's enemy and 1 otherwise.
+    /// `university` is an active University (`is(0x1a4)`, `is_active`).
+    Building {
+        id: ObjId,
+        pos: Pos,
+        enemy: bool,
+        university: bool,
+    },
+    /// The second look's unit: the point is `(captain, who)`, `action` 3.
+    Unit { captain: i16, who: u8 },
+}
+
 impl View<'_> {
     /// The object a right press at `(px, py)` names for `who`, as
     /// `Console::execute_at_cursor` looks: another slot's unit first
@@ -895,6 +912,65 @@ impl View<'_> {
                 .buildings
                 .iter()
                 .any(|b| b.seen && near(b.pos, b.z))
+    }
+
+    /// **What a building selection's right press names** (item 4301,
+    /// `docs/CLIENT_INPUT.md` §11.4), as `Console::execute_at_cursor`'s
+    /// gather arm looks: first `find_target(SEARCH_ALL, buildings)`, a seen
+    /// building of any slot; then `find_target(SEARCH_FRIENDLY, units)`,
+    /// one of `who`'s own units (`Search::valid_search` case 1: the slot
+    /// itself). Each look takes the nearest anchor within [`PICK_RADIUS`],
+    /// as [`View::target`]'s do (ours: not the ±5 px box and bounding
+    /// volumes). `None` is the ground.
+    pub fn gather_target(&self, who: u8, px: i32, py: i32) -> Option<GatherHit> {
+        let near = |p: Pos, z: i32| {
+            let (ax, ay) = self.pixel(p.x, p.y, z);
+            let d = i64::from(ax - px).pow(2) + i64::from(ay - py).pow(2);
+            (d <= i64::from(PICK_RADIUS).pow(2)).then_some(d)
+        };
+        let building = self
+            .scene
+            .buildings
+            .iter()
+            .filter(|b| b.seen)
+            .filter_map(|b| Some((near(b.pos, b.z)?, b)))
+            .min_by_key(|&(d, b)| (d, b.id));
+        if let Some((_, b)) = building {
+            let enemy = self
+                .scene
+                .leaders
+                .iter()
+                .find(|l| l.who == who)
+                .is_some_and(|l| l.enemies.contains(&b.owner));
+            return Some(GatherHit::Building {
+                id: b.id,
+                pos: b.pos,
+                enemy,
+                university: b.university && b.active,
+            });
+        }
+        self.scene
+            .units
+            .iter()
+            .filter(|u| u.id.who == who && u.seen)
+            .filter_map(|u| Some((near(u.pos, u.z)?, u)))
+            .min_by_key(|&(d, u)| (d, u.id))
+            .map(|(_, u)| GatherHit::Unit {
+                captain: u.captain,
+                who: u.id.who,
+            })
+    }
+
+    /// `GroupData::count(COUNT_TYPE, VILLAGE)` of a selection, as far as
+    /// nonzero: a selected building of the Village lineage, a city
+    /// ([`sim::observe::BuildingScene::village`]; item 4301).
+    pub fn selects_city(&self, selection: &[ObjId]) -> bool {
+        selection.iter().any(|id| {
+            self.scene
+                .buildings
+                .iter()
+                .any(|b| b.id == *id && b.village)
+        })
     }
 
     /// `GroupData::count(COUNT_ATTACK)` of a selection, as far as nonzero:
@@ -1832,21 +1908,58 @@ impl Input {
                     return None;
                 }
                 if self.building {
-                    // The building arm (`execute_at_cursor`, item 4249): a
-                    // selection that takes a gather point, and no object
-                    // under the press, names the ground, `action` 0 and
-                    // `add_to_end` 1 with ctrl or shift held (item 4293,
-                    // §33.1). On an object the arms' actions 1 to 3 are
-                    // not read: nothing.
-                    if !view.takes_gather_point(&self.selection) || view.names_object(x, y) {
+                    // The building arm (`execute_at_cursor`, items 4249 and
+                    // 4301, §11.4): a selection that takes a gather point
+                    // names, in order, a building of any slot (`action` 2
+                    // on an enemy's, 1 otherwise, at its position), one of
+                    // the slot's own units (`action` 3, `(captain, who)`),
+                    // or the ground (`action` 0). Every arm's `add_to_end`
+                    // is ctrl or shift (item 4293, §33.1). Refused: an
+                    // active University of one's own for a city, and a
+                    // building of the selection under the profile's
+                    // `prefs & 0x202` clear.
+                    if !view.takes_gather_point(&self.selection) {
                         return None;
                     }
-                    let at = ground_at(view, x, y)?;
-                    let cmd = Command::GatherPoint {
-                        x: at.x,
-                        y: at.y,
-                        action: 0,
-                        add_to_end: i32::from(self.mods.shift || self.mods.ctrl),
+                    let add_to_end = i32::from(self.mods.shift || self.mods.ctrl);
+                    let cmd = match view.gather_target(self.player, x, y) {
+                        Some(GatherHit::Building {
+                            id,
+                            pos,
+                            enemy,
+                            university,
+                        }) => {
+                            if university
+                                && id.who == self.player
+                                && view.selects_city(&self.selection)
+                            {
+                                return None;
+                            }
+                            if self.selection.contains(&id) && self.prefs.prefs & 0x202 == 0 {
+                                return None;
+                            }
+                            Command::GatherPoint {
+                                x: pos.x,
+                                y: pos.y,
+                                action: 1 + i32::from(enemy),
+                                add_to_end,
+                            }
+                        }
+                        Some(GatherHit::Unit { captain, who }) => Command::GatherPoint {
+                            x: i32::from(captain),
+                            y: i32::from(who),
+                            action: 3,
+                            add_to_end,
+                        },
+                        None => {
+                            let at = ground_at(view, x, y)?;
+                            Command::GatherPoint {
+                                x: at.x,
+                                y: at.y,
+                                action: 0,
+                                add_to_end,
+                            }
+                        }
                     };
                     return Some((frame, play, vec![self.group(view.scene), cmd]));
                 }
@@ -4348,6 +4461,7 @@ pub(crate) mod tests {
                 control: 0,
                 pop_cap: 0,
                 market,
+                enemies: vec![],
             }],
             buildings: vec![b],
             ..Scene::default()
@@ -4599,6 +4713,7 @@ pub(crate) mod tests {
             control: 0,
             pop_cap: 0,
             market: [None; 6],
+            enemies: vec![],
         };
         let terrain = TerrainScene::default();
         let c = crate::pinned_camera();
@@ -4692,6 +4807,7 @@ pub(crate) mod tests {
             max_health: 1,
             seen: true,
             attacks: true,
+            captain: o,
             crafts: vec![],
             garrison_cost: 1,
             enters: vec![],
@@ -7194,14 +7310,24 @@ pub(crate) mod tests {
                     Verdict::Shown("INPUT_ROSTER_QUEUES")
                 }
             }
+            // Since item 4301 a building's or one's own unit's gather point
+            // is the layer's too (§11.4): actions 1 and 2 at a point, and
+            // 3 naming `(captain, who)` of the issuer's slot.
             Command::GatherPoint {
-                action: 0,
+                action: 0..=2,
                 add_to_end: 0,
                 ..
             } => Verdict::Form,
-            Command::GatherPoint { add_to_end: 0, .. } => {
-                Verdict::Miss("gather_point on an object: actions 1 to 3", Button)
-            }
+            &Command::GatherPoint {
+                action: 3,
+                y,
+                add_to_end: 0,
+                ..
+            } if y == i32::from(who) => Verdict::Form,
+            Command::GatherPoint { add_to_end: 0, .. } => Verdict::Miss(
+                "gather_point: a field the gather arm does not write",
+                Button,
+            ),
             Command::Disband { .. } => Verdict::Shown("INPUT_DISBANDS"),
             Command::Unitmask { .. } => Verdict::Shown("INPUT_UNITMASKS"),
             c if minted(c) => Verdict::Form,
@@ -7319,15 +7445,10 @@ pub(crate) mod tests {
     /// Every order on disk by verdict: (shown, of the layer's form but not
     /// minted from a scene, missed, all). A package's `group` takes its
     /// order's verdict.
-    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (927, 1384, 118, 2429);
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (927, 1432, 70, 2429);
     /// The missed orders by arm, most first, and who reaches each, the
     /// package's `group` counted with its order.
     const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] = &[
-        (
-            "gather_point on an object: actions 1 to 3",
-            Reach::Button,
-            48,
-        ),
         (
             "two issues in one turn: one package a turn",
             Reach::Writer,
@@ -7433,6 +7554,309 @@ pub(crate) mod tests {
         assert_eq!((whole, files.len()), INPUT_WHOLE);
         assert_eq!((shown, form, missed, all), INPUT_WHOLE_ORDERS);
         assert_eq!(misses, INPUT_WHOLE_MISSES);
+    }
+
+    /// **The census of `gather_point` on an object** (item 4301,
+    /// `docs/CLIENT_INPUT.md` §11.4): every recorded `gather_point` with
+    /// `action` 1 to 3, by `(action, orders in its package)`. All 24 are
+    /// the 2017 sample's, slot 3's on play 0, each with its `group` alone,
+    /// so none is a two-issue turn's. Seen red pinned with action 3's 12
+    /// as 11.
+    const GATHER_POINTS_ON_AN_OBJECT: &[((i32, usize), usize)] =
+        &[((1, 2), 9), ((2, 2), 3), ((3, 2), 12)];
+    /// Of them, the heads the layer mints byte for byte from a scene that
+    /// holds the object the head names: for actions 1 and 2 a building at
+    /// the recorded point, the issuer's own or an enemy's; for action 3 one
+    /// of the issuer's units whose captain is the recorded `x`, `y` being
+    /// the issuer's slot. Seen red with the action-3 arm minting
+    /// `(o, who)` of the unit pressed in place of its captain: 12 of 24,
+    /// every action 3 parted (the unit is `o` 900, its captain the
+    /// recorded `x`).
+    const GATHER_POINTS_MINTED: (usize, usize) = (24, 24);
+
+    #[test]
+    fn gather_points_on_an_object_on_disk() {
+        let files = recordings_on_disk();
+        let Ok(r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        if files.is_empty() {
+            println!("skipping: no .rcx on disk");
+            return;
+        }
+        let terrain = r.terrain();
+        let template = r.scene(None).buildings[0];
+        drop(r);
+        let c = crate::pinned_camera();
+        let mut by: std::collections::BTreeMap<(i32, usize), usize> = Default::default();
+        let (mut minted, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let who = console_who(&rec);
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                for c0 in &kept {
+                    let &Command::GatherPoint {
+                        x,
+                        y,
+                        action,
+                        add_to_end,
+                    } = c0
+                    else {
+                        continue;
+                    };
+                    if action == 0 {
+                        continue;
+                    }
+                    *by.entry((action, kept.len())).or_default() += 1;
+                    all += 1;
+                    // The selection: a building of the issuer's that trains,
+                    // hidden from the looks so the press names only the
+                    // object below.
+                    let mut sel = template;
+                    (sel.id, sel.owner) = (ObjId { who, o: 2000 }, who);
+                    (sel.trains, sel.seen) = (true, false);
+                    let enemy_slot = (who + 1) % 5;
+                    let mut scene = Scene {
+                        buildings: vec![sel],
+                        leaders: vec![sim::observe::LeaderScene {
+                            who,
+                            enemies: vec![enemy_slot],
+                            ..leader_scene(who)
+                        }],
+                        ..Scene::default()
+                    };
+                    let at = if action == 3 {
+                        let mut u = unit(who, 900, 0x36, 0, 0, 0);
+                        u.captain = x as i16;
+                        u.pos = template.pos;
+                        let at = (u.pos, u.z);
+                        scene.units.push(u);
+                        at
+                    } else {
+                        let mut b = template;
+                        let owner = if action == 2 { enemy_slot } else { who };
+                        (b.id, b.owner, b.seen, b.trains) = (
+                            ObjId {
+                                who: owner,
+                                o: 2001,
+                            },
+                            owner,
+                            true,
+                            false,
+                        );
+                        b.pos = Pos { x, y };
+                        scene.buildings.push(b);
+                        (b.pos, b.z)
+                    };
+                    let v = view(&c, &scene, &terrain);
+                    let (px, py) = v.pixel(at.0.x, at.0.y, at.1);
+                    let input = Input {
+                        selection: vec![sel.id],
+                        building: true,
+                        mods: Mods {
+                            shift: add_to_end != 0,
+                            ..Mods::default()
+                        },
+                        // Seated on the slot, as the other census mints
+                        // are: the layer's `player` is the slot its looks
+                        // read, and the head carries no play.
+                        ..Input::new(who)
+                    };
+                    let got = input
+                        .clone()
+                        .event(p.frame, Event::RightPress { x: px, y: py }, &v)
+                        .map(|o| o.2);
+                    let whole = got.as_ref().is_some_and(|g| {
+                        g.len() == 2
+                            && g[1] == *c0
+                            && rondata::commands::encode(&g[1..])
+                                == rondata::commands::encode(std::slice::from_ref(c0))
+                    });
+                    println!(
+                        "GP {} f{} play {} who {who} ({x}, {y}) action {action}; {} in the package; minted {whole}",
+                        f.file_name().unwrap().to_string_lossy(),
+                        p.frame,
+                        p.play,
+                        kept.len()
+                    );
+                    if action == 3 {
+                        assert_eq!(y, i32::from(who), "action 3 names the issuer's slot");
+                    }
+                    minted += usize::from(whole);
+                }
+            }
+        }
+        let by: Vec<((i32, usize), usize)> = by.into_iter().collect();
+        println!("GP BY {by:?}; minted {minted} of {all}");
+        assert_eq!(by, GATHER_POINTS_ON_AN_OBJECT);
+        assert_eq!((minted, all), GATHER_POINTS_MINTED);
+    }
+
+    /// A leader record with nothing in it but its slot.
+    fn leader_scene(who: u8) -> sim::observe::LeaderScene {
+        sim::observe::LeaderScene {
+            who,
+            tribe: 0,
+            nation: String::new(),
+            ages: 0,
+            bucket: [0; 6],
+            income: [0; 6],
+            over_cap: [false; 6],
+            control: 0,
+            pop_cap: 0,
+            market: [None; 6],
+            enemies: vec![],
+        }
+    }
+
+    /// **The gather arm on an object** (item 4301, `docs/CLIENT_INPUT.md`
+    /// §11.4): with a building selected that trains, a right press on
+    /// one's own building is `action` 1 at its position, on an enemy's 2,
+    /// on another slot's at peace 1; on one's own unit 3 with its captain
+    /// and the slot; on an enemy unit the ground, `action` 0, since the
+    /// second look is the slot's own. Refused: the selected building
+    /// itself (unless the profile's `prefs & 0x202`), and an active
+    /// University of one's own for a city (an unfinished one is named).
+    #[test]
+    fn minted_a_gather_point_on_an_object_as_the_original() {
+        let Ok(r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let terrain = r.terrain();
+        let template = r.scene(None).buildings[0];
+        drop(r);
+        let c = crate::pinned_camera();
+        let mut sel = template;
+        (sel.id, sel.owner, sel.trains, sel.village) = (ObjId { who: 0, o: 2000 }, 0, true, true);
+        let far = Pos {
+            x: template.pos.x + 6 * 768,
+            y: template.pos.y,
+        };
+        let mut other = template;
+        (other.trains, other.village, other.pos) = (false, false, far);
+        let building = |who: u8, o: i16| {
+            let mut b = other;
+            (b.id, b.owner) = (ObjId { who, o }, who);
+            b
+        };
+        let leaders = vec![sim::observe::LeaderScene {
+            enemies: vec![1],
+            ..leader_scene(0)
+        }];
+        let press = |scene: &Scene, prefs: u32, mods: Mods, at: (Pos, i32)| {
+            let v = view(&c, scene, &terrain);
+            let (px, py) = v.pixel(at.0.x, at.0.y, at.1);
+            let input = Input {
+                selection: vec![sel.id],
+                building: true,
+                mods,
+                prefs: rondata::prefs::Prefs {
+                    prefs,
+                    ..rondata::prefs::Prefs::FRESH
+                },
+                ..Input::new(0)
+            };
+            input
+                .clone()
+                .event(1, Event::RightPress { x: px, y: py }, &v)
+                .map(|o| o.2[1].clone())
+        };
+        let fresh = rondata::prefs::DEFAULT_PREFS;
+        let none = Mods::default();
+        let gp = |x: i32, y: i32, action: i32, add_to_end: i32| Command::GatherPoint {
+            x,
+            y,
+            action,
+            add_to_end,
+        };
+        let with = |extra: Vec<sim::observe::BuildingScene>,
+                    units: Vec<sim::observe::UnitScene>| {
+            let mut buildings = vec![sel];
+            buildings.extend(extra);
+            Scene {
+                buildings,
+                units,
+                leaders: leaders.clone(),
+                ..Scene::default()
+            }
+        };
+        let on = |b: &sim::observe::BuildingScene| (b.pos, b.z);
+        // A building of one's own, an enemy's, and one at peace.
+        for (who, action) in [(0, 1), (1, 2), (2, 1)] {
+            let b = building(who, 2001);
+            let s = with(vec![b], vec![]);
+            assert_eq!(
+                press(&s, fresh, none, on(&b)),
+                Some(gp(far.x, far.y, action, 0)),
+                "slot {who}"
+            );
+        }
+        // Shift or ctrl: `add_to_end` 1 on every arm.
+        let b = building(1, 2001);
+        let s = with(vec![b], vec![]);
+        for mods in [
+            Mods {
+                shift: true,
+                ..none
+            },
+            Mods { ctrl: true, ..none },
+        ] {
+            assert_eq!(press(&s, fresh, mods, on(&b)), Some(gp(far.x, far.y, 2, 1)));
+        }
+        // One's own unit: its captain and the slot. An enemy's: the ground.
+        let mut u = unit(0, 31, 0x36, far.x, 0, 0);
+        (u.pos, u.captain) = (far, 27);
+        let s = with(vec![], vec![u.clone()]);
+        assert_eq!(press(&s, fresh, none, (u.pos, u.z)), Some(gp(27, 0, 3, 0)));
+        let mut e = u.clone();
+        (e.id, e.owner) = (ObjId { who: 1, o: 31 }, 1);
+        let at = (e.pos, e.z);
+        let s = with(vec![], vec![e]);
+        let got = press(&s, fresh, none, at);
+        assert!(
+            matches!(got, Some(Command::GatherPoint { action: 0, .. })),
+            "{got:?}"
+        );
+        // A building beats a unit under the same press.
+        let b = building(0, 2001);
+        let s = with(vec![b], vec![u]);
+        assert_eq!(press(&s, fresh, none, on(&b)), Some(gp(far.x, far.y, 1, 0)));
+        // The selected building itself: refused, unless `prefs & 0x202`.
+        let s = with(vec![], vec![]);
+        assert_eq!(press(&s, fresh, none, on(&sel)), None);
+        for bit in [0x2, 0x200] {
+            assert_eq!(
+                press(&s, fresh | bit, none, on(&sel)),
+                Some(gp(sel.pos.x, sel.pos.y, 1, 0)),
+                "prefs {bit:#x}"
+            );
+        }
+        // One's own active University, for a city: refused; unfinished, or
+        // with no city selected, named.
+        let mut uni = building(0, 2001);
+        uni.university = true;
+        let s = with(vec![uni], vec![]);
+        assert_eq!(press(&s, fresh, none, on(&uni)), None);
+        uni.active = false;
+        let s = with(vec![uni], vec![]);
+        assert_eq!(
+            press(&s, fresh, none, on(&uni)),
+            Some(gp(far.x, far.y, 1, 0))
+        );
+        uni.active = true;
+        let mut s = with(vec![uni], vec![]);
+        s.buildings[0].village = false;
+        assert_eq!(
+            press(&s, fresh, none, on(&uni)),
+            Some(gp(far.x, far.y, 1, 0))
+        );
     }
 
     /// A command's queue position, `QueuePos`, for the kinds that carry

@@ -40,6 +40,7 @@
 //! The simulation stays headless: this crate depends on `sim`, `rondata`
 //! and `render`, and none of them on it (`tests::the_sim_takes_no_graphics`).
 
+mod borders;
 mod dead;
 mod expose;
 mod fire;

@@ -1453,6 +1453,16 @@ impl Sim {
             _ if crate::leaders::declare::DECLARE_LEAVES.contains(&name) => {
                 self.leader_declare_leaf(who, name)
             }
+            // Item 4159, step 4159r19 (`docs/LEADERS.md` §7.2, §7.5):
+            // `good_deeds`, the offers arm's balance, moved on run1628's
+            // block 1032 (the French `good_deeds[0]` 0 → 1328, a peace
+            // bought with 2,000 metal) by the accept our walk computes, and
+            // agreeing on every block from there to 1150.
+            "good_deeds" => self
+                .leaders
+                .declare
+                .get(who as usize)
+                .map(|d| d.good_deeds.iter().map(|&x| i64::from(x)).collect()),
             // Item 4159, step VII-b2 (`crate::leaders::tribute`,
             // `crate::leaders::taunt`, `docs/LEADERS.md` §8, §9): the
             // taunt's answer. `tribute_stamp`, `gift_stamp`, `last_taunt`

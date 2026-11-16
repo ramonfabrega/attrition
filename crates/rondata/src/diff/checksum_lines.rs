@@ -2128,7 +2128,17 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 0, 58343);
 /// of their 24 cells on any row (331,453 non-zero cells of theirs seen
 /// agreeing), so 4159r5a's launch rows are not what parted them.
 ///
-/// Item 4298, the attack deal: 6 → 3 names, `hire_stamp`, `hire_who` and
+/// Item 4159, step 4159r19: 6 → 5 names, `good_deeds` (`docs/LEADERS.md`
+/// §7.5). Released by entry 131 §1's first way on a mover: run1628
+/// (recon4206-4 filed), a peace the human bought with 2,000 metal, moves
+/// the French `good_deeds[0]` 0 → 1328 on block 1032, and our walk, the
+/// four tributes and the accept staged off the human's own record (inputs,
+/// entry 132 §1), computes the French accept and holds 1328 on all 119
+/// blocks 1032 to 1150 (`diplomacy_take::run1628_s_good_deeds_are_the_french_answer`).
+/// Emitted, it agrees on frame 91 (0 on both leaders).
+///
+/// Item 4298, the attack deal: 5 → 2 names (merged after
+/// 4159r19's `good_deeds`, 6 → 5), `hire_stamp`, `hire_who` and
 /// `tributes`, each agreeing on frame 91 (0, −1 per slot, 0). Released by
 /// entry 131 §1: a walk we compute moves them. run1629 (a human asks the
 /// French to attack the Russians, accepted on 1186) is walked whole to 1300
@@ -2138,7 +2148,6 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 0, 58343);
 /// `hire_stamp[2]` 1186, `hire_who[2]` 0); and its packet at 1190 holds the
 /// three off their seated image, ours equal (`packets::TAKE1629_RELEASED`).
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
-    ("good_deeds (unheld)", 2),
     ("incoming_taunt_who (unheld)", 2),
     ("tribute_demanded (unheld)", 2),
 ];

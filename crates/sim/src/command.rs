@@ -439,7 +439,7 @@ impl Command<'_> {
 
     /// [`Sim::action_offer`] (`leaders/tribute.rs`): a `tribute` command's
     /// (`CommandPackage::process_tribute@00946d70`, `who` offering `whom`
-    /// `amount` of good `r`; a negative amount asks).
+    /// `amount` of good `r`; a negative amount asks for it).
     pub fn action_offer(
         &mut self,
         me: Player,
