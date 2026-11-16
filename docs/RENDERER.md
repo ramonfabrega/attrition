@@ -3940,6 +3940,82 @@ shader's branch. On the photograph alone: the tables and the warmth row. *Not es
   grey texel, where the photograph's is red (4286b);
 - the shadow blended over the frame after the tone map, where the original blends it in HDR.
 
+## 3.29 The national borders (item 4306)
+
+**How it was established.** run1564's photograph (§3.3, rung 4) carries a lavender band along its east edge;
+the client drew none. The first act projected the band's pixels onto the simulation's own grid
+(`ground_why`'s tile of each pixel, `Sim::observe_territory` at frame 3279). The band lies on the sim's cells:
+its points fall on tiles (203, 180), (204, 182–183), (205, 184) and (208, 184), which trace player 1's edge
+around cells (50, 44) and (51, 45) — the row 44/45 edge, the west side of (51, 45), then its south edge at tile
+y 184 — rounded at the corner. The territory there is the same from frame 3280 to 3400. Then one reading
+of the decompile (Opus 5.5, a reader of this item), the constants read from the executable.
+
+**The edges** (`Border::sort_regular@00880960`). Each cell of a land region compares its owner (`WData.who`,
+masked to the leaders the viewer `LeaderData::can_see_borders@006d5f60`) with its north and east neighbours:
+`.rdata`'s `dx` (0, 1, 0, −1), `dy` (−1, 0, 1, 0), `corner_xoffset` (0, 1, 1, 0) and `corner_yoffset` (0, 0, 1,
+1), so the edge runs from corner `k` to `k + 1`. No edge is made where either cell is ocean
+(`WorldData::is_ocean@006b4830`'s rule: not `HALFLAND`, `land` 1 or 2), where the owners agree, or between two
+leaders allied both ways. `Border::walk_regular_strips@0087fbb0` chains the edges corner to corner, and
+`Border::generate_strip@0087f8c0` drops each corner a straight run passes through (unless the height steps by
+`max_height_diff` 100 or more), appending the first corner again on a closed loop.
+
+**The curve** (`Spline::calc_spline@00912f00`, `generate_bspline@00911820`, `clamp_knots@00910be0`,
+`calc_bspline_basis@009116e0`). `BorderSpline::BorderSpline@008830b0` sets `type` 3, `degree` 3, `depth` 256
+and `max_control_depth_ratio` 3.5. The curve is a B-spline of degree `min(3, n − 1)` on clamped uniform
+knots through `n` corners at `768 ×` their cell coordinates, sampled `min(256, ⌊3.5 n⌋) + 1` times evenly in
+its parameter. A closed loop is not periodic: its seam is a corner.
+
+**The band** (`Spline::build_normals@00911f60`, `Spline::make_2d_strip@00912fe0`). Each segment's normal is
+its heading turned a right angle on the ground, a sample's the normalised sum of its two segments'. The strip
+runs 48 units (`breadth` 0.25 of a 192-unit tile) to each side of the curve. Each half carries one owner's
+`TeamColor::get_border@008c2980` colour through `Borders::make_texture@00882530`'s 16 × 16 texture, the
+half of an owner nobody can see transparent (`BorderSplineRender::map_texture@00882990`). The colours are
+`TEAM_COLOR_BORDER_*` (`TeamColors::init@008c3100`), the executable's bytes: red, blue (0, 0, 255), pink
+(188, 0, 250), green, yellow, cyan, white, orange (255, 128, 0); run1559b's packet holds the first two.
+`BorderSplineRender::init_border_render@00882b90` gives each vertex alpha 64 (`border_alpha`), or 31
+(`ocean_end_alpha`) at an end beside the water or the map's edge and over a tile whose `mask & 3` is 2.
+`Scene::init_render_states@008ba450`: source alpha over the frame, alpha test greater than 0, no depth test
+or write; `Borders::process_all@00882490` draws after the terrain and the roads, before the shadows and the
+mountains.
+
+**What was built** (`client::borders`, `World::border_meshes`). The edges, the chains, the curve and the band
+as above, each player's halves one patch mesh of a 1 × 1 texture in its colour, the vertex alpha through a
+256-texel ramp; laid after the roads and before the first mountain layer, again when the frame moves.
+`World::borders` turns it off, `World::borders_shift` reads the owner grid elsewhere.
+
+**Which half is whose.** With the owner's half on the side of its own cells, the row reads 81 of 1,440.
+With it on the far side of the curve, 225. On the lower arm the photograph's band lies just south of tile
+y 184, outside player 1's cells, so the draw takes the far side. The reader's convention ("`who` on `+N`")
+was stated in y-up axes and the cells are y-down; this is the photograph's word on it, not a second reading.
+
+**The row** (`borders::tests::RUN1564_3279_BORDER`). On run1564's photograph at the client's frame 3279,
+the pixels within one cell of an owner's edge on the sim's grid (157,622). A border's pixel is one bluer than
+the mean of its red and green, red within 2 of green and above 110 (the band reads (154, 148, 169) over sand
+(192, 181, 117)). `(both, theirs, ours)`:
+
+| draw | both | theirs | ours |
+|---|---|---|---|
+| none (the mint) | 0 | 1,440 | 0 |
+| drawn | **225** | 1,440 | 615 |
+| made-to-fail: the owner grid one cell east | 0 | 1,440 | 0 |
+
+**Diff-backed and read.** The owner grid is the simulation's, which the dumps back. That the band lies on the
+sim's cells is the photograph's. The curve, the width, the colours' source, the alphas and the render state are
+one reading, and no row checks them one by one. The colours' bytes are the executable's.
+
+**What is not established.**
+- **The "<"'s upper arm** (parked 4306a). Cells (50, 45) and (49, 44) are `land` 1 without `HALFLAND`, so
+  the ocean rule as read makes no edge against them, and our chain ends open at corner (51, 46). The
+  photograph draws an arm up the west side of (51, 45) to the row 44/45 edge, so the original makes those
+  edges. Either the rule is misread, or the original's `land` or `HALFLAND` on these beach cells is not ours.
+- Ours lies a few pixels off theirs along the lower arm (615 of ours, 225 shared). The terrain normal in
+  `build_normals` (the band is laid flat here), the curve's sampling and the photograph's frame 3294 against
+  our 3279 are not separated.
+- `BORDER_LIFT` (6 units) is ours: the patch pass tests depth, the original's does not.
+- The leader's colour slot (`team_colors.list[leader +0x6928]`) is taken as the leader's index; alliances
+  and `can_see_borders` are not applied (no allied pair and a full reveal on run1564); the diplomatic-colours
+  preference and the border's morph (`BorderMorphRender`) are not drawn.
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
@@ -4411,6 +4487,7 @@ lines and fog shading, projectiles and corpses, then candidate C.
 
 ### 7.1 Not established
 
+- **The border's upper arm on run1564** (§3.29, parked 4306a): the original draws edges against beach cells the ocean rule as read drops.
 - **Where gaia's birds are drawn** (item 4208). Owner 9's birds carry `get_unit_gpiece`'s gaia piece
   (60045, `WILDBIRD-TYPE0`) since `Sim::gaia_piece`, and the draw list draws them. On run1429 that is 280
   figures on 34 logged frames. No dump prints owner 9, so the register leaves them out and counts them
