@@ -3120,6 +3120,8 @@ one of the layer's fields: **927 shown, 1,190 form, 312 missed**; `INPUT_WHOLE` 
 missed**; `INPUT_WHOLE` holds at 42. Item 4297's attack-move (§35) makes `orders` 2 with no facing and −1/−1 the
 layer's form: **927 shown, 1,384 form, 118 missed**; `INPUT_WHOLE` holds at 42. Item 4301's rally point on an
 object (§11.4) makes actions 1 to 3 the layer's form: **927 shown, 1,432 form, 70 missed**; `INPUT_WHOLE` holds at 42.
+Item 4302's turn (§36) writes a turn's issues as one package and mints all nine recorded turns byte for byte: **965
+shown, 1,432 form, 32 missed**; `INPUT_WHOLE` holds at 42.
 
 **Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
 `INPUT_SPELLS against the census` 17 against 6.
@@ -3156,7 +3158,7 @@ is where the arms are.
 | ~~`leader_options`~~ | ~~50~~ | **Profile**: `Game::run` from the prefs (§26.1) | minted from the layer's prefs since item 4289 |
 | ~~`gather_point` on an object, actions 1 to 3~~ | ~~48~~ | Button: a right press on an object (§11.3) | the layer's gather arm since item 4301 (§11.4): of the layer's form, each head minted byte for byte, `GATHER_POINTS_MINTED` 24 of 24 |
 | ~~`build` of a type no key of ours binds~~ | ~~42~~ | Button: the citizen's build buttons | the roster's build pages since item 4290 (§32): of the layer's form, the point unchecked |
-| two issues in one turn | 38 | **Writer**: the original's one package a turn holds every issue of the turn | `minted_packages` refuses two packages on a frame (RECGAME §9) |
+| ~~two issues in one turn~~ | ~~38~~ | **Writer**: the original's one package a turn holds every issue of the turn | the layer's turn since item 4302 (§36): one package a turn, `INPUT_TURNS` 9 of 9, every order shown |
 | `spell` on an object, the right press's | 22 | Button (§18) | not minted |
 | `build` along a dragged line, `(x2, y2)` ≠ `(x, y)` | 10 | Button: a drag while placing | the layer places at one point; 6 → 10 when the shift's four were reached (§33) |
 
@@ -3352,7 +3354,8 @@ type against the panels:
 
 **The count**: `PANEL_ROSTER` (82, 82, 15, 15): 82 of 82 `queue_up` types on a panel, 15 of 15 `build` types on
 the citizen's pages; `PANEL_ROSTER_ORDERS` (390, 390, 42, 42); `PANEL_ROSTER_OFF` empty. So the item's stop (a type
-on no panel) was not reached. Seen red pinned (0, 0, 0, 0).
+on no panel) was not reached. Seen red pinned (0, 0, 0, 0). Since item 4293 (44, 44) and since item 4302 (398, 398):
+the two turns of two `queue_up`s of type 69 (§36), which the writer's miss hid, their type already counted.
 
 The census prints each type with its panels. Some of them:
 
@@ -3749,3 +3752,103 @@ under alt (the dispatch's `QUEUE_NEW`, the minimap's `QUEUE_FIRST`) and in the p
   `ATTACK_TO` for a selection with a plane (4295a).
 - **Not played**: no playback was owed. `ATTACK_TO` is an order the sim runs (`sim::orders::index::ATTACK_TO`,
   which the AI's armies issue), and the original played these 27 from the 2017 sample. Run1633 is unused.
+
+## 36. Two issues in one turn: one package a turn (item 4302)
+
+*Item 4302, 2026-11-16. Of the 70 orders the census of §30 missed, 38 were packages that hold two issues or more,
+which the census called the writer's. The recorded bytes were read first: 9 packages, all in the 2017 sample. In
+each, one issue is repeated within one turn behind §20's empty `group`. The layer now writes a turn's orders as one
+package, and the minimap gives a building's selection its gather point. All nine mint byte for byte, and the census
+calls their 38 orders shown. `INPUT_WHOLE_ORDERS` 927 · 1,432 · 70 → **965 · 1,432 · 32** of 2,429; `INPUT_WHOLE`
+holds at 42 of 50. This section does not touch `crates/sim`.*
+
+### 36.1 What the original writes in a turn
+
+- **The issue.** Every `CommandManager::issue_*` (for example `issue_move_to@00941720`, `issue_queue_up@00941be0`)
+  asks `check_accept_issue@00940a70`. Then it calls `CommandPackage::add_group@0094bb60` and, if that succeeds,
+  `add_command@0094bae0`, both on `command_manager.local_package`. `add_command` appends the bytes and refuses past
+  0x200.
+- **The turn.** The single-player arm of `CommandManager::process_turn@0093ef10` (semaphore byte 0, bits 0x10 and 4
+  clear) checks `local_package.size`. If it is not zero, it stamps the package with the console's `play`, writes it
+  to the recording under bit 8, and processes it. So a package is every issue since the last turn, in order. A second
+  issue's `group` repeats the first one's, so `add_group` writes it with no objects (§20.1).
+- **A turn is not a frame.** Frame 101 holds a `camera` package and then the turn's package. During the pause at
+  frame 3839, 24 packages share the frame, one a turn, and two of them hold two issues each.
+
+### 36.2 The recorded turns, and the arms that mint them
+
+`minted_turns_equal_the_recordings` (`crates/client/src/input.rs`) takes every recorded package with two heads or
+more (`TURN_KINDS`):
+
+| frames | kind | issues | each issue |
+| --- | --- | ---: | --- |
+| 101, 3839, 3839 | `move_to` | 2 | `queued` 1 (`QUEUE_LAST`), −1/−1, `orders` 1, the same point twice |
+| 7207 | `queue_up` | 3 | type 50, `num` 1 |
+| 19159, 19175 | `queue_up` | 2 | type 69, `num` 1; 19159's first `group` is full, `[2041, 2008]` |
+| 9094, 14928, 19865 | `gather_point` | 2 | `action` 0, `add_to_end` 0; two points up to 17 units apart, or the same one |
+
+Every package is one kind, play 0, slot 3. 9094's package carries the client's `camera` first, which is not the
+layer's.
+
+- **The `move_to`** is the minimap's (§35.1, `MOVE_TO` with −1/−1), pressed twice with the shift held.
+- **The `queue_up`** is the roster's button (§32), pressed two or three times.
+- **The ground `gather_point`** is the minimap's building arm, which the layer did not have.
+  `WorldMap::on_right_up@008c7050`, with a building selection that counts no `TypeIndex` `0x1bf` or `0x208`, calls
+  `issue_gather_point(x, y, 0, shift || ctrl)`. With either type selected it calls `issue_launch_patrol`. The main
+  view's ground arm (§11.2) would reach these points only on its lattice (§30.3).
+
+### 36.3 What the layer does
+
+- **`input::one_package`**: a turn's orders, which share its frame and seat, as one `Order`, each order's commands
+  appended in issue order. **`hud::turn`** runs each of a turn's events through `hud::event` and gives what they
+  minted as one package. `Sent` is carried across the turn, so a repeat writes an empty `group`.
+- **`Event::MapRightPress`** with a building selection: the `group` and `gather_point(x, y, 0, shift || ctrl)`.
+  Nothing with a patrol's launcher selected (`PATROL_LAUNCHERS`, the two types as building indices), and nothing off
+  the map.
+- **The census** (§30.1): a package with two heads or more gives each issue (each `group` with the orders behind it)
+  its own verdict. If any issue is missed the package is missed by that arm. Otherwise it is shown under
+  `INPUT_TURNS`, whose test mints every such package.
+
+### 36.4 The counts
+
+- **`INPUT_TURNS` 9 of 9.** Each turn is minted from a scene built for it: the package's group, or for an empty
+  group the slot's last full one, with `Sent` the slot's last before it. Each is equal to the recording field for
+  field and through `rondata::commands::encode`, and the eight without a camera are equal to the recorded payload
+  byte for byte. **Seen red**: with `one_package` keeping only the first order, (0, 9).
+- **`TURNS_WRITTEN` 9.** The minted turns are written by `recgame::minted_packages` over the sample's own header,
+  the paused pair inside a pause on 3839. They are read back through `recgame::write` and `parse`, and each turn's
+  package is on its frame with the recording's bytes.
+- **`minted_a_minimap_gather_point_as_the_original`**: `add_to_end` 0, 1 under shift, 1 under ctrl, 0 under alt;
+  nothing for either launcher or off the map; two presses in one turn are one package with the second `group`
+  empty; a turn with no events is nothing. `minted_an_attack_move_as_the_original` now holds a building's minimap
+  press to the gather point, `add_to_end` 1 under ctrl, where it held nothing.
+- **Knock-on pins**: `PANEL_ROSTER_ORDERS` 390 → 398 (§32; the 19159 and 19175 turns' type 69 was hidden behind the
+  writer's miss); `QUEUED_ORDERS` names the three shifted `move_to` turns `INPUT_TURNS`.
+
+**The value diff**, per turn, recorded against ours before and after:
+
+| turn | recorded | ours before | ours |
+| --- | --- | --- | --- |
+| 101 | `group []`, `move_to (20090, 12409)`, `group []`, the same `move_to` | two packages on one frame, which `minted_packages` refuses | the recording's 50 bytes |
+| 7207 | three `group []` + `queue_up 50` | three packages on one frame | the recording's 36 bytes |
+| 19159 | `group [2041, 2008]`, `queue_up 69`, `group []`, `queue_up 69` | two packages | the recording's 28 bytes |
+| 9094 | `camera`, `group []`, `gather_point (32214, 33402)`, `group []`, `gather_point (32214, 33419)` | no order: the minimap minted nothing for a building | the recording's two issues, 40 bytes after the camera's 10 |
+
+### 36.5 Confidence, and what is not established
+
+- **Backed by the disk**: the nine turns' bytes and the layer's mint of each.
+- **One reading**: the single-player arm of `process_turn` and the minimap's building arm, read off the decompile.
+  Neither has had a blind second reading. The score rests on the bytes, not on the reading.
+- **Ours, not the original's**:
+  - which events share a turn. The original's turn boundary is its clock (`process_turn`, frame 101's two
+    packages), and the layer's caller names the turn by the events it passes `hud::turn`;
+  - the window (`App::input`) still issues each event's order to the walk as it comes. The walk applies a frame's
+    orders in order either way, and the window writes no file;
+  - the launcher test reads the scene's building type, where the original counts `COUNT_TYPE` over the selection.
+- **Not established**:
+  - `add_command`'s 0x200 refusal inside a turn: the layer appends without a cap, and `minted_packages` refuses the
+    package whole;
+  - `add_command`'s `Random::get` padding under semaphore bit 4, as in §20.5;
+  - the minimap's arm under `prefs & 0x400`, which skips the whole press. The layer does not read it there.
+- **Not played** (4302a): no playback of a two-issue package from our file was made. The original played these nine
+  from the 2017 sample, and each issue is an order the sim runs. Run1637 and run1638 are unused.
