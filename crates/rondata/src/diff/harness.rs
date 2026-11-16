@@ -1305,18 +1305,16 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         for (k, &theirs) in c.ter.iter().enumerate() {
             fields.push((format!("ter[{k}]"), i64::from(ai.ter[k]), theirs));
         }
-        // **The two fields nothing here holds**, asserted against the
-        // zero this crate answered with rather than dropped: `raid_stamp`
-        // (a writer since item 2235) and `scouted`, the AI's "a scout has
-        // seen this city" mark. `scouted` has no writer in this crate, so its row is a claim
-        // that the original never writes one either on the captures on
-        // disk — a claim a capture can falsify, which is the point of
-        // leaving it in.
+        // **Two fields that once had no writer here**: `raid_stamp` (a
+        // writer since item 2235) and `scouted`, the mark a plain human's
+        // exploring unit leaves on a city it has walked whole (a writer
+        // since item 4291, `docs/SCOUT.md` §13 item 8; zero on every capture
+        // with no AUTO EXPLORE in it).
         // Item 2106: `raid_stamp` is this crate's on a transfer
         // (`City::init`, `City::capture`); item 2235 added the raid's own
         // (`Object::do_damage`'s city alarm, `Sim::city_alarm`).
         fields.push(("raid_stamp".into(), ours.raid_stamp, c.raid_stamp));
-        fields.push(("scouted".into(), 0, c.scouted));
+        fields.push(("scouted".into(), i64::from(ours.scouted), c.scouted));
         // `reduce_stamp` is `Object::do_damage`'s tail since item 1528.
         fields.push(("reduce_stamp".into(), ours.reduce_stamp, c.reduce_stamp));
         // **`trade_val` and `vans` are this crate's own since

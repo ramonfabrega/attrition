@@ -118,6 +118,7 @@ fn the_arrival_bonus_is_paid_once_and_doubles_for_a_foreigner() {
         attack_stamp: 0,
         reduce_stamp: 0,
         raid_stamp: 0,
+        scouted: 0,
         capture_strength: 0,
         pop: 0,
         has_citizen: false,

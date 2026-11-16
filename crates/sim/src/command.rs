@@ -197,6 +197,11 @@ impl Command<'_> {
         self.sim.group_action_form(g, form, rotate, queue)
     }
 
+    /// [`Sim::group_action_unitmask`] (`groups/group/actions.rs`).
+    pub fn group_action_unitmask(&mut self, g: &Group, mask: i32) -> usize {
+        self.sim.group_action_unitmask(g, mask)
+    }
+
     /// [`Sim::group_action_stance`] (`groups/group/actions.rs`).
     pub fn group_action_stance(&mut self, g: &Group, s: i32) {
         self.sim.group_action_stance(g, s)

@@ -187,6 +187,13 @@ pub struct City {
     /// 2106). `Leader::raid`'s own stamp is not carried — a raided city
     /// reads zero here until it changes hands.
     pub raid_stamp: i64,
+    /// `CityData::scouted` (`+0x4c`): one bit per leader whose plain
+    /// human's exploring unit has walked every ring around the city
+    /// (`Unit::think_scout@005f6010`'s city loop, `docs/SCOUT.md` §5,
+    /// §13 item 8). `City::init@00737050` zeroes it and
+    /// `City::capture@00736c40` copies it from the old record; a city
+    /// whose bit is set for the scout's leader is passed over.
+    pub scouted: u16,
     pub capture_strength: i32,
     /// `CityData::pop` (+0x5d): 1 at init, copied on capture, not the pop
     /// value (`get_pop_value` is computed from the level) and not touched by
@@ -481,6 +488,7 @@ impl Sim {
             attack_stamp: stamp,
             reduce_stamp: stamp,
             raid_stamp: stamp,
+            scouted: 0,
             capture_strength: 0,
             pop: 0,
             has_citizen: false,
@@ -3296,6 +3304,7 @@ impl Sim {
         nc.building = n;
         nc.attack_stamp = self.frame;
         nc.raid_stamp = self.frame;
+        nc.scouted = oldc.scouted;
         nc.reg = oldc.reg;
         nc.founder = oldc.founder;
         nc.race = if assimilate_now { Some(a) } else { oldc.race };

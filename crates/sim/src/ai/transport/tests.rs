@@ -1920,6 +1920,7 @@ fn a_soldier_barge_with_no_army_sails_for_its_nearest_city() {
             attack_stamp: 0,
             reduce_stamp: 0,
             raid_stamp: 0,
+            scouted: 0,
             capture_strength: 0,
             pop: 1,
             has_citizen: false,

@@ -299,6 +299,13 @@ pub struct Unit {
     pub cant_reach: bool,
     /// `unit_masks & 1`: a decoy; not counted as a gatherer.
     pub decoy: bool,
+    /// `unit_masks & 0x100`: exploring on its own, the AUTO EXPLORE
+    /// button's bit (`Group::action_unitmask@006fcb90`, item 4291,
+    /// `docs/SCOUT.md` §13 item 8). `Unit::think`'s head skips the
+    /// off-phase `near_o` arm and the auto-attack for it, its human block
+    /// calls `think_scout(this, 0)`, and `think_scout` sends it down the
+    /// city loop whatever its type.
+    pub auto_explore: bool,
     /// `unit_flags & 0x400`: the Kremlin's spy, which `Build::process`
     /// tags as it trains it and which stands outside the owner's `control`
     /// (`docs/AI.md` §188).
@@ -988,6 +995,7 @@ impl Unit {
             carry: 0,
             cant_reach: false,
             decoy: false,
+            auto_explore: false,
             kremlin_spy: false,
             mylos: 0,
             unit_masks2: 0,

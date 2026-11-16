@@ -1279,6 +1279,33 @@ pub fn group_disband(built: &mut Built, who: i32, objects: &[i16], all: bool) ->
     built.sim.command().group_action_disband(&g, all)
 }
 
+/// **`CommandPackage::process_unitmask@00947790`** (item 4291,
+/// `docs/CLIENT_INPUT.md` §31): `process_group`'s push of the selection's
+/// units, then `Group::action_unitmask(mask, set)` on it
+/// ([`sim::Sim::group_action_unitmask`]). A group of buildings takes no
+/// arm of it, so a selection of buildings acts on nothing.
+///
+/// Returns the number of members toggled.
+pub fn group_unitmask(built: &mut Built, who: i32, objects: &[i16], mask: i32) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::groups::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
+        return 0;
+    }
+    built.sim.command().group_action_unitmask(&g, mask)
+}
+
 /// **`CommandPackage::process_flight@00947db0`** on the player's own
 /// buildings: an Airbase's right-click on an enemy, or on another base of
 /// its own, `issue_flight` on the building group itself, whose
@@ -1801,6 +1828,10 @@ impl Stream {
             // `process_disband@00948660`, `Group::action_disband(all)` on
             // the package's group.
             Command::Disband { all } => group_disband(built, it.play, &objects, *all != 0),
+            // The AUTO EXPLORE button (item 4291, `docs/CLIENT_INPUT.md`
+            // §31): `process_unitmask@00947790`, `Group::action_unitmask`
+            // on the package's group; `set` is never read.
+            Command::Unitmask { mask, .. } => group_unitmask(built, it.play, &objects, *mask),
             Command::Attack {
                 ox,
                 whom,

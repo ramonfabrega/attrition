@@ -2666,6 +2666,7 @@ fn a_hurrying_army_stables_its_siege_and_marches_the_rest() {
         attack_stamp: 0,
         reduce_stamp: 0,
         raid_stamp: 0,
+        scouted: 0,
         capture_strength: 0,
         pop: 1,
         has_citizen: false,
@@ -4572,4 +4573,38 @@ fn a_building_push_normalizes_the_last_pushed_slot() {
     );
     assert_eq!(s.group_speed_of(a), 34);
     assert_eq!(s.orders.pushed[i].state.new_speed, 34);
+}
+
+/// **`Group::action_unitmask(0x100)`** (item 4291, `docs/CLIENT_INPUT.md`
+/// §31.1): the first live member's bit decides, a member after one that
+/// cleared is cleared too, every member takes the could-not-reach bit, and
+/// a mask this crate does not carry does nothing.
+#[test]
+fn action_unitmask_toggles_on_the_first_member_s_bit() {
+    let mut s = sim();
+    let t = fighter(&mut s);
+    let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+    let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+    let g = group_of(1, &[a, b]);
+    assert_eq!(s.group_action_unitmask(&g, 0x40000), 0, "not carried");
+    assert!(!s.units[a].auto_explore && !s.units[a].cant_reach);
+    assert_eq!(s.group_action_unitmask(&g, 0x100), 2);
+    assert!(
+        s.units[a].auto_explore && s.units[b].auto_explore,
+        "clear: set"
+    );
+    assert!(s.units[a].cant_reach && s.units[b].cant_reach);
+    assert!(s.units[a].orders.is_empty(), "the orders are closed");
+    s.group_action_unitmask(&g, 0x100);
+    assert!(
+        !s.units[a].auto_explore && !s.units[b].auto_explore,
+        "set: cleared"
+    );
+    // A mixed group ends all clear: the first is set, so it clears.
+    s.units[a].auto_explore = true;
+    s.group_action_unitmask(&g, 0x100);
+    assert!(
+        !s.units[a].auto_explore && !s.units[b].auto_explore,
+        "mixed: clear"
+    );
 }

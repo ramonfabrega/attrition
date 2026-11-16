@@ -3057,10 +3057,9 @@ stances are shown.
 `unitmask` is slot 3's, on frame 7538: `group [0]` and `unitmask(0x100, −1)`. The first act read its issuer and its
 handler. The actor is the selection's AUTO EXPLORE (a panel button or the `OPTION_AUTO_EXPLORE` key, both through
 `Options::exec`). The effect is a toggle of the member's `unit_masks & 0x100`, the bit `Unit::think`'s human block
-reads to call `think_scout`. Slot 0 of the minted game sends its Scout `0/0` exploring on 6820. **Minted, not
-played**: the walk has no `unitmask` handler, and the human block's `think_scout` call is not modelled
-(`docs/SCOUT.md` §13 item 8), so a playback would part on the Scout's first think. The walk and the take are parked
-(4288a). This branch does not touch `crates/sim`.*
+reads to call `think_scout`. Slot 0 of the minted game sends its Scout `0/0` exploring on 6820. ~~**Minted, not
+played** (parked 4288a).~~ **Played in lockstep** (item 4291, §31.5): run1627 plays the file to 7500, and our walk
+agrees on all 7,500 frames' draws and 700 of 700 records.*
 
 ### 31.1 What the button issues, and what the order does
 
@@ -3108,8 +3107,8 @@ played**: the walk has no `unitmask` handler, and the human block's `think_scout
 - **The script** (`crates/rondata/src/script.rs`). `auto_explored()` is the disbanded script and one package more,
   on `AUTO_EXPLORE_FRAME` 6820: `group [0]` and `unitmask(0x100, −1)`. The Scout's `TypeIndex` is 69,
   `sim::ids::ty::SCOUT`.
-- **The walk does not take it**: `Stream::pumped` skips `unitmask` as "not mapped", so our walk of the
-  auto-explored file is the disbanded file's.
+- ~~**The walk does not take it**.~~ Since item 4291 `Stream::pumped` takes `unitmask` through
+  `input::group_unitmask` to `Sim::group_action_unitmask` (§31.5).
 
 **Stage 0** (`minted_auto_explored_at_the_opening_camera`), on 6820 at the opening camera:
 - the Scout `0/0`, `TypeIndex` 69, stands at (4399, 32004), pixel (1134, 699);
@@ -3142,10 +3141,9 @@ write it byte for byte.
 - **Backed by a diff**: the command's bytes, against the one recorded and the client's file byte for byte.
 - **One reading each**: the actors' list, `do_auto_explore`'s gate, `action_unitmask`'s toggle and its tail, and
   every reader of the bit in §31.1.
-- **Not played.** No take plays the file. The walk's `action_unitmask` and the human block's `think_scout` call
-  are the build a playback needs, with `think_scout`'s plain-human arms (every ring, the `+0x4c` mark),
-  `reveal_fog`'s goody box, `work`'s clear and `think_civilian_transport`'s `EXPLORE_TO` (parked 4288a). Until it
-  lands, a take of this file can only show what the original's Scout does, not that ours agrees.
+- ~~**Not played.**~~ Played in lockstep by run1627 (§31.5). Still not built: `reveal_fog`'s goody box,
+  `work`'s clear, `think_civilian_transport`'s `EXPLORE_TO` and `action_move_near` carrying the bit (parked
+  4291a).
 - **The selection's `+1` byte** that `do_auto_explore` also gates on is not named; the layer does not consult it.
 - **`set` is not read** by `action_unitmask`. The recorded −1 and ours agree because the panel's object is −1,
   not because the walk uses it.
@@ -3156,3 +3154,38 @@ write it byte for byte.
   a profile preference, a caravan; ours shows for any unit of the slot's own);
 - the layer refusing a building selection: `do_auto_explore` does not test it, and `action_unitmask` does nothing
   for a group of buildings.
+
+### 31.5 The playback (item 4291)
+
+*Item 4291, 2026-11-16. The score is `Recording:`, which gains the auto-explore's frames in lockstep:
+`AUTO_EXPLORED_WALKED` is 7,500 of 7,500 frames' draws and 700 records, 0 parted. This branch touches `crates/sim`.*
+
+- **The take.** run1627 (`docs/RUNS.md`) is run1623's line with this file, `--end-frame 7500` and `--log-window 6800
+  7500`.
+- **The first parting.** Before the build, our walk parted on 6820 at draw 0, with 679 of 700 records out. The
+  original's draws there are `Guy::set_anim < Unit::do_idle` twice, then `Unit::think_scout+0x436` and `+0x458`.
+  Those are `action_unitmask`'s tail, which closes the Scout's orders so it idles, and then the human block's
+  `think_scout` rolling its rotation and phase. On 6821 the original's Scout stood at (4399, 32004) with one order,
+  where ours stood at (4392, 32038) with two.
+- **The build**, in the order the parting named it:
+  - `Unit::auto_explore`;
+  - `Sim::group_action_unitmask` (the toggle and its tail), through the `command` door from `input::group_unitmask`;
+  - `think`'s head skip and the human block's `think_scout`;
+  - `think_scout`'s branch, its citizen exit, its plain-human arm (step 1, cap 12 then 8);
+  - `CityData::scouted`'s filter and mark (`City::scouted`, zeroed by `City::init`, copied by `City::capture`). The
+    city record's `scouted` row now reads ours.
+- **Each order's effect** (`what_the_auto_explore_does_on_both_sides`). Slot 0's Scout is read on 6819, 6820, 6821,
+  6900, 7200 and 7499. Ours was pinned off our walk's print, then run1627's records were read; they equal ours on
+  every frame:
+  - 6821: (4399, 32004), bound for (5880, 27384), the bit set;
+  - 6900: (6256, 30085);
+  - 7200: (1450, 26481), bound for (504, 27384);
+  - 7499: (3552, 34526), bound for (3576, 35064).
+
+  The disbanded file's walk, the previous playback (run1623), has the Scout at (4392, 32038) on 6821, (2644,
+  32962) on 6900 and (1752, 35448), with no order, on 7200 and 7499. It never sets the bit.
+- **The handler's entry** (`UNITMASK_ENTRIES`): `process_unitmask` and `action_unitmask` are first entered on 6819
+  in run1627, and never in run1623.
+- **Backed by a diff**: the toggle, the tail, the head skip as far as the Scout reaches it (its type has no attack),
+  the human block's call, and the plain-human ring walk; draws on every frame and the unit records whole. **One
+  reading**: the `scouted` mark and its filter (no `CITIES` in the take), and the head skip for an armed unit.
