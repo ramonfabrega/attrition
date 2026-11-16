@@ -142,3 +142,22 @@ By one in-session builder on Opus 5.5, merged by the pass:
 - **Carried:** whether a builder's handback survives its driver's clear;
   the cut past 350 k is prose; no guard reads a count in the handoff's
   prose against its pin.
+
+## The gate
+
+Whole, by `tools/gate_run.sh`, the first gate to write its own start line
+and to run the clock beside load.
+
+- **`gate-pass-1116.log`: `gate exit 0` on `660dbc609`**, 9 of 9 steps,
+  26.8 minutes by the table (`Gate start: … 09:28:03 −0500`): merge pins
+  1.4, release 22.2, clock 0.1 (offline 2.0, guard 0.2). `Clock: green
+  beside load`. `Suite: 1342 processes for 2471 tests: 145 groups hold
+  1274, 1197 ran alone; 9611 test CPU-seconds`; admission 7.4 s over 1,379
+  leases; load 2.6 at its start and 9.3 at its end. `Rows: one driver row
+  at most: steer 8214c1f2 (working)`; `Driver: 0 landings since the last
+  pass (backstop 20) · context 297 k`. The disk step removed the stale
+  oracle generations: 228 GB free.
+
+No lane was out, so the clock's first attempt met only the gate's own
+tail: the path a red takes is still unrun. This section is gated scoped
+over that commit (`gate-pass-1116b.log`).
