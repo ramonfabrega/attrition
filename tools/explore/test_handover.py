@@ -143,6 +143,33 @@ class DriverLineTests(unittest.TestCase):
         self.assertTrue(text.endswith('continue the tranche'))
 
 
+class SpawnTests(unittest.TestCase):
+    def test_a_handover_to_the_row_s_own_name_says_it_means_the_duplicate(self):
+        # The wake of 2026-11-16 was armed and fired at 06:07, and
+        # `handover.py wake` exited 1: the row the cron fired into was
+        # `commander`, the row it spawns is `commander`, and ccc 0.1.50
+        # refuses a `--name` a live job in that folder already answers to
+        # ("'commander' is already working as 0cc9a398 in that same folder
+        # … --replace … or --allow-duplicate to mean it"). The pass of
+        # 2026-11-16 reproduced it with a throwaway row (exit 1, the same
+        # sentence) and passed with the flag. `--replace` would stop the
+        # caller under its own spawn; the new row reaps the old by its ref.
+        argv = handover.spawn_argv('commander', TREE, own_name='commander')
+        self.assertIn('--allow-duplicate', argv)
+        self.assertNotIn('--replace', argv)
+        self.assertEqual(argv[-1], '-')
+
+    def test_a_handover_to_the_other_row_asks_for_no_duplicate(self):
+        # steer → commander and commander → steer: a same-named row still
+        # standing there is one the reap missed, and ccc's refusal is right.
+        for name, own in (('commander', 'steer'), ('steer', 'commander'), ('commander', None)):
+            argv = handover.spawn_argv(name, TREE, own_name=own)
+            self.assertNotIn('--allow-duplicate', argv)
+            model, effort = handover.DRIVERS[name]
+            self.assertEqual(argv[:10], ['ccc', 'spawn', '--name', name, '--cwd', TREE, '--model', model,
+                                         '--effort', effort])
+
+
 class PathTests(unittest.TestCase):
     def test_the_tool_finds_ccc_and_lore_from_a_bare_shell(self):
         # A cron's wake runs `handover.py wake` in a row's shell as it

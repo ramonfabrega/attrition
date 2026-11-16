@@ -1,6 +1,6 @@
-# Every rondata release test's CPU alone, 2026-11-15, tools/suite_timings.py (tree b4f919fb).
+# Every rondata release test's CPU alone, 2026-11-16, tools/suite_timings.py (tree 03dfe1a1).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 6,309 CPU-seconds and 121.42e12 instructions over 2464 tests; the host's load 1.8 at the start and 3.4 at the end.
+# Sum 6,316 CPU-seconds and 121.57e12 instructions over 2471 tests; the host's load 10.3 at the start and 10.9 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 144.32	3295.19	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
@@ -739,6 +739,7 @@
 1.95	38.83	diff::indian_enlightenment_pair::indian_enlightenment_pair_first_parting
 1.95	37.27	diff::chinese_enlightenment_pair::chinese_enlightenment_pair_run1350b_s_word_frame_is_widened_whole
 1.95	37.76	diff::chinese_enlightenment_pair::chinese_enlightenment_pair_run1381b_s_closing_frame_is_widened_whole
+1.94	40.26	diff::minted::what_the_toggle_does_on_our_walk
 1.94	39.72	diff::japanese_word::run960b_japanese_closing_state
 1.94	40.27	diff::british_medieval_pair::british_medieval_pair_first_parting
 1.94	41.13	diff::british_medieval_pair::british_medieval_pair_run1376_s_closing_state
@@ -752,6 +753,7 @@
 1.93	38.80	diff::audit::british_medieval_pair_corrections_change_nothing
 1.93	33.94	diff::egyptian_gunpowder_pair::egyptian_gunpowder_pair_run1267_s_closing_frame_is_widened_whole
 1.93	40.75	diff::sahara_toughest::tests::run659_s_word_frame_is_widened_whole
+1.92	40.18	diff::minted::what_the_disband_does_on_our_walk
 1.92	38.37	diff::french_word::run982b_s_word_frame_is_widened_whole
 1.92	36.94	diff::greek_enlightenment_pair::greek_enlightenment_pair_first_parting
 1.92	45.04	diff::harness::tests::run75_s_window_is_the_scout_s_walk_down_the_river
@@ -1107,6 +1109,7 @@
 1.35	27.39	diff::chinese_industrial_pair::chinese_industrial_pair_run1175_s_word_frame_is_widened_whole
 1.35	27.97	diff::third_pair::run615_s_birth_window_is_widened_whole
 1.35	30.01	diff::minted::the_original_s_playback_of_the_hotkeyed_file_walks_in_lockstep
+1.35	29.19	diff::minted::the_original_s_playback_of_the_disbanded_file_walks_in_lockstep
 1.34	28.52	diff::american_information_pair::american_information_pair_run1409_s_closing_state
 1.34	27.82	diff::inca_industrial_pair::inca_industrial_pair_first_parting
 1.34	24.56	diff::egyptian_modern_pair::egyptian_modern_pair_run1407_s_closing_state
@@ -1136,6 +1139,7 @@
 1.30	25.01	diff::inca_enlightenment_pair::inca_enlightenment_pair_run1310b_s_word_frame_is_widened_whole
 1.30	25.84	diff::russian_medieval_pair::russian_medieval_pair_run1258b_s_word_frame_is_widened_whole
 1.30	27.21	diff::coverage_pair::run1075_s_staged_battleships_release_on_the_original_s_frames
+1.30	28.35	diff::minted::the_original_s_playback_of_the_toggled_file_walks_in_lockstep
 1.29	27.32	diff::american_modern_pair::american_modern_pair_the_long_s_stride_walks_back_from_4488
 1.29	27.67	diff::checksum_lines::packets::the_seated_words_part_from_the_built_start
 1.29	29.06	diff::coverage_pair::run1066_s_carrier_queue_parts_against_the_crate_s_zero
@@ -1900,6 +1904,7 @@
 0.30	7.18	diff::aztec_medieval_pair::aztec_medieval_pair_captures_say_their_lobby
 0.30	7.10	diff::chinese_enlightenment_pair::chinese_enlightenment_pair_captures_say_their_lobby
 0.30	6.97	diff::chinese_industrial_pair::chinese_industrial_pair_captures_say_their_lobby
+0.29	4.53	diff::minted::the_auto_explored_minted_packages_round_trip
 0.29	5.87	diff::build::tests::a_british_barracks_pays_one_bowmen_as_three_chained_units
 0.29	5.87	diff::setup::tests::a_leader_s_opening_units_are_its_own_nation_s
 0.29	6.61	diff::spanish_industrial_pair::spanish_industrial_pair_captures_say_their_lobby
@@ -1944,6 +1949,8 @@
 0.26	4.24	diff::minted::the_marketed_minted_packages_round_trip
 0.26	4.34	diff::minted::the_renamed_minted_packages_round_trip
 0.26	4.24	diff::minted::the_unqueued_minted_packages_round_trip
+0.26	4.32	diff::minted::the_disbanded_minted_packages_round_trip
+0.26	4.31	diff::minted::the_toggled_minted_packages_round_trip
 0.25	4.23	diff::minted::the_clicked_main_view_minted_packages_round_trip
 0.25	4.61	load::tests::a_hero_masked_wonder_is_nobody_s_to
 0.25	4.61	load::tests::the_nation_free_upgrade_blocks_name_the_units_they_hand_out

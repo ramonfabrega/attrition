@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-15, tools/suite_timings.py (tree b4f919fb).
+# Every rondata release test's peak resident set alone, 2026-11-16, tools/suite_timings.py (tree 03dfe1a1).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -1580,6 +1580,7 @@
 342	diff::audit::iroquois_sahara_word_corrections_change_nothing
 342	diff::sea_melee::sea_melee_run1486_s_window_is_widened_whole
 342	diff::audit::inca_sahara_word_corrections_change_nothing
+341	diff::minted::the_original_s_playback_of_the_disbanded_file_walks_in_lockstep
 341	diff::sahara_toughest::tests::run653_s_word_frame_is_widened_whole
 341	diff::roman_gunpowder_pair::roman_gunpowder_pair_the_long_s_stride_walks_back_from_2926
 341	diff::aztec_modern_pair::aztec_modern_pair_the_long_s_stride_walks_back_from_the_word
@@ -1848,6 +1849,7 @@
 232	diff::checksum_lines::packets::iroquois_word_packets
 232	diff::unit::tests::run89_says_great_lakes_7675_is_the_word_s_own_block
 232	diff::minted::the_unqueued_minted_script_s_effects_on_our_walk
+232	diff::minted::the_original_s_playback_of_the_toggled_file_walks_in_lockstep
 231	diff::minted::the_original_s_playback_of_the_renamed_file_walks_in_lockstep
 229	diff::minted::the_paused_script_against_the_chatted_playback_parts
 229	diff::checksum_lines::packets::maya_word_packets
@@ -1890,6 +1892,7 @@
 176	diff::sahara_toughest::tests::run666_s_decoy_rounds_strike_nothing
 175	gamelog::tests::the_lazy_tree_is_the_eager_tree
 173	diff::harness::tests::observing_a_replay_preserves_the_complete_report
+173	diff::minted::what_the_disband_does_on_our_walk
 172	diff::minted::the_hotkeyed_minted_script_s_effects_on_our_walk
 169	diff::checksum_lines::world::the_world_line_is_the_original_s_by_section
 169	diff::minted::the_attacked_minted_script_s_effects_on_our_walk
@@ -1914,6 +1917,7 @@
 157	diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range
 156	diff::checksum_lines::the_units_line_is_the_original_s_range_by_range
 156	diff::mongol_classical_pair::mongol_classical_pair_is_no_other_lobby
+156	diff::minted::what_the_toggle_does_on_our_walk
 155	diff::minted::the_right_pressed_script_against_the_boxed_playback_parts
 155	diff::checksum_lines::the_cities_line_is_the_original_s_range_by_range
 154	diff::minted::what_the_come_out_does_on_our_walk
@@ -1951,6 +1955,9 @@
 116	diff::minted::the_repeated_minted_packages_round_trip
 115	diff::lakota_medieval_pair::lakota_medieval_pair_is_no_other_lobby
 114	diff::setup::tests::run11_s_checksum_trace_pins_the_setup_stream
+113	diff::minted::the_auto_explored_minted_packages_round_trip
+113	diff::minted::the_disbanded_minted_packages_round_trip
+113	diff::minted::the_toggled_minted_packages_round_trip
 113	diff::minted::the_gathered_minted_packages_round_trip
 113	diff::minted::the_marketed_minted_packages_round_trip
 113	diff::minted::the_stanced_minted_packages_round_trip

@@ -4,6 +4,7 @@ the same probe by hand — whole or scoped, minutes, the admission and
 host-load receipts, the verdict — and CLAUDE.md's third-use rule says
 it graduates. Red first: there was no such tool.
 """
+import datetime
 import os
 import sys
 import tempfile
@@ -89,6 +90,46 @@ class TheTable(unittest.TestCase):
             self.assertIn('gate-b4ece7b6', text)
             self.assertIn('3 gates: 1 whole, 2 scoped (1 widened), 1 red', text)
             self.assertIn('admission 248.6 s summed, longest 57.2 s; 2 ended past the cores', text)
+
+    def test_a_gate_s_minutes_are_from_its_own_start_line_not_the_file_s_birth(self):
+        # `gate_run.sh` opens its log with `>`, which keeps the birth time
+        # of a file already there: gate-4159r12b and -r12c (the tranche of
+        # 2026-11-16) were names written once the afternoon before, and
+        # the table read 443.1 and 481.9 minutes on runs of 43.5 and 33.8.
+        # The log now says when it began, and the table believes the log.
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / 'gate-reused.log'
+            f.write_text('gate exit 93\n')
+            os.utime(f, (1_000_000, 1_000_000))  # born the afternoon before
+            end = 1_000_000 + 26_586
+            f.write_text(f'Gate tree: /x at abc\nGate start: {end - 1200} 1970-01-12 00:00:00 +0000\n' + SCOPED)
+            os.utime(f, (end, end))
+            [row] = gates.rows([f])
+            self.assertEqual(row['minutes'], 20.0)
+            self.assertEqual(row['started'], datetime.datetime.fromtimestamp(end - 1200).strftime('%H:%M'))
+
+    def test_a_log_without_a_start_line_is_as_long_as_its_steps(self):
+        # The logs written before the start line: the steps' own minutes
+        # (`Gate minutes:`, the last one — fixtures print decoys) are the
+        # run, and its clock step is a column, because the clock's drained
+        # lease waited 24.9 of gate-4159r12b's 43.5 minutes and no column
+        # showed it.
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / 'gate-old.log'
+            f.write_text('gate exit 93\n')
+            os.utime(f, (1_000_000, 1_000_000))
+            f.write_text('Gate tree: /x at abc\nGate pid: 5\n'
+                         'Gate minutes: offline 0.3, release 5.1\n'
+                         'Gate minutes: pins 0.0, offline 2.1, clippy 0.2, fmt 0.0, survey 0.1, guard 1.5, '
+                         'merge pins 1.4, release 13.2, clock 25.0\n'
+                         'Gate steps: 9 of 9 ran (pins, offline, clippy, fmt, survey, guard, merge pins, release, clock)\n'
+                         'gate exit 0\n')
+            os.utime(f, (1_026_586, 1_026_586))
+            [row] = gates.rows([f])
+            self.assertEqual(row['minutes'], 43.5)
+            self.assertEqual(row['clock_min'], 25.0)
+            self.assertEqual(row['release_min'], 13.2)
+            self.assertIn(' 25.0 ', gates.render([row], gates.totals([row])))
 
     def test_a_log_with_no_receipt_is_a_row_that_says_so(self):
         with tempfile.TemporaryDirectory() as d:

@@ -40,6 +40,9 @@ esac
 cd "$root/.claude/worktrees/gate" || { echo "gate exit 97 (no gate tree)" > "$log"; exit 97; }
 git checkout -q --detach "$sha" || { echo "gate exit 96 (checkout $sha refused)" > "$log"; exit 96; }
 echo "Gate tree: $(pwd) at $(git rev-parse HEAD)" > "$log"
+# When it began, for `tools/gates.py`: `>` keeps the birth time of a log
+# name written before, and two such read 443 and 481 minutes (2026-11-16).
+echo "Gate start: $(date +%s) $(date '+%F %T %z')" >> "$log"
 export ATTRITION_GATE_RUN=1
 python3 tools/release_gate.py "$install" --test-threads 8 "$@" >> "$log" 2>&1
 code=$?

@@ -26,6 +26,8 @@ act reaps the old one. No pane is typed into and no row rests.
       handover to a fresh `commander` whose opener is the queue's own
       `**Opener:` paragraph. A session's cron fires into the row as it then
       stands — another model, a conversation — so the wake is a spawn.
+      The row it fires into is usually `commander` itself, so the spawn
+      says `--allow-duplicate` (`spawn_argv`) and the new row reaps the old.
   handover.py check [--scoped] [--tip <sha>]
       `tools/gate_run.sh` runs it before a gate, and it prints the `Rows:`
       and `Driver:` lines the log carries. Exit 1 when two driver rows of
@@ -315,6 +317,20 @@ def reap(ref):
     return 0
 
 
+def spawn_argv(name, cwd, own_name=None):
+    """The spawn of the row `name` in `cwd`, its prompt on stdin. A row
+    that hands over to its own name — a wake fired into `commander`, or
+    `to commander --ungated` from `commander` — says `--allow-duplicate`:
+    ccc refuses a `--name` a live job in that folder already answers to,
+    and the caller is that job until the new row reaps it by its ref (the
+    wake of 2026-11-16 exited 1 on it). Never `--replace`, which stops the
+    caller under its own spawn. Every other driver row is reaped before the
+    spawn, so the caller is the only one the flag can mean."""
+    model, effort = DRIVERS[name]
+    return (['ccc', 'spawn', '--name', name, '--cwd', cwd, '--model', model, '--effort', effort]
+            + (['--allow-duplicate'] if own_name == name else []) + ['--json', '-'])
+
+
 def hand_to(name, opener_file, ungated=False, opener=None):
     cwd = tree()
     me = own_ref()
@@ -345,7 +361,7 @@ def hand_to(name, opener_file, ungated=False, opener=None):
         ref = row['session']['id']
         if ref != me and reap(ref) != 0:
             raise SystemExit(f'handover: could not reap {describe(row)}')
-    model, effort = DRIVERS[name]
+    model = DRIVERS[name][0]
     if opener is None:
         opener = open(opener_file).read().strip()
     if ungated and head != pushed:
@@ -353,8 +369,7 @@ def hand_to(name, opener_file, ungated=False, opener=None):
     prompt = (f'Your first act, before anything else: `python3 tools/handover.py reap {me}` '
               f'(the row that handed over to you; docs/DECISIONS.md entries 130 and 131 §8). '
               f'Then:\n\n{opener}\n')
-    out = run(['ccc', 'spawn', '--name', name, '--cwd', cwd, '--model', model, '--effort', effort,
-               '--json', '-'], stdin=prompt)
+    out = run(spawn_argv(name, cwd, own_name=mine['session'].get('name')), stdin=prompt)
     if out.returncode != 0:
         raise SystemExit(f'handover: ccc spawn exited {out.returncode}: {(out.stderr or out.stdout).strip()[:600]}')
     answer = json.loads(out.stdout)

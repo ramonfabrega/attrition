@@ -6,9 +6,10 @@
     python3 tools/gates.py gate-*.log --json
 
 One row a log: whole or scoped (and whether the scope widened to every
-timed test), the minutes between the log's birth and its last write, the
+timed test), the minutes between the log's own `Gate start:` line and its
+last write (its steps' sum on a log older than that line), the
 `Gate steps:`, `Admission wait:` and `Host load:` receipts, the release
-step's minutes where the gate printed `Gate minutes:`, and the verdict —
+and clock steps' minutes where the gate printed `Gate minutes:`, and the verdict —
 green, red with the failed tests named, or `no receipt` for a log that
 ends without the gate's last lines (a killed gate). The totals under the
 table are what a pass's measurement table carries. Three passes wrote
@@ -35,12 +36,30 @@ def row(path):
     text = path.read_text(errors='replace')
     lines = text.splitlines()
     st = path.stat()
-    born = getattr(st, 'st_birthtime', None)
-    minutes = round((st.st_mtime - born) / 60, 1) if born and st.st_mtime >= born else None
+    last = lambda pattern: (re.findall(pattern, text, re.M) or [None])[-1]  # noqa: E731
+    # When the gate began. The file's birth is not it: `gate_run.sh` opens
+    # its log with `>`, which keeps the birth of a name written before, and
+    # gate-4159r12b and -r12c (2026-11-16) read 443.1 and 481.9 minutes on
+    # runs of 43.5 and 33.8. Since that pass the log's second line says
+    # when it began (`Gate start: <epoch> …`); a log without one is as long
+    # as its steps (`Gate minutes:`, the last), and one with neither — a
+    # killed gate's — falls back on the birth.
+    step_minutes = {}
+    for part in (last(r'^Gate minutes: (.*)$') or '').split(', '):
+        name, _, value = part.rpartition(' ')
+        if name and re.fullmatch(r'[\d.]+', value):
+            step_minutes[name] = float(value)
+    begun = next((float(m.group(1)) for m in (re.match(r'Gate start: (\d+)', l) for l in lines[:3]) if m), None)
+    if begun is None and step_minutes:
+        begun = st.st_mtime - 60 * sum(step_minutes.values())
+    if begun is None:
+        begun = getattr(st, 'st_birthtime', None)
+    minutes = round((st.st_mtime - begun) / 60, 1) if begun and st.st_mtime >= begun else None
     out = dict(name=path.name.removesuffix('.log'), path=str(path),
-               started=datetime.datetime.fromtimestamp(born or st.st_mtime).strftime('%H:%M'),
+               started=datetime.datetime.fromtimestamp(begun or st.st_mtime).strftime('%H:%M'),
                ended=datetime.datetime.fromtimestamp(st.st_mtime).strftime('%H:%M'), minutes=minutes,
-               scope='whole', steps=None, release_min=None, admission_s=None, leases=None, longest_s=None,
+               scope='whole', steps=None, release_min=step_minutes.get('release'),
+               clock_min=step_minutes.get('clock'), admission_s=None, leases=None, longest_s=None,
                load_start=None, load_end=None, cores=None, verdict='no receipt', failed=[])
     # The scope is the gate's second line. Since 2026-11-12 `gate_run.sh`
     # writes its `Gate tree:` line and the builders step's (`tools/disk.py`)
@@ -59,13 +78,9 @@ def row(path):
     # The gate runs the tools' own tests, whose fixtures print receipt
     # lines of their own; the gate's receipt is the LAST of each, and its
     # failed tests are the lines under the last `Test summary:`.
-    last = lambda pattern: (re.findall(pattern, text, re.M) or [None])[-1]  # noqa: E731
     steps = last(r'^Gate steps: (\d+ of \d+) ran(.*)$')
     if steps:
         out['steps'] = steps[0]
-    m = last(r'^Gate minutes: .*?\brelease ([\d.]+)')
-    if m:
-        out['release_min'] = float(m)
     m = last(r'^Admission wait: ([\d.]+) s over (\d+) leases, longest ([\d.]+) s')
     if m:
         out['admission_s'], out['leases'], out['longest_s'] = float(m[0]), int(m[1]), float(m[2])
@@ -107,13 +122,14 @@ def totals(rows):
 
 
 def render(rows, totals):
-    head = f"{'gate':<16} {'start':>5} {'min':>5} {'scope':<17} {'steps':<7} {'rel':>5} {'adm s':>7} {'long':>6} {'load':>11} verdict"
+    head = f"{'gate':<16} {'start':>5} {'min':>5} {'scope':<17} {'steps':<7} {'rel':>5} {'clk':>5} {'adm s':>7} {'long':>6} {'load':>11} verdict"
     out = [head]
     for r in rows:
         load = (f"{r['load_start']:.1f}→{r['load_end']:.1f}" if r['load_start'] is not None and r['load_end'] is not None
                 else '-')
         out.append(f"{r['name']:<16} {r['started']:>5} {str(r['minutes'] if r['minutes'] is not None else '-'):>5} "
                    f"{r['scope']:<17} {str(r['steps'] or '-'):<7} {str(r['release_min'] if r['release_min'] is not None else '-'):>5} "
+                   f"{str(r['clock_min'] if r['clock_min'] is not None else '-'):>5} "
                    f"{str(r['admission_s'] if r['admission_s'] is not None else '-'):>7} "
                    f"{str(r['longest_s'] if r['longest_s'] is not None else '-'):>6} {load:>11} {r['verdict']}")
     t = totals
