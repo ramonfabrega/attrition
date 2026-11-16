@@ -303,8 +303,8 @@ pub struct World {
     /// The borders' made-to-fail (item 4306): the owner grid read this
     /// many cells away.
     pub borders_shift: (i32, i32),
-    /// The territory's version and the switches the borders were laid at.
-    borders_laid: (i64, bool, (i32, i32)),
+    /// The owner grid and the switches the borders were laid at.
+    borders_laid: (Vec<sim::Owner>, bool, (i32, i32)),
     /// Draw the surf (item 4239, §3.27). On by default; the row's count as
     /// drawn before turns it off.
     pub surf: bool,
@@ -1117,7 +1117,7 @@ impl World {
             roads_laid: (-1, false, (0, 0), Vec::new()),
             borders: true,
             borders_shift: (0, 0),
-            borders_laid: (-1, false, (0, 0)),
+            borders_laid: (Vec::new(), false, (0, 0)),
             surf: true,
             surf_art,
             surf_laid: (-1, false),
@@ -1628,7 +1628,7 @@ impl World {
             self.laid_ramp = None;
             self.weather_laid = (-1, false, (0, 0), Vec::new());
             self.roads_laid = (-1, false, (0, 0), Vec::new());
-            self.borders_laid = (-1, false, (0, 0));
+            self.borders_laid = (Vec::new(), false, (0, 0));
             self.surf_laid = (-1, false);
         }
         // Item 4190 (§3.17): the footprint weathering, laid again when the
@@ -1690,10 +1690,11 @@ impl World {
         // Item 4306 (§3.29): the national borders, after the roads and
         // before the first mountain layer — `Borders::process_all` draws
         // after the terrain and the roads, before the shadows and the
-        // mountains — laid again when the territory's version or a switch
-        // moves: a re-lay re-uploads every patch, so never once a frame.
+        // mountains — laid again when an owner or a switch moves: a re-lay
+        // re-uploads every patch, so never once a frame, and never on the
+        // runner-up claimant's moves, which the territory's version counts.
         let key = (
-            i64::from(self.runner.territory().version),
+            self.runner.territory().owner,
             self.borders,
             self.borders_shift,
         );
