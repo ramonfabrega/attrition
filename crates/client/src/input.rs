@@ -6620,7 +6620,8 @@ pub(crate) mod tests {
             let ours = layer.leader_options(who);
             (frame == 0
                 && ours == *c
-                && rondata::commands::encode(&[ours]) == rondata::commands::encode(&[c.clone()]))
+                && rondata::commands::encode(&[ours])
+                    == rondata::commands::encode(std::slice::from_ref(c)))
             .then_some(*name)
         })
     }
@@ -7158,10 +7159,9 @@ pub(crate) mod tests {
         // A kind the layer builds through rondata's issuer, named by the
         // call (item 4289: the order is the profile's, and one builder
         // serves the layer and rondata's own minted files).
-        for (name, call) in [("leader_options", ".issue_leader_option(")] {
-            if body.contains(call) && !built.iter().any(|b| b == name) {
-                built.push(name.to_string());
-            }
+        let (name, call) = ("leader_options", ".issue_leader_option(");
+        if body.contains(call) && !built.iter().any(|b| b == name) {
+            built.push(name.to_string());
         }
         let mut want: Vec<String> = MINTS.iter().map(|s| s.to_string()).collect();
         built.sort();

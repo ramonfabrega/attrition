@@ -812,7 +812,7 @@ pub(crate) mod recording {
         let lo = crate::commands::decode(&donor.packages[0].data).unwrap();
         assert_eq!(
             lo,
-            [leader.clone()],
+            std::slice::from_ref(&leader),
             "the donor's frame 0 is not the fresh profile's leader_options"
         );
         let packages = minted_packages(leader, orders, LOBBY_FRAMES).unwrap();
