@@ -6118,10 +6118,12 @@ fn what_the_disband_does_on_our_walk() {
 /// **The original's playback of the disbanded file** (item 4287):
 /// `(take, trace, first sequence parting or the last frame, last frame,
 /// records compared, records parted)`. Pinned before the take was read,
-/// with none parted.
+/// with none parted. run1623 is run1622's line with `DEATHS=1`: run1622
+/// printed no `DEATH_OBJS`, so the comparer read our corpse of `0/2` as
+/// one the original does not hold, on 189 of its 300 records.
 pub(crate) const DISBANDED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
-    "gamelog-run1622-greatlakes-playback-of-disbanded-7000.txt",
-    "rontrace-run1622.log",
+    "gamelog-run1623-greatlakes-playback-of-disbanded-7000.txt",
+    "rontrace-run1623.log",
     7000,
     7000,
     300,
@@ -6136,11 +6138,12 @@ const DISBAND_FUNCTIONS: [(u32, &str); 2] = [
 ];
 
 /// Each take's first entry into [`DISBAND_FUNCTIONS`], in sim-frames,
-/// pinned before run1622 was read: run1618 never; run1622 on 6809, the
+/// pinned before run1622 was read: run1618 never; run1622 and run1623 on 6809, the
 /// tick that consumes [`crate::script::DISBAND_FRAME`]'s package.
 const DISBAND_ENTRIES: &[(&str, [Option<i64>; 2])] = &[
     ("rontrace-run1618.log", [None, None]),
     ("rontrace-run1622.log", [Some(6809), Some(6809)]),
+    ("rontrace-run1623.log", [Some(6809), Some(6809)]),
 ];
 
 /// **The original plays the disbanded file in lockstep** (item 4287,

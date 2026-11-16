@@ -2830,7 +2830,7 @@ The one recorded disband is the 2017 sample's, slot 3: `disband(0)` on its build
 issuer and its handler. The actor is the selection's DISBAND (a panel button or the `OPTION_DISBAND` key, both through
 `Options::exec`). The effect on a unit is a death that spends a draw. Slot 0 of the minted game disbands the
 came-out Citizen `0/2`. The walk already held `Group::action_disband`'s two arms (items 3914, 3994; `docs/GOLDEN.md`
-§161, §187); the recorded-order pump did not route `disband` to them. The original plays the file (run1622, §29.4).
+§161, §187); the recorded-order pump did not route `disband` to them. The original plays the file whole (run1623, §29.4).
 This branch does not touch `crates/sim`.*
 
 ### 29.1 What the button issues, and what the order does
@@ -2897,15 +2897,51 @@ client's events through the HUD write it byte for byte.
 
 ### 29.4 The playback, and the order's effect
 
-PLAYBACK
+**run1623** (`docs/RUNS.md`) is run1618's line with the disbanded file and `DEATHS=1`; the receipt names the file's
+SHA-256. **Draws agree on 7,000 of 7,000 frames**, count and sequence, and **all 300 of the window's records are
+whole** (`DISBANDED_WALKED`, pinned before the read with none parted). The records now carry `DEATH_OBJS`, so the
+corpse is compared too.
+
+**run1622 first**, the same line without `DEATHS`. It parted in two places, and both were our instruments:
+- **The draws**, on 6809. The original's trace files the disband's two draws, `Object::disband+0x415` and
+  `Unit::close+0xcb6`, at the end of 6809. Our pump applies the package between ticks, after 6809's marks were
+  named and before 6810's tick cleared them, so the draws were spent but never named. `walk_with` now names a
+  command's marks into the frame before, as the golden harness's staged lines do. No earlier minted order drew
+  between ticks.
+- **189 of 300 records**, from 6811, `DeathDivergence { who: 0, o: 2, field: "extra" }`. run1622 printed no
+  `DEATH_OBJS`, and the comparer reads a corpse of ours that a dump does not print as one the original does not hold
+  (parked 4287b). run1623 printed the corpse, and it is ours.
+
+**The comparison can fail.** The toggled script, which has no press, walked against run1623 parts 189 of the 300
+records, with draws first on 6809. On 6811 the first parted record holds three things: our `0/2` alive, a corpse
+missing, and the farm `0/2007`'s `gather_down` reading ours 2 against theirs −1 (a scratch test, not kept).
+
+**The order's effect.** Slot 0's units on each record (`disband_effects_theirs`, `disband_effects_ours`). Ours were
+pinned before the take was read. Ours without the order is the toggled file's walk, which the reader agrees with on
+run1618.
+
+| frame | the original | ours | ours without the order |
+| --- | --- | --- | --- |
+| 6810 | `0/0`–`0/9` | the same | the same |
+| 6811 | **`0/2` gone**; a corpse, `first_frame` 6810, `cur_anim` 19, `gpiece` 352 | the same | `0/2` alive, no corpse |
+| 6812 | `0/2` gone | the same | `0/2` alive |
+| 6999 | `0/0`, `0/1`, `0/3`–`0/11` | the same | `0/0`–`0/11` |
+
+`CommandPackage::process_disband` and `Object::disband` are first entered on 6809 in run1622 and run1623, and never
+in run1618 (`DISBAND_ENTRIES`). `cur_anim` is `dtype · 2 + 0xd + roll % 2`: 19 is `dtype` 3 with an even
+`Unit::close` roll. Both draws agree in value, not only in site.
 
 ### 29.5 Confidence, and what is not established
 
-- **One reading each**: `do_disband`'s gate, `validate_disband`'s unit answer, and the actors' list. The playback
-  backs the command's bytes, the unit arm's death on the tick after the package, and its draw (§29.4).
+- **Backed by a diff**: the command's bytes (against the one recorded, and the client's file byte for byte); the
+  handler's and `Object::disband`'s entry on 6809; the unit arm's death, its corpse record whole and both its draws;
+  lockstep over the window (§29.4).
+- **One reading each**: `do_disband`'s gate, `validate_disband`'s unit answer, and the actors' list.
 - **Not reached by any take**: `all` 1 (`OPTION_DISBAND_ALL`); a group of buildings minted from the button (the walk's
   building arms are item 3994's, played by the golden harness, and the recorded `2008` is minted but not played);
   `validate_disband`'s refusals, which the layer does not consult.
+- **A dump without `DEATHS`** reads every corpse of ours as one the original does not hold (`diff/harness.rs`'s
+  `"extra"`); run1622 showed it (parked 4287b).
 - **The popup's opener** (`popup_id` 2, which `on_modal_end` turns into `OPTION_DISBAND`) was not found by grep in
   the export. Whether a confirmation stands between a key and the order is not established; the panel's case `0xf`
   issues directly.
