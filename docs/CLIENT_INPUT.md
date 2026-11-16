@@ -1682,7 +1682,7 @@ away (`dbg_pack_or_unpack`). Otherwise it calls `GroupOut::validate_spell`, then
 
 **The right press.** `Console::execute_at_cursor@007c6630` calls `GroupOut::issue_spell` with the point
 (0, 0) on a target: a Scout-line selection's Counterintelligence on an enemy Spy or its own infiltrated object, and
-the other crafts beside it. It is not minted here.
+the other crafts beside it. ~~It is not minted here.~~ Minted since item 4303 (§37): the Scout-line and Spy arms.
 
 **The recordings.** All 17 on disk are the 2017 sample's, slot 3's:
 - six Forced March (`0x27c`), `ox`/`whom` −1 at (0, 0): the button's;
@@ -1737,7 +1737,8 @@ branch and was not kept.
 
 **Not established:**
 - **A spell the original plays from our file.** The minted game's slot 0 needs a caster first (parked 4264b).
-- **The right press's crafts** (11 recordings), `execute_at_cursor`'s Scout-line and Commando arms (parked 4264c).
+- ~~**The right press's crafts** (11 recordings), `execute_at_cursor`'s Scout-line and Commando arms (parked 4264c).~~
+  Built in item 4303 (§37): `INPUT_SPY_SPELLS` 11 of 11.
 - ~~**`add_group`'s repeat in the layer** (parked 4264a): the five button spells and 4261a's two city gathers would mint
   whole with it. Every script whose groups repeat back to back would change bytes, so it moves the layer's pins.~~
   Built in item 4267 (§20): the five mint whole, and the scripts are re-pinned.
@@ -3089,7 +3090,8 @@ the package's verdict:
   pins are `INPUT_UNQUEUES`, `INPUT_CITY_GATHERS`, `INPUT_TRADED`, `INPUT_CHEATED`, `INPUT_HOTKEYS`,
   `INPUT_GARRISONS`, `INPUT_RENAMES`, `INPUT_BUILDMASKS`, `INPUT_COME_OUTS`, `INPUT_STANCES`, `INPUT_TOGGLES`,
   `INPUT_SPELLS` (the button's ground craft, `ox` −1), `INPUT_DISBANDS` (§29), since item 4288
-  `INPUT_UNITMASKS` (§31), and since item 4290 `INPUT_ROSTER_QUEUES` (§32), every `queue_up` of one. The census checks two things for each pin: it is n of n, and
+  `INPUT_UNITMASKS` (§31), since item 4290 `INPUT_ROSTER_QUEUES` (§32), every `queue_up` of one, and since item 4303
+  `INPUT_SPY_SPELLS` (§37), a `spell` on an object at (0, 0). The census checks two things for each pin: it is n of n, and
   its n is the census's count of packages it names. A pause needs no scene, so the census mints each recorded
   `pause` itself through `Event::Pause`, with the layer's bit carried across the recording. All 24 are equal.
 - **form**: the kind and its fixed fields are the layer's, but no test mints the recorded order from a scene.
@@ -3121,7 +3123,8 @@ missed**; `INPUT_WHOLE` holds at 42. Item 4297's attack-move (§35) makes `order
 layer's form: **927 shown, 1,384 form, 118 missed**; `INPUT_WHOLE` holds at 42. Item 4301's rally point on an
 object (§11.4) makes actions 1 to 3 the layer's form: **927 shown, 1,432 form, 70 missed**; `INPUT_WHOLE` holds at 42.
 Item 4302's turn (§36) writes a turn's issues as one package and mints all nine recorded turns byte for byte: **965
-shown, 1,432 form, 32 missed**; `INPUT_WHOLE` holds at 42.
+shown, 1,432 form, 32 missed**; `INPUT_WHOLE` holds at 42. Item 4303's spy arms (§37) mint the 11 right-press spells:
+**987 shown, 1,432 form, 10 missed**; `INPUT_WHOLE` holds at 42.
 
 **Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
 `INPUT_SPELLS against the census` 17 against 6.
@@ -3159,7 +3162,7 @@ is where the arms are.
 | ~~`gather_point` on an object, actions 1 to 3~~ | ~~48~~ | Button: a right press on an object (§11.3) | the layer's gather arm since item 4301 (§11.4): of the layer's form, each head minted byte for byte, `GATHER_POINTS_MINTED` 24 of 24 |
 | ~~`build` of a type no key of ours binds~~ | ~~42~~ | Button: the citizen's build buttons | the roster's build pages since item 4290 (§32): of the layer's form, the point unchecked |
 | ~~two issues in one turn~~ | ~~38~~ | **Writer**: the original's one package a turn holds every issue of the turn | the layer's turn since item 4302 (§36): one package a turn, `INPUT_TURNS` 9 of 9, every order shown |
-| `spell` on an object, the right press's | 22 | Button (§18) | not minted |
+| ~~`spell` on an object, the right press's~~ | ~~22~~ | Button (§18) | the layer's spy arms since item 4303 (§37): every one shown, `INPUT_SPY_SPELLS` 11 of 11 |
 | `build` along a dragged line, `(x2, y2)` ≠ `(x, y)` | 10 | Button: a drag while placing | the layer places at one point; 6 → 10 when the shift's four were reached (§33) |
 
 **The item's hypothesis, read against this.** All but two of the arms are reached by a button, key or modifier in the
@@ -3852,3 +3855,114 @@ layer's.
   - the minimap's arm under `prefs & 0x400`, which skips the whole press. The layer does not read it there.
 - **Not played** (4302a): no playback of a two-issue package from our file was made. The original played these nine
   from the 2017 sample, and each issue is an order the sim runs. Run1637 and run1638 are unused.
+
+## 37. The right press's spy arms: Bribe, Informer, Sniper, Sabotage (item 4303)
+
+*Item 4303, 2026-11-16. The 22 orders §30.2 called "`spell` on an object, the right press's" are 11 packages: a
+`group` and a `spell` each, at the point (0, 0). The right press of a Spy or a Commando issues them. The layer now
+mints them from `Console::execute_at_cursor`'s two spy arms. **`INPUT_SPY_SPELLS` 11 of 11**, and
+`INPUT_WHOLE_ORDERS` 965 · 1,432 · 32 → **987 · 1,432 · 10** of 2,429. `INPUT_WHOLE` holds at 42 of 50. **This
+section touches `crates/sim`**: a read-only `SpyMarks` on the scene, and `ids::ty::SPY` and `COMMANDO`.*
+
+### 37.1 The census
+
+Every package is the 2017 sample's, play 0, slot 3. Every spell is at (0, 0), so §18.1's pick (which writes the
+pressed point) issued none of them.
+
+| frames | craft | group | target |
+| --- | --- | --- | --- |
+| 17050, 17059, 17067 | Bribe (`0x275`) | `[135, 153, 156]`, then the repeat twice | slot 2's units 48, 101, 71 |
+| 17088, 17093 | Bribe | `[61, 91]`, then the repeat | slot 2's units 85, 44 |
+| 18595 | Informer (`0x27f`) | the repeat of `[153]` | slot 0's building 2016 |
+| 20891, 20902, 20932 | Sniper (`0x281`) | seven objects, then the repeat twice | slot 2's units 105, 56, 71 |
+| 20949, 20954 | Sabotage (`0x280`) | the repeat | slot 2's unit 46, twice |
+
+None is a dragged `build`, so none is 4304's.
+
+### 37.2 What the dispatch issues
+
+`Console::execute_at_cursor@007c6630` (§6; `param_1` 0 executes, 1 only sets the cursor; `param_2` 0 is the plain
+right press) has two arms that call `GroupOut::issue_spell(t, ox, whom, 0, 0)`. Both come after the ctrl
+attack-move and before §6's object arms. Each finds the object with `find_target(SEARCH_ALL, 3, …)`.
+
+- **The Scout-line arm** (`:1651`, selection `COUNT_TYPE 0x45`, `param_2` 0):
+  - on one's own infiltrated object (`is_infiltrated`, vslot `+0xdc`): Counterintelligence;
+  - on an enemy that `is(SPY)` (the listing pushes `0x3a`): Counterintelligence;
+  - otherwise, with a member `COUNT_TYPE 0x49` (COMMANDO):
+    - on a building (`is_wallbuild`, `+0x1c`): Sabotage;
+    - on a unit (`is_unit`, `+0x18`): Sabotage on a vehicle (`has_objmask(0x200000)`, `+0x148`), else the Sniper
+      when `SpellTypeData::is_valid_target(SNIPER)` passes;
+  - on an ally's object that is infiltrated, in a game with teams: Counterintelligence.
+- **The Spy arm** (`:1835`, selection `COUNT_TYPE 0x3a`, `param_2` 0), on an enemy:
+  - `is(SPY)`: Counterintelligence;
+  - a unit: the Informer (`DOUBLE_AGENT`) on a citizen (`ObjectData::is_peasant`), else Bribe when
+    `is_valid_target(BRIBE)` passes;
+  - a building (`is_build`, `+0x20`): Bribe when `WorldData::get_whose` of the cell under it is the issuer, else the
+    Informer.
+
+  On an ally under locked teams it has Bribe and Counterintelligence arms of its own. They are not minted here.
+- **Where the dispatch stops.** An arm that has taken the object sets `local_34`, issued or not: the Spy arm for any
+  enemy unit or building; the Scout line for an enemy Spy, or with a Commando for any enemy building or unit. A
+  selection that cannot attack then returns at `7c9ee9`. The Scout line's issue falls through to the Spy arm
+  (`7c9458` → `7c945f`), so a selection holding both issues two spells in one turn.
+
+The vslot names come from the PDB's `SubObjectData` and `ObjectData` field lists (`LF_ONEMETHOD vftable offset`), not
+from `vtables.txt`, whose names are COMDAT-folded there.
+
+### 37.3 What the layer does
+
+- **The scene** (`crates/sim/src/observe.rs`, reads only): `SpyMarks` on each unit and building:
+  - `spy`, `scout_line` and `commando`: `Sim::unit_is` lineage;
+  - `peasant`: `is_peasant`;
+  - `vehicle`: the profile's `obj_masks & VEHICLE`;
+  - `bribe` and `sniper`: `Sim::spell_valid_target` for the viewer;
+  - `viewer_ground` on a building: `World::owner` of its cell is the viewer.
+- **`Input::spy_arms`**, asked in `Event::RightPress` after ctrl and before `on_object`, on `Hit::Enemy`: the two
+  arms as §37.2 has them, each issue a `group` (the repeat for the second) and `spell(t, ox, whom, 0, 0)`. An arm
+  that took the object and refused mints nothing, and the press ends. Neither arm taking the object goes on to §6.
+- **The census** (§30.1): a `spell` at (0, 0) of the five crafts is shown under `INPUT_SPY_SPELLS`.
+
+### 37.4 The counts
+
+- **`INPUT_SPY_SPELLS` 11 of 11** (`minted_spy_spells_equal_the_recordings`). Each recorded package is minted from a
+  right press on its target, its `Sent` the slot's last full group (§20). The 2017 game is not walked, so the scene
+  is built from the craft:
+  - the casters are Spies for Bribe and the Informer, a Scout line with a Commando for the Sniper and Sabotage;
+  - the target is a unit below object 2000 and a building from 2000 on;
+  - the target carries the mark its arm asks.
+
+  **Seen red**: with the arm's point (1, 1), (0, 11).
+- **`minted_spy_arms_as_the_original`**:
+  - each arm's craft on its object;
+  - both arms in one package, the second `group` the repeat;
+  - an arm that refused mints nothing;
+  - a selection neither arm counts, or a Scout line without a Commando on a unit that is not a Spy, draws §6's
+    attack.
+- **`INPUT_WHOLE_MISSES`**: one row left, the dragged `build`'s 10 (item 4304).
+
+**The value diff**: before, all 22 orders were missed. No right press of the layer minted a `spell`: on another
+slot's unit it drew §6's `attack`, or §10's `follow` for a selection that cannot attack. Now each package is the recording's: 17050's `group [135, 153, 156]`,
+`spell(48, 2, 0x275, 0, 0)`; 18595's `group []`, `spell(2016, 0, 0x27f, 0, 0)`; 20954's `group []`,
+`spell(46, 2, 0x280, 0, 0)`.
+
+### 37.5 Confidence, and what is not established
+
+- **Backed by the disk**: the 11 packages' bytes, and the layer's mint of each from a scene.
+- **One reading**: the two arms, off the decompile and the listing (the `is` and `has_objmask` arguments, the flag,
+  the fall-through). No blind second reading. The score rests on the bytes: the marks the pin gives each target are
+  chosen from its craft, so the pin shows that the arm's form mints the recording, **not** that the 2017 targets
+  passed the predicates.
+- **Ours, not the original's**:
+  - `Hit::Enemy` (another slot's object) stands in for `is_enemy`;
+  - `View::target`'s look stands in for `find_target`'s;
+  - a wall is not told from a building.
+- **Not established**:
+  - after a Commando's issue, the selection can attack (`COUNT_ATTACK`), so the dispatch reaches the attack branch at
+    `7c9904`. Whether that also issues an `attack` is unread. The recordings carry the spell alone, and the layer
+    stops (4303b);
+  - the Counterintelligence arms on one's own or an ally's infiltrated object, and the Spy arm's allied arms: not
+    minted, and no recording carries one;
+  - `Sim::spell_valid_target` as the stand-in for `is_valid_target` is the crate's reading (`spells/cast.rs`), not
+    rewired onto `spell_valid_target_view`'s whole walk.
+- **Not played** (4303a): no take plays a file of ours carrying one of these spells. §18.3's caster problem stands:
+  slot 0 of the minted game holds no Spy or Commando. Run1642 and run1643 are unused.

@@ -1551,6 +1551,83 @@ impl Input {
         }
     }
 
+    /// **The right press's spy arms** (item 4303, `docs/CLIENT_INPUT.md`
+    /// §37): `Console::execute_at_cursor@007c6630`'s Scout-line arm and then
+    /// its Spy arm, asked after the attack-move and before §6's arms, each
+    /// on another slot's object under the cursor. Each issues
+    /// `GroupOut::issue_spell(t, ox, whom, 0, 0)`, the point (0, 0):
+    ///
+    /// - **the Scout line** (a member `is(SCOUT)`): Counterintelligence on
+    ///   a Spy; else, with a member `is(COMMANDO)`, Sabotage on a building,
+    ///   Sabotage on a vehicle (`has_objmask(0x200000)`), the Sniper on any
+    ///   other unit `is_valid_target` passes;
+    /// - **the Spy** (a member `is(SPY)`): Counterintelligence on a Spy; on
+    ///   another unit the Informer on a citizen (`is_peasant`), else Bribe
+    ///   where `is_valid_target` passes; on a building Bribe when the cell
+    ///   under it is the issuer's (`WorldData::get_whose`), else the
+    ///   Informer.
+    ///
+    /// `None` when neither arm takes the object, and the dispatch goes on.
+    /// `Some` of the commands when one does, which is empty when it
+    /// refused: an arm that has taken the object sets the dispatch's flag
+    /// (`local_34`), issued or not, and the dispatch returns. The Scout
+    /// line's issue falls through to the Spy arm, so a selection holding
+    /// both writes both, the second `group` the repeat (§20).
+    fn spy_arms(&mut self, scene: &Scene, hit: Hit) -> Option<Vec<Command>> {
+        use sim::ids::spell::{BRIBE, COUNTERINTEL, INFORMER, SABOTAGE, SNIPER};
+        let Hit::Enemy { id, unit } = hit else {
+            return None;
+        };
+        let (scout, commando, spy) = scene
+            .units
+            .iter()
+            .filter(|u| self.selection.contains(&u.id))
+            .fold((false, false, false), |(a, b, c), u| {
+                (a || u.spy.scout_line, b || u.spy.commando, c || u.spy.spy)
+            });
+        let marks = if unit {
+            scene.units.iter().find(|u| u.id == id)?.spy
+        } else {
+            scene.buildings.iter().find(|b| b.id == id)?.spy
+        };
+        let (mut taken, mut crafts) = (false, Vec::new());
+        if scout && (marks.spy || commando) {
+            taken = true;
+            crafts.extend(if marks.spy {
+                Some(COUNTERINTEL)
+            } else if !unit || marks.vehicle {
+                Some(SABOTAGE)
+            } else {
+                marks.sniper.then_some(SNIPER)
+            });
+        }
+        if spy {
+            taken = true;
+            crafts.extend(if marks.spy {
+                Some(COUNTERINTEL)
+            } else if unit && marks.peasant {
+                Some(INFORMER)
+            } else if unit {
+                marks.bribe.then_some(BRIBE)
+            } else if marks.viewer_ground {
+                Some(BRIBE)
+            } else {
+                Some(INFORMER)
+            });
+        }
+        if !taken {
+            return None;
+        }
+        let at = Pos { x: 0, y: 0 };
+        let (ox, whom) = (i32::from(id.o), i32::from(id.who));
+        let mut out = Vec::new();
+        for t in crafts {
+            out.push(self.group(scene));
+            out.push(spell(t, ox, whom, at));
+        }
+        Some(out)
+    }
+
     /// **A line sent from the entry line** (item 4250, `docs/CLIENT_INPUT.md`
     /// §12): the `chat` the original's chat box issues for it in a solo
     /// game, or none.
@@ -2016,6 +2093,11 @@ impl Input {
                     return Some((frame, play, vec![self.group(view.scene), cmd]));
                 }
                 let hit = view.target(self.player, x, y);
+                if let Some(cmds) = hit.and_then(|h| self.spy_arms(view.scene, h)) {
+                    // The spy arms took the object: the dispatch stops,
+                    // whether or not a craft was issued (item 4303, §37).
+                    return (!cmds.is_empty()).then_some((frame, play, cmds));
+                }
                 if let Some(cmd) =
                     hit.and_then(|h| self.on_object(h, view.attacks(&self.selection)))
                 {
@@ -4235,6 +4317,292 @@ pub(crate) mod tests {
         assert_eq!((whole, all), INPUT_SPELLS);
     }
 
+    /// The crafts the right press's spy arms issue (item 4303,
+    /// `docs/CLIENT_INPUT.md` §37), each at the point (0, 0).
+    const SPY_CRAFTS: [i32; 5] = [
+        sim::ids::spell::BRIBE,
+        sim::ids::spell::COUNTERINTEL,
+        sim::ids::spell::INFORMER,
+        sim::ids::spell::SABOTAGE,
+        sim::ids::spell::SNIPER,
+    ];
+
+    /// **Every recorded spell the right press's spy arms issue** (item
+    /// 4303, `docs/CLIENT_INPUT.md` §37): `(whole, of)` — the recorded
+    /// spells on an object at the point (0, 0), each minted from its
+    /// group's units and a right press on the target. The 2017 sample's
+    /// game is not walked, so the scene is built from the craft: Bribe's
+    /// and the Informer's group are Spies, the Sniper's and Sabotage's the
+    /// Scout line with a Commando; the target is a unit below object 2000
+    /// and a building at or past it, and carries the marks its craft's arm
+    /// asks (Bribe valid, the Sniper valid, a vehicle for Sabotage on a
+    /// unit, ground not the issuer's for the Informer on a building). An
+    /// empty `group` is the repeat (§20). Seen red with the arm's point
+    /// (1, 1): (0, 11).
+    const INPUT_SPY_SPELLS: (usize, usize) = (11, 11);
+
+    #[test]
+    fn minted_spy_spells_equal_the_recordings() {
+        use sim::ids::spell::{BRIBE, INFORMER, SABOTAGE, SNIPER};
+        let files = recordings_on_disk();
+        let Ok(r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        if files.is_empty() {
+            println!("skipping: no .rcx on disk");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let base = r.scene(None).buildings[0];
+        drop(r);
+        let c = crate::pinned_camera();
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let mut last = LastSent::new();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let (who, objects, before) = behind(&last, p.play, &kept);
+                note_sent(&mut last, p.play, &kept);
+                let Some(&Command::Spell {
+                    ox,
+                    whom,
+                    spell: t,
+                    x: 0,
+                    y: 0,
+                }) = kept.iter().find(|c| matches!(c, Command::Spell { .. }))
+                else {
+                    continue;
+                };
+                if ox < 0 || !SPY_CRAFTS.contains(&t) {
+                    continue;
+                }
+                all += 1;
+                let caster = sim::observe::SpyMarks {
+                    spy: matches!(t, BRIBE | INFORMER),
+                    scout_line: matches!(t, SNIPER | SABOTAGE),
+                    commando: matches!(t, SNIPER | SABOTAGE),
+                    ..Default::default()
+                };
+                let mark = sim::observe::SpyMarks {
+                    bribe: t == BRIBE,
+                    sniper: t == SNIPER,
+                    vehicle: t == SABOTAGE,
+                    ..Default::default()
+                };
+                let id = ObjId {
+                    who: whom as u8,
+                    o: ox as i16,
+                };
+                let at = Pos {
+                    x: 768 * 20,
+                    y: 768 * 20,
+                };
+                let mut units: Vec<_> = objects
+                    .iter()
+                    .map(|&o| sim::observe::UnitScene {
+                        spy: caster,
+                        ..unit(who, o, 0x3a, 0, 0, 0)
+                    })
+                    .collect();
+                let mut buildings = Vec::new();
+                if ox < 2000 {
+                    units.push(sim::observe::UnitScene {
+                        spy: mark,
+                        pos: at,
+                        ..unit(id.who, id.o, 0x36, 0, 0, 0)
+                    });
+                } else {
+                    let mut b = base;
+                    (b.id, b.owner, b.pos, b.z, b.seen) = (id, id.who, at, 0, true);
+                    b.spy = mark;
+                    buildings.push(b);
+                }
+                let scene = Scene {
+                    units,
+                    buildings,
+                    ..Scene::default()
+                };
+                let v = view(&c, &scene, &terrain);
+                let (px, py) = v.pixel(at.x, at.y, 0);
+                let mut input = Input::new(who);
+                input.selection = objects.iter().map(|&o| ObjId { who, o }).collect();
+                input.sent = sent_for(&before, &scene);
+                let got = input.event(p.frame, Event::RightPress { x: px, y: py }, &v);
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                } else {
+                    println!("SPY SPELL PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("SPY SPELLS {whole} of {all}");
+        assert_eq!((whole, all), INPUT_SPY_SPELLS);
+    }
+
+    /// **The spy arms without a walk** (item 4303, §37): each arm's craft
+    /// on its object; the Scout line's issue falling through to the Spy
+    /// arm, the second `group` the repeat; an arm that took the object and
+    /// refused mints nothing and stops the dispatch; a selection neither
+    /// arm counts, or a Scout line without a Commando on a unit that is
+    /// not a Spy, goes on to §6's attack.
+    #[test]
+    fn minted_spy_arms_as_the_original() {
+        use sim::ids::spell::{BRIBE, COUNTERINTEL, INFORMER, SABOTAGE, SNIPER};
+        use sim::observe::SpyMarks;
+        let Ok(r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let base = r.scene(None).buildings[0];
+        drop(r);
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let at = Pos {
+            x: 768 * 20,
+            y: 768 * 20,
+        };
+        let spy = SpyMarks {
+            spy: true,
+            ..Default::default()
+        };
+        let commando = SpyMarks {
+            scout_line: true,
+            commando: true,
+            ..Default::default()
+        };
+        let scout = SpyMarks {
+            scout_line: true,
+            ..Default::default()
+        };
+        let target = ObjId { who: 1, o: 9 };
+        let shop = ObjId { who: 1, o: 2003 };
+        // `casters` are slot 0's 5 and 6; the target, a unit or a building.
+        let press = |casters: [SpyMarks; 2], mark: SpyMarks, building: bool| {
+            let mut units = vec![
+                sim::observe::UnitScene {
+                    spy: casters[0],
+                    ..unit(0, 5, 0x3a, 0, 0, 0)
+                },
+                sim::observe::UnitScene {
+                    spy: casters[1],
+                    ..unit(0, 6, 0x3a, 0, 0, 0)
+                },
+            ];
+            let mut buildings = Vec::new();
+            if building {
+                let mut b = base;
+                (b.id, b.owner, b.pos, b.z, b.seen, b.spy) = (shop, 1, at, 0, true, mark);
+                buildings.push(b);
+            } else {
+                units.push(sim::observe::UnitScene {
+                    spy: mark,
+                    pos: at,
+                    ..unit(1, 9, 0x36, 0, 0, 0)
+                });
+            }
+            let scene = Scene {
+                units,
+                buildings,
+                ..Scene::default()
+            };
+            let v = view(&c, &scene, &terrain);
+            let (px, py) = v.pixel(at.x, at.y, 0);
+            let mut input = Input::new(0);
+            input.selection = vec![ObjId { who: 0, o: 5 }, ObjId { who: 0, o: 6 }];
+            input
+                .event(1, Event::RightPress { x: px, y: py }, &v)
+                .map(|o| o.2)
+        };
+        let group = Command::Group {
+            who: 0,
+            objects: vec![5, 6],
+        };
+        let repeat = Command::Group {
+            who: 0,
+            objects: vec![],
+        };
+        let none = SpyMarks::default();
+        let cast = |t, id: ObjId| spell(t, i32::from(id.o), i32::from(id.who), Pos { x: 0, y: 0 });
+        let one = |t, id| Some(vec![group.clone(), cast(t, id)]);
+        // The Spy arm.
+        assert_eq!(press([spy, none], spy, false), one(COUNTERINTEL, target));
+        let citizen = SpyMarks {
+            peasant: true,
+            bribe: true,
+            ..Default::default()
+        };
+        assert_eq!(press([spy, none], citizen, false), one(INFORMER, target));
+        let bribable = SpyMarks {
+            bribe: true,
+            ..Default::default()
+        };
+        assert_eq!(press([spy, none], bribable, false), one(BRIBE, target));
+        assert_eq!(press([spy, none], none, false), None, "taken, refused");
+        let ours = SpyMarks {
+            viewer_ground: true,
+            ..Default::default()
+        };
+        assert_eq!(press([spy, none], ours, true), one(BRIBE, shop));
+        assert_eq!(press([spy, none], none, true), one(INFORMER, shop));
+        // The Scout line.
+        assert_eq!(press([scout, none], spy, false), one(COUNTERINTEL, target));
+        assert_eq!(press([commando, none], none, true), one(SABOTAGE, shop));
+        let vehicle = SpyMarks {
+            vehicle: true,
+            sniper: true,
+            ..Default::default()
+        };
+        assert_eq!(
+            press([commando, none], vehicle, false),
+            one(SABOTAGE, target)
+        );
+        let snipable = SpyMarks {
+            sniper: true,
+            ..Default::default()
+        };
+        assert_eq!(
+            press([commando, none], snipable, false),
+            one(SNIPER, target)
+        );
+        assert_eq!(press([commando, none], none, false), None, "taken, refused");
+        // Both arms: the Scout line's issue, then the Spy's, one package.
+        let both = SpyMarks {
+            sniper: true,
+            bribe: true,
+            ..Default::default()
+        };
+        assert_eq!(
+            press([commando, spy], both, false),
+            Some(vec![
+                group.clone(),
+                cast(SNIPER, target),
+                repeat,
+                cast(BRIBE, target)
+            ])
+        );
+        // Neither arm: §6's attack on the unit.
+        let attack = Command::Attack {
+            ox: 9,
+            whom: 1,
+            ignore: 0,
+            queued: QUEUE_NEW,
+        };
+        assert_eq!(
+            press([none, none], snipable, false),
+            Some(vec![group.clone(), attack.clone()])
+        );
+        assert_eq!(
+            press([scout, none], snipable, false),
+            Some(vec![group, attack])
+        );
+    }
+
     /// **The craft buttons without a walk** (item 4264): the row a unit
     /// selection's crafts make, each once; an untargeted craft issued at
     /// once; a targeted one waiting for the pick, then naming the object
@@ -4860,6 +5228,7 @@ pub(crate) mod tests {
             attacks: true,
             captain: o,
             crafts: vec![],
+            spy: sim::observe::SpyMarks::default(),
             garrison_cost: 1,
             enters: vec![],
             figures: vec![],
@@ -7289,6 +7658,9 @@ pub(crate) mod tests {
             Command::Stance { .. } => Verdict::Shown("INPUT_STANCES"),
             Command::CheatAiToggle => Verdict::Shown("INPUT_TOGGLES"),
             Command::Spell { ox: -1, .. } => Verdict::Shown("INPUT_SPELLS"),
+            Command::Spell {
+                spell, x: 0, y: 0, ..
+            } if SPY_CRAFTS.contains(spell) => Verdict::Shown("INPUT_SPY_SPELLS"),
             Command::Spell { .. } => Verdict::Miss("spell on an object: the right press's", Button),
             &Command::MoveTo {
                 set_angle,
@@ -7537,13 +7909,11 @@ pub(crate) mod tests {
     /// Every order on disk by verdict: (shown, of the layer's form but not
     /// minted from a scene, missed, all). A package's `group` takes its
     /// order's verdict.
-    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (965, 1432, 32, 2429);
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (987, 1432, 10, 2429);
     /// The missed orders by arm, most first, and who reaches each, the
     /// package's `group` counted with its order.
-    const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] = &[
-        ("spell on an object: the right press's", Reach::Button, 22),
-        ("build: a dragged line", Reach::Button, 10),
-    ];
+    const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] =
+        &[("build: a dragged line", Reach::Button, 10)];
 
     /// **A person's whole game, by recording** (item 4285): each recording
     /// on disk, its every order given its package's [`Verdict`]; the
@@ -7626,6 +7996,7 @@ pub(crate) mod tests {
             ("INPUT_STANCES", INPUT_STANCES),
             ("INPUT_TOGGLES", INPUT_TOGGLES),
             ("INPUT_SPELLS", INPUT_SPELLS),
+            ("INPUT_SPY_SPELLS", INPUT_SPY_SPELLS),
             ("INPUT_DISBANDS", INPUT_DISBANDS),
             ("INPUT_UNITMASKS", INPUT_UNITMASKS),
             ("INPUT_LEADER_OPTIONS", INPUT_LEADER_OPTIONS),
