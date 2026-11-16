@@ -160,6 +160,8 @@ mod greek_word;
 mod gunpowder_melee;
 mod harness;
 #[cfg(test)]
+mod held_probe;
+#[cfg(test)]
 mod inca_classical_pair;
 #[cfg(test)]
 mod inca_enlightenment_pair;

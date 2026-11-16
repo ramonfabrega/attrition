@@ -5291,6 +5291,7 @@ pub(crate) mod tests {
                     &fresh_leader
                 };
                 let mine = crate::diff::leader::rows(&loaded, &built, who);
+                crate::diff::held_probe::rows(name, n, who, &mine, t);
                 if who == 1 && std::env::var("RON_SITE_SET").is_ok() {
                     let m: BTreeMap<String, i64> = mine.iter().cloned().collect();
                     let set = |g: &dyn Fn(&str) -> i64| -> Vec<String> {
@@ -7765,6 +7766,7 @@ pub(crate) mod tests {
                     &fresh_leader
                 };
                 let mut mine = crate::diff::leader::rows(&loaded, &built, who);
+                crate::diff::held_probe::rows(name, n, who, &mine, t);
                 mine.extend(crate::diff::leader::region_rows(&built, who));
                 // `RON_MAKE=<lo>-<hi>`: the make list slot for slot, both
                 // sides, through the comparison's own keys (item 613).
