@@ -3035,7 +3035,8 @@ disband missed, 359 shown and 994 missed):
   into shown: **927 shown, 994 form, 508 missed**; `INPUT_WHOLE` holds at 42. Item 4293's shift (§33) makes the queue
 one of the layer's fields: **927 shown, 1,190 form, 312 missed**; `INPUT_WHOLE` holds at 42. Item 4295's right drag
 (§34) makes `set_angle` 1 with an angle of `find_angle`'s image the layer's form: **927 shown, 1,330 form, 172
-missed**; `INPUT_WHOLE` holds at 42.
+missed**; `INPUT_WHOLE` holds at 42. Item 4297's attack-move (§35) makes `orders` 2 with no facing and −1/−1 the
+layer's form: **927 shown, 1,384 form, 118 missed**; `INPUT_WHOLE` holds at 42.
 
 **Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
 `INPUT_SPELLS against the census` 17 against 6.
@@ -3068,7 +3069,7 @@ is where the arms are.
 | ~~`queue_up` of a type no key of ours binds~~ | ~~390~~ | Button: the building's train and research buttons | the roster's buttons since item 4290 (§32): every recorded `queue_up` shown, `INPUT_ROSTER_QUEUES` 257 of 257 |
 | ~~`queued` 1, the shift held~~ | ~~200~~ | Button: the shift on any order | the issuers' queues since item 4293 (§33): 196 orders of the layer's form, and four `build` orders to the dragged line, now 10 |
 | ~~`move_to` `set_angle` 1, the right drag's facing~~ | ~~140~~ | Button: a right drag | the layer's right drag since item 4295 (§34): of the layer's form, the point and the angle's release unchecked |
-| `move_to` `orders` 2, `ATTACK_TO` | 54 | Button: the attack-move | not read |
+| ~~`move_to` `orders` 2, `ATTACK_TO`~~ | ~~54~~ | Button: the attack-move, ctrl on a right press | the layer's ctrl since item 4297 (§35): of the layer's form, each head minted on the minimap byte for byte, the point and the issuer unchecked |
 | ~~`leader_options`~~ | ~~50~~ | **Profile**: `Game::run` from the prefs (§26.1) | minted from the layer's prefs since item 4289 |
 | `gather_point` on an object, actions 1 to 3 | 48 | Button: a right press on an object (§11.3) | the layer mints nothing there |
 | ~~`build` of a type no key of ours binds~~ | ~~42~~ | Button: the citizen's build buttons | the roster's build pages since item 4290 (§32): of the layer's form, the point unchecked |
@@ -3090,7 +3091,8 @@ stances are shown.
   lies on one is not measured. Their groups are unchecked too: no recorded selection was rebuilt from a press or a
   box. So the carried count's 42 rests on shown orders alone, and the form orders move no recording into it.
 - **The arm labels are ours**: read from the fields against the layer's own constants, not from the issuers' code
-  paths. `orders` 2 as the attack-move is `sim::ids::order::ATTACK_TO`'s name, not a reading of its issuer.
+  paths. ~~`orders` 2 as the attack-move is `sim::ids::order::ATTACK_TO`'s name, not a reading of its issuer.~~ Since
+  item 4297 it is a reading of its issuers, and the 54 carry every field they write (§35.2).
 - ~~**Not established**: whether `leader_options` should be minted from a field of our lobby page holding the
   profile's five bits and its two counts. That is an interface choice, not a reading. With such a field the carried
   count would become the score, 0 → 42, but it is a lobby page the cut list (`CLAUDE.md`, the `iface*` windows) does
@@ -3358,7 +3360,7 @@ do not agree on alt.
 
 | issuer | its queue | ctrl |
 | --- | --- | --- |
-| `Console::execute_at_cursor@007c6630` (the right press: §6's arms and the ground) | `QUEUE_NEW`; with shift, `alt ^ 1`: `QUEUE_LAST`, or `QUEUE_FIRST` with alt too. Alt is read only while `prefs & 0x400` is clear | with a unit selection (`GroupData +0x49` clear), the attack-move, asked before any object: `move_to(…, ATTACK_TO, −1, −1)` |
+| `Console::execute_at_cursor@007c6630` (the right press: §6's arms and the ground) | `QUEUE_NEW`; with shift, `alt ^ 1`: `QUEUE_LAST`, or `QUEUE_FIRST` with alt too. Alt is read only while `prefs & 0x400` is clear | with a unit selection (`GroupData +0x49` clear), the attack-move, asked before any object: `move_to(…, ATTACK_TO, −1, −1)`; with alt read too, `MOVE_TO` with the drag's form (§35.1) |
 | `WorldMap::on_right_up@008c7050` (the minimap) | `QUEUE_LAST` with shift, else `QUEUE_FIRST` with alt, else `QUEUE_NEW` | `ATTACK_TO` in place of `MOVE_TO` |
 | `Options::picked_spot@00721c40`, the build arm (the placement) | as the minimap's; then, unless the type is a wonder (`TypeData::is_wonder_type`, vtable `+0x1c`), with shift or ctrl held the placement stays armed and its queue is `QUEUE_FIRST` with ctrl, overruled by `QUEUE_LAST` with shift | as the queue's column says |
 | `Options::do_formation@007215b0` | as the minimap's | not read |
@@ -3396,9 +3398,9 @@ stay the writer's miss. Every kind is one an arm of the layer issues, so the ite
 - `Input::map_queue` is the minimap's.
 - `Input::placed_queue` is the placement's queue, and whether the placement stays armed after the press.
 - The ground's gather point writes `add_to_end` from shift or ctrl.
-- **Ctrl on a unit's right press, in the main view or on the minimap, mints nothing.** The original's arm there is the
+- ~~**Ctrl on a unit's right press, in the main view or on the minimap, mints nothing.** The original's arm there is the
   attack-move, which the layer has not built (4293a). Minting a `MOVE_TO` would be an order the original does not
-  issue.
+  issue.~~ Built in item 4297: ctrl mints the attack-move (§35.3).
 
 **The census's verdict** now takes any of the three queues as the layer's (`QUEUES`). That moves the 196 orders from
 missed to form, not to shown: the census does not mint them from a scene (§30.3).
@@ -3427,7 +3429,7 @@ the queue's miss until now. Its type was already on the pages.
 
 - The modifiers are the window's (`winit`'s `ModifiersChanged`), not a `GetKeyState` at the press. A modifier
   pressed between the last change and the press is the same in both. One released without an event is not.
-- Ctrl's nothing on a right press (§33.3).
+- ~~Ctrl's nothing on a right press (§33.3).~~ The attack-move since item 4297 (§35).
 
 ### 33.5 Confidence, and what is not established
 
@@ -3436,8 +3438,9 @@ the queue's miss until now. Its type was already on the pages.
 - **One reading**: the alt and ctrl arms of §33.1 (`QUEUE_FIRST`, the placement's ctrl, `prefs & 0x400`, the
   gather point's `add_to_end`). No recording carries one, so no score rests on them. Read off the decompile of the
   four issuers by this item's one reader.
-- **Not established**: the attack-move (ctrl on a right press). Its `move_to` is `orders` 2 with `−1`/`−1`, the
-  54 orders of §30.2's attack-move row if those are the ctrl's; this was not checked (4293a).
+- ~~**Not established**: the attack-move (ctrl on a right press). Its `move_to` is `orders` 2 with `−1`/`−1`, the
+  54 orders of §30.2's attack-move row if those are the ctrl's; this was not checked (4293a).~~ Checked and built in
+  item 4297 (§35): the 54 carry every field the issuers write.
 - **Not established**: the siege attack under alt alone. The layer counts no siege, so a selection with siege under
   alt mints an `attack` where the original mints `siege_attack`. No recording carries one.
 - **Not established**: whether shift changes anything in the dispatch past the queue. Its other reads (`local_40`)
@@ -3560,3 +3563,106 @@ diff-backed by the emulator's sweep (`crates/sim/tests/sweep/find_angle.rs`).*
 - **Not established**: the default of `click_drag_right_sensitive` in the profile.
 - **Not played**: no playback was owed. `set_angle` and `angle` are fields the sim reads (`group_action_move_to`,
   `sim::command`), and the original has played them from the 2017 sample. Run1632 is unused.
+
+## 35. The attack-move: ctrl on a right press (item 4297)
+
+*Item 4297, 2026-11-16. Of the 172 orders the census of §30 missed, 54 were `move_to` orders that carry `orders` 2,
+`ATTACK_TO`, and since item 4293 the layer minted nothing under ctrl (4293a). The census of the 54 came first: 27
+packages, all in the 2017 sample, and every field one the issuers write. The layer now mints the attack-move in the
+main view and on the minimap. `INPUT_WHOLE_ORDERS` 927 · 1,330 · 172 → **927 · 1,384 · 118** of 2,429;
+`INPUT_WHOLE` 42 of 50, unchanged. No recorded field is one the issuers do not write, so the item's stop was not
+reached. This section does not touch `crates/sim`.*
+
+### 35.1 What the original's ctrl issues
+
+- **The main view** (`Console::execute_at_cursor@007c6630`, the right press, `param_2` 0). It reads ctrl (`0x11`) and
+  shift (`0x10`), and alt (`0x12`) only while `prefs & 0x400` is clear. With a unit selection (`GroupData +0x49`
+  clear) and either ctrl, or alt without shift, it takes this arm before it looks at any object:
+  - ctrl without alt: `GroupOut::issue_move_to(drag_x2, drag_y2, queue, 0, 0, ATTACK_TO, −1, −1, 0)`;
+  - ctrl with alt: `issue_move_to(drag_x2, drag_y2, queue, 0, 0, MOVE_TO, drag_form, drag_form_mod, 0)`. A debug
+    flag (`gamec->semaphore` byte 1, bit 8) takes this arm without alt too;
+  - alt alone: the siege attack (§33.5, 4293b).
+
+  The point is `drag_x2`/`drag_y2`, the release's ground point, as for a right press (§34.3). The queue is the
+  dispatch's (§33.1).
+- **The minimap** (`WorldMap::on_right_up@008c7050`): with no plane in the selection, `ctrl_key()` gives
+  `issue_move_to(x, y, queue, 0, 0, ATTACK_TO, −1, −1, 0)` and then `ping_dest`. Without ctrl it is the same call with
+  `MOVE_TO`. Alt changes only the queue (the minimap's, §33.1), never the order. With a plane it is `issue_patrol`
+  whatever the keys.
+- **The panel's button**. `UnitOut::make_options@00615fc0` adds `OPTION_ATTACK_TO` for a unit whose type data has
+  `+0x1e8` set, and the keymap names it. Its spot (`Options::picked_spot@00721c40`) sets `drag_x2`/`drag_y2` and calls
+  `execute_at_cursor(0, 1)`. On the ground, that issues the same `ATTACK_TO` with −1/−1 and the dispatch's queue. The
+  layer has no such button (4297a).
+
+All three write `(set_angle 0, angle 0, ATTACK_TO, form −1, width −1, disembark 0)`. They differ only in the queue
+under alt (the dispatch's `QUEUE_NEW`, the minimap's `QUEUE_FIRST`) and in the point's source.
+
+### 35.2 The census (`ATTACK_MOVE_*`)
+
+`the_attack_moves_of_the_recordings_on_disk` (`crates/client/src/input.rs`) takes every recorded `move_to` whose
+`orders` is not `MOVE_TO`:
+
+- **Where**: 27 packages, all in the 2017 sample (`seifer008`), play 0. Each is one issue with its `group`, so 54
+  orders. No bottle capture carries one.
+- **The fields** (`ATTACK_MOVE_FIELDS`), `(orders; set_angle, angle, form, width, queued, disembark)`: `(2; 0, 0, −1,
+  −1, 2, 0)` on all 27. No other `orders` value is recorded, so every one is `ATTACK_TO` with no shift and no alt.
+- **Minted** (`ATTACK_MOVE_MINTED`): the minimap reaches any world point, so each recorded head is minted there under
+  ctrl at its recorded point. 27 of 27 are equal byte for byte through `rondata::commands::encode`.
+- **By selection** (`ATTACK_MOVE_GROUPS`): 0 (the last selection again, §20) 4, 1: 3, 2: 1, 5: 1, 7: 1, 8: 3, 10: 1,
+  11: 1, 17: 1, 20: 2, 21: 3, 23: 1, 32: 3, 37: 2.
+- **Which issuer is not on disk.** With `QUEUE_NEW` the three issuers write the same bytes, and the sample's cursor
+  and camera are not recorded. The packages at frames 12337 and 12341 name the same point, `(15315, 21207)`.
+
+**Seen red**: `ATTACK_MOVE_FIELDS` pinned with `queued` 1 parted. With the minimap's ctrl minting `MOVE_TO`,
+`ATTACK_MOVE_MINTED` parted at 0 against 27.
+
+### 35.3 What the layer does
+
+- **`Event::RightPress`** with ctrl, a unit selection and the ground point found: the `group` and `attack_to(ground_at
+  (release), dispatch_queue)`, before any object under the press. With alt too, and alt read under `prefs & 0x400`,
+  it is `move_to` with `View::formation`. A building's selection keeps its gather point (`add_to_end` 1 under ctrl,
+  §33.3).
+- **`Event::MapRightPress`** with ctrl: `attack_to(the map point, map_queue)`, alt or not.
+- **The count**: `minted_an_attack_move_as_the_original`, at the pinned camera, the press at `(900, 500)` on an enemy
+  unit and one of one's own. Without ctrl it mints the `attack`. With ctrl it mints `ATTACK_TO` with `QUEUE_NEW`, and
+  `QUEUE_LAST` with shift. Ctrl with alt mints `MOVE_TO` with the formation `(9, 50)`, and `QUEUE_FIRST` with shift
+  too. Under `prefs & 0x400` alt is not read, so it is `ATTACK_TO` again. Each is held byte for byte. On the minimap,
+  ctrl mints `ATTACK_TO` with `QUEUE_NEW`, `QUEUE_LAST` and `QUEUE_FIRST` under none, shift and alt.
+  `minted_shift_edges` holds the queues beside the other arms. **Seen red**: with the minimap's queue in the main
+  view's arm, it parted at ctrl with alt, `queued` 0 against 2.
+- **The census's verdict**: `orders` 2 with `(set_angle, angle, form, width, disembark)` `(0, 0, −1, −1, 0)` is of
+  the layer's form. Any other `orders` stays missed. The 54 move from missed to form, not to shown, since the press's
+  point is not checked (§30.3).
+
+**The value diff**, the recorded head against ours before and after:
+
+| field | recorded | ours before (ctrl) | ours, ctrl |
+| --- | --- | --- | --- |
+| the package | `group` and `move_to` | nothing | `group` and `move_to` |
+| `orders` | 2 | — | 2 |
+| `set_angle`, `angle` | 0, 0 | — | 0, 0 |
+| `form`, `width` | −1, −1 | — | −1, −1 |
+| `queued` | 2 | — | 2 (the dispatch's and the minimap's, no shift or alt) |
+| `to_x`, `to_y` | the point | — | the release's ground point, or the map point |
+
+### 35.4 Ours, not the original's
+
+- The debug flag that turns the main view's ctrl into `MOVE_TO` is not read.
+- The minimap's `ping_dest` after the order is not drawn.
+- The selection's `can_activate`, and the leader's vtable `+8` test on the minimap, are not read; the layer mints for
+  any unit selection.
+
+### 35.5 Confidence, and what is not established
+
+- **Backed by the disk**: the census (`ATTACK_MOVE_*`) and the counts of §30.1. Every recorded attack-move carries
+  the fields the issuers write, and each head is minted byte for byte at its point.
+- **One reading**: ctrl with alt as `MOVE_TO` with the drag's form, and the alt and shift queues under ctrl. No
+  recording carries ctrl with shift or alt, so no score rests on them. Read off `execute_at_cursor` and `on_right_up`
+  by this item's one reader.
+- **Not established**: which issuer made each recorded order (§35.2).
+- **Not established**: the panel's `ATTACK_TO` button (4297a). It writes the same order on the ground. On an object
+  it goes through the dispatch's object arms with `param_2` 1, which were not read.
+- **Not established**: the minimap's plane patrol under ctrl. The scene carries no domain, so the layer mints
+  `ATTACK_TO` for a selection with a plane (4295a).
+- **Not played**: no playback was owed. `ATTACK_TO` is an order the sim runs (`sim::orders::index::ATTACK_TO`,
+  which the AI's armies issue), and the original played these 27 from the 2017 sample. Run1633 is unused.
