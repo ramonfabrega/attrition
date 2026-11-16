@@ -3240,7 +3240,8 @@ On the photographs alone: the rows.
   "The mountain's `_mtrl` maps (item 4278)" below. The body's hue (4269c) is read
   below, "The mountain's hue (item 4271)". ~~What takes the tint's share off the photograph's stage colour (parked
   4271a).~~ Answered by "The mountain's tint (item 4272)": ours tinted stage 1 too.
-- The body's remaining 7 % (ours Y 146.4 against 137.3, item 4272) and its yellow-green cast by eye.
+- ~~The body's remaining 7 % (ours Y 146.4 against 137.3, item 4272) and its yellow-green cast by eye.~~ Item 4284.
+- The plain ground lit too: the halo west of the range, and the step where a lit tile meets a flat one (4284a).
 - `vs_global.hlsl`'s per-pixel normal against the interpolated N·L the client takes, and the
   vertex colour taken from that N·L rather than interpolated.
 - ~~The trees' and the roads' `TL_FAKE_LIGHT` stage colours against each other (parked 4217a).~~ Answered by
@@ -3277,29 +3278,17 @@ stays yellower than theirs. Theirs is grey-brown, with a dark blue-grey crest an
 reading: the slot's face order and `TerrainOut`'s base offset (they are what the packet's bytes decode under). On the
 photograph alone: the row.
 
-**The mountain's hue (item 4271).** *2026-11-15, Opus 5.5. Read on run1559b's packet and photograph; no code moved.*
-The body is ours (171.1, 164.7, 89.1), theirs (148.6, 140.8, 87.4): red and green 15–17 % high and blue 2 %. Through
-the lit branch's power and the curve, that is a stage colour about (18, 16, 1) bytes high, **the tileset's tint to the
-byte** (`early_autumn` (18, 18, 0), §3.21). What was read:
-- *The stage op is the original's.* The install's `shader_texture_data.h` runs ADDSIGNED as `arg1 + arg2 − 0.5`
-  on `tex1 · vDiff`, then `saturate`, as `fs_mountain` does.
-- *The texture is tinted in the original.* `load_tga@00512ac0`'s listing (`512d48`–`512d5e`) tints each row in place
-  on the pointer `Texture::get_data` hands back, before `release_data` and `post_load`. On the packet,
-  `cur_tileset->mountain_base` (`+0x81c`) carries `tint_color` `0xff001212` and `use_tint` 1. Its device record's
-  pixels are the file's plus (18, 18, 0) on the twelve texels checked in each of three rows, and so are
-`mountain_alpha`'s. A raw
-  level 0 of each also sits in the heap, at `0x2d1f0000` beside a tinted twin at `0x2d230000` (`t_mountain_plain`),
-  and nothing owns it.
-- *Untinted, ours would fit*: with the two textures loaded without the tint (a probe, not kept), under a mountain
-  70 → **94** of 106, the body Y 133.6 against 137.3 (ratio 0.986, 8 paler and 4 darker); the grass 954 → 947
-  through the frame's white.
-
-So the tint is the original's by the reading and by the packet, and dropping it is a fit with no mechanism: **not
-drawn**. Whether the card ever samples the tinted bytes (an upload taken from the raw slab, or a mip chain built from
-it) is not established (parked 4271a). ~~A photograph with the tint zeroed would settle it.~~ It did: the card
-samples the tint, and the gap was ours tinting stage 1 too ("The mountain's tint (item 4272)").
-*Coverage:* on the packet: the tint on the device's copy. On a reading: the loop's order (the listing), the shader's
-op (the install's HLSL). On the photograph alone: the row.
+**The mountain's hue (item 4271).** *2026-11-15, Opus 5.5. Read on run1559b's packet and photograph; no code moved;
+the story is `docs/journal/2026-11-15-item-4271.md`.* The body read ours (171.1, 164.7, 89.1), theirs (148.6, 140.8,
+87.4): through the lit branch's power and the curve, a stage colour about (18, 16, 1) bytes high, **the tileset's
+tint to the byte** (`early_autumn` (18, 18, 0), §3.21). The stage op is the original's (`shader_texture_data.h`:
+ADDSIGNED as `arg1 + arg2 − 0.5`, then `saturate`). The texture is tinted in the original: `load_tga@00512ac0`'s
+listing (`512d48`–`512d5e`) tints each row in place, and on the packet `cur_tileset->mountain_base` (`+0x81c`)
+carries `tint_color` `0xff001212`, `use_tint` 1, its device pixels the file's plus (18, 18, 0), as are
+`mountain_alpha`'s. Untinted, a probe read under a mountain 70 → 94: a fit with no mechanism, **not drawn**. ~~Whether
+the card samples the tinted bytes (parked 4271a).~~ It does, and the gap was ours tinting stage 1 too ("The
+mountain's tint (item 4272)"). *Coverage:* on the packet: the tint on the device's copy. On a reading: the loop's
+order, the shader's op. On the photograph alone: the row.
 
 **The mountain's tint (item 4272).** *2026-11-15, Opus 5.5. `client::ground::MountainArt::load_tinted`. run1612
 against run1559b.* run1612 is run1559b's take with `early_autumn`'s `<LIGHTING>` tint zeroed for that take alone
@@ -3327,6 +3316,13 @@ are `generate_tangents@008479b0`'s: the packet's 238 bit for bit on its own mesh
 Y 144.6 → 143.7 against 137.3; under a mountain holds at 95 of 106. *Coverage:* diff-backed: the tangents and stage
 0's texcoord; on a reading: the binding and the formula. *Not established:* the ring pass's stage 2; the map's three
 levels and filter; ~~the photograph's centre-left streaks~~ (§3.10, item 4279).
+
+**The ground beneath a range (item 4284).** *Opus 5.5. `client::world::World::drawn_terrain`'s `nl_at`; the story,
+the six tiles' values and the probes are `docs/journal/2026-11-15-item-4284.md`.* The last six parted tiles, all
+paler, sat on the left shoulder, where the main pass's stage 1 fades and the ground beneath shows through. That
+ground was flat-lit (`land_light` off). A tile under a placed mountain now takes the land's own N·L and `light_vert`
+colour whatever the switch says, as the snowcap does: under a mountain **100 → 106 of 106**, plain unmoved, the body
+Y 136.5 against 137.3. *Coverage:* on the photograph alone: the row.
 
 ## 3.23 The trees' own light (item 4221)
 
