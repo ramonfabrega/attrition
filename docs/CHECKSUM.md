@@ -1712,18 +1712,12 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 
 ## 20. The leaders line, held out on the long range (items 4121, 4124)
 
-~~**265 of 267 ranges and 4,515 of 58,343 bytes agree**~~ **267 of 267
-and 58,343 bytes agree** on run 1562's frame 91 since item 4298, our Adler
-the printed 2813959641, with **2** leaves held at their reset on both
-sides: not counted whole while any is held (`whole_lines`), the driver's
-ruling. `LEADERS_HELD_OUT` named **5** before it, from 140. Before it, agreeing: all
-eight slots' flag words, and the two walked leaders' diplomacy records,
-personalities, masks (each `tech` array since item 4187), sites, make
-lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
-decrypted words. Parting: each walked leader's `[+0x8, +0x692a)` (26,914
-bytes). Until item 4187 its `tech` array (101 bytes) parted too, 263 of 267
-ranges and 4,313 bytes agreeing; item 4121's image summed to 4257695306
-against the printed `Leaders` 2813959641. `Sim::checksum_leaders`
+**267 of 267 ranges and 58,343 bytes agree** on run 1562's frame 91 since
+item 4298, our Adler the printed 2813959641 (before it 265 and 4,515, each
+walked leader's long range `[+0x8, +0x692a)` parting; the earlier counts
+are items 4121's and 4187's journals). **2** leaves stay held, at their
+reset on both sides: the line is not counted whole while any is
+(`whole_lines`), the driver's ruling. `Sim::checksum_leaders`
 (`crates/sim/src/checksum/leaders.rs`) emits it, leaf by leaf
 (`Sim::leader_image`, a `None` leaf being one the crate holds no value
 for). `diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`
