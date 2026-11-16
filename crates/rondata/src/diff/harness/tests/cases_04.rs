@@ -1234,6 +1234,7 @@ mod bodies {
             };
             let t = crate::diff::leader::theirs(&block);
             let mine = crate::diff::leader::rows(&loaded, &built, 1);
+            crate::diff::held_probe::rows("", n, 1, &mine, &t);
             let mut o = [0i64; 6];
             let mut y = [0i64; 6];
             for (g, name) in GOODS.iter().enumerate() {
@@ -1432,6 +1433,7 @@ mod bodies {
                 };
                 let t = crate::diff::leader::theirs(&block);
                 let mine = crate::diff::leader::rows(&loaded, &built, who);
+                crate::diff::held_probe::rows("", n, who, &mine, &t);
                 for (k, v) in &mine {
                     let Some(&y) = t.get(k) else {
                         missing.insert(k.clone());
@@ -1777,6 +1779,7 @@ mod bodies {
                 };
                 let t = crate::diff::leader::theirs(&block);
                 let mine = crate::diff::leader::rows(&loaded, &built, who);
+                crate::diff::held_probe::rows("", n, who, &mine, &t);
                 let slots = site_window_named("RON_MAKE_SLOTS")
                     .is_some_and(|(a, b)| who == 1 && (a..=b).contains(&n));
                 if slots {

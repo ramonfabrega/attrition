@@ -1514,6 +1514,7 @@ impl SeatWalk {
         mine: &[(String, i64)],
         theirs: &BTreeMap<String, i64>,
     ) {
+        crate::diff::held_probe::rows("", n, who, mine, theirs);
         for (k, v) in mine {
             let Some(&y) = theirs.get(k) else {
                 self.unprinted.insert(k.clone());

@@ -2642,7 +2642,9 @@ pub(super) fn chapter_five_s_word_frame_is_widened_whole() {
                 continue;
             };
             let t = crate::diff::leader::theirs(&block);
-            for (k, v) in crate::diff::leader::rows(&loaded, &built, who) {
+            let mine = crate::diff::leader::rows(&loaded, &built, who);
+            crate::diff::held_probe::rows("", n, who, &mine, &t);
+            for (k, v) in mine {
                 let Some(&y) = t.get(&k) else {
                     missing.insert(k);
                     continue;
@@ -3204,7 +3206,9 @@ pub(super) fn chapter_four_s_word_frame_is_widened_whole() {
                 continue;
             };
             let t = crate::diff::leader::theirs(&block);
-            for (k, v) in crate::diff::leader::rows(&s.loaded, &s.built, who) {
+            let mine = crate::diff::leader::rows(&s.loaded, &s.built, who);
+            crate::diff::held_probe::rows("", n, who, &mine, &t);
+            for (k, v) in mine {
                 let Some(&y) = t.get(&k) else {
                     missing.insert(k);
                     continue;

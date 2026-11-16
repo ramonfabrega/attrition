@@ -1631,6 +1631,7 @@ mod bodies {
                 };
                 let t = crate::diff::leader::theirs(&block);
                 let mine = crate::diff::leader::rows(&loaded, &built, who);
+                crate::diff::held_probe::rows("", n, who, &mine, &t);
                 let row = kept.entry((n, who)).or_default();
                 for (k, v) in &mine {
                     let Some(&y) = t.get(k) else {
@@ -2009,6 +2010,7 @@ mod bodies {
                 };
                 let t = crate::diff::leader::theirs(&block);
                 let mine = crate::diff::leader::rows(&loaded, &built, who);
+                crate::diff::held_probe::rows("", n, who, &mine, &t);
                 for (k, v) in &mine {
                     let Some(&y) = t.get(k) else {
                         missing.insert(k.clone());
