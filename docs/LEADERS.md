@@ -4684,8 +4684,10 @@ twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
   `type_avail` for goods (`has_preq`, `type_eligible` unread).
 - **Territory**: whether the crate's `territory` is current at
   `strategy_all`.
-- **Units**: whether every crate close reaches `hold_dead_slot`; the
-  crate's `queued_by_type` for units.
+- **Units**: whether every crate close raises the units bit (the kills
+  through `hold_dead_slot`, a decoy's expiry through `close_decoy` since
+  item 4159's fifteenth residue; the rest unaudited); the crate's
+  `queued_by_type` for units.
 - **Upgrades, research**: `has_tech` past its head; `researching`'s vslot
   `+0x4c` "active" test.
 - **Combat**: the redirect's head on a boat of several squads (the crate
@@ -4695,8 +4697,9 @@ twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
   setters' contexts; `LeaderData::walk_data (006d6750)` on load (off the
   frame path).
 - **`score` in the record diff** (item 4159's tenth residue): it still parts
-  where no parent is printed beside it, so the units bit (run1013, run1014:
-  the original recounts at 13639, ours a bit later) and ch77's 25 after
+  where no parent is printed beside it, so ~~the units bit (run1013, run1014:
+  the original recounts at 13639, ours a bit later)~~ (a decoy's expiry,
+  below) and ch77's 25 after
   the Porcelain Tower are open; the journal's parked rows name them.
 - **The count gate's `is(0x134)` arm** (item 4159's eleventh residue):
   `Unit::set_type`'s two count blocks now answer it no, as the birth and
@@ -4724,6 +4727,16 @@ twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
   more (`docs/COSTS.md`, "A Mongol Stable unit costs a tenth less"). With it
   who=1's `bucket` agrees on every block of run1198b, run1218, run1222 and
   run1224, and the Mongol windows' `score` rows are gone.
+- **A decoy's expiry** (item 4159's fifteenth residue, 4159r12c): the
+  units leaving run1013 and run1014 on 13631 (21 of group 65, 19 of group
+  64) are decoys (`unit_masks & 1`) at `mana_burn` 2500. `Unit::process`
+  closes an aged decoy through vslot `+0x150`, `Unit::close`, whose
+  `:79` raises bit 23 ahead of every count gate, so no `num_units` row
+  moves but the next recompute (13639) recounts the units part.
+  `Sim::close_decoy` now raises it. `score` agrees on 13640 (run1013 4275,
+  run1014 3825, ours 4218 and 3803 before), and the record probe at the
+  harness's widening loops counts no `score` row in the three tests that
+  held the last 252.
 
 ## 19. The last building and unit finished
 

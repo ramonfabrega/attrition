@@ -578,6 +578,28 @@ fn a_closed_decoy_s_round_in_flight_strikes() {
     assert!(sim.buildings[b].damage > 0, "the building takes it");
 }
 
+/// **A decoy's expiry raises its owner's units bit** (`Unit::close@0060ee50`
+/// `:79`, item 4159's fifteenth residue): `Unit::process` closes an aged
+/// decoy through vslot `+0x150`, `Unit::close`, whose `leader_flags |=
+/// 0x800000` stands ahead of every count gate, the decoy's included. run1013's
+/// 21 decoys of group 65 and run1014's 19 of group 64 close on 13631 at
+/// `mana_burn` 2500, and the original's next `compute_score` (13639) recounts
+/// the units part. Made to fail with the raise taken out of `close_decoy`.
+#[test]
+fn a_decoy_s_expiry_raises_its_owner_s_units_bit() {
+    let (mut sim, ty) = at_war();
+    let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
+    sim.units[me].decoy = true;
+    sim.leaders.score[1].dirty_units = false;
+    sim.leaders.score[0].dirty_units = false;
+    sim.close_decoy(me);
+    assert!(
+        sim.leaders.score[1].dirty_units,
+        "a decoy's close raises its owner's units bit"
+    );
+    assert!(!sim.leaders.score[0].dirty_units, "and no other leader's");
+}
+
 /// **An aircraft's round passes over its own side** (`Ammo::check_hit`,
 /// `678db9`..`678dcc`, item 1200): an air shooter that is not a
 /// missile searches `SEARCH_NON_FRIENDLY`, which leaves out its own
