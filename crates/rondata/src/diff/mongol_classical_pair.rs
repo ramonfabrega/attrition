@@ -242,7 +242,11 @@ fn mongol_classical_pair_run1198b_s_word_frame_is_widened_whole() {
     // of `1/2017`'s and `1/2022`'s queues, ours 116/86 against 110/82.
     // Item 3595: 77 -> 75, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 8438, and `bucket[2:wealth]` on 8455, agrees.
-    pin_eq!(w.firsts.len(), 70, "run1198b baseline");
+    // Item 4159r14, the Mongol stable arm of `get_cost` (`MONGOL_STABLE_COST`,
+    // 3558a): 70 -> 54. who=1's `bucket[0:food]`/`[1:timber]` on 8438 (ours
+    // 8966/8363 against 9156/8495) and the Light Horse queues' `cost` on
+    // 8586 (116/86 against 110/82) agree; no who=1 leader row parts.
+    pin_eq!(w.firsts.len(), 54, "run1198b baseline");
 }
 
 /// run1218: the word 9744's window, blocks 9738..9885 at the long's detail —
@@ -319,7 +323,10 @@ fn mongol_classical_pair_run1218_s_word_frame_is_widened_whole() {
     // 9783 (parked 3581a).
     // Item 3595: 96 -> 95, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 9738, agrees.
-    pin_eq!(w.firsts.len(), 89, "run1218 baseline");
+    // Item 4159r14, the Mongol stable arm of `get_cost` (3558a, 3581a): 89
+    // -> 68. who=1's `bucket` on 9738 and 9783, the stable queues' `cost`
+    // and `score` on 9800 (ours 14867 against 14868) agree.
+    pin_eq!(w.firsts.len(), 68, "run1218 baseline");
 }
 
 /// **The long's stride, walked back from the word 9744** (item 3575):
@@ -429,7 +436,8 @@ fn mongol_classical_pair_run1222_walks_the_gap_before_9744() {
     // Item 3595: 82 -> 81, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 9696, agrees.
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 81 -> 74.
-    pin_eq!(w.firsts.len(), 74, "run1222 baseline");
+    // Item 4159r14, the Mongol stable arm of `get_cost` (3558a): 74 -> 60.
+    pin_eq!(w.firsts.len(), 60, "run1222 baseline");
 }
 
 /// run1224: the word 9772's window, blocks 9740..9885 at run1218's detail
@@ -492,7 +500,10 @@ fn mongol_classical_pair_run1224_s_word_frame_is_widened_whole() {
     // against 16856 (parked 3581a), and the `dest_angle` family (3574b).
     // Item 3595: 93 -> 92, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 9740, agrees.
-    pin_eq!(w.firsts.len(), 86, "run1224 baseline");
+    // Item 4159r14, the Mongol stable arm of `get_cost` (3558a, 3581a): 86
+    // -> 65. who=1's `bucket` on 9740 and 9783, the stable queues' `cost`
+    // and `score` on 9800 agree.
+    pin_eq!(w.firsts.len(), 65, "run1224 baseline");
 }
 
 /// **The closing state** (item 3581): with the draw stream whole to the

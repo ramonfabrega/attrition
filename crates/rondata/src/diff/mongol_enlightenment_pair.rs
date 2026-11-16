@@ -256,7 +256,8 @@ fn mongol_enlightenment_pair_run1346c_s_word_frame_is_widened_whole() {
     // and ours holds it on 4855. Item 3692, piece 154 on 153's pivot rows
     // and piece 1105's bays: 754 → 89 keys, nothing parting on 4850 or
     // 4854; what stands is the families block 4795 carries.
-    pin_eq!(w.firsts.len(), 89, "run1346c baseline");
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 89 -> 53.
+    pin_eq!(w.firsts.len(), 53, "run1346c baseline");
     // Every round, both directions: 294 round-blocks theirs, 275 ours, 99
     // parting, the first on the window's first block 4795 (the Cannon
     // `1/91`'s, from its own square in ours). Item 3692: 294 against 294,

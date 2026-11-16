@@ -25,6 +25,7 @@ impl Sim {
         let liberty = self.liberty_discount(who, ty);
         let despotism = self.despotism_unit_discount(who, ty);
         let salt = self.salt_barracks_discount(who, ty);
+        let mongol_stable = self.mongol_stable_discount(who, ty);
         let indian_elephant = self.indian_elephant_discount(who, ty);
         let (rare_goods, gypsum) = self.rare_goods_discounts(who);
         let m = match self.research_modifiers(who, ty) {
@@ -39,6 +40,7 @@ impl Sim {
                 stable_rares,
                 despotism,
                 salt,
+                mongol_stable,
                 liberty,
                 uranium,
                 citizens,
@@ -62,6 +64,7 @@ impl Sim {
                 stable_rares,
                 despotism,
                 salt,
+                mongol_stable,
                 liberty,
                 uranium,
                 citizens,
@@ -84,6 +87,32 @@ impl Sim {
     pub fn salt_barracks_discount(&self, who: Player, ty: usize) -> bool {
         self.trainer_where(ty) == Some(crate::cities::nations::ty::BARRACKS)
             && self.has_rare(who, economy::SALT)
+    }
+
+    /// `TypeData::get_cost@00664090`'s **Mongol arm** (`:216`–`222`, right
+    /// after Salt, ahead of the research fork): a Mongol leader's unit
+    /// whose trainer (`UnitTypeData +0x40`) is of the Stable line —
+    /// `is(0x1ac, 0)`, so the Auto Plant too — takes `MONGOL_STABLE_COST`
+    /// off the scaled base. No attack test. run1198b's Light Horse at
+    /// `1/2017` on block 8586 are 110/82 where the undiscounted base and the
+    /// same ramp make 116/86 (item 4159r14).
+    pub fn mongol_stable_discount(&self, who: Player, ty: usize) -> i32 {
+        let stable_line = self.trainer_where(ty).is_some_and(|w| {
+            self.tables
+                .tech_tree
+                .types
+                .get(crate::cities::nations::ty::STABLES[0])
+                .is_some()
+                && self
+                    .tables
+                    .tech_tree
+                    .is(w, crate::cities::nations::ty::STABLES[0], false)
+        });
+        if self.cities.nation[who as usize].mongols && stable_line {
+            self.tables.tuning.mongol_stable_cost
+        } else {
+            0
+        }
     }
 
     /// `TypeData::get_cost@00664090`'s **Despotism arm** (`:382`–`404`, the
