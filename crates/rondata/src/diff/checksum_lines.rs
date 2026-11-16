@@ -1825,8 +1825,14 @@ fn leaf_text(v: &[i64]) -> String {
 /// [`LEADERS_HELD_OUT`] names). Item 4121's first image agreed on 403 and
 /// 410 leaves. Item 4187: 4 → 2 ranges parted, 4,313 → 4,515 bytes in the
 /// agreeing ones — each leader's `tech` array (101 bytes) agrees since the
-/// spell pass sets its 46 bits (`docs/LEADERS.md` §17).
-const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
+/// spell pass sets its 46 bits (`docs/LEADERS.md` §17). Item 4298: 2 → 0
+/// ranges parted, 4,515 → 58,343 bytes agreeing — `hire_who`'s −1 per slot
+/// (`Leader::init`'s fill) emitted, the long range agrees on both leaders,
+/// and the line's Adler is the printed 2813959641. The three leaves still
+/// held hold their reset there on both sides (unheld, so ours emits the
+/// reset): the line is not counted whole while [`LEADERS_HELD_OUT`] names
+/// any ([`whole_lines`]), which is the driver's ruling to make.
+const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 0, 58343);
 
 /// **The leaves the leaders line is held out on**, each with its count of
 /// walked leaders on run 1562's frame 91 (`docs/CHECKSUM.md` §20): a leaf
@@ -2121,13 +2127,20 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// same probe, at sixteen sites over the whole `diff::` suite, holds none
 /// of their 24 cells on any row (331,453 non-zero cells of theirs seen
 /// agreeing), so 4159r5a's launch rows are not what parted them.
+///
+/// Item 4298, the attack deal: 6 → 3 names, `hire_stamp`, `hire_who` and
+/// `tributes`, each agreeing on frame 91 (0, −1 per slot, 0). Released by
+/// entry 131 §1: a walk we compute moves them. run1629 (a human asks the
+/// French to attack the Russians, accepted on 1186) is walked whole to 1300
+/// with every diplomacy leaf against its record on every block, none parting
+/// (`diplomacy_take::run1629_s_word_is_pinned_as_found`: from 1187 the human's
+/// `hire_stamp[2]` 1186, `hire_who[2]` 1, `tributes[2]` 640, the French
+/// `hire_stamp[2]` 1186, `hire_who[2]` 0); and its packet at 1190 holds the
+/// three off their seated image, ours equal (`packets::TAKE1629_RELEASED`).
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("good_deeds (unheld)", 2),
-    ("hire_stamp (unheld)", 2),
-    ("hire_who (unheld)", 2),
     ("incoming_taunt_who (unheld)", 2),
     ("tribute_demanded (unheld)", 2),
-    ("tributes (unheld)", 2),
 ];
 
 /// The long range's leaves the test bends, one of each kind carried
@@ -2372,7 +2385,7 @@ fn the_leaders_line_is_the_original_s_range_by_range() {
     let held = leader_held(&rows);
     let held: Vec<(&str, usize)> = held.iter().map(|(f, n)| (f.as_str(), *n)).collect();
     assert_eq!(held, LEADERS_HELD_OUT, "the leaves the line is held out on");
-    if LEADERS_HELD_OUT.is_empty() {
+    if LEADERS_HELD_OUT.is_empty() || LEADERS.3 == 0 {
         assert_eq!(ours.adler(), want, "the leaders line's Adler");
     } else {
         assert_ne!(
@@ -2380,6 +2393,22 @@ fn the_leaders_line_is_the_original_s_range_by_range() {
             want,
             "a held-out line cannot sum to the printed value"
         );
+    }
+    // Item 4298: the line sums to the printed value with leaves still held.
+    // That is only the reset's agreement: every row of a held leaf on this
+    // packet is at `Leader::init`'s image on theirs (0 for all three), so
+    // the equal Adler says nothing a computed value made.
+    for (slot, _, leaf, ours, t, _) in &rows {
+        if held
+            .iter()
+            .any(|(n, _)| n.trim_end_matches(" (unheld)") == leaf.as_str())
+        {
+            assert!(ours.is_none(), "slot {slot}'s {leaf} is unheld");
+            assert!(
+                t.iter().all(|&b| b == 0),
+                "slot {slot}'s held {leaf} is off its reset on the packet"
+            );
+        }
     }
 
     // **It can part.** One byte of each kind of agreeing range — a flag
@@ -2463,7 +2492,10 @@ fn whole_lines() -> Vec<&'static str> {
         ("guys", GUYS.4 == 0),
         ("units", UNITS.3 == 0),
         ("groups", GROUPS.4 == 0),
-        ("leaders", LEADERS.3 == 0),
+        // Item 4298: the leaders line agrees on every range of run 1562's
+        // packet with three leaves still held at their reset; it counts
+        // whole when the held-out list is empty, as the world's does.
+        ("leaders", LEADERS.3 == 0 && LEADERS_HELD_OUT.is_empty()),
         ("world", world),
     ]
     .into_iter()

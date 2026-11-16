@@ -1817,9 +1817,20 @@ proposer, committed; read from the listing at VII-c, `6bf143`–`6c08b5`):
   `(t.e1+1)·(weak[X] ? 120 : 20)`. Then `+X.e1·100` for the capital holder
   (`-0x68`), `+200` for `-0x54`, a negative term halved toward zero if
   `is_ally(me, t)`, and `S += term`. The mutual-ally branch (`6bf7b6`) is
-  unreachable (parked 4298a). **Accepted on recon4298-4** (unfiled): the
-  human's `process_propose_attack 1 2 1131` with 5,000 of each of two goods,
-  accepted on 1186; the French `good_deeds[0]` reads 6139.
+  unreachable (parked 4298a). Each refusal answers (withdraw if I had
+  committed, else reject) and falls to `LAB_006bfa57`'s `any_proposals`, so
+  a withdraw still reaches the shortfall. ~~**Accepted on recon4298-4**
+  (unfiled)~~ **Diff-backed on run1629** (item 4298, 7.5): the human's
+  `process_propose_attack 1 2 1131` with 5,000 each of metal and oil,
+  accepted on 1186; the French `good_deeds[0]` reads 6139, ours equal, the
+  term −600 (`(25·0 − 100·2)·(2 + 1)`: the human's `blacken` 1, the
+  Russians' Military 2, at peace both ways and not weak).
+- **The request** (`Leader::action_attack (006d14e0)`, the window's Mutual
+  Attack check through `CommandPackage::process_propose_attack (00946b30)`):
+  `me.dip[p].any_offer = 1`; with a slot named (`whose >= 0`) `clear_agree`
+  both ways, then `attacks[whose] = onoff` in both records. The window sends
+  `onoff = console.dip[whom].attacks[whose] == 0`, a toggle of the
+  issuer's own record (`IFaceDiploNeg::on_check_clicked@00803bd0`).
 - **The shortfall's selector is `aggression[t]`**, not the treaty:
   `6bfa6f` tests `*-0x28`, `&aggression[t]`, whose one store is `6bcd78`.
   `epoch` is `data_encrypted + 0xe8`, the Military line; `x` is 100 at
@@ -1906,8 +1917,10 @@ sim reader.
   `LEADER_OUT`; it is HUMAN.
 - **Checksum.** `blacken`, `dow`, `broke_alliance`: `leader_declare_leaf`,
   off `LEADERS_HELD_OUT` since VII-b1 (47 → 44); `made_peace` since
-  VII-c (37 → 31, with §8's and §9's five); `good_deeds`, `hire_stamp` and
-  `hire_who` stay `(unheld)`, held with no mover a walk computes.
+  VII-c (37 → 31, with §8's and §9's five); ~~`good_deeds`, `hire_stamp` and
+  `hire_who` stay~~ `good_deeds` stays `(unheld)`, held with no mover a
+  walk computes; `hire_stamp` and `hire_who` are on the line since item
+  4298 (run1629, 7.5).
   The answer is a constant for all eight in an all-computer
   style-1 game: 0, and `hire_who` −1 per slot after `Leader::init`.
 
@@ -1975,6 +1988,25 @@ Not ported from `set_diplo`: the alliance-break eject, the `ally_mask`
 bits (4206c), the third-party message, the alliance's victory test
 (§10.2), `recalc_borders`.
 
+**Diff-backed (item 4298): the attack deal, computed** off the human's
+window commands on run1629 (inputs, read off the record): `process_treaty 1
+-1 1116` (the alliance unticked), `process_propose_attack 1 2 1131`, twenty
+`process_tribute` lines (metal on 1147..1156, oil on 1157..1166; each 500,
+the shift the script holds, `IFaceDiploNeg::on_button_clicked@00804320`:
+100 a click, 500 with shift, the giver's stock with alt) and `process_accept
+1 1186`. The French offers arm values it with the attack term and accepts;
+the hire loop and the commit's attack price follow. Our walk holds run1629
+whole, 1300 of 1300 draws, and every diplomacy leaf ours carries agrees on
+every block 1074..1300 (59,247 rows, none parting;
+`run1629_s_word_is_pinned_as_found`). On 1187: the human's `hire_stamp[2]`
+1186, `hire_who[2]` 1, `tributes[2]` 640, `dow[2]` 1; the French
+`hire_stamp[2]` 1186, `hire_who[2]` 0, `good_deeds[0]` 6139; ours equal on
+each. Four mutations each part it: the terms dropped (`good_deeds[0]` ours
+6739), the `attacks` store undone (all three hire leaves, `dow[2]`), a
+tribute of 100 a click (ours 827), the at-peace 100 read as 50 (ours 6439).
+run1629's packet at 1190 holds `hire_stamp`, `hire_who` and `tributes` on
+the leaders line, ours equal (`packets::run1629_take_packet`).
+
 ## 7.6 Not established
 
 - **Declare on a locked teammate.** Whether the interface offers it under
@@ -1991,7 +2023,7 @@ bits (4206c), the third-party message, the alliance's victory test
   carried: the team tail (`is_team` is false at style 0) and `has_spell`'s
   false arm (every craft ships `PREQ0 None`).
 - ~~`good_deeds`'s `S` term by term~~ (VII-c, 7.2). Not carried: the
-  scenario's fixed answers, the attack requests' terms.
+  scenario's fixed answers~~, the attack requests' terms~~ (item 4298).
 - **The computer's own alliance proposal draws before it asks who its
   target is** (`6c0980`, ahead of the human test `6c0993`, the style test
   and `aggression`'s at `6c0a2e`). With four or more leaders outscoring
@@ -2001,13 +2033,14 @@ bits (4206c), the third-party message, the alliance's victory test
   2026-11-14, X.1).
 - `walk_data` and `load_leaders_chunk` copy `last_spoke` and the rest on a
   load; neither originates a value.
-- **The hires, rehearsed and not filed** (item 4298): on recon4298-4's block
-  1187 the human reads `hire_stamp[2]` 1186, `hire_who[2]` 1 and
-  `tributes[2]` 640, and the French read `hire_stamp[2]` 1186 and
-  `hire_who[2]` 0, as 7.2's hire loop stores them. The Declare War price
-  that makes 640 is not read. A filed take and a walk would make it a diff.
-  The attack check is offered only for a leader the console has met
-  (`IFaceDiploNeg::update_visibility`, `treaties[L] & 1`).
+- ~~**The hires, rehearsed and not filed**~~ (item 4298: a diff on run1629,
+  7.5). The attack check is offered only for a leader the console has met
+  (`IFaceDiploNeg::update_visibility`, `treaties[L] & 1`), an interface
+  rule no walk reaches.
+- **The attack terms' other arms** rest on the listing (item 4298's one
+  reading) and the mutations: at war with `X`, `weak[X]`, the capital
+  holder's and the racer's adds, the ally's halving, and the three
+  refusals. run1629 walks only the at-peace term with `weak[X]` 0.
 
 ## 8. Diplomacy: tribute, gifts and counteroffers
 
@@ -2204,7 +2237,9 @@ wait and the exchange), `consider_tribute`, `scale_tribute` (`Tuning`'s
 - **The treaty arm and the hires** are carried (VII-c,
   `Sim::treaty_and_hires`); `Sim::action_treaty` writes `treaty`.
   The alliance's team gate is `Sim::alliance_open` (VII-d).
-  **SEAMs**: the reject's human-ally attack arm (`action_attack` is not carried, so no `attacks`).
+  **SEAMs**: the reject's human-ally attack arm (dead in the original;
+  ~~`action_attack` is not carried~~ `Sim::action_attack` is carried since
+  item 4298).
   `is_tribute_period` at frame 0 answers no (every stamp is 0 there) and
   skips no style-7 neutral.
 - **Checksum**: `tribute_stamp` and `gift_stamp` are emitted
@@ -2212,8 +2247,10 @@ wait and the exchange), `consider_tribute`, `scale_tribute` (`Tuning`'s
   `tribute_received`, released on run1575's packet at 1090: the accept of
   1027 is computed, and its exchange gives no goods; since VII-d
   `counteroffer`, released on run1575's 1052 (31 → 30). `tribute_demanded`
-  and `tributes` are held, emitted unheld and stay on the list: nothing
-  our walks compute moves them.
+  ~~and `tributes` are~~ is held, emitted unheld and stays on the list:
+  nothing our walks compute moves it. `tributes` is on the line since item
+  4298 (run1629's human, 640 of good 2 from 1187, the attack price's
+  residue; released 6 → 3 with `hire_stamp` and `hire_who`).
   `coverage.rs` still lists `tributes`.
 
 ## 8.4 Reached by a plain game

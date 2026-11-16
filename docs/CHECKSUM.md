@@ -1712,8 +1712,13 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 
 ## 20. The leaders line, held out on the long range (items 4121, 4124)
 
-**265 of 267 ranges and 4,515 of 58,343 bytes agree** on run 1562's frame
-91, and `LEADERS_HELD_OUT` names **9** leaves, from 140. Agreeing: all
+~~**265 of 267 ranges and 4,515 of 58,343 bytes agree**~~ **267 of 267
+ranges and 58,343 of 58,343 bytes agree** on run 1562's frame 91 since
+item 4298, our Adler the printed 2813959641; `LEADERS_HELD_OUT` names
+~~**9**~~ **3** leaves, from 140. The three hold their reset there on both
+sides (unheld, so ours emits the reset), so the line is not counted whole
+while any is held (`whole_lines`, as the world's): the count is the
+driver's to rule. The paragraph below is the line as it stood before. Agreeing: all
 eight slots' flag words, and the two walked leaders' diplomacy records,
 personalities, masks (each `tech` array since item 4187), sites, make
 lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
@@ -1754,6 +1759,7 @@ not count it (§5).
 | the residue, ninth builder | the thirteen combat leaves: `units_killed`, `units_lost`, `average_death_rate`, `average_damage_rate`, `average_hit_rate`, the four `*_current_frame` and the four `*_fifteen_seconds` words (no window parts them; witnessed on the packets) | 10 | §2.5, §3.5 |
 | the residue, sixteenth builder | `score` (4159r15a) | 9 | §18.5 |
 | seventeenth | the three victim stamps | 6 | §4.5 |
+| item 4298 | `hire_stamp`, `hire_who`, `tributes` (run1629's attack deal, walked whole) | 3 | §7.5 |
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
@@ -1834,9 +1840,10 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     `Leader::plan_strategy` and `end_process`).
   - ~~attrition (5)~~: all carried (items 4154, 4176; `attrition_stamp2`
     by item 4159's third residue; `docs/LEADERS.md` §5).
-  - the diplomacy actions (~~15~~ ~~12~~ ~~10~~ ~~9~~ ~~6~~ 5): ~~`dow`, `blacken`, `broke_alliance`,~~
-    carried by item 4159's VII-b1; ~~`made_peace`,~~ `tributes`, ~~`tribute_sent`, `tribute_received`,~~
-    carried by VII-c; ~~`tribute_stamp`, `gift_stamp`,~~ carried by VII-b2; `hire_stamp`, `hire_who`, `good_deeds`,
+  - the diplomacy actions (~~15~~ ~~12~~ ~~10~~ ~~9~~ ~~6~~ ~~5~~ 2): ~~`dow`, `blacken`, `broke_alliance`,~~
+    carried by item 4159's VII-b1; ~~`made_peace`,~~ ~~`tributes`,~~ ~~`tribute_sent`, `tribute_received`,~~
+    carried by VII-c; ~~`tribute_stamp`, `gift_stamp`,~~ carried by VII-b2; ~~`hire_stamp`, `hire_who`,~~
+    `tributes` with them carried by item 4298 (run1629's attack deal, `docs/LEADERS.md` §7.5); `good_deeds`,
     ~~`last_spoke`~~ (frozen), ~~`counteroffer`~~ (VII-d, run1575's 1052), `tribute_demanded`: the `action_*` family,
     `consider_tribute` and `Leader::diplomacy`'s arms the crate stops at a
     SEAM.

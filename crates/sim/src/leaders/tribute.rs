@@ -83,15 +83,17 @@ impl Diplomacy {
 /// packet at 1090, which our walk holds unstaged since step VII-c computes
 /// the accept of 1027 (an exchange of no goods, which leaves both alone);
 /// and `counteroffer`, which the French answer to run1575's alliance moves
-/// on 1052 (step VII-d). `tribute_demanded` and `tributes` are held and stay
-/// off the line: nothing our walks hold moves them by a decision we compute
-/// (`docs/LEADERS.md` §8.5).
-pub const TRIBUTE_LEAVES: [&str; 5] = [
+/// on 1052 (step VII-d); and `tributes`, the attack price's residue the
+/// exchange leaves (item 4298: run1629's human, 640 of good 2 from 1187).
+/// `tribute_demanded` is held and stays off the line: nothing our walks hold
+/// moves it by a decision we compute (`docs/LEADERS.md` §8.5).
+pub const TRIBUTE_LEAVES: [&str; 6] = [
     "tribute_stamp",
     "gift_stamp",
     "tribute_sent",
     "tribute_received",
     "counteroffer",
+    "tributes",
 ];
 
 /// One leader's tribute leaves and deal records (`docs/LEADERS.md` §8.1).
@@ -123,8 +125,8 @@ pub struct Tribute {
 
 impl Sim {
     /// One of [`TRIBUTE_LEAVES`] as the leaders line and the record print
-    /// it: the two stamps and `counteroffer` eight words, the two totals
-    /// one.
+    /// it: the two stamps and `counteroffer` eight words, `tributes` six,
+    /// the two totals one.
     pub fn leader_tribute_leaf(&self, who: Player, name: &str) -> Option<Vec<i64>> {
         let t = self.leaders.tribute.get(who as usize)?;
         match name {
@@ -133,6 +135,7 @@ impl Sim {
             "tribute_sent" => Some(vec![i64::from(t.tribute_sent)]),
             "tribute_received" => Some(vec![i64::from(t.tribute_received)]),
             "counteroffer" => Some(t.counteroffer.iter().map(|&c| i64::from(c)).collect()),
+            "tributes" => Some(t.tributes.iter().map(|&c| i64::from(c)).collect()),
             _ => None,
         }
     }
@@ -256,10 +259,9 @@ impl Sim {
     /// ([`Sim::alliance_open`], item 4159's step VII-d).
     ///
     /// SEAM: the reject's human-ally attack arm is dead in the original
-    /// (it asks whether a leader is its own enemy, 6d04a9), and it
-    /// needs an attack request, which nothing in the crate sets
-    /// (the leader's attack request, 006d14e0, is not carried). The messages and sounds
-    /// are the interface's.
+    /// (it asks whether a leader is its own enemy, 6d04a9), so it is not
+    /// carried, though the attack request is (`Sim::action_attack`, item
+    /// 4298). The messages and sounds are the interface's.
     pub fn action_respond(&mut self, t: Player, p: Player, code: i32) {
         let Some((m, x)) = self.deal_pair(t, p) else {
             return;
@@ -346,9 +348,8 @@ impl Sim {
     /// other's lifted to the treaty, with its message) is not carried. scan:
     /// `grep -h -m1 '^  TEAM_STYLE' gamelog-*.txt | sort | uniq -c` — 1,205
     /// dumps at style 1 and 4 at style 0, none at 7, over 1,210 kept dumps
-    /// (2026-11-13). No attack request is ever set in the crate
-    /// (the leader's attack request, 006d14e0, is not carried), so the hires are read and
-    /// never reached.
+    /// (2026-11-13). The hires are reached since item 4298 carries the
+    /// attack request (`Sim::action_attack`): run1629's accept of 1186.
     fn treaty_and_hires(&mut self, m: usize, x: usize) {
         let frame = self.frame;
         let d = self.leaders.tribute[m].dip[x];

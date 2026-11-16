@@ -822,6 +822,10 @@ pub const TRACES: &[&str] = &[
     // run1610). It enters the hot key's processing,
     // `CommandPackage::process_hotkey`, which no other trace here does.
     "rontrace-run1610.log",
+    // Item 4298's take: the attack deal (`docs/RUNS.md` run1629). It enters
+    // the attack request's store, `Leader::action_attack`, on trace frame
+    // 1130, which no other trace here does.
+    "rontrace-run1629.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -1520,6 +1524,8 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// @006d14e0`, the attack request's store, stays open, not residue: the original enters it on
 /// recon4298-4 (`process_propose_attack 1 2 1131`), which is not filed, and the take (run1629)
 /// enters it; open 9 → 10.
+/// **346 → 345** with item 4298's take: run1629's trace enters `Leader::action_attack` on trace
+/// frame 1130 (the record's `process_propose_attack 1 2 1131`); open 10 → 9.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1540,7 +1546,7 @@ pub const NEVER: &[u32] = &[
     0x0068_c8f0, 0x0068_d1a0, 0x0068_d260, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_0180, 0x006b_1b80, 0x006b_1ba0, 0x006b_1d60,
     0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
-    0x006b_88b0, 0x006d_14e0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
+    0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
     0x006e_c170, 0x006e_de80, 0x006e_fb20, 0x006e_fb50, 0x006e_fda0, 0x006e_ff70, 0x006f_0230, 0x006f_a090, 0x0070_0010, 0x0070_20c0, 0x0070_7aa0, 0x0070_7b50, 0x0070_8800, 0x0070_a470, 0x0070_aa20, 0x0070_b100, 0x0070_ce70, 0x0070_f8a0, 0x0071_0aa0, 0x0071_37f0, 0x0071_3bb0, 0x0071_d6b0,
     0x0072_1480, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
