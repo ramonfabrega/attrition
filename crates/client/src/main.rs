@@ -964,6 +964,7 @@ fn main() {
     let select = (!args.select.is_empty()).then(|| {
         let scene = world.runner.scene(None);
         let mut input = input::Input::new(0);
+        input.roster = world.names.roster.clone();
         input.selection = args
             .select
             .iter()
@@ -1007,6 +1008,7 @@ fn main() {
             eprintln!("client: no event loop: {e}");
             std::process::exit(1);
         });
+        let roster = world.names.roster.clone();
         let mut app = App {
             ctrl: false,
             session: session.clone(),
@@ -1018,7 +1020,10 @@ fn main() {
             window: None,
             presented: 0,
             last_ms: 0.0,
-            input: input::Input::new(0),
+            input: input::Input {
+                roster,
+                ..input::Input::new(0)
+            },
             cursor: (0, 0),
             left_down: None,
             page,
