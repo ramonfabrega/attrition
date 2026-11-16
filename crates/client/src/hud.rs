@@ -734,6 +734,10 @@ pub fn event(
 /// **One turn through the HUD** (item 4302, `docs/CLIENT_INPUT.md` §36):
 /// each of the turn's events through [`event`], in order, and what they
 /// minted as one package ([`crate::input::one_package`]).
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "the window writes no file; the tests mint turns")
+)]
 pub fn turn(
     input: &mut Input,
     size: (i32, i32),

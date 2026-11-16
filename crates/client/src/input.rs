@@ -1155,6 +1155,10 @@ const PATROL_LAUNCHERS: [usize; 2] = [
 /// `process_turn@0093ef10` writes it once a turn when it holds anything.
 /// The turn's orders share its frame and its seat; `None` when none was
 /// minted.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "the window writes no file; the tests mint turns")
+)]
 pub fn one_package(orders: impl IntoIterator<Item = Order>) -> Option<Order> {
     let mut out: Option<Order> = None;
     for (frame, play, cmds) in orders {
