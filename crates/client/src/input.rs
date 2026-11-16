@@ -6168,7 +6168,7 @@ pub(crate) mod tests {
             Command::Buildmask { .. } => Verdict::Shown("INPUT_BUILDMASKS"),
             Command::ComeOut { .. } => Verdict::Shown("INPUT_COME_OUTS"),
             Command::Stance { .. } => Verdict::Shown("INPUT_STANCES"),
-            Command::CheatAiToggle { .. } => Verdict::Shown("INPUT_TOGGLES"),
+            Command::CheatAiToggle => Verdict::Shown("INPUT_TOGGLES"),
             Command::Spell { ox: -1, .. } => Verdict::Shown("INPUT_SPELLS"),
             Command::Spell { .. } => Verdict::Miss("spell on an object: the right press's", Button),
             &Command::MoveTo {
