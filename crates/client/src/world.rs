@@ -303,7 +303,7 @@ pub struct World {
     /// The borders' made-to-fail (item 4306): the owner grid read this
     /// many cells away.
     pub borders_shift: (i32, i32),
-    /// The frame and switches the borders were laid at.
+    /// The territory's version and the switches the borders were laid at.
     borders_laid: (i64, bool, (i32, i32)),
     /// Draw the surf (item 4239, §3.27). On by default; the row's count as
     /// drawn before turns it off.
@@ -1690,8 +1690,13 @@ impl World {
         // Item 4306 (§3.29): the national borders, after the roads and
         // before the first mountain layer — `Borders::process_all` draws
         // after the terrain and the roads, before the shadows and the
-        // mountains — laid again when the frame or a switch moves.
-        let key = (frame, self.borders, self.borders_shift);
+        // mountains — laid again when the territory's version or a switch
+        // moves: a re-lay re-uploads every patch, so never once a frame.
+        let key = (
+            i64::from(self.runner.territory().version),
+            self.borders,
+            self.borders_shift,
+        );
         if self.borders_laid != key {
             self.drawn.3.retain(|m| !is_border(m.piece));
             if self.borders {
