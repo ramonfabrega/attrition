@@ -167,6 +167,11 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertEqual(brief.queue_mark(brief.open_items_text(whole)[1133]), 'whole')
         self.assertEqual(brief.queue_mark(brief.open_items_text(scoped)[1133]), 'scoped')
         self.assertIsNone(brief.queue_mark(brief.open_items_text(QUEUE)[1133]))
+        # The pass of 2026-11-16's 4291: the kind and the mark by a comma.
+        comma = QUEUE.replace(head, head.replace('(1066),', '(a rules item, whole; 1066),'))
+        self.assertEqual(brief.queue_mark(brief.open_items_text(comma)[1133]), 'whole')
+        comma = QUEUE.replace(head, head.replace('(1066),', '(an `input` item, scoped; 1066),'))
+        self.assertEqual(brief.queue_mark(brief.open_items_text(comma)[1133]), 'scoped')
 
     def test_a_note_s_lane_gate_without_tests_or_whole_is_refused(self):
         # Loop 3489: `--lane --item N` with no `--tests` is refused by the

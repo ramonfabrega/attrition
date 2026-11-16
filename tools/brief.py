@@ -236,7 +236,10 @@ def queue_mark(text):
     m = re.search(r'\*\*.*?\*\*\s*\((.*?)\)', text, re.S)
     if not m:
         return None
-    words = [w.strip() for w in m.group(1).split(';')]
+    # A comma separates the words too: the pass of 2026-11-16 wrote 4291 as
+    # `(a rules item, whole; …)` and a split on `;` alone read no mark, so
+    # its brief went out scoped (`--no-widen`) on an item marked whole.
+    words = [w.strip() for w in re.split(r'[;,]', m.group(1))]
     if '**whole**' in words or 'whole' in words:
         return 'whole'
     if 'scoped' in words:
