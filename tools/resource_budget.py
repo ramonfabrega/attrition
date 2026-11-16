@@ -9,6 +9,9 @@ the budget bites only on a fourth (DECISIONS 75). This is not an OS limit on unr
 applications; sampling can overshoot between observations. `RON_NO_ADMISSION=1`, or
 the marker file `~/Library/Caches/attrition/admission-off`, skips admission everywhere
 at once while keeping the RSS ceilings and the timeout: the trial's kill switch.
+`--drain` (`Lease.try_drain`) keeps each slot as it frees until the lease holds
+them all, one drainer at a time: the booking gate's quiet clock, which holds the
+whole budget so no other admitted test process runs beside it.
 """
 import argparse
 import fcntl
@@ -75,6 +78,9 @@ class Lease:
         self.memory = math.ceil(memory_mib / QUANTUM_MIB)
         self.fds = []
         self.identity = f'{os.getpid()}-{time.monotonic_ns()}'
+        # A draining lease's slots by index, and its hold on `drain.lock`.
+        self.drained = {'cpu': {}, 'memory': {}}
+        self.drain_fd = None
 
     def describe(self, child=None):
         with (self.directory / 'admission.lock').open('a') as mutex:
@@ -84,7 +90,8 @@ class Lease:
     def _describe(self, child=None):
         data = json.dumps(dict(lease=self.identity, supervisor_pid=os.getpid(), child_pid=child,
                                cpu=self.cpu, memory_mib=self.memory * QUANTUM_MIB)).encode()
-        for fd in self.fds[:self.cpu]:
+        cpu_fds = list(self.drained['cpu'].values()) if self.drain_fd is not None else self.fds[:self.cpu]
+        for fd in cpu_fds:
             os.ftruncate(fd, 0)
             if os.pwrite(fd, data, 0) != len(data):
                 raise OSError('incomplete lease metadata write')
@@ -114,11 +121,53 @@ class Lease:
             self._describe()
         return True
 
+    def try_drain(self):
+        """The whole-host lease's admission (the pass of 2026-11-15: the
+        booking gate measures the client's clock alone). `try_acquire` is
+        all-or-nothing, so a lease of every slot would wait for an instant
+        when no lane held one, and lanes' tests overlap. A draining lease
+        takes every free slot it still lacks and keeps it, so no newcomer is
+        admitted while it waits and the leases already running end into it.
+        One drains at a time (`drain.lock`, held to `close`): two would each
+        hold part and wait on the other. True once it holds all."""
+        if self.drain_fd is None:
+            fd = os.open(self.directory / 'drain.lock', os.O_RDWR | os.O_CREAT, 0o600)
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                os.close(fd)
+                return False
+            self.drain_fd = fd
+        with (self.directory / 'admission.lock').open('a') as mutex:
+            fcntl.flock(mutex, fcntl.LOCK_EX)
+            for kind, needed, total in [('cpu', self.cpu, CPU),
+                                        ('memory', self.memory, MEMORY_MIB // QUANTUM_MIB)]:
+                held = self.drained[kind]
+                for i in range(total):
+                    if len(held) == needed:
+                        break
+                    if i in held:
+                        continue
+                    fd = os.open(self.directory / f'{kind}-{i}.lock', os.O_RDWR | os.O_CREAT, 0o600)
+                    try:
+                        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    except BlockingIOError:
+                        os.close(fd)
+                        continue
+                    held[i] = fd
+            self.fds = list(self.drained['cpu'].values()) + list(self.drained['memory'].values())
+            self._describe()
+            return len(self.drained['cpu']) == self.cpu and len(self.drained['memory']) == self.memory
+
     def close(self):
         # Do not LOCK_UN: an inheriting child may still be using the reservation.
         for fd in self.fds:
             os.close(fd)
         self.fds = []
+        self.drained = {'cpu': {}, 'memory': {}}
+        if self.drain_fd is not None:
+            os.close(self.drain_fd)
+            self.drain_fd = None
 
 
 def status(directory=DEFAULT):
@@ -211,7 +260,8 @@ def stop_group(child):
     child.wait()
 
 
-def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, limit_mib=None, timeout=1800):
+def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, limit_mib=None, timeout=1800,
+              drain=False):
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError('execution timeout must be positive and finite')
     limit_mib = memory_mib if limit_mib is None else limit_mib
@@ -237,9 +287,10 @@ def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, limit
             print('resource budget: admission off (RON_NO_ADMISSION or the admission-off marker); '
                   'RSS ceilings and the timeout still apply', file=sys.stderr)
         waiting = False
-        while not off and not lease.try_acquire():
+        while not off and not (lease.try_drain() if drain else lease.try_acquire()):
             if not waiting:
-                print(f'resource budget: supervisor {os.getpid()} waiting for shared admission', file=sys.stderr)
+                print(f'resource budget: supervisor {os.getpid()} waiting for shared admission'
+                      + (' (draining: each slot it takes it keeps)' if drain else ''), file=sys.stderr)
                 waiting = True
             if cancelled:
                 return 130
@@ -292,7 +343,7 @@ def supervise(command, *, directory=DEFAULT, cpu=1, memory_mib=MEMORY_MIB, limit
             timing = dict(wait_seconds=(admitted if admitted is not None else finished) - requested,
                           run_seconds=finished - admitted if admitted is not None else 0,
                           admitted=admitted is not None, cpu_slots=cpu, reservation_mib=memory_mib,
-                          admission='off' if off else 'on')
+                          admission='off' if off else ('drain' if drain else 'on'))
             print('resource budget timing: ' + json.dumps(timing), file=sys.stderr)
             print(f'resource budget: sampled peak {peak // 1024} MiB; combined peak {combined_peak // 1024} MiB', file=sys.stderr)
 
@@ -308,6 +359,9 @@ def main():
                         help='execution seconds; default 1800, or with --test-count-timeout the scaled count')
     parser.add_argument('--test-count-timeout', action='store_true',
                         help='scale the timeout to the timed tests a `cargo test` command selects (check.sh, item 3974)')
+    parser.add_argument('--drain', action='store_true',
+                        help='keep each slot as it frees until the lease holds them all (Lease.try_drain): the '
+                             "booking gate's quiet clock, a lease of the whole host")
     parser.add_argument('command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     if args.status:
@@ -328,7 +382,8 @@ def main():
         parser.error('a command and positive timeout are required')
     try:
         return supervise(command, directory=args.directory, cpu=args.cpu,
-                         memory_mib=args.memory_mib, limit_mib=args.limit_mib, timeout=args.timeout)
+                         memory_mib=args.memory_mib, limit_mib=args.limit_mib, timeout=args.timeout,
+                         drain=args.drain)
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
         print(f'resource budget: {exc}', file=sys.stderr)
         return 125
