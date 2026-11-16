@@ -53,7 +53,7 @@ lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2; builders). `LEADERS_HELD_OUT` 6 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
-packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**. **Held:** `good_deeds`, `hire_stamp`, `hire_who`, `incoming_taunt_who`, `tribute_demanded`, `tributes`. **Order:** none designed. Residue 18's probe (`RON_HELD_PROBE`) finds no held row, and none of the six moves off its reset on any walked block (`hire_who` −1, the printed four 0; `incoming_taunt_who` packets only), so none releases (entry 131 §1). A mover is a capture (4159r18b), the pass's to design. The diplomacy's second reading is adjudicated
+packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**. **Held:** `good_deeds`, `hire_stamp`, `hire_who`, `incoming_taunt_who`, `tribute_demanded`, `tributes`. **Order:** none designed. Residue 18's probe (`RON_HELD_PROBE`) finds no held row, and none of the six moves off its reset on any walked block (`hire_who` −1, the printed four 0; `incoming_taunt_who` packets only), so none releases (entry 131 §1). A mover needs a game the disk does not hold (4159r18b), the pass's to design. The diplomacy's second reading is adjudicated
 (`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`); the proposal's draw at five live leaders is parked in
 `docs/LEADERS.md` §7.6 with what would falsify it.
 
