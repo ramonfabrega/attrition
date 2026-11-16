@@ -381,7 +381,23 @@ pub(crate) fn walk_with(
 ) -> (Walked, Built) {
     let mut step = |built: &mut Built| {
         if let Some(s) = stream.as_deref_mut() {
-            s.apply(built.sim.frame as i32, built);
+            let frame = built.sim.frame;
+            let before = built.sim.trace.phase_marks.len();
+            s.apply(frame as i32, built);
+            // A command's own draws (a disband's death type, item 4287)
+            // are spent between ticks, after the last tick's marks and
+            // before the next tick clears them; the original's trace files
+            // them at the end of the frame before, as the golden harness's
+            // staged lines fold them (`golden.rs`, `Script::stage`).
+            let marks = built.sim.trace.phase_marks[before..].to_vec();
+            if built.sim.trace.trace_phases
+                && !marks.is_empty()
+                && let Some(sites) = crate::diff::mark_sites(&marks, built.sim.rng.seed)
+                && let Some((f, v)) = built.frame_sites.last_mut()
+                && *f == frame - 1
+            {
+                v.extend(sites);
+            }
         }
         built.tick();
     };
