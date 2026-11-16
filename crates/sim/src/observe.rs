@@ -66,6 +66,11 @@ pub struct Scene {
     /// Moves when the terrain grids change: fetch
     /// [`Sim::observe_terrain`] again.
     pub terrain_version: u32,
+    /// **`GameAccess::ai_off`**, [`crate::ai::AiState::ai_off`]: what the
+    /// console's `ai on` and `ai off` read before they issue the toggle
+    /// (`ConsoleWin::run_cmd@007d6a70` case `0xc`; item 4283,
+    /// `docs/CLIENT_INPUT.md` §28). A read only.
+    pub ai_off: bool,
     /// Moves when a cell's claimants change: fetch
     /// [`Sim::observe_territory`] again.
     pub territory_version: u32,
@@ -707,6 +712,7 @@ impl Sim {
             leaders: self.observe_leaders(),
             fog: viewer.and_then(|p| self.fog_plane(p)),
             terrain_version: self.world.terrain_version(),
+            ai_off: self.ai.ai_off,
             territory_version: self.world.territory_version(),
         }
     }

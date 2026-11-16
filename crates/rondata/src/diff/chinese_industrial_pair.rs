@@ -386,5 +386,14 @@ fn chinese_industrial_pair_run1184_s_closing_frame_is_widened_whole() {
     // (4203), `1/110` (4342) and `1/75` (4343), who=1's `escrow`/food
     // economy (4213, 4376–4379) and `mylos` ours 4 against theirs 16 on
     // five of who=1's units from 4376.
-    pin_eq!(w.firsts.len(), 82, "run1184 baseline");
+    //
+    // Then **48** with the Porcelain Tower (item 4159r12a). Its rare pass at
+    // the top of `calc_gather` takes 7: `rare` and `rare_owned` (ours
+    // 11608000 against theirs 1148168000, now theirs) and the five `mylos`
+    // rows. `calc_rare`'s `PORCELAIN_RARE` term on the Merchants' Dye and
+    // Peacocks takes the other 27: every who=1 economy row of 4201
+    // (`income` 3814/1200/1040 against 4454/1520/1360, `score` 8499 against
+    // 8590), 4213's `escrow` and 4376–4379's food. What stands is block
+    // 4201's standing rows and the three `dest_angle` rows.
+    pin_eq!(w.firsts.len(), 48, "run1184 baseline");
 }

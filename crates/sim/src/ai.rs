@@ -1334,6 +1334,7 @@ pub mod ai_make;
 pub mod ai_place;
 pub mod ai_research;
 pub mod ai_sites;
+pub mod ai_toggle;
 pub mod ai_types;
 pub mod ai_units;
 pub mod bhs;
@@ -1356,8 +1357,9 @@ pub struct AiState {
     /// the simulation's own territory — `Leader::production_ai`'s head,
     /// `Leader::diplomacy`'s head, and the computer block of
     /// `Unit::think@005f6e40:205` — and they are what `docs/INPUT.md` §11
-    /// models. Off by default; only the golden record's interpreter sets
-    /// it.
+    /// models. Off by default; the golden record's interpreter sets it,
+    /// and the order replay's `cheat_ai_toggle` flips it
+    /// ([`crate::Sim::process_cheat_ai_toggle`], item 4283).
     pub ai_off: bool,
     /// The lobby's option block, as the AI reads it — `docs/AI.md` §12.1.
     pub lobby: crate::ai::Lobby,

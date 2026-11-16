@@ -406,6 +406,8 @@ crate's own, draw for draw.
 SEAM: the toggle is a *replicated command*, so the original flips the flag
 when the turn pump walks the package; the interpreter flips it at the line's
 own frame. No capture can separate the two — frame 0 is identical either way.
+The order replay flips it where the original does, on the tick that consumes
+the package (item 4283, `docs/CLIENT_INPUT.md` §28; run1618).
 
 ## 11.5 `add`: a squad is three units, and the count is not a count
 
