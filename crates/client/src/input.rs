@@ -114,6 +114,7 @@ pub const MINTS: &[&str] = &[
     "cheat_ai_toggle",
     "disband",
     "unitmask",
+    "leader_options",
 ];
 
 /// **The auto-explore button's mask and set** (item 4288,
@@ -999,6 +1000,10 @@ pub struct Input {
     /// Whether the open entry line is the console's (item 4283): its
     /// Return runs a console word instead of sending a chat.
     pub console: bool,
+    /// The player's profile prefs the frame-0 `leader_options` is made of
+    /// (item 4289, `docs/CLIENT_INPUT.md` §26.1): the fresh profile's, and
+    /// no control changes them (DECISIONS 136 §4).
+    pub prefs: rondata::prefs::Prefs,
 }
 
 /// **The last group sent** (item 4267, `docs/CLIENT_INPUT.md` §20):
@@ -1072,6 +1077,22 @@ impl Input {
             player,
             ..Input::default()
         }
+    }
+
+    /// **The frame-0 order** (item 4289, `docs/CLIENT_INPUT.md` §26.1): no
+    /// button issues it. `Game::run@00584590`'s `LeaderOptionOut::update`
+    /// issues `MiscAccess::my_leader_option` once, at the game's start,
+    /// after `LeaderOption::synch_with_prefs` has read the profile; the
+    /// order's `who` is `MiscAccess::console->who`, the human player's
+    /// `who`. That is not always the package's `play` ([`Input::player`]):
+    /// the 2017 sample's human is `who` 3 on play 0, and every lobby of
+    /// ours is `who` 0 on play 0.
+    #[cfg_attr(
+        not(test),
+        expect(dead_code, reason = "the census mints it; no window writes a file yet")
+    )]
+    pub fn leader_options(&self, who: u8) -> Command {
+        self.prefs.issue_leader_option(i32::from(who))
     }
 
     /// The `group` the selection makes, as `add_group` writes it: no
@@ -1991,10 +2012,11 @@ pub(crate) mod tests {
         assert_eq!(file.len(), MINTED_RCX_BYTES);
         let rec = rondata::recgame::read(&path.to_string_lossy()).unwrap();
         let written = |orders: &[Order]| {
-            let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
             let last = rec.packages.last().unwrap().frame;
             let mut ours = rec.clone();
-            ours.packages = rondata::recgame::minted_packages(lo[0].clone(), orders, last).unwrap();
+            ours.packages =
+                rondata::recgame::minted_packages(Input::default().leader_options(0), orders, last)
+                    .unwrap();
             rondata::recgame::write_gz(&ours)
         };
         assert!(written(&ours) == file, "the file from the minted orders");
@@ -2055,10 +2077,11 @@ pub(crate) mod tests {
         let home = std::env::var_os("HOME").unwrap_or_default();
         let path = std::path::Path::new(&home).join(MINTED_RCX);
         let rec = rondata::recgame::read(&path.to_string_lossy()).ok()?;
-        let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
         let last = rec.packages.last().unwrap().frame;
         let mut w = rec.clone();
-        w.packages = rondata::recgame::minted_packages(lo[0].clone(), orders, last).unwrap();
+        w.packages =
+            rondata::recgame::minted_packages(Input::default().leader_options(0), orders, last)
+                .unwrap();
         Some(rondata::recgame::write_gz(&w))
     }
 
@@ -2252,10 +2275,11 @@ pub(crate) mod tests {
         assert_eq!(file.len(), RIGHT_PRESSED_RCX_BYTES);
         let path = std::path::Path::new(&home).join(MINTED_RCX);
         let rec = rondata::recgame::read(&path.to_string_lossy()).unwrap();
-        let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
         let last = rec.packages.last().unwrap().frame;
         let mut written = rec.clone();
-        written.packages = rondata::recgame::minted_packages(lo[0].clone(), &ours, last).unwrap();
+        written.packages =
+            rondata::recgame::minted_packages(Input::default().leader_options(0), &ours, last)
+                .unwrap();
         let written = rondata::recgame::write_gz(&written);
         assert!(written == file, "the file from the right-pressed orders");
         assert!(written != clicked_file, "not the clicked file");
@@ -2393,10 +2417,11 @@ pub(crate) mod tests {
         assert_eq!(file.len(), BOXED_RCX_BYTES);
         let path = std::path::Path::new(&home).join(MINTED_RCX);
         let rec = rondata::recgame::read(&path.to_string_lossy()).unwrap();
-        let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
         let last = rec.packages.last().unwrap().frame;
         let mut written = rec.clone();
-        written.packages = rondata::recgame::minted_packages(lo[0].clone(), &ours, last).unwrap();
+        written.packages =
+            rondata::recgame::minted_packages(Input::default().leader_options(0), &ours, last)
+                .unwrap();
         let written = rondata::recgame::write_gz(&written);
         assert!(written == file, "the file from the boxed orders");
         assert!(written != right_file, "not the right-pressed file");
@@ -2563,10 +2588,11 @@ pub(crate) mod tests {
         assert_eq!(file.len(), ATTACKED_RCX_BYTES);
         let path = std::path::Path::new(&home).join(MINTED_RCX);
         let rec = rondata::recgame::read(&path.to_string_lossy()).unwrap();
-        let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
         let last = rec.packages.last().unwrap().frame;
         let mut written = rec.clone();
-        written.packages = rondata::recgame::minted_packages(lo[0].clone(), &ours, last).unwrap();
+        written.packages =
+            rondata::recgame::minted_packages(Input::default().leader_options(0), &ours, last)
+                .unwrap();
         let written = rondata::recgame::write_gz(&written);
         assert!(written == file, "the file from the attacked orders");
         assert!(written != boxed_file, "not the boxed file");
@@ -6446,6 +6472,7 @@ pub(crate) mod tests {
         kept: &[Command],
         frame: i32,
         play: u8,
+        who: u8,
         pauser: &mut Input,
         v: &View,
     ) -> Verdict {
@@ -6460,7 +6487,11 @@ pub(crate) mod tests {
         let minted = |c: &Command| MINTS.contains(&c.name());
         match heads[0] {
             Command::LeaderOptions { .. } => {
-                Verdict::Miss("leader_options: the profile's", Profile)
+                if leader_prefs(&kept[0], frame, play, who).is_some() {
+                    Verdict::Shown("INPUT_LEADER_OPTIONS")
+                } else {
+                    Verdict::Miss("leader_options: a profile of neither", Profile)
+                }
             }
             Command::Pause { .. } => {
                 pauser.player = play;
@@ -6561,21 +6592,116 @@ pub(crate) mod tests {
         }
     }
 
+    /// **The two profiles the recordings carry** (item 4289,
+    /// `docs/CLIENT_INPUT.md` §26.1): the fresh one, every bottle capture's,
+    /// and the 2017 sample's, whose `prefs` has `0x800000` set too. Of the
+    /// sample's word only [`rondata::prefs::PREFS_BITS`] are known, since
+    /// the order reads no other; the rest are the fresh profile's.
+    const LEADER_PREFS: [(&str, rondata::prefs::Prefs); 2] = [
+        ("fresh", rondata::prefs::Prefs::FRESH),
+        (
+            "sample",
+            rondata::prefs::Prefs {
+                prefs: rondata::prefs::DEFAULT_PREFS | 0x80_0000,
+                ..rondata::prefs::Prefs::FRESH
+            },
+        ),
+    ];
+
+    /// Which of [`LEADER_PREFS`] the layer mints `c` from, byte for byte,
+    /// on play `play` for the human `who`: only on frame 0, where
+    /// `Game::run` issues it.
+    fn leader_prefs(c: &Command, frame: i32, play: u8, who: u8) -> Option<&'static str> {
+        LEADER_PREFS.iter().find_map(|(name, prefs)| {
+            let layer = Input {
+                prefs: *prefs,
+                ..Input::new(play)
+            };
+            let ours = layer.leader_options(who);
+            (frame == 0
+                && ours == *c
+                && rondata::commands::encode(&[ours]) == rondata::commands::encode(&[c.clone()]))
+            .then_some(*name)
+        })
+    }
+
+    /// The recording's human `who`, `console->who`: the active slot whose
+    /// `play` the frame-0 package carries (`Slot::play`, the value packages
+    /// carry). The bottle's 49 are `who` 0 on play 0; the 2017 sample's is
+    /// `who` 3 on play 0 (its AIs `who` 0, 1, 2, 4 on plays 1 to 4).
+    fn console_who(rec: &rondata::recgame::RecGame) -> u8 {
+        let play = rec.packages[0].play as u8;
+        let human: Vec<&rondata::recgame::Slot> = rec
+            .slots
+            .iter()
+            .filter(|s| s.flags & 1 != 0 && s.play == play)
+            .collect();
+        assert_eq!(human.len(), 1, "one active slot on play {play}");
+        human[0].who
+    }
+
+    /// **`INPUT_LEADER_OPTIONS`** (item 4289): of the `leader_options`
+    /// orders the recordings on disk carry, those the layer mints byte for
+    /// byte from one of [`LEADER_PREFS`]; and how many each profile mints.
+    /// Seen red pinned (0, 0).
+    const INPUT_LEADER_OPTIONS: (usize, usize) = (50, 50);
+    const INPUT_LEADER_OPTIONS_BY_PREFS: &[(&str, usize)] = &[("fresh", 49), ("sample", 1)];
+
+    /// Every recording's frame-0 `leader_options`, minted from the layer's
+    /// prefs: the package whole, the seat its `play`.
+    #[test]
+    fn minted_leader_options_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() {
+            println!("skipping: no .rcx on disk");
+            return;
+        }
+        let (mut minted, mut of) = (0, 0);
+        let mut by: std::collections::BTreeMap<&str, usize> = Default::default();
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let who = console_who(&rec);
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                for c in cmds
+                    .iter()
+                    .filter(|c| matches!(c, Command::LeaderOptions { .. }))
+                {
+                    of += 1;
+                    let got = leader_prefs(c, p.frame, p.play as u8, who);
+                    println!(
+                        "LEADER {}: frame {} play {} {c:?} -> {got:?}",
+                        f.file_name().unwrap().to_string_lossy(),
+                        p.frame,
+                        p.play
+                    );
+                    if let Some(name) = got {
+                        assert_eq!(cmds.len(), 1, "the package is the order alone");
+                        minted += 1;
+                        *by.entry(name).or_default() += 1;
+                    }
+                }
+            }
+        }
+        let by: Vec<(&str, usize)> = by.into_iter().collect();
+        assert_eq!((minted, of), INPUT_LEADER_OPTIONS);
+        assert_eq!(by, INPUT_LEADER_OPTIONS_BY_PREFS);
+    }
+
     /// **`INPUT_WHOLE`** (item 4285, `docs/CLIENT_INPUT.md` §30): of the
     /// recordings on disk, those whose every order is [`Verdict::Shown`],
-    /// of all of them. Every recording carries `leader_options`, which no
-    /// button issues, so the count is 0 until the layer mints it.
-    const INPUT_WHOLE: (usize, usize) = (0, 50);
-    /// The same count with `leader_options` taken as the file writer takes
-    /// it, copied from a recording's frame 0 rather than minted: the 38
-    /// files that carry nothing else, and the four whose other orders are
-    /// all shown (a pause pair, two of chat lines, a toggle). Seen red
-    /// pinned (41, 50).
-    const INPUT_WHOLE_CARRIED: (usize, usize) = (42, 50);
+    /// of all of them. Every recording carries `leader_options`; since item
+    /// 4289 the layer mints it from its prefs ([`INPUT_LEADER_OPTIONS`]),
+    /// so the count is the old carried one: the 38 files that carry nothing
+    /// else, and the four whose other orders are all shown (a pause pair,
+    /// two of chat lines, a toggle). Seen red pinned (0, 50).
+    const INPUT_WHOLE: (usize, usize) = (42, 50);
     /// Every order on disk by verdict: (shown, of the layer's form but not
     /// minted from a scene, missed, all). A package's `group` takes its
     /// order's verdict.
-    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (363, 1076, 990, 2429);
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (413, 1076, 940, 2429);
     /// The missed orders by arm, most first, and who reaches each, the
     /// package's `group` counted with its order.
     const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] = &[
@@ -6587,7 +6713,6 @@ pub(crate) mod tests {
             140,
         ),
         ("move_to orders 2: the attack-move", Reach::Button, 54),
-        ("leader_options: the profile's", Reach::Profile, 50),
         (
             "gather_point on an object: actions 1 to 3",
             Reach::Button,
@@ -6619,14 +6744,15 @@ pub(crate) mod tests {
         let c = crate::pinned_camera();
         let scene = Scene::default();
         let v = view(&c, &scene, &terrain);
-        let (mut whole, mut carried) = (0, 0);
+        let mut whole = 0;
         let (mut shown, mut form, mut missed, mut all) = (0, 0, 0, 0);
         let mut by_pin: std::collections::BTreeMap<&str, usize> = Default::default();
         let mut arms: std::collections::BTreeMap<(&str, Reach), usize> = Default::default();
         for f in &files {
             let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let who = console_who(&rec);
             let mut pauser = Input::new(0);
-            let (mut s, mut fo, mut m, mut lo) = (0, 0, 0, 0);
+            let (mut s, mut fo, mut m) = (0, 0, 0);
             let mut its: std::collections::BTreeMap<&str, usize> = Default::default();
             for p in &rec.packages {
                 let Ok(cmds) = rondata::commands::decode(&p.data) else {
@@ -6638,7 +6764,7 @@ pub(crate) mod tests {
                     continue;
                 }
                 let n = kept.len();
-                match census_verdict(&kept, p.frame, p.play as u8, &mut pauser, &v) {
+                match census_verdict(&kept, p.frame, p.play as u8, who, &mut pauser, &v) {
                     Verdict::Shown(pin) => {
                         s += n;
                         *by_pin.entry(pin).or_default() += 1;
@@ -6646,9 +6772,6 @@ pub(crate) mod tests {
                     Verdict::Form => fo += n,
                     Verdict::Miss(arm, reach) => {
                         m += n;
-                        if reach == Reach::Profile {
-                            lo += n;
-                        }
                         *arms.entry((arm, reach)).or_default() += n;
                         *its.entry(arm).or_default() += n;
                     }
@@ -6660,7 +6783,6 @@ pub(crate) mod tests {
                 s + fo + m
             );
             whole += usize::from(fo == 0 && m == 0);
-            carried += usize::from(fo == 0 && m == lo);
             (shown, form, missed) = (shown + s, form + fo, missed + m);
             all += s + fo + m;
         }
@@ -6668,7 +6790,7 @@ pub(crate) mod tests {
             arms.into_iter().map(|((a, r), n)| (a, r, n)).collect();
         misses.sort_by(|a, b| b.2.cmp(&a.2).then(a.0.cmp(b.0)));
         println!(
-            "WHOLE {whole} of {}, carried {carried}; orders {shown} shown, {form} form, {missed} missed of {all}",
+            "WHOLE {whole} of {}; orders {shown} shown, {form} form, {missed} missed of {all}",
             files.len()
         );
         println!("WHOLE PINS {by_pin:?}");
@@ -6688,6 +6810,7 @@ pub(crate) mod tests {
             ("INPUT_SPELLS", INPUT_SPELLS),
             ("INPUT_DISBANDS", INPUT_DISBANDS),
             ("INPUT_UNITMASKS", INPUT_UNITMASKS),
+            ("INPUT_LEADER_OPTIONS", INPUT_LEADER_OPTIONS),
         ] {
             assert_eq!(minted, of, "{pin} mints every package it reads");
             assert_eq!(
@@ -6697,7 +6820,6 @@ pub(crate) mod tests {
             );
         }
         assert_eq!((whole, files.len()), INPUT_WHOLE);
-        assert_eq!((carried, files.len()), INPUT_WHOLE_CARRIED);
         assert_eq!((shown, form, missed, all), INPUT_WHOLE_ORDERS);
         assert_eq!(misses, INPUT_WHOLE_MISSES);
     }
@@ -6965,12 +7087,12 @@ pub(crate) mod tests {
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (25, 26);
+    const INPUT_KINDS: (usize, usize) = (26, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2379, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2429, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
-    const NOT_MINTED: &[&str] = &["leader_options"];
+    const NOT_MINTED: &[&str] = &[];
 
     /// The census, counted against the disk's pinned kinds.
     #[test]
@@ -7031,6 +7153,14 @@ pub(crate) mod tests {
             }
             if !built.contains(&snake) {
                 built.push(snake);
+            }
+        }
+        // A kind the layer builds through rondata's issuer, named by the
+        // call (item 4289: the order is the profile's, and one builder
+        // serves the layer and rondata's own minted files).
+        for (name, call) in [("leader_options", ".issue_leader_option(")] {
+            if body.contains(call) && !built.iter().any(|b| b == name) {
+                built.push(name.to_string());
             }
         }
         let mut want: Vec<String> = MINTS.iter().map(|s| s.to_string()).collect();
