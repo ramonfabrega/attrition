@@ -218,6 +218,39 @@ def set_seat_tribes(profile, pairs):
     path.write_bytes(text.encode('utf-8'))
 
 
+def solo_whos(human_who, seats):
+    """The `who` each slot reads in a solo lobby (item 4299): slot 0 the
+    human's colour column, `player[0].who = combo_boxes[0x10]`, and each
+    computer slot `SetupWin::setup_game@005b3860`'s counter from 0, stepped
+    once past the human's `who`. A human at 0 seats every slot at its own
+    index, which is what every take before 4299 assumed."""
+    whos, c = [human_who], 0
+    for _ in range(1, seats):
+        if c == human_who:
+            c += 1
+        whos.append(c)
+        c += 1
+    return whos
+
+
+def set_human_who(profile, who):
+    """Seat the human at `who` (item 4299): the profile's `LAST_WHO0`, which
+    `SetupWin::exec@005c67f0` loads into slot 0's colour column, swapped
+    with `LAST_WHO<who>` so the column stays a permutation. Each key is
+    found exactly once (`--profile` wants two: the SOLO and MULTI blocks)."""
+    if who is None:
+        return
+    if not 0 <= who <= 7:
+        raise ValueError('--human-who takes a seat 0..7')
+    path = profile / 'PlayerProfile' / 'Player.dat'
+    text = path.read_bytes().decode('utf-8')
+    for slot, value in {0: who, who: 0}.items():
+        text, n = re.subn(rf'<LAST_WHO{slot} value="-?\d+"/>', f'<LAST_WHO{slot} value="{value}"/>', text)
+        if n != 1:
+            raise ValueError(f'expected one LAST_WHO{slot} field, found {n}')
+    path.write_bytes(text.encode('utf-8'))
+
+
 # Loop 3928 (the sixty-ninth pass): the lobby fields a take reads back from
 # the gamelog's GAMEINFO block, and a `cover=1` twin pins from its sibling.
 # run1508b and run1509b seated who=1 as tribe 2 where their siblings drew
@@ -640,7 +673,7 @@ def lane_prefix():
 
 
 def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_window=None, seat_tribes=(),
-                allow_early_end=False, lobby=(), seats=None):
+                allow_early_end=False, lobby=(), seats=None, human_who=None):
     # Read back the game's identity, never infer it from requested settings.
     styles = set()
     seeds = set()
@@ -693,9 +726,14 @@ def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_win
                 or by_who[0].get('tribe') != 4 or by_who[1].get('tribe') != ai_tribe
                 or not by_who[0].get('flags', 0) & 4 or by_who[1].get('flags', 0) & 4):
             raise ValueError(f'player read-back mismatch: {players}')
+    if human_who is not None:
+        humans = [p.get('who') for p in players if p.get('flags', 0) & 4]
+        if humans != [human_who]:
+            raise ValueError(f'human seat read-back mismatch: {players} for who {human_who} (item 4299)')
     if seat_tribes:
         by_who = {p.get('who'): p for p in players}
-        if any(by_who.get(slot, {}).get('tribe') != tribe for slot, tribe in seat_tribes):
+        whos = solo_whos(human_who or 0, max(slot for slot, _ in seat_tribes) + 1)
+        if any(by_who.get(whos[slot], {}).get('tribe') != tribe for slot, tribe in seat_tribes):
             raise ValueError(f'seat tribe read-back mismatch: {players} for {list(seat_tribes)}')
     # Item 3976: a twin pins its sibling's seat count, read back as seats
     # 0..n-1 exactly, as the two-seat `ai_tribe` arm reads back two.
@@ -856,6 +894,8 @@ def capture(args, output, style, run=None):
         set_ai_tribe(args.profile, report['ai_tribe_requested'])
         report['seat_tribes_requested'] = getattr(args, 'seat_tribes', None) or []
         set_seat_tribes(args.profile, report['seat_tribes_requested'])
+        report['human_who_requested'] = getattr(args, 'human_who', None)
+        set_human_who(args.profile, report['human_who_requested'])
         report['seats_requested'] = getattr(args, 'seats', None)
         report['bindkey'] = getattr(args, 'bindkeys', None) or []
         bind_keys(args.profile, args.install, report['bindkey'])
@@ -1048,6 +1088,7 @@ def capture(args, output, style, run=None):
                                   ai_tribe=report['ai_tribe_requested'],
                                   seat_tribes=report['seat_tribes_requested'],
                                   seats=report['seats_requested'],
+                                  human_who=report['human_who_requested'],
                                   log_window=None if getattr(args, 'stride', None) else getattr(args, 'log_window', None),
                                   allow_early_end=early, lobby=report['lobby']))
         if playback and sha(recording) != report['recording']['sha256']:
@@ -1381,6 +1422,10 @@ def parser():
                     type=lambda v: tuple(int(x) for x in v.split('=')),
                     help='explicit nation for computer slot SLOT (1..7), repeatable; read back from '
                          'the receipt\'s PLAYER records (item 3774)')
+    ap.add_argument('--human-who', type=int, choices=range(8), metavar='WHO',
+                    help="seat the human at WHO: the profile's LAST_WHO0, swapped with LAST_WHO<WHO>; the "
+                         "computers take the solo counter's seats and --seat-tribe's read-back follows them "
+                         "(item 4299)")
     ap.add_argument('--twin', type=Path, metavar='DIR',
                     help="a sibling take's output directory: pins every computer seat from its receipt's PLAYER "
                          "read-back (--ai-tribe for a two-seat lobby, --seat-tribe each for more), PLAYERS as the "
@@ -1414,6 +1459,9 @@ def main():
         ap.error(f'--rise2 takes KEY=N, KEY one of {", ".join(RISE2_DEFAULTS)}')
     if any(not re.fullmatch(r'[A-Za-z_0-9]+=\d+', p) for p in args.bindkeys or []):
         ap.error('--bindkey takes ACTION=VK')
+    if args.human_who is not None and (args.ai_tribe is not None or args.recording is not None or args.twin):
+        ap.error('--human-who reseats the lobby: --ai-tribe reads the human back at who 0, and a recording '
+                 'or a twin owns its seats (item 4299)')
     if args.recording is not None:
         args.recording = args.recording.resolve(strict=True)
         args.recording_seed, recording_map = recording_identity(args.recording)
