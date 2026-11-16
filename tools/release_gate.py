@@ -60,7 +60,15 @@ no path under `crates/client/` or `crates/render/` — nor the four workspace
 inputs — leaves the client crate's targets, its wall-clock `clock` test
 among them, to the booking gate the same way (`client_crate_left`; the
 receipt's `client_crate`), and drops a filter whose every match is a client
-test.
+test — since the pass of 2026-11-15, a filter whose every match lies in the
+crates it leaves out, however many (item 4281: `ground::` in both).
+
+**The booking gate's two steps around its release step** (the pass of
+2026-11-15): `merge pins` first (`MERGE_PINS`, the pins a merge moves,
+about two test-minutes; a red stops the gate there and names the test),
+and `clock` last — the client's wall-clock test, `--skip`ped in the release
+step and run alone under a drained lease of the whole host budget
+(`CLOCK_TEST`). A lane gate has neither.
 
 The census pin runs in every lane gate (a lane pin, `LANE_PINS`) and its red is
 forgiven as the commander's line (Loop 2367); since the seventy-fifth pass
@@ -101,6 +109,8 @@ FAILED_TEST = re.compile(r'^test (\S+) \.\.\. FAILED$')
 
 def phase_budget(command):
     """Small already-built checks can coexist; possible compilations drain slots."""
+    if is_clock(command):
+        return HOST_CPU_SLOTS, HOST_MEMORY_MIB  # the whole host, drained (`QUIET_CLOCK`)
     if (any(str(a).endswith(('offline_tests.py', 'shape.py')) for a in command)
             or 'fmt' in command):
         return 2, 1024
@@ -135,7 +145,8 @@ def run_logged(command, *, cwd, env, check, log=None):
         limit = phase_limit(command)
         command = [sys.executable, str(ROOT / 'tools/resource_budget.py'),
                    '--cpu', str(cpu), '--memory-mib', str(memory)] + \
-            (['--limit-mib', str(limit)] if limit is not None else []) + ['--'] + command
+            (['--limit-mib', str(limit)] if limit is not None else []) + \
+            (['--drain'] if is_clock(command) else []) + ['--'] + command
     if log is None:
         return subprocess.run(command, cwd=cwd, env=env, check=check)
     with open(log, 'wb') as sink, subprocess.Popen(
@@ -616,6 +627,86 @@ def client_crate_left(touched, *, lane, whole):
                 and not any(p.startswith(CLIENT_BUILD_INPUTS) for p in touched))
 
 
+# **The booking gate measures the clock on a quiet host** (the pass of
+# 2026-11-15). The clock test is a wall-clock ceiling (p99 frame 20 ms,
+# `render::clock::CLOCK`) that ran inside the release step beside the gate's
+# own eight test threads and beside lanes' gates, and broke booking gates
+# 4255 ("first p99 frame 20.75 ms (host load 14.06); then 22.82 ms (host
+# load 13.47)") and 4263 ("first 24.73 ms (host load 20.46); then 22.65 ms
+# (host load 15.57)") this tranche, and 4171, 4179 and 4219 before; alone at
+# load 7.5 it reads p99 14 ms. Its own rule waits only above the core count,
+# and the breaks came at 13.5 to 15.6. So a booking gate (scoped or whole)
+# `--skip`s it in the release step and runs it last, alone, under a lease of
+# the whole host budget (`phase_budget`) taken by draining
+# (`resource_budget.py --drain`: each slot it takes it keeps, so lanes'
+# tests already admitted end into it and none is admitted beside it). The
+# gate's own release step is over by then. A lane gate is unchanged: one
+# that touches the client runs the clock in its release step, one that does
+# not leaves the client crate (`client_crate_left`).
+CLOCK_TARGET = 'clock'
+CLOCK_TEST = 'the_great_lakes_lobby_plays_under_the_clock_s_ceilings'
+
+
+def clock_command():
+    """The quiet clock: the one test of `crates/client/tests/clock.rs`'s
+    target, one thread. `--profile release` is cargo's long spelling of
+    `--release` (the same profile and artifacts, built by the release step;
+    `--workspace` keeps its feature set), and leaves `--release` the release
+    step's own mark, which the gate's readers and the offline cases key on."""
+    return ['cargo', 'test', '--profile', 'release', '--workspace', '--test', CLOCK_TARGET,
+            '--', '--exact', CLOCK_TEST, '--test-threads=1']
+
+
+def is_clock(command):
+    # By the whole command: the release step names the test too (`--skip`).
+    return list(command) == clock_command()
+
+
+# **The pins a merge moves run first** (the pass of 2026-11-15). docs/LOOP.md
+# told the driver to run them at a builder's merge, in prose, and booking
+# gates went red on them after a whole release step: substrings of rondata's
+# library tests (libtest's filters, no `--exact`), each with the red that
+# taught it. 108.6 test-seconds in all by `TIMINGS`, the ages pin 90.8 of
+# them; a booking gate runs them before its release step and stops there,
+# naming the test (`Merge pins:`). The release step's selection is what it
+# was, so every audit of the suite counts them as before: the whole gate and
+# a widened scope run them again there, and an unwidened scope still skips
+# the ones over its second (`lane_skips`), where this step is now the run
+# they get. The doors
+# pin (`tools/explore/test_seams.py`) runs in the offline step and the seams
+# count (`sim::docs_guard`) in the guard step, both before this one; the
+# coverage pins are 266 s alone and no booking red on disk is theirs.
+MERGE_PINS = (
+    # gate-4159r12 (this tranche, release 10.2 minutes): the census moved.
+    'census::tests::the_census_s_simulation_share_is_pinned',
+    # gate-4272 (this tranche, release 10.9) and gate-4205b (20.7).
+    'diff::checksum_lines::packets::every_packet_is_wired_to_its_game_or_named',
+    # gate-4205 (release 19.8): a literal in `diff::floors`; 47 tests, 1.7 s.
+    'diff::floors::',
+    # gate-4205b: `the_held_leaves_transfer_on_the_original_s_printed_inputs`.
+    'diff::transfer::',
+    # gate-4208 (release 25.5): `AGES_RESOLVED` moved, and the free run's two
+    # pins with it (DECISIONS 132 §4).
+    'free::ages::the_draw_list_across_the_ages_resolves',
+    'free::tests::m_is_counted_from_the_free_run_and_agrees_with_the_lobby_s_dumps',
+    'free::tests::the_draw_list_s_frames_are_in_register',
+)
+
+
+def merge_pins_command():
+    """`MERGE_PINS` on rondata's library, as `guard.sh --built` builds it
+    (`-p rondata --lib`, the release profile), two threads (the floors'
+    width pin allows two with no memcap)."""
+    return ['cargo', 'test', '--profile', 'release', '-p', 'rondata', '--lib', '--', *MERGE_PINS,
+            '--test-threads=2']
+
+
+def is_merge_pins(command):
+    # By the whole command: a scoped gate's release step `--skip`s the timed
+    # pins by name.
+    return list(command) == merge_pins_command()
+
+
 # Loop 3823 (the sixty-fifth pass): `map_lakes` and `terrain_groups`, tests
 # in `crates/sim` alone, passed 3819's brief — `brief.py` lists the whole
 # workspace's tests (Loop 3818) — and its first lane gate exited 2 on them
@@ -640,6 +731,35 @@ def client_only_filters(tests, by_crate):
     """The filters whose every live match is in the client crate (`brief.only_in`)."""
     import brief
     return brief.only_in(tests, by_crate, CLIENT_PACKAGE)
+
+
+# Item 4281 (the pass of 2026-11-15): a docs-only lane left both crates, and
+# its filters `ground::` and `roads::` matched tests in both and nowhere
+# else; the drop read one crate at a time, kept them, and the gate exited 2
+# on "matched no test that ran". A filter is dropped when every live match
+# lies in crates this lane leaves out, however many; one with any live match
+# in a crate that runs is kept. A crate's directory under `crates/` is its
+# package name (`crate_tests`' keys are the directories).
+LEFT_CRATES = {'sim': ('crates/sim', 'Loop 3823'), CLIENT_PACKAGE: ('crates/client', 'DECISIONS 132 §6')}
+
+
+def left_only_filters(tests, by_crate, left):
+    """`[(filter, [crates])]`: each filter whose live matches (not
+    `#[ignore]`) all lie in the crates of `left`, with those crates in
+    `left`'s order; a filter that matches nothing anywhere is not one."""
+    found = []
+    for t in tests:
+        live = [c for c, names in by_crate.items() if any(t in n and not ignored for n, ignored in names.items())]
+        if live and all(c in left for c in live):
+            found.append((t, [c for c in left if c in live]))
+    return found
+
+
+def left_clause(crates):
+    """(crates, why) for `dropped_line`: `crates/sim and crates/client`,
+    each crate's own reason joined."""
+    rows = [LEFT_CRATES.get(c, (f'crates/{c}', 'left')) for c in crates]
+    return ' and '.join(d for d, _ in rows), ', '.join(w for _, w in rows)
 
 
 def dropped_line(t, crate='crates/sim', why='Loop 3823'):
@@ -912,8 +1032,9 @@ def journal_of(item, root=ROOT):
 # memory column to say.
 WIDTHS = (2, 3, 4, 6, 8)
 # The gate's steps (Loop 4070): pins, offline, clippy, fmt, survey, guard,
-# release — the release command's index in `gate()`'s list.
-RELEASE_STEP = 6
+# release; a booking gate's also `merge pins` before its release step and
+# `clock` after it (the pass of 2026-11-15), so the release step is found by
+# its name (`step_name`), not by an index.
 
 
 def memory_cap_gib(test_threads):
@@ -1035,15 +1156,12 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     install = Path(install).resolve()
     if not (install / 'Data/rules.xml').is_file():
         raise ValueError(f'not an install: missing {install / "Data/rules.xml"}')
-    by_crate = crate_tests() if (sim_left or client_left) and tests else {}
-    dropped = sim_only_filters(tests, by_crate) if sim_left and tests else []
-    client_dropped = client_only_filters(tests, by_crate) if client_left and tests else []
-    tests = [t for t in tests if t not in dropped and t not in client_dropped]
-    for t in dropped:
-        print(dropped_line(t), flush=True)
-    for t in client_dropped:
-        print(dropped_line(t, 'crates/client', 'DECISIONS 132 §6'), flush=True)
-    dropped = dropped + client_dropped
+    by_crate = crate_tests() if left_packages and tests else {}
+    left_only = left_only_filters(tests, by_crate, left_packages) if by_crate else []
+    tests = [t for t in tests if t not in dict(left_only)]
+    for t, crates in left_only:
+        print(dropped_line(t, *left_clause(crates)), flush=True)
+    dropped = [t for t, _ in left_only]
     if report_dir is None:
         swept = sweep_reports(tempfile.gettempdir())
         if swept:
@@ -1081,6 +1199,11 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                                    'off_marker': str(OFF_MARKER), 'off': OFF_MARKER.exists()}}
     if isolated:
         policy['isolated'] = {'slots': 8, 'global_cpu_slots': HOST_CPU_SLOTS, 'global_reserved_mib': HOST_MEMORY_MIB}
+    if not lane:
+        # The pass of 2026-11-15: the booking gate's merge pins and quiet clock.
+        policy['booking'] = {'merge_pins': list(MERGE_PINS), 'quiet_clock': CLOCK_TEST,
+                             'quiet_clock_lease': {'cpu': HOST_CPU_SLOTS, 'memory_mib': HOST_MEMORY_MIB,
+                                                   'drain': True}}
     if scope is not None:
         # The thirty-fifth steer (Ramon's word): a booking gate scoped to the
         # merges since the last whole one runs the timed tests only when one
@@ -1129,17 +1252,24 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         # before the release step since Loop 4070, so its build is the
         # release step's and its reds come before the suite's fifty minutes.
         ['zsh', 'tools/guard.sh', '--built'],
-        ['zsh', 'tools/memcap.sh', str(min(32, memory_cap_gib(test_threads))), 'cargo', 'test', '--release',
-         '--no-fail-fast']
-        + (['--workspace'] + [a for p in left_packages for a in ('--exclude', p)] if left_packages else [])
-        + ['--', f'--test-threads={test_threads}']
-        + (['--exact'] + [arg for name in skips for arg in ('--skip', name)] if (lane or scope is not None) else []),
     ]
+    # The booking gate's two (the pass of 2026-11-15): the pins a merge moves
+    # before its release step (`MERGE_PINS`), and the clock after it, alone
+    # (`clock_command`), which the release step therefore skips.
+    release_skips = skips + ([] if lane else [CLOCK_TEST])
     if isolated:
-        commands[RELEASE_STEP] = ([sys.executable, 'tools/isolated_tests.py', '--release',
-                        '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads)]
-                       + [a for p in left_packages for a in ('--exclude-package', p)]
-                       + [arg for name in skips for arg in ('--skip', name)])
+        release = ([sys.executable, 'tools/isolated_tests.py', '--release',
+                    '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads)]
+                   + [a for p in left_packages for a in ('--exclude-package', p)]
+                   + [arg for name in release_skips for arg in ('--skip', name)])
+    else:
+        release = (['zsh', 'tools/memcap.sh', str(min(32, memory_cap_gib(test_threads))), 'cargo', 'test',
+                    '--release', '--no-fail-fast']
+                   + (['--workspace'] + [a for p in left_packages for a in ('--exclude', p)] if left_packages else [])
+                   + ['--', f'--test-threads={test_threads}']
+                   + (['--exact'] + [arg for name in release_skips for arg in ('--skip', name)]
+                      if (lane or scope is not None or release_skips) else []))
+    commands += [release] if lane else [merge_pins_command(), release, clock_command()]
     if scope is not None:
         print((f"Booking gate scoped to {scope}: " +
                (f"every timed test — a merge touches {len(widened)} path(s) that can move the pins ({widened[0]}"
@@ -1322,6 +1452,10 @@ def admission_line(summary):
 
 def step_name(command):
     """The step a gate command is, in the words the handoff uses."""
+    if is_clock(command):
+        return 'clock'
+    if is_merge_pins(command):
+        return 'merge pins'
     if any(str(a).endswith('shape.py') for a in command):
         return 'pins'
     if command[-1].endswith('offline_tests.py'):
@@ -1369,24 +1503,35 @@ def steps_line(commands, reached):
     return line
 
 
+def merge_pins_line(log, returncode):
+    """`Merge pins: red on …` — the tests the merge-pins step failed, read
+    off its log, or its exit when it names none (a build error, a kill)."""
+    failed = summarize_tests(log, release_completed=False)['failed_tests'] if Path(log).is_file() else []
+    return ('Merge pins: ' + (f"red on {', '.join(failed)}" if failed else f'exit {returncode}, no test named')
+            + ' — the release step did not run (the pass of 2026-11-15)')
+
+
 def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, reached,
                lane=False, word=(), seconds=None, verdicts=None):
     for command in commands:
         began = time.monotonic()
         child_env = env.copy()
-        is_release = '--release' in command
+        is_release = step_name(command) == 'release'
         completed = False
         held = None
         if is_release:
             child_env['RON_FIXTURE_AUDIT_DIR'] = str(audit_dir)
         if lane and step_name(command) == 'guard':
             child_env['RON_LANE'] = '1'
-        extra = {'log': str(report_dir / ('release-tests.log' if is_release else step_name(command) + '.log'))}
+        extra = {'log': str(report_dir / ('release-tests.log' if is_release
+                                          else step_name(command).replace(' ', '-') + '.log'))}
         try:
             reached.append(command)
             run(command, cwd=ROOT, env=child_env, check=True, **extra)
             completed = True
         except subprocess.CalledProcessError as failure:
+            if is_merge_pins(command):
+                print(merge_pins_line(extra['log'], failure.returncode), flush=True)
             if not (lane and is_release and failure.returncode == CARGO_TESTS_FAILED):
                 raise
             held = failure
