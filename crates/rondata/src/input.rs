@@ -1725,6 +1725,13 @@ impl Stream {
                     done.skip(&it.cmd, "the package's group is not in the simulation");
                 }
             }
+            // **The AI toggle** (item 4283, `docs/CLIENT_INPUT.md` §28):
+            // `process_cheat_ai_toggle@00944d20`, the global flag flipped.
+            // The console's word, so no group and no slot's units: it is
+            // the one order whose effect is every computer seat's.
+            Command::CheatAiToggle => {
+                built.sim.command().process_cheat_ai_toggle();
+            }
             Command::Pause { .. } => {
                 // The turn control's (`TurnControl::process_pause@00956990`,
                 // item 4252): a solo game's pause stops the frame, not the

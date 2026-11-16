@@ -111,6 +111,7 @@ pub const MINTS: &[&str] = &[
     "buildmask",
     "come_out",
     "stance",
+    "cheat_ai_toggle",
 ];
 
 /// **The stance button's option**: `Options::do_stance@00721480`'s −1, the
@@ -259,6 +260,11 @@ pub enum Event {
     /// `group` and `stance(-1)` (`GroupOut::issue_stance@0070b100`
     /// inlined). The HUD's alone.
     Stance,
+    /// The console's key (item 4283, `docs/CLIENT_INPUT.md` §28): opens
+    /// the entry line as `ConsoleWin`'s, whose Return runs the line's
+    /// word through `ConsoleWin::parse_cmd@007d6470` and `run_cmd
+    /// @007d6a70`'s console half. Ours: the `~` key.
+    Console,
 }
 
 /// `spell(type, ox, whom, x, y)`, as `CommandManager::issue_spell@00941b80`
@@ -959,6 +965,9 @@ pub struct Input {
     /// picks the building (`Options::selecting_spot` with
     /// `OPTION_GARRISON`, item 4273).
     pub garrisoning: bool,
+    /// Whether the open entry line is the console's (item 4283): its
+    /// Return runs a console word instead of sending a chat.
+    pub console: bool,
 }
 
 /// **The last group sent** (item 4267, `docs/CLIENT_INPUT.md` §20):
@@ -1175,6 +1184,38 @@ impl Input {
         Some((frame, i32::from(self.player), vec![cmd]))
     }
 
+    /// **The console's line, sent** (item 4283, `docs/CLIENT_INPUT.md`
+    /// §28): `ConsoleWin::parse_cmd@007d6470` matches the line's first
+    /// token against the command table and hands the rest to `run_cmd
+    /// @007d6a70`, whose console half is the only one that holds `ai`
+    /// (case `0xc`):
+    ///
+    /// - no argument: `CommandManager::issue_cheat_ai_toggle@00940fa0`;
+    /// - `on`: the same, only while `GameAccess::ai_off` is set;
+    /// - `off`: the same, only while it is clear;
+    /// - `debug` and anything else: no command (the debug arm and
+    ///   `invalid_use_msg`).
+    ///
+    /// The command is `0x40` alone, no group: the package carries it and
+    /// nothing else. Every other console word mints nothing here: the
+    /// console's other commands are a developer's, and none is an order a
+    /// recording carries. Ours: the word and its argument compared without
+    /// ASCII case, split on spaces.
+    pub fn console_line(&self, frame: i32, line: &str, view: &View) -> Option<Order> {
+        let mut words = line.split(' ').filter(|w| !w.is_empty());
+        if !words.next()?.eq_ignore_ascii_case("ai") {
+            return None;
+        }
+        let off = view.scene.ai_off;
+        let issue = match words.next() {
+            None => true,
+            Some(a) if a.eq_ignore_ascii_case("on") => off,
+            Some(a) if a.eq_ignore_ascii_case("off") => !off,
+            Some(_) => false,
+        };
+        issue.then(|| (frame, i32::from(self.player), vec![Command::CheatAiToggle]))
+    }
+
     /// One event on `frame` (the recording frame the package is consumed
     /// on): the order it makes, if any.
     pub fn event(&mut self, frame: i32, ev: Event, view: &View) -> Option<Order> {
@@ -1186,8 +1227,21 @@ impl Input {
                     None
                 }
                 (Some(line), Some(o)) => Some((frame, play, vec![rename(self.player, o, &line)?])),
+                (Some(line), None) if std::mem::take(&mut self.console) => {
+                    self.console_line(frame, &line, view)
+                }
                 (Some(line), None) => self.chat(frame, &line, view),
             },
+            Event::Console => {
+                // Ours: the key opens the console's line when no line is
+                // open, and is a typed `~` inside one.
+                if self.line.is_some() {
+                    return None;
+                }
+                self.line = Some(String::new());
+                self.console = true;
+                None
+            }
             Event::Backspace => {
                 if let Some(line) = &mut self.line {
                     line.pop();
@@ -1197,6 +1251,7 @@ impl Input {
             Event::Escape => {
                 self.line = None;
                 self.renaming = None;
+                self.console = false;
                 None
             }
             Event::Rename => {
@@ -5842,16 +5897,213 @@ pub(crate) mod tests {
     const STANCED_RCX: &str = "ron-golden/recordings/item4282-stanced-greatlakes-24000.rcx";
     const STANCED_RCX_BYTES: usize = 59_661;
 
+    /// The console's line typed on `frame`: the key, each character, and
+    /// Return (item 4283).
+    fn consoled(frame: i32, line: &str) -> Vec<Scripted> {
+        let mut e = vec![(frame, None, Event::Console)];
+        e.extend(line.chars().map(|c| (frame, None, Event::Key(c))));
+        e.push((frame, None, Event::Enter));
+        e
+    }
+
+    /// **`INPUT_TOGGLES`** (item 4283, `docs/CLIENT_INPUT.md` §28): of the
+    /// AI toggles the recordings on disk carry, those the console's
+    /// `ai off`, typed by the package's slot with the AI on, mints field
+    /// for field, the package's orders whole. Seen red with the scene's
+    /// `ai_off` set: (0, 4).
+    const INPUT_TOGGLES: (usize, usize) = (4, 4);
+
+    /// **Every recorded AI toggle** (item 4283): each package carrying a
+    /// `cheat_ai_toggle` is minted from the console's line. Every one is a
+    /// capture driver's `ai off` early in a game whose AI was on.
+    #[test]
+    fn minted_toggles_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let scene = Scene::default();
+        let v = view(&c, &scene, &terrain);
+        let (mut whole, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                if !kept.iter().any(|c| matches!(c, Command::CheatAiToggle)) {
+                    continue;
+                }
+                all += 1;
+                let mut input = Input::new(p.play as u8);
+                let mut got = None;
+                for (_, _, ev) in consoled(p.frame, script::TOGGLE_TEXT) {
+                    got = got.or(input.event(p.frame, ev, &v));
+                }
+                if got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    whole += 1;
+                } else {
+                    println!("TOGGLE PARTS f{} {kept:?}: {got:?}", p.frame);
+                }
+            }
+        }
+        println!("TOGGLES {whole} of {all}");
+        assert_eq!((whole, all), INPUT_TOGGLES);
+    }
+
+    /// **The console's edges** (item 4283): `ai` alone toggles either way;
+    /// `ai off` only with the AI on and `ai on` only with it off, without
+    /// case; `ai debug`, an unknown argument and every other word mint
+    /// nothing; Escape closes the line and sends nothing; the key inside
+    /// an open line opens nothing; and a line opened by Return is still
+    /// chat's.
+    #[test]
+    fn minted_console_edges() {
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let on = Scene::default();
+        let off = Scene {
+            ai_off: true,
+            ..Scene::default()
+        };
+        let send = |scene: &Scene, line: &str| {
+            let v = view(&c, scene, &terrain);
+            let mut input = Input::new(0);
+            let mut got = None;
+            for (_, _, ev) in consoled(9, line) {
+                got = got.or(input.event(9, ev, &v));
+            }
+            assert!(input.line.is_none() && !input.console, "{line}: closed");
+            got.map(|o| o.2)
+        };
+        let toggle = Some(vec![Command::CheatAiToggle]);
+        assert_eq!(send(&on, "ai"), toggle);
+        assert_eq!(send(&off, "ai"), toggle);
+        assert_eq!(send(&on, "ai off"), toggle);
+        assert_eq!(send(&off, "ai off"), None);
+        assert_eq!(send(&off, "ai on"), toggle);
+        assert_eq!(send(&on, "ai on"), None);
+        assert_eq!(send(&on, "AI  OFF"), toggle);
+        assert_eq!(send(&on, "ai debug"), None);
+        assert_eq!(send(&on, "ai maybe"), None);
+        assert_eq!(send(&on, "human 1"), None);
+        assert_eq!(send(&on, ""), None);
+        let v = view(&c, &on, &terrain);
+        let mut input = Input::new(0);
+        for ev in [Event::Console, Event::Key('a'), Event::Key('i')] {
+            assert_eq!(input.event(9, ev, &v), None);
+        }
+        assert_eq!(input.event(9, Event::Console, &v), None, "no second line");
+        assert_eq!(input.line.as_deref(), Some("ai"));
+        assert_eq!(input.event(9, Event::Escape, &v), None);
+        assert!(input.line.is_none() && !input.console, "Escape closes it");
+        let mut chat = Input::new(0);
+        for ev in [Event::Enter, Event::Key('a'), Event::Key('i')] {
+            assert_eq!(chat.event(9, ev, &v), None);
+        }
+        let said = chat.event(9, Event::Enter, &v).unwrap();
+        assert!(
+            matches!(said.2[0], Command::Chat { .. }),
+            "Return's line is chat's"
+        );
+    }
+
+    /// The toggled script's events: the stance's, then the console's
+    /// `ai off` on [`script::TOGGLE_FRAME`].
+    fn toggle_events() -> Vec<Scripted> {
+        let mut e = stance_events();
+        e.extend(consoled(script::TOGGLE_FRAME, script::TOGGLE_TEXT));
+        e
+    }
+
+    /// **`INPUT_TOGGLED`** (item 4283): the toggled script's events,
+    /// through the HUD and the layer under the opening camera, mint
+    /// [`script::toggled`] field for field, of 30.
+    const INPUT_TOGGLED: usize = 30;
+
+    /// **The toggled count**: stage 0 on the toggle's frame — the scene
+    /// reads the AI on, which is what lets `ai off` issue — then the events
+    /// mint the toggled script, and the file written from them is the
+    /// toggled file.
+    #[test]
+    fn minted_toggled_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let stanced = script::stanced();
+        let mut next = 0;
+        while r.frame() < i64::from(script::TOGGLE_FRAME) {
+            let f = r.frame() as i32;
+            while next < stanced.len() && stanced[next].0 == f {
+                r.issue(&stanced[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        let scene = r.scene(Some(0));
+        println!(
+            "TOGGLE STAGE0 f{} ai_off {} leaders {}",
+            r.frame(),
+            scene.ai_off,
+            scene.leaders.len()
+        );
+        assert!(!scene.ai_off, "the AI is on when the line is typed");
+        drop(r);
+
+        let Some((ours, mut r)) = mint_with(toggle_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        r.step();
+        assert!(
+            r.scene(Some(0)).ai_off,
+            "and off after the tick that takes it"
+        );
+        let toggled = script::toggled();
+        let whole = ours.iter().zip(&toggled).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (toggled.len(), INPUT_TOGGLED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, toggled);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(stanced), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(STANCED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(TOGGLED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {STANCED_RCX} or {TOGGLED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), TOGGLED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the toggled orders");
+        assert!(written != stanced, "not the stanced file");
+    }
+
+    /// The toggled file (`docs/CLIENT_INPUT.md` §28), written by rondata's
+    /// `the_toggled_minted_packages_round_trip` under `RON_RCX_OUT`.
+    const TOGGLED_RCX: &str = "ron-golden/recordings/item4283-toggled-greatlakes-24000.rcx";
+    const TOGGLED_RCX_BYTES: usize = 59_670;
+
     /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
     /// share of the recordings' orders they make.
-    const INPUT_KINDS: (usize, usize) = (22, 26);
+    const INPUT_KINDS: (usize, usize) = (23, 26);
     /// The orders those kinds make, of every order the recordings carry.
-    const INPUT_KINDS_ORDERS: (usize, usize) = (2373, 2429);
+    const INPUT_KINDS_ORDERS: (usize, usize) = (2377, 2429);
     /// The kinds on disk the layer does not mint, most first: the next
     /// kind by share is the first.
-    const NOT_MINTED: &[&str] = &["leader_options", "cheat_ai_toggle", "disband", "unitmask"];
+    const NOT_MINTED: &[&str] = &["leader_options", "disband", "unitmask"];
 
     /// The census, counted against the disk's pinned kinds.
     #[test]

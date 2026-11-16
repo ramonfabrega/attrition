@@ -37931,3 +37931,33 @@ with `waitrun.sh` in the background. `df -g ~` read 126 GB free before it.
 Archive `gamelog-run1617-greatlakes-playback-of-stanced-7000.txt`, 68,204,717 bytes,
 SHA-256 `2c4e17f4151956d457a899842ed3ad2af470f8ced86044e778aaf985fe6bd248`; `rontrace-run1617.log`, 34,327,712 bytes,
 SHA-256 `cb26b95319397c8d4a47d7a4a0e36fd39b8f3b72a5ae0b4c550b9766d3dd0d37`.
+
+## run1618 — the original playing the file a console's `ai off` minted (2026-11-15, item 4283, `att-4283`)
+
+`docs/CLIENT_INPUT.md` §28.4. **What the disk could not answer**: whether the original plays a minted
+`cheat_ai_toggle` mid-game, and what the AI turned off does to the computer seat. The four recorded toggles sit in
+files no take pairs with a dump, all within a game's first 1,507 frames. The file:
+`~/ron-golden/recordings/item4283-toggled-greatlakes-24000.rcx`, 59,670 bytes, SHA-256
+`a8517d161243a7261e4c0206714061a6a20543bf7879b0092973f6495cbb8e83`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata -- the_toggled_minted_packages_round_trip`. It is the stanced file with `cheat_ai_toggle` on 6800.
+
+The take is run1617's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1618 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --timeout 1800 --stall-seconds 120`, waited on
+with `waitrun.sh` in the background. `df -g ~` read 191 GB free before it.
+- **The run**: pool lane 1, launched 21:56:02 −05:00, exited 22:04:23: **501.3 s launch to exit**, exit 0, `success`.
+  7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five
+  settings restored, no page fault, no relaunch. The receipt names the file's SHA-256. Minutes waited on another
+  lane: none.
+- **The built walk under the pump on the file** (`TOGGLED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence; 300 records compared (6700..6999), **0 part**. Pinned 0 before the read. The stanced script walked
+  against this take parts 18, draws first on 6980, records first on 6982: `1/17`'s move `x`, ours 35640 against
+  theirs 35448.
+- **The order's effect** (`toggle_effects_theirs` on 6800, 6801, 6982, 6999): slot 1's pointed orders equal ours on
+  every frame, pinned before the read. `1/17` → (35448, 22968) on 6982, where run1617 has (35640, 22392).
+  `CommandPackage::process_cheat_ai_toggle` is first entered on 6799 (`TOGGLE_ENTRIES`), never in run1617.
+- Filed with `filerun.py run1618 greatlakes-playback-of-toggled-7000`. run1619 was not used.
+
+Archive `gamelog-run1618-greatlakes-playback-of-toggled-7000.txt`, 68,206,190 bytes,
+SHA-256 `26f5ce323bec5db04f9ba3191957ca853d4c4e7db2ab1d4e72f54f61eff557e9`; `rontrace-run1618.log`, 34,231,264 bytes,
+SHA-256 `6ed450847e7c14c0b321449e361e484152a86c9a9ed1b0521fe0acf8759d1c25`.

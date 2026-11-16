@@ -5673,3 +5673,283 @@ fn the_original_s_playback_of_the_stanced_file_walks_in_lockstep() {
     assert_eq!(walked, STANCED_WALKED, "the walked table");
     assert_eq!(theirs, stanced_effects(), "the original's capital is ours");
 }
+
+/// **The toggled file** (item 4283, `docs/CLIENT_INPUT.md` §28): the
+/// stanced script and one package more, the console's `ai off` on
+/// [`crate::script::TOGGLE_FRAME`]; it round-trips through the file, and
+/// every package before it is the stanced file's, frame, slot and stamp.
+/// With `RON_RCX_OUT=<file>` it writes the `.rcx` the playback takes open.
+#[test]
+fn the_toggled_minted_packages_round_trip() {
+    use crate::script::{TOGGLE_FRAME, stanced, toggled};
+    let (Some(rec), Some(before)) = (minted(&toggled()), minted(&stanced())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "toggled").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in toggled().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "TOGGLED tails {:?} against {:?}",
+        &ours[ours.len() - 3..],
+        &old[old.len() - 2..]
+    );
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 1, old[..m - 1].to_vec()));
+    assert_eq!((ours[n - 2].0, ours[n - 2].1), (TOGGLE_FRAME, 0));
+    assert_eq!(
+        (ours[n - 1].0, ours[n - 1].2),
+        (old[m - 1].0, old[m - 1].2 + 1)
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "TOGGLED RCX {} bytes (the stanced file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), STANCED_RCX_BYTES, "the file run1617 played");
+    assert_eq!(gz.len(), TOGGLED_RCX_BYTES, "TOGGLED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The toggled file's size, gzipped (item 4283).
+const TOGGLED_RCX_BYTES: usize = 59_670;
+
+/// The frames the toggle's effect is read on (item 4283): the package's
+/// frame, the frame after it, the first record the stanced walk parts on
+/// under the toggled file, and the window's last record.
+const TOGGLE_READ_AT: [i64; 4] = [6800, 6801, 6982, 6999];
+
+/// The toggled script, read off one frame: each living unit of slot 1,
+/// the computer seat, whose current order carries a point (a move, an
+/// explore or an attack-move: the dump's `MOVEORDER`, `EXPLORETOORDER`,
+/// `ATTACKTOORDER`, one move body on ours), with that point, by unit
+/// number.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct ToggleEffect {
+    pub frame: i64,
+    pub moves: Vec<(i64, i64, i64)>,
+}
+
+/// Our walk under the pump on `orders`' file, read on `at`.
+fn toggle_effects_ours(orders: &[Order], at: &[i64]) -> Vec<ToggleEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        let s = &built.sim;
+        let mut moves: Vec<(i64, i64, i64)> = s
+            .units
+            .iter()
+            .filter(|u| u.alive() && u.owner == 1)
+            .filter_map(|u| match &u.orders.front()?.body {
+                sim::orders::Body::Move(m) => {
+                    Some((i64::from(u.index), i64::from(m.dest.x), i64::from(m.dest.y)))
+                }
+                _ => None,
+            })
+            .collect();
+        moves.sort_unstable();
+        ours.push(ToggleEffect {
+            frame: s.frame,
+            moves,
+        });
+    }
+    ours
+}
+
+/// The original's, off the take's records on `at`.
+fn toggle_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<ToggleEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for &n in at {
+        let Some(i) = source.frames().iter().position(|f| f.number == n) else {
+            continue;
+        };
+        let f = source.frame_state(i).unwrap();
+        let mut moves: Vec<(i64, i64, i64)> = f
+            .units
+            .iter()
+            .filter(|u| u.who == 1)
+            .filter_map(|u| {
+                let o = u.current_order()?;
+                Some((u.o, o.x?, o.y?))
+            })
+            .collect();
+        moves.sort_unstable();
+        theirs.push(ToggleEffect { frame: n, moves });
+    }
+    Some(theirs)
+}
+
+/// **What the console's `ai off` does on our walk** (item 4283,
+/// `docs/CLIENT_INPUT.md` §28), pinned before the original's playback was
+/// read; seen red pinned as the stanced walk's. Nothing moves on 6800 or
+/// 6801: the flag stops `Leader::production_ai`'s step machine, and slot
+/// 1's units carry the orders it gave them. From 6982 the Citizens it
+/// would have sent elsewhere take other points: `1/17` on 6982, and `1/1`,
+/// `1/3` and `1/13` by 6999.
+fn toggled_effects() -> Vec<ToggleEffect> {
+    let row = |frame, moves: &[(i64, i64, i64)]| ToggleEffect {
+        frame,
+        moves: moves.to_vec(),
+    };
+    let opening = [
+        (0, 4344, 32760),
+        (4, 41208, 17208),
+        (23, 41592, 16056),
+        (28, 31800, 21816),
+        (29, 28824, 15000),
+    ];
+    vec![
+        row(6800, &opening),
+        row(6801, &opening),
+        row(
+            6982,
+            &[
+                (0, 6648, 35064),
+                (12, 40488, 18072),
+                (17, 35448, 22968),
+                (23, 36600, 20856),
+                (28, 31800, 21816),
+                (29, 28824, 15000),
+            ],
+        ),
+        row(
+            6999,
+            &[
+                (0, 6648, 35064),
+                (1, 36408, 23928),
+                (3, 41784, 17016),
+                (5, 41208, 16440),
+                (12, 40488, 18072),
+                (13, 36792, 22776),
+                (17, 35448, 22968),
+                (23, 36600, 20856),
+                (28, 31800, 21816),
+                (29, 28824, 15000),
+                (30, 31224, 21096),
+                (31, 31176, 21240),
+                (32, 31272, 20952),
+            ],
+        ),
+    ]
+}
+
+/// **The toggle on our walk**, against the stanced file's walk, whose
+/// computer seat keeps its AI; and against run1617, the stanced file's
+/// playback, which our reader of the take agrees with on every frame of
+/// [`TOGGLE_READ_AT`] (the comparison can fail: it is the stanced walk's
+/// own value on both sides).
+#[test]
+fn what_the_toggle_does_on_our_walk() {
+    if built_start().is_none() || minted(&crate::script::toggled()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = toggle_effects_ours(&crate::script::toggled(), &TOGGLE_READ_AT);
+    let without = toggle_effects_ours(&crate::script::stanced(), &TOGGLE_READ_AT);
+    for (a, b) in ours.iter().zip(&without) {
+        eprintln!("TOGGLE EFFECT ours {a:?}\n                without {b:?}");
+    }
+    assert_eq!(ours, toggled_effects(), "ours, pinned");
+    assert_eq!(ours[..2], without[..2], "nothing moves on the frame after");
+    assert_ne!(ours[2..], without[2..], "the computer's Citizens part");
+    if let Some(run1617) = toggle_effects_theirs(STANCED_WALKED[0].0, &TOGGLE_READ_AT) {
+        assert_eq!(run1617, without, "the reader agrees with the AI on");
+    }
+}
+
+/// **The original's playback of the toggled file** (item 4283):
+/// `(take, trace, first sequence parting or the last frame, last frame,
+/// records compared, records parted)`. Pinned before the take was read,
+/// with none parted.
+pub(crate) const TOGGLED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1618-greatlakes-playback-of-toggled-7000.txt",
+    "rontrace-run1618.log",
+    7000,
+    7000,
+    300,
+    0,
+)];
+
+/// The toggle's handler on the original's side, by entry address:
+/// `Game::action_cheat_ai_toggle` has no caller, and the handler
+/// flips the flag inline (`rondata::blind`).
+const TOGGLE_FUNCTIONS: [(u32, &str); 1] =
+    [(0x0094_4d20, "CommandPackage::process_cheat_ai_toggle")];
+
+/// Each take's first entry into [`TOGGLE_FUNCTIONS`], in sim-frames, pinned
+/// before run1618 was read: run1617 never; run1618 on 6799, the tick that
+/// consumes [`crate::script::TOGGLE_FRAME`]'s package.
+const TOGGLE_ENTRIES: &[(&str, [Option<i64>; 1])] = &[
+    ("rontrace-run1617.log", [None]),
+    ("rontrace-run1618.log", [Some(6799)]),
+];
+
+/// **The original plays the toggled file in lockstep** (item 4283,
+/// `docs/CLIENT_INPUT.md` §28): the built start walked under the pump on
+/// the toggled file against the take, every frame's draws and every record
+/// of its window ([`TOGGLED_WALKED`]); slot 1's pointed orders on
+/// [`TOGGLE_READ_AT`], read off the take's records, equal to ours; and the
+/// handler's entry on the original's side ([`TOGGLE_ENTRIES`]).
+#[test]
+fn the_original_s_playback_of_the_toggled_file_walks_in_lockstep() {
+    let toggled = crate::script::toggled();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in TOGGLED_WALKED {
+        let Some((w, _)) = walk_minted(&toggled, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "TOGGLED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let theirs = toggle_effects_theirs(TOGGLED_WALKED[0].0, &TOGGLE_READ_AT).expect("the take");
+    for t in &theirs {
+        eprintln!("TOGGLE EFFECT theirs {t:?}");
+    }
+    let mut entries = Vec::new();
+    for &(take_trace, _) in TOGGLE_ENTRIES {
+        let tr = trace(take_trace).expect("the take's trace");
+        let first = TOGGLE_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+        eprintln!("TOGGLE ENTRY {take_trace}: {first:?}");
+        entries.push((take_trace, first));
+    }
+    assert_eq!(walked, TOGGLED_WALKED, "the walked table");
+    assert_eq!(theirs, toggled_effects(), "the original's computer is ours");
+    assert_eq!(entries, TOGGLE_ENTRIES, "the handler's entry");
+}
