@@ -149,6 +149,7 @@ is append-only and amended in place, as it always was.
 - 132 standing — staged decisions; the chain's order; the corpus ledger; scoped gates; step H; parity
 - 133 standing — The pass of 2026-11-14: the loop is bound by test CPU, a lane's gate reads the queue's mark, the second reading moves no leaf, the lanes follow parity and the eye, the documents compacted
 - 134 standing — The pass of 2026-11-14, second: the week is bound by tokens, a scoped lane that moves the sim's source keeps the widenings, a quoted refusal cites nothing, the render lane follows the eye
+- 135 standing — The pass of 2026-11-15: the driver's two lines are asked at the gate and the brief, a wake is a spawn, the day's line carries no margin, a session's booking gate runs through `gate_run.sh`
 
 ## 1. Fidelity before divergence
 
@@ -13206,3 +13207,132 @@ the last having reached no conclusion.
 **Done on Ramon's word:** the loop's 45 merged branches on origin are
 deleted; the seven merged `codex/*` branches stand, since Codex may take a
 turn.
+
+## 135. The driver's two lines are asked at the gate, a wake is a spawn, the day's line carries no margin, and a session's booking gate runs through `gate_run.sh` (2026-11-15)
+
+**What happened.** `commander` (Opus 5.5) ran from the pass of 2026-11-14
+(13:27 −05:00) to 20:15 and banked at the day's line, then woke on a
+session cron at 06:07 on 2026-11-15 and ran one unbroken session to 18:01.
+Fifty merges of workers' branches landed between the two passes (seventeen, then
+thirty-three; 40 lane items and nine in-session builders by the tables),
+every floor held and
+every line but leaders came whole on the minted game. The `steer` row's
+pass began at 20:07 on Ramon's word, with a charter of five findings from
+the row that had read the day. The tables are in
+`docs/audit/2026-11-15-fable-pass-driver-lines.md`.
+
+**§1. The backstop is counted and refused, not remembered.** Twenty
+landings without a pass is a boundary (entry 126 §4). The twentieth merged
+at 07:02 on 2026-11-15; the driver wrote "Twenty landings are booked today"
+at 12:16, counting from its own wake, and booked thirty more. Nothing
+counted. Now a landing is a first-parent merge after the commit that added
+the newest pass record (`docs/audit/*-fable-pass-*.md`), and two tools ask:
+`tools/brief.py` composes no lane's brief at twenty (exit 2, the refusal the
+chain already stops on), and `tools/gate_run.sh` refuses a scoped gate
+(exit 93) once the count is past twenty and the four seats that could still
+be out. The whole gate is the way out, and the handover to `steer` after
+it. The number stays twenty; at this tranche's pace (2.35 bookings an hour)
+that is a pass about every eight and a half crew-hours, and Ramon moves it
+by a word (`BACKSTOP` in `tools/handover.py`). When Fable's week reads at
+its stop no pass can start: the driver exports `ATTRITION_BACKSTOP_WAIVED`
+with that reading, every gate log prints it, and the handoff says so. **A
+pass's record is the pass's to create**: a driver's finding for a pass goes
+in the item's journal or the handoff's `For the pass` part, because a
+record file added early would zero the count.
+
+**§2. The driver's line is asked at the gate, and the seat is not always
+full.** The driver clears when its next turn would carry more than 400 k
+(entry 131 §6). Its context went 81 k → 536 k and it never named the line.
+The crossing, at 13:10:49, came eleven seconds after a builder's handback:
+no builder was out for the next twelve and a half minutes, the driver cut
+the next one at 13:23, and three more after it. So the answer to "banked
+never holds" is in the cutting: **past 350 k the driver cuts no in-session
+builder** (a builder ran 24 to 104 minutes and the driver grew 38 k an
+hour, so a builder cut at 350 is booked near 400); the chain's next step
+waits for the fresh row, or goes out as a ccc lane, which a clear survives.
+**At 400 k the driver banks on that gate and clears. At 450 k
+`tools/gate_run.sh` refuses the gate (exit 94)**, and the way out is
+`handover.py to commander --opener-file <file> --ungated`: the tip is
+committed, the fresh row is told to gate it first, and nothing is pushed
+ungated. Every gate log now carries a `Driver:` line with both readings.
+What the depth cost in money is small: the 133 requests past 400 k were
+15.04 of the driver's 36.22 USD, and a clear at the crossing would have
+saved about ten, a third of a point. Whether the depth is why two rules
+went unnamed is not established.
+
+**§3. A session's booking gate runs through `tools/gate_run.sh`.** The
+driver of 2026-11-15 ran its 34 booking gates as `python3
+tools/release_gate.py … --scope …` in the integration tree: the command the
+queue's own maintenance line still gave, two days after entry 131 §8 put
+the gate behind the script. So no gate asked the rows, none ran in the gate
+tree, and none cleared the disk: free space fell from 228 GB to 120.
+`tools/release_gate.py` now refuses a session's gate that is neither a
+lane's nor started by the script (a person's shell is not a session), the
+queue's line names the script, and the two checks of §1 and §2 live where
+that refusal sends the driver. Without it they would have been two more
+lines a fresh row never met.
+
+**§4. A wake is a spawn.** A session's `CronCreate` one-shot survives a
+clear and a model swap and fires into the row as it then stands. On
+2026-11-15 it woke the banked row cleanly (81 k, 50 k written cold); that
+evening, with Ramon talking on the row on Fable, the same task would have
+run a tranche on Fable inside a conversation, and was deleted by hand. So
+the fired prompt is never the opener. It is one command: `python3
+tools/handover.py wake`, a handover to a fresh `commander` on Opus 5.5
+whose opener is the queue's own `**Opener:` paragraph, read at the moment
+it fires. Whatever stands in the row spends one turn and is reaped. A
+driver ahead of the day's line banks, clears itself with a prompt that
+arms that cron for the next 06:07 −05:00, and ends.
+
+**§5. The day's line carries no margin.** The driver stopped cutting at
+22 % and banked at 23 against a line of 28, applying the three points the
+stop keeps before the 99 % wall. The wall's margin exists because the wall
+kills every agent in flight. The day's line kills nothing: it is
+cumulative, and a point over it today is a point less tomorrow. So the
+driver refills while the week reads under the line, what is in flight when
+it is reached lands over it, and no seat is held back for it. This is the
+reading of entry 134 §1's "about fourteen points", not a new budget. The
+figure beside it, for Ramon: three seats moved the week 9 points in 11.9
+hours, 0.76 an hour, so fourteen a day is about eighteen and a half hours
+of this roster.
+
+**§6. A `--no-widen` lane keeps every widening, by suffix.** Entry 134 §3
+kept two families by name, 405 tests. Item 4253's lane ran them and its
+booking gate was still red on 47 widenings of other families (a closing
+frame's, a contact window's; 14.5 minutes). The kept set is every test
+ending `_widened_whole` or `_walked_whole`: 613 tests, 1,363 s one at a
+time by the timings file.
+
+**§7. Three smaller repairs.** `tools/tranche.py --base` read none of the
+fifty bookings, because the driver wrote `Booking` where the tool matched
+`Book`; the handoff carried no table, which is how §1 went unseen. It reads
+both, and a residue's forms. `tools/reap_agents.py` treats a lock that
+names a dead process as stale: seven merged builder trees stood under the
+lock of the row that cut them. The blind list's open rows were scanned for
+references: eight are called, and one issuer has no caller in the
+executable's bytes, so only the DLL's `@` line enters it; it stays open on
+Loop 3473 and its comment says so.
+
+**§8. A lane's depth plan is confirmed** (entry 134 §9). Forty lanes cost
+6.67 USD a landing against 9.68 the tranche before; three passed 300 k
+(302, 302 and 320) where six of thirteen had, at up to 422. The row stays
+in the brief. An in-session builder cost 10.70 USD (nine for 96.29 on
+2026-11-15) and one was told to wrap up at 265 k; a builder's brief takes
+the same row.
+
+**§9. The booking gate runs the merge pins first and the clock last, alone.**
+Two builders of the pass (Opus 5.5). The pins `docs/LOOP.md` asked the
+driver to run by hand at a merge are a step of the gate ahead of its
+release step (two reds of thirteen minutes each on 2026-11-15). The
+client's clock test, a wall-clock ceiling that broke two booking gates at
+host loads of 13.5 to 15.6 and reads p99 14 ms alone, leaves the release
+step and is measured after it under a lease that drains the whole host
+budget. A lane's filter whose every match lies in crates it leaves out is
+dropped however many those are (item 4281). `repin.py` and
+`cant_reach_pins.py` keep the comments inside what they rewrite; the
+trailing comment item 4258 reported lost did not reproduce.
+
+**Not established:** whether an in-session builder's handback survives its
+driver's clear (so §2 forbids the cut rather than relying on it); what the
+clock test reads between host loads of 7.5 and 13.5; whether a pass every
+twenty landings is worth its point, which the next two passes will show.

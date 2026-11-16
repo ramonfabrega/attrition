@@ -42,7 +42,8 @@ while workers are out.
 **The driver banks, then clears itself.** Banked is all of: the tree
 committed, the gate log's own `gate exit 0` read, the branch pushed and
 `origin/main` fast-forwarded, the queue's handoff rewritten, and no
-in-session builder in flight. A ccc lane may be out across a clear: the
+in-session builder in flight (whether a builder's handback survives its
+driver's clear is untested, so none is cut near the line). A ccc lane may be out across a clear: the
 handoff names it, its item and its waiter's arguments. Then the driver
 reads `ccc clear <own ref> --status`, arms `ccc clear <own ref> --then "<the
 queue's opener>"` as the turn's last act, and the turn ends (its own row
@@ -62,13 +63,31 @@ and 10.61 with twelve, followed the item's size). **What is dear is a read
 past the hour the cache lives**: a row or a lane that will sit longer than
 that on a deep context is cleared first. Idle compaction is the fallback,
 never the mechanism: a session that resumes summarised re-reads the queue
-before it acts.
+before it acts. **The line is asked at the gate** (DECISIONS 135 §2: the
+driver of 2026-11-15 went 81 k → 536 k and never named it). Every gate
+log carries a `Driver:` line with the row's context. **Past 350 k the
+driver cuts no in-session builder**: the chain's next step waits for the
+fresh row or goes out as a ccc lane, which a clear survives; the crossing
+of 2026-11-15 came eleven seconds after a handback, and the builder cut
+twelve minutes later held the row for the rest of the day. **At 400 k it
+banks on that gate and clears; at 450 k `tools/gate_run.sh` refuses the
+gate, exit 94**, and the way out is `python3 tools/handover.py to
+commander --opener-file <file> --ungated`: the tip committed, nothing
+pushed, the fresh row told to gate it first.
 
 **Supply calls the pass, not a count.** `commander` hands over to `steer` when the
 queue holds fewer designed items than the workers it would feed, when the
 track's next step is undesigned, at a milestone, when a finding changes
 the direction or the kill rule trips, or on Ramon's word; twenty landings
-without one of those is also a boundary, as a backstop (DECISIONS 126 §4). The pass is a fresh context by construction, and the clear
+without one of those is also a boundary, as a backstop (DECISIONS 126 §4).
+**The backstop is counted and refused** (DECISIONS 135 §1: fifty landings
+passed it in silence). A landing is a first-parent merge after the commit
+that added the newest pass record; `tools/brief.py` composes no brief at
+twenty, and `tools/gate_run.sh` refuses a scoped gate, exit 93, past twenty
+and the four seats. The driver books what is out, gates whole and hands
+over to `steer`. The count is on every gate log's `Driver:` line. When
+Fable's week reads at its stop the driver exports
+`ATTRITION_BACKSTOP_WAIVED="<the reading>"` and the handoff says so. The pass is a fresh context by construction, and the clear
 before it is what makes its scoring a second look. What a pass does is
 under "Ratification, and the passes".
 
@@ -132,7 +151,15 @@ to an Opus lane under the frame, and Ramon is told at once. **The stop:
 at will by a word on this row.** **The day's budget: about fourteen points of the week a day,
 since 2026-11-14 (Ramon, DECISIONS 134 §1).** The driver reads the week at each booking; when it reads
 more than fourteen times the days begun since the reset, the driver is ahead of the day's line and
-drains and banks as at the stop, until the next day begins. **Fable's week stops at 90 %** (the same
+drains and banks as at the stop, until the next day begins. **The day's line carries no margin**
+(DECISIONS 135 §5): the three points below belong to the wall, which kills what is in flight; the
+day's line is cumulative, so the driver refills while the week reads under it and what is out when
+it is reached lands over it. **A wake is a spawn** (§4): a driver ahead of the line banks and
+clears itself with `ccc clear <own ref> --then` a prompt that does one thing, `CronCreate` a
+one-shot for the next 06:07 −05:00 whose whole prompt is "Run `python3 tools/handover.py wake` as
+your only act and end the turn, asking nothing". The cron fires into the row as it then stands,
+whatever its model or its conversation, and that row hands over to a fresh `commander` with the
+queue's own opener. The opener itself is never a cron's prompt. **Fable's week stops at 90 %** (the same
 entry): at it the steer row starts no pass, and one in flight writes its record and hands back. At or past the stop the driver cuts no builder and refills no lane; what
 is in flight finishes and is booked; the driver banks and ends its turn
 with a report. Inside three points of it nothing is cut that cannot be
@@ -191,7 +218,9 @@ need for the queue lane again is a steer, never a lane's redirect** (item
 
 **A builder's brief is not composed from the frame.** The driver writes it:
 the goal, the score, what is ruled out, where to read, the machine facts,
-red first, and what to hand back. The frame's rows are the method of a word
+red first, what to hand back, and the lane's depth row (`python3
+tools/ctx.py` after the first act; DECISIONS 135 §8: a builder cost 10.70
+USD against a lane's 6.67, and one was at 265 k when told to wrap up). The frame's rows are the method of a word
 lane, and a chain step is not one.
 
 ## The worker's landing
@@ -265,18 +294,32 @@ waiter's exits, and what answers each, are `tools/lanewait.py`'s header,
 which is the authority (Loop 4051 and 4055 ruled closed by the pass of
 2026-11-14).
 
+**A session's booking gate is `zsh tools/gate_run.sh <sha> <log> [--scope
+<tip>]`, never the bare `release_gate.py`** (DECISIONS 135 §3): the script
+asks the rows, the backstop and the driver's depth, runs the gate in the
+gate tree and clears the disk after a green one, and `release_gate.py`
+refuses a session that goes round it. The tranche of 2026-11-15 ran 34
+gates bare on the queue's own stale line, and the disk fell 108 GB.
+
 **The booking gate takes every landing that is merged when it starts**
 (DECISIONS 131 §4). The tranche of 2026-11-12 ran eleven booking gates one
 landing at a time, 334.9 minutes of gate in a span of 413: the gate bound
 the loop, not the workers. The driver merges and books every lane and
 builder that is done, then gates the tip once and pushes it; a red names
 its test, and the driver reads which merge moved it before it sends anyone
-a line. **At a builder's merge the pins a merge moves are run first** — the
-census pin, the doors pin, `free::ages`, `diff::coverage`,
-`diff::checksum_lines`, `diff::transfer`, `diff::floors` — because two of
-that tranche's three reds were such a pin found by a thirty-minute gate,
-and the next tranche's first was a literal in `diff::floors` (gate-4205,
-19.8 minutes on it alone; the literal is gone, DECISIONS 132 §4).
+a line. **The pins a merge moves run first, and the gate runs them** (the pass of
+2026-11-15; `release_gate.py`'s `MERGE_PINS`): the census pin, the packets'
+wiring, `diff::floors`, `diff::transfer` and the ages pins, 109 test-seconds,
+as a booking gate's own step ahead of its release step, which does not run
+when one is red. This was the driver's to do by hand, and two booking gates
+of 2026-11-15 went red on such a pin after thirteen minutes each (two of
+the tranche of 2026-11-12's three reds before them, and gate-4205's 19.8
+minutes). `diff::coverage` (266 s) is not in the list. **The clock test
+runs last and alone**: a booking gate leaves it out of its release step and
+measures it as a final step under a draining lease of the whole host
+budget, so no admitted test runs beside it; it broke two booking gates at
+loads of 13.5 to 15.6 beside lanes and reads p99 14 ms alone. A booking
+gate has nine steps.
 
 **A booking gate is scoped, and the whole gate runs at a drain and at a
 pass** (DECISIONS 132 §5). A scoped gate widens to every timed test on any
@@ -430,7 +473,9 @@ reference to another's state, and the only coupling is the merge and what
 the brief reserves. **A capture that is running is never stopped halfway**:
 a reprioritisation stops future captures only. **A finding the driver would
 raise at a pass is written in the turn it is noticed, in the journal file
-of the item it came from or in the pass's own record under `docs/audit/`**;
+of the item it came from or in the handoff's `For the pass` part, never in
+a pass record of its own making: the record is the pass's to create, and
+adding one zeroes the backstop's count (DECISIONS 135 §1)**;
 a journal's own "for the Loop" line stays in the journal and is filed
 nowhere (`docs/DECISIONS.md` entry 125). **A handoff banked for a pass
 carries a `For the pass` part, and its counts are the tables'** —
@@ -438,7 +483,8 @@ carries a `For the pass` part, and its counts are the tables'** —
 after `lore index`, never a count from memory. **A waiter on a lane is
 armed with `--deep 400`** (DECISIONS 131 §6). **A `--no-widen` lane gate
 keeps the widenings itself when its branch moves the sim's source**
-(DECISIONS 134 §3): a brief carries no line for it.
+(DECISIONS 134 §3; every test ending `_widened_whole` or `_walked_whole`
+since 135 §6): a brief carries no line for it.
 
 ## Ratification, and the passes
 
@@ -474,14 +520,17 @@ read are in `docs/audit/2026-11-09-loop-retired-clauses.md`, "Retired
    the reflex rebuilds it in minutes (DECISIONS 104 §6).
 4. **The lane rows a drain left idle reaped at the pass's start** —
    `ccc rm <ref>` on a merged row (eight stood at the fifty-third's
-   drain, Loop 3565).
+   drain, Loop 3565) — **and the builder trees the reaped driver's lock
+   held** — `python3 tools/reap_agents.py --yes` (seven on 2026-11-15; a
+   lock that names a dead process is stale).
 5. **Its subagents' worktrees removed at their merge** — `git worktree
    remove`, before the pass's gate (the fifty-second pass's, locked by a
    live `claude bg-spare`, refused the fifty-third tranche's tenth
    booking gate until a person removed it, Loop 3545).
-6. **Its table of the tranche's gates** — `python3 tools/gates.py <the
-   commander's job tmp> --since <the last pass's gate log>` (DECISIONS
-   80).
+6. **Its table of the tranche's gates** — `python3 tools/gates.py
+   ~/Library/Caches/attrition/gates --since <the last pass's gate log>`
+   (DECISIONS 80; the logs left the job's temp dir on 2026-11-12) — **and
+   of its lanes**, `python3 tools/tranche.py --base <the last pass's tip>`.
 7. **Its rubric** — `python3 tools/rubric.py --record "<the pass>"`: the
    content view (ages held, unit types seen, source groups wholly backed)
    as a row in `docs/audit/rubric.tsv` and a table against the pass

@@ -1509,7 +1509,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// playback never calls (run1616 enters `process_come_out`'s effect through the file); and
 /// `GroupOut::issue_disband@0070a470` and `GroupOut::issue_stance@0070b100`, the issuers of two
 /// kinds the census has not minted. A live game's press, or the DLL's `@` issuer line, would enter
-/// them; open 5 → 8.
+/// them; open 5 → 8. (The pass of 2026-11-15's reference scan: `GroupOut::issue_stance` has no
+/// caller and no copy of its address in the executable's bytes, so no press enters it, only the
+/// DLL's `@` line; it stays open on that, Loop 3473. The other eight open rows are each called.)
 /// **344 → 345** with item 4282's stance (`docs/CLIENT_INPUT.md` §27.1): `Options::do_stance
 /// @00721480`, the STANCE button's, which writes the order inline, stays open, not residue: a
 /// playback presses no button (run1617 enters `process_stance`'s effect through the file), and a

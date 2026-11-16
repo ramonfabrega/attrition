@@ -348,9 +348,12 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// ported out of replaced), and 44 twin rows by hand.
 // 733 → 734 ported and 574 → 573 open at the pass of 2026-11-14
 // (`tools/rubric.py --record`, after items 4229 and 4230).
-pub const RUBRIC_TERRITORY_PORTED: usize = 734;
-pub const RUBRIC_TERRITORY_REPLACED: usize = 332;
-pub const RUBRIC_TERRITORY_OPEN: usize = 573;
+// 734 → 736 ported, 332 → 331 replaced and 573 → 572 open at the pass of
+// 2026-11-15 (items 4259 and 4159's twelfth residue each spelled a backed
+// function: one row out of `replaced` and one out of open, by the counts).
+pub const RUBRIC_TERRITORY_PORTED: usize = 736;
+pub const RUBRIC_TERRITORY_REPLACED: usize = 331;
+pub const RUBRIC_TERRITORY_OPEN: usize = 572;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose

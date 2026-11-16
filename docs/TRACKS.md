@@ -69,6 +69,12 @@ designs each as the one before it lands.
 | **save and replay** | a game saved as seed plus orders, replayable here and written back into the original's recorded-game container | a saved game replays to the same hash; the original replays one of ours | the diff suite; the original on the capture lane | **step 3 stands** (`Recording:`): every recording on disk round-trips, and the original plays our order-free file for 24,000 of 24,000 frames (4058, run1560) |
 | **census** | the territory count tells the truth about the original's 3,611 simulation functions | ported · replaced by design · open, the readers' marks landed row by row (`docs/audit/2026-11-06-territory-*.md`; lore's scoring of the `replaced` groups) | `tools/census.py`'s pins | `Rubric:` 574 open of 3,611, 569 of them carrying a reader's ruling (entry 132); filler for an idle lane |
 
+**At the pass of 2026-11-15** (the table's last column is 2026-11-14's; `docs/QUEUE.md` holds the
+lines): **checksum** — every line but leaders is whole on the minted game, `LEADERS_HELD_OUT` 10,
+`score` parting on 7 tests; **orders** — `INPUT_KINDS` 22 of 26 kinds and 2,373 of 2,429 orders, each
+kind's file played by the original but spell's; **renderer** — under a mountain 100 of 106, the row
+past the map's edge pinned at 0 of 162. The other tracks stand as the table says.
+
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
 on one lane, taking textures and team colours next; then the lobby screen
@@ -78,9 +84,9 @@ lobbies, the census filler — as filler for an idle worker. The rules track
 is whole and stays whole: its floors run on every gate forever.
 
 **The workers** (entries 116, 126, 128 §4, 129 §1, 134 §2): three gating
-seats since 2026-11-14, on a day's budget of about fourteen points: two
-lanes on parity and one on render, and the driver's builders on the chain
-when a seat is idle. At
+seats since 2026-11-14, on a day's budget of about fourteen points: since
+2026-11-15, with parity's four lines whole, one lane on render, one on the
+client's input, and the driver's builders on the chain's leaders line. At
 most one lane holds an item the queue marks whole. No lane gates whole but
 a `structure` lane since entry 132 §6: a lane's gate runs its brief's
 filters and the booking gate, scoped, runs the corpus. The count is
