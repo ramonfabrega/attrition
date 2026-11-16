@@ -143,6 +143,18 @@ class DriverLineTests(unittest.TestCase):
         self.assertTrue(text.endswith('continue the tranche'))
 
 
+class PathTests(unittest.TestCase):
+    def test_the_tool_finds_ccc_and_lore_from_a_bare_shell(self):
+        # A cron's wake runs `handover.py wake` in a row's shell as it
+        # stands, and a driver row's Bash has no Homebrew or bun on its PATH
+        # until a call exports them: from `env -i`, `check` died on
+        # `FileNotFoundError: 'ccc'` (the pass of 2026-11-15). The tool adds
+        # the directories itself, once, ahead of what is there.
+        path = handover.tool_path('/usr/bin:/bin', '/Users/x')
+        self.assertEqual(path, '/opt/homebrew/bin:/Users/x/.local/bin:/Users/x/.bun/bin:/Users/x/.cargo/bin:/usr/bin:/bin')
+        self.assertEqual(handover.tool_path(path, '/Users/x'), path)
+
+
 class LandingsTests(unittest.TestCase):
     """The count's zero is the commit that added the newest pass record, and
     a landing is a first-parent merge after it: on a repository made here."""

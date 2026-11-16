@@ -193,4 +193,8 @@ drained clock for real.
   step removed 130 stale oracle generations: 212 GB free.
 
 This section and the queue's handoff lines are gated scoped over that
-commit (`gate-pass-1115b.log`).
+commit (`gate-pass-1115b.log`, `gate exit 0` on `f071fadb6`). One repair
+followed it: `tools/handover.py` puts the directories of `ccc` and `lore`
+on its own PATH, because a wake runs in whatever shell the cron finds and
+from a bare one `check` died on `ccc` (`tool_path`, red first); gated
+scoped again (`gate-pass-1115c.log`).

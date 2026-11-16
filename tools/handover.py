@@ -48,6 +48,20 @@ import subprocess
 import sys
 import time
 
+TOOL_DIRS = ('/opt/homebrew/bin', '{home}/.local/bin', '{home}/.bun/bin', '{home}/.cargo/bin')
+
+
+def tool_path(path, home):
+    """`path` with the directories that hold `ccc`, `lore` and cargo ahead
+    of it, each once: a row's shell lacks them until a call exports them,
+    and a wake is run by whatever shell the cron finds."""
+    have = path.split(':') if path else []
+    want = [d.format(home=home) for d in TOOL_DIRS]
+    return ':'.join([d for d in want if d not in have] + have)
+
+
+os.environ['PATH'] = tool_path(os.environ.get('PATH', ''), os.path.expanduser('~'))
+
 DRIVERS = {
     'commander': ('claude-opus-5-5', 'high'),
     'steer': ('claude-fable-5-2', 'high'),
