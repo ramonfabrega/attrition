@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day; §26 item 4280, the same day; §27 item 4282, the same day; §28 item 4283, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day; §26 item 4280, the same day; §27 item 4282, the same day; §28 item 4283, the same day; §29 item 4287, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -902,7 +902,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `cheat_ai_toggle` | 4 | 0.1 % | yes (§28) |
 | `come_out` | 4 | 0.1 % | yes (§26) |
 | `stance` | 4 | 0.1 % | yes (§27) |
-| `disband` | 1 | 0.0 % | |
+| `disband` | 1 | 0.0 % | yes (§29) |
 | `unitmask` | 1 | 0.0 % | |
 
 The shares are cut to the tenth, not rounded.
@@ -2454,7 +2454,7 @@ Every order of the six on disk, read off the recordings (a scratch test, not kep
 | `cheat_ai_toggle` | 4 | the bottle's, slot 0, on frames 6, 6, 101, 1507 | `ConsoleWin::run_cmd@007d6a70` case `0xc`, a cheat word | the console; no unit (§28: every computer seat's AI, not slot 0's) |
 | `come_out` | 4 | the 2017 sample's, slot 3, `o` 59, 114, 92, 110 | `Options::exec@007188c0` case `0xaa` → `UnitOut::issue_come_out@00607be0` | **yes**: the Citizen `0/2` inside `0/2000` |
 | `stance` | 4 | the 2017 sample's, slot 3, each `stance(−1)` on `2048` or a repeat of it | `GroupOut::issue_stance@0070b100`; no direct caller in the export | not read (§27: **yes**, the capital `0/2000`) |
-| `disband` | 1 | the 2017 sample's, slot 3, `disband(0)` on `2008` | `IFaceSelected::on_button_clicked@00826e00`, `Options::do_disband@0071df20` → `GroupOut::issue_disband@0070a470` | not read |
+| `disband` | 1 | the 2017 sample's, slot 3, `disband(0)` on `2008` | `IFaceSelected::on_button_clicked@00826e00`, `Options::do_disband@0071df20` → `GroupOut::issue_disband@0070a470` | not read (§29: **yes**, the Citizen `0/2`) |
 | `unitmask` | 1 | the 2017 sample's, slot 3, `unitmask(0x100, −1)` on `0` | `Options::do_auto_explore@0071cbf0`, `Options::exec`, `Console::execute_at_cursor` → `GroupOut::issue_unitmask@00708880` | the Scout `0/0` (not taken) |
 
 **`leader_options` is the profile's, not the lobby's.** `Game::init_rules_and_teams@00589bb0` resets
@@ -2822,3 +2822,133 @@ shows them only through what the AI would have done in that span.
   (`TokenString`) and `String::operator==`'s case rule are not read;
 - the line's limit, which is the chat box's `0x80`; the console's own edit limit is not read;
 - every other console word minting nothing.
+
+## 29. A unit's disband: the DISBAND button (item 4287)
+
+*Item 4287, 2026-11-15. The score: `INPUT_KINDS` 23 → 24 of 26, and 2,377 → 2,378 of 2,429 orders (97.8 % → 97.9 %).
+The one recorded disband is the 2017 sample's, slot 3: `disband(0)` on its building `2008`. The first act read its
+issuer and its handler. The actor is the selection's DISBAND (a panel button or the `OPTION_DISBAND` key, both through
+`Options::exec`). The effect on a unit is a death that spends a draw. Slot 0 of the minted game disbands the
+came-out Citizen `0/2`. The walk already held `Group::action_disband`'s two arms (items 3914, 3994; `docs/GOLDEN.md`
+§161, §187); the recorded-order pump did not route `disband` to them. The original plays the file whole (run1623, §29.4).
+This branch does not touch `crates/sim`.*
+
+### 29.1 What the button issues, and what the order does
+
+- **The actors.** `Options::exec@007188c0` case `0xf` calls `Options::do_disband@0071df20(0)`; case `0x10` calls it
+  with 1. `OPTION_DISBAND` reaches `exec` from:
+  - the command panel, which `UnitOut::make_options@00615fc0` offers for a unit only under a profile preference
+    (`prefs & 2`), and `BuildOut::make_options@00629ed0` for a building;
+  - the key map's `OPTION_DISBAND` and `OPTION_DISBAND_ALL` (`KeyMap::keymap_strings`);
+  - the selected panel (`IFaceSelected::on_button_clicked@00826e00`);
+  - a popup's confirmation (`Popup::on_modal_end@007c13f0` case 2), whose opener was not found in the export.
+
+  The selected panel has a second arm that bypasses `exec`. It builds a one-object group and calls
+  `GroupOut::issue_disband@0070a470` on it directly.
+- **`do_disband`.** The gate is `Group::can_activate(selection, 0, −1)`. Then, while the game's first semaphore
+  byte's `0x10` bit is clear and `GroupOut::validate_disband@0070a4a0` answers 0, it calls
+  `CommandManager::issue_disband@00941ad0`. That call is the selection's `group` (`add_group`, with its repeat, §20)
+  and command `0x15`, `[all]`, 5 bytes. A refusal mints nothing. Its feedback (`S_INVALID_ORDER` and a red line) is
+  the console's alone.
+- **`validate_disband`.** It answers 0 for a group of units (`+0x49` clear). For a group of buildings it refuses more
+  than one building, and runs the city-centre, wonder and `is_castable` tests the walk ports as `disband_refused`.
+- **What it does.** `CommandPackage::process_disband@00948660` logs, then calls `Group::action_disband@0070e260(all)`
+  on the package's group. The walk runs from the last member down:
+  - a unit, or an unfinished site, goes to `Object::disband(o, 0)`, and with `all` 0 the walk stops;
+  - a finished building queues `DISBAND` (`Build::queue_up`) unless it holds one already.
+- **On a unit**, `Object::disband@006455c0` disbands whatever the unit holds. Then it `die`s with `dtype`
+  `(Random::get(0, 0xffff) % 3) + 1` (`Sim::disband_unit`, item 3914). So the order spends one draw on the tick that
+  takes it, and the unit leaves its owner's living units.
+
+### 29.2 What the layer does
+
+- **The walk** (`crates/rondata/src/input.rs`, `Stream::pumped`). `disband` on the package's group goes to
+  `group_disband`, the golden harness's `OPTION_DISBAND` entry. A group of buildings is pushed as `process_group`
+  pushes one and takes the building arms behind `disband_refused`; any other group takes the unit arm. Before this
+  item the pump skipped `disband` as "not mapped".
+- **The HUD** (`hud::disband_button`). One button, DISBAND, three rows above the bottom edge and fourth from the
+  right. It shows for a selection one of whose members is the slot's own, unit or building. A press on it is
+  `Event::Disband`.
+- **The layer.** `Event::Disband` with a selection and the entry line closed mints the selection's `group` and
+  `disband(DISBAND_ONE)`, 0. `disband` is added to `MINTS`.
+- **The script** (`crates/rondata/src/script.rs`). `disbanded()` is the toggled script and one package more, on
+  `DISBAND_FRAME` 6810: `group [2]` and `disband(0)`.
+
+**Stage 0** (`minted_disbanded_at_the_opening_camera`), on 6810 at the opening camera:
+- the Citizen `0/2`, out of the capital since 6780, stands at pixel (1316, 471);
+- with it selected, the DISBAND button's centre is (1258, 966).
+
+### 29.3 The counts and the file
+
+- `INPUT_DISBANDED`: **31 of 31**. The events are the toggled ones, then on 6810 a press on the Citizen and one on
+  the DISBAND button. Through the HUD and the layer they mint `script::disbanded()`. Seen red pinned 30.
+- `INPUT_DISBANDS`: **1 of 1** (seen red pinned (0, 0)), the package's orders whole: the 2017 sample's `group [2008]`
+  and `disband(0)`, minted from a fresh layer with the building selected and a press on the button.
+- `minted_disband_edges` checks these cases:
+  - the button for a unit of the slot's own, a building of its own, and a mixed pick holding one;
+  - none for another slot's unit or building, no selection, or the entry line open;
+  - the order is `group [2]` and `disband(0)`, and the same selection again sends its `group` as no objects.
+- `INPUT_KINDS` (24, 26), `INPUT_KINDS_ORDERS` (2,378, 2,429); `NOT_MINTED` drops `disband`.
+
+**The file.** `~/ron-golden/recordings/item4287-disbanded-greatlakes-24000.rcx`, 59,681 bytes, SHA-256
+`4f355a9187e527330322f2f55eafab9f63afc8edfc1cae9630dba9712d33d5b3` (`the_disbanded_minted_packages_round_trip`). It
+holds the toggled file's packages, then the disband's on 6810, stamped 32. The closing stamp goes from 32 to 33. The
+client's events through the HUD write it byte for byte.
+
+### 29.4 The playback, and the order's effect
+
+**run1623** (`docs/RUNS.md`) is run1618's line with the disbanded file and `DEATHS=1`; the receipt names the file's
+SHA-256. **Draws agree on 7,000 of 7,000 frames**, count and sequence, and **all 300 of the window's records are
+whole** (`DISBANDED_WALKED`, pinned before the read with none parted). The records now carry `DEATH_OBJS`, so the
+corpse is compared too.
+
+**run1622 first**, the same line without `DEATHS`. It parted in two places, and both were our instruments:
+- **The draws**, on 6809. The original's trace files the disband's two draws, `Object::disband+0x415` and
+  `Unit::close+0xcb6`, at the end of 6809. Our pump applies the package between ticks, after 6809's marks were
+  named and before 6810's tick cleared them, so the draws were spent but never named. `walk_with` now names a
+  command's marks into the frame before, as the golden harness's staged lines do. No earlier minted order drew
+  between ticks.
+- **189 of 300 records**, from 6811, `DeathDivergence { who: 0, o: 2, field: "extra" }`. run1622 printed no
+  `DEATH_OBJS`, and the comparer reads a corpse of ours that a dump does not print as one the original does not hold
+  (parked 4287b). run1623 printed the corpse, and it is ours.
+
+**The comparison can fail.** The toggled script, which has no press, walked against run1623 parts 189 of the 300
+records, with draws first on 6809. On 6811 the first parted record holds three things: our `0/2` alive, a corpse
+missing, and the farm `0/2007`'s `gather_down` reading ours 2 against theirs −1 (a scratch test, not kept).
+
+**The order's effect.** Slot 0's units on each record (`disband_effects_theirs`, `disband_effects_ours`). Ours were
+pinned before the take was read. Ours without the order is the toggled file's walk, which the reader agrees with on
+run1618.
+
+| frame | the original | ours | ours without the order |
+| --- | --- | --- | --- |
+| 6810 | `0/0`–`0/9` | the same | the same |
+| 6811 | **`0/2` gone**; a corpse, `first_frame` 6810, `cur_anim` 19, `gpiece` 352 | the same | `0/2` alive, no corpse |
+| 6812 | `0/2` gone | the same | `0/2` alive |
+| 6999 | `0/0`, `0/1`, `0/3`–`0/11` | the same | `0/0`–`0/11` |
+
+`CommandPackage::process_disband` and `Object::disband` are first entered on 6809 in run1622 and run1623, and never
+in run1618 (`DISBAND_ENTRIES`). `cur_anim` is `dtype · 2 + 0xd + roll % 2`: 19 is `dtype` 3 with an even
+`Unit::close` roll. Both draws agree in value, not only in site.
+
+### 29.5 Confidence, and what is not established
+
+- **Backed by a diff**: the command's bytes (against the one recorded, and the client's file byte for byte); the
+  handler's and `Object::disband`'s entry on 6809; the unit arm's death, its corpse record whole and both its draws;
+  lockstep over the window (§29.4).
+- **One reading each**: `do_disband`'s gate, `validate_disband`'s unit answer, and the actors' list.
+- **Not reached by any take**: `all` 1 (`OPTION_DISBAND_ALL`); a group of buildings minted from the button (the walk's
+  building arms are item 3994's, played by the golden harness, and the recorded `2008` is minted but not played);
+  `validate_disband`'s refusals, which the layer does not consult.
+- **A dump without `DEATHS`** reads every corpse of ours as one the original does not hold (`diff/harness.rs`'s
+  `"extra"`); run1622 showed it (parked 4287b).
+- **The popup's opener** (`popup_id` 2, which `on_modal_end` turns into `OPTION_DISBAND`) was not found by grep in
+  the export. Whether a confirmation stands between a key and the order is not established; the panel's case `0xf`
+  issues directly.
+
+**Ours, not the original's:**
+
+- where the DISBAND button stands, its label, and when it shows (the original's unit panel offers it only under a
+  profile preference, and the key works without it);
+- the layer minting for a selection `validate_disband` would refuse (a group of several buildings, or a city centre
+  with buildings): the original issues nothing, and our walk refuses it at `disband_refused` instead.

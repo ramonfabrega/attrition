@@ -37961,3 +37961,50 @@ with `waitrun.sh` in the background. `df -g ~` read 191 GB free before it.
 Archive `gamelog-run1618-greatlakes-playback-of-toggled-7000.txt`, 68,206,190 bytes,
 SHA-256 `26f5ce323bec5db04f9ba3191957ca853d4c4e7db2ab1d4e72f54f61eff557e9`; `rontrace-run1618.log`, 34,231,264 bytes,
 SHA-256 `6ed450847e7c14c0b321449e361e484152a86c9a9ed1b0521fe0acf8759d1c25`.
+
+## run1622 — the original playing the file a disband button minted (2026-11-15, item 4287, `att-4287`)
+
+`docs/CLIENT_INPUT.md` §29.4. **What the disk could not answer**: whether the original plays a minted `disband`
+mid-game, and what its unit arm leaves for a dump. The one recorded disband is the 2017 sample's on a building, in a
+file no take pairs with a dump. The file: `~/ron-golden/recordings/item4287-disbanded-greatlakes-24000.rcx`, 59,681
+bytes, SHA-256 `4f355a9187e527330322f2f55eafab9f63afc8edfc1cae9630dba9712d33d5b3`, written by `RON_RCX_OUT=<it> …
+test --release -p rondata -- the_disbanded_minted_packages_round_trip`. It is the toggled file with `group [2]` and
+`disband(0)` on 6810.
+
+The take is run1618's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1622 --recording <the file> --end-frame 7000 --cover cover=1
+--log-window 6700 7000 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2 --timeout 1800 --stall-seconds 120`, waited on
+with `waitrun.sh` in the background. `df -g ~` read 179 GB free before it.
+- **The run**: pool lane 1, launched 22:50:48 −05:00, exited 22:59:16: **508.1 s launch to exit**, exit 0, `success`,
+  one page-fault relaunch after 5.0 s. 7,001 frames, `last_frame` 7000, seed 12345, map 14. Players: tribe 4 (flags
+  7) and tribe 11 (flags 1). Five settings restored. The receipt names the file's SHA-256. Minutes waited on another
+  lane: none.
+- **The walk** at the time: draws part on 6809, where the original names `Object::disband+0x415` and
+  `Unit::close+0xcb6` and our pump spent them unnamed (mended in `walk_with`; after it, 7,000 of 7,000). 189 of 300
+  records part from 6811, all on `0/2`'s corpse `"extra"`: this take prints no `DEATH_OBJS`. Hence run1623.
+- `CommandPackage::process_disband` and `Object::disband` first entered on 6809.
+- Filed with `filerun.py run1622 greatlakes-playback-of-disbanded-7000`.
+
+Archive `gamelog-run1622-greatlakes-playback-of-disbanded-7000.txt`, 67,841,216 bytes,
+SHA-256 `7693389556f09e234f584a19fbc96b032aadfcc97ddf6bf4a23632701b50db74`; `rontrace-run1622.log`, 33,620,192 bytes,
+SHA-256 `ffad8b5a08220677b6b450d72327986fabb30d7d08e4f7a8dca7a86dd213f995`.
+
+## run1623 — run1622 with the deaths printed (2026-11-15, item 4287, `att-4287`)
+
+`docs/CLIENT_INPUT.md` §29.4. **What run1622 could not answer**: whether the original's corpse of `0/2` is ours.
+run1622 printed no `DEATH_OBJS`. The same file and line with `--detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2,DEATHS=1`,
+into `~/ron-golden/run1623`.
+- **The run**: pool lane 1, launched 23:06:11 −05:00, exited 23:14:40: **509.5 s launch to exit**, exit 0, `success`,
+  no page fault, no relaunch. 7,001 frames, `last_frame` 7000, seed 12345, map 14; the same players. Five settings
+  restored. The receipt names the file's SHA-256. Minutes waited on another lane: none.
+- **The built walk under the pump on the file** (`DISBANDED_WALKED`): draws agree on all 7,000 frames, count and
+  sequence; 300 records compared (6700..6999), **0 part**. Pinned 0 before the read. The toggled script walked
+  against this take parts 189, draws first on 6809. Records part first on 6811: `0/2` alive in ours, its corpse
+  missing, and `0/2007`'s `gather_down` ours 2 against theirs −1.
+- **The order's effect** (`disband_effects_theirs` on 6810, 6811, 6812, 6999): slot 0's units equal ours on every
+  frame, pinned before the read. The corpse: `first_frame` 6810, `cur_anim` 19, `who` 0, `o` 2, `gpiece` 352.
+- Filed with `filerun.py run1623 greatlakes-playback-of-disbanded-7000`.
+
+Archive `gamelog-run1623-greatlakes-playback-of-disbanded-7000.txt`, 67,960,096 bytes,
+SHA-256 `d17422b70419bf07ef05c3a402ee0032db9098692dbdbfcfa3f8cc15cb005c9b`; `rontrace-run1623.log`, 33,667,552 bytes,
+SHA-256 `8910d19c1aee83380a4241b5dfd8b3be2bc40dabeb5a7918233e14f05c7e6d88`.

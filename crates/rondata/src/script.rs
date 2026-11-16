@@ -865,6 +865,43 @@ pub fn toggled() -> Vec<Order> {
     orders
 }
 
+/// **The disbanded script** (item 4287, `docs/CLIENT_INPUT.md` §29): the
+/// toggled script and one package more. On [`DISBAND_FRAME`] the
+/// came-out Citizen [`DISBAND_UNIT`] is picked and the selection's
+/// DISBAND button pressed: `Options::exec@007188c0` case `0xf`,
+/// `Options::do_disband@0071df20(0)`, which after `Group::can_activate`
+/// and `GroupOut::validate_disband@0070a4a0` (0 for a unit group) calls
+/// `CommandManager::issue_disband@00941ad0` — the selection's `group` and
+/// command `0x15`, `[all]`, 5 bytes. `process_disband@00948660` is
+/// `Group::action_disband@0070e260(all)` on the package's group: the last
+/// live member goes to `Object::disband(o, 0)`, which `die`s with a drawn
+/// death type. The client's `minted_disbanded_at_the_opening_camera`
+/// mints these field for field.
+pub fn disbanded() -> Vec<Order> {
+    let mut orders = toggled();
+    orders.push((
+        DISBAND_FRAME,
+        0,
+        vec![
+            Command::Group {
+                who: 0,
+                objects: vec![DISBAND_UNIT],
+            },
+            Command::Disband { all: DISBAND_ALL },
+        ],
+    ));
+    orders
+}
+
+/// The frame of the disband, ten after [`TOGGLE_FRAME`].
+pub const DISBAND_FRAME: i32 = 6810;
+/// The unit disbanded: [`GARRISON_CITIZEN`], out of the capital since
+/// [`COME_OUT_FRAME`].
+pub const DISBAND_UNIT: i16 = GARRISON_CITIZEN;
+/// `OPTION_DISBAND`'s `all`, 0: the walk stops after the first member
+/// (`OPTION_DISBAND_ALL`, case `0x10`, passes 1).
+pub const DISBAND_ALL: i32 = 0;
+
 /// The frame of the console's `ai off`, ten after [`STANCE_FRAME`].
 pub const TOGGLE_FRAME: i32 = 6800;
 /// The console line typed: the word and the arm that issues only while the
