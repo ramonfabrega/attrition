@@ -2104,6 +2104,16 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// and moves there (`packets::PACKET_RELEASED`'s witnesses;
 /// `docs/LEADERS.md` §2.5, §3.5). [`LEADERS`] is unmoved: the long range
 /// still parts on the other 10.
+///
+/// Item 4159's sixteenth residue (4159r15a): 10 → 9 names, `score`,
+/// agreeing on frame 91 (219 and 197, non-zero on both leaders). Released
+/// by entry 131 §1's first way: the fifteen-site probe at every
+/// leader-record comparison site over the whole `diff::` suite found no
+/// row where `score` parts, after residues 10 to 15 removed its 7,604
+/// rows' parents (the last, a decoy's close that raised no units bit).
+/// Emitted, it agrees on every walked packet leader
+/// (`packets::PACKET_RELEASED`'s witness; `docs/LEADERS.md` §18.5).
+/// [`LEADERS`] is unmoved: the long range still parts on the other 9.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
@@ -2112,7 +2122,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("hire_who (unheld)", 2),
     ("incoming_taunt_who (unheld)", 2),
     ("raid_stamp (unheld)", 2),
-    ("score (unheld)", 2),
     ("tribute_demanded (unheld)", 2),
     ("tributes (unheld)", 2),
 ];
@@ -2243,6 +2252,9 @@ const LEADERS_BENT: &[&str] = &[
     "kills_fifteen_seconds",
     "hits_fifteen_seconds",
     "damage_fifteen_seconds",
+    // Item 4159's sixteenth residue: the score, 219 = 219 on leader 0 of
+    // run 1562's frame 91.
+    "score",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

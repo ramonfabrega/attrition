@@ -657,6 +657,11 @@ pub(super) const PACKET_RELEASED: &[(&str, &str, i16)] = &[
     // kill (1); ten of the 226 leaders hold either word off zero.
     ("deaths_current_frame", "run1570", 0),
     ("kills_current_frame", "run1570", 1),
+    // Item 4159's sixteenth residue (4159r15a), the score (released by
+    // entry 131 §1's first way: no record diff parts it; it agrees on all
+    // 226 walked leaders, non-zero on all 226). run1161, frame 4, leader 0:
+    // 280.
+    ("score", "run1161", 0),
 ];
 
 /// Every [`PACKET_RELEASED`] witness is a held packet, no pinned parting

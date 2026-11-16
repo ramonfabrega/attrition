@@ -1713,7 +1713,7 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 ## 20. The leaders line, held out on the long range (items 4121, 4124)
 
 **265 of 267 ranges and 4,515 of 58,343 bytes agree** on run 1562's frame
-91, and `LEADERS_HELD_OUT` names **10** leaves, from 140. Agreeing: all
+91, and `LEADERS_HELD_OUT` names **9** leaves, from 140. Agreeing: all
 eight slots' flag words, and the two walked leaders' diplomacy records,
 personalities, masks (each `tech` array since item 4187), sites, make
 lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
@@ -1752,6 +1752,7 @@ not count it (§5).
 | the residue, second builder | `barracks_queued`, `combat_queued`, `pop_issues` | 24 | §12.6, §14.5 |
 | the residue, third builder | `attrition_stamp2` | 23 | §5.5 |
 | the residue, ninth builder | the thirteen combat leaves: `units_killed`, `units_lost`, `average_death_rate`, `average_damage_rate`, `average_hit_rate`, the four `*_current_frame` and the four `*_fifteen_seconds` words (no window parts them; witnessed on the packets) | 10 | §2.5, §3.5 |
+| the residue, sixteenth builder | `score` (4159r15a) | 9 | §18.5 |
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
@@ -2600,7 +2601,7 @@ line's field reader where it has one:
 | units, guys | 6537 | 1591 | `1/0` figure 0 `last_x` 7824, 7848, `last_y` 21648, 21672; six figure records on each line (6 of 1,546, 6 of 511); whole since item 4238 |
 | goods | 3246 | 1584 | good 19 `ever_seen`: 0x00, 0x02; whole since item 4229 |
 | cities | 4030 | 1585 | city 0 `traded_with[1]`: 4, 2; whole since item 4229 |
-| leaders | 1 to 4030 | all | leader 0's long range at +0x10: ours 0 on every packet, theirs 0xc7 on 1 and 0x105 on 4030 (§20; item 4159) |
+| leaders | 1 to 4030 | all | leader 0's long range at +0x1cc: ours 0, theirs `ffffffff` (`hire_who`, unheld); ~~+0x10: ours 0, theirs 0xc7 on 1 and 0x105 on 4030~~, `score`, on the line and agreeing since 4159r15a (§20; item 4159) |
 
 **The world on the start** has no packet: the first boundary is frame 0's `end_frame`. run1579's `@dumpall` on 0 prints
 record 3201 before frame 0's tick (the hook's frame −1). Of its fifteen sections, section 8 alone parted, `danger[0..8]`:
@@ -2738,7 +2739,7 @@ partings on run1578 (§24.3), read off the record by our walk under the pump (`t
 | 12537 | units | 2,405, 2,396, 784 | 1539 62 `guys.length`: 1, 4 — theirs' range is `GuardOrder::walk_data`'s flags byte (`00486573`), record 62's second order, a `GUARD` of 1/61 ours did not walk; whole since item 4266, and the line whole on all 24,000 (14312's row too) |
 | 14312 | builds | 1,370, 1,370, 1 | 1258 2023 `gather_down..infiltrate2`: `wonder` −1, 0 (player 1's Pyramids, TI 0x20e); whole since item 4262, and the line whole on all 24,000 |
 
-On each frame leaders parts at its long range, +0x10, as §20 and §24.4 say. Builds' 7383 row, record 2019's `mtn`
+On each frame leaders parts at its long range, +0x1cc (+0x10, `score`, until 4159r15a), as §20 and §24.4 say. Builds' 7383 row, record 2019's `mtn`
 −1 against 0, left with item 4244, and builds is whole on the record at 7383 and 8206. 8281's, building 2018's `inside_down`
 (the garrison's head), ours 42, theirs 30, went with units' there: item 4257 emits the chain in the order of entry,
 and builds next parted on 14312. **Item 4262 made builds whole on all 24,000**: `BuildData::wonder` (`+0x76`) has three

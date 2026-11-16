@@ -4642,7 +4642,7 @@ packets, 226 walked leaders (`docs/CHECKSUM.md` §23):
 | `score_units` | agree 226, non-zero 217 | 129 §5 | **released** (run912e, frame 12753, leader 1: 672) |
 | `score_units_2` | agree 226, non-zero 217 | 129 §5 | **released** (run912e leader 1: 549) |
 | `score_combat` | agree 226, non-zero 52 | 129 §5 | **released** (run1496, frame 1539, leader 1: 84) |
-| `score` | parts on 10 | 128 §3 | held: parts in the record diff (4187b) |
+| `score` | agree 226, non-zero 226 | 131 §1 | **released** (4159r15a; run1161, frame 4, leader 0: 280) |
 
 **Item 4159's residue (4187a)** fixed three faults: `init_unit` counted
 a `POP` 0 Transport Freighter, an empty transport sunk was priced, and
@@ -4652,7 +4652,15 @@ a `POP` 0 Transport Freighter, an empty transport sunk was priced, and
 `score` is printed; its sum takes `score_combat` and `score_units`, an
 accumulator and a part gated on a dirty bit, neither printed, so the
 crate's step cannot be run on the original's printed inputs and the leaf
-cannot transfer.
+cannot transfer. **It left by entry 131 §1's first way** (item 4159's
+sixteenth residue, 4159r15a): a probe at all fifteen leader-record
+comparison sites over the whole `diff::` suite (2,062 tests) held it on
+no row (`SEEN` 591,754 non-zero agreeing), after residues 10 to 15 removed
+the parents of its 7,604 rows (§18.6). On the line it agrees on frame 91
+(219, 197), on all 226 walked packet leaders, and on the record's ten
+frames and the fifteen minted packets, where the leaders line's first
+parting moved from `+0x10` to `+0x1cc` with its ranges parted unmoved
+(`docs/CHECKSUM.md` §24.4, §25.4).
 
 Confirmed / corrected / open: shared 12/2/1; `score` 6/2/0; explored 3/0/0;
 territory 4/0/1; units pair 9/0/1; buildings pair 6/0/0; economy 6/0/2; pop
@@ -4696,7 +4704,7 @@ twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
 - **Rest**: `get_team_score` past its head; the three non-latch bit-6
   setters' contexts; `LeaderData::walk_data (006d6750)` on load (off the
   frame path).
-- **`score` in the record diff** (item 4159's tenth residue): it still parts
+- ~~**`score` in the record diff**~~ (closed: on the line since 4159r15a, §18.5) (item 4159's tenth residue): it still parts
   where no parent is printed beside it, so ~~the units bit (run1013, run1014:
   the original recounts at 13639, ours a bit later)~~ (a decoy's expiry,
   below) and ch77's 25 after

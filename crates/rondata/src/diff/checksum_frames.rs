@@ -512,6 +512,11 @@ fn minted_packets_dir() -> String {
 /// stands on a frame [`CHECKSUM_FRAMES`] names as a line's first parting;
 /// a line that agrees there is not listed. run1589 stands on 2745, the
 /// frame before groups' 2746, whose tick item 4231 read under `step4.py`.
+/// The leaders line's first parting is leader 0's `+0x1cc` (theirs
+/// `ffffffff`, ours 0: the unheld `hire_who`'s −1s) since item 4159's
+/// sixteenth residue put `score` on the line; until then it was `score` at
+/// `+0x10` (ours 0, unheld), on all fifteen packets, its ranges parted
+/// unmoved.
 type PacketRow = (&'static str, usize, usize, usize, &'static str);
 pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &[
     (
@@ -523,7 +528,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             267,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|c7000000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -535,7 +540,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             267,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|d9000000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -565,7 +570,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             267,
             3,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|fc000000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -580,7 +585,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             267,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|f9000000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -595,7 +600,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             267,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|f9000000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -612,7 +617,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             267,
             2,
-            "1 0 who..ally_mask: +0x11 of 26914|26914: 00000000|01000000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -631,7 +636,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             267,
             3,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|1e010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -647,7 +652,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             271,
             271,
             3,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|21010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -665,7 +670,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             271,
             271,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|21010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -682,7 +687,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             271,
             271,
             3,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|24010000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -696,7 +701,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             267,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|e7000000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -714,7 +719,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 267,
                 267,
                 2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|fd000000",
+                "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
             ),
         ],
     ),
@@ -734,7 +739,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 267,
                 267,
                 2,
-                "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|05010000",
+                "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
             ),
         ],
     ),
@@ -747,7 +752,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             267,
             2,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|d1000000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
     (
@@ -759,7 +764,7 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             267,
             267,
             3,
-            "1 0 who..ally_mask: +0x10 of 26914|26914: 00000000|db000000",
+            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
         )],
     ),
 ];
