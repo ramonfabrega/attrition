@@ -1520,6 +1520,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// @006d14e0`, the attack request's store, stays open, not residue: the original enters it on
 /// recon4298-4 (`process_propose_attack 1 2 1131`), which is not filed, and the take (run1629)
 /// enters it; open 9 → 10.
+/// **346 → 347** with step 4159r19 (`docs/LEADERS.md` §8.5): `CommandPackage::process_tribute
+/// @00946d70`, the tribute click's command, stays open, not residue: the original enters it on
+/// run1628 (recon4206-4, `process_tribute 1 4` on 1024 to 1027), filed but read in place, whose
+/// trace joins `TRACES` when it is pinned; open 10 → 11.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1548,7 +1552,7 @@ pub const NEVER: &[u32] = &[
     0x0084_2060, 0x0084_2070, 0x0084_b8d0, 0x0086_1960, 0x0087_a770, 0x0089_0060, 0x0089_4060, 0x0089_41b0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_8920,
     0x0089_8cf0, 0x0089_8f10, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x0089_ddc0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008a_60e0,
     0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7810, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_43b0,
-    0x0093_a140, 0x0093_a150, 0x0093_e9e0, 0x0093_ee70, 0x0094_0ba0, 0x0094_1fd0, 0x0094_3f30, 0x0094_8cb0, 0x0094_8e00,
+    0x0093_a140, 0x0093_a150, 0x0093_e9e0, 0x0093_ee70, 0x0094_0ba0, 0x0094_1fd0, 0x0094_3f30, 0x0094_6d70, 0x0094_8cb0, 0x0094_8e00,
     0x0094_9050, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0095_6b40, 0x0095_9110, 0x0095_9500, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20, 0x0099_c750,
     0x009a_0950, 0x009a_1380, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009a_df40, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_3340, 0x009b_3590,
     0x009b_37a0, 0x009b_39e0, 0x009b_4820, 0x009b_4930, 0x009b_4da0, 0x009b_59f0, 0x009b_5d20, 0x009b_5e00, 0x009b_5ec0, 0x009b_5f20, 0x009b_6de0, 0x009b_6fa0,
