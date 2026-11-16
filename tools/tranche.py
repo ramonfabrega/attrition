@@ -284,7 +284,13 @@ def other_heads_line(row: dict, floor: float = 10.0, top: int = 3) -> str | None
 
 # A `, 19 of 20` after the items is the landing count, never an item (the
 # sixty-ninth tranche's bookings).
-BOOK = re.compile(r"^Book (\d+(?:(?:, | and )\d+(?! of\b))*)\b(?! of\b)")
+# `Booking 4264 and 4263: …`, `Booking 4159r3a: …` and `Booking 4159's
+# twelfth residue and 4274: …` are the forms of 2026-11-14 on; the list read
+# none of the tranche's fifty bookings and its handoff line said 0 landings
+# (the pass of 2026-11-15). An item is a number of four digits or more ahead
+# of the subject's colon.
+BOOK = re.compile(r"^Book(?:ing)? (\d[^:]*)")
+ITEM = re.compile(r"(?<![\w.])(\d{4,})(?:r\w+)?(?!\w)(?! of\b)")
 
 
 def booked_items(subjects: list[str]) -> list[int]:
@@ -298,7 +304,7 @@ def booked_items(subjects: list[str]) -> list[int]:
     own booking names it (Loop 3715, the sixtieth pass: `Book 3702 and
     3709` and then `Book 3709 and 3712` summed 3709's sessions twice, and
     the drain's line read 29 sessions where 23 had run)."""
-    commits = [[int(n) for n in re.findall(r"\d+", m.group(1))]
+    commits = [[int(n) for n in ITEM.findall(m.group(1))]
                for sub in subjects if (m := BOOK.match(sub))]
     seen: dict[int, None] = {}
     for items in commits[::-1]:

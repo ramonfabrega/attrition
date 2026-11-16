@@ -1370,6 +1370,32 @@ garbage line
         with self.assertRaises(ValueError):
             self.release_command(touched=[], scope='abc1234', no_widen=True)
 
+    def test_a_no_widen_lane_that_moves_the_sim_s_source_keeps_every_widening_family(self):
+        # The pass of 2026-11-15. The guard above kept two families by name
+        # (`_word_frame_is_widened_whole`, `_gap_is_walked_whole`: 405 tests).
+        # Item 4253's lane moved the sim's source, ran those, and its booking
+        # gate was red on 47 widenings of other families (gate-4253:
+        # `run609_s_closing_frame_is_widened_whole`,
+        # `run611_s_contact_window_is_widened_whole`). The timings file holds
+        # 613 tests ending `_widened_whole` or `_walked_whole`, 1,363 s one at
+        # a time, so the kept set is the suffix and not a list of families.
+        timed = [name for _, name in gate._timed_rows(gate.TIMINGS.read_text())]
+        families = ('_closing_frame_is_widened_whole', '_contact_window_is_widened_whole',
+                    '_closing_window_is_widened_whole', '_goods_are_widened_whole',
+                    '_word_frame_is_widened_whole', '_gap_is_walked_whole')
+        names = [next(n for n in timed if n.endswith(f)) for f in families]
+        command, _ = self.release_command(touched=['crates/sim/src/groups/group/actions.rs'],
+                                          lane=True, tests=WORD, no_widen=True)
+        skips = [command[i+1] for i, a in enumerate(command) if a == '--skip']
+        for name in names:
+            with self.subTest(name=name):
+                self.assertNotIn(name, skips)
+        command, _ = self.release_command(touched=['docs/GROUPS.md'], lane=True, tests=WORD, no_widen=True)
+        skips = [command[i+1] for i, a in enumerate(command) if a == '--skip']
+        for name in names:
+            with self.subTest(name=name, touched='docs'):
+                self.assertIn(name, skips)
+
     def test_a_no_widen_lane_that_moves_the_sim_s_source_keeps_the_widenings(self):
         # The pass of 2026-11-14, second. Item 4231's one call in
         # `crates/sim/src/groups/group/actions.rs` moved four widening pins

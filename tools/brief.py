@@ -577,6 +577,15 @@ def main():
                     help="the directory of the other lanes' briefs (brief*.md), whose run numbers are taken (Loop 3176); "
                          "$CLAUDE_JOB_DIR/tmp when set")
     args = ap.parse_args()
+    # The backstop (DECISIONS 135): no lane is refilled at twenty landings
+    # since the last pass. A refusal is exit 2 with nothing on stdout, which
+    # the chain's `[ -s brief.md ]` already stops on.
+    sys.path.insert(0, str(ROOT / 'tools'))
+    import handover
+    ok, line = handover.brief_line(handover.landings_since_pass(cwd=ROOT)[0], os.environ.get(handover.WAIVER))
+    if not ok:
+        print(f'brief.py: {line}', file=sys.stderr)
+        sys.exit(2)
     briefs = {f.name: f.read_text() for f in sorted(args.briefs.glob('brief*.md'))} if args.briefs and args.briefs.is_dir() else {}
     base = subprocess.run(['git', 'rev-parse', '--short=8', 'HEAD'], cwd=ROOT,
                           capture_output=True, text=True, check=True).stdout.strip()

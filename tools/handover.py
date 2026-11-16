@@ -17,9 +17,29 @@ act reaps the old one. No pane is typed into and no row rests.
   handover.py reap <ref>
       The new row's first act: waits for <ref> to go idle, stops it and
       forgets it. Never `ccc rm`: that verb reaches the tree.
-  handover.py check
-      Exit 0 when at most one driver row of this tree has a process, 1
-      otherwise. `tools/gate_run.sh` runs it before a gate.
+  handover.py to commander --opener-file <file> --ungated
+      The same, from a row past its ceiling whose tip is committed and not
+      gated: the pushed check is waived and the new row is told to gate
+      that tip first. Refused under the ceiling.
+  handover.py wake
+      What a morning wake's prompt asks of whatever stands in the row: a
+      handover to a fresh `commander` whose opener is the queue's own
+      `**Opener:` paragraph. A session's cron fires into the row as it then
+      stands — another model, a conversation — so the wake is a spawn.
+  handover.py check [--scoped] [--tip <sha>]
+      `tools/gate_run.sh` runs it before a gate, and it prints the `Rows:`
+      and `Driver:` lines the log carries. Exit 1 when two driver rows of
+      this tree have a process; 3 when a scoped gate is asked for more than
+      BACKSTOP + SEATS landings after the last pass; 4 when the calling
+      row's next turn carries more than CEILING_K.
+
+The driver's two lines (`docs/DECISIONS.md` entry 135). The tranche of
+2026-11-14 and 15 booked fifty landings without a pass against a backstop
+of twenty, and its driver went from 81 k to 536 k without naming its 400 k
+line: both were prose. A landing is a first-parent merge after the commit
+that added the newest pass record (`PASS_RECORDS`); `tools/brief.py`
+refuses a brief at BACKSTOP, and a scoped gate is refused once the count
+passes what the seats could still hold. The depth is `tools/ctx.py`'s.
 """
 import argparse
 import json
@@ -34,6 +54,20 @@ DRIVERS = {
 }
 IDLE_WAIT_S = 180
 STOP_WAIT_S = 90
+
+# Twenty landings without a pass is a boundary (DECISIONS 126 §4); the four
+# seats (three lanes and the chain's builder, DECISIONS 129 §1) are what can
+# still be out when the count reaches it.
+BACKSTOP = 20
+SEATS = 4
+# The driver clears when its next turn would carry more than 400 k
+# (DECISIONS 131 §6). Its context grew 38 k an hour on 2026-11-15 and a
+# builder ran 24 to 104 minutes, so fifty thousand above the line is one
+# builder and its booking gate; past it no gate starts.
+CLEAR_AT_K = 400
+CEILING_K = 450
+PASS_RECORDS = 'docs/audit/*-fable-pass-*.md'
+WAIVER = 'ATTRITION_BACKSTOP_WAIVED'
 
 
 def run(argv, stdin=None):
@@ -86,6 +120,99 @@ def check_line(rows, cwd):
     return False, (f'Rows: {len(held)} driver rows hold this tree: {names} — '
                    'reap the one that handed over: python3 tools/handover.py reap <ref> '
                    '(docs/DECISIONS.md entry 130)')
+
+
+def landings_since_pass(cwd=None, tip='HEAD'):
+    """`(count, sha)`: the first-parent merges on `tip` after the commit
+    that added the newest pass record, and that commit. `(None, None)`
+    where no record was ever added. A record amended later is not a new
+    pass; a merge is a worker's branch, since the driver merges nothing
+    else."""
+    out = subprocess.run(['git', 'log', '--first-parent', '--diff-filter=A', '--format=%H', '-1', tip,
+                          '--', PASS_RECORDS], cwd=cwd, capture_output=True, text=True)
+    sha = out.stdout.strip()
+    if out.returncode != 0 or not sha:
+        return None, None
+    out = subprocess.run(['git', 'rev-list', '--first-parent', '--merges', '--count', f'{sha}..{tip}'],
+                         cwd=cwd, capture_output=True, text=True)
+    if out.returncode != 0:
+        return None, None
+    return int(out.stdout.strip()), sha
+
+
+def brief_line(count, waiver=None):
+    """`(ok, line)` for a lane's brief: none is composed at the backstop."""
+    if count is None or count < BACKSTOP or waiver:
+        return True, ''
+    return False, (f'{count} landings since the last pass, and the backstop is {BACKSTOP}: no lane is '
+                   'refilled. Book what is out, gate whole, and hand over: python3 tools/handover.py '
+                   'to steer --opener-file <file> (docs/LOOP.md, "Supply calls the pass")')
+
+
+def landings_line(count, scoped, waiver=None):
+    """`(ok, line)` for a gate: a scoped one is refused once the count is
+    past the backstop and the seats; the drain's whole gate never is."""
+    if count is None:
+        return True, 'landings since the last pass not read (no pass record in this history)'
+    said = f'{count} landings since the last pass (backstop {BACKSTOP})'
+    if count < BACKSTOP:
+        return True, said
+    if waiver:
+        return True, f'{said}, waived: {waiver}'
+    if scoped and count > BACKSTOP + SEATS:
+        return False, (f'{said}: past the backstop and the {SEATS} seats it could find out. No scoped '
+                       'gate: gate whole (no --scope) and hand over with python3 tools/handover.py to steer')
+    return True, f'{said}: backstop reached — refill nothing, book what is out, gate whole, hand to steer'
+
+
+def depth_line(ctx):
+    """`(ok, line)` for the row that asks for a gate, on the context its
+    next turn carries (`tools/ctx.py`)."""
+    if ctx is None:
+        return True, 'context not read'
+    k = ctx // 1000
+    if k > CEILING_K:
+        return False, (f'context {k} k, past the {CEILING_K} k ceiling. No gate from this row: commit, '
+                       'write the handoff, and python3 tools/handover.py to commander --opener-file '
+                       '<file> --ungated; the fresh row gates this tip')
+    if k >= CLEAR_AT_K:
+        return True, (f'context {k} k, past the {CLEAR_AT_K} k line: cut no builder, bank on this gate '
+                      f'and clear ({CEILING_K} k refuses the gate)')
+    return True, f'context {k} k'
+
+
+def own_ctx():
+    """This row's context, or None: `tools/ctx.py`'s reading of `lore
+    agents` for `CLAUDE_CODE_SESSION_ID`."""
+    session = os.environ.get('CLAUDE_CODE_SESSION_ID')
+    if not session:
+        return None
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import ctx
+    env = dict(os.environ)
+    home = os.path.expanduser('~')
+    env['PATH'] = f"{home}/.local/bin:{home}/.bun/bin:/opt/homebrew/bin:" + env.get('PATH', '')
+    try:
+        out = subprocess.run(['lore', 'agents', '--json'], capture_output=True, text=True, env=env, timeout=60)
+        return ctx.ctx_of(ctx.rows_of(json.loads(out.stdout)), session)
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return None
+
+
+def queue_opener(text):
+    """The queue's `**Opener:` paragraph, to its blank line: one, or a
+    ValueError that says how many."""
+    paragraphs = [p.strip() for p in text.split('\n\n') if p.lstrip().startswith('**Opener:')]
+    if len(paragraphs) != 1:
+        raise ValueError(f'the queue holds {len(paragraphs)} `**Opener:` paragraphs; a wake needs one')
+    return paragraphs[0]
+
+
+def ungated_opener(sha, opener):
+    return (f'The tip `{sha}` is committed and neither gated nor pushed: the row that handed over was '
+            f'past its {CEILING_K} k ceiling. Gate it first (`zsh tools/gate_run.sh {sha} <log> --scope '
+            '<the last gated tip>`), and push and fast-forward main on its `gate exit 0`. '
+            f'Then:\n\n{opener}')
 
 
 def own_ref():
@@ -174,7 +301,7 @@ def reap(ref):
     return 0
 
 
-def hand_to(name, opener_file):
+def hand_to(name, opener_file, ungated=False, opener=None):
     cwd = tree()
     me = own_ref()
     if me is None:
@@ -186,7 +313,11 @@ def hand_to(name, opener_file):
     run(['git', 'fetch', '-q', 'origin', branch])
     head = run(['git', 'rev-parse', 'HEAD']).stdout.strip()
     pushed = run(['git', 'rev-parse', f'origin/{branch}']).stdout.strip()
-    if head != pushed:
+    if ungated:
+        ok, line = depth_line(own_ctx())
+        if ok:
+            raise SystemExit(f'handover: --ungated is for a row past its {CEILING_K} k ceiling; this one reads: {line}')
+    elif head != pushed:
         raise SystemExit(f'handover: HEAD {head[:9]} is not origin/{branch} {pushed[:9]}; push the gated tip first')
     rows = roster()
     mine = next((r for r in rows if (r.get('session') or {}).get('id') == me), None)
@@ -201,7 +332,10 @@ def hand_to(name, opener_file):
         if ref != me and reap(ref) != 0:
             raise SystemExit(f'handover: could not reap {describe(row)}')
     model, effort = DRIVERS[name]
-    opener = open(opener_file).read().strip()
+    if opener is None:
+        opener = open(opener_file).read().strip()
+    if ungated and head != pushed:
+        opener = ungated_opener(head[:9], opener)
     prompt = (f'Your first act, before anything else: `python3 tools/handover.py reap {me}` '
               f'(the row that handed over to you; docs/DECISIONS.md entries 130 and 131 §8). '
               f'Then:\n\n{opener}\n')
@@ -223,16 +357,30 @@ def main(argv=None):
     to = sub.add_parser('to')
     to.add_argument('name', choices=sorted(DRIVERS))
     to.add_argument('--opener-file', required=True)
+    to.add_argument('--ungated', action='store_true')
     sub.add_parser('reap').add_argument('ref')
-    sub.add_parser('check')
+    sub.add_parser('wake')
+    check = sub.add_parser('check')
+    check.add_argument('--scoped', action='store_true')
+    check.add_argument('--tip', default='HEAD')
     args = parser.parse_args(argv)
     if args.verb == 'check':
         ok, line = check_line(roster(), tree())
         print(line)
-        return 0 if ok else 1
+        count, _ = landings_since_pass(tip=args.tip)
+        landed, landings = landings_line(count, args.scoped, os.environ.get(WAIVER))
+        shallow, depth = depth_line(own_ctx())
+        print(f'Driver: {landings} · {depth}')
+        return 1 if not ok else 3 if not landed else 4 if not shallow else 0
     if args.verb == 'reap':
         return reap(args.ref)
-    return hand_to(args.name, args.opener_file)
+    if args.verb == 'wake':
+        try:
+            opener = queue_opener(open(os.path.join(tree(), 'docs/QUEUE.md')).read())
+        except ValueError as e:
+            raise SystemExit(f'handover: {e}')
+        return hand_to('commander', None, opener=opener)
+    return hand_to(args.name, args.opener_file, ungated=args.ungated)
 
 
 if __name__ == '__main__':

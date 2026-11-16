@@ -287,7 +287,20 @@ class TheHandoff(unittest.TestCase):
                     'Book 3674 and 3690, 7 of 20 from 1234abcd: two co-booked lanes']
         self.assertEqual(tranche.booked_items(subjects), [3674, 3690, 3923, 3920])
 
-    def test_the_line_counts_landings_deep_lanes_waiting_and_price(self):
+    def test_a_booking_spelled_booking_and_a_residue_s_are_read(self):
+        # The pass of 2026-11-15: the driver wrote `Booking …` from
+        # 2026-11-14 13:27 on, `--base` read no item of fifty bookings, and
+        # the handoff carried no table. A residue names its item with a
+        # letter suffix or a possessive; "the day's handoff" is no item.
+        subjects = ["Booking 4159's twelfth residue: the CEO's tile step marks its owner's economy dirty",
+                    "Booking 4279 and the day's handoff: the snowcap keyed apart, 95 → 100 of 106",
+                    'Merge worktree-att-4279 (3 commits)',
+                    "Booking 4246 and 4159's fifth residue: the mountain's draws are on no card trace",
+                    'Booking 4159r3a: launch rows for pieces 1814, 1837, 1851 and 81',
+                    'Booking 4264 and 4263: spell from a unit\'s craft button, 2,323 of 2,429 orders',
+                    'Book 3920, 19 of 20 from 02f72df7d: chapter 117 closed at 900']
+        self.assertEqual(tranche.booked_items(subjects), [3920, 4264, 4263, 4246, 4279, 4159])
+
         rows = [{'item': 3567, 'session': 'a', 'peak_k': 328, 'price': 11.91, 'waiting_min': 21.0},
                 {'item': 3567, 'session': 'b', 'peak_k': 146, 'price': 2.75, 'waiting_min': 90.9},
                 {'item': 3572, 'session': 'c', 'peak_k': 115, 'price': 1.60, 'waiting_min': 23.9}]

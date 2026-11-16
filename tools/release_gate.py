@@ -531,7 +531,12 @@ SIM_BUILD_INPUTS = (SIM_CRATE, 'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml'
 # by hand. The 405 widenings are 919 s one at a time by the timings file;
 # the census and the rest of the timed corpus stay the booking gate's. The
 # sim's tests move no state a dump comparator reads, so they do not count.
-SIM_WIDENINGS = ('_word_frame_is_widened_whole', '_gap_is_walked_whole')
+# The pass of 2026-11-15: the two families named here first (`_word_frame_is_
+# widened_whole`, `_gap_is_walked_whole`) were 405 of the 613 widenings the
+# timings file holds, and item 4253's lane ran them and still met a booking
+# gate red on 47 of the others (gate-4253: a closing frame's, a contact
+# window's). The kept set is the suffix: 613 tests, 1,363 s one at a time.
+SIM_WIDENINGS = ('_widened_whole', '_walked_whole')
 SIM_SOURCE = 'crates/sim/src/'
 
 
