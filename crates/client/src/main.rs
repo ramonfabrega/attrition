@@ -494,6 +494,10 @@ struct App {
     /// Where the left button went down, until it comes up: a release
     /// [`input::DRAG_SLOP`] or more away is a box (item 4180), else a press.
     left_down: Option<(i32, i32)>,
+    /// Where the right button went down, until it comes up: a release
+    /// past [`input::right_dragged`]'s slop is a right drag (item 4295),
+    /// else a right press.
+    right_down: Option<(i32, i32)>,
     /// The lobby page while it is up (item 4184), and the choices the
     /// world was opened from.
     page: Option<lobby::Page>,
@@ -788,8 +792,22 @@ impl ApplicationHandler for App {
                             input::Event::Press { x: x0, y: y0 }
                         });
                     }
-                    (MouseButton::Right, ElementState::Pressed) => {
-                        self.input(input::Event::RightPress { x, y })
+                    // The original issues a right press on the release
+                    // too (`Console::on_right_up@007cd3c0`): a click at
+                    // the release, or a drag from the press (item 4295).
+                    (MouseButton::Right, ElementState::Pressed) => self.right_down = Some((x, y)),
+                    (MouseButton::Right, ElementState::Released) => {
+                        let (x0, y0) = self.right_down.take().unwrap_or((x, y));
+                        self.input(if input::right_dragged((x0, y0), (x, y)) {
+                            input::Event::RightDrag {
+                                x0,
+                                y0,
+                                x1: x,
+                                y1: y,
+                            }
+                        } else {
+                            input::Event::RightPress { x, y }
+                        });
                     }
                     _ => {}
                 }
@@ -1036,6 +1054,7 @@ fn main() {
             },
             cursor: (0, 0),
             left_down: None,
+            right_down: None,
             page,
             opened: from_page,
         };

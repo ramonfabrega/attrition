@@ -3012,7 +3012,8 @@ the package's verdict:
   its n is the census's count of packages it names. A pause needs no scene, so the census mints each recorded
   `pause` itself through `Event::Pause`, with the layer's bit carried across the recording. All 24 are equal.
 - **form**: the kind and its fixed fields are the layer's, but no test mints the recorded order from a scene.
-  Concretely: `queued` 2; `move_to` with `set_angle` 0, `orders` 1, `disembark` 0, and `(form, width)` one of the
+  Concretely: `queued` 2 (any of the three queues since item 4293); `move_to` with `set_angle` 0, or 1 with an angle
+  `find_angle` gives (item 4295, §34), `orders` 1, `disembark` 0, and `(form, width)` one of the
   layer's three; `attack` with `ignore` 0; `swarm_around` with `BUILD_AT` or `REPAIR`; `gather_point` action 0; a
   `build` type the layer's keys bind or the roster's build pages offer (§32). **Its point, its object and its group are not checked.**
 - **missed**: the arm, and who reaches it. `Button` means a button, key or modifier of the original issues it.
@@ -3032,7 +3033,9 @@ disband missed, 359 shown and 994 missed):
   row of §30.2. 38 of the 42 whole recordings carry no order but this one, so the orders' count is the one to steer
   by. Item 4290's roster (§32) moves the 432 orders of an unbound type out of missed and every recorded `queue_up`
   into shown: **927 shown, 994 form, 508 missed**; `INPUT_WHOLE` holds at 42. Item 4293's shift (§33) makes the queue
-one of the layer's fields: **927 shown, 1,190 form, 312 missed**; `INPUT_WHOLE` holds at 42.
+one of the layer's fields: **927 shown, 1,190 form, 312 missed**; `INPUT_WHOLE` holds at 42. Item 4295's right drag
+(§34) makes `set_angle` 1 with an angle of `find_angle`'s image the layer's form: **927 shown, 1,330 form, 172
+missed**; `INPUT_WHOLE` holds at 42.
 
 **Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
 `INPUT_SPELLS against the census` 17 against 6.
@@ -3064,7 +3067,7 @@ is where the arms are.
 | --- | ---: | --- | --- |
 | ~~`queue_up` of a type no key of ours binds~~ | ~~390~~ | Button: the building's train and research buttons | the roster's buttons since item 4290 (§32): every recorded `queue_up` shown, `INPUT_ROSTER_QUEUES` 257 of 257 |
 | ~~`queued` 1, the shift held~~ | ~~200~~ | Button: the shift on any order | the issuers' queues since item 4293 (§33): 196 orders of the layer's form, and four `build` orders to the dragged line, now 10 |
-| `move_to` `set_angle` 1, the right drag's facing | 140 | Button: a right drag | the layer has no right drag |
+| ~~`move_to` `set_angle` 1, the right drag's facing~~ | ~~140~~ | Button: a right drag | the layer's right drag since item 4295 (§34): of the layer's form, the point and the angle's release unchecked |
 | `move_to` `orders` 2, `ATTACK_TO` | 54 | Button: the attack-move | not read |
 | ~~`leader_options`~~ | ~~50~~ | **Profile**: `Game::run` from the prefs (§26.1) | minted from the layer's prefs since item 4289 |
 | `gather_point` on an object, actions 1 to 3 | 48 | Button: a right press on an object (§11.3) | the layer mints nothing there |
@@ -3442,3 +3445,118 @@ the queue's miss until now. Its type was already on the pages.
   `issue_launch_patrol`, none of which the layer issues.
 - **Not played**: no playback was owed. Every kind is one the original has played from a minted file, and the queue
   is a field the sim reads (`sim::orders`, `QUEUE_LAST`). Run1631 is unused.
+
+## 34. The right drag's facing: `move_to` `set_angle` 1 (item 4295)
+
+*Item 4295, 2026-11-16. Of the 312 orders the census of §30 missed, 140 were `move_to` orders that carry `set_angle`
+1, and the layer had no right drag. The census of the 140 came first: 70 packages, all in the 2017 sample, all of the
+layer's fields but the angle, and every angle one `find_angle` gives. The original's issuer was read, and the layer
+now takes a right drag and mints its order. `INPUT_WHOLE_ORDERS` 927 · 1,190 · 312 → **927 · 1,330 · 172** of 2,429;
+`INPUT_WHOLE` 42 of 50, unchanged. No angle on disk is one the reading does not explain, so the item's stop was not
+reached. This section does not touch `crates/sim`: the angle is `sim::movement::find_angle`, already ported and
+diff-backed by the emulator's sweep (`crates/sim/tests/sweep/find_angle.rs`).*
+
+### 34.1 What the original's drag issues
+
+- **The press** (`Console::down@007cd8f0`, `param_3` 1): with `dragging` 0, the press's pixel goes through
+  `find_cam_vec` and `TerrainOut::convert_mouse_to_terrain` into `drag_x`/`drag_y`, and `drag_x2`/`drag_y2` start equal
+  to them. `dragging` takes bit 2. `drag_form` is `GroupData::get_form` clamped up to 0 and `drag_form_mod` is
+  `get_form_mod_option`, the same `(form, width)` as a right press's (§7.4). A left press during the drag cycles
+  `drag_form` to `(drag_form + 1) % 5` (`is_dragging_formation@007c62c0`). The layer does not cycle.
+- **The move** (`Console::on_mouse_move@007cef20`): `drag_x2`/`drag_y2` follow the cursor. Once
+  `vector_dist(|select_x2 − select_x|, |select_y2 − select_y|)`, in screen pixels (`+0x328` to `+0x334`, read at the
+  listing `7cf15a`..`7cf17f`), passes `click_drag_right_sensitive` (`+0x1d00`), `clicking` is cleared. The constructor
+  (`Console::Console@007cbf60`) sets 6. `System::init@00599700` then reads a profile value over it; its default was not
+  read.
+- **The release** (`Console::on_right_up@007cd3c0`): the release's pixel is converted into `drag_x2`/`drag_y2`. With
+  `clicking` still set, it is `right_click`, the press of §6. With `dragging` exactly 2 and a selection that
+  `Group::can_activate`:
+  1. A Caravan (`COUNT_TYPE 0x3b`) or a Merchant Fleet (`0x13e`) in the selection looks for a market
+     (`find_first_target(SEARCH_NON_ENEMY)`). If it finds one, it issues `issue_trade` and nothing else.
+  2. `find_angle@0092d130` with `ecx = drag_x2 − drag_x` and `edx = drag_y2 − drag_y`. This is settled at the listing,
+     `7cd6e6`..`7cd70a`; the decompiler prints `find_angle(unaff_EDI, unaff_ESI)`.
+  3. The leader: `list[0]` for a building selection, else `GroupData::find_leader`. Its vtable `+8` must answer yes.
+  4. With no plane (`COUNT_DOMAIN 4`), `GroupOut::issue_move_to(drag_x, drag_y, queue, 1, angle, MOVE_TO, drag_form,
+     drag_form_mod, 0)`. With a plane, it is `issue_patrol(drag_x, drag_y, queue)`.
+- **The point is the press's**, `drag_x`/`drag_y`. The release gives only the angle.
+- **The queue** is the minimap's (§33.1): shift → `QUEUE_LAST`, else alt → `QUEUE_FIRST`, else `QUEUE_NEW`. Alt is
+  read whatever `prefs & 0x400` holds. Ctrl is not read, so a ctrl drag is no attack-move.
+- **`CommandManager::issue_move_to@00941720`** writes the angle into the command's `angle` unchanged. It writes
+  `form` and `width` as their low bytes.
+- **`find_angle`** is a 32-bit binary angle. A turn is `2^32`, 0 is north (−y), and `0x40000000` is east. It is an
+  integer arctangent: `t = short · 0x4000 / long`, then `((0x2800 − (|0x1333 − t| · 0xb00 >> 14)) · t & 0xffffc000) <<
+  2`, placed in its octant. On an axis it is exact, and `(0, 0)` gives south, `0x80000000`. So every angle it gives has
+  its low sixteen bits 0. One step of `t` moves the scaled value by under the mask's `0x4000`, so every multiple of
+  `0x10000` is reached (`of_find_angle_reads_the_image`).
+
+### 34.2 The census (`RIGHT_DRAG_*`)
+
+`the_right_drags_of_the_recordings_on_disk` (`crates/client/src/input.rs`) takes every recorded `move_to` with
+`set_angle` nonzero:
+
+- **Where**: 70 packages, all in the 2017 sample (`seifer008`), play 0. Each package is one issue with its `group`, so
+  140 orders. No bottle capture carries a right drag.
+- **`set_angle`**: 1 on every one.
+- **The other fields** (`RIGHT_DRAG_FIELDS`), `(form, width, queued, orders, disembark)`: `(0, 50, 2, 1, 0)` 58,
+  `(9, 50, 2, 1, 0)` 12. These are the right press's fields. No drag is shifted, none is an attack-move.
+- **The angles** (`RIGHT_DRAG_ANGLES`): 70 of 70 in `find_angle`'s image (the low sixteen bits are 0). 13 are exactly
+  south, `0x80000000`: no move, or one straight down the world's y axis.
+- **By octant** (`RIGHT_DRAG_OCTANTS`, `angle >> 29`): 0: 6, 2: 2, 3: 7, 4: 35, 5: 12, 6: 7, 7: 1. Most face south
+  to south-west.
+- **By selection** (`RIGHT_DRAG_GROUPS`, the objects the `group` lists): 0 (the last selection again, §20) 28, 1: 19,
+  2: 8, 3: 4, 7: 2, 11: 3, and one each of 21, 28, 33, 35, 36, 38.
+
+**Seen red**: `RIGHT_DRAG_FIELDS` pinned with `queued` 1 parted; `RIGHT_DRAG_ANGLES` pinned with 12 south parted.
+
+### 34.3 What the layer does
+
+- **The window** holds a right press until its release (`main.rs`). Past [`input::right_dragged`]'s slop it sends
+  `Event::RightDrag` from the press to the release. Otherwise it sends `Event::RightPress` at the release, where the
+  original's `right_click` also reads the release's point (`drag_x2`).
+- **`Event::RightDrag`** mints nothing for an empty selection or a building. It mints nothing for a Caravan or a
+  Merchant Fleet whose press names an object (`View::trades_drag`): that is the trade route, which is not built.
+  Otherwise it mints the `group` and `move_to(ground_at(press), set_angle 1, find_angle(ground_at(release) −
+  ground_at(press)), orders 1, map_queue, View::formation, disembark 0)`.
+- **The count**: `minted_a_right_drag_faces_as_the_original`, at the pinned camera from `(900, 500)`. A drag right,
+  down, left and up the screen mints `0x204d0000`, `0x5fbc0000`, `0x9fc50000` and `0xe0440000`; the camera's turn puts
+  screen-right near north-east. No move mints `0x80000000`. Each angle is held against `find_angle` of the two ground
+  points, and the point against the press's. The queue is the minimap's, and ctrl mints the drag. A trader's press on
+  an object mints nothing, and on the ground it mints the drag. **Seen red**: with the legs swapped (release − press
+  reversed), it parted at `0xa04d0000` against `0x204d0000`. With the dispatch's queue for the minimap's, it parted at
+  `[1, 2, 0, 2]` against `[1, 0, 1, 2]`.
+- **The census's verdict**: `set_angle` 1 with an angle in `find_angle`'s image is of the layer's form, and the rest is
+  read as for `set_angle` 0. The 140 move from missed to form, not to shown. The sample's camera and cursor are not
+  on disk, so the press's point and the release behind each angle are not checked (§30.3).
+
+**The value diff**, the recorded fields against ours before and after (the point is of the layer's form both times):
+
+| field | recorded | ours before | ours, a right drag |
+| --- | --- | --- | --- |
+| `set_angle` | 1 | 0 (a right press; no drag) | 1 |
+| `angle` | `find_angle(release − press)`, low sixteen bits 0 | 0 | `find_angle(release − press)` |
+| `to_x`, `to_y` | the press's point | the press's point | the press's point |
+
+### 34.4 Ours, not the original's
+
+- The slop is tested once, at the release, against [`input::RIGHT_DRAG_SLOP`] 6 (the constructor's value). The
+  original tests every move against the profile's value. So a drag that comes back to its press is a drag there and a
+  press here.
+- A right press is now minted at its release, not at its press, at the release's pixel.
+- The trade arm's test is the press naming any object, not `find_first_target`'s market. The traders are matched by
+  `TypeIndex`, not by lineage.
+- `drag_form`'s cycling by a left press during the drag is not taken.
+
+### 34.5 Confidence, and what is not established
+
+- **Backed by the disk**: the census (`RIGHT_DRAG_*`) and the counts of §30.1. Every recorded drag carries the right
+  press's fields and an angle `find_angle` can give.
+- **Backed by a diff**: `find_angle` itself, through the emulator's sweep against `sim::movement::find_angle`.
+- **One reading**: which pixel gives which point (the press's for the point, the release's for the angle), and the
+  queue's modifiers. Read off `on_right_up`, `down` and `on_mouse_move`, with the call's registers at the listing. No
+  recording holds the cursor, so no angle on disk is matched to its drag.
+- **Not established**: the plane's patrol. With a plane in the selection, the original issues `patrol` where the layer
+  mints this `move_to`. The scene carries no domain. No recording carries a dragged `patrol` (4295a).
+- **Not established**: the leader's vtable `+8` test was not named. The layer mints for any unit selection.
+- **Not established**: the default of `click_drag_right_sensitive` in the profile.
+- **Not played**: no playback was owed. `set_angle` and `angle` are fields the sim reads (`group_action_move_to`,
+  `sim::command`), and the original has played them from the 2017 sample. Run1632 is unused.

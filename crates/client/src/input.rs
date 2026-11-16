@@ -75,6 +75,22 @@ pub const SELECT_CAP: usize = 0x80;
 /// the window to send a [`Event::Drag`] rather than a [`Event::Press`], in
 /// pixels. Ours: the original's `clicking` threshold is not read.
 pub const DRAG_SLOP: i32 = 4;
+/// `Console::click_drag_right_sensitive` (`+0x1d00`), the screen distance
+/// a right press must move to drag: `Console::Console@007cbf60` sets 6,
+/// and `System::init@00599700` reads a profile value over it, whose
+/// default is not read (item 4295, `docs/CLIENT_INPUT.md` §34.1).
+pub const RIGHT_DRAG_SLOP: i32 = 6;
+
+/// **Whether a right press moved far enough to drag** (item 4295, §34.1):
+/// `Console::on_mouse_move@007cef20` clears `clicking` once
+/// `vector_dist(|select_x2 − select_x|, |select_y2 − select_y|)`, in
+/// screen pixels, passes [`RIGHT_DRAG_SLOP`]. Ours: tested once, at the
+/// release, where the original tests every move, so a drag that comes
+/// back to its press is a press here and a drag there.
+pub fn right_dragged(press: (i32, i32), release: (i32, i32)) -> bool {
+    sim::world::vector_dist((release.0 - press.0).abs(), (release.1 - press.1).abs())
+        > RIGHT_DRAG_SLOP
+}
 
 /// **The command kinds this layer mints** (item 4249,
 /// `docs/CLIENT_INPUT.md` §11), by `Command::name`: what [`Input::event`]
@@ -189,6 +205,17 @@ pub enum Event {
     RightPress {
         x: i32,
         y: i32,
+    },
+    /// **A right drag** (item 4295, `docs/CLIENT_INPUT.md` §34): a right
+    /// press at `(x0, y0)`, a drag past the window's slop, and the release
+    /// at `(x1, y1)`. `Console::on_right_up@007cd3c0`'s drag arm: a
+    /// `move_to` to the press's ground point, `set_angle` 1, and the angle
+    /// `find_angle` takes from the press's ground point to the release's.
+    RightDrag {
+        x0: i32,
+        y0: i32,
+        x1: i32,
+        y1: i32,
     },
     /// A right press on the minimap at the world point it names
     /// (`WorldMap::on_right_up@008c7050`, item 4194): a `move_to` with the
@@ -876,6 +903,24 @@ impl View<'_> {
         selection
             .iter()
             .any(|id| self.scene.units.iter().any(|u| u.id == *id && u.attacks))
+    }
+
+    /// `Console::on_right_up@007cd3c0`'s first look (item 4295, §34.1):
+    /// `GroupData::count(COUNT_TYPE, 0x3b)`, then `(COUNT_TYPE, 0x13e)`,
+    /// a Caravan or a Merchant Fleet among the members on the map. Ours:
+    /// the member's own `TypeIndex`, not the lineage `ObjectData::is`
+    /// reads.
+    pub fn trades_drag(&self, selection: &[ObjId]) -> bool {
+        let traders = [
+            sim::ids::ty::CARAVAN as i32,
+            sim::ids::ty::MERCHANTFLEET as i32,
+        ];
+        selection.iter().any(|id| {
+            self.scene
+                .units
+                .iter()
+                .any(|u| u.id == *id && traders.contains(&u.type_index))
+        })
     }
 }
 
@@ -1813,6 +1858,59 @@ impl Input {
                     vec![
                         self.group(view.scene),
                         move_to(at, form, width, self.dispatch_queue()),
+                    ],
+                ))
+            }
+            Event::RightDrag { x0, y0, x1, y1 } => {
+                self.casting = None;
+                self.garrisoning = false;
+                // `Console::on_right_up@007cd3c0` with `dragging` 2 (item
+                // 4295, §34.1): a selection that can act; a building's
+                // leader moves nothing. Ctrl is not read.
+                if self.selection.is_empty() || self.building {
+                    return None;
+                }
+                // A Caravan or a Merchant Fleet in the selection looks for
+                // a market at the press first, the trade route; not built,
+                // so nothing where the press names an object (ours: the
+                // trade's own search is not read).
+                if view.trades_drag(&self.selection) && view.names_object(x0, y0) {
+                    return None;
+                }
+                // `drag_x`/`drag_y` are the press's ground point
+                // (`Console::down@007cd8f0`), `drag_x2`/`drag_y2` the
+                // release's, each `convert_mouse_to_terrain`'s.
+                let at = ground_at(view, x0, y0)?;
+                let to = ground_at(view, x1, y1)?;
+                let angle = sim::movement::find_angle(to.x - at.x, to.y - at.y).0;
+                let (form, width) = view.formation(&self.selection);
+                let Command::MoveTo {
+                    to_x,
+                    to_y,
+                    orders,
+                    queued,
+                    disembark,
+                    ..
+                } = move_to(at, form, width, self.map_queue())
+                else {
+                    unreachable!("move_to mints a MoveTo")
+                };
+                Some((
+                    frame,
+                    play,
+                    vec![
+                        self.group(view.scene),
+                        Command::MoveTo {
+                            to_x,
+                            to_y,
+                            set_angle: 1,
+                            angle,
+                            orders,
+                            queued,
+                            form,
+                            width,
+                            disembark,
+                        },
                     ],
                 ))
             }
@@ -4567,6 +4665,121 @@ pub(crate) mod tests {
         }
     }
 
+    /// **The right drag** (item 4295, `docs/CLIENT_INPUT.md` §34.3): a
+    /// `move_to` to the press's ground point, `set_angle` 1, the angle
+    /// `find_angle` takes from it to the release's, the minimap's queue,
+    /// and ctrl not read; nothing for a building, an empty selection, or a
+    /// trader whose press names an object. The angles are pinned in the
+    /// order's own units, a turn being `2^32`.
+    #[test]
+    fn minted_a_right_drag_faces_as_the_original() {
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let caravan = sim::ids::ty::CARAVAN as i32;
+        let scene = Scene {
+            units: vec![unit(0, 5, 2, 0, 9, 50), unit(0, 6, caravan, 4000, 0, 50)],
+            ..Scene::default()
+        };
+        let v = view(&c, &scene, &terrain);
+        let mods = |shift, ctrl, alt| Mods { shift, ctrl, alt };
+        let drag = |sel: i16, m: Mods, (x0, y0): (i32, i32), (x1, y1): (i32, i32)| {
+            let mut input = Input {
+                selection: vec![ObjId { who: 0, o: sel }],
+                mods: m,
+                ..Input::new(0)
+            };
+            input.event(3, Event::RightDrag { x0, y0, x1, y1 }, &v)
+        };
+        let none = mods(false, false, false);
+        let (press, at) = ((900, 500), ground_at(&v, 900, 500).unwrap());
+        // The four screen directions from one press, and no move at all.
+        let mut angles = vec![];
+        for release in [(1000, 500), (900, 600), (800, 500), (900, 400), (900, 500)] {
+            let got = drag(5, none, press, release).unwrap();
+            assert_eq!(got.0, 3);
+            let Command::MoveTo {
+                to_x,
+                to_y,
+                set_angle,
+                angle,
+                orders,
+                queued,
+                form,
+                width,
+                disembark,
+            } = got.2[1]
+            else {
+                panic!("{got:?}");
+            };
+            assert_eq!(
+                (
+                    to_x, to_y, set_angle, orders, queued, form, width, disembark
+                ),
+                (at.x, at.y, 1, 1, QUEUE_NEW as i8, 9, 50, 0),
+                "the press's point and the click's fields"
+            );
+            let to = ground_at(&v, release.0, release.1).unwrap();
+            assert_eq!(angle, sim::movement::find_angle(to.x - at.x, to.y - at.y).0);
+            angles.push(angle as u32);
+        }
+        println!("RIGHT DRAG ANGLES {angles:#x?}");
+        assert_eq!(angles, RIGHT_DRAG_MINTED);
+        // The queue is the minimap's; ctrl is not read.
+        let queue = |m| match drag(5, m, press, (1000, 500)).unwrap().2[1] {
+            Command::MoveTo { queued, .. } => i32::from(queued),
+            _ => unreachable!(),
+        };
+        assert_eq!(
+            [
+                queue(mods(true, false, false)),
+                queue(mods(false, false, true)),
+                queue(mods(true, false, true)),
+                queue(mods(false, true, false)),
+            ],
+            [QUEUE_LAST, QUEUE_FIRST, QUEUE_LAST, QUEUE_NEW]
+        );
+        // A trader's press on an object is the trade route, not built.
+        let (cx, cy) = v.pixel(4000, 0, 0);
+        assert!(drag(6, none, (cx, cy), (cx + 100, cy)).is_none());
+        assert!(drag(6, none, press, (1000, 500)).is_some());
+        assert!(drag(5, none, (cx, cy), (cx + 100, cy)).is_some());
+        let mut building = Input {
+            selection: vec![ObjId { who: 0, o: 2000 }],
+            building: true,
+            ..Input::new(0)
+        };
+        let d = Event::RightDrag {
+            x0: 900,
+            y0: 500,
+            x1: 1000,
+            y1: 500,
+        };
+        assert_eq!(building.event(3, d, &v), None);
+        assert_eq!(Input::new(0).event(3, d, &v), None);
+    }
+
+    /// The angles [`minted_a_right_drag_faces_as_the_original`] mints at
+    /// the pinned camera, for a drag right, down, left and up the screen
+    /// from `(900, 500)`, and none: no move is `find_angle(0, 0)`, south.
+    /// The camera's turn puts a drag right on the screen near north-east.
+    const RIGHT_DRAG_MINTED: [u32; 5] = [
+        0x204d_0000,
+        0x5fbc_0000,
+        0x9fc5_0000,
+        0xe044_0000,
+        0x8000_0000,
+    ];
+
+    /// The window's slop (§34.1): `vector_dist` of the screen legs past 6.
+    #[test]
+    fn a_right_press_drags_past_the_slop() {
+        assert!(!right_dragged((10, 10), (10, 10)));
+        assert!(!right_dragged((10, 10), (16, 10)));
+        assert!(right_dragged((10, 10), (17, 10)));
+        assert!(!right_dragged((10, 10), (14, 14)));
+        assert!(right_dragged((10, 10), (15, 15)));
+    }
+
     /// **The box's rule without a walk** (`docs/CLIENT_INPUT.md` §7.1): the
     /// list sorted by `TypeIndex` and in object order within one type, the
     /// default profile's civilian rule both ways, another slot's units left
@@ -6753,6 +6966,7 @@ pub(crate) mod tests {
             Command::Spell { .. } => Verdict::Miss("spell on an object: the right press's", Button),
             &Command::MoveTo {
                 set_angle,
+                angle,
                 orders,
                 queued,
                 form,
@@ -6760,8 +6974,14 @@ pub(crate) mod tests {
                 disembark,
                 ..
             } => {
-                if set_angle != 0 {
-                    Verdict::Miss("move_to set_angle 1: the right drag's facing", Button)
+                if set_angle != 0 && (set_angle != 1 || !of_find_angle(angle)) {
+                    // Since item 4295 the right drag's facing is the
+                    // layer's (§34): `set_angle` 1 with an angle
+                    // `find_angle` gives is of its form.
+                    Verdict::Miss(
+                        "move_to set_angle: an angle find_angle does not give",
+                        Button,
+                    )
                 } else if !QUEUES.contains(&i32::from(queued)) {
                     Verdict::Miss("queued: a value no issuer writes", Button)
                 } else if orders != 1 {
@@ -6952,15 +7172,10 @@ pub(crate) mod tests {
     /// Every order on disk by verdict: (shown, of the layer's form but not
     /// minted from a scene, missed, all). A package's `group` takes its
     /// order's verdict.
-    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (927, 1190, 312, 2429);
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (927, 1330, 172, 2429);
     /// The missed orders by arm, most first, and who reaches each, the
     /// package's `group` counted with its order.
     const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] = &[
-        (
-            "move_to set_angle 1: the right drag's facing",
-            Reach::Button,
-            140,
-        ),
         ("move_to orders 2: the attack-move", Reach::Button, 54),
         (
             "gather_point on an object: actions 1 to 3",
@@ -7343,6 +7558,142 @@ pub(crate) mod tests {
             by.into_iter().map(|((k, q, a), n)| (k, q, a, n)).collect();
         println!("QUEUED {by:?}");
         assert_eq!(by, QUEUED_ORDERS);
+    }
+
+    /// Whether `angle` is one `find_angle@0092d130` gives for some leg
+    /// pair (item 4295, `docs/CLIENT_INPUT.md` §34.2): every value of the
+    /// ratio `t` (0 to `0x4000`) in every octant, which a long leg of
+    /// `0x4000` and a short one of 0 to `0x4000` reach exactly.
+    fn of_find_angle(angle: i32) -> bool {
+        static IMAGE: std::sync::OnceLock<std::collections::HashSet<i32>> =
+            std::sync::OnceLock::new();
+        IMAGE
+            .get_or_init(|| {
+                const L: i32 = 0x4000;
+                (-L..=L)
+                    .flat_map(|d| [(L, d), (-L, d), (d, L), (d, -L)])
+                    .chain([(0, 0)])
+                    .map(|(dx, dy)| sim::movement::find_angle(dx, dy).0)
+                    .collect()
+            })
+            .contains(&angle)
+    }
+
+    /// A right drag's fields past its point and angle: `(form, width,
+    /// queued, orders, disembark)`.
+    type DragFields = (i8, i8, i8, i8, i8);
+    /// **`RIGHT_DRAG_FIELDS`** (item 4295, `docs/CLIENT_INPUT.md` §34.2): every
+    /// recorded `move_to` that carries `set_angle` 1, by its other fields
+    /// `(form, width, queued, orders, disembark)`. All 70 packages are the
+    /// 2017 sample's; the 140 orders the census of §30 missed are these
+    /// with their `group`s. Seen red pinned with `queued` 1.
+    const RIGHT_DRAG_FIELDS: &[(DragFields, usize)] =
+        &[((0, 50, 2, 1, 0), 58), ((9, 50, 2, 1, 0), 12)];
+    /// The angles: (of `find_angle`'s image, exactly south `0x80000000`,
+    /// all). The low sixteen bits of every one are 0, as `find_angle`'s
+    /// `& 0xffffc000` and `<< 2` leave them.
+    const RIGHT_DRAG_ANGLES: (usize, usize, usize) = (70, 13, 70);
+    /// The angles by octant, `angle as u32 >> 29`: 0 is north to
+    /// north-east, 4 south to south-west.
+    const RIGHT_DRAG_OCTANTS: &[(u32, usize)] =
+        &[(0, 6), (2, 2), (3, 7), (4, 35), (5, 12), (6, 7), (7, 1)];
+    /// The selections, by the objects the package's `group` lists; 0 is
+    /// the wire's `num = 0`, the last selection sent again (§20).
+    const RIGHT_DRAG_GROUPS: &[(usize, usize)] = &[
+        (0, 28),
+        (1, 19),
+        (2, 8),
+        (3, 4),
+        (7, 2),
+        (11, 3),
+        (21, 1),
+        (28, 1),
+        (33, 1),
+        (35, 1),
+        (36, 1),
+        (38, 1),
+    ];
+
+    /// The census of the right drags (item 4295's first act).
+    #[test]
+    fn the_right_drags_of_the_recordings_on_disk() {
+        let files = recordings_on_disk();
+        if files.is_empty() {
+            println!("skipping: no .rcx on disk");
+            return;
+        }
+        let mut fields: std::collections::BTreeMap<DragFields, usize> = Default::default();
+        let mut octants: std::collections::BTreeMap<u32, usize> = Default::default();
+        let mut groups: std::collections::BTreeMap<usize, usize> = Default::default();
+        let (mut image, mut south, mut all) = (0, 0, 0);
+        let mut files_with = std::collections::BTreeSet::new();
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let mut listed = 0;
+                for c in &kept {
+                    match *c {
+                        Command::Group { ref objects, .. } => listed = objects.len(),
+                        Command::MoveTo {
+                            set_angle,
+                            angle,
+                            orders,
+                            queued,
+                            form,
+                            width,
+                            disembark,
+                            ..
+                        } if set_angle != 0 => {
+                            assert_eq!(set_angle, 1, "a set_angle other than 1");
+                            *fields
+                                .entry((form, width, queued, orders, disembark))
+                                .or_default() += 1;
+                            *octants.entry(angle as u32 >> 29).or_default() += 1;
+                            *groups.entry(listed).or_default() += 1;
+                            image += usize::from(of_find_angle(angle));
+                            south += usize::from(angle == i32::MIN);
+                            all += 1;
+                            files_with.insert(f.file_name().unwrap().to_string_lossy().to_string());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        println!("RIGHT DRAGS in {files_with:?}: {fields:?} {octants:?} {groups:?}");
+        assert_eq!(files_with.len(), 1, "one recording carries the drags");
+        let fields: Vec<_> = fields.into_iter().collect();
+        assert_eq!(fields, RIGHT_DRAG_FIELDS);
+        assert_eq!((image, south, all), RIGHT_DRAG_ANGLES);
+        let octants: Vec<_> = octants.into_iter().collect();
+        assert_eq!(octants, RIGHT_DRAG_OCTANTS);
+        let groups: Vec<_> = groups.into_iter().collect();
+        assert_eq!(groups, RIGHT_DRAG_GROUPS);
+    }
+
+    /// `find_angle`'s image, read by [`of_find_angle`]: every multiple of
+    /// `0x10000` in the turn, and nothing else. One step of the ratio `t`
+    /// moves the scaled value by at most about `0x2b4d`, under the mask's
+    /// `0x4000`, so no multiple is skipped; the image is what the low
+    /// sixteen bits being 0 says. Seen red pinned with a gap in the first
+    /// octant: none.
+    #[test]
+    fn of_find_angle_reads_the_image() {
+        for a in [0, 0x4000_0000, i32::MIN, -0x4000_0000] {
+            assert!(of_find_angle(a), "{a:#x}");
+        }
+        assert!(!of_find_angle(1), "a low bit");
+        assert!(!of_find_angle(0x8000), "a low bit");
+        let reached = (0..0x10000_i64)
+            .map(|k| (k << 16) as u32 as i32)
+            .filter(|&a| of_find_angle(a))
+            .count();
+        assert_eq!(reached, 0x10000, "every multiple of 0x10000");
     }
 
     /// The install's [`Roster`], or `None` with no install.
