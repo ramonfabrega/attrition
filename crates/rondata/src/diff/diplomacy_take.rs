@@ -1675,9 +1675,7 @@ fn run1629_s_word_is_pinned_as_found() {
         w.leaves
             .iter()
             .filter(|(_, _, k, t, m)| {
-                k.starts_with(&format!("{leaf}["))
-                    && t == m
-                    && *t != i64::from(leaf == "hire_who") * -1
+                k.starts_with(&format!("{leaf}[")) && t == m && *t != -i64::from(leaf == "hire_who")
             })
             .count()
     };
