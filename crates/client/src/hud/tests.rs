@@ -1130,3 +1130,130 @@ fn the_selection_s_rings() {
         "four sides, two triangles each"
     );
 }
+
+/// **The roster's edges** (item 4290, `docs/CLIENT_INPUT.md` §32): no
+/// selection, the entry line open, or another slot's building, no button;
+/// the slot's own building, its type's roster, six a row upward from above
+/// the menu's row; units, the build pages; a press on one is its event.
+#[test]
+fn the_roster_follows_the_selection() {
+    let roster = std::sync::Arc::new(crate::input::Roster {
+        trains: vec![vec![], (0..8).map(|k| 50 + k).collect()],
+        builds: vec![417, 419],
+    });
+    let Ok(r) = lobby() else {
+        println!("skipping: no lobby");
+        return;
+    };
+    let mut b = r.scene(None).buildings[0];
+    drop(r);
+    (b.id, b.owner, b.ty) = (ObjId { who: 0, o: 2000 }, 0, Some(1));
+    let scene = sim::observe::Scene {
+        buildings: vec![b],
+        ..Default::default()
+    };
+    let with = |i: Input| Input {
+        roster: roster.clone(),
+        ..i
+    };
+    let tys = |i: &Input| -> Vec<i32> {
+        roster_menu(i, &scene, SIZE)
+            .iter()
+            .map(|b| b.ty())
+            .collect()
+    };
+    assert!(tys(&with(Input::new(0))).is_empty(), "no selection");
+    let built = with(building_selected());
+    assert_eq!(tys(&built), (50..58).collect::<Vec<_>>());
+    let mut open = built.clone();
+    open.line = Some(String::new());
+    assert!(tys(&open).is_empty(), "the entry line open");
+    let mut theirs = with(building_selected());
+    theirs.player = 1;
+    assert!(tys(&theirs).is_empty(), "another slot's building");
+    assert_eq!(tys(&with(units_selected())), vec![417, 419]);
+    let row = roster_menu(&built, &scene, SIZE);
+    assert_eq!(
+        row[0].rect,
+        Rect {
+            x: 8,
+            y: 1000,
+            w: 150,
+            h: 24
+        }
+    );
+    assert_eq!(row[6].rect.y, row[0].rect.y - 28, "six a row");
+    assert!(
+        row.iter().all(|b| b.rect.x + b.rect.w < 980),
+        "left of the right-hand columns"
+    );
+    assert_eq!(
+        route(&built, SIZE, Event::Press { x: 1, y: 1 }),
+        Event::Press { x: 1, y: 1 }
+    );
+    let terrain = sim::observe::TerrainScene::default();
+    let c = camera(None);
+    let v = view(&c, &scene, &terrain);
+    let mut i = built.clone();
+    let (x, y) = row[3].rect.centre();
+    let got = event(&mut i, SIZE, 7, Event::Press { x, y }, &v).map(|o| o.2);
+    assert_eq!(
+        got,
+        Some(vec![
+            Command::Group {
+                who: 0,
+                objects: vec![2000]
+            },
+            Command::QueueUp { unit: 53, num: 1 },
+        ])
+    );
+    let mut u = with(units_selected());
+    let (x, y) = roster_menu(&u, &scene, SIZE)[1].rect.centre();
+    assert_eq!(event(&mut u, SIZE, 7, Event::Press { x, y }, &v), None);
+    assert_eq!(
+        u.placing,
+        Some(419),
+        "the build page's choice, placed by the next press"
+    );
+}
+
+/// **No scripted press falls under the roster** (item 4290): with the
+/// install's roster, the rows the longest panel draws do not reach any
+/// pixel a script presses or right-presses, so the window, which hands the
+/// layer the roster, mints what the tests mint without it.
+#[test]
+fn no_scripted_press_falls_under_the_roster() {
+    let Some(roster) = crate::input::tests::install_roster() else {
+        println!("skipping: no install");
+        return;
+    };
+    let longest = roster
+        .trains
+        .iter()
+        .map(Vec::len)
+        .chain([roster.builds.len()])
+        .max()
+        .unwrap() as i32;
+    let rows = (longest + ROSTER_ROW - 1) / ROSTER_ROW;
+    let (w, h) = ROSTER_BUTTON;
+    let base = SIZE.1 - 2 * MARGIN - BUTTON.1;
+    let area = Rect {
+        x: MARGIN,
+        y: base - rows * (h + MARGIN / 2),
+        w: ROSTER_ROW * (w + MARGIN / 2),
+        h: rows * (h + MARGIN / 2),
+    };
+    println!("ROSTER AREA longest {longest}, {rows} rows: {area:?}");
+    for (frame, _, ev) in right_events()
+        .into_iter()
+        .chain(events(false))
+        .chain(events(true))
+    {
+        if let Event::Press { x, y } | Event::RightPress { x, y } = ev {
+            assert!(
+                !area.contains(x, y),
+                "frame {frame}: the script's ({x}, {y}) is under the roster"
+            );
+        }
+    }
+}
