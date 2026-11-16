@@ -231,7 +231,14 @@ class SharedEntryPoints(unittest.TestCase):
                                   env=env, capture_output=True, text=True, timeout=10)
             self.assertEqual(done.returncode, 2)
             self.assertEqual(len((root/'admissions').read_text().splitlines()), 3)
-            cargo.write_text('#!/bin/sh\nexit 7\n')
+            # Replaced by a rename, never rewritten in place: since 2026-11-16
+            # this host SIGKILLs an executable rewritten in place and run again
+            # (27 of 30 here, exit 247 through the budget's wrapper; a rename
+            # gives a new inode, 0 of 30).
+            fresh = cargo.with_name('cargo.new')
+            fresh.write_text('#!/bin/sh\nexit 7\n')
+            fresh.chmod(0o700)
+            os.replace(fresh, cargo)
             done = subprocess.run(['zsh', str(tools/'check.sh'), 'test'], env=env,
                                   capture_output=True, text=True, timeout=10)
             self.assertEqual(done.returncode, 7)
