@@ -1737,7 +1737,7 @@ not count it (§5).
 | item 4154 | `att` | 98 | §5 |
 | item 4162 | `cannon_time`, `handicap`, `multi_diff`, `misery`, `city_name`, `anti_att` | 92 | §1, §6, §12, §16 |
 | item 4167 | `fort_mark`, `oil_well_mark`, `wonders_built`, `wonders_held`, `senates_built`, `forts_built`, `scholar_militia`, `dock_queued` | 84 | §13, §14 |
-| item 4176 | ten of the damage path's sixteen: `buildings_razed`, `buildings_lost`, `ctw_hero_stamp`, `attrition_stamp`, `attrition_stamp3`, `give_att_disabled`, `repair_stamp`, `missiles_used`, `units_bribed`, `nukes_launched`; `units_killed`, `units_lost`, the three victim stamps and `attrition_stamp2` held, still out (4176a, 4176b) | 74 | §2, §4, §5, §15 |
+| item 4176 | ten of the damage path's sixteen: `buildings_razed`, `buildings_lost`, `ctw_hero_stamp`, `attrition_stamp`, `attrition_stamp3`, `give_att_disabled`, `repair_stamp`, `missiles_used`, `units_bribed`, `nukes_launched`; six held (4176a, b), on since | 74 | §2, §4, §5, §15 |
 | item 4177 | `frame_battle`; the other twelve combat rates held, still out (4177a, 4177b) | 73 | §3 |
 | item 4159, step T | five on transfer (`docs/DECISIONS.md` entry 128 §3; `rondata::diff::transfer`): `stable_queued`, `factory_queued`, `air_queued`, `supply_mark`, `average_kill_rate` | 68 | head |
 | item 4185, step V | seven: `defeated_by`, `defeat_stamp`, `wonderwin_stamp`, `wonderwin_timer`, `lost_capital_stamp`, `lost_capital_timer`, `lost_capital_modifier`; `victory_type`, `defeat_type` held, still out (4185a); ranges and bytes unmoved | 61 | §10, §11 |
@@ -1753,6 +1753,7 @@ not count it (§5).
 | the residue, third builder | `attrition_stamp2` | 23 | §5.5 |
 | the residue, ninth builder | the thirteen combat leaves: `units_killed`, `units_lost`, `average_death_rate`, `average_damage_rate`, `average_hit_rate`, the four `*_current_frame` and the four `*_fifteen_seconds` words (no window parts them; witnessed on the packets) | 10 | §2.5, §3.5 |
 | the residue, sixteenth builder | `score` (4159r15a) | 9 | §18.5 |
+| seventeenth | the three victim stamps | 6 | §4.5 |
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with

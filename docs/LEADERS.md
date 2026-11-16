@@ -1088,10 +1088,22 @@ Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/victim-stamps-*.md`). ~~no diff backs it
 yet.~~ **Since item 4176 the record diff backs the three rows**, all 24
 cells of each leader, on every scored dump that prints the record (and
-`LEADERS=8`'s golden chapters, which print them too); they part only on
+`LEADERS=8`'s golden chapters, which print them too). ~~they part only on
 run1075's garrison window beside its units' own damage (block 2060,
 who 1's `attack_stamp[0]` ours 2059 theirs 0, beside `1/59`'s damage 10
-against 0) and on four closing frames whose rounds already part.
+against 0) and on four closing frames whose rounds already part.~~ **They
+part nowhere** (item 4159's seventeenth residue): a probe at all sixteen
+leader-record comparison sites over the whole `diff::` suite (2,062
+tests) held none of the 24 cells on any row, and saw 331,453 non-zero
+cells of theirs agree, run1075's window among them (2060: who 0's
+`attack_stamp[1]` and `raid_stamp[1]` 1745, `ally_stamp[1]` 1719). The
+window's partings went with the residues that fixed its fight (the third,
+fourth, sixth and eighth); the closing frames' with the launch rows of
+the fifth and the nuke's ceiling of the first. So **the three rows are on
+the leaders line** (CHECKSUM §20), released by `docs/DECISIONS.md` entry
+131 §1's first way; each agrees on all 226 walked packet leaders, non-zero
+on 95 (`attack_stamp`), 66 (`raid_stamp`) and 34 (`ally_stamp`), witness
+run1359, frame 5619, leader 0 (5568, 5568, 5394 in column 1).
 `ctw_hero_stamp` agrees at 0 everywhere, which a dump cannot falsify.
 
 The verdicts, per claim row:
@@ -1136,6 +1148,11 @@ No kept-dump value is cited as a witness.
 - ~~**No value diff.**~~ The record diff backs arms 1–4 and the ally
   test since item 4176 (§4.5). Which arm each cell came from is not
   separated by it; a cell agrees or parts.
+- **Agreement past the kept dumps.** The rows agree on every dump and
+  packet our walk holds (§4.5), which is not every fight: 4159r5a's two
+  pieces (the Royal Mameluke and the Arab Armored Car) still launch from
+  the figure's square, and their windows (run967g, run971, run1425) agree
+  on every cell. A later capture that parts a cell is a finding.
 
 ## 5. The attrition stamps, `att` and `give_att_disabled`
 
