@@ -318,6 +318,16 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// (the flags byte) against ours' `guys.length` 1; theirs' three ranges
 /// `04`, (61, 1, uid 84), (0, 264, 42840, 18408, 0, 0) → the same three
 /// on both, equal to the order this crate already held.
+///
+/// Item 4298 moved one on both takes: leaders parts on 11 of run1577's
+/// 120 frames (0 and 100–109) where it parted on all 120, and on 152 of
+/// run1578's first 300 (0, 100–109, 159–299) where it parted on all 300,
+/// its first still frame 0 on both. The release of `hire_stamp`, `hire_who` and `tributes`: emitting
+/// `hire_who`'s −1 per slot (`Leader::init`'s fill) makes each leader's
+/// long range agree where nothing else in it parts; the record's first
+/// parting was leader 0's `+0x1cc` (ours 0, theirs `ffffffff`) on every
+/// frame of [`RECORD_PARTINGS`]. The line is still not counted whole while
+/// a leaf is held (`LEADERS_HELD_OUT`).
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -328,7 +338,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
             ("builds", 120, 0),
             ("groups", 120, 0),
             ("guys", 120, 0),
-            ("leaders", 0, 120),
+            ("leaders", 0, 11),
             ("cities", 120, 0),
             ("items", 120, 0),
             ("goods", 120, 0),
@@ -343,7 +353,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
             ("builds", 24000, 0),
             ("groups", 24000, 0),
             ("guys", 24000, 0),
-            ("leaders", 0, 300),
+            ("leaders", 0, 152),
             ("cities", 24000, 0),
             ("items", 24000, 0),
             ("goods", 24000, 0),
@@ -512,36 +522,35 @@ fn minted_packets_dir() -> String {
 /// stands on a frame [`CHECKSUM_FRAMES`] names as a line's first parting;
 /// a line that agrees there is not listed. run1589 stands on 2745, the
 /// frame before groups' 2746, whose tick item 4231 read under `step4.py`.
-/// The leaders line's first parting is leader 0's `+0x1cc` (theirs
-/// `ffffffff`, ours 0: the unheld `hire_who`'s −1s) since item 4159's
-/// sixteenth residue put `score` on the line; until then it was `score` at
-/// `+0x10` (ours 0, unheld), on all fifteen packets, its ranges parted
-/// unmoved.
+/// The leaders line's first parting was leader 0's `+0x1cc` (theirs
+/// `ffffffff`, ours 0: the unheld `hire_who`'s −1s) from item 4159's
+/// sixteenth residue, which put `score` on the line (until then `score` at
+/// `+0x10`, ours 0, unheld), to item 4298, which emits `hire_who`: since
+/// then each packet parts on one or two ranges fewer, seven agree whole
+/// on the line, and the rest name the next parting (`flags`,
+/// `resources_controlled` at `+0x850`, `reg_unpack_merch[1]` at `+0x5d8`).
+/// The line is still not counted whole while a leaf is held.
 type PacketRow = (&'static str, usize, usize, usize, &'static str);
 pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &[
     (
         "run1579",
         "rontrace-run1579.log",
         1,
-        &[(
-            "leaders",
-            267,
-            267,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: leaders whole; before it, 2 of 267 ranges parted, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff` (the unheld `hire_who`'s
+            // −1s).
+        ],
     ),
     (
         "run1582",
         "rontrace-run1582.log",
         129,
-        &[(
-            "leaders",
-            267,
-            267,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: leaders whole; before it, 2 of 267 ranges parted, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff` (the unheld `hire_who`'s
+            // −1s).
+        ],
     ),
     (
         "run1586",
@@ -549,13 +558,17 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         189,
         // Item 4228: units whole; before it, 1 of 1,127 ranges, range 303,
         // unit `1/6` (`TypeIndex` 50, a Citizen) `path.size` 10|20.
-        &[(
-            "leaders",
-            267,
-            267,
-            3,
-            "0 0 flags: +0x2 of 8|8: 00000000|08000000",
-        )],
+        &[
+            // Item 4298: 3 → 1 parted (`hire_who`'s −1s emitted); before it, first `0 0 flags: +0x2
+            // of 8|8: 00000000|08000000`.
+            (
+                "leaders",
+                267,
+                267,
+                1,
+                "0 0 flags: +0x2 of 8|8: 00000000|08000000",
+            ),
+        ],
     ),
     (
         "run1587",
@@ -565,13 +578,17 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         // 660 parted from range 536: record 14's `TRADE_ROUTE`, whose
         // `TradeOrder::walk_data` hands over three ranges the emitter left
         // out (`order.flags`, `order.target`, `order.trade`).
-        &[(
-            "leaders",
-            267,
-            267,
-            3,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 3 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                267,
+                267,
+                1,
+                "128 1 flags: +0x2 of 8|8: 00000000|80000000",
+            ),
+        ],
     ),
     (
         // Item 4231: the frame before groups' 2746, the push's tick still
@@ -580,13 +597,11 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "run1589",
         "rontrace-run1589.log",
         2745,
-        &[(
-            "leaders",
-            267,
-            267,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: leaders whole; before it, 2 of 267 ranges parted, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff` (the unheld `hire_who`'s
+            // −1s).
+        ],
     ),
     (
         "run1588",
@@ -595,13 +610,11 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         // Item 4231: groups whole; before it, 1 of 544 ranges, range 83,
         // group record 65 (the Scout `1/0`, pushed on 2745) `role` 0|0x40110,
         // `new_speed` 0|34, `speed` 0|34.
-        &[(
-            "leaders",
-            267,
-            267,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: leaders whole; before it, 2 of 267 ranges parted, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff` (the unheld `hire_who`'s
+            // −1s).
+        ],
     ),
     (
         "run1590",
@@ -612,13 +625,17 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         // (`UNPACK_MERCHANT`), whose `CastOrder::walk_data@004860a0` hands
         // over three ranges the emitter left out (`order.flags`,
         // `order.target`, `order.cast`).
-        &[(
-            "leaders",
-            267,
-            267,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                267,
+                267,
+                1,
+                "129 1 who..ally_mask: +0x5d0 of 26914|26914: 02000000|00000000",
+            ),
+        ],
     ),
     (
         "run1591",
@@ -631,13 +648,17 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         // last two) one step behind: range 187 `last_x` 7824|7848, `last_y`
         // 21648|21672. Player 1's age on tick 6536: `gain_tech:2376`'s
         // seating writes every figure's `last`.
-        &[(
-            "leaders",
-            267,
-            267,
-            3,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                267,
+                267,
+                2,
+                "128 1 flags: +0x3 of 8|8: 02000000|0f000000",
+            ),
+        ],
     ),
     (
         "run1592",
@@ -647,13 +668,17 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         // group record 64 (army 1/1, the Longbowmen `1/24..1/26`, TI 177,
         // pushed on 6780) `role` 0|0x150c00, `new_speed` 0|26, `speed`
         // 0|26: `Army::add_group@006f8c00`'s `get_num_cap`.
-        &[(
-            "leaders",
-            271,
-            271,
-            3,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                2,
+                "128 1 flags: +0x2 of 8|8: 00020000|800a0000",
+            ),
+        ],
     ),
     (
         "run1593",
@@ -665,13 +690,17 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         // three ranges after `order.move` the emitter left out — the flags
         // byte again (05), `oxx`..`group_angle` (24, 1, 0x697990, 0, the
         // move's angle) and `in_group` (0) — on each of three members.
-        &[(
-            "leaders",
-            271,
-            271,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                1,
+                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
+            ),
+        ],
     ),
     (
         "run1600",
@@ -682,13 +711,17 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         // 262144|262148 (and 0x4000a|0x4000e on the other two): the
         // emitter left out bit 0x4, `Unit::set_in_danger@005fcfb0`'s latch
         // the crate already held.
-        &[(
-            "leaders",
-            271,
-            271,
-            3,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                271,
+                271,
+                2,
+                "128 1 flags: +0x2 of 8|8: 00020000|80020000",
+            ),
+        ],
     ),
     (
         "run1583",
@@ -696,13 +729,11 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         987,
         // Item 4228: units whole; before it, 4 ranges, range 177 `path.size`
         // 10|50.
-        &[(
-            "leaders",
-            267,
-            267,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: leaders whole; before it, 2 of 267 ranges parted, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff` (the unheld `hire_who`'s
+            // −1s).
+        ],
     ),
     (
         "run1584",
@@ -714,13 +745,9 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             // 14 `path.size` 50|64 — the road stack's doubled allocation
             // `do_trade`'s `operator=` hands the caravan — and then the
             // `TradeOrder`'s three unwalked ranges (1386 ours, 1389 theirs).
-            (
-                "leaders",
-                267,
-                267,
-                2,
-                "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-            ),
+            // Item 4298: leaders whole; before it, 2 of 267 ranges parted, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff` (the unheld `hire_who`'s
+            // −1s).
         ],
     ),
     (
@@ -734,12 +761,14 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             // 1 of 1507, range 492, record 14 (`1/14`, the caravan)
             // `unit_masks` 262152|262664, `do_trade:470`'s `| 0x200` on its
             // unload.
+            // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
             (
                 "leaders",
                 267,
                 267,
-                2,
-                "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
+                1,
+                "129 1 who..ally_mask: +0x5d0 of 26914|26914: 03000000|01000000",
             ),
         ],
     ),
@@ -747,25 +776,27 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         "run1580",
         "rontrace-run1580.log",
         61,
-        &[(
-            "leaders",
-            267,
-            267,
-            2,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: leaders whole; before it, 2 of 267 ranges parted, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff` (the unheld `hire_who`'s
+            // −1s).
+        ],
     ),
     (
         "run1581",
         "rontrace-run1581.log",
         100,
-        &[(
-            "leaders",
-            267,
-            267,
-            3,
-            "1 0 who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff",
-        )],
+        &[
+            // Item 4298: 3 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
+            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            (
+                "leaders",
+                267,
+                267,
+                1,
+                "128 1 flags: +0x2 of 8|8: 00000000|80000000",
+            ),
+        ],
     ),
 ];
 

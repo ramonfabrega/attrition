@@ -53,6 +53,31 @@ impl Sim {
         self.leaders.tribute[x].dip[m].treaty = w;
     }
 
+    /// **`Leader::action_attack@006d14e0(me, p, whose, onoff)`**: `me` asks
+    /// `p` to attack `whose` (`onoff` 1) or withdraws the ask (0), the
+    /// diplomacy window's Mutual Attack check (`CommandPackage::
+    /// process_propose_attack@00946b30`). `me.dip[p].any_offer` is set;
+    /// with a slot named (`whose >= 0`), both agreements are withdrawn
+    /// ([`Sim::clear_agree`] each way) and `onoff` is written into both
+    /// records' `attacks[whose]` (item 4298, `docs/LEADERS.md` §7.2). The
+    /// window's click stamp is the interface's.
+    pub fn action_attack(&mut self, me: Player, p: Player, whose: i32, onoff: i32) {
+        let Some((m, x)) = self.deal_pair(me, p) else {
+            return;
+        };
+        self.leaders.tribute[m].dip[x].any_offer = 1;
+        let Some(w) = usize::try_from(whose)
+            .ok()
+            .filter(|&w| w < self.leaders.tribute[m].dip[x].attacks.len())
+        else {
+            return;
+        };
+        self.clear_agree(m, x);
+        self.clear_agree(x, m);
+        self.leaders.tribute[m].dip[x].attacks[w] = onoff;
+        self.leaders.tribute[x].dip[m].attacks[w] = onoff;
+    }
+
     /// **`LeaderData::any_proposals@006d5ad0(me, p)`**: a treaty asked, or
     /// any good or attack in `me.dip[p]`.
     pub fn any_proposals(&self, me: Player, p: Player) -> bool {
@@ -263,7 +288,9 @@ impl Sim {
     ///    `S −= resource_value · v / 256`, except a give to a mutual ally of
     ///    no more than a third of my stock, which is free at team styles 0,
     ///    8 and 11 and free elsewhere unless I gave `t` within 4500 frames.
-    /// 3. With no proposal left, the pass ends.
+    /// 3. With no proposal left, the pass ends. **The attack requests**
+    ///    ([`Sim::attack_terms`]) add their terms to `S`, or refuse; with no
+    ///    proposal left after them, the pass ends (`LAB_006bfa57`).
     /// 4. **The shortfall** (`LAB_006bfa57`), selected by `aggression[t]`:
     ///    - 0: unless `t` holds a fresh tribute of mine
     ///      (`is_tribute_period(t, me)`), `S += epoch_t · x` (`x` 100 at
@@ -288,8 +315,10 @@ impl Sim {
     ///    with no give of mine is a counteroffer: `counteroffer[t] = 1` and
     ///    both agreements withdrawn; the good it names is the message's.
     ///
-    /// SEAM: the attack requests' valuation needs a request this crate never sets
-    /// (the leader's attack request, 006d14e0, is not carried); a positive need with a give
+    /// The attack requests' terms ([`Sim::attack_terms`], item 4298) come
+    /// between the valuation and the shortfall.
+    ///
+    /// SEAM: a positive need with a give
     /// of mine (`6c035d`: a coin and a war) is not carried; with nothing
     /// committed to me, the computer's own proposals (`6c08f4` on: the
     /// top-scorer arm, read as never the target, then a peace at war and an
@@ -361,9 +390,11 @@ impl Sim {
         if !self.any_proposals(mp, tp) {
             return;
         }
-        // SEAM: the attack requests' valuation (`attacks[l]`, the capital
-        // holder `local_6c` and the racing third party `local_58`): no
-        // request is ever set.
+        s = s.wrapping_add(self.attack_terms(me, t, rivals));
+        // `LAB_006bfa57`: a refusal of the attack terms has answered.
+        if !self.any_proposals(mp, tp) {
+            return;
+        }
         let strong = self.ai.ai[me].strong[t];
         let diff = self.ai_difficulty();
         let military = crate::tech::Line::Military.index();
@@ -445,6 +476,79 @@ impl Sim {
         self.leaders.tribute[me].counteroffer[t] = 1;
         self.clear_agree(t, me);
         self.clear_agree(me, t);
+    }
+
+    /// **The attack requests' terms** (`Leader::diplomacy@006bc950`,
+    /// `6bf6b2`–`6bfa57`; item 4298, `docs/LEADERS.md` §7.2): `me` the
+    /// computer valuing `t`'s committed proposal, for each target `X ∉ {me,
+    /// t}` that `me.dip[t].attacks[X]` names, in slot order.
+    ///
+    /// 1. **Refusals**, each answering the proposal (withdraw if I had
+    ///    committed, else reject) and ending the walk: `me` and `X` mutual
+    ///    allies (`6bfc0e`); `t` and `X` mutual allies (`6bfb4d`); `t` my
+    ///    enemy (`is_enemy`) with no treaty asked (`treaty < 1`, `6bfb2f`).
+    /// 2. **The term.** At peace with `X` both ways: `(25 · X.blacken − 100
+    ///    · ((t.blacken != 0) + 1)) · (X.mil + 1) + (t.civ + 1) · (weak[X] ?
+    ///    20 : 0)`. At war either way: `(t.civ + 1) · (weak[X] ? 120 : 20)`
+    ///    while `t` is at peace with `X` both ways, else 0. `mil` and `civ`
+    ///    are the Military and Civic lines (`data_encrypted + 0xe8`,
+    ///    `+0xec`).
+    /// 3. `+ X.civ · 100` for my capital's holder (`local_6c`, [`Rivals`]'
+    ///    `capital`), `+ 200` for the racing third party (`local_58`); a
+    ///    negative term is halved toward zero when `t` is my ally
+    ///    (`is_ally(me, t)`).
+    ///
+    /// Returns the terms' sum. SEAM: multiplayer (`semaphore[0] & 4`, which
+    /// halves the 100) is never set; the mutual-ally term (`6bf7b6`) is
+    /// unreachable behind the first refusal (parked 4298a); the refusals'
+    /// console messages are the interface's.
+    fn attack_terms(&mut self, me: usize, t: usize, rivals: Rivals) -> i32 {
+        let (mp, tp) = (me as Player, t as Player);
+        let military = crate::tech::Line::Military.index();
+        let civic = crate::tech::Line::Civic.index();
+        let slots = self.leaders.tribute[me].dip[t].attacks.len();
+        let players = self.leaders.tribute.len().min(slots);
+        let mut sum: i32 = 0;
+        for x in (0..players).filter(|&x| x != me && x != t) {
+            if self.leaders.tribute[me].dip[t].attacks[x] == 0 {
+                continue;
+            }
+            let refused = self.allied_both(me, x)
+                || self.allied_both(t, x)
+                || (self.is_enemy(mp, tp) && self.leaders.tribute[me].dip[t].treaty < 1);
+            if refused {
+                let code = if self.leaders.tribute[me].dip[t].agree == 1 {
+                    0
+                } else {
+                    2
+                };
+                self.action_respond(mp, tp, code);
+                break;
+            }
+            let weak = self.ai.ai[me].weak[x] != 0;
+            let civ_t = self.tech[t].epoch[civic];
+            let mut term = if self.diplos(me, x) != 0 && self.diplos(x, me) != 0 {
+                let blacken_t = i32::from(self.leaders.declare[t].blacken != 0);
+                (25 * self.leaders.declare[x].blacken - 100 * (blacken_t + 1))
+                    * (self.tech[x].epoch[military] + 1)
+                    + (civ_t + 1) * if weak { 20 } else { 0 }
+            } else if self.diplos(t, x) != 0 && self.diplos(x, t) != 0 {
+                (civ_t + 1) * if weak { 120 } else { 20 }
+            } else {
+                0
+            };
+            if rivals.capital == Some(x) {
+                term += self.tech[x].epoch[civic] * 100;
+            }
+            if rivals.racer == Some(x) {
+                term += 200;
+            }
+            if self.is_ally(mp, tp) && term < 0 {
+                term /= 2;
+            }
+            sum = sum.wrapping_add(term);
+        }
+        sum
     }
 }
 
