@@ -1646,13 +1646,24 @@ fn recon4300_walked_at_its_difficulty() {
     let mut init = log.initial().expect("a start dump");
     borrow_from_siblings(&mut init, &[&own]);
     borrow_pasture(&mut init, &pasture);
+    let mut reread = false;
     for kv in init.game_info.iter_mut() {
         if kv.0 == "TEAM_STYLE" {
             kv.1 = "0";
         }
         if kv.0 == "DIFFICULTY" {
+            reread = kv.1 != difficulty;
             kv.1 = difficulty;
         }
+    }
+    // A re-read difficulty makes run1482's own frame words another game's:
+    // the setup does not read the difficulty, the first frame does, so its
+    // frame-end words and clocks are dropped as a sibling's at another
+    // lobby are (`borrow_from_siblings`, item 979). At the dump's own
+    // difficulty they stay, as before.
+    if reread {
+        init.frame_seeds.clear();
+        init.frame_guys.clear();
     }
     for l in init.leaders.iter_mut() {
         if (0..3).contains(&l.who) {
