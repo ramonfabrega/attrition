@@ -17,7 +17,11 @@ tuple or array of them, `None`, `Some(…)`, a string, a bool. A `want`
 that is an expression — a constant's name, a call — is printed as a site
 to re-pin by hand, with its got and want, and left alone; so is a site
 two tests moved to two values. `pin!` and `pin_ne!` sites are listed and
-never rewritten: they have no `want`.
+never rewritten: they have no `want`. A comment beside a `want` stays where
+it stood; one inside a replaced literal moves, text unchanged, to its own
+line above the literal's (`hoisted`). A list emptied to `[]` takes the
+tree's typed form where `[]` would not type-check (`emptied`), and the
+pins self-test's deliberate literals are never re-pinned (`SELF_TESTS`).
 
     cargo test --release -p rondata sahara_toughest 2>&1 | tee /tmp/run.log
     python3 tools/repin.py /tmp/run.log            # report, write nothing
@@ -175,6 +179,92 @@ def replacement(want_src, got):
     return prefix + got
 
 
+STRING = re.compile(r'^"(?:[^"\\]|\\.)*"$', re.S)
+
+
+def elements(src):
+    """The top-level comma-separated items of `src` (a list's inside, its
+    comments blanked), whitespace trimmed, empties dropped."""
+    out, depth, in_str, cut, k = [], 0, False, 0, 0
+    while k < len(src):
+        c = src[k]
+        if in_str:
+            if c == '\\':
+                k += 1
+            elif c == '"':
+                in_str = False
+        elif c == '"':
+            in_str = True
+        elif c in '([{':
+            depth += 1
+        elif c in ')]}':
+            depth -= 1
+        elif c == ',' and depth == 0:
+            out.append(src[cut:k])
+            cut = k + 1
+        k += 1
+    out.append(src[cut:])
+    return [e.strip() for e in out if e.strip()]
+
+
+EMPTIED_BY_HAND = "an emptied list of rows holding strings: its type is the site's to name"
+
+
+def emptied(want_src):
+    """The source for a list `want` whose `got` is `[]`, or None when the
+    site must name its type by hand. Item 4258 (and 4253 twice): `[]` does
+    not type-check against a `Vec<String>`, whose element is `PartialEq`
+    with four string types, so the element is never inferred; the tree's
+    empty string wants are `Vec::<String>::new()` (137 under
+    crates/rondata/src on b4f919fb6), its `[]` (26) and `vec![]` (25) all
+    stand against numeric rows, where the one impl infers and the literal
+    form stays. A list of rows that only hold strings (a tuple with a
+    `&str` in it) has a type the log does not print."""
+    w = want_src.strip()
+    prefix = re.match(r'^(&?(?:vec!)?)', w).group(1)
+    body = w[len(prefix):]
+    if '"' not in body:
+        return prefix + '[]'
+    if body.startswith('[') and body.endswith(']') and all(STRING.match(e) for e in elements(body[1:-1])):
+        return 'Vec::<String>::new()'
+    return None
+
+
+def hoisted(raw, text, a, b, new):
+    """The edit `(start, end, new)` that puts `new` over `raw[a:b]` and keeps
+    every comment inside that span. Item 4258: a list `want` replaced whole
+    took its own comment lines with it (`harness.rs` run178, item 1468's
+    two). Each comment is kept, its text unchanged, on its own line above
+    the line the span opens on, at that line's indent, in source order;
+    `text` is `raw` with its comments blanked, so a `//` in a string is
+    not one."""
+    comments, k = [], a
+    while k < b:
+        if text[k] == ' ' and raw.startswith('//', k):
+            end = raw.find('\n', k)
+            end = len(raw) if end < 0 else end
+            comments.append(raw[k:end])
+            k = end
+        k += 1
+    if not comments:
+        return a, b, new
+    ls = raw.rfind('\n', 0, a) + 1
+    indent = re.match(r'[ \t]*', raw[ls:]).group(0)
+    return ls, b, ''.join(f'{indent}{c}\n' for c in comments) + raw[ls:a] + new
+
+
+# The pins self-test reports moved pins on purpose, and its report is in
+# every log of the whole suite (item 4159's second residue: `--write`
+# re-pinned its two deliberate literals, put back by hand).
+SELF_TESTS = {('crates/rondata/src/diff/testkit.rs', 'a_test_that_holds_several_pins_reports_every_one_that_moved')}
+
+
+def enclosing_fn(text, offset):
+    """The name of the last `fn` opened before `offset`, or None."""
+    names = re.findall(r'\bfn\s+([A-Za-z_][A-Za-z0-9_]*)', text[:offset])
+    return names[-1] if names else None
+
+
 CONST_FIELD = re.compile(r'^([A-Z][A-Z0-9_]*)\.([a-z_][a-z0-9_]*)$')
 
 
@@ -269,10 +359,14 @@ def plan(sites, root=ROOT):
         if not path.exists():
             by_hand.append((file, line, 'no such file', msg, got, want))
             continue
-        text = blank_comments(path.read_text())
+        raw = path.read_text()
+        text = blank_comments(raw)
         span = invocation(text, line)
         if not span:
             by_hand.append((file, line, 'no pin_eq! opens on that line', msg, got, want))
+            continue
+        if (file, enclosing_fn(text, span[0])) in SELF_TESTS:
+            by_hand.append((file, line, "the pins self-test's deliberate literal", msg, got, want))
             continue
         arguments = args_of(text, *span)
         if len(arguments) < 2:
@@ -287,11 +381,18 @@ def plan(sites, root=ROOT):
                 continue
             span = const_array(text, text[a:b], a)
             if span and LITERAL.match(got.strip()):
-                edits[file].append((span[0], span[1], replacement(text[span[0]:span[1]], got.strip())))
+                # The const is typed, so an emptied one stays `&[]`.
+                new = replacement(text[span[0]:span[1]], got.strip())
+                edits[file].append(hoisted(raw, text, span[0], span[1], new))
                 continue
             by_hand.append((file, line, 'the want is not a literal', msg, got, want))
             continue
-        edits[file].append((a, b, new))
+        if got.strip() == '[]':
+            new = emptied(text[a:b])
+            if new is None:
+                by_hand.append((file, line, EMPTIED_BY_HAND, msg, got, want))
+                continue
+        edits[file].append(hoisted(raw, text, a, b, new))
     return edits, by_hand
 
 

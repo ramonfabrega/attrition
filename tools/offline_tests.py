@@ -60,6 +60,7 @@ SUITES = (
     'test_waitrun',
     'test_mutate',
     'test_repin',
+    'test_cant_reach_pins',  # the steering pass of 2026-11-15: --write keeps the table's comments
     'test_sweep_gen',
     'test_unitaddr',
     'test_unitat',
