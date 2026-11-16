@@ -2471,6 +2471,39 @@ it stands. Every file of ours carries a recording's value, `lo[0]`. That value c
 `process_leader_options@009441d0` pushes onto units and buildings only the fields that differ from `init`'s. A minted
 value other than that one would need the sim to carry `process_leader_options`, the SEAM `Sim::build_stance` names.
 
+**Item 4289: the layer mints it from its own prefs** (DECISIONS 136 §4). `rondata::prefs::Prefs` is the profile's
+four fields the order reads (`prefs`, `peasants`, `peasants_wait`, `buildings`, the PDB's `PlayerPrefs_u_0_s_0`
+names). `Prefs::FRESH` is what `PlayerProfile::default_profile@005ceca0` makes. `Input::leader_options(who)` mints it,
+and no control is drawn. Every byte of the 0x21, by its writer:
+
+| bytes | value (fresh) | writer |
+| --- | --- | --- |
+| 0 | `0x49` | `CommandManager::issue_leader_option@00942080`, `command_type` `'I'` |
+| 1–4 `who` | 0 | the same, `MiscAccess::console->who` over the record's −1: the human's `who`, not the package's `play` |
+| 5–8 `peasants` | 0 | `synch_with_prefs`, the prefs' `peasants`; `default_game@005d0220` writes 0 |
+| 9–12 `peasants_wait` | 2 | `synch_with_prefs`, `-(prefs.peasants_wait != 0) & 2`; `default_game` writes 2 |
+| 13–16 `buildings` | 0 | `synch_with_prefs`, the prefs' `buildings`; `default_game` writes 0 |
+| 17–20 `bits` | 32 | `LeaderOption::LeaderOption@006f1db0` `0x20`, copied by `BitMask<8>::operator=@0042ef10` |
+| 21–24 `size` | 4 | the same constructor; `operator=` copies it, then `size` bytes of `ptr` |
+| 25–28 `flags` | 2 | `synch_with_prefs`: a set bit writes 0, a clear one 2 where it is 0, so 0 only when `0x800000` is set |
+| 29 `ptr[0]` | `0x0a` | `synch_with_prefs`' five bits; bits 2, 6 and 7 stay as `init_rules_and_teams`' `memset` left them |
+| 30–32 `ptr[1..3]` | 0 | the reset's `memset` of `(bits + 7) >> 3` = 4 bytes; nothing writes them after |
+
+**The fresh profile is the original's default** (the first act). `PlayerProfile::load@005cb430` calls
+`default_profile` when it finds no profile. That clears `prefs`, then `default_game` (`& 0xff6efefd | 0x0d0e4045`:
+`0x4000` and `0x80000` set, `0x100000` and `0x800000` cleared, `0x8000` left at 0), the mouse lines, `default_video`
+and `default_audio`. The word is `0x1f2e5055`. All three capture lanes' `PlayerProfile/Player.dat` hold `<PREFS
+value="523128917"/>`, the same word whole, with `PEASANT_STANCE` 0, `PEASANTS_WAIT` 2 and `BUILDING_STANCE` 0. Those
+are the struct's `+0x38`, `+0x3c` and `+0x40`, which the loader reads in field order. So the lanes' profile is the one
+a fresh install makes. **The two values the recordings carry**: the bottle's 49 are `Prefs::FRESH` at `who` 0. The
+2017 sample's is `who` 3 (its human slot is `who` 3 on play 0; its frame-0 package's `play` is 0, as every file's
+is) with `0x800000` set as well. `minted_leader_options_equal_the_recordings` mints all 50 byte for byte
+(`INPUT_LEADER_OPTIONS` 50 of 50, by profile fresh 49 and sample 1). Seen red three ways: pinned (0, 0), it read 50;
+the first draft took the package's `play` for `who`, and the sample parted at 49; `size` perturbed to 5, it minted
+0. `recgame`'s lobby recording (`start_walk::lobby_recording_with`) now builds frame 0 from `Prefs::FRESH` and holds
+it to the donor's, so a minted file copies no package from a recording. The header is still the donor's
+(`recgame::from_lobby`).
+
 ### 26.2 What the icon issues, and what the order does
 
 - **The icon.** `Options::exec@007188c0` case `0xaa` names a unit, from the button. `ObjectData::get_inside` gives its
@@ -2559,9 +2592,12 @@ farm `0/2007`, at the point it stood on before the garrison (§23.4's 6750 row).
 - **The panel's icons.** Which garrisoned units the original's building panel lays out, in what order, and whether a
   selection of several buildings shows them all, is read only as far as `Options::exec`'s arm.
 - **`do_eject_all`**, the arm for a unit inside a unit (a transport), is not minted.
-- **`leader_options`** (§26.1): our lobby page holds no profile prefs, and the sim does not carry
+- ~~**`leader_options`** (§26.1): our lobby page holds no profile prefs, and the sim does not carry
   `process_leader_options`. A page row for the auto-manage prefs would mint the 50 through `synch_with_prefs`, but a
-  file carrying any other value than the recordings' needs that processor first (parked 4280b).
+  file carrying any other value than the recordings' needs that processor first (parked 4280b).~~ Minted from the
+  layer's own prefs, the fresh profile's, with no control (item 4289, §26.1). A value other than the fresh profile's
+  still needs `process_leader_options` (parked 4280b). The sample's prefs word is known only in the five bits the
+  order reads.
 - ~~**`stance`'s issuer**: `GroupOut::issue_stance@0070b100` has no direct caller in the export. Its caller, and what
   `stance(−1)` on a building does, are not read.~~ Read in §27.1: `Options::do_stance@00721480` writes the order
   inline, and the building arm writes `Build +0x7e`.
@@ -2984,13 +3020,16 @@ the package's verdict:
 **The count** (on the merge of `966ef9843`, after item 4287's disband; first pinned on `be7a4f7dd` with the
 disband missed, 359 shown and 994 missed):
 
-- `INPUT_WHOLE` **0 of 50**.
-- `INPUT_WHOLE_CARRIED` **42 of 50**: `leader_options` taken as the file writer takes it, copied from a recording's
-  frame 0 (`recgame::minted_packages`' argument) rather than minted. That is the 38 files that carry nothing else and
-  four whose other orders are all shown: the pause pair of 08-20 17'06'30, the chat lines of 08-20 22'03'58 and of
-  08-24 22'14'05, and the toggle of 08-24 23'41'51.
+- `INPUT_WHOLE` **0 of 50**; **42 of 50 since item 4289** (§26.1: `INPUT_LEADER_OPTIONS` 50 of 50 joins the shown
+  pins). That is the 38 files that carry nothing else and four whose other orders are all shown: the pause pair of
+  08-20 17'06'30, the chat lines of 08-20 22'03'58 and of 08-24 22'14'05, and the toggle of 08-24 23'41'51.
+  `INPUT_WHOLE_CARRIED` (42 of 50, `leader_options` copied from a recording's frame 0) is now the score and is
+  retired.
 - `INPUT_WHOLE_ORDERS`: **361 shown, 1,076 form, 992 missed, of 2,429**; item 4288's `unitmask` (§31) moves its
   package's two orders from missed to shown, **363 shown, 990 missed**, and drops the `unitmask` row of §30.2.
+  Item 4289's `leader_options` moves 50 more: **413 shown, 1,076 form, 940 missed**, and drops the `leader_options`
+  row of §30.2. 38 of the 42 whole recordings carry no order but this one, so the orders' count is the one to steer
+  by.
 
 **Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
 `INPUT_SPELLS against the census` 17 against 6.
@@ -3024,7 +3063,7 @@ is where the arms are.
 | `queued` 1, the shift held | 200 | Button: the shift on any order | every arm writes `QUEUE_NEW` (§6.1) |
 | `move_to` `set_angle` 1, the right drag's facing | 140 | Button: a right drag | the layer has no right drag |
 | `move_to` `orders` 2, `ATTACK_TO` | 54 | Button: the attack-move | not read |
-| `leader_options` | 50 | **Profile**: `Game::run` from the prefs (§26.1) | carried from a recording's frame 0 |
+| ~~`leader_options`~~ | ~~50~~ | **Profile**: `Game::run` from the prefs (§26.1) | minted from the layer's prefs since item 4289 |
 | `gather_point` on an object, actions 1 to 3 | 48 | Button: a right press on an object (§11.3) | the layer mints nothing there |
 | `build` of a type no key of ours binds | 42 | Button: the citizen's build buttons | `BUILD_KEYS` binds two |
 | two issues in one turn | 38 | **Writer**: the original's one package a turn holds every issue of the turn | `minted_packages` refuses two packages on a frame (RECGAME §9) |
@@ -3046,10 +3085,18 @@ stances are shown.
   box. So the carried count's 42 rests on shown orders alone, and the form orders move no recording into it.
 - **The arm labels are ours**: read from the fields against the layer's own constants, not from the issuers' code
   paths. `orders` 2 as the attack-move is `sim::ids::order::ATTACK_TO`'s name, not a reading of its issuer.
-- **Not established**: whether `leader_options` should be minted from a field of our lobby page holding the
+- ~~**Not established**: whether `leader_options` should be minted from a field of our lobby page holding the
   profile's five bits and its two counts. That is an interface choice, not a reading. With such a field the carried
   count would become the score, 0 → 42, but it is a lobby page the cut list (`CLAUDE.md`, the `iface*` windows) does
-  not name. That decision is the driver's.
+  not name. That decision is the driver's.~~ Ruled by DECISIONS 136 §4: a prefs record of the layer's own, the fresh
+  profile's, and no control. Built in item 4289 (§26.1); the score went 0 → 42.
+- **Ours, not the original's** (item 4289): `Input::leader_options` takes the console's `who` as an argument, since
+  the layer's `player` is the package's `play`. Our only prefs value is the fresh profile's. The original's prefs
+  dialogs (the game options window's auto-manage settings, which call `synch_with_prefs` again) are not ported.
+- **Not established** (item 4289): the 2017 sample's prefs word beyond the five bits the order reads.
+  `peasants_wait` is read only as zero or not, so the sample's own count is one of the nonzero values.
+- **Not established** (item 4289): whether the frame-0 package's `play` is always 0. It is 0 in all 50, the
+  sample's too, where the human is on play 0 as well. `recgame::minted_packages` writes 0.
 
 ## 31. A unit's auto-explore: the AUTO EXPLORE button (item 4288)
 
