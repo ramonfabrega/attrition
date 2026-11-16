@@ -625,7 +625,12 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // `blacken`, and `dow` and `broke_alliance` by target; step VII-c's
     // `made_peace` by the other party. The same values the leaders line
     // emits.
-    for k in sim::leaders::declare::DECLARE_LEAVES {
+    // Item 4298's `hire_stamp` and `hire_who` are on the line, and their
+    // record rows are [`HELD_ROWS`]' (4159r18a), so they are not added here.
+    for k in sim::leaders::declare::DECLARE_LEAVES
+        .into_iter()
+        .filter(|k| !k.starts_with("hire_"))
+    {
         let v = s.leader_declare_leaf(p, k).unwrap_or_default();
         if DECLARE_ROWS.contains(&k) {
             for (i, x) in v.iter().enumerate() {

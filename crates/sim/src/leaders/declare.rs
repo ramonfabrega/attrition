@@ -37,9 +37,17 @@ const INVADERS_JUSTIFY: i32 = 5;
 const INVADER_DISCOUNT: i32 = 10;
 
 /// The leaves [`Sim::leader_declare_leaf`] answers, in the record's order:
-/// the declaration's three (step VII-b1) and the accepted peace's
-/// `made_peace` (step VII-c).
-pub const DECLARE_LEAVES: [&str; 4] = ["blacken", "dow", "broke_alliance", "made_peace"];
+/// the declaration's three (step VII-b1), the accepted peace's
+/// `made_peace` (step VII-c), and the hire's `hire_stamp` and `hire_who`
+/// (item 4298: run1629's attack deal, accepted on 1186).
+pub const DECLARE_LEAVES: [&str; 6] = [
+    "blacken",
+    "dow",
+    "broke_alliance",
+    "made_peace",
+    "hire_stamp",
+    "hire_who",
+];
 
 /// One leader's relation leaves (`docs/LEADERS.md` §7.1). `Leader::init`
 /// zeroes all of them but `hire_who`, which it sets to −1 per slot; nothing
@@ -88,8 +96,8 @@ impl Default for Declared {
 
 impl Sim {
     /// One of [`DECLARE_LEAVES`] as the leaders line and the record print
-    /// it: `blacken` one word, `dow`, `broke_alliance` and `made_peace`
-    /// eight.
+    /// it: `blacken` one word, `dow`, `broke_alliance`, `made_peace`,
+    /// `hire_stamp` and `hire_who` eight.
     pub fn leader_declare_leaf(&self, who: Player, name: &str) -> Option<Vec<i64>> {
         let d = self.leaders.declare.get(who as usize)?;
         match name {
@@ -97,6 +105,8 @@ impl Sim {
             "dow" => Some(d.dow.iter().map(|&x| i64::from(x)).collect()),
             "broke_alliance" => Some(d.broke_alliance.to_vec()),
             "made_peace" => Some(d.made_peace.to_vec()),
+            "hire_stamp" => Some(d.hire_stamp.to_vec()),
+            "hire_who" => Some(d.hire_who.iter().map(|&x| i64::from(x)).collect()),
             _ => None,
         }
     }

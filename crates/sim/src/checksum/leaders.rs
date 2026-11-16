@@ -1472,7 +1472,9 @@ impl Sim {
             // 1090, each computed by our walk and agreeing there; the accept
             // of 1027 between is computed since step VII-c. Step VII-d's
             // `counteroffer` moves on run1575's 1052, the French answer to
-            // the alliance found short, computed and agreeing.
+            // the alliance found short, computed and agreeing. Item 4298's
+            // `tributes` (with `hire_stamp` and `hire_who` above) moves on
+            // run1629's 1187, the attack deal our walk computes.
             _ if crate::leaders::tribute::TRIBUTE_LEAVES.contains(&name) => {
                 self.leader_tribute_leaf(who, name)
             }
