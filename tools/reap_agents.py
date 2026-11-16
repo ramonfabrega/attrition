@@ -14,11 +14,15 @@ subagent tree whose tip is an ancestor of `--mine` (default `HEAD`, the
 lane's branch) is the lane's and merged, and goes; one whose tip is not
 in that history is another lane's or unmerged, and is refused either
 way. A tree with uncommitted changes or a lock is refused too, however
-merged: the lock is the harness's or a person's, and the dirt is work.
+merged: the lock is the harness's or a person's, and the dirt is work —
+but a lock that names a process which is gone is stale, and that tree is
+unlocked and judged as any other.
 Exit 0 when nothing was refused, 1 otherwise; nothing is removed without
 `--yes`.
 """
 import argparse
+import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -46,16 +50,42 @@ def agent_worktrees(root):
     locked = False
     for line in git(root, 'worktree', 'list', '--porcelain').splitlines() + ['']:
         if line.startswith('worktree '):
-            path, head, locked = Path(line[9:]), None, False
+            path, head, locked, stale = Path(line[9:]), None, False, False
         elif line.startswith('HEAD '):
             head = line[5:]
         elif line == 'locked' or line.startswith('locked '):
-            locked = True
+            locked = not stale_lock(line[7:])
+            stale = not locked
         elif line == '':
             if path is not None and path.name.startswith('agent-'):
                 out.append((path, head, locked))
+                if stale:
+                    STALE.add(path)
             path = None
     return out
+
+
+# The trees whose lock names a process that is gone: unlocked before they
+# are removed. The harness locks a subagent's tree `claude agent <name> (pid
+# N start …)`; seven merged builder trees stood under the lock of a driver
+# row that had been reaped (the pass of 2026-11-15).
+STALE = set()
+LOCK_PID = re.compile(r'\(pid (\d+)\b')
+
+
+def stale_lock(reason):
+    """A lock whose reason names a pid no process holds. One with no pid in
+    it is a person's, and stands."""
+    m = LOCK_PID.search(reason or '')
+    if not m:
+        return False
+    try:
+        os.kill(int(m.group(1)), 0)
+    except ProcessLookupError:
+        return True
+    except PermissionError:
+        return False
+    return False
 
 
 def survey(root, mine='HEAD'):
@@ -81,6 +111,8 @@ def reap(root, mine='HEAD', dry_run=True, out=sys.stdout):
     for row in survey(root, mine):
         if row.verdict == 'mine':
             if not dry_run:
+                if row.path in STALE:
+                    git(root, 'worktree', 'unlock', str(row.path))
                 git(root, 'worktree', 'remove', str(row.path))
             removed.append(row.path)
             print(f'{"would remove" if dry_run else "removed"}  {row.path.name}  {row.head[:9]}  merged into {mine}',

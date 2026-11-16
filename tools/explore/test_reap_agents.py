@@ -10,6 +10,7 @@ ancestor of the lane's branch is the lane's and merged; one whose tip is
 not is another lane's, or unmerged, and is refused either way.
 """
 import subprocess
+import os
 import sys
 import tempfile
 import unittest
@@ -74,6 +75,24 @@ class Reap(unittest.TestCase):
         self.assertEqual(removed, [])
         self.assertEqual(sorted(p.name for p in refused), ['agent-dirty', 'agent-locked'])
         self.assertTrue(dirty.exists() and locked.exists())
+
+    def test_a_lock_whose_holder_is_dead_is_stale_and_the_tree_goes(self):
+        # The pass of 2026-11-15: seven merged builder trees stood locked
+        # `claude agent agent-… (pid 62375 start …)` after the driver row
+        # that cut them was reaped. The harness's lock names its process; a
+        # lock whose process is gone protects nothing. A lock with a live
+        # holder, or with no pid in its reason (a person's), still refuses.
+        d = repo()
+        stale = agent(d, 'stale', 'merged\n', merge_into='worktree-att-1')
+        git(d, 'worktree', 'lock', '--reason', 'claude agent agent-stale (pid 999999 start Sat Nov 14 17:58:58 2026)', str(stale))
+        live = agent(d, 'live', 'merged\n', merge_into='worktree-att-1')
+        git(d, 'worktree', 'lock', '--reason', f'claude agent agent-live (pid {os.getpid()} start now)', str(live))
+        person = agent(d, 'person', 'merged\n', merge_into='worktree-att-1')
+        git(d, 'worktree', 'lock', '--reason', 'kept for a look', str(person))
+        removed, refused = reap_agents.reap(d, 'HEAD', dry_run=False)
+        self.assertEqual([p.name for p in removed], ['agent-stale'])
+        self.assertEqual(sorted(p.name for p in refused), ['agent-live', 'agent-person'])
+        self.assertFalse(stale.exists())
 
     def test_a_dry_run_removes_nothing_and_the_command_line_needs_yes(self):
         d = repo()

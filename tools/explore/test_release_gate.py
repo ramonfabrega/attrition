@@ -1370,6 +1370,24 @@ garbage line
         with self.assertRaises(ValueError):
             self.release_command(touched=[], scope='abc1234', no_widen=True)
 
+    def test_a_session_s_booking_gate_runs_through_gate_run(self):
+        # The pass of 2026-11-15. The driver of that day's tranche ran its 34
+        # booking gates as `python3 tools/release_gate.py … --scope …` in
+        # the integration tree, the command the queue's own maintenance line
+        # still gave: no row check, no gate tree, and no disk step after a
+        # green gate, so the free disk fell from 228 GB to 120 in the day.
+        # `tools/gate_run.sh` exports GATE_RUN; a session (the harness sets
+        # CLAUDE_CODE_SESSION_ID in its shells) that asks for a gate that is
+        # not a lane's without it is refused. A person's shell is not.
+        session = {'CLAUDE_CODE_SESSION_ID': 'abc'}
+        with self.assertRaises(ValueError) as refused:
+            gate.refuse_a_bare_booking_gate(lane=False, env=session)
+        self.assertIn('tools/gate_run.sh', str(refused.exception))
+        gate.refuse_a_bare_booking_gate(lane=False, env={**session, gate.GATE_RUN: '1'})
+        gate.refuse_a_bare_booking_gate(lane=True, env=session)
+        gate.refuse_a_bare_booking_gate(lane=False, env={})
+        self.assertIn(f'export {gate.GATE_RUN}=1', (Path(gate.__file__).parent / 'gate_run.sh').read_text())
+
     def test_a_no_widen_lane_that_moves_the_sim_s_source_keeps_every_widening_family(self):
         # The pass of 2026-11-15. The guard above kept two families by name
         # (`_word_frame_is_widened_whole`, `_gap_is_walked_whole`: 405 tests).

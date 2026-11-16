@@ -40,6 +40,7 @@ esac
 cd "$root/.claude/worktrees/gate" || { echo "gate exit 97 (no gate tree)" > "$log"; exit 97; }
 git checkout -q --detach "$sha" || { echo "gate exit 96 (checkout $sha refused)" > "$log"; exit 96; }
 echo "Gate tree: $(pwd) at $(git rev-parse HEAD)" > "$log"
+export ATTRITION_GATE_RUN=1
 python3 tools/release_gate.py "$install" --test-threads 8 "$@" >> "$log" 2>&1
 code=$?
 echo "$rows" >> "$log"

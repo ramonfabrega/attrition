@@ -1505,6 +1505,21 @@ def agent_tip_is_merged(head):
                                          capture_output=True).returncode == 0
 
 
+# A session's booking gate runs through `tools/gate_run.sh`, which asks the
+# rows, the backstop and the driver's depth first, runs the gate in the gate
+# tree and clears the disk after a green one (DECISIONS 135). The tranche of
+# 2026-11-15 ran 34 booking gates bare, on the command the queue still gave.
+GATE_RUN = 'ATTRITION_GATE_RUN'
+
+
+def refuse_a_bare_booking_gate(lane, env):
+    if lane or env.get(GATE_RUN) or not env.get('CLAUDE_CODE_SESSION_ID'):
+        return
+    raise ValueError("a session's booking gate runs through `zsh tools/gate_run.sh <sha> <log> [--scope <tip>]` "
+                     '(the rows, the backstop, the gate tree, the disk step; docs/LOOP.md, "The chain"); '
+                     "a worker's gate is `--lane`")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('install', type=Path, help='owned install directory; always exported as RON_INSTALL')
@@ -1543,6 +1558,7 @@ def main():
     args = parser.parse_args()
     try:
         check_whole(lane=args.lane, tests=args.tests, whole=args.whole, no_widen=args.no_widen)
+        refuse_a_bare_booking_gate(args.lane, os.environ)
         refuse_stale_agent_worktrees(stale_agent_worktrees_now(), lane=args.lane, merged=agent_tip_is_merged)
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
              test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item,
