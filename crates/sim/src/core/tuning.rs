@@ -422,6 +422,10 @@ pub struct Tuning {
     /// Percent faster creation of a Mongol attacker trained at the Stable
     /// line — `ObjectData::train_time@006508c0`'s Mongol arm. Ships as 20.
     pub mongol_stable_speed: i32,
+    /// Percentage off the scaled base of a Mongol unit trained at the Stable
+    /// line — `TypeData::get_cost@00664090`'s Mongol arm (`:216`–`222`), the
+    /// pre-ramp tail right after Salt. Ships as 10 (item 4159r14).
+    pub mongol_stable_cost: i32,
     /// Percentage off the British price of the four taxation techs,
     /// Taxation through Income Tax — `get_cost`'s `TVar21 − TAXATION < 4`
     /// with `has_tribe_bonus(0xb)` (`docs/AI.md` §74).
@@ -1585,6 +1589,7 @@ impl Tuning {
         lakota_food: 4,
         americans_barracks_gather: 2,
         mongol_stable_speed: 20,
+        mongol_stable_cost: 10,
         british_taxation_discount: 50,
         democracy_tech_bonus: [20, 20],
         furs_military: 25,
@@ -2149,6 +2154,7 @@ impl Tuning {
                 Slot::Value(T.americans_barracks_gather),
             ),
             ("MONGOL_STABLE_SPEED", Slot::Value(T.mongol_stable_speed)),
+            ("MONGOL_STABLE_COST", Slot::Value(T.mongol_stable_cost)),
             (
                 "BRITISH_TAXATION_DISCOUNT",
                 Slot::Value(T.british_taxation_discount),

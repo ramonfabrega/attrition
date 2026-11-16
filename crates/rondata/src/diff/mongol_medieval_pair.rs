@@ -274,7 +274,8 @@ fn mongol_medieval_pair_run1378b_s_word_frame_is_widened_whole() {
     // Fishermen `1/85` agrees through the window; who=1's buckets on 2495
     // and the three Light Cavalry (210) queued costs on 2586 (132/88
     // against 126/84) still part — they were not the boat's cause.
-    pin_eq!(w.firsts.len(), 125, "run1378b baseline");
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 125 -> 107.
+    pin_eq!(w.firsts.len(), 107, "run1378b baseline");
     // Every round, both directions: none fly in the window.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -356,7 +357,8 @@ fn mongol_medieval_pair_run1386_s_word_frame_is_widened_whole() {
     // on 3898..4013; the rounds read 209 a side and agree but for
     // `1/20`'s on 4221, whose target `0/13` died on 4220: theirs' round
     // keeps `ox` 13 and `whom` 0, ours' reads -1 (parked 3714a).
-    pin_eq!(w.firsts.len(), 135, "run1386 baseline");
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 135 -> 131.
+    pin_eq!(w.firsts.len(), 131, "run1386 baseline");
     pin_eq!(w.rounds_read, (209, 209), "the rounds read");
     pin_eq!(w.rounds.len(), 2, "the rounds that part");
 }
@@ -423,7 +425,8 @@ fn mongol_medieval_pair_run1391b_s_closing_frame_is_widened_whole() {
     // on 5368, 5375, 5376, 5418 and 5576. Nothing parts on the closing
     // block 5593, and no draw parts to 5592.
     // Item 4159's residue: 104 -> 103, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 103, "run1391b baseline");
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 103 -> 99.
+    pin_eq!(w.firsts.len(), 99, "run1391b baseline");
     // Every round, both directions: 1674 each side, 50 parting — every one
     // a Trebuchet's (TI 266: `1/64`, `1/74`, `1/79`), leaving from the
     // figure's own point ~700 below theirs' (`1/64`'s on 5523: (7800,

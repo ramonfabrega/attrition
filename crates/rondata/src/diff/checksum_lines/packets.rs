@@ -1898,18 +1898,20 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: builds (4271, 4271, 25) -> (4271, 4271, 24).
     // Item 4262, a wonder's entry in its wonder list: builds (4271, 4271, 24) -> (4271, 4271, 21).
     // Item 4266, a guard order's walker: units (11740, 10933, 10438) -> (11740, 11677, 10203).
+    // Item 4159r14, the Mongol stable arm of `get_cost`: builds (4271, 4271, 21) -> (4271, 4271, 13),
+    // leaders (271, 271, 6) -> (271, 271, 4) (`encrypt.bucket[0]`/`[1]` agree).
     (
         "run1224b",
         9745,
         [
             (11740, 11677, 10203),
-            (4271, 4271, 21),
+            (4271, 4271, 13),
             (0, 0, 0),
             (6, 0, 6),
             (0, 0, 0),
             (556, 556, 0),
             (2735, 2735, 0),
-            (271, 271, 6),
+            (271, 271, 4),
             (62, 62, 0),
             (30, 30, 0),
             (120, 120, 0),
@@ -2322,18 +2324,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (688, 688, 11) -> (688, 688, 10).
     // Item 4258, `Group::add`'s OR of its new member's role: groups (688, 688, 10) -> (688, 688, 9).
     // Item 4262, a wonder's entry in its wonder list: builds (2123, 2123, 16) -> (2123, 2123, 14).
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2123, 2123, 14) -> (2123, 2123, 4), leaders (271, 271, 8) -> (271, 271, 4).
     (
         "run1294",
         4473,
         [
             (8216, 8189, 7044),
-            (2123, 2123, 14),
+            (2123, 2123, 4),
             (0, 0, 0),
             (3, 0, 3),
             (0, 0, 0),
             (688, 688, 9),
             (2242, 2242, 7),
-            (271, 271, 8),
+            (271, 271, 4),
             (27, 27, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -2358,18 +2361,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (2163, 2163, 22) -> (2163, 2163, 20).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (682, 682, 10) -> (682, 682, 9).
     // Item 4262, a wonder's entry in its wonder list: builds (2163, 2163, 20) -> (2163, 2163, 17).
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2163, 2163, 17) -> (2163, 2163, 7), leaders (271, 271, 8) -> (271, 271, 4).
     (
         "run1296",
         4632,
         [
             (9905, 9866, 8613),
-            (2163, 2163, 17),
+            (2163, 2163, 7),
             (0, 0, 0),
             (0, 0, 0),
             (6, 0, 6),
             (682, 682, 9),
             (2172, 2172, 9),
-            (271, 271, 8),
+            (271, 271, 4),
             (27, 27, 0),
             (5, 5, 0),
             (330, 330, 0),
@@ -2969,18 +2973,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 1) -> (556, 556, 0).
     // Item 4262, a wonder's entry in its wonder list: builds (2544, 2544, 22) -> (2544, 2544, 19).
     // Item 4266, a guard order's walker: units (6810, 6393, 5699) -> (6810, 6783, 5665).
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2544, 2544, 19) -> (2544, 2544, 3), leaders (271, 271, 8) -> (271, 271, 4).
     (
         "run1361",
         4840,
         [
             (6810, 6783, 5665),
-            (2544, 2544, 19),
+            (2544, 2544, 3),
             (0, 0, 0),
             (0, 0, 0),
             (4, 0, 4),
             (556, 556, 0),
             (1847, 1847, 0),
-            (271, 271, 8),
+            (271, 271, 4),
             (37, 37, 0),
             (50, 50, 0),
             (180, 180, 0),
@@ -3136,18 +3141,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1830, 1830, 15) -> (1830, 1830, 14).
     // Item 4262, a wonder's entry in its wonder list: builds (1830, 1830, 14) -> (1830, 1830, 13).
     // Item 4266, a guard order's walker: units (6512, 6386, 5209) -> (6512, 6497, 5472).
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (1830, 1830, 13) -> (1830, 1830, 3), leaders (271, 271, 8) -> (271, 271, 4).
     (
         "run1391",
         4174,
         [
             (6512, 6497, 5472),
-            (1830, 1830, 13),
+            (1830, 1830, 3),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (694, 694, 13),
             (1927, 1927, 4),
-            (271, 271, 8),
+            (271, 271, 4),
             (35, 35, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -3894,18 +3900,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (4969, 4763, 4142) -> (4969, 4784, 4300).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (640, 640, 4) -> (640, 640, 3).
     // Item 4266, a guard order's walker: units (4969, 4784, 4300) -> (4969, 4889, 2804).
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (1731, 1729, 941) -> (1731, 1729, 939), leaders (271, 271, 7) -> (271, 271, 5).
     (
         "run785",
         2178,
         [
             (4969, 4889, 2804),
-            (1731, 1729, 941),
+            (1731, 1729, 939),
             (0, 0, 0),
             (0, 0, 0),
             (28, 0, 28),
             (640, 640, 3),
             (1429, 1429, 1),
-            (271, 271, 7),
+            (271, 271, 5),
             (47, 47, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -3926,18 +3933,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (5889, 5635, 5001) -> (5889, 5659, 5297).
     // Item 4234, a cast's three ranges walked: units (5889, 5659, 5297) -> (5889, 5662, 5221).
     // Item 4266, a guard order's walker: units (5889, 5662, 5221) -> (5889, 5809, 3724).
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2157, 2155, 1258) -> (2157, 2155, 1256), leaders (271, 271, 7) -> (271, 271, 5).
     (
         "run789",
         2799,
         [
             (5889, 5809, 3724),
-            (2157, 2155, 1258),
+            (2157, 2155, 1256),
             (0, 0, 0),
             (281, 0, 281),
             (0, 0, 0),
             (664, 664, 2),
             (1765, 1765, 1),
-            (271, 271, 7),
+            (271, 271, 5),
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -3958,18 +3966,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (5860, 5603, 4890) -> (5860, 5627, 5173).
     // Item 4234, a cast's three ranges walked: units (5860, 5627, 5173) -> (5860, 5633, 5166).
     // Item 4266, a guard order's walker: units (5860, 5633, 5166) -> (5860, 5780, 3667).
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2059, 2057, 1181) -> (2059, 2057, 1179), leaders (271, 271, 7) -> (271, 271, 5).
     (
         "run795",
         2681,
         [
             (5860, 5780, 3667),
-            (2059, 2057, 1181),
+            (2059, 2057, 1179),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (652, 652, 2),
             (1704, 1704, 1),
-            (271, 271, 7),
+            (271, 271, 5),
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -3992,18 +4001,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (9526, 9396, 8822) -> (9526, 9402, 8740).
     // Item 4257, the garrison chain's order: builds (2384, 2381, 1400) -> (2384, 2381, 1399).
     // Item 4266, a guard order's walker: units (9526, 9402, 8740) -> (9526, 9414, 8644).
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2384, 2381, 1399) -> (2384, 2381, 1398), leaders (271, 271, 7) -> (271, 271, 5).
     (
         "run810",
         3631,
         [
             (9526, 9414, 8644),
-            (2384, 2381, 1399),
+            (2384, 2381, 1398),
             (0, 0, 0),
             (156, 0, 156),
             (0, 0, 0),
             (688, 688, 5),
             (2341, 2341, 11),
-            (271, 271, 7),
+            (271, 271, 5),
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -4024,18 +4034,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (9339, 9173, 8350) -> (9339, 9197, 8567).
     // Item 4257, the garrison chain's order: builds (2473, 2469, 1532) -> (2473, 2469, 1531).
     // Item 4266, a guard order's walker: units (9339, 9197, 8567) -> (9339, 9227, 8404).
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2473, 2469, 1531) -> (2473, 2469, 1530), leaders (271, 271, 7) -> (271, 271, 5).
     (
         "run823",
         4238,
         [
             (9339, 9227, 8404),
-            (2473, 2469, 1531),
+            (2473, 2469, 1530),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (676, 676, 6),
             (2450, 2450, 11),
-            (271, 271, 7),
+            (271, 271, 5),
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -4056,18 +4067,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4230, a trade order walked and a road stack's doubled size: units (9362, 9196, 8314) -> (9362, 9220, 8572).
     // Item 4257, the garrison chain's order: builds (2473, 2469, 1532) -> (2473, 2469, 1531).
     // Item 4266, a guard order's walker: units (9362, 9220, 8572) -> (9362, 9250, 8445).
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2473, 2469, 1531) -> (2473, 2469, 1530), leaders (271, 271, 7) -> (271, 271, 5).
     (
         "run825",
         4204,
         [
             (9362, 9250, 8445),
-            (2473, 2469, 1531),
+            (2473, 2469, 1530),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (688, 688, 5),
             (2471, 2471, 10),
-            (271, 271, 7),
+            (271, 271, 5),
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -4777,7 +4789,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run1221", "flags.leader_flags resources_controlled"),
     (
         "run1224b",
-        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     (
         "run1235b",
@@ -4814,14 +4826,8 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "run1293",
         "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
-    (
-        "run1294",
-        "encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags resources_controlled",
-    ),
-    (
-        "run1296",
-        "encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags resources_controlled",
-    ),
+    ("run1294", "flags.leader_flags resources_controlled"),
+    ("run1296", "flags.leader_flags resources_controlled"),
     ("run1304", "flags.leader_flags resources_controlled"),
     ("run1305b", "flags.leader_flags resources_controlled"),
     (
@@ -4870,7 +4876,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run1361",
-        "encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags reg_unpack_merch resources_controlled",
+        "flags.leader_flags reg_unpack_merch resources_controlled",
     ),
     ("run1381", "flags.leader_flags resources_controlled"),
     (
@@ -4879,10 +4885,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     ("run1383", "flags.leader_flags"),
     ("run1385p", "flags.leader_flags resources_controlled"),
-    (
-        "run1391",
-        "encrypt.bucket[0] encrypt.bucket[1] encrypt.bucket[2] encrypt.bucket[4] flags.leader_flags resources_controlled",
-    ),
+    ("run1391", "flags.leader_flags resources_controlled"),
     ("run1416", "flags.leader_flags resources_controlled"),
     ("run1417", "flags.leader_flags resources_controlled"),
     (
@@ -4950,27 +4953,27 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     (
         "run785",
-        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     (
         "run789",
-        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
+        "flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
     ),
     (
         "run795",
-        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch",
+        "flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch",
     ),
     (
         "run810",
-        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
+        "flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
     ),
     (
         "run823",
-        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
+        "flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
     ),
     (
         "run825",
-        "encrypt.bucket[4] encrypt.bucket[5] flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
+        "flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch resources_controlled",
     ),
     ("run839", "aggression cities_built flags.leader_flags"),
     ("run842", "aggression cities_built flags.leader_flags"),

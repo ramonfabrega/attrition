@@ -4717,6 +4717,13 @@ twice. The scan's census, and `last_spoke`'s (§7.2), is the item's journal.
   record probe's `HELD` count falls from 1,715 rows in seven tests to
   **492 rows in five**: run1013 (100), run1014 (26), run1218 and run1224
   (60 each), and the coverage walk over them (246). `score` stays held.
+- **The Mongol windows' economy** (item 4159's fourteenth residue,
+  4159r12b): the parting before block 8438 was not an event but a price.
+  `get_cost`'s Mongol Stable arm (`MONGOL_STABLE_COST`, 10 off the scaled
+  base) was unbuilt, so every Mongol Light Horse cost 6 food and 4 timber
+  more (`docs/COSTS.md`, "A Mongol Stable unit costs a tenth less"). With it
+  who=1's `bucket` agrees on every block of run1198b, run1218, run1222 and
+  run1224, and the Mongol windows' `score` rows are gone.
 
 ## 19. The last building and unit finished
 

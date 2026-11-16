@@ -231,5 +231,6 @@ fn run834_s_word_frame_is_widened_whole() {
     // 2989, `1/43` on 3000, …) sit on units already apart by their
     // `attrition` period (ours 6 against theirs' 48).
     // Item 4159's third residue: 249 -> 94, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
-    pin_eq!(w.firsts.len(), 94, "run834 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 94 -> 77.
+    pin_eq!(w.firsts.len(), 77, "run834 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
 }

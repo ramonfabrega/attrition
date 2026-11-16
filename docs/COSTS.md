@@ -1163,10 +1163,37 @@ the original offered it.
 
 **How confident**: diff-backed by run631's standing `queue[0].cost` and
 bucket rows, and by the word (11582 → 12794). The tail's other nations'
-arms (Mongol stable, Japanese barracks and ships, ~~German submarines~~
+arms (~~Mongol stable~~ (built, item 4159r14; see "A Mongol Stable unit costs a tenth less"), Japanese barracks and ships, ~~German submarines~~
 (built, item 2974, `docs/AI.md` §242),
 American aircraft, British anti-air, Nubian merchants, Russian spies,
 Roman legions, Terra Cotta, Angkor ships) are read but not carried.
+
+## A Mongol Stable unit costs a tenth less
+
+*Item 4159r14, 2026-11-15. Read from `TypeData::get_cost@00664090:216`–`222`;
+built as `cost::Modifiers::mongol_stable` (set by `pricing.rs`'s
+`mongol_stable_discount`).*
+
+Right after the Salt arm, in the shared pre-ramp tail and ahead of the
+research fork: when the leader `has_tribe_bonus(0x11)` (the Mongols) and the
+unit type's trainer (`UnitTypeData +0x40`) answers `is(0x1ac, 0)` — the
+Stable line, so the Auto Plant too — the scaled base becomes
+`(100 − MONGOL_STABLE_COST) × base / 100`, `MONGOL_STABLE_COST` 10 (rules.xml
+"10% cost reduction"). There is no attack test: `train_time`'s Mongol arm has
+one, this one does not. Because it lands before the ramp, the ramp's ceiling
+is still measured on the undiscounted base, and the ramp term itself is not
+discounted.
+
+**How established, and what backs it**: diff-backed. run1198b's Light Horse
+(type 209, base 60/40, group 14 at 37) at the Stable `1/2017` on block 8586
+are 110/82 in the original and were 116/86 here: 6 and 4 apart, exactly a
+tenth of the base, the ramp equal on both sides. run1218's and run1224's
+queues on 9783 (112/135 against 107/129) are the same tenth of a 50/60 base.
+Every Light Horse bought short of the tenth was the who=1 bucket gap the
+Mongol windows opened with (parked 3558a; `docs/journal/2026-11-15-item-4159-residue-14.md`).
+
+**Not established**: the arm on the research fork (a Stable unit's upgrade)
+and on the Auto Plant are read, not diffed.
 
 ## The Japanese pay half for a Farm
 

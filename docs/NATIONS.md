@@ -310,7 +310,7 @@ left out; a constant with no reader in the export is dead there too.
 | `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at jobs.rs | `korean_build_under_fire` |
 | `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at jobs.rs | `korean_repair` |
 | `KOREAN_TOWER_COST` | 33 | TypeData::get_cost | modelled at cost.rs | `korean_tower_cost` |
-| `MONGOL_STABLE_COST` | 10 | TypeData::get_cost | not carried | `mongol_stable_cost` |
+| `MONGOL_STABLE_COST` | 10 | TypeData::get_cost | modelled at pricing.rs | `mongol_stable_cost` |
 | `MONGOL_STABLE_SPEED` | 20 | ObjectData::train_time | modelled at queue.rs | `mongol_stable_speed` |
 | `MONGOL_ATTRITION` | 50 | Leader::calc_anti_attrition | modelled at attrition.rs | `mongol_attrition` |
 | `MONGOL_THREE_MIL_CAVALRY` | 3 | Build::activate, CheckSums::check_constants, Game::walk_rules_data +3 | modelled at nations.rs | `mongol_three_mil_cavalry` |
