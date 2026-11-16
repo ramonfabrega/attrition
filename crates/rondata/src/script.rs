@@ -851,6 +851,26 @@ pub fn stanced() -> Vec<Order> {
     orders
 }
 
+/// **The toggled script** (item 4283, `docs/CLIENT_INPUT.md` §28): the
+/// stanced script and one package more. On [`TOGGLE_FRAME`] the console
+/// (the `~` key) takes [`TOGGLE_TEXT`] and Return: `ConsoleWin::run_cmd
+/// @007d6a70` case `0xc`, whose `off` arm, with the AI on, calls
+/// `CommandManager::issue_cheat_ai_toggle@00940fa0` — command `0x40` and
+/// nothing else, no group. Every computer seat's AI stops from the next
+/// tick (`docs/INPUT.md` §11.4). The client's
+/// `minted_toggled_at_the_opening_camera` mints these field for field.
+pub fn toggled() -> Vec<Order> {
+    let mut orders = stanced();
+    orders.push((TOGGLE_FRAME, 0, vec![Command::CheatAiToggle]));
+    orders
+}
+
+/// The frame of the console's `ai off`, ten after [`STANCE_FRAME`].
+pub const TOGGLE_FRAME: i32 = 6800;
+/// The console line typed: the word and the arm that issues only while the
+/// AI is on.
+pub const TOGGLE_TEXT: &str = "ai off";
+
 /// The frame of the stance press, ten after [`COME_OUT_FRAME`].
 pub const STANCE_FRAME: i32 = 6790;
 /// The cycling press: `Group::action_stance(-1)` steps one option forward

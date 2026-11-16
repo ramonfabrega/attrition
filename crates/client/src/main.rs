@@ -635,6 +635,11 @@ impl App {
                 self.camera.parallel_distance /= 1.1
             }
             Key::Character(c) if c.as_str() == "-" => self.camera.parallel_distance *= 1.1,
+            // The console (item 4283, `docs/CLIENT_INPUT.md` §28): ours,
+            // the `~` key, as the original's `StartConsole` console.
+            Key::Character(c) if c.as_str() == "~" || c.as_str() == "`" => {
+                self.input(input::Event::Console)
+            }
             Key::Character(c) => {
                 if let Some(k) = c.chars().next() {
                     self.input(input::Event::Key(k));

@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day; §26 item 4280, the same day; §27 item 4282, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day; §8 item 4195, the same day; §9 item 4194, the same day; §10 item 4202, 2026-11-13; §11 item 4249, 2026-11-14; §12 item 4250, the same day; §13 item 4252, the same day; §14 item 4254, the same day; §15 item 4256, the same day; §16 item 4259, the same day; §17 item 4261, the same day; §18 item 4264, 2026-11-15; §19 item 4265, the same day; §20 item 4267, the same day; §21 item 4268, the same day; §22 item 4270, the same day; §23 item 4273, the same day; §24 item 4276, the same day; §25 item 4277, the same day; §26 item 4280, the same day; §27 item 4282, the same day; §28 item 4283, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -899,7 +899,7 @@ was first taken, 9 and 2,056 (84.6 %) once the rally point (§11.2) was minted, 
 | `hotkey` | 8 | 0.3 % | yes (§22) |
 | `garrison` | 6 | 0.2 % | yes (§23) |
 | `buildmask` | 5 | 0.2 % | yes (§24) |
-| `cheat_ai_toggle` | 4 | 0.1 % | |
+| `cheat_ai_toggle` | 4 | 0.1 % | yes (§28) |
 | `come_out` | 4 | 0.1 % | yes (§26) |
 | `stance` | 4 | 0.1 % | yes (§27) |
 | `disband` | 1 | 0.0 % | |
@@ -2451,7 +2451,7 @@ Every order of the six on disk, read off the recordings (a scratch test, not kep
 | kind | orders | where | issuer | slot 0's actor |
 | --- | ---: | --- | --- | --- |
 | `leader_options` | 50 | every file's frame-0 package, one each | `Game::run@00584590` → `LeaderOptionOut::update@006f1a60` → `CommandManager::issue_leader_option`, from `MiscAccess::my_leader_option` | the seat itself; no unit |
-| `cheat_ai_toggle` | 4 | the bottle's, slot 0, on frames 6, 6, 101, 1507 | `ConsoleWin::run_cmd@007d6a70` case `0xc`, a cheat word | the console; no unit |
+| `cheat_ai_toggle` | 4 | the bottle's, slot 0, on frames 6, 6, 101, 1507 | `ConsoleWin::run_cmd@007d6a70` case `0xc`, a cheat word | the console; no unit (§28: every computer seat's AI, not slot 0's) |
 | `come_out` | 4 | the 2017 sample's, slot 3, `o` 59, 114, 92, 110 | `Options::exec@007188c0` case `0xaa` → `UnitOut::issue_come_out@00607be0` | **yes**: the Citizen `0/2` inside `0/2000` |
 | `stance` | 4 | the 2017 sample's, slot 3, each `stance(−1)` on `2048` or a repeat of it | `GroupOut::issue_stance@0070b100`; no direct caller in the export | not read (§27: **yes**, the capital `0/2000`) |
 | `disband` | 1 | the 2017 sample's, slot 3, `disband(0)` on `2008` | `IFaceSelected::on_button_clicked@00826e00`, `Options::do_disband@0071df20` → `GroupOut::issue_disband@0070a470` | not read |
@@ -2691,3 +2691,134 @@ queue trains after the press (§24.4) take 1 from it. Their walk on stance 1 agr
 - where the STANCE button stands, its label, and when it shows (the original's gate is `can_activate`; the stance
   kind of the selection is not read by our HUD);
 - the recorded stances' selection, which a repeated `group` does not carry.
+
+## 28. The console's `ai off`: the AI toggle (item 4283)
+
+*Item 4283, 2026-11-15. The score: `INPUT_KINDS` 22 → 23 of 26, and 2,373 → 2,377 of 2,429 orders (97.6 % → 97.8 %).
+The four recorded toggles are the bottle's capture drivers' `ai off`, each alone in its package beside the frame's
+camera (frames 1507, 101, 6 and 6 of four files of 2026-08-20 to 08-26). The brief's guess was that the toggle hands
+slot 0 to the AI. **The reading kills it**: the order flips one global flag, `ai_off`, and the flag stops every
+computer seat's AI and changes nothing a human's units do (`docs/INPUT.md` §11.4, §11.9). The sim already modelled
+the flag and its three readers. What it lacked is the order: the walk skipped `cheat_ai_toggle` as "not mapped". The
+layer mints it from a console line. The original plays the file (run1618, §28.4).*
+
+### 28.1 What the console issues, and what the order does
+
+The reading is one reader's, from the decompile.
+
+- **The console.** `ConsoleWin::parse_cmd@007d6470` matches the line's first token against the command table and
+  hands the rest to `ConsoleWin::run_cmd@007d6a70`. `run_cmd` has two switches: the console's, and the half the
+  chat box's cheat line reaches. `ai` is case `0xc` of the console's alone, so no chat line can issue the toggle
+  (`rondata::golden`'s `console_only`; `docs/ORACLE.md`, "The `~` console").
+- **Case `0xc`.** With no argument it calls `CommandManager::issue_cheat_ai_toggle@00940fa0`. With an argument it
+  compares three localised strings. The first goes to a debug arm. The second issues the toggle only while
+  `*GameAccess::ai_off != 0`, and the third only while it is 0. Anything else is `invalid_use_msg(0xc)`. The
+  second's guard turns the AI back on, so it is `on`; the third's turns it off, so it is `off`. That matches the
+  console's own help, `ai on|off|debug`. The localised strings themselves were not read.
+- **The command.** `issue_cheat_ai_toggle`, under `check_accept_issue`, adds command `0x40` with no body and no
+  group (`docs/COMMANDS.md`).
+- **What it does.** `CommandPackage::process_cheat_ai_toggle@00944d20` logs, then flips the flag when bit 2 of the
+  game's first semaphore byte is clear: `ai_off = !ai_off`. `Game::action_cheat_ai_toggle@005930c0` is the same
+  statement and has no caller. Bit 2 is a multiplayer bit, so in a solo game the order always flips.
+- **What reads the flag.** In a game, three readers: `Leader::production_ai@006c1960`'s head, `Leader::diplomacy
+  @006bc950`'s head, and the computer block of `Unit::think@005f6e40:205` (`docs/INPUT.md` §11.4). The other two
+  writers in the executable are `UnitBalance::init` and `UnitBalance::next`, the balance tool's, never a game's.
+
+### 28.2 What the layer does
+
+- **The sim** (**`crates/sim`**). `Sim::process_cheat_ai_toggle` (`crates/sim/src/ai/ai_toggle.rs`) flips
+  `AiState::ai_off`, with the semaphore guard read as clear. The `command` door forwards it. The read door's
+  `Scene::ai_off` copies the flag, because the console's `on` and `off` read it before they issue.
+- **The walk** (`crates/rondata/src/input.rs`). `cheat_ai_toggle` calls the door. It used to be skipped as "not
+  mapped". No walk on disk carries one: the four recorded toggles sit in files that no take pairs with a dump.
+- **The console line.** `Event::Console` (ours: the `~` key) opens the entry line as the console's, which the HUD
+  draws as `>` and the text. Return runs `Input::console_line`. It mints `cheat_ai_toggle` alone for `ai`, for
+  `ai on` with the scene's flag set, and for `ai off` with it clear. Every other line mints nothing: the debug arm,
+  an unknown argument, and every other console word. Escape closes the line. `cheat_ai_toggle` is added to `MINTS`.
+- **The script** (`crates/rondata/src/script.rs`). `toggled()` is the stanced script and one package more:
+  `cheat_ai_toggle` on `TOGGLE_FRAME` 6800, the console's `TOGGLE_TEXT`, `ai off`.
+
+**Stage 0** (`minted_toggled_at_the_opening_camera`): on 6800 the scene reads the AI on, with two leaders, so
+`ai off` issues. After the tick that consumes the package, the scene reads it off. The order has no pixel.
+
+### 28.3 The counts and the file
+
+- `INPUT_TOGGLED`: **30 of 30**. The events are the stanced ones, then on 6800 the console key, the six characters
+  of `ai off`, and Return. Through the HUD and the layer they mint `script::toggled()`. Seen red with `ai on` typed:
+  nothing mints, and the scene's flag stays clear.
+- `INPUT_TOGGLES`: **4 of 4**, the package's orders whole. Each recorded toggle is the console's `ai off` typed by
+  its slot with the AI on. Seen red with the scene's flag set: 0 of 4.
+- `minted_console_edges` checks these cases:
+  - `ai` toggles either way;
+  - `ai off` only with the AI on, and `ai on` only with it off, without case;
+  - `ai debug`, `ai maybe`, `human 1` and an empty line mint nothing;
+  - the key inside an open line opens nothing, and Escape closes the line;
+  - a line opened by Return is still chat's.
+- `the_toggle_flips_the_flag_both_ways` (sim): the handler toggles and never sets, and the scene reads the flag.
+- `INPUT_KINDS` (23, 26), `INPUT_KINDS_ORDERS` (2,377, 2,429); `NOT_MINTED` drops `cheat_ai_toggle`.
+
+**The file.** `~/ron-golden/recordings/item4283-toggled-greatlakes-24000.rcx`, 59,670 bytes, SHA-256
+`a8517d161243a7261e4c0206714061a6a20543bf7879b0092973f6495cbb8e83` (`the_toggled_minted_packages_round_trip`; seen
+red pinned 0). It holds the stanced file's packages, then the toggle's on 6800, stamped 31. The closing stamp goes
+from 31 to 32. The client's events write it byte for byte.
+
+### 28.4 The playback, and the order's effect
+
+**run1618** (`docs/RUNS.md`) is run1617's line with the toggled file. The receipt names the file's SHA-256. **Draws
+agree on 7,000 of 7,000 frames**, count and sequence, and **all 300 of the window's records are whole**
+(`TOGGLED_WALKED`, pinned before the read with none parted).
+
+**The comparison can fail, both ways** (scratch tests, not kept). The stanced script, which has no toggle, walked
+against run1618 parts 18 of the 300 records, and the toggled script against run1617 (the AI on) parts the same 18.
+Draws part first on 6980 and records on 6982: `1/17`'s move `x`, 35640 with the AI on against 35448 with it off.
+Between 6800 and 6980 the AI's decisions make no draw and no record difference on either side.
+
+**The order's effect.** Slot 1's units whose current order carries a point were read on both sides with that point
+(`toggle_effects_theirs`, `toggle_effects_ours`). The dump's `MOVEORDER`, `EXPLORETOORDER` and `ATTACKTOORDER` are
+one move body on ours. Ours were pinned before the take was read and seen red pinned as the stanced walk's. Ours
+without the order is the stanced file's walk, which our reader of run1617 agrees with on all four frames.
+
+| frame | the original (run1618) | ours | the AI on (ours without the order = run1617) |
+| --- | --- | --- | --- |
+| 6800 | `1/0`, `1/4`, `1/23`, `1/28`, `1/29` at their points | the same | the same |
+| 6801 | unchanged | the same | the same |
+| 6982 | **`1/17` → (35448, 22968)** | the same | `1/17` → (35640, 22392) |
+| 6999 | **`1/1` → (36408, 23928), `1/3` → (41784, 17016), `1/13` → (36792, 22776)**, `1/17` as on 6982 | the same | `1/1` → (36984, 23736), `1/3` holds no point, `1/13` → (36408, 22392), `1/17` → (35640, 22392) |
+
+The other eight points on 6999 are the same in all three columns. **The handler on the original's side**
+(`TOGGLE_ENTRIES`, pinned before the read): `CommandPackage::process_cheat_ai_toggle@00944d20` is first entered on
+6799 in run1618, the tick that consumes 6800's package, and never in run1617.
+
+### 28.5 What the playback can and cannot show
+
+The toggle reaches every computer seat for the rest of the game. A take of 7,000 frames shows 200 of them, and it
+shows them only through what the AI would have done in that span.
+
+- **It shows** that the original enters the handler on the tick that consumes the package. It shows that the
+  computer's next decisions stop: slot 1's Citizens keep the points their own gathering picks, where the AI on
+  sends them elsewhere (`1/17` on 6982, three more by 6999). It also shows that nothing else parts: draws on every
+  frame and all 300 records.
+- **It cannot show** most of what the flag stops:
+  - the AI's army, attacks and expansion, which this lobby does not reach before 7,000 in either case;
+  - `Leader::diplomacy`'s head, which no diplomacy event in the window exercises;
+  - `Unit::think`'s computer block, whose tail (`think_fish`, `think_scout`, the army join) no slot 1 unit reaches in
+    the window. INPUT §11.10 reads that block as changing nothing for a computer's civilians.
+  - `ai on` after `ai off`: the step machine left `Idle` by `production_ai`'s bail and entered again. No file of
+    ours or the recordings toggles twice.
+- **Slot 0 is the person's**, and the flag changes nothing its units do (INPUT §11.9, diff-backed on chapter seven).
+
+### 28.6 Confidence, and what is not established
+
+- **Backed by a diff**: the command's bytes (one byte, against the four recorded); the handler's entry on 6799; the
+  effect on slot 1's pointed orders on four frames; lockstep over the window (§28.4).
+- **One reading each**: case `0xc`'s three arms and which localised string is `on`. The playback plays `off` alone,
+  and the recordings carry `off` alone. The semaphore guard is read as a multiplayer bit, not measured.
+- **Not established**: the AI turned back on mid-game (§28.5), and the debug arm's effect (not minted).
+
+**Ours, not the original's:**
+
+- the `~` key, the `>` prompt, and the console opening only while no line is open;
+- the word and its argument compared without ASCII case and split on spaces; the original's tokenizer
+  (`TokenString`) and `String::operator==`'s case rule are not read;
+- the line's limit, which is the chat box's `0x80`; the console's own edit limit is not read;
+- every other console word minting nothing.

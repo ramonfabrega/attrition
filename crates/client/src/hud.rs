@@ -872,6 +872,12 @@ pub fn rings(input: &Input, scene: &Scene, names: &Names) -> Vec<Ring> {
     out
 }
 
+/// The console's line as drawn (item 4283): `>`, the prompt the original's
+/// console echoes a command with, what it holds, and a cursor.
+pub fn console_text(line: &str) -> String {
+    format!(">{line}_")
+}
+
 /// The entry line's text as drawn: `SAY: `, what it holds, and a cursor.
 pub fn line_text(line: &str) -> String {
     format!("SAY: {line}_")
@@ -960,7 +966,11 @@ pub fn paint(
         }
     }
     if let Some(line) = &input.line {
-        let text = line_text(line);
+        let text = if input.console {
+            console_text(line)
+        } else {
+            line_text(line)
+        };
         let r = line_rect(&text, size);
         p.rect(r.x, r.y, r.w, r.h, overlay::PANEL);
         p.rect(r.x, r.y, r.w, SCALE, overlay::INK);
