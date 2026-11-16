@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 136 §4 to §7): the third takes 4295 (4293 landed); the suite's seat is the chain's builder on 4159's order; render takes 4294 (4292 landed) (Ramon: playing first).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 136 §4 to §7): the third takes 4295 (4293 landed); the suite's seat is the chain's builder on 4159's order; render takes 4296 (4294's first act landed) (Ramon: playing first).
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2; builders). `LEADERS_HELD_OUT` 6 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
@@ -62,11 +62,10 @@ the arms by orders). `INPUT_WHOLE_ORDERS` missed 312 → 172 of 2,429 at most: 1
 and the layer has no right drag. First act: the census of the 140 by angle and selection, and the original's drag issuer read
 for how the angle is taken. It stops when an angle is one the reading does not explain. The attack-move (54, 4293a) is next.
 
-4294. **run1564's beach below the waterline** (a `render` item, scoped; `docs/RENDERER.md` §3.22, §3.27; parked 4292a). With the
-land lit, `RUN1564_3279_SURF` fell 702 → 681 of 772 and sandy 653 → 645: the pale strip under the water that the photograph keeps
-bright is dimmed by the land's light. The score is both back to their old words or past them, the land still lit. First act: the
-pair at 3279, on and off, beside the photograph, and the card's draws on that strip. It stops when the strip's light is a draw
-the packet does not show.
+4296. **run1564's deep corners take the ocean floor's colour** (a `render` item, scoped; `docs/RENDERER.md` §3.27; parked 4294a). The
+sandy fall 653 → 645 is nine tiles wholly under the lake: `modify_ocean_floor` writes the floor's grey plus a byte where alpha is
+under `0xdc`, 1,139 of 1,139 on-screen corners at grey + 92..103 (`RUN1564_DEEP_CORNERS`), and ours draws `light_vert`'s blue.
+Score: sandy 645 → ≥ 653, `RUN1564_3279_SURF` 681 → ≥ 702, the land lit. First act: the byte at `+0x55dc`, read at the listing.
 
 ## How to maintain this file
 
