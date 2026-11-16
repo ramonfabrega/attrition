@@ -1055,15 +1055,20 @@ pub fn resource_bonuses(t: &Tuning, wonders: u32, russians: bool, out: &mut [i32
 /// is `PORCELAIN_RARE` under the Porcelain Tower plus **`NUBIAN_RARE`
 /// for a leader with tribe bonus 4** (`006e0a2b`..`006e0a5f`). run492's
 /// Nubian Merchant on Dye pays 240 knowledge where 160 is the good's own
-/// (`docs/GOLDEN.md` §54). `nubian` is that tribe test.
+/// (`docs/GOLDEN.md` §54). `nubian` is that tribe test; `porcelain` is
+/// `has_wonder(0x215)`, the same test the Tower's rare pass at the top of
+/// `calc_gather` makes ([`crate::Sim::porcelain_rares`]). Under it a
+/// merchant's land rare at home pays `(100 + 200) / 100` of itself: run1184's
+/// who=1 has Merchants on Dye (wealth 10, knowledge 10) and Peacocks (metal
+/// 10, wealth 10), and its `income` on block 4201 was 4454 / 1520 / 1360
+/// wealth / knowledge / metal against our 3814 / 1200 / 1040 without the
+/// term — `2 × 16` of each good's numbers (item 4159r12a).
 ///
 /// On the two water goods `extra` is instead **`JAPANESE_FISHING_BOATS`
 /// for a leader with tribe bonus `0xf`** (`006e0a34`..`006e0a4c`: `esi =
 /// Constants +0x7ac`), on the food slot beside the fishermen's term and on
 /// every other slot alike (item 3521, `docs/AI.md` §303). `japanese` is
 /// that tribe test.
-///
-/// **Seam.** The Porcelain Tower's term: the wonder layer is not modelled.
 #[allow(clippy::too_many_arguments)]
 pub fn calc_rare(
     t: &Tuning,
@@ -1074,6 +1079,7 @@ pub fn calc_rare(
     ally: bool,
     nubian: bool,
     japanese: bool,
+    porcelain: bool,
 ) -> [i32; RESOURCES] {
     let mut out = [0; RESOURCES];
     let mut scale = [100; RESOURCES];
@@ -1088,7 +1094,7 @@ pub fn calc_rare(
         }
     }
     // The fishermen level is read for the two water goods and nowhere
-    // else; the `else` arm is Porcelain's and the Nubians'.
+    // else; the `else if ally` arm is Porcelain's and the Nubians'.
     let fish_pct = if water {
         t.fishermen_bonus[fishermen.min(t.fishermen_bonus.len() - 1)]
     } else {
@@ -1100,8 +1106,8 @@ pub fn calc_rare(
         } else {
             0
         }
-    } else if ally && nubian {
-        t.nubian_rare
+    } else if ally {
+        (if porcelain { t.porcelain_rare } else { 0 }) + if nubian { t.nubian_rare } else { 0 }
     } else {
         0
     };

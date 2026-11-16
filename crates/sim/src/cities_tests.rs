@@ -3637,6 +3637,75 @@ fn a_held_tikal_raises_a_templed_city_s_hit_points() {
     assert_eq!(sim.buildings[b].hits, (k + 100) * 1200 / 100, "and Tikal's");
 }
 
+/// **The Porcelain Tower's rare pass** (item 4159r12a, `docs/ECONOMY.md`,
+/// "The Porcelain Tower's pass"): `Leader::calc_gather@006ceee0:82`–`107`
+/// sets `rare_owned`'s bit for every live, seen, available good whose cell
+/// the holder owns, with nobody standing on it. Before the Tower is
+/// finished the same goods claim nothing; a good outside the territory and
+/// a dead one never do.
+#[test]
+fn a_held_porcelain_tower_claims_every_rare_in_its_territory() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| tree.add(tech::TypeDef::building(&format!("WONDER{i}"))))
+        .collect();
+    tree.roles.wonder_line = line.clone();
+    sim.set_tech_tree(tree);
+    let t = install_types(&mut sim);
+    let mut tower = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+    tower.ident = Ident::default();
+    tower.tree = Some(line[tech::wonder::PORCELAIN_TOWER]);
+    let tower = sim.add_build_type(tower);
+    city_at(&mut sim, &t, 0, 20, 20);
+    city_at(&mut sim, &t, 1, 50, 50);
+    let good = |sim: &mut Sim, tx: i32, ty: i32, kind: usize, alive: bool| {
+        sim.world.add_good(world::Good {
+            pos: tile_pos(tx, ty),
+            ty: kind,
+            alive,
+        })
+    };
+    // Two rares inside the holder's ground, one on the other player's, one
+    // dead.
+    let (inside, other, outside, dead) = (10, 13, 9, 11);
+    good(&mut sim, 24, 20, inside, true);
+    good(&mut sim, 16, 20, other, true);
+    good(&mut sim, 54, 50, outside, true);
+    good(&mut sim, 20, 24, dead, false);
+    let owner = |sim: &Sim, tx, ty| sim.world.owner(tile_pos(tx, ty).cell()).player();
+    assert_eq!(owner(&sim, 24, 20), Some(0), "the holder's ground");
+    assert_eq!(owner(&sim, 16, 20), Some(0));
+    assert_eq!(owner(&sim, 54, 50), Some(1), "the other player's");
+    let bit = |ty: usize| 1u64 << (ty - economy::BASE_RARE);
+    assert_eq!(sim.gather_rares(0).1, 0, "no Tower, no claim");
+    let w = sim.place_building(0, tower, tile_pos(20, 13)).unwrap();
+    assert_eq!(
+        sim.gather_rares(0).1,
+        0,
+        "an unfinished Tower claims nothing"
+    );
+    finish(&mut sim, w);
+    assert_ne!(
+        sim.wonders_held(0) & (1 << tech::wonder::PORCELAIN_TOWER),
+        0,
+        "the finished Tower is held"
+    );
+    assert_eq!(
+        sim.gather_rares(0).1,
+        bit(inside) | bit(other),
+        "every live rare on the holder's ground, and nothing else"
+    );
+    assert_eq!(sim.gather_rares(1).1, 0, "another leader's walk");
+    assert!(
+        sim.economy.holdings[0]
+            .rares_collected
+            .iter()
+            .all(|&n| n == 0),
+        "the pass sets bits and collects nothing"
+    );
+}
+
 /// **`gain_tech` feeds the player's wonder set** (item 3194): the blocks
 /// at the end of `Leader::gain_tech@006dcb60` ask `has_wonder` live.
 #[test]
