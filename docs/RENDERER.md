@@ -3841,7 +3841,7 @@ land's own N·L~~ (item 4296, below).
 *Coverage:* diff-backed: the grey per deep corner, 1,139 of 1,139 on the still's screen; the quadrant rule against
 the packet's floor vertices. On a reading: the byte's name and type, the per-cell call, the stage's power. *Not
 established:* the 65 corners at 137 (off screen or stale; 4294b); the branch for a cell with no floor mesh (a
-5 × 5 per-corner ramp under `0xdd`, with scaled coordinates that read as a slip, never seen on run1564); what
+5 × 5 per-corner ramp, its gate one over `0xdc`, with scaled coordinates that read as a slip, never seen on run1564); what
 holds the nine deep tiles under theirs (4296a).
 
 ## 3.28 The city's buildings against the photograph's colour (item 4245)
