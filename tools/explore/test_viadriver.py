@@ -12,10 +12,21 @@ The fixture is a bundle whose executable is a shell script that appends its
 argv to the log it is handed, runs the program it is handed as RonDriver
 does, and sleeps long enough to still be running when the second launch
 arrives. `LSBackgroundOnly` keeps it off the Dock.
+
+Since 2026-11-16 (about 13:00 -05:00) this host SIGKILLs a shell script
+exec'd as a bundle's main executable: a direct exec exits 137, `open -n -a`
+exits 0 and the script never runs, an ad-hoc `codesign -s -` does not help,
+and the system log is silent. A compiled Mach-O in the same bundle runs both
+ways, and the real RonDriver.app is one. So the script still holds the logic
+but lives at `Contents/Resources/fixture.sh`, and `Contents/MacOS/RonDriver`
+is a C stub compiled in `setUp` (`xcrun clang`) that execs `/bin/sh` with the
+script and its own argv[1..], so the script sees the same `$1 $2 ...` as
+before. No compiler is a skip that says so, never a quiet green.
 """
 import os
 import plistlib
 import re
+import shutil
 import subprocess
 import tempfile
 import time
@@ -33,18 +44,65 @@ shift 2
 sleep 6
 '''
 
+# The bundle's executable: exec /bin/sh on the script, argv[1..] passed on.
+STUB = r'''#include <stdlib.h>
+#include <unistd.h>
+int main(int argc, char **argv) {
+    char **args = calloc((size_t)argc + 2, sizeof *args);
+    if (!args) return 127;
+    args[0] = "/bin/sh";
+    args[1] = SCRIPT_PATH;
+    for (int i = 1; i < argc; i++) args[i + 1] = argv[i];
+    execv("/bin/sh", args);
+    return 127;
+}
+'''
+
+
+def _clang():
+    # `xcrun clang`, not the path `xcrun --find clang` prints: run bare, that
+    # binary has no SDK and finds no `stdlib.h`; through xcrun it does.
+    if shutil.which('xcrun'):
+        found = subprocess.run(['xcrun', '--find', 'clang'], capture_output=True, text=True)
+        if found.returncode == 0 and found.stdout.strip():
+            return ['xcrun', 'clang']
+    bare = shutil.which('clang')
+    return [bare] if bare else None
+
+
+def _c_string(text):
+    return '"' + text.replace('\\', '\\\\').replace('"', '\\"') + '"'
+
 
 class Viadriver(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
+        clang = _clang()
+        if clang is None:
+            self.tmp.cleanup()
+            self.skipTest('no C compiler (`xcrun --find clang` and `which clang` both '
+                          'failed): the fixture bundle needs a compiled executable, since '
+                          'this host kills a script bundle executable (2026-11-16)')
         app = self.root / 'Fixture.app'
         macos = app / 'Contents' / 'MacOS'
         macos.mkdir(parents=True)
+        resources = app / 'Contents' / 'Resources'
+        resources.mkdir()
+        script = resources / 'fixture.sh'
+        script.write_text(EXECUTABLE)
+        script.chmod(0o755)
+        source = self.root / 'stub.c'
+        source.write_text(STUB)
         # viadriver.sh looks for `Contents/MacOS/RonDriver` by name.
         binary = macos / 'RonDriver'
-        binary.write_text(EXECUTABLE)
-        binary.chmod(0o755)
+        built = subprocess.run(
+            [*clang, '-O2',f'-DSCRIPT_PATH={_c_string(str(script))}',
+             '-o', str(binary), str(source)],
+            capture_output=True, text=True)
+        if built.returncode != 0:
+            self.tmp.cleanup()
+            self.fail(f'the fixture stub did not compile:\n{built.stderr}')
         with (app / 'Contents' / 'Info.plist').open('wb') as f:
             plistlib.dump({
                 'CFBundleExecutable': 'RonDriver',
@@ -60,13 +118,15 @@ class Viadriver(unittest.TestCase):
         self.noop.chmod(0o755)
 
     def tearDown(self):
-        subprocess.run(['pkill', '-f', str(self.app / 'Contents/MacOS/RonDriver')],
-                       capture_output=True)
+        # The stub execs /bin/sh, so a running instance's command line names
+        # `Contents/Resources/fixture.sh`: match anything under the bundle.
+        running = str(self.app / 'Contents') + '/'
+        subprocess.run(['pkill', '-f', running], capture_output=True)
         # Wait for the killed instances to be gone, so a test's log holds
         # only its own launches.
         deadline = time.time() + 10
         while time.time() < deadline and subprocess.run(
-                ['pgrep', '-f', str(self.app / 'Contents/MacOS/RonDriver')],
+                ['pgrep', '-f', running],
                 capture_output=True).returncode == 0:
             time.sleep(0.2)
         self.tmp.cleanup()
