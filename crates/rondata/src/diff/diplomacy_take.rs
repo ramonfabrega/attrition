@@ -1351,3 +1351,62 @@ fn run1575_s_taunt_parts_without_its_chat() {
         "the stub's first partings"
     );
 }
+
+/// **Item 4300's first act, a probe** (its journal
+/// `docs/journal/2026-11-16-item-4300-first-act.md`): an unfiled recon of
+/// run1575's lobby with no command script, walked from run1482's start
+/// re-read at style 0 and at `RON_RECON_DIFFICULTY` (default 0), nothing
+/// staged. `RON_TAKE=<gamelog>,<trace>` names the recon.
+#[test]
+#[ignore = "a probe of an unfiled recon; item 4300's journal"]
+fn recon4300_walked_at_its_difficulty() {
+    let Ok(v) = std::env::var("RON_TAKE") else {
+        return;
+    };
+    let (g, t) = v.split_once(',').expect("RON_TAKE=<gamelog>,<trace>");
+    let difficulty: &'static str = Box::leak(
+        std::env::var("RON_RECON_DIFFICULTY")
+            .unwrap_or_else(|_| "0".to_string())
+            .into_boxed_str(),
+    );
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(start), Some(pasture)) = (dump(SEA_START), take_trace(t)) else {
+        eprintln!("skipping: no {SEA_START} or {t}");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&start);
+    let log = Log::parse(&text);
+    let own = log.initial().expect("a start dump");
+    let mut init = log.initial().expect("a start dump");
+    borrow_from_siblings(&mut init, &[&own]);
+    borrow_pasture(&mut init, &pasture);
+    for kv in init.game_info.iter_mut() {
+        if kv.0 == "TEAM_STYLE" {
+            kv.1 = "0";
+        }
+        if kv.0 == "DIFFICULTY" {
+            kv.1 = difficulty;
+        }
+    }
+    for l in init.leaders.iter_mut() {
+        if (0..3).contains(&l.who) {
+            for (j, d) in l.diplos.iter_mut().enumerate().take(3) {
+                if j as i64 != l.who {
+                    *d = 1;
+                }
+            }
+        }
+    }
+    let script = crate::golden::Script::parse("");
+    let built =
+        crate::diff::setup::with_staged_script(script, || build_sim(&loaded, &init, Tuning::RON));
+    assert_eq!(built.sim.ai.lobby.team_style, 0, "the lobby reads style 0");
+    eprintln!("difficulty {}", built.sim.ai.lobby.difficulty);
+    let Some(w) = walk_take_from(&loaded, built, (g, t), 3, &[], &[], &[]) else {
+        return;
+    };
+    report(g, &w);
+}
