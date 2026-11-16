@@ -1299,7 +1299,16 @@ impl Sim {
     ///
     /// run535: who=1's `1/104`..`1/120` stand at `mana_burn` 2499 on block
     /// 14136 and are gone on 14137; `1/93`, at 2498, a block later.
+    ///
+    /// **And the owner's units bit**: `close:79`'s `leader_flags |=
+    /// 0x800000` (owner below 8) stands ahead of every count gate, so a
+    /// decoy's close dirties the score's units part though it moves no
+    /// count (item 4159's fifteenth residue, `docs/LEADERS.md` §18). run1013's
+    /// 21 decoys of group 65 and run1014's 19 of group 64 close on 13631, and
+    /// the original recounts on 13639: `score` 4275 and 3825 against ours'
+    /// 4218 and 3803 without it.
     pub(crate) fn close_decoy(&mut self, u: usize) {
+        self.score_units_dirty(self.units[u].owner);
         self.units[u].health = self.units[u].health.min(0);
         self.relink_squad(u);
         self.close_dead_orders(u);
