@@ -390,10 +390,11 @@ const RING_MOVE: (i32, i32) = (12, 0);
 /// Item 4269: the luma 9 → 10 and 7 → 8 of 24: the range lit by its own normals (item 4269, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 /// Item 4272: the luma before 10 → 6 and moved 8 → 6 of 24, drawn unchanged (a named fall: the grass under the ring with no road, which the drawn row does not score): the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
 /// Item 4292: the luma before and moved 6 → 11, drawn 20 → 21 of 24 (a rise from 6 and 20): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+/// Item 4311: the luma before 11 → 15 and moved 11 → 13 of 24, drawn unchanged: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
 const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
-    [(1, 24), (11, 24)],
+    [(1, 24), (15, 24)],
     [(21, 24), (21, 24)],
-    [(1, 24), (11, 24)],
+    [(1, 24), (13, 24)],
 ];
 /// **`RUN1570_RING`** (item 4199), the same on run1570's photograph: hue
 /// **0 → 22** of 24, luma 14 → 14. The two that part on hue: (18, 163),
@@ -408,10 +409,11 @@ const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
 /// Item 4272: the luma before 10 → 9 and moved 9 → 8 of 24: the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
 /// Item 4275: the luma before 9 → 8 of 24, a named fall on the grass under the ring with no road drawn: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
 /// Item 4292: the luma before and moved 8 → 11 of 24 (a rise from 8), drawn unchanged: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
+/// Item 4311: the luma before and moved 11 → 12 of 24, drawn unchanged: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
 const RUN1570_RING: [[(usize, usize); 2]; 3] = [
-    [(0, 24), (11, 24)],
+    [(0, 24), (12, 24)],
     [(22, 24), (16, 24)],
-    [(0, 24), (11, 24)],
+    [(0, 24), (12, 24)],
 ];
 
 /// **The ring's row** (item 4199, §3.19): on run1559b's and run1570's

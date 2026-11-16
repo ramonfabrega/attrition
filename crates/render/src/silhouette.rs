@@ -1376,7 +1376,8 @@ pub const RUN1559B_3279_TRACED_STILL: (usize, usize) = (32, 33);
 /// **Item 4241: 18 → 17**, the bloom drawn and a plume's pixel clamped after the white (§3.25): the frame's white and the glow move one
 /// figure's chromaticity past the reader's 0.05.
 /// **Item 4286: 17 → 18**, 0/9 crossing in: the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28) move the frame's mean, so its white.
-pub const RUN1559B_3279_COLOUR_STILL: (usize, usize) = (18, 33);
+/// **Item 4311: 18 → 19**: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
+pub const RUN1559B_3279_COLOUR_STILL: (usize, usize) = (19, 33);
 /// **The buildings' warmth** (item 4286; `docs/RENDERER.md` §3.28): on
 /// the client's still (before, plain), the buildings among
 /// [`RUN1559B_3279_TRACED_STILL`]'s objects whose mean colour passes
@@ -1404,8 +1405,9 @@ pub const RUN1559B_3279_WARMTH_STILL: (usize, usize) = (3, 33);
 /// 2 → 6, before-sRGB traced 33 → 32: 0/6 behind the tree (4221c).
 /// Item 4241: before-plain colour 18 → 17, the bloom drawn and a plume's pixel clamped after the white (§3.25).
 /// Item 4286 (§3.28): before-plain colour 17 → 18 and traced 32 held (0/6 0.499 → 0.512 up, 0/2001 0.590 → 0.436 down: the warmed sprite now reads as its ring's colour on our side, parked 4286a); after-plain (33, 6) → (32, 7), after-sRGB traced 33 → 32, both 0/2001.
+/// Item 4311: before-plain colour 18 → 19: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
 pub const RUN1559B_3279_STILL_READINGS: [((usize, usize), (usize, usize)); 4] = [
-    ((32, 33), (18, 33)),
+    ((32, 33), (19, 33)),
     ((32, 33), (7, 33)),
     ((32, 33), (11, 33)),
     ((32, 33), (2, 33)),
