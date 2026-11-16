@@ -258,6 +258,7 @@ pub(crate) mod tests {
     /// Item 4278: run1559b on hue 959 → 960 and luma 1,103 → 1,104; run1570 off luma 1,140 → 1,139 and on 1,166 → 1,165: the mountain's `_mtrl` maps drawn (`docs/RENDERER.md` §3.22), the frame's white with them. The switch stays off: on leads run1559b's grass hue by one and trails run1564's and run1570's.
     /// Item 4279: run1559b off luma 1,061 → 1,066 and on 1,104 → 1,109; run1570 off luma 1,139 → 1,140 and on 1,165 → 1,166: the snowcap's stage 1 drawing its own alpha, not the surf's mask on a shared key (item 4279, `docs/RENDERER.md` §3.10), the frame's white with it. The switch stays off: on leads run1559b's grass hue by one and trails run1564's and run1570's.
     /// Item 4284: off luma run1559b 1,066 → 1,072 and run1570 1,140 → 1,142, on unchanged: the ground beneath a range takes the land's own N·L whichever side the switch stands (`docs/RENDERER.md` §3.22, "The ground beneath a range"), so off now lights those tiles as on does. The switch stays off: on still trails run1564's grass hue and ground row (parked 4284a, the whole ledger).
+    /// Item 4292: **the switch is on by default** (`docs/RENDERER.md` §3.22): the drawn side is now on, and the other tests' pins are its values; both sides unchanged.
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
         ([959, 1105, 1072], [960, 1105, 1109]),
         ([678, 1786, 1852], [676, 1778, 1843]),
@@ -286,10 +287,11 @@ pub(crate) mod tests {
     /// Item 4278: run1570's untinted side 1,036 → 1,034: the mountain's `_mtrl` maps drawn on its main pass (item 4278, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
     /// Item 4284: the untinted side run1559b 955 → 953, run1564 561 → 563; the drawn side holds: the ground beneath a range lit by the land's own N·L (item 4284, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
     /// Item 4286: the untinted side run1559b 953 → 954, run1570 1,034 → 1,036; the drawn side holds: the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28) move the frame's mean, so its white.
+    /// Item 4292: drawn run1559b 959 → 960 (a rise from 959), run1564 678 → 676 and run1570 1,042 → 1,041 (a named fall from 678 and 1,042); untinted 954 → 965, 563 → 675, 1,036 → 1,049: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22), the drawn side now [`LAND_LIGHT_ROWS`]' on. Its residue is parked 4292d.
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
-        ((954, 986), (959, 986)),
-        ((563, 679), (678, 679)),
-        ((1036, 1073), (1042, 1073)),
+        ((965, 986), (960, 986)),
+        ((675, 679), (676, 679)),
+        ((1049, 1073), (1041, 1073)),
     ];
 }
 
