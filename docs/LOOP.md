@@ -157,9 +157,13 @@ day's line is cumulative, so the driver refills while the week reads under it an
 it is reached lands over it. **A wake is a spawn** (§4): a driver ahead of the line banks and
 clears itself with `ccc clear <own ref> --then` a prompt that does one thing, `CronCreate` a
 one-shot for the next 06:07 −05:00 whose whole prompt is "Run `python3 tools/handover.py wake` as
-your only act and end the turn, asking nothing". The cron fires into the row as it then stands,
+your only act; if it exits non-zero, send one push notification quoting its last line; end the
+turn, asking nothing". The cron fires into the row as it then stands,
 whatever its model or its conversation, and that row hands over to a fresh `commander` with the
-queue's own opener. The opener itself is never a cron's prompt. **Fable's week stops at 90 %** (the same
+queue's own opener. The opener itself is never a cron's prompt. **The row it fires into is
+`commander` itself, so the spawn says `--allow-duplicate`** (DECISIONS 136 §1: the wake of
+2026-11-16 was armed and fired, and exited 1 on ccc's refusal of a name a live job in that folder
+answers to; nothing told Ramon, who woke the row by hand three hours later). **Fable's week stops at 90 %** (the same
 entry): at it the steer row starts no pass, and one in flight writes its record and hands back. At or past the stop the driver cuts no builder and refills no lane; what
 is in flight finishes and is booked; the driver banks and ends its turn
 with a report. Inside three points of it nothing is cut that cannot be
