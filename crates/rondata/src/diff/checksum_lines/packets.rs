@@ -662,6 +662,14 @@ pub(super) const PACKET_RELEASED: &[(&str, &str, i16)] = &[
     // 226 walked leaders, non-zero on all 226). run1161, frame 4, leader 0:
     // 280.
     ("score", "run1161", 0),
+    // Item 4159's seventeenth residue, the three victim stamps (released
+    // by entry 131 §1's first way: no record diff parts a cell; each agrees
+    // on all 226 walked leaders, non-zero on 95, 66 and 34). run1359,
+    // frame 5619, leader 0: `attack_stamp[1]` and `raid_stamp[1]` 5568,
+    // `ally_stamp[1]` 5394.
+    ("attack_stamp", "run1359", 0),
+    ("raid_stamp", "run1359", 0),
+    ("ally_stamp", "run1359", 0),
 ];
 
 /// Every [`PACKET_RELEASED`] witness is a held packet, no pinned parting

@@ -2114,14 +2114,18 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 2, 4515);
 /// Emitted, it agrees on every walked packet leader
 /// (`packets::PACKET_RELEASED`'s witness; `docs/LEADERS.md` §18.5).
 /// [`LEADERS`] is unmoved: the long range still parts on the other 9.
+///
+/// Item 4159's seventeenth residue (4159r5a's step): 9 → 6 names, the
+/// three victim stamps `attack_stamp`, `raid_stamp` and `ally_stamp`
+/// (`docs/LEADERS.md` §4.5). Released by entry 131 §1's first way: the
+/// same probe, at sixteen sites over the whole `diff::` suite, holds none
+/// of their 24 cells on any row (331,453 non-zero cells of theirs seen
+/// agreeing), so 4159r5a's launch rows are not what parted them.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
-    ("ally_stamp (unheld)", 2),
-    ("attack_stamp (unheld)", 2),
     ("good_deeds (unheld)", 2),
     ("hire_stamp (unheld)", 2),
     ("hire_who (unheld)", 2),
     ("incoming_taunt_who (unheld)", 2),
-    ("raid_stamp (unheld)", 2),
     ("tribute_demanded (unheld)", 2),
     ("tributes (unheld)", 2),
 ];
@@ -2255,6 +2259,10 @@ const LEADERS_BENT: &[&str] = &[
     // Item 4159's sixteenth residue: the score, 219 = 219 on leader 0 of
     // run 1562's frame 91.
     "score",
+    // Item 4159's seventeenth residue: the three victim stamps' rows.
+    "attack_stamp",
+    "raid_stamp",
+    "ally_stamp",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

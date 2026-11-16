@@ -83,8 +83,11 @@ pub const LEAVES: [&str; 16] = [
 /// the record's `anti_att`, and the Lakota, Mongol, German and Aztec pairs'
 /// partings are gone (§5.5). `units_killed` and `units_lost` left with its
 /// ninth: a probe of every leader-record parting over the whole
-/// `rondata::diff` suite finds neither parting anywhere (§2.5).
-pub const OFF_THE_LINE: [&str; 3] = ["attack_stamp", "raid_stamp", "ally_stamp"];
+/// `rondata::diff` suite finds neither parting anywhere (§2.5). The three
+/// victim stamps left with its seventeenth (4159r5a's step): the same
+/// probe holds none of their 24 cells on any row (§4.5). Empty, and kept:
+/// a later leaf of [`LEAVES`] that is held and not yet released goes here.
+pub const OFF_THE_LINE: &[&str] = &[];
 
 /// `frame − stamp > window`, the strict test every stamp here shares.
 pub fn past(frame: i64, stamp: i64, window: i64) -> bool {
