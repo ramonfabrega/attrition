@@ -503,10 +503,12 @@ pub const MAPGEN: Mapgen = Mapgen {
 // Item 4159r12: `largest` 3,709 -> 3,710 (+1), a named rise: the CEO's tile step needs one call at
 // `set_new_location`'s crossing in `movement/collide.rs`; its check and comment moved to
 // `economy/holdings.rs` (`Sim::ceo_tile_step`) at the booking, from the builder's +6.
+// Item 4291: `sweep-lines` 17,286 -> 17,287 (+1), a named rise: `City::scouted` (`CityData +0x4c`)
+// needs its `scouted: 0` in `sweep/city_get_empty_trade_routes.rs`'s city literal.
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
-    ("sweep-lines", 17_286),
+    ("sweep-lines", 17_287),
     ("names", 15),
     ("fields", 21),
     ("largest", 3_710),

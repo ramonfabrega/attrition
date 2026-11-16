@@ -155,6 +155,40 @@ impl Sim {
         crate::groups::halt_view::action_halt_steps(&mut view, mask);
     }
 
+    /// **`Group::action_unitmask@006fcb90(mask, set)`** for the one mask a
+    /// recording carries, `0x100` (item 4291, `docs/CLIENT_INPUT.md` §31.1,
+    /// `docs/SCOUT.md` §13 item 8); returns the members it toggled, and 0
+    /// for any other mask, which this crate does not carry. `set` is never
+    /// read. Over the live members, a plane (vslot `+0xc0`) skipped: the
+    /// first member's bit decides (clear, it is set; set, it is cleared),
+    /// and a member after one that cleared is cleared too. Each member then
+    /// takes `flags |= 0x10` ([`crate::Unit::cant_reach`]), its path
+    /// stack's length `+0xc0` to 0, `close_orders(0)`,
+    /// `clear_partial_path` and `update_action`, whichever way its bit
+    /// went. SEAM: `unit_masks &= ~0x4000000`, the human block's
+    /// scout-idle message bit, is the console's and is not carried.
+    pub fn group_action_unitmask(&mut self, g: &Group, mask: i32) -> usize {
+        if mask != 0x100 {
+            return 0;
+        }
+        let mut set = true;
+        let mut n = 0;
+        for &u in &g.list {
+            if !self.units[u].alive() || self.is_plane(u) {
+                continue;
+            }
+            set = set && !self.units[u].auto_explore;
+            self.units[u].auto_explore = set;
+            self.units[u].cant_reach = true;
+            self.units[u].path.clear();
+            self.close_orders(u);
+            self.clear_partial_path(u);
+            self.update_action(u);
+            n += 1;
+        }
+        n
+    }
+
     /// `Group::action_stance(s)` (§8). A negative `s` cycles: −1 forward,
     /// −2 back.
     pub fn group_action_stance(&mut self, g: &Group, s: i32) {

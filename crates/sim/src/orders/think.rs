@@ -1129,6 +1129,12 @@ impl Sim {
     /// follows with the bit's clear.
     pub(super) fn think_past_gate(&mut self, u: usize, frame: i64, phase: i64) {
         let me = Obj::Unit(u);
+        // **An exploring unit skips the head** (`think@005f6e40:103`, item
+        // 4291): the off-phase `near_o` arm, the Dutch merchant's and the
+        // auto-attack all sit under `(unit_masks & 0x100) == 0`, so a unit
+        // the AUTO EXPLORE button sent ([`crate::Unit::auto_explore`])
+        // goes straight to `LAB_005f7179`.
+        let exploring = self.units[u].auto_explore;
         let unit = &self.units[u];
         // **The off-phase `near_o` arm** (`think@005f6e40:104`–`135`,
         // `5f7017`–`5f70fc`; `docs/AI.md` §205, `docs/COMBAT.md` §37.5):
@@ -1146,7 +1152,8 @@ impl Sim {
         // this is what gives a computer's raiding ship the finished
         // building its `compare_target` weighed at 0 (run809's `1/113` on
         // 3647).
-        if unit.idle != 1
+        if !exploring
+            && unit.idle != 1
             && phase & 0x1f != 0
             && let Some(t) = unit.near
             && unit.combat.stance != combat::Stance::HoldFire
@@ -1215,7 +1222,7 @@ impl Sim {
         let dutch = self
             .unit_tree(u)
             .is_some_and(|ti| self.tables.tech_tree.is(ti, MERCHANTDUTCH, true));
-        if dutch && (unit.idle == 1 || phase & 0x1f == 0) {
+        if !exploring && dutch && (unit.idle == 1 || phase & 0x1f == 0) {
             if unit.combat.packed && self.think_merchant(u) {
                 return;
             }
@@ -1225,7 +1232,8 @@ impl Sim {
         }
         let unit = &self.units[u];
         let p = self.profile(me);
-        if p.attack != 0
+        if !exploring
+            && p.attack != 0
             && p.combat_role
             && (unit.idle == 1 || phase & 0x1f == 0)
             && !self.think_attack_packed(u)
@@ -1356,6 +1364,19 @@ impl Sim {
         // who leaves the auto-manage option on has citizens carrying
         // `0x40000` under a leader that is not computer-controlled — so
         // when a per-unit bit lands, this reverts to the two-term form.
+        // **The human block's auto-explore** (`think@005f6e40:208`–`261`,
+        // item 4291, `docs/SCOUT.md` §13 item 8): inside the block a human
+        // leader enters, a unit with `unit_masks & 0x100` calls
+        // `think_scout(this, 0)` where one without it takes the
+        // spellcaster turn and the idle message, and then the block's exit,
+        // `(unit_masks & 0x40000) == 0`, returns for a human's unit. No
+        // cadence of the tail's: it runs on every think the mod-16 gate
+        // lets in. run1627's Scout `0/0` is the diff: on 6820 it rolls
+        // `think_scout+0x436` and `+0x458` on the frame after the package.
+        if self.units[u].auto_explore && self.cities.nation[self.units[u].owner as usize].human {
+            self.think_scout(u);
+            return;
+        }
         if self.ai.ai_off && !self.ai_driven(self.units[u].owner) {
             return;
         }

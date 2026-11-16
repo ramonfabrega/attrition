@@ -1170,6 +1170,7 @@ fn a_computer_s_silo_strikes_an_enemy_city_with_its_nuke() {
             attack_stamp: 0,
             reduce_stamp: 0,
             raid_stamp: 0,
+            scouted: 0,
             capture_strength: 0,
             pop: 1,
             has_citizen: false,

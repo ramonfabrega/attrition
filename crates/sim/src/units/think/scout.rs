@@ -386,13 +386,16 @@ impl Sim {
             return false;
         };
 
-        // §3's branch. `unit_masks & 0x100` is a seam (clear on every scout
-        // in every run on disk); the two citizen ids, the spy and the naval
-        // domain are what route a unit away from the city loop.
-        let city_branch = type_index != PEASANTS
-            && type_index != PEASANTSKOREAN
-            && !self.unit_is_spy(u)
-            && domain != Domain::Sea;
+        // §3's branch. A unit with `unit_masks & 0x100`, the AUTO EXPLORE
+        // button's bit, takes the city loop whatever its type (`think_scout@005f6010:167`,
+        // item 4291); without it, the two citizen ids, the spy and the
+        // naval domain are what route a unit away from the city loop.
+        let exploring = self.units[u].auto_explore;
+        let city_branch = exploring
+            || (type_index != PEASANTS
+                && type_index != PEASANTSKOREAN
+                && !self.unit_is_spy(u)
+                && domain != Domain::Sea);
         let mut scan = if city_branch {
             self.scout_city_loop(u, who, region)
         } else {
@@ -434,7 +437,7 @@ impl Sim {
                 return self.add_to_army(u).is_some();
             }
             let citizen = type_index == PEASANTS || type_index == PEASANTSKOREAN;
-            if citizen && self.reg_cities(who, region) == 0 {
+            if citizen && !exploring && self.reg_cities(who, region) == 0 {
                 return false;
             }
             return self.think_civilian_transport(u, false);
@@ -465,6 +468,9 @@ impl Sim {
         let land = self.units[u]
             .ty
             .is_some_and(|r| self.tables.unit_types[r].kind.domain == Domain::Land);
+        // `unit_masks & 0x40000` clear: a plain human's unit, which only the
+        // human block's auto-explore call brings here (item 4291).
+        let plain = !self.unit_ai_bit(who);
 
         for i in 0..8u8 {
             let leader = (who + i) & 7;
@@ -493,14 +499,19 @@ impl Sim {
                 if land && self.cities.cities[c].reg != Some(region) {
                     continue;
                 }
-                // §5's `CityData +0x4c` mark is not carried: only a plain
-                // human's scout can ever set it and no human's scout reaches
-                // this function (§2, `docs/SCOUT.md` §13 item 6).
+                // §5's `CityData +0x4c` mark (`think_scout@005f6010:355`): a city this
+                // leader's plain human has walked whole is passed over.
+                if self.cities.cities[c].scouted & (1 << who) != 0 {
+                    continue;
+                }
 
-                // §6's two arms. An AI unit takes every other ring around
-                // its own leader's city, and a shallow three-ring walk
-                // around anybody else's.
-                let (step, cap) = if leader == who {
+                // §6's arms. A plain human's unit walks every ring around
+                // any city, to `max_ring` (`LAB_005f63d5`); an AI unit takes
+                // every other ring around its own leader's city, and a
+                // shallow three-ring walk around anybody else's.
+                let (step, cap) = if plain {
+                    (1, max_ring)
+                } else if leader == who {
                     (2, max_ring)
                 } else {
                     (1, FOREIGN_MAX_RING)
@@ -510,10 +521,12 @@ impl Sim {
                 let city = self.cities.cities[c].pos.cell();
                 let end = self.scout_rings(u, city, step, cap, &mut scan);
                 if end == if leader == who { 12 } else { 8 } {
-                    // Unreachable for an AI scout — the ring counter comes
-                    // out at 13 or 9 with `step == 2`, and at 3 on the
-                    // foreign arm. Kept so the shape is the original's.
-                    debug_assert!(false, "an AI scout cannot exhaust a city");
+                    // `think_scout@005f6010:539`: the walk came out whole, and the city is
+                    // marked for the scout's leader. Unreachable for an AI
+                    // scout — the ring counter comes out at 13 or 9 with
+                    // `step == 2`, and at 3 on the foreign arm.
+                    debug_assert!(plain, "an AI scout cannot exhaust a city");
+                    self.cities.cities[c].scouted |= 1 << who;
                 }
                 max_ring = 8;
                 if scan.over {

@@ -356,6 +356,7 @@ fn a_computer_s_base_sends_its_plane_over_a_city_under_attack() {
             attack_stamp: 0,
             reduce_stamp: 0,
             raid_stamp: 0,
+            scouted: 0,
             capture_strength: 0,
             pop: 1,
             has_citizen: false,
