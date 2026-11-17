@@ -250,6 +250,22 @@ pub(crate) fn walk_take_from(
                         _ => None,
                     };
                     let top = x.path.last().map(|n| (n.to, n.flags, built.sim.world.is_tocean(n.to.tile())));
+                    if let Some(sim::orders::Body::Move(m)) = x.orders.front().map(|o| &o.body) {
+                        let nodes: Vec<String> = x
+                            .path
+                            .iter()
+                            .map(|n| format!("({},{}){}{}", n.to.x, n.to.y, n.flags, if built.sim.world.is_tocean(n.to.tile()) { "W" } else { "" }))
+                            .collect();
+                        eprintln!(
+                            "PROBE path 1/{} dest ({},{}) destwet {} orders {} nodes {}",
+                            x.index,
+                            m.dest.x,
+                            m.dest.y,
+                            built.sim.world.is_tocean(m.dest.tile()),
+                            x.orders.len(),
+                            nodes.join(" ")
+                        );
+                    }
                     if wet > 0 && wp.is_some() {
                         let w = wp.unwrap();
                         let d = (w.x - x.pos.x).abs().max((w.y - x.pos.y).abs());
