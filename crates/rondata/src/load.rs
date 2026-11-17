@@ -105,6 +105,13 @@ pub struct Loaded {
     pub build_tree: Vec<TypeId>,
     pub tech_tree: Vec<TypeId>,
     pub good_tree: Vec<TypeId>,
+    /// **Each tech record's `SHOW0` and `SHOW1`** (item 4323,
+    /// `docs/CLIENT_INPUT.md` §32.4): `TechType::init@0066c7b0` reads them
+    /// through `Types::tech_key` into `show[2]` (`+0x50`, `+0x54`), and
+    /// `BuildOut::make_options@00629ed0`'s research loop offers a tech not
+    /// yet available when the leader `has_tech` either. In tech-record
+    /// order, beside [`Loaded::tech_tree`]. No sim mechanic reads them.
+    pub tech_show: Vec<[Preq; 2]>,
     /// Names the tables referred to that resolved to nothing, the way the
     /// original's `tech_key`/`unit_key`/`build_key` would have logged an
     /// error. Empty for the shipped files.
@@ -1001,6 +1008,7 @@ pub fn load_tables(
     // Each tech's `WHERE` as a *building record*, which is what
     // `TechType::set_research` marks the lineage of.
     let mut tech_cols_where: Vec<Option<usize>> = Vec::with_capacity(techs.records.len());
+    let mut tech_show: Vec<[Preq; 2]> = Vec::with_capacity(techs.records.len());
     for (i, r) in techs.records.iter().enumerate() {
         let kind = tech_kind(i);
         let mut d = TypeDef::new(&tech_names[i], kind);
@@ -1009,6 +1017,10 @@ pub fn load_tables(
         d.preq[0] = tech_key(r.text("PREQ0"), &mut warnings);
         d.preq[1] = tech_key(r.text("PREQ1"), &mut warnings);
         d.preq[2] = tech_key(r.text("PREQ2"), &mut warnings);
+        tech_show.push([
+            tech_key(r.text("SHOW0"), &mut warnings),
+            tech_key(r.text("SHOW1"), &mut warnings),
+        ]);
         d.age = r
             .text("AGE")
             .and_then(Scalar::parse)
@@ -2217,6 +2229,7 @@ pub fn load_tables(
         build_tree,
         tech_tree,
         good_tree,
+        tech_show,
         warnings,
         map_styles: rules
             .categories
@@ -3064,6 +3077,7 @@ mod tests {
             build_tree: vec![9, 10],
             tech_tree: vec![11, 12],
             good_tree: (0..6).collect(),
+            tech_show: vec![],
             warnings: vec![],
             map_styles: vec![],
             wonder_wins: vec![],
