@@ -11280,11 +11280,14 @@ pub(crate) mod tests {
             .collect()
     }
 
+    /// One citizen's adds, each with the page its run poked (item 4339).
+    type PageAdds = Vec<(i32, Button)>;
+
     /// Every row of `panels.py --citizens` TSVs under `var` (or
     /// `~/<default>`), per (file, frame, slot, citizen): each add whole
     /// (type, option, `disable`) with the page its run poked (−1 for
     /// `--standard`'s run), in the file's order.
-    fn page_rows(var: &str, default: &str) -> Vec<(String, i64, i32, i32, Vec<(i32, Button)>)> {
+    fn page_rows(var: &str, default: &str) -> Vec<(String, i64, i32, i32, PageAdds)> {
         let dir = std::env::var_os(var)
             .map(std::path::PathBuf::from)
             .unwrap_or_else(|| {
@@ -11298,7 +11301,7 @@ pub(crate) mod tests {
             .filter(|p| p.extension().is_some_and(|x| x == "tsv"))
             .collect();
         files.sort();
-        let mut out: std::collections::BTreeMap<(String, i64, i32, i32), Vec<(i32, Button)>> =
+        let mut out: std::collections::BTreeMap<(String, i64, i32, i32), PageAdds> =
             std::collections::BTreeMap::new();
         for f in files {
             let name = f.file_stem().unwrap().to_string_lossy().into_owned();
