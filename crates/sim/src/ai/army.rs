@@ -1812,15 +1812,8 @@ impl Sim {
                         k,
                         draw,
                     ) else {
-                        if std::env::var_os("RON_PROBE_SCORE").is_some() {
-                            eprintln!("PROBE_SCORE f{} who {who} slot {slot} pass {pass} ip {ip} k {k} build {} draw {draw} v None", self.frame, self.buildings[self.cities.cities[c].building].index);
-                        }
                         continue;
                     };
-                    if std::env::var_os("RON_PROBE_SCORE").is_some() {
-                        eprintln!("PROBE_PERS f{} who {who} {:?} scores {:?}", self.frame, self.ai.ai[who as usize].pers, (0..3u8).map(|w| self.leader_score(w).score).collect::<Vec<_>>());
-                        eprintln!("PROBE_SCORE f{} who {who} slot {slot} pass {pass} ip {ip} k {k} build {} draw {draw} v {v}", self.frame, self.buildings[self.cities.cities[c].building].index);
-                    }
                     if best.is_none_or(|(bv, _, _)| bv <= v) {
                         best = Some((v, self.cities.cities[c].building, ip));
                     }
