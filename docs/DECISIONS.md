@@ -13797,7 +13797,8 @@ and stays in its journal. The panel's unexercised arms (parked 4323a,
 card's draws over the lake are read for the floor, the patches, the coral
 and the fish, not for the foam); whether the west rim differs under the
 chat's text; whether the Citizen's page has an oracle in `panels.py` as it
-stands; whether the start builder holds the sample's lobby (map style 7
+stands; ~~whether the start builder holds the sample's lobby (map style 7
 by run900's ledger, Great Sahara's, five seats, four computers on one
 team, the recording's own seed); how far a walk of the sample goes before
-it parts.
+it parts~~ (item 4336, `docs/RECGAME.md` §7: the start whole, 18,315 of
+18,315, once teammates are built at once; the word 98 of 21,044).
