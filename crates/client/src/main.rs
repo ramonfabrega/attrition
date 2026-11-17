@@ -331,7 +331,15 @@ fn build(
             let a = render::camera::world_to_screen(&m, &pinned_screen(), x, y, z, Some(screen));
             (!a.off_screen).then_some((a.x, a.y))
         };
-        hud::paint(&mut p, input, &scene, &world.names, screen, &project);
+        hud::paint(
+            &mut p,
+            input,
+            &scene,
+            Some(world.runner.sim()),
+            &world.names,
+            screen,
+            &project,
+        );
         overlay.0.extend(p.pos);
         overlay.1.extend(p.col);
     }
@@ -685,6 +693,7 @@ impl App {
             size,
             scene: &scene,
             terrain: &terrain,
+            sim: Some(self.world.runner.sim()),
         };
         // The HUD first (item 4197): a press on a button is its key.
         let screen = size.unwrap_or((pinned_screen().scaled_xs, pinned_screen().scaled_ys));

@@ -594,6 +594,10 @@ pub struct View<'a> {
     pub size: Option<(i32, i32)>,
     pub scene: &'a Scene,
     pub terrain: &'a TerrainScene,
+    /// The walk itself, when the window has one: what a building's panel
+    /// asks of the leader ([`Roster::offered`], item 4334). `None` in a
+    /// scene built by hand, whose panel is the static roster.
+    pub sim: Option<&'a sim::Sim>,
 }
 
 impl View<'_> {
@@ -1258,8 +1262,8 @@ pub struct Input {
 /// buttons the original's panels offer, read from the type tables with
 /// the panels' static predicates, so [`Roster::trains`] offers every type
 /// its building may ever queue. [`Roster::offered`] runs the leader's
-/// (items 4315, 4321 and 4323) for the walked row; the HUD does not yet
-/// ask it.
+/// (items 4315, 4321 and 4323), and the HUD draws it when the window
+/// hands it the sim (item 4334).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Roster {
     /// Per building type (an index into the building types), the
@@ -1274,6 +1278,13 @@ pub struct Roster {
     /// line's base (no `FROM`) or a type with `BUILD_FLAGS & 4`. The page
     /// (`+0x14`), the leader's masks and `type_avail` are not read.
     pub builds: Vec<i32>,
+    /// **The citizen's page loop's candidates** (item 4337,
+    /// `docs/CLIENT_INPUT.md` §32.6): each building `TypeIndex` over
+    /// `BASE_BUILDTYPES..=0x21e` whose `preq[0]` and `preq[1]` are not
+    /// disabled, its `cat` (the page: `E` 0, `M` 1, `W` 2) and whether its
+    /// `obj_masks` carries `0x4000000`. [`Roster::build_pages`] runs the
+    /// leader's predicates over them.
+    pub pages: Vec<(i32, i32, bool)>,
     /// The technologies `BuildOut::make_options@00629ed0`'s research loop
     /// runs over (`BASE_AGETYPES..0x275`, item 4323): each one's
     /// `TypeIndex`, tree id and `show[2]` (`SHOW0`, `SHOW1`).
@@ -1287,44 +1298,46 @@ pub struct Roster {
 /// research loop's tail fills with the ages and the epochs.
 const LIBRARY: i32 = 0x1b3;
 /// `BASE_FINALTYPES`, the end of the Library's tail.
-#[cfg(test)]
 const BASE_FINALTYPES: i32 = 0x243;
 /// The end of the research loop (the spells start at `0x275`).
 const END_TECHTYPES: i32 = 0x275;
 /// `TypeData::is_gov_type@004706a0`: `0x26e < type < 0x275`.
-#[cfg(test)]
 const GOV_TYPES: std::ops::Range<i32> = 0x26f..0x275;
 
 /// The `TypeIndex`es `BuildOut::make_options@00629ed0`'s train loop names
 /// (`enums/TypeIndex.txt` of the export).
-#[cfg(test)]
 const MILITIA: i32 = 0x42;
-#[cfg(test)]
 const RIFLEMAN: i32 = 0x64;
-#[cfg(test)]
 const INFANTRY: i32 = 0x66;
-#[cfg(test)]
 const MECHINFANTRY: i32 = 0x68;
-#[cfg(test)]
 const MACHINEGUN: i32 = 0x7b;
-#[cfg(test)]
 const BOMBARDSHIP: i32 = 0x15a;
-#[cfg(test)]
 const DREADNOUGHT: i32 = 0x15c;
-#[cfg(test)]
 const AIRCRAFTCARRIER: i32 = 0x15f;
 
 /// `OPTION_TRAIN` and `OPTION_RESEARCH` (`OptionIndex`, the export's
 /// `enums/`), the two kinds of button the panel's loops add.
-#[cfg(test)]
 pub const OPTION_TRAIN: i32 = 47;
-#[cfg(test)]
 pub const OPTION_RESEARCH: i32 = 48;
+/// `OPTION_BUILD`, the citizen's first build page: what `UnitOut::make_options@00615fc0`
+/// adds a page's buildings under (`mode_data`, 0). Ours is one page.
+pub const OPTION_BUILD: i32 = 0;
+
+/// The `TypeIndex`es `UnitOut::make_options@00615fc0`'s page loop names
+/// (`enums/TypeIndex.txt` of the export): `VILLAGE`, the City line whose
+/// types `at_city_limit` greys; `FORBIDDENCITY`, exempt; the wonders,
+/// `BASE_WONDERTYPES..=SPACEPROGRAM` (`BuildTypeData::already_built`'s
+/// range, and `is_wonder_type`'s).
+const VILLAGE: i32 = 0x19e;
+const FORBIDDENCITY: i32 = 0x213;
+const WONDERS: std::ops::RangeInclusive<i32> = 0x20e..=0x21e;
+/// `PEASANTS` and `PEASANTSKOREAN`: the citizens `make_options` offers the
+/// build pages to.
+const CITIZENS: [i32; 2] = [0x32, 0x33];
 
 /// **A panel button** (item 4326, `docs/CLIENT_INPUT.md` §32.4): what
 /// `Options::add@0072c290` takes of one of `make_options`' train and
 /// research adds, the grid aside: the type, the option and `disable`.
-#[cfg(test)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Button {
     pub ty: i32,
@@ -1363,8 +1376,7 @@ impl Roster {
     /// 0x80` without a `FROM` and `OPTION_RESEARCH` otherwise; 2 is
     /// `OPTION_RESEARCH` and 4 `OPTION_TRAIN`, both `disable` 0 on a
     /// building `is_neutralized` (vtable `+0x180`, `Build`'s answering 0)
-    /// leaves clear. The HUD does not ask it yet: the rows' instrument.
-    #[cfg(test)]
+    /// leaves clear. The HUD draws it ([`Input::panel`], item 4334).
     pub fn offered(&self, sim: &sim::Sim, who: usize, building: i32, active: bool) -> Vec<Button> {
         use rondata::load::{BASE_BUILDTYPES, BASE_UNITTYPES};
         let all = self
@@ -1486,6 +1498,81 @@ impl Roster {
         out
     }
 
+    /// **The citizen's build pages** (item 4337, `docs/CLIENT_INPUT.md`
+    /// §32.6): what `UnitOut::make_options@00615fc0` adds in
+    /// `BUILD_OPTIONS` mode for slot `who`, its three pages (`mode_data`
+    /// 0, 1, 2, each button's option) at once. The loop reads only the
+    /// citizen's slot. For each of [`Roster::pages`], in order:
+    ///
+    /// 1. a type with a `FROM` is offered only with `obj_masks &
+    ///    0x4000000`, or with `BUILD_FLAGS & 4` and `type_avail(t, 1)` 4;
+    /// 2. a type the leader's `obs_flags` marks, or whose `obs` (`+0x4c`)
+    ///    the leader `has_tech`, is not;
+    /// 3. a wonder `already_built` is not;
+    /// 4. a type that `is(VILLAGE)`, not `is(FORBIDDENCITY)` nor the
+    ///    Forbidden City itself, is greyed `at_city_limit`;
+    /// 5. its page: `cat` 0 or 1 on page `cat` unless a wonder; `cat` 2
+    ///    on page 2, a wonder only with no site of it placed
+    ///    (`get_queued`);
+    /// 6. `disable` 1 when `type_avail(t, 1)` is under 4 or the limit greys
+    ///    it, else 0.
+    pub fn build_pages(&self, sim: &sim::Sim, who: usize) -> Vec<Button> {
+        use rondata::load::BASE_BUILDTYPES;
+        let (tree, setup) = (&sim.tables.tech_tree, &sim.tables.setup);
+        let Some(p) = sim.tech.get(who) else {
+            return Vec::new();
+        };
+        let rec = |ti: i32| usize::try_from(ti - BASE_BUILDTYPES).ok();
+        let id = |ti: i32| sim.tables.build_types.get(rec(ti)?)?.tree;
+        let (village, forbidden) = (id(VILLAGE), id(FORBIDDENCITY));
+        let at_limit = sim.at_city_limit(who as sim::Player);
+        let line = &tree.roles.wonder_line;
+        let mut out = Vec::new();
+        for &(ti, cat, hero) in &self.pages {
+            let (Some(r), Some(t)) = (rec(ti), id(ti)) else {
+                continue;
+            };
+            let bt = &sim.tables.build_types[r];
+            let avail = sim.type_avail(who as sim::Player, t);
+            if bt.from.is_some()
+                && !hero
+                && !(bt.has(sim::cities::build::flags::UPGRADES) && avail >= 4)
+            {
+                continue;
+            }
+            if p.obs[t] || tree.has_tech_p(setup, p, tree.types[t].obs) {
+                continue;
+            }
+            let wonder = WONDERS.contains(&ti);
+            let built = line
+                .iter()
+                .position(|&w| w == t)
+                .is_some_and(|k| sim.cities.wonders_built & (1 << k) != 0);
+            if wonder && built {
+                continue;
+            }
+            let limited = village.is_some_and(|v| tree.is(t, v, false))
+                && !forbidden.is_some_and(|f| tree.is(t, f, false))
+                && ti != FORBIDDENCITY
+                && at_limit;
+            let on_page = match cat {
+                0 | 1 => !wonder,
+                2 => !wonder || sim.num_sites_of(who as sim::Player, r) == 0,
+                _ => false,
+            };
+            if !on_page {
+                continue;
+            }
+            out.push(Button {
+                ty: ti,
+                option: cat,
+                disable: i32::from(avail < 4 || limited),
+            });
+        }
+        out.sort_unstable();
+        out
+    }
+
     /// **The research loop** (item 4323, `docs/CLIENT_INPUT.md` §32.4):
     /// the technologies `BuildOut::make_options@00629ed0` offers on
     /// building `b` (a tree id) for slot `who`, its three passes over
@@ -1511,7 +1598,6 @@ impl Roster {
     /// `upgrade` arm 5 (and 8 at `avail` 1), the `avail < 2` arm 3, and a
     /// button is clear (0) only with no flag set, a type queued here at
     /// `avail` 2 or more; the governments and the Library's tail are 1.
-    #[cfg(test)]
     fn researched(&self, sim: &sim::Sim, who: usize, b: usize) -> Vec<(i32, i32)> {
         let (tree, setup) = (&sim.tables.tech_tree, &sim.tables.setup);
         let Some(p) = sim.tech.get(who) else {
@@ -1566,7 +1652,6 @@ impl Roster {
     /// reaches its `AGE` and each prerequisite (`get_preq(i, who)`) is
     /// held, or is itself shown later at `depth − 1` without being queued
     /// here or at the Library. A disabled slot answers no.
-    #[cfg(test)]
     fn show_later_tech(
         &self,
         sim: &sim::Sim,
@@ -1633,6 +1718,22 @@ impl Roster {
                     && (bt.from.is_none() || bt.has(sim::cities::build::flags::UPGRADES))
             })
             .collect();
+        let pages = (BASE_BUILDTYPES..=0x21e.min(BASE_BUILDTYPES + nb - 1))
+            .filter_map(|ti| {
+                let (t, b) = (tree_id(loaded, ti)?, loaded.build_of_type_index(ti)?);
+                let def = &loaded.tree.types[t];
+                if def.preq[0] == sim::tech::Preq::Disabled
+                    || def.preq[1] == sim::tech::Preq::Disabled
+                {
+                    return None;
+                }
+                let hero = loaded.build_types[b]
+                    .combat
+                    .as_ref()
+                    .is_some_and(|c| c.obj_masks & 0x400_0000 != 0);
+                Some((ti, *loaded.build_cat.get(b)?, hero))
+            })
+            .collect();
         let techs = (BASE_TECHTYPES..END_TECHTYPES)
             .filter_map(|ti| {
                 let t = tree_id(loaded, ti)?;
@@ -1644,6 +1745,7 @@ impl Roster {
         Roster {
             trains,
             builds,
+            pages,
             techs,
             library,
         }
@@ -1750,34 +1852,89 @@ impl Input {
     }
 
     /// **The panel's buttons for the selection** (item 4290,
-    /// `docs/CLIENT_INPUT.md` §32), by `TypeIndex`, each a [`Event::Train`]
-    /// for a building selection and a [`Event::Place`] for units: a
-    /// building selected, the roster of the first of the slot's own
-    /// buildings in it; units selected, the citizen's build pages. Ours:
-    /// any unit selection offers the build pages, as [`BUILD_KEYS`] does,
-    /// where the original's offers them to a citizen.
-    pub fn panel(&self, scene: &Scene) -> Vec<Event> {
+    /// `docs/CLIENT_INPUT.md` §32), each its event, its option and its
+    /// `disable`: a [`Event::Train`] for a building selection and a
+    /// [`Event::Place`] for units. A building selected, the panel of the
+    /// first of the slot's own buildings in it: with `sim`, the original's
+    /// ([`Roster::offered`] on the building's state, item 4334), and
+    /// without, the static roster, every type a clear `OPTION_TRAIN`.
+    /// Units selected: with `sim` and one of the slot's citizens among
+    /// them, the original's three build pages at once ([`Roster::build_pages`],
+    /// item 4337), else nothing; without `sim`, the static pages, clear,
+    /// for any unit selection, as [`BUILD_KEYS`] does.
+    pub fn panel(&self, scene: &Scene, sim: Option<&sim::Sim>) -> Vec<(Event, Button)> {
         if self.selection.is_empty() || self.line.is_some() {
             return Vec::new();
         }
+        let clear = |ty, option| Button {
+            ty,
+            option,
+            disable: 0,
+        };
         if !self.building {
+            let Some(sim) = sim else {
+                return self
+                    .roster
+                    .builds
+                    .iter()
+                    .map(|&t| (Event::Place(t), clear(t, OPTION_BUILD)))
+                    .collect();
+            };
+            // With the walk (item 4337): the original's three pages, for a
+            // selection holding one of the slot's own citizens.
+            let citizen = self.selection.iter().any(|id| {
+                id.who == self.player
+                    && sim.units.iter().any(|u| {
+                        u.alive()
+                            && u.owner == self.player
+                            && u.index == id.o
+                            && u.ty.is_some_and(|t| {
+                                CITIZENS.contains(&(t as i32 + rondata::load::BASE_UNITTYPES))
+                            })
+                    })
+            });
+            if !citizen {
+                return Vec::new();
+            }
             return self
                 .roster
-                .builds
-                .iter()
-                .map(|&t| Event::Place(t))
+                .build_pages(sim, usize::from(self.player))
+                .into_iter()
+                .map(|x| (Event::Place(x.ty), x))
                 .collect();
         }
-        let ty = self.selection.iter().find_map(|id| {
+        let Some(b) = self.selection.iter().find_map(|id| {
             scene
                 .buildings
                 .iter()
-                .find(|b| b.id == *id && b.owner == self.player)?
-                .ty
-        });
-        ty.and_then(|t| self.roster.trains.get(t))
-            .map(|r| r.iter().map(|&t| Event::Train(t)).collect())
-            .unwrap_or_default()
+                .find(|b| b.id == *id && b.owner == self.player && b.ty.is_some())
+        }) else {
+            return Vec::new();
+        };
+        let ty = b.ty.unwrap_or_default();
+        match sim {
+            Some(sim) => self
+                .roster
+                .offered(
+                    sim,
+                    usize::from(self.player),
+                    ty as i32 + rondata::load::BASE_BUILDTYPES,
+                    b.active,
+                )
+                .into_iter()
+                .map(|x| (Event::Train(x.ty), x))
+                .collect(),
+            None => self
+                .roster
+                .trains
+                .get(ty)
+                .map(|r| {
+                    r.iter()
+                        .map(|&t| (Event::Train(t), clear(t, OPTION_TRAIN)))
+                        .collect()
+                })
+                .unwrap_or_default(),
+        }
     }
 
     /// **The frame-0 order** (item 4289, `docs/CLIENT_INPUT.md` §26.1): no
@@ -2726,6 +2883,7 @@ pub(crate) mod tests {
             size: None,
             scene,
             terrain,
+            sim: None,
         }
     }
 
@@ -9594,7 +9752,7 @@ pub(crate) mod tests {
                     .iter()
                     .map(|h| match **h {
                         Command::QueueUp { unit, .. } => {
-                            let b = crate::hud::roster_menu(&input, &scene, HUD_SIZE)
+                            let b = crate::hud::roster_menu(&input, &scene, None, HUD_SIZE)
                                 .into_iter()
                                 .find(|b| b.ev == Event::Train(unit))
                                 .expect("the roster offers the type");
@@ -10846,6 +11004,23 @@ pub(crate) mod tests {
     /// original's, ours). Seen red pinned (0, 0, 0, 0, 0).
     const PANEL_DISABLE_WALKED: (usize, usize, usize, usize, usize) = (103, 103, 1238, 1238, 1238);
 
+    /// **`HUD_PANEL_WALKED`** (item 4334, `docs/CLIENT_INPUT.md` §32.5):
+    /// [`PANEL_DISABLE_WALKED`]'s buildings, each the selection alone, and
+    /// the buttons [`crate::hud::roster_menu`] draws for it on the walk's
+    /// own scene, each whole (type, option, `disable`) against the
+    /// original's: (buildings whose buttons equal, buildings either side
+    /// offers one on, buttons both offer whole, the original's, the HUD's).
+    /// Seen red pinned (0, 0, 0, 0, 0), where the static HUD counted
+    /// (0, 110, 103, 1238, 1945): every type its building may queue, a
+    /// clear `OPTION_TRAIN`, on the seven unfinished buildings too.
+    const HUD_PANEL_WALKED: (usize, usize, usize, usize, usize) = (103, 103, 1238, 1238, 1238);
+    /// **`HUD_PANEL_PRESSED`** (item 4334): of the drawn buttons, each
+    /// pressed at its centre through [`crate::hud::event`], (those that
+    /// order as their `disable` says, pressed): a greyed one nothing, a
+    /// clear one its type's `queue_up` of one. Ours: `Options::exec`'s
+    /// arms are not read (`docs/CLIENT_INPUT.md` §32.5).
+    const HUD_PANEL_PRESSED: (usize, usize) = (1238, 1238);
+
     /// **The panel through the leader's predicates, on our walk** (item
     /// 4315): every held packet's buildings, the original's train and
     /// research types against [`Roster::offered`] on our walk of the minted
@@ -10878,6 +11053,8 @@ pub(crate) mod tests {
         let mut next = 0;
         let mut count = (0, 0, 0, 0, 0);
         let mut disabled = (0, 0, 0, 0, 0);
+        let mut hud = (0, 0, 0, 0, 0);
+        let mut presses = (0, 0);
         for (file, who, object, building, buttons) in &panels {
             let frame = frame_of(file);
             while r.frame() < frame {
@@ -10899,6 +11076,67 @@ pub(crate) mod tests {
                 "{file}: {who}/{object}'s type"
             );
             let ours_buttons = roster.offered(sim, *who as usize, *building, b.active);
+            // The HUD's row (item 4334): the buttons the HUD draws with
+            // this building alone selected, on the walk's own scene.
+            let scene = sim.observe(Some(*who as sim::Player));
+            let mut input = Input::new(*who as u8);
+            input.roster = std::sync::Arc::new(roster.clone());
+            input.selection = vec![ObjId {
+                who: *who as sim::Player,
+                o: *object as i16,
+            }];
+            input.building = true;
+            let row = crate::hud::roster_menu(&input, &scene, Some(sim), HUD_SIZE);
+            let mut drawn: Vec<Button> = row.iter().map(|x| x.button).collect();
+            drawn.sort_unstable();
+            // A press through the HUD: a greyed button orders nothing, a
+            // clear one its `queue_up` behind the selection's group.
+            let terrain = TerrainScene::default();
+            let c = crate::pinned_camera();
+            let v = View {
+                sim: Some(sim),
+                ..view(&c, &scene, &terrain)
+            };
+            for b in &row {
+                let (x, y) = b.rect.centre();
+                let got =
+                    crate::hud::event(&mut input.clone(), HUD_SIZE, 1, Event::Press { x, y }, &v);
+                let queued = got.as_ref().is_some_and(|o| {
+                    o.2.iter().any(|k| {
+                        *k == Command::QueueUp {
+                            unit: b.ty(),
+                            num: 1,
+                        }
+                    })
+                });
+                presses.1 += 1;
+                if (got.is_none() && b.greyed()) || (queued && !b.greyed()) {
+                    presses.0 += 1;
+                }
+            }
+            if !(buttons.is_empty() && drawn.is_empty()) {
+                hud.1 += 1;
+                if *buttons == drawn {
+                    hud.0 += 1;
+                }
+                hud.2 += buttons.iter().filter(|x| drawn.contains(x)).count();
+                hud.3 += buttons.len();
+                hud.4 += drawn.len();
+                if *buttons != drawn {
+                    println!(
+                        "HUD {file} who {who} object {object} building {building}: \
+                         theirs not drawn {:?}, drawn not theirs {:?}",
+                        buttons
+                            .iter()
+                            .filter(|x| !drawn.contains(x))
+                            .collect::<Vec<_>>(),
+                        drawn
+                            .iter()
+                            .filter(|x| !buttons.contains(x))
+                            .collect::<Vec<_>>()
+                    );
+                }
+            }
             if !(buttons.is_empty() && ours_buttons.is_empty()) {
                 disabled.1 += 1;
                 if *buttons == ours_buttons {
@@ -10948,8 +11186,207 @@ pub(crate) mod tests {
         }
         println!("PANEL_LEADER_WALKED {count:?}");
         println!("PANEL_DISABLE_WALKED {disabled:?}");
+        println!("HUD_PANEL_WALKED {hud:?}");
+        println!("HUD_PANEL_PRESSED {presses:?}");
         assert_eq!(count, PANEL_LEADER_WALKED);
         assert_eq!(disabled, PANEL_DISABLE_WALKED);
+        assert_eq!(hud, HUD_PANEL_WALKED);
+        assert_eq!(presses, HUD_PANEL_PRESSED);
+    }
+
+    /// The citizens' pages (item 4337), `~/ron-data/pages/*.tsv` (or
+    /// `RON_PAGES_DIR`), `panels.py --citizens`' rows: per (file, frame,
+    /// slot, citizen), the buttons of its three pages whole (type, option,
+    /// `disable`: columns 9, 6 and 10), sorted, the page's `OPTION_BACK`,
+    /// `OPTION_NEXT` and `OPTION_CANCEL` aside.
+    fn pages_on_disk() -> Vec<(String, i64, i32, i32, Vec<Button>)> {
+        let dir = std::env::var_os("RON_PAGES_DIR")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                std::path::Path::new(&std::env::var_os("HOME").unwrap_or_default())
+                    .join("ron-data/pages")
+            });
+        let Ok(rd) = std::fs::read_dir(&dir) else {
+            return Vec::new();
+        };
+        let mut files: Vec<_> = rd
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .filter(|p| p.extension().is_some_and(|x| x == "tsv"))
+            .collect();
+        files.sort();
+        let mut out: std::collections::BTreeMap<(String, i64, i32, i32), Vec<Button>> =
+            std::collections::BTreeMap::new();
+        for f in files {
+            let name = f.file_stem().unwrap().to_string_lossy().into_owned();
+            for line in std::fs::read_to_string(&f).unwrap().lines() {
+                if line.starts_with('#') || line.is_empty() {
+                    continue;
+                }
+                let c: Vec<i64> = line
+                    .split('\t')
+                    .take(11)
+                    .map(|v| v.parse().expect("a panels.py --citizens row"))
+                    .collect();
+                let (frame, who, object, option, ty, disable) = (
+                    c[0],
+                    c[1] as i32,
+                    c[2] as i32,
+                    c[5] as i32,
+                    c[8] as i32,
+                    c[9] as i32,
+                );
+                assert!(option != -1, "{name}: a run that did not return: {line}");
+                let e = out.entry((name.clone(), frame, who, object)).or_default();
+                if (0..=2).contains(&option) {
+                    e.push(Button {
+                        ty,
+                        option,
+                        disable,
+                    });
+                }
+            }
+        }
+        out.into_iter()
+            .map(|((f, frame, who, object), mut bs)| {
+                bs.sort_unstable();
+                (f, frame, who, object, bs)
+            })
+            .collect()
+    }
+
+    /// **`HUD_PAGES_WALKED`** (item 4337, `docs/CLIENT_INPUT.md` §32.6):
+    /// each held packet's citizens (one a slot; every citizen of a slot
+    /// shares its pages, run1600's nineteen of slot 1 measured), the
+    /// selection alone on the walk's own scene, and the buttons
+    /// [`crate::hud::roster_menu`] draws for it, each whole (type, option,
+    /// `disable`), against the original's three pages: (citizens whose
+    /// buttons equal, citizens, buttons both draw whole, the original's,
+    /// the HUD's). Seen red pinned (0, 0, 0, 0, 0).
+    const HUD_PAGES_WALKED: (usize, usize, usize, usize, usize) = (32, 32, 1312, 1312, 1312);
+    /// **`HUD_PAGES_STATIC`** (item 4337): the same citizens against the
+    /// HUD without the walk, the static [`Roster::builds`], each a clear
+    /// `OPTION_BUILD`: the gap [`HUD_PAGES_WALKED`] closed.
+    const HUD_PAGES_STATIC: (usize, usize, usize, usize, usize) = (0, 32, 147, 1312, 1696);
+    /// **`HUD_PAGES_PRESSED`** (item 4337): of the drawn page buttons,
+    /// each pressed at its centre through [`crate::hud::event`], (those
+    /// that arm as their `disable` says, pressed): a greyed one arms
+    /// nothing, a clear one the placement of its type. Ours:
+    /// `Options::exec`'s build arm is not read here. Seen red pinned (0, 0).
+    const HUD_PAGES_PRESSED: (usize, usize) = (1312, 1312);
+
+    /// **The citizen's build pages, on our walk** (item 4337): every held
+    /// packet's citizens, the original's pages (`UnitOut::make_options@00615fc0`
+    /// in `BUILD_OPTIONS` mode, run by `tools/recomp/panels.py --citizens`)
+    /// against the HUD's on our walk of the minted script at that frame,
+    /// the citizen found by slot and object id.
+    #[test]
+    fn the_pages_of_the_packets_on_our_walk() {
+        let pages = pages_on_disk();
+        let Some(roster) = install_roster() else {
+            println!("skipping: no install");
+            return;
+        };
+        if pages.is_empty() {
+            println!("skipping: no pages on disk (RON_PAGES_DIR, ~/ron-data/pages)");
+            return;
+        }
+        let mut r = match lobby() {
+            Ok(r) => r,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let mut pages = pages;
+        pages.sort_by_key(|(_, frame, ..)| *frame);
+        let orders = script::script();
+        let mut next = 0;
+        let mut hud = (0, 0, 0, 0, 0);
+        let mut statics = (0, 0, 0, 0, 0);
+        let mut presses = (0, 0);
+        let tally =
+            |row: &mut (usize, usize, usize, usize, usize), theirs: &[Button], ours: &[Button]| {
+                row.1 += 1;
+                if theirs == ours {
+                    row.0 += 1;
+                }
+                row.2 += theirs.iter().filter(|x| ours.contains(x)).count();
+                row.3 += theirs.len();
+                row.4 += ours.len();
+            };
+        for (file, frame, who, object, buttons) in &pages {
+            while r.frame() < *frame {
+                while next < orders.len() && i64::from(orders[next].0) == r.frame() {
+                    r.issue(&orders[next]);
+                    next += 1;
+                }
+                r.step();
+            }
+            let sim = r.sim();
+            let u = sim
+                .units
+                .iter()
+                .find(|u| u.alive() && u.owner as i32 == *who && i32::from(u.index) == *object)
+                .unwrap_or_else(|| panic!("{file}: no unit {who}/{object} on our walk"));
+            assert!(
+                u.ty.is_some_and(|t| CITIZENS.contains(&(t as i32 + rondata::load::BASE_UNITTYPES))),
+                "{file}: {who}/{object} is not a citizen on our walk"
+            );
+            let scene = sim.observe(Some(*who as sim::Player));
+            let mut input = Input::new(*who as u8);
+            input.roster = std::sync::Arc::new(roster.clone());
+            input.selection = vec![ObjId {
+                who: *who as sim::Player,
+                o: *object as i16,
+            }];
+            let drawn = |sim| {
+                let mut d: Vec<Button> = crate::hud::roster_menu(&input, &scene, sim, HUD_SIZE)
+                    .iter()
+                    .map(|x| x.button)
+                    .collect();
+                d.sort_unstable();
+                d
+            };
+            let (walked, statik) = (drawn(Some(sim)), drawn(None));
+            let terrain = TerrainScene::default();
+            let c = crate::pinned_camera();
+            let v = View {
+                sim: Some(sim),
+                ..view(&c, &scene, &terrain)
+            };
+            for b in crate::hud::roster_menu(&input, &scene, Some(sim), HUD_SIZE) {
+                let (x, y) = b.rect.centre();
+                let mut pressed = input.clone();
+                let got = crate::hud::event(&mut pressed, HUD_SIZE, 1, Event::Press { x, y }, &v);
+                presses.1 += 1;
+                let armed = pressed.placing == Some(b.ty());
+                if got.is_none() && armed != b.greyed() && (armed || pressed.placing.is_none()) {
+                    presses.0 += 1;
+                }
+            }
+            tally(&mut hud, buttons, &walked);
+            tally(&mut statics, buttons, &statik);
+            if *buttons != walked {
+                println!(
+                    "PAGES {file} frame {frame} who {who} citizen {object}: \
+                     theirs not drawn {:?}, drawn not theirs {:?}",
+                    buttons
+                        .iter()
+                        .filter(|x| !walked.contains(x))
+                        .collect::<Vec<_>>(),
+                    walked
+                        .iter()
+                        .filter(|x| !buttons.contains(x))
+                        .collect::<Vec<_>>()
+                );
+            }
+        }
+        println!("HUD_PAGES_WALKED {hud:?}");
+        println!("HUD_PAGES_STATIC {statics:?}");
+        println!("HUD_PAGES_PRESSED {presses:?}");
+        assert_eq!(hud, HUD_PAGES_WALKED);
+        assert_eq!(statics, HUD_PAGES_STATIC);
+        assert_eq!(presses, HUD_PAGES_PRESSED);
     }
 
     /// **`INPUT_ROSTER_QUEUES`** (item 4290, `docs/CLIENT_INPUT.md` §32):
@@ -11022,7 +11459,7 @@ pub(crate) mod tests {
                     ..Input::new(who)
                 };
                 input.sent = sent_for(&before, &scene);
-                let got = crate::hud::roster_menu(&input, &scene, HUD_SIZE)
+                let got = crate::hud::roster_menu(&input, &scene, None, HUD_SIZE)
                     .into_iter()
                     .find(|b| b.ev == Event::Train(unit))
                     .and_then(|b| {
