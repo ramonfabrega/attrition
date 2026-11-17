@@ -2240,10 +2240,16 @@ these two.
 run1575's lobby at `DIFFICULTY 4`, the human allied with the French on 902)
 prints the French `tribute_demanded[0]` 1 from block 6081, the arm's demand
 branch as item 4300's packet predicted it. Our walk of it stands at
-**3037** (`RUN1646_WORD`), 3,044 frames short of the pass on 6080; the two
-partings item 4316 closed on the way were the caravans', not this arm's
-(`docs/CARAVAN.md` §3, §4: the `BASE_BONUSTYPES` gate on an allied
-partner city). So `tribute_demanded` stays held out.
+**3718** (`RUN1646_WORD`), 2,363 frames short of the pass on 6080. None of
+the partings closed on the way was this arm's: item 4316's two were the
+caravans' (`docs/CARAVAN.md` §3, §4: the `BASE_BONUSTYPES` gate on an
+allied partner city), and item 4322's, on 3037, was a finished wonder
+taking the rival's site of its type (`docs/CITIES.md` §4, the wonder row:
+the Russian `2/2030` disbanded the French `1/2027`, whose
+`remove_from_city` replanned the French capital, `1/2019` first). So
+`tribute_demanded` stays held out. The next parting, on 3718, is ours
+58 draws to theirs' 64 at index 15: ours `Unit::think_scout+0x941`,
+theirs `Guy::set_anim+0x97a < do_cast`; it is not read.
 
 ## 8.3 In the crate
 

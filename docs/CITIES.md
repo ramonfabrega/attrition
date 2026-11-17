@@ -867,7 +867,7 @@ gameplay ("G") rather than message/sound/AI:
 | dock, MARKET, TEMPLE | a count and its high-water mark; a new high (frame > 0, built, counted) → `do_bonus(WEALTH, 30)` |
 | high-water mark | the nation's free units — **§4.3**, whole |
 | gather type | `gather_slots[k] += gather_max`; a new high → the first-slot resource bonus (`FOOD_BONUS_FOR_FARM`, `TIMBER_BONUS_PER_WOOD_SLOT`, …) |
-| **wonder** | `remove_unbuilt_wonder`; `wonders_built++`; `Wonders::init_wonder`; **every other player's unfinished copy of the same wonder is `disband`ed with a full refund**; the per-wonder one-offs — Terra Cotta's free-unit timer, the Kremlin spy, the Forbidden City ending a lost-capital countdown, the Hanging Gardens / Colosseum / Statue of Liberty / Red Fort / Tikal free techs via `gain_tech`, Colossus `calc_pop_cap`, Colosseum/Eiffel/Tikal a border recompute, Space Program the map reveal |
+| **wonder** | `remove_unbuilt_wonder`; `wonders_built++`; `Wonders::init_wonder`; **every other player's unfinished copy of the same wonder is `disband`ed with a full refund** (lines 1294–1356: every leader in play, objects from 2000, `+8 & 1`, not active, not this one, the same `type->+4` — its own owner's other sites too; built, item 4322, `Sim::disband_rival_wonder_sites`; **diff-backed** by run1646 3037, where the disband's `remove_from_city` replans the loser's city); the per-wonder one-offs — Terra Cotta's free-unit timer, the Kremlin spy, the Forbidden City ending a lost-capital countdown, the Hanging Gardens / Colosseum / Statue of Liberty / Red Fort / Tikal free techs via `gain_tech`, Colossus `calc_pop_cap`, Colosseum/Eiffel/Tikal a border recompute, Space Program the map reveal |
 | tail | **`update_hits(0)`** — full health now; `update_los`; **a non-city in a city → `City::check_upgrade`** (§5.3); `update_seen` |
 
 **The ordering matters** (item 1634, `docs/AI.md` §176): the road request
@@ -2262,6 +2262,9 @@ heal, ejection), then the sites' `construct_hits` refresh.
 
 ## 12. What is not established
 
+- **The wonder disband's `+8 & 1`** (§4, item 4322; parked 4322a): read as
+  `alive`; a dying site held over `hold_frames` is not separated. No capture
+  finishes a wonder while a rival's site of its type is dying.
 - **`BUILDINGS_CREATED_FASTER` (`0x313`) never fires.** §3.2's
   `t × 3 >> 2` step: with every tech granted the 2026-08-20 run's tower
   still landed on exactly `100000 × 7/10`. Either the preq is not one
