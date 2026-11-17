@@ -2060,3 +2060,20 @@ fn a_near_fort_of_an_old_enemy_is_the_target() {
         Some(Obj::Building(fort))
     );
 }
+
+/// **The fort is taken over its owner's city on the same `>=`**: scored
+/// after that city, a fort of a leader a hundred ages deep (`× 101`)
+/// replaces it as the best (`6f81c3`: `cmp -0x4c(%ebp), %eax` / `jl`, so
+/// an equal value takes it too; item 4341).
+#[test]
+fn a_fort_outscoring_its_owner_s_city_replaces_it() {
+    let (mut sim, slot, fort) = sim_with_rival_fort(2, 0x600);
+    sim.cities.cities[0].no_heal = false;
+    sim.tech[0].ages = 100;
+    sim.find_target(1, slot);
+    assert_eq!(
+        sim.ai.armies[1].list[slot].target,
+        Some(Obj::Building(fort)),
+        "the fort, scored after the enemy's city"
+    );
+}
