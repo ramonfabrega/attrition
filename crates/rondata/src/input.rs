@@ -47,6 +47,11 @@ pub struct Input {
     pub frame: i32,
     /// The issuing player, from the package head.
     pub play: i32,
+    /// The issuing player's leader, `GameInfo.player[play].who` — what
+    /// `process_group@0094a0c0` and the `process_*` entries act as (item
+    /// 4336). Equal to `play` in every lobby this crate mints; the 2017
+    /// sample's person is `play` 0 at `who` 3.
+    pub who: i32,
     pub cmd: Command,
 }
 
@@ -69,6 +74,10 @@ pub fn is_input(cmd: &Command) -> bool {
 pub fn input(rec: &RecGame) -> Vec<Input> {
     let mut out = Vec::new();
     for p in &rec.packages {
+        let who = usize::try_from(p.play)
+            .ok()
+            .and_then(|k| rec.slots.get(k))
+            .map_or(p.play, |s| i32::from(s.who));
         let Ok(cmds) = crate::commands::decode(&p.data) else {
             continue;
         };
@@ -77,6 +86,7 @@ pub fn input(rec: &RecGame) -> Vec<Input> {
                 out.push(Input {
                     frame: p.frame,
                     play: p.play,
+                    who,
                     cmd,
                 });
             }
@@ -1513,6 +1523,7 @@ impl Stream {
             .extend(cmds.into_iter().filter(is_input).map(|cmd| Input {
                 frame: *frame,
                 play: *play,
+                who: *play,
                 cmd,
             }));
     }
@@ -1571,10 +1582,10 @@ impl Stream {
                 // `process_group@0094a0c0`'s `UnitData::play` write, for
                 // the issuing player's own units — a package whose `who` is
                 // not its player's does nothing (`docs/ORDERS.md` §8.1).
-                // This module's convention, a package's `play` as its
-                // leader, is the team test here as in
+                // The package's leader is `info.player[play].who` (item
+                // 4336), the team test here as in
                 // [`Stream::selected_units`].
-                if i32::from(*who) == it.play
+                if i32::from(*who) == it.who
                     && let Ok(play) = i8::try_from(it.play)
                 {
                     let player = *who as sim::Player;
@@ -1599,7 +1610,7 @@ impl Stream {
                 let to = Pos::new(*to_x, *to_y);
                 let pos = queue_pos(i32::from(*queued));
                 let mut any = false;
-                for u in self.selected_units(it.play, built) {
+                for u in self.selected_units(it.who, built) {
                     // `process_move_to` → `Group::action_move_to(..., 1, ...)`:
                     // the action bit is set (`docs/ORDERS.md` §14's table).
                     built
@@ -1659,11 +1670,11 @@ impl Stream {
                 action,
                 add_to_end,
             } => {
-                let slot = it.play as usize;
+                let slot = it.who as usize;
                 let objects = self.selection.get(slot).cloned().unwrap_or_default();
                 let n = group_gather_point(
                     built,
-                    it.play,
+                    it.who,
                     &objects,
                     Pos::new(*x, *y),
                     *action,
@@ -1678,9 +1689,9 @@ impl Stream {
             // `Group::action_city_gather(t, …)` on the package's group, the
             // slot's selection; `queued` is not read by it.
             Command::CityGather { t, .. } => {
-                let slot = it.play as usize;
+                let slot = it.who as usize;
                 let objects = self.selection.get(slot).cloned().unwrap_or_default();
-                if group_city_gather(built, it.play, &objects, *t) == 0 {
+                if group_city_gather(built, it.who, &objects, *t) == 0 {
                     done.skip(&it.cmd, "no selected building is in the simulation");
                 }
             }
@@ -1727,9 +1738,9 @@ impl Stream {
                 y,
                 zoom,
             } => {
-                let slot = it.play as usize;
+                let slot = it.who as usize;
                 let objects = self.selection.get(slot).cloned().unwrap_or_default();
-                let player = it.play as sim::Player;
+                let player = it.who as sim::Player;
                 if *clear == 0 {
                     let list: Vec<usize> = objects
                         .iter()
@@ -1776,7 +1787,7 @@ impl Stream {
     fn pumped(&mut self, it: &Input, built: &mut Built, done: &mut Applied) -> bool {
         let objects = self
             .selection
-            .get(it.play as usize)
+            .get(it.who as usize)
             .cloned()
             .unwrap_or_default();
         let n = match &it.cmd {
@@ -1790,7 +1801,7 @@ impl Stream {
                 ..
             } => group_move_to(
                 built,
-                it.play,
+                it.who,
                 &objects,
                 Pos::new(*to_x, *to_y),
                 i32::from(*queued),
@@ -1798,14 +1809,14 @@ impl Stream {
                 *angle,
                 i32::from(*orders),
             ),
-            Command::QueueUp { unit, num } => group_queue_up(built, it.play, &objects, *unit, *num),
+            Command::QueueUp { unit, num } => group_queue_up(built, it.who, &objects, *unit, *num),
             Command::Build {
                 x,
                 y,
                 build,
                 queued,
                 ..
-            } => group_build(built, it.play, &objects, Pos::new(*x, *y), *build, *queued),
+            } => group_build(built, it.who, &objects, Pos::new(*x, *y), *build, *queued),
             // A right press on an object (item 4179, `docs/CLIENT_INPUT.md`
             // §6): the commands `Console::execute_at_cursor` issues on one.
             Command::SwarmAround {
@@ -1813,38 +1824,38 @@ impl Stream {
                 whom,
                 queued,
                 orders,
-            } => group_swarm_around(built, it.play, &objects, *ox, *whom, *queued, *orders),
-            Command::Gather { ox, queued } => group_gather(built, it.play, &objects, *ox, *queued),
+            } => group_swarm_around(built, it.who, &objects, *ox, *whom, *queued, *orders),
+            Command::Gather { ox, queued } => group_gather(built, it.who, &objects, *ox, *queued),
             Command::Garrison { ox, whom, queued } => {
-                group_garrison(built, it.play, &objects, *ox, *whom, *queued)
+                group_garrison(built, it.who, &objects, *ox, *whom, *queued)
             }
             // The infinite-queue button (item 4276, `docs/CLIENT_INPUT.md`
             // §24): `process_buildmask@00947680` on the package's group.
-            Command::Buildmask { mask, .. } => group_buildmask(built, it.play, &objects, *mask),
+            Command::Buildmask { mask, .. } => group_buildmask(built, it.who, &objects, *mask),
             // The stance button (item 4282, `docs/CLIENT_INPUT.md` §27):
             // `process_stance@00949ed0` on the package's group.
-            Command::Stance { stance } => group_stance_any(built, it.play, &objects, *stance),
+            Command::Stance { stance } => group_stance_any(built, it.who, &objects, *stance),
             // The disband button (item 4287, `docs/CLIENT_INPUT.md` §29):
             // `process_disband@00948660`, `Group::action_disband(all)` on
             // the package's group.
-            Command::Disband { all } => group_disband(built, it.play, &objects, *all != 0),
+            Command::Disband { all } => group_disband(built, it.who, &objects, *all != 0),
             // The AUTO EXPLORE button (item 4291, `docs/CLIENT_INPUT.md`
             // §31): `process_unitmask@00947790`, `Group::action_unitmask`
             // on the package's group; `set` is never read.
-            Command::Unitmask { mask, .. } => group_unitmask(built, it.play, &objects, *mask),
+            Command::Unitmask { mask, .. } => group_unitmask(built, it.who, &objects, *mask),
             Command::Attack {
                 ox,
                 whom,
                 ignore,
                 queued,
-            } => group_attack(built, it.play, &objects, *ox, *whom, *ignore, *queued),
+            } => group_attack(built, it.who, &objects, *ox, *whom, *ignore, *queued),
             // A right press on a unit by a selection that cannot attack, or
             // on one's own unit (item 4202, `docs/CLIENT_INPUT.md` §10).
             Command::Follow { ox, whom, queued } => {
-                group_follow(built, it.play, &objects, *ox, *whom, *queued)
+                group_follow(built, it.who, &objects, *ox, *whom, *queued)
             }
             Command::Guard { ox, whom, queued } => {
-                group_guard(built, it.play, &objects, *ox, *whom, *queued)
+                group_guard(built, it.who, &objects, *ox, *whom, *queued)
             }
             _ => return false,
         };

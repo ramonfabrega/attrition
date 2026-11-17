@@ -255,4 +255,88 @@ mod tests {
     /// 18,315 of 18,315 (item 4336; minted at 17,163, the 18 buildings'
     /// and 18 units' places and 1,116 cells' owners parted).
     const SAMPLE_START_AGREE: (usize, usize) = (18315, 18315);
+
+    /// run1651's full playback, in place: the dump (`end:MISC`) and the
+    /// trace of every frame 0..21044.
+    fn run1651() -> Option<(String, std::path::PathBuf)> {
+        let home = std::env::var("HOME").ok()?;
+        let dir = std::env::var("RON_GOLDEN_DIR").unwrap_or(format!("{home}/ron-golden"));
+        let d = std::path::PathBuf::from(format!("{dir}/run1651/map-7"));
+        let dump = d.join("gamelog_p.txt");
+        let trace = d.join("rontrace.log");
+        (dump.is_file() && trace.is_file()).then(|| (dump.display().to_string(), trace))
+    }
+
+    /// **The walk's word** (item 4336, row 2): the start built from the
+    /// header, walked under the turn pump on the recording's own packages
+    /// (each acting as `info.player[play].who`), every frame's draws
+    /// against run1651's trace of the original's playback. Pins `(word,
+    /// frames walked)`: the word is the first frame whose draw sequence
+    /// parts, or the walk's last when none does. `RON_SAMPLE_WALK=<frame>`
+    /// stops the walk there.
+    #[test]
+    fn the_sample_walks_to_its_word() {
+        let (Some(inst), Some(rcx), Some((dump, trace))) = (install(), sample(), run1651()) else {
+            eprintln!("skipping: no install, no sample or no run1651 (RON_GOLDEN_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let rec = crate::recgame::read(&rcx).expect("the sample parses");
+        let (info, players) = header_lobby(&rec);
+        let info: Vec<(&str, &str)> = info.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let players: Vec<Vec<(&str, &str)>> = players
+            .iter()
+            .map(|r| r.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect())
+            .collect();
+        let n = players
+            .iter()
+            .filter_map(|p| p.iter().find(|(k, _)| *k == "who"))
+            .filter_map(|(_, v)| v.parse::<usize>().ok())
+            .max()
+            .map_or(1, |w| w + 1);
+        let ours = from_lobby(&loaded, &info, &players, Tuning::RON);
+        let (built, notes) = built_from_lobby(&loaded, ours);
+        for note in &notes {
+            eprintln!("note {note}");
+        }
+        let tr = crate::trace::Trace::read(&trace)
+            .expect("a finalized trace")
+            .expect("a RONT header");
+        let limit = std::env::var("RON_SAMPLE_WALK")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(i64::MAX);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let (w, _) = super::super::start_walk::walk_with(
+            built,
+            n,
+            &[("run1651", dump)],
+            &tr,
+            limit,
+            Some(&mut stream),
+        );
+        eprintln!(
+            "SAMPLE WALK: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        if let Some((o, t)) = &w.sites
+            && let Some((k, d)) = crate::diff::testkit::first_parting(o, t)
+        {
+            eprintln!(
+                "the first parting frame {:?}, site {k}: {d}",
+                w.first_sequence
+            );
+        }
+        if limit != i64::MAX {
+            return;
+        }
+        assert_eq!(
+            (w.first_sequence.unwrap_or(w.last), w.last),
+            SAMPLE_WALKED,
+            "the sample's word against run1651's draws"
+        );
+    }
+
+    /// The sample's word and the frames walked, against run1651's draws.
+    const SAMPLE_WALKED: (i64, i64) = (0, 0);
 }
