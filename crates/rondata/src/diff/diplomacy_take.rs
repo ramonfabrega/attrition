@@ -232,7 +232,7 @@ pub(crate) fn walk_take_from(
                     theirs_m.len()
                 );
                 if let Some(i) = first {
-                    for j in i.saturating_sub(6)..(i + 10).min(ours_m.len().max(theirs_m.len())) {
+                    for j in i.saturating_sub(20)..(i + 4).min(ours_m.len().max(theirs_m.len())) {
                         eprintln!("  node {j}: ours {:?} theirs {:?}", ours_m.get(j), theirs_m.get(j));
                     }
                 }
