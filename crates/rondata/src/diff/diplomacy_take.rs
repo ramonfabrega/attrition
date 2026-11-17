@@ -222,6 +222,28 @@ pub(crate) fn walk_take_from(
             }
         }
         crate::diff::harness::debug_watch(&built, at);
+        // PROBE (item 4314): tiles and transport flags around 1/5.
+        if std::env::var("RON_PROBE_TILES").ok().and_then(|v| v.parse::<i64>().ok()) == Some(at) {
+            for ty in 180..185 {
+                let row: Vec<String> = (88..97)
+                    .map(|tx| {
+                        let p = sim::Pos { x: tx * 192 + 96, y: ty * 192 + 96 };
+                        format!("{tx}:{:04x}", built.sim.world.tile_mask(p.tile()))
+                    })
+                    .collect();
+                eprintln!("PROBE tiles y{ty} {}", row.join(" "));
+            }
+            for (i, x) in built.sim.units.iter().enumerate() {
+                if x.alive() && x.owner == 1 && x.index == 5 {
+                    eprintln!(
+                        "PROBE 1/5 #{i} auto {} never {} can {}",
+                        x.auto_transport,
+                        x.never_transport,
+                        built.sim.unit_can_transport(i)
+                    );
+                }
+            }
+        }
         let n = built.sim.frame;
         if let Some((f, ours)) = built.frame_sites.last() {
             let theirs = tr.labels(*f);
