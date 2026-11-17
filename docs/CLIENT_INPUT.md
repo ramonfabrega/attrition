@@ -3411,7 +3411,8 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
 - **The leader's predicates are not read.** A panel here offers every type its building may ever queue, all
   nations' units at once: the Barracks 118. The original's panel shows a type under `type_eligible`, `type_avail`,
   the tribe's grafts (`tribe_can_type`), `check_predecessor` and the age, and greys some. A recorded order is one
-  the original offered then, so the census and the count need only the static roster.
+  the original offered then, so the census and the count need only the static roster. Since item 4305 a row
+  counts the gap, `PANEL_LEADER` (§32.4).
 - **The pages.** The original splits the citizen's buildings over three pages (`OPTION_BUILD`,
   `OPTION_BUILD_MILITARY`, `OPTION_BUILD_WONDER`, by `+0x14`). Ours is one page. Any unit selection offers it,
   where the original offers it to a citizen.
@@ -3433,6 +3434,19 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   research loop (`0x275..0x2ac`). No recorded `queue_up` is a spell.
 - **Not played**: no playback was owed. A `queue_up` is a kind the original has played from a minted file since
   item 4195, and run1630 is unused.
+- **The oracle of the panel, and its row** (item 4305). No logger prints a panel, so the original's is run:
+  `tools/recomp/panels.py` enters `BuildOut::make_options@00629ed0` under `step4.py` on every building of a
+  packet, the console's `who` poked to the building's owner, and reads each `Options::add@0072c290` at its entry
+  (option, grid, type, `disable`, extra). `OPTION_TRAIN` is 47 and `OPTION_RESEARCH` 48. `PANEL_LEADER`
+  (`the_panels_of_the_packets_on_disk`) sets each building's train and research types against ours: **0 of 77
+  buildings equal; 295 types offered, all 295 on ours; ours 2,155** (run1591 at 6537, 9 buildings; run1640 at
+  6079, 68). Seen red pinned at zeros. The value diff, run1640's Barracks: slot 1 (tribe 10) is offered
+  `[77, 104, 127, 131, 141]`, slot 2's (tribe 13) `[77, 108, 127, 131, 141]`, and two of slot 2's three
+  nothing. Ours offers each of them 118. So one type a line at the leader's age, the tribe's graft in place of
+  the line's type, and the building's own state all show.
+- **Not established**: what empties a finished-looking building's panel (two of slot 2's Barracks on run1640, and
+  run1591's one at 6537): the `is_active` gate or `can_make`, neither read on the packet. And `disable`, which
+  the TSV carries and the row does not count.
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 

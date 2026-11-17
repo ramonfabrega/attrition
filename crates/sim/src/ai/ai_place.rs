@@ -459,8 +459,7 @@ impl Sim {
             self.swarm_around_last(u, o, Body::Build(o), true, approach, QueuePos::Last);
         } else {
             // `QUEUE_NEW`: the swarm ring's approach, then the order.
-            self.clear_orders(u);
-            self.swarm_around(u, o, Body::Build(o), true);
+            self.swarm_around_new(u, o, Body::Build(o), true);
         }
     }
 
