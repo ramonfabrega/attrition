@@ -504,6 +504,10 @@ const PLUNDER_SCALE_BITS: i32 = 0xbf80_0000_u32 as i32;
 
 /// `LeaderData`'s `0x2000000`, the economy's dirty bit ([`crate::economy::Ledger::dirty`]).
 const DIRTY: i64 = 0x200_0000;
+/// `leader_flags & 0x800000`, the score's units bit ([`crate::leaders::score::Score::dirty_units`]).
+const SCORE_UNITS_DIRTY: i64 = 0x80_0000;
+/// `leader_flags & 0x1000000`, the score's tech bit ([`crate::tech::PlayerTech::score_dirty`]).
+const SCORE_TECH_DIRTY: i64 = 0x100_0000;
 
 /// The `size` a `SimpleArray<int>` with elements reports: its capacity,
 /// which grows by ten (`docs/CHECKSUM.md` §20, §23.4). 10 on every
@@ -624,6 +628,16 @@ impl Sim {
         }
         if self.economy.ledgers[w].dirty {
             f |= DIRTY;
+        }
+        // The score's two dirty bits (`docs/LEADERS.md` §18.2): a unit's
+        // birth or close (`0x800000`, `Unit::init`, `Unit::close`) and a
+        // gain (`0x1000000`, `Leader::gain_tech`), each cleared by
+        // `Leader::compute_score` on the leader's recompute frame.
+        if self.leaders.score.get(w).is_some_and(|s| s.dirty_units) {
+            f |= SCORE_UNITS_DIRTY;
+        }
+        if self.tech.get(w).is_some_and(|t| t.score_dirty) {
+            f |= SCORE_TECH_DIRTY;
         }
         // `leader_flags2`: the two bits this crate keeps, no governments
         // (`0x800`) and no patriots (`0x1000`).

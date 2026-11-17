@@ -396,6 +396,9 @@ fn patch_kind(piece: i32) -> PatchKind {
     match piece {
         WATER_PIECE => PatchKind::Water,
         SNOWCAP_PIECE => PatchKind::Snowcap,
+        // Item 4319: `render_weathering` draws classes 2 and 3 as it draws
+        // class 4.
+        p if crate::world::is_land_oil(p) => PatchKind::Snowcap,
         crate::world::OIL_PIECE => PatchKind::Billboard,
         p if crate::world::is_edge(p) => PatchKind::Edge,
         FLOOR_PIECE => PatchKind::Floor,
@@ -1479,7 +1482,9 @@ impl Gpu {
                     self.alpha_texture(
                         m.alpha,
                         &m.alpha_mips,
-                        m.mountain || m.piece == crate::world::SNOWCAP_PIECE,
+                        m.mountain
+                            || m.piece == crate::world::SNOWCAP_PIECE
+                            || crate::world::is_land_oil(m.piece),
                     ),
                     m.mountain,
                     patch_kind(m.piece),

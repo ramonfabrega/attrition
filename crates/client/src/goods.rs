@@ -246,8 +246,11 @@ mod tests {
     /// "The land's oil"): in [`RUN1564_ROUGH_BOX`] on run1564's still,
     /// `(both, theirs, ours)` of the pixels [`pit`] calls an oil pit's.
     /// Minted at the first act at 0 of 2,387: `TerrainOil`'s `rough` and
-    /// `oil` underlays are not drawn.
-    pub const RUN1564_3279_ROUGH: [usize; 3] = [0, 2387, 0];
+    /// `oil` underlays are not drawn. Item 4319: **0 → 2,287** of 2,387,
+    /// ours 0 → 2,483: the underlays drawn (`crate::oil`), the oil's 4 × 4
+    /// on cell (52, 49) and twenty 2 × 2 `rough` patches off our own
+    /// `internal_random`; ours' pools read softer at the rim (4319a).
+    pub const RUN1564_3279_ROUGH: [usize; 3] = [2287, 2387, 2483];
 
     #[test]
     fn the_land_oil_s_pits_on_run1564() {
@@ -288,6 +291,10 @@ mod tests {
             crate::gpu::SilhouetteOrder::Before,
             wgpu::TextureFormat::Rgba8Unorm,
         );
+        if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+            let out = std::path::PathBuf::from(dir).join("still-run1564-rough.bmp");
+            std::fs::write(&out, crate::gpu::bmp(&ours, size)).expect("the still writes");
+        }
         let w = p.photo.width;
         let px = |rgba: &[u8], i: usize| [rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]];
         let (x0, x1, y0, y1) = RUN1564_ROUGH_BOX;

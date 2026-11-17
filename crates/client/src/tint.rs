@@ -262,9 +262,10 @@ pub(crate) mod tests {
     /// Item 4296: run1564 on row 1,778 → 1,783, luma 1,843 → 1,845: the deep corners drawn in the floor's grey plus `trans_bright` on the lit side alone (`docs/RENDERER.md` §3.27, "The beach below the waterline"); off unchanged, and still leads run1564's ground row by three.
     /// Item 4311: off luma run1559b 1,072 → 1,079 and run1570 1,142 → 1,144, on unchanged: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
     /// Item 4312: run1564 off row 1,786 → 1,788; on row 1,783 → 1,784 and luma 1,845 → 1,848: the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
+    /// Item 4319: run1559b off row 1,105 → 1,106 and luma 1,079 → 1,080, on hue 960 → 959 (a named fall of one) and row 1,105 → 1,106; run1564 off hue 678 → 679 and luma 1,852 → 1,859, on hue 676 → 679, luma 1,848 → 1,855: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24).
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
-        ([959, 1105, 1079], [960, 1105, 1109]),
-        ([678, 1788, 1852], [676, 1784, 1848]),
+        ([959, 1106, 1080], [959, 1106, 1109]),
+        ([679, 1788, 1859], [679, 1784, 1855]),
         ([1042, 1171, 1144], [1041, 1171, 1166]),
     ];
 
@@ -292,9 +293,10 @@ pub(crate) mod tests {
     /// Item 4286: the untinted side run1559b 953 → 954, run1570 1,034 → 1,036; the drawn side holds: the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28) move the frame's mean, so its white.
     /// Item 4292: drawn run1559b 959 → 960 (a rise from 959), run1564 678 → 676 and run1570 1,042 → 1,041 (a named fall from 678 and 1,042); untinted 954 → 965, 563 → 675, 1,036 → 1,049: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22), the drawn side now [`LAND_LIGHT_ROWS`]' on. Its residue is parked 4292d.
     /// Item 4311: run1559b's untinted side 965 → 966; the drawn side holds: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
+    /// Item 4319: drawn run1559b 960 → 959 (a named fall of one), run1564 676 → 679 of 679; untinted 966 → 964 and 675 → 674 (named falls): the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24).
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
-        ((966, 986), (960, 986)),
-        ((675, 679), (676, 679)),
+        ((964, 986), (959, 986)),
+        ((674, 679), (679, 679)),
         ((1049, 1073), (1041, 1073)),
     ];
 }
