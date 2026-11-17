@@ -331,6 +331,11 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 ///
 /// Item 4320 moved leaders inside 300 on both: run1577 11 → 2 (0, 101),
 /// run1578 152 → 142 (0, 101, 160–299), the score's dirty bits emitted.
+///
+/// Item 4332 moved leaders inside 300 on both: run1577 2 → 1 (0), run1578
+/// 142 → 4 (0, 167, 202, 297), `Unit::think`'s citizen bit (`0x80000`)
+/// emitted; 167, 202 and 297 part on byte 3 alone, `0x8000000` and
+/// `0x4000000`, which the `0x80000` parting had hidden.
 type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
@@ -390,6 +395,8 @@ const LEADERS_K: usize = 4;
 /// Item 4328: run1578 19,006 → 23,594, `reg_unpack_merch` (`+0x5d4`)
 /// leaves a packed merchant out (it counted every merchant); run1577
 /// stands at 118.
+/// Item 4332: run1578 23,594 → 23,965, run1577 118 → 119, `Unit::think`'s
+/// citizen bit (`leader_flags & 0x80000`) held and emitted (it was not).
 const LEADERS_AGREE: &[(&str, usize, usize)] =
     &[(RUN1577_TRACE, 119, 120), (RUN1578_TRACE, 23965, 24000)];
 
