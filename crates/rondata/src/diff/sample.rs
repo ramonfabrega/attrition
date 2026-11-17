@@ -14,13 +14,18 @@
 
 use crate::recgame::{OPTION_KEYS, RecGame};
 
+/// A `GAMEINFO` block's keyed fields, and its `PLAYER` rows'.
+pub type Lobby = (Vec<(String, String)>, Vec<Vec<(String, String)>>);
+/// The same, borrowed, as a parsed dump holds them.
+pub type LobbyRef<'a, 'b> = (&'a [(&'b str, &'b str)], &'a [Vec<(&'b str, &'b str)>]);
+
 /// The recording's header as the `GAMEINFO` block the playback prints
 /// (`GameLog::begin_game`'s `GAME INFO`): the version lines, the thirty
 /// options in `OPTION_KEYS`' order, the seed, the checksum triple, the
 /// flags, and one `PLAYER` row per active slot in slot order, each row's
 /// keys the ones [`crate::recgame::from_lobby`] reads back. The slot's name
 /// is not a keyed field and is left out.
-pub fn header_lobby(rec: &RecGame) -> (Vec<(String, String)>, Vec<Vec<(String, String)>>) {
+pub fn header_lobby(rec: &RecGame) -> Lobby {
     let mut info: Vec<(String, String)> = Vec::new();
     let mut put = |k: &str, v: String| info.push((k.to_string(), v));
     let version = rec.version.clone();
@@ -79,10 +84,7 @@ pub fn header_lobby(rec: &RecGame) -> (Vec<(String, String)>, Vec<Vec<(String, S
 /// Every keyed field the two `GAMEINFO` blocks disagree on, `key: header
 /// <value> playback <value>`, a `PLAYER` row's as `PLAYER <n> key`. A key absent on one
 /// side prints `—` there.
-pub fn compare_lobby(
-    a: (&[(String, String)], &[Vec<(String, String)>]),
-    b: (&[(&str, &str)], &[Vec<(&str, &str)>]),
-) -> Vec<String> {
+pub fn compare_lobby(a: &Lobby, b: LobbyRef<'_, '_>) -> Vec<String> {
     let mut out = Vec::new();
     let side = |v: Option<&str>| v.map_or("—".to_string(), |v| v.trim().to_string());
     let mut cmp = |label: String, x: Option<&str>, y: Option<&str>| {
@@ -156,12 +158,12 @@ mod tests {
             return;
         };
         let rec = crate::recgame::read(&rcx).expect("the sample parses");
-        let (info, players) = header_lobby(&rec);
+        let lobby = header_lobby(&rec);
         let mut cap = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
         let text = cap.read_replay_setup().unwrap();
         let log = Log::parse(&text);
         let init = log.replay_initial().expect("run1650's start");
-        let parted = compare_lobby((&info, &players), (&init.game_info, &init.players));
+        let parted = compare_lobby(&lobby, (&init.game_info, &init.players));
         for p in &parted {
             eprintln!("{p}");
         }
