@@ -234,6 +234,30 @@ pub(crate) fn walk_take_from(
                 eprintln!("PROBE tiles y{ty} {}", row.join(" "));
             }
             for (i, x) in built.sim.units.iter().enumerate() {
+                if x.alive() && x.owner == 1 && x.index <= 125 && !x.orders.is_empty() {
+                    let t = x.pos.tile();
+                    let mut wet = 0;
+                    for dy in -2..=2 {
+                        for dx in -2..=2 {
+                            let q = sim::Pos { x: t.x + dx, y: t.y + dy };
+                            if built.sim.world.is_tocean(q) {
+                                wet += 1;
+                            }
+                        }
+                    }
+                    if wet > 0 {
+                        eprintln!(
+                            "PROBE wet 1/{} #{i} at ({}, {}) tile ({}, {}) wet {wet} can {} head {:?}",
+                            x.index,
+                            x.pos.x,
+                            x.pos.y,
+                            t.x,
+                            t.y,
+                            built.sim.unit_can_transport(i),
+                            x.orders.front().map(|o| format!("{:?}", o.body).chars().take(160).collect::<String>())
+                        );
+                    }
+                }
                 if x.alive() && x.owner == 1 && x.index == 5 {
                     eprintln!(
                         "PROBE 1/5 #{i} auto {} never {} can {}",
