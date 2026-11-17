@@ -83,7 +83,7 @@ impl crate::Sim {
                 continue;
             }
             self.mark(SITE_FIND_TARGET_FORT);
-            let draw = self.rng.get(0, 0xffff) as i32;
+            let draw = self.rng.get(0, 0xffff);
             let mut v = (draw % 200 + 900).wrapping_mul(ages.wrapping_add(1));
             if self.buildings[b].city.is_none() {
                 v /= 2;
