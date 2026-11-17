@@ -712,6 +712,51 @@ pub fn start_permutation(rng: &mut sim::combat::Rng, randomize: bool) -> [usize;
     list
 }
 
+/// **`Setup::build_game`'s empire order** (`docs/START.md` §2 step 7,
+/// item 4336): the seats in the start permutation's order, each followed
+/// at once by its unbuilt teammates in that same order, the `k`-th empire
+/// built taking start cell `k` (the counter `build_game` hands
+/// `build_empire` as its slot). A teammate is `LeaderData::is_team@006ebd30`
+/// at frame 0: both seats on one team, that team in `0..4` — team 8, no
+/// team, is nobody's. Map style 22 (`World+0x30`, the map's type, `!= 0x16`
+/// at `build_game`'s teammate loop) builds no teammate early. `teams[w]` is
+/// seat `w`'s `PLAYER team` for each of the lobby's seats, `None` where no
+/// row names one; a seat past `teams` is not seated.
+pub fn empire_order(
+    start_list: &[usize; 8],
+    teams: &[Option<i64>],
+    map_style: Option<i64>,
+) -> Vec<usize> {
+    let active = |w: usize| w < teams.len();
+    let team = |w: usize| {
+        teams
+            .get(w)
+            .copied()
+            .flatten()
+            .filter(|t| (0..4).contains(t))
+    };
+    let mut built = [false; 8];
+    let mut order = Vec::new();
+    for &who in start_list {
+        if !active(who) || built[who] {
+            continue;
+        }
+        built[who] = true;
+        order.push(who);
+        if map_style == Some(22) {
+            continue;
+        }
+        let Some(t) = team(who) else { continue };
+        for &mate in start_list {
+            if active(mate) && !built[mate] && team(mate) == Some(t) {
+                built[mate] = true;
+                order.push(mate);
+            }
+        }
+    }
+    order
+}
+
 /// **The map's grid as the sim's `World`** (`docs/START.md` §2 step 4):
 /// what [`super::world_from`] reads off a `WORLD` dump, read off the
 /// composed chain's [`sim::mapgen::MapGrid`] instead — each distinct region
@@ -1185,9 +1230,10 @@ pub fn from_lobby(
         words.push(("setup.cpp", 1032, sim.rng.seed));
         steps.push(("Leader::init (the personality roll)", true));
         // 7. `build_empire(who, slot)` for each active seat in the
-        // permutation's order, the k-th empire built taking start cell k
-        // (no team style 7 and no teammates on this lobby: every seat is
-        // on team 8). `build_cities`: the village at `snap_center` of the
+        // permutation's order, each seat's teammates at once after it
+        // ([`empire_order`], item 4336), the k-th empire built taking
+        // start cell k (team style 7's alternation is not walked: no lobby
+        // on disk plays it). `build_cities`: the village at `snap_center` of the
         // start cell's corner, `Build::init` and `Build::activate(0, 0,
         // 0)` — finished and active, its `City::init` wearing the site
         // values down round it — then `compute_all_territory`.
@@ -1199,7 +1245,16 @@ pub fn from_lobby(
         // five are drawn inside `Build::activate` as the original draws
         // them (item 4034), not borrowed as the installer borrows them.
         sim.cities.walks_setup = true;
-        for (slot, &who) in start_list.iter().filter(|&&w| w < players).enumerate() {
+        let teams: Vec<Option<i64>> = (0..players)
+            .map(|w| {
+                player_rows
+                    .iter()
+                    .find(|p| row_int(p, "who") == Some(w as i64))
+                    .and_then(|p| row_int(p, "team"))
+            })
+            .collect();
+        let order = empire_order(&start_list, &teams, int("MAP_STYLE"));
+        for (slot, &who) in order.iter().enumerate() {
             let (Some(ty), Some(&(sx, sy))) = (village, starts.get(slot)) else {
                 notes.push(format!(
                     "build_cities: no village type or no start cell {slot}"
