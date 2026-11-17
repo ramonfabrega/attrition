@@ -2291,9 +2291,14 @@ section's `local_40` reads the game info's seed (`Game+0x10`, 12345 on
 run1646, which `Setup::build_game` hands to `game_random` and leaves),
 and the crate reads `Sim::game_seed`, the world seed drawn from it (7236),
 so the French plan on the human falls on 7800 here against 6000 there;
-the animation's `game_seed` readers mean the world seed and stay. On 5622
+the animation's `game_seed` readers mean the world seed and stay. ~~On 5622
 the walk parts first elsewhere: ours 123 draws to theirs' 132, index 0
-ours `Unit::do_move+0xe84`, theirs `PathFinder::astar_path+0x1697`.
+ours `Unit::do_move+0xe84`, theirs `PathFinder::astar_path+0x1697`.~~
+**Moved by item 4354 to 5668**: 5622's parting was army `2/1`'s target,
+chosen on 5496 (`docs/ARMY.md` §12's raid-1 level arm read a seam's
+score; run1655b's packet). On 5668 ours 112 draws to theirs' 129, index
+3 ours `Guy::set_anim+0x97a < Guy::move`, theirs `Unit::do_move+0xe84`.
+The seed is still open: item 4354 took the muster act alone, past 200 k.
 
 ## 8.3 In the crate
 
