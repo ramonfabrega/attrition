@@ -229,6 +229,13 @@ pub struct World {
     /// default; off is `light_vert`'s there, the made-to-fail side.
     /// [`World::set_deep_corners`] moves it.
     deep_corners: bool,
+    /// **Blend the faded land over black in HDR** (item 4310, §3.27, "The
+    /// faded land in HDR"): a land texture's faded base layer is drawn
+    /// as the card's target holds it, `T(L · a)` over the clear colour,
+    /// black. On by default; off blends the tone-mapped `T(L)` at `a` over
+    /// the frame, `T(L) · a`, the made-to-fail side.
+    /// [`World::set_faded_hdr`] moves it.
+    faded_hdr: bool,
     /// **Light each range by its own normals** (item 4269, §3.22):
     /// `generate_normals`' N·L on the mountain's layers, the vertex white,
     /// as run1559b's packet holds them. On by default;
@@ -468,6 +475,13 @@ pub const MOUNTAIN_ALPHA: usize = 1_000;
 
 /// The water's alpha ramp's key among the alphas (item 4164).
 pub const WATER_ALPHA: usize = 900;
+
+/// **The faded land's key among the alphas** (item 4310; `docs/RENDERER.md`
+/// §3.27, "The faded land in HDR"): the water's linear ramp, keyed apart so
+/// the patch's kind can tell a land texture's faded base layer from its
+/// transition patches. A faded layer keyed [`WATER_ALPHA`] is blended over
+/// the tone-mapped frame, the made-to-fail side ([`World::faded_hdr`]).
+pub const LAND_FADE_ALPHA: usize = 901;
 
 /// The water's own colour's piece among the ground's textures (item 4178),
 /// apart from every base's `-1 - index` and the mountains'.
@@ -1151,6 +1165,7 @@ impl World {
             debug_ground: false,
             land_light: true,
             deep_corners: true,
+            faded_hdr: true,
             mountain_light: true,
             drawn: (u32::MAX, TerrainMesh::default(), Vec::new(), Vec::new()),
             ramp: None,
@@ -1316,6 +1331,17 @@ impl World {
         }
     }
 
+    /// Turn [`World::faded_hdr`] on or off; the ground is laid again.
+    #[cfg(test)]
+    pub fn set_faded_hdr(&mut self, on: bool) {
+        if self.faded_hdr != on {
+            self.faded_hdr = on;
+            self.drawn.1.positions.clear();
+            self.drawn.2.clear();
+            self.drawn.3.clear();
+        }
+    }
+
     /// Turn [`World::mountain_light`] on or off; the ground is laid again.
     pub fn set_mountain_light(&mut self, on: bool) {
         if self.mountain_light != on {
@@ -1453,6 +1479,12 @@ impl World {
                 // for its texture's faded layer.
                 let alpha = tri.map(|p| crate::ground::land_alpha(p[2]));
                 if alpha.iter().any(|&a| a < 255) {
+                    // Item 4310: over black in HDR, keyed apart.
+                    let key = if self.faded_hdr {
+                        LAND_FADE_ALPHA
+                    } else {
+                        WATER_ALPHA
+                    };
                     let m = fades.entry(k).or_insert_with(|| PatchMesh {
                         piece: -1 - k as i32,
                         maps: None,
@@ -1460,7 +1492,7 @@ impl World {
                         uvs: Vec::new(),
                         alpha_uvs: Vec::new(),
                         mips: g.flat[k].clone(),
-                        alpha: WATER_ALPHA,
+                        alpha: key,
                         alpha_mips: ramp.clone(),
                         mountain: false,
                         light: Vec::new(),

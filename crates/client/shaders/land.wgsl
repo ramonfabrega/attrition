@@ -47,6 +47,16 @@ fn land_lit_deep(c: vec3<f32>, nl_in: f32, deep: vec2<f32>) -> vec3<f32> {
     return land_shade(c * v, nl);
 }
 
+// `land_lit_deep` before the curve.
+fn land_lit_deep_hdr(c: vec3<f32>, nl_in: f32, deep: vec2<f32>) -> vec3<f32> {
+    var nl = nl_in;
+    if (nl_in > 1.5) {
+        nl = land_flat_nl();
+    }
+    let v = land_vertex(nl_in) * (1.0 - deep.x) + vec3<f32>(deep.y);
+    return land_shade_hdr(c * v, nl);
+}
+
 // Item 4269 (§3.22): a mountain's corner, lit by the range's own normal
 // (`RenderHelper::generate_normals`) with its vertex white
 // (`recolor_mountain_verts`); over 1.5, the flat N·L.
@@ -70,12 +80,17 @@ fn land_ambient() -> vec3<f32> {
 
 // The lit branch on a stage colour already modulated by its vertex.
 fn land_shade(c: vec3<f32>, nl: f32) -> vec3<f32> {
+    let l = land_shade_hdr(c, nl);
+    return vec3<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z));
+}
+
+// `land_shade` before the curve: the HDR value the card's target holds.
+fn land_shade_hdr(c: vec3<f32>, nl: f32) -> vec3<f32> {
     let ld = land_diffuse();
     let s = land_power(c);
     let diffuse = max(ld * nl / 3.14159265, 0.0);
     let ambient = land_ambient();
-    let l = land_hdr() * s * (vec3<f32>(diffuse) + ambient);
-    return vec3<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z));
+    return land_hdr() * s * (vec3<f32>(diffuse) + ambient);
 }
 
 // Item 4278 (§3.22, "The mountain's `_mtrl` maps"): `ps_global.hlsl`'s lit
