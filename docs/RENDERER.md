@@ -4219,14 +4219,39 @@ the mean of its red and green, red within 2 of green and above 110 (the band rea
 sim's cells is the photograph's. The curve, the width, the colours' source, the alphas and the render state are
 one reading, and no row checks them one by one. The colours' bytes are the executable's.
 
+**The arm is a morph (item 4356).** run1564's packet (frame 3294) holds the cells as ours do: (50, 45) and
+(49, 44) read `flags` 0, `land` 1, region 69 (the lake), `who` −1; (50, 44) and (51, 45) carry
+`HALFLAND`, `who` 1. So the cells are not misread. The packet's heap also holds the drawn strips (`MiscAccess::borders`,
+`0003:0540`, VA `0xC0621C`). Region 1's `Border` has two `normal_border_renders`, both on the west of the
+map, and five `morph_renders`. The east band is morph 1, whose `to` strip is `(60, 45) … (57, 45), (57, 46) …
+(51, 46), (51, 45)`, and whose `from` strip is the border before row 45 was taken: `(51, 45) … (57, 45), (57,
+44) … (60, 43)`. A morph's strips come from `Border::sort_clump_list@00880280`. That function walks all four
+sides of each changed cell against `BordersData.last_who`, and it has no ocean test, so it makes the edge
+`(51, 46)–(51, 45)` that `sort_regular` does not. While a morph plays, `Borders::check_border_blocked@00882370`
+clears the regular edges under its `blocked` bits, so no regular strip lies there. `BorderMorphRender::inc_morph@00880e50`
+runs `grow_length` 10, `move_length` 25 and `grow_length` 10 again in `Game::graphic_tick` (`+0x844`): width
+×(0.75 + 0.45 t) and alpha from `+0x15e` (64) to `+0x15f` (143) while it grows, then the reverse. On one side
+of the band the alpha is `+0x15c` (31). It ends after 45 ticks. When a morph's `flip & 4` is set, the end
+raises `need_rebuild`, and `sort_regular` lays the border again. The packet's `graphic_tick` is 177, and morph 1
+started at 134, so the photograph caught it 43 of 45 ticks in, as it shrinks (width ×0.84, alpha about 80).
+The sim gave row 45's cells (51 to 56) to player 1 at frame **2427** (`Sim::observe_territory`, the client's
+walk). At play speed the morph ends about 45 frames later. Under the capture's `!ffwd 4`, the graphic tick
+moves about once every 20 frames, so the morph was still on screen 867 frames later. run1559b (tick 169) and
+run1612 (tick 172) hold the same morph. run1570 (frame 3331, tick 178) holds none there and has
+`need_rebuild` 1: a rebuild is pending. So the photograph's whole east band, both arms, is a morph that the
+capture's pace kept on screen. Our regular strips are the original's settled state by the reading, and no
+packet on disk holds that settled state for this border. The probes are under
+`~/ron-data/lab-experiments/2026-11-17-item-4356/`.
+
 **What is not established.**
-- **The "<"'s upper arm** (parked 4306a). Cells (50, 45) and (49, 44) are `land` 1 without `HALFLAND`, so
-  the ocean rule as read makes no edge against them, and our chain ends open at corner (51, 46). The
-  photograph draws an arm up the west side of (51, 45) to the row 44/45 edge, so the original makes those
-  edges. Either the rule is misread, or the original's `land` or `HALFLAND` on these beach cells is not ours.
-- Ours lies a few pixels off theirs along the lower arm (615 of ours, 225 shared). The terrain normal in
-  `build_normals` (the band is laid flat here), the curve's sampling and the photograph's frame 3294 against
-  our 3279 are not separated.
+- ~~**The "<"'s upper arm** (parked 4306a).~~ The cells and the rule agree with the packet. The arm is morph 1's
+  `to` strip, above (item 4356).
+- Ours lies a few pixels off theirs along the lower arm. The photograph's lower arm is also morph 1: a
+  one-sided gradient band, narrower than the regular strip. It is not the regular strip's normals or sampling
+  (item 4356). The regular strip's geometry is still one reading, because no photograph on disk shows it
+  settled.
+- The morph itself (`BorderMorphRender`, `make_interp_spline@008811e0`) is not drawn. A border change shows
+  for 45 graphic ticks, so at play speed it lasts about 1.5 s.
 - `BORDER_LIFT` (6 units) is ours: the patch pass tests depth, the original's does not.
 - The leader's colour slot (`team_colors.list[leader +0x6928]`) is taken as the leader's index; alliances
   and `can_see_borders` are not applied (no allied pair and a full reveal on run1564); the diplomatic-colours
@@ -4818,7 +4843,9 @@ lines and fog shading, projectiles and corpses, then candidate C.
 
 ### 7.1 Not established
 
-- **The border's upper arm on run1564** (§3.29, parked 4306a): the original draws edges against beach cells the ocean rule as read drops.
+- ~~**The border's upper arm on run1564** (§3.29, parked 4306a): the original draws edges against beach cells the ocean rule as read drops.~~
+  Answered by item 4356 (§3.29, "The arm is a morph"): the cells and the rule agree with the packet; the arm is
+  a `BorderMorphRender` the capture's `!ffwd 4` left on screen.
 - **Where gaia's birds are drawn** (item 4208). Owner 9's birds carry `get_unit_gpiece`'s gaia piece
   (60045, `WILDBIRD-TYPE0`) since `Sim::gaia_piece`, and the draw list draws them. On run1429 that is 280
   figures on 34 logged frames. No dump prints owner 9, so the register leaves them out and counts them

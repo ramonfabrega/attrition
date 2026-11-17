@@ -778,3 +778,57 @@ fn a_region_of_under_a_hundred_cells_draws_no_offset() {
     }
     assert_eq!(spent, 10, "ten cells, ten draws, and no offset");
 }
+
+/// **A scout's shift-queued move is an explore** (item 4351,
+/// `Unit::add_move_facing_order@005e55c0:24`, `Unit::work@0060d180:122`):
+/// a `QUEUE_LAST` `MOVE_TO` of a `role & 0x10` type is made an
+/// `EXPLORE_TO` and sets `unit_masks & 0x4000000`; a plain click clears the
+/// bit; and while it stands, a `MOVE_TO` at the head is re-added as an
+/// `EXPLORE_TO` at the front, the queue behind it kept. The 2017 sample's
+/// scout `3/0` takes the first on recording frame 91.
+#[test]
+fn a_scout_s_shift_queued_move_is_an_explore() {
+    use crate::orders::{Body, MoveKind, QueuePos};
+    let kind = |s: &Sim, u: usize, i: usize| match s.units[u].orders[i].body {
+        Body::Move(m) => (m.kind, m.dest),
+        ref b => panic!("not a move: {b:?}"),
+    };
+    let (mut s, _ai, u) = scout_sim(false);
+    let a = Pos::new(10 * 768 + 24, 10 * 768 + 24);
+    let b = Pos::new(30 * 768 + 24, 12 * 768 + 24);
+    // Nothing queued: the shift-click's move is an explore.
+    s.add_move_order(u, a, MoveKind::MoveTo, QueuePos::Last, true);
+    assert_eq!(kind(&s, u, 0), (MoveKind::ExploreTo, a));
+    assert!(s.units[u].explore_queued);
+    // A plain click clears the bit and stays a move.
+    s.add_move_order(u, a, MoveKind::MoveTo, QueuePos::New, true);
+    assert_eq!(kind(&s, u, 0), (MoveKind::MoveTo, a));
+    assert!(!s.units[u].explore_queued);
+    // Click, then shift-click: the head is still a move and the bit stands.
+    s.add_move_order(u, b, MoveKind::MoveTo, QueuePos::Last, true);
+    assert_eq!(
+        (kind(&s, u, 0), kind(&s, u, 1)),
+        ((MoveKind::MoveTo, a), (MoveKind::ExploreTo, b))
+    );
+    assert!(s.units[u].explore_queued);
+    // `work`'s arm: the head's move goes to the front as an explore.
+    s.explore_queued_head(u);
+    assert_eq!(s.units[u].orders.len(), 2);
+    assert_eq!(
+        (kind(&s, u, 0), kind(&s, u, 1)),
+        ((MoveKind::ExploreTo, a), (MoveKind::ExploreTo, b))
+    );
+    assert!(s.units[u].explore_queued, "the arm keeps the bit");
+    // `Unit::clear_orders` clears it, as a halt does.
+    s.clear_orders(u);
+    assert!(!s.units[u].explore_queued, "clear_orders clears the bit");
+    s.add_move_order(u, b, MoveKind::MoveTo, QueuePos::Last, true);
+    assert!(s.units[u].explore_queued);
+    // A type without the scout bit keeps its move.
+    let t = s.units[u].ty.unwrap();
+    s.tables.unit_types[t].cols.role = 0;
+    s.add_move_order(u, a, MoveKind::MoveTo, QueuePos::New, true);
+    s.add_move_order(u, b, MoveKind::MoveTo, QueuePos::Last, true);
+    assert_eq!(kind(&s, u, 1), (MoveKind::MoveTo, b));
+    assert!(!s.units[u].explore_queued);
+}

@@ -403,8 +403,47 @@ impl Sim {
         self.clear_partial_path(u);
     }
 
+    /// `Unit::work@0060d180:122-157`'s explore arm (item 4351): with
+    /// [`crate::Unit::explore_queued`] set, a plain `MOVE_TO` at the head
+    /// becomes an `EXPLORE_TO`, re-added at `QUEUE_FIRST` with the head's
+    /// own cell, angle, `facing`, `PATHED` and `ACTION` bits and no `orig`.
+    pub(crate) fn explore_queued_head(&mut self, u: usize) {
+        if !self.units[u].explore_queued {
+            return;
+        }
+        let Some(Order {
+            flags,
+            body: Body::Move(m),
+        }) = self.units[u].orders.front().copied()
+        else {
+            return;
+        };
+        if m.kind != MoveKind::MoveTo || m.group.is_some() {
+            return;
+        }
+        self.units[u].orders.pop_front();
+        self.new_head(u);
+        self.add_move_facing_order(
+            u,
+            m.dest,
+            MoveKind::ExploreTo,
+            QueuePos::First,
+            flags & flag::ACTION != 0,
+            m.angle,
+            m.facing,
+            flags & flag::PATHED != 0,
+        );
+    }
+
     /// `Unit::close_orders`: kill everything, oldest first.
+    ///
+    /// It also clears [`crate::Unit::explore_queued`], which belongs to
+    /// `Unit::clear_orders` (`unit_masks &= ~0x4000000`). Every caller of
+    /// `close_orders` in the export clears the bit beside the call except
+    /// `Unit::~Unit` and `Unit::close`, the death's, which is
+    /// [`Self::close_dead_orders`] here (item 4351).
     pub fn close_orders(&mut self, u: usize) {
+        self.units[u].explore_queued = false;
         while !self.units[u].orders.is_empty() {
             self.kill_current_order(u);
         }
@@ -553,14 +592,16 @@ impl Sim {
                 )
             },
             |sim| sim.profile(Obj::Unit(u)).has(combat::mask::ANTI_AIR),
-            // SEAM: the scout's shift-queued `MOVE_TO` turned `EXPLORE_TO`
-            // with `unit_masks |= 0x4000000` (`role & 0x10`): the mask is
-            // not carried (`work`'s and `think`'s readers), so neither is
-            // the conversion. The group adder has no such arm.
-            |_| false,
-            |_| {},
-            // `unit_masks &= ~0x4000000` (not carried), `+0xc0 = 0`.
-            |sim| sim.units[u].path.clear(),
+            // The scout's shift-queued `MOVE_TO` turns `EXPLORE_TO` with
+            // `unit_masks |= 0x4000000` (`role & 0x10`, `005e55c0:24`, item
+            // 4351). The group adder has no such arm.
+            |sim| plain && sim.unit_is_scout(u),
+            |sim| sim.units[u].explore_queued = true,
+            // `unit_masks &= ~0x4000000`, `+0xc0 = 0`.
+            |sim| {
+                sim.units[u].explore_queued = false;
+                sim.units[u].path.clear();
+            },
             |sim| sim.close_orders(u),
             |sim| sim.clear_partial_path(u),
             |sim| {
