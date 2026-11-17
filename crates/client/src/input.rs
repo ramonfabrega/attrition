@@ -712,6 +712,38 @@ impl View<'_> {
             .collect()
     }
 
+    /// **The box's buildings** (`Console::on_left_up@007cde90`, §7.1's
+    /// second step; item 4318): walked only when the box took no unit.
+    /// The issuing slot's buildings whose anchor is within [`BOX_MARGIN`]
+    /// of the rectangle, in object order, the first [`SELECT_CAP`], each
+    /// inserted before the first member of a greater type
+    /// (`SelectGroup::add`): sorted by type, the building's `ty` being its
+    /// `TypeIndex` less `BASE_BUILDTYPES`, and in object order within one.
+    pub fn boxed_buildings(
+        &self,
+        who: u8,
+        (x0, y0): (i32, i32),
+        (x1, y1): (i32, i32),
+    ) -> Vec<ObjId> {
+        let (l, r) = (x0.min(x1) - BOX_MARGIN, x0.max(x1) + BOX_MARGIN);
+        let (t, b) = (y0.min(y1) - BOX_MARGIN, y0.max(y1) + BOX_MARGIN);
+        let mut inside: Vec<_> = self
+            .scene
+            .buildings
+            .iter()
+            .filter(|b| b.id.who == who)
+            .filter(|bd| {
+                let (ax, ay) = self.pixel(bd.pos.x, bd.pos.y, bd.z);
+                l < ax && ax < r && t < ay && ay < b
+            })
+            .map(|b| (b.id, b.ty))
+            .collect();
+        inside.sort_by_key(|&(id, _)| id.o);
+        inside.truncate(SELECT_CAP);
+        inside.sort_by_key(|&(_, ty)| ty);
+        inside.into_iter().map(|(id, _)| id).collect()
+    }
+
     /// **The formation a right press moves a selection in**: what
     /// `Console::down@007cd8f0` writes when the right button goes down,
     /// `drag_form` and `drag_form_mod`, which `Console::execute_at_cursor`
@@ -2387,8 +2419,14 @@ impl Input {
                 if let Some(o) = self.picked_spot(frame, view, (x1, y1), (x0, y0)) {
                     return o;
                 }
+                // The units first; the buildings only when the box took
+                // no unit (§7.1, item 4318).
                 self.selection = view.boxed(self.player, (x0, y0), (x1, y1));
                 self.building = false;
+                if self.selection.is_empty() {
+                    self.selection = view.boxed_buildings(self.player, (x0, y0), (x1, y1));
+                    self.building = !self.selection.is_empty();
+                }
                 None
             }
             Event::RightPress { x, y } => {
@@ -8073,6 +8111,11 @@ pub(crate) mod tests {
                     }
                 } else if orders != 1 {
                     Verdict::Miss("move_to orders: an order no arm of ours issues", Button)
+                } else if is_main_move(heads[0]) {
+                    // Since item 4318 the main view's move is minted from
+                    // a hand-made selection and a camera that reaches its
+                    // point (§30.3).
+                    Verdict::Shown("INPUT_MAIN_MOVES")
                 } else if disembark == 0 && matches!((form, width), (0, 50) | (9, 50) | (-1, -1)) {
                     Verdict::Form
                 } else {
@@ -8130,17 +8173,9 @@ pub(crate) mod tests {
             // Since item 4301 a building's or one's own unit's gather point
             // is the layer's too (§11.4): actions 1 and 2 at a point, and
             // 3 naming `(captain, who)` of the issuer's slot.
-            Command::GatherPoint {
-                action: 0..=2,
-                add_to_end: 0,
-                ..
-            } => Verdict::Form,
-            &Command::GatherPoint {
-                action: 3,
-                y,
-                add_to_end: 0,
-                ..
-            } if y == i32::from(who) => Verdict::Form,
+            // Since item 4318 each is minted from a hand-made selection,
+            // a press on the object or the ground (§30.3).
+            c if is_hand_gather_point(c, who) => Verdict::Shown("INPUT_HAND_GATHER_POINTS"),
             Command::GatherPoint { add_to_end: 0, .. } => Verdict::Miss(
                 "gather_point: a field the gather arm does not write",
                 Button,
@@ -8276,11 +8311,11 @@ pub(crate) mod tests {
     /// so the count is the old carried one: the 38 files that carry nothing
     /// else, and the four whose other orders are all shown (a pause pair,
     /// two of chat lines, a toggle). Seen red pinned (0, 50).
-    const INPUT_WHOLE: (usize, usize) = (42, 50);
+    const INPUT_WHOLE: (usize, usize) = (44, 50);
     /// Every order on disk by verdict: (shown, of the layer's form but not
     /// minted from a scene, missed, all). A package's `group` takes its
     /// order's verdict.
-    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (987, 1442, 0, 2429);
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (1665, 764, 0, 2429);
     /// The missed orders by arm, most first, and who reaches each, the
     /// package's `group` counted with its order. Empty since item 4304
     /// (§38), the dragged placement's ten the last.
@@ -8373,6 +8408,8 @@ pub(crate) mod tests {
             ("INPUT_LEADER_OPTIONS", INPUT_LEADER_OPTIONS),
             ("INPUT_ROSTER_QUEUES", INPUT_ROSTER_QUEUES),
             ("INPUT_TURNS", INPUT_TURNS),
+            ("INPUT_MAIN_MOVES", INPUT_MAIN_MOVES),
+            ("INPUT_HAND_GATHER_POINTS", INPUT_HAND_GATHER_POINTS),
         ] {
             assert_eq!(minted, of, "{pin} mints every package it reads");
             assert_eq!(
@@ -8384,6 +8421,526 @@ pub(crate) mod tests {
         assert_eq!((whole, files.len()), INPUT_WHOLE);
         assert_eq!((shown, form, missed, all), INPUT_WHOLE_ORDERS);
         assert_eq!(misses, INPUT_WHOLE_MISSES);
+    }
+
+    /// The kind of one form package's head, as §30.3's census of the form
+    /// orders splits it (item 4318).
+    fn form_kind(head: &Command) -> &'static str {
+        match *head {
+            Command::MoveTo {
+                orders, form: -1, ..
+            } if orders == 1 => "move_to minimap",
+            Command::MoveTo { orders, .. } if orders == ATTACK_TO => "attack_to",
+            Command::MoveTo { set_angle: 1, .. } => "move_to faced",
+            Command::MoveTo { .. } => "move_to main",
+            Command::Build { x, y, x2, y2, .. } if (x, y) == (x2, y2) => "build click",
+            Command::Build { .. } => "build drag",
+            Command::GatherPoint { action: 0, .. } => "gather_point 0",
+            Command::GatherPoint { action: 1, .. } => "gather_point 1",
+            Command::GatherPoint { action: 2, .. } => "gather_point 2",
+            Command::GatherPoint { .. } => "gather_point 3",
+            Command::Attack { .. } => "attack",
+            Command::Guard { .. } => "guard",
+            Command::Gather { .. } => "gather",
+            Command::SwarmAround { orders, .. } if orders == BUILD_AT => "swarm build_at",
+            Command::SwarmAround { .. } => "swarm repair",
+            _ => "other",
+        }
+    }
+
+    /// A camera at which a main-view press reaches `p`: the pinned camera
+    /// moved onto `p` and nudged by eighths of a unit, the pixel `p`
+    /// projects to and [`ground_at`] there `p` (item 4318).
+    fn camera_reaching(
+        scene: &Scene,
+        terrain: &TerrainScene,
+        p: Pos,
+    ) -> Option<(render::Camera, (i32, i32))> {
+        let c0 = crate::pinned_camera();
+        let at = |lx: f32, ly: f32| {
+            let mut c = c0;
+            (c.loc_x, c.loc_y) = (lx, ly);
+            let v = view(&c, scene, terrain);
+            let px = v.pixel(p.x, p.y, v.ground_z(p.x, p.y));
+            (c, px, ground_at(&v, px.0, px.1))
+        };
+        for k in 0..64 {
+            let (mut lx, mut ly) = (
+                p.x as f32 + (k % 8) as f32 / 8.0,
+                p.y as f32 + (k / 8) as f32 / 8.0,
+            );
+            // The press's point sits a few units off the projected one:
+            // move the camera by that offset, twice at most.
+            for _ in 0..3 {
+                let (c, px, got) = at(lx, ly);
+                match got {
+                    Some(g) if g == p => return Some((c, px)),
+                    Some(g) => (lx, ly) = (lx - (g.x - p.x) as f32, ly - (g.y - p.y) as f32),
+                    None => break,
+                }
+            }
+        }
+        None
+    }
+
+    /// **A selection made by hand** (item 4318, §30.3): the recorded
+    /// group's units, `who`'s `objects`, laid out on a grid from `at`,
+    /// each run of ascending objects one type, so that the box's sort by
+    /// type and then object (§7.1) gives the recorded order back. Every
+    /// type is a soldier's, past the civilian rule. `form` and `width` are
+    /// each member's, so [`View::formation`] gives them back.
+    fn hand_units(
+        who: u8,
+        objects: &[i16],
+        form: i8,
+        width: i8,
+        at: Pos,
+    ) -> Vec<sim::observe::UnitScene> {
+        let mut run = 0;
+        objects
+            .iter()
+            .enumerate()
+            .map(|(k, &o)| {
+                if k > 0 && o < objects[k - 1] {
+                    run += 1;
+                }
+                let mut u = unit(who, o, HAND_TYPE + run, 0, form, width);
+                u.pos = Pos {
+                    x: at.x + (k % 12) as i32 * HAND_SPACING,
+                    y: at.y + (k / 12) as i32 * HAND_SPACING,
+                };
+                u
+            })
+            .collect()
+    }
+
+    /// The first type [`hand_units`] gives (`0x60`): no worker, merchant
+    /// or fleet type lies at or past it below `0x13d`, the fishermen.
+    const HAND_TYPE: i32 = 0x60;
+    /// The grid's step, in world units: at the pinned zoom about 45 px,
+    /// past [`PICK_RADIUS`].
+    const HAND_SPACING: i32 = 300;
+    /// Where the hand's units stand from the order's point: off the
+    /// screen of the camera that presses it.
+    const HAND_AWAY: i32 = 50_000;
+
+    /// The camera the hand selects at: the pinned one, looking at `at`.
+    fn camera_at(at: Pos) -> render::Camera {
+        let mut c = crate::pinned_camera();
+        (c.loc_x, c.loc_y) = (at.x as f32, at.y as f32);
+        c
+    }
+
+    /// **The hand's events** (item 4318): `who`'s `objects` selected by
+    /// a press on the one, or by a box over them all, at a camera on the
+    /// grid, each member found in `scene`; true when the layer's selection
+    /// is the recorded group, in its order.
+    fn select_by_hand(
+        input: &mut Input,
+        frame: i32,
+        scene: &Scene,
+        terrain: &TerrainScene,
+        who: u8,
+        objects: &[i16],
+    ) -> bool {
+        let members: Vec<&sim::observe::UnitScene> = objects
+            .iter()
+            .filter_map(|&o| scene.units.iter().find(|u| u.id == ObjId { who, o }))
+            .collect();
+        let buildings: Vec<&sim::observe::BuildingScene> = objects
+            .iter()
+            .filter_map(|&o| scene.buildings.iter().find(|b| b.id == ObjId { who, o }))
+            .collect();
+        let first = members
+            .first()
+            .map(|u| (u.pos, u.z))
+            .or_else(|| buildings.first().map(|b| (b.pos, b.z)));
+        let Some((at, _)) = first else {
+            return objects.is_empty();
+        };
+        let c = camera_at(at);
+        let v = view(&c, scene, terrain);
+        let pixels: Vec<(i32, i32)> = members
+            .iter()
+            .map(|u| v.pixel(u.pos.x, u.pos.y, u.z))
+            .chain(buildings.iter().map(|b| v.pixel(b.pos.x, b.pos.y, b.z)))
+            .collect();
+        if pixels.len() == 1 {
+            let (x, y) = pixels[0];
+            assert_eq!(input.event(frame, Event::Press { x, y }, &v), None);
+        } else {
+            let x0 = pixels.iter().map(|p| p.0).min().unwrap();
+            let x1 = pixels.iter().map(|p| p.0).max().unwrap();
+            let y0 = pixels.iter().map(|p| p.1).min().unwrap();
+            let y1 = pixels.iter().map(|p| p.1).max().unwrap();
+            assert_eq!(input.event(frame, Event::Drag { x0, y0, x1, y1 }, &v), None);
+        }
+        input.selection
+            == objects
+                .iter()
+                .map(|&o| ObjId { who, o })
+                .collect::<Vec<_>>()
+    }
+
+    /// The modifiers a dispatch's queue is held with (§33.1): shift for
+    /// `QUEUE_LAST`, shift and alt for `QUEUE_FIRST`.
+    fn dispatch_mods(queued: i32) -> Mods {
+        Mods {
+            shift: queued != QUEUE_NEW,
+            alt: queued == QUEUE_FIRST,
+            ctrl: false,
+        }
+    }
+
+    /// The recorded packages the census reads, by recording: each one's
+    /// frame, its kept orders, and the selection behind its `group` with
+    /// the slot's last group before it ([`behind`]).
+    fn recorded_issues(
+        rec: &rondata::recgame::RecGame,
+    ) -> Vec<(i32, Vec<Command>, u8, Vec<i16>, Option<Group>)> {
+        let mut last = LastSent::new();
+        let mut out = Vec::new();
+        for p in &rec.packages {
+            let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                continue;
+            };
+            let kept: Vec<Command> = cmds.into_iter().filter(rondata::input::is_input).collect();
+            let (who, objects, before) = behind(&last, p.play, &kept);
+            note_sent(&mut last, p.play, &kept);
+            if !kept.is_empty() {
+                out.push((p.frame, kept, who, objects, before));
+            }
+        }
+        out
+    }
+
+    /// The one head of a package of one issue: its order behind the
+    /// `group`, or `None` for two issues or none.
+    fn one_head(kept: &[Command]) -> Option<&Command> {
+        let heads: Vec<&Command> = kept
+            .iter()
+            .filter(|c| !matches!(c, Command::Group { .. }))
+            .collect();
+        (heads.len() == 1).then(|| heads[0])
+    }
+
+    /// Whether `c` is a main-view right press's `move_to` the layer
+    /// writes (§7.1, §33.1): `orders` 1, no facing, a formation of the
+    /// layer's, an issuer's queue.
+    fn is_main_move(c: &Command) -> bool {
+        matches!(*c, Command::MoveTo {
+            orders: 1,
+            set_angle: 0,
+            angle: 0,
+            disembark: 0,
+            form,
+            width,
+            queued,
+            ..
+        } if matches!((form, width), (0, 50) | (9, 50)) && QUEUES.contains(&i32::from(queued)))
+    }
+
+    /// **`INPUT_MAIN_MOVES`** (item 4318, §30.3): of the recorded packages
+    /// of one issue whose order is a main view's `move_to`, those the
+    /// layer mints byte for byte from a person's events: the group
+    /// selected by a press or a box ([`select_by_hand`]), the camera
+    /// moved to one at which a press reaches the point
+    /// ([`camera_reaching`]), and a right press there with the queue's
+    /// modifiers.
+    const INPUT_MAIN_MOVES: (usize, usize) = (168, 168);
+
+    #[test]
+    fn minted_main_moves_equal_the_recordings() {
+        let files = recordings_on_disk();
+        if files.is_empty() {
+            println!("skipping: no .rcx on disk");
+            return;
+        }
+        let terrain = TerrainScene::default();
+        let (mut minted, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            for (frame, kept, who, objects, before) in recorded_issues(&rec) {
+                let Some(&Command::MoveTo {
+                    to_x,
+                    to_y,
+                    form,
+                    width,
+                    queued,
+                    ..
+                }) = one_head(&kept).filter(|c| is_main_move(c))
+                else {
+                    continue;
+                };
+                all += 1;
+                let to = Pos { x: to_x, y: to_y };
+                let away = Pos {
+                    x: to.x + HAND_AWAY,
+                    y: to.y + HAND_AWAY,
+                };
+                let scene = Scene {
+                    units: hand_units(who, &objects, form, width, away),
+                    ..Scene::default()
+                };
+                let mut input = Input::new(who);
+                input.sent = sent_for(&before, &scene);
+                let selected = select_by_hand(&mut input, frame, &scene, &terrain, who, &objects);
+                let got = camera_reaching(&scene, &terrain, to).and_then(|(c, (x, y))| {
+                    let v = view(&c, &scene, &terrain);
+                    input.mods = dispatch_mods(i32::from(queued));
+                    input.event(frame, Event::RightPress { x, y }, &v)
+                });
+                if selected && got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    minted += 1;
+                } else {
+                    println!("MAIN MOVE PARTS f{frame} selected {selected} {kept:?}: {got:?}");
+                }
+            }
+        }
+        println!("MAIN MOVES {minted} of {all}");
+        assert_eq!((minted, all), INPUT_MAIN_MOVES);
+    }
+
+    /// Whether `c` is a building's gather point the layer writes (§11.2,
+    /// §11.4): `add_to_end` 0, at a point for actions 0 to 2, and action
+    /// 3 naming `(captain, who)` of the issuer's slot.
+    fn is_hand_gather_point(c: &Command, who: u8) -> bool {
+        match *c {
+            Command::GatherPoint {
+                action: 0..=2,
+                add_to_end: 0,
+                ..
+            } => true,
+            Command::GatherPoint {
+                action: 3,
+                y,
+                add_to_end: 0,
+                ..
+            } => y == i32::from(who),
+            _ => false,
+        }
+    }
+
+    /// **`INPUT_HAND_GATHER_POINTS`** (item 4318, §30.3): of the recorded
+    /// packages of one issue whose order is a building's gather point,
+    /// those the layer mints byte for byte from a person's events: the
+    /// group's buildings selected by a press ([`select_by_hand`]), then a
+    /// right press on the ground at a camera that reaches the point
+    /// (action 0), on a building standing at the point, the issuer's or
+    /// an enemy's (1, 2), or on one of the issuer's units whose captain is
+    /// the recorded `x` (3).
+    const INPUT_HAND_GATHER_POINTS: (usize, usize) = (171, 171);
+
+    #[test]
+    fn minted_gather_points_by_hand() {
+        let files = recordings_on_disk();
+        let Ok(r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        if files.is_empty() {
+            println!("skipping: no .rcx on disk");
+            return;
+        }
+        let template = r.scene(None).buildings[0];
+        drop(r);
+        let terrain = TerrainScene::default();
+        let (mut minted, mut all) = (0, 0);
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let me = console_who(&rec);
+            for (frame, kept, who, objects, before) in recorded_issues(&rec) {
+                let Some(&Command::GatherPoint { x, y, action, .. }) =
+                    one_head(&kept).filter(|c| is_hand_gather_point(c, me))
+                else {
+                    continue;
+                };
+                all += 1;
+                let point = Pos { x, y };
+                let away = Pos {
+                    x: x.rem_euclid(30_000) + HAND_AWAY,
+                    y: y.rem_euclid(30_000) + HAND_AWAY,
+                };
+                let enemy_slot = (who + 1) % 5;
+                let mut scene = Scene {
+                    buildings: objects
+                        .iter()
+                        .enumerate()
+                        .map(|(k, &o)| {
+                            let mut b = template;
+                            (b.id, b.owner, b.trains, b.seen) = (ObjId { who, o }, who, true, true);
+                            // Each run of ascending objects one type, as
+                            // [`hand_units`] does for units.
+                            let run = objects[..=k].windows(2).filter(|w| w[1] < w[0]).count();
+                            b.ty = Some(run);
+                            b.pos = Pos {
+                                x: away.x + k as i32 * HAND_SPACING,
+                                y: away.y,
+                            };
+                            b
+                        })
+                        .collect(),
+                    leaders: vec![sim::observe::LeaderScene {
+                        who,
+                        enemies: vec![enemy_slot],
+                        ..leader_scene(who)
+                    }],
+                    ..Scene::default()
+                };
+                let target = match action {
+                    0 => None,
+                    3 => {
+                        let mut u = unit(who, HAND_TARGET, 0x36, 0, 0, 0);
+                        (u.captain, u.pos) = (x as i16, Pos { x: 0, y: 0 });
+                        let at = (u.pos, u.z);
+                        scene.units.push(u);
+                        Some(at)
+                    }
+                    _ => {
+                        let mut b = template;
+                        let owner = if action == 2 { enemy_slot } else { who };
+                        b.id = ObjId {
+                            who: owner,
+                            o: HAND_TARGET,
+                        };
+                        (b.owner, b.seen, b.trains, b.pos) = (owner, true, false, point);
+                        scene.buildings.push(b);
+                        Some((b.pos, b.z))
+                    }
+                };
+                let mut input = Input::new(who);
+                input.sent = sent_for(&before, &scene);
+                let selected = select_by_hand(&mut input, frame, &scene, &terrain, who, &objects);
+                let press = match target {
+                    None => camera_reaching(&scene, &terrain, point),
+                    Some((at, z)) => {
+                        let c = camera_at(at);
+                        let v = view(&c, &scene, &terrain);
+                        Some((c, v.pixel(at.x, at.y, z)))
+                    }
+                };
+                let got = press.and_then(|(c, (px, py))| {
+                    let v = view(&c, &scene, &terrain);
+                    input.event(frame, Event::RightPress { x: px, y: py }, &v)
+                });
+                if selected && got.as_ref().map(|o| &o.2) == Some(&kept) {
+                    minted += 1;
+                } else {
+                    println!("HAND GP PARTS f{frame} selected {selected} {kept:?}: {got:?}");
+                }
+            }
+        }
+        println!("HAND GATHER POINTS {minted} of {all}");
+        assert_eq!((minted, all), INPUT_HAND_GATHER_POINTS);
+    }
+
+    /// The object a hand-made scene's target is: past every recorded
+    /// object of the census.
+    const HAND_TARGET: i16 = 30_000;
+
+    /// **The census of the form orders** (item 4318, §30.3): each package
+    /// the whole census calls form, by its head's kind: its orders, its
+    /// point reached by a press at some camera, and its group's shape.
+    #[test]
+    fn input_form_census_on_disk() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let roster = install_roster().unwrap_or_default();
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let scene = Scene::default();
+        let v = view(&c, &scene, &terrain);
+        type Row = [usize; 8];
+        // orders, packages, point reached, of points, group empty, one,
+        // many ascending, many not.
+        let mut rows: std::collections::BTreeMap<(&str, &str), Row> = Default::default();
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let who = console_who(&rec);
+            let name = f.file_name().unwrap().to_string_lossy().to_string();
+            let class = if name.contains("seifer") {
+                "sample"
+            } else {
+                "bottle"
+            };
+            let mut pauser = Input::new(0);
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                if kept.is_empty() {
+                    continue;
+                }
+                let verdict =
+                    census_verdict(&kept, p.frame, p.play as u8, who, &mut pauser, &v, &roster);
+                if verdict != Verdict::Form {
+                    continue;
+                }
+                let head = kept
+                    .iter()
+                    .find(|c| !matches!(c, Command::Group { .. }))
+                    .unwrap();
+                let kind = form_kind(head);
+                let row = rows.entry((kind, class)).or_default();
+                row[0] += kept.len();
+                row[1] += 1;
+                let points: Vec<Pos> = match *head {
+                    Command::MoveTo {
+                        to_x, to_y, form, ..
+                    } if form != -1 => {
+                        vec![Pos { x: to_x, y: to_y }]
+                    }
+                    Command::Build { x, y, x2, y2, .. } => {
+                        vec![Pos { x, y }, Pos { x: x2, y: y2 }]
+                    }
+                    Command::GatherPoint {
+                        x,
+                        y,
+                        action: 0..=2,
+                        ..
+                    } => vec![Pos { x, y }],
+                    _ => vec![],
+                };
+                if !points.is_empty() {
+                    row[3] += 1;
+                    if points
+                        .iter()
+                        .all(|&q| camera_reaching(&scene, &terrain, q).is_some())
+                    {
+                        row[2] += 1;
+                    } else {
+                        println!("FORM UNREACHED {class} f{} {head:?}", p.frame);
+                    }
+                }
+                match kept.first() {
+                    Some(Command::Group { objects, .. }) if objects.is_empty() => row[4] += 1,
+                    Some(Command::Group { objects, .. }) if objects.len() == 1 => row[5] += 1,
+                    Some(Command::Group { objects, .. })
+                        if objects.windows(2).all(|w| w[0] < w[1]) =>
+                    {
+                        row[6] += 1
+                    }
+                    Some(Command::Group { .. }) => row[7] += 1,
+                    _ => {}
+                }
+            }
+        }
+        let mut sorted: Vec<_> = rows.into_iter().collect();
+        sorted.sort_by(|a, b| b.1[0].cmp(&a.1[0]));
+        for ((kind, class), r) in &sorted {
+            println!(
+                "FORM {kind:16} {class:6} orders {:4} packages {:4} reached {:4} of {:4} \
+                 group empty {:3} one {:3} many-asc {:3} many-not {:3}",
+                r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]
+            );
+        }
+        let total: usize = sorted.iter().map(|r| r.1[0]).sum();
+        println!("FORM total orders {total}");
     }
 
     /// **The minimap's gather point** (item 4302, §36.2): with buildings
@@ -9262,8 +9819,9 @@ pub(crate) mod tests {
     const QUEUED_ORDERS: &[(&str, i32, &str, usize)] = &[
         ("build", 1, "form", 6),
         ("gather", 1, "form", 4),
+        ("move_to", 1, "INPUT_MAIN_MOVES", 16),
         ("move_to", 1, "INPUT_TURNS", 12),
-        ("move_to", 1, "form", 186),
+        ("move_to", 1, "form", 170),
         ("swarm_around", 1, "form", 4),
     ];
 
