@@ -200,6 +200,8 @@ pub fn lobby_of(
     if let Some(v) = int("TEAM_STYLE") {
         l.team_style = v;
     }
+    // `GameInfo.seed`, the lobby's own (item 4347): not `world->seed`.
+    l.seed = int("(int)seed");
     if let Some(v) = int("MAP_STYLE") {
         l.map_style = v;
         if let Some(name) = usize::try_from(v).ok().and_then(|i| map_styles.get(i)) {
@@ -1074,7 +1076,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             if let (Some(piece), Some(k)) = (g.gpiece, kind) {
                 let o = u.o as i16;
                 let sub = if sim.roster.art.gaia_types.contains(&k) {
-                    (sim.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8
+                    (sim.info_seed().wrapping_add(i32::from(o))).rem_euclid(3) as u8
                 } else {
                     (o & 1) as u8
                 };
