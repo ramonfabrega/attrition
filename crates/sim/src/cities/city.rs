@@ -2595,10 +2595,9 @@ impl Sim {
         }
         // `Build::activate@00623e20+0x744`: the city's roads want
         // replanning, which is what flags every one of its buildings
-        // (`crate::movement::roads` §1). ~~It is the only writer a traced game
-        // reaches.~~ **Not so**: `Build::remove_from_city` is the other,
-        // and Great Lakes 10230 reaches it when a farm finally falls
-        // (`docs/ROADS.md` §1.2, item 478).
+        // (`crate::movement::roads` §1). `Build::remove_from_city` is the
+        // other writer: Great Lakes 10230's farm (`docs/ROADS.md` §1.2, item
+        // 478), run1646 3037's wonder site (item 4322).
         if let Some(c) = self.buildings[b].city
             && self.cities.cities[c].alive
         {
@@ -2615,6 +2614,7 @@ impl Sim {
         // `Build::activate@00623e20` lines 1151–1205: the gather slots, and
         // the bonus for the ones the player has never held.
         self.claim_gather_slots(b, captured, counted);
+        self.disband_rival_wonder_sites(b, ty); // lines 1294–1356
         // Activation flags the old city's roads before its final upgrade
         // sweep can attach buildings inside the enlarged radius (AI §176).
         if !self.building_is_city(b)
