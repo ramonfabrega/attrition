@@ -1840,9 +1840,10 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     ~~`last_spoke`~~ (frozen), ~~`counteroffer`~~ (VII-d, run1575's 1052), `tribute_demanded`: the `action_*` family,
     `consider_tribute` and `Leader::diplomacy`'s arms the crate stops at a
     SEAM.
-  - the taunts (~~6~~ ~~4~~ 1): `receive_taunt`, `process_taunt`, `end_process`;
+  - the taunts (~~6~~ ~~4~~ ~~1~~ 0): `receive_taunt`, `process_taunt`, `end_process`;
     two carried by VII-b2, the ring's three by VII-c (run1575's packet at
-    1090, no staged decision before it); `incoming_taunt_who` stays.
+    1090, no staged decision before it); `incoming_taunt_who` by 4313
+    (run1645).
   - the end of a game (6): `victory_type`, `defeat_type`, ~~`defeat_stamp`,
     `defeated_by`~~ (`Leader::victory`, `defeat`, `defeat_by`),
     ~~`wonderwin_stamp` (`Leader::process`), `wonderwin_timer`

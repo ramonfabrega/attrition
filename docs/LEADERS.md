@@ -2512,15 +2512,36 @@ are `leaders::taunt::tests`.
   (`Sim::leader_taunt_leaf`), and since VII-c the ring (`incoming_taunt`,
   `incoming_taunt_frame`, `incoming`), released on the packet at 1090:
   the accept of 1027 before it is computed (§8.3).
-  `incoming_taunt_who` is held, emitted unheld and stays on the list:
-  every walked sender is who 0, the reset value. **A sender off slot 0
-  is seatable** (item 4299's first act): the profile's `LAST_WHO0`,
-  swapped with `LAST_WHO1` (`unattended_capture.py --human-who 1`), seats
-  the human at who 1, the French at 0 and the Russians at 2, as
-  `setup_game@005b3860`'s solo counter says. On recon4299-1 (unfiled,
-  run1575's lobby without the script), our walk holds 1300 of 1300 from
-  its own start and from the built start; seated at who 0 the same trace
-  parts on frame 0. The take is next: an ally, a resource taunt, a packet.
+  **`incoming_taunt_who` is released at item 4313**, which leaves
+  `LEADERS_HELD_OUT` at one name (`tribute_demanded`). Until then every
+  walked sender had been who 0, the reset value. The profile's `LAST_WHO0`,
+  swapped with `LAST_WHO1` (`unattended_capture.py --human-who 1`, item
+  4299), seats the human at who 1, the French at 0 and the Russians at 2,
+  as `setup_game@005b3860`'s solo counter says. **run1645** is run1575's
+  lobby so seated, with `taunt4313.cmd`: `meet who=0`, `resource who=1`
+  and `ally 0`, then the `NEED_FOOD` chat on 905. The console names a
+  leader `who` (`ConsoleWin::run_cmd@007d6a70` indexes `leaders.list` by
+  `parse_who`'s answer and acts from `console->who`), so the staged
+  script plays from that seat (`golden::Script::seated_at`) and the chat
+  is minted from it (`diplomacy_take::script_taunts_from`). Our walk, from
+  the capture's own lobby built (`diplomacy_take::stand_up_reseated`), is
+  **whole to 1100**. The record's taunt movers land on 967: the French
+  `gift_stamp[1]` 966, `last_taunt[1]` 1 and `taunt_frame[1]` 966, and
+  the human's `tribute_stamp[0]` 966, ours equal; every diplomacy leaf
+  agrees on every block (53,505 rows). **The packet at 1000 holds the
+  French `incoming_taunt_who[0]` 1, ours equal**
+  (`packets::TAKE1645_RELEASED`). It is diff-backed, and two mutations
+  turn it red: the sender stored as 0, and the script played from who 0.
+- **Not established (item 4313, parked 4313a): `ally_mask` between
+  allies.** On run1645, from 903, the record prints `ally_mask` 3 for the
+  French and the human. Ours is each one's own bit (1 and 2), and the
+  packet's leaders line parts on it there. `Leader::set_diplo@006ec6a0`
+  ORs the partner's bit into both on an alliance, under `ALLY_LOS` or
+  `reveal_map` (the lane sets `StartReveal`). `Leader::plan_strategy
+  @006b9620:205-217` rebuilds a computer's mask under the same gate from
+  the leaders with flag bit 2. `Sim::census_ally_mask` skips humans and
+  reads no gate. The take packets before did not see this: run1575's and
+  run1629's alliances were broken before their packets.
 
 ### 9.4 Reached by a plain game
 
