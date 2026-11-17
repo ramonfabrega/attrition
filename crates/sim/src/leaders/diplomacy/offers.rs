@@ -370,7 +370,7 @@ impl Sim {
             count += 1;
             let kept = first || {
                 self.mark(super::SITE_DEMAND_PICK);
-                self.rng.roll() as i32 % count == 0
+                self.rng.roll() % count == 0
             };
             let stock = self.economy.ledgers[t].bucket[g];
             if kept && stock > 49 {
