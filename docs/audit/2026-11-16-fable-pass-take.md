@@ -116,4 +116,20 @@ all `claude-opus-5-5`), which took one capture. The pass before it is
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`; quoted here once it has run.
+Whole, by `tools/gate_run.sh`, on `04e2fe3ca`.
+
+- **`gate-pass-1116f.log`: `gate exit 0`**, 9 of 9 steps (`Gate start: …
+  21:40:42 −0500`): offline 2.0, guard 0.6, merge pins 1.4, release 22.5,
+  clock 0.1. `Clock: green beside load`. `Suite: 1358 processes for 2487
+  tests: 145 groups hold 1274, 1213 ran alone; 9793 test CPU-seconds`;
+  admission 8.0 s over 1,395 leases; load 2.9 at its start and 8.4 at its
+  end. `Rows: one driver row at most: steer fba5bdaf (working)`; `Driver:
+  0 landings since the last pass (backstop 20) · context 299 k`.
+  `Builders: 1 reaped` (the pass's builder's tree, 1.07 GiB); 214 GB free
+  after it.
+
+The guards went red three times on the pass's own paperwork before that
+commit, each as built: the render brief's section over its page (2,719 of
+2,400 characters, then 2,497, then 2,424), and entry 138 without its
+index row. This section is gated scoped over that commit
+(`gate-pass-1116g.log`).
