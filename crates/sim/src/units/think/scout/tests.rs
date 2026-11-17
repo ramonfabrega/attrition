@@ -819,6 +819,11 @@ fn a_scout_s_shift_queued_move_is_an_explore() {
         ((MoveKind::ExploreTo, a), (MoveKind::ExploreTo, b))
     );
     assert!(s.units[u].explore_queued, "the arm keeps the bit");
+    // `Unit::clear_orders` clears it, as a halt does.
+    s.clear_orders(u);
+    assert!(!s.units[u].explore_queued, "clear_orders clears the bit");
+    s.add_move_order(u, b, MoveKind::MoveTo, QueuePos::Last, true);
+    assert!(s.units[u].explore_queued);
     // A type without the scout bit keeps its move.
     let t = s.units[u].ty.unwrap();
     s.tables.unit_types[t].cols.role = 0;
