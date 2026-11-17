@@ -1006,15 +1006,6 @@ impl Sim {
             // eighths it and the AI takes it whole (`docs/DANGER.md` §5).
             // It is the danger map, not territory.
             let danger = self.world.danger_at(who, self.buildings[b].pos);
-            // PROBE (item 4300): each orphaned site the sweep reaches.
-            let probe = std::env::var("RON_PROBE_ORPHAN").is_ok_and(|v| v == format!("{who}"));
-            if probe {
-                let bd = &self.buildings[b];
-                eprintln!(
-                    "PROBE orphan f{} who {who} slot {b} ty {:?} pos ({}, {}) reg {:?} jobs {} danger {danger}",
-                    self.frame, (bd.ty, bd.index, bd.active), bd.pos.x, bd.pos.y, site_reg, bd.job_counter
-                );
-            }
             if self.buildings[b].job_counter == 0 && danger > 0 {
                 self.disband_building(b, false);
                 continue;
@@ -1099,13 +1090,6 @@ impl Sim {
         let Some(u) = pick else { return false };
         self.clear_orders(u);
         self.swarm_around(u, b, Body::Build(b), true);
-        if std::env::var("RON_PROBE_ORPHAN").is_ok_and(|v| v == format!("{who}")) {
-            eprintln!(
-                "PROBE recruit f{} {}/{} at ({}, {}) reg {:?} -> orders {:?}",
-                self.frame, who, self.units[u].index, self.units[u].pos.x, self.units[u].pos.y,
-                self.world.region_of(self.units[u].pos.cell()), self.units[u].orders
-            );
-        }
         true
     }
 
