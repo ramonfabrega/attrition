@@ -10,9 +10,11 @@
 //! reads, in the original's order, so the sweep can hold the order of the
 //! calls as well as the result.
 //!
-//! **Not swept, and not modelled** (`army::seams`): the forts pass
-//! (`6f7f01..6f81ed`: the sweep keeps the army's group count at zero, so
-//! the original's loop over them never runs), the probe's body (the sweep
+//! **Not swept** (`army::seams`): the forts pass (`6f7f01..6f81ed`, built
+//! in [`crate::ai::army::target_forts`]: the sweep keeps the army's group
+//! count at zero, so the original's loop over them never runs). In the
+//! [`SimGate`] the tail's `city` is the target **building**, the object
+//! the original keeps. **Not modelled**: the probe's body (the sweep
 //! answers its first call `-1`, which returns), `leaders[who] +0x7e8`, the
 //! two wonder arms and `has_preq(0x2b9)` (the sim answers all three off).
 
@@ -544,7 +546,7 @@ impl TargetScoreView for SimGate<'_> {
 
 impl TargetTailView for SimGate<'_> {
     fn target_is(&self, city: i32, _leader: usize) -> bool {
-        let t = crate::combat::Obj::Building(self.sim.cities.cities[city as usize].building);
+        let t = crate::combat::Obj::Building(city as usize);
         self.sim.ai.armies[self.who as usize].list[self.slot].target == Some(t)
     }
     fn army_cell_region(&self) -> i32 {
@@ -552,7 +554,7 @@ impl TargetTailView for SimGate<'_> {
         self.sim.world.region_of(a.pos.cell()).map_or(-1, i32::from)
     }
     fn target_cell_region(&self, _leader: usize, city: i32) -> i32 {
-        let t = crate::combat::Obj::Building(self.sim.cities.cities[city as usize].building);
+        let t = crate::combat::Obj::Building(city as usize);
         self.sim
             .world
             .region_of(self.sim.pos_of(t).cell())
@@ -565,7 +567,7 @@ impl TargetTailView for SimGate<'_> {
         self.sim.ai.armies[self.who as usize].list[self.slot].rally_dist = v;
     }
     fn set_target(&mut self, city: i32, _leader: usize) {
-        let t = crate::combat::Obj::Building(self.sim.cities.cities[city as usize].building);
+        let t = crate::combat::Obj::Building(city as usize);
         self.sim.ai.armies[self.who as usize].list[self.slot].target = Some(t);
     }
     fn mark_attacked(&mut self, leader: usize) {
@@ -574,12 +576,14 @@ impl TargetTailView for SimGate<'_> {
         self.sim.ai.ai[leader].attacked_by = i32::from(self.who);
     }
     fn send_navy(&mut self, city: i32, _leader: usize, ra: i32, rb: i32) {
-        let t = crate::combat::Obj::Building(self.sim.cities.cities[city as usize].building);
+        let t = crate::combat::Obj::Building(city as usize);
         self.sim
             .send_navy(self.who, t, opt_region(ra), opt_region(rb));
     }
     fn set_point(&mut self, _leader: usize, city: i32) {
-        let cpos = self.sim.cities.cities[city as usize].pos;
+        // The building's own point: a city's is its city building's
+        // (`init_city`), a fort's its own.
+        let cpos = self.sim.buildings[city as usize].pos;
         let p = self.sim.restrict(crate::world::Pos::new(
             cpos.x,
             cpos.y + crate::world::UNITS_PER_CELL,
@@ -587,7 +591,7 @@ impl TargetTailView for SimGate<'_> {
         self.sim.ai.armies[self.who as usize].list[self.slot].pos = p;
     }
     fn muster_spot(&mut self, city: i32, _leader: usize) -> bool {
-        let t = crate::combat::Obj::Building(self.sim.cities.cities[city as usize].building);
+        let t = crate::combat::Obj::Building(city as usize);
         self.sim.find_muster_spot(self.who, self.slot, t, false)
     }
     fn close_army(&mut self) {
