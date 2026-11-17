@@ -4058,7 +4058,7 @@ falls 708 → 703. The HDR blend lifts red by 2 to 5 on the nine, but it lifts g
 cyan gains too. At (200, 181), theirs is (71, 134, 156), off (56, 134, 148), HDR (58, 142, 160). Both switches stay
 off; the arms are the journal's. *Coverage:* diff-backed: the card's blend on draws 0–131 (one take). On a
 reading: that 131 carries the sand's vertex colours (§3.18). *Not established:* the nine's red; not the blend (4310, 4327a), the
-water's lit red, the coral's alpha or the sand's filter (4329).
+water's lit red, the coral's alpha, the sand's filter (4329), the grab's match or the bloom (4330).
 
 ## 3.28 The city's buildings against the photograph's colour (item 4245)
 
