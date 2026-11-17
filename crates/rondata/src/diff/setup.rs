@@ -1047,6 +1047,25 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 .herds
                 .iter()
                 .position(|h| Some(h.t) == u.guys.first().and_then(|g| g.kind));
+            // **The animal's own angles** (item 4348, `docs/RENDERER.md`
+            // §3.30): `Herd::create_units@007417f0` turns each animal it
+            // places (a fish to 0, a type 0x19c to a half turn, the rest to
+            // a random degree; `sim::gaia::herd_create_view`), so the start
+            // dump's `UnitData::angle` (`+0x50`), guy 0's `angle` (`+0x18`)
+            // and `dest_angle` (`+0x58`) are not `Unit::init`'s
+            // `0x55555555`. They are installed as `army.rs` installs a
+            // unit's: the heading, the facing, the order's.
+            if let Some(a) = u.angle {
+                unit.movement.heading = sim::movement::Angle(a as i32);
+                unit.movement.facing = unit.movement.heading;
+            }
+            if let Some(a) = u.guys.first().and_then(|g| g.angle) {
+                unit.movement.facing = sim::movement::Angle(a as i32);
+            }
+            unit.movement.frame_facing = unit.movement.facing;
+            if let Some(a) = u.dest_angle {
+                unit.movement.des_angle = sim::movement::Angle(a as i32);
+            }
         }
         // `UnitData::stance` (`sim::units::stance`). A unit stood up from a dump
         // takes the dump's, which is the stronger seed: it carries whatever
