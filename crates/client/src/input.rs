@@ -1242,6 +1242,48 @@ pub struct Roster {
 }
 
 impl Roster {
+    /// **The panel through the leader's predicates** (item 4315,
+    /// `docs/CLIENT_INPUT.md` §32.4): building type `building`'s roster for
+    /// slot `who` on `sim`'s state. So far one predicate of
+    /// `BuildOut::make_options@00629ed0`'s train loop over the units
+    /// `0x32..0x192`: a unit whose line's predecessor (`+0x3c`, the type's
+    /// `FROM`, through `get_graft` when the tribe cannot have it) fails
+    /// `LeaderData::check_predecessor` is not offered, unless the unit
+    /// carries `unit_flags & 0x200` and the leader `has_preq` it. The
+    /// technologies, `can_make` and `disable` are not read yet, and the HUD
+    /// does not ask it: the row's instrument until the filter is whole.
+    #[cfg(test)]
+    pub fn offered(&self, sim: &sim::Sim, who: usize, building: i32) -> Vec<i32> {
+        use rondata::load::{BASE_BUILDTYPES, BASE_UNITTYPES};
+        let all = self
+            .trains
+            .get((building - BASE_BUILDTYPES) as usize)
+            .cloned()
+            .unwrap_or_default();
+        let (tree, setup) = (&sim.tables.tech_tree, &sim.tables.setup);
+        let Some(p) = sim.tech.get(who) else {
+            return all;
+        };
+        all.into_iter()
+            .filter(|&t| {
+                if !(BASE_UNITTYPES..BASE_BUILDTYPES).contains(&t) {
+                    return true;
+                }
+                let t = t as usize;
+                let flags = sim
+                    .tables
+                    .unit_types
+                    .iter()
+                    .find(|u| u.tree == Some(t))
+                    .map_or(0, |u| u.cols.unit_flags);
+                if flags & 0x200 != 0 && tree.has_preq(setup, p, t) {
+                    return true;
+                }
+                tree.check_predecessor(setup, p, tree.get_graft(setup, p, tree.types[t].from))
+            })
+            .collect()
+    }
+
     pub fn new(loaded: &rondata::load::Loaded) -> Roster {
         use rondata::load::{BASE_BUILDTYPES, BASE_TECHTYPES};
         let nb = loaded.build_types.len() as i32;
@@ -9386,8 +9428,20 @@ pub(crate) mod tests {
     /// original offers on ours, and ours seven times as many. Seen red
     /// pinned (0, 0, 0, 0, 0). The packets: run1591 at 6537 (the minted
     /// GreatLakes lobby our walk holds, 9 buildings) and run1640 at 6079
-    /// (run1575's lobby at `DIFFICULTY 4`, tribes 10 and 13, 68).
-    const PANEL_LEADER: (usize, usize, usize, usize, usize) = (0, 77, 295, 295, 2155);
+    /// (run1575's lobby at `DIFFICULTY 4`, tribes 10 and 13, 68). Item 4315
+    /// re-minted it over the minted game's sixteen packets (frames 1 to
+    /// 7195, 110 buildings), run1640 counted apart as
+    /// [`PANEL_LEADER_UNHELD`].
+    const PANEL_LEADER: (usize, usize, usize, usize, usize) = (0, 110, 1238, 1238, 1945);
+
+    /// The packets of a lobby our walk does not hold, counted apart from
+    /// [`PANEL_LEADER`] (item 4315): run1640, run1575's lobby at
+    /// `DIFFICULTY 4`, whose panels can be set against ours only through
+    /// state read off its packet.
+    const PANEL_UNHELD: [&str; 1] = ["run1640"];
+    /// **`PANEL_LEADER_UNHELD`** (item 4315): [`PANEL_LEADER`]'s count over
+    /// the [`PANEL_UNHELD`] packets alone.
+    const PANEL_LEADER_UNHELD: (usize, usize, usize, usize, usize) = (0, 68, 218, 218, 1938);
 
     /// The packets' panels, `~/ron-data/panels/*.tsv` (or
     /// `RON_PANELS_DIR`): per (file, slot, object), the building's type and
@@ -9454,7 +9508,13 @@ pub(crate) mod tests {
             return;
         }
         let mut count = (0, 0, 0, 0, 0);
+        let mut unheld = (0, 0, 0, 0, 0);
         for (file, who, object, building, theirs) in &panels {
+            let count = if PANEL_UNHELD.iter().any(|r| file.starts_with(r)) {
+                &mut unheld
+            } else {
+                &mut count
+            };
             let ours = roster
                 .trains
                 .get((building - rondata::load::BASE_BUILDTYPES) as usize)
@@ -9472,17 +9532,111 @@ pub(crate) mod tests {
             count.4 += ours.len();
             println!(
                 "PANEL {file} who {who} object {object} building {building}: theirs {} {theirs:?}, ours {}, \
-                 theirs not ours {:?}",
+                 theirs not ours {:?}, ours not theirs {:?}",
                 theirs.len(),
                 ours.len(),
                 theirs
                     .iter()
                     .filter(|t| !ours.contains(t))
+                    .collect::<Vec<_>>(),
+                ours.iter()
+                    .filter(|t| !theirs.contains(t))
                     .collect::<Vec<_>>()
             );
         }
-        println!("PANEL_LEADER {count:?}");
+        println!("PANEL_LEADER {count:?}, unheld {unheld:?}");
         assert_eq!(count, PANEL_LEADER);
+        assert_eq!(unheld, PANEL_LEADER_UNHELD);
+    }
+
+    /// **`PANEL_LEADER_WALKED`** (item 4315): [`PANEL_LEADER`]'s count over
+    /// the held packets (every packet but [`PANEL_UNHELD`]'s, all of the
+    /// minted GreatLakes game), ours [`Roster::offered`] on our own walk of
+    /// the minted script at the packet's frame, where [`PANEL_LEADER`]'s
+    /// ours is the static roster.
+    ///
+    /// First count, `check_predecessor` alone: (0, 110, 1238, 1238, 1717),
+    /// ours 1,945 → 1,717 against the static roster on the same packets,
+    /// every type the original offers still on ours. Seen red pinned
+    /// (0, 0, 0, 0, 0).
+    const PANEL_LEADER_WALKED: (usize, usize, usize, usize, usize) = (0, 110, 1238, 1238, 1717);
+
+    /// **The panel through the leader's predicates, on our walk** (item
+    /// 4315): every held packet's buildings, the original's train and
+    /// research types against [`Roster::offered`] on our walk of the minted
+    /// script at that frame, the building found by slot and object id.
+    #[test]
+    fn the_panels_of_the_packets_on_our_walk() {
+        let panels: Vec<_> = panels_on_disk()
+            .into_iter()
+            .filter(|(f, ..)| !PANEL_UNHELD.iter().any(|r| f.starts_with(r)))
+            .collect();
+        let Some(roster) = install_roster() else {
+            println!("skipping: no install");
+            return;
+        };
+        if panels.is_empty() {
+            println!("skipping: no panels on disk (RON_PANELS_DIR, ~/ron-data/panels)");
+            return;
+        }
+        let mut r = match lobby() {
+            Ok(r) => r,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let frame_of = |f: &str| -> i64 { f.rsplit('-').next().unwrap().parse().unwrap() };
+        let mut panels = panels;
+        panels.sort_by_key(|(f, ..)| frame_of(f));
+        let orders = script::script();
+        let mut next = 0;
+        let mut count = (0, 0, 0, 0, 0);
+        for (file, who, object, building, theirs) in &panels {
+            let frame = frame_of(file);
+            while r.frame() < frame {
+                while next < orders.len() && i64::from(orders[next].0) == r.frame() {
+                    r.issue(&orders[next]);
+                    next += 1;
+                }
+                r.step();
+            }
+            let sim = r.sim();
+            let b = sim
+                .buildings
+                .iter()
+                .find(|b| b.alive && b.owner as i32 == *who && i32::from(b.index) == *object)
+                .unwrap_or_else(|| panic!("{file}: no building {who}/{object} on our walk"));
+            assert_eq!(
+                b.ty.map(|t| t as i32 + rondata::load::BASE_BUILDTYPES),
+                Some(*building),
+                "{file}: {who}/{object}'s type"
+            );
+            let ours = roster.offered(sim, *who as usize, *building);
+            if theirs.is_empty() && ours.is_empty() {
+                continue;
+            }
+            count.1 += 1;
+            if *theirs == ours {
+                count.0 += 1;
+            }
+            count.2 += theirs.iter().filter(|t| ours.contains(t)).count();
+            count.3 += theirs.len();
+            count.4 += ours.len();
+            println!(
+                "WALKED {file} who {who} object {object} building {building}: theirs {theirs:?}, \
+                 theirs not ours {:?}, ours not theirs {:?}",
+                theirs
+                    .iter()
+                    .filter(|t| !ours.contains(t))
+                    .collect::<Vec<_>>(),
+                ours.iter()
+                    .filter(|t| !theirs.contains(t))
+                    .collect::<Vec<_>>()
+            );
+        }
+        println!("PANEL_LEADER_WALKED {count:?}");
+        assert_eq!(count, PANEL_LEADER_WALKED);
     }
 
     /// **`INPUT_ROSTER_QUEUES`** (item 4290, `docs/CLIENT_INPUT.md` §32):
