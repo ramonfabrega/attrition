@@ -337,6 +337,8 @@ mod tests {
         );
     }
 
-    /// The sample's word and the frames walked, against run1651's draws.
-    const SAMPLE_WALKED: (i64, i64) = (0, 0);
+    /// The sample's word and the frames walked, against run1651's draws:
+    /// 98 of 21,044 (item 4336, minted; the draw sequences part at their
+    /// second draw on frame 98).
+    const SAMPLE_WALKED: (i64, i64) = (98, 21044);
 }
