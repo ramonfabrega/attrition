@@ -223,6 +223,7 @@ pub(crate) fn walk_take_from(
         }
         crate::diff::harness::debug_watch(&built, at);
         crate::diff::harness::debug_builds(&built, at);
+        crate::diff::harness::debug_armies(&built, at);
         let n = built.sim.frame;
         if let Some((f, ours)) = built.frame_sites.last() {
             let theirs = tr.labels(*f);
