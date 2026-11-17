@@ -213,69 +213,7 @@ pub(crate) fn walk_take_from(
             seed = Some((at, theirs, built.sim.rng.seed));
         }
         stage_frame(&mut built, seats, probes, diplomacy, taunts);
-        // PROBE 4316: `RON_ROAD_WALK=1` compares the road search node for node.
-        let road_walk = std::env::var_os("RON_ROAD_WALK").is_some();
-        if road_walk {
-            built.sim.trace.trace_costs = true;
-            built.sim.trace.road_marks.clear();
-        }
         built.tick();
-        if road_walk {
-            let ours_m = std::mem::take(&mut built.sim.trace.road_marks);
-            let theirs_m = tr.road_nodes(at);
-            if std::env::var("RON_ROAD_WIN").ok().and_then(|v| v.split_once('-').map(|(a, b)| (a.parse::<i64>().unwrap(), b.parse::<i64>().unwrap()))).is_some_and(|(a, b)| (a..=b).contains(&at)) {
-                for c in tr.calls_in(at, crate::trace::call_site::ASTAR_ROAD) {
-                    eprintln!("  THEIRS astar f{at}: this {:x} args {:?} ret {} depth {}", c.this, c.args, c.ret, c.depth);
-                }
-                if std::env::var_os("RON_ROAD_CITIES").is_some() {
-                    for (ci, c) in built.sim.cities.cities.iter().enumerate() {
-                        let b = &built.sim.buildings[c.building];
-                        eprintln!(
-                            "  OURS city f{at} {ci}: alive {} owner {} race {:?} b {} o {} ty {:?} pos {:?} seen-by-1 {} tregion {:?}",
-                            c.alive, c.owner, c.race, c.building, b.index, b.ty, c.pos,
-                            0,
-                            built.sim.world.tregion_alt(c.pos.tile())
-                        );
-                    }
-                }
-                if let Ok(u) = std::env::var("RON_ROAD_UNIT") {
-                    let u: usize = u.parse().unwrap();
-                    if let Some(x) = built.sim.units.get(u) {
-                        eprintln!("  OURS unit f{at} {u}: owner {} pos {:?} caravan {:?} idle {} orders {:?}", x.owner, x.pos, x.caravan, x.idle, x.orders);
-                    }
-                }
-                for (w, cs) in built.sim.economy.caravans.iter().enumerate() {
-                    for (v, c) in cs.slots.iter().enumerate() {
-                        if !c.alive {
-                            continue;
-                        }
-                        let bpos = |ci: Option<usize>| ci.map(|ci| {
-                            let b = built.sim.cities.cities[ci].building;
-                            (ci, b, built.sim.buildings[b].pos)
-                        });
-                        eprintln!(
-                            "  OURS van f{at} {w}/{v}: a {:?} b {:?} unit {:?} making {} reset {} road {} search {:?}",
-                            bpos(c.city_a), bpos(c.city_b), c.unit, c.making_road, c.reset_road, c.road.len(),
-                            c.search.as_ref().map(|s| s.probe_goal())
-                        );
-                    }
-                }
-            }
-            if !(ours_m.is_empty() && theirs_m.is_empty()) {
-                let first = (0..ours_m.len().max(theirs_m.len()))
-                    .find(|&i| ours_m.get(i) != theirs_m.get(i));
-                eprintln!(
-                    "ROAD f{at}: ours {} theirs {} first parting {first:?}",
-                    ours_m.len(),
-                    theirs_m.len()
-                );
-                if let Some(i) = first {
-                    for j in i.saturating_sub(20)..(i + 4).min(ours_m.len().max(theirs_m.len())) {
-                        eprintln!("  node {j}: ours {:?} theirs {:?}", ours_m.get(j), theirs_m.get(j));
-                    }
-                }
-            }
-        }
         // `RON_DEBUG_SITES=<lo>-<hi>`: each draw's owner, as the pairs' walks
         // print it.
         if crate::diff::harness::site_window().is_some_and(|(lo, hi)| (lo..=hi).contains(&at)) {
