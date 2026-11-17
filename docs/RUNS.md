@@ -38230,3 +38230,50 @@ Files in place: `gamelog.txt`, 1,272,747,952 bytes, SHA-256
 
 **What it holds**: `diff::diplomacy_take::run1646_walks_to_its_word_at_difficulty_4` (`RUN1646_WORD` 5496). No leaf is
 released: the walk does not reach the leader window (5900).
+
+## run1652 — the minted file's playback with a packet at 13000: the Pyramids sited, slot 1 under its limit (2026-11-17, item 4343, `att-4343`)
+
+`docs/CLIENT_INPUT.md` §32.8. **What the disk could not answer**: the citizen's build pages on a frame where a slot stands
+under its city limit with a wonder sited. No packet on disk falls in our walk's window for that state, 12783..14312
+(`PAGE_ARMS_HELD` 0, item 4339). The take: run1600's line moved to 13000, `--end-frame 13003 --log-window 12999 13002
+--timeout 4200 --tracer-def RON_STATE_FRAME=13000`, the rest as run1600 (the item4059 file, `--cover cover=1 --detail
+end:MISC --stall-seconds 120 --tracer-def RON_CHECKSUMS`, its `RON_STATE_PLAN`), through `viadriver.sh golden_capture.sh
+~/ron-golden/run1652`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 2, launched 11:48:49 −05:00, exited 12:09:53: **1,263.4 s launch to exit**, exit 0, `success`, 13,004
+  frames, `last_frame` 13003, seed 12345, no page fault, no relaunch. `df -g ~` read 188 GB free before it. Minutes
+  waited on another lane: none (run1653 ran beside it on lane 3).
+- The packet at logger frame 13000, trace frame 12999, `frame-snapshot.bin`, 834,223,364 bytes, SHA-256
+  `86b7811da50390193584f8cf22428d916915dc009402d6e020fdecb747a023fd`. `checksum.py --stream --values`: the stream's
+  sums equal the original's on every line; units 3179595795. Kept under
+  `~/ron-data/lab-experiments/2026-11-13-item-4214/run1652/`.
+- `panels.py --citizens`, `--citizens --standard` and `--turns` on it, each exit 0, to `~/ron-data/pages/`,
+  `pages-standard/` and `pages-turns/run1652.tsv`.
+- Filed with `filerun.py run1652 greatlakes-playback-of-minted-packet-13000`.
+
+Archive `gamelog-run1652-greatlakes-playback-of-minted-packet-13000.txt`, 2,453 bytes,
+SHA-256 `ffe7c81f229183b6fdb6413427c175c62f473707da99cdf05b1a05d2ed083439`; `rontrace-run1652.log`, 61,667,392 bytes,
+SHA-256 `f234488410ae24f77e8d9ac52036e8f65f9deafa44c1d38404e4e1d22e551d8e`.
+
+**What it holds**: the build pages' site arm and city-limit arm, held by the original (`HUD_PAGES_WALKED`, `PAGE_ARMS_HELD`).
+
+## run1653 — the minted file's playback with a packet at 14400: the Pyramids built (2026-11-17, item 4343, `att-4343`)
+
+`docs/CLIENT_INPUT.md` §32.8. **What the disk could not answer**: the build pages on a frame after a wonder is built
+(`already_built`), our walk's 14312 onward; no packet on disk falls there. The take: run1652's line moved to 14400,
+`--end-frame 14403 --log-window 14399 14402 --timeout 4600 --tracer-def RON_STATE_FRAME=14400`, through `viadriver.sh
+golden_capture.sh ~/ron-golden/run1653`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 3, launched 11:49:00 −05:00, exited 12:06:23: **1,042.4 s launch to exit**, exit 0, `success`, 14,404
+  frames, `last_frame` 14403, seed 12345, no page fault, no relaunch. Minutes waited on another lane: none.
+- The packet at logger frame 14400, trace frame 14399, `frame-snapshot.bin`, 835,730,692 bytes, SHA-256
+  `8b277489e8aa42b9fe8d067ffe2dc28842d857d4ad9a88af6ea5df61d48669ea`. `checksum.py --stream --values`: the stream's
+  sums equal the original's on every line; units 2655854797. Kept under
+  `~/ron-data/lab-experiments/2026-11-13-item-4214/run1653/`.
+- `panels.py --citizens`, `--citizens --standard` and `--turns` on it, each exit 0, as run1652's.
+- Filed with `filerun.py run1653 greatlakes-playback-of-minted-packet-14400`.
+
+Archive `gamelog-run1653-greatlakes-playback-of-minted-packet-14400.txt`, 2,451 bytes,
+SHA-256 `d3f25d3c4d49d9d34ddffc0a36641e17979bbf1491669a51e363d79c3d5352c2`; `rontrace-run1653.log`, 74,039,680 bytes,
+SHA-256 `f6d32a21d198bb4b57081db9be53d5cca10681ad55df074566a66e13726248ca`.
+
+**What it holds**: the build pages' `already_built` arm for both slots and slot 1's city-limit arm, held by the
+original.
