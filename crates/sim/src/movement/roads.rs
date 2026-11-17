@@ -127,6 +127,13 @@ pub struct RoadSearch {
     goal: (i32, i32),
 }
 
+impl RoadSearch {
+    /// PROBE 4316.
+    pub fn probe_goal(&self) -> ((i32, i32), usize) {
+        (self.goal, self.nodes.len())
+    }
+}
+
 /// What one call of the search came back with.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RoadPlan {

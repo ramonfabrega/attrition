@@ -223,6 +223,27 @@ pub(crate) fn walk_take_from(
         if road_walk {
             let ours_m = std::mem::take(&mut built.sim.trace.road_marks);
             let theirs_m = tr.road_nodes(at);
+            if (2060..=2082).contains(&at) {
+                for c in tr.calls_in(at, crate::trace::call_site::ASTAR_ROAD) {
+                    eprintln!("  THEIRS astar f{at}: this {:x} args {:?} ret {} depth {}", c.this, c.args, c.ret, c.depth);
+                }
+                for (w, cs) in built.sim.economy.caravans.iter().enumerate() {
+                    for (v, c) in cs.slots.iter().enumerate() {
+                        if !c.alive {
+                            continue;
+                        }
+                        let bpos = |ci: Option<usize>| ci.map(|ci| {
+                            let b = built.sim.cities.cities[ci].building;
+                            (ci, b, built.sim.buildings[b].pos)
+                        });
+                        eprintln!(
+                            "  OURS van f{at} {w}/{v}: a {:?} b {:?} unit {:?} making {} reset {} road {} search {:?}",
+                            bpos(c.city_a), bpos(c.city_b), c.unit, c.making_road, c.reset_road, c.road.len(),
+                            c.search.as_ref().map(|s| s.probe_goal())
+                        );
+                    }
+                }
+            }
             if !(ours_m.is_empty() && theirs_m.is_empty()) {
                 let first = (0..ours_m.len().max(theirs_m.len()))
                     .find(|&i| ours_m.get(i) != theirs_m.get(i));
