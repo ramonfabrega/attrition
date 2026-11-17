@@ -238,6 +238,12 @@ pub(crate) fn walk_take_from(
                         );
                     }
                 }
+                if let Ok(u) = std::env::var("RON_ROAD_UNIT") {
+                    let u: usize = u.parse().unwrap();
+                    if let Some(x) = built.sim.units.get(u) {
+                        eprintln!("  OURS unit f{at} {u}: owner {} pos {:?} caravan {:?} idle {} orders {:?}", x.owner, x.pos, x.caravan, x.idle, x.orders);
+                    }
+                }
                 for (w, cs) in built.sim.economy.caravans.iter().enumerate() {
                     for (v, c) in cs.slots.iter().enumerate() {
                         if !c.alive {
