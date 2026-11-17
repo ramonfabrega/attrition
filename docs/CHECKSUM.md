@@ -2885,18 +2885,16 @@ diff (`RECORD_PARTINGS`, `flags` byte 2): 101, leader 1, ours `80`, theirs `88`;
 whole after. Minted: run1586 (189) whole on leaders (leader 0's `00`|`08`). `PACKETS_SCORE` **467 → 482**: 15
 packets whole on leaders, 32 more on fewer ranges, none on more. 35 frames were left (item 4333, below).
 
-**Item 4333 emits the two stats bits** (`wall_stats_dirty`, `unit_stats_dirty`; cleared at the slot's step,
-`process_all:39`, `:43`, as here). Two over-raises of
-`0x4000000` went with it. **The direction there: ours acted.** `gain_tech`'s unit arm raises it only for
-`is(MILITIA 0x42, 0)` (`6dd988`) and leaves past the tail (`:883`); 11884's Hoplites' successor parted, `07`|`03`.
-Frame 0 parts the same way, `0e`|`0a`, and stays a **named divergence**: `Leader::init` lays the opening tree down
-without `gain_tech`, but keeping the bits off there took the crate's first `calc_unit_stats` away, and every Bantu
-lobby parted (the crate's opening units take the Bantu speed there). **run1578 23,965 → 23,999 of 24,000**; run1577
-stays 119. The value diff (`RECORD_PARTINGS`, byte 3, ours|theirs): 167 and 297 `02`|`0a`, 202 `03`|`0f`, 14312
-`02`|`0e`, all whole; 0 stays 16 ranges, its flags byte `02`|`0a` → `0e`|`0a`. run1591, run1592 whole on leaders; `PACKETS_SCORE` 482. **Frame 0 alone is
-left**: that byte, and the setup census's leaves (`defense`, `ally_mask`, `reg_cities[1]`, two `encrypt` words), 0 on ours, which
-theirs' setup `check_all` holds. Not established: which setup call takes that census. The rest is item 4333's
-journal.
+**Item 4333 emits the two stats bits** (`wall_stats_dirty`, `unit_stats_dirty`; cleared at `process_all:39`, `:43`).
+**Ours acted**: `gain_tech`'s unit arm raises `0x4000000` only for `is(MILITIA 0x42, 0)` (`6dd988`). run1578 23,965 →
+23,999 (byte 3, ours|theirs: 167 and 297 `02`|`0a`, 202 `03`|`0f`, 14312 `02`|`0e`, all whole); journal 4333.
+
+**Item 4340 closes frame 0: run1578 23,999 → 24,000 of 24,000, run1577 119 → 120 of 120; the leaders line is
+whole on the minted game.** The setup's 16 ranges, ours|theirs: byte 3 `0e`|`0a` (`Leader::init` lays the tree
+down in place; the bits are kept, and the dump-built start births a unit at `type_speed`, run972's Bantu Citizens
+31, Scout 42); leader 0's `defense` 0|2 (`Build::init`/`activate` are ungated: a human's moves); `ally_mask` 0|1,
+0|2 (`Leader::init:178`'s own bit, `:229` each ally under `reveal_map`); `reg_cities[1]` 0|1 (`City::init`'s add on
+an unsized census); `resource_cap[0..5]` 0|1,120 (`:289`, `commerce_cap[0] << 4`). All whole; journal 4340.
 
 ## 25.5 How it was established, and what it has not established
 

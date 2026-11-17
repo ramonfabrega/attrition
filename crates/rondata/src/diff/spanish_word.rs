@@ -389,5 +389,6 @@ fn run958f_s_word_frame_is_widened_whole() {
     // Item 4189: 34 -> 32, −2 on the closing block 22701, now ours 0 = theirs
     // 0: who=1's `num_queued[541]` and `1/2024`'s `queue:queued` (ours 1
     // each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2).
-    pin_eq!(w.firsts.len(), 29, "run958f with decoys out of the tally");
+    // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
+    pin_eq!(w.firsts.len(), 28, "run958f with decoys out of the tally");
 }
