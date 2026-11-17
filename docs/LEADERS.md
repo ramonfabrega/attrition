@@ -2513,7 +2513,14 @@ are `leaders::taunt::tests`.
   `incoming_taunt_frame`, `incoming`), released on the packet at 1090:
   the accept of 1027 before it is computed (§8.3).
   `incoming_taunt_who` is held, emitted unheld and stays on the list:
-  every walked sender is who 0, the reset value.
+  every walked sender is who 0, the reset value. **A sender off slot 0
+  is seatable** (item 4299's first act): the profile's `LAST_WHO0`,
+  swapped with `LAST_WHO1` (`unattended_capture.py --human-who 1`), seats
+  the human at who 1, the French at 0 and the Russians at 2, as
+  `setup_game@005b3860`'s solo counter says. On recon4299-1 (unfiled,
+  run1575's lobby without the script), our walk holds 1300 of 1300 from
+  its own start and from the built start; seated at who 0 the same trace
+  parts on frame 0. The take is next: an ally, a resource taunt, a packet.
 
 ### 9.4 Reached by a plain game
 

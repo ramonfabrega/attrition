@@ -211,6 +211,34 @@ class RunnerTest(unittest.TestCase):
             path.write_bytes(original)
             with self.assertRaises(ValueError):runner.set_seat_tribes(profile,bad)
 
+    def test_a_reseated_human_swaps_the_colour_column_and_reads_its_seats_back(self):
+        # Item 4299: `--human-who 1` writes LAST_WHO0 1 and LAST_WHO1 0 (each
+        # found once, so `--profile` cannot), and the read-back follows
+        # `setup_game`'s solo counter: slot 1 is who 0, slot 2 who 2.
+        self.assertEqual(runner.solo_whos(0, 3), [0, 1, 2])
+        self.assertEqual(runner.solo_whos(1, 3), [1, 0, 2])
+        self.assertEqual(runner.solo_whos(3, 5), [3, 0, 1, 2, 4])
+        profile=self.root/'profile';(profile/'PlayerProfile').mkdir(parents=True)
+        path=profile/'PlayerProfile'/'Player.dat'
+        original=b'<LAST_WHO0 value="0"/><LAST_WHO1 value="1"/><LAST_WHO2 value="2"/>'
+        path.write_bytes(original)
+        runner.set_human_who(profile,1)
+        self.assertEqual(path.read_bytes(),b'<LAST_WHO0 value="1"/><LAST_WHO1 value="0"/><LAST_WHO2 value="2"/>')
+        path.write_bytes(original+original)
+        with self.assertRaises(ValueError):runner.set_human_who(profile,1)
+        log=self.root/'gamelog.txt'
+        log.write_text(
+            ' BEGIN GAMEINFO\n  PLAYERS 2\n'
+            '  BEGIN PLAYER\n   flags 7\n   tribe 4\n   who 1\n  BEGIN PLAYER\n   flags 1\n   tribe 10\n   who 0\n'
+            '  BEGIN PLAYER\n   flags 1\n   tribe 13\n   who 2\n'
+            'BEGIN GAME\n MAP_STYLE 18\n (int)seed 12345\nBEGIN FRAME 37\n GameInfo closing\n')
+        got=runner.verify_game(log,18,36,12345,seat_tribes=[(1,10),(2,13)],seats=3,human_who=1)
+        self.assertEqual(len(got['players']),3)
+        with self.assertRaisesRegex(ValueError,'human seat'):
+            runner.verify_game(log,18,36,12345,human_who=0)
+        with self.assertRaisesRegex(ValueError,'seat tribe'):
+            runner.verify_game(log,18,36,12345,seat_tribes=[(1,10),(2,13)])
+
     def test_ai_nation_edit_requires_one_computer_slot_and_changes_only_its_tribe(self):
         profile=self.root/'profile';(profile/'PlayerProfile').mkdir(parents=True)
         path=profile/'PlayerProfile'/'Player.dat'
