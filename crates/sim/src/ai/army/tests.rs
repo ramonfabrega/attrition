@@ -2034,12 +2034,13 @@ fn an_enemy_fort_draws_after_its_owner_s_cities() {
 #[test]
 fn a_near_fort_of_an_old_enemy_is_the_target() {
     let (mut sim, slot, fort) = sim_with_rival_fort(2, 0x600);
-    // Nothing else worth having: the enemy's city gone, mine quiet and
-    // without a muster spot (`/ 20`), and on the first pass (`/ 3`).
+    // The enemy's city gone; mine quiet on the first pass (`/ 3`): about
+    // 300 to 366 against the fort's 600 to 733 at three ages, two cells
+    // off (`/ 3`) with no city (`/ 2`) — and 150 to 183 were the ages
+    // not multiplied in.
     let enemy = sim.cities.cities.len() - 1;
     sim.cities.cities[enemy].alive = false;
     sim.cities.cities[0].no_heal = false;
-    sim.cities.cities[0].no_muster = true;
     sim.tech[0].ages = 3;
     sim.find_target(1, slot);
     assert_eq!(
@@ -2052,7 +2053,6 @@ fn a_near_fort_of_an_old_enemy_is_the_target() {
     let enemy = sim.cities.cities.len() - 1;
     sim.cities.cities[enemy].alive = false;
     sim.cities.cities[0].no_heal = false;
-    sim.cities.cities[0].no_muster = true;
     sim.tech[0].ages = 3;
     sim.find_target(1, slot);
     assert_ne!(
