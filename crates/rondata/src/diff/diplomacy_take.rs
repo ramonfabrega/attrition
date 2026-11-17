@@ -1926,8 +1926,12 @@ pub(crate) fn recon4300_2() -> Option<(String, String)> {
 /// (run1482's frame words installed over a Tough game), 1750 at the third
 /// (those words dropped; the Russian `2/23` left idle by a recruit whose
 /// ring found no spot), **4202** at the fourth (a `QUEUE_NEW` swarm clears
-/// only once a spot is found, [`sim::Sim::swarm_around_new`]).
-pub(crate) const RECON4300_2_WORD: i64 = 4202;
+/// only once a spot is found, [`sim::Sim::swarm_around_new`]); **4801**
+/// (+599, item 4325) with `calc_cost`'s diplomacy wall, the same lobby's
+/// style 0 (`docs/PATHFINDER.md` §5). The next parting, on 4801, is ours 32
+/// draws to theirs' 31 at index 10 (ours `Unit::move_step+0x823`, theirs
+/// `Guy::move+0x19f`); not read.
+pub(crate) const RECON4300_2_WORD: i64 = 4801;
 
 /// A recon of run1575's lobby, walked from run1482's start re-read at style
 /// 0 and at `difficulty`, with `script` staged and no window command (item
