@@ -34,7 +34,6 @@ use crate::{Player, Sim};
 ///
 /// | seam | stands in for | what it costs |
 /// | --- | --- | --- |
-/// | `find_target`'s forts | §12's second scan | never a fort target |
 /// | `pop_issues`, `wonderwin_timer`, `score`, `num_wonders`, `GLOBAL_GOVERNMENT_BONUS`, `weak[]`/`strong[]`, the tribute period | leader and city fields the sim does not keep | the multipliers they gate are ×1; a leader at peace is never a target |
 /// | `is(SUPPLYWAGON)` | the lineage test behind `num_standard` and the caps | `unit_flags2 & 0x40` without `0x20` — the supply-or-hero bit less the generals; a government patriot `FROM General` (The Despot) carries both and is not counted, as the lineage would not count it. The *joiner's* arm in the caps is `is_supply` alone (`army_admits`, §213 of `docs/AI.md`) |
 /// | `leader_flags & 8`, `leader_flags2 & 8` | the two stop bits (§18) | never set |
@@ -65,6 +64,9 @@ const SCOUT: crate::tech::TypeId = 0x45;
 /// was named until item 317; the draws themselves were always made.
 pub const SITE_FIND_TARGET_COIN: &str = "Army::find_target+0x410";
 pub const SITE_FIND_TARGET_SCORE: &str = "Army::find_target+0x7df";
+/// `find_target`'s third: the forts pass's `% 200 + 900`, the call at
+/// `6f8026` returning to `6f802b` (item 4341, [`target_forts`]).
+pub const SITE_FIND_TARGET_FORT: &str = "Army::find_target+0x167b";
 
 pub const SITE_COME_OUT: &str = "Unit::come_out+0x25ca";
 /// `Unit::come_out+0x25b0` — the naval-scout arm's coin, `% 3`.
@@ -1713,15 +1715,17 @@ impl Sim {
         who as usize
     }
 
-    /// `Army::find_target` over cities. The forts pass and the fields the
-    /// sim lacks are seams; see the module doc.
+    /// `Army::find_target` over each leader's cities, then its forts
+    /// ([`target_forts`]). The fields the sim lacks are seams; see the
+    /// module doc. The best is carried by its building, the object the
+    /// original keeps in `local_2c`.
     pub fn find_target(&mut self, who: Player, slot: usize) {
         use crate::ai::army::target_gate::{
             SimGate, target_city_gate, target_head, target_leader_gate,
         };
         use crate::ai::army::target_score::{Ctx, target_score, target_tail};
         // `epoch[0] ^ 0x63187`, the Military library level, is read at every
-        // site below (§12); the forts pass's `ages ^ 0x62766` is a seam.
+        // site below (§12); the forts pass reads `L.ages ^ 0x62766`.
         // The head (`target_gate::target_head`, swept against the original
         // in `sweep/army_find_target.rs`): the weak test — a land army is
         // weak with fewer than four of hoplites, siege twice and
@@ -1811,15 +1815,22 @@ impl Sim {
                         continue;
                     };
                     if best.is_none_or(|(bv, _, _)| bv <= v) {
-                        best = Some((v, c, ip));
+                        best = Some((v, self.cities.cities[c].building, ip));
                     }
                 }
+                // The forts pass (`6f7f01..6f81ed`), after this leader's
+                // cities and on the same best.
+                let fctx = target_forts::FortsCtx {
+                    siege: self.army_count_siege(who, slot),
+                    supply: head.supply,
+                };
+                self.target_forts(who, slot, ip, fctx, &mut best);
             }
             if best.is_some() {
                 break;
             }
         }
-        let Some((_, c, tw)) = best else { return };
+        let Some((_, b, tw)) = best else { return };
         // The tail (`target_score::target_tail`): the hurry, the probe of the
         // easiest AI against a human (`docs/ARMY.md` §12, `docs/COMBAT.md`
         // §17; the whole of Great Lakes' frame 8186, where the long word
@@ -1833,7 +1844,7 @@ impl Sim {
                 slot,
             },
             tw as usize,
-            c as i32,
+            b as i32,
         );
     }
 
@@ -1895,7 +1906,7 @@ impl Sim {
         &mut self,
         who: Player,
         slot: usize,
-        c: usize,
+        b: usize,
         tw: Player,
         frame: i64,
     ) {
@@ -1917,7 +1928,7 @@ impl Sim {
         if !self.push_group(&mut g, true) {
             return;
         }
-        let target = Obj::Building(self.cities.cities[c].building);
+        let target = Obj::Building(b);
         let tpos = self.pos_of(target);
         let farm = if self.ai.ai[tw as usize].census.combat == 0 {
             self.find_probe_farm(tpos, tw)
@@ -3694,5 +3705,6 @@ pub mod army_normalize_view;
 pub mod army_process_view;
 pub mod besieged_view;
 pub mod muster;
+pub mod target_forts;
 pub mod target_gate;
 pub mod target_score;
