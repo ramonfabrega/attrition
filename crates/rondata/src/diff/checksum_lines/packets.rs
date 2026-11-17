@@ -1172,7 +1172,12 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// run1011d, run1011e, run1015b, run985b and run991d (271 ranges, 1 → 0
 /// each), and parts on one range fewer on 23 more, none on more: 31
 /// ranges fewer over 31 rows, all in the leaders slot.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 466, 1053);
+/// **467** at item 4328, `reg_unpack_merch` (`+0x5d4`) leaving a packed
+/// merchant out (`plan_strategy:654`–`660`; it counted every merchant):
+/// the leaders line agrees on run973g (271 ranges, 1 → 0), and parts on
+/// one range fewer on 38 more, none on more: 39 ranges fewer over 39
+/// rows, all in the leaders slot.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 467, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1579,6 +1584,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: builds (2371, 2371, 7) -> (2371, 2371, 4).
     // Item 4266, a guard order's walker: units (4193, 4022, 3120) -> (4193, 4187, 2787).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1155c",
         3003,
@@ -1590,7 +1596,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (550, 550, 1),
             (1129, 1129, 1),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (75, 75, 0),
             (120, 120, 0),
@@ -1638,6 +1644,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (6053, 5629, 5302) -> (6053, 5629, 5301); guys (1321, 1321, 4) -> (1321, 1321, 3).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 2) -> (550, 550, 1).
     // Item 4266, a guard order's walker: units (6053, 5629, 5301) -> (6053, 5923, 4240).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 6) -> (271, 271, 5).
     (
         "run1164",
         4528,
@@ -1649,7 +1656,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (550, 550, 1),
             (1321, 1321, 3),
-            (271, 271, 6),
+            (271, 271, 5),
             (30, 30, 0),
             (75, 75, 0),
             (120, 120, 0),
@@ -1676,6 +1683,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (2267, 2266, 382) -> (2267, 2266, 381).
     // Item 4266, a guard order's walker: units (6004, 5962, 4704) -> (6004, 6001, 4367).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1165",
         3719,
@@ -1687,7 +1695,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (676, 676, 1),
             (1890, 1890, 1),
-            (271, 271, 3),
+            (271, 271, 2),
             (30, 30, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -1714,6 +1722,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (2247, 2246, 440) -> (2247, 2246, 439).
     // Item 4266, a guard order's walker: units (6004, 5962, 4742) -> (6004, 6001, 4403).
     // Item 4159's twelfth residue, the CEO's tile step dirties the economy: leaders (271, 271, 7) -> (271, 271, 4).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     (
         "run1166",
         3920,
@@ -1725,7 +1734,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (10, 0, 10),
             (688, 688, 1),
             (1935, 1935, 2),
-            (271, 271, 4),
+            (271, 271, 3),
             (30, 30, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -1751,6 +1760,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1813, 1813, 14) -> (1813, 1813, 13).
     // Item 4266, a guard order's walker: units (7749, 7737, 5512) -> (7749, 7740, 5515).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1169",
         3769,
@@ -1762,7 +1772,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (628, 628, 5),
             (1934, 1934, 11),
-            (271, 271, 3),
+            (271, 271, 2),
             (27, 27, 0),
             (20, 20, 0),
             (330, 330, 0),
@@ -1790,6 +1800,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (1911, 1911, 5) -> (1911, 1911, 3).
     // Item 4266, a guard order's walker: units (6735, 6657, 5586) -> (6735, 6732, 3976).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1185",
         4582,
@@ -1801,7 +1812,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (640, 640, 4),
             (1962, 1962, 7),
-            (271, 271, 3),
+            (271, 271, 2),
             (27, 27, 0),
             (5, 5, 0),
             (330, 330, 0),
@@ -1895,6 +1906,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 2) -> (550, 550, 1).
     // Item 4266, a guard order's walker: units (4091, 3851, 3098) -> (4091, 4064, 3095).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1220b",
         2976,
@@ -1906,7 +1918,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (550, 550, 1),
             (1099, 1099, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (90, 90, 0),
             (120, 120, 0),
@@ -1970,6 +1982,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159r14, the Mongol stable arm of `get_cost`: builds (4271, 4271, 21) -> (4271, 4271, 13),
     // leaders (271, 271, 6) -> (271, 271, 4) (`encrypt.bucket[0]`/`[1]` agree).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1224b",
         9745,
@@ -1981,7 +1994,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (556, 556, 0),
             (2735, 2735, 0),
-            (271, 271, 3),
+            (271, 271, 2),
             (62, 62, 0),
             (30, 30, 0),
             (120, 120, 0),
@@ -2005,6 +2018,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (1733, 1733, 1) -> (1733, 1733, 0).
     // Item 4266, a guard order's walker: units (7490, 7376, 6434) -> (7490, 7412, 6594).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1235b",
         4127,
@@ -2016,7 +2030,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (646, 646, 7),
             (2097, 2097, 6),
-            (271, 271, 3),
+            (271, 271, 2),
             (30, 30, 1),
             (15, 15, 0),
             (330, 330, 0),
@@ -2040,6 +2054,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a caravan's `unit_masks & 0x200`: units (6610, 6610, 152) -> (6610, 6610, 149).
     // Item 4238, the age's seating writes each figure's `last`: units (6610, 6610, 149) -> (6610, 6610, 116); guys (2070, 2070, 33) -> (2070, 2070, 0).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1236",
         4179,
@@ -2051,7 +2066,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (658, 658, 4),
             (2070, 2070, 0),
-            (271, 271, 3),
+            (271, 271, 2),
             (44, 44, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -2075,6 +2090,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (538, 538, 1) -> (538, 538, 0).
     // Item 4266, a guard order's walker: units (3448, 3274, 2558) -> (3448, 3436, 2641).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1237",
         2674,
@@ -2086,7 +2102,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (538, 538, 0),
             (892, 892, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (85, 85, 0),
             (120, 120, 0),
@@ -2147,6 +2163,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (5942, 5897, 4766) -> (5942, 5897, 4764).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (622, 622, 6) -> (622, 622, 5).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1247",
         4306,
@@ -2158,7 +2175,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (622, 622, 5),
             (1748, 1748, 1),
-            (271, 271, 3),
+            (271, 271, 2),
             (38, 38, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -2183,6 +2200,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4260, a trackless crew's `last_angle` after guy 0's turn: guys (1134, 1134, 2) -> (1134, 1134, 0).
     // Item 4266, a guard order's walker: units (4388, 4085, 3383) -> (4388, 4340, 3257).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1254c",
         3115,
@@ -2194,7 +2212,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (550, 550, 0),
             (1134, 1134, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (85, 85, 0),
             (120, 120, 0),
@@ -2299,6 +2317,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (3796, 3796, 14) -> (3796, 3796, 11).
     // Item 4266, a guard order's walker: units (11161, 11053, 7561) -> (11161, 11131, 7339).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1266c",
         8700,
@@ -2310,7 +2329,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (682, 682, 8),
             (3210, 3210, 9),
-            (271, 271, 3),
+            (271, 271, 2),
             (54, 54, 0),
             (5, 5, 0),
             (330, 330, 0),
@@ -2335,6 +2354,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (1908, 1908, 5) -> (1908, 1908, 3).
     // Item 4266, a guard order's walker: units (4744, 4420, 3684) -> (4744, 4693, 3664).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1268",
         3347,
@@ -2346,7 +2366,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (544, 544, 0),
             (1246, 1246, 1),
-            (271, 271, 3),
+            (271, 271, 2),
             (30, 30, 0),
             (90, 90, 0),
             (120, 120, 0),
@@ -2371,6 +2391,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1938, 1938, 6) -> (1938, 1938, 4).
     // Item 4262, a wonder's entry in its wonder list: builds (1938, 1938, 4) -> (1938, 1938, 2).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1293",
         3606,
@@ -2382,7 +2403,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (586, 586, 4),
             (2191, 2191, 11),
-            (271, 271, 3),
+            (271, 271, 2),
             (25, 25, 0),
             (20, 20, 0),
             (330, 330, 0),
@@ -2637,6 +2658,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (1918, 1918, 11) -> (1918, 1918, 9).
     // Item 4266, a guard order's walker: units (7276, 7198, 6063) -> (7276, 7237, 5305).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1324c",
         4904,
@@ -2648,7 +2670,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (676, 676, 9),
             (2055, 2055, 9),
-            (271, 271, 3),
+            (271, 271, 2),
             (27, 27, 0),
             (20, 20, 0),
             (330, 330, 0),
@@ -2714,6 +2736,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (2161, 2161, 5) -> (2161, 2161, 3).
     // Item 4266, a guard order's walker: units (6268, 6256, 5145) -> (6268, 6259, 5141).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1326",
         4567,
@@ -2725,7 +2748,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 4),
             (1993, 1993, 10),
-            (271, 271, 3),
+            (271, 271, 2),
             (30, 30, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -2750,6 +2773,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (4230, 4230, 19) -> (4230, 4230, 16).
     // Item 4266, a guard order's walker: units (13393, 12535, 12067) -> (13393, 13375, 4046).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1327",
         10930,
@@ -2761,7 +2785,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (574, 574, 2),
             (3459, 3459, 10),
-            (271, 271, 3),
+            (271, 271, 2),
             (59, 59, 0),
             (25, 25, 0),
             (180, 180, 0),
@@ -2784,6 +2808,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (2354, 2354, 7) -> (2354, 2354, 5).
     // Item 4266, a guard order's walker: units (5746, 5407, 4694) -> (5746, 5653, 4838).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1332a",
         3627,
@@ -2795,7 +2820,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (14, 0, 14),
             (580, 580, 5),
             (1463, 1463, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (30, 30, 0),
             (80, 80, 0),
             (180, 180, 0),
@@ -2896,6 +2921,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: builds (1836, 1836, 5) -> (1836, 1836, 3).
     // Item 4266, a guard order's walker: units (3610, 3439, 2704) -> (3610, 3595, 2753).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1355",
         2933,
@@ -2907,7 +2933,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (556, 556, 2),
             (902, 902, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (80, 80, 0),
             (120, 120, 0),
@@ -2933,6 +2959,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (5707, 5434, 4595) -> (5707, 5701, 4203).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4320, the score's dirty bits (`0x800000`, `0x1000000`) emitted, leader 1's 0x800003 agreeing: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1357",
         3439,
@@ -2944,7 +2971,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (568, 568, 2),
             (1427, 1427, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
@@ -2970,6 +2997,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (2974, 2974, 29) -> (2974, 2974, 25).
     // Item 4266, a guard order's walker: units (6464, 6137, 5631) -> (6464, 6455, 3439).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     (
         "run1359",
         5619,
@@ -2981,7 +3009,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (568, 568, 3),
             (1584, 1584, 3),
-            (271, 271, 4),
+            (271, 271, 3),
             (48, 48, 0),
             (60, 60, 0),
             (120, 120, 0),
@@ -3009,6 +3037,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (2974, 2974, 29) -> (2974, 2974, 25).
     // Item 4266, a guard order's walker: units (6408, 6102, 5552) -> (6408, 6399, 3362).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     (
         "run1359b",
         5677,
@@ -3020,7 +3049,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (556, 556, 3),
             (1598, 1598, 3),
-            (271, 271, 4),
+            (271, 271, 3),
             (48, 48, 0),
             (55, 55, 0),
             (120, 120, 0),
@@ -3048,6 +3077,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (2974, 2974, 29) -> (2974, 2974, 25).
     // Item 4266, a guard order's walker: units (6407, 6101, 5553) -> (6407, 6398, 3362).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     (
         "run1359c",
         5678,
@@ -3059,7 +3089,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (556, 556, 3),
             (1598, 1598, 3),
-            (271, 271, 4),
+            (271, 271, 3),
             (48, 48, 0),
             (55, 55, 0),
             (120, 120, 0),
@@ -3087,6 +3117,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (6810, 6393, 5699) -> (6810, 6783, 5665).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2544, 2544, 19) -> (2544, 2544, 3), leaders (271, 271, 8) -> (271, 271, 4).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1361",
         4840,
@@ -3098,7 +3129,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (556, 556, 0),
             (1847, 1847, 0),
-            (271, 271, 3),
+            (271, 271, 2),
             (37, 37, 0),
             (50, 50, 0),
             (180, 180, 0),
@@ -3160,6 +3191,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: builds (2015, 2015, 6) -> (2015, 2015, 3).
     // Item 4266, a guard order's walker: units (5014, 4759, 4043) -> (5014, 5002, 3308).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1382",
         3228,
@@ -3171,7 +3203,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (544, 544, 0),
             (1349, 1349, 0),
-            (271, 271, 3),
+            (271, 271, 2),
             (20, 20, 0),
             (70, 70, 0),
             (180, 180, 0),
@@ -3377,6 +3409,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: builds (2033, 2033, 5) -> (2033, 2033, 4).
     // Item 4266, a guard order's walker: units (4406, 4196, 3404) -> (4406, 4391, 3423).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1419b",
         3212,
@@ -3388,7 +3421,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (544, 544, 1),
             (1231, 1231, 0),
-            (271, 271, 3),
+            (271, 271, 2),
             (27, 27, 0),
             (60, 60, 0),
             (180, 180, 0),
@@ -3414,6 +3447,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (2515, 2513, 686) -> (2515, 2513, 685).
     // Item 4266, a guard order's walker: units (5583, 5231, 4617) -> (5583, 5423, 1536).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1420",
         4586,
@@ -3425,7 +3459,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (8, 0, 8),
             (544, 544, 0),
             (1327, 1327, 1),
-            (271, 271, 3),
+            (271, 271, 2),
             (38, 38, 0),
             (70, 70, 0),
             (180, 180, 0),
@@ -3451,6 +3485,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: builds (2025, 2025, 4) -> (2025, 2025, 3).
     // Item 4266, a guard order's walker: units (4129, 3928, 3110) -> (4129, 4102, 3132).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1424",
         3156,
@@ -3462,7 +3497,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (550, 550, 2),
             (1138, 1138, 1),
-            (271, 271, 3),
+            (271, 271, 2),
             (27, 27, 0),
             (90, 90, 0),
             (180, 180, 0),
@@ -3484,6 +3519,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (4175, 4001, 3196) -> (4175, 4001, 3194).
     // Item 4244, a mine's `mtn`: builds (2266, 2265, 805) -> (2266, 2265, 804).
     // Item 4266, a guard order's walker: units (4175, 4001, 3194) -> (4175, 4169, 3190).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     (
         "run1426b",
         3722,
@@ -3495,7 +3531,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (544, 544, 1),
             (1227, 1227, 5),
-            (271, 271, 4),
+            (271, 271, 3),
             (27, 27, 0),
             (80, 80, 0),
             (180, 180, 0),
@@ -3519,6 +3555,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4253, the scholar's seating `set_angle(0, _, 1)`: units (4789, 4343, 3880) -> (4789, 4343, 3879); guys (1208, 1208, 7) -> (1208, 1208, 6).
     // Item 4266, a guard order's walker: units (4789, 4343, 3879) -> (4789, 4520, 3877).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 6) -> (271, 271, 5).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 5) -> (271, 271, 4).
     (
         "run1437",
         3894,
@@ -3530,7 +3567,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (538, 538, 0),
             (1208, 1208, 6),
-            (271, 271, 5),
+            (271, 271, 4),
             (30, 30, 0),
             (85, 85, 0),
             (180, 180, 0),
@@ -3607,6 +3644,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 3) -> (550, 550, 1).
     // Item 4266, a guard order's walker: units (4274, 4048, 3420) -> (4274, 4210, 3390).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1441",
         3294,
@@ -3618,7 +3656,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (550, 550, 1),
             (1108, 1108, 1),
-            (271, 271, 3),
+            (271, 271, 2),
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
@@ -3915,6 +3953,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 3) -> (550, 550, 1).
     // Item 4266, a guard order's walker: units (4274, 4048, 3420) -> (4274, 4210, 3390).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1559b",
         3294,
@@ -3926,7 +3965,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (550, 550, 1),
             (1108, 1108, 1),
-            (271, 271, 3),
+            (271, 271, 2),
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
@@ -3967,6 +4006,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (550, 550, 3) -> (550, 550, 1).
     // Item 4266, a guard order's walker: units (4274, 4048, 3420) -> (4274, 4210, 3390).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1564",
         3294,
@@ -3978,7 +4018,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (550, 550, 1),
             (1108, 1108, 1),
-            (271, 271, 3),
+            (271, 271, 2),
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
@@ -4002,6 +4042,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (556, 556, 2) -> (556, 556, 1).
     // Item 4266, a guard order's walker: units (4240, 4029, 3414) -> (4240, 4194, 3364).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1570",
         3331,
@@ -4013,7 +4054,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (556, 556, 1),
             (1112, 1112, 2),
-            (271, 271, 3),
+            (271, 271, 2),
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
@@ -4598,6 +4639,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: builds (1580, 1580, 3) -> (1580, 1580, 1).
     // Item 4266, a guard order's walker: units (2838, 2718, 1490) -> (2838, 2784, 1839).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run946",
         10842,
@@ -4609,7 +4651,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (532, 532, 0),
             (826, 826, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (40, 40, 0),
             (180, 180, 0),
@@ -4700,6 +4742,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: units (4466, 4397, 3114) -> (4466, 4397, 3090); builds (1832, 1832, 2) -> (1832, 1832, 0).
     // Item 4266, a guard order's walker: units (4466, 4397, 3090) -> (4466, 4454, 2964).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run959",
         18368,
@@ -4711,7 +4754,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (562, 562, 4),
             (1514, 1514, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (17, 17, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -4735,6 +4778,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: units (3135, 2970, 1734) -> (3135, 2970, 1716); builds (2052, 2052, 3) -> (2052, 2052, 1).
     // Item 4266, a guard order's walker: units (3135, 2970, 1716) -> (3135, 3126, 1560).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run973g",
         12286,
@@ -4746,7 +4790,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (532, 532, 0),
             (941, 941, 1),
-            (271, 271, 1),
+            (271, 271, 0),
             (35, 35, 0),
             (60, 60, 0),
             (120, 120, 0),
@@ -4906,83 +4950,83 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "aggression cities_built explored flags.leader_flags",
     ),
     ("run1011b", "flags.leader_flags"),
-    ("run1155c", "flags.leader_flags reg_unpack_merch"),
+    ("run1155c", "flags.leader_flags"),
     ("run1161", "flags.leader_flags"),
     (
         "run1164",
-        "encrypt.bucket[2] encrypt.bucket[5] explored flags.leader_flags reg_unpack_merch",
+        "encrypt.bucket[2] encrypt.bucket[5] explored flags.leader_flags",
     ),
-    ("run1165", "flags.leader_flags reg_unpack_merch"),
+    ("run1165", "flags.leader_flags"),
     (
         "run1166",
         // Item 4159's twelfth residue: `collected`, `encrypt.bucket[0]`, `[1]`, `encrypt.leftover[0]`
         // and `escrow` agree, the CEO's tile step having dirtied the economy on theirs' frame.
-        "explored flags.leader_flags reg_unpack_merch",
+        "explored flags.leader_flags",
     ),
-    ("run1169", "flags.leader_flags reg_unpack_merch"),
-    ("run1185", "flags.leader_flags reg_unpack_merch"),
+    ("run1169", "flags.leader_flags"),
+    ("run1185", "flags.leader_flags"),
     ("run1186b", "flags.leader_flags"),
     ("run1217", "flags.leader_flags"),
-    ("run1220b", "flags.leader_flags reg_unpack_merch"),
+    ("run1220b", "flags.leader_flags"),
     ("run1221", "flags.leader_flags"),
-    ("run1224b", "flags.leader_flags reg_unpack_merch"),
-    ("run1235b", "flags.leader_flags reg_unpack_merch"),
-    ("run1236", "flags.leader_flags reg_unpack_merch"),
-    ("run1237", "flags.leader_flags reg_unpack_merch"),
+    ("run1224b", "flags.leader_flags"),
+    ("run1235b", "flags.leader_flags"),
+    ("run1236", "flags.leader_flags"),
+    ("run1237", "flags.leader_flags"),
     ("run1238c", "flags.leader_flags"),
-    ("run1247", "flags.leader_flags reg_unpack_merch"),
-    ("run1254c", "flags.leader_flags reg_unpack_merch"),
+    ("run1247", "flags.leader_flags"),
+    ("run1254c", "flags.leader_flags"),
     ("run1263", "flags.leader_flags"),
     ("run1264b", "flags.leader_flags"),
-    ("run1266c", "flags.leader_flags reg_unpack_merch"),
-    ("run1268", "flags.leader_flags reg_unpack_merch"),
-    ("run1293", "flags.leader_flags reg_unpack_merch"),
+    ("run1266c", "flags.leader_flags"),
+    ("run1268", "flags.leader_flags"),
+    ("run1293", "flags.leader_flags"),
     ("run1294", "flags.leader_flags"),
     ("run1296", "flags.leader_flags"),
     ("run1304", "flags.leader_flags"),
     ("run1305b", "flags.leader_flags"),
     ("run1320b", "encrypt.bucket[2] flags.leader_flags"),
     ("run1323b", "flags.leader_flags"),
-    ("run1324c", "flags.leader_flags reg_unpack_merch"),
+    ("run1324c", "flags.leader_flags"),
     ("run1325c", "flags.leader_flags"),
-    ("run1326", "flags.leader_flags reg_unpack_merch"),
-    ("run1327", "flags.leader_flags reg_unpack_merch"),
-    ("run1332a", "flags.leader_flags reg_unpack_merch"),
+    ("run1326", "flags.leader_flags"),
+    ("run1327", "flags.leader_flags"),
+    ("run1332a", "flags.leader_flags"),
     ("run1351", "flags.leader_flags"),
     ("run1351c", "flags.leader_flags"),
-    ("run1355", "flags.leader_flags reg_unpack_merch"),
-    ("run1357", "flags.leader_flags reg_unpack_merch"),
+    ("run1355", "flags.leader_flags"),
+    ("run1357", "flags.leader_flags"),
     (
         "run1359",
-        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch",
+        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags",
     ),
     (
         "run1359b",
-        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch",
+        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags",
     ),
     (
         "run1359c",
-        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags reg_unpack_merch",
+        "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags",
     ),
-    ("run1361", "flags.leader_flags reg_unpack_merch"),
+    ("run1361", "flags.leader_flags"),
     ("run1381", "flags.leader_flags"),
-    ("run1382", "flags.leader_flags reg_unpack_merch"),
+    ("run1382", "flags.leader_flags"),
     ("run1383", "flags.leader_flags"),
     ("run1385p", "flags.leader_flags"),
     ("run1391", "flags.leader_flags"),
     ("run1416", "flags.leader_flags"),
     ("run1417", "flags.leader_flags"),
-    ("run1419b", "flags.leader_flags reg_unpack_merch"),
-    ("run1420", "flags.leader_flags reg_unpack_merch"),
-    ("run1424", "flags.leader_flags reg_unpack_merch"),
-    ("run1426b", "explored flags.leader_flags reg_unpack_merch"),
+    ("run1419b", "flags.leader_flags"),
+    ("run1420", "flags.leader_flags"),
+    ("run1424", "flags.leader_flags"),
+    ("run1426b", "explored flags.leader_flags"),
     (
         "run1437",
-        "encrypt.bucket[2] encrypt.bucket[5] flags.leader_flags reg_unpack_merch",
+        "encrypt.bucket[2] encrypt.bucket[5] flags.leader_flags",
     ),
     ("run1438", "aggression cities_built flags.leader_flags"),
     ("run1440", "aggression cities_built flags.leader_flags"),
-    ("run1441", "flags.leader_flags reg_unpack_merch"),
+    ("run1441", "flags.leader_flags"),
     ("run1451", "aggression cities_built flags.leader_flags"),
     ("run1457", "aggression cities_built flags.leader_flags"),
     ("run1459", "aggression cities_built flags.leader_flags"),
@@ -5000,51 +5044,42 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     // `num_units` on run1487 and run1496: the scripted Transport Freighter
     // is in neither count (`num_units[272]` ours 1 theirs 0, each computer).
     ("run1484", "aggression cities_built flags.leader_flags"),
-    (
-        "run1487",
-        "aggression cities_built flags.leader_flags reg_unpack_merch",
-    ),
-    (
-        "run1496",
-        "aggression cities_built flags.leader_flags reg_unpack_merch",
-    ),
-    ("run1559b", "flags.leader_flags reg_unpack_merch"),
-    ("run1564", "flags.leader_flags reg_unpack_merch"),
-    ("run1570", "flags.leader_flags reg_unpack_merch"),
+    ("run1487", "aggression cities_built flags.leader_flags"),
+    ("run1496", "aggression cities_built flags.leader_flags"),
+    ("run1559b", "flags.leader_flags"),
+    ("run1564", "flags.leader_flags"),
+    ("run1570", "flags.leader_flags"),
     (
         "run785",
         "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     (
         "run789",
-        "flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     (
         "run795",
-        "flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     (
         "run810",
-        "flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     (
         "run823",
-        "flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     (
         "run825",
-        "flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     ("run839", "aggression cities_built flags.leader_flags"),
     ("run842", "aggression cities_built flags.leader_flags"),
     ("run842b", "aggression cities_built flags.leader_flags"),
-    (
-        "run854",
-        "diplos flags.leader_flags oil_patches.elements reg_unpack_merch",
-    ),
+    ("run854", "diplos flags.leader_flags oil_patches.elements"),
     (
         "run865",
-        "diplos flags.leader_flags oil_patches.elements reg_gatherers reg_unpack_merch",
+        "diplos flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     ("run870", "aggression cities_built flags.leader_flags"),
     (
@@ -5059,11 +5094,10 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run912e", "flags.leader_flags"),
     ("run938b", "aggression cities_built flags.leader_flags"),
     ("run943c", "flags.leader_flags"),
-    ("run946", "flags.leader_flags reg_unpack_merch"),
+    ("run946", "flags.leader_flags"),
     ("run954b", "flags.leader_flags"),
     ("run958b", "flags.leader_flags"),
-    ("run959", "flags.leader_flags reg_unpack_merch"),
-    ("run973g", "reg_unpack_merch"),
+    ("run959", "flags.leader_flags"),
 ];
 
 /// **Probe**: walks one word (`RON_PACKET_START`, `_LONG`, `_TRACE`) to a
