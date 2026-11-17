@@ -1731,13 +1731,13 @@ fn the_groups_line_is_the_original_s_range_by_range() {
 /// One leaf's verdict on the leaders line: `(slot, range field, leaf, ours,
 /// theirs)`, the values as the leaf's elements, and whether the crate holds
 /// it.
-pub(in crate::diff) type LeafRow = (i16, &'static str, String, Option<Vec<i64>>, Vec<i64>, usize);
+type LeafRow = (i16, &'static str, String, Option<Vec<i64>>, Vec<i64>, usize);
 
 /// The leaders line, ours as leaves beside the stream's bytes decoded by the
 /// same leaves' widths (signed at 4 bytes, unsigned below): every leaf of
 /// every range, in walk order. A range whose length differs is one row
 /// named `<field>: length` with both lengths.
-pub(in crate::diff) fn leader_leaf_rows(sim: &sim::Sim, theirs: &StreamRows) -> Vec<LeafRow> {
+fn leader_leaf_rows(sim: &sim::Sim, theirs: &StreamRows) -> Vec<LeafRow> {
     let ours: Vec<sim::checksum::leaders::LeaderRange> = (0..sim::checksum::leaders::LEADER_SLOTS)
         .flat_map(|s| sim.leader_image(s as sim::Player))
         .collect();

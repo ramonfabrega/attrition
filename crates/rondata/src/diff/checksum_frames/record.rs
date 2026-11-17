@@ -425,17 +425,6 @@ fn the_ranges_record_names_each_first_parting() {
         super::super::minted::tick_to(&mut built, Some(&mut stream), frame);
         let theirs = stream_at(&mut rec, frame).expect("the record has the frame");
         let outcome = compare(&our_lines(&built.sim, &pieces), &theirs);
-        if std::env::var_os("RON_PROBE_4340").is_some() {
-            let empty = Default::default();
-            for r in super::super::checksum_lines::leader_leaf_rows(
-                &built.sim,
-                theirs.get("leaders").unwrap_or(&empty),
-            ) {
-                if r.3.as_ref() != Some(&r.4) {
-                    eprintln!("PROBE4340 frame {frame} slot {} {} {}: ours {:?} theirs {:?}", r.0, r.1, r.2, r.3, r.4);
-                }
-            }
-        }
         let mut seen: Vec<SeenRow> = Vec::new();
         for (name, o) in STATE_LINES.iter().zip(&outcome).take(8) {
             if let Some(f) = &o.first {
