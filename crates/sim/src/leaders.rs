@@ -62,6 +62,15 @@ pub struct LeadersState {
     /// and the carrier's — reset at a live leader's step
     /// (`docs/LEADERS.md` §12.2).
     pub pop_issues: Vec<i32>,
+    /// `leader_flags & 0x80000`: a citizen of this slot (`TypeIndex` 0x32
+    /// or 0x33) reached `Unit::think@005f6e40:85` past its captain test
+    /// this frame. That store is the bit's one writer; its one clear is
+    /// the last statement of a live slot's step in
+    /// `Leaders::process_all@006ed2a0:75` (`Leader::process`'s twin at
+    /// `:68` has no caller), so a checksum sees the bit on a frame some
+    /// citizen of a live slot idled through `do_idle`, and a defeated
+    /// slot keeps it (`docs/CHECKSUM.md` §25.4, item 4332).
+    pub citizen_thought: Vec<bool>,
     /// The slot marks, the build counters and the queued bins
     /// (`docs/LEADERS.md` §13, §14; [`marks`], item 4167), one per slot.
     pub marks: Vec<marks::Marks>,

@@ -341,7 +341,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
             ("builds", 120, 0),
             ("groups", 120, 0),
             ("guys", 120, 0),
-            ("leaders", 0, 2),
+            ("leaders", 0, 1),
             ("cities", 120, 0),
             ("items", 120, 0),
             ("goods", 120, 0),
@@ -356,7 +356,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
             ("builds", 24000, 0),
             ("groups", 24000, 0),
             ("guys", 24000, 0),
-            ("leaders", 0, 142),
+            ("leaders", 0, 4),
             ("cities", 24000, 0),
             ("items", 24000, 0),
             ("goods", 24000, 0),
@@ -391,7 +391,7 @@ const LEADERS_K: usize = 4;
 /// leaves a packed merchant out (it counted every merchant); run1577
 /// stands at 118.
 const LEADERS_AGREE: &[(&str, usize, usize)] =
-    &[(RUN1577_TRACE, 118, 120), (RUN1578_TRACE, 23594, 24000)];
+    &[(RUN1577_TRACE, 119, 120), (RUN1578_TRACE, 23965, 24000)];
 
 /// The Adler of each emitted line `want` names, on `sim`, in [`EMITTED`]'s
 /// order (`None` where not wanted). The builds line needs the data layer's

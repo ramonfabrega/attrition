@@ -1079,6 +1079,13 @@ impl Sim {
         // citizen, and no capture has one.
         if matches!(self.units[u].type_index, 0x32 | 0x33) {
             self.units[u].carry &= !CARRY_ANY;
+            // `think:84`: `leader_flags |= 0x80000` on the owner, cleared
+            // at the end of a live slot's `Leaders::process_all` step
+            // (item 4332, `docs/CHECKSUM.md` §25.4).
+            let who = self.units[u].owner as usize;
+            if let Some(b) = self.leaders.citizen_thought.get_mut(who) {
+                *b = true;
+            }
         }
         let unit = &self.units[u];
         let phase = frame + i64::from(unit.index);

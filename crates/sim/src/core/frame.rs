@@ -208,6 +208,15 @@ impl Sim {
                 self.refresh_victory_timers(who);
                 self.refresh_wonder_timer(who);
             }
+            // The live slot step's last statement (`process_all:75`):
+            // `leader_flags &= ~0x80000`, the bit a citizen's think raised
+            // last frame (item 4332). The taunts sit before it in the
+            // original; nothing between reads the bit.
+            if !self.leaders.defeated.get(who).copied().unwrap_or(true)
+                && let Some(b) = self.leaders.citizen_thought.get_mut(who)
+            {
+                *b = false;
+            }
             // And the slot step's last act, off frame 0: the taunt ring's
             // requests due this frame (`docs/LEADERS.md` §9.2, item 4159's
             // step VII-b2).
