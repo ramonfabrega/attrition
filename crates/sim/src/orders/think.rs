@@ -96,6 +96,15 @@ impl Sim {
         // plan, or is ended when the order under it is no longer one
         // (`crate::economy::caravan` §6).
         self.caravan_work(u);
+        // `Unit::work@0060d180:122-157`, after the caravan block: while
+        // [`crate::Unit::explore_queued`] stands, a plain `MOVE_TO` at the
+        // head is unlinked (`remove_current`, no teardown) and re-added as
+        // an `EXPLORE_TO` at `QUEUE_FIRST` through `add_move_facing_order`:
+        // its cell, its angle (`+0xc`), its `is_pathed` (vslot `+0x24`), its
+        // action bit, its `facing` (`+0x28`), `orig` −1. The bit stays set
+        // (item 4351). The second jump to this block (`:264`) sits inside
+        // a test that has already ruled `MOVE_TO` out, so it is dead.
+        self.explore_queued_head(u);
         // `Unit::work@0060d180:440` — **the chase's sixteen-frame review**,
         // and it sits above the dispatch, so a chase it ends is answered by
         // the order underneath in the *same* frame (`docs/COMBAT.md` §36).
@@ -1383,6 +1392,21 @@ impl Sim {
         if self.units[u].auto_explore && self.cities.nation[self.units[u].owner as usize].human {
             self.think_scout(u);
             return;
+        }
+        // The same block's other arm (`think@005f6e40:231`-`234`, item
+        // 4351): a special unit (`+0x2b8 & 0x10`) without `0x100`, on its
+        // first idle frame, with no group or a group of one, clears
+        // [`crate::Unit::explore_queued`]. The message and `S_SCOUT_IDLE`
+        // beside it are the console's. SEAM: `think_spellcaster`, which the
+        // arm runs first and which ends the think on a `1`, is not
+        // modelled for a human unit here, as before.
+        if self.units[u].explore_queued
+            && self.cities.nation[self.units[u].owner as usize].human
+            && self.unit_is_special(u)
+            && self.units[u].idle == 1
+            && self.group_of(u).is_none_or(|g| g.num() == 1)
+        {
+            self.units[u].explore_queued = false;
         }
         if self.ai.ai_off && !self.ai_driven(self.units[u].owner) {
             return;
