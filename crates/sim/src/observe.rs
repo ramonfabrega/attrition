@@ -865,6 +865,14 @@ impl Sim {
             .collect()
     }
 
+    /// **The map's goods as they stand** (item 4312; `docs/RENDERER.md`
+    /// §3.18): `World::goods`, the list `Objects::init_good@00653f30` lays
+    /// before the first frame, which `ObjectsOut::draw_good_underlays`
+    /// walks to draw each good's underlay (the `Oil` billboard).
+    pub fn observe_goods(&self) -> Vec<crate::world::Good> {
+        self.world.goods().to_vec()
+    }
+
     /// The terrain grids as they stand.
     pub fn observe_terrain(&self) -> TerrainScene {
         let w = &self.world;

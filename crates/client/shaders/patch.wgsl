@@ -152,6 +152,15 @@ fn fs_snowcap(i: VOut) -> @location(0) vec4<f32> {
     return vec4<f32>(land_fake(t * land_vertex(i.nl)), a);
 }
 
+// Item 4312 (`docs/RENDERER.md` §3.24): a good's billboard,
+// `ZSpriteAccumMethod`'s quad on `rmaps[0xd]`: `TL_FAKE_LIGHT` under the
+// good's white vertex, blended source alpha over at the texel's alpha.
+@fragment
+fn fs_billboard(i: VOut) -> @location(0) vec4<f32> {
+    let s = textureSample(tex, samp, i.uv);
+    return vec4<f32>(land_fake(s.rgb), s.a);
+}
+
 // Item 4311 (`docs/RENDERER.md` §3.15): the map's edge border,
 // `TerrainBorder::render@008af600`. Stage 0 `SELECTARG1(TEXTURE)` on colour
 // and alpha, stage 1 off; `TL_FAKE_LIGHT` with no lighting and no vertex
