@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2): the chain takes 4354; the suite's seat takes 4351 (4355 landed: parity 1 of 1); the third takes 4357 (4352 landed: the picks played); render takes 4356, the borders (4353 moved nothing: no draw on run1567's 3279 card pass lays the broad strokes; the seat has left the lake, 140 §6).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2): the chain takes 4354; the suite's seat takes 4351 (4355 landed: parity 1 of 1); the third takes 4357 (4352 landed: the picks played); render's 4358 waits for the next day (4356 moved nothing: every `!ffwd 4` photograph's borders are mid-morph).
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 1 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
@@ -73,13 +73,13 @@ the world's; `SAMPLE_WINDOW_RECORDS` minted on run1654). By state the first part
 recording's packages. Second: the playback under the hook (`RON_CHECKSUMS`, 26 minutes), the fifteen sums on every frame, minted as
 the sample's row by state; it says so if the tracer is refused. It stops when two acts move the word by nothing.
 
-4356. **The borders on run1564, the upper arm first** (a `render` item, scoped; `docs/RENDERER.md` §3.29; DECISIONS 140 §6).
-`RUN1564_3279_BORDER` 222 of 1,440 (ours 568). The seat's first item off the lake, on what shows in play. The photograph draws
-an arm up the west side of cell (51, 45) to the row 44/45 edge; ours ends open at corner (51, 46), because cells (50, 45) and
-(49, 44) read `land` 1 without `HALFLAND` and the ocean rule as read makes no edge against them (parked 4306a). First act: those
-two cells' `land` and `HALFLAND` in the original's own state (a packet at 3279 on disk, else run1564's dump), against ours, so the
-rule or the cells is named as the misread. Second: the lower arm's few pixels off theirs (normals, sampling, 3294 against 3279).
-It stops when two acts move the row by nothing.
+4358. **The settled borders: a photograph past the morph, the row re-minted** (a `render` item, scoped; `docs/RENDERER.md` §3.29;
+the render seat's, unspawned). `RUN1564_3279_BORDER` 222 of 1,440 is scored against a transient: 4356 found the photograph's whole
+east band is a `BorderMorphRender` 43 of its 45 graphic ticks in (the sim took row 45 at 2427, and `!ffwd 4` holds a morph on screen
+for about 20 times its play-speed length), and every `!ffwd 4` photograph near 3300 is mid-morph (parked 4356b). The cells and
+`sort_regular`'s ocean rule agree with run1564's packet. First act: a capture of the Great Lakes lobby (run1564's), paused at frame 3294 with ffwd off about 100 frames before,
+`graphic_tick` read off its packet, the row minted on it at 0 and drawn. The morph's own draw stays parked (4356a). It stops
+when the drawn row is minted and the lower arm's offset is named or bounded.
 
 4357. **`OPTION_TRANSPORT`'s press, then the picks' unplayed arms** (an `input` item, scoped; the third seat's;
 `docs/CLIENT_INPUT.md` §32.10, §32.11). The picks play (4352, run1656: 7,500 of 7,500, each effect equal, 18 of 18).
