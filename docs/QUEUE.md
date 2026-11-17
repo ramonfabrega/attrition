@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2): the chain takes 4354; the suite's seat takes 4351 (4355 landed: parity 1 of 1); the third takes 4357 (4352 landed: the picks played); render's 4358 waits for the next day (4356 moved nothing: every `!ffwd 4` photograph's borders are mid-morph).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2): the chain takes 4354; the suite's 4359 waits for the next day (4351 landed: the sample at 2888); the third takes 4357 (4352 landed: the picks played); render's 4358 waits for the next day (4356 moved nothing: every `!ffwd 4` photograph's borders are mid-morph).
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 1 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
@@ -66,12 +66,12 @@ move-out parts on step 4, ours' `is_moving` true on 17 of 73 guards that `do_tra
 packet at 5621, army 2/1's state and the guards' head orders. Then the seed, on the crate's game-info seed (4347). It stops when two acts move the
 word by nothing.
 
-4351. **The 2017 sample, walked on from 444** (a rules item, whole; the suite's seat; `docs/RECGAME.md` §7; DECISIONS
-139 §3, 140 §2). `SAMPLE_WALKED` 444 of 21,044 (from 98, 4347: a herd's gaia piece is `(info.seed + o) % 3`, the lobby's seed, not
-the world's; `SAMPLE_WINDOW_RECORDS` minted on run1654). By state the first parting is 92: the person's scout `3/0` holds
-`EXPLORE_TO` in theirs and `MOVE_TO` here; by draws, 444's third draw. First act: the scout's order on 92, read against the
-recording's packages. Second: the playback under the hook (`RON_CHECKSUMS`, 26 minutes), the fifteen sums on every frame, minted as
-the sample's row by state; it says so if the tracer is refused. It stops when two acts move the word by nothing.
+4359. **The 2017 sample: the hook's take, then the walk from 2888** (a rules item, whole; the suite's seat, unspawned; `docs/RECGAME.md`
+§7; DECISIONS 139 §3, 140 §2). `SAMPLE_WALKED` 2888 of 21,044 (from 444, 4351: a shift-clicked `MOVE_TO` on a `role & 0x10` type is
+queued as `EXPLORE_TO` and sets `unit_masks & 0x4000000`, `sim::Unit::explore_queued`; run1654's window 18 of 18 records). First act:
+the playback under the hook (`RON_CHECKSUMS`, 26 minutes), the fifteen sums on every frame, minted as the sample's row by state with
+the first frame each line parts and the first on which theirs' walls, ammo or deaths are not empty, parity's second game; it says so
+if the tracer is refused. Second: 2888 by draws (draw 32). It stops when two acts move the word by nothing.
 
 4358. **The settled borders: a photograph past the morph, the row re-minted** (a `render` item, scoped; `docs/RENDERER.md` §3.29;
 the render seat's, unspawned). `RUN1564_3279_BORDER` 222 of 1,440 is scored against a transient: 4356 found the photograph's whole
