@@ -418,6 +418,13 @@ pub(crate) struct TakeTaunt {
 /// 60 frames on from 906. A text that names no order string panics: the
 /// mint reads none it cannot map.
 pub(crate) fn script_taunts(name: &str) -> Option<Vec<TakeTaunt>> {
+    script_taunts_from(name, ISSUER)
+}
+
+/// [`script_taunts`] sent from `sender`'s seat: the console's leader in a
+/// reseated lobby (item 4313, `--human-who 1`), whose chat
+/// `Leader::receive_taunt` stores as the sender's `who`.
+pub(crate) fn script_taunts_from(name: &str, sender: sim::Player) -> Option<Vec<TakeTaunt>> {
     let inst = crate::testenv::install()?;
     let path = format!(
         "{}/../../tools/gamelog/coverage/{name}",
@@ -452,7 +459,7 @@ pub(crate) fn script_taunts(name: &str) -> Option<Vec<TakeTaunt>> {
                     .1;
                 out.push(TakeTaunt {
                     frame: frame + 1,
-                    sender: ISSUER,
+                    sender,
                     request,
                 });
                 open = None;
@@ -2014,5 +2021,206 @@ fn recon4299_walked_reseated() {
     eprintln!(
         "built start: count {} sequence {} of {}; {}",
         w.count, w.sequence, w.last, w.row
+    );
+}
+
+/// **run1645, the reseated taunt's take** (item 4313, `docs/RUNS.md`
+/// run1645): run1575's lobby with the human seated at who 1
+/// (`--human-who 1`), `taunt4313.cmd` (the French met and allied from the
+/// console, the `NEED_FOOD` chat on 905), the level-9 leader record
+/// 896..1101 and a packet at logger frame 1000.
+pub(crate) const RUN1645: (&str, &str) = (
+    "gamelog-run1645-eastindies-melee-style0-reseated-taunt-take-packet-1000.txt",
+    "rontrace-run1645.log",
+);
+
+/// **The reseated lobby's console seat** (item 4313): `--human-who 1`
+/// seats the human at who 1, the French at 0 and the Russians at 2
+/// (item 4299's recon4299-1).
+pub(crate) const RESEATED_HUMAN: sim::Player = 1;
+
+/// **A reseated take's game at frame zero** (item 4313): the capture's own
+/// lobby — its `GAMEINFO` and player rows, the human at who
+/// [`RESEATED_HUMAN`] — through [`from_lobby`] and [`built_from_lobby`],
+/// the built start item 4299 held whole over recon4299-1 (1300 of 1300),
+/// with `script` staged from the console's seat ([`crate::golden::Script::seated_at`]).
+/// No start dump is read and no correction installed: the take's window
+/// is its leaders record, and the start is the lobby's.
+pub(crate) fn stand_up_reseated(
+    capture: (&str, &str),
+    script: crate::golden::Script,
+) -> Option<(crate::load::Loaded, Built)> {
+    let inst = crate::testenv::install()?;
+    let Some(path) = take_file(capture.0) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", capture.0);
+        return None;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let mut built = ix
+        .with_replay_initial(|init| {
+            let human = init
+                .players
+                .iter()
+                .filter(|p| {
+                    p.iter().any(|(k, v)| {
+                        *k == "flags" && v.trim().parse::<i64>().is_ok_and(|f| f & 4 != 0)
+                    })
+                })
+                .filter_map(|p| {
+                    p.iter()
+                        .find(|(k, _)| *k == "who")
+                        .and_then(|(_, v)| v.trim().parse::<i64>().ok())
+                })
+                .collect::<Vec<_>>();
+            assert_eq!(
+                human,
+                vec![i64::from(RESEATED_HUMAN)],
+                "{}: the human's seat",
+                capture.0
+            );
+            let lobby = from_lobby(&loaded, &init.game_info, &init.players, Tuning::RON);
+            built_from_lobby(&loaded, lobby).0
+        })
+        .unwrap();
+    assert_eq!(built.sim.ai.lobby.team_style, 0, "the lobby reads style 0");
+    built.staged = Some(crate::diff::setup::Staging {
+        script: script.seated_at(i32::from(RESEATED_HUMAN)),
+        loaded: std::sync::Arc::new(loaded.clone()),
+        applied: crate::golden::Applied::default(),
+    });
+    Some((loaded, built))
+}
+
+/// [`stand_up_reseated`]'s game walked against `capture` with the
+/// script's chat sent from the console's seat ([`script_taunts_from`]).
+pub(crate) fn walk_reseated(capture: (&str, &str), script: &str) -> Option<TakeWord> {
+    let taunts = script_taunts_from(script, RESEATED_HUMAN)?;
+    let (loaded, built) = stand_up_reseated(capture, coverage_script(script))?;
+    walk_take_from(&loaded, built, capture, 3, &[], &[], &taunts)
+}
+
+/// A reseated take named by `RON_TAKE=<gamelog>,<trace>`, walked with
+/// `taunt4313.cmd` (item 4313's probe of an unfiled take).
+#[test]
+#[ignore = "a probe of an unfiled take; item 4313's journal"]
+fn reseated_take_walked_by_name() {
+    let Ok(v) = std::env::var("RON_TAKE") else {
+        return;
+    };
+    let (g, t) = v.split_once(',').expect("RON_TAKE=<gamelog>,<trace>");
+    let Some(w) = walk_reseated((g, t), "taunt4313.cmd") else {
+        return;
+    };
+    report(g, &w);
+}
+
+/// **run1645's word** (item 4313): our walk of the reseated take from the
+/// capture's own lobby built ([`stand_up_reseated`]), `taunt4313.cmd`
+/// staged from the console's seat (who 1: `meet who=0` and `ally 0` act
+/// from it, as `ConsoleWin::run_cmd@007d6a70` does from `console->who`),
+/// the chat minted from that seat, and every diplomacy leaf ours carries set
+/// against the record on every block 896..1100.
+#[test]
+fn run1645_s_word_is_pinned_as_found() {
+    let _pins = Pins::hold();
+    let Some(w) = walk_reseated(RUN1645, "taunt4313.cmd") else {
+        return;
+    };
+    report("run1645", &w);
+    pin_eq!(w.last, 1100, "the take's last frame");
+    // Item 4313: whole, 1100 of 1100, from the built start with the human
+    // at who 1 (item 4299's recon4299-1 held the same lobby unscripted
+    // 1300 of 1300).
+    pin_eq!(w.count, 1100, "the draw count's first parting");
+    pin_eq!(w.sequence, 1100, "the draw sequence's first parting");
+    pin_eq!(w.row.as_str(), "", "no parting");
+    let movers: Vec<String> = w
+        .movers
+        .iter()
+        .map(|(n, who, k, b, a)| format!("{n} {who} {k} {b}->{a}"))
+        .collect();
+    // The console's `meet who=0` on 900 and `ally 0` on 902, from who 1;
+    // the French answer to the human's `NEED_FOOD` drained on 966: the gift
+    // stamped and the taunt recorded under the sender's slot, 1.
+    pin_eq!(
+        movers,
+        vec![
+            "901 0 treaties[1] 0->1".to_string(),
+            "901 1 treaties[0] 0->1".to_string(),
+            "903 0 diplos[1] 1->2".to_string(),
+            "903 1 diplos[0] 1->2".to_string(),
+            "967 0 gift_stamp[1] 0->966".to_string(),
+            "967 0 last_taunt[1] 0->1".to_string(),
+            "967 0 taunt_frame[1] 0->966".to_string(),
+            "967 1 tribute_stamp[0] 0->966".to_string(),
+        ],
+        "the take's diplomacy movers, on its own record"
+    );
+    let parted: Vec<String> = w
+        .leaves
+        .iter()
+        .filter(|l| l.3 != l.4)
+        .map(|(n, who, k, t, m)| format!("{n} {who} {k}: theirs {t} ours {m}"))
+        .collect();
+    pin_eq!(
+        parted,
+        Vec::<String>::new(),
+        "the diplomacy leaves, ours against the record"
+    );
+    pin_eq!(w.leaves.len(), 53505, "the diplomacy leaf rows compared");
+    // The record rows that part besides the sites' `reg` (the crate's own
+    // region index, a standing family): `ally_mask` on both allies from
+    // 903, the bits `Leader::set_diplo` gives an ally under `reveal_map`
+    // (parked 4313a).
+    let mut firsts: Vec<String> = Vec::new();
+    let mut seen = std::collections::BTreeSet::new();
+    for (n, who, k, t, m) in &w.leader_parted {
+        if !(k.starts_with("SITE[") && k.ends_with("].reg")) && seen.insert((*who, k.clone())) {
+            firsts.push(format!("{n} {who} {k}: theirs {t} ours {m}"));
+        }
+    }
+    pin_eq!(
+        firsts,
+        vec![
+            "903 0 ally_mask: theirs 3 ours 1".to_string(),
+            "903 1 ally_mask: theirs 3 ours 2".to_string(),
+        ],
+        "the record rows parting, first per row, sites' reg aside"
+    );
+}
+
+/// **The comparison can part** (item 4313): the same walk with the chat
+/// sent from who 0 — the seat every take before this one sent from, and
+/// the console's own French ally here — is refused by `receive_taunt`
+/// (the sender is not the French's ally), and the four taunt rows part on
+/// block 967.
+#[test]
+fn run1645_s_taunt_parts_from_the_old_seat() {
+    let _pins = Pins::hold();
+    let Some(taunts) = script_taunts("taunt4313.cmd") else {
+        eprintln!("skipping: no install (RON_INSTALL)");
+        return;
+    };
+    let Some((loaded, built)) = stand_up_reseated(RUN1645, coverage_script("taunt4313.cmd")) else {
+        return;
+    };
+    let Some(w) = walk_take_from(&loaded, built, RUN1645, 3, &[], &[], &taunts) else {
+        return;
+    };
+    let mut firsts: Vec<String> = Vec::new();
+    let mut seen = std::collections::BTreeSet::new();
+    for (n, who, k, t, m) in &w.leaves {
+        if t != m && taunt_row(k) && seen.insert((*who, k.clone())) {
+            firsts.push(format!("{n} {who} {k}: theirs {t} ours {m}"));
+        }
+    }
+    pin_eq!(
+        firsts,
+        vec![
+            "967 0 gift_stamp[1]: theirs 966 ours 0".to_string(),
+            "967 1 tribute_stamp[0]: theirs 966 ours 0".to_string(),
+        ],
+        "the taunt rows ours carries, first per row"
     );
 }
