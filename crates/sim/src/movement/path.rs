@@ -219,8 +219,7 @@ struct Modes {
     /// signed `WData.solid`, and exempts a fully forested tile from the
     /// corner-cutting probes.
     iroquois: bool,
-    /// Read by the diplomacy term, behind its seam.
-    #[allow(dead_code)]
+    /// Read by the diplomacy wall (`calc_cost`'s `+0x78`).
     worker: bool,
     no_danger: bool,
     scouting: bool,
@@ -772,8 +771,28 @@ impl Sim {
             {
                 extra += 500;
             }
-            // SEAM: the team-style diplomacy wall (+5000) reads game rules
-            // the simulation does not carry.
+        }
+        // **The diplomacy wall** (`calc_cost@00684e50:425`–`442`,
+        // `00685685`–`00685773`; item 4325, `docs/PATHFINDER.md` §5): an
+        // army's or a worker's world step (`+0x70` or `+0x78`, the 768
+        // grid only, reached from the fog branch as well as the seen one)
+        // into a cell whose owner the walker is at peace with costs 5000
+        // more, under team styles 0, 8 and 11. run1646's Russian citizen
+        // `2/116` is the diff: its search on 3450 priced four steps into
+        // the cells round (31104, 34176) at 44 and 52 here and 5044 and
+        // 5052 there, and the dearer search sent it straight across the
+        // water from (37272, 24216), to embark on 3717.
+        //
+        // SEAM: style 2's arm — any owner but the walker and its
+        // `LeaderData::get_target` — is not carried; no capture on file is
+        // style 2 ([`Sim::start_list_target`] is the reading).
+        if step == STEP_WORLD
+            && (m.army || m.worker)
+            && matches!(self.ai.lobby.team_style, 0 | 8 | 0xb)
+            && let Owner::Player(p) = self.world.owner(to.cell())
+            && self.is_peace(who, p)
+        {
+            extra += 5000;
         }
 
         // The transport tail. `Sim::unit_can_transport(u)` is the predicate

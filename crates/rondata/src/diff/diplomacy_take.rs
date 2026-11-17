@@ -2064,8 +2064,14 @@ pub(crate) fn run1646() -> Option<(String, String)> {
 /// one's; **3718** (+681, item 4322) with a finished wonder disbanding every
 /// other site of its type (`Build::activate@00623e20` lines 1294–1356): the
 /// Russian wonder `2/2030` took the French site `1/2027` on 3037, and its
-/// `remove_from_city` replanned the French capital.
-pub(crate) const RUN1646_WORD: i64 = 3718;
+/// `remove_from_city` replanned the French capital; **5496** (+1778, item
+/// 4325) with `calc_cost`'s diplomacy wall (`docs/PATHFINDER.md` §5): the
+/// Russian citizen `2/116`'s search on 3450 priced four steps 44 and 52
+/// here and 5044 and 5052 there, so theirs crossed the water from
+/// (37272, 24216) and embarked on 3717 at (36865, 24499) while ours walked
+/// east round the coast (first apart on 3688: (37314, 23940) here,
+/// (37298, 23911) there).
+pub(crate) const RUN1646_WORD: i64 = 5496;
 
 /// **run1646 walks to [`RUN1646_WORD`]**, its head word agreeing on every
 /// frame walked, with the alliance staged off `alliance4316.cmd`. The
