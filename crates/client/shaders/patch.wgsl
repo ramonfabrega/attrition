@@ -62,6 +62,18 @@ fn fs_patch_lit(i: VOut) -> @location(0) vec4<f32> {
     return vec4<f32>(land_lit_deep(textureSample(tex, samp, i.uv).rgb, i.nl, i.deep), a);
 }
 
+// Item 4310 (`docs/RENDERER.md` §3.27, "The faded land in HDR"): a land
+// texture's faded base layer. `base_terrain_rs` blends source alpha over on
+// the card's HDR target, before `ps_tonemap.hlsl`, and under the land there
+// is the clear colour, black (§3.16): so the pixel is `T(L · a)`, written
+// opaque, where blending the tone-mapped `T(L)` at `a` gave `T(L) · a`.
+@fragment
+fn fs_faded(i: VOut) -> @location(0) vec4<f32> {
+    let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    let l = land_lit_deep_hdr(textureSample(tex, samp, i.uv).rgb, i.nl, i.deep) * a;
+    return vec4<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z), 1.0);
+}
+
 // Item 4141 (`docs/RENDERER.md` §3.10): one layer of a mountain's own draw,
 // `MountainsOut::mountain_blend` — stage 0 the tileset's texture (MODULATE
 // with the vertex white, A its own); stage 1 the range's alpha, ADDSIGNED

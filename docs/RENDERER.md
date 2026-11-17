@@ -4024,8 +4024,25 @@ land's own N·L~~ (item 4296, below).
 *Coverage:* diff-backed: the grey per deep corner, 1,139 of 1,139 on the still's screen; the quadrant rule against
 the packet's floor vertices. On a reading: the byte's name and type, the per-cell call, the stage's power. *Not
 established:* the 65 corners at 137 (off screen or stale; 4294b); the branch for a cell with no floor mesh (a
-5 × 5 per-corner ramp, its gate one over `0xdc`, with scaled coordinates that read as a slip, never seen on run1564); what
-holds the nine deep tiles under theirs (4296a).
+5 × 5 per-corner ramp, its gate one over `0xdc`, with scaled coordinates that read as a slip, never seen on run1564); ~~what
+holds the nine deep tiles under theirs~~ (4296a; item 4310, below).
+
+**The faded land in HDR (item 4310).** *Opus 5.5; the ledger: `docs/journal/2026-11-17-item-4310.md`.* On the
+nine tiles every input is the packet's: the water's alpha at each lattice point, its colour within a byte, the land's
+fade alpha and the deep grey (`9e` 158, `f7` 247 at (186, 170)). So the gap was the blend. `base_terrain_rs` blends
+source alpha over on the card's HDR target, before `ps_tonemap.hlsl`, and under the land is the clear colour, black
+(§3.16). The pixel is `T(L · a)`. Ours blended the tone-mapped `T(L)` at `a`, giving `T(L) · a`, and the curve is concave
+from 0, so ours read darker. `fs_faded` writes `T(L · a)` opaque on a land texture's faded base layer, keyed
+`client::world::LAND_FADE_ALPHA` (`World::faded_hdr`; off is the made-to-fail side). The score
+(`the_faded_land_in_hdr`, `RUN1564_FADED_HDR`): the ground row's `SANDY` **649 → 663**, with 14 up and none down, and all
+nine deep tiles agree. (200, 181) is theirs (71, 134, 156), off (48, 126, 147) → on (56, 134, 148).
+`RUN1564_3279_SURF` 688 → **708**, the surf drawn 649 → 663 (typed 680 → 689), luma 1,855 → 1,868. Texture `SANDY` falls
+442 → 435 and `OCEAN` rises 243 → 245. The sRGB made-to-fail side falls 1,802 → 1,768 and trails the drawn row by 30,
+so 4296b is answered. run1559b and run1570 hold.
+
+*Coverage:* diff-backed: the nine tiles' inputs, against the packet. On a reading: the HDR target and the black clear (§3.16).
+*Not established:* the transition patches and the coral over the faded land still blend in LDR (4310a); the red
+still reads under theirs, by 6 to 24 on the nine.
 
 ## 3.28 The city's buildings against the photograph's colour (item 4245)
 

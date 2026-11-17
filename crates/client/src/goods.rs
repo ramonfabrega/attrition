@@ -250,7 +250,8 @@ mod tests {
     /// ours 0 → 2,483: the underlays drawn (`crate::oil`), the oil's 4 × 4
     /// on cell (52, 49) and twenty 2 × 2 `rough` patches off our own
     /// `internal_random`; ours' pools read softer at the rim (4319a).
-    pub const RUN1564_3279_ROUGH: [usize; 3] = [2287, 2387, 2483];
+    /// Item 4310: 2,287 → 2,289, ours 2,483 → 2,486: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR") moves the frame's mean, so its white.
+    pub const RUN1564_3279_ROUGH: [usize; 3] = [2289, 2387, 2486];
 
     #[test]
     fn the_land_oil_s_pits_on_run1564() {

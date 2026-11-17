@@ -372,6 +372,10 @@ enum PatchKind {
     /// transition patches) and the coral, which the card draws
     /// `ENABLE_LIGHTING`.
     Lit,
+    /// A land texture's faded base layer (item 4310; `docs/RENDERER.md`
+    /// §3.27, "The faded land in HDR"), keyed [`crate::world::LAND_FADE_ALPHA`]:
+    /// `T(L · a)`, opaque, as the card's target blends it over black.
+    Faded,
     /// The ocean floor's stage under its vertex grey, lit (item 4232).
     Floor,
     /// The water, lit and blended over the frame under it in HDR (item
@@ -391,9 +395,10 @@ enum PatchKind {
     Billboard,
 }
 
-fn patch_kind(piece: i32) -> PatchKind {
-    use crate::world::{CORAL_PIECE, FLOOR_PIECE, SNOWCAP_PIECE, WATER_PIECE};
+fn patch_kind(piece: i32, alpha: usize) -> PatchKind {
+    use crate::world::{CORAL_PIECE, FLOOR_PIECE, LAND_FADE_ALPHA, SNOWCAP_PIECE, WATER_PIECE};
     match piece {
+        p if (WATER_PIECE + 1..0).contains(&p) && alpha == LAND_FADE_ALPHA => PatchKind::Faded,
         WATER_PIECE => PatchKind::Water,
         SNOWCAP_PIECE => PatchKind::Snowcap,
         // Item 4319: `render_weathering` draws classes 2 and 3 as it draws
@@ -431,6 +436,7 @@ pub struct Gpu {
     patch: wgpu::RenderPipeline,
     /// The land's patches, lit (item 4212).
     patch_lit: wgpu::RenderPipeline,
+    faded: wgpu::RenderPipeline,
     /// The ocean floor, lit per pixel, depth written; the water, blended in
     /// HDR over the frame under it, and that copy's layout (item 4232).
     floor: wgpu::RenderPipeline,
@@ -1143,6 +1149,9 @@ impl Gpu {
         });
         let patch = blended("patch", "fs_patch");
         let patch_lit = blended("patch_lit", "fs_patch_lit");
+        // Item 4310: opaque by its alpha of 1, its depth unwritten as the
+        // faded layer's was.
+        let faded = blended("faded", "fs_faded");
         let mountain = blended("mountain", "fs_mountain");
         let snowcap = blended("snowcap", "fs_snowcap");
         let billboard = blended("billboard", "fs_billboard");
@@ -1210,6 +1219,7 @@ impl Gpu {
             ground_meshes: std::sync::Mutex::new(None),
             patch,
             patch_lit,
+            faded,
             floor,
             water,
             surf,
@@ -1487,7 +1497,7 @@ impl Gpu {
                             || crate::world::is_land_oil(m.piece),
                     ),
                     m.mountain,
-                    patch_kind(m.piece),
+                    patch_kind(m.piece, m.alpha),
                     maps.map(|mp| self.mtrl_texture(&mp.mtrl)),
                 )
             })
@@ -2219,6 +2229,7 @@ impl Gpu {
                 (true, _) => &self.mountain,
                 (_, PatchKind::Plain) => &self.patch,
                 (_, PatchKind::Lit) => &self.patch_lit,
+                (_, PatchKind::Faded) => &self.faded,
                 (_, PatchKind::Floor) => &self.floor,
                 (_, PatchKind::Snowcap) => &self.snowcap,
                 (_, PatchKind::Billboard) => &self.billboard,

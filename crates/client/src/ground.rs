@@ -1087,8 +1087,16 @@ pub const RUN1564_DEEP_GREY: [[i32; 3]; 2] = [[1_139, 0, 0], [274, -7, 4]];
 /// (50, 121, 149); down: (182, 204), theirs (64, 122, 138), off (49, 126,
 /// 150) → on (47, 123, 147).
 /// Item 4312: 650 → 649, 6 → 5 (a named fall from 650 and 6): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
+/// Item 4310: [645, 649, 1, 5] → [661, 663, 2, 4]: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
 #[cfg(test)]
-pub const RUN1564_DEEP_STILL: [u32; 4] = [645, 649, 1, 5];
+pub const RUN1564_DEEP_STILL: [u32; 4] = [661, 663, 2, 4];
+
+/// **`RUN1564_FADED_HDR`** (item 4310; `docs/RENDERER.md` §3.27, "The
+/// faded land in HDR"): run1564's still at 3279, `SANDY` `[agree with the
+/// faded land blended tone-mapped, over black in HDR, crossed down, crossed
+/// up]`.
+#[cfg(test)]
+pub const RUN1564_FADED_HDR: [u32; 4] = [649, 663, 0, 14];
 
 /// **`RUN1564_3279_SURF`** (item 4225; `docs/RENDERER.md` §3.18, "The
 /// surf, off the packet"): `SANDY` and `OCEAN` `[agree, scored]` on the
@@ -1116,7 +1124,8 @@ pub const RUN1564_DEEP_STILL: [u32; 4] = [645, 649, 1, 5];
 /// Item 4296: `SANDY` 681 → 688, `OCEAN` holds: the deep corners drawn in the floor's grey plus `trans_bright` (item 4296, `docs/RENDERER.md` §3.27, "The beach below the waterline"; [`RUN1564_DEEP_STILL`]).
 /// Item 4312: `SANDY` 688 → 687 (a named fall from 688), `OCEAN` 422 → 424: the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 /// Item 4319: `SANDY` 687 → 688, `OCEAN` holds: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
-pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[688, 772], [424, 437]];
+/// Item 4310: **`SANDY` 688 → 708**, `OCEAN` holds: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
+pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[708, 772], [424, 437]];
 
 /// **`RUN1564_3279_SURF_DRAWN`** (item 4239; `docs/RENDERER.md` §3.27):
 /// `SANDY` and `OCEAN` `[agree, scored]` on run1564's still with the
@@ -1139,11 +1148,12 @@ pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[688, 772], [424, 437]];
 /// (parked 4292a).
 /// Item 4296: `SANDY` off 553 → 552, drawn 645 → 650, typed 678 → 680, `OCEAN` holds: the deep corners drawn in the floor's grey plus `trans_bright` (item 4296, `docs/RENDERER.md` §3.27, "The beach below the waterline"; [`RUN1564_DEEP_STILL`]).
 /// Item 4312: `OCEAN` 422 → 424 on all three, drawn `SANDY` 650 → 649 (a named fall from 650): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
+/// Item 4310: `SANDY` off 552 → 585, drawn 649 → 663, typed 680 → 689, `OCEAN` holds: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
 #[cfg(test)]
 pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
-    [[552, 772], [424, 437]],
-    [[649, 772], [424, 437]],
-    [[680, 772], [424, 437]],
+    [[585, 772], [424, 437]],
+    [[663, 772], [424, 437]],
+    [[689, 772], [424, 437]],
 ];
 
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
@@ -1194,15 +1204,16 @@ pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
 /// photograph's stays bright (parked 4292a).
 /// Item 4296: **1,778 → 1,783** (`SANDY` 645 → 650, 6 up and 1 down): the deep corners drawn in the floor's grey plus `trans_bright` (item 4296, `docs/RENDERER.md` §3.27, "The beach below the waterline"; [`RUN1564_DEEP_STILL`]).
 /// Item 4312: **1,783 → 1,784** (`OCEAN` 422 → 424, `SANDY` 650 → 649, a named fall from 650): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
+/// Item 4310: **1,784 → 1,798** (`SANDY` 649 → 663, 14 up and none down; 4294's nine deep tiles all agree): the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1784, 1920),
+    (1798, 1920),
     [
         [679, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [649, 772],
+        [663, 772],
         [424, 437],
     ],
 );
@@ -1243,6 +1254,7 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4296: run1564 **1,843 → 1,845** (`SANDY` 723 → 725): the deep corners in the floor's grey plus `trans_bright` (`docs/RENDERER.md` §3.27, "The beach below the waterline"); run1559b unchanged.
 /// Item 4312: run1564 **1,845 → 1,848** (`OCEAN` 416 → 418, `SANDY` 725 → 726): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 /// Item 4319: run1564 **1,848 → 1,855** (**`ROCK` 25 → 32** of 32): the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24); run1559b unchanged.
+/// Item 4310: run1564 **1,855 → 1,868** (`SANDY` 726 → 738, `OCEAN` 418 → 419): the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"); run1559b unchanged.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
         (1109, 1109),
@@ -1257,15 +1269,15 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1855, 1920),
+        (1868, 1920),
         [
             [679, 679],
             [0, 0],
             [32, 32],
             [0, 0],
             [0, 0],
-            [726, 772],
-            [418, 437],
+            [738, 772],
+            [419, 437],
         ],
     ),
 ];
@@ -1300,7 +1312,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Item 4306: run1564's 1,786 → 1,789, the national border drawn over the east edge's beach (`docs/RENDERER.md` §3.29).
 /// Item 4312: run1564 1,789 → 1,794: the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 /// Item 4319: run1559b 1,012 → 1,020, run1564 1,794 → 1,802: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24).
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1020, 1109), (1802, 1920)];
+/// Item 4310: run1564 1,802 → 1,768 (a named fall of 34, the made-to-fail side): the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"), against the drawn row's 1,798: **the drawn row leads on run1564 by 30**, so 4296b's lead is gone.
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1020, 1109), (1768, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1601,14 +1614,15 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// Item 4306: `SANDY` 439 → 440: the national border drawn over the east edge's beach (`docs/RENDERER.md` §3.29).
 /// Item 4312: **`OCEAN` 234 → 244**, `SANDY` 440 → 438 (a named fall from 440): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24), the photograph's blot.
 /// Item 4319: **`ROCK` 9 → 32 of 32**, plain 666 → 678, `SANDY` 438 → 442, `OCEAN` 244 → 243 (a named fall of one): the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24), the stones over every patch cell's tiles.
+/// Item 4310: `SANDY` 442 → 435 (a named fall of seven), `OCEAN` 243 → 245: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]); the deep sand's spread under the water.
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [678, 679],
     [0, 0],
     [32, 32],
     [0, 0],
     [0, 0],
-    [442, 772],
-    [243, 437],
+    [435, 772],
+    [245, 437],
 ];
 
 /// **`RUN1564_3279_LAKE_HDR_TEXTURE`** (item 4232): [`TEXTURE`]'s
@@ -3475,7 +3489,7 @@ pub(crate) mod tests {
         let faded: Vec<_> = laid
             .iter()
             .filter(|m| {
-                m.alpha == crate::world::WATER_ALPHA
+                m.alpha == crate::world::LAND_FADE_ALPHA
                     && m.piece != crate::world::WATER_PIECE
                     && m.piece != crate::world::FLOOR_PIECE
                     && m.piece != crate::world::CORAL_PIECE
@@ -3486,8 +3500,8 @@ pub(crate) mod tests {
             laid.iter()
                 .filter(|m| m.alpha == crate::world::WATER_ALPHA)
                 .count(),
-            3 + faded.len(),
-            "the water, the shade, the coral layer and the faded land ride the alpha ramp"
+            3,
+            "the water, the shade and the coral layer ride the alpha ramp; item 4310: the faded land, keyed apart"
         );
         // Item 4223 (draw 131, §3.18): the coral layer, once, on every
         // faded triangle at the complement of its alpha, after every
@@ -3545,13 +3559,17 @@ pub(crate) mod tests {
         }
         let fade_drawn: usize = faded_of.values().sum();
         assert!(
-            laid.iter()
-                .position(|m| m.alpha == crate::world::WATER_ALPHA)
-                < Some(first)
+            laid.iter().position(|m| {
+                m.alpha == crate::world::WATER_ALPHA || m.alpha == crate::world::LAND_FADE_ALPHA
+            }) < Some(first)
         );
         let laid: usize = laid
             .iter()
-            .filter(|m| !m.mountain && m.alpha != crate::world::WATER_ALPHA)
+            .filter(|m| {
+                !m.mountain
+                    && m.alpha != crate::world::WATER_ALPHA
+                    && m.alpha != crate::world::LAND_FADE_ALPHA
+            })
             .map(|m| m.positions.len())
             .sum();
         assert!(laid > 0, "the transition patch is laid");
@@ -7896,5 +7914,83 @@ pub(crate) mod tests {
         );
         assert_eq!([neutral, deep, lit_equal], RUN1564_DEEP_CORNERS[0]);
         assert_eq!([on_screen, lo as u32, hi as u32], RUN1564_DEEP_CORNERS[1]);
+    }
+
+    /// **The faded land in HDR** (item 4310; `docs/RENDERER.md` §3.27):
+    /// run1564's still at 3279 with [`World::set_faded_hdr`] off (the
+    /// tone-mapped land blended at its alpha, the made-to-fail side) and on
+    /// (`T(L · a)` over black), `SANDY` `[agree off, agree on, crossed down,
+    /// crossed up]`: [`RUN1564_FADED_HDR`]. Each of 4294's nine deep tiles
+    /// is named with both sides' means.
+    #[test]
+    fn the_faded_land_in_hdr() {
+        use crate::gpu::SilhouetteOrder;
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let mut rows = Vec::new();
+        for on in [false, true] {
+            p.world.set_faded_hdr(on);
+            let still = crate::still_of(
+                &mut p.world,
+                &camera,
+                size,
+                SilhouetteOrder::Before,
+                wgpu::TextureFormat::Rgba8Unorm,
+            );
+            rows.push(still_ground_row(&mut p, &still));
+        }
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let nine = [
+            (186, 170),
+            (192, 171),
+            (199, 178),
+            (200, 190),
+            (201, 183),
+            (201, 188),
+            (200, 181),
+            (200, 180),
+            (182, 204),
+        ];
+        let mut got = [0u32; 4];
+        let mut nine_on = 0;
+        for (a, b) in rows[0].iter().zip(&rows[1]) {
+            if nine.contains(&a.0) {
+                nine_on += u32::from(b.3);
+                println!(
+                    "run1564 faded: deep tile {:?}: theirs ({:.0}, {:.0}, {:.0}), off ({:.0}, {:.0}, {:.0}) {} -> on ({:.0}, {:.0}, {:.0}) {}",
+                    a.0,
+                    a.1[0],
+                    a.1[1],
+                    a.1[2],
+                    a.2[0],
+                    a.2[1],
+                    a.2[2],
+                    a.3,
+                    b.2[0],
+                    b.2[1],
+                    b.2[2],
+                    b.3
+                );
+            }
+            if kind_of(&t, &mountains, a.0) != 5 {
+                assert_eq!(a.3, b.3, "{:?}: only SANDY moves", a.0);
+                continue;
+            }
+            got[0] += u32::from(a.3);
+            got[1] += u32::from(b.3);
+            if a.3 != b.3 {
+                got[2 + usize::from(b.3)] += 1;
+            }
+        }
+        println!(
+            "run1564 faded: SANDY [off, on, down, up] {got:?}; the nine deep tiles agree on {nine_on}"
+        );
+        assert_eq!(got, RUN1564_FADED_HDR);
+        assert_eq!(nine_on, 9, "4294's nine deep tiles");
     }
 }
