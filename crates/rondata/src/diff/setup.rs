@@ -1028,7 +1028,15 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         unit.type_index = u.guys.first().and_then(|g| g.kind).unwrap_or(-1) as i32;
         if let Some(t) = ty {
             unit.kind = t.kind;
-            unit.movement.speed = t.moves;
+            // `Unit::init@00612100`'s `update_speed` for its leader, at
+            // birth (item 4340): a Bantu citizen is born at 31 on a `MOVES`
+            // of 25, as the nation is known by here. Gaia keeps the type's.
+            unit.movement.speed = match kind {
+                Some(k) if (0..players as i64).contains(&u.who) => {
+                    sim.type_speed(u.who as sim::Player, k)
+                }
+                _ => t.moves,
+            };
             unit.movement.turning = sim::turning_of(t);
         }
         if gaia {

@@ -42,14 +42,19 @@ impl Sim {
             &self.tables.tuning,
             &mut self.tech[who as usize],
         );
+        // `Leader::init@006e3930` lays the tree down in place, and its
+        // `gain_tech` tails' `0xc000000` are the epochs' and Despotism's
+        // (`:544`–`:576`), which `start` does not run: so the setup leaves
+        // both stats bits as they stood, and theirs' setup `check_all`
+        // reads `leader_flags` byte 3 `0a` (items 4333, 4340;
+        // `docs/CHECKSUM.md` §25.4). A unit is born at its leader's speed
+        // (`Unit::init`'s `update_speed`), so nothing waits on the first
+        // `calc_unit_stats`.
+        let wall_stats_were = self.cities.wall_stats_dirty[who as usize];
+        let unit_stats_were = self.roster.unit_stats_dirty[who as usize];
         self.apply_gained(who);
-        // NOT the original's word on the setup's two stats bits (item 4333,
-        // `docs/CHECKSUM.md` §25.4): `Leader::init@006e3930` lays the tree
-        // down without `gain_tech`, so theirs' setup `check_all` reads byte
-        // 3 `0a` where this raises `0x4000000` too (`0e`). Keeping the bits
-        // as they stood took the first `calc_unit_stats` away, and every
-        // Bantu lobby parted: the crate's opening units take the Bantu
-        // speed there, where theirs' take it at birth.
+        self.cities.wall_stats_dirty[who as usize] = wall_stats_were;
+        self.roster.unit_stats_dirty[who as usize] = unit_stats_were;
         self.lay_starting_goods(who);
         // `Leader::init`'s `calc_attrition` and `calc_anti_attrition` see
         // the opening tech set (`docs/LEADERS.md` §5.2, §6.2).
