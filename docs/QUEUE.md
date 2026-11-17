@@ -49,13 +49,13 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 137 §1 to §4): the third takes 4315; the suite's seat takes 4313, the one whole item out; the chain takes 4314 as a ccc lane; render takes 4309, then 4310 (Ramon: playing first).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 137 §1 to §4): the third takes 4315; the suite's seat takes 4313, the one whole item out; the chain's 4316 waits for the pass; render takes 4309, then 4310 (Ramon: playing first).
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 2 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
 packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**, run1628 (recon4206-4, read in
 place) **1150 computed**, run1629 **1300 whole**. Frame 91's line parts on 0 of 267 ranges and is held, not whole, while a leaf is held
-(the driver's ruling at 4298). **Held:** `incoming_taunt_who`, `tribute_demanded`. **Order:** items 4313 and 4314. The diplomacy's
+(the driver's ruling at 4298). **Held:** `incoming_taunt_who`, `tribute_demanded`. **Order:** items 4313 and 4316. The diplomacy's
 second reading is adjudicated (`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`); the proposal's draw at five live leaders is
 parked in `docs/LEADERS.md` §7.6 with what would falsify it.
 
@@ -63,10 +63,10 @@ parked in `docs/LEADERS.md` §7.6 with what would falsify it.
 → 1: `incoming_taunt_who`. `LAST_WHO0=1` seats the human at who 1 (recon4299-1), our walk holds it 1300 of 1300. The take: run1575's
 script with the whos moved (meet who=0, ally 0, resource who=1), a `NEED_FOOD` chat, a packet after the drain, since no dump prints it.
 
-4314. **The demand's walk at DIFFICULTY 4** (a rules item, whole; `docs/LEADERS.md` §8.2; DECISIONS 137 §1; 4300's four journals).
-`LEADERS_HELD_OUT` → 1 less: `tribute_demanded`, stored only at DIFFICULTY ≥ 2 for an allied human (run1640's packet). recon4300-2
-walks 4202 (`RECON4300_2_WORD`, from 5: a probe's seeds, then `swarm_around_new`); on 4202 ours `Guy::move+0x19f`, theirs a cast
-(parked 4300c1). Chased to about 6,080, the arm's frame; then the take, run1575's alliance kept at DIFFICULTY 4 (parked 4300a1).
+4316. **The demand's walk at DIFFICULTY 4, the embark** (a rules item, whole; `docs/LEADERS.md` §8.2; 4300's and 4314's journals).
+`LEADERS_HELD_OUT` → 1 less: `tribute_demanded`. recon4300-2 walks 4202 (`RECON4300_2_WORD`): theirs embarks the French Assault
+Infantry 1/52 there (a transport cast, the boat's birth); ours' track after its 4191 waypoint turn sits 6 units east and slips past
+ocean tile (74, 165) (parked 4314a, a packet near 4191). Chased to about 6,080; then the take (parked 4300a1).
 
 4315. **The panel's leader predicates, the filter** (an `input` item, scoped; `docs/CLIENT_INPUT.md` §32.4; 4305's journal). `PANEL_LEADER`
 0 of 77 buildings (`tools/recomp/panels.py`, `BuildOut::make_options` under step4 on run1591 and run1640). The filter needs finished
