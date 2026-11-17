@@ -1722,6 +1722,79 @@ impl Input {
         issue.then(|| (frame, i32::from(self.player), vec![Command::CheatAiToggle]))
     }
 
+    /// **`Options::picked_spot@00721c40`, as the left button reaches it**
+    /// (item 4304, `docs/CLIENT_INPUT.md` §38): `None` when no pick is
+    /// armed, else what the armed pick does. `Console::left_click@007c3bc0`
+    /// (a click) and `Console::on_left_up@007cde90` (a drag, ahead of the
+    /// box) both call it as `picked_spot(drag_x2, drag_y2, drag_x, drag_y)`:
+    /// the cursor's ground point at the release, then the press's.
+    /// `Console::down@007cd8f0` writes the press's to both, and every
+    /// `on_mouse_move` rewrites `drag_x2`. The garrison and the spell read
+    /// the release's point alone; the build arm hands both to
+    /// `issue_build`, its `(x, y)` and `(x2, y2)`.
+    fn picked_spot(
+        &mut self,
+        frame: i32,
+        view: &View,
+        (x, y): (i32, i32),
+        press: (i32, i32),
+    ) -> Option<Option<Order>> {
+        let play = i32::from(self.player);
+        if self.garrisoning {
+            // `picked_spot`'s `OPTION_GARRISON` arm: no building under the
+            // pick returns before `reset`, and the pick stands; any other
+            // spends it.
+            let Some(b) = view.own_building(self.player, x, y) else {
+                return Some(None);
+            };
+            self.garrisoning = false;
+            let cmd = garrisons(view.scene, self.player, &self.selection, b);
+            return Some(cmd.map(|cmd| (frame, play, vec![self.group(view.scene), cmd])));
+        }
+        if let Some(t) = self.casting.take() {
+            // `picked_spot`'s `OPTION_SPELL` arm: `reset`, then a ground
+            // craft (`& 8`) at the point, else the object
+            // `SpellTypeData::find_target` names, at the point.
+            let spelled = (|| {
+                let at = ground_at(view, x, y)?;
+                let craft = selection_craft(view.scene, &self.selection, t)?;
+                let cmd = if craft.ground {
+                    spell(t, -1, -1, at)
+                } else {
+                    let id = match view.target(self.player, x, y)? {
+                        Hit::Enemy { id, .. } | Hit::Friend(id) | Hit::Own { id, .. } => id,
+                    };
+                    spell(t, i32::from(id.o), i32::from(id.who), at)
+                };
+                Some((frame, play, vec![self.group(view.scene), cmd]))
+            })();
+            return Some(spelled);
+        }
+        let ty = self.placing?;
+        // The build arm: `issue_build(x, y, x2, y2)`, the release's ground
+        // point and the press's. `process_build@00948110` hands both to
+        // `Group::action_build@00707510`, whose only reads of `x2, y2` are
+        // its pushes into `GroupData::validate_build@00708620`, which reads
+        // neither (the listing): the press's point is carried, never used.
+        let (Some(at), Some(from)) = (ground_at(view, x, y), ground_at(view, press.0, press.1))
+        else {
+            return Some(None);
+        };
+        let (queued, armed) = self.placed_queue(ty);
+        if !armed {
+            self.placing = None;
+        }
+        let cmd = Command::Build {
+            x: at.x,
+            y: at.y,
+            x2: from.x,
+            y2: from.y,
+            build: ty,
+            queued,
+        };
+        Some(Some((frame, play, vec![self.group(view.scene), cmd])))
+    }
+
     /// One event on `frame` (the recording frame the package is consumed
     /// on): the order it makes, if any.
     pub fn event(&mut self, frame: i32, ev: Event, view: &View) -> Option<Order> {
@@ -1949,46 +2022,8 @@ impl Input {
                 None
             }
             Event::Press { x, y } => {
-                if self.garrisoning {
-                    // `picked_spot`'s `OPTION_GARRISON` arm: no building
-                    // under the pick returns before `reset`, and the pick
-                    // stands; any other spends it.
-                    let b = view.own_building(self.player, x, y)?;
-                    self.garrisoning = false;
-                    let cmd = garrisons(view.scene, self.player, &self.selection, b)?;
-                    return Some((frame, play, vec![self.group(view.scene), cmd]));
-                }
-                if let Some(t) = self.casting.take() {
-                    // `picked_spot`'s `OPTION_SPELL` arm: `reset`, then a
-                    // ground craft (`& 8`) at the point, else the object
-                    // `SpellTypeData::find_target` names, at the point.
-                    let at = ground_at(view, x, y)?;
-                    let craft = selection_craft(view.scene, &self.selection, t)?;
-                    let cmd = if craft.ground {
-                        spell(t, -1, -1, at)
-                    } else {
-                        let id = match view.target(self.player, x, y)? {
-                            Hit::Enemy { id, .. } | Hit::Friend(id) | Hit::Own { id, .. } => id,
-                        };
-                        spell(t, i32::from(id.o), i32::from(id.who), at)
-                    };
-                    return Some((frame, play, vec![self.group(view.scene), cmd]));
-                }
-                if let Some(ty) = self.placing {
-                    let at = ground_at(view, x, y)?;
-                    let (queued, armed) = self.placed_queue(ty);
-                    if !armed {
-                        self.placing = None;
-                    }
-                    let cmd = Command::Build {
-                        x: at.x,
-                        y: at.y,
-                        x2: at.x,
-                        y2: at.y,
-                        build: ty,
-                        queued,
-                    };
-                    return Some((frame, play, vec![self.group(view.scene), cmd]));
+                if let Some(o) = self.picked_spot(frame, view, (x, y), (x, y)) {
+                    return o;
                 }
                 let hit = view
                     .anchors(self.player)
@@ -2008,7 +2043,13 @@ impl Input {
                 None
             }
             Event::Drag { x0, y0, x1, y1 } => {
-                self.placing = None;
+                // `Console::on_left_up@007cde90`: an armed pick takes the
+                // drag before the box, `picked_spot` at the release with
+                // the press beside it (item 4304, `docs/CLIENT_INPUT.md`
+                // §38).
+                if let Some(o) = self.picked_spot(frame, view, (x1, y1), (x0, y0)) {
+                    return o;
+                }
                 self.selection = view.boxed(self.player, (x0, y0), (x1, y1));
                 self.building = false;
                 None
@@ -7725,18 +7766,11 @@ pub(crate) mod tests {
             | Command::SwarmAround { .. } => {
                 Verdict::Miss("queued: a value no issuer writes", Button)
             }
-            &Command::Build {
-                x,
-                y,
-                x2,
-                y2,
-                build,
-                queued,
-            } => {
+            // Since item 4304 the press's point beside the release's is
+            // the layer's too (§38): `(x2, y2)` is the drag's press.
+            &Command::Build { build, queued, .. } => {
                 if !QUEUES.contains(&queued) {
                     Verdict::Miss("queued: a value no issuer writes", Button)
-                } else if (x, y) != (x2, y2) {
-                    Verdict::Miss("build: a dragged line", Button)
                 } else if !BUILD_KEYS.iter().any(|k| k.1 == build)
                     && !roster.builds.contains(&build)
                 {
@@ -7909,11 +7943,11 @@ pub(crate) mod tests {
     /// Every order on disk by verdict: (shown, of the layer's form but not
     /// minted from a scene, missed, all). A package's `group` takes its
     /// order's verdict.
-    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (987, 1432, 10, 2429);
+    const INPUT_WHOLE_ORDERS: (usize, usize, usize, usize) = (987, 1442, 0, 2429);
     /// The missed orders by arm, most first, and who reaches each, the
-    /// package's `group` counted with its order.
-    const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] =
-        &[("build: a dragged line", Reach::Button, 10)];
+    /// package's `group` counted with its order. Empty since item 4304
+    /// (§38), the dragged placement's ten the last.
+    const INPUT_WHOLE_MISSES: &[(&str, Reach, usize)] = &[];
 
     /// **A person's whole game, by recording** (item 4285): each recording
     /// on disk, its every order given its package's [`Verdict`]; the
@@ -8885,11 +8919,11 @@ pub(crate) mod tests {
     /// the census's verdict. Before the item every one but the two-issue
     /// turns was the miss "queued 1: the shift held", 200 orders; the
     /// shift's queue is now the layer's, and four `build` orders fall to
-    /// the dragged line. No recording carries `QUEUE_FIRST`. Seen red
-    /// pinned with the miss: the build parted it.
+    /// the dragged line, the layer's form since item 4304 (§38). No
+    /// recording carries `QUEUE_FIRST`. Seen red pinned with the miss: the
+    /// build parted it.
     const QUEUED_ORDERS: &[(&str, i32, &str, usize)] = &[
-        ("build", 1, "build: a dragged line", 4),
-        ("build", 1, "form", 2),
+        ("build", 1, "form", 6),
         ("gather", 1, "form", 4),
         ("move_to", 1, "INPUT_TURNS", 12),
         ("move_to", 1, "form", 186),
@@ -9234,14 +9268,17 @@ pub(crate) mod tests {
     /// "a type no key of ours binds", (`queue_up` types on a panel, of
     /// them; `build` types on the citizen's pages, of them). Seen red
     /// pinned (0, 0, 0, 0).
-    const PANEL_ROSTER: (usize, usize, usize, usize) = (82, 82, 15, 15);
+    const PANEL_ROSTER: (usize, usize, usize, usize) = (82, 82, 16, 16);
     /// And their orders, the package's `group` counted with its order:
     /// (`queue_up` orders on a panel, of them; `build`, of them). Item 4293
     /// adds the one shifted `build` package of a type no key binds, which
     /// the queue's miss hid until then: 42 → 44, its type already counted.
     /// Item 4302 adds the two turns of two `queue_up`s of type 69 (19159,
     /// 19175), which the writer's miss hid: 390 → 398, the type counted.
-    const PANEL_ROSTER_ORDERS: (usize, usize, usize, usize) = (398, 398, 44, 44);
+    /// Item 4304 adds the five dragged placements (§38), all of types no
+    /// key binds, which the dragged line's miss hid: builds 44 → 54, and
+    /// the Temple (437), placed only by a drag, a sixteenth type, 15 → 16.
+    const PANEL_ROSTER_ORDERS: (usize, usize, usize, usize) = (398, 398, 54, 54);
     /// The types on no panel, by `TypeIndex`.
     const PANEL_ROSTER_OFF: &[i32] = &[];
 
@@ -9764,5 +9801,178 @@ pub(crate) mod tests {
         built.sort();
         want.sort();
         assert_eq!(built, want);
+    }
+
+    /// **`DRAGGED_PLACEMENTS`** (item 4304, `docs/CLIENT_INPUT.md` §38):
+    /// every recorded package whose `build` carries a press's point apart
+    /// from its release's, `(frame, type, queue, the census's verdict)`.
+    /// All five are the 2017 sample's slot 3, ten orders with their
+    /// groups, the census's last misses before the item. Seen red with
+    /// 6300's row pinned at the old miss: it parted at "form".
+    const DRAGGED_PLACEMENTS: &[(i32, i32, i32, &str)] = &[
+        (6300, 428, 1, "form"),
+        (7259, 419, 2, "form"),
+        (7950, 437, 2, "form"),
+        (10057, 419, 2, "form"),
+        (12022, 424, 1, "form"),
+    ];
+
+    /// The census of the dragged placements (item 4304's first act).
+    #[test]
+    fn the_dragged_placements_of_the_recordings_on_disk() {
+        let files = recordings_on_disk();
+        if files.is_empty() || lobby().is_err() {
+            println!("skipping: no .rcx on disk or no lobby");
+            return;
+        }
+        let roster = install_roster().unwrap_or_default();
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let scene = Scene::default();
+        let v = view(&c, &scene, &terrain);
+        let mut got = Vec::new();
+        for f in &files {
+            let rec = rondata::recgame::read(&f.display().to_string()).unwrap();
+            let who = console_who(&rec);
+            let mut pauser = Input::new(0);
+            for p in &rec.packages {
+                let Ok(cmds) = rondata::commands::decode(&p.data) else {
+                    continue;
+                };
+                let kept: Vec<Command> =
+                    cmds.into_iter().filter(rondata::input::is_input).collect();
+                let Some(&Command::Build {
+                    x,
+                    y,
+                    x2,
+                    y2,
+                    build,
+                    queued,
+                }) = kept.iter().find(|c| matches!(c, Command::Build { .. }))
+                else {
+                    continue;
+                };
+                if (x, y) == (x2, y2) {
+                    continue;
+                }
+                let verdict = match census_verdict(
+                    &kept,
+                    p.frame,
+                    p.play as u8,
+                    who,
+                    &mut pauser,
+                    &v,
+                    &roster,
+                ) {
+                    Verdict::Shown(pin) => pin,
+                    Verdict::Form => "form",
+                    Verdict::Miss(arm, _) => arm,
+                };
+                println!(
+                    "DRAGGED {} f{} {kept:?} {verdict}",
+                    f.file_name().unwrap().to_string_lossy(),
+                    p.frame
+                );
+                got.push((p.frame, build, queued, verdict));
+            }
+        }
+        assert_eq!(got, DRAGGED_PLACEMENTS);
+    }
+
+    /// **The placement on a drag, as the original's** (item 4304, §38):
+    /// with a type armed, a left drag is `picked_spot` at the release with
+    /// the press beside it, `build(x, y, x2, y2)` the release's ground
+    /// point and the press's. It does not box: the selection stands. The
+    /// queue and the armed state are the press's (§33). With no pick armed
+    /// the drag boxes; a garrison pick with no building under the release
+    /// stands. Seen red with the two points swapped.
+    #[test]
+    fn minted_dragged_placements_as_the_original() {
+        let Ok(r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let scene = Scene::default();
+        let terrain = r.terrain();
+        let c = crate::pinned_camera();
+        let v = view(&c, &scene, &terrain);
+        let unit = |mods: Mods| Input {
+            selection: vec![ObjId { who: 0, o: 5 }],
+            mods,
+            ..Input::new(0)
+        };
+        let shift = Mods {
+            shift: true,
+            ..Mods::default()
+        };
+        let farm = BUILD_KEYS[0].1;
+        let (press, release) = ((900, 500), (960, 530));
+        let drag = Event::Drag {
+            x0: press.0,
+            y0: press.1,
+            x1: release.0,
+            y1: release.1,
+        };
+        let from = ground_at(&v, press.0, press.1).unwrap();
+        let at = ground_at(&v, release.0, release.1).unwrap();
+        assert_ne!(from, at);
+        for (mods, queued, armed) in [
+            (Mods::default(), QUEUE_NEW, false),
+            (shift, QUEUE_LAST, true),
+        ] {
+            let mut input = unit(mods);
+            input.event(1, Event::Place(farm), &v);
+            let got = input.event(1, drag, &v).unwrap();
+            assert_eq!((got.0, got.1, got.2.len()), (1, 0, 2), "{mods:?}");
+            assert_eq!(
+                got.2[0],
+                Command::Group {
+                    who: 0,
+                    objects: vec![5]
+                },
+                "{mods:?}"
+            );
+            assert_eq!(
+                got.2[1],
+                Command::Build {
+                    x: at.x,
+                    y: at.y,
+                    x2: from.x,
+                    y2: from.y,
+                    build: farm,
+                    queued,
+                },
+                "{mods:?}"
+            );
+            assert_eq!(input.selection, vec![ObjId { who: 0, o: 5 }]);
+            assert_eq!(input.placing.is_some(), armed, "{mods:?}");
+        }
+        // A click places at its one point, both pairs equal.
+        let mut input = unit(Mods::default());
+        input.event(1, Event::Place(farm), &v);
+        let got = input
+            .event(
+                1,
+                Event::Press {
+                    x: press.0,
+                    y: press.1,
+                },
+                &v,
+            )
+            .unwrap();
+        assert!(matches!(
+            got.2[1],
+            Command::Build { x, y, x2, y2, .. } if (x, y) == (from.x, from.y) && (x2, y2) == (x, y)
+        ));
+        // No pick: the drag boxes, and the empty scene's box takes nothing.
+        let mut input = unit(Mods::default());
+        assert_eq!(input.event(1, drag, &v), None);
+        assert!(input.selection.is_empty());
+        // A garrison pick with no building under the release stands.
+        let mut input = unit(Mods::default());
+        input.event(1, Event::Garrison, &v);
+        assert_eq!(input.event(1, drag, &v), None);
+        assert!(input.garrisoning);
+        assert_eq!(input.selection, vec![ObjId { who: 0, o: 5 }]);
     }
 }
