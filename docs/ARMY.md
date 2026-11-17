@@ -1089,6 +1089,8 @@ else:                                                                  # an enem
     k = by pers.raid: −1 → (TOWN 2 | METROPOLIS, FORBIDDEN 3 | 1)
                        1 → num_captains > 19 and count(SIEGE) > 2 and L.score × 4 / 3 < my score → city_level
                             else (TOWN 2 | METROPOLIS, FORBIDDEN 1 | else 3)     # a raider prefers small cities
+                            # L.score is LeaderData::score (+0x18): diff-backed by item 4354 (run1655b's
+                            # 5496, 13 of 13 draws; the crate's seam had answered 1 for me, 0 for L)
                        else → num_captains > 19 and count(SIEGE) > 1 → city_level
                             ; num_captains > 9 and count(SIEGE) → skip the multiplier
                             ; else (TOWN 2 | METROPOLIS, FORBIDDEN 1 | 3)
@@ -1919,6 +1921,15 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   either. *Capture:* a lobby whose AI holds a Large City with a wonder,
   where the two clauses disagree by a factor and the chosen target is the
   observable.
+- **`pop_issues` and the wonder clause are live on run1646's 5496 and not
+  carried** (item 4354): theirs' Russian `pop_issues` (`+0x7e8`) reads 1
+  (an enemy's city `× 4`, `6f72da`) and the French `wonderwin_timer`
+  (`+0x44c`) 1 with `wonder_winning()` the French (`× 10`, `6f730c`), so
+  each of the five French cities scores theirs' `× 40` (40920, 81360,
+  76880, 122040, 54720 against ours' 1023, 2034, 1922, 3051, 1368). The
+  factor is uniform over the five, so the choice does not depend on it;
+  against a fort or an own city it would. Not established: who writes
+  `pop_issues`, and `Game::wonder_winning@005948a0`'s port.
 - ~~**Whether `mask_me`'s `0x4000` is written where the original writes
   it.**~~ **Two captures already say it is, cell for cell**, and both were
   on disk: run13's frame 95 pinned the missing bit as its *one* exception
