@@ -38221,11 +38221,12 @@ nothing was moved or copied into the archives, and `filerun.py` was not run, so 
 - **Our walk against its own trace** (`run1646_walks_to_its_word_at_difficulty_4`; run1482's start re-read at style 0 and
   `DIFFICULTY 4`, the script staged from who 0): **count 3037, sequence 3037 of 6600**, the head word agreeing on every
   frame walked. 2082 on the base; item 4316's `BASE_BONUSTYPES` gates moved it. **3718** from item 4322 (a finished
-  wonder disbands the other sites of its type, `docs/CITIES.md` §4).
+  wonder disbands the other sites of its type, `docs/CITIES.md` §4). **5496** from item 4325 (`calc_cost`'s diplomacy
+  wall, `docs/PATHFINDER.md` §5; the trace's proxied `calc_cost` and `set_new_location` read the parting).
 
 Files in place: `gamelog.txt`, 1,272,747,952 bytes, SHA-256
 `6e4a9fb60c067261496194f69a9130e4c7c411b03507da36fb3dbbfe07c3ae55`; `rontrace.log`, 358,739,264 bytes, SHA-256
 `5f537a6e64b8a19412e4a03213a3c5cca8a79d53e82db3ad16c5a7b7bb31fe02`.
 
-**What it holds**: `diff::diplomacy_take::run1646_walks_to_its_word_at_difficulty_4` (`RUN1646_WORD` 3718). No leaf is
+**What it holds**: `diff::diplomacy_take::run1646_walks_to_its_word_at_difficulty_4` (`RUN1646_WORD` 5496). No leaf is
 released: the walk does not reach the leader window (5900).
