@@ -222,6 +222,31 @@ pub(crate) fn walk_take_from(
             }
         }
         crate::diff::harness::debug_watch(&built, at);
+        // PROBE (item 4314): the map round the army.
+        if std::env::var("RON_PROBE_MAP").ok().and_then(|v| v.parse::<i64>().ok()) == Some(at) {
+            let mut grid = std::collections::BTreeMap::new();
+            for x in built.sim.units.iter() {
+                if x.alive() && x.on_map && x.owner == 1 {
+                    let t = x.pos.tile();
+                    grid.insert((t.x, t.y), x.index);
+                }
+            }
+            for ty in 150..190 {
+                let mut row = String::new();
+                for tx in 60..100 {
+                    let p = sim::Pos { x: tx, y: ty };
+                    let c = if let Some(o) = grid.get(&(tx, ty)) {
+                        format!("{:>3}", o)
+                    } else if built.sim.world.is_tocean(p) {
+                        "  ~".to_string()
+                    } else {
+                        "  .".to_string()
+                    };
+                    row.push_str(&c);
+                }
+                eprintln!("PROBE map {ty:>3} {row}");
+            }
+        }
         // PROBE (item 4314): land units on ocean.
         if std::env::var_os("RON_PROBE_WET").is_some() && (4195..=4215).contains(&at) {
             for (i, x) in built.sim.units.iter().enumerate() {
