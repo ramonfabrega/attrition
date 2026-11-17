@@ -1166,7 +1166,13 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// (73 by one range, 5 by two), none on more: 89 ranges fewer over 81
 /// rows, all in the leaders slot. Each of the three agrees with leaves still
 /// held, at their reset on both sides.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 458, 1053);
+/// **466** at item 4324, `resources_controlled` (`+0x850`) the census's
+/// bit count of `rare` (`plan_strategy`'s inlined `BitMask<44>::count`;
+/// it wrote 0): the leaders line agrees on run1001d, run1007b, run1011c,
+/// run1011d, run1011e, run1015b, run985b and run991d (271 ranges, 1 → 0
+/// each), and parts on one range fewer on 23 more, none on more: 31
+/// ranges fewer over 31 rows, all in the leaders slot.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 466, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
