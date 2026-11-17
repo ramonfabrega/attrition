@@ -3454,8 +3454,10 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   walked row, since item 4321 the rest of the train loop, since item 4323 the research loop (§32.4),
   ~~and the HUD does not yet ask it~~ and since item 4334 the HUD draws it (§32.5).
 - **The pages.** The original splits the citizen's buildings over three pages (`OPTION_BUILD`,
-  `OPTION_BUILD_MILITARY`, `OPTION_BUILD_WONDER`, by `+0x14`). Ours is one page. Any unit selection offers it,
-  where the original offers it to a citizen.
+  `OPTION_BUILD_MILITARY`, `OPTION_BUILD_WONDER`, by `+0x14`). ~~Ours is one page. Any unit selection offers it,
+  where the original offers it to a citizen.~~ Since item 4337, with the walk, the HUD draws the three pages'
+  buttons at once, each its page as its option, to a selection holding a citizen (§32.6); without it, one static
+  page to any unit selection, as before.
 - **The building type in the count's scene** is ours: the first type whose panel queues the order's type, as §31's
   count makes every unit a Scout.
 - Where the buttons stand, their size and their labels (the type's name, cut to twelve characters).
@@ -3607,7 +3609,8 @@ draws them all, and nothing else.
 - The panel asks for slot `Input::player`. That is the human's `who` on every lobby of ours. It is not on the 2017
   sample (§26.1).
 
-**The Citizen's build page: no oracle as `panels.py` stands.** The pass's frame-600 still shows the HUD offering
+**The Citizen's build page: no oracle as `panels.py` stood** (~~stopped~~: item 4337 built the unit mode named
+below and the HUD draws the original's pages, §32.6). The pass's frame-600 still shows the HUD offering
 a Citizen every building in the rules, the wonders at age 1. `tools/recomp/panels.py` cannot produce the
 original's page:
 
@@ -3638,8 +3641,137 @@ export and none run:
 - `BuildTypeData::already_built` for `0x20e..0x21e`;
 - `at_city_limit`, but not for the Forbidden City.
 
-**Not established:** whether the original's wonder page offers the Kremlin, the Eiffel Tower and the Space
-Program at age 1 greyed or not at all. The mask and `has_tech` arms decide it, and no run has.
+~~**Not established:** whether the original's wonder page offers the Kremlin, the Eiffel Tower and the Space
+Program at age 1 greyed or not at all. The mask and `has_tech` arms decide it, and no run has.~~ Greyed: every
+held packet's wonder page offers all seventeen wonders, the three at `disable` 1 (item 4337, §32.6).
+
+## 32.6 The citizen's build pages, against the original's (item 4337)
+
+*Item 4337, 2026-11-17 (`docs/journal/2026-11-17-item-4337.md`). `tools/recomp/panels.py --citizens` runs
+`UnitOut::make_options@00615fc0` in `BUILD_OPTIONS` mode on a packet's citizens. The HUD now draws a citizen's
+three build pages as the original's. **`HUD_PAGES_WALKED` (32, 32, 1312, 1312, 1312)** on the minted game's
+sixteen packets, where the static HUD scores (0, 32, 147, 1312, 1696). No capture, no new packet, no `crates/sim`
+change.*
+
+**The oracle.** §32.5's recipe, each address settled in the export and the listing before it was run:
+
+- the entry `0x615fc0`, `this` a citizen, a unit of type `PEASANTS` (0x32) or `PEASANTSKOREAN` (0x33);
+- `MiscAccess::options`: the map's `?options@MiscAccess@@2AAVOptions@@A` at `0xc06204` holds a pointer. The
+  listing loads it (`mov 0xc06204, %ecx`) and compares `+0x74` with 0 and 1 (`0x61601b`). In the PDB's `Options`,
+  `+0x74` is `mode` and `+0x78` `mode_data`. Mode 1 jumps to the page loop at `0x616044`;
+- `mode` poked to 1, `mode_data` to the page, one run for each of 0, 1 and 2;
+- `Options::add@0072c290` hooked at its entry, its adds kept when the caller is `make_options@UnitOut`.
+
+Each add's first argument is `mode_data`, so a button's option is its page. The page ends with `OPTION_BACK`,
+`OPTION_NEXT` and `OPTION_CANCEL` (65, 66, 67), which the row sets aside.
+
+**The sweep.** The 96 runs (16 packets, 2 slots, 3 pages) all returned. Their TSVs are
+`~/ron-data/pages/run<N>.tsv`, with logs beside them. Only slots 0 and 1 hold citizens on the minted game.
+
+In `BUILD_OPTIONS` mode the loop reads only the citizen's slot (`+0x9`), and its id (`+0xa`) for the
+scenario's ignore list. So one citizen a slot is run. Measured: run1600's nineteen citizens of slot 1 give one
+page set (`--every`).
+
+**What theirs offers.** Page 0 has 15 buildings, page 1 nine, and page 2 the seventeen wonders, on every packet
+and both slots. Only `disable` moves.
+
+- Slot 0, the human's, which builds nothing: at 7195 it is as at 1. The City, the Mine, the University and nine
+  others are greyed; the Farm, the Woodcutter, the Library and the Market are clear; every wonder is greyed.
+- Slot 1 at 7195: ten of page 0 are clear, seven of page 1, and on page 2 the Pyramids, the Colossus and the
+  Hanging Gardens. The other fourteen wonders, the Kremlin, the Eiffel Tower and the Space Program among them,
+  are greyed.
+
+**The page loop**, `Roster::build_pages`. For each building `TypeIndex` over `BASE_BUILDTYPES..=0x21e` whose
+`preq[0]` and `preq[1]` are not disabled (`Roster::pages`, read once), in order:
+
+1. **A type with a `FROM`** (`+0x3c`) is offered only if its `obj_masks` carries `0x4000000`, or it has
+   `BUILD_FLAGS & 4` and `type_avail(t, 1)` is 4. The hero bit is what puts the Forbidden City and the Red Fort,
+   each with a `FROM`, on page 2.
+2. **The obsolete**: a type the leader's `obs_flags` (`+0x6cf4`, a `BitMask<806>` whose bytes start at `+0x6d00`)
+   marks is not offered, nor one whose `obs` (`+0x4c`) the leader `has_tech`.
+   - The loop's running bit starts at 0x40 for `BASE_BUILDTYPES` 0x19e, so the mask is `obs_flags[t]`, the
+     sim's `PlayerTech::obs`.
+   - `BuildType::init@00632340` reads `OBSOLETE` into `+0x4c` through `tech_key`. Every one of the 129 shipped
+     records writes `disable`, and `LeaderData::has_tech@006e0c80` of that answers 0, so the `obs` arm hides
+     nothing on the shipped data.
+3. **A wonder `already_built`** (`BuildTypeData::already_built@0063ce10`, `0x20e..=0x21e`) is not offered.
+4. **A type that `is(VILLAGE)`** (the City line, 0x19e), and neither `is(FORBIDDENCITY)` nor the Forbidden City
+   itself, is greyed when the leader is `at_city_limit` (`LeaderData::at_city_limit@006e0d30`).
+5. **The page** is the type's `cat` (`TypeData +0x14`). `BuildType::init` resolves `CAT` with
+   `Categories::find_key(&build_cats, …)` against `rules.xml`'s `building_cats`: `E` 0, `M` 1, `W` 2.
+   - Pages 0 and 1 take their `cat` and not a wonder (vtable `+0x1c`).
+   - Page 2 takes `cat` 2, and a wonder only while `LeaderData::get_queued@006e0d50` is 0. For a wonder, that is
+     its own `num_queued`: no site of it placed and unfinished.
+   - The loader is `rondata::load::Loaded::build_cat`, in building-record order, held to 18, 93 and 18 records
+     by `every_building_has_a_page`, seen red reading `unit_cats`.
+6. **`disable`** is 1 when `type_avail(t, 1)` is under 4 or the limit greys the type, else 0.
+
+**What the HUD does.** With the walk, `Input::panel` gives a unit selection the three pages' buttons at once,
+each `(Event::Place(t), button)`, when the selection holds one of the slot's own citizens, and nothing
+otherwise. Without the walk, it keeps the static page, clear, for any unit selection, so the counts over the 50
+recordings are unchanged. A press on a greyed page button is consumed (§32.5's arm) and arms nothing.
+
+**The count** (`the_pages_of_the_packets_on_our_walk`, `crates/client/src/input.rs`). For each held packet's
+citizens, the citizen alone is selected for its slot on the walk's own scene at the packet's frame. The test
+asserts that it is a citizen there. `hud::roster_menu`'s buttons are set whole (type, option, `disable`)
+against the original's three pages.
+
+| row | (equal, citizens, both whole, theirs, ours) |
+| --- | --- |
+| **`HUD_PAGES_WALKED`** | **(32, 32, 1312, 1312, 1312)**, seen red pinned at zeros |
+| `HUD_PAGES_STATIC`, the HUD without the walk | (0, 32, 147, 1312, 1696) |
+| **`HUD_PAGES_PRESSED`** (pressed as `disable` says, pressed) | **(1312, 1312)**, seen red pinned at zeros |
+
+**The value diff.** The static HUD drew 53 buttons a citizen, every one `(t, 0, 0)`: 1,696 on 32 citizens. Of
+theirs it drew only the 147 clear page-0 buttons. For example:
+
+- it drew fourteen upgrades no page offers, on every packet: the Auto Plant (429), the Factory (431), the
+  Anchorage and the Shipyard (433, 434), the Keep, the Stockade and the Bunker (440 to 442), the Castle, the
+  Fortress and the Redoubt (444 to 446), and the Observation Post, the Air Defense, the Radar and the SAM (522 to
+  525). They are on its page by `BUILD_FLAGS & 4`, which theirs asks only with `type_avail` 4;
+- it lacked the Forbidden City and the Red Fort, which theirs offers by the hero bit;
+- it drew theirs page 1 and 2 types under option 0;
+- it drew every wonder clear. At 7195 theirs greys fourteen of slot 1's wonders and all seventeen of slot 0's.
+
+**Each arm perturbed alone** (`HUD_PAGES_WALKED`, unless named):
+
+| perturbation | value |
+| --- | --- |
+| the `FROM` gate dropped | (0, 32, 1312, 1312, 1824): the Town, the Metropolis, the Auto Plant and the other upgrades drawn greyed |
+| the hero bit unread | (0, 32, 1248, 1312, 1248): the Forbidden City (531) and the Red Fort (534) lost |
+| `type_avail` unread in the `FROM` arm | (0, 32, 1312, 1312, 1760) |
+| the city limit unread | (0, 32, 1280, 1312, 1312): the City (414) drawn clear |
+| `disable` from the limit alone | (0, 32, 251, 1312, 1312) |
+| `hud::event`'s greyed filter dropped | `HUD_PAGES_PRESSED` (219, 1312): 1,093 greyed presses arm a placement |
+| `obs_flags` and `has_tech(obs)` unread, `already_built` unread, the wonder sites unread, the limit always on | unchanged |
+
+**Ours, not the original's.**
+
+- The three pages drawn at once. The original's citizen shows `OPTION_BUILD`, `OPTION_BUILD_MILITARY` and
+  `OPTION_BUILD_WONDER` in `STANDARD_OPTIONS` mode, and one page after the press.
+- A press on a greyed page button arms nothing. `Options::exec`'s build arm is not read.
+- The panel's grid (`+0x5c`, `+0x5d`, which the TSV carries), the page's `OPTION_BACK`, `OPTION_NEXT` and
+  `OPTION_CANCEL`, and the buttons' places.
+
+**Confidence, and what is not established.**
+
+- **Backed by the oracle**: every page button of the 32 citizen-pages on the minted game's walk, type, option
+  and `disable`, and the press of each.
+- **Exercised by no held packet** (each perturbation above changes nothing):
+  - the `obs` arms;
+  - `already_built`;
+  - the wonder-site arm of page 2;
+  - a leader not `at_city_limit`, which every held packet's two slots are;
+  - the `objmask`-without-`FROM` case.
+- **Not built**:
+  - `make_options`' `is_peasant` arm for a unit inside a carrier (`+0x2b4 & 0x10`);
+  - the `+0x68 & 1` gate on the page buttons;
+  - the scenario's `objects_ignoring_orders`;
+  - the semaphore's `& 2`, which hides `OPTION_BUILD_WONDER`.
+
+  The HUD offers the pages to type 0x32 or 0x33 alone.
+- `at_city_limit`'s second argument is an unaffected register in the decompile, which the sim's
+  `at_city_limit(who)` does not take; no packet tells them apart.
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 
