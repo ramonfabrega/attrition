@@ -529,7 +529,9 @@ each shot in flight through `vtable +0` into `AmmoData`'s walker.
 whose first word is not 0: 4 bytes, then [+0x4, +0x4b). None of the
 three has an element on run1100's frame. On run1420's packet the deaths
 line walks 8 ranges of 300 bytes in all, which is consistent with 4 × (4 + 71). The
-walls and ammo record shapes rest on the recon's reading alone (§10).
+walls and ammo record shapes rest on the recon's reading alone (§10). Our walk
+emits the three as the empty walk alone, refusing a frame that holds an element
+(item 4355, §24.3).
 
 ## 9. Pointers, floats, padding and locals
 
@@ -2404,13 +2406,17 @@ so is run1578's on that frame. The kill the item booked (the hook's values not t
 
 Per line our walk emits, the first of our frames whose Adler parts from the hook's first set of the frame before, on
 the minted game's 24,000 (run1578; `our_lines_part_from_the_hook_s_on_their_first_frame`, `CHECKSUM_FRAMES`).
-Walls, ammo and deaths have no emitter. Rules and the two script lines are not the simulation's (entry 119). Each
-line is taken every frame inside the first 300 (`DIAG`), and past them only until it first parts:
+~~Walls, ammo and deaths have no emitter.~~ Walls, ammo and deaths are emitted as the empty walk's Adler, refusing a
+frame on which our walk holds an element (item 4355, below). Rules and the two script lines are not the simulation's
+(entry 119). Each line is taken every frame inside the first 300 (`DIAG`), and past them only until it first parts:
 
 | line | first parts | ours | theirs | frames parted of 0..299 |
 |---|---|---|---|---|
 | units | whole, 24,000 | | | 0 |
 | builds | whole, 24,000 | | | 0 |
+| walls | whole, 24,000 (the empty walk) | | | 0 |
+| ammo | whole, 24,000 (the empty walk) | | | 0 |
+| deaths | whole, 24,000 (the empty walk) | | | 0 |
 | groups | whole, 24,000 | | | 0 |
 | guys | whole, 24,000 | | | 0 |
 | leaders | 0 | 4128131882 | 1059426481 | 300 |
@@ -2574,6 +2580,17 @@ count, which fell on each (run1266c, East Indies, 7581 → 7561, the most); none
 three ranges (flags; `ox`, `whom`, `uid`; `dx`..`retry`, the post raw), which the emitter left out; ours held the same
 values. Step P's census does not move (75 packets' units triples; run1575's 2964 → 408 parted).
 
+**Item 4355 compared the three empty lines** (DECISIONS 140 §1). The hook's walls, ammo and deaths read 1, the Adler
+of no bytes, on all 24,004 of run1578's sets and 124 of run1577's. Our walk's count of each at the moment the other
+lines are taken (`held`: live buildings at `index >= WALL_BASE`, `combat.projectiles`, `combat.deaths`, §8's three
+walkers) reads none on 24,000 of 24,000 frames and 120 of 120 (`EMPTY_HELD`, minted at 0, red first). The count can
+part: on the classical melee it reads a shot from 642 and a death object from 692 (`MELEE_HELD`), and the emitter
+refuses both there; the walls arm is held by a building moved into the 3000 band, since no walk on disk holds a wall.
+The three then join `EMITTED` through `empty_walk`, never `our_lines`' three `Line::default()`s, which read 1 whatever
+the walk holds. **The twelve state lines agree on every frame of the minted game.** Its limits: one game, no combat
+in it, and the three record shapes unexercised (no emitter walks a wall, a shot or a death record; §8's walls and ammo
+shapes rest on the recon's reading alone).
+
 **Item 4262 made builds whole on all 24,000.** `BuildData::wonder` (`+0x76`) is the entry `Wonders::init_wonder`
 returned to `Build::activate`'s wonder arm; ours wrote −1 always. On 14312 (§25.4) the Pyramids `1/2023` −1, 0 → 0.
 Step P 453 → 455.
@@ -2661,8 +2678,10 @@ Not established:
   (item 4218). Every section of the world line agrees on the start without it; what else it writes is not compared.
 - What parts past a line's first parting outside `DIAG`. On every packet past frame 0 the world line agrees, and so
   does items since item 4209.
-- Walls, ammo and deaths, which have no emitter. On this game they stay at Adler 1 on both sides to 4030 on every
-  packet.
+- ~~Walls, ammo and deaths, which have no emitter. On this game they stay at Adler 1 on both sides to 4030 on every
+  packet.~~ Compared on every frame since item 4355 (§24.3): empty on both sides on all 24,000. Not established: any
+  of the three on a walk that holds an element, which no state oracle on disk prints per frame (item 4351's playback
+  of the 2017 sample is the first that can).
 
 ## 25. Step R: the open lines' ranges, on every frame (item 4248)
 
