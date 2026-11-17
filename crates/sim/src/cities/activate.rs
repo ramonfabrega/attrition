@@ -439,3 +439,32 @@ impl ActivateArmsView for SimArms<'_> {
     fn regen_roads(&mut self) {}
     fn fort_probe(&mut self) {}
 }
+
+impl Sim {
+    /// **A finished wonder takes every other site of its type**, `Sim::activate`'s
+    /// (`Build::activate@00623e20` lines 1294–1356, `docs/CITIES.md` §4,
+    /// item 4322). For each leader in play, in slot order, and each of its
+    /// objects from 2000 up, one with `+8 & 1` that is not active (vslot
+    /// `0x4c`), is not this building and has this building's type
+    /// (`type->+4`) is `Object::disband(o, 1)`, a full refund; the console
+    /// player hears `S_WONDER_ASSED_OFF`. Its own owner's other sites of the
+    /// type go too. The disband's `remove_from_city` is what replans the
+    /// loser's city (run1646 3037: the French capital's 2019 first).
+    pub(crate) fn disband_rival_wonder_sites(&mut self, b: usize, ty: usize) {
+        // The arm runs after `init_wonder`, whose slot is never negative.
+        if !self.is_wonder_building(ty) {
+            return;
+        }
+        let mut rivals: Vec<(Player, i16, usize)> = self
+            .buildings
+            .iter()
+            .enumerate()
+            .filter(|&(x, o)| x != b && o.alive && !o.active && o.owner < 8 && o.ty == Some(ty))
+            .map(|(x, o)| (o.owner, o.index, x))
+            .collect();
+        rivals.sort_unstable();
+        for (_, _, x) in rivals {
+            self.disband_building(x, true);
+        }
+    }
+}
