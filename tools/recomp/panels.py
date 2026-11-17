@@ -54,6 +54,28 @@ adds the page buttons `OPTION_BUILD`, `OPTION_BUILD_MILITARY` and
 `OPTION_BUILD_WONDER` (each with type −1), `OPTION_REPAIR` and
 `OPTION_ALARM_PEASANT`, and every other standard add of the unit. Its
 rows carry page −1.
+
+**The page turns** (item 4343, `docs/CLIENT_INPUT.md` §32.8):
+
+    python3 tools/recomp/panels.py <install> <packet> <out.tsv> --turns
+
+runs `Options::exec@0072c4b0` (the `(option, object, …)` wrapper over
+`exec@007188c0`) on the options object, each turn a run, and reads `mode`
+and `mode_data` back after the frame returns (`--dump`). The console's
+`play` slot's selection (`select_groups` `+0x14`'s array, `0x9f0` a group,
+as `exec`'s own `imul $0x9f0, 0x2a0(%eax)` / `add 0xe8d444` index it) is
+poked to hold that slot's first citizen alone (`num` `+0xc` 1, `buildings`
+`+0x49` 0, `who` `+0x4a`, `list` `+0x8cc`). The page count is poked both
+ways through `Game::semaphore` byte 2's bit 2 (`Game+0x814`'s inline bytes
+at `+0xc`): three pages clear, two set. Each count runs the standard
+panel's three page buttons (object −1, `TYPE_NONE`) from `STANDARD_OPTIONS`,
+and `OPTION_NEXT`, `OPTION_BACK` and `OPTION_CANCEL` from each page of
+`BUILD_OPTIONS`. `GetKeyState` answers 0 under `step4.py` (no modifier held).
+Each row:
+
+    frame  who  object  pages  mode  mode_data  option  mode_after  mode_data_after
+
+and a run that did not return is a row with `mode_after` −1.
 """
 import os
 import re
@@ -73,7 +95,13 @@ GLOBALS = {
     "objects": "?objects@@3VObjects@@A",
     "console": "?console@MiscAccess@@2AAVConsole@@A",
     "options": "?options@MiscAccess@@2AAVOptions@@A",
+    "game": "?gamec@GameAccessConst@@2ABVGame@@B",
+    "select_groups": "?select_groups@@3VSelectGroups@@A",
 }
+EXEC = 0x72C4B0  # Options::exec(OptionIndex, int object, int)
+OPTION_NEXT, OPTION_BACK, OPTION_CANCEL = 0x41, 0x42, 0x43
+PLAY_AT, GROUP_SIZE, SELECT_DATA_AT = 0x2A0, 0x9F0, 0x14
+SEMAPHORE_2_AT = 0x814 + 0xC + 2
 UNIT_ENTRY = 0x615FC0
 CITIZENS = (0x32, 0x33)  # PEASANTS, PEASANTSKOREAN
 MODE_AT, MODE_DATA_AT, STANDARD_OPTIONS, BUILD_OPTIONS = 0x74, 0x78, 0, 1
@@ -188,6 +216,8 @@ def main(argv):
     snap = Snapshot(packet)
     mem = Mem(snap)
     console = mem.u32(g["console"])
+    if "--turns" in argv:
+        return main_turns(install, packet, out, g, snap, mem, console)
     if "--citizens" in argv:
         return main_citizens(install, packet, out, whos, "--every" in argv, g, snap, mem, console,
                              "--standard" in argv)
@@ -229,6 +259,56 @@ def main_citizens(install, packet, out, whos, every, g, snap, mem, console, stan
             print(f"who {who} citizen {oid} type {t} page {page}: {len(adds)} options", flush=True)
     with open(out, "w") as f:
         f.write("# frame\twho\tobject\tunit\tpage\toption\tgrid_x\tgrid_y\ttype\tdisable\textra\n")
+        f.write("\n".join(rows) + "\n")
+    print(f"{len(rows)} rows to {out}; {bad} run(s) that did not return")
+    return 1 if bad else 0
+
+
+def exec_turn(install, packet, options, option, obj, pokes):
+    """One `Options::exec` run; (mode, mode_data) after it, or None."""
+    exe = os.path.join(install, "riseofnations.exe")
+    cmd = ["uv", "run", os.path.join(HERE, "step4.py"), exe, packet, "--entry", f"{EXEC:x}", "--this", f"{options:x}",
+           "--args", f"{option},{obj},0", "--dump", f"{options + MODE_AT:x}+8", "--max-insns", "5000000"]
+    for va, v in pokes:
+        cmd += ["--poke", f"{va:x}={v.hex()}"]
+    out = subprocess.run(cmd, capture_output=True, text=True).stdout
+    stop = next((ln for ln in out.splitlines() if ln.startswith("stopped:")), "stopped: no stop line")
+    lines = out.splitlines()
+    at = next((i for i, ln in enumerate(lines) if ln.startswith(f"dump {options + MODE_AT:08x}+8")), None)
+    if stop != "stopped: the frame returned" or at is None:
+        return None, stop
+    word = bytes.fromhex(lines[at + 1].split()[1][:16])
+    return struct.unpack("<ii", word), stop
+
+
+def main_turns(install, packet, out, g, snap, mem, console):
+    """`Options::exec`'s page turns on a packet (item 4343)."""
+    options, game = mem.u32(g["options"]), mem.u32(g["game"])
+    play = mem.u32(console + PLAY_AT)
+    group = mem.u32(g["select_groups"] + SELECT_DATA_AT) + play * GROUP_SIZE
+    mine = citizens(mem, g["objects"], [play], False)
+    if not mine:
+        sys.exit(f"panels.py --turns: slot {play} has no citizen on frame {snap.frame}")
+    who, oid, _, _ = mine[0]
+    sem = mem.u8(game + SEMAPHORE_2_AT)
+    select = [(group + 0xC, struct.pack("<I", 1)), (group + 0x49, bytes([0, who])),
+              (group + 0x8CC, struct.pack("<h", oid))]
+    rows, bad = [], 0
+    for pages in (3, 2):
+        flag = [(game + SEMAPHORE_2_AT, bytes([(sem & ~2) | (2 if pages == 2 else 0)]))]
+        starts = [(STANDARD_OPTIONS, 0, k, -1) for k in (0, 1, 2)]
+        starts += [(BUILD_OPTIONS, k, t, 0) for k in range(pages) for t in (OPTION_NEXT, OPTION_BACK, OPTION_CANCEL)]
+        for mode, data, option, obj in starts:
+            pokes = select + flag + [(options + MODE_AT, struct.pack("<ii", mode, data))]
+            after, stop = exec_turn(install, packet, options, option, obj, pokes)
+            if after is None:
+                bad += 1
+                rows.append(f"{snap.frame}\t{who}\t{oid}\t{pages}\t{mode}\t{data}\t{option}\t-1\t0\t# {stop}")
+                continue
+            rows.append(f"{snap.frame}\t{who}\t{oid}\t{pages}\t{mode}\t{data}\t{option}\t{after[0]}\t{after[1]}")
+            print(f"pages {pages} mode {mode} page {data} option {option:#x}: mode {after[0]} page {after[1]}", flush=True)
+    with open(out, "w") as f:
+        f.write("# frame\twho\tobject\tpages\tmode\tmode_data\toption\tmode_after\tmode_data_after\n")
         f.write("\n".join(rows) + "\n")
     print(f"{len(rows)} rows to {out}; {bad} run(s) that did not return")
     return 1 if bad else 0

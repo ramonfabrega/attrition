@@ -1368,6 +1368,23 @@ fn pages_of(sim: &sim::Sim) -> i32 {
     if sim.ai.lobby.conquest { 2 } else { 3 }
 }
 
+/// **One press of a typeless page button** (items 4339, 4343, §32.7,
+/// §32.8): the page `Options::exec@007188c0` leaves a citizen's panel on,
+/// `None` for `STANDARD_OPTIONS`, from `page` with `n` pages. Cases 0 to 2
+/// open their page (under two pages, `OPTION_BUILD_WONDER` opens nothing);
+/// 0x41 turns forward modulo `n`, 0x42 back with the wrap, both on a page
+/// only; 0x43 returns a page to the standard panel. Every arm is run on
+/// packets by `panels.py --turns` (`PAGE_TURNS_RUN`).
+fn turn(option: i32, page: Option<i32>, n: i32) -> Option<i32> {
+    match (option, page) {
+        (OPTION_BUILD..=OPTION_BUILD_WONDER, _) if option < n => Some(option),
+        (OPTION_NEXT, Some(k)) => Some((k + 1) % n),
+        (OPTION_BACK, Some(k)) => Some(if k < 1 { n - 1 } else { k - 1 }),
+        (OPTION_CANCEL, Some(_)) => None,
+        (_, page) => page,
+    }
+}
+
 /// **A panel button** (item 4326, `docs/CLIENT_INPUT.md` §32.4): what
 /// `Options::add@0072c290` takes of one of `make_options`' train and
 /// research adds, the grid aside: the type, the option and `disable`.
@@ -2862,14 +2879,7 @@ impl Input {
                 if self.selection.is_empty() || self.building {
                     return None;
                 }
-                let n = view.sim.map_or(3, pages_of);
-                self.page = match (option, self.page) {
-                    (OPTION_BUILD..=OPTION_BUILD_WONDER, _) if option < n => Some(option),
-                    (OPTION_NEXT, Some(k)) => Some((k + 1) % n),
-                    (OPTION_BACK, Some(k)) => Some(if k < 1 { n - 1 } else { k - 1 }),
-                    (OPTION_CANCEL, Some(_)) => None,
-                    (_, page) => page,
-                };
+                self.page = turn(option, self.page, view.sim.map_or(3, pages_of));
                 None
             }
             Event::Place(ty) => {
@@ -11578,6 +11588,72 @@ pub(crate) mod tests {
         assert_eq!(statics, HUD_PAGES_STATIC);
         assert_eq!(presses, HUD_PAGES_PRESSED);
         assert_eq!(paged, HUD_PAGES_PAGED);
+    }
+
+    /// **`PAGE_TURNS_RUN`** (item 4343, `docs/CLIENT_INPUT.md` §32.8):
+    /// `Options::exec`'s page turns run on packets (`panels.py --turns`,
+    /// `~/ron-data/pages-turns/*.tsv` or `RON_PAGE_TURNS_DIR`): each row a
+    /// start (the standard panel or a page), a press (a page button,
+    /// `OPTION_NEXT`, `OPTION_BACK`, `OPTION_CANCEL`) under three or two
+    /// pages, and the mode the original's run leaves; against [`turn`]:
+    /// (rows equal, rows). Seen red pinned (0, 0).
+    const PAGE_TURNS_RUN: (usize, usize) = (0, 0);
+
+    /// **The page turns, against the original's own runs** (item 4343):
+    /// each row's start and press through [`turn`], the page it leaves
+    /// against the mode and `mode_data` `exec` left on the packet.
+    #[test]
+    fn the_page_turns_of_the_packets() {
+        let dir = std::env::var_os("RON_PAGE_TURNS_DIR")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                std::path::Path::new(&std::env::var_os("HOME").unwrap_or_default())
+                    .join("ron-data/pages-turns")
+            });
+        let Ok(rd) = std::fs::read_dir(&dir) else {
+            println!("skipping: no turns on disk (RON_PAGE_TURNS_DIR, ~/ron-data/pages-turns)");
+            return;
+        };
+        let mut files: Vec<_> = rd
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .filter(|p| p.extension().is_some_and(|x| x == "tsv"))
+            .collect();
+        files.sort();
+        // `OptionMode`: `STANDARD_OPTIONS` 0 is no page, `BUILD_OPTIONS` 1
+        // is page `mode_data`; any other mode is no state of ours.
+        let page = |mode: i64, data: i64| match mode {
+            0 => Ok(None),
+            1 => Ok(Some(data as i32)),
+            m => Err(m),
+        };
+        let mut run = (0, 0);
+        for f in &files {
+            for line in std::fs::read_to_string(f).unwrap().lines() {
+                if line.starts_with('#') || line.is_empty() {
+                    continue;
+                }
+                let c: Vec<i64> = line
+                    .split('\t')
+                    .take(9)
+                    .map(|v| v.parse().expect("a panels.py --turns row"))
+                    .collect();
+                assert!(c[7] != -1, "{f:?}: a run that did not return: {line}");
+                let (n, option) = (c[3] as i32, c[6] as i32);
+                let from = page(c[4], c[5]).expect("a start the harness poked");
+                let theirs = page(c[7], c[8]);
+                let ours = turn(option, from, n);
+                run.1 += 1;
+                if theirs == Ok(ours) {
+                    run.0 += 1;
+                } else {
+                    println!(
+                        "TURN {f:?}: pages {n} from {from:?} option {option:#x}: theirs {theirs:?}, ours {ours:?}"
+                    );
+                }
+            }
+        }
+        println!("PAGE_TURNS_RUN {run:?}");
+        assert_eq!(run, PAGE_TURNS_RUN);
     }
 
     /// **`PAGE_ARMS_WALKED`** (item 4339, `docs/CLIENT_INPUT.md` §32.7): on
