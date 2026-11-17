@@ -1337,6 +1337,10 @@ no `AirOrder` to walk one with (`docs/SYNC.md` §3.9).
 
 - **A snapped `set_angle`'s crew `last_angle`** (parked 4253a): `Guy::set_angle(crew, des_angle, 1)` writes a
   tracked crew figure's `last_angle`; `Sim::crew_des`'s snap writes its facing only. No walk parts on it yet.
+- **A turn at a waypoint, near a shore** (parked 4314a): recon4300-2 at DIFFICULTY 4 parts on 4202 because the
+  French Assault Infantry `1/52` embarks in theirs. Ours steps it diagonally past the ocean tile's corner
+  ((14400, 31854) → (14395, 31896) on 4203–4204), at least 6 units east of where theirs has to be on 4201. Our
+  track bends from the waypoint at 4191 at about 583 a frame (high 16 bits), at speed 21–23 for three frames, and stands at speed 0 for one frame on 4202. Which of the turn, the slow-down or the stand differs from the original is not read.
 
 **Closed since the first draft, and kept because the mistake is the useful
 part.** The quadrant fold in `sinx`/`cosx` looked wrong and was not. It sends
