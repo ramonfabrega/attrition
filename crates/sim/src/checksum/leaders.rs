@@ -508,6 +508,9 @@ const DIRTY: i64 = 0x200_0000;
 const SCORE_UNITS_DIRTY: i64 = 0x80_0000;
 /// `leader_flags & 0x1000000`, the score's tech bit ([`crate::tech::PlayerTech::score_dirty`]).
 const SCORE_TECH_DIRTY: i64 = 0x100_0000;
+/// `leader_flags & 0x80000`: a citizen thought this frame
+/// ([`crate::leaders::LeadersState::citizen_thought`]).
+const CITIZEN_THOUGHT: i64 = 0x8_0000;
 
 /// The `size` a `SimpleArray<int>` with elements reports: its capacity,
 /// which grows by ten (`docs/CHECKSUM.md` §20, §23.4). 10 on every
@@ -638,6 +641,17 @@ impl Sim {
         }
         if self.tech.get(w).is_some_and(|t| t.score_dirty) {
             f |= SCORE_TECH_DIRTY;
+        }
+        // `Unit::think`'s citizen bit (item 4332): raised by a citizen's
+        // idle think, cleared at the live slot's step.
+        if self
+            .leaders
+            .citizen_thought
+            .get(w)
+            .copied()
+            .unwrap_or(false)
+        {
+            f |= CITIZEN_THOUGHT;
         }
         // `leader_flags2`: the two bits this crate keeps, no governments
         // (`0x800`) and no patriots (`0x1000`).

@@ -181,6 +181,7 @@ impl Sim {
                 city_name: vec![0; players],
                 anti_att: vec![crate::leaders::words::ANTI_ATT_BASE; players],
                 pop_issues: vec![0; players],
+                citizen_thought: vec![false; players],
                 marks: vec![crate::leaders::marks::Marks::default(); players],
                 tallies: vec![crate::leaders::tallies::Tallies::default(); players],
                 rates: vec![crate::leaders::rates::Rates::default(); players],

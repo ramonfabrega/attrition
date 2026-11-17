@@ -6358,3 +6358,40 @@ fn the_blows_and_the_kill_fold_into_the_rates_on_the_fiftieth_frame() {
         "50 + 0 is under 125"
     );
 }
+
+/// **A citizen's think raises its leader's `0x80000`, and the live slot's
+/// step clears it** (item 4332, `docs/CHECKSUM.md` §25.4):
+/// `Unit::think@005f6e40:84` stores `leader_flags |= 0x80000` for a
+/// captain of `TypeIndex` 0x32 or 0x33, and `Leaders::process_all@
+/// 006ed2a0:75` clears it at the end of a slot whose `leader_flags & 2`
+/// stands. A squad member returns at the captain mirror first, and a
+/// defeated slot is never stepped, so it keeps the bit.
+#[test]
+fn a_citizen_s_think_raises_its_leader_s_0x80000_until_the_slot_s_step() {
+    let bit = |s: &Sim, who| s.leader_flag_words(who).0.unwrap() & 0x8_0000;
+    let (mut sim, ty) = at_war();
+    let soldier = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+    sim.units[soldier].type_index = 0x40;
+    sim.think(soldier, 0);
+    assert_eq!(bit(&sim, 0), 0, "not a citizen");
+    let cit = put(&mut sim, 0, ty, Pos::new(0x1400, 0x1000));
+    sim.units[cit].type_index = 0x33;
+    sim.units[cit].captain = false;
+    sim.think(cit, 0);
+    assert_eq!(bit(&sim, 0), 0, "a squad member mirrors and returns");
+    sim.units[cit].captain = true;
+    sim.think(cit, 0);
+    assert_eq!(bit(&sim, 0), 0x8_0000, "the citizen's owner takes it");
+    assert_eq!(bit(&sim, 1), 0, "on its owner alone");
+    // The next frame's slot step clears it; the citizen, a squad member
+    // again, does not raise it back.
+    sim.units[cit].captain = false;
+    sim.tick();
+    assert_eq!(bit(&sim, 0), 0, "the live slot's step clears it");
+    sim.units[cit].captain = true;
+    sim.think(cit, 0);
+    sim.units[cit].captain = false;
+    sim.leaders.defeated[0] = true;
+    sim.tick();
+    assert_eq!(bit(&sim, 0), 0x8_0000, "a defeated slot keeps it");
+}

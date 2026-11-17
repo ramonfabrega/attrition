@@ -2870,9 +2870,7 @@ the packets print, and leaves every `PACKET_LEAF_PARTINGS` row it was in (§23.4
 **What is left on run1578, every frame, bit by bit** (item 4328's census, a probe reverted whole; before the build,
 4,994 parted frames): `reg_unpack_merch[1]` alone held 4,600 of them, 3376 to 5375 and 9376 to 11975. The other
 406 are `leader_flags` and frame 0's setup leaves:
-- `0x80000`: leader 0 on 160 to 315 (156 frames); leader 1 on 219 frames, 101, 207, 321, 1098, 1306, 1379 to 1576,
-  and islands to 14245. `Unit::think@005f6e40:85` sets it on the owner when the unit's type is TI 0x32 or 0x33,
-  and `Leaders::process_all` clears it at the end of the slot's step.
+- ~~`0x80000`: leader 0 on 160 to 315; leader 1 on 219 frames to 14245.~~ Item 4332, below.
 - `0x8000000`: leader 0 on 0 and 297; leader 1 on 33 frames to 14608. `0x4000000`: leader 1 on 13 frames to 14608.
   **Not `Leader::gather`'s raise**: `Leaders::process_all@006ed2a0` (the slot step the game runs; `Leader::process`
   is the same body, never called) clears both bits right after `gather` raises them, in the same step, so that raise never reaches a checksum. The bits a checksum
@@ -2882,6 +2880,16 @@ the packets print, and leaves every `PACKET_LEAF_PARTINGS` row it was in (§23.4
   `roster.unit_stats_dirty`), and `Sim::leader_flag_words` emits neither. `Build::train@0062f9b0:377`'s
   `& 0xfbffffff` is on the unit's `+0x68`, not the leader's (item 4317's list had it as a clear).
 - Frame 0: the 16 ranges, as above.
+
+**Item 4332 holds `Unit::think`'s citizen bit** (`leader_flags & 0x80000`). Its one writer is
+`Unit::think@005f6e40:84`, a captain of TI 0x32 or 0x33 (reached from `do_idle`); its one clear is a live slot's
+last statement in `Leaders::process_all@006ed2a0:75`, before the objects run, so a checksum sees it on a frame a
+citizen idled. **The direction: the original acted**; the crate kept no bit. **run1578 goes from 23,594 to 23,965
+of 24,000** (+371); run1577 from 118 to 119 of 120. Inside 300: 142 → 4 parted frames (0, 167, 202, 297). Value
+diff (`RECORD_PARTINGS`, `flags` byte 2): 101, leader 1, ours `80`, theirs `88`; 160, leader 0, the same; both
+whole after. Minted: run1586 (189) whole on leaders (leader 0's `00`|`08`). `PACKETS_SCORE` **467 → 482**: 15
+packets whole on leaders, 32 more on fewer ranges, none on more. What is left: 35 frames. 167, 202 and 297 part
+on byte 3 alone (`0x8000000`, on 202 `0x4000000` too), hidden under `0x80000` before; the other 31 are not listed.
 
 ## 25.5 How it was established, and what it has not established
 

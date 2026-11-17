@@ -1177,7 +1177,13 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// the leaders line agrees on run973g (271 ranges, 1 → 0), and parts on
 /// one range fewer on 38 more, none on more: 39 ranges fewer over 39
 /// rows, all in the leaders slot.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 467, 1053);
+/// **482** at item 4332, `Unit::think`'s citizen bit (`leader_flags &
+/// 0x80000`) emitted: the leaders line agrees on 15 more packets (run954b,
+/// run1011b, run1155c, run1186b, run1220b, run1237, run1254c, run1268,
+/// run1305b, run1323b, run1351, run1355, run1357, run1381, run1383), and
+/// parts on fewer ranges on 32 more, none on more: 50 ranges fewer over 47
+/// rows, all in the leaders slot.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 482, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1405,6 +1411,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (3219, 3054, 1830) -> (3219, 3198, 1420).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1011b",
         13105,
@@ -1416,7 +1423,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (538, 538, 0),
             (870, 870, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (30, 30, 0),
             (50, 50, 0),
             (120, 120, 0),
@@ -1585,6 +1592,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (4193, 4022, 3120) -> (4193, 4187, 2787).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1155c",
         3003,
@@ -1596,7 +1604,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (550, 550, 1),
             (1129, 1129, 1),
-            (271, 271, 1),
+            (271, 271, 0),
             (27, 27, 0),
             (75, 75, 0),
             (120, 120, 0),
@@ -1761,6 +1769,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (7749, 7737, 5512) -> (7749, 7740, 5515).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1169",
         3769,
@@ -1772,7 +1781,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (628, 628, 5),
             (1934, 1934, 11),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (20, 20, 0),
             (330, 330, 0),
@@ -1801,6 +1810,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (6735, 6657, 5586) -> (6735, 6732, 3976).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1185",
         4582,
@@ -1812,7 +1822,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (640, 640, 4),
             (1962, 1962, 7),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (5, 5, 0),
             (330, 330, 0),
@@ -1830,6 +1840,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (1060, 1060, 10) -> (1060, 1060, 0).
     // Item 4244, a mine's `mtn`: builds (1164, 1164, 1) -> (1164, 1164, 0).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1186b",
         1377,
@@ -1841,7 +1852,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (532, 532, 0),
             (309, 309, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (9, 9, 0),
             (105, 105, 0),
             (120, 120, 0),
@@ -1870,6 +1881,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (10607, 10166, 9258) -> (10607, 10550, 8527).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1217",
         7728,
@@ -1881,7 +1893,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (700, 700, 8),
             (3247, 3247, 10),
-            (271, 271, 2),
+            (271, 271, 1),
             (56, 56, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -1907,6 +1919,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (4091, 3851, 3098) -> (4091, 4064, 3095).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1220b",
         2976,
@@ -1918,7 +1931,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (550, 550, 1),
             (1099, 1099, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (27, 27, 0),
             (90, 90, 0),
             (120, 120, 0),
@@ -1941,6 +1954,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (6445, 6349, 5430) -> (6445, 6349, 5428).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1221",
         4287,
@@ -1952,7 +1966,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (592, 592, 4),
             (1768, 1768, 15),
-            (271, 271, 2),
+            (271, 271, 1),
             (33, 33, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -1983,6 +1997,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // leaders (271, 271, 6) -> (271, 271, 4) (`encrypt.bucket[0]`/`[1]` agree).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1224b",
         9745,
@@ -1994,7 +2009,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (556, 556, 0),
             (2735, 2735, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (62, 62, 0),
             (30, 30, 0),
             (120, 120, 0),
@@ -2019,6 +2034,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (7490, 7376, 6434) -> (7490, 7412, 6594).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1235b",
         4127,
@@ -2030,7 +2046,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (646, 646, 7),
             (2097, 2097, 6),
-            (271, 271, 2),
+            (271, 271, 1),
             (30, 30, 1),
             (15, 15, 0),
             (330, 330, 0),
@@ -2055,6 +2071,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4238, the age's seating writes each figure's `last`: units (6610, 6610, 149) -> (6610, 6610, 116); guys (2070, 2070, 33) -> (2070, 2070, 0).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1236",
         4179,
@@ -2066,7 +2083,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (658, 658, 4),
             (2070, 2070, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (44, 44, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -2091,6 +2108,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (3448, 3274, 2558) -> (3448, 3436, 2641).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1237",
         2674,
@@ -2102,7 +2120,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (538, 538, 0),
             (892, 892, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (27, 27, 0),
             (85, 85, 0),
             (120, 120, 0),
@@ -2128,6 +2146,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (2494, 2494, 8) -> (2494, 2494, 6).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1238c",
         5021,
@@ -2139,7 +2158,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (646, 646, 4),
             (2151, 2151, 1),
-            (271, 271, 2),
+            (271, 271, 1),
             (49, 49, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -2164,6 +2183,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (622, 622, 6) -> (622, 622, 5).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1247",
         4306,
@@ -2175,7 +2195,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (622, 622, 5),
             (1748, 1748, 1),
-            (271, 271, 2),
+            (271, 271, 1),
             (38, 38, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -2201,6 +2221,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (4388, 4085, 3383) -> (4388, 4340, 3257).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1254c",
         3115,
@@ -2212,7 +2233,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (550, 550, 0),
             (1134, 1134, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (27, 27, 0),
             (85, 85, 0),
             (120, 120, 0),
@@ -2241,6 +2262,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (11229, 10431, 9894) -> (11229, 11202, 6921).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1263",
         8362,
@@ -2252,7 +2274,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (556, 556, 0),
             (2913, 2913, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (54, 54, 0),
             (50, 50, 0),
             (120, 120, 0),
@@ -2318,6 +2340,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (11161, 11053, 7561) -> (11161, 11131, 7339).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1266c",
         8700,
@@ -2329,7 +2352,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (682, 682, 8),
             (3210, 3210, 9),
-            (271, 271, 2),
+            (271, 271, 1),
             (54, 54, 0),
             (5, 5, 0),
             (330, 330, 0),
@@ -2355,6 +2378,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (4744, 4420, 3684) -> (4744, 4693, 3664).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 0).
     (
         "run1268",
         3347,
@@ -2366,7 +2390,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (544, 544, 0),
             (1246, 1246, 1),
-            (271, 271, 2),
+            (271, 271, 0),
             (30, 30, 0),
             (90, 90, 0),
             (120, 120, 0),
@@ -2392,6 +2416,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (1938, 1938, 4) -> (1938, 1938, 2).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1293",
         3606,
@@ -2403,7 +2428,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (586, 586, 4),
             (2191, 2191, 11),
-            (271, 271, 2),
+            (271, 271, 1),
             (25, 25, 0),
             (20, 20, 0),
             (330, 330, 0),
@@ -2432,6 +2457,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2123, 2123, 14) -> (2123, 2123, 4), leaders (271, 271, 8) -> (271, 271, 4).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1294",
         4473,
@@ -2443,7 +2469,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (688, 688, 9),
             (2242, 2242, 7),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -2471,6 +2497,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2163, 2163, 17) -> (2163, 2163, 7), leaders (271, 271, 8) -> (271, 271, 4).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1296",
         4632,
@@ -2482,7 +2509,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (6, 0, 6),
             (682, 682, 9),
             (2172, 2172, 9),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (5, 5, 0),
             (330, 330, 0),
@@ -2509,6 +2536,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (5488, 5431, 4036) -> (5488, 5485, 3903).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1304",
         3865,
@@ -2520,7 +2548,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 0),
             (1616, 1616, 1),
-            (271, 271, 2),
+            (271, 271, 1),
             (23, 23, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -2546,6 +2574,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (4968, 4662, 4058) -> (4968, 4965, 3669).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1305b",
         4181,
@@ -2557,7 +2586,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (550, 550, 1),
             (1327, 1327, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (35, 35, 0),
             (70, 70, 0),
             (120, 120, 0),
@@ -2586,6 +2615,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (8490, 8448, 7106) -> (8490, 8451, 7004).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1320b",
         5066,
@@ -2597,7 +2627,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (652, 652, 4),
             (2197, 2197, 9),
-            (271, 271, 3),
+            (271, 271, 2),
             (39, 39, 1),
             (5, 5, 0),
             (330, 330, 0),
@@ -2622,6 +2652,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (3933, 3720, 3008) -> (3933, 3903, 2974).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1323b",
         3052,
@@ -2633,7 +2664,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (544, 544, 0),
             (1029, 1029, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (27, 27, 0),
             (90, 90, 0),
             (120, 120, 0),
@@ -2659,6 +2690,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (7276, 7198, 6063) -> (7276, 7237, 5305).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1324c",
         4904,
@@ -2670,7 +2702,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (676, 676, 9),
             (2055, 2055, 9),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (20, 20, 0),
             (330, 330, 0),
@@ -2697,6 +2729,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (2521, 2521, 10) -> (2521, 2521, 7).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1325c",
         5578,
@@ -2708,7 +2741,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (682, 682, 8),
             (2706, 2706, 13),
-            (271, 271, 2),
+            (271, 271, 1),
             (43, 43, 2),
             (10, 10, 0),
             (330, 330, 0),
@@ -2737,6 +2770,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (6268, 6256, 5145) -> (6268, 6259, 5141).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1326",
         4567,
@@ -2748,7 +2782,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 4),
             (1993, 1993, 10),
-            (271, 271, 2),
+            (271, 271, 1),
             (30, 30, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -2774,6 +2808,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (13393, 12535, 12067) -> (13393, 13375, 4046).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1327",
         10930,
@@ -2785,7 +2820,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (574, 574, 2),
             (3459, 3459, 10),
-            (271, 271, 2),
+            (271, 271, 1),
             (59, 59, 0),
             (25, 25, 0),
             (180, 180, 0),
@@ -2847,6 +2882,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (4745, 4541, 3673) -> (4745, 4718, 3501).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1351",
         4303,
@@ -2858,7 +2894,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (562, 562, 2),
             (1352, 1352, 3),
-            (271, 271, 1),
+            (271, 271, 0),
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
@@ -2884,6 +2920,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (4512, 4341, 3400) -> (4512, 4509, 3036).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1351c",
         3521,
@@ -2895,7 +2932,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (556, 556, 2),
             (1286, 1286, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
@@ -2922,6 +2959,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (3610, 3439, 2704) -> (3610, 3595, 2753).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1355",
         2933,
@@ -2933,7 +2971,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (556, 556, 2),
             (902, 902, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (27, 27, 0),
             (80, 80, 0),
             (120, 120, 0),
@@ -2960,6 +2998,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4320, the score's dirty bits (`0x800000`, `0x1000000`) emitted, leader 1's 0x800003 agreeing: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1357",
         3439,
@@ -2971,7 +3010,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (568, 568, 2),
             (1427, 1427, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
@@ -3118,6 +3157,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2544, 2544, 19) -> (2544, 2544, 3), leaders (271, 271, 8) -> (271, 271, 4).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1361",
         4840,
@@ -3129,7 +3169,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4, 0, 4),
             (556, 556, 0),
             (1847, 1847, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (37, 37, 0),
             (50, 50, 0),
             (180, 180, 0),
@@ -3156,6 +3196,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (5194, 4942, 3883) -> (5194, 5149, 3945).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1381",
         3262,
@@ -3167,7 +3208,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (556, 556, 1),
             (1419, 1419, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (27, 27, 0),
             (90, 90, 0),
             (180, 180, 0),
@@ -3192,6 +3233,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (5014, 4759, 4043) -> (5014, 5002, 3308).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1382",
         3228,
@@ -3203,7 +3245,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (544, 544, 0),
             (1349, 1349, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (20, 20, 0),
             (70, 70, 0),
             (180, 180, 0),
@@ -3222,6 +3264,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (2933, 2933, 13) -> (2933, 2933, 0).
     // Item 4244, a mine's `mtn`: builds (1184, 1184, 1) -> (1184, 1184, 0).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run1383",
         1180,
@@ -3233,7 +3276,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (538, 538, 1),
             (967, 967, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (6, 6, 0),
             (30, 30, 0),
             (330, 330, 0),
@@ -3256,6 +3299,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (5193, 5052, 4073) -> (5193, 5193, 10).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1385p",
         2775,
@@ -3267,7 +3311,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (652, 652, 1),
             (1609, 1609, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (27, 27, 0),
             (20, 20, 0),
             (330, 330, 0),
@@ -3295,6 +3339,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (1830, 1830, 13) -> (1830, 1830, 3), leaders (271, 271, 8) -> (271, 271, 4).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1391",
         4174,
@@ -3306,7 +3351,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (694, 694, 13),
             (1927, 1927, 4),
-            (271, 271, 2),
+            (271, 271, 1),
             (35, 35, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -3584,6 +3629,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2475, 2385, 2066) -> (2475, 2385, 2065).
     // Item 4244, a mine's `mtn`: builds (1890, 1890, 24) -> (1890, 1890, 21).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (574, 574, 1) -> (574, 574, 0).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 6) -> (399, 399, 5).
     (
         "run1438",
         684,
@@ -3595,7 +3641,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (574, 574, 0),
             (672, 672, 1),
-            (399, 399, 6),
+            (399, 399, 5),
             (9, 9, 0),
             (135, 135, 0),
             (165, 165, 0),
@@ -3611,6 +3657,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1968, 1968, 25) -> (1968, 1968, 22).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     // Item 4266, a guard order's walker: units (2308, 2197, 1945) -> (2308, 2269, 1887).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 6) -> (399, 399, 5).
     (
         "run1440",
         809,
@@ -3622,7 +3669,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (14, 0, 14),
             (568, 568, 0),
             (638, 638, 1),
-            (399, 399, 6),
+            (399, 399, 5),
             (9, 9, 0),
             (130, 130, 0),
             (165, 165, 0),
@@ -3673,6 +3720,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1968, 1968, 25) -> (1968, 1968, 22).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     // Item 4266, a guard order's walker: units (2022, 1941, 1611) -> (2022, 1965, 1624).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 6) -> (399, 399, 5).
     (
         "run1451",
         945,
@@ -3684,7 +3732,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (32, 0, 32),
             (568, 568, 0),
             (604, 604, 1),
-            (399, 399, 6),
+            (399, 399, 5),
             (9, 9, 0),
             (125, 125, 0),
             (165, 165, 0),
@@ -3701,6 +3749,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2655, 2538, 2238) -> (2655, 2538, 2237).
     // Item 4244, a mine's `mtn`: builds (1144, 1144, 24) -> (1144, 1144, 23).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (574, 574, 1) -> (574, 574, 0).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 4) -> (399, 399, 3).
     (
         "run1457",
         700,
@@ -3712,7 +3761,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (574, 574, 0),
             (725, 725, 1),
-            (399, 399, 4),
+            (399, 399, 3),
             (9, 9, 0),
             (130, 130, 0),
             (165, 165, 0),
@@ -3728,6 +3777,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1316, 1316, 24) -> (1316, 1316, 23).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     // Item 4266, a guard order's walker: units (2362, 2245, 1933) -> (2362, 2314, 1927).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (403, 403, 5) -> (403, 403, 3).
     (
         "run1459",
         780,
@@ -3739,7 +3789,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (22, 0, 22),
             (568, 568, 0),
             (665, 665, 1),
-            (403, 403, 5),
+            (403, 403, 3),
             (9, 9, 0),
             (130, 130, 0),
             (165, 165, 0),
@@ -3756,6 +3806,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2380, 2275, 1874) -> (2380, 2275, 1873).
     // Item 4244, a mine's `mtn`: builds (1296, 1296, 24) -> (1296, 1296, 23).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (403, 403, 5) -> (403, 403, 3).
     (
         "run1460",
         760,
@@ -3767,7 +3818,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (16, 0, 16),
             (568, 568, 0),
             (686, 686, 1),
-            (403, 403, 5),
+            (403, 403, 3),
             (9, 9, 0),
             (130, 130, 0),
             (165, 165, 0),
@@ -4403,6 +4454,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4218, the idle latch (`flags & 0x08`): units (1636, 1776, 294) -> (1636, 1776, 263).
     // Item 4226, a bird walked on neither line: units (1636, 1776, 263) -> (1636, 1636, 123), guys (578, 627, 85) -> (578, 578, 36).
     // Item 4228, a path stack's `size` its high water: units (1636, 1636, 123) -> (1636, 1636, 122).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 4) -> (271, 271, 3).
     (
         "run870",
         901,
@@ -4414,7 +4466,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (532, 532, 0),
             (578, 578, 36),
-            (271, 271, 4),
+            (271, 271, 3),
             (6, 6, 0),
             (110, 110, 0),
             (180, 180, 0),
@@ -4678,6 +4730,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (2832, 2742, 2098) -> (2832, 2808, 2022).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
+    // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run954b",
         12155,
@@ -4689,7 +4742,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (532, 532, 0),
             (875, 875, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (27, 27, 0),
             (35, 35, 0),
             (180, 180, 0),
@@ -4949,8 +5002,6 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "ch95pkt",
         "aggression cities_built explored flags.leader_flags",
     ),
-    ("run1011b", "flags.leader_flags"),
-    ("run1155c", "flags.leader_flags"),
     ("run1161", "flags.leader_flags"),
     (
         "run1164",
@@ -4965,37 +5016,27 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ),
     ("run1169", "flags.leader_flags"),
     ("run1185", "flags.leader_flags"),
-    ("run1186b", "flags.leader_flags"),
     ("run1217", "flags.leader_flags"),
-    ("run1220b", "flags.leader_flags"),
     ("run1221", "flags.leader_flags"),
     ("run1224b", "flags.leader_flags"),
     ("run1235b", "flags.leader_flags"),
     ("run1236", "flags.leader_flags"),
-    ("run1237", "flags.leader_flags"),
     ("run1238c", "flags.leader_flags"),
     ("run1247", "flags.leader_flags"),
-    ("run1254c", "flags.leader_flags"),
     ("run1263", "flags.leader_flags"),
     ("run1264b", "flags.leader_flags"),
     ("run1266c", "flags.leader_flags"),
-    ("run1268", "flags.leader_flags"),
     ("run1293", "flags.leader_flags"),
     ("run1294", "flags.leader_flags"),
     ("run1296", "flags.leader_flags"),
     ("run1304", "flags.leader_flags"),
-    ("run1305b", "flags.leader_flags"),
     ("run1320b", "encrypt.bucket[2] flags.leader_flags"),
-    ("run1323b", "flags.leader_flags"),
     ("run1324c", "flags.leader_flags"),
     ("run1325c", "flags.leader_flags"),
     ("run1326", "flags.leader_flags"),
     ("run1327", "flags.leader_flags"),
     ("run1332a", "flags.leader_flags"),
-    ("run1351", "flags.leader_flags"),
     ("run1351c", "flags.leader_flags"),
-    ("run1355", "flags.leader_flags"),
-    ("run1357", "flags.leader_flags"),
     (
         "run1359",
         "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags",
@@ -5009,9 +5050,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "encrypt.bucket[0] encrypt.bucket[1] flags.leader_flags",
     ),
     ("run1361", "flags.leader_flags"),
-    ("run1381", "flags.leader_flags"),
     ("run1382", "flags.leader_flags"),
-    ("run1383", "flags.leader_flags"),
     ("run1385p", "flags.leader_flags"),
     ("run1391", "flags.leader_flags"),
     ("run1416", "flags.leader_flags"),
@@ -5028,9 +5067,9 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run1440", "aggression cities_built flags.leader_flags"),
     ("run1441", "flags.leader_flags"),
     ("run1451", "aggression cities_built flags.leader_flags"),
-    ("run1457", "aggression cities_built flags.leader_flags"),
-    ("run1459", "aggression cities_built flags.leader_flags"),
-    ("run1460", "aggression cities_built flags.leader_flags"),
+    ("run1457", "aggression cities_built"),
+    ("run1459", "aggression cities_built"),
+    ("run1460", "aggression cities_built"),
     (
         "run1469",
         "aggression cities_built flags.leader_flags gather_stamp",
@@ -5095,7 +5134,6 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run938b", "aggression cities_built flags.leader_flags"),
     ("run943c", "flags.leader_flags"),
     ("run946", "flags.leader_flags"),
-    ("run954b", "flags.leader_flags"),
     ("run958b", "flags.leader_flags"),
     ("run959", "flags.leader_flags"),
 ];
