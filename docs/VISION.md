@@ -809,8 +809,12 @@ run240's world pin.
   flag's. The reading below said `gain_tech` raises `0x4000000` only on
   its militia arm; the tail's `|= 0xc000000` (`orl $0xc000000, (%ebx)` at
   `006e0315`, decompile line 2313) raises it on every tech that
-  reaches the tail, and run529's block 9784 is that. Whether any of
-  `gain_tech`'s early returns skips it is not established.
+  reaches the tail, and run529's block 9784 is that. ~~Whether any of
+  `gain_tech`'s early returns skips it is not established.~~ The unit
+  arm does (item 4333, `docs/CHECKSUM.md` §25.4): it leaves past the tail
+  (`:883`), and its own raise is the militia arm below, so a unit type
+  off the Militia line raises neither bit. The crate had raised
+  `0x4000000` on every unit gain; run1578's 11884 parted on it.
   `Leader::calc_unit_stats@006cf970` walks a player's units calling
   `update_los`, and `Leader::process` calls *it* only when `leader_flags &
   0x4000000` is set — the twin of the `0x8000000` this simulation already

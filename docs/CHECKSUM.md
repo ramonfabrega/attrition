@@ -2891,6 +2891,43 @@ whole after. Minted: run1586 (189) whole on leaders (leader 0's `00`|`08`). `PAC
 packets whole on leaders, 32 more on fewer ranges, none on more. What is left: 35 frames. 167, 202 and 297 part
 on byte 3 alone (`0x8000000`, on 202 `0x4000000` too), hidden under `0x80000` before; the other 31 are not listed.
 
+**Item 4333 emits the two stats bits** (`leader_flags & 0x8000000`, `& 0x4000000`; `Sim::leader_flag_words` from
+`cities.wall_stats_dirty` and `roster.unit_stats_dirty`). Both are cleared by the live slot's step as it answers them
+(`Leaders::process_all@006ed2a0:39`, `:43`; no other clear on a leader in the export), and the crate clears them in
+the same place, so a checksum sees a bit raised after the step. **The emission alone took run1578 from 23,965 to
+23,997**: 167, 202 and 297 whole, and every frame past 300 but two. Those two and frame 0 parted where ours raised
+`0x4000000` and theirs did not; the record names 11884, and the other, past 300, the score counts and does not list
+(the Militia arm below closes it with 11884). **The direction, on both arms: ours acted.**
+- **11884, leader 1, byte 3: ours `07`, theirs `03`.** `Leader::gain_tech`'s unit arm raises `0x4000000` only when
+  the gained type `is(MILITIA 0x42, 0)` (`6dd988`: `push 0; push 0x42; call *0x60(%eax)`, `orl` on nonzero) and
+  leaves past the tail's `0xc000000` (`:883`). The crate's `apply_gained` raised it on every unit type. On 11884
+  who=1 gains the Hoplites' successor, which is not of the line. `Sim::gain_tech` now restores the bit beside the
+  wall bit it already restored for a unit type (item 3965), unless the type is of the Militia line.
+- **0, both leaders, byte 3: ours `0e`, theirs `0a`.** `Leader::init@006e3930` lays the opening techs down in place;
+  its only `gain_tech` calls are a nation's free epoch and Despotism (`:544`–`:576`). The crate's `start_techs` ran
+  `apply_gained` and raised both bits. It now keeps both as they stood unless a gain ran: the tree's `gain` raises
+  the score's `0x1000000` at its head, theirs' and ours' alike. Theirs' `0x8000000` at the setup is the opening
+  buildings' activation, which the crate already raises.
+
+**run1578 goes from 23,965 to 23,999 of 24,000** (+34); run1577 stays at 119 of 120. Inside 300: 4 → 1 parted
+frames (0). The value diff (`RECORD_PARTINGS`; `flags`, byte 3):
+
+| frame | before | after |
+|---|---|---|
+| 0 | 16 parted, first `0 0 flags` byte 3: `02000000`, `0a000000` | 14, first leader 0's `defense` range (`+0x94c`): `00000000`, `02000000` |
+| 167 | 1, leader 1: `02`, `0a` (theirs' `0x8000000`) | whole |
+| 202 | 1, leader 1: `03`, `0f` (theirs' `0x8000000`, `0x4000000`) | whole |
+| 297 | 1, leader 0: `02`, `0a` | whole |
+| 11884 | whole | whole (the emission alone parted it: `07`, `03`) |
+| 14312 | 1, leader 1: `02`, `0e` | whole |
+
+The minted packets: run1591 (6537; `03`, `0f`) and run1592 (6781; `02`, `0a`) come out whole on leaders, so all
+eleven `MINTED_PACKETS` agree on the line. `PACKETS_SCORE` stays **482 of 1,053**: no held packet's range count
+moved, and no `PACKET_LEAF_PARTINGS` row. **What is left on run1578 is frame 0 alone**: 14 ranges, the setup census's
+leaves (`ally_mask`, `defense`, `reg_cities[1]` and two `encrypt` words on leader 0; the same less `defense` on leader
+1; item 4317's journal), each `0` on ours where theirs holds the value our first tick writes. Theirs' setup
+`check_all` sees a census the built start has not yet taken. Not established: which setup call takes it.
+
 ## 25.5 How it was established, and what it has not established
 
 The sites and calling conventions are read from the listing (`walk_function`'s prologue and `ret 8`;

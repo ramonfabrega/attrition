@@ -195,10 +195,14 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             "leaders",
             267,
             267,
-            16,
+            // Item 4333: 16 → 14, the flags range whole on both leaders
+            // (`0x8000000` emitted, the setup's `0x4000000` not raised).
+            14,
             // Item 4320: byte 2 agrees (`0x800000` emitted); before it
-            // `+0x2 of 8|8: 00020000|800a0000`. `0x8000000` stands.
-            "0 0 flags: +0x3 of 8|8: 02000000|0a000000",
+            // `+0x2 of 8|8: 00020000|800a0000`. Item 4333: before it
+            // `0 0 flags: +0x3 of 8|8: 02000000|0a000000`; what stands is
+            // the setup census's leaves, first leader 0's `defense`.
+            "1 0 who..ally_mask: +0x94c of 26914|26914: 00000000|02000000",
         )],
     ),
     (
@@ -237,37 +241,28 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     // `0x4000000` too), theirs alone: the stats bits raised after the
     // leader's step (`Build::activate` and the later writers), which the
     // crate keeps (`cities.wall_stats_dirty`, `roster.unit_stats_dirty`)
-    // and the emitter does not write. Hidden under 160–299's `0x80000`
-    // before it.
+    // and the emitter did not write. Hidden under 160–299's `0x80000`
+    // before it; whole since item 4333, which emits both.
     (
         167,
-        &[(
-            "leaders",
-            267,
-            267,
-            1,
-            "128 1 flags: +0x3 of 8|8: 02000000|0a000000",
-        )],
+        &[
+            // Item 4333: leaders whole (the stats bits emitted); before it,
+            // 1 of 267 parted, `128 1 flags: +0x3 of 8|8: 02000000|0a000000`.
+        ],
     ),
     (
         202,
-        &[(
-            "leaders",
-            267,
-            267,
-            1,
-            "128 1 flags: +0x3 of 8|8: 03000000|0f000000",
-        )],
+        &[
+            // Item 4333: leaders whole (the stats bits emitted); before it,
+            // 1 of 267 parted, `128 1 flags: +0x3 of 8|8: 03000000|0f000000`.
+        ],
     ),
     (
         297,
-        &[(
-            "leaders",
-            267,
-            267,
-            1,
-            "0 0 flags: +0x3 of 8|8: 02000000|0a000000",
-        )],
+        &[
+            // Item 4333: leaders whole (the stats bits emitted); before it,
+            // 1 of 267 parted, `0 0 flags: +0x3 of 8|8: 02000000|0a000000`.
+        ],
     ),
     (
         7195,
@@ -404,14 +399,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         &[
             // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                271,
-                271,
-                // Item 4324: 2 → 1 (`resources_controlled` counted).
-                1,
-                "128 1 flags: +0x3 of 8|8: 02000000|0e000000",
-            ),
+            // Item 4324: 2 → 1 (`resources_controlled` counted). Item
+            // 4333: leaders whole (the stats bits emitted); before it, 1 of
+            // 271 parted, `128 1 flags: +0x3 of 8|8: 02000000|0e000000`.
         ],
     ),
 ];
