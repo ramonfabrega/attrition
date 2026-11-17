@@ -1708,7 +1708,8 @@ fn run609_s_closing_frame_is_widened_whole() {
         // human's orders, so `0/1` and `0/2`'s `orders.len`, `order:length`,
         // `idle` and figure clocks agree (were ours 1, 0 and running; theirs
         // 0, 1 and at rest).
-        27, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
+        26, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         "run609 closing residue, not whole-record parity"
     );
 }
