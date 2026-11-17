@@ -100,7 +100,11 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (0x006b_dcd8, None, sim::leaders::diplomacy::SITE_MINE_COIN),
     (0x006b_e462, None, sim::leaders::diplomacy::SITE_QUIET_COIN),
     // The demand arm's start and pick (item 4331, `docs/LEADERS.md` §8.2).
-    (0x006b_e6f0, None, sim::leaders::diplomacy::SITE_DEMAND_START),
+    (
+        0x006b_e6f0,
+        None,
+        sim::leaders::diplomacy::SITE_DEMAND_START,
+    ),
     (0x006b_e78f, None, sim::leaders::diplomacy::SITE_DEMAND_PICK),
     // `Leader::research_techs@006c6ba0` — the Senate arm's coin and the
     // survivor's scale; East Indies spends the second on 15378 (item 643).
