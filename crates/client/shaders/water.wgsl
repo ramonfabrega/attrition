@@ -74,3 +74,36 @@ fn fs_surf(i: VOut) -> @location(0) vec4<f32> {
     let o = under * (1.0 - a) + s * a;
     return vec4<f32>(land_tone(o.x), land_tone(o.y), land_tone(o.z), 1.0);
 }
+
+// Item 4327 (`docs/RENDERER.md` §3.27, "The patches over the faded land in
+// HDR"): `fs_floor` before the curve, on the land pass's HDR target.
+@fragment
+fn fs_floor_hdr(i: VOut) -> @location(0) vec4<f32> {
+    let g = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    let s = min(2.0 * g * textureSample(tex, samp, i.uv).rgb, vec3<f32>(1.0));
+    return vec4<f32>(land_lit_hdr(s, i.nl), 1.0);
+}
+
+// Item 4327: one triangle over the whole target.
+@vertex
+fn vs_full(@builtin(vertex_index) k: u32) -> @builtin(position) vec4<f32> {
+    let x = f32((k << 1u) & 2u) * 2.0 - 1.0;
+    let y = f32(k & 2u) * 2.0 - 1.0;
+    return vec4<f32>(x, y, 0.0, 1.0);
+}
+
+// Item 4327: the frame drawn so far, taken back through the curve onto the
+// HDR target (`lake` the frame's copy), so the land layers blend over it as
+// the card's target holds it.
+@fragment
+fn fs_untone(@builtin(position) p: vec4<f32>) -> @location(0) vec4<f32> {
+    let d = textureLoad(lake, vec2<i32>(p.xy), 0).rgb;
+    return vec4<f32>(water_untone(d.r), water_untone(d.g), water_untone(d.b), 1.0);
+}
+
+// Item 4327: the HDR target (`lake`) through the curve onto the frame.
+@fragment
+fn fs_retone(@builtin(position) p: vec4<f32>) -> @location(0) vec4<f32> {
+    let h = textureLoad(lake, vec2<i32>(p.xy), 0).rgb;
+    return vec4<f32>(land_tone(h.x), land_tone(h.y), land_tone(h.z), 1.0);
+}
