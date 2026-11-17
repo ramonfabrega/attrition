@@ -336,13 +336,18 @@ pub enum Event {
     /// writes its `group` and `alarm` (`0x1b`). The HUD's alone.
     Alarm,
     /// A press on a standard-panel button whose order the layer does not
-    /// issue, by its option (item 4346, §32.9): `OPTION_REPAIR`,
-    /// `OPTION_MOVE_TO` and `OPTION_ATTACK_TO` arm a pick
-    /// (`selecting_spot`) whose spot `Options::picked_spot@00721c40` turns
-    /// into `execute_at_cursor(0, 3 or 1)` or the repair arm; and
-    /// `OPTION_TRANSPORT`'s `set_transport`, which asks
-    /// `GroupData::can_transport`. Consumed; it orders nothing.
+    /// issue, by its option (item 4346, §32.9): `OPTION_TRANSPORT`'s
+    /// `set_transport`, which asks `GroupData::can_transport`. Consumed;
+    /// it orders nothing.
     Unbuilt(i32),
+    /// A press on a standard-panel pick button, by its option (item 4349,
+    /// `docs/CLIENT_INPUT.md` §32.10): `OPTION_MOVE_TO` and
+    /// `OPTION_ATTACK_TO` (`Options::do_move_to@0071d260`) and
+    /// `OPTION_REPAIR` (`Options::do_repair@0071ccb0`) set
+    /// `selecting_spot`, and the next left press is
+    /// `Options::picked_spot@00721c40`'s arm of the option
+    /// ([`Input::picking`]). The HUD's alone.
+    Pick(i32),
     /// A press on one of a building's train or research buttons, by the
     /// `TypeIndex` it queues (item 4290, `docs/CLIENT_INPUT.md` §32): the
     /// panel's `OPTION_TRAIN` and `OPTION_RESEARCH`, which
@@ -874,6 +879,12 @@ impl View<'_> {
     /// (vslot `+0x48`) answers no, so a press on what the fog hides falls
     /// to the ground (§10).
     pub fn target(&self, who: u8, px: i32, py: i32) -> Option<Hit> {
+        self.look(who, px, py, true)
+    }
+
+    /// [`View::target`]'s looks, one's own buildings asked or not: the
+    /// Attack pick's search (item 4349, §32.10) skips them.
+    pub fn look(&self, who: u8, px: i32, py: i32, own_buildings: bool) -> Option<Hit> {
         let near = |p: Pos, z: i32| {
             let (ax, ay) = self.pixel(p.x, p.y, z);
             let d = i64::from(ax - px).pow(2) + i64::from(ay - py).pow(2);
@@ -896,7 +907,7 @@ impl View<'_> {
             .scene
             .buildings
             .iter()
-            .filter(|b| b.id.who == who)
+            .filter(|b| own_buildings && b.id.who == who)
             .filter_map(|b| Some((near(b.pos, b.z)?, b)))
             .min_by_key(|&(d, b)| (d, b.id));
         if let Some((_, b)) = own {
@@ -927,6 +938,24 @@ impl View<'_> {
                 .filter_map(|u| Some((near(u.pos, u.z)?, u.id))),
         );
         friend.map(|(_, id)| Hit::Friend(id))
+    }
+
+    /// The unit a Move pick at `(px, py)` names (item 4349, §32.10):
+    /// `execute_at_cursor`'s mode 3 asks `find_target(SEARCH_ALL, units)`,
+    /// any slot's unit the viewer sees, the nearest anchor within
+    /// [`PICK_RADIUS`].
+    pub fn any_unit(&self, who: u8, px: i32, py: i32) -> Option<ObjId> {
+        self.scene
+            .units
+            .iter()
+            .filter(|u| u.id.who == who || u.seen)
+            .filter_map(|u| {
+                let (ax, ay) = self.pixel(u.pos.x, u.pos.y, u.z);
+                let d = i64::from(ax - px).pow(2) + i64::from(ay - py).pow(2);
+                (d <= i64::from(PICK_RADIUS).pow(2)).then_some((d, u.id))
+            })
+            .min_by_key(|&(d, id)| (d, id))
+            .map(|(_, id)| id)
     }
 
     /// The building of `who`'s a pick at `(px, py)` names, as
@@ -1274,6 +1303,17 @@ pub struct Input {
     /// picks the building (`Options::selecting_spot` with
     /// `OPTION_GARRISON`, item 4273).
     pub garrisoning: bool,
+    /// The pick a standard-panel button armed (item 4349, §32.10):
+    /// `OPTION_MOVE_TO`, `OPTION_ATTACK_TO` or `OPTION_REPAIR`, whose spot
+    /// the next left press names (`Options::selecting_spot`).
+    pub picking: Option<i32>,
+    /// `Console::drag_form` and `drag_form_mod` (item 4349, §32.10): written
+    /// only by a main-view right press (`Console::down@007cd8f0` with
+    /// `param_3` 1, the selection's `get_form`, at least 0, and
+    /// `get_form_mod_option`), and read by the Move pick's ground arm.
+    /// `None` is `Console::clear@007cbc50`'s (0, −1), which
+    /// `Game::init_console` runs.
+    pub drag_form: Option<(i8, i8)>,
     /// Whether the open entry line is the console's (item 4283): its
     /// Return runs a console word instead of sending a chat.
     pub console: bool,
@@ -1393,7 +1433,8 @@ pub const OPTION_AUTO_EXPLORE: i32 = 33;
 /// last six are a citizen's on every held packet (a land unit, not a plane,
 /// with an attack, the profile's `prefs & 2` clear) and are not built for
 /// another unit. `OPTION_REPAIR`, `OPTION_MOVE_TO`, `OPTION_ATTACK_TO` arm
-/// a pick and `OPTION_TRANSPORT` writes `set_transport`: [`Event::Unbuilt`].
+/// a pick, [`Event::Pick`] (item 4349); `OPTION_TRANSPORT` writes
+/// `set_transport`: [`Event::Unbuilt`].
 fn standard_panel(sim: &sim::Sim, scene: &Scene, u: usize) -> Vec<(Event, Button)> {
     let unit = &sim.units[u];
     let typeless = |option, disable| Button {
@@ -1404,7 +1445,7 @@ fn standard_panel(sim: &sim::Sim, scene: &Scene, u: usize) -> Vec<(Event, Button
     let mut out: Vec<(Event, Button)> = (0..pages_of(sim))
         .map(|o| (Event::Page(o), typeless(o, 0)))
         .collect();
-    out.push((Event::Unbuilt(OPTION_REPAIR), typeless(OPTION_REPAIR, 0)));
+    out.push((Event::Pick(OPTION_REPAIR), typeless(OPTION_REPAIR, 0)));
     out.push((Event::Alarm, typeless(OPTION_ALARM_PEASANT, 0)));
     let id = ObjId {
         who: unit.owner,
@@ -1427,11 +1468,8 @@ fn standard_panel(sim: &sim::Sim, scene: &Scene, u: usize) -> Vec<(Event, Button
         Event::Unbuilt(OPTION_TRANSPORT),
         typeless(OPTION_TRANSPORT, i32::from(low)),
     ));
-    out.push((Event::Unbuilt(OPTION_MOVE_TO), typeless(OPTION_MOVE_TO, 0)));
-    out.push((
-        Event::Unbuilt(OPTION_ATTACK_TO),
-        typeless(OPTION_ATTACK_TO, 0),
-    ));
+    out.push((Event::Pick(OPTION_MOVE_TO), typeless(OPTION_MOVE_TO, 0)));
+    out.push((Event::Pick(OPTION_ATTACK_TO), typeless(OPTION_ATTACK_TO, 0)));
     out.push((Event::AutoExplore, typeless(OPTION_AUTO_EXPLORE, 0)));
     out
 }
@@ -2449,6 +2487,9 @@ impl Input {
         press: (i32, i32),
     ) -> Option<Option<Order>> {
         let play = i32::from(self.player);
+        if let Some(option) = self.picking {
+            return Some(self.picked_pick(frame, view, (x, y), option));
+        }
         if self.garrisoning {
             // `picked_spot`'s `OPTION_GARRISON` arm: no building under the
             // pick returns before `reset`, and the pick stands; any other
@@ -2502,6 +2543,97 @@ impl Input {
             queued,
         };
         Some(Some((frame, play, vec![self.group(view.scene), cmd])))
+    }
+
+    /// **The pick buttons' spot** (item 4349, `docs/CLIENT_INPUT.md`
+    /// §32.10): `Options::picked_spot@00721c40`'s `OPTION_MOVE_TO`,
+    /// `OPTION_ATTACK_TO` and `OPTION_REPAIR` arms, at the release's point.
+    ///
+    /// - **Move and Attack** `reset` the pick unless shift is held, write
+    ///   the point to `drag_x2`/`drag_y2` and call
+    ///   `Console::execute_at_cursor@007c6630(0, 3)` or `(0, 1)`, whose
+    ///   queue is the dispatch's ([`Input::dispatch_queue`]). Mode 3 asks
+    ///   `find_target(SEARCH_ALL, units)` first, any slot's unit, and
+    ///   issues `follow`; else the ground, `move_to(MOVE_TO, drag_form,
+    ///   drag_form_mod)`. Mode 1, with a member that attacks, takes
+    ///   another slot's unit or building (the attack search, which skips
+    ///   one's own buildings) for `attack(ignore 0)`, then one's own unit
+    ///   for `guard`, else the ground, `move_to(ATTACK_TO, −1, −1)`. Both
+    ///   modes skip the dispatch's ctrl, spy, gather, build, repair and
+    ///   garrison arms, each of which asks mode 0.
+    /// - **Repair** `reset`s unless ctrl or shift is held, then takes one's
+    ///   own building (`find_target(SEARCH_ALLIED, buildings)`, the layer
+    ///   naming no ally): unfinished, `swarm_around(BUILD_AT)`; alive and
+    ///   damaged, `swarm_around(REPAIR)`; else a built gather building with
+    ///   room, `gather`; else nothing. Every arm's queue is `QUEUE_NEW`.
+    fn picked_pick(
+        &mut self,
+        frame: i32,
+        view: &View,
+        (x, y): (i32, i32),
+        option: i32,
+    ) -> Option<Order> {
+        let play = i32::from(self.player);
+        if option == OPTION_REPAIR {
+            if !(self.mods.ctrl || self.mods.shift) {
+                self.picking = None;
+            }
+            let b = view.own_building(self.player, x, y)?;
+            let (ox, whom) = (i32::from(b.id.o), i32::from(b.id.who));
+            let swarm = |orders| Command::SwarmAround {
+                ox,
+                whom,
+                queued: QUEUE_NEW,
+                orders,
+            };
+            let room = b.gather.map(|(n, max)| max.is_none_or(|m| n < m));
+            let cmd = if !b.active {
+                swarm(BUILD_AT)
+            } else if b.health < b.hits {
+                swarm(REPAIR)
+            } else if room == Some(true) {
+                Command::Gather {
+                    ox,
+                    queued: QUEUE_NEW,
+                }
+            } else {
+                return None;
+            };
+            return Some((frame, play, vec![self.group(view.scene), cmd]));
+        }
+        if !self.mods.shift {
+            self.picking = None;
+        }
+        let queued = self.dispatch_queue();
+        let cmd = if option == OPTION_MOVE_TO {
+            match view.any_unit(self.player, x, y) {
+                Some(id) => Command::Follow {
+                    ox: i32::from(id.o),
+                    whom: i32::from(id.who),
+                    queued,
+                },
+                None => {
+                    let (form, width) = self.drag_form.unwrap_or((0, -1));
+                    move_to(ground_at(view, x, y)?, form, width, queued)
+                }
+            }
+        } else {
+            match view.look(self.player, x, y, false) {
+                Some(Hit::Enemy { id, .. }) => Command::Attack {
+                    ox: i32::from(id.o),
+                    whom: i32::from(id.who),
+                    ignore: 0,
+                    queued,
+                },
+                Some(Hit::Friend(id)) => Command::Guard {
+                    ox: i32::from(id.o),
+                    whom: i32::from(id.who),
+                    queued,
+                },
+                _ => attack_to(ground_at(view, x, y)?, queued),
+            }
+        };
+        Some((frame, play, vec![self.group(view.scene), cmd]))
     }
 
     /// One event on `frame` (the recording frame the package is consumed
@@ -2699,6 +2831,35 @@ impl Input {
                 Some((frame, play, vec![self.group(view.scene), Command::Alarm]))
             }
             Event::Unbuilt(_) => None,
+            Event::Pick(option) => {
+                // `do_move_to(9 or 10, 0)` and `do_repair(0)`: a unit
+                // selection (`buildings` clear) that `can_activate` sets
+                // `selecting_spot`. The Attack pick asks `COUNT_ATTACK`,
+                // the Repair pick `COUNT_PEASANTS` (`is_peasant`). Ours:
+                // the Attack pick's all-plane arm (`do_airstrike`) and its
+                // all-`0x136` cursor are not read; the scene carries no
+                // domain.
+                if self.building || self.selection.is_empty() {
+                    return None;
+                }
+                let arms = match option {
+                    OPTION_MOVE_TO => true,
+                    OPTION_ATTACK_TO => view.attacks(&self.selection),
+                    OPTION_REPAIR => view
+                        .scene
+                        .units
+                        .iter()
+                        .any(|u| self.selection.contains(&u.id) && u.spy.peasant),
+                    _ => false,
+                };
+                if arms {
+                    self.placing = None;
+                    self.casting = None;
+                    self.garrisoning = false;
+                    self.picking = Some(option);
+                }
+                None
+            }
             Event::ComeOut(k) => {
                 if !self.building || self.line.is_some() {
                     return None;
@@ -2714,6 +2875,7 @@ impl Input {
                 }
                 self.placing = None;
                 self.casting = None;
+                self.picking = None;
                 self.garrisoning = true;
                 None
             }
@@ -2728,6 +2890,7 @@ impl Input {
                 if craft.targeted {
                     self.placing = None;
                     self.garrisoning = false;
+                    self.picking = None;
                     self.casting = Some(t);
                     return None;
                 }
@@ -2784,6 +2947,10 @@ impl Input {
             Event::RightPress { x, y } => {
                 self.casting = None;
                 self.garrisoning = false;
+                self.picking = None;
+                // `Console::down` with `param_3` 1 writes the formation the
+                // Move pick's ground arm reads (item 4349, §32.10).
+                self.drag_form = Some(view.formation(&self.selection));
                 if self.selection.is_empty() {
                     return None;
                 }
@@ -2892,6 +3059,8 @@ impl Input {
             Event::RightDrag { x0, y0, x1, y1 } => {
                 self.casting = None;
                 self.garrisoning = false;
+                self.picking = None;
+                self.drag_form = Some(view.formation(&self.selection));
                 // `Console::on_right_up@007cd3c0` with `dragging` 2 (item
                 // 4295, §34.1): a selection that can act; a building's
                 // leader moves nothing. Ctrl is not read.
@@ -2995,6 +3164,7 @@ impl Input {
             Event::Place(ty) => {
                 if !self.selection.is_empty() && !self.building {
                     self.garrisoning = false;
+                    self.picking = None;
                     self.placing = Some(ty);
                 }
                 None
@@ -3010,6 +3180,7 @@ impl Input {
                 } else {
                     let &(_, ty) = BUILD_KEYS.iter().find(|(c, _)| *c == k)?;
                     self.garrisoning = false;
+                    self.picking = None;
                     self.placing = Some(ty);
                     None
                 }
@@ -6213,6 +6384,422 @@ pub(crate) mod tests {
                 add_to_end: 1
             })
         );
+    }
+
+    /// **`INPUT_PICKED`** (item 4349, `docs/CLIENT_INPUT.md` §32.10): the
+    /// standard panel's three pick buttons, each pressed and then a left
+    /// press on the map, against the order `Options::picked_spot`'s arm
+    /// issues: (equal, cases).
+    const INPUT_PICKED: (usize, usize) = (24, 24);
+
+    /// **The pick buttons** (item 4349, §32.10): `OPTION_MOVE_TO`,
+    /// `OPTION_ATTACK_TO` and `OPTION_REPAIR` pressed, then a press on an
+    /// enemy unit, one's own unit, the ground and one's own buildings, at
+    /// the pinned camera; each order held byte for byte.
+    #[test]
+    fn minted_the_pick_buttons_as_the_original() {
+        if lobby().is_err() {
+            println!("skipping: no lobby for a building record");
+            return;
+        }
+        let terrain = TerrainScene {
+            width: 64,
+            height: 64,
+            ..TerrainScene::default()
+        };
+        let c = crate::pinned_camera();
+        let bare = Scene::default();
+        let probe = view(&c, &bare, &terrain);
+        let px = [
+            (900, 500),
+            (600, 400),
+            (1200, 600),
+            (700, 700),
+            (1100, 300),
+            (1300, 800),
+            (500, 800),
+            (1500, 450),
+        ];
+        let at: Vec<Pos> = px
+            .iter()
+            .map(|&(x, y)| ground_at(&probe, x, y).unwrap())
+            .collect();
+        let placed = |mut u: sim::observe::UnitScene, k: usize| {
+            u.pos = at[k];
+            u
+        };
+        let mut citizen = unit(0, 5, script::CITIZEN, 0, 9, 50);
+        citizen.pos = Pos { x: 0, y: 9000 };
+        citizen.spy.peasant = true;
+        let mut slinger = unit(0, 8, 2, 0, 9, 50);
+        slinger.pos = Pos { x: 0, y: 9100 };
+        let mut pacifist = unit(0, 9, 2, 0, 9, 50);
+        (pacifist.pos, pacifist.attacks) = (Pos { x: 0, y: 9200 }, false);
+        let building = |o: i16, k: usize, f: &dyn Fn(&mut sim::observe::BuildingScene)| {
+            let mut b = city_building(if o >= 3000 { 1 } else { 0 }, o);
+            (b.city, b.trains, b.village, b.gather) = (false, false, false, None);
+            (b.pos, b.z, b.health, b.hits) = (at[k], 0, 100, 100);
+            f(&mut b);
+            b
+        };
+        let scene = Scene {
+            units: vec![
+                citizen,
+                slinger,
+                pacifist,
+                placed(unit(1, 7, 2, 0, 0, 50), 0),
+                placed(unit(0, 6, 2, 0, 0, 50), 1),
+            ],
+            buildings: vec![
+                building(2001, 3, &|b| b.active = false),
+                building(2002, 4, &|b| b.health = 60),
+                building(2003, 5, &|b| {
+                    (b.health, b.gather) = (60, Some((1, Some(3))))
+                }),
+                building(2004, 6, &|b| b.gather = Some((1, Some(3)))),
+                building(3005, 7, &|_| ()),
+                building(3006, 6, &|b| b.pos.y += 1),
+            ],
+            ..Scene::default()
+        };
+        let v = view(&c, &scene, &terrain);
+        let id = |who, o| ObjId { who, o };
+        // One case: the selection, the pick, the modifiers, a right press
+        // first or not, the pixel; the order, and whether the pick stands.
+        let pick = |sel: ObjId, option, m: Mods, right: bool, (x, y): (i32, i32)| {
+            let mut input = Input {
+                selection: vec![sel],
+                mods: m,
+                ..Input::new(0)
+            };
+            if right {
+                input.event(3, Event::RightPress { x: 100, y: 100 }, &v);
+            }
+            input.event(3, Event::Pick(option), &v);
+            let armed = input.picking;
+            let got = input.event(3, Event::Press { x, y }, &v).map(|o| o.2);
+            (armed, got, input.picking)
+        };
+        let none = Mods::default();
+        let shift = Mods {
+            shift: true,
+            ..Mods::default()
+        };
+        let cz = id(0, 5);
+        let follow = |who: u8, o: i16, q| Command::Follow {
+            ox: i32::from(o),
+            whom: i32::from(who),
+            queued: q,
+        };
+        let swarm = |o: i16, orders| Command::SwarmAround {
+            ox: i32::from(o),
+            whom: 0,
+            queued: QUEUE_NEW,
+            orders,
+        };
+        let attack = |who: u8, o: i16| Command::Attack {
+            ox: i32::from(o),
+            whom: i32::from(who),
+            ignore: 0,
+            queued: QUEUE_NEW,
+        };
+        let guard = Command::Guard {
+            ox: 6,
+            whom: 0,
+            queued: QUEUE_NEW,
+        };
+        let gp = Pos {
+            x: at[2].x,
+            y: at[2].y,
+        };
+        #[allow(clippy::type_complexity)]
+        let cases: Vec<(
+            &str,
+            ObjId,
+            i32,
+            Mods,
+            bool,
+            (i32, i32),
+            Option<Command>,
+            Option<i32>,
+        )> = vec![
+            (
+                "move: an enemy unit",
+                cz,
+                OPTION_MOVE_TO,
+                none,
+                false,
+                px[0],
+                Some(follow(1, 7, QUEUE_NEW)),
+                None,
+            ),
+            (
+                "move: one's own unit",
+                cz,
+                OPTION_MOVE_TO,
+                none,
+                false,
+                px[1],
+                Some(follow(0, 6, QUEUE_NEW)),
+                None,
+            ),
+            (
+                "move: the ground, Console::clear's form",
+                cz,
+                OPTION_MOVE_TO,
+                none,
+                false,
+                px[2],
+                Some(move_to(gp, 0, -1, QUEUE_NEW)),
+                None,
+            ),
+            (
+                "move: the ground, the right press's form",
+                cz,
+                OPTION_MOVE_TO,
+                none,
+                true,
+                px[2],
+                Some(move_to(gp, 9, 50, QUEUE_NEW)),
+                None,
+            ),
+            (
+                "move: one's own site is the ground",
+                cz,
+                OPTION_MOVE_TO,
+                none,
+                false,
+                px[3],
+                Some(move_to(at[3], 0, -1, QUEUE_NEW)),
+                None,
+            ),
+            (
+                "move: shift keeps the pick",
+                cz,
+                OPTION_MOVE_TO,
+                shift,
+                false,
+                px[0],
+                Some(follow(1, 7, QUEUE_LAST)),
+                Some(OPTION_MOVE_TO),
+            ),
+            (
+                "move: a slinger",
+                id(0, 8),
+                OPTION_MOVE_TO,
+                none,
+                false,
+                px[0],
+                Some(follow(1, 7, QUEUE_NEW)),
+                None,
+            ),
+            (
+                "attack: an enemy unit",
+                cz,
+                OPTION_ATTACK_TO,
+                none,
+                false,
+                px[0],
+                Some(attack(1, 7)),
+                None,
+            ),
+            (
+                "attack: one's own unit",
+                cz,
+                OPTION_ATTACK_TO,
+                none,
+                false,
+                px[1],
+                Some(guard.clone()),
+                None,
+            ),
+            (
+                "attack: the ground",
+                cz,
+                OPTION_ATTACK_TO,
+                none,
+                false,
+                px[2],
+                Some(attack_to(gp, QUEUE_NEW)),
+                None,
+            ),
+            (
+                "attack: one's own building is the ground",
+                cz,
+                OPTION_ATTACK_TO,
+                none,
+                false,
+                px[4],
+                Some(attack_to(at[4], QUEUE_NEW)),
+                None,
+            ),
+            (
+                "attack: an enemy building",
+                cz,
+                OPTION_ATTACK_TO,
+                none,
+                false,
+                px[7],
+                Some(attack(1, 3005)),
+                None,
+            ),
+            (
+                "attack: an enemy building beside one's own",
+                cz,
+                OPTION_ATTACK_TO,
+                none,
+                false,
+                px[6],
+                Some(attack(1, 3006)),
+                None,
+            ),
+            (
+                "attack: shift keeps the pick",
+                cz,
+                OPTION_ATTACK_TO,
+                shift,
+                false,
+                px[2],
+                Some(attack_to(gp, QUEUE_LAST)),
+                Some(OPTION_ATTACK_TO),
+            ),
+            (
+                "repair: one's own site",
+                cz,
+                OPTION_REPAIR,
+                none,
+                false,
+                px[3],
+                Some(swarm(2001, BUILD_AT)),
+                None,
+            ),
+            (
+                "repair: a damaged building",
+                cz,
+                OPTION_REPAIR,
+                none,
+                false,
+                px[4],
+                Some(swarm(2002, REPAIR)),
+                None,
+            ),
+            (
+                "repair: a damaged camp with room repairs",
+                cz,
+                OPTION_REPAIR,
+                none,
+                false,
+                px[5],
+                Some(swarm(2003, REPAIR)),
+                None,
+            ),
+            (
+                "repair: a whole camp with room gathers",
+                cz,
+                OPTION_REPAIR,
+                none,
+                false,
+                px[6],
+                Some(Command::Gather {
+                    ox: 2004,
+                    queued: QUEUE_NEW,
+                }),
+                None,
+            ),
+            (
+                "repair: the ground spends the pick",
+                cz,
+                OPTION_REPAIR,
+                none,
+                false,
+                px[2],
+                None,
+                None,
+            ),
+            (
+                "repair: an enemy building",
+                cz,
+                OPTION_REPAIR,
+                none,
+                false,
+                px[7],
+                None,
+                None,
+            ),
+            (
+                "repair: shift keeps the pick, QUEUE_NEW",
+                cz,
+                OPTION_REPAIR,
+                shift,
+                false,
+                px[4],
+                Some(swarm(2002, REPAIR)),
+                Some(OPTION_REPAIR),
+            ),
+        ];
+        let mut row = (0, 0);
+        for (name, sel, option, m, right, p, want, stands) in cases {
+            row.1 += 1;
+            let (armed, got, after) = pick(sel, option, m, right, p);
+            let cmd = got.as_ref().map(|g| {
+                assert_eq!(g.len(), 2, "{name}: {g:?}");
+                assert!(matches!(g[0], Command::Group { .. }), "{name}");
+                g[1].clone()
+            });
+            let bytes = |c: &Option<Command>| {
+                c.as_ref()
+                    .map(|c| rondata::commands::encode(std::slice::from_ref(c)))
+            };
+            let ok = armed == Some(option)
+                && cmd == want
+                && bytes(&cmd) == bytes(&want)
+                && after == stands;
+            if ok {
+                row.0 += 1;
+            } else {
+                println!(
+                    "PICKED {name}: armed {armed:?}, got {cmd:?}, want {want:?}, stands {after:?}"
+                );
+            }
+        }
+        // The arming: a selection that cannot attack arms no Attack pick,
+        // one with no citizen no Repair pick, and a building's none.
+        for (name, sel, option, building) in [
+            ("no attacker", id(0, 9), OPTION_ATTACK_TO, false),
+            ("no citizen", id(0, 8), OPTION_REPAIR, false),
+            ("a building", id(0, 2001), OPTION_MOVE_TO, true),
+        ] {
+            row.1 += 1;
+            let mut input = Input {
+                selection: vec![sel],
+                building,
+                ..Input::new(0)
+            };
+            input.event(3, Event::Pick(option), &v);
+            if input.picking.is_none() {
+                row.0 += 1;
+            } else {
+                println!("PICKED {name}: armed {:?}", input.picking);
+            }
+        }
+        // The right press's arms differ from the Repair pick's on the
+        // damaged camp with room: the dispatch gathers.
+        let mut right = Input {
+            selection: vec![cz],
+            ..Input::new(0)
+        };
+        let (x5, y5) = px[5];
+        assert_eq!(
+            right
+                .event(3, Event::RightPress { x: x5, y: y5 }, &v)
+                .map(|o| o.2[1].clone()),
+            Some(Command::Gather {
+                ox: 2003,
+                queued: QUEUE_NEW
+            })
+        );
+        println!("INPUT_PICKED {row:?}");
+        assert_eq!(row, INPUT_PICKED);
     }
 
     /// The angles [`minted_a_right_drag_faces_as_the_original`] mints at
@@ -11714,10 +12301,14 @@ pub(crate) mod tests {
                             && pressed.page.is_none()
                             && pressed.placing.is_none()
                             && !pressed.garrisoning
+                            && pressed.picking.is_none()
                     }
                     (_, OPTION_HALT) => last == Some(&Command::Halt),
                     (_, OPTION_ALARM_PEASANT) => last == Some(&Command::Alarm),
                     (_, OPTION_GARRISON) => got.is_none() && pressed.garrisoning,
+                    (_, o @ (OPTION_MOVE_TO | OPTION_ATTACK_TO | OPTION_REPAIR)) => {
+                        got.is_none() && pressed.picking == Some(o)
+                    }
                     (_, OPTION_AUTO_EXPLORE | OPTION_SPELL) => {
                         got.is_some() && got == input.clone().event(1, b.ev, &v)
                     }
@@ -11726,6 +12317,7 @@ pub(crate) mod tests {
                             && pressed.page.is_none()
                             && pressed.placing.is_none()
                             && !pressed.garrisoning
+                            && pressed.picking.is_none()
                     }
                 };
                 if ok {
