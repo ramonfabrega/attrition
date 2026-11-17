@@ -239,7 +239,11 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
     `city_high`, `village_high`, `population_high` — each `max(old, new)`
     (`gather_slots_high[2]` therefore never moves either).
     `resources_controlled` = **`popcount` of the `rare` words from
-    `+0x6da0`** — `+0x6d9c` is the count, not the mask.
+    `+0x6da0`** — `+0x6d9c` is the count, not the mask. *(Amended by item
+    4324: the type record puts `BitMask<44>`'s `flags` at `+0x6da0` and its
+    six bytes at `+0x6da4`; the step is an inlined `BitMask<44>::count@0047cd40`,
+    the bytes' bit count, 0 when `flags & 1`, the empty cache. Built off
+    `Ledger::rare`; until then the census wrote 0. `docs/CHECKSUM.md` §25.4.)*
 13. **Per-city site picture** (`compute_site_stats` proper is §2.7's; this
     is the sweep's own): `city_pop_high = max(city.pop)`; radius =
     **`city_center_radius + (level − 1) × city_center_pop_radius`** — the

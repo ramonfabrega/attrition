@@ -968,3 +968,29 @@ fn invaders_land_on_the_owner_s_record() {
     f.sim.census(1);
     assert_eq!(f.sim.ai.ai[0].census.invaders[1], 0);
 }
+
+/// `+0x850 resources_controlled` is the census's bit count of the
+/// leader's `rare` mask (`plan_strategy:1206`–`1222`, an inlined
+/// `BitMask<44>::count@0047cd40`; item 4324): run1578's leader 1 holds
+/// three rares on 7195 and theirs' word is 3. The census takes the mask
+/// as it stands; it does not rebuild it.
+#[test]
+fn the_census_counts_the_rare_mask_into_resources_controlled() {
+    let mut f = fix();
+    let s = &mut f.sim;
+    s.census(1);
+    assert_eq!(s.ai.ai[1].census.resources_controlled, 0, "no rare held");
+    s.economy.ledgers[1].rare = 1 << 0 | 1 << 23 | 1 << 43;
+    s.census(1);
+    assert_eq!(s.ai.ai[1].census.resources_controlled, 3);
+    assert_eq!(
+        s.ai.ai[0].census.resources_controlled, 0,
+        "the other leader's census is not run"
+    );
+    s.economy.ledgers[1].rare = 0;
+    s.census(1);
+    assert_eq!(
+        s.ai.ai[1].census.resources_controlled, 0,
+        "rewritten, not kept"
+    );
+}

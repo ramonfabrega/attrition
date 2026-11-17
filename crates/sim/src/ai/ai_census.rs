@@ -969,9 +969,15 @@ impl Sim {
         cs.city_high = cs.city_high.max(cities);
         cs.village_high = cs.village_high.max(villages);
         cs.population_high = cs.population_high.max(cs.pop);
-        // `resources_controlled = bit_count(rare)`; the rares are a seam,
-        // so the mask is empty and the count is zero.
-        cs.resources_controlled = 0;
+        // `+0x850 resources_controlled`: `plan_strategy:1206`–`1222` is an
+        // inlined `BitMask<44>::count@0047cd40` of `rare` (`+0x6d98`), the
+        // bit count of its six bytes, its `flags & 1` the empty cache that
+        // `BitMask::clear` sets and `Leader::gather`'s copy carries
+        // (item 4324, `docs/CHECKSUM.md` §25.4). `Ledger::rare` is that
+        // mask (`rare_conquest`, unioned into it, is empty here).
+        let rare = self.economy.ledgers[w].rare;
+        let cs = &mut self.ai.ai[w].census;
+        cs.resources_controlled = (rare & ((1 << 44) - 1)).count_ones() as i32;
     }
 
     /// Step 13, the per-city site picture: the circle walk over the city's
