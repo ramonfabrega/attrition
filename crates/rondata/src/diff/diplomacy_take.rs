@@ -213,51 +213,7 @@ pub(crate) fn walk_take_from(
             seed = Some((at, theirs, built.sim.rng.seed));
         }
         stage_frame(&mut built, seats, probes, diplomacy, taunts);
-        // PROBE (item 4325): `RON_TAKE_COSTS=<frame>` prices the frame's
-        // searches against the original's proxied `calc_cost`.
-        let cost_probe = std::env::var("RON_TAKE_COSTS")
-            .ok()
-            .and_then(|v| v.parse::<i64>().ok())
-            == Some(at);
-        if cost_probe {
-            built.sim.trace.trace_costs = true;
-        }
         built.tick();
-        if cost_probe {
-            built.sim.trace.trace_costs = false;
-            let ours = std::mem::take(&mut built.sim.trace.cost_marks);
-            let theirs = tr.calls_in(at, crate::trace::call_site::CALC_COST);
-            let tk: std::collections::BTreeMap<sim::movement::path::CostKey, i32> = theirs
-                .iter()
-                .map(|c| (c.cost_key().expect("a calc_cost call"), c.ret))
-                .collect();
-            let ok: std::collections::BTreeMap<sim::movement::path::CostKey, i32> =
-                ours.iter().map(|m| (m.key(), m.cost)).collect();
-            eprintln!(
-                "COSTS f{at}: ours {} theirs {}, shared {}",
-                ours.len(),
-                theirs.len(),
-                ok.keys().filter(|k| tk.contains_key(k)).count()
-            );
-            for m in &ours {
-                match tk.get(&m.key()) {
-                    Some(&t) if t != m.cost => eprintln!(
-                        "COSTS apart u{} {:?} ours {} theirs {t}",
-                        m.unit,
-                        m.key(),
-                        m.cost
-                    ),
-                    None => eprintln!("COSTS ours-only u{} {:?} = {}", m.unit, m.key(), m.cost),
-                    _ => {}
-                }
-            }
-            for c in &theirs {
-                let k = c.cost_key().expect("a calc_cost call");
-                if !ok.contains_key(&k) {
-                    eprintln!("COSTS theirs-only {k:?} = {}", c.ret);
-                }
-            }
-        }
         // `RON_DEBUG_SITES=<lo>-<hi>`: each draw's owner, as the pairs' walks
         // print it.
         if crate::diff::harness::site_window().is_some_and(|(lo, hi)| (lo..=hi).contains(&at)) {
