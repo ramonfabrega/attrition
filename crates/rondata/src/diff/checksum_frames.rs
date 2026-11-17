@@ -407,6 +407,38 @@ const LEADERS_K: usize = 4;
 const LEADERS_AGREE: &[(&str, usize, usize)] =
     &[(RUN1577_TRACE, 120, 120), (RUN1578_TRACE, 24000, 24000)];
 
+/// **What the three empty lines' walkers would find on our side**
+/// (`docs/CHECKSUM.md` §8, item 4355): `[walls, shots in flight, death
+/// objects]` at the moment the other lines are taken.
+///
+/// - Walls: `check_walls@00937360` walks each seated leader's objects
+///   from `obj_base[2]` (the 3000 band) to its mark whose data
+///   `flags & 1`; ours are the live [`sim::Building`]s at
+///   `index >= WALL_BASE`.
+/// - Ammo: `check_ammo@009374e0` walks the pool at `Objects +0x12c` whose
+///   element's `flags & 3`; ours is [`sim::combat::CombatState`]'s
+///   `projectiles`, whose every entry is in flight (a landing removes it).
+/// - Deaths: `check_deaths@00936bb0` walks the 100 `DeathObj` slots at
+///   `Objects +0x14c` whose first word is not 0; ours are the dead units'
+///   [`sim::combat::Death`]s, each culled with its last live record — so
+///   an empty list is no live record, and the count is units, not records.
+fn held(sim: &sim::Sim) -> [usize; 3] {
+    let walls = sim
+        .buildings
+        .iter()
+        .filter(|b| b.alive && b.index >= sim::WALL_BASE)
+        .count();
+    [walls, sim.combat.projectiles.len(), sim.combat.deaths.len()]
+}
+
+/// **Parity's empty-lines row** (item 4355, `docs/CHECKSUM.md` §24.3;
+/// `docs/DECISIONS.md` entry 140 §1): per take, `(trace, the frames on
+/// which our walk holds no wall, no shot in flight and no death object
+/// when the other lines are taken, the frames walked)`. The hook's walls,
+/// ammo and deaths read 1 (the Adler of no bytes) on every set of both
+/// takes. Minted at 0, red first.
+const EMPTY_HELD: &[(&str, usize, usize)] = &[(RUN1577_TRACE, 0, 120), (RUN1578_TRACE, 0, 24000)];
+
 /// The Adler of each emitted line `want` names, on `sim`, in [`EMITTED`]'s
 /// order (`None` where not wanted). The builds line needs the data layer's
 /// pieces, so it takes every line through [`packets::our_lines`].
@@ -453,8 +485,13 @@ fn our_adlers(
 /// frames it was taken on and agreed.
 type LineWalk = (&'static str, i64, u32, u32, Vec<i64>, usize);
 
-/// The walk under the pump against a hook's sets, per emitted line.
-fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
+/// What a walk held of the three empty lines' elements: the frames it held
+/// none on, and the first frame it held one with [`held`]'s counts there.
+type HeldWalk = (usize, Option<(i64, [usize; 3])>);
+
+/// The walk under the pump against a hook's sets, per emitted line, and
+/// [`held`] on every frame a set pairs with.
+fn first_partings(trace: &[Set], length: i64) -> Option<(Vec<LineWalk>, HeldWalk)> {
     let (_, mut built, _) = built_start()?;
     let pieces = super::checksum_lines::packets::Pieces::read()?;
     let mut stream = crate::input::Stream::pump(&minted(&script())?);
@@ -462,6 +499,8 @@ fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
     let mut out: Vec<Option<(i64, u32, u32)>> = vec![None; EMITTED.len()];
     let mut parted: Vec<Vec<i64>> = vec![Vec::new(); EMITTED.len()];
     let mut agreed = vec![0usize; EMITTED.len()];
+    let mut empty = 0usize;
+    let mut first_held = None;
     while built.sim.frame < length {
         let f = built.sim.frame;
         let want: [bool; 9] =
@@ -470,6 +509,12 @@ fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
             break;
         }
         if let Some(set) = first.get(&(f - 1)) {
+            let h = held(&built.sim);
+            if h == [0; 3] {
+                empty += 1;
+            } else if first_held.is_none() {
+                first_held = Some((f, h));
+            }
             let ours = our_adlers(&built.sim, &pieces, &want);
             for (k, &i) in EMITTED.iter().enumerate() {
                 let Some(o) = ours[k] else { continue };
@@ -488,7 +533,7 @@ fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
         stream.apply(f as i32, &mut built);
         built.tick();
     }
-    Some(
+    Some((
         EMITTED
             .iter()
             .zip(out)
@@ -499,7 +544,8 @@ fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
                 (CHECKSUM_LINES[i].0, f, a, b, p, n)
             })
             .collect(),
-    )
+        (empty, first_held),
+    ))
 }
 
 /// Frames as runs, `a-b` for a run of more than one.
@@ -532,10 +578,23 @@ fn our_lines_part_from_the_hook_s_on_their_first_frame() {
             eprintln!("skipping: {name} not filed (set RON_GAMELOG_DIR)");
             continue;
         };
-        let Some(walked) = first_partings(&trace, length) else {
+        let Some((walked, (empty, first_held))) = first_partings(&trace, length) else {
             eprintln!("skipping: no install or lobby dump (RON_INSTALL, RON_GAMELOG_DIR)");
             return;
         };
+        // The hook's three empty lines are the Adler of no bytes on every
+        // set of the take (entry 140 §1, the pass's read), so the row is
+        // ours alone.
+        let ones = trace
+            .iter()
+            .filter(|s| s.lines[2..5].iter().all(|&a| a == 1))
+            .count();
+        eprintln!(
+            "EMPTY HELD {name}: ours none on {empty} of {length} frames, first held {first_held:?} \
+             ([walls, ammo, deaths]); theirs 1 on {ones} of {} sets",
+            trace.len()
+        );
+        assert_eq!(ones, trace.len(), "theirs walk no wall, shot or death");
         for (line, f, ours, theirs, p, _) in &walked {
             eprintln!(
                 "CHECKSUM FRAMES {name} {line}: first parts on {f} (ours {ours}, theirs {theirs}); \
@@ -557,7 +616,67 @@ fn our_lines_part_from_the_hook_s_on_their_first_frame() {
         assert_eq!(walked[LEADERS_K].0, "leaders", "LEADERS_K names the line");
         assert_eq!(seen, pinned, "CHECKSUM_FRAMES {name}");
         assert_eq!(Some(agree), want, "LEADERS_AGREE {name}");
+        let row = EMPTY_HELD.iter().find(|r| r.0 == name).map(|r| (r.1, r.2));
+        assert_eq!(
+            Some((empty, length as usize)),
+            row,
+            "EMPTY_HELD {name}: first held {first_held:?}"
+        );
     }
+}
+
+/// **The held count can part** (item 4355): the classical melee
+/// (`docs/GOLDEN.md` §150, run1449's start under its staged script) holds
+/// a shot — the Kushite Archers `0/14`'s round at the Phalanx `1/19`,
+/// loosed on 673 (`classical_melee_s_kushite_archers_loose_from_the_bow`)
+/// — and [`held`] reads it. Per count, the first frame of `[0, MELEE_TO)`
+/// it reads non-zero, `None` where it never does. A count that cannot
+/// part on a walk that holds one is a blind instrument.
+const MELEE_HELD: [Option<i64>; 3] = [None, None, None];
+
+/// The melee walked to this frame.
+const MELEE_TO: i64 = 720;
+
+#[test]
+fn the_held_count_reads_the_melee_s_shot() {
+    use super::classical_melee::{MELEE_LONG, MELEE_START, melee_script};
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        crate::testenv::dump(MELEE_LONG.0),
+        crate::testenv::dump(MELEE_START),
+        super::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = crate::gamelog::Log::parse(&text);
+    let sib_log = crate::gamelog::Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    super::borrow_from_siblings(&mut init, &[&sib_init]);
+    super::setup::borrow_pasture(&mut init, &tr);
+    let mut built = super::setup::with_staged_script(melee_script(), || {
+        super::build_sim(&loaded, &init, sim::Tuning::RON)
+    });
+    let mut seen: [Option<i64>; 3] = [None; 3];
+    let mut most = [0usize; 3];
+    while built.sim.frame < MELEE_TO {
+        let h = held(&built.sim);
+        for k in 0..3 {
+            if h[k] > 0 && seen[k].is_none() {
+                seen[k] = Some(built.sim.frame);
+            }
+            most[k] = most[k].max(h[k]);
+        }
+        built.tick();
+    }
+    eprintln!("MELEE HELD: first {seen:?}, most {most:?} ([walls, ammo, deaths])");
+    assert_eq!(seen, MELEE_HELD, "MELEE_HELD");
 }
 
 /// The instrument's streams of the minted game's packets (runs 1579 to
