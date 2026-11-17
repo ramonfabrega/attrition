@@ -2076,6 +2076,12 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   `find_useful_army`, `find_city`, `diplo_change` and `Armies::send_navy`
   are all covered by earlier runs. The list is the queue of runs, and it is
   only honest when it is asked against every log (§16.6).
+- **Why theirs' army is not moving on run1646's 5622** (item 4350,
+  parked 4350a): ours' `is_moving` (§11) counts seventeen of army `2/1`'s
+  73 on `Guard` orders outside the `reg` that `do_transporting` set on
+  5496, so step 4 (§6) keeps the muster at (24,45); theirs' leader plans
+  to (24,49), the halfway arm. Whether theirs' `reg`, head orders or
+  `num_units` differ is a packet's question at `RON_STATE_FRAME=5621`.
 
 ## 19. Second reading — landed, 2026-08-25
 
