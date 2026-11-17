@@ -3553,7 +3553,40 @@ then up to nine more at offsets of −2 to 5. Every one of those offsets is draw
 renderer's own generator, so the stones' layout is the packet's `patch_data`, never a sim value. **The value diff**
 (run1564, frame 3279): our sim's land oil good is at (40320, 38016), cell (52, 49). It projects to pixel (1563, 766),
 and the photograph's 2,387 pit pixels (luma under 60) centre on (1566.3, 760.3) in the box (1480–1654, 719–791). The
-row `RUN1564_3279_ROUGH` (`client::goods`) counts them at **0 of 2,387**, ours 0: neither class is drawn.
+row `RUN1564_3279_ROUGH` (`client::goods`) counted them at **0 of 2,387**, ours 0: neither class was drawn.
+
+**Drawn (item 4319; `client::oil`).** The type record names the lists: `rock_patches_always` at `+0x0`, and
+`rock_patches_rough` at `+0x1c`. `add_rocky_patch` writes both. `rough` takes the four covering tiles, then
+`(4x + b, 4y + a)` with `a`, `b` on `[0, 3)`, appended even when it repeats a cover. `always` takes nine tries of
+`(4x − 2 + c, 4y − 2 + d)` with `c`, `d` on `[0, 7)`. A try is kept when its 2 × 2 lies on the map and the tile is
+in neither list. Each patch takes 20 draws, and it writes `is_vis` 1 (the `0x100` short at `+0x38`).
+`create_doobers`' predicate, read whole:
+- a cell on water gets no patch. Water is `land` 1 or 2 with `flags & 0x100` clear, and its `ROCK` bit is cleared
+  instead;
+- any other cell gets a patch when it has `ROCK` (`0x8`) or holds a good whose `type_avail(good, 1)` is 0. An `Oil`
+  good stands in no cell's chain, so a land oil cell takes its patch by its `ROCK` bit.
+
+`tools/render/oil_packet.py` reads run1564's packet (frame 3294). It holds 18 patches, 16 by `ROCK`. The other two
+are the Rubber at (24, 42) and the Aluminum at (50, 38), whose prerequisite is the Industrial Age, the game's
+start. So `create_doobers` runs before the start's techs are granted. `is_vis` is still 1 there, so they were not
+granted through `gain_tech`. The client asks a leader holding no tech. `internal_random` stands at draw 58,171
+when the first patch is drawn: §3.26's 45, then `(4 · 60 + 1)²`, then 45. Every cell, flag, middle tile and list
+of the 18 equals the packet's (`the_oil_patches_are_the_packet_s`), and one draw early they part.
+
+`add_weather_underlay`'s texcoords are read off the listing; the decompiler lost the switch's bodies:
+- `param_8` 6 picks one of six variants from `random_map_pool` at the corner, `p · 6 / 100` held under 5.5. The
+  variant sets `(ou, ov)` from the jump table at `8751f0`: 1 `(½, 0)`, 2 `(0, ⅓)`, 3 `(½, ⅓)`, 4 `(0, ⅔)`,
+  5 `(½, ⅔)`, and `(0, 0)` for 0;
+- the step is `1/side · ½` on u and `· ⅓` on v. `param_8` 0, the `oil` patch, takes the plain `1/side` and no
+  offset;
+- with `param_10` 0, UV0 is UV1.
+
+Both classes take the snowcap's pass: the texture at both stages, `TL_FAKE_LIGHT` under the land's N·L.
+`render_weathering(0, 3)` draws them after the footprint weathering and before the roads. run1567's card holds
+20 `rough` patches of 3 × 3 vertices (180) and one 4 × 4 `oil` patch (25). Cell (52, 49) gives 9 always and the
+oil; its neighbour (53, 49), not an `OIL` cell, gives 6 always and 5 rough. The row moves **0 → 2,287 of 2,387**,
+ours 2,483. On the still the stones and pools sit where the photograph's do; ours read softer at the pools' rim
+(4319a).
 
 *Coverage.* Diff-backed: the floor's address modes, offsets and texcoords (§3.18). The water's material rests on
 item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *Not established:*
@@ -3569,8 +3602,11 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
   parked 4312a) and the whitecaps; the fish under the water is not drawn;
 - the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
 - the screen reflection and the specular;
-- the land oil's `rough` and `oil` underlays (item 4309, above): not drawn. `add_weather_underlay`'s geometry,
-  the `+0x39` byte's writers, the second list's writer and cell (52, 49)'s `0x800` in our sim are not read.
+- ~~the land oil's `rough` and `oil` underlays (item 4309, above): not drawn~~ drawn by item 4319 (above);
+  ~~`add_weather_underlay`'s geometry~~ read off the listing; ~~the second list's writer~~ `add_rocky_patch`;
+  ~~cell (52, 49)'s `0x800` in our sim~~ ours, with every patch cell's flags. Not read: `gain_tech`'s clear of
+  `is_vis` (`+0x39`) during play, so the client keeps every patch shown; the semaphore's bit 8; another map's two
+  45-draw runs before the patches; the pools' softer rim (4319a).
 
 ## 3.25 A burning building's particles (item 4233)
 

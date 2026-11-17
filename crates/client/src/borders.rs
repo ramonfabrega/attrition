@@ -450,7 +450,8 @@ pub(crate) mod tests {
     /// With each half on the other side of the curve, 81 and 643
     /// (`docs/RENDERER.md` §3.29).
     /// Item 4312: 225 → 222 of 1,440, 615 → 613 of ours (a named fall from 225 and 615): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
-    pub const RUN1564_3279_BORDER: [[usize; 3]; 3] = [[0, 1440, 0], [222, 1440, 613], [0, 1440, 0]];
+    /// Item 4319: 222 → 225 of 1,440, 613 → 615 of ours: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
+    pub const RUN1564_3279_BORDER: [[usize; 3]; 3] = [[0, 1440, 0], [225, 1440, 615], [0, 1440, 0]];
 
     #[test]
     fn the_border_band_on_run1564() {
