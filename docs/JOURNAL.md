@@ -22195,3 +22195,29 @@ walked, though the original plays it to the end here. It is booked, with
 its October captures found missing from disk. The pass moved no score,
 built nothing and took no capture. **DECISIONS 139.**
 `docs/audit/2026-11-17-fable-pass-eye.md`.
+
+## 2026-11-17 — the second pass of the day: parity's three empty lines, and a pin every lane gate runs (Fable 5.2, steering)
+
+`commander` landed nineteen more between ten and half past three and the
+leaders line on the minted game went whole: 24,000 of 24,000 frames,
+frame 0 the last, closed by five setup writers the built start did not
+run. That left the handoff's question, whether the minted game is now
+parity's first whole game. Nine lines are compared there and agree. The
+other three, walls, ammo and deaths, have no emitter on our side and were
+described as not compared. The pass read the original's own trace of that
+game for them and found each at the empty value on all 24,001 sets: the
+original walked no wall, no shot and no death record on any frame. So the
+answer is one comparison short. What nothing counts is whether our walk
+holds one, and an uncompared line is not an agreeing one. Item 4355 counts
+it, first on the suite's seat. The demand's leaf has now taken six lanes
+and stands 459 frames short, on an army's muster no dump prints; its next
+act is a packet. The 2017 sample's start is whole and its walk at 444; its
+second act is the playback under the hook, because its word is in draws
+and parity is in state. Two booking gates went red and were mended by
+their lanes: one read another lane's unfiled captures, one found two
+packets unwired after a green lane gate, and the wiring pin now runs in
+every lane gate. The pass drew run1564's still beside the photograph: the
+fish are theirs now, and the bold strokes far out are what the eye finds
+first. Ramon came onto the row and asked about the week and Astra. The
+pass moved no score and took no capture. **DECISIONS 140.**
+`docs/audit/2026-11-17-fable-pass-empty-lines.md`.

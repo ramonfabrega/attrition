@@ -1786,6 +1786,22 @@ garbage line
         self.assertEqual(scope_policy['scope']['budget_seconds'], 1.0)
         self.assertGreater(policy['lane']['skipped'], scope_policy['scope']['skipped'] + 300)
 
+    # The pass of 2026-11-17 (second), DECISIONS 140 §3: gate-1117p went red
+    # on `every_packet_is_wired_to_its_game_or_named` after a green lane
+    # gate, 4343's two packets filed and unwired. The pin reads the tree's
+    # own ledger (`rondata::corpus`), is timed at 1.12 s, and its red is the
+    # worker's: a lane that files a packet wires it or names it. Red first:
+    # the lane's zero budget skipped it.
+    PACKETS_PIN = 'diff::checksum_lines::packets::every_packet_is_wired_to_its_game_or_named'
+
+    def test_a_lane_gate_keeps_the_packets_wiring_pin(self):
+        timings = f'1.12\t{self.PACKETS_PIN}\n'
+        self.assertEqual(gate.lane_skips(timings, [], gate.LANE_OWN_BUDGET_SECONDS, gate.LANE_KEPT), [])
+        self.assertIn(self.PACKETS_PIN, gate.MERGE_PINS)
+        self.assertFalse(any(line in self.PACKETS_PIN for line in gate.COMMANDERS_LINES))
+        row = [n for _, n in gate._timed_rows(gate.TIMINGS.read_text()) if n == self.PACKETS_PIN]
+        self.assertEqual(row, [self.PACKETS_PIN], 'the pin is a test the suite still has')
+
     def test_a_lane_s_own_budget_keeps_the_paperwork_its_filters_and_the_pins_its_rows_answer_to(self):
         kept = [n for _, n in gate._timed_rows(self.BUDGET_TIMINGS)
                 if n not in gate.lane_skips(self.BUDGET_TIMINGS, ['run589'], gate.LANE_OWN_BUDGET_SECONDS,

@@ -1,6 +1,6 @@
-# Every rondata release test's CPU alone, 2026-11-17, tools/suite_timings.py (tree 690aa7dd).
+# Every rondata release test's CPU alone, 2026-11-17, tools/suite_timings.py (tree 88e7c245).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 6,359 CPU-seconds and 122.66e12 instructions over 2488 tests; the host's load 9.2 at the start and 8.7 at the end.
+# Sum 6,375 CPU-seconds and 122.98e12 instructions over 2494 tests; the host's load 4.0 at the start and 5.7 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 144.32	3295.19	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
@@ -19,6 +19,7 @@
 18.57	271.09	mapgen::tests::east_indies_s_values_are_the_traced_stream_and_7937_and_7945
 18.08	269.11	mapgen::tests::great_lakes_s_group_tail_is_the_traced_stream_and_7861_to_7870
 17.79	270.47	mapgen::tests::east_indies_s_place_all_is_the_traced_stream_and_7859
+14.36	289.66	diff::sample::tests::the_sample_walks_to_its_word
 13.90	307.68	diff::harness::checkpoint::tests::run69_single_reseat_interventions_follow_the_remaining_capture
 13.81	226.71	mapgen::tests::east_indies_s_mask_is_the_traced_stream
 13.72	184.36	diff::roman_word::run899b_s_road_search_on_18026_holds_node_for_node
@@ -1805,6 +1806,7 @@
 0.55	11.11	diff::greek_word::run961c_s_gap_is_widened_whole
 0.55	9.79	diff::third::tests::run382_s_word_frame_is_widened_whole
 0.55	12.15	diff::information_melee::information_melee_staging_walk
+0.55	10.11	diff::checksum_frames::the_stats_bits_follow_the_militia_line
 0.54	10.19	diff::golden::chapter_three_holds_to_the_golden_word
 0.54	10.03	diff::golden::chapter_three_s_unpacked_catapult_sees_its_hoplites
 0.54	11.00	diff::harness::tests::run33_s_long_trace_says_where_the_word_parts
@@ -1842,6 +1844,7 @@
 0.45	9.45	diff::iroquois_word::run923_s_food_row_is_widened_whole
 0.45	9.40	diff::japanese_industrial_pair::japanese_industrial_pair_a_japanese_barracks_unit_costs_less_by_the_tier
 0.45	10.97	diff::russian_modern_pair::russian_modern_pair_captures_say_their_lobby
+0.45	9.07	diff::sample::tests::the_sample_s_start_built_from_its_header
 0.44	9.99	diff::iroquois_ancient_pair::iroquois_ancient_pair_captures_say_their_lobby
 0.44	9.84	diff::iroquois_enlightenment_pair::iroquois_enlightenment_pair_captures_say_their_lobby
 0.44	10.12	diff::japanese_ancient_pair::japanese_ancient_pair_captures_say_their_lobby
@@ -1916,6 +1919,7 @@
 0.30	7.18	diff::aztec_medieval_pair::aztec_medieval_pair_captures_say_their_lobby
 0.30	7.10	diff::chinese_enlightenment_pair::chinese_enlightenment_pair_captures_say_their_lobby
 0.30	6.97	diff::chinese_industrial_pair::chinese_industrial_pair_captures_say_their_lobby
+0.30	5.05	load::tests::every_building_has_a_page
 0.29	4.53	diff::minted::the_auto_explored_minted_packages_round_trip
 0.29	5.87	diff::build::tests::a_british_barracks_pays_one_bowmen_as_three_chained_units
 0.29	5.87	diff::setup::tests::a_leader_s_opening_units_are_its_own_nation_s
@@ -2060,6 +2064,7 @@
 0.07	0.03	blind::tests::the_issuer_guard_reads_through_the_coverage_jmp
 0.07	0.03	blind::tests::the_log_stride_opens_one_block_in_n
 0.07	1.20	diff::coverage_pair::run717_s_missiles_fly_their_spline_s_count
+0.06	1.34	diff::sample::tests::the_sample_s_header_is_the_playback_s_gameinfo
 0.06	1.75	diff::harness::tests::run53_s_8186_is_find_target_s_probe_and_its_ring_walks
 0.06	1.52	artdata::tests::the_farm_s_art_reads_whole_on_every_tileset
 0.06	1.12	artdata::tests::the_whole_animation_reader_agrees_with_key_times
@@ -2489,3 +2494,4 @@
 0.00	0.03	prefs::tests::the_default_prefs_word_is_default_profile_s
 0.00	0.03	prefs::tests::the_flags_word_is_the_last_bit_s
 0.00	0.03	prefs::tests::the_fresh_profile_s_order
+0.00	0.03	diff::start::tests::a_seat_s_teammates_are_built_at_once_after_it

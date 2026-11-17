@@ -154,6 +154,7 @@ is append-only and amended in place, as it always was.
 - 137 standing — The pass of 2026-11-16, second: the leaders line's last six leaves take four movers and the first is a rehearsal already on disk, a released leaf is compared by the record diff, the input seat finishes the missed orders, the render seat takes the borders, the host's kill explained by its amendment (syspolicyd)
 - 138 standing — The pass of 2026-11-16, third: the demand is chased on the game that makes it (recon4316-1), parity's leaders line is its own item, the panel's filter is diffed on the minted game's packets, the input seat takes the form orders, a booking's subject is the table's key
 - 139 standing — The pass of 2026-11-17: the render seat leaves the nine deep tiles for the whitecaps and the fish, the HUD draws the panel the filter computes, the 2017 sample (a person's whole game) is booked to be walked, a continuation is numbered before it is spawned, the wake exercised
+- 140 standing — The pass of 2026-11-17, second: parity's first game is one comparison short (theirs' walls, ammo and deaths are empty on every frame, ours uncounted), the four designed items ratified with the sample taking the hook, the packets' wiring pin runs in every lane gate, the render seat's five lines stay in their journals
 
 ## 1. Fidelity before divergence
 
@@ -13802,3 +13803,118 @@ by run900's ledger, Great Sahara's, five seats, four computers on one
 team, the recording's own seed); how far a walk of the sample goes before
 it parts~~ (item 4336, `docs/RECGAME.md` §7: the start whole, 18,315 of
 18,315, once teammates are built at once; the word 98 of 21,044).
+
+## 140. Parity's first game is one comparison short, the sample takes the hook, the packets' wiring pin runs in every lane gate, and the render seat's second act follows the look (2026-11-17)
+
+**What happened.** `commander` (Opus 5.5) ran nineteen landings on twenty
+first-parent merges from 10:09 to 15:26 −05:00 on 2026-11-17 (item 4343
+merged twice, its mend the second, so the backstop's count read 20),
+reached it, drained and gated
+whole (`gate-drain-1117.log`, exit 0 on `88e7c2451`). `LEADERS_AGREE` went
+23,965 → 24,000 of 24,000, the demand's walk 5496 → 5622, the 2017 sample's
+start 17,163 → 18,315 of 18,315 and its walk to 444 of 21,044, and the HUD
+draws the panel, the pages and the picks. The pass ran on the `steer` row
+from 15:57, spawned no agent and took no capture. Ramon came onto the row
+during it and asked where the week stands and whether Astra should take
+work; nothing was decided by the time this was written. The tables are in
+`docs/audit/2026-11-17-fable-pass-empty-lines.md`.
+
+**§1. The minted game is not yet parity's 1 of 1: three lines are not
+compared, and one comparison settles it.** Parity (entry 132 §10) is zero
+mismatched frames on the twelve state checksums. On the minted game nine
+lines are compared against the hook's Adler on every frame and agree on
+24,000 of 24,000 (`CHECKSUM_FRAMES`, `LEADERS_AGREE`; items 4333 and 4340
+closed the last 35). Walls, ammo and deaths have no emitter here and are
+not compared. The pass read the hook's own trace for them
+(`rontrace-run1578.log`, the first set of each frame): **each of the three
+reads 1, the Adler of no bytes, on all 24,001 sets**, where units, guys and
+leaders take 24,001 distinct values. So the original walked no wall, no
+shot in flight and no death record at any frame's end of that game
+(`docs/CHECKSUM.md` §8 has the three walkers). What is not established is
+our side: nothing counts whether our walk holds one. A line that is not
+compared is not a line that agrees (`CLAUDE.md`, the quiet field), and a
+shot our walk held where theirs held none would be a parting no row sees.
+Item 4355 makes the comparison: our walk's count of each at the tick's end
+on every frame, seen red on a walk that holds a shot, and the three lines
+emitted as the empty walk's Adler where the count is zero. If it reads zero
+on 24,000 frames the game is twelve of twelve and parity reads **1 of 1**,
+said with its limits: the declared set is one game, it has no combat in it,
+and the three record shapes are unexercised (the walls' and the ammo's rest
+on a reading alone). If it does not, the frame is a parting and the item
+says so. **The milestone's step 5 is not moved by this**: `state 8 of 12`
+is frame 91's count of lines ported with no leaf held, and the leaders line
+stays held there while `tribute_demanded` is (the driver's ruling at 4298).
+The two counts answer different questions and are kept apart.
+
+**§2. The four designed items are ratified, two amended.**
+
+- **4354, the demand's walk from 5622: as designed.** Six lanes have gone
+  into this leaf (4316, 4322, 4325, 4331, 4341, 4350: 53.53 USD at list)
+  and the word stands 459 frames short of 6,081; two of the last three
+  moved nothing and both of the tranche's deep sessions were its. The
+  packet at 5621 comes first because 4350 ended on a question no dump
+  prints (army 2/1's `reg`, `num_units` and the guards' head orders), and
+  its stop stands: two acts that move the word by nothing. Entry 131 §1 is
+  not reopened: the leaf leaves on a dump our walk holds.
+- **4351, the sample's walk: as designed, and its second act is the
+  hook's take.** The word is counted in draws and parity is counted in
+  state; the sample's only state oracle is run1654's dump windows. A
+  playback of the sample under the `RON_CHECKSUMS` build (26 minutes by
+  run900's ledger) gives the fifteen sums on all 21,044 frames, and with
+  them the first frame each line parts and the first frames on which the
+  original's walls, ammo and deaths are not empty, which the minted game
+  cannot give (§1). It is taken after the scout's order on 92, and the
+  item says so if the playback refuses the tracer.
+- **4352, the picks played by the original: as designed.** The playback
+  leaves a recording in `Logs\`, which the client's census of recordings
+  reads with no run token (`docs/LOOP.md`, the corpus): the capture removes
+  the `.rcx` it left.
+- **4353, the broad strokes: its first act as designed, its second
+  changed.** The pass drew run1564's still at the tip beside the
+  photograph (`~/ron-data/lab-experiments/2026-11-17-pass-2/`). The fish are
+  dark, under the water and where theirs are; the herd's churn is a faint
+  splash at 2:1 and is left in its journal (4308d). The bold white strokes
+  far out in the south-east are the largest difference on the frame, which
+  is the item's first act. After them the eye finds two things: our west
+  rim carries thick white crescents where theirs are thin lines, and the
+  lake's body is flatter and paler than theirs, which is mottled dark (the
+  row is `RUN1564_3279_TEXTURE_STILL`'s ocean, 244 of 437). The second act
+  is the west rim's crescents.
+
+**§3. The packets' wiring pin runs in every lane gate.** `gate-1117p` went
+red on `every_packet_is_wired_to_its_game_or_named` 6.4 minutes into a
+booking gate, after item 4343's lane gate was green with two packets filed
+and unwired: a lane gate runs its filters and the paperwork, and the pin
+was a merge pin only. It reads the tree's own ledger (`rondata::corpus`),
+so another lane's unfiled packet does not turn it, and it is timed at
+1.12 s. It joins `LANE_PINS`, red first
+(`test_a_lane_gate_keeps_the_packets_wiring_pin`), and its red is the
+worker's, not a forgiven line. `gate-1117o`'s red (a client test reading
+the archive through an unkeyed listing, which counted another lane's
+unfiled captures) was mended by item 4343's second commit, on
+`rondata::corpus::listed`. No guard was built against the next unkeyed
+listing: the remaining `read_dir` calls in the crates read the install, the
+repository or the recordings in `Logs\`, the last a gap `docs/LOOP.md`
+already states.
+
+**§4. What the journals raised.** No `FABLE:` marker and no second reading
+in the tranche. Five "for the Loop" lines, all the render seat's (4335,
+4338, 4342, 4344, 4348), each a way of reading a readback or a misplaced
+figure. One of them cost a lane: 4342 (3.73 USD) found that the constant
+4338 parked was the readback's missing expose white. The render section of
+the brief's frame stands at 2,387 of its 2,400 characters and a test holds
+each clause in it, so a row there is paid for by one struck, and the pass
+found none to strike for these. They stay in their journals. A lane
+reported a rise as a fall (4348) and the driver caught it at the source
+before booking; the rule that a moved number lands with its value diff is
+what caught it, and nothing is added.
+
+**§5. The seats.** The chain takes 4354. The suite's seat takes 4355, then
+4351. The third takes 4352. Render takes 4353.
+
+**Not established:** whether our walk of the minted game holds a shot in
+flight or a death record on any frame (item 4355); whether the sim's
+projectiles and death slots are the sets `check_ammo` and `check_deaths`
+walk; whether the tracer attaches to the sample's playback; which of
+`reg`, `num_units` and the head orders differs in theirs on run1646's 5621;
+what lays the broad strokes.

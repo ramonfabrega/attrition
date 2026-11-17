@@ -103,6 +103,14 @@ original's on 1,238 of 1,238 buttons and the HUD does not draw it yet (item 4334
 ground 2,287 of 2,387, the faded land in HDR; the pass's look left the nine deep tiles for the whitecaps and the
 fish (item 4335).
 
+**At the pass of 2026-11-17, second** (entry 140): **checksum** — `LEADERS_HELD_OUT` 1, the demand's walk at 5622 of 6,081
+(item 4354, a packet at 5621 first); parity's nine compared lines agree on 24,000 of the minted game's 24,000 frames, and the
+three uncompared ones (walls, ammo, deaths) are empty in the original's trace on every frame, ours uncounted (item 4355): parity
+stays 0 of 1 until they are; the 2017 sample's start is built whole from its header and walked to 444 of 21,044 (item 4351, its
+second act the hook's take); **orders** — the HUD draws the panel, the pages, the standard panel and the picks as the original's,
+and no pick has been played (item 4352); **renderer** — the lake's fish stand dark where theirs do; the pass's look left the
+herd's churn for the broad strokes far out and the west rim's crescents (item 4353).
+
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
 on one lane, taking textures and team colours next; then the lobby screen

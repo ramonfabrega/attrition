@@ -1,6 +1,6 @@
-# Every rondata release test timed alone, 2026-11-17, tools/suite_timings.py (tree 690aa7dd).
+# Every rondata release test timed alone, 2026-11-17, tools/suite_timings.py (tree 88e7c245).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 5,025 s over 2488 tests; --stale-only merged. Top 10 = 744 s, top 30 = 994, top 100 = 1493; 1064 tests under 1 s.
+# Sum 5,042 s over 2494 tests; --stale-only merged. Top 10 = 744 s, top 30 = 999, top 100 = 1502; 1069 tests under 1 s.
 # By module: mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, coverage 266 s / 6 tests, harness 227 s / 100 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 144.47	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
@@ -15,6 +15,7 @@
 19.05	mapgen::tests::east_indies_s_heights_are_the_start_dump_s_grid
 19.01	mapgen::tests::east_indies_s_heights_at_894_are_the_start_dump_s_grid
 14.60	diff::greek_classical_pair::greek_classical_pair_run1214_s_word_frame_is_widened_whole
+14.43	diff::sample::tests::the_sample_walks_to_its_word
 14.00	diff::greek_classical_pair::greek_classical_pair_first_parting
 13.98	diff::harness::checkpoint::tests::run69_single_reseat_interventions_follow_the_remaining_capture
 13.89	mapgen::tests::great_sahara_s_heights_are_the_start_dump_s_grid
@@ -1506,6 +1507,7 @@
 0.89	diff::gunpowder_melee::gunpowder_melee_run1413_s_word_window_is_widened_whole
 0.89	diff::golden::chapter_one_hundred_and_seventeen_s_window_is_widened_whole
 0.89	diff::golden::chapter_one_hundred_and_thirty_six_s_window_is_widened_whole
+0.88	diff::checksum_frames::the_stats_bits_follow_the_militia_line
 0.88	diff::second::tests::run355_s_word_frame_is_widened_whole
 0.88	diff::third_pair::run598_french_great_lakes_closing_state
 0.88	diff::aztec_modern_pair::aztec_modern_pair_the_long_s_stride_walks_back_from_the_word
@@ -1736,6 +1738,7 @@
 0.65	diff::minted::the_minted_packages_round_trip_and_name_the_built_start_s_objects
 0.65	diff::golden::chapter_seventeen_air_holds_to_the_golden_word
 0.65	diff::army::tests::run31_s_thirty_six_member_table_is_reproduced_from_the_install_s_own_columns
+0.64	load::tests::every_building_has_a_page
 0.64	diff::coverage_pair::run651_s_word_frame_is_widened_whole
 0.64	diff::golden::chapter_one_hundred_holds_to_the_golden_word
 0.64	diff::classical_melee::classical_melee_s_leaders_are_compared_on_every_seat
@@ -1853,6 +1856,7 @@
 0.47	diff::maya_ancient_pair::maya_ancient_pair_captures_say_their_lobby
 0.47	diff::japanese_industrial_pair::japanese_industrial_pair_a_japanese_barracks_unit_costs_less_by_the_tier
 0.47	diff::egyptian_information_pair::egyptian_information_pair_captures_say_their_lobby
+0.47	diff::sample::tests::the_sample_s_start_built_from_its_header
 0.46	diff::gunpowder_melee::gunpowder_melee_s_farms_stand_in_the_dump_s_order
 0.46	diff::mongol_medieval_pair::mongol_medieval_pair_captures_say_their_lobby
 0.46	diff::mongol_gunpowder_pair::mongol_gunpowder_pair_captures_say_their_lobby
@@ -2066,6 +2070,7 @@
 0.09	diff::coverage_pair::run717_s_missiles_fly_their_spline_s_count
 0.08	diff::harness::tests::run53_s_8186_is_find_target_s_probe_and_its_ring_walks
 0.08	artdata::tests::the_whole_animation_reader_agrees_with_key_times
+0.07	diff::sample::tests::the_sample_s_header_is_the_playback_s_gameinfo
 0.07	artdata::tests::the_farm_s_art_reads_whole_on_every_tileset
 0.07	capture::archive::tests::indexed_raw_and_archive_preserve_duplicates_setup_and_siblings
 0.07	diff::turkish_enlightenment_pair::turkish_enlightenment_pair_is_no_other_lobby
@@ -2425,6 +2430,7 @@
 0.01	blind::tests::a_refusal_quoted_into_a_document_cites_nothing
 0.01	trace::ranges::tests::a_record_reads_back_set_by_set
 0.01	diff::held_probe::tests::a_bent_cell_is_held
+0.01	diff::start::tests::a_seat_s_teammates_are_built_at_once_after_it
 0.00	prefs::tests::the_default_prefs_word_is_default_profile_s
 0.00	diff::held_probe::tests::the_probe_is_off_unless_named
 0.00	prefs::tests::the_fresh_profile_s_order

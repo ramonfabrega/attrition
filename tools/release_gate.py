@@ -72,6 +72,8 @@ is red — once more alone under a drained lease of the whole host budget,
 whose verdict is the step's (`CLOCK_TEST`; the pass of 2026-11-16). A lane
 gate has neither.
 
+The packets' wiring pin runs in every lane gate too, and its red is the
+worker's (the pass of 2026-11-17, second).
 The census pin runs in every lane gate (a lane pin, `LANE_PINS`) and its red is
 forgiven as the commander's line (Loop 2367); since the seventy-fifth pass
 the forgiven verdict carries the measured (backed, port, functions) against
@@ -335,8 +337,13 @@ PAPERWORK_GUARDS = ('writers::', 'ledger::', 'docs_guard', 'the_handoff_s_')
 # `ROW_LISTS`), and a forgiven census red hands the commander the re-pin
 # only if the lane ran the census pin (Loop 4030 — 0.72 s alone; a sweep
 # lane moves it and names no `census::`). `diff::floors::` is ~60 tests
-# timed at 0.00–0.36 s each; kept, they cost seconds of wall.
-LANE_PINS = ('diff::floors::', 'the_census_s_simulation_share_is_pinned')
+# timed at 0.00–0.36 s each; kept, they cost seconds of wall. **The packets'
+# wiring** (the pass of 2026-11-17, second; DECISIONS 140 §3): a lane that
+# files a packet wires it or names it, the pin reads the tree's own ledger
+# and is timed at 1.12 s, and gate-1117p went red on it at the booking gate
+# after a green lane gate (4343's two packets). Its red is the worker's.
+LANE_PINS = ('diff::floors::', 'the_census_s_simulation_share_is_pinned',
+             'every_packet_is_wired_to_its_game_or_named')
 LANE_KEPT = PAPERWORK_GUARDS + LANE_PINS
 
 
