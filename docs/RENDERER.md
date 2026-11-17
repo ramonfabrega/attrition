@@ -4057,8 +4057,8 @@ with both off (drawn), 661 with the HDR blend, 661 with the coral lit, and 662 w
 falls 708 → 703. The HDR blend lifts red by 2 to 5 on the nine, but it lifts green and blue more, because the coral's
 cyan gains too. At (200, 181), theirs is (71, 134, 156), off (56, 134, 148), HDR (58, 142, 160). Both switches stay
 off; the arms are the journal's. *Coverage:* diff-backed: the card's blend on draws 0–131 (one take). On a
-reading: that 131 carries the sand's vertex colours (§3.18). *Not established:* what holds the nine's red under theirs.
-It is neither the faded land's composition (4310) nor the patches' (4327a).
+reading: that 131 carries the sand's vertex colours (§3.18). *Not established:* the nine's red; not the blend (4310, 4327a), the
+water's lit red, the coral's alpha or the sand's filter (4329).
 
 ## 3.28 The city's buildings against the photograph's colour (item 4245)
 
