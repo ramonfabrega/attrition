@@ -38254,3 +38254,19 @@ not run, so the start census (`START_LOBBIES` 161) does not count it.
 Files in place: `gamelog_p.txt`, 157,710,947 bytes, SHA-256
 `fc5608b3b2fe11dffce47e32d455f6c141c059fd97a1f8a42486969aa6a99cfa`; `rontrace.log`, 8,601,888 bytes, SHA-256
 `cb02f60282b4b37aec56b7cddefd584904c7667990fefa1b0c97a5cfa45b43e1`.
+
+## run1651 — the 2017 sample played whole, every frame's draws (2026-11-17, item 4336, `att-4336`)
+
+`docs/RECGAME.md` §7. **What the disk could not answer**: run900's full take is gone (run1650's row), and it was taken
+without the trace our walk reads. Filed **in place**: `~/ron-golden/run1651/map-7/`, `filerun.py` not run.
+- **The line**: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1651 --recording "<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx"
+  --end-frame 21044 --cover cover=1 --log-window 0 21045 --detail end:MISC --timeout 3600 --stall-seconds 120`
+  (run1561's line on the sample), waited on with `waitrun.sh`.
+- **The receipt**: pool lane 1, launched 11:36:19 −05:00, exited 12:07:58, **1,898.9 s** launch to exit, exit 0,
+  `success`, 21,045 frames, `last_frame` 21044, not ended early, no relaunch, five settings restored; seed observed
+  340513920.
+- **What it holds**: `diff::sample::tests::the_sample_walks_to_its_word` (`SAMPLE_WALKED` 98 of 21,044, minted).
+
+Files in place: `gamelog_p.txt`, 3,776 bytes, SHA-256
+`b43ee7f62b30b661c6ed74f84b81007de119a6731247326fc93de86783b7f930`; `rontrace.log`, 578,779,072 bytes, SHA-256
+`07a46f6c485f0b656939c1dc0927fc6069a3ad0cccfbcf6feabde1c1a65f9a74`.
