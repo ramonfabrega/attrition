@@ -515,9 +515,11 @@ impl Sim {
         if plan_war && plan_frame <= frame {
             aggression = 1;
         }
-        if std::env::var("RON_PROBE_4331").is_ok() && (5400..=5500).contains(&frame) {
+        if std::env::var("RON_PROBE_4331").is_ok() && (0..=6000).contains(&frame) {
             eprintln!(
-                "P4331 f{frame} me{me} t{t} aggr {aggression} plan_war {plan_war} plan_frame {plan_frame} strong {strong} weak {weak} tmw {too_many_wars} ally {ally} diplos {} {} wealth_t {} blacken_t {} trib {}",
+                "P4331 f{frame} me{me} t{t} seed {} flags {:#x} aggr {aggression} plan_war {plan_war} plan_frame {plan_frame} strong {strong} weak {weak} tmw {too_many_wars} ally {ally} diplos {} {} wealth_t {} blacken_t {} trib {}",
+                self.game_seed,
+                self.ai.ai[me].player_flags,
                 self.diplos(me, t),
                 self.diplos(t, me),
                 self.economy.ledgers[t].bucket[2],
