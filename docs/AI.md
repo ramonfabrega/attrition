@@ -13250,10 +13250,12 @@ On block 15986 the original's `defense` is 2 while `reg_defense` still
 sums 1: that is `Build::init`'s own +1. This crate now carries all four
 writers.
 
-**A human's tally is not moved here.** The original sweeps the human
+~~**A human's tally is not moved here.** The original sweeps the human
 too: run346's who=0 reads `defense 2` at the start dump (its city,
 placed and activated) and 0 by 15857. This crate sweeps no human (§23.1),
-so a tally it moved would never be recounted.
+so a tally it moved would never be recounted.~~ Item 4340: the crate
+sweeps the human (`plan_strategy_human`), and the human's tally moves;
+run1578's setup `check_all` reads leader 0's 2 (`docs/CHECKSUM.md` §25.4).
 
 ### 100.4 What moved
 
