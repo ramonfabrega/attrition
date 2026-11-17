@@ -1221,10 +1221,10 @@ pub struct Input {
 
 /// **The panel's roster** (item 4290, `docs/CLIENT_INPUT.md` §32): the
 /// buttons the original's panels offer, read from the type tables with
-/// the panels' static predicates; the leader's (`type_eligible`,
-/// `type_avail`, the tribe's grafts, the age) are not read, so a panel
-/// here offers every type its building may ever queue. Ours, not the
-/// original's: which of them the original shows on a given frame.
+/// the panels' static predicates, so [`Roster::trains`] offers every type
+/// its building may ever queue. [`Roster::offered`] runs the leader's
+/// (items 4315, 4321 and 4323) for the walked row; the HUD does not yet
+/// ask it.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Roster {
     /// Per building type (an index into the building types), the
@@ -1239,7 +1239,26 @@ pub struct Roster {
     /// line's base (no `FROM`) or a type with `BUILD_FLAGS & 4`. The page
     /// (`+0x14`), the leader's masks and `type_avail` are not read.
     pub builds: Vec<i32>,
+    /// The technologies `BuildOut::make_options@00629ed0`'s research loop
+    /// runs over (`BASE_AGETYPES..0x275`, item 4323): each one's
+    /// `TypeIndex`, tree id and `show[2]` (`SHOW0`, `SHOW1`).
+    pub techs: Vec<(i32, usize, [sim::tech::Preq; 2])>,
+    /// The Library's tree id: `make_options` adds every age and epoch
+    /// (`0x220..0x243`) a Library's panel has not offered, greyed.
+    pub library: Option<usize>,
 }
+
+/// `LIBRARY` (`enums/TypeIndex.txt` of the export), whose panel the
+/// research loop's tail fills with the ages and the epochs.
+const LIBRARY: i32 = 0x1b3;
+/// `BASE_FINALTYPES`, the end of the Library's tail.
+#[cfg(test)]
+const BASE_FINALTYPES: i32 = 0x243;
+/// The end of the research loop (the spells start at `0x275`).
+const END_TECHTYPES: i32 = 0x275;
+/// `TypeData::is_gov_type@004706a0`: `0x26e < type < 0x275`.
+#[cfg(test)]
+const GOV_TYPES: std::ops::Range<i32> = 0x26f..0x275;
 
 /// The `TypeIndex`es `BuildOut::make_options@00629ed0`'s train loop names
 /// (`enums/TypeIndex.txt` of the export).
@@ -1285,8 +1304,9 @@ impl Roster {
     ///    unless `researching`; 4 offers training unless `unit_flags &
     ///    0x8000`.
     ///
-    /// The technologies' loop and `disable` are not read yet, and the HUD
-    /// does not ask it: the row's instrument until the filter is whole.
+    /// Then the technologies, [`Roster::researched`] (item 4323). `disable`
+    /// is not read yet, and the HUD does not ask it: the row's instrument
+    /// until the filter is whole.
     #[cfg(test)]
     pub fn offered(&self, sim: &sim::Sim, who: usize, building: i32, active: bool) -> Vec<i32> {
         use rondata::load::{BASE_BUILDTYPES, BASE_UNITTYPES};
@@ -1314,10 +1334,11 @@ impl Roster {
         };
         let id = |ti: i32| unit(ti).map(|(_, t)| t);
         let owns = |ti: i32| tree.get_graft(setup, p, id(ti)).is_some_and(|x| p.tech[x]);
-        all.into_iter()
+        let mut out: Vec<i32> = all
+            .into_iter()
             .filter(|&ti| {
                 if !(BASE_UNITTYPES..BASE_BUILDTYPES).contains(&ti) {
-                    return true;
+                    return false;
                 }
                 let Some((u, t)) = unit(ti) else {
                     return false;
@@ -1360,7 +1381,127 @@ impl Roster {
                     _ => flags & 0x8000 == 0,
                 }
             })
-            .collect()
+            .collect();
+        if let Some(b) = sim
+            .tables
+            .build_types
+            .get((building - BASE_BUILDTYPES) as usize)
+            .and_then(|b| b.tree)
+        {
+            out.extend(self.researched(sim, who, b));
+        }
+        out.sort_unstable();
+        out.dedup();
+        out
+    }
+
+    /// **The research loop** (item 4323, `docs/CLIENT_INPUT.md` §32.4):
+    /// the technologies `BuildOut::make_options@00629ed0` offers on
+    /// building `b` (a tree id) for slot `who`, its three passes over
+    /// `BASE_AGETYPES..0x275` taken as one set (the passes order the
+    /// buttons and grey them; each type reaching the add is added in
+    /// exactly one). For each technology `t`:
+    ///
+    /// 1. held (`has_tech`) and queued here: offered only for a
+    ///    government (`is_gov_type`, greyed);
+    /// 2. else `researching` anywhere: not offered;
+    /// 3. else, with `avail = type_avail(t, 1)`: not queued here, it is
+    ///    offered only through the building's `upgrade` (`+0x44`, through
+    ///    its graft) queueing it, and at `avail` 0 only with `show[0]` or
+    ///    `show[1]` held;
+    /// 4. `avail` under 2 asks `show[0]` or `show[1]` held, or
+    ///    `BuildData::show_later_tech@0062d920` to depth 5, and of a
+    ///    government `type_eligible(t, 1)`.
+    ///
+    /// Then a Library (`is(LIBRARY)`) adds every age and epoch
+    /// (`0x220..0x243`) not yet on its panel, greyed.
+    #[cfg(test)]
+    fn researched(&self, sim: &sim::Sim, who: usize, b: usize) -> Vec<i32> {
+        let (tree, setup) = (&sim.tables.tech_tree, &sim.tables.setup);
+        let Some(p) = sim.tech.get(who) else {
+            return Vec::new();
+        };
+        let has = |q: sim::tech::Preq| tree.has_tech_p(setup, p, q);
+        let up = tree.get_graft(setup, p, tree.types[b].upgrade);
+        let mut out = Vec::new();
+        for &(ti, t, show) in &self.techs {
+            if tree.has_tech(setup, p, t) && tree.queue_here(b, t) {
+                if GOV_TYPES.contains(&ti) {
+                    out.push(ti);
+                }
+                continue;
+            }
+            if sim.researching(who as _, t) {
+                continue;
+            }
+            let avail = sim.type_avail(who as _, t);
+            let shown = has(show[0]) || has(show[1]);
+            if !tree.queue_here(b, t) {
+                if !up.is_some_and(|u| tree.queue_here(u, t)) {
+                    continue;
+                }
+                if avail == 0 && !shown {
+                    continue;
+                }
+            }
+            if avail < 2 {
+                if !shown && !self.show_later_tech(sim, p, b, t, 5) {
+                    continue;
+                }
+                if GOV_TYPES.contains(&ti) && tree.type_eligible(setup, p, t, true) == 0 {
+                    continue;
+                }
+            }
+            out.push(ti);
+        }
+        if self.library.is_some_and(|l| tree.is(b, l, false)) {
+            for &(ti, ..) in &self.techs {
+                if ti < BASE_FINALTYPES && !out.contains(&ti) {
+                    out.push(ti);
+                }
+            }
+        }
+        out
+    }
+
+    /// `BuildData::show_later_tech@0062d920`: technology `t` is shown
+    /// ahead of its time on building `b` when the game's ending age
+    /// reaches its `AGE` and each prerequisite (`get_preq(i, who)`) is
+    /// held, or is itself shown later at `depth − 1` without being queued
+    /// here or at the Library. A disabled slot answers no.
+    #[cfg(test)]
+    fn show_later_tech(
+        &self,
+        sim: &sim::Sim,
+        p: &sim::tech::PlayerTech,
+        b: usize,
+        t: usize,
+        depth: i32,
+    ) -> bool {
+        use sim::tech::Preq;
+        let (tree, setup) = (&sim.tables.tech_tree, &sim.tables.setup);
+        if setup.ending < tree.types[t].age {
+            return false;
+        }
+        for i in 0..tree.num_preq(t) {
+            match tree.get_preq(setup, Some(p), t, i) {
+                Preq::Disabled => return false,
+                Preq::None => {}
+                Preq::Of(q) => {
+                    if tree.has_tech(setup, p, q) {
+                        continue;
+                    }
+                    if tree.queue_here(b, q)
+                        || (tree.types[q].where_.is_some() && tree.types[q].where_ == self.library)
+                        || depth - 1 < 0
+                        || !self.show_later_tech(sim, p, b, q, depth - 1)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        true
     }
 
     pub fn new(loaded: &rondata::load::Loaded) -> Roster {
@@ -1395,7 +1536,20 @@ impl Roster {
                     && (bt.from.is_none() || bt.has(sim::cities::build::flags::UPGRADES))
             })
             .collect();
-        Roster { trains, builds }
+        let techs = (BASE_TECHTYPES..END_TECHTYPES)
+            .filter_map(|ti| {
+                let t = tree_id(loaded, ti)?;
+                let show = *loaded.tech_show.get((ti - BASE_TECHTYPES) as usize)?;
+                Some((ti, t, show))
+            })
+            .collect();
+        let library = tree_id(loaded, LIBRARY);
+        Roster {
+            trains,
+            builds,
+            techs,
+            library,
+        }
     }
 
     /// The building types (indices) whose panel queues `ti`.
@@ -9645,7 +9799,12 @@ pub(crate) mod tests {
     /// seven unfinished buildings offering nothing on either side. Every
     /// unit agrees; the 34 parted buildings part on technologies alone (the
     /// research loop, not read). Seen red at the old pin.
-    const PANEL_LEADER_WALKED: (usize, usize, usize, usize, usize) = (69, 103, 1238, 1238, 1373);
+    ///
+    /// Item 4323, the research loop over `BASE_AGETYPES..0x275` and the
+    /// Library's tail: **(103, 103, 1238, 1238, 1238)**, every building's
+    /// panel equal, the Libraries' 579 to 582, the 439's 597 to 599 and the
+    /// 420's 616 to 619 gone. Seen red at the old pin.
+    const PANEL_LEADER_WALKED: (usize, usize, usize, usize, usize) = (103, 103, 1238, 1238, 1238);
 
     /// **The panel through the leader's predicates, on our walk** (item
     /// 4315): every held packet's buildings, the original's train and

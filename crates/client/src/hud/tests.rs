@@ -1140,6 +1140,7 @@ fn the_roster_follows_the_selection() {
     let roster = std::sync::Arc::new(crate::input::Roster {
         trains: vec![vec![], (0..8).map(|k| 50 + k).collect()],
         builds: vec![417, 419],
+        ..Default::default()
     });
     let Ok(r) = lobby() else {
         println!("skipping: no lobby");
