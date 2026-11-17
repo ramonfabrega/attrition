@@ -199,6 +199,16 @@ pub fn find_muster_spot_steps<V: MusterView>(v: &mut V) -> bool {
     let slot = v.slot();
     let reg = v.reg();
     let any_land = !navy && v.transports();
+    // PROBE 4350 (reverted whole).
+    let probe = std::env::var_os("RON_PROBE_MUSTER").is_some();
+    if probe {
+        let (r, sg) = (v.city_radius(), v.siege());
+        eprintln!(
+            "  MUSTER who {who} tw {tw} army ({ax},{ay}) inner {inner} outer {outer} radius {r} siege {sg} city {} navy {navy} wide {}",
+            v.target_type_city(),
+            v.wide()
+        );
+    }
 
     // The best candidate so far: its score, its ring index, its cell.
     let mut best_score = 0;
@@ -221,6 +231,9 @@ pub fn find_muster_spot_steps<V: MusterView>(v: &mut V) -> bool {
                         break;
                     }
                 }
+            }
+            if too_near && probe {
+                eprintln!("    cand ({cx},{cy}) i {i} too near");
             }
             if !too_near {
                 let mut score = 0;
@@ -284,6 +297,9 @@ pub fn find_muster_spot_steps<V: MusterView>(v: &mut V) -> bool {
                     } else if navy && j > 8 {
                         score += 10;
                     }
+                }
+                if probe {
+                    eprintln!("    cand ({cx},{cy}) i {i} out {out} score {score}");
                 }
                 local_c = !out;
                 if !out && best_score < score {
