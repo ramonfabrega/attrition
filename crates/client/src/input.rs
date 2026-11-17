@@ -1279,6 +1279,24 @@ const DREADNOUGHT: i32 = 0x15c;
 #[cfg(test)]
 const AIRCRAFTCARRIER: i32 = 0x15f;
 
+/// `OPTION_TRAIN` and `OPTION_RESEARCH` (`OptionIndex`, the export's
+/// `enums/`), the two kinds of button the panel's loops add.
+#[cfg(test)]
+pub const OPTION_TRAIN: i32 = 47;
+#[cfg(test)]
+pub const OPTION_RESEARCH: i32 = 48;
+
+/// **A panel button** (item 4326, `docs/CLIENT_INPUT.md` §32.4): what
+/// `Options::add@0072c290` takes of one of `make_options`' train and
+/// research adds, the grid aside: the type, the option and `disable`.
+#[cfg(test)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Button {
+    pub ty: i32,
+    pub option: i32,
+    pub disable: i32,
+}
+
 impl Roster {
     /// **The panel through the leader's predicates** (items 4315 and 4321,
     /// `docs/CLIENT_INPUT.md` §32.4): building type `building`'s roster for
@@ -1304,11 +1322,15 @@ impl Roster {
     ///    unless `researching`; 4 offers training unless `unit_flags &
     ///    0x8000`.
     ///
-    /// Then the technologies, [`Roster::researched`] (item 4323). `disable`
-    /// is not read yet, and the HUD does not ask it: the row's instrument
-    /// until the filter is whole.
+    /// Then the technologies, [`Roster::researched`] (item 4323). Each
+    /// button carries its option and `disable` (item 4326): `can_make` 0
+    /// greys (`disable` 2), as `OPTION_TRAIN` for a unit `unit_flags &
+    /// 0x80` without a `FROM` and `OPTION_RESEARCH` otherwise; 2 is
+    /// `OPTION_RESEARCH` and 4 `OPTION_TRAIN`, both `disable` 0 on a
+    /// building `is_neutralized` (vtable `+0x180`, `Build`'s answering 0)
+    /// leaves clear. The HUD does not ask it yet: the rows' instrument.
     #[cfg(test)]
-    pub fn offered(&self, sim: &sim::Sim, who: usize, building: i32, active: bool) -> Vec<i32> {
+    pub fn offered(&self, sim: &sim::Sim, who: usize, building: i32, active: bool) -> Vec<Button> {
         use rondata::load::{BASE_BUILDTYPES, BASE_UNITTYPES};
         let all = self
             .trains
@@ -1322,7 +1344,14 @@ impl Roster {
             return Vec::new();
         }
         let Some(p) = sim.tech.get(who) else {
-            return all;
+            return all
+                .into_iter()
+                .map(|ty| Button {
+                    ty,
+                    option: OPTION_TRAIN,
+                    disable: 0,
+                })
+                .collect();
         };
         // A unit's `TypeIndex` to its record and its tree id.
         let unit = |ti: i32| {
@@ -1334,18 +1363,23 @@ impl Roster {
         };
         let id = |ti: i32| unit(ti).map(|(_, t)| t);
         let owns = |ti: i32| tree.get_graft(setup, p, id(ti)).is_some_and(|x| p.tech[x]);
-        let mut out: Vec<i32> = all
+        let button = |ty: i32, option: i32, disable: i32| {
+            Some(Button {
+                ty,
+                option,
+                disable,
+            })
+        };
+        let mut out: Vec<Button> = all
             .into_iter()
-            .filter(|&ti| {
+            .filter_map(|ti| {
                 if !(BASE_UNITTYPES..BASE_BUILDTYPES).contains(&ti) {
-                    return false;
+                    return None;
                 }
-                let Some((u, t)) = unit(ti) else {
-                    return false;
-                };
+                let (u, t) = unit(ti)?;
                 let flags = u.cols.unit_flags;
                 if u.combat.obj_masks & 0x400_0000 != 0 {
-                    return false;
+                    return None;
                 }
                 if !(flags & 0x200 != 0 && tree.has_preq(setup, p, t))
                     && !tree.check_predecessor(
@@ -1354,31 +1388,45 @@ impl Roster {
                         tree.get_graft(setup, p, tree.types[t].from),
                     )
                 {
-                    return false;
+                    return None;
                 }
                 let is = |x: i32| id(x).is_some_and(|x| tree.is(t, x, false));
                 if is(BOMBARDSHIP)
                     && !is(DREADNOUGHT)
                     && id(AIRCRAFTCARRIER).is_some_and(|c| sim.type_avail(who as _, c) != 0)
                 {
-                    return false;
+                    return None;
                 }
                 if is(MACHINEGUN) && !(owns(RIFLEMAN) || owns(INFANTRY) || owns(MECHINFANTRY)) {
-                    return false;
+                    return None;
                 }
                 match sim.type_avail(who as _, t) {
                     0 => {
                         if tree.type_eligible(setup, p, t, true) == 0 {
-                            return false;
+                            return None;
                         }
                         let free = flags & 0x80 != 0 && tree.types[t].from.is_none();
                         if !free && sim.researching(who as _, t) {
-                            return false;
+                            return None;
                         }
-                        tree.age_in(setup, t) <= p.ages + 1 || is(MILITIA)
+                        if !(tree.age_in(setup, t) <= p.ages + 1 || is(MILITIA)) {
+                            return None;
+                        }
+                        // `OPTION_RESEARCH - free`, greyed with 2.
+                        button(ti, OPTION_RESEARCH - i32::from(free), 2)
                     }
-                    2 => !sim.researching(who as _, t),
-                    _ => flags & 0x8000 == 0,
+                    2 => {
+                        if sim.researching(who as _, t) {
+                            return None;
+                        }
+                        button(ti, OPTION_RESEARCH, 0)
+                    }
+                    _ => {
+                        if flags & 0x8000 != 0 {
+                            return None;
+                        }
+                        button(ti, OPTION_TRAIN, 0)
+                    }
                 }
             })
             .collect();
@@ -1388,7 +1436,15 @@ impl Roster {
             .get((building - BASE_BUILDTYPES) as usize)
             .and_then(|b| b.tree)
         {
-            out.extend(self.researched(sim, who, b));
+            out.extend(
+                self.researched(sim, who, b)
+                    .into_iter()
+                    .map(|(ty, disable)| Button {
+                        ty,
+                        option: OPTION_RESEARCH,
+                        disable,
+                    }),
+            );
         }
         out.sort_unstable();
         out.dedup();
@@ -1415,8 +1471,13 @@ impl Roster {
     ///
     /// Then a Library (`is(LIBRARY)`) adds every age and epoch
     /// (`0x220..0x243`) not yet on its panel, greyed.
+    ///
+    /// Each with its `disable` (item 4326): the arms gather flags, the
+    /// `upgrade` arm 5 (and 8 at `avail` 1), the `avail < 2` arm 3, and a
+    /// button is clear (0) only with no flag set, a type queued here at
+    /// `avail` 2 or more; the governments and the Library's tail are 1.
     #[cfg(test)]
-    fn researched(&self, sim: &sim::Sim, who: usize, b: usize) -> Vec<i32> {
+    fn researched(&self, sim: &sim::Sim, who: usize, b: usize) -> Vec<(i32, i32)> {
         let (tree, setup) = (&sim.tables.tech_tree, &sim.tables.setup);
         let Some(p) = sim.tech.get(who) else {
             return Vec::new();
@@ -1427,7 +1488,7 @@ impl Roster {
         for &(ti, t, show) in &self.techs {
             if tree.has_tech(setup, p, t) && tree.queue_here(b, t) {
                 if GOV_TYPES.contains(&ti) {
-                    out.push(ti);
+                    out.push((ti, 1));
                 }
                 continue;
             }
@@ -1436,7 +1497,8 @@ impl Roster {
             }
             let avail = sim.type_avail(who as _, t);
             let shown = has(show[0]) || has(show[1]);
-            if !tree.queue_here(b, t) {
+            let here = tree.queue_here(b, t);
+            if !here {
                 if !up.is_some_and(|u| tree.queue_here(u, t)) {
                     continue;
                 }
@@ -1452,12 +1514,12 @@ impl Roster {
                     continue;
                 }
             }
-            out.push(ti);
+            out.push((ti, i32::from(!(here && avail >= 2))));
         }
         if self.library.is_some_and(|l| tree.is(b, l, false)) {
             for &(ti, ..) in &self.techs {
-                if ti < BASE_FINALTYPES && !out.contains(&ti) {
-                    out.push(ti);
+                if ti < BASE_FINALTYPES && !out.iter().any(|&(x, _)| x == ti) {
+                    out.push((ti, 1));
                 }
             }
         }
@@ -9648,7 +9710,7 @@ pub(crate) mod tests {
     /// `OPTION_TRAIN` and `OPTION_RESEARCH`, the two kinds of button the
     /// roster stands for (`OptionIndex` 47 and 48: the train arm's adds at
     /// `0x62a742`, and the Library's 35 research buttons on run1591).
-    const PANEL_KINDS: [i32; 2] = [47, 48];
+    const PANEL_KINDS: [i32; 2] = [OPTION_TRAIN, OPTION_RESEARCH];
 
     /// **`PANEL_LEADER`** (item 4305): the panel the original offers a
     /// selected building against ours, over every building of every packet
@@ -9680,6 +9742,19 @@ pub(crate) mod tests {
     /// `RON_PANELS_DIR`): per (file, slot, object), the building's type and
     /// the train and research types the original offered it, sorted.
     fn panels_on_disk() -> Vec<(String, i32, i32, i32, Vec<i32>)> {
+        buttons_on_disk()
+            .into_iter()
+            .map(|(f, who, object, b, bs)| {
+                let mut ts: Vec<i32> = bs.iter().map(|x| x.ty).collect();
+                ts.dedup();
+                (f, who, object, b, ts)
+            })
+            .collect()
+    }
+
+    /// [`panels_on_disk`] with each button whole (item 4326): its type,
+    /// option and `disable`, the TSV's columns 8, 5 and 9, sorted.
+    fn buttons_on_disk() -> Vec<(String, i32, i32, i32, Vec<Button>)> {
         let dir = std::env::var_os("RON_PANELS_DIR")
             .map(std::path::PathBuf::from)
             .unwrap_or_else(|| {
@@ -9694,7 +9769,7 @@ pub(crate) mod tests {
             .filter(|p| p.extension().is_some_and(|x| x == "tsv"))
             .collect();
         files.sort();
-        let mut out: std::collections::BTreeMap<(String, i32, i32), (i32, Vec<i32>)> =
+        let mut out: std::collections::BTreeMap<(String, i32, i32), (i32, Vec<Button>)> =
             std::collections::BTreeMap::new();
         for f in files {
             let name = f.file_stem().unwrap().to_string_lossy().into_owned();
@@ -9707,21 +9782,26 @@ pub(crate) mod tests {
                     .take(10)
                     .map(|v| v.parse().expect("a panels.py row"))
                     .collect();
-                let (who, object, building, option, ty) = (c[1], c[2], c[3], c[4], c[7]);
+                let (who, object, building, option, ty, disable) =
+                    (c[1], c[2], c[3], c[4], c[7], c[8]);
                 assert!(option != -1, "{name}: a run that did not return: {line}");
                 let e = out
                     .entry((name.clone(), who, object))
                     .or_insert((building, Vec::new()));
                 if PANEL_KINDS.contains(&option) {
-                    e.1.push(ty);
+                    e.1.push(Button {
+                        ty,
+                        option,
+                        disable,
+                    });
                 }
             }
         }
         out.into_iter()
-            .map(|((f, who, object), (b, mut ts))| {
-                ts.sort_unstable();
-                ts.dedup();
-                (f, who, object, b, ts)
+            .map(|((f, who, object), (b, mut bs))| {
+                bs.sort_unstable();
+                bs.dedup();
+                (f, who, object, b, bs)
             })
             .collect()
     }
@@ -9806,13 +9886,21 @@ pub(crate) mod tests {
     /// 420's 616 to 619 gone. Seen red at the old pin.
     const PANEL_LEADER_WALKED: (usize, usize, usize, usize, usize) = (103, 103, 1238, 1238, 1238);
 
+    /// **`PANEL_DISABLE_WALKED`** (item 4326, `docs/CLIENT_INPUT.md`
+    /// §32.4): [`PANEL_LEADER_WALKED`]'s buildings with each button whole,
+    /// its type, option and `disable` (the TSV's columns 8, 5 and 9) against
+    /// [`Roster::offered`]'s: (buildings whose buttons equal, buildings
+    /// either side offers one on, buttons both offer whole, the
+    /// original's, ours). Seen red pinned (0, 0, 0, 0, 0).
+    const PANEL_DISABLE_WALKED: (usize, usize, usize, usize, usize) = (103, 103, 1238, 1238, 1238);
+
     /// **The panel through the leader's predicates, on our walk** (item
     /// 4315): every held packet's buildings, the original's train and
     /// research types against [`Roster::offered`] on our walk of the minted
     /// script at that frame, the building found by slot and object id.
     #[test]
     fn the_panels_of_the_packets_on_our_walk() {
-        let panels: Vec<_> = panels_on_disk()
+        let panels: Vec<_> = buttons_on_disk()
             .into_iter()
             .filter(|(f, ..)| !PANEL_UNHELD.iter().any(|r| f.starts_with(r)))
             .collect();
@@ -9837,7 +9925,8 @@ pub(crate) mod tests {
         let orders = script::script();
         let mut next = 0;
         let mut count = (0, 0, 0, 0, 0);
-        for (file, who, object, building, theirs) in &panels {
+        let mut disabled = (0, 0, 0, 0, 0);
+        for (file, who, object, building, buttons) in &panels {
             let frame = frame_of(file);
             while r.frame() < frame {
                 while next < orders.len() && i64::from(orders[next].0) == r.frame() {
@@ -9857,7 +9946,32 @@ pub(crate) mod tests {
                 Some(*building),
                 "{file}: {who}/{object}'s type"
             );
-            let ours = roster.offered(sim, *who as usize, *building, b.active);
+            let ours_buttons = roster.offered(sim, *who as usize, *building, b.active);
+            if !(buttons.is_empty() && ours_buttons.is_empty()) {
+                disabled.1 += 1;
+                if *buttons == ours_buttons {
+                    disabled.0 += 1;
+                }
+                disabled.2 += buttons.iter().filter(|x| ours_buttons.contains(x)).count();
+                disabled.3 += buttons.len();
+                disabled.4 += ours_buttons.len();
+                let parted: Vec<_> = buttons
+                    .iter()
+                    .filter_map(|x| {
+                        let o = ours_buttons.iter().find(|o| o.ty == x.ty)?;
+                        (o != x).then_some((x.ty, (x.option, x.disable), (o.option, o.disable)))
+                    })
+                    .collect();
+                if !parted.is_empty() {
+                    println!(
+                        "DISABLE {file} who {who} object {object} building {building}: \
+                         (type, theirs (option, disable), ours) {parted:?}"
+                    );
+                }
+            }
+            let theirs: Vec<i32> = buttons.iter().map(|x| x.ty).collect();
+            let theirs = &theirs;
+            let ours: Vec<i32> = ours_buttons.iter().map(|x| x.ty).collect();
             if theirs.is_empty() && ours.is_empty() {
                 continue;
             }
@@ -9881,7 +9995,9 @@ pub(crate) mod tests {
             );
         }
         println!("PANEL_LEADER_WALKED {count:?}");
+        println!("PANEL_DISABLE_WALKED {disabled:?}");
         assert_eq!(count, PANEL_LEADER_WALKED);
+        assert_eq!(disabled, PANEL_DISABLE_WALKED);
     }
 
     /// **`INPUT_ROSTER_QUEUES`** (item 4290, `docs/CLIENT_INPUT.md` §32):
