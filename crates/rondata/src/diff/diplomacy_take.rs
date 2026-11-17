@@ -227,6 +227,17 @@ pub(crate) fn walk_take_from(
                 for c in tr.calls_in(at, crate::trace::call_site::ASTAR_ROAD) {
                     eprintln!("  THEIRS astar f{at}: this {:x} args {:?} ret {} depth {}", c.this, c.args, c.ret, c.depth);
                 }
+                if at == 2081 || at == 2082 {
+                    for (ci, c) in built.sim.cities.cities.iter().enumerate() {
+                        let b = &built.sim.buildings[c.building];
+                        eprintln!(
+                            "  OURS city f{at} {ci}: alive {} owner {} race {:?} b {} o {} ty {:?} pos {:?} seen-by-1 {} tregion {:?}",
+                            c.alive, c.owner, c.race, c.building, b.index, b.ty, c.pos,
+                            built.sim.was_seen_fog(c.pos.tile().x >> 1, c.pos.tile().y >> 1, 1),
+                            built.sim.world.tregion_alt(c.pos.tile())
+                        );
+                    }
+                }
                 for (w, cs) in built.sim.economy.caravans.iter().enumerate() {
                     for (v, c) in cs.slots.iter().enumerate() {
                         if !c.alive {
