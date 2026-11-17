@@ -136,6 +136,7 @@ pub const MINTS: &[&str] = &[
     "leader_options",
     "halt",
     "alarm",
+    "set_transport",
 ];
 
 /// **The auto-explore button's mask and set** (item 4288,
