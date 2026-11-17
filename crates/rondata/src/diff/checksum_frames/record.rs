@@ -253,13 +253,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
             // Item 4320: 2 → 1 (the score's units bit `0x800000` emitted);
             // before it, first `128 1 flags: +0x2 of 8|8: 00020000|80020000`.
-            (
-                "leaders",
-                271,
-                271,
-                1,
-                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
-            ),
+            // Item 4324: leaders whole (`resources_controlled`, `+0x850`, counted
+            // off `rare`); before it, 1 of 271 ranges parted, first `129 1
+            // who..ally_mask: +0x848 of 26914|26914: 00000000|03000000`.
         ],
     ),
     (
@@ -273,13 +269,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
             // Item 4320: 2 → 1 (the score's units bit `0x800000` emitted);
             // before it, first `128 1 flags: +0x2 of 8|8: 00020000|80020000`.
-            (
-                "leaders",
-                271,
-                271,
-                1,
-                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
-            ),
+            // Item 4324: leaders whole (`resources_controlled`, `+0x850`, counted
+            // off `rare`); before it, 1 of 271 ranges parted, first `129 1
+            // who..ally_mask: +0x848 of 26914|26914: 00000000|03000000`.
         ],
     ),
     (
@@ -287,13 +279,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         &[
             // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                271,
-                271,
-                1,
-                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
-            ),
+            // Item 4324: leaders whole (`resources_controlled`, `+0x850`, counted
+            // off `rare`); before it, 1 of 271 ranges parted, first `129 1
+            // who..ally_mask: +0x848 of 26914|26914: 00000000|03000000`.
         ],
     ),
     (
@@ -304,13 +292,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         &[
             // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                271,
-                271,
-                1,
-                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
-            ),
+            // Item 4324: leaders whole (`resources_controlled`, `+0x850`, counted
+            // off `rare`); before it, 1 of 271 ranges parted, first `129 1
+            // who..ally_mask: +0x848 of 26914|26914: 00000000|03000000`.
         ],
     ),
     (
@@ -323,13 +307,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
             // Item 4320: 2 → 1 (the score's units bit `0x800000` emitted);
             // before it, first `128 1 flags: +0x2 of 8|8: 00020000|80020000`.
-            (
-                "leaders",
-                271,
-                271,
-                1,
-                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
-            ),
+            // Item 4324: leaders whole (`resources_controlled`, `+0x850`, counted
+            // off `rare`); before it, 1 of 271 ranges parted, first `129 1
+            // who..ally_mask: +0x848 of 26914|26914: 00000000|03000000`.
         ],
     ),
     (
@@ -397,13 +377,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         &[
             // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                271,
-                271,
-                1,
-                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|06000000",
-            ),
+            // Item 4324: leaders whole (`resources_controlled`, `+0x850`, counted
+            // off `rare`); before it, 1 of 271 ranges parted, first `129 1
+            // who..ally_mask: +0x848 of 26914|26914: 00000000|06000000`.
         ],
     ),
     (
@@ -418,7 +394,8 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
                 "leaders",
                 271,
                 271,
-                2,
+                // Item 4324: 2 → 1 (`resources_controlled` counted).
+                1,
                 "128 1 flags: +0x3 of 8|8: 02000000|0e000000",
             ),
         ],

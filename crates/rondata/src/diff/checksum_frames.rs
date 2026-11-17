@@ -385,8 +385,10 @@ const LEADERS_K: usize = 4;
 /// Item 4320: run1578 2,941 → 3,006, run1577 109 → 118, the score's two
 /// dirty bits (`0x800000`, `0x1000000`) emitted; 100–109 and 159 agree
 /// but 101 and 160, which part on theirs' `0x80000` alone.
+/// Item 4324: run1578 3,006 → 19,006, `resources_controlled` (`+0x850`)
+/// counted off `rare` (it was 0); run1577 stands at 118.
 const LEADERS_AGREE: &[(&str, usize, usize)] =
-    &[(RUN1577_TRACE, 118, 120), (RUN1578_TRACE, 3006, 24000)];
+    &[(RUN1577_TRACE, 118, 120), (RUN1578_TRACE, 19006, 24000)];
 
 /// The Adler of each emitted line `want` names, on `sim`, in [`EMITTED`]'s
 /// order (`None` where not wanted). The builds line needs the data layer's
@@ -686,7 +688,8 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 "leaders",
                 267,
                 267,
-                2,
+                // Item 4324: 2 → 1 (`resources_controlled` counted).
+                1,
                 // Item 4320: ours `0x1000000` now (`gain_tech`'s bit); before
                 // it `02000000|0f000000`. Theirs' `0x4000000`, `0x8000000`.
                 "128 1 flags: +0x3 of 8|8: 03000000|0f000000",
@@ -708,7 +711,8 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
                 "leaders",
                 271,
                 271,
-                2,
+                // Item 4324: 2 → 1 (`resources_controlled` counted).
+                1,
                 // Item 4320: byte 2 agrees (`0x800000` emitted); before it
                 // `+0x2 … 00020000|800a0000`. Theirs' `0x8000000` stands.
                 "128 1 flags: +0x3 of 8|8: 02000000|0a000000",
@@ -726,15 +730,9 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         // byte again (05), `oxx`..`group_angle` (24, 1, 0x697990, 0, the
         // move's angle) and `in_group` (0) — on each of three members.
         &[
-            // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
-            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                271,
-                271,
-                1,
-                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
-            ),
+            // Item 4324: leaders whole (`resources_controlled`, `+0x850`, counted off
+            // `rare`); before it, 1 of 271 ranges parted, first `129 1 who..ally_mask:
+            // +0x848 of 26914|26914: 00000000|03000000`. Item 4298: 2 → 1 (`hire_who`).
         ],
     ),
     (
@@ -747,18 +745,10 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         // emitter left out bit 0x4, `Unit::set_in_danger@005fcfb0`'s latch
         // the crate already held.
         &[
-            // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
-            // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                271,
-                271,
-                // Item 4320: 2 → 1 (`0x800000` emitted, the flags range
-                // whole); before it, first `128 1 flags: +0x2 of 8|8:
-                // 00020000|80020000`.
-                1,
-                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
-            ),
+            // Item 4324: leaders whole (`resources_controlled`, `+0x850`, counted off
+            // `rare`); before it, 1 of 271 ranges parted, first `129 1 who..ally_mask:
+            // +0x848 of 26914|26914: 00000000|03000000`. Item 4320: 2 → 1 (`0x800000`);
+            // item 4298: 3 → 2 (`hire_who`).
         ],
     ),
     (
