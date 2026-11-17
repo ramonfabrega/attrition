@@ -2209,7 +2209,29 @@ these two.
   non-KNOWLEDGE goods `me` is short of; `−min(k stock, D)`; a WEALTH ask),
   calls `action_respond(me, k, 1)`, and then sets `tribute_demanded[k] = 1`.
   It stays 1 after `k` pays, until `me`'s own next `action_respond(me, k,
-  *)`.
+  *)`. **Built by item 4331** (`Sim::demand_or_declare`,
+  `leaders/diplomacy/offers.rs`), from the listing (`006be54c`–`006be98d`):
+  the gate is `is_tribute_period(me, k)` and `frame < local_40` (`ebp-0x3c`,
+  written once at `6bcbcc`: the planned war's frame, `((seed + who) & 7 +
+  3·d)·300`), either sending the pass to `LAB_006bed3f`, whose head answers
+  a proposal `k` committed to (withdraw if I had committed, else reject)
+  before the rush-rules message; the hire test is `frame − hire_stamp[k] <=
+  13500` (`6be68d`); on war, a proposal `k` committed to is answered, and
+  with war allowed `k.got_diplo_message = frame`, `agendas[k] |= 8` and
+  `action_declare(me, k, ally ? 1 : 0, 1, 0)`. The demand clears the deal,
+  draws its start (`+0x1da0`, `% 6`), and over the six goods from there
+  counts each not WEALTH or KNOWLEDGE that both can deal in, `me.econ[g] &
+  0xc == 4` and `me.bucket[g] < 1000`; past the first it draws again
+  (`+0x1e3f`) and keeps the good on `% count == 0`. A kept good `k` holds
+  more than 49 of is asked `−min(k stock, D)`; every other counted good
+  adds `(25·Military_me + 25)·(k.blacken + 1)` to the WEALTH ask, which is
+  `−min(ask, k's WEALTH)`. Then the commit, `agendas[k] |= 8` and the
+  store. **`seed` is `Game::info.seed`** (`Game+0x10`, the lobby's
+  `(int)seed`, 12345 on run1646), which `Setup::build_game` gives
+  `game_random` and does not change; the crate reads `Sim::game_seed`, the
+  world seed drawn from it (7236 there). Not yet mended (item 4331's
+  journal): the French `local_40` on the human is 6000 in theirs and 7800
+  here, so ours cannot demand on 6080.
 
 **Readers that change a decision.**
 
@@ -2251,9 +2273,17 @@ item 4325's, on 3718, was the pathfinder's diplomacy wall
 (`docs/PATHFINDER.md` §5: the Russian citizen `2/116`'s search on 3450
 priced four steps into a peaceful owner's cells 5044 and 5052 there and 44
 and 52 here, so theirs crossed the water and cast its transport on 3718).
-So `tribute_demanded` stays held out. The next parting, on 5496, is ours
-187 draws to theirs' 171 at index 5: ours `Army::find_target+0x7df`,
-theirs `6f802b`; it is not read.
+So `tribute_demanded` stays held out. **5496 is not this arm's** (item
+4331): both sides' Russians turn on the French there through the victory
+arm (`turn_on`, no draw; theirs prints `set_diplo`'s third-party sound and
+then `ally_diplo`'s, so `action_declare`'s allies' tail pulled the human
+in: `006dadb5`, each in-play third party allied to one side alone takes
+`ally_diplo` to the declared level, `is_team(·, ·, 0)` being `is_ally`
+past frame 0; built by item 4331 as `Sim::action_declare`'s step 7); the Russians' own `local_40` is
+6300 in theirs, past the frame. The parting is the next draw: ours' 12
+`find_target` city scores against theirs' 12 and one forts-pass draw
+(`6f8026`, `find_target+0x167b`, after the fifth city score), the forts
+pass of `docs/ARMY.md` §12 that this crate keeps as a seam.
 
 ## 8.3 In the crate
 
@@ -2395,9 +2425,16 @@ left at 0, refused by its bucket clause (11,057 ≥ 3,000). The four tributes ar
   from the listing at VII-c, §7.2); the `6c035d` arm (a positive shortfall
   with a positive give of mine) is not ported: it draws, may declare and
   ends in §8.2's reject.
-- **Unnamed:** the demand's local `-0x30`, the epoch word at
-  `data_encrypted + 0xe8` (`epoch[0]`?), and the pricing's scaling flag.
-  Reading each one's writer settles it.
+- ~~**Unnamed:** the demand's local `-0x30`, the epoch word at
+  `data_encrypted + 0xe8` (`epoch[0]`?)~~ (item 4331: `ebp-0x30` is the
+  planned war, the decompile's `local_34`, set at `6bd937`; `+0xe8` is
+  Military, `^ 0x63187`), and the pricing's scaling flag. Reading its
+  writer settles it.
+- **The demand arm on a walk** (item 4331): built from the listing and
+  pinned by fixtures only; no walk reaches it, since run1646's French pass
+  on the human waits on `local_40` 7800 here (the world seed) against 6000
+  there (`Game::info.seed`). Its draws (`+0x1da0`, `+0x1e3f`) and the
+  goods it picks are unproven until 6080 is walked.
 - **`scale_tribute`**: the load scale of `commerce_tribute` and
   `base_tribute` (`Constants::init`), and its rounding branches, which were
   not re-listed. A deal captured above Commerce 0 pins them.

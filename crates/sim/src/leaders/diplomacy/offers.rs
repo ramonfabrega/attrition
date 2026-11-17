@@ -209,15 +209,24 @@ impl Sim {
     /// - `aggression[t]` 0: at peace, unforced, with `t`'s units in my land
     ///   (`invaders[t]`), `agendas[t] |= 0x18` and `t`'s
     ///   `got_diplo_message` is this frame; then the offers arm.
-    /// - `aggression[t]` set, at war: the offers arm. At peace: the
-    ///   rush-rules message (`LAB_006bed3f`), or at team styles 0, 8 and 11
-    ///   with war allowed, the demand arm.
+    /// - `aggression[t]` set, at war: the offers arm. At peace: at team
+    ///   styles 0, 8 and 11 with war allowed, the demand arm
+    ///   ([`Sim::demand_or_declare`]); else, or when its gate refuses, the
+    ///   rush-rules message (`LAB_006bed3f`).
     ///
     /// SEAM: the scenario's fixed diplomacy (`semaphore[1] & 0x10` or
     /// `semaphore[2] & 2` with `ScenarioData::diplomacy_setting`) is not
-    /// carried; the demand arm (`LAB_006be54c` at team styles 0, 8 and 11,
-    /// `tribute_demanded`) is step VII-d's and later.
-    pub(super) fn diplomacy_tail(&mut self, me: usize, t: usize, forced: bool, rivals: Rivals) {
+    /// carried, nor team style 7's way into the demand arm (a team-8
+    /// leader on either side); every capture is style 0 or 1.
+    pub(super) fn diplomacy_tail(
+        &mut self,
+        me: usize,
+        t: usize,
+        forced: bool,
+        rivals: Rivals,
+        plan_war: bool,
+        plan_frame: i64,
+    ) {
         let frame = self.frame;
         let aggression = self.ai.ai[me].aggression[t];
         if self.leaders.tribute[me].dip[t].agree != 1
@@ -251,12 +260,18 @@ impl Sim {
                 self.ai.ai[t].got_diplo_message = frame;
             }
         } else if self.not_at_war(me, t) {
-            if matches!(self.ai.lobby.team_style, 0 | 8 | 11) && self.war_allowed() {
-                // SEAM: the demand arm (`LAB_006be54c`, `tribute_demanded`),
-                // step VII-d's and later.
+            if matches!(self.ai.lobby.team_style, 0 | 8 | 11)
+                && self.war_allowed()
+                && !self.is_tribute_period(me as Player, t as Player)
+                && frame >= plan_frame
+            {
+                self.demand_or_declare(me, t, cleared, plan_war);
                 return;
             }
-            // `LAB_006bed3f`: the rush rules forbid the war I want.
+            // `LAB_006bed3f`: the rush rules forbid the war I want, or the
+            // demand's gate refused. A proposal `t` has committed to is
+            // answered first (withdrawn if I had committed, else rejected).
+            self.answer_committed(me, t);
             let quiet = {
                 let stamp = self.ai.ai[t].got_diplo_message;
                 stamp != 0 && frame - stamp < 0x1c2
@@ -271,6 +286,104 @@ impl Sim {
             return;
         }
         self.offers_arm(me, t, cleared, rivals);
+    }
+
+    /// `t` committed to a proposal to me (`t.dip[me].agree == 1`): I answer
+    /// it, withdrawing if I had committed too, else rejecting.
+    fn answer_committed(&mut self, me: usize, t: usize) {
+        if self.leaders.tribute[t].dip[me].agree == 1 {
+            let code = if self.leaders.tribute[me].dip[t].agree == 1 {
+                0
+            } else {
+                2
+            };
+            self.action_respond(me as Player, t as Player, code);
+        }
+    }
+
+    /// **The demand arm** (`LAB_006be54c`, `006be5f4`–`006be98d`; item 4331,
+    /// `docs/LEADERS.md` §8.2): `aggression[t]` set, at peace, at team
+    /// styles 0, 8 and 11 with war allowed, past `is_tribute_period(me, t)`
+    /// and the planned war's frame. `D` is `(Military_me + 1) · (t.blacken
+    /// + 1) · 100`.
+    ///
+    /// - **War** when this pass cleared a commitment (`cleared`), `t`'s
+    ///   `blacken` is past 3, a war is planned (`plan_war`, `local_34`), I
+    ///   hired against `t` inside 13,501 frames (`hire_stamp[t]`), or `t`
+    ///   holds less WEALTH than `D`: a proposal `t` committed to is answered,
+    ///   and where the rush rules allow, `t.got_diplo_message` is this frame,
+    ///   `agendas[t] |= 8` and I declare (`action_declare(me, t, ally ? 1 :
+    ///   0, quiet)`).
+    /// - **Else the demand**: the deal is cleared both ways; a draw picks
+    ///   the good the walk starts from (`% 6`); each good not WEALTH or
+    ///   KNOWLEDGE that both of us can deal in, of which I am short
+    ///   (`econ & 0xc == 4`) and hold under 1000, is counted, and past the
+    ///   first draws again, kept on `% count == 0`; a kept good `t` holds
+    ///   more than 49 of is asked for (`−min(stock, D)`), and any other
+    ///   counted good adds `(25 · Military_me + 25) · (t.blacken + 1)` to the
+    ///   WEALTH ask. Then the WEALTH ask (`−min(ask, t's WEALTH)`), my
+    ///   commitment (`action_respond(me, t, 1)`), `agendas[t] |= 8` and
+    ///   `tribute_demanded[t] = 1`. The console's message draws only the
+    ///   interface's stream.
+    pub(super) fn demand_or_declare(&mut self, me: usize, t: usize, cleared: bool, plan_war: bool) {
+        use crate::economy::Resource;
+        let frame = self.frame;
+        let (mp, tp) = (me as Player, t as Player);
+        let military = crate::tech::Line::Military.index();
+        let epoch_me = self.tech[me].epoch[military];
+        let blacken = self.leaders.declare[t].blacken;
+        let hired = self.leaders.declare[me].hire_stamp[t];
+        let wealth = Resource::Wealth.index();
+        let d = (epoch_me + 1).wrapping_mul(blacken + 1).wrapping_mul(100);
+        if cleared
+            || blacken > 3
+            || plan_war
+            || (hired != 0 && frame - hired < 0x34bd)
+            || self.economy.ledgers[t].bucket[wealth] < d
+        {
+            self.answer_committed(me, t);
+            if self.war_allowed() {
+                self.ai.ai[t].got_diplo_message = frame;
+                self.leaders.agendas[me][t] |= 8;
+                let level = if self.is_ally(mp, tp) { 1 } else { 0 };
+                self.action_declare(mp, tp, level, true, false);
+            }
+            return;
+        }
+        self.action_clear_all(mp, tp);
+        let mut ask = d;
+        self.mark(super::SITE_DEMAND_START);
+        let start = (self.rng.roll() % 6) as usize;
+        let mut count = 0;
+        for i in 0..6 {
+            let g = (start + i) % 6;
+            let r = Resource::ALL[g];
+            if matches!(r, Resource::Wealth | Resource::Knowledge)
+                || !self.deal_good(me, g)
+                || !self.deal_good(t, g)
+                || self.ai.ai[me].econ[g] & 0xc != 4
+                || self.economy.ledgers[me].bucket[g] >= 1000
+            {
+                continue;
+            }
+            let first = count < 1;
+            count += 1;
+            let kept = first || {
+                self.mark(super::SITE_DEMAND_PICK);
+                self.rng.roll() % count == 0
+            };
+            let stock = self.economy.ledgers[t].bucket[g];
+            if kept && stock > 49 {
+                self.action_offer(mp, tp, r, -stock.min(d));
+            } else {
+                ask = ask.wrapping_add((epoch_me * 25 + 25).wrapping_mul(blacken + 1));
+            }
+        }
+        let theirs = self.economy.ledgers[t].bucket[wealth];
+        self.action_offer(mp, tp, Resource::Wealth, -ask.min(theirs));
+        self.action_respond(mp, tp, 1);
+        self.leaders.agendas[me][t] |= 8;
+        self.leaders.tribute[me].tribute_demanded[t] = 1;
     }
 
     /// **The offers arm** (`LAB_006bf0e0`): `t` has committed to a

@@ -30,6 +30,12 @@ pub const SITE_MINE_COIN: &str = "Leader::diplomacy+0x1388";
 /// `Leader::diplomacy+0x1b12`: a leader at peace with no `aggression` and
 /// `agendas & 8` skips the rest two times in three.
 pub const SITE_QUIET_COIN: &str = "Leader::diplomacy+0x1b12";
+/// The demand's first draw (`006be6eb`): the good its walk starts from,
+/// `% 6` (`docs/LEADERS.md` §8.2).
+pub const SITE_DEMAND_START: &str = "Leader::diplomacy+0x1da0";
+/// The demand's pick (`006be78a`): past the first good it may ask for, one
+/// draw per such good, kept when `% count == 0`.
+pub const SITE_DEMAND_PICK: &str = "Leader::diplomacy+0x1e3f";
 
 /// The four building lines `strong` counts one each for when I have one
 /// standing and the target has none — `buildtypes[BARRACKS]`, `[STABLE]`,
@@ -526,7 +532,7 @@ impl Sim {
         // `LAB_006be428` onward: the quiet coin, the clear of a committed
         // deal, the offers arm (item 4159, step VII-c) and the rush rules'
         // message.
-        self.diplomacy_tail(me, t, forced, rivals);
+        self.diplomacy_tail(me, t, forced, rivals, plan_war, plan_frame);
     }
 
     /// The three per-target words, as `Leader::diplomacy` leaves them.

@@ -116,3 +116,51 @@ fn rush_rules_refuse_a_war_or_force_it_to_peace() {
         assert_eq!(sim.economy.ledgers[0].bucket[WEALTH], 1000, "force {force}");
     }
 }
+
+/// Three seats at peace, 0 and 1 allied (item 4331's shape: run1646's
+/// human and French, with the Russians at 2).
+fn three() -> Sim {
+    let mut sim = Sim::new(Tuning::RON, World::new(2, 2), 3);
+    sim.frame = 5_496;
+    sim.set_diplo(0, 2, 1);
+    sim.set_diplo(1, 2, 1);
+    sim.set_diplo(0, 1, 2);
+    sim
+}
+
+/// **The allies' tail** (`006dadb5`, item 4331): a declaration on one of
+/// an allied pair pulls the other into the war with the declarer
+/// (`ally_diplo`); past frame 0 `is_team(·, ·, 0)` is `is_ally`, so this
+/// runs at team style 0. run1646's 5496: the Russians (2) turn on the
+/// French (1), and the human (0), the French ally, is at war with them.
+#[test]
+fn a_declaration_pulls_the_target_s_ally_into_the_war() {
+    let mut sim = three();
+    sim.action_declare(2, 1, 0, true, false);
+    assert_eq!((sim.diplos(2, 1), sim.diplos(1, 2)), (0, 0));
+    assert_eq!((sim.diplos(0, 2), sim.diplos(2, 0)), (0, 0), "the ally");
+    assert_eq!(sim.diplos(0, 1), 2, "the alliance stands");
+}
+
+/// A third party allied to neither side, or to both, is left where it
+/// stood; one allied to the declarer is pulled in against the target.
+#[test]
+fn the_allies_tail_takes_one_side_s_ally_only() {
+    let mut sim = three();
+    sim.set_diplo(0, 1, 1);
+    sim.action_declare(2, 1, 0, true, false);
+    assert_eq!(sim.diplos(0, 2), 1, "allied to neither");
+
+    let mut sim = three();
+    sim.set_diplo(0, 2, 2);
+    sim.action_declare(2, 1, 0, true, false);
+    assert_eq!(
+        (sim.diplos(0, 1), sim.diplos(0, 2)),
+        (2, 2),
+        "allied to both"
+    );
+
+    let mut sim = three();
+    sim.action_declare(1, 2, 0, true, false);
+    assert_eq!(sim.diplos(0, 2), 0, "the declarer's ally");
+}
