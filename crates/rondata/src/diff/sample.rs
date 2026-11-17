@@ -357,22 +357,25 @@ mod tests {
     }
 
     /// run1654's window against the walk (item 4347): `(records compared,
-    /// records parted, the first parted record's frame and capture)`. The
-    /// blocks 84..91 agree whole, gaia's figures with them; on 92 the
-    /// person's scout `3/0` (`who` 3) holds an `EXPLORE_TO` (`OrderIndex`
-    /// 3) in theirs and a `MOVE_TO` (1) here — the next parting, by state,
-    /// ahead of the draws' 444. run1651 prints no frame block, so its one
-    /// record is the closing one.
-    const SAMPLE_WINDOW_RECORDS: (usize, usize, Option<(i64, &str)>) =
-        (18, 9, Some((92, "run1654")));
+    /// records parted, the first parted record's frame and capture)`. 18
+    /// of 18 agree (item 4351: 9 parted → 0). On 92 the person's scout
+    /// `3/0` (`who` 3) held an `EXPLORE_TO` (`OrderIndex` 3) in theirs and
+    /// a `MOVE_TO` (1) here: the package on recording frame 91 is
+    /// `move_to` with `orders` 1 and `queued` 1, and a scout's
+    /// `QUEUE_LAST` `MOVE_TO` is an explore
+    /// ([`sim::Unit::explore_queued`]). run1651 prints no frame block, so
+    /// its one record is the closing one.
+    const SAMPLE_WINDOW_RECORDS: (usize, usize, Option<(i64, &str)>) = (18, 0, None);
 
     /// The sample's word and the frames walked, against run1651's draws:
-    /// 444 of 21,044 (item 4347: 98 → 444, +346, the gaia figures' variant
+    /// 2888 of 21,044 (item 4351: 444 → 2888, +2444, the scout's
+    /// shift-queued moves made explores, [`sim::Unit::explore_queued`]; the
+    /// sequences part at draw 32 there). Before that, 444 (item 4347: 98 → 444, +346, the gaia figures' variant
     /// off the lobby's seed, [`sim::Sim::info_seed`]; minted at 98 by item
     /// 4336). On 98 herd 0's peacocks `8/0`..`8/3` wore pieces 60079,
     /// 60080, 60078, 60079 here against run1654's 60078, 60079, 60080,
     /// 60078, so `8/0`'s 99-frame idle ran out here and `8/1`'s in theirs:
     /// ours took the far arm (413 from the herd centre), theirs the near
-    /// one's three draws. On 444 the sequences part at their third draw.
-    const SAMPLE_WALKED: (i64, i64) = (444, 21044);
+    /// one's three draws.
+    const SAMPLE_WALKED: (i64, i64) = (2888, 21044);
 }

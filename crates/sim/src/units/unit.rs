@@ -306,6 +306,17 @@ pub struct Unit {
     /// calls `think_scout(this, 0)`, and `think_scout` sends it down the
     /// city loop whatever its type.
     pub auto_explore: bool,
+    /// `unit_masks & 0x4000000`: a scout's shift-queued move made an
+    /// explore (item 4351). `Unit::add_move_facing_order@005e55c0` sets it
+    /// as it turns a `QUEUE_LAST` `MOVE_TO` of a `role & 0x10` type into an
+    /// `EXPLORE_TO`. While it stands, `Unit::work@0060d180:124` turns a
+    /// `MOVE_TO` at the head into an `EXPLORE_TO` too, re-added
+    /// `QUEUE_FIRST`. Every `Unit::clear_orders` clears it (inlined in about
+    /// forty callers, each beside its `close_orders`, so
+    /// [`crate::Sim::close_orders`] clears it here). So does the human
+    /// block of `Unit::think@005f6e40:233`, on an idle special unit with no
+    /// group (or a group of one), and `Unit::init`.
+    pub explore_queued: bool,
     /// `unit_flags & 0x400`: the Kremlin's spy, which `Build::process`
     /// tags as it trains it and which stands outside the owner's `control`
     /// (`docs/AI.md` §188).
@@ -996,6 +1007,7 @@ impl Unit {
             cant_reach: false,
             decoy: false,
             auto_explore: false,
+            explore_queued: false,
             kremlin_spy: false,
             mylos: 0,
             unit_masks2: 0,
