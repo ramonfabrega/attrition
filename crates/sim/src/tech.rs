@@ -1613,8 +1613,15 @@ impl TechTree {
     // ---- type_eligible / type_avail ----
 
     /// `LeaderData::check_predecessor`: the predecessor must be available,
-    /// or not be for this nation.
-    fn check_predecessor(&self, setup: &Setup, p: &PlayerTech, mut pred: Option<TypeId>) -> bool {
+    /// or not be for this nation. Public since item 4315: the client's
+    /// panel asks it of a unit's line as `BuildOut::make_options@00629ed0`'s
+    /// train loop does (`docs/CLIENT_INPUT.md` §32.4).
+    pub fn check_predecessor(
+        &self,
+        setup: &Setup,
+        p: &PlayerTech,
+        mut pred: Option<TypeId>,
+    ) -> bool {
         let mut guard = 0;
         while let Some(x) = pred {
             if self.type_avail(setup, p, x, false) >= 3 {

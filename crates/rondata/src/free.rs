@@ -182,6 +182,12 @@ impl FreeRunner {
         ticks
     }
 
+    /// The walk's own state, read-only: what the client's panel asks the
+    /// leader's predicates of (item 4315).
+    pub fn sim(&self) -> &sim::Sim {
+        &self.built.sim
+    }
+
     /// This tick's drawable state as `viewer` sees it (`Sim::observe`).
     pub fn scene(&self, viewer: Option<sim::Player>) -> Scene {
         self.built.sim.observe(viewer)
