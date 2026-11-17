@@ -149,10 +149,24 @@ fn the_hook_s_values_are_the_printed_record_s() {
     assert_eq!(seen, HOOK_RECORDS, "the hook against the records");
 }
 
-/// The lines our walk emits, by [`CHECKSUM_LINES`] index: walls, ammo and
-/// deaths have no emitter, and rules and the two script lines are not the
-/// simulation's (`docs/DECISIONS.md` entry 119).
-const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
+/// The lines our walk emits, by [`CHECKSUM_LINES`] index: the twelve state
+/// lines. Rules and the two script lines are not the simulation's
+/// (`docs/DECISIONS.md` entry 119). Walls, ammo and deaths (2, 3, 4) are
+/// emitted as the empty walk's Adler alone and refuse a frame that holds an
+/// element ([`empty_walk`]; item 4355): their record shapes are a reading.
+const EMITTED: [usize; 12] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+/// **The three empty lines' emitter** (item 4355, `docs/CHECKSUM.md` §8):
+/// the Adler of no bytes where our walk holds no element of the line, and
+/// `None` — a refusal, which the score counts as a parting — where it
+/// holds one, since no record shape is emitted. Never
+/// [`packets::our_lines`]' three `Line::default()`s, which read 1 whatever
+/// the walk holds.
+///
+/// [`packets::our_lines`]: super::checksum_lines::packets::our_lines
+fn empty_walk(held: usize) -> Option<u32> {
+    (held == 0).then(|| sim::checksum::Line::default().adler())
+}
 
 /// **The score, `Checksum: frames`**, per take: `(trace, frames walked,
 /// per emitted line (line, the first of our walk's frames whose Adler parts
@@ -336,7 +350,7 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// 142 → 4 (0, 167, 202, 297), `Unit::think`'s citizen bit (`0x80000`)
 /// emitted; 167, 202 and 297 part on byte 3 alone, `0x8000000` and
 /// `0x4000000`, which the `0x80000` parting had hidden.
-type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
+type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 12]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
         RUN1577_TRACE,
@@ -344,6 +358,10 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         [
             ("units", 120, 0),
             ("builds", 120, 0),
+            // Item 4355: emitted as the empty walk, none held on any frame.
+            ("walls", 120, 0),
+            ("ammo", 120, 0),
+            ("deaths", 120, 0),
             ("groups", 120, 0),
             ("guys", 120, 0),
             // Item 4340: whole (0 parted; it was frame 0 alone).
@@ -360,6 +378,10 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         [
             ("units", 24000, 0),
             ("builds", 24000, 0),
+            // Item 4355: emitted as the empty walk, none held on any frame.
+            ("walls", 24000, 0),
+            ("ammo", 24000, 0),
+            ("deaths", 24000, 0),
             ("groups", 24000, 0),
             ("guys", 24000, 0),
             // Item 4333: inside 300, 4 → 1 (0 alone; 167, 202, 297 whole).
@@ -380,7 +402,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
 const DIAG: i64 = 300;
 
 /// The leaders line's place in [`EMITTED`].
-const LEADERS_K: usize = 4;
+const LEADERS_K: usize = 7;
 
 /// **Parity's leaders row** (item 4317, `docs/CHECKSUM.md` §25.4;
 /// `docs/DECISIONS.md` entry 138 §2): per take, `(trace, the frames on
@@ -407,6 +429,41 @@ const LEADERS_K: usize = 4;
 const LEADERS_AGREE: &[(&str, usize, usize)] =
     &[(RUN1577_TRACE, 120, 120), (RUN1578_TRACE, 24000, 24000)];
 
+/// **What the three empty lines' walkers would find on our side**
+/// (`docs/CHECKSUM.md` §8, item 4355): `[walls, shots in flight, death
+/// objects]` at the moment the other lines are taken.
+///
+/// - Walls: `check_walls@00937360` walks each seated leader's objects
+///   from `obj_base[2]` (the 3000 band) to its mark whose data
+///   `flags & 1`; ours are the live [`sim::Building`]s at
+///   `index >= WALL_BASE`.
+/// - Ammo: `check_ammo@009374e0` walks the pool at `Objects +0x12c` whose
+///   element's `flags & 3`; ours is [`sim::combat::CombatState`]'s
+///   `projectiles`, whose every entry is in flight (a landing removes it).
+/// - Deaths: `check_deaths@00936bb0` walks the 100 `DeathObj` slots at
+///   `Objects +0x14c` whose first word is not 0; ours are the dead units'
+///   [`sim::combat::Death`]s, each culled with its last live record — so
+///   an empty list is no live record, and the count is units, not records.
+fn held(sim: &sim::Sim) -> [usize; 3] {
+    let walls = sim
+        .buildings
+        .iter()
+        .filter(|b| b.alive && b.index >= sim::WALL_BASE)
+        .count();
+    [walls, sim.combat.projectiles.len(), sim.combat.deaths.len()]
+}
+
+/// **Parity's empty-lines row** (item 4355, `docs/CHECKSUM.md` §24.3;
+/// `docs/DECISIONS.md` entry 140 §1): per take, `(trace, the frames on
+/// which our walk holds no wall, no shot in flight and no death object
+/// when the other lines are taken, the frames walked)`. The hook's walls,
+/// ammo and deaths read 1 (the Adler of no bytes) on every set of both
+/// takes. Minted at 0, red first, and read as none on every frame of both:
+/// run1577 0 → 120 of 120, run1578 0 → 24,000 of 24,000 (theirs 1 on 124
+/// and 24,004 sets).
+const EMPTY_HELD: &[(&str, usize, usize)] =
+    &[(RUN1577_TRACE, 120, 120), (RUN1578_TRACE, 24000, 24000)];
+
 /// The Adler of each emitted line `want` names, on `sim`, in [`EMITTED`]'s
 /// order (`None` where not wanted). The builds line needs the data layer's
 /// pieces, so it takes every line through [`packets::our_lines`].
@@ -415,35 +472,33 @@ const LEADERS_AGREE: &[(&str, usize, usize)] =
 fn our_adlers(
     sim: &sim::Sim,
     pieces: &super::checksum_lines::packets::Pieces,
-    want: &[bool; 9],
-) -> [Option<u32>; 9] {
-    if want[1] {
-        let lines = super::checksum_lines::packets::our_lines(sim, pieces);
-        let mut out = [None; 9];
-        for (k, &i) in EMITTED.iter().enumerate() {
-            out[k] = want[k].then(|| lines[i].adler());
-        }
-        return out;
-    }
-    let mut out = [None; 9];
+    want: &[bool; 12],
+) -> [Option<Option<u32>>; 12] {
+    let h = held(sim);
+    let lines = want[1].then(|| super::checksum_lines::packets::our_lines(sim, pieces));
+    let mut out = [None; 12];
     for (k, &i) in EMITTED.iter().enumerate() {
         if !want[k] {
             continue;
         }
-        out[k] = Some(
-            match i {
-                0 => sim.checksum_units(),
-                5 => sim.checksum_groups(),
-                6 => sim.checksum_guys(),
-                7 => sim.checksum_leaders(),
-                8 => sim.checksum_cities(),
-                9 => sim.checksum_items(),
-                10 => sim.checksum_goods(),
-                11 => sim.checksum_world(),
-                _ => unreachable!("builds goes through our_lines"),
-            }
-            .adler(),
-        );
+        out[k] = Some(match (i, &lines) {
+            (2..=4, _) => empty_walk(h[i - 2]),
+            (_, Some(l)) => Some(l[i].adler()),
+            _ => Some(
+                match i {
+                    0 => sim.checksum_units(),
+                    5 => sim.checksum_groups(),
+                    6 => sim.checksum_guys(),
+                    7 => sim.checksum_leaders(),
+                    8 => sim.checksum_cities(),
+                    9 => sim.checksum_items(),
+                    10 => sim.checksum_goods(),
+                    11 => sim.checksum_world(),
+                    _ => unreachable!("builds goes through our_lines"),
+                }
+                .adler(),
+            ),
+        });
     }
     out
 }
@@ -453,8 +508,13 @@ fn our_adlers(
 /// frames it was taken on and agreed.
 type LineWalk = (&'static str, i64, u32, u32, Vec<i64>, usize);
 
-/// The walk under the pump against a hook's sets, per emitted line.
-fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
+/// What a walk held of the three empty lines' elements: the frames it held
+/// none on, and the first frame it held one with [`held`]'s counts there.
+type HeldWalk = (usize, Option<(i64, [usize; 3])>);
+
+/// The walk under the pump against a hook's sets, per emitted line, and
+/// [`held`] on every frame a set pairs with.
+fn first_partings(trace: &[Set], length: i64) -> Option<(Vec<LineWalk>, HeldWalk)> {
     let (_, mut built, _) = built_start()?;
     let pieces = super::checksum_lines::packets::Pieces::read()?;
     let mut stream = crate::input::Stream::pump(&minted(&script())?);
@@ -462,25 +522,35 @@ fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
     let mut out: Vec<Option<(i64, u32, u32)>> = vec![None; EMITTED.len()];
     let mut parted: Vec<Vec<i64>> = vec![Vec::new(); EMITTED.len()];
     let mut agreed = vec![0usize; EMITTED.len()];
+    let mut empty = 0usize;
+    let mut first_held = None;
     while built.sim.frame < length {
         let f = built.sim.frame;
-        let want: [bool; 9] =
+        let want: [bool; 12] =
             std::array::from_fn(|k| f < DIAG || out[k].is_none() || k == LEADERS_K);
         if !want.iter().any(|w| *w) {
             break;
         }
         if let Some(set) = first.get(&(f - 1)) {
+            let h = held(&built.sim);
+            if h == [0; 3] {
+                empty += 1;
+            } else if first_held.is_none() {
+                first_held = Some((f, h));
+            }
             let ours = our_adlers(&built.sim, &pieces, &want);
             for (k, &i) in EMITTED.iter().enumerate() {
                 let Some(o) = ours[k] else { continue };
-                if o == set.lines[i] {
+                // A refusal (an empty line on a walk that holds an element)
+                // parts, and prints as ours 0.
+                if o == Some(set.lines[i]) {
                     agreed[k] += 1;
                 } else {
                     if f < DIAG {
                         parted[k].push(f);
                     }
                     if out[k].is_none() {
-                        out[k] = Some((f, o, set.lines[i]));
+                        out[k] = Some((f, o.unwrap_or(0), set.lines[i]));
                     }
                 }
             }
@@ -488,7 +558,7 @@ fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
         stream.apply(f as i32, &mut built);
         built.tick();
     }
-    Some(
+    Some((
         EMITTED
             .iter()
             .zip(out)
@@ -499,7 +569,8 @@ fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
                 (CHECKSUM_LINES[i].0, f, a, b, p, n)
             })
             .collect(),
-    )
+        (empty, first_held),
+    ))
 }
 
 /// Frames as runs, `a-b` for a run of more than one.
@@ -532,10 +603,23 @@ fn our_lines_part_from_the_hook_s_on_their_first_frame() {
             eprintln!("skipping: {name} not filed (set RON_GAMELOG_DIR)");
             continue;
         };
-        let Some(walked) = first_partings(&trace, length) else {
+        let Some((walked, (empty, first_held))) = first_partings(&trace, length) else {
             eprintln!("skipping: no install or lobby dump (RON_INSTALL, RON_GAMELOG_DIR)");
             return;
         };
+        // The hook's three empty lines are the Adler of no bytes on every
+        // set of the take (entry 140 §1, the pass's read), so the row is
+        // ours alone.
+        let ones = trace
+            .iter()
+            .filter(|s| s.lines[2..5].iter().all(|&a| a == 1))
+            .count();
+        eprintln!(
+            "EMPTY HELD {name}: ours none on {empty} of {length} frames, first held {first_held:?} \
+             ([walls, ammo, deaths]); theirs 1 on {ones} of {} sets",
+            trace.len()
+        );
+        assert_eq!(ones, trace.len(), "theirs walk no wall, shot or death");
         for (line, f, ours, theirs, p, _) in &walked {
             eprintln!(
                 "CHECKSUM FRAMES {name} {line}: first parts on {f} (ours {ours}, theirs {theirs}); \
@@ -557,7 +641,96 @@ fn our_lines_part_from_the_hook_s_on_their_first_frame() {
         assert_eq!(walked[LEADERS_K].0, "leaders", "LEADERS_K names the line");
         assert_eq!(seen, pinned, "CHECKSUM_FRAMES {name}");
         assert_eq!(Some(agree), want, "LEADERS_AGREE {name}");
+        let row = EMPTY_HELD.iter().find(|r| r.0 == name).map(|r| (r.1, r.2));
+        assert_eq!(
+            Some((empty, length as usize)),
+            row,
+            "EMPTY_HELD {name}: first held {first_held:?}"
+        );
     }
+}
+
+/// **The held count can part** (item 4355): the classical melee
+/// (`docs/GOLDEN.md` §150, run1449's start under its staged script) holds
+/// a shot — the Kushite Archers `0/14`'s round at the Phalanx `1/19`,
+/// loosed on 673 (`classical_melee_s_kushite_archers_loose_from_the_bow`)
+/// — and [`held`] reads it. Per count, the first frame of `[0, MELEE_TO)`
+/// it reads non-zero, `None` where it never does. A count that cannot
+/// part on a walk that holds one is a blind instrument. Minted at none;
+/// read as a shot from 642 (fourteen at most inside the window) and a
+/// death object from 692 (two at most). No wall stands in the window, so
+/// the walls arm is held by a building moved into the 3000 band instead.
+const MELEE_HELD: [Option<i64>; 3] = [None, Some(642), Some(692)];
+
+/// The melee walked to this frame.
+const MELEE_TO: i64 = 720;
+
+#[test]
+fn the_held_count_reads_the_melee_s_shot() {
+    use super::classical_melee::{MELEE_LONG, MELEE_START, melee_script};
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        crate::testenv::dump(MELEE_LONG.0),
+        crate::testenv::dump(MELEE_START),
+        super::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = crate::gamelog::Log::parse(&text);
+    let sib_log = crate::gamelog::Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    super::borrow_from_siblings(&mut init, &[&sib_init]);
+    super::setup::borrow_pasture(&mut init, &tr);
+    let mut built = super::setup::with_staged_script(melee_script(), || {
+        super::build_sim(&loaded, &init, sim::Tuning::RON)
+    });
+    let mut seen: [Option<i64>; 3] = [None; 3];
+    let mut most = [0usize; 3];
+    // The emitter on the frames each count first reads: the empty walk's
+    // Adler is refused there, as a parting.
+    let mut emitted: [Option<Option<u32>>; 3] = [None; 3];
+    while built.sim.frame < MELEE_TO {
+        let h = held(&built.sim);
+        for k in 0..3 {
+            if h[k] > 0 && seen[k].is_none() {
+                seen[k] = Some(built.sim.frame);
+                emitted[k] = Some(empty_walk(h[k]));
+            }
+            most[k] = most[k].max(h[k]);
+        }
+        built.tick();
+    }
+    eprintln!("MELEE HELD: first {seen:?}, most {most:?} ([walls, ammo, deaths])");
+    assert_eq!(seen, MELEE_HELD, "MELEE_HELD");
+    assert_eq!(
+        emitted,
+        [None, Some(None), Some(None)],
+        "the empty lines refuse a walk that holds a shot or a death"
+    );
+    assert_eq!(
+        empty_walk(0),
+        Some(1),
+        "the empty walk is the Adler of no bytes"
+    );
+    // The walls arm: a live building in the wall band is one wall, and a
+    // dead one is none (`check_walls`' `flags & 1`).
+    let mut b = built.sim.buildings[0].clone();
+    assert!(
+        b.alive && b.index < sim::WALL_BASE,
+        "a city building to move"
+    );
+    b.index = sim::WALL_BASE;
+    built.sim.buildings.push(b);
+    let walls = held(&built.sim)[0];
+    built.sim.buildings.last_mut().unwrap().alive = false;
+    assert_eq!((walls, held(&built.sim)[0]), (1, 0), "the walls arm");
 }
 
 /// The instrument's streams of the minted game's packets (runs 1579 to

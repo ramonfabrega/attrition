@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2): the chain takes 4354; the suite's seat takes 4355, then 4351; the third takes 4352; render takes 4353, then an item designed from a look at the minted game in play, the borders first (140 §6).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2): the chain takes 4354; the suite's seat takes 4355, then 4351; the third takes 4352; render takes 4356, the borders (4353 moved nothing: no draw on run1567's 3279 card pass lays the broad strokes; the seat has left the lake, 140 §6).
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 1 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
@@ -80,13 +80,13 @@ the world's; `SAMPLE_WINDOW_RECORDS` minted on run1654). By state the first part
 recording's packages. Second: the playback under the hook (`RON_CHECKSUMS`, 26 minutes), the fifteen sums on every frame, minted as
 the sample's row by state; it says so if the tracer is refused. It stops when two acts move the word by nothing.
 
-4353. **The broad foam strokes, the lake's last** (a `render` item, scoped; `docs/RENDERER.md` §3.30; DECISIONS 139
-§1, 140 §2). 4348 stood the herd where theirs stands (the gaia units take the start dump's angle in rondata's setup):
-`RUN1564_3279_FISH` theirs covered 0 → 302 of 304, and every pair's gaia now agrees (`PACKETS_SCORE` 482 → 499 of 1,053; run1575's
-guys 124 → 2). Next on run1564 at 3279: the broad foam strokes far out, the band's q99 153 against 200 (parked 4342a, 4348b), by
-`tools/render/card_pass.py` at a stroke's pixel by caller and texture. The west rim's thick crescents and the herd's churn (4308d)
-stay in the record and the journal: after the strokes the seat leaves the lake (140 §6). It stops when no draw on the card pass puts
-the stroke there.
+4356. **The borders on run1564, the upper arm first** (a `render` item, scoped; `docs/RENDERER.md` §3.29; DECISIONS 140 §6).
+`RUN1564_3279_BORDER` 222 of 1,440 (ours 568). The seat's first item off the lake, on what shows in play. The photograph draws
+an arm up the west side of cell (51, 45) to the row 44/45 edge; ours ends open at corner (51, 46), because cells (50, 45) and
+(49, 44) read `land` 1 without `HALFLAND` and the ocean rule as read makes no edge against them (parked 4306a). First act: those
+two cells' `land` and `HALFLAND` in the original's own state (a packet at 3279 on disk, else run1564's dump), against ours, so the
+rule or the cells is named as the misread. Second: the lower arm's few pixels off theirs (normals, sampling, 3294 against 3279).
+It stops when two acts move the row by nothing.
 
 4352. **The pick buttons played by the original** (an `input` item, scoped; the third seat's; `docs/CLIENT_INPUT.md` §32.10).
 `INPUT_PICKED` 24 of 24 (4349: Move follows a unit or moves with the last right press's form; Attack attacks an enemy, guards one's

@@ -4274,7 +4274,8 @@ r 0.999), against 0.853 without the white. ~~The constant 0.853 (4338a)~~ was th
 
 *Coverage.* On a reading: the card's blend and filters on draws 163–169 (one take, run1567). Against our own draw:
 the overlap, r 0.997, and the draw's scale, 0.995 with the white (4342). Not diff-backed: every row is the
-photograph's. *Not established:* theirs' broad strokes far out, where ours shows fine speckle (4338b). Lists 7 and 8
+photograph's. *Not established:* theirs' broad strokes far out, where ours shows fine speckle (4338b; no draw on the
+card pass puts them there by its texture and the packet's geometry, item 4353, below). Lists 7 and 8
 do not part in the band (journal 4342). ~~The fish (4308a) were not reached.~~ Drawn under the water (item 4344,
 below); where ours stand (4308c) and their light are not.
 
@@ -4325,6 +4326,26 @@ fish's. On the still, the poses match theirs too: the left group is drawn as the
 pixels. *Coverage.* On one take's card, read: the herd's `gWorld`. Against the dump: the start's angles. Not
 diff-backed: the row is the photograph's. *Not established:* the churn (4308d); a player's unit's angles from a start
 dump, which the install still leaves at `Unit::init`'s.
+
+**The broad strokes, unplaced** (item 4353; the ledger: `docs/journal/2026-11-17-item-4353.md`). Theirs' strokes are
+white puffs 30–60 px across, in a ring offshore of the shore's speckle all round the lake (on the south-east crop at
+about x 1280–1380, y 460–520 and x 1400–1520, y 420–480). Every world draw of run1567's 3279 pass was read against
+them, by its texture and the packet's geometry through the card's own matrices:
+- the surf (163–169): lists 0, 2 and 4 hug the shore, and their wash lines sit on the photograph's; lists 9 and 11 lie
+  on the north rim, y −11 to 365; lists 7 and 8 reach the strokes only by their patches' edges. There the packet's
+  texcoords and vertex alphas are ours (patches 42 and 43 equal to the third place, 41 within 0.16 of a repeat and α
+equal), and their model is
+  speckle, not a solid puff;
+- the floor (36): `ocean_floor_5.tga` carries fine specks, and no stroke; the coral (122–131): `coralblend.tga` is cyan,
+  with luma over 200 on 3 texels of 65,536; the fish and the churn (155–161) stand on the north water;
+- the water (162): on draw 162's own `gView` and `gProjection`, N·V is 0.5 and N·H 0.64, so the specular is nothing. The
+  reflected ray climbs (0, 0.866, 0.5) view units a unit, and a bottom D below the surface is 2D farther, so a hit
+  needs D ≤ 6.1. There `water_fade` is 0 (above −25), and the hit is blended at α 0;
+- draws 170–209 are screen space.
+
+So no draw on the card pass puts the stroke there by what is on disk: the item's stop. The card trace streams no
+vertices, so this rests on the packet's lists, not the card's own per draw. *Not established:* which draw lays theirs'
+strokes. A card probe keeping each draw's stream after 3279 (4281a) would attribute each pixel.
 
 ## 4. The stack
 
