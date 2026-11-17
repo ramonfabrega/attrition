@@ -537,7 +537,12 @@ Read whole (294 lines). Computer leaders only. For every building of mine
   sent with `Group::action_swarm_around(site, QUEUE_NEW, BUILD_AT, 1)`; if
   none, `build_masks |= 0x2000`. **A site already started (`job_counter !=
   0`) that is in danger skips the recruit scan entirely and only takes the
-  `0x2000` mark.**
+  `0x2000` mark.** **No `Unit::clear_orders` precedes the swarm** (nor in
+  `produce_building`'s `QUEUE_NEW` arm or `produce_city`): the clear is
+  the approach's own `QUEUE_NEW`, inside the member arm's
+  `find_nearby_spot == 0`, so a ring with no spot leaves the recruit
+  gathering (item 4300's fourth act; `Sim::swarm_around_new`;
+  recon4300-2's walk at DIFFICULTY 4 backs it, 1750 → 4202).
 
 **"My territory at the site" was a misreading, here and in §2.12, §2.13
 step 8 and §2.17.** `world+0x13c` is **`WorldData::danger[8]`**;

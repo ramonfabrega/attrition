@@ -187,6 +187,31 @@ impl Sim {
     /// an `EXPLORE_TO` here; the AI repairs on both long captures, so the
     /// change is held until both words are measured with it.
     pub(crate) fn swarm_around(&mut self, u: usize, b: usize, body: Body, action: bool) {
+        self.swarm_member(u, b, body, action, false);
+    }
+
+    /// `Group::action_swarm_around(site, who, QUEUE_NEW, BUILD_AT, 1)` on a
+    /// one-member group, as the AI's three callers make it:
+    /// `check_orphaned_buildings@006c9f20`'s recruit, `produce_building@
+    /// 006e1400:1085`'s `QUEUE_NEW` arm and `produce_city@006cb120:145`.
+    /// **The clear is the approach's own `QUEUE_NEW`**, inside the member
+    /// arm's `find_nearby_spot == 0` (`swarm_around_view::swarm_member`):
+    /// none of the three clears the unit before the call, so a ring with
+    /// no spot leaves the member's orders as they were (item 4300's fourth
+    /// act: recon4300-2's Russian `2/23` kept its gather on 1750 in theirs,
+    /// where this crate's clear-then-swarm left it idle). Returns whether
+    /// a spot was found.
+    pub(crate) fn swarm_around_new(
+        &mut self,
+        u: usize,
+        b: usize,
+        body: Body,
+        action: bool,
+    ) -> bool {
+        self.swarm_member(u, b, body, action, true)
+    }
+
+    fn swarm_member(&mut self, u: usize, b: usize, body: Body, action: bool, new: bool) -> bool {
         let building = matches!(body, Body::Build(_));
         let kind = if self.cities.nation[self.units[u].owner as usize].human {
             MoveKind::MoveTo
@@ -202,8 +227,11 @@ impl Sim {
         // (run1275b's `1/17` on 1875); this shape inserted the order with no
         // approach and the builder stood on it.
         let Some((spot, facing)) = self.swarm_spot(u, b, building) else {
-            return;
+            return false;
         };
+        if new {
+            self.clear_orders(u);
+        }
         self.add_move_facing_order(u, spot, kind, QueuePos::First, false, facing, None, false);
         // **The builder's mark.** `action_swarm_around@0070fbe0` has one
         // arm for `QUEUE_NEW` and `QUEUE_LAST` (`QUEUE_FIRST` re-enters
@@ -231,6 +259,7 @@ impl Sim {
             self.new_head(u);
         }
         self.update_action(u);
+        true
     }
 
     /// `Group::action_swarm_around`'s member arm at **`QUEUE_LAST`**
