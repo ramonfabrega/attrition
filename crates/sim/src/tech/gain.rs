@@ -55,6 +55,14 @@ impl Sim {
         self.apply_gained(who);
         self.cities.wall_stats_dirty[who as usize] = wall_stats_were;
         self.roster.unit_stats_dirty[who as usize] = unit_stats_were;
+        // `Leader::init@006e3930:289`'s per-good loop: each of the six
+        // `resource_cap` words (`LeaderDataEncrypt +0x30`) is
+        // `commerce_cap[0] << 4`, in sixteenths, until the first
+        // `Leader::gather`'s `calc_resource_caps` (its only caller) writes
+        // the leader's own. run1578's setup `check_all` reads 1,120 on
+        // each (item 4340). The seventh is not in the loop.
+        self.economy.ledgers[who as usize].cap =
+            [self.tables.tuning.commerce_cap[0] << 4; economy::RESOURCES];
         self.lay_starting_goods(who);
         // `Leader::init`'s `calc_attrition` and `calc_anti_attrition` see
         // the opening tech set (`docs/LEADERS.md` §5.2, §6.2).

@@ -548,9 +548,22 @@ impl Sim {
     }
 
     /// `LeaderData::reg_cities` (`+0x125e`) by one city: `City::init`'s
-    /// `+1`, `City::close`'s `−1`. A census not yet sized by its first
-    /// sweep takes nothing; the sweep's recount stands it up.
+    /// `+1`, `City::close`'s `−1`. The original's array is the leader's
+    /// own, zeroed by `Leader::init` and counted from the setup's first
+    /// city, so a census its first sweep has not sized yet is sized here
+    /// (item 4340: run1578's setup `check_all` reads `reg_cities[1]` 1 on
+    /// both leaders, where an unsized census dropped the add).
     fn bump_reg_cities(&mut self, who: Player, reg: Option<u16>, by: i32) {
+        let regions = self.world.region_count();
+        let players = self.territory.players.len();
+        if let Some(r) = reg
+            && r < 0x40
+            && let Some(a) = self.ai.ai.get_mut(who as usize)
+        {
+            if a.census.reg_cities.len() <= r as usize {
+                a.census.resize(regions, players);
+            }
+        }
         if let Some(r) = reg
             && r < 0x40
             && let Some(a) = self.ai.ai.get_mut(who as usize)

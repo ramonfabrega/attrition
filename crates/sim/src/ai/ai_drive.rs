@@ -48,11 +48,14 @@ impl Sim {
         let team = self.tech[w].team;
         let team_style = self.ai.lobby.team_style;
         let leader = &mut self.ai.ai[w];
-        // `Leader::init`'s diplos loop stored `aggression` before
-        // `random_personality` (`Sim::init_diplos`); the fresh record keeps it.
+        // `Leader::init`'s diplos loop stored `aggression` and `ally_mask`
+        // before `random_personality` (`Sim::init_diplos`); the fresh record
+        // keeps both (item 4340: the mask, run1578's leader 1).
         let aggression = leader.aggression;
+        let ally_mask = leader.census.ally_mask;
         *leader = ai::Leader::new();
         leader.aggression = aggression;
+        leader.census.ally_mask = ally_mask;
         leader.pers = pers;
         leader.player_flags = player_flags;
         leader.choose_script(&mut self.rng, player_flags, team_style, team, lakota);
