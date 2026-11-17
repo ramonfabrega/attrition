@@ -360,6 +360,34 @@ Quit is explicitly scheduled at the final recorded frame; natural EOF shutdown
 is not established. The 2017 recording's original-match fidelity and the
 self-contained sim score remain unmeasured.
 
+**The walk, minted (item 4336, 2026-11-17).** run900's captures are gone;
+run1650 retakes the opening with the start dump and run1651 plays the file
+whole with every frame's draws (`docs/RUNS.md`). Two rows, in
+`rondata::diff::sample`:
+
+- **The start built from the header.** The header read as a `GAMEINFO`
+  block (`sample::header_lobby`) equals run1650's printed one on every
+  keyed field but the version line: the playback prints the running
+  build's `00.2024.06.2000`, the header its own `00.2017.08.2100`;
+  `(int) version` is 108265764 on both. Handed to the start builder, it
+  builds the playback's start block whole, **18,315 of 18,315**. It was
+  minted at 17,163: this is the first team game on disk (`TEAM_STYLE` 12,
+  the person alone on team 0, the four computers on team 1), and
+  `build_game` builds a seat's teammates at once after it
+  (`docs/START.md` §2 step 5).
+- **The walk's word: 98 of 21,044.** The built start under the turn
+  pump on the recording's own packages. A package acts as
+  `GameInfo.player[play].who` (`process_group@0094a0c0`). The person is
+  `play` 0 at `who` 3, and the stream used to take `play` for the
+  leader, so every order went to who 0's units. On frame 98 both sides'
+  first draw is `Animal::do_idle+0x83`. Theirs then draws at `+0x1a4`,
+  `+0x1d4` and `+0x212`, and ours goes on to `Guy::set_anim+0x97a <
+  Guy::inc_time+0x271`, which is their fourth draw: one animal's idle
+  arm takes three draws ours does not.
+
+**Not established:** which animal it is and which arm of `do_idle`;
+whether the person has issued an order by frame 98; the run past 98.
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

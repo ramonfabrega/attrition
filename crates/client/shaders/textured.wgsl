@@ -37,6 +37,23 @@ fn fs_textured(i: VOut) -> @location(0) vec4<f32> {
     return vec4<f32>(mix(i.owner, t.rgb, t.a), 1.0);
 }
 
+// Item 4345 (§3.30, "The fish's light"): a lit figure, `owner.x` its
+// corner's N·L. Stage 0 `BLENDTA(TEX, TF)` at the card's white tfactor on
+// draws 155–160, stage 1 `MODULATE(CURRENT, DIFFUSE)` at the diffuse 1;
+// then `ps_global.hlsl`'s lit branch at the units' material
+// (`render::silhouette::lit_pipeline`): the stage colour to the power,
+// times the HDR multiplier on the diffuse term and the ambient's, then the
+// tone map at the clamp.
+@fragment
+fn fs_textured_lit(i: VOut) -> @location(0) vec4<f32> {
+    let t = textureSample(tex, samp, i.uv);
+    let stage = mix(vec3<f32>(1.0), t.rgb, t.a);
+    let diffuse = max({UNIT_DIFFUSE} * i.owner.x / 3.14159265, 0.0);
+    let ambient = vec3<f32>({UNIT_AMBIENT_R}, {UNIT_AMBIENT_G}, {UNIT_AMBIENT_B}) * land_ambient();
+    let l = land_hdr() * land_power(stage) * (vec3<f32>(diffuse) + ambient);
+    return vec4<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z), 1.0);
+}
+
 // Item 4217 (§3.22): a ground mesh's `owner.x` is the corner's N·L.
 @fragment
 fn fs_ground(i: VOut) -> @location(0) vec4<f32> {

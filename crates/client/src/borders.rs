@@ -454,7 +454,8 @@ pub(crate) mod tests {
     /// Item 4310: 225 → 226 of 1,440, 615 → 609 of ours: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR") moves the frame's mean, so its white.
     /// Item 4338: 226 → 224 (a named fall of two), 609 → 605: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
     /// Item 4344: 224 → 222 (a named fall of two), 605 → 566 of ours: the objects and the patches after the water drawn before it (item 4344, `docs/RENDERER.md` §3.30, "The fish under the water"), so the water blends over the band on its cells, as `Borders::process_all` comes before `render_water`.
-    pub const RUN1564_3279_BORDER: [[usize; 3]; 3] = [[0, 1440, 0], [222, 1440, 566], [0, 1440, 0]];
+    /// Item 4345: 222 holds, 566 → 567 of ours: the herd lit (item 4345, `docs/RENDERER.md` §3.30, "The fish's light") moves the frame's mean, so its white.
+    pub const RUN1564_3279_BORDER: [[usize; 3]; 3] = [[0, 1440, 0], [222, 1440, 567], [0, 1440, 0]];
 
     #[test]
     fn the_border_band_on_run1564() {

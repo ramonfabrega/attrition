@@ -359,6 +359,16 @@ pub struct World {
     /// above it. On by default; off, the water and the surf are drawn before
     /// every object (the made-to-fail side).
     pub objects_under_water: bool,
+    /// **The herd lit** (item 4345; `docs/RENDERER.md` §3.30, "The fish's
+    /// light"): the herd's pieces (`fishherd*` textures) through the card's
+    /// lit branch, as draws 155–160 of run1567's 3279 pass take them
+    /// (`ENABLE_LIGHTING`, stage 0 `BLENDTA(TEX, TF)` at a white tfactor,
+    /// stage 1 `MODULATE(CURRENT, DIFFUSE)`; the material
+    /// `render::silhouette::lit_pipeline` reads), each corner at its stored
+    /// normal's N·L against −`cur_dir`, interpolated. The land figures stay
+    /// as item 4172's rule draws them. On by default; off, the herd is
+    /// drawn as the other figures, unlit (the made-to-fail side).
+    pub herd_lit: bool,
     /// Pieces left out of the figures' meshes (item 4344: the herd hidden,
     /// for the fish row's mask of our fish); empty outside a test.
     pub hidden: Vec<i32>,
@@ -1201,6 +1211,7 @@ impl World {
             land_hdr: false,
             surf_hdr: true,
             objects_under_water: true,
+            herd_lit: true,
             hidden: Vec::new(),
             coral_lit: false,
             mountain_light: true,
@@ -2743,9 +2754,17 @@ impl World {
     }
 
     /// A unit piece's `texture=` as the XML writes it.
-    #[cfg(test)]
     pub fn figure_texture_name(&self, piece: i32) -> Option<&str> {
         self.unit_textures.get(&piece).map(String::as_str)
+    }
+
+    /// Whether `piece` is drawn through the card's lit branch
+    /// ([`World::herd_lit`], item 4345): the herd's, by its texture.
+    pub fn lit_figure(&self, piece: i32) -> bool {
+        self.herd_lit
+            && self
+                .figure_texture_name(piece)
+                .is_some_and(|t| t.to_ascii_lowercase().contains("fishherd"))
     }
 
     /// Item 4117's alternative: `piece` drawn with the install's file
@@ -2967,6 +2986,7 @@ impl World {
                     ([x, y, z], 0, true, None)
                 }
             };
+            let lit = !building && self.lit_figure(piece);
             let Some(mesh) = self.mesh(piece, building) else {
                 continue;
             };
@@ -3016,40 +3036,42 @@ impl World {
             // The stored normals through the same map (item 4122): each
             // vertex moved by its normal, posed and placed, less the vertex
             // posed and placed — the linear part alone.
-            let normals =
-                if !cfg!(test) || building || mesh.model.normals.len() != mesh.model.verts.len() {
-                    Vec::new()
-                } else {
-                    let mut tipped = mesh.model.clone();
-                    for (v, n) in tipped.verts.iter_mut().zip(&mesh.model.normals) {
-                        *v = [v[0] + n[0], v[1] + n[1], v[2] + n[2]];
-                    }
-                    let tips = match clock
-                        .filter(|_| self.pose)
-                        .and_then(|(slot, t)| mesh.anims.get(&slot).map(|a| (a, t)))
-                    {
-                        Some((a, t)) => posed(&tipped, a, anim_ms(t, a)),
-                        None => rest_pose(&tipped),
-                    };
-                    let at: Vec<[f32; 3]> = verts
-                        .iter()
-                        .zip(&tips)
-                        .map(|(v, t)| {
-                            let (a, b) = (apply(&m, *v), apply(&m, *t));
-                            let d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
-                            let l = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
-                            if l > 0.0 && l.is_finite() {
-                                d.map(|x| x / l)
-                            } else {
-                                [0.0; 3]
-                            }
-                        })
-                        .collect();
-                    mesh.faces
-                        .iter()
-                        .map(|f| f.map(|i| at[i as usize]))
-                        .collect()
+            let normals = if !(cfg!(test) || lit)
+                || building
+                || mesh.model.normals.len() != mesh.model.verts.len()
+            {
+                Vec::new()
+            } else {
+                let mut tipped = mesh.model.clone();
+                for (v, n) in tipped.verts.iter_mut().zip(&mesh.model.normals) {
+                    *v = [v[0] + n[0], v[1] + n[1], v[2] + n[2]];
+                }
+                let tips = match clock
+                    .filter(|_| self.pose)
+                    .and_then(|(slot, t)| mesh.anims.get(&slot).map(|a| (a, t)))
+                {
+                    Some((a, t)) => posed(&tipped, a, anim_ms(t, a)),
+                    None => rest_pose(&tipped),
                 };
+                let at: Vec<[f32; 3]> = verts
+                    .iter()
+                    .zip(&tips)
+                    .map(|(v, t)| {
+                        let (a, b) = (apply(&m, *v), apply(&m, *t));
+                        let d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+                        let l = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
+                        if l > 0.0 && l.is_finite() {
+                            d.map(|x| x / l)
+                        } else {
+                            [0.0; 3]
+                        }
+                    })
+                    .collect();
+                mesh.faces
+                    .iter()
+                    .map(|f| f.map(|i| at[i as usize]))
+                    .collect()
+            };
             out.push(Drawing {
                 who: d.who,
                 o: d.o,
@@ -3083,13 +3105,23 @@ impl World {
                 .then(|| self.figure_texture(d.piece))
                 .flatten();
             if let Some(mips) = mips {
+                // Item 4345: a lit figure's corners carry their N·L.
+                let light = if self.lit_figure(d.piece) {
+                    d.normals
+                        .iter()
+                        .flatten()
+                        .map(|n| (0..3).map(|k| n[k] * FIGURE_LIGHT[k]).sum())
+                        .collect()
+                } else {
+                    Vec::new()
+                };
                 textured.push(TexturedMesh {
                     piece: d.piece,
                     who: d.who,
                     positions: d.tris.iter().flatten().copied().collect(),
                     uvs: d.uvs.iter().flatten().copied().collect(),
                     mips,
-                    light: Vec::new(),
+                    light,
                 });
                 continue;
             }
@@ -3106,6 +3138,14 @@ impl World {
     }
 }
 
+/// **L = −`cur_dir`**, the figures' light (items 4106, 4114): the card's
+/// `gLight.Direction` (−0.707, 0, −0.707) on draws 155–160 (item 4345).
+pub const FIGURE_LIGHT: [f32; 3] = [
+    std::f32::consts::FRAC_1_SQRT_2,
+    0.0,
+    std::f32::consts::FRAC_1_SQRT_2,
+];
+
 /// One figure drawn textured (item 4099): its triangles' corners in world
 /// space, three a triangle, each corner's texcoord, and the piece's texture
 /// with its levels — what `client::gpu`'s textured pipeline draws, unlit,
@@ -3119,8 +3159,9 @@ pub struct TexturedMesh {
     pub uvs: Vec<[f32; 2]>,
     pub mips: std::sync::Arc<render::silhouette::Mips>,
     /// A ground mesh's corners' N·L (item 4217, §3.22), one a position;
-    /// empty for the flat N·L and a white vertex ([`LIGHT_FLAT`]). Read only
-    /// where `piece` is negative.
+    /// empty for the flat N·L and a white vertex ([`LIGHT_FLAT`]). On a
+    /// figure (`piece` not negative), a lit figure's (item 4345,
+    /// [`World::lit_figure`]); empty, unlit.
     pub light: Vec<f32>,
 }
 
@@ -3139,9 +3180,9 @@ pub struct Drawing {
     /// to world space by the corner's own node, pose and placement — the
     /// linear part of the map `tris` takes, nothing else — and
     /// renormalised (item 4122); empty for a building or a tree, where
-    /// the model's normals are not one a vertex, and outside the tests:
-    /// read by no draw, only by `silhouette::tests::the_stored_normals`.
-    #[cfg_attr(not(test), allow(dead_code))]
+    /// the model's normals are not one a vertex, and outside the tests
+    /// but for a lit figure ([`World::lit_figure`], item 4345, whose
+    /// corners' N·L it gives); read by `silhouette::tests::the_stored_normals`.
     pub normals: Vec<[[f32; 3]; 3]>,
 }
 
