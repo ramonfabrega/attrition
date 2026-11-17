@@ -2806,6 +2806,14 @@ impl Sim {
         let Some(g) = unit.guys.first().copied() else {
             return;
         };
+        if std::env::var_os("RON_PROBE_4347").is_some() && (84..=100).contains(&self.frame) {
+            let un = &self.units[u];
+            eprintln!(
+                "CLOCK4347 f{} {}/{} herd {} at ({},{}) anim {} t {}/{} last {} gp {} orders {}",
+                self.frame, un.owner, un.index, herd, un.pos.x, un.pos.y, g.anim, g.cur_time,
+                g.end_time, g.last_time, g.gpiece, un.orders.len()
+            );
+        }
         if g.end_time == 0 || g.cur_time != g.end_time - 1 {
             return;
         }
@@ -2818,6 +2826,15 @@ impl Sim {
         };
         let centre = herd_centre(h.cx, h.cy, h.wx, h.wy);
         let here = self.units[u].pos;
+        if std::env::var_os("RON_PROBE_4347").is_some() {
+            let un = &self.units[u];
+            eprintln!(
+                "PROBE4347 seed {} variants {:?} f{} {}/{} uid {} ti {} herd {} ({},{},{},{}) centre ({},{}) here ({},{}) dist {}",
+                self.game_seed, (0..3).map(|v| self.roster.art.gaia_variants.get(&(413, v))).collect::<Vec<_>>(), self.frame, un.owner, un.index, un.uid, un.type_index, herd, h.cx, h.cy, h.wx, h.wy,
+                centre.x, centre.y, here.x, here.y,
+                vector_dist(centre.x - here.x, centre.y - here.y)
+            );
+        }
         if vector_dist(centre.x - here.x, centre.y - here.y) < WANDER_NEAR {
             self.mark(crate::gaia::SITE_WANDER_DIR);
             let d = (self.rng.roll() & 7) as usize;
