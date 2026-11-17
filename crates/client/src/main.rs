@@ -51,6 +51,7 @@ mod ground;
 mod hud;
 mod input;
 mod lobby;
+mod oil;
 mod overlay;
 mod particle;
 mod patch;

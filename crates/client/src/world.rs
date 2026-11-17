@@ -287,6 +287,10 @@ pub struct World {
     /// The footprints laid among the patches, at the frame and the switches
     /// they were laid at.
     weather_laid: (i64, bool, (i32, i32), Vec<crate::weathering::Footprint>),
+    /// The land oil's patches as `create_doobers` built them, once (item
+    /// 4319), and whether the oil class was laid at the last build: the
+    /// console's `type_avail(OIL)` moving lays the terrain again.
+    land_oil: (Option<Vec<crate::oil::Patch>>, bool),
     /// Draw the roads (item 4199, §3.19). On by default; the row's count as
     /// drawn before turns it off.
     pub roads: bool,
@@ -435,6 +439,9 @@ struct GroundDraw {
     /// The `Oil` good's billboard (item 4312); `None` where it does not
     /// read, and none is drawn.
     oil: Option<crate::goods::OilArt>,
+    /// The land oil's `rough` and `oil` underlays (item 4319); `None` where
+    /// they do not read, and none is laid.
+    land_oil: Option<crate::oil::OilArt>,
 }
 
 /// [`crate::ground::MountainArt`] and its textures, as the draw shares them.
@@ -494,6 +501,22 @@ pub const BORDER_ALPHA_INDEX: usize = 913;
 /// texture its own alpha.
 pub const OIL_PIECE: i32 = -200_500;
 pub const OIL_ALPHA: usize = 916;
+/// **The client's console slot**: the player the session issues for
+/// (`input::Input::new(0)`), whose leader `TerrainOil` asks of `OIL`.
+pub const CONSOLE: sim::Player = 0;
+
+/// **The land oil's underlays** (item 4319, §3.24; `crate::oil`): the
+/// `rough` class's and the `oil` class's textures, each its own alpha as
+/// the snowcap's is.
+pub const LAND_ROUGH_PIECE: i32 = -200_600;
+pub const LAND_ROUGH_ALPHA: usize = 917;
+pub const LAND_OIL_PIECE: i32 = -200_601;
+pub const LAND_OIL_ALPHA: usize = 918;
+
+/// Whether a patch is one of the land oil's underlays.
+pub fn is_land_oil(piece: i32) -> bool {
+    piece == LAND_ROUGH_PIECE || piece == LAND_OIL_PIECE
+}
 pub const EDGE_PIECE: i32 = -200_400;
 pub const EDGE_OUTER_PIECE: i32 = -200_401;
 /// The edge border's white alpha: the draw is opaque.
@@ -963,6 +986,7 @@ impl World {
                 patch,
                 mountains,
                 oil: crate::goods::OilArt::load(install.root(), tint),
+                land_oil: crate::oil::OilArt::load(&install, t, tint),
             })
         });
         let tree_art = tileset
@@ -1146,6 +1170,7 @@ impl World {
             particles_given: None,
             weather_mips,
             weather_laid: (-1, false, (0, 0), Vec::new()),
+            land_oil: (None, false),
             roads: true,
             roads_shift: (0, 0),
             road_art,
@@ -1311,7 +1336,8 @@ impl World {
         // the debug mesh alone is not the mark (it rebuilt every frame).
         let unbuilt =
             self.drawn.1.positions.is_empty() && self.drawn.2.is_empty() && self.drawn.3.is_empty();
-        if self.drawn.0 != version || unbuilt {
+        let oil_shown = self.runner.type_avail(CONSOLE, crate::goods::OIL);
+        if self.drawn.0 != version || unbuilt || self.land_oil.1 != oil_shown {
             self.terrain();
             let t = self.runner.terrain();
             let g = self.ground.as_ref().expect("checked above");
@@ -1584,6 +1610,45 @@ impl World {
                 layers.0 = Some(patches.len());
                 patches.push(m);
             }
+            // Item 4319 (§3.24): the land oil's underlays,
+            // `render_weathering(0, 3)`'s classes 2 and 3 after the
+            // footprint weathering (inserted before them) and before the
+            // roads and the mountains.
+            if let Some(art) = g.land_oil.as_ref() {
+                let runner = &self.runner;
+                let built = self.land_oil.0.get_or_insert_with(|| {
+                    crate::oil::build(&t, &runner.goods(), &|ty| runner.type_avail_at_load(ty))
+                });
+                let pool = crate::snowcap::random_map_pool(t.width);
+                let (rough, oil) = crate::oil::quads(built, &t, oil_shown, &pool);
+                let tiles = (
+                    t.width * render::terrain::TILES_PER_CELL,
+                    t.height * render::terrain::TILES_PER_CELL,
+                );
+                // The land's own N·L, as the snowcap's: one material.
+                let nl_land = |p: &[f32; 3]| -> f32 {
+                    let per = render::terrain::UNITS_PER_TILE as f32;
+                    let (cx, cy) = ((p[0] / per).round(), (p[1] / per).round());
+                    if cx < 0.0 || cy < 0.0 {
+                        return LIGHT_FLAT;
+                    }
+                    normals
+                        .get(cy as usize * stride + cx as usize)
+                        .map_or(LIGHT_FLAT, |n| render::terrain::land_n_dot_l(*n))
+                };
+                let positions = &self.terrain.1.positions;
+                for (piece, alpha, mips, quads) in [
+                    (LAND_ROUGH_PIECE, LAND_ROUGH_ALPHA, &art.rough, &rough),
+                    (LAND_OIL_PIECE, LAND_OIL_ALPHA, &art.oil, &oil),
+                ] {
+                    if let Some(m) =
+                        crate::oil::mesh(piece, alpha, mips, quads, positions, tiles, &nl_land)
+                    {
+                        patches.push(m);
+                    }
+                }
+            }
+            self.land_oil.1 = oil_shown;
             // Item 4141 (§3.10): each template's ring, then its main, after
             // the patch, `render_mountains`'s order.
             if let Some(md) = g.mountains.as_ref() {
@@ -1700,11 +1765,13 @@ impl World {
             if want != self.weather_laid.3 {
                 self.drawn.3.retain(|m| m.piece != WEATHER_PIECE);
                 if let Some(m) = self.weather_mesh(&want) {
+                    // Item 4319: before the land oil's underlays too, which
+                    // `render_weathering(0, 3)` draws after it.
                     let at = self
                         .drawn
                         .3
                         .iter()
-                        .position(|p| p.mountain)
+                        .position(|p| p.mountain || is_land_oil(p.piece))
                         .unwrap_or(self.drawn.3.len());
                     self.drawn.3.insert(at, m);
                 }
@@ -3039,6 +3106,9 @@ mod tests {
             SNOWCAP_ALPHA,
             BORDER_ALPHA_INDEX,
             EDGE_ALPHA,
+            super::OIL_ALPHA,
+            super::LAND_ROUGH_ALPHA,
+            super::LAND_OIL_ALPHA,
         ];
         for (i, k) in ones.iter().enumerate() {
             assert!(

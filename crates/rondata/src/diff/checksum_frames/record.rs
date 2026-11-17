@@ -196,27 +196,51 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             267,
             267,
             16,
-            "0 0 flags: +0x2 of 8|8: 00020000|800a0000",
+            // Item 4320: byte 2 agrees (`0x800000` emitted); before it
+            // `+0x2 of 8|8: 00020000|800a0000`. `0x8000000` stands.
+            "0 0 flags: +0x3 of 8|8: 02000000|0a000000",
         )],
     ),
     (
         100,
+        &[
+            // Item 4320: leaders whole (`0x800000` emitted); before it, 1 of
+            // 267 parted, `128 1 flags: +0x2 of 8|8: 00000000|80000000`.
+        ],
+    ),
+    (
+        101,
+        // Item 4320: the next parted frame once `0x800000` is emitted.
+        // Byte 2's `0x08` is bit `0x80000`, theirs alone on leader 1:
+        // `Unit::think`'s carrying store, cleared at the ends of
+        // `Leader::process` and `Leaders::process_all`; not held.
         &[(
             "leaders",
             267,
             267,
             1,
-            "128 1 flags: +0x2 of 8|8: 00000000|80000000",
+            "128 1 flags: +0x2 of 8|8: 80000000|88000000",
         )],
     ),
     (
         159,
+        &[
+            // Item 4320: leaders whole (`0x800000` emitted); before it, 1 of
+            // 267 parted, `0 0 flags: +0x2 of 8|8: 00000000|80000000`.
+        ],
+    ),
+    (
+        160,
+        // Item 4320: the next parted frame once `0x800000` is emitted.
+        // Byte 2's `0x08` is bit `0x80000`, theirs alone on leader 0:
+        // `Unit::think`'s carrying store, cleared at the ends of
+        // `Leader::process` and `Leaders::process_all`; not held.
         &[(
             "leaders",
             267,
             267,
             1,
-            "0 0 flags: +0x2 of 8|8: 00000000|80000000",
+            "0 0 flags: +0x2 of 8|8: 80000000|88000000",
         )],
     ),
     (
@@ -227,12 +251,14 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         &[
             // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            // Item 4320: 2 → 1 (the score's units bit `0x800000` emitted);
+            // before it, first `128 1 flags: +0x2 of 8|8: 00020000|80020000`.
             (
                 "leaders",
                 271,
                 271,
-                2,
-                "128 1 flags: +0x2 of 8|8: 00020000|80020000",
+                1,
+                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
             ),
         ],
     ),
@@ -245,12 +271,14 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         &[
             // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            // Item 4320: 2 → 1 (the score's units bit `0x800000` emitted);
+            // before it, first `128 1 flags: +0x2 of 8|8: 00020000|80020000`.
             (
                 "leaders",
                 271,
                 271,
-                2,
-                "128 1 flags: +0x2 of 8|8: 00020000|80020000",
+                1,
+                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
             ),
         ],
     ),
@@ -293,12 +321,14 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         &[
             // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            // Item 4320: 2 → 1 (the score's units bit `0x800000` emitted);
+            // before it, first `128 1 flags: +0x2 of 8|8: 00020000|80020000`.
             (
                 "leaders",
                 271,
                 271,
-                2,
-                "128 1 flags: +0x2 of 8|8: 00020000|80020000",
+                1,
+                "129 1 who..ally_mask: +0x848 of 26914|26914: 00000000|03000000",
             ),
         ],
     ),
@@ -346,12 +376,14 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         &[
             // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
+            // Item 4320: 2 → 1 (`gain_tech`'s `0x1000000` emitted); before
+            // it, first `128 1 flags: +0x3 of 8|8: 02000000|03000000`.
             (
                 "leaders",
                 271,
                 271,
-                2,
-                "128 1 flags: +0x3 of 8|8: 02000000|03000000",
+                1,
+                "129 1 who..ally_mask: +0x5d0 of 26914|26914: 06000000|05000000",
             ),
         ],
     ),

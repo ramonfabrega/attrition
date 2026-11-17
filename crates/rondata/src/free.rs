@@ -212,6 +212,34 @@ impl FreeRunner {
         self.built.sim.observe_goods()
     }
 
+    /// **`LeaderData::type_avail(ty, 1) != 0`** on `who`'s leader as it
+    /// stands, `ty` a `TypeIndex` (the tree numbers its types so): what
+    /// `TerrainOil::create_doobers@008a28e0` asks of a good under a cell at
+    /// load, and `add_wcoord_for_render@008a26f0` of `OIL` each frame (item
+    /// 4319). `false` past the tree or the leaders.
+    pub fn type_avail(&self, who: sim::Player, ty: usize) -> bool {
+        let s = &self.built.sim;
+        let Some(p) = s.tech.get(who as usize) else {
+            return false;
+        };
+        ty < s.tables.tech_tree.types.len()
+            && s.tables.tech_tree.type_avail(&s.tables.setup, p, ty, true)
+                != sim::tech::NOT_AVAILABLE
+    }
+
+    /// **`type_avail(ty, 1) != 0` on a leader holding no tech**: what
+    /// `TerrainOil::create_doobers@008a28e0` finds at load, before the
+    /// start's techs are granted (item 4319: run1564 starts in the
+    /// Industrial age, and the packet patches its Rubber and Aluminum,
+    /// whose prerequisite is that age).
+    pub fn type_avail_at_load(&self, ty: usize) -> bool {
+        let s = &self.built.sim;
+        let tree = &s.tables.tech_tree;
+        ty < tree.types.len()
+            && tree.type_avail(&s.tables.setup, &sim::tech::PlayerTech::new(tree), ty, true)
+                != sim::tech::NOT_AVAILABLE
+    }
+
     /// The road mesh as it stands (`Sim::observe_roads`, item 4199).
     pub fn roads(&self) -> sim::observe::RoadsScene {
         self.built.sim.observe_roads()
