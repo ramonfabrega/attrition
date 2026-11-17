@@ -76,6 +76,17 @@ Each row:
     frame  who  object  pages  mode  mode_data  option  mode_after  mode_data_after
 
 and a run that did not return is a row with `mode_after` −1.
+
+**The transport press** (item 4357, `docs/CLIENT_INPUT.md` §32.12):
+
+    python3 tools/recomp/panels.py <install> <packet> <out.tsv> --transport
+
+runs `Options::exec(OPTION_TRANSPORT, -1, 0)` from the console's own seat
+on four selections of its slot's first two citizens, each member's
+`0x800000` poked set or clear, and reads `command_manager.local_package`
+back. Each row:
+
+    frame  who  objects  bits  size  data
 """
 import os
 import re
@@ -97,7 +108,10 @@ GLOBALS = {
     "options": "?options@MiscAccess@@2AAVOptions@@A",
     "game": "?gamec@GameAccessConst@@2ABVGame@@B",
     "select_groups": "?select_groups@@3VSelectGroups@@A",
+    "command_manager": "?command_manager@@3VCommandManager@@A",
 }
+OPTION_TRANSPORT, UNIT_MASKS_AT, TRANSPORT_BIT, LOCAL_PACKAGE_AT = 14, 0x68, 0x800000, 0x28
+SOUND_ACK_EIP = 0x53B5BA  # Sound::init's read under do_transport's ack, after the issue
 EXEC = 0x72C4B0  # Options::exec(OptionIndex, int object, int)
 OPTION_NEXT, OPTION_BACK, OPTION_CANCEL = 0x41, 0x42, 0x43
 PLAY_AT, GROUP_SIZE, SELECT_DATA_AT = 0x2A0, 0x9F0, 0x14
@@ -218,6 +232,8 @@ def main(argv):
     console = mem.u32(g["console"])
     if "--turns" in argv:
         return main_turns(install, packet, out, g, snap, mem, console)
+    if "--transport" in argv:
+        return main_transport(install, packet, out, whos, g, snap, mem, console)
     if "--citizens" in argv:
         return main_citizens(install, packet, out, whos, "--every" in argv, g, snap, mem, console,
                              "--standard" in argv)
@@ -309,6 +325,62 @@ def main_turns(install, packet, out, g, snap, mem, console):
             print(f"pages {pages} mode {mode} page {data} option {option:#x}: mode {after[0]} page {after[1]}", flush=True)
     with open(out, "w") as f:
         f.write("# frame\twho\tobject\tpages\tmode\tmode_data\toption\tmode_after\tmode_data_after\n")
+        f.write("\n".join(rows) + "\n")
+    print(f"{len(rows)} rows to {out}; {bad} run(s) that did not return")
+    return 1 if bad else 0
+
+
+def main_transport(install, packet, out, whos, g, snap, mem, console):
+    """`OPTION_TRANSPORT`'s press on a packet (item 4357,
+    `docs/CLIENT_INPUT.md` §32.12). From the console's own seat (`play`, the
+    one slot `check_accept_issue` lets issue: `Player::is_active_connection`
+    refuses a computer's), each of four selections of that slot's first two
+    citizens is poked into its group, each member's `unit_masks` (`+0x68`)
+    with `0x800000` set or clear, and `Options::exec(OPTION_TRANSPORT, -1, 0)`
+    run; `command_manager.local_package`'s `size` and `data` are read back,
+    its size poked to 0 first so the bytes are the press's. The run stops in
+    `Sound::init` under `SoundGlobal::play`, the ack `do_transport` plays
+    after the issue; that stop is accepted and written beside the row."""
+    options = mem.u32(g["options"])
+    package = g["command_manager"] + LOCAL_PACKAGE_AT
+    exe = os.path.join(install, "riseofnations.exe")
+    play = mem.u32(console + PLAY_AT)
+    rows, bad = [], 0
+    mine = citizens(mem, g["objects"], [play], True)[:2]
+    if len(mine) < 2:
+        sys.exit(f"panels.py --transport: slot {play} has under two citizens on frame {snap.frame}")
+    group = mem.u32(g["select_groups"] + SELECT_DATA_AT) + play * GROUP_SIZE
+    for bits in ((1,), (0,), (1, 1), (1, 0)):
+        members = mine[:len(bits)]
+        pokes = [(group + 0xC, struct.pack("<I", len(members))), (group + 0x49, bytes([0, play])),
+                 (package + 0x10, struct.pack("<h", 0)), (options + MODE_AT, struct.pack("<ii", STANDARD_OPTIONS, 0))]
+        for k, ((_, oid, _, addr), bit) in enumerate(zip(members, bits)):
+            masks = mem.u32(addr + UNIT_MASKS_AT)
+            m = (masks | TRANSPORT_BIT) if bit else (masks & ~TRANSPORT_BIT)
+            pokes += [(group + 0x8CC + 2 * k, struct.pack("<h", oid)), (addr + UNIT_MASKS_AT, struct.pack("<I", m))]
+        cmd = ["uv", "run", os.path.join(HERE, "step4.py"), exe, packet, "--entry", f"{EXEC:x}", "--this",
+               f"{options:x}", "--args", f"{OPTION_TRANSPORT},-1,0", "--dump", f"{package + 0x10:x}+0:32",
+               "--max-insns", "5000000"]
+        for va, v in pokes:
+            cmd += ["--poke", f"{va:x}={v.hex()}"]
+        res = subprocess.run(cmd, capture_output=True, text=True).stdout
+        stop = next((ln for ln in res.splitlines() if ln.startswith("stopped:")), "stopped: no stop line")
+        lines = res.splitlines()
+        at = next((i for i, ln in enumerate(lines) if ln.startswith(f"dump {package + 0x10:08x}+32")), None)
+        ids = ",".join(str(oid) for _, oid, _, _ in members)
+        bit_s = ",".join(map(str, bits))
+        accepted = stop == "stopped: the frame returned" or f"from eip {SOUND_ACK_EIP:08x}" in stop
+        if not accepted or at is None:
+            bad += 1
+            rows.append(f"{snap.frame}\t{play}\t{ids}\t{bit_s}\t-1\t\t# {stop}")
+            continue
+        raw = bytes.fromhex("".join(ln.split()[1] for ln in lines[at + 1:at + 5] if len(ln.split()) > 1))
+        size = struct.unpack("<h", raw[:2])[0]
+        data = raw[2:2 + max(size, 0)].hex()
+        rows.append(f"{snap.frame}\t{play}\t{ids}\t{bit_s}\t{size}\t{data}\t# {stop}")
+        print(f"who {play} citizens {ids} bits {bit_s}: size {size} data {data} ({stop})", flush=True)
+    with open(out, "w") as f:
+        f.write("# frame\twho\tobjects\tbits\tsize\tdata\n")
         f.write("\n".join(rows) + "\n")
     print(f"{len(rows)} rows to {out}; {bad} run(s) that did not return")
     return 1 if bad else 0

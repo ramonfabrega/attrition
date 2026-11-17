@@ -336,10 +336,17 @@ pub enum Event {
     /// writes its `group` and `alarm` (`0x1b`). The HUD's alone.
     Alarm,
     /// A press on a standard-panel button whose order the layer does not
-    /// issue, by its option (item 4346, §32.9): `OPTION_TRANSPORT`'s
-    /// `set_transport`, which asks `GroupData::can_transport`. Consumed;
-    /// it orders nothing.
+    /// issue, by its option (item 4346, §32.9). Consumed; it orders
+    /// nothing. No button hands it since item 4357 built
+    /// [`Event::Transport`].
     Unbuilt(i32),
+    /// A press on the transport button, `OPTION_TRANSPORT` (item 4357,
+    /// `docs/CLIENT_INPUT.md` §32.12): `Options::do_transport@0071c500`,
+    /// which for a unit selection (`buildings` clear) that `can_activate`
+    /// writes its `group` and `set_transport(can_transport == 0)`
+    /// ([`group_can_transport`]); `issue_set_transport`'s own test is the
+    /// semaphore's `0x10` bit. The HUD's alone, and only with the walk.
+    Transport,
     /// A press on a standard-panel pick button, by its option (item 4349,
     /// `docs/CLIENT_INPUT.md` §32.10): `OPTION_MOVE_TO` and
     /// `OPTION_ATTACK_TO` (`Options::do_move_to@0071d260`) and
@@ -1434,7 +1441,7 @@ pub const OPTION_AUTO_EXPLORE: i32 = 33;
 /// with an attack, the profile's `prefs & 2` clear) and are not built for
 /// another unit. `OPTION_REPAIR`, `OPTION_MOVE_TO`, `OPTION_ATTACK_TO` arm
 /// a pick, [`Event::Pick`] (item 4349); `OPTION_TRANSPORT` writes
-/// `set_transport`: [`Event::Unbuilt`].
+/// `set_transport`: [`Event::Transport`] (item 4357).
 fn standard_panel(sim: &sim::Sim, scene: &Scene, u: usize) -> Vec<(Event, Button)> {
     let unit = &sim.units[u];
     let typeless = |option, disable| Button {
@@ -1464,14 +1471,32 @@ fn standard_panel(sim: &sim::Sim, scene: &Scene, u: usize) -> Vec<(Event, Button
     out.push((Event::Garrison, typeless(OPTION_GARRISON, 0)));
     out.push((Event::Halt, typeless(OPTION_HALT, 0)));
     let low = sim.transport_level(unit.owner) < sim.unit_transport_type(u);
-    out.push((
-        Event::Unbuilt(OPTION_TRANSPORT),
-        typeless(OPTION_TRANSPORT, i32::from(low)),
-    ));
+    out.push((Event::Transport, typeless(OPTION_TRANSPORT, i32::from(low))));
     out.push((Event::Pick(OPTION_MOVE_TO), typeless(OPTION_MOVE_TO, 0)));
     out.push((Event::Pick(OPTION_ATTACK_TO), typeless(OPTION_ATTACK_TO, 0)));
     out.push((Event::AutoExplore, typeless(OPTION_AUTO_EXPLORE, 0)));
     out
+}
+
+/// `GroupData::can_transport@0070b5b0` (item 4357, `docs/CLIENT_INPUT.md`
+/// §32.12): each member that is active and on the map, or a plane
+/// (`UnitData::is_plane`, vslot `+0xc0`), must `UnitData::can_transport`
+/// (`docs/TRANSPORT.md` §3.2: the bit `0x800000` unvetoed, or the type's
+/// `unit_flags & 0x10`); a member that cannot answers 0 at once, and a
+/// group with no such member answers 0. The `buildings` arm answers 0
+/// before the walk; the press never reaches it.
+pub fn group_can_transport(sim: &sim::Sim, members: &[usize]) -> bool {
+    let mut any = false;
+    for &u in members {
+        let unit = &sim.units[u];
+        if (unit.alive() && unit.on_map) || sim.is_plane(u) {
+            if !sim.unit_can_transport(u) {
+                return false;
+            }
+            any = true;
+        }
+    }
+    any
 }
 
 /// The `TypeIndex`es `UnitOut::make_options@00615fc0`'s page loop names
@@ -2831,6 +2856,29 @@ impl Input {
                 Some((frame, play, vec![self.group(view.scene), Command::Alarm]))
             }
             Event::Unbuilt(_) => None,
+            Event::Transport => {
+                // `do_transport`: a unit selection (`buildings` clear) that
+                // `can_activate` writes its `group` and
+                // `set_transport(can_transport == 0)`; the two acks are the
+                // console's. Without the walk the members' bits are not
+                // known, and nothing is written.
+                if self.selection.is_empty() || self.line.is_some() || self.building {
+                    return None;
+                }
+                let sim = view.sim?;
+                let members: Vec<usize> = self
+                    .selection
+                    .iter()
+                    .filter_map(|id| {
+                        sim.units
+                            .iter()
+                            .position(|u| u.alive() && u.owner == id.who && u.index == id.o)
+                    })
+                    .collect();
+                let flag = i32::from(!group_can_transport(sim, &members));
+                let cmd = Command::SetTransport { flag };
+                Some((frame, play, vec![self.group(view.scene), cmd]))
+            }
             Event::Pick(option) => {
                 // `do_move_to(9 or 10, 0)` and `do_repair(0)`: a unit
                 // selection (`buildings` clear) that `can_activate` sets
@@ -12127,8 +12175,8 @@ pub(crate) mod tests {
     /// press does, pressed): `OPTION_HALT` the selection's `group` and
     /// `halt`, `OPTION_ALARM_PEASANT` its `group` and `alarm`,
     /// `OPTION_AUTO_EXPLORE` and `OPTION_SPELL` their events' orders,
-    /// `OPTION_GARRISON` the armed pick and no order; a greyed one, and
-    /// [`Event::Unbuilt`]'s, nothing.
+    /// `OPTION_GARRISON` the armed pick and no order; a greyed one (the
+    /// transport button on all 36), nothing.
     const HUD_STANDARD_PRESSED: (usize, usize) = (290, 290);
 
     /// **The citizen's build pages, on our walk** (item 4337): every held
@@ -12974,6 +13022,82 @@ pub(crate) mod tests {
             }
         }
         e
+    }
+
+    /// **`INPUT_TRANSPORT`** (item 4357, `docs/CLIENT_INPUT.md` §32.12):
+    /// the transport press's order, `group` and `set_transport`, byte for
+    /// byte the original's (`panels.py --transport` on run1236's packet at
+    /// 4179), of its four selections. Minted at 0 before the press was
+    /// built (`Event::Unbuilt` wrote nothing).
+    const INPUT_TRANSPORT: (usize, usize) = (4, 4);
+
+    /// **The transport press against the original's.** Each row of
+    /// `panels.py --transport` (`RON_TRANSPORT_PRESS`, default
+    /// `~/ron-data/transport-press/run1236.tsv`) is a selection of slot 0's
+    /// citizens with each member's `0x800000` poked, and the bytes
+    /// `Options::exec(OPTION_TRANSPORT)` wrote. Ours: the same ids on our
+    /// walk's frame 1, each member's `auto_transport` set as the row pokes
+    /// it, through [`Event::Transport`]. The button is greyed on both sides
+    /// (slot 0's level is 0 on run1236's 4179 and on our frame 1); each side
+    /// is run past the HUD's greying, theirs at `exec`, ours at the layer.
+    #[test]
+    fn the_transport_press_as_the_original() {
+        let home = std::env::var("HOME").unwrap_or_default();
+        let path = std::env::var("RON_TRANSPORT_PRESS")
+            .unwrap_or_else(|_| format!("{home}/ron-data/transport-press/run1236.tsv"));
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no {path}");
+            return;
+        };
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        r.step();
+        let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+        let c = camera(None);
+        let (mut rows, mut equal) = (0, 0);
+        for line in text.lines().filter(|l| !l.starts_with('#')) {
+            let f: Vec<&str> = line.split('\t').collect();
+            assert_eq!(f[1], "0", "the press is issued from slot 0's seat: {line}");
+            let ids: Vec<i16> = f[2].split(',').map(|x| x.parse().unwrap()).collect();
+            let bits: Vec<bool> = f[3].split(',').map(|x| x == "1").collect();
+            let theirs = f[5];
+            let mut sim = r.sim().clone();
+            for (&o, &bit) in ids.iter().zip(&bits) {
+                let u = sim
+                    .units
+                    .iter()
+                    .position(|u| u.alive() && u.owner == 0 && u.index == o)
+                    .unwrap_or_else(|| panic!("no unit 0/{o} on our frame 1"));
+                assert!(
+                    sim.transport_level(0) < sim.unit_transport_type(u),
+                    "greyed on ours"
+                );
+                sim.units[u].auto_transport = bit;
+            }
+            let v = View {
+                sim: Some(&sim),
+                ..view(&c, &scene, &terrain)
+            };
+            let mut input = Input::new(0);
+            input.selection = ids.iter().map(|&o| ObjId { who: 0, o }).collect();
+            let ours = input
+                .event(1, Event::Transport, &v)
+                .map(|o| {
+                    rondata::commands::encode(&o.2)
+                        .iter()
+                        .map(|b| format!("{b:02x}"))
+                        .collect::<String>()
+                })
+                .unwrap_or_default();
+            println!("TRANSPORT ids {ids:?} bits {bits:?}: ours {ours} theirs {theirs}");
+            rows += 1;
+            if ours == theirs {
+                equal += 1;
+            }
+        }
+        assert_eq!((equal, rows), INPUT_TRANSPORT);
     }
 
     /// **`INPUT_PICKED_FILE`** (item 4352): the picked script's events,
