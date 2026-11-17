@@ -38230,3 +38230,27 @@ Files in place: `gamelog.txt`, 1,272,747,952 bytes, SHA-256
 
 **What it holds**: `diff::diplomacy_take::run1646_walks_to_its_word_at_difficulty_4` (`RUN1646_WORD` 5496). No leaf is
 released: the walk does not reach the leader window (5900).
+
+## run1650 — the 2017 sample's opening, retaken with the start dump (2026-11-17, item 4336, `att-4336`)
+
+`docs/RECGAME.md` §7, `docs/START.md` §2 step 5, DECISIONS 139 §3. **What the disk could not answer**: run900's
+captures are on neither archive (`find ~/ron-golden ~/ron-data -maxdepth 3 -iname '*run900*'`, empty, 2026-11-17;
+`~/ron-data/lab-captures` was deleted on Ramon's word on 2026-10-19, the archive census of that day), and no lobby
+capture holds the recording's seed. Filed **in place**, as run1646 is: `~/ron-golden/run1650/map-7/`, `filerun.py`
+not run, so the start census (`START_LOBBIES` 161) does not count it.
+- **The line**: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1650 --recording "<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx"
+  --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0` (`check_all_level` 14, `CHECKSUM` 2, a start `WORLD` 6,
+  log window 0 2), waited on with `waitrun.sh`.
+- **The receipt**: pool lane 1, launched 11:27:20 −05:00, exited 11:27:47, **26.9 s** launch to exit, exit 0, `success`,
+  37 frames, `last_frame` 36, not ended early, five settings restored; `gamelog_p.txt`; map 7, seed observed 340513920
+  (requested 12345); players who 3 (flags 7, tribe 15, the person), who 0/1/2/4 (flags 8193, tribes 7/8/2/17).
+- **What it prints**: the `GAMEINFO` block (version `00.2024.06.2000`, `(int) version` 108265764, `TEAM_STYLE` 12,
+  `MAP_SIZE` 2, `DIFFICULTY` 5, `STARTING_TOWN` 2, `REVEAL_MAP` 1, flags 1440; the person on team 0, the computers on
+  team 1), and the whole start block: every cell, the five empires, the herds, `diplos` (the computers 2 to each other,
+  0 to the person) and the setup trace.
+- **What it holds**: `diff::sample::tests::the_sample_s_header_is_the_playback_s_gameinfo` (the version line alone parts)
+  and `the_sample_s_start_built_from_its_header` (18,315 of 18,315; minted at 17,163).
+
+Files in place: `gamelog_p.txt`, 157,710,947 bytes, SHA-256
+`fc5608b3b2fe11dffce47e32d455f6c141c059fd97a1f8a42486969aa6a99cfa`; `rontrace.log`, 8,601,888 bytes, SHA-256
+`cb02f60282b4b37aec56b7cddefd584904c7667990fefa1b0c97a5cfa45b43e1`.
