@@ -407,10 +407,11 @@ on frames 230 and 239. So the minted move carries `form` 9 and `width` 50.
 
 - The box tests each unit's anchor (§1) within `BOX_MARGIN`, 30 px, of the rectangle. The original projects each
   figure's bounding box centre instead.
-- Only the issuing slot's units are taken. A box with none clears the selection, where the original walks the
-  buildings next.
-- The window sends a drag when the release is `DRAG_SLOP` (4 px) or more from the press. The original's `clicking`
-  threshold is not read.
+- Only the issuing slot's units are taken. ~~A box with none clears the selection, where the original walks the
+  buildings next.~~ Since item 4318 a box with none walks the issuing slot's buildings, by anchor (§30.3).
+- ~~The window sends a drag when the release is `DRAG_SLOP` (4 px) or more from the press.~~ Since item 4318 the
+  window sends any release that moved as a drag, and the layer boxes past `DRAG_SLOP` (4 px) after an armed pick.
+  The original's `clicking` threshold is not read.
 - The window now selects on the left button's release, as `on_left_up` does.
 - ~~**One unit keeps the scripts' (−1, −1).**~~ The main view mints `max(form, 0)` and the leader's width for one
   unit too, (0, 50) for the Scout on frame 30; the scripts' −1/−1 is the minimap's arm. Played by run1572 (§9).
@@ -3126,6 +3127,8 @@ Item 4302's turn (§36) writes a turn's issues as one package and mints all nine
 shown, 1,432 form, 32 missed**; `INPUT_WHOLE` holds at 42. Item 4303's spy arms (§37) mint the 11 right-press spells:
 **987 shown, 1,432 form, 10 missed**; `INPUT_WHOLE` holds at 42. Item 4304's placement on a drag (§38) makes the
 press's point beside the release's the layer's form: **987 shown, 1,442 form, 0 missed**; `INPUT_WHOLE` holds at 42.
+Item 4318 mints every form order from a person's events on a hand-made scene (§30.3): **2,429 shown, 0 form, 0
+missed**; `INPUT_WHOLE` **42 → 50 of 50**.
 
 **Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
 `INPUT_SPELLS against the census` 17 against 6.
@@ -3175,10 +3178,45 @@ stances are shown.
 
 - **Backed by the disk**: every count in §30.1 and §30.2 is the test's, read off the 50 recordings. Each shown pin is
   held both to n of n and to the census's own count of its packages.
-- **"Form" is not "minted".** 1,076 orders are of the layer's form, but no scene mints the recorded one. Their
+- ~~**"Form" is not "minted".** 1,076 orders are of the layer's form, but no scene mints the recorded one. Their
   points are unchecked: `ground_at` reaches a lattice of world points at a camera, and whether every recorded point
   lies on one is not measured. Their groups are unchecked too: no recorded selection was rebuilt from a press or a
-  box. So the carried count's 42 rests on shown orders alone, and the form orders move no recording into it.
+  box. So the carried count's 42 rests on shown orders alone, and the form orders move no recording into it.~~
+  Measured and minted by item 4318, below.
+- **The form orders, by hand (item 4318).** The census of the 1,442 came first, 721 packages. By orders: `move_to` on the main view 336, `gather_point` 342 (action 0 294, 1 18, 2 6, 3 24), the
+  minimap's `move_to` 250, `attack` 160, the right drag's 140, `build` 62 (26 clicks, 5 with two points),
+  `swarm_around` 56, the attack-move 54, `gather` 22, `guard` 20. Every recorded main-view point is reached by a
+  press at some camera: 428 of 428 packages, the pinned camera moved onto the point and corrected by the offset
+  `ground_at` returns (about 3 units, a pixel holding some 45 lattice points). Groups: 449 packages repeat the
+  last group, 164 hold one object, 108 several. Each kind is then minted byte for byte, `group` and order, from a
+  selection made by hand (`select_by_hand`: a press on one object, a box over several, the repeat as §20 writes it)
+  and the press the order names:
+  - `INPUT_MAIN_MOVES` 168 of 168: a right press at a camera that reaches the point.
+  - `INPUT_HAND_GATHER_POINTS` 171 of 171: a building selection, then a right press on the ground, on a building at
+    the point (1, 2), or on one of the issuer's units with the recorded captain (3). It needs §7.1's second step,
+    which the layer now takes: a box that takes no unit walks the issuer's buildings, sorted by type
+    (`ty`, the `TypeIndex` less `BASE_BUILDTYPES`) and then by object. **Seen red**: 167 of 171 without it.
+  - `INPUT_HAND_MOVES` 222 of 222: the minimap press (−1/−1); the attack-move, ctrl on a main-view press and on the
+    minimap for `QUEUE_FIRST` (the main view's alt makes it a move); the right drag, its release found along the
+    angle so `find_angle` returns the recorded one. **Seen red**: 152 of 222 with north and east swapped.
+  - `INPUT_HAND_OBJECT_ORDERS` 129 of 129: a right press on the named object. **Seen red**: 125 of 129 with no
+    modifiers held.
+  - `INPUT_HAND_PLACEMENTS` 31 of 31: the type armed, then a click, or a release away from the press, at a camera
+    that reaches both points (zooms from a fifth to twice the pinned one). The original's click and drag both give
+    `picked_spot` the release and the press (§38.2), so the window now sends a release that moved at all as a drag,
+    and the layer asks `DRAG_SLOP` only after the pick. **Seen red**: 30 of 31 with the slop asked first.
+  - **The value diff**: before, each of these 1,442 was "form", minted by no scene. Now, for example, frame 12022's
+    Lumber Mill, whose two pixels are one apart, mints `group []` and `build(13761, 8198, 13757, 8202, 424, 1)`.
+    Under the old window a press there wrote one point twice. `INPUT_WHOLE_ORDERS` 987 · 1,442 · 0 → **2,429 · 0 ·
+    0**, and `INPUT_WHOLE` **42 → 50 of 50**.
+- **Ours, not the original's** (item 4318): the scene is made by hand. Each run of ascending objects in a group is
+  one soldier's type, so the box's sort gives the order back, and each member carries the recorded `form` and
+  `width`. Targets stand where the press names them, away from the selection. The camera (its look point and zoom)
+  is chosen per order. None of this is a reading of the recorded game's state.
+- **Not established** (item 4318): the units' real types, places and formation bytes at each frame. No walk of the
+  2017 sample exists, so a group whose real types the box would not keep in this order cannot be told from one it
+  would. The original's left drag threshold (`click_drag_low_sensitive` and `_high_sensitive`, from the profile) is
+  not read. No playback was owed: every minted package equals the recording's own, which the original wrote.
 - **The arm labels are ours**: read from the fields against the layer's own constants, not from the issuers' code
   paths. ~~`orders` 2 as the attack-move is `sim::ids::order::ATTACK_TO`'s name, not a reading of its issuer.~~ Since
   item 4297 it is a reading of its issuers, and the 54 carry every field they write (§35.2).
@@ -4120,9 +4158,9 @@ the press's.
 
 ### 38.5 Ours, not the original's
 
-- A click writes its press's point twice. The original writes the cursor's last point, then the press's, so a
-  click that moves under the window's `DRAG_SLOP` writes two points there and one here. The original's `clicking`
-  threshold is not read.
+- ~~A click writes its press's point twice. The original writes the cursor's last point, then the press's, so a
+  click that moves under the window's `DRAG_SLOP` writes two points there and one here.~~ Since item 4318 a release
+  that moved writes both here too (§30.3). The original's `clicking` threshold is not read.
 - The drag's slop is the window's `DRAG_SLOP` (4 pixels), tested once at the release.
 
 ### 38.6 Confidence, and what is not established
