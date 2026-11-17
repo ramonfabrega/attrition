@@ -319,6 +319,9 @@ pub struct Frame<'a> {
     /// The surf's version (item 4239): when only it moves, the surf's
     /// lists alone are uploaded again.
     pub surf_version: u32,
+    /// Item 4327: the land pass's layers blended on an HDR target
+    /// ([`crate::world::World::land_hdr`]).
+    pub land_hdr: bool,
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
     /// The shadows (item 4182), one mesh a decal texture.
@@ -395,6 +398,11 @@ enum PatchKind {
     Billboard,
 }
 
+/// **The land pass's HDR target** (item 4327; `docs/RENDERER.md` §3.27,
+/// "The patches over the faded land in HDR"): the card's own target holds
+/// the land's layers before the tone map, and its blends run there.
+const LAND_HDR_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba16Float;
+
 fn patch_kind(piece: i32, alpha: usize) -> PatchKind {
     use crate::world::{CORAL_PIECE, FLOOR_PIECE, LAND_FADE_ALPHA, SNOWCAP_PIECE, WATER_PIECE};
     match piece {
@@ -437,6 +445,15 @@ pub struct Gpu {
     /// The land's patches, lit (item 4212).
     patch_lit: wgpu::RenderPipeline,
     faded: wgpu::RenderPipeline,
+    /// Item 4327 (`docs/RENDERER.md` §3.27, "The patches over the faded
+    /// land in HDR"): the faded land, the floor, the transition patches and
+    /// the coral on the land pass's HDR target ([`LAND_HDR_FORMAT`]), and the
+    /// two full-screen passes that take the frame there and back.
+    hdr_lit: wgpu::RenderPipeline,
+    hdr_faded: wgpu::RenderPipeline,
+    hdr_floor: wgpu::RenderPipeline,
+    untone: wgpu::RenderPipeline,
+    retone: wgpu::RenderPipeline,
     /// The ocean floor, lit per pixel, depth written; the water, blended in
     /// HDR over the frame under it, and that copy's layout (item 4232).
     floor: wgpu::RenderPipeline,
@@ -1032,48 +1049,117 @@ impl Gpu {
             ],
             immediate_size: 0,
         });
-        let patch_pass =
-            |label: &str, entry: &str, layout: &wgpu::PipelineLayout, depth_write: bool| {
-                device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                    label: Some(label),
-                    layout: Some(layout),
-                    vertex: wgpu::VertexState {
-                        module: &patch_module,
-                        entry_point: Some("vs_patch"),
-                        compilation_options: Default::default(),
-                        buffers: &[Some(wgpu::VertexBufferLayout {
-                            array_stride: 32,
-                            step_mode: wgpu::VertexStepMode::Vertex,
-                            attributes: &textured_attributes,
-                        })],
-                    },
-                    primitive: wgpu::PrimitiveState {
-                        cull_mode: None,
-                        ..Default::default()
-                    },
-                    depth_stencil: Some(wgpu::DepthStencilState {
-                        format: DEPTH_FORMAT,
-                        depth_write_enabled: Some(depth_write),
-                        depth_compare: Some(wgpu::CompareFunction::LessEqual),
-                        stencil: Default::default(),
-                        bias: Default::default(),
-                    }),
-                    multisample: Default::default(),
-                    fragment: Some(wgpu::FragmentState {
-                        module: &patch_module,
-                        entry_point: Some(entry),
-                        compilation_options: Default::default(),
-                        targets: &[Some(wgpu::ColorTargetState {
-                            format,
-                            blend: Some(wgpu::BlendState::ALPHA_BLENDING),
-                            write_mask: wgpu::ColorWrites::ALL,
-                        })],
-                    }),
-                    multiview_mask: None,
-                    cache: None,
-                })
-            };
+        let patch_pass_to = |label: &str,
+                             entry: &str,
+                             layout: &wgpu::PipelineLayout,
+                             depth_write: bool,
+                             format: wgpu::TextureFormat| {
+            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some(label),
+                layout: Some(layout),
+                vertex: wgpu::VertexState {
+                    module: &patch_module,
+                    entry_point: Some("vs_patch"),
+                    compilation_options: Default::default(),
+                    buffers: &[Some(wgpu::VertexBufferLayout {
+                        array_stride: 32,
+                        step_mode: wgpu::VertexStepMode::Vertex,
+                        attributes: &textured_attributes,
+                    })],
+                },
+                primitive: wgpu::PrimitiveState {
+                    cull_mode: None,
+                    ..Default::default()
+                },
+                depth_stencil: Some(wgpu::DepthStencilState {
+                    format: DEPTH_FORMAT,
+                    depth_write_enabled: Some(depth_write),
+                    depth_compare: Some(wgpu::CompareFunction::LessEqual),
+                    stencil: Default::default(),
+                    bias: Default::default(),
+                }),
+                multisample: Default::default(),
+                fragment: Some(wgpu::FragmentState {
+                    module: &patch_module,
+                    entry_point: Some(entry),
+                    compilation_options: Default::default(),
+                    targets: &[Some(wgpu::ColorTargetState {
+                        format,
+                        blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                        write_mask: wgpu::ColorWrites::ALL,
+                    })],
+                }),
+                multiview_mask: None,
+                cache: None,
+            })
+        };
+        let patch_pass = |label: &str, entry: &str, layout: &wgpu::PipelineLayout, depth_write| {
+            patch_pass_to(label, entry, layout, depth_write, format)
+        };
         let blended = |label: &str, entry: &str| patch_pass(label, entry, &patch_layout, false);
+        // Item 4327: the land pass's layers on its HDR target, as `faded`,
+        // `floor` and `patch_lit` are on the frame.
+        let hdr_lit = patch_pass_to(
+            "hdr_lit",
+            "fs_patch_lit_hdr",
+            &patch_layout,
+            false,
+            LAND_HDR_FORMAT,
+        );
+        let hdr_faded = patch_pass_to(
+            "hdr_faded",
+            "fs_faded_hdr",
+            &patch_layout,
+            false,
+            LAND_HDR_FORMAT,
+        );
+        let hdr_floor = patch_pass_to(
+            "hdr_floor",
+            "fs_floor_hdr",
+            &patch_layout,
+            true,
+            LAND_HDR_FORMAT,
+        );
+        let full_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("full"),
+            bind_group_layouts: &[None, None, None, Some(&lake_layout)],
+            immediate_size: 0,
+        });
+        let full = |label: &str, entry: &str, format: wgpu::TextureFormat, write| {
+            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some(label),
+                layout: Some(&full_layout),
+                vertex: wgpu::VertexState {
+                    module: &patch_module,
+                    entry_point: Some("vs_full"),
+                    compilation_options: Default::default(),
+                    buffers: &[],
+                },
+                primitive: Default::default(),
+                depth_stencil: None,
+                multisample: Default::default(),
+                fragment: Some(wgpu::FragmentState {
+                    module: &patch_module,
+                    entry_point: Some(entry),
+                    compilation_options: Default::default(),
+                    targets: &[Some(wgpu::ColorTargetState {
+                        format,
+                        blend: None,
+                        write_mask: write,
+                    })],
+                }),
+                multiview_mask: None,
+                cache: None,
+            })
+        };
+        let untone = full(
+            "untone",
+            "fs_untone",
+            LAND_HDR_FORMAT,
+            wgpu::ColorWrites::ALL,
+        );
+        // The frame's alpha is left as the passes before laid it.
+        let retone = full("retone", "fs_retone", format, wgpu::ColorWrites::COLOR);
         // Item 4278: stage 2's `_mtrl` map, group 3's bindings 2 and 3.
         let mtrl_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("mtrl"),
@@ -1220,6 +1306,11 @@ impl Gpu {
             patch,
             patch_lit,
             faded,
+            hdr_lit,
+            hdr_faded,
+            hdr_floor,
+            untone,
+            retone,
             floor,
             water,
             surf,
@@ -1830,6 +1921,7 @@ impl Gpu {
                 cache.as_ref(),
                 meshes,
                 &patches[..split],
+                frame.land_hdr,
             );
         } else {
             // Item 4232: the ground in passes of its own, so the water can
@@ -1842,6 +1934,7 @@ impl Gpu {
                 cache.as_ref(),
                 meshes,
                 patches,
+                frame.land_hdr,
             );
         }
         {
@@ -2093,10 +2186,23 @@ impl Gpu {
         terrain: Option<&(u32, wgpu::Buffer, u32)>,
         meshes: &[Uploaded],
         patches: &[UploadedPatch],
+        land_hdr: bool,
     ) {
         let view = target.create_view(&Default::default());
         let water = patches.iter().position(|p| p.5 == PatchKind::Water);
         let (first, rest) = patches.split_at(water.unwrap_or(patches.len()));
+        // Item 4327: the land pass's faded base, floor, transition patches
+        // and coral, one run in the world's order, blended on the HDR target.
+        let in_hdr = |p: &UploadedPatch| {
+            !p.4 && matches!(p.5, PatchKind::Faded | PatchKind::Floor | PatchKind::Lit)
+        };
+        let (first, run, after) = match first.iter().position(in_hdr).filter(|_| land_hdr) {
+            Some(s) => {
+                let e = s + first[s..].iter().take_while(|p| in_hdr(p)).count();
+                (&first[..s], &first[s..e], &first[e..])
+            }
+            None => (first, &first[..0], &first[..0]),
+        };
         fn begin<'e>(
             enc: &'e mut wgpu::CommandEncoder,
             view: &wgpu::TextureView,
@@ -2143,14 +2249,21 @@ impl Gpu {
             let mut pass = begin(enc, &view, depth_view, true);
             self.draw_ground(&mut pass, terrain, Some(meshes), first, None);
         }
-        if rest.is_empty() {
-            return;
-        }
         let extent = wgpu::Extent3d {
             width: size.0,
             height: size.1,
             depth_or_array_layers: 1,
         };
+        if !run.is_empty() {
+            self.land_hdr_pass(enc, target, &view, depth_view, extent, run);
+            if !after.is_empty() {
+                let mut pass = begin(enc, &view, depth_view, false);
+                self.draw_ground(&mut pass, None, None, after, None);
+            }
+        }
+        if rest.is_empty() {
+            return;
+        }
         let copy = |enc: &mut wgpu::CommandEncoder| {
             let lake = self.device.create_texture(&wgpu::TextureDescriptor {
                 label: Some("lake"),
@@ -2196,6 +2309,125 @@ impl Gpu {
                 i = j;
             }
         }
+    }
+
+    /// **The land pass in HDR** (item 4327; `docs/RENDERER.md` §3.27, "The
+    /// patches over the faded land in HDR"): the frame so far taken back
+    /// through the curve onto an HDR target (`fs_untone`), `run` drawn there
+    /// with the target's own source-alpha blend on the lit values, and the
+    /// target taken through the curve back onto the frame (`fs_retone`):
+    /// `T(T⁻¹(D) · (1 − a) + L · a)` per layer, as the card's draws 0–131.
+    fn land_hdr_pass(
+        &self,
+        enc: &mut wgpu::CommandEncoder,
+        target: &wgpu::Texture,
+        view: &wgpu::TextureView,
+        depth_view: &wgpu::TextureView,
+        extent: wgpu::Extent3d,
+        run: &[UploadedPatch],
+    ) {
+        let texture = |label: &str, format, usage| {
+            self.device.create_texture(&wgpu::TextureDescriptor {
+                label: Some(label),
+                size: extent,
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format,
+                usage,
+                view_formats: &[],
+            })
+        };
+        let bind = |t: &wgpu::Texture| {
+            self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("land_hdr"),
+                layout: &self.lake_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(
+                        &t.create_view(&Default::default()),
+                    ),
+                }],
+            })
+        };
+        let under = texture(
+            "land_under",
+            self.format,
+            wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+        );
+        enc.copy_texture_to_texture(target.as_image_copy(), under.as_image_copy(), extent);
+        let hdr = texture(
+            "land_hdr",
+            LAND_HDR_FORMAT,
+            wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+        );
+        let hdr_view = hdr.create_view(&Default::default());
+        let full = |enc: &mut wgpu::CommandEncoder,
+                    to: &wgpu::TextureView,
+                    pipeline: &wgpu::RenderPipeline,
+                    from: &wgpu::BindGroup| {
+            let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("land_hdr_full"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: to,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
+            pass.set_pipeline(pipeline);
+            pass.set_bind_group(3, from, &[]);
+            pass.draw(0..3, 0..1);
+        };
+        full(enc, &hdr_view, &self.untone, &bind(&under));
+        {
+            let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("land_hdr"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &hdr_view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    }),
+                }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
+            pass.set_bind_group(0, &self.bind, &[]);
+            for (b, n, t, a, _, kind, _) in run {
+                pass.set_pipeline(match kind {
+                    PatchKind::Faded => &self.hdr_faded,
+                    PatchKind::Floor => &self.hdr_floor,
+                    _ => &self.hdr_lit,
+                });
+                pass.set_bind_group(1, t, &[]);
+                pass.set_bind_group(2, a, &[]);
+                pass.set_vertex_buffer(0, b.slice(..));
+                pass.draw(0..*n, 0..1);
+            }
+        }
+        full(enc, view, &self.retone, &bind(&hdr));
     }
 
     fn draw_ground(

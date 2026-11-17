@@ -74,6 +74,25 @@ fn fs_faded(i: VOut) -> @location(0) vec4<f32> {
     return vec4<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z), 1.0);
 }
 
+// Item 4327 (`docs/RENDERER.md` §3.27, "The patches over the faded land in
+// HDR"): the land pass's faded base, transition patches and coral drawn to
+// an HDR target, as the card's draws 0–131 blend source alpha over on its
+// own before `ps_tonemap.hlsl`. Each writes the lit value before the curve;
+// the target's blend runs on it, and `fs_retone` takes the curve after.
+@fragment
+fn fs_patch_lit_hdr(i: VOut) -> @location(0) vec4<f32> {
+    let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    return vec4<f32>(land_lit_deep_hdr(textureSample(tex, samp, i.uv).rgb, i.nl, i.deep), a);
+}
+
+// `fs_faded` on the HDR target: `L · a` over the clear's black, opaque.
+@fragment
+fn fs_faded_hdr(i: VOut) -> @location(0) vec4<f32> {
+    let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    let l = land_lit_deep_hdr(textureSample(tex, samp, i.uv).rgb, i.nl, i.deep) * a;
+    return vec4<f32>(l, 1.0);
+}
+
 // Item 4141 (`docs/RENDERER.md` §3.10): one layer of a mountain's own draw,
 // `MountainsOut::mountain_blend` — stage 0 the tileset's texture (MODULATE
 // with the vertex white, A its own); stage 1 the range's alpha, ADDSIGNED

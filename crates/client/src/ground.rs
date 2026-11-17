@@ -1098,6 +1098,15 @@ pub const RUN1564_DEEP_STILL: [u32; 4] = [661, 663, 2, 4];
 #[cfg(test)]
 pub const RUN1564_FADED_HDR: [u32; 4] = [649, 663, 0, 14];
 
+/// **`RUN1564_LAND_HDR`** (item 4327; `docs/RENDERER.md` §3.27, "The patches
+/// over the faded land in HDR"): run1564's still at 3279, `[SANDY, the
+/// ground row]` with [`crate::world::World::land_hdr`] and
+/// [`crate::world::World::coral_lit`] both off (the drawn row), the HDR blend
+/// alone, the coral on the sand's light alone, and both
+/// (`the_patches_over_the_faded_land_in_hdr`). Every arm on falls on `SANDY`.
+#[cfg(test)]
+pub const RUN1564_LAND_HDR: [[u32; 2]; 4] = [[663, 1798], [661, 1797], [661, 1796], [662, 1798]];
+
 /// **`RUN1564_3279_SURF`** (item 4225; `docs/RENDERER.md` §3.18, "The
 /// surf, off the packet"): `SANDY` and `OCEAN` `[agree, scored]` on the
 /// client's still with run1564's own surf (the card's draws 163–169, off
@@ -7992,5 +8001,80 @@ pub(crate) mod tests {
         );
         assert_eq!(got, RUN1564_FADED_HDR);
         assert_eq!(nine_on, 9, "4294's nine deep tiles");
+    }
+
+    /// **The patches over the faded land in HDR** (item 4327;
+    /// `docs/RENDERER.md` §3.27): run1564's still at 3279 in four arms,
+    /// [`World::set_land_hdr`] and [`World::set_coral_lit`] off and on —
+    /// both off, the HDR blend alone, the coral on the sand's light alone,
+    /// both — `[SANDY, the ground row]` each: [`RUN1564_LAND_HDR`]. The card
+    /// blends draws 0–131 source alpha over on its HDR target, and every arm
+    /// that draws it so falls on `SANDY`: what holds the nine deep tiles'
+    /// red under theirs is not the blend (4327a). Both switches stay off.
+    #[test]
+    fn the_patches_over_the_faded_land_in_hdr() {
+        use crate::gpu::SilhouetteOrder;
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let mut rows = Vec::new();
+        for (hdr, lit) in [(false, false), (true, false), (false, true), (true, true)] {
+            p.world.set_land_hdr(hdr);
+            p.world.set_coral_lit(lit);
+            let still = crate::still_of(
+                &mut p.world,
+                &camera,
+                size,
+                SilhouetteOrder::Before,
+                wgpu::TextureFormat::Rgba8Unorm,
+            );
+            rows.push(still_ground_row(&mut p, &still));
+        }
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let nine = [
+            (186, 170),
+            (192, 171),
+            (199, 178),
+            (200, 190),
+            (201, 183),
+            (201, 188),
+            (200, 181),
+            (200, 180),
+            (182, 204),
+        ];
+        let mut got = [[0u32; 2]; 4];
+        for (k, r) in rows.iter().enumerate() {
+            let sandy = r
+                .iter()
+                .filter(|x| kind_of(&t, &mountains, x.0) == 5 && x.3)
+                .count();
+            let reds: Vec<i32> = r
+                .iter()
+                .filter(|x| nine.contains(&x.0))
+                .map(|x| (x.1[0] - x.2[0]).round() as i32)
+                .collect();
+            got[k] = [sandy as u32, r.iter().filter(|x| x.3).count() as u32];
+            println!(
+                "run1564 land hdr arm {k}: [SANDY, the row] {:?}, the nine's red under theirs {reds:?}",
+                got[k]
+            );
+        }
+        for (a, b) in rows[0].iter().zip(&rows[3]) {
+            if nine.contains(&a.0) {
+                println!(
+                    "run1564 land hdr: deep tile {:?}: theirs ({:.0}, {:.0}, {:.0}), off ({:.0}, {:.0}, {:.0}) -> both ({:.0}, {:.0}, {:.0})",
+                    a.0, a.1[0], a.1[1], a.1[2], a.2[0], a.2[1], a.2[2], b.2[0], b.2[1], b.2[2],
+                );
+            }
+        }
+        assert_eq!(got, RUN1564_LAND_HDR);
+        assert!(
+            got[1..].iter().all(|g| g[0] < got[0][0]),
+            "4327: every arm on falls on SANDY; the red is not the blend's"
+        );
     }
 }

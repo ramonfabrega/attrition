@@ -368,6 +368,7 @@ fn draw(
         world.drawn_terrain();
         (world.patch_version(), world.surf_version())
     });
+    let land_hdr = world.land_hdr();
     let (t, ground, patch) = world.drawn_terrain();
     let frame = gpu::Frame {
         terrain_version: version,
@@ -376,6 +377,7 @@ fn draw(
         patch,
         patch_version,
         surf_version,
+        land_hdr,
         figures: (&b.figures.positions, &b.figures.colours),
         textured: &b.textured,
         trees: &b.trees,
@@ -415,6 +417,7 @@ pub(crate) fn still_of(
     world.set_screen(camera, size);
     world.drawn_terrain();
     let (patch_version, surf_version) = (world.patch_version(), world.surf_version());
+    let land_hdr = world.land_hdr();
     let (t, ground, patch) = world.drawn_terrain();
     let frame = gpu::Frame {
         terrain_version: version,
@@ -423,6 +426,7 @@ pub(crate) fn still_of(
         patch,
         patch_version,
         surf_version,
+        land_hdr,
         figures: (&b.figures.positions, &b.figures.colours),
         textured: &b.textured,
         trees: &b.trees,
@@ -457,6 +461,7 @@ fn draw_page(
         terrain_version: u32::MAX,
         patch_version: u32::MAX,
         surf_version: u32::MAX,
+        land_hdr: true,
         terrain: (&[], &[]),
         ground: &[],
         patch: &[],
