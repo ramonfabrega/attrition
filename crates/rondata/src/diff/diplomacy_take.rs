@@ -245,6 +245,23 @@ pub(crate) fn walk_take_from(
                             }
                         }
                     }
+                    let wp = match x.orders.front().map(|o| &o.body) {
+                        Some(sim::orders::Body::Move(m)) => Some(m.waypoint),
+                        _ => None,
+                    };
+                    let top = x.path.last().map(|n| (n.to, n.flags, built.sim.world.is_tocean(n.to.tile())));
+                    if wet > 0 && wp.is_some() {
+                        let w = wp.unwrap();
+                        let d = (w.x - x.pos.x).abs().max((w.y - x.pos.y).abs());
+                        eprintln!(
+                            "PROBE wp 1/{} wp ({}, {}) wet {} dist {d} top {:?}",
+                            x.index,
+                            w.x,
+                            w.y,
+                            built.sim.world.is_tocean(w.tile()),
+                            top
+                        );
+                    }
                     if wet > 0 {
                         eprintln!(
                             "PROBE wet 1/{} #{i} at ({}, {}) tile ({}, {}) wet {wet} can {} head {:?}",
