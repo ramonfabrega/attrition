@@ -195,6 +195,14 @@ impl Sim {
         // on the alliance of 1051, which doubles their period on the human
         // from 1052.
         let forced = agenda & 4 != 0;
+        if std::env::var("RON_PROBE_4331").is_ok() && (5400..=5500).contains(&frame) && me == 2 {
+            eprintln!(
+                "P4331 f{frame} me{me} t{t} agenda {agenda:#x} agree {} dem {} co {}",
+                self.leaders.tribute[me].dip[t].agree,
+                self.leaders.tribute[me].tribute_demanded[t],
+                self.leaders.tribute[me].counteroffer[t]
+            );
+        }
         if !forced {
             let mut period: i64 = 0x800;
             let deal = &self.leaders.tribute[me];
@@ -506,6 +514,16 @@ impl Sim {
         }
         if plan_war && plan_frame <= frame {
             aggression = 1;
+        }
+        if std::env::var("RON_PROBE_4331").is_ok() && (5400..=5500).contains(&frame) {
+            eprintln!(
+                "P4331 f{frame} me{me} t{t} aggr {aggression} plan_war {plan_war} plan_frame {plan_frame} strong {strong} weak {weak} tmw {too_many_wars} ally {ally} diplos {} {} wealth_t {} blacken_t {} trib {}",
+                self.diplos(me, t),
+                self.diplos(t, me),
+                self.economy.ledgers[t].bucket[2],
+                self.leaders.declare[t].blacken,
+                self.is_tribute_period(me as Player, t as Player)
+            );
         }
         let mut rivals = alliance::Rivals::default();
         match self.ai.lobby.team_style {
