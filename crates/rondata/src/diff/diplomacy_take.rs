@@ -1928,11 +1928,16 @@ pub(crate) fn recon4300_2() -> Option<(String, String)> {
 /// only once a spot is found, [`sim::Sim::swarm_around_new`]).
 pub(crate) const RECON4300_2_WORD: i64 = 4202;
 
-/// A recon of run1575's lobby with no command script, walked from
-/// run1482's start re-read at style 0 and at `difficulty`, nothing staged
-/// (item 4300's first act). A re-read difficulty drops run1482's own frame
-/// words (the third act).
-pub(crate) fn walk_recon4300(capture: (&str, &str), difficulty: &'static str) -> Option<TakeWord> {
+/// A recon of run1575's lobby, walked from run1482's start re-read at style
+/// 0 and at `difficulty`, with `script` staged and no window command (item
+/// 4300's first act: an empty script; item 4316's recon4316-1: the alliance
+/// lines of `diplomacy4206.cmd`). A re-read difficulty drops run1482's own
+/// frame words (the third act).
+pub(crate) fn walk_recon4300(
+    capture: (&str, &str),
+    difficulty: &'static str,
+    script: crate::golden::Script,
+) -> Option<TakeWord> {
     let (g, t) = capture;
     let inst = crate::testenv::install()?;
     let (Some(start), Some(pasture)) = (dump(SEA_START), take_trace(t)) else {
@@ -1974,7 +1979,6 @@ pub(crate) fn walk_recon4300(capture: (&str, &str), difficulty: &'static str) ->
             }
         }
     }
-    let script = crate::golden::Script::parse("");
     let built =
         crate::diff::setup::with_staged_script(script, || build_sim(&loaded, &init, Tuning::RON));
     assert_eq!(built.sim.ai.lobby.team_style, 0, "the lobby reads style 0");
@@ -1985,7 +1989,8 @@ pub(crate) fn walk_recon4300(capture: (&str, &str), difficulty: &'static str) ->
 /// **Item 4300's first act, a probe** (its journal
 /// `docs/journal/2026-11-16-item-4300-first-act.md`): an unfiled recon
 /// named by `RON_TAKE=<gamelog>,<trace>`, at `RON_RECON_DIFFICULTY`
-/// (default 0).
+/// (default 0), with `RON_RECON_SCRIPT=<cmd file>` staged (default none;
+/// item 4316's recon4316-1 stages its alliance lines).
 #[test]
 #[ignore = "a probe of an unfiled recon; item 4300's journal"]
 fn recon4300_walked_at_its_difficulty() {
@@ -1998,7 +2003,11 @@ fn recon4300_walked_at_its_difficulty() {
             .unwrap_or_else(|_| "0".to_string())
             .into_boxed_str(),
     );
-    let Some(w) = walk_recon4300((g, t), difficulty) else {
+    let script = match std::env::var("RON_RECON_SCRIPT") {
+        Ok(p) => crate::golden::Script::read(std::path::Path::new(&p)).unwrap(),
+        Err(_) => crate::golden::Script::parse(""),
+    };
+    let Some(w) = walk_recon4300((g, t), difficulty, script) else {
         return;
     };
     report(g, &w);
@@ -2015,7 +2024,7 @@ fn recon4300_2_walks_to_its_word_at_difficulty_4() {
         eprintln!("skipping: no recon4300-2 under RON_GOLDEN_DIR");
         return;
     };
-    let Some(w) = walk_recon4300((&g, &t), "4") else {
+    let Some(w) = walk_recon4300((&g, &t), "4", crate::golden::Script::parse("")) else {
         return;
     };
     report(&g, &w);
