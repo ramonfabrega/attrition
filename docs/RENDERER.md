@@ -4052,19 +4052,11 @@ card's composition behind `World::land_hdr`. The frame so far is taken back thro
 target (`fs_untone`). The world's one run of faded land, floor, transition patches and coral is drawn there with the
 target's own blend on the lit values (`fs_*_hdr`). Then it is toned back (`fs_retone`). A second switch,
 `World::coral_lit`, lays the coral layer on the faded sand's own light and deep grey, since 131 is the sand layer's
-stream (§3.18). On run1564's still (`the_patches_over_the_faded_land_in_hdr`, `RUN1564_LAND_HDR`), `[SANDY, the row]`
-reads:
-
-| arm | `[SANDY, row]` | the nine's red under theirs |
-|---|---|---|
-| both off (drawn) | 663, 1,798 | 6 to 24 |
-| HDR blend | 661, 1,797 | 1 to 21 |
-| coral on the sand's light | 661, 1,796 | 9 to 29 |
-| both | 662, 1,798 | 3 to 24 |
-
-With both on, `RUN1564_3279_SURF` falls 708 → 703. The HDR blend lifts red by 2 to 5 on the nine, but it lifts green and
-blue more, because the coral's cyan gains too. At (200, 181), theirs is (71, 134, 156), off (56, 134, 148), HDR
-(58, 142, 160). Both switches stay off. *Coverage:* diff-backed: the card's blend on draws 0–131 (one take). On a
+stream (§3.18). On run1564's still (`the_patches_over_the_faded_land_in_hdr`, `RUN1564_LAND_HDR`), `SANDY` reads 663
+with both off (drawn), 661 with the HDR blend, 661 with the coral lit, and 662 with both. With both, `RUN1564_3279_SURF`
+falls 708 → 703. The HDR blend lifts red by 2 to 5 on the nine, but it lifts green and blue more, because the coral's
+cyan gains too. At (200, 181), theirs is (71, 134, 156), off (56, 134, 148), HDR (58, 142, 160). Both switches stay
+off; the arms are the journal's. *Coverage:* diff-backed: the card's blend on draws 0–131 (one take). On a
 reading: that 131 carries the sand's vertex colours (§3.18). *Not established:* what holds the nine's red under theirs.
 It is neither the faded land's composition (4310) nor the patches' (4327a).
 
