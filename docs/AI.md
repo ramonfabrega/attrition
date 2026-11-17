@@ -22338,7 +22338,8 @@ partings, each built in order:
   Tower `1/2014`'s queue and raised the Citizens' hits inside `gain_tech`.
 - The research runs alike on both sides: run912b queues it on 12383 at 100 a frame; run912c has `job_counter` 18000 on
   12562 and the slot empty on 12563. Theirs' Citizens are at 40 on 12563 and 50 on 12564.
-- `Leader::gain_tech@006dcb60:661` raises `0x4000000` for a unit type and does not touch the units. Only
+- `Leader::gain_tech@006dcb60:661` raises `0x4000000` for a unit type of the Militia line (`is(0x42, 0)`, `6dd988`;
+  item 4333, `docs/CHECKSUM.md` §25.4) and does not touch the units. Only
   `Leader::calc_unit_stats@006cf970` calls vslot `+0x15c` (`update_hits`) on the leader's units, behind that flag in
   `Leader::process`. (`gain_tech`'s `param_5` loop is the line upgrade's `set_type`, not the pools.)
 - **Built**: the immediate refresh is removed (`cast.rs`'s `refresh_citizen_hits` deleted). `apply_gained` already

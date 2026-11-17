@@ -361,7 +361,8 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
             ("builds", 24000, 0),
             ("groups", 24000, 0),
             ("guys", 24000, 0),
-            ("leaders", 0, 4),
+            // Item 4333: inside 300, 4 → 1 (0 alone; 167, 202, 297 whole).
+            ("leaders", 0, 1),
             ("cities", 24000, 0),
             ("items", 24000, 0),
             ("goods", 24000, 0),
@@ -397,8 +398,12 @@ const LEADERS_K: usize = 4;
 /// stands at 118.
 /// Item 4332: run1578 23,594 → 23,965, run1577 118 → 119, `Unit::think`'s
 /// citizen bit (`leader_flags & 0x80000`) held and emitted (it was not).
+/// Item 4333: run1578 23,965 → 23,999, the stats bits (`0x8000000`,
+/// `0x4000000`) emitted, `gain_tech`'s unit arm raising `0x4000000` for
+/// the Militia line alone and the setup's tree raising neither; every
+/// frame but 0, whose census leaves stand; run1577 stands at 119.
 const LEADERS_AGREE: &[(&str, usize, usize)] =
-    &[(RUN1577_TRACE, 119, 120), (RUN1578_TRACE, 23965, 24000)];
+    &[(RUN1577_TRACE, 119, 120), (RUN1578_TRACE, 23999, 24000)];
 
 /// The Adler of each emitted line `want` names, on `sim`, in [`EMITTED`]'s
 /// order (`None` where not wanted). The builds line needs the data layer's
@@ -686,16 +691,11 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         &[
             // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                267,
-                267,
-                // Item 4324: 2 → 1 (`resources_controlled` counted).
-                1,
-                // Item 4320: ours `0x1000000` now (`gain_tech`'s bit); before
-                // it `02000000|0f000000`. Theirs' `0x4000000`, `0x8000000`.
-                "128 1 flags: +0x3 of 8|8: 03000000|0f000000",
-            ),
+            // Item 4324: 2 → 1 (`resources_controlled` counted). Item
+            // 4320: ours `0x1000000` (`gain_tech`'s bit), `02000000` before.
+            // Item 4333: leaders whole (the stats bits emitted); before it,
+            // 1 of 267 parted, `128 1 flags: +0x3 of 8|8:
+            // 03000000|0f000000`.
         ],
     ),
     (
@@ -709,16 +709,10 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         &[
             // Item 4298: 3 → 2 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                271,
-                271,
-                // Item 4324: 2 → 1 (`resources_controlled` counted).
-                1,
-                // Item 4320: byte 2 agrees (`0x800000` emitted); before it
-                // `+0x2 … 00020000|800a0000`. Theirs' `0x8000000` stands.
-                "128 1 flags: +0x3 of 8|8: 02000000|0a000000",
-            ),
+            // Item 4324: 2 → 1 (`resources_controlled` counted). Item
+            // 4320: byte 2 agrees (`0x800000` emitted). Item 4333: leaders
+            // whole (`0x8000000` emitted); before it, 1 of 271 parted,
+            // `128 1 flags: +0x3 of 8|8: 02000000|0a000000`.
         ],
     ),
     (
@@ -964,6 +958,56 @@ const WORLD_START_DANGER: (u32, u32) = (2_995_557_468, 1_887_436_801);
 /// there; the record carries each section's own sum). Red half: the same
 /// start with every danger row cleared parts on section 8 alone, at the
 /// zeros' sum — the state before `Game::run`'s call.
+/// **The stats bits on the minted game's tables** (item 4333,
+/// `docs/CHECKSUM.md` §25.4): the setup's tree raises both here, a named
+/// divergence (`Leader::init` lays it down in place; run1578's setup
+/// `check_all` reads byte 3 `0a`), a gained unit type raises `0x4000000` only on the Militia line
+/// (`gain_tech@006dcb60`, `6dd988`: `is(0x42, 0)`), and any other gain
+/// raises both (the tail's `0xc000000`). Then the emitter writes each.
+#[test]
+fn the_stats_bits_follow_the_militia_line() {
+    let Some((_, mut built, _)) = super::minted::built_start() else {
+        eprintln!("skipping: no install or lobby dump");
+        return;
+    };
+    let sim = &mut built.sim;
+    for who in 0..2u8 {
+        let (f, _) = sim.leader_flag_words(who);
+        // A named divergence: theirs' `0a` is `0x8000000` alone; the
+        // crate's setup tree raises `0x4000000` too, which its first
+        // `calc_unit_stats` (the Bantu speed) needs.
+        assert_eq!(
+            f.map(|f| f & 0xc00_0000),
+            Some(0xc00_0000),
+            "leader {who}: the setup's two bits, ours `0e` against theirs' `0a`"
+        );
+    }
+    let tree = sim.tables.tech_tree.clone();
+    let lacks = |sim: &sim::Sim, t: usize| !tree.has_tech(&sim.tables.setup, &sim.tech[0], t);
+    let other = (0..tree.types.len())
+        .find(|&t| tree.kind(t).is_unit() && !tree.is(t, 0x42, false) && lacks(sim, t))
+        .expect("a unit type off the Militia line not yet held");
+    sim.roster.unit_stats_dirty[0] = false;
+    sim.cities.wall_stats_dirty[0] = false;
+    sim.gain_tech(0, other);
+    assert!(
+        !sim.roster.unit_stats_dirty[0] && !sim.cities.wall_stats_dirty[0],
+        "type {other:#x}: off the Militia line, neither bit"
+    );
+    assert_eq!(sim.leader_flag_words(0).0.map(|f| f & 0xc00_0000), Some(0));
+    assert!(lacks(sim, 0x42), "the Militia is not held at the start");
+    sim.gain_tech(0, 0x42);
+    assert!(
+        sim.roster.unit_stats_dirty[0],
+        "the Militia raises 0x4000000"
+    );
+    assert!(!sim.cities.wall_stats_dirty[0], "and no wall stats");
+    assert_eq!(
+        sim.leader_flag_words(0).0.map(|f| f & 0xc00_0000),
+        Some(0x400_0000)
+    );
+}
+
 #[test]
 fn the_world_is_the_original_s_on_the_start_by_section() {
     let Some(recs) = records(RUN1579) else {

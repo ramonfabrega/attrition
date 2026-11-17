@@ -6,6 +6,10 @@
 
 use crate::*;
 
+/// `MILITIA`'s `TypeIndex`: the one unit lineage whose gain raises
+/// `leader_flags & 0x4000000` (`gain_tech@006dcb60`, `6dd988`).
+const MILITIA_LINE: tech::TypeId = 0x42;
+
 impl Sim {
     /// Installs a tech tree. Every player's tech state is reset to empty
     /// against it; call [`Sim::start_techs`] for each to lay down the starting
@@ -39,6 +43,13 @@ impl Sim {
             &mut self.tech[who as usize],
         );
         self.apply_gained(who);
+        // NOT the original's word on the setup's two stats bits (item 4333,
+        // `docs/CHECKSUM.md` §25.4): `Leader::init@006e3930` lays the tree
+        // down without `gain_tech`, so theirs' setup `check_all` reads byte
+        // 3 `0a` where this raises `0x4000000` too (`0e`). Keeping the bits
+        // as they stood took the first `calc_unit_stats` away, and every
+        // Bantu lobby parted: the crate's opening units take the Bantu
+        // speed there, where theirs' take it at birth.
         self.lay_starting_goods(who);
         // `Leader::init`'s `calc_attrition` and `calc_anti_attrition` see
         // the opening tech set (`docs/LEADERS.md` §5.2, §6.2).
@@ -264,6 +275,7 @@ impl Sim {
             }
         }
         let wall_stats_were = self.cities.wall_stats_dirty[who as usize];
+        let unit_stats_were = self.roster.unit_stats_dirty[who as usize];
         self.apply_gained(who);
         // **A unit type takes no wall stats** (item 3965): the unit arm
         // (`gain_tech@006dcb60:658`, the type's vslot `+0xc`) raises
@@ -271,8 +283,31 @@ impl Sim {
         // the tail's `|= 0xc000000` (`:2313`). run99's Tower `1/2014` gains
         // the Militia on 10163 and keeps its cached `mylos` 11 to 10334's
         // tech, where this crate's refresh read 13 on 10165.
+        //
+        // **And the unit arm's `0x4000000` is the Militia line's alone**
+        // (item 4333): `6dd988`–`6dd993` is `push 0; push 0x42; call
+        // *0x60(%eax)` — `TypeData::is(MILITIA, 0)` on the gained type —
+        // and the `orl $0x4000000` only on a nonzero answer. The Militia,
+        // Minuteman and Partisan are what `calc_unit_stats` reads into a
+        // Citizen's pools (`docs/VISION.md` §2's row 3); any other unit
+        // type leaves the flag as it stood. run1578's 11884: who=1 gains
+        // the Hoplites' successor and theirs' `leader_flags` byte 3 reads
+        // `03` where a raise here read `07` (`docs/CHECKSUM.md` §25.4).
         if self.tables.tech_tree.kind(t).is_unit() {
             self.cities.wall_stats_dirty[who as usize] = wall_stats_were;
+            // The line's root as the tree indexes it: the unit type whose
+            // `TypeIndex` is `MILITIA` (on the install's tables the tree's
+            // own index is the `TypeIndex`, so this is 0x42 itself).
+            let militia = self
+                .tables
+                .unit_types
+                .iter()
+                .find(|u| u.type_index == MILITIA_LINE as i32)
+                .and_then(|u| u.tree)
+                .unwrap_or(MILITIA_LINE);
+            if !self.tables.tech_tree.is(t, militia, false) {
+                self.roster.unit_stats_dirty[who as usize] = unit_stats_were;
+            }
         }
         // Step 10's second half: a Civic level re-masks every city and
         // sweeps the buildings its new reach covers into it.

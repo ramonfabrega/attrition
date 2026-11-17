@@ -511,6 +511,12 @@ const SCORE_TECH_DIRTY: i64 = 0x100_0000;
 /// `leader_flags & 0x80000`: a citizen thought this frame
 /// ([`crate::leaders::LeadersState::citizen_thought`]).
 const CITIZEN_THOUGHT: i64 = 0x8_0000;
+/// `leader_flags & 0x4000000`: the unit stats are stale
+/// ([`crate::units::UnitsState::unit_stats_dirty`]).
+const UNIT_STATS_DIRTY: i64 = 0x400_0000;
+/// `leader_flags & 0x8000000`: the wall stats are stale
+/// ([`crate::cities::CitiesState::wall_stats_dirty`]).
+const WALL_STATS_DIRTY: i64 = 0x800_0000;
 
 /// The `size` a `SimpleArray<int>` with elements reports: its capacity,
 /// which grows by ten (`docs/CHECKSUM.md` §20, §23.4). 10 on every
@@ -652,6 +658,27 @@ impl Sim {
             .unwrap_or(false)
         {
             f |= CITIZEN_THOUGHT;
+        }
+        // The two stats bits (item 4333): raised by a building's
+        // activation, a wall's, a city's upgrade, a research or a gain,
+        // and cleared by the leader's own step as it answers them.
+        if self
+            .roster
+            .unit_stats_dirty
+            .get(w)
+            .copied()
+            .unwrap_or(false)
+        {
+            f |= UNIT_STATS_DIRTY;
+        }
+        if self
+            .cities
+            .wall_stats_dirty
+            .get(w)
+            .copied()
+            .unwrap_or(false)
+        {
+            f |= WALL_STATS_DIRTY;
         }
         // `leader_flags2`: the two bits this crate keeps, no governments
         // (`0x800`) and no patriots (`0x1000`).

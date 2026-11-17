@@ -2871,14 +2871,9 @@ the packets print, and leaves every `PACKET_LEAF_PARTINGS` row it was in (§23.4
 4,994 parted frames): `reg_unpack_merch[1]` alone held 4,600 of them, 3376 to 5375 and 9376 to 11975. The other
 406 are `leader_flags` and frame 0's setup leaves:
 - ~~`0x80000`: leader 0 on 160 to 315; leader 1 on 219 frames to 14245.~~ Item 4332, below.
-- `0x8000000`: leader 0 on 0 and 297; leader 1 on 33 frames to 14608. `0x4000000`: leader 1 on 13 frames to 14608.
-  **Not `Leader::gather`'s raise**: `Leaders::process_all@006ed2a0` (the slot step the game runs; `Leader::process`
-  is the same body, never called) clears both bits right after `gather` raises them, in the same step, so that raise never reaches a checksum. The bits a checksum
-  sees are raised after the leader's pass: `Build::activate` (`0x8000000` on every activation, and `0x4000000`
-  too for a wonder, `:1250`–`:1255`), `Build::finished`, `Build::close`, `Wall::activate`, `City::check_upgrade`,
-  `TechType::set_research` and `gain_tech`. The crate keeps both (`cities.wall_stats_dirty`,
-  `roster.unit_stats_dirty`), and `Sim::leader_flag_words` emits neither. `Build::train@0062f9b0:377`'s
-  `& 0xfbffffff` is on the unit's `+0x68`, not the leader's (item 4317's list had it as a clear).
+- ~~`0x8000000` and `0x4000000`: leader 0 on 0 and 297; leader 1 on 33 and 13 frames to 14608.~~ Item 4333, below:
+  raised after the leader's step (`Build::activate`, `Wall::activate`, `Build::close`, `City::check_upgrade`,
+  `gain_tech`; `Build::finished:115`), cleared by the step.
 - Frame 0: the 16 ranges, as above.
 
 **Item 4332 holds `Unit::think`'s citizen bit** (`leader_flags & 0x80000`). Its one writer is
@@ -2888,8 +2883,20 @@ citizen idled. **The direction: the original acted**; the crate kept no bit. **r
 of 24,000** (+371); run1577 from 118 to 119 of 120. Inside 300: 142 → 4 parted frames (0, 167, 202, 297). Value
 diff (`RECORD_PARTINGS`, `flags` byte 2): 101, leader 1, ours `80`, theirs `88`; 160, leader 0, the same; both
 whole after. Minted: run1586 (189) whole on leaders (leader 0's `00`|`08`). `PACKETS_SCORE` **467 → 482**: 15
-packets whole on leaders, 32 more on fewer ranges, none on more. What is left: 35 frames. 167, 202 and 297 part
-on byte 3 alone (`0x8000000`, on 202 `0x4000000` too), hidden under `0x80000` before; the other 31 are not listed.
+packets whole on leaders, 32 more on fewer ranges, none on more. 35 frames were left (item 4333, below).
+
+**Item 4333 emits the two stats bits** (`wall_stats_dirty`, `unit_stats_dirty`; cleared at the slot's step,
+`process_all:39`, `:43`, as here). Two over-raises of
+`0x4000000` went with it. **The direction there: ours acted.** `gain_tech`'s unit arm raises it only for
+`is(MILITIA 0x42, 0)` (`6dd988`) and leaves past the tail (`:883`); 11884's Hoplites' successor parted, `07`|`03`.
+Frame 0 parts the same way, `0e`|`0a`, and stays a **named divergence**: `Leader::init` lays the opening tree down
+without `gain_tech`, but keeping the bits off there took the crate's first `calc_unit_stats` away, and every Bantu
+lobby parted (the crate's opening units take the Bantu speed there). **run1578 23,965 → 23,999 of 24,000**; run1577
+stays 119. The value diff (`RECORD_PARTINGS`, byte 3, ours|theirs): 167 and 297 `02`|`0a`, 202 `03`|`0f`, 14312
+`02`|`0e`, all whole; 0 stays 16 ranges, its flags byte `02`|`0a` → `0e`|`0a`. run1591, run1592 whole on leaders; `PACKETS_SCORE` 482. **Frame 0 alone is
+left**: that byte, and the setup census's leaves (`defense`, `ally_mask`, `reg_cities[1]`, two `encrypt` words), 0 on ours, which
+theirs' setup `check_all` holds. Not established: which setup call takes that census. The rest is item 4333's
+journal.
 
 ## 25.5 How it was established, and what it has not established
 
