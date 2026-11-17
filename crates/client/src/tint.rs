@@ -269,7 +269,10 @@ pub(crate) mod tests {
         // Item 4338: run1564 off row 1,803 → 1,851, luma 1,840 → 1,841; on
         // row 1,798 → 1,852, luma 1,868 → 1,866 (a named fall of two): the
         // surf's lists blended on the HDR target (`docs/RENDERER.md` §3.30).
-        ([679, 1851, 1841], [679, 1852, 1866]),
+        // Item 4348: run1564 off row 1,851 → 1,854, luma 1,841 → 1,842; on
+        // row 1,852 → 1,855, luma 1,866 holds: the herd turned to the
+        // dump's angle (`docs/RENDERER.md` §3.30, "Where the herd stands").
+        ([679, 1854, 1842], [679, 1855, 1866]),
         ([1042, 1171, 1144], [1041, 1171, 1166]),
     ];
 

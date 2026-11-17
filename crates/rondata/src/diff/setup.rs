@@ -1049,6 +1049,21 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 .herds
                 .iter()
                 .position(|h| Some(h.t) == u.guys.first().and_then(|g| g.kind));
+            // **The animal's own angles** (item 4348, `docs/RENDERER.md`
+            // §3.30): `Herd::create_units@007417f0` turns each animal it
+            // places (a fish to 0, a type 0x19c to a half turn, the rest to
+            // a random degree) through `Unit::set_angle@00605400`, which
+            // writes `UnitData::angle` (`+0x50`) and the figures and flips
+            // the mirror, and never `dest_angle` (`+0x58`). The start dump
+            // prints the angle it left; it is installed as
+            // `sim::gaia::herd_create_view`'s `set_angle` does, from
+            // `Unit::init`'s `0x55555555`.
+            if let Some(a) = u.angle.or_else(|| u.guys.first().and_then(|g| g.angle)) {
+                let m = &mut unit.movement;
+                let dest = m.des_angle;
+                m.set_facing(sim::movement::Angle(a as i32));
+                m.des_angle = dest;
+            }
         }
         // `UnitData::stance` (`sim::units::stance`). A unit stood up from a dump
         // takes the dump's, which is the stronger seed: it carries whatever

@@ -1108,7 +1108,9 @@ pub const RUN1564_FADED_HDR: [u32; 4] = [712, 717, 2, 7];
 /// (`the_patches_over_the_faded_land_in_hdr`). Every arm on falls on `SANDY`.
 #[cfg(test)]
 /// Item 4338: `SANDY` 663, 661, 661, 662 → 717, 719, 715, 717 and the row 1,798, 1,797, 1,796, 1,798 → 1,852, 1,855, 1,850, 1,853: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30). The HDR blend's arm now rises, by two.
-pub const RUN1564_LAND_HDR: [[u32; 2]; 4] = [[717, 1852], [719, 1855], [715, 1850], [717, 1853]];
+/// Item 4348: each scored count up three, 1,852 → 1,855 and so on, the
+/// agreeing ones held: the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
+pub const RUN1564_LAND_HDR: [[u32; 2]; 4] = [[717, 1855], [719, 1858], [715, 1853], [717, 1856]];
 
 /// **`RUN1564_3279_SURF`** (item 4225; `docs/RENDERER.md` §3.18, "The
 /// surf, off the packet"): `SANDY` and `OCEAN` `[agree, scored]` on the
@@ -1137,7 +1139,9 @@ pub const RUN1564_LAND_HDR: [[u32; 2]; 4] = [[717, 1852], [719, 1855], [715, 185
 /// Item 4312: `SANDY` 688 → 687 (a named fall from 688), `OCEAN` 422 → 424: the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 /// Item 4319: `SANDY` 687 → 688, `OCEAN` holds: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
 /// Item 4310: **`SANDY` 688 → 708**, `OCEAN` holds: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
-pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[708, 772], [424, 437]];
+/// Item 4348: `OCEAN` 424 of 437 → 427 of 438: the herd turned to the
+/// dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
+pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[708, 772], [427, 438]];
 
 /// **`RUN1564_3279_SURF_DRAWN`** (item 4239; `docs/RENDERER.md` §3.27):
 /// `SANDY` and `OCEAN` `[agree, scored]` on run1564's still with the
@@ -1163,10 +1167,12 @@ pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[708, 772], [424, 437]];
 /// Item 4310: `SANDY` off 552 → 585, drawn 649 → 663, typed 680 → 689, `OCEAN` holds: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
 #[cfg(test)]
 /// Item 4338: drawn **663 → 717**, typed 689 → 756, off and `OCEAN` hold: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
+/// Item 4348: `OCEAN` 424 of 437 → 427 of 438 on each arm: the herd
+/// turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
 pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
-    [[585, 772], [424, 437]],
-    [[717, 772], [424, 437]],
-    [[756, 772], [424, 437]],
+    [[585, 772], [427, 438]],
+    [[717, 772], [427, 438]],
+    [[756, 772], [427, 438]],
 ];
 
 /// **`RUN1564_3279_FOAM`** (item 4338; `docs/RENDERER.md` §3.30): the
@@ -1204,12 +1210,18 @@ pub const RUN1564_3279_FOAM: [[[u32; 2]; 2]; 3] = [
 /// Item 4345: the third arm, the herd lit ([`crate::world::World::herd_lit`]):
 /// **ours 393 → 613 dark of 850**, mean (34.5, 89.5, 149.7) against
 /// theirs' (24.4, 87.4, 151.3); the herd's 6,480 corners at a median N·L
-/// of 0.03, 3,192 under 0.
+/// of 0.03, 3,192 under 0. Item 4348: **the herd faces the dump's angle,
+/// 0, not `Unit::init`'s `0x55555555`** (the start's gaia install,
+/// `rondata::diff::setup`), as the card's `gWorld` on draws 157, 159 and
+/// 160 turns it (drawn 180°): ours stand at x 1022–1116, y 138–190, and
+/// **theirs covered 0 → 302 of 304** on every arm; ours 904, 889, 850 →
+/// 969, dark 393 → 446 and 613 → 810, the lit mean (34.5, 89.5, 149.7) →
+/// (25.1, 83.9, 146.4).
 #[cfg(test)]
 pub const RUN1564_3279_FISH: [[[u32; 2]; 2]; 3] = [
-    [[0, 904], [0, 304]],
-    [[393, 889], [0, 304]],
-    [[613, 850], [0, 304]],
+    [[0, 969], [302, 304]],
+    [[446, 969], [302, 304]],
+    [[810, 969], [302, 304]],
 ];
 
 /// [`RUN1564_3279_FISH`]'s box about theirs' fish, `(x0, y0, x1, y1)`: the
@@ -1285,8 +1297,10 @@ pub const FOAM_SHARE: f32 = 0.05;
 /// Item 4312: **1,783 → 1,784** (`OCEAN` 422 → 424, `SANDY` 650 → 649, a named fall from 650): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 /// Item 4310: **1,784 → 1,798** (`SANDY` 649 → 663, 14 up and none down; 4294's nine deep tiles all agree): the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
 /// Item 4338: **1,798 → 1,852** (`SANDY` 663 → 717): the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30); [`RUN1564_3279_FOAM`].
+/// Item 4348: **1,852 of 1,920 → 1,855 of 1,921**, `OCEAN` 424 of 437 →
+/// 427 of 438: the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1852, 1920),
+    (1855, 1921),
     [
         [679, 679],
         [0, 0],
@@ -1294,7 +1308,7 @@ pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
         [0, 0],
         [0, 0],
         [717, 772],
-        [424, 437],
+        [427, 438],
     ],
 );
 
@@ -1336,6 +1350,7 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4319: run1564 **1,848 → 1,855** (**`ROCK` 25 → 32** of 32): the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24); run1559b unchanged.
 /// Item 4310: run1564 **1,855 → 1,868** (`SANDY` 726 → 738, `OCEAN` 418 → 419): the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"); run1559b unchanged.
 /// Item 4338: run1564 1,868 → 1,866 (`SANDY` 738 → 736, a named fall of two): the surf's lists blended on the HDR target (`docs/RENDERER.md` §3.30).
+/// Item 4348: run1564 1,866 of 1,920 → 1,866 of 1,921 (`OCEAN` 419 of 437 → 419 of 438): the herd turned to the dump's angle (`docs/RENDERER.md` §3.30, "Where the herd stands").
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
         (1109, 1109),
@@ -1350,7 +1365,7 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1866, 1920),
+        (1866, 1921),
         [
             [679, 679],
             [0, 0],
@@ -1358,7 +1373,7 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
             [0, 0],
             [0, 0],
             [736, 772],
-            [419, 437],
+            [419, 438],
         ],
     ),
 ];
@@ -1395,7 +1410,9 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Item 4319: run1559b 1,012 → 1,020, run1564 1,794 → 1,802: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24).
 /// Item 4310: run1564 1,802 → 1,768 (a named fall of 34, the made-to-fail side): the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"), against the drawn row's 1,798: **the drawn row leads on run1564 by 30**, so 4296b's lead is gone.
 /// Item 4338: run1564 1,768 → 1,711 (a named fall of 57 on the made-to-fail side, which now trails the drawn row by 141): the surf's lists blended on the HDR target (`docs/RENDERER.md` §3.30).
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1020, 1109), (1711, 1920)];
+/// Item 4348: run1564's 1,711 of 1,920 → 1,710 of 1,921 (a named fall of
+/// one): the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1020, 1109), (1710, 1921)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1418,8 +1435,10 @@ pub const RUN1559B_3279_GROUND_LUMA: ((usize, usize), [[u32; 2]; 3]) =
 /// (median 1.55): the row item 4174 carries beside its own.
 /// Item 4223: **791 → 878** on the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]): `ROCK` 27 → 28, `SANDY` 83 → 170, `OCEAN` 2 → 1.
 #[cfg(test)]
+/// Item 4348: 878 of 1,920 → 878 of 1,921, `OCEAN` 1 of 437 → 1 of 438:
+/// the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
 pub const RUN1564_3279_GROUND_LUMA: ((usize, usize), [[u32; 2]; 7]) = (
-    (878, 1920),
+    (878, 1921),
     [
         [679, 679],
         [0, 0],
@@ -1427,7 +1446,7 @@ pub const RUN1564_3279_GROUND_LUMA: ((usize, usize), [[u32; 2]; 7]) = (
         [0, 0],
         [0, 0],
         [170, 772],
-        [1, 437],
+        [1, 438],
     ],
 );
 
@@ -1490,6 +1509,8 @@ pub const RUN1564_LOC: (u32, u32) = (0x4710_6000, 0x4716_6000);
 /// The 44 tiles under a mountain show no ground pixel; nothing is off the
 /// heightfield.
 #[cfg(test)]
+/// Item 4348: `OCEAN` 437 → 438 scored, one tile more of ours parting the
+/// photograph's (0 → 1 → 0), the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
 pub const RUN1564_3279_CENSUS: ([[u32; 4]; 7], u32) = (
     [
         [1105, 679, 7, 419],
@@ -1498,7 +1519,7 @@ pub const RUN1564_3279_CENSUS: ([[u32; 4]; 7], u32) = (
         [0, 0, 0, 0],
         [0, 0, 0, 0],
         [901, 772, 14, 115],
-        [488, 437, 1, 50],
+        [488, 438, 0, 50],
     ],
     0,
 );
@@ -1555,8 +1576,13 @@ pub const RUN1564_3279_SHORE: [[u32; 2]; 13] = [
 /// 4164's ocean base) had agreed with the grab's display match, not the
 /// frame; the still, the row that counts (§3.15), rises 1,021 → 1,384.
 #[cfg(test)]
+/// Item 4348: 1,018 of 1,920 → 1,015 of 1,921 (a named fall of three),
+/// `OCEAN` 87 of 437 → 84 of 438, the base alone 724 → 721: the herd turned
+/// to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands") masks the tiles over theirs' fish where
+/// it masked three open-water tiles; the still's row rises by the same
+/// three.
 pub const RUN1564_3279_GROUND: ((usize, usize), [[u32; 2]; 7], usize) = (
-    (1018, 1920),
+    (1015, 1921),
     [
         [675, 679],
         [0, 0],
@@ -1564,9 +1590,9 @@ pub const RUN1564_3279_GROUND: ((usize, usize), [[u32; 2]; 7], usize) = (
         [0, 0],
         [0, 0],
         [224, 772],
-        [87, 437],
+        [84, 438],
     ],
-    724,
+    721,
 );
 
 /// **`RUN1564_3279_WATER`** (item 4164): `[SANDY, OCEAN]` agreeing under
@@ -1577,7 +1603,9 @@ pub const RUN1564_3279_GROUND: ((usize, usize), [[u32; 2]; 7], usize) = (
 /// frames' navy agrees on no `OCEAN` tile.
 /// Item 4223, on the photograph matched to sRGB (`docs/RENDERER.md` §3.18, [`tests::run1564`]): `[55, 233], [294, 233], [112, 0]` → `[56, 87], [224, 87], [113, 0]`.
 #[cfg(test)]
-pub const RUN1564_3279_WATER: [[u32; 2]; 3] = [[56, 87], [224, 87], [113, 0]];
+/// Item 4348: the scored 87 → 84, as [`RUN1564_3279_GROUND`]'s `OCEAN`:
+/// the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
+pub const RUN1564_3279_WATER: [[u32; 2]; 3] = [[56, 84], [224, 84], [113, 0]];
 
 /// The drawn lattice's counts, then each reading's (item 4178).
 #[cfg(test)]
@@ -1637,7 +1665,10 @@ pub const RUN1564_WATER_LATTICE: WaterLattice = (
 /// Item 4227: (986, 1,502) → (985, 1,502) unlit, (823, 1,022) → (822,
 /// 1,022) lit: [`floor_stage`] clamped once at the end, as the install's
 /// stages are; the model keeps 4174's mirrored second layer.
-pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1018, 878), (985, 1502), (822, 1022)];
+/// Item 4348: (1,018, 878) → (1,015, 878) (a named fall of three, as
+/// [`RUN1564_3279_GROUND`]'s), (985, 1,502) → (986, 1,501), (822, 1,022) →
+/// (822, 1,024): the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
+pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1015, 878), (986, 1501), (822, 1024)];
 
 /// **`RUN1564_3279_LAKE_HDR`** (item 4227; `docs/RENDERER.md` §3.12): the
 /// card's model of the lake composited on the client's still,
@@ -1649,7 +1680,9 @@ pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1018, 878), (985, 1502), (8
 /// **217 and 398**: tile (170, 187), theirs (36.9, 141.5, 181.7), the
 /// model mirrored (10.0, 159.1, 208.1) and parted, clamped (41.9, 161.0,
 /// 208.2) and agreeing.
-pub const RUN1564_3279_LAKE_HDR: [[u32; 2]; 2] = [[217, 437], [398, 437]];
+/// Item 4348: 217 → 219 and 398 → 401, of 437 → 438: the herd turned to
+/// the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
+pub const RUN1564_3279_LAKE_HDR: [[u32; 2]; 2] = [[219, 438], [401, 438]];
 
 /// **The texture reader** (item 4232; `docs/RENDERER.md` §3.24): a
 /// tile's texture is the standard deviation of its ground pixels'
@@ -1699,6 +1732,8 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// Item 4310: `SANDY` 442 → 435 (a named fall of seven), `OCEAN` 243 → 245: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]); the deep sand's spread under the water.
 /// Item 4338: **`SANDY` 435 → 520**, `OCEAN` holds at 245: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
 /// Item 4344: `OCEAN` 245 → 244 (a named fall of one): the objects and the patches after the water drawn before it (item 4344, `docs/RENDERER.md` §3.30, "The fish under the water").
+/// Item 4348: `OCEAN` 244 of 437 → 244 of 438: the herd turned to the
+/// dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [678, 679],
     [0, 0],
@@ -1706,7 +1741,7 @@ pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [0, 0],
     [0, 0],
     [520, 772],
-    [244, 437],
+    [244, 438],
 ];
 
 /// **`RUN1564_3279_LAKE_HDR_TEXTURE`** (item 4232): [`TEXTURE`]'s
@@ -1715,7 +1750,9 @@ pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
 /// still's 21. The kill ("the composite's row does not rise with the lit
 /// floor") did not fire.
 #[cfg(test)]
-pub const RUN1564_3279_LAKE_HDR_TEXTURE: [[u32; 2]; 2] = [[284, 437], [323, 437]];
+/// Item 4348: 284 → 290 and 323 → 331, of 437 → 438: the herd turned to
+/// the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
+pub const RUN1564_3279_LAKE_HDR_TEXTURE: [[u32; 2]; 2] = [[290, 438], [331, 438]];
 
 /// [`RUN1559B_3279_GROUND`] on the base layer alone, as item 4127 pinned it.
 #[cfg(test)]

@@ -1183,7 +1183,9 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// run1305b, run1323b, run1351, run1355, run1357, run1381, run1383), and
 /// parts on fewer ranges on 32 more, none on more: 50 ranges fewer over 47
 /// rows, all in the leaders slot.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 482, 1053);
+/// Item 4348: lines agreeing 482 → 499 of 1,053: gaia's angles from the
+/// start dump, the `guys` line whole on seventeen packets.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 499, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1281,17 +1283,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4218, the idle latch (`flags & 0x08`): units (1116, 1296, 309) -> (1116, 1296, 306).
     // Item 4226, a bird walked on neither line: units (1116, 1296, 306) -> (1116, 1116, 126), guys (382, 445, 99) -> (382, 382, 36).
     // Item 4228, a path stack's `size` its high water: units (1116, 1116, 126) -> (1116, 1116, 125).
+    // Item 4348, gaia's angles from the start dump: units (1116, 1116, 125) -> (1116, 1116, 89), guys (382, 382, 36) -> (382, 382, 0).
     (
         "ch94p",
         846,
         [
-            (1116, 1116, 125),
+            (1116, 1116, 89),
             (517, 517, 13),
             (0, 0, 0),
             (0, 0, 0),
             (16, 0, 16),
             (538, 538, 0),
-            (382, 382, 36),
+            (382, 382, 0),
             (271, 271, 3),
             (6, 6, 0),
             (110, 110, 0),
@@ -1302,6 +1305,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4218, the idle latch (`flags & 0x08`): units (1284, 1426, 1224) -> (1284, 1426, 1222).
     // Item 4226, a bird walked on neither line: units (1284, 1426, 1222) -> (1284, 1266, 1080), guys (417, 473, 92) -> (417, 417, 36).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (1284, 1266, 1080) -> (1284, 1266, 1079).
+    // Item 4348, gaia's angles from the start dump: guys (417, 417, 36) -> (417, 417, 0).
     (
         "ch95pkt",
         1117,
@@ -1312,7 +1316,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (10, 0, 10),
             (538, 538, 0),
-            (417, 417, 36),
+            (417, 417, 0),
             (271, 271, 3),
             (6, 6, 0),
             (110, 110, 0),
@@ -3630,6 +3634,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1890, 1890, 24) -> (1890, 1890, 21).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (574, 574, 1) -> (574, 574, 0).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 6) -> (399, 399, 5).
+    // Item 4348, gaia's angles from the start dump: guys (672, 672, 1) -> (672, 672, 0).
     (
         "run1438",
         684,
@@ -3640,7 +3645,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (15, 0, 15),
             (0, 0, 0),
             (574, 574, 0),
-            (672, 672, 1),
+            (672, 672, 0),
             (399, 399, 5),
             (9, 9, 0),
             (135, 135, 0),
@@ -3658,6 +3663,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     // Item 4266, a guard order's walker: units (2308, 2197, 1945) -> (2308, 2269, 1887).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 6) -> (399, 399, 5).
+    // Item 4348, gaia's angles from the start dump: guys (638, 638, 1) -> (638, 638, 0).
     (
         "run1440",
         809,
@@ -3668,7 +3674,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (18, 0, 18),
             (14, 0, 14),
             (568, 568, 0),
-            (638, 638, 1),
+            (638, 638, 0),
             (399, 399, 5),
             (9, 9, 0),
             (130, 130, 0),
@@ -3721,6 +3727,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     // Item 4266, a guard order's walker: units (2022, 1941, 1611) -> (2022, 1965, 1624).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 6) -> (399, 399, 5).
+    // Item 4348, gaia's angles from the start dump: guys (604, 604, 1) -> (604, 604, 0).
     (
         "run1451",
         945,
@@ -3731,7 +3738,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (18, 0, 18),
             (32, 0, 32),
             (568, 568, 0),
-            (604, 604, 1),
+            (604, 604, 0),
             (399, 399, 5),
             (9, 9, 0),
             (125, 125, 0),
@@ -3750,6 +3757,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1144, 1144, 24) -> (1144, 1144, 23).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (574, 574, 1) -> (574, 574, 0).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 4) -> (399, 399, 3).
+    // Item 4348, gaia's angles from the start dump: guys (725, 725, 1) -> (725, 725, 0).
     (
         "run1457",
         700,
@@ -3760,7 +3768,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (21, 0, 21),
             (2, 0, 2),
             (574, 574, 0),
-            (725, 725, 1),
+            (725, 725, 0),
             (399, 399, 3),
             (9, 9, 0),
             (130, 130, 0),
@@ -3778,6 +3786,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     // Item 4266, a guard order's walker: units (2362, 2245, 1933) -> (2362, 2314, 1927).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (403, 403, 5) -> (403, 403, 3).
+    // Item 4348, gaia's angles from the start dump: guys (665, 665, 1) -> (665, 665, 0).
     (
         "run1459",
         780,
@@ -3788,7 +3797,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (22, 0, 22),
             (568, 568, 0),
-            (665, 665, 1),
+            (665, 665, 0),
             (403, 403, 3),
             (9, 9, 0),
             (130, 130, 0),
@@ -3807,6 +3816,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1296, 1296, 24) -> (1296, 1296, 23).
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (403, 403, 5) -> (403, 403, 3).
+    // Item 4348, gaia's angles from the start dump: guys (686, 686, 1) -> (686, 686, 0).
     (
         "run1460",
         760,
@@ -3817,7 +3827,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (9, 0, 9),
             (16, 0, 16),
             (568, 568, 0),
-            (686, 686, 1),
+            (686, 686, 0),
             (403, 403, 3),
             (9, 9, 0),
             (130, 130, 0),
@@ -3833,6 +3843,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (1392, 1374, 753) -> (1392, 1374, 747).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (1392, 1374, 747) -> (1392, 1374, 746).
     // Item 4244, a mine's `mtn`: builds (1777, 1777, 27) -> (1777, 1777, 25).
+    // Item 4348, gaia's angles from the start dump: guys (413, 413, 1) -> (413, 413, 0).
     (
         "run1469",
         627,
@@ -3843,7 +3854,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (228, 0, 228),
             (0, 0, 0),
             (556, 556, 4),
-            (413, 413, 1),
+            (413, 413, 0),
             (399, 399, 6),
             (9, 9, 0),
             (130, 130, 0),
@@ -3859,6 +3870,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4228, a path stack's `size` its high water: units (1401, 1380, 767) -> (1401, 1380, 761).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (1401, 1380, 761) -> (1401, 1380, 760).
     // Item 4244, a mine's `mtn`: builds (1777, 1777, 27) -> (1777, 1777, 25).
+    // Item 4348, gaia's angles from the start dump: guys (413, 413, 1) -> (413, 413, 0).
     (
         "run1469b",
         628,
@@ -3869,7 +3881,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (190, 0, 190),
             (0, 0, 0),
             (556, 556, 4),
-            (413, 413, 1),
+            (413, 413, 0),
             (399, 399, 6),
             (9, 9, 0),
             (130, 130, 0),
@@ -3886,6 +3898,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4234, a cast's three ranges walked: units (2180, 2093, 1791) -> (2180, 2096, 1780).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (2180, 2096, 1780) -> (2180, 2096, 1779).
     // Item 4244, a mine's `mtn`: builds (1777, 1777, 27) -> (1777, 1777, 25).
+    // Item 4348, gaia's angles from the start dump: guys (612, 612, 1) -> (612, 612, 0).
     (
         "run1472",
         707,
@@ -3896,7 +3909,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (339, 0, 339),
             (4, 0, 4),
             (568, 568, 4),
-            (612, 612, 1),
+            (612, 612, 0),
             (399, 399, 6),
             (9, 9, 0),
             (130, 130, 0),
@@ -3912,6 +3925,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4229, the herd arm and the caravan's per-leader bit: goods (405, 405, 0) -> (405, 405, 1).
     // Item 4234, a cast's three ranges walked: units (4145, 4106, 3427) -> (4145, 4109, 3247).
     // Item 4244, a mine's `mtn`: builds (1446, 1446, 25) -> (1446, 1446, 24).
+    // Item 4348, gaia's angles from the start dump: guys (1381, 1381, 124) -> (1381, 1381, 1).
     (
         "run1484",
         676,
@@ -3922,7 +3936,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (304, 0, 304),
             (0, 0, 0),
             (562, 562, 2),
-            (1381, 1381, 124),
+            (1381, 1381, 1),
             (403, 403, 6),
             (9, 9, 0),
             (25, 25, 0),
@@ -3942,6 +3956,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4243, a grouped move's `GroupOrder` tail walked: units (5340, 5265, 4419) -> (5340, 5268, 4324).
     // Item 4244, a mine's `mtn`: builds (2736, 2736, 31) -> (2736, 2736, 30).
     // Item 4266, a guard order's walker: units (5340, 5268, 4324) -> (5340, 5337, 2952).
+    // Item 4348, gaia's angles from the start dump: guys (1718, 1718, 121) -> (1718, 1718, 0).
     (
         "run1487",
         1980,
@@ -3952,7 +3967,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (208, 0, 208),
             (8, 0, 8),
             (610, 610, 2),
-            (1718, 1718, 121),
+            (1718, 1718, 0),
             (407, 407, 6),
             (31, 31, 0),
             (25, 25, 0),
@@ -3971,6 +3986,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (2180, 2180, 30) -> (2180, 2180, 29).
     // Item 4257, the garrison chain's order: builds (2180, 2180, 29) -> (2180, 2180, 27).
     // Item 4266, a guard order's walker: units (5026, 4939, 4499) -> (5026, 5005, 4438).
+    // Item 4348, gaia's angles from the start dump: guys (1577, 1577, 122) -> (1577, 1577, 1).
     (
         "run1496",
         1539,
@@ -3981,7 +3997,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (230, 0, 230),
             (2, 0, 2),
             (586, 586, 2),
-            (1577, 1577, 122),
+            (1577, 1577, 1),
             (407, 407, 6),
             (23, 23, 0),
             (25, 25, 0),
@@ -4322,6 +4338,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4226, a bird walked on neither line: units (1201, 1312, 1053) -> (1201, 1192, 944), guys (403, 445, 78) -> (403, 403, 36).
     // Item 4229, the herd arm and the caravan's per-leader bit: goods (180, 180, 0) -> (180, 180, 1).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (1201, 1192, 944) -> (1201, 1192, 942).
+    // Item 4348, gaia's angles from the start dump: guys (403, 403, 36) -> (403, 403, 0).
     (
         "run839",
         634,
@@ -4332,7 +4349,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (9, 0, 9),
             (0, 0, 0),
             (526, 526, 0),
-            (403, 403, 36),
+            (403, 403, 0),
             (267, 267, 3),
             (6, 6, 0),
             (110, 110, 0),
@@ -4343,6 +4360,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4218, the idle latch (`flags & 0x08`): units (1149, 1303, 1028) -> (1149, 1303, 1027).
     // Item 4226, a bird walked on neither line: units (1149, 1303, 1027) -> (1149, 1143, 875), guys (393, 449, 92) -> (393, 393, 36).
     // Item 4320, the score's dirty bits (`0x800000`, `0x1000000`) emitted, leader 0's 0x800007 agreeing: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4348, gaia's angles from the start dump: guys (393, 393, 36) -> (393, 393, 0).
     (
         "run842",
         777,
@@ -4353,7 +4371,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (2, 0, 2),
             (532, 532, 0),
-            (393, 393, 36),
+            (393, 393, 0),
             (271, 271, 3),
             (9, 9, 0),
             (110, 110, 0),
@@ -4364,6 +4382,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4218, the idle latch (`flags & 0x08`): units (1154, 1308, 1028) -> (1154, 1308, 1027).
     // Item 4226, a bird walked on neither line: units (1154, 1308, 1027) -> (1154, 1148, 875), guys (393, 449, 92) -> (393, 393, 36).
     // Item 4320, the score's dirty bits (`0x800000`, `0x1000000`) emitted, leader 0's 0x800007 agreeing: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4348, gaia's angles from the start dump: guys (393, 393, 36) -> (393, 393, 0).
     (
         "run842b",
         776,
@@ -4374,7 +4393,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (2, 0, 2),
             (532, 532, 0),
-            (393, 393, 36),
+            (393, 393, 0),
             (271, 271, 3),
             (9, 9, 0),
             (110, 110, 0),
@@ -4455,17 +4474,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4226, a bird walked on neither line: units (1636, 1776, 263) -> (1636, 1636, 123), guys (578, 627, 85) -> (578, 578, 36).
     // Item 4228, a path stack's `size` its high water: units (1636, 1636, 123) -> (1636, 1636, 122).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4348, gaia's angles from the start dump: units (1636, 1636, 122) -> (1636, 1636, 86), guys (578, 578, 36) -> (578, 578, 0).
     (
         "run870",
         901,
         [
-            (1636, 1636, 122),
+            (1636, 1636, 86),
             (517, 517, 13),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (532, 532, 0),
-            (578, 578, 36),
+            (578, 578, 0),
             (271, 271, 3),
             (6, 6, 0),
             (110, 110, 0),
@@ -4618,6 +4638,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4218, the idle latch (`flags & 0x08`): units (1118, 1235, 925) -> (1118, 1235, 924).
     // Item 4226, a bird walked on neither line: units (1118, 1235, 924) -> (1118, 1115, 808), guys (375, 417, 78) -> (375, 375, 36).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (1118, 1115, 808) -> (1118, 1115, 807).
+    // Item 4348, gaia's angles from the start dump: guys (375, 375, 36) -> (375, 375, 0).
     (
         "run938b",
         630,
@@ -4628,7 +4649,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (526, 526, 0),
-            (375, 375, 36),
+            (375, 375, 0),
             (267, 267, 3),
             (6, 6, 0),
             (110, 110, 0),
@@ -5456,17 +5477,18 @@ fn probe_built_clocks() {
 // Item 4244, a mine's `mtn`: builds (1709, 1709, 27) -> (1709, 1709, 26).
 // Item 4266, a guard order's walker: units (3907, 3895, 2964) -> (3907, 3907, 408),
 // both sides' ranges one count.
+/// Item 4348, gaia's angles from the start dump: units (3907, 3907, 408) -> (3907, 3907, 286), guys (1289, 1289, 124) -> (1289, 1289, 2).
 const TAKE_PINNED: Pinned = (
     "run1575",
     1090,
     [
-        (3907, 3907, 408),
+        (3907, 3907, 286),
         (1709, 1709, 26),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
         (556, 556, 2),
-        (1289, 1289, 124),
+        (1289, 1289, 2),
         (407, 407, 6),
         (12, 12, 0),
         (25, 25, 0),
@@ -5576,17 +5598,18 @@ fn run1575_take_packet() {
 /// stream's ranges, ours, ranges parted), our walk the take's
 /// ([`run1629_take_packet`]). The leaders line parts on 6 of 407 ranges,
 /// run1575's take packet's count, none of them a hire or a tribute.
+/// Item 4348, gaia's angles from the start dump: units (3911, 3911, 401) -> (3911, 3911, 279), guys (1289, 1289, 123) -> (1289, 1289, 1).
 const TAKE1629_PINNED: Pinned = (
     "run1629",
     1190,
     [
-        (3911, 3911, 401),
+        (3911, 3911, 279),
         (2015, 2015, 26),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
         (556, 556, 2),
-        (1289, 1289, 123),
+        (1289, 1289, 1),
         (407, 407, 6),
         (12, 12, 0),
         (25, 25, 0),
