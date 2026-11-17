@@ -134,16 +134,6 @@ impl Sim {
     /// is not carried, and the alliance's price; the elimination arm reads
     /// `gamec`'s flag as the game's.
     pub(super) fn style_zero_arms(&mut self, me: usize, t: usize) -> Option<Rivals> {
-        if std::env::var("RON_PROBE_4331").is_ok() && (5480..=5500).contains(&self.frame) {
-            eprintln!(
-                "P4331y f{} me{me} t{t} style {} elim {} victory {} holder {}",
-                self.frame,
-                self.ai.lobby.team_style,
-                self.ai.lobby.elimination,
-                self.ai.lobby.victory,
-                self.capital_holder(me as Player)
-            );
-        }
         let mut rivals = Rivals::default();
         if self.ai.lobby.elimination == 1 {
             // `LeaderData::find_capital(−1, −1)@006eb930`'s holder.
@@ -176,23 +166,6 @@ impl Sim {
                 self.turn_on(me, t);
                 return None;
             }
-        }
-        if std::env::var("RON_PROBE_4331").is_ok() && (5480..=5500).contains(&self.frame) {
-            let gg = self
-                .tables
-                .tech_tree
-                .types
-                .iter()
-                .position(|ty| ty.name.eq_ignore_ascii_case(GLOBAL_GOVERNMENT));
-            eprintln!(
-                "P4331z f{} me{me} t{t} holder {} popwin {} gg {:?} res {:?} ages {:?}",
-                self.frame,
-                self.capital_holder(me as Player),
-                self.ai.ai[t].popwin_timer,
-                gg,
-                gg.map(|g| self.researching(t as Player, g)),
-                (0..3).map(|l| self.tech[l].ages).collect::<Vec<_>>()
-            );
         }
         rivals.racer = self.racing_third_party(me, t);
         Some(rivals)
