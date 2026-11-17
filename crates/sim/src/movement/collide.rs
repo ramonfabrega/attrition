@@ -2339,24 +2339,6 @@ impl Sim {
         cell_change: bool,
     ) -> bool {
         let tile_change = on_map && from.tile() != to.tile();
-        // PROBE (item 4314)
-        if std::env::var_os("RON_PROBE_SHORE").is_some()
-            && (4190..=4215).contains(&self.frame)
-            && self.world.is_tocean(to.tile())
-        {
-            eprintln!(
-                "PROBE f{} shore {}/{} from ({}, {}) to ({}, {}) cell_change {cell_change} tile_change {tile_change} halfland {} can {}",
-                self.frame,
-                self.units[u].owner,
-                self.units[u].index,
-                from.x,
-                from.y,
-                to.x,
-                to.y,
-                self.world.cell_data(from.cell()).flags & crate::world::cell::HALFLAND != 0,
-                self.unit_can_transport(u)
-            );
-        }
         if !cell_change
             && (!tile_change
                 || self.world.cell_data(from.cell()).flags & crate::world::cell::HALFLAND == 0)

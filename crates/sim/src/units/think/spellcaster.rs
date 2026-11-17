@@ -420,22 +420,7 @@ impl Sim {
         let mine = (0..self.units.len())
             .filter(|&i| self.units[i].owner == who)
             .collect();
-        // PROBE (item 4314)
-        let probe = std::env::var_os("RON_PROBE_CASTER").is_some();
-        if probe {
-            let mut v = SimCaster { s: self, u, mine: Vec::new() };
-            let (mv, hero, mana, burn) = (v.is_moving(), v.is_hero(), v.mana(), v.mana_burn());
-            let dm = v.spell_mana(crate::orders::spell::CREATE_DECOY);
-            eprintln!(
-                "PROBE f{} caster {}/{} moving {mv} hero {hero} mana {mana} burn {burn} decoy_mana {dm}",
-                self.frame, who, self.units[u].index
-            );
-        }
-        let r = think_spellcaster_steps(&mut SimCaster { s: self, u, mine });
-        if probe {
-            eprintln!("PROBE f{} caster -> {r}", self.frame);
-        }
-        r
+        think_spellcaster_steps(&mut SimCaster { s: self, u, mine })
     }
 }
 
