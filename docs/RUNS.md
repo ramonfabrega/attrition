@@ -38038,6 +38038,48 @@ Archive `gamelog-run1627-greatlakes-playback-of-auto-explored-7500.txt`, 163,476
 SHA-256 `15b89bd72b8f30d8f8b78a0d0360b85faecefcb268219139579a6a046ad96321`; `rontrace-run1627.log`, 36,254,304
 bytes, SHA-256 `faa084732d21ec1205d3ec2bdf0cf8693f43d0c145a770283bcfd2a95e2c0dbf`.
 
+## run1629 — the attack deal: a human asks the French to attack the Russians, with a packet at 1190 (2026-11-16, item 4298, `att-4298b`)
+
+`docs/LEADERS.md` §7.2, §7.5, §8.2. **What the disk could not answer**: no capture on disk moves `hire_stamp`,
+`hire_who` or `tributes` (item 4159's eighteenth residue measured every walked dump: each at its reset). The deal
+was rehearsed on recon4298-4 (unfiled; item 4298's first act), which our walk could not be pinned against. The
+line: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1629 --map 18 --end-frame 1300 --timeout 1800
+--stall-seconds 300 --ffwd-minute 1 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=7 --profile
+ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile TEAM_STYLE=0 --seat-tribe 1=10 --seat-tribe 2=13
+--log-window 1074 1301 --detail end:MISC,LEADERS=9 --detail misc:COMMANDMANAGER=1 --bindkey OPTION_DIPLO=129
+--bindkey OPTION_CHAT_ALLIES=125 --cmd-file tools/gamelog/coverage/attack4298.cmd --cursor 1400,1000 --cover
+cover=1 --tracer-def RON_STATE_FRAME=1190 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+`attack4298.cmd` is run1575's `diplomacy4206.cmd` through its 1081 Escape, then recon4298-4's deal.
+- Pool lane 1, seed 12345, `MAP_STYLE 18`. PLAYER records: who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 10),
+  who 2 (flags 1, tribe 13). Launched 16:01:56 −05:00, exited 16:02:47: **50.5 s launch to exit**, exit 0,
+  `success`, 1,301 frames, `last_frame` 1300, no page fault, no relaunch, **no kill**. DLL `e2224560…`. 190 GB free
+  before. Waited on with `waitrun.sh` in the background. Minutes waited on another lane: none.
+- **The commands** (`COMMANDMANAGER=1`): run1575's six, then `process_treaty 1 -1 1116`, `process_propose_attack 1
+  2 1131`, `process_tribute 1 4` on 1147..1156, `process_tribute 1 5` on 1157..1166, `process_accept 1 1186`.
+- **The movers** on 1187 (`run1629_s_word_is_pinned_as_found`): the human's `hire_stamp[2]` 1186, `hire_who[2]`
+  −1 → 1, `tributes[2]` 640, `dow[2]` 1, `gift_stamp[1]` 1186; the French `hire_stamp[2]` 1186, `hire_who[2]` −1 →
+  0, `good_deeds[0]` 6139, `counteroffer[0]` 1 → 0; `diplos` 1 → 0 between the Russians and both. On 1086
+  `treaties` 0 → 1 between the human and the Russians (`1085 meet who=2`).
+- **The packet** is `~/ron-golden/run1629/map-18/frame-snapshot.bin`, 918,094,344 bytes, logger frame 1190 and trace
+  frame 1189, 208 ranges, SHA-256 `19b55e2963c7646dfb48488fe94be42eb31365b2391b2dd5c80e02b8269b77da`;
+  `frame_snapshot.py` against item 597's plan validates it. `tools/recomp/checksum.py --stream --values` on it
+  (`~/ron-data/lab-experiments/2026-11-12-item-4188/run1629/`): its stream sums equal the original's on all
+  fifteen lines.
+- **6,802 functions entered.** First entries: `IFaceDiploNeg::on_check_clicked` 1020, `IFaceDiploNeg::
+  on_button_clicked` 1026, `Leader::action_attack` and `CommandPackage::process_propose_attack` 1130,
+  `CommandPackage::process_tribute` 1146 (trace frames, one below the record's).
+- `rngcmp.py` against recon4298-4: **1301 in common, 0 differing**; `samegame.py`: 227 in common (986..1300), 0
+  differing. Against run1575: `rngcmp.py` 1151 in common, 0 differing; `samegame.py` parts from 1086, the meet.
+- Filed with `filerun.py run1629 eastindies-melee-style0-attack-deal-take-packet-1190`. run1630 to run1633 were
+  not used.
+
+Archive `gamelog-run1629-eastindies-melee-style0-attack-deal-take-packet-1190.txt`, 411,814,249 bytes,
+SHA-256 `218bd4040c07593a7a52cd5f22769e3e5c8fda6012374bf71b7a99ea5d97b92a`; `rontrace-run1629.log`, 21,868,672 bytes,
+SHA-256 `10695c4d8805e0c49bef211ee7deb8e4ac57ed1027bf84a701efeb58dc84913c`.
+
+**What it holds**: `diff::diplomacy_take`. Our walk from run1482's start, re-read at style 0, holds the take
+whole, **1300 of 1300**, every diplomacy leaf agreeing on every block (item 4298); its packet is a take's
+(`packets::TAKES_HELD`).
 ## run1628 — run1575's game with the peace bought for 2,000 metal: recon4206-4 filed as is (2026-11-16, item 4159, step 4159r19, `in-session builder`)
 
 `docs/LEADERS.md` §7.5, `docs/DECISIONS.md` entry 137 §1. **What the disk could not answer**: no capture our walk

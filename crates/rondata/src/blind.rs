@@ -822,6 +822,10 @@ pub const TRACES: &[&str] = &[
     // run1610). It enters the hot key's processing,
     // `CommandPackage::process_hotkey`, which no other trace here does.
     "rontrace-run1610.log",
+    // Item 4298's take: the attack deal (`docs/RUNS.md` run1629). It enters
+    // the attack request's store, `Leader::action_attack`, on trace frame
+    // 1130, which no other trace here does.
+    "rontrace-run1629.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -1524,6 +1528,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// @00946d70`, the tribute click's command, stays open, not residue: the original enters it on
 /// run1628 (recon4206-4, `process_tribute 1 4` on 1024 to 1027), filed but read in place, whose
 /// trace joins `TRACES` when it is pinned; open 10 → 11.
+/// **347 → 345** with item 4298's take: run1629's trace enters `Leader::action_attack` on trace
+/// frame 1130 (the record's `process_propose_attack 1 2 1131`) and `CommandPackage::process_tribute`
+/// on 1146 (the record's 1147), each left `NEVER` with the trace's pinning; open 11 → 9.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1544,7 +1551,7 @@ pub const NEVER: &[u32] = &[
     0x0068_c8f0, 0x0068_d1a0, 0x0068_d260, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_0180, 0x006b_1b80, 0x006b_1ba0, 0x006b_1d60,
     0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
-    0x006b_88b0, 0x006d_14e0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
+    0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
     0x006e_c170, 0x006e_de80, 0x006e_fb20, 0x006e_fb50, 0x006e_fda0, 0x006e_ff70, 0x006f_0230, 0x006f_a090, 0x0070_0010, 0x0070_20c0, 0x0070_7aa0, 0x0070_7b50, 0x0070_8800, 0x0070_a470, 0x0070_aa20, 0x0070_b100, 0x0070_ce70, 0x0070_f8a0, 0x0071_0aa0, 0x0071_37f0, 0x0071_3bb0, 0x0071_d6b0,
     0x0072_1480, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
@@ -1552,7 +1559,7 @@ pub const NEVER: &[u32] = &[
     0x0084_2060, 0x0084_2070, 0x0084_b8d0, 0x0086_1960, 0x0087_a770, 0x0089_0060, 0x0089_4060, 0x0089_41b0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_8920,
     0x0089_8cf0, 0x0089_8f10, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x0089_ddc0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008a_60e0,
     0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7810, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_43b0,
-    0x0093_a140, 0x0093_a150, 0x0093_e9e0, 0x0093_ee70, 0x0094_0ba0, 0x0094_1fd0, 0x0094_3f30, 0x0094_6d70, 0x0094_8cb0, 0x0094_8e00,
+    0x0093_a140, 0x0093_a150, 0x0093_e9e0, 0x0093_ee70, 0x0094_0ba0, 0x0094_1fd0, 0x0094_3f30, 0x0094_8cb0, 0x0094_8e00,
     0x0094_9050, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0095_6b40, 0x0095_9110, 0x0095_9500, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20, 0x0099_c750,
     0x009a_0950, 0x009a_1380, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009a_df40, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_3340, 0x009b_3590,
     0x009b_37a0, 0x009b_39e0, 0x009b_4820, 0x009b_4930, 0x009b_4da0, 0x009b_59f0, 0x009b_5d20, 0x009b_5e00, 0x009b_5ec0, 0x009b_5f20, 0x009b_6de0, 0x009b_6fa0,

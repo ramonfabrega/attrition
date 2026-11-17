@@ -1712,15 +1712,13 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 
 ## 20. The leaders line, held out on the long range (items 4121, 4124)
 
-**265 of 267 ranges and 4,515 of 58,343 bytes agree** on run 1562's frame
-91, and `LEADERS_HELD_OUT` names **5** leaves, from 140. Agreeing: all
-eight slots' flag words, and the two walked leaders' diplomacy records,
-personalities, masks (each `tech` array since item 4187), sites, make
-lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
-decrypted words. Parting: each walked leader's `[+0x8, +0x692a)` (26,914
-bytes). Until item 4187 its `tech` array (101 bytes) parted too, 263 of 267
-ranges and 4,313 bytes agreeing; item 4121's image summed to 4257695306
-against the printed `Leaders` 2813959641. `Sim::checksum_leaders`
+**267 of 267 ranges and 58,343 bytes agree** on run 1562's frame 91 since
+item 4298, our Adler the printed 2813959641 (before it 265 and 4,515, each
+walked leader's long range `[+0x8, +0x692a)` parting; the earlier counts
+are items 4121's and 4187's journals). **2** leaves stay held, at their
+reset on both sides: the line is not counted whole while any is
+(`whole_lines`; the driver's ruling, a held leaf being substituted,
+entry 131 §1), so the count stays 8 of 12. `Sim::checksum_leaders`
 (`crates/sim/src/checksum/leaders.rs`) emits it, leaf by leaf
 (`Sim::leader_image`, a `None` leaf being one the crate holds no value
 for). `diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`
@@ -1755,6 +1753,7 @@ not count it (§5).
 | the residue, sixteenth builder | `score` (4159r15a) | 9 | §18.5 |
 | seventeenth | the three victim stamps | 6 | §4.5 |
 | 4159r19 | `good_deeds` (run1628) | 5 | §7.5 |
+| item 4298 | `hire_stamp`, `hire_who`, `tributes` (run1629's attack deal, walked whole) | 2 | §7.5 |
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
@@ -1834,9 +1833,10 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     `Leader::plan_strategy` and `end_process`).
   - ~~attrition (5)~~: all carried (items 4154, 4176; `attrition_stamp2`
     by item 4159's third residue; `docs/LEADERS.md` §5).
-  - the diplomacy actions (~~15~~ ~~12~~ ~~10~~ ~~9~~ ~~6~~ 5): ~~`dow`, `blacken`, `broke_alliance`,~~
-    carried by item 4159's VII-b1; ~~`made_peace`,~~ `tributes`, ~~`tribute_sent`, `tribute_received`,~~
-    carried by VII-c; ~~`tribute_stamp`, `gift_stamp`,~~ carried by VII-b2; `hire_stamp`, `hire_who`, `good_deeds`,
+  - the diplomacy actions (~~15~~ ~~12~~ ~~10~~ ~~9~~ ~~6~~ ~~5~~ 2): ~~`dow`, `blacken`, `broke_alliance`,~~
+    carried by item 4159's VII-b1; ~~`made_peace`,~~ ~~`tributes`,~~ ~~`tribute_sent`, `tribute_received`,~~
+    carried by VII-c; ~~`tribute_stamp`, `gift_stamp`,~~ carried by VII-b2; ~~`hire_stamp`, `hire_who`,~~
+    `tributes` with them carried by item 4298 (run1629's attack deal, `docs/LEADERS.md` §7.5); `good_deeds`,
     ~~`last_spoke`~~ (frozen), ~~`counteroffer`~~ (VII-d, run1575's 1052), `tribute_demanded`: the `action_*` family,
     `consider_tribute` and `Leader::diplomacy`'s arms the crate stops at a
     SEAM.
