@@ -101,7 +101,13 @@ table — the enum is `FILTER_TYPE = 1`, `FILTER_CAN_TRADE = 18`, the table
 is at `0067e57c` and the arm at `0067e204`, read from the PE because the
 decompiler prints the table as an indirect jump. The arm is §4's own loop
 with the scoring taken out: *is there any allied city, not this one, that
-this city and it can both still pair with*. `ObjectsData::find_city@0065ba90`
+this city and it can both still pair with*. Every test in it is asked of
+the **candidate city's owner** (`edi`), not of the leader searching: for
+each other leader `L`, `is_ally(owner, L)` (`0067e275`) and
+`has_preq(owner, BASE_BONUSTYPES)` (`0067e285`) open `L`'s cities, and
+then `CityData::is_seen(c, owner)` and the two `get_empty_trade_routes`
+(`0067e2ce`–`0067e307`); the owner's own cities need neither (item 4316,
+run1646). `ObjectsData::find_city@0065ba90`
 takes the nearest that passes, with no region flag and no distance limit,
 and ties go to the **later** city because the compare is `<=`.
 
@@ -564,9 +570,18 @@ original_s_node_for_node`, and its Great Lakes sibling on run73):
 - §3's idle thresholds — the five difficulty arms. A capture with a human
   caravan and `LEADERS=9` would show the option; none has one.
 - §4's selection loop past the two-city case. run64 has one route between
-  the only two cities that could pair, so the scoring, the ally arm, the
-  `BASE_BONUSTYPES` gate and the two bonuses are all unexercised. A
-  capture with three cities of one leader would separate them.
+  the only two cities that could pair, so the scoring and the two bonuses
+  are unexercised. A capture with three cities of one leader would
+  separate them. ~~The ally arm and the `BASE_BONUSTYPES` gate~~ are
+  **draw-stream-backed** since item 4316: run1646 (the human allied with
+  the French on 902, the French without Trade) walks 2082 → 3037 with the
+  gate on both §4's loop and §3's `FILTER_CAN_TRADE`, and each gate taken
+  out alone parts the walk again (2082: the French second caravan's road
+  runs to the human's capital in ours and to their own city 2020 in
+  theirs, node 16 of its search; 2185: the third caravan homes on the
+  capital, whose only free pair is the human's, and idles). That the
+  French lack Trade there is read off the walk, not off a record: no
+  leader record prints the techs held.
 - `CityData::is_seen`, taken here as "the owner has seen the tile"; the
   original keeps a per-leader bit on the city.
 - §5's `reset_road` path, which needs two routes planning at once.

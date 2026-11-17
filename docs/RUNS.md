@@ -38186,7 +38186,7 @@ then the chat. The script was committed before the capture.
   597's plan validates it. `tools/recomp/checksum.py --stream --values` on it
   (`~/ron-data/lab-experiments/2026-11-12-item-4188/run1645/`): its stream sums equal the original's on all fifteen
   lines. The French `incoming_taunt_who[0]` reads **1**.
-- Filed with `filerun.py run1645 eastindies-melee-style0-reseated-taunt-take-packet-1000`. run1646 was not used.
+- Filed with `filerun.py run1645 eastindies-melee-style0-reseated-taunt-take-packet-1000`. run1646 was not used here (item 4316 took it).
 
 Archive `gamelog-run1645-eastindies-melee-style0-reseated-taunt-take-packet-1000.txt`, 371,866,648 bytes, SHA-256
 `723ffdeffc071f35bbaa590f65e9b35b395668f81ce72e4f159fe7872809ba47`; `rontrace-run1645.log`, 18,830,816 bytes, SHA-256
@@ -38195,3 +38195,36 @@ Archive `gamelog-run1645-eastindies-melee-style0-reseated-taunt-take-packet-1000
 **What it holds**: `diff::diplomacy_take`. Our walk from the capture's own lobby built, with the human at who 1 and the
 script staged from that seat, holds the take whole: **1100 of 1100**, with 53,505 diplomacy leaf rows agreeing. Its packet
 is a take's (`packets::TAKES_HELD`), and it releases `incoming_taunt_who` (item 4313).
+
+## run1646 — the demand's game: recon4316-1 filed as is, run1575's lobby at `DIFFICULTY 4` with the alliance (2026-11-16, item 4316, `att-4316`)
+
+`docs/LEADERS.md` §8.2, `docs/CARAVAN.md` §3–§4, `docs/DECISIONS.md` entry 138 §1. **What the disk could not answer**:
+no capture our walk holds reaches the demand arm's store (`tribute_demanded`, the last leaf `LEADERS_HELD_OUT` names). This
+one prints it, and it was already on disk: **recon4316-1**, the pass's recon A (`~/Library/Caches/attrition/pass-1116d/recon4316.md`).
+No new capture was taken. It is filed **as is, in place**, as run1628 was: the run is `~/ron-golden/recon4316-1/map-18/`,
+nothing was moved or copied into the archives, and `filerun.py` was not run, so no `gamelog-run1646-*` file exists.
+`diff::diplomacy_take::run1646` reads it there (under `RON_GOLDEN_DIR`). run1647 was not used.
+- **The line**, from the recon: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/recon4316-1 --map 18
+  --end-frame 6600 --timeout 3600 --stall-seconds 300 --ffwd-minute 1 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=7
+  --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile TEAM_STYLE=0 --profile DIFFICULTY=4
+  --seat-tribe 1=10 --seat-tribe 2=13 --log-window 5900 6601 --detail end:MISC,LEADERS=9 --detail misc:COMMANDMANAGER=1
+  --cmd-file alliance4316.cmd --cover cover=1`. The command file is `tools/gamelog/coverage/alliance4316.cmd`
+  (`900 meet who=1`, `901 resource who=0 all +100000`, `902 ally 1`); `rontrace.cmd` adds `37 !ffwd 1` and `6600 !quit`.
+  `rontrace.cfg` carries `callwin=0-6600`, so every `astar_caravan_road`, `valid_roadcoord` and `calc_road_cost` of the
+  game is on the trace with its arguments.
+- **The receipt**: launched 21:22:12 −05:00, exited 21:28:52, **400.0 s** launch to exit, exit 0, 6601 frames,
+  `last_frame` 6600, not ended early. `lobby_read` `DIFFICULTY 4`; who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 10),
+  who 2 (flags 1, tribe 13); seed 12345. No kill, no relaunch.
+- **What it prints**: the alliance holds both ways on every block 5900 to 6600; on 6081 the French `tribute_demanded[0]`
+  0 → 1, `aggression[0]` 0 → 1, `agendas[0]` 64 → 72, `dip[0]` `agree` 1, `treaty` −1, `offers[WEALTH]` −700, and the
+  human's `dip[1].offers[WEALTH]` +700; `tribute_demanded` holds 1 to 6600.
+- **Our walk against its own trace** (`run1646_walks_to_its_word_at_difficulty_4`; run1482's start re-read at style 0 and
+  `DIFFICULTY 4`, the script staged from who 0): **count 3037, sequence 3037 of 6600**, the head word agreeing on every
+  frame walked. 2082 on the base; item 4316's `BASE_BONUSTYPES` gates moved it.
+
+Files in place: `gamelog.txt`, 1,272,747,952 bytes, SHA-256
+`6e4a9fb60c067261496194f69a9130e4c7c411b03507da36fb3dbbfe07c3ae55`; `rontrace.log`, 358,739,264 bytes, SHA-256
+`5f537a6e64b8a19412e4a03213a3c5cca8a79d53e82db3ad16c5a7b7bb31fe02`.
+
+**What it holds**: `diff::diplomacy_take::run1646_walks_to_its_word_at_difficulty_4` (`RUN1646_WORD` 3037). No leaf is
+released: the walk does not reach the leader window (5900).
