@@ -1454,6 +1454,21 @@ mod tests {
     use crate::diff::testkit::*;
     use crate::testenv::{dump, install};
 
+    /// **`build_game`'s empire order** (item 4336): a seat's teammates are
+    /// built at once after it, in the permutation's order, and take the
+    /// next start cells; team 8 is nobody's teammate; style 22 pulls none
+    /// early. The 2017 sample's lobby: the person alone on team 0 at who
+    /// 3, the four computers on team 1.
+    #[test]
+    fn a_seat_s_teammates_are_built_at_once_after_it() {
+        let list = [2, 3, 0, 4, 1, 5, 6, 7];
+        let sample = [Some(1), Some(1), Some(1), Some(0), Some(1)];
+        assert_eq!(empire_order(&list, &sample, Some(7)), [2, 0, 4, 1, 3]);
+        assert_eq!(empire_order(&list, &sample, Some(22)), [2, 3, 0, 4, 1]);
+        let unteamed = [Some(8); 5];
+        assert_eq!(empire_order(&list, &unteamed, Some(7)), [2, 3, 0, 4, 1]);
+    }
+
     /// `Game::init`'s extent off the install's `mapsizes`: Small is 60.
     #[test]
     fn the_extent_is_the_mapsizes_row() {

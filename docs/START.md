@@ -124,7 +124,17 @@ it (**not built**).
    28512 30816 against theirs 11616 12384. **Built** (`start_permutation`,
    item 4047), randomised; *diff-backed*: the eight draws from 894's word are
    4, 7, 6, 1, 0, 3, 2, 5, each fresh first time, landing on 955's
-   `0x9991b076`. Teammates: not built (no team game on disk).
+   `0x9991b076`. ~~Teammates: not built (no team game on disk).~~
+   **Teammates built** (item 4336, `empire_order`): `build_game`'s empire
+   loop builds each seat in the permutation's order and, unless the
+   map's type (`World+0x30`) is 0x16, every unbuilt seat `is_team` names
+   at once after it, in the same order; the slot `build_empire` takes is
+   a counter of empires built, so a team's start cells are consecutive.
+   *Diff-backed* on the 2017 sample (run1650, `docs/RECGAME.md` §7): the
+   person alone on team 0 at who 3, four computers on team 1; without
+   the pull seats 2, 3 and 4 sit a cell round (`BUILD 2/2000 pos` ours
+   10848 10080 theirs 5472 30816, 17,163 of 18,315), with it 18,315 of
+   18,315.
 6. **`Leader::init@006e3930(who, tribe, who)`** for every active player:
    the leader's records, and for a computer leader the personality roll
    (`Personality::roll`, 20 draws here) and the script choice. The roll is
@@ -417,9 +427,12 @@ installer's. That moved no other lobby.
   roll — which is what the builder takes; the roll's one draw is spent
   on a stream the re-seed discards, so whether a nation was chosen or
   rolled changes nothing at frame 0.
-- **Read only**: the diplomacy row's team arm (2), its unlocked styles
+- **Read only**: ~~the diplomacy row's team arm (2),~~ its unlocked styles
   (0, 8, 11), its conquest and `semaphore[1]` arms, and the style-7
-  refusal — no capture on disk has a team game or an unlocked style.
+  refusal — no capture on disk has an unlocked style. The team arm is
+  *diff-backed* on the 2017 sample's start dump (run1650, team style 12:
+  the computers' `diplos` 2 to each other and 0 to the person; item
+  4336).
   The style-7 refusal is equivalent at frame 0 (a seat on team 8 already
   fails the `0..4` test), so no lobby can tell it apart.
 - **Diff-backed on 35 lobbies** (item 4034, §5): Great Lakes at 34
@@ -468,7 +481,9 @@ installer's. That moved no other lobby.
   East Meets West in a team game and Colonial Powers' outsiders (both
   refused); the default tileset
   draw's unavailable-name arm (a second
-  draw, parked 3819b); a team game's consecutive teammates; the Large
+  draw, parked 3819b); ~~a team game's consecutive teammates~~ (built and
+  diff-backed on one lobby, item 4336, §2 step 5); team style 7's
+  alternation in `build_game`'s empire loop (not walked); the Large
   Town list for the Lakota (bonus 0x13) or past one lobby; `build_units` on a Nomad or City-only start (`place_unit`'s
   rings 8 and 24, its `Build::train` arm), or with `starting_resources`
   8; the Spaniards' `reveal_map > 1` scout, the Greek scholars past 0 and
