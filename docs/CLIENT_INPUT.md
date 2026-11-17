@@ -4238,7 +4238,7 @@ packet (`the_transport_press_as_the_original`). No capture, no playback, no `cra
 - **The layer** (`input::Event::Transport`, `input::group_can_transport`). `standard_panel` hands the button
   `Event::Transport`, greyed as before. The press asks the walk's sim (`View::sim`) for each member's
   `alive() && on_map`, `Sim::is_plane` and `Sim::unit_can_transport`. Without the walk it writes nothing.
-  `Event::Unbuilt` is now handed by no button.
+  `Event::Unbuilt`, which no button handed any more, is removed.
 - **The original's order** (`tools/recomp/panels.py --transport`, `~/ron-data/transport-press/run1236.tsv`). On
   run1236's packet at 4179, from slot 0's seat: four selections of slot 0's citizens `0/1` and `0/2`, with each
   member's `+0x68` poked. Each run stops in `Sound::init@0053b590` under the ack, after the issue, and the bytes

@@ -335,11 +335,6 @@ pub enum Event {
     /// `can_activate`, in a game whose semaphore's `0x10` bit is clear,
     /// writes its `group` and `alarm` (`0x1b`). The HUD's alone.
     Alarm,
-    /// A press on a standard-panel button whose order the layer does not
-    /// issue, by its option (item 4346, §32.9). Consumed; it orders
-    /// nothing. No button hands it since item 4357 built
-    /// [`Event::Transport`].
-    Unbuilt(i32),
     /// A press on the transport button, `OPTION_TRANSPORT` (item 4357,
     /// `docs/CLIENT_INPUT.md` §32.12): `Options::do_transport@0071c500`,
     /// which for a unit selection (`buildings` clear) that `can_activate`
@@ -2855,7 +2850,6 @@ impl Input {
                 }
                 Some((frame, play, vec![self.group(view.scene), Command::Alarm]))
             }
-            Event::Unbuilt(_) => None,
             Event::Transport => {
                 // `do_transport`: a unit selection (`buildings` clear) that
                 // `can_activate` writes its `group` and
