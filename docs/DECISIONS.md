@@ -155,6 +155,7 @@ is append-only and amended in place, as it always was.
 - 138 standing — The pass of 2026-11-16, third: the demand is chased on the game that makes it (recon4316-1), parity's leaders line is its own item, the panel's filter is diffed on the minted game's packets, the input seat takes the form orders, a booking's subject is the table's key
 - 139 standing — The pass of 2026-11-17: the render seat leaves the nine deep tiles for the whitecaps and the fish, the HUD draws the panel the filter computes, the 2017 sample (a person's whole game) is booked to be walked, a continuation is numbered before it is spawned, the wake exercised
 - 140 standing — The pass of 2026-11-17, second: parity's first game is one comparison short (theirs' walls, ammo and deaths are empty on every frame, ours uncounted), the four designed items ratified with the sample taking the hook, the packets' wiring pin runs in every lane gate, the render seat's five lines stay in their journals
+- 141 standing — Lanes out at the day's line land, and only the last day is careful at the stop (Ramon, 2026-11-17)
 
 ## 1. Fidelity before divergence
 
@@ -13947,3 +13948,25 @@ projectiles and death slots are the sets `check_ammo` and `check_deaths`
 walk; whether the tracer attaches to the sample's playback; which of
 `reg`, `num_units` and the head orders differs in theirs on run1646's 5621;
 what lays the broad strokes.
+
+## 141. Lanes out at the day's line land, and only the last day is careful at the stop (2026-11-17)
+
+**What happened.** `commander` (Opus 5.5) refilled the four seats off the
+pass at 53 % against the day's line of 56 and ran seven landings; the week
+read 56 at about 18:00 with four lanes out. Ramon, on the row: "fwiw i dont
+want you to stop half running lanes... if they were out before quota hit, we
+leave em there... only on last day do we have to be more careful."
+
+**The rule.** A lane that is out when the week reaches the day's line runs
+to its landing and is booked; no lane is stopped for the line, and the
+seat it frees is not refilled until the next day begins. This is what
+`docs/LOOP.md` already said ("what is out when it is reached lands over
+it"), now his word. The care belongs to the week's last day, where the
+three points under the stop (entry 121) still bind: nothing is cut that
+cannot be booked before the wall.
+
+**Extending past the line** into the next day's points was offered and not
+taken: the line is cumulative and the day after pays for it, nothing out
+was time-critical, and the free seat's item (4358) is a capture better
+started fresh. It is his to ask for on any day.
+
