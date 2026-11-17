@@ -3663,7 +3663,8 @@ change.*
 - `Options::add@0072c290` hooked at its entry, its adds kept when the caller is `make_options@UnitOut`.
 
 Each add's first argument is `mode_data`, so a button's option is its page. The page ends with `OPTION_BACK`,
-`OPTION_NEXT` and `OPTION_CANCEL` (65, 66, 67), which the row sets aside.
+`OPTION_NEXT` and `OPTION_CANCEL`, which the row sets aside. ~~(65, 66, 67)~~ Added in that order, their values
+are 66, 65 and 67 (§32.7).
 
 **The sweep.** The 96 runs (16 packets, 2 slots, 3 pages) all returned. Their TSVs are
 `~/ron-data/pages/run<N>.tsv`, with logs beside them. Only slots 0 and 1 hold citizens on the minted game.
@@ -3747,8 +3748,9 @@ theirs it drew only the 147 clear page-0 buttons. For example:
 
 **Ours, not the original's.**
 
-- The three pages drawn at once. The original's citizen shows `OPTION_BUILD`, `OPTION_BUILD_MILITARY` and
-  `OPTION_BUILD_WONDER` in `STANDARD_OPTIONS` mode, and one page after the press.
+- ~~The three pages drawn at once. The original's citizen shows `OPTION_BUILD`, `OPTION_BUILD_MILITARY` and
+  `OPTION_BUILD_WONDER` in `STANDARD_OPTIONS` mode, and one page after the press.~~ One page at a time since
+  item 4339 (§32.7).
 - A press on a greyed page button arms nothing. `Options::exec`'s build arm is not read.
 - The panel's grid (`+0x5c`, `+0x5d`, which the TSV carries), the page's `OPTION_BACK`, `OPTION_NEXT` and
   `OPTION_CANCEL`, and the buttons' places.
@@ -3757,7 +3759,8 @@ theirs it drew only the 147 clear page-0 buttons. For example:
 
 - **Backed by the oracle**: every page button of the 32 citizen-pages on the minted game's walk, type, option
   and `disable`, and the press of each.
-- **Exercised by no held packet** (each perturbation above changes nothing):
+- **Exercised by no held packet** (each perturbation above changes nothing; where on our walk a packet would
+  reach each one: §32.7):
   - the `obs` arms;
   - `already_built`;
   - the wonder-site arm of page 2;
@@ -3772,6 +3775,115 @@ theirs it drew only the 147 clear page-0 buttons. For example:
   The HUD offers the pages to type 0x32 or 0x33 alone.
 - `at_city_limit`'s second argument is an unaffected register in the decompile, which the sim's
   `at_city_limit(who)` does not take; no packet tells them apart.
+
+## 32.7 One page at a time, and where the idle arms are (item 4339)
+
+*Item 4339, 2026-11-17 (`docs/journal/2026-11-17-item-4339.md`). The citizen's panel now pages as the
+original's: the standard panel's page buttons, then one page with `OPTION_BACK`, `OPTION_NEXT` and
+`OPTION_CANCEL`. **`HUD_PAGES_PAGED` (32, 32, 416, 416)**, seen red pinned at zeros. No packet on disk reaches
+§32.6's four idle arms; our walk names the frames that would. No capture, no new packet, no `crates/sim` change.*
+
+**The first act: no held packet reaches an arm.** `the_page_arms_on_our_walk` walks the minted script to frame
+24,000. It records each frame where a slot's state for the idle arms changes: `at_city_limit`, `wonders_built`,
+and the wonder types the slot has sited (`PAGE_ARMS_WALKED`).
+
+| frames | slot 0 | slot 1 |
+| --- | --- | --- |
+| 1..383 | at its limit | at its limit |
+| 383..577 | at its limit | **under its limit** |
+| 577..7431 | at its limit | at its limit |
+| 7431..12783 | at its limit | **under** |
+| 12783..14312 | at its limit | **under**, the Pyramids (526) **sited** |
+| 14312..24000 | at its limit, the Pyramids **built** | **under**, the Pyramids **built** |
+
+No page type is obsolete for any slot on any frame (`PAGE_ARMS_OBS` 0). This agrees with §32.6's reading that
+the `obs` arm hides nothing on the shipped data, and `obs_flags` is never set on this game.
+
+- The packets on disk: 133 `frame-snapshot.bin` under `~/ron-golden`, none under `~/ron-data`. Those of the
+  minted file are the sixteen held (frames 1 to 7195) and run1562 (91). The rallied and buildmasked files'
+  run1603, run1615 and run1615b (6860, 6865, 6869) play other scripts, which this walk does not hold, and fall
+  before 7431 in any case. The other 113 are other lobbies' games.
+- **`PAGE_ARMS_HELD` 0**, seen red pinned at 1: no held citizen's slot stands under its limit or with a wonder
+  built or sited at its packet's frame.
+- **The game that would reach them** is the minted file's own playback (run1600's recipe, `RON_STATE_FRAME`
+  moved):
+  - a packet in 383..577 reaches the city limit (slot 1's City clear);
+  - one in 12783..14312 reaches the wonder-site arm and the limit;
+  - one from 14312 reaches `already_built`, for both slots, and the limit.
+
+  Two packets, for example at 13000 and 14400, reach all three. No game on the walk reaches the `obs` arms.
+
+**The standard panel's oracle.** `panels.py --citizens --standard` is §32.6's run with `mode` poked to 0
+(`STANDARD_OPTIONS`). Its 32 runs on the sixteen packets all returned, to `~/ron-data/pages-standard/`. Every
+citizen gets the same eleven adds. The three page buttons are `OPTION_BUILD`, `OPTION_BUILD_MILITARY` and
+`OPTION_BUILD_WONDER` (0, 1, 2), each with type −1 at grid (k, 1), clear. Beside them are `OPTION_REPAIR` (3)
+at (3, 1), `OPTION_ALARM_PEASANT` (27) at (4, 0), and six other standard adds of the unit.
+
+**The paging**, `Options::exec@007188c0`'s cases, as `Input::event`'s `Event::Page` arm reads them:
+
+- **0, 1, 2** (a page button with no type): `set_mode(BUILD_OPTIONS, option)`, when the group has a leader,
+  `can_activate`, counts `COUNT_PEASANTS`, and the option is not `OPTION_BUILD_WONDER` under `semaphore[2] & 2`;
+- **0x41, `OPTION_NEXT`**, in `BUILD_OPTIONS`: `mode_data` becomes `(mode_data + 1) % n`;
+- **0x42, `OPTION_BACK`**, in `BUILD_OPTIONS`: `n − 1` from page 0, else `mode_data − 1`;
+- **0x43, `OPTION_CANCEL`**, outside `DIPLO_OPTIONS` and `STANDARD_OPTIONS`: `set_mode(STANDARD_OPTIONS, 0, 0)`.
+
+Here `n` is `~(semaphore[2] >> 1) & 1 | 2`: three pages, or two in a game with `semaphore[2] & 2`. That is the
+sim's `Lobby::conquest`, read through `pages_of`, and in such a game `make_options` adds no
+`OPTION_BUILD_WONDER` either.
+
+- The page loop adds `OPTION_BACK` at grid (2, 3), `OPTION_NEXT` at (3, 3) and `OPTION_CANCEL` at (4, 3). Their
+  values are 66, 65 and 67, from the TSVs' grid columns, and the sweep of `WallOut::make_options` names 0x42
+  `OPTION_BACK` too.
+- A new selection returns the panel to the standard mode: `SelectGroup::clear` and `update_info` call
+  `Options::reset@0072c040`, which writes `STANDARD_OPTIONS`. `Input::press_select` and the box set
+  `Input::page` to `None`.
+
+**What the HUD does.** With the walk, a selection holding one of the slot's citizens is offered, while
+`Input::page` is `None`, the page buttons alone, each `(Event::Page(k), (−1, k, 0))`. On page `k` it is offered
+`Roster::build_pages`' buttons of option `k`, each `Event::Place`, then the page's three buttons. Without the
+walk the static page is kept (§32.6). `hud::page_label` names the typeless buttons; the names are ours.
+
+**The count** (`the_pages_of_the_packets_on_our_walk`). For each held citizen there are thirteen states, each
+reached by presses at the buttons' centres through `hud::event`:
+
+- the fresh standard panel;
+- each page button pressed;
+- from each page so reached, `OPTION_NEXT`, `OPTION_BACK` and `OPTION_CANCEL` pressed.
+
+A state is equal when `Input::page` is the mode the reading sets and the drawn buttons are, whole, the
+original's adds in that mode. In standard mode that is the page buttons; on page `k` it is page `k`'s adds with
+its three buttons.
+
+| row | value |
+| --- | --- |
+| **`HUD_PAGES_PAGED`** (citizens every state equal, citizens, states equal, states) | **(32, 32, 416, 416)**, seen red at zeros |
+| `HUD_PAGES_WALKED`, the three pages drawn one at a time and joined | (32, 32, 1312, 1312, 1312), unchanged |
+| `HUD_PAGES_PRESSED`, each page's buttons pressed on that page | (1312, 1312), unchanged |
+| `HUD_PAGES_STATIC` | (0, 32, 147, 1312, 1696), unchanged |
+| `HUD_PAGES_PAGED` with `OPTION_NEXT` turning backward, `(k + 2) % n` | (0, 32, 320, 416): the 96 next-states lost |
+
+**The value diff.** Before this item the HUD drew a citizen's 41 page buttons at once, under no mode: its
+standard state drew 41 buttons where the original's draws three, `(−1, 0, 0)`, `(−1, 1, 0)` and `(−1, 2, 0)`. Its
+page states drew all three pages where the original's draws one, and it had no `(−1, 65, 0)`, `(−1, 66, 0)` or
+`(−1, 67, 0)`.
+
+**Ours, not the original's.**
+
+- The page buttons' labels and places, and the HUD's single row for every mode.
+- The standard panel's other adds: `OPTION_REPAIR`, `OPTION_ALARM_PEASANT`, the stance, the halt and the rest.
+  The HUD draws the page buttons alone.
+- A press that arms a placement leaves the page as it stands; `Options::exec`'s build arm, which sets
+  `selecting_spot`, is still unread (§32.6).
+
+**Confidence, and what is not established.**
+
+- **Backed by the oracle**: the standard panel's page buttons and each page's adds, on the 32 held citizens.
+- **One reading**: the turns' arithmetic, `exec`'s cases 0 to 2 and 0x41 to 0x43. The count asserts our pages
+  follow it, and each page it reaches is diffed, but no run of `exec` checks the turn itself.
+- **Exercised by no held packet**: the `semaphore[2] & 2` arm (two pages, no `OPTION_BUILD_WONDER`) and the
+  `+0x68 & 1` gate, as well as §32.6's four arms, which the table above places on our walk.
+- `Options::reset`'s other callers (`Console::right_click`, `on_key_down` and the rest) are not read. A right
+  press leaves our page as it stands.
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 
