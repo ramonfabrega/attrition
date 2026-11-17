@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-16, tools/suite_timings.py (tree d2b00ab3).
+# Every rondata release test's peak resident set alone, 2026-11-17, tools/suite_timings.py (tree 690aa7dd).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -61,6 +61,7 @@
 1416	diff::harness::tests::run134_s_pool_list_is_the_original_s
 1415	diff::harness::tests::run135_s_word_frame_is_widened_whole
 1414	diff::harness::tests::run136_s_word_is_one_cell_of_1_62_s_search
+1413	diff::diplomacy_take::run1646_walks_to_its_word_at_difficulty_4
 1413	diff::harness::tests::run100_s_word_block_is_every_record_the_dump_carries
 1411	diff::harness::tests::run136_s_word_frame_is_widened_whole
 1411	diff::harness::tests::run100_s_word_frame_is_the_original_s

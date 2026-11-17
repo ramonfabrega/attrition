@@ -153,6 +153,7 @@ is append-only and amended in place, as it always was.
 - 136 standing — The pass of 2026-11-16: a wake into its own row says `--allow-duplicate` and reports its failure, the clock drains the host only after a red beside load, a gate log says when it began, `leader_options` is the client's own prefs, the land is lit
 - 137 standing — The pass of 2026-11-16, second: the leaders line's last six leaves take four movers and the first is a rehearsal already on disk, a released leaf is compared by the record diff, the input seat finishes the missed orders, the render seat takes the borders, the host's kill explained by its amendment (syspolicyd)
 - 138 standing — The pass of 2026-11-16, third: the demand is chased on the game that makes it (recon4316-1), parity's leaders line is its own item, the panel's filter is diffed on the minted game's packets, the input seat takes the form orders, a booking's subject is the table's key
+- 139 standing — The pass of 2026-11-17: the render seat leaves the nine deep tiles for the whitecaps and the fish, the HUD draws the panel the filter computes, the 2017 sample (a person's whole game) is booked to be walked, a continuation is numbered before it is spawned, the wake exercised
 
 ## 1. Fidelity before divergence
 
@@ -13696,3 +13697,107 @@ Russians are at war with the human on recon4316-1 by 5,900; the two-seat
 Moderate game (not taken: the builder stopped at its context bar); how
 many of 24,000 frames the leaders line parts on past 300; whether the
 filter's predicates need leader state the sim does not hold.
+
+## 139. The render seat leaves the nine tiles for what the eye sees, the HUD draws the panel the filter computes, a person's whole game is booked to be walked, and a continuation is numbered before it is spawned (2026-11-17)
+
+**What happened.** `commander` (Opus 5.5) ran nineteen first-parent merges
+from 22:46 on 2026-11-16 to 08:25 −05:00 on 2026-11-17, in two sittings:
+eleven to 01:10, then a rest on the day's line, then the 06:07 wake, which
+spawned a fresh row that cut four lanes at 06:11 and landed eight more. It
+reached the backstop's edge, drained and gated whole (`gate-1117i.log`,
+exit 0 on `690aa7ddf`). `LEADERS_AGREE` went 2,941 → 23,965 of 24,000,
+the demand's walk 2082 → 5496, `INPUT_WHOLE` 42 → 50 of 50 and the
+panel's filter 0 → 103 of 103 buildings. The pass ran on the `steer` row
+from 08:57 and spawned nothing. The tables are in
+`docs/audit/2026-11-17-fable-pass-eye.md`.
+
+**§1. The render seat leaves the nine deep tiles.** Items 4327, 4329 and
+4330 each took the residue item 4310 parked, each moved no score, and each
+ended by parking the next candidate: 12.19 USD at list over three lanes for
+0 tiles. What they chased is nine of `SANDY`'s 772 tiles, on which theirs'
+water reads (68, 132, 155) against ours (56, 134, 148). The pass drew the
+still beside the photograph and could not see it. What it could see on the
+same frame, at 1:1 (`~/ron-data/lab-experiments/2026-11-17-pass/`):
+
+- **the whitecaps** (`crop-1564-whitecaps.png`): theirs are bright, opaque
+  white strokes over the south-east water; ours is a faint pattern of the
+  same texture. Item 4330 measured it on three tiles, 54 to 65 % foam
+  against 24 to 34 %;
+- **the fish** (`crop-1564-herd.png`): theirs are dark shapes under the
+  water, ours white figures over it, since the client draws them after the
+  water where the card draws them before (parked 4308a);
+- **the west rim's breakers** (`crop-1564-west-rim.png`): ours are thick
+  white crescents where theirs, as far as the chat's text lets it show,
+  are thin lines.
+
+So: parked 4330b stays in its journal and is not booked, and a residue on
+a tile-mean row that no crop shows is not chased a second item. Item 4335
+takes the whitecaps and the fish, a row minted first (the foam share of
+each `OCEAN` and `SANDY` tile, theirs against ours). **The seat's scratch
+probe graduates** (`CLAUDE.md`, the third reach): the card's setters for a
+range of draws beside ours, and one tile's pixel sets, were written and
+deleted in 4310, 4327, 4329 and 4330; the item keeps it as a tool. The
+four "for the Loop" lines of those journals say this and stay there.
+
+**§2. The HUD draws the panel the filter computes.** Items 4315 to 4326
+made `Roster::offered` return each building's buttons as the original's
+panel does, 1,238 of 1,238 on the minted game's sixteen packets, and 4326's
+last line is that the HUD does not ask it yet. The pass drew the minted
+lobby at frame 600 with a Citizen selected
+(`lobby-600-select-0-half.png`): the build page offers the Kremlin, the
+Eiffel Tower and the Space Program at age 1. A person playing sees that
+page before anything else. Item 4334 is the input seat's: the HUD draws
+`offered`'s buttons with their `disable`, and the Citizen's build page is
+diffed as the buildings' were, the original's own panel run on the held
+packets by `tools/recomp/panels.py`.
+
+**§3. A person's whole game is booked to be walked.** With the census at
+50 of 50, what `docs/CLIENT_INPUT.md` §30.3 does not establish is one
+thing: the scenes are hand-made, because no walk of the 2017 sample
+exists. That file (`seifer008`, 21,044 frames, 2,104 orders of 22 kinds, a
+person against four computers at Toughest) is the only whole game by a
+person on disk. This install plays it to its end (run900, 2026-10-15;
+`docs/RECGAME.md` §7), and the checkpoint Ramon named then was to seed our
+sim from its dump and drive its orders. Nothing has. Since then the start
+is built from a lobby's choices on 161 lobbies and the order stream is
+minted and read whole. Item 4336 books it: the start built from the
+recording's own header and diffed against the playback's first block, then
+the walk's word against the playback's draws. It is a rules item, whole,
+for whichever of the chain's and the suite's seats frees first, and it is
+the second game of parity's declared set (entry 132 §10), which holds one.
+**run900's captures are not on disk**: `~/ron-data/lab-captures/` does not
+exist and no directory under either archive carries the name (`find`,
+2026-11-17). The opening is a 15-second retake and the full playback 26
+minutes, by the recipe `docs/RUNS.md` keeps. Who removed them is not
+established.
+
+**§4. A continuation is numbered before it is spawned.** Items 4319 and
+4320 were spawned as `att-4309b` and `att-4317b` and renumbered at
+`76eb908db`. `tools/tranche.py` keys a landing's sessions on
+`worktrees-att-<item>`, so it printed "no session" for both and the
+handoff read 16 landings, then 17, of 19. The sessions are in the table
+under the trees' names and the sums are whole (106.20 USD over 19
+sessions). The driver gives a continuation its number before `ccc spawn`,
+so the tree carries it. The tool is not changed: two merges booked by one
+commit cannot be told apart from the subject.
+
+**§5. The wake is exercised.** The one-shot of 06:07 fired, `handover.py
+wake` spawned `commander` with the queue's opener at 06:07:07, and the new
+row reaped the old and cut its seats four minutes later. The line the last
+three passes carried ("the wake from `commander` itself is unexercised")
+is closed.
+
+**§6. What the journals raised.** No `FABLE:` marker and no second reading
+in the tranche. Five "for the Loop" lines: the render seat's four (§1) and
+4318's, that `check.sh test` takes one filter, which is cargo's own rule
+and stays in its journal. The panel's unexercised arms (parked 4323a,
+4326a) rest on one reading and no score rests on them.
+
+**Not established:** what draws the whitecaps and at what strength (the
+card's draws over the lake are read for the floor, the patches, the coral
+and the fish, not for the foam); whether the west rim differs under the
+chat's text; whether the Citizen's page has an oracle in `panels.py` as it
+stands; whether the start builder holds the sample's lobby (map style 7
+by run900's ledger, Great Sahara's, five seats, four computers on one
+team, the recording's own seed); how far a walk of the sample goes before
+it parts.

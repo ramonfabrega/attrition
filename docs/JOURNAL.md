@@ -22172,3 +22172,26 @@ the lake's fish are white. Booked: 4159r19 and items 4298 to 4310. The
 host's kill of rewritten executables still happens and is not explained.
 The pass moved no score and built nothing. **DECISIONS 137.**
 `docs/audit/2026-11-16-fable-pass-mover.md`.
+
+## 2026-11-17 — the pass after nineteen landings: the eye on the lake, the panel a player sees, and a person's whole game (Fable 5.2, steering)
+
+`commander` landed nineteen in two sittings, with the 06:07 wake between
+them firing and spawning as designed, and the numbers moved where the
+last pass pointed: the leaders line on the minted game went from 2,941
+agreeing frames to 23,965 of 24,000, the demand's walk from 2082 to 5496
+of 6,081, every recorded order is shown, and the panel's filter equals
+the original's on every held button. Three of the nineteen moved nothing,
+and all three were the render seat chasing nine lake tiles whose water is
+a few counts off in red and blue. The pass drew the stills beside the
+photographs and could not see those tiles; it could see faint whitecaps,
+white fish on top of the water and heavy breakers, so the seat takes
+those and its four-times-rewritten scratch probe becomes a tool. Drawing
+the minted lobby with a Citizen selected showed what a player meets
+first: a build page offering every wonder at age 1, because the HUD does
+not yet ask the filter the tranche finished. And the orders census being
+whole left one thing unestablished, that its scenes are made by hand:
+the only whole game by a person on disk, the 2017 sample, has never been
+walked, though the original plays it to the end here. It is booked, with
+its October captures found missing from disk. The pass moved no score,
+built nothing and took no capture. **DECISIONS 139.**
+`docs/audit/2026-11-17-fable-pass-eye.md`.

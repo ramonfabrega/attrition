@@ -1,6 +1,6 @@
-# Every rondata release test timed alone, 2026-11-16, tools/suite_timings.py (tree d2b00ab3).
+# Every rondata release test timed alone, 2026-11-17, tools/suite_timings.py (tree 690aa7dd).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 5,020 s over 2487 tests; --stale-only merged. Top 10 = 744 s, top 30 = 994, top 100 = 1493; 1064 tests under 1 s.
+# Sum 5,025 s over 2488 tests; --stale-only merged. Top 10 = 744 s, top 30 = 994, top 100 = 1493; 1064 tests under 1 s.
 # By module: mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, coverage 266 s / 6 tests, harness 227 s / 100 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 144.47	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
@@ -154,6 +154,7 @@
 5.03	diff::lakota_pair::run883_lakota_pair_closing_state
 5.01	mapgen::tests::colonial_powers_s_place_all_and_tail_are_7859_to_7870
 5.00	diff::dutch_medieval_pair::dutch_medieval_pair_the_long_s_stride_walks_back_from_7063
+4.99	diff::diplomacy_take::run1646_walks_to_its_word_at_difficulty_4
 4.99	mapgen::tests::colonial_powers_s_resources_are_7877_to_7927
 4.97	diff::bantu_word::run972b_bantu_closing_state
 4.96	mapgen::tests::new_world_s_resources_are_7877_to_7927

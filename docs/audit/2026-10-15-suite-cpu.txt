@@ -1,6 +1,6 @@
-# Every rondata release test's CPU alone, 2026-11-16, tools/suite_timings.py (tree d2b00ab3).
+# Every rondata release test's CPU alone, 2026-11-17, tools/suite_timings.py (tree 690aa7dd).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 6,355 CPU-seconds and 122.55e12 instructions over 2487 tests; the host's load 5.1 at the start and 4.1 at the end.
+# Sum 6,359 CPU-seconds and 122.66e12 instructions over 2488 tests; the host's load 9.2 at the start and 8.7 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 144.32	3295.19	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
@@ -248,6 +248,7 @@
 4.74	105.38	diff::coverage_pair::run1075_s_garrison_counts_part_by_the_record
 4.69	98.20	diff::second::tests::run585_s_word_frame_is_widened_whole
 4.68	99.07	diff::lakota_pair::run883_s_closing_frame_is_widened_whole
+4.68	109.62	diff::diplomacy_take::run1646_walks_to_its_word_at_difficulty_4
 4.66	97.01	diff::lakota_pair::lakota_pair_first_parting
 4.66	96.09	diff::lakota_pair::run879_s_word_frame_is_widened_whole
 4.64	98.26	diff::second::tests::run587_s_projectiles_are_compared_whole

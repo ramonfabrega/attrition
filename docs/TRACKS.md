@@ -95,6 +95,14 @@ part); **orders** — every recorded order shown or minted, 1,442 still of the l
 filter diffed on the minted game's packets (item 4315); **renderer** — the borders 225 of 1,440, past the edge
 162 of 162, the Oil billboard.
 
+**At the pass of 2026-11-17** (entry 139): **checksum** — `LEADERS_HELD_OUT` 1, the demand's walk at 5496 of 6,081
+(item 4331); parity's leaders line agrees on 23,965 of the minted game's 24,000 frames (item 4333), and a second
+game for its declared set is booked, the 2017 sample, a person's whole game (item 4336); **orders** — `INPUT_WHOLE`
+50 of 50, every recorded order shown, on scenes made by hand until that walk exists; the panel's filter equals the
+original's on 1,238 of 1,238 buttons and the HUD does not draw it yet (item 4334); **renderer** — the cracked
+ground 2,287 of 2,387, the faded land in HDR; the pass's look left the nine deep tiles for the whitecaps and the
+fish (item 4335).
+
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
 on one lane, taking textures and team colours next; then the lobby screen
