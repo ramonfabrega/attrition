@@ -3612,15 +3612,6 @@ impl crate::ai::army::army_process_view::ArmyProcessView for SimProcess<'_> {
         }
     }
     fn is_moving(&mut self) -> bool {
-        // PROBE 4350 (reverted whole): `RON_PROBE_NOTMOVING=<frame>` answers
-        // false for army 2/1 on that frame.
-        if std::env::var("RON_PROBE_NOTMOVING")
-            .ok()
-            .and_then(|v| v.parse::<i64>().ok())
-            .is_some_and(|f| f == self.s.frame && self.who == 2 && self.slot == 1)
-        {
-            return false;
-        }
         self.s.army_is_moving(self.who, self.slot)
     }
     fn is_engaged(&mut self) -> bool {
@@ -3673,10 +3664,6 @@ struct SimIsMoving<'a> {
 }
 
 impl crate::ai::army::army_is_moving_view::ArmyIsMovingView for SimIsMoving<'_> {
-    fn probe_name(&mut self, u: i32) -> String {
-        let x = &self.s.units[u as usize];
-        format!("{}/{} at ({},{}) orders {:?}", x.owner, x.index, x.pos.x, x.pos.y, x.orders.back().map(|o| o.body))
-    }
     fn count(&self) -> i32 {
         self.s.ai.armies[self.who as usize].list[self.slot].num_units
     }

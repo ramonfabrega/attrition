@@ -33,10 +33,6 @@ pub trait ArmyIsMovingView {
     fn centre_of_gravity(&mut self) -> Pos;
     /// `vector_dist` from the unit to `c`.
     fn dist_to(&mut self, u: i32, c: Pos) -> i32;
-    /// PROBE 4350 (reverted whole).
-    fn probe_name(&mut self, u: i32) -> String {
-        u.to_string()
-    }
 }
 
 /// `Army::is_moving@006f5470`.
@@ -55,13 +51,9 @@ pub fn army_is_moving<V: ArmyIsMovingView>(v: &mut V) -> bool {
         let Some(is_move) = v.head_is_move(u) else {
             continue;
         };
-        let probe = std::env::var_os("RON_PROBE_ARMY").is_some();
         if !is_move {
             if v.outside_region(u) {
                 moving += 1;
-                if probe {
-                    eprintln!("    MOVING {} not-move outside region", v.probe_name(u));
-                }
             }
             continue;
         }
@@ -71,9 +63,6 @@ pub fn army_is_moving<V: ArmyIsMovingView>(v: &mut V) -> bool {
         };
         if v.dist_to(u, c) <= 0xf00 {
             moving += 1;
-            if probe {
-                eprintln!("    MOVING {} move near cog ({},{})", v.probe_name(u), c.x, c.y);
-            }
         }
     }
     count / 6 < moving

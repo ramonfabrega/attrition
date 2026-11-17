@@ -204,17 +204,6 @@ fn tick<V: ArmyProcessView>(v: &mut V) {
         }
     }
     // 4. The muster point walks halfway to the target.
-    // PROBE 4350 (reverted whole).
-    if std::env::var_os("RON_PROBE_ARMY").is_some() {
-        let (m, e) = (v.is_moving(), v.is_engaged());
-        eprintln!(
-            "  ARMYSTEP4 f{} status {} moving {m} engaged {e} target {} muster {:?}",
-            v.frame(),
-            v.status(),
-            v.has_target(),
-            v.muster()
-        );
-    }
     if !v.is_moving() && !v.is_engaged() {
         let st = v.status() & !0x12;
         v.set_status(st);
