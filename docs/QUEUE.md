@@ -49,13 +49,13 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 137 §1 to §4): the third takes 4305; the suite's seat takes 4313, the one whole item out; the chain takes 4300b1 as a ccc lane; render takes 4312, then 4309 and 4310 (Ramon: playing first).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 137 §1 to §4): the third takes 4315; the suite's seat takes 4313, the one whole item out; the chain takes 4314 as a ccc lane; render takes 4312, then 4309 and 4310 (Ramon: playing first).
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 2 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
 packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**, run1628 (recon4206-4, read in
 place) **1150 computed**, run1629 **1300 whole**. Frame 91's line parts on 0 of 267 ranges and is held, not whole, while a leaf is held
-(the driver's ruling at 4298). **Held:** `incoming_taunt_who`, `tribute_demanded`. **Order:** items 4313 and 4300. The diplomacy's
+(the driver's ruling at 4298). **Held:** `incoming_taunt_who`, `tribute_demanded`. **Order:** items 4313 and 4314. The diplomacy's
 second reading is adjudicated (`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`); the proposal's draw at five live leaders is
 parked in `docs/LEADERS.md` §7.6 with what would falsify it.
 
@@ -63,15 +63,14 @@ parked in `docs/LEADERS.md` §7.6 with what would falsify it.
 → 1: `incoming_taunt_who`. `LAST_WHO0=1` seats the human at who 1 (recon4299-1), our walk holds it 1300 of 1300. The take: run1575's
 script with the whos moved (meet who=0, ally 0, resource who=1), a `NEED_FOOD` chat, a packet after the drain, since no dump prints it.
 
-4300. **The demand: a computer asks tribute** (a rules item, whole; `docs/LEADERS.md` §8.2; DECISIONS 137 §1). `LEADERS_HELD_OUT` → 1
-less: `tribute_demanded`. First act done (`-4300-first-act.md`): at DIFFICULTY 0 the arm stays shut, ours parts on 3034; at 4 the
-French reach it on 6080 and declare war, ours parts on 5. Second act done (4300a, run1640's packet at 6079): local `-0x30` sends the arm
-to war; the human and France allied demand 700 WEALTH, at DIFFICULTY 2 or more. 4300b: recon4300-2 walked 5 → 1750 (a probe's seeds); next 4300b1, a unit idle in ours on 1750.
+4314. **The demand's walk at DIFFICULTY 4** (a rules item, whole; `docs/LEADERS.md` §8.2; DECISIONS 137 §1; 4300's four journals).
+`LEADERS_HELD_OUT` → 1 less: `tribute_demanded`, stored only at DIFFICULTY ≥ 2 for an allied human (run1640's packet). recon4300-2
+walks 4202 (`RECON4300_2_WORD`, from 5: a probe's seeds, then `swarm_around_new`); on 4202 ours `Guy::move+0x19f`, theirs a cast
+(parked 4300c1). Chased to about 6,080, the arm's frame; then the take, run1575's alliance kept at DIFFICULTY 4 (parked 4300a1).
 
-4305. **The panel's leader predicates** (an `input` item, scoped; `docs/CLIENT_INPUT.md` §32.4; DECISIONS 137 §3; parked 4290a). No row
-counts it: the Barracks offers 118 types, every nation's. First act: find the oracle for the options the original offers a selected
-building (a packet's state under the emulator, or a dump that prints them) and mint the row at its first count. It stops and says so
-when no state both sides hold names a panel.
+4315. **The panel's leader predicates, the filter** (an `input` item, scoped; `docs/CLIENT_INPUT.md` §32.4; 4305's journal). `PANEL_LEADER`
+0 of 77 buildings (`tools/recomp/panels.py`, `BuildOut::make_options` under step4 on run1591 and run1640). The filter needs finished
+buildings on a lobby our walk holds: first act, grep the archives for a later packet of a held lobby. Parked 4305a.
 
 4312. **The Oil good's billboard on the lake** (a `render` item, scoped; `docs/RENDERER.md` §3.18, §3.24; 4308's journal; parked 4308b).
 `RUN1564_3279_TEXTURE_STILL` ocean 234 of 437, with run1564's ocean hue and luma rows. The photograph's blot is the Oil billboard

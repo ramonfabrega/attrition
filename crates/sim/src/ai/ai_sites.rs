@@ -1291,8 +1291,7 @@ impl Sim {
             vec![chosen]
         };
         for u in group {
-            self.clear_orders(u);
-            self.swarm_around(u, o, Body::Build(o), true);
+            self.swarm_around_new(u, o, Body::Build(o), true);
         }
 
         // The census, adjusted in place. The nearest city of mine to the

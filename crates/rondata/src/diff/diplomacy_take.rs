@@ -124,6 +124,12 @@ pub(crate) struct TakeWord {
     /// every block the walk reached — the leaves `diff::leader`'s record
     /// rows do not parse (item 4298).
     pub leaves: Vec<(i64, usize, String, i64, i64)>,
+    /// `(frame, theirs, ours)`: the first frame whose head word — ours
+    /// before the frame's staging, theirs the trace's `FRAME` record at
+    /// `do_frame`'s entry — differs (parked 4300b2). The labels can agree
+    /// while the values part: on recon4300-2 frame 1's head parted and the
+    /// labels first did on 5 (item 4300, third act).
+    pub seed: Option<(i64, u32, u32)>,
 }
 
 /// The diplomacy leaves of [`PRINTED_ARRAYS`] and `blacken` ours carries,
@@ -197,8 +203,15 @@ pub(crate) fn walk_take_from(
     let mut leaves_seen = Vec::new();
     let mut ours = std::collections::BTreeMap::new();
     let mut prev: Vec<Option<std::collections::BTreeMap<String, i64>>> = vec![None; seats];
+    let mut seed = None;
     for _ in 0..last {
         let at = built.sim.frame;
+        if seed.is_none()
+            && let Some(&(_, theirs)) = tr.frames.iter().find(|(f, _)| *f == at)
+            && theirs != built.sim.rng.seed
+        {
+            seed = Some((at, theirs, built.sim.rng.seed));
+        }
         stage_frame(&mut built, seats, probes, diplomacy, taunts);
         built.tick();
         // `RON_DEBUG_SITES=<lo>-<hi>`: each draw's owner, as the pairs' walks
@@ -208,6 +221,7 @@ pub(crate) fn walk_take_from(
                 eprintln!("  f{at} {who}: {label}");
             }
         }
+        crate::diff::harness::debug_watch(&built, at);
         let n = built.sim.frame;
         if let Some((f, ours)) = built.frame_sites.last() {
             let theirs = tr.labels(*f);
@@ -312,6 +326,7 @@ pub(crate) fn walk_take_from(
         movers,
         leaves: leaves_seen,
         ours,
+        seed,
     })
 }
 
@@ -529,6 +544,12 @@ pub(crate) fn report(name: &str, w: &TakeWord) {
     );
     for s in &w.skipped {
         eprintln!("  skipped {s}");
+    }
+    match w.seed {
+        Some((f, t, m)) => {
+            eprintln!("{name}: head word first parted on {f}: theirs {t:#010x} ours {m:#010x}")
+        }
+        None => eprintln!("{name}: head word agreed on every frame walked"),
     }
     let mut firsts: std::collections::BTreeMap<(usize, String), (i64, i64, i64)> =
         Default::default();
@@ -1889,29 +1910,34 @@ fn run1628_s_good_deeds_part_without_the_tributes() {
     );
 }
 
-/// **Item 4300's first act, a probe** (its journal
-/// `docs/journal/2026-11-16-item-4300-first-act.md`): an unfiled recon of
-/// run1575's lobby with no command script, walked from run1482's start
-/// re-read at style 0 and at `RON_RECON_DIFFICULTY` (default 0), nothing
-/// staged. `RON_TAKE=<gamelog>,<trace>` names the recon.
-#[test]
-#[ignore = "a probe of an unfiled recon; item 4300's journal"]
-fn recon4300_walked_at_its_difficulty() {
-    let Ok(v) = std::env::var("RON_TAKE") else {
-        return;
-    };
-    let (g, t) = v.split_once(',').expect("RON_TAKE=<gamelog>,<trace>");
-    let difficulty: &'static str = Box::leak(
-        std::env::var("RON_RECON_DIFFICULTY")
-            .unwrap_or_else(|_| "0".to_string())
-            .into_boxed_str(),
-    );
-    let Some(inst) = crate::testenv::install() else {
-        return;
-    };
+/// recon4300-2, item 4300's unfiled recon of run1575's lobby at
+/// `DIFFICULTY 4` with no command script (`docs/journal/2026-11-16-item-4300-first-act.md`),
+/// under `RON_GOLDEN_DIR`: its gamelog and trace.
+pub(crate) fn recon4300_2() -> Option<(String, String)> {
+    let home = std::env::var("HOME").ok()?;
+    let dir = std::env::var("RON_GOLDEN_DIR").unwrap_or(format!("{home}/ron-golden"));
+    let map = format!("{dir}/recon4300-2/map-18");
+    let (g, t) = (format!("{map}/gamelog.txt"), format!("{map}/rontrace.log"));
+    (std::path::Path::new(&g).is_file() && std::path::Path::new(&t).is_file()).then_some((g, t))
+}
+
+/// recon4300-2's word at `DIFFICULTY 4` (item 4300): 5 at the first act
+/// (run1482's frame words installed over a Tough game), 1750 at the third
+/// (those words dropped; the Russian `2/23` left idle by a recruit whose
+/// ring found no spot), **4202** at the fourth (a `QUEUE_NEW` swarm clears
+/// only once a spot is found, [`sim::Sim::swarm_around_new`]).
+pub(crate) const RECON4300_2_WORD: i64 = 4202;
+
+/// A recon of run1575's lobby with no command script, walked from
+/// run1482's start re-read at style 0 and at `difficulty`, nothing staged
+/// (item 4300's first act). A re-read difficulty drops run1482's own frame
+/// words (the third act).
+pub(crate) fn walk_recon4300(capture: (&str, &str), difficulty: &'static str) -> Option<TakeWord> {
+    let (g, t) = capture;
+    let inst = crate::testenv::install()?;
     let (Some(start), Some(pasture)) = (dump(SEA_START), take_trace(t)) else {
         eprintln!("skipping: no {SEA_START} or {t}");
-        return;
+        return None;
     };
     let loaded = crate::load::load(&inst).unwrap();
     let text = crate::capture::read(&start);
@@ -1935,7 +1961,7 @@ fn recon4300_walked_at_its_difficulty() {
     // frame-end words and clocks are dropped as a sibling's at another
     // lobby are (`borrow_from_siblings`, item 979). At the dump's own
     // difficulty they stay, as before.
-    if reread {
+    if reread && std::env::var_os("RON_RECON_KEEP_WORDS").is_none() {
         init.frame_seeds.clear();
         init.frame_guys.clear();
     }
@@ -1953,10 +1979,56 @@ fn recon4300_walked_at_its_difficulty() {
         crate::diff::setup::with_staged_script(script, || build_sim(&loaded, &init, Tuning::RON));
     assert_eq!(built.sim.ai.lobby.team_style, 0, "the lobby reads style 0");
     eprintln!("difficulty {}", built.sim.ai.lobby.difficulty);
-    let Some(w) = walk_take_from(&loaded, built, (g, t), 3, &[], &[], &[]) else {
+    walk_take_from(&loaded, built, (g, t), 3, &[], &[], &[])
+}
+
+/// **Item 4300's first act, a probe** (its journal
+/// `docs/journal/2026-11-16-item-4300-first-act.md`): an unfiled recon
+/// named by `RON_TAKE=<gamelog>,<trace>`, at `RON_RECON_DIFFICULTY`
+/// (default 0).
+#[test]
+#[ignore = "a probe of an unfiled recon; item 4300's journal"]
+fn recon4300_walked_at_its_difficulty() {
+    let Ok(v) = std::env::var("RON_TAKE") else {
+        return;
+    };
+    let (g, t) = v.split_once(',').expect("RON_TAKE=<gamelog>,<trace>");
+    let difficulty: &'static str = Box::leak(
+        std::env::var("RON_RECON_DIFFICULTY")
+            .unwrap_or_else(|_| "0".to_string())
+            .into_boxed_str(),
+    );
+    let Some(w) = walk_recon4300((g, t), difficulty) else {
         return;
     };
     report(g, &w);
+}
+
+/// **recon4300-2 at `DIFFICULTY 4` holds to [`RECON4300_2_WORD`]**, and
+/// its head word agrees with the trace's on every frame walked (parked
+/// 4300b2; `RON_RECON_KEEP_WORDS=1` puts run1482's frame-0 word back and
+/// parts it on frame 1, the comparison's failing case).
+#[test]
+fn recon4300_2_walks_to_its_word_at_difficulty_4() {
+    let _pins = Pins::hold();
+    let Some((g, t)) = recon4300_2() else {
+        eprintln!("skipping: no recon4300-2 under RON_GOLDEN_DIR");
+        return;
+    };
+    let Some(w) = walk_recon4300((&g, &t), "4") else {
+        return;
+    };
+    report(&g, &w);
+    pin_eq!(
+        (w.count, w.sequence),
+        (RECON4300_2_WORD, RECON4300_2_WORD),
+        "recon4300-2's word at DIFFICULTY 4"
+    );
+    pin_eq!(
+        w.seed,
+        None,
+        "recon4300-2's head word parts nowhere before its word"
+    );
 }
 
 /// **Item 4299's first act, a probe**: an unfiled recon of run1575's lobby

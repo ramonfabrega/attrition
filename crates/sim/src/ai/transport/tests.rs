@@ -446,6 +446,55 @@ fn a_citizen_swarms_a_sea_site_as_the_barge_once_its_leader_transports() {
     );
 }
 
+/// **A `QUEUE_NEW` swarm clears only once the ring finds a spot** (item
+/// 4300's fourth act): `check_orphaned_buildings`, `produce_building`'s
+/// `QUEUE_NEW` arm and `produce_city` call `Group::action_swarm_around`
+/// with no `Unit::clear_orders` before it, and the member arm's clear is
+/// its approach's own `QUEUE_NEW`, inside `find_nearby_spot == 0`. A sea
+/// site the land ring cannot reach leaves the citizen's queued move as it
+/// was; once the leader transports, the ring answers and the move goes.
+#[test]
+fn a_queue_new_swarm_with_no_spot_leaves_the_member_s_orders() {
+    use crate::orders::{Body, MoveKind, QueuePos};
+    let mut f = fix();
+    barge(&mut f.sim);
+    let platform = f.sim.add_build_type(BuildType {
+        ident: Ident::OilPlatform,
+        x_size: 4,
+        y_size: 4,
+        flags: flags::parse("igbe"),
+        hits: 500,
+        ..BuildType::default()
+    });
+    let site = place_dock(&mut f.sim, 1, platform, tile_pos(40, 16));
+    let c = unit(&mut f.sim, 1, f.citizen, tile_pos(20, 16));
+    f.sim
+        .add_move_order(c, tile_pos(22, 16), MoveKind::MoveTo, QueuePos::New, true);
+    let before = f.sim.units[c].orders.clone();
+    assert!(
+        !f.sim.swarm_around_new(c, site, Body::Build(site), true),
+        "no spot"
+    );
+    assert_eq!(f.sim.units[c].orders, before, "the member keeps its move");
+
+    let d = place_dock(&mut f.sim, 1, f.dock, tile_pos(30, 28));
+    f.sim.activate(d, false, true);
+    assert!(
+        f.sim.swarm_around_new(c, site, Body::Build(site), true),
+        "the barge's ring"
+    );
+    assert_eq!(
+        f.sim.units[c].orders.len(),
+        2,
+        "{:?}",
+        f.sim.units[c].orders
+    );
+    assert!(
+        matches!(f.sim.units[c].orders[0].body, Body::Move(m) if m.kind == MoveKind::ExploreTo)
+    );
+    assert!(matches!(f.sim.units[c].orders[1].body, Body::Build(b) if b == site));
+}
+
 /// §6.1 and §6.2 end to end: a land unit with the bit that steps onto
 /// an ocean tile is not moved — it queues the transport spell, and the
 /// next frame's `do_cast` converts it.
