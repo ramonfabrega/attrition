@@ -295,16 +295,6 @@ impl Sim {
         let Some(order) = self.units[u].orders.front().copied() else {
             return;
         };
-        // PROBE (item 4300): who kills `who/o`'s head order on a frame.
-        if let Ok(v) = std::env::var("RON_PROBE_KILL")
-            && v == format!("{}/{}@{}", self.units[u].owner, self.units[u].index, self.frame)
-        {
-            eprintln!(
-                "PROBE kill {v} {:?}\n{}",
-                order.body,
-                std::backtrace::Backtrace::force_capture()
-            );
-        }
         // Before the teardown: a dying **move** carries the mirror its
         // formation was laid out with, and the group's leader hands it back
         // (`docs/GROUPS.md` §6.3). This is the write that makes a group's
