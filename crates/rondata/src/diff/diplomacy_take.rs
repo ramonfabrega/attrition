@@ -247,6 +247,41 @@ pub(crate) fn walk_take_from(
                 eprintln!("PROBE map {ty:>3} {row}");
             }
         }
+        // PROBE (item 4314): near misses of the shore.
+        if std::env::var_os("RON_PROBE_NEAR").is_some() && (4185..=4202).contains(&at) {
+            for (i, x) in built.sim.units.iter().enumerate() {
+                if !(x.alive() && x.on_map)
+                    || built.sim.profile(sim::combat::Obj::Unit(i)).domain
+                        != sim::territory::attrition::Domain::Land
+                {
+                    continue;
+                }
+                let t = x.pos.tile();
+                let mut best = i32::MAX;
+                for dy in -1..=1 {
+                    for dx in -1..=1 {
+                        let q = sim::Pos { x: t.x + dx, y: t.y + dy };
+                        if !built.sim.world.is_tocean(q) {
+                            continue;
+                        }
+                        let (x0, y0) = (q.x * 192, q.y * 192);
+                        let ddx = (x0 - x.pos.x).max(x.pos.x - (x0 + 191)).max(0);
+                        let ddy = (y0 - x.pos.y).max(x.pos.y - (y0 + 191)).max(0);
+                        best = best.min(ddx.max(ddy));
+                    }
+                }
+                if best <= 40 {
+                    eprintln!(
+                        "PROBE f{at} near {}/{} at ({}, {}) gap {best} can {}",
+                        x.owner,
+                        x.index,
+                        x.pos.x,
+                        x.pos.y,
+                        built.sim.unit_can_transport(i)
+                    );
+                }
+            }
+        }
         // PROBE (item 4314): land units on ocean.
         if std::env::var_os("RON_PROBE_WET").is_some() && (4195..=4215).contains(&at) {
             for (i, x) in built.sim.units.iter().enumerate() {
