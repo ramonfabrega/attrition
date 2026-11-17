@@ -266,7 +266,10 @@ pub(crate) mod tests {
     /// Item 4310: run1564 off row 1,788 → 1,803 and luma 1,859 → 1,840 (a named fall of 19, the made-to-fail side's flat light); on row 1,784 → 1,798 and luma 1,855 → 1,868: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR").
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
         ([959, 1106, 1080], [959, 1106, 1109]),
-        ([679, 1803, 1840], [679, 1798, 1868]),
+        // Item 4338: run1564 off row 1,803 → 1,851, luma 1,840 → 1,841; on
+        // row 1,798 → 1,852, luma 1,868 → 1,866 (a named fall of two): the
+        // surf's lists blended on the HDR target (`docs/RENDERER.md` §3.30).
+        ([679, 1851, 1841], [679, 1852, 1866]),
         ([1042, 1171, 1144], [1041, 1171, 1166]),
     ];
 
