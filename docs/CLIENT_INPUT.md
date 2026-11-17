@@ -3412,7 +3412,8 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   nations' units at once: the Barracks 118. The original's panel shows a type under `type_eligible`, `type_avail`,
   the tribe's grafts (`tribe_can_type`), `check_predecessor` and the age, and greys some. A recorded order is one
   the original offered then, so the census and the count need only the static roster. Since item 4305 a row
-  counts the gap, `PANEL_LEADER` (§32.4).
+  counts the gap, `PANEL_LEADER` (§32.4); since item 4315 `Roster::offered` reads `check_predecessor` for the
+  walked row, and the HUD does not yet ask it.
 - **The pages.** The original splits the citizen's buildings over three pages (`OPTION_BUILD`,
   `OPTION_BUILD_MILITARY`, `OPTION_BUILD_WONDER`, by `+0x14`). Ours is one page. Any unit selection offers it,
   where the original offers it to a citizen.
@@ -3444,6 +3445,28 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   `[77, 104, 127, 131, 141]`, slot 2's (tribe 13) `[77, 108, 127, 131, 141]`, and two of slot 2's three
   nothing. Ours offers each of them 118. So one type a line at the leader's age, the tribe's graft in place of
   the line's type, and the building's own state all show.
+- **The row over the held packets, and the first predicate** (item 4315). `panels.py` ran on all sixteen of
+  the minted game's packets (TSVs `~/ron-data/panels/run1579-1.tsv` to `run1600-7195.tsv`; run1591 re-ran
+  byte-identical to item 4305's). `PANEL_LEADER` is re-minted over them, **(0, 110, 1238, 1238, 1945)**, and
+  run1640 is counted apart as `PANEL_LEADER_UNHELD` (0, 68, 218, 218, 1938). `PANEL_LEADER_WALKED`
+  (`the_panels_of_the_packets_on_our_walk`) sets the same buildings against `Roster::offered` on our walk of the
+  minted script at the packet's frame, each building found by slot and object id, its type asserted. The filter
+  so far is one predicate of the train loop over `0x32..0x192`: a unit whose `FROM` (through `get_graft`) fails
+  `LeaderData::check_predecessor` is dropped, unless `unit_flags & 0x200` and `has_preq`. **(0, 110, 1238, 1238,
+  1717)**: ours 1,945 → 1,717, every type the original offers still on ours. Seen red pinned at zeros.
+  `check_predecessor` was private in `crates/sim` and is public now; nothing else in the sim changed.
+- **The value diff after it** (`WALKED` lines; theirs ⊂ ours on every building): each City offers `[50]`, ours
+  also 51; each Market `[59, 61]`, ours also 60, 62; each Library ours also 579 to 582; on 7195 the Barracks
+  (2016) `[69, 82, 132, 177]` against ours with 55 more, the 439 two research buttons against ours with
+  66, 596 to 599. So **the next predicate is `can_make`'s value and the age gate**: for a unit
+  `BuildData::can_make@0062db10` returns `type_avail(t, 1)` (an active building, not neutralized or
+  unassimilated); 0 offers research only under `type_eligible(t, 1)`, not `researching`, and the type's age at
+  most the leader's `ages + 1` (or `is(t, 0x42)`); 2, or 3 with the tech bit clear, research unless
+  `researching`; else train unless `unit_flags & 0x8000`. The age is the unit type's vtable slot `0xec`, which
+  the PE names `ObjectTypeData::get_age@00661ac0` (`??_7UnitType@@6BType@@@` at `0xb41fd4`, slot `0xec` holds
+  `0x661ac0`; the export's vtable listing folds it): the stored `+0x278`, else `get_age_slow@00661a00`, the first
+  tech prerequisite's `+0x1c8`, plus one for an age. No port of `get_age` is in the sim; `typesdump` reads the
+  logged value. The technologies' loop (579 to 582 at the Library) is a second loop not read.
 - **The held lobby's packets are on disk** (the pass of 2026-11-16, third; item 4315's first act). Sixteen packets
   of the minted Great Lakes game stand under `~/ron-golden` (`checksum_frames::MINTED_PACKETS`: frames 1 to 7195),
   and our walk holds every frame of it. `panels.py` on four of them (TSVs under
@@ -3452,7 +3475,7 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   (2016) `[69, 82, 132, 177]` with four research buttons, all four `disable` 1; each Library 35 research buttons,
   30 to 32 of them `disable` 1; on 7195 a 439 offers two research buttons and a 420 trains `[52]`. So the filter
   is diffed on state our walk computes, and `disable` moves on it.
-- **Not established**: what empties a finished-looking building's panel (two of slot 2's Barracks on run1640, and
+- **Not established** (4305a, 4315a): what empties a finished-looking building's panel (slot 1's City 2007 on run1583 and Market 2010 on run1588, two of slot 2's Barracks on run1640, and
   run1591's one at 6537): the `is_active` gate or `can_make`, neither read on the packet. And `disable`, which
   the TSV carries and the row does not count.
 
