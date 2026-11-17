@@ -142,9 +142,10 @@ impl FreeRunner {
         self.ground.as_ref().map(|(t, s)| (t.as_str(), *s))
     }
 
-    /// The simulation, for a comparison of two runners' whole state.
-    #[cfg(test)]
-    pub(crate) fn sim(&self) -> &sim::Sim {
+    /// The simulation, read-only: for a comparison of two runners' whole
+    /// state, and what the client's panel asks the leader's predicates of
+    /// (item 4315).
+    pub fn sim(&self) -> &sim::Sim {
         &self.built.sim
     }
 
@@ -180,12 +181,6 @@ impl FreeRunner {
         let ticks = self.built.sim.command().tick();
         self.frame += 1;
         ticks
-    }
-
-    /// The walk's own state, read-only: what the client's panel asks the
-    /// leader's predicates of (item 4315).
-    pub fn sim(&self) -> &sim::Sim {
-        &self.built.sim
     }
 
     /// This tick's drawable state as `viewer` sees it (`Sim::observe`).
