@@ -3985,11 +3985,12 @@ buttons.
 
 **The stop: arms the client cannot issue.**
 
-- **`OPTION_MOVE_TO` and `OPTION_ATTACK_TO`** set `selecting_spot`, and the pick's spot
+- ~~**`OPTION_MOVE_TO` and `OPTION_ATTACK_TO`** set `selecting_spot`, and the pick's spot
   (`Options::picked_spot@00721c40`) is `execute_at_cursor(0, 3)` or `(0, 1)`. That function's mode argument is
-  not read (3,740 lines); §35.1 reads mode 1 on the ground only.
-- **`OPTION_REPAIR`** sets `selecting_spot`; `picked_spot`'s repair arm issues `swarm_around(…, BUILD_AT)` on an
-  allied site of the selection's own slot, and a longer arm on a finished building that is not read.
+  not read (3,740 lines); §35.1 reads mode 1 on the ground only.~~ Read and built, §32.10 (item 4349).
+- ~~**`OPTION_REPAIR`** sets `selecting_spot`; `picked_spot`'s repair arm issues `swarm_around(…, BUILD_AT)` on an
+  allied site of the selection's own slot, and a longer arm on a finished building that is not read.~~ Read and
+  built, §32.10 (item 4349).
 - **`OPTION_TRANSPORT`**'s clear press is `set_transport(can_transport == 0)`; `GroupData::can_transport` is not
   read. Greyed on every held packet, so its press orders nothing either side.
 
@@ -4032,7 +4033,123 @@ the 290 others (eight a citizen and two `TOARMSSPELL`s) were not drawn.
 - **Not built**: the `+0x68 & 1` gate (the sim's `Unit::decoy`), which drops the page buttons, `OPTION_REPAIR`,
   `OPTION_ALARM_PEASANT` and the crafts; no held citizen is a decoy, and `panels.py` has no byte poke to make
   one. The predicates of the last six adds for a unit other than a citizen, and the `prefs & 2` adds.
-- The three picks and `set_transport`, above.
+- The three picks and `set_transport`, above. ~~The three picks~~: §32.10 (item 4349).
+
+## 32.10 The pick buttons: Move, Attack and Repair on the map (item 4349)
+
+*Item 4349, 2026-11-17 (`docs/journal/2026-11-17-item-4349.md`). The standard panel's three pick buttons now arm
+their pick, and the next left press on the map mints the order `Options::picked_spot@00721c40`'s arm issues.
+**`INPUT_PICKED` 0 → 24 of 24** (`minted_the_pick_buttons_as_the_original`); `HUD_STANDARD_PRESSED` stays
+(290, 290), each pick button now counted as arming its own pick. No capture, no packet, no `crates/sim` change.
+The stop is named below: the Move pick on a unit issues `follow`, which no recording on disk carries.*
+
+### 32.10.1 What the original issues
+
+Read off the export by this item's one reader: `Options::do_move_to@0071d260`, `Options::do_repair@0071ccb0`,
+`Options::picked_spot@00721c40` (lines 536–727 and 888–899) and `Console::execute_at_cursor@007c6630`.
+
+**The press arms.** Each asks a unit selection (`GroupData::buildings` clear) that `Group::can_activate`:
+
+- `OPTION_MOVE_TO` is `do_move_to(9, 0)`: `selecting_spot`, cursor `0x28`.
+- `OPTION_ATTACK_TO` is `do_move_to(10, 0)`. It asks `COUNT_ATTACK` first and arms nothing without it. A selection
+  all of type `0x136` gets cursor `0x23`. One all in domain 2 is `do_airstrike` and arms no pick. Any other arms.
+- `OPTION_REPAIR` is `do_repair(0)`. It asks `COUNT_PEASANTS`, then arms (`selecting_spot`, cursor 9).
+
+**The spot.** `picked_spot` asks `can_activate(…, 1, …)`, then takes the option's arm:
+
+- **Move and Attack** clear the message, and `reset` the pick unless shift is held. They write the spot to
+  `drag_x2`/`drag_y2`, then call `execute_at_cursor(0, mode)`, mode 3 for Move and 1 for Attack. The queue is the
+  dispatch's (§33.1): `QUEUE_NEW`, with shift `QUEUE_LAST`, and with shift and alt `QUEUE_FIRST`.
+- **Repair** `reset`s unless ctrl or shift is held. It takes `find_target(SEARCH_ALLIED, buildings)`, and every
+  order it issues is `QUEUE_NEW`:
+  1. A building of the selection's own slot (`+0x4a`) that is not built (`flags & 4` clear):
+     `swarm_around(ox, whom, QUEUE_NEW, BUILD_AT)`.
+  2. Otherwise, alive (`SubObjectData::flags & 1`) and damaged (`ObjectData::damage`, `+0x24`): the cell's owner
+     must be nobody, the viewer or an ally, then `swarm_around(…, REPAIR)`.
+  3. Otherwise, a built gather building of one's own whose `num_gatherers` is below its maximum, for a selection
+     with `COUNT_CAN_GATHER`: `gather(ox, QUEUE_NEW)`.
+  4. Otherwise nothing.
+
+  So a damaged camp with room is repaired by the pick but gathered at by the right press (§6.1). The test holds
+  that difference.
+
+**The modes in `execute_at_cursor`.** Every arm that tests `param_2 == 0` is skipped in modes 1 and 3. Those are
+the ctrl attack-move (:372), the gather and worker arms (:453, :1293), the spy and Scout arms (:1660, :1843), the
+garrison (:2152), and the resource and goods arms (:2223). Of the rest, for a land selection:
+
+- **Mode 3 (Move).** `find_target(SEARCH_ALL, units)` (:1622) takes a unit of any slot and issues
+  `issue_follow(ox, whom, queue)`. Otherwise, :2025 takes the non-attack path whatever `COUNT_ATTACK` says, and it
+  reaches the ground (:2445): `issue_move_to(drag_x2, drag_y2, queue, 0, 0, MOVE_TO, drag_form, drag_form_mod, 0)`.
+  One's own building, or another slot's, falls to the ground.
+- **Mode 1 (Attack)**, with `COUNT_ATTACK`, takes the attack path (:2630). `is_over_enemy` or
+  `find_target(SEARCH_NON_FRIENDLY, …)` look for another slot's object, which skips one's own buildings:
+  - an enemy that is seen gets `issue_attack(ox, whom, 0, queue)` (:2734);
+  - a neutral gets `tell_no_war`, and nothing is issued.
+
+  With no enemy, the non-attack path's unit look (:2119) gives `issue_guard` on an ally (the slot itself among
+  them), and `issue_follow` on any other unit. Otherwise it is the ground (:2574):
+  `issue_move_to(…, ATTACK_TO, −1, −1, 0)`. That is §35.1's line.
+
+**`drag_form` is the last right press's.** `Console::down@007cd8f0` writes `drag_form` and `drag_form_mod` only
+when `param_3` is 1, which is `on_right_down`. `Console::clear@007cbc50`, run by `Game::init_console`, sets them
+to (0, −1). So the Move pick's ground order carries the formation of the last main-view right press, of whatever
+selection was held then, and (0, −1) before any right press.
+
+### 32.10.2 What the layer does
+
+- `Event::Pick(option)` arms `Input::picking` under the press's predicates. `View::attacks` stands for
+  `COUNT_ATTACK`, and the unit scene's `is_peasant` for `COUNT_PEASANTS`. Arming any pick clears the others, the
+  garrison, the craft and the placement, and the others clear it.
+- `Input::picked_pick` is `picked_spot`'s three arms, taken before the garrison's. The Move pick's unit look is
+  `View::any_unit`. The Attack pick's is `View::look` with one's own buildings skipped. The Repair pick's is
+  `View::own_building`.
+- `Input::drag_form` is written at every main-view right press and right drag, and `None` stands for
+  `Console::clear`'s (0, −1).
+- `standard_panel` hands the three buttons `Event::Pick`; `Event::Unbuilt` is now `OPTION_TRANSPORT`'s alone.
+
+### 32.10.3 The count
+
+`minted_the_pick_buttons_as_the_original`, at the pinned camera, uses a citizen of slot 0 (form 9, width 50), an
+enemy unit, one's own unit, and six buildings: one's own site, a damaged one, a damaged camp with room, a whole
+camp with room, and two of an enemy's, one of them on the whole camp's anchor. It has 21 pick cases and 3 arming
+cases. Each order is held field for field and byte for byte through `rondata::commands::encode`, and the pick's
+state after the press is held too. **`INPUT_PICKED` (24, 24)**. It was green at the first run, at 23 cases. The
+24th, the enemy's building on one's own, was added when a perturbation did not part.
+
+**Each arm perturbed once** (the file restored in a `finally`), each red by one case: the Repair pick asking room
+before damage, and the right press writing no `drag_form`, both (22, 23) at 23 cases; the Move pick's look skipping
+one's own units, and the Attack pick's look asking one's own buildings, both (23, 24).
+
+**The orders against the recordings.** Every order the picks mint is a kind and form the layer already mints from
+a right press (§6, §10, §35), and a recording carries every one of them but one:
+
+- `move_to` `MOVE_TO` and `ATTACK_TO` (§35.2's 27);
+- `attack`, `guard` (10), `swarm_around` (28) and `gather` (11), §11.1.
+
+**The stop, named: the Move pick on a unit is `follow`**, and no recording on disk carries a `follow` (§11.1). Its
+bytes are §10's, which the original played from the minted file (run1573, `INPUT_FOLLOWED`). It is built, since
+nothing new reaches the bytes, but a recorded pick's `follow` is not on disk to check it against.
+
+### 32.10.4 Ours, not the original's
+
+- The cursors and the instruction messages are not drawn, and neither are the ping and the acknowledgement
+  sounds.
+- The Attack pick's all-plane arm (`do_airstrike`) and the all-`0x136` cursor are not read: the scene carries no
+  domain.
+- `drag_form` written at a right press on an empty selection is `View::formation`'s (0, 50). The original's
+  `get_form_mod_option` on an empty group is not read.
+
+### 32.10.5 Confidence, and what is not established
+
+- **One reading**: every arm above. No recording carries a pick's order that can be told from the right press's,
+  and no playback ran a pick (4349b).
+- **Not built**:
+  - the Repair pick's territory test (the cell's owner), as the right press's is not (§6.1);
+  - an ally's building or unit, since the layer names no ally;
+  - the ground's transport arm for a point in another region (:2486, `LeaderData::can_transport`);
+  - mode 1's `+0x48` refusal (an unattackable enemy gets `MOVE_TO` with the press's form).
+- **Not established**: whether the original's `find_target(SEARCH_ALL, units)` admits the selection's own members
+  (the layer does).
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 
@@ -4350,8 +4467,9 @@ under alt (the dispatch's `QUEUE_NEW`, the minimap's `QUEUE_FIRST`) and in the p
   recording carries ctrl with shift or alt, so no score rests on them. Read off `execute_at_cursor` and `on_right_up`
   by this item's one reader.
 - **Not established**: which issuer made each recorded order (§35.2).
-- **Not established**: the panel's `ATTACK_TO` button (4297a). It writes the same order on the ground. On an object
-  it goes through the dispatch's object arms with `param_2` 1, which were not read.
+- ~~**Not established**: the panel's `ATTACK_TO` button (4297a). It writes the same order on the ground. On an object
+  it goes through the dispatch's object arms with `param_2` 1, which were not read.~~ Read and built, §32.10 (item
+  4349): `attack` on an enemy, `guard` on one's own unit.
 - **Not established**: the minimap's plane patrol under ctrl. The scene carries no domain, so the layer mints
   `ATTACK_TO` for a selection with a plane (4295a).
 - **Not played**: no playback was owed. `ATTACK_TO` is an order the sim runs (`sim::orders::index::ATTACK_TO`,
