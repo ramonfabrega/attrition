@@ -1085,8 +1085,9 @@ pub const RUN1564_DEEP_GREY: [[i32; 3]; 2] = [[1_139, 0, 0], [274, -7, 4]];
 /// 645). Up: (186, 170), theirs (73, 131, 148), off (49, 120, 150) → on
 /// (50, 121, 149); down: (182, 204), theirs (64, 122, 138), off (49, 126,
 /// 150) → on (47, 123, 147).
+/// Item 4312: 650 → 649, 6 → 5 (a named fall from 650 and 6): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
 #[cfg(test)]
-pub const RUN1564_DEEP_STILL: [u32; 4] = [645, 650, 1, 6];
+pub const RUN1564_DEEP_STILL: [u32; 4] = [645, 649, 1, 5];
 
 /// **`RUN1564_3279_SURF`** (item 4225; `docs/RENDERER.md` §3.18, "The
 /// surf, off the packet"): `SANDY` and `OCEAN` `[agree, scored]` on the
@@ -1112,7 +1113,8 @@ pub const RUN1564_DEEP_STILL: [u32; 4] = [645, 650, 1, 6];
 ///
 /// Item 4292: `SANDY` 702 → 681 (a named fall from 702), `OCEAN` holds: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) darkens the beach's descent to the waterline under the composite, where the photograph's stays bright (parked 4292a).
 /// Item 4296: `SANDY` 681 → 688, `OCEAN` holds: the deep corners drawn in the floor's grey plus `trans_bright` (item 4296, `docs/RENDERER.md` §3.27, "The beach below the waterline"; [`RUN1564_DEEP_STILL`]).
-pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[688, 772], [422, 437]];
+/// Item 4312: `SANDY` 688 → 687 (a named fall from 688), `OCEAN` 422 → 424: the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
+pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[687, 772], [424, 437]];
 
 /// **`RUN1564_3279_SURF_DRAWN`** (item 4239; `docs/RENDERER.md` §3.27):
 /// `SANDY` and `OCEAN` `[agree, scored]` on run1564's still with the
@@ -1134,11 +1136,12 @@ pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[688, 772], [422, 437]];
 /// beach's descent to the waterline, where the photograph's stays bright
 /// (parked 4292a).
 /// Item 4296: `SANDY` off 553 → 552, drawn 645 → 650, typed 678 → 680, `OCEAN` holds: the deep corners drawn in the floor's grey plus `trans_bright` (item 4296, `docs/RENDERER.md` §3.27, "The beach below the waterline"; [`RUN1564_DEEP_STILL`]).
+/// Item 4312: `OCEAN` 422 → 424 on all three, drawn `SANDY` 650 → 649 (a named fall from 650): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 #[cfg(test)]
 pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
-    [[552, 772], [422, 437]],
-    [[650, 772], [422, 437]],
-    [[680, 772], [422, 437]],
+    [[552, 772], [424, 437]],
+    [[649, 772], [424, 437]],
+    [[680, 772], [424, 437]],
 ];
 
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
@@ -1188,16 +1191,17 @@ pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
 /// §3.22) darkens the beach's descent to the waterline, where the
 /// photograph's stays bright (parked 4292a).
 /// Item 4296: **1,778 → 1,783** (`SANDY` 645 → 650, 6 up and 1 down): the deep corners drawn in the floor's grey plus `trans_bright` (item 4296, `docs/RENDERER.md` §3.27, "The beach below the waterline"; [`RUN1564_DEEP_STILL`]).
+/// Item 4312: **1,783 → 1,784** (`OCEAN` 422 → 424, `SANDY` 650 → 649, a named fall from 650): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1783, 1920),
+    (1784, 1920),
     [
         [679, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [650, 772],
-        [422, 437],
+        [649, 772],
+        [424, 437],
     ],
 );
 
@@ -1235,6 +1239,7 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4284: run1559b **1,066 → 1,072** (under a mountain **100 → 106** of 106, plain 950 unmoved): the ground beneath a range takes the land's own N·L and `light_vert` colour whatever `land_light` says, as the snowcap does (`docs/RENDERER.md` §3.22, "The ground beneath a range"); the six paler tiles (5, 142)–(7, 147) on the left shoulder close from ratios 1.21–1.48 to 0.97–1.01; the body ours Y 141.0 → 136.5 against theirs 137.3; run1564 unchanged.
 /// Item 4292: run1559b **1,072 → 1,109** of 1,109 (plain **950 → 986**, `ROCK` 16 → 17): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22), the halo where the range meets the grass drawn where the photograph's is; run1564 1,852 → 1,843 (`SANDY` 728 → 723, `OCEAN` 420 → 416; a named fall from 1,852, parked 4292g).
 /// Item 4296: run1564 **1,843 → 1,845** (`SANDY` 723 → 725): the deep corners in the floor's grey plus `trans_bright` (`docs/RENDERER.md` §3.27, "The beach below the waterline"); run1559b unchanged.
+/// Item 4312: run1564 **1,845 → 1,848** (`OCEAN` 416 → 418, `SANDY` 725 → 726): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
         (1109, 1109),
@@ -1249,15 +1254,15 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1845, 1920),
+        (1848, 1920),
         [
             [679, 679],
             [0, 0],
             [25, 32],
             [0, 0],
             [0, 0],
-            [725, 772],
-            [416, 437],
+            [726, 772],
+            [418, 437],
         ],
     ),
 ];
@@ -1290,7 +1295,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Item 4292: run1559b's 1,008 → 1,012, run1564's 1,754 → 1,777, the made-to-fail: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22).
 /// Item 4296: run1564's 1,777 → 1,786, the deep corners in the floor's grey plus `trans_bright` (§3.27, "The beach below the waterline"), against the drawn row's 1,783: **the made-to-fail side leads on run1564 by three** (4296b).
 /// Item 4306: run1564's 1,786 → 1,789, the national border drawn over the east edge's beach (`docs/RENDERER.md` §3.29).
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1012, 1109), (1789, 1920)];
+/// Item 4312: run1564 1,789 → 1,794: the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1012, 1109), (1794, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1589,14 +1595,15 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// Item 4292: plain 665 → 666, `ROCK` 8 → 9, `SANDY` 413 → 428, `OCEAN` 233 → 239 (a rise from 665, 8, 413 and 233): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) carries the relief's shading into each tile's spread.
 /// Item 4296: `SANDY` 428 → 439, `OCEAN` 239 → 234 (a named fall from 239): the deep corners in the floor's grey plus `trans_bright` (`docs/RENDERER.md` §3.27, "The beach below the waterline"), on the texture's spread.
 /// Item 4306: `SANDY` 439 → 440: the national border drawn over the east edge's beach (`docs/RENDERER.md` §3.29).
+/// Item 4312: **`OCEAN` 234 → 244**, `SANDY` 440 → 438 (a named fall from 440): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24), the photograph's blot.
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [666, 679],
     [0, 0],
     [9, 32],
     [0, 0],
     [0, 0],
-    [440, 772],
-    [234, 437],
+    [438, 772],
+    [244, 437],
 ];
 
 /// **`RUN1564_3279_LAKE_HDR_TEXTURE`** (item 4232): [`TEXTURE`]'s

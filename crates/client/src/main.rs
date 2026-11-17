@@ -45,6 +45,7 @@ mod dead;
 mod edge;
 mod expose;
 mod fire;
+mod goods;
 mod gpu;
 mod ground;
 mod hud;
