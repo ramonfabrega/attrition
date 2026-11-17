@@ -1120,7 +1120,7 @@ fn the_selection_s_rings() {
         (city.pos.x + w * 96, city.pos.y + h * 96, city.z)
     );
     let mut p = Painter::new(SIZE);
-    paint(&mut p, &input, &scene, &names, SIZE, &|x, y, _| {
+    paint(&mut p, &input, &scene, None, &names, SIZE, &|x, y, _| {
         Some((x / 20, y / 40))
     });
     let red = [1.0, 0.0, 0.0];
@@ -1158,7 +1158,7 @@ fn the_roster_follows_the_selection() {
         ..i
     };
     let tys = |i: &Input| -> Vec<i32> {
-        roster_menu(i, &scene, SIZE)
+        roster_menu(i, &scene, None, SIZE)
             .iter()
             .map(|b| b.ty())
             .collect()
@@ -1173,7 +1173,7 @@ fn the_roster_follows_the_selection() {
     theirs.player = 1;
     assert!(tys(&theirs).is_empty(), "another slot's building");
     assert_eq!(tys(&with(units_selected())), vec![417, 419]);
-    let row = roster_menu(&built, &scene, SIZE);
+    let row = roster_menu(&built, &scene, None, SIZE);
     assert_eq!(
         row[0].rect,
         Rect {
@@ -1209,7 +1209,7 @@ fn the_roster_follows_the_selection() {
         ])
     );
     let mut u = with(units_selected());
-    let (x, y) = roster_menu(&u, &scene, SIZE)[1].rect.centre();
+    let (x, y) = roster_menu(&u, &scene, None, SIZE)[1].rect.centre();
     assert_eq!(event(&mut u, SIZE, 7, Event::Press { x, y }, &v), None);
     assert_eq!(
         u.placing,

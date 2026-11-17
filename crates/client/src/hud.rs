@@ -198,6 +198,9 @@ pub fn route(input: &Input, size: (i32, i32), ev: Event) -> Event {
     }
 }
 
+/// The ink of a greyed button of the roster (item 4334): ours.
+pub const GREYED: [f32; 3] = [0.42, 0.44, 0.48];
+
 /// The size of one of the roster's buttons (item 4290).
 pub const ROSTER_BUTTON: (i32, i32) = (150, 24);
 /// The roster's buttons a row: six, so the rows end left of the
@@ -206,37 +209,50 @@ pub const ROSTER_ROW: i32 = 6;
 
 /// One of the roster's buttons (item 4290, `docs/CLIENT_INPUT.md` §32):
 /// the event a press sends ([`crate::input::Event::Train`] or
-/// [`crate::input::Event::Place`]) and where it stands.
+/// [`crate::input::Event::Place`]), the button as the original's panel
+/// adds it (type, option, `disable`; item 4334), and where it stands. A
+/// button with `disable` set is drawn greyed and a press on it orders
+/// nothing.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RosterButton {
     pub ev: Event,
+    pub button: crate::input::Button,
     pub rect: Rect,
 }
 
 impl RosterButton {
     /// The `TypeIndex` it queues or chooses.
     pub fn ty(&self) -> i32 {
-        match self.ev {
-            Event::Train(t) | Event::Place(t) => t,
-            _ => -1,
-        }
+        self.button.ty
+    }
+
+    /// Greyed: the original's `disable` set.
+    pub fn greyed(&self) -> bool {
+        self.button.disable != 0
     }
 }
 
 /// **The roster's rows** (item 4290): a button for each of
 /// [`Input::panel`]'s, [`ROSTER_ROW`] a row from the left, the rows
-/// stacked upward from above the menu's. Where they stand is ours.
-pub fn roster_menu(input: &Input, scene: &Scene, size: (i32, i32)) -> Vec<RosterButton> {
+/// stacked upward from above the menu's. Where they stand is ours. With
+/// `sim`, a building's buttons are the original's panel (item 4334).
+pub fn roster_menu(
+    input: &Input,
+    scene: &Scene,
+    sim: Option<&sim::Sim>,
+    size: (i32, i32),
+) -> Vec<RosterButton> {
     let (w, h) = ROSTER_BUTTON;
     let base = size.1 - 2 * MARGIN - BUTTON.1;
     input
-        .panel(scene)
+        .panel(scene, sim)
         .into_iter()
         .enumerate()
-        .map(|(k, ev)| {
+        .map(|(k, (ev, button))| {
             let (col, row) = (k as i32 % ROSTER_ROW, k as i32 / ROSTER_ROW);
             RosterButton {
                 ev,
+                button,
                 rect: Rect {
                     x: MARGIN + col * (w + MARGIN / 2),
                     y: base - (row + 1) * (h + MARGIN / 2),
@@ -720,13 +736,22 @@ pub fn event(
                     .map(|(k, _)| Event::ComeOut(k))
             })
             .or_else(|| {
-                roster_menu(input, view.scene, size)
+                roster_menu(input, view.scene, view.sim, size)
                     .into_iter()
-                    .find(|b| b.rect.contains(x, y))
+                    .find(|b| b.rect.contains(x, y) && !b.greyed())
                     .map(|b| b.ev)
             }),
         _ => None,
     };
+    // A press on a greyed button of the roster orders nothing (item 4334):
+    // the clear ones were taken above.
+    if let (None, Event::Press { x, y }) = (market, ev)
+        && roster_menu(input, view.scene, view.sim, size)
+            .iter()
+            .any(|b| b.rect.contains(x, y))
+    {
+        return None;
+    }
     let ev = market.unwrap_or_else(|| route(input, size, ev));
     input.event(frame, ev, view)
 }
@@ -1082,6 +1107,7 @@ pub fn paint(
     p: &mut Painter,
     input: &Input,
     scene: &Scene,
+    sim: Option<&sim::Sim>,
     names: &Names,
     size: (i32, i32),
     project: &dyn Fn(i32, i32, i32) -> Option<(i32, i32)>,
@@ -1219,12 +1245,14 @@ pub fn paint(
         let label = format!("OUT {}", inside[k].o);
         p.text(r.x + 3 * SCALE, ty, &label, SCALE, overlay::INK);
     }
-    for b in roster_menu(input, scene, size) {
+    for b in roster_menu(input, scene, sim, size) {
         let r = b.rect;
+        // A greyed button (the original's `disable`): its ink dimmed.
+        let ink = if b.greyed() { GREYED } else { overlay::INK };
         p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
-        p.rect(r.x, r.y, r.w, SCALE / 2, overlay::INK);
+        p.rect(r.x, r.y, r.w, SCALE / 2, ink);
         let name: String = names.of_type_index(b.ty()).chars().take(12).collect();
-        p.text(r.x + 2, r.y + (r.h - 7) / 2, &name, 1, overlay::INK);
+        p.text(r.x + 2, r.y + (r.h - 7) / 2, &name, 1, ink);
     }
     for b in menu(input, size) {
         let r = b.rect;
