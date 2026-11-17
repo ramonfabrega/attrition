@@ -1114,6 +1114,14 @@ pub struct Lobby {
     /// seeds every leader's `cannon_time` (`+0x48`) with it, and only the
     /// multiplayer command 0x4d steps it (`docs/LEADERS.md` §16.2).
     pub cannon_time: i32,
+    /// `GameInfo.seed` (`GAMEINFO`'s `(int)seed`): the lobby's seed, which
+    /// is **not** `world->seed` ([`crate::Sim::game_seed`]). Its readers
+    /// are `GraphicPieces::get_unit_gpiece@0090c030:37`, a gaia figure's
+    /// variant `(seed + o) % 3`, and `Leader::diplomacy@006bc950:188`,
+    /// the war plan's span (still read off the world seed here, lane
+    /// 4341's, `docs/LEADERS.md` §8.2). `None` where the lobby printed none; then
+    /// [`crate::Sim::info_seed`] falls back to the world seed (item 4347).
+    pub seed: Option<i32>,
 }
 
 impl Default for Lobby {
@@ -1143,6 +1151,7 @@ impl Default for Lobby {
             conquest: false,
             reveal_map: 1,
             cannon_time: 0,
+            seed: None,
         }
     }
 }

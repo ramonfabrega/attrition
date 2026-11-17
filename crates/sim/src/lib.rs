@@ -93,8 +93,13 @@ pub struct Sim {
     /// map at once — and one after it takes the daemon's pass
     /// ([`border_pass`], item 1106).
     pub in_play: bool,
-    /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
-    /// piece by `(seed + o) % 3`.
+    /// `world->seed` (`WORLD`'s `seed`, `+0x7c`): `Setup::build_game`'s
+    /// re-seed. **Not** `GameInfo.seed`, the lobby's, which is
+    /// [`crate::ai::Lobby::seed`] and what a gaia figure's piece reads
+    /// ([`Sim::info_seed`]) — and the war plan, which still reads this one
+    /// (`docs/LEADERS.md` §8.2); on a lobby at seed 12345 the
+    /// two are 12345 and 7236, the same mod 3, and the 2017 sample's
+    /// 340513920 and 48607 are not (item 4347).
     pub game_seed: i32,
     /// The game's random stream, `game_random`. Combat draws from it for
     /// projectile scatter and the one-in-five retarget roll.

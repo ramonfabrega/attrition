@@ -385,8 +385,34 @@ whole with every frame's draws (`docs/RUNS.md`). Two rows, in
   Guy::inc_time+0x271`, which is their fourth draw: one animal's idle
   arm takes three draws ours does not.
 
-**Not established:** which animal it is and which arm of `do_idle`;
-whether the person has issued an order by frame 98; the run past 98.
+~~**Not established:** which animal it is and which arm of `do_idle`;
+whether the person has issued an order by frame 98; the run past 98.~~
+Answered by item 4347, below.
+
+**The word moved: 98 → 444 (item 4347, 2026-11-17).** run1654 retakes the
+opening to frame 100 with every unit and figure printed over 84..101
+(`docs/RUNS.md`). The animal on 98 is herd 0's peacock (`TypeIndex` 413,
+`HERDPEACOCK`): theirs' `8/1`, ours' `8/0`. Positions and the herd's
+`(19, 9, 19, 8)` agree on both sides. The pieces do not: run1654's `8/0`..`8/3`
+wear 60078, 60079, 60080, 60078, ours wore 60079, 60080, 60078, 60079,
+so the 99-frame idle ran out on a different bird. Ours' `8/0` stands
+413 from the herd centre and takes the far arm, which draws nothing.
+Theirs' `8/1` stands near and draws three times.
+`GraphicPieces::get_unit_gpiece@0090c030:37` adds `o` to
+`GameInfo.seed`, the lobby's (340513920 here), and this crate added it
+to `world->seed` (48607). On every lobby at seed 12345 the two are 12345
+and 7236, the same mod 3, so no walk parted on it before. The fix is
+`sim::Sim::info_seed`, `sim::ai::Lobby::seed` from `GAMEINFO`'s
+`(int)seed` (falling back to the world seed where none is printed).
+The test is `a_gaia_figure_s_variant_is_the_lobby_seed_s_not_the_world_s`.
+The person has ordered by then: `process_group` on 8, 9, 21 and 28
+(run1650). run1654's window walks with the start: 84..91 agree whole.
+**On 92 the person's scout `3/0` holds an `EXPLORE_TO` in theirs and a
+`MOVE_TO` here**, the next parting by state, ahead of the draws' 444.
+
+**Not established:** which package gives the scout its explore-to, and
+how our stream reads it; the parting on 444; `Leader::diplomacy`'s war
+plan still reads the world seed (`docs/LEADERS.md` §8.2, item 4341's).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

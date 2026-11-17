@@ -1130,3 +1130,30 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
         "the turn's draw"
     );
 }
+
+/// **A gaia figure's variant is the lobby's seed's, not the world's**
+/// (item 4347, `docs/RECGAME.md` §7). `GraphicPieces::get_unit_gpiece@
+/// 0090c030:37` adds `o` to `GameInfo.seed`. The 2017 sample's lobby seed
+/// is 340513920 and its world seed 48607, which differ mod 3. run1654
+/// prints herd 0's four peacocks (`TypeIndex` 413) on pieces 60078,
+/// 60079, 60080 and 60078, variants 0, 1, 2, 0; the world seed gave 1, 2,
+/// 0, 1, and the wrong peacock's idle ran out on frame 98. A lobby that
+/// printed no seed keeps the world's.
+#[test]
+fn a_gaia_figure_s_variant_is_the_lobby_seed_s_not_the_world_s() {
+    let mut s = sim_at(1);
+    for v in 0..3u8 {
+        s.roster.art.gaia_variants.insert((413, v), v);
+    }
+    s.game_seed = 48607;
+    s.ai.lobby.seed = Some(340_513_920);
+    let pieces: Vec<i32> = (0..4).filter_map(|o| s.gaia_piece(413, o)).collect();
+    assert_eq!(pieces, [60078, 60079, 60080, 60078], "run1654's peacocks");
+    s.ai.lobby.seed = None;
+    let pieces: Vec<i32> = (0..4).filter_map(|o| s.gaia_piece(413, o)).collect();
+    assert_eq!(
+        pieces,
+        [60079, 60080, 60078, 60079],
+        "no lobby seed: the world's"
+    );
+}
