@@ -359,8 +359,12 @@ class TheLiveTree(unittest.TestCase):
     # commander at the booking gate that met it, 1224's to re-word.
     # 14 → 13: the pass of 2026-11-14 re-worded that SEAM on the
     # adjudication's X.1 (the score is modelled; its two readers named),
-    # so it names no built function as missing.
-    DOORS = 13
+    # so it names no built function as missing. 13 → 14: item 4351 built
+    # the human block's clear of `unit_masks & 0x4000000`
+    # (`orders/think.rs`), whose SEAM names `think_spellcaster` as not
+    # called from that block for a human unit while the function is in the
+    # tree; parked 4351a (its journal), the wiring's to close.
+    DOORS = 14
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)
