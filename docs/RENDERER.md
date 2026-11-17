@@ -3970,7 +3970,7 @@ card's states for draws 163 to 169. On the photograph alone: the rows. *Not esta
   the nearest texel, interpolates the texcoords in screen space, and blends in LDR;
 - the draws before `Surf::init` on another map (4236c), and so the phase anywhere but GreatLakes;
 - the culling to visible cells, which moves only an overlap's order;
-- the whitecaps: lists 7, 8, too faint (journal 4335).
+- the whitecaps (journal 4335).
 
 **The beach below the waterline (item 4294).** *Opus 5.5; the ledger: `docs/journal/2026-11-16-item-4294.md`.*
 With the land lit (item 4292) the ground row's `SANDY` fell 653 → 645 of 772. That is nine tiles down and one up,
