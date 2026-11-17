@@ -206,7 +206,9 @@ impl Sim {
     /// `FILTER_TYPE = 1`; the table is at `0067e57c` and the arm at
     /// `0067e204`). It is the same predicate as §4's loop with the scoring
     /// taken out: some allied city, not this one, that this city and it can
-    /// both still pair with.
+    /// both still pair with — and, as there, another leader's cities count
+    /// only when the candidate's **owner** `has_preq(BASE_BONUSTYPES)`
+    /// (`0067e285`).
     fn find_trade_city(&self, who: Player, at: Pos) -> Option<usize> {
         let mut best: Option<(usize, i32)> = None;
         for (i, c) in self.cities.cities.iter().enumerate() {
@@ -217,7 +219,7 @@ impl Sim {
             if best.is_some_and(|(_, bd)| d > bd) {
                 continue;
             }
-            if !self.city_can_trade(who, i) {
+            if !self.city_can_trade(i) {
                 continue;
             }
             best = Some((i, d));
@@ -225,10 +227,21 @@ impl Sim {
         best.map(|(i, _)| i)
     }
 
-    /// `Search::valid_filter`'s `FILTER_CAN_TRADE` arm: is there any allied
-    /// city this one could still be paired with.
-    fn city_can_trade(&self, who: Player, city: usize) -> bool {
-        (0..self.cities.cities.len()).any(|o| o != city && self.trade_pair_free(who, city, o))
+    /// `Search::valid_filter`'s `FILTER_CAN_TRADE` arm (`0067e204`): is
+    /// there any allied city this one could still be paired with. Every
+    /// test is asked of the candidate city's **owner** (`edi`), not of the
+    /// leader searching: for each other leader `L`, `is_ally(owner, L)`
+    /// and `has_preq(owner, BASE_BONUSTYPES)` (`0067e263`..`0067e291`) open
+    /// `L`'s cities, and then `CityData::is_seen(c, owner)` and the two
+    /// `get_empty_trade_routes`. The owner's own cities need neither.
+    fn city_can_trade(&self, city: usize) -> bool {
+        let owner = self.cities.cities[city].owner;
+        let foreign_open = self.ally_caravan_preq_held(owner);
+        (0..self.cities.cities.len()).any(|o| {
+            o != city
+                && (self.cities.cities[o].owner == owner || foreign_open)
+                && self.trade_pair_free(owner, city, o)
+        })
     }
 
     /// Both halves of the pairing test, which every caller makes together:
@@ -717,9 +730,16 @@ impl Sim {
         let home_at = self.world.tregion_alt(self.cities.cities[home].pos.tile());
         let transport = self.unit_can_transport(u);
         let mine = self.cities.cities[home].owner == who;
+        // `005ed544`..`005ed566`: another leader's cities enter only when
+        // I `has_preq(BASE_BONUSTYPES)` and the home city is my own
+        // (`docs/CARAVAN.md` §4); my own enter whatever the home.
+        let foreign_open = mine && self.ally_caravan_preq_held(who);
         let mut best: Option<(usize, i32)> = None;
         for other in 0..self.cities.cities.len() {
             if other == home || !self.trade_pair_free(who, home, other) {
+                continue;
+            }
+            if self.cities.cities[other].owner != who && !foreign_open {
                 continue;
             }
             // **The cross-region arm** (`docs/CARAVAN.md` §11, the
@@ -744,6 +764,20 @@ impl Sim {
             }
         }
         best.map(|(c, _)| c)
+    }
+
+    /// `has_preq(BASE_BONUSTYPES)`: the first bonus row's one prerequisite
+    /// (Trade in the shipped file), held as a technology; a tree that does
+    /// not name it grants it, as [`Sim::colonize_preq_held`] does.
+    pub(crate) fn ally_caravan_preq_held(&self, who: Player) -> bool {
+        match self.tables.tech_tree.roles.ally_caravan_preq {
+            Some(t) => {
+                self.tables
+                    .tech_tree
+                    .has_tech(&self.tables.setup, &self.tech[who as usize], t)
+            }
+            None => true,
+        }
     }
 
     /// `Caravan::trade_value@0073d9d0`: the two cities' trade values, scaled

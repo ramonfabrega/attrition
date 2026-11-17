@@ -142,9 +142,10 @@ impl FreeRunner {
         self.ground.as_ref().map(|(t, s)| (t.as_str(), *s))
     }
 
-    /// The simulation, for a comparison of two runners' whole state.
-    #[cfg(test)]
-    pub(crate) fn sim(&self) -> &sim::Sim {
+    /// The simulation, read-only: for a comparison of two runners' whole
+    /// state, and what the client's panel asks the leader's predicates of
+    /// (item 4315).
+    pub fn sim(&self) -> &sim::Sim {
         &self.built.sim
     }
 

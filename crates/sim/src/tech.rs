@@ -339,6 +339,14 @@ pub struct Roles {
     /// (`docs/CITIES.md` §2.6.1). `None` leaves the bonus granted, the
     /// tree's rule for a role it does not know.
     pub colonize_preq: Option<TypeId>,
+    /// `BASE_BONUSTYPES` itself (`0x2ac`), the **first** of `rules.xml`'s
+    /// `TECHBONUSES` — "Caravans to allied & peaceful nations allowed" —
+    /// and its one prerequisite, **Trade** in the shipped file: the
+    /// technology whose ownership is `has_preq(BASE_BONUSTYPES)`, the gate
+    /// `Unit::do_trade@005ed270`'s selection loop puts on another leader's
+    /// cities (`docs/CARAVAN.md` §4). `None` leaves the bonus granted, the
+    /// tree's rule for a role it does not know.
+    pub ally_caravan_preq: Option<TypeId>,
     /// `MISSILE_DEFENSE_BONUS`'s one prerequisite — the technology whose
     /// ownership is `has_preq(MISSILE_DEFENSE_BONUS)`, the tenth of
     /// `rules.xml`'s `TECHBONUSES` (`0x2b5`) and **Missile Shield** in the
@@ -1613,8 +1621,15 @@ impl TechTree {
     // ---- type_eligible / type_avail ----
 
     /// `LeaderData::check_predecessor`: the predecessor must be available,
-    /// or not be for this nation.
-    fn check_predecessor(&self, setup: &Setup, p: &PlayerTech, mut pred: Option<TypeId>) -> bool {
+    /// or not be for this nation. Public since item 4315: the client's
+    /// panel asks it of a unit's line as `BuildOut::make_options@00629ed0`'s
+    /// train loop does (`docs/CLIENT_INPUT.md` §32.4).
+    pub fn check_predecessor(
+        &self,
+        setup: &Setup,
+        p: &PlayerTech,
+        mut pred: Option<TypeId>,
+    ) -> bool {
         let mut guard = 0;
         while let Some(x) = pred {
             if self.type_avail(setup, p, x, false) >= 3 {

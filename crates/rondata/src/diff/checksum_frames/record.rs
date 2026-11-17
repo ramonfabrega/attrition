@@ -182,6 +182,43 @@ const STATE_LINES_KEPT: [&str; 8] = [
 /// one range fewer on every frame, the first parting now `flags` or
 /// `resources_controlled` (`+0x850`) or `reg_unpack_merch[1]` (`+0x5d8`).
 const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
+    // Item 4317: the leaders line's first three parted frames on run1578
+    // (`CHECKSUM_FRAMES`' 0, 100 and 159), every other line whole there.
+    // `leader_flags` byte 2's `0x80` is bit `0x800000`, the score's units
+    // dirty bit (`Unit::init`, `Unit::close`; `compute_score` clears it),
+    // which the crate keeps (`Score::dirty_units`) and the emitter does not
+    // write; on 0 byte 3's `0x08` too (`0x8000000`), and fifteen more
+    // ranges, the setup's (item 4317's journal).
+    (
+        0,
+        &[(
+            "leaders",
+            267,
+            267,
+            16,
+            "0 0 flags: +0x2 of 8|8: 00020000|800a0000",
+        )],
+    ),
+    (
+        100,
+        &[(
+            "leaders",
+            267,
+            267,
+            1,
+            "128 1 flags: +0x2 of 8|8: 00000000|80000000",
+        )],
+    ),
+    (
+        159,
+        &[(
+            "leaders",
+            267,
+            267,
+            1,
+            "0 0 flags: +0x2 of 8|8: 00000000|80000000",
+        )],
+    ),
     (
         7195,
         // Item 4251: units whole; before it, 3 of 1697 ranges from 832,

@@ -2766,6 +2766,35 @@ Measured on the tree after item 4243,
 which made units whole on 6907 (run1593). Before it the record's 6907 showed what 4243's packet showed: units nine
 ranges short (1,639 of 1,648), first at range 784.
 
+**Parity's leaders row (item 4317; `LEADERS_AGREE`, DECISIONS 138 §2).** Our leaders line taken on every frame of
+run1578 against the hook's word: **it agrees on 2,941 of 24,000 frames** (run1577: 109 of 120). It parts on 0, 100
+to 109, 159 to 315, 320 to 329, 383 to 389, 1097 to 1099, 1305 to 1309, 1378 to 1576, 1839, 2357 to 2359, 2564,
+2712 to 2719, 2881, 2920 to 2929, 3008, 3127 to 3129, 3165 to 3169, 3286 to 3289, 3354 to 3359, and on every frame
+from 3376. The record's first parted range on its first three (`RECORD_PARTINGS`):
+
+| frame | ranges, ours, parted | first parting: range record field: ours, theirs |
+|---|---|---|
+| 0 | 267, 267, 16 | 0 0 `flags`, from byte 2: `00020000`, `800a0000` (`leader_flags` 0x2000007, 0xa800007) |
+| 100 | 267, 267, 1 | 128 1 `flags`, from byte 2: `00000000`, `80000000` (`leader_flags` 0x3, 0x800003) |
+| 159 | 267, 267, 1 | 0 0 `flags`, from byte 2: `00000000`, `80000000` (`leader_flags` 0x7, 0x800007) |
+
+**The census** (a probe over all 24,000, reverted; past 300 one frame in ten; item 4317's journal): every parted leaf
+is one of three families, and on frame 0 four setup leaves beside them.
+- `leader_flags`, frames 0 to 14220, bits theirs holds and ours never writes (leader 0: `0x800000`, `0x80000`,
+  `0x8000000`; leader 1 those and `0x1000000`, `0x4000000`): `0x800000` (the
+  score's units dirty bit, §18's `Unit::init`/`Unit::close`, cleared by `compute_score`; the crate keeps it,
+  `Score::dirty_units`), `0x1000000` (the tech dirty bit, `gain_tech`; kept, `PlayerTech::score_dirty`), `0x80000`
+  (`Unit::think@005f6e40:85`, a unit whose type's word `+0x4` is 0x32 or 0x33, by the decompile; cleared at the end of `Leader::process` and
+  `Leaders::process_all`), `0x8000000` and `0x4000000` (the building and research arms of `Build::activate`,
+  `Build::finished`, `Build::close`, `Wall::activate`, `City::check_upgrade`, `TechType::set_research`,
+  `gain_tech`; cleared at the head of `Leader::process`). Not read to the end: which of the last three's writers
+  this game reaches.
+- `reg_unpack_merch[1]` (`+0x5d8`), leader 1, 3380 to 11970: ours 1, theirs 0 first.
+- `resources_controlled` (`+0x850`), leader 1, 3780 to 23990: ours 0, theirs 1 first. It alone holds the line
+  parted from 3780.
+- On frame 0 only: `ally_mask`, `defense`, `reg_cities[1]` and the two `encrypt` bytes on leader 0, and the same
+  but `defense` on leader 1. Theirs' setup `check_all` holds them, and our walk's frame 0 does not yet.
+
 ## 25.5 How it was established, and what it has not established
 
 The sites and calling conventions are read from the listing (`walk_function`'s prologue and `ret 8`;
