@@ -13576,6 +13576,19 @@ mends stand. What is not tested is a capture: the tracer's library is
 rebuilt for each one. The first capture of the next tranche is that test,
 and a kill there is a block that goes to Ramon at once.
 
+**Amended 2026-11-16, 19:55 (`commander`): explained.** macOS's
+`syspolicyd` (up since 2026-10-15) had run out of file descriptors from
+13:00: its log reads `open(/private/var/db/DetachedSignatures) - Too many
+open files`, 516 times in 13:00 to 13:20 and none before noon. A signature
+check it cannot make fails, so a freshly built executable was killed at
+launch (recon4299-1's first take, exit 137 at 0.05 s), Wine Stable's
+ad-hoc `ntdll.so` was refused ("library load denied by system policy",
+run1644) and `tools/memcap.sh` could not sample a footprint (gate-4298a,
+gate-4299: red). It was intermittent, so retakes often ran clean. Ramon ran
+`sudo killall syspolicyd` at 19:54:59; the count since is 0 and the
+captures and memcap ran again. The check is one `log show` (the memory
+note `syspolicyd-fd-exhaustion`); the fix is a human's, being sudo.
+
 **§6. What the journals raised.** No "for the Loop" line, no `FABLE:`
 marker and no second reading in the tranche. `brief.py` reads a queue
 mark past a comma (the handoff's fifth) and needs no ruling.
