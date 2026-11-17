@@ -3970,7 +3970,9 @@ card's states for draws 163 to 169. On the photograph alone: the rows. *Not esta
   the nearest texel, interpolates the texcoords in screen space, and blends in LDR;
 - the draws before `Surf::init` on another map (4236c), and so the phase anywhere but GreatLakes;
 - the culling to visible cells, which moves only an overlap's order;
-- the photograph's lake-wide whitecaps (§3.24).
+- the photograph's lake-wide whitecaps (§3.24): item 4335 places them on lists 7 and 8 (draws 166–167, the big
+  foam) and reads stage 0 point/point/point at bias 0 and the mask point at bias −1 (`tools/render/card_pass.py`);
+  the packet's lists at level 0 give theirs' strength, and our draw reads fainter (journal 4335).
 
 **The beach below the waterline (item 4294).** *Opus 5.5; the ledger: `docs/journal/2026-11-16-item-4294.md`.*
 With the land lit (item 4292) the ground row's `SANDY` fell 653 → 645 of 772. That is nine tiles down and one up,
