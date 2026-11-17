@@ -124,6 +124,12 @@ pub(crate) struct TakeWord {
     /// every block the walk reached — the leaves `diff::leader`'s record
     /// rows do not parse (item 4298).
     pub leaves: Vec<(i64, usize, String, i64, i64)>,
+    /// `(frame, theirs, ours)`: the first frame whose head word — ours
+    /// before the frame's staging, theirs the trace's `FRAME` record at
+    /// `do_frame`'s entry — differs (parked 4300b2). The labels can agree
+    /// while the values part: on recon4300-2 frame 1's head parted and the
+    /// labels first did on 5 (item 4300, third act).
+    pub seed: Option<(i64, u32, u32)>,
 }
 
 /// The diplomacy leaves of [`PRINTED_ARRAYS`] and `blacken` ours carries,
@@ -197,8 +203,15 @@ pub(crate) fn walk_take_from(
     let mut leaves_seen = Vec::new();
     let mut ours = std::collections::BTreeMap::new();
     let mut prev: Vec<Option<std::collections::BTreeMap<String, i64>>> = vec![None; seats];
+    let mut seed = None;
     for _ in 0..last {
         let at = built.sim.frame;
+        if seed.is_none()
+            && let Some(&(_, theirs)) = tr.frames.iter().find(|(f, _)| *f == at)
+            && theirs != built.sim.rng.seed
+        {
+            seed = Some((at, theirs, built.sim.rng.seed));
+        }
         stage_frame(&mut built, seats, probes, diplomacy, taunts);
         built.tick();
         // `RON_DEBUG_SITES=<lo>-<hi>`: each draw's owner, as the pairs' walks
@@ -208,6 +221,7 @@ pub(crate) fn walk_take_from(
                 eprintln!("  f{at} {who}: {label}");
             }
         }
+        crate::diff::harness::debug_watch(&built, at);
         let n = built.sim.frame;
         if let Some((f, ours)) = built.frame_sites.last() {
             let theirs = tr.labels(*f);
@@ -312,6 +326,7 @@ pub(crate) fn walk_take_from(
         movers,
         leaves: leaves_seen,
         ours,
+        seed,
     })
 }
 
@@ -522,6 +537,10 @@ pub(crate) fn report(name: &str, w: &TakeWord) {
     );
     for s in &w.skipped {
         eprintln!("  skipped {s}");
+    }
+    match w.seed {
+        Some((f, t, m)) => eprintln!("{name}: head word first parted on {f}: theirs {t:#010x} ours {m:#010x}"),
+        None => eprintln!("{name}: head word agreed on every frame walked"),
     }
     let mut firsts: std::collections::BTreeMap<(usize, String), (i64, i64, i64)> =
         Default::default();
