@@ -232,6 +232,24 @@ impl RosterButton {
     }
 }
 
+/// The label of one of the citizen's page buttons (item 4339, §32.7), a
+/// button with no type: ours, the original draws its icons.
+pub fn page_label(option: i32) -> Option<&'static str> {
+    use crate::input::{
+        OPTION_BACK, OPTION_BUILD, OPTION_BUILD_MILITARY, OPTION_BUILD_WONDER, OPTION_CANCEL,
+        OPTION_NEXT,
+    };
+    Some(match option {
+        OPTION_BUILD => "BUILD",
+        OPTION_BUILD_MILITARY => "MILITARY",
+        OPTION_BUILD_WONDER => "WONDERS",
+        OPTION_NEXT => "NEXT",
+        OPTION_BACK => "BACK",
+        OPTION_CANCEL => "CANCEL",
+        _ => return None,
+    })
+}
+
 /// **The roster's rows** (item 4290): a button for each of
 /// [`Input::panel`]'s, [`ROSTER_ROW`] a row from the left, the rows
 /// stacked upward from above the menu's. Where they stand is ours. With
@@ -1251,7 +1269,10 @@ pub fn paint(
         let ink = if b.greyed() { GREYED } else { overlay::INK };
         p.rect(r.x, r.y, r.w, r.h, [0.12, 0.14, 0.18]);
         p.rect(r.x, r.y, r.w, SCALE / 2, ink);
-        let name: String = names.of_type_index(b.ty()).chars().take(12).collect();
+        let name: String = match page_label(b.button.option) {
+            Some(l) if b.ty() < 0 => l.into(),
+            _ => names.of_type_index(b.ty()).chars().take(12).collect(),
+        };
         p.text(r.x + 2, r.y + (r.h - 7) / 2, &name, 1, ink);
     }
     for b in menu(input, size) {
