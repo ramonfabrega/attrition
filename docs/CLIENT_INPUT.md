@@ -3870,8 +3870,8 @@ page states drew all three pages where the original's draws one, and it had no `
 **Ours, not the original's.**
 
 - The page buttons' labels and places, and the HUD's single row for every mode.
-- The standard panel's other adds: `OPTION_REPAIR`, `OPTION_ALARM_PEASANT`, the stance, the halt and the rest.
-  The HUD draws the page buttons alone.
+- ~~The standard panel's other adds: `OPTION_REPAIR`, `OPTION_ALARM_PEASANT`, the stance, the halt and the rest.
+  The HUD draws the page buttons alone.~~ Drawn whole since item 4346 (§32.9).
 - A press that arms a placement leaves the page as it stands; `Options::exec`'s build arm, which sets
   `selecting_spot`, is still unread (§32.6).
 
@@ -3943,8 +3943,95 @@ sim's `Lobby::conquest`, is not run; that link is still the reading of §32.7.
 - **Not reached**: `obs` (no frame of this game), `+0x68 & 1`, and `exec` from other modes: 0x42 and 0x43 from
   the standard panel clear the selection in the original and leave our page alone (§32.7's
   `Options::reset` line).
-- Slot 1's standard panel at 14400 adds an option the held packets did not, option 4 with type 660
-  (`TOARMSSPELL`) at (4, 1). The HUD draws no standard add but the page buttons (§32.7, parked 4339b).
+- ~~Slot 1's standard panel at 14400 adds an option the held packets did not, option 4 with type 660
+  (`TOARMSSPELL`) at (4, 1). The HUD draws no standard add but the page buttons (§32.7, parked 4339b).~~
+  Drawn, at 13000 and 14400, from the unit's crafts (§32.9).
+
+## 32.9 The standard panel's other buttons (item 4346)
+
+*Item 4346, 2026-11-17 (`docs/journal/2026-11-17-item-4346.md`). The HUD draws a citizen's standard panel whole,
+as `UnitOut::make_options@00615fc0` adds it in `STANDARD_OPTIONS` mode, and a press on each button orders what
+the original's press does, or is named where the layer cannot. **`HUD_STANDARD_WALKED` (0, 36, 108, 398, 108) →
+(36, 36, 398, 398, 398)**, `HUD_STANDARD_PRESSED` (290, 290), on the eighteen held packets' 36 citizens against
+`~/ron-data/pages-standard/`. No capture, no packet, no `crates/sim` change.*
+
+**What theirs adds**, every held citizen, in add order (the PDB's `OptionType` names the values):
+
+| option | grid | type | `disable` | its press (`Options::exec@007188c0`) |
+| --- | --- | --- | --- | --- |
+| `OPTION_BUILD`, `_MILITARY`, `_WONDER` (0, 1, 2) | (k, 1) | −1 | 0 | the page (§32.7) |
+| `OPTION_REPAIR` (3) | (`n`, 1), `n` the page count | −1 | 0 | `do_repair@0071ccb0`: a pick |
+| `OPTION_ALARM_PEASANT` (27) | (4, 0) | −1 | 0 | `do_alarm@0071c3f0`: `group`, `alarm` |
+| `OPTION_SPELL` (4), slot 1 at 13000 and 14400 | (4, 1) | 660 `TOARMSSPELL` | 0 | `do_spell` (§18) |
+| `OPTION_GARRISON` (26) | (1, 3) | −1 | 0 | `do_garrison`: a pick (§23) |
+| `OPTION_HALT` (25) | (0, 3) | −1 | 0 | `do_halt@0071c580`: `group`, `halt` |
+| `OPTION_TRANSPORT` (14) | (1, 2) | −1 | **1** | `do_transport@0071c500`: `set_transport` |
+| `OPTION_MOVE_TO` (9) | (0, 0) | −1 | 0 | `do_move_to(9)`: a pick |
+| `OPTION_ATTACK_TO` (10) | (1, 0) | −1 | 0 | `do_move_to(10)`: a pick, under `COUNT_ATTACK` |
+| `OPTION_AUTO_EXPLORE` (33) | (0, 2) | −1 | 0 | `do_auto_explore` (§31) |
+
+`OPTION_TRANSPORT`'s `disable` is `level < transport_type`: the leader's level from `leader_flags` (`0x100` 3,
+`0x200` 2, `0x400` 1, else 0) against `UnitData::transport_type`, the sim's `transport_level` and
+`unit_transport_type`. No held packet's profile sets `prefs & 2`, so no `OPTION_DISBAND`, `OPTION_STANCE`,
+`OPTION_GUARD`, `OPTION_PATROL` or `OPTION_ATTACK_GROUND` is added.
+
+**What the HUD does** (`input::standard_panel`). With the walk and no page, a citizen's selection is offered
+those adds, each `(event, button)`: the page buttons as before; `Event::Alarm` and `Event::Halt`, new, each the
+selection's `group` and its one-byte command (`0x1b`, `0x0c`); an `Event::Spell` for each craft
+`UnitScene::crafts` lists, typed with the craft; `Event::Garrison` and `Event::AutoExplore` as before; and
+`Event::Unbuilt(option)` for the other four, consumed, ordering nothing. `hud::page_label` names the typeless
+buttons.
+
+**The stop: arms the client cannot issue.**
+
+- **`OPTION_MOVE_TO` and `OPTION_ATTACK_TO`** set `selecting_spot`, and the pick's spot
+  (`Options::picked_spot@00721c40`) is `execute_at_cursor(0, 3)` or `(0, 1)`. That function's mode argument is
+  not read (3,740 lines); §35.1 reads mode 1 on the ground only.
+- **`OPTION_REPAIR`** sets `selecting_spot`; `picked_spot`'s repair arm issues `swarm_around(…, BUILD_AT)` on an
+  allied site of the selection's own slot, and a longer arm on a finished building that is not read.
+- **`OPTION_TRANSPORT`**'s clear press is `set_transport(can_transport == 0)`; `GroupData::can_transport` is not
+  read. Greyed on every held packet, so its press orders nothing either side.
+
+**The count** (`the_pages_of_the_packets_on_our_walk`):
+
+| row | value |
+| --- | --- |
+| **`HUD_STANDARD_WALKED`** (equal, citizens, both whole, theirs, ours) | **(36, 36, 398, 398, 398)**; minted at the base's (0, 36, 108, 398, 108) |
+| **`HUD_STANDARD_PRESSED`** (as the original's press, pressed) | **(290, 290)**; at the base (0, 0) |
+| `HUD_PAGES_PAGED`, whose standard state is now the panel whole | (36, 36, 468, 468); at the base (0, 36, 324, 468) |
+
+A press is counted when `OPTION_HALT` orders `halt`, `OPTION_ALARM_PEASANT` `alarm`, `OPTION_AUTO_EXPLORE` and
+`OPTION_SPELL` their events' orders, `OPTION_GARRISON` arms its pick and orders nothing, and a greyed or
+`Unbuilt` button orders and arms nothing.
+
+**Each arm perturbed once** (the file restored in a `finally`):
+
+| perturbation | `HUD_STANDARD_WALKED` | `HUD_STANDARD_PRESSED` |
+| --- | --- | --- |
+| the page buttons alone (the base) | (0, 36, 108, 398, 108) | (0, 0) |
+| transport's `disable` unread | (0, 36, 362, 398, 398) | (290, 290) |
+| the crafts unread | (34, 36, 396, 398, 396) | (288, 288) |
+| `OPTION_HALT` as `Unbuilt` | (36, 36, 398, 398, 398) | (254, 290) |
+| `alarm` writing `halt` | (36, 36, 398, 398, 398) | (254, 290) |
+
+**The value diff.** Before, the standard panel drew three buttons a citizen, `(−1, 0..=2, 0)`, of theirs' eleven;
+the 290 others (eight a citizen and two `TOARMSSPELL`s) were not drawn.
+
+**Ours, not the original's.**
+
+- The labels and places; the separate GARRISON, EXPLORE and craft buttons still stand beside the panel's.
+- The craft's `disable` is 0: theirs greys a craft the leader lacks, a busy unit, or one casting it
+  (`has_spell`, `is_busy`, `is_casting`). Every held one is clear.
+
+**Confidence, and what is not established.**
+
+- **Backed by the oracle**: the 398 adds of the 36 held citizens, whole; the transport's `disable`, greyed on
+  all 36; `TOARMSSPELL` on slot 1 at 13000 and 14400 only.
+- **One reading**: the halt and alarm orders' bytes (`do_halt`, `do_alarm`); no playback has run them.
+- **Not built**: the `+0x68 & 1` gate (the sim's `Unit::decoy`), which drops the page buttons, `OPTION_REPAIR`,
+  `OPTION_ALARM_PEASANT` and the crafts; no held citizen is a decoy, and `panels.py` has no byte poke to make
+  one. The predicates of the last six adds for a unit other than a citizen, and the `prefs & 2` adds.
+- The three picks and `set_transport`, above.
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 

@@ -322,6 +322,25 @@ pub enum Event {
     /// selection's `group` and `unitmask(0x100, −1)`
     /// (`GroupOut::issue_unitmask@00708880`). The HUD's alone.
     AutoExplore,
+    /// A press on a citizen's halt button (item 4346, §32.9):
+    /// `Options::exec@007188c0` case `0x19`, `Options::do_halt@0071c580`,
+    /// which for a unit selection that `can_activate` writes its `group`
+    /// and `halt` (`GroupOut::issue_halt@0070ad70`). The HUD's alone.
+    Halt,
+    /// A press on a citizen's alarm button, `OPTION_ALARM_PEASANT` (item
+    /// 4346, §32.9): `Options::exec@007188c0` case `0x1b`,
+    /// `Options::do_alarm@0071c3f0`, which for a selection that
+    /// `can_activate`, in a game whose semaphore's `0x10` bit is clear,
+    /// writes its `group` and `alarm` (`0x1b`). The HUD's alone.
+    Alarm,
+    /// A press on a standard-panel button whose order the layer does not
+    /// issue, by its option (item 4346, §32.9): `OPTION_REPAIR`,
+    /// `OPTION_MOVE_TO` and `OPTION_ATTACK_TO` arm a pick
+    /// (`selecting_spot`) whose spot `Options::picked_spot@00721c40` turns
+    /// into `execute_at_cursor(0, 3 or 1)` or the repair arm; and
+    /// `OPTION_TRANSPORT`'s `set_transport`, which asks
+    /// `GroupData::can_transport`. Consumed; it orders nothing.
+    Unbuilt(i32),
     /// A press on one of a building's train or research buttons, by the
     /// `TypeIndex` it queues (item 4290, `docs/CLIENT_INPUT.md` §32): the
     /// panel's `OPTION_TRAIN` and `OPTION_RESEARCH`, which
@@ -1346,6 +1365,74 @@ pub const OPTION_BUILD_WONDER: i32 = 2;
 pub const OPTION_NEXT: i32 = 65;
 pub const OPTION_BACK: i32 = 66;
 pub const OPTION_CANCEL: i32 = 67;
+/// **The standard panel's other adds** (item 4346, `docs/CLIENT_INPUT.md`
+/// §32.9), the PDB's `OptionType` (`LF_ENUMERATE`): what
+/// `UnitOut::make_options@00615fc0` adds a citizen beside its page buttons.
+pub const OPTION_REPAIR: i32 = 3;
+pub const OPTION_SPELL: i32 = 4;
+pub const OPTION_MOVE_TO: i32 = 9;
+pub const OPTION_ATTACK_TO: i32 = 10;
+pub const OPTION_TRANSPORT: i32 = 14;
+pub const OPTION_HALT: i32 = 25;
+pub const OPTION_GARRISON: i32 = 26;
+pub const OPTION_ALARM_PEASANT: i32 = 27;
+pub const OPTION_AUTO_EXPLORE: i32 = 33;
+
+/// **A citizen's standard panel** (item 4346, §32.9): `UnitOut::make_options
+/// @00615fc0` in `STANDARD_OPTIONS` mode for unit `u` of slot `who`, each
+/// add `(event, button)` in the add order. The page buttons (item 4339);
+/// `OPTION_REPAIR`; `OPTION_ALARM_PEASANT`, the unit not inside a carrier;
+/// an `OPTION_SPELL` for each craft the unit offers
+/// ([`sim::observe::UnitScene::crafts`]), typed with the craft; then
+/// `OPTION_GARRISON`, `OPTION_HALT`, `OPTION_TRANSPORT` greyed while the
+/// leader's transport level (`leader_flags` `0x100` 3, `0x200` 2, `0x400`
+/// 1) is under the unit's `transport_type`, `OPTION_MOVE_TO`,
+/// `OPTION_ATTACK_TO` and `OPTION_AUTO_EXPLORE`. The predicates of those
+/// last six are a citizen's on every held packet (a land unit, not a plane,
+/// with an attack, the profile's `prefs & 2` clear) and are not built for
+/// another unit. `OPTION_REPAIR`, `OPTION_MOVE_TO`, `OPTION_ATTACK_TO` arm
+/// a pick and `OPTION_TRANSPORT` writes `set_transport`: [`Event::Unbuilt`].
+fn standard_panel(sim: &sim::Sim, scene: &Scene, u: usize) -> Vec<(Event, Button)> {
+    let unit = &sim.units[u];
+    let typeless = |option, disable| Button {
+        ty: -1,
+        option,
+        disable,
+    };
+    let mut out: Vec<(Event, Button)> = (0..pages_of(sim))
+        .map(|o| (Event::Page(o), typeless(o, 0)))
+        .collect();
+    out.push((Event::Unbuilt(OPTION_REPAIR), typeless(OPTION_REPAIR, 0)));
+    out.push((Event::Alarm, typeless(OPTION_ALARM_PEASANT, 0)));
+    let id = ObjId {
+        who: unit.owner,
+        o: unit.index,
+    };
+    if let Some(s) = scene.units.iter().find(|s| s.id == id) {
+        out.extend(s.crafts.iter().map(|c| {
+            let b = Button {
+                ty: c.t,
+                option: OPTION_SPELL,
+                disable: 0,
+            };
+            (Event::Spell(c.t), b)
+        }));
+    }
+    out.push((Event::Garrison, typeless(OPTION_GARRISON, 0)));
+    out.push((Event::Halt, typeless(OPTION_HALT, 0)));
+    let low = sim.transport_level(unit.owner) < sim.unit_transport_type(u);
+    out.push((
+        Event::Unbuilt(OPTION_TRANSPORT),
+        typeless(OPTION_TRANSPORT, i32::from(low)),
+    ));
+    out.push((Event::Unbuilt(OPTION_MOVE_TO), typeless(OPTION_MOVE_TO, 0)));
+    out.push((
+        Event::Unbuilt(OPTION_ATTACK_TO),
+        typeless(OPTION_ATTACK_TO, 0),
+    ));
+    out.push((Event::AutoExplore, typeless(OPTION_AUTO_EXPLORE, 0)));
+    out
+}
 
 /// The `TypeIndex`es `UnitOut::make_options@00615fc0`'s page loop names
 /// (`enums/TypeIndex.txt` of the export): `VILLAGE`, the City line whose
@@ -1932,20 +2019,22 @@ impl Input {
             };
             // With the walk (item 4337): the original's three pages, for a
             // selection holding one of the slot's own citizens.
-            let citizen = self.selection.iter().any(|id| {
-                id.who == self.player
-                    && sim.units.iter().any(|u| {
-                        u.alive()
-                            && u.owner == self.player
-                            && u.index == id.o
-                            && u.ty.is_some_and(|t| {
-                                CITIZENS.contains(&(t as i32 + rondata::load::BASE_UNITTYPES))
-                            })
-                    })
+            let citizen = self.selection.iter().find_map(|id| {
+                if id.who != self.player {
+                    return None;
+                }
+                sim.units.iter().position(|u| {
+                    u.alive()
+                        && u.owner == self.player
+                        && u.index == id.o
+                        && u.ty.is_some_and(|t| {
+                            CITIZENS.contains(&(t as i32 + rondata::load::BASE_UNITTYPES))
+                        })
+                })
             });
-            if !citizen {
+            let Some(citizen) = citizen else {
                 return Vec::new();
-            }
+            };
             // One page at a time (item 4339): the standard arm's page
             // buttons, or page `k`'s buildings and its three buttons.
             let page = |option| Button {
@@ -1953,10 +2042,10 @@ impl Input {
                 option,
                 disable: 0,
             };
+            // The standard panel whole (item 4346): the page buttons and
+            // the citizen's other adds.
             let Some(k) = self.page else {
-                return (0..pages_of(sim))
-                    .map(|o| (Event::Page(o), page(o)))
-                    .collect();
+                return standard_panel(sim, scene, citizen);
             };
             let mut out: Vec<(Event, Button)> = self
                 .roster
@@ -2589,6 +2678,25 @@ impl Input {
                 };
                 Some((frame, play, vec![self.group(view.scene), cmd]))
             }
+            Event::Halt => {
+                // `do_halt`: a unit selection (`+0x49` clear) that
+                // `can_activate` writes its `group` and `halt`; the sound
+                // is the console's.
+                if self.selection.is_empty() || self.line.is_some() || self.building {
+                    return None;
+                }
+                Some((frame, play, vec![self.group(view.scene), Command::Halt]))
+            }
+            Event::Alarm => {
+                // `do_alarm`: a selection that `can_activate`, in a game
+                // whose semaphore's `0x10` bit is clear, writes its `group`
+                // and `alarm`; it asks nothing of the members' kind.
+                if self.selection.is_empty() || self.line.is_some() {
+                    return None;
+                }
+                Some((frame, play, vec![self.group(view.scene), Command::Alarm]))
+            }
+            Event::Unbuilt(_) => None,
             Event::ComeOut(k) => {
                 if !self.building || self.line.is_some() {
                     return None;
@@ -11394,6 +11502,23 @@ pub(crate) mod tests {
     /// against the original's adds in that mode: (citizens every state
     /// equal, citizens, states equal, states). Seen red pinned (0, 0, 0, 0).
     const HUD_PAGES_PAGED: (usize, usize, usize, usize) = (36, 36, 468, 468);
+    /// **`HUD_STANDARD_WALKED`** (item 4346, `docs/CLIENT_INPUT.md` §32.9):
+    /// each held citizen's standard panel as [`crate::hud::roster_menu`]
+    /// draws it with the walk and no page, against the original's
+    /// `STANDARD_OPTIONS` adds whole (`panels.py --citizens --standard`;
+    /// type, option, `disable`): (citizens equal, citizens, buttons both
+    /// whole, the original's, the HUD's). Minted at the base's
+    /// (0, 36, 108, 398, 108), the page buttons alone.
+    const HUD_STANDARD_WALKED: (usize, usize, usize, usize, usize) = (36, 36, 398, 398, 398);
+    /// **`HUD_STANDARD_PRESSED`** (item 4346): of the standard panel's
+    /// buttons other than the page buttons, each pressed at its centre
+    /// through [`crate::hud::event`], (those that order as the original's
+    /// press does, pressed): `OPTION_HALT` the selection's `group` and
+    /// `halt`, `OPTION_ALARM_PEASANT` its `group` and `alarm`,
+    /// `OPTION_AUTO_EXPLORE` and `OPTION_SPELL` their events' orders,
+    /// `OPTION_GARRISON` the armed pick and no order; a greyed one, and
+    /// [`Event::Unbuilt`]'s, nothing.
+    const HUD_STANDARD_PRESSED: (usize, usize) = (290, 290);
 
     /// **The citizen's build pages, on our walk** (item 4337): every held
     /// packet's citizens, the original's pages (`UnitOut::make_options@00615fc0`
@@ -11426,6 +11551,8 @@ pub(crate) mod tests {
         let mut statics = (0, 0, 0, 0, 0);
         let mut presses = (0, 0);
         let mut paged = (0, 0, 0, 0);
+        let mut standard_row = (0, 0, 0, 0, 0);
+        let mut standard_pressed = (0, 0);
         let keyed =
             |var, default| -> std::collections::BTreeMap<(i64, i32, i32), Vec<(i32, Button)>> {
                 page_rows(var, default)
@@ -11528,7 +11655,8 @@ pub(crate) mod tests {
                     .filter(|(p, b)| {
                         *p == page
                             && if page < 0 {
-                                b.ty < 0 && (0..=2).contains(&b.option)
+                                // The standard panel whole (item 4346).
+                                true
                             } else {
                                 b.option == page
                                     || [OPTION_NEXT, OPTION_BACK, OPTION_CANCEL].contains(&b.option)
@@ -11551,6 +11679,62 @@ pub(crate) mod tests {
                 let got = crate::hud::event(&mut next, HUD_SIZE, 1, Event::Press { x, y }, &v);
                 got.is_none().then_some(next)
             };
+            // The standard panel (item 4346): drawn whole, and each of
+            // its other buttons pressed.
+            let ours = drawn(&input, Some(sim));
+            let theirs = rows(-1);
+            tally(&mut standard_row, &theirs, &ours);
+            if theirs != ours {
+                println!(
+                    "STANDARD {file} frame {frame} who {who} citizen {object}: \
+                     theirs not drawn {:?}, drawn not theirs {:?}",
+                    theirs
+                        .iter()
+                        .filter(|x| !ours.contains(x))
+                        .collect::<Vec<_>>(),
+                    ours.iter()
+                        .filter(|x| !theirs.contains(x))
+                        .collect::<Vec<_>>()
+                );
+            }
+            for b in crate::hud::roster_menu(&input, &scene, Some(sim), HUD_SIZE) {
+                if b.ty() < 0 && (OPTION_BUILD..=OPTION_BUILD_WONDER).contains(&b.button.option) {
+                    continue;
+                }
+                let (x, y) = b.rect.centre();
+                let mut pressed = input.clone();
+                let got = crate::hud::event(&mut pressed, HUD_SIZE, 1, Event::Press { x, y }, &v);
+                standard_pressed.1 += 1;
+                let last = got.as_ref().and_then(|o| o.2.last());
+                let ok = match (b.greyed(), b.button.option) {
+                    (true, _) => {
+                        got.is_none()
+                            && pressed.page.is_none()
+                            && pressed.placing.is_none()
+                            && !pressed.garrisoning
+                    }
+                    (_, OPTION_HALT) => last == Some(&Command::Halt),
+                    (_, OPTION_ALARM_PEASANT) => last == Some(&Command::Alarm),
+                    (_, OPTION_GARRISON) => got.is_none() && pressed.garrisoning,
+                    (_, OPTION_AUTO_EXPLORE | OPTION_SPELL) => {
+                        got.is_some() && got == input.clone().event(1, b.ev, &v)
+                    }
+                    _ => {
+                        got.is_none()
+                            && pressed.page.is_none()
+                            && pressed.placing.is_none()
+                            && !pressed.garrisoning
+                    }
+                };
+                if ok {
+                    standard_pressed.0 += 1;
+                } else {
+                    println!(
+                        "STANDARD PRESS {file} frame {frame} who {who}: {:?} gave {got:?}",
+                        b.button
+                    );
+                }
+            }
             let mut good = (usize::from(state(&input, None)), 1);
             for k in [OPTION_BUILD, OPTION_BUILD_MILITARY, OPTION_BUILD_WONDER] {
                 good.1 += 4;
@@ -11598,10 +11782,14 @@ pub(crate) mod tests {
         println!("HUD_PAGES_STATIC {statics:?}");
         println!("HUD_PAGES_PRESSED {presses:?}");
         println!("HUD_PAGES_PAGED {paged:?}");
+        println!("HUD_STANDARD_WALKED {standard_row:?}");
+        println!("HUD_STANDARD_PRESSED {standard_pressed:?}");
         assert_eq!(hud, HUD_PAGES_WALKED);
         assert_eq!(statics, HUD_PAGES_STATIC);
         assert_eq!(presses, HUD_PAGES_PRESSED);
         assert_eq!(paged, HUD_PAGES_PAGED);
+        assert_eq!(standard_row, HUD_STANDARD_WALKED);
+        assert_eq!(standard_pressed, HUD_STANDARD_PRESSED);
     }
 
     /// **`PAGE_TURNS_RUN`** (item 4343, `docs/CLIENT_INPUT.md` §32.8):
