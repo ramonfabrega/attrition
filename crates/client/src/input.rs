@@ -1241,19 +1241,54 @@ pub struct Roster {
     pub builds: Vec<i32>,
 }
 
+/// The `TypeIndex`es `BuildOut::make_options@00629ed0`'s train loop names
+/// (`enums/TypeIndex.txt` of the export).
+#[cfg(test)]
+const MILITIA: i32 = 0x42;
+#[cfg(test)]
+const RIFLEMAN: i32 = 0x64;
+#[cfg(test)]
+const INFANTRY: i32 = 0x66;
+#[cfg(test)]
+const MECHINFANTRY: i32 = 0x68;
+#[cfg(test)]
+const MACHINEGUN: i32 = 0x7b;
+#[cfg(test)]
+const BOMBARDSHIP: i32 = 0x15a;
+#[cfg(test)]
+const DREADNOUGHT: i32 = 0x15c;
+#[cfg(test)]
+const AIRCRAFTCARRIER: i32 = 0x15f;
+
 impl Roster {
-    /// **The panel through the leader's predicates** (item 4315,
+    /// **The panel through the leader's predicates** (items 4315 and 4321,
     /// `docs/CLIENT_INPUT.md` §32.4): building type `building`'s roster for
-    /// slot `who` on `sim`'s state. So far one predicate of
-    /// `BuildOut::make_options@00629ed0`'s train loop over the units
-    /// `0x32..0x192`: a unit whose line's predecessor (`+0x3c`, the type's
-    /// `FROM`, through `get_graft` when the tribe cannot have it) fails
-    /// `LeaderData::check_predecessor` is not offered, unless the unit
-    /// carries `unit_flags & 0x200` and the leader `has_preq` it. The
-    /// technologies, `can_make` and `disable` are not read yet, and the HUD
+    /// slot `who` on `sim`'s state. An unfinished building (`active`
+    /// false) offers nothing: both loops stand inside `make_options`'
+    /// `is_active` block. `BuildOut::make_options@00629ed0`'s train loop
+    /// over the units `0x32..0x192`, in its order:
+    ///
+    /// 1. `obj_masks & 0x4000000` (a patriot or hero) is never offered;
+    /// 2. a unit whose line's predecessor (`+0x3c`, the type's `FROM`,
+    ///    through `get_graft` when the tribe cannot have it) fails
+    ///    `LeaderData::check_predecessor` is not offered, unless the unit
+    ///    carries `unit_flags & 0x200` and the leader `has_preq` it;
+    /// 3. a Bombard Ship's line short of the Dreadnought, once the
+    ///    Aircraft Carrier is `type_avail`, is not offered; a Machine Gun's
+    ///    line only while the leader owns the Rifleman, the Infantry or the
+    ///    Mechanized Infantry (each through its graft);
+    /// 4. `BuildData::can_make@0062db10`'s value, which for a unit on a
+    ///    finished building is `type_avail(t, 1)`: 0 offers a greyed research button under `type_eligible(t, 1)`
+    ///    and the age gate (`get_age` at most the leader's `ages + 1`, or
+    ///    the type `is` the Militia), unless the unit is not `unit_flags &
+    ///    0x80` without a `FROM` and is being researched; 2 offers research
+    ///    unless `researching`; 4 offers training unless `unit_flags &
+    ///    0x8000`.
+    ///
+    /// The technologies' loop and `disable` are not read yet, and the HUD
     /// does not ask it: the row's instrument until the filter is whole.
     #[cfg(test)]
-    pub fn offered(&self, sim: &sim::Sim, who: usize, building: i32) -> Vec<i32> {
+    pub fn offered(&self, sim: &sim::Sim, who: usize, building: i32, active: bool) -> Vec<i32> {
         use rondata::load::{BASE_BUILDTYPES, BASE_UNITTYPES};
         let all = self
             .trains
@@ -1261,25 +1296,69 @@ impl Roster {
             .cloned()
             .unwrap_or_default();
         let (tree, setup) = (&sim.tables.tech_tree, &sim.tables.setup);
+        // Both loops stand inside `make_options`' `is_active` block: an
+        // unfinished building offers neither.
+        if !active {
+            return Vec::new();
+        }
         let Some(p) = sim.tech.get(who) else {
             return all;
         };
+        // A unit's `TypeIndex` to its record and its tree id.
+        let unit = |ti: i32| {
+            let u = sim
+                .tables
+                .unit_types
+                .get(usize::try_from(ti - BASE_UNITTYPES).ok()?)?;
+            Some((u, u.tree?))
+        };
+        let id = |ti: i32| unit(ti).map(|(_, t)| t);
+        let owns = |ti: i32| tree.get_graft(setup, p, id(ti)).is_some_and(|x| p.tech[x]);
         all.into_iter()
-            .filter(|&t| {
-                if !(BASE_UNITTYPES..BASE_BUILDTYPES).contains(&t) {
+            .filter(|&ti| {
+                if !(BASE_UNITTYPES..BASE_BUILDTYPES).contains(&ti) {
                     return true;
                 }
-                let t = t as usize;
-                let flags = sim
-                    .tables
-                    .unit_types
-                    .iter()
-                    .find(|u| u.tree == Some(t))
-                    .map_or(0, |u| u.cols.unit_flags);
-                if flags & 0x200 != 0 && tree.has_preq(setup, p, t) {
-                    return true;
+                let Some((u, t)) = unit(ti) else {
+                    return false;
+                };
+                let flags = u.cols.unit_flags;
+                if u.combat.obj_masks & 0x400_0000 != 0 {
+                    return false;
                 }
-                tree.check_predecessor(setup, p, tree.get_graft(setup, p, tree.types[t].from))
+                if !(flags & 0x200 != 0 && tree.has_preq(setup, p, t))
+                    && !tree.check_predecessor(
+                        setup,
+                        p,
+                        tree.get_graft(setup, p, tree.types[t].from),
+                    )
+                {
+                    return false;
+                }
+                let is = |x: i32| id(x).is_some_and(|x| tree.is(t, x, false));
+                if is(BOMBARDSHIP)
+                    && !is(DREADNOUGHT)
+                    && id(AIRCRAFTCARRIER).is_some_and(|c| sim.type_avail(who as _, c) != 0)
+                {
+                    return false;
+                }
+                if is(MACHINEGUN) && !(owns(RIFLEMAN) || owns(INFANTRY) || owns(MECHINFANTRY)) {
+                    return false;
+                }
+                match sim.type_avail(who as _, t) {
+                    0 => {
+                        if tree.type_eligible(setup, p, t, true) == 0 {
+                            return false;
+                        }
+                        let free = flags & 0x80 != 0 && tree.types[t].from.is_none();
+                        if !free && sim.researching(who as _, t) {
+                            return false;
+                        }
+                        tree.age_in(setup, t) <= p.ages + 1 || is(MILITIA)
+                    }
+                    2 => !sim.researching(who as _, t),
+                    _ => flags & 0x8000 == 0,
+                }
             })
             .collect()
     }
@@ -9559,7 +9638,14 @@ pub(crate) mod tests {
     /// ours 1,945 → 1,717 against the static roster on the same packets,
     /// every type the original offers still on ours. Seen red pinned
     /// (0, 0, 0, 0, 0).
-    const PANEL_LEADER_WALKED: (usize, usize, usize, usize, usize) = (0, 110, 1238, 1238, 1717);
+    ///
+    /// Item 4321, `can_make`'s arms and the age gate: (69, 110, 1238, 1238,
+    /// 1401), the City's 51, the Markets' 60 and 62 and the Barracks' 55
+    /// gone; then the `is_active` block: **(69, 103, 1238, 1238, 1373)**,
+    /// seven unfinished buildings offering nothing on either side. Every
+    /// unit agrees; the 34 parted buildings part on technologies alone (the
+    /// research loop, not read). Seen red at the old pin.
+    const PANEL_LEADER_WALKED: (usize, usize, usize, usize, usize) = (69, 103, 1238, 1238, 1373);
 
     /// **The panel through the leader's predicates, on our walk** (item
     /// 4315): every held packet's buildings, the original's train and
@@ -9612,7 +9698,7 @@ pub(crate) mod tests {
                 Some(*building),
                 "{file}: {who}/{object}'s type"
             );
-            let ours = roster.offered(sim, *who as usize, *building);
+            let ours = roster.offered(sim, *who as usize, *building, b.active);
             if theirs.is_empty() && ours.is_empty() {
                 continue;
             }
