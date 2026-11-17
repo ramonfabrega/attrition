@@ -227,4 +227,81 @@ mod tests {
         assert!(((lf.y - lt.y) as f32 - want).abs() <= 2.0);
         assert_eq!(lt.y, rt.y, "the quad faces the screen");
     }
+
+    /// **The box round run1564's land oil** (item 4309): the photograph's
+    /// pixels `[x0, x1) × [y0, y1)` that hold the `TerrainOil` patch south-east
+    /// of the lake (`crop-1564-rock.png`), clear of the interface.
+    pub const RUN1564_ROUGH_BOX: (usize, usize, usize, usize) = (1440, 1800, 680, 880);
+
+    /// **An oil pit's pixel** (item 4309): the `oil` underlay
+    /// (`d_rough_oil.tga`) is black pools ringed with rock, and nothing
+    /// else in the box reads under luma 60. The photograph's grass and sand
+    /// there read 130 to 180.
+    pub fn pit(rgb: [u8; 3]) -> bool {
+        let [r, g, b] = rgb.map(u32::from);
+        (299 * r + 587 * g + 114 * b) / 1000 < 60
+    }
+
+    /// **`RUN1564_3279_ROUGH`** (item 4309; `docs/RENDERER.md` §3.24,
+    /// "The land's oil"): in [`RUN1564_ROUGH_BOX`] on run1564's still,
+    /// `(both, theirs, ours)` of the pixels [`pit`] calls an oil pit's.
+    /// Minted at the first act at 0 of 2,387: `TerrainOil`'s `rough` and
+    /// `oil` underlays are not drawn.
+    pub const RUN1564_3279_ROUGH: [usize; 3] = [0, 2387, 0];
+
+    #[test]
+    fn the_land_oil_s_pits_on_run1564() {
+        use crate::ground::tests::{probe_at, run1564};
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let mx = camera.to_screen_matrix();
+        let screen = crate::pinned_screen();
+        for g in p.world.runner.goods().iter().filter(|g| g.ty == OIL) {
+            let c = render::camera::world_to_console(
+                &mx,
+                &screen,
+                g.pos.x,
+                g.pos.y,
+                0,
+                Some((size.0 as i32, size.1 as i32)),
+            );
+            if (0..size.0 as i32).contains(&c.x) && (0..size.1 as i32).contains(&c.y) {
+                println!(
+                    "4309: oil good at ({}, {}) cell ({}, {}) alive {} pixel ({}, {})",
+                    g.pos.x,
+                    g.pos.y,
+                    g.pos.x / 768,
+                    g.pos.y / 768,
+                    g.alive,
+                    c.x,
+                    c.y
+                );
+            }
+        }
+        let ours = crate::still_of(
+            &mut p.world,
+            &camera,
+            size,
+            crate::gpu::SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+        );
+        let w = p.photo.width;
+        let px = |rgba: &[u8], i: usize| [rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]];
+        let (x0, x1, y0, y1) = RUN1564_ROUGH_BOX;
+        let mut got = [0; 3];
+        for y in y0..y1 {
+            for x in x0..x1 {
+                let i = y * w + x;
+                let (a, b) = (pit(px(&p.photo.rgba, i)), pit(px(&ours, i)));
+                got[0] += usize::from(a && b);
+                got[1] += usize::from(a);
+                got[2] += usize::from(b);
+            }
+        }
+        println!("RUN1564_3279_ROUGH: {got:?}");
+        assert_eq!(got, RUN1564_3279_ROUGH);
+    }
 }
