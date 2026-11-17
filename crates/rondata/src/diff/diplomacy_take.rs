@@ -1951,3 +1951,68 @@ fn recon4300_walked_at_its_difficulty() {
     };
     report(g, &w);
 }
+
+/// **Item 4299's first act, a probe**: an unfiled recon of run1575's lobby
+/// with the human seated at who 1 (`unattended_capture.py --human-who 1`,
+/// `--dump-all-start`, no command script), walked twice against its own
+/// trace: from its own full start, and from the lobby's built start
+/// ([`from_lobby`], which reads the human off `PLAYER flags & 4`).
+/// `RON_TAKE=<gamelog>,<trace>` names the recon; `RON_RECON_BUILT_ONLY`
+/// skips the first walk, and `RON_RECON_UNSEATED` builds the second from
+/// run1482's player rows (the human at who 0), the control that parts.
+#[test]
+#[ignore = "a probe of an unfiled recon; item 4299's journal"]
+fn recon4299_walked_reseated() {
+    let Ok(v) = std::env::var("RON_TAKE") else {
+        return;
+    };
+    let (g, t) = v.split_once(',').expect("RON_TAKE=<gamelog>,<trace>");
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(tr)) = (take_file(g), take_trace(t)) else {
+        eprintln!("skipping: no {g} or {t}");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let log = Log::parse(&text);
+    let own = log.initial().expect("a start dump");
+    let mut init = log.initial().expect("a start dump");
+    for p in &init.players {
+        eprintln!("PLAYER {p:?}");
+    }
+    borrow_from_siblings(&mut init, &[&own]);
+    borrow_pasture(&mut init, &tr);
+    if std::env::var_os("RON_RECON_BUILT_ONLY").is_none() {
+        let built = build_sim(&loaded, &init, Tuning::RON);
+        let w = crate::diff::third::walk_word(built, &tr, "own start");
+        eprintln!(
+            "own start: count {} sequence {} of {}; {}",
+            w.count, w.sequence, w.last, w.row
+        );
+    }
+    // The control: run1482's lobby, the human at who 0, against this trace.
+    let unseated = dump(SEA_START).map(|p| crate::capture::read(&p));
+    let unseated = unseated.as_deref().map(Log::parse);
+    let unseated = unseated.as_ref().and_then(|l| l.initial());
+    let (rows, info) = match (&unseated, std::env::var_os("RON_RECON_UNSEATED")) {
+        (Some(u), Some(_)) => (&u.players, &own.game_info),
+        _ => (&own.players, &own.game_info),
+    };
+    let lobby = from_lobby(&loaded, info, rows, Tuning::RON);
+    for (s, ok) in &lobby.steps {
+        eprintln!("built step {s}: {ok}");
+    }
+    for n in &lobby.notes {
+        eprintln!("built note: {n}");
+    }
+    let built = built_from_lobby(&loaded, lobby).0;
+    let theirs: usize = tr.frames.iter().map(|(f, _)| tr.labels(*f).len()).sum();
+    eprintln!("theirs: {} frames, {theirs} draws", tr.frames.len());
+    let w = crate::diff::third::walk_word(built, &tr, "built start");
+    eprintln!(
+        "built start: count {} sequence {} of {}; {}",
+        w.count, w.sequence, w.last, w.row
+    );
+}
