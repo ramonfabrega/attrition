@@ -2283,7 +2283,17 @@ past frame 0; built by item 4331 as `Sim::action_declare`'s step 7); the Russian
 6300 in theirs, past the frame. The parting is the next draw: ours' 12
 `find_target` city scores against theirs' 12 and one forts-pass draw
 (`6f8026`, `find_target+0x167b`, after the fifth city score), the forts
-pass of `docs/ARMY.md` §12 that this crate keeps as a seam.
+pass of `docs/ARMY.md` §12 that this crate ~~keeps as a seam~~ **builds
+since item 4341**: the walk's word moved 5496 → 5622, ours 187 → 171 draws
+on 5496 against theirs' 171, index 5 `+0x167b` on both. **The seed is
+still open** (item 4341 landed the forts pass alone, past 200 k): this
+section's `local_40` reads the game info's seed (`Game+0x10`, 12345 on
+run1646, which `Setup::build_game` hands to `game_random` and leaves),
+and the crate reads `Sim::game_seed`, the world seed drawn from it (7236),
+so the French plan on the human falls on 7800 here against 6000 there;
+the animation's `game_seed` readers mean the world seed and stay. On 5622
+the walk parts first elsewhere: ours 123 draws to theirs' 132, index 0
+ours `Unit::do_move+0xe84`, theirs `PathFinder::astar_path+0x1697`.
 
 ## 8.3 In the crate
 
