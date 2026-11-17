@@ -2202,7 +2202,7 @@ The leaves that still part outside the list are pinned per packet
 | `aggression` | ~~216~~ 134 (§23.7) | run1496's who 0, ours all 0, theirs 1 on every other slot |
 | `flags.leader_flags` | 171 of 856 flag words | run1496's who 0, ours 7 theirs 917511 (`0xe0007`) |
 | `resources_controlled` | ~~79~~ 0 (item 4324, §25.4) | run1359's who 1, ours 0 theirs 6: the census wrote 0 where `plan_strategy` counts `rare` |
-| `reg_unpack_merch` | 49 | run1359's who 1, region 1 ours 7 theirs 6 |
+| `reg_unpack_merch` | ~~49~~ 0 (item 4328, §25.4) | run1359's who 1, region 1 ours 7 theirs 6: the census counted a packed merchant |
 | `oil_patches.elements` | 10 | run854's who 0, ours 1, 2, 8, 15 theirs 8, 2, 1, 15 |
 | the `encrypt` buckets, `reg_gatherers`, `diplos`, `num_units`, `explored`, `gather_stamp`, `active`, `escrow`, `collected` | 1 to 10 each | the game's own state parting (run1359's who 1 `bucket[0]` ours 5714 theirs 5930) |
 
@@ -2789,7 +2789,8 @@ is one of three families, and on frame 0 four setup leaves beside them.
   `Build::finished`, `Build::close`, `Wall::activate`, `City::check_upgrade`, `TechType::set_research`,
   `gain_tech`; cleared at the head of `Leader::process`). Not read to the end: which of the last three's writers
   this game reaches.
-- `reg_unpack_merch[1]` (`+0x5d8`), leader 1, 3380 to 11970: ours 1, theirs 0 first.
+- `reg_unpack_merch[1]` (`+0x5d8`), leader 1, 3380 to 11970: ours 1, theirs 0 first. *Left out when packed since
+  item 4328, below.*
 - `resources_controlled` (`+0x850`), leader 1, 3780 to 23990: ours 0, theirs 1 first. It alone holds the line
   parted from 3780. *Counted since item 4324, below.*
 - On frame 0 only: `ally_mask`, `defense`, `reg_cities[1]` and the two `encrypt` bytes on leader 0, and the same
@@ -2838,12 +2839,49 @@ from 2 parted ranges to 1, the `flags` range alone. The held packets (`PACKETS_S
 run985b and run991d. 23 more part on one range fewer, and none parts on more. `resources_controlled` leaves every
 `PACKET_LEAF_PARTINGS` row it was in.
 
-Of the census's families, what is left on run1578: `leader_flags` (`0x80000`, `0x8000000`, `0x4000000`) to 14220,
+Of the census's families, what was left on run1578 after item 4324: `leader_flags` (`0x80000`, `0x8000000`, `0x4000000`) to 14220,
 `reg_unpack_merch[1]` from 3380 to 11970, and frame 0's setup leaves. Not established: the 4,994 parted frames
 listed span by span (the score test prints their count, and inside 300 their spans). By the census they end at
 14220, but no take has listed them. Also not established: a `flags & 1` cache that disagrees with its bytes. The
 crate counts the mask itself, and every writer the export shows keeps the two together (`clear` sets 1, `gather`
 copies both, the count rewrites it).
+
+**Item 4328 leaves a packed merchant out of `reg_unpack_merch`** (`+0x5d4`, `int[64]` by region).
+`Leader::plan_strategy@006b9620:654`–`660` counts a unit whose type is 0x3d, 0x3e or 400 into `merchants`
+(`+0x984`), and into its region's slot only while the unit's `unit_masks & 0x80000` is clear. That bit is the
+packed bit: `Unit::init@00612100:376` sets it at birth for a type with `+0x2b8 & 4`,
+`SpellType::cast_pack@00670be0:46` sets it, and `SpellType::cast_unpack@006709c0:55` clears it. The crate holds it
+whole (`combat.packed`); only the census ignored it, under a comment calling it a seam. **The direction: the
+original acted.** Theirs' slot skips the merchant fresh from the market, still packed; ours counted every merchant.
+**run1578 goes from 19,006 to 23,594 of 24,000** (+4,588); run1577 stays at 118 of 120, and inside 300 nothing moves
+(142 parted frames). The value diff (`RECORD_PARTINGS`; leader 1's range 129, `+0x5d8` at `+0x5d0`):
+
+| frame | before | after |
+|---|---|---|
+| 9810 | 1 parted, `+0x5d8` `reg_unpack_merch[1]`: `04000000`, `03000000` (ours 4, theirs 3) | whole |
+| 10541 | 1, the same: 5, 3 | whole |
+| 11884 | 1, the same: 6, 5 | whole |
+
+The minted packets (`MINTED_PACKETS`): run1590 (3596; ours 2, theirs 0) and run1585 (4030; 3, 1) come out whole on
+leaders, each from 1 parted range. The held packets (`PACKETS_SCORE`) go from **466 to 467 of 1,053 lines**: run973g comes out whole on leaders
+(271 ranges, 1 → 0), and 38 more part on one range fewer, none on more. `reg_unpack_merch` agrees on all 226 slots
+the packets print, and leaves every `PACKET_LEAF_PARTINGS` row it was in (§23.4's table row struck to 0).
+
+**What is left on run1578, every frame, bit by bit** (item 4328's census, a probe reverted whole; before the build,
+4,994 parted frames): `reg_unpack_merch[1]` alone held 4,600 of them, 3376 to 5375 and 9376 to 11975. The other
+406 are `leader_flags` and frame 0's setup leaves:
+- `0x80000`: leader 0 on 160 to 315 (156 frames); leader 1 on 219 frames, 101, 207, 321, 1098, 1306, 1379 to 1576,
+  and islands to 14245. `Unit::think@005f6e40:85` sets it on the owner when the unit's type is TI 0x32 or 0x33,
+  and `Leader::process` clears it at its end.
+- `0x8000000`: leader 0 on 0 and 297; leader 1 on 33 frames to 14608. `0x4000000`: leader 1 on 13 frames to 14608.
+  **Not `Leader::gather`'s raise**: `Leader::process@006b88b0` and `Leaders::process_all@006ed2a0` clear both bits
+  right after `gather` raises them, in the same call, so that raise never reaches a checksum. The bits a checksum
+  sees are raised after the leader's pass: `Build::activate` (`0x8000000` on every activation, and `0x4000000`
+  too for a wonder, `:1250`–`:1255`), `Build::finished`, `Build::close`, `Wall::activate`, `City::check_upgrade`,
+  `TechType::set_research` and `gain_tech`. The crate keeps both (`cities.wall_stats_dirty`,
+  `roster.unit_stats_dirty`), and `Sim::leader_flag_words` emits neither. `Build::train@0062f9b0:377`'s
+  `& 0xfbffffff` is on the unit's `+0x68`, not the leader's (item 4317's list had it as a clear).
+- Frame 0: the 16 ranges, as above.
 
 ## 25.5 How it was established, and what it has not established
 

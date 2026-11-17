@@ -387,8 +387,11 @@ const LEADERS_K: usize = 4;
 /// but 101 and 160, which part on theirs' `0x80000` alone.
 /// Item 4324: run1578 3,006 → 19,006, `resources_controlled` (`+0x850`)
 /// counted off `rare` (it was 0); run1577 stands at 118.
+/// Item 4328: run1578 19,006 → 23,594, `reg_unpack_merch` (`+0x5d4`)
+/// leaves a packed merchant out (it counted every merchant); run1577
+/// stands at 118.
 const LEADERS_AGREE: &[(&str, usize, usize)] =
-    &[(RUN1577_TRACE, 118, 120), (RUN1578_TRACE, 19006, 24000)];
+    &[(RUN1577_TRACE, 118, 120), (RUN1578_TRACE, 23594, 24000)];
 
 /// The Adler of each emitted line `want` names, on `sim`, in [`EMITTED`]'s
 /// order (`None` where not wanted). The builds line needs the data layer's
@@ -661,13 +664,9 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         &[
             // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                267,
-                267,
-                1,
-                "129 1 who..ally_mask: +0x5d0 of 26914|26914: 02000000|00000000",
-            ),
+            // Item 4328: leaders whole (`reg_unpack_merch`, `+0x5d4`, leaves a
+            // packed merchant out); before it, 1 of 267 ranges parted, first
+            // `129 1 who..ally_mask: +0x5d0 of 26914|26914: 02000000|00000000`.
         ],
     ),
     (
@@ -791,13 +790,9 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             // unload.
             // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                267,
-                267,
-                1,
-                "129 1 who..ally_mask: +0x5d0 of 26914|26914: 03000000|01000000",
-            ),
+            // Item 4328: leaders whole (`reg_unpack_merch`, `+0x5d4`, leaves a
+            // packed merchant out); before it, 1 of 267 ranges parted, first
+            // `129 1 who..ally_mask: +0x5d0 of 26914|26914: 03000000|01000000`.
         ],
     ),
     (
