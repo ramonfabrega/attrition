@@ -223,11 +223,11 @@ pub(crate) fn walk_take_from(
         if road_walk {
             let ours_m = std::mem::take(&mut built.sim.trace.road_marks);
             let theirs_m = tr.road_nodes(at);
-            if (2060..=2082).contains(&at) {
+            if std::env::var("RON_ROAD_WIN").ok().and_then(|v| v.split_once('-').map(|(a, b)| (a.parse::<i64>().unwrap(), b.parse::<i64>().unwrap()))).is_some_and(|(a, b)| (a..=b).contains(&at)) {
                 for c in tr.calls_in(at, crate::trace::call_site::ASTAR_ROAD) {
                     eprintln!("  THEIRS astar f{at}: this {:x} args {:?} ret {} depth {}", c.this, c.args, c.ret, c.depth);
                 }
-                if at == 2081 || at == 2082 {
+                if std::env::var_os("RON_ROAD_CITIES").is_some() {
                     for (ci, c) in built.sim.cities.cities.iter().enumerate() {
                         let b = &built.sim.buildings[c.building];
                         eprintln!(
