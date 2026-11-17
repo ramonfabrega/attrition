@@ -301,6 +301,31 @@ class TheHandoff(unittest.TestCase):
                     'Book 3920, 19 of 20 from 02f72df7d: chapter 117 closed at 900']
         self.assertEqual(tranche.booked_items(subjects), [3920, 4264, 4263, 4246, 4279, 4159])
 
+    def test_a_booking_under_the_queue_s_prefix_is_read_without_its_parentheses(self):
+        # The pass of 2026-11-16 (third): the driver wrote `QUEUE: book N
+        # (…); …` for a tranche of twenty and its drain `The drain of …:
+        # book N (…)`, `--base` read no item and printed 0 landings. The
+        # items are the numbers after `: book`, outside every parenthesis
+        # and ahead of the first semicolon: a frame (`1750 -> 4202`), a
+        # count (`1,440`) and an item the booking only minted (`; 4313
+        # minted`) are none. A step's letter (`4300a`) names its item.
+        subjects = ["The drain of 2026-11-16's second tranche: book 4313 (incoming_taunt_who released on "
+                    "run1645, LEADERS_HELD_OUT 2 -> 1; packets 107 of 117); the handoff rewritten",
+                    'Merge worktree-att-4313 (8 commits)',
+                    "QUEUE: book 4300's fourth act (recon4300-2 at DIFFICULTY 4 walked 1750 -> 4202, "
+                    "swarm_around_new) and 4305's first act (PANEL_LEADER minted at 0 of 77); 4314 and 4315 minted",
+                    "QUEUE: book 4299's first act (LAST_WHO0=1 seats the human at who 1, our walk holds it "
+                    "1300 of 1300; no score moved); 4313 minted for the take",
+                    "QUEUE: the Checksum line's packets 107 of 114 -> 115 with run1640 named (gate-4300a red)",
+                    "QUEUE: book 4300a (run1640's packet: the arm's war branch is local -0x30; an allied human "
+                    "is asked 700 WEALTH at DIFFICULTY 2 or more; no score moved); packets: run1640 named",
+                    'QUEUE: book 4306 (the national borders drawn: RUN1564_3279_BORDER minted 0 -> 225 of '
+                    '1,440; parked 4306a); render takes 4307',
+                    'QUEUE: book 4159r19 (good_deeds computed on run1628, LEADERS_HELD_OUT 6 -> 5); '
+                    'blind::NEVER 346 -> 347 (CommandPackage::process_tribute@00946d70), open 10 -> 11']
+        self.assertEqual(tranche.booked_items(subjects), [4159, 4306, 4299, 4300, 4305, 4313])
+
+    def test_the_handoff_s_line_is_the_table_s_counts(self):
         rows = [{'item': 3567, 'session': 'a', 'peak_k': 328, 'price': 11.91, 'waiting_min': 21.0},
                 {'item': 3567, 'session': 'b', 'peak_k': 146, 'price': 2.75, 'waiting_min': 90.9},
                 {'item': 3572, 'session': 'c', 'peak_k': 115, 'price': 1.60, 'waiting_min': 23.9}]

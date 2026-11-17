@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-16, tools/suite_timings.py (tree 32ee8bba).
+# Every rondata release test's peak resident set alone, 2026-11-16, tools/suite_timings.py (tree d2b00ab3).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -37,6 +37,7 @@
 1496	diff::world::tests::run240_s_tick_8186_prices_the_walk_home_as_a_citizen_s
 1485	diff::persian_classical_pair::persian_classical_pair_run1318_s_closing_state
 1485	diff::world::tests::run93_s_block_7932_is_this_crate_s_world_cell_for_cell
+1458	diff::diplomacy_take::recon4300_2_walks_to_its_word_at_difficulty_4
 1453	diff::golden::chapter_one_s_hit_is_answered_by_the_victim_s_captain
 1452	diff::golden::chapter_one_s_squad_is_handed_its_captain_s_target
 1450	diff::world::tests::run32_s_two_fresh_roads_are_the_original_s_tile_for_tile
@@ -1492,6 +1493,7 @@
 368	diff::army::tests::run31_s_curr_is_the_leader_s_heading_through_the_y_flip
 367	diff::inca_classical_pair::inca_classical_pair_captures_say_their_lobby
 367	mapgen::tests::australian_outback_s_mask_is_the_traced_7807_and_stream
+366	diff::diplomacy_take::run1629_s_word_is_pinned_as_found
 366	diff::build::tests::east_indies_10582_mine_sites_measure_to_the_nearest_solid_cell
 366	diff::russian_word::russian_word_first_parting
 366	diff::maya_ancient_pair::maya_ancient_pair_captures_say_their_lobby
@@ -1537,17 +1539,20 @@
 354	diff::start_walk::the_original_s_playback_of_our_file_walks_in_lockstep
 354	diff::persian_medieval_pair::persian_medieval_pair_captures_say_their_lobby
 354	diff::unit::tests::every_dumped_unit_has_crew_size_plus_one_figures
+353	diff::diplomacy_take::run1628_s_good_deeds_part_without_the_tributes
 353	diff::checksum_lines::packets::run1575_take_packet
 353	diff::iroquois_word::run926_s_word_frame_is_widened_whole
 353	diff::iroquois_word::run928_s_word_frame_is_widened_whole
 353	diff::sea_melee::sea_melee_run1487_s_window_is_widened_whole
 353	diff::audit::japanese_modern_pair_corrections_change_nothing
+353	diff::diplomacy_take::run1628_s_good_deeds_are_the_french_answer
 352	mapgen::tests::nile_delta_s_place_all_and_tail_are_7859_to_7870
 352	diff::japanese_modern_pair::japanese_modern_pair_the_long_s_stride_walks_back_from_the_word
 352	diff::diplomacy_take::run1575_s_word_is_pinned_as_found
 352	diff::third::tests::run442_s_word_frame_is_widened_whole
 352	diff::turkish_information_pair::turkish_information_pair_captures_say_their_lobby
 352	diff::diplomacy_take::run1575_s_alliance_parts_without_the_human_s_proposal
+352	diff::checksum_lines::packets::run1629_take_packet
 351	diff::aztec_medieval_pair::aztec_medieval_pair_the_long_s_stride_walks_back_from_2556
 351	diff::checksum_lines::packets::german_modern_pair_packets
 351	diff::minted::the_original_s_playback_of_the_city_gathered_file_walks_in_lockstep
@@ -1946,6 +1951,7 @@
 126	diff::start_walk::the_built_start_s_goods_ever_seen_is_the_start_dump_s
 125	diff::minted::the_garrisoned_minted_packages_round_trip
 123	census::tests::the_census_s_simulation_share_is_pinned
+123	diff::diplomacy_take::run1645_s_taunt_parts_from_the_old_seat
 122	diff::minted::the_right_pressed_minted_packages_round_trip
 120	diff::build::tests::run9_s_camps_get_the_original_s_gatherer_counts
 120	diff::minted::the_attacked_minted_packages_round_trip
@@ -1954,6 +1960,7 @@
 118	checksum::tests::run1100_s_records_are_read_whole
 117	lobby::tests::the_page_s_harness_lobby_builds_the_built_start
 117	diff::minted::the_followed_minted_packages_round_trip
+117	diff::diplomacy_take::run1645_s_word_is_pinned_as_found
 116	diff::minted::the_repeated_minted_packages_round_trip
 115	diff::lakota_medieval_pair::lakota_medieval_pair_is_no_other_lobby
 114	diff::setup::tests::run11_s_checksum_trace_pins_the_setup_stream
@@ -1977,6 +1984,7 @@
 102	diff::harness::tests::run53_s_8186_is_find_target_s_probe_and_its_ring_walks
 102	diff::unit::tests::the_frozen_frame_s_figures_do_not_step_their_clocks
 101	diff::chinese_medieval_pair::chinese_medieval_pair_is_no_other_lobby
+96	diff::checksum_lines::packets::run1645_take_packet
 93	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_is_no_other_lobby
 85	diff::checksum_frames::the_world_is_the_original_s_on_the_start_by_section
 80	writers::a_field_the_sim_writes_is_read_by_something
@@ -2083,6 +2091,7 @@
 11	diff::golden::observations::tests::civilian_observations_preserve_auxiliary_values_and_codec_boundaries
 11	diff::testkit::whole_capture::tests::frame_observations_preserve_nested_sibling_duplicate_and_empty_boundaries
 11	capture::indexed::tests::streamed_records_equal_full_parse_with_siblings_and_duplicate_frames
+11	diff::diplomacy_take::run1628_s_window_diplomacy_is_read_off_its_record
 10	diff::diplomacy_take::run1575_s_window_diplomacy_is_read_off_its_record
 10	gamelog::tests::initial_state_is_typed
 10	gamelog::tests::the_header_lines_two_takes_differ_on_reach_no_reader

@@ -151,7 +151,8 @@ is append-only and amended in place, as it always was.
 - 134 standing — The pass of 2026-11-14, second: the week is bound by tokens, a scoped lane that moves the sim's source keeps the widenings, a quoted refusal cites nothing, the render lane follows the eye
 - 135 standing — The pass of 2026-11-15: the driver's two lines are asked at the gate and the brief, a wake is a spawn, the day's line carries no margin, a session's booking gate runs through `gate_run.sh`
 - 136 standing — The pass of 2026-11-16: a wake into its own row says `--allow-duplicate` and reports its failure, the clock drains the host only after a red beside load, a gate log says when it began, `leader_options` is the client's own prefs, the land is lit
-- 137 standing — The pass of 2026-11-16, second: the leaders line's last six leaves take four movers and the first is a rehearsal already on disk, a released leaf is compared by the record diff, the input seat finishes the missed orders, the render seat takes the borders, the host's kill is unexplained
+- 137 standing — The pass of 2026-11-16, second: the leaders line's last six leaves take four movers and the first is a rehearsal already on disk, a released leaf is compared by the record diff, the input seat finishes the missed orders, the render seat takes the borders, the host's kill explained by its amendment (syspolicyd)
+- 138 standing — The pass of 2026-11-16, third: the demand is chased on the game that makes it (recon4316-1), parity's leaders line is its own item, the panel's filter is diffed on the minted game's packets, the input seat takes the form orders, a booking's subject is the table's key
 
 ## 1. Fidelity before divergence
 
@@ -13598,3 +13599,100 @@ number); that a computer at peace accepts an attack request at any price
 (the terms are unread beyond their size); the `LAST_WHO0` reading; whether
 any difficulty produces a demand by 7,000; what kills the rewritten
 executables.
+
+## 138. The demand is chased on the game that makes it, parity's leaders line is its own item, the panel's filter is diffed on the minted game's packets, and a booking's subject is the table's key (2026-11-16)
+
+**What happened.** `commander` (Opus 5.5) ran twenty first-parent merges
+from 15:58 to 20:40 −05:00 on 2026-11-16 (sixteen lanes' and four
+in-session builders'), reached the backstop, drained and gated whole
+(`gate-drain-1116c.log`, exit 0 on `d2b00ab36`). `LEADERS_HELD_OUT` went 6
+→ 1 and every recorded order is shown or minted. The pass ran on the
+`steer` row from 21:14, with one Opus 5.5 builder that took one capture
+and built nothing in the sim. The tables are in
+`docs/audit/2026-11-16-fable-pass-take.md`.
+
+**§1. The demand is chased on the game that makes it.** Item 4316 was
+booked to walk recon4300-2 (run1575's lobby at `DIFFICULTY 4`, no script)
+from 4202 to about 6,080, and then to take the game that demands. Three
+acts had gone into that walk (5 → 1750 → 4202, then 4314's, which moved
+nothing). On recon4300-2 the leaf never leaves 0: the French declare on
+6081. The game that stores it, the human allied with the French (item
+4300's second act, under `step4.py`), had never been captured. The pass
+took it first, as recon4316-1 (400.0 s): the French `tribute_demanded[0]`
+reads 1 on every block from 6081 to 6600, with the −700 WEALTH ask the
+emulation gave. Its draw words part from recon4300-2's on 957 for good
+from 974, so 957 of the 4,202 frames that walk holds are common to both.
+Our walk holds the take to **2082**. So:
+
+- **The take is recon4316-1**, filed by the item under a run token and
+  read in place, as run1628 was. The chase is on it, from 2082 to 6,081.
+- **recon4300-2's word stays pinned at 4202** as a floor at `DIFFICULTY
+  4`, and its next parting (parked 4314a, the embark) is chased only if a
+  walk the leaf moves on meets it.
+- **The rule, for a mover's item:** the game the leaf moves on is captured
+  before a walk is chased toward it. A recon costs seven minutes of the
+  lane and no build; the proxy's last two acts were lanes at 6.61 and
+  10.88 USD at list, and the take shares 957 frames with that game.
+- Not weighed further: a lobby whose gate is lower. The gate is `(3·d +
+  ((seed + who) & 7))·300` (`docs/LEADERS.md` §8.2), 6,000 here; a seed
+  with `seed % 5 == 0` and `(seed + 1) & 7 == 0` gives 5,400 and a first
+  pass on 5568. It is a new game from frame 0, and is taken only if the
+  walk stalls past 5,000.
+
+**§2. Parity's leaders line is its own item, on the suite's seat.** The
+chain's score has been the leaf count on frame 91, the one frame the
+playback prints. That count reaching 0 closes the milestone's step 5. It
+does not make the line whole on the minted game: `CHECKSUM_FRAMES` pins
+run1578's leaders line at first parting 0 and **152 of the first 300
+frames** (0, 100 to 109, 159 to 299), and the minted packets name what
+parts: `leader_flags` bits (`0x800000` on leader 1 at 100 and 3166,
+`0x80000` on leader 0 at 189, the high byte at 6537 and 6781),
+`reg_unpack_merch` (`+0x5d0`, `+0x5d8`) and `resources_controlled`
+(`+0x850`). None is on the held-out list, which is frame 91's. The
+queue's line said the minted game's lines first part "at leaders 0 (the
+chain's) alone", and no item held these. Item 4317 takes them, a rules
+item, whole, on the seat that held the movers: its first act is a diff on
+Step R's record (`docs/CHECKSUM.md` §25.4), and its score is the frames
+of 24,000 on which the line agrees, minted as a row first, since `DIAG`
+counts only the first 300.
+
+**§3. The panel's filter is diffed on the minted game's packets.** Item
+4305 found its oracle and ended on "a packet of a held lobby later in the
+game, booked only after a grep". The grep: sixteen packets of the minted
+Great Lakes game are on disk, frames 1 to 7195, and our walk holds every
+frame of that game. The pass ran `panels.py` on four of them: seven
+buildings offer on 3596 and 4030, nine on 6907 and ten on 7195, with
+`disable` set on 30 to 32 of each Library's 35 research buttons. So item
+4315 needs no capture: the row is re-minted over the held packets (run1640
+kept apart, its lobby unheld), and the filter is our panel on our own
+walked state against the original's panel on the packet of that frame.
+
+**§4. The input seat's next step is the form orders.** With the missed
+orders at 0, 1,442 of 2,429 recorded orders are "of the layer's form":
+the kind is minted, the recorded point and group are unchecked.
+`INPUT_WHOLE` stays 42 of 50 until they are shown. Item 4318 is a census
+first: of each form order, whether a press at some camera reaches its
+point and a press or a box selects its group.
+
+**§5. A booking's subject is the table's key.** `tools/tranche.py --base`
+read `Book N` and `Booking N` and the tranche's twenty were `QUEUE: book
+N (…)`: the handoff's line printed 0 landings, the second time a subject's
+spelling has emptied it (the pass of 2026-11-15). The parser now reads
+`: book N` outside parentheses and ahead of the first semicolon, red first
+(`test_a_booking_under_the_queue_s_prefix_is_read_without_its_parentheses`).
+The driver's subjects are not ruled on; the tool follows them.
+
+**§6. What the journals raised.** Three "for the Loop" lines, all the
+render seat's (4307, 4308, 4311): group the card pass on disk by caller
+and texture at a pixel before a new probe or a pairing by eye, and read
+load-built geometry off a packet's structures. Both are now one clause of
+the render brief's oracle row (`tools/brief/frame.md`). No `FABLE:` marker
+and no second reading in the tranche. 4313's line (the `syspolicyd` face)
+is entry 137 §5's amendment.
+
+**Not established:** what parts on 2082 (ours a road-cost call where
+theirs animates); how many partings stand between 2082 and 6,081; why the
+Russians are at war with the human on recon4316-1 by 5,900; the two-seat
+Moderate game (not taken: the builder stopped at its context bar); how
+many of 24,000 frames the leaders line parts on past 300; whether the
+filter's predicates need leader state the sim does not hold.

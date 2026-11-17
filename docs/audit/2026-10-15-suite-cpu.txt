@@ -1,6 +1,6 @@
-# Every rondata release test's CPU alone, 2026-11-16, tools/suite_timings.py (tree 32ee8bba).
+# Every rondata release test's CPU alone, 2026-11-16, tools/suite_timings.py (tree d2b00ab3).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 6,320 CPU-seconds and 121.65e12 instructions over 2478 tests; the host's load 8.5 at the start and 8.3 at the end.
+# Sum 6,355 CPU-seconds and 122.55e12 instructions over 2487 tests; the host's load 5.1 at the start and 4.1 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 144.32	3295.19	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
@@ -181,13 +181,16 @@
 6.75	113.76	diff::harness::tests::great_lakes_run163_through_run226_are_widened_whole
 6.72	131.89	diff::transfer::the_bent_steps_part_on_a_named_pair
 6.66	157.79	diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do
+6.64	170.73	diff::diplomacy_take::run1628_s_good_deeds_part_without_the_tributes
 6.63	151.39	diff::harness::tests::run123_s_word_frame_is_widened_whole
 6.43	129.53	diff::audit::british_classical_pair_corrections_change_nothing
 6.42	135.28	diff::aztec_ancient_pair::aztec_ancient_pair_the_long_s_stride_walks_back_from_8716
+6.26	170.64	diff::diplomacy_take::run1628_s_good_deeds_are_the_french_answer
 6.14	128.34	diff::inca_word::inca_word_first_parting
 6.05	128.82	diff::inca_word::run969b_inca_closing_state
 6.04	131.00	diff::harness::tests::run136_s_word_frame_is_widened_whole
 6.03	124.41	diff::third_pair::run600_s_closing_frame_is_widened_whole
+5.98	156.05	diff::diplomacy_take::run1629_s_word_is_pinned_as_found
 5.87	123.75	diff::audit::inca_word_corrections_change_nothing
 5.82	122.26	diff::third_pair::run600_french_east_indies_word
 5.77	132.48	diff::leader::tests::the_merchant_slots_are_the_original_s_own
@@ -226,6 +229,7 @@
 5.15	109.81	diff::third_pair::run655_s_word_frame_is_widened_whole
 5.13	126.63	diff::diplomacy_take::run1575_s_taunt_parts_without_its_chat
 5.12	126.63	diff::diplomacy_take::run1575_s_peace_is_the_french_answer
+5.09	124.99	diff::checksum_lines::packets::run1629_take_packet
 5.05	121.65	diff::harness::tests::run57_s_four_thousand_frames_stand_where_the_original_s_do
 5.03	105.00	diff::audit::korean_classical_pair_corrections_change_nothing
 5.01	103.92	diff::mongol_classical_pair::mongol_classical_pair_first_parting
@@ -262,6 +266,7 @@
 4.39	86.99	diff::russian_information_pair::russian_information_pair_run1423c_s_closing_frame_is_widened_whole
 4.38	72.75	diff::audit::russian_information_pair_corrections_change_nothing
 4.35	87.88	diff::spanish_classical_pair::spanish_classical_pair_run1232b_s_closing_frame_is_widened_whole
+4.35	120.38	diff::diplomacy_take::run1628_s_window_diplomacy_is_read_off_its_record
 4.34	81.07	diff::persian_gunpowder_pair::persian_gunpowder_pair_run1390_s_closing_frame_is_widened_whole
 4.33	91.90	diff::audit::lakota_pair_corrections_change_nothing
 4.33	90.63	diff::second::tests::run583_s_word_frame_is_widened_whole
@@ -442,6 +447,7 @@
 2.78	46.82	diff::french_medieval_pair::french_medieval_pair_run1414_s_closing_frame_is_widened_whole
 2.77	55.97	diff::inca_classical_pair::inca_classical_pair_run1270b_s_closing_frame_is_widened_whole
 2.76	54.63	diff::harness::tests::run227_s_word_frame_is_widened_whole
+2.76	64.57	diff::diplomacy_take::recon4300_2_walks_to_its_word_at_difficulty_4
 2.75	57.17	diff::gunpowder_melee::gunpowder_melee_s_leaders_are_compared_on_every_seat
 2.75	51.85	diff::maya_ancient_pair::maya_ancient_pair_run1248_s_closing_frame_is_widened_whole
 2.73	52.03	diff::audit::mongol_gunpowder_pair_corrections_change_nothing
@@ -913,6 +919,8 @@
 1.67	34.82	diff::inca_sahara_word::inca_sahara_word_first_parting
 1.67	35.52	diff::inca_sahara_word::run1006b_inca_sahara_closing_state
 1.67	32.64	diff::spanish_modern_pair::spanish_modern_pair_run1415_s_word_frame_is_widened_whole
+1.66	40.42	diff::diplomacy_take::run1645_s_taunt_parts_from_the_old_seat
+1.66	40.39	diff::diplomacy_take::run1645_s_word_is_pinned_as_found
 1.66	35.65	diff::aztec_word::aztec_word_first_parting
 1.66	28.06	diff::french_information_pair::french_information_pair_run1448b_s_closing_frame_is_widened_whole
 1.66	32.62	diff::harness::tests::run166_s_word_frame_is_widened_whole
@@ -1722,6 +1730,7 @@
 0.59	12.92	diff::iroquois_word::run897_s_block_1_fog_plane_is_ours
 0.59	12.63	diff::mongol_pair::run776_s_word_frame_is_widened_whole
 0.59	13.16	diff::sea_melee::sea_melee_staging_walk
+0.59	12.38	diff::checksum_lines::packets::run1645_take_packet
 0.58	11.69	debug_view::tests::selected_failure_exports_actual_replay_context
 0.58	10.89	diff::golden::chapter_eighty_seven_holds_to_the_golden_word
 0.58	10.90	diff::golden::chapter_fifty_holds_to_the_golden_word

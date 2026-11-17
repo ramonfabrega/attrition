@@ -88,6 +88,13 @@ orders shown or of the layer's form, 118 missed on four arms (items 4301 to 4304
 **renderer** — run1559b's ground luma 1,109 of 1,109; the pass's look booked the borders, the map's edge
 and the lake's fish (items 4306 to 4308).
 
+**At the pass of 2026-11-16, third** (entry 138): **checksum** — `LEADERS_HELD_OUT` 1, `tribute_demanded`, its
+game captured (recon4316-1, the demand on 6081) and our walk of it at 2082 (item 4316); the leaf's release closes
+step 5 on frame 91, and the leaders line on every frame of the minted game is item 4317 (152 of the first 300
+part); **orders** — every recorded order shown or minted, 1,442 still of the layer's form (item 4318); the panel's
+filter diffed on the minted game's packets (item 4315); **renderer** — the borders 225 of 1,440, past the edge
+162 of 162, the Oil billboard.
+
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
 on one lane, taking textures and team colours next; then the lobby screen

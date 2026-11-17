@@ -1,6 +1,6 @@
-# Every rondata release test timed alone, 2026-11-16, tools/suite_timings.py (tree 32ee8bba).
+# Every rondata release test timed alone, 2026-11-16, tools/suite_timings.py (tree d2b00ab3).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 4,985 s over 2478 tests; --stale-only merged. Top 10 = 744 s, top 30 = 994, top 100 = 1491; 1063 tests under 1 s.
+# Sum 5,020 s over 2487 tests; --stale-only merged. Top 10 = 744 s, top 30 = 994, top 100 = 1493; 1064 tests under 1 s.
 # By module: mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, coverage 266 s / 6 tests, harness 227 s / 100 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 144.47	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
@@ -73,12 +73,14 @@
 7.03	diff::british_classical_pair::british_classical_pair_first_parting
 6.78	mapgen::tests::east_indies_s_group_tail_is_the_traced_stream_and_7861_to_7870
 6.77	diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do
+6.72	diff::diplomacy_take::run1628_s_good_deeds_part_without_the_tributes
 6.69	mapgen::tests::great_lakes_s_mask_is_the_traced_7807
 6.66	diff::harness::tests::run123_s_word_frame_is_widened_whole
 6.47	diff::aztec_ancient_pair::aztec_ancient_pair_the_long_s_stride_walks_back_from_8716
 6.47	diff::audit::british_classical_pair_corrections_change_nothing
 6.36	diff::transfer::the_bent_steps_part_on_a_named_pair
 6.34	diff::korean_classical_pair::korean_classical_pair_run1250b_s_word_frame_is_widened_whole
+6.29	diff::diplomacy_take::run1628_s_good_deeds_are_the_french_answer
 6.26	diff::harness::tests::run136_s_word_frame_is_widened_whole
 6.25	diff::greek_classical_pair::greek_classical_pair_run1212_s_word_frame_is_widened_whole
 6.23	diff::egyptian_classical_pair::egyptian_classical_pair_the_long_s_stride_walks_back_from_5956
@@ -87,6 +89,7 @@
 6.19	diff::inca_word::inca_word_first_parting
 6.09	diff::lakota_pair::run882_s_word_frame_is_widened_whole
 6.09	diff::inca_word::run969b_inca_closing_state
+6.08	diff::diplomacy_take::run1629_s_word_is_pinned_as_found
 6.04	mapgen::tests::great_sahara_s_terrain_init_without_heights_is_734_to_5012
 6.03	mapgen::tests::east_indies_s_rivers_are_5012_to_5118
 5.98	mapgen::tests::east_indies_s_place_all_is_the_traced_stream_and_7859
@@ -132,6 +135,7 @@
 5.21	diff::diplomacy_take::run1575_s_alliance_is_found_short
 5.21	diff::diplomacy_take::run1575_s_taunt_is_answered_as_the_original_s
 5.21	diff::korean_classical_pair::korean_classical_pair_first_parting
+5.20	diff::checksum_lines::packets::run1629_take_packet
 5.20	mapgen::tests::nile_delta_s_values_and_make_stream_are_the_trace_s
 5.18	diff::third_pair::run655_s_word_frame_is_widened_whole
 5.16	mapgen::tests::great_sahara_s_place_all_is_the_traced_stream_and_7859
@@ -201,6 +205,7 @@
 4.39	mapgen::tests::colonial_powers_s_troughs_are_894_and_the_start_dump_s_grid
 4.38	diff::greek_medieval_pair::greek_medieval_pair_run1380_s_closing_state
 4.38	mapgen::tests::great_sahara_s_group_tail_is_the_traced_stream_and_7861_to_7870
+4.36	diff::diplomacy_take::run1628_s_window_diplomacy_is_read_off_its_record
 4.36	mapgen::tests::sea_power_s_terrain_init_without_heights_is_734_to_5012
 4.35	diff::golden::run422_s_casts_are_the_original_s_field_for_field
 4.35	diff::audit::lakota_pair_corrections_change_nothing
@@ -485,6 +490,7 @@
 2.79	diff::inca_classical_pair::inca_classical_pair_run1270b_s_closing_frame_is_widened_whole
 2.79	diff::audit::spanish_lakes_word_corrections_change_nothing
 2.78	diff::harness::tests::run233_s_word_frame_is_widened_whole
+2.78	diff::diplomacy_take::recon4300_2_walks_to_its_word_at_difficulty_4
 2.77	diff::city::tests::run59_s_census_is_where_the_ai_s_timber_goes
 2.76	diff::german_alltech_pair::german_alltech_pair_first_parting
 2.76	diff::harness::tests::run159_s_word_frame_is_widened_whole
@@ -965,6 +971,7 @@
 1.70	diff::third::tests::run428_s_word_frame_is_widened_whole
 1.70	diff::golden::chapter_twenty_six_s_word_frame_is_widened_whole
 1.70	diff::lakota_gunpowder_pair::lakota_gunpowder_pair_run1289_s_closing_state
+1.70	diff::diplomacy_take::run1645_s_taunt_parts_from_the_old_seat
 1.69	diff::checksum_lines::packets::maya_ancient_pair_packets
 1.69	diff::persian_medieval_pair::persian_medieval_pair_the_long_s_stride_walks_back_from_4038
 1.69	diff::inca_sahara_word::run1006b_inca_sahara_closing_state
@@ -982,6 +989,7 @@
 1.68	diff::aztec_word::aztec_word_first_parting
 1.68	diff::bantu_medieval_pair::bantu_medieval_pair_first_parting
 1.68	diff::german_industrial_moderate_pair::german_industrial_moderate_pair_run1491_s_closing_state
+1.67	diff::diplomacy_take::run1645_s_word_is_pinned_as_found
 1.67	diff::british_industrial_pair::british_industrial_pair_run1352_s_word_frame_is_widened_whole
 1.67	diff::checksum_lines::world::the_collision_blocks_are_the_original_s_on_the_next_frame
 1.67	diff::turkish_information_pair::turkish_information_pair_run1446b_s_word_frame_is_widened_whole
@@ -1770,6 +1778,7 @@
 0.62	diff::sea_melee::sea_melee_staging_walk
 0.62	diff::golden::chapter_eighty_w_window_is_widened_whole
 0.62	diff::classical_melee::classical_melee_s_slingers_lead_the_running_light_horse
+0.61	diff::checksum_lines::packets::run1645_take_packet
 0.61	diff::sea_melee::sea_melee_run1484_s_window_is_widened_whole
 0.61	diff::golden::chapter_sixteen_holds_to_the_golden_word
 0.61	diff::golden::chapter_seven_s_control_holds_to_the_golden_word

@@ -420,20 +420,19 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   `MiscAccess::world_to_screen` under unicorn,
   `tools/render/camera_oracle.py` by `uv run`; **the card's setters on
   one take** (`RON_CARD_PROBE`, §3.14) **before a second kill from
-  pixels** (4165); a screenshot is by eye, never a gate. Nothing from
-  the install enters git.
+  pixels** (4165); a screenshot is by eye, never a gate. **Before a new card probe or a pairing by
+  eye, group the card pass on disk by caller and texture at the pixel**
+  (4307, 4308); load-built geometry off a packet's structures
+  (4311).
 - **Look before you count** (DECISIONS 127): `client --frame N --still
   OUT.bmp` beside the photograph, before your first probe and at your
   landing; what the eye finds that no row counts is a `## Parked` row.
-  **A row is the client's pixels**: the painter and `client::gpu` draw
-  alike, and with item 4171's harness in your base the row is counted
-  on the still.
+  **A row is the client's pixels**, counted on the still (4171).
 - **The journal carries the value diff**: the record, the field, the
   dump's `gpiece` or position against ours and the pixel each projects
   to, as `docs/journal/2026-11-09-item-4026.md` does.
 - **The render tests skip quietly**: export `RON_INSTALL` for your own
-  `check.sh test` runs (a worktree has no `../../game`; the gate exports
-  it) and put `uv` on `PATH` for the camera oracle; a `skipping:` line
+  `check.sh test` runs and put `uv` on `PATH` for the camera oracle; a `skipping:` line
   is a vacuous pass — grep the log, and the journal says none printed.
 - **Your gate is scoped**, the line under Landing. **A branch that
   touches `crates/sim` (the door, `sim::observe`) says so in its done

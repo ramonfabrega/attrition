@@ -290,13 +290,34 @@ def other_heads_line(row: dict, floor: float = 10.0, top: int = 3) -> str | None
 # (the pass of 2026-11-15). An item is a number of four digits or more ahead
 # of the subject's colon.
 BOOK = re.compile(r"^Book(?:ing)? (\d[^:]*)")
-ITEM = re.compile(r"(?<![\w.])(\d{4,})(?:r\w+)?(?!\w)(?! of\b)")
+# `QUEUE: book 4298 (the attack deal: …); 4313 minted` and `The drain of …:
+# book 4313 (…)` are the forms of 2026-11-16's second tranche; the list read
+# none of its twenty and the handoff line said 0 landings (the pass of
+# 2026-11-16, third). There the items follow `: book`, outside every
+# parenthesis and ahead of the first semicolon — a parenthesis holds frames
+# and counts, and what follows the semicolon is minted or carried.
+QUEUE_BOOK = re.compile(r"^[^:]*: book (\d.*)")
+PARENTHESIS = re.compile(r"\([^()]*\)")
+ITEM = re.compile(r"(?<![\w.])(\d{4,})(?:r\w+|[a-z]\d?)?(?!\w)(?! of\b)")
+
+
+def booked_text(subject: str) -> str | None:
+    """The part of a commit subject that names the items it booked, or
+    None when the commit is no booking."""
+    if m := BOOK.match(subject):
+        return m.group(1)
+    if m := QUEUE_BOOK.match(subject):
+        text = m.group(1)
+        while (stripped := PARENTHESIS.sub("", text)) != text:
+            text = stripped
+        return re.split(r"[;(]", text)[0]
+    return None
 
 
 def booked_items(subjects: list[str]) -> list[int]:
     """The items a tranche landed, off its first-parent commit subjects
     newest first (`git log --first-parent --format=%s <base>..HEAD`): every
-    item a `Book N` commit names — `Book 3674 and 3690` is two landings
+    item a `Book N` (or `QUEUE: book N`) commit names — `Book 3674 and 3690` is two landings
     (the fifty-ninth pass: two co-booked lanes, 25.54 USD and 164 waiting
     minutes, were missing from the drain's handoff line) — oldest first. A
     `Queue:` or `Merge` commit is not a landing (the fifty-fourth pass,
@@ -304,8 +325,8 @@ def booked_items(subjects: list[str]) -> list[int]:
     own booking names it (Loop 3715, the sixtieth pass: `Book 3702 and
     3709` and then `Book 3709 and 3712` summed 3709's sessions twice, and
     the drain's line read 29 sessions where 23 had run)."""
-    commits = [[int(n) for n in ITEM.findall(m.group(1))]
-               for sub in subjects if (m := BOOK.match(sub))]
+    commits = [[int(n) for n in ITEM.findall(text)]
+               for sub in subjects if (text := booked_text(sub)) is not None]
     seen: dict[int, None] = {}
     for items in commits[::-1]:
         for item in items:

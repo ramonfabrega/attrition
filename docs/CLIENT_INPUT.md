@@ -3444,6 +3444,14 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   `[77, 104, 127, 131, 141]`, slot 2's (tribe 13) `[77, 108, 127, 131, 141]`, and two of slot 2's three
   nothing. Ours offers each of them 118. So one type a line at the leader's age, the tribe's graft in place of
   the line's type, and the building's own state all show.
+- **The held lobby's packets are on disk** (the pass of 2026-11-16, third; item 4315's first act). Sixteen packets
+  of the minted Great Lakes game stand under `~/ron-golden` (`checksum_frames::MINTED_PACKETS`: frames 1 to 7195),
+  and our walk holds every frame of it. `panels.py` on four of them (TSVs under
+  `~/Library/Caches/attrition/pass-1116d/panels/`, not yet among the row's): 3596 and 4030, seven buildings each;
+  6907, nine; 7195, ten, every one offering. The Cities train `[50]`; the Markets `[59, 61]`; slot 1's Barracks
+  (2016) `[69, 82, 132, 177]` with four research buttons, all four `disable` 1; each Library 35 research buttons,
+  30 to 32 of them `disable` 1; on 7195 a 439 offers two research buttons and a 420 trains `[52]`. So the filter
+  is diffed on state our walk computes, and `disable` moves on it.
 - **Not established**: what empties a finished-looking building's panel (two of slot 2's Barracks on run1640, and
   run1591's one at 6537): the `is_active` gate or `can_make`, neither read on the packet. And `disable`, which
   the TSV carries and the row does not count.

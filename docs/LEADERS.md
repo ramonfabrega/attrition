@@ -2343,6 +2343,20 @@ packet at 1090 no longer parts on `dip.agree`. So the counteroffer's two
 stores (the flag, `clear_agree` both ways) are backed; its message's good
 is the interface's.
 
+**Witness, not a pinned diff (the pass of 2026-11-16, third): the demand,
+on recon4316-1.** run1575's lobby at `DIFFICULTY 4` with the alliance
+lines alone (`tools/gamelog/coverage/alliance4316.cmd`: `meet` 900,
+`ally 1` 902), unfiled, the record printed from 5,900 to 6,600. The French
+`tribute_demanded[0]` reads 1 on every block from 6081 to 6600 (520 rows;
+none in recon4300-2, the same lobby without the alliance). Beside it on
+6081: the French `aggression[0]` 0 → 1, `agendas[0]` 64 → 72, `dip[0]`
+`agree` 1, `treaty` −1, `offers[WEALTH]` −700; the human's
+`dip[1].offers[WEALTH]` +700 and `agendas[1]` 4; `diplos` 2 both ways,
+`blacken` 0. Those are the values `step4.py` gave on run1640's packet with
+the alliance poked (item 4300's second act): `D` = 700 = (6 + 1)·(0 +
+1)·100, the gate 6,000 and the cadence's 6080. Our walk holds that game to
+2082 of 6,081 (item 4316), so nothing here is computed yet.
+
 `tribute_demanded` and `tributes` did not move. ~~One scale reading comes
 off recon4206-4's buckets, a rehearsal that was not filed~~ **Diff-backed
 on run1628 (4159r19)**, recon4206-4 filed: the human's 2,000 metal
