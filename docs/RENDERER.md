@@ -3531,6 +3531,30 @@ Of run1564's 15 oil goods, 7 stand on such a cell; one is on screen, at (35712, 
 (1201, 254). Its dark pixels' centroid is (1202.0, 203.5) against the photograph's blot at (1199.2, 216.9), with
 8,392 dark pixels against 8,045. So the size and the column agree and the row is 13 px high (4312a).
 
+**The land's oil (item 4309).** The cracked ground with dark pits south-east of run1564's lake (`crop-1564-rock.png`)
+is a land `Oil` good's terrain patch. Our still draws plain grass there. run1567's card (pass 3279) draws it as
+draw 133, `d_rough.tga` (180 primitives), and draw 134, `d_rough_oil.tga` (25), both `TL_FAKE_LIGHT` and blended
+source alpha over. Draw 133's caller is `TerrainOut::render_weathering@00852f70`. Its `(0, 3)` call draws underlay
+classes 0 to 3 from the helpers at `TerrainOut +0x4bf0 + 0x13c · i` with `weather_underlay_textures[i]`. The
+tileset's `<UNDERLAYS>` lists, in order, `pigfarm`, `wheatfarm`, `rough`, `oil` and `snowcap`; class 4 is §3.10's.
+`TerrainOil::add_wcoord_for_render@008a26f0` fills classes 2 and 3 through
+`TerrainOut::add_weather_underlay@00874d00`, once per drawn cell (`CoordInfo::add_geometry@0084bef0`), for a cell
+whose `OilPatchData` has its `+0x39` byte set:
+- it lays a 2 × 2-tile `rough` patch at each tile of the patch's first list;
+- then, when the cell has `flags & 0x800` and the console's leader has `OIL` available (`LeaderData::type_avail`,
+  or bit 8 of the game's semaphore), it lays one 4 × 4 `oil` patch on the cell's tiles, unless the cell's byte at
+  `World +0x138` has `& 3 == 3`;
+- otherwise it lays a `rough` patch at each tile of the second list.
+
+The patches are built at load. `TerrainOil::create_doobers@008a28e0` gives a patch to each cell with `flags & 8`, and
+to a cell holding a good the console's leader cannot yet use. `add_rocky_patch@008a2b30` levels a `0x800` cell 4 × 4
+(`terraform_for_building`). It lists the four 2 × 2 tiles that cover the cell, then one at a random offset of 0 to 3,
+then up to nine more at offsets of −2 to 5. Every one of those offsets is drawn from `internal_random`, the
+renderer's own generator, so the stones' layout is the packet's `patch_data`, never a sim value. **The value diff**
+(run1564, frame 3279): our sim's land oil good is at (40320, 38016), cell (52, 49). It projects to pixel (1563, 766),
+and the photograph's 2,387 pit pixels (luma under 60) centre on (1566.3, 760.3) in the box (1480–1654, 719–791). The
+row `RUN1564_3279_ROUGH` (`client::goods`) counts them at **0 of 2,387**, ours 0: neither class is drawn.
+
 *Coverage.* Diff-backed: the floor's address modes, offsets and texcoords (§3.18). The water's material rests on
 item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *Not established:*
 - the floor's parallax to its plane at −283, not drawn (§3.18 found it moves no hue);
@@ -3544,7 +3568,9 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
 - ~~the fish herds' blot~~ (the `Oil` good's billboard, drawn by item 4312, above; 13 px high on the still,
   parked 4312a) and the whitecaps; the fish under the water is not drawn;
 - the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
-- the screen reflection and the specular.
+- the screen reflection and the specular;
+- the land oil's `rough` and `oil` underlays (item 4309, above): not drawn. `add_weather_underlay`'s geometry,
+  the `+0x39` byte's writers, the second list's writer and cell (52, 49)'s `0x800` in our sim are not read.
 
 ## 3.25 A burning building's particles (item 4233)
 
