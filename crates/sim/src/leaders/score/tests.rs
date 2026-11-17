@@ -216,3 +216,24 @@ fn a_finished_building_outside_a_city_is_scored_only_if_it_needs_none() {
     assert_eq!(s.leader_score(0).buildings, 20, "a member of a city");
     assert_eq!(s.num_buildings_of(0, senate), 1);
 }
+
+/// **The checksum's flags word carries both dirty bits** (`docs/CHECKSUM.md`
+/// §25.4, item 4320): a birth raises `0x800000` on its owner alone, a gain
+/// `0x1000000`, and the owner's recompute clears each from the word.
+#[test]
+fn the_flags_word_carries_the_score_s_dirty_bits() {
+    let mut s = sim();
+    s.tables.unit_types = vec![crate::UnitType::default(); 4];
+    s.roster.muster[0].by_type = vec![0; 4];
+    s.roster.muster[0].queued_by_type = vec![0; 4];
+    let word = |s: &Sim, who| s.leader_flag_words(who).0.unwrap() & 0x180_0000;
+    assert_eq!(word(&s, 0), 0);
+    s.score_units_dirty(0);
+    s.tech[1].score_dirty = true;
+    assert_eq!(word(&s, 0), 0x80_0000, "the birth's bit on its owner");
+    assert_eq!(word(&s, 1), 0x100_0000, "the gain's bit on its leader");
+    s.frame = 10;
+    s.compute_score(0, false);
+    assert_eq!(word(&s, 0), 0, "slot 0's recompute clears it");
+    assert_eq!(word(&s, 1), 0x100_0000, "not slot 1's frame");
+}
