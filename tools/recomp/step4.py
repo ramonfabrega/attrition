@@ -307,7 +307,9 @@ def main(argv):
             return
         regs = {name: uc.reg_read(reg) for name, reg in REGS}
         regs["esp"] = uc.reg_read(UC_X86_REG_ESP)
-        stack = list(struct.unpack("<4I", uc.mem_read(regs["esp"] + 4, 16)))
+        # Six words (item 4305): `Options::add` takes six arguments, and its
+        # fifth, `disable`, is what greys a panel's button.
+        stack = list(struct.unpack("<6I", uc.mem_read(regs["esp"] + 4, 24)))
         fn = funcs.sorted[bisect.bisect_right(funcs.sorted, address) - 1]
         ret = struct.unpack("<I", uc.mem_read(regs["esp"], 4))[0]
         rf = funcs.sorted[bisect.bisect_right(funcs.sorted, ret) - 1]

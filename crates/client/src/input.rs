@@ -9370,6 +9370,121 @@ pub(crate) mod tests {
         assert_eq!(off, PANEL_ROSTER_OFF);
     }
 
+    /// `OPTION_TRAIN` and `OPTION_RESEARCH`, the two kinds of button the
+    /// roster stands for (`OptionIndex` 47 and 48: the train arm's adds at
+    /// `0x62a742`, and the Library's 35 research buttons on run1591).
+    const PANEL_KINDS: [i32; 2] = [47, 48];
+
+    /// **`PANEL_LEADER`** (item 4305): the panel the original offers a
+    /// selected building against ours, over every building of every packet
+    /// `tools/recomp/panels.py` has run `BuildOut::make_options@00629ed0`
+    /// on. (buildings whose train and research types equal ours, buildings
+    /// either side offers one on; types both offer, the original's, ours),
+    /// each building's types counted once a building. Minted at its first
+    /// count on the static roster of §32, which offers every type its
+    /// building may ever queue: no building's panel equal, every type the
+    /// original offers on ours, and ours seven times as many. Seen red
+    /// pinned (0, 0, 0, 0, 0). The packets: run1591 at 6537 (the minted
+    /// GreatLakes lobby our walk holds, 9 buildings) and run1640 at 6079
+    /// (run1575's lobby at `DIFFICULTY 4`, tribes 10 and 13, 68).
+    const PANEL_LEADER: (usize, usize, usize, usize, usize) = (0, 77, 295, 295, 2155);
+
+    /// The packets' panels, `~/ron-data/panels/*.tsv` (or
+    /// `RON_PANELS_DIR`): per (file, slot, object), the building's type and
+    /// the train and research types the original offered it, sorted.
+    fn panels_on_disk() -> Vec<(String, i32, i32, i32, Vec<i32>)> {
+        let dir = std::env::var_os("RON_PANELS_DIR")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                std::path::Path::new(&std::env::var_os("HOME").unwrap_or_default())
+                    .join("ron-data/panels")
+            });
+        let Ok(rd) = std::fs::read_dir(&dir) else {
+            return Vec::new();
+        };
+        let mut files: Vec<_> = rd
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .filter(|p| p.extension().is_some_and(|x| x == "tsv"))
+            .collect();
+        files.sort();
+        let mut out: std::collections::BTreeMap<(String, i32, i32), (i32, Vec<i32>)> =
+            std::collections::BTreeMap::new();
+        for f in files {
+            let name = f.file_stem().unwrap().to_string_lossy().into_owned();
+            for line in std::fs::read_to_string(&f).unwrap().lines() {
+                if line.starts_with('#') || line.is_empty() {
+                    continue;
+                }
+                let c: Vec<i32> = line
+                    .split('\t')
+                    .take(10)
+                    .map(|v| v.parse().expect("a panels.py row"))
+                    .collect();
+                let (who, object, building, option, ty) = (c[1], c[2], c[3], c[4], c[7]);
+                assert!(option != -1, "{name}: a run that did not return: {line}");
+                let e = out
+                    .entry((name.clone(), who, object))
+                    .or_insert((building, Vec::new()));
+                if PANEL_KINDS.contains(&option) {
+                    e.1.push(ty);
+                }
+            }
+        }
+        out.into_iter()
+            .map(|((f, who, object), (b, mut ts))| {
+                ts.sort_unstable();
+                ts.dedup();
+                (f, who, object, b, ts)
+            })
+            .collect()
+    }
+
+    /// **The panel the original offers** (item 4305): every building the
+    /// packets' runs of `make_options` cover, its train and research types
+    /// against the ones our panel offers it.
+    #[test]
+    fn the_panels_of_the_packets_on_disk() {
+        let panels = panels_on_disk();
+        let Some(roster) = install_roster() else {
+            println!("skipping: no install");
+            return;
+        };
+        if panels.is_empty() {
+            println!("skipping: no panels on disk (RON_PANELS_DIR, ~/ron-data/panels)");
+            return;
+        }
+        let mut count = (0, 0, 0, 0, 0);
+        for (file, who, object, building, theirs) in &panels {
+            let ours = roster
+                .trains
+                .get((building - rondata::load::BASE_BUILDTYPES) as usize)
+                .cloned()
+                .unwrap_or_default();
+            if theirs.is_empty() && ours.is_empty() {
+                continue;
+            }
+            count.1 += 1;
+            if *theirs == ours {
+                count.0 += 1;
+            }
+            count.2 += theirs.iter().filter(|t| ours.contains(t)).count();
+            count.3 += theirs.len();
+            count.4 += ours.len();
+            println!(
+                "PANEL {file} who {who} object {object} building {building}: theirs {} {theirs:?}, ours {}, \
+                 theirs not ours {:?}",
+                theirs.len(),
+                ours.len(),
+                theirs
+                    .iter()
+                    .filter(|t| !ours.contains(t))
+                    .collect::<Vec<_>>()
+            );
+        }
+        println!("PANEL_LEADER {count:?}");
+        assert_eq!(count, PANEL_LEADER);
+    }
+
     /// **`INPUT_ROSTER_QUEUES`** (item 4290, `docs/CLIENT_INPUT.md` §32):
     /// of the packages the recordings on disk carry whose order is a
     /// `queue_up` of one, those a press on the roster's button for its type
