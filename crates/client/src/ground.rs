@@ -1201,8 +1201,16 @@ pub const RUN1564_3279_FOAM: [[[u32; 2]; 2]; 3] = [
 /// ours 0 dark of 904, mean (134, 137, 145) against theirs' (24, 87, 151),
 /// theirs 0 of 304 covered (ours stand at x 1163–1221, y 179–268; parked
 /// 4308c). Item 4344: **ours 0 → 393 dark of 889**, mean (51, 98, 155).
+/// Item 4345: the third arm, the herd lit ([`crate::world::World::herd_lit`]):
+/// **ours 393 → 613 dark of 850**, mean (34.5, 89.5, 149.7) against
+/// theirs' (24.4, 87.4, 151.3); the herd's 6,480 corners at a median N·L
+/// of 0.03, 3,192 under 0.
 #[cfg(test)]
-pub const RUN1564_3279_FISH: [[[u32; 2]; 2]; 2] = [[[0, 904], [0, 304]], [[393, 889], [0, 304]]];
+pub const RUN1564_3279_FISH: [[[u32; 2]; 2]; 3] = [
+    [[0, 904], [0, 304]],
+    [[393, 889], [0, 304]],
+    [[613, 850], [0, 304]],
+];
 
 /// [`RUN1564_3279_FISH`]'s box about theirs' fish, `(x0, y0, x1, y1)`: the
 /// herd at its card's pixel (1088, 186) (item 4308), short of the `Oil`
@@ -4659,6 +4667,26 @@ pub(crate) mod tests {
             .into_iter()
             .collect();
         assert!(!herd.is_empty(), "the herd is drawn textured");
+        {
+            let mut nl: Vec<f32> = b
+                .textured
+                .iter()
+                .filter(|m| herd.contains(&m.piece))
+                .flat_map(|m| m.light.iter().copied())
+                .collect();
+            nl.sort_by(f32::total_cmp);
+            let q = |f: f64| nl.get(((nl.len() as f64 - 1.0) * f) as usize).copied();
+            println!(
+                "4345 herd N·L: {} corners, q0 {:?} q10 {:?} q50 {:?} q90 {:?} q100 {:?}, under 0 {}",
+                nl.len(),
+                q(0.0),
+                q(0.1),
+                q(0.5),
+                q(0.9),
+                q(1.0),
+                nl.iter().filter(|&&v| v < 0.0).count()
+            );
+        }
         let w = size.0 as usize;
         let dark = |rgba: &[u8], i: usize| {
             f32::from(rgba[i * 4 + 1]) < FISH_GB * f32::from(rgba[i * 4 + 2])
@@ -4673,9 +4701,13 @@ pub(crate) mod tests {
             [0, 1, 2].map(|c| px.iter().map(|&i| f32::from(rgba[i * 4 + c])).sum::<f32>() / n)
         };
         let dir = std::env::var_os("RON_FISH_STILLS").map(PathBuf::from);
-        let mut rows = [[[0u32; 2]; 2]; 2];
-        for (arm, before) in [false, true].into_iter().enumerate() {
+        let mut rows = [[[0u32; 2]; 2]; 3];
+        for (arm, (before, lit)) in [(false, false), (true, false), (true, true)]
+            .into_iter()
+            .enumerate()
+        {
             p.world.objects_under_water = before;
+            p.world.herd_lit = lit;
             let still = |p: &mut Probe, hidden: Vec<i32>| {
                 p.world.hidden = hidden;
                 crate::still_of(
@@ -4690,7 +4722,7 @@ pub(crate) mod tests {
             let off = still(&mut p, herd.clone());
             p.world.hidden = Vec::new();
             if let Some(d) = &dir {
-                let name = ["fish-after.bmp", "fish-before.bmp"][arm];
+                let name = ["fish-after.bmp", "fish-before.bmp", "fish-lit.bmp"][arm];
                 std::fs::write(d.join(name), crate::gpu::bmp(&on, size)).unwrap();
                 std::fs::write(d.join("fish-hidden.bmp"), crate::gpu::bmp(&off, size)).unwrap();
             }
@@ -4719,7 +4751,11 @@ pub(crate) mod tests {
             println!(
                 "4344 fish, objects {}: [[ours dark, ours], [theirs covered, theirs]] {:?}; \
                  ours' mean {:?} over x {}..{}, y {}..{}; theirs' mean {:?}; herd pieces {herd:?}",
-                ["after the water", "before the water"][arm],
+                [
+                    "after the water",
+                    "before the water",
+                    "before the water, lit"
+                ][arm],
                 rows[arm],
                 mean(&on, &ours),
                 lo.0,
