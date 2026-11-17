@@ -1284,9 +1284,11 @@ mod bodies {
             .filter(|(_, (f, _))| (FIRST + 1..=FIG_BLOCK).contains(f))
             .map(row)
             .collect();
+        // Item 4328: empty; before it, `18976 1/-1 leader:reg_unpack_merch[11]:
+        // ours 2 theirs 1` (the census counted a packed merchant).
         pin_eq!(
             under_fig,
-            ["18976 1/-1 leader:reg_unpack_merch[11]: ours 2 theirs 1"],
+            Vec::<String>::new(),
             "the keys first parting under item 829's word"
         );
         // **Item 837's value diff, on block 19000.** The draw stream
@@ -1431,7 +1433,8 @@ mod bodies {
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
             // Item 1106: → 287/1/288/289, who=1's `leftover[2:wealth]` 3588 against 3580 on the first block, the border pass's economy flag (`docs/AI.md` §84).
-            (23, 0, 24, 24),
+            // Item 4328: (23, 0, 24, 24) → (23, 0, 23, 23), `reg_unpack_merch[11]` on 18976 agreeing (a packed merchant left out).
+            (23, 0, 23, 23),
             "the floor"
         );
     }
@@ -1586,7 +1589,8 @@ mod bodies {
             // 29 `group` rows (`1/0` 65 here against 72, `1/11` 64 against
             // −1, army 1's 70 against 69): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 288/0/289/290, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 1938 against 1930 on 19408.
-            (24, 0, 25, 25),
+            // Item 4328: (24, 0, 25, 25) → (23, 0, 24, 24), a `reg_unpack_merch` row agreeing (a packed merchant left out).
+            (23, 0, 24, 24),
             "the floor"
         );
     }
