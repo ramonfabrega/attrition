@@ -135,6 +135,19 @@ and ours right, and the minted lobby.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`, on the pass's commit: `gate-pass-1117.log`.
-Its lines are quoted here by the commit after it, which is gated scoped
-(`gate-pass-1117b.log`).
+Whole, by `tools/gate_run.sh`, on `f47a1ba7f`.
+
+- **`gate-pass-1117.log`: `gate exit 0`**, 9 of 9 steps: offline 2.0,
+  guard 0.2, merge pins 1.4, release 22.5, clock 0.1. `Clock: green
+  beside load`. `Suite: 1359 processes for 2488 tests: 145 groups hold
+  1274, 1214 ran alone; 9763 test CPU-seconds`; admission 8.0 s over
+  1,396 leases; load 2.3 at its start and 8.1 at its end. `Rows: one
+  driver row at most: steer cf334754 (working)`; `Driver: 0 landings
+  since the last pass (backstop 20) · context 260 k`. `Builders: 0
+  reaped`; 222 GB free after it.
+
+The guard went red once on the pass's own paperwork before that commit,
+as built: item 4336 booked a capture and named no map
+(`a_capture_booked_on_a_map_cites_the_window_the_disk_holds`); it names
+map style 7 and frame 36 now, and no window on that map spans it. This
+section is gated scoped over that commit (`gate-pass-1117b.log`).
