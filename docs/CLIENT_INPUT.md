@@ -3991,8 +3991,9 @@ buttons.
 - ~~**`OPTION_REPAIR`** sets `selecting_spot`; `picked_spot`'s repair arm issues `swarm_around(…, BUILD_AT)` on an
   allied site of the selection's own slot, and a longer arm on a finished building that is not read.~~ Read and
   built, §32.10 (item 4349).
-- **`OPTION_TRANSPORT`**'s clear press is `set_transport(can_transport == 0)`; `GroupData::can_transport` is not
-  read. Greyed on every held packet, so its press orders nothing either side.
+- ~~**`OPTION_TRANSPORT`**'s clear press is `set_transport(can_transport == 0)`; `GroupData::can_transport` is not
+  read. Greyed on every held packet, so its press orders nothing either side.~~ Read and built, and its order is the
+  original's byte for byte, §32.12 (item 4357).
 
 **The count** (`the_pages_of_the_packets_on_our_walk`):
 
@@ -4033,7 +4034,8 @@ the 290 others (eight a citizen and two `TOARMSSPELL`s) were not drawn.
 - **Not built**: the `+0x68 & 1` gate (the sim's `Unit::decoy`), which drops the page buttons, `OPTION_REPAIR`,
   `OPTION_ALARM_PEASANT` and the crafts; no held citizen is a decoy, and `panels.py` has no byte poke to make
   one. The predicates of the last six adds for a unit other than a citizen, and the `prefs & 2` adds.
-- The three picks and `set_transport`, above. ~~The three picks~~: §32.10 (item 4349).
+- The three picks and `set_transport`, above. ~~The three picks~~: §32.10 (item 4349). ~~`set_transport`~~:
+  §32.12 (item 4357).
 
 ## 32.10 The pick buttons: Move, Attack and Repair on the map (item 4349)
 
@@ -4209,6 +4211,68 @@ both sides, 18 of 18 values. `INPUT_PICKED_FILE` is 35 of 35. No `crates/sim` ch
   `BUILD_AT` and `REPAIR`).
 - **Not established**: whether `Unit::do_follow` is first entered on the tick that takes the package. No entry
   table was kept, and the follow's draw site on 6856 is its only witness.
+
+## 32.12 The transport press, against the original's (item 4357)
+
+*Item 4357, 2026-11-17 (`docs/journal/2026-11-17-item-4357.md`). `OPTION_TRANSPORT`'s press writes the
+original's order: **`INPUT_TRANSPORT` 0 → 4 of 4**, byte for byte against `Options::exec` run on run1236's
+packet (`the_transport_press_as_the_original`). No capture, no playback, no `crates/sim` change.*
+
+- **What the press writes** (`Options::do_transport@0071c500`). For a unit selection (`buildings` clear) that
+  `Group::can_activate(…, 0, −1)`, `GroupOut::issue_set_transport@0070ad10(can_transport == 0)` writes `group`
+  and `set_transport` (`0x0e`, `[flag i32]`). Then `S_TRANSPORT_ON_ACK` or `_OFF_ACK` plays. **It never reads the
+  leader's level**: the greying (§32.9) is the panel's. `Group::action_set_transport` forces the flag to 0 at
+  level 0 (`docs/TRANSPORT.md` §3.4).
+- **`GroupData::can_transport@0070b5b0`** is a function over the members, not a field:
+  - the `buildings` arm answers 0, and so does an empty group;
+  - for each member that is active and on the map (vslots `+0x8`, `+0xbc`), or a plane (`+0xc0`): if it fails
+    `UnitData::can_transport` (`unit_masks & 0x800000` unvetoed, or the type's `unit_flags & 0x10`;
+    `docs/TRANSPORT.md` §3.2), the answer is 0 at once;
+  - the answer is 1 if one member at least was asked and every one passed.
+
+  So a mixed selection turns the bit on, and only a selection whose every member has it turns it off. Its only
+  writers are the leader's (§3.4's list). Nothing on the panel's side caches it.
+- **Who can press it.** `CommandManager::check_accept_issue@00940a70` asks
+  `Player::is_active_connection` of the console's `play`. So the press issues from the human's seat alone, and a
+  computer's seat writes nothing (run1236's who 1 at level 3: size 0).
+- **The layer** (`input::Event::Transport`, `input::group_can_transport`). `standard_panel` hands the button
+  `Event::Transport`, greyed as before. The press asks the walk's sim (`View::sim`) for each member's
+  `alive() && on_map`, `Sim::is_plane` and `Sim::unit_can_transport`. Without the walk it writes nothing.
+  `Event::Unbuilt`, which no button handed any more, is removed.
+- **The original's order** (`tools/recomp/panels.py --transport`, `~/ron-data/transport-press/run1236.tsv`). On
+  run1236's packet at 4179, from slot 0's seat: four selections of slot 0's citizens `0/1` and `0/2`, with each
+  member's `+0x68` poked. Each run stops in `Sound::init@0053b590` under the ack, after the issue, and the bytes
+  are read there:
+
+  | selection | `0x800000` | the original's bytes, and ours |
+  | --- | --- | --- |
+  | `0/1` | set | `00 01 0001 00 0e 00000000`: `group [1]`, `set_transport(0)` |
+  | `0/1` | clear | `… 0e 01000000`: `set_transport(1)` |
+  | `0/1`, `0/2` | set, set | `00 02 0001 0002 00 0e 00000000` |
+  | `0/1`, `0/2` | set, clear | `… 0e 01000000` |
+
+- **The count.** Ours: the same ids on our walk's frame 1, each member's `auto_transport` set as the row pokes it,
+  through `Event::Transport`. 4 of 4 equal. Each arm was perturbed once, the file restored after each. The arm
+  writing nothing, the base, read (0, 4). The flag not negated read (0, 4). "Any member" for "every member" read
+  (3, 4).
+- **The packet where it is live.** None on disk is live for the human's seat. I scanned all 133 packets' gamelogs
+  for a `leader_flags` with `0x100`. Fifteen hold one (run785 to run959, run1236, run1385p, run1608, run1640,
+  run1655, run1655b), each on a computer's slot, and a computer's seat cannot issue. On run1236 at 4179, who 1
+  reads `0x80703`, and its citizen carries the bit (`0x840008`). So the order is checked from the human's seat with
+  the button greyed, theirs run at `exec` and ours at the layer, past the greying on both sides.
+
+**Ours, not the original's.** The two acks are not played.
+
+**Confidence, and what is not established.**
+
+- **Backed by the oracle**: the order's bytes for one and two members, both arms of the bit, and the
+  every-member rule (the mixed row).
+- **One reading**: the on-map and plane predicates. Every member checked was a citizen on the map. The
+  `unit_flags & 0x10` arm (no citizen carries it), and `action_set_transport`'s effect played from a minted file.
+  The original played the command from its own issuer in chapter twenty (run249, `docs/GOLDEN.md` §28), never
+  from a file.
+- **Not established**: a live press, which needs the human's level at 3 (a Dock and `TRANSPORT_BONUS`). No
+  script of ours builds that.
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 
