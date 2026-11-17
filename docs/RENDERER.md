@@ -4219,14 +4219,39 @@ the mean of its red and green, red within 2 of green and above 110 (the band rea
 sim's cells is the photograph's. The curve, the width, the colours' source, the alphas and the render state are
 one reading, and no row checks them one by one. The colours' bytes are the executable's.
 
+**The arm is a morph (item 4356).** run1564's packet (frame 3294) holds the cells as ours do: (50, 45) and
+(49, 44) read `flags` 0, `land` 1, region 69 (the lake), `who` −1; (50, 44) and (51, 45) carry
+`HALFLAND`, `who` 1. So the cells are not misread. The packet's heap also holds the drawn strips (`MiscAccess::borders`,
+`0003:0540`, VA `0xC0621C`). Region 1's `Border` has two `normal_border_renders`, both on the west of the
+map, and five `morph_renders`. The east band is morph 1, whose `to` strip is `(60, 45) … (57, 45), (57, 46) …
+(51, 46), (51, 45)`, and whose `from` strip is the border before row 45 was taken: `(51, 45) … (57, 45), (57,
+44) … (60, 43)`. A morph's strips come from `Border::sort_clump_list@00880280`. That function walks all four
+sides of each changed cell against `BordersData.last_who`, and it has no ocean test, so it makes the edge
+`(51, 46)–(51, 45)` that `sort_regular` does not. While a morph plays, `Borders::check_border_blocked@00882370`
+clears the regular edges under its `blocked` bits, so no regular strip lies there. `BorderMorphRender::inc_morph@00880e50`
+runs `grow_length` 10, `move_length` 25 and `grow_length` 10 again in `Game::graphic_tick` (`+0x844`): width
+×(0.75 + 0.45 t) and alpha from `+0x15e` (64) to `+0x15f` (143) while it grows, then the reverse. On one side
+of the band the alpha is `+0x15c` (31). It ends after 45 ticks. When a morph's `flip & 4` is set, the end
+raises `need_rebuild`, and `sort_regular` lays the border again. The packet's `graphic_tick` is 177, and morph 1
+started at 134, so the photograph caught it 43 of 45 ticks in, as it shrinks (width ×0.84, alpha about 80).
+The sim gave row 45's cells (51 to 56) to player 1 at frame **2427** (`Sim::observe_territory`, the client's
+walk). At play speed the morph ends about 45 frames later. Under the capture's `!ffwd 4`, the graphic tick
+moves about once every 20 frames, so the morph was still on screen 867 frames later. run1559b (tick 169) and
+run1612 (tick 172) hold the same morph. run1570 (frame 3331, tick 178) holds none there and has
+`need_rebuild` 1: a rebuild is pending. So the photograph's whole east band, both arms, is a morph that the
+capture's pace kept on screen. Our regular strips are the original's settled state by the reading, and no
+packet on disk holds that settled state for this border. The probes are under
+`~/ron-data/lab-experiments/2026-11-17-item-4356/`.
+
 **What is not established.**
-- **The "<"'s upper arm** (parked 4306a). Cells (50, 45) and (49, 44) are `land` 1 without `HALFLAND`, so
-  the ocean rule as read makes no edge against them, and our chain ends open at corner (51, 46). The
-  photograph draws an arm up the west side of (51, 45) to the row 44/45 edge, so the original makes those
-  edges. Either the rule is misread, or the original's `land` or `HALFLAND` on these beach cells is not ours.
-- Ours lies a few pixels off theirs along the lower arm (615 of ours, 225 shared). The terrain normal in
-  `build_normals` (the band is laid flat here), the curve's sampling and the photograph's frame 3294 against
-  our 3279 are not separated.
+- ~~**The "<"'s upper arm** (parked 4306a).~~ The cells and the rule agree with the packet. The arm is morph 1's
+  `to` strip, above (item 4356).
+- Ours lies a few pixels off theirs along the lower arm. The photograph's lower arm is also morph 1: a
+  one-sided gradient band, narrower than the regular strip. It is not the regular strip's normals or sampling
+  (item 4356). The regular strip's geometry is still one reading, because no photograph on disk shows it
+  settled.
+- The morph itself (`BorderMorphRender`, `make_interp_spline@008811e0`) is not drawn. A border change shows
+  for 45 graphic ticks, so at play speed it lasts about 1.5 s.
 - `BORDER_LIFT` (6 units) is ours: the patch pass tests depth, the original's does not.
 - The leader's colour slot (`team_colors.list[leader +0x6928]`) is taken as the leader's index; alliances
   and `can_see_borders` are not applied (no allied pair and a full reveal on run1564); the diplomatic-colours
@@ -4274,7 +4299,8 @@ r 0.999), against 0.853 without the white. ~~The constant 0.853 (4338a)~~ was th
 
 *Coverage.* On a reading: the card's blend and filters on draws 163–169 (one take, run1567). Against our own draw:
 the overlap, r 0.997, and the draw's scale, 0.995 with the white (4342). Not diff-backed: every row is the
-photograph's. *Not established:* theirs' broad strokes far out, where ours shows fine speckle (4338b). Lists 7 and 8
+photograph's. *Not established:* theirs' broad strokes far out, where ours shows fine speckle (4338b; no draw on the
+card pass puts them there by its texture and the packet's geometry, item 4353, below). Lists 7 and 8
 do not part in the band (journal 4342). ~~The fish (4308a) were not reached.~~ Drawn under the water (item 4344,
 below); where ours stand (4308c) and their light are not.
 
@@ -4325,6 +4351,26 @@ fish's. On the still, the poses match theirs too: the left group is drawn as the
 pixels. *Coverage.* On one take's card, read: the herd's `gWorld`. Against the dump: the start's angles. Not
 diff-backed: the row is the photograph's. *Not established:* the churn (4308d); a player's unit's angles from a start
 dump, which the install still leaves at `Unit::init`'s.
+
+**The broad strokes, unplaced** (item 4353; the ledger: `docs/journal/2026-11-17-item-4353.md`). Theirs' strokes are
+white puffs 30–60 px across, in a ring offshore of the shore's speckle all round the lake (on the south-east crop at
+about x 1280–1380, y 460–520 and x 1400–1520, y 420–480). Every world draw of run1567's 3279 pass was read against
+them, by its texture and the packet's geometry through the card's own matrices:
+- the surf (163–169): lists 0, 2 and 4 hug the shore, and their wash lines sit on the photograph's; lists 9 and 11 lie
+  on the north rim, y −11 to 365; lists 7 and 8 reach the strokes only by their patches' edges. There the packet's
+  texcoords and vertex alphas are ours (patches 42 and 43 equal to the third place, 41 within 0.16 of a repeat and α
+equal), and their model is
+  speckle, not a solid puff;
+- the floor (36): `ocean_floor_5.tga` carries fine specks, and no stroke; the coral (122–131): `coralblend.tga` is cyan,
+  with luma over 200 on 3 texels of 65,536; the fish and the churn (155–161) stand on the north water;
+- the water (162): on draw 162's own `gView` and `gProjection`, N·V is 0.5 and N·H 0.64, so the specular is nothing. The
+  reflected ray climbs (0, 0.866, 0.5) view units a unit, and a bottom D below the surface is 2D farther, so a hit
+  needs D ≤ 6.1. There `water_fade` is 0 (above −25), and the hit is blended at α 0;
+- draws 170–209 are screen space.
+
+So no draw on the card pass puts the stroke there by what is on disk: the item's stop. The card trace streams no
+vertices, so this rests on the packet's lists, not the card's own per draw. *Not established:* which draw lays theirs'
+strokes. A card probe keeping each draw's stream after 3279 (4281a) would attribute each pixel.
 
 ## 4. The stack
 
@@ -4797,7 +4843,9 @@ lines and fog shading, projectiles and corpses, then candidate C.
 
 ### 7.1 Not established
 
-- **The border's upper arm on run1564** (§3.29, parked 4306a): the original draws edges against beach cells the ocean rule as read drops.
+- ~~**The border's upper arm on run1564** (§3.29, parked 4306a): the original draws edges against beach cells the ocean rule as read drops.~~
+  Answered by item 4356 (§3.29, "The arm is a morph"): the cells and the rule agree with the packet; the arm is
+  a `BorderMorphRender` the capture's `!ffwd 4` left on screen.
 - **Where gaia's birds are drawn** (item 4208). Owner 9's birds carry `get_unit_gpiece`'s gaia piece
   (60045, `WILDBIRD-TYPE0`) since `Sim::gaia_piece`, and the draw list draws them. On run1429 that is 280
   figures on 34 logged frames. No dump prints owner 9, so the register leaves them out and counts them

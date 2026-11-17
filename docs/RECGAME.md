@@ -410,9 +410,35 @@ The person has ordered by then: `process_group` on 8, 9, 21 and 28
 **On 92 the person's scout `3/0` holds an `EXPLORE_TO` in theirs and a
 `MOVE_TO` here**, the next parting by state, ahead of the draws' 444.
 
-**Not established:** which package gives the scout its explore-to, and
-how our stream reads it; the parting on 444; `Leader::diplomacy`'s war
-plan still reads the world seed (`docs/LEADERS.md` §8.2, item 4341's).
+**Not established:** ~~which package gives the scout its explore-to, and
+how our stream reads it; the parting on 444~~ (answered by item 4351,
+below); `Leader::diplomacy`'s war plan still reads the world seed
+(`docs/LEADERS.md` §8.2, item 4341's).
+
+**The word moved: 444 → 2888 (item 4351, 2026-11-17).** The package on
+recording frame 91 is `group [0]` then `move_to (39037, 17733)` with
+`orders` 1 (`MOVE_TO`) and `queued` 1 (`QUEUE_LAST`), the person's
+shift-click. `Group::action_move_near@00704990` hands a scout (`role &
+0x10` without `unit_masks & 0x40000`) to `add_move_facing_order` whatever
+the group's size. There, a `QUEUE_LAST` `MOVE_TO` of a `role & 0x10` type
+sets `unit_masks |= 0x4000000` and becomes an `EXPLORE_TO`
+(`005e55c0:24`). This crate's closure answered no, so the scout walked a
+plain `MOVE_TO`. The value diff on 92, run1654 `UNITS` for `3/0`
+(`TypeIndex` 69, `SCOUT`): order index theirs 3, ours 1 before, 3 after,
+toward (39048, 17736) on both. The person's next nine shift-clicks
+(recording frames 98 to 112) are explores too. The bit is carried as
+`sim::Unit::explore_queued` with its one setter, the clear every
+`Unit::clear_orders` makes (in `Sim::close_orders`), and both readers:
+`Unit::work@0060d180:122`, which turns a `MOVE_TO` at the head into an
+`EXPLORE_TO` at `QUEUE_FIRST`, and the human block of
+`Unit::think@005f6e40:231`, which clears it on an idle special unit with
+no group. run1654's window agrees whole, 18 of 18 records (9 parted
+before). The draws part at frame 2888, draw 32.
+
+**Not established:** the parting on 2888; whether `work`'s arm or the
+think's clear is reached on this file (the move is the conversion's,
+scored by mutation in `docs/journal/2026-11-17-item-4351.md`); the
+playback under the `RON_CHECKSUMS` hook, booked for the item after.
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

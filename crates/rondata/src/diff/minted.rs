@@ -6254,6 +6254,258 @@ fn the_auto_explored_minted_packages_round_trip() {
 /// The auto-explored file's gzipped length (`docs/CLIENT_INPUT.md` §31.3).
 const AUTO_EXPLORED_RCX_BYTES: usize = 59_692;
 
+/// **The picked file** (item 4352, `docs/CLIENT_INPUT.md` §32.11): the
+/// auto-explored script and three packages more, one per pick button, on
+/// [`crate::script::PICK_MOVE_FRAME`], `PICK_REPAIR_FRAME` and
+/// `PICK_ATTACK_FRAME`; it round-trips through the file, and every package
+/// before them is the auto-explored file's, frame, slot and stamp. With
+/// `RON_RCX_OUT=<file>` it writes the `.rcx` a playback takes open.
+#[test]
+fn the_picked_minted_packages_round_trip() {
+    use crate::script::{
+        PICK_ATTACK_FRAME, PICK_MOVE_FRAME, PICK_REPAIR_FRAME, auto_explored, picked,
+    };
+    let (Some(rec), Some(before)) = (minted(&picked()), minted(&auto_explored())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "picked").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in picked().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "PICKED tails {:?} against {:?}",
+        &ours[ours.len() - 5..],
+        &old[old.len() - 2..]
+    );
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 3, old[..m - 1].to_vec()));
+    let frames: Vec<(i32, i32)> = ours[n - 4..n - 1].iter().map(|p| (p.0, p.1)).collect();
+    assert_eq!(
+        frames,
+        [
+            (PICK_MOVE_FRAME, 0),
+            (PICK_REPAIR_FRAME, 0),
+            (PICK_ATTACK_FRAME, 0)
+        ]
+    );
+    assert_eq!(
+        (ours[n - 1].0, ours[n - 1].2),
+        (old[m - 1].0, old[m - 1].2 + 3)
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "PICKED RCX {} bytes (the auto-explored file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(
+        old.len(),
+        AUTO_EXPLORED_RCX_BYTES,
+        "the file run1627 played"
+    );
+    assert_eq!(gz.len(), PICKED_RCX_BYTES, "PICKED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The picked file's gzipped length (`docs/CLIENT_INPUT.md` §32.11).
+const PICKED_RCX_BYTES: usize = 59_729;
+
+/// The units the picks select, each pick's own: the Move pick's Citizen,
+/// the Repair pick's and the Attack pick's.
+const PICKED_UNITS: [i16; 3] = [
+    crate::script::PICK_MOVE_UNIT,
+    crate::script::PICK_REPAIR_UNIT,
+    crate::script::PICK_ATTACK_UNIT,
+];
+
+/// The frames each pick's effect is read on, both sides: the record after
+/// each package's tick, and three across the window.
+const PICK_READ_AT: [i64; 6] = [6831, 6841, 6851, 6900, 7200, 7499];
+
+/// One picked unit on one frame: where it stands (`None` once it is gone)
+/// and its head order's `OrderIndex`.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct PickEffect {
+    pub frame: i64,
+    pub o: i16,
+    pub pos: Option<(i64, i64)>,
+    pub head: Option<i64>,
+}
+
+/// Our walk under the pump on `orders`' file, read on `at`.
+fn pick_effects_ours(orders: &[Order], at: &[i64]) -> Vec<PickEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        let s = &built.sim;
+        for o in PICKED_UNITS {
+            let u = s.unit_by_o(0, o).map(|i| &s.units[i]).filter(|u| u.alive());
+            ours.push(PickEffect {
+                frame: s.frame,
+                o,
+                pos: u.map(|u| (i64::from(u.pos.x), i64::from(u.pos.y))),
+                head: u.and_then(|u| u.orders.front().map(|o| i64::from(o.index()))),
+            });
+        }
+    }
+    ours
+}
+
+/// The original's, off the take's records on `at`.
+fn pick_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<PickEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for &n in at {
+        let Some(i) = source.frames().iter().position(|f| f.number == n) else {
+            continue;
+        };
+        let f = source.frame_state(i).unwrap();
+        for o in PICKED_UNITS {
+            let u = f.units.iter().find(|u| u.who == 0 && u.o == i64::from(o));
+            theirs.push(PickEffect {
+                frame: n,
+                o,
+                pos: u.map(|u| (u.pos.x, u.pos.y)),
+                head: u.and_then(|u| u.current_order().map(|o| o.index)),
+            });
+        }
+    }
+    Some(theirs)
+}
+
+/// **What the picks do on our walk** (item 4352, `docs/CLIENT_INPUT.md`
+/// §32.11), pinned off our walk's print before run1656's records were
+/// read on these frames.
+fn picked_effects() -> Vec<PickEffect> {
+    let row = |frame, o, pos, head| PickEffect {
+        frame,
+        o,
+        pos,
+        head,
+    };
+    vec![
+        row(6831, 4, Some((2640, 31797)), Some(1)),
+        row(6831, 5, Some((1848, 31608)), Some(7)),
+        row(6831, 3, Some((2232, 32184)), Some(7)),
+        row(6841, 4, Some((2880, 31766)), Some(1)),
+        row(6841, 5, Some((1848, 31608)), Some(1)),
+        row(6841, 3, Some((2040, 32248)), Some(1)),
+        row(6851, 4, Some((3120, 31726)), Some(1)),
+        row(6851, 5, Some((2062, 31735)), Some(1)),
+        row(6851, 3, Some((1848, 32328)), Some(1)),
+        row(6900, 4, Some((3323, 31830)), Some(1)),
+        row(6900, 5, Some((3199, 32052)), Some(1)),
+        row(6900, 3, Some((2568, 32520)), Some(10)),
+        row(7200, 4, Some((1176, 30072)), Some(11)),
+        row(7200, 5, Some((3576, 29688)), Some(7)),
+        row(7200, 3, Some((1224, 29112)), None),
+        row(7499, 4, Some((1176, 30072)), Some(11)),
+        row(7499, 5, Some((3384, 29880)), Some(7)),
+        row(7499, 3, Some((4200, 28296)), Some(7)),
+    ]
+}
+
+/// **The picks on our walk and on the original's** (item 4352): the three
+/// picked units on [`PICK_READ_AT`], ours pinned, against the
+/// auto-explored file's walk, where none of them takes the pick's order;
+/// and run1656's records, equal to ours.
+#[test]
+fn what_the_picks_do_on_both_sides() {
+    if built_start().is_none() || minted(&crate::script::picked()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = pick_effects_ours(&crate::script::picked(), &PICK_READ_AT);
+    let without = pick_effects_ours(&crate::script::auto_explored(), &PICK_READ_AT);
+    for (a, b) in ours.iter().zip(&without) {
+        eprintln!("PICK EFFECT ours {a:?}\n            without {b:?}");
+    }
+    assert_eq!(ours, picked_effects(), "ours, pinned");
+    for o in PICKED_UNITS {
+        let of = |v: &[PickEffect]| -> Vec<Option<(i64, i64)>> {
+            v.iter().filter(|e| e.o == o).map(|e| e.pos).collect()
+        };
+        assert_ne!(of(&ours), of(&without), "0/{o}'s path parts after its pick");
+    }
+    let Some(theirs) = pick_effects_theirs(PICKED_WALKED[0].0, &PICK_READ_AT) else {
+        return;
+    };
+    for t in &theirs {
+        eprintln!("PICK EFFECT theirs {t:?}");
+    }
+    assert_eq!(theirs, ours, "the original's picked units are ours");
+}
+
+/// **The original's playback of the picked file** (item 4352,
+/// `docs/CLIENT_INPUT.md` §32.11): `(take, trace, first sequence parting
+/// or the last frame, last frame, records compared, records parted)`.
+/// Pinned before run1656 was read, with none parted.
+pub(crate) const PICKED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1656-greatlakes-playback-of-picked-7500.txt",
+    "rontrace-run1656.log",
+    7500,
+    7500,
+    700,
+    0,
+)];
+
+/// **The original plays the picked file in lockstep** (item 4352): the
+/// built start walked under the pump on the picked file against the take,
+/// every frame's draws and every record of its window ([`PICKED_WALKED`]).
+#[test]
+fn the_original_s_playback_of_the_picked_file_walks_in_lockstep() {
+    let picked = crate::script::picked();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in PICKED_WALKED {
+        let Some((w, _)) = walk_minted(&picked, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "PICKED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        if let Some((o, t)) = &w.sites
+            && let Some((_, d)) = first_parting(o, t)
+        {
+            eprintln!("the first parting frame, {:?}: {d}", w.first_sequence);
+        }
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    assert_eq!(walked, PICKED_WALKED, "the walked table");
+}
+
 /// **The original's playback of the auto-explored file** (item 4291,
 /// `docs/CLIENT_INPUT.md` §31.5): `(take, trace, first sequence parting or
 /// the last frame, last frame, records compared, records parted)`. Pinned

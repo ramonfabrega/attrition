@@ -38383,3 +38383,27 @@ Files in place: `gamelog.txt`, 128,905,167 bytes, SHA-256 `0f7ee1b12f20c7bd320ed
 `rontrace.log`, 254,867,392 bytes, SHA-256 `7a7511f5ed8a4c86723ce475a4f18fea5a0aec2deba714de47134cae83fcd20d`.
 
 **What it holds**: no walk reads it; the score's value diff (item 4354's journal).
+## run1656 — the original playing the file the pick buttons minted (2026-11-17, item 4352, `att-4352`)
+
+`docs/CLIENT_INPUT.md` §32.11. **What the disk could not answer**: no take on disk plays a `follow`, `gather` or
+`attack` minted by a pick button, and no recording carries a `follow` (4349a, 4349b). The file:
+`~/ron-golden/recordings/item4352-picked-greatlakes-24000.rcx`, 59,729 bytes, SHA-256
+`0d4d570a69fcf86f87bb212785835b28d0e316cc6695596ae3898b37178f5edf`. It is the auto-explored file (run1627) with
+three packages more: `group [4]`, `follow(8, 0, 2)` on 6830; `group [5]`, `gather(2007, 2)` on 6840; `group [3]`,
+`attack(0, 1, 0, 2)` on 6850.
+
+The take is run1627's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1656 --recording <the file> --end-frame 7500 --cover cover=1
+--log-window 6800 7500 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2,DEATHS=1 --timeout 2400 --stall-seconds 120`.
+It was waited on with `waitrun.sh` in the background. `df -g ~` read 191 GB free before it.
+- **The run**: pool lane 2 (lane 1 was held by another lane's capture), launched 17:18:07 −05:00, exited 17:29:42:
+  **694.7 s launch to exit**, exit 0, `success`, no page fault, no relaunch. 7,501 frames, `last_frame` 7500, seed
+  12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five settings restored. The receipt names the
+  file's SHA-256. Minutes waited on another lane: none.
+- **The `.rcx` the playback leaves**: none. No `.rcx` newer than the launch is under lane 2's profile, its prefix or
+  the run's directory, but the run's own `input.rcx`, the symlink to the file played (DECISIONS 140 §2).
+- Filed with `filerun.py run1656 greatlakes-playback-of-picked-7500`. run1657 was not used.
+
+Archive `gamelog-run1656-greatlakes-playback-of-picked-7500.txt`, 162,697,261 bytes,
+SHA-256 `67db4c2cbf29bc63dbd05add67d02609e3a8ae00d3e269a9ee2b49e03910fedf`; `rontrace-run1656.log`, 36,068,544
+bytes, SHA-256 `30baa1190df53f1df6fa373a8a72c1d0ad408ed10432889e7bde1c7a3171680a`.
