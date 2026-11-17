@@ -1385,8 +1385,8 @@ pub const OPTION_AUTO_EXPLORE: i32 = 33;
 /// an `OPTION_SPELL` for each craft the unit offers
 /// ([`sim::observe::UnitScene::crafts`]), typed with the craft; then
 /// `OPTION_GARRISON`, `OPTION_HALT`, `OPTION_TRANSPORT` greyed while the
-/// leader's transport level (`leader_flags` `0x100` 3, `0x200` 2, `0x400`
-/// 1) is under the unit's `transport_type`, `OPTION_MOVE_TO`,
+/// leader's transport level (`leader_flags` `0x100` gives 3, `0x200` 2,
+/// `0x400` 1) is under the unit's `transport_type`, `OPTION_MOVE_TO`,
 /// `OPTION_ATTACK_TO` and `OPTION_AUTO_EXPLORE`. The predicates of those
 /// last six are a citizen's on every held packet (a land unit, not a plane,
 /// with an attack, the profile's `prefs & 2` clear) and are not built for
