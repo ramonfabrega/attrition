@@ -452,7 +452,8 @@ pub(crate) mod tests {
     /// Item 4312: 225 → 222 of 1,440, 615 → 613 of ours (a named fall from 225 and 615): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
     /// Item 4319: 222 → 225 of 1,440, 613 → 615 of ours: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
     /// Item 4310: 225 → 226 of 1,440, 615 → 609 of ours: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR") moves the frame's mean, so its white.
-    pub const RUN1564_3279_BORDER: [[usize; 3]; 3] = [[0, 1440, 0], [226, 1440, 609], [0, 1440, 0]];
+    /// Item 4338: 226 → 224 (a named fall of two), 609 → 605: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
+    pub const RUN1564_3279_BORDER: [[usize; 3]; 3] = [[0, 1440, 0], [224, 1440, 605], [0, 1440, 0]];
 
     #[test]
     fn the_border_band_on_run1564() {

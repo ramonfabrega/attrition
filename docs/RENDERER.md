@@ -3970,7 +3970,7 @@ card's states for draws 163 to 169. On the photograph alone: the rows. *Not esta
   the nearest texel, interpolates the texcoords in screen space, and blends in LDR;
 - the draws before `Surf::init` on another map (4236c), and so the phase anywhere but GreatLakes;
 - the culling to visible cells, which moves only an overlap's order;
-- the whitecaps (journal 4335).
+- the whitecaps (§3.30).
 
 **The beach below the waterline (item 4294).** *Opus 5.5; the ledger: `docs/journal/2026-11-16-item-4294.md`.*
 With the land lit (item 4292) the ground row's `SANDY` fell 653 → 645 of 772. That is nine tiles down and one up,
@@ -4231,6 +4231,41 @@ one reading, and no row checks them one by one. The colours' bytes are the execu
 - The leader's colour slot (`team_colors.list[leader +0x6928]`) is taken as the leader's index; alliances
   and `can_see_borders` are not applied (no allied pair and a full reveal on run1564); the diplomatic-colours
   preference and the border's morph (`BorderMorphRender`) are not drawn.
+
+## 3.30 The whitecaps (item 4338)
+
+*Opus 5.5; the ledger: `docs/journal/2026-11-17-item-4338.md`.* The whitecaps are the surf's big foam, lists 7 and 8
+(journal 4335). On run1564's still, the south-east band (x 1150–1500, y 400–520) read ours' luma q90/q99 117/146
+against theirs' 152/200.
+
+**The row** (`RUN1564_3279_FOAM`, `the_whitecaps_on_the_still`). Each `OCEAN` and `SANDY` tile gets the share of its
+ground pixels whose luminance is at least 150. A tile is scored where either side's share reaches 0.05, and agrees
+within 0.05. Minted on item 4239's draw at `OCEAN` 0 of 8 and `SANDY` 198 of 360 (167 of 345 with the surf off).
+
+**Our α against the model, per pixel.** The still's α is read back as `(T⁻¹(on) − T⁻¹(off)) / (5 − T⁻¹(off))` on
+red. It is set against a CPU raster of the still's own lists (dumped by the test) that takes texel × mask × vertex α
+/ 255, composited per triangle, at our own sampling. The fit was r 0.892, ours at 0.61 of the model. Split by
+overlap:
+- where each list covers a pixel once, r 1.000, at 0.851;
+- where a list overlaps itself, r 0.803 against the composite and **0.997 against each list's last triangle
+  alone**.
+
+Every fragment of a list read the one copy of the frame taken before it (§3.27), so overlapping triangles overwrote
+each other where the card's blend compounds them. The texel, the mask and the vertex α do not part.
+
+**Built.** `World::surf_hdr` (on) draws the surf's run of lists on item 4327's HDR target (`fs_surf_hdr`, the
+target's own source-alpha blend), as the card's draws 163–169 blend. Stage 0 is point on every filter (`surf`
+sampler), the card's states. The fit becomes r 0.999 at a constant 0.853. Arms (copy, then HDR):
+- the band: q90/q99 117.0/146.6 → 120.7/149.1, then 120.6/153.1 with the point sampler; pixels ≥ 150 291 → 566,
+  theirs 4,466;
+- the foam row `SANDY` 198 of 360 → 215 of 373;
+- **the ground still's `SANDY` 663 → 717 of 772**, the row 1,798 → 1,852 of 1,920;
+- texture `SANDY` 435 → 520, `OCEAN` holds at 245 of 437.
+
+*Coverage.* On a reading: the card's blend and filters on draws 163–169 (one take, run1567). Against our own draw:
+the overlap, r 0.997. Not diff-backed: every row is the photograph's. *Not established:* the constant 0.853
+between our draw and the model of it (4338a); theirs' broad strokes far out, where ours shows fine speckle (4338b);
+the fish (4308a), not reached.
 
 ## 4. The stack
 

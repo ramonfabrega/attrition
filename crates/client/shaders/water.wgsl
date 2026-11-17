@@ -63,16 +63,32 @@ fn fs_water(i: VOut) -> @location(0) vec4<f32> {
 // colour to the power and the HDR scale; blended source alpha over the
 // frame under it before the tone map, as the water is, the frame copied
 // before each list.
+// The surf's texel through the unlit branch: the power and the HDR scale.
+fn surf_light(c: vec3<f32>) -> vec3<f32> {
+    return {SURF_HDR} * pow(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({SURF_POWER}));
+}
+
 @fragment
 fn fs_surf(i: VOut) -> @location(0) vec4<f32> {
     let t0 = textureSample(tex, samp, i.uv);
     let m = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
     let a = t0.a * i.nl * m;
-    let s = {SURF_HDR} * pow(clamp(t0.rgb, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({SURF_POWER}));
+    let s = surf_light(t0.rgb);
     let d = textureLoad(lake, vec2<i32>(i.pos.xy), 0).rgb;
     let under = vec3<f32>(water_untone(d.r), water_untone(d.g), water_untone(d.b));
     let o = under * (1.0 - a) + s * a;
     return vec4<f32>(land_tone(o.x), land_tone(o.y), land_tone(o.z), 1.0);
+}
+
+// Item 4338 (`docs/RENDERER.md` §3.30): `fs_surf` on the HDR target, its
+// source alpha blended there by the target's own blend, as the card's draws
+// 163–169, so a list's overlapping triangles compound.
+@fragment
+fn fs_surf_hdr(i: VOut) -> @location(0) vec4<f32> {
+    let t0 = textureSample(tex, samp, i.uv);
+    let m = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    let s = surf_light(t0.rgb);
+    return vec4<f32>(s, t0.a * i.nl * m);
 }
 
 // Item 4327 (`docs/RENDERER.md` §3.27, "The patches over the faded land in
