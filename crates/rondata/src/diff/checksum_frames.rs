@@ -364,8 +364,23 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
 
 /// The frames on which every emitted line is taken and each parting is
 /// counted; past them a line is taken only until it first parts, so a
-/// 24,000-frame take costs the lines still whole.
+/// 24,000-frame take costs the lines still whole — and the leaders line
+/// ([`LEADERS_K`]), taken on every frame for [`LEADERS_AGREE`].
 const DIAG: i64 = 300;
+
+/// The leaders line's place in [`EMITTED`].
+const LEADERS_K: usize = 4;
+
+/// **Parity's leaders row** (item 4317, `docs/CHECKSUM.md` §25.4;
+/// `docs/DECISIONS.md` entry 138 §2): per take, `(trace, the frames on
+/// which our leaders line's Adler is the hook's, the frames walked)`.
+/// [`DIAG`] counts the first 300 only; this counts the take. Minted as
+/// found on the tree after item 4298: run1578's line agrees on 1..99,
+/// 110..158 and islands between partings to 3375, and parts on 0 and on
+/// every frame from 3376 (`reg_unpack_merch[1]` from 3380,
+/// `resources_controlled` from 3780; the census is item 4317's journal).
+const LEADERS_AGREE: &[(&str, usize, usize)] =
+    &[(RUN1577_TRACE, 109, 120), (RUN1578_TRACE, 2941, 24000)];
 
 /// The Adler of each emitted line `want` names, on `sim`, in [`EMITTED`]'s
 /// order (`None` where not wanted). The builds line needs the data layer's
@@ -409,8 +424,9 @@ fn our_adlers(
 }
 
 /// One emitted line's walk against a hook: the first frame it parts, both
-/// sides' Adler there, and the frames it parts on inside [`DIAG`].
-type LineWalk = (&'static str, i64, u32, u32, Vec<i64>);
+/// sides' Adler there, the frames it parts on inside [`DIAG`], and the
+/// frames it was taken on and agreed.
+type LineWalk = (&'static str, i64, u32, u32, Vec<i64>, usize);
 
 /// The walk under the pump against a hook's sets, per emitted line.
 fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
@@ -420,9 +436,11 @@ fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
     let first = per_frame(trace);
     let mut out: Vec<Option<(i64, u32, u32)>> = vec![None; EMITTED.len()];
     let mut parted: Vec<Vec<i64>> = vec![Vec::new(); EMITTED.len()];
+    let mut agreed = vec![0usize; EMITTED.len()];
     while built.sim.frame < length {
         let f = built.sim.frame;
-        let want: [bool; 9] = std::array::from_fn(|k| f < DIAG || out[k].is_none());
+        let want: [bool; 9] =
+            std::array::from_fn(|k| f < DIAG || out[k].is_none() || k == LEADERS_K);
         if !want.iter().any(|w| *w) {
             break;
         }
@@ -430,7 +448,9 @@ fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
             let ours = our_adlers(&built.sim, &pieces, &want);
             for (k, &i) in EMITTED.iter().enumerate() {
                 let Some(o) = ours[k] else { continue };
-                if o != set.lines[i] {
+                if o == set.lines[i] {
+                    agreed[k] += 1;
+                } else {
                     if f < DIAG {
                         parted[k].push(f);
                     }
@@ -448,9 +468,10 @@ fn first_partings(trace: &[Set], length: i64) -> Option<Vec<LineWalk>> {
             .iter()
             .zip(out)
             .zip(parted)
-            .map(|((&i, o), p)| {
+            .zip(agreed)
+            .map(|(((&i, o), p), n)| {
                 let (f, a, b) = o.unwrap_or((length, 0, 0));
-                (CHECKSUM_LINES[i].0, f, a, b, p)
+                (CHECKSUM_LINES[i].0, f, a, b, p, n)
             })
             .collect(),
     )
@@ -490,7 +511,7 @@ fn our_lines_part_from_the_hook_s_on_their_first_frame() {
             eprintln!("skipping: no install or lobby dump (RON_INSTALL, RON_GAMELOG_DIR)");
             return;
         };
-        for (line, f, ours, theirs, p) in &walked {
+        for (line, f, ours, theirs, p, _) in &walked {
             eprintln!(
                 "CHECKSUM FRAMES {name} {line}: first parts on {f} (ours {ours}, theirs {theirs}); \
                  inside {DIAG}: {} frames, {}",
@@ -500,9 +521,17 @@ fn our_lines_part_from_the_hook_s_on_their_first_frame() {
         }
         let seen: Vec<(&str, i64, usize)> = walked
             .iter()
-            .map(|(l, f, _, _, p)| (*l, *f, p.len()))
+            .map(|(l, f, _, _, p, _)| (*l, *f, p.len()))
             .collect();
+        let agree = (walked[LEADERS_K].5, length as usize);
+        eprintln!("LEADERS AGREE {name}: {} of {} frames", agree.0, agree.1);
+        let want = LEADERS_AGREE
+            .iter()
+            .find(|r| r.0 == name)
+            .map(|r| (r.1, r.2));
+        assert_eq!(walked[LEADERS_K].0, "leaders", "LEADERS_K names the line");
         assert_eq!(seen, pinned, "CHECKSUM_FRAMES {name}");
+        assert_eq!(Some(agree), want, "LEADERS_AGREE {name}");
     }
 }
 
