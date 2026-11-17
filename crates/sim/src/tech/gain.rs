@@ -37,29 +37,19 @@ impl Sim {
     /// and unit type whose prerequisites hold, and the nation's free starting
     /// epoch — see `docs/TECH.md`, "The starting position".
     pub fn start_techs(&mut self, who: Player) -> Vec<tech::Gained> {
-        let w = who as usize;
-        let was = (
-            self.tech[w].score_dirty,
-            self.cities.wall_stats_dirty[w],
-            self.roster.unit_stats_dirty[w],
+        let events = self.tables.tech_tree.start(
+            &self.tables.setup,
+            &self.tables.tuning,
+            &mut self.tech[who as usize],
         );
-        let events =
-            self.tables
-                .tech_tree
-                .start(&self.tables.setup, &self.tables.tuning, &mut self.tech[w]);
         self.apply_gained(who);
-        // **Laying the tree down raises neither stats bit** (item 4333):
-        // `Leader::init@006e3930` sets the opening techs' bits in place and
-        // calls `gain_tech` only for a nation's free epoch or Despotism
-        // (`:544`–`:576`), whose tail is what raises `0xc000000` (and whose
-        // head raises the score's `0x1000000`, the one sign here that a
-        // gain ran). run1578's setup `check_all` reads byte 3 `0a` on both
-        // leaders — `0x8000000` from the opening buildings' activation, no
-        // `0x4000000` — where this read `0e` (`docs/CHECKSUM.md` §25.4).
-        if !(self.tech[w].score_dirty && !was.0) {
-            self.cities.wall_stats_dirty[w] = was.1;
-            self.roster.unit_stats_dirty[w] = was.2;
-        }
+        // NOT the original's word on the setup's two stats bits (item 4333,
+        // `docs/CHECKSUM.md` §25.4): `Leader::init@006e3930` lays the tree
+        // down without `gain_tech`, so theirs' setup `check_all` reads byte
+        // 3 `0a` where this raises `0x4000000` too (`0e`). Keeping the bits
+        // as they stood took the first `calc_unit_stats` away, and every
+        // Bantu lobby parted: the crate's opening units take the Bantu
+        // speed there, where theirs' take it at birth.
         self.lay_starting_goods(who);
         // `Leader::init`'s `calc_attrition` and `calc_anti_attrition` see
         // the opening tech set (`docs/LEADERS.md` §5.2, §6.2).

@@ -195,14 +195,13 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             "leaders",
             267,
             267,
-            // Item 4333: 16 → 14, the flags range whole on both leaders
-            // (`0x8000000` emitted, the setup's `0x4000000` not raised).
-            14,
+            16,
             // Item 4320: byte 2 agrees (`0x800000` emitted); before it
-            // `+0x2 of 8|8: 00020000|800a0000`. Item 4333: before it
-            // `0 0 flags: +0x3 of 8|8: 02000000|0a000000`; what stands is
-            // the setup census's leaves, first leader 0's `defense`.
-            "1 0 who..ally_mask: +0x94c of 26914|26914: 00000000|02000000",
+            // `+0x2 of 8|8: 00020000|800a0000`. Item 4333: `0x8000000`
+            // agrees (emitted), and ours' setup `0x4000000` parts the byte,
+            // a named divergence (`docs/CHECKSUM.md` §25.4); before it
+            // `02000000|0a000000`. Under it, the setup census's leaves.
+            "0 0 flags: +0x3 of 8|8: 0e000000|0a000000",
         )],
     ),
     (

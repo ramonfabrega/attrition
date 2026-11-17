@@ -251,7 +251,10 @@ fn aztec_ancient_pair_the_long_s_stride_walks_back_from_8716() {
     // the wounds agree, and `1/107`'s `mylos` and the standing families
     // stay.
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 306 -> 294.
-    pin_eq!(w.firsts.len(), 294, "the stride's baseline");
+    // Item 4333, `gain_tech`'s unit arm raises `0x4000000` for the Militia line alone: 294 -> 293, `1/107`'s
+    // `mylos` (the Catapult, 4 against 10 from 5701 as item 3604 booked it) agrees, its cache no longer refreshed by
+    // a gain off the line.
+    pin_eq!(w.firsts.len(), 293, "the stride's baseline");
 }
 
 /// run1266: the gap's window, blocks 8596..8710 at run1256b's detail with

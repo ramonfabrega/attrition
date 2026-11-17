@@ -959,14 +959,13 @@ const WORLD_START_DANGER: (u32, u32) = (2_995_557_468, 1_887_436_801);
 /// start with every danger row cleared parts on section 8 alone, at the
 /// zeros' sum — the state before `Game::run`'s call.
 /// **The stats bits on the minted game's tables** (item 4333,
-/// `docs/CHECKSUM.md` §25.4): the setup's tree raises neither
-/// (`Leader::init` lays it down in place; run1578's setup `check_all`
-/// reads byte 3 `0a`, and `0x8000000` is the opening buildings'), a
-/// gained unit type raises `0x4000000` only on the Militia line
+/// `docs/CHECKSUM.md` §25.4): the setup's tree raises both here, a named
+/// divergence (`Leader::init` lays it down in place; run1578's setup
+/// `check_all` reads byte 3 `0a`), a gained unit type raises `0x4000000` only on the Militia line
 /// (`gain_tech@006dcb60`, `6dd988`: `is(0x42, 0)`), and any other gain
 /// raises both (the tail's `0xc000000`). Then the emitter writes each.
 #[test]
-fn the_stats_bits_follow_the_militia_line_and_skip_the_setup_s_tree() {
+fn the_stats_bits_follow_the_militia_line() {
     let Some((_, mut built, _)) = super::minted::built_start() else {
         eprintln!("skipping: no install or lobby dump");
         return;
@@ -974,10 +973,13 @@ fn the_stats_bits_follow_the_militia_line_and_skip_the_setup_s_tree() {
     let sim = &mut built.sim;
     for who in 0..2u8 {
         let (f, _) = sim.leader_flag_words(who);
+        // A named divergence: theirs' `0a` is `0x8000000` alone; the
+        // crate's setup tree raises `0x4000000` too, which its first
+        // `calc_unit_stats` (the Bantu speed) needs.
         assert_eq!(
             f.map(|f| f & 0xc00_0000),
-            Some(0x800_0000),
-            "leader {who}: the setup's `0x8000000` alone, as theirs' `0a`"
+            Some(0xc00_0000),
+            "leader {who}: the setup's two bits, ours `0e` against theirs' `0a`"
         );
     }
     let tree = sim.tables.tech_tree.clone();

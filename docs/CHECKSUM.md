@@ -2885,17 +2885,18 @@ diff (`RECORD_PARTINGS`, `flags` byte 2): 101, leader 1, ours `80`, theirs `88`;
 whole after. Minted: run1586 (189) whole on leaders (leader 0's `00`|`08`). `PACKETS_SCORE` **467 → 482**: 15
 packets whole on leaders, 32 more on fewer ranges, none on more. 35 frames were left (item 4333, below).
 
-**Item 4333 emits the two stats bits** (`0x8000000` from `wall_stats_dirty`, `0x4000000` from `unit_stats_dirty`;
-both cleared at the live slot's step, `process_all:39`, `:43`, as the crate clears them). Two over-raises of
+**Item 4333 emits the two stats bits** (`wall_stats_dirty`, `unit_stats_dirty`; cleared at the slot's step,
+`process_all:39`, `:43`, as here). Two over-raises of
 `0x4000000` went with it. **The direction there: ours acted.** `gain_tech`'s unit arm raises it only for
 `is(MILITIA 0x42, 0)` (`6dd988`) and leaves past the tail (`:883`); 11884's Hoplites' successor parted, `07`|`03`.
-`Leader::init` lays the opening tree down without `gain_tech` (only a free epoch or Despotism calls it); frame 0
-parted, `0e`|`0a`. **run1578 23,965 → 23,999 of 24,000**; run1577 stays 119. The value diff (`RECORD_PARTINGS`, byte
-3, ours|theirs): 167 and 297 `02`|`0a`, 202 `03`|`0f`, 14312 `02`|`0e`, all whole; 0 goes from 16 ranges to 14,
-its flags range whole. run1591 and run1592 come out whole on leaders. `PACKETS_SCORE` stays 482. **Frame 0 alone is
-left**: the setup census's leaves (`defense`, `ally_mask`, `reg_cities[1]`, two `encrypt` words), 0 on ours, which
-theirs' setup `check_all` holds. Not established: which setup call takes that census. The arms and their mutants
-are item 4333's journal.
+Frame 0 parts the same way, `0e`|`0a`, and stays a **named divergence**: `Leader::init` lays the opening tree down
+without `gain_tech`, but keeping the bits off there took the crate's first `calc_unit_stats` away, and every Bantu
+lobby parted (the crate's opening units take the Bantu speed there). **run1578 23,965 → 23,999 of 24,000**; run1577
+stays 119. The value diff (`RECORD_PARTINGS`, byte 3, ours|theirs): 167 and 297 `02`|`0a`, 202 `03`|`0f`, 14312
+`02`|`0e`, all whole; 0 stays 16 ranges, its flags byte `02`|`0a` → `0e`|`0a`. run1591, run1592 whole on leaders; `PACKETS_SCORE` 482. **Frame 0 alone is
+left**: that byte, and the setup census's leaves (`defense`, `ally_mask`, `reg_cities[1]`, two `encrypt` words), 0 on ours, which
+theirs' setup `check_all` holds. Not established: which setup call takes that census. The rest is item 4333's
+journal.
 
 ## 25.5 How it was established, and what it has not established
 
