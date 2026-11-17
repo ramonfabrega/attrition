@@ -232,8 +232,17 @@ pub(crate) fn walk_take_from(
                 sequence = Some(*f);
             }
         }
-        if count.is_some() {
-            break;
+        // PROBE (item 4314): `RON_WALK_PAST=<n>` walks n frames past the
+        // count parting, for `RON_DEBUG_SITES`/`RON_DEBUG_UNIT` on ours.
+        if let Some(c) = count {
+            let past: i64 = std::env::var("RON_WALK_PAST")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0);
+            if n > c + past {
+                break;
+            }
+            continue;
         }
         let Some(at) = blocks.iter().position(|&b| b == n) else {
             continue;
