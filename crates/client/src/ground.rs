@@ -4676,7 +4676,7 @@ pub(crate) mod tests {
         let mut rows = [[[0u32; 2]; 2]; 2];
         for (arm, before) in [false, true].into_iter().enumerate() {
             p.world.objects_under_water = before;
-            let mut still = |p: &mut Probe, hidden: Vec<i32>| {
+            let still = |p: &mut Probe, hidden: Vec<i32>| {
                 p.world.hidden = hidden;
                 crate::still_of(
                     &mut p.world,
