@@ -18275,9 +18275,11 @@ past it is `1/133` on 3588, `move.dest`/`path:length` 14 against 26).
 run721's widening **482 → 394** keys; run714's baseline **139 → 121**
 (the shared census); ground-height reads on the prefix 97 → 99.
 
-**Not established.** Merchants' `reg_unpack_merch` should skip a packed
+**Not established.** ~~Merchants' `reg_unpack_merch` should skip a packed
 merchant by the same sweep arm (line 191 above); left as it was — no diff
-reaches it. Which unit spends the 3587 `do_move` draw is not named. The
+reaches it.~~ Built by item 4328: the census leaves a packed merchant out
+(`plan_strategy:654`–`660`), and the leaders line on run1578 moved
+19,006 → 23,594 of 24,000 frames (`docs/CHECKSUM.md` §25.4). Which unit spends the 3587 `do_move` draw is not named. The
 `fac` 235/245 residue is not chased. No new capture; runs 752–761 unused.
 
 ## 180. `find_path` moves a unit off a tile that refuses it, and the word moves to 3614 (2026-10-12, item 1667)

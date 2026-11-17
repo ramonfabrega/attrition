@@ -418,7 +418,7 @@ read** — fog hides them.
 | corner-cutting | `0x7fffffff` | §5.1 |
 | fleeing | `extra ×= 3` | `UnitData::is_fleeing`; reachable from the world-seen and tile branches only — never the fog branch or the unit grid (audit V5) |
 | no-rush timer | `+ 500` | `rr = rush_rules age ≠ 0`, current age < `rr`, (`rr < 9` **or** `frame < rush_rules[rr].+0x3c × 900` — the once-garbled clause, settled in the listing, audit V6), owner ≥ 0, not an ally; same two branches as fleeing |
-| diplomacy | `+ 5000` | (`army` or `worker`) and team-style rules: peace with the owner (styles 0/8/11), or style 2 and the owner is neither `who` nor `get_target(who)`; `0x300` only, and reachable from the **fog branch too** (audit V5) |
+| diplomacy | `+ 5000` | (`army` or `worker`) and team-style rules: peace with the owner (styles 0/8/11), or style 2 and the owner is neither `who` nor `get_target(who)`; `0x300` only, and reachable from the **fog branch too** (audit V5). **Built for styles 0/8/11** (item 4325): run1646's search on 3450 for the Russian citizen `2/116` is the original's step for step with it, 3,892 of 3,892 priced alike, and four steps 44/52 against 5044/5052 without it; style 2's arm is a seam (no capture is style 2) |
 | river cell | `base ×= 3` | `0x300` only, cell flags `& 0x100`, **skipped whenever `needs_transport > 0`** — a shoreline crossed in either direction, transporter or not (audit V20) |
 
 The `is_ocean` of the ocean and land rows — and of the entry block's
@@ -812,6 +812,8 @@ Four of the first reading's open items were **settled by the audit**
 (`rr < 9 ||`, V6), the region-crossing `avoid_land` store (V25) and the
 `vector_dist` operands (V26). Still open:
 
+- **The diplomacy wall's style-2 arm** (parked 4325a): any owner but the walker and its `LeaderData::get_target` pays
+  5000 under team style 2; not carried, and no capture on file is style 2 (§5's diplomacy row).
 - ~~**`toff` is not only a unit target's, and the simulation's zero is
   wrong.**~~ **Settled and implemented 2026-08-26** — §4.1 has the two
   vtable slots and their folded bodies, §7 the gate. It was never a

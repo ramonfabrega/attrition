@@ -1015,6 +1015,75 @@ fn the_no_rush_timer_charges_another_leader_s_cell_during_the_peace() {
     assert_eq!(cost(&sim), 32, "no rush rules");
 }
 
+/// §5's diplomacy wall (item 4325): under team styles 0, 8 and 11, an
+/// army's or a worker's world step into a cell whose owner it is at
+/// peace with costs 5000 more, seen or unseen; any other walker, its own
+/// cell, an enemy's, an ally's both ways, the tile grid, and style 1 pay
+/// nothing. run1646's Russian citizen `2/116` priced four steps 44 and 52
+/// without it and 5044 and 5052 in the original.
+#[test]
+fn the_diplomacy_wall_charges_a_peaceful_owner_s_cell_to_armies_and_workers() {
+    let mut sim = flat_sim(10);
+    let u = walker(&mut sim, Pos::new(0x180, 0x180));
+    let from = Pos::new(0x180, 0x180);
+    let to = Pos::new(0x180 + 0x300, 0x180);
+    let worker = Modes {
+        worker: true,
+        ..Modes::default()
+    };
+    let army = Modes {
+        army: true,
+        ..Modes::default()
+    };
+    let cost = |sim: &Sim, m: &Modes| sim.calc_cost(u, m, from, to, 4, STEP_WORLD, 2, 0, 1).0;
+    sim.ai.lobby.team_style = 0;
+    assert_eq!(cost(&sim, &worker), 32, "unowned");
+    sim.world
+        .set_owner(to.cell(), Owner::Player(0), Owner::None);
+    assert_eq!(cost(&sim, &worker), 32, "its own leader's");
+    sim.world
+        .set_owner(to.cell(), Owner::Player(1), Owner::None);
+    assert_eq!(
+        cost(&sim, &worker),
+        5032,
+        "a worker into a peaceful owner's cell"
+    );
+    assert_eq!(
+        cost(&sim, &army),
+        5032,
+        "an army into a peaceful owner's cell"
+    );
+    assert_eq!(
+        cost(&sim, &Modes::default()),
+        32,
+        "neither an army nor a worker"
+    );
+    let tile_to = Pos::new(0x180 + 0xc0, 0x180);
+    sim.world
+        .set_owner(tile_to.cell(), Owner::Player(1), Owner::None);
+    assert!(
+        sim.calc_cost(u, &worker, from, tile_to, 4, STEP_TILE, 2, 0, 1)
+            .0
+            < 5000,
+        "the tile grid"
+    );
+    sim.ai.lobby.team_style = 8;
+    assert_eq!(cost(&sim, &worker), 5032, "style 8");
+    sim.ai.lobby.team_style = 0xb;
+    assert_eq!(cost(&sim, &worker), 5032, "style 11");
+    sim.ai.lobby.team_style = 1;
+    assert_eq!(cost(&sim, &worker), 32, "style 1");
+    sim.ai.lobby.team_style = 0;
+    sim.leaders.allied[0][1] = true;
+    sim.leaders.allied[1][0] = true;
+    assert_eq!(cost(&sim, &worker), 32, "an ally both ways");
+    sim.leaders.allied[0][1] = false;
+    sim.leaders.allied[1][0] = false;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
+    assert_eq!(cost(&sim, &worker), 36, "an enemy's cell: the +4, no wall");
+}
+
 /// §5's terrain term: `+20 × WData.blocked`, the `+100000` at 13, and
 /// an army's `+10000` at 5. None of it fires on a flat world, which is
 /// why it sat behind a seam for so long; all of it fires the moment a
