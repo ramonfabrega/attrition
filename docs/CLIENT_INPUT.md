@@ -3413,7 +3413,8 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   the tribe's grafts (`tribe_can_type`), `check_predecessor` and the age, and greys some. A recorded order is one
   the original offered then, so the census and the count need only the static roster. Since item 4305 a row
   counts the gap, `PANEL_LEADER` (§32.4); since item 4315 `Roster::offered` reads `check_predecessor` for the
-  walked row, since item 4321 the rest of the train loop (§32.4), and the HUD does not yet ask it.
+  walked row, since item 4321 the rest of the train loop, since item 4323 the research loop (§32.4),
+  and the HUD does not yet ask it.
 - **The pages.** The original splits the citizen's buildings over three pages (`OPTION_BUILD`,
   `OPTION_BUILD_MILITARY`, `OPTION_BUILD_WONDER`, by `+0x14`). Ours is one page. Any unit selection offers it,
   where the original offers it to a citizen.
@@ -3431,8 +3432,9 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   `queue_up(t, 1)` behind the selection's group, and that a held key's count past one never occurs on disk.
 - **Not established**: the build pages' `objmask & 0x4000000` arm, the leader's mask at `+0x6d00`, and `has_tech`
   of `+0x4c`. All 15 recorded types pass without them.
-- **Not established**: the research loop's fallback through the building's `+0x44` (its upgrade), and the spells'
-  research loop (`0x275..0x2ac`). No recorded `queue_up` is a spell.
+- **Not established**: ~~the research loop's fallback through the building's `+0x44` (its upgrade)~~ (built
+  from the reading in item 4323, below, and exercised by no packet), and the spells' research loop
+  (`0x275..0x2ac`). No recorded `queue_up` is a spell.
 - **Not played**: no playback was owed. A `queue_up` is a kind the original has played from a minted file since
   item 4195, and run1630 is unused.
 - **The oracle of the panel, and its row** (item 4305). No logger prints a panel, so the original's is run:
@@ -3445,6 +3447,41 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   `[77, 104, 127, 131, 141]`, slot 2's (tribe 13) `[77, 108, 127, 131, 141]`, and two of slot 2's three
   nothing. Ours offers each of them 118. So one type a line at the leader's age, the tribe's graft in place of
   the line's type, and the building's own state all show.
+- **The research loop, and the panel whole on our walk** (item 4323). `Roster::offered` now runs
+  `make_options`' research loop over `BASE_AGETYPES..0x275` (the export's lines 1063 to 1211) and the
+  Library's tail after it. The loop is three passes (`local_c` 0, 1, 2) that differ only in which
+  value of the arm's flags each adds and in `disable`; every type that reaches the add is added in exactly
+  one pass, so the set is the one pass below. For each technology `t`: held (`has_tech`) and queued here
+  (`queue_here`), it is offered only for a government (`TypeData::is_gov_type@004706a0`, `0x26e < t <
+  0x275`), greyed; else `researching` anywhere drops it; else, with `avail = type_avail(t, 1)`, a `t` not
+  queued here is offered only when the building's `upgrade` (`+0x44`, through `get_graft`) queues it, and
+  at `avail` 0 only with `show[0]` or `show[1]` held; then `avail` under 2 asks `show[0]` or `show[1]`
+  held, or `BuildData::show_later_tech@0062d920` to depth 5, and of a government `type_eligible(t, 1)`.
+  `show[2]` is the tech's `SHOW0`/`SHOW1` (`TechType::init@0066c7b0` writes them through `tech_key` into
+  `+0x50` and `+0x54`; `types.txt` names `TypeData::show[2]`), now loaded as
+  `rondata::load::Loaded::tech_show`. `show_later_tech` answers no when the game's `ending_technology` is
+  below the tech's `AGE` (`+0x1c8`), or when a prerequisite (`get_preq(i, who)`) is disabled, or unheld
+  and queued here, or unheld and made at the Library (`where` is `0x1b3`), or unheld past the depth;
+  otherwise yes. **The Library's tail**: a building that `is(LIBRARY)` is given every age and epoch
+  `0x220..0x243` its panel does not already hold, `disable` 1. This is where the Library's 35 come from
+  and why the finals (`BASE_FINALTYPES` 579 to 582) are not among them. No sim change: `SHOW0`/`SHOW1`
+  are loaded by `rondata` and read only by the client.
+- **The count** (`PANEL_LEADER_WALKED`): **(69, 103, 1238, 1238, 1373) → (103, 103, 1238, 1238, 1238)**.
+  Every building's panel on our walk of the sixteen packets equals the original's, and ours offers no
+  type theirs does not. Seen red at the old pin. The value diff: each Library on every packet
+  `[544..=578]` on both sides, ours no longer offers 579 to 582; on 7195 the 439 (2017) `[66, 596]` on
+  both sides, 597 to 599 gone; the 420 (2018) `[52, 615]` on both sides, 616 to 619 gone. **Which arm
+  decides what** (each perturbed alone): with `show_later_tech` answering yes the row falls back to (69,
+  103, 1238, 1238, 1373), all 34 parted again, so its *no* is what drops the finals and the line's later
+  techs; with it answering no the row is unchanged, so its *yes* arm is not exercised. Without `show[2]`:
+  (102, 103, 1237, 1238, 1237), only the 420's 615 lost, which its `SHOW` tech, held, offers. Without the
+  Library's tail: (71, 103, 265, 1238, 265), every Library's ages and epochs but the loop's own few lost.
+  Without the `avail < 2` gate: (69, …, 1373).
+- **Not established, after item 4323**: the building `upgrade` arm, the government arm and `avail` 1
+  (the flag 8) are built from the reading and untested by any packet; `is_gov_type` is taken as the base
+  `TypeData`'s (the call is through vtable `+0x2c`, and no `TechType` override was read); `researching`
+  is the sim's queued count, where the original walks active buildings' queues; and `disable`, which the
+  three passes decide (`local_10`, or any flag set), is not counted. run1640 stays apart.
 - **The row over the held packets, and the first predicate** (item 4315). `panels.py` ran on all sixteen of
   the minted game's packets (TSVs `~/ron-data/panels/run1579-1.tsv` to `run1600-7195.tsv`; run1591 re-ran
   byte-identical to item 4305's). `PANEL_LEADER` is re-minted over them, **(0, 110, 1238, 1238, 1945)**, and

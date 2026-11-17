@@ -1221,10 +1221,10 @@ pub struct Input {
 
 /// **The panel's roster** (item 4290, `docs/CLIENT_INPUT.md` §32): the
 /// buttons the original's panels offer, read from the type tables with
-/// the panels' static predicates; the leader's (`type_eligible`,
-/// `type_avail`, the tribe's grafts, the age) are not read, so a panel
-/// here offers every type its building may ever queue. Ours, not the
-/// original's: which of them the original shows on a given frame.
+/// the panels' static predicates, so [`Roster::trains`] offers every type
+/// its building may ever queue. [`Roster::offered`] runs the leader's
+/// (items 4315, 4321 and 4323) for the walked row; the HUD does not yet
+/// ask it.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Roster {
     /// Per building type (an index into the building types), the
@@ -1304,8 +1304,9 @@ impl Roster {
     ///    unless `researching`; 4 offers training unless `unit_flags &
     ///    0x8000`.
     ///
-    /// The technologies' loop and `disable` are not read yet, and the HUD
-    /// does not ask it: the row's instrument until the filter is whole.
+    /// Then the technologies, [`Roster::researched`] (item 4323). `disable`
+    /// is not read yet, and the HUD does not ask it: the row's instrument
+    /// until the filter is whole.
     #[cfg(test)]
     pub fn offered(&self, sim: &sim::Sim, who: usize, building: i32, active: bool) -> Vec<i32> {
         use rondata::load::{BASE_BUILDTYPES, BASE_UNITTYPES};
