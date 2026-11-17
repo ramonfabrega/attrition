@@ -960,6 +960,12 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
 pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] = &[
     ("run1575", 1090, "the diplomacy take (1099 computed)", 1150),
     ("run1629", 1190, "the attack deal's take (item 4298)", 1300),
+    (
+        "run1645",
+        1000,
+        "the reseated taunt's take (item 4313)",
+        1100,
+    ),
 ];
 
 /// The census's counts: `(packets on disk, held by a word's walk, by a
@@ -972,7 +978,8 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] = &[
 // Item 4277: run1615's at 6865 and run1615b's at 6869 named, not held, (114, …, 6).
 // Item 4300a: run1640's packet at 6079 named, not held, (115, …, 7).
 // Item 4298: run1629's packet at 1190 held by its take, (116, …, 2, 7).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (116, 87, 7, 12, 1, 2, 7);
+// Item 4313: run1645's packet at 1000 held by its take, (117, …, 3, 7).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (117, 87, 7, 12, 1, 3, 7);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.
@@ -5669,4 +5676,116 @@ fn run1629_take_packet() {
         "run1629: the leaders line's leaves parting outside LEADERS_HELD_OUT"
     );
     hold_witnesses(w, &held, TAKE1629_RELEASED);
+}
+
+/// run1645's packet at 1000, pinned as found (item 4313): each line's (the
+/// stream's ranges, ours, ranges parted), our walk the reseated take's
+/// ([`run1645_take_packet`]). Walked from the capture's lobby built, with
+/// no start dump and no correction: the units, builds, groups, guys and
+/// world lines part on 1, 4, 2, 1 and 1 ranges, and the leaders line on 6
+/// of 403, each leader's long range, on the three leaves of
+/// [`TAKE1645_LEAF_PARTINGS`].
+const TAKE1645_PINNED: Pinned = (
+    "run1645",
+    1000,
+    [
+        (3750, 3750, 1),
+        (2024, 2024, 4),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (556, 556, 2),
+        (1261, 1261, 1),
+        (403, 403, 6),
+        (9, 9, 0),
+        (30, 30, 0),
+        (405, 405, 0),
+        (8981, 8981, 1),
+    ],
+);
+
+/// The leaves of run1645's leaders line that part outside
+/// [`LEADERS_HELD_OUT`] at 1000, as found: `diplos` on slots 3..7 and
+/// `flags.leader_flags`' high bits, as on the two take packets before
+/// ([`TAKE_LEAF_PARTINGS`]), and **`ally_mask`**, the French theirs 3 ours 1:
+/// the alliance of 903 still stands at the packet, and the two bits
+/// `Leader::set_diplo@006ec6a0` and `Leader::plan_strategy@006b9620:205`
+/// give an allied leader under `ALLY_LOS` or `reveal_map` are not carried
+/// (item 4313's journal, parked 4313a). `cities_built`, which parts on both
+/// take packets before, agrees here.
+const TAKE1645_LEAF_PARTINGS: &str = "ally_mask diplos flags.leader_flags";
+
+/// **The leaf the reseated taunt's packet releases** (item 4313;
+/// `docs/DECISIONS.md` entry 131 §1): `incoming_taunt_who`, written on 906
+/// by the French `Leader::receive_taunt` from the human seated at who 1
+/// (`--human-who 1`), off its seated image (0) on the packet, ours equal
+/// ([`hold_witnesses`]).
+pub(super) const TAKE1645_RELEASED: &[(&str, &str, i16)] = &[
+    // The French (who 0): the ring's first cell holds the sender, 1.
+    ("incoming_taunt_who", "run1645", 0),
+];
+
+/// **run1645's packet at 1000, held by the reseated taunt's take** (item
+/// 4313): the take's walk (`diff::diplomacy_take::stand_up_reseated`: the
+/// capture's own lobby built, the human at who 1, `taunt4313.cmd` staged
+/// from the console's seat, the chat minted from it) ticked to the
+/// packet's frame, its twelve lines against the instrument's stream. Off
+/// the scoreboard ([`TAKES_HELD`]). Nothing is staged off the record: the
+/// take has no window command, and the French answer of 966 is their
+/// drain's.
+#[test]
+fn run1645_take_packet() {
+    use crate::diff::diplomacy_take as take;
+    let (run, frame, name, length) = TAKES_HELD[2];
+    let Some(taunts) = take::script_taunts_from("taunt4313.cmd", take::RESEATED_HUMAN) else {
+        eprintln!("skipping: no install");
+        return;
+    };
+    let Some(walked) = walk_packets_with(name, length, &[(run, frame)], &mut |frames, probe| {
+        let script = take::coverage_script("taunt4313.cmd");
+        let (_, mut built) = take::stand_up_reseated(take::RUN1645, script)?;
+        for &f in frames {
+            while built.sim.frame < f {
+                take::stage_frame(&mut built, 3, &[], &[], &taunts);
+                built.tick();
+            }
+            probe(f, &built);
+        }
+        Some(())
+    }) else {
+        return;
+    };
+    let w = &walked[0];
+    let held: std::collections::BTreeSet<&str> = LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
+    for (n, l) in STATE_LINES.iter().zip(&w.lines) {
+        if let Some(f) = &l.first {
+            eprintln!(
+                "  {n}: {} of {} ranges part; first range {} record {} {}",
+                l.parted, l.theirs, f.0, f.1, f.2
+            );
+        }
+    }
+    for (slot, field, leaf, ours, t, _) in &w.leaves {
+        if ours.as_ref() != Some(t) {
+            eprintln!(
+                "LEAF\t{slot}\t{}\t{}\t{}",
+                leader_held_name(field, leaf, ours.is_none()),
+                leaf_text(t),
+                ours.as_deref().map_or("-".into(), leaf_text)
+            );
+        }
+    }
+    eprintln!("PIN\t(\"{}\", {}, {:?}),", w.run, w.frame, pin_of(&w.lines));
+    eprintln!("EXTRA\t{}", extra_leaves(w, &held));
+    assert_eq!(
+        (TAKE1645_PINNED.0, TAKE1645_PINNED.1, TAKE1645_PINNED.2),
+        (w.run, w.frame, pin_of(&w.lines)),
+        "run1645: each line's (the stream's ranges, ours, ranges parted)"
+    );
+    assert_eq!(
+        extra_leaves(w, &held),
+        TAKE1645_LEAF_PARTINGS,
+        "run1645: the leaders line's leaves parting outside LEADERS_HELD_OUT"
+    );
+    hold_witnesses(w, &held, TAKE1645_RELEASED);
 }

@@ -44,12 +44,15 @@ const RING: usize = 8;
 /// the ring (`incoming_taunt`, `incoming_taunt_frame`, `incoming`), written
 /// on 906 and 966 and witnessed on run1575's packet at 1090, which our walk
 /// holds unstaged since step VII-c computes the accept of 1027.
-/// `incoming_taunt_who` is held and stays off the line: the only sender any
-/// capture holds is who 0, the reset value (`docs/LEADERS.md` §9.5).
-pub const TAUNT_LEAVES: [&str; 5] = [
+/// `incoming_taunt_who`, the ring's senders, joins them at item 4313: every
+/// sender before was who 0, the reset value, and run1645 seats the human at
+/// who 1, whose `NEED_FOOD` the French ring holds as 1 on its packet at 1000
+/// (`docs/LEADERS.md` §9.3).
+pub const TAUNT_LEAVES: [&str; 6] = [
     "last_taunt",
     "taunt_frame",
     "incoming_taunt",
+    "incoming_taunt_who",
     "incoming_taunt_frame",
     "incoming",
 ];

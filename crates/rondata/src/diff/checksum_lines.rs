@@ -2149,10 +2149,18 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 0, 58343);
 /// `hire_stamp[2]` 1186, `hire_who[2]` 1, `tributes[2]` 640, the French
 /// `hire_stamp[2]` 1186, `hire_who[2]` 0); and its packet at 1190 holds the
 /// three off their seated image, ours equal (`packets::TAKE1629_RELEASED`).
-pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
-    ("incoming_taunt_who (unheld)", 2),
-    ("tribute_demanded (unheld)", 2),
-];
+///
+/// Item 4313, the reseated taunt: 2 → 1 name, `incoming_taunt_who`,
+/// agreeing on frame 91 (0 per cell). Released by entry 131 §1: a walk we
+/// compute moves it. run1645 (run1575's lobby with the human seated at who
+/// 1, `unattended_capture.py --human-who 1`; the French allied from the
+/// console and sent a `NEED_FOOD` on 905) is walked whole to 1100 from the
+/// capture's own lobby built, every diplomacy leaf against its record on
+/// every block, none parting (`diplomacy_take::run1645_s_word_is_pinned_as_found`);
+/// its packet at 1000 holds the French ring's first sender 1 — the human's
+/// `who`, off the reset 0 every walked sender at who 0 left — ours equal
+/// (`packets::TAKE1645_RELEASED`).
+pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[("tribute_demanded (unheld)", 2)];
 
 /// The long range's leaves the test bends, one of each kind carried
 /// (`docs/CHECKSUM.md` §20).

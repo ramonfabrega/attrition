@@ -202,6 +202,12 @@ pub struct Script {
     /// is staged as `be N` and the `@` line on one frame and `be 0` on the
     /// next.
     seat: i32,
+    /// **The console's own seat at launch**, `MiscAccess::console->who`
+    /// before any `be`: who 0 in every lobby but a reseated one (item
+    /// 4313: `--human-who 1` seats the human at who 1, and `run_cmd`'s
+    /// cheats default to and act from that seat). [`Script::seated_at`]
+    /// sets it.
+    home: i32,
     /// The console's selection, `(who, o)` pairs, which `select` sets and
     /// `finish` reads (item 2474).
     selected: Vec<(i32, i16)>,
@@ -214,6 +220,18 @@ pub struct Script {
 }
 
 impl Script {
+    /// The script played from `who`'s seat (item 4313): a lobby whose
+    /// human sits off who 0 (`unattended_capture.py --human-who`), where
+    /// `MiscAccess::console->who` is `who` — the seat an issuer line must
+    /// name, and the one `run_cmd`'s cheats act from (`ConsoleWin::run_cmd
+    /// @007d6a70`: `Leader::set_diplo(leaders.list + console->who, w, ·)`
+    /// for `ally`, `Leader::treaty_on(…)` for `meet`) and default to.
+    pub fn seated_at(mut self, who: i32) -> Script {
+        self.seat = who;
+        self.home = who;
+        self
+    }
+
     /// Parses a `rontrace.cmd`. Unreadable lines are dropped the way the
     /// tracer drops them; the frame is clamped upward to its predecessor's.
     pub fn parse(text: &str) -> Script {
@@ -259,6 +277,7 @@ impl Script {
             next: 0,
             pending: Vec::new(),
             seat: CONSOLE_WHO,
+            home: CONSOLE_WHO,
             selected: Vec::new(),
             binds,
         }
@@ -490,11 +509,18 @@ impl Script {
             }
             // Every other cheat reads `console->who` for its default
             // player, and this interpreter's defaults are player 0's.
-            if self.seat != CONSOLE_WHO {
+            if self.seat != self.home {
                 done.skip(&command_word(&line.text), "a cheat under another seat");
                 continue;
             }
-            run(&line, built, loaded, &mut done, &mut self.selected);
+            run(
+                &line,
+                self.home,
+                built,
+                loaded,
+                &mut done,
+                &mut self.selected,
+            );
         }
         done
     }
@@ -1846,7 +1872,14 @@ fn parse_pos(tok: &str) -> Option<Pos> {
 /// staged game is played from. Every capture so far is player 0's.
 const CONSOLE_WHO: i32 = 0;
 
+#[cfg(test)]
 fn parse(text: &str) -> Cheat {
+    parse_as(text, CONSOLE_WHO)
+}
+
+/// [`parse`] from `console`'s seat: every default player is
+/// `console->who` (item 4313).
+fn parse_as(text: &str, console: i32) -> Cheat {
     let mut tok = text.split_whitespace();
     let word = tok.next().unwrap_or("").to_ascii_lowercase();
     let rest: Vec<&str> = tok.collect();
@@ -1857,7 +1890,7 @@ fn parse(text: &str) -> Cheat {
     // both read; `age 3` is player 0's.
     let level_and_who = |rest: &[&str]| -> Option<(i32, i32)> {
         let mut it = rest.iter();
-        let mut who = CONSOLE_WHO;
+        let mut who = console;
         let mut head = it.next()?;
         if let Some(w) = parse_who(head, false) {
             who = w;
@@ -1872,7 +1905,7 @@ fn parse(text: &str) -> Cheat {
     let who_of = |rest: &[&str]| -> i32 {
         rest.iter()
             .find_map(|t| parse_who(t, false))
-            .unwrap_or(CONSOLE_WHO)
+            .unwrap_or(console)
     };
     match word.as_str() {
         "ai" => Cheat::Ai(
@@ -1933,7 +1966,7 @@ fn parse(text: &str) -> Cheat {
             who: rest
                 .first()
                 .and_then(|t| parse_who(t, true))
-                .unwrap_or(CONSOLE_WHO),
+                .unwrap_or(console),
             human: word == "human",
         },
         "eval" => match parse_create_unit(&rest.join(" ")) {
@@ -1968,7 +2001,7 @@ fn parse(text: &str) -> Cheat {
             let who = rest
                 .first()
                 .and_then(|t| parse_who(t, true))
-                .unwrap_or(CONSOLE_WHO);
+                .unwrap_or(console);
             let named = rest.iter().find(|t| {
                 !t.starts_with("who=")
                     && !t.eq_ignore_ascii_case("on")
@@ -1999,7 +2032,7 @@ fn parse(text: &str) -> Cheat {
                 who: rest
                     .get(1)
                     .and_then(|t| parse_who(t, true))
-                    .unwrap_or(CONSOLE_WHO),
+                    .unwrap_or(console),
                 o,
             },
             None => Cheat::Unmapped(word),
@@ -2010,7 +2043,7 @@ fn parse(text: &str) -> Cheat {
             Some(t) => {
                 let (o, who) = t.split_once(',').unwrap_or((t, ""));
                 let who = match who {
-                    "" => Some(CONSOLE_WHO),
+                    "" => Some(console),
                     w => parse_who(w, true),
                 };
                 match (o.parse::<i16>().ok(), who) {
@@ -2032,7 +2065,7 @@ fn parse(text: &str) -> Cheat {
                     it.next();
                     w
                 }
-                None => CONSOLE_WHO,
+                None => console,
             };
             let Some(head) = it.next() else {
                 return Cheat::Unmapped(word);
@@ -2098,6 +2131,7 @@ pub const STAGED_CURSOR: Pos = Pos { x: 0, y: 6 };
 
 fn run(
     line: &Staged,
+    console: i32,
     built: &mut Built,
     loaded: &Loaded,
     done: &mut Applied,
@@ -2115,7 +2149,7 @@ fn run(
         done.skip(&word, "the wrong half of run_cmd's two switches");
         return;
     }
-    match parse(&line.text) {
+    match parse_as(&line.text, console) {
         Cheat::Ai(state) => {
             built.sim.ai.ai_off = state.map_or(!built.sim.ai.ai_off, |on| !on);
             done.ran += 1;
@@ -2151,7 +2185,7 @@ fn run(
                 done.skip(&word, "the bare form prints the table and changes nothing");
                 return;
             };
-            let me = CONSOLE_WHO as sim::Player;
+            let me = console as sim::Player;
             let live: Vec<sim::Player> = (0..built.sim.territory.players.len() as sim::Player)
                 .filter(|&w| w != me)
                 .collect();
@@ -2169,7 +2203,7 @@ fn run(
                 done.skip(&word, "the bare form prints the table and changes nothing");
                 return;
             };
-            let me = CONSOLE_WHO as sim::Player;
+            let me = console as sim::Player;
             let n = built.sim.territory.players.len() as sim::Player;
             let whom: Vec<sim::Player> = match target {
                 Target::All => (0..n).filter(|&w| w != me).collect(),
@@ -3613,6 +3647,23 @@ mod tests {
             }
         );
         assert_eq!(parse("meet"), Cheat::Meet { target: None });
+        // Item 4313: from a reseated console (who 1) a bare player is still
+        // a `who`, and a default player is the console's.
+        assert_eq!(
+            parse_as("ally 0", 1),
+            Cheat::Diplo {
+                level: 2,
+                target: Some(Target::Who(0))
+            }
+        );
+        assert_eq!(
+            parse_as("resource all 5", 1),
+            Cheat::Resource {
+                who: 1,
+                good: None,
+                amount: 5
+            }
+        );
         assert_eq!(parse("meet x"), Cheat::Unmapped("meet".into()));
     }
 

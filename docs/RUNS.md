@@ -38149,3 +38149,49 @@ RON_STATE_FRAME=6079 --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab
 **What it holds**: the French pass at the human, emulated (`step4.py` on the packet, `game->frame` poked to 6080, the tick
 whose cadence fires for `k` 0). It names the war branch: local `-0x30`. The journal has the branch log
 (`docs/journal/2026-11-16-item-4300-second-act.md`). No walk holds it.
+
+## run1644 — the reseated taunt's take, first launch: dead at launch, no receipt (2026-11-16, item 4313, `att-4313`)
+
+`docs/LEADERS.md` §9.3. run1645's line, below, as first launched at 19:33:59 −05:00. Pool lane 1. **The first launch
+died 1.0 s in with exit 1**: `wine-died.log` gives `could not load ntdll.so … code signature … not valid for use in
+process: library load denied by system policy`. `codesign -v` read the same `ntdll.so` as valid on disk minutes later.
+The pool retook it once (`exit_before_frame_zero`). The retake logged `Unhandled page fault on read access to 00000000
+at address 00A2C457` and `The graphics driver is missing`. Then `autostart_receipt.py` refused it ("extra lifecycle or
+fault records"), with a traceback and no receipt: a dead take (1503). Nothing is filed. The evidence stays under
+`~/ron-golden/run1644/map-18/` (`wine-died.log`, `wine.log`, `receipt.json`). This is the day's second launch death after
+recon4299-1's exit 137. It went to the driver at once, and the driver held further captures for Ramon.
+
+## run1645 — the reseated taunt's take: the human at who 1 allies the French and sends `NEED_FOOD`, with a packet at 1000 (2026-11-16, item 4313, `att-4313`)
+
+`docs/LEADERS.md` §9.3. **What the disk could not answer**: every walked taunt's sender is who 0, the reset of
+`incoming_taunt_who`, so no dump or packet on disk holds the ring's sender off its reset. Item 4299's recon4299-1
+(unfiled) seated the human at who 1 with no script. The line: `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1645 --map 18 --end-frame 1100 --timeout 1800 --stall-seconds 300 --ffwd-minute 1 --profile PLAYERS=2
+--profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile TEAM_STYLE=0
+--profile DIFFICULTY=0 --seat-tribe 1=10 --seat-tribe 2=13 --human-who 1 --log-window 896 1101 --detail
+end:MISC,LEADERS=9 --detail misc:COMMANDMANAGER=1 --bindkey OPTION_CHAT_ALLIES=125 --cmd-file
+tools/gamelog/coverage/taunt4313.cmd --cursor 1400,1000 --cover cover=1 --tracer-def RON_STATE_FRAME=1000 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`. `taunt4313.cmd` is
+`diplomacy4206.cmd` through 905 with the whos moved: `900 meet who=0`, `901 resource who=1 all +100000`, `902 ally 0`,
+then the chat. The script was committed before the capture.
+- Pool lane 1, seed 12345, `MAP_STYLE 18`. PLAYER records: who 1 (flags 7, tribe 4, the human), who 0 (flags 1, tribe
+  10, the French), who 2 (flags 1, tribe 13). Launched 19:35:36 −05:00, exited 19:36:10: **33.3 s launch to exit**,
+  exit 0, `success`, 1,101 frames, `last_frame` 1100, no page fault, no relaunch, **no kill**. DLL `973aa6b5…`. 180 GB
+  free before. Minutes waited on another lane: none.
+- **The movers** (the record, level 9, 896..1100): `treaties` 0 → 1 between who 0 and 1 on 901, and `diplos` 1 → 2 on
+  903. On 967 the French `gift_stamp[1]` 966, `last_taunt[1]` 1 and `taunt_frame[1]` 966, and the human's
+  `tribute_stamp[0]` 966. No `process_*` line is printed, since the take has no window command.
+- **The packet** is `~/ron-golden/run1645/map-18/frame-snapshot.bin`, 911,479,116 bytes, logger frame 1000, trace frame
+  999. SHA-256 is `718e281198c5053b25d62996d2518afb06552b5e5d8751f7d0a43a336c6db6a6`. `frame_snapshot.py` against item
+  597's plan validates it. `tools/recomp/checksum.py --stream --values` on it
+  (`~/ron-data/lab-experiments/2026-11-12-item-4188/run1645/`): its stream sums equal the original's on all fifteen
+  lines. The French `incoming_taunt_who[0]` reads **1**.
+- Filed with `filerun.py run1645 eastindies-melee-style0-reseated-taunt-take-packet-1000`. run1646 was not used.
+
+Archive `gamelog-run1645-eastindies-melee-style0-reseated-taunt-take-packet-1000.txt`, 371,866,648 bytes, SHA-256
+`723ffdeffc071f35bbaa590f65e9b35b395668f81ce72e4f159fe7872809ba47`; `rontrace-run1645.log`, 18,830,816 bytes, SHA-256
+`a999c657d89246972249535aab16c7da269b3403d7e7a7462a8579592fab1c62`.
+
+**What it holds**: `diff::diplomacy_take`. Our walk from the capture's own lobby built, with the human at who 1 and the
+script staged from that seat, holds the take whole: **1100 of 1100**, with 53,505 diplomacy leaf rows agreeing. Its packet
+is a take's (`packets::TAKES_HELD`), and it releases `incoming_taunt_who` (item 4313).
