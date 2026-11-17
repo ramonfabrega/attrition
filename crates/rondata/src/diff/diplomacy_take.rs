@@ -2040,6 +2040,57 @@ fn recon4300_2_walks_to_its_word_at_difficulty_4() {
     );
 }
 
+/// **run1646, the demand's game** (item 4316, `docs/RUNS.md` run1646,
+/// `docs/DECISIONS.md` entry 138 §1): recon4316-1 filed as is, run1575's
+/// lobby at `DIFFICULTY 4` with `alliance4316.cmd` (the French met on 900,
+/// the human's stock lifted on 901, the alliance on 902). Read where it was
+/// taken, under `RON_GOLDEN_DIR` (default `~/ron-golden`), as run1628 is.
+pub(crate) fn run1646() -> Option<(String, String)> {
+    let home = std::env::var("HOME").ok()?;
+    let dir = std::env::var("RON_GOLDEN_DIR").unwrap_or(format!("{home}/ron-golden"));
+    let map = format!("{dir}/recon4316-1/map-18");
+    let (g, t) = (format!("{map}/gamelog.txt"), format!("{map}/rontrace.log"));
+    (std::path::Path::new(&g).is_file() && std::path::Path::new(&t).is_file()).then_some((g, t))
+}
+
+/// run1646's word at `DIFFICULTY 4` (item 4316): 2082 on the base, where
+/// the French second caravan's road ran to the human's capital in ours and
+/// to their own city 2020 in theirs; 2185 with the partner gated on
+/// `has_preq(BASE_BONUSTYPES)` (`docs/CARAVAN.md` §4), where the third
+/// caravan took the capital as its home in ours; **3037** with
+/// `FILTER_CAN_TRADE`'s gate too (`0067e285`). On 3037 theirs' first road
+/// search is the French building 2019's to its city (546 nodes) and ours'
+/// is a Russian building's: ours 347 draws, theirs 893, at index 340.
+pub(crate) const RUN1646_WORD: i64 = 3037;
+
+/// **run1646 walks to [`RUN1646_WORD`]**, its head word agreeing on every
+/// frame walked, with the alliance staged off `alliance4316.cmd`. The
+/// comparison can fail: without either `BASE_BONUSTYPES` gate the French
+/// caravans pair with the allied human and the walk falls to 2082 or 2185.
+#[test]
+fn run1646_walks_to_its_word_at_difficulty_4() {
+    let _pins = Pins::hold();
+    let Some((g, t)) = run1646() else {
+        eprintln!("skipping: no recon4316-1 under RON_GOLDEN_DIR (run1646)");
+        return;
+    };
+    let script = coverage_script("alliance4316.cmd");
+    let Some(w) = walk_recon4300((&g, &t), "4", script) else {
+        return;
+    };
+    report(&g, &w);
+    pin_eq!(
+        (w.count, w.sequence),
+        (RUN1646_WORD, RUN1646_WORD),
+        "run1646's word at DIFFICULTY 4"
+    );
+    pin_eq!(
+        w.seed,
+        None,
+        "run1646's head word parts nowhere before its word"
+    );
+}
+
 /// **Item 4299's first act, a probe**: an unfiled recon of run1575's lobby
 /// with the human seated at who 1 (`unattended_capture.py --human-who 1`,
 /// `--dump-all-start`, no command script), walked twice against its own
