@@ -149,10 +149,24 @@ fn the_hook_s_values_are_the_printed_record_s() {
     assert_eq!(seen, HOOK_RECORDS, "the hook against the records");
 }
 
-/// The lines our walk emits, by [`CHECKSUM_LINES`] index: walls, ammo and
-/// deaths have no emitter, and rules and the two script lines are not the
-/// simulation's (`docs/DECISIONS.md` entry 119).
-const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
+/// The lines our walk emits, by [`CHECKSUM_LINES`] index: the twelve state
+/// lines. Rules and the two script lines are not the simulation's
+/// (`docs/DECISIONS.md` entry 119). Walls, ammo and deaths (2, 3, 4) are
+/// emitted as the empty walk's Adler alone and refuse a frame that holds an
+/// element ([`empty_walk`]; item 4355): their record shapes are a reading.
+const EMITTED: [usize; 12] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+/// **The three empty lines' emitter** (item 4355, `docs/CHECKSUM.md` §8):
+/// the Adler of no bytes where our walk holds no element of the line, and
+/// `None` — a refusal, which the score counts as a parting — where it
+/// holds one, since no record shape is emitted. Never
+/// [`packets::our_lines`]' three `Line::default()`s, which read 1 whatever
+/// the walk holds.
+///
+/// [`packets::our_lines`]: super::checksum_lines::packets::our_lines
+fn empty_walk(held: usize) -> Option<u32> {
+    (held == 0).then(|| sim::checksum::Line::default().adler())
+}
 
 /// **The score, `Checksum: frames`**, per take: `(trace, frames walked,
 /// per emitted line (line, the first of our walk's frames whose Adler parts
@@ -336,7 +350,7 @@ const EMITTED: [usize; 9] = [0, 1, 5, 6, 7, 8, 9, 10, 11];
 /// 142 → 4 (0, 167, 202, 297), `Unit::think`'s citizen bit (`0x80000`)
 /// emitted; 167, 202 and 297 part on byte 3 alone, `0x8000000` and
 /// `0x4000000`, which the `0x80000` parting had hidden.
-type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 9]);
+type FramesRow = (&'static str, i64, [(&'static str, i64, usize); 12]);
 const CHECKSUM_FRAMES: &[FramesRow] = &[
     (
         RUN1577_TRACE,
@@ -344,6 +358,10 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         [
             ("units", 120, 0),
             ("builds", 120, 0),
+            // Item 4355: emitted as the empty walk, none held on any frame.
+            ("walls", 120, 0),
+            ("ammo", 120, 0),
+            ("deaths", 120, 0),
             ("groups", 120, 0),
             ("guys", 120, 0),
             // Item 4340: whole (0 parted; it was frame 0 alone).
@@ -360,6 +378,10 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
         [
             ("units", 24000, 0),
             ("builds", 24000, 0),
+            // Item 4355: emitted as the empty walk, none held on any frame.
+            ("walls", 24000, 0),
+            ("ammo", 24000, 0),
+            ("deaths", 24000, 0),
             ("groups", 24000, 0),
             ("guys", 24000, 0),
             // Item 4333: inside 300, 4 → 1 (0 alone; 167, 202, 297 whole).
@@ -380,7 +402,7 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
 const DIAG: i64 = 300;
 
 /// The leaders line's place in [`EMITTED`].
-const LEADERS_K: usize = 4;
+const LEADERS_K: usize = 7;
 
 /// **Parity's leaders row** (item 4317, `docs/CHECKSUM.md` §25.4;
 /// `docs/DECISIONS.md` entry 138 §2): per take, `(trace, the frames on
@@ -450,35 +472,33 @@ const EMPTY_HELD: &[(&str, usize, usize)] =
 fn our_adlers(
     sim: &sim::Sim,
     pieces: &super::checksum_lines::packets::Pieces,
-    want: &[bool; 9],
-) -> [Option<u32>; 9] {
-    if want[1] {
-        let lines = super::checksum_lines::packets::our_lines(sim, pieces);
-        let mut out = [None; 9];
-        for (k, &i) in EMITTED.iter().enumerate() {
-            out[k] = want[k].then(|| lines[i].adler());
-        }
-        return out;
-    }
-    let mut out = [None; 9];
+    want: &[bool; 12],
+) -> [Option<Option<u32>>; 12] {
+    let h = held(sim);
+    let lines = want[1].then(|| super::checksum_lines::packets::our_lines(sim, pieces));
+    let mut out = [None; 12];
     for (k, &i) in EMITTED.iter().enumerate() {
         if !want[k] {
             continue;
         }
-        out[k] = Some(
-            match i {
-                0 => sim.checksum_units(),
-                5 => sim.checksum_groups(),
-                6 => sim.checksum_guys(),
-                7 => sim.checksum_leaders(),
-                8 => sim.checksum_cities(),
-                9 => sim.checksum_items(),
-                10 => sim.checksum_goods(),
-                11 => sim.checksum_world(),
-                _ => unreachable!("builds goes through our_lines"),
-            }
-            .adler(),
-        );
+        out[k] = Some(match (i, &lines) {
+            (2..=4, _) => empty_walk(h[i - 2]),
+            (_, Some(l)) => Some(l[i].adler()),
+            _ => Some(
+                match i {
+                    0 => sim.checksum_units(),
+                    5 => sim.checksum_groups(),
+                    6 => sim.checksum_guys(),
+                    7 => sim.checksum_leaders(),
+                    8 => sim.checksum_cities(),
+                    9 => sim.checksum_items(),
+                    10 => sim.checksum_goods(),
+                    11 => sim.checksum_world(),
+                    _ => unreachable!("builds goes through our_lines"),
+                }
+                .adler(),
+            ),
+        });
     }
     out
 }
@@ -506,7 +526,7 @@ fn first_partings(trace: &[Set], length: i64) -> Option<(Vec<LineWalk>, HeldWalk
     let mut first_held = None;
     while built.sim.frame < length {
         let f = built.sim.frame;
-        let want: [bool; 9] =
+        let want: [bool; 12] =
             std::array::from_fn(|k| f < DIAG || out[k].is_none() || k == LEADERS_K);
         if !want.iter().any(|w| *w) {
             break;
@@ -521,14 +541,16 @@ fn first_partings(trace: &[Set], length: i64) -> Option<(Vec<LineWalk>, HeldWalk
             let ours = our_adlers(&built.sim, &pieces, &want);
             for (k, &i) in EMITTED.iter().enumerate() {
                 let Some(o) = ours[k] else { continue };
-                if o == set.lines[i] {
+                // A refusal (an empty line on a walk that holds an element)
+                // parts, and prints as ours 0.
+                if o == Some(set.lines[i]) {
                     agreed[k] += 1;
                 } else {
                     if f < DIAG {
                         parted[k].push(f);
                     }
                     if out[k].is_none() {
-                        out[k] = Some((f, o, set.lines[i]));
+                        out[k] = Some((f, o.unwrap_or(0), set.lines[i]));
                     }
                 }
             }
@@ -671,11 +693,15 @@ fn the_held_count_reads_the_melee_s_shot() {
     });
     let mut seen: [Option<i64>; 3] = [None; 3];
     let mut most = [0usize; 3];
+    // The emitter on the frames each count first reads: the empty walk's
+    // Adler is refused there, as a parting.
+    let mut emitted: [Option<Option<u32>>; 3] = [None; 3];
     while built.sim.frame < MELEE_TO {
         let h = held(&built.sim);
         for k in 0..3 {
             if h[k] > 0 && seen[k].is_none() {
                 seen[k] = Some(built.sim.frame);
+                emitted[k] = Some(empty_walk(h[k]));
             }
             most[k] = most[k].max(h[k]);
         }
@@ -683,6 +709,16 @@ fn the_held_count_reads_the_melee_s_shot() {
     }
     eprintln!("MELEE HELD: first {seen:?}, most {most:?} ([walls, ammo, deaths])");
     assert_eq!(seen, MELEE_HELD, "MELEE_HELD");
+    assert_eq!(
+        emitted,
+        [None, Some(None), Some(None)],
+        "the empty lines refuse a walk that holds a shot or a death"
+    );
+    assert_eq!(
+        empty_walk(0),
+        Some(1),
+        "the empty walk is the Adler of no bytes"
+    );
     // The walls arm: a live building in the wall band is one wall, and a
     // dead one is none (`check_walls`' `flags & 1`).
     let mut b = built.sim.buildings[0].clone();
