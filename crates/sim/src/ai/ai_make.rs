@@ -1088,8 +1088,9 @@ impl Sim {
             break;
         }
         let Some(u) = pick else { return false };
-        self.clear_orders(u);
-        self.swarm_around(u, b, Body::Build(b), true);
+        // A ring with no spot leaves the pick's orders alone
+        // ([`Sim::swarm_around_new`]); the site is still taken as served.
+        self.swarm_around_new(u, b, Body::Build(b), true);
         true
     }
 
