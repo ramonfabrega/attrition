@@ -3493,8 +3493,22 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   `researching`'s same-line arm (4321a: units only, it asks `is_unit_type` of both types), ours the sim's queued
   count where the original walks active buildings' queues. Built and exercised by no packet: the Bombard Ship and
   Machine Gun arms, the research loop's `upgrade` arm, its government arms, `avail` 1 and `show_later_tech`'s
-  *yes* (4323a); `is_gov_type` is taken as `TypeData`'s (no `TechType` override of vtable `+0x2c` read). And
-  `disable`, which the TSV carries and the row does not count.
+  *yes* (4323a); `is_gov_type` is taken as `TypeData`'s (no `TechType` override of vtable `+0x2c` read).
+  ~~And `disable`, which the TSV carries and the row does not count~~ (item 4326, below).
+- **`disable`, every button whole** (item 4326; `docs/journal/2026-11-17-item-4326.md`). `local_10` is the
+  building's `is_neutralized` (vtable `+0x180`; `Build`'s slot is the `return 0` of `WallData::is_neutralized`),
+  so it never greys here. The train loop: `can_make` 0 adds `OPTION_RESEARCH − free` (a unit `unit_flags & 0x80`
+  without a `FROM` is `OPTION_TRAIN`) with `disable` 2, extra 1; 2 adds `OPTION_RESEARCH`, `disable` 0; 3 with the
+  type unowned is research's arm, `disable` 1; else `OPTION_TRAIN`, `disable` 0 above 3, `| 0x20` on a building
+  `is(0x208)` that cannot `can_carry` the type. The research loop gathers flags (`upgrade` 5, `avail` 1 8, `avail
+  < 2` 3), its passes add 0, then 5, then any with 2, and a button is clear only with no flag: queued here at
+  `avail` 2 or more. Governments and the Library's tail are 1. `Roster::offered` returns `input::Button` (type,
+  option, `disable`). **The count** (`PANEL_DISABLE_WALKED`, beside `PANEL_LEADER_WALKED`): **(103, 103, 1238,
+  1238, 1238)**, every button equal, seen red pinned at zeros; the value diff and each arm perturbed alone are
+  the journal's. **Not established**, exercised by no held packet:
+  `can_make` 3, the `0x20` arm (run1640's 520 greys 314 and 316 with it; `can_carry` is not in the sim), the
+  `upgrade` arm's 5, and the train loop's second pass over `0x32..0x192` (a line's `+0x48` and `+0x44` offered
+  as research a row under a trainable unit), which is not built: no held panel shows a type it alone adds.
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 
