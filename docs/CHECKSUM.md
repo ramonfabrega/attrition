@@ -2201,7 +2201,7 @@ The leaves that still part outside the list are pinned per packet
 | `cities_built` | ~~224~~ 142 (§23.7) | run1496's who 0 (frame 1539), ours 0 theirs 1: off the minted walk ours is one short on every dump-seated walk |
 | `aggression` | ~~216~~ 134 (§23.7) | run1496's who 0, ours all 0, theirs 1 on every other slot |
 | `flags.leader_flags` | 171 of 856 flag words | run1496's who 0, ours 7 theirs 917511 (`0xe0007`) |
-| `resources_controlled` | 79 | run1359's who 1, ours 0 theirs 6 |
+| `resources_controlled` | ~~79~~ 0 (item 4324, §25.4) | run1359's who 1, ours 0 theirs 6: the census wrote 0 where `plan_strategy` counts `rare` |
 | `reg_unpack_merch` | 49 | run1359's who 1, region 1 ours 7 theirs 6 |
 | `oil_patches.elements` | 10 | run854's who 0, ours 1, 2, 8, 15 theirs 8, 2, 1, 15 |
 | the `encrypt` buckets, `reg_gatherers`, `diplos`, `num_units`, `explored`, `gather_stamp`, `active`, `escrow`, `collected` | 1 to 10 each | the game's own state parting (run1359's who 1 `bucket[0]` ours 5714 theirs 5930) |
@@ -2791,7 +2791,7 @@ is one of three families, and on frame 0 four setup leaves beside them.
   this game reaches.
 - `reg_unpack_merch[1]` (`+0x5d8`), leader 1, 3380 to 11970: ours 1, theirs 0 first.
 - `resources_controlled` (`+0x850`), leader 1, 3780 to 23990: ours 0, theirs 1 first. It alone holds the line
-  parted from 3780.
+  parted from 3780. *Counted since item 4324, below.*
 - On frame 0 only: `ally_mask`, `defense`, `reg_cities[1]` and the two `encrypt` bytes on leader 0, and the same
   but `defense` on leader 1. Theirs' setup `check_all` holds them, and our walk's frame 0 does not yet.
 
@@ -2815,6 +2815,35 @@ line goes from 2 parted ranges to 1, and the first is now `+0x850`. On run1591 (
 flags range parts on theirs' `0x4000000` and `0x8000000` alone (`03000000`, `0f000000`). On run1592 (6781) byte 2 agrees
 and `0x8000000` remains (`02000000`, `0a000000`). The next islands part on `0x80000`, the `Unit::think` bit this crate
 does not hold.
+
+**Item 4324 counts `resources_controlled`** (`+0x850`). `Leader::plan_strategy@006b9620:1206`–`1222` is an inlined
+`BitMask<44>::count@0047cd40` of the leader's `rare` (`+0x6d98`): the bit count of its six bytes, with `flags & 1` as
+an empty cache that `BitMask::clear` sets and the count itself rewrites. `Leader::gather@006ce280` copies the cache
+with the mask. The crate already held `rare` (`Ledger::rare`), and the line already agreed on it, but the census
+wrote 0. **The direction: the original acted.** Theirs' word holds the count, and ours wrote a constant. No mask
+writer was added. **run1578 goes from 3,006 to 19,006 of 24,000** (+16,000), and run1577 stays at 118 of 120. Inside
+300 nothing moves (142 parted frames), because `rare` is empty there. The value diff (`RECORD_PARTINGS`; leader 1's
+`+0x850`, range 129 at `+0x848`):
+
+| frame | before | after |
+|---|---|---|
+| 7195, 7273, 7383, 8206, 8281 | 1 parted, `+0x850`: `00000000`, `03000000` (ours 0, theirs 3) | whole (3, 3) |
+| 12537 | 1 parted, `+0x850`: `00000000`, `06000000` (0, 6) | whole (6, 6) |
+| 14312 | 2 parted, first `flags` byte 3: `02000000`, `0e000000` | 1, the same `flags` range |
+| 9810, 10541, 11884 | 1, `+0x5d8` `reg_unpack_merch[1]` | unchanged (4, 3; 5, 3; 6, 5) |
+
+The minted packets: run1593 (6907) and run1600 (7195) come out whole on leaders. run1591 (6537) and run1592 (6781) go
+from 2 parted ranges to 1, the `flags` range alone. The held packets (`PACKETS_SCORE`) go from **458 to 466 of
+1,053 lines**. Eight packets come out whole on leaders: run1001d, run1007b, run1011c, run1011d, run1011e, run1015b,
+run985b and run991d. 23 more part on one range fewer, and none parts on more. `resources_controlled` leaves every
+`PACKET_LEAF_PARTINGS` row it was in.
+
+Of the census's families, what is left on run1578: `leader_flags` (`0x80000`, `0x8000000`, `0x4000000`) to 14220,
+`reg_unpack_merch[1]` from 3380 to 11970, and frame 0's setup leaves. Not established: the 4,994 parted frames
+listed span by span (the score test prints their count, and inside 300 their spans). By the census they end at
+14220, but no take has listed them. Also not established: a `flags & 1` cache that disagrees with its bytes. The
+crate counts the mask itself, and every writer the export shows keeps the two together (`clear` sets 1, `gather`
+copies both, the count rewrites it).
 
 ## 25.5 How it was established, and what it has not established
 
