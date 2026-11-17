@@ -134,6 +134,16 @@ impl Sim {
     /// is not carried, and the alliance's price; the elimination arm reads
     /// `gamec`'s flag as the game's.
     pub(super) fn style_zero_arms(&mut self, me: usize, t: usize) -> Option<Rivals> {
+        if std::env::var("RON_PROBE_4331").is_ok() && (5480..=5500).contains(&self.frame) {
+            eprintln!(
+                "P4331y f{} me{me} t{t} style {} elim {} victory {} holder {}",
+                self.frame,
+                self.ai.lobby.team_style,
+                self.ai.lobby.elimination,
+                self.ai.lobby.victory,
+                self.capital_holder(me as Player)
+            );
+        }
         let mut rivals = Rivals::default();
         if self.ai.lobby.elimination == 1 {
             // `LeaderData::find_capital(−1, −1)@006eb930`'s holder.
