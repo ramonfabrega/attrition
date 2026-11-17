@@ -4220,8 +4220,8 @@ sim's cells is the photograph's. The curve, the width, the colours' source, the 
 one reading, and no row checks them one by one. The colours' bytes are the executable's.
 
 **The arm is a morph (item 4356).** run1564's packet (frame 3294) holds the cells as ours do: (50, 45) and
-(49, 44) read `flags` 0, `land` 1, region 69 (the lake), `who` −1; (50, 44) `0x104` and (51, 45) `0x504`,
-`who` 1. So the cells are not misread. The packet's heap also holds the drawn strips (`MiscAccess::borders`,
+(49, 44) read `flags` 0, `land` 1, region 69 (the lake), `who` −1; (50, 44) and (51, 45) carry
+`HALFLAND`, `who` 1. So the cells are not misread. The packet's heap also holds the drawn strips (`MiscAccess::borders`,
 `0003:0540`, VA `0xC0621C`). Region 1's `Border` has two `normal_border_renders`, both on the west of the
 map, and five `morph_renders`. The east band is morph 1, whose `to` strip is `(60, 45) … (57, 45), (57, 46) …
 (51, 46), (51, 45)`, and whose `from` strip is the border before row 45 was taken: `(51, 45) … (57, 45), (57,
