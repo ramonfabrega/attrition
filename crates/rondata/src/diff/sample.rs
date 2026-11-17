@@ -269,6 +269,16 @@ mod tests {
         (dump.is_file() && trace.is_file()).then(|| (dump.display().to_string(), trace))
     }
 
+    /// run1654's window, in place: frames 84..101 of the playback at
+    /// `end:UNITS=3,GUYS=4`, every unit and figure gaia's included — the
+    /// widening of the word item 4347 moved off 98.
+    fn run1654() -> Option<String> {
+        let home = std::env::var("HOME").ok()?;
+        let dir = std::env::var("RON_GOLDEN_DIR").unwrap_or(format!("{home}/ron-golden"));
+        let p = std::path::PathBuf::from(format!("{dir}/run1654/map-7/gamelog_p.txt"));
+        p.is_file().then(|| p.display().to_string())
+    }
+
     /// **The walk's word** (item 4336, row 2): the start built from the
     /// header, walked under the turn pump on the recording's own packages
     /// (each acting as `info.player[play].who`), every frame's draws
@@ -309,14 +319,10 @@ mod tests {
             .and_then(|v| v.parse().ok())
             .unwrap_or(i64::MAX);
         let mut stream = crate::input::Stream::pump(&rec);
-        let (w, _) = super::super::start_walk::walk_with(
-            built,
-            n,
-            &[("run1651", dump)],
-            &tr,
-            limit,
-            Some(&mut stream),
-        );
+        let mut captures = vec![("run1651", dump)];
+        captures.extend(run1654().map(|p| ("run1654", p)));
+        let (w, _) =
+            super::super::start_walk::walk_with(built, n, &captures, &tr, limit, Some(&mut stream));
         eprintln!(
             "SAMPLE WALK: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
             w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
@@ -337,10 +343,36 @@ mod tests {
             SAMPLE_WALKED,
             "the sample's word against run1651's draws"
         );
+        if run1654().is_some() {
+            assert_eq!(
+                (
+                    w.records,
+                    w.records_parted,
+                    w.first_record.as_ref().map(|(f, c, _)| (*f, c.as_str()))
+                ),
+                SAMPLE_WINDOW_RECORDS,
+                "run1654's window (RON_START_WALK_ROWS=1 prints the first parted record)"
+            );
+        }
     }
 
+    /// run1654's window against the walk (item 4347): `(records compared,
+    /// records parted, the first parted record's frame and capture)`. The
+    /// blocks 84..91 agree whole, gaia's figures with them; on 92 the
+    /// person's scout `3/0` (`who` 3) holds an `EXPLORE_TO` (`OrderIndex`
+    /// 3) in theirs and a `MOVE_TO` (1) here — the next parting, by state,
+    /// ahead of the draws' 444. run1651 prints no frame block, so its one
+    /// record is the closing one.
+    const SAMPLE_WINDOW_RECORDS: (usize, usize, Option<(i64, &str)>) =
+        (18, 9, Some((92, "run1654")));
+
     /// The sample's word and the frames walked, against run1651's draws:
-    /// 98 of 21,044 (item 4336, minted; the draw sequences part at their
-    /// second draw on frame 98).
-    const SAMPLE_WALKED: (i64, i64) = (98, 21044);
+    /// 444 of 21,044 (item 4347: 98 → 444, +346, the gaia figures' variant
+    /// off the lobby's seed, [`sim::Sim::info_seed`]; minted at 98 by item
+    /// 4336). On 98 herd 0's peacocks `8/0`..`8/3` wore pieces 60079,
+    /// 60080, 60078, 60079 here against run1654's 60078, 60079, 60080,
+    /// 60078, so `8/0`'s 99-frame idle ran out here and `8/1`'s in theirs:
+    /// ours took the far arm (413 from the herd centre), theirs the near
+    /// one's three draws. On 444 the sequences part at their third draw.
+    const SAMPLE_WALKED: (i64, i64) = (444, 21044);
 }

@@ -38316,3 +38316,23 @@ SHA-256 `f6d32a21d198bb4b57081db9be53d5cca10681ad55df074566a66e13726248ca`.
 
 **What it holds**: the build pages' `already_built` arm for both slots and slot 1's city-limit arm, held by the
 original.
+## run1654 — the 2017 sample's opening to 100, units and figures printed over 84..101 (2026-11-17, item 4347, `att-4347`)
+
+`docs/RECGAME.md` §7. **What the disk could not answer**: which animal rolls on frame 98 and with what clock; run1650
+prints units on its start frames alone, and run1651 prints no frame block. Filed **in place**, as run1650 is:
+`~/ron-golden/run1654/map-7/`, `filerun.py` not run.
+- **The line**: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1654 --recording "<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx"
+  --end-frame 100 --log-window 84 101 --detail end:UNITS=3,GUYS=4 --cover cover=0 --timeout 1200`, waited on with
+  `waitrun.sh` in the background lane.
+- **The receipt**: pool lane 1, launched 13:39:31 −05:00, exited 13:39:54, **23.7 s** launch to exit, exit 0,
+  `success`, 101 frames, `last_frame` 100, not ended early, no relaunch, five settings restored; seed observed
+  340513920. `df -g ~` read 173 GB free before it. Minutes waited on another lane: none.
+- **What it prints**: every unit and figure on 84..101, gaia's with them. Herd 0's peacocks `8/0`..`8/3` (`TypeIndex`
+  413, `HERDPEACOCK`) are on pieces 60078, 60079, 60080, 60078; `8/1`'s 99-frame idle runs out on 98. On 92 the
+  person's scout `3/0` holds an `EXPLORETOORDER`.
+- **What it holds**: `diff::sample::tests::the_sample_walks_to_its_word`'s window (`SAMPLE_WINDOW_RECORDS`, 18 records,
+  9 parted, the first on 92) and the value diff behind `SAMPLE_WALKED` 98 → 444.
+
+Files in place: `gamelog_p.txt`, 2,972,259 bytes, SHA-256
+`c6eca1b3c42c9c1b3caf55d2f798e5f1e4405d21b75d7737775db4763598827d`; `rontrace.log`, 8,779,296 bytes, SHA-256
+`e36e44b3b6ecf5c74bb9cf06c8b7c37c027552c65edb9b973b6dcb927c94d7b9`.

@@ -2074,8 +2074,14 @@ pub(crate) fn run1646() -> Option<(String, String)> {
 /// here and 5044 and 5052 there, so theirs crossed the water from
 /// (37272, 24216) and embarked on 3717 at (36865, 24499) while ours walked
 /// east round the coast (first apart on 3688: (37314, 23940) here,
-/// (37298, 23911) there).
-pub(crate) const RUN1646_WORD: i64 = 5496;
+/// (37298, 23911) there); **5622** (+126, item 4341) with
+/// `Army::find_target`'s forts pass (`docs/ARMY.md` §12): on 5496 theirs
+/// drew 171 and ours 187 → 171, index 5 theirs `find_target+0x167b` (seed
+/// `b5b2924b`, 17197) where ours had gone on to the sixth city score
+/// `+0x7df`; now index 5 is `+0x167b` on both, the next seven city scores
+/// after it on both. On 5622 ours 123, theirs 132, at index 0 ours
+/// `Unit::do_move+0xe84`, theirs `PathFinder::astar_path+0x1697`.
+pub(crate) const RUN1646_WORD: i64 = 5622;
 
 /// **run1646 walks to [`RUN1646_WORD`]**, its head word agreeing on every
 /// frame walked, with the alliance staged off `alliance4316.cmd`. The

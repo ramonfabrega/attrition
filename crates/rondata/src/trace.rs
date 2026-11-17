@@ -381,6 +381,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // address, so no chain is needed.
     (0x006f_6dc0, None, sim::ai::army::SITE_FIND_TARGET_COIN),
     (0x006f_718f, None, sim::ai::army::SITE_FIND_TARGET_SCORE),
+    // The forts pass's `% 200 + 900` (item 4341): the call at `6f8026`,
+    // read `cltd` / `idiv $0xc8` / `lea 0x384(%edx)` and then multiplied by
+    // the fort owner's `(ages ^ 0x62766) + 1`.
+    (0x006f_802b, None, sim::ai::army::SITE_FIND_TARGET_FORT),
     // `Unit::do_non_flat_gather@005f0170` — the wood machine's own three.
     // The last two are one apparent branch and two real ones: `+0xcc3` is
     // the chopping guy's `% 100 + 300` and `+0xdad` the arrival frame's
