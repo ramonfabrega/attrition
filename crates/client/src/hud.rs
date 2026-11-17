@@ -236,10 +236,19 @@ impl RosterButton {
 /// button with no type: ours, the original draws its icons.
 pub fn page_label(option: i32) -> Option<&'static str> {
     use crate::input::{
-        OPTION_BACK, OPTION_BUILD, OPTION_BUILD_MILITARY, OPTION_BUILD_WONDER, OPTION_CANCEL,
-        OPTION_NEXT,
+        OPTION_ALARM_PEASANT, OPTION_ATTACK_TO, OPTION_AUTO_EXPLORE, OPTION_BACK, OPTION_BUILD,
+        OPTION_BUILD_MILITARY, OPTION_BUILD_WONDER, OPTION_CANCEL, OPTION_GARRISON, OPTION_HALT,
+        OPTION_MOVE_TO, OPTION_NEXT, OPTION_REPAIR, OPTION_TRANSPORT,
     };
     Some(match option {
+        OPTION_REPAIR => "REPAIR",
+        OPTION_ALARM_PEASANT => "ALARM",
+        OPTION_GARRISON => "GARRISON",
+        OPTION_HALT => "HALT",
+        OPTION_TRANSPORT => "TRANSPORT",
+        OPTION_MOVE_TO => "MOVE",
+        OPTION_ATTACK_TO => "ATTACK",
+        OPTION_AUTO_EXPLORE => "EXPLORE",
         OPTION_BUILD => "BUILD",
         OPTION_BUILD_MILITARY => "MILITARY",
         OPTION_BUILD_WONDER => "WONDERS",
