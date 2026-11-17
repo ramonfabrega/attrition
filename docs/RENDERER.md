@@ -2878,8 +2878,8 @@ even with the masks dropped. So the surf does not part the lake.
 them (157, 159, 160) stand at (35112, 35832), and the card's own view
 puts that at pixel (1088, 186): 4223b's blot near (1,050, 190).
 **Item 4308: the blot is the `Oil` good's billboard** (draws
-139–140); the herd is the dark fish, drawn before the water. Ours
-draws the fish white after it; the billboard is §3.24's (item 4312).
+139–140); the herd is the dark fish, drawn before the water. ~~Ours
+draws the fish white after it~~ (drawn before it by item 4344, §3.30); the billboard is §3.24's (item 4312).
 
 **The floor's second layer clamps (item 4227).** Through the card's
 draws, one parted tile at the lake's centre, (170, 187): theirs (36.9,
@@ -3599,7 +3599,7 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
   packet's shore; ~~the client's own shore chains and the draw are not~~ drawn by item 4239 (§3.27): `SANDY`
   573 → 653 on the still, the composite's 701 the ceiling, 684 with the session's types;
 - ~~the fish herds' blot~~ (the `Oil` good's billboard, drawn by item 4312, above; 13 px high on the still,
-  parked 4312a) and the whitecaps; the fish under the water is not drawn;
+  parked 4312a) and the whitecaps; ~~the fish under the water is not drawn~~ (item 4344, §3.30);
 - the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
 - the screen reflection and the specular;
 - ~~the land oil's `rough` and `oil` underlays (item 4309, above): not drawn~~ drawn by item 4319 (above);
@@ -4275,7 +4275,21 @@ r 0.999), against 0.853 without the white. ~~The constant 0.853 (4338a)~~ was th
 *Coverage.* On a reading: the card's blend and filters on draws 163–169 (one take, run1567). Against our own draw:
 the overlap, r 0.997, and the draw's scale, 0.995 with the white (4342). Not diff-backed: every row is the
 photograph's. *Not established:* theirs' broad strokes far out, where ours shows fine speckle (4338b). Lists 7 and 8
-do not part in the band (journal 4342). The fish (4308a) were not reached.
+do not part in the band (journal 4342). ~~The fish (4308a) were not reached.~~ Drawn under the water (item 4344,
+below); where ours stand (4308c) and their light are not.
+
+**The fish under the water** (item 4344). `Scene::render@008b3270` runs `pop_all_zoomed_in(1)` (every figure, then
+the trees) and `draw_ammo` before `TerrainOut::render_water` and `Surf::draw`; on run1567's card the trees are 148–154,
+the fish 155–160 and the churn 161, then the water 162 and the surf 163–169, and nothing of the world after.
+`World::objects_under_water` (on) draws the frame pass, the patches after the water (the mountains) and every object
+before the water and the surf's lists, which take a copy holding them; the water's LessEqual test, no depth write,
+leaves what stands above it. The row `RUN1564_3279_FISH` (`the_fish_under_the_water`): ours are the pixels the herd's
+three pieces move; theirs the dark pixels (green under 0.62 of blue) of the box x 1010–1120, y 130–192, 304 of them
+and none in two fish-free boxes. **Ours dark 0 of 904 → 393 of 889**, mean (134, 137, 145) → (51, 98, 155) against
+theirs' (24, 87, 151); theirs covered 0 of 304 on both, since ours stand at x 1163–1221, y 179–268. The border band
+falls 224 → 222 and the texture's `OCEAN` 245 → 244, the water now over what it covers. *Not established:* the fish's
+light (`BLENDTA(TEX, TF)`, `MOD(CUR, DIF)`, material ambient (0.335, 0.400, 0.416), diffuse 2.5), ours red 51 against
+24; where the herd's fish stand (4308c); the churn (4308d); `draw_particles(0)` before the water, ours after.
 
 ## 4. The stack
 
