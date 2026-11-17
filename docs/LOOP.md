@@ -571,7 +571,10 @@ commit. The user's silence is consent to nothing on the fenced list.
 still at each photograph's camera (`client --frame N --still`) and sets it
 beside the photograph before it reads a score. The pass of 2026-11-12
 found washed figures, untextured trees and a mountain a third as bright
-under rows that read whole (DECISIONS 127).
+under rows that read whole (DECISIONS 127). **It uploads the pairs it
+drew** (DECISIONS 140 §6): one folder, `share <dir> attrition/pass-<date>/`,
+the same cameras and file names each pass, the link in the record's "For
+Ramon". No lane uploads, and nothing of it enters the repo.
 
 Launch a fan-out in waves, not whole; readers write to durable storage from
 their first finding; verify which model actually ran from the transcript,

@@ -13804,7 +13804,7 @@ team, the recording's own seed); how far a walk of the sample goes before
 it parts~~ (item 4336, `docs/RECGAME.md` §7: the start whole, 18,315 of
 18,315, once teammates are built at once; the word 98 of 21,044).
 
-## 140. Parity's first game is one comparison short, the sample takes the hook, the packets' wiring pin runs in every lane gate, and the render seat's second act follows the look (2026-11-17)
+## 140. Parity's first game is one comparison short, the sample takes the hook, the packets' wiring pin runs in every lane gate, and the render seat leaves the lake after the strokes (2026-11-17)
 
 **What happened.** `commander` (Opus 5.5) ran nineteen landings on twenty
 first-parent merges from 10:09 to 15:26 −05:00 on 2026-11-17 (item 4343
@@ -13815,8 +13815,7 @@ whole (`gate-drain-1117.log`, exit 0 on `88e7c2451`). `LEADERS_AGREE` went
 start 17,163 → 18,315 of 18,315 and its walk to 444 of 21,044, and the HUD
 draws the panel, the pages and the picks. The pass ran on the `steer` row
 from 15:57, spawned no agent and took no capture. Ramon came onto the row
-during it and asked where the week stands and whether Astra should take
-work; nothing was decided by the time this was written. The tables are in
+during it; what he decided is §6. The tables are in
 `docs/audit/2026-11-17-fable-pass-empty-lines.md`.
 
 **§1. The minted game is not yet parity's 1 of 1: three lines are not
@@ -13870,7 +13869,7 @@ The two counts answer different questions and are kept apart.
   reads with no run token (`docs/LOOP.md`, the corpus): the capture removes
   the `.rcx` it left.
 - **4353, the broad strokes: its first act as designed, its second
-  changed.** The pass drew run1564's still at the tip beside the
+  struck.** The pass drew run1564's still at the tip beside the
   photograph (`~/ron-data/lab-experiments/2026-11-17-pass-2/`). The fish are
   dark, under the water and where theirs are; the herd's churn is a faint
   splash at 2:1 and is left in its journal (4308d). The bold white strokes
@@ -13878,8 +13877,8 @@ The two counts answer different questions and are kept apart.
   is the item's first act. After them the eye finds two things: our west
   rim carries thick white crescents where theirs are thin lines, and the
   lake's body is flatter and paler than theirs, which is mottled dark (the
-  row is `RUN1564_3279_TEXTURE_STILL`'s ocean, 244 of 437). The second act
-  is the west rim's crescents.
+  row is `RUN1564_3279_TEXTURE_STILL`'s ocean, 244 of 437). Neither is
+  booked: after the strokes the seat leaves the lake (§6).
 
 **§3. The packets' wiring pin runs in every lane gate.** `gate-1117p` went
 red on `every_packet_is_wired_to_its_game_or_named` 6.4 minutes into a
@@ -13911,6 +13910,36 @@ what caught it, and nothing is added.
 
 **§5. The seats.** The chain takes 4354. The suite's seat takes 4355, then
 4351. The third takes 4352. Render takes 4353.
+
+**§6. Ramon, on the row.** Four things, each to the pass's take.
+
+- **Parity waits on 4355**: "yeah makes sense we wait until 4355 lands
+  (assuming it really closes it)". It closes the first game, one with no
+  combat in it; the sample is where the three lines are exercised (§2).
+- **Astra comes in when `commander` pauses** at the day's line, not beside
+  it: "or if it just comes in in a few hrs once commander pauses, which is
+  also fine". Its branch is settled as before (entry 60): a fast-forward
+  when it descends from the tip, a whole gate here, then the push. The
+  worker count is not moved.
+- **The render seat leaves the lake after the strokes.** He asked how the
+  renderer stands in general and left the direction to the pass ("willing
+  to take whatever you suggest"), and read the waves as not quite there.
+  The seat has spent two tranches on one lake at one camera (twelve lanes,
+  about 68 USD, five of them moving nothing), while the borders' row reads
+  222 of 1,440 and no row counts the picture in motion. Item 4353 keeps
+  the strokes and nothing else. The seat's next item is designed from a
+  look at the minted game in play, a sheet of stills through its 24,000
+  frames, the borders first; the pass looked only at the lake and does not
+  design it blind.
+- **A pass uploads the pairs it draws.** He asked whether the pictures
+  should be kept somewhere he can glance at: "if its extra work/steps and
+  will slow loop, then not worth it". A pass already draws them before it
+  rules on a render step, so the upload is one command and no lane does
+  anything: a dated folder on his CDN, the same cameras and file names
+  each time, the link in the record's "For Ramon", expiring by itself.
+  This pass's is `https://cdn.ramonfabrega.com/attrition/pass-1117/`. A
+  curtain viewer is not built until he asks. `docs/LOOP.md` carries the
+  clause.
 
 **Not established:** whether our walk of the minted game holds a shot in
 flight or a death record on any frame (item 4355); whether the sim's

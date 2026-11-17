@@ -22218,6 +22218,8 @@ their lanes: one read another lane's unfiled captures, one found two
 packets unwired after a green lane gate, and the wiring pin now runs in
 every lane gate. The pass drew run1564's still beside the photograph: the
 fish are theirs now, and the bold strokes far out are what the eye finds
-first. Ramon came onto the row and asked about the week and Astra. The
-pass moved no score and took no capture. **DECISIONS 140.**
+first. Ramon came onto the row: parity waits on 4355, Astra comes in when
+`commander` pauses, the render seat leaves the lake after the strokes, and
+a pass uploads its pairs for him to glance at. The pass moved no score and
+took no capture. **DECISIONS 140.**
 `docs/audit/2026-11-17-fable-pass-empty-lines.md`.

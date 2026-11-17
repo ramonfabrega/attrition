@@ -109,7 +109,8 @@ three uncompared ones (walls, ammo, deaths) are empty in the original's trace on
 stays 0 of 1 until they are; the 2017 sample's start is built whole from its header and walked to 444 of 21,044 (item 4351, its
 second act the hook's take); **orders** — the HUD draws the panel, the pages, the standard panel and the picks as the original's,
 and no pick has been played (item 4352); **renderer** — the lake's fish stand dark where theirs do; the pass's look left the
-herd's churn for the broad strokes far out and the west rim's crescents (item 4353).
+herd's churn for the broad strokes far out (item 4353), after which the seat leaves the lake for what shows in play, the
+borders first.
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
