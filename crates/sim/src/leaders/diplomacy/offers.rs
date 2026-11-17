@@ -167,6 +167,23 @@ impl Sim {
                 return None;
             }
         }
+        if std::env::var("RON_PROBE_4331").is_ok() && (5480..=5500).contains(&self.frame) {
+            let gg = self
+                .tables
+                .tech_tree
+                .types
+                .iter()
+                .position(|ty| ty.name.eq_ignore_ascii_case(GLOBAL_GOVERNMENT));
+            eprintln!(
+                "P4331z f{} me{me} t{t} holder {} popwin {} gg {:?} res {:?} ages {:?}",
+                self.frame,
+                self.capital_holder(me as Player),
+                self.ai.ai[t].popwin_timer,
+                gg,
+                gg.map(|g| self.researching(t as Player, g)),
+                (0..3).map(|l| self.tech[l].ages).collect::<Vec<_>>()
+            );
+        }
         rivals.racer = self.racing_third_party(me, t);
         Some(rivals)
     }
