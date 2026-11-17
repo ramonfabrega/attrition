@@ -601,13 +601,9 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
         &[
             // Item 4298: 3 → 1 parted (`hire_who`'s −1s emitted); before it, first `0 0 flags: +0x2
             // of 8|8: 00000000|08000000`.
-            (
-                "leaders",
-                267,
-                267,
-                1,
-                "0 0 flags: +0x2 of 8|8: 00000000|08000000",
-            ),
+            // Item 4332: leaders whole (`Unit::think`'s citizen bit,
+            // `0x80000`, emitted); before it, 1 of 267 parted, `0 0 flags:
+            // +0x2 of 8|8: 00000000|08000000` (leader 0's idle citizen).
         ],
     ),
     (
