@@ -1872,6 +1872,7 @@ fn parse_pos(tok: &str) -> Option<Pos> {
 /// staged game is played from. Every capture so far is player 0's.
 const CONSOLE_WHO: i32 = 0;
 
+#[cfg(test)]
 fn parse(text: &str) -> Cheat {
     parse_as(text, CONSOLE_WHO)
 }
