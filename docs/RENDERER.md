@@ -2879,7 +2879,7 @@ them (157, 159, 160) stand at (35112, 35832), and the card's own view
 puts that at pixel (1088, 186): 4223b's blot near (1,050, 190).
 **Item 4308: the blot is the `Oil` good's billboard** (draws
 139–140); the herd is the dark fish, drawn before the water. Ours
-draws the fish white after it, and no billboard (item 4308's journal).
+draws the fish white after it; the billboard is §3.24's (item 4312).
 
 **The floor's second layer clamps (item 4227).** Through the card's
 draws, one parted tile at the lake's centre, (170, 187): theirs (36.9,
@@ -3509,6 +3509,28 @@ composite samples the floor's level 0 at the nearest texel and reads 6.04, while
 blend carries it, not the floor's light:** `fs_water` blending toned values (LDR), with the floor still lit per
 pixel, reads `OCEAN` 18. run1559b's rows and run1570's are unchanged but for the grass row's white.
 
+**The `Oil` good's billboard (item 4312).** `ObjectsOut::draw_good_underlays@00654b60` walks the goods.
+`GoodOut::draw_underlays@0066e070` passes an underlay piece that is not a herd's to `GoodTypeOut::draw@0066fd70`. That
+function keeps an `Oil` good only on a cell whose `WData::land` is 1 or 2 and whose `flags & 0x100` is clear; land
+oil is the terrain's own patch. `GraphicPieces::draw_good@008e9080` sets the sprite's translation, the good's position
+plus 192 × ⌊`sprite_center` + ½⌋ on x and on y; `sprite_center` is the `<GOOD>`'s `offset`, 1. The vertex is white
+where the cell is seen. The piece is a `BillBoard` on `rmaps[0xd]` (`init_good_data@008efa60`,
+`init_good_map@008f7800`), so `ZSpriteAccumMethod::execute@0091e350` lays one upright quad across the screen's
+diagonal. It is `tex_w · sprite_x_width` wide and `tex_h · sprite_z_height` tall: `Scene::render@008b3270` sets the
+two scales so that a texel covers `fixed_zooms[6] / zoom_distance` pixels, 171 px for the 256² texture on the pinned
+camera. `client::goods` lays it as a patch after the coral and before the water, `fs_billboard` (`TL_FAKE_LIGHT`,
+the texel's alpha), from the sim's goods (`Sim::observe_goods`).
+
+| run1564's still | before | drawn |
+|---|---|---|
+| texture, `OCEAN` · `SANDY` (`RUN1564_3279_TEXTURE_STILL`) | 234 · 440 | **244** · 438 |
+| hue, ground (`RUN1564_3279_GROUND_STILL`), `OCEAN` | 1,783, 422 | 1,784, **424** |
+| luma, ground (`GROUND_LUMA_STILL`), `OCEAN` | 1,845, 416 | 1,848, **418** |
+
+Of run1564's 15 oil goods, 7 stand on such a cell; one is on screen, at (35712, 35712), its foot at pixel
+(1201, 254). Its dark pixels' centroid is (1202.0, 203.5) against the photograph's blot at (1199.2, 216.9), with
+8,392 dark pixels against 8,045. So the size and the column agree and the row is 13 px high (4312a).
+
 *Coverage.* Diff-backed: the floor's address modes, offsets and texcoords (§3.18). The water's material rests on
 item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *Not established:*
 - the floor's parallax to its plane at −283, not drawn (§3.18 found it moves no hue);
@@ -3519,8 +3541,8 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
   `SURFTIMING*` are not~~ read by item 4236 (§3.26): `Surf::init` is in register with the packet when fed the
   packet's shore; ~~the client's own shore chains and the draw are not~~ drawn by item 4239 (§3.27): `SANDY`
   573 → 653 on the still, the composite's 701 the ceiling, 684 with the session's types;
-- the fish herds' blot and the whitecaps (the blot is the `Oil` good's billboard, item 4308, §3.18; neither it
-  nor the fish under the water is drawn);
+- ~~the fish herds' blot~~ (the `Oil` good's billboard, drawn by item 4312, above; 13 px high on the still,
+  parked 4312a) and the whitecaps; the fish under the water is not drawn;
 - the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
 - the screen reflection and the specular.
 

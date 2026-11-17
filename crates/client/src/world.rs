@@ -241,6 +241,9 @@ pub struct World {
     /// The screen's ramp the water and the floor take (item 4178), set by
     /// [`World::set_screen`]; `None` lays [`crate::ground::ScreenRamp::MIDDLE`].
     ramp: Option<crate::ground::ScreenRamp>,
+    /// The camera and screen [`World::set_screen`] was last given (item
+    /// 4312): the `Oil` billboard's size is the camera's sprite scale.
+    screen_camera: Option<(render::Camera, (u32, u32))>,
     /// The ramp the drawn layers were last laid at, the water's and the
     /// floor's places among the patches, and the patches' version.
     laid_ramp: Option<crate::ground::ScreenRamp>,
@@ -429,6 +432,9 @@ struct GroundDraw {
     /// A mountain's own art (item 4141); `None` where it does not read,
     /// and the mountains keep the debug grey.
     mountains: Option<MountainDraw>,
+    /// The `Oil` good's billboard (item 4312); `None` where it does not
+    /// read, and none is drawn.
+    oil: Option<crate::goods::OilArt>,
 }
 
 /// [`crate::ground::MountainArt`] and its textures, as the draw shares them.
@@ -484,6 +490,10 @@ pub const BORDER_PIECE: i32 = -200_300;
 pub const BORDER_ALPHA_INDEX: usize = 913;
 /// **The map's edge border's pieces** (item 4311, §3.15): the small list
 /// under `border_texture`, the large under `border_texture_outer`.
+/// The `Oil` good's billboard (item 4312, §3.24; `crate::goods`), its
+/// texture its own alpha.
+pub const OIL_PIECE: i32 = -200_500;
+pub const OIL_ALPHA: usize = 916;
 pub const EDGE_PIECE: i32 = -200_400;
 pub const EDGE_OUTER_PIECE: i32 = -200_401;
 /// The edge border's white alpha: the draw is opaque.
@@ -952,6 +962,7 @@ impl World {
                 flat,
                 patch,
                 mountains,
+                oil: crate::goods::OilArt::load(install.root(), tint),
             })
         });
         let tree_art = tileset
@@ -1119,6 +1130,7 @@ impl World {
             mountain_light: true,
             drawn: (u32::MAX, TerrainMesh::default(), Vec::new(), Vec::new()),
             ramp: None,
+            screen_camera: None,
             laid_ramp: None,
             screen_layers: (None, None),
             patch_version: 0,
@@ -1232,6 +1244,7 @@ impl World {
     /// `modify_ocean_floor` lay them each frame.
     pub fn set_screen(&mut self, camera: &render::Camera, size: (u32, u32)) {
         self.ramp = Some(crate::ground::ScreenRamp::of(camera, size));
+        self.screen_camera = Some((*camera, size));
     }
 
     /// The version of [`World::drawn_terrain`]'s patches (item 4178): it
@@ -1538,6 +1551,15 @@ impl World {
             // unchanged. Item 4178: on the water's own mesh, flat at z 0,
             // `generate_water`'s alpha, and `modify_water`'s colour, the
             // screen's ramp of `OceanVars`' top bytes ([`World::set_screen`]).
+            // Item 4312 (§3.24): the goods' underlays, the `Oil` billboard
+            // (draws 139–140), after the coral and before the fish and the
+            // water, at the camera's sprite scale.
+            if let (Some(art), Some((camera, size))) = (g.oil.as_ref(), self.screen_camera) {
+                let scales = crate::goods::sprite_scales(&camera, size, self.sprite_zoom.0);
+                if let Some(m) = crate::goods::mesh(art, &self.runner.goods(), &t, scales) {
+                    patches.push(m);
+                }
+            }
             let water = crate::ground::water_mesh(&t, &crate::ground::water_grid(&t));
             if !water.tris.is_empty() {
                 let mut m = PatchMesh {

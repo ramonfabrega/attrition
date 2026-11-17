@@ -206,6 +206,11 @@ impl FreeRunner {
         self.built.sim.observe_terrain()
     }
 
+    /// The map's goods as they stand (`Sim::observe_goods`, item 4312).
+    pub fn goods(&self) -> Vec<sim::world::Good> {
+        self.built.sim.observe_goods()
+    }
+
     /// The road mesh as it stands (`Sim::observe_roads`, item 4199).
     pub fn roads(&self) -> sim::observe::RoadsScene {
         self.built.sim.observe_roads()
