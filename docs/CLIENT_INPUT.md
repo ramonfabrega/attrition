@@ -3878,12 +3878,73 @@ page states drew all three pages where the original's draws one, and it had no `
 **Confidence, and what is not established.**
 
 - **Backed by the oracle**: the standard panel's page buttons and each page's adds, on the 32 held citizens.
-- **One reading**: the turns' arithmetic, `exec`'s cases 0 to 2 and 0x41 to 0x43. The count asserts our pages
-  follow it, and each page it reaches is diffed, but no run of `exec` checks the turn itself.
-- **Exercised by no held packet**: the `semaphore[2] & 2` arm (two pages, no `OPTION_BUILD_WONDER`) and the
-  `+0x68 & 1` gate, as well as §32.6's four arms, which the table above places on our walk.
+- ~~**One reading**: the turns' arithmetic, `exec`'s cases 0 to 2 and 0x41 to 0x43. The count asserts our pages
+  follow it, and each page it reaches is diffed, but no run of `exec` checks the turn itself.~~ Run on three
+  packets, both page counts, 63 of 63 (§32.8).
+- **Exercised by no held packet**: ~~the `semaphore[2] & 2` arm (two pages, no `OPTION_BUILD_WONDER`)~~ (its
+  turns run under a poked flag, §32.8) and the `+0x68 & 1` gate, as well as §32.6's four arms, which the table
+  above places on our walk. ~~Of those four,~~ the limit, site and `already_built` arms are held since §32.8;
+  `obs` is not.
 - `Options::reset`'s other callers (`Console::right_click`, `on_key_down` and the rest) are not read. A right
   press leaves our page as it stands.
+
+## 32.8 The idle arms held, and the turns run (item 4343)
+
+*Item 4343, 2026-11-17 (`docs/journal/2026-11-17-item-4343.md`). Two packets of the minted file's playback,
+run1652 at 13000 and run1653 at 14400, reach three of §32.6's four idle arms, and the HUD's pages equal the
+original's on them. `Options::exec`'s page turns are run on three packets. No `crates/sim` change.*
+
+**The packets.** Each is run1600's recipe with `RON_STATE_FRAME` moved (`docs/RUNS.md`, run1652 and run1653), and
+each packet's checksum stream equals the original's sums on every line. Our walk holds every citizen of both
+packets, by slot and id, as a citizen. At 13000 slot 1 stands under its city limit with the Pyramids (526) sited.
+At 14400 both slots see the Pyramids built (`wonders_built` is the game's, not a slot's), and slot 1 is under
+its limit. `PAGE_ARMS_HELD` **0 → 3**: run1652's slot 1 and run1653's two slots.
+
+**The rows widened** over `panels.py --citizens` and `--standard` on both:
+
+| row | item 4339 | item 4343 |
+| --- | --- | --- |
+| `HUD_PAGES_WALKED` | (32, 32, 1312, 1312, 1312) | **(36, 36, 1473, 1473, 1473)** |
+| `HUD_PAGES_STATIC` | (0, 32, 147, 1312, 1696) | (0, 36, 175, 1473, 1908) |
+| `HUD_PAGES_PRESSED` | (1312, 1312) | (1473, 1473) |
+| `HUD_PAGES_PAGED` | (32, 32, 416, 416) | **(36, 36, 468, 468)** |
+
+**Each arm perturbed turns the widened row red**, once each:
+
+| arm perturbed | `HUD_PAGES_WALKED` | `HUD_PAGES_PAGED` | what the HUD drew that the original did not |
+| --- | --- | --- | --- |
+| `already_built` ignored | (34, 36, 1473, 1473, 1475) | (34, 36, 462, 468) | the built Pyramids, both slots at 14400 |
+| `at_city_limit` always true | (34, 36, 1471, 1473, 1473) | (34, 36, 462, 468) | slot 1's two village buttons greyed, both packets |
+| the site gate (`get_queued`) ignored | (35, 36, 1473, 1473, 1474) | (35, 36, 465, 468) | the sited Pyramids on slot 1's page 2 at 13000 |
+
+**The turns, run** (`panels.py --turns`, `the_page_turns_of_the_packets`). `Options::exec@0072c4b0` is entered on
+the options object with the press's option and object −1 (`TYPE_NONE`), and `mode` and `mode_data` are read back
+after the frame returns.
+
+- The console's `play` slot's selection is poked to its first citizen alone. Its address is the one `exec`
+  reads: `imul $0x9f0, 0x2a0(%eax)` and `add 0xe8d444`, `select_groups+0x14`.
+- Both page counts run, `Game::semaphore` byte 2's bit 2 cleared and set.
+- From `STANDARD_OPTIONS`: the three page buttons. From each page: `OPTION_NEXT`, `OPTION_BACK`, `OPTION_CANCEL`.
+- `GetKeyState` answers 0 under `step4.py`, a stub added for this, so no modifier is held.
+
+**`PAGE_TURNS_RUN` (63, 63)**: 21 turns a packet on run1600, run1652 and run1653, each equal to [`turn`], the
+`Event::Page` arm's arithmetic, now its own function. It was seen red pinned at (0, 0), and at (57, 63) with
+`OPTION_BACK`'s wrap at 0 instead of `n − 1`. Under two pages, `OPTION_BUILD_WONDER` leaves the standard panel,
+and the turns wrap modulo 2. With the packet's own selection (the capital, 0/2000) a page button leaves the mode
+unchanged, so the run can tell.
+
+**Ours, not the original's.** The poked selection and flag. A game whose own `semaphore[2] & 2` is set, the
+sim's `Lobby::conquest`, is not run; that link is still the reading of §32.7.
+
+**Confidence, and what is not established.**
+
+- **Backed by the oracle**: the limit, site and `already_built` arms (the rows above). The turns 0 to 2 and 0x41
+  to 0x43, from the modes our HUD reaches.
+- **Not reached**: `obs` (no frame of this game), `+0x68 & 1`, and `exec` from other modes: 0x42 and 0x43 from
+  the standard panel clear the selection in the original and leave our page alone (§32.7's
+  `Options::reset` line).
+- Slot 1's standard panel at 14400 adds an option the held packets did not, option 4 with type 660
+  (`TOARMSSPELL`) at (4, 1). The HUD draws no standard add but the page buttons (§32.7, parked 4339b).
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 

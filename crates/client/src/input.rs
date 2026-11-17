@@ -11358,18 +11358,20 @@ pub(crate) mod tests {
     /// [`crate::hud::roster_menu`] draws for it, each whole (type, option,
     /// `disable`), against the original's three pages: (citizens whose
     /// buttons equal, citizens, buttons both draw whole, the original's,
-    /// the HUD's). Seen red pinned (0, 0, 0, 0, 0).
-    const HUD_PAGES_WALKED: (usize, usize, usize, usize, usize) = (32, 32, 1312, 1312, 1312);
+    /// the HUD's). Seen red pinned (0, 0, 0, 0, 0). Widened by item 4343
+    /// over run1652 and run1653, which reach the limit, site and
+    /// `already_built` arms: each arm perturbed turns it red (§32.8).
+    const HUD_PAGES_WALKED: (usize, usize, usize, usize, usize) = (36, 36, 1473, 1473, 1473);
     /// **`HUD_PAGES_STATIC`** (item 4337): the same citizens against the
     /// HUD without the walk, the static [`Roster::builds`], each a clear
     /// `OPTION_BUILD`: the gap [`HUD_PAGES_WALKED`] closed.
-    const HUD_PAGES_STATIC: (usize, usize, usize, usize, usize) = (0, 32, 147, 1312, 1696);
+    const HUD_PAGES_STATIC: (usize, usize, usize, usize, usize) = (0, 36, 175, 1473, 1908);
     /// **`HUD_PAGES_PRESSED`** (item 4337): of the drawn page buttons,
     /// each pressed at its centre through [`crate::hud::event`], (those
     /// that arm as their `disable` says, pressed): a greyed one arms
     /// nothing, a clear one the placement of its type. Ours:
     /// `Options::exec`'s build arm is not read here. Seen red pinned (0, 0).
-    const HUD_PAGES_PRESSED: (usize, usize) = (1312, 1312);
+    const HUD_PAGES_PRESSED: (usize, usize) = (1473, 1473);
     /// **`HUD_PAGES_PAGED`** (item 4339, `docs/CLIENT_INPUT.md` §32.7):
     /// each held packet's citizen paged through the HUD as the original
     /// pages, one page at a time: the standard panel's page buttons
@@ -11379,7 +11381,7 @@ pub(crate) mod tests {
     /// arm sets and the buttons drawn on it whole (type, option, `disable`)
     /// against the original's adds in that mode: (citizens every state
     /// equal, citizens, states equal, states). Seen red pinned (0, 0, 0, 0).
-    const HUD_PAGES_PAGED: (usize, usize, usize, usize) = (32, 32, 416, 416);
+    const HUD_PAGES_PAGED: (usize, usize, usize, usize) = (36, 36, 468, 468);
 
     /// **The citizen's build pages, on our walk** (item 4337): every held
     /// packet's citizens, the original's pages (`UnitOut::make_options@00615fc0`
@@ -11597,7 +11599,7 @@ pub(crate) mod tests {
     /// `OPTION_NEXT`, `OPTION_BACK`, `OPTION_CANCEL`) under three or two
     /// pages, and the mode the original's run leaves; against [`turn`]:
     /// (rows equal, rows). Seen red pinned (0, 0).
-    const PAGE_TURNS_RUN: (usize, usize) = (0, 0);
+    const PAGE_TURNS_RUN: (usize, usize) = (63, 63);
 
     /// **The page turns, against the original's own runs** (item 4343):
     /// each row's start and press through [`turn`], the page it leaves
@@ -11679,11 +11681,11 @@ pub(crate) mod tests {
     /// **`PAGE_ARMS_HELD`** (item 4339): of the held packets' citizens
     /// ([`pages_on_disk`]), those whose slot stands, at the packet's frame
     /// on our walk, under its city limit, or with a wonder built or sited:
-    /// none. The packets that would reach the arms are the minted file's
-    /// playback at a frame in 383..577 (the limit), 12783..14312 (the
-    /// site, and the limit) or from 14312 (`already_built`, and the
-    /// limit). Seen red pinned at 1.
-    const PAGE_ARMS_HELD: usize = 0;
+    /// three since item 4343 (`docs/CLIENT_INPUT.md` §32.8), run1652's
+    /// slot 1 at 13000 (the Pyramids sited, under its limit) and run1653's
+    /// two slots at 14400 (`already_built`; slot 1 under its limit). Item
+    /// 4339's held packets reach none. Seen red at 0, the pin before them.
+    const PAGE_ARMS_HELD: usize = 3;
 
     /// **The page loop's idle arms on our walk** (item 4339): where on the
     /// minted game a packet would reach them, and that no held packet does.
