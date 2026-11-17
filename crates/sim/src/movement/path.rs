@@ -950,6 +950,38 @@ impl Sim {
     /// recomputed either way, exactly as `00683770` does: the work cap, the
     /// stride, the row width, the direction increment and `toff`.
     fn astar_path(&mut self, u: usize, m: &Modes, step: i32, anti: i32, resume: bool) -> i32 {
+        // PROBE 4350 (reverted whole): `RON_PROBE_ASTAR=<lo>-<hi>` prints
+        // each search, its unit, grid, position, stack ends and verdict.
+        let probe = std::env::var("RON_PROBE_ASTAR").ok().and_then(|v| {
+            let (a, b) = v.split_once('-')?;
+            let (a, b): (i64, i64) = (a.parse().ok()?, b.parse().ok()?);
+            (a..=b).contains(&self.frame).then_some(())
+        });
+        let before = probe.map(|()| {
+            let x = &self.units[u];
+            (x.pos, x.path.last().map(|p| p.to), x.path.first().map(|p| p.to), x.path.len())
+        });
+        let r = self.astar_path_probed(u, m, step, anti, resume);
+        if let Some((pos, top, bottom, n)) = before {
+            let x = &self.units[u];
+            eprintln!(
+                "  ASTAR f{} {}/{} step {step} anti {anti} resume {resume} army {} pos ({},{}) top {:?} bottom {:?} len {n} = {r} -> len {} top {:?}",
+                self.frame,
+                x.owner,
+                x.index,
+                m.army,
+                pos.x,
+                pos.y,
+                top.map(|p| (p.x, p.y)),
+                bottom.map(|p| (p.x, p.y)),
+                x.path.len(),
+                x.path.last().map(|p| (p.to.x, p.to.y)),
+            );
+        }
+        r
+    }
+
+    fn astar_path_probed(&mut self, u: usize, m: &Modes, step: i32, anti: i32, resume: bool) -> i32 {
         // **The entry** is `crate::movement::astar_view::entry_steps` (item 3381,
         // `sweep::path_finder_astar_suspend`): the work cap, the stride
         // (`max(1, (collision size + 1) / 2)` steps on the unit grid, whose
