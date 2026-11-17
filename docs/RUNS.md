@@ -38337,6 +38337,52 @@ Files in place: `gamelog_p.txt`, 2,972,259 bytes, SHA-256
 `c6eca1b3c42c9c1b3caf55d2f798e5f1e4405d21b75d7737775db4763598827d`; `rontrace.log`, 8,779,296 bytes, SHA-256
 `e36e44b3b6ecf5c74bb9cf06c8b7c37c027552c65edb9b973b6dcb927c94d7b9`.
 
+## run1655 — run1646's lobby to 5700 with a packet at 5621: army 2/1 before its muster (2026-11-17, item 4354, `att-4354`)
+
+`docs/ARMY.md` §11–§12, `docs/LEADERS.md` §8.2. **What the disk could not answer**: no dump prints an army (run1646's
+gamelog is the leaders' record), and item 4350 left army `2/1`'s `reg`, `num_units` and its guards' head orders on 5621
+as a packet's question. Filed **in place**, as run1646 is: `~/ron-golden/run1655/map-18/`, `filerun.py` not run.
+- **The line**: run1646's, ended at 5700 with the packet: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1655
+  --map 18 --end-frame 5700 --timeout 3600 --stall-seconds 300 --ffwd-minute 1 --profile PLAYERS=2 --profile
+  STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile TEAM_STYLE=0 --profile
+  DIFFICULTY=4 --seat-tribe 1=10 --seat-tribe 2=13 --log-window 5615 5701 --detail end:MISC,LEADERS=9 --detail
+  misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/coverage/alliance4316.cmd --cover cover=0 --tracer-def RON_STATE_FRAME=5621
+  --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`, waited on with `waitrun.sh`.
+- **The receipt**: pool lane 1, launched 17:05:42 −05:00, exited 17:11:22, **340.3 s**, exit 0, `success`, 5701 frames,
+  `last_frame` 5700, seed 12345, who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 10), who 2 (flags 1, tribe 13), no page
+  fault, no relaunch. Minutes waited on another lane: none. **The same game**: the `game` stream's draws equal
+  recon4316-1's on 1000, 5000, 5500 and 5620 (the renderer's `rng@0xeb697c` differs, as `cover` does).
+- **The packet**: `frame-snapshot.bin`, 962,159,256 bytes, logger frame 5621, trace frame 5620, SHA-256
+  `a9923a6faff25763b5ab828d07e22a4438af1c4dcf77c6f057ef538fbbe56aa6`; `frame_snapshot.py` against item 597's plan:
+  `logger_return_roots_unchanged`, `completion_receipt_checked`. **Army `2/1`** (`armies` at `0xc09700`, the type
+  record's `ArmyData`): status 2, `reg` 9, `num_units` 73 (49 captains, 24 standard), `target_o` 2040 / `target_who` 1,
+  point (15456, 31584), muster (22, 48), `rally_dist` 0x1200, one group (129). Ours on the base held 1/2000, (18528,
+  41568), (24, 45): the parting was the target, before `is_moving`.
+
+Files in place: `gamelog.txt`, 156,137,767 bytes, SHA-256 `8382c3e29c87c0285f0dd69e95aa6fbbb7db639d9aef07e6db62a8068fc75140`;
+`rontrace.log`, 276,442,336 bytes, SHA-256 `ec8d63a59a9fa820ed859a5cc7a4b22fb2017e0081a797d4fbb8f06fa04d7a23`.
+
+**What it holds**: no walk reads it; the value diff behind `RUN1646_WORD` 5622 → 5668 (item 4354's journal).
+
+## run1655b — run1646's lobby to 5560 with a packet at 5496: `find_target`'s state (2026-11-17, item 4354, `att-4354`)
+
+`docs/ARMY.md` §12. **What the disk could not answer**: run1655 put the parting at army `2/1`'s target, which theirs'
+`Army::find_target` chose on 5496 (`report.py frames`: none again until 5624), and the score's inputs are in no dump.
+Filed in place: `~/ron-golden/run1655b/map-18/`.
+- **The line**: run1655's with `--end-frame 5560 --log-window 5490 5561 --tracer-def RON_STATE_FRAME=5496`.
+- **The receipt**: pool lane 1, launched 17:17:38 −05:00, exit 0, `success`, `last_frame` 5560.
+- **The packet**: 940,851,744 bytes, logger frame 5496, trace frame 5495, SHA-256
+  `5d50534dd7235ad789f4717a8bbe24434249712ae31a09fbea711ed614e25162`; validated as run1655's. `step4.py` on
+  `Army::find_target@006f69b0` (army `0x1654cdfc`) with tick 5496's own writes poked — `reg` 9 (`do_transporting`'s
+  region) and the war between who 1 and 2 (`diplos` 1 → 0 on block 5497) — draws **13 of 13 equal to theirs' trace**
+  (five French cities, the forts draw `+0x167b`, seven own) and writes `target_o` 2040, point (15456, 31584), muster
+  (22, 48): run1655's 5621. The French scores 40920, 81360, 76880, 122040, 54720; `LeaderData::score` 12240 (French),
+  11648 (Russian); `pop_issues` (who 2) 1; `wonderwin_timer` (who 1) 1; the Russian `pers` equal to ours.
+
+Files in place: `gamelog.txt`, 128,905,167 bytes, SHA-256 `0f7ee1b12f20c7bd320ed09f5fac9cf51830f3e9e09bf9f847f145854d049b82`;
+`rontrace.log`, 254,867,392 bytes, SHA-256 `7a7511f5ed8a4c86723ce475a4f18fea5a0aec2deba714de47134cae83fcd20d`.
+
+**What it holds**: no walk reads it; the score's value diff (item 4354's journal).
 ## run1656 — the original playing the file the pick buttons minted (2026-11-17, item 4352, `att-4352`)
 
 `docs/CLIENT_INPUT.md` §32.11. **What the disk could not answer**: no take on disk plays a `follow`, `gather` or

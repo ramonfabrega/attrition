@@ -456,9 +456,11 @@ impl TargetScoreView for SimGate<'_> {
         0
     }
     fn f18(&self, a: usize) -> i32 {
-        // The `score x 4/3` clause is a seam (the module doc of `army`): the
-        // comparison holds, so the level counts with the army alone.
-        i32::from(a == self.who as usize)
+        // `leaders[a] +0x18`, `LeaderData::score` (the type record): the
+        // raid-1 arm's `score(i) * 4 / 3 < score(who)` (item 4354, run1655b's
+        // 5496: the French 12240, the Russians 11648, so the level arm is
+        // refused and the city counts by `4 - kind`).
+        self.sim.leader_score(a as crate::Player).score
     }
     fn transport(&self, a: usize) -> i32 {
         self.sim.transport_level(a as crate::Player) as i32

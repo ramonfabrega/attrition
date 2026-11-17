@@ -2077,3 +2077,30 @@ fn a_fort_outscoring_its_owner_s_city_replaces_it() {
         "the fort, scored after the enemy's city"
     );
 }
+
+/// **The raid-1 level arm reads the leaders' scores** (item 4354,
+/// `docs/ARMY.md` §12): `find_target`'s `leaders[i] +0x18 * 4 / 3 <
+/// leaders[who] +0x18` is `LeaderData::score` on both sides. run1655b's
+/// 5496 holds the French at 12240 and the Russians at 11648, so the test
+/// refuses and the city counts by `4 - kind`; the seam's answer (1 for the
+/// army's leader, 0 for the rest) passed it always and took the French
+/// `1/2000` by its level where theirs took `1/2040`.
+#[test]
+fn find_target_s_level_arm_compares_the_leaders_scores() {
+    use crate::ai::army::target_gate::SimGate;
+    use crate::ai::army::target_score::TargetScoreView;
+
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(8, 8), 3);
+    sim.leaders.score[1].score = 12240;
+    sim.leaders.score[2].score = 11648;
+    let gate = SimGate {
+        sim: &mut sim,
+        who: 2,
+        slot: 1,
+    };
+    assert_eq!((gate.f18(1), gate.f18(2)), (12240, 11648));
+    assert!(
+        gate.f18(1).wrapping_shl(2) / 3 >= gate.f18(2),
+        "the level arm is refused"
+    );
+}

@@ -2080,9 +2080,16 @@ pub(crate) fn run1646() -> Option<(String, String)> {
 /// drew 171 and ours 187 → 171, index 5 theirs `find_target+0x167b` (seed
 /// `b5b2924b`, 17197) where ours had gone on to the sixth city score
 /// `+0x7df`; now index 5 is `+0x167b` on both, the next seven city scores
-/// after it on both. On 5622 ours 123, theirs 132, at index 0 ours
-/// `Unit::do_move+0xe84`, theirs `PathFinder::astar_path+0x1697`.
-pub(crate) const RUN1646_WORD: i64 = 5622;
+/// after it on both; **5668** (+46, item 4354) with the raid-1 level arm's
+/// score test (`docs/ARMY.md` §12): on 5496 army `2/1`'s `find_target` took
+/// the French `1/2000` (level 3, x3: 3069) where theirs took `1/2040`
+/// (run1655b's packet, 13 of 13 draws: 4 - kind, x3), since `f18` answered
+/// 1 for the army's own leader where `LeaderData::score` reads 11648 against
+/// the French 12240; on 5621 army `2/1`'s target, point (15456, 31584) and
+/// muster (22, 48) are now run1655's packet's. On 5668 ours 112, theirs 129,
+/// at index 3 ours `Guy::set_anim+0x97a < Guy::move`, theirs
+/// `Unit::do_move+0xe84`.
+pub(crate) const RUN1646_WORD: i64 = 5668;
 
 /// **run1646 walks to [`RUN1646_WORD`]**, its head word agreeing on every
 /// frame walked, with the alliance staged off `alliance4316.cmd`. The
