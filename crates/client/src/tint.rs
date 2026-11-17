@@ -263,9 +263,10 @@ pub(crate) mod tests {
     /// Item 4311: off luma run1559b 1,072 → 1,079 and run1570 1,142 → 1,144, on unchanged: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
     /// Item 4312: run1564 off row 1,786 → 1,788; on row 1,783 → 1,784 and luma 1,845 → 1,848: the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
     /// Item 4319: run1559b off row 1,105 → 1,106 and luma 1,079 → 1,080, on hue 960 → 959 (a named fall of one) and row 1,105 → 1,106; run1564 off hue 678 → 679 and luma 1,852 → 1,859, on hue 676 → 679, luma 1,848 → 1,855: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24).
+    /// Item 4310: run1564 off row 1,788 → 1,803 and luma 1,859 → 1,840 (a named fall of 19, the made-to-fail side's flat light); on row 1,784 → 1,798 and luma 1,855 → 1,868: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR").
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
         ([959, 1106, 1080], [959, 1106, 1109]),
-        ([679, 1788, 1859], [679, 1784, 1855]),
+        ([679, 1803, 1840], [679, 1798, 1868]),
         ([1042, 1171, 1144], [1041, 1171, 1166]),
     ];
 
