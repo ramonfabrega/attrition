@@ -191,18 +191,17 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
     // ranges, the setup's (item 4317's journal).
     (
         0,
-        &[(
-            "leaders",
-            267,
-            267,
-            16,
+        &[
             // Item 4320: byte 2 agrees (`0x800000` emitted); before it
             // `+0x2 of 8|8: 00020000|800a0000`. Item 4333: `0x8000000`
-            // agrees (emitted), and ours' setup `0x4000000` parts the byte,
-            // a named divergence (`docs/CHECKSUM.md` §25.4); before it
-            // `02000000|0a000000`. Under it, the setup census's leaves.
-            "0 0 flags: +0x3 of 8|8: 0e000000|0a000000",
-        )],
+            // agrees (emitted), and ours' setup `0x4000000` parted the
+            // byte; before it `02000000|0a000000`. Item 4340: leaders whole
+            // (the setup lays the tree without the stats bits, and
+            // `Leader::init`'s `ally_mask`, `City::init`'s `reg_cities`,
+            // the ungated `defense` and the opening `resource_cap`s; §25.4);
+            // before it, 16 of 267 parted, first `0 0 flags: +0x3 of 8|8:
+            // 0e000000|0a000000`.
+        ],
     ),
     (
         100,

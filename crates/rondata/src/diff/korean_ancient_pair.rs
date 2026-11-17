@@ -339,5 +339,6 @@ fn korean_ancient_pair_run1200_s_closing_frame_is_widened_whole() {
     // `[541]`, `[566]`, `[574]` (1 each), and `queue:queued` on `1/2000`,
     // `1/2005`, `1/2006`, `1/2009`, `1/2011` (1 each), `1/2012` (5),
     // `1/2048`, `1/2054` (1 each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2). The queues 3578c names.
-    pin_eq!(w.firsts.len(), 154, "the closing walk's baseline");
+    // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
+    pin_eq!(w.firsts.len(), 153, "the closing walk's baseline");
 }

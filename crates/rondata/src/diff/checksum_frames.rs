@@ -346,7 +346,8 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
             ("builds", 120, 0),
             ("groups", 120, 0),
             ("guys", 120, 0),
-            ("leaders", 0, 1),
+            // Item 4340: whole (0 parted; it was frame 0 alone).
+            ("leaders", 120, 0),
             ("cities", 120, 0),
             ("items", 120, 0),
             ("goods", 120, 0),
@@ -362,7 +363,8 @@ const CHECKSUM_FRAMES: &[FramesRow] = &[
             ("groups", 24000, 0),
             ("guys", 24000, 0),
             // Item 4333: inside 300, 4 → 1 (0 alone; 167, 202, 297 whole).
-            ("leaders", 0, 1),
+            // Item 4340: whole (frame 0's setup census and stats bits).
+            ("leaders", 24000, 0),
             ("cities", 24000, 0),
             ("items", 24000, 0),
             ("goods", 24000, 0),
@@ -403,7 +405,7 @@ const LEADERS_K: usize = 4;
 /// the Militia line alone and the setup's tree raising neither; every
 /// frame but 0, whose census leaves stand; run1577 stands at 119.
 const LEADERS_AGREE: &[(&str, usize, usize)] =
-    &[(RUN1577_TRACE, 119, 120), (RUN1578_TRACE, 23999, 24000)];
+    &[(RUN1577_TRACE, 120, 120), (RUN1578_TRACE, 24000, 24000)];
 
 /// The Adler of each emitted line `want` names, on `sim`, in [`EMITTED`]'s
 /// order (`None` where not wanted). The builds line needs the data layer's
@@ -959,9 +961,11 @@ const WORLD_START_DANGER: (u32, u32) = (2_995_557_468, 1_887_436_801);
 /// start with every danger row cleared parts on section 8 alone, at the
 /// zeros' sum — the state before `Game::run`'s call.
 /// **The stats bits on the minted game's tables** (item 4333,
-/// `docs/CHECKSUM.md` §25.4): the setup's tree raises both here, a named
-/// divergence (`Leader::init` lays it down in place; run1578's setup
-/// `check_all` reads byte 3 `0a`), a gained unit type raises `0x4000000` only on the Militia line
+/// `docs/CHECKSUM.md` §25.4): the setup's tree raises neither (item 4340:
+/// `Leader::init` lays it down in place; run1578's setup `check_all` reads
+/// byte 3 `0a`, `0x8000000` alone, which `Wall::activate` raises for the
+/// starting city), a
+/// gained unit type raises `0x4000000` only on the Militia line
 /// (`gain_tech@006dcb60`, `6dd988`: `is(0x42, 0)`), and any other gain
 /// raises both (the tail's `0xc000000`). Then the emitter writes each.
 #[test]
@@ -973,13 +977,14 @@ fn the_stats_bits_follow_the_militia_line() {
     let sim = &mut built.sim;
     for who in 0..2u8 {
         let (f, _) = sim.leader_flag_words(who);
-        // A named divergence: theirs' `0a` is `0x8000000` alone; the
-        // crate's setup tree raises `0x4000000` too, which its first
-        // `calc_unit_stats` (the Bantu speed) needs.
+        // Theirs' `0a`: `0x8000000` alone. Item 4333's named divergence
+        // (the tree raising `0x4000000` too, `0e`) went with item 4340: a
+        // unit is born at its leader's speed, so nothing waits on the
+        // first `calc_unit_stats`.
         assert_eq!(
             f.map(|f| f & 0xc00_0000),
-            Some(0xc00_0000),
-            "leader {who}: the setup's two bits, ours `0e` against theirs' `0a`"
+            Some(0x800_0000),
+            "leader {who}: the setup's `0x8000000` alone, theirs' `0a`"
         );
     }
     let tree = sim.tables.tech_tree.clone();

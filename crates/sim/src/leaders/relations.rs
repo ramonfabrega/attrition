@@ -187,6 +187,13 @@ impl Sim {
         if let (Some(t), Some(s)) = (self.leaders.team.get_mut(w), seat(w)) {
             *t = s.team;
         }
+        // `Leader::init@006e3930:178`: `ally_mask` (`+0x6929`) is the
+        // leader's own bit, whatever the game, before the diplomacy row
+        // (item 4340: run1578's setup `check_all` reads 1 and 2 on leaders
+        // 0 and 1, where the census sweep had not yet written it).
+        if let Some(l) = self.ai.ai.get_mut(w) {
+            l.census.ally_mask = 1u32 << (w & 0x1f);
+        }
         let lobby = &self.ai.lobby;
         if lobby.conquest {
             return;
@@ -229,8 +236,21 @@ impl Sim {
                 self.leaders.allied[w][u] = d == 2;
             }
         }
+        // `:229`–`:235`: each other slot the row just allied joins the
+        // mask under `has_preq(ALLY_LOS) || reveal_map`. The lobby's
+        // "Normal" is 1, so the gate passes on every game on file; the
+        // `ALLY_LOS` half is not read here, as the census's step 6 does
+        // not read it (`ai_census.rs`, the SEAM table).
+        let reveal = lobby.reveal_map != 0;
+        let mut allies = 0u32;
+        for u in 0..n.min(8) {
+            if u != w && reveal && self.leaders.allied[w][u] {
+                allies |= 1 << u;
+            }
+        }
         if let Some(l) = self.ai.ai.get_mut(w) {
             l.aggression = aggression;
+            l.census.ally_mask |= allies;
         }
     }
 

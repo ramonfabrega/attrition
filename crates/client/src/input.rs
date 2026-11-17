@@ -1368,6 +1368,23 @@ fn pages_of(sim: &sim::Sim) -> i32 {
     if sim.ai.lobby.conquest { 2 } else { 3 }
 }
 
+/// **One press of a typeless page button** (items 4339, 4343, §32.7,
+/// §32.8): the page `Options::exec@007188c0` leaves a citizen's panel on,
+/// `None` for `STANDARD_OPTIONS`, from `page` with `n` pages. Cases 0 to 2
+/// open their page (under two pages, `OPTION_BUILD_WONDER` opens nothing);
+/// 0x41 turns forward modulo `n`, 0x42 back with the wrap, both on a page
+/// only; 0x43 returns a page to the standard panel. Every arm is run on
+/// packets by `panels.py --turns` (`PAGE_TURNS_RUN`).
+fn turn(option: i32, page: Option<i32>, n: i32) -> Option<i32> {
+    match (option, page) {
+        (OPTION_BUILD..=OPTION_BUILD_WONDER, _) if option < n => Some(option),
+        (OPTION_NEXT, Some(k)) => Some((k + 1) % n),
+        (OPTION_BACK, Some(k)) => Some(if k < 1 { n - 1 } else { k - 1 }),
+        (OPTION_CANCEL, Some(_)) => None,
+        (_, page) => page,
+    }
+}
+
 /// **A panel button** (item 4326, `docs/CLIENT_INPUT.md` §32.4): what
 /// `Options::add@0072c290` takes of one of `make_options`' train and
 /// research adds, the grid aside: the type, the option and `disable`.
@@ -2862,14 +2879,7 @@ impl Input {
                 if self.selection.is_empty() || self.building {
                     return None;
                 }
-                let n = view.sim.map_or(3, pages_of);
-                self.page = match (option, self.page) {
-                    (OPTION_BUILD..=OPTION_BUILD_WONDER, _) if option < n => Some(option),
-                    (OPTION_NEXT, Some(k)) => Some((k + 1) % n),
-                    (OPTION_BACK, Some(k)) => Some(if k < 1 { n - 1 } else { k - 1 }),
-                    (OPTION_CANCEL, Some(_)) => None,
-                    (_, page) => page,
-                };
+                self.page = turn(option, self.page, view.sim.map_or(3, pages_of));
                 None
             }
             Event::Place(ty) => {
@@ -10928,6 +10938,28 @@ pub(crate) mod tests {
             .collect()
     }
 
+    /// **The `*.tsv` files of a shared oracle directory this tree counts**
+    /// (item 4343; `rondata::corpus`, DECISIONS 132 §3): `~/ron-data/panels`,
+    /// `pages`, `pages-standard` and `pages-turns` are shared by every
+    /// worktree on the machine, so a file whose run (`run1652.tsv`) this
+    /// tree's `docs/RUNS.md` heads no section for is skipped and printed,
+    /// never counted: another lane's capture cannot move this tree's pins
+    /// before its ledger and re-pins land. Sorted; `None` with no directory.
+    fn tsvs_in_tree(dir: &std::path::Path) -> Option<Vec<std::path::PathBuf>> {
+        let listed = rondata::corpus::listed(dir, rondata::corpus::Ledger::of_tree(), |p| {
+            p.extension().is_some_and(|x| x == "tsv")
+        })
+        .ok()?;
+        if !listed.unfiled.is_empty() {
+            println!(
+                "{}: skipping unfiled {}",
+                dir.display(),
+                listed.unfiled.join(", ")
+            );
+        }
+        Some(listed.kept.iter().map(|n| dir.join(n)).collect())
+    }
+
     /// [`panels_on_disk`] with each button whole (item 4326): its type,
     /// option and `disable`, the TSV's columns 8, 5 and 9, sorted.
     fn buttons_on_disk() -> Vec<(String, i32, i32, i32, Vec<Button>)> {
@@ -10937,14 +10969,9 @@ pub(crate) mod tests {
                 std::path::Path::new(&std::env::var_os("HOME").unwrap_or_default())
                     .join("ron-data/panels")
             });
-        let Ok(rd) = std::fs::read_dir(&dir) else {
+        let Some(files) = tsvs_in_tree(&dir) else {
             return Vec::new();
         };
-        let mut files: Vec<_> = rd
-            .filter_map(|e| e.ok().map(|e| e.path()))
-            .filter(|p| p.extension().is_some_and(|x| x == "tsv"))
-            .collect();
-        files.sort();
         let mut out: std::collections::BTreeMap<(String, i32, i32), (i32, Vec<Button>)> =
             std::collections::BTreeMap::new();
         for f in files {
@@ -11293,14 +11320,9 @@ pub(crate) mod tests {
             .unwrap_or_else(|| {
                 std::path::Path::new(&std::env::var_os("HOME").unwrap_or_default()).join(default)
             });
-        let Ok(rd) = std::fs::read_dir(&dir) else {
+        let Some(files) = tsvs_in_tree(&dir) else {
             return Vec::new();
         };
-        let mut files: Vec<_> = rd
-            .filter_map(|e| e.ok().map(|e| e.path()))
-            .filter(|p| p.extension().is_some_and(|x| x == "tsv"))
-            .collect();
-        files.sort();
         let mut out: std::collections::BTreeMap<(String, i64, i32, i32), PageAdds> =
             std::collections::BTreeMap::new();
         for f in files {
@@ -11348,18 +11370,20 @@ pub(crate) mod tests {
     /// [`crate::hud::roster_menu`] draws for it, each whole (type, option,
     /// `disable`), against the original's three pages: (citizens whose
     /// buttons equal, citizens, buttons both draw whole, the original's,
-    /// the HUD's). Seen red pinned (0, 0, 0, 0, 0).
-    const HUD_PAGES_WALKED: (usize, usize, usize, usize, usize) = (32, 32, 1312, 1312, 1312);
+    /// the HUD's). Seen red pinned (0, 0, 0, 0, 0). Widened by item 4343
+    /// over run1652 and run1653, which reach the limit, site and
+    /// `already_built` arms: each arm perturbed turns it red (§32.8).
+    const HUD_PAGES_WALKED: (usize, usize, usize, usize, usize) = (36, 36, 1473, 1473, 1473);
     /// **`HUD_PAGES_STATIC`** (item 4337): the same citizens against the
     /// HUD without the walk, the static [`Roster::builds`], each a clear
     /// `OPTION_BUILD`: the gap [`HUD_PAGES_WALKED`] closed.
-    const HUD_PAGES_STATIC: (usize, usize, usize, usize, usize) = (0, 32, 147, 1312, 1696);
+    const HUD_PAGES_STATIC: (usize, usize, usize, usize, usize) = (0, 36, 175, 1473, 1908);
     /// **`HUD_PAGES_PRESSED`** (item 4337): of the drawn page buttons,
     /// each pressed at its centre through [`crate::hud::event`], (those
     /// that arm as their `disable` says, pressed): a greyed one arms
     /// nothing, a clear one the placement of its type. Ours:
     /// `Options::exec`'s build arm is not read here. Seen red pinned (0, 0).
-    const HUD_PAGES_PRESSED: (usize, usize) = (1312, 1312);
+    const HUD_PAGES_PRESSED: (usize, usize) = (1473, 1473);
     /// **`HUD_PAGES_PAGED`** (item 4339, `docs/CLIENT_INPUT.md` §32.7):
     /// each held packet's citizen paged through the HUD as the original
     /// pages, one page at a time: the standard panel's page buttons
@@ -11369,7 +11393,7 @@ pub(crate) mod tests {
     /// arm sets and the buttons drawn on it whole (type, option, `disable`)
     /// against the original's adds in that mode: (citizens every state
     /// equal, citizens, states equal, states). Seen red pinned (0, 0, 0, 0).
-    const HUD_PAGES_PAGED: (usize, usize, usize, usize) = (32, 32, 416, 416);
+    const HUD_PAGES_PAGED: (usize, usize, usize, usize) = (36, 36, 468, 468);
 
     /// **The citizen's build pages, on our walk** (item 4337): every held
     /// packet's citizens, the original's pages (`UnitOut::make_options@00615fc0`
@@ -11580,6 +11604,67 @@ pub(crate) mod tests {
         assert_eq!(paged, HUD_PAGES_PAGED);
     }
 
+    /// **`PAGE_TURNS_RUN`** (item 4343, `docs/CLIENT_INPUT.md` §32.8):
+    /// `Options::exec`'s page turns run on packets (`panels.py --turns`,
+    /// `~/ron-data/pages-turns/*.tsv` or `RON_PAGE_TURNS_DIR`): each row a
+    /// start (the standard panel or a page), a press (a page button,
+    /// `OPTION_NEXT`, `OPTION_BACK`, `OPTION_CANCEL`) under three or two
+    /// pages, and the mode the original's run leaves; against [`turn`]:
+    /// (rows equal, rows). Seen red pinned (0, 0).
+    const PAGE_TURNS_RUN: (usize, usize) = (63, 63);
+
+    /// **The page turns, against the original's own runs** (item 4343):
+    /// each row's start and press through [`turn`], the page it leaves
+    /// against the mode and `mode_data` `exec` left on the packet.
+    #[test]
+    fn the_page_turns_of_the_packets() {
+        let dir = std::env::var_os("RON_PAGE_TURNS_DIR")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                std::path::Path::new(&std::env::var_os("HOME").unwrap_or_default())
+                    .join("ron-data/pages-turns")
+            });
+        let Some(files) = tsvs_in_tree(&dir) else {
+            println!("skipping: no turns on disk (RON_PAGE_TURNS_DIR, ~/ron-data/pages-turns)");
+            return;
+        };
+        // `OptionMode`: `STANDARD_OPTIONS` 0 is no page, `BUILD_OPTIONS` 1
+        // is page `mode_data`; any other mode is no state of ours.
+        let page = |mode: i64, data: i64| match mode {
+            0 => Ok(None),
+            1 => Ok(Some(data as i32)),
+            m => Err(m),
+        };
+        let mut run = (0, 0);
+        for f in &files {
+            for line in std::fs::read_to_string(f).unwrap().lines() {
+                if line.starts_with('#') || line.is_empty() {
+                    continue;
+                }
+                let c: Vec<i64> = line
+                    .split('\t')
+                    .take(9)
+                    .map(|v| v.parse().expect("a panels.py --turns row"))
+                    .collect();
+                assert!(c[7] != -1, "{f:?}: a run that did not return: {line}");
+                let (n, option) = (c[3] as i32, c[6] as i32);
+                let from = page(c[4], c[5]).expect("a start the harness poked");
+                let theirs = page(c[7], c[8]);
+                let ours = turn(option, from, n);
+                run.1 += 1;
+                if theirs == Ok(ours) {
+                    run.0 += 1;
+                } else {
+                    println!(
+                        "TURN {f:?}: pages {n} from {from:?} option {option:#x}: theirs {theirs:?}, ours {ours:?}"
+                    );
+                }
+            }
+        }
+        println!("PAGE_TURNS_RUN {run:?}");
+        assert_eq!(run, PAGE_TURNS_RUN);
+    }
+
     /// **`PAGE_ARMS_WALKED`** (item 4339, `docs/CLIENT_INPUT.md` §32.7): on
     /// our walk of the minted script, each frame where a slot's state for
     /// the page loop's four idle arms changes, as (frame, slot,
@@ -11603,11 +11688,11 @@ pub(crate) mod tests {
     /// **`PAGE_ARMS_HELD`** (item 4339): of the held packets' citizens
     /// ([`pages_on_disk`]), those whose slot stands, at the packet's frame
     /// on our walk, under its city limit, or with a wonder built or sited:
-    /// none. The packets that would reach the arms are the minted file's
-    /// playback at a frame in 383..577 (the limit), 12783..14312 (the
-    /// site, and the limit) or from 14312 (`already_built`, and the
-    /// limit). Seen red pinned at 1.
-    const PAGE_ARMS_HELD: usize = 0;
+    /// three since item 4343 (`docs/CLIENT_INPUT.md` §32.8), run1652's
+    /// slot 1 at 13000 (the Pyramids sited, under its limit) and run1653's
+    /// two slots at 14400 (`already_built`; slot 1 under its limit). Item
+    /// 4339's held packets reach none. Seen red at 0, the pin before them.
+    const PAGE_ARMS_HELD: usize = 3;
 
     /// **The page loop's idle arms on our walk** (item 4339): where on the
     /// minted game a packet would reach them, and that no held packet does.

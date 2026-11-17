@@ -174,6 +174,8 @@ class Stubs:
             self.ret(0, 276)
         elif name == "OutputDebugStringA":
             self.ret(4, 0)
+        elif name == "GetKeyState":  # stdcall (vk) -> 0: no modifier held (item 4343)
+            self.ret(4, 0)
         elif name in ("wcschr", "strchr"):  # cdecl: (s, c) -> the first c or NULL
             wide = name == "wcschr"
             s, c, w = self.arg(0), self.arg(1) & (0xFFFF if wide else 0xFF), 2 if wide else 1

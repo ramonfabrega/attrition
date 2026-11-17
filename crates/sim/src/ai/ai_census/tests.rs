@@ -618,8 +618,8 @@ fn defence_counts_towers_and_forts_and_exempts_the_dock() {
 /// 1377): `Build::init` adds 1 for a type with arrows the moment it is
 /// placed, `Build::activate` 1 more, `Build::close` takes 1; the sweep
 /// recounts and counts the site, because its `is_active` test gates the
-/// gather slots alone (`006bb09c` → `006bb15a`). A human's tally is
-/// never moved here: this crate does not sweep a human.
+/// gather slots alone (`006bb09c` → `006bb15a`). A human's tally moves
+/// too: the writers are ungated (item 4340).
 #[test]
 fn defence_moves_with_a_site_s_life_and_the_sweep_counts_a_site() {
     let mut f = fix();
@@ -639,7 +639,7 @@ fn defence_moves_with_a_site_s_life_and_the_sweep_counts_a_site() {
     f.sim.close_building(site, true);
     assert_eq!(f.sim.ai.ai[1].census.defense, 1, "`Build::close`'s -1");
     f.sim.init_build(0, f.tower, tile_pos(28, 28), false);
-    assert_eq!(f.sim.ai.ai[0].census.defense, 0, "a human's is not moved");
+    assert_eq!(f.sim.ai.ai[0].census.defense, 1, "a human's moves too");
 }
 
 /// The maxima only ever climb, and the escrow rate switches on at the

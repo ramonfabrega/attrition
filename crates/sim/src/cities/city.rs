@@ -548,15 +548,20 @@ impl Sim {
     }
 
     /// `LeaderData::reg_cities` (`+0x125e`) by one city: `City::init`'s
-    /// `+1`, `City::close`'s `−1`. A census not yet sized by its first
-    /// sweep takes nothing; the sweep's recount stands it up.
+    /// `+1`, `City::close`'s `−1`, on the leader's own array from the
+    /// setup's first city: a census its first sweep has not sized is sized
+    /// here (item 4340: run1578's setup `check_all`, `reg_cities[1]` 1).
     fn bump_reg_cities(&mut self, who: Player, reg: Option<u16>, by: i32) {
-        if let Some(r) = reg
-            && r < 0x40
+        let (regions, players) = (self.world.region_count(), self.territory.players.len());
+        if let Some(r) = reg.filter(|&r| r < 0x40).map(usize::from)
             && let Some(a) = self.ai.ai.get_mut(who as usize)
-            && let Some(n) = a.census.reg_cities.get_mut(r as usize)
         {
-            *n += by;
+            if a.census.reg_cities.len() <= r {
+                a.census.resize(regions, players);
+            }
+            if let Some(n) = a.census.reg_cities.get_mut(r) {
+                *n += by;
+            }
         }
     }
 
@@ -1742,23 +1747,14 @@ impl Sim {
     /// lifecycle's three writers — `Build::init`, `Build::activate`,
     /// `Build::close` — between the sweeps that recount it.
     ///
-    /// **Not for a human, and that is this crate's gap, not the
-    /// original's.** The original sweeps every leader (`strategy_all`'s
-    /// gate is `leader_flags & 3 == 3`) and its recount puts the human back
-    /// to its towers and forts — run346's who=0 reads `defense 2` at the
-    /// start dump (its city, placed and activated) and 0 by 15857. This
-    /// crate sweeps no human ([`Sim::strategy_all`], `docs/AI.md` §23.1),
-    /// so a tally it moved would never be recounted; a human's stays at
-    /// nought, which is the original's value whenever it holds no tower.
+    /// **A human's too** (item 4340): the original's writers are ungated,
+    /// and its sweep recounts every leader (`strategy_all`'s gate is
+    /// `leader_flags & 3 == 3`), as this crate's does since
+    /// `Sim::plan_strategy_human` (`ai/ai_drive.rs`). run346's who=0 reads `defense 2` at
+    /// the start dump (its city, placed and activated), and run1578's
+    /// setup `check_all` leader 0's `+0x954` 2: the gate this replaced held
+    /// it at 0 there (`docs/CHECKSUM.md` §25.4).
     fn defense_add(&mut self, who: Player, n: i32) {
-        if self
-            .cities
-            .nation
-            .get(who as usize)
-            .is_some_and(|n| n.human)
-        {
-            return;
-        }
         if let Some(l) = self.ai.ai.get_mut(who as usize) {
             l.census.defense += n;
         }

@@ -340,7 +340,7 @@ impl Sim {
     /// of 32 from its birth on 621 (item 1109).
     /// The supply-bit upgrade adds `level * speed / 4` after those terms
     /// (SUPPLY, "Upgrade speed", item 1441).
-    pub(crate) fn type_speed(&self, who: Player, ty: usize) -> i32 {
+    pub fn type_speed(&self, who: Player, ty: usize) -> i32 {
         self.speed_of(who, ty, false)
     }
 
