@@ -4287,9 +4287,26 @@ leaves what stands above it. The row `RUN1564_3279_FISH` (`the_fish_under_the_wa
 three pieces move; theirs the dark pixels (green under 0.62 of blue) of the box x 1010–1120, y 130–192, 304 of them
 and none in two fish-free boxes. **Ours dark 0 of 904 → 393 of 889**, mean (134, 137, 145) → (51, 98, 155) against
 theirs' (24, 87, 151); theirs covered 0 of 304 on both, since ours stand at x 1163–1221, y 179–268. The border band
-falls 224 → 222 and the texture's `OCEAN` 245 → 244, the water now over what it covers. *Not established:* the fish's
-light (`BLENDTA(TEX, TF)`, `MOD(CUR, DIF)`, material ambient (0.335, 0.400, 0.416), diffuse 2.5), ours red 51 against
-24; where the herd's fish stand (4308c); the churn (4308d); `draw_particles(0)` before the water, ours after.
+falls 224 → 222 and the texture's `OCEAN` 245 → 244, the water now over what it covers. *Not established:* ~~the
+fish's light~~ (item 4345, below); where the herd's fish stand (4308c); the churn (4308d); `draw_particles(0)` before
+the water, ours after.
+
+**The fish's light** (item 4345). Draws 155–160 carry `ENABLE_LIGHTING`, stage 0 `BLENDTA(TEX, TF)` at tfactor
+(255, 255, 255), stage 1 `MODULATE(CURRENT, DIFFUSE)`, material ambient (0.3348, 0.3995, 0.4157), diffuse 2.5, light
+diffuse 1 at (−0.707, 0, −0.707), scene ambient (0.6, 0.716, 0.745), no specular: the units' material that
+`render::silhouette::lit_pipeline` reads (item 4114; ambient `UNIT_AMBIENT · UNIT_AMBIENT_I`). `fishherd.tga` is opaque
+on every texel, so the tfactor does not show. At the flat N·L the lit branch barely moves the texel (150 → (150, 160,
+163)); under our water, a fit over our 889 fish pixels (r 0.99) keeps 0.49 of the fish's red, 0.36 of its green and
+0.24 of its blue, which puts theirs' fish at about (80, 107, 129) before the water against our unlit (135, 139, 146).
+That is the lit branch at an N·L near 0.2. The herd's corners, at their stored normals (item 4122) against −`cur_dir`,
+sit at a median N·L of 0.03, 3,192 of 6,480 under 0: the fish are upright, their sides facing across the light.
+`World::herd_lit` (on) draws the herd's pieces through `fs_textured_lit`, each corner's N·L interpolated (the card
+normalizes the interpolated normal per pixel). The land figures stay as item 4172's rule draws them. **`RUN1564_3279_FISH`,
+the lit arm: ours dark 393 of 889 → 613 of 850**, mean (51, 98, 155) → (34.5, 89.5, 149.7) against theirs' (24.4,
+87.4, 151.3): chromaticity r 0.168 → 0.126 against 0.093, and luma 90.5 → 79.6 against 75.5. Theirs covered stays 0 of
+304 (4308c). *Coverage.* On one take's card, read: the draws' states and material. Not diff-backed: the row is the
+photograph's, at our own positions. *Not established:* whether the card culls the herd's back faces (ours draws both);
+the N·L per pixel against ours per corner.
 
 ## 4. The stack
 

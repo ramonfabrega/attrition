@@ -276,6 +276,7 @@ mod sahara_coverage;
 mod sahara_mongol;
 #[cfg(test)]
 mod sahara_toughest;
+pub mod sample;
 #[cfg(test)]
 mod sea_melee;
 #[cfg(test)]

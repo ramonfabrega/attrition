@@ -3895,7 +3895,8 @@ run1652 at 13000 and run1653 at 14400, reach three of §32.6's four idle arms, a
 original's on them. `Options::exec`'s page turns are run on three packets. No `crates/sim` change.*
 
 **The packets.** Each is run1600's recipe with `RON_STATE_FRAME` moved (`docs/RUNS.md`, run1652 and run1653), and
-each packet's checksum stream equals the original's sums on every line. Our walk holds every citizen of both
+each packet's checksum stream equals the original's sums on every line. Both are wired into `diff::checksum_frames::MINTED_PACKETS`: our walk under the pump holds all twelve state lines
+whole against each packet, and its hook set is run1578's on the same frame. Our walk holds every citizen of both
 packets, by slot and id, as a citizen. At 13000 slot 1 stands under its city limit with the Pyramids (526) sited.
 At 14400 both slots see the Pyramids built (`wonders_built` is the game's, not a slot's), and slot 1 is under
 its limit. `PAGE_ARMS_HELD` **0 → 3**: run1652's slot 1 and run1653's two slots.
