@@ -10938,6 +10938,28 @@ pub(crate) mod tests {
             .collect()
     }
 
+    /// **The `*.tsv` files of a shared oracle directory this tree counts**
+    /// (item 4343; `rondata::corpus`, DECISIONS 132 §3): `~/ron-data/panels`,
+    /// `pages`, `pages-standard` and `pages-turns` are shared by every
+    /// worktree on the machine, so a file whose run (`run1652.tsv`) this
+    /// tree's `docs/RUNS.md` heads no section for is skipped and printed,
+    /// never counted: another lane's capture cannot move this tree's pins
+    /// before its ledger and re-pins land. Sorted; `None` with no directory.
+    fn tsvs_in_tree(dir: &std::path::Path) -> Option<Vec<std::path::PathBuf>> {
+        let listed = rondata::corpus::listed(dir, rondata::corpus::Ledger::of_tree(), |p| {
+            p.extension().is_some_and(|x| x == "tsv")
+        })
+        .ok()?;
+        if !listed.unfiled.is_empty() {
+            println!(
+                "{}: skipping unfiled {}",
+                dir.display(),
+                listed.unfiled.join(", ")
+            );
+        }
+        Some(listed.kept.iter().map(|n| dir.join(n)).collect())
+    }
+
     /// [`panels_on_disk`] with each button whole (item 4326): its type,
     /// option and `disable`, the TSV's columns 8, 5 and 9, sorted.
     fn buttons_on_disk() -> Vec<(String, i32, i32, i32, Vec<Button>)> {
@@ -10947,14 +10969,9 @@ pub(crate) mod tests {
                 std::path::Path::new(&std::env::var_os("HOME").unwrap_or_default())
                     .join("ron-data/panels")
             });
-        let Ok(rd) = std::fs::read_dir(&dir) else {
+        let Some(files) = tsvs_in_tree(&dir) else {
             return Vec::new();
         };
-        let mut files: Vec<_> = rd
-            .filter_map(|e| e.ok().map(|e| e.path()))
-            .filter(|p| p.extension().is_some_and(|x| x == "tsv"))
-            .collect();
-        files.sort();
         let mut out: std::collections::BTreeMap<(String, i32, i32), (i32, Vec<Button>)> =
             std::collections::BTreeMap::new();
         for f in files {
@@ -11303,14 +11320,9 @@ pub(crate) mod tests {
             .unwrap_or_else(|| {
                 std::path::Path::new(&std::env::var_os("HOME").unwrap_or_default()).join(default)
             });
-        let Ok(rd) = std::fs::read_dir(&dir) else {
+        let Some(files) = tsvs_in_tree(&dir) else {
             return Vec::new();
         };
-        let mut files: Vec<_> = rd
-            .filter_map(|e| e.ok().map(|e| e.path()))
-            .filter(|p| p.extension().is_some_and(|x| x == "tsv"))
-            .collect();
-        files.sort();
         let mut out: std::collections::BTreeMap<(String, i64, i32, i32), PageAdds> =
             std::collections::BTreeMap::new();
         for f in files {
@@ -11612,15 +11624,10 @@ pub(crate) mod tests {
                 std::path::Path::new(&std::env::var_os("HOME").unwrap_or_default())
                     .join("ron-data/pages-turns")
             });
-        let Ok(rd) = std::fs::read_dir(&dir) else {
+        let Some(files) = tsvs_in_tree(&dir) else {
             println!("skipping: no turns on disk (RON_PAGE_TURNS_DIR, ~/ron-data/pages-turns)");
             return;
         };
-        let mut files: Vec<_> = rd
-            .filter_map(|e| e.ok().map(|e| e.path()))
-            .filter(|p| p.extension().is_some_and(|x| x == "tsv"))
-            .collect();
-        files.sort();
         // `OptionMode`: `STANDARD_OPTIONS` 0 is no page, `BUILD_OPTIONS` 1
         // is page `mode_data`; any other mode is no state of ours.
         let page = |mode: i64, data: i64| match mode {
