@@ -4262,10 +4262,20 @@ sampler), the card's states. The fit becomes r 0.999 at a constant 0.853. Arms (
 - **the ground still's `SANDY` 663 → 717 of 772**, the row 1,798 → 1,852 of 1,920;
 - texture `SANDY` 435 → 520, `OCEAN` holds at 245 of 437.
 
+**The readback's white** (item 4342). The shown frame is the toned frame scaled by the expose pass's white
+(`expose.rs`, the frame's own mean), so α is read as `(T⁻¹(on / w_on) − T⁻¹(off / w_off)) / (5 − T⁻¹(off / w_off))`.
+Each still carries its own white. Two probes of `fs_surf_hdr` on the still settle it:
+- the surf opaque at an HDR value of 1.0 shows red 90 against `T(1)` = 99.9, so `w_off` is 0.892;
+- untouched pixels read on/off 0.9942 on the drawn still.
+
+The surf at a constant α of 0.1 then reads back 0.1887 against 0.1900 where each list covers a pixel once, and
+0.3432 against 0.3439 where each covers it twice. Our draw sits at **0.995 of the model of our lists** (median 0.994,
+r 0.999), against 0.853 without the white. ~~The constant 0.853 (4338a)~~ was the readback's, not the draw's.
+
 *Coverage.* On a reading: the card's blend and filters on draws 163–169 (one take, run1567). Against our own draw:
-the overlap, r 0.997. Not diff-backed: every row is the photograph's. *Not established:* the constant 0.853
-between our draw and the model of it (4338a); theirs' broad strokes far out, where ours shows fine speckle (4338b);
-the fish (4308a), not reached.
+the overlap, r 0.997, and the draw's scale, 0.995 with the white (4342). Not diff-backed: every row is the
+photograph's. *Not established:* theirs' broad strokes far out, where ours shows fine speckle (4338b). Lists 7 and 8
+do not part in the band (journal 4342). The fish (4308a) were not reached.
 
 ## 4. The stack
 
