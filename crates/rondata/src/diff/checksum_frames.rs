@@ -749,6 +749,12 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
             // item 4298: 3 → 2 (`hire_who`).
         ],
     ),
+    // Item 4343: the panel's idle arms' packets (`docs/CLIENT_INPUT.md`
+    // §32.8), at 13000 (the Pyramids sited) and 14400 (built); on no
+    // first parting, wired here so that the playback's lockstep there is
+    // held, not assumed.
+    ("run1652", "rontrace-run1652.log", 13000, &[]),
+    ("run1653", "rontrace-run1653.log", 14400, &[]),
     (
         "run1583",
         "rontrace-run1583.log",
