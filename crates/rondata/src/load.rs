@@ -112,6 +112,15 @@ pub struct Loaded {
     /// yet available when the leader `has_tech` either. In tech-record
     /// order, beside [`Loaded::tech_tree`]. No sim mechanic reads them.
     pub tech_show: Vec<[Preq; 2]>,
+    /// **Each building record's `CAT`** (item 4337, `docs/CLIENT_INPUT.md`
+    /// §32.6): `BuildType::init@00632340` resolves it with
+    /// `Categories::find_key(&build_cats, …)` into `TypeData::cat`
+    /// (`+0x14`), against `rules.xml`'s `<CATEGORIES id="building_cats">`
+    /// (`E`, `M`, `W`: 0, 1, 2), −1 when unmatched. The citizen's build
+    /// page `UnitOut::make_options@00615fc0` puts a type on is its `cat`.
+    /// In building-record order, beside [`Loaded::build_tree`]. No sim
+    /// mechanic reads it.
+    pub build_cat: Vec<i32>,
     /// Names the tables referred to that resolved to nothing, the way the
     /// original's `tech_key`/`unit_key`/`build_key` would have logged an
     /// error. Empty for the shipped files.
@@ -1009,6 +1018,29 @@ pub fn load_tables(
     // `TechType::set_research` marks the lineage of.
     let mut tech_cols_where: Vec<Option<usize>> = Vec::with_capacity(techs.records.len());
     let mut tech_show: Vec<[Preq; 2]> = Vec::with_capacity(techs.records.len());
+    // `rules.xml`'s `<CATEGORIES id="building_cats">`, by `key` (item 4337).
+    let build_cats: Vec<String> = rules
+        .categories
+        .iter()
+        .find(|(id, _)| id == "building_cats")
+        .map(|(_, t)| {
+            t.records
+                .iter()
+                .map(|r| {
+                    r.attrs
+                        .iter()
+                        .find(|(k, _)| k == "key")
+                        .map(|(_, v)| v.trim().to_string())
+                        .unwrap_or_default()
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    let build_cat: Vec<i32> = buildings
+        .records
+        .iter()
+        .map(|r| find_name(&build_cats, r.text("CAT").unwrap_or("")).map_or(-1, |i| i as i32))
+        .collect();
     for (i, r) in techs.records.iter().enumerate() {
         let kind = tech_kind(i);
         let mut d = TypeDef::new(&tech_names[i], kind);
@@ -2230,6 +2262,7 @@ pub fn load_tables(
         tech_tree,
         good_tree,
         tech_show,
+        build_cat,
         warnings,
         map_styles: rules
             .categories
@@ -3078,6 +3111,7 @@ mod tests {
             tech_tree: vec![11, 12],
             good_tree: (0..6).collect(),
             tech_show: vec![],
+            build_cat: vec![],
             warnings: vec![],
             map_styles: vec![],
             wonder_wins: vec![],
@@ -3141,6 +3175,19 @@ mod tests {
         assert_eq!(elephant.group, archer.group, "both the Stable's");
         assert!(!elephant.price.progression.by_group());
         assert!(archer.price.progression.by_group());
+    }
+
+    /// **Each building's `CAT`, the citizen's page** (item 4337,
+    /// `docs/CLIENT_INPUT.md` §32.6): `building_cats`' `E`, `M` and `W`
+    /// resolve to 0, 1 and 2 and no record is unmatched; the shipped file's
+    /// 129 records split 18, 93 and 18.
+    #[test]
+    fn every_building_has_a_page() {
+        let Some(i) = install() else { return };
+        let l = load(&i).unwrap();
+        assert_eq!(l.build_cat.len(), l.build_types.len());
+        let n = |c: i32| l.build_cat.iter().filter(|&&x| x == c).count();
+        assert_eq!((n(-1), n(0), n(1), n(2)), (0, 18, 93, 18));
     }
 
     /// **`BuildTypeData::to` skips a hero-masked record** (item 1326,
