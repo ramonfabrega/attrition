@@ -136,12 +136,18 @@ impl Sim {
     /// whom, treaty, 0, 0)`) and a human party's leg of `action_respond`'s
     /// hire loop. So `dow` and `blacken` move for a human declarer alone.
     ///
-    /// SEAM: the team tail after step 6 — for each other leader in play, on
-    /// the declarer's team or the target's and not both, `ally_diplo` down
-    /// to `level` — needs `LeaderData::is_team` at frame 0, which is false
-    /// between every two seats at `TEAM_STYLE 0` (no locked teams), so no
-    /// style-0 game reaches it; it is not carried. The messages (the
-    /// refusal's, the console target's chat and sound) are the interface's.
+    /// 7. **The allies' tail** (`006dadb5`), after the set: for each other
+    ///    leader `i` in play, in slot order, allied to exactly one of the two
+    ///    (`LeaderData::is_team(i, ·, 0)`, which past frame 0 is
+    ///    `is_ally`), when `level` is below `i`'s own `diplos` toward the
+    ///    other one, `Leader::ally_diplo@006d0120(i, other, level)`: a
+    ///    [`Sim::set_diplo`] and the console's message. So an ally is pulled
+    ///    into its partner's war at every team style (item 4331: run1646's
+    ///    Russians declare on the French on 5496 and the human, the French
+    ///    ally, is at war with the Russians in the same call).
+    ///
+    /// The messages (the refusal's, the console target's chat and sound)
+    /// are the interface's.
     pub fn action_declare(&mut self, me: Player, t: Player, level: i32, quiet: bool, force: bool) {
         let (m, x) = (me as usize, t as usize);
         if m >= self.leaders.declare.len() || x >= self.leaders.declare.len() || m == x {
@@ -197,6 +203,21 @@ impl Sim {
             self.leaders.declare[m].broke_alliance[x] = self.frame;
         }
         self.set_diplo(me, t, level);
+        let players = self.territory.players.len().min(self.leaders.declare.len());
+        for i in 0..players {
+            if i == m || i == x || self.leaders.defeated[i] {
+                continue;
+            }
+            let ip = i as Player;
+            let other = match (self.is_ally(ip, me), self.is_ally(ip, t)) {
+                (false, true) => m,
+                (true, false) => x,
+                _ => continue,
+            };
+            if level < self.diplos(i, other) {
+                self.set_diplo(ip, other as Player, level);
+            }
+        }
     }
 
     /// One counted declaration: `blacken` reads `dow[t]` before the
