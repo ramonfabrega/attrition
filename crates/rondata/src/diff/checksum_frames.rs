@@ -436,8 +436,11 @@ fn held(sim: &sim::Sim) -> [usize; 3] {
 /// which our walk holds no wall, no shot in flight and no death object
 /// when the other lines are taken, the frames walked)`. The hook's walls,
 /// ammo and deaths read 1 (the Adler of no bytes) on every set of both
-/// takes. Minted at 0, red first.
-const EMPTY_HELD: &[(&str, usize, usize)] = &[(RUN1577_TRACE, 0, 120), (RUN1578_TRACE, 0, 24000)];
+/// takes. Minted at 0, red first, and read as none on every frame of both:
+/// run1577 0 → 120 of 120, run1578 0 → 24,000 of 24,000 (theirs 1 on 124
+/// and 24,004 sets).
+const EMPTY_HELD: &[(&str, usize, usize)] =
+    &[(RUN1577_TRACE, 120, 120), (RUN1578_TRACE, 24000, 24000)];
 
 /// The Adler of each emitted line `want` names, on `sim`, in [`EMITTED`]'s
 /// order (`None` where not wanted). The builds line needs the data layer's
@@ -631,8 +634,11 @@ fn our_lines_part_from_the_hook_s_on_their_first_frame() {
 /// loosed on 673 (`classical_melee_s_kushite_archers_loose_from_the_bow`)
 /// — and [`held`] reads it. Per count, the first frame of `[0, MELEE_TO)`
 /// it reads non-zero, `None` where it never does. A count that cannot
-/// part on a walk that holds one is a blind instrument.
-const MELEE_HELD: [Option<i64>; 3] = [None, None, None];
+/// part on a walk that holds one is a blind instrument. Minted at none;
+/// read as a shot from 642 (fourteen at most inside the window) and a
+/// death object from 692 (two at most). No wall stands in the window, so
+/// the walls arm is held by a building moved into the 3000 band instead.
+const MELEE_HELD: [Option<i64>; 3] = [None, Some(642), Some(692)];
 
 /// The melee walked to this frame.
 const MELEE_TO: i64 = 720;
@@ -677,6 +683,18 @@ fn the_held_count_reads_the_melee_s_shot() {
     }
     eprintln!("MELEE HELD: first {seen:?}, most {most:?} ([walls, ammo, deaths])");
     assert_eq!(seen, MELEE_HELD, "MELEE_HELD");
+    // The walls arm: a live building in the wall band is one wall, and a
+    // dead one is none (`check_walls`' `flags & 1`).
+    let mut b = built.sim.buildings[0].clone();
+    assert!(
+        b.alive && b.index < sim::WALL_BASE,
+        "a city building to move"
+    );
+    b.index = sim::WALL_BASE;
+    built.sim.buildings.push(b);
+    let walls = held(&built.sim)[0];
+    built.sim.buildings.last_mut().unwrap().alive = false;
+    assert_eq!((walls, held(&built.sim)[0]), (1, 0), "the walls arm");
 }
 
 /// The instrument's streams of the minted game's packets (runs 1579 to
