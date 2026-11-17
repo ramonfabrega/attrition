@@ -350,6 +350,18 @@ pub struct World {
     /// compound. On by default; off, each list is drawn over one copy of the
     /// frame and its overlaps overwrite (the made-to-fail side).
     pub surf_hdr: bool,
+    /// **The objects before the water** (item 4344; `docs/RENDERER.md`
+    /// §3.30, "The fish under the water"): the figures, the trees and the
+    /// textured meshes drawn before the water and the surf, as
+    /// `Scene::render@008b3270` runs `pop_all_zoomed_in` and `draw_ammo`
+    /// before `TerrainOut::render_water` and `Surf::draw`, so the water
+    /// blends over what lies under it and its depth test leaves what stands
+    /// above it. On by default; off, the water and the surf are drawn before
+    /// every object (the made-to-fail side).
+    pub objects_under_water: bool,
+    /// Pieces left out of the figures' meshes (item 4344: the herd hidden,
+    /// for the fish row's mask of our fish); empty outside a test.
+    pub hidden: Vec<i32>,
     /// The surf's layer and each slot's texture and mask; `None` where
     /// `<SURF>` or a model or texture does not read, and no surf is laid.
     surf_art: Option<SurfArt>,
@@ -1188,6 +1200,8 @@ impl World {
             faded_hdr: true,
             land_hdr: false,
             surf_hdr: true,
+            objects_under_water: true,
+            hidden: Vec::new(),
             coral_lit: false,
             mountain_light: true,
             drawn: (u32::MAX, TerrainMesh::default(), Vec::new(), Vec::new()),
@@ -3062,6 +3076,9 @@ impl World {
         let mut soup = Soup::default();
         let mut textured = Vec::new();
         for d in self.objects(figures, buildings, list) {
+            if self.hidden.contains(&d.piece) {
+                continue;
+            }
             let mips = (self.textured && !d.uvs.is_empty())
                 .then(|| self.figure_texture(d.piece))
                 .flatten();

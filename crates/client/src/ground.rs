@@ -1181,11 +1181,43 @@ pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
 /// 360; the bright pixels over the scored tiles theirs 145,735, ours
 /// 133,657 (128,504 with the surf off).
 #[cfg(test)]
+/// Item 4344: surf off `SANDY` 167 → 166 (the made-to-fail side): the
+/// objects and the patches after the water drawn before it.
 pub const RUN1564_3279_FOAM: [[[u32; 2]; 2]; 3] = [
-    [[0, 8], [167, 345]],
+    [[0, 8], [166, 345]],
     [[0, 8], [196, 361]],
     [[0, 8], [215, 373]],
 ];
+
+/// **`RUN1564_3279_FISH`** (item 4344; `docs/RENDERER.md` §3.30, "The fish
+/// under the water"): the herd's fish on run1564's still, as two shares.
+/// A fish pixel reads dark where its green is under [`FISH_GB`] of its
+/// blue, the photograph's fish (25, 87, 149) against its water
+/// (39, 138, 178). Theirs are the dark pixels of [`FISH_THEIRS`]; ours,
+/// the pixels the herd's own pieces move by more than [`FISH_MOVED`] on a
+/// channel. `[[ours dark, ours], [theirs ours covers, theirs]]`, with the
+/// objects drawn after the water (the made-to-fail side) and before it
+/// ([`crate::world::World::objects_under_water`]). Minted at the first:
+/// ours 0 dark of 904, mean (134, 137, 145) against theirs' (24, 87, 151),
+/// theirs 0 of 304 covered (ours stand at x 1163–1221, y 179–268; parked
+/// 4308c). Item 4344: **ours 0 → 393 dark of 889**, mean (51, 98, 155).
+#[cfg(test)]
+pub const RUN1564_3279_FISH: [[[u32; 2]; 2]; 2] = [[[0, 904], [0, 304]], [[393, 889], [0, 304]]];
+
+/// [`RUN1564_3279_FISH`]'s box about theirs' fish, `(x0, y0, x1, y1)`: the
+/// herd at its card's pixel (1088, 186) (item 4308), short of the `Oil`
+/// good's blot to its right.
+#[cfg(test)]
+pub const FISH_THEIRS: (usize, usize, usize, usize) = (1010, 130, 1120, 192);
+
+/// [`RUN1564_3279_FISH`]'s dark fish: green under this share of blue (0
+/// pixels of two fish-free water boxes the box's size, 304 in it).
+#[cfg(test)]
+pub const FISH_GB: f32 = 0.62;
+
+/// [`RUN1564_3279_FISH`]'s move on a channel that makes a pixel ours.
+#[cfg(test)]
+pub const FISH_MOVED: u8 = 8;
 
 /// [`RUN1564_3279_FOAM`]'s bright pixel, a luminance (item 4335's 150).
 #[cfg(test)]
@@ -1658,6 +1690,7 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// Item 4319: **`ROCK` 9 → 32 of 32**, plain 666 → 678, `SANDY` 438 → 442, `OCEAN` 244 → 243 (a named fall of one): the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24), the stones over every patch cell's tiles.
 /// Item 4310: `SANDY` 442 → 435 (a named fall of seven), `OCEAN` 243 → 245: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]); the deep sand's spread under the water.
 /// Item 4338: **`SANDY` 435 → 520**, `OCEAN` holds at 245: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
+/// Item 4344: `OCEAN` 245 → 244 (a named fall of one): the objects and the patches after the water drawn before it (item 4344, `docs/RENDERER.md` §3.30, "The fish under the water").
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [678, 679],
     [0, 0],
@@ -1665,7 +1698,7 @@ pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [0, 0],
     [0, 0],
     [520, 772],
-    [245, 437],
+    [244, 437],
 ];
 
 /// **`RUN1564_3279_LAKE_HDR_TEXTURE`** (item 4232): [`TEXTURE`]'s
@@ -4599,6 +4632,104 @@ pub(crate) mod tests {
             );
         }
         assert_eq!(rows, RUN1564_3279_FOAM);
+    }
+
+    /// **The fish under the water** (item 4344; `docs/RENDERER.md` §3.30):
+    /// [`RUN1564_3279_FISH`] with the objects after the water and before
+    /// it. `RON_FISH_STILLS` names a directory the stills are written to.
+    #[test]
+    fn the_fish_under_the_water() {
+        use crate::gpu::SilhouetteOrder;
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let b = crate::build(&mut p.world, &camera, size, 0.0, None);
+        let herd: Vec<i32> = b
+            .textured
+            .iter()
+            .map(|m| m.piece)
+            .filter(|&k| {
+                p.world
+                    .figure_texture_name(k)
+                    .is_some_and(|t| t.to_ascii_lowercase().contains("fishherd"))
+            })
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .collect();
+        assert!(!herd.is_empty(), "the herd is drawn textured");
+        let w = size.0 as usize;
+        let dark = |rgba: &[u8], i: usize| {
+            f32::from(rgba[i * 4 + 1]) < FISH_GB * f32::from(rgba[i * 4 + 2])
+        };
+        let (x0, y0, x1, y1) = FISH_THEIRS;
+        let theirs: Vec<usize> = (y0..y1)
+            .flat_map(|y| (x0..x1).map(move |x| y * w + x))
+            .filter(|&i| dark(&p.photo.rgba, i))
+            .collect();
+        let mean = |rgba: &[u8], px: &[usize]| {
+            let n = px.len().max(1) as f32;
+            [0, 1, 2].map(|c| px.iter().map(|&i| f32::from(rgba[i * 4 + c])).sum::<f32>() / n)
+        };
+        let dir = std::env::var_os("RON_FISH_STILLS").map(PathBuf::from);
+        let mut rows = [[[0u32; 2]; 2]; 2];
+        for (arm, before) in [false, true].into_iter().enumerate() {
+            p.world.objects_under_water = before;
+            let mut still = |p: &mut Probe, hidden: Vec<i32>| {
+                p.world.hidden = hidden;
+                crate::still_of(
+                    &mut p.world,
+                    &camera,
+                    size,
+                    SilhouetteOrder::Before,
+                    wgpu::TextureFormat::Rgba8Unorm,
+                )
+            };
+            let on = still(&mut p, Vec::new());
+            let off = still(&mut p, herd.clone());
+            p.world.hidden = Vec::new();
+            if let Some(d) = &dir {
+                let name = ["fish-after.bmp", "fish-before.bmp"][arm];
+                std::fs::write(d.join(name), crate::gpu::bmp(&on, size)).unwrap();
+                std::fs::write(d.join("fish-hidden.bmp"), crate::gpu::bmp(&off, size)).unwrap();
+            }
+            let ours: Vec<usize> = (0..on.len() / 4)
+                .filter(|&i| (0..3).any(|c| on[i * 4 + c].abs_diff(off[i * 4 + c]) > FISH_MOVED))
+                .collect();
+            let set: std::collections::BTreeSet<usize> = ours.iter().copied().collect();
+            rows[arm] = [
+                [
+                    ours.iter().filter(|&&i| dark(&on, i)).count() as u32,
+                    ours.len() as u32,
+                ],
+                [
+                    theirs.iter().filter(|i| set.contains(i)).count() as u32,
+                    theirs.len() as u32,
+                ],
+            ];
+            let (lo, hi) = ours
+                .iter()
+                .fold(((usize::MAX, usize::MAX), (0, 0)), |(lo, hi), &i| {
+                    (
+                        (lo.0.min(i % w), lo.1.min(i / w)),
+                        (hi.0.max(i % w), hi.1.max(i / w)),
+                    )
+                });
+            println!(
+                "4344 fish, objects {}: [[ours dark, ours], [theirs covered, theirs]] {:?}; \
+                 ours' mean {:?} over x {}..{}, y {}..{}; theirs' mean {:?}; herd pieces {herd:?}",
+                ["after the water", "before the water"][arm],
+                rows[arm],
+                mean(&on, &ours),
+                lo.0,
+                hi.0,
+                lo.1,
+                hi.1,
+                mean(&p.photo.rgba, &theirs),
+            );
+        }
+        assert_eq!(rows, RUN1564_3279_FISH);
     }
 
     /// **The surf drawn, and drawn with the session's types** (item 4239;

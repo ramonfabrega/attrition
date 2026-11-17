@@ -325,12 +325,59 @@ pub struct Frame<'a> {
     /// Item 4338: the surf's lists blended on the HDR target
     /// ([`crate::world::World::surf_hdr`]).
     pub surf_hdr: bool,
+    /// Item 4344: the objects before the water and the surf
+    /// ([`crate::world::World::objects_under_water`]).
+    pub objects_before_water: bool,
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
     /// The shadows (item 4182), one mesh a decal texture.
     pub shadows: &'a [crate::world::TexturedMesh],
     /// The burning buildings' particles (item 4233), one mesh a blend.
     pub particles: &'a [crate::particle::ParticleMesh],
+}
+
+/// A ground pass over `view`, cleared or loaded (item 4232).
+fn begin<'e>(
+    enc: &'e mut wgpu::CommandEncoder,
+    view: &wgpu::TextureView,
+    depth_view: &wgpu::TextureView,
+    clear: bool,
+) -> wgpu::RenderPass<'e> {
+    let (colour, depth, stencil) = if clear {
+        (
+            wgpu::LoadOp::Clear(CLEAR),
+            wgpu::LoadOp::Clear(1.0),
+            wgpu::LoadOp::Clear(0),
+        )
+    } else {
+        (wgpu::LoadOp::Load, wgpu::LoadOp::Load, wgpu::LoadOp::Load)
+    };
+    enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+        label: Some("ground"),
+        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+            view,
+            depth_slice: None,
+            resolve_target: None,
+            ops: wgpu::Operations {
+                load: colour,
+                store: wgpu::StoreOp::Store,
+            },
+        })],
+        depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+            view: depth_view,
+            depth_ops: Some(wgpu::Operations {
+                load: depth,
+                store: wgpu::StoreOp::Store,
+            }),
+            stencil_ops: Some(wgpu::Operations {
+                load: stencil,
+                store: wgpu::StoreOp::Store,
+            }),
+        }),
+        timestamp_writes: None,
+        occlusion_query_set: None,
+        multiview_mask: None,
+    })
 }
 
 /// **Where the figures' silhouette pass falls** (item 4171; `docs/RENDERER.md`
@@ -1920,6 +1967,43 @@ impl Gpu {
         // the card's draws 116–119 between the land and the mountains (121).
         let split = patches.iter().position(|p| p.4).unwrap_or(patches.len());
         let shade = (!shadows.is_empty()).then(|| self.shade_targets(size));
+        // Item 4344 (§3.30, "The fish under the water"): with the objects
+        // before the water, the water and the surf's lists after it are cut
+        // out of the ground and drawn after the frame pass, over a copy
+        // that holds the objects; the patches after them (a mountain's
+        // layers) go to the frame pass, before the objects, as
+        // `render_mountains` comes before `render_water`.
+        let empty_patches: &[UploadedPatch] = &[];
+        let (ground_run, frame_runs, water_run): (
+            &[UploadedPatch],
+            [&[UploadedPatch]; 2],
+            &[UploadedPatch],
+        ) = match patches
+            .iter()
+            .position(|p| p.5 == PatchKind::Water)
+            .filter(|_| frame.objects_before_water)
+        {
+            Some(w) => {
+                let e = w
+                    + 1
+                    + patches[w + 1..]
+                        .iter()
+                        .take_while(|p| p.5 == PatchKind::Surf)
+                        .count();
+                let cut = if shade.is_some() { split.min(w) } else { w };
+                (
+                    &patches[..cut],
+                    [&patches[cut..w], &patches[e..]],
+                    &patches[w..e],
+                )
+            }
+            None if shade.is_some() => (
+                &patches[..split],
+                [&patches[split..], empty_patches],
+                empty_patches,
+            ),
+            None => (&patches[..], [empty_patches, empty_patches], empty_patches),
+        };
         if let Some((under, keep, _)) = &shade {
             {
                 let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -1953,7 +2037,7 @@ impl Gpu {
                 size,
                 cache.as_ref(),
                 meshes,
-                &patches[..split],
+                ground_run,
                 frame.land_hdr,
                 frame.surf_hdr,
             );
@@ -1967,7 +2051,7 @@ impl Gpu {
                 size,
                 cache.as_ref(),
                 meshes,
-                patches,
+                ground_run,
                 frame.land_hdr,
                 frame.surf_hdr,
             );
@@ -2008,7 +2092,9 @@ impl Gpu {
                 pass.set_pipeline(&self.shade);
                 pass.set_bind_group(0, bind, &[]);
                 pass.draw(0..3, 0..1);
-                self.draw_ground(&mut pass, None, None, &patches[split..], None);
+            }
+            for run in frame_runs.into_iter().filter(|r| !r.is_empty()) {
+                self.draw_ground(&mut pass, None, None, run, None);
             }
             pass.set_bind_group(0, &self.bind, &[]);
             pass.set_pipeline(&self.world);
@@ -2054,6 +2140,17 @@ impl Gpu {
                     }
                 }
             }
+        }
+        // Item 4344: the water and the surf over the objects.
+        if !water_run.is_empty() {
+            self.water_passes(
+                &mut enc,
+                &exposed.scene,
+                &depth_view,
+                size,
+                water_run,
+                frame.surf_hdr,
+            );
         }
         // Item 4233 (§3.25): the particles after the figures, as draws
         // 216–229 come after them on the card; item 4237: blended in HDR.
@@ -2239,48 +2336,6 @@ impl Gpu {
             }
             None => (first, &first[..0], &first[..0]),
         };
-        fn begin<'e>(
-            enc: &'e mut wgpu::CommandEncoder,
-            view: &wgpu::TextureView,
-            depth_view: &wgpu::TextureView,
-            clear: bool,
-        ) -> wgpu::RenderPass<'e> {
-            let (colour, depth, stencil) = if clear {
-                (
-                    wgpu::LoadOp::Clear(CLEAR),
-                    wgpu::LoadOp::Clear(1.0),
-                    wgpu::LoadOp::Clear(0),
-                )
-            } else {
-                (wgpu::LoadOp::Load, wgpu::LoadOp::Load, wgpu::LoadOp::Load)
-            };
-            enc.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("ground"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: colour,
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: depth_view,
-                    depth_ops: Some(wgpu::Operations {
-                        load: depth,
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: Some(wgpu::Operations {
-                        load: stencil,
-                        store: wgpu::StoreOp::Store,
-                    }),
-                }),
-                timestamp_writes: None,
-                occlusion_query_set: None,
-                multiview_mask: None,
-            })
-        }
         {
             let mut pass = begin(enc, &view, depth_view, true);
             self.draw_ground(&mut pass, terrain, Some(meshes), first, None);
@@ -2297,9 +2352,33 @@ impl Gpu {
                 self.draw_ground(&mut pass, None, None, after, None);
             }
         }
+        self.water_passes(enc, target, depth_view, size, rest, surf_hdr);
+    }
+
+    /// **The water and what follows it** (items 4232, 4239, 4338): the
+    /// frame so far copied to the lake texture, the water reading the copy
+    /// (`fs_water`), and each run of the surf's lists on the HDR target (or
+    /// each list over a copy of its own), the other patches over the
+    /// water's copy. Item 4344: after the frame pass, with the objects
+    /// before the water.
+    fn water_passes(
+        &self,
+        enc: &mut wgpu::CommandEncoder,
+        target: &wgpu::Texture,
+        depth_view: &wgpu::TextureView,
+        size: (u32, u32),
+        rest: &[UploadedPatch],
+        surf_hdr: bool,
+    ) {
         if rest.is_empty() {
             return;
         }
+        let view = target.create_view(&Default::default());
+        let extent = wgpu::Extent3d {
+            width: size.0,
+            height: size.1,
+            depth_or_array_layers: 1,
+        };
         let copy = |enc: &mut wgpu::CommandEncoder| {
             let lake = self.device.create_texture(&wgpu::TextureDescriptor {
                 label: Some("lake"),
