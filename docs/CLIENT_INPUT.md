@@ -3452,7 +3452,7 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   the original offered then, so the census and the count need only the static roster. Since item 4305 a row
   counts the gap, `PANEL_LEADER` (§32.4); since item 4315 `Roster::offered` reads `check_predecessor` for the
   walked row, since item 4321 the rest of the train loop, since item 4323 the research loop (§32.4),
-  and the HUD does not yet ask it.
+  ~~and the HUD does not yet ask it~~ and since item 4334 the HUD draws it (§32.5).
 - **The pages.** The original splits the citizen's buildings over three pages (`OPTION_BUILD`,
   `OPTION_BUILD_MILITARY`, `OPTION_BUILD_WONDER`, by `+0x14`). Ours is one page. Any unit selection offers it,
   where the original offers it to a citizen.
@@ -3547,6 +3547,99 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   `can_make` 3, the `0x20` arm (run1640's 520 greys 314 and 316 with it; `can_carry` is not in the sim), the
   `upgrade` arm's 5, and the train loop's second pass over `0x32..0x192` (a line's `+0x48` and `+0x44` offered
   as research a row under a trainable unit), which is not built: no held panel shows a type it alone adds.
+
+## 32.5 The HUD draws the offered panel (item 4334)
+
+*Item 4334, 2026-11-17 (`docs/journal/2026-11-17-item-4334.md`). The HUD now draws a selected building's buttons
+as `Roster::offered` computes them, each greyed by its `disable`, and a press on a greyed one orders nothing.
+**`HUD_PANEL_WALKED` (0, 110, 103, 1238, 1945) → (103, 103, 1238, 1238, 1238)** on the minted game's sixteen
+packets. The Citizen's build page is stopped: `panels.py` has no oracle for it as it stands (below). No capture,
+no packet, no `crates/sim` change.*
+
+**What the HUD does.**
+
+- `input::View` and `hud::paint` carry the walk, `sim: Option<&sim::Sim>`. The window hands both
+  `FreeRunner::sim`.
+- With a sim, `Input::panel` gives each button whole, as `(Event, input::Button)`: `Roster::offered` for the
+  first of the slot's own buildings in the selection, on the building's type and its `active`.
+- Without a sim (a scene built by hand, as every count over the 50 recordings builds one), the static roster is
+  kept, each type a clear `OPTION_TRAIN`. So `INPUT_ROSTER_QUEUES` (257 of 257) and the census of §30 are
+  unchanged.
+- `hud::RosterButton` carries the button. `hud::paint` draws a greyed one (`disable` set) in a dimmed ink
+  (`hud::GREYED`).
+- `hud::event` takes a press on a clear button as its `Event::Train(t)`, the `queue_up(t, 1)` §32.2 writes, a
+  research button as a train one. A press on a greyed button is consumed and orders nothing.
+- The unit selection's build page is unchanged: the static `Roster::builds`, clear, under `OPTION_BUILD` (0).
+
+**The count** (`the_panels_of_the_packets_on_our_walk`, beside `PANEL_DISABLE_WALKED`). For each of the 103
+held buildings, the building alone is selected for its slot on the walk's own scene at the packet's frame.
+`hud::roster_menu`'s buttons are set whole against the original's TSV rows.
+
+- **`HUD_PANEL_WALKED`**: (buildings equal, buildings either side draws one on, buttons both whole, theirs, the
+  HUD's). Seen red pinned at zeros.
+- **`HUD_PANEL_PRESSED` (1238, 1238)**: every drawn button pressed at its centre through `hud::event` orders as
+  its `disable` says. Seen red pinned at zeros.
+
+**The value diff.** The static HUD drew 1,945 buttons, every one a clear `OPTION_TRAIN`, on 110 buildings: the
+seven unfinished ones too. 103 were theirs, the clear train buttons. The 1,842 it drew that are not theirs
+include, for example:
+
+- each City (414) its 51;
+- each Library (435) `[544..=578]` as train, where theirs is research, nearly all at `disable` 1 (on 7195 the 551 at 0);
+- the Barracks' (436) 60 and 62.
+
+Of theirs it drew none of the 1,135 research buttons: 998 at `disable` 1, 131 at 0 and 6 at 2. The HUD now
+draws them all, and nothing else.
+
+**Each arm perturbed alone:**
+
+| perturbation | row | value |
+| --- | --- | --- |
+| a greyed button orders | `HUD_PANEL_PRESSED` | (234, 1238): the 1,004 greyed presses each `queue_up` |
+| the building's `active` unread | `HUD_PANEL_WALKED` | (103, 110, 1238, 1238, 1257): the seven unfinished buildings draw 19 buttons |
+
+**Ours, not the original's.**
+
+- The greyed ink.
+- That a press on a greyed button orders nothing, and on a clear research button a `queue_up(t, 1)`.
+  `Options::exec`'s train and research arms are still not read (§32.4). The recorded research types (the ages at
+  the Library, §32.1) are `queue_up`s of one.
+- The panel asks for slot `Input::player`. That is the human's `who` on every lobby of ours. It is not on the 2017
+  sample (§26.1).
+
+**The Citizen's build page: no oracle as `panels.py` stands.** The pass's frame-600 still shows the HUD offering
+a Citizen every building in the rules, the wonders at age 1. `tools/recomp/panels.py` cannot produce the
+original's page:
+
+- it enters `BuildOut::make_options@00629ed0` alone;
+- it lists only the objects whose type is a building type;
+- its hook keeps only `make_options@BuildOut`'s adds.
+
+The page is `UnitOut::make_options@00615fc0`, and only in `BUILD_OPTIONS` mode. In `STANDARD_OPTIONS` (0) a
+citizen's panel adds the three page buttons, `OPTION_BUILD`, `OPTION_BUILD_MILITARY` and `OPTION_BUILD_WONDER`
+(the last unless the game's semaphore `& 2`), and none of their buildings. What an oracle needs, all read off the
+export and none run:
+
+1. **The entry `0x615fc0`**, `this` each citizen. That is a unit of type `0x32` or `0x33`, or one
+   `ObjectData::is_peasant`, without `+0x68 & 1`.
+2. **`MiscAccess::options` poked.** The map's `?options@MiscAccess@@2AAVOptions@@A` (`0xc06204`) holds a pointer,
+   as the console's does. Poke `mode` (`+0x74`) to `BUILD_OPTIONS`, which is 1 in the PDB's `OptionMode`. Poke
+   `mode_data` (`+0x78`) to the page, and run once for each of 0, 1 and 2.
+3. **The hook kept for `make_options@UnitOut`.** The page's add is `Options::add(mode_data, grid_x +0x5c,
+   grid_y +0x5d, type, disable, 0)`, with `disable` 1 when `type_avail(t, 1) < 4` or the leader is
+   `at_city_limit`. Then `OPTION_BACK`, `OPTION_NEXT` and `OPTION_CANCEL` follow.
+
+**What the page's loop reads**, which a row would measure over `BASE_BUILDTYPES..=0x21e`:
+
+- the type's page by its vtable `+0x1c` and `+0x14` (page 2 asks `+0x14 == 2` and `get_queued`);
+- the `objmask & 0x4000000` arm with `BUILD_FLAGS & 4` and `type_avail ≥ 4`;
+- the leader's mask bit at `+0x6d00`;
+- `has_tech` of the type's `+0x4c`;
+- `BuildTypeData::already_built` for `0x20e..0x21e`;
+- `at_city_limit`, but not for the Forbidden City.
+
+**Not established:** whether the original's wonder page offers the Kremlin, the Eiffel Tower and the Space
+Program at age 1 greyed or not at all. The mask and `has_tech` arms decide it, and no run has.
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 
