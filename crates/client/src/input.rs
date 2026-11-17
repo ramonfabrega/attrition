@@ -3471,6 +3471,24 @@ pub(crate) mod tests {
     /// alone, or the HUD and then the layer: item 4197).
     pub(crate) fn mint_with(
         events: Vec<Scripted>,
+        through: impl FnMut(&mut Input, i32, Event, &View) -> Option<Order>,
+    ) -> Option<(Vec<Order>, FreeRunner)> {
+        mint_on(events, false, through)
+    }
+
+    /// [`mint_with`] with the walk's sim in every view, as the window hands
+    /// the HUD its view (`main.rs`): the panels drawn are the original's,
+    /// a citizen's standard panel among them (item 4352).
+    pub(crate) fn mint_with_sim(
+        events: Vec<Scripted>,
+        through: impl FnMut(&mut Input, i32, Event, &View) -> Option<Order>,
+    ) -> Option<(Vec<Order>, FreeRunner)> {
+        mint_on(events, true, through)
+    }
+
+    fn mint_on(
+        events: Vec<Scripted>,
+        with_sim: bool,
         mut through: impl FnMut(&mut Input, i32, Event, &View) -> Option<Order>,
     ) -> Option<(Vec<Order>, FreeRunner)> {
         let mut r = match lobby() {
@@ -3490,7 +3508,11 @@ pub(crate) mod tests {
             // target (item 4202).
             let (scene, terrain) = (r.scene(Some(input.player)), r.terrain());
             let c = camera(at);
-            if let Some(order) = through(&mut input, frame, ev, &view(&c, &scene, &terrain)) {
+            let v = View {
+                sim: with_sim.then(|| r.sim()),
+                ..view(&c, &scene, &terrain)
+            };
+            if let Some(order) = through(&mut input, frame, ev, &v) {
                 r.issue(&order);
                 out.push(order);
             }
@@ -12895,6 +12917,163 @@ pub(crate) mod tests {
     const AUTO_EXPLORED_RCX: &str =
         "ron-golden/recordings/item4288-auto-explored-greatlakes-24000.rcx";
     const AUTO_EXPLORED_RCX_BYTES: usize = 59_692;
+
+    /// **The picked script's stage 0** (item 4352, `docs/CLIENT_INPUT.md`
+    /// §32.11): on each pick's frame of the walk under the picked script,
+    /// `(frame, the option, the selected citizen and its pixel, the pick
+    /// button's centre with it selected, the object pressed and its
+    /// pixel)`, every pixel through the opening camera.
+    type PickStage = (i32, i32, i16, (i32, i32), (i32, i32), ObjId, (i32, i32));
+    const PICK_STAGE: [PickStage; 3] = [
+        (
+            script::PICK_MOVE_FRAME,
+            OPTION_MOVE_TO,
+            script::PICK_MOVE_UNIT,
+            (886, 554),
+            (391, 984),
+            ObjId {
+                who: 0,
+                o: script::PICK_FOLLOWED,
+            },
+            (1082, 631),
+        ),
+        (
+            script::PICK_REPAIR_FRAME,
+            OPTION_REPAIR,
+            script::PICK_REPAIR_UNIT,
+            (795, 474),
+            (545, 1012),
+            ObjId {
+                who: 0,
+                o: script::PICK_FARM,
+            },
+            (1338, 463),
+        ),
+        (
+            script::PICK_ATTACK_FRAME,
+            OPTION_ATTACK_TO,
+            script::PICK_ATTACK_UNIT,
+            (680, 530),
+            (545, 984),
+            ObjId {
+                who: script::PICK_ENEMY.0 as sim::Player,
+                o: script::PICK_ENEMY.1,
+            },
+            (873, 692),
+        ),
+    ];
+
+    /// The picked script's events: the auto-explore's, then on each pick's
+    /// frame a press on the citizen, one on the pick button and one on the
+    /// object ([`PICK_STAGE`]).
+    fn pick_events() -> Vec<Scripted> {
+        let mut e = auto_explore_events();
+        for (f, _, _, unit, button, _, target) in PICK_STAGE {
+            for (x, y) in [unit, button, target] {
+                e.push((f, None, Event::Press { x, y }));
+            }
+        }
+        e
+    }
+
+    /// **`INPUT_PICKED_FILE`** (item 4352): the picked script's events,
+    /// through the HUD (its views carrying the walk, as the window's do)
+    /// and the layer under the opening camera, mint [`script::picked`]
+    /// field for field, of 35.
+    const INPUT_PICKED_FILE: usize = 35;
+
+    /// **The picked count**: stage 0 on each pick's frame — the citizen is
+    /// slot 0's, alive and where its press lands, the pick button stands
+    /// where the second press lands in the standard panel the HUD draws for
+    /// it, and the object is where the third lands — then the events mint
+    /// the picked script, and the file written from them is the picked
+    /// file.
+    #[test]
+    fn minted_picked_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let picked = script::picked();
+        let c = camera(None);
+        let mut next = 0;
+        for (f, option, o, unit_at, button_at, target, target_at) in PICK_STAGE {
+            while r.frame() < i64::from(f) {
+                let g = r.frame() as i32;
+                while next < picked.len() && picked[next].0 == g {
+                    r.issue(&picked[next]);
+                    next += 1;
+                }
+                r.step();
+            }
+            let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+            let v = view(&c, &scene, &terrain);
+            let uid = ObjId { who: 0, o };
+            let u = scene.units.iter().find(|u| u.id == uid).unwrap();
+            let mut input = Input::new(0);
+            input.selection = vec![uid];
+            let row = crate::hud::roster_menu(&input, &scene, Some(r.sim()), HUD_SIZE);
+            let at = row
+                .iter()
+                .find(|b| b.button.option == option && b.ev == Event::Pick(option))
+                .map(|b| b.rect.centre());
+            let t = scene
+                .units
+                .iter()
+                .find(|x| x.id == target)
+                .map(|x| v.pixel(x.pos.x, x.pos.y, x.z))
+                .or_else(|| {
+                    scene
+                        .buildings
+                        .iter()
+                        .find(|x| x.id == target)
+                        .map(|x| v.pixel(x.pos.x, x.pos.y, x.z))
+                });
+            println!(
+                "PICK STAGE0 f{} option {option} unit {o} type {} peasant {} at {:?} button {at:?} target {target:?} at {t:?}",
+                r.frame(),
+                u.type_index,
+                u.spy.peasant,
+                v.pixel(u.pos.x, u.pos.y, u.z),
+            );
+            assert!(u.spy.peasant, "a citizen");
+            assert_eq!(v.pixel(u.pos.x, u.pos.y, u.z), unit_at);
+            assert_eq!(at, Some(button_at));
+            assert_eq!(t, Some(target_at));
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with_sim(pick_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let whole = ours.iter().zip(&picked).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (picked.len(), INPUT_PICKED_FILE),
+            "{ours:?}"
+        );
+        assert_eq!(ours, picked);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(auto_explored), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(AUTO_EXPLORED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(PICKED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {AUTO_EXPLORED_RCX} or {PICKED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), PICKED_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the picked orders");
+        assert!(written != auto_explored, "not the auto-explored file");
+    }
+
+    /// The picked file (`docs/CLIENT_INPUT.md` §32.11), written by rondata's
+    /// `the_picked_minted_packages_round_trip` under `RON_RCX_OUT`.
+    const PICKED_RCX: &str = "ron-golden/recordings/item4352-picked-greatlakes-24000.rcx";
+    const PICKED_RCX_BYTES: usize = 59_729;
 
     /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
     /// order kinds the recordings on disk carry
