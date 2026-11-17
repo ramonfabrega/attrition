@@ -261,9 +261,10 @@ pub(crate) mod tests {
     /// Item 4292: **the switch is on by default** (`docs/RENDERER.md` §3.22): the drawn side is now on, and the other tests' pins are its values; both sides unchanged.
     /// Item 4296: run1564 on row 1,778 → 1,783, luma 1,843 → 1,845: the deep corners drawn in the floor's grey plus `trans_bright` on the lit side alone (`docs/RENDERER.md` §3.27, "The beach below the waterline"); off unchanged, and still leads run1564's ground row by three.
     /// Item 4311: off luma run1559b 1,072 → 1,079 and run1570 1,142 → 1,144, on unchanged: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
+    /// Item 4312: run1564 off row 1,786 → 1,788; on row 1,783 → 1,784 and luma 1,845 → 1,848: the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
     pub(crate) const LAND_LIGHT_ROWS: [([usize; 3], [usize; 3]); 3] = [
         ([959, 1105, 1079], [960, 1105, 1109]),
-        ([678, 1786, 1852], [676, 1783, 1845]),
+        ([678, 1788, 1852], [676, 1784, 1848]),
         ([1042, 1171, 1144], [1041, 1171, 1166]),
     ];
 
