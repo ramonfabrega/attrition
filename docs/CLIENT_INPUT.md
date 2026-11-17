@@ -3413,7 +3413,7 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   the tribe's grafts (`tribe_can_type`), `check_predecessor` and the age, and greys some. A recorded order is one
   the original offered then, so the census and the count need only the static roster. Since item 4305 a row
   counts the gap, `PANEL_LEADER` (§32.4); since item 4315 `Roster::offered` reads `check_predecessor` for the
-  walked row, and the HUD does not yet ask it.
+  walked row, since item 4321 the rest of the train loop (§32.4), and the HUD does not yet ask it.
 - **The pages.** The original splits the citizen's buildings over three pages (`OPTION_BUILD`,
   `OPTION_BUILD_MILITARY`, `OPTION_BUILD_WONDER`, by `+0x14`). Ours is one page. Any unit selection offers it,
   where the original offers it to a citizen.
@@ -3475,9 +3475,40 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
   (2016) `[69, 82, 132, 177]` with four research buttons, all four `disable` 1; each Library 35 research buttons,
   30 to 32 of them `disable` 1; on 7195 a 439 offers two research buttons and a 420 trains `[52]`. So the filter
   is diffed on state our walk computes, and `disable` moves on it.
-- **Not established** (4305a, 4315a): what empties a finished-looking building's panel (slot 1's City 2007 on run1583 and Market 2010 on run1588, two of slot 2's Barracks on run1640, and
-  run1591's one at 6537): the `is_active` gate or `can_make`, neither read on the packet. And `disable`, which
-  the TSV carries and the row does not count.
+- **The train loop whole, and the age gate** (item 4321). `Roster::offered` now runs the rest of
+  `BuildOut::make_options@00629ed0`'s train loop for a unit: `obj_masks & 0x4000000` never offered; the predecessor
+  gate of item 4315; a Bombard Ship's line short of the Dreadnought once the Aircraft Carrier is `type_avail`, and
+  a Machine Gun's line without the Rifleman, the Infantry or the Mechanized Infantry owned (each through its
+  graft); then `BuildData::can_make@0062db10`, which for a unit on a finished building is `type_avail(t, 1)`. Its
+  0 offers a greyed research button (`disable` 2) under `type_eligible(t, 1)`, unless the unit is not `unit_flags &
+  0x80` without a `FROM` and `researching`, **and the type's age at most the leader's `ages + 1`** or the type `is`
+  the Militia. Its 2 offers research unless `researching`, and its 4 offers training unless `unit_flags & 0x8000`.
+  The age is `TechTree::age_in` (the sim's port of `get_age_slow@00661a00`). The PE settles that it is what
+  `get_age` reads: `UnitType`'s vtable slot `0xe8` holds `0x661a00` and slot `0xec` holds `0x661ac0`, and
+  `Types::finalize_grafting@00669840` caches slot `0xe8`'s answer into `+0x278` for every unit and building type,
+  with no other writer of `+0x278`. **Both loops stand inside `make_options`' `is_active` block** (the
+  `if (uVar7 != 0)` after the `+0x4c` read): an unfinished building offers no train and no research button. No
+  sim change was needed: every predicate is public.
+- **The count** (`PANEL_LEADER_WALKED`): **(0, 110, 1238, 1238, 1717) → (69, 103, 1238, 1238, 1373)**, every type
+  the original offers still on ours, seen red at the old pin. The arms gave (69, 110, …, 1401), then the
+  `is_active` block took seven buildings to empty on both sides. The value diff: each City `[50]` on both sides,
+  51 gone; each Market `[59, 61]`, 60 and 62 gone; the Barracks 2016 on 6781, 6907 and 7195 `[69, 71, 82, 83, 132,
+  133, 177, 178]` on both sides, the 55 gone; the 439 on 7195 offers 66 on both sides, and the 420 52. With the
+  age gate perturbed to `ages + 9` the row reads (66, 103, …, 1376): the Barracks' 131 comes back on 6781, 6907
+  and 7195, so the age gate decides three buildings and `type_avail`'s and `type_eligible`'s arms the rest.
+  **Every unit agrees; the 34 parted buildings part on technologies alone**: each Library's 579 to 582, the 439's
+  597 to 599 and the 420's 616 to 619 on 7195 (the research loop over `BASE_AGETYPES..0x275`, not read).
+- **Answered for the minted game** (4315a; 4305a's run1591 Barracks): slot 1's City 2007 on run1583, Market 2010 on
+  run1588 and run1589, Barracks 2016 on run1591 and the 439 (2017) on run1591, 1592 and 1593 are unfinished on our
+  walk, and theirs offers each only option 51 at the cancel's or the disband's cell. The `is_active` block empties
+  both sides. The TSV does not print the original's `is_active`, so the agreement is of the panels, not a read of
+  the flag.
+- **Not established**: run1640's two empty Barracks (4305a), which no walk reaches. Also `can_make`'s
+  neutralized and unassimilated arms and its return of 3, `make_options`' `is_training_building`-or-Tower gate
+  around the loops, and `researching`'s same-line arm: `LeaderData::researching@006db510` walks every active
+  building's queue and also answers 1 for a queued unit that the type `is`, where ours is the sim's queued count.
+  The Bombard Ship and Machine Gun arms are built and not exercised: no packet of the minted game reaches the age.
+  And `disable`, which the TSV carries and the row does not count.
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 
