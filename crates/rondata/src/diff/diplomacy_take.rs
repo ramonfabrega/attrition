@@ -222,6 +222,26 @@ pub(crate) fn walk_take_from(
             }
         }
         crate::diff::harness::debug_watch(&built, at);
+        // PROBE (item 4314): land units on ocean.
+        if std::env::var_os("RON_PROBE_WET").is_some() && (4195..=4215).contains(&at) {
+            for (i, x) in built.sim.units.iter().enumerate() {
+                if x.alive()
+                    && x.on_map
+                    && built.sim.world.is_tocean(x.pos.tile())
+                    && built.sim.profile(sim::combat::Obj::Unit(i)).domain == sim::territory::attrition::Domain::Land
+                {
+                    eprintln!(
+                        "PROBE f{at} landwet {}/{} #{i} at ({}, {}) can {} orders {:?}",
+                        x.owner,
+                        x.index,
+                        x.pos.x,
+                        x.pos.y,
+                        built.sim.unit_can_transport(i),
+                        x.orders.front().map(|o| format!("{:?}", o.body).chars().take(120).collect::<String>())
+                    );
+                }
+            }
+        }
         // PROBE (item 4314): tiles and transport flags around 1/5.
         if std::env::var("RON_PROBE_TILES").ok().and_then(|v| v.parse::<i64>().ok()) == Some(at) {
             for ty in 180..185 {
