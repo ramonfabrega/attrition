@@ -1953,3 +1953,110 @@ fn an_enemy_ship_beside_a_damaged_building_is_never_the_muster_point() {
     assert_eq!(sim.ai.armies[1].list[slot].hurry, 1);
     assert_eq!(sim.ai.armies[1].list[slot].muster, ship_cell);
 }
+
+// ---- the forts pass (§12, item 4341) ----
+
+/// [`sim_with_rival_city`] with two siege engines and a wagon in the army,
+/// and a fort of player 0 (`fort_slot` taken, no city) `dx` east of the
+/// army's units in the same region. Returns the sim, the slot and the
+/// fort's building.
+fn sim_with_rival_fort(siege: i32, dx: i32) -> (Sim, usize, usize) {
+    let (mut sim, slot, _fb) = sim_with_rival_city();
+    let st = soldier_type(&mut sim);
+    sim.tables.unit_types[st].combat.siege = true;
+    for i in 0..siege {
+        let u = put(&mut sim, 1, st, Pos::new(0x3000 + i * 48, 0x3060));
+        sim.army_add_unit(1, slot, u);
+    }
+    let wt = soldier_type(&mut sim);
+    sim.tables.unit_types[wt].cols.unit_flags2 |= uflags2::SUPPLY_OR_HERO;
+    let w = put(&mut sim, 1, wt, Pos::new(0x3000, 0x30c0));
+    sim.army_add_unit(1, slot, w);
+    let fort = sim.add_building(0, Pos::new(0x3000 + dx, 0x3000), 1);
+    while sim.leaders.marks.len() < 2 {
+        sim.leaders.marks.push(Default::default());
+    }
+    sim.buildings[fort].fort_slot = Some(sim.leaders.marks[0].forts.take());
+    sim.buildings[fort].city = None;
+    (sim, slot, fort)
+}
+
+/// The `find_target` draw sites a call spent, in order.
+fn find_target_sites(sim: &mut Sim, slot: usize) -> Vec<String> {
+    sim.trace.trace_phases = true;
+    sim.trace.phase_marks.clear();
+    sim.find_target(1, slot);
+    sim.trace
+        .phase_marks
+        .iter()
+        .map(|(p, _)| p.clone())
+        .filter(|p| p.starts_with("Army::find_target"))
+        .collect()
+}
+
+/// **The forts pass draws once per enemy fort, after its owner's cities
+/// and before the next leader's** (`find_target@006f69b0`, `6f7f01..6f81ed`;
+/// the call at `6f8026`, `+0x167b`): run1646's 5496 is five city scores, a
+/// fort, seven city scores in theirs (item 4341). The army needs two siege
+/// (`cmp $0x2, %edi`) and a wagon (`-0x54(%ebp)`); with one engine, or with
+/// the fort in another region, the pass spends nothing.
+#[test]
+fn an_enemy_fort_draws_after_its_owner_s_cities() {
+    use crate::ai::army::{SITE_FIND_TARGET_FORT as F, SITE_FIND_TARGET_SCORE as S};
+    let (mut sim, slot, _) = sim_with_rival_fort(2, 0x600);
+    assert_eq!(
+        find_target_sites(&mut sim, slot),
+        [S, F, S],
+        "leader 0's city, its fort, then my own city"
+    );
+    let (mut sim, slot, _) = sim_with_rival_fort(1, 0x600);
+    assert_eq!(
+        find_target_sites(&mut sim, slot),
+        [S, S],
+        "one siege engine"
+    );
+    let (mut sim, slot, fort) = sim_with_rival_fort(2, 0x600);
+    sim.world
+        .fill_region(Terrain::Sea, Cell::new(50, 50), Cell::new(59, 59));
+    sim.buildings[fort].pos = Pos::new(55 * 0x300, 55 * 0x300);
+    assert_ne!(
+        sim.world.region_of(sim.buildings[fort].pos.cell()),
+        sim.ai.armies[1].list[slot].reg,
+        "the fixture: the fort in its own region"
+    );
+    assert_eq!(find_target_sites(&mut sim, slot), [S, S], "another region");
+}
+
+/// **A near fort of a leader past three ages beats a quiet city of
+/// mine**: `v = (draw % 200 + 900) × (ages + 1)`, halved with no city,
+/// over `d / 0x300 + 1`, taken on `>=` (`6f8036..6f81c0`), and the tail
+/// hands the army the fort's building, not a city's (item 4341).
+#[test]
+fn a_near_fort_of_an_old_enemy_is_the_target() {
+    let (mut sim, slot, fort) = sim_with_rival_fort(2, 0x600);
+    // Nothing else worth having: the enemy's city gone, mine quiet and
+    // without a muster spot (`/ 20`), and on the first pass (`/ 3`).
+    let enemy = sim.cities.cities.len() - 1;
+    sim.cities.cities[enemy].alive = false;
+    sim.cities.cities[0].no_heal = false;
+    sim.cities.cities[0].no_muster = true;
+    sim.tech[0].ages = 3;
+    sim.find_target(1, slot);
+    assert_eq!(
+        sim.ai.armies[1].list[slot].target,
+        Some(Obj::Building(fort)),
+        "the fort, by its building"
+    );
+    // The same fort with no siege to take it is never scored.
+    let (mut sim, slot, fort) = sim_with_rival_fort(1, 0x600);
+    let enemy = sim.cities.cities.len() - 1;
+    sim.cities.cities[enemy].alive = false;
+    sim.cities.cities[0].no_heal = false;
+    sim.cities.cities[0].no_muster = true;
+    sim.tech[0].ages = 3;
+    sim.find_target(1, slot);
+    assert_ne!(
+        sim.ai.armies[1].list[slot].target,
+        Some(Obj::Building(fort))
+    );
+}
