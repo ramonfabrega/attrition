@@ -3124,7 +3124,8 @@ layer's form: **927 shown, 1,384 form, 118 missed**; `INPUT_WHOLE` holds at 42. 
 object (§11.4) makes actions 1 to 3 the layer's form: **927 shown, 1,432 form, 70 missed**; `INPUT_WHOLE` holds at 42.
 Item 4302's turn (§36) writes a turn's issues as one package and mints all nine recorded turns byte for byte: **965
 shown, 1,432 form, 32 missed**; `INPUT_WHOLE` holds at 42. Item 4303's spy arms (§37) mint the 11 right-press spells:
-**987 shown, 1,432 form, 10 missed**; `INPUT_WHOLE` holds at 42.
+**987 shown, 1,432 form, 10 missed**; `INPUT_WHOLE` holds at 42. Item 4304's placement on a drag (§38) makes the
+press's point beside the release's the layer's form: **987 shown, 1,442 form, 0 missed**; `INPUT_WHOLE` holds at 42.
 
 **Seen red**: `INPUT_WHOLE_CARRIED` pinned 41 parted at 42. With every `spell` called shown, the pin check parted,
 `INPUT_SPELLS against the census` 17 against 6.
@@ -3163,7 +3164,7 @@ is where the arms are.
 | ~~`build` of a type no key of ours binds~~ | ~~42~~ | Button: the citizen's build buttons | the roster's build pages since item 4290 (§32): of the layer's form, the point unchecked |
 | ~~two issues in one turn~~ | ~~38~~ | **Writer**: the original's one package a turn holds every issue of the turn | the layer's turn since item 4302 (§36): one package a turn, `INPUT_TURNS` 9 of 9, every order shown |
 | ~~`spell` on an object, the right press's~~ | ~~22~~ | Button (§18) | the layer's spy arms since item 4303 (§37): every one shown, `INPUT_SPY_SPELLS` 11 of 11 |
-| `build` along a dragged line, `(x2, y2)` ≠ `(x, y)` | 10 | Button: a drag while placing | the layer places at one point; 6 → 10 when the shift's four were reached (§33) |
+| ~~`build` along a dragged line, `(x2, y2)` ≠ `(x, y)`~~ | ~~10~~ | Button: a placement whose cursor moved, a click or a drag | the layer's drag while placing since item 4304 (§38): of the layer's form, `(x2, y2)` the press's point, carried and never read; no line is built |
 
 **The item's hypothesis, read against this.** All but two of the arms are reached by a button, key or modifier in the
 original, so "minted again" holds for the orders. The score does not: no button reaches `leader_options`, and every
@@ -3439,7 +3440,7 @@ frame 17231 is `[Group { who: 3, objects: [2061] }, QueueUp { unit: 576, num: 1 
 layer wrote `QUEUE_NEW`. The census of the 200 came first: all are `QUEUE_LAST`, the shift alone, of four kinds the
 layer already issues. The layer now takes the modifiers from the window, and every arm writes the queue its
 original issuer writes. `INPUT_WHOLE_ORDERS` 927 · 994 · 508 → **927 · 1,190 · 312** of 2,429; `INPUT_WHOLE` 42 of
-50, unchanged. Four `build` orders of the 200 fall to the dragged line, so the missed count fell by 196, not 200.*
+50, unchanged. Four `build` orders of the 200 fall to the dragged line, so the missed count fell by 196, not 200; they are the layer's form since item 4304 (§38).*
 
 ### 33.1 What each issuer reads
 
@@ -3938,7 +3939,7 @@ from `vtables.txt`, whose names are COMDAT-folded there.
   - an arm that refused mints nothing;
   - a selection neither arm counts, or a Scout line without a Commando on a unit that is not a Spy, draws §6's
     attack.
-- **`INPUT_WHOLE_MISSES`**: one row left, the dragged `build`'s 10 (item 4304).
+- **`INPUT_WHOLE_MISSES`**: one row left, the dragged `build`'s 10 (item 4304); empty since item 4304 (§38).
 
 **The value diff**: before, all 22 orders were missed. No right press of the layer minted a `spell`: on another
 slot's unit it drew §6's `attack`, or §10's `follow` for a selection that cannot attack. Now each package is the recording's: 17050's `group [135, 153, 156]`,
@@ -3966,3 +3967,94 @@ slot's unit it drew §6's `attack`, or §10's `follow` for a selection that cann
     rewired onto `spell_valid_target_view`'s whole walk.
 - **Not played** (4303a): no take plays a file of ours carrying one of these spells. §18.3's caster problem stands:
   slot 0 of the minted game holds no Spy or Commando. Run1642 and run1643 are unused.
+
+## 38. The placement on a drag: `build`'s press point (item 4304)
+
+*Item 4304, 2026-11-16. The census's last ten misses were `build` orders whose `(x2, y2)` is not their `(x, y)`.
+The census of the ten came first: five packages, all the 2017 sample's slot 3, each a `group` and a `build` of a
+type the citizen's pages offer, the two points 7 to 67 world units apart. The issuer was read, and **the item's
+hypothesis, a dragged line of buildings, is not the original's**: no line is laid. `(x2, y2)` is the press's point,
+carried in the order and read by nothing. The layer now places on a left drag as the original does.
+`INPUT_WHOLE_ORDERS` 987 · 1,432 · 10 → **987 · 1,442 · 0** of 2,429. `INPUT_WHOLE` holds at 42 of 50.*
+
+### 38.1 The census (`DRAGGED_PLACEMENTS`)
+
+`the_dragged_placements_of_the_recordings_on_disk` (`crates/client/src/input.rs`) lists every recorded package
+whose `build` carries two points:
+
+| frame | type | queue | release `(x, y)` | press `(x2, y2)` |
+| ---: | --- | ---: | --- | --- |
+| 6300 | 428 Stable | 1 | (8344, 12485) | (8280, 12506) |
+| 7259 | 419 Mine | 2 | (9720, 7611) | (9702, 7594) |
+| 7950 | 437 Temple | 2 | (14466, 20010) | (14475, 20020) |
+| 10057 | 419 Mine | 2 | (16191, 17703) | (16198, 17711) |
+| 12022 | 424 Lumber Mill | 1 | (13761, 8198) | (13757, 8202) |
+
+The four with queue 1 are the shift's (§33). All are now "form".
+
+### 38.2 What the original issues
+
+- `Console::down@007cd8f0`, with no drag under way, writes the press's terrain point (`convert_mouse_to_terrain`)
+  to both `drag_x/drag_y` and `drag_x2/drag_y2`.
+- Every `Console::on_mouse_move@007cef20` rewrites `drag_x2/drag_y2` with the cursor's terrain point, unconditionally.
+- On the release, `Console::on_left_up@007cde90` sends a click (`clicking` still set) to
+  `Console::left_click@007c3bc0`. A drag goes to the `selecting_spot` arm, which is ahead of the box and recomputes
+  `drag_x2/drag_y2` from the release. Both call
+  `Options::picked_spot@00721c40(drag_x2, drag_y2, drag_x, drag_y)`: the cursor's point, then the press's.
+- `picked_spot`'s build arm (`OPTION_BUILD`, `_MILITARY`, `_WONDER`) hands all four to `GroupData::validate_build`
+  and then `GroupOut::issue_build`, as `x, y, x2, y2`.
+- `CommandPackage::process_build@00948110` logs the four and calls `Group::action_build@00707510`. In the listing,
+  `action_build`'s only reads of its `+0x10`/`+0x14` arguments are the two pushes at `7075cc`/`7075d1` into
+  `validate_build@00708620`, which never reads its own (no `0x10(%ebp)`/`0x14(%ebp)` in it). The decompile's
+  `param_3` in `add_feedback`'s string is the stack slot reused.
+
+So a placement whose cursor moved between press and release, by any amount, writes two points. The press's point
+changes nothing in the game.
+
+### 38.3 What the layer does
+
+- `Input::picked_spot` is the press arms of §23 (garrison), §18 (spell) and §33 (placement), moved out of
+  `Event::Press`. It takes the release's pixel and the press's.
+- `Event::Press` calls it with one pixel twice. `Event::Drag` calls it before the box, with `(x1, y1)` and
+  `(x0, y0)`. An armed pick takes the drag, and the selection stands.
+- The build arm writes `build(ground_at(release), ground_at(press))`. The queue and the armed state are §33's.
+- The census's verdict no longer reads `(x2, y2)` (§30.1).
+
+### 38.4 The counts
+
+- **`DRAGGED_PLACEMENTS`**: 5 packages, 10 orders, all form. **Seen red**: with 6300's row pinned at the old miss,
+  it parted at "form".
+- **`minted_dragged_placements_as_the_original`**, on the lobby's ground at the pinned camera:
+  - a drag from (900, 500) to (960, 530) with a Farm armed mints `group [5]` and
+    `build(2694, 31406, 2313, 31407, 417, 2)`;
+  - with shift held, queue 1 and the Farm still armed;
+  - a click writes one point twice;
+  - with no pick, the drag boxes;
+  - a garrison pick with no building under the release stands.
+
+  **Seen red**: with the two points swapped, `build(2313, 31407, 2694, 31406, …)` against the pin.
+- **`INPUT_WHOLE_ORDERS`** 987 · 1,442 · 0 of 2,429. `INPUT_WHOLE_MISSES` is empty, and `QUEUED_ORDERS`' build is
+  one row, form 6.
+- **Knock-on**: `PANEL_ROSTER` 15 → 16 build types, and `PANEL_ROSTER_ORDERS` builds 44 → 54 (§32). The ten are of
+  types no key binds, which the dragged line's miss hid. The Temple is placed only by a drag.
+
+**The value diff**: before, a left drag with a type armed dropped the placement and boxed (`placing = None`). No
+order was minted, and the census missed all ten. Now the drag mints the recording's form: the release's point, then
+the press's.
+
+### 38.5 Ours, not the original's
+
+- A click writes its press's point twice. The original writes the cursor's last point, then the press's, so a
+  click that moves under the window's `DRAG_SLOP` writes two points there and one here. The original's `clicking`
+  threshold is not read.
+- The drag's slop is the window's `DRAG_SLOP` (4 pixels), tested once at the release.
+
+### 38.6 Confidence, and what is not established
+
+- **Backed by the disk**: the census, and the five packages' verdicts.
+- **One reading**: §38.2's chain, off the decompile and the listing. No blind second reading. No score rests on it
+  beyond "form", which the census gives every recorded `build` without minting its points (§30.3).
+- **Not established**: whether each of the five was a drag or a click that moved. The offsets of 7 to 67 world units
+  suit either. Both arms write the same form, and the layer mints it only on a drag.
+- **Not played**: no playback was owed. `build` is a kind the original has played from a minted file (run1561). Per
+  the listing, the press's point reaches only `process_build`'s log line. Run1642 and run1643 are unused.

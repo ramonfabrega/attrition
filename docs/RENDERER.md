@@ -2873,10 +2873,13 @@ theirs reads (41, 129, 167), and the still's goes (14, 142, 201) →
 (29, 148, 203). **`OCEAN` stays 258**, and no `OCEAN` verdict changes,
 even with the masks dropped. So the surf does not part the lake.
 
-**The lake's dark patch is a fish herd.** Draws 155–161 bind
+~~**The lake's dark patch is a fish herd.**~~ Draws 155–161 bind
 `fishherd.tga` and `fishherd_churn.tga` before the water. Three of
 them (157, 159, 160) stand at (35112, 35832), and the card's own view
 puts that at pixel (1088, 186): 4223b's blot near (1,050, 190).
+**Item 4308: the blot is the `Oil` good's billboard** (draws
+139–140); the herd is the dark fish, drawn before the water. Ours
+draws the fish white after it, and no billboard (item 4308's journal).
 
 **The floor's second layer clamps (item 4227).** Through the card's
 draws, one parted tile at the lake's centre, (170, 187): theirs (36.9,
@@ -3516,7 +3519,8 @@ item 4227's reading of draw 162's buffers. On the photograph alone: the rows. *N
   `SURFTIMING*` are not~~ read by item 4236 (§3.26): `Surf::init` is in register with the packet when fed the
   packet's shore; ~~the client's own shore chains and the draw are not~~ drawn by item 4239 (§3.27): `SANDY`
   573 → 653 on the still, the composite's 701 the ceiling, 684 with the session's types;
-- the fish herds' blot and the whitecaps;
+- the fish herds' blot and the whitecaps (the blot is the `Oil` good's billboard, item 4308, §3.18; neither it
+  nor the fish under the water is drawn);
 - the photograph's fine streaks across the lake, which the floor's mipmapped mottle does not carry;
 - the screen reflection and the specular.
 
