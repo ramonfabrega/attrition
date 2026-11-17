@@ -4041,8 +4041,24 @@ nine deep tiles agree. (200, 181) is theirs (71, 134, 156), off (48, 126, 147) �
 so 4296b is answered. run1559b and run1570 hold.
 
 *Coverage:* diff-backed: the nine tiles' inputs, against the packet. On a reading: the HDR target and the black clear (§3.16).
-*Not established:* the transition patches and the coral over the faded land still blend in LDR (4310a); the red
-still reads under theirs, by 6 to 24 on the nine.
+*Not established:* ~~the transition patches and the coral over the faded land still blend in LDR (4310a)~~ (item
+4327, below: drawn, and not the red); the red still reads under theirs, by 6 to 24 on the nine.
+
+**The patches over the faded land in HDR (item 4327).** *Opus 5.5; the ledger: `docs/journal/2026-11-17-item-4327.md`.*
+On run1567's card pass after 3279, every land draw blends `SRCALPHA`/`INVSRCALPHA` (5, 6) on one target: the faded base
+(draws 0–35), the transition patches (37–120), the sand and coral pairs (121–130) and the coral layer (131). Only the
+floor (36) is opaque (`ONE`, `ZERO`). Ours used the same factors, but on the tone-mapped frame. The client now has the
+card's composition behind `World::land_hdr`. The frame so far is taken back through the curve onto an `Rgba16Float`
+target (`fs_untone`). The world's one run of faded land, floor, transition patches and coral is drawn there with the
+target's own blend on the lit values (`fs_*_hdr`). Then it is toned back (`fs_retone`). A second switch,
+`World::coral_lit`, lays the coral layer on the faded sand's own light and deep grey, since 131 is the sand layer's
+stream (§3.18). On run1564's still (`the_patches_over_the_faded_land_in_hdr`, `RUN1564_LAND_HDR`), `SANDY` reads 663
+with both off (drawn), 661 with the HDR blend, 661 with the coral lit, and 662 with both. With both, `RUN1564_3279_SURF`
+falls 708 → 703. The HDR blend lifts red by 2 to 5 on the nine, but it lifts green and blue more, because the coral's
+cyan gains too. At (200, 181), theirs is (71, 134, 156), off (56, 134, 148), HDR (58, 142, 160). Both switches stay
+off; the arms are the journal's. *Coverage:* diff-backed: the card's blend on draws 0–131 (one take). On a
+reading: that 131 carries the sand's vertex colours (§3.18). *Not established:* what holds the nine's red under theirs.
+It is neither the faded land's composition (4310) nor the patches' (4327a).
 
 ## 3.28 The city's buildings against the photograph's colour (item 4245)
 

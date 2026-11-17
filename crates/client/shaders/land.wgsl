@@ -34,6 +34,16 @@ fn land_lit(c: vec3<f32>, nl_in: f32) -> vec3<f32> {
     return land_shade(c * land_vertex(nl_in), nl);
 }
 
+// Item 4327 (§3.27, "The patches over the faded land in HDR"): `land_lit`
+// before the curve.
+fn land_lit_hdr(c: vec3<f32>, nl_in: f32) -> vec3<f32> {
+    var nl = nl_in;
+    if (nl_in > 1.5) {
+        nl = land_flat_nl();
+    }
+    return land_shade_hdr(c * land_vertex(nl_in), nl);
+}
+
 // Item 4296 (§3.27, "The beach below the waterline"): `land_lit` with a deep
 // corner's vertex colour in place of `light_vert`'s, `deep` its weight and
 // grey times it, interpolated: the floor's grey plus `trans_bright` that
