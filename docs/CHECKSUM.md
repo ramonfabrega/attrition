@@ -2872,10 +2872,10 @@ the packets print, and leaves every `PACKET_LEAF_PARTINGS` row it was in (§23.4
 406 are `leader_flags` and frame 0's setup leaves:
 - `0x80000`: leader 0 on 160 to 315 (156 frames); leader 1 on 219 frames, 101, 207, 321, 1098, 1306, 1379 to 1576,
   and islands to 14245. `Unit::think@005f6e40:85` sets it on the owner when the unit's type is TI 0x32 or 0x33,
-  and `Leader::process` clears it at its end.
+  and `Leaders::process_all` clears it at the end of the slot's step.
 - `0x8000000`: leader 0 on 0 and 297; leader 1 on 33 frames to 14608. `0x4000000`: leader 1 on 13 frames to 14608.
-  **Not `Leader::gather`'s raise**: `Leader::process@006b88b0` and `Leaders::process_all@006ed2a0` clear both bits
-  right after `gather` raises them, in the same call, so that raise never reaches a checksum. The bits a checksum
+  **Not `Leader::gather`'s raise**: `Leaders::process_all@006ed2a0` (the slot step the game runs; `Leader::process`
+  is the same body, never called) clears both bits right after `gather` raises them, in the same step, so that raise never reaches a checksum. The bits a checksum
   sees are raised after the leader's pass: `Build::activate` (`0x8000000` on every activation, and `0x4000000`
   too for a wonder, `:1250`–`:1255`), `Build::finished`, `Build::close`, `Wall::activate`, `City::check_upgrade`,
   `TechType::set_research` and `gain_tech`. The crate keeps both (`cities.wall_stats_dirty`,
