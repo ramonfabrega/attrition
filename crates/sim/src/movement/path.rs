@@ -785,7 +785,7 @@ impl Sim {
         //
         // SEAM: style 2's arm — any owner but the walker and its
         // `LeaderData::get_target` — is not carried; no capture on file is
-        // style 2 ([`Sim::start_list_target`] is the reading).
+        // style 2 (parked 4325a).
         if step == STEP_WORLD
             && (m.army || m.worker)
             && matches!(self.ai.lobby.team_style, 0 | 8 | 0xb)
