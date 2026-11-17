@@ -236,6 +236,20 @@ pub struct World {
     /// the frame, `T(L) · a`, the made-to-fail side.
     /// [`World::set_faded_hdr`] moves it.
     faded_hdr: bool,
+    /// **The land pass's layers on an HDR target** (item 4327;
+    /// `docs/RENDERER.md` §3.27, "The patches over the faded land in HDR"):
+    /// the faded land, the floor, the transition patches and the coral blend
+    /// source alpha over before the tone map, as the card's draws 0–131 do.
+    /// Off, they blend on the tone-mapped frame: on run1564 every arm that
+    /// draws it falls on `SANDY` (`RUN1564_LAND_HDR`), so it stays off until
+    /// what holds the red under theirs is found (4327a).
+    land_hdr: bool,
+    /// **The coral layer on the faded sand's stream** (item 4327;
+    /// `docs/RENDERER.md` §3.27): `scene_coral` (draw 131) carries the sand
+    /// layer's own vertex colours and normals, so it takes each corner's
+    /// N·L and deep grey as the faded land does. Off, it keeps a white
+    /// vertex at the flat light; on, run1564's `SANDY` falls (`RUN1564_LAND_HDR`).
+    coral_lit: bool,
     /// **Light each range by its own normals** (item 4269, §3.22):
     /// `generate_normals`' N·L on the mountain's layers, the vertex white,
     /// as run1559b's packet holds them. On by default;
@@ -1166,6 +1180,8 @@ impl World {
             land_light: true,
             deep_corners: true,
             faded_hdr: true,
+            land_hdr: false,
+            coral_lit: false,
             mountain_light: true,
             drawn: (u32::MAX, TerrainMesh::default(), Vec::new(), Vec::new()),
             ramp: None,
@@ -1325,6 +1341,28 @@ impl World {
     pub fn set_deep_corners(&mut self, on: bool) {
         if self.deep_corners != on {
             self.deep_corners = on;
+            self.drawn.1.positions.clear();
+            self.drawn.2.clear();
+            self.drawn.3.clear();
+        }
+    }
+
+    /// [`World::land_hdr`]: read by the GPU's ground passes each frame.
+    pub fn land_hdr(&self) -> bool {
+        self.land_hdr
+    }
+
+    /// Turn [`World::land_hdr`] on or off.
+    #[cfg(test)]
+    pub fn set_land_hdr(&mut self, on: bool) {
+        self.land_hdr = on;
+    }
+
+    /// Turn [`World::coral_lit`] on or off; the ground is laid again.
+    #[cfg(test)]
+    pub fn set_coral_lit(&mut self, on: bool) {
+        if self.coral_lit != on {
+            self.coral_lit = on;
             self.drawn.1.positions.clear();
             self.drawn.2.clear();
             self.drawn.3.clear();
@@ -1588,6 +1626,9 @@ impl World {
                     m.uvs.extend_from_slice(&f.uvs);
                     m.alpha_uvs
                         .extend(f.alpha_uvs.iter().map(|a| [1.0 - a[0], a[1]]));
+                    if self.coral_lit {
+                        m.light.extend_from_slice(&f.light);
+                    }
                 }
                 m
             });
@@ -1933,7 +1974,7 @@ impl World {
             // `trans_bright` as its vertex colour, at its own N·L.
             if self.land_light && self.deep_corners {
                 for m in self.drawn.3.iter_mut().filter(|m| {
-                    (MOUNTAIN_PIECE + 1..0).contains(&m.piece)
+                    ((MOUNTAIN_PIECE + 1..0).contains(&m.piece) || m.piece == CORAL_PIECE)
                         && !m.mountain
                         && m.light.len() == m.positions.len()
                 }) {
