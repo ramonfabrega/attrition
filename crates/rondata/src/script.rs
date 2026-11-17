@@ -923,6 +923,97 @@ pub fn auto_explored() -> Vec<Order> {
     orders
 }
 
+/// **The picked script** (item 4352, `docs/CLIENT_INPUT.md` §32.11): the
+/// auto-explored script and three packages more, one for each of the
+/// standard panel's pick buttons (`Options::do_move_to@0071d260`,
+/// `Options::do_repair@0071ccb0`), each pick taken by the next left press
+/// on the map (`Options::picked_spot@00721c40`):
+///
+/// - on [`PICK_MOVE_FRAME`] the Citizen [`PICK_MOVE_UNIT`], MOVE, and a
+///   press on the Slinger [`PICK_FOLLOWED`]: mode 3 of
+///   `Console::execute_at_cursor@007c6630` on a unit is
+///   `follow(ox, whom, QUEUE_NEW)`;
+/// - on [`PICK_REPAIR_FRAME`] the Citizen [`PICK_REPAIR_UNIT`], REPAIR, and
+///   a press on the Farm [`PICK_FARM`], built, whole, holding none of its
+///   one gatherer: the pick's third arm, `gather(ox, QUEUE_NEW)`;
+/// - on [`PICK_ATTACK_FRAME`] the Citizen [`PICK_ATTACK_UNIT`], ATTACK, and
+///   a press on slot 1's Scout [`PICK_ENEMY`], seen: mode 1's
+///   `attack(ox, whom, 0, QUEUE_NEW)`.
+///
+/// The client's `minted_picked_at_the_opening_camera` mints these field
+/// for field, the buttons pressed through the HUD.
+pub fn picked() -> Vec<Order> {
+    let mut orders = auto_explored();
+    let group = |o: i16| Command::Group {
+        who: 0,
+        objects: vec![o],
+    };
+    orders.extend([
+        (
+            PICK_MOVE_FRAME,
+            0,
+            vec![
+                group(PICK_MOVE_UNIT),
+                Command::Follow {
+                    ox: i32::from(PICK_FOLLOWED),
+                    whom: 0,
+                    queued: PICK_QUEUE,
+                },
+            ],
+        ),
+        (
+            PICK_REPAIR_FRAME,
+            0,
+            vec![
+                group(PICK_REPAIR_UNIT),
+                Command::Gather {
+                    ox: i32::from(PICK_FARM),
+                    queued: PICK_QUEUE,
+                },
+            ],
+        ),
+        (
+            PICK_ATTACK_FRAME,
+            0,
+            vec![
+                group(PICK_ATTACK_UNIT),
+                Command::Attack {
+                    ox: i32::from(PICK_ENEMY.1),
+                    whom: i32::from(PICK_ENEMY.0),
+                    ignore: 0,
+                    queued: PICK_QUEUE,
+                },
+            ],
+        ),
+    ]);
+    orders
+}
+
+/// The Move pick's frame, ten after [`AUTO_EXPLORE_FRAME`].
+pub const PICK_MOVE_FRAME: i32 = 6830;
+/// The Move pick's selection: slot 0's Citizen `0/4`, idle on 6830.
+pub const PICK_MOVE_UNIT: i16 = 4;
+/// The unit the Move pick's press lands on: slot 0's Slinger `0/8`.
+pub const PICK_FOLLOWED: i16 = 8;
+/// The Repair pick's frame.
+pub const PICK_REPAIR_FRAME: i32 = 6840;
+/// The Repair pick's selection: slot 0's Citizen `0/5`, idle on 6840.
+pub const PICK_REPAIR_UNIT: i16 = 5;
+/// The building the Repair pick's press lands on: the Farm `0/2007`, the
+/// first script's site (gatherers 0 of 1 on 6840).
+pub const PICK_FARM: i16 = 2007;
+/// The Attack pick's frame.
+pub const PICK_ATTACK_FRAME: i32 = 6850;
+/// The Attack pick's selection: slot 0's Citizen `0/3` (the HUD draws the
+/// standard panel for a citizen's selection alone).
+pub const PICK_ATTACK_UNIT: i16 = 3;
+/// The enemy the Attack pick's press lands on: slot 1's Scout `1/0`,
+/// `(who, o)`.
+pub const PICK_ENEMY: (i16, i16) = (1, 0);
+/// Every pick's queue with no modifier held: `QUEUE_NEW`, the dispatch's
+/// and the Repair arm's literal.
+pub const PICK_QUEUE: i32 = 2;
+
 /// The frame of the auto-explore, ten after [`DISBAND_FRAME`].
 pub const AUTO_EXPLORE_FRAME: i32 = 6820;
 /// The unit sent exploring: slot 0's Scout, its first unit, the recordings'

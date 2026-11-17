@@ -4126,9 +4126,10 @@ a right press (§6, §10, §35), and a recording carries every one of them but o
 - `move_to` `MOVE_TO` and `ATTACK_TO` (§35.2's 27);
 - `attack`, `guard` (10), `swarm_around` (28) and `gather` (11), §11.1.
 
-**The stop, named: the Move pick on a unit is `follow`**, and no recording on disk carries a `follow` (§11.1). Its
+~~**The stop, named: the Move pick on a unit is `follow`**, and no recording on disk carries a `follow` (§11.1). Its
 bytes are §10's, which the original played from the minted file (run1573, `INPUT_FOLLOWED`). It is built, since
-nothing new reaches the bytes, but a recorded pick's `follow` is not on disk to check it against.
+nothing new reaches the bytes, but a recorded pick's `follow` is not on disk to check it against.~~ No recording
+carries one still, but the original played a pick's `follow` from the minted file in lockstep (run1656, §32.11).
 
 ### 32.10.4 Ours, not the original's
 
@@ -4141,8 +4142,9 @@ nothing new reaches the bytes, but a recorded pick's `follow` is not on disk to 
 
 ### 32.10.5 Confidence, and what is not established
 
-- **One reading**: every arm above. No recording carries a pick's order that can be told from the right press's,
-  and no playback ran a pick (4349b).
+- **One reading**: every arm above. No recording carries a pick's order that can be told from the right press's.
+  ~~No playback ran a pick (4349b).~~ The original played one order from each pick button: the Move pick's
+  `follow`, the Repair pick's `gather` and the Attack pick's `attack` (run1656, §32.11).
 - **Not built**:
   - the Repair pick's territory test (the cell's owner), as the right press's is not (§6.1);
   - an ally's building or unit, since the layer names no ally;
@@ -4150,6 +4152,63 @@ nothing new reaches the bytes, but a recorded pick's `follow` is not on disk to 
   - mode 1's `+0x48` refusal (an unattackable enemy gets `MOVE_TO` with the press's form).
 - **Not established**: whether the original's `find_target(SEARCH_ALL, units)` admits the selection's own members
   (the layer does).
+
+## 32.11 The picks played by the original (item 4352)
+
+*Item 4352, 2026-11-17 (`docs/journal/2026-11-17-item-4352.md`). The score is `Recording:`, which gains the picks:
+**`PICKED_WALKED` is 7,500 of 7,500 frames' draws and 700 records, 0 parted**, and each pick's effect is equal on
+both sides, 18 of 18 values. `INPUT_PICKED_FILE` is 35 of 35. No `crates/sim` change.*
+
+- **The script.** `script::picked()` is the auto-explored script (§31) and three packages more, one per pick button,
+  each from a citizen's selection (the HUD draws the standard panel for a citizen alone):
+
+  | frame | selection | button | pressed on | order |
+  | --- | --- | --- | --- | --- |
+  | 6830 | Citizen `0/4` | MOVE | Slinger `0/8` | `group [4]`, `follow(8, 0, QUEUE_NEW)` |
+  | 6840 | Citizen `0/5` | REPAIR | Farm `0/2007`, whole, 0 of 1 gatherers | `group [5]`, `gather(2007, QUEUE_NEW)` |
+  | 6850 | Citizen `0/3` | ATTACK | slot 1's Scout `1/0`, seen | `group [3]`, `attack(0, 1, 0, QUEUE_NEW)` |
+
+- **Stage 0** (`PICK_STAGE`), on each frame of the walk under the picked script, at the opening camera: the citizen at
+  (886, 554), (795, 474) and (680, 530); the pick button's centre in the standard panel the HUD draws for it, MOVE
+  (391, 984), REPAIR (545, 1012), ATTACK (545, 984); the object pressed at (1082, 631), (1338, 463) and (873, 692).
+- **The count.** `minted_picked_at_the_opening_camera`: the auto-explored events and the nine presses, through the
+  HUD and the layer, mint `script::picked()` field for field, **`INPUT_PICKED_FILE` 35 of 35**, seen red pinned
+  34. Its views carry the walk's sim (`mint_with_sim`), as the window's do. Without it the HUD draws no standard
+  panel, and the button presses mint nothing.
+- **The file.** `~/ron-golden/recordings/item4352-picked-greatlakes-24000.rcx`, 59,729 bytes, SHA-256
+  `0d4d570a69fcf86f87bb212785835b28d0e316cc6695596ae3898b37178f5edf`
+  (`the_picked_minted_packages_round_trip`). It holds the auto-explored file's packages, then the three, stamped 34
+  to 36. The closing stamp goes from 34 to 37. The client's events through the HUD write it byte for byte.
+- **The take.** run1656 (`docs/RUNS.md`) is run1627's line with this file. The playback left no `.rcx` in the lane's
+  `Logs\`, so none was removed (DECISIONS 140 §2).
+- **Lockstep** (`PICKED_WALKED`, pinned before the read with none parted): draws agree on all 7,500 frames, count
+  and sequence; 700 records compared (6800..7499), 0 part.
+- **The comparison can fail.** The auto-explored file walked against run1656 parts 669 of 700 records from 6831,
+  first on `0/4`'s position, ours (2616, 31800) against theirs (2640, 31797). Its draws part on 6856 at draw 30,
+  where the original's is `Guy::set_anim < Unit::do_follow+0x32a` (a scratch test, not kept).
+- **Each pick's effect** (`what_the_picks_do_on_both_sides`). Each picked unit's position and head order (`OrderIndex`:
+  1 `MOVE_TO`, 7 `GATHER`, 10 `ATTACK`, 11 `FOLLOW`) on 6831, 6841, 6851, 6900, 7200 and 7499. Ours was pinned off
+  our walk's print before run1656 existed. The original's records equal ours on all 18. The previous playback's
+  walk, the auto-explored file's, is the third column:
+
+  | frame | unit | the original, and ours | the auto-explored file |
+  | --- | --- | --- | --- |
+  | 6831 | `0/4` | (2640, 31797), `MOVE_TO` | (2616, 31800), `GATHER` |
+  | 6851 | `0/5` | (2062, 31735), `MOVE_TO` | (1848, 31608), `GATHER` |
+  | 6900 | `0/3` | (2568, 32520), `ATTACK` | (1656, 32376), `GATHER` |
+  | 7200 | `0/4` | (1176, 30072), `FOLLOW` | (2424, 32376), `GATHER` |
+  | 7200 | `0/5` | (3576, 29688), `GATHER` | (2424, 31416), `GATHER` |
+  | 7200 | `0/3` | (1224, 29112), no order | (2040, 31992), `GATHER` |
+  | 7499 | `0/3` | (4200, 28296), `GATHER` | (2040, 31992), `GATHER` |
+
+  Through 6900 the follow's head is a `MOVE_TO`, and by 7200 it is `FOLLOW`. The Repair pick's gather walks to the
+  Farm and gathers. The attack's target is gone by 7200, and the citizen is gathering again by 7499.
+- **Backed by a diff**: the three orders' bytes (the client's file, byte for byte), their play in lockstep over the
+  window, and every picked unit's records. **One reading**, still: the arms in §32.10.1 the take does not reach (the
+  Move pick on the ground with the right press's form, the Attack pick's `guard` and ground, the Repair pick's
+  `BUILD_AT` and `REPAIR`).
+- **Not established**: whether `Unit::do_follow` is first entered on the tick that takes the package. No entry
+  table was kept, and the follow's draw site on 6856 is its only witness.
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 
