@@ -1089,14 +1089,16 @@ pub const RUN1564_DEEP_GREY: [[i32; 3]; 2] = [[1_139, 0, 0], [274, -7, 4]];
 /// Item 4312: 650 → 649, 6 → 5 (a named fall from 650 and 6): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
 /// Item 4310: [645, 649, 1, 5] → [661, 663, 2, 4]: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
 #[cfg(test)]
-pub const RUN1564_DEEP_STILL: [u32; 4] = [661, 663, 2, 4];
+/// Item 4338: off 661 → 715, on 663 → 717, crossing 2/4 → 0/2: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
+pub const RUN1564_DEEP_STILL: [u32; 4] = [715, 717, 0, 2];
 
 /// **`RUN1564_FADED_HDR`** (item 4310; `docs/RENDERER.md` §3.27, "The
 /// faded land in HDR"): run1564's still at 3279, `SANDY` `[agree with the
 /// faded land blended tone-mapped, over black in HDR, crossed down, crossed
 /// up]`.
 #[cfg(test)]
-pub const RUN1564_FADED_HDR: [u32; 4] = [649, 663, 0, 14];
+/// Item 4338: off 649 → 712, on 663 → 717, crossing 0/14 → 2/7: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
+pub const RUN1564_FADED_HDR: [u32; 4] = [712, 717, 2, 7];
 
 /// **`RUN1564_LAND_HDR`** (item 4327; `docs/RENDERER.md` §3.27, "The patches
 /// over the faded land in HDR"): run1564's still at 3279, `[SANDY, the
@@ -1105,7 +1107,8 @@ pub const RUN1564_FADED_HDR: [u32; 4] = [649, 663, 0, 14];
 /// alone, the coral on the sand's light alone, and both
 /// (`the_patches_over_the_faded_land_in_hdr`). Every arm on falls on `SANDY`.
 #[cfg(test)]
-pub const RUN1564_LAND_HDR: [[u32; 2]; 4] = [[663, 1798], [661, 1797], [661, 1796], [662, 1798]];
+/// Item 4338: `SANDY` 663, 661, 661, 662 → 717, 719, 715, 717 and the row 1,798, 1,797, 1,796, 1,798 → 1,852, 1,855, 1,850, 1,853: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30). The HDR blend's arm now rises, by two.
+pub const RUN1564_LAND_HDR: [[u32; 2]; 4] = [[717, 1852], [719, 1855], [715, 1850], [717, 1853]];
 
 /// **`RUN1564_3279_SURF`** (item 4225; `docs/RENDERER.md` §3.18, "The
 /// surf, off the packet"): `SANDY` and `OCEAN` `[agree, scored]` on the
@@ -1159,11 +1162,38 @@ pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[708, 772], [424, 437]];
 /// Item 4312: `OCEAN` 422 → 424 on all three, drawn `SANDY` 650 → 649 (a named fall from 650): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 /// Item 4310: `SANDY` off 552 → 585, drawn 649 → 663, typed 680 → 689, `OCEAN` holds: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
 #[cfg(test)]
+/// Item 4338: drawn **663 → 717**, typed 689 → 756, off and `OCEAN` hold: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
 pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
     [[585, 772], [424, 437]],
-    [[663, 772], [424, 437]],
-    [[689, 772], [424, 437]],
+    [[717, 772], [424, 437]],
+    [[756, 772], [424, 437]],
 ];
+
+/// **`RUN1564_3279_FOAM`** (item 4338; `docs/RENDERER.md` §3.30): the
+/// whitecaps' row on run1564's still. Each scored `OCEAN` and `SANDY`
+/// tile's share of ground pixels whose luminance is at least
+/// [`FOAM_LUMA`], theirs against ours. A tile is scored where either
+/// side's share reaches [`FOAM_SHARE`] (a foamy tile), and agrees within
+/// it. `[agree, scored]`, `OCEAN` then `SANDY`, with the surf off, drawn
+/// each list over one copy of the frame (item 4239's draw, the made-to-fail
+/// side) and drawn on the HDR target ([`crate::world::World::surf_hdr`]).
+/// Minted at the second, 4338's first act: `OCEAN` 0 of 8, `SANDY` 198 of
+/// 360; the bright pixels over the scored tiles theirs 145,735, ours
+/// 133,657 (128,504 with the surf off).
+#[cfg(test)]
+pub const RUN1564_3279_FOAM: [[[u32; 2]; 2]; 3] = [
+    [[0, 8], [167, 345]],
+    [[0, 8], [196, 361]],
+    [[0, 8], [215, 373]],
+];
+
+/// [`RUN1564_3279_FOAM`]'s bright pixel, a luminance (item 4335's 150).
+#[cfg(test)]
+pub const FOAM_LUMA: f32 = 150.0;
+
+/// [`RUN1564_3279_FOAM`]'s tolerance on a tile's bright share.
+#[cfg(test)]
+pub const FOAM_SHARE: f32 = 0.05;
 
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
 /// `(agree, scored)`, then by kind `[agree, scored]`, `KINDS`' order.
@@ -1214,15 +1244,16 @@ pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
 /// Item 4296: **1,778 → 1,783** (`SANDY` 645 → 650, 6 up and 1 down): the deep corners drawn in the floor's grey plus `trans_bright` (item 4296, `docs/RENDERER.md` §3.27, "The beach below the waterline"; [`RUN1564_DEEP_STILL`]).
 /// Item 4312: **1,783 → 1,784** (`OCEAN` 422 → 424, `SANDY` 650 → 649, a named fall from 650): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 /// Item 4310: **1,784 → 1,798** (`SANDY` 649 → 663, 14 up and none down; 4294's nine deep tiles all agree): the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
+/// Item 4338: **1,798 → 1,852** (`SANDY` 663 → 717): the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30); [`RUN1564_3279_FOAM`].
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1798, 1920),
+    (1852, 1920),
     [
         [679, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [663, 772],
+        [717, 772],
         [424, 437],
     ],
 );
@@ -1264,6 +1295,7 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4312: run1564 **1,845 → 1,848** (`OCEAN` 416 → 418, `SANDY` 725 → 726): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 /// Item 4319: run1564 **1,848 → 1,855** (**`ROCK` 25 → 32** of 32): the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24); run1559b unchanged.
 /// Item 4310: run1564 **1,855 → 1,868** (`SANDY` 726 → 738, `OCEAN` 418 → 419): the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"); run1559b unchanged.
+/// Item 4338: run1564 1,868 → 1,866 (`SANDY` 738 → 736, a named fall of two): the surf's lists blended on the HDR target (`docs/RENDERER.md` §3.30).
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
         (1109, 1109),
@@ -1278,14 +1310,14 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1868, 1920),
+        (1866, 1920),
         [
             [679, 679],
             [0, 0],
             [32, 32],
             [0, 0],
             [0, 0],
-            [738, 772],
+            [736, 772],
             [419, 437],
         ],
     ),
@@ -1322,7 +1354,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Item 4312: run1564 1,789 → 1,794: the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24).
 /// Item 4319: run1559b 1,012 → 1,020, run1564 1,794 → 1,802: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24).
 /// Item 4310: run1564 1,802 → 1,768 (a named fall of 34, the made-to-fail side): the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"), against the drawn row's 1,798: **the drawn row leads on run1564 by 30**, so 4296b's lead is gone.
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1020, 1109), (1768, 1920)];
+/// Item 4338: run1564 1,768 → 1,711 (a named fall of 57 on the made-to-fail side, which now trails the drawn row by 141): the surf's lists blended on the HDR target (`docs/RENDERER.md` §3.30).
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1020, 1109), (1711, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1624,13 +1657,14 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// Item 4312: **`OCEAN` 234 → 244**, `SANDY` 440 → 438 (a named fall from 440): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24), the photograph's blot.
 /// Item 4319: **`ROCK` 9 → 32 of 32**, plain 666 → 678, `SANDY` 438 → 442, `OCEAN` 244 → 243 (a named fall of one): the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24), the stones over every patch cell's tiles.
 /// Item 4310: `SANDY` 442 → 435 (a named fall of seven), `OCEAN` 243 → 245: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]); the deep sand's spread under the water.
+/// Item 4338: **`SANDY` 435 → 520**, `OCEAN` holds at 245: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [678, 679],
     [0, 0],
     [32, 32],
     [0, 0],
     [0, 0],
-    [435, 772],
+    [520, 772],
     [245, 437],
 ];
 
@@ -4461,6 +4495,110 @@ pub(crate) mod tests {
                 .collect::<Vec<_>>(),
             "the surf moves no kind but the beach"
         );
+    }
+
+    /// **The whitecaps' row** (item 4338; `docs/RENDERER.md` §3.30): each
+    /// `OCEAN` and `SANDY` tile's share of bright pixels on run1564's still,
+    /// theirs against ours, with the surf off and drawn
+    /// ([`RUN1564_3279_FOAM`]). `RON_FOAM_STILLS` names a directory the
+    /// two stills are written to, for the journal's band.
+    #[test]
+    fn the_whitecaps_on_the_still() {
+        use crate::gpu::SilhouetteOrder;
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let g = ground(&mut p);
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let bright = |rgba: &[u8], i: usize| {
+            render::silhouette::luminance([0, 1, 2].map(|c| f32::from(rgba[i * 4 + c])))
+                >= FOAM_LUMA
+        };
+        let dir = std::env::var_os("RON_FOAM_STILLS").map(PathBuf::from);
+        let mut rows = [[[0u32; 2]; 2]; 3];
+        for (arm, (on, hdr)) in [(false, false), (true, false), (true, true)]
+            .into_iter()
+            .enumerate()
+        {
+            p.world.surf = on;
+            p.world.surf_hdr = hdr;
+            let still = crate::still_of(
+                &mut p.world,
+                &camera,
+                size,
+                SilhouetteOrder::Before,
+                wgpu::TextureFormat::Rgba8Unorm,
+            );
+            if let Some(d) = &dir {
+                let name = ["foam-off.bmp", "foam-copy.bmp", "foam-on.bmp"][arm];
+                std::fs::write(d.join(name), crate::gpu::bmp(&still, size)).unwrap();
+                // The still's own lists 7 and 8, as `surf_packet.py` prints a
+                // packet's, for the journal's model of our draw.
+                if hdr {
+                    let frame = p.world.runner.frame();
+                    let terrain = p.world.runner.terrain();
+                    let lists = p
+                        .world
+                        .surf_layer()
+                        .unwrap()
+                        .lists_at(frame, Some(&terrain));
+                    let mut out = String::new();
+                    for (k, tex) in [(7, "surf_basefoamlite.tga"), (8, "surf_basefoamlite2.tga")] {
+                        let l = &lists[k];
+                        out += &format!("list {k} {tex} surf_foamalpha.tga\n");
+                        for i in 0..l.verts.len() {
+                            let (v, a, b) = (l.verts[i], l.tex0[i], l.tex1[i]);
+                            out += &format!(
+                                "v {} {} {} {} {} {} {} {}\n",
+                                v[0], v[1], v[2], a[0], a[1], b[0], b[1], l.alpha[i]
+                            );
+                        }
+                        for f in l.faces.chunks(3) {
+                            out += &format!("f {} {} {}\n", f[0], f[1], f[2]);
+                        }
+                    }
+                    std::fs::write(d.join("foam-lists.txt"), out).unwrap();
+                }
+            }
+            // Per tile: [pixels, theirs bright, ours bright].
+            let mut tiles: BTreeMap<(i32, i32), [u32; 3]> = BTreeMap::new();
+            for (i, tt) in g.tile.iter().enumerate() {
+                let Some(tt) = *tt else { continue };
+                let e = tiles.entry(tt).or_default();
+                e[0] += 1;
+                e[1] += u32::from(bright(&p.photo.rgba, i));
+                e[2] += u32::from(bright(&still, i));
+            }
+            let (mut theirs, mut ours) = (0u32, 0u32);
+            for (tt, [n, a, b]) in tiles {
+                if n < TEXTURE.min_pixels {
+                    continue;
+                }
+                let r = match kind_of(&t, &mountains, tt) {
+                    6 => 0,
+                    5 => 1,
+                    _ => continue,
+                };
+                theirs += a;
+                ours += b;
+                let (sa, sb) = (a as f32 / n as f32, b as f32 / n as f32);
+                if sa.max(sb) < FOAM_SHARE {
+                    continue;
+                }
+                rows[arm][r][1] += 1;
+                rows[arm][r][0] += u32::from((sa - sb).abs() <= FOAM_SHARE);
+            }
+            println!(
+                "4338 foam, surf {}: [OCEAN, SANDY] [agree, scored] {:?}; bright pixels theirs {theirs}, ours {ours}",
+                ["off", "over a copy", "in HDR"][arm],
+                rows[arm]
+            );
+        }
+        assert_eq!(rows, RUN1564_3279_FOAM);
     }
 
     /// **The surf drawn, and drawn with the session's types** (item 4239;
@@ -8072,9 +8210,11 @@ pub(crate) mod tests {
             }
         }
         assert_eq!(got, RUN1564_LAND_HDR);
+        // Item 4338: with the surf in HDR the blend's arm rises by two; the
+        // coral's arms still fall or hold.
         assert!(
-            got[1..].iter().all(|g| g[0] < got[0][0]),
-            "4327: every arm on falls on SANDY; the red is not the blend's"
+            got[2..].iter().all(|g| g[0] <= got[0][0]),
+            "4327: the coral's arms do not rise on SANDY"
         );
     }
 }

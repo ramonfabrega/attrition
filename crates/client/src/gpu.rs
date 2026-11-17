@@ -322,6 +322,9 @@ pub struct Frame<'a> {
     /// Item 4327: the land pass's layers blended on an HDR target
     /// ([`crate::world::World::land_hdr`]).
     pub land_hdr: bool,
+    /// Item 4338: the surf's lists blended on the HDR target
+    /// ([`crate::world::World::surf_hdr`]).
+    pub surf_hdr: bool,
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
     /// The shadows (item 4182), one mesh a decal texture.
@@ -452,6 +455,8 @@ pub struct Gpu {
     hdr_lit: wgpu::RenderPipeline,
     hdr_faded: wgpu::RenderPipeline,
     hdr_floor: wgpu::RenderPipeline,
+    /// Item 4338: the surf on the HDR target (`fs_surf_hdr`).
+    hdr_surf: wgpu::RenderPipeline,
     untone: wgpu::RenderPipeline,
     retone: wgpu::RenderPipeline,
     /// The ocean floor, lit per pixel, depth written; the water, blended in
@@ -491,6 +496,9 @@ pub struct Gpu {
     /// depth Greater, no depth write, source-alpha blend.
     silhouette: wgpu::RenderPipeline,
     figure_sampler: wgpu::Sampler,
+    /// Item 4338: the surf's stage 0, point on every filter and wrapped, as
+    /// the card's draws 163–169 set it (`RenderState +0xec`, `+0xf4`, `+0xfc`).
+    surf_sampler: wgpu::Sampler,
     /// Each unit piece's texture and its levels on the GPU, uploaded once.
     figure_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
     /// The trees' pass (item 4173): `render_states[9]`'s LessEqual with
@@ -1120,6 +1128,14 @@ impl Gpu {
             true,
             LAND_HDR_FORMAT,
         );
+        // Item 4338: the surf's lists on the same target.
+        let hdr_surf = patch_pass_to(
+            "hdr_surf",
+            "fs_surf_hdr",
+            &patch_layout,
+            false,
+            LAND_HDR_FORMAT,
+        );
         let full_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("full"),
             bind_group_layouts: &[None, None, None, Some(&lake_layout)],
@@ -1266,6 +1282,15 @@ impl Gpu {
             mipmap_filter: wgpu::MipmapFilterMode::Nearest,
             ..Default::default()
         });
+        let surf_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            label: Some("surf"),
+            address_mode_u: wgpu::AddressMode::Repeat,
+            address_mode_v: wgpu::AddressMode::Repeat,
+            mag_filter: wgpu::FilterMode::Nearest,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
+            ..Default::default()
+        });
         let figure_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             label: Some("figure"),
             address_mode_u: wgpu::AddressMode::Repeat,
@@ -1309,6 +1334,7 @@ impl Gpu {
             hdr_lit,
             hdr_faded,
             hdr_floor,
+            hdr_surf,
             untone,
             retone,
             floor,
@@ -1329,6 +1355,7 @@ impl Gpu {
             silhouette,
             figure_sampler,
             figure_textures: std::sync::Mutex::new(Default::default()),
+            surf_sampler,
             silhouette_order: SilhouetteOrder::Before,
             smoke,
             fire,
@@ -1427,7 +1454,13 @@ impl Gpu {
         if let Some(b) = cache.get(&piece) {
             return b.clone();
         }
-        let b = self.upload_mips(&mips.levels, &self.figure_sampler);
+        // Item 4338: the surf's slots under the card's point sampler.
+        let sampler = if crate::world::is_surf(piece) {
+            &self.surf_sampler
+        } else {
+            &self.figure_sampler
+        };
+        let b = self.upload_mips(&mips.levels, sampler);
         cache.insert(piece, b.clone());
         b
     }
@@ -1922,6 +1955,7 @@ impl Gpu {
                 meshes,
                 &patches[..split],
                 frame.land_hdr,
+                frame.surf_hdr,
             );
         } else {
             // Item 4232: the ground in passes of its own, so the water can
@@ -1935,6 +1969,7 @@ impl Gpu {
                 meshes,
                 patches,
                 frame.land_hdr,
+                frame.surf_hdr,
             );
         }
         {
@@ -2187,6 +2222,7 @@ impl Gpu {
         meshes: &[Uploaded],
         patches: &[UploadedPatch],
         land_hdr: bool,
+        surf_hdr: bool,
     ) {
         let view = target.create_view(&Default::default());
         let water = patches.iter().position(|p| p.5 == PatchKind::Water);
@@ -2300,7 +2336,15 @@ impl Gpu {
                 let mut pass = begin(enc, &view, depth_view, false);
                 self.draw_ground(&mut pass, None, None, &rest[i..j], Some(&bind));
             }
-            if j < rest.len() {
+            if j < rest.len() && surf_hdr {
+                // Item 4338: the run of lists from here, on the HDR target.
+                let e = j + rest[j..]
+                    .iter()
+                    .take_while(|p| p.5 == PatchKind::Surf)
+                    .count();
+                self.land_hdr_pass(enc, target, &view, depth_view, extent, &rest[j..e]);
+                i = e;
+            } else if j < rest.len() {
                 let under = copy(enc);
                 let mut pass = begin(enc, &view, depth_view, false);
                 self.draw_ground(&mut pass, None, None, &rest[j..j + 1], Some(&under));
@@ -2419,6 +2463,7 @@ impl Gpu {
                 pass.set_pipeline(match kind {
                     PatchKind::Faded => &self.hdr_faded,
                     PatchKind::Floor => &self.hdr_floor,
+                    PatchKind::Surf => &self.hdr_surf,
                     _ => &self.hdr_lit,
                 });
                 pass.set_bind_group(1, t, &[]);

@@ -213,3 +213,68 @@ fn an_attack_deal_hires_both_parties() {
     assert!(sim.is_enemy(0, 2) && sim.is_enemy(1, 2));
     assert_eq!((d[0].dow[2], d[1].dow[2]), (1, 0), "the human's counts");
 }
+
+const WEALTH: usize = Resource::Wealth.index();
+
+/// Item 4331's demand arm: who=0 human, who=1 a computer at peace with it
+/// and set against it (`aggression[0]`), Military 0 and `blacken` 0, so
+/// `D` is `1 · 1 · 100`. Food is the one good the computer is short of
+/// (`econ` 4, 500 in stock).
+fn demanding() -> Sim {
+    let mut sim = at_war();
+    sim.set_diplo(0, 1, 1);
+    sim.ai.ai[1].aggression[0] = 1;
+    sim.ai.ai[1].econ = [4, 0, 0, 0, 0, 0];
+    sim.economy.ledgers[1].bucket[FOOD] = 500;
+    sim
+}
+
+/// **The demand** (`LAB_006be54c`, `006be6d0`–`006be8a3`): the deal is
+/// cleared, Food is asked (`−min(5000, D)`), then WEALTH (`−min(D,
+/// 5000)`), the computer commits, `agendas[0] |= 8` and
+/// `tribute_demanded[0]` is 1 — after the commit, whose entry clears it.
+#[test]
+fn the_demand_asks_the_short_good_and_wealth_and_commits() {
+    let mut sim = demanding();
+    sim.diplomacy_tail(1, 0, true, Rivals::default(), false, 0);
+    let mine = sim.leaders.tribute[1].dip[0];
+    assert_eq!((mine.offers[FOOD], mine.offers[WEALTH]), (-100, -100));
+    assert_eq!(mine.agree, 1);
+    assert_eq!(sim.leaders.tribute[0].dip[1].offers[FOOD], 100);
+    assert_eq!(sim.leaders.tribute[1].tribute_demanded[0], 1);
+    assert_eq!(sim.leaders.agendas[1][0] & 8, 8);
+    assert_eq!(
+        (sim.diplos(1, 0), sim.diplos(0, 1)),
+        (1, 1),
+        "still at peace"
+    );
+}
+
+/// **The war instead**: the target holds less WEALTH than `D` (99 of
+/// 100), so the computer declares (`action_declare(me, t, 0, quiet)`),
+/// stamps the target's `got_diplo_message` and `agendas[t] |= 8`, and
+/// demands nothing.
+#[test]
+fn a_target_short_of_wealth_is_declared_on_instead() {
+    let mut sim = demanding();
+    sim.economy.ledgers[0].bucket[WEALTH] = 99;
+    sim.diplomacy_tail(1, 0, true, Rivals::default(), false, 0);
+    assert_eq!((sim.diplos(1, 0), sim.diplos(0, 1)), (0, 0));
+    assert_eq!(sim.ai.ai[0].got_diplo_message, 5_000);
+    assert_eq!(sim.leaders.agendas[1][0] & 8, 8);
+    assert_eq!(sim.leaders.tribute[1].tribute_demanded[0], 0);
+}
+
+/// **The gate**: before the planned war's frame (`local_40`) the arm is
+/// not entered; the pass takes `LAB_006bed3f` (`agendas[t] |= 0x40`).
+#[test]
+fn the_demand_waits_for_the_planned_war_s_frame() {
+    let mut sim = demanding();
+    sim.diplomacy_tail(1, 0, true, Rivals::default(), false, 5_001);
+    assert_eq!(sim.leaders.tribute[1].tribute_demanded[0], 0);
+    assert_eq!(sim.leaders.agendas[1][0] & 0x48, 0x40);
+    sim.leaders.agendas[1][0] = 0;
+    sim.ai.ai[0].got_diplo_message = 0;
+    sim.diplomacy_tail(1, 0, true, Rivals::default(), false, 5_000);
+    assert_eq!(sim.leaders.tribute[1].tribute_demanded[0], 1);
+}

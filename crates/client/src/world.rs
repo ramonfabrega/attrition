@@ -344,6 +344,12 @@ pub struct World {
     /// Draw the surf (item 4239, §3.27). On by default; the row's count as
     /// drawn before turns it off.
     pub surf: bool,
+    /// **The surf blended on the HDR target** (item 4338; `docs/RENDERER.md`
+    /// §3.30): every list's triangles source-alpha over on 4327's HDR target,
+    /// as the card's draws 163–169 blend, so a list's overlapping triangles
+    /// compound. On by default; off, each list is drawn over one copy of the
+    /// frame and its overlaps overwrite (the made-to-fail side).
+    pub surf_hdr: bool,
     /// The surf's layer and each slot's texture and mask; `None` where
     /// `<SURF>` or a model or texture does not read, and no surf is laid.
     surf_art: Option<SurfArt>,
@@ -1181,6 +1187,7 @@ impl World {
             deep_corners: true,
             faded_hdr: true,
             land_hdr: false,
+            surf_hdr: true,
             coral_lit: false,
             mountain_light: true,
             drawn: (u32::MAX, TerrainMesh::default(), Vec::new(), Vec::new()),

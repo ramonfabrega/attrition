@@ -251,7 +251,8 @@ mod tests {
     /// on cell (52, 49) and twenty 2 × 2 `rough` patches off our own
     /// `internal_random`; ours' pools read softer at the rim (4319a).
     /// Item 4310: 2,287 → 2,289, ours 2,483 → 2,486: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR") moves the frame's mean, so its white.
-    pub const RUN1564_3279_ROUGH: [usize; 3] = [2289, 2387, 2486];
+    /// Item 4338: 2,289 → 2,290, 2,486 → 2,490: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
+    pub const RUN1564_3279_ROUGH: [usize; 3] = [2290, 2387, 2490];
 
     #[test]
     fn the_land_oil_s_pits_on_run1564() {
