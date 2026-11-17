@@ -233,7 +233,7 @@ pub(crate) fn walk_take_from(
                         eprintln!(
                             "  OURS city f{at} {ci}: alive {} owner {} race {:?} b {} o {} ty {:?} pos {:?} seen-by-1 {} tregion {:?}",
                             c.alive, c.owner, c.race, c.building, b.index, b.ty, c.pos,
-                            built.sim.was_seen_fog(c.pos.tile().x >> 1, c.pos.tile().y >> 1, 1),
+                            0,
                             built.sim.world.tregion_alt(c.pos.tile())
                         );
                     }
