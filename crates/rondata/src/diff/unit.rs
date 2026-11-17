@@ -847,7 +847,9 @@ mod tests {
         // Asserted as they stand, so that closing either moves the number
         // rather than passing quietly. The one on the quit's frame is
         // player 0's Citizen `o 5`, eighteen units short on both axes.
-        assert_eq!(gaia_bearings, 301_810, "gaia's unmodelled bearings");
+        // Item 4348: 301,810 → 0, gaia's units stood up with the start
+        // dump's angles (`diff::setup`, `docs/RENDERER.md` §3.30).
+        assert_eq!(gaia_bearings, 0, "gaia's unmodelled bearings");
         assert_eq!(
             on_the_quit, 1,
             "rows on the capture's half-written last frame"

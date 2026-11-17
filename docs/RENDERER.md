@@ -4288,7 +4288,7 @@ three pieces move; theirs the dark pixels (green under 0.62 of blue) of the box 
 and none in two fish-free boxes. **Ours dark 0 of 904 → 393 of 889**, mean (134, 137, 145) → (51, 98, 155) against
 theirs' (24, 87, 151); theirs covered 0 of 304 on both, since ours stand at x 1163–1221, y 179–268. The border band
 falls 224 → 222 and the texture's `OCEAN` 245 → 244, the water now over what it covers. *Not established:* ~~the
-fish's light~~ (item 4345, below); where the herd's fish stand (4308c); the churn (4308d); `draw_particles(0)` before
+fish's light~~ (item 4345, below); ~~where the herd's fish stand (4308c)~~ (item 4348, below); the churn (4308d); `draw_particles(0)` before
 the water, ours after.
 
 **The fish's light** (item 4345). Draws 155–160 carry `ENABLE_LIGHTING`, stage 0 `BLENDTA(TEX, TF)` at tfactor
@@ -4304,9 +4304,27 @@ sit at a median N·L of 0.03, 3,192 of 6,480 under 0: the fish are upright, thei
 normalizes the interpolated normal per pixel). The land figures stay as item 4172's rule draws them. **`RUN1564_3279_FISH`,
 the lit arm: ours dark 393 of 889 → 613 of 850**, mean (51, 98, 155) → (34.5, 89.5, 149.7) against theirs' (24.4,
 87.4, 151.3): chromaticity r 0.168 → 0.126 against 0.093, and luma 90.5 → 79.6 against 75.5. Theirs covered stays 0 of
-304 (4308c). *Coverage.* On one take's card, read: the draws' states and material. Not diff-backed: the row is the
+304 (4308c; item 4348, below). *Coverage.* On one take's card, read: the draws' states and material. Not diff-backed: the row is the
 photograph's, at our own positions. *Not established:* whether the card culls the herd's back faces (ours draws both);
 the N·L per pixel against ours per corner.
+
+**Where the herd stands** (item 4348; the ledger: `docs/journal/2026-11-17-item-4348.md`). The card's `gWorld` on
+draws 157, 159 and 160 is one matrix for all three fish: x negated, y and z kept, unit scale, the herd's point
+(35112, 35832, 0). That is `render::figure::guy_placement`'s map at drawn 180°, so a facing of 0; the three fish part
+by their animations alone. Land figures on run1566b's card carry the same unit-scale form at their own turns, so the
+4.8 is not in `gWorld`. The pair's start dump agrees: all 72 type-411 records hold `UnitData::angle` 0 and guy 0's
+`angle` 0, as `Herd::create_units@007417f0` turns a fish (`sim::gaia::herd_create_view`). Ours stood every gaia animal
+at `Unit::init`'s `0x55555555` (drawn 300°), because the start's install (`rondata::diff::setup`) never read a unit's
+angles. **The fix is in the start, not the renderer:** a gaia unit stood up from a dump takes its `angle`, guy 0's
+`angle` and `dest_angle`, as `army.rs`'s install does. Projected through the card's view, our posed fish move from x
+1163–1221, y 179–268 to x 1022–1116, y 138–190, against theirs' box x 1010–1120, y 130–192. **`RUN1564_3279_FISH`:
+theirs covered 0 → 302 of 304** on each arm; the lit arm's ours dark 613 of 850 → 810 of 969, mean (34.5, 89.5, 149.7)
+→ (25.1, 83.9, 146.4) against (24.4, 87.4, 151.3). The still's ground row rises 1,852 of 1,920 → 1,855 of 1,921 (`OCEAN`
+424 of 437 → 427 of 438). The non-still row falls 1,018 → 1,015 of 1,921: the tiles our objects mask are now theirs'
+fish's. On the still, the poses match theirs too: the left group is drawn as theirs is, and the right is within a few
+pixels. *Coverage.* On one take's card, read: the herd's `gWorld`. Against the dump: the start's angles. Not
+diff-backed: the row is the photograph's. *Not established:* the churn (4308d); a player's unit's angles from a start
+dump, which the install still leaves at `Unit::init`'s.
 
 ## 4. The stack
 

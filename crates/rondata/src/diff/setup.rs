@@ -200,6 +200,8 @@ pub fn lobby_of(
     if let Some(v) = int("TEAM_STYLE") {
         l.team_style = v;
     }
+    // `GameInfo.seed`, the lobby's own (item 4347): not `world->seed`.
+    l.seed = int("(int)seed");
     if let Some(v) = int("MAP_STYLE") {
         l.map_style = v;
         if let Some(name) = usize::try_from(v).ok().and_then(|i| map_styles.get(i)) {
@@ -1047,6 +1049,21 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 .herds
                 .iter()
                 .position(|h| Some(h.t) == u.guys.first().and_then(|g| g.kind));
+            // **The animal's own angles** (item 4348, `docs/RENDERER.md`
+            // §3.30): `Herd::create_units@007417f0` turns each animal it
+            // places (a fish to 0, a type 0x19c to a half turn, the rest to
+            // a random degree) through `Unit::set_angle@00605400`, which
+            // writes `UnitData::angle` (`+0x50`) and the figures and flips
+            // the mirror, and never `dest_angle` (`+0x58`). The start dump
+            // prints the angle it left; it is installed as
+            // `sim::gaia::herd_create_view`'s `set_angle` does, from
+            // `Unit::init`'s `0x55555555`.
+            if let Some(a) = u.angle.or_else(|| u.guys.first().and_then(|g| g.angle)) {
+                let m = &mut unit.movement;
+                let dest = m.des_angle;
+                m.set_facing(sim::movement::Angle(a as i32));
+                m.des_angle = dest;
+            }
         }
         // `UnitData::stance` (`sim::units::stance`). A unit stood up from a dump
         // takes the dump's, which is the stronger seed: it carries whatever
@@ -1074,7 +1091,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             if let (Some(piece), Some(k)) = (g.gpiece, kind) {
                 let o = u.o as i16;
                 let sub = if sim.roster.art.gaia_types.contains(&k) {
-                    (sim.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8
+                    (sim.info_seed().wrapping_add(i32::from(o))).rem_euclid(3) as u8
                 } else {
                     (o & 1) as u8
                 };

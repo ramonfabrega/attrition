@@ -968,7 +968,7 @@ impl Sim {
         packed: bool,
     ) -> Option<i32> {
         if self.roster.art.gaia_types.contains(&ty) {
-            let sub = (self.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8;
+            let sub = (self.info_seed().wrapping_add(i32::from(o))).rem_euclid(3) as u8;
             // The dump's piece where it printed one, and otherwise the
             // gaia arm's own (item 4208): a built start has no dump, and a
             // figure with no piece keeps an idle variant its packet lacks
@@ -1072,7 +1072,7 @@ impl Sim {
         if !(0x192..0x19e).contains(&type_index) {
             return None;
         }
-        let v = (self.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8;
+        let v = (self.info_seed().wrapping_add(i32::from(o))).rem_euclid(3) as u8;
         let shipped = *self.roster.art.gaia_variants.get(&(type_index, v))?;
         Some(FIRST_BIRD_PIECE + 3 * (type_index - 0x192) + i32::from(shipped))
     }
@@ -1082,7 +1082,22 @@ impl Sim {
     /// gaia type and the `sub` [`Sim::piece_of`] keys by.
     pub(crate) fn gaia_variant(&self, u: usize) -> u8 {
         let o = self.units[u].index;
-        (self.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8
+        (self.info_seed().wrapping_add(i32::from(o))).rem_euclid(3) as u8
+    }
+
+    /// **`GameInfo.seed`, the lobby's seed** — `(GameAccessConst::gamec->
+    /// info).seed`, which `GraphicPieces::get_unit_gpiece@0090c030:37`
+    /// adds to `o` for a gaia figure's variant and `Leader::diplomacy@
+    /// 006bc950:188` reads for the war plan's span. It is not
+    /// `world->seed` ([`Sim::game_seed`]), which this crate read for the
+    /// variant until item 4347 (the war plan still reads it: lane 4341's,
+    /// `docs/LEADERS.md` §8.2): the two agree mod 3 on every lobby at seed 12345
+    /// (12345 and 7236), and the 2017 sample's do not (340513920 and
+    /// 48607), so its peacocks wore their neighbours' pieces and the
+    /// wrong one's idle ran out on frame 98. A lobby that printed no
+    /// `(int)seed` keeps the world seed, as before.
+    pub fn info_seed(&self) -> i32 {
+        self.ai.lobby.seed.unwrap_or(self.game_seed)
     }
 
     /// `end_time` for one guy's slot: the install's own table for a gaia
