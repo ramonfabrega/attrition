@@ -334,6 +334,13 @@ pub enum Event {
     /// `BUILD_OPTIONS` page; the next press places it, as a
     /// [`BUILD_KEYS`] key's choice does. The HUD's alone.
     Place(i32),
+    /// A press on one of the citizen's page buttons (item 4339, §32.7), by
+    /// its option: [`OPTION_BUILD`], [`OPTION_BUILD_MILITARY`] or
+    /// [`OPTION_BUILD_WONDER`] opens that page; on a page, [`OPTION_NEXT`],
+    /// [`OPTION_BACK`] and [`OPTION_CANCEL`] turn it or close it, as
+    /// `Options::exec@007188c0`'s cases 0 to 2, 0x41, 0x42 and 0x43 set the
+    /// mode. The HUD's alone.
+    Page(i32),
     /// The console's key (item 4283, `docs/CLIENT_INPUT.md` §28): opens
     /// the entry line as `ConsoleWin`'s, whose Return runs the line's
     /// word through `ConsoleWin::parse_cmd@007d6470` and `run_cmd
@@ -1223,6 +1230,11 @@ pub struct Input {
     pub building: bool,
     /// The building chosen to place, by `TypeIndex`.
     pub placing: Option<i32>,
+    /// The citizen's panel (item 4339, §32.7): `None` is `STANDARD_OPTIONS`,
+    /// the page buttons; `Some(k)` is `BUILD_OPTIONS` at `mode_data` `k`,
+    /// page `k`'s buildings. A new selection returns it to `None`, as
+    /// `SelectGroup::clear` and `update_info` reach `Options::reset`.
+    pub page: Option<i32>,
     /// The chat entry line, open with what it holds, or closed (item 4250).
     pub line: Option<String>,
     /// Whether the slot's own pause stands (item 4252): the turn control's
@@ -1320,8 +1332,20 @@ const AIRCRAFTCARRIER: i32 = 0x15f;
 pub const OPTION_TRAIN: i32 = 47;
 pub const OPTION_RESEARCH: i32 = 48;
 /// `OPTION_BUILD`, the citizen's first build page: what `UnitOut::make_options@00615fc0`
-/// adds a page's buildings under (`mode_data`, 0). Ours is one page.
+/// adds a page's buildings under (`mode_data`, 0), and, with type −1, the
+/// standard panel's button that opens it (item 4339, §32.7).
 pub const OPTION_BUILD: i32 = 0;
+/// `OPTION_BUILD_MILITARY` and `OPTION_BUILD_WONDER`: the second and third
+/// pages, as [`OPTION_BUILD`] the first (`mode_data` 1 and 2).
+pub const OPTION_BUILD_MILITARY: i32 = 1;
+pub const OPTION_BUILD_WONDER: i32 = 2;
+/// The page's own buttons (item 4339, §32.7), as the page loop adds them
+/// after its buildings: `OPTION_BACK` at grid (2, 3), `OPTION_NEXT` at
+/// (3, 3) and `OPTION_CANCEL` at (4, 3) (`panels.py --citizens`' rows; the
+/// values are the TSV's, not the add order).
+pub const OPTION_NEXT: i32 = 65;
+pub const OPTION_BACK: i32 = 66;
+pub const OPTION_CANCEL: i32 = 67;
 
 /// The `TypeIndex`es `UnitOut::make_options@00615fc0`'s page loop names
 /// (`enums/TypeIndex.txt` of the export): `VILLAGE`, the City line whose
@@ -1334,6 +1358,15 @@ const WONDERS: std::ops::RangeInclusive<i32> = 0x20e..=0x21e;
 /// `PEASANTS` and `PEASANTSKOREAN`: the citizens `make_options` offers the
 /// build pages to.
 const CITIZENS: [i32; 2] = [0x32, 0x33];
+
+/// **The pages a citizen turns through** (item 4339, §32.7): three, or two
+/// in a game whose `semaphore[2] & 2` is set (a Conquer-the-World or
+/// scenario game, [`sim::ai::Lobby::conquest`]), where `make_options`
+/// adds no `OPTION_BUILD_WONDER` and `Options::exec`'s `OPTION_NEXT` and
+/// `OPTION_BACK` turn modulo `~(semaphore[2] >> 1) & 1 | 2`.
+fn pages_of(sim: &sim::Sim) -> i32 {
+    if sim.ai.lobby.conquest { 2 } else { 3 }
+}
 
 /// **A panel button** (item 4326, `docs/CLIENT_INPUT.md` §32.4): what
 /// `Options::add@0072c290` takes of one of `make_options`' train and
@@ -1896,12 +1929,29 @@ impl Input {
             if !citizen {
                 return Vec::new();
             }
-            return self
+            // One page at a time (item 4339): the standard arm's page
+            // buttons, or page `k`'s buildings and its three buttons.
+            let page = |option| Button {
+                ty: -1,
+                option,
+                disable: 0,
+            };
+            let Some(k) = self.page else {
+                return (0..pages_of(sim))
+                    .map(|o| (Event::Page(o), page(o)))
+                    .collect();
+            };
+            let mut out: Vec<(Event, Button)> = self
                 .roster
                 .build_pages(sim, usize::from(self.player))
                 .into_iter()
+                .filter(|x| x.option == k)
                 .map(|x| (Event::Place(x.ty), x))
                 .collect();
+            out.extend(
+                [OPTION_BACK, OPTION_NEXT, OPTION_CANCEL].map(|o| (Event::Page(o), page(o))),
+            );
+            return out;
         }
         let Some(b) = self.selection.iter().find_map(|id| {
             scene
@@ -1983,6 +2033,7 @@ impl Input {
             }
             None => self.selection.clear(),
         }
+        self.page = None;
     }
 
     /// **The dispatch's queue** (item 4293, `docs/CLIENT_INPUT.md` §33.1):
@@ -2596,6 +2647,7 @@ impl Input {
                 // no unit (§7.1, item 4318).
                 self.selection = view.boxed(self.player, (x0, y0), (x1, y1));
                 self.building = false;
+                self.page = None;
                 if self.selection.is_empty() {
                     self.selection = view.boxed_buildings(self.player, (x0, y0), (x1, y1));
                     self.building = !self.selection.is_empty();
@@ -2805,6 +2857,20 @@ impl Input {
                 }
                 let cmd = Command::QueueUp { unit, num: 1 };
                 Some((frame, play, vec![self.group(view.scene), cmd]))
+            }
+            Event::Page(option) => {
+                if self.selection.is_empty() || self.building {
+                    return None;
+                }
+                let n = view.sim.map_or(3, pages_of);
+                self.page = match (option, self.page) {
+                    (OPTION_BUILD..=OPTION_BUILD_WONDER, _) if option < n => Some(option),
+                    (OPTION_NEXT, Some(k)) => Some((k + 1) % n),
+                    (OPTION_BACK, Some(k)) => Some(if k < 1 { n - 1 } else { k - 1 }),
+                    (OPTION_CANCEL, Some(_)) => None,
+                    (_, page) => page,
+                };
+                None
             }
             Event::Place(ty) => {
                 if !self.selection.is_empty() && !self.building {
@@ -11200,11 +11266,32 @@ pub(crate) mod tests {
     /// `disable`: columns 9, 6 and 10), sorted, the page's `OPTION_BACK`,
     /// `OPTION_NEXT` and `OPTION_CANCEL` aside.
     fn pages_on_disk() -> Vec<(String, i64, i32, i32, Vec<Button>)> {
-        let dir = std::env::var_os("RON_PAGES_DIR")
+        page_rows("RON_PAGES_DIR", "ron-data/pages")
+            .into_iter()
+            .map(|(f, frame, who, object, rows)| {
+                let mut bs: Vec<Button> = rows
+                    .into_iter()
+                    .filter(|(_, b)| (0..=2).contains(&b.option))
+                    .map(|(_, b)| b)
+                    .collect();
+                bs.sort_unstable();
+                (f, frame, who, object, bs)
+            })
+            .collect()
+    }
+
+    /// One citizen's adds, each with the page its run poked (item 4339).
+    type PageAdds = Vec<(i32, Button)>;
+
+    /// Every row of `panels.py --citizens` TSVs under `var` (or
+    /// `~/<default>`), per (file, frame, slot, citizen): each add whole
+    /// (type, option, `disable`) with the page its run poked (−1 for
+    /// `--standard`'s run), in the file's order.
+    fn page_rows(var: &str, default: &str) -> Vec<(String, i64, i32, i32, PageAdds)> {
+        let dir = std::env::var_os(var)
             .map(std::path::PathBuf::from)
             .unwrap_or_else(|| {
-                std::path::Path::new(&std::env::var_os("HOME").unwrap_or_default())
-                    .join("ron-data/pages")
+                std::path::Path::new(&std::env::var_os("HOME").unwrap_or_default()).join(default)
             });
         let Ok(rd) = std::fs::read_dir(&dir) else {
             return Vec::new();
@@ -11214,7 +11301,7 @@ pub(crate) mod tests {
             .filter(|p| p.extension().is_some_and(|x| x == "tsv"))
             .collect();
         files.sort();
-        let mut out: std::collections::BTreeMap<(String, i64, i32, i32), Vec<Button>> =
+        let mut out: std::collections::BTreeMap<(String, i64, i32, i32), PageAdds> =
             std::collections::BTreeMap::new();
         for f in files {
             let name = f.file_stem().unwrap().to_string_lossy().into_owned();
@@ -11227,30 +11314,30 @@ pub(crate) mod tests {
                     .take(11)
                     .map(|v| v.parse().expect("a panels.py --citizens row"))
                     .collect();
-                let (frame, who, object, option, ty, disable) = (
+                let (frame, who, object, page, option, ty, disable) = (
                     c[0],
                     c[1] as i32,
                     c[2] as i32,
+                    c[4] as i32,
                     c[5] as i32,
                     c[8] as i32,
                     c[9] as i32,
                 );
                 assert!(option != -1, "{name}: a run that did not return: {line}");
-                let e = out.entry((name.clone(), frame, who, object)).or_default();
-                if (0..=2).contains(&option) {
-                    e.push(Button {
-                        ty,
-                        option,
-                        disable,
-                    });
-                }
+                out.entry((name.clone(), frame, who, object))
+                    .or_default()
+                    .push((
+                        page,
+                        Button {
+                            ty,
+                            option,
+                            disable,
+                        },
+                    ));
             }
         }
         out.into_iter()
-            .map(|((f, frame, who, object), mut bs)| {
-                bs.sort_unstable();
-                (f, frame, who, object, bs)
-            })
+            .map(|((f, frame, who, object), rows)| (f, frame, who, object, rows))
             .collect()
     }
 
@@ -11273,6 +11360,16 @@ pub(crate) mod tests {
     /// nothing, a clear one the placement of its type. Ours:
     /// `Options::exec`'s build arm is not read here. Seen red pinned (0, 0).
     const HUD_PAGES_PRESSED: (usize, usize) = (1312, 1312);
+    /// **`HUD_PAGES_PAGED`** (item 4339, `docs/CLIENT_INPUT.md` §32.7):
+    /// each held packet's citizen paged through the HUD as the original
+    /// pages, one page at a time: the standard panel's page buttons
+    /// (`panels.py --citizens --standard`), each pressed, and from each
+    /// page so reached `OPTION_NEXT`, `OPTION_BACK` and `OPTION_CANCEL`
+    /// pressed: thirteen states a citizen, each the page `Options::exec`'s
+    /// arm sets and the buttons drawn on it whole (type, option, `disable`)
+    /// against the original's adds in that mode: (citizens every state
+    /// equal, citizens, states equal, states). Seen red pinned (0, 0, 0, 0).
+    const HUD_PAGES_PAGED: (usize, usize, usize, usize) = (32, 32, 416, 416);
 
     /// **The citizen's build pages, on our walk** (item 4337): every held
     /// packet's citizens, the original's pages (`UnitOut::make_options@00615fc0`
@@ -11304,6 +11401,16 @@ pub(crate) mod tests {
         let mut hud = (0, 0, 0, 0, 0);
         let mut statics = (0, 0, 0, 0, 0);
         let mut presses = (0, 0);
+        let mut paged = (0, 0, 0, 0);
+        let keyed =
+            |var, default| -> std::collections::BTreeMap<(i64, i32, i32), Vec<(i32, Button)>> {
+                page_rows(var, default)
+                    .into_iter()
+                    .map(|(_, frame, who, object, rows)| ((frame, who, object), rows))
+                    .collect()
+            };
+        let all = keyed("RON_PAGES_DIR", "ron-data/pages");
+        let standard = keyed("RON_PAGES_STANDARD_DIR", "ron-data/pages-standard");
         let tally =
             |row: &mut (usize, usize, usize, usize, usize), theirs: &[Button], ours: &[Button]| {
                 row.1 += 1;
@@ -11339,30 +11446,112 @@ pub(crate) mod tests {
                 who: *who as sim::Player,
                 o: *object as i16,
             }];
-            let drawn = |sim| {
-                let mut d: Vec<Button> = crate::hud::roster_menu(&input, &scene, sim, HUD_SIZE)
+            let drawn = |input: &Input, sim| {
+                let mut d: Vec<Button> = crate::hud::roster_menu(input, &scene, sim, HUD_SIZE)
                     .iter()
                     .map(|x| x.button)
                     .collect();
                 d.sort_unstable();
                 d
             };
-            let (walked, statik) = (drawn(Some(sim)), drawn(None));
+            // The three pages, one at a time (item 4339): their buildings,
+            // each page's own three buttons aside.
+            let mut walked = Vec::new();
+            for k in 0..3 {
+                let paged = Input {
+                    page: Some(k),
+                    ..input.clone()
+                };
+                walked.extend(drawn(&paged, Some(sim)).into_iter().filter(|b| b.ty >= 0));
+            }
+            walked.sort_unstable();
+            let statik = drawn(&input, None);
             let terrain = TerrainScene::default();
             let c = crate::pinned_camera();
             let v = View {
                 sim: Some(sim),
                 ..view(&c, &scene, &terrain)
             };
-            for b in crate::hud::roster_menu(&input, &scene, Some(sim), HUD_SIZE) {
-                let (x, y) = b.rect.centre();
-                let mut pressed = input.clone();
-                let got = crate::hud::event(&mut pressed, HUD_SIZE, 1, Event::Press { x, y }, &v);
-                presses.1 += 1;
-                let armed = pressed.placing == Some(b.ty());
-                if got.is_none() && armed != b.greyed() && (armed || pressed.placing.is_none()) {
-                    presses.0 += 1;
+            for k in 0..3 {
+                let paged = Input {
+                    page: Some(k),
+                    ..input.clone()
+                };
+                for b in crate::hud::roster_menu(&paged, &scene, Some(sim), HUD_SIZE) {
+                    if b.ty() < 0 {
+                        continue;
+                    }
+                    let (x, y) = b.rect.centre();
+                    let mut pressed = paged.clone();
+                    let got =
+                        crate::hud::event(&mut pressed, HUD_SIZE, 1, Event::Press { x, y }, &v);
+                    presses.1 += 1;
+                    let armed = pressed.placing == Some(b.ty());
+                    if got.is_none() && armed != b.greyed() && (armed || pressed.placing.is_none())
+                    {
+                        presses.0 += 1;
+                    }
                 }
+            }
+            // The paging (item 4339): theirs in each mode, the standard
+            // panel's page buttons and each page's adds whole.
+            let rows = |page: i32| -> Vec<Button> {
+                let src = if page < 0 { &standard } else { &all };
+                let mut t: Vec<Button> = src
+                    .get(&(*frame, *who, *object))
+                    .into_iter()
+                    .flatten()
+                    .filter(|(p, b)| {
+                        *p == page
+                            && if page < 0 {
+                                b.ty < 0 && (0..=2).contains(&b.option)
+                            } else {
+                                b.option == page
+                                    || [OPTION_NEXT, OPTION_BACK, OPTION_CANCEL].contains(&b.option)
+                            }
+                    })
+                    .map(|(_, b)| *b)
+                    .collect();
+                t.sort_unstable();
+                t
+            };
+            let state = |inp: &Input, want: Option<i32>| {
+                inp.page == want && drawn(inp, Some(sim)) == rows(want.unwrap_or(-1))
+            };
+            let press = |inp: &Input, option: i32| -> Option<Input> {
+                let b = crate::hud::roster_menu(inp, &scene, Some(sim), HUD_SIZE)
+                    .into_iter()
+                    .find(|b| b.ty() < 0 && b.button.option == option)?;
+                let (x, y) = b.rect.centre();
+                let mut next = inp.clone();
+                let got = crate::hud::event(&mut next, HUD_SIZE, 1, Event::Press { x, y }, &v);
+                got.is_none().then_some(next)
+            };
+            let mut good = (usize::from(state(&input, None)), 1);
+            for k in [OPTION_BUILD, OPTION_BUILD_MILITARY, OPTION_BUILD_WONDER] {
+                good.1 += 4;
+                let Some(on) = press(&input, k) else {
+                    continue;
+                };
+                good.0 += usize::from(state(&on, Some(k)));
+                for (turn, want) in [
+                    (OPTION_NEXT, Some((k + 1) % 3)),
+                    (OPTION_BACK, Some((k + 2) % 3)),
+                    (OPTION_CANCEL, None),
+                ] {
+                    good.0 += usize::from(press(&on, turn).is_some_and(|i| state(&i, want)));
+                }
+            }
+            paged.1 += 1;
+            paged.2 += good.0;
+            paged.3 += good.1;
+            if good.0 == good.1 {
+                paged.0 += 1;
+            } else {
+                println!(
+                    "PAGED {file} frame {frame} who {who} citizen {object}: {} of {} states",
+                    good.0, good.1
+                );
             }
             tally(&mut hud, buttons, &walked);
             tally(&mut statics, buttons, &statik);
@@ -11384,9 +11573,112 @@ pub(crate) mod tests {
         println!("HUD_PAGES_WALKED {hud:?}");
         println!("HUD_PAGES_STATIC {statics:?}");
         println!("HUD_PAGES_PRESSED {presses:?}");
+        println!("HUD_PAGES_PAGED {paged:?}");
         assert_eq!(hud, HUD_PAGES_WALKED);
         assert_eq!(statics, HUD_PAGES_STATIC);
         assert_eq!(presses, HUD_PAGES_PRESSED);
+        assert_eq!(paged, HUD_PAGES_PAGED);
+    }
+
+    /// **`PAGE_ARMS_WALKED`** (item 4339, `docs/CLIENT_INPUT.md` §32.7): on
+    /// our walk of the minted script, each frame where a slot's state for
+    /// the page loop's four idle arms changes, as (frame, slot,
+    /// `at_city_limit`, `wonders_built`, the wonder types it has sited),
+    /// over the whole 24,000 frames. Slot 1 is under its limit on 383..577
+    /// and from 7431; it sites the Pyramids (526) on 12783 and finishes it
+    /// on 14312. No `obs` arm fires on any frame ([`PAGE_ARMS_OBS`]).
+    const PAGE_ARMS_WALKED: [(i64, usize, bool, u32, &[i32]); 8] = [
+        (1, 0, true, 0, &[]),
+        (1, 1, true, 0, &[]),
+        (383, 1, false, 0, &[]),
+        (577, 1, true, 0, &[]),
+        (7431, 1, false, 0, &[]),
+        (12783, 1, false, 0, &[526]),
+        (14312, 0, true, 1, &[]),
+        (14312, 1, false, 1, &[]),
+    ];
+    /// The frames of our walk on which a page type is obsolete for a
+    /// slot (`obs_flags` or `has_tech(obs)`): none.
+    const PAGE_ARMS_OBS: usize = 0;
+    /// **`PAGE_ARMS_HELD`** (item 4339): of the held packets' citizens
+    /// ([`pages_on_disk`]), those whose slot stands, at the packet's frame
+    /// on our walk, under its city limit, or with a wonder built or sited:
+    /// none. The packets that would reach the arms are the minted file's
+    /// playback at a frame in 383..577 (the limit), 12783..14312 (the
+    /// site, and the limit) or from 14312 (`already_built`, and the
+    /// limit). Seen red pinned at 1.
+    const PAGE_ARMS_HELD: usize = 0;
+
+    /// **The page loop's idle arms on our walk** (item 4339): where on the
+    /// minted game a packet would reach them, and that no held packet does.
+    #[test]
+    fn the_page_arms_on_our_walk() {
+        let Some(roster) = install_roster() else {
+            println!("skipping: no install");
+            return;
+        };
+        let mut r = match lobby() {
+            Ok(r) => r,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let held: std::collections::BTreeSet<(i64, i32)> = pages_on_disk()
+            .into_iter()
+            .map(|(_, frame, who, ..)| (frame, who))
+            .collect();
+        let orders = script::script();
+        let mut next = 0;
+        let mut last: Vec<Option<(bool, u32, Vec<i32>)>> = vec![None; 8];
+        let (mut changes, mut obs, mut armed) = (Vec::new(), 0, 0);
+        while r.frame() < 24_000 {
+            while next < orders.len() && i64::from(orders[next].0) == r.frame() {
+                r.issue(&orders[next]);
+                next += 1;
+            }
+            r.step();
+            let (sim, frame) = (r.sim(), r.frame());
+            let (tree, setup) = (&sim.tables.tech_tree, &sim.tables.setup);
+            for (who, p) in sim.tech.iter().enumerate().take(8) {
+                let mut sites = Vec::new();
+                for &(ti, ..) in &roster.pages {
+                    let Some(rec) = usize::try_from(ti - rondata::load::BASE_BUILDTYPES).ok()
+                    else {
+                        continue;
+                    };
+                    let Some(t) = sim.tables.build_types.get(rec).and_then(|b| b.tree) else {
+                        continue;
+                    };
+                    if p.obs[t] || tree.has_tech_p(setup, p, tree.types[t].obs) {
+                        obs += 1;
+                    }
+                    if WONDERS.contains(&ti) && sim.num_sites_of(who as sim::Player, rec) > 0 {
+                        sites.push(ti);
+                    }
+                }
+                let limit = sim.at_city_limit(who as sim::Player);
+                let now = (limit, sim.cities.wonders_built, sites);
+                if held.contains(&(frame, who as i32))
+                    && (!now.0 || now.1 != 0 || !now.2.is_empty())
+                {
+                    armed += 1;
+                }
+                if last[who].as_ref() != Some(&now) {
+                    println!("PAGE_ARMS frame {frame} who {who}: {now:?}");
+                    changes.push((frame, who, now.0, now.1, now.2.clone()));
+                    last[who] = Some(now);
+                }
+            }
+        }
+        let pinned: Vec<_> = PAGE_ARMS_WALKED
+            .iter()
+            .map(|&(f, w, l, b, s)| (f, w, l, b, s.to_vec()))
+            .collect();
+        println!("PAGE_ARMS_OBS {obs} PAGE_ARMS_HELD {armed}");
+        assert_eq!(changes, pinned);
+        assert_eq!(obs, PAGE_ARMS_OBS);
+        assert_eq!(armed, PAGE_ARMS_HELD);
     }
 
     /// **`INPUT_ROSTER_QUEUES`** (item 4290, `docs/CLIENT_INPUT.md` §32):

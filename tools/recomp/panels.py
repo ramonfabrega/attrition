@@ -43,6 +43,17 @@ ignore list), so one citizen a slot is run unless `--every`. Each row:
     frame  who  object  unit  page  option  grid_x  grid_y  type  disable  extra
 
 and a run that did not return is a row with option `-1`, as above.
+
+**The citizen's standard panel** (item 4339, `docs/CLIENT_INPUT.md` §32.7):
+
+    python3 tools/recomp/panels.py <install> <packet> <out.tsv> --citizens --standard [--who N ...]
+
+is the same run with `mode` poked to 0 (`STANDARD_OPTIONS`) and
+`mode_data` left as the packet holds it, one run a citizen: the arm that
+adds the page buttons `OPTION_BUILD`, `OPTION_BUILD_MILITARY` and
+`OPTION_BUILD_WONDER` (each with type −1), `OPTION_REPAIR` and
+`OPTION_ALARM_PEASANT`, and every other standard add of the unit. Its
+rows carry page −1.
 """
 import os
 import re
@@ -65,7 +76,7 @@ GLOBALS = {
 }
 UNIT_ENTRY = 0x615FC0
 CITIZENS = (0x32, 0x33)  # PEASANTS, PEASANTSKOREAN
-MODE_AT, MODE_DATA_AT, BUILD_OPTIONS = 0x74, 0x78, 1
+MODE_AT, MODE_DATA_AT, STANDARD_OPTIONS, BUILD_OPTIONS = 0x74, 0x78, 0, 1
 HOOK = re.compile(r"^hook 0072c290 .*?((?: \[esp\+\d+\]=[0-9a-f]{8})+) ret=([0-9a-f]{8}) (\S+)")
 
 
@@ -178,7 +189,8 @@ def main(argv):
     mem = Mem(snap)
     console = mem.u32(g["console"])
     if "--citizens" in argv:
-        return main_citizens(install, packet, out, whos, "--every" in argv, g, snap, mem, console)
+        return main_citizens(install, packet, out, whos, "--every" in argv, g, snap, mem, console,
+                             "--standard" in argv)
     rows, bad = [], 0
     for who, oid, t, addr in buildings(mem, g["objects"], whos):
         adds, stop = run(install, packet, who, addr, console)
@@ -196,13 +208,17 @@ def main(argv):
     return 1 if bad else 0
 
 
-def main_citizens(install, packet, out, whos, every, g, snap, mem, console):
-    """The citizen's three build pages, one run a page (item 4337)."""
+def main_citizens(install, packet, out, whos, every, g, snap, mem, console, standard=False):
+    """The citizen's three build pages, one run a page (item 4337); with
+    `standard`, its standard panel, one run (item 4339), page -1."""
     options = mem.u32(g["options"])
     rows, bad = [], 0
     for who, oid, t, addr in citizens(mem, g["objects"], whos, every):
-        for page in (0, 1, 2):
-            pokes = [(options + MODE_AT, BUILD_OPTIONS), (options + MODE_DATA_AT, page)]
+        for page in ((-1,) if standard else (0, 1, 2)):
+            if page < 0:
+                pokes = [(options + MODE_AT, STANDARD_OPTIONS)]
+            else:
+                pokes = [(options + MODE_AT, BUILD_OPTIONS), (options + MODE_DATA_AT, page)]
             adds, stop = run(install, packet, who, addr, console, UNIT_ENTRY, "make_options@UnitOut", pokes)
             if stop != "stopped: the frame returned":
                 bad += 1
