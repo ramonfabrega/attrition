@@ -1139,17 +1139,29 @@ if v < 0: v = 1,000,000
 best = max v (>=, the later equal wins), with (c.o, L)
 ```
 
-*Every fort of `L`* — only when the army has **two or more siege** and
-`supply != 0`, `L` is an enemy, and over `L.fort_mark` `FortData`s
-(`fort_flags & 1`, in my region): `v = (Random::get(0, 0xffff) % 200 +
-900) × (L.ages ^ 0x62766 + 1)` (`data_encrypted->ages`, the number of ages
-`L` has entered), halved if the fort's building has no city; then the same
+*Every fort of `L`* — **built** (item 4341, `ai::army::target_forts`),
+run for each leader the gate admits **right after that leader's cities**,
+into the same best — only when the army has **two or more siege** (summed
+over its groups, `6f7f38`, `cmp $0x2, %edi`) and `supply != 0`
+(`-0x54(%ebp)`), `L` is not me and at war with me on either row
+(`6f7f89..6f7fa5`), and over `L.fort_mark` (`0xe3a7b8`) `FortData`s
+(`fort_flags & 1`, and the record's region `+4`, the building cell's region
+`Fort::init@0073eac0` stored, equal to the army's `+8`): `v =
+(Random::get(0, 0xffff) % 200 + 900) × (L.ages ^ 0x62766 + 1)` (the call
+at `6f8026`, returning to **`find_target+0x167b`**;
+`data_encrypted->ages`, the number of ages `L` has entered), halved if the
+fort's building has no city (`BuildData +0x72 < 0`); then the same
 "already targeted" walk with ×2 for me, and for another army ×4 if the
-building's "is a target" slot answers, else /4; then `v /= (d / 0x300 +
-1)` where `d` is the **octagonal distance** from my `(x, y)` to the fort
-— `max + min² / (2·max)` for `min < 60000`, else `(max + 2·min) / 2`
-(`6f7ff0`ff, the same approximation `docs/PATHFINDER.md` names). Best on
-the same `>=`.
+building `is_under_attack` (vslot `+0x188`, a `Build`'s `+0x60 & 0x20`),
+else /4; then `v /= (d / 0x300 + 1)` where `d` is the **octagonal
+distance** from my `(x, y)` to the fort — `max + min² / (2·max)` for `min
+< 60000`, else ~~`(max + 2·min) / 2`~~ **`(min + 2·max) / 2`** (`6f818d`:
+`lea (%ebx,%eax,2)` with `min` in `ebx`; `vector_dist`, the same
+approximation `docs/PATHFINDER.md` names). Best on the same `>=` (`6f81c3`,
+`jl` past the store). The port carries the best by its **building**, the
+object the original keeps in `local_2c`, so the tail and the probe take a
+fort as they take a city. run1646's 5496 is five city scores, one fort,
+seven city scores in theirs; ours made none until item 4341.
 
 **Taking it.** With a best `(o, L)`: if `L != me`, `hurry = 0`. Unless
 `diff == 0 && L is human` (the easiest AI never attacks a human):
