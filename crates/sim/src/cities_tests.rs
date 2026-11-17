@@ -3598,6 +3598,70 @@ fn an_american_first_wonder_is_instant_unless_a_rival_builds_it() {
     assert_eq!(sim.construct_time_of(p), full, "one already built");
 }
 
+/// **A finished wonder disbands every other site of its type in full**
+/// (item 4322, `Build::activate@00623e20` lines 1294–1356, `docs/CITIES.md`
+/// §4): run1646's Russian wonder `2/2030` finished on 3037 and the French
+/// site of the same type, `1/2027`, went with it, its city's roads
+/// replanned from 3037 (`1/2019` first). A site of another type stays.
+#[test]
+fn a_finished_wonder_disbands_the_rivals_sites_of_its_type() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| {
+            tree.add(tech::TypeDef::new(
+                &format!("WONDER{i}"),
+                tech::Kind::Building {
+                    auto: false,
+                    wonder: true,
+                },
+            ))
+        })
+        .collect();
+    tree.roles.wonder_line = line.clone();
+    sim.set_tech_tree(tree);
+    let t = install_types(&mut sim);
+    let wonder = |sim: &mut Sim, k: usize| {
+        let mut w = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+        w.ident = Ident::default();
+        w.wonder = true;
+        w.tree = Some(line[k]);
+        sim.add_build_type(w)
+    };
+    let pyramids = wonder(&mut sim, tech::wonder::PYRAMIDS);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let (rc, c1) = city_at(&mut sim, &t, 1, 56, 56);
+    let mine = sim.place_building(0, pyramids, tile_pos(32, 25)).unwrap();
+    let theirs = sim.place_building(1, pyramids, tile_pos(56, 49)).unwrap();
+    let other = sim.place_building(1, t.barracks, tile_pos(49, 56)).unwrap();
+    assert_eq!(sim.buildings[theirs].city, Some(c1));
+    sim.do_construct(theirs, 100);
+    sim.buildings[theirs].helpers = 0;
+    sim.buildings[rc].regen_roads = false;
+    let price = sim.building_price(1, pyramids);
+    let before = sim.economy.ledgers[1].bucket;
+    finish(&mut sim, mine);
+    assert!(
+        !sim.buildings[theirs].alive,
+        "the rival's site of the type goes"
+    );
+    assert!(sim.buildings[other].alive, "a site of another type stays");
+    assert!(sim.buildings[mine].alive && sim.buildings[mine].active);
+    assert!(
+        sim.buildings[rc].regen_roads,
+        "the loser's city replans, by `remove_from_city`"
+    );
+    let after = sim.building_price(1, pyramids);
+    for g in 0..after.len() {
+        assert_eq!(
+            sim.economy.ledgers[1].bucket[g] - before[g],
+            after[g],
+            "good {g}: the whole price back, not the part unbuilt ({:?})",
+            price
+        );
+    }
+}
+
 /// **Tikal's temple bonus is `has_wonder(0x214)`'s** (item 2106): a held,
 /// finished Tikal multiplies a templed city's `TEMPLE_UPGRADE_HP` by
 /// `TIKAL_TEMPLE_HP` (Great Sahara's six templed cities, `myhits` 16250 →

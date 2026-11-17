@@ -2615,6 +2615,12 @@ impl Sim {
         // `Build::activate@00623e20` lines 1151–1205: the gather slots, and
         // the bonus for the ones the player has never held.
         self.claim_gather_slots(b, captured, counted);
+        // `Build::activate@00623e20` lines 1294–1356, the wonder arm after
+        // `init_wonder` (whose slot is never negative): every other site of
+        // the same wonder, any leader's, is disbanded in full.
+        if self.is_wonder_building(ty) {
+            self.disband_rival_wonder_sites(b, ty);
+        }
         // Activation flags the old city's roads before its final upgrade
         // sweep can attach buildings inside the enlarged radius (AI §176).
         if !self.building_is_city(b)
@@ -2733,6 +2739,29 @@ impl Sim {
             && (self.frame != 0 || self.cities.walks_setup)
         {
             self.farm_stock_pasture(b);
+        }
+    }
+
+    /// **A finished wonder takes every other site of its type**
+    /// (`Build::activate@00623e20` lines 1294–1356, `docs/CITIES.md` §4,
+    /// item 4322). For each leader in play, in slot order, and each of its
+    /// objects from 2000 up, one with `+8 & 1` that is not active (vslot
+    /// `0x4c`), is not this building and has this building's type
+    /// (`type->+4`) is `Object::disband(o, 1)`, a full refund; the console
+    /// player hears `S_WONDER_ASSED_OFF`. Its own owner's other sites of the
+    /// type go too. The disband's `remove_from_city` is what replans the
+    /// loser's city (run1646 3037: the French capital's 2019 first).
+    pub(crate) fn disband_rival_wonder_sites(&mut self, b: usize, ty: usize) {
+        let mut rivals: Vec<(Player, i16, usize)> = self
+            .buildings
+            .iter()
+            .enumerate()
+            .filter(|&(x, o)| x != b && o.alive && !o.active && o.owner < 8 && o.ty == Some(ty))
+            .map(|(x, o)| (o.owner, o.index, x))
+            .collect();
+        rivals.sort_unstable();
+        for (_, _, x) in rivals {
+            self.disband_building(x, true);
         }
     }
 

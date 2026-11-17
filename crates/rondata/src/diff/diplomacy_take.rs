@@ -222,6 +222,7 @@ pub(crate) fn walk_take_from(
             }
         }
         crate::diff::harness::debug_watch(&built, at);
+        crate::diff::harness::debug_builds(&built, at);
         let n = built.sim.frame;
         if let Some((f, ours)) = built.frame_sites.last() {
             let theirs = tr.labels(*f);
@@ -2058,10 +2059,13 @@ pub(crate) fn run1646() -> Option<(String, String)> {
 /// to their own city 2020 in theirs; 2185 with the partner gated on
 /// `has_preq(BASE_BONUSTYPES)` (`docs/CARAVAN.md` §4), where the third
 /// caravan took the capital as its home in ours; **3037** with
-/// `FILTER_CAN_TRADE`'s gate too (`0067e285`). On 3037 theirs' first road
-/// search is the French building 2019's to its city (546 nodes) and ours'
-/// is a Russian building's: ours 347 draws, theirs 893, at index 340.
-pub(crate) const RUN1646_WORD: i64 = 3037;
+/// `FILTER_CAN_TRADE`'s gate too (`0067e285`), where theirs' first road
+/// search was the French building 2019's to its city and ours' a Russian
+/// one's; **3718** (+681, item 4322) with a finished wonder disbanding every
+/// other site of its type (`Build::activate@00623e20` lines 1294–1356): the
+/// Russian wonder `2/2030` took the French site `1/2027` on 3037, and its
+/// `remove_from_city` replanned the French capital.
+pub(crate) const RUN1646_WORD: i64 = 3718;
 
 /// **run1646 walks to [`RUN1646_WORD`]**, its head word agreeing on every
 /// frame walked, with the alliance staged off `alliance4316.cmd`. The
