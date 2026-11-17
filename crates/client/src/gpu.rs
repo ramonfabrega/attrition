@@ -52,6 +52,27 @@ const SPRITE_SHADER: &str = include_str!("../shaders/sprite.wgsl");
 /// files) not laid over anything.
 const TEXTURED_SHADER: &str = include_str!("../shaders/textured.wgsl");
 
+/// [`TEXTURED_SHADER`] with its holes filled: the units' material for
+/// `fs_textured_lit` (item 4345), `UNIT_DIFFUSE` and `UNIT_AMBIENT ·
+/// UNIT_AMBIENT_I`.
+fn textured_shader() -> String {
+    use render::silhouette::{UNIT_AMBIENT, UNIT_AMBIENT_I, UNIT_DIFFUSE};
+    TEXTURED_SHADER
+        .replace("{UNIT_DIFFUSE}", &format!("{UNIT_DIFFUSE:?}"))
+        .replace(
+            "{UNIT_AMBIENT_R}",
+            &format!("{:?}", UNIT_AMBIENT[0] * UNIT_AMBIENT_I),
+        )
+        .replace(
+            "{UNIT_AMBIENT_G}",
+            &format!("{:?}", UNIT_AMBIENT[1] * UNIT_AMBIENT_I),
+        )
+        .replace(
+            "{UNIT_AMBIENT_B}",
+            &format!("{:?}", UNIT_AMBIENT[2] * UNIT_AMBIENT_I),
+        )
+}
+
 /// **The trees' pass** (item 4173; `docs/RENDERER.md` §3.7, "The trees'
 /// own colour"), appended to [`TEXTURED_SHADER`]: the leaf's texture on
 /// its one level, bilinear and clamped, cut where its alpha is not above
@@ -247,14 +268,17 @@ fn shader_sources() -> [(&'static str, String); 11] {
     [
         ("client", SHADER.to_string()),
         ("sprites", SPRITE_SHADER.to_string()),
-        ("textured", format!("{TEXTURED_SHADER}{}", land_shader())),
+        (
+            "textured",
+            format!("{}{}", textured_shader(), land_shader()),
+        ),
         (
             "decal",
-            format!("{TEXTURED_SHADER}{}{DECAL_SHADER}", land_shader()),
+            format!("{}{}{DECAL_SHADER}", textured_shader(), land_shader()),
         ),
         (
             "tree",
-            format!("{TEXTURED_SHADER}{}{}", land_shader(), tree_shader()),
+            format!("{}{}{}", textured_shader(), land_shader(), tree_shader()),
         ),
         ("shade", shade_shader()),
         (
@@ -539,6 +563,8 @@ pub struct Gpu {
     textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
     /// The figures' textured pipeline and its sampler (item 4099).
     textured: wgpu::RenderPipeline,
+    /// A lit figure's (item 4345, `fs_textured_lit`).
+    textured_lit: wgpu::RenderPipeline,
     /// The figures' silhouette pass (item 4103): `render_states[1]`'s
     /// depth Greater, no depth write, source-alpha blend.
     silhouette: wgpu::RenderPipeline,
@@ -957,6 +983,14 @@ impl Gpu {
         let textured = figure_pass(
             "textured",
             "fs_textured",
+            true,
+            wgpu::CompareFunction::Less,
+            None,
+            Default::default(),
+        );
+        let textured_lit = figure_pass(
+            "textured lit",
+            "fs_textured_lit",
             true,
             wgpu::CompareFunction::Less,
             None,
@@ -1399,6 +1433,7 @@ impl Gpu {
             alpha_textures: std::sync::Mutex::new(Default::default()),
             mtrl_textures: std::sync::Mutex::new(None),
             textured,
+            textured_lit,
             silhouette,
             figure_sampler,
             figure_textures: std::sync::Mutex::new(Default::default()),
@@ -1735,8 +1770,9 @@ impl Gpu {
                 let mut bytes = Vec::with_capacity(m.positions.len() * 32);
                 let owner = render::silhouette::team_unit(m.who).map(|c| f32::from(c) / 255.0);
                 for (i, (p, uv)) in m.positions.iter().zip(&m.uvs).enumerate() {
-                    // Item 4217: a ground mesh's owner is the corner's N·L.
-                    let owner = if m.piece < 0 {
+                    // Item 4217: a ground mesh's owner is the corner's N·L;
+                    // item 4345: a lit figure's too.
+                    let owner = if m.piece < 0 || !m.light.is_empty() {
                         let nl = m.light.get(i).copied().unwrap_or(crate::world::LIGHT_FLAT);
                         [nl, 0.0, 0.0]
                     } else {
@@ -2131,9 +2167,17 @@ impl Gpu {
                     SilhouetteOrder::Before => [&self.silhouette, &self.textured],
                     SilhouetteOrder::After => [&self.textured, &self.silhouette],
                 };
+                // Item 4345: a lit figure's own pass in the textured's place.
+                let lit: Vec<bool> = frame
+                    .textured
+                    .iter()
+                    .filter(|m| !m.positions.is_empty())
+                    .map(|m| !m.light.is_empty())
+                    .collect();
                 for pipeline in passes {
-                    pass.set_pipeline(pipeline);
-                    for (b, n, t) in &textured {
+                    for (k, (b, n, t)) in textured.iter().enumerate() {
+                        let own = std::ptr::eq(pipeline, &self.textured) && lit[k];
+                        pass.set_pipeline(if own { &self.textured_lit } else { pipeline });
                         pass.set_bind_group(1, t, &[]);
                         pass.set_vertex_buffer(0, b.slice(..));
                         pass.draw(0..*n, 0..1);
