@@ -213,7 +213,31 @@ pub(crate) fn walk_take_from(
             seed = Some((at, theirs, built.sim.rng.seed));
         }
         stage_frame(&mut built, seats, probes, diplomacy, taunts);
+        // PROBE 4316: `RON_ROAD_WALK=1` compares the road search node for node.
+        let road_walk = std::env::var_os("RON_ROAD_WALK").is_some();
+        if road_walk {
+            built.sim.trace.trace_costs = true;
+            built.sim.trace.road_marks.clear();
+        }
         built.tick();
+        if road_walk {
+            let ours_m = std::mem::take(&mut built.sim.trace.road_marks);
+            let theirs_m = tr.road_nodes(at);
+            if !(ours_m.is_empty() && theirs_m.is_empty()) {
+                let first = (0..ours_m.len().max(theirs_m.len()))
+                    .find(|&i| ours_m.get(i) != theirs_m.get(i));
+                eprintln!(
+                    "ROAD f{at}: ours {} theirs {} first parting {first:?}",
+                    ours_m.len(),
+                    theirs_m.len()
+                );
+                if let Some(i) = first {
+                    for j in i.saturating_sub(6)..(i + 10).min(ours_m.len().max(theirs_m.len())) {
+                        eprintln!("  node {j}: ours {:?} theirs {:?}", ours_m.get(j), theirs_m.get(j));
+                    }
+                }
+            }
+        }
         // `RON_DEBUG_SITES=<lo>-<hi>`: each draw's owner, as the pairs' walks
         // print it.
         if crate::diff::harness::site_window().is_some_and(|(lo, hi)| (lo..=hi).contains(&at)) {
