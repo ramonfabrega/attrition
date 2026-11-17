@@ -3664,6 +3664,10 @@ struct SimIsMoving<'a> {
 }
 
 impl crate::ai::army::army_is_moving_view::ArmyIsMovingView for SimIsMoving<'_> {
+    fn probe_name(&mut self, u: i32) -> String {
+        let x = &self.s.units[u as usize];
+        format!("{}/{} at ({},{}) orders {:?}", x.owner, x.index, x.pos.x, x.pos.y, x.orders.back().map(|o| o.body))
+    }
     fn count(&self) -> i32 {
         self.s.ai.armies[self.who as usize].list[self.slot].num_units
     }
