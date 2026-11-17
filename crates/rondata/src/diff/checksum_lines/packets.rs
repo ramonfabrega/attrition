@@ -1494,6 +1494,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: units (3117, 2898, 1784) -> (3117, 2898, 1760); builds (2080, 2080, 3) -> (2080, 2080, 1).
     // Item 4266, a guard order's walker: units (3117, 2898, 1760) -> (3117, 3042, 1752).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4320, the score's dirty bits (`0x800000`, `0x1000000`) emitted, leader 0's 0x2800007 agreeing: leaders (271, 271, 2) -> (271, 271, 1).
     (
         "run1011e",
         13296,
@@ -1505,7 +1506,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (6, 0, 6),
             (538, 538, 0),
             (854, 854, 0),
-            (271, 271, 2),
+            (271, 271, 1),
             (30, 30, 0),
             (50, 50, 0),
             (120, 120, 0),
@@ -2904,6 +2905,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4262, a wonder's entry in its wonder list: builds (1977, 1977, 2) -> (1977, 1977, 1).
     // Item 4266, a guard order's walker: units (5707, 5434, 4595) -> (5707, 5701, 4203).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4320, the score's dirty bits (`0x800000`, `0x1000000`) emitted, leader 1's 0x800003 agreeing: leaders (271, 271, 3) -> (271, 271, 2).
     (
         "run1357",
         3439,
@@ -2915,7 +2917,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (568, 568, 2),
             (1427, 1427, 0),
-            (271, 271, 3),
+            (271, 271, 2),
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
@@ -4216,6 +4218,7 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4218, the idle latch (`flags & 0x08`): units (1149, 1303, 1028) -> (1149, 1303, 1027).
     // Item 4226, a bird walked on neither line: units (1149, 1303, 1027) -> (1149, 1143, 875), guys (393, 449, 92) -> (393, 393, 36).
+    // Item 4320, the score's dirty bits (`0x800000`, `0x1000000`) emitted, leader 0's 0x800007 agreeing: leaders (271, 271, 4) -> (271, 271, 3).
     (
         "run842",
         777,
@@ -4227,7 +4230,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (532, 532, 0),
             (393, 393, 36),
-            (271, 271, 4),
+            (271, 271, 3),
             (9, 9, 0),
             (110, 110, 0),
             (180, 180, 0),
@@ -4236,6 +4239,7 @@ pub(super) const PINNED: &[Pinned] = &[
     ),
     // Item 4218, the idle latch (`flags & 0x08`): units (1154, 1308, 1028) -> (1154, 1308, 1027).
     // Item 4226, a bird walked on neither line: units (1154, 1308, 1027) -> (1154, 1148, 875), guys (393, 449, 92) -> (393, 393, 36).
+    // Item 4320, the score's dirty bits (`0x800000`, `0x1000000`) emitted, leader 0's 0x800007 agreeing: leaders (271, 271, 4) -> (271, 271, 3).
     (
         "run842b",
         776,
@@ -4247,7 +4251,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2, 0, 2),
             (532, 532, 0),
             (393, 393, 36),
-            (271, 271, 4),
+            (271, 271, 3),
             (9, 9, 0),
             (110, 110, 0),
             (180, 180, 0),
@@ -4869,7 +4873,7 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run1011b", "flags.leader_flags resources_controlled"),
     ("run1011c", "resources_controlled"),
     ("run1011d", "resources_controlled"),
-    ("run1011e", "flags.leader_flags resources_controlled"),
+    ("run1011e", "resources_controlled"),
     ("run1015b", "resources_controlled"),
     (
         "run1155c",

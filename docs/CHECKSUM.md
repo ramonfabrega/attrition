@@ -1778,9 +1778,9 @@ agreed on 403 and 410, parted on 14 and 12, held no value for 210.
 
 | leaves | rule |
 |---|---|
-| `leader_flags` | `1` seated, `2` not defeated, `4` human, `0x2000000` the ledger's `dirty` (`docs/ECONOMY.md`) |
-| `leader_flags2` | `0x800` no governments, `0x1000` no patriots (`PlayerTech`); 0 on both frames |
-| the six unseated slots | `Leaders::init` runs `Leader::init(i, -1, i)` on all eight, whose `leader_flags \|= 0x2000000` is the only bit set; `leader_flags2` 0 |
+| `leader_flags` | `1` seated, `2` not defeated, `4` human, `0x2000000` the ledger's `dirty` (ECONOMY), `0x800000`, `0x1000000` the score's (§25.4) |
+| `leader_flags2` | `0x800` no governments, `0x1000` no patriots (`PlayerTech`); 0 on both |
+| the six unseated slots | `Leaders::init` runs `Leader::init(i, -1, i)` on all eight: `leader_flags` is `0x2000000` alone, `leader_flags2` 0 |
 | `dip[0..8]` | `Diplomacy::clear_all`'s image, `Leader::init`'s: `treaty` −1, the rest 0. The other writers are the `Leader::action_*` family, reached by the diplomacy command and by `Leader::diplomacy`'s offers arm, which the crate stops at a SEAM (`crates/sim/src/leaders/diplomacy.rs`) |
 | the conquest arrays, `rare_conquest`'s array | `Leader::init`'s clear; the writers are `Leader::produce_building`'s wonder arm under `semaphore[2] & 2` and the scenario layer, Conquer the World's |
 | the mask headers | the `BitMask<N>` constructors' `N` and `⌈N/8⌉` |
@@ -2794,6 +2794,27 @@ is one of three families, and on frame 0 four setup leaves beside them.
   parted from 3780.
 - On frame 0 only: `ally_mask`, `defense`, `reg_cities[1]` and the two `encrypt` bytes on leader 0, and the same
   but `defense` on leader 1. Theirs' setup `check_all` holds them, and our walk's frame 0 does not yet.
+
+**Item 4320 emits the two bits the crate keeps** (`Sim::leader_flag_words`): `0x800000` from the score's units bit and
+`0x1000000` from the tech bit, each cleared where `compute_score` clears it. **run1578 goes from 2,941 to 3,006 of 24,000**
+(+65), and run1577 from 109 to 118 of 120. Inside 300, run1578's parted frames go from 152 to 142 (0, 101, 160–299) and
+run1577's from 11 to 2 (0, 101). The value diff:
+
+| frame | before | after |
+|---|---|---|
+| 0 | 16 parted, first `flags` byte 2: `00020000`, `800a0000` | 16, first `flags` byte 3: `02000000`, `0a000000` (byte 2 agrees, `0x8000000` stands) |
+| 100 | 1, `flags` byte 2: `00000000`, `80000000` (leader 1) | whole |
+| 159 | 1, `flags` byte 2: `00000000`, `80000000` (leader 0) | whole |
+| 101 | (inside 100–109) | 1, leader 1 `flags` byte 2: `80000000`, `88000000`: `0x800000` agrees, theirs' `0x80000` alone |
+| 160 | (inside 159–315) | 1, leader 0 `flags`, the same `0x80000` |
+| 7195, 7273, 8281 | 2, `flags` byte 2: `00020000`, `80020000` | 1, leader 1 `+0x850` (`resources_controlled`): `00000000`, `03000000` |
+| 11884 | 2, `flags` byte 3: `02000000`, `03000000` (the tech bit) | 1, leader 1 `+0x5d8` (`reg_unpack_merch[1]`): 6, 5 |
+
+The minted packets (`MINTED_PACKETS`): run1587 (3166) and run1581 (100) come out whole on leaders. On run1600 (7195) the
+line goes from 2 parted ranges to 1, and the first is now `+0x850`. On run1591 (6537) ours now holds `0x1000000`, so the
+flags range parts on theirs' `0x4000000` and `0x8000000` alone (`03000000`, `0f000000`). On run1592 (6781) byte 2 agrees
+and `0x8000000` remains (`02000000`, `0a000000`). The next islands part on `0x80000`, the `Unit::think` bit this crate
+does not hold.
 
 ## 25.5 How it was established, and what it has not established
 
