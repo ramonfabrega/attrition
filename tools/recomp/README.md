@@ -36,7 +36,14 @@ nothing from the install is committed.
   clock, heap and thread imports; reports what stopped it, what ran, the
   exact functions it called (and whether they lift), `--watch VA+N` for who
   writes a range and `--watch VA+OFF:LEN` for who writes a field (Loop 3280), `--find` for the instruction that first produces a
-  value. Step 4 of the charter, and how item 327 was read.
+  value. Step 4 of the charter, and how item 327 was read. `--hook` prints
+  six stack words since item 4305.
+- `panels.py <install> <packet> <out.tsv>` — the buttons the original
+  offers a selected building (item 4305, `docs/CLIENT_INPUT.md` §32.4):
+  `BuildOut::make_options@00629ed0` under `step4.py` on every building of
+  every slot, the console's `who` poked to the owner, each
+  `Options::add@0072c290` read at its entry; one TSV row an add, under
+  `~/ron-data/panels/`, which `the_panels_of_the_packets_on_disk` reads.
 - `checksum.py` — the original's sync checksum on a packet (item 4060,
   `docs/CHECKSUM.md`): `CheckSums::check_all@00936560` entered under
   unicorn with its sync-logger calls answered, the fold and both Adler-32s
