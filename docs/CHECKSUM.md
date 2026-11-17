@@ -1778,9 +1778,9 @@ agreed on 403 and 410, parted on 14 and 12, held no value for 210.
 
 | leaves | rule |
 |---|---|
-| `leader_flags` | `1` seated, `2` not defeated, `4` human, `0x2000000` the ledger's `dirty` (`docs/ECONOMY.md`), `0x800000` and `0x1000000` the score's units and tech dirty bits (`docs/LEADERS.md` §18.2; item 4320, §25.4) |
-| `leader_flags2` | `0x800` no governments, `0x1000` no patriots (`PlayerTech`); 0 on both frames |
-| the six unseated slots | `Leaders::init` runs `Leader::init(i, -1, i)` on all eight, whose `leader_flags \|= 0x2000000` is the only bit set; `leader_flags2` 0 |
+| `leader_flags` | `1` seated, `2` not defeated, `4` human, `0x2000000` the ledger's `dirty` (ECONOMY), `0x800000`, `0x1000000` the score's (§25.4) |
+| `leader_flags2` | `0x800` no governments, `0x1000` no patriots (`PlayerTech`); 0 on both |
+| the six unseated slots | `Leaders::init` runs `Leader::init(i, -1, i)` on all eight: `leader_flags` is `0x2000000` alone, `leader_flags2` 0 |
 | `dip[0..8]` | `Diplomacy::clear_all`'s image, `Leader::init`'s: `treaty` −1, the rest 0. The other writers are the `Leader::action_*` family, reached by the diplomacy command and by `Leader::diplomacy`'s offers arm, which the crate stops at a SEAM (`crates/sim/src/leaders/diplomacy.rs`) |
 | the conquest arrays, `rare_conquest`'s array | `Leader::init`'s clear; the writers are `Leader::produce_building`'s wonder arm under `semaphore[2] & 2` and the scenario layer, Conquer the World's |
 | the mask headers | the `BitMask<N>` constructors' `N` and `⌈N/8⌉` |
