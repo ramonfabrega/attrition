@@ -2099,5 +2099,8 @@ fn find_target_s_level_arm_compares_the_leaders_scores() {
         slot: 1,
     };
     assert_eq!((gate.f18(1), gate.f18(2)), (12240, 11648));
-    assert!(gate.f18(1).wrapping_shl(2) / 3 >= gate.f18(2), "the level arm is refused");
+    assert!(
+        gate.f18(1).wrapping_shl(2) / 3 >= gate.f18(2),
+        "the level arm is refused"
+    );
 }
