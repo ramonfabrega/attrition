@@ -276,7 +276,11 @@ impl Sim {
                     continue;
                 }
                 let angle = find_angle(pos.x - at.x, pos.y - at.y);
+                let h0 = self.buildings[b].health;
                 self.do_damage(shooter, o, angle, false, count, true, false, frame);
+                if std::env::var_os("RON_PROBE_SCORE").is_some() {
+                    eprintln!("PROBE_NUKE f{frame} b {}/{} ty {:?} pos ({},{}) at ({},{}) d {d} count {count} h {h0} -> {} alive {} city {:?}", self.buildings[b].owner, self.buildings[b].index, self.buildings[b].ty.map(|t| self.tables.build_types[t].wonder), pos.x, pos.y, at.x, at.y, self.buildings[b].health, self.buildings[b].alive, self.buildings[b].city);
+                }
                 self.combat.nukes.blasts[i].struck.push(o);
             }
         }
