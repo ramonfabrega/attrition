@@ -501,7 +501,8 @@ struct App {
     input: input::Input,
     cursor: (i32, i32),
     /// Where the left button went down, until it comes up: a release
-    /// [`input::DRAG_SLOP`] or more away is a box (item 4180), else a press.
+    /// elsewhere is a drag, which the layer boxes past
+    /// [`input::DRAG_SLOP`] (items 4180, 4318), else a press.
     left_down: Option<(i32, i32)>,
     /// Where the right button went down, until it comes up: a release
     /// past [`input::right_dragged`]'s slop is a right drag (item 4295),
@@ -788,9 +789,11 @@ impl ApplicationHandler for App {
                     // (`Console::on_left_up`), a click or a box.
                     (MouseButton::Left, ElementState::Pressed) => self.left_down = Some((x, y)),
                     (MouseButton::Left, ElementState::Released) => {
+                        // A release that moved at all is a drag: the
+                        // layer asks the slop after an armed pick, which
+                        // takes both points (item 4318).
                         let (x0, y0) = self.left_down.take().unwrap_or((x, y));
-                        let moved = (x - x0).abs().max((y - y0).abs());
-                        self.input(if moved >= input::DRAG_SLOP {
+                        self.input(if (x, y) != (x0, y0) {
                             input::Event::Drag {
                                 x0,
                                 y0,

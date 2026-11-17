@@ -321,13 +321,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         &[
             // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                271,
-                271,
-                1,
-                "129 1 who..ally_mask: +0x5d0 of 26914|26914: 04000000|03000000",
-            ),
+            // Item 4328: leaders whole (`reg_unpack_merch`, `+0x5d4`, leaves
+            // a packed merchant out); before it, 1 of 271 ranges parted, first
+            // `129 1 who..ally_mask: +0x5d0 of 26914|26914: 04000000|03000000`.
         ],
     ),
     (
@@ -338,13 +334,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
         &[
             // Item 4298: 2 → 1 parted (`hire_who`'s −1s emitted); before it, first `1 0
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
-            (
-                "leaders",
-                271,
-                271,
-                1,
-                "129 1 who..ally_mask: +0x5d0 of 26914|26914: 05000000|03000000",
-            ),
+            // Item 4328: leaders whole (`reg_unpack_merch`, `+0x5d4`, leaves
+            // a packed merchant out); before it, 1 of 271 ranges parted, first
+            // `129 1 who..ally_mask: +0x5d0 of 26914|26914: 05000000|03000000`.
         ],
     ),
     (
@@ -358,13 +350,9 @@ const RECORD_PARTINGS: &[(i64, &[PacketRow])] = &[
             // who..ally_mask: +0x1cc of 26914|26914: 00000000|ffffffff`.
             // Item 4320: 2 → 1 (`gain_tech`'s `0x1000000` emitted); before
             // it, first `128 1 flags: +0x3 of 8|8: 02000000|03000000`.
-            (
-                "leaders",
-                271,
-                271,
-                1,
-                "129 1 who..ally_mask: +0x5d0 of 26914|26914: 06000000|05000000",
-            ),
+            // Item 4328: leaders whole (`reg_unpack_merch`, `+0x5d4`, leaves
+            // a packed merchant out); before it, 1 of 271 ranges parted, first
+            // `129 1 who..ally_mask: +0x5d0 of 26914|26914: 06000000|05000000`.
         ],
     ),
     (

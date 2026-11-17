@@ -2240,16 +2240,20 @@ these two.
 run1575's lobby at `DIFFICULTY 4`, the human allied with the French on 902)
 prints the French `tribute_demanded[0]` 1 from block 6081, the arm's demand
 branch as item 4300's packet predicted it. Our walk of it stands at
-**3718** (`RUN1646_WORD`), 2,363 frames short of the pass on 6080. None of
+**5496** (`RUN1646_WORD`), 585 frames short of the pass on 6080. None of
 the partings closed on the way was this arm's: item 4316's two were the
 caravans' (`docs/CARAVAN.md` §3, §4: the `BASE_BONUSTYPES` gate on an
 allied partner city), and item 4322's, on 3037, was a finished wonder
 taking the rival's site of its type (`docs/CITIES.md` §4, the wonder row:
 the Russian `2/2030` disbanded the French `1/2027`, whose
-`remove_from_city` replanned the French capital, `1/2019` first). So
-`tribute_demanded` stays held out. The next parting, on 3718, is ours
-58 draws to theirs' 64 at index 15: ours `Unit::think_scout+0x941`,
-theirs `Guy::set_anim+0x97a < do_cast`; it is not read.
+`remove_from_city` replanned the French capital, `1/2019` first), and
+item 4325's, on 3718, was the pathfinder's diplomacy wall
+(`docs/PATHFINDER.md` §5: the Russian citizen `2/116`'s search on 3450
+priced four steps into a peaceful owner's cells 5044 and 5052 there and 44
+and 52 here, so theirs crossed the water and cast its transport on 3718).
+So `tribute_demanded` stays held out. The next parting, on 5496, is ours
+187 draws to theirs' 171 at index 5: ours `Army::find_target+0x7df`,
+theirs `6f802b`; it is not read.
 
 ## 8.3 In the crate
 

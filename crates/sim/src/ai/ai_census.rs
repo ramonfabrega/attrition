@@ -62,7 +62,7 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// | step 6's `ALLY_LOS` arm | never held | the meeting runs under `reveal_map` alone ([`Sim::census_meet`], item 3763); the `has_preq(ALLY_LOS)` half of its gate is not read. Outside the gate the live paths to the met bit are the fog — `check_ever_seen` → `Leader::meet` (`docs/VISION.md` §6.2) — and a strike, `Unit::set_attacking` ([`Sim::set_attacking`]). |
 /// | `ScenarioData::ally_mask` | 0 | scenarios are cut from v1. |
 /// | `unit_masks & 1` | clear | the flag that excludes an object from the census is unmodelled. |
-/// | `unit_masks & 0x80000` | merchants only | a packed fisherman is idle (`idle_fishermen`, item 1666); every merchant still counts in `reg_unpack_merch`. |
+/// | `unit_masks & 0x80000` | merchants only | a packed fisherman is idle (`idle_fishermen`, item 1666); a packed merchant is left out of `reg_unpack_merch` (item 4328). |
 /// | order kinds 8 / 0xe | never | build-and-repair-through-a-transport is unmodelled. |
 ///
 /// Two seams closed 2026-08-25 with `docs/TRANSPORT.md`: `Region::num_coasts`
@@ -731,8 +731,17 @@ impl Sim {
         let base = self.unit_tree(u);
         if base.is_some_and(|t| ty::MERCHANTS.contains(&t)) {
             self.ai.ai[w].census.merchants += 1;
-            // seam: `unit_masks & 0x80000` (packed) is never set.
-            self.ai.ai[w].census.reg_unpack_merch[reg as usize] += 1;
+            // `Leader::plan_strategy@006b9620:654`–`660`: a merchant
+            // (TI 0x3d, 0x3e, 400) counts in its region's
+            // `reg_unpack_merch` (`+0x5d4`) only while `unit_masks &
+            // 0x80000` is clear — deployed. The bit is
+            // the unit's `combat.packed`: set at birth for a
+            // type that packs (`Unit::init:376`) and by
+            // `SpellType::cast_pack`, cleared by `cast_unpack` (item 4328;
+            // it counted every merchant).
+            if !self.units[u].combat.packed {
+                self.ai.ai[w].census.reg_unpack_merch[reg as usize] += 1;
+            }
         } else if self.unit_line_is(u, ty::CARAVAN) {
             self.ai.ai[w].census.caras += 1;
         }

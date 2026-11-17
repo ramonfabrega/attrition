@@ -707,3 +707,33 @@ fn a_trained_unit_s_tracked_crew_is_seated_at_birth() {
              original does not"
     );
 }
+
+/// `+0x5d4 reg_unpack_merch` counts a merchant only while it is deployed
+/// (item 4328): `Leader::plan_strategy:654`–`660` adds one to the region's
+/// slot when the merchant's `unit_masks & 0x80000` is clear. A type that
+/// packs is born with the bit (`Unit::init:376`), so a merchant fresh from
+/// the market counts 0 until `cast_unpack` clears it. run1578's leader 1
+/// holds one such merchant on 3376: theirs' slot reads 0, and this crate's
+/// read 1.
+#[test]
+fn a_packed_merchant_is_left_out_of_reg_unpack_merch() {
+    let (mut s, u) = merchant_sim();
+    // The census counts a unit that costs population (`control_cost`).
+    let ty = s.units[u].ty.unwrap();
+    s.tables.unit_types[ty].price.pop = 1;
+    assert!(s.units[u].combat.packed, "born packed");
+    s.census(1);
+    assert_eq!(s.ai.ai[1].census.merchants, 1, "a merchant all the same");
+    assert_eq!(
+        s.ai.ai[1].census.reg_unpack_merch.iter().sum::<i32>(),
+        0,
+        "packed: not counted"
+    );
+    s.units[u].combat.packed = false;
+    s.census(1);
+    assert_eq!(
+        s.ai.ai[1].census.reg_unpack_merch.iter().sum::<i32>(),
+        1,
+        "deployed: counted"
+    );
+}
