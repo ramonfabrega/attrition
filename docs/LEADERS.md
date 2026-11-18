@@ -2495,8 +2495,20 @@ left at 0, refused by its bucket clause (11,057 ≥ 3,000). The four tributes ar
   parts on every state from 0 (state 0: ours 40276137, theirs 10260661) on
   a field the record does not print: ours' state-0 image moves with
   `TEAM_STYLE` (`diplos`, `aggression`) and `DIFFICULTY` (`multi_diff`)
-  alone, and those three agree with the record mid-game. A ranges take of
-  the same file names it (parked 4387a).
+  alone, and those three agree with the record mid-game. ~~A ranges take of
+  the same file names it (parked 4387a).~~ **Item 4392**: the ranges take
+  (run1686, to 40) names it, `diplos[2..7]` (`LeaderData +0x7c..+0x90`) on
+  both leaders, ours 0, theirs 1. `Leader::init@006e3930`'s row writes
+  `diplos` on all eight slots, so a slot no player takes reads 1 at team
+  style 0 (`teams_locked` false) and 0 under locked teams, which is why
+  every earlier lobby agreed. The crate kept the row only for seated
+  leaders; it now keeps it whole (`ai::Leader::unseated_diplos`, item
+  4388's, carried across `init_leader_ai`'s fresh record as `aggression`
+  is). With
+  `tribute_demanded` emitted, **all twelve lines agree on run1683's 6,401
+  states** (`the_demand_s_game_is_whole_on_run1683`); held, leaders parts
+  on 6081 (ours 2843059440, theirs 411149553). The demand arm's draws and
+  goods are therefore diff-backed on this one walk to 6400.
 - **`scale_tribute`**: the load scale of `commerce_tribute` and
   `base_tribute` (`Constants::init`), and its rounding branches, which were
   not re-listed. A deal captured above Commerce 0 pins them.

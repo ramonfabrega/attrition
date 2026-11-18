@@ -1027,6 +1027,164 @@ pub(crate) mod recording {
         assert_eq!((demand, declared), (Some((6081, 1, 0)), None));
     }
 
+    /// run1686's record (item 4392, `docs/RUNS.md` run1686): run1683's file,
+    /// the demand's game, played to 40 under the checksum and ranges hooks,
+    /// all twelve lines kept. `RON_DEMAND_RANGES`, else where the take left
+    /// it.
+    fn run1686() -> Option<crate::trace::ranges::Record> {
+        let path = match std::env::var("RON_DEMAND_RANGES") {
+            Ok(p) => std::path::PathBuf::from(p),
+            Err(_) => {
+                let home = std::env::var("HOME").unwrap_or_default();
+                let dir = std::path::PathBuf::from(format!("{home}/ron-golden/run1686/map-14"));
+                crate::testenv::experiment(&dir, "rontrace.ranges")?
+            }
+        };
+        crate::trace::ranges::Record::open(&path)
+            .map_err(|e| eprintln!("skipping: no demand ranges at {} ({e})", path.display()))
+            .ok()
+    }
+
+    /// The demand's game, the file run1683 and run1686 played: minted by
+    /// [`mint_4387_the_demand_s_game`]. `RON_DEMAND_RCX`, else where 4387
+    /// left it.
+    fn demand_rcx() -> Option<RecGame> {
+        let path = std::env::var("RON_DEMAND_RCX").unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_default();
+            format!("{home}/ron-golden/recordings/item4387-demand-greatlakes-style0-d2-6400.rcx")
+        });
+        read(&path)
+            .map_err(|e| eprintln!("skipping: no demand file at {path} ({e:?})"))
+            .ok()
+    }
+
+    /// A line's first parting on run1686: `(frame, the record's ranges,
+    /// ours, parted, the text)`.
+    type DemandSeen = (i64, usize, usize, usize, String);
+
+    /// run1686's last frame, ours: the record holds trace frames −1 to 39.
+    const DEMAND_RANGES_WINDOW: i64 = 40;
+
+    /// Per line that parts on run1686's window, its first parting by range:
+    /// `(line, frame, the record's ranges, ours, parted, the first parting
+    /// as `range record field: name ours|theirs`)` (item 4392; minted
+    /// empty, then at the first act's row, then empty again). A leaders
+    /// range starts at `LeaderData +0x8`. The first act's row was `("leaders",
+    /// 0, 267, 267, 2, "1 0 who..ally_mask: +0x74 of 26914|26914:
+    /// 00000000|01000000")`: ranges 1 and 129 (leaders 0 and 1), `+0x74..+0x88`
+    /// = `diplos[2..7]` (`+0x7c..+0x90`), ours 0, theirs 1 — the slots no
+    /// player takes, under team style 0, which `Leader::init`'s row writes and
+    /// the crate kept only for seated leaders (`ai::Leader::unseated_diplos`,
+    /// item 4388's, landed beside this item's own copy of the fix).
+    const DEMAND_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    /// **The demand's lines by range, from the start** (item 4392,
+    /// `docs/LEADERS.md` §8.6): the demand's file walked as
+    /// `score_recording` walks it, each of the twelve lines held range by
+    /// range against run1686's set (the hook's frame `f − 1` against our
+    /// `sim.frame == f`). `RON_DEMAND_RANGES_DETAIL=<frame>` prints every
+    /// parted range on that frame, decoded.
+    #[test]
+    fn the_demand_s_ranges_name_each_first_parting() {
+        use crate::diff::checksum_lines::packets::{Pieces, STATE_LINES, compare, our_lines};
+        let (Some(inst), Some(rec_game), Some(mut rec)) =
+            (crate::testenv::install(), demand_rcx(), run1686())
+        else {
+            eprintln!("skipping: no install, no demand file or no run1686");
+            return;
+        };
+        let Some(pieces) = Pieces::read() else {
+            return;
+        };
+        let detail: Option<i64> = std::env::var("RON_DEMAND_RANGES_DETAIL")
+            .ok()
+            .and_then(|v| v.parse().ok());
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec_game);
+        let mut stream = crate::input::Stream::pump(&rec_game);
+        let mut seen: Vec<Option<DemandSeen>> = vec![None; 12];
+        let mut frames = 0usize;
+        while built.sim.frame <= DEMAND_RANGES_WINDOW {
+            let f = built.sim.frame;
+            if let Some(theirs) = crate::diff::checksum_frames::record::stream_at(&mut rec, f) {
+                frames += 1;
+                let ours = our_lines(&built.sim, &pieces);
+                if detail == Some(f) {
+                    crate::diff::sample::tests::print_partings(&ours, &theirs);
+                }
+                for (k, (name, o)) in STATE_LINES.iter().zip(compare(&ours, &theirs)).enumerate() {
+                    let Some(d) = &o.first else { continue };
+                    if seen[k].is_none() {
+                        let text = crate::diff::checksum_frames::first_text(name, d);
+                        seen[k] = Some((f, o.theirs, o.ours, o.parted, text));
+                    }
+                }
+            }
+            stream.apply(f as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let got: Vec<(&str, i64, usize, usize, usize, String)> = STATE_LINES
+            .iter()
+            .zip(seen)
+            .filter_map(|(name, s)| s.map(|(f, t, o, p, x)| (*name, f, t, o, p, x)))
+            .collect();
+        for row in &got {
+            eprintln!("DEMAND RANGES first {row:?}");
+        }
+        let pinned: Vec<(&str, i64, usize, usize, usize, String)> = DEMAND_RANGES
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            DEMAND_RANGES_WINDOW as usize + 1,
+            "run1686's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "DEMAND_RANGES");
+    }
+
+    /// **The demand's game is whole on run1683** (item 4392, `docs/LEADERS.md`
+    /// §8.6): the file `score_recording` scores against the original's take,
+    /// every one of the twelve lines on all 6,401 states. The French store
+    /// `tribute_demanded[0]` on 6081 on both sides; held, leaders parts there
+    /// (ours 2843059440, theirs 411149553), and before the `diplos` row was
+    /// kept whole it parted on state 0 (ours 40276137, theirs 10260661).
+    /// `RON_DEMAND_TAKE`, else where the take left it.
+    #[test]
+    fn the_demand_s_game_is_whole_on_run1683() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let rcx = std::env::var("RON_DEMAND_RCX").unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_default();
+            format!("{home}/ron-golden/recordings/item4387-demand-greatlakes-style0-d2-6400.rcx")
+        });
+        let take = match std::env::var("RON_DEMAND_TAKE") {
+            Ok(p) => Some(std::path::PathBuf::from(p)),
+            Err(_) => {
+                let home = std::env::var("HOME").unwrap_or_default();
+                let dir = std::path::PathBuf::from(format!("{home}/ron-golden/run1683/map-14"));
+                crate::testenv::experiment(&dir, "rontrace.log")
+            }
+        };
+        let (true, Some(take)) = (std::path::Path::new(&rcx).exists(), take) else {
+            eprintln!("skipping: no demand file or no run1683 take");
+            return;
+        };
+        let score =
+            crate::checksum::playback::compare(inst.root(), rcx.as_ref(), &take).expect("scored");
+        let first: Vec<_> = crate::checksum::CHECKSUM_LINES
+            .iter()
+            .zip(&score.first)
+            .filter_map(|(l, f)| f.map(|f| (l.0, f)))
+            .collect();
+        assert_eq!(
+            (score.states, score.agreed, first),
+            (6401, [6401; 12], vec![]),
+            "run1683: states, each line's agreeing states, the first partings"
+        );
+    }
+
     /// **Item 4387's game** (`docs/LEADERS.md` §8.2, `docs/RECGAME.md`
     /// §8.2): the harness lobby at `TEAM_STYLE 0`, `DIFFICULTY 2`, seed
     /// 12345 — the sweep's earliest demand, the French on the human on 6081

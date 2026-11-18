@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out: the chain's 4392 (after 4387 minted the demand), the suite's 4394 (after 4388 took state 0 from 28 ranges to 4), the third's 4395 (after 4391 moved the repair walk to 7420) and render's 4393 (after 4390, the lake's last). The third seat has left the input track for the AI's army path, for the pass to weigh.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out: the chain's 4392 (after 4387 minted the demand), the suite's 4394 (after 4388 took state 0 from 28 ranges to 4), the third's 4395 (after 4391 moved the repair walk to 7420). **The render seat is empty, for the pass to re-place** (4393, run1688: the photograph is its own pass's flip, the strokes are in the HDR before the tone map and the post chain lays none, and the lake differs between takes, MAD 10.49 against run1564 where the HUD reads 0.59, so 4386 and 4390 read another take's water; parked 4393a; the cheap next word is 4386's attribution on run1688's own pass). The third seat has left the input track for the AI's army path, for the pass to weigh.
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 1 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
@@ -73,14 +73,6 @@ arm, an unseated slot read as record 0; builds 21 → 2, leaders 6 → 1; closed
 4388 guesses a unit's start reveal given to the owner alone), leader 2's `oil_patches` order ((20,5) vs (5,20)), and builds' two `z`
 (142 vs 145). First act: the `seen2` cells' writer at the start, then the other two, each row re-minted with its value diff; then the
 lines' next first partings named. It stops when two acts move no line's first parting.
-
-4393. **The lake's photograph and its card pass on one take** (a `render` item, scoped; the render seat's, the lake's last; `docs/RENDERER.md`
-§3.30; DECISIONS 142 §7). `RUN1564_3279_TEXTURE_STILL` ocean 244 of 437. 4386 and 4390 (run1681) placed the broad strokes under the
-floor (36) and the water (162) and found no input of either that lays them: not their streams, not stage 0 (the stages select the
-vertex colour), not the specular (about 1e-5), not the reflection (0 hits on the lake); a probe take's window stopped presenting
-(parked 4386b, 4390a). First act: one take on run1564's camera, run1688, photographing the frame its card pass logs, and the post
-chain's (bloom, FXAA) inputs and output read on it. It stops there: if the strokes are absent the photograph was another frame,
-said with its value diff; if present and the post chain lays none, the lake parks for the pass to re-place the seat.
 
 4395. **The repair file's walk past 7420** (a rules item, whole; the third seat's; `docs/ORDERS.md` §8.2, §14; GOLDEN §77).
 `REPAIR_WALKED` (7420, 8500, 1600, 1081) on run1679, from 7274 (4391: an adopted mark on the army, set when §77's seating arm adopts a pushed

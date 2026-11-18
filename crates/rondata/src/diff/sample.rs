@@ -122,7 +122,7 @@ pub fn compare_lobby(a: &Lobby, b: LobbyRef<'_, '_>) -> Vec<String> {
 }
 
 #[cfg(test)]
-mod tests {
+pub(in crate::diff) mod tests {
     use super::super::*;
     use super::*;
     use crate::testenv::install;
@@ -643,7 +643,7 @@ mod tests {
 
     /// Every parted range of every line on one frame, decoded where the
     /// line has a decoder (`RON_SAMPLE_RANGES_DETAIL=<frame>`).
-    fn print_partings(
+    pub(in crate::diff) fn print_partings(
         ours: &[sim::checksum::Line],
         theirs: &std::collections::BTreeMap<String, super::super::checksum_lines::StreamRows>,
     ) {
