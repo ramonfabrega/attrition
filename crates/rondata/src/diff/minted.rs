@@ -6739,7 +6739,7 @@ fn the_original_s_playback_of_the_arms_file_walks_in_lockstep() {
     assert_eq!(walked, ARMS_WALKED, "the walked table");
 }
 
-/// **The transport press's packages round-trip** (item 4363,
+/// **The transport press's packages round-trip** (item 4375,
 /// `docs/CLIENT_INPUT.md` §32.14): the arms' script and one package more,
 /// `group [10]`, `set_transport(1)` on [`crate::script::TRANSPORT_FRAME`];
 /// every package before it is the arms' file's, frame, slot and stamp.
@@ -6864,7 +6864,7 @@ fn transport_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<TransportEffec
     Some(theirs)
 }
 
-/// **What the press does on our walk** (item 4363, `docs/CLIENT_INPUT.md`
+/// **What the press does on our walk** (item 4375, `docs/CLIENT_INPUT.md`
 /// §32.14), pinned off our walk's print before run1668's records were
 /// read on these frames.
 fn transport_effects() -> Vec<TransportEffect> {
@@ -6883,7 +6883,7 @@ fn transport_effects() -> Vec<TransportEffect> {
     ]
 }
 
-/// **The press on our walk and on the original's** (item 4363): the
+/// **The press on our walk and on the original's** (item 4375): the
 /// pressed Citizen on [`TRANSPORT_READ_AT`], ours pinned and equal to the
 /// arms' file's walk (slot 0's level is 0, so `action_set_transport`
 /// forces the flag to 0 and the bit stays clear); and run1668's records,
@@ -6910,7 +6910,7 @@ fn what_the_transport_press_does_on_both_sides() {
     assert_eq!(theirs, ours, "the original's Citizen is ours");
 }
 
-/// **The original's playback of the transport file** (item 4363,
+/// **The original's playback of the transport file** (item 4375,
 /// `docs/CLIENT_INPUT.md` §32.14): `(take, trace, first sequence parting
 /// or the last frame, last frame, records compared, records parted)`.
 /// Pinned before run1668 was read, with none parted.
@@ -6923,7 +6923,24 @@ pub(crate) const TRANSPORT_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
     0,
 )];
 
-/// **The original plays the transport file in lockstep** (item 4363): the
+/// The functions the press's package enters on the original's side:
+/// `process_set_transport@00948f60`, `Group::action_set_transport@007024b0`
+/// and the member walk's `UnitData::can_ever_transport@0046f290`.
+const TRANSPORT_FUNCTIONS: [(u32, &str); 3] = [
+    (0x0094_8f60, "CommandPackage::process_set_transport"),
+    (0x0070_24b0, "Group::action_set_transport"),
+    (0x0046_f290, "UnitData::can_ever_transport"),
+];
+
+/// Each take's first entry into [`TRANSPORT_FUNCTIONS`], in sim-frames:
+/// none on run1663, the arms' file's playback, and the tick that takes the
+/// 6910 package on run1668 (`process_guard` reads 6869 for 6870's on both).
+const TRANSPORT_ENTRIES: &[(&str, [Option<i64>; 3])] = &[
+    ("rontrace-run1663.log", [None; 3]),
+    ("rontrace-run1668.log", [Some(6909); 3]),
+];
+
+/// **The original plays the transport file in lockstep** (item 4375): the
 /// built start walked under the pump on the transport file against the
 /// take, every frame's draws and every record of its window
 /// ([`TRANSPORT_WALKED`]).
@@ -6953,7 +6970,19 @@ fn the_original_s_playback_of_the_transport_file_walks_in_lockstep() {
             w.records_parted,
         ));
     }
+    let mut entries = Vec::new();
+    for &(take_trace, _) in TRANSPORT_ENTRIES {
+        let Some(tr) = trace(take_trace) else {
+            return;
+        };
+        let first = TRANSPORT_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+        for ((_, name), f) in TRANSPORT_FUNCTIONS.iter().zip(&first) {
+            eprintln!("TRANSPORT ENTRY {take_trace} {name}: {f:?}");
+        }
+        entries.push((take_trace, first));
+    }
     assert_eq!(walked, TRANSPORT_WALKED, "the walked table");
+    assert_eq!(entries, TRANSPORT_ENTRIES, "the press's functions");
 }
 
 /// **The original's playback of the auto-explored file** (item 4291,

@@ -13401,7 +13401,7 @@ pub(crate) mod tests {
     const ARMS_RCX: &str = "ron-golden/recordings/item4361-arms-greatlakes-24000.rcx";
     const ARMS_RCX_BYTES: usize = 59_813;
 
-    /// **The transport press's stage 0** (item 4363, `docs/CLIENT_INPUT.md`
+    /// **The transport press's stage 0** (item 4375, `docs/CLIENT_INPUT.md`
     /// §32.14): on [`script::TRANSPORT_FRAME`] of the walk under the arms'
     /// script, the Citizen [`script::TRANSPORT_UNIT`]'s pixel at the opening
     /// camera, where the press selects it.
@@ -13417,7 +13417,7 @@ pub(crate) mod tests {
         e
     }
 
-    /// **`INPUT_TRANSPORT_FILE`** (item 4363): the transport file's events,
+    /// **`INPUT_TRANSPORT_FILE`** (item 4375): the transport file's events,
     /// through the HUD and the layer (`mint_with_sim`), mint
     /// [`script::picked_transport`] field for field, of 41.
     const INPUT_TRANSPORT_FILE: usize = 41;

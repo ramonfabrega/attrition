@@ -1123,7 +1123,7 @@ pub fn picked_arms() -> Vec<Order> {
     orders
 }
 
-/// **A minted `set_transport`** (item 4363, `docs/CLIENT_INPUT.md`
+/// **A minted `set_transport`** (item 4375, `docs/CLIENT_INPUT.md`
 /// §32.14): the arms' script and one package more, on
 /// [`TRANSPORT_FRAME`]: a press on the Citizen [`TRANSPORT_UNIT`], then
 /// `OPTION_TRANSPORT`'s press at the layer past the HUD's greying
