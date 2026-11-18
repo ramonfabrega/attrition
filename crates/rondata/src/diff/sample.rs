@@ -279,6 +279,15 @@ mod tests {
         p.is_file().then(|| p.display().to_string())
     }
 
+    /// run1674's window, in place: frames 3013..3021 of the playback at
+    /// `end:UNITS=3,GUYS=4` (item 4380), the widening of the word on 3019.
+    fn run1674() -> Option<String> {
+        let home = std::env::var("HOME").ok()?;
+        let dir = std::env::var("RON_GOLDEN_DIR").unwrap_or(format!("{home}/ron-golden"));
+        let p = std::path::PathBuf::from(format!("{dir}/run1674/map-7/gamelog_p.txt"));
+        p.is_file().then(|| p.display().to_string())
+    }
+
     /// The start built from the sample's header (row 1), and the leaders
     /// it seats (`who` + 1 of the highest seat).
     fn sample_start(inst: &crate::Install, rec: &RecGame) -> (Built, usize) {
@@ -328,6 +337,7 @@ mod tests {
         let mut stream = crate::input::Stream::pump(&rec);
         let mut captures = vec![("run1651", dump)];
         captures.extend(run1654().map(|p| ("run1654", p)));
+        captures.extend(run1674().map(|p| ("run1674", p)));
         let (w, _) =
             super::super::start_walk::walk_with(built, n, &captures, &tr, limit, Some(&mut stream));
         eprintln!(
@@ -350,7 +360,7 @@ mod tests {
             SAMPLE_WALKED,
             "the sample's word against run1651's draws"
         );
-        if run1654().is_some() {
+        if run1654().is_some() && run1674().is_some() {
             assert_eq!(
                 (
                     w.records,
@@ -358,7 +368,7 @@ mod tests {
                     w.first_record.as_ref().map(|(f, c, _)| (*f, c.as_str()))
                 ),
                 SAMPLE_WINDOW_RECORDS,
-                "run1654's window (RON_START_WALK_ROWS=1 prints the first parted record)"
+                "run1654's and run1674's windows (RON_START_WALK_ROWS=1 prints the first parted record)"
             );
         }
     }
@@ -372,7 +382,21 @@ mod tests {
     /// `QUEUE_LAST` `MOVE_TO` is an explore
     /// ([`sim::Unit::explore_queued`]). run1651 prints no frame block, so
     /// its one record is the closing one.
-    const SAMPLE_WINDOW_RECORDS: (usize, usize, Option<(i64, &str)>) = (18, 0, None);
+    ///
+    /// **run1674's window (item 4380), 3013..3020: 8 records, all 8
+    /// part** (18, 0, None → 26, 8, first 3013). The one unit parted on
+    /// every block is the person's SCOUT `3/0` (`TypeIndex` 69, land,
+    /// `uid` 6) on its tenth `EXPLORE_TO` to (42216, 31320): on 3013 ours
+    /// stands at (39311, 32904) with the move's `dest_x` 39912, theirs at
+    /// (39801, 32538) with 40680. The two paths agree on their first 61
+    /// nodes; ours holds three more, (41448, 32088), (40680, 32856),
+    /// (39912, 32856), what is left of the grid detour it took on 2892
+    /// round computer 1's capital after the refused straight line on 2891
+    /// (`Unit::do_move+0xe84 < Unit::do_explore_to`, spent on both
+    /// sides). On 3020 computer 1's MERCHANT `1/17` (`TypeIndex` 61) parts
+    /// too: theirs collides with the scout at (39826, 32220), ours does not.
+    const SAMPLE_WINDOW_RECORDS: (usize, usize, Option<(i64, &str)>) =
+        (26, 8, Some((3013, "run1674")));
 
     /// The sample's word and the frames walked, against run1651's draws:
     /// 3019 of 21,044 (item 4359: 2888 → 3019, +131, in two builds. On
