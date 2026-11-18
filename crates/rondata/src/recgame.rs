@@ -1150,21 +1150,6 @@ pub(crate) mod tests {
             let slots: Vec<String> = r.slots.iter().filter(|s| s.active()).map(|s| format!("f{:x}/t{}/w{}/tm{}/d{}", s.flags, s.tribe, s.who, s.team, s.diff)).collect();
             eprintln!("DONOR {} trunc={} seed={} opts={:?} slots={:?} {}", r.version, r.truncated.len(), r.seed, r.options, slots, f.rsplit('/').next().unwrap());
         }
-        // The pairs that differ in TEAM_STYLE alone: do their rules part?
-        let all: Vec<RecGame> = recordings_on_disk().iter().filter_map(|f| read(f).ok()).filter(|r| r.truncated.is_empty()).collect();
-        let mut seen = std::collections::BTreeSet::new();
-        for a in all.iter().filter(|r| r.options[0] == 0) {
-            for b in all.iter().filter(|r| r.options[0] != 0 && r.version == a.version && r.options[1..] == a.options[1..]) {
-                let key = (a.options.to_vec(), b.options[0]);
-                if !seen.insert(key) { continue; }
-                let (ra, rb) = (a.rules.as_ref().unwrap(), b.rules.as_ref().unwrap());
-                let part = |x: &[u8], y: &[u8]| x.iter().zip(y).filter(|(p, q)| p != q).count() + x.len().abs_diff(y.len());
-                eprintln!("PAIR style {}/{} opts {:?}: rules equal {} types {} constants {} balance {} tribes {}",
-                    a.options[0], b.options[0], &a.options[1..], ra == rb,
-                    part(&ra.types, &rb.types), part(&ra.constants, &rb.constants),
-                    ra.balance == rb.balance, ra.tribes == rb.tribes);
-            }
-        }
     }
 
     /// One recording through the round trip: decompress, parse, re-encode
