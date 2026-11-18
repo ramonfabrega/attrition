@@ -296,11 +296,24 @@ pub fn normals(pts: &[[f32; 2]], closed: bool) -> Vec<[f32; 2]> {
 /// through its corners (`× 768`, a closed chain's first corner appended),
 /// and for each side a player holds, the quads from the curve out to
 /// [`HALF_BAND`] along the normal on that side — the `+N` side the chain's
-/// `a`, the `−N` side its `b` — as `(owner, triangles of [x, y])` with each
-/// vertex's alpha from `alpha(x, y, end)`, `end` true on the curve's first
-/// and last samples.
-pub type Half = (Player, Vec<([f32; 2], u8)>);
-pub fn band(chain: &Chain, alpha: &dyn Fn(f32, f32, bool) -> u8) -> Vec<Half> {
+/// `a`, the `−N` side its `b` — as `(owner, triangles of [x, y, z])` with
+/// each vertex's alpha from `alpha(x, y, end)`, `end` true on the curve's
+/// first and last samples.
+///
+/// **The strip is the curve's samples, nothing between** (item 4376,
+/// `docs/RENDERER.md` §3.29, "The band's heights"):
+/// `Spline::make_2d_strip@00912fe0` lays one vertex each side of each
+/// sample, at the ground's height there (`ground(x, y)`), and the card
+/// draws it with the depth test off, so between two samples the band is
+/// their chord, not the ground. A level inside the width takes its height
+/// linear between the sample's two edges, as the original's one quad
+/// across does.
+pub type Half = (Player, Vec<([f32; 3], u8)>);
+pub fn band(
+    chain: &Chain,
+    alpha: &dyn Fn(f32, f32, bool) -> u8,
+    ground: &dyn Fn(f32, f32) -> f32,
+) -> Vec<Half> {
     let cell = sim::world::UNITS_PER_CELL as f32;
     let mut ctrl: Vec<[f32; 2]> = chain
         .corners
@@ -310,7 +323,8 @@ pub fn band(chain: &Chain, alpha: &dyn Fn(f32, f32, bool) -> u8) -> Vec<Half> {
     if chain.closed && !ctrl.is_empty() {
         ctrl.push(ctrl[0]);
     }
-    let (pts, nor) = dense(&bspline(&ctrl), chain.closed);
+    let pts = bspline(&ctrl);
+    let nor = normals(&pts, chain.closed);
     let last = pts.len().saturating_sub(1);
     // Each owner's side is the one its own cells lie on: `+N` for `a`.
     let sides = [(chain.a, 1.0f32), (chain.b, -1.0)];
@@ -324,12 +338,24 @@ pub fn band(chain: &Chain, alpha: &dyn Fn(f32, f32, bool) -> u8) -> Vec<Half> {
     // the texture's alpha there, of 255.
     let strip = |sign: f32, levels: &[(f32, u16)]| {
         let v = |i: usize, (k, f): (f32, u16)| {
-            let q = [
-                pts[i][0] + sign * k * HALF_BAND * nor[i][0],
-                pts[i][1] + sign * k * HALF_BAND * nor[i][1],
-            ];
-            let end = !chain.closed && (i == 0 || i == last);
-            (q, (u16::from(alpha(q[0], q[1], end)) * f / 255) as u8)
+            let at = |k: f32| {
+                [
+                    pts[i][0] + sign * k * HALF_BAND * nor[i][0],
+                    pts[i][1] + sign * k * HALF_BAND * nor[i][1],
+                ]
+            };
+            let (q, near, far) = (at(k), at(1.0), at(-1.0));
+            let t = (k + 1.0) * 0.5;
+            let lerp = |n: f32, f: f32| f + t * (n - f);
+            let z = lerp(ground(near[0], near[1]), ground(far[0], far[1]));
+            // Only the first pair is the end's: `init_border_render` writes
+            // the last pair at the colour list's length, which a reused
+            // render keeps from a longer strip (run1665's east strip: 30
+            // vertices, 100 colours), so its last pair keeps the tiles'.
+            let end = !chain.closed && i == 0;
+            let (an, af) = (alpha(near[0], near[1], end), alpha(far[0], far[1], end));
+            let a = lerp(f32::from(an), f32::from(af)).round() as u16;
+            ([q[0], q[1], z], (a * f / 255) as u8)
         };
         let mut tris = Vec::new();
         for i in 0..last {
@@ -364,36 +390,6 @@ pub fn band(chain: &Chain, alpha: &dyn Fn(f32, f32, bool) -> u8) -> Vec<Half> {
 /// far edge between it and an opaque row. Linear between, as the card
 /// filters it: the photograph's far-edge rim says so.
 pub const LONE_PROFILE: [(f32, u16); 4] = [(1.0, 255), (0.5, 255), (-0.5, 0), (-1.0, 128)];
-
-/// **The samples and their normals, cut to [`STEP`]**: each segment
-/// between two samples split evenly, position and normal interpolated as
-/// they stand (the normal not normalised again), so the band's two edges
-/// are the original's straight lines; only the heights between follow the
-/// ground (`BORDER_LIFT`'s reason, `client::world`).
-fn dense(pts: &[[f32; 2]], closed: bool) -> (Vec<[f32; 2]>, Vec<[f32; 2]>) {
-    let nor = normals(pts, closed);
-    let mut out = (Vec::new(), Vec::new());
-    for i in 0..pts.len() {
-        if i > 0 {
-            let (a, b) = (pts[i - 1], pts[i]);
-            let len = ((b[0] - a[0]).powi(2) + (b[1] - a[1]).powi(2)).sqrt();
-            let k = (len / STEP).ceil().max(1.0) as usize;
-            for j in 1..k {
-                let f = j as f32 / k as f32;
-                let mix =
-                    |u: [f32; 2], v: [f32; 2]| [u[0] + f * (v[0] - u[0]), u[1] + f * (v[1] - u[1])];
-                out.0.push(mix(a, b));
-                out.1.push(mix(nor[i - 1], nor[i]));
-            }
-        }
-        out.0.push(pts[i]);
-        out.1.push(nor[i]);
-    }
-    out
-}
-
-/// The longest cut of [`dense`], in world units: half a tile.
-pub const STEP: f32 = 96.0;
 
 /// The player an owner names, if any.
 pub fn player(o: Owner) -> Option<Player> {
@@ -489,7 +485,8 @@ pub(crate) mod tests {
     /// Item 4345: 222 holds, 566 → 567 of ours: the herd lit (item 4345, `docs/RENDERER.md` §3.30, "The fish's light") moves the frame's mean, so its white.
     /// Item 4348: 222 holds, 567 → 568 of ours: the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands") moves the frame's mean, so its white.
     /// Item 4358: 222 → 43 (a named fall), 568 → 384 of ours: this photograph's band is a `BorderMorphRender` (item 4356), and the far-side half was fit to it; the settled band (run1665, [`RUN1665_3279_BORDER`]) lies on the owner's side across the whole width, [`super::LONE_PROFILE`].
-    pub const RUN1564_3279_BORDER: [[usize; 3]; 3] = [[0, 1440, 0], [43, 1440, 384], [0, 1440, 0]];
+    /// Item 4376: 43 → 48 of 1,440, 384 → 387 of ours: the strip drawn on the curve's samples at the ground's heights there, chord between, with the depth test off, and only the first pair's end faded (`docs/RENDERER.md` §3.29, "The band's heights").
+    pub const RUN1564_3279_BORDER: [[usize; 3]; 3] = [[0, 1440, 0], [48, 1440, 387], [0, 1440, 0]];
 
     #[test]
     fn the_border_band_on_run1564() {
@@ -525,7 +522,14 @@ pub(crate) mod tests {
     /// side) 7 of 262, 568 of ours; with [`super::LONE_PROFILE`] on the
     /// owner's own side, 59 of 262, 384 of ours. The made-to-fail is the
     /// owner grid one cell east.
-    pub const RUN1665_3279_BORDER: [[usize; 3]; 3] = [[0, 262, 0], [59, 262, 384], [0, 262, 0]];
+    /// Item 4376: 59 → 155 of 262, 384 → 387 of ours: the band 2.5 to 3 px
+    /// south, onto the packet's strip — drawn on the curve's samples at the
+    /// ground's heights there, the chord between, with the depth test off
+    /// and no lift, and only the first pair's end faded (`docs/RENDERER.md`
+    /// §3.29, "The band's heights"). Of the 107 theirs alone, 66 are the
+    /// original's HUD in the photograph; the rest is the band's colour
+    /// (parked 4376a).
+    pub const RUN1665_3279_BORDER: [[usize; 3]; 3] = [[0, 262, 0], [155, 262, 387], [0, 262, 0]];
 
     #[test]
     fn the_settled_border_band_on_run1665() {
