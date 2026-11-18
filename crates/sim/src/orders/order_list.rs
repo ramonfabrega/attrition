@@ -275,7 +275,19 @@ impl Sim {
 
     /// `Unit::kill_current_order(0)` (§3.2): the per-kind teardown, then the
     /// pop, the path segment, `update_action`.
+    #[track_caller]
     pub fn kill_current_order(&mut self, u: usize) {
+        if std::env::var_os("RON_PROBE_4395").is_some()
+            && self.frame == 7418
+            && self.units[u].owner == 1
+            && (30..=32).contains(&self.units[u].index)
+        {
+            eprintln!(
+                "PROBE4395 killer 1/{} {}",
+                self.units[u].index,
+                std::panic::Location::caller()
+            );
+        }
         self.kill_order(u, false);
     }
 
