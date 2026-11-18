@@ -935,6 +935,108 @@ pub(crate) mod recording {
         }
     }
 
+    /// **Item 4387's game** (`docs/LEADERS.md` §8.2, `docs/RECGAME.md`
+    /// §8.2): the harness lobby at `TEAM_STYLE 0`, `DIFFICULTY 2`, seed
+    /// 12345 — the sweep's earliest demand, the French on the human on 6081
+    /// — with no orders, closing on `RON_MINT_FRAMES` (default 6,400). The
+    /// donor is the first finished recording under `RON_RECGAME_DIR` that
+    /// [`donor_serves`] the lobby: a style-1 Great Lakes game at difficulty
+    /// 2, since none at style 0 exists. Prints every pair in the corpus that
+    /// differs in `TEAM_STYLE` alone and whether their borrowed sections are
+    /// equal, and writes the `.rcx` to `RON_RCX_OUT`. Opt-in:
+    /// `RON_MINT_4387=1`.
+    #[test]
+    fn mint_4387_the_demand_s_game() {
+        if std::env::var("RON_MINT_4387").is_err() {
+            return;
+        }
+        let path = crate::testenv::dump(LOBBY_DUMP).expect("run53's dump");
+        let text = crate::capture::read(&path);
+        let log = crate::gamelog::Log::parse(&text);
+        let init = log.replay_initial().unwrap();
+        let corpus: Vec<(String, RecGame)> = recordings_on_disk()
+            .into_iter()
+            .filter_map(|f| read(&f).ok().map(|r| (f, r)))
+            .filter(|(_, r)| r.truncated.is_empty() && r.rules.is_some())
+            // Great Lakes at difficulty 2 (the donors) and East Indies (the
+            // style pairs), frame 0's package alone kept: the corpus is
+            // 1,659 recordings.
+            .filter(|(_, r)| (r.options[1] == 14 && r.options[7] == 2) || r.options[1] == 18)
+            .map(|(f, mut r)| {
+                r.packages.truncate(1);
+                (f, r)
+            })
+            .collect();
+        eprintln!("MINT corpus: {} finished recordings", corpus.len());
+        // The pairs that differ in `TEAM_STYLE` alone, and their borrowed
+        // sections.
+        let mut seen = std::collections::BTreeSet::new();
+        for (i, (fa, a)) in corpus.iter().enumerate() {
+            for (fb, b) in &corpus[i + 1..] {
+                if a.version != b.version
+                    || a.options[TEAM_STYLE_OPTION] == b.options[TEAM_STYLE_OPTION]
+                    || !donor_serves(a, &b.version, &b.options)
+                {
+                    continue;
+                }
+                let key = (a.options, b.options);
+                if !seen.insert(key) {
+                    continue;
+                }
+                eprintln!(
+                    "MINT pair styles {} {} map {} diff {}: rules {} run_state {} semaphore {} markers {} ({fa} | {fb})",
+                    a.options[0],
+                    b.options[0],
+                    a.options[1],
+                    a.options[7],
+                    a.rules == b.rules,
+                    a.run_state == b.run_state,
+                    a.semaphore_bits == b.semaphore_bits && a.semaphore == b.semaphore,
+                    format!("{:?}", a.markers) == format!("{:?}", b.markers),
+                );
+            }
+        }
+        let frames: i32 = std::env::var("RON_MINT_FRAMES")
+            .map(|v| v.parse().unwrap())
+            .unwrap_or(6400);
+        let info: Vec<(&str, String)> = init
+            .game_info
+            .iter()
+            .map(|&(k, v)| {
+                let v = match k {
+                    "TEAM_STYLE" => "0".to_string(),
+                    "DIFFICULTY" => "2".to_string(),
+                    _ => v.to_string(),
+                };
+                (k, v)
+            })
+            .collect();
+        let info: Vec<(&str, &str)> = info.iter().map(|(k, v)| (*k, v.as_str())).collect();
+        let (donor_path, donor) = corpus
+            .iter()
+            .find(|(_, r)| from_lobby(&info, &init.players, r, Vec::new()).is_ok())
+            .expect("no donor for the style-0 lobby (set RON_RECGAME_DIR)");
+        let leader = crate::prefs::Prefs::FRESH.issue_leader_option(0);
+        let lo = crate::commands::decode(&donor.packages[0].data).unwrap();
+        assert_eq!(lo, std::slice::from_ref(&leader), "the donor's frame 0");
+        let packages = no_input_packages(leader, frames);
+        let ours = from_lobby(&info, &init.players, donor, packages).unwrap();
+        assert_eq!(ours.seed, 12345);
+        assert_eq!(ours.options[TEAM_STYLE_OPTION], 0);
+        assert_eq!(ours.options[7], 2);
+        eprintln!(
+            "MINT donor {donor_path}: style {} diff {} seed {}; ours closes on {frames}",
+            donor.options[0], donor.options[7], donor.seed
+        );
+        let bytes = write(&ours);
+        let back = parse(&bytes, "ours").expect("our file parses");
+        assert_eq!(write(&back), bytes);
+        if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+            std::fs::write(&out, write_gz(&ours)).unwrap();
+            eprintln!("wrote {}", out.to_string_lossy());
+        }
+    }
+
     /// **Item 4382's sweep** (`docs/LEADERS.md` §8.2; DECISIONS 142 §3): the
     /// harness lobby (Great Lakes, two seats, the human idle at `who` 0)
     /// re-read at `TEAM_STYLE 0`, over `RON_SWEEP_SEEDS=<lo>-<hi>` and
