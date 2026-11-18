@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out: the chain's 4392 (after 4387 minted the demand), the suite's 4388, the third's 4391 (after 4389) and render's 4393 (after 4390, the lake's last). The third seat has left the input track for the AI's army path, for the pass to weigh.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out: the chain's 4392 (after 4387 minted the demand), the suite's 4394 (after 4388 took state 0 from 28 ranges to 4), the third's 4391 (after 4389) and render's 4393 (after 4390, the lake's last). The third seat has left the input track for the AI's army path, for the pass to weigh.
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 1 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
@@ -67,14 +67,12 @@ parked in `docs/LEADERS.md` §7.6 with what would falsify it.
 `RON_RANGES` (run1678's recipe) as run1686, the state-0 range named by record and field. Then it closed; the leaf leaves if the line
 agrees through 6081 with it emitted, seen red with it held. It stops when two acts move the first parting by nothing.
 
-4388. **The sample's state 0, its team game first** (a rules item, whole; the suite's; `docs/RECGAME.md` §7; DECISIONS 142 §4).
-`SAMPLE_LINES` first partings (4384, run1678, `SAMPLE_RANGES`): units on 92 (`unit_masks` 8 vs 0x4000008, the explore bit, which ours
-keeps outside the word), builds on 0 (`ever_seen_completed` 23 vs 3 on 21 rows), leaders on 0 (`chat_status[3]` 0 vs 1),
-goods on 1 (`ever_seen` 0x04 vs 0x17), world on 0 (`seen2` 0x04 vs 0x17). State 0 parts on 28 ranges, 19 from the team game: builds'
-21 rows are `LeaderData` +0x6929 `ally_mask` (theirs 3, 2, 7 on leaders 0 to 2, ours the whole team 0x17 from `Wall::activate`),
-`chat_status` is `Game::init_teams`' 0x80 arm, and the unseated slots 5 to 7 carry the person's diplomacy. First act: the writers of
-+0x6929 and their order in `build_game`; then `chat_status`; then the unseated slots' team byte; each row re-minted with its value diff.
-The nine left (oil patches, two z, six `seen2` cells) come after. It stops when two acts move no line's first parting.
+4394. **The sample's state 0, its last four ranges** (a rules item, whole; the suite's; `docs/RECGAME.md` §7; DECISIONS 142 §4).
+`SAMPLE_RANGES` state 0: 4 parted ranges (4388, from 28: `Leader::init` in start-list order, `is_ally` two-sided, `init_teams`' 0x80
+arm, an unseated slot read as record 0; builds 21 → 2, leaders 6 → 1; closed 4313a). Left: six `seen2` cells (ours 0x04, theirs 0x17;
+4388 guesses a unit's start reveal given to the owner alone), leader 2's `oil_patches` order ((20,5) vs (5,20)), and builds' two `z`
+(142 vs 145). First act: the `seen2` cells' writer at the start, then the other two, each row re-minted with its value diff; then the
+lines' next first partings named. It stops when two acts move no line's first parting.
 
 4393. **The lake's photograph and its card pass on one take** (a `render` item, scoped; the render seat's, the lake's last; `docs/RENDERER.md`
 §3.30; DECISIONS 142 §7). `RUN1564_3279_TEXTURE_STILL` ocean 244 of 437. 4386 and 4390 (run1681) placed the broad strokes under the
