@@ -1249,5 +1249,9 @@ fn setup_s_pass_claims_oil_after_the_reveals() {
     assert_eq!(s.ai.ai[1].oil_patches, vec![b], "the reveal lists its own");
     assert!(!s.in_play);
     s.settle_borders();
-    assert_eq!(s.ai.ai[1].oil_patches, vec![b, a], "then the pass, once each");
+    assert_eq!(
+        s.ai.ai[1].oil_patches,
+        vec![b, a],
+        "then the pass, once each"
+    );
 }
