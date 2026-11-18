@@ -64,7 +64,7 @@ parked in `docs/LEADERS.md` §7.6 with what would falsify it.
 on the base, earliest 7105 (12348, d2); with diplomacy reading the lobby's seed, a probe, 33 of 120, earliest 6081 (12345, d2), the
 original's frame; every demand is leader 1 at the person. First act: the planned war's seed mended to the lobby's, every floor held,
 the demand on 12345 d2 on 6081 in ours. Second: `from_lobby`'s donor relaxed to let options[0] differ (the rules equal across
-`TEAM_STYLE` on both East Indies pairs; no style-0 Great Lakes donor on disk); third: that game minted as run1677, played under
+`TEAM_STYLE` on both East Indies pairs; no style-0 Great Lakes donor on disk); third: that game minted as run1683, played under
 `RON_CHECKSUMS` and scored, the leaf leaving if the leaders line agrees through the demand with it emitted, red with it held.
 
 4388. **The sample's state 0, its team game first** (a rules item, whole; the suite's; `docs/RECGAME.md` §7; DECISIONS 142 §4).
