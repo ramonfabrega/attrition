@@ -401,40 +401,121 @@ pub fn player(o: Owner) -> Option<Player> {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use crate::ground::tests::{PixelTiles, Probe, ground_why, probe_at, run1564, run1665};
+    use crate::ground::tests::{Probe, probe_at, run1564, run1665};
     use std::path::PathBuf;
 
-    /// **A border's pixel, by colour** (item 4306): the band is a team's
-    /// border colour at `BorderSpline::border_alpha` 64 over the ground,
-    /// so it reads bluer than the mean of red and green while red keeps
-    /// pace with green — the lake fails the second, sand and grass the
-    /// first. run1564's band reads (154, 148, 169) over sand (192, 181,
-    /// 117).
-    pub(crate) fn band(rgb: [u8; 3]) -> bool {
-        let [r, g, b] = rgb.map(i32::from);
-        b > (r + g) / 2 && r + 2 >= g && r > 110
+    /// **The card's alpha test on the border's draws** (item 4379's card
+    /// pass, run1567, draws 135 and 136: `ALPHA_TEST`, reference 4): a
+    /// pixel whose alpha is 4 of 255 or less is not drawn.
+    pub(crate) const ALPHA_TEST: f32 = 4.0;
+
+    /// **Near theirs** (item 4385, fixed before its first count): a pixel
+    /// of ours within this many steps of theirs, `|Δr| + |Δg| + |Δb|`, an
+    /// sRGB step a channel; ten a channel. Item 4379's HDR draw is 17 from
+    /// theirs at run1665's x 1860, row 491, and its LDR draw 71.
+    pub(crate) const NEAR: usize = 30;
+
+    /// **The original's HUD in run1665's photograph** (item 4385, parked
+    /// 4376b), `(x0, y0, x1, y1)` inclusive, measured on the photograph:
+    /// the top bar, the nuke counter, "Armageddon: 29", and the wonders'
+    /// three frames. The client's still draws none of it. They hold 65 of
+    /// the 66 HUD pixels 4376 counted in the colour reader's hood.
+    pub(crate) const HUD: [(i32, i32, i32, i32); 4] = [
+        (1695, 0, 1919, 24),
+        (1835, 44, 1912, 86),
+        (1726, 98, 1848, 116),
+        (1843, 130, 1910, 268),
+    ];
+
+    fn in_hud(x: i32, y: i32) -> bool {
+        HUD.iter()
+            .any(|&(x0, y0, x1, y1)| x >= x0 && x <= x1 && y >= y0 && y <= y1)
     }
 
-    /// **Where a border can be drawn**: each pixel whose cell, or one of
-    /// its eight neighbours, is held by another owner than it, on the
-    /// simulation's own grid (`Sim::observe_territory`), as
-    /// `Border::sort_regular@00880960` adds an edge only between two
-    /// cells whose owners differ.
-    pub(crate) fn near_an_edge(p: &mut Probe, tiles: &PixelTiles) -> Vec<bool> {
-        let t = p.world.runner.territory();
-        let at = |x: i32, y: i32| {
-            (x >= 0 && y >= 0 && x < t.width && y < t.height)
-                .then(|| t.owner[(y * t.width + x) as usize])
-        };
-        tiles
-            .iter()
-            .map(|q| {
-                let Some((tx, ty)) = *q else { return false };
-                let (cx, cy) = (tx.div_euclid(4), ty.div_euclid(4));
-                let Some(me) = at(cx, cy) else { return false };
-                (-1..=1).any(|dy| (-1..=1).any(|dx| at(cx + dx, cy + dy).is_some_and(|o| o != me)))
-            })
-            .collect()
+    /// **The band's footprint by our strip's geometry** (item 4385,
+    /// `docs/RENDERER.md` §3.29, "The row by value"): each pixel whose
+    /// centre lies in a triangle of [`crate::world::World::border_meshes`],
+    /// laid with the owner grid unmoved, projected through the still's own
+    /// `to_screen_matrix` as `vs_patch` does, where the strip's alpha,
+    /// interpolated perspective-correct as the card does, passes
+    /// [`ALPHA_TEST`]; never a colour, and the same footprint for every
+    /// arm. `mask` takes a pixel out (the photograph's [`HUD`]).
+    pub(crate) fn footprint(p: &mut Probe, mask: &dyn Fn(i32, i32) -> bool) -> Vec<bool> {
+        let (w, h) = (p.photo.width as i32, p.photo.height as i32);
+        let (shift, on) = (p.world.borders_shift, p.world.borders);
+        p.world.borders_shift = (0, 0);
+        p.world.borders = true;
+        let meshes = p.world.border_meshes();
+        p.world.borders_shift = shift;
+        p.world.borders = on;
+        let m = p.camera.to_screen_matrix().0;
+        let mut out = vec![false; (w * h) as usize];
+        for mesh in &meshes {
+            for (tri, auv) in mesh.positions.chunks(3).zip(mesh.alpha_uvs.chunks(3)) {
+                // `(x, y, 1/w, alpha/w)` a corner, on the target's pixels.
+                let mut q = [[0.0f32; 4]; 3];
+                let mut behind = false;
+                for k in 0..3 {
+                    let [x, y, z] = tri[k];
+                    let cx = m[0] * x + m[4] * y + m[8] * z + m[12];
+                    let cy = m[1] * x + m[5] * y + m[9] * z + m[13];
+                    let cw = m[3] * x + m[7] * y + m[11] * z + m[15];
+                    behind |= cw <= 0.0;
+                    let a = auv[k][0] * 256.0 - 0.5;
+                    q[k] = [
+                        (cx / cw + 1.0) * w as f32 * 0.5,
+                        (1.0 - cy / cw) * h as f32 * 0.5,
+                        1.0 / cw,
+                        a / cw,
+                    ];
+                }
+                let edge = |a: [f32; 4], b: [f32; 4], x: f32, y: f32| {
+                    (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0])
+                };
+                let area = edge(q[0], q[1], q[2][0], q[2][1]);
+                if behind || area == 0.0 {
+                    continue;
+                }
+                let lo = |c: usize| q.iter().map(|v| v[c]).fold(f32::MAX, f32::min);
+                let hi = |c: usize| q.iter().map(|v| v[c]).fold(f32::MIN, f32::max);
+                let (x0, x1) = (
+                    (lo(0).floor() as i32).max(0),
+                    (hi(0).ceil() as i32).min(w - 1),
+                );
+                let (y0, y1) = (
+                    (lo(1).floor() as i32).max(0),
+                    (hi(1).ceil() as i32).min(h - 1),
+                );
+                for py in y0..=y1 {
+                    for px in x0..=x1 {
+                        let (fx, fy) = (px as f32 + 0.5, py as f32 + 0.5);
+                        let b = [
+                            edge(q[1], q[2], fx, fy) / area,
+                            edge(q[2], q[0], fx, fy) / area,
+                            edge(q[0], q[1], fx, fy) / area,
+                        ];
+                        if b.iter().any(|&v| v < 0.0) {
+                            continue;
+                        }
+                        let inv: f32 = (0..3).map(|k| b[k] * q[k][2]).sum();
+                        let a: f32 = (0..3).map(|k| b[k] * q[k][3]).sum::<f32>() / inv;
+                        if a > ALPHA_TEST && !mask(px, py) {
+                            out[(py * w + px) as usize] = true;
+                        }
+                    }
+                }
+            }
+        }
+        out
+    }
+
+    fn px(rgba: &[u8], i: usize) -> [u8; 3] {
+        [rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]]
+    }
+
+    /// `|Δr| + |Δg| + |Δb|`.
+    fn off(a: [u8; 3], b: [u8; 3]) -> usize {
+        (0..3).map(|c| usize::from(a[c].abs_diff(b[c]))).sum()
     }
 
     fn still(p: &mut Probe, name: &str) -> Vec<u8> {
@@ -454,65 +535,70 @@ pub(crate) mod tests {
         s
     }
 
-    /// The row on one still: `(both, theirs, ours)` — the pixels near an
-    /// edge the photograph and the still both call a border's, the
-    /// photograph's alone counted, and the still's alone counted.
-    fn row(p: &Probe, hood: &[bool], ours: &[u8]) -> [usize; 3] {
-        let px = |rgba: &[u8], i: usize| [rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]];
-        let mut out = [0; 3];
-        for (i, _) in hood.iter().enumerate().filter(|(_, h)| **h) {
-            let (a, b) = (band(px(&p.photo.rgba, i)), band(px(ours, i)));
-            out[0] += usize::from(a && b);
-            out[1] += usize::from(a);
-            out[2] += usize::from(b);
+    /// The four arms in pin order: bare (no border), drawn (HDR), moved
+    /// (the owner grid read one cell east: the made-to-fail), and 4376's
+    /// LDR draw (`World::border_hdr` off).
+    const ARMS: [(bool, (i32, i32), bool, &str); 4] = [
+        (false, (0, 0), true, "before"),
+        (true, (0, 0), true, "drawn"),
+        (true, (1, 0), true, "moved"),
+        (true, (0, 0), false, "ldr"),
+    ];
+
+    /// Each arm's still, then the footprint masked by [`HUD`] and the
+    /// pixels the mask took out of it.
+    fn arms(p: &mut Probe, name: &str) -> (Vec<Vec<u8>>, Vec<bool>, usize) {
+        let mut stills = Vec::new();
+        for (on, shift, hdr, what) in ARMS {
+            p.world.borders = on;
+            p.world.borders_shift = shift;
+            p.world.border_hdr = hdr;
+            stills.push(still(p, &format!("{name}-{what}")));
         }
-        out
+        let whole = footprint(p, &|_, _| false);
+        let foot = footprint(p, &in_hud);
+        let count = |f: &[bool]| f.iter().filter(|v| **v).count();
+        let masked = count(&whole) - count(&foot);
+        (stills, foot, masked)
     }
 
-    /// **`RUN1564_3279_BORDER`** (item 4306): on run1564's photograph,
-    /// of the pixels within a cell of an owner's edge, `(both, theirs,
-    /// ours)` as [`row`] counts them — drawn before (no border), drawn, and
-    /// the made-to-fail (the owner grid read one cell east). Minted at the
-    /// item's first act at `[0, 1440, 0]` (1,433 of the 1,440 east of x
-    /// 1800, the photographed band). Drawn: 225 of 1,440, 615 of ours.
-    /// With each half on the other side of the curve, 81 and 643
-    /// (`docs/RENDERER.md` §3.29).
-    /// Item 4312: 225 → 222 of 1,440, 615 → 613 of ours (a named fall from 225 and 615): the `Oil` good's billboard drawn under the water (item 4312, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
-    /// Item 4319: 222 → 225 of 1,440, 613 → 615 of ours: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
-    /// Item 4310: 225 → 226 of 1,440, 615 → 609 of ours: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR") moves the frame's mean, so its white.
-    /// Item 4338: 226 → 224 (a named fall of two), 609 → 605: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
-    /// Item 4344: 224 → 222 (a named fall of two), 605 → 566 of ours: the objects and the patches after the water drawn before it (item 4344, `docs/RENDERER.md` §3.30, "The fish under the water"), so the water blends over the band on its cells, as `Borders::process_all` comes before `render_water`.
-    /// Item 4345: 222 holds, 566 → 567 of ours: the herd lit (item 4345, `docs/RENDERER.md` §3.30, "The fish's light") moves the frame's mean, so its white.
-    /// Item 4348: 222 holds, 567 → 568 of ours: the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands") moves the frame's mean, so its white.
-    /// Item 4358: 222 → 43 (a named fall), 568 → 384 of ours: this photograph's band is a `BorderMorphRender` (item 4356), and the far-side half was fit to it; the settled band (run1665, [`RUN1665_3279_BORDER`]) lies on the owner's side across the whole width, [`super::LONE_PROFILE`].
-    /// Item 4376: 43 → 48 of 1,440, 384 → 387 of ours: the strip drawn on the curve's samples at the ground's heights there, chord between, with the depth test off, and only the first pair's end faded (`docs/RENDERER.md` §3.29, "The band's heights").
-    /// Item 4379: drawn 48 → 1 of 1,440 (a named fall), 387 → 213 of ours: the band blended on the HDR target through `TL_FAKE_LIGHT` (`docs/RENDERER.md` §3.29, "The band's colour") is lighter, and the reader's thresholds were set on the morph's LDR colour. A fourth arm pins 4376's LDR draw, `World::border_hdr` off: 48 and 387.
-    pub const RUN1564_3279_BORDER: [[usize; 3]; 4] =
-        [[0, 1440, 0], [1, 1440, 213], [0, 1440, 0], [48, 1440, 387]];
+    /// **The row by value** (item 4385): on [`footprint`]'s pixels, each
+    /// arm's count of pixels [`NEAR`] theirs, in [`ARMS`]' order; then the
+    /// footprint's size and the pixels [`HUD`] took out of it.
+    fn near_row(
+        p: &Probe,
+        foot: &[bool],
+        stills: &[Vec<u8>],
+        masked: usize,
+    ) -> ([usize; 4], [usize; 2]) {
+        let mut near = [0; 4];
+        for (k, s) in stills.iter().enumerate() {
+            near[k] = (0..foot.len())
+                .filter(|&i| foot[i] && off(px(&p.photo.rgba, i), px(s, i)) <= NEAR)
+                .count();
+        }
+        (near, [foot.iter().filter(|f| **f).count(), masked])
+    }
+
+    /// **`RUN1564_3279_BORDER`** (item 4306): the band on run1564's
+    /// photograph, whose band is a `BorderMorphRender` (item 4356) the
+    /// client does not draw. Item 4385 re-mints it by value, as
+    /// [`near_row`] counts it: from `[[0, 1440, 0], [1, 1440, 213], [0,
+    /// 1440, 0], [48, 1440, 387]]` (4306 to 4379's `(both, theirs, ours)`
+    /// by `b > (r + g) / 2` near an owner's edge) to the pixels of our
+    /// strip's 1,466 near theirs: bare 689, drawn 502, moved 689, LDR 194.
+    /// The drawn arm falls under the bare one because theirs is the morph's
+    /// band, not the settled one ours draws (`docs/RENDERER.md` §3.29, "The
+    /// row by value"). The [`HUD`] takes none of the footprint.
+    pub const RUN1564_3279_BORDER: ([usize; 4], [usize; 2]) = ([689, 502, 689, 194], [1466, 0]);
 
     #[test]
     fn the_border_band_on_run1564() {
         let Some(mut p) = probe_at(run1564()) else {
             return;
         };
-        let (_, tiles, _) = ground_why(&mut p);
-        let hood = near_an_edge(&mut p, &tiles);
-        let mut got = [[0; 3]; 4];
-        for (k, (on, shift, hdr, what)) in [
-            (false, (0, 0), true, "before"),
-            (true, (0, 0), true, "drawn"),
-            (true, (1, 0), true, "moved"),
-            (true, (0, 0), false, "ldr"),
-        ]
-        .into_iter()
-        .enumerate()
-        {
-            p.world.borders = on;
-            p.world.borders_shift = shift;
-            p.world.border_hdr = hdr;
-            let s = still(&mut p, &format!("border-{what}"));
-            got[k] = row(&p, &hood, &s);
-        }
+        let (stills, foot, masked) = arms(&mut p, "border");
+        let got = near_row(&p, &foot, &stills, masked);
         println!("RUN1564_3279_BORDER: {got:?}");
         assert_eq!(got, RUN1564_3279_BORDER);
     }
@@ -521,98 +607,61 @@ pub(crate) mod tests {
     /// photograph, run1564's take with fast-forward ended 100 frames
     /// before the pause, so the border is the settled regular strip its
     /// packet holds (`normal_border_renders` 2, no morph, `graphic_tick`
-    /// 253; `docs/RENDERER.md` §3.29, "The settled band"). Minted at
-    /// `[0, 262, 0]`; drawn as 4306 left it (one flat half on the far
-    /// side) 7 of 262, 568 of ours; with [`super::LONE_PROFILE`] on the
-    /// owner's own side, 59 of 262, 384 of ours. The made-to-fail is the
-    /// owner grid one cell east.
-    /// Item 4376: 59 → 155 of 262, 384 → 387 of ours: the band 2.5 to 3 px
-    /// south, onto the packet's strip — drawn on the curve's samples at the
-    /// ground's heights there, the chord between, with the depth test off
-    /// and no lift, and only the first pair's end faded (`docs/RENDERER.md`
-    /// §3.29, "The band's heights"). Of the 107 theirs alone, 66 are the
-    /// original's HUD in the photograph; the rest is the band's colour
-    /// (parked 4376a).
-    /// Item 4379: drawn 155 → 138 of 262 (a named fall), 387 → 213 of ours, ours alone 232 → 75: the band blended on
-    /// the HDR target through `TL_FAKE_LIGHT`, the card's draws 135 and 136 (`docs/RENDERER.md` §3.29, "The band's
-    /// colour"). Theirs' strong part, (174, 164, 167) at x 1860, fails [`band`] itself, so the row reads only the band's
-    /// margins; [`RUN1665_3279_BORDER_ERROR`] reads the colour by value. A fourth arm pins 4376's LDR draw: 155 and 387.
-    pub const RUN1665_3279_BORDER: [[usize; 3]; 4] =
-        [[0, 262, 0], [138, 262, 213], [0, 262, 0], [155, 262, 387]];
+    /// 253; `docs/RENDERER.md` §3.29, "The settled band"). Items 4358 to
+    /// 4379 counted it by colour near an owner's edge, `(both, theirs,
+    /// ours)`, to `[[0, 262, 0], [138, 262, 213], [0, 262, 0], [155, 262,
+    /// 387]]`; theirs' core (174, 164, 167) fails that reader (4379c), and
+    /// 66 of its 262 were the HUD (4376b).
+    /// Item 4385: by value on our strip's own footprint, [`near_row`]: of
+    /// 1,466 pixels, bare 456, drawn **1,425**, moved 456, LDR 655. The
+    /// [`HUD`] takes none of the footprint. With theirs read 3 px south,
+    /// once, the drawn arm fell to 493.
+    pub const RUN1665_3279_BORDER: ([usize; 4], [usize; 2]) = ([456, 1425, 456, 655], [1466, 0]);
 
     #[test]
     fn the_settled_border_band_on_run1665() {
         let Some(mut p) = probe_at(run1665()) else {
             return;
         };
-        let (_, tiles, _) = ground_why(&mut p);
-        let hood = near_an_edge(&mut p, &tiles);
-        let mut got = [[0; 3]; 4];
-        let mut stills = Vec::new();
-        for (k, (on, shift, hdr, what)) in [
-            (false, (0, 0), true, "before"),
-            (true, (0, 0), true, "drawn"),
-            (true, (1, 0), true, "moved"),
-            (true, (0, 0), false, "ldr"),
-        ]
-        .into_iter()
-        .enumerate()
-        {
-            p.world.borders = on;
-            p.world.borders_shift = shift;
-            p.world.border_hdr = hdr;
-            let s = still(&mut p, &format!("settled-{what}"));
-            got[k] = row(&p, &hood, &s);
-            stills.push(s);
-        }
+        let (stills, foot, masked) = arms(&mut p, "settled");
+        let got = near_row(&p, &foot, &stills, masked);
         println!("RUN1665_3279_BORDER: {got:?}");
-        let error = error_row(&p, &hood, &stills);
+        let error = error_row(&p, &foot, &stills);
         println!("RUN1665_3279_BORDER_ERROR: {error:?}");
         assert_eq!(got, RUN1665_3279_BORDER);
         assert_eq!(error, RUN1665_3279_BORDER_ERROR);
     }
 
     /// **`RUN1665_3279_BORDER_ERROR`** (item 4379; `docs/RENDERER.md`
-    /// §3.29, "The band's colour"): the band's colour by value, which
-    /// [`band`]'s thresholds cannot see — theirs' strong part, (174, 164,
-    /// 167) at x 1860, fails `b > (r + g) / 2` itself. The rule, fixed
-    /// before its count: the footprint is the hood's pixels where the HDR
-    /// arm's still or the LDR arm's differs from the bare one; on it, each
-    /// arm's mean of `|theirs − ours|` summed over r, g and b, times 10
-    /// and rounded, in [`RUN1665_3279_BORDER`]'s arm order (bare, HDR,
-    /// moved, LDR); then the footprint's size, the pixels the HDR arm is
-    /// nearer theirs on, and the pixels the LDR arm is nearer on. The
-    /// made-to-fail is the moved arm, the owner grid one cell east.
+    /// §3.29, "The band's colour"): the band's colour by value. On the
+    /// footprint, each arm's mean of `|theirs − ours|` summed over r, g
+    /// and b, times 10 and rounded, in [`ARMS`]' order; then the
+    /// footprint's size, the pixels the HDR arm is nearer theirs on, and
+    /// the pixels the LDR arm is nearer on. The made-to-fail is the moved
+    /// arm.
+    /// Item 4385: the footprint is [`footprint`]'s, our strip's geometry,
+    /// where it was the hood's pixels the HDR or LDR still moved off the
+    /// bare one: `([488, 398, 488, 451], [6842, 2325, 862])` →
+    /// `([529, 107, 529, 354], [1466, 1343, 109])`. The drawn band is 10.7
+    /// from theirs.
     pub const RUN1665_3279_BORDER_ERROR: ([usize; 4], [usize; 3]) =
-        ([488, 398, 488, 451], [6842, 2325, 862]);
+        ([529, 107, 529, 354], [1466, 1343, 109]);
 
-    fn error_row(p: &Probe, hood: &[bool], stills: &[Vec<u8>]) -> ([usize; 4], [usize; 3]) {
-        let px = |rgba: &[u8], i: usize| [rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]];
-        let off = |a: [u8; 3], b: [u8; 3]| -> usize {
-            (0..3).map(|c| usize::from(a[c].abs_diff(b[c]))).sum()
-        };
-        let foot: Vec<usize> = (0..hood.len())
-            .filter(|&i| hood[i])
-            .filter(|&i| {
-                px(&stills[1], i) != px(&stills[0], i) || px(&stills[3], i) != px(&stills[0], i)
-            })
-            .collect();
-        let n = foot.len().max(1);
+    fn error_row(p: &Probe, foot: &[bool], stills: &[Vec<u8>]) -> ([usize; 4], [usize; 3]) {
+        let f: Vec<usize> = (0..foot.len()).filter(|&i| foot[i]).collect();
+        let n = f.len().max(1);
         let mut mean = [0; 4];
         for (k, s) in stills.iter().enumerate() {
-            let sum: usize = foot
-                .iter()
-                .map(|&i| off(px(&p.photo.rgba, i), px(s, i)))
-                .sum();
+            let sum: usize = f.iter().map(|&i| off(px(&p.photo.rgba, i), px(s, i))).sum();
             mean[k] = (sum * 10 + n / 2) / n;
         }
         let (mut hdr, mut ldr) = (0, 0);
-        for &i in &foot {
+        for &i in &f {
             let t = px(&p.photo.rgba, i);
             let (h, l) = (off(t, px(&stills[1], i)), off(t, px(&stills[3], i)));
             hdr += usize::from(h < l);
             ldr += usize::from(l < h);
         }
-        (mean, [foot.len(), hdr, ldr])
+        (mean, [f.len(), hdr, ldr])
     }
 }

@@ -2203,7 +2203,7 @@ impl World {
     /// the curve's samples (item 4376: no lift, the chord between, drawn
     /// with the depth test off), the texture the owner's border colour and
     /// the alpha each vertex's off [`border_alpha_mips`].
-    fn border_meshes(&mut self) -> Vec<PatchMesh> {
+    pub(crate) fn border_meshes(&mut self) -> Vec<PatchMesh> {
         use crate::borders::{BORDER_ALPHA, BORDER_COLOURS, FADED_ALPHA};
         let t = self.runner.terrain();
         let terr = self.runner.territory();
