@@ -62,7 +62,7 @@ fn records(name: &str) -> Option<Vec<Record>> {
     Some(crate::checksum::records(std::io::BufReader::new(file)).expect("a kept dump reads"))
 }
 
-fn hook(name: &str) -> Option<Vec<Set>> {
+pub(in crate::diff) fn hook(name: &str) -> Option<Vec<Set>> {
     let path = crate::testenv::dump(name)?;
     let bytes = std::fs::read(path).expect("a kept trace reads");
     let (written, torn, ok) = summary(&bytes).expect("a RON_CHECKSUMS trace closes with I_CSUM");
@@ -506,18 +506,29 @@ fn our_adlers(
 /// One emitted line's walk against a hook: the first frame it parts, both
 /// sides' Adler there, the frames it parts on inside [`DIAG`], and the
 /// frames it was taken on and agreed.
-type LineWalk = (&'static str, i64, u32, u32, Vec<i64>, usize);
+pub(in crate::diff) type LineWalk = (&'static str, i64, u32, u32, Vec<i64>, usize);
 
 /// What a walk held of the three empty lines' elements: the frames it held
 /// none on, and the first frame it held one with [`held`]'s counts there.
-type HeldWalk = (usize, Option<(i64, [usize; 3])>);
+pub(in crate::diff) type HeldWalk = (usize, Option<(i64, [usize; 3])>);
 
 /// The walk under the pump against a hook's sets, per emitted line, and
 /// [`held`] on every frame a set pairs with.
 fn first_partings(trace: &[Set], length: i64) -> Option<(Vec<LineWalk>, HeldWalk)> {
-    let (_, mut built, _) = built_start()?;
+    let (_, built, _) = built_start()?;
+    let stream = crate::input::Stream::pump(&minted(&script())?);
+    first_partings_of(built, stream, trace, length)
+}
+
+/// [`first_partings`] for any built start and its order stream: the
+/// minted game's, or the 2017 sample's (`super::sample`, item 4359).
+pub(in crate::diff) fn first_partings_of(
+    mut built: super::Built,
+    mut stream: crate::input::Stream,
+    trace: &[Set],
+    length: i64,
+) -> Option<(Vec<LineWalk>, HeldWalk)> {
     let pieces = super::checksum_lines::packets::Pieces::read()?;
-    let mut stream = crate::input::Stream::pump(&minted(&script())?);
     let first = per_frame(trace);
     let mut out: Vec<Option<(i64, u32, u32)>> = vec![None; EMITTED.len()];
     let mut parted: Vec<Vec<i64>> = vec![Vec::new(); EMITTED.len()];
@@ -574,7 +585,7 @@ fn first_partings(trace: &[Set], length: i64) -> Option<(Vec<LineWalk>, HeldWalk
 }
 
 /// Frames as runs, `a-b` for a run of more than one.
-fn spans(frames: &[i64]) -> String {
+pub(in crate::diff) fn spans(frames: &[i64]) -> String {
     let mut out: Vec<String> = Vec::new();
     let mut i = 0;
     while i < frames.len() {
