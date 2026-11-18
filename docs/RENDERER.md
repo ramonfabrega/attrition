@@ -4453,8 +4453,25 @@ equal), and their model is
 - draws 170–209 are screen space.
 
 So no draw on the card pass puts the stroke there by what is on disk: the item's stop. The card trace streams no
-vertices, so this rests on the packet's lists, not the card's own per draw. *Not established:* which draw lays theirs'
-strokes. A card probe keeping each draw's stream after 3279 (4281a) would attribute each pixel.
+vertices, so this rests on the packet's lists, not the card's own per draw. *Not established:* ~~which draw lays theirs'
+strokes. A card probe keeping each draw's stream after 3279 (4281a) would attribute each pixel~~ — the probe ran (item
+4386, below), and no draw's own stream lays them.
+
+**The strokes by the card's own stream** (item 4386, run1681; the ledger: `docs/journal/2026-11-18-item-4386.md`).
+`RON_CARD_STREAMS` (`tools/trace/card.h`) keeps each draw's bound buffer over the drawn range, its indices, and the
+card's arrays. On run1681's 3279 pass, draws 0–185 are run1567's draw for draw. Every world draw is rasterised from
+its own vertices through its own matrices onto run1564's photograph. A stroke pixel is luma 40 over its 31×31 mean,
+inside the lake's rows, off the HUD and the sand: 3,636 pixels, 2,027 of them in the south-east.
+- Only the floor (36) and the water (162) lie under every stroke. The surf lays 1,225 of the 3,636 at α > 0.15, the
+  west rim's speckle (lists 7 and 8), and none of the south-east's broad strokes.
+- On the south-east strokes against the water beside them, the photograph's luma is 182.7 against 109.6. The floor's
+  model, 2·tex(uv0)·diffuse·tex(uv1) off its stream, is 0.519 against 0.522. The water's vertex is (0, 140, 240) at
+  α 0.715 against 0.641, so the strokes are not the floor showing through.
+- On a body tile (700–800, 250–330), the water's α is 0.741 with no spread, and the photograph's mottle follows the
+  floor's model at a correlation of 0.30.
+
+So the strokes are in neither draw's stream: the item's stop. *Not established:* draw 162's own shading, which no
+stream carries: stage 0's unnamed texture, `SCREEN_REFLECTIONS` and the Torrance specular (4386a), or past the pass.
 
 ## 4. The stack
 
