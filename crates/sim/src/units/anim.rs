@@ -1092,8 +1092,8 @@ impl Sim {
     /// adds to `o` for a gaia figure's variant and `Leader::diplomacy@
     /// 006bc950:188` reads for the war plan's span. It is not
     /// `world->seed` ([`Sim::game_seed`]), which this crate read for the
-    /// variant until item 4347 (the war plan still reads it: lane 4341's,
-    /// `docs/LEADERS.md` §8.2): the two agree mod 3 on every lobby at seed 12345
+    /// variant until item 4347 and for the war plan until item 4387
+    /// (`docs/LEADERS.md` §8.2): the two agree mod 3 on every lobby at seed 12345
     /// (12345 and 7236), and the 2017 sample's do not (340513920 and
     /// 48607), so its peacocks wore their neighbours' pieces and the
     /// wrong one's idle ran out on frame 98. A lobby that printed no
