@@ -1071,6 +1071,40 @@ impl Sim {
         }
     }
 
+    /// **A city building struck rings its city's bell** (item 4359) —
+    /// `Object::take_damage@00652020:255`–`:282`, the `orw $0xe` arm's
+    /// tail, the building twin of [`Sim::peasant_alarm`]:
+    ///
+    /// ```text
+    /// leader_flags & 4 clear (a computer), leader_flags2 & 8 clear,
+    /// get_diff > 1, (the type's vslot +0x90 || this's flags & 0x20),
+    /// and c's flags & 0x40 (the bell) clear:
+    ///   a group of c's building alone, pushed on who's groups, and
+    ///   Group::action_alarm on it
+    /// ```
+    ///
+    /// The 2017 sample's frame 2887: the person's three units (`3/14`,
+    /// `3/17`, `3/20`, sent at 2747) strike computer 4's capital `4/2000`,
+    /// its first wound, and the original enters `Group::action_alarm`,
+    /// `Unit::do_garrison` and `find_garrison_build` for the first time
+    /// that game (run1651's coverage); on 2888 a Citizen's walk to its
+    /// garrison spends `Unit::do_move+0xe84`. SEAMS: the type's vslot
+    /// `+0x90`, a city's building that is not the city itself, answered
+    /// no (as `alarm_view`'s `data_type_slot90`); the group is not pushed
+    /// on the player's pool, as [`Sim::peasant_alarm`]'s.
+    pub(crate) fn city_struck_alarm(&mut self, b: usize, c: usize) {
+        let who = self.buildings[b].owner;
+        if self.cities.nation[who as usize].human
+            || self.ai_difficulty() < 2
+            || !self.building_is_city(b)
+            || self.cities.cities[c].alarm
+        {
+            return;
+        }
+        let cb = self.cities.cities[c].building;
+        self.action_alarm(who, &[cb]);
+    }
+
     /// The **first wound**'s draws (§7.2 step 3), spent before the
     /// accumulate and only on the combat path.
     ///
@@ -1161,6 +1195,7 @@ impl Sim {
                 cd.no_heal = true;
                 cd.attacking = true;
                 cd.ever_attacked = true;
+                self.city_struck_alarm(b, c);
             }
         }
         self.first_wound_draws(b, by, attrition);
