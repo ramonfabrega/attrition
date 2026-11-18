@@ -935,6 +935,99 @@ pub(crate) mod recording {
         }
     }
 
+    /// The harness lobby re-read at `TEAM_STYLE 0`, `DIFFICULTY diff` and
+    /// `(int)seed seed`, walked order-free through `score_recording`'s pump
+    /// for up to `frames` frames, until the first `tribute_demanded` store
+    /// or declaration: `(demand, declared, last frame)`, each a `(frame,
+    /// me, k)` (items 4382, 4387).
+    fn style_zero_walk(
+        loaded: &crate::load::Loaded,
+        init: &crate::gamelog::Initial<'_>,
+        donor: &RecGame,
+        leader: &crate::commands::Command,
+        seed: i64,
+        diff: i64,
+        frames: i32,
+    ) -> (
+        Option<(i64, usize, usize)>,
+        Option<(i64, usize, usize)>,
+        i64,
+    ) {
+        let info: Vec<(&str, String)> = init
+            .game_info
+            .iter()
+            .map(|&(k, v)| {
+                let v = match k {
+                    "TEAM_STYLE" => "0".to_string(),
+                    "DIFFICULTY" => diff.to_string(),
+                    "(int)seed" => seed.to_string(),
+                    _ => v.to_string(),
+                };
+                (k, v)
+            })
+            .collect();
+        let info: Vec<(&str, &str)> = info.iter().map(|(k, v)| (*k, v.as_str())).collect();
+        let mut d = donor.clone();
+        d.options[0] = 0;
+        d.options[7] = diff as u8;
+        let packages = no_input_packages(leader.clone(), frames);
+        let rec = from_lobby(&info, &init.players, &d, packages).unwrap();
+        let mut built = crate::checksum::playback::recording_start(loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let n = built.sim.leaders.tribute.len();
+        let (mut demand, mut declared) = (None, None);
+        let mut war0 = Vec::new();
+        for a in 0..n {
+            for b in 0..n {
+                war0.push(built.sim.leaders.at_war[a][b]);
+            }
+        }
+        for frame in 0..frames {
+            stream.apply(frame, &mut built);
+            built.sim.command().tick();
+            let f = built.sim.frame;
+            for me in 0..n {
+                for k in 0..n {
+                    if demand.is_none() && built.sim.leaders.tribute[me].tribute_demanded[k] != 0 {
+                        demand = Some((f, me, k));
+                    }
+                    if declared.is_none() && built.sim.leaders.at_war[me][k] != war0[me * n + k] {
+                        declared = Some((f, me, k));
+                    }
+                }
+            }
+            if demand.is_some() || declared.is_some() {
+                break;
+            }
+        }
+        (demand, declared, built.sim.frame)
+    }
+
+    /// **The demand's lobby demands on 6081** (item 4387, `docs/LEADERS.md`
+    /// §8.2): seed 12345 at difficulty 2 and `TEAM_STYLE 0`, the French
+    /// (leader 1) on the human (0) on the frame run1646's French store theirs,
+    /// because the planned war reads the lobby's seed; read from the world
+    /// seed, ours demanded on 8129.
+    #[test]
+    fn the_demand_s_lobby_demands_on_6081() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let Some((_, donor, _)) = lobby_recording() else {
+            eprintln!("skipping: no {LOBBY_DUMP} or no recording");
+            return;
+        };
+        let path = crate::testenv::dump(LOBBY_DUMP).unwrap();
+        let text = crate::capture::read(&path);
+        let log = crate::gamelog::Log::parse(&text);
+        let init = log.replay_initial().unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let leader = crate::prefs::Prefs::FRESH.issue_leader_option(0);
+        let (demand, declared, _) =
+            style_zero_walk(&loaded, &init, &donor, &leader, 12345, 2, 6400);
+        assert_eq!((demand, declared), (Some((6081, 1, 0)), None));
+    }
+
     /// **Item 4387's game** (`docs/LEADERS.md` §8.2, `docs/RECGAME.md`
     /// §8.2): the harness lobby at `TEAM_STYLE 0`, `DIFFICULTY 2`, seed
     /// 12345 — the sweep's earliest demand, the French on the human on 6081
@@ -1091,61 +1184,10 @@ pub(crate) mod recording {
                         let Some(&(seed, diff)) = jobs.get(i) else {
                             break;
                         };
-                        let info: Vec<(&str, String)> = init
-                            .game_info
-                            .iter()
-                            .map(|&(k, v)| {
-                                let v = match k {
-                                    "TEAM_STYLE" => "0".to_string(),
-                                    "DIFFICULTY" => diff.to_string(),
-                                    "(int)seed" => seed.to_string(),
-                                    _ => v.to_string(),
-                                };
-                                (k, v)
-                            })
-                            .collect();
-                        let info: Vec<(&str, &str)> =
-                            info.iter().map(|(k, v)| (*k, v.as_str())).collect();
-                        let mut d = donor.clone();
-                        d.options[0] = 0;
-                        d.options[7] = diff as u8;
-                        let packages = no_input_packages(leader.clone(), frames);
-                        let rec = from_lobby(&info, &init.players, &d, packages).unwrap();
-                        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-                        let mut stream = crate::input::Stream::pump(&rec);
-                        let n = built.sim.leaders.tribute.len();
-                        let (mut demand, mut declared) = (None, None);
-                        let mut war0 = Vec::new();
-                        for a in 0..n {
-                            for b in 0..n {
-                                war0.push(built.sim.leaders.at_war[a][b]);
-                            }
-                        }
-                        for frame in 0..frames {
-                            stream.apply(frame, &mut built);
-                            built.sim.command().tick();
-                            let f = built.sim.frame;
-                            for me in 0..n {
-                                for k in 0..n {
-                                    if demand.is_none()
-                                        && built.sim.leaders.tribute[me].tribute_demanded[k] != 0
-                                    {
-                                        demand = Some((f, me, k));
-                                    }
-                                    if declared.is_none()
-                                        && built.sim.leaders.at_war[me][k] != war0[me * n + k]
-                                    {
-                                        declared = Some((f, me, k));
-                                    }
-                                }
-                            }
-                            if demand.is_some() || declared.is_some() {
-                                break;
-                            }
-                        }
+                        let (demand, declared, last) =
+                            style_zero_walk(&loaded, &init, &donor, &leader, seed, diff, frames);
                         eprintln!(
-                            "SWEEP seed {seed} diff {diff}: demand {demand:?} declared {declared:?} (walked to {})",
-                            built.sim.frame
+                            "SWEEP seed {seed} diff {diff}: demand {demand:?} declared {declared:?} (walked to {last})"
                         );
                     }
                 });
