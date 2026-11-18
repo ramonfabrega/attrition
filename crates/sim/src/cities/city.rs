@@ -1693,7 +1693,17 @@ impl Sim {
                 self.tables.build_types[ty].x_size,
                 self.tables.build_types[ty].y_size,
             );
+            let probe = std::env::var("RON_PROBE_4397").is_ok();
+            let watch = [crate::world::Pos::new(118, 227), crate::world::Pos::new(170, 38)];
+            let before: Vec<i32> = watch.iter().map(|&t| self.world.tile_z(t)).collect();
             self.terraform_for_building(corner, bw, bh);
+            if probe {
+                let after: Vec<i32> = watch.iter().map(|&t| self.world.tile_z(t)).collect();
+                eprintln!(
+                    "PROBE terraform b{b} {}/{} ty {ty} corner ({}, {}) size {bw}x{bh} frame {} watch {before:?} -> {after:?}",
+                    self.buildings[b].owner, self.buildings[b].index, corner.x, corner.y, self.frame
+                );
+            }
             // `Farms::recalc_heights`, after `Terrain::refresh_good_z`: the
             // owner's farms near the new ground sample it again (item 4048).
             self.farms_recalc_heights(corner, who);
