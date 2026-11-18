@@ -1191,7 +1191,8 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// Item 4366 adds four whole units lines and nine whole builds lines.
 /// Item 4368 adds 22 whole casualty lines.
 /// Item 4369 adds six whole casualty lines.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 590, 1053);
+/// Item 4370 closes the last two newly emitted casualty lines.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 592, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -3913,7 +3914,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (1777, 1777, 25),
             (0, 0, 0),
             (339, 0, 339),
-            (4, 4, 2),
+            (4, 4, 0),
             (568, 568, 4),
             (612, 612, 0),
             (399, 399, 6),
@@ -3971,7 +3972,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2736, 2736, 30),
             (0, 0, 0),
             (208, 0, 208),
-            (8, 8, 1),
+            (8, 8, 0),
             (610, 610, 2),
             (1718, 1718, 0),
             (407, 407, 6),

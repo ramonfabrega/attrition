@@ -614,6 +614,15 @@ now emit the entire cast, and 35 are byte-exact. On two of the other
 four the only differing word is a turret angle. The other two have
 different slot orderings among figures created on the same frame.
 
+The final three turret words (item 4370) come from model node 4 on pieces
+142 and 234. Each model's static pivot offset matches the original at
+361 of 361 whole headings. The three records then agree in full, taking
+the casualty score to 37 of 39 and the overall score to 592 of 1,053.
+This closes all 29 previously unreported casts. The two remaining casts
+already had partial emitters. On run785, four figures in two same-frame
+pairs occupy different slots. On run865, seven figures in two pairs and
+one triple do. Both original casts and their frame boundaries are known.
+
 ## 9. Pointers, floats, padding and locals
 
 - **Pointers: none walked**, in any of the twelve on this frame (§4).

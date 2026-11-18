@@ -38605,3 +38605,21 @@ predicted facing, original hit bearing, graphic and decoy status. The
 STARVE line at 1822 identifies run1487's fourth figure, player 0 object
 14. `oriented-packets.log` scores the completed change. The raw native
 counterpart for each prediction is the deaths row of the named packet.
+
+## Item 4370 — the last turret words on the two new casts (2026-11-18)
+
+Use the 4368 experiment directory. The two snapshots are
+`~/ron-golden/run1472/map-7/frame-snapshot.bin` for piece 234 and
+`~/ron-golden/run1487/map-18/frame-snapshot.bin` for piece 142. Run the
+existing geometry oracle with each corresponding snapshot and piece:
+
+```sh
+uv run --offline tools/recomp/get_position.py "$RON_INSTALL/riseofnations.exe" "$SNAP" entries "$PIECE"
+uv run --offline tools/recomp/get_position.py "$RON_INSTALL/riseofnations.exe" "$SNAP" sweep "$PIECE" 4 0 0
+```
+
+`entries-{234,142}.tsv` gives the graphic offsets and scales.
+`pivot-{234,142}-node4.tsv` gives the independent 361-heading sweeps
+read by the regression. `pivot-fit-before-integration.txt` records both
+fits before putting them in the simulator. `pivot-packets.log` is the
+107-packet survey following the change.

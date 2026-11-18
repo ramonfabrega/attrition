@@ -1517,11 +1517,9 @@ impl Sim {
         let roll = self.rng.roll() % 2;
         let mut cur_anim = combat::death_anim(dtype, roll);
         if dtype == 4 {
-            // The ammo-graphic death **replaces** the anim the first draw
-            // chose with one from a second, and rolls its own facing
-            // where every other death takes the attack's angle. The first
-            // draw is still spent, and its value discarded. A burning
-            // round's kill (`flame="1"`, [`combat::Projectile::flame`]).
+            // The second draw replaces the first animation. The third
+            // supplies a per-piece alternative (COMBAT §42.1). The impact
+            // angle is passed separately to the casualty sprite.
             self.mark(SITE_DEATH_ANIM_ALT);
             let alt = self.rng.roll() % 2;
             cur_anim = combat::death_anim(4, alt);

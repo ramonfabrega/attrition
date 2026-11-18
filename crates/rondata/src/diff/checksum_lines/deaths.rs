@@ -213,8 +213,10 @@ fn the_sea_packet_keeps_the_attrition_figure_alongside_three_round_impacts() {
         }
         let actual = built.sim.checksum_deaths().unwrap();
         assert_eq!((actual.ranges.len(), actual.bytes()), (8, 300));
-        // Slot three holds the figure lost to attrition on 1822.
-        assert_eq!(actual.ranges[7].bytes, theirs[7].2);
+        assert_eq!(
+            actual.ranges.iter().map(|r| &r.bytes).collect::<Vec<_>>(),
+            theirs.iter().map(|r| &r.2).collect::<Vec<_>>()
+        );
         let d = built
             .sim
             .combat
@@ -225,4 +227,35 @@ fn the_sea_packet_keeps_the_attrition_figure_alongside_three_round_impacts() {
         assert_eq!(d.first_frame, 1822);
         assert_eq!(d.impact, Some((-1, sim::num::single::Single::ZERO)));
     });
+}
+
+#[test]
+fn both_casualty_pivots_match_the_original_at_every_whole_degree() {
+    let dir = std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
+        .join("ron-data/lab-experiments/2026-11-18-codex-casualty-poses");
+    for piece in [142, 234] {
+        let Some(path) = crate::testenv::experiment(&dir, &format!("pivot-{piece}-node4.tsv"))
+        else {
+            return;
+        };
+        let table = std::fs::read_to_string(path).unwrap();
+        let mut degrees = 0;
+        for row in table.lines() {
+            let mut fields = row
+                .split_whitespace()
+                .take(4)
+                .map(|s| s.parse::<i32>().unwrap());
+            let d = fields.next().unwrap();
+            assert_eq!(d, degrees);
+            assert_eq!(fields.next(), Some(0)); // sweep status
+            let xy = (fields.next().unwrap(), fields.next().unwrap());
+            assert_eq!(
+                sim::data::pivot::offset_at(piece, 4, d),
+                xy,
+                "piece {piece}, heading {d}"
+            );
+            degrees += 1;
+        }
+        assert_eq!(degrees, 361);
+    }
 }

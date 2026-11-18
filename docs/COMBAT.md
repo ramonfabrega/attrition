@@ -7133,8 +7133,14 @@ virtual at `+0x150`, `Unit::close` for a unit) and then the slot hold of
   60fb19  add   %eax, %ebx         ; cur_anim = dtype*2 + 0xd + roll % 2
   60fb1b  cmpb  $0x4, 0x8(%ebp)    ; dtype == 4?
   60fb31  call Random::get         ;   cur_anim = roll % 2 + 0x11
-  60fb55  call Random::get         ;   facing   = 0xe - roll % 4
+  60fb55  call Random::get         ;   per-piece alternate animation = 0xe - roll % 4
 ```
+
+The third draw's label was corrected in item 4370. A source reading of
+the two figure loops finds that a graphic condition selects this value
+as the animation argument to `Objects::kill_guy`. Both loops forward the
+impact angle independently. Which figures use the alternate animation
+still awaits a dedicated byte comparison and independent review.
 
 Above all of it, `dtype != 0` and the function's own `local_1c`, which is
 set only on the arm that unblocks four tiles for a **Merchant**, a Dutch
