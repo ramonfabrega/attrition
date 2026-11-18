@@ -252,7 +252,8 @@ mod tests {
     /// `internal_random`; ours' pools read softer at the rim (4319a).
     /// Item 4310: 2,287 → 2,289, ours 2,483 → 2,486: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR") moves the frame's mean, so its white.
     /// Item 4338: 2,289 → 2,290, 2,486 → 2,490: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
-    pub const RUN1564_3279_ROUGH: [usize; 3] = [2290, 2387, 2490];
+    /// Item 4379: 2,290 → 2,287 (a named fall of three), ours 2,490 → 2,483: the national borders blended on the HDR target through `TL_FAKE_LIGHT`, before the water and the shade (item 4379, `docs/RENDERER.md` §3.29, "The band's colour"), move the frame's mean, so its white.
+    pub const RUN1564_3279_ROUGH: [usize; 3] = [2287, 2387, 2483];
 
     #[test]
     fn the_land_oil_s_pits_on_run1564() {

@@ -486,7 +486,9 @@ pub(crate) mod tests {
     /// Item 4348: 222 holds, 567 → 568 of ours: the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands") moves the frame's mean, so its white.
     /// Item 4358: 222 → 43 (a named fall), 568 → 384 of ours: this photograph's band is a `BorderMorphRender` (item 4356), and the far-side half was fit to it; the settled band (run1665, [`RUN1665_3279_BORDER`]) lies on the owner's side across the whole width, [`super::LONE_PROFILE`].
     /// Item 4376: 43 → 48 of 1,440, 384 → 387 of ours: the strip drawn on the curve's samples at the ground's heights there, chord between, with the depth test off, and only the first pair's end faded (`docs/RENDERER.md` §3.29, "The band's heights").
-    pub const RUN1564_3279_BORDER: [[usize; 3]; 3] = [[0, 1440, 0], [48, 1440, 387], [0, 1440, 0]];
+    /// Item 4379: drawn 48 → 1 of 1,440 (a named fall), 387 → 213 of ours: the band blended on the HDR target through `TL_FAKE_LIGHT` (`docs/RENDERER.md` §3.29, "The band's colour") is lighter, and the reader's thresholds were set on the morph's LDR colour. A fourth arm pins 4376's LDR draw, `World::border_hdr` off: 48 and 387.
+    pub const RUN1564_3279_BORDER: [[usize; 3]; 4] =
+        [[0, 1440, 0], [1, 1440, 213], [0, 1440, 0], [48, 1440, 387]];
 
     #[test]
     fn the_border_band_on_run1564() {
@@ -495,17 +497,19 @@ pub(crate) mod tests {
         };
         let (_, tiles, _) = ground_why(&mut p);
         let hood = near_an_edge(&mut p, &tiles);
-        let mut got = [[0; 3]; 3];
-        for (k, (on, shift, what)) in [
-            (false, (0, 0), "before"),
-            (true, (0, 0), "drawn"),
-            (true, (1, 0), "moved"),
+        let mut got = [[0; 3]; 4];
+        for (k, (on, shift, hdr, what)) in [
+            (false, (0, 0), true, "before"),
+            (true, (0, 0), true, "drawn"),
+            (true, (1, 0), true, "moved"),
+            (true, (0, 0), false, "ldr"),
         ]
         .into_iter()
         .enumerate()
         {
             p.world.borders = on;
             p.world.borders_shift = shift;
+            p.world.border_hdr = hdr;
             let s = still(&mut p, &format!("border-{what}"));
             got[k] = row(&p, &hood, &s);
         }
@@ -529,7 +533,12 @@ pub(crate) mod tests {
     /// §3.29, "The band's heights"). Of the 107 theirs alone, 66 are the
     /// original's HUD in the photograph; the rest is the band's colour
     /// (parked 4376a).
-    pub const RUN1665_3279_BORDER: [[usize; 3]; 3] = [[0, 262, 0], [155, 262, 387], [0, 262, 0]];
+    /// Item 4379: drawn 155 → 138 of 262 (a named fall), 387 → 213 of ours, ours alone 232 → 75: the band blended on
+    /// the HDR target through `TL_FAKE_LIGHT`, the card's draws 135 and 136 (`docs/RENDERER.md` §3.29, "The band's
+    /// colour"). Theirs' strong part, (174, 164, 167) at x 1860, fails [`band`] itself, so the row reads only the band's
+    /// margins; [`RUN1665_3279_BORDER_ERROR`] reads the colour by value. A fourth arm pins 4376's LDR draw: 155 and 387.
+    pub const RUN1665_3279_BORDER: [[usize; 3]; 4] =
+        [[0, 262, 0], [138, 262, 213], [0, 262, 0], [155, 262, 387]];
 
     #[test]
     fn the_settled_border_band_on_run1665() {
@@ -538,21 +547,72 @@ pub(crate) mod tests {
         };
         let (_, tiles, _) = ground_why(&mut p);
         let hood = near_an_edge(&mut p, &tiles);
-        let mut got = [[0; 3]; 3];
-        for (k, (on, shift, what)) in [
-            (false, (0, 0), "before"),
-            (true, (0, 0), "drawn"),
-            (true, (1, 0), "moved"),
+        let mut got = [[0; 3]; 4];
+        let mut stills = Vec::new();
+        for (k, (on, shift, hdr, what)) in [
+            (false, (0, 0), true, "before"),
+            (true, (0, 0), true, "drawn"),
+            (true, (1, 0), true, "moved"),
+            (true, (0, 0), false, "ldr"),
         ]
         .into_iter()
         .enumerate()
         {
             p.world.borders = on;
             p.world.borders_shift = shift;
+            p.world.border_hdr = hdr;
             let s = still(&mut p, &format!("settled-{what}"));
             got[k] = row(&p, &hood, &s);
+            stills.push(s);
         }
         println!("RUN1665_3279_BORDER: {got:?}");
+        let error = error_row(&p, &hood, &stills);
+        println!("RUN1665_3279_BORDER_ERROR: {error:?}");
         assert_eq!(got, RUN1665_3279_BORDER);
+        assert_eq!(error, RUN1665_3279_BORDER_ERROR);
+    }
+
+    /// **`RUN1665_3279_BORDER_ERROR`** (item 4379; `docs/RENDERER.md`
+    /// §3.29, "The band's colour"): the band's colour by value, which
+    /// [`band`]'s thresholds cannot see — theirs' strong part, (174, 164,
+    /// 167) at x 1860, fails `b > (r + g) / 2` itself. The rule, fixed
+    /// before its count: the footprint is the hood's pixels where the HDR
+    /// arm's still or the LDR arm's differs from the bare one; on it, each
+    /// arm's mean of `|theirs − ours|` summed over r, g and b, times 10
+    /// and rounded, in [`RUN1665_3279_BORDER`]'s arm order (bare, HDR,
+    /// moved, LDR); then the footprint's size, the pixels the HDR arm is
+    /// nearer theirs on, and the pixels the LDR arm is nearer on. The
+    /// made-to-fail is the moved arm, the owner grid one cell east.
+    pub const RUN1665_3279_BORDER_ERROR: ([usize; 4], [usize; 3]) =
+        ([488, 398, 488, 451], [6842, 2325, 862]);
+
+    fn error_row(p: &Probe, hood: &[bool], stills: &[Vec<u8>]) -> ([usize; 4], [usize; 3]) {
+        let px = |rgba: &[u8], i: usize| [rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]];
+        let off = |a: [u8; 3], b: [u8; 3]| -> usize {
+            (0..3).map(|c| usize::from(a[c].abs_diff(b[c]))).sum()
+        };
+        let foot: Vec<usize> = (0..hood.len())
+            .filter(|&i| hood[i])
+            .filter(|&i| {
+                px(&stills[1], i) != px(&stills[0], i) || px(&stills[3], i) != px(&stills[0], i)
+            })
+            .collect();
+        let n = foot.len().max(1);
+        let mut mean = [0; 4];
+        for (k, s) in stills.iter().enumerate() {
+            let sum: usize = foot
+                .iter()
+                .map(|&i| off(px(&p.photo.rgba, i), px(s, i)))
+                .sum();
+            mean[k] = (sum * 10 + n / 2) / n;
+        }
+        let (mut hdr, mut ldr) = (0, 0);
+        for &i in &foot {
+            let t = px(&p.photo.rgba, i);
+            let (h, l) = (off(t, px(&stills[1], i)), off(t, px(&stills[3], i)));
+            hdr += usize::from(h < l);
+            ldr += usize::from(l < h);
+        }
+        (mean, [foot.len(), hdr, ldr])
     }
 }

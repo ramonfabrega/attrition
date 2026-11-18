@@ -4297,7 +4297,22 @@ takes its alpha linear between the two edges', as the one quad does. `RUN1665_32
 384 → 387; `RUN1564_3279_BORDER` 43 → 48. At x 1860 the band's blue excess over the bare still is theirs 67, 69,
 61, 28, 14, rim 30, against ours 74, 73, 60, 28, 15, rim 30.
 
+**The band's colour (item 4379).** run1567's card pass after 3279 holds the border's two draws, 135 (`0x00880d51`, the
+morph) and 136 (`0x00882838`, `BorderSplineRender`): `SRCALPHA`/`INVSRCALPHA`, stage 0 `MODULATE(TEXTURE, CURRENT)`,
+`ALPHA_TEST VERTEX_COLOR_DIFFUSE TL_FAKE_LIGHT`, no `NO_HDR`. So `ps_global.hlsl` takes the owner's texel (the packet's
+vertex is white) to `5 · c^1.9` and the blend runs on the HDR target before the tone map, as the surf's (§3.27). The
+client blends each run of border patches so over a copy of the frame, `T(T⁻¹(d) · (1 − a) + L · a)` on the band's own
+pixels (`fs_border_over`, `Gpu::draw_split`; a whole-frame pass on the HDR target cost 7 ms of p99 on the clock), laid
+before the water as 135 and 136 precede its 162; `World::border_hdr` off is 4376's draw. At run1665's x 1860, row 491, theirs (174, 164, 167), 4376's
+(147, 139, 148), now (169, 159, 160). `RUN1665_3279_BORDER_ERROR`, the mean `|theirs − ours|` (r + g + b) on the band's
+footprint: 45.1 → **39.8**, the bare and the moved arm 48.8; HDR nearer on 2,325 pixels, LDR on 862. `band()`'s row falls
+155 → 138 of 262 (ours alone 232 → 75), a named fall: theirs' core fails `b > (r + g) / 2` itself (4379c). The value
+diff and the run1564 pins it moves are `docs/journal/2026-11-18-item-4379.md`. *Coverage:* diff-backed, the draws' state
+on one take's card; on a reading, the shader's branch.
+
 **What is not established.**
+- Draw 136 compiles `TEX0_NOT_BOUND`, under which the band would be its white vertex (4379a). Ours' edge is
+  stair-stepped where theirs' is soft; FXAA is one candidate (4379b).
 - ~~**The "<"'s upper arm** (parked 4306a).~~ The cells and the rule agree with the packet. The arm is morph 1's
   `to` strip, above (item 4356).
 - ~~Ours lies a few pixels off theirs along the lower arm.~~ The settled band is named above (item 4358). What is
@@ -4305,10 +4320,9 @@ takes its alpha linear between the two edges', as the one quad does. `RUN1665_32
   rim move alike, at x 1830, 1860 and 1890. That is about a quarter of the band, with x, y and z agreeing to the
   units above. Parked 4358a. ~~That shift.~~ It is the chord between the curve's samples ("The band's heights",
   item 4376).
-- **The band's colour.** At the same blue excess, theirs is about (27, 25, 19) lighter than ours: (174, 164, 167)
-  against (147, 139, 148) at x 1860. That moves theirs onto the row's red-keeps-pace and blue thresholds, and it
-  is the band's whole residue. One candidate is a blend on the land's HDR target before the tone map, as the land's
-  layers are (§3.27). Parked 4376a. Of the row's 107 theirs alone, 66 are the original's HUD in the photograph.
+- ~~**The band's colour.** At the same blue excess, theirs is about (27, 25, 19) lighter than ours: (174, 164, 167)
+  against (147, 139, 148) at x 1860. Parked 4376a.~~ It is the card's HDR blend through `TL_FAKE_LIGHT` ("The band's
+  colour", item 4379). Of the row's theirs, 66 are the original's HUD in the photograph (4376b).
 - The last pair's alpha depends on the colour list a reused render keeps, so a fresh render (list as long as the
   strip) fades its last pair too. Ours never does.
 - The owner's edge falls between row 2m+1 and row 2m+2, so it carries leader m+1's colour at ½. Near the strip's
