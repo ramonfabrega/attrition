@@ -38578,3 +38578,21 @@ ranges. The traces, scored states and packet census remain under
 checkpoint (`$E/score-4366-b.log`) only ammo still differed, on 359
 states. `$E/score-4367-b.log` has 14,438 agreements on each of twelve
 lines and exited 0. `$E/bow-packets.log` confirms every old packet pin.
+
+## Item 4368 — archived casualty record measurements (2026-11-18)
+
+The original streams are in `~/ron-data/lab-experiments/2026-11-12-item-4188/<run>/stream.tsv`.
+The comparison directory is `~/ron-data/lab-experiments/2026-11-18-codex-casualty-poses`.
+Its `inventory-before.tsv` lists all 29 previously unreported casts.
+The independent probes `pose1420.txt`, `pose1361.txt` and `pose1268.txt`
+record the sprite's absolute and relative angles before the checksum change.
+The run1420 and run1361 byte comparisons are tests in `checksum_lines::deaths`.
+Reproduce the 107-packet survey with the install set in `RON_INSTALL`:
+
+```sh
+RON_PACKETS_PRINT=1 zsh tools/check.sh test --release -p rondata --lib diff::checksum_lines::packets:: -- --show-output --test-threads 4
+```
+
+`pose-packets-2.log` is the first survey with orientations. In
+`pose-residual-bytes.log`, the diagnostic rows beginning with POSE give
+the full emitted record for each differing line, and POOL lists its cast.

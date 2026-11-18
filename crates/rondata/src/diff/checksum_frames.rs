@@ -693,8 +693,8 @@ fn the_held_count_reads_the_melee_s_shot() {
     assert_eq!(seen, MELEE_HELD, "MELEE_HELD");
     assert_eq!(
         emitted,
-        [None, Some(Some(4_105_309_200)), Some(None)],
-        "the ordinary shot has a record and the unmeasured impact stays unknown"
+        [None, Some(Some(4_105_309_200)), Some(Some(239_864_344))],
+        "first occupied shot and casualty records"
     );
     assert_eq!(
         empty_walk(0),

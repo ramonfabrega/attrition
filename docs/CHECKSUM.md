@@ -591,6 +591,16 @@ came from another sprite's coordinates. With its full heading sweep
 (RECGAME §10.2) all twelve lines agree on all 14,438 states of window B.
 The two occupied pools cover 3,417 and 3,882 original ranges respectively.
 
+Item 4368 measures the two casualty fields at byte offsets 32 and 36.
+The figure retains the round’s graphic when the ammo piece has flag 1.
+The angle is stored independently, in whole degrees relative to the first
+figure’s facing at close. The game converts the circular difference to
+degrees before encoding it as a single. Direct hits carry (−1, 0).
+In run1420 all four figures lack an attachment, yet their measured angles
+are 16, 193, 201 and 0. All 300 bytes match. Run1361 mixes piece 60157
+at 343 degrees and a direct hit at zero. All 150 bytes match. Across the
+107 packets, 22 further casualty lines agree and 176 fewer ranges differ.
+
 ## 9. Pointers, floats, padding and locals
 
 - **Pointers: none walked**, in any of the twelve on this frame (§4).

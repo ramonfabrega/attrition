@@ -2,6 +2,31 @@
 
 use super::*;
 
+/// A legacy caller can identify a projectile hit without having its graphic.
+#[derive(Clone, Copy)]
+pub(super) enum HitSource<'a> {
+    Direct,
+    Round(Option<&'a combat::Projectile>),
+}
+
+impl HitSource<'_> {
+    // The 71-byte casualty record stores whole degrees relative to its first figure.
+    fn impact(self, angle: Angle, facing: Option<Angle>) -> Option<(i32, Single)> {
+        match self {
+            Self::Direct => Some((-1, Single::ZERO)),
+            Self::Round(round) => {
+                let p = round?;
+                let relative = Angle(angle.0.wrapping_sub(facing?.0));
+                let degrees = crate::movement::angle_to_degrees(relative);
+                Some((
+                    if p.punctures { p.gpiece } else { -1 },
+                    Single::from_i32(degrees),
+                ))
+            }
+        }
+    }
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // Delivery
@@ -57,9 +82,12 @@ impl Sim {
         quiet: bool,
         frame: i64,
     ) -> Option<Taken> {
-        self.do_damage_round(
-            attacker, target, angle, ammo, false, count, splash, quiet, frame,
-        )
+        let source = if ammo {
+            HitSource::Round(None)
+        } else {
+            HitSource::Direct
+        };
+        self.do_damage_round(attacker, target, angle, source, count, splash, quiet, frame)
     }
 
     /// [`Self::do_damage`] for a round's blow, which also says whether the
@@ -67,18 +95,19 @@ impl Sim {
     /// `Object::do_damage`'s `param_5 >= 0`, and `flame` its
     /// `verify_ammo_flags(ammo[param_5].gpiece, 0x10)`.
     #[allow(clippy::too_many_arguments)]
-    pub(crate) fn do_damage_round(
+    pub(super) fn do_damage_round(
         &mut self,
         attacker: Obj,
         target: Obj,
         angle: Angle,
-        ammo: bool,
-        flame: bool,
+        source: HitSource<'_>,
         count: i32,
         splash: bool,
         quiet: bool,
         frame: i64,
     ) -> Option<Taken> {
+        let ammo = matches!(source, HitSource::Round(_));
+        let flame = matches!(source, HitSource::Round(Some(p)) if p.flame);
         if count < 1 || !self.struck(target) {
             return None;
         }
@@ -208,10 +237,15 @@ impl Sim {
         // The city alarm, before the take (`0064a9f8`..`0064b2c4`).
         let alarm = self.city_alarm(attacker, target, ap.siege, dealt.whole, frame);
         // Step 7: take.
-        // A direct hit has no ammo slot. The casualty sprite receives the
-        // absent piece and zero degrees (window A, state 9745).
-        let impact = (!ammo).then_some((-1, Single::ZERO));
-        let taken = self.take_damage_typed(target, dealt, attacker, frame, dtype, splash, impact);
+        let taken = self.take_damage_typed(
+            target,
+            dealt,
+            attacker,
+            frame,
+            dtype,
+            splash,
+            Some((source, angle)),
+        );
         let killed = matches!(taken, Taken::Died { .. });
         // **`Armies::emergency` is the CITY alarm's, and a unit never
         // reaches it** (`docs/ARMY.md` §15.8, item 399). The call at
@@ -291,7 +325,7 @@ impl Sim {
             self.units[t].combat.entrenched = false;
         }
         if let Obj::Building(b) = target {
-            self.spill_onto_builders(attacker, b, angle, (ammo, flame), count, frame);
+            self.spill_onto_builders(attacker, b, angle, source, count, frame);
         }
         Some(taken)
     }
@@ -485,7 +519,7 @@ impl Sim {
         attacker: Obj,
         b: usize,
         angle: Angle,
-        (ammo, flame): (bool, bool),
+        source: HitSource<'_>,
         count: i32,
         frame: i64,
     ) {
@@ -539,8 +573,7 @@ impl Sim {
                     attacker,
                     Obj::Unit(u),
                     angle,
-                    ammo,
-                    flame,
+                    source,
                     share,
                     false,
                     true,
@@ -578,7 +611,7 @@ impl Sim {
         _frame: i64,
         dtype: i32,
         splash: bool,
-        impact: Option<(i32, Single)>,
+        source: Option<(HitSource<'_>, Angle)>,
     ) -> Taken {
         // `Object::take_damage@00652020:67-71`, first after the sixteenth
         // floor: a hit by anything but attrition (`param_5 == 0`), at
@@ -685,6 +718,15 @@ impl Sim {
                     // `Object::die` is `close()` — the draw arm below —
                     // and **then** the slot hold, which is not gated on
                     // the draw arm's `dtype` at all (§42.3).
+                    let impact = source.and_then(|(source, angle)| {
+                        source.impact(
+                            angle,
+                            self.units[i]
+                                .guys
+                                .first()
+                                .map(|_| self.figure_point(i, 0).1),
+                        )
+                    });
                     self.close_count(i);
                     self.relink_squad(i);
                     self.close_unit(i, dtype, _frame, impact);
@@ -729,7 +771,7 @@ impl Sim {
                                 _frame,
                                 dtype,
                                 false,
-                                None,
+                                source,
                             );
                         }
                     }
@@ -1499,7 +1541,7 @@ impl Sim {
             o,
             first_frame: frame,
             cur_anim,
-            impact: impact.filter(|_| dtype != 4),
+            impact,
             life,
             figures,
         });

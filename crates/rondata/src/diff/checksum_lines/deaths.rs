@@ -68,31 +68,38 @@ fn the_disbanded_scout_and_dog_match_the_whole_packet() {
     assert!(built.sim.checksum_deaths().is_none());
 }
 
-/// A different game's four combat deaths. A missing hit direction must keep
-/// the line unknown even if the attacking piece is absent in every record.
-#[test]
-fn the_combat_packet_distinguishes_an_unknown_hit_from_a_disband() {
-    use crate::diff::german_modern_pair::GERMAN_MODERN;
+fn casualty_packet(run: &str) -> Option<super::StreamRows> {
     let dir = std::env::var_os("RON_PACKETS_DIR")
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| {
             std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
                 .join("ron-data/lab-experiments/2026-11-12-item-4188")
         });
-    let Some(path) = crate::testenv::experiment(&dir.join("run1420"), "stream.tsv") else {
-        return;
-    };
-    let rows = stream_lines(&std::fs::read_to_string(path).unwrap(), |name| {
+    let path = crate::testenv::experiment(&dir.join(run), "stream.tsv")?;
+    let mut rows = stream_lines(&std::fs::read_to_string(path).unwrap(), |name| {
         name == "deaths"
     });
-    let theirs = &rows["deaths"];
+    Some(rows.remove("deaths").expect("occupied casualty packet"))
+}
+
+#[test]
+fn the_combat_packet_keeps_the_hit_direction_without_an_attachment() {
+    use crate::diff::german_modern_pair::GERMAN_MODERN;
+    let Some(theirs) = casualty_packet("run1420") else {
+        return;
+    };
+
     let Some((mut built, _)) = crate::diff::third::stand_up_built(GERMAN_MODERN.long) else {
         return;
     };
     while built.sim.frame < 4586 {
         built.tick();
     }
-    assert!(built.sim.checksum_deaths().is_none());
+    let actual = built.sim.checksum_deaths().unwrap();
+    assert_eq!(
+        actual.ranges.iter().map(|r| &r.bytes).collect::<Vec<_>>(),
+        theirs.iter().map(|r| &r.2).collect::<Vec<_>>()
+    );
     assert_eq!(built.sim.combat.deaths.len(), 4);
     // Falsify extending the disband's impact to every death. This probe
     // operates only after the replay has reached the packet.
@@ -103,7 +110,7 @@ fn the_combat_packet_distinguishes_an_unknown_hit_from_a_disband() {
     assert_eq!((trial.ranges.len(), trial.bytes()), (8, 300));
     assert_eq!(theirs.len(), trial.ranges.len());
     let mut differences = Vec::new();
-    for (i, (ours, (_, _, original))) in trial.ranges.iter().zip(theirs).enumerate() {
+    for (i, (ours, (_, _, original))) in trial.ranges.iter().zip(&theirs).enumerate() {
         assert_eq!(ours.bytes.len(), original.len());
         for (j, (a, b)) in ours.bytes.iter().zip(original).enumerate() {
             if a != b {
@@ -116,5 +123,40 @@ fn the_combat_packet_distinguishes_an_unknown_hit_from_a_disband() {
     assert_eq!(
         differences,
         [(1, 38), (1, 39), (3, 38), (3, 39), (5, 38), (5, 39)]
+    );
+}
+
+#[test]
+fn the_mongol_packet_keeps_the_attached_piece_and_relative_direction() {
+    use crate::diff::mongol_enlightenment_pair::MONGOL_ENLIGHTENMENT;
+    use sim::num::single::Single;
+    let Some(theirs) = casualty_packet("run1361") else {
+        return;
+    };
+    let Some((mut built, _)) = crate::diff::third::stand_up_built(MONGOL_ENLIGHTENMENT.long) else {
+        return;
+    };
+    while built.sim.frame < 4840 {
+        built.tick();
+    }
+    let actual = built.sim.checksum_deaths().unwrap();
+    assert_eq!((actual.ranges.len(), actual.bytes()), (4, 150));
+    assert_eq!(
+        actual.ranges.iter().map(|r| &r.bytes).collect::<Vec<_>>(),
+        theirs.iter().map(|r| &r.2).collect::<Vec<_>>()
+    );
+    let impacts = built
+        .sim
+        .combat
+        .deaths
+        .iter()
+        .map(|d| (d.o, d.impact))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        impacts,
+        [
+            (8, Some((60157, Single::from_i32(343)))),
+            (7, Some((-1, Single::ZERO)))
+        ]
     );
 }
