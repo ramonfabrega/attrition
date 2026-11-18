@@ -1371,6 +1371,23 @@ impl Sim {
             .sum()
     } // absorbs ObjectData::get_wonder_value
 
+    /// `who`'s wonder buildings in wonder-record order (`wonders.list[who]`
+    /// below `wonder_mark`, in use): the list `Object::do_launch`'s silo
+    /// arm walks (item 4377).
+    pub(crate) fn wonders_of(&self, who: Player) -> Vec<usize> {
+        let Some(a) = self.ai.ai.get(who as usize) else {
+            return Vec::new();
+        };
+        let mark = usize::try_from(a.census.wonder_mark).unwrap_or(0);
+        a.census
+            .wonder_slots
+            .iter()
+            .take(mark)
+            .flatten()
+            .copied()
+            .collect()
+    }
+
     /// `LeaderData::get_unbuilt_wonder_value@006d5ee0`: the points of
     /// `who`'s unbuilt wonder sites — the list `add_unbuilt_wonder` keeps,
     /// read here as the leader's alive, inactive wonder buildings, the
