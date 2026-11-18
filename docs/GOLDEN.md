@@ -11538,6 +11538,8 @@ chapter tests fail. `army_pool_record` answering nothing: held, both fail.
 - Why the earlier arm (seating the record on the army) agrees with run460 where the original's `add_unit` returns:
   the army's tick then acts on the record, as it would on the original's index. This was not read. Since item
   4391 the arm also marks the army adopted, so `army_of` answers −1 as `get_army` does (`docs/ORDERS.md` §8.2).
+  Since item 4395 the army's forming, march and `send_here` clear the mark, as their writes of the record's
+  `army` do in the original. run1679 is whole to 8500.
 - The rest of the army's reads of its index are not carried: its counts, `role` and ticks on an adopted record, and
   `Army::process` issuing orders to it. No capture with live armies is known to reach an army whose index a later
   push took.

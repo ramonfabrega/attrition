@@ -3507,6 +3507,31 @@ adds nothing. `Army::add_unit`'s own push arm clears the mark, because
 the mark on all three. On 7163 each heads a plain `ATTACK_TO`, as theirs
 does (`a_pushed_group_s_member_answers_no_army_on_both_sides`).
 
+**Built (item 4395): the army's own moves claim the record.** Three
+writers of the army's id into a group record's `army` (`+8`) stand
+beside `Army::add_group`. `Army::do_forming@006f43c0:39` writes
+`*(short *)(this + 2)` into each populated record it walks.
+`Army::march_to_target@006f4d80:91` and `Army::send_here@006f98a0:48` do
+the same. So the forming tick on 7162 that sends the squad its plain
+`ATTACK_TO` also ends the −1. `get_army` answers army 1, `add_to_army`
+stops re-running, and each member's own 32-frame edge in `work` clears
+`unit_masks & 4`. In theirs it goes down on 7170 (`1/31`, `1/32`) and
+7171 (`1/30`) and stays down. Ours kept re-marking each edge to the
+take's end. So on the next tick, 7418, the gate gave ours plain
+`ATTACK_TO`s, each pathed onto the member's own raw slot, which is where
+it already stands. All three arrived and were killed in `do_move` on the
+frame they were laid. Theirs' followers took the group order. Its
+degraded move to each one's own snapped slot is in the dump on 7419:
+`orig` equals `dest` per member, (30888, 21192) for `1/31` and
+(30936, 20952) for `1/32`, against the 7163 move's `orig` (30919, 21067),
+the click. In ours, all three claims are `Sim::army_claim_record`, which
+clears `Army::adopted`. The forming's is the one the walk reaches:
+`the_army_s_forming_claims_the_adopted_record_on_both_sides` reads
+block 7200, where the mark is down on all three on both sides and ours
+answers army 1. `REPAIR_WALKED` is whole, (8500, 8500, 1600, 0). The
+march's and `send_here`'s arms are one reading each; no walk on file
+tells them apart from the forming's.
+
 ## 8.3 `GroupMoveOrder` per frame — `do_group_move@005e79a0`
 
 `G` = the order: a `MoveOrder` plus `oxx/whose` = the leader, `id`, `form_id` =
@@ -4414,8 +4439,13 @@ moves fall out of dispatching once on the front at the top of `work`.
   (§8.2, item 4389): the original answers −1 and re-joins every 32 frames,
   and ours answers the army. Not built; parked 4389a.~~ **Built by item
   4391** (§8.2, "Built"): `army_of` answers `None` on an adopted army.
-  Still not established: which other writers of the record's `army` word
-  clear the mark. Only `Army::add_unit`'s push is modelled.
+  ~~Still not established: which other writers of the record's `army`
+  word clear the mark. Only `Army::add_unit`'s push is modelled.~~
+  **Answered by item 4395** (§8.2, "Built (item 4395)"): `do_forming`,
+  `march_to_target` and `send_here` write it too. Only the forming's is
+  diff-backed (run1679, 7162 to 7200). `Army::remove_group@006f8b50:35`
+  writes −1, and what that does to a record the army still holds is not
+  read.
 
 **Not established — the order system**
 

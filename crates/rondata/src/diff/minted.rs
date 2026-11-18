@@ -7141,11 +7141,15 @@ fn repair_effects() -> Vec<RepairEffect> {
     };
     let (bowmen, citizen) = ([None; 3], u(2232, 31224, Some(7)));
     // Item 4391: the squad walks plain from 7163, and the attack reaches
-    // the Capital on 8200 with `1/24` alone, as theirs does.
-    let citizen_late = u(1848, 31608, Some(7));
+    // the Capital on 8200 with `1/24` alone, as theirs does. Item 4395: the
+    // forming on 7162 claims the record, so the squad stays the army's;
+    // the repairer waits at (2040, 31032), not (1848, 31608), and `1/26`
+    // lives to 8190, as theirs.
+    let citizen_late = u(2040, 31032, Some(7));
     let at = u(2472, 30936, Some(13));
     let done = u(2472, 30936, None);
     let a = u(6216, 29976, Some(10));
+    let c = u(6168, 29592, Some(10));
     vec![
         row(
             6920,
@@ -7187,11 +7191,11 @@ fn repair_effects() -> Vec<RepairEffect> {
                 u(22882, 26635, Some(1)),
             ],
         ),
-        row(8180, 0, citizen_late, [a, None, None]),
-        row(8190, 0, citizen_late, [a, None, None]),
+        row(8180, 0, citizen_late, [a, None, c]),
+        row(8190, 0, citizen_late, [a, None, c]),
         row(8200, 1, citizen_late, [a, None, None]),
-        row(8201, 1, u(1865, 31590, Some(1)), [a, None, None]),
-        row(8202, 1, u(1882, 31572, Some(1)), [a, None, None]),
+        row(8201, 1, u(2064, 31027, Some(1)), [a, None, None]),
+        row(8202, 1, u(2088, 31022, Some(1)), [a, None, None]),
         row(8250, 2, at, bowmen),
         row(8300, 0, done, bowmen),
         row(8325, 0, done, bowmen),
@@ -7205,7 +7209,7 @@ fn repair_effects() -> Vec<RepairEffect> {
 /// **The computer's attack and the Repair pick's `REPAIR` on our walk and
 /// on the original's** (item 4383): on [`REPAIR_READ_AT`], ours pinned,
 /// against the transport file's walk (no wound, no repair); and run1679's
-/// records, equal to ours.
+/// records, equal to ours on every frame it prints (item 4395).
 #[test]
 fn what_the_repair_does_on_both_sides() {
     if built_start().is_none() || minted(&crate::script::picked_repair()).is_none() {
@@ -7228,15 +7232,14 @@ fn what_the_repair_does_on_both_sides() {
     for t in &theirs {
         eprintln!("REPAIR EFFECT theirs {t:?}");
     }
-    // The walk parts on 7163 (parked 4383a): ours equals theirs through
-    // 7500, the attack's march; past it the wound and the repair are
-    // read on each side by when they happen.
-    assert_eq!(theirs[..4], ours[..4], "the march, both sides");
+    // The walk is whole to 8500 (item 4395): ours equals theirs on every
+    // frame the take prints; 8500 is its closing block.
     assert_eq!(
         theirs.len(),
         REPAIR_READ_AT.len() - 1,
         "8500 is the closing block"
     );
+    assert_eq!(theirs[..], ours[..theirs.len()], "every read, both sides");
     let first = |v: &[RepairEffect]| v.iter().find(|e| e.damage > 0).map(|e| e.frame);
     let repairing = |v: &[RepairEffect]| {
         v.iter()
@@ -7268,14 +7271,18 @@ fn what_the_repair_does_on_both_sides() {
 /// is pinned as measured. Item 4391 moved it (7274, 1337) → (7420, 1081):
 /// the squad answers no army and walks plain on 7163 as theirs does
 /// ([`a_pushed_group_s_member_answers_no_army_on_both_sides`]); the first
-/// record parting is now 7419 (`1/32`'s position, `1/31`'s order count).
+/// record parting was then 7419 (`1/32`'s position, `1/31`'s order count).
+/// Item 4395 moved it (7420, 1081) → (8500, 0), whole: the army's forming
+/// on 7162 claims the adopted record, so the squad's mark is down by 7418
+/// and the tick's move there groups it as theirs
+/// ([`the_army_s_forming_claims_the_adopted_record_on_both_sides`]).
 pub(crate) const REPAIR_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
     "gamelog-run1679-greatlakes-playback-of-repair-8500.txt",
     "rontrace-run1679.log",
-    7420,
+    8500,
     8500,
     1600,
-    1081,
+    0,
 )];
 
 /// **The original plays the repair file in lockstep** (item 4383): the
@@ -7377,6 +7384,54 @@ fn a_pushed_group_s_member_answers_no_army_on_both_sides() {
             .and_then(|u| u.current_order().map(|o| o.index))
     });
     assert_eq!(heads, [attack_to; 3], "theirs on 7163: a plain ATTACK_TO");
+}
+
+/// **The army's forming claims the adopted record** (item 4395,
+/// `docs/ORDERS.md` §8.2, §14; `docs/GOLDEN.md` §77): the army's tick on
+/// 7162 runs `Army::do_forming@006f43c0`, which writes the army's id into
+/// each populated group record it walks (`:39`, record `+8`), so group
+/// 65's `army` is no longer −1 and `Object::get_army` answers army 1 for
+/// the squad. `add_to_army` stops re-running, nothing re-marks, and each
+/// member's own 32-frame edge in `Unit::work` clears `unit_masks & 4`
+/// (theirs 7170 and 7171). On block 7200 the mark is down on all three, on
+/// both sides, and ours answers army 1.
+#[test]
+fn the_army_s_forming_claims_the_adopted_record_on_both_sides() {
+    const SQUAD: [i16; 3] = [30, 31, 32];
+    const AT: i64 = 7200;
+    if built_start().is_none() || minted(&crate::script::picked_repair()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(&crate::script::picked_repair()).unwrap());
+    tick_to(&mut built, Some(&mut stream), AT);
+    let s = &built.sim;
+    let ours = SQUAD.map(|o| {
+        let k = s.unit_by_o(1, o).expect("the squad");
+        (s.units[k].in_danger, s.army_of(k))
+    });
+    eprintln!("SQUAD ours on {AT}: {ours:?}");
+    assert_eq!(ours, [(false, Some(1)); 3], "ours: unmarked, in army 1");
+    let Some(path) = dump(REPAIR_WALKED[0].0) else {
+        return;
+    };
+    let mut source = crate::capture::indexed::IndexedCapture::open(path).unwrap();
+    let i = source
+        .frames()
+        .iter()
+        .position(|f| f.number == AT)
+        .expect("block 7200");
+    let f = source.frame_state(i).unwrap();
+    let theirs = SQUAD.map(|o| {
+        let u = f
+            .units
+            .iter()
+            .find(|u| u.who == 1 && u.o == i64::from(o))
+            .expect("the squad");
+        u.unit_masks.expect("unit_masks") & 4 != 0
+    });
+    assert_eq!(theirs, [false; 3], "theirs: unmarked");
 }
 
 /// **The original's playback of the auto-explored file** (item 4291,
