@@ -38407,3 +38407,29 @@ It was waited on with `waitrun.sh` in the background. `df -g ~` read 191 GB free
 Archive `gamelog-run1656-greatlakes-playback-of-picked-7500.txt`, 162,697,261 bytes,
 SHA-256 `67db4c2cbf29bc63dbd05add67d02609e3a8ae00d3e269a9ee2b49e03910fedf`; `rontrace-run1656.log`, 36,068,544
 bytes, SHA-256 `30baa1190df53f1df6fa373a8a72c1d0ad408ed10432889e7bde1c7a3171680a`.
+
+## run1663 — the original playing the file the picks' other arms minted (2026-11-18, item 4361, `att-4361`)
+
+`docs/CLIENT_INPUT.md` §32.13. **What the disk could not answer**: no take on disk plays the Move pick's ground order,
+the Attack pick's `guard` or ground `ATTACK_TO`, or the Repair pick's `BUILD_AT`, each minted by a pick button
+(4352b). The file: `~/ron-golden/recordings/item4361-arms-greatlakes-24000.rcx`, 59,813 bytes, SHA-256
+`9a410084c5328cff5bd5a6f710508dcb8f75c9dc8de431d377980598f77d5311`. It is the picked file (run1656) with five packages
+more: `group [1]`, `move_to(5148, 30423, MOVE_TO, form 0, width 50)` on 6860; `group [6]`, `guard(9, 0, 2)` on 6870;
+`group [10]`, `move_to(3306, 33036, ATTACK_TO, −1, −1)` on 6880; `group [4]`, `build(3994, 32387, Farm)` on 6890;
+`group [5]`, `swarm_around(2009, 0, 2, BUILD_AT)` on 6900.
+
+The take is run1656's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1663 --recording <the file> --end-frame 7500 --cover cover=1
+--log-window 6800 7500 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2,DEATHS=1 --timeout 2400 --stall-seconds 120`.
+It was waited on with `waitrun.sh` in the background. `df -g ~` read 157 GB free before it.
+- **The run**: pool lane 3, launched 06:24:10 −05:00, exited 06:33:10: **539.6 s launch to exit**, exit 0,
+  `success`, no page fault, no relaunch. 7,501 frames, `last_frame` 7500, seed 12345, map 14. Players: tribe 4
+  (flags 7) and tribe 11 (flags 1). Five settings restored. The receipt names the file's SHA-256. Minutes waited on
+  another lane: none.
+- **The `.rcx` the playback leaves**: none. No `.rcx` newer than the launch is under lane 3's prefix or the run's
+  directory, but the run's own `input.rcx`, the symlink to the file played (DECISIONS 140 §2).
+- Filed with `filerun.py run1663 greatlakes-playback-of-arms-7500`. run1664 was not used.
+
+Archive `gamelog-run1663-greatlakes-playback-of-arms-7500.txt`, 165,533,592 bytes,
+SHA-256 `6d70876674a37b56838bb65fa5656f027596a06299e633454c5aa0260de4ca1e`; `rontrace-run1663.log`, 36,810,912
+bytes, SHA-256 `b646b960004f9ba8c36bd9f3ab5198f33dcdb40919c79dd59841bbb84121bd25`.
