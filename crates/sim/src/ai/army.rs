@@ -123,7 +123,9 @@ pub struct Army {
     /// `Object::get_army@00649d70` answers −1 for every member and
     /// `add_to_army` re-runs on each 32-frame edge. Only `Army::add_unit`'s
     /// own push (`Army::add_group`) writes that word back, so the push arm
-    /// clears this.
+    /// clears this; and `do_forming`, `march_to_target` and `send_here`
+    /// write the army's id there too ([`Sim::army_claim_record`], item
+    /// 4395), so the army's next tick that reaches one clears it.
     pub adopted: bool,
 }
 
@@ -1405,45 +1407,6 @@ impl Sim {
 
     // ---- the helpers (§14) ----
 
-    /// `Army::send_here(x, y, order)`: the point and the muster cell move,
-    /// and every group walks there.
-    pub fn send_here(&mut self, who: Player, slot: usize, p: Pos, kind: MoveKind) {
-        let w = who as usize;
-        let p = self.restrict(p);
-        let here = self.ai.armies[w].list[slot].pos;
-        if p.x != here.x && p.y != here.y {
-            self.ai.armies[w].list[slot].muster_angle = find_angle(p.x - here.x, p.y - here.y);
-        }
-        {
-            let a = &mut self.ai.armies[w].list[slot];
-            a.pos = p;
-            a.muster = p.cell();
-        }
-        let ang = self.ai.armies[w].list[slot].muster_angle;
-        let g = self.army_group(who, slot);
-        self.group_action_move_to(&g, p, QueuePos::New, true, ang, kind, true);
-    }
-
-    /// `Army::charge(o, who)`: a siege unit under attack drags its army
-    /// onto the attacker.
-    pub fn army_charge(&mut self, who: Player, slot: usize, target: Obj) {
-        if !self.ai.armies[who as usize].list[slot].valid {
-            return;
-        }
-        let p = self.pos_of(target);
-        let g = self.army_group(who, slot);
-        self.group_action_move_to(
-            &g,
-            p,
-            QueuePos::First,
-            false,
-            Angle(0),
-            MoveKind::AttackTo,
-            true,
-        );
-        self.ai.armies[who as usize].list[slot].target = Some(target);
-    }
-
     // ---- defending (§10) ----
 
     fn do_defending(&mut self, who: Player, slot: usize) {
@@ -2650,7 +2613,11 @@ impl FormView for FormSim<'_> {
     fn group_populated(&mut self, _: i32) -> bool {
         true
     }
-    fn group_claim(&mut self, _: i32) {}
+    /// `do_forming@006f43c0:39`: the record's `army` takes the army's id,
+    /// so an adopted record is the army's again ([`Army::adopted`]).
+    fn group_claim(&mut self, _: i32) {
+        self.sim.army_claim_record(self.who, self.slot);
+    }
     fn hurry(&self) -> bool {
         self.sim.ai.armies[self.who as usize].list[self.slot].hurry != 0
     }
@@ -2996,7 +2963,11 @@ impl MarchToView for MarchToSim<'_> {
     fn group_populated(&mut self, _: i32) -> bool {
         true
     }
-    fn group_claim(&mut self, _: i32) {}
+    /// `march_to_target@006f4d80:91`: the record's `army` takes the
+    /// army's id ([`Army::adopted`]).
+    fn group_claim(&mut self, _: i32) {
+        self.sim.army_claim_record(self.who, self.slot);
+    }
     fn target_city_centre(&mut self) -> bool {
         match self.army().target {
             Some(Obj::Building(b)) => {
@@ -3695,6 +3666,7 @@ pub mod army_normalize_view;
 pub mod army_process_view;
 pub mod besieged_view;
 pub mod muster;
+pub mod send;
 pub mod target_forts;
 pub mod target_gate;
 pub mod target_score;
