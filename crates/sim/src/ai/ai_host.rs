@@ -971,9 +971,13 @@ impl ScriptHost<'_> {
         Some(Pos::new(pos.x / UNITS_PER_TILE, pos.y / UNITS_PER_TILE))
     }
 
-    /// `was_city_attacked` / `was_city_raided`. The simulation keeps
-    /// `attack_stamp` on the city record; a raid stamp is not modelled, so
-    /// a raid query reads "never" (`docs/AI.md` §13).
+    /// `was_city_attacked@009fd510` / `was_city_raided@009fd3e0`: the
+    /// city's `attack_stamp` (`CityData +0x14`) or `raid_stamp` (`+0x18`),
+    /// the one field each reads (`docs/AI.md` §13). The raid query read
+    /// "never" until item 4359: the 2017 sample's computer 4, whose
+    /// capital the person's three units strike on 2887 (a light blow,
+    /// `raid_stamp` 2887), answers `economic`'s head on 2901 with
+    /// `SCRIPT_DONE` in the original and runs its machine on to `Make`.
     fn was_city_attacked(&self, who: i32, city: &str, seconds: i32, raid: bool) -> Value {
         let Some(w) = self.leader(who) else {
             return BAD;
@@ -981,7 +985,7 @@ impl ScriptHost<'_> {
         let frame = self.sim.frame;
         let hit = |c: usize| -> bool {
             let stamp = if raid {
-                0
+                self.sim.cities.cities[c].raid_stamp
             } else {
                 self.sim.cities.cities[c].attack_stamp
             };

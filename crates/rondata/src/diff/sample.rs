@@ -279,22 +279,11 @@ mod tests {
         p.is_file().then(|| p.display().to_string())
     }
 
-    /// **The walk's word** (item 4336, row 2): the start built from the
-    /// header, walked under the turn pump on the recording's own packages
-    /// (each acting as `info.player[play].who`), every frame's draws
-    /// against run1651's trace of the original's playback. Pins `(word,
-    /// frames walked)`: the word is the first frame whose draw sequence
-    /// parts, or the walk's last when none does. `RON_SAMPLE_WALK=<frame>`
-    /// stops the walk there.
-    #[test]
-    fn the_sample_walks_to_its_word() {
-        let (Some(inst), Some(rcx), Some((dump, trace))) = (install(), sample(), run1651()) else {
-            eprintln!("skipping: no install, no sample or no run1651 (RON_GOLDEN_DIR)");
-            return;
-        };
-        let loaded = crate::load::load(&inst).unwrap();
-        let rec = crate::recgame::read(&rcx).expect("the sample parses");
-        let (info, players) = header_lobby(&rec);
+    /// The start built from the sample's header (row 1), and the leaders
+    /// it seats (`who` + 1 of the highest seat).
+    fn sample_start(inst: &crate::Install, rec: &RecGame) -> (Built, usize) {
+        let loaded = crate::load::load(inst).unwrap();
+        let (info, players) = header_lobby(rec);
         let info: Vec<(&str, &str)> = info.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
         let players: Vec<Vec<(&str, &str)>> = players
             .iter()
@@ -311,6 +300,24 @@ mod tests {
         for note in &notes {
             eprintln!("note {note}");
         }
+        (built, n)
+    }
+
+    /// **The walk's word** (item 4336, row 2): the start built from the
+    /// header, walked under the turn pump on the recording's own packages
+    /// (each acting as `info.player[play].who`), every frame's draws
+    /// against run1651's trace of the original's playback. Pins `(word,
+    /// frames walked)`: the word is the first frame whose draw sequence
+    /// parts, or the walk's last when none does. `RON_SAMPLE_WALK=<frame>`
+    /// stops the walk there.
+    #[test]
+    fn the_sample_walks_to_its_word() {
+        let (Some(inst), Some(rcx), Some((dump, trace))) = (install(), sample(), run1651()) else {
+            eprintln!("skipping: no install, no sample or no run1651 (RON_GOLDEN_DIR)");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx).expect("the sample parses");
+        let (built, n) = sample_start(&inst, &rec);
         let tr = crate::trace::Trace::read(&trace)
             .expect("a finalized trace")
             .expect("a RONT header");
@@ -368,7 +375,16 @@ mod tests {
     const SAMPLE_WINDOW_RECORDS: (usize, usize, Option<(i64, &str)>) = (18, 0, None);
 
     /// The sample's word and the frames walked, against run1651's draws:
-    /// 2888 of 21,044 (item 4351: 444 → 2888, +2444, the scout's
+    /// 3019 of 21,044 (item 4359: 2888 → 3019, +131, in two builds. On
+    /// 2887 the person's units strike computer 4's capital `4/2000` and
+    /// its city's bell rings, [`sim::Sim::city_struck_alarm`]: 2888 → 2908,
+    /// a Citizen's garrison walk's `Unit::do_move+0xe84`. On 2901 `ai
+    /// economic`'s head asks `was_city_raided`, which read never, and the
+    /// capital's light blow had stamped `raid_stamp` 2887: 2908 → 3019,
+    /// computer 4's `Make` step's nine `make_stuff` draws on 2908. On 3019
+    /// theirs starts two units' steps (`Unit::move_step+0x823`) three
+    /// frames after `Armies::emergency`, whose two armies are empty here.)
+    /// Before that, 2888 (item 4351: 444 → 2888, +2444, the scout's
     /// shift-queued moves made explores, [`sim::Unit::explore_queued`]; the
     /// sequences part at draw 32 there). Before that, 444 (item 4347: 98 → 444, +346, the gaia figures' variant
     /// off the lobby's seed, [`sim::Sim::info_seed`]; minted at 98 by item
@@ -377,5 +393,124 @@ mod tests {
     /// 60078, so `8/0`'s 99-frame idle ran out here and `8/1`'s in theirs:
     /// ours took the far arm (413 from the herd centre), theirs the near
     /// one's three draws.
-    const SAMPLE_WALKED: (i64, i64) = (2888, 21044);
+    const SAMPLE_WALKED: (i64, i64) = (3019, 21044);
+
+    /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
+    /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
+    const RUN1662_TRACE: &str = "rontrace-run1662.log";
+
+    /// **The sample by state, parity's second game** (item 4359,
+    /// `docs/RECGAME.md` §7; `docs/DECISIONS.md` entry 140 §2): the walk
+    /// of [`the_sample_walks_to_its_word`] against run1662's hook, our
+    /// twelve emitted lines' Adler on every frame beside the original's
+    /// ([`super::super::checksum_frames`]' pairing: the hook's frame `f`
+    /// against our state at `sim.frame == f + 1`).
+    #[test]
+    fn the_sample_s_lines_against_the_hook() {
+        let (Some(inst), Some(rcx)) = (install(), sample()) else {
+            eprintln!("skipping: no install or no sample");
+            return;
+        };
+        let Some(trace) = super::super::checksum_frames::hook(RUN1662_TRACE) else {
+            eprintln!("skipping: {RUN1662_TRACE} not filed (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let per = crate::trace::checksums::per_frame(&trace);
+        let frames = (
+            per.len(),
+            per.keys().next().copied(),
+            per.keys().last().copied(),
+        );
+        let theirs: [Option<i64>; 3] = std::array::from_fn(|j| {
+            trace
+                .iter()
+                .find(|s| s.lines[2 + j] != 1)
+                .map(|s| s.frame + 1)
+        });
+        eprintln!(
+            "SAMPLE HOOK: {} sets on {} frames ({:?}..{:?}); theirs' first walls, ammo, deaths not empty {theirs:?}",
+            trace.len(),
+            frames.0,
+            frames.1,
+            frames.2
+        );
+        let rec = crate::recgame::read(&rcx).expect("the sample parses");
+        let (built, _) = sample_start(&inst, &rec);
+        let stream = crate::input::Stream::pump(&rec);
+        let Some((walked, (empty, first_held))) =
+            super::super::checksum_frames::first_partings_of(built, stream, &trace, SAMPLE_HOOK.1)
+        else {
+            eprintln!("skipping: no pieces (RON_INSTALL)");
+            return;
+        };
+        for (line, f, ours, theirs, p, n) in &walked {
+            eprintln!(
+                "SAMPLE LINES {line}: first parts on {f} (ours {ours}, theirs {theirs}); agrees on {n}; \
+                 inside 300: {} frames, {}",
+                p.len(),
+                super::super::checksum_frames::spans(p)
+            );
+        }
+        eprintln!("SAMPLE HELD: ours none on {empty} frames, first held {first_held:?}");
+        let seen: Vec<(&str, i64)> = walked.iter().map(|(l, f, ..)| (*l, *f)).collect();
+        assert_eq!(
+            (trace.len(), frames.0, theirs),
+            (
+                SAMPLE_HOOK.0,
+                SAMPLE_HOOK.1 as usize + 1,
+                SAMPLE_THEIRS_HELD
+            ),
+            "run1662's take"
+        );
+        assert_eq!(seen, SAMPLE_LINES, "the sample's lines against the hook");
+        assert_eq!(
+            (empty, first_held.map(|(f, _)| f)),
+            SAMPLE_OURS_HELD,
+            "the frames our walk holds no wall, shot or death"
+        );
+    }
+
+    /// run1662's take: `(sets, the frames walked)`: 22,077 sets, one on
+    /// every trace frame −1 to 21,043 and a second on the frames before an
+    /// order's package. Minted at 0.
+    const SAMPLE_HOOK: (usize, i64) = (22077, 21044);
+
+    /// The first frame (ours, `f + 1` of the hook's) on which theirs'
+    /// walls, ammo and deaths are not the Adler of no bytes (item 4359,
+    /// minted at none): no wall in the whole game; the first shot in
+    /// flight on 2929, computer 4's capital firing on the person's units
+    /// once its Citizens are garrisoned by the bell; the first death
+    /// object on 3365. The first walk on disk where two of the three
+    /// record shapes are exercised (`docs/CHECKSUM.md` §8).
+    const SAMPLE_THEIRS_HELD: [Option<i64>; 3] = [None, Some(2929), Some(3365)];
+
+    /// Per emitted line, the first frame ours parts from the hook's (the
+    /// walk's length where it never does), item 4359's tree (the bell and
+    /// the raid stamp built). Minted empty. Builds, leaders and world part
+    /// on the start and goods on 1: the sample's start is whole by the
+    /// dump's records (18,315 of 18,315) and not by the sums. Units part
+    /// on 92, the frame run1654's window agrees on whole, so the parted
+    /// field is one no `UNITS` record prints. Deaths part where theirs
+    /// first hold one. Ammo agrees from theirs' first shot on 2929 to 3021
+    /// on the merged tree (2929 → 3022: the base's ammo records, merged
+    /// into this lane), where our emitter refused a held shot before.
+    const SAMPLE_LINES: &[(&str, i64)] = &[
+        ("units", 92),
+        ("builds", 0),
+        ("walls", 21044),
+        ("ammo", 3022),
+        ("deaths", 3365),
+        ("groups", 927),
+        ("guys", 2920),
+        ("leaders", 0),
+        ("cities", 3176),
+        ("items", 3976),
+        ("goods", 1),
+        ("world", 0),
+    ];
+
+    /// `(frames our walk holds no wall, shot or death, the first it holds
+    /// one)`. Minted at 0: none on 3,594 of 21,044, the first shot on 2929,
+    /// theirs' frame.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3594, Some(2929));
 }
