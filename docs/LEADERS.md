@@ -2004,8 +2004,8 @@ three-seat lobby at style 0, moves every §7 leaf the window reaches but
 `Armies::diplo_change(this)` on every level (`Leader::set_diplo
 (006ec6a0)`; an equal set returns first), which held the word past 1099;
 it is **1150 of 1150 computed** (`run1575_s_word_is_pinned_as_found`).
-Not ported from `set_diplo`: the alliance-break eject, the `ally_mask`
-bits (4206c), the third-party message, the alliance's victory test
+Not ported from `set_diplo`: the alliance-break eject, ~~the `ally_mask`
+bits (4206c)~~ (ported by item 4388, below), the third-party message, the alliance's victory test
 (§10.2), `recalc_borders`.
 
 **Diff-backed (item 4298): the attack deal, computed** off the human's
@@ -2678,8 +2678,12 @@ are `leaders::taunt::tests`.
   French `incoming_taunt_who[0]` 1, ours equal**
   (`packets::TAKE1645_RELEASED`). It is diff-backed, and two mutations
   turn it red: the sender stored as 0, and the script played from who 0.
-- **Not established (item 4313, parked 4313a): `ally_mask` between
-  allies.** On run1645, from 903, the record prints `ally_mask` 3 for the
+- ~~**Not established (item 4313, parked 4313a): `ally_mask` between
+  allies.**~~ **Answered by item 4388**: `Sim::set_diplo` sets and clears
+  both bits, and `census_ally_mask` runs under `reveal_map` with no human
+  test, as `plan_strategy` does. On run1645 the record rows show no
+  `ally_mask` parting all game (`run1645_s_word_is_pinned_as_found`), and
+  the take packet's leaders line goes 6 → 3. The entry as it stood: On run1645, from 903, the record prints `ally_mask` 3 for the
   French and the human. Ours is each one's own bit (1 and 2), and the
   packet's leaders line parts on it there. `Leader::set_diplo@006ec6a0`
   ORs the partner's bit into both on an alliance, under `ALLY_LOS` or

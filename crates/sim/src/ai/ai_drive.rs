@@ -50,14 +50,15 @@ impl Sim {
         let leader = &mut self.ai.ai[w];
         // `Leader::init`'s diplos loop stored `aggression` and `ally_mask`
         // before `random_personality` (`Sim::init_diplos`); the fresh record
-        // keeps both (item 4340: the mask, run1578's leader 1), and the
-        // `diplos` row it wrote (item 4392: run1686's leader 1).
+        // keeps both (item 4340: the mask, run1578's leader 1).
         let aggression = leader.aggression;
-        let diplos_row = leader.diplos_row;
         let ally_mask = leader.census.ally_mask;
+        let (unseated_diplos, unseated_treaties) =
+            (leader.unseated_diplos, leader.unseated_treaties);
         *leader = ai::Leader::new();
         leader.aggression = aggression;
-        leader.diplos_row = diplos_row;
+        leader.unseated_diplos = unseated_diplos;
+        leader.unseated_treaties = unseated_treaties;
         leader.census.ally_mask = ally_mask;
         leader.pers = pers;
         leader.player_flags = player_flags;

@@ -127,8 +127,7 @@ impl Sim {
     /// `Leader::init` writes `diplos` directly and runs no army
     /// ([`Sim::init_diplos`]).
     ///
-    /// SEAM: the rest of the body — `eject_my_shit_from_his_ass` and the
-    /// `ally_mask` (`+0x6929`) bits on leaving and entering an alliance,
+    /// SEAM: the rest of the body — `eject_my_shit_from_his_ass`,
     /// the third-party message, the alliance's victory test and
     /// `recalc_borders` — is not carried here (`docs/LEADERS.md` §10.2).
     pub fn set_diplo(&mut self, a: Player, b: Player, level: i32) {
@@ -140,8 +139,26 @@ impl Sim {
             0 | 2 => level,
             _ => 1,
         };
-        if self.diplos(x, y) == level {
+        let was = self.diplos(x, y);
+        if was == level {
             return;
+        }
+        // `Leader::set_diplo@006ec6a0:44`, `:108`: leaving an alliance
+        // takes each leader's bit out of the other's `ally_mask`
+        // (`+0x6929`); entering one puts it in, under `has_preq(ALLY_LOS)
+        // || reveal_map` as `Leader::init`'s arm (item 4388: run1645's
+        // person, allied with the French, finishes building 2017 with
+        // `ever_seen_completed` 3).
+        let reveal = self.ai.lobby.reveal_map != 0;
+        for (p, q) in [(x, y), (y, x)] {
+            if let Some(l) = self.ai.ai.get_mut(p) {
+                if was == 2 {
+                    l.census.ally_mask &= !(1u32 << (q & 0x1f));
+                }
+                if level == 2 && reveal {
+                    l.census.ally_mask |= 1u32 << (q & 0x1f);
+                }
+            }
         }
         for (p, q) in [(x, y), (y, x)] {
             self.leaders.at_war[p][q] = level == 0;
@@ -175,9 +192,6 @@ impl Sim {
     ///
     /// Only this leader's row is written; the other's own `Leader::init`
     /// writes the mirror. The diagonal is the crate's untouched `false`.
-    /// **The row is kept whole** ([`crate::ai::Leader::diplos_row`]): a
-    /// slot no player takes keeps its `d` in the record, 0 under locked
-    /// teams and 1 at team style 0 (item 4392, run1686's `diplos[2..7]`).
     /// SEAM: the arm after it, `semaphore[1] & 2` forcing war with every
     /// other leader, is not a lobby field and is not carried; nor is the
     /// loop's `treaties` (`reveal_map == 3` or'd with the team bit), which
@@ -201,11 +215,18 @@ impl Sim {
         if lobby.conquest {
             return;
         }
+        // `LeaderData::get_player@006ec0f0` walks the lobby's records for
+        // an active one on the leader's `who`, and falls back to record 0
+        // when none is: a slot no player takes is read as the lobby's first
+        // record (item 4388: on the 2017 sample that is the person, team
+        // 0, so the person's row calls slots 5 to 7 teammates, `diplos` 2,
+        // `treaties` 1, `aggression` 0, and the computers' call them war).
+        let record = |p: usize| seat(p).or(seats.first());
         let is_team = |a: usize, b: usize| -> bool {
             if a == b {
                 return true;
             }
-            let (Some(sa), Some(sb)) = (seat(a), seat(b)) else {
+            let (Some(sa), Some(sb)) = (record(a), record(b)) else {
                 return false;
             };
             if lobby.team_style == 7 && [sa, sb].iter().any(|s| s.flags & 1 != 0 && s.team == 8) {
@@ -223,7 +244,9 @@ impl Sim {
             return;
         }
         let mut aggression = [0i32; 8];
-        let mut row = [0i32; 8];
+        let mut unseated_diplos = [0i32; 8];
+        let mut unseated_treaties = [0i32; 8];
+        let reveal_all = i32::from(lobby.reveal_map == 3);
         for (u, slot) in aggression.iter_mut().enumerate() {
             let d = if is_team(w, u) {
                 2
@@ -235,27 +258,38 @@ impl Sim {
                 1
             };
             *slot = i32::from(d == 0);
-            row[u] = d;
+            if u >= n {
+                // `treaties[u]` is `reveal_map == 3`, or'd with the team bit.
+                unseated_diplos[u] = d;
+                unseated_treaties[u] = reveal_all | i32::from(is_team(w, u));
+            }
             if u != w && u < n {
                 self.leaders.at_war[w][u] = d == 0;
                 self.leaders.allied[w][u] = d == 2;
             }
         }
-        // `:229`–`:235`: each other slot the row just allied joins the
-        // mask under `has_preq(ALLY_LOS) || reveal_map`. The lobby's
-        // "Normal" is 1, so the gate passes on every game on file; the
-        // `ALLY_LOS` half is not read here, as the census's step 6 does
-        // not read it (`ai_census.rs`, the SEAM table).
+        // `:229`–`:235`: each other slot `LeaderData::is_ally@006edb50`
+        // names joins the mask under `has_preq(ALLY_LOS) || reveal_map`.
+        // `is_ally` reads **both** rows (`diplos[u] == 2` and `u`'s own
+        // `diplos[who] == 2`), so a teammate whose own `Leader::init` has
+        // not yet run is left out: `Setup::build_game` calls this in the
+        // start permutation's order, and on the 2017 sample (order 1, 0,
+        // 2, 3, 4; four computers on team 1) the masks are 2, 3, 7 and
+        // 0x17 (item 4388, run1678's state 0). The lobby's "Normal" is 1,
+        // so the gate passes on every game on file; the `ALLY_LOS` half is
+        // not read here, as the census's step 6 does not read it
+        // (`ai_census.rs`, the SEAM table).
         let reveal = lobby.reveal_map != 0;
         let mut allies = 0u32;
         for u in 0..n.min(8) {
-            if u != w && reveal && self.leaders.allied[w][u] {
+            if u != w && reveal && self.leaders.allied[w][u] && self.leaders.allied[u][w] {
                 allies |= 1 << u;
             }
         }
         if let Some(l) = self.ai.ai.get_mut(w) {
             l.aggression = aggression;
-            l.diplos_row = row;
+            l.unseated_diplos = unseated_diplos;
+            l.unseated_treaties = unseated_treaties;
             l.census.ally_mask |= allies;
         }
     }

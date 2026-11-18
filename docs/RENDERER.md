@@ -4470,8 +4470,34 @@ inside the lake's rows, off the HUD and the sand: 3,636 pixels, 2,027 of them in
 - On a body tile (700–800, 250–330), the water's α is 0.741 with no spread, and the photograph's mottle follows the
   floor's model at a correlation of 0.30.
 
-So the strokes are in neither draw's stream: the item's stop. *Not established:* draw 162's own shading, which no
-stream carries: stage 0's unnamed texture, `SCREEN_REFLECTIONS` and the Torrance specular (4386a), or past the pass.
+So the strokes are in neither draw's stream: the item's stop. *Not established:* ~~draw 162's own shading, which no
+stream carries: stage 0's unnamed texture, `SCREEN_REFLECTIONS` and the Torrance specular (4386a)~~ (item 4390,
+below), or past the pass.
+
+**The water's shader as the card binds it** (item 4390; the ledger: `docs/journal/2026-11-18-item-4390.md`). The
+pixel shader is the install's `ps_global.hlsl` under draw 162's defines (d3dgl's strings carry
+`HAS_SCREEN_REFLECTIONS` and `TS1_COLORARG_1` …). Its colour is `pow(saturate(stage), 1.45) · (diffuse + ambient) +
+specular + reflection`, at the vertex's alpha. Each of its inputs, on run1681's 3279 pass:
+- **The stages.** `RenderState` (rise.pdb) puts `colorarg1` at `+0xb4` and `colorarg2` at `+0xbc`, as
+  `card_pass.py` reads them. Stage 0 `SELECTARG2(TEXTURE, DIFFUSE)` and stage 1 `SELECTARG2(DIFFUSE, CURRENT)`, alpha
+  `SELECTARG2(~TEXTURE, CURRENT)`, so the stage is the vertex colour: neither the unnamed stage 0 nor `fow_fade.tga`
+  enters. The stream's 1,755 vertices carry the normal (0, 0, 1) and z 0 on every one.
+- **The specular.** On the draw's own `gView`, light and material (roughness 0.3, specular 40), with V the shader's
+  `−normalize(ViewPos)`: N·H 0.63 to 0.65 over the south-east, the specular 2·10⁻⁶ to 1.4·10⁻⁵ in HDR, strokes and
+  not alike.
+- **The reflection.** `D3D11GLGraphicCard::frame_ended` (d3dgl `0x1001d280`) resamples, at each frame's end,
+  `mHDRBuffer`'s colour into `ReflectionManager::mBackTexture` and `mScreen`'s depth into `mDepthTexture`, both at a
+  quarter of the screen (`createTextures`, d3dgl `0x10050f00`: `R16G16B16A16_FLOAT` and `R32_FLOAT`).
+  `create_hdr_buffer` (d3dgl `0x10023f70`) gives the HDR buffer the screen's own depth surface, so that depth is the
+  world pass's. `set_render_state` binds the two at t5 and t6 on `enables & 0x200000`. So draw 162 reads the previous
+  frame's depth and colour. The depth writers (`enables & 3 == 3`) are the land 0–35, the sand, the mountains, the
+  trees and the fish; the floor, the water and the surf write none. Marched as the shader marches (ten 10-unit
+  steps, threshold 0.00075) against that depth rasterised off the streams: **0 hits** on the south-east strokes, the
+  water beside them and the body tile; the closest step is 0.0188 away (about 560 view units, the seabed under the
+  ray).
+
+So no input of the water's shader lays the strokes: the item's stop. *Not established:* past the pass (the bloom
+and FXAA, §3.14), and whether run1564's photograph and the probe takes' 3279 show the same water (4386b; 4390a).
 
 ## 4. The stack
 

@@ -153,9 +153,15 @@ it (**not built**).
    else 0, war, when `Game::teams_locked@00594880` (team style not 0, 8 or
    11), and 1 otherwise. Then `semaphore[1] & 2` forces 0 off the
    diagonal, which no lobby field sets. **Built** (`Sim::init_diplos`,
-   item 4046), ahead of the map, which it does not read; the
-   `semaphore[1]` arm and the loop's other writes (`treaties`,
-   `aggression`) not.
+   item 4046); the `semaphore[1]` arm not. **Item 4388 moved it into
+   this step's loop over `start_list`**, before each computer's AI tail,
+   because the same loop's `ally_mask` (`+0x6929`) takes a slot only
+   when `LeaderData::is_ally` holds, and that reads both leaders' rows:
+   a teammate initialised later is left out (the 2017 sample: 2, 3, 7
+   and 0x17 on leaders 1, 0, 2 and 4). `random_personality`'s rival
+   pass reads `is_ally` too. An unseated slot is `get_player`'s record 0,
+   and its row (`diplos`, `treaties`, `aggression`) is kept. *Diff-backed*
+   (`SAMPLE_RANGES`, `docs/RECGAME.md` §7).
 7. **`Setup::build_empire@005abb80(who, slot)`** for each player in start
    order: `Setup::build_cities@005ab910` (the village at the start cell,
    `Build::init` + `Build::activate(0, 0, 0)`, finished and active; then

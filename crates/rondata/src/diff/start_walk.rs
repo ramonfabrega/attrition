@@ -1070,7 +1070,8 @@ pub(crate) mod recording {
     /// 00000000|01000000")`: ranges 1 and 129 (leaders 0 and 1), `+0x74..+0x88`
     /// = `diplos[2..7]` (`+0x7c..+0x90`), ours 0, theirs 1 — the slots no
     /// player takes, under team style 0, which `Leader::init`'s row writes and
-    /// the crate kept only for seated leaders (`ai::Leader::diplos_row`).
+    /// the crate kept only for seated leaders (`ai::Leader::unseated_diplos`,
+    /// item 4388's, landed beside this item's own copy of the fix).
     const DEMAND_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[];
 
     /// **The demand's lines by range, from the start** (item 4392,
