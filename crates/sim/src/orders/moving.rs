@@ -1254,6 +1254,17 @@ impl Sim {
             };
             self.units[u].path.push(goal);
             self.plan_unpathed(u, goal, Self::find_wpath, Self::find_tpath);
+            if std::env::var_os("RON_PROBE_4395").is_some()
+                && self.frame == 7418
+                && self.units[u].owner == 1
+                && (30..=32).contains(&self.units[u].index)
+            {
+                eprintln!(
+                    "PROBE4395 plan 1/{} mo {mo:?} path {:?}",
+                    self.units[u].index,
+                    self.units[u].path
+                );
+            }
             flags |= flag::PATHED;
             self.store_move(u, mo, flags);
             if self.units[u].path.len() > 10 {
