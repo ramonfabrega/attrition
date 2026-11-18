@@ -2261,6 +2261,9 @@ impl Sim {
     /// once. From `do_damage` on an AI leader's object.
     pub fn armies_emergency(&mut self, who: Player) {
         let w = who as usize;
+        if std::env::var_os("RON_PROBE_4377").is_some() {
+            eprintln!("PROBE4377 emergency frame {} who {who}", self.frame);
+        }
         if self.cities.nation[w].human || self.leaders.defeated[w] {
             return;
         }
