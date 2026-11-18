@@ -538,6 +538,12 @@ impl Sim {
     /// `ArrayBase<int>::add` guarded by the linear scan both writers make
     /// first: the patch joins the leader's list once.
     pub(crate) fn add_oil_patch(&mut self, who: Player, gi: usize) {
+        if std::env::var("RON_PROBE_4397").is_ok() && !self.ai.ai[who as usize].oil_patches.contains(&gi) {
+            let g = &self.world.goods()[gi];
+            let bt = std::backtrace::Backtrace::force_capture().to_string();
+            let names: Vec<&str> = bt.lines().filter(|l| l.contains("sim::") || l.contains("rondata::")).take(8).map(|l| l.trim()).collect();
+            eprintln!("PROBE oil who {who} gi {gi} cell ({}, {}) frame {} list {:?} via {names:?}", g.pos.cell().x, g.pos.cell().y, self.frame, self.ai.ai[who as usize].oil_patches);
+        }
         let list = &mut self.ai.ai[who as usize].oil_patches;
         if !list.contains(&gi) {
             list.push(gi);
