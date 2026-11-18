@@ -38868,3 +38868,36 @@ SHA-256 `f74ae4f71ed23225db845b51b4afa1084304a9d447697a67b31adb6d6d1e7491`.
 
 **What it holds**: the nine input issuers the blind list left open, each entered on its line's frame in a live
 game.
+
+## run1675 — the blind list's last open row, the REPAIR key (2026-11-18, item 4381, `att-4381`)
+
+`docs/CLIENT_INPUT.md` §32.13. **What the disk could not answer**: no trace in `rondata::blind::TRACES` enters
+`Options::do_repair@0071ccb0`, the standard panel's REPAIR press. A playback presses nothing, and a `--cmd-file`
+beside a `--recording` is refused. So the press is a key over a live selection, as item 4378's stance and garrison
+were. KEYMAP_OPTION_REPAIR is 392, and `KeyMap::keymap_options[392]` (PE `.rdata`, the S_GDATA32 at 0002:141168,
+two shorts a row) is (3, −1).
+
+The script is `tools/gamelog/coverage/blind4381-repair.cmd`, committed at `a1af86517` before the take: `zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1675 --map 14 --ai-tribe 11 --end-frame
+1000 --log-window 690 1000 --timeout 3600 --detail end:MISC,UNITS=3,BUILDS=7 --detail misc:COMMANDMANAGER=1
+--bindkey OPTION_REPAIR=124 --cmd-file tools/gamelog/coverage/blind4381-repair.cmd --cover cover=1`. It was waited
+on with `waitrun.sh` in the background. `df -g ~` read 142 GB free before it.
+- **run1675**: pool lane 2, 09:25:21 to 09:26:24 −05:00, **63.4 s launch to exit**, exit 0, `success`, 1,001
+  frames, no relaunch. `GAME INFO`: map style 14, seed 12345; tribe 4 (flags 7), tribe 11 (flags 1).
+- **First entries** (`report.py functions`): `ScenarioFuncSet::damage_object` 640; `Console::exec_keymap`,
+  `Options::exec`, **`Options::do_repair`** and `MessageWin::add_instructions` 724; `Group::action_swarm_around`,
+  `CommandManager::issue_swarm_around`, `CommandPackage::process_swarm_around` and `Unit::add_repair_order` 800.
+  `Options::picked_spot` and `Unit::do_repair` are not entered.
+- **The keys**: two `I_KEY` records, 724 and 764, each key 124 mapped to action 392.
+- **The wound**: the Barracks `0/2007`'s `damage` is 480 on every dumped frame from 690 to 1000. The Citizen `0/6`
+  takes the swarm on 800, and walks from (4344, 28392) toward (2712, 14616). On 950 it is at (6009, 28687).
+- No `.rcx` newer than the launch under lane 2's prefix, the run's directory or `~/ron-data`, so none was removed.
+  Lane 2's `cover=0` seed question (4378a) does not reach this take: no word is pinned on it, only first entries.
+- Filed with `filerun.py run1675 greatlakes-blind-repair-1000`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1675-greatlakes-blind-repair-1000.txt`, 47,375,319 bytes, SHA-256
+`142328ead7cadd9b7562ebe9c9db8b55fffd93599b044ab20c66879a67bcbc48`; `rontrace-run1675.log`, 10,771,840 bytes,
+SHA-256 `c8b951a91cb41adda1966daa49f396c97b06001378a9fe3412be68c4ef28f339`.
+
+**What it holds**: the REPAIR press entered by the game's own key path in a live game, and a building of slot 0's
+wounded. run1676 is unused.
