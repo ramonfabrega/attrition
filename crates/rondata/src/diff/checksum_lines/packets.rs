@@ -4585,7 +4585,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (640, 640, 7),
             (1794, 1794, 0),
-            (271, 271, 5),
+            (271, 271, 3),
             (36, 36, 0),
             (5, 5, 0),
             (330, 330, 0),
@@ -4621,7 +4621,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (28, 28, 7),
             (640, 640, 3),
             (2210, 2210, 1),
-            (271, 271, 5),
+            (271, 271, 4),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -4681,7 +4681,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 7),
             (2832, 2832, 26),
-            (271, 271, 5),
+            (271, 271, 4),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -4718,7 +4718,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 7),
             (2832, 2832, 24),
-            (271, 271, 5),
+            (271, 271, 4),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -5294,19 +5294,19 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run839", "aggression cities_built flags.leader_flags"),
     ("run842", "aggression cities_built flags.leader_flags"),
     ("run842b", "aggression cities_built flags.leader_flags"),
-    ("run854", "diplos flags.leader_flags oil_patches.elements"),
+    ("run854", "flags.leader_flags oil_patches.elements"),
     (
         "run865",
-        "diplos flags.leader_flags oil_patches.elements reg_gatherers",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     ("run870", "aggression cities_built flags.leader_flags"),
     (
         "run882b",
-        "diplos flags.leader_flags oil_patches.elements reg_gatherers",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     (
         "run883b",
-        "diplos flags.leader_flags oil_patches.elements reg_gatherers",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     ("run893b", "flags.leader_flags"),
     ("run912e", "flags.leader_flags"),
@@ -5869,7 +5869,7 @@ const TAKE1645_PINNED: Pinned = (
         (0, 0, 0),
         (556, 556, 2),
         (1261, 1261, 1),
-        (403, 403, 6),
+        (403, 403, 4),
         (9, 9, 0),
         (30, 30, 0),
         (405, 405, 0),
@@ -5878,15 +5878,16 @@ const TAKE1645_PINNED: Pinned = (
 );
 
 /// The leaves of run1645's leaders line that part outside
-/// [`LEADERS_HELD_OUT`] at 1000, as found: `diplos` on slots 3..7 and
-/// `flags.leader_flags`' high bits, as on the two take packets before
+/// [`LEADERS_HELD_OUT`] at 1000, as found: `flags.leader_flags`' high
+/// bits, as on the two take packets before (`diplos` on slots 3..7 too
+/// until item 4392 kept `Leader::init`'s row whole: 6 → 4 ranges parted)
 /// ([`TAKE_LEAF_PARTINGS`]), and **`ally_mask`**, the French theirs 3 ours 1:
 /// the alliance of 903 still stands at the packet, and the two bits
 /// `Leader::set_diplo@006ec6a0` and `Leader::plan_strategy@006b9620:205`
 /// give an allied leader under `ALLY_LOS` or `reveal_map` are not carried
 /// (item 4313's journal, parked 4313a). `cities_built`, which parts on both
 /// take packets before, agrees here.
-const TAKE1645_LEAF_PARTINGS: &str = "ally_mask diplos flags.leader_flags";
+const TAKE1645_LEAF_PARTINGS: &str = "ally_mask flags.leader_flags";
 
 /// **The leaf the reseated taunt's packet releases** (item 4313;
 /// `docs/DECISIONS.md` entry 131 §1): `incoming_taunt_who`, written on 906

@@ -2183,9 +2183,10 @@ lines §11 to §21 hold byte for byte counted open. The list below is every
 walker the instrument's stream names on a line whose every range agrees
 on run 1562's packet (record 3201, frame 91), the `owner` column of
 `stream-3201.tsv`, each resolved to its entry by the call site the
-stream prints (`INDEX.tsv`; every one agrees with the owner's name). The
-leaders line is held out (§20) and is not here; the walls, ammo and
-deaths lines are empty on this frame and are not here.
+stream prints (`INDEX.tsv`; every one agrees with the owner's name).
+~~The leaders line is held out (§20) and is not here~~ — item 4392 released
+its last held leaf, `tribute_demanded`, and the line joined the table; the
+walls, ammo and deaths lines are empty on this frame and are not here.
 
 **Diff-backed** (`rondata::diff::checksum_lines`, each line's test range
 by range, its pinned outcome's parted count 0; the world line's by
@@ -2203,6 +2204,7 @@ machine each line's walkers are the stream's owners.
 | guys | `the_guys_line_is_the_original_s_range_by_range` | `PtrArray<Guy>::walk_data@0046df30` (314), `GuyData::walk_data@005e0210` (54) |
 | units | `the_units_line_is_the_original_s_range_by_range` | `SubObject::walk_data@006621d0` (156), `Unit::must_walk@0060d040` (104), `Object::walk_data@00647830` (104), `Unit::walk_data@0060cf40` (104), `Stack<PathData>::walk_data@0046d8b0` (56), `OrderList::walk_data@00730270` (78), `AttackToOrder::walk_data@00482e70` (6), `PtrArray<Guy>::walk_data@0046df30` (314), `GuyData::walk_data@005e0210` (54), `TargetOrder::walk_data@0047f220` (4), `GatherOrder::walk_data@00486e60` (24), `AnimalData::walk_data@005d7ea0` (80) |
 | groups | `the_groups_line_is_the_original_s_range_by_range` | `Group::walk_data@00708400` (548), `CheckSums::check_groups@00937530` (8) |
+| leaders | `the_leaders_line_is_the_original_s_range_by_range` | `LeaderData::walk_data@006d6750` (64), `LeaderDataEncrypt::walk_data@006d9900` (124), `Array<Site>::walk_data@0047cee0` (28), `Array<MakeObject>::walk_data@0047d440` (30), `SimpleArray<int>::walk_data@00473120` (18), `String::walk_data@00a1b2d0` (3) |
 | world | `the_world_line_is_the_original_s_by_section` | `World::walk_data@006b5cf0` (7265), `SimpleArray<WCoord>::walk_data@0047c660` (22), `Array<WCoordData>::walk_data@00478990` (696), `SimpleArray<int>::walk_data@00473120` (11) |
 
 **Not established**: ~~every frame but 91 of one game~~ — item 4188

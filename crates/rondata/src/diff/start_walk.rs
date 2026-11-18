@@ -1138,6 +1138,48 @@ pub(crate) mod recording {
         assert_eq!(got, pinned, "DEMAND_RANGES");
     }
 
+    /// **The demand's game is whole on run1683** (item 4392, `docs/LEADERS.md`
+    /// §8.6): the file `score_recording` scores against the original's take,
+    /// every one of the twelve lines on all 6,401 states. The French store
+    /// `tribute_demanded[0]` on 6081 on both sides; held, leaders parts there
+    /// (ours 2843059440, theirs 411149553), and before the `diplos` row was
+    /// kept whole it parted on state 0 (ours 40276137, theirs 10260661).
+    /// `RON_DEMAND_TAKE`, else where the take left it.
+    #[test]
+    fn the_demand_s_game_is_whole_on_run1683() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let rcx = std::env::var("RON_DEMAND_RCX").unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_default();
+            format!("{home}/ron-golden/recordings/item4387-demand-greatlakes-style0-d2-6400.rcx")
+        });
+        let take = match std::env::var("RON_DEMAND_TAKE") {
+            Ok(p) => Some(std::path::PathBuf::from(p)),
+            Err(_) => {
+                let home = std::env::var("HOME").unwrap_or_default();
+                let dir = std::path::PathBuf::from(format!("{home}/ron-golden/run1683/map-14"));
+                crate::testenv::experiment(&dir, "rontrace.log")
+            }
+        };
+        let (true, Some(take)) = (std::path::Path::new(&rcx).exists(), take) else {
+            eprintln!("skipping: no demand file or no run1683 take");
+            return;
+        };
+        let score =
+            crate::checksum::playback::compare(inst.root(), rcx.as_ref(), &take).expect("scored");
+        let first: Vec<_> = crate::checksum::CHECKSUM_LINES
+            .iter()
+            .zip(&score.first)
+            .filter_map(|(l, f)| f.map(|f| (l.0, f)))
+            .collect();
+        assert_eq!(
+            (score.states, score.agreed, first),
+            (6401, [6401; 12], vec![]),
+            "run1683: states, each line's agreeing states, the first partings"
+        );
+    }
+
     /// **Item 4387's game** (`docs/LEADERS.md` §8.2, `docs/RECGAME.md`
     /// §8.2): the harness lobby at `TEAM_STYLE 0`, `DIFFICULTY 2`, seed
     /// 12345 — the sweep's earliest demand, the French on the human on 6081
