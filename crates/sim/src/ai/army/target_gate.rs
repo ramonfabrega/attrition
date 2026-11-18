@@ -429,8 +429,12 @@ impl TargetGateView for SimGate<'_> {
     fn w444(&self, a: usize) -> i32 {
         self.sim.ai.ai[a].popwin_timer
     }
-    fn w44c(&self, _a: usize) -> i32 {
-        0
+    fn w44c(&self, a: usize) -> i32 {
+        // `LeaderData::wonderwin_timer` (`+0x44c`), the wonder clock's
+        // running flag (item 4360: run1646's 5667, the French clock running
+        // since run1655b's 5496, sets the war arm's `about_to_win` for the
+        // French army re-ticked by the nuke's `Armies::emergency`).
+        self.sim.leaders.endgame[a].wonderwin_timer
     }
     fn raid(&self, a: usize) -> i32 {
         self.sim.ai.ai[a].pers.raid

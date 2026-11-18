@@ -2078,6 +2078,29 @@ fn a_fort_outscoring_its_owner_s_city_replaces_it() {
     );
 }
 
+/// **The war arm's `about_to_win` and the `+0x7e8` arm read the leaders'
+/// own fields** (item 4360, `docs/ARMY.md` §12): `w44c(who)` is
+/// `LeaderData::wonderwin_timer` (run1655's 5667 holds the French clock at
+/// 1, so a French army's war arm scores every Russian city x100) and
+/// `f7e8(who)` is `LeaderData::pop_issues` (0 for every leader on run1655's
+/// 5667 and 5668). The stand-ins answered 0 for both.
+#[test]
+fn find_target_s_wonder_clock_and_pop_issues_are_the_leaders() {
+    use crate::ai::army::target_gate::{SimGate, TargetGateView};
+    use crate::ai::army::target_score::TargetScoreView;
+
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(8, 8), 3);
+    sim.leaders.endgame[1].wonderwin_timer = 1;
+    sim.leaders.pop_issues[2] = 1;
+    let gate = SimGate {
+        sim: &mut sim,
+        who: 1,
+        slot: 1,
+    };
+    assert_eq!((gate.w44c(1), gate.w44c(2)), (1, 0), "the wonder clock");
+    assert_eq!((gate.f7e8(1), gate.f7e8(2)), (0, 1), "pop_issues");
+}
+
 /// **The raid-1 level arm reads the leaders' scores** (item 4354,
 /// `docs/ARMY.md` §12): `find_target`'s `leaders[i] +0x18 * 4 / 3 <
 /// leaders[who] +0x18` is `LeaderData::score` on both sides. run1655b's

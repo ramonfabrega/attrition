@@ -1921,7 +1921,7 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   either. *Capture:* a lobby whose AI holds a Large City with a wonder,
   where the two clauses disagree by a factor and the chosen target is the
   observable.
-- **`pop_issues` and the wonder clause are live on run1646's 5496 and not
+- ~~**`pop_issues` and the wonder clause are live on run1646's 5496 and not
   carried** (item 4354): theirs' Russian `pop_issues` (`+0x7e8`) reads 1
   (an enemy's city `× 4`, `6f72da`) and the French `wonderwin_timer`
   (`+0x44c`) 1 with `wonder_winning()` the French (`× 10`, `6f730c`), so
@@ -1929,7 +1929,23 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   76880, 122040, 54720 against ours' 1023, 2034, 1922, 3051, 1368). The
   factor is uniform over the five, so the choice does not depend on it;
   against a fort or an own city it would. Not established: who writes
-  `pop_issues`, and `Game::wonder_winning@005948a0`'s port.
+  `pop_issues`, and `Game::wonder_winning@005948a0`'s port.~~ **Carried
+  since item 4360**: `SimGate` reads `LeaderData::pop_issues`,
+  `wonderwin_timer` (the score's wonder arm and the leader gate's
+  `about_to_win`), `CityData::num_wonders@007382b0(0)` (the city's chain,
+  `BuildData::is_wonder` less the Red Fort) and `Sim::wonder_winning`.
+  The two leader reads have a killer; `num_wonders` and `wonder_winning`
+  have none of their own, and moved no word.
+- **Which French score parts on run1646's 5667** (item 4360): the
+  Russian nuke's hit on `1/2000` raises `Armies::emergency`, and both
+  French armies re-run `find_target` (26 draws, equal). Theirs takes a
+  Russian city (the Russians' `frame_attacked` 5667 on run1655's 5668),
+  ours `1/2000`: army `1/1` 102,200 for `1/2000` (troubled capital
+  `× 100`, wonder `× 10`) against 25,525 for `2/2057` (`about_to_win`
+  `× 100`). `pop_issues` reads 0 on both sides that frame. A packet at
+  `RON_STATE_FRAME=5667` would settle it; the walk order of the nuke's
+  strikes (`nuke.rs`'s `SEAM`) does not, since only `1/2000` is struck
+  that frame.
 - ~~**Whether `mask_me`'s `0x4000` is written where the original writes
   it.**~~ **Two captures already say it is, cell for cell**, and both were
   on disk: run13's frame 95 pinned the missing bit as its *one* exception
