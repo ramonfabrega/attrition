@@ -38949,3 +38949,36 @@ SHA-256 `4e95371959a2d3cfae9cf1860557740af7d046555d894fe8873ab05b77f2901f`.
 
 **What it holds**: `diff::sample::tests::the_sample_s_ranges_name_each_first_parting` (`SAMPLE_RANGES`): each line's
 first parting by range, record and field.
+
+## run1683 — the original playing the demand's game, minted at style 0 (2026-11-18, item 4387, `att-4387`)
+
+`docs/LEADERS.md` §8.2, §8.6; `docs/RECGAME.md` §8.2; DECISIONS 142 §3. **What the disk could not answer**: no
+Great Lakes game at `TEAM_STYLE 0` has ever been recorded or captured (item 4382's donor census), so no take reaches
+the demand arm's store on a lobby our walk builds from a file. The file:
+`~/ron-golden/recordings/item4387-demand-greatlakes-style0-d2-6400.rcx`, 59,216 bytes, SHA-256
+`5faa99c3adf7017e2a2889162f1d819465f1bd4982be13843c782b3b92b3461a`: run53's lobby at `TEAM_STYLE 0`, `DIFFICULTY
+2`, seed 12345, no orders, closing on 6400, the rules borrowed from `Playback - 2026.10.06 00'34'05 (Tue).rcx` (style
+1, difficulty 2), written by `mint_4387_the_demand_s_game` under `RON_MINT_4387=1 RON_RCX_OUT=<file>`.
+
+The take: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1683
+--recording <the file> --end-frame 6400 --cover cover=1 --log-window 6070 6101 --detail end:MISC,LEADERS=9 --timeout
+3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS`, waited on with `waitrun.sh` in the background. `df -g ~` read
+153 GB free before it.
+- **The run**: pool lane 1, launched 14:18:57 −05:00, exited 14:31:42: **765.1 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,401 frames, `last_frame` 6400, not ended early, seed 12345, map 14.
+  Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five settings restored. Minutes waited on another lane: none.
+  DLL `31b54fc7…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS`.
+- **What it prints**: leader 1's `tribute_demanded[0]` 0 on 6070–6080 and 1 from block 6081 (`agendas[0]` 72,
+  `aggression[0]` 1 there).
+- **Scored** (`cargo run --release -p rondata --example score_recording -- <install> <the file>
+  ~/ron-golden/run1683/map-14/rontrace.log`, exit 1): units, builds, walls, ammo, deaths, groups, guys, cities,
+  items, goods and world 6401 of 6401; **leaders 0 of 6401**, first differing state 0, ours 40276137, theirs
+  10260661.
+- Filed **in place**, as run1646 is: `filerun.py` not run (a `greatlakes` gamelog at style 0 would enter the Great
+  Lakes corpora our ported lobbies are, as run1662's did). run1683 was the one number reserved.
+
+Files in place, `~/ron-golden/run1683/map-14/`: `gamelog_p.txt`, 44,942,630 bytes, SHA-256
+`e3c7fb414af345f9d776896bd1e005e74fe257884aecdfb2e27db45a97428907`; `rontrace.log`, 26,486,432 bytes, SHA-256
+`38cd3078d352e1a261d182c6ad1f68a68e0efc55734b4e9b84842c32206f65d3`.
+
+**What it holds**: no test reads it yet (`the_demand_s_lobby_demands_on_6081` reads the frame from our walk alone).
