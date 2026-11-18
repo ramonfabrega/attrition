@@ -2321,10 +2321,13 @@ the first entry is `1/2033`, city `1/2015`. Its take writes that city
 `|= 0xe` and raises `Armies::emergency` inside the same `do_damage`,
 before the capital `1/2000` (cell (24, 53)) is reached. So
 `find_target` sees `1/2000` untroubled (42) and `1/2015` at 4,830, and
-takes `2/2057` at 25,525, which is ours' own Russian figure. Ours walks
-buildings by index, so `1/2000` is struck first and scores 102,200. The
-build is `nuke_do_damage`'s building arm walked as theirs' ring
-(`docs/journal/2026-11-18-item-4374.md`).
+takes `2/2057` at 25,525, which is ours' own Russian figure.
+**Item 4377 moved the word to 5677.** The ring is theirs now
+(`Sim::nuke_ring_cells`: `MOVE_441` outward, each cell's chain head
+first). Ours' blast centre was wrong, though: the silo strike skipped the
+forts and wonders loops (`Object::do_launch` `650150..65052c`), so on 5517
+`2/2035` aimed at `1/2000` (104,166) where theirs aimed at the wonder
+`1/2033` (1000 ×10 ×100 / 6 = 166,666). The seed is still open.
 
 ## 8.3 In the crate
 
@@ -2461,6 +2464,11 @@ left at 0, refused by its bucket clause (11,057 ≥ 3,000). The four tributes ar
 `Sim::action_offer`, staged off the human's record.
 
 ## 8.6 Not established
+
+- **The nuke ring's order inside one cell** (item 4377): the chain head
+  first, its next link read after the strike, as the listing walks it;
+  no capture strikes two buildings in one cell. The silo strike's wonder
+  ×100 reads `get_diff` as the game's difficulty.
 
 - ~~**The shortfall formula** (decompile `:2676`–`:2777`) is unread~~ (read
   from the listing at VII-c, §7.2); the `6c035d` arm (a positive shortfall

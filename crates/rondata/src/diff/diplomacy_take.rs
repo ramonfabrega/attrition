@@ -2086,10 +2086,16 @@ pub(crate) fn run1646() -> Option<(String, String)> {
 /// (run1655b's packet, 13 of 13 draws: 4 - kind, x3), since `f18` answered
 /// 1 for the army's own leader where `LeaderData::score` reads 11648 against
 /// the French 12240; on 5621 army `2/1`'s target, point (15456, 31584) and
-/// muster (22, 48) are now run1655's packet's. On 5668 ours 112, theirs 129,
-/// at index 3 ours `Guy::set_anim+0x97a < Guy::move`, theirs
-/// `Unit::do_move+0xe84`.
-pub(crate) const RUN1646_WORD: i64 = 5668;
+/// muster (22, 48) are now run1655's packet's; **5677** (+9, item 4377)
+/// with the silo strike's forts and wonders loops (`Object::do_launch`
+/// `650150..65052c`, `docs/LEADERS.md` §8.2): on 5517 the Russian silo
+/// `2/2035` took the capital `1/2000`'s point (18528, 40800) at 104,166
+/// here and the wonder `1/2033`'s (19008, 35136) at 166,666 there (1000
+/// ×10 ×100 / 6; run1667's packet holds that ammo's ground), so on 5667
+/// the ring struck `1/2000` first here and `1/2033` there. On 5677 ours
+/// 1748, theirs 1608, at index 1598 ours `PathFinder::calc_road_cost+0x46`,
+/// theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+pub(crate) const RUN1646_WORD: i64 = 5677;
 
 /// **run1646 walks to [`RUN1646_WORD`]**, its head word agreeing on every
 /// frame walked, with the alliance staged off `alliance4316.cmd`. The
