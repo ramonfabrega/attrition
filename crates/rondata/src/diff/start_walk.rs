@@ -1258,6 +1258,95 @@ pub(crate) mod recording {
         );
     }
 
+    /// run1695's record (item 4396, `docs/RUNS.md` run1695): run1691's file
+    /// played to 9990 under the checksum and ranges hooks, the units line
+    /// alone kept (`RNG_MASK=0x1`). `RON_DEMAND_END_RANGES`, else where the
+    /// take left it.
+    fn run1695() -> Option<crate::trace::ranges::Record> {
+        let path = match std::env::var("RON_DEMAND_END_RANGES") {
+            Ok(p) => std::path::PathBuf::from(p),
+            Err(_) => {
+                let home = std::env::var("HOME").unwrap_or_default();
+                let dir = std::path::PathBuf::from(format!("{home}/ron-golden/run1695/map-14"));
+                crate::testenv::experiment(&dir, "rontrace.ranges")?
+            }
+        };
+        crate::trace::ranges::Record::open(&path)
+            .map_err(|e| eprintln!("skipping: no demand end ranges at {} ({e})", path.display()))
+            .ok()
+    }
+
+    /// The window run1695's units ranges are held over: from six states
+    /// before run1691's units parting (9981) to the take's last.
+    const RUN1695_WINDOW: (i64, i64) = (9975, 9990);
+
+    /// The units line's first parting on run1695's window: `(state, the
+    /// record's ranges, ours, parted, the first parting)` (item 4396).
+    const RUN1695_UNITS: Option<(i64, usize, usize, usize, &str)> = None;
+
+    /// **The demand's units line by range at its first parting** (item
+    /// 4396, `docs/LEADERS.md` §8.6): run1691's file walked as
+    /// `score_recording` walks it, the units line held range by range
+    /// against run1695's sets over [`RUN1695_WINDOW`].
+    /// `RON_DEMAND_END_DETAIL=<state>` prints every parted range on that
+    /// state, decoded.
+    #[test]
+    fn the_demand_s_units_part_by_range_on_run1695() {
+        use crate::diff::checksum_lines::packets::{Pieces, compare, our_lines};
+        let home = std::env::var("HOME").unwrap_or_default();
+        let rcx = std::env::var("RON_DEMAND_END_RCX").unwrap_or_else(|_| {
+            format!("{home}/ron-golden/recordings/item4396-demand-greatlakes-style0-d2-11200.rcx")
+        });
+        let (Some(inst), Ok(rec_game), Some(mut rec)) =
+            (crate::testenv::install(), read(&rcx), run1695())
+        else {
+            eprintln!("skipping: no install, no demand end file or no run1695");
+            return;
+        };
+        let Some(pieces) = Pieces::read() else {
+            return;
+        };
+        let detail: Option<i64> = std::env::var("RON_DEMAND_END_DETAIL")
+            .ok()
+            .and_then(|v| v.parse().ok());
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec_game);
+        let mut stream = crate::input::Stream::pump(&rec_game);
+        let (lo, hi) = RUN1695_WINDOW;
+        let mut seen: Option<DemandSeen> = None;
+        let mut frames = 0usize;
+        while built.sim.frame <= hi {
+            let f = built.sim.frame;
+            if f >= lo {
+                let theirs = crate::diff::checksum_frames::record::stream_at(&mut rec, f)
+                    .expect("run1695 holds a set for every state of the window");
+                frames += 1;
+                let ours = our_lines(&built.sim, &pieces);
+                if detail == Some(f) {
+                    crate::diff::sample::tests::print_partings(&ours[..1], &theirs);
+                }
+                let units = &compare(&ours, &theirs)[0];
+                if let (None, Some(d)) = (&seen, &units.first) {
+                    let text = crate::diff::checksum_frames::first_text("units", d);
+                    seen = Some((f, units.theirs, units.ours, units.parted, text));
+                }
+            }
+            stream.apply(f as i32, &mut built);
+            built.sim.command().tick();
+        }
+        eprintln!("DEMAND END units first {seen:?}");
+        assert_eq!(
+            frames,
+            (hi - lo + 1) as usize,
+            "run1695's sets, one a state"
+        );
+        assert_eq!(
+            seen,
+            RUN1695_UNITS.map(|(f, t, o, p, x)| (f, t, o, p, x.to_string())),
+            "RUN1695_UNITS"
+        );
+    }
+
     /// **Item 4387's game** (`docs/LEADERS.md` §8.2, `docs/RECGAME.md`
     /// §8.2): the harness lobby at `TEAM_STYLE 0`, `DIFFICULTY 2`, seed
     /// 12345 — the sweep's earliest demand, the French on the human on 6081

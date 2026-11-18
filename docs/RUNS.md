@@ -39084,3 +39084,39 @@ Files in place, `~/ron-golden/run1686/map-14/`: `rontrace.ranges`, 24,650,856 by
 first act's row was leaders, state 0, ranges 1 and 129 (`diplos[2..7]`, ours 0, theirs 1); with `Leader::init`'s row
 kept whole, every line agrees on all 41 states and the pin is empty. run1683 is now read by
 `the_demand_s_game_is_whole_on_run1683` (all twelve lines, 6,401 of 6,401).
+
+## run1691 — the original playing the demand's game to its own end, 10,929 frames (2026-11-18, item 4396, `att-4396`)
+
+`docs/LEADERS.md` §8.6; DECISIONS 143 §1, §3. **What the disk could not answer**: run1683 ends 320 states after the
+demand, so nothing on disk reaches the war our walk declares on 7937 or the conquest it reaches on 10929. The file:
+`~/ron-golden/recordings/item4396-demand-greatlakes-style0-d2-11200.rcx`, 59,217 bytes, SHA-256
+`373fac0a6a6b4aa7f8cca97ac7a29a87ee73dc85e1eb1f6a42a15a921d63771e`: run1683's lobby (run53's at `TEAM_STYLE 0`,
+`DIFFICULTY 2`, seed 12345, no orders) closing on 11200, the same donor (`Playback - 2026.10.06 00'34'05 (Tue).rcx`),
+written by `mint_4387_the_demand_s_game` under `RON_MINT_4387=1 RON_MINT_FRAMES=11200 RON_RCX_OUT=<file>
+RON_RECGAME_DIR=<the profile's Recorded Games>` (the default directory holds 19 recordings and no donor).
+
+The take: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1691
+--recording <the file> --end-frame 11200 --allow-early-end --cover cover=1 --log-window 7930 7961 --detail
+end:MISC,LEADERS=9 --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS`, waited on with `waitrun.sh` in the
+background. `df -g ~` read 170 GB free before it.
+- **The run**: pool lane 1, launched 18:34:03 −05:00, exited 18:47:14: **791.4 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. **10,929 frames, `last_frame` 10928, ended early: the game ended itself**
+  (`closing_frame` 10929), seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 11 (flags 1). Five settings
+  restored. Minutes waited on another lane: none. DLL `e4a7fd36…`, defines `-DRON_AUTOSTART -DRON_REPLAY
+  -DRON_CHECKSUMS`.
+- **What it prints**: the declaration on block 7937, `diplos` leader 0 `21111111` → `20111111` and leader 1
+  `12111111` → `02111111` (`aggression` unmoved: `00000000` and `10000000`); leader 1's `tribute_demanded[0]` 1 on
+  every block of the window.
+- **Scored** (`the_demand_s_game_to_its_end_on_run1691`, `checksum::playback::compare_until` closing on state
+  10928): builds, walls, deaths, groups, guys, **leaders**, cities, items, goods and world 10,929 of 10,929;
+  **units 9,981**, first parting state 9981, ours 2715156771, theirs 2445541469; **ammo 10,893**, first parting state
+  10075, ours 4012779512, theirs 4143847442. Our walk holds no `game_over` to 10928.
+- Filed **in place**, as run1683 is (a `greatlakes` gamelog at style 0 stays out of the Great Lakes corpora).
+  run1691 was the one number reserved.
+
+Files in place, `~/ron-golden/run1691/map-14/`: `gamelog_p.txt`, 44,945,255 bytes, SHA-256
+`40cf944487d93636c0da77355f1c7fbee700d3a4f63f0c2bf36f68d07f238f4a`; `rontrace.log`, 60,317,728 bytes, SHA-256
+`d3be87bdb7d11e955121c65b5091193723c3634a52291fefbaff306e067cd8e6`.
+
+**What it holds**: `diff::start_walk::recording::the_demand_s_game_to_its_end_on_run1691` (`RUN1691_AGREED`,
+`RUN1691_FIRST`, `RUN1691_OVER`).
