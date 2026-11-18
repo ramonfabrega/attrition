@@ -384,8 +384,13 @@ impl Sim {
     fn census_ally_mask(&mut self, who: Player) {
         let w = who as usize;
         let mut mask = 1u32 << (w & 0x1f);
+        // `plan_strategy@006b9620:204`–`:218`: the loop runs under
+        // `has_preq(ALLY_LOS) || reveal_map` and tests `leader_flags & 2`
+        // and both `diplos` — no `human` test (item 4388: run1645's French,
+        // allied with the person at 903, keep `ally_mask` 3 at 1001).
+        let reveal = self.ai.lobby.reveal_map != 0;
         for i in 0..self.territory.players.len() {
-            if i == w || self.leaders.defeated[i] || self.cities.nation[i].human {
+            if i == w || self.leaders.defeated[i] || !reveal {
                 continue;
             }
             if self.diplo_ally(w, i) && self.diplo_ally(i, w) {

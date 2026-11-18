@@ -4574,6 +4574,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (2095, 2095, 15) -> (2095, 2095, 13).
     // Item 4257, the garrison chain's order: builds (2095, 2095, 13) -> (2095, 2095, 11).
     // Item 4266, a guard order's walker: units (5770, 5605, 4899) -> (5770, 5770, 21).
+    // Item 4388, `Leader::init`'s row on the unseated slots (`diplos[2..7]` 0|1): leaders (271, 271, 5) -> (271, 271, 3).
     (
         "run854",
         3301,
@@ -4585,7 +4586,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (640, 640, 7),
             (1794, 1794, 0),
-            (271, 271, 5),
+            (271, 271, 3),
             (36, 36, 0),
             (5, 5, 0),
             (330, 330, 0),
@@ -4610,6 +4611,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: builds (2288, 2283, 1536) -> (2288, 2283, 1535).
     // Item 4258, `Group::add`'s OR of its new member's role: groups (640, 640, 4) -> (640, 640, 3).
     // Item 4266, a guard order's walker: units (10342, 10179, 7746) -> (10342, 10188, 7833).
+    // Item 4388, `Leader::init`'s row on the unseated slots: leaders (271, 271, 5) -> (271, 271, 4).
     (
         "run865",
         4859,
@@ -4621,7 +4623,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (28, 28, 7),
             (640, 640, 3),
             (2210, 2210, 1),
-            (271, 271, 5),
+            (271, 271, 4),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -4670,6 +4672,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (616, 616, 10) -> (616, 616, 7).
     // Item 4257, the garrison chain's order: builds (2737, 2732, 1918) -> (2737, 2732, 1917).
     // Item 4266, a guard order's walker: units (11125, 10662, 9730) -> (11125, 10809, 9782).
+    // Item 4388, `Leader::init`'s row on the unseated slots: leaders (271, 271, 5) -> (271, 271, 4).
     (
         "run882b",
         6808,
@@ -4681,7 +4684,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 7),
             (2832, 2832, 26),
-            (271, 271, 5),
+            (271, 271, 4),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -4707,6 +4710,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (616, 616, 10) -> (616, 616, 7).
     // Item 4257, the garrison chain's order: builds (2737, 2732, 1919) -> (2737, 2732, 1918).
     // Item 4266, a guard order's walker: units (11180, 10660, 9040) -> (11180, 10807, 10077).
+    // Item 4388, `Leader::init`'s row on the unseated slots: leaders (271, 271, 5) -> (271, 271, 4).
     (
         "run883b",
         6821,
@@ -4718,7 +4722,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 7),
             (2832, 2832, 24),
-            (271, 271, 5),
+            (271, 271, 4),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -5294,19 +5298,20 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run839", "aggression cities_built flags.leader_flags"),
     ("run842", "aggression cities_built flags.leader_flags"),
     ("run842b", "aggression cities_built flags.leader_flags"),
-    ("run854", "diplos flags.leader_flags oil_patches.elements"),
+    // Item 4388: `diplos` on the unseated slots agrees (`Leader::init`'s row).
+    ("run854", "flags.leader_flags oil_patches.elements"),
     (
         "run865",
-        "diplos flags.leader_flags oil_patches.elements reg_gatherers",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     ("run870", "aggression cities_built flags.leader_flags"),
     (
         "run882b",
-        "diplos flags.leader_flags oil_patches.elements reg_gatherers",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     (
         "run883b",
-        "diplos flags.leader_flags oil_patches.elements reg_gatherers",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     ("run893b", "flags.leader_flags"),
     ("run912e", "flags.leader_flags"),
@@ -5857,7 +5862,8 @@ fn run1629_take_packet() {
 /// no start dump and no correction: the units, builds, groups, guys and
 /// world lines part on 1, 4, 2, 1 and 1 ranges, and the leaders line on 6
 /// of 403, each leader's long range, on the three leaves of
-/// [`TAKE1645_LEAF_PARTINGS`].
+/// [`TAKE1645_LEAF_PARTINGS`]. Item 4388: leaders 6 → 3, `ally_mask` and
+/// the unseated slots' `diplos` agreeing.
 const TAKE1645_PINNED: Pinned = (
     "run1645",
     1000,
@@ -5869,7 +5875,7 @@ const TAKE1645_PINNED: Pinned = (
         (0, 0, 0),
         (556, 556, 2),
         (1261, 1261, 1),
-        (403, 403, 6),
+        (403, 403, 3),
         (9, 9, 0),
         (30, 30, 0),
         (405, 405, 0),
@@ -5885,8 +5891,10 @@ const TAKE1645_PINNED: Pinned = (
 /// `Leader::set_diplo@006ec6a0` and `Leader::plan_strategy@006b9620:205`
 /// give an allied leader under `ALLY_LOS` or `reveal_map` are not carried
 /// (item 4313's journal, parked 4313a). `cities_built`, which parts on both
-/// take packets before, agrees here.
-const TAKE1645_LEAF_PARTINGS: &str = "ally_mask diplos flags.leader_flags";
+/// take packets before, agrees here. **Item 4388** carried both: the
+/// French `ally_mask` 3|1 agrees (`set_diplo`'s bits), and `diplos` on the
+/// unseated slots (`Leader::init`'s row, `get_player`'s record 0).
+const TAKE1645_LEAF_PARTINGS: &str = "flags.leader_flags";
 
 /// **The leaf the reseated taunt's packet releases** (item 4313;
 /// `docs/DECISIONS.md` entry 131 §1): `incoming_taunt_who`, written on 906

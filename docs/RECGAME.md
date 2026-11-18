@@ -519,9 +519,35 @@ leader 2's `oil_patches` order, two buildings' `z` and six `seen2` cells.
 Units' 92 is the explore bit, which item 4351 carried as
 `sim::Unit::explore_queued`, outside the word `checksum/units.rs` builds.
 
-**Not established:** the writer of `+0x6929` and its order in
+~~**Not established:** the writer of `+0x6929` and its order in
 `build_game`; whether an unseated slot's `team` byte puts it on the
-person's team; `oil_patches`, `z`, `seen2` and goods' `ever_seen`.
+person's team;~~ answered by item 4388, below. Still open: `oil_patches`,
+`z`, `seen2` and goods' `ever_seen`.
+
+**Item 4388: 24 of the 28 taken** (`SAMPLE_RANGES`; journal
+`docs/journal/2026-11-18-item-4388.md`). *Diff-backed* on run1678's state 0,
+each a mutation that turns the pin red:
+
+- **The mask.** `Setup::build_game@005ac190` calls `Leader::init` over
+  `start_list`, the start permutation, and `Leader::init`'s loop ors a slot
+  into `+0x6929` when `LeaderData::is_ally@006edb50` holds, which reads
+  **both** leaders' `diplos`. A teammate not yet initialised is left out:
+  the permutation 1, 0, 2, 3, 4 gives 2, 3, 7 and 0x17.
+  `Wall::activate@0063e4b0` ors the stored byte. Builds 21 → 2 parted.
+- **`chat_status`**, `Game::init_teams`' 0x80 arm: with a seated
+  teammate anywhere, only a teammate pair reads 0.
+  `Game::is_cooperative@00594810` is team style 8 to 10 (11 and 12 with
+  two records on one `who`, not carried).
+- **An unseated slot is the lobby's record 0.**
+  `LeaderData::get_player@006ec0f0` returns 0 when no active record
+  carries the leader's `who`. The sample's record 0 is the person (team 0),
+  so the person's `Leader::init` writes slots 5 to 7 a teammate's row.
+  Leaders 6 → 1 parted.
+
+Left on state 0: builds' two `z`, leader 2's `oil_patches` order, and the
+six `seen2` cells, ours 0x04 against theirs 0x17. The cells are probably a
+unit's start reveal given to the owner alone where theirs gives it to the
+reach. That is not read.
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

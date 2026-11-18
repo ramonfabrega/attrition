@@ -53,8 +53,12 @@ impl Sim {
         // keeps both (item 4340: the mask, run1578's leader 1).
         let aggression = leader.aggression;
         let ally_mask = leader.census.ally_mask;
+        let (unseated_diplos, unseated_treaties) =
+            (leader.unseated_diplos, leader.unseated_treaties);
         *leader = ai::Leader::new();
         leader.aggression = aggression;
+        leader.unseated_diplos = unseated_diplos;
+        leader.unseated_treaties = unseated_treaties;
         leader.census.ally_mask = ally_mask;
         leader.pers = pers;
         leader.player_flags = player_flags;
