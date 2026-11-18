@@ -7493,36 +7493,3 @@ fn the_original_s_playback_of_the_auto_explored_file_walks_in_lockstep() {
     assert_eq!(entries, UNITMASK_ENTRIES, "the handler's entry");
     assert_eq!(walked, AUTO_EXPLORED_WALKED, "the walked table");
 }
-
-/// PROBE 4389: our walk's slot-1 squads on 7158..7164.
-#[test]
-fn probe_4389_squads() {
-    if std::env::var_os("RON_PROBE_4389").is_none() {
-        return;
-    }
-    let Some((_, mut built, _)) = built_start() else { return };
-    let mut stream = crate::input::Stream::pump(&minted(&crate::script::picked_repair()).unwrap());
-    let mut last = std::collections::HashMap::new();
-    for n in 6985..=7164 {
-        tick_to(&mut built, Some(&mut stream), n);
-        let s = &built.sim;
-        for (i, u) in s.units.iter().enumerate() {
-            if u.owner != 1 || !u.alive() || !(30..=32).contains(&u.index) {
-                continue;
-            }
-            let key = format!(
-                "1/{} danger{} army{:?} group{} orders {:?}",
-                u.index, u.in_danger, s.army_of(i), s.pool_group_of(i),
-                u.orders.iter().map(|o| o.index()).collect::<Vec<_>>()
-            );
-            if last.get(&u.index) == Some(&key) {
-                continue;
-            }
-            last.insert(u.index, key.clone());
-            eprintln!(
-                "P4389 f{} {key} i{} pos({},{})",
-                s.frame, i, u.pos.x, u.pos.y,
-            );
-        }
-    }
-}
