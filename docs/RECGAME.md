@@ -545,9 +545,39 @@ each a mutation that turns the pin red:
   Leaders 6 → 1 parted.
 
 Left on state 0: builds' two `z`, leader 2's `oil_patches` order, and the
-six `seen2` cells, ours 0x04 against theirs 0x17. The cells are probably a
+six `seen2` cells, ours 0x04 against theirs 0x17. ~~The cells are probably a
 unit's start reveal given to the owner alone where theirs gives it to the
-reach. That is not read.
+reach.~~ Not a unit's: answered by item 4394, below.
+
+**Item 4394: the `seen2` cells and goods' `ever_seen`** (journal
+`docs/journal/2026-11-18-item-4394.md`). *Diff-backed* on run1678, each a
+mutation that turns `SAMPLE_RANGES` red:
+
+- **The cells are a building's disc, shared by the team at frame 0.**
+  Theirs' `seen2` round leader 2's capital is exactly the city's
+  radius-10 `update_seen_ally` disc at fog (14, 80) together with the
+  radius-3 disc of its Woodcutter `2/2001` (`mylos` 7) at (22, 78), both
+  0x17. The six cells, (24, 75) and (25, 76..80), are the Woodcutter's
+  disc past the city's. No static writer gives a non-city building's
+  disc the team reach. `Game::run@00584590:722` calls
+  `GameDaemon::update_all_seen` after `calc_danger` and before the first
+  frame (run1678's coverage enters it at frame −1). Its tail, on
+  `frame == 0` alone, takes each live leader's team (own bit, both-way
+  allies, the stored `+0x6929` bits) and, under `starting_resources != 0
+  || reveal_map != 0`, ors the team into every `seen2` byte that holds
+  any of its bits. `seen` and the cells' `was_seen` are not written. The
+  start walk now runs `update_all_seen` there, and the tail is
+  `Sim::share_team_seen2`. World 1 → 0 parted, whole over the window.
+- **`plan_strategy:314`–`:337` marks the good.** A `new_rares` entry
+  that passes the explored test sets `ever_seen |= 1 << who` before the
+  owner test. `Leader::new_rare` gives the good to every both-way ally,
+  so on frame 0 good 29 (fog (7, 79), in leader 2's city) is the team's.
+  `census_rares` now makes the write. Goods' frame-1 `145 29 ever_seen`
+  0x04|0x17 agrees, and goods are whole over the window.
+
+By sum on run1662 (`SAMPLE_LINES`), goods' first parting moves 1 → 4094
+and world's 0 → 1716. Neither is read. Left on state 0: builds' two `z` (`0/2003` 142|145, `3/2002` 316|330) and
+leader 2's `oil_patches` order, (20, 5) against (5, 20).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

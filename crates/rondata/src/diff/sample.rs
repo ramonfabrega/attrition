@@ -518,6 +518,9 @@ mod tests {
     /// first hold one. Ammo agrees from theirs' first shot on 2929 to 3021
     /// on the merged tree (2929 → 3022: the base's ammo records, merged
     /// into this lane), where our emitter refused a held shot before.
+    /// Item 4394 (the frame-0 `seen2` share and the census's `ever_seen`
+    /// mark): goods 1 → 4094 and world 0 → 1716; builds and leaders still
+    /// part on the start.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 92),
         ("builds", 0),
@@ -529,8 +532,8 @@ mod tests {
         ("leaders", 0),
         ("cities", 3176),
         ("items", 3976),
-        ("goods", 1),
-        ("world", 0),
+        ("goods", 4094),
+        ("world", 1716),
     ];
 
     /// `(frames our walk holds no wall, shot or death, the first it holds
