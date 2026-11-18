@@ -7502,19 +7502,26 @@ fn probe_4389_squads() {
     }
     let Some((_, mut built, _)) = built_start() else { return };
     let mut stream = crate::input::Stream::pump(&minted(&crate::script::picked_repair()).unwrap());
-    for n in 7158..=7164 {
+    let mut last = std::collections::HashMap::new();
+    for n in 6985..=7164 {
         tick_to(&mut built, Some(&mut stream), n);
         let s = &built.sim;
         for (i, u) in s.units.iter().enumerate() {
-            if u.owner != 1 || !u.alive() || !(24..=40).contains(&u.index) {
+            if u.owner != 1 || !u.alive() || !(30..=32).contains(&u.index) {
                 continue;
             }
-            eprintln!(
-                "P4389 f{} 1/{} i{} ty{:?} cap{} up{:?} down{:?} group{} pos({},{}) orders {:?}",
-                s.frame, u.index, i, u.ty, u.captain,
-                u.o_up.map(|j| s.units[j].index), u.o_down.map(|j| s.units[j].index),
-                s.pool_group_of(i), u.pos.x, u.pos.y,
+            let key = format!(
+                "1/{} danger{} army{:?} group{} orders {:?}",
+                u.index, u.in_danger, s.army_of(i), s.pool_group_of(i),
                 u.orders.iter().map(|o| o.index()).collect::<Vec<_>>()
+            );
+            if last.get(&u.index) == Some(&key) {
+                continue;
+            }
+            last.insert(u.index, key.clone());
+            eprintln!(
+                "P4389 f{} {key} i{} pos({},{})",
+                s.frame, i, u.pos.x, u.pos.y,
             );
         }
     }
