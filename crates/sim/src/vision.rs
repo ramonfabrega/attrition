@@ -749,6 +749,9 @@ impl Sim {
         for u in 0..self.units.len() {
             self.update_seen(u, false);
         }
+        if self.frame == 0 {
+            self.share_team_seen2();
+        }
     }
 
     // ------------------------------------------------------------------

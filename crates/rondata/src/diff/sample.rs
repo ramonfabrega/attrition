@@ -709,6 +709,15 @@ mod tests {
     /// person's `diplos[5..7]` 0|2, `treaties[5..7]` 0|1, `aggression[5..7]`
     /// 1|0 agree. Leaders 6 → 1 parted, the first `1 0 chat_status[3]` →
     /// `328 2 oil_patches` (20, 5)|(5, 20). State 0: 28 → 4 parted ranges.
+    ///
+    /// Item 4394, act 1 (`Game::run:722`'s `GameDaemon::update_all_seen`
+    /// before the first frame, and its frame-0 tail sharing each team's
+    /// `seen2`): world `3626 seen2` at fog (24, 75) and (25, 76..80), leader
+    /// 2's Woodcutter `2/2001`'s disc past its city's radius, ours 0x04,
+    /// theirs 0x17 → agree; world whole over the window. With
+    /// `plan_strategy`'s `new_rares` arm marking `ever_seen`, goods' `145
+    /// 29 ever_seen` on frame 1, ours 0x04, theirs 0x17 → agree; goods
+    /// whole over the window. State 0: 4 → 3 parted ranges.
     const SAMPLE_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -733,22 +742,6 @@ mod tests {
             663,
             1,
             "328 2 oil_patches: +0x0 of 16|16: 14000000|05000000",
-        ),
-        (
-            "goods",
-            1,
-            265,
-            265,
-            1,
-            "145 29 ever_seen: +0x0 of 1|1: 04|17",
-        ),
-        (
-            "world",
-            0,
-            7301,
-            7301,
-            1,
-            "3626 -1 seen2: +0x2340 of 14400|14400: 04000000|17000000",
         ),
     ];
 }

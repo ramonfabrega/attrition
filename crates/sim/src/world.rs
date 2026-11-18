@@ -1161,6 +1161,17 @@ impl World {
         self.fog[i] != before
     } // twin of World::set_seen2
 
+    /// `GameDaemon::update_all_seen@00732840`'s frame-0 share: every `seen2`
+    /// byte holding any bit of `team` takes all of `team`. The plane alone:
+    /// neither `seen` nor the cells' `was_seen` is written (item 4394).
+    pub fn share_seen2(&mut self, team: u8) {
+        for b in &mut self.fog {
+            if *b & team != 0 {
+                *b |= team;
+            }
+        }
+    }
+
     /// The cell half of every `seen2` write: `mask` into `WData.was_seen`
     /// of the cell holding fog cell `(fx, fy)`, which the caller has put
     /// on the grid. `World::set_was_seen@006b41d0` is the pair written
