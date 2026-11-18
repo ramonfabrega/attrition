@@ -2162,10 +2162,6 @@ impl Input {
     /// `who`. That is not always the package's `play` ([`Input::player`]):
     /// the 2017 sample's human is `who` 3 on play 0, and every lobby of
     /// ours is `who` 0 on play 0.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "the census mints it; no window writes a file yet")
-    )]
     pub fn leader_options(&self, who: u8) -> Command {
         self.prefs.issue_leader_option(i32::from(who))
     }
@@ -13193,6 +13189,213 @@ pub(crate) mod tests {
     /// `the_picked_minted_packages_round_trip` under `RON_RCX_OUT`.
     const PICKED_RCX: &str = "ron-golden/recordings/item4352-picked-greatlakes-24000.rcx";
     const PICKED_RCX_BYTES: usize = 59_729;
+
+    /// **The arms' stage 0** (item 4361, `docs/CLIENT_INPUT.md` §32.13): on
+    /// each arm's frame of the walk under the arms' script, `(frame, the
+    /// option or 0 for the Farm's key, the selected citizen and its pixel,
+    /// the pick button's centre with it selected, the object pressed if
+    /// any, the second press's pixel)`, every pixel through the opening
+    /// camera.
+    type ArmStage = (
+        i32,
+        i32,
+        i16,
+        (i32, i32),
+        Option<(i32, i32)>,
+        Option<ObjId>,
+        (i32, i32),
+    );
+    const ARM_STAGE: [ArmStage; 5] = [
+        (
+            script::ARM_MOVE_FRAME,
+            OPTION_MOVE_TO,
+            script::ARM_MOVE_UNIT,
+            (1685, 521),
+            Some((391, 984)),
+            None,
+            (1500, 640),
+        ),
+        (
+            script::ARM_GUARD_FRAME,
+            OPTION_ATTACK_TO,
+            script::ARM_GUARD_UNIT,
+            (1655, 513),
+            Some((545, 984)),
+            Some(ObjId {
+                who: 0,
+                o: script::ARM_GUARDED,
+            }),
+            (961, 638),
+        ),
+        (
+            script::ARM_ATTACK_FRAME,
+            OPTION_ATTACK_TO,
+            script::ARM_ATTACK_UNIT,
+            (881, 559),
+            Some((545, 984)),
+            None,
+            (800, 700),
+        ),
+        (
+            script::ARM_BUILD_FRAME,
+            0,
+            script::ARM_BUILD_UNIT,
+            (999, 598),
+            None,
+            None,
+            (1010, 700),
+        ),
+        (
+            script::ARM_SITE_FRAME,
+            OPTION_REPAIR,
+            script::ARM_SITE_UNIT,
+            (938, 623),
+            Some((545, 1012)),
+            Some(ObjId {
+                who: 0,
+                o: script::ARM_SITE,
+            }),
+            (1006, 678),
+        ),
+    ];
+
+    /// The arms' events: the picked script's, then on each arm's frame a
+    /// press on the citizen, one on the pick button (the Farm's key for
+    /// the placement) and one on the object or the ground ([`ARM_STAGE`]).
+    fn arm_events() -> Vec<Scripted> {
+        let mut e = pick_events();
+        for (f, option, _, (ux, uy), button, _, (x, y)) in ARM_STAGE {
+            e.push((f, None, Event::Press { x: ux, y: uy }));
+            match button {
+                Some((bx, by)) => e.push((f, None, Event::Press { x: bx, y: by })),
+                None => {
+                    assert_eq!(option, 0, "only the placement has no button");
+                    e.push((f, None, Event::Key('f')));
+                }
+            }
+            e.push((f, None, Event::Press { x, y }));
+        }
+        e
+    }
+
+    /// **`INPUT_ARMS_FILE`** (item 4361): the arms' events, through the HUD
+    /// (its views carrying the walk) and the layer under the opening
+    /// camera, mint [`script::picked_arms`] field for field, of 40.
+    const INPUT_ARMS_FILE: usize = 40;
+
+    /// **The arms' count**: stage 0 on each arm's frame — the citizen is
+    /// slot 0's and where its press lands, the pick button stands where the
+    /// second press lands in the standard panel the HUD draws for it, the
+    /// object pressed is where the third lands, and the ground press names
+    /// the script's point — then the events mint the arms' script, and the
+    /// file written from them is the arms' file.
+    #[test]
+    fn minted_arms_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let arms = script::picked_arms();
+        let c = camera(None);
+        let mut next = 0;
+        for (f, option, o, unit_at, button_at, target, press_at) in ARM_STAGE {
+            while r.frame() < i64::from(f) {
+                let g = r.frame() as i32;
+                while next < arms.len() && arms[next].0 == g {
+                    r.issue(&arms[next]);
+                    next += 1;
+                }
+                r.step();
+            }
+            let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+            let v = view(&c, &scene, &terrain);
+            let uid = ObjId { who: 0, o };
+            let u = scene.units.iter().find(|u| u.id == uid).unwrap();
+            let mut input = Input::new(0);
+            input.selection = vec![uid];
+            let row = crate::hud::roster_menu(&input, &scene, Some(r.sim()), HUD_SIZE);
+            let at = row
+                .iter()
+                .find(|b| option != 0 && b.button.option == option && b.ev == Event::Pick(option))
+                .map(|b| b.rect.centre());
+            let t = target.map(|target| {
+                scene
+                    .units
+                    .iter()
+                    .find(|x| x.id == target)
+                    .map(|x| v.pixel(x.pos.x, x.pos.y, x.z))
+                    .or_else(|| {
+                        scene
+                            .buildings
+                            .iter()
+                            .find(|x| x.id == target && x.owner == 0 && !x.active)
+                            .map(|x| v.pixel(x.pos.x, x.pos.y, x.z))
+                    })
+            });
+            let ground = ground_at(&v, press_at.0, press_at.1);
+            println!(
+                "ARM STAGE0 f{} option {option} unit {o} peasant {} at {:?} button {at:?} target {target:?} at {t:?} ground {ground:?}",
+                r.frame(),
+                u.spy.peasant,
+                v.pixel(u.pos.x, u.pos.y, u.z),
+            );
+            assert!(u.spy.peasant, "a citizen");
+            assert_eq!(v.pixel(u.pos.x, u.pos.y, u.z), unit_at);
+            assert_eq!(at, button_at);
+            match t {
+                Some(t) => assert_eq!(t, Some(press_at), "the object pressed"),
+                None => {
+                    assert_eq!(view_any_target(&v, press_at), None, "bare ground");
+                    let want = match f {
+                        script::ARM_MOVE_FRAME => script::ARM_MOVE_TO,
+                        script::ARM_ATTACK_FRAME => script::ARM_ATTACK_TO,
+                        _ => script::ARM_FARM_AT,
+                    };
+                    assert_eq!(ground, Some(want));
+                }
+            }
+        }
+        drop(r);
+
+        let Some((ours, r)) = mint_with_sim(arm_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let whole = ours.iter().zip(&arms).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (arms.len(), INPUT_ARMS_FILE),
+            "{:?}",
+            &ours[ours.len().saturating_sub(5)..]
+        );
+        assert_eq!(ours, arms);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(picked), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(PICKED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(ARMS_RCX)),
+        ) else {
+            println!("skipping the bytes: no {PICKED_RCX} or {ARMS_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), ARMS_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the arms' orders");
+        assert!(written != picked, "not the picked file");
+    }
+
+    /// No unit and none of one's own buildings under a pixel: what the
+    /// ground arms ask before they take the ground.
+    fn view_any_target(v: &View, (x, y): (i32, i32)) -> Option<ObjId> {
+        v.any_unit(0, x, y)
+            .or_else(|| v.own_building(0, x, y).map(|b| b.id))
+    }
+
+    /// The arms' file (`docs/CLIENT_INPUT.md` §32.13), written by rondata's
+    /// `the_arms_minted_packages_round_trip` under `RON_RCX_OUT`.
+    const ARMS_RCX: &str = "ron-golden/recordings/item4361-arms-greatlakes-24000.rcx";
+    const ARMS_RCX_BYTES: usize = 59_813;
 
     /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
     /// order kinds the recordings on disk carry

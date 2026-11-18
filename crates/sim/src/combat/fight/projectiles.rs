@@ -1,5 +1,6 @@
 //! The per-frame passes: buildings that shoot, and ammo in flight to its landing (`Ammo::inc_time`, `hit_target`) (STRUCTURE §5, move 7).
 
+use super::delivery::HitSource;
 use super::*;
 
 impl Sim {
@@ -189,6 +190,7 @@ impl Sim {
                 ez,
                 v1z: combat::arc_v1z(sz, ez, total_time),
                 slot: 0,
+                graphic: Default::default(),
                 flame: false,
                 // SEAM: the building's ammo piece's flags are not read, so
                 // its `BuildingArrow` (`puncture="1"`) never sticks here
@@ -596,7 +598,14 @@ impl Sim {
             }
             let angle = p.bearing();
             self.do_damage_round(
-                p.shooter, t, angle, true, p.flame, 0x100, false, false, frame,
+                p.shooter,
+                t,
+                angle,
+                HitSource::Round(Some(&p)),
+                0x100,
+                false,
+                false,
+                frame,
             );
             return;
         }
@@ -707,7 +716,14 @@ impl Sim {
             let splash = target != Some(o);
             let angle = p.bearing();
             self.do_damage_round(
-                p.shooter, o, angle, true, p.flame, count, splash, false, frame,
+                p.shooter,
+                o,
+                angle,
+                HitSource::Round(Some(&p)),
+                count,
+                splash,
+                false,
+                frame,
             );
         }
     }

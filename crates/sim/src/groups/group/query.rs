@@ -157,11 +157,8 @@ impl Sim {
     ///
     /// The tail is the second half of §18: `find_role`, then
     /// [`Sim::group_compute_speed`] written into both halves of the pair.
-    /// It is what primes a freshly pushed group — `Army::find_target`'s
-    /// probe normalizes at the end of its own build
-    /// ([`Sim::find_target_probe`](Self::find_target_probe)) — so the
-    /// first frame of the first march is already capped, rather than
-    /// running at the leader's own speed until its first report.
+    /// The probe in
+    /// `Army::find_target` normalizes the remaining army (ARMY §12).
     pub fn group_normalize(&mut self, g: &mut Group) {
         g.list
             .retain(|&u| u < self.units.len() && self.units[u].alive());

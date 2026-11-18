@@ -2299,6 +2299,19 @@ chosen on 5496 (`docs/ARMY.md` §12's raid-1 level arm read a seam's
 score; run1655b's packet). On 5668 ours 112 draws to theirs' 129, index
 3 ours `Guy::set_anim+0x97a < Guy::move`, theirs `Unit::do_move+0xe84`.
 The seed is still open: item 4354 took the muster act alone, past 200 k.
+**Item 4360 read 5668 back to 5667, word unmoved**: the delta is 16
+`Unit::do_move+0xe84` grid rolls (theirs 20, ours 4) and one
+`Guy::inc_time` set_anim. Theirs' twenty world searches are the French
+navy `1/2`'s submarines and `1/62`–`1/64` of army `1/1`, bound for the
+Russian side (about c56,32 and c47,44); ours re-sends both French armies
+home to `1/2000`. Both re-tick on 5667 through `Armies::emergency`,
+raised by the Russian nuke's hit on the French capital
+(`Object::take_damage < Object::do_damage < Nuke::do_damage`), with
+`find_target`'s 26 draws equal; theirs' tail then stamps the Russians
+(`frame_attacked` 5626 → 5667, the French `attack_stamp[2]`,
+`raid_stamp[2]`, `ally_stamp[2]` 0 → 5667, run1655's `LEADERDATA` on
+5668) and ours stamps no one. Which score parts is not read
+(`docs/ARMY.md` §18): it takes a packet at 5667.
 
 ## 8.3 In the crate
 

@@ -486,7 +486,9 @@ impl Sim {
     }
 }
 
+mod ammo;
 pub mod builds;
+mod deaths;
 pub mod groups;
 pub mod guys;
 pub mod leaders;

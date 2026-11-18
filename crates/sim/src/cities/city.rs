@@ -1597,6 +1597,7 @@ impl Sim {
             gather: Vec::new(),
             regen_roads: false,
             damage: 0,
+            damage_marked: false,
             job_counter: 0,
             job_counter_2: 0,
             constr_time: 0,

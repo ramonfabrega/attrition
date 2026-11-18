@@ -4146,7 +4146,9 @@ carries one still, but the original played a pick's `follow` from the minted fil
 
 - **One reading**: every arm above. No recording carries a pick's order that can be told from the right press's.
   ~~No playback ran a pick (4349b).~~ The original played one order from each pick button: the Move pick's
-  `follow`, the Repair pick's `gather` and the Attack pick's `attack` (run1656, §32.11).
+  `follow`, the Repair pick's `gather` and the Attack pick's `attack` (run1656, §32.11), and the Move pick's
+  ground, the Attack pick's `guard` and ground, and the Repair pick's `BUILD_AT` (run1663, §32.13). The Repair
+  pick's `REPAIR` alone is still one reading (4361a).
 - **Not built**:
   - the Repair pick's territory test (the cell's owner), as the right press's is not (§6.1);
   - an ally's building or unit, since the layer names no ally;
@@ -4206,9 +4208,9 @@ both sides, 18 of 18 values. `INPUT_PICKED_FILE` is 35 of 35. No `crates/sim` ch
   Through 6900 the follow's head is a `MOVE_TO`, and by 7200 it is `FOLLOW`. The Repair pick's gather walks to the
   Farm and gathers. The attack's target is gone by 7200, and the citizen is gathering again by 7499.
 - **Backed by a diff**: the three orders' bytes (the client's file, byte for byte), their play in lockstep over the
-  window, and every picked unit's records. **One reading**, still: the arms in §32.10.1 the take does not reach (the
+  window, and every picked unit's records. ~~**One reading**, still: the arms in §32.10.1 the take does not reach (the
   Move pick on the ground with the right press's form, the Attack pick's `guard` and ground, the Repair pick's
-  `BUILD_AT` and `REPAIR`).
+  `BUILD_AT` and `REPAIR`).~~ All but `REPAIR` were played by the original from a minted file (run1663, §32.13).
 - **Not established**: whether `Unit::do_follow` is first entered on the tick that takes the package. No entry
   table was kept, and the follow's draw site on 6856 is its only witness.
 
@@ -4273,6 +4275,76 @@ packet (`the_transport_press_as_the_original`). No capture, no playback, no `cra
   from a file.
 - **Not established**: a live press, which needs the human's level at 3 (a Dock and `TRANSPORT_BONUS`). No
   script of ours builds that.
+
+## 32.13 The picks' other arms, played by the original (item 4361)
+
+*Item 4361, 2026-11-18 (`docs/journal/2026-11-18-item-4361.md`). The score is `Recording:`, which gains the picks'
+other arms: **`ARMS_WALKED` is 7,500 of 7,500 frames' draws and 700 records, 0 parted** (run1663), and each arm's
+effect is equal on both sides, 40 of 40 values. `INPUT_ARMS_FILE` is 40 of 40. No `crates/sim` change.*
+
+- **The script.** `script::picked_arms()` is the picked script (§32.11) and five packages more, each from one
+  citizen's selection at the opening camera:
+
+  | frame | selection | button | pressed on | order |
+  | --- | --- | --- | --- | --- |
+  | 6860 | Citizen `0/1` | MOVE | bare ground, (1500, 640) | `group [1]`, `move_to(5148, 30423, MOVE_TO, 0, 50)` |
+  | 6870 | Citizen `0/6` | ATTACK | Slinger `0/9`, one's own | `group [6]`, `guard(9, 0, QUEUE_NEW)` |
+  | 6880 | Citizen `0/10` | ATTACK | bare ground, (800, 700) | `group [10]`, `move_to(3306, 33036, ATTACK_TO, −1, −1)` |
+  | 6890 | Citizen `0/4` | the Farm's key | ground, (1010, 700) | `group [4]`, `build(3994, 32387, Farm, QUEUE_NEW)` |
+  | 6900 | Citizen `0/5` | REPAIR | the site `0/2009`, unfinished | `group [5]`, `swarm_around(2009, 0, QUEUE_NEW, BUILD_AT)` |
+
+  The placement is not a pick. It lays the site the Repair pick's first arm needs, since no building of slot 0's
+  is unfinished on the walk after 940.
+- **Stage 0** (`ARM_STAGE`), on each frame of the walk under the arms' script: each citizen's pixel, the pick
+  button's centre in the standard panel the HUD draws for it (MOVE (391, 984), ATTACK (545, 984), REPAIR
+  (545, 1012)), and the object pressed or the bare ground. A ground press is held to name no unit and none of one's
+  own buildings, and its inverse is held to be the script's point.
+- **`drag_form` is the last right press's** (§32.10.1). The Move pick's ground order carries `form` 0 and
+  `width` 50, which the last main-view right press of the events wrote for a citizen's selection. With
+  `Console::clear`'s (0, −1) pinned, the count read red at 39 of 40.
+- **The count.** `minted_arms_at_the_opening_camera`: the picked events and the fifteen presses and key, through
+  the HUD and the layer (`mint_with_sim`), mint `script::picked_arms()` field for field. **`INPUT_ARMS_FILE` is 40
+  of 40.**
+- **The file.** `~/ron-golden/recordings/item4361-arms-greatlakes-24000.rcx`, 59,813 bytes, SHA-256
+  `9a410084c5328cff5bd5a6f710508dcb8f75c9dc8de431d377980598f77d5311` (`the_arms_minted_packages_round_trip`). It holds
+  the picked file's packages, then the five, stamped 37 to 41. The closing stamp goes from 37 to 42. The client's
+  events through the HUD write it byte for byte.
+- **The take.** run1663 (`docs/RUNS.md`) is run1656's line with this file. The playback left no `.rcx`, so none
+  was removed (DECISIONS 140 §2).
+- **Lockstep** (`ARMS_WALKED`, pinned before the read with none parted): draws agree on all 7,500 frames, count
+  and sequence; 700 records compared (6800..7499), 0 part.
+- **The comparison can fail.** The picked file walked against run1663 parts 639 of 700 records from 6861, first on
+  `0/1`, ours (4920, 29016) with `GATHER` at its head against theirs (4923, 29041) with `MOVE_TO`. Its draws part
+  on 6900 (a scratch test, not kept).
+- **Each arm's effect** (`what_the_arms_do_on_both_sides`). Each armed unit's position and head order
+  (`OrderIndex`: 1 `MOVE_TO`, 2 `ATTACK_TO`, 6 `BUILD_AT`, 7 `GATHER`, 11 `FOLLOW`) on 6861, 6871, 6881, 6891, 6901,
+  7000, 7200 and 7499. Ours was pinned off our walk's print and committed (`7b9f933c6`) before run1663 was
+  launched. The original's records equal ours on all 40. A selection of the rows, with the picked file's walk as
+  the third column:
+
+  | frame | unit | the original, and ours | the picked file |
+  | --- | --- | --- | --- |
+  | 6861 | `0/1` (Move, ground) | (4923, 29041), `MOVE_TO` | (4920, 29016), `GATHER` |
+  | 7000 | `0/1` | (5148, 30423), no order: at the script's point | |
+  | 6871 | `0/6` (guard) | (4710, 29038), head 2 | |
+  | 7499 | `0/6` | (5178, 26534), head 2 | |
+  | 6881 | `0/10` (Attack, ground) | (2643, 31870), `ATTACK_TO` | |
+  | 7000 | `0/10` | (3306, 33036), no order: at the script's point | |
+  | 6891 | `0/4` (the Farm's builder) | (3261, 31718), `MOVE_TO` | |
+  | 7000 | `0/4` | (3768, 32040), `BUILD_AT` | |
+  | 7000 | `0/5` (Repair, site) | (3576, 32136), `BUILD_AT` | |
+  | 7200 | `0/4`, `0/5` | (3768, 31992) `GATHER`; (1908, 32124) `MOVE_TO` | |
+
+  The two ground orders end at the script's points. The guard's head is order index 2 on both sides from 6871
+  to 7499. Both builders hold `BUILD_AT` on 7000, and the builder gathers at the finished Farm by 7200.
+- **Backed by a diff**: the five orders' bytes (the client's file, byte for byte), their play in lockstep over
+  the window, and every armed unit's records. That covers the Move pick's ground arm with the right press's
+  `drag_form`, the Attack pick's ally and ground arms, and the Repair pick's first arm.
+- **One reading, still: the Repair pick's `REPAIR` arm** (parked 4361a). No building of slot 0's is damaged on the
+  walk, from frame 0 to 24,000 at every twentieth frame and from 7,400 at every tenth. A building's disband is a
+  timer, not a wound (`docs/GOLDEN.md` §165). So no person's events on this game make the arm's target.
+- **Not established**: the guard's head order. It is index 2 in both dumps, which is `ATTACK_TO`'s number. Whether
+  `issue_guard`'s order is stored as an `ATTACK_TO` or the reader names it so is not read here.
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 

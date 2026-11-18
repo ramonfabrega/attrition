@@ -961,21 +961,22 @@ mod tests {
         // against 10 until item 1171): the original's `1/52` collided with
         // `1/30`, and so does this crate's now.
         pin_eq!(row(1, 52, "collide_o"), None, "the old word's collision");
-        // What 14587 still parts on: the new group 68's speed pair, ours
-        // 26 against 0 — standing since before item 1171, and no draw
-        // reads it over the window.
-        pin_eq!(
-            row(1, -3, "group:68.speed").as_deref(),
-            Some("14587: ours 26 theirs 0"),
-            "group 68's speed"
-        );
+        // The departing squads join group 68. Both speeds stay zero until
+        // the group itself is normalized (item 4364).
+        for field in ["group:68.speed", "group:68.new_speed"] {
+            pin_eq!(
+                row(1, -3, field),
+                None,
+                "{field} agrees through all 257 blocks"
+            );
+        }
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SAHARA_14587_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(14582, 24), (14587, 2)],
+            [(14582, 24)],
             "the blocks keys first part on, to the old word's"
         );
         // **14661: the Spice route** (item 1189, the value diff of the
@@ -998,7 +999,7 @@ mod tests {
             pin_eq!(row(1, o, what), None, "1/{o}'s {what} agrees");
         }
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 161.
-        pin_eq!(w.firsts.len(), 26, "every key parted on run418");
+        pin_eq!(w.firsts.len(), 24, "every key parted on run418");
     }
 
     /// **The third map's long word, 15586, widened whole** (item 1171):

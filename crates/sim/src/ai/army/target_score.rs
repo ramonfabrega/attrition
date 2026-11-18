@@ -15,8 +15,10 @@
 //! count at zero, so the original's loop over them never runs). In the
 //! [`SimGate`] the tail's `city` is the target **building**, the object
 //! the original keeps. **Not modelled**: the probe's body (the sweep
-//! answers its first call `-1`, which returns), `leaders[who] +0x7e8`, the
-//! two wonder arms and `has_preq(0x2b9)` (the sim answers all three off).
+//! answers its first call `-1`, which returns) and `has_preq(0x2b9)` (the
+//! sim answers it off). `leaders[who] +0x7e8` (`pop_issues`) and the two
+//! wonder arms (`wonderwin_timer`, `num_wonders`, `wonder_winning`) read
+//! the crate's own fields since item 4360.
 
 use crate::ai::army::target_gate::{SimGate, TargetGateView, diff_of};
 use crate::world::vector_dist;
@@ -452,8 +454,10 @@ fn opt_region(r: i32) -> Option<u16> {
 }
 
 impl TargetScoreView for SimGate<'_> {
-    fn f7e8(&self, _a: usize) -> i32 {
-        0
+    fn f7e8(&self, a: usize) -> i32 {
+        // `LeaderData::pop_issues` (`+0x7e8`): this frame's capped trains,
+        // as the leaders' record keeps them (item 4360).
+        self.sim.leaders.pop_issues[a]
     }
     fn f18(&self, a: usize) -> i32 {
         // `leaders[a] +0x18`, `LeaderData::score` (the type record): the
@@ -528,11 +532,30 @@ impl TargetScoreView for SimGate<'_> {
     fn city_level(&mut self, a: usize, k: usize) -> i32 {
         self.sim.city_level_of(self.c(a, k))
     }
-    fn num_wonders(&mut self, _a: usize, _k: usize) -> i32 {
-        0
+    fn num_wonders(&mut self, a: usize, k: usize) -> i32 {
+        // `CityData::num_wonders@007382b0(0)`: the city's chain from its
+        // centre, each member that answers `BuildData::is_wonder` (vslot
+        // `+0x2c`, the type's range flag) and is not the Red Fort
+        // (`is(REDFORT)`, `0x216`); the argument 0 skips the `+8 & 0x20` test.
+        let line = &self.sim.tables.tech_tree.roles.wonder_line;
+        self.sim
+            .city_chain(self.c(a, k))
+            .into_iter()
+            .filter(|&b| {
+                self.sim.buildings[b].ty.is_some_and(|t| {
+                    let bt = &self.sim.tables.build_types[t];
+                    bt.wonder
+                        && bt.tree.is_none_or(|tree| {
+                            line.iter().position(|&w| w == tree)
+                                != Some(crate::tech::wonder::RED_FORT)
+                        })
+                })
+            })
+            .count() as i32
     }
     fn wonder_winning(&mut self) -> i32 {
-        -1
+        // `Game::wonder_winning@005948a0` ([`crate::Sim::wonder_winning`]).
+        self.sim.wonder_winning()
     }
     fn has_preq(&mut self) -> bool {
         false

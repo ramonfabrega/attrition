@@ -4204,7 +4204,7 @@ With it on the far side of the curve, 225. On the lower arm the photograph's ban
 y 184, outside player 1's cells, so the draw takes the far side. The reader's convention ("`who` on `+N`")
 was stated in y-up axes and the cells are y-down; this is the photograph's word on it, not a second reading.
 
-**The row** (`borders::tests::RUN1564_3279_BORDER`). On run1564's photograph at the client's frame 3279,
+**The row** (`borders::tests::RUN1564_3279_BORDER`; the settled one is `RUN1665_3279_BORDER`, below). On run1564's photograph at the client's frame 3279,
 the pixels within one cell of an owner's edge on the sim's grid (157,622). A border's pixel is one bluer than
 the mean of its red and green, red within 2 of green and above 110 (the band reads (154, 148, 169) over sand
 (192, 181, 117)). `(both, theirs, ours)`:
@@ -4243,13 +4243,47 @@ capture's pace kept on screen. Our regular strips are the original's settled sta
 packet on disk holds that settled state for this border. The probes are under
 `~/ron-data/lab-experiments/2026-11-17-item-4356/`.
 
+**The settled band (item 4358).** run1665 is run1564's take with `3194 !ffwd 0` staged: `ConsoleWin::run_cmd@007d6a70`
+sets `fast_forward_frame` to n × 900, so the blanket `37 !ffwd 4` ends there. From then on `Game::loop_render@005917e0`
+draws every frame, not every sixteenth. Its packet (frame 3294) reads `graphic_tick` 253 (run1564's 177). No morph is in
+the east, and `need_rebuild` is 0. The east band is `normal_border_renders[2]`, a regular strip of 30 vertices, `who` 1,
+`whom` 1. The photograph shows one straight lavender band where run1564's showed a "<". The grab is sRGB, 1920 × 1080,
+and it registers on run1564's cut at (0, 0): the mean absolute difference is 0.8 over the HUD and 0.4 over the rock
+and sand.
+- **The geometry agrees.** Our band's vertices fall within 0.5 units of the packet's in x and y. Their z is the
+  packet's plus 6 to 7, which is `BORDER_LIFT`. The curve's sample 7 is (56.625, 45.50) cells on both sides.
+- **The width is a texture's two rows.** The packet's texture coordinates read `u` 2.00 → 2.93 texels, inside the
+  owner's two columns. `v` reads 4 texels on each pair's first vertex, on the owner's side, and 2 on the far one.
+  `Borders::make_texture@00882530` fills even row 2m with leader m's colour, transparent in m's own two columns. It
+  fills odd rows with each column's own leader's colour. So the band runs from the owner's edge, between two opaque
+  rows, through an opaque row's centre a quarter across, to a row transparent in the owner's columns three quarters
+  across. The far edge lies between that row and an opaque one.
+- **The profile (`LONE_PROFILE`).** Filtered linearly, the band's alpha across its width is 1, 1, 0 and ½ at those
+  four places, times the vertex alpha. The photograph's columns show it: strong over the owner's cells, a ramp, then
+  a faint rim at the far edge. That rim is the linear filter's mark; a point sampler would leave a flat half.
+- **Which side.** The owner's edge lies on its own cells. The far-side half that "Which half is whose" chose above
+  was fit to the morph.
+- **The row** (`RUN1665_3279_BORDER`, the same reader on run1665's photograph; theirs 262):
+
+| draw | both | theirs | ours |
+|---|---|---|---|
+| none (the mint) | 0 | 262 | 0 |
+| 4306's half, far side | 7 | 262 | 568 |
+| `LONE_PROFILE`, owner's side | **59** | 262 | 384 |
+| made-to-fail: the owner grid one cell east | 0 | 262 | 0 |
+
+On run1564's photograph, the morph, the same change reads 222 → 43 of 1,440 (a named fall).
+
 **What is not established.**
 - ~~**The "<"'s upper arm** (parked 4306a).~~ The cells and the rule agree with the packet. The arm is morph 1's
   `to` strip, above (item 4356).
-- Ours lies a few pixels off theirs along the lower arm. The photograph's lower arm is also morph 1: a
-  one-sided gradient band, narrower than the regular strip. It is not the regular strip's normals or sampling
-  (item 4356). The regular strip's geometry is still one reading, because no photograph on disk shows it
-  settled.
+- ~~Ours lies a few pixels off theirs along the lower arm.~~ The settled band is named above (item 4358). What is
+  left is bounded. Theirs lies 2.5 to 3 px south of ours along the whole strip: the start, the strong part and the
+  rim move alike, at x 1830, 1860 and 1890. That is about a quarter of the band, with x, y and z agreeing to the
+  units above. Parked 4358a.
+- The owner's edge falls between row 2m+1 and row 2m+2, so it carries leader m+1's colour at ½. Near the strip's
+  start, `u` below 2.5 texels blends the column before. Neither is drawn. A chain between two players keeps two flat
+  halves, each now on its own side; no photograph holds one.
 - The morph itself (`BorderMorphRender`, `make_interp_spline@008811e0`) is not drawn. A border change shows
   for 45 graphic ticks, so at play speed it lasts about 1.5 s.
 - `BORDER_LIFT` (6 units) is ours: the patch pass tests depth, the original's does not.

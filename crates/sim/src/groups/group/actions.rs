@@ -239,7 +239,7 @@ impl Sim {
             };
             self.units[u].combat.stance = st;
             match s {
-                0 | 3 | 4 => self.units[u].combat.mandatory = false,
+                0 | 3 | 4 => self.set_attack_mandatory(u, false),
                 // 1, 2, 5 kill the current order — for a **human** leader
                 // only (`leaders.list[who] & 4`, `docs/GROUPS.md` §8),
                 // when it lacks the action bit and the action order does
