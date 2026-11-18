@@ -484,7 +484,7 @@ pub struct ObjectChain {
     /// `up_who`: the object above's owner — and the last one's after it left.
     pub up_who: i8,
     above: Option<Obj>,
-    below: Option<Obj>,
+    pub(crate) below: Option<Obj>,
 }
 
 impl Default for ObjectChain {
@@ -2159,13 +2159,6 @@ impl Sim {
             next = self.chain_words(o).below;
         }
         out
-    }
-
-    /// The object below `o` on its cell's chain — the link a walker reads
-    /// off `o`'s `down`/`down_who` (`+0x2c`/`+0x2e`) — or `None` at the
-    /// tail and once `o` is off the chain.
-    pub(crate) fn chain_below(&self, o: Obj) -> Option<Obj> {
-        self.chain_words(o).below
     }
 
     /// The four words of a unit, `(up, down, down_who, up_who)`.

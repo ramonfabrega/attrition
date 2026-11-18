@@ -268,7 +268,7 @@ impl Sim {
                     // after its strike, so a blow that takes it off the
                     // chain ends the cell's walk there, as theirs does.
                     self.nuke_ring_strike(i, o, at, r, max, shooter, frame);
-                    next = self.chain_below(o);
+                    next = self.chain_words(o).below;
                 }
             }
         }
