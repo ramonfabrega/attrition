@@ -4611,6 +4611,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4257, the garrison chain's order: builds (2288, 2283, 1536) -> (2288, 2283, 1535).
     // Item 4258, `Group::add`'s OR of its new member's role: groups (640, 640, 4) -> (640, 640, 3).
     // Item 4266, a guard order's walker: units (10342, 10179, 7746) -> (10342, 10188, 7833).
+    // Item 4388, `Leader::init`'s row on the unseated slots: leaders (271, 271, 5) -> (271, 271, 4).
     (
         "run865",
         4859,
@@ -4622,7 +4623,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (28, 28, 7),
             (640, 640, 3),
             (2210, 2210, 1),
-            (271, 271, 5),
+            (271, 271, 4),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -4671,6 +4672,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (616, 616, 10) -> (616, 616, 7).
     // Item 4257, the garrison chain's order: builds (2737, 2732, 1918) -> (2737, 2732, 1917).
     // Item 4266, a guard order's walker: units (11125, 10662, 9730) -> (11125, 10809, 9782).
+    // Item 4388, `Leader::init`'s row on the unseated slots: leaders (271, 271, 5) -> (271, 271, 4).
     (
         "run882b",
         6808,
@@ -4682,7 +4684,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 7),
             (2832, 2832, 26),
-            (271, 271, 5),
+            (271, 271, 4),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -4708,6 +4710,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (616, 616, 10) -> (616, 616, 7).
     // Item 4257, the garrison chain's order: builds (2737, 2732, 1919) -> (2737, 2732, 1918).
     // Item 4266, a guard order's walker: units (11180, 10660, 9040) -> (11180, 10807, 10077).
+    // Item 4388, `Leader::init`'s row on the unseated slots: leaders (271, 271, 5) -> (271, 271, 4).
     (
         "run883b",
         6821,
@@ -4719,7 +4722,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 7),
             (2832, 2832, 24),
-            (271, 271, 5),
+            (271, 271, 4),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -5295,19 +5298,20 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run839", "aggression cities_built flags.leader_flags"),
     ("run842", "aggression cities_built flags.leader_flags"),
     ("run842b", "aggression cities_built flags.leader_flags"),
-    ("run854", "diplos flags.leader_flags oil_patches.elements"),
+    // Item 4388: `diplos` on the unseated slots agrees (`Leader::init`'s row).
+    ("run854", "flags.leader_flags oil_patches.elements"),
     (
         "run865",
-        "diplos flags.leader_flags oil_patches.elements reg_gatherers",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     ("run870", "aggression cities_built flags.leader_flags"),
     (
         "run882b",
-        "diplos flags.leader_flags oil_patches.elements reg_gatherers",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     (
         "run883b",
-        "diplos flags.leader_flags oil_patches.elements reg_gatherers",
+        "flags.leader_flags oil_patches.elements reg_gatherers",
     ),
     ("run893b", "flags.leader_flags"),
     ("run912e", "flags.leader_flags"),
