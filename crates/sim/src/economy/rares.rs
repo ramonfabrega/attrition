@@ -1069,11 +1069,6 @@ impl RevealFogView for SimRevealFog<'_> {
         self.sim.ai.ai[who as usize].oil_patches[k as usize] as i32
     }
     fn oil_add(&mut self, who: i32, gi: i32) {
-        if std::env::var("RON_PROBE_4397").is_ok() {
-            let bt = std::backtrace::Backtrace::force_capture().to_string();
-            let names: Vec<&str> = bt.lines().filter(|l| l.contains("sim::") || l.contains("rondata::")).take(9).map(|l| l.trim()).collect();
-            eprintln!("PROBE fogoil who {who} gi {gi} frame {} list {:?} via {names:?}", self.sim.frame, self.sim.ai.ai[who as usize].oil_patches);
-        }
         self.sim.ai.ai[who as usize].oil_patches.push(gi as usize);
     }
     fn find_goody_at(&mut self, cx: i32, cy: i32) -> i32 {
