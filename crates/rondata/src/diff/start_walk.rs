@@ -935,6 +935,9 @@ pub(crate) mod recording {
         }
     }
 
+    /// A leader's first store on a frame: `(frame, me, k)`.
+    type Store = (i64, usize, usize);
+
     /// The harness lobby re-read at `TEAM_STYLE 0`, `DIFFICULTY diff` and
     /// `(int)seed seed`, walked order-free through `score_recording`'s pump
     /// for up to `frames` frames, until the first `tribute_demanded` store
@@ -948,11 +951,7 @@ pub(crate) mod recording {
         seed: i64,
         diff: i64,
         frames: i32,
-    ) -> (
-        Option<(i64, usize, usize)>,
-        Option<(i64, usize, usize)>,
-        i64,
-    ) {
+    ) -> (Option<Store>, Option<Store>, i64) {
         let info: Vec<(&str, String)> = init
             .game_info
             .iter()
