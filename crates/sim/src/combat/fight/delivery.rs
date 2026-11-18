@@ -206,6 +206,14 @@ impl Sim {
             _ => None,
         };
         // The city alarm, before the take (`0064a9f8`..`0064b2c4`).
+        if std::env::var_os("RON_PROBE_4359").is_some() && (2880..=3030).contains(&frame) {
+            if let Obj::Building(b) = target {
+                let bd = &self.buildings[b];
+                eprintln!("PROBE4359 f{frame} hit {}/{} by {:?} whole {} frac {} damage {} hits_now {} active {} city {:?} siege {} capital_stamp {:?}",
+                    bd.owner, bd.index, attacker, dealt.whole, dealt.frac, bd.damage, bd.hits_now(), bd.active, bd.city, ap.siege,
+                    self.ai.ai[bd.owner as usize].capital_stamp);
+            }
+        }
         let alarm = self.city_alarm(attacker, target, ap.siege, dealt.whole, frame);
         // Step 7: take.
         let taken = self.take_damage_typed(target, dealt, attacker, frame, dtype, splash);
