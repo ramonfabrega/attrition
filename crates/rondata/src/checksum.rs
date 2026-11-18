@@ -150,7 +150,12 @@ pub const CHECKSUM_PACKET: (&str, i64, u64) = ("run1562", 91, 3201);
 /// (`Group::find_role`, `docs/CHECKSUM.md` §19).
 /// Item 4150: the world, 294,769 more, once the collision blocks' presence
 /// is held beside the grid (`docs/CHECKSUM.md` §21, `docs/COLLISION.md` §26).
-pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (8, 12, 367_156, 425_499);
+/// Item 4392: the leaders line, 58,343 more (8 → 9 lines, 367,156 →
+/// 425,499 bytes), once `LEADERS_HELD_OUT` is empty (`tribute_demanded`
+/// released on run1683, `docs/CHECKSUM.md` §20, §22). The walls, ammo and
+/// deaths lines are empty on this frame, so every byte the twelve walks
+/// hand over is reproduced.
+pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (9, 12, 425_499, 425_499);
 
 /// Which logger hook printed a record.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

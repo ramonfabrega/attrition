@@ -1049,6 +1049,7 @@ fn the_ported_lines_are_checksum_state() {
         sim.checksum_guys(),
         sim.checksum_units(),
         sim.checksum_groups(),
+        sim.checksum_leaders(),
         sim.checksum_world(),
     ];
     let bytes: usize = lines.iter().map(sim::checksum::Line::bytes).sum();
