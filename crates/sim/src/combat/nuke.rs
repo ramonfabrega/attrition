@@ -260,14 +260,6 @@ impl Sim {
                 self.combat.nukes.blasts[i].struck.push(o);
             }
             let cells = self.nuke_ring_cells(at, r);
-            if std::env::var_os("RON_PROBE_4377").is_some() {
-                eprintln!("PROBE4377 frame {frame} r {r} at {:?} cell {:?} cells {}", at, at.cell(), cells.len());
-                for (b, bd) in self.buildings.iter().enumerate() {
-                    if (bd.pos.cell().x - at.cell().x).abs() <= 10 && (bd.pos.cell().y - at.cell().y).abs() <= 10 {
-                        eprintln!("PROBE4377   bldg {b} {}/{} cell {:?} pos {:?} struck {} chain {:?}", bd.owner, bd.index, bd.pos.cell(), bd.pos, self.struck(Obj::Building(b)), self.object_chain(bd.pos.cell()).iter().map(|o| match o { Obj::Unit(u) => format!("u{}/{}", self.units[*u].owner, self.units[*u].index), Obj::Building(x) => format!("b{}/{}", self.buildings[*x].owner, self.buildings[*x].index)}).collect::<Vec<_>>());
-                    }
-                }
-            }
             for cell in cells {
                 let s = (cell.y * self.world.width() + cell.x) as usize;
                 let mut next = self.terrain.object_heads[s];
@@ -320,9 +312,6 @@ impl Sim {
             return;
         }
         let angle = find_angle(pos.x - at.x, pos.y - at.y);
-        if std::env::var_os("RON_PROBE_4377").is_some() {
-            eprintln!("PROBE4377 strike frame {frame} {}/{} d {d} count {count}", self.buildings[b].owner, self.buildings[b].index);
-        }
         self.do_damage(shooter, o, angle, false, count, true, false, frame);
         self.combat.nukes.blasts[i].struck.push(o);
     }
