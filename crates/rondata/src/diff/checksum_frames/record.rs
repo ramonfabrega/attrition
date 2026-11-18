@@ -28,7 +28,7 @@ fn record() -> Option<Ranges> {
 /// `frame - 1` (§24.1) — as a packet's stream rows, by line name: `(the
 /// call site, the call site, bytes)`; the walker is named by its site,
 /// since the export's names never enter the crate.
-fn stream_at(
+pub(in crate::diff) fn stream_at(
     rec: &mut Ranges,
     frame: i64,
 ) -> Option<std::collections::BTreeMap<String, super::super::checksum_lines::StreamRows>> {

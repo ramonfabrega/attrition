@@ -38922,3 +38922,30 @@ run1651 and run1662 print no frame block, and run1654's window ends on 101. File
 Files in place: `gamelog_p.txt`, 3,972,686 bytes, SHA-256
 `09028a282ce7aee7e05b7235d9f51185704e60478486ebec52ffafc1618567f8`; `rontrace.log`, 42,983,808 bytes, SHA-256
 `8fa5edec3b366234586ada66eb0b0345343bd99baf4ab2414440b39ab9b8e833`.
+
+## run1678 — the 2017 sample's playback to 100 with the checksum and ranges hooks, all twelve lines kept (2026-11-18, item 4384, `att-4384`)
+
+`docs/RECGAME.md` §7; DECISIONS 142 §4. **What the disk could not answer**: run1662's sums say builds, leaders and world
+part on state 0, goods on 1 and units on 92, and name no range. No range record of the sample existed, and the
+default `RNG_MASK` keeps lines 0 to 7, without goods and world. The take: run1662's line to 100 with the range record
+and the mask widened, `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1678
+--recording "<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx" --end-frame 100 --cover cover=1
+--log-window 0 101 --detail end:MISC --timeout 900 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xfffu`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 13:08:52 −05:00, exited 13:09:24: **32.3 s** launch to exit, exit 0, `success`, 101 frames,
+  `last_frame` 100, not ended early, seed observed 340513920, five settings restored, no page fault, no relaunch.
+  `df -g ~` read 180 GB free before it. Minutes waited on another lane: none. DLL `290cd4db…`, defines
+  `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xfffu`.
+- **The record**, `~/ron-golden/run1678/map-7/rontrace.ranges`, 77,271,928 bytes, SHA-256
+  `e2d4118974a7019487f7f74948279c4def2187b2d9e3799dc1c28d0f8ab8871e`: 111 sets on trace frames −1 to 99, 1,284,529
+  ranges, 56,708,636 bytes, none over, all twelve lines kept. `ranges.py check --hook <run1662's log>`: every set's
+  twelve lines re-sum to its words, and the 111 sets are run1662's (0 part, 0 of ours missing there).
+- Filed with `filerun.py run1678 sample2017-playback-ranges-100` (not a `greatsahara` tag, run1662's lesson). The
+  record stays where the take left it.
+
+Archive `gamelog-run1678-sample2017-playback-ranges-100.txt`, 3,772 bytes,
+SHA-256 `7cc03a2b1214b88c2d3a726ddda41d6ff805b37010006edab20dedf010e88782`; `rontrace-run1678.log`, 8,914,240 bytes,
+SHA-256 `4e95371959a2d3cfae9cf1860557740af7d046555d894fe8873ab05b77f2901f`.
+
+**What it holds**: `diff::sample::tests::the_sample_s_ranges_name_each_first_parting` (`SAMPLE_RANGES`): each line's
+first parting by range, record and field.
