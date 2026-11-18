@@ -213,8 +213,124 @@ static void card_draw_streams(u32 card, const u32 *args, u32 site) {
 }
 #endif
 
+#ifdef RON_CARD_POST
+/* Under `RON_CARD_POST` (item 4393, parked 4390a): the post chain's buffers on
+ * a logged pass, copied back off the GPU. A logged pass's `begin_drawing` arms
+ * it; while armed, each hook below copies its textures to a staging texture,
+ * maps it and writes `post-NN.raw` beside the exe; the second `flip` after the
+ * arm disarms. The layouts are `d3dgl.pdb`'s type records: `D3D11GLSys`
+ * `mD3DDeviceContext` +1148, `mScreen` +2112, `mHDRBuffer` +3408, each a
+ * `D3D11GLBuffer` with `mTexture` at +1208; `D3D11ToneMapper` `mLuminanceRTV`
+ * +160, `mPingRTV` +168, `mPongRTV` +176, `mTonedRTV` +184. The hooks:
+ *   7 `D3D11ToneMapper::do_run` entry: the HDR buffer (the chain's input) and the screen
+ *   8 `do_blur` entry: the toned buffer, before the bloom
+ *   9 `do_blend` entry: ping and pong (the bloom's blur)
+ *  10 `D3D11AntiAlias::run` entry: the screen, FXAA's input
+ *  11 `D3D11GLSys::flip` entry: the screen, the frame presented
+ * Records, `a` the subtype:
+ *  20 event: b kind, c g_frame, d the armed pass, e the event's sequence, f flips since the arm
+ *  21 readback: b file number, c width, d height, e DXGI format | samples << 16, f status
+ *     (0 written, 1 no texture, 2 multisampled, 3 create, 4 map, 5 file, 6 cap) | which << 8
+ * A file is a 32-byte header (`RCPB`, kind, which, g_frame, width, height,
+ * format, row pitch) and then height rows of row-pitch bytes. */
+#define CARD_SYS 0x100fb3a0u /* d3d_sys, D3D11GLSys * */
+#define CARD_POST_CAP 40
+static i32 g_post_pass = -1;
+static u32 g_post_flips, g_post_seq, g_post_files;
+/* A COM method by vtable slot, stdcall, every argument a dword. */
+typedef long(__stdcall *Com1)(u32);
+typedef long(__stdcall *Com2)(u32, u32);
+typedef long(__stdcall *Com3)(u32, u32, u32);
+typedef long(__stdcall *Com4)(u32, u32, u32, u32);
+typedef long(__stdcall *Com6)(u32, u32, u32, u32, u32, u32);
+static u32 com(u32 obj, u32 slot) { return (*(u32 **)obj)[slot]; }
+
+static void post_number(char *name, u32 n) { /* "post-NN.raw" */
+    const char *pre = "post-";
+    u32 i = 0;
+    while (*pre) name[i++] = *pre++;
+    name[i++] = (char)('0' + n / 10 % 10);
+    name[i++] = (char)('0' + n % 10);
+    name[i++] = '.', name[i++] = 'r', name[i++] = 'a', name[i++] = 'w', name[i] = 0;
+}
+
+/* Copy one Texture2D back and write it; `which` names it in the record. */
+static void post_read(u32 kind, u32 which, u32 tex) {
+    u32 status = 0, n = g_post_files, desc[11] = {0}; /* D3D11_TEXTURE2D_DESC */
+    if (!tex) status = 1;
+    else if (n >= CARD_POST_CAP) status = 6;
+    if (!status) {
+        ((Com2)com(tex, 10))(tex, (u32)desc); /* ID3D11Texture2D::GetDesc */
+        if (desc[5] > 1) status = 2;
+    }
+    if (!status) {
+        u32 sys = *(u32 *)(g_card_base + CARD_SYS - CARD_PREF);
+        u32 ctx = *(u32 *)(sys + 1148), dev = 0, stg = 0;
+        ((Com2)com(ctx, 3))(ctx, (u32)&dev); /* ID3D11DeviceChild::GetDevice, AddRef'd */
+        u32 st[11];
+        memcpy(st, desc, sizeof st);
+        st[7] = 3, st[8] = 0, st[9] = 0x20000, st[10] = 0; /* STAGING, no binds, CPU read, no misc */
+        if (((Com4)com(dev, 5))(dev, (u32)st, 0, (u32)&stg) < 0 || !stg) status = 3; /* CreateTexture2D */
+        else {
+            ((Com3)com(ctx, 47))(ctx, stg, tex); /* CopyResource(dst, src) */
+            u32 m[3] = {0, 0, 0};
+            if (((Com6)com(ctx, 14))(ctx, stg, 0, 1, 0, (u32)m) < 0 || !m[0]) status = 4; /* Map READ */
+            else {
+                char name[16], path[320];
+                post_number(name, n);
+                path_join(path, name);
+                HANDLE f = CreateFileA(path, GENERIC_WRITE, FILE_SHARE_READ, 0, 2, FILE_ATTRIBUTE_NORMAL, 0);
+                if (f == INVALID_HANDLE) status = 5;
+                else {
+                    u32 h[8] = {0x42504352u, kind, which, (u32)g_frame, desc[0], desc[1], desc[4], m[1]}, got;
+                    WriteFile(f, h, sizeof h, &got, 0);
+                    for (u32 y = 0; y < desc[1]; y++)
+                        WriteFile(f, (const u8 *)m[0] + y * m[1], m[1], &got, 0);
+                    CloseHandle(f);
+                    g_post_files++;
+                }
+                ((Com3)com(ctx, 15))(ctx, stg, 0); /* Unmap */
+            }
+            ((Com1)com(stg, 2))(stg); /* Release */
+        }
+        if (dev) ((Com1)com(dev, 2))(dev);
+    }
+    emit(K_CARD, 21, n, desc[0], desc[1], desc[4] | (desc[5] << 16), status | (which << 8));
+}
+
+/* A view's resource (AddRef'd by GetResource), read, then released. */
+static void post_read_view(u32 kind, u32 which, u32 view) {
+    u32 res = 0;
+    if (view) ((Com2)com(view, 7))(view, (u32)&res); /* ID3D11View::GetResource */
+    post_read(kind, which, res);
+    if (res) ((Com1)com(res, 2))(res);
+}
+
+static void post_hook(u32 kind, u32 ecx) {
+    if (g_post_pass < 0) return;
+    if (kind == 11) g_post_flips++;
+    emit(K_CARD, 20, kind, (u32)g_frame, (u32)g_post_pass, g_post_seq++, g_post_flips);
+    u32 sys = *(u32 *)(g_card_base + CARD_SYS - CARD_PREF);
+    if (!sys) return;
+    u32 screen = *(u32 *)(sys + 2112 + 1208), hdr = *(u32 *)(sys + 3408 + 1208);
+    if (kind == 7) post_read(kind, 0, hdr), post_read(kind, 1, screen);
+    else if (kind == 8) post_read_view(kind, 2, *(u32 *)(ecx + 184));
+    else if (kind == 9) post_read_view(kind, 3, *(u32 *)(ecx + 168)), post_read_view(kind, 4, *(u32 *)(ecx + 176));
+    else if (kind == 10) post_read(kind, 1, screen);
+    else if (kind == 11) post_read(kind, 1, screen);
+    flush();
+    if (kind == 11 && g_post_flips >= 2) g_post_pass = -1;
+}
+#endif
+
 static void card_on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
     (void)arg0;
+#ifdef RON_CARD_POST
+    if (kind >= 7) {
+        post_hook(kind, ecx);
+        return;
+    }
+#endif
     /* The observer's own frame: fp[2..6] are its five arguments, fp[7..10] the
      * stub's saved flags, edx, ecx and eax, fp[11] the call's return address
      * (== caller) and fp[12..] the call's own stack arguments. */
@@ -237,6 +353,9 @@ static void card_on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
                 g_frame <= RON_CARD_HI) {
                 g_card_pass = g_card_npass++;
                 g_card_draw = 0;
+#ifdef RON_CARD_POST
+                g_post_pass = g_card_pass, g_post_flips = 0;
+#endif
                 emit(K_CARD, 8, (u32)g_card_pass, 0, caller, ecx, 0);
             }
         } else if (g_card_pass >= 0) {
@@ -310,6 +429,19 @@ static const CardSite CARD_SITES[] = {
     {0x1002c970u, 6, 5, {0x55, 0x8b, 0xec, 0x8b, 0x45, 0x08}, 0},
     /* D3D11GLGraphicCard::release_internal_stream: push esi; mov esi,ecx; mov ecx,[esi+0x304] */
     {0x1002caa0u, 9, 6, {0x56, 0x8b, 0xf1, 0x8b, 0x8e, 0x04, 0x03, 0x00, 0x00}, 0},
+#ifdef RON_CARD_POST
+    /* D3D11ToneMapper::do_run: push ebp; mov ebp,esp; and esp,-8 */
+    {0x10044a30u, 6, 7, {0x55, 0x8b, 0xec, 0x83, 0xe4, 0xf8}, 0},
+    /* do_blur: push ebp; mov ebp,esp; sub esp,0x24 */
+    {0x10044de0u, 6, 8, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x24}, 0},
+    /* do_blend: push ebp; mov ebp,esp; sub esp,0x10 */
+    {0x10045040u, 6, 9, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10}, 0},
+    /* D3D11AntiAlias::run: push ebp; mov ebp,esp; sub esp,0x2c */
+    {0x100186d0u, 6, 10, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x2c}, 0},
+    /* D3D11GLSys::flip: cmp dword [0x100fb36c],0 (relocated with the module); the
+     * `je` after it reads the flags, which the stub's displaced copy sets */
+    {0x10023290u, 7, 11, {0x83, 0x3d, 0x6c, 0xb3, 0x0f, 0x10, 0x00}, 2},
+#endif
 };
 #define NCARD (sizeof(CARD_SITES) / sizeof(CARD_SITES[0]))
 
