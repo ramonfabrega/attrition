@@ -128,3 +128,22 @@ of the original over ours (`lake-two-takes-and-ours.png`).
 - **The blind list was not scanned**: open 0.
 - **The debug profile was not cleaned**: the reflex needed it before the
   gate.
+
+## The gate
+
+Whole, by `tools/gate_run.sh`, on `ae1a3f341`.
+
+- **`gate-pass-1118b.log`: `gate exit 0`**, 9 of 9 steps: offline 2.1,
+  guard 1.0, merge pins 1.5, release 25.1, clock 0.2. `Clock: green
+  beside load`. `Suite: 1404 processes for 2533 tests: 145 groups hold
+  1274, 1259 ran alone; 10393 test CPU-seconds`; admission 10.1 s over
+  1,441 leases; load 3.4 at its start and 9.4 at its end; no `skipping:`
+  line. `Rows: one driver row at most: steer efe23ae3 (working)`;
+  `Driver: 0 landings since the last pass (backstop 20) · context 279 k`.
+  `Builders: 0 reaped`; 183 GB free after it.
+
+The guard went red once on the pass's own paperwork before that commit,
+as built: two items said "capture" and named no map
+(`a_capture_booked_on_a_map_cites_the_window_the_disk_holds`), and one
+named a function of ours as if it were the export's
+(`a_function_a_booking_names_is_in_the_export`). Both were reworded.
