@@ -544,6 +544,25 @@ the walk holds. **The twelve state lines agree on every frame of the minted game
 in it, and the three record shapes unexercised (no emitter walks a wall, a shot or a death record; §8's walls and ammo
 shapes rest on the recon's reading alone).
 
+**Occupied deaths (item 4363).** The original walks the valid slots in pool
+order. A single unit can occupy several slots. Each contributes its four-byte
+valid flag and the 71 bytes from `first_frame` through `unit_crew`, inclusive.
+The latter includes the figure's unmasked position, facing and four pivot
+angles at death. The clock is the number of death-object updates. The final
+three bytes are the node flags and the crew index (−1 for the squad figure,
+0 for its first crew member). `DeathObjData` in the shipped type record names
+the fields. The original's checksum stream at state 8408 of the long window
+recording is the byte comparison (RECGAME §10).
+
+The skeleton piece is the unit graphic's named entry in the install's
+skeleton table. That table starts after the shadow pieces
+(`GraphicPieces::init_piece_ranges@008f70e0`, `GraphicPieces::init@008ffcc0`).
+A disband has ammo piece −1 and zero ammo angle. Its two records agree
+through their separate removals. On run1420, treating four combat deaths as
+unarmed reproduces 294 of 300 bytes. The six differing bytes are all in the
+ammo angles. Their original values are 16, 193, 201 and 0 degrees. A damage
+path with unknown impact inputs leaves the whole deaths line unavailable.
+
 ## 9. Pointers, floats, padding and locals
 
 - **Pointers: none walked**, in any of the twelve on this frame (§4).

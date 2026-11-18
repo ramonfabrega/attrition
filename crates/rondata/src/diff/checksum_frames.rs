@@ -154,7 +154,7 @@ fn the_hook_s_values_are_the_printed_record_s() {
 /// lines. Rules and the two script lines are not the simulation's
 /// (`docs/DECISIONS.md` entry 119). Walls, ammo and deaths (2, 3, 4) are
 /// emitted as the empty walk's Adler alone and refuse a frame that holds an
-/// element ([`empty_walk`]; item 4355): their record shapes are a reading.
+/// element (item 4355). The deaths line also emits unarmed closes (item 4363).
 const EMITTED: [usize; 12] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
 /// **The three empty lines' emitter** (item 4355, `docs/CHECKSUM.md` §8):
@@ -459,7 +459,8 @@ fn our_adlers(
             continue;
         }
         out[k] = Some(match (i, &lines) {
-            (2..=4, _) => empty_walk(h[i - 2]),
+            (2..=3, _) => empty_walk(h[i - 2]),
+            (4, _) => sim.checksum_deaths().map(|line| line.adler()),
             (_, Some(l)) => Some(l[i].adler()),
             _ => Some(
                 match i {
@@ -678,7 +679,11 @@ fn the_held_count_reads_the_melee_s_shot() {
         for k in 0..3 {
             if h[k] > 0 && seen[k].is_none() {
                 seen[k] = Some(built.sim.frame);
-                emitted[k] = Some(empty_walk(h[k]));
+                emitted[k] = Some(if k == 2 {
+                    built.sim.checksum_deaths().map(|line| line.adler())
+                } else {
+                    empty_walk(h[k])
+                });
             }
             most[k] = most[k].max(h[k]);
         }

@@ -176,7 +176,7 @@ pub struct Loaded {
     /// The pieces whose `<UNIT>` names a skeleton — a death object's
     /// corpse fade (`crate::artdata::piece_skeletons`, `docs/GOLDEN.md`
     /// §127).
-    pub piece_skeletons: std::collections::BTreeSet<i32>,
+    pub piece_skeletons: std::collections::BTreeMap<i32, i32>,
     /// Every unit graphic piece's follow offset, `gpiece → (track_dx,
     /// track_dy)`, read from `unit_graphics.xml`'s `trackoffsetx` /
     /// `trackoffsety` / `scale` (`crate::artdata::piece_tracks`). Empty

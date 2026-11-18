@@ -253,6 +253,7 @@ fn the_door_carries_the_round_s_piece_and_the_corpse_s() {
     // its neighbour parts.
     for k in 0..3 {
         figures.place[k] = crate::combat::Lie {
+            turret_angles: [0; 4],
             pos: crate::world::Pos {
                 x: 3972 + k as i32,
                 y: 28574 - k as i32,
@@ -262,6 +263,7 @@ fn the_door_carries_the_round_s_piece_and_the_corpse_s() {
         };
     }
     sim.combat.deaths.push(crate::combat::Death {
+        impact: None,
         who: 1,
         o: 4,
         first_frame: 0,

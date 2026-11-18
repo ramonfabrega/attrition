@@ -38426,3 +38426,35 @@ detail window covers the disband at 8407 and the pause and resume at 8424. The r
 Trace SHA-256 `1448693db8a3e73754aa13e0afff3aecbefb2c92b6f8ae7ea59fe1ff2c821412`.
 The short trace SHA-256 is `3e852283d5ec358e1af5cbe8826cf11fb227256acef7fc8e13544b52cb6b322a`.
 The comparison through the closing states is in RECGAME §10.
+
+## Great Lakes scout disband, occupied death pool (2026-11-17, Codex branch, item 4363)
+
+Item 4362's `window-long.rcx` replayed on pool lane 1. Evidence in
+`~/ron-data/lab-experiments/2026-11-17-codex-scout-deaths` (E below).
+The capture ran for 603.7 seconds from launch to exit, reached frame 8411,
+exited 0 and restored all five settings. The packet at logger state 8408,
+trace frame 8407, is 807,812,140 bytes, SHA-256
+`20395d843fa4f8183ec93e0d78d45b17a33d117c18237be0b657ca17f7f3f859`.
+The inventory and completion receipt validated with item 597's plan.
+All 15 instrumented packet sums agree with the hook on this run and on
+item 4362's earlier long run at the same state.
+Use a fresh output directory for a repeat.
+
+```sh
+P=~/ron-data/lab-experiments/2026-09-23-item-597/plan
+A=~/ron-data/lab-experiments/2026-11-17-codex-live-recording
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh "$E" \
+  --recording "$A/window-long.rcx" --end-frame 8411 --cover cover=1 \
+  --log-window 8406 8411 --detail end:MISC,DEATHS=1 --timeout 1800 \
+  --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=8408 \
+  --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""
+python3 tools/explore/frame_snapshot.py "$E/map-14" "$P/plan.json"
+uv run --offline tools/recomp/checksum.py "$E/map-14/riseofnations.exe" \
+  "$E/map-14/frame-snapshot.bin" --stream "$E/stream.tsv" --values "$E/values.tsv"
+```
+
+Waited via `waitrun.sh /tmp/ron-runs/viadriver-20261117-210105-91045.log`.
+Slots 0 and 1 hold the scout at (1216, 30882, 588) and its dog at
+(1219, 30988, 586). Both face −785448960. Their skeleton pieces are
+60114 and −1 and their crew bytes are 255 and 0. CHECKSUM §8 gives the
+independent replay comparison.

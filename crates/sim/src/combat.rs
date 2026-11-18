@@ -612,6 +612,9 @@ pub fn arc_point(launch: Pos, landing: Pos, cur_time: i32, total_time: i32) -> P
 /// [`Figures::gpiece`] (item 4175).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Death {
+    /// The retained ammo piece and its angle at close. An unarmed die (including
+    /// disband) passes (-1, 0). Damage paths without both inputs leave it unknown.
+    pub impact: Option<(i32, Single)>,
     pub who: i32,
     pub o: i32,
     pub first_frame: i64,
@@ -677,6 +680,8 @@ pub struct Figures {
 /// −476512256), which no dump prints.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Lie {
+    /// The four pivot angles copied from this figure when its record opens.
+    pub turret_angles: [i32; 4],
     pub pos: Pos,
     pub z: i32,
     pub angle: Angle,
@@ -693,6 +698,7 @@ impl Figures {
             life: [0; Self::MAX],
             gpiece: [-1; Self::MAX],
             place: [Lie {
+                turret_angles: [0; 4],
                 pos: Pos { x: 0, y: 0 },
                 z: 0,
                 angle: Angle(0),

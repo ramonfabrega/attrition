@@ -4855,7 +4855,7 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
         );
         sim.frame = f;
         sim.units[i].health = 0;
-        sim.close_unit(i, 1, f);
+        sim.close_unit(i, 1, f, None);
         dead.push(sim.units[i].index);
     }
     assert_eq!(
@@ -4868,7 +4868,7 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
         let i = put(sim, 1, ty, Pos::new(0x3000, 0x3000));
         sim.frame = f;
         sim.units[i].health = 0;
-        sim.close_unit(i, 1, f);
+        sim.close_unit(i, 1, f, None);
         sim.death_objs_inc_time();
         sim.combat
             .death_pool
@@ -4912,6 +4912,7 @@ fn a_dead_unit_s_number_is_held_while_its_death_object_lives() {
     sim.units[a].health = 0;
     sim.hold_dead_slot(a);
     sim.combat.deaths.push(combat::Death {
+        impact: None,
         who: 1,
         o: 0,
         first_frame: 0,
@@ -5004,6 +5005,7 @@ fn a_crew_s_number_takes_one_bump_per_figure_s_record() {
     figures.n = 4;
     figures.life[..4].copy_from_slice(&[3, 5, 8, 8]);
     sim.combat.deaths.push(combat::Death {
+        impact: None,
         who: 1,
         o: 0,
         first_frame: sim.frame,

@@ -13,6 +13,17 @@ pub struct Score {
     pub first: [Option<(i32, Option<u32>, u32)>; 12],
 }
 
+pub(crate) fn recording_start(
+    loaded: &crate::load::Loaded,
+    rec: &crate::recgame::RecGame,
+) -> crate::diff::Built {
+    let (info, players) = header_lobby(rec);
+    let lobby = crate::lobby::Lobby { info, players };
+    let (info, players) = lobby.borrowed();
+    let start = from_lobby(loaded, &info, &players, sim::Tuning::RON);
+    built_from_lobby(loaded, start).0
+}
+
 pub fn compare(install: &Path, recording: &Path, trace: &Path) -> Result<Score, String> {
     let rec = crate::recgame::read(&recording.to_string_lossy()).map_err(|e| e.to_string())?;
     let last = rec
@@ -38,11 +49,7 @@ pub fn compare(install: &Path, recording: &Path, trace: &Path) -> Result<Score, 
     let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
     let rules = inst.rules().map_err(|e| e.to_string())?;
     let tribes = inst.tribe_defs(&rules).map_err(|e| e.to_string())?;
-    let (info, players) = header_lobby(&rec);
-    let lobby = crate::lobby::Lobby { info, players };
-    let (info, players) = lobby.borrowed();
-    let start = from_lobby(&loaded, &info, &players, sim::Tuning::RON);
-    let (mut built, _) = built_from_lobby(&loaded, start);
+    let mut built = recording_start(&loaded, &rec);
     let mut stream = crate::input::Stream::pump(&rec);
     let mut agreed = [0u32; 12];
     let mut mismatch = [None; 12];
@@ -99,20 +106,19 @@ mod tests {
     }
 
     #[test]
-    fn the_long_window_game_parts_on_the_disbanded_scout() {
+    fn the_long_window_game_matches_both_deaths_until_the_pool_empties() {
         let Some(s) = window_score("long") else {
             return;
         };
         let mut first = [None; 12];
         first[0] = Some((9211, Some(1168710981), 874009299)); // units
-        first[4] = Some((8408, None, 826547225)); // deaths
         first[5] = Some((9211, Some(545805217), 3936441164)); // groups
         assert_eq!(s.states, 9476);
         assert_eq!(s.first, first);
         assert_eq!(
             s.agreed,
             [
-                9211, 9476, 9476, 9476, 8790, 9470, 9476, 9476, 9476, 9476, 9476, 9476
+                9211, 9476, 9476, 9476, 9476, 9470, 9476, 9476, 9476, 9476, 9476, 9476
             ]
         );
     }

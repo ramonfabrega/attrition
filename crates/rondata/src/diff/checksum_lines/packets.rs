@@ -93,10 +93,12 @@ impl Pieces {
     }
 }
 
-/// Our walk's twelve lines, in [`STATE_LINES`]' order. The walls, ammo and
-/// deaths lines have no emitter in the crate and are empty.
+/// Our walk's twelve lines, in [`STATE_LINES`]' order. Unavailable record shapes contribute
+/// no ranges, so every opposing range counts as differing.
 pub(in crate::diff) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
-    crate::checksum::state::ranges(sim, &pieces.look, &pieces.tribes).into()
+    crate::checksum::state::ranges(sim, &pieces.look, &pieces.tribes)
+        .map(Option::unwrap_or_default)
+        .into()
 }
 
 /// The twelve lines held range by range against a packet's stream.

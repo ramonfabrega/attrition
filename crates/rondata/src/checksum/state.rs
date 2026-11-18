@@ -46,34 +46,27 @@ pub(crate) fn held(sim: &sim::Sim) -> [usize; 3] {
     [walls, sim.combat.projectiles.len(), sim.combat.deaths.len()]
 }
 
-/// The packet comparison uses empty range lists for the three record shapes
-/// we cannot emit yet. The per-frame comparison below checks occupancy.
-pub(crate) fn ranges(sim: &sim::Sim, look: &BuildLook, tribes: &[TribeDef]) -> [Line; 12] {
+/// Every available state line, in check_all order. Keep an unknown occupied
+/// pool distinct from a known empty pool (whose Adler is one).
+pub(crate) fn ranges(sim: &sim::Sim, look: &BuildLook, tribes: &[TribeDef]) -> [Option<Line>; 12] {
     let p = build_pieces_with(sim, look, tribes);
+    let [walls, shots, _] = held(sim);
     [
-        sim.checksum_units(),
-        sim.checksum_builds(&|b| p.get(&b).copied().unwrap_or(-1)),
-        Line::default(),
-        Line::default(),
-        Line::default(),
-        sim.checksum_groups(),
-        sim.checksum_guys(),
-        sim.checksum_leaders(),
-        sim.checksum_cities(),
-        sim.checksum_items(),
-        sim.checksum_goods(),
-        sim.checksum_world(),
+        Some(sim.checksum_units()),
+        Some(sim.checksum_builds(&|b| p.get(&b).copied().unwrap_or(-1))),
+        (walls == 0).then(Line::default),
+        (shots == 0).then(Line::default),
+        sim.checksum_deaths(),
+        Some(sim.checksum_groups()),
+        Some(sim.checksum_guys()),
+        Some(sim.checksum_leaders()),
+        Some(sim.checksum_cities()),
+        Some(sim.checksum_items()),
+        Some(sim.checksum_goods()),
+        Some(sim.checksum_world()),
     ]
 }
 
-/// The twelve state lines in check_all order. An occupied wall, projectile
-/// or death pool has no record emitter yet and always counts as a mismatch.
 pub(super) fn adlers(sim: &sim::Sim, look: &BuildLook, tribes: &[TribeDef]) -> [Option<u32>; 12] {
-    let mut values = ranges(sim, look, tribes).map(|line| Some(line.adler()));
-    for (k, count) in held(sim).into_iter().enumerate() {
-        if count != 0 {
-            values[2 + k] = None;
-        }
-    }
-    values
+    ranges(sim, look, tribes).map(|line| line.map(|l| l.adler()))
 }

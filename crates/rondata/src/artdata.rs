@@ -725,8 +725,8 @@ pub const fn release_frame(ms: u32) -> u32 {
 /// attribute is absent), which picks the death object's fade
 /// (`docs/GOLDEN.md` §127). `graphs` is the `GRAPH` column
 /// [`piece_lengths`] takes.
-pub fn piece_skeletons(install: &Install, graphs: &[String]) -> std::collections::BTreeSet<i32> {
-    let mut out = std::collections::BTreeSet::new();
+pub fn piece_skeletons(install: &Install, graphs: &[String]) -> BTreeMap<i32, i32> {
+    let mut out = BTreeMap::new();
     let upath = install.data("unit_graphics.xml");
     let Ok(utext) = crate::read(&upath) else {
         return out;
@@ -734,19 +734,36 @@ pub fn piece_skeletons(install: &Install, graphs: &[String]) -> std::collections
     let Ok(udoc) = crate::parse(&upath, &utext) else {
         return out;
     };
+    // GraphicPieces::init_piece_ranges and init: skeletons follow the shadows
+    // in the effects file, then take their own XML order (CHECKSUM §8).
+    let first = 0xeabd + shadow_files(install).len() as i32;
+    let skeletons: BTreeMap<_, _> = udoc
+        .descendants()
+        .filter(|n| n.has_tag_name("SKELETON"))
+        .enumerate()
+        .filter_map(|(i, n)| {
+            Some((
+                n.attribute("name")?.trim().to_ascii_lowercase(),
+                first + i as i32,
+            ))
+        })
+        .collect();
     let by_graph = graph_types(graphs);
     for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
         let Some(name) = u.attribute("name") else {
             continue;
         };
-        if u.attribute("skeleton").is_none() {
+        let Some(skeleton) = u
+            .attribute("skeleton")
+            .and_then(|s| skeletons.get(&s.trim().to_ascii_lowercase()))
+        else {
             continue;
-        }
+        };
         let Some(pieces) = entry_pieces(name.trim(), &by_graph) else {
             continue;
         };
         for &piece in &pieces {
-            out.insert(piece);
+            out.insert(piece, *skeleton);
         }
     }
     out

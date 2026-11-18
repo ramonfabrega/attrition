@@ -773,11 +773,14 @@ Changing only the move's X coordinate to 3409 parts units, groups and guys
 on state 31, and world on 34.
 
 The longer take closed on 9475 (10 minutes 31 seconds by the game's clock).
-All twelve lines agree through state 8407. The scout disbanded on 8407.
-On 8408 the original holds two death records for object 0/0, pieces 371
-and 13043, both with first frame 8407 and animation 15. Their Adler is
-826547225. Our death list is occupied and its emitter returns no value.
-Units and groups first differ on 9211. The other nine lines agree on all
-9,476 states. The new replay tests pin both whole games, including each
-differing line's first state and both values. RECGAME §8's rule section
-still requires a donor. Neither take establishes weapon-fired combat.
+The scout disbanded on 8407. At state 8408 the original holds two death
+records for object 0/0, pieces 371 and 13043, both with first frame 8407
+and animation 15. Their Adler is 826547225. Item 4362 first reported an
+unemitted line here. Item 4363 matches both occupied records byte for byte.
+The dog leaves at state 8567 and the scout at 9094. Deaths agrees on all
+9,476 states, up from 8,790. All twelve lines now agree through state
+9210. Units and groups first differ on 9211 and finish at 9,211 and
+9,470 agreeing states respectively. The other ten agree throughout.
+The regression checks both whole games, including the closing state.
+RECGAME §8's rule section requires a donor. The long game's death came
+from the disband command.

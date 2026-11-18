@@ -682,7 +682,7 @@ impl Sim {
                     // the draw arm's `dtype` at all (§42.3).
                     self.close_count(i);
                     self.relink_squad(i);
-                    self.close_unit(i, dtype, _frame);
+                    self.close_unit(i, dtype, _frame, None);
                     self.kill_contents(i);
                     self.kremlin_spy_closed(i);
                     self.close_dead_orders(i);
@@ -976,7 +976,7 @@ impl Sim {
         self.units[v].health = 0;
         self.close_count(v);
         self.relink_squad(v);
-        self.close_unit(v, dtype, frame);
+        self.close_unit(v, dtype, frame, Some((-1, Single::ZERO)));
         self.kill_contents(v);
         self.kremlin_spy_closed(v);
         self.close_dead_orders(v);
@@ -1004,7 +1004,7 @@ impl Sim {
         }
         self.close_count(i);
         self.relink_squad(i);
-        self.close_unit(i, ATTRITION_DTYPE, frame);
+        self.close_unit(i, ATTRITION_DTYPE, frame, None);
         self.kill_contents(i);
         self.kremlin_spy_closed(i);
         self.close_dead_orders(i);
@@ -1425,7 +1425,13 @@ impl Sim {
     /// it off — so the gate this crate applies is `on_map` and the decoy
     /// bit, and never [`crate::Unit::alive`], which the caller has
     /// already cleared.
-    pub(crate) fn close_unit(&mut self, i: usize, dtype: i32, frame: i64) {
+    pub(crate) fn close_unit(
+        &mut self,
+        i: usize,
+        dtype: i32,
+        frame: i64,
+        impact: Option<(i32, Single)>,
+    ) {
         if dtype == 0 {
             return;
         }
@@ -1485,6 +1491,7 @@ impl Sim {
             o,
             first_frame: frame,
             cur_anim,
+            impact: impact.filter(|_| dtype != 4),
             life,
             figures,
         });
@@ -1500,12 +1507,12 @@ impl Sim {
         }
     }
 
-    /// Whether the record a pool slot names is still live on `self.frame`,
+    /// The record a pool slot names if it is still live on `self.frame`,
     /// before this frame's `DeathObj::inc_time`: its [`combat::Death`]
     /// stands and that figure's life has not run out.
-    pub(super) fn death_slot_live(&self, r: &combat::DeathSlot) -> bool {
+    pub(crate) fn live_death(&self, r: &combat::DeathSlot) -> Option<&combat::Death> {
         let age = self.frame - r.first_frame;
-        self.combat.deaths.iter().any(|d| {
+        self.combat.deaths.iter().find(|d| {
             d.who == r.who
                 && d.o == r.o
                 && d.first_frame == r.first_frame
@@ -1551,7 +1558,7 @@ impl Sim {
         let mut best = (0usize, self.frame + 1);
         let mut free = None;
         for k in 0..combat::DEATH_POOL {
-            let Some(r) = self.combat.death_pool[k].filter(|r| self.death_slot_live(r)) else {
+            let Some(r) = self.combat.death_pool[k].filter(|r| self.live_death(r).is_some()) else {
                 free = Some(k);
                 break;
             };
@@ -1560,7 +1567,7 @@ impl Sim {
             }
         }
         let k = free.unwrap_or(best.0);
-        if let Some(old) = self.combat.death_pool[k].filter(|r| self.death_slot_live(r)) {
+        if let Some(old) = self.combat.death_pool[k].filter(|r| self.live_death(r).is_some()) {
             let age = self.frame - old.first_frame;
             if let Some(d) = self
                 .combat
@@ -1640,7 +1647,7 @@ impl Sim {
         let frames = i64::from(self.slot_length(i, gpiece, anim)?);
         let fade = if sea {
             0
-        } else if self.roster.art.piece_skeletons.contains(&gpiece) {
+        } else if self.roster.art.piece_skeletons.contains_key(&gpiece) {
             Self::CORPSE_FADE_END
         } else {
             Self::BODY_FADE_END
@@ -1683,6 +1690,10 @@ impl Sim {
                 self.world.data_z(pos.x, pos.y).0
             },
             angle,
+            turret_angles: self.units[i]
+                .guys
+                .get(k)
+                .map_or([0; 4], |g| g.turret.angles),
         }
     }
 

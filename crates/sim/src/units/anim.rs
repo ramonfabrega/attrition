@@ -657,7 +657,7 @@ pub struct Art {
     /// `+0x44`: the death object of such a piece lives
     /// [`Sim::CORPSE_FADE_END`] past its animation, and one without
     /// [`Sim::BODY_FADE_END`] (`docs/GOLDEN.md` §127).
-    pub piece_skeletons: BTreeSet<i32>,
+    pub piece_skeletons: BTreeMap<i32, i32>,
     /// `gpiece → (track_dx, track_dy)`: the offset a **crew** guy is held
     /// at behind and beside the guy it follows —
     /// `GuyData::track_dx / track_dy` (`+0x54` / `+0x58`), which

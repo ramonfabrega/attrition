@@ -11,6 +11,7 @@
 
 use super::minted::{built_start, minted, script, tick_to};
 
+mod deaths;
 pub(super) mod packets;
 mod world;
 use crate::checksum::CHECKSUM_PACKET;
