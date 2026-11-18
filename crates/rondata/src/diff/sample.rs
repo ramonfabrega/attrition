@@ -537,4 +537,197 @@ mod tests {
     /// one)`. Minted at 0: none on 3,594 of 21,044, the first shot on 2929,
     /// theirs' frame.
     const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3594, Some(2929));
+
+    /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
+    /// playback over 0..100 under the checksum and ranges hooks, all twelve
+    /// lines kept (`RNG_MASK` 0xfff). `RON_SAMPLE_RANGES`, else where the
+    /// take left it.
+    fn run1678() -> Option<crate::trace::ranges::Record> {
+        let path = std::env::var("RON_SAMPLE_RANGES").unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_default();
+            format!("{home}/ron-golden/run1678/map-7/rontrace.ranges")
+        });
+        match crate::trace::ranges::Record::open(std::path::Path::new(&path)) {
+            Ok(r) => Some(r),
+            Err(e) => {
+                eprintln!("skipping: no sample ranges record at {path} ({e})");
+                None
+            }
+        }
+    }
+
+    /// **The sample's lines by range, from the start** (item 4384,
+    /// `docs/RECGAME.md` §7; DECISIONS 142 §4): the walk of
+    /// [`the_sample_s_lines_against_the_hook`] over run1678's frames, each
+    /// of the twelve lines held range by range against the record's set
+    /// (the hook's frame `f − 1` against our `sim.frame == f`). Pins, per
+    /// line that parts in the window, `(line, its first parted frame, the
+    /// record's ranges, ours, ranges parted, the first parting as `range
+    /// record field: name ours|theirs`)`. `RON_SAMPLE_RANGES_ALL=1` prints
+    /// every frame's partings.
+    #[test]
+    fn the_sample_s_ranges_name_each_first_parting() {
+        use super::super::checksum_lines::packets::{Pieces, STATE_LINES, compare, our_lines};
+        let (Some(inst), Some(rcx), Some(mut rec)) = (install(), sample(), run1678()) else {
+            eprintln!("skipping: no install, no sample or no run1678");
+            return;
+        };
+        let Some(pieces) = Pieces::read() else {
+            eprintln!("skipping: no pieces (RON_INSTALL)");
+            return;
+        };
+        let all = std::env::var("RON_SAMPLE_RANGES_ALL").is_ok();
+        let detail: Option<i64> = std::env::var("RON_SAMPLE_RANGES_DETAIL")
+            .ok()
+            .and_then(|v| v.parse().ok());
+        let rec_game = crate::recgame::read(&rcx).expect("the sample parses");
+        let (mut built, _) = sample_start(&inst, &rec_game);
+        let mut stream = crate::input::Stream::pump(&rec_game);
+        let mut seen: Vec<Option<(i64, usize, usize, usize, String)>> = vec![None; 12];
+        let mut frames = 0usize;
+        while built.sim.frame <= SAMPLE_RANGES_WINDOW {
+            let f = built.sim.frame;
+            if let Some(theirs) = super::super::checksum_frames::record::stream_at(&mut rec, f) {
+                frames += 1;
+                let ours = our_lines(&built.sim, &pieces);
+                if detail == Some(f) {
+                    print_partings(&ours, &theirs);
+                }
+                let outcome = compare(&ours, &theirs);
+                for (k, (name, o)) in STATE_LINES.iter().zip(&outcome).enumerate() {
+                    let Some(d) = &o.first else { continue };
+                    let text = super::super::checksum_frames::first_text(name, d);
+                    if all {
+                        eprintln!(
+                            "SAMPLE RANGES frame {f} {name}: theirs {} ours {} parted {}; first {text}",
+                            o.theirs, o.ours, o.parted
+                        );
+                    }
+                    if seen[k].is_none() {
+                        seen[k] = Some((f, o.theirs, o.ours, o.parted, text));
+                    }
+                }
+            }
+            stream.apply(f as i32, &mut built);
+            built.tick();
+        }
+        let got: Vec<SampleRange> = STATE_LINES
+            .iter()
+            .zip(seen)
+            .filter_map(|(name, s)| s.map(|(f, t, o, p, x)| (*name, f, t, o, p, x)))
+            .collect();
+        for row in &got {
+            eprintln!("SAMPLE RANGES first {row:?}");
+        }
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_WINDOW as usize + 1,
+            "run1678's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES");
+    }
+
+    /// Every parted range of every line on one frame, decoded where the
+    /// line has a decoder (`RON_SAMPLE_RANGES_DETAIL=<frame>`).
+    fn print_partings(
+        ours: &[sim::checksum::Line],
+        theirs: &std::collections::BTreeMap<String, super::super::checksum_lines::StreamRows>,
+    ) {
+        use super::super::checksum_lines::packets::STATE_LINES;
+        let empty = Default::default();
+        for (name, o) in STATE_LINES.iter().zip(ours) {
+            let t: &super::super::checksum_lines::StreamRows = theirs.get(*name).unwrap_or(&empty);
+            for i in 0..o.ranges.len().max(t.len()) {
+                let (a, b) = (o.ranges.get(i), t.get(i));
+                if a.map(|r| &r.bytes) == b.map(|r| &r.2) {
+                    continue;
+                }
+                let (rec, field) = a.map_or((-1, "-"), |r| (r.record, r.field));
+                let fields = match (a, b) {
+                    (Some(a), Some(b)) => {
+                        let x = super::super::checksum_lines::range_fields(name, field, &a.bytes);
+                        let y = super::super::checksum_lines::range_fields(name, field, &b.2);
+                        match (x, y) {
+                            (Some(x), Some(y)) => x
+                                .iter()
+                                .zip(&y)
+                                .filter(|(p, q)| p.1 != q.1)
+                                .map(|(p, q)| format!("{} {}|{}", p.0, p.1, q.1))
+                                .collect::<Vec<_>>()
+                                .join(", "),
+                            _ => {
+                                let d: Vec<String> = a
+                                    .bytes
+                                    .iter()
+                                    .zip(&b.2)
+                                    .enumerate()
+                                    .filter(|(_, (p, q))| p != q)
+                                    .take(16)
+                                    .map(|(k, (p, q))| format!("+{k:#x} {p:02x}|{q:02x}"))
+                                    .collect();
+                                format!("len {}|{}: {}", a.bytes.len(), b.2.len(), d.join(", "))
+                            }
+                        }
+                    }
+                    _ => "absent on one side".to_string(),
+                };
+                eprintln!("PARTED {name} {i} {rec} {field}: {fields}");
+            }
+        }
+    }
+
+    type SampleRange = (&'static str, i64, usize, usize, usize, String);
+
+    /// run1678's last frame, ours: the record holds trace frames −1 to 99.
+    const SAMPLE_RANGES_WINDOW: i64 = 100;
+
+    /// Per line that parts on run1678's window, its first parting by range
+    /// (item 4384; minted empty, then at the first act's five rows). A
+    /// leaders range starts at `LeaderData +0x8`.
+    const SAMPLE_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[
+        (
+            "units",
+            92,
+            1048,
+            1048,
+            1,
+            "439 0 collide_frame..play: unit_masks 8|67108872",
+        ),
+        (
+            "builds",
+            0,
+            1079,
+            1079,
+            21,
+            "10 2000 job_counter..demolition: ever_seen_completed 23|3",
+        ),
+        (
+            "leaders",
+            0,
+            663,
+            663,
+            6,
+            "1 0 who..ally_mask: +0x58 of 26914|26914: 00000000|01000000",
+        ),
+        (
+            "goods",
+            1,
+            265,
+            265,
+            1,
+            "145 29 ever_seen: +0x0 of 1|1: 04|17",
+        ),
+        (
+            "world",
+            0,
+            7301,
+            7301,
+            1,
+            "3626 -1 seen2: +0x2340 of 14400|14400: 04000000|17000000",
+        ),
+    ];
 }
