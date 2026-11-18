@@ -22,7 +22,7 @@ use crate::checksum::state::held;
 use crate::checksum::{CHECKSUM_LINES, Record};
 use crate::trace::checksums::{Set, per_frame, sets, summary};
 
-mod record;
+pub(in crate::diff) mod record;
 
 /// The 120-frame take: the minted file's playback with the hook and an
 /// `@dumpall` on 91 (`docs/RUNS.md` run1577).
@@ -994,7 +994,10 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
 /// field`, then the fields that part as `name ours|theirs` where the line
 /// has a decoder, else the first byte that parts and four bytes from it
 /// on each side, in hex.
-fn first_text(line: &str, f: &super::checksum_lines::packets::FirstDifference) -> String {
+pub(in crate::diff) fn first_text(
+    line: &str,
+    f: &super::checksum_lines::packets::FirstDifference,
+) -> String {
     let o = f.ours.as_deref().unwrap_or_default();
     let t = f.theirs.as_deref().unwrap_or_default();
     let head = format!("{} {} {}", f.index, f.record, f.field);

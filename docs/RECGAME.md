@@ -465,8 +465,8 @@ stamped `raid_stamp` 2887; it reads `CityData +0x18` now
 
 **Not established:** ~~the parting on 3019, where theirs starts two units'
 steps three frames after `Armies::emergency`, whose two armies are empty
-in our walk~~ (item 4380, below); which field the units line parts on at 92; why four lines
-part on the start by sum.
+in our walk~~ (item 4380, below); ~~which field the units line parts on at 92; why four lines
+part on the start by sum~~ (item 4384, below).
 
 **The word 3019 read on run1674's window (item 4380, 2026-11-18).**
 run1674 prints every unit and figure over 3013..3021 (`docs/RUNS.md`).
@@ -489,6 +489,39 @@ two units' steps; that is not checked unit by unit. On 3020 `1/17` takes a colli
 32220) in theirs and none in ours. **Not established:** whether theirs'
 capital stands on the cells ours does on 2891, which needs a `BUILDS`
 print there, and the grid route theirs took.
+
+**The lines by range at the start (item 4384, 2026-11-18).** run1678
+replays the sample to 100 with the range record and all twelve lines kept
+(`RNG_MASK` 0xfff, `docs/RUNS.md`). Its 111 sets are run1662's. In
+`diff::sample`, `the_sample_s_ranges_name_each_first_parting` holds each
+line range by range (`SAMPLE_RANGES`). A leaders range starts at
+`LeaderData +0x8`.
+
+| line | frame | first parting: range record field: ours, theirs |
+|---|---|---|
+| units | 92 | 439 0 `unit_masks`: 8, 0x4000008 |
+| builds | 0 | 10 2000 `ever_seen_completed`: 23, 3 |
+| leaders | 0 | 1 0 `chat_status[3]`: 0, 1 |
+| goods | 1 | 145 29 `ever_seen`: 0x04, 0x17 |
+| world | 0 | 3626 `seen2` +0x2340: 0x04, 0x17 |
+
+State 0 parts on 28 ranges, and all but nine are the team game's. Builds'
+21 rows are `ever_seen_completed`. `Wall::activate` copies the owner's
+`ally_mask` (`+0x6929`) into it, and theirs' mask for leaders 0, 1 and 2
+reads 3, 2 and 7 on state 0, against ours' whole team, 0x17. Each
+computer's `chat_status` toward the person is 1, and so is the person's
+toward each computer. `Game::init_teams@0058ae70`'s tail writes 0 there
+only for a teammate once any seated leader has one (`semaphore[0] & 0x80`).
+Ours writes 0 on every seated slot, which is the free-for-all arm. The
+person's `diplos`, `treaties` and `aggression` part on the unseated slots
+5 to 7, where theirs holds a teammate's values. The nine rows left are
+leader 2's `oil_patches` order, two buildings' `z` and six `seen2` cells.
+Units' 92 is the explore bit, which item 4351 carried as
+`sim::Unit::explore_queued`, outside the word `checksum/units.rs` builds.
+
+**Not established:** the writer of `+0x6929` and its order in
+`build_game`; whether an unseated slot's `team` byte puts it on the
+person's team; `oil_patches`, `z`, `seen2` and goods' `ever_seen`.
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

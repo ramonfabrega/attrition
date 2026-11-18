@@ -2483,7 +2483,10 @@ left at 0, refused by its bucket clause (11,057 ≥ 3,000). The four tributes ar
   pinned by fixtures only; no walk reaches it, since run1646's French pass
   on the human waits on `local_40` 7800 here (the world seed) against 6000
   there (`Game::info.seed`). Its draws (`+0x1da0`, `+0x1e3f`) and the
-  goods it picks are unproven until 6080 is walked.
+  goods it picks are unproven until 6080 is walked. Item 4382's sweep
+  finds ours demanding on a Great Lakes lobby at style 0 (seed 12345,
+  difficulty 2: 6081 with the lobby seed, 8129 with the world seed); no
+  such game has been played by the original.
 - **`scale_tribute`**: the load scale of `commerce_tribute` and
   `base_tribute` (`Constants::init`), and its rounding branches, which were
   not re-listed. A deal captured above Commerce 0 pins them.

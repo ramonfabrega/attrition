@@ -934,4 +934,120 @@ pub(crate) mod recording {
             eprintln!("wrote {}", out.to_string_lossy());
         }
     }
+
+    /// **Item 4382's sweep** (`docs/LEADERS.md` §8.2; DECISIONS 142 §3): the
+    /// harness lobby (Great Lakes, two seats, the human idle at `who` 0)
+    /// re-read at `TEAM_STYLE 0`, over `RON_SWEEP_SEEDS=<lo>-<hi>` and
+    /// `RON_SWEEP_DIFFS=<d,..>`, each walked order-free through the pump
+    /// `score_recording` uses for `RON_SWEEP_FRAMES` frames (default
+    /// 12,000). Prints one `SWEEP` row a lobby: the first frame a leader
+    /// stores `tribute_demanded`, and the first declaration. The donor is
+    /// the lobby's own style-1 recording with its `TEAM_STYLE` byte and
+    /// `DIFFICULTY` byte set: the rules section does not move with
+    /// `TEAM_STYLE` (item 4382: both East Indies pairs on disk that differ
+    /// in it alone carry equal rules). Opt-in, slow: `RON_SWEEP_4382=1`.
+    #[test]
+    fn sweep_4382_the_demand_over_style_zero_lobbies() {
+        if std::env::var("RON_SWEEP_4382").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let Some((_, donor, _)) = lobby_recording() else {
+            eprintln!("skipping: no {LOBBY_DUMP} or no recording");
+            return;
+        };
+        let path = crate::testenv::dump(LOBBY_DUMP).unwrap();
+        let text = crate::capture::read(&path);
+        let log = crate::gamelog::Log::parse(&text);
+        let init = log.replay_initial().unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let env = |k: &str, d: &str| std::env::var(k).unwrap_or_else(|_| d.to_string());
+        let seeds = env("RON_SWEEP_SEEDS", "12340-12349");
+        let (lo, hi) = seeds.split_once('-').unwrap();
+        let (lo, hi): (i64, i64) = (lo.parse().unwrap(), hi.parse().unwrap());
+        let diffs: Vec<i64> = env("RON_SWEEP_DIFFS", "0,1,2,3,4,5")
+            .split(',')
+            .map(|d| d.parse().unwrap())
+            .collect();
+        let frames: i32 = env("RON_SWEEP_FRAMES", "12000").parse().unwrap();
+        let threads: usize = env("RON_SWEEP_THREADS", "4").parse().unwrap();
+        let mut jobs: Vec<(i64, i64)> = Vec::new();
+        for s in lo..=hi {
+            for &d in &diffs {
+                jobs.push((s, d));
+            }
+        }
+        let next = std::sync::atomic::AtomicUsize::new(0);
+        let leader = crate::prefs::Prefs::FRESH.issue_leader_option(0);
+        std::thread::scope(|sc| {
+            for _ in 0..threads {
+                sc.spawn(|| {
+                    loop {
+                        let i = next.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                        let Some(&(seed, diff)) = jobs.get(i) else {
+                            break;
+                        };
+                        let info: Vec<(&str, String)> = init
+                            .game_info
+                            .iter()
+                            .map(|&(k, v)| {
+                                let v = match k {
+                                    "TEAM_STYLE" => "0".to_string(),
+                                    "DIFFICULTY" => diff.to_string(),
+                                    "(int)seed" => seed.to_string(),
+                                    _ => v.to_string(),
+                                };
+                                (k, v)
+                            })
+                            .collect();
+                        let info: Vec<(&str, &str)> =
+                            info.iter().map(|(k, v)| (*k, v.as_str())).collect();
+                        let mut d = donor.clone();
+                        d.options[0] = 0;
+                        d.options[7] = diff as u8;
+                        let packages = no_input_packages(leader.clone(), frames);
+                        let rec = from_lobby(&info, &init.players, &d, packages).unwrap();
+                        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+                        let mut stream = crate::input::Stream::pump(&rec);
+                        let n = built.sim.leaders.tribute.len();
+                        let (mut demand, mut declared) = (None, None);
+                        let mut war0 = Vec::new();
+                        for a in 0..n {
+                            for b in 0..n {
+                                war0.push(built.sim.leaders.at_war[a][b]);
+                            }
+                        }
+                        for frame in 0..frames {
+                            stream.apply(frame, &mut built);
+                            built.sim.command().tick();
+                            let f = built.sim.frame;
+                            for me in 0..n {
+                                for k in 0..n {
+                                    if demand.is_none()
+                                        && built.sim.leaders.tribute[me].tribute_demanded[k] != 0
+                                    {
+                                        demand = Some((f, me, k));
+                                    }
+                                    if declared.is_none()
+                                        && built.sim.leaders.at_war[me][k] != war0[me * n + k]
+                                    {
+                                        declared = Some((f, me, k));
+                                    }
+                                }
+                            }
+                            if demand.is_some() || declared.is_some() {
+                                break;
+                            }
+                        }
+                        eprintln!(
+                            "SWEEP seed {seed} diff {diff}: demand {demand:?} declared {declared:?} (walked to {})",
+                            built.sim.frame
+                        );
+                    }
+                });
+            }
+        });
+    }
 }
