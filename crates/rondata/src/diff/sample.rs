@@ -490,13 +490,15 @@ mod tests {
     /// on the start and goods on 1: the sample's start is whole by the
     /// dump's records (18,315 of 18,315) and not by the sums. Units part
     /// on 92, the frame run1654's window agrees on whole, so the parted
-    /// field is one no `UNITS` record prints. Ammo and deaths part where
-    /// theirs first hold one (our emitter refuses a held element).
+    /// field is one no `UNITS` record prints. Deaths part where theirs
+    /// first hold one. Ammo agrees from theirs' first shot on 2929 to 3021
+    /// on the merged tree (2929 → 3022: the base's ammo records, merged
+    /// into this lane), where our emitter refused a held shot before.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 92),
         ("builds", 0),
         ("walls", 21044),
-        ("ammo", 2929),
+        ("ammo", 3022),
         ("deaths", 3365),
         ("groups", 927),
         ("guys", 2920),
