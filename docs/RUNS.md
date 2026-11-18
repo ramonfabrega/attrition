@@ -38788,3 +38788,55 @@ version's digest and each individual run log accompany
 `paired-whole-window-timing.tsv`. The 4371 evidence directory also
 retains the sampling probe `score-cost.rs`; compare its game A/B baseline
 files with `score-cost-after-{a,b}.txt` here for per-stage timings.
+
+## run1671 and run1672 — the blind list's input issuers, first take and its twin (2026-11-18, item 4378, `att-4378`)
+
+`docs/CLIENT_INPUT.md` §13.4, §22.5, §23.5, §26.5, §27.5, §29.5. **What the disk could not answer**: no trace in
+`blind::TRACES` enters the nine input issuers on the open list, because a playback presses nothing (`blind.rs`'s
+history, items 4252 to 4282). The script: `tools/gamelog/coverage/blind4378-issuers.cmd` as first committed
+(`363253e44`), with the come-out's eval on 700. The DLL is this tree's, with three new lines: `@pause`, `@gstance`
+and `@gdisband` (`tools/trace/tracer.c`).
+
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1671 --map 14 --end-frame 1000
+--log-window 690 1000 --timeout 3600 --detail end:MISC,UNITS=3,BUILDS=7 --detail misc:COMMANDMANAGER=1 --bindkey
+OPTION_GARRISON=124 --bindkey STANCE_AGGRESSIVE=125 --bindkey OPTION_PAUSE=126 --cmd-file <it> --cover cover=1`;
+run1672 is the same line with `--cover cover=0`.
+- **run1671**: pool lane 1, 08:44:48 to 08:45:39 −05:00, 51.2 s, exit 0, `success`, 1,001 frames. Players: tribe 4
+  (flags 7) and tribe 11 (flags 1). It enters eight of the nine. `ScenarioFuncSet::unit_eject_order` is entered on
+  700, but `UnitOut::issue_come_out` is not: `0/7` was still walking to the Barracks (`inside_up` −1 to 760, 6 from
+  800).
+- **run1672**: pool lane 2, 08:44:53 to 08:45:36, exit 0, 1,001 frames. **Its who 1 is tribe 2**, not 11, so it is
+  not run1671's lobby. Its words part from frame 0 (`rngcmp.py`: 999 of 1,001 differ).
+- Not filed. Both stand in `~/ron-golden/` as the first take.
+
+## run1671b, run1672b and run1672c — the blind list's input issuers, retaken, and the twin (2026-11-18, item 4378, `att-4378`)
+
+The script as committed at `302b5ab7c`: the eval on 850, after `0/7` is inside, and `--ai-tribe 11` on every
+line. Otherwise run1671's line, to `~/ron-golden/run1671b` at `cover=1` and `run1672b`/`run1672c` at `cover=0`.
+`GAME INFO`: `TEAM_STYLE 1`, `MAP_STYLE 14`, `MAP_SIZE 2`, `DIFFICULTY 0`, seed 12345; tribe 4 (flags 7), tribe 11
+(flags 1). `df -g ~` read 138 GB free before the first take.
+- **run1671b**: pool lane 1, 08:47:37 to 08:48:15, 37.4 s, exit 0, `success`, 1,001 frames, no relaunch. The nine
+  first entries (`report.py functions`): `GroupOut::issue_hotkey`, `CommandManager::issue_hotkey`, `process_hotkey`
+  724; `Options::do_stance`, `process_stance`, `action_stance` 744; `GroupOut::issue_stance` 760;
+  `CommandManager::issue_pause`, `process_pause`, `TurnControl::process_pause` 770;
+  `TurnControl::issue_toggle_pause`, `toggle_pause` 800; `GroupOut::issue_disband`, `CommandManager::issue_disband`,
+  `process_disband` 830; `unit_eject_order`, `UnitOut::issue_come_out`, `process_come_out` 850;
+  `Options::do_garrison` 924. Against run1671, `rngcmp.py` reads 875 identical and the first difference on 852: the
+  come-out, the one line moved.
+- **run1672b**: pool lane 2, 08:52:38 to 08:53:28, exit 0, one relaunch after a 300 s stall. Same players. Its words
+  part from frame 0 against run1671b, and against run1672, also lane 2 at `cover=0` (parked 4378a).
+- **run1672c**: pool lane 1, 08:54:28 to 08:54:58, 29.6 s, exit 0, `success`, no relaunch. **`rngcmp.py` against
+  run1671b: 1,001 in common, 0 differing.** The `cover=1` take is its twin's game on every frame.
+- Filed with `filerun.py run1671b greatlakes-blind-issuers-1000` and `filerun.py run1672c
+  greatlakes-blind-issuers-twin-1000`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1671b-greatlakes-blind-issuers-1000.txt`, 40,506,149 bytes, SHA-256
+`bb2acb1281627fa678141a4c78ff1c80a9f0d0aeba956c3cd7644182289f8000`; `rontrace-run1671b.log`, 10,444,608 bytes,
+SHA-256 `b2ca1b7e7dcb36eb568f0d5374f49a4c8b5874877a83a216256045c7e354e137`.
+
+Archive `gamelog-run1672c-greatlakes-blind-issuers-twin-1000.txt`, 40,506,149 bytes, SHA-256
+`40685ad695adac315434ae5e3b198cef088fb738e18ad07538c7ab34d45fb4c7`; `rontrace-run1672c.log`, 10,368,256 bytes,
+SHA-256 `f74ae4f71ed23225db845b51b4afa1084304a9d447697a67b31adb6d6d1e7491`.
+
+**What it holds**: the nine input issuers the blind list left open, each entered on its line's frame in a live
+game.
