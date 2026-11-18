@@ -2446,17 +2446,9 @@ impl Sim {
         // mask — the finished building has been seen finished by its own
         // side at once, not at the owner's next eighth-frame scan. run622's
         // wonder `1/2022` reads 2 on the block it finishes (item 1452).
-        // The stored byte, not the alliance recomputed: at the start it is
-        // `Leader::init`'s, which holds only the teammates initialised
-        // before the owner (item 4388: the 2017 sample's 21 start
-        // buildings, 3, 2 and 7 where the team is 0x17).
+        // The stored byte, not the alliance (item 4388: 3, 2, 7 on the sample's start, team 0x17).
         if who < 8 {
-            let mask = self
-                .ai
-                .ai
-                .get(who as usize)
-                .map_or_else(|| self.seen_ally_mask(who), |l| l.census.ally_mask as u8);
-            self.buildings[b].ever_seen_completed |= mask;
+            self.buildings[b].ever_seen_completed |= self.stored_ally_mask(who);
         }
         if !self.buildings[b].started {
             self.start_building(b);
