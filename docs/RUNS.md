@@ -39061,3 +39061,26 @@ Files in place, `~/ron-golden/run1683/map-14/`: `gamelog_p.txt`, 44,942,630 byte
 `38cd3078d352e1a261d182c6ad1f68a68e0efc55734b4e9b84842c32206f65d3`.
 
 **What it holds**: no test reads it yet (`the_demand_s_lobby_demands_on_6081` reads the frame from our walk alone).
+
+## run1686 — the demand's game to 40 with the checksum and ranges hooks, all twelve lines kept (2026-11-18, item 4392, `att-4392`)
+
+`docs/LEADERS.md` §8.6; DECISIONS 142 §3. **What the disk could not answer**: run1683's sums say leaders parts on
+state 0 (ours 40276137, theirs 10260661) and name no range, and no range record of the demand's game existed. The take:
+run1678's recipe on run1683's file, `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1686 --recording ~/ron-golden/recordings/item4387-demand-greatlakes-style0-d2-6400.rcx --end-frame 40
+--cover cover=1 --log-window 0 41 --detail end:MISC --timeout 900 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0xfffu`, waited on with `waitrun.sh` in the background lane. A first
+launch at `--end-frame 10` was refused by `unattended_capture.py`'s bound (36 to 24,000) before anything ran.
+- Pool lane 1, launched 15:08:24 −05:00, exit 0, `success`, 41 frames, `last_frame` 40, seed observed 12345, map 14,
+  settings restored, no page fault, no relaunch. `df -g ~` read 149 GB free before it. Minutes waited on another lane:
+  none. Defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xfffu`.
+- Filed **in place**, as run1683 is (a `greatlakes` gamelog at style 0 stays out of the Great Lakes corpora).
+
+Files in place, `~/ron-golden/run1686/map-14/`: `rontrace.ranges`, 24,650,856 bytes, SHA-256
+`626d82da5eb7532af725c9f10eb588036392c4227e16891b548f83ba2eead6d3`; `rontrace.log`, 8,761,664 bytes, SHA-256
+`97dfac0975249f09e99fc29760679ed06cc15744ef36c4a227a00fc05d114de0`.
+
+**What it holds**: `diff::start_walk::recording::the_demand_s_ranges_name_each_first_parting` (`DEMAND_RANGES`): the
+first act's row was leaders, state 0, ranges 1 and 129 (`diplos[2..7]`, ours 0, theirs 1); with `Leader::init`'s row
+kept whole, every line agrees on all 41 states and the pin is empty. run1683 is now read by
+`the_demand_s_game_is_whole_on_run1683` (all twelve lines, 6,401 of 6,401).
