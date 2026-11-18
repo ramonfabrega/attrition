@@ -636,6 +636,10 @@ pub(crate) fn install_art(sim: &mut Sim, loaded: &Loaded, notes: &mut Vec<String
     // files — which is what stops an idle variant nothing has played from
     // being handed the default's length (`docs/ANIM.md` §3.2).
     sim.roster.art.piece_lengths = loaded.piece_lengths.clone();
+    sim.roster
+        .art
+        .casualty_attachments
+        .clone_from(&loaded.casualty_attachments);
     sim.roster.art.piece_skeletons = loaded.piece_skeletons.clone();
     if !loaded.piece_lengths.is_empty() {
         notes.push(format!(

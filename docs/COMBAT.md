@@ -3303,6 +3303,34 @@ from where, to where or for how long. Nothing is ours alone.
   stores. It is not — the original stores a model-space `Vector<float>` and
   a `Transform` — but it is what reproduces the original's integers, and the
   two cannot be told apart from nine samples.
+### 22.5 Longbowman sockets through the whole encounter (item 4365)
+
+The nine run109 launches covered the first 54 occupied states of window A.
+At state 9480 the old polar row gave slot 4 a starting Y of 29981, versus
+29980 in the original. The `guys` checksum agreed on all 11,721 states.
+The original's state-9746 snapshot carries all six node-0 events of piece
+127. Running `get_position.py sweep` across 0–360 degrees gives the same
+point for both ATTACK1 events and ATTACK2 at 22. The other three events
+each use their own point. All six Cartesian fits match every heading and
+all nine earlier run109 observations. Every occupied ammo record in the
+new file now agrees, including the frame-9951 slot turnover. The exact
+sweeps and independent in-game range record are listed in RUNS.
+
+### 22.6 Predicting another lobby's sprite position (item 4367)
+
+Run256 observed twelve releases from piece 120 at three facings. Its
+three fitted rows cover 333, 237 and 301 of the 361 whole-degree queries
+on the original. The first combat recording's state-9746 snapshot loads
+this piece too. Sweeping those three events gives one Cartesian row per
+event that matches every heading and all twelve run256 releases.
+
+The second recording used a different seed. At state 8981 slot 0 the
+previous row gave X 11288 and heading −264765440. The new row predicted
+11289 and −265027584 before playback reached the encounter. The original
+confirmed both. These three rows change 359 occupied states while keeping
+the same slots occupied throughout. The raw values and the timing of the
+prediction are in the item 4367 entry in RUNS.
+
 ## 23. The emergency is a city alarm (item 399, 2026-09-19)
 
 **`Armies::emergency` is not reached by hitting a soldier.** That is the
@@ -7105,8 +7133,14 @@ virtual at `+0x150`, `Unit::close` for a unit) and then the slot hold of
   60fb19  add   %eax, %ebx         ; cur_anim = dtype*2 + 0xd + roll % 2
   60fb1b  cmpb  $0x4, 0x8(%ebp)    ; dtype == 4?
   60fb31  call Random::get         ;   cur_anim = roll % 2 + 0x11
-  60fb55  call Random::get         ;   facing   = 0xe - roll % 4
+  60fb55  call Random::get         ;   per-piece alternate animation = 0xe - roll % 4
 ```
+
+The third draw's label was corrected in item 4370. A source reading of
+the two figure loops finds that a graphic condition selects this value
+as the animation argument to `Objects::kill_guy`. Both loops forward the
+impact angle independently. Which figures use the alternate animation
+still awaits a dedicated byte comparison and independent review.
 
 Above all of it, `dtype != 0` and the function's own `local_1c`, which is
 set only on the arm that unblocks four tiles for a **Merchant**, a Dutch

@@ -7,7 +7,7 @@
 //!
 //! ```text
 //! client [--install DIR] [--logs DIR] [--frame N] [--size WxH]
-//!        [--still OUT.bmp] [--frames N] [--play] [--trace OUT.json]
+//!        [--still OUT.bmp] [--frames N] [--play] [--trace OUT.json] [--record OUT.rcx]
 //!        [--look X,Y] [--zoom F] [--silhouette OUT.bmp] [--rest]
 //!        [--lobby] [--headless] [--page-still OUT.bmp] [--select O[,O…]]
 //!        [--page-of CAPTURE]
@@ -55,6 +55,7 @@ mod oil;
 mod overlay;
 mod particle;
 mod patch;
+mod recording;
 mod roads;
 mod shadows;
 mod silhouette;
@@ -130,6 +131,7 @@ struct Args {
     frame: i64,
     size: (u32, u32),
     still: Option<PathBuf>,
+    record: Option<PathBuf>,
     frames: Option<u64>,
     play: bool,
     trace: PathBuf,
@@ -187,6 +189,7 @@ fn parse() -> Result<Args, String> {
         frame: 3294,
         size: (1920, 1080),
         still: None,
+        record: None,
         frames: None,
         play: false,
         look: None,
@@ -206,13 +209,14 @@ fn parse() -> Result<Args, String> {
         select: Vec::new(),
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
+    let mut initial_frame = None;
     let mut it = std::env::args().skip(1);
     while let Some(k) = it.next() {
         let mut v = || it.next().ok_or(format!("{k} wants a value"));
         match k.as_str() {
             "--install" => a.install = v()?.into(),
             "--logs" => a.logs = v()?.into(),
-            "--frame" => a.frame = v()?.parse().map_err(|e| format!("--frame: {e}"))?,
+            "--frame" => initial_frame = Some(v()?.parse().map_err(|e| format!("--frame: {e}"))?),
             "--size" => {
                 let s = v()?;
                 let (w, h) = s.split_once('x').ok_or("--size WxH")?;
@@ -232,6 +236,7 @@ fn parse() -> Result<Args, String> {
             "--land-light" => a.land_light = true,
             "--land-flat" => a.land_light = false,
             "--mountain-flat" => a.mountain_flat = true,
+            "--record" => a.record = Some(v()?.into()),
             "--lobby" => a.lobby = true,
             "--headless" => a.headless = true,
             "--page-still" => a.page_still = Some(v()?.into()),
@@ -273,6 +278,14 @@ fn parse() -> Result<Args, String> {
             }
             _ => return Err(format!("unknown argument {k}")),
         }
+    }
+    a.frame = initial_frame.unwrap_or(if a.record.is_some() { 1 } else { 3294 });
+    if let Some(path) = &a.record {
+        a.lobby = true;
+        if a.headless || a.still.is_some() || a.silhouette.is_some() || a.page_still.is_some() {
+            return Err("--record needs a windowed lobby".into());
+        }
+        recording::check_paths(path, &a.trace)?;
     }
     Ok(a)
 }
@@ -514,6 +527,7 @@ struct App {
     presented: u64,
     last_ms: f64,
     playing: bool,
+    recording: Option<recording::Recording>,
     /// The person's input (`input`, item 4145): slot 0's, and the cursor's
     /// last pixel.
     input: input::Input,
@@ -597,7 +611,25 @@ impl App {
                         }
                     }
                 }
-                let frame = self.args.frame;
+                let mut frame = self.args.frame;
+                if let Some(path) = &self.args.record {
+                    let leader = self.input.leader_options(0);
+                    match recording::Recording::open(
+                        path,
+                        &page.choices,
+                        &self.args.logs,
+                        leader.clone(),
+                    ) {
+                        Ok(recording) => self.recording = Some(recording),
+                        Err(e) => {
+                            eprintln!("recording: {e}");
+                            page.note = Some(e);
+                            return;
+                        }
+                    }
+                    self.world.runner.issue(&(0, 0, vec![leader]));
+                    frame = frame.max(1);
+                }
                 self.session
                     .phase("run to the frame", || self.world.run_to(frame));
                 println!("LOBBY start, at frame {}", self.world.runner.frame());
@@ -707,7 +739,17 @@ impl App {
         };
         // The HUD first (item 4197): a press on a button is its key.
         let screen = size.unwrap_or((pinned_screen().scaled_xs, pinned_screen().scaled_ys));
-        if let Some(order) = hud::event(&mut self.input, screen, frame, ev, &view) {
+        let order = match &mut self.recording {
+            Some(rec) => match rec.event(&mut self.input, screen, frame, ev, &view) {
+                Ok(order) => order,
+                Err(e) => {
+                    eprintln!("order refused: {e}");
+                    return;
+                }
+            },
+            None => hud::event(&mut self.input, screen, frame, ev, &view),
+        };
+        if let Some(order) = order {
             println!("ORDER {order:?}");
             self.world.runner.issue(&order);
         }
@@ -1073,6 +1115,7 @@ fn main() {
             session: session.clone(),
             world,
             playing: args.play,
+            recording: None,
             args,
             camera,
             instance,
@@ -1091,14 +1134,33 @@ fn main() {
         };
         if let Err(e) = el.run_app(&mut app) {
             eprintln!("client: {e}");
+            std::process::exit(1);
+        }
+        let recording = app.recording.take();
+        if let Some(rec) = &recording
+            && rec.pending(app.world.runner.frame())
+        {
+            if app.input.paused {
+                eprintln!(
+                    "saving through the last completed tick; orders waiting for resume were not applied"
+                );
+            } else {
+                app.world.runner.step();
+            }
         }
         println!(
             "presented {} frames, at frame {}",
             app.presented,
             app.world.runner.frame()
         );
-        let trace = app.args.trace.clone();
-        return finish(&session, &trace);
+        finish(&session, &app.args.trace);
+        if let Some(rec) = recording
+            && let Err(e) = rec.save(app.world.runner.frame())
+        {
+            eprintln!("recording: {e}");
+            std::process::exit(1);
+        }
+        return;
     }
     finish(&session, &args.trace);
 }

@@ -101,7 +101,7 @@ impl Sim {
         self.units[v].health = 0;
         self.close_count(v);
         self.relink_squad(v);
-        self.close_unit(v, 0, frame);
+        self.close_unit(v, 0, frame, None);
         self.kill_contents(v);
         self.kremlin_spy_closed(v);
         self.close_dead_orders(v);

@@ -994,10 +994,11 @@ pub(crate) mod tests {
                 g.cur_time.expect("cur_time"),
                 g.gpiece.expect("gpiece"),
             );
-            let n = sim::data::launch::node(
+            let dz = sim::data::launch::release_dz(
                 i32::try_from(piece).unwrap(),
                 i8::try_from(anim).unwrap(),
                 u32::try_from(t).unwrap(),
+                0,
             )
             .unwrap_or_else(|| {
                 panic!(
@@ -1006,14 +1007,14 @@ pub(crate) mod tests {
                      leaves from the unit's own square and says nothing"
                 )
             });
-            rows.push((f - 1, piece, anim, t, pos.z, i64::from(n.dz)));
+            rows.push((f - 1, piece, anim, t, pos.z, i64::from(dz)));
             assert_eq!(
-                pos.z + i64::from(n.dz),
+                pos.z + i64::from(dz),
                 a.sz,
                 "block {f}: run100's guy is at z {} and §22's node is {} above \
                  it, which is not run109's sz {}",
                 pos.z,
-                n.dz,
+                dz,
                 a.sz
             );
         }

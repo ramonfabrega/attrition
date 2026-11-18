@@ -232,19 +232,83 @@ fn one(name: &'static str, width: usize, v: Option<i64>) -> Leaf {
     Leaf::new(name, width, 1, v.map(|v| vec![v]))
 }
 
+/// The world has one traversal. Diagnostics retain named leaves and their
+/// availability. The checksum packs frequently repeated scalar records
+/// straight into the range that the fold consumes.
+trait WorldOutput {
+    fn range(&mut self, range: WorldRange);
+
+    fn scalars(
+        &mut self,
+        section: u8,
+        record: i16,
+        field: &'static str,
+        layout: &[(&'static str, usize)],
+        values: &[Option<i64>],
+    ) {
+        assert_eq!(layout.len(), values.len());
+        self.range(WorldRange {
+            section,
+            record,
+            field,
+            leaves: layout
+                .iter()
+                .zip(values)
+                .map(|(&(name, width), &value)| one(name, width, value))
+                .collect(),
+        });
+    }
+}
+
+impl WorldOutput for Vec<WorldRange> {
+    fn range(&mut self, range: WorldRange) {
+        self.push(range);
+    }
+}
+
+impl WorldOutput for Vec<Range> {
+    fn range(&mut self, range: WorldRange) {
+        self.push(Range {
+            record: range.record,
+            field: range.field,
+            bytes: range.bytes(),
+        });
+    }
+
+    fn scalars(
+        &mut self,
+        _section: u8,
+        record: i16,
+        field: &'static str,
+        layout: &[(&'static str, usize)],
+        values: &[Option<i64>],
+    ) {
+        assert_eq!(layout.len(), values.len());
+        let mut bytes = Vec::with_capacity(layout.iter().map(|&(_, width)| width).sum());
+        for (&(_, width), value) in layout.iter().zip(values) {
+            bytes.extend_from_slice(&value.unwrap_or_default().to_le_bytes()[..width]);
+        }
+        self.push(Range {
+            record,
+            field,
+            bytes,
+        });
+    }
+}
+
 /// `SimpleArray<T>::walk_data`, `Array<T>::walk_data`: the count; with
 /// elements, the size, the increment (2 bytes), the flags `& 0xbf` (1
 /// byte), then the elements — as one range (`SimpleArray`) or one range an
 /// element of `per` 4-byte words (`Array<WCoordData>`, `per` 2).
 fn list(
-    out: &mut Vec<WorldRange>,
+    out: &mut impl WorldOutput,
     section: u8,
     names: ArrayNames,
     image: Option<ListImage>,
     per: Option<[&'static str; 2]>,
 ) {
-    let put = |out: &mut Vec<WorldRange>, record: i16, field, leaves| {
-        out.push(WorldRange {
+    let mut put = |record: i16, field, leaves| {
+        out.range(WorldRange {
             section,
             record,
             field,
@@ -252,31 +316,20 @@ fn list(
         })
     };
     let Some(l) = image else {
-        put(out, -1, names[0], vec![one("num", 4, None)]);
+        put(-1, names[0], vec![one("num", 4, None)]);
         return;
     };
     let width = per.map_or(1, |_| 2);
     let num = l.elements.len() / width;
-    put(out, -1, names[0], vec![one("num", 4, Some(num as i64))]);
+    put(-1, names[0], vec![one("num", 4, Some(num as i64))]);
     if num == 0 {
         return;
     }
-    put(out, -1, names[1], vec![one("size", 4, Some(l.size))]);
-    put(
-        out,
-        -1,
-        names[2],
-        vec![one("increment", 2, Some(l.increment))],
-    );
-    put(
-        out,
-        -1,
-        names[3],
-        vec![one("flags", 1, Some(l.flags & 0xbf))],
-    );
+    put(-1, names[1], vec![one("size", 4, Some(l.size))]);
+    put(-1, names[2], vec![one("increment", 2, Some(l.increment))]);
+    put(-1, names[3], vec![one("flags", 1, Some(l.flags & 0xbf))]);
     match per {
         None => put(
-            out,
             -1,
             names[4],
             vec![Leaf::new(names[4], 4, num, Some(l.elements))],
@@ -284,7 +337,6 @@ fn list(
         Some([a, b]) => {
             for (k, e) in l.elements.chunks(2).enumerate() {
                 put(
-                    out,
                     k as i16,
                     names[4],
                     vec![one(a, 4, Some(e[0])), one(b, 4, Some(e[1]))],
@@ -306,27 +358,26 @@ impl Sim {
     /// **The world line**, as bytes (`docs/CHECKSUM.md` §21): every range
     /// of [`Sim::world_image`] in order, an unheld leaf's bytes zero.
     pub fn checksum_world(&self) -> Line {
+        let mut ranges = Vec::new();
+        self.walk_world(&mut ranges);
         Line {
             name: "world",
-            ranges: self
-                .world_image()
-                .into_iter()
-                .map(|r| Range {
-                    record: r.record,
-                    field: r.field,
-                    bytes: r.bytes(),
-                })
-                .collect(),
+            ranges,
         }
     }
 
     /// **The world line as leaves**, in walk order (module docs).
     pub fn world_image(&self) -> Vec<WorldRange> {
+        let mut ranges = Vec::new();
+        self.walk_world(&mut ranges);
+        ranges
+    }
+
+    fn walk_world(&self, out: &mut impl WorldOutput) {
         let w = &self.world;
         let (xs, ys) = (w.width(), w.height());
-        let mut out = Vec::new();
         // 1: `xs`, `ys`.
-        out.push(WorldRange {
+        out.range(WorldRange {
             section: 1,
             record: -1,
             field: "xs..ys",
@@ -344,17 +395,17 @@ impl Sim {
                 increment: i64::from(a[k].increment),
                 flags: i64::from(a[k].flags),
             });
-            list(&mut out, 2, names, image, None);
+            list(out, 2, names, image, None);
         }
         // 3: `oil_x`, `oil_y` — `World::init` and `World::close` empty
         // them and nothing appends (the export and the listing both), so
         // each is its zero count.
         for names in OIL_ARRAYS {
-            list(&mut out, 3, names, Some(ListImage::EMPTY), None);
+            list(out, 3, names, Some(ListImage::EMPTY), None);
         }
         // 4: `size`..`seed`.
         let header = self.world_header();
-        out.push(WorldRange {
+        out.range(WorldRange {
             section: 4,
             record: -1,
             field: "size..seed",
@@ -367,23 +418,14 @@ impl Sim {
         // 5: the cells.
         for i in 0..xs * ys {
             let c = Cell::new(i % xs, i / xs);
-            out.push(WorldRange {
-                section: 5,
-                record: i as i16,
-                field: "cell",
-                leaves: CELL_FIELDS
-                    .iter()
-                    .zip(self.world_cell(c))
-                    .map(|(&(n, wd), v)| one(n, wd, v))
-                    .collect(),
-            });
+            out.scalars(5, i as i16, "cell", CELL_FIELDS, &self.world_cell(c));
         }
         // 6: the tile masks, then the three fog planes.
         let (tw, th) = (4 * xs, 4 * ys);
         let masks: Vec<i64> = (0..tw * th)
             .map(|i| i64::from(w.tile_mask(Pos::new(i % tw, i / tw))))
             .collect();
-        out.push(WorldRange {
+        out.range(WorldRange {
             section: 6,
             record: -1,
             field: "mask",
@@ -401,7 +443,7 @@ impl Sim {
             ("seen3", fog(&|x, y| Some(w.seen3(x, y)))),
         ];
         for (name, v) in planes {
-            out.push(WorldRange {
+            out.range(WorldRange {
                 section: 6,
                 record: -1,
                 field: name,
@@ -413,7 +455,7 @@ impl Sim {
         let wcoord: Option<Vec<i64>> = (0..xs * ys)
             .map(|i| w.wcoord_seen(Cell::new(i % xs, i / xs)).map(i64::from))
             .collect();
-        out.push(WorldRange {
+        out.range(WorldRange {
             section: 7,
             record: -1,
             field: "wcoord_seen",
@@ -435,7 +477,7 @@ impl Sim {
             } else {
                 None
             };
-            out.push(WorldRange {
+            out.range(WorldRange {
                 section: 8,
                 record: i16::from(who),
                 field: "danger",
@@ -450,27 +492,26 @@ impl Sim {
         for i in 0..xs * ys {
             let (cx, cy) = (i % xs, i / xs);
             let present = coll.block_present(cx, cy);
-            out.push(WorldRange {
-                section: 9,
-                record: i as i16,
-                field: "block.present",
-                leaves: vec![one("present", 4, Some(i64::from(present)))],
-            });
+            out.scalars(
+                9,
+                i as i16,
+                "block.present",
+                &[("present", 4)],
+                &[Some(i64::from(present))],
+            );
             if !present {
                 continue;
             }
             let (bits, size) = crate::movement::collide::BLOCK_HEAD;
-            out.push(WorldRange {
-                section: 9,
-                record: i as i16,
-                field: "block.head",
-                leaves: vec![
-                    one("bits", 4, Some(i64::from(bits))),
-                    one("size", 4, Some(i64::from(size))),
-                ],
-            });
+            out.scalars(
+                9,
+                i as i16,
+                "block.head",
+                &[("bits", 4), ("size", 4)],
+                &[Some(i64::from(bits)), Some(i64::from(size))],
+            );
             let body = coll.block_body(cx, cy);
-            out.push(WorldRange {
+            out.range(WorldRange {
                 section: 9,
                 record: i as i16,
                 field: "block.body",
@@ -496,30 +537,23 @@ impl Sim {
                 h.locs.len(),
             )
         });
-        list(&mut out, 10, TERRAIN_ARRAYS[0], locs, Some(["x", "y"]));
+        list(out, 10, TERRAIN_ARRAYS[0], locs, Some(["x", "y"]));
         let ints = |v: &[i32]| ListImage::grown(v.iter().map(|&n| i64::from(n)).collect(), v.len());
         list(
-            &mut out,
+            out,
             11,
             TERRAIN_ARRAYS[1],
             half.map(|h| ints(&h.types)),
             None,
         );
         list(
-            &mut out,
+            out,
             12,
             TERRAIN_ARRAYS[2],
             half.map(|h| ints(&h.subtypes)),
             None,
         );
-        list(
-            &mut out,
-            13,
-            TERRAIN_ARRAYS[3],
-            Some(ListImage::EMPTY),
-            None,
-        );
-        out
+        list(out, 13, TERRAIN_ARRAYS[3], Some(ListImage::EMPTY), None);
     }
 
     /// `WorldData` `size`..`seed` as this crate holds it, `None` where it

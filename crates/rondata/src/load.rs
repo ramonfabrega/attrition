@@ -176,7 +176,9 @@ pub struct Loaded {
     /// The pieces whose `<UNIT>` names a skeleton — a death object's
     /// corpse fade (`crate::artdata::piece_skeletons`, `docs/GOLDEN.md`
     /// §127).
-    pub piece_skeletons: std::collections::BTreeSet<i32>,
+    pub piece_skeletons: std::collections::BTreeMap<i32, i32>,
+    /// Graphic pieces retained in a casualty sprite, keyed by ammo piece number.
+    pub casualty_attachments: std::collections::BTreeSet<i32>,
     /// Every unit graphic piece's follow offset, `gpiece → (track_dx,
     /// track_dy)`, read from `unit_graphics.xml`'s `trackoffsetx` /
     /// `trackoffsety` / `scale` (`crate::artdata::piece_tracks`). Empty
@@ -612,6 +614,7 @@ fn read_install(install: &Install) -> Result<Loaded, crate::Error> {
         .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
         .collect();
     loaded.piece_lengths = crate::artdata::piece_lengths(install, &graphs);
+    loaded.casualty_attachments = crate::artdata::casualty_attachments(install);
     loaded.piece_skeletons = crate::artdata::piece_skeletons(install, &graphs);
     loaded.piece_tracks = crate::artdata::piece_tracks(install, &graphs);
     loaded.piece_releases = crate::artdata::piece_releases(install, &graphs);
@@ -2347,6 +2350,7 @@ pub fn load_tables(
         gaia_variants: Default::default(),
         piece_lengths: Default::default(),
         piece_skeletons: Default::default(),
+        casualty_attachments: Default::default(),
         piece_tracks: Default::default(),
         piece_releases: Default::default(),
         pivot_restrictions: Default::default(),
@@ -3124,6 +3128,7 @@ mod tests {
             gaia_variants: Default::default(),
             piece_lengths: Default::default(),
             piece_skeletons: Default::default(),
+            casualty_attachments: Default::default(),
             piece_tracks: Default::default(),
             piece_releases: Default::default(),
             pivot_restrictions: Default::default(),

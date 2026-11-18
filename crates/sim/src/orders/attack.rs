@@ -512,7 +512,7 @@ impl Sim {
                     combat::Stance::Aggressive | combat::Stance::Defensive
                 ) || self.is_in_range(me, t))
             {
-                self.units[u].combat.target = Some(t);
+                self.set_attack_target(u, Some(t));
             }
         }
         let Some(target) = self.units[u].combat.target else {
@@ -1056,7 +1056,7 @@ impl Sim {
             }
             let me = Obj::Unit(u);
             if c != t && self.valid_target(me, Obj::Unit(c)) {
-                self.units[u].combat.target = Some(Obj::Unit(c));
+                self.set_attack_target(u, Some(Obj::Unit(c)));
                 let front = self.units[u].orders.front_mut()?;
                 if front.flags & flag::FIGHT_REENTRY == 0 {
                     front.flags |= flag::FIGHT_REENTRY;

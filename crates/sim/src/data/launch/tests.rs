@@ -3450,7 +3450,7 @@ fn an_unmeasured_piece_launches_from_the_unit() {
 /// key is `rondata::artdata::release_frame`'s frame, so a row this
 /// crate cannot reach is a row that will never fire.
 ///
-/// Piece **127** is the Longbowman's six (run109, §22.1); **472** is
+/// Piece **127** moved to [`BAYS`] after a whole-degree sweep (item 4365); **472** is
 /// chapter two's bowmen, three keys from run112's own `AMMO` records
 /// (item 485, §41.3). The slingers', **384**, were two keys from the same
 /// records and a third from run1603's packet round (item 4256,
@@ -3477,12 +3477,6 @@ fn the_table_is_every_release_event_a_capture_has_measured() {
             (122, crate::units::anim::ATTACK1, 5),
             (122, crate::units::anim::ATTACK2, 3),
             (122, crate::units::anim::ATTACK3, 6),
-            (127, crate::units::anim::ATTACK1, 6),
-            (127, crate::units::anim::ATTACK1, 22),
-            (127, crate::units::anim::ATTACK2, 4),
-            (127, crate::units::anim::ATTACK2, 22),
-            (127, crate::units::anim::ATTACK3, 10),
-            (127, crate::units::anim::ATTACK3, 24),
             (472, crate::units::anim::ATTACK1, 12),
             (472, crate::units::anim::ATTACK2, 9),
             (472, crate::units::anim::ATTACK3, 15),

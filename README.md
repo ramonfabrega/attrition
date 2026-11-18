@@ -117,6 +117,18 @@ first frame that differs. `--recgame <file.rcx>` decodes a recorded game.
 Run it with no arguments to list the rest. Some scored games carry
 scripted orders, and those replay through the test suite, not this flag.
 
+To play and record the default Great Lakes lobby, give the client an unused output path.
+
+```sh
+cargo run --release -p client -- --install /path/to/install --record my-game.rcx --play
+```
+
+Press Up then Enter on the lobby page to start. Press Q or close the window
+to save. The writer reads a finished recording of a compatible lobby for
+its rules section. Set `RON_RECGAME_DIR` to the directory containing your
+recordings if they are outside the client's logs directory. The replay
+comparison and its frame convention are in [the recording specification](docs/RECGAME.md#10-recording-the-live-window).
+
 The full check, the one every change must pass, is:
 
 ```sh

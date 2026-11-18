@@ -92,9 +92,8 @@ impl Sim {
             self.add_attack_order(i, t, crate::orders::QueuePos::First, mandatory, false);
             return;
         }
-        let u = &mut self.units[i];
-        u.combat.target = target;
-        u.combat.mandatory = mandatory && target.is_some();
+        self.set_attack_target(i, target);
+        self.set_attack_mandatory(i, mandatory && target.is_some());
     }
 
     // ------------------------------------------------------------------
@@ -693,6 +692,15 @@ impl Sim {
         let live: Vec<u32> = self.combat.projectiles.iter().map(|q| q.slot).collect();
         let slot = lowest_free_slot(&live);
         p.slot = slot;
+        p.graphic.graph_index = self.combat.next_ammo_graph_index;
+        self.combat.next_ammo_graph_index = self.combat.next_ammo_graph_index.wrapping_add(1);
+        let x = Single::from_i32(p.landing.x - p.launch.x);
+        let y = Single::from_i32(p.landing.y - p.launch.y);
+        p.graphic.dx = x
+            .mulss(x)
+            .addss(y.mulss(y))
+            .sqrtss()
+            .divss(Single::from_i32(p.total_time));
         let at = self.combat.projectiles.partition_point(|q| q.slot < slot);
         self.combat.projectiles.insert(at, p);
     }
@@ -985,6 +993,7 @@ impl Sim {
                 ez,
                 v1z: combat::arc_v1z(sz, ez, total_time),
                 slot: 0,
+                graphic: Default::default(),
                 flame,
                 punctures,
                 spent: false,
@@ -1237,6 +1246,10 @@ impl Sim {
             ez,
             v1z: combat::arc_v1z(sz, ez, total_time),
             slot: 0,
+            graphic: combat::AmmoGraphic {
+                guided: missile,
+                ..Default::default()
+            },
             flame,
             punctures,
             spent: false,

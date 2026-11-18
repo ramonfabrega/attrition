@@ -312,26 +312,58 @@ pub fn band(chain: &Chain, alpha: &dyn Fn(f32, f32, bool) -> u8) -> Vec<Half> {
     }
     let (pts, nor) = dense(&bspline(&ctrl), chain.closed);
     let last = pts.len().saturating_sub(1);
+    // Each owner's side is the one its own cells lie on: `+N` for `a`.
+    let sides = [(chain.a, 1.0f32), (chain.b, -1.0)];
+    let lone = match (player(chain.a), player(chain.b)) {
+        (Some(_), None) => Some(sides[0]),
+        (None, Some(_)) => Some(sides[1]),
+        _ => None,
+    };
     let mut out = Vec::new();
-    for (owner, sign) in [(chain.a, -1.0f32), (chain.b, 1.0)] {
-        let Some(who) = player(owner) else { continue };
-        let mut tris = Vec::new();
-        let v = |i: usize, k: f32| {
+    // A level across the band: `k` half-bands along the side's normal and
+    // the texture's alpha there, of 255.
+    let strip = |sign: f32, levels: &[(f32, u16)]| {
+        let v = |i: usize, (k, f): (f32, u16)| {
             let q = [
                 pts[i][0] + sign * k * HALF_BAND * nor[i][0],
                 pts[i][1] + sign * k * HALF_BAND * nor[i][1],
             ];
             let end = !chain.closed && (i == 0 || i == last);
-            (q, alpha(q[0], q[1], end))
+            (q, (u16::from(alpha(q[0], q[1], end)) * f / 255) as u8)
         };
+        let mut tris = Vec::new();
         for i in 0..last {
-            let (a0, a1, b0, b1) = (v(i, 0.0), v(i, 1.0), v(i + 1, 0.0), v(i + 1, 1.0));
-            tris.extend([a0, a1, b1, a0, b1, b0]);
+            for w in levels.windows(2) {
+                let (a0, a1, b0, b1) = (v(i, w[0]), v(i, w[1]), v(i + 1, w[0]), v(i + 1, w[1]));
+                tris.extend([a0, a1, b1, a0, b1, b0]);
+            }
         }
-        out.push((who, tris));
+        tris
+    };
+    if let Some((owner, sign)) = lone {
+        let who = player(owner).expect("the lone side is a player's");
+        out.push((who, strip(sign, &LONE_PROFILE)));
+        return out;
+    }
+    for (owner, sign) in sides {
+        let Some(who) = player(owner) else { continue };
+        out.push((who, strip(sign, &[(0.0, 255), (1.0, 255)])));
     }
     out
 }
+
+/// **A border with one owner, across its width** (item 4358,
+/// `docs/RENDERER.md` §3.29, "The settled band"): `(k, alpha of 255)` from
+/// the owner's edge, `k` half-bands on its own side, to the far edge.
+/// `BorderSplineRender::map_texture@00882990` spans the band's width over
+/// two rows of `Borders::make_texture@00882530`'s 16 × 16 texture, and
+/// run1665's packet holds `v` 4 texels at the owner's edge and 2 at the
+/// far one, `u` in the owner's two columns: the owner's edge between two
+/// opaque rows, then an opaque row's centre a quarter across, a row
+/// transparent in the owner's own columns three quarters across, and the
+/// far edge between it and an opaque row. Linear between, as the card
+/// filters it: the photograph's far-edge rim says so.
+pub const LONE_PROFILE: [(f32, u16); 4] = [(1.0, 255), (0.5, 255), (-0.5, 0), (-1.0, 128)];
 
 /// **The samples and their normals, cut to [`STEP`]**: each segment
 /// between two samples split evenly, position and normal interpolated as
@@ -373,7 +405,7 @@ pub fn player(o: Owner) -> Option<Player> {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use crate::ground::tests::{PixelTiles, Probe, ground_why, probe_at, run1564};
+    use crate::ground::tests::{PixelTiles, Probe, ground_why, probe_at, run1564, run1665};
     use std::path::PathBuf;
 
     /// **A border's pixel, by colour** (item 4306): the band is a team's
@@ -456,7 +488,8 @@ pub(crate) mod tests {
     /// Item 4344: 224 → 222 (a named fall of two), 605 → 566 of ours: the objects and the patches after the water drawn before it (item 4344, `docs/RENDERER.md` §3.30, "The fish under the water"), so the water blends over the band on its cells, as `Borders::process_all` comes before `render_water`.
     /// Item 4345: 222 holds, 566 → 567 of ours: the herd lit (item 4345, `docs/RENDERER.md` §3.30, "The fish's light") moves the frame's mean, so its white.
     /// Item 4348: 222 holds, 567 → 568 of ours: the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands") moves the frame's mean, so its white.
-    pub const RUN1564_3279_BORDER: [[usize; 3]; 3] = [[0, 1440, 0], [222, 1440, 568], [0, 1440, 0]];
+    /// Item 4358: 222 → 43 (a named fall), 568 → 384 of ours: this photograph's band is a `BorderMorphRender` (item 4356), and the far-side half was fit to it; the settled band (run1665, [`RUN1665_3279_BORDER`]) lies on the owner's side across the whole width, [`super::LONE_PROFILE`].
+    pub const RUN1564_3279_BORDER: [[usize; 3]; 3] = [[0, 1440, 0], [43, 1440, 384], [0, 1440, 0]];
 
     #[test]
     fn the_border_band_on_run1564() {
@@ -481,5 +514,41 @@ pub(crate) mod tests {
         }
         println!("RUN1564_3279_BORDER: {got:?}");
         assert_eq!(got, RUN1564_3279_BORDER);
+    }
+
+    /// **`RUN1665_3279_BORDER`** (item 4358): the same row on run1665's
+    /// photograph, run1564's take with fast-forward ended 100 frames
+    /// before the pause, so the border is the settled regular strip its
+    /// packet holds (`normal_border_renders` 2, no morph, `graphic_tick`
+    /// 253; `docs/RENDERER.md` §3.29, "The settled band"). Minted at
+    /// `[0, 262, 0]`; drawn as 4306 left it (one flat half on the far
+    /// side) 7 of 262, 568 of ours; with [`super::LONE_PROFILE`] on the
+    /// owner's own side, 59 of 262, 384 of ours. The made-to-fail is the
+    /// owner grid one cell east.
+    pub const RUN1665_3279_BORDER: [[usize; 3]; 3] = [[0, 262, 0], [59, 262, 384], [0, 262, 0]];
+
+    #[test]
+    fn the_settled_border_band_on_run1665() {
+        let Some(mut p) = probe_at(run1665()) else {
+            return;
+        };
+        let (_, tiles, _) = ground_why(&mut p);
+        let hood = near_an_edge(&mut p, &tiles);
+        let mut got = [[0; 3]; 3];
+        for (k, (on, shift, what)) in [
+            (false, (0, 0), "before"),
+            (true, (0, 0), "drawn"),
+            (true, (1, 0), "moved"),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            p.world.borders = on;
+            p.world.borders_shift = shift;
+            let s = still(&mut p, &format!("settled-{what}"));
+            got[k] = row(&p, &hood, &s);
+        }
+        println!("RUN1665_3279_BORDER: {got:?}");
+        assert_eq!(got, RUN1665_3279_BORDER);
     }
 }
