@@ -325,15 +325,6 @@ mod tests {
             .ok()
             .and_then(|v| v.parse().ok())
             .unwrap_or(i64::MAX);
-        if let Ok(w) = std::env::var("RON_PROBE_4359_INPUT") {
-            let (lo, hi) = w.split_once('-').unwrap();
-            let (lo, hi): (i32, i32) = (lo.parse().unwrap(), hi.parse().unwrap());
-            for i in crate::input::input(&rec) {
-                if (lo..=hi).contains(&i.frame) {
-                    eprintln!("PROBE4359 input f{} play {} who {} {:?}", i.frame, i.play, i.who, i.cmd);
-                }
-            }
-        }
         let mut stream = crate::input::Stream::pump(&rec);
         let mut captures = vec![("run1651", dump)];
         captures.extend(run1654().map(|p| ("run1654", p)));
