@@ -541,9 +541,10 @@ pub struct Gpu {
     hdr_floor: wgpu::RenderPipeline,
     /// Item 4338: the surf on the HDR target (`fs_surf_hdr`).
     hdr_surf: wgpu::RenderPipeline,
-    /// Item 4379: the national borders on the HDR target
-    /// (`fs_border_hdr`), the depth test off as `border`'s.
-    hdr_border: wgpu::RenderPipeline,
+    /// Item 4379: the national borders over a copy of the frame, blended
+    /// as on the HDR target (`fs_border_over`), the depth test off as
+    /// `border`'s.
+    border_over: wgpu::RenderPipeline,
     untone: wgpu::RenderPipeline,
     retone: wgpu::RenderPipeline,
     /// The ocean floor, lit per pixel, depth written; the water, blended in
@@ -1245,14 +1246,14 @@ impl Gpu {
             LAND_HDR_FORMAT,
             wgpu::CompareFunction::LessEqual,
         );
-        // Item 4379: the national borders on the same target, through
-        // `TL_FAKE_LIGHT`, with the depth test off (item 4376).
-        let hdr_border = patch_pass_to(
-            "hdr_border",
-            "fs_border_hdr",
-            &patch_layout,
+        // Item 4379: the national borders through `TL_FAKE_LIGHT`, over a
+        // copy of the frame, with the depth test off (item 4376).
+        let border_over = patch_pass_to(
+            "border_over",
+            "fs_border_over",
+            &water_layout,
             false,
-            LAND_HDR_FORMAT,
+            format,
             wgpu::CompareFunction::Always,
         );
         let full_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -1462,7 +1463,7 @@ impl Gpu {
             hdr_faded,
             hdr_floor,
             hdr_surf,
-            hdr_border,
+            border_over,
             untone,
             retone,
             floor,
@@ -2457,10 +2458,10 @@ impl Gpu {
 
     /// **Patches over the frame, the borders' runs in HDR** (item 4379;
     /// `docs/RENDERER.md` §3.29, "The band's colour"): each run of
-    /// [`PatchKind::Border`] drawn by [`Self::land_hdr_pass`], as the card's
-    /// draws 135 and 136 blend on its HDR target before the tone map, and
-    /// the patches between over the frame as [`Self::draw_ground`] draws
-    /// them. With `border_hdr` off, all of them over the frame.
+    /// [`PatchKind::Border`] drawn over a copy of the frame by
+    /// `border_over`, as the card's draws 135 and 136 blend on its HDR
+    /// target before the tone map, and the patches between over the frame
+    /// as [`Self::draw_ground`] draws them. With `border_hdr` off, all of them over the frame.
     fn draw_split(
         &self,
         enc: &mut wgpu::CommandEncoder,
@@ -2487,7 +2488,37 @@ impl Gpu {
             }
             let e = j + patches[j..].iter().take_while(|p| is_border(p)).count();
             if e > j {
-                self.land_hdr_pass(enc, target, view, depth_view, extent, &patches[j..e]);
+                let lake = self.device.create_texture(&wgpu::TextureDescriptor {
+                    label: Some("border_under"),
+                    size: extent,
+                    mip_level_count: 1,
+                    sample_count: 1,
+                    dimension: wgpu::TextureDimension::D2,
+                    format: self.format,
+                    usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+                    view_formats: &[],
+                });
+                enc.copy_texture_to_texture(target.as_image_copy(), lake.as_image_copy(), extent);
+                let under = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("border_under"),
+                    layout: &self.lake_layout,
+                    entries: &[wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(
+                            &lake.create_view(&Default::default()),
+                        ),
+                    }],
+                });
+                let mut pass = begin(enc, view, depth_view, false);
+                pass.set_bind_group(0, &self.bind, &[]);
+                pass.set_bind_group(3, &under, &[]);
+                pass.set_pipeline(&self.border_over);
+                for (b, n, t, a, _, _, _) in &patches[j..e] {
+                    pass.set_bind_group(1, t, &[]);
+                    pass.set_bind_group(2, a, &[]);
+                    pass.set_vertex_buffer(0, b.slice(..));
+                    pass.draw(0..*n, 0..1);
+                }
             }
             i = e;
         }
@@ -2681,7 +2712,6 @@ impl Gpu {
                     PatchKind::Faded => &self.hdr_faded,
                     PatchKind::Floor => &self.hdr_floor,
                     PatchKind::Surf => &self.hdr_surf,
-                    PatchKind::Border => &self.hdr_border,
                     _ => &self.hdr_lit,
                 });
                 pass.set_bind_group(1, t, &[]);

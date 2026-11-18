@@ -92,15 +92,25 @@ fn fs_surf_hdr(i: VOut) -> @location(0) vec4<f32> {
 }
 
 // Item 4379 (`docs/RENDERER.md` §3.29, "The band's colour"): a national
-// border on the HDR target. The card's draws 135 and 136 (run1567, the pass
-// after 3279) are `MODULATE(TEXTURE, CURRENT)` under a white vertex, through
-// `TL_FAKE_LIGHT`, with no `NO_HDR`: the owner's colour taken to `5 · c^1.9`
-// and blended source alpha over before the tone map, at the vertex ramp's
-// alpha.
+// border blended as on the HDR target. The card's draws 135 and 136
+// (run1567, the pass after 3279) are `MODULATE(TEXTURE, CURRENT)` under a
+// white vertex, through `TL_FAKE_LIGHT`, with no `NO_HDR`: the owner's colour
+// taken to `5 · c^1.9` and blended source alpha over before the tone map, at
+// the vertex ramp's alpha, its alpha test greater than 0. Drawn over a copy
+// of the frame (`lake`), `T(T⁻¹(d) · (1 − a) + L · a)` on the band's own
+// pixels: the HDR target's blend wherever the strip's triangles do not
+// overlap, without taking the whole frame through the curve and back.
 @fragment
-fn fs_border_hdr(i: VOut) -> @location(0) vec4<f32> {
+fn fs_border_over(i: VOut) -> @location(0) vec4<f32> {
     let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
-    return vec4<f32>(surf_light(textureSample(tex, samp, i.uv).rgb), a);
+    if (a <= 0.0) {
+        discard;
+    }
+    let s = surf_light(textureSample(tex, samp, i.uv).rgb);
+    let d = textureLoad(lake, vec2<i32>(i.pos.xy), 0).rgb;
+    let under = vec3<f32>(water_untone(d.r), water_untone(d.g), water_untone(d.b));
+    let o = under * (1.0 - a) + s * a;
+    return vec4<f32>(land_tone(o.x), land_tone(o.y), land_tone(o.z), 1.0);
 }
 
 // Item 4327 (`docs/RENDERER.md` §3.27, "The patches over the faded land in

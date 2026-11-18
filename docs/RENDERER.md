@@ -4301,11 +4301,12 @@ takes its alpha linear between the two edges', as the one quad does. `RUN1665_32
 morph) and 136 (`0x00882838`, `BorderSplineRender`): `SRCALPHA`/`INVSRCALPHA`, stage 0 `MODULATE(TEXTURE, CURRENT)`,
 `ALPHA_TEST VERTEX_COLOR_DIFFUSE TL_FAKE_LIGHT`, no `NO_HDR`. So `ps_global.hlsl` takes the owner's texel (the packet's
 vertex is white) to `5 · c^1.9` and the blend runs on the HDR target before the tone map, as the surf's (§3.27). The
-client draws each run of border patches there (`fs_border_hdr`, `Gpu::draw_split`), laid before the water as 135 and 136
-precede its 162; `World::border_hdr` off is 4376's draw. At run1665's x 1860, row 491, theirs (174, 164, 167), 4376's
+client blends each run of border patches so over a copy of the frame, `T(T⁻¹(d) · (1 − a) + L · a)` on the band's own
+pixels (`fs_border_over`, `Gpu::draw_split`; a whole-frame pass on the HDR target cost 7 ms of p99 on the clock), laid
+before the water as 135 and 136 precede its 162; `World::border_hdr` off is 4376's draw. At run1665's x 1860, row 491, theirs (174, 164, 167), 4376's
 (147, 139, 148), now (169, 159, 160). `RUN1665_3279_BORDER_ERROR`, the mean `|theirs − ours|` (r + g + b) on the band's
-footprint: 45.1 → **39.8**, the bare and the moved arm 48.8; HDR nearer on 2,320 pixels, LDR on 850. `band()`'s row falls
-155 → 137 of 262 (ours alone 232 → 75), a named fall: theirs' core fails `b > (r + g) / 2` itself (4379c). The value
+footprint: 45.1 → **39.8**, the bare and the moved arm 48.8; HDR nearer on 2,325 pixels, LDR on 862. `band()`'s row falls
+155 → 138 of 262 (ours alone 232 → 75), a named fall: theirs' core fails `b > (r + g) / 2` itself (4379c). The value
 diff and the run1564 pins it moves are `docs/journal/2026-11-18-item-4379.md`. *Coverage:* diff-backed, the draws' state
 on one take's card; on a reading, the shader's branch.
 

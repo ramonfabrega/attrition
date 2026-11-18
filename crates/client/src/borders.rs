@@ -486,9 +486,9 @@ pub(crate) mod tests {
     /// Item 4348: 222 holds, 567 → 568 of ours: the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands") moves the frame's mean, so its white.
     /// Item 4358: 222 → 43 (a named fall), 568 → 384 of ours: this photograph's band is a `BorderMorphRender` (item 4356), and the far-side half was fit to it; the settled band (run1665, [`RUN1665_3279_BORDER`]) lies on the owner's side across the whole width, [`super::LONE_PROFILE`].
     /// Item 4376: 43 → 48 of 1,440, 384 → 387 of ours: the strip drawn on the curve's samples at the ground's heights there, chord between, with the depth test off, and only the first pair's end faded (`docs/RENDERER.md` §3.29, "The band's heights").
-    /// Item 4379: drawn 48 → 1 of 1,440 (a named fall), 387 → 212 of ours: the band blended on the HDR target through `TL_FAKE_LIGHT` (`docs/RENDERER.md` §3.29, "The band's colour") is lighter, and the reader's thresholds were set on the morph's LDR colour. A fourth arm pins 4376's LDR draw, `World::border_hdr` off: 48 and 387.
+    /// Item 4379: drawn 48 → 1 of 1,440 (a named fall), 387 → 213 of ours: the band blended on the HDR target through `TL_FAKE_LIGHT` (`docs/RENDERER.md` §3.29, "The band's colour") is lighter, and the reader's thresholds were set on the morph's LDR colour. A fourth arm pins 4376's LDR draw, `World::border_hdr` off: 48 and 387.
     pub const RUN1564_3279_BORDER: [[usize; 3]; 4] =
-        [[0, 1440, 0], [1, 1440, 212], [0, 1440, 0], [48, 1440, 387]];
+        [[0, 1440, 0], [1, 1440, 213], [0, 1440, 0], [48, 1440, 387]];
 
     #[test]
     fn the_border_band_on_run1564() {
@@ -533,12 +533,12 @@ pub(crate) mod tests {
     /// §3.29, "The band's heights"). Of the 107 theirs alone, 66 are the
     /// original's HUD in the photograph; the rest is the band's colour
     /// (parked 4376a).
-    /// Item 4379: drawn 155 → 137 of 262 (a named fall), 387 → 212 of ours, ours alone 232 → 75: the band blended on
+    /// Item 4379: drawn 155 → 138 of 262 (a named fall), 387 → 213 of ours, ours alone 232 → 75: the band blended on
     /// the HDR target through `TL_FAKE_LIGHT`, the card's draws 135 and 136 (`docs/RENDERER.md` §3.29, "The band's
     /// colour"). Theirs' strong part, (174, 164, 167) at x 1860, fails [`band`] itself, so the row reads only the band's
     /// margins; [`RUN1665_3279_BORDER_ERROR`] reads the colour by value. A fourth arm pins 4376's LDR draw: 155 and 387.
     pub const RUN1665_3279_BORDER: [[usize; 3]; 4] =
-        [[0, 262, 0], [137, 262, 212], [0, 262, 0], [155, 262, 387]];
+        [[0, 262, 0], [138, 262, 213], [0, 262, 0], [155, 262, 387]];
 
     #[test]
     fn the_settled_border_band_on_run1665() {
@@ -584,7 +584,7 @@ pub(crate) mod tests {
     /// nearer theirs on, and the pixels the LDR arm is nearer on. The
     /// made-to-fail is the moved arm, the owner grid one cell east.
     pub const RUN1665_3279_BORDER_ERROR: ([usize; 4], [usize; 3]) =
-        ([488, 398, 488, 451], [6842, 2320, 850]);
+        ([488, 398, 488, 451], [6842, 2325, 862]);
 
     fn error_row(p: &Probe, hood: &[bool], stills: &[Vec<u8>]) -> ([usize; 4], [usize; 3]) {
         let px = |rgba: &[u8], i: usize| [rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]];
