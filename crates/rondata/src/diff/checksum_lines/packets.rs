@@ -12,6 +12,8 @@
 //! the state the word's own floor walks from) where they do not
 //! ([`SEATED_WORDS`]).
 
+mod building_slots;
+
 use super::*;
 use crate::diff::third::stand_up_from;
 
@@ -57,13 +59,13 @@ pub(in crate::diff) fn packet_stream_in(
 }
 
 /// One line's outcome on one packet: the stream's ranges, ours, the ranges
-/// that part, and the first parting `(range, record, field, ours, theirs)`.
+/// that part, and the first differing byte in walk order.
 #[derive(Clone, Debug)]
 pub(in crate::diff) struct LineOutcome {
     pub theirs: usize,
     pub ours: usize,
     pub parted: usize,
-    pub first: Option<(usize, i16, String, String, String)>,
+    pub first: Option<FirstDifference>,
 }
 
 impl LineOutcome {
@@ -93,24 +95,71 @@ impl Pieces {
     }
 }
 
-/// Our walk's twelve lines, in [`STATE_LINES`]' order. The walls, ammo and
-/// deaths lines have no emitter in the crate and are empty.
+/// Our walk's twelve lines, in [`STATE_LINES`]' order. Unavailable record shapes contribute
+/// no ranges, so every opposing range counts as differing.
 pub(in crate::diff) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
-    let p = build_pieces_with(sim, &pieces.look, &pieces.tribes);
-    vec![
-        sim.checksum_units(),
-        sim.checksum_builds(&|b| p.get(&b).copied().unwrap_or(-1)),
-        Line::default(),
-        Line::default(),
-        Line::default(),
-        sim.checksum_groups(),
-        sim.checksum_guys(),
-        sim.checksum_leaders(),
-        sim.checksum_cities(),
-        sim.checksum_items(),
-        sim.checksum_goods(),
-        sim.checksum_world(),
-    ]
+    crate::checksum::state::ranges(sim, &pieces.look, &pieces.tribes)
+        .map(Option::unwrap_or_default)
+        .into()
+}
+
+/// Keep the first pair of byte strings for field decoders used by recorded-frame tests.
+#[derive(Clone, Debug)]
+pub(in crate::diff) struct FirstDifference {
+    pub index: usize,
+    pub record: i16,
+    pub field: String,
+    pub offset: usize,
+    pub ours: Option<Vec<u8>>,
+    pub theirs: Option<Vec<u8>>,
+}
+
+impl FirstDifference {
+    fn at(line: &Line, stream: &StreamRows, index: usize) -> Self {
+        let o = line.ranges.get(index);
+        let t = stream.get(index);
+        let offset = match (o, t) {
+            (Some(a), Some(b)) => a
+                .bytes
+                .iter()
+                .zip(&b.2)
+                .position(|(x, y)| x != y)
+                .unwrap_or_else(|| a.bytes.len().min(b.2.len())),
+            _ => 0,
+        };
+        let field = o
+            .map(|r| r.field)
+            .unwrap_or_else(|| t.expect("a differing range exists on one side").0.as_str());
+        Self {
+            index,
+            record: o.map_or(-1, |r| r.record),
+            field: field.to_owned(),
+            offset,
+            ours: o.map(|r| r.bytes.clone()),
+            theirs: t.map(|r| r.2.clone()),
+        }
+    }
+}
+
+impl std::fmt::Display for FirstDifference {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = |range: Option<&[u8]>| match range {
+            None => "absent".to_owned(),
+            Some(bytes) => bytes
+                .get(self.offset)
+                .map_or_else(|| "end".to_owned(), |x| format!("{x:02x}")),
+        };
+        write!(
+            f,
+            "range {} record {} {} byte {}: ours {} theirs {}",
+            self.index,
+            self.record,
+            self.field,
+            self.offset,
+            value(self.ours.as_deref()),
+            value(self.theirs.as_deref())
+        )
+    }
 }
 
 /// The twelve lines held range by range against a packet's stream.
@@ -124,15 +173,80 @@ pub(in crate::diff) fn compare(
         .zip(ours)
         .map(|(name, o)| {
             let t = theirs.get(*name).unwrap_or(&empty);
-            let p = parting(o, t);
+            let mut differences = differing_ranges(o, t);
+            let first = differences.next().map(|i| FirstDifference::at(o, t, i));
             LineOutcome {
                 theirs: t.len(),
                 ours: o.ranges.len(),
-                parted: p.len(),
-                first: p.into_iter().next(),
+                parted: usize::from(first.is_some()) + differences.count(),
+                first,
             }
         })
         .collect()
+}
+
+#[test]
+fn packet_first_difference_distinguishes_bytes_ends_and_absent_ranges() {
+    let common = vec![0x24; 80];
+    let mut late = common.clone();
+    late[71] = 0x52;
+    for (ours, theirs, expected, count) in [
+        (
+            vec![common.clone(), vec![]],
+            vec![late, vec![1]],
+            "range 0 record 12 field byte 71: ours 24 theirs 52",
+            2,
+        ),
+        (
+            vec![vec![1]],
+            vec![vec![1, 2]],
+            "range 0 record 12 field byte 1: ours end theirs 02",
+            1,
+        ),
+        (
+            vec![vec![1, 2]],
+            vec![vec![1]],
+            "range 0 record 12 field byte 1: ours 02 theirs end",
+            1,
+        ),
+        (
+            vec![common.clone()],
+            vec![common.clone(), vec![]],
+            "range 1 record -1 original byte 0: ours absent theirs end",
+            1,
+        ),
+        (
+            vec![common.clone(), vec![]],
+            vec![common.clone()],
+            "range 1 record 12 field byte 0: ours end theirs absent",
+            1,
+        ),
+        (vec![common.clone()], vec![common], "", 0),
+    ] {
+        let line = Line {
+            name: "units",
+            ranges: ours
+                .into_iter()
+                .map(|bytes| sim::checksum::Range {
+                    record: 12,
+                    field: "field",
+                    bytes,
+                })
+                .collect(),
+        };
+        let stream: StreamRows = theirs
+            .into_iter()
+            .map(|bytes| ("original".into(), String::new(), bytes))
+            .collect();
+        let detailed = parting(&line, &stream);
+        let original = std::collections::BTreeMap::from([("units".into(), stream)]);
+        let result = compare(&[line], &original);
+        assert_eq!((detailed.len(), result[0].parted), (count, count));
+        assert_eq!(
+            result[0].first.as_ref().map(ToString::to_string).as_deref(),
+            (count > 0).then_some(expected)
+        );
+    }
 }
 
 /// One game our walk holds: a word on the scoreboard — its name, its start
@@ -215,7 +329,27 @@ pub(super) fn walk_packets_with(
             "{run}: the walk's frame"
         );
         at += 1;
-        let lines = compare(&our_lines(&built.sim, &pieces), theirs);
+        let ours = our_lines(&built.sim, &pieces);
+        let world = ours.iter().find(|l| l.name == "world").expect("world line");
+        let detailed = built.sim.world_image();
+        assert_eq!(
+            world.ranges.len(),
+            detailed.len(),
+            "{run} world range count"
+        );
+        for (i, (range, fields)) in world.ranges.iter().zip(detailed).enumerate() {
+            assert_eq!(
+                (range.record, range.field),
+                (fields.record, fields.field),
+                "{run} world range {i}"
+            );
+            assert!(
+                range.bytes == fields.bytes(),
+                "{run} world range {i} {}",
+                range.field
+            );
+        }
+        let lines = compare(&ours, theirs);
         let empty = StreamRows::new();
         let leaves = leader_leaf_rows(&built.sim, theirs.get("leaders").unwrap_or(&empty));
         out.push(Walked {
@@ -480,17 +614,7 @@ pub(super) fn check(name: &str, walked: &[Walked]) {
         );
         for (n, l) in STATE_LINES.iter().zip(&w.lines) {
             if let Some(f) = &l.first {
-                let cut = |s: &str| s.chars().take(64).collect::<String>();
-                eprintln!(
-                    "  {n}: {} of {} ranges part; first range {} record {} {}: ours {} theirs {}",
-                    l.parted,
-                    l.theirs,
-                    f.0,
-                    f.1,
-                    f.2,
-                    cut(&f.3),
-                    cut(&f.4)
-                );
+                eprintln!("  {n}: {} of {} ranges part; first {f}", l.parted, l.theirs);
             }
         }
         if print {
@@ -1205,7 +1329,14 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// rows, all in the leaders slot.
 /// Item 4348: lines agreeing 482 → 499 of 1,053: gaia's angles from the
 /// start dump, the `guys` line whole on seventeen packets.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 499, 1053);
+/// Item 4363: chapter 94 adds the occupied deaths line (16 of 16 ranges).
+/// Item 4365 adds 43 whole occupied ammo lines and six whole casualty lines.
+/// Item 4366 adds four whole units lines and nine whole builds lines.
+/// Item 4368 adds 22 whole casualty lines.
+/// Item 4369 adds six whole casualty lines.
+/// Item 4370 closes the last two newly emitted casualty lines.
+/// Item 4372 adds 16 whole building lines from fort, well and platform slots.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 608, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1312,7 +1443,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (517, 517, 13),
             (0, 0, 0),
             (0, 0, 0),
-            (16, 0, 16),
+            (16, 16, 0),
             (538, 538, 0),
             (382, 382, 0),
             (271, 271, 3),
@@ -1330,11 +1461,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "ch95pkt",
         1117,
         [
-            (1284, 1266, 1079),
+            (1284, 1284, 90),
             (517, 517, 13),
             (0, 0, 0),
             (0, 0, 0),
-            (10, 0, 10),
+            (10, 10, 0),
             (538, 538, 0),
             (417, 417, 0),
             (271, 271, 3),
@@ -1366,10 +1497,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1001d",
         13760,
         [
-            (2445, 2421, 1413),
-            (2028, 2028, 1),
+            (2445, 2445, 2),
+            (2028, 2028, 0),
             (0, 0, 0),
-            (3, 0, 3),
+            (3, 3, 0),
             (0, 0, 0),
             (544, 544, 0),
             (701, 701, 0),
@@ -1403,7 +1534,7 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1007b",
         15915,
         [
-            (2939, 2933, 1108),
+            (2939, 2939, 3),
             (2417, 2417, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1440,10 +1571,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1011b",
         13105,
         [
-            (3219, 3198, 1420),
-            (2060, 2060, 1),
+            (3219, 3219, 0),
+            (2060, 2060, 0),
             (0, 0, 0),
-            (3, 0, 3),
+            (3, 3, 0),
             (0, 0, 0),
             (538, 538, 0),
             (870, 870, 0),
@@ -1476,11 +1607,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1011c",
         13225,
         [
-            (3193, 3151, 1830),
-            (2080, 2080, 1),
+            (3193, 3193, 1),
+            (2080, 2080, 0),
             (0, 0, 0),
-            (6, 0, 6),
-            (4, 0, 4),
+            (6, 6, 0),
+            (4, 4, 0),
             (538, 538, 0),
             (861, 861, 0),
             (271, 271, 0),
@@ -1511,11 +1642,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1011d",
         13277,
         [
-            (3158, 3098, 1723),
-            (2080, 2080, 1),
+            (3158, 3158, 2),
+            (2080, 2080, 0),
             (0, 0, 0),
-            (12, 0, 12),
-            (4, 0, 4),
+            (12, 12, 0),
+            (4, 4, 0),
             (538, 538, 0),
             (861, 861, 0),
             (271, 271, 0),
@@ -1547,11 +1678,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1011e",
         13296,
         [
-            (3117, 3042, 1752),
-            (2080, 2080, 1),
+            (3117, 3117, 2),
+            (2080, 2080, 0),
             (0, 0, 0),
-            (9, 0, 9),
-            (6, 0, 6),
+            (9, 9, 2),
+            (6, 6, 0),
             (538, 538, 0),
             (854, 854, 0),
             (271, 271, 0),
@@ -1582,11 +1713,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1015b",
         13392,
         [
-            (3139, 3028, 1823),
-            (2080, 2080, 2),
+            (3139, 3139, 7),
+            (2080, 2080, 0),
             (0, 0, 0),
-            (27, 0, 27),
-            (4, 0, 4),
+            (27, 27, 0),
+            (4, 4, 0),
             (538, 538, 0),
             (847, 847, 0),
             (271, 271, 0),
@@ -1621,10 +1752,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1155c",
         3003,
         [
-            (4193, 4187, 2787),
-            (2371, 2371, 4),
+            (4193, 4193, 5),
+            (2371, 2371, 0),
             (0, 0, 0),
-            (6, 0, 6),
+            (6, 6, 0),
             (0, 0, 0),
             (550, 550, 1),
             (1129, 1129, 1),
@@ -1682,9 +1813,9 @@ pub(super) const PINNED: &[Pinned] = &[
         4528,
         [
             (6053, 5923, 4240),
-            (2140, 2136, 781),
+            (2140, 2136, 777),
             (0, 0, 0),
-            (3, 0, 3),
+            (3, 3, 0),
             (0, 0, 0),
             (550, 550, 1),
             (1321, 1321, 3),
@@ -1720,10 +1851,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1165",
         3719,
         [
-            (6004, 6001, 4367),
-            (2267, 2266, 381),
+            (6004, 6004, 22),
+            (2267, 2266, 377),
             (0, 0, 0),
-            (287, 0, 287),
+            (287, 9, 286),
             (0, 0, 0),
             (676, 676, 1),
             (1890, 1890, 1),
@@ -1759,11 +1890,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1166",
         3920,
         [
-            (6004, 6001, 4403),
-            (2247, 2246, 439),
+            (6004, 6004, 24),
+            (2247, 2246, 434),
             (0, 0, 0),
             (0, 0, 0),
-            (10, 0, 10),
+            (10, 10, 0),
             (688, 688, 1),
             (1935, 1935, 2),
             (271, 271, 3),
@@ -1798,10 +1929,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1169",
         3769,
         [
-            (7749, 7740, 5515),
-            (1813, 1813, 13),
+            (7749, 7749, 100),
+            (1813, 1813, 6),
             (0, 0, 0),
-            (12, 0, 12),
+            (12, 12, 0),
             (0, 0, 0),
             (628, 628, 5),
             (1934, 1934, 11),
@@ -1839,11 +1970,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1185",
         4582,
         [
-            (6735, 6732, 3976),
-            (1911, 1911, 3),
+            (6735, 6735, 67),
+            (1911, 1911, 0),
             (0, 0, 0),
-            (3, 0, 3),
-            (4, 0, 4),
+            (3, 3, 0),
+            (4, 4, 0),
             (640, 640, 4),
             (1962, 1962, 7),
             (271, 271, 1),
@@ -1910,10 +2041,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1217",
         7728,
         [
-            (10607, 10550, 8527),
-            (3412, 3412, 13),
+            (10607, 10607, 67),
+            (3412, 3412, 11),
             (0, 0, 0),
-            (6, 0, 6),
+            (6, 6, 0),
             (0, 0, 0),
             (700, 700, 8),
             (3247, 3247, 10),
@@ -1948,10 +2079,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1220b",
         2976,
         [
-            (4091, 4064, 3095),
-            (1817, 1817, 1),
+            (4091, 4091, 1),
+            (1817, 1817, 0),
             (0, 0, 0),
-            (9, 0, 9),
+            (9, 9, 0),
             (0, 0, 0),
             (550, 550, 1),
             (1099, 1099, 0),
@@ -1983,10 +2114,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1221",
         4287,
         [
-            (6445, 6349, 5428),
+            (6445, 6445, 69),
             (1719, 1719, 6),
             (0, 0, 0),
-            (6, 0, 6),
+            (6, 6, 0),
             (0, 0, 0),
             (592, 592, 4),
             (1768, 1768, 15),
@@ -2026,10 +2157,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1224b",
         9745,
         [
-            (11740, 11677, 10203),
-            (4271, 4271, 13),
+            (11740, 11740, 3),
+            (4271, 4271, 12),
             (0, 0, 0),
-            (6, 0, 6),
+            (6, 6, 0),
             (0, 0, 0),
             (556, 556, 0),
             (2735, 2735, 0),
@@ -2063,11 +2194,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1235b",
         4127,
         [
-            (7490, 7412, 6594),
+            (7490, 7490, 63),
             (1733, 1733, 0),
             (0, 0, 0),
-            (12, 0, 12),
-            (4, 0, 4),
+            (12, 12, 0),
+            (4, 4, 0),
             (646, 646, 7),
             (2097, 2097, 6),
             (271, 271, 1),
@@ -2137,10 +2268,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1237",
         2674,
         [
-            (3448, 3436, 2641),
+            (3448, 3448, 3),
             (1650, 1650, 0),
             (0, 0, 0),
-            (3, 0, 3),
+            (3, 3, 0),
             (0, 0, 0),
             (538, 538, 0),
             (892, 892, 0),
@@ -2175,7 +2306,7 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1238c",
         5021,
         [
-            (6417, 6402, 4070),
+            (6417, 6417, 37),
             (2494, 2494, 6),
             (0, 0, 0),
             (0, 0, 0),
@@ -2212,10 +2343,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1247",
         4306,
         [
-            (5942, 5897, 4764),
+            (5942, 5942, 8),
             (1692, 1692, 0),
             (0, 0, 0),
-            (6, 0, 6),
+            (6, 6, 0),
             (0, 0, 0),
             (622, 622, 5),
             (1748, 1748, 1),
@@ -2250,10 +2381,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1254c",
         3115,
         [
-            (4388, 4340, 3257),
-            (1674, 1674, 1),
+            (4388, 4388, 8),
+            (1674, 1674, 0),
             (0, 0, 0),
-            (9, 0, 9),
+            (9, 9, 0),
             (0, 0, 0),
             (550, 550, 0),
             (1134, 1134, 0),
@@ -2291,10 +2422,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1263",
         8362,
         [
-            (11229, 11202, 6921),
-            (3789, 3789, 16),
+            (11229, 11229, 1),
+            (3789, 3789, 15),
             (0, 0, 0),
-            (9, 0, 9),
+            (9, 9, 0),
             (0, 0, 0),
             (556, 556, 0),
             (2913, 2913, 0),
@@ -2326,11 +2457,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1264b",
         4919,
         [
-            (6468, 6387, 5331),
+            (6468, 6468, 108),
             (1770, 1770, 4),
             (0, 0, 0),
-            (3, 0, 3),
-            (2, 0, 2),
+            (3, 3, 0),
+            (2, 2, 0),
             (586, 586, 7),
             (1895, 1895, 12),
             (271, 271, 1),
@@ -2369,10 +2500,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1266c",
         8700,
         [
-            (11161, 11131, 7339),
-            (3796, 3796, 11),
+            (11161, 11161, 78),
+            (3796, 3796, 10),
             (0, 0, 0),
-            (6, 0, 6),
+            (6, 6, 0),
             (0, 0, 0),
             (682, 682, 8),
             (3210, 3210, 9),
@@ -2407,11 +2538,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1268",
         3347,
         [
-            (4744, 4693, 3664),
-            (1908, 1908, 3),
+            (4744, 4744, 8),
+            (1908, 1908, 0),
             (0, 0, 0),
-            (24, 0, 24),
-            (4, 0, 4),
+            (24, 24, 0),
+            (4, 4, 0),
             (544, 544, 0),
             (1246, 1246, 1),
             (271, 271, 0),
@@ -2446,7 +2577,7 @@ pub(super) const PINNED: &[Pinned] = &[
         3606,
         [
             (9512, 9512, 120),
-            (1938, 1938, 2),
+            (1938, 1938, 1),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2486,10 +2617,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1294",
         4473,
         [
-            (8216, 8189, 7044),
-            (2123, 2123, 4),
+            (8216, 8216, 68),
+            (2123, 2123, 2),
             (0, 0, 0),
-            (3, 0, 3),
+            (3, 3, 0),
             (0, 0, 0),
             (688, 688, 9),
             (2242, 2242, 7),
@@ -2526,11 +2657,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1296",
         4632,
         [
-            (9905, 9866, 8613),
-            (2163, 2163, 7),
+            (9905, 9905, 58),
+            (2163, 2163, 4),
             (0, 0, 0),
             (0, 0, 0),
-            (6, 0, 6),
+            (6, 6, 0),
             (682, 682, 9),
             (2172, 2172, 9),
             (271, 271, 1),
@@ -2565,8 +2696,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1304",
         3865,
         [
-            (5488, 5485, 3903),
-            (2029, 2029, 2),
+            (5488, 5488, 20),
+            (2029, 2029, 1),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2603,7 +2734,7 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1305b",
         4181,
         [
-            (4968, 4965, 3669),
+            (4968, 4968, 5),
             (1882, 1882, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2644,11 +2775,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1320b",
         5066,
         [
-            (8490, 8451, 7004),
-            (2140, 2140, 9),
+            (8490, 8490, 86),
+            (2140, 2140, 4),
             (0, 0, 0),
-            (9, 0, 9),
-            (2, 0, 2),
+            (9, 9, 0),
+            (2, 2, 0),
             (652, 652, 4),
             (2197, 2197, 9),
             (271, 271, 2),
@@ -2681,11 +2812,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1323b",
         3052,
         [
-            (3933, 3903, 2974),
-            (1792, 1792, 1),
+            (3933, 3933, 5),
+            (1792, 1792, 0),
             (0, 0, 0),
-            (3, 0, 3),
-            (2, 0, 2),
+            (3, 3, 0),
+            (2, 2, 0),
             (544, 544, 0),
             (1029, 1029, 0),
             (271, 271, 0),
@@ -2719,11 +2850,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1324c",
         4904,
         [
-            (7276, 7237, 5305),
-            (1918, 1918, 9),
+            (7276, 7276, 94),
+            (1918, 1918, 4),
             (0, 0, 0),
-            (15, 0, 15),
-            (2, 0, 2),
+            (15, 15, 0),
+            (2, 2, 0),
             (676, 676, 9),
             (2055, 2055, 9),
             (271, 271, 1),
@@ -2758,8 +2889,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1325c",
         5578,
         [
-            (10367, 10352, 6932),
-            (2521, 2521, 7),
+            (10367, 10367, 132),
+            (2521, 2521, 4),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2799,10 +2930,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1326",
         4567,
         [
-            (6268, 6259, 5141),
-            (2161, 2161, 3),
+            (6268, 6268, 81),
+            (2161, 2161, 0),
             (0, 0, 0),
-            (3, 0, 3),
+            (3, 3, 0),
             (0, 0, 0),
             (616, 616, 4),
             (1993, 1993, 10),
@@ -2837,11 +2968,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1327",
         10930,
         [
-            (13393, 13375, 4046),
-            (4230, 4230, 16),
+            (13393, 13393, 10),
+            (4230, 4230, 14),
             (0, 0, 0),
             (0, 0, 0),
-            (4, 0, 4),
+            (4, 4, 0),
             (574, 574, 2),
             (3459, 3459, 10),
             (271, 271, 1),
@@ -2872,11 +3003,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1332a",
         3627,
         [
-            (5746, 5653, 4838),
-            (2354, 2354, 5),
+            (5746, 5746, 2),
+            (2354, 2354, 0),
             (0, 0, 0),
-            (48, 0, 48),
-            (14, 0, 14),
+            (48, 48, 0),
+            (14, 14, 0),
             (580, 580, 5),
             (1463, 1463, 0),
             (271, 271, 1),
@@ -2911,10 +3042,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1351",
         4303,
         [
-            (4745, 4718, 3501),
-            (2237, 2237, 5),
+            (4745, 4745, 11),
+            (2237, 2237, 0),
             (0, 0, 0),
-            (3, 0, 3),
+            (3, 3, 0),
             (0, 0, 0),
             (562, 562, 2),
             (1352, 1352, 3),
@@ -2949,10 +3080,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1351c",
         3521,
         [
-            (4512, 4509, 3036),
-            (2143, 2143, 4),
+            (4512, 4512, 11),
+            (2143, 2143, 0),
             (0, 0, 0),
-            (3, 0, 3),
+            (3, 3, 0),
             (0, 0, 0),
             (556, 556, 2),
             (1286, 1286, 0),
@@ -2988,11 +3119,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1355",
         2933,
         [
-            (3610, 3595, 2753),
-            (1836, 1836, 3),
+            (3610, 3610, 6),
+            (1836, 1836, 0),
             (0, 0, 0),
-            (3, 0, 3),
-            (2, 0, 2),
+            (3, 3, 0),
+            (2, 2, 0),
             (556, 556, 2),
             (902, 902, 0),
             (271, 271, 0),
@@ -3027,8 +3158,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1357",
         3439,
         [
-            (5707, 5701, 4203),
-            (1977, 1977, 1),
+            (5707, 5707, 10),
+            (1977, 1977, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3065,8 +3196,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1359",
         5619,
         [
-            (6464, 6455, 3439),
-            (2974, 2974, 25),
+            (6464, 6464, 9),
+            (2974, 2974, 15),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3105,8 +3236,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1359b",
         5677,
         [
-            (6408, 6399, 3362),
-            (2974, 2974, 25),
+            (6408, 6408, 9),
+            (2974, 2974, 15),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3145,8 +3276,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1359c",
         5678,
         [
-            (6407, 6398, 3362),
-            (2974, 2974, 25),
+            (6407, 6407, 9),
+            (2974, 2974, 15),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3186,11 +3317,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1361",
         4840,
         [
-            (6810, 6783, 5665),
-            (2544, 2544, 3),
+            (6810, 6810, 15),
+            (2544, 2544, 1),
             (0, 0, 0),
             (0, 0, 0),
-            (4, 0, 4),
+            (4, 4, 0),
             (556, 556, 0),
             (1847, 1847, 0),
             (271, 271, 1),
@@ -3225,10 +3356,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1381",
         3262,
         [
-            (5194, 5149, 3945),
-            (2147, 2147, 2),
+            (5194, 5194, 9),
+            (2147, 2147, 1),
             (0, 0, 0),
-            (3, 0, 3),
+            (3, 3, 0),
             (0, 0, 0),
             (556, 556, 1),
             (1419, 1419, 0),
@@ -3262,8 +3393,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1382",
         3228,
         [
-            (5014, 5002, 3308),
-            (2015, 2015, 3),
+            (5014, 5014, 7),
+            (2015, 2015, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3368,8 +3499,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1391",
         4174,
         [
-            (6512, 6497, 5472),
-            (1830, 1830, 3),
+            (6512, 6512, 38),
+            (1830, 1830, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3406,10 +3537,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1416",
         4016,
         [
-            (6953, 6920, 5813),
-            (2128, 2127, 611),
+            (6953, 6953, 84),
+            (2128, 2127, 608),
             (0, 0, 0),
-            (18, 0, 18),
+            (18, 18, 1),
             (0, 0, 0),
             (634, 634, 9),
             (1829, 1829, 12),
@@ -3445,8 +3576,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1417",
         4016,
         [
-            (4518, 4515, 2748),
-            (2321, 2321, 5),
+            (4518, 4518, 13),
+            (2321, 2321, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3483,8 +3614,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1419b",
         3212,
         [
-            (4406, 4391, 3423),
-            (2033, 2033, 4),
+            (4406, 4406, 4),
+            (2033, 2033, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3522,10 +3653,10 @@ pub(super) const PINNED: &[Pinned] = &[
         4586,
         [
             (5583, 5423, 1536),
-            (2515, 2513, 685),
+            (2515, 2513, 683),
             (0, 0, 0),
             (0, 0, 0),
-            (8, 0, 8),
+            (8, 8, 0),
             (544, 544, 0),
             (1327, 1327, 1),
             (271, 271, 2),
@@ -3559,8 +3690,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1424",
         3156,
         [
-            (4129, 4102, 3132),
-            (2025, 2025, 3),
+            (4129, 4129, 4),
+            (2025, 2025, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3593,11 +3724,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1426b",
         3722,
         [
-            (4175, 4169, 3190),
-            (2266, 2265, 804),
+            (4175, 4175, 9),
+            (2266, 2265, 802),
             (0, 0, 0),
             (0, 0, 0),
-            (2, 0, 2),
+            (2, 2, 0),
             (544, 544, 1),
             (1227, 1227, 5),
             (271, 271, 3),
@@ -3629,11 +3760,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1437",
         3894,
         [
-            (4789, 4520, 3877),
-            (2154, 2151, 570),
+            (4789, 4529, 2797),
+            (2154, 2151, 568),
             (0, 0, 0),
-            (3, 0, 3),
-            (4, 0, 4),
+            (3, 3, 0),
+            (4, 4, 0),
             (538, 538, 0),
             (1208, 1208, 6),
             (271, 271, 4),
@@ -3659,10 +3790,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1438",
         684,
         [
-            (2475, 2385, 2065),
+            (2475, 2475, 104),
             (1890, 1890, 21),
             (0, 0, 0),
-            (15, 0, 15),
+            (15, 15, 0),
             (0, 0, 0),
             (574, 574, 0),
             (672, 672, 0),
@@ -3688,11 +3819,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1440",
         809,
         [
-            (2308, 2269, 1887),
+            (2308, 2308, 105),
             (1968, 1968, 22),
             (0, 0, 0),
-            (18, 0, 18),
-            (14, 0, 14),
+            (18, 18, 0),
+            (14, 14, 0),
             (568, 568, 0),
             (638, 638, 0),
             (399, 399, 5),
@@ -3722,11 +3853,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1441",
         3294,
         [
-            (4274, 4210, 3390),
-            (1890, 1887, 480),
+            (4274, 4240, 907),
+            (1890, 1887, 478),
             (0, 0, 0),
             (0, 0, 0),
-            (2, 0, 2),
+            (2, 2, 0),
             (550, 550, 1),
             (1108, 1108, 1),
             (271, 271, 2),
@@ -3752,11 +3883,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1451",
         945,
         [
-            (2022, 1965, 1624),
+            (2022, 2022, 110),
             (1968, 1968, 22),
             (0, 0, 0),
-            (18, 0, 18),
-            (32, 0, 32),
+            (18, 18, 0),
+            (32, 32, 0),
             (568, 568, 0),
             (604, 604, 0),
             (399, 399, 5),
@@ -3782,11 +3913,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1457",
         700,
         [
-            (2655, 2538, 2237),
+            (2655, 2655, 116),
             (1144, 1144, 23),
             (0, 0, 0),
-            (21, 0, 21),
-            (2, 0, 2),
+            (21, 21, 0),
+            (2, 2, 0),
             (574, 574, 0),
             (725, 725, 0),
             (399, 399, 3),
@@ -3811,11 +3942,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1459",
         780,
         [
-            (2362, 2314, 1927),
+            (2362, 2362, 115),
             (1316, 1316, 23),
             (0, 0, 0),
             (0, 0, 0),
-            (22, 0, 22),
+            (22, 22, 0),
             (568, 568, 0),
             (665, 665, 0),
             (403, 403, 3),
@@ -3841,11 +3972,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1460",
         760,
         [
-            (2380, 2275, 1873),
+            (2380, 2380, 116),
             (1296, 1296, 23),
             (0, 0, 0),
-            (9, 0, 9),
-            (16, 0, 16),
+            (9, 9, 0),
+            (16, 16, 0),
             (568, 568, 0),
             (686, 686, 0),
             (403, 403, 3),
@@ -3868,8 +3999,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1469",
         627,
         [
-            (1392, 1374, 746),
-            (1777, 1777, 25),
+            (1392, 1392, 102),
+            (1777, 1777, 23),
             (0, 0, 0),
             (228, 0, 228),
             (0, 0, 0),
@@ -3895,8 +4026,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1469b",
         628,
         [
-            (1401, 1380, 760),
-            (1777, 1777, 25),
+            (1401, 1401, 102),
+            (1777, 1777, 23),
             (0, 0, 0),
             (190, 0, 190),
             (0, 0, 0),
@@ -3923,11 +4054,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1472",
         707,
         [
-            (2180, 2096, 1779),
-            (1777, 1777, 25),
+            (2180, 2180, 102),
+            (1777, 1777, 23),
             (0, 0, 0),
             (339, 0, 339),
-            (4, 0, 4),
+            (4, 4, 0),
             (568, 568, 4),
             (612, 612, 0),
             (399, 399, 6),
@@ -3950,8 +4081,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1484",
         676,
         [
-            (4145, 4109, 3247),
-            (1446, 1446, 24),
+            (4145, 4145, 279),
+            (1446, 1446, 22),
             (0, 0, 0),
             (304, 0, 304),
             (0, 0, 0),
@@ -3981,11 +4112,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1487",
         1980,
         [
-            (5340, 5337, 2952),
-            (2736, 2736, 30),
+            (5340, 5340, 287),
+            (2736, 2736, 26),
             (0, 0, 0),
             (208, 0, 208),
-            (8, 0, 8),
+            (8, 8, 0),
             (610, 610, 2),
             (1718, 1718, 0),
             (407, 407, 6),
@@ -4011,11 +4142,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1496",
         1539,
         [
-            (5026, 5005, 4438),
-            (2180, 2180, 27),
+            (5026, 5026, 287),
+            (2180, 2180, 24),
             (0, 0, 0),
             (230, 0, 230),
-            (2, 0, 2),
+            (2, 2, 0),
             (586, 586, 2),
             (1577, 1577, 1),
             (407, 407, 6),
@@ -4045,11 +4176,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1559b",
         3294,
         [
-            (4274, 4210, 3390),
-            (1890, 1887, 480),
+            (4274, 4240, 907),
+            (1890, 1887, 478),
             (0, 0, 0),
             (0, 0, 0),
-            (2, 0, 2),
+            (2, 2, 0),
             (550, 550, 1),
             (1108, 1108, 1),
             (271, 271, 2),
@@ -4098,11 +4229,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1564",
         3294,
         [
-            (4274, 4210, 3390),
-            (1890, 1887, 480),
+            (4274, 4240, 907),
+            (1890, 1887, 478),
             (0, 0, 0),
             (0, 0, 0),
-            (2, 0, 2),
+            (2, 2, 0),
             (550, 550, 1),
             (1108, 1108, 1),
             (271, 271, 2),
@@ -4134,11 +4265,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run1570",
         3331,
         [
-            (4240, 4194, 3364),
-            (1890, 1887, 480),
+            (4240, 4200, 432),
+            (1890, 1887, 478),
             (0, 0, 0),
             (0, 0, 0),
-            (4, 0, 4),
+            (4, 4, 0),
             (556, 556, 1),
             (1112, 1112, 2),
             (271, 271, 2),
@@ -4169,10 +4300,10 @@ pub(super) const PINNED: &[Pinned] = &[
         2178,
         [
             (4969, 4889, 2804),
-            (1731, 1729, 939),
+            (1731, 1729, 937),
             (0, 0, 0),
             (0, 0, 0),
-            (28, 0, 28),
+            (28, 28, 4),
             (640, 640, 3),
             (1429, 1429, 1),
             (271, 271, 4),
@@ -4203,9 +4334,9 @@ pub(super) const PINNED: &[Pinned] = &[
         2799,
         [
             (5889, 5809, 3724),
-            (2157, 2155, 1256),
+            (2157, 2155, 1254),
             (0, 0, 0),
-            (281, 0, 281),
+            (281, 3, 280),
             (0, 0, 0),
             (664, 664, 2),
             (1765, 1765, 1),
@@ -4237,7 +4368,7 @@ pub(super) const PINNED: &[Pinned] = &[
         2681,
         [
             (5860, 5780, 3667),
-            (2059, 2057, 1179),
+            (2059, 2057, 1177),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4272,8 +4403,8 @@ pub(super) const PINNED: &[Pinned] = &[
         "run810",
         3631,
         [
-            (9526, 9414, 8644),
-            (2384, 2381, 1398),
+            (9526, 9426, 7329),
+            (2384, 2381, 1396),
             (0, 0, 0),
             (156, 0, 156),
             (0, 0, 0),
@@ -4307,7 +4438,7 @@ pub(super) const PINNED: &[Pinned] = &[
         4238,
         [
             (9339, 9227, 8404),
-            (2473, 2469, 1530),
+            (2473, 2469, 1528),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4341,7 +4472,7 @@ pub(super) const PINNED: &[Pinned] = &[
         4204,
         [
             (9362, 9250, 8445),
-            (2473, 2469, 1530),
+            (2473, 2469, 1528),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4363,10 +4494,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run839",
         634,
         [
-            (1201, 1192, 942),
+            (1201, 1201, 86),
             (479, 479, 13),
             (0, 0, 0),
-            (9, 0, 9),
+            (9, 9, 0),
             (0, 0, 0),
             (526, 526, 0),
             (403, 403, 0),
@@ -4385,11 +4516,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run842",
         777,
         [
-            (1149, 1143, 875),
-            (583, 583, 14),
+            (1149, 1149, 88),
+            (583, 583, 13),
             (0, 0, 0),
             (0, 0, 0),
-            (2, 0, 2),
+            (2, 2, 0),
             (532, 532, 0),
             (393, 393, 0),
             (271, 271, 3),
@@ -4407,11 +4538,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run842b",
         776,
         [
-            (1154, 1148, 875),
-            (583, 583, 14),
+            (1154, 1154, 88),
+            (583, 583, 13),
             (0, 0, 0),
             (0, 0, 0),
-            (2, 0, 2),
+            (2, 2, 0),
             (532, 532, 0),
             (393, 393, 0),
             (271, 271, 3),
@@ -4441,7 +4572,7 @@ pub(super) const PINNED: &[Pinned] = &[
         3301,
         [
             (5770, 5770, 21),
-            (2095, 2095, 11),
+            (2095, 2095, 7),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4477,10 +4608,10 @@ pub(super) const PINNED: &[Pinned] = &[
         4859,
         [
             (10342, 10188, 7833),
-            (2288, 2283, 1535),
+            (2288, 2283, 1534),
             (0, 0, 0),
             (0, 0, 0),
-            (28, 0, 28),
+            (28, 28, 7),
             (640, 640, 3),
             (2210, 2210, 1),
             (271, 271, 5),
@@ -4536,10 +4667,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run882b",
         6808,
         [
-            (11125, 10809, 9782),
-            (2737, 2732, 1917),
+            (11125, 10815, 9506),
+            (2737, 2732, 1916),
             (0, 0, 0),
-            (15, 0, 15),
+            (15, 15, 5),
             (0, 0, 0),
             (616, 616, 7),
             (2832, 2832, 26),
@@ -4573,10 +4704,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run883b",
         6821,
         [
-            (11180, 10807, 10077),
-            (2737, 2732, 1918),
+            (11180, 10834, 9394),
+            (2737, 2732, 1917),
             (0, 0, 0),
-            (36, 0, 36),
+            (36, 36, 5),
             (0, 0, 0),
             (616, 616, 7),
             (2832, 2832, 24),
@@ -4641,7 +4772,7 @@ pub(super) const PINNED: &[Pinned] = &[
         "run912e",
         12753,
         [
-            (4112, 4091, 2823),
+            (4112, 4112, 18),
             (1508, 1508, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4663,7 +4794,7 @@ pub(super) const PINNED: &[Pinned] = &[
         "run938b",
         630,
         [
-            (1118, 1115, 807),
+            (1118, 1118, 87),
             (479, 479, 13),
             (0, 0, 0),
             (0, 0, 0),
@@ -4700,7 +4831,7 @@ pub(super) const PINNED: &[Pinned] = &[
         "run943c",
         10674,
         [
-            (2726, 2723, 1530),
+            (2726, 2726, 0),
             (1580, 1580, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4737,10 +4868,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run946",
         10842,
         [
-            (2838, 2784, 1839),
-            (1580, 1580, 1),
+            (2838, 2838, 2),
+            (1580, 1580, 0),
             (0, 0, 0),
-            (15, 0, 15),
+            (15, 15, 0),
             (0, 0, 0),
             (532, 532, 0),
             (826, 826, 0),
@@ -4776,11 +4907,11 @@ pub(super) const PINNED: &[Pinned] = &[
         "run954b",
         12155,
         [
-            (2832, 2808, 2022),
+            (2832, 2832, 2),
             (1598, 1598, 0),
             (0, 0, 0),
-            (9, 0, 9),
-            (2, 0, 2),
+            (9, 9, 0),
+            (2, 2, 0),
             (532, 532, 0),
             (875, 875, 0),
             (271, 271, 0),
@@ -4841,10 +4972,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run959",
         18368,
         [
-            (4466, 4454, 2964),
+            (4466, 4466, 2),
             (1832, 1832, 0),
             (0, 0, 0),
-            (9, 0, 9),
+            (9, 9, 0),
             (0, 0, 0),
             (562, 562, 4),
             (1514, 1514, 0),
@@ -4877,10 +5008,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run973g",
         12286,
         [
-            (3135, 3126, 1560),
-            (2052, 2052, 1),
+            (3135, 3135, 4),
+            (2052, 2052, 0),
             (0, 0, 0),
-            (3, 0, 3),
+            (3, 3, 0),
             (0, 0, 0),
             (532, 532, 0),
             (941, 941, 1),
@@ -4910,7 +5041,7 @@ pub(super) const PINNED: &[Pinned] = &[
         "run984b",
         6011,
         [
-            (2003, 1958, 1482),
+            (2003, 2003, 0),
             (789, 789, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4942,10 +5073,10 @@ pub(super) const PINNED: &[Pinned] = &[
         "run984c",
         6251,
         [
-            (1903, 1858, 1369),
+            (1903, 1903, 0),
             (827, 827, 0),
             (0, 0, 0),
-            (3, 0, 3),
+            (3, 3, 0),
             (0, 0, 0),
             (538, 538, 0),
             (540, 540, 0),
@@ -4979,7 +5110,7 @@ pub(super) const PINNED: &[Pinned] = &[
         "run985b",
         16762,
         [
-            (3289, 3214, 2139),
+            (3289, 3289, 1),
             (2783, 2783, 2),
             (0, 0, 0),
             (0, 0, 0),
@@ -5018,7 +5149,7 @@ pub(super) const PINNED: &[Pinned] = &[
         "run991d",
         15256,
         [
-            (3178, 3169, 1151),
+            (3178, 3178, 1),
             (2006, 2006, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -5210,17 +5341,13 @@ fn probe_one_packet() {
         eprintln!("frame {}: {agree} of {counted} counted", built.sim.frame);
         for (n, x) in STATE_LINES.iter().zip(&o) {
             eprintln!(
-                "  {n:8} theirs {:5} ours {:5} parted {:5} first {:?}",
+                "  {n:8} theirs {:5} ours {:5} parted {:5} first {}",
                 x.theirs,
                 x.ours,
                 x.parted,
-                x.first.as_ref().map(|f| (
-                    f.0,
-                    f.1,
-                    f.2.clone(),
-                    f.3.chars().take(48).collect::<String>(),
-                    f.4.chars().take(48).collect::<String>()
-                ))
+                x.first
+                    .as_ref()
+                    .map_or_else(|| "-".into(), ToString::to_string)
             );
         }
         built.tick();
@@ -5250,17 +5377,13 @@ fn probe_built_packet() {
         );
         for (n, x) in STATE_LINES.iter().zip(o) {
             eprintln!(
-                "  {n:8} theirs {:5} ours {:5} parted {:5} first {:?}",
+                "  {n:8} theirs {:5} ours {:5} parted {:5} first {}",
                 x.theirs,
                 x.ours,
                 x.parted,
-                x.first.as_ref().map(|f| (
-                    f.0,
-                    f.1,
-                    f.2.clone(),
-                    f.3.chars().take(48).collect::<String>(),
-                    f.4.chars().take(48).collect::<String>()
-                ))
+                x.first
+                    .as_ref()
+                    .map_or_else(|| "-".into(), ToString::to_string)
             );
         }
     };
@@ -5503,7 +5626,7 @@ const TAKE_PINNED: Pinned = (
     1090,
     [
         (3907, 3907, 286),
-        (1709, 1709, 26),
+        (1709, 1709, 23),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
@@ -5583,10 +5706,7 @@ fn run1575_take_packet() {
     let held: std::collections::BTreeSet<&str> = LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
     for (n, l) in STATE_LINES.iter().zip(&w.lines) {
         if let Some(f) = &l.first {
-            eprintln!(
-                "  {n}: {} of {} ranges part; first range {} record {} {}",
-                l.parted, l.theirs, f.0, f.1, f.2
-            );
+            eprintln!("  {n}: {} of {} ranges part; first {f}", l.parted, l.theirs);
         }
     }
     for (slot, field, leaf, ours, t, _) in &w.leaves {
@@ -5624,7 +5744,7 @@ const TAKE1629_PINNED: Pinned = (
     1190,
     [
         (3911, 3911, 279),
-        (2015, 2015, 26),
+        (2015, 2015, 23),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
@@ -5696,10 +5816,7 @@ fn run1629_take_packet() {
     let held: std::collections::BTreeSet<&str> = LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
     for (n, l) in STATE_LINES.iter().zip(&w.lines) {
         if let Some(f) = &l.first {
-            eprintln!(
-                "  {n}: {} of {} ranges part; first range {} record {} {}",
-                l.parted, l.theirs, f.0, f.1, f.2
-            );
+            eprintln!("  {n}: {} of {} ranges part; first {f}", l.parted, l.theirs);
         }
     }
     for (slot, field, leaf, ours, t, _) in &w.leaves {
@@ -5739,7 +5856,7 @@ const TAKE1645_PINNED: Pinned = (
     1000,
     [
         (3750, 3750, 1),
-        (2024, 2024, 4),
+        (2024, 2024, 1),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
@@ -5808,10 +5925,7 @@ fn run1645_take_packet() {
     let held: std::collections::BTreeSet<&str> = LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
     for (n, l) in STATE_LINES.iter().zip(&w.lines) {
         if let Some(f) = &l.first {
-            eprintln!(
-                "  {n}: {} of {} ranges part; first range {} record {} {}",
-                l.parted, l.theirs, f.0, f.1, f.2
-            );
+            eprintln!("  {n}: {} of {} ranges part; first {f}", l.parted, l.theirs);
         }
     }
     for (slot, field, leaf, ours, t, _) in &w.leaves {

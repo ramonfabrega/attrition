@@ -14,6 +14,63 @@ fn adler32_is_zlib_s() {
     assert_eq!(adler32(adler32(1, b"Wiki"), b"pedia"), 0x11E6_0398);
 }
 
+#[test]
+fn world_bytes_preserve_missing_fields_and_collision_block_transitions() {
+    use crate::world::{Cell, World};
+    let mut sim = crate::Sim::new(crate::Tuning::RON, World::new(4, 6), 2);
+    let cell = Cell::new(1, 2);
+    let record = (cell.y * sim.world.width() + cell.x) as i16;
+    let mut data = sim.world.cell_data(cell);
+    data.flags = 0xb21e;
+    data.land = -2;
+    sim.world.set_cell_data(cell, data);
+
+    for present in [false, true] {
+        if present {
+            sim.movement
+                .coll
+                .set(cell.x * 16 + 3, cell.y * 16 + 1, true);
+        }
+        let line = sim.checksum_world();
+        let image = sim.world_image();
+        assert_eq!(line.ranges.len(), image.len());
+        for (raw, detail) in line.ranges.iter().zip(&image) {
+            assert_eq!((raw.record, raw.field), (detail.record, detail.field));
+            assert_eq!(
+                raw.bytes,
+                detail.bytes(),
+                "record {} {}",
+                raw.record,
+                raw.field
+            );
+        }
+        let cell = image
+            .iter()
+            .find(|r| r.record == record && r.field == "cell")
+            .unwrap();
+        assert!(
+            cell.leaves
+                .iter()
+                .any(|l| l.name == "was_seen" && l.values.is_none())
+        );
+        let r = line
+            .ranges
+            .iter()
+            .find(|r| r.record == record && r.field == "cell")
+            .unwrap();
+        assert_eq!(&r.bytes[..3], &[0x1e, 0xb2, 0xfe]);
+        assert_eq!(r.bytes.last(), Some(&0));
+        let block = line
+            .ranges
+            .iter()
+            .find(|r| r.record == record && r.field == "block.body");
+        assert_eq!(block.is_some(), present);
+        if let Some(block) = block {
+            assert_eq!(block.bytes[6], 2, "unit-cell bit (3, 1)");
+        }
+    }
+}
+
 /// One box makes five ranges and 22 bytes, its coordinates under the mask;
 /// a taken box is not walked.
 #[test]
@@ -475,4 +532,61 @@ fn a_guard_walks_its_target_and_its_own_twenty_four_bytes() {
         ],
         "run1597's record 62"
     );
+}
+
+#[test]
+fn queued_attacks_keep_their_own_target_generation_and_fields() {
+    use crate::combat::Obj;
+    use crate::orders::{Body, QueuePos};
+    use crate::world::Pos;
+
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let u = sim.add_unit(crate::Unit::new(1, 16, Pos::new(480, 480), 10));
+    let v = sim.add_unit(crate::Unit::new(0, 3, Pos::new(960, 480), 10));
+    let w = sim.add_unit(crate::Unit::new(0, 4, Pos::new(960, 960), 10));
+    sim.units[v].uid = 17;
+    sim.units[w].uid = 29;
+    sim.add_attack_order(u, Obj::Unit(v), QueuePos::New, true, true);
+    sim.add_attack_order(u, Obj::Unit(w), QueuePos::Last, false, false);
+    // A reused object number must leave a queued order's old UID intact.
+    sim.units[w].uid = 30;
+    let Body::Attack(a) = &mut sim.units[u].orders[0].body else {
+        unreachable!()
+    };
+    a.def = Some(Pos::new(480, 960));
+    a.defensive = true;
+    a.ever_in_range = true;
+    a.new_ord = false;
+    let fields = |s: &crate::Sim, field| {
+        s.checksum_units()
+            .ranges
+            .into_iter()
+            .filter(|r| r.field == field)
+            .map(|r| r.bytes)
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(
+        fields(&sim, "order.target"),
+        [
+            [3, 0, 0, 0, 0, 0, 0, 0, 17, 0],
+            [4, 0, 0, 0, 0, 0, 0, 0, 29, 0]
+        ]
+    );
+    assert_eq!(
+        fields(&sim, "order.attack"),
+        [
+            [224, 1, 0, 0, 192, 3, 0, 0, 1, 1, 0, 1, 0],
+            [255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 1]
+        ]
+    );
+    sim.set_attack_target(u, Some(Obj::Unit(w)));
+    sim.set_attack_mandatory(u, false);
+    assert_eq!(
+        fields(&sim, "order.target"),
+        [
+            [4, 0, 0, 0, 0, 0, 0, 0, 30, 0],
+            [4, 0, 0, 0, 0, 0, 0, 0, 29, 0]
+        ]
+    );
+    assert_eq!(fields(&sim, "order.attack")[0][8], 0);
 }

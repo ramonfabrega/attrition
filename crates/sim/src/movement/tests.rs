@@ -761,6 +761,8 @@ fn the_group_cap_is_flag_zero_s_and_an_action_order_is_exempt() {
     s.units[fast].orders.push_back(Order {
         flags: 0,
         body: Body::Attack(AttackOrder {
+            target: None,
+            mandatory: false,
             defensive: false,
             def: None,
             in_range: false,

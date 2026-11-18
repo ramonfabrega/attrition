@@ -18,10 +18,14 @@ trial, or scheduled continuation. **The Claude loop may be live** (since
 `commander` or `steer` row of this tree is working, take nothing the lanes
 line under "The queue" in `docs/QUEUE.md` names, prefer work that shares no
 pin file with a lane (a tool, a structure move, the census), work on a
-`codex/*` branch, and land by fast-forward and gate as entry 60 says. When
-no driver row is working, the queue is this session's as written here. Choose the
-next item from measured evidence and leave a durable handoff at each
-landing; a natural stopping point need not exhaust the queue.
+`codex/*` branch, and use the branch and integration gates below.
+A budget-paused driver can still say `working` with a scheduled wake.
+Read the queue's handoff and its reserved refill items together with the
+roster. During a documented pause Codex may take a separate item from tip
+(DECISIONS 140 §6). Keep the reserved items for the refill unless the user
+reassigns one. When no driver row is working or scheduled to return, the
+queue is this session's as written here. Choose the next item from
+measured evidence and leave a durable handoff at each landing.
 
 ## Autonomy and completion
 
@@ -95,10 +99,10 @@ No model assignments or model-admission matrix from the commander loop govern
 this user-authorized run. Attribute work only to the model identity actually
 available in the session, never to a role or an inferred model variant.
 
-No-subagents also means no pretend independent audit. A claim established only
-by reading remains explicitly provisional until the required blind review is
-performed later; mark its evidence, uncertainty, and review debt in the relevant
-specification and item journal. Prefer executable differential evidence where
+A solo agent cannot perform a blind audit of its own work. Label every
+reading-only claim in the specification. When a score rests
+on one, keep it provisional and record the blind review owed in the item
+journal (DECISIONS 134). Prefer executable differential evidence where
 possible. A later Fable steer can review the commits, outcomes, methodological
 changes, and open review debt. Do not self-ratify that debt or launch a steer.
 
@@ -138,10 +142,16 @@ rules. Preserve the paused-loop handoff and clearly distinguish this branch's
 work from anything merged into the commander's branch. Do not rewrite historical
 journals or claim the commander resumed. Keep findings out of instruction files.
 
-Use ordinary git on the current branch. The `ccc` merge/book/spawn/push/reap
-chain, worker brief dispatch, lane-only file ownership and clear cadence do
+Start a `codex/*` branch from the agreed integration tip before editing,
+including in a detached worktree. Use ordinary git on that branch. The
+`ccc` merge/book/spawn/push/reap chain, worker brief dispatch, lane-only
+file ownership and clear cadence do
 not apply. Commit locally and push the branch; merging into main or resuming
-another checkout is a separate user-directed action.
+another checkout is a separate user-directed action. The integration
+owner fast-forwards an accepted descendant, runs the shared whole gate
+through `tools/gate_run.sh`, then pushes the integrated tip (DECISIONS
+140 §6). That wrapper checks out the shared gate tree and performs cleanup.
+The direct Codex branch gate below validates this checkout.
 
 For an implementation landing, commit the work before the full release gate,
 then record its actual verdict in a follow-up commit. Run

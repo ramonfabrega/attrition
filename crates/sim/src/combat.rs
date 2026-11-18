@@ -506,6 +506,8 @@ pub struct Projectile {
     /// the order `Objects::inc_time@0065db70` steps the pool in
     /// (`docs/COMBAT.md` §46.4). [`crate::Sim::add_ammo`] assigns it.
     pub slot: u32,
+    /// Display fields retained at allocation even after a slot's endpoint changes.
+    pub graphic: AmmoGraphic,
     /// What `Ammo::init_crash@0067b800` adds to a round: an aircraft shot
     /// down falling, not a shot fired (`docs/COMBAT.md` §81.3, `docs/AI.md`
     /// §228). `None` on every round `Ammo::init` lays.
@@ -528,6 +530,15 @@ pub struct Projectile {
     /// (`Ammo::init_crash@0067b800:44`). `-1` where the shot's piece is
     /// not read.
     pub gpiece: i32,
+}
+
+/// The display serial is independent of the reusable slot. The original
+/// retains the horizontal animation speed calculated at launch.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct AmmoGraphic {
+    pub graph_index: u32,
+    pub dx: Single,
+    pub guided: bool,
 }
 
 /// **`GraphicPieces::first_ammo_piece`**, `0xeaf5`: the piece of the
@@ -612,6 +623,9 @@ pub fn arc_point(launch: Pos, landing: Pos, cur_time: i32, total_time: i32) -> P
 /// [`Figures::gpiece`] (item 4175).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Death {
+    /// The retained ammo piece and its angle at close. An unarmed die (including
+    /// disband) passes (-1, 0). Damage paths without both inputs leave it unknown.
+    pub impact: Option<(i32, Single)>,
     pub who: i32,
     pub o: i32,
     pub first_frame: i64,
@@ -677,6 +691,8 @@ pub struct Figures {
 /// −476512256), which no dump prints.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Lie {
+    /// The four pivot angles copied from this figure when its record opens.
+    pub turret_angles: [i32; 4],
     pub pos: Pos,
     pub z: i32,
     pub angle: Angle,
@@ -693,6 +709,7 @@ impl Figures {
             life: [0; Self::MAX],
             gpiece: [-1; Self::MAX],
             place: [Lie {
+                turret_angles: [0; 4],
                 pos: Pos { x: 0, y: 0 },
                 z: 0,
                 angle: Angle(0),
@@ -2914,6 +2931,7 @@ pub struct CombatState {
     pub table: crate::combat::Table,
     /// Ammo in flight.
     pub projectiles: Vec<crate::combat::Projectile>,
+    pub next_ammo_graph_index: u32,
     /// The nukes' effects and what a nuke writes on its shooter's leader
     /// and silo (`crate::combat::nuke`, item 1091).
     pub nukes: crate::combat::nuke::Nukes,

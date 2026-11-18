@@ -11,6 +11,7 @@
 
 use super::minted::{built_start, minted, script, tick_to};
 
+mod deaths;
 pub(super) mod packets;
 mod world;
 use crate::checksum::CHECKSUM_PACKET;
@@ -136,6 +137,15 @@ fn line_inputs(line: &str, label: &str) -> Option<(StreamRows, u32, sim::Sim)> {
     Some((theirs, want, sim))
 }
 
+/// Range positions whose byte strings differ, including ranges present on only one side.
+fn differing_ranges<'a>(
+    ours: &'a Line,
+    theirs: &'a [(String, String, Vec<u8>)],
+) -> impl Iterator<Item = usize> + 'a {
+    (0..ours.ranges.len().max(theirs.len()))
+        .filter(|&i| ours.ranges.get(i).map(|r| &r.bytes) != theirs.get(i).map(|r| &r.2))
+}
+
 /// Where an image parts from the stream, range by range: `(range index,
 /// record, field, ours, theirs)`, the bytes in hex. A range one side lacks
 /// parts against `-`.
@@ -144,15 +154,11 @@ fn parting(
     theirs: &[(String, String, Vec<u8>)],
 ) -> Vec<(usize, i16, String, String, String)> {
     let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
-    let n = ours.ranges.len().max(theirs.len());
-    (0..n)
-        .filter_map(|i| {
+    differing_ranges(ours, theirs)
+        .map(|i| {
             let o = ours.ranges.get(i);
             let t = theirs.get(i);
-            if o.map(|r| &r.bytes) == t.map(|t| &t.2) {
-                return None;
-            }
-            Some((
+            (
                 i,
                 o.map_or(-1, |r| r.record),
                 o.map_or_else(
@@ -161,7 +167,7 @@ fn parting(
                 ),
                 o.map_or("-".into(), |r| hex(&r.bytes)),
                 t.map_or("-".into(), |t| hex(&t.2)),
-            ))
+            )
         })
         .collect()
 }
@@ -687,26 +693,7 @@ fn build_pieces(sim: &sim::Sim) -> std::collections::BTreeMap<usize, i32> {
     build_pieces_with(sim, &look, &tribes)
 }
 
-/// [`build_pieces`] on a look and tribes read once, for a walk that takes
-/// the builds line on many frames (item 4188, [`packets`]).
-fn build_pieces_with(
-    sim: &sim::Sim,
-    look: &crate::artdata::BuildLook,
-    tribes: &[crate::TribeDef],
-) -> std::collections::BTreeMap<usize, i32> {
-    let scene = sim.observe(None);
-    let placed = crate::free::placed_buildings(&scene, look, tribes);
-    let mut out = std::collections::BTreeMap::new();
-    for (i, b) in sim.buildings.iter().enumerate() {
-        if let Some(p) = placed
-            .iter()
-            .find(|p| p.who == b.owner && p.o == b.index && b.alive)
-        {
-            out.insert(i, p.piece);
-        }
-    }
-    out
-}
+use crate::checksum::state::build_pieces_with;
 
 /// The pinned outcome of the builds line on run 1562's packet:
 /// `(buildings, ranges, bytes, ranges parted, bytes in the ranges that
@@ -1299,12 +1286,15 @@ fn unit_site_field(site: &str) -> &'static str {
         "007303ac" => "order.type",
         "007303be" => "order.node",
         "0047f243" | "00482e93" | "00486e83" | "00483283" | "004860c3" | "004855e3"
-        | "0048560c" | "00486573" => "order.flags",
-        "0047f251" | "00486e91" | "00483291" | "004860d1" | "00486581" => "order.target",
+        | "0048560c" | "00486573" | "0047f283" => "order.flags",
+        "0047f251" | "00486e91" | "00483291" | "004860d1" | "00486581" | "0047f291" => {
+            "order.target"
+        }
         "00482ea1" | "004855f1" => "order.move",
         "0048561a" => "order.group",
         "00485625" => "order.in_group",
         "00486e9f" => "order.gather",
+        "0047f29f" => "order.attack",
         "0048329f" => "order.trade",
         "004860df" => "order.cast",
         "0048658f" => "order.guard",
@@ -1340,6 +1330,7 @@ fn unit_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
         "order.move" => table(MOVE_FIELDS, 0x4),
         "order.target" => table(TARGET_FIELDS, 0x8),
         "order.gather" => table(GATHER_FIELDS, 0x14),
+        "order.attack" => table(sim::checksum::units::ATTACK_FIELDS, 0x14),
         "order.trade" => table(TRADE_FIELDS, 0x14),
         "order.cast" => table(CAST_FIELDS, 0x14),
         "order.guard" => table(GUARD_FIELDS, 0x14),

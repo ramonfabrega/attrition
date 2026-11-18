@@ -546,10 +546,12 @@ pub struct GatherOrder {
     pub been_there: bool,
 }
 
-/// The fields of `AttackOrder` the order keeps; the target and `mandatory`
-/// stay in [`combat::State`], which `fight.rs` reads.
+/// Fields stored on each attack order, including queued orders.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AttackOrder {
+    /// TargetOrder's object number, owner and generation at issue or retarget.
+    pub target: Option<(i16, crate::Player, u16)>,
+    pub mandatory: bool,
     pub defensive: bool,
     pub def: Option<Pos>,
     pub in_range: bool,

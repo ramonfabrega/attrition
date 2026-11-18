@@ -428,8 +428,8 @@ fn the_ranges_record_names_each_first_parting() {
         for (name, o) in STATE_LINES.iter().zip(&outcome).take(8) {
             if let Some(f) = &o.first {
                 eprintln!(
-                    "RECORD frame {frame} {name}: theirs {} ours {} parted {}; first {} {} {}:\n  ours   {}\n  theirs {}",
-                    o.theirs, o.ours, o.parted, f.0, f.1, f.2, f.3, f.4
+                    "RECORD frame {frame} {name}: theirs {} ours {} parted {}; first {f}",
+                    o.theirs, o.ours, o.parted
                 );
                 seen.push((name, o.theirs, o.ours, o.parted, first_text(name, f)));
             }

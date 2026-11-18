@@ -106,6 +106,17 @@ pub const MOVE_FIELDS: &[(&str, usize, usize)] = &[
 pub const TARGET_FIELDS: &[(&str, usize, usize)] =
     &[("ox", 0x8, 4), ("whom", 0xc, 4), ("uid", 0x10, 2)];
 
+/// `AttackOrder::walk_data@0047f260`'s final range, after flags and target.
+pub const ATTACK_FIELDS: &[(&str, usize, usize)] = &[
+    ("def_x", 0x14, 4),
+    ("def_y", 0x18, 4),
+    ("mandatory", 0x1c, 1),
+    ("defensive", 0x1d, 1),
+    ("in_range", 0x1e, 1),
+    ("ever_in_range", 0x1f, 1),
+    ("new_ord", 0x20, 1),
+];
+
 /// **`GatherOrder`'s own walked 20 bytes** (`+0x14..+0x28`, `tx`..
 /// `been_there`).
 pub const GATHER_FIELDS: &[(&str, usize, usize)] = &[
@@ -301,8 +312,8 @@ impl Sim {
     /// frames 1 to 30 without it), `0x10` [`crate::Unit::cant_reach`], and
     /// `0x40`, which `Object::init@00647750:39` sets when the type's
     /// `objmask` carries `0x2000000` — [`crate::combat::mask::DETECT`], the
-    /// type's `obj_masks` (`docs/CHECKSUM.md` §17). `0x20` and `0x80` are
-    /// not emitted.
+    /// type's `obj_masks` (`docs/CHECKSUM.md` §17). The attack latch is
+    /// `0x80` (window A, state 9416).
     fn unit_flags_byte(&self, u: usize) -> u8 {
         let un = &self.units[u];
         let detect = un.ty.is_some_and(|t| {
@@ -311,6 +322,7 @@ impl Sim {
         1 | if un.idle_latch { 0x08 } else { 0 }
             | if un.cant_reach { 0x10 } else { 0 }
             | if detect { 0x40 } else { 0 }
+            | if un.attacking { 0x80 } else { 0 }
     }
 
     /// A garrisoned captain's two neighbours in its building's chain, as
@@ -719,6 +731,31 @@ impl Sim {
                 p(0x1c, 4, i64::from(t.started));
                 p(0x20, 4, i64::from(t.loaded));
                 put("order.trade", b);
+            }
+            Body::Attack(a) => {
+                put("order.flags", vec![o.flags]);
+                let mut target = vec![0xff; 10];
+                if let Some((object, owner, uid)) = a.target {
+                    put_raw(&mut target, 0, 4, i64::from(object));
+                    put_raw(&mut target, 4, 4, i64::from(owner));
+                    put_raw(&mut target, 8, 2, i64::from(uid));
+                }
+                put("order.target", target);
+                let def = a.def.unwrap_or(crate::Pos::new(-1, -1));
+                let mut fields = Vec::with_capacity(13);
+                fields.extend_from_slice(&def.x.to_le_bytes());
+                fields.extend_from_slice(&def.y.to_le_bytes());
+                fields.extend(
+                    [
+                        a.mandatory,
+                        a.defensive,
+                        a.in_range,
+                        a.ever_in_range,
+                        a.new_ord,
+                    ]
+                    .map(u8::from),
+                );
+                put("order.attack", fields);
             }
             Body::Cast(c) => {
                 // `CastOrder::walk_data@004860a0` (item 4234): the flags

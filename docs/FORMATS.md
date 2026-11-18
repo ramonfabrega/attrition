@@ -59,6 +59,12 @@ language.
 
 ### Layouts read directly from the PDB
 
+The in-memory `DeathObjData` checksum covers 75 bytes in an occupied slot.
+The PDB gives the record size as 0x4c and `unit_crew` at 0x4a. The
+original's range stream at state 8408 of item 4363 splits each of two
+records into 4 and 71 bytes, excluding the alignment byte at 0x4b.
+CHECKSUM §8 describes the fields and RUNS records the packet.
+
 ```c
 struct CommandPackage : GameAccess {   // sizeof 536
   +0    u32   stamp;      // turn stamp

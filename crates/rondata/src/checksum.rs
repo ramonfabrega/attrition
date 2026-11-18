@@ -19,6 +19,9 @@
 //! This file is not one of `diff::oracle`'s `SCHEMA_SOURCES`: editing it
 //! writes no new oracle-cache generation.
 
+pub mod playback;
+pub(crate) mod state;
+
 use std::io::BufRead;
 
 /// Every label the record prints, in print order (`docs/CHECKSUM.md` §2):

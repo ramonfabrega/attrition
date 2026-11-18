@@ -169,6 +169,24 @@ pub struct Node {
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
 const NODES: &[(i32, i32, Node)] = &[
+    // Idle node 4, measured on run1472 and run1487. Their frozen figure
+    // records independently hold the last live turret angle (CHECKSUM §8).
+    (
+        234,
+        4,
+        Node {
+            px: 0,
+            py: 27_570_000,
+        },
+    ),
+    (
+        142,
+        4,
+        Node {
+            px: 908_200,
+            py: -122_588,
+        },
+    ),
     // **The Missile Cruiser's four turrets, piece 280** (item 3849,
     // `docs/GOLDEN.md` §153.1): run1484's packet, each node's `(n, 0, 0)`
     // entry — 4 and 5 forward at (0.02, 100.24), 6 and 7 aft at (0.02,
@@ -578,6 +596,8 @@ const SCALE: (i64, i64) = (48, 10);
 /// 1.0 for the Chariot's piece 145 and **0.8** for the Bomb Vessel's 296
 /// (`0x3f4ccccd`, run486's packet). A piece with no row is 1.0.
 const RDATA_SCALE: &[(i32, (i64, i64))] = &[
+    (234, (7, 10)),
+    (142, (9, 10)),
     (296, (4, 5)),
     (297, (4, 5)),
     (194, (9, 10)),

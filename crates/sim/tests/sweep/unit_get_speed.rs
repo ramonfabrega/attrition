@@ -18,6 +18,8 @@ fn order(s: &mut Sim, scratch: usize, kind: i64) -> Order {
         3 => Order {
             flags: flag::ACTION,
             body: Body::Attack(AttackOrder {
+                target: None,
+                mandatory: false,
                 defensive: false,
                 def: None,
                 in_range: false,
