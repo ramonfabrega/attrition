@@ -38623,3 +38623,18 @@ uv run --offline tools/recomp/get_position.py "$RON_INSTALL/riseofnations.exe" "
 read by the regression. `pivot-fit-before-integration.txt` records both
 fits before putting them in the simulator. `pivot-packets.log` is the
 107-packet survey following the change.
+
+## Item 4371 — packet first-difference diagnostics (2026-11-18)
+
+The evidence directory is `~/ron-data/lab-experiments/2026-11-18-codex-packet-fields`.
+Reproduce `report-4371-r2.log` with the archive install and
+`RON_PACKETS_PRINT=1 zsh tools/check.sh test --release -p rondata --lib diff::checksum_lines::packets:: -- --show-output --test-threads 4`.
+Run `python3 check-reports.py OLD NEW PACKETS_DIR` there against the 4370
+`pivot-packets.log` and this report. The script checks both complete pin
+arrays and the original bytes at the offsets. `report-validation.txt`
+records the outcome. `compare-shipped.rs` and its three run logs contain
+the alternating 21-sample comparison of the earlier all-range formatter
+and the updated first-range comparator. The arguments are install, long
+lobby dump, logger frame and original stream. The runs are 1185/4582,
+1359/5619 and 1437/3894. `packet-timing-4371.txt` retains six alternating
+process-level timings per version and game.

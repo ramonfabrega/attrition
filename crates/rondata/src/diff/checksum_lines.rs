@@ -137,6 +137,15 @@ fn line_inputs(line: &str, label: &str) -> Option<(StreamRows, u32, sim::Sim)> {
     Some((theirs, want, sim))
 }
 
+/// Range positions whose byte strings differ, including ranges present on only one side.
+fn differing_ranges<'a>(
+    ours: &'a Line,
+    theirs: &'a [(String, String, Vec<u8>)],
+) -> impl Iterator<Item = usize> + 'a {
+    (0..ours.ranges.len().max(theirs.len()))
+        .filter(|&i| ours.ranges.get(i).map(|r| &r.bytes) != theirs.get(i).map(|r| &r.2))
+}
+
 /// Where an image parts from the stream, range by range: `(range index,
 /// record, field, ours, theirs)`, the bytes in hex. A range one side lacks
 /// parts against `-`.
@@ -145,15 +154,11 @@ fn parting(
     theirs: &[(String, String, Vec<u8>)],
 ) -> Vec<(usize, i16, String, String, String)> {
     let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
-    let n = ours.ranges.len().max(theirs.len());
-    (0..n)
-        .filter_map(|i| {
+    differing_ranges(ours, theirs)
+        .map(|i| {
             let o = ours.ranges.get(i);
             let t = theirs.get(i);
-            if o.map(|r| &r.bytes) == t.map(|t| &t.2) {
-                return None;
-            }
-            Some((
+            (
                 i,
                 o.map_or(-1, |r| r.record),
                 o.map_or_else(
@@ -162,7 +167,7 @@ fn parting(
                 ),
                 o.map_or("-".into(), |r| hex(&r.bytes)),
                 t.map_or("-".into(), |t| hex(&t.2)),
-            ))
+            )
         })
         .collect()
 }

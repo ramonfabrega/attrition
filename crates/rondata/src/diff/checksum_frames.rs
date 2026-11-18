@@ -983,18 +983,14 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
 /// field`, then the fields that part as `name ours|theirs` where the line
 /// has a decoder, else the first byte that parts and four bytes from it
 /// on each side, in hex.
-fn first_text(line: &str, f: &(usize, i16, String, String, String)) -> String {
-    let bytes = |h: &str| -> Vec<u8> {
-        (0..h.len() / 2)
-            .filter_map(|i| u8::from_str_radix(&h[2 * i..2 * i + 2], 16).ok())
-            .collect()
-    };
-    let (o, t) = (bytes(&f.3), bytes(&f.4));
-    let head = format!("{} {} {}", f.0, f.1, f.2);
+fn first_text(line: &str, f: &super::checksum_lines::packets::FirstDifference) -> String {
+    let o = f.ours.as_deref().unwrap_or_default();
+    let t = f.theirs.as_deref().unwrap_or_default();
+    let head = format!("{} {} {}", f.index, f.record, f.field);
     let decoded = (o.len() == t.len() && !o.is_empty())
         .then(|| {
-            let a = super::checksum_lines::range_fields(line, &f.2, &o)?;
-            let b = super::checksum_lines::range_fields(line, &f.2, &t)?;
+            let a = super::checksum_lines::range_fields(line, &f.field, o)?;
+            let b = super::checksum_lines::range_fields(line, &f.field, t)?;
             Some(
                 a.iter()
                     .zip(&b)
@@ -1008,11 +1004,7 @@ fn first_text(line: &str, f: &(usize, i16, String, String, String)) -> String {
     if let Some(d) = decoded {
         return format!("{head}: {}", d.join(", "));
     }
-    let at = o
-        .iter()
-        .zip(&t)
-        .position(|(x, y)| x != y)
-        .unwrap_or(o.len().min(t.len()));
+    let at = f.offset;
     let cut = |b: &[u8]| {
         b.iter()
             .skip(at)
@@ -1024,8 +1016,8 @@ fn first_text(line: &str, f: &(usize, i16, String, String, String)) -> String {
         "{head}: +{at:#x} of {}|{}: {}|{}",
         o.len(),
         t.len(),
-        cut(&o),
-        cut(&t)
+        cut(o),
+        cut(t)
     )
 }
 
@@ -1084,8 +1076,8 @@ fn the_minted_packets_name_each_first_parting() {
         for (name, o) in STATE_LINES.iter().zip(&outcome) {
             if let Some(f) = &o.first {
                 eprintln!(
-                    "MINTED PACKET {run} frame {frame} {name}: theirs {} ours {} parted {}; first {} {} {}:\n  ours   {}\n  theirs {}",
-                    o.theirs, o.ours, o.parted, f.0, f.1, f.2, f.3, f.4
+                    "MINTED PACKET {run} frame {frame} {name}: theirs {} ours {} parted {}; first {f}",
+                    o.theirs, o.ours, o.parted
                 );
                 seen.push((name, o.theirs, o.ours, o.parted, first_text(name, f)));
             }

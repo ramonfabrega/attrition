@@ -2334,6 +2334,16 @@ that range alone, and run1165's later stream against our frame 4 agrees
 on fewer lines (`a_packet_s_comparison_can_part`). The walks take 80 s
 for all 74 game tests together.
 
+**Reading a packet failure (4371).** The first range in walk order is
+reported with its record, field, zero-based byte offset within that range
+and one value from each side. `end` means a present range ends at that
+offset. `absent` means the range itself is missing. Both still count as
+differences against a present byte, and an empty range differs from a
+missing range. A record number of −1 can denote an unnamed record or a
+range available only in the original. The walk counts every differing
+range. The recorded-frame checks decode the full first pair of byte
+strings for their existing field-value assertions.
+
 ## 23.6 How it was established, and what it has not established
 
 - Diff-backed: all of it. Every number above is a range-by-range

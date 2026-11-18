@@ -57,13 +57,13 @@ pub(in crate::diff) fn packet_stream_in(
 }
 
 /// One line's outcome on one packet: the stream's ranges, ours, the ranges
-/// that part, and the first parting `(range, record, field, ours, theirs)`.
+/// that part, and the first differing byte in walk order.
 #[derive(Clone, Debug)]
 pub(in crate::diff) struct LineOutcome {
     pub theirs: usize,
     pub ours: usize,
     pub parted: usize,
-    pub first: Option<(usize, i16, String, String, String)>,
+    pub first: Option<FirstDifference>,
 }
 
 impl LineOutcome {
@@ -101,6 +101,65 @@ pub(in crate::diff) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
         .into()
 }
 
+/// Keep the first pair of byte strings for field decoders used by recorded-frame tests.
+#[derive(Clone, Debug)]
+pub(in crate::diff) struct FirstDifference {
+    pub index: usize,
+    pub record: i16,
+    pub field: String,
+    pub offset: usize,
+    pub ours: Option<Vec<u8>>,
+    pub theirs: Option<Vec<u8>>,
+}
+
+impl FirstDifference {
+    fn at(line: &Line, stream: &StreamRows, index: usize) -> Self {
+        let o = line.ranges.get(index);
+        let t = stream.get(index);
+        let offset = match (o, t) {
+            (Some(a), Some(b)) => a
+                .bytes
+                .iter()
+                .zip(&b.2)
+                .position(|(x, y)| x != y)
+                .unwrap_or_else(|| a.bytes.len().min(b.2.len())),
+            _ => 0,
+        };
+        let field = o
+            .map(|r| r.field)
+            .unwrap_or_else(|| t.expect("a differing range exists on one side").0.as_str());
+        Self {
+            index,
+            record: o.map_or(-1, |r| r.record),
+            field: field.to_owned(),
+            offset,
+            ours: o.map(|r| r.bytes.clone()),
+            theirs: t.map(|r| r.2.clone()),
+        }
+    }
+}
+
+impl std::fmt::Display for FirstDifference {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = |range: Option<&[u8]>| match range {
+            None => "absent".to_owned(),
+            Some(bytes) => bytes
+                .get(self.offset)
+                .map_or_else(|| "end".to_owned(), |x| format!("{x:02x}")),
+        };
+        write!(
+            f,
+            "range {} record {} {} byte {}: ours {} theirs {}",
+            self.index,
+            self.record,
+            self.field,
+            self.offset,
+            value(self.ours.as_deref()),
+            value(self.theirs.as_deref())
+        )
+    }
+}
+
 /// The twelve lines held range by range against a packet's stream.
 pub(in crate::diff) fn compare(
     ours: &[Line],
@@ -112,15 +171,80 @@ pub(in crate::diff) fn compare(
         .zip(ours)
         .map(|(name, o)| {
             let t = theirs.get(*name).unwrap_or(&empty);
-            let p = parting(o, t);
+            let mut differences = differing_ranges(o, t);
+            let first = differences.next().map(|i| FirstDifference::at(o, t, i));
             LineOutcome {
                 theirs: t.len(),
                 ours: o.ranges.len(),
-                parted: p.len(),
-                first: p.into_iter().next(),
+                parted: usize::from(first.is_some()) + differences.count(),
+                first,
             }
         })
         .collect()
+}
+
+#[test]
+fn packet_first_difference_distinguishes_bytes_ends_and_absent_ranges() {
+    let common = vec![0x24; 80];
+    let mut late = common.clone();
+    late[71] = 0x52;
+    for (ours, theirs, expected, count) in [
+        (
+            vec![common.clone(), vec![]],
+            vec![late, vec![1]],
+            "range 0 record 12 field byte 71: ours 24 theirs 52",
+            2,
+        ),
+        (
+            vec![vec![1]],
+            vec![vec![1, 2]],
+            "range 0 record 12 field byte 1: ours end theirs 02",
+            1,
+        ),
+        (
+            vec![vec![1, 2]],
+            vec![vec![1]],
+            "range 0 record 12 field byte 1: ours 02 theirs end",
+            1,
+        ),
+        (
+            vec![common.clone()],
+            vec![common.clone(), vec![]],
+            "range 1 record -1 original byte 0: ours absent theirs end",
+            1,
+        ),
+        (
+            vec![common.clone(), vec![]],
+            vec![common.clone()],
+            "range 1 record 12 field byte 0: ours end theirs absent",
+            1,
+        ),
+        (vec![common.clone()], vec![common], "", 0),
+    ] {
+        let line = Line {
+            name: "units",
+            ranges: ours
+                .into_iter()
+                .map(|bytes| sim::checksum::Range {
+                    record: 12,
+                    field: "field",
+                    bytes,
+                })
+                .collect(),
+        };
+        let stream: StreamRows = theirs
+            .into_iter()
+            .map(|bytes| ("original".into(), String::new(), bytes))
+            .collect();
+        let detailed = parting(&line, &stream);
+        let original = std::collections::BTreeMap::from([("units".into(), stream)]);
+        let result = compare(&[line], &original);
+        assert_eq!((detailed.len(), result[0].parted), (count, count));
+        assert_eq!(
+            result[0].first.as_ref().map(ToString::to_string).as_deref(),
+            (count > 0).then_some(expected)
+        );
+    }
 }
 
 /// One game our walk holds: a word on the scoreboard — its name, its start
@@ -468,17 +592,7 @@ pub(super) fn check(name: &str, walked: &[Walked]) {
         );
         for (n, l) in STATE_LINES.iter().zip(&w.lines) {
             if let Some(f) = &l.first {
-                let cut = |s: &str| s.chars().take(64).collect::<String>();
-                eprintln!(
-                    "  {n}: {} of {} ranges part; first range {} record {} {}: ours {} theirs {}",
-                    l.parted,
-                    l.theirs,
-                    f.0,
-                    f.1,
-                    f.2,
-                    cut(&f.3),
-                    cut(&f.4)
-                );
+                eprintln!("  {n}: {} of {} ranges part; first {f}", l.parted, l.theirs);
             }
         }
         if print {
@@ -5197,17 +5311,13 @@ fn probe_one_packet() {
         eprintln!("frame {}: {agree} of {counted} counted", built.sim.frame);
         for (n, x) in STATE_LINES.iter().zip(&o) {
             eprintln!(
-                "  {n:8} theirs {:5} ours {:5} parted {:5} first {:?}",
+                "  {n:8} theirs {:5} ours {:5} parted {:5} first {}",
                 x.theirs,
                 x.ours,
                 x.parted,
-                x.first.as_ref().map(|f| (
-                    f.0,
-                    f.1,
-                    f.2.clone(),
-                    f.3.chars().take(48).collect::<String>(),
-                    f.4.chars().take(48).collect::<String>()
-                ))
+                x.first
+                    .as_ref()
+                    .map_or_else(|| "-".into(), ToString::to_string)
             );
         }
         built.tick();
@@ -5237,17 +5347,13 @@ fn probe_built_packet() {
         );
         for (n, x) in STATE_LINES.iter().zip(o) {
             eprintln!(
-                "  {n:8} theirs {:5} ours {:5} parted {:5} first {:?}",
+                "  {n:8} theirs {:5} ours {:5} parted {:5} first {}",
                 x.theirs,
                 x.ours,
                 x.parted,
-                x.first.as_ref().map(|f| (
-                    f.0,
-                    f.1,
-                    f.2.clone(),
-                    f.3.chars().take(48).collect::<String>(),
-                    f.4.chars().take(48).collect::<String>()
-                ))
+                x.first
+                    .as_ref()
+                    .map_or_else(|| "-".into(), ToString::to_string)
             );
         }
     };
@@ -5570,10 +5676,7 @@ fn run1575_take_packet() {
     let held: std::collections::BTreeSet<&str> = LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
     for (n, l) in STATE_LINES.iter().zip(&w.lines) {
         if let Some(f) = &l.first {
-            eprintln!(
-                "  {n}: {} of {} ranges part; first range {} record {} {}",
-                l.parted, l.theirs, f.0, f.1, f.2
-            );
+            eprintln!("  {n}: {} of {} ranges part; first {f}", l.parted, l.theirs);
         }
     }
     for (slot, field, leaf, ours, t, _) in &w.leaves {
@@ -5683,10 +5786,7 @@ fn run1629_take_packet() {
     let held: std::collections::BTreeSet<&str> = LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
     for (n, l) in STATE_LINES.iter().zip(&w.lines) {
         if let Some(f) = &l.first {
-            eprintln!(
-                "  {n}: {} of {} ranges part; first range {} record {} {}",
-                l.parted, l.theirs, f.0, f.1, f.2
-            );
+            eprintln!("  {n}: {} of {} ranges part; first {f}", l.parted, l.theirs);
         }
     }
     for (slot, field, leaf, ours, t, _) in &w.leaves {
@@ -5795,10 +5895,7 @@ fn run1645_take_packet() {
     let held: std::collections::BTreeSet<&str> = LEADERS_HELD_OUT.iter().map(|(n, _)| *n).collect();
     for (n, l) in STATE_LINES.iter().zip(&w.lines) {
         if let Some(f) = &l.first {
-            eprintln!(
-                "  {n}: {} of {} ranges part; first range {} record {} {}",
-                l.parted, l.theirs, f.0, f.1, f.2
-            );
+            eprintln!("  {n}: {} of {} ranges part; first {f}", l.parted, l.theirs);
         }
     }
     for (slot, field, leaf, ours, t, _) in &w.leaves {
