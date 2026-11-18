@@ -375,7 +375,16 @@ mod tests {
     const SAMPLE_WINDOW_RECORDS: (usize, usize, Option<(i64, &str)>) = (18, 0, None);
 
     /// The sample's word and the frames walked, against run1651's draws:
-    /// 2888 of 21,044 (item 4351: 444 → 2888, +2444, the scout's
+    /// 3019 of 21,044 (item 4359: 2888 → 3019, +131, in two builds. On
+    /// 2887 the person's units strike computer 4's capital `4/2000` and
+    /// its city's bell rings, [`sim::Sim::city_struck_alarm`]: 2888 → 2908,
+    /// a Citizen's garrison walk's `Unit::do_move+0xe84`. On 2901 `ai
+    /// economic`'s head asks `was_city_raided`, which read never, and the
+    /// capital's light blow had stamped `raid_stamp` 2887: 2908 → 3019,
+    /// computer 4's `Make` step's nine `make_stuff` draws on 2908. On 3019
+    /// theirs starts two units' steps (`Unit::move_step+0x823`) three
+    /// frames after `Armies::emergency`, whose two armies are empty here.)
+    /// Before that, 2888 (item 4351: 444 → 2888, +2444, the scout's
     /// shift-queued moves made explores, [`sim::Unit::explore_queued`]; the
     /// sequences part at draw 32 there). Before that, 444 (item 4347: 98 → 444, +346, the gaia figures' variant
     /// off the lobby's seed, [`sim::Sim::info_seed`]; minted at 98 by item
@@ -384,7 +393,7 @@ mod tests {
     /// 60078, so `8/0`'s 99-frame idle ran out here and `8/1`'s in theirs:
     /// ours took the far arm (413 from the herd centre), theirs the near
     /// one's three draws.
-    const SAMPLE_WALKED: (i64, i64) = (2888, 21044);
+    const SAMPLE_WALKED: (i64, i64) = (3019, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -446,7 +455,11 @@ mod tests {
         let seen: Vec<(&str, i64)> = walked.iter().map(|(l, f, ..)| (*l, *f)).collect();
         assert_eq!(
             (trace.len(), frames.0, theirs),
-            (SAMPLE_HOOK.0, SAMPLE_HOOK.1 as usize + 1, SAMPLE_THEIRS_HELD),
+            (
+                SAMPLE_HOOK.0,
+                SAMPLE_HOOK.1 as usize + 1,
+                SAMPLE_THEIRS_HELD
+            ),
             "run1662's take"
         );
         assert_eq!(seen, SAMPLE_LINES, "the sample's lines against the hook");
