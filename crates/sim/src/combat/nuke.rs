@@ -208,10 +208,14 @@ impl Sim {
     ///   floored at 0, each axis) is `< r` takes it when it is not below
     ///   0, with `num_guys` 0 (`92c35f`..`92c3ab`). Each is struck once.
     ///
-    /// SEAM: the order of several struck on one frame (the original's is
-    /// `Objects::find_units`' — a cell circle or the players' lists, by
-    /// `total_units` — and the cell ring's for the buildings; here each
-    /// list's index order), a struck player at peace declaring war
+    /// The buildings are struck in the original's order (item 4377): the
+    /// cells of [`Sim::nuke_ring_cells`] outward from the point's, each
+    /// cell's chain head first, its next link read after the strike.
+    ///
+    /// SEAM: the order of several units struck on one frame (the
+    /// original's is `Objects::find_units`' — a cell circle or the
+    /// players' lists, by `total_units`; here the list's index order), a
+    /// struck player at peace declaring war
     /// (`92c502`, `92c71e`), and the rush rules' early-age exemption.
     pub(crate) fn nuke_do_damage(&mut self, frame: i64) {
         let mut i = 0;
@@ -255,31 +259,85 @@ impl Sim {
                 self.do_damage(shooter, o, angle, false, count, true, false, frame);
                 self.combat.nukes.blasts[i].struck.push(o);
             }
-            for b in 0..self.buildings.len() {
-                let o = Obj::Building(b);
-                // `Nuke::do_damage@0092bc80`'s building arm walks each
-                // tile's object chain and asks only `been_damaged_before`
-                // and vslot `+0xc`: nothing about hit points, so a city
-                // building at its ceiling (`health` 0) takes the blow, its
-                // hit points unmoved (item 4159's residue, 4177a: run855's
-                // 4777 and run1405b's 3494, theirs one blow more).
-                if !self.struck(o) || self.combat.nukes.blasts[i].struck.contains(&o) {
-                    continue;
+            let cells = self.nuke_ring_cells(at, r);
+            for cell in cells {
+                let s = (cell.y * self.world.width() + cell.x) as usize;
+                let mut next = self.terrain.object_heads[s];
+                while let Some(o) = next {
+                    // `LAB_0092c507`: the next link is read off this object
+                    // after its strike, so a blow that takes it off the
+                    // chain ends the cell's walk there, as theirs does.
+                    self.nuke_ring_strike(i, o, at, r, max, shooter, frame);
+                    next = self.chain_words(o).below;
                 }
-                let tp = self.profile(o);
-                let pos = self.buildings[b].pos;
-                let dx = ((pos.x - at.x).abs() - tp.x_size * 0x60).max(0);
-                let dy = ((pos.y - at.y).abs() - tp.y_size * 0x60).max(0);
-                let d = vector_dist(dx, dy);
-                let count = struck_count(d, max);
-                if d >= r || count < 0 {
-                    continue;
-                }
-                let angle = find_angle(pos.x - at.x, pos.y - at.y);
-                self.do_damage(shooter, o, angle, false, count, true, false, frame);
-                self.combat.nukes.blasts[i].struck.push(o);
             }
         }
+    }
+
+    /// One object the building arm's walk meets
+    /// ([`Self::nuke_ring_cells`]).
+    #[allow(clippy::too_many_arguments)]
+    fn nuke_ring_strike(
+        &mut self,
+        i: usize,
+        o: Obj,
+        at: Pos,
+        r: i32,
+        max: i32,
+        shooter: Obj,
+        frame: i64,
+    ) {
+        // `Nuke::do_damage@0092bc80`'s building arm walks each cell's
+        // object chain and asks only `been_damaged_before` and vslot
+        // `+0xc`: nothing about hit points, so a city building at its
+        // ceiling (`health` 0) takes the blow, its hit points unmoved
+        // (item 4159's residue, 4177a: run855's 4777 and run1405b's 3494,
+        // theirs one blow more). The slot is `Build::vftable`'s
+        // `0x46cda0`, `flags & 1`, and `Unit::vftable`'s `0x41bff0`,
+        // `xor eax, eax` (the PE, item 4377; the export names both by
+        // folded functions): a unit in the chain never enters.
+        let Obj::Building(b) = o else {
+            return;
+        };
+        if !self.struck(o) || self.combat.nukes.blasts[i].struck.contains(&o) {
+            return;
+        }
+        let tp = self.profile(o);
+        let pos = self.buildings[b].pos;
+        let dx = ((pos.x - at.x).abs() - tp.x_size * 0x60).max(0);
+        let dy = ((pos.y - at.y).abs() - tp.y_size * 0x60).max(0);
+        let d = vector_dist(dx, dy);
+        let count = struck_count(d, max);
+        if d >= r || count < 0 {
+            return;
+        }
+        let angle = find_angle(pos.x - at.x, pos.y - at.y);
+        self.do_damage(shooter, o, angle, false, count, true, false, frame);
+        self.combat.nukes.blasts[i].struck.push(o);
+    }
+}
+
+impl Sim {
+    /// **The building arm's cells** (`Nuke::do_damage@0092bc80`,
+    /// `92c0b5..92c556`; item 4377, `docs/LEADERS.md` §8.2): the ring
+    /// `k = ⌊r / 8⌋ + 1` (the `sar 3` of `r` rounded toward zero), capped
+    /// at 10; the cells `move_x/move_y[0 ..= radius[k]]`
+    /// ([`crate::world::MOVE_441`], one entry past the square) round the
+    /// point's own cell, in that order, those off the map skipped. Each
+    /// cell's object chain is walked head first, and only its buildings
+    /// can be struck ([`Sim::nuke_do_damage`]).
+    pub(crate) fn nuke_ring_cells(&self, at: Pos, r: i32) -> Vec<crate::Cell> {
+        let k = ((r + ((r >> 31) & 7)) >> 3) + 1;
+        let k = if k > 10 { 10 } else { k };
+        let centre = at.cell();
+        (0..=crate::world::move_radius(k))
+            // Entry 441 is the word past the array: off any map.
+            .filter_map(|i| crate::world::MOVE_441.get(i))
+            .map(|&(dx, dy)| crate::Cell::new(centre.x + dx, centre.y + dy))
+            .filter(|c| {
+                c.x >= 0 && c.y >= 0 && c.x < self.world.width() && c.y < self.world.height()
+            })
+            .collect()
     }
 }
 

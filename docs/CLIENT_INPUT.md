@@ -1214,8 +1214,10 @@ The reading is one reader's, from the decompile; the recordings back its shape, 
 - **The key.** `Options::exec@007188c0`'s `OPTION_PAUSE` arm, unless the scenario disables pausing, calls
   `TurnControl::issue_toggle_pause@00956b40`. In a playback (`game.semaphore & 0x10`) that toggles locally and issues
   nothing. Otherwise it adds `pause(state)` to the local package, `state` the complement of the turn control's pause
-  bit: 1 to pause, 0 to lift it. `CommandManager::issue_pause@00940ba0` builds the same two bytes for the console's
-  `pause 1|0`.
+  bit: 1 to pause, 0 to lift it. `CommandManager::issue_pause@00940ba0` builds the same two bytes, `0x4c` and the
+  state. ~~It does so for the console's `pause 1|0`.~~ The console's `pause` (`ConsoleWin::run_cmd@007d6a70` case 9)
+  calls `issue_toggle_pause` too, when the asked state differs from the bit. Nothing in the image calls
+  `issue_pause`: no call and no copy of its address (item 4378's scan, `report.py refs`).
 - **Its processing.** `CommandPackage::process_pause@00944160` logs it to the sync log and calls
   `TurnControl::process_pause@00956990`. When `state` equals the bit, it only logs. Otherwise it calls
   `toggle_pause@00957ab0`, and in a solo game it resets the frame clock and puts up the notice
@@ -1309,6 +1311,10 @@ The whole first-entry diff of the two traces adds only these, the rally point's 
 
 **Reading only**, one reader: the key's arm and the scenario's `pause_disabled`; the networked arm and its ten
 `pauses`; the solo frame clock's reset.
+
+**Entered by a capture** (item 4378, run1671b; `rondata::blind::TRACES`): the key's issuer, `TurnControl::issue_toggle_pause`, on 800 from KEYMAP_OPTION_PAUSE
+pressed in a live game, and `toggle_pause` with it; the second press came three seconds later on the loop's
+clock, and the game played on to its last frame, 1000. `CommandManager::issue_pause` was entered on 770, by the DLL's `@pause 0` only, since nothing calls it.
 
 **Ours, not the original's:**
 - Pause and F3 for the key (the install's default binding is not read);
@@ -2179,6 +2185,9 @@ the slot the command names (§22.4).
 - **The ctrl-and-shift arm** (`Group::action_hotkey`) and the plain key's recall of a group are the interface's and
   issue nothing; they are not built.
 
+- **Entered by a capture** (item 4378, run1671b; `rondata::blind::TRACES`): ctrl and 1 over the selected capital in a live game enter `GroupOut::issue_hotkey`,
+  `CommandManager::issue_hotkey` and `process_hotkey` on 724.
+
 **Ours, not the original's:**
 
 - The layer reads ctrl from the window's modifiers; the key map's own bindings are not consulted.
@@ -2298,6 +2307,8 @@ sites were checked. The playback backs the command's bytes and the Citizen's ent
   for a member that `enters` somewhere.
 - **The pick's second arm**, for a selection holding type `0x136`, is not minted.
 - **An ally's building.** The scene names no alliance, so the pick names the slot's own buildings only.
+- **Entered by a capture** (item 4378, run1671b; `rondata::blind::TRACES`): KEYMAP_OPTION_GARRISON over the Chariot enters `Options::do_garrison` on 924. Its pick
+  is not read off that take.
 - **The capital's `inside_down`** is written on its `BUILDDATA` record and not parsed (`gamelog::BuildDump`). The
   walk compares the Citizen's `inside_up` on every record.
 - **The right press** with the profile's `0x200` set (§6) is not minted.
@@ -2676,6 +2687,9 @@ farm `0/2007`, at the point it stood on before the garrison (§23.4's 6750 row).
 - **The panel's icons.** Which garrisoned units the original's building panel lays out, in what order, and whether a
   selection of several buildings shows them all, is read only as far as `Options::exec`'s arm.
 - **`do_eject_all`**, the arm for a unit inside a unit (a transport), is not minted.
+- **Entered by a capture** (item 4378, run1671b; `rondata::blind::TRACES`): the console's `eval unit_eject_order(1, 7)` enters `UnitOut::issue_come_out` and
+  `process_come_out` on 850, on the Hoplites inside a Barracks. That function's container test is the icon arm's.
+  The icon itself is not pressed.
 - ~~**`leader_options`** (§26.1): our lobby page holds no profile prefs, and the sim does not carry
   `process_leader_options`. A page row for the auto-manage prefs would mint the 50 through `synch_with_prefs`, but a
   file carrying any other value than the recordings' needs that processor first (parked 4280b).~~ Minted from the
@@ -2805,6 +2819,9 @@ queue trains after the press (§24.4) take 1 from it. Their walk on stance 1 agr
   ours has played one minted from the button.
 - **`process_leader_options` and `set_auto_peasant_level`**, the other writers of `+0x7e`, are not ported
   (§26.1; parked 4280b).
+- **Entered by a capture** (item 4378, run1671b; `rondata::blind::TRACES`): KEYMAP_STANCE_AGGRESSIVE (`keymap_options[177]` is OPTION_STANCE with 0) over the
+  Hoplites enters `Options::do_stance`, `process_stance` and `action_stance` on 744. `GroupOut::issue_stance` was
+  entered on 760, by the DLL's `@gstance` only, since nothing calls it (Loop 3473).
 
 **Ours, not the original's:**
 
@@ -3062,6 +3079,8 @@ in run1618 (`DISBAND_ENTRIES`). `cur_anim` is `dtype · 2 + 0xd + roll % 2`: 19 
   `validate_disband`'s refusals, which the layer does not consult.
 - **A dump without `DEATHS`** reads every corpse of ours as one the original does not hold (`diff/harness.rs`'s
   `"extra"`); run1622 showed it (parked 4287b).
+- **Entered by a capture** (item 4378, run1671b; `rondata::blind::TRACES`): `GroupOut::issue_disband` on 830, `process_disband` after it, through the DLL's
+  `@gdisband`. Its one caller, the selected panel's one-object arm, is not pressed: no take has a point for it.
 - **The popup's opener** (`popup_id` 2, which `on_modal_end` turns into `OPTION_DISBAND`) was not found by grep in
   the export. Whether a confirmation stands between a key and the order is not established; the panel's case `0xf`
   issues directly.

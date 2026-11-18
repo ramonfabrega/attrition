@@ -1674,6 +1674,14 @@ impl Sim {
     ///     v = num_buildings(city) * (hits_left + 1000)
     ///     d = vector_dist(building - silo); skipped when d > reach
     ///     v /= d / 0x1200 + 1; strictly greater replaces
+    ///   then L's forts (`forts_of`, record order), the same gates:
+    ///     v = (hits_left + 1000) / (d / 0x1200 + 1)
+    ///   then L's wonders (`wonders_of`, record order), not is(0x213):
+    ///     v = damage / 100 + 1000, ×10 if my team's wonder points < my
+    ///     enemies', ×100 if get_diff > 2 and wonder_winning() is a
+    ///     non-ally; the same gates; v /= d / 0x1200 + 1
+    ///   (item 4377: run1646's `2/2035` on 5517 took the wonder `1/2033`,
+    ///   166,666, over the capital's 104,166)
     /// a target: add_air_attack_ground_order(m, its point, home -1,
     ///   QUEUE_NEW, action 1)
     /// ```
@@ -1690,9 +1698,9 @@ impl Sim {
     /// capture has reached (scan: `report.py <log> when Object::do_launch`
     /// over the 351 `rontrace-*.log` on 2026-10-07: no draw from
     /// `do_launch` in any — the arm's `% 10` roll is its only draw, so a
-    /// V2 at a silo's head over an unflagged city was never met); the
-    /// forts' and wonders' loops (`650150`..`650544`), for which this
-    /// crate keeps no list; the Armageddon counter (`Game +0x6e0`), which
+    /// V2 at a silo's head over an unflagged city was never met), whose
+    /// forts' and wonders' loops differ from the nuke's; `get_diff` read
+    /// as the game's difficulty; the Armageddon counter (`Game +0x6e0`), which
     /// no field here holds (`crate::combat::nuke`), so the gate is read as open; and the friendly search's cell ring,
     /// walked here as every object of the owner's within the radius
     /// ([`Sim::enemy_object_within`]'s same reading).
@@ -1732,6 +1740,59 @@ impl Sim {
                 }
                 let v = self.num_buildings(c) * (self.buildings[cb].health.max(0) + 1000)
                     / (d / 0x1200 + 1);
+                if v > best {
+                    best = v;
+                    target = Some(at);
+                }
+            }
+            // The forts (`650150`..`650263`): each record below `L`'s
+            // `fort_mark` in use, `(hits_left + 1000) / (d / 0x1200 + 1)`.
+            for f in self.forts_of(l) {
+                let at = self.buildings[f].pos;
+                if self.buildings[f].ever_seen == 0 || self.own_object_within(owner, at, 0x1800) {
+                    continue;
+                }
+                let d = vector_dist(at.x - silo.x, at.y - silo.y);
+                if d > reach {
+                    continue;
+                }
+                let v = (self.buildings[f].health.max(0) + 1000) / (d / 0x1200 + 1);
+                if v > best {
+                    best = v;
+                    target = Some(at);
+                }
+            }
+            // The wonders (`6502c0`..`65052c`): each record below `L`'s
+            // `wonder_mark` in use, but the Forbidden City's line
+            // (`is(0x213)`), `damage / 100 + 1000`, ×10 while my team's
+            // wonder points trail my enemies', ×100 above difficulty 2
+            // while a non-ally is winning by wonders.
+            for w in self.wonders_of(l) {
+                if self.building_is(w, crate::cities::build::Ident::ForbiddenCity) {
+                    continue;
+                }
+                let at = self.buildings[w].pos;
+                if self.buildings[w].ever_seen == 0 {
+                    continue;
+                }
+                let mut v = self.buildings[w].damage / 100 + 1000;
+                if self.team_wonder_points(owner) < self.enemy_wonder_points(owner) {
+                    v *= 10;
+                }
+                if self.ai_difficulty() > 2 {
+                    let winning = self.wonder_winning();
+                    if winning >= 0 && !self.is_ally(owner, winning as crate::Player) {
+                        v *= 100;
+                    }
+                }
+                if self.own_object_within(owner, at, 0x1800) {
+                    continue;
+                }
+                let d = vector_dist(at.x - silo.x, at.y - silo.y);
+                if d > reach {
+                    continue;
+                }
+                let v = v / (d / 0x1200 + 1);
                 if v > best {
                     best = v;
                     target = Some(at);

@@ -41123,6 +41123,16 @@ called from `take_damage_typed` on a unit after the accumulate. The gates are th
 `Nation::human` (`leader_flags & 4`, not "out" as the view's constant names it), `ai_difficulty`,
 `is_peasant`, `find_city_at`, the city building `alive && active`, and `City::alarm`.
 
+**The building's twin (item 4359, 2026-11-18).** The same function has a second bell, at lines 255–282.
+It is the tail of the `orw $0xe` arm, on a blow from another player on a building that belongs to a city
+(`BuildData +0x72 >= 0`), with the same three leader gates. It fires when the type's vslot `+0x90` answers,
+or the struck object's own `flags & 0x20` is set (the city's building), and the city's `0x40` is clear.
+This crate set the three city flags and rang nothing. Built as `Sim::city_struck_alarm`
+(`crates/sim/src/combat/fight/delivery.rs`); vslot `+0x90` is answered no, as `alarm_view`'s
+`data_type_slot90` is. It is the 2017 sample's 2887: the person's units strike computer 4's capital, its
+Citizens walk to garrison, and the walk's word moves 2888 → 2908 (`docs/RECGAME.md` §7). The cities line
+there is run1662's hook's; without the arm it parts on 2888.
+
 ### 416.3 The score, and the value diff
 
 - On block 2073 `1/3`, `1/5`, `1/60` read `damage_frac` 0 and `order:kind` 26 (GARRISON) on both sides,

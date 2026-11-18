@@ -484,7 +484,7 @@ pub struct ObjectChain {
     /// `up_who`: the object above's owner — and the last one's after it left.
     pub up_who: i8,
     above: Option<Obj>,
-    below: Option<Obj>,
+    pub(crate) below: Option<Obj>,
 }
 
 impl Default for ObjectChain {
