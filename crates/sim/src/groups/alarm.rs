@@ -119,6 +119,16 @@ impl Sim {
     /// attrition, which no shipped scenario sets.
     pub(crate) fn peasant_alarm(&mut self, u: usize) {
         let who = self.units[u].owner;
+        if std::env::var_os("RON_PROBE_4359").is_some() {
+            let x = &self.units[u];
+            let c = self.find_city_at(who, x.pos, None);
+            eprintln!(
+                "PROBE4359 f{} peasant_alarm {}/{} TI {} pos {:?} human {} diff {} peasant {} city {:?} alarm {:?}",
+                self.frame, who, x.index, x.type_index, x.pos,
+                self.cities.nation[who as usize].human, self.ai_difficulty(), self.is_peasant(u),
+                c, c.map(|c| (self.cities.cities[c].alarm, self.buildings[self.cities.cities[c].building].active))
+            );
+        }
         if self.cities.nation[who as usize].human || self.ai_difficulty() < 2 || !self.is_peasant(u)
         {
             return;
