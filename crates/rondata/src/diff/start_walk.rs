@@ -1185,6 +1185,79 @@ pub(crate) mod recording {
         );
     }
 
+    /// run1691's last state (item 4396): the original ended the demand's
+    /// game on its own under the 11,200 file, 10,929 frames, the last 10928.
+    const RUN1691_LAST: i32 = 10928;
+
+    /// run1691's agreeing states per line, in `CHECKSUM_LINES`' order (item
+    /// 4396's first act: units 9,981 and ammo 10,893 of 10,929, the rest
+    /// whole, leaders among them).
+    const RUN1691_AGREED: [u32; 12] = [
+        9981, 10929, 10929, 10893, 10929, 10929, 10929, 10929, 10929, 10929, 10929, 10929,
+    ];
+
+    /// run1691's first partings: `(line, (state, ours, theirs))` (item
+    /// 4396's first act).
+    type DemandEnd = (&'static str, (i32, Option<u32>, u32));
+    const RUN1691_FIRST: &[DemandEnd] = &[
+        ("units", (9981, Some(2715156771), 2445541469)),
+        ("ammo", (10075, Some(4012779512), 4143847442)),
+    ];
+
+    /// The first state our walk holds `game_over` on, to run1691's last:
+    /// none (item 4396's first act).
+    const RUN1691_OVER: Option<i32> = None;
+
+    /// **The demand's game to its end on run1691** (item 4396,
+    /// `docs/LEADERS.md` §8.6): the same lobby minted at `RON_MINT_FRAMES`
+    /// 11,200 and played by the original under `RON_CHECKSUMS`, which ends
+    /// the game itself on 10929. Every one of the twelve lines on every
+    /// state to the take's last, and the first state our walk holds
+    /// `game_over` on. `RON_DEMAND_END_RCX` and `RON_DEMAND_END_TAKE`, else
+    /// where the take left them.
+    #[test]
+    fn the_demand_s_game_to_its_end_on_run1691() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::env::var("HOME").unwrap_or_default();
+        let rcx = std::env::var("RON_DEMAND_END_RCX").unwrap_or_else(|_| {
+            format!("{home}/ron-golden/recordings/item4396-demand-greatlakes-style0-d2-11200.rcx")
+        });
+        let take = match std::env::var("RON_DEMAND_END_TAKE") {
+            Ok(p) => Some(std::path::PathBuf::from(p)),
+            Err(_) => {
+                let dir = std::path::PathBuf::from(format!("{home}/ron-golden/run1691/map-14"));
+                crate::testenv::experiment(&dir, "rontrace.log")
+            }
+        };
+        let (true, Some(take)) = (std::path::Path::new(&rcx).exists(), take) else {
+            eprintln!("skipping: no demand end file or no run1691 take");
+            return;
+        };
+        let score = crate::checksum::playback::compare_until(
+            inst.root(),
+            rcx.as_ref(),
+            &take,
+            Some(RUN1691_LAST),
+        )
+        .expect("scored");
+        let first: Vec<_> = crate::checksum::CHECKSUM_LINES
+            .iter()
+            .zip(&score.first)
+            .filter_map(|(l, f)| f.map(|f| (l.0, f)))
+            .collect();
+        eprintln!(
+            "DEMAND END states {} agreed {:?} first {first:?} over {:?}",
+            score.states, score.agreed, score.over
+        );
+        assert_eq!(
+            (score.states, score.agreed, first, score.over),
+            (10929, RUN1691_AGREED, RUN1691_FIRST.to_vec(), RUN1691_OVER),
+            "run1691: states, each line's agreeing states, the first partings, ours' end"
+        );
+    }
+
     /// **Item 4387's game** (`docs/LEADERS.md` §8.2, `docs/RECGAME.md`
     /// §8.2): the harness lobby at `TEAM_STYLE 0`, `DIFFICULTY 2`, seed
     /// 12345 — the sweep's earliest demand, the French on the human on 6081
