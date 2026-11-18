@@ -123,7 +123,9 @@ pub struct Army {
     /// `Object::get_army@00649d70` answers −1 for every member and
     /// `add_to_army` re-runs on each 32-frame edge. Only `Army::add_unit`'s
     /// own push (`Army::add_group`) writes that word back, so the push arm
-    /// clears this.
+    /// clears this; and `do_forming`, `march_to_target` and `send_here`
+    /// write the army's id there too ([`Sim::army_claim_record`], item
+    /// 4395), so the army's next tick that reaches one clears it.
     pub adopted: bool,
 }
 
@@ -1419,9 +1421,23 @@ impl Sim {
             a.pos = p;
             a.muster = p.cell();
         }
+        // `send_here@006f98a0:48`: each populated group's record takes the
+        // army's id before the move ([`Army::adopted`]).
+        if !self.ai.armies[w].list[slot].units.is_empty() {
+            self.army_claim_record(who, slot);
+        }
         let ang = self.ai.armies[w].list[slot].muster_angle;
         let g = self.army_group(who, slot);
         self.group_action_move_to(&g, p, QueuePos::New, true, ang, kind, true);
+    }
+
+    /// **A group record takes its army's id** (item 4395): `do_forming`,
+    /// `march_to_target` and `send_here` each write the army's own id
+    /// (`+2`) into a populated group record's `army` (`+8`), so an
+    /// adopted record ([`Army::adopted`]) is the army's again and
+    /// `Object::get_army@00649d70` answers it.
+    pub(crate) fn army_claim_record(&mut self, who: Player, slot: usize) {
+        self.ai.armies[who as usize].list[slot].adopted = false;
     }
 
     /// `Army::charge(o, who)`: a siege unit under attack drags its army
@@ -2650,7 +2666,11 @@ impl FormView for FormSim<'_> {
     fn group_populated(&mut self, _: i32) -> bool {
         true
     }
-    fn group_claim(&mut self, _: i32) {}
+    /// `do_forming@006f43c0:39`: the record's `army` takes the army's id,
+    /// so an adopted record is the army's again ([`Army::adopted`]).
+    fn group_claim(&mut self, _: i32) {
+        self.sim.army_claim_record(self.who, self.slot);
+    }
     fn hurry(&self) -> bool {
         self.sim.ai.armies[self.who as usize].list[self.slot].hurry != 0
     }
@@ -2996,7 +3016,11 @@ impl MarchToView for MarchToSim<'_> {
     fn group_populated(&mut self, _: i32) -> bool {
         true
     }
-    fn group_claim(&mut self, _: i32) {}
+    /// `march_to_target@006f4d80:91`: the record's `army` takes the
+    /// army's id ([`Army::adopted`]).
+    fn group_claim(&mut self, _: i32) {
+        self.sim.army_claim_record(self.who, self.slot);
+    }
     fn target_city_centre(&mut self) -> bool {
         match self.army().target {
             Some(Obj::Building(b)) => {
