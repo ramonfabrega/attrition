@@ -1142,6 +1142,16 @@ pub(crate) mod tests {
         out
     }
 
+    #[test]
+    fn probe_4382_donors() {
+        if std::env::var("RON_PROBE_4382").is_err() { return; }
+        for f in recordings_on_disk() {
+            let Ok(r) = read(&f) else { eprintln!("UNREAD {f}"); continue; };
+            let slots: Vec<String> = r.slots.iter().filter(|s| s.active()).map(|s| format!("f{:x}/t{}/w{}/tm{}/d{}", s.flags, s.tribe, s.who, s.team, s.diff)).collect();
+            eprintln!("DONOR {} trunc={} seed={} opts={:?} slots={:?} {}", r.version, r.truncated.len(), r.seed, r.options, slots, f.rsplit('/').next().unwrap());
+        }
+    }
+
     /// One recording through the round trip: decompress, parse, re-encode
     /// every payload from its decoded commands, write, compare. `Err` names
     /// the first byte where the two streams part, or the parse's own error.
