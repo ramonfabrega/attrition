@@ -18,6 +18,7 @@
 //! The hook's frame `-1` is setup's `check_all`, our frame 0.
 
 use super::minted::{built_start, minted, script};
+use crate::checksum::state::held;
 use crate::checksum::{CHECKSUM_LINES, Record};
 use crate::trace::checksums::{Set, per_frame, sets, summary};
 
@@ -428,30 +429,6 @@ const LEADERS_K: usize = 7;
 /// frame but 0, whose census leaves stand; run1577 stands at 119.
 const LEADERS_AGREE: &[(&str, usize, usize)] =
     &[(RUN1577_TRACE, 120, 120), (RUN1578_TRACE, 24000, 24000)];
-
-/// **What the three empty lines' walkers would find on our side**
-/// (`docs/CHECKSUM.md` §8, item 4355): `[walls, shots in flight, death
-/// objects]` at the moment the other lines are taken.
-///
-/// - Walls: `check_walls@00937360` walks each seated leader's objects
-///   from `obj_base[2]` (the 3000 band) to its mark whose data
-///   `flags & 1`; ours are the live [`sim::Building`]s at
-///   `index >= WALL_BASE`.
-/// - Ammo: `check_ammo@009374e0` walks the pool at `Objects +0x12c` whose
-///   element's `flags & 3`; ours is [`sim::combat::CombatState`]'s
-///   `projectiles`, whose every entry is in flight (a landing removes it).
-/// - Deaths: `check_deaths@00936bb0` walks the 100 `DeathObj` slots at
-///   `Objects +0x14c` whose first word is not 0; ours are the dead units'
-///   [`sim::combat::Death`]s, each culled with its last live record — so
-///   an empty list is no live record, and the count is units, not records.
-fn held(sim: &sim::Sim) -> [usize; 3] {
-    let walls = sim
-        .buildings
-        .iter()
-        .filter(|b| b.alive && b.index >= sim::WALL_BASE)
-        .count();
-    [walls, sim.combat.projectiles.len(), sim.combat.deaths.len()]
-}
 
 /// **Parity's empty-lines row** (item 4355, `docs/CHECKSUM.md` §24.3;
 /// `docs/DECISIONS.md` entry 140 §1): per take, `(trace, the frames on

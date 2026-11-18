@@ -96,21 +96,7 @@ impl Pieces {
 /// Our walk's twelve lines, in [`STATE_LINES`]' order. The walls, ammo and
 /// deaths lines have no emitter in the crate and are empty.
 pub(in crate::diff) fn our_lines(sim: &sim::Sim, pieces: &Pieces) -> Vec<Line> {
-    let p = build_pieces_with(sim, &pieces.look, &pieces.tribes);
-    vec![
-        sim.checksum_units(),
-        sim.checksum_builds(&|b| p.get(&b).copied().unwrap_or(-1)),
-        Line::default(),
-        Line::default(),
-        Line::default(),
-        sim.checksum_groups(),
-        sim.checksum_guys(),
-        sim.checksum_leaders(),
-        sim.checksum_cities(),
-        sim.checksum_items(),
-        sim.checksum_goods(),
-        sim.checksum_world(),
-    ]
+    crate::checksum::state::ranges(sim, &pieces.look, &pieces.tribes).into()
 }
 
 /// The twelve lines held range by range against a packet's stream.

@@ -38407,3 +38407,22 @@ It was waited on with `waitrun.sh` in the background. `df -g ~` read 191 GB free
 Archive `gamelog-run1656-greatlakes-playback-of-picked-7500.txt`, 162,697,261 bytes,
 SHA-256 `67db4c2cbf29bc63dbd05add67d02609e3a8ae00d3e269a9ee2b49e03910fedf`; `rontrace-run1656.log`, 36,068,544
 bytes, SHA-256 `30baa1190df53f1df6fa373a8a72c1d0ad408ed10432889e7bde1c7a3171680a`.
+
+## Great Lakes live window, short take (2026-11-17, Codex branch, item 4362)
+
+Independent playtest under `~/ron-data/lab-experiments/2026-11-17-codex-live-recording/`.
+`window-short.rcx` (59,249 bytes, SHA-256 `19114450b989dbe7a2cf92f3dd7e1137639d1c8d9db820c9438f287d954fe050`)
+came from the window. `short.log` records both actions at frame 30. `oracle-short/map-14/` holds
+the original's trace, game log, profile backups and receipt. The replay completed 427, restored
+five settings and exited 0. RECGAME §10 gives the twelve-line comparison through its terminal state.
+
+## Great Lakes live window, longer take (2026-11-17, Codex branch, item 4362)
+
+Same independent archive. `window-long.rcx` (59,304 bytes, SHA-256
+`122946d66018e0f732ccdb5bd863b679639d591c23c3a189d9e2311c265447b2`) carries the seven
+packages in `long.log`. Closing frame 9475. The capture target is `oracle-long/map-14/`; the
+detail window covers the disband at 8407 and the pause and resume at 8424. The receipt reports
+667.6 seconds launch to exit, 9476 frames, last frame 9475, exit 0 and five settings restored.
+Trace SHA-256 `1448693db8a3e73754aa13e0afff3aecbefb2c92b6f8ae7ea59fe1ff2c821412`.
+The short trace SHA-256 is `3e852283d5ec358e1af5cbe8826cf11fb227256acef7fc8e13544b52cb6b322a`.
+The comparison through the closing states is in RECGAME §10.

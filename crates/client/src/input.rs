@@ -2162,10 +2162,6 @@ impl Input {
     /// `who`. That is not always the package's `play` ([`Input::player`]):
     /// the 2017 sample's human is `who` 3 on play 0, and every lobby of
     /// ours is `who` 0 on play 0.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "the census mints it; no window writes a file yet")
-    )]
     pub fn leader_options(&self, who: u8) -> Command {
         self.prefs.issue_leader_option(i32::from(who))
     }

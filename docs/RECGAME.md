@@ -731,3 +731,53 @@ parts from run53 on.
   frames only the draws of 4058's walk are known for this lobby.~~ Run:
   run1561 above, 24,000 of 24,000. Past frame 299 it compares draws and
   the closing record, not every frame's records.
+
+## 10. Recording the live window
+
+`client --record OUT.rcx --play` opens the lobby page. Starting the page
+builds the recording header from the selected choices and a matching local
+donor using §8.2. The client issues slot 0's opening preferences to the
+runner at frame 0. The first interactive frame defaults to 1. An explicit
+`--frame N` opens on the state reached after the first N ticks, each of
+which is still part of the recording. The recording supports a human in
+slot 0. The exercised lobby is Great Lakes, seed 12345, tribes 4 and 11.
+
+The recorder receives each order that the window sends to the turn pump.
+Events issued between simulation ticks share a package in input order.
+When paused, the frame stands still and the next turn can have another
+package with that frame. The 512-byte cap applies to the whole package.
+A refused order restores the input state and does not reach the sim.
+Closing the window applies a final waiting order when the game is
+running. Closing during a game pause saves through the last completed
+tick and reports any inputs still waiting for resume. The completed
+file is published at an unused path. Cancelling on the lobby page before
+Start writes no recording.
+
+The local replay check reads the saved header, builds the start and pumps
+the file's decoded commands. On every state from 0 through the closing
+frame inclusive it compares all twelve lines to the original's first
+checksum set tagged one frame earlier (setup is −1). A held wall, shot or
+death whose bytes we cannot emit is reported as `unemitted`. Each line
+reports its agreeing states and the values on the first differing state.
+Exit 0 means all states agree, 1 means a measured difference, and 2 means
+the comparison could not complete.
+
+```sh
+cargo run --release -p rondata --example score_recording -- /path/to/install OUT.rcx /path/to/rontrace.log
+```
+
+In the short window take, two actions on frame 30 moved scout 0 to
+(3281, 33851) and queued type 50 at building 2000. The 59,249-byte file
+rebuilds byte for byte. All twelve lines match at states 0 through 427.
+Changing only the move's X coordinate to 3409 parts units, groups and guys
+on state 31, and world on 34.
+
+The longer take closed on 9475 (10 minutes 31 seconds by the game's clock).
+All twelve lines agree through state 8407. The scout disbanded on 8407.
+On 8408 the original holds two death records for object 0/0, pieces 371
+and 13043, both with first frame 8407 and animation 15. Their Adler is
+826547225. Our death list is occupied and its emitter returns no value.
+Units and groups first differ on 9211. The other nine lines agree on all
+9,476 states. The new replay tests pin both whole games, including each
+differing line's first state and both values. RECGAME §8's rule section
+still requires a donor. Neither take establishes weapon-fired combat.

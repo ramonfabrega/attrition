@@ -687,26 +687,7 @@ fn build_pieces(sim: &sim::Sim) -> std::collections::BTreeMap<usize, i32> {
     build_pieces_with(sim, &look, &tribes)
 }
 
-/// [`build_pieces`] on a look and tribes read once, for a walk that takes
-/// the builds line on many frames (item 4188, [`packets`]).
-fn build_pieces_with(
-    sim: &sim::Sim,
-    look: &crate::artdata::BuildLook,
-    tribes: &[crate::TribeDef],
-) -> std::collections::BTreeMap<usize, i32> {
-    let scene = sim.observe(None);
-    let placed = crate::free::placed_buildings(&scene, look, tribes);
-    let mut out = std::collections::BTreeMap::new();
-    for (i, b) in sim.buildings.iter().enumerate() {
-        if let Some(p) = placed
-            .iter()
-            .find(|p| p.who == b.owner && p.o == b.index && b.alive)
-        {
-            out.insert(i, p.piece);
-        }
-    }
-    out
-}
+use crate::checksum::state::build_pieces_with;
 
 /// The pinned outcome of the builds line on run 1562's packet:
 /// `(buildings, ranges, bytes, ranges parted, bytes in the ranges that
