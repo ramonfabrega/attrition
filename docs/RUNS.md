@@ -38660,3 +38660,24 @@ slot, oil flag, original slot, and whole-body agreement before and after
 by position and by object. The first print run also exposes the three
 supplemental pins that needed updating. `group-frontiers.py` takes this
 report and the original packets directory to reproduce the next candidate.
+
+## Item 4373 — world checksum allocation and replay timing (2026-11-18)
+
+The directory is `~/ron-data/lab-experiments/2026-11-18-codex-world-checksum-cost`.
+Run `zsh tools/check.sh build --release -p rondata --lib` at the version
+under test. Build the archived probes with `rustc -O --edition=2021`,
+`-L dependency=target/release/deps` and `--extern` for the matching
+`rondata` and `sim` release rlibs. Both take the install and
+`window-{a,b}.rcx` from the 4365 archive. `world-allocations.rs` counts
+allocation and reallocation requests at frames 0, 500, 1500 and 3000.
+`world-equivalence.rs` checks every world range through closing.
+`equal-{a,b}.txt` and the before/after allocation tables are their results.
+
+The paired timing ledger runs the release test executable with
+`--exact checksum::playback::combat::the_combat_window_{a,b}_matches_every_line_through_closing --test-threads 1`
+under a one-CPU, 1024 MiB reservation. Supply `RON_INSTALL` and use the
+same game fixtures. The earlier binary was built at `3bb34bbdd`. Each
+version's digest and each individual run log accompany
+`paired-whole-window-timing.tsv`. The 4371 evidence directory also
+retains the sampling probe `score-cost.rs`; compare its game A/B baseline
+files with `score-cost-after-{a,b}.txt` here for per-stage timings.

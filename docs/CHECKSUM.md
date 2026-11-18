@@ -2049,6 +2049,14 @@ asserts a whole section's Adler against the record's printed line.
 `CHECKSUM_STATE` counts it since item 4150: 8 of 12 lines, 367,156 of
 425,499 bytes (§5). Ours summed to 1150679858 at item 4148.
 
+Both outputs use one section traversal. The byte output packs each cell's
+16 scalar fields directly at their declared widths and does the same for
+the collision-block presence and header words (4373). A missing scalar
+contributes a zero value at its declared width. The detailed output
+retains its missing-field marker. Every held packet checks range
+count, record, field, order and bytes against the detailed output before
+comparison with its original stream.
+
 **The record prints a sum per section.** Record 3201's sixteen `World`
 lines are frame 91's sections 0 to 14 and the whole: cut by call site and
 walk order, each section's Adler over the stream is its printed line, all

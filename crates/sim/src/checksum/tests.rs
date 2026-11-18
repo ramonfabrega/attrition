@@ -14,6 +14,63 @@ fn adler32_is_zlib_s() {
     assert_eq!(adler32(adler32(1, b"Wiki"), b"pedia"), 0x11E6_0398);
 }
 
+#[test]
+fn world_bytes_preserve_missing_fields_and_collision_block_transitions() {
+    use crate::world::{Cell, World};
+    let mut sim = crate::Sim::new(crate::Tuning::RON, World::new(4, 6), 2);
+    let cell = Cell::new(1, 2);
+    let record = (cell.y * sim.world.width() + cell.x) as i16;
+    let mut data = sim.world.cell_data(cell);
+    data.flags = 0xb21e;
+    data.land = -2;
+    sim.world.set_cell_data(cell, data);
+
+    for present in [false, true] {
+        if present {
+            sim.movement
+                .coll
+                .set(cell.x * 16 + 3, cell.y * 16 + 1, true);
+        }
+        let line = sim.checksum_world();
+        let image = sim.world_image();
+        assert_eq!(line.ranges.len(), image.len());
+        for (raw, detail) in line.ranges.iter().zip(&image) {
+            assert_eq!((raw.record, raw.field), (detail.record, detail.field));
+            assert_eq!(
+                raw.bytes,
+                detail.bytes(),
+                "record {} {}",
+                raw.record,
+                raw.field
+            );
+        }
+        let cell = image
+            .iter()
+            .find(|r| r.record == record && r.field == "cell")
+            .unwrap();
+        assert!(
+            cell.leaves
+                .iter()
+                .any(|l| l.name == "was_seen" && l.values.is_none())
+        );
+        let r = line
+            .ranges
+            .iter()
+            .find(|r| r.record == record && r.field == "cell")
+            .unwrap();
+        assert_eq!(&r.bytes[..3], &[0x1e, 0xb2, 0xfe]);
+        assert_eq!(r.bytes.last(), Some(&0));
+        let block = line
+            .ranges
+            .iter()
+            .find(|r| r.record == record && r.field == "block.body");
+        assert_eq!(block.is_some(), present);
+        if let Some(block) = block {
+            assert_eq!(block.bytes[6], 2, "unit-cell bit (3, 1)");
+        }
+    }
+}
+
 /// One box makes five ranges and 22 bytes, its coordinates under the mask;
 /// a taken box is not walked.
 #[test]

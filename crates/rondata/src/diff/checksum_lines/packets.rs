@@ -329,7 +329,27 @@ pub(super) fn walk_packets_with(
             "{run}: the walk's frame"
         );
         at += 1;
-        let lines = compare(&our_lines(&built.sim, &pieces), theirs);
+        let ours = our_lines(&built.sim, &pieces);
+        let world = ours.iter().find(|l| l.name == "world").expect("world line");
+        let detailed = built.sim.world_image();
+        assert_eq!(
+            world.ranges.len(),
+            detailed.len(),
+            "{run} world range count"
+        );
+        for (i, (range, fields)) in world.ranges.iter().zip(detailed).enumerate() {
+            assert_eq!(
+                (range.record, range.field),
+                (fields.record, fields.field),
+                "{run} world range {i}"
+            );
+            assert!(
+                range.bytes == fields.bytes(),
+                "{run} world range {i} {}",
+                range.field
+            );
+        }
+        let lines = compare(&ours, theirs);
         let empty = StreamRows::new();
         let leaves = leader_leaf_rows(&built.sim, theirs.get("leaders").unwrap_or(&empty));
         out.push(Walked {
