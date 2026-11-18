@@ -38638,3 +38638,25 @@ and the updated first-range comparator. The arguments are install, long
 lobby dump, logger frame and original stream. The runs are 1185/4582,
 1359/5619 and 1437/3894. `packet-timing-4371.txt` retains six alternating
 process-level timings per version and game.
+
+## Item 4372 — fort and oil installation slots in the building checksum (2026-11-18)
+
+Use the 4371 directory. The 107 keys, `building-registers.py` and
+`building-registers-original.txt` identify the original slots by type.
+`before-run{1185,1326,1359}.txt` records the simulator's existing slots
+before the checksum change. The four-game `building_slots_match_the_original_build_data`
+test checks the two-byte slot and the 22-byte range. Its deliberate failure
+on the old code is `before-whole-4372.log`. The strict corpus run is
+`strict-4372.log` and both complete game recordings are in `windows-4372.log`.
+
+The one-time `survey-4372.rs` contains the full object-keyed sweep.
+To reproduce on this checkpoint, use its `survey` function in the
+`packets::building_slots` test module. In `walk_packets_with`, retain the
+output of `our_lines` as `images` and call
+`building_slots::survey(run, &built.sim, &images[1], &theirs["builds"])`
+immediately before `compare`. Use the 4371 print command.
+The `SLOTROW` entries in `survey-4372.log` carry player, object,
+slot, oil flag, original slot, and whole-body agreement before and after
+by position and by object. The first print run also exposes the three
+supplemental pins that needed updating. `group-frontiers.py` takes this
+report and the original packets directory to reproduce the next candidate.

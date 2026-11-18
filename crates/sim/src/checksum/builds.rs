@@ -267,15 +267,15 @@ impl Sim {
         p(0x72, 2, city);
         p(0x74, 2, city_down);
         p(0x76, 2, self.build_wonder_slot(b));
-        let u78 = self
+        let slot = self
             .cities
             .farm_order
             .iter()
             .position(|&x| x == b)
-            .map(|i| i as i64)
-            .or(bd.dock_slot.map(|d| d as i64))
-            .unwrap_or(-1);
-        p(0x78, 2, u78);
+            .or(bd.dock_slot)
+            .or(bd.fort_slot)
+            .or(bd.oil_slot);
+        p(0x78, 2, slot.map_or(-1, |i| i as i64));
         p(0x7a, 2, i64::from(bd.recharging));
         let target = bd.target.map_or((-1, -1), |o| self.obj_o_who(o));
         p(0x7c, 2, target.0);

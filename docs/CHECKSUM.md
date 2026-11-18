@@ -1148,9 +1148,14 @@ changes.
   zeroes `+0x64`'s two bytes; no writer is read).
 - **`BuildData`**: `gather_down` derives (the newest gatherer), `city` (the
   city's place in its owner's list) and `city_down` (the next building of
-  the city's chain, `city_chain`) derive; `wonder` is init's −1
-  (`Build::init@00629740`); the union at +0x78 derives (a farm's place in
-  `Farms`' list, a dock's slot, else −1); `recharging` holds (~~and
+  the city's chain, `city_chain`) derive. Since item 4262, `wonder`
+  carries its owner's list slot after activation and otherwise reads −1.
+  The union at +0x78 derives (a farm's place in
+  `Farms`' list, a dock's slot, a fort's or oil installation's slot in
+  its owner's list, else −1). Item 4372 checks this against every byte of
+  220 affected original bodies across 107 packets. The held oil slots
+  range from 0 to 10 and fort slots from 0 to 2. A well still awaiting
+  activation on run1359 reads −1. `recharging` holds (~~and
   **parts**~~ — agrees since item 4097);
   `attack_ox`/`attack_whom` derive from `target`; `stance` derives
   (`Sim::build_stance`, `BuildTypeData::get_stance_type@006396c0`'s
