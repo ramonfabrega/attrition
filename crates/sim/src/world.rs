@@ -563,6 +563,69 @@ const fn move_289() -> [(i32, i32); 289] {
     out
 }
 
+/// `move_x[0 .. 441]` / `move_y[0 .. 441]` — the whole 21 × 21, of which
+/// [`MOVE_289`] is the first 289. `Nuke::do_damage@0092bc80`'s building
+/// arm is the reader that walks past it (item 4377, `docs/LEADERS.md`
+/// §8.2: its ring is capped at 10).
+///
+/// **Rings 9 and 10 are neither a clean walk nor rings 4 to 8's rule**
+/// (read from `.rdata` at `0xadcaf0`/`0xadc400`, entries 289 to 440, on
+/// 2026-11-18, item 4374): the top runs `x = −r ..= r−1` at `y = −r`, the
+/// right `y = −r+1 ..= r` at `x = r`, the bottom `x = r ..= −r+1` at
+/// `y = r` — so `(r, r)` is visited twice — the left `y = r−1 ..= −r+1` at
+/// `x = −r`, and the ring's last entry is `(−9, −10)` for ring 9 and
+/// `(−10, 0)` for ring 10. `(r, −r)` and `(−r, r)` are never visited.
+/// Entry 441, one past the array, is `(6357110, 120)`: off any map.
+pub const MOVE_441: [(i32, i32); 441] = move_441();
+
+const fn move_441() -> [(i32, i32); 441] {
+    let mut out = [(0, 0); 441];
+    let mut i = 0;
+    while i < MOVE_289.len() {
+        out[i] = MOVE_289[i];
+        i += 1;
+    }
+    let mut r = 8;
+    while r < 10 {
+        r += 1;
+        let mut x = -r;
+        while x < r {
+            out[i] = (x, -r);
+            i += 1;
+            x += 1;
+        }
+        let mut y = -r + 1;
+        while y <= r {
+            out[i] = (r, y);
+            i += 1;
+            y += 1;
+        }
+        let mut x = r;
+        while x > -r {
+            out[i] = (x, r);
+            i += 1;
+            x -= 1;
+        }
+        let mut y = r - 1;
+        while y > -r {
+            out[i] = (-r, y);
+            i += 1;
+            y -= 1;
+        }
+        out[i] = if r == 9 { (-9, -10) } else { (-10, 0) };
+        i += 1;
+    }
+    out
+}
+
+/// `radius[k]` (`.rdata` `0xadd1e0`): `(2k + 1)²`, the cells within
+/// Chebyshev distance `k` — `1, 9, 25, …, 441` for `k = 0 ..= 10`. A walk
+/// `i = 0 ..= radius[k]` (the splash's and the nuke's `jle`) reads one
+/// entry past the square.
+pub const fn move_radius(k: i32) -> usize {
+    ((2 * k + 1) * (2 * k + 1)) as usize
+}
+
 /// One of the map's **goods** — a Fish, a Whale, an Oil patch, a rare —
 /// as `Objects::init_good@00653f30` lays them out before the first frame.
 ///

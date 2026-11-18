@@ -305,3 +305,51 @@ fn the_full_gather_reaches_one_cell_and_stays_on_the_map() {
     // (5, 5) is the far corner: three of its nine are off the map.
     assert_eq!(w.gather_at(Cell::new(5, 5), false)[Timber as usize], 0);
 }
+
+/// **`MOVE_441` and `radius` are the shipped tables, entry for entry**
+/// (item 4377): `move_x` at VA `0xadcaf0`, `move_y` at `0xadc400`, each
+/// `int[441]`, and `radius` at `0xadd1e0`, read from the install's
+/// `riseofnations.exe` through its section table. Made to fail with ring
+/// 9's last entry written `(−9, −9)`, the clean walk's.
+#[test]
+fn the_441_walk_is_the_executable_s() {
+    let Some(install) = crate::testenv::install_root() else {
+        eprintln!("skipping: no install (set RON_INSTALL)");
+        return;
+    };
+    let pe = std::fs::read(format!("{install}/riseofnations.exe")).expect("riseofnations.exe");
+    let u32_at = |o: usize| u32::from_le_bytes(pe[o..o + 4].try_into().unwrap());
+    let u16_at = |o: usize| u16::from_le_bytes(pe[o..o + 2].try_into().unwrap());
+    let nt = u32_at(0x3c) as usize;
+    let sections = u16_at(nt + 6) as usize;
+    let table = nt + 24 + u16_at(nt + 20) as usize;
+    let int_at = |va: u32| -> i32 {
+        (0..sections)
+            .find_map(|i| {
+                let s = table + 40 * i;
+                let (size, rva, raw) = (u32_at(s + 8), u32_at(s + 12), u32_at(s + 20));
+                let start = 0x40_0000 + rva;
+                (start..start + size)
+                    .contains(&va)
+                    .then(|| u32_at((raw + va - start) as usize) as i32)
+            })
+            .expect("the address is in a section")
+    };
+    for (i, &(dx, dy)) in MOVE_441.iter().enumerate() {
+        let k = 4 * i as u32;
+        assert_eq!(
+            (int_at(0xadcaf0 + k), int_at(0xadc400 + k)),
+            (dx, dy),
+            "entry {i}"
+        );
+    }
+    for k in 0..=10 {
+        assert_eq!(
+            int_at(0xadd1e0 + 4 * k as u32),
+            move_radius(k) as i32,
+            "radius[{k}]"
+        );
+    }
+    // One past the array: off any map.
+    assert!(int_at(0xadcaf0 + 4 * 441) > 1 << 20);
+}
