@@ -4574,6 +4574,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (2095, 2095, 15) -> (2095, 2095, 13).
     // Item 4257, the garrison chain's order: builds (2095, 2095, 13) -> (2095, 2095, 11).
     // Item 4266, a guard order's walker: units (5770, 5605, 4899) -> (5770, 5770, 21).
+    // Item 4388, `Leader::init`'s row on the unseated slots (`diplos[2..7]` 0|1): leaders (271, 271, 5) -> (271, 271, 3).
     (
         "run854",
         3301,
@@ -4585,7 +4586,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (640, 640, 7),
             (1794, 1794, 0),
-            (271, 271, 5),
+            (271, 271, 3),
             (36, 36, 0),
             (5, 5, 0),
             (330, 330, 0),
@@ -5857,7 +5858,8 @@ fn run1629_take_packet() {
 /// no start dump and no correction: the units, builds, groups, guys and
 /// world lines part on 1, 4, 2, 1 and 1 ranges, and the leaders line on 6
 /// of 403, each leader's long range, on the three leaves of
-/// [`TAKE1645_LEAF_PARTINGS`].
+/// [`TAKE1645_LEAF_PARTINGS`]. Item 4388: leaders 6 → 3, `ally_mask` and
+/// the unseated slots' `diplos` agreeing.
 const TAKE1645_PINNED: Pinned = (
     "run1645",
     1000,
@@ -5869,7 +5871,7 @@ const TAKE1645_PINNED: Pinned = (
         (0, 0, 0),
         (556, 556, 2),
         (1261, 1261, 1),
-        (403, 403, 6),
+        (403, 403, 3),
         (9, 9, 0),
         (30, 30, 0),
         (405, 405, 0),
@@ -5885,8 +5887,10 @@ const TAKE1645_PINNED: Pinned = (
 /// `Leader::set_diplo@006ec6a0` and `Leader::plan_strategy@006b9620:205`
 /// give an allied leader under `ALLY_LOS` or `reveal_map` are not carried
 /// (item 4313's journal, parked 4313a). `cities_built`, which parts on both
-/// take packets before, agrees here.
-const TAKE1645_LEAF_PARTINGS: &str = "ally_mask diplos flags.leader_flags";
+/// take packets before, agrees here. **Item 4388** carried both: the
+/// French `ally_mask` 3|1 agrees (`set_diplo`'s bits), and `diplos` on the
+/// unseated slots (`Leader::init`'s row, `get_player`'s record 0).
+const TAKE1645_LEAF_PARTINGS: &str = "flags.leader_flags";
 
 /// **The leaf the reseated taunt's packet releases** (item 4313;
 /// `docs/DECISIONS.md` entry 131 §1): `incoming_taunt_who`, written on 906

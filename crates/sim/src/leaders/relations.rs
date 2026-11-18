@@ -127,8 +127,7 @@ impl Sim {
     /// `Leader::init` writes `diplos` directly and runs no army
     /// ([`Sim::init_diplos`]).
     ///
-    /// SEAM: the rest of the body — `eject_my_shit_from_his_ass` and the
-    /// `ally_mask` (`+0x6929`) bits on leaving and entering an alliance,
+    /// SEAM: the rest of the body — `eject_my_shit_from_his_ass`,
     /// the third-party message, the alliance's victory test and
     /// `recalc_borders` — is not carried here (`docs/LEADERS.md` §10.2).
     pub fn set_diplo(&mut self, a: Player, b: Player, level: i32) {
@@ -140,8 +139,26 @@ impl Sim {
             0 | 2 => level,
             _ => 1,
         };
-        if self.diplos(x, y) == level {
+        let was = self.diplos(x, y);
+        if was == level {
             return;
+        }
+        // `Leader::set_diplo@006ec6a0:44`, `:108`: leaving an alliance
+        // takes each leader's bit out of the other's `ally_mask`
+        // (`+0x6929`); entering one puts it in, under `has_preq(ALLY_LOS)
+        // || reveal_map` as `Leader::init`'s arm (item 4388: run1645's
+        // person, allied with the French, finishes building 2017 with
+        // `ever_seen_completed` 3).
+        let reveal = self.ai.lobby.reveal_map != 0;
+        for (p, q) in [(x, y), (y, x)] {
+            if let Some(l) = self.ai.ai.get_mut(p) {
+                if was == 2 {
+                    l.census.ally_mask &= !(1u32 << (q & 0x1f));
+                }
+                if level == 2 && reveal {
+                    l.census.ally_mask |= 1u32 << (q & 0x1f);
+                }
+            }
         }
         for (p, q) in [(x, y), (y, x)] {
             self.leaders.at_war[p][q] = level == 0;

@@ -774,12 +774,15 @@ impl Sim {
     /// `Wall::activate@0063e4b0` ors into `ever_seen_completed`. At the
     /// start it is `Leader::init`'s, which holds only the teammates
     /// initialised before `who` (item 4388); [`Sim::seen_ally_mask`] for a
-    /// slot with no leader record.
+    /// slot with no leader record. Every writer of the byte sets the
+    /// leader's own bit first, so it is or'd in here for a start no
+    /// `Leader::init` built (the harness's, seeded from a dump).
     pub(crate) fn stored_ally_mask(&self, who: crate::Player) -> u8 {
-        self.ai
-            .ai
-            .get(who as usize)
-            .map_or_else(|| self.seen_ally_mask(who), |l| l.census.ally_mask as u8)
+        let own = 1u8 << (who & 7);
+        self.ai.ai.get(who as usize).map_or_else(
+            || self.seen_ally_mask(who),
+            |l| l.census.ally_mask as u8 | own,
+        )
     }
 
     /// `Wall::check_ever_seen@0063ce70` — who has ever *looked* at this
