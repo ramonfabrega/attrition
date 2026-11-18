@@ -13401,6 +13401,120 @@ pub(crate) mod tests {
     const ARMS_RCX: &str = "ron-golden/recordings/item4361-arms-greatlakes-24000.rcx";
     const ARMS_RCX_BYTES: usize = 59_813;
 
+    /// **The transport press's stage 0** (item 4363, `docs/CLIENT_INPUT.md`
+    /// §32.14): on [`script::TRANSPORT_FRAME`] of the walk under the arms'
+    /// script, the Citizen [`script::TRANSPORT_UNIT`]'s pixel at the opening
+    /// camera, where the press selects it.
+    const TRANSPORT_AT: (i32, i32) = (833, 638);
+
+    /// The transport file's events: the arms', then a press on the citizen
+    /// and `OPTION_TRANSPORT`'s press at the layer past the HUD's greying.
+    fn transport_events() -> Vec<Scripted> {
+        let mut e = arm_events();
+        let (x, y) = TRANSPORT_AT;
+        e.push((script::TRANSPORT_FRAME, None, Event::Press { x, y }));
+        e.push((script::TRANSPORT_FRAME, None, Event::Transport));
+        e
+    }
+
+    /// **`INPUT_TRANSPORT_FILE`** (item 4363): the transport file's events,
+    /// through the HUD and the layer (`mint_with_sim`), mint
+    /// [`script::picked_transport`] field for field, of 41.
+    const INPUT_TRANSPORT_FILE: usize = 41;
+
+    /// **The transport file's count**: stage 0 on [`script::TRANSPORT_FRAME`]
+    /// — the citizen is slot 0's and where the press lands, the standard
+    /// panel the HUD draws for it holds `OPTION_TRANSPORT` greyed (slot 0's
+    /// level 0 under the citizen's `transport_type`), and a press on that
+    /// button mints nothing — then the events mint the transport script, and
+    /// the file written from them is the transport file.
+    #[test]
+    fn minted_transport_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let orders = script::picked_transport();
+        let c = camera(None);
+        let mut next = 0;
+        while r.frame() < i64::from(script::TRANSPORT_FRAME) {
+            let g = r.frame() as i32;
+            while next < orders.len() && orders[next].0 == g {
+                r.issue(&orders[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+        let v = View {
+            sim: Some(r.sim()),
+            ..view(&c, &scene, &terrain)
+        };
+        let uid = ObjId {
+            who: 0,
+            o: script::TRANSPORT_UNIT,
+        };
+        let u = scene.units.iter().find(|u| u.id == uid).unwrap();
+        let mut input = Input::new(0);
+        input.selection = vec![uid];
+        let row = crate::hud::roster_menu(&input, &scene, Some(r.sim()), HUD_SIZE);
+        let button = row
+            .iter()
+            .find(|b| b.button.option == OPTION_TRANSPORT && b.ev == Event::Transport)
+            .expect("the standard panel's transport button");
+        let at = v.pixel(u.pos.x, u.pos.y, u.z);
+        let (bx, by) = button.rect.centre();
+        let greyed = crate::hud::event(&mut input, HUD_SIZE, 1, Event::Press { x: bx, y: by }, &v);
+        println!(
+            "TRANSPORT STAGE0 f{} unit 0/{} peasant {} at {at:?} button ({bx}, {by}) disable {} press {greyed:?} level {:?} type {:?}",
+            r.frame(),
+            uid.o,
+            u.spy.peasant,
+            button.button.disable,
+            r.sim().transport_level(0),
+            r.sim()
+                .unit_transport_type(r.sim().unit_by_o(0, uid.o).unwrap()),
+        );
+        assert!(u.spy.peasant, "a citizen");
+        assert_eq!(at, TRANSPORT_AT);
+        assert_eq!(button.button.disable, 1, "greyed on a person's seat");
+        assert_eq!(greyed, None, "the greyed button mints nothing");
+        drop(r);
+
+        let Some((ours, r)) = mint_with_sim(transport_events(), |input, frame, ev, view| {
+            crate::hud::event(input, HUD_SIZE, frame, ev, view)
+        }) else {
+            return;
+        };
+        let whole = ours.iter().zip(&orders).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (orders.len(), INPUT_TRANSPORT_FILE),
+            "{:?}",
+            &ours[ours.len().saturating_sub(3)..]
+        );
+        assert_eq!(ours, orders);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(arms), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(ARMS_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(TRANSPORT_RCX)),
+        ) else {
+            println!("skipping the bytes: no {ARMS_RCX} or {TRANSPORT_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), TRANSPORT_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the transport orders");
+        assert!(written != arms, "not the arms' file");
+    }
+
+    /// The transport file (`docs/CLIENT_INPUT.md` §32.14), written by
+    /// rondata's `the_transport_minted_packages_round_trip` under
+    /// `RON_RCX_OUT`.
+    const TRANSPORT_RCX: &str = "ron-golden/recordings/item4363-transport-greatlakes-24000.rcx";
+    const TRANSPORT_RCX_BYTES: usize = 59_825;
+
     /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
     /// order kinds the recordings on disk carry
     /// (`rondata::input::KINDS_ON_DISK`), those the layer mints, and the
