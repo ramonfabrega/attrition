@@ -617,6 +617,21 @@ pub fn instant_hits(install: &Install, graphs: &[String]) -> BTreeMap<i32, i32> 
 
 /// The `<AMMO>` names whose integer attribute `attr` reads `value`.
 fn ammo_where(install: &Install, attr: &str, value: i32) -> std::collections::BTreeSet<String> {
+    flagged_ammo(install, attr, value)
+        .into_iter()
+        .map(|(_, name)| name)
+        .collect()
+}
+
+/// Graphic pieces retained in a casualty sprite by Objects::add_death.
+pub(crate) fn casualty_attachments(install: &Install) -> std::collections::BTreeSet<i32> {
+    flagged_ammo(install, "puncture", 1)
+        .into_iter()
+        .map(|(piece, _)| piece)
+        .collect()
+}
+
+fn flagged_ammo(install: &Install, attr: &str, value: i32) -> Vec<(i32, String)> {
     let path = install.data("effects_graphics.xml");
     let Ok(text) = crate::read(&path) else {
         return Default::default();
@@ -626,12 +641,18 @@ fn ammo_where(install: &Install, attr: &str, value: i32) -> std::collections::BT
     };
     doc.descendants()
         .filter(|n| n.has_tag_name("AMMO"))
-        .filter(|n| {
+        .enumerate()
+        .filter(|(_, n)| {
             n.attribute(attr)
                 .and_then(|v| v.trim().parse::<i32>().ok())
                 .is_some_and(|v| v == value)
         })
-        .filter_map(|n| n.attribute("name").map(str::to_string))
+        .filter_map(|(i, n)| {
+            Some((
+                sim::combat::FIRST_AMMO_PIECE + i as i32,
+                n.attribute("name")?.to_owned(),
+            ))
+        })
         .collect()
 }
 

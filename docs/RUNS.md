@@ -38596,3 +38596,12 @@ RON_PACKETS_PRINT=1 zsh tools/check.sh test --release -p rondata --lib diff::che
 `pose-packets-2.log` is the first survey with orientations. In
 `pose-residual-bytes.log`, the diagnostic rows beginning with POSE give
 the full emitted record for each differing line, and POOL lists its cast.
+
+## Item 4369 — casualty attachment table and final facing (2026-11-18)
+
+Same archive and survey command as 4368. In `art-and-facing-probe.log`,
+SNAP records frame, player, object, figure count, object masks, old facing,
+predicted facing, original hit bearing, graphic and decoy status. The
+STARVE line at 1822 identifies run1487's fourth figure, player 0 object
+14. `oriented-packets.log` scores the completed change. The raw native
+counterpart for each prediction is the deaths row of the named packet.

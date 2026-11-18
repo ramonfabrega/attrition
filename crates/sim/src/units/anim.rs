@@ -710,6 +710,8 @@ pub struct Art {
     /// A type absent here keeps `:188`'s `FIRST_AMMO_PIECE`
     /// ([`Sim::fire_proj`]).
     pub fire_proj: BTreeMap<i32, i32>,
+    /// Ammo graphic pieces with flag 1, retained by casualty sprites.
+    pub casualty_attachments: BTreeSet<i32>,
 }
 
 impl Art {

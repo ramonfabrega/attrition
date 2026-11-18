@@ -1190,7 +1190,8 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// Item 4365 adds 43 whole occupied ammo lines and six whole casualty lines.
 /// Item 4366 adds four whole units lines and nine whole builds lines.
 /// Item 4368 adds 22 whole casualty lines.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 584, 1053);
+/// Item 4369 adds six whole casualty lines.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 590, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1748,7 +1749,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2247, 2246, 438),
             (0, 0, 0),
             (0, 0, 0),
-            (10, 10, 5),
+            (10, 10, 0),
             (688, 688, 1),
             (1935, 1935, 2),
             (271, 271, 3),
@@ -1828,7 +1829,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (1911, 1911, 1),
             (0, 0, 0),
             (3, 3, 0),
-            (4, 4, 2),
+            (4, 4, 0),
             (640, 640, 4),
             (1962, 1962, 7),
             (271, 271, 1),
@@ -2633,7 +2634,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2140, 2140, 5),
             (0, 0, 0),
             (9, 9, 0),
-            (2, 2, 1),
+            (2, 2, 0),
             (652, 652, 4),
             (2197, 2197, 9),
             (271, 271, 2),
@@ -3970,7 +3971,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2736, 2736, 30),
             (0, 0, 0),
             (208, 0, 208),
-            (8, 0, 8),
+            (8, 8, 1),
             (610, 610, 2),
             (1718, 1718, 0),
             (407, 407, 6),
@@ -4000,7 +4001,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2180, 2180, 27),
             (0, 0, 0),
             (230, 0, 230),
-            (2, 2, 1),
+            (2, 2, 0),
             (586, 586, 2),
             (1577, 1577, 1),
             (407, 407, 6),
@@ -4157,7 +4158,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (1731, 1729, 938),
             (0, 0, 0),
             (0, 0, 0),
-            (28, 28, 14),
+            (28, 28, 4),
             (640, 640, 3),
             (1429, 1429, 1),
             (271, 271, 4),
@@ -4374,7 +4375,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (583, 583, 13),
             (0, 0, 0),
             (0, 0, 0),
-            (2, 2, 1),
+            (2, 2, 0),
             (532, 532, 0),
             (393, 393, 0),
             (271, 271, 3),
@@ -4396,7 +4397,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (583, 583, 13),
             (0, 0, 0),
             (0, 0, 0),
-            (2, 2, 1),
+            (2, 2, 0),
             (532, 532, 0),
             (393, 393, 0),
             (271, 271, 3),
@@ -4465,7 +4466,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2288, 2283, 1534),
             (0, 0, 0),
             (0, 0, 0),
-            (28, 28, 14),
+            (28, 28, 7),
             (640, 640, 3),
             (2210, 2210, 1),
             (271, 271, 5),

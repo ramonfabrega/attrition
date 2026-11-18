@@ -601,6 +601,19 @@ are 16, 193, 201 and 0. All 300 bytes match. Run1361 mixes piece 60157
 at 343 degrees and a direct hit at zero. All 150 bytes match. Across the
 107 packets, 22 further casualty lines agree and 176 fewer ranges differ.
 
+Item 4369 reads the attachment by graphic index. The two chapter 65 packets
+keep building graphic 60149 at 179 degrees. An attrition figure has the
+absent graphic and zero degrees, as measured on run1487. For a type-3
+animation on a foot or mounted figure, the final facing is taken from
+the figure to the round’s endpoint. A direct hit turns the figure half
+a turn from the supplied bearing. The relative angle uses that final
+facing. Both directions on run1185 and the single figures on run1320b
+and run1496 agree with the original at the full 32-bit angle precision.
+The same check closes run1166's five figures. All 39 occupied packets
+now emit the entire cast, and 35 are byte-exact. On two of the other
+four the only differing word is a turret angle. The other two have
+different slot orderings among figures created on the same frame.
+
 ## 9. Pointers, floats, padding and locals
 
 - **Pointers: none walked**, in any of the twelve on this frame (§4).

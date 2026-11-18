@@ -4,26 +4,55 @@ use super::*;
 
 /// A legacy caller can identify a projectile hit without having its graphic.
 #[derive(Clone, Copy)]
-pub(super) enum HitSource<'a> {
+pub(crate) enum HitSource<'a> {
     Direct,
     Round(Option<&'a combat::Projectile>),
 }
 
-impl HitSource<'_> {
-    // The 71-byte casualty record stores whole degrees relative to its first figure.
-    fn impact(self, angle: Angle, facing: Option<Angle>) -> Option<(i32, Single)> {
-        match self {
-            Self::Direct => Some((-1, Single::ZERO)),
-            Self::Round(round) => {
-                let p = round?;
-                let relative = Angle(angle.0.wrapping_sub(facing?.0));
-                let degrees = crate::movement::angle_to_degrees(relative);
-                Some((
-                    if p.punctures { p.gpiece } else { -1 },
-                    Single::from_i32(degrees),
-                ))
+/// Some deaths bypass the hit entirely. Their figures keep their current facing.
+#[derive(Clone, Copy)]
+pub(crate) enum CasualtyPose<'a> {
+    Unarmed,
+    Hit(HitSource<'a>, Angle),
+}
+
+impl CasualtyPose<'_> {
+    fn apply(
+        self,
+        places: &mut [combat::Lie],
+        turn: bool,
+        art: &crate::units::anim::Art,
+    ) -> Option<(i32, Single)> {
+        let Self::Hit(source, angle) = self else {
+            return Some((-1, Single::ZERO));
+        };
+        let round = match source {
+            HitSource::Direct => None,
+            HitSource::Round(p) => Some(p?),
+        };
+        // Object::take_damage turns each eligible figure before recording the
+        // first figure's relative angle. Both positions are in map coordinates.
+        if turn {
+            for place in places.iter_mut() {
+                place.angle = match round {
+                    Some(p) => find_angle(p.landing.x - place.pos.x, p.landing.y - place.pos.y),
+                    None => Angle(angle.0.wrapping_add(i32::MIN)),
+                };
             }
         }
+        let Some(p) = round else {
+            return Some((-1, Single::ZERO));
+        };
+        let piece = if art.casualty_attachments.contains(&p.gpiece) {
+            p.gpiece
+        } else {
+            -1
+        };
+        let relative = Angle(angle.0.wrapping_sub(places.first()?.angle.0));
+        Some((
+            piece,
+            Single::from_i32(crate::movement::angle_to_degrees(relative)),
+        ))
     }
 }
 
@@ -718,18 +747,10 @@ impl Sim {
                     // `Object::die` is `close()` — the draw arm below —
                     // and **then** the slot hold, which is not gated on
                     // the draw arm's `dtype` at all (§42.3).
-                    let impact = source.and_then(|(source, angle)| {
-                        source.impact(
-                            angle,
-                            self.units[i]
-                                .guys
-                                .first()
-                                .map(|_| self.figure_point(i, 0).1),
-                        )
-                    });
+                    let pose = source.map(|(hit, angle)| CasualtyPose::Hit(hit, angle));
                     self.close_count(i);
                     self.relink_squad(i);
-                    self.close_unit(i, dtype, _frame, impact);
+                    self.close_unit(i, dtype, _frame, pose);
                     self.kill_contents(i);
                     self.kremlin_spy_closed(i);
                     self.close_dead_orders(i);
@@ -1024,7 +1045,7 @@ impl Sim {
         self.units[v].health = 0;
         self.close_count(v);
         self.relink_squad(v);
-        self.close_unit(v, dtype, frame, Some((-1, Single::ZERO)));
+        self.close_unit(v, dtype, frame, Some(CasualtyPose::Unarmed));
         self.kill_contents(v);
         self.kremlin_spy_closed(v);
         self.close_dead_orders(v);
@@ -1052,7 +1073,7 @@ impl Sim {
         }
         self.close_count(i);
         self.relink_squad(i);
-        self.close_unit(i, ATTRITION_DTYPE, frame, None);
+        self.close_unit(i, ATTRITION_DTYPE, frame, Some(CasualtyPose::Unarmed));
         self.kill_contents(i);
         self.kremlin_spy_closed(i);
         self.close_dead_orders(i);
@@ -1480,7 +1501,7 @@ impl Sim {
         i: usize,
         dtype: i32,
         frame: i64,
-        impact: Option<(i32, Single)>,
+        pose: Option<CasualtyPose<'_>>,
     ) {
         if dtype == 0 {
             return;
@@ -1532,7 +1553,14 @@ impl Sim {
                 self.coll_kill_guy(i, k);
             }
         }
-        let figures = self.death_figures(i, cur_anim);
+        let mut figures = self.death_figures(i, cur_anim);
+        let turn = dtype == 3
+            && self
+                .profile(Obj::Unit(i))
+                .has(combat::mask::FOOT | combat::mask::MOUNTED);
+        let n = self.units[i].guys.len().min(usize::from(figures.n));
+        let impact =
+            pose.and_then(|pose| pose.apply(&mut figures.place[..n], turn, &self.roster.art));
         let life = self.death_life(i, cur_anim);
         let u = &self.units[i];
         let (who, o) = (i32::from(u.owner), i32::from(u.index));

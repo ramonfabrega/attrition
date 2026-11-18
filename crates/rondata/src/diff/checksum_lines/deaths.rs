@@ -160,3 +160,69 @@ fn the_mongol_packet_keeps_the_attached_piece_and_relative_direction() {
         ]
     );
 }
+
+#[test]
+fn the_british_packet_turns_both_fallen_figures_before_measuring_the_hit() {
+    use crate::diff::british_enlightenment_pair::BRITISH_ENLIGHTENMENT;
+    let Some(theirs) = casualty_packet("run1185") else {
+        return;
+    };
+    let Some((mut built, _)) = crate::diff::third::stand_up_built(BRITISH_ENLIGHTENMENT.long)
+    else {
+        return;
+    };
+    while built.sim.frame < 4582 {
+        built.tick();
+    }
+    let actual = built.sim.checksum_deaths().unwrap();
+    assert_eq!((actual.ranges.len(), actual.bytes()), (4, 150));
+    assert_eq!(
+        actual.ranges.iter().map(|r| &r.bytes).collect::<Vec<_>>(),
+        theirs.iter().map(|r| &r.2).collect::<Vec<_>>()
+    );
+    let poses = built
+        .sim
+        .combat
+        .deaths
+        .iter()
+        .map(|d| (d.figures.place[0].angle.0, d.impact))
+        .collect::<Vec<_>>();
+    use sim::num::single::Single;
+    assert_eq!(
+        poses,
+        [
+            (1_514_733_568, Some((-1, Single::from_i32(284)))),
+            (221_642_752, Some((-1, Single::from_i32(46))))
+        ]
+    );
+}
+
+#[test]
+fn the_sea_packet_keeps_the_attrition_figure_alongside_three_round_impacts() {
+    use crate::diff::sea_melee::{MELEE_LONG, MELEE_START, melee_script};
+    let Some(theirs) = casualty_packet("run1487") else {
+        return;
+    };
+    crate::diff::setup::with_staged_script(melee_script(), || {
+        let Some((mut built, _)) = crate::diff::third::stand_up_from(MELEE_START, MELEE_LONG)
+        else {
+            return;
+        };
+        while built.sim.frame < 1980 {
+            built.tick();
+        }
+        let actual = built.sim.checksum_deaths().unwrap();
+        assert_eq!((actual.ranges.len(), actual.bytes()), (8, 300));
+        // Slot three holds the figure lost to attrition on 1822.
+        assert_eq!(actual.ranges[7].bytes, theirs[7].2);
+        let d = built
+            .sim
+            .combat
+            .deaths
+            .iter()
+            .find(|d| d.who == 0 && d.o == 14)
+            .unwrap();
+        assert_eq!(d.first_frame, 1822);
+        assert_eq!(d.impact, Some((-1, sim::num::single::Single::ZERO)));
+    });
+}
