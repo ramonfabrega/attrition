@@ -38407,3 +38407,39 @@ It was waited on with `waitrun.sh` in the background. `df -g ~` read 191 GB free
 Archive `gamelog-run1656-greatlakes-playback-of-picked-7500.txt`, 162,697,261 bytes,
 SHA-256 `67db4c2cbf29bc63dbd05add67d02609e3a8ae00d3e269a9ee2b49e03910fedf`; `rontrace-run1656.log`, 36,068,544
 bytes, SHA-256 `30baa1190df53f1df6fa373a8a72c1d0ad408ed10432889e7bde1c7a3171680a`.
+
+## run1665 — run1564's take with fast-forward ended before the pause: the settled borders (2026-11-18, item 4358, `att-4358`)
+
+`docs/RENDERER.md` §3.29, "The settled band". **What the disk could not answer:** every `!ffwd 4` photograph near
+3300 shows its borders mid-morph (parked 4356b), so no photograph showed the regular strip. The line is run1564's, with
+one staged line added. The command file `~/ron-data/lab-experiments/2026-11-18-item-4358/photo3294-settled.cmd` holds
+`3194 !ffwd 0`, `3200 camera 192,200` and `3294 pause 1`. `!ffwd 0` sets `fast_forward_frame` to 0
+(`ConsoleWin::run_cmd`), which ends the blanket `37 !ffwd 4`. The launch line:
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1665 --map 14 --end-frame 3296
+--timeout 600 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 0 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cmd-file
+<it> --tracer-def RON_STATE_FRAME=3294 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`. Beside it ran
+`poolshot.py ~/ron-golden/run1665 3294 --map 14 --out …/run1665-3294.png`.
+- Pool lane 2, launched 06:14:10. The packet and the photograph were written by 06:14.
+- As run1564 did, the paused take then ran to the timeout: `TimeoutExpired` after 600 s.
+- Afterwards `rise.ini`, `rise2.ini` and `gamelog.ini` matched the take's `settings-backup`, and the lane was free.
+- 164 GB free before the take, 157 GB after. Not filed.
+- Minutes waited on another lane: none (lane 1 was held; the pool took 2).
+
+Packet `~/ron-golden/run1665/map-14/frame-snapshot.bin`, 935,342,472 bytes,
+SHA-256 `42679554d1728eed9bacf88c4205095ac0d05bcdbb511a40d36a98b5d502c693`.
+
+Photograph `~/ron-data/lab-experiments/2026-11-18-item-4358/run1665-3294.png`: window 20454, 1920×1080 with no
+title bar, tagged `sRGB`, the gamelog at 3295. SHA-256 `b486b7b50fb43b6230fbc63e559d5b6f8bd1118f0e60f7314921bdf3ce22aa19`.
+`sips -s format tga` converts it to `run1665-3294.tga` (SHA-256
+`48a3d28e99e560e1cef577c324c6e94f3acca9b74698e5d03a9ef73a6096994a`), the TGA `RUN1665_3279_BORDER` reads.
+
+**What it holds:**
+- run1564's view. It registers on run1564's cut at (0, 0): the mean absolute difference is 0.8 over the HUD and 0.4
+  over the rock and sand.
+- `graphic_tick` 253 (run1564's 177). No morph lies in the east; the one morph is in the west, at x 35–37, out of
+  view, started at 221. `need_rebuild` is 0.
+- The east band is `normal_border_renders[2]`: 30 vertices from (60.0, 44.94) to (51.0, 46.06) cells. Its texture
+  coordinates are `u` 2.00 → 2.93 texels and `v` 4 → 2 texels (probes `strips.py`, `east.py` and `texs.py` beside the
+  photograph).

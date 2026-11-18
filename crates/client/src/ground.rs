@@ -2896,18 +2896,35 @@ pub(crate) mod tests {
         }
     }
 
+    /// **run1665's photograph** (item 4358; `docs/RUNS.md` run1665):
+    /// run1564's take with `3194 !ffwd 0` staged, so the last 100 frames
+    /// draw at play speed and the borders' morphs have ended. The grab is
+    /// sRGB, 1920 × 1080 with no title bar, and registers on run1564's
+    /// cut at (0, 0); its camera is run1564's.
+    pub(crate) fn run1665() -> Photo {
+        let path = std::env::var_os("RON_PHOTO_RUN1665")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home)
+                    .join("ron-data/lab-experiments/2026-11-18-item-4358/run1665-3294.tga")
+            });
+        Photo { path, ..run1564() }
+    }
+
     pub(crate) fn probe() -> Option<Probe> {
         probe_at(run1559b())
     }
 
     /// **The PNG each photograph a row reads was cut from** (item 4223),
     /// under `~/ron-data/lab-experiments/`: run1559b's, run1564's matched
-    /// to sRGB, run1570's. The last entry is run1564's grab as written,
+    /// to sRGB, run1570's, run1665's (item 4358). The last entry is run1564's grab as written,
     /// which must read as not sRGB: the guard's own failing case.
-    pub(crate) const PHOTO_SOURCES: [(&str, bool); 4] = [
+    pub(crate) const PHOTO_SOURCES: [(&str, bool); 5] = [
         ("2026-11-09-item-4036/run1559b-3294.png", true),
         ("2026-11-13-item-4223/run1564-3294-srgb.png", true),
         ("2026-11-12-item-4183/run1570-3331.png", true),
+        ("2026-11-18-item-4358/run1665-3294.png", true),
         ("2026-11-12-item-4160/run1564-3294.png", false),
     ];
 
