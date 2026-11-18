@@ -698,6 +698,17 @@ mod tests {
     /// Per line that parts on run1678's window, its first parting by range
     /// (item 4384; minted empty, then at the first act's five rows). A
     /// leaders range starts at `LeaderData +0x8`.
+    ///
+    /// Item 4388, act 1 (`Leader::init`'s mask in the start permutation's
+    /// order, read by `Wall::activate`): builds 21 → 2 parted on state 0,
+    /// the first `10 2000 ever_seen_completed` 23|3 → `146 2003 z` 142|145;
+    /// leaders' `ally_mask` 0x17|3, 0x17|2, 0x17|7 on leaders 0 to 2 agree.
+    /// Act 2 (`init_teams`' 0x80 arm): `chat_status[3]` 0|1 on leaders 0,
+    /// 1, 2 and 4, and the person's `[0..2]`, `[4]` 0|1, agree. Act 3 (an
+    /// unseated slot is `get_player`'s record 0, the person's team): the
+    /// person's `diplos[5..7]` 0|2, `treaties[5..7]` 0|1, `aggression[5..7]`
+    /// 1|0 agree. Leaders 6 → 1 parted, the first `1 0 chat_status[3]` →
+    /// `328 2 oil_patches` (20, 5)|(5, 20). State 0: 28 → 4 parted ranges.
     const SAMPLE_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -712,16 +723,16 @@ mod tests {
             0,
             1079,
             1079,
-            21,
-            "10 2000 job_counter..demolition: ever_seen_completed 23|3",
+            2,
+            "146 2003 who..y_internal: z 142|145",
         ),
         (
             "leaders",
             0,
             663,
             663,
-            6,
-            "1 0 who..ally_mask: +0x58 of 26914|26914: 00000000|01000000",
+            1,
+            "328 2 oil_patches: +0x0 of 16|16: 14000000|05000000",
         ),
         (
             "goods",

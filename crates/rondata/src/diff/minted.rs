@@ -7140,9 +7140,12 @@ fn repair_effects() -> Vec<RepairEffect> {
         wounders,
     };
     let (bowmen, citizen) = ([None; 3], u(2232, 31224, Some(7)));
-    let at = u(2472, 30840, Some(13));
-    let done = u(2472, 30840, None);
-    let (a, c) = (u(6216, 29976, Some(10)), u(6168, 29592, Some(10)));
+    // Item 4391: the squad walks plain from 7163, and the attack reaches
+    // the Capital on 8200 with `1/24` alone, as theirs does.
+    let citizen_late = u(1848, 31608, Some(7));
+    let at = u(2472, 30936, Some(13));
+    let done = u(2472, 30936, None);
+    let a = u(6216, 29976, Some(10));
     vec![
         row(
             6920,
@@ -7184,14 +7187,14 @@ fn repair_effects() -> Vec<RepairEffect> {
                 u(22882, 26635, Some(1)),
             ],
         ),
-        row(8180, 0, citizen, [a, None, c]),
-        row(8190, 1, citizen, [a, None, c]),
-        row(8200, 1, citizen, [a, None, None]),
-        row(8201, 1, u(2245, 31203, Some(1)), [a, None, None]),
-        row(8202, 1, u(2258, 31182, Some(1)), [a, None, None]),
-        row(8250, 3, at, [a, None, None]),
-        row(8300, 2, at, bowmen),
-        row(8325, 2, at, bowmen),
+        row(8180, 0, citizen_late, [a, None, None]),
+        row(8190, 0, citizen_late, [a, None, None]),
+        row(8200, 1, citizen_late, [a, None, None]),
+        row(8201, 1, u(1865, 31590, Some(1)), [a, None, None]),
+        row(8202, 1, u(1882, 31572, Some(1)), [a, None, None]),
+        row(8250, 2, at, bowmen),
+        row(8300, 0, done, bowmen),
+        row(8325, 0, done, bowmen),
         row(8350, 0, done, bowmen),
         row(8375, 0, done, bowmen),
         row(8400, 0, done, bowmen),
@@ -7248,7 +7251,7 @@ fn what_the_repair_does_on_both_sides() {
             .map(|e| e.frame)
     };
     let read = |v: &[RepairEffect]| (first(v), repairing(v), whole(v));
-    assert_eq!(read(&ours), (Some(8190), Some(8250), Some(8350)), "ours");
+    assert_eq!(read(&ours), (Some(8200), Some(8250), Some(8300)), "ours");
     assert_eq!(
         read(&theirs),
         (Some(8200), Some(8250), Some(8300)),
@@ -7262,14 +7265,17 @@ fn what_the_repair_does_on_both_sides() {
 /// Pinned before run1679 was read at 8500 and none parted; it read parted,
 /// first on 7163 (slot 1's new Longbowman `1/30` heads `GROUP_ATTACK_TO`
 /// on ours, `ATTACK_TO` on theirs; parked 4383a), the draws on 7274, and
-/// is pinned as measured.
+/// is pinned as measured. Item 4391 moved it (7274, 1337) → (7420, 1081):
+/// the squad answers no army and walks plain on 7163 as theirs does
+/// ([`a_pushed_group_s_member_answers_no_army_on_both_sides`]); the first
+/// record parting is now 7419 (`1/32`'s position, `1/31`'s order count).
 pub(crate) const REPAIR_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
     "gamelog-run1679-greatlakes-playback-of-repair-8500.txt",
     "rontrace-run1679.log",
-    7274,
+    7420,
     8500,
     1600,
-    1337,
+    1081,
 )];
 
 /// **The original plays the repair file in lockstep** (item 4383): the
@@ -7302,6 +7308,75 @@ fn the_original_s_playback_of_the_repair_file_walks_in_lockstep() {
         ));
     }
     assert_eq!(walked, REPAIR_WALKED, "the walked table");
+}
+
+/// **A pushed group's member answers no army** (item 4391, `docs/ORDERS.md`
+/// §8.2, §14; `docs/GOLDEN.md` §77): slot 1's Longbowmen `1/30` (captain),
+/// `1/31` and `1/32`, born 6993 in group 65, army 1's index, emptied of its
+/// Bowmen by the `play` 1 package of 6920. `Object::get_army@00649d70`
+/// answers −1 for them (the record's `army` is −1), so `add_to_army`
+/// re-runs on every 32-frame edge and `go_to_unit` re-marks the squad
+/// (`unit_masks & 4`): on block 7162, the army's tick, the mark stands on
+/// all three, on both sides, and ours answers no army. The gate then sends
+/// each a plain `ATTACK_TO` on 7163, where ours sent `GROUP_ATTACK_TO`.
+#[test]
+fn a_pushed_group_s_member_answers_no_army_on_both_sides() {
+    const SQUAD: [i16; 3] = [30, 31, 32];
+    const AT: i64 = 7162;
+    if built_start().is_none() || minted(&crate::script::picked_repair()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(&crate::script::picked_repair()).unwrap());
+    tick_to(&mut built, Some(&mut stream), AT);
+    let s = &built.sim;
+    let ours = SQUAD.map(|o| {
+        let k = s.unit_by_o(1, o).expect("the squad");
+        (s.units[k].in_danger, s.army_of(k))
+    });
+    eprintln!("SQUAD ours on {AT}: {ours:?}");
+    assert_eq!(ours, [(true, None); 3], "ours: marked, in no army");
+    tick_to(&mut built, Some(&mut stream), AT + 1);
+    let s = &built.sim;
+    let heads = SQUAD.map(|o| {
+        let k = s.unit_by_o(1, o).expect("the squad");
+        s.units[k].orders.front().map(|o| i64::from(o.index()))
+    });
+    let attack_to = Some(i64::from(sim::ids::order::ATTACK_TO));
+    assert_eq!(heads, [attack_to; 3], "ours on 7163: a plain ATTACK_TO");
+    let Some(path) = dump(REPAIR_WALKED[0].0) else {
+        return;
+    };
+    let mut source = crate::capture::indexed::IndexedCapture::open(path).unwrap();
+    let i = source
+        .frames()
+        .iter()
+        .position(|f| f.number == AT)
+        .expect("block 7162");
+    let f = source.frame_state(i).unwrap();
+    let theirs = SQUAD.map(|o| {
+        let u = f
+            .units
+            .iter()
+            .find(|u| u.who == 1 && u.o == i64::from(o))
+            .expect("the squad");
+        u.unit_masks.expect("unit_masks") & 4 != 0
+    });
+    assert_eq!(theirs, [true; 3], "theirs: marked");
+    let i = source
+        .frames()
+        .iter()
+        .position(|f| f.number == AT + 1)
+        .expect("block 7163");
+    let f = source.frame_state(i).unwrap();
+    let heads = SQUAD.map(|o| {
+        f.units
+            .iter()
+            .find(|u| u.who == 1 && u.o == i64::from(o))
+            .and_then(|u| u.current_order().map(|o| o.index))
+    });
+    assert_eq!(heads, [attack_to; 3], "theirs on 7163: a plain ATTACK_TO");
 }
 
 /// **The original's playback of the auto-explored file** (item 4291,

@@ -3474,7 +3474,8 @@ to every member translated by its slot offset**, each waypoint re-validated;
 the group paths once and offsets.
 
 **A computer's newborn squad in a pushed group on its army's index walks
-plain** (item 4389, run1679, one reading and the dump; not built). The gate
+plain** (item 4389, run1679, one reading and the dump; **built by item
+4391**, diff-backed on 7162 and 7163, below). The gate
 above holds on both sides; what parts is `unit_masks & 4` going into it.
 Slot 1's Longbowmen `1/30` (captain), `1/31` and `1/32` (`TypeIndex` 127,
 land) are born on 6993 in pool group 65. Group 65 is army 1's index, and
@@ -3493,6 +3494,18 @@ arm kept for a joiner the record already lists), so `army_of` answers
 army 1 from 6995 on. Nothing re-marks, and the same tick issues
 `GROUP_ATTACK_TO`. The value diff and its reading are in
 `docs/journal/2026-11-18-item-4389.md`.
+
+**Built (item 4391).** The seating arm stays, so the army's tick acts on
+the record as the original's does on its index. It now also marks the army
+`adopted` (`crates/sim/src/ai/army.rs`, `Army::adopted`), and it first
+walks to the record's first live member, so `go_to_unit` marks the squad
+on the first join too. `army_of` answers `None` while the mark stands,
+which is `get_army`'s −1. So `add_to_army` re-runs on each edge, `go_to_unit`
+re-marks the squad, and the seated `add_unit` finds the joiner listed and
+adds nothing. `Army::add_unit`'s own push arm clears the mark, because
+`Army::add_group` writes the record's `army` back. On block 7162 ours carries
+the mark on all three. On 7163 each heads a plain `ATTACK_TO`, as theirs
+does (`a_pushed_group_s_member_answers_no_army_on_both_sides`).
 
 ## 8.3 `GroupMoveOrder` per frame — `do_group_move@005e79a0`
 
@@ -4397,9 +4410,12 @@ moves fall out of dispatching once on the front at the top of `work`.
 - **`find_repair_spot` is still absent**, on all four of its arms
   (§5.5, §5.6, §5.9). It needs `FILTER_DAMAGED` and the difficulty gate,
   and it only ever runs when the build search comes back empty.
-- **`get_army` on a member of a pushed group the army's index names**
+- ~~**`get_army` on a member of a pushed group the army's index names**
   (§8.2, item 4389): the original answers −1 and re-joins every 32 frames,
-  and ours answers the army. Not built; parked 4389a.
+  and ours answers the army. Not built; parked 4389a.~~ **Built by item
+  4391** (§8.2, "Built"): `army_of` answers `None` on an adopted army.
+  Still not established: which other writers of the record's `army` word
+  clear the mark. Only `Army::add_unit`'s push is modelled.
 
 **Not established — the order system**
 

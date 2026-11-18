@@ -115,6 +115,16 @@ pub struct Army {
     /// The persistent half of that group's `GroupData` (`docs/GROUPS.md`
     /// §1). The army's `list[16]` of group ids collapses to this one.
     pub group: crate::groups::group::GroupState,
+    /// **The record on the army's index is a pushed group's, adopted**
+    /// (item 4391, `docs/ORDERS.md` §14; `docs/GOLDEN.md` §77): set when
+    /// [`Sim::add_to_army`] seats a pool record that already lists the
+    /// joiner. The original's `add_unit` adds nothing there, and the
+    /// record's `army` (`+8`) stays −1 from its push, so
+    /// `Object::get_army@00649d70` answers −1 for every member and
+    /// `add_to_army` re-runs on each 32-frame edge. Only `Army::add_unit`'s
+    /// own push (`Army::add_group`) writes that word back, so the push arm
+    /// clears this.
+    pub adopted: bool,
 }
 
 impl Army {
@@ -142,6 +152,7 @@ impl Army {
             muster_angle: Angle(0),
             units: Vec::new(),
             group: crate::groups::group::GroupState::default(),
+            adopted: false,
         }
     }
 
@@ -508,6 +519,8 @@ impl Sim {
                     self.army_normalize(who, a);
                 }
             }
+            // `Army::add_group` writes the record's `army` back.
+            self.ai.armies[w].list[slot].adopted = false;
             self.ai.armies[w].list[slot].group = if equal {
                 crate::groups::group::GroupState {
                     pool: Some(s),
@@ -566,6 +579,7 @@ impl Sim {
             .get(who)?
             .valid()
             .find(|(_, a)| a.group.pool == Some(s) && a.units.contains(&u))
+            .filter(|(_, a)| !a.adopted)
             .map(|(s, _)| s)
     } // absorbs Army::member
 
@@ -678,7 +692,8 @@ impl Sim {
         // the original's `add_unit` does nothing; this crate keeps the
         // arm below for it, which seats the record on the army and
         // agrees with run460 (golden chapter forty-two) through its end.
-        if let Some(p) = self.army_pool_record(who, slot)
+        let record = self.army_pool_record(who, slot);
+        if let Some(p) = record
             && !self.orders.pushed[p].list.contains(&u)
         {
             let s = self.ai.armies[who as usize].list[slot].group.pool;
@@ -692,6 +707,28 @@ impl Sim {
             }
             self.seat_add(crate::groups::group::Seat::Pushed(p), u, false, false);
             self.set_group(u, s);
+            return Some(slot);
+        }
+        // **A joiner the record already lists** (item 4391): `normalize`
+        // counts the record, `get_unit(0)` is its first member and
+        // `go_to_unit` marks the squad; `add_unit` then finds it there
+        // (`Army::member@006f8de0`) and adds nothing, so `get_army` stays
+        // −1. This crate seats the record on the army, so that the army's
+        // tick acts on it as the original's does on its index, and marks
+        // the army adopted: [`Self::army_of`] answers no army, and the
+        // next edge comes back here through the arm below.
+        if let Some(p) = record {
+            let s = self.ai.armies[who as usize].list[slot].group.pool;
+            let first = self.orders.pushed[p]
+                .list
+                .iter()
+                .copied()
+                .find(|&m| self.units[m].alive() && self.units[m].group_ptr == s);
+            if let Some(first) = first {
+                self.go_to_unit(u, first);
+            }
+            self.army_add_unit(who, slot, u);
+            self.ai.armies[who as usize].list[slot].adopted = true;
             return Some(slot);
         }
         // **The walk to the army** (§4.3), between the pick and the join,
@@ -731,53 +768,6 @@ impl Sim {
         self.orders.pushed.iter().position(|p| {
             p.who == who && p.state.pool == Some(s) && p.list.iter().any(|&m| mine(m))
         })
-    }
-
-    /// `Unit::go_to_unit(o, who)@005f78c0` — mark the squad, then walk it
-    /// to another unit if it is far enough away (§4.3).
-    ///
-    /// The mask walk runs from the **captain** and down the `o_down`
-    /// chain, and it runs whatever the distance says; the move is
-    /// `vector_dist(target − me) > 0x480` alone. The bit it sets is
-    /// `unit_masks & 4` (`5f7933`), which §6.6 step 6 of
-    /// `docs/GROUPS.md` reads as "no `GroupMoveOrder`" — a seam here,
-    /// because [`Sim::go_to`]'s group has no army and this crate's own
-    /// gate refuses one for that reason already.
-    fn go_to_unit(&mut self, u: usize, target: usize) {
-        // The mark is **unconditional** and it is the whole squad's: the
-        // loop at `5f78ec` starts at this unit's captain and walks
-        // `o_down`, setting `unit_masks |= 4` on each, and it runs above
-        // the distance test — so a squad already close enough not to walk
-        // is marked all the same. [`sim::Unit::in_danger`].
-        for f in self.squad_of(self.captain_of(u)) {
-            self.units[f].in_danger = true;
-        }
-        let to = self.units[target].pos;
-        let d = vector_dist(to.x - self.units[u].pos.x, to.y - self.units[u].pos.y);
-        if d > 0x480 {
-            self.go_to(u, to, MoveKind::AttackTo, 0, 0x300);
-        }
-    }
-
-    /// `Unit::go_to(x, y, orders, min, max)@005f7a50` — a spot near a
-    /// point, and the unit's own squad walked to it as a group (§4.3).
-    ///
-    /// `find_nearby_spot` is asked with the caller's radii, **step 0** (so
-    /// the rings are an eighth of the span apart) and the bias angle
-    /// `0x55555555`, a third of a turn; a refusal issues nothing at all.
-    /// The group is built on the stack from this unit — `Group::add` takes
-    /// the whole squad — pushed with `force = 1`, and moved with
-    /// `QUEUE_NEW`, `set_angle 0`, `angle 0`, `action 0`, `form/width −1`.
-    fn go_to(&mut self, u: usize, to: Pos, kind: MoveKind, min: i32, max: i32) {
-        let Some(spot) = self.find_nearby_spot_squad(u, to, min, max, 0, Angle(0x5555_5555)) else {
-            return;
-        };
-        let mut g = crate::groups::group::Group::stack(self.units[u].owner);
-        self.group_add(&mut g, u);
-        if !self.push_group(&mut g, true) {
-            return;
-        }
-        self.group_action_move_to(&g, spot, QueuePos::New, false, Angle(0), kind, false);
     }
 
     /// `ObjectsData::find_city(SEARCH_FRIENDLY, flag 0x200, FILTER_ALL)`:
@@ -3708,3 +3698,4 @@ pub mod muster;
 pub mod target_forts;
 pub mod target_gate;
 pub mod target_score;
+pub mod walk;

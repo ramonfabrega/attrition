@@ -2336,9 +2336,9 @@ fn run1645_s_word_is_pinned_as_found() {
     );
     pin_eq!(w.leaves.len(), 53505, "the diplomacy leaf rows compared");
     // The record rows that part besides the sites' `reg` (the crate's own
-    // region index, a standing family): `ally_mask` on both allies from
-    // 903, the bits `Leader::set_diplo` gives an ally under `reveal_map`
-    // (parked 4313a).
+    // region index, a standing family). Item 4388: none. `ally_mask` on
+    // both allies from 903 (parked 4313a) agrees, `Leader::set_diplo`'s
+    // bits and `plan_strategy`'s census with no human test.
     let mut firsts: Vec<String> = Vec::new();
     let mut seen = std::collections::BTreeSet::new();
     for (n, who, k, t, m) in &w.leader_parted {
@@ -2348,10 +2348,7 @@ fn run1645_s_word_is_pinned_as_found() {
     }
     pin_eq!(
         firsts,
-        vec![
-            "903 0 ally_mask: theirs 3 ours 1".to_string(),
-            "903 1 ally_mask: theirs 3 ours 2".to_string(),
-        ],
+        Vec::<String>::new(),
         "the record rows parting, first per row, sites' reg aside"
     );
 }

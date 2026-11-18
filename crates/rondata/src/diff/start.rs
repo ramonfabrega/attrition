@@ -1179,8 +1179,15 @@ pub fn from_lobby(
             })
         })
         .collect();
-    for who in 0..players {
-        sim.setup().init_diplos(who as sim::Player, &seats);
+    // The row is written inside step 6's loop, in the permutation's order
+    // (item 4388): `LeaderData::is_ally@006edb50` reads both leaders'
+    // rows, so the mask a leader's own `Leader::init` takes holds only the
+    // teammates initialised before it. A start with no map has no
+    // permutation and takes the seats in order.
+    if !map_built {
+        for who in 0..players {
+            sim.setup().init_diplos(who as sim::Player, &seats);
+        }
     }
     steps.push(("Leader::init: diplos", true));
     // 4. The map (composed above).
@@ -1216,6 +1223,10 @@ pub fn from_lobby(
             }
         }
         for &who in start_list.iter().filter(|&&w| w < players) {
+            // `Setup::build_game`'s loop over `start_list` calls
+            // `Leader::init(who, tribe, who)` for each seated slot: the
+            // diplomacy row and the mask first, then a computer's tail.
+            sim.setup().init_diplos(who as sim::Player, &seats);
             if sim.cities.nation[who].human {
                 continue;
             }

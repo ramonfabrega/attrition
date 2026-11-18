@@ -1089,24 +1089,38 @@ impl Sim {
             "who" => one(w as i64),
             "tribe" => one(t.tribe as i64),
             "gov" => one(t.gov.map_or(-1, |g| self.tree_type_index(g))),
-            "diplos" => per_player(&|i| {
-                if i == w {
-                    2
-                } else if self.leaders.at_war[w][i] {
-                    0
-                } else if self.leaders.allied[w][i] {
-                    2
-                } else {
-                    1
-                }
-            }),
-            "treaties" => per_player(&|i| {
-                if i == w {
-                    1
-                } else {
-                    i64::from(self.leaders.treaties[w][i])
-                }
-            }),
+            // A slot no player takes holds `Leader::init`'s row (item 4388).
+            "diplos" => Some(
+                (0..count)
+                    .map(|i| {
+                        if i >= players {
+                            return i64::from(a.unseated_diplos.get(i).copied().unwrap_or(0));
+                        }
+                        if i == w {
+                            2
+                        } else if self.leaders.at_war[w][i] {
+                            0
+                        } else if self.leaders.allied[w][i] {
+                            2
+                        } else {
+                            1
+                        }
+                    })
+                    .collect(),
+            ),
+            "treaties" => Some(
+                (0..count)
+                    .map(|i| {
+                        if i >= players {
+                            i64::from(a.unseated_treaties.get(i).copied().unwrap_or(0))
+                        } else if i == w {
+                            1
+                        } else {
+                            i64::from(self.leaders.treaties[w][i])
+                        }
+                    })
+                    .collect(),
+            ),
             "agendas" => per_player(&|i| {
                 self.leaders
                     .agendas
@@ -1165,12 +1179,34 @@ impl Sim {
             // `Leader::init(who, tribe, who)`, and
             // `Game::init_rules_and_teams` writes the slot's own number.
             "team_color" => one(w as i64),
-            // `chat_status` (`+0x54`): `Game::init_teams`' tail writes 1 on
-            // every slot, then 0 on a seated slot when the game is not
-            // cooperative or the pair is on a team. SEAM: the cooperative
-            // styles, `semaphore[0] & 0x80` and the interface's chat-set
-            // command are not carried; the crate seats a plain game.
-            "chat_status" => Some((0..count).map(|i| i64::from(i >= players)).collect()),
+            // `chat_status` (`+0x54`): `Game::init_teams@0058ae70`'s tail
+            // writes 1 on every slot `j` of a seated leader, then 0 on a
+            // seated `j` when `semaphore[0] & 0x80` is clear and the game
+            // is not cooperative, or when `LeaderData::is_team(w, j)`. The
+            // loop before it sets 0x80 when any seated leader counts more
+            // than one seated slot it is on a team with, itself included.
+            // `is_team` at frame 0 is the lobby's team in 0..4 (team style
+            // 7's team-8 refusal is inside that test: 8 is no team), and
+            // `Game::is_cooperative@00594810` is team style 8, 9 or 10
+            // (item 4388: the 2017 sample's four computers on team 1, the
+            // person alone on team 0, so only a teammate pair reads 0).
+            // SEAM: `is_cooperative`'s styles 11 and 12 (two seats on one
+            // `who`) and the interface's chat-set command are not carried;
+            // no lobby on file plays either.
+            "chat_status" => {
+                let team = |p: usize| self.leaders.team.get(p).copied().unwrap_or(8);
+                let is_team = |a: usize, b: usize| {
+                    a == b || ((0..4).contains(&team(a)) && team(a) == team(b))
+                };
+                let teams =
+                    (0..players).any(|i| (0..players).filter(|&j| is_team(i, j)).count() > 1);
+                let coop = matches!(self.ai.lobby.team_style, 8..=10);
+                Some(
+                    (0..count)
+                        .map(|j| i64::from(!(j < players && ((!teams && !coop) || is_team(w, j)))))
+                        .collect(),
+                )
+            }
             // `lost_city_stamp` (`+0x410`): `City::close` stamps the frame a
             // city is lost; before any, `Leader::init`'s −90 (`0xffffffa6`).
             "lost_city_stamp" => one(self
