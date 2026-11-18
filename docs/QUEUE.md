@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out: the chain's 4387 (after 4382's sweep), the suite's 4388 (after 4384's ranges), the third's 4389 (after 4383's repair) and render's 4386 (after 4385).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out: the chain's 4387 (after 4382's sweep), the suite's 4388 (after 4384's ranges), the third's 4389 (after 4383's repair) and render's 4390 (after 4385 and 4386).
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 1 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
@@ -76,13 +76,12 @@ goods on 1 (`ever_seen` 0x04 vs 0x17), world on 0 (`seen2` 0x04 vs 0x17). State 
 +0x6929 and their order in `build_game`; then `chat_status`; then the unseated slots' team byte; each row re-minted with its value diff.
 The nine left (oil patches, two z, six `seen2` cells) come after. It stops when two acts move no line's first parting.
 
-4386. **The lake by the card's own draws** (a `render` item, scoped; the render seat's, out; `docs/RENDERER.md` §3.30;
-DECISIONS 142 §7). `RUN1564_3279_TEXTURE_STILL` ocean 244 of 437 and `RUN1564_3279_FOAM`. On both of the pass's pairs theirs' lake is dark and
-mottled with white streaks across its body; ours is pale and smooth with heavy crescents on the west and east rims, and no row counts it.
-4353 read every world draw by the packet's lists and placed no stroke (parked 4353a). First act, one take on run1564's camera: the card
-probe keeping each draw's vertex stream on the pass after 3279 (parked 4281a), and the strokes' pixels and a body tile's attributed to the
-draw that lays each, by the card's own stream. Then a row minted on the body by value, seen red on a perturbed side, and that draw closed
-with its value diff. It stops when the take attributes the strokes to no world draw, and parks with that kill.
+4390. **The water's pixel shader as the card binds it** (a `render` item, scoped; the render seat's; `docs/RENDERER.md` §3.30;
+DECISIONS 142 §7). `RUN1564_3279_TEXTURE_STILL` ocean 244 of 437. 4386 (run1681, `RON_CARD_STREAMS`) placed the south-east's broad
+strokes, 2,027 pixels, under the floor (36) and the water (162) only, and neither draw's vertices or textures part there; the surf
+lays 1,225 of 3,636 stroke pixels, the west rim only (parked 4386a to 4386c). First act: draw 162's `mActivePixelShader` bytecode,
+or its stage 0 texture read back off a packet's heap, on run1564's 3279: which input lays the strokes. Then a row on the lake's body
+by value, seen red on a perturbed side, and that input closed with its value diff. It stops when neither input lays them.
 
 4389. **The computer's archers' attack-move after its Bowmen are taken** (a rules item, whole; the third seat's; `docs/ORDERS.md` §8.2;
 `docs/CLIENT_INPUT.md` §32.15). `REPAIR_WALKED` (7274, 8500, 1600, 1337) on run1679: the repair file walks whole to 7500 and
