@@ -466,18 +466,45 @@ mod tests {
         );
     }
 
-    /// run1662's take: `(sets, the frames walked)`. Minted at 0.
-    const SAMPLE_HOOK: (usize, i64) = (0, 21044);
+    /// run1662's take: `(sets, the frames walked)`: 22,077 sets, one on
+    /// every trace frame −1 to 21,043 and a second on the frames before an
+    /// order's package. Minted at 0.
+    const SAMPLE_HOOK: (usize, i64) = (22077, 21044);
 
     /// The first frame (ours, `f + 1` of the hook's) on which theirs'
-    /// walls, ammo and deaths are not the Adler of no bytes. Minted at none.
-    const SAMPLE_THEIRS_HELD: [Option<i64>; 3] = [None, None, None];
+    /// walls, ammo and deaths are not the Adler of no bytes (item 4359,
+    /// minted at none): no wall in the whole game; the first shot in
+    /// flight on 2929, computer 4's capital firing on the person's units
+    /// once its Citizens are garrisoned by the bell; the first death
+    /// object on 3365. The first walk on disk where two of the three
+    /// record shapes are exercised (`docs/CHECKSUM.md` §8).
+    const SAMPLE_THEIRS_HELD: [Option<i64>; 3] = [None, Some(2929), Some(3365)];
 
     /// Per emitted line, the first frame ours parts from the hook's (the
-    /// walk's length where it never does). Minted at 0.
-    const SAMPLE_LINES: &[(&str, i64)] = &[];
+    /// walk's length where it never does), item 4359's tree (the bell and
+    /// the raid stamp built). Minted empty. Builds, leaders and world part
+    /// on the start and goods on 1: the sample's start is whole by the
+    /// dump's records (18,315 of 18,315) and not by the sums. Units part
+    /// on 92, the frame run1654's window agrees on whole, so the parted
+    /// field is one no `UNITS` record prints. Ammo and deaths part where
+    /// theirs first hold one (our emitter refuses a held element).
+    const SAMPLE_LINES: &[(&str, i64)] = &[
+        ("units", 92),
+        ("builds", 0),
+        ("walls", 21044),
+        ("ammo", 2929),
+        ("deaths", 3365),
+        ("groups", 927),
+        ("guys", 2920),
+        ("leaders", 0),
+        ("cities", 3176),
+        ("items", 3976),
+        ("goods", 1),
+        ("world", 0),
+    ];
 
     /// `(frames our walk holds no wall, shot or death, the first it holds
-    /// one)`. Minted at 0.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (0, None);
+    /// one)`. Minted at 0: none on 3,594 of 21,044, the first shot on 2929,
+    /// theirs' frame.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3594, Some(2929));
 }
