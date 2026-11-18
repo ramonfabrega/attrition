@@ -189,7 +189,7 @@ impl Sim {
             self.ai.ai[w].step = Step::Idle;
             return;
         }
-        if std::env::var_os("RON_PROBE_4359").is_some() && (2495..=2912).contains(&self.frame) {
+        if std::env::var_os("RON_PROBE_4359").is_some() && (2795..=2912).contains(&self.frame) {
             let l: Vec<(i32, i32)> = self.ai.ai[w].make_list.list.iter().map(|m| (m.t, m.val)).collect();
             eprintln!("PROBE4359 f{} who {} step {:?} make {:?}", self.frame, who, self.ai.ai[w].step, l);
         }
@@ -213,9 +213,6 @@ impl Sim {
                     },
                     None => ScriptResult::Failed,
                 };
-                if std::env::var_os("RON_PROBE_4359").is_some() && (2495..=2912).contains(&self.frame) {
-                    eprintln!("PROBE4359 f{} who {} script {:?} step {} -> {:?} back {}", self.frame, who, self.ai.ai[w].script, step, r, self.ai.ai[w].script_step);
-                }
                 self.ai.ai[w].after_script(r);
             }
             Step::Setup => {
