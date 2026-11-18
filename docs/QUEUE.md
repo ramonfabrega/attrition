@@ -49,23 +49,23 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out: the chain's 4387 (after 4382's sweep), the suite's 4388 (after 4384's ranges), the third's 4389 (after 4383's repair) and render's 4390 (after 4385 and 4386).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out: the chain's 4392 (after 4387 minted the demand), the suite's 4388, the third's 4391 (after 4389) and render's 4390. The third seat has left the input track for the AI's army path, for the pass to weigh.
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 1 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
 packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**, run1628 (recon4206-4, read in
 place) **1150 computed**, run1629 **1300 whole**. Frame 91's line parts on 0 of 267 ranges and is held, not whole, while a leaf is held
-(the driver's ruling at 4298). **Held:** `tribute_demanded`. **Order:** item 4387; the line on every frame is whole (4340). The diplomacy's
+(the driver's ruling at 4298). **Held:** `tribute_demanded`. **Order:** item 4392; the line on every frame is whole (4340). The diplomacy's
 second reading is adjudicated (`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`); the proposal's draw at five live leaders is
 parked in `docs/LEADERS.md` §7.6 with what would falsify it.
 
-4387. **The demand's seed, then the demand minted** (a rules item, whole; the chain's; `docs/LEADERS.md` §8.2; DECISIONS 142 §3).
-`LEADERS_HELD_OUT` 1 → 0. 4382's sweep (Great Lakes, style 0, seeds 12340–12359, difficulties 0–5, order-free): 30 of 120 lobbies demand
-on the base, earliest 7105 (12348, d2); with diplomacy reading the lobby's seed, a probe, 33 of 120, earliest 6081 (12345, d2), the
-original's frame; every demand is leader 1 at the person. First act: the planned war's seed mended to the lobby's, every floor held,
-the demand on 12345 d2 on 6081 in ours. Second: `from_lobby`'s donor relaxed to let options[0] differ (the rules equal across
-`TEAM_STYLE` on both East Indies pairs; no style-0 Great Lakes donor on disk); third: that game minted as run1683, played under
-`RON_CHECKSUMS` and scored, the leaf leaving if the leaders line agrees through the demand with it emitted, red with it held.
+4392. **The demand game's leaders line from state 0** (a rules item, whole; the chain's; `docs/LEADERS.md` §8.2, §8.6; DECISIONS 142 §3).
+`LEADERS_HELD_OUT` 1 → 0. 4387 mended the planned war's seed to the lobby's, every floor held, and minted Great Lakes 12345 d2 at style
+0 (run1683): theirs and ours set `tribute_demanded[0]` 0 → 1 on 6081, the `LEADERDATA` record agrees on 6070 to 6100 but `SITE[i].reg`
+(parked 4387b), and eleven lines agree on 6,401 of 6,401 states; the leaders line parts on every state from 0 (ours 40276137, theirs
+10260661) on a leaf the record does not print (parked 4387a). First act: that file played for a few frames under `RON_CHECKSUMS` and
+`RON_RANGES` (run1678's recipe) as run1686, the state-0 range named by record and field. Then it closed; the leaf leaves if the line
+agrees through 6081 with it emitted, seen red with it held. It stops when two acts move the first parting by nothing.
 
 4388. **The sample's state 0, its team game first** (a rules item, whole; the suite's; `docs/RECGAME.md` §7; DECISIONS 142 §4).
 `SAMPLE_LINES` first partings (4384, run1678, `SAMPLE_RANGES`): units on 92 (`unit_masks` 8 vs 0x4000008, the explore bit, which ours
@@ -83,12 +83,13 @@ lays 1,225 of 3,636 stroke pixels, the west rim only (parked 4386a to 4386c). Fi
 or its stage 0 texture read back off a packet's heap, on run1564's 3279: which input lays the strokes. Then a row on the lake's body
 by value, seen red on a perturbed side, and that input closed with its value diff. It stops when neither input lays them.
 
-4389. **The computer's archers' attack-move after its Bowmen are taken** (a rules item, whole; the third seat's; `docs/ORDERS.md` §8.2;
-`docs/CLIENT_INPUT.md` §32.15). `REPAIR_WALKED` (7274, 8500, 1600, 1337) on run1679: the repair file walks whole to 7500 and
-parts on 7163, where slot 1's new Longbowman `1/30` heads `GROUP_ATTACK_TO` on ours and `ATTACK_TO` on theirs (parked 4383a); the
-`play` 1 attack is what opens that branch of our AI's army path. First act, on the record on disk (6900..8500, per frame): the issuer
-that gives `1/30` its order on 7162 on both sides, and the group test that picks a `GroupMoveOrder`. Then that arm mended with its
-value diff and the walk re-measured. It stops when two acts move the first parting by nothing.
+4391. **A pushed group's member answers no army** (a rules item, whole; the third seat's; `docs/ORDERS.md` §8.2, §14; GOLDEN §77).
+`REPAIR_WALKED` (7274, 8500, 1600, 1337) on run1679. 4389 read the 7163 parting as the gate's input: theirs' `1/30` squad (born 6993
+in group 65, army 1's index, emptied of its Bowmen by the `play` 1 attack) carries `unit_masks & 4` on 7162, since `get_army` answers
+−1 for a pushed group's member and `add_to_army` → `go_to_unit` re-marks it on every 32-frame edge; ours seats it on army 1 by §77's
+listed-joiner arm, so nothing marks and it heads `GROUP_ATTACK_TO` (parked 4389a). First act: `army_of` answers `None` for such a
+member while the army's tick still acts on the record, red first on the mark on 7162; a mutation dropping the re-run fails it. Golden
+chapter forty-two (it fell 1160 → 1020 on `1/6`'s stance the last time) and every walk floor hold, or the build parks with its fall.
 
 ## How to maintain this file
 
