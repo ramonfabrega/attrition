@@ -1116,6 +1116,95 @@ static void market_line(i32 frame, u32 idx, const u16 *t, u32 rva, u32 before, c
     emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(after > before ? 0 : 6) << 16), before, after, 1);
 }
 
+/* `@pause <state>`, `@gstance <who> <stance> <ids…>`, `@gdisband <who> <all>
+ * <ids…>` (item 4378): three issuers nothing in the executable calls.
+ * `CommandManager::issue_pause@00940ba0(state)` builds the console's two bytes
+ * (`0x4c`, state) with no caller in the export: the console's `pause` and the
+ * key both go through `TurnControl::issue_toggle_pause`. `GroupOut::
+ * issue_stance@0070b100(stance)` has no caller and no copy of its address in
+ * the executable (Loop 3473): `Options::do_stance` writes the order inline.
+ * `GroupOut::issue_disband@0070a470(all)` is called only from the selected
+ * panel's one-object arm (`IFaceSelected::on_button_clicked@00826e00`), a
+ * button this lane has no point for. Each is called as the game would, on
+ * `this`: the command manager, or a fresh group of the named live captains,
+ * as `issue_line` builds one. The prologues are off the listing (`940ba0`,
+ * `70b100`, `70a470`); under `cover=1` the displaced bytes are the copy
+ * `issue_guard.h` reads through. Refusals as `issue_line`'s. */
+static const u8 PAUSE_PROLOGUE[ISSUE_PROLOGUE] = {0x55, 0x8b, 0xec, 0x51, 0x8a, 0x45,
+                                                  0x08, 0xb9, 0x88, 0xff, 0xe8};
+static const u8 GSTANCE_PROLOGUE[ISSUE_PROLOGUE] = {0x55, 0x8b, 0xec, 0xa1, 0xe8, 0x61,
+                                                    0xc0, 0x00, 0x83, 0xec, 0x08};
+static const u8 GDISBAND_PROLOGUE[ISSUE_PROLOGUE] = {0x55, 0x8b, 0xec, 0xa1, 0xe8, 0x61,
+                                                     0xc0, 0x00, 0x56, 0x8b, 0xf1};
+#define RVA_CM_ISSUE_PAUSE 0x540ba0u
+#define RVA_GROUPOUT_ISSUE_STANCE 0x30b100u
+#define RVA_GROUPOUT_ISSUE_DISBAND 0x30a470u
+
+static int shipped_at(u32 rva, const u8 *want) {
+    const Entry *cov = g_stubs ? cover_entry(rva) : 0;
+    u32 stub = cov ? (u32)(g_stubs + STUB_BYTES * (u32)(cov - g_funcs)) : 0;
+    return issuer_is_shipped((const u8 *)(g_base + rva), g_base + rva, want, ISSUE_PROLOGUE, stub,
+                             cov ? cov->code : 0, cov ? cov->orig_len : 0, cov ? cov->code_len : 0,
+                             cov ? cov->nfix : 0);
+}
+
+static void pause_line(i32 frame, u32 idx, const u16 *t, u32 before, const u16 *pkg_size) {
+    i32 state;
+    u32 why = 0;
+    if (!issue_int(&t, &state) || state < 0 || state > 1) why = 5;
+    else if (!shipped_at(RVA_CM_ISSUE_PAUSE, PAUSE_PROLOGUE)) why = 2;
+    else if (before + 2 + 4 > 0x200) why = 4;
+    if (!why) {
+        typedef void(__thiscall *pause_fn)(void *, i32);
+        ((pause_fn)(g_base + RVA_CM_ISSUE_PAUSE))((void *)(g_base + RVA_COMMAND_MANAGER), state);
+        why = *pkg_size > before ? 0 : 6;
+    }
+    emit(K_INFO, I_ISSUE, (u32)frame, idx | (why << 16), before, *pkg_size, 0);
+}
+
+static void group_out_line(i32 frame, u32 idx, const u16 *t, u32 rva, const u8 *want, u32 before,
+                           const u16 *pkg_size) {
+    i32 who, arg, ids[ISSUE_MAX];
+    u32 n = 0;
+    if (!issue_int(&t, &who) || !issue_int(&t, &arg)) {
+        emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0);
+        return;
+    }
+    while (n < ISSUE_MAX && issue_int(&t, &ids[n])) n++;
+    if (!n || who < 0 || who > 7) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, n); return; }
+    u8 *console = *(u8 **)(g_base + RVA_CONSOLE);
+    if (!console || *(i32 *)(console + CONSOLE_PLAY_OFF) != who) {
+        emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(1) << 16), before, before, n);
+        return;
+    }
+    if (!shipped_at(rva, want)) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(2) << 16), before, before, n); return; }
+    u8 *band = (u8 *)(g_base + RVA_UNITS + (u32)who * 0x1c);
+    u32 length = *(u32 *)(band + 4);
+    u8 **slots = *(u8 ***)(band + 0x10);
+    for (u32 j = 0; j < n; j++) {
+        u8 *unit = (ids[j] >= 0 && (u32)ids[j] < length && slots) ? slots[ids[j]] : 0;
+        if (!unit || !(unit[8] & 1) || unit[9] != (u8)who || *(u16 *)(unit + 0xa) != (u16)ids[j] ||
+            !(*(u16 *)(unit + 0x8e) & 0x8000)) {
+            emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(3) << 16), before, (u32)ids[j], n);
+            return;
+        }
+    }
+    if (before + 3 + 2 * n + 5 + 4 > 0x200) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(4) << 16), before, before, n); return; }
+    for (u32 i = 0; i < sizeof g_groupout; i++) g_groupout[i] = 0;
+    *(i32 *)(g_groupout + 0xc) = (i32)n;
+    g_groupout[0x4a] = (u8)who;
+    for (u32 j = 0; j < n; j++) {
+        *(u16 *)(g_groupout + 0x8cc + 2 * j) = (u16)ids[j];
+        u8 *unit = slots[ids[j]];
+        emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
+             *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
+    }
+    typedef void(__thiscall *group_out_fn)(void *, i32);
+    ((group_out_fn)(g_base + rva))(g_groupout, arg);
+    u32 after = *pkg_size;
+    emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(after > before ? 0 : 6) << 16), before, after, n);
+}
+
 #define LOOPQ_MAX 32
 typedef struct {
     u32 due, idx;
@@ -1205,6 +1294,15 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     }
     if (issue_verb(&t, "sell ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_SELL, before, pkg_size); return; }
     if (issue_verb(&t, "buy ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_BUY, before, pkg_size); return; }
+    if (issue_verb(&t, "pause ")) { pause_line(frame, idx, t, before, pkg_size); return; }
+    if (issue_verb(&t, "gstance ")) {
+        group_out_line(frame, idx, t, RVA_GROUPOUT_ISSUE_STANCE, GSTANCE_PROLOGUE, before, pkg_size);
+        return;
+    }
+    if (issue_verb(&t, "gdisband ")) {
+        group_out_line(frame, idx, t, RVA_GROUPOUT_ISSUE_DISBAND, GDISBAND_PROLOGUE, before, pkg_size);
+        return;
+    }
     /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5
      * `eject`, 6 `form`, 7 `attack`, 8 `amove`, 9 `explore`, 10 `flee`,
      * 11 `flight`, 12 `strike`, 13 `build`, 14 `spell`, 15

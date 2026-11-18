@@ -8996,6 +8996,77 @@ fn a_citizen_struck_rings_its_city_s_bell_and_only_a_computer_s_once() {
     assert!(!sim.cities.cities[c].alarm, "outside every city");
 }
 
+/// **A city struck rings its own bell, a computer's, once** (item 4359,
+/// `Object::take_damage@00652020:255`-`:282`, [`Sim::city_struck_alarm`]):
+/// the 2017 sample's 2887, where the person's units strike computer 4's
+/// capital and its Citizens walk to garrison. A blow across owners on the
+/// city's own building rings it and sends the Citizen in its radius to
+/// garrison; a human's city, a computer under difficulty 2, attrition, a
+/// blow from its own side and the city's other building (a Barracks, whose
+/// `flags & 0x20` is clear) ring nothing; a rung bell is not toggled.
+#[test]
+fn a_city_struck_rings_its_own_bell_and_only_a_computer_s_once() {
+    let fresh = || {
+        let (mut sim, t, citizen, militia) = alarm_sim();
+        sim.tables.unit_types[citizen].worker = crate::orders::Worker::Citizen;
+        let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+        sim.cities.nation[0].human = false;
+        sim.ai.lobby.difficulty = 2;
+        let near = sim.init_unit(0, citizen, tile_pos(38, 32));
+        let att = sim.init_unit(1, militia, tile_pos(40, 40));
+        let mine = sim.init_unit(0, militia, tile_pos(40, 40));
+        (sim, t, b, c, near, att, mine)
+    };
+    let blow = combat::Sixteenths { whole: 5, frac: 0 };
+    let garrisoning = |sim: &Sim, u: usize| {
+        sim.units[u]
+            .orders
+            .iter()
+            .any(|o| o.index() == crate::orders::index::GARRISON)
+    };
+
+    let (mut sim, _, b, c, near, att, _) = fresh();
+    assert!(!sim.cities.cities[c].alarm);
+    sim.damage_building(b, blow, Some(Obj::Unit(att)), 100, false);
+    assert!(sim.cities.cities[c].alarm, "the bell");
+    assert!(garrisoning(&sim, near), "{:?}", sim.units[near].orders);
+    sim.damage_building(b, blow, Some(Obj::Unit(att)), 101, false);
+    assert!(sim.cities.cities[c].alarm, "no all-clear from a blow");
+
+    let (mut sim, _, b, c, near, att, _) = fresh();
+    sim.cities.nation[0].human = true;
+    sim.damage_building(b, blow, Some(Obj::Unit(att)), 100, false);
+    assert!(!sim.cities.cities[c].alarm, "a human's city rings nothing");
+    assert!(!garrisoning(&sim, near));
+
+    let (mut sim, _, b, c, _, att, _) = fresh();
+    sim.ai.lobby.difficulty = 1;
+    sim.damage_building(b, blow, Some(Obj::Unit(att)), 100, false);
+    assert!(!sim.cities.cities[c].alarm, "get_diff > 1");
+
+    let (mut sim, _, b, c, _, att, mine) = fresh();
+    sim.damage_building(b, blow, Some(Obj::Unit(att)), 100, true);
+    assert!(!sim.cities.cities[c].alarm, "attrition rings nothing");
+    sim.damage_building(b, blow, Some(Obj::Unit(mine)), 100, false);
+    assert!(!sim.cities.cities[c].alarm, "nor its own side's blow");
+
+    let (mut sim, t, _, c, _, att, _) = fresh();
+    let other = sim
+        .place_building(0, t.barracks, tile_pos(24, 40))
+        .unwrap_or_else(|e| panic!("the barracks should place: {e:?}"));
+    finish(&mut sim, other);
+    assert_eq!(
+        sim.buildings[other].city,
+        Some(c),
+        "the barracks is the city's"
+    );
+    sim.damage_building(other, blow, Some(Obj::Unit(att)), 100, false);
+    assert!(
+        !sim.cities.cities[c].alarm,
+        "the city's other building: flags & 0x20 clear"
+    );
+}
+
 /// **A peasant alarm sends each selected Citizen to the nearest building
 /// it can garrison, however far** (item 3916, `docs/GOLDEN.md` §163;
 /// `Group::action_alarm_peasant@006fd980`, run1510c): the search's range is

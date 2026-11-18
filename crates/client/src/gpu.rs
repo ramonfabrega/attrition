@@ -470,6 +470,12 @@ enum PatchKind {
     /// A good's billboard (item 4312, §3.24): the texel through
     /// `TL_FAKE_LIGHT` under a white vertex, at its own alpha.
     Billboard,
+    /// A national border (item 4376, §3.29, "The band's heights"): its
+    /// colour as it stands, with the depth test off and its depth
+    /// unwritten, as `Scene::init_render_states@008ba450` sets the card for
+    /// `Borders::process_all`, so the ground between two of the strip's
+    /// samples never covers it.
+    Border,
 }
 
 /// **The land pass's HDR target** (item 4327; `docs/RENDERER.md` §3.27,
@@ -488,6 +494,7 @@ fn patch_kind(piece: i32, alpha: usize) -> PatchKind {
         p if crate::world::is_land_oil(p) => PatchKind::Snowcap,
         crate::world::OIL_PIECE => PatchKind::Billboard,
         p if crate::world::is_edge(p) => PatchKind::Edge,
+        p if crate::world::is_border(p) => PatchKind::Border,
         FLOOR_PIECE => PatchKind::Floor,
         p if crate::world::is_surf(p) => PatchKind::Surf,
         p if (WATER_PIECE + 1..0).contains(&p) || p == CORAL_PIECE => PatchKind::Lit,
@@ -516,6 +523,9 @@ pub struct Gpu {
     /// The transition patch's pass (item 4139), its alphas' nearest,
     /// clamped sampler and each alpha on the GPU, uploaded once.
     patch: wgpu::RenderPipeline,
+    /// The national borders' pass (item 4376): `patch` with the depth test
+    /// off.
+    border: wgpu::RenderPipeline,
     /// The land's patches, lit (item 4212).
     patch_lit: wgpu::RenderPipeline,
     faded: wgpu::RenderPipeline,
@@ -1142,7 +1152,8 @@ impl Gpu {
                              entry: &str,
                              layout: &wgpu::PipelineLayout,
                              depth_write: bool,
-                             format: wgpu::TextureFormat| {
+                             format: wgpu::TextureFormat,
+                             compare: wgpu::CompareFunction| {
             device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 label: Some(label),
                 layout: Some(layout),
@@ -1163,7 +1174,7 @@ impl Gpu {
                 depth_stencil: Some(wgpu::DepthStencilState {
                     format: DEPTH_FORMAT,
                     depth_write_enabled: Some(depth_write),
-                    depth_compare: Some(wgpu::CompareFunction::LessEqual),
+                    depth_compare: Some(compare),
                     stencil: Default::default(),
                     bias: Default::default(),
                 }),
@@ -1183,7 +1194,14 @@ impl Gpu {
             })
         };
         let patch_pass = |label: &str, entry: &str, layout: &wgpu::PipelineLayout, depth_write| {
-            patch_pass_to(label, entry, layout, depth_write, format)
+            patch_pass_to(
+                label,
+                entry,
+                layout,
+                depth_write,
+                format,
+                wgpu::CompareFunction::LessEqual,
+            )
         };
         let blended = |label: &str, entry: &str| patch_pass(label, entry, &patch_layout, false);
         // Item 4327: the land pass's layers on its HDR target, as `faded`,
@@ -1194,6 +1212,7 @@ impl Gpu {
             &patch_layout,
             false,
             LAND_HDR_FORMAT,
+            wgpu::CompareFunction::LessEqual,
         );
         let hdr_faded = patch_pass_to(
             "hdr_faded",
@@ -1201,6 +1220,7 @@ impl Gpu {
             &patch_layout,
             false,
             LAND_HDR_FORMAT,
+            wgpu::CompareFunction::LessEqual,
         );
         let hdr_floor = patch_pass_to(
             "hdr_floor",
@@ -1208,6 +1228,7 @@ impl Gpu {
             &patch_layout,
             true,
             LAND_HDR_FORMAT,
+            wgpu::CompareFunction::LessEqual,
         );
         // Item 4338: the surf's lists on the same target.
         let hdr_surf = patch_pass_to(
@@ -1216,6 +1237,7 @@ impl Gpu {
             &patch_layout,
             false,
             LAND_HDR_FORMAT,
+            wgpu::CompareFunction::LessEqual,
         );
         let full_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("full"),
@@ -1331,6 +1353,14 @@ impl Gpu {
             cache: None,
         });
         let patch = blended("patch", "fs_patch");
+        let border = patch_pass_to(
+            "border",
+            "fs_patch",
+            &patch_layout,
+            false,
+            format,
+            wgpu::CompareFunction::Always,
+        );
         let patch_lit = blended("patch_lit", "fs_patch_lit");
         // Item 4310: opaque by its alpha of 1, its depth unwritten as the
         // faded layer's was.
@@ -1430,6 +1460,7 @@ impl Gpu {
             snowcap,
             billboard,
             edge,
+            border,
             alpha_textures: std::sync::Mutex::new(Default::default()),
             mtrl_textures: std::sync::Mutex::new(None),
             textured,
@@ -2634,6 +2665,7 @@ impl Gpu {
                 (_, PatchKind::Snowcap) => &self.snowcap,
                 (_, PatchKind::Billboard) => &self.billboard,
                 (_, PatchKind::Edge) => &self.edge,
+                (_, PatchKind::Border) => &self.border,
                 (_, PatchKind::Surf) => {
                     // Over a copy of the frame under it: drawn only by
                     // `ground_passes`' surf steps.
