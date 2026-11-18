@@ -1710,18 +1710,6 @@ impl Sim {
         let owner = self.buildings[b].owner;
         let silo = self.buildings[b].pos;
         let reach = self.get_speed(m, 1) * self.unit_mana(m);
-        if std::env::var_os("RON_PROBE_4377").is_some() {
-            eprintln!("PROBE4377 silo frame {} silo {}/{} at {:?} reach {reach}", self.frame, owner, self.buildings[b].index, silo);
-            for (x, bd) in self.buildings.iter().enumerate() {
-                if bd.alive && bd.owner < 8 && self.is_enemy(owner, bd.owner) {
-                    let id = self.building_ident(x);
-                    if matches!(id, crate::cities::build::Ident::Fort | crate::cities::build::Ident::Wonder | crate::cities::build::Ident::RedFort) || self.cities.cities.iter().any(|c| c.alive && c.building == x) {
-                        let d = vector_dist(bd.pos.x - silo.x, bd.pos.y - silo.y);
-                        eprintln!("PROBE4377   cand {}/{} {:?} ty {:?} pos {:?} health {} hits {} seen {} d {d} friendly {}", bd.owner, bd.index, id, bd.ty, bd.pos, bd.health, bd.hits, bd.ever_seen, self.own_object_within(owner, bd.pos, 0x1800));
-                    }
-                }
-            }
-        }
         let mut best = -1;
         let mut target = None;
         for l in 0..self.territory.players.len().min(8) as crate::Player {
@@ -1744,17 +1732,11 @@ impl Sim {
                 }
                 let v = self.num_buildings(c) * (self.buildings[cb].health.max(0) + 1000)
                     / (d / 0x1200 + 1);
-                if std::env::var_os("RON_PROBE_4377").is_some() {
-                    eprintln!("PROBE4377   city {}/{} nb {} v {v}", l, self.buildings[cb].index, self.num_buildings(c));
-                }
                 if v > best {
                     best = v;
                     target = Some(at);
                 }
             }
-        }
-        if std::env::var_os("RON_PROBE_4377").is_some() {
-            eprintln!("PROBE4377   target {target:?} best {best}");
         }
         if let Some(at) = target {
             self.add_air_attack_ground_order(m, at, None, crate::orders::QueuePos::New, true);
