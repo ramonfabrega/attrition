@@ -49,31 +49,32 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out from the pass's tip: the chain's 4382, the suite's 4384, the third's 4383 and render's 4386 (after 4385 landed).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out: the chain's 4387 (after 4382's sweep), the suite's 4388 (after 4384's ranges), the third's 4383 and render's 4386 (after 4385).
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 1 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
 packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**, run1628 (recon4206-4, read in
 place) **1150 computed**, run1629 **1300 whole**. Frame 91's line parts on 0 of 267 ranges and is held, not whole, while a leaf is held
-(the driver's ruling at 4298). **Held:** `tribute_demanded`. **Order:** item 4382; the line on every frame is whole (4340). The diplomacy's
+(the driver's ruling at 4298). **Held:** `tribute_demanded`. **Order:** item 4387; the line on every frame is whole (4340). The diplomacy's
 second reading is adjudicated (`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`); the proposal's draw at five live leaders is
 parked in `docs/LEADERS.md` §7.6 with what would falsify it.
 
-4382. **The demand on a game our walk holds, before the walk from 5677** (a rules item, whole; the chain's, unspawned; `docs/LEADERS.md`
-§8.2, §8.6; DECISIONS 138 §1, 142 §3). `LEADERS_HELD_OUT` 1 → 0. `RUN1646_WORD` 5677 of 6,081 after four items and 55 frames (4377: the nuke's
-arms, parked 4377a), so 138 §1's other game is taken. First act, no capture: a sweep in our own sim of Great Lakes lobbies over seeds and
-difficulties, each walked order-free past its gate, listing those where ours takes the demand branch and sets `tribute_demanded`, earliest
-first. Second: that game minted, played by the original under `RON_CHECKSUMS` and scored by `score_recording`; the leaf leaves if the leaders
-line agrees on every state through the demand with the leaf emitted, seen red with it held. A parting before the demand is the item's, on that
-game. If no lobby demands in ours: the walk from 5677 (draw 1598, ours in `PathFinder::calc_road_cost+0x46`, theirs in `Guy::set_anim+0x97a`),
-then the seed (4347); that walk stops when two acts move the word by nothing.
+4387. **The demand's seed, then the demand minted** (a rules item, whole; the chain's; `docs/LEADERS.md` §8.2; DECISIONS 142 §3).
+`LEADERS_HELD_OUT` 1 → 0. 4382's sweep (Great Lakes, style 0, seeds 12340–12359, difficulties 0–5, order-free): 30 of 120 lobbies demand
+on the base, earliest 7105 (12348, d2); with diplomacy reading the lobby's seed, a probe, 33 of 120, earliest 6081 (12345, d2), the
+original's frame; every demand is leader 1 at the person. First act: the planned war's seed mended to the lobby's, every floor held,
+the demand on 12345 d2 on 6081 in ours. Second: `from_lobby`'s donor relaxed to let options[0] differ (the rules equal across
+`TEAM_STYLE` on both East Indies pairs; no style-0 Great Lakes donor on disk); third: that game minted as run1677, played under
+`RON_CHECKSUMS` and scored, the leaf leaving if the leaders line agrees through the demand with it emitted, red with it held.
 
-4384. **The 2017 sample's lines at the start, then the scout's detour** (a rules item, whole; the suite's seat, unspawned; `docs/RECGAME.md`
-§7; DECISIONS 142 §4). Parity's sixth game by its own measure: `SAMPLE_LINES` parts builds, leaders and world on state 0, goods on 1 and units
-on 92, while the start is whole by the dump's records and the two-seat windows agree from state 0. First act: a ranges take of the sample's
-playback over states 0 to 100 (run1662's line with the range record), and each of the five lines' first differing range named by record and
-field against ours. Then the fields closed and the row re-minted with its value diff. Last: `SAMPLE_WALKED` 3019 (4380 moved nothing: scout
-`3/0`'s grid detour on 2892, run1674; `SAMPLE_WINDOW_RECORDS` 26 of 26; parked 4380a). It stops when two acts move no line's first parting.
+4388. **The sample's state 0, its team game first** (a rules item, whole; the suite's; `docs/RECGAME.md` §7; DECISIONS 142 §4).
+`SAMPLE_LINES` first partings (4384, run1678, `SAMPLE_RANGES`): units on 92 (`unit_masks` 8 vs 0x4000008, the explore bit, which ours
+keeps outside the word), builds on 0 (`ever_seen_completed` 23 vs 3 on 21 rows), leaders on 0 (`chat_status[3]` 0 vs 1),
+goods on 1 (`ever_seen` 0x04 vs 0x17), world on 0 (`seen2` 0x04 vs 0x17). State 0 parts on 28 ranges, 19 from the team game: builds'
+21 rows are `LeaderData` +0x6929 `ally_mask` (theirs 3, 2, 7 on leaders 0 to 2, ours the whole team 0x17 from `Wall::activate`),
+`chat_status` is `Game::init_teams`' 0x80 arm, and the unseated slots 5 to 7 carry the person's diplomacy. First act: the writers of
++0x6929 and their order in `build_game`; then `chat_status`; then the unseated slots' team byte; each row re-minted with its value diff.
+The nine left (oil patches, two z, six `seen2` cells) come after. It stops when two acts move no line's first parting.
 
 4386. **The lake by the card's own draws** (a `render` item, scoped; the render seat's, out; `docs/RENDERER.md` §3.30;
 DECISIONS 142 §7). `RUN1564_3279_TEXTURE_STILL` ocean 244 of 437 and `RUN1564_3279_FOAM`. On both of the pass's pairs theirs' lake is dark and
