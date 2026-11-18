@@ -2502,15 +2502,13 @@ left at 0, refused by its bucket clause (11,057 ≥ 3,000). The four tributes ar
   `diplos` on all eight slots, so a slot no player takes reads 1 at team
   style 0 (`teams_locked` false) and 0 under locked teams, which is why
   every earlier lobby agreed. The crate kept the row only for seated
-  leaders; it now keeps it whole (`ai::Leader::diplos_row`, carried across
-  `init_leader_ai`'s fresh record as `aggression` is). With
+  leaders; it now keeps it whole (`ai::Leader::unseated_diplos`, item
+  4388's, carried across `init_leader_ai`'s fresh record as `aggression`
+  is). With
   `tribute_demanded` emitted, **all twelve lines agree on run1683's 6,401
   states** (`the_demand_s_game_is_whole_on_run1683`); held, leaders parts
   on 6081 (ours 2843059440, theirs 411149553). The demand arm's draws and
-  goods are therefore diff-backed on this one walk to 6400. Not
-  established: an unseated slot's `team` byte under a team game (the
-  `is_team` arm toward a slot no player takes, which this crate answers
-  false; item 4388's sample reads 2 on the person's slots 5 to 7).
+  goods are therefore diff-backed on this one walk to 6400.
 - **`scale_tribute`**: the load scale of `commerce_tribute` and
   `base_tribute` (`Constants::init`), and its rounding branches, which were
   not re-listed. A deal captured above Commerce 0 pins them.
