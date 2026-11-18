@@ -28530,7 +28530,7 @@ Archive `gamelog-run1283c-eastindies-chinese-gunpowder-window-4795-4880.txt`, 21
 SHA-256 `16120bdc0d233550d2310e098065b411f6844feaab70470ed19a8803dbbd7707`.
 
 Archive `rontrace-run1283c.log`, 210,768,896 bytes,
-SHA-256 `d25aa3d04362a995ede56084fab7c69f23e47865190170c2fa74762761391e1e`.
+SHA-256 `d25aa3d04374a995ede56084fab7c69f23e47865190170c2fa74762761391e1e`.
 
 **What it holds**: `chinese_gunpowder_pair_run1283c_s_gap_is_widened_whole` (85 blocks, 144 keys). **The state first
 parts on block 4863, at the Heavy Fire Lance `1/215`**: theirs stands out a `retry` of 6 it holds on 4862, ours 0.
@@ -38434,7 +38434,7 @@ Archive `gamelog-run1663-greatlakes-playback-of-arms-7500.txt`, 165,533,592 byte
 SHA-256 `6d70876674a37b56838bb65fa5656f027596a06299e633454c5aa0260de4ca1e`; `rontrace-run1663.log`, 36,810,912
 bytes, SHA-256 `b646b960004f9ba8c36bd9f3ab5198f33dcdb40919c79dd59841bbb84121bd25`.
 
-## run1667 — run1646's lobby to 5700 with a packet at 5667: the nuke's strike order (2026-11-18, item 4362, `att-4362`)
+## run1667 — run1646's lobby to 5700 with a packet at 5667: the nuke's strike order (2026-11-18, item 4374, `att-4362`)
 
 `docs/LEADERS.md` §8.2, `docs/ARMY.md` §18. **What the disk could not answer**: item 4360 put the parting in
 `find_target`'s choice for army `1/1` on 5667, inside the Russian nuke's emergency, and no dump prints an army or a city's
@@ -38456,7 +38456,7 @@ bits. Filed **in place**, as run1646 is: `~/ron-golden/run1667/map-18/`, `fileru
 Files in place: `gamelog.txt`, 72,625,701 bytes, SHA-256 `2a802e7c27474867281a8e81eacd39ed2ce288e6874fd0a7a1bc9dc40250e1fd`;
 `rontrace.log`, 277,464,224 bytes, SHA-256 `f694e21aef24a5b338648a146249d12b9af5d63635021a9dc2009f4efe6a0e17`.
 
-**What it holds**: no walk reads it; the strike order's value diff (item 4362's journal).
+**What it holds**: no walk reads it; the strike order's value diff (item 4374's journal).
 ## run1665 — run1564's take with fast-forward ended before the pause: the settled borders (2026-11-18, item 4358, `att-4358`)
 
 `docs/RENDERER.md` §3.29, "The settled band". **What the disk could not answer:** every `!ffwd 4` photograph near

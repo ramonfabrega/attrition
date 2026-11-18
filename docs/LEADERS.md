@@ -2311,7 +2311,7 @@ raised by the Russian nuke's hit on the French capital
 (`frame_attacked` 5626 → 5667, the French `attack_stamp[2]`,
 `raid_stamp[2]`, `ally_stamp[2]` 0 → 5667, run1655's `LEADERDATA` on
 5668) and ours stamps no one. ~~Which score parts is not read
-(`docs/ARMY.md` §18): it takes a packet at 5667.~~ **Read by item 4362
+(`docs/ARMY.md` §18): it takes a packet at 5667.~~ **Read by item 4374
 on run1667's packet at 5667, word unmoved**: no score term parts. The
 parting is **which building the nuke strikes first**. `Ammo::do_damage`
 on the Russian missile (`2/97`, `TI` 316) under `step4.py`, theirs' seed
@@ -2324,7 +2324,7 @@ before the capital `1/2000` (cell (24, 53)) is reached. So
 takes `2/2057` at 25,525, which is ours' own Russian figure. Ours walks
 buildings by index, so `1/2000` is struck first and scores 102,200. The
 build is `nuke_do_damage`'s building arm walked as theirs' ring
-(`docs/journal/2026-11-18-item-4362.md`).
+(`docs/journal/2026-11-18-item-4374.md`).
 
 ## 8.3 In the crate
 
