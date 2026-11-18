@@ -741,6 +741,12 @@ pub struct Leader {
     /// `Leader::diplomacy@006bc950` concluded about it on its last visit
     /// (`docs/AI.md` §220). Nothing else writes them.
     pub aggression: [i32; 8],
+    /// `diplos[u]` and `treaties[u]` (`LeaderData +0x74`, `+0x94`) on a
+    /// slot `u` no player takes, as `Leader::init@006e3930`'s loop wrote
+    /// them (item 4388). The seated slots live in `Leaders`; nothing in a
+    /// game writes an unseated one again.
+    pub unseated_diplos: [i32; 8],
+    pub unseated_treaties: [i32; 8],
     pub strong: [i32; 8],
     pub weak: [i32; 8],
     /// `got_diplo_message` (`LeaderData +0x2f0`): the frame another
@@ -909,6 +915,8 @@ impl Leader {
             known_rares: 0,
             player_flags: 0,
             aggression: [0; 8],
+            unseated_diplos: [0; 8],
+            unseated_treaties: [0; 8],
             strong: [0; 8],
             weak: [0; 8],
             got_diplo_message: 0,
