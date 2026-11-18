@@ -40,6 +40,24 @@
  * Item 4165's second take (run1566b) added 7, 11, 12, 13, the args from the
  * observer's own frame (run1566's were read off a copy), and the names' second
  * dereference.
+ *
+ * Under `RON_CARD_STREAMS` (item 4386, parked 4281a and 4353a) each draw also
+ * keeps what it draws, read at `render`'s entry (`d3dgl.pdb`'s type records:
+ * `D3D11VertStream` `mDataPointer` +0x18, `mLocalBuffer` +0x1c, `mStructSize`
+ * +0x20, `mLength` +0x24; `D3D11GLIndexBuffer` `mSize` +0x18, `mUseDword`
+ * +0x1c, `mStructSize` +0x20, `mCurrentLength` +0x24, `mLocalData` +0x28):
+ *   14 vstream: b the stream (`mCurrentVStream`, else `mVB`), c `mLocalBuffer`,
+ *      d `mDataPointer`, e `mStructSize`, f `mLength`
+ *   15 ibuf: b `mCurrentIB`, c `mLocalData`, d `mCurrentLength`, e `mStructSize`
+ *      | `mUseDword` << 31, f the highest index read
+ *   16 vertex bytes: b byte offset from the draw's first vertex, c..f four
+ *      dwords — vertices [arg0, arg0 + max(arg1, highest index + 1)), read off
+ *      the local buffer, else the data pointer, at most `CARD_VCAP` bytes
+ *   17 index bytes: b byte offset, c..f four dwords, at most `CARD_ICAP`
+ *   18 arrays (no stream bound): b which (0 `mV3`, 1 `mDiffuseColors`,
+ *      2 `mTexCoords0`, 3 `mTexCoords1`), c the pointer, d the element size,
+ *      e the count
+ *   19 array bytes: b which << 24 | byte offset, c..f four dwords
  */
 #define K_CARD 40
 #ifndef RON_STATE_FRAME /* live_frame_snapshot.h declares it there */
@@ -125,6 +143,76 @@ static void card_stream_dump(u32 card) {
     }
 }
 
+#ifdef RON_CARD_STREAMS
+#ifndef CARD_VCAP
+#define CARD_VCAP 0x80000u
+#endif
+#ifndef CARD_ICAP
+#define CARD_ICAP 0x20000u
+#endif
+/* Copy `n` bytes at `src` (another heap's, read through ReadProcessMemory) as
+ * `sub` records, `tag` or'd into each record's offset word. */
+static void card_bytes(u32 sub, u32 tag, u32 src, u32 n) {
+    u8 buf[256];
+    for (u32 o = 0; src && o < n; o += sizeof buf) {
+        u32 got = 0, len = n - o < sizeof buf ? n - o : sizeof buf;
+        memset(buf, 0, sizeof buf);
+        ReadProcessMemory(g_proc, (void *)(src + o), buf, len, &got);
+        for (u32 j = 0; j < len; j += 16) {
+            const u32 *w = (const u32 *)(buf + j);
+            emit(K_CARD, sub, tag | (o + j), w[0], w[1], w[2], w[3]);
+        }
+    }
+}
+
+/* What the draw draws: its stream over the drawn range, its indices, and,
+ * with no stream bound, the card's arrays (the surf's path: `set_vertices`,
+ * `set_colors`, `set_texcoords`, then the card copies them into `mVB`). */
+static void card_draw_streams(u32 card, const u32 *args, u32 site) {
+    u32 cur = card_rd(card + 0x2c4), vb = card_rd(card + 0x2f0);
+    u32 vs = cur ? cur : vb;
+    u32 local = vs ? card_rd(vs + 0x1c) : 0, data = vs ? card_rd(vs + 0x18) : 0;
+    u32 stride = vs ? card_rd(vs + 0x20) : 0, length = vs ? card_rd(vs + 0x24) : 0;
+    emit(K_CARD, 14, vs, local, data, stride, length);
+    u32 hi = 0;
+    if (site == 0) {
+        u32 ib = card_rd(card + 0x2f4);
+        u32 idata = ib ? card_rd(ib + 0x28) : 0, ilen = ib ? card_rd(ib + 0x24) : 0;
+        u32 dword = ib ? (card_rd(ib + 0x1c) & 0xff) : 0;
+        u32 isz = dword ? 4 : 2, n = ilen * isz;
+        if (n > CARD_ICAP) n = CARD_ICAP;
+        u8 buf[256];
+        for (u32 o = 0; idata && o < n; o += sizeof buf) {
+            u32 got = 0, len = n - o < sizeof buf ? n - o : sizeof buf;
+            memset(buf, 0, sizeof buf);
+            ReadProcessMemory(g_proc, (void *)(idata + o), buf, len, &got);
+            for (u32 j = 0; j + isz <= len; j += isz) {
+                u32 v = dword ? *(u32 *)(buf + j) : *(u16 *)(buf + j);
+                if (v > hi && v < 0x100000u) hi = v;
+            }
+        }
+        emit(K_CARD, 15, ib, idata, ilen, (ib ? card_rd(ib + 0x20) : 0) | (dword << 31), hi);
+        card_bytes(17, 0, idata, n);
+    }
+    u32 nv = args[1] > hi + 1 ? args[1] : hi + 1;
+    u32 vbytes = nv * stride;
+    if (vbytes > CARD_VCAP) vbytes = CARD_VCAP;
+    u32 src = local ? local : data;
+    if (src && stride) card_bytes(16, 0, src + args[0] * stride, vbytes);
+    if (!cur) {
+        static const u16 at[4] = {0x2c0, 0x2d0, 0x2d8, 0x2dc};
+        static const u8 size[4] = {12, 4, 8, 8};
+        for (u32 k = 0; k < 4; k++) {
+            u32 p = card_rd(card + at[k]);
+            u32 bytes = nv * size[k];
+            if (bytes > CARD_VCAP) bytes = CARD_VCAP;
+            emit(K_CARD, 18, k, p, size[k], nv, 0);
+            card_bytes(19, k << 24, p, bytes);
+        }
+    }
+}
+#endif
+
 static void card_on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
     (void)arg0;
     /* The observer's own frame: fp[2..6] are its five arguments, fp[7..10] the
@@ -187,6 +275,9 @@ static void card_on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
         emit(K_CARD, 13, 0, v[0], v[1], v[2], v[3]);
         emit(K_CARD, 13, 4, v[4], v[5], v[6], v[7]);
         emit(K_CARD, 13, 8, v[8], v[9], v[10], v[11]);
+#ifdef RON_CARD_STREAMS
+        card_draw_streams(card, orig, site);
+#endif
     }
     emit(K_CARD, 4, nopt, ps, t0, t1, *(u8 *)(ecx + 0x4f0 + 0x340));
     if (opts && nopt <= 64)

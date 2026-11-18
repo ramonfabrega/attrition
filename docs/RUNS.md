@@ -38923,6 +38923,59 @@ Files in place: `gamelog_p.txt`, 3,972,686 bytes, SHA-256
 `09028a282ce7aee7e05b7235d9f51185704e60478486ebec52ffafc1618567f8`; `rontrace.log`, 42,983,808 bytes, SHA-256
 `8fa5edec3b366234586ada66eb0b0345343bd99baf4ab2414440b39ab9b8e833`.
 
+## run1681 — run1567's take with each draw's own stream kept: the lake's strokes by the card (2026-11-18, item 4386, `att-4386`)
+
+`docs/RENDERER.md` §3.30, "The strokes by the card's own stream". **What the disk could not answer**: which draw lays
+the photograph's broad strokes on the lake (parked 4353a). run1567's card trace streams no vertices, and the packet's
+lists are not the card's own per draw. The line is run1567's with one more define, `RON_CARD_STREAMS`
+(`tools/trace/card.h`, this branch):
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1681 --map 14 --end-frame 3296
+--timeout 600 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 0 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cmd-file
+~/ron-data/lab-experiments/2026-11-12-item-4160/photo3294.cmd --tracer-def RON_CARD_PROBE --tracer-def
+RON_CARD_STREAMS`. `poolshot.py ~/ron-golden/run1681 3294 --map 14` ran beside it.
+- **Two dead takes first.** Both died on Wine's `wow64cpu+0x1139` bop fault, a read of `0x00004ECD` at `0x7BF21139`.
+  Take 1 was on pool lane 2 at 13:38: the probe installed on all six sites, and the take died on frame 0. Take 2 was on
+  pool lane 1 at 13:40 and died before frame 0, before the probe installs. Both are kept, not filed:
+  `~/ron-golden/2026-11-18-run1681-take1-fault` and `…-take2-fault`. Each lane's runner held the lane to its
+  600 s timeout.
+- The third take: pool lane 1, launched 13:51:29, at 32.1 frames a second. The probe installed on six sites, with none
+  refused. Two passes were logged, after 3263 (206 draws) and 3279 (207). Every draw kept its stream: the land's own
+  buffers at stride 56, the fish at 40, and the surf's and the churn's through the card's arrays and the shared buffer
+  (`0x0314b1c0`, stride 32). The paused take ran to its timeout as run1567's did. 151 GB free after. Not filed.
+- **The window is stale.** The photograph (`~/ron-data/lab-experiments/2026-11-18-item-4386/run1681-3294.png`, window
+  20577, gamelog at 3295, SHA-256 `bed4514122c4039585dd71ea10e237459ea006c31e7774ca178ceb50621109f2`) shows the start
+  camera over the city, with the clock at 03:28. A second shot a minute later showed the same. Yet the commands staged
+  on 37, 3200 and 3294, and the card's 3279 pass draws the lake. So the pixels are run1564's photograph (parked 4386b).
+- **What it holds**: draws 0–185 are run1567's draw for draw, by both stages' textures. Only three screen-space alert
+  circles are absent.
+
+Trace `~/ron-golden/run1681/map-14/rontrace.log`, 79,549,792 bytes, SHA-256
+`99bfd62caafb4c834d3a38d8bd1e64207313d5a4814eebe0b858a3cc83ee7ded`.
+## run1679 — the original playing the repair file: the computer's attack and the Repair pick's `REPAIR` (2026-11-18, item 4383, `att-4383`)
+
+`docs/CLIENT_INPUT.md` §32.15. **What the disk could not answer**: no take on disk plays a `play` 1 package from a
+minted file, and none plays the Repair pick's `REPAIR` from one (4381a). The file:
+`~/ron-golden/recordings/item4383-repair-greatlakes-24000.rcx`, 59,862 bytes, SHA-256
+`d3e5662832136b00a4828ff6dd93f5e7b54dc6ae79d812c78f5aeac5b6b7de04`. It is the transport file (run1668) with two
+packages more: on 6920, `play` 1, `group [24, 25, 26]` and `attack(2000, 0, 0, QUEUE_NEW)`; on 8200, `group [12]` and
+`swarm_around(2000, 0, QUEUE_NEW, REPAIR)`.
+
+The take is run1668's line with this file, to 8500: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1679 --recording <the file> --end-frame 8500 --cover cover=1
+--log-window 6900 8500 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2,DEATHS=1 --timeout 3600 --stall-seconds 120`.
+It was waited on with `waitrun.sh` in the background. `df -g ~` read 166 GB free before it.
+- **The run**: pool lane 1, launched 13:23:52 −05:00, exited 13:39:35: **942.9 s from launch to exit**, exit 0,
+  `success`, no page fault, no relaunch. 8,501 frames, `last_frame` 8500, seed 12345, map 14. Players: tribe 4
+  (flags 7) and tribe 11 (flags 1). Five settings restored. The receipt names the file's SHA-256. The playback
+  was not refused. Minutes waited on another lane: none.
+- **The `.rcx` the playback leaves**: none but the run's own `input.rcx`, the symlink to the file played.
+- Filed with `filerun.py run1679 greatlakes-playback-of-repair-8500`.
+
+Archive `gamelog-run1679-greatlakes-playback-of-repair-8500.txt`, 390,546,546 bytes,
+SHA-256 `17f712946e312ee0f460653a0a60967b35654d2ca475907d20d039ba82f7ec80`; `rontrace-run1679.log`, 36,496,416
+bytes, SHA-256 `3d031a0eeef6d729d642954c615e1a9ce31dcd5a5f7d424a5ec6e93613624085`.
+
 ## run1678 — the 2017 sample's playback to 100 with the checksum and ranges hooks, all twelve lines kept (2026-11-18, item 4384, `att-4384`)
 
 `docs/RECGAME.md` §7; DECISIONS 142 §4. **What the disk could not answer**: run1662's sums say builds, leaders and world
