@@ -38923,6 +38923,32 @@ Files in place: `gamelog_p.txt`, 3,972,686 bytes, SHA-256
 `09028a282ce7aee7e05b7235d9f51185704e60478486ebec52ffafc1618567f8`; `rontrace.log`, 42,983,808 bytes, SHA-256
 `8fa5edec3b366234586ada66eb0b0345343bd99baf4ab2414440b39ab9b8e833`.
 
+## run1688 — run1681's take with the post chain copied back: the frame the card logs, photographed (2026-11-18, item 4393, `att-4393`)
+
+`docs/RENDERER.md` §3.30, "The frame the card logs, photographed". **What the disk could not answer**: whether
+run1564's photograph and a probe take's logged pass show the same water (4386b, 4390a), and what the post chain
+(bloom, FXAA) does to the lake. run1681's line with one more define, `RON_CARD_POST` (`tools/trace/card.h`, this
+branch): `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1688 --map 14
+--end-frame 3296 --timeout 600 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 0 --cover cover=0
+--profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--cmd-file ~/ron-data/lab-experiments/2026-11-12-item-4160/photo3294.cmd --tracer-def RON_CARD_PROBE --tracer-def
+RON_CARD_STREAMS --tracer-def RON_CARD_POST`, with `poolshot.py ~/ron-golden/run1688 3294 --map 14` beside it.
+- Pool lane 1, launched 15:35:06 −05:00, at 41.3 frames a second. One take, no startup fault. The paused take
+  then ran to its timeout, as run1681's did. 152 GB free after. Not filed.
+- Two passes were logged, after 3263 and 3279. On each, every post hook fired once, in the order `do_run`,
+  `do_blur`, `do_blend`, `D3D11AntiAlias::run`, `flip`. Each wrote its readbacks, 14 files in all
+  (`~/ron-golden/run1688/map-14/post-00.raw` … `post-13.raw`, 114 MB): the HDR buffer (1920×1080,
+  `R16G16B16A16_FLOAT`), the screen at `do_run`'s entry (cleared), the toned buffer (`R8G8B8A8_UNORM`), ping
+  (960×540) and pong (1920×1080, both `R10G10B10A2_UNORM`), the screen before FXAA and the screen at `flip`.
+- **The window presented the logged pass.** The photograph (window 20590, 1920×1080, the gamelog at 3294) equals
+  3279's `flip` readback on all 2,073,600 pixels, MAD 0.0. Its clock reads 00:03:38 and its food 20239, as
+  run1564's do. Against 3263's `flip`, the lake parts at MAD 5.16.
+
+Trace `~/ron-golden/run1688/map-14/rontrace.log`, 79,859,040 bytes, SHA-256
+`d1d52dc7191b9b3478efa7834857d211fb1deaced9b55c61841d136e2384aa4a`. Photograph
+`~/ron-data/lab-experiments/2026-11-18-item-4393/run1688-3294.png`, tagged `sRGB`, SHA-256
+`fb0754ca7f12a7496957b4a2254060753e83437723486171af51b866cc513bd7`.
+
 ## run1681 — run1567's take with each draw's own stream kept: the lake's strokes by the card (2026-11-18, item 4386, `att-4386`)
 
 `docs/RENDERER.md` §3.30, "The strokes by the card's own stream". **What the disk could not answer**: which draw lays
