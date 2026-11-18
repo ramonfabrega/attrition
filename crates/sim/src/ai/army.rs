@@ -115,6 +115,16 @@ pub struct Army {
     /// The persistent half of that group's `GroupData` (`docs/GROUPS.md`
     /// §1). The army's `list[16]` of group ids collapses to this one.
     pub group: crate::groups::group::GroupState,
+    /// **The record on the army's index is a pushed group's, adopted**
+    /// (item 4391, `docs/ORDERS.md` §14; `docs/GOLDEN.md` §77): set when
+    /// [`Sim::add_to_army`] seats a pool record that already lists the
+    /// joiner. The original's `add_unit` adds nothing there, and the
+    /// record's `army` (`+8`) stays −1 from its push, so
+    /// `Object::get_army@00649d70` answers −1 for every member and
+    /// `add_to_army` re-runs on each 32-frame edge. Only `Army::add_unit`'s
+    /// own push (`Army::add_group`) writes that word back, so the push arm
+    /// clears this.
+    pub adopted: bool,
 }
 
 impl Army {
@@ -142,6 +152,7 @@ impl Army {
             muster_angle: Angle(0),
             units: Vec::new(),
             group: crate::groups::group::GroupState::default(),
+            adopted: false,
         }
     }
 
@@ -508,6 +519,8 @@ impl Sim {
                     self.army_normalize(who, a);
                 }
             }
+            // `Army::add_group` writes the record's `army` back.
+            self.ai.armies[w].list[slot].adopted = false;
             self.ai.armies[w].list[slot].group = if equal {
                 crate::groups::group::GroupState {
                     pool: Some(s),
@@ -566,6 +579,7 @@ impl Sim {
             .get(who)?
             .valid()
             .find(|(_, a)| a.group.pool == Some(s) && a.units.contains(&u))
+            .filter(|(_, a)| !a.adopted)
             .map(|(s, _)| s)
     } // absorbs Army::member
 
@@ -678,7 +692,8 @@ impl Sim {
         // the original's `add_unit` does nothing; this crate keeps the
         // arm below for it, which seats the record on the army and
         // agrees with run460 (golden chapter forty-two) through its end.
-        if let Some(p) = self.army_pool_record(who, slot)
+        let record = self.army_pool_record(who, slot);
+        if let Some(p) = record
             && !self.orders.pushed[p].list.contains(&u)
         {
             let s = self.ai.armies[who as usize].list[slot].group.pool;
@@ -692,6 +707,28 @@ impl Sim {
             }
             self.seat_add(crate::groups::group::Seat::Pushed(p), u, false, false);
             self.set_group(u, s);
+            return Some(slot);
+        }
+        // **A joiner the record already lists** (item 4391): `normalize`
+        // counts the record, `get_unit(0)` is its first member and
+        // `go_to_unit` marks the squad; `add_unit` then finds it there
+        // (`Army::member@006f8de0`) and adds nothing, so `get_army` stays
+        // −1. This crate seats the record on the army, so that the army's
+        // tick acts on it as the original's does on its index, and marks
+        // the army adopted: [`Self::army_of`] answers no army, and the
+        // next edge comes back here through the arm below.
+        if let Some(p) = record {
+            let s = self.ai.armies[who as usize].list[slot].group.pool;
+            let first = self.orders.pushed[p]
+                .list
+                .iter()
+                .copied()
+                .find(|&m| self.units[m].alive() && self.units[m].group_ptr == s);
+            if let Some(first) = first {
+                self.go_to_unit(u, first);
+            }
+            self.army_add_unit(who, slot, u);
+            self.ai.armies[who as usize].list[slot].adopted = true;
             return Some(slot);
         }
         // **The walk to the army** (§4.3), between the pick and the join,
