@@ -1254,17 +1254,6 @@ impl Sim {
             };
             self.units[u].path.push(goal);
             self.plan_unpathed(u, goal, Self::find_wpath, Self::find_tpath);
-            if std::env::var_os("RON_PROBE_4395").is_some()
-                && self.frame == 7418
-                && self.units[u].owner == 1
-                && (30..=32).contains(&self.units[u].index)
-            {
-                eprintln!(
-                    "PROBE4395 plan 1/{} mo {mo:?} path {:?}",
-                    self.units[u].index,
-                    self.units[u].path
-                );
-            }
             flags |= flag::PATHED;
             self.store_move(u, mo, flags);
             if self.units[u].path.len() > 10 {
@@ -1396,20 +1385,6 @@ impl Sim {
             }
 
             let here = self.units[u].pos;
-            if std::env::var_os("RON_PROBE_4395").is_some()
-                && self.frame == 7418
-                && self.units[u].owner == 1
-                && (30..=32).contains(&self.units[u].index)
-            {
-                eprintln!(
-                    "PROBE4395 there 1/{} here {here:?} wp {:?} hit {hit:?} tol {} vd {} top {top:?} path {:?}",
-                    self.units[u].index,
-                    mo.waypoint,
-                    self.units[u].tolerance,
-                    vector_dist(mo.waypoint.x - here.x, mo.waypoint.y - here.y),
-                    self.units[u].path
-                );
-            }
             // Already there: the Euclidean test before the step.
             if vector_dist(mo.waypoint.x - here.x, mo.waypoint.y - here.y)
                 <= self.units[u].tolerance
@@ -2378,22 +2353,6 @@ impl Sim {
         // the one that stores and returns while a turn is still owed.
         if let Some(m) = self.current_move(u) {
             mo.coll = m.coll;
-        }
-        if std::env::var_os("RON_PROBE_4395").is_some()
-            && self.frame == 7418
-            && self.units[u].owner == 1
-            && (30..=32).contains(&self.units[u].index)
-        {
-            eprintln!(
-                "PROBE4395 step 1/{} from {from:?} target {target:?} wp {:?} hit {hit:?} snapped {} arrived {} owed {} turned {:?} tol {} top {top:?}",
-                self.units[u].index,
-                mo.waypoint,
-                step.snapped,
-                step.arrived,
-                step.owed,
-                step.turned_in_place,
-                self.units[u].tolerance
-            );
         }
         if let Some(_other) = hit
             && step.snapped

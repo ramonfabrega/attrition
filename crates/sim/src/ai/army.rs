@@ -2633,17 +2633,7 @@ impl FormSim<'_> {
 
 impl FormView for FormSim<'_> {
     fn engaged(&mut self) -> bool {
-        let e = self.sim.army_is_engaged(self.who, self.slot);
-        if std::env::var_os("RON_PROBE_4395").is_some() {
-            eprintln!(
-                "PROBE4395 f{} form {}/{} engaged {e} groups {}",
-                self.sim.frame,
-                self.who,
-                self.slot,
-                self.sim.ai.armies[self.who as usize].list[self.slot].num_groups()
-            );
-        }
-        e
+        self.sim.army_is_engaged(self.who, self.slot)
     }
     fn group_count(&self) -> i32 {
         self.sim.ai.armies[self.who as usize].list[self.slot].num_groups()
@@ -2736,26 +2726,7 @@ impl FormView for FormSim<'_> {
     }
     fn siege_attack_to(&mut self, _: i32, to: Pos, angle: Angle) {
         let g = self.sim.army_group(self.who, self.slot);
-        if std::env::var_os("RON_PROBE_4395").is_some() {
-            eprintln!(
-                "PROBE4395 f{} form {}/{} siege_attack_to {to:?} {angle:?} group {g:?}",
-                self.sim.frame, self.who, self.slot
-            );
-        }
         self.sim.group_action_siege_attack_to(&g, to, angle);
-        if std::env::var_os("RON_PROBE_4395").is_some() {
-            for &u in &g.list {
-                let x = &self.sim.units[u];
-                eprintln!(
-                    "PROBE4395 f{} after {}/{} at {:?} orders {:?}",
-                    self.sim.frame,
-                    x.owner,
-                    x.index,
-                    x.pos,
-                    x.orders.iter().map(|o| (o.index(), format!("{o:?}"))).collect::<Vec<_>>()
-                );
-            }
-        }
     }
 }
 
