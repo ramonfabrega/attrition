@@ -267,13 +267,13 @@
 /// `Unit::think_carry_idle`, `AnimalData::is_seen`, `Unit::do_await_board`); item 3731: 1696 -> 1446, the
 /// 254 layout-only sweeps of the five `census.REPLACED_BY_DESIGN` groups deleted (port-backed unmoved at 568; the
 /// territory's `replaced` unmoved at 318, four `vtordisp` destructor sweeps kept for it, parked 3731a, and
-/// `process_sell`'s, docs/NATIONS.md's witness of the Nubian market gate); item 3809: 1446 -> 1447, a `Terrain::init` function `sim::mapgen::terrain_init` now spells; item 3820: 1447 -> 1448, East Indies' mask (`sim::mapgen::map_east_indies`); item 4170: 1448 -> 1456, CHECKSUM §22's whole-line walkers and the twins' spellings, measured at its booking.
+/// `process_sell`'s, docs/NATIONS.md's witness of the Nubian market gate); item 3809: 1446 -> 1447, a `Terrain::init` function `sim::mapgen::terrain_init` now spells; item 3820: 1447 -> 1448, East Indies' mask (`sim::mapgen::map_east_indies`); item 4170: 1448 -> 1456, CHECKSUM §22's whole-line walkers and the twins' spellings, measured at its booking; item 4394: 1456 -> 1457, the start's seen-sharing (`sim::vision::seen_ally`), measured (1457, 737, 3611) at its booking.
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1456;
+pub const SIMULATION_BACKED: usize = 1457;
 /// Of those, the **port-backed**: a document's coverage section diffs the
 /// function, or `crates/sim` spells its own `Class::method` outside
 /// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a
@@ -289,7 +289,8 @@ pub const SIMULATION_BACKED: usize = 1456;
 /// 733 → 734 at item 4159's step VII-d: a backed function the alliance's gates spell (`sim::leaders::diplomacy::alliance`).
 /// 734 → 735 at item 4259's booking: the market's order door spells a backed function (`process_sell`/`process_buy`, measured (1456, 735, 3611) by its lane).
 /// 735 → 736 at item 4159's twelfth residue: the CEO's tile step spells a backed function (`Unit::update_ceo_position`, `sim::economy::holdings`), measured (1456, 736, 3611) at its booking gate's red.
-pub const SIMULATION_PORT_BACKED: usize = 736;
+/// 736 → 737 at item 4394's booking: the start's seen-sharing spells a backed function (`sim::vision::seen_ally`), measured (1457, 737, 3611) by `tools/census.py --layers`.
+pub const SIMULATION_PORT_BACKED: usize = 737;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
