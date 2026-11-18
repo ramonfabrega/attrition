@@ -1198,6 +1198,117 @@ fn a_computer_s_silo_strikes_an_enemy_city_with_its_nuke() {
     }
 }
 
+/// **The silo strike walks the leader's forts and wonders after its
+/// cities** (item 4377, `Object::do_launch@0064f3b0`'s nuke arm,
+/// `650150`..`65052c`): a fort scores `(hits_left + 1000) / (d / 0x1200
+/// + 1)` and a wonder `damage / 100 + 1000`, ×10 while the silo's team
+/// trails its enemies in wonder points, on the same strictly-greater best
+/// as the cities; the Forbidden City's line is passed over. run1646's
+/// Russian silo `2/2035` on 5517 took the French wonder `1/2033` (1000
+/// ×10 ×100 / 6 = 166,666) over the capital `1/2000` (104,166). Made to
+/// fail with the wonders loop dropped (the city on "a wonder"), with
+/// the forts loop dropped (the city on "a fort") and with the ×10
+/// dropped (the city on "a wonder").
+#[test]
+fn the_silo_strike_walks_the_forts_and_wonders_after_the_cities() {
+    for case in [
+        "the city",
+        "a fort",
+        "a wonder",
+        "the Forbidden City",
+        "level",
+    ] {
+        let (mut s, silo, m, enemy) = silo_with_a_v2();
+        s.cities.nation[0].human = false;
+        let ty = s.units[m].ty.unwrap();
+        s.tables.unit_types[ty].tree = Some(NUCLEARMISSILE);
+        s.buildings[enemy].pos = Pos::new(20160, 20160);
+        let city = s.buildings[enemy].pos;
+        s.cities.cities.push(crate::cities::city::City {
+            alive: true,
+            owner: 1,
+            race: Some(1),
+            founder: 1,
+            building: enemy,
+            members: Vec::new(),
+            reg: None,
+            pos: city,
+            capital: true,
+            founding_capital: true,
+            was_founding_capital: false,
+            unassimilated: false,
+            no_heal: false,
+            attacking: false,
+            ever_attacked: false,
+            alarm: false,
+            no_muster: false,
+            was_capital: 0,
+            capture_stamp: 0,
+            assimilation_timer: 0,
+            attack_stamp: 0,
+            reduce_stamp: 0,
+            raid_stamp: 0,
+            scouted: 0,
+            capture_strength: 0,
+            pop: 1,
+            has_citizen: false,
+            source: None,
+            trade_val: 0,
+            traded_with: [0; 8],
+        });
+        // One cell beside the city: the same `d / 0x1200`.
+        let beside = Pos::new(20160, 19392);
+        let mut want = city;
+        if case == "a fort" {
+            let f = enemy_barracks(&mut s, beside);
+            s.buildings[f].health = 3000;
+            s.buildings[f].fort_slot = Some(0);
+            s.leaders.marks[1].forts.mark = 1;
+            want = beside;
+        }
+        if matches!(case, "a wonder" | "the Forbidden City" | "level") {
+            let ident = if case == "the Forbidden City" {
+                crate::cities::build::Ident::ForbiddenCity
+            } else {
+                crate::cities::build::Ident::Wonder
+            };
+            let wt = s.add_build_type(crate::cities::build::BuildType {
+                ident,
+                wonder: true,
+                wonder_val: 1,
+                ..crate::cities::build::BuildType::default()
+            });
+            let w = enemy_barracks(&mut s, beside);
+            s.buildings[w].ty = Some(wt);
+            s.ai.ai[1].census.wonder_slots = vec![Some(w)];
+            s.ai.ai[1].census.wonder_mark = 1;
+            if case == "level" {
+                // The silo's own leader holds as many points: no ×10.
+                let mine = s.add_building(0, Pos::new(9216, 12288), 0);
+                s.buildings[mine].ty = Some(wt);
+                s.ai.ai[0].census.wonder_slots = vec![Some(mine)];
+                s.ai.ai[0].census.wonder_mark = 1;
+            }
+            if case == "a wonder" {
+                want = beside;
+            }
+        }
+        let id = i64::from(s.buildings[silo].index);
+        s.frame = 128 * 30 - id;
+        s.buildings[silo].launch_frames = crate::air::FRAMES_BETWEEN_LAUNCHES;
+        s.do_launch(silo);
+        let o = s.units[m]
+            .orders
+            .front()
+            .copied()
+            .expect("the nuke is ordered");
+        let crate::orders::Body::AirAttackGround(g) = o.body else {
+            panic!("an air attack on the ground")
+        };
+        assert_eq!(g.at, want, "{case}");
+    }
+}
+
 /// **A missile that fires leaves its type's count** (item 1078,
 /// `Unit::close@0060ee50`'s `track_unit_type(·, −1)`): the next V2 is
 /// priced as if none stood — run390's `0/2010` charged 100 and 100 on
