@@ -38488,3 +38488,31 @@ zero overflow or Adler discrepancies. The snapshot reader verified frame
 Offline checksum replay of the snapshot generated `$E/stream.tsv` and
 `$E/values.tsv`. All fifteen stream sums equal the original's words.
 Both kept lines match the in-game ranges byte for byte (3,066 ranges).
+
+## Window combat A, 2026-11-18 (item 4365, direct Codex branch)
+
+`E=~/ron-data/lab-experiments/2026-11-18-codex-combat-replays`,
+`P=~/ron-data/lab-experiments/2026-09-23-item-597/plan`.
+`window-a.rcx` is the normal client recorder's output. The window log and
+JSON retain the order and trace. Great Lakes, seed 12345, closing state
+11720. Replay the original with a fresh output path in place of `$OUT`.
+
+```sh
+RON_CAPTURE_LANE=1 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh "$OUT" \
+  --recording "$E/window-a.rcx" --end-frame 11720 --log-window 9416 9780 \
+  --detail end:MISC,UNITS=3,AMMO=5,DEATHS=1 --cover cover=1 --timeout 3600 \
+  --stall-seconds 180 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES \
+  --tracer-def RNG_MASK=0x18 --tracer-def RON_STATE_FRAME=9746 \
+  --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""
+```
+
+The completed take is `$E/oracle-a/map-14`. Exit 0, last frame 11720,
+zero page faults, five staged files restored. `checksum.py` reproduced all
+15 snapshot sums. `ranges.py … compare --frame 9746 --stream "$E/stream-a.tsv"`
+matched all 17 in-game ranges (580 bytes). Six `socket-127-ANIM-TIME.txt`
+sweeps came from `get_position.py <exe> <packet> sweep 127 0 ANIM TIME`.
+`fit_bay.py` admits 52 lattice points for each shared socket and 351,
+589 and 609 for the remaining ones. The centroid of each reproduces all
+361 headings. Retained score runs are `score-before-a.log`,
+`score-ammo-a.log` and `score-socket-melee-a.log`; the full packet survey
+is `socket-melee-packets.log`.

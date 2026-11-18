@@ -3303,6 +3303,19 @@ from where, to where or for how long. Nothing is ours alone.
   stores. It is not — the original stores a model-space `Vector<float>` and
   a `Transform` — but it is what reproduces the original's integers, and the
   two cannot be told apart from nine samples.
+### 22.5 Longbowman sockets through the whole encounter (item 4365)
+
+The nine run109 launches covered the first 54 occupied states of window A.
+At state 9480 the old polar row gave slot 4 a starting Y of 29981, versus
+29980 in the original. The `guys` checksum agreed on all 11,721 states.
+The original's state-9746 snapshot carries all six node-0 events of piece
+127. Running `get_position.py sweep` across 0–360 degrees gives the same
+point for both ATTACK1 events and ATTACK2 at 22. The other three events
+each use their own point. All six Cartesian fits match every heading and
+all nine earlier run109 observations. Every occupied ammo record in the
+new file now agrees, including the frame-9951 slot turnover. The exact
+sweeps and independent in-game range record are listed in RUNS.
+
 ## 23. The emergency is a city alarm (item 399, 2026-09-19)
 
 **`Armies::emergency` is not reached by hitting a soldier.** That is the

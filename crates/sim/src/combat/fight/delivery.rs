@@ -208,7 +208,10 @@ impl Sim {
         // The city alarm, before the take (`0064a9f8`..`0064b2c4`).
         let alarm = self.city_alarm(attacker, target, ap.siege, dealt.whole, frame);
         // Step 7: take.
-        let taken = self.take_damage_typed(target, dealt, attacker, frame, dtype, splash);
+        // A direct hit has no ammo slot. The casualty sprite receives the
+        // absent piece and zero degrees (window A, state 9745).
+        let impact = (!ammo).then_some((-1, Single::ZERO));
+        let taken = self.take_damage_typed(target, dealt, attacker, frame, dtype, splash, impact);
         let killed = matches!(taken, Taken::Died { .. });
         // **`Armies::emergency` is the CITY alarm's, and a unit never
         // reaches it** (`docs/ARMY.md` §15.8, item 399). The call at
@@ -560,12 +563,13 @@ impl Sim {
         // path, and `Object::die`'s `dtype` there is 0 — the argument
         // `Sim::attrition_tick` and the scripting paths pass, and the one
         // value `Unit::close`'s arm refuses (§42.1).
-        self.take_damage_typed(target, hit, by, frame, 0, false)
+        self.take_damage_typed(target, hit, by, frame, 0, false, None)
     }
 
     /// [`Self::take_damage`] with `Object::take_damage`'s own `dtype`
     /// argument, which it forwards to `T.die(dtype, gpiece, angle)` and
     /// which is the whole of the death draw's gate (§42.1).
+    #[allow(clippy::too_many_arguments)]
     pub(super) fn take_damage_typed(
         &mut self,
         target: Obj,
@@ -574,6 +578,7 @@ impl Sim {
         _frame: i64,
         dtype: i32,
         splash: bool,
+        impact: Option<(i32, Single)>,
     ) -> Taken {
         // `Object::take_damage@00652020:67-71`, first after the sixteenth
         // floor: a hit by anything but attrition (`param_5 == 0`), at
@@ -682,7 +687,7 @@ impl Sim {
                     // the draw arm's `dtype` at all (§42.3).
                     self.close_count(i);
                     self.relink_squad(i);
-                    self.close_unit(i, dtype, _frame, None);
+                    self.close_unit(i, dtype, _frame, impact);
                     self.kill_contents(i);
                     self.kremlin_spy_closed(i);
                     self.close_dead_orders(i);
@@ -724,6 +729,7 @@ impl Sim {
                                 _frame,
                                 dtype,
                                 false,
+                                None,
                             );
                         }
                     }

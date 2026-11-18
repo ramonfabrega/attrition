@@ -50,12 +50,12 @@ pub(crate) fn held(sim: &sim::Sim) -> [usize; 3] {
 /// pool distinct from a known empty pool (whose Adler is one).
 pub(crate) fn ranges(sim: &sim::Sim, look: &BuildLook, tribes: &[TribeDef]) -> [Option<Line>; 12] {
     let p = build_pieces_with(sim, look, tribes);
-    let [walls, shots, _] = held(sim);
+    let [walls, _, _] = held(sim);
     [
         Some(sim.checksum_units()),
         Some(sim.checksum_builds(&|b| p.get(&b).copied().unwrap_or(-1))),
         (walls == 0).then(Line::default),
-        (shots == 0).then(Line::default),
+        sim.checksum_ammo(),
         sim.checksum_deaths(),
         Some(sim.checksum_groups()),
         Some(sim.checksum_guys()),

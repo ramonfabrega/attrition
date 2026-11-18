@@ -234,6 +234,7 @@ fn the_door_carries_the_round_s_piece_and_the_corpse_s() {
         ez: 0,
         v1z: crate::num::single::Single::ZERO,
         slot: 0,
+        graphic: Default::default(),
         flame: false,
         punctures: false,
         spent: false,

@@ -787,3 +787,15 @@ its role and speeds at the original boundary (CHECKSUM §17, ARMY §12).
 The regression checks both whole games, including the closing state.
 RECGAME §8's rule section requires a donor. The long game's death came
 from the disband command.
+
+
+### 10.1 The first recording with both sprite pools occupied (item 4365)
+
+Window A starts on Great Lakes, seed 12345. The human selected object 2 and
+issued an order on object 1/27 at state 9500. Both engines replay the saved
+file through state 11720. The ordinary shot pool is occupied on 9426–10273
+and the casualty pool on 9745–10896. Both lines match the original through
+clearance and closing. The leaders line gains 350 states from the corrected
+sprite timing. Units first differ at 9416 and buildings at 9452, both in
+their flags. The immutable baseline, recordings and capture receipts are
+in the item 4365 entry in RUNS.

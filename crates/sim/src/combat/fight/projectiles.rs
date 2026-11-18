@@ -189,6 +189,7 @@ impl Sim {
                 ez,
                 v1z: combat::arc_v1z(sz, ez, total_time),
                 slot: 0,
+                graphic: Default::default(),
                 flame: false,
                 // SEAM: the building's ammo piece's flags are not read, so
                 // its `BuildingArrow` (`puncture="1"`) never sticks here

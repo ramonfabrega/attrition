@@ -289,6 +289,7 @@ impl Sim {
             combat: crate::combat::CombatState {
                 table: combat::Table::uniform(0),
                 projectiles: Vec::new(),
+                next_ammo_graph_index: 0,
                 nukes: crate::combat::nuke::Nukes::default(),
                 deaths: Vec::new(),
                 death_pool: Vec::new(),

@@ -80,6 +80,9 @@ pub fn compare(install: &Path, recording: &Path, trace: &Path) -> Result<Score, 
 }
 
 #[cfg(test)]
+mod combat;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     fn window_score(name: &str) -> Option<Score> {

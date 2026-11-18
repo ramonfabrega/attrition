@@ -506,6 +506,8 @@ pub struct Projectile {
     /// the order `Objects::inc_time@0065db70` steps the pool in
     /// (`docs/COMBAT.md` §46.4). [`crate::Sim::add_ammo`] assigns it.
     pub slot: u32,
+    /// Display fields retained at allocation even after a slot's endpoint changes.
+    pub graphic: AmmoGraphic,
     /// What `Ammo::init_crash@0067b800` adds to a round: an aircraft shot
     /// down falling, not a shot fired (`docs/COMBAT.md` §81.3, `docs/AI.md`
     /// §228). `None` on every round `Ammo::init` lays.
@@ -528,6 +530,15 @@ pub struct Projectile {
     /// (`Ammo::init_crash@0067b800:44`). `-1` where the shot's piece is
     /// not read.
     pub gpiece: i32,
+}
+
+/// The display serial is independent of the reusable slot. The original
+/// retains the horizontal animation speed calculated at launch.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct AmmoGraphic {
+    pub graph_index: u32,
+    pub dx: Single,
+    pub guided: bool,
 }
 
 /// **`GraphicPieces::first_ammo_piece`**, `0xeaf5`: the piece of the
@@ -2920,6 +2931,7 @@ pub struct CombatState {
     pub table: crate::combat::Table,
     /// Ammo in flight.
     pub projectiles: Vec<crate::combat::Projectile>,
+    pub next_ammo_graph_index: u32,
     /// The nukes' effects and what a nuke writes on its shooter's leader
     /// and silo (`crate::combat::nuke`, item 1091).
     pub nukes: crate::combat::nuke::Nukes,

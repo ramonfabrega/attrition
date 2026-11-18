@@ -565,6 +565,20 @@ unarmed reproduces 294 of 300 bytes. The six differing bytes are all in the
 ammo angles. Their original values are 16, 193, 201 and 0 degrees. A damage
 path with unknown impact inputs leaves the whole deaths line unavailable.
 
+Item 4365 emits ordinary ammo sprites in pool-slot order. Each contributes a
+flags byte, 99 bytes from `rolling` through `start_roll_angle`, and a zero
+path byte. Pool slots are reused. The graphic index counts insertions, and
+the horizontal display speed retains its initial value when the endpoint
+changes. Guided paths and falling aircraft still have no emitter. Direct
+hits without a projectile pass an absent graphic and zero degrees into the
+existing casualty record. Unknown impact sources still refuse the line.
+
+On window A, the full comparison covers 8,472 ammo ranges and 3,870 casualty
+ranges through state 11720. Both match on every byte. Six Longbowman animation
+rows measured over all whole degrees put the sprites at the original integer
+coordinates (COMBAT §22.5). The packet census gains 43 whole ammo lines and
+six whole deaths lines, from 500 to 549 of 1,053. Frame 91 stays 8/12.
+
 ## 9. Pointers, floats, padding and locals
 
 - **Pointers: none walked**, in any of the twelve on this frame (§4).

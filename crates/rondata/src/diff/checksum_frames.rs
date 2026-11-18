@@ -459,7 +459,8 @@ fn our_adlers(
             continue;
         }
         out[k] = Some(match (i, &lines) {
-            (2..=3, _) => empty_walk(h[i - 2]),
+            (2, _) => empty_walk(h[0]),
+            (3, _) => sim.checksum_ammo().map(|line| line.adler()),
             (4, _) => sim.checksum_deaths().map(|line| line.adler()),
             (_, Some(l)) => Some(l[i].adler()),
             _ => Some(
@@ -671,18 +672,17 @@ fn the_held_count_reads_the_melee_s_shot() {
     });
     let mut seen: [Option<i64>; 3] = [None; 3];
     let mut most = [0usize; 3];
-    // The emitter on the frames each count first reads: the empty walk's
-    // Adler is refused there, as a parting.
+    // The emitter on the first occupied frame of each pool.
     let mut emitted: [Option<Option<u32>>; 3] = [None; 3];
     while built.sim.frame < MELEE_TO {
         let h = held(&built.sim);
         for k in 0..3 {
             if h[k] > 0 && seen[k].is_none() {
                 seen[k] = Some(built.sim.frame);
-                emitted[k] = Some(if k == 2 {
-                    built.sim.checksum_deaths().map(|line| line.adler())
-                } else {
-                    empty_walk(h[k])
+                emitted[k] = Some(match k {
+                    1 => built.sim.checksum_ammo().map(|line| line.adler()),
+                    2 => built.sim.checksum_deaths().map(|line| line.adler()),
+                    _ => empty_walk(h[k]),
                 });
             }
             most[k] = most[k].max(h[k]);
@@ -693,8 +693,8 @@ fn the_held_count_reads_the_melee_s_shot() {
     assert_eq!(seen, MELEE_HELD, "MELEE_HELD");
     assert_eq!(
         emitted,
-        [None, Some(None), Some(None)],
-        "the empty lines refuse a walk that holds a shot or a death"
+        [None, Some(Some(4_105_309_200)), Some(None)],
+        "the ordinary shot has a record and the unmeasured impact stays unknown"
     );
     assert_eq!(
         empty_walk(0),
