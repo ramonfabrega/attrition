@@ -13546,7 +13546,11 @@ pub(crate) mod tests {
     /// walk under the repair script, the Citizen [`script::REPAIR_UNIT`]'s
     /// pixel at the opening camera, the REPAIR button's centre in the
     /// standard panel the HUD draws for it, and the wounded Capital's pixel.
-    const REPAIR_AT: (i32, i32) = (916, 476);
+    /// Item 4391 moved the Citizen: `REPAIR_AT` (916, 476) -> (795, 474), its
+    /// position on 8200 (2232, 31224) -> (1848, 31608), where theirs (run1679's
+    /// record) stands at (2040, 31032), neither before nor after. It is our
+    /// walk's, downstream of the first parting on 7419.
+    const REPAIR_AT: (i32, i32) = (795, 474);
     const REPAIR_BUTTON: (i32, i32) = (545, 1012);
     const REPAIR_PRESS: (i32, i32) = (1127, 521);
 
