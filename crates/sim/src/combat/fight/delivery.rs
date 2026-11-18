@@ -2,6 +2,60 @@
 
 use super::*;
 
+/// A legacy caller can identify a projectile hit without having its graphic.
+#[derive(Clone, Copy)]
+pub(crate) enum HitSource<'a> {
+    Direct,
+    Round(Option<&'a combat::Projectile>),
+}
+
+/// Some deaths bypass the hit entirely. Their figures keep their current facing.
+#[derive(Clone, Copy)]
+pub(crate) enum CasualtyPose<'a> {
+    Unarmed,
+    Hit(HitSource<'a>, Angle),
+}
+
+impl CasualtyPose<'_> {
+    fn apply(
+        self,
+        places: &mut [combat::Lie],
+        turn: bool,
+        art: &crate::units::anim::Art,
+    ) -> Option<(i32, Single)> {
+        let Self::Hit(source, angle) = self else {
+            return Some((-1, Single::ZERO));
+        };
+        let round = match source {
+            HitSource::Direct => None,
+            HitSource::Round(p) => Some(p?),
+        };
+        // Object::take_damage turns each eligible figure before recording the
+        // first figure's relative angle. Both positions are in map coordinates.
+        if turn {
+            for place in places.iter_mut() {
+                place.angle = match round {
+                    Some(p) => find_angle(p.landing.x - place.pos.x, p.landing.y - place.pos.y),
+                    None => Angle(angle.0.wrapping_add(i32::MIN)),
+                };
+            }
+        }
+        let Some(p) = round else {
+            return Some((-1, Single::ZERO));
+        };
+        let piece = if art.casualty_attachments.contains(&p.gpiece) {
+            p.gpiece
+        } else {
+            -1
+        };
+        let relative = Angle(angle.0.wrapping_sub(places.first()?.angle.0));
+        Some((
+            piece,
+            Single::from_i32(crate::movement::angle_to_degrees(relative)),
+        ))
+    }
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // Delivery
@@ -57,9 +111,12 @@ impl Sim {
         quiet: bool,
         frame: i64,
     ) -> Option<Taken> {
-        self.do_damage_round(
-            attacker, target, angle, ammo, false, count, splash, quiet, frame,
-        )
+        let source = if ammo {
+            HitSource::Round(None)
+        } else {
+            HitSource::Direct
+        };
+        self.do_damage_round(attacker, target, angle, source, count, splash, quiet, frame)
     }
 
     /// [`Self::do_damage`] for a round's blow, which also says whether the
@@ -67,18 +124,19 @@ impl Sim {
     /// `Object::do_damage`'s `param_5 >= 0`, and `flame` its
     /// `verify_ammo_flags(ammo[param_5].gpiece, 0x10)`.
     #[allow(clippy::too_many_arguments)]
-    pub(crate) fn do_damage_round(
+    pub(super) fn do_damage_round(
         &mut self,
         attacker: Obj,
         target: Obj,
         angle: Angle,
-        ammo: bool,
-        flame: bool,
+        source: HitSource<'_>,
         count: i32,
         splash: bool,
         quiet: bool,
         frame: i64,
     ) -> Option<Taken> {
+        let ammo = matches!(source, HitSource::Round(_));
+        let flame = matches!(source, HitSource::Round(Some(p)) if p.flame);
         if count < 1 || !self.struck(target) {
             return None;
         }
@@ -208,7 +266,15 @@ impl Sim {
         // The city alarm, before the take (`0064a9f8`..`0064b2c4`).
         let alarm = self.city_alarm(attacker, target, ap.siege, dealt.whole, frame);
         // Step 7: take.
-        let taken = self.take_damage_typed(target, dealt, attacker, frame, dtype, splash);
+        let taken = self.take_damage_typed(
+            target,
+            dealt,
+            attacker,
+            frame,
+            dtype,
+            splash,
+            Some((source, angle)),
+        );
         let killed = matches!(taken, Taken::Died { .. });
         // **`Armies::emergency` is the CITY alarm's, and a unit never
         // reaches it** (`docs/ARMY.md` §15.8, item 399). The call at
@@ -288,7 +354,7 @@ impl Sim {
             self.units[t].combat.entrenched = false;
         }
         if let Obj::Building(b) = target {
-            self.spill_onto_builders(attacker, b, angle, (ammo, flame), count, frame);
+            self.spill_onto_builders(attacker, b, angle, source, count, frame);
         }
         Some(taken)
     }
@@ -482,7 +548,7 @@ impl Sim {
         attacker: Obj,
         b: usize,
         angle: Angle,
-        (ammo, flame): (bool, bool),
+        source: HitSource<'_>,
         count: i32,
         frame: i64,
     ) {
@@ -536,8 +602,7 @@ impl Sim {
                     attacker,
                     Obj::Unit(u),
                     angle,
-                    ammo,
-                    flame,
+                    source,
                     share,
                     false,
                     true,
@@ -560,12 +625,13 @@ impl Sim {
         // path, and `Object::die`'s `dtype` there is 0 — the argument
         // `Sim::attrition_tick` and the scripting paths pass, and the one
         // value `Unit::close`'s arm refuses (§42.1).
-        self.take_damage_typed(target, hit, by, frame, 0, false)
+        self.take_damage_typed(target, hit, by, frame, 0, false, None)
     }
 
     /// [`Self::take_damage`] with `Object::take_damage`'s own `dtype`
     /// argument, which it forwards to `T.die(dtype, gpiece, angle)` and
     /// which is the whole of the death draw's gate (§42.1).
+    #[allow(clippy::too_many_arguments)]
     pub(super) fn take_damage_typed(
         &mut self,
         target: Obj,
@@ -574,6 +640,7 @@ impl Sim {
         _frame: i64,
         dtype: i32,
         splash: bool,
+        source: Option<(HitSource<'_>, Angle)>,
     ) -> Taken {
         // `Object::take_damage@00652020:67-71`, first after the sixteenth
         // floor: a hit by anything but attrition (`param_5 == 0`), at
@@ -680,9 +747,10 @@ impl Sim {
                     // `Object::die` is `close()` — the draw arm below —
                     // and **then** the slot hold, which is not gated on
                     // the draw arm's `dtype` at all (§42.3).
+                    let pose = source.map(|(hit, angle)| CasualtyPose::Hit(hit, angle));
                     self.close_count(i);
                     self.relink_squad(i);
-                    self.close_unit(i, dtype, _frame);
+                    self.close_unit(i, dtype, _frame, pose);
                     self.kill_contents(i);
                     self.kremlin_spy_closed(i);
                     self.close_dead_orders(i);
@@ -724,6 +792,7 @@ impl Sim {
                                 _frame,
                                 dtype,
                                 false,
+                                source,
                             );
                         }
                     }
@@ -976,7 +1045,7 @@ impl Sim {
         self.units[v].health = 0;
         self.close_count(v);
         self.relink_squad(v);
-        self.close_unit(v, dtype, frame);
+        self.close_unit(v, dtype, frame, Some(CasualtyPose::Unarmed));
         self.kill_contents(v);
         self.kremlin_spy_closed(v);
         self.close_dead_orders(v);
@@ -1004,7 +1073,7 @@ impl Sim {
         }
         self.close_count(i);
         self.relink_squad(i);
-        self.close_unit(i, ATTRITION_DTYPE, frame);
+        self.close_unit(i, ATTRITION_DTYPE, frame, Some(CasualtyPose::Unarmed));
         self.kill_contents(i);
         self.kremlin_spy_closed(i);
         self.close_dead_orders(i);
@@ -1204,6 +1273,7 @@ impl Sim {
             // `docs/AI.md` §230): run866's capital at its ceiling steps
             // `damage_frac` 10, 15, 4, 9 … from 5161.
             if bd.damage >= hits {
+                bd.damage_marked = true;
                 bd.damage = hits;
                 if !bd.garrison.is_empty() {
                     bd.eject_pending = true;
@@ -1212,6 +1282,7 @@ impl Sim {
             bd.sync_health();
             return Taken::Alive { lost };
         }
+        bd.damage_marked |= matches!(taken, Taken::Alive { .. });
         bd.sync_health();
         if matches!(taken, Taken::Died { .. }) {
             bd.damage = hits;
@@ -1425,7 +1496,13 @@ impl Sim {
     /// it off — so the gate this crate applies is `on_map` and the decoy
     /// bit, and never [`crate::Unit::alive`], which the caller has
     /// already cleared.
-    pub(crate) fn close_unit(&mut self, i: usize, dtype: i32, frame: i64) {
+    pub(crate) fn close_unit(
+        &mut self,
+        i: usize,
+        dtype: i32,
+        frame: i64,
+        pose: Option<CasualtyPose<'_>>,
+    ) {
         if dtype == 0 {
             return;
         }
@@ -1440,11 +1517,9 @@ impl Sim {
         let roll = self.rng.roll() % 2;
         let mut cur_anim = combat::death_anim(dtype, roll);
         if dtype == 4 {
-            // The ammo-graphic death **replaces** the anim the first draw
-            // chose with one from a second, and rolls its own facing
-            // where every other death takes the attack's angle. The first
-            // draw is still spent, and its value discarded. A burning
-            // round's kill (`flame="1"`, [`combat::Projectile::flame`]).
+            // The second draw replaces the first animation. The third
+            // supplies a per-piece alternative (COMBAT §42.1). The impact
+            // angle is passed separately to the casualty sprite.
             self.mark(SITE_DEATH_ANIM_ALT);
             let alt = self.rng.roll() % 2;
             cur_anim = combat::death_anim(4, alt);
@@ -1476,7 +1551,14 @@ impl Sim {
                 self.coll_kill_guy(i, k);
             }
         }
-        let figures = self.death_figures(i, cur_anim);
+        let mut figures = self.death_figures(i, cur_anim);
+        let turn = dtype == 3
+            && self
+                .profile(Obj::Unit(i))
+                .has(combat::mask::FOOT | combat::mask::MOUNTED);
+        let n = self.units[i].guys.len().min(usize::from(figures.n));
+        let impact =
+            pose.and_then(|pose| pose.apply(&mut figures.place[..n], turn, &self.roster.art));
         let life = self.death_life(i, cur_anim);
         let u = &self.units[i];
         let (who, o) = (i32::from(u.owner), i32::from(u.index));
@@ -1485,6 +1567,7 @@ impl Sim {
             o,
             first_frame: frame,
             cur_anim,
+            impact,
             life,
             figures,
         });
@@ -1500,12 +1583,12 @@ impl Sim {
         }
     }
 
-    /// Whether the record a pool slot names is still live on `self.frame`,
+    /// The record a pool slot names if it is still live on `self.frame`,
     /// before this frame's `DeathObj::inc_time`: its [`combat::Death`]
     /// stands and that figure's life has not run out.
-    pub(super) fn death_slot_live(&self, r: &combat::DeathSlot) -> bool {
+    pub(crate) fn live_death(&self, r: &combat::DeathSlot) -> Option<&combat::Death> {
         let age = self.frame - r.first_frame;
-        self.combat.deaths.iter().any(|d| {
+        self.combat.deaths.iter().find(|d| {
             d.who == r.who
                 && d.o == r.o
                 && d.first_frame == r.first_frame
@@ -1551,7 +1634,7 @@ impl Sim {
         let mut best = (0usize, self.frame + 1);
         let mut free = None;
         for k in 0..combat::DEATH_POOL {
-            let Some(r) = self.combat.death_pool[k].filter(|r| self.death_slot_live(r)) else {
+            let Some(r) = self.combat.death_pool[k].filter(|r| self.live_death(r).is_some()) else {
                 free = Some(k);
                 break;
             };
@@ -1560,7 +1643,7 @@ impl Sim {
             }
         }
         let k = free.unwrap_or(best.0);
-        if let Some(old) = self.combat.death_pool[k].filter(|r| self.death_slot_live(r)) {
+        if let Some(old) = self.combat.death_pool[k].filter(|r| self.live_death(r).is_some()) {
             let age = self.frame - old.first_frame;
             if let Some(d) = self
                 .combat
@@ -1640,7 +1723,7 @@ impl Sim {
         let frames = i64::from(self.slot_length(i, gpiece, anim)?);
         let fade = if sea {
             0
-        } else if self.roster.art.piece_skeletons.contains(&gpiece) {
+        } else if self.roster.art.piece_skeletons.contains_key(&gpiece) {
             Self::CORPSE_FADE_END
         } else {
             Self::BODY_FADE_END
@@ -1683,6 +1766,10 @@ impl Sim {
                 self.world.data_z(pos.x, pos.y).0
             },
             angle,
+            turret_angles: self.units[i]
+                .guys
+                .get(k)
+                .map_or([0; 4], |g| g.turret.angles),
         }
     }
 

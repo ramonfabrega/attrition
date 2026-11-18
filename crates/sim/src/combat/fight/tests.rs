@@ -153,6 +153,7 @@ fn round(
         ez: 0,
         v1z: combat::arc_v1z(0, 0, 1),
         slot: 0,
+        graphic: Default::default(),
         flame: false,
         punctures: false,
         spent: false,
@@ -977,6 +978,7 @@ fn a_unit_killed_on_the_map_takes_its_rider_with_it() {
         10,
         1,
         false,
+        None,
     );
     assert!(matches!(taken, Taken::Died { .. }), "the boat sinks");
     assert!(!sim.units[rider].alive(), "its rider goes with it");
@@ -1195,6 +1197,8 @@ fn a_unit_struck_while_moving_in_contact_takes_the_blow_doubled() {
             sim.units[me].orders.push_front(crate::orders::Order {
                 flags: 0x10,
                 body: crate::orders::Body::Attack(crate::orders::AttackOrder {
+                    target: None,
+                    mandatory: false,
                     defensive: false,
                     def: None,
                     in_range: true,
@@ -4316,6 +4320,7 @@ fn an_arrow_never_lands_on_gaia() {
         ez: 0,
         v1z: crate::num::single::Single::ZERO,
         slot: 0,
+        graphic: Default::default(),
         flame: false,
         punctures: false,
         spent: false,
@@ -4379,6 +4384,7 @@ fn a_round_with_no_target_strikes_the_building_it_lands_on() {
         ez: 78,
         v1z: crate::num::single::Single::ZERO,
         slot: 0,
+        graphic: Default::default(),
         flame: false,
         punctures: false,
         spent: false,
@@ -4464,6 +4470,7 @@ fn a_missed_round_strikes_a_city_at_its_ceiling() {
         ez: 0,
         v1z: crate::num::single::Single::ZERO,
         slot: 0,
+        graphic: Default::default(),
         flame: false,
         punctures: false,
         spent: false,
@@ -4547,6 +4554,7 @@ fn the_shield_closes_a_missile_s_round_in_its_holder_s_land() {
         ez: 78,
         v1z: crate::num::single::Single::ZERO,
         slot: 0,
+        graphic: Default::default(),
         flame: false,
         punctures: false,
         spent: false,
@@ -4700,6 +4708,7 @@ fn shot(me: usize, launch: Pos, landing: Pos, total: i32, sz: i32, ez: i32) -> c
         ez,
         v1z: combat::arc_v1z(sz, ez, total),
         slot: 0,
+        graphic: Default::default(),
         flame: false,
         punctures: false,
         spent: false,
@@ -4855,7 +4864,7 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
         );
         sim.frame = f;
         sim.units[i].health = 0;
-        sim.close_unit(i, 1, f);
+        sim.close_unit(i, 1, f, None);
         dead.push(sim.units[i].index);
     }
     assert_eq!(
@@ -4868,7 +4877,7 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
         let i = put(sim, 1, ty, Pos::new(0x3000, 0x3000));
         sim.frame = f;
         sim.units[i].health = 0;
-        sim.close_unit(i, 1, f);
+        sim.close_unit(i, 1, f, None);
         sim.death_objs_inc_time();
         sim.combat
             .death_pool
@@ -4912,6 +4921,7 @@ fn a_dead_unit_s_number_is_held_while_its_death_object_lives() {
     sim.units[a].health = 0;
     sim.hold_dead_slot(a);
     sim.combat.deaths.push(combat::Death {
+        impact: None,
         who: 1,
         o: 0,
         first_frame: 0,
@@ -5004,6 +5014,7 @@ fn a_crew_s_number_takes_one_bump_per_figure_s_record() {
     figures.n = 4;
     figures.life[..4].copy_from_slice(&[3, 5, 8, 8]);
     sim.combat.deaths.push(combat::Death {
+        impact: None,
         who: 1,
         o: 0,
         first_frame: sim.frame,

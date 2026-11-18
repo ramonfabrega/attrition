@@ -2743,10 +2743,9 @@ uncapped for at most that long.)
 `Sim::group_normalize` and at the two sites that open with it,
 `Group::kill_group_move` and `Group::refresh_group_order` — and the
 `Form::categorize → Group::sort → kill/normalize/add` chain is not
-modelled at all. On Great Lakes the probe's own closing normalize
-(`Army::find_target`) is what primes group 65, and the first seven frames
-of its march are exact; on a group primed by some other chain the first
-two frames could run uncapped.
+modelled at all. The first seven frames of the Great Lakes march were exact. Item 4364
+corrects the earlier attribution of the new group's cap to the probe's
+closing normalize. Its receiver is the remaining army (ARMY §12).
 
 ## 19. The pool resets one slot a frame — `Groups::process`, the cap's third writer (item 518, 2026-09-22)
 
@@ -2810,7 +2809,7 @@ whose slot holds a live group. 10241 mod 64 is 1, and player 1's slot 1 is
 
 It also accounts for the rest of §18.2's schedule: the raid's first two
 frames at 25 and then five at 26 are the leader's reports walking the cap
-up from the value the probe's normalize left, and the drop on 10241 is the
+up from the cap present at the first report, and the drop on 10241 is the
 slot's reset, with no member able to report it back down or up.
 
 ### 19.2 The numbering, which the cursor makes load-bearing

@@ -92,6 +92,9 @@ pub struct Building {
     /// `ObjectData::damage`, whole hits taken. [`Building::health`] is kept
     /// equal to `hits_now − damage` and is what combat reads as the share.
     pub damage: i32,
+    /// SubObject flags bit 0x10. A surviving ordinary building is marked
+    /// when struck. An active city is marked only at its damage ceiling.
+    pub damage_marked: bool,
     /// `WallData::job_counter`, `job_counter_2`, `constr_time`,
     /// `construct_hits`; `docs/CITIES.md` §3.
     pub job_counter: i32,
@@ -323,6 +326,7 @@ impl Sim {
             started: true,
             activated: true,
             damage: 0,
+            damage_marked: false,
             job_counter: 0,
             job_counter_2: 0,
             constr_time: 0,

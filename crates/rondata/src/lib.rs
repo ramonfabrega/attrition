@@ -434,7 +434,19 @@ pub(crate) mod testenv {
     /// One of the kept dumps, if this machine has it: `$RON_GAMELOG_DIR`, or
     /// the bottle's `Logs\` — the same default `tools/gamelog/` uses.
     pub(crate) fn dump(name: &str) -> Option<String> {
-        let path = dump_path(name);
+        checked_fixture(name, dump_path(name))
+    }
+
+    /// A kept experiment file outside Logs, reported to the same fixture audit.
+    pub(crate) fn experiment(dir: &std::path::Path, name: &str) -> Option<std::path::PathBuf> {
+        let path = dir.join(name);
+        checked_fixture(
+            &path.to_string_lossy(),
+            path.is_file().then(|| path.clone()),
+        )
+    }
+
+    fn checked_fixture<P>(name: &str, path: Option<P>) -> Option<P> {
         fixture_audit::record(name, path.is_some());
         let path = path?;
         assert!(

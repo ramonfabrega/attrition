@@ -1901,7 +1901,7 @@ impl Sim {
     /// **farms** — `find_building(..., FILTER_TYPE, FARM)` — with
     /// `action_stance(5)`, a **mandatory** `action_attack`, and a
     /// trailing `action_move_to` back to the pair's own leader; otherwise
-    /// a single `ATTACK_TO` at the city.
+    /// a single `ATTACK_TO` at the city. The remaining army is then normalized.
     pub(crate) fn find_target_probe(
         &mut self,
         who: Player,
@@ -1963,7 +1963,7 @@ impl Sim {
                 false,
             );
         }
-        self.group_normalize(&mut g);
+        self.army_normalize(who, slot);
         self.ai.ai[tw as usize].frame_attacked = frame;
         self.ai.ai[tw as usize].attacked_by = i32::from(who);
     }

@@ -18,6 +18,7 @@
 //! The hook's frame `-1` is setup's `check_all`, our frame 0.
 
 use super::minted::{built_start, minted, script};
+use crate::checksum::state::held;
 use crate::checksum::{CHECKSUM_LINES, Record};
 use crate::trace::checksums::{Set, per_frame, sets, summary};
 
@@ -153,7 +154,7 @@ fn the_hook_s_values_are_the_printed_record_s() {
 /// lines. Rules and the two script lines are not the simulation's
 /// (`docs/DECISIONS.md` entry 119). Walls, ammo and deaths (2, 3, 4) are
 /// emitted as the empty walk's Adler alone and refuse a frame that holds an
-/// element ([`empty_walk`]; item 4355): their record shapes are a reading.
+/// element (item 4355). The deaths line also emits unarmed closes (item 4363).
 const EMITTED: [usize; 12] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
 /// **The three empty lines' emitter** (item 4355, `docs/CHECKSUM.md` §8):
@@ -429,30 +430,6 @@ const LEADERS_K: usize = 7;
 const LEADERS_AGREE: &[(&str, usize, usize)] =
     &[(RUN1577_TRACE, 120, 120), (RUN1578_TRACE, 24000, 24000)];
 
-/// **What the three empty lines' walkers would find on our side**
-/// (`docs/CHECKSUM.md` §8, item 4355): `[walls, shots in flight, death
-/// objects]` at the moment the other lines are taken.
-///
-/// - Walls: `check_walls@00937360` walks each seated leader's objects
-///   from `obj_base[2]` (the 3000 band) to its mark whose data
-///   `flags & 1`; ours are the live [`sim::Building`]s at
-///   `index >= WALL_BASE`.
-/// - Ammo: `check_ammo@009374e0` walks the pool at `Objects +0x12c` whose
-///   element's `flags & 3`; ours is [`sim::combat::CombatState`]'s
-///   `projectiles`, whose every entry is in flight (a landing removes it).
-/// - Deaths: `check_deaths@00936bb0` walks the 100 `DeathObj` slots at
-///   `Objects +0x14c` whose first word is not 0; ours are the dead units'
-///   [`sim::combat::Death`]s, each culled with its last live record — so
-///   an empty list is no live record, and the count is units, not records.
-fn held(sim: &sim::Sim) -> [usize; 3] {
-    let walls = sim
-        .buildings
-        .iter()
-        .filter(|b| b.alive && b.index >= sim::WALL_BASE)
-        .count();
-    [walls, sim.combat.projectiles.len(), sim.combat.deaths.len()]
-}
-
 /// **Parity's empty-lines row** (item 4355, `docs/CHECKSUM.md` §24.3;
 /// `docs/DECISIONS.md` entry 140 §1): per take, `(trace, the frames on
 /// which our walk holds no wall, no shot in flight and no death object
@@ -482,7 +459,9 @@ fn our_adlers(
             continue;
         }
         out[k] = Some(match (i, &lines) {
-            (2..=4, _) => empty_walk(h[i - 2]),
+            (2, _) => empty_walk(h[0]),
+            (3, _) => sim.checksum_ammo().map(|line| line.adler()),
+            (4, _) => sim.checksum_deaths().map(|line| line.adler()),
             (_, Some(l)) => Some(l[i].adler()),
             _ => Some(
                 match i {
@@ -693,15 +672,18 @@ fn the_held_count_reads_the_melee_s_shot() {
     });
     let mut seen: [Option<i64>; 3] = [None; 3];
     let mut most = [0usize; 3];
-    // The emitter on the frames each count first reads: the empty walk's
-    // Adler is refused there, as a parting.
+    // The emitter on the first occupied frame of each pool.
     let mut emitted: [Option<Option<u32>>; 3] = [None; 3];
     while built.sim.frame < MELEE_TO {
         let h = held(&built.sim);
         for k in 0..3 {
             if h[k] > 0 && seen[k].is_none() {
                 seen[k] = Some(built.sim.frame);
-                emitted[k] = Some(empty_walk(h[k]));
+                emitted[k] = Some(match k {
+                    1 => built.sim.checksum_ammo().map(|line| line.adler()),
+                    2 => built.sim.checksum_deaths().map(|line| line.adler()),
+                    _ => empty_walk(h[k]),
+                });
             }
             most[k] = most[k].max(h[k]);
         }
@@ -711,8 +693,8 @@ fn the_held_count_reads_the_melee_s_shot() {
     assert_eq!(seen, MELEE_HELD, "MELEE_HELD");
     assert_eq!(
         emitted,
-        [None, Some(None), Some(None)],
-        "the empty lines refuse a walk that holds a shot or a death"
+        [None, Some(Some(4_105_309_200)), Some(Some(239_864_344))],
+        "first occupied shot and casualty records"
     );
     assert_eq!(
         empty_walk(0),
@@ -1001,18 +983,14 @@ pub(in crate::diff) const MINTED_PACKETS: &[(&str, &str, i64, &[PacketRow])] = &
 /// field`, then the fields that part as `name ours|theirs` where the line
 /// has a decoder, else the first byte that parts and four bytes from it
 /// on each side, in hex.
-fn first_text(line: &str, f: &(usize, i16, String, String, String)) -> String {
-    let bytes = |h: &str| -> Vec<u8> {
-        (0..h.len() / 2)
-            .filter_map(|i| u8::from_str_radix(&h[2 * i..2 * i + 2], 16).ok())
-            .collect()
-    };
-    let (o, t) = (bytes(&f.3), bytes(&f.4));
-    let head = format!("{} {} {}", f.0, f.1, f.2);
+fn first_text(line: &str, f: &super::checksum_lines::packets::FirstDifference) -> String {
+    let o = f.ours.as_deref().unwrap_or_default();
+    let t = f.theirs.as_deref().unwrap_or_default();
+    let head = format!("{} {} {}", f.index, f.record, f.field);
     let decoded = (o.len() == t.len() && !o.is_empty())
         .then(|| {
-            let a = super::checksum_lines::range_fields(line, &f.2, &o)?;
-            let b = super::checksum_lines::range_fields(line, &f.2, &t)?;
+            let a = super::checksum_lines::range_fields(line, &f.field, o)?;
+            let b = super::checksum_lines::range_fields(line, &f.field, t)?;
             Some(
                 a.iter()
                     .zip(&b)
@@ -1026,11 +1004,7 @@ fn first_text(line: &str, f: &(usize, i16, String, String, String)) -> String {
     if let Some(d) = decoded {
         return format!("{head}: {}", d.join(", "));
     }
-    let at = o
-        .iter()
-        .zip(&t)
-        .position(|(x, y)| x != y)
-        .unwrap_or(o.len().min(t.len()));
+    let at = f.offset;
     let cut = |b: &[u8]| {
         b.iter()
             .skip(at)
@@ -1042,8 +1016,8 @@ fn first_text(line: &str, f: &(usize, i16, String, String, String)) -> String {
         "{head}: +{at:#x} of {}|{}: {}|{}",
         o.len(),
         t.len(),
-        cut(&o),
-        cut(&t)
+        cut(o),
+        cut(t)
     )
 }
 
@@ -1102,8 +1076,8 @@ fn the_minted_packets_name_each_first_parting() {
         for (name, o) in STATE_LINES.iter().zip(&outcome) {
             if let Some(f) = &o.first {
                 eprintln!(
-                    "MINTED PACKET {run} frame {frame} {name}: theirs {} ours {} parted {}; first {} {} {}:\n  ours   {}\n  theirs {}",
-                    o.theirs, o.ours, o.parted, f.0, f.1, f.2, f.3, f.4
+                    "MINTED PACKET {run} frame {frame} {name}: theirs {} ours {} parted {}; first {f}",
+                    o.theirs, o.ours, o.parted
                 );
                 seen.push((name, o.theirs, o.ours, o.parted, first_text(name, f)));
             }

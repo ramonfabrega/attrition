@@ -183,15 +183,14 @@ pub const SITE_UNIT_PLUNDER: &str = "Unit::plunder+0x4e5";
 ///
 /// `dtype` 4 is `do_damage`'s override for an ammo whose graphic piece
 /// carries flag `0x10` (§7.1 step 6), and it replaces the anim outright:
-/// `cur_anim = roll % 2 + 0x11`, then [`SITE_DEATH_ANIM_FACING`] picks
-/// the facing. Named from the listing; the first capture to reach it is
+/// `cur_anim = roll % 2 + 0x11`, then [`SITE_DEATH_ANIM_FACING`] draws
+/// the per-piece alternate animation. Named from the listing; the first capture to reach it is
 /// run1202, the Fire Lances `1/31`'s `flame="1"` round on the Citizen
 /// `0/10` at 3030 (item 3580, `docs/AI.md` §313).
 pub const SITE_DEATH_ANIM_ALT: &str = "Unit::close+0xce6";
 
 /// `Unit::close@0060ee50+0xd0a` — the third draw of a `dtype == 4` death:
-/// `facing = 0xe - roll % 4`, where every other death takes the attack's
-/// own angle.
+/// the per-piece alternate animation, `0xe - roll % 4` (COMBAT §42.1).
 pub const SITE_DEATH_ANIM_FACING: &str = "Unit::close+0xd0a";
 
 /// `Object::take_damage@00652020+0xe1` — **a building's first wound**

@@ -731,3 +731,90 @@ parts from run53 on.
   frames only the draws of 4058's walk are known for this lobby.~~ Run:
   run1561 above, 24,000 of 24,000. Past frame 299 it compares draws and
   the closing record, not every frame's records.
+
+## 10. Recording the live window
+
+`client --record OUT.rcx --play` opens the lobby page. Starting the page
+builds the recording header from the selected choices and a matching local
+donor using §8.2. The client issues slot 0's opening preferences to the
+runner at frame 0. The first interactive frame defaults to 1. An explicit
+`--frame N` opens on the state reached after the first N ticks, each of
+which is still part of the recording. The recording supports a human in
+slot 0. The exercised lobby is Great Lakes, seed 12345, tribes 4 and 11.
+
+The recorder receives each order that the window sends to the turn pump.
+Events issued between simulation ticks share a package in input order.
+When paused, the frame stands still and the next turn can have another
+package with that frame. The 512-byte cap applies to the whole package.
+A refused order restores the input state and does not reach the sim.
+Closing the window applies a final waiting order when the game is
+running. Closing during a game pause saves through the last completed
+tick and reports any inputs still waiting for resume. The completed
+file is published at an unused path. Cancelling on the lobby page before
+Start writes no recording.
+
+The local replay check reads the saved header, builds the start and pumps
+the file's decoded commands. On every state from 0 through the closing
+frame inclusive it compares all twelve lines to the original's first
+checksum set tagged one frame earlier (setup is −1). A held wall, shot or
+death whose bytes we cannot emit is reported as `unemitted`. Each line
+reports its agreeing states and the values on the first differing state.
+Exit 0 means all states agree, 1 means a measured difference, and 2 means
+the comparison could not complete.
+
+```sh
+cargo run --release -p rondata --example score_recording -- /path/to/install OUT.rcx /path/to/rontrace.log
+```
+
+In the short window take, two actions on frame 30 moved scout 0 to
+(3281, 33851) and queued type 50 at building 2000. The 59,249-byte file
+rebuilds byte for byte. All twelve lines match at states 0 through 427.
+Changing only the move's X coordinate to 3409 parts units, groups and guys
+on state 31, and world on 34.
+
+The longer take closed on 9475 (10 minutes 31 seconds by the game's clock).
+The scout disbanded on 8407. At state 8408 the original holds two death
+records for object 0/0, pieces 371 and 13043, both with first frame 8407
+and animation 15. Their Adler is 826547225. Item 4362 first reported an
+unemitted line here. Item 4363 matches both occupied records byte for byte.
+The dog leaves at state 8567 and the scout at 9094. Deaths agrees on all
+9,476 states, up from 8,790. On the item 4363 tree, all twelve lines agreed through state
+9210. Units and groups first differed on 9211 and finished at 9,211 and
+9,470 agreeing states respectively. Item 4364 matches both lines through
+the close. All twelve agree on every one of the 9,476 states. The units
+comparison now includes all six attack orders and the new group receives
+its role and speeds at the original boundary (CHECKSUM §17, ARMY §12).
+The regression checks both whole games, including the closing state.
+RECGAME §8's rule section requires a donor. The long game's death came
+from the disband command.
+
+
+### 10.1 The first recording with both sprite pools occupied (item 4365)
+
+Window A starts on Great Lakes, seed 12345. The human selected object 2 and
+issued an order on object 1/27 at state 9500. Both engines replay the saved
+file through state 11720. The ordinary shot pool is occupied on 9426–10273
+and the casualty pool on 9745–10896. Both lines match the original through
+clearance and closing. The leaders line gains 350 states from the corrected
+sprite timing. Units first differ at 9416 and buildings at 9452, both in
+their flags. The immutable baseline, recordings and capture receipts are
+in the item 4365 entry in RUNS.
+
+
+Item 4366 closes the two flag differences. On state 9416 the only differing
+unit byte was object 1/29's first flag, 17 versus 145. On 9452 the only
+differing building byte was object 0/2004's first flag, 7 versus 23.
+The independent take includes both sides of each boundary. All twelve
+lines now agree throughout the 11,721 states, including the closing one.
+
+
+### 10.2 A second combat recording on another seed (item 4367)
+
+The seed-123 game has a separate input package at 9000 and closes at
+14437. On the pre-batch branch, eight lines agreed throughout. After
+item 4366 only ammo differed, on 359 states. Sweeping piece 120 on the
+first game's snapshot closed those differences (COMBAT §22.6). The
+original and the sim now agree on twelve lines for all 14,438 states.
+The raw test compares the complete ammo and casualty pools on all states,
+including the 680 and 1,019 occupied states respectively. The old packet
+score of 562/1,053 and the frame-91 score of 8/12 both hold.

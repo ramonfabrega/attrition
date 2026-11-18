@@ -617,6 +617,21 @@ pub fn instant_hits(install: &Install, graphs: &[String]) -> BTreeMap<i32, i32> 
 
 /// The `<AMMO>` names whose integer attribute `attr` reads `value`.
 fn ammo_where(install: &Install, attr: &str, value: i32) -> std::collections::BTreeSet<String> {
+    flagged_ammo(install, attr, value)
+        .into_iter()
+        .map(|(_, name)| name)
+        .collect()
+}
+
+/// Graphic pieces retained in a casualty sprite by Objects::add_death.
+pub(crate) fn casualty_attachments(install: &Install) -> std::collections::BTreeSet<i32> {
+    flagged_ammo(install, "puncture", 1)
+        .into_iter()
+        .map(|(piece, _)| piece)
+        .collect()
+}
+
+fn flagged_ammo(install: &Install, attr: &str, value: i32) -> Vec<(i32, String)> {
     let path = install.data("effects_graphics.xml");
     let Ok(text) = crate::read(&path) else {
         return Default::default();
@@ -626,12 +641,18 @@ fn ammo_where(install: &Install, attr: &str, value: i32) -> std::collections::BT
     };
     doc.descendants()
         .filter(|n| n.has_tag_name("AMMO"))
-        .filter(|n| {
+        .enumerate()
+        .filter(|(_, n)| {
             n.attribute(attr)
                 .and_then(|v| v.trim().parse::<i32>().ok())
                 .is_some_and(|v| v == value)
         })
-        .filter_map(|n| n.attribute("name").map(str::to_string))
+        .filter_map(|(i, n)| {
+            Some((
+                sim::combat::FIRST_AMMO_PIECE + i as i32,
+                n.attribute("name")?.to_owned(),
+            ))
+        })
         .collect()
 }
 
@@ -725,8 +746,8 @@ pub const fn release_frame(ms: u32) -> u32 {
 /// attribute is absent), which picks the death object's fade
 /// (`docs/GOLDEN.md` §127). `graphs` is the `GRAPH` column
 /// [`piece_lengths`] takes.
-pub fn piece_skeletons(install: &Install, graphs: &[String]) -> std::collections::BTreeSet<i32> {
-    let mut out = std::collections::BTreeSet::new();
+pub fn piece_skeletons(install: &Install, graphs: &[String]) -> BTreeMap<i32, i32> {
+    let mut out = BTreeMap::new();
     let upath = install.data("unit_graphics.xml");
     let Ok(utext) = crate::read(&upath) else {
         return out;
@@ -734,19 +755,36 @@ pub fn piece_skeletons(install: &Install, graphs: &[String]) -> std::collections
     let Ok(udoc) = crate::parse(&upath, &utext) else {
         return out;
     };
+    // GraphicPieces::init_piece_ranges and init: skeletons follow the shadows
+    // in the effects file, then take their own XML order (CHECKSUM §8).
+    let first = 0xeabd + shadow_files(install).len() as i32;
+    let skeletons: BTreeMap<_, _> = udoc
+        .descendants()
+        .filter(|n| n.has_tag_name("SKELETON"))
+        .enumerate()
+        .filter_map(|(i, n)| {
+            Some((
+                n.attribute("name")?.trim().to_ascii_lowercase(),
+                first + i as i32,
+            ))
+        })
+        .collect();
     let by_graph = graph_types(graphs);
     for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
         let Some(name) = u.attribute("name") else {
             continue;
         };
-        if u.attribute("skeleton").is_none() {
+        let Some(skeleton) = u
+            .attribute("skeleton")
+            .and_then(|s| skeletons.get(&s.trim().to_ascii_lowercase()))
+        else {
             continue;
-        }
+        };
         let Some(pieces) = entry_pieces(name.trim(), &by_graph) else {
             continue;
         };
         for &piece in &pieces {
-            out.insert(piece);
+            out.insert(piece, *skeleton);
         }
     }
     out

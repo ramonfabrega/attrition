@@ -12,18 +12,10 @@
 //! shape, a table built once before the first frame, and this module is
 //! the same table with the building step replaced by a measurement.
 //!
-//! **Measured, not derived.** run109 raised `AMMO=5` over `[9420, 9480)`
-//! on the Great Lakes seed, and `AmmoData::log_data` prints the arrow's own
-//! `sx, sy, sz`; subtracting the shooter's guy position gives the offset
-//! directly. Nine shots, three Longbowmen, two facings, six release
-//! events — every one the type has. `docs/RUNS.md`, run109.
-//!
-//! The entry is stored the way the rest of this crate stores a direction:
-//! a bearing **relative to the guy's facing** and a radius, so the world
-//! offset is `movement`'s own integer sine and nothing else. That is what
-//! lets the port match `get_position`'s float rotate without one — the
-//! six entries below reproduce all nine measured integer launch points
-//! exactly, including the two that were taken at different facings.
+//! The initial Longbowman rows came from nine arrows in run109. Item 4365
+//! measures each animation socket across all whole-degree headings and
+//! uses the Cartesian rotation in [`Bay::point`]. [`MEASURED`] holds the
+//! remaining polar estimates from captures without a full socket sweep.
 
 use crate::movement::{Angle, cos_component, sin_component};
 use crate::world::Pos;
@@ -49,7 +41,7 @@ pub struct Node {
 /// `0x32 + it`, and the two are one apart by a constant only because
 /// this graph happens to be its own type's. The starttime key is the one
 /// `rondata::artdata::release_frame` produces from the install's
-/// `<RELEASEEVENT starttime>`, and the six rows below are exactly the six
+/// `<RELEASEEVENT starttime>`, and its six Cartesian rows in [`BAYS`] are the six
 /// that file gives the Longbowman.
 ///
 /// A piece with no row here launches from the unit's own position, which
@@ -101,66 +93,6 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     // Piece 842, the Horse Archer (item 3338), left for `pivot::SAME_AS`
     // (item 3658): its `AttachPos` rows are piece 138's, a pivot piece's, so
     // its rounds turn with the rider's turret.
-    (
-        127,
-        crate::units::anim::ATTACK1,
-        6,
-        Node {
-            bearing: -26_692_241,
-            radius: 81,
-            dz: 169,
-        },
-    ),
-    (
-        127,
-        crate::units::anim::ATTACK1,
-        22,
-        Node {
-            bearing: -26_692_241,
-            radius: 81,
-            dz: 169,
-        },
-    ),
-    (
-        127,
-        crate::units::anim::ATTACK2,
-        4,
-        Node {
-            bearing: -136_574_224,
-            radius: 82,
-            dz: 137,
-        },
-    ),
-    (
-        127,
-        crate::units::anim::ATTACK2,
-        22,
-        Node {
-            bearing: -36_624_995,
-            radius: 80,
-            dz: 169,
-        },
-    ),
-    (
-        127,
-        crate::units::anim::ATTACK3,
-        10,
-        Node {
-            bearing: 106_731_108,
-            radius: 70,
-            dz: 185,
-        },
-    ),
-    (
-        127,
-        crate::units::anim::ATTACK3,
-        24,
-        Node {
-            bearing: 59_520_002,
-            radius: 64,
-            dz: 184,
-        },
-    ),
     // **run112's own nine arrows** (`docs/COMBAT.md` §41.3, item 485).
     // Chapter two's `--detail end:` carries `AMMO=5`, so the golden
     // capture has printed `AmmoData::log_data`'s `sx, sy, sz` on every
@@ -397,6 +329,69 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // Longbowman, item 4365. All six node-0 animation events of the
+    // Great Lakes state-9746 snapshot, each fitted over 361 headings.
+    // The two ATTACK1 events and ATTACK2 at 22 share the same socket.
+    (
+        127,
+        crate::units::anim::ATTACK1,
+        6,
+        Bay {
+            right: -3_362,
+            fwd: 82_391,
+            dz: 169,
+        },
+    ),
+    (
+        127,
+        crate::units::anim::ATTACK1,
+        22,
+        Bay {
+            right: -3_362,
+            fwd: 82_391,
+            dz: 169,
+        },
+    ),
+    (
+        127,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: -15_902,
+            fwd: 81_966,
+            dz: 137,
+        },
+    ),
+    (
+        127,
+        crate::units::anim::ATTACK2,
+        22,
+        Bay {
+            right: -3_362,
+            fwd: 82_391,
+            dz: 169,
+        },
+    ),
+    (
+        127,
+        crate::units::anim::ATTACK3,
+        10,
+        Bay {
+            right: 10_522,
+            fwd: 70_329,
+            dz: 185,
+        },
+    ),
+    (
+        127,
+        crate::units::anim::ATTACK3,
+        24,
+        Bay {
+            right: 4_877,
+            fwd: 65_764,
+            dz: 184,
+        },
+    ),
     // **Piece 384, the Slingers** (item 4277, `docs/CLIENT_INPUT.md` §25):
     // run1615b's packet (the buildmasked file at logger frame 6869) holds
     // the piece's three `AttachPos` rows, node 0 at frame 21 of
@@ -2834,24 +2829,16 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 87,
         },
     ),
-    // **Piece 120, a British player's Bowmen: run256's twelve arrows**
-    // (`docs/GOLDEN.md` §29, item 813). Its release events are 472's —
-    // frame 12 on `CHAR_ATTACK1`, 9 on `CHAR_ATTACK2`, 15 on
-    // `CHAR_ATTACK3` — and 472's nodes put every arrow within one to
-    // four units of the dump, a frame of flight on the first, so the
-    // piece is measured on its own. Three bowmen at three facings
-    // (−999686144, −987168768, −885391360) give seven distinct launch
-    // points; each row is the centroid of the region of integer `(right,
-    // fwd)` that reproduces every point of its key exactly under the
-    // whole-degree rotation, and `dz` is `sz` less the figure's own `z`,
-    // the same on every arrow of the key.
+    // Piece 120, the Bowmen. Run256 measured twelve arrows at three
+    // facings. The window A state-9746 snapshot supplies all 361 headings
+    // for each event, measured before the seed-123 window B comparison.
     (
         120,
         crate::units::anim::ATTACK1,
         12,
         Bay {
-            right: -1_830,
-            fwd: 88_800,
+            right: -1_826,
+            fwd: 88_749,
             dz: 163,
         },
     ),
@@ -2860,8 +2847,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::units::anim::ATTACK2,
         9,
         Bay {
-            right: 118,
-            fwd: 87_244,
+            right: 336,
+            fwd: 87_408,
             dz: 164,
         },
     ),
@@ -2870,8 +2857,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::units::anim::ATTACK3,
         15,
         Bay {
-            right: 9_536,
-            fwd: 66_509,
+            right: 9_711,
+            fwd: 66_508,
             dz: 164,
         },
     ),

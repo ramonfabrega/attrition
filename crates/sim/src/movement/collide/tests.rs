@@ -1655,6 +1655,8 @@ fn two_members_of_one_group_pass_through_each_other() {
     sim.units[x].orders.push_front(crate::orders::Order {
         flags: crate::orders::flag::ACTION,
         body: crate::orders::Body::Attack(crate::orders::AttackOrder {
+            target: None,
+            mandatory: false,
             defensive: false,
             def: None,
             in_range: false,
@@ -2259,6 +2261,8 @@ fn attackers_on_a_dead_target_are_hard_to_each_other() {
         let order = Order {
             flags: 0,
             body: Body::Attack(crate::orders::AttackOrder {
+                target: None,
+                mandatory: false,
                 defensive: false,
                 def: None,
                 in_range: false,

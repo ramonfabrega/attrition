@@ -529,20 +529,99 @@ each shot in flight through `vtable +0` into `AmmoData`'s walker.
 whose first word is not 0: 4 bytes, then [+0x4, +0x4b). None of the
 three has an element on run1100's frame. On run1420's packet the deaths
 line walks 8 ranges of 300 bytes in all, which is consistent with 4 × (4 + 71). The
-walls and ammo record shapes rest on the recon's reading alone (§10). Our walk
-emits the three as the empty walk alone, refusing a frame that holds an element
-(item 4355).
+wall record shape rests on the recon's reading alone (§10). Item 4355
+emitted all three only when empty. Items 4363 and 4365 extend the deaths
+and ammo lines to the occupied records below.
 
 **Item 4355 compared the three empty lines** (DECISIONS 140 §1). The hook's walls, ammo and deaths read 1, the Adler
 of no bytes, on all 24,004 of run1578's sets and 124 of run1577's. Our walk's count of each at the moment the other
 lines are taken (`held`: live buildings at `index >= WALL_BASE`, `combat.projectiles`, `combat.deaths`, §8's three
 walkers) reads none on 24,000 of 24,000 frames and 120 of 120 (`EMPTY_HELD`, minted at 0, red first). The count can
-part: on the classical melee it reads a shot from 642 and a death object from 692 (`MELEE_HELD`), and the emitter
-refuses both there; the walls arm is held by a building moved into the 3000 band, since no walk on disk holds a wall.
+part: on the classical melee it reads a shot from 642 and a death object from 692 (`MELEE_HELD`), and the original item 4355 emitter
+refused both there; the walls arm is held by a building moved into the 3000 band, since no walk on disk holds a wall.
 The three then join `EMITTED` through `empty_walk`, never `our_lines`' three `Line::default()`s, which read 1 whatever
 the walk holds. **The twelve state lines agree on every frame of the minted game.** Its limits: one game, no combat
 in it, and the three record shapes unexercised (no emitter walks a wall, a shot or a death record; §8's walls and ammo
 shapes rest on the recon's reading alone).
+
+**Occupied deaths (item 4363).** The original walks the valid slots in pool
+order. A single unit can occupy several slots. Each contributes its four-byte
+valid flag and the 71 bytes from `first_frame` through `unit_crew`, inclusive.
+The latter includes the figure's unmasked position, facing and four pivot
+angles at death. The clock is the number of death-object updates. The final
+three bytes are the node flags and the crew index (−1 for the squad figure,
+0 for its first crew member). `DeathObjData` in the shipped type record names
+the fields. The original's checksum stream at state 8408 of the long window
+recording is the byte comparison (RECGAME §10).
+
+The skeleton piece is the unit graphic's named entry in the install's
+skeleton table. That table starts after the shadow pieces
+(`GraphicPieces::init_piece_ranges@008f70e0`, `GraphicPieces::init@008ffcc0`).
+A disband has ammo piece −1 and zero ammo angle. Its two records agree
+through their separate removals. Chapter 94 at state 846 also matches
+eight death records, all 600 bytes (Adler 1073114359), following cast
+orders against two artillery units. On run1420, treating four combat deaths as
+unarmed reproduces 294 of 300 bytes. The six differing bytes are all in the
+ammo angles. Their original values are 16, 193, 201 and 0 degrees. A damage
+path with unknown impact inputs leaves the whole deaths line unavailable.
+
+Item 4365 emits ordinary ammo sprites in pool-slot order. Each contributes a
+flags byte, 99 bytes from `rolling` through `start_roll_angle`, and a zero
+path byte. Pool slots are reused. The graphic index counts insertions, and
+the horizontal display speed retains its initial value when the endpoint
+changes. Guided paths and falling aircraft still have no emitter. Direct
+hits without a projectile pass an absent graphic and zero degrees into the
+existing casualty record. Unknown impact sources still refuse the line.
+
+On window A, the full comparison covers 8,472 ammo ranges and 3,870 casualty
+ranges through state 11720. Both match on every byte. Six Longbowman animation
+rows measured over all whole degrees put the sprites at the original integer
+coordinates (COMBAT §22.5). The packet census gains 43 whole ammo lines and
+six whole deaths lines, from 500 to 549 of 1,053. Frame 91 stays 8/12.
+
+Item 4366 closes the two remaining window A lines. The shared object flag byte
+includes a unit's existing attack latch in bit 7. An ordinary building which
+survives a hit keeps bit 4. An active city returns early and sets that bit
+only when its damage reaches its hit ceiling. Repair changes damage without
+clearing the flag. These flags take the full-file score to twelve lines on
+all 11,721 states, and the independent packet score to 562 of 1,053.
+
+On an independent lobby seed, the remaining 359 differing ammo states
+came from another sprite's coordinates. With its full heading sweep
+(RECGAME §10.2) all twelve lines agree on all 14,438 states of window B.
+The two occupied pools cover 3,417 and 3,882 original ranges respectively.
+
+Item 4368 measures the two casualty fields at byte offsets 32 and 36.
+The figure retains the round’s graphic when the ammo piece has flag 1.
+The angle is stored independently, in whole degrees relative to the first
+figure’s facing at close. The game converts the circular difference to
+degrees before encoding it as a single. Direct hits carry (−1, 0).
+In run1420 all four figures lack an attachment, yet their measured angles
+are 16, 193, 201 and 0. All 300 bytes match. Run1361 mixes piece 60157
+at 343 degrees and a direct hit at zero. All 150 bytes match. Across the
+107 packets, 22 further casualty lines agree and 176 fewer ranges differ.
+
+Item 4369 reads the attachment by graphic index. The two chapter 65 packets
+keep building graphic 60149 at 179 degrees. An attrition figure has the
+absent graphic and zero degrees, as measured on run1487. For a type-3
+animation on a foot or mounted figure, the final facing is taken from
+the figure to the round’s endpoint. A direct hit turns the figure half
+a turn from the supplied bearing. The relative angle uses that final
+facing. Both directions on run1185 and the single figures on run1320b
+and run1496 agree with the original at the full 32-bit angle precision.
+The same check closes run1166's five figures. All 39 occupied packets
+now emit the entire cast, and 35 are byte-exact. On two of the other
+four the only differing word is a turret angle. The other two have
+different slot orderings among figures created on the same frame.
+
+The final three turret words (item 4370) come from model node 4 on pieces
+142 and 234. Each model's static pivot offset matches the original at
+361 of 361 whole headings. The three records then agree in full, taking
+the casualty score to 37 of 39 and the overall score to 592 of 1,053.
+This closes all 29 previously unreported casts. The two remaining casts
+already had partial emitters. On run785, four figures in two same-frame
+pairs occupy different slots. On run865, seven figures in two pairs and
+one triple do. Both original casts and their frame boundaries are known.
 
 ## 9. Pointers, floats, padding and locals
 
@@ -1069,9 +1148,14 @@ changes.
   zeroes `+0x64`'s two bytes; no writer is read).
 - **`BuildData`**: `gather_down` derives (the newest gatherer), `city` (the
   city's place in its owner's list) and `city_down` (the next building of
-  the city's chain, `city_chain`) derive; `wonder` is init's −1
-  (`Build::init@00629740`); the union at +0x78 derives (a farm's place in
-  `Farms`' list, a dock's slot, else −1); `recharging` holds (~~and
+  the city's chain, `city_chain`) derive. Since item 4262, `wonder`
+  carries its owner's list slot after activation and otherwise reads −1.
+  The union at +0x78 derives (a farm's place in
+  `Farms`' list, a dock's slot, a fort's or oil installation's slot in
+  its owner's list, else −1). Item 4372 checks this against every byte of
+  220 affected original bodies across 107 packets. The held oil slots
+  range from 0 to 10 and fort slots from 0 to 2. A well still awaiting
+  activation on run1359 reads −1. `recharging` holds (~~and
   **parts**~~ — agrees since item 4097);
   `attack_ox`/`attack_whom` derive from `target`; `stance` derives
   (`Sim::build_stance`, `BuildTypeData::get_stance_type@006396c0`'s
@@ -1535,6 +1619,22 @@ that diff on this frame: `los_x`'s one writer, the animal's overrides,
   and the bits not listed (§18 names which agree by rule); `myarmor`'s cache timing and the cattle
   citizens' term; `los_x` of a unit the harness seats from a dump.
 
+### Queued attack orders (item 4364)
+
+After `order.type` and `order.node`, `AttackOrder::walk_data@0047f260`
+folds the flags byte, the ten target bytes (object number, owner and UID)
+and thirteen bytes from `def_x` through `new_ord`. These two signed
+coordinates are followed by five single-byte fields in order —
+`mandatory`, `defensive`, `in_range`, `ever_in_range`, `new_ord`.
+The UID belongs to the order at issue or retarget. Two queued orders can
+name separate generations even when they refer to the same object number.
+
+The live game's state 9211 has six such orders. Each names object 2004
+of owner 0, UID 4, with flags 0x14, point (−1, −1), and bytes 1,0,0,0,1.
+Inserting the eighteen ranges accounts for all 144 missing bytes.
+The range capture and independent packet replay both give 2,522 unit
+ranges, 45,138 bytes, Adler 874009299. See RECGAME §10 and RUNS, item 4364.
+
 ## 18. The units line, whole (item 4113)
 
 **The line is the original's on run 1562's frame 91**: 1,084 of 1,084
@@ -1949,6 +2049,14 @@ asserts a whole section's Adler against the record's printed line.
 `CHECKSUM_STATE` counts it since item 4150: 8 of 12 lines, 367,156 of
 425,499 bytes (§5). Ours summed to 1150679858 at item 4148.
 
+Both outputs use one section traversal. The byte output packs each cell's
+16 scalar fields directly at their declared widths and does the same for
+the collision-block presence and header words (4373). A missing scalar
+contributes a zero value at its declared width. The detailed output
+retains its missing-field marker. Every held packet checks range
+count, record, field, order and bytes against the detailed output before
+comparison with its original stream.
+
 **The record prints a sum per section.** Record 3201's sixteen `World`
 lines are frame 91's sections 0 to 14 and the whole: cut by call site and
 walk order, each section's Adler over the stream is its printed line, all
@@ -2239,6 +2347,16 @@ that range alone, and run1165's later stream against our frame 4 agrees
 on fewer lines (`a_packet_s_comparison_can_part`). The walks take 80 s
 for all 74 game tests together.
 
+**Reading a packet failure (4371).** The first range in walk order is
+reported with its record, field, zero-based byte offset within that range
+and one value from each side. `end` means a present range ends at that
+offset. `absent` means the range itself is missing. Both still count as
+differences against a present byte, and an empty range differs from a
+missing range. A record number of −1 can denote an unnamed record or a
+range available only in the original. The walk counts every differing
+range. The recorded-frame checks decode the full first pair of byte
+strings for their existing field-value assertions.
+
 ## 23.6 How it was established, and what it has not established
 
 - Diff-backed: all of it. Every number above is a range-by-range
@@ -2417,7 +2535,7 @@ so is run1578's on that frame. The kill the item booked (the hook's values not t
 
 Per line our walk emits, the first of our frames whose Adler parts from the hook's first set of the frame before, on
 the minted game's 24,000 (run1578; `our_lines_part_from_the_hook_s_on_their_first_frame`, `CHECKSUM_FRAMES`).
-Walls, ammo and deaths are the empty walk, refusing a frame that holds an element (item 4355, §8). Rules and the two
+All three pools are empty in this recording. Occupied ammo and deaths are described in §8. Rules and the two
 script lines are not the simulation's (entry 119). Each line is taken every frame inside the first 300 (`DIAG`), and
 past them only until it first parts:
 

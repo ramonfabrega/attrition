@@ -38492,3 +38492,276 @@ title bar, tagged `sRGB`, the gamelog at 3295. SHA-256 `b486b7b50fb43b6230fbc63e
 - The east band is `normal_border_renders[2]`: 30 vertices from (60.0, 44.94) to (51.0, 46.06) cells. Its texture
   coordinates are `u` 2.00 → 2.93 texels and `v` 4 → 2 texels (probes `strips.py`, `east.py` and `texs.py` beside the
   photograph).
+## Great Lakes live window, short take (2026-11-17, Codex branch, item 4362)
+
+Independent playtest under `~/ron-data/lab-experiments/2026-11-17-codex-live-recording/`.
+`window-short.rcx` (59,249 bytes, SHA-256 `19114450b989dbe7a2cf92f3dd7e1137639d1c8d9db820c9438f287d954fe050`)
+came from the window. `short.log` records both actions at frame 30. `oracle-short/map-14/` holds
+the original's trace, game log, profile backups and receipt. The replay completed 427, restored
+five settings and exited 0. RECGAME §10 gives the twelve-line comparison through its terminal state.
+
+## Great Lakes live window, longer take (2026-11-17, Codex branch, item 4362)
+
+Same independent archive. `window-long.rcx` (59,304 bytes, SHA-256
+`122946d66018e0f732ccdb5bd863b679639d591c23c3a189d9e2311c265447b2`) carries the seven
+packages in `long.log`. Closing frame 9475. The capture target is `oracle-long/map-14/`; the
+detail window covers the disband at 8407 and the pause and resume at 8424. The receipt reports
+667.6 seconds launch to exit, 9476 frames, last frame 9475, exit 0 and five settings restored.
+Trace SHA-256 `1448693db8a3e73754aa13e0afff3aecbefb2c92b6f8ae7ea59fe1ff2c821412`.
+The short trace SHA-256 is `3e852283d5ec358e1af5cbe8826cf11fb227256acef7fc8e13544b52cb6b322a`.
+The comparison through the closing states is in RECGAME §10.
+
+## Great Lakes scout disband, occupied death pool (2026-11-17, Codex branch, item 4363)
+
+Item 4362's `window-long.rcx` replayed on pool lane 1. Evidence in
+`~/ron-data/lab-experiments/2026-11-17-codex-scout-deaths` (E below).
+The capture ran for 603.7 seconds from launch to exit, reached frame 8411,
+exited 0 and restored all five settings. The packet at logger state 8408,
+trace frame 8407, is 807,812,140 bytes, SHA-256
+`20395d843fa4f8183ec93e0d78d45b17a33d117c18237be0b657ca17f7f3f859`.
+The inventory and completion receipt validated with item 597's plan.
+All 15 instrumented packet sums agree with the hook on this run and on
+item 4362's earlier long run at the same state.
+Use a fresh output directory for a repeat.
+
+```sh
+P=~/ron-data/lab-experiments/2026-09-23-item-597/plan
+A=~/ron-data/lab-experiments/2026-11-17-codex-live-recording
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh "$E" \
+  --recording "$A/window-long.rcx" --end-frame 8411 --cover cover=1 \
+  --log-window 8406 8411 --detail end:MISC,DEATHS=1 --timeout 1800 \
+  --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=8408 \
+  --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""
+python3 tools/explore/frame_snapshot.py "$E/map-14" "$P/plan.json"
+uv run --offline tools/recomp/checksum.py "$E/map-14/riseofnations.exe" \
+  "$E/map-14/frame-snapshot.bin" --stream "$E/stream.tsv" --values "$E/values.tsv"
+```
+
+Waited via `waitrun.sh /tmp/ron-runs/viadriver-20261117-210105-91045.log`.
+Slots 0 and 1 hold the scout at (1216, 30882, 588) and its dog at
+(1219, 30988, 586). Both face −785448960. Their skeleton pieces are
+60114 and −1 and their crew bytes are 255 and 0. CHECKSUM §8 gives the
+independent replay comparison.
+
+## Great Lakes live window, army split (2026-11-17, Codex branch, item 4364)
+
+Replay of item 4362's long window recording on pool lane 1. The archive
+is `~/ron-data/lab-experiments/2026-11-17-codex-window-9211` (`E`).
+`A=~/ron-data/lab-experiments/2026-11-17-codex-live-recording` and
+`P=~/ron-data/lab-experiments/2026-09-23-item-597/plan`.
+
+```sh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh "$E" \
+  --recording "$A/window-long.rcx" --end-frame 9475 --cover cover=1 \
+  --log-window 9208 9221 --detail end:MISC,UNITS=3,GROUPS=1 \
+  --timeout 3600 --stall-seconds 180 --tracer-def RON_CHECKSUMS \
+  --tracer-def RON_RANGES --tracer-def RNG_MASK=0x21 \
+  --tracer-def RON_STATE_FRAME=9211 --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""
+python3 tools/trace/ranges.py "$E/map-14/rontrace.ranges" check \
+  --hook "$A/oracle-long/map-14/rontrace.log"
+python3 tools/trace/ranges.py "$E/map-14/rontrace.ranges" compare \
+  --frame 9211 --stream "$E/stream.tsv"
+```
+
+The game exited 0 on frame 9475 and restored all five settings.
+The runner reported failure because the narrow text dump lacked the
+requested GROUPDATA block (parked 735). Its binary record is complete.
+All 9,479 checksum sets agree with the independent item 4362 trace, with
+zero overflow or Adler discrepancies. The snapshot reader verified frame
+9211, all eight anchors, the logger return and the completion receipt.
+Offline checksum replay of the snapshot generated `$E/stream.tsv` and
+`$E/values.tsv`. All fifteen stream sums equal the original's words.
+Both kept lines match the in-game ranges byte for byte (3,066 ranges).
+
+## Window combat A, 2026-11-18 (item 4365, direct Codex branch)
+
+`E=~/ron-data/lab-experiments/2026-11-18-codex-combat-replays`,
+`P=~/ron-data/lab-experiments/2026-09-23-item-597/plan`.
+`window-a.rcx` is the normal client recorder's output. The window log and
+JSON retain the order and trace. Great Lakes, seed 12345, closing state
+11720. Replay the original with a fresh output path in place of `$OUT`.
+
+```sh
+RON_CAPTURE_LANE=1 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh "$OUT" \
+  --recording "$E/window-a.rcx" --end-frame 11720 --log-window 9416 9780 \
+  --detail end:MISC,UNITS=3,AMMO=5,DEATHS=1 --cover cover=1 --timeout 3600 \
+  --stall-seconds 180 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES \
+  --tracer-def RNG_MASK=0x18 --tracer-def RON_STATE_FRAME=9746 \
+  --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""
+```
+
+The completed take is `$E/oracle-a/map-14`. Exit 0, last frame 11720,
+zero page faults, five staged files restored. `checksum.py` reproduced all
+15 snapshot sums. `ranges.py … compare --frame 9746 --stream "$E/stream-a.tsv"`
+matched all 17 in-game ranges (580 bytes). Six `socket-127-ANIM-TIME.txt`
+sweeps came from `get_position.py <exe> <packet> sweep 127 0 ANIM TIME`.
+`fit_bay.py` admits 52 lattice points for each shared socket and 351,
+589 and 609 for the remaining ones. The centroid of each reproduces all
+361 headings. Retained score runs are `score-before-a.log`,
+`score-ammo-a.log` and `score-socket-melee-a.log`; the full packet survey
+is `socket-melee-packets.log`.
+
+
+## Window combat A, independent flags take (item 4366, 2026-11-18)
+
+Same recording, seed, end frame and snapshot plan as item 4365. Output
+`$E/seam-a`. The capture changed to `--log-window 9413 9455 --detail
+end:MISC,UNITS=4,BUILDS=4 --tracer-def RNG_MASK=0x83 --tracer-def
+RON_STATE_FRAME=9416`. It exited 0, reached 11720, restored five files,
+and recorded zero page faults. The two independent takes agree on all
+11,722 checksum sets. The offline state-9416 packet reproduced all 15
+sums. Its 3,798 unit, build and leader ranges match the in-game bytes.
+The hook uses the preceding tick number, 9415, for that state.
+
+```sh
+python3 tools/trace/ranges.py "$E/seam-a/map-14/rontrace.ranges" check \
+  --hook "$E/oracle-a/map-14/rontrace.log"
+python3 tools/trace/ranges.py "$E/seam-a/map-14/rontrace.ranges" compare \
+  --frame 9416 --stream "$E/seam-a-stream.tsv"
+```
+
+The final comparison is `$E/score-flags-a.log`. Packet measurements are
+in `$E/flags-packets.log`. The regression reads the unit and building
+ranges on 9415, 9416, 9451, 9452, 9746 and 10320.
+
+## Window combat B, an independent lobby seed (item 4367, 2026-11-18)
+
+Same experiment directory and snapshot plan as window A. The client changed
+the lobby seed from 12345 to 123, started, and saved one order at 9000.
+The selected unit was 0/1 and its order named 1/9. The recording closes at 14437. Playback uses the
+recording's lobby and packages. Use a fresh output directory.
+
+```sh
+RON_CAPTURE_LANE=1 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh "$OUT" \
+  --recording "$E/window-b.rcx" --end-frame 14437 --log-window 8970 9390 \
+  --detail end:MISC,UNITS=3,AMMO=5,DEATHS=1 --cover cover=1 --timeout 3600 \
+  --stall-seconds 180 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES \
+  --tracer-def RNG_MASK=0x9b --tracer-def RON_STATE_FRAME=9332 \
+  --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""
+```
+
+The original is in `$E/oracle-b/map-14`. The first take's state-9746 packet
+supplied the three sweeps `$E/socket-120-a{11,12,13}-t{12,9,15}.txt`,
+measured before B reached combat. `$E/b-socket-prediction.txt` was written
+while B was at state 6415. It predicts that the first sprite at 8981
+would start at X 11289 with heading −265027584. The in-game record gives
+those values. At 9332 the five recorded lines matched all 3,278 ranges
+from an offline call on B's own packet. All 15 snapshot sums agree.
+`$E/stream-b.tsv` and `$E/values-b.tsv` retain those measurements.
+
+The original exited 0 on state 14437 and restored all five files with
+zero page faults. The staging receipt's requested default was 12345.
+The actual playback reported seed 123, matching the client lobby. All
+14,439 captured checksum sets passed the range audit with zero overflow.
+Both occupied pools matched on 3,417 ammo ranges and 3,882 casualty
+ranges. The traces, scored states and packet census remain under
+`$E`; the raw recordings and snapshot bytes stay outside git.
+
+
+`$E/score-before-b.log` gives the pre-batch baseline. At the item 4366
+checkpoint (`$E/score-4366-b.log`) only ammo still differed, on 359
+states. `$E/score-4367-b.log` has 14,438 agreements on each of twelve
+lines and exited 0. `$E/bow-packets.log` confirms every old packet pin.
+
+## Item 4368 — archived casualty record measurements (2026-11-18)
+
+The original streams are in `~/ron-data/lab-experiments/2026-11-12-item-4188/<run>/stream.tsv`.
+The comparison directory is `~/ron-data/lab-experiments/2026-11-18-codex-casualty-poses`.
+Its `inventory-before.tsv` lists all 29 previously unreported casts.
+The independent probes `pose1420.txt`, `pose1361.txt` and `pose1268.txt`
+record the sprite's absolute and relative angles before the checksum change.
+The run1420 and run1361 byte comparisons are tests in `checksum_lines::deaths`.
+Reproduce the 107-packet survey with the install set in `RON_INSTALL`:
+
+```sh
+RON_PACKETS_PRINT=1 zsh tools/check.sh test --release -p rondata --lib diff::checksum_lines::packets:: -- --show-output --test-threads 4
+```
+
+`pose-packets-2.log` is the first survey with orientations. In
+`pose-residual-bytes.log`, the diagnostic rows beginning with POSE give
+the full emitted record for each differing line, and POOL lists its cast.
+
+## Item 4369 — casualty attachment table and final facing (2026-11-18)
+
+Same archive and survey command as 4368. In `art-and-facing-probe.log`,
+SNAP records frame, player, object, figure count, object masks, old facing,
+predicted facing, original hit bearing, graphic and decoy status. The
+STARVE line at 1822 identifies run1487's fourth figure, player 0 object
+14. `oriented-packets.log` scores the completed change. The raw native
+counterpart for each prediction is the deaths row of the named packet.
+
+## Item 4370 — the last turret words on the two new casts (2026-11-18)
+
+Use the 4368 experiment directory. The two snapshots are
+`~/ron-golden/run1472/map-7/frame-snapshot.bin` for piece 234 and
+`~/ron-golden/run1487/map-18/frame-snapshot.bin` for piece 142. Run the
+existing geometry oracle with each corresponding snapshot and piece:
+
+```sh
+uv run --offline tools/recomp/get_position.py "$RON_INSTALL/riseofnations.exe" "$SNAP" entries "$PIECE"
+uv run --offline tools/recomp/get_position.py "$RON_INSTALL/riseofnations.exe" "$SNAP" sweep "$PIECE" 4 0 0
+```
+
+`entries-{234,142}.tsv` gives the graphic offsets and scales.
+`pivot-{234,142}-node4.tsv` gives the independent 361-heading sweeps
+read by the regression. `pivot-fit-before-integration.txt` records both
+fits before putting them in the simulator. `pivot-packets.log` is the
+107-packet survey following the change.
+
+## Item 4371 — packet first-difference diagnostics (2026-11-18)
+
+The evidence directory is `~/ron-data/lab-experiments/2026-11-18-codex-packet-fields`.
+Reproduce `report-4371-r2.log` with the archive install and
+`RON_PACKETS_PRINT=1 zsh tools/check.sh test --release -p rondata --lib diff::checksum_lines::packets:: -- --show-output --test-threads 4`.
+Run `python3 check-reports.py OLD NEW PACKETS_DIR` there against the 4370
+`pivot-packets.log` and this report. The script checks both complete pin
+arrays and the original bytes at the offsets. `report-validation.txt`
+records the outcome. `compare-shipped.rs` and its three run logs contain
+the alternating 21-sample comparison of the earlier all-range formatter
+and the updated first-range comparator. The arguments are install, long
+lobby dump, logger frame and original stream. The runs are 1185/4582,
+1359/5619 and 1437/3894. `packet-timing-4371.txt` retains six alternating
+process-level timings per version and game.
+
+## Item 4372 — fort and oil installation slots in the building checksum (2026-11-18)
+
+Use the 4371 directory. The 107 keys, `building-registers.py` and
+`building-registers-original.txt` identify the original slots by type.
+`before-run{1185,1326,1359}.txt` records the simulator's existing slots
+before the checksum change. The four-game `building_slots_match_the_original_build_data`
+test checks the two-byte slot and the 22-byte range. Its deliberate failure
+on the old code is `before-whole-4372.log`. The strict corpus run is
+`strict-4372.log` and both complete game recordings are in `windows-4372.log`.
+
+The one-time `survey-4372.rs` contains the full object-keyed sweep.
+To reproduce on this checkpoint, use its `survey` function in the
+`packets::building_slots` test module. In `walk_packets_with`, retain the
+output of `our_lines` as `images` and call
+`building_slots::survey(run, &built.sim, &images[1], &theirs["builds"])`
+immediately before `compare`. Use the 4371 print command.
+The `SLOTROW` entries in `survey-4372.log` carry player, object,
+slot, oil flag, original slot, and whole-body agreement before and after
+by position and by object. The first print run also exposes the three
+supplemental pins that needed updating. `group-frontiers.py` takes this
+report and the original packets directory to reproduce the next candidate.
+
+## Item 4373 — world checksum allocation and replay timing (2026-11-18)
+
+The directory is `~/ron-data/lab-experiments/2026-11-18-codex-world-checksum-cost`.
+Run `zsh tools/check.sh build --release -p rondata --lib` at the version
+under test. Build the archived probes with `rustc -O --edition=2021`,
+`-L dependency=target/release/deps` and `--extern` for the matching
+`rondata` and `sim` release rlibs. Both take the install and
+`window-{a,b}.rcx` from the 4365 archive. `world-allocations.rs` counts
+allocation and reallocation requests at frames 0, 500, 1500 and 3000.
+`world-equivalence.rs` checks every world range through closing.
+`equal-{a,b}.txt` and the before/after allocation tables are their results.
+
+The paired timing ledger runs the release test executable with
+`--exact checksum::playback::combat::the_combat_window_{a,b}_matches_every_line_through_closing --test-threads 1`
+under a one-CPU, 1024 MiB reservation. Supply `RON_INSTALL` and use the
+same game fixtures. The earlier binary was built at `3bb34bbdd`. Each
+version's digest and each individual run log accompany
+`paired-whole-window-timing.tsv`. The 4371 evidence directory also
+retains the sampling probe `score-cost.rs`; compare its game A/B baseline
+files with `score-cost-after-{a,b}.txt` here for per-stage timings.
