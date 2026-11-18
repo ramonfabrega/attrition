@@ -696,9 +696,38 @@ impl Sim {
         add_gather_order_steps(&mut v, b, pos, action);
     }
 
-    /// `Unit::add_attack_order(o, who, pos, mandatory, action)` (§7.1). The
-    /// target and `mandatory` live in [`combat::State`]; the order carries
-    /// the rest.
+    fn attack_target_id(&self, target: Obj) -> (i16, crate::Player, u16) {
+        match target {
+            Obj::Unit(v) => (self.units[v].index, self.units[v].owner, self.units[v].uid),
+            Obj::Building(b) => (
+                self.buildings[b].index,
+                self.buildings[b].owner,
+                self.buildings[b].uid,
+            ),
+        }
+    }
+
+    /// Retarget the current attack without rewriting other orders in the queue.
+    pub(crate) fn set_attack_target(&mut self, u: usize, target: Option<Obj>) {
+        let id = target.map(|t| self.attack_target_id(t));
+        if let Some(k) = self.action_of(u)
+            && let Body::Attack(a) = &mut self.units[u].orders[k].body
+        {
+            a.target = id;
+        }
+        self.units[u].combat.target = target;
+    }
+
+    pub(crate) fn set_attack_mandatory(&mut self, u: usize, mandatory: bool) {
+        if let Some(k) = self.action_of(u)
+            && let Body::Attack(a) = &mut self.units[u].orders[k].body
+        {
+            a.mandatory = mandatory;
+        }
+        self.units[u].combat.mandatory = mandatory;
+    }
+
+    /// `Unit::add_attack_order(o, who, pos, mandatory, action)` (§7.1).
     pub fn add_attack_order(
         &mut self,
         u: usize,
@@ -724,12 +753,15 @@ impl Sim {
         // `ObjectData +0x3d`; only `Object::find_nearby_target` does, on
         // the winner it returns (`docs/COMBAT.md` §33). Bumping here
         // counted a squad's mirror copies as separate attackers.
+        let id = self.attack_target_id(target);
         let unit = &mut self.units[u];
         unit.combat.target = Some(target);
         unit.combat.mandatory = mandatory;
         let order = Order {
             flags: if action { flag::ACTION } else { 0 },
             body: Body::Attack(AttackOrder {
+                target: Some(id),
+                mandatory,
                 defensive,
                 def,
                 in_range: false,

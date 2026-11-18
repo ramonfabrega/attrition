@@ -1195,6 +1195,8 @@ fn a_unit_struck_while_moving_in_contact_takes_the_blow_doubled() {
             sim.units[me].orders.push_front(crate::orders::Order {
                 flags: 0x10,
                 body: crate::orders::Body::Attack(crate::orders::AttackOrder {
+                    target: None,
+                    mandatory: false,
                     defensive: false,
                     def: None,
                     in_range: true,

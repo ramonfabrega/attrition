@@ -1556,6 +1556,22 @@ that diff on this frame: `los_x`'s one writer, the animal's overrides,
   and the bits not listed (§18 names which agree by rule); `myarmor`'s cache timing and the cattle
   citizens' term; `los_x` of a unit the harness seats from a dump.
 
+### Queued attack orders (item 4364)
+
+After `order.type` and `order.node`, `AttackOrder::walk_data@0047f260`
+folds the flags byte, the ten target bytes (object number, owner and UID)
+and thirteen bytes from `def_x` through `new_ord`. These two signed
+coordinates are followed by five single-byte fields in order —
+`mandatory`, `defensive`, `in_range`, `ever_in_range`, `new_ord`.
+The UID belongs to the order at issue or retarget. Two queued orders can
+name separate generations even when they refer to the same object number.
+
+The live game's state 9211 has six such orders. Each names object 2004
+of owner 0, UID 4, with flags 0x14, point (−1, −1), and bytes 1,0,0,0,1.
+Inserting the eighteen ranges accounts for all 144 missing bytes.
+The range capture and independent packet replay both give 2,522 unit
+ranges, 45,138 bytes, Adler 874009299. See RECGAME §10 and RUNS, item 4364.
+
 ## 18. The units line, whole (item 4113)
 
 **The line is the original's on run 1562's frame 91**: 1,084 of 1,084

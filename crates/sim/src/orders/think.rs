@@ -792,7 +792,7 @@ impl Sim {
                 && matches!(self.units[v].orders[a].body, Body::Attack(_))
                 && self.units[v].combat.target == Some(old)
             {
-                self.units[v].combat.target = Some(new);
+                self.set_attack_target(v, Some(new));
                 while self.units[v]
                     .orders
                     .front()

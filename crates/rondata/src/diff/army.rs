@@ -385,6 +385,10 @@ mod tests {
                 return Some(sim::orders::Order {
                     flags: u8::try_from(od.flags & 0xff).ok()?,
                     body: Body::Attack(AttackOrder {
+                        target: od.ox.zip(od.whom).zip(od.uid).and_then(|((o, w), id)| {
+                            Some((i16::try_from(o).ok()?, u8::try_from(w).ok()?, id as u16))
+                        }),
+                        mandatory: od.mandatory == Some(1),
                         defensive: od.defensive == Some(1),
                         def: match (od.def_x, od.def_y) {
                             (Some(x), Some(y)) if x >= 0 && y >= 0 => {

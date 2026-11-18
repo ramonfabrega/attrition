@@ -778,9 +778,12 @@ records for object 0/0, pieces 371 and 13043, both with first frame 8407
 and animation 15. Their Adler is 826547225. Item 4362 first reported an
 unemitted line here. Item 4363 matches both occupied records byte for byte.
 The dog leaves at state 8567 and the scout at 9094. Deaths agrees on all
-9,476 states, up from 8,790. All twelve lines now agree through state
-9210. Units and groups first differ on 9211 and finish at 9,211 and
-9,470 agreeing states respectively. The other ten agree throughout.
+9,476 states, up from 8,790. On the item 4363 tree, all twelve lines agreed through state
+9210. Units and groups first differed on 9211 and finished at 9,211 and
+9,470 agreeing states respectively. Item 4364 matches both lines through
+the close. All twelve agree on every one of the 9,476 states. The units
+comparison now includes all six attack orders and the new group receives
+its role and speeds at the original boundary (CHECKSUM §17, ARMY §12).
 The regression checks both whole games, including the closing state.
 RECGAME §8's rule section requires a donor. The long game's death came
 from the disband command.

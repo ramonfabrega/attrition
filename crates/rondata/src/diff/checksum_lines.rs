@@ -1281,12 +1281,15 @@ fn unit_site_field(site: &str) -> &'static str {
         "007303ac" => "order.type",
         "007303be" => "order.node",
         "0047f243" | "00482e93" | "00486e83" | "00483283" | "004860c3" | "004855e3"
-        | "0048560c" | "00486573" => "order.flags",
-        "0047f251" | "00486e91" | "00483291" | "004860d1" | "00486581" => "order.target",
+        | "0048560c" | "00486573" | "0047f283" => "order.flags",
+        "0047f251" | "00486e91" | "00483291" | "004860d1" | "00486581" | "0047f291" => {
+            "order.target"
+        }
         "00482ea1" | "004855f1" => "order.move",
         "0048561a" => "order.group",
         "00485625" => "order.in_group",
         "00486e9f" => "order.gather",
+        "0047f29f" => "order.attack",
         "0048329f" => "order.trade",
         "004860df" => "order.cast",
         "0048658f" => "order.guard",
@@ -1322,6 +1325,7 @@ fn unit_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
         "order.move" => table(MOVE_FIELDS, 0x4),
         "order.target" => table(TARGET_FIELDS, 0x8),
         "order.gather" => table(GATHER_FIELDS, 0x14),
+        "order.attack" => table(sim::checksum::units::ATTACK_FIELDS, 0x14),
         "order.trade" => table(TRADE_FIELDS, 0x14),
         "order.cast" => table(CAST_FIELDS, 0x14),
         "order.guard" => table(GUARD_FIELDS, 0x14),

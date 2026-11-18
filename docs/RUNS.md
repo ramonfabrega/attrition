@@ -38458,3 +38458,33 @@ Slots 0 and 1 hold the scout at (1216, 30882, 588) and its dog at
 (1219, 30988, 586). Both face −785448960. Their skeleton pieces are
 60114 and −1 and their crew bytes are 255 and 0. CHECKSUM §8 gives the
 independent replay comparison.
+
+## Great Lakes live window, army split (2026-11-17, Codex branch, item 4364)
+
+Replay of item 4362's long window recording on pool lane 1. The archive
+is `~/ron-data/lab-experiments/2026-11-17-codex-window-9211` (`E`).
+`A=~/ron-data/lab-experiments/2026-11-17-codex-live-recording` and
+`P=~/ron-data/lab-experiments/2026-09-23-item-597/plan`.
+
+```sh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh "$E" \
+  --recording "$A/window-long.rcx" --end-frame 9475 --cover cover=1 \
+  --log-window 9208 9221 --detail end:MISC,UNITS=3,GROUPS=1 \
+  --timeout 3600 --stall-seconds 180 --tracer-def RON_CHECKSUMS \
+  --tracer-def RON_RANGES --tracer-def RNG_MASK=0x21 \
+  --tracer-def RON_STATE_FRAME=9211 --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""
+python3 tools/trace/ranges.py "$E/map-14/rontrace.ranges" check \
+  --hook "$A/oracle-long/map-14/rontrace.log"
+python3 tools/trace/ranges.py "$E/map-14/rontrace.ranges" compare \
+  --frame 9211 --stream "$E/stream.tsv"
+```
+
+The game exited 0 on frame 9475 and restored all five settings.
+The runner reported failure because the narrow text dump lacked the
+requested GROUPDATA block (parked 735). Its binary record is complete.
+All 9,479 checksum sets agree with the independent item 4362 trace, with
+zero overflow or Adler discrepancies. The snapshot reader verified frame
+9211, all eight anchors, the logger return and the completion receipt.
+Offline checksum replay of the snapshot generated `$E/stream.tsv` and
+`$E/values.tsv`. All fifteen stream sums equal the original's words.
+Both kept lines match the in-game ranges byte for byte (3,066 ranges).

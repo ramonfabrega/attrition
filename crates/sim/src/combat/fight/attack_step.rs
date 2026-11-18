@@ -92,9 +92,8 @@ impl Sim {
             self.add_attack_order(i, t, crate::orders::QueuePos::First, mandatory, false);
             return;
         }
-        let u = &mut self.units[i];
-        u.combat.target = target;
-        u.combat.mandatory = mandatory && target.is_some();
+        self.set_attack_target(i, target);
+        self.set_attack_mandatory(i, mandatory && target.is_some());
     }
 
     // ------------------------------------------------------------------

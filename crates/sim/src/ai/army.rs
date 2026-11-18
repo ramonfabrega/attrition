@@ -1963,7 +1963,8 @@ impl Sim {
                 false,
             );
         }
-        self.group_normalize(&mut g);
+        // The receiver at the end of find_target is the remaining army.
+        self.army_normalize(who, slot);
         self.ai.ai[tw as usize].frame_attacked = frame;
         self.ai.ai[tw as usize].attacked_by = i32::from(who);
     }

@@ -106,20 +106,66 @@ mod tests {
     }
 
     #[test]
-    fn the_long_window_game_matches_both_deaths_until_the_pool_empties() {
+    fn the_long_window_game_matches_the_unit_and_group_ranges_at_the_army_split() {
+        let Some(root) = crate::testenv::install_root() else {
+            return;
+        };
+        let lab = std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
+            .join("ron-data/lab-experiments");
+        let game = crate::testenv::experiment(
+            &lab.join("2026-11-17-codex-live-recording"),
+            "window-long.rcx",
+        );
+        let ranges = crate::testenv::experiment(
+            &lab.join("2026-11-17-codex-window-9211"),
+            "map-14/rontrace.ranges",
+        );
+        let (Some(game), Some(ranges)) = (game, ranges) else {
+            return;
+        };
+        let mut original = crate::trace::ranges::Record::open(&ranges).unwrap();
+        assert!(!original.truncated);
+        let rec = crate::recgame::read(&game.to_string_lossy()).unwrap();
+        let loaded = crate::load::load(&crate::Install::new(root)).unwrap();
+        let mut built = recording_start(&loaded, &rec);
+        let mut commands = crate::input::Stream::pump(&rec);
+        for frame in 9210..=9475 {
+            while built.sim.frame < frame {
+                commands.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = original.first_of(frame - 1).unwrap().clone();
+            assert_eq!(set.flags, 0);
+            let ranges = original.ranges(&set).unwrap();
+            for (index, ours) in [
+                (0, built.sim.checksum_units()),
+                (5, built.sim.checksum_groups()),
+            ] {
+                let theirs: Vec<_> = ranges.iter().filter(|r| r.line == index).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "state {frame} {}",
+                    ours.name
+                );
+                for (a, b) in ours.ranges.iter().zip(theirs) {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "state {frame} {} {} {}",
+                        ours.name, a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn the_long_window_game_agrees_through_its_closing_state() {
         let Some(s) = window_score("long") else {
             return;
         };
-        let mut first = [None; 12];
-        first[0] = Some((9211, Some(1168710981), 874009299)); // units
-        first[5] = Some((9211, Some(545805217), 3936441164)); // groups
         assert_eq!(s.states, 9476);
-        assert_eq!(s.first, first);
-        assert_eq!(
-            s.agreed,
-            [
-                9211, 9476, 9476, 9476, 9476, 9470, 9476, 9476, 9476, 9476, 9476, 9476
-            ]
-        );
+        assert_eq!(s.first, [None; 12]);
+        assert_eq!(s.agreed, [9476; 12]);
     }
 }

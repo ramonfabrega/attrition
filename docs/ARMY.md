@@ -1198,6 +1198,15 @@ search finds no farm at all. Then the farm's `ever_seen |= 1 << me`,
 `L.frame_attacked = frame`, `L.attacked_by = me`. Two units go and poke a
 farm.
 
+**Which group is normalized (item 4364).** The final receiver is the original
+army. In the live Great Lakes recording at state 9211, the new six-member
+group in slot 64 has role, new speed and speed all zero. Its first six
+states retain those values. On state 9217 the slot holds role 0x150c00 and
+both speeds 26. Normalizing the new group at the split wrote all three six
+ticks early. Normalizing the army instead matches both complete group
+records, including their member arrays, on every state to the close.
+The four existing Great Lakes 8186 probe checks also pass.
+
 **No target after both passes**: return with `target` unchanged (−1 from
 the retarget); `do_marching` sets `status = 8` (§9).
 
