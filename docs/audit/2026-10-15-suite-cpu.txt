@@ -1,6 +1,6 @@
-# Every rondata release test's CPU alone, 2026-11-18, tools/suite_timings.py (tree cce4d958).
+# Every rondata release test's CPU alone, 2026-11-18, tools/suite_timings.py (tree 1e0e1fdf).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 6,721 CPU-seconds and 131.93e12 instructions over 2521 tests; the host's load 22.5 at the start and 4.0 at the end.
+# Sum 6,762 CPU-seconds and 132.85e12 instructions over 2533 tests; the host's load 2.3 at the start and 3.4 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 148.65	4234.56	diff::sample::tests::the_sample_s_lines_against_the_hook
@@ -11,6 +11,7 @@
 53.64	1084.53	diff::start::tests::every_lobby_s_start_built_from_its_choices
 49.39	944.50	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
 44.27	1057.79	checksum::playback::tests::the_long_window_game_agrees_through_its_closing_state
+30.98	712.98	diff::start_walk::recording::the_demand_s_game_is_whole_on_run1683
 26.48	492.07	mapgen::tests::east_indies_s_heights_at_894_are_the_start_dump_s_grid
 26.19	491.96	mapgen::tests::east_indies_s_heights_are_the_start_dump_s_grid
 25.05	441.79	mapgen::tests::great_lakes_s_heights_are_the_start_dump_s_grid
@@ -676,6 +677,7 @@
 2.11	50.16	diff::setup::tests::the_map_s_tallies_are_every_start_dump_s
 2.11	44.96	diff::mongol_enlightenment_pair::mongol_enlightenment_pair_run1346_s_closing_state
 2.11	39.60	diff::transfer::the_held_leaves_transfer_on_the_original_s_printed_inputs
+2.11	44.86	diff::minted::what_the_repair_does_on_both_sides
 2.10	38.08	diff::audit::spanish_lakes_word_corrections_change_nothing
 2.10	19.28	stores::tests::the_scan_s_premises_hold_on_the_image
 2.09	40.35	diff::lakota_medieval_pair::lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole
@@ -712,6 +714,7 @@
 2.05	38.90	diff::indian_enlightenment_pair::indian_enlightenment_pair_run1324_s_gap_is_widened_whole
 2.05	43.78	diff::minted::the_original_s_playback_of_the_marketed_file_walks_in_lockstep
 2.05	41.72	diff::minted::what_the_auto_explore_does_on_both_sides
+2.05	48.45	diff::minted::the_original_s_playback_of_the_repair_file_walks_in_lockstep
 2.04	35.15	diff::golden::chapter_thirty_three_s_word_frame_is_widened_whole
 2.04	39.55	diff::russian_gunpowder_pair::russian_gunpowder_pair_run1340b_s_word_frame_is_widened_whole
 2.04	40.34	diff::minted::the_unqueued_minted_script_s_effects_on_our_walk
@@ -1190,6 +1193,7 @@
 1.27	20.55	diff::golden::chapter_forty_five_s_word_frame_is_widened_whole
 1.27	24.29	diff::golden::run249_s_transport_is_the_original_s_unit_for_unit
 1.27	26.70	diff::sea_melee::sea_melee_s_leaders_are_compared_on_every_seat
+1.27	26.52	diff::minted::a_pushed_group_s_member_answers_no_army_on_both_sides
 1.26	24.99	diff::egyptian_information_pair::egyptian_information_pair_run1421b_s_closing_frame_is_widened_whole
 1.26	24.18	diff::korean_ancient_pair::korean_ancient_pair_the_long_s_stride_walks_back_from_4350
 1.26	22.80	free::tests::the_draw_list_s_frames_are_in_register
@@ -1208,6 +1212,7 @@
 1.24	24.50	diff::lakota_pair::run848_s_word_frame_is_widened_whole
 1.24	25.49	diff::sahara_toughest::tests::run511_s_word_frame_is_widened_whole
 1.24	27.23	diff::world::tests::run64_s_danger_map_is_the_original_s
+1.24	26.35	diff::minted::the_army_s_forming_claims_the_adopted_record_on_both_sides
 1.23	25.48	diff::audit::american_information_pair_corrections_change_nothing
 1.23	21.43	diff::audit::egyptian_modern_pair_corrections_change_nothing
 1.23	25.36	diff::checksum_lines::packets::japanese_modern_pair_packets
@@ -1226,6 +1231,7 @@
 1.21	20.51	diff::golden::chapter_twenty_four_s_word_frame_is_widened_whole
 1.21	24.81	diff::japanese_modern_pair::japanese_modern_pair_run1424b_s_closing_frame_is_widened_whole
 1.21	24.17	diff::second::tests::run414_s_word_frame_is_widened_whole
+1.20	31.62	diff::sample::tests::the_sample_s_ranges_name_each_first_parting
 1.20	23.98	diff::checksum_lines::packets::russian_medieval_pair_packets
 1.20	23.93	diff::chinese_medieval_pair::chinese_medieval_pair_run1202b_s_word_frame_is_widened_whole
 1.20	19.91	diff::golden::chapter_ninety_nine_s_window_is_widened_whole
@@ -1467,6 +1473,7 @@
 0.87	19.09	diff::persian_word::run979b_persian_closing_state
 0.87	17.64	diff::second::tests::run356_s_word_frame_is_widened_whole
 0.87	14.60	diff::golden::chapter_sixty_two_s_word_frame_is_widened_whole
+0.87	17.79	diff::start_walk::recording::the_demand_s_lobby_demands_on_6081
 0.86	18.25	diff::aztec_modern_pair::aztec_modern_pair_the_long_s_stride_walks_back_from_the_word
 0.86	14.49	diff::golden::chapter_one_hundred_and_thirty_one_s_window_is_widened_whole
 0.86	14.99	diff::golden::chapter_seventy_eight_s_word_frame_is_widened_whole
@@ -1623,6 +1630,7 @@
 0.68	14.52	diff::audit::american_lakes_word_corrections_change_nothing
 0.68	16.05	diff::aztec_ancient_pair::aztec_ancient_pair_captures_say_their_lobby
 0.68	13.85	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_the_long_s_stride_walks_back_from_2771
+0.68	15.17	diff::start_walk::recording::the_demand_s_ranges_name_each_first_parting
 0.67	14.63	diff::army::tests::run25_s_emergency_search_finds_no_cell_at_norwich_and_the_navy_re_finds_46_58
 0.67	14.64	diff::army::tests::run26_s_navy_targets_its_own_attacked_capital_with_three_draws
 0.67	13.13	diff::egyptian_word::run967b_s_gap_is_widened_whole
@@ -1997,6 +2005,7 @@
 0.25	4.62	load::tests::the_wonder_gated_free_tech_blocks_are_loaded
 0.25	4.31	diff::minted::the_came_out_minted_packages_round_trip
 0.25	4.33	diff::minted::the_hotkeyed_minted_packages_round_trip
+0.25	4.32	diff::minted::the_repair_minted_packages_round_trip
 0.24	4.23	diff::minted::the_chatted_minted_packages_round_trip
 0.24	4.22	diff::minted::the_gathered_minted_packages_round_trip
 0.24	4.22	diff::minted::the_paused_minted_packages_round_trip
@@ -2522,3 +2531,6 @@
 0.00	0.03	diff::start::tests::a_seat_s_teammates_are_built_at_once_after_it
 0.00	0.03	diff::checksum_lines::deaths::both_casualty_pivots_match_the_original_at_every_whole_degree
 0.00	0.03	diff::checksum_lines::packets::packet_first_difference_distinguishes_bytes_ends_and_absent_ranges
+0.00	0.03	diff::start_walk::recording::mint_4387_the_demand_s_game
+0.00	0.03	diff::start_walk::recording::sweep_4382_the_demand_over_style_zero_lobbies
+0.00	0.03	recgame::tests::a_donor_may_differ_in_team_style_alone

@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-18, tools/suite_timings.py (tree cce4d958).
+# Every rondata release test's peak resident set alone, 2026-11-18, tools/suite_timings.py (tree 1e0e1fdf).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -1892,6 +1892,7 @@
 213	diff::minted::the_marketed_script_against_the_paused_playback
 213	diff::unit::tests::run56_s_figures_stand_where_the_original_s_do
 213	diff::minted::the_original_s_playback_of_the_main_view_clicked_file_walks_in_lockstep
+211	diff::minted::the_original_s_playback_of_the_repair_file_walks_in_lockstep
 211	diff::minted::the_renamed_minted_script_s_effects_on_our_walk
 208	diff::third::tests::run382_s_word_frame_is_widened_whole
 204	diff::checksum_lines::packets::inca_enlightenment_pair_packets
@@ -1915,6 +1916,7 @@
 173	diff::minted::what_the_disband_does_on_our_walk
 172	diff::minted::what_the_transport_press_does_on_both_sides
 172	diff::minted::the_hotkeyed_minted_script_s_effects_on_our_walk
+171	diff::minted::what_the_repair_does_on_both_sides
 169	diff::checksum_lines::world::the_world_line_is_the_original_s_by_section
 169	diff::minted::the_attacked_minted_script_s_effects_on_our_walk
 169	diff::checksum_lines::the_groups_line_is_the_original_s_range_by_range
@@ -1927,6 +1929,7 @@
 163	diff::checksum_lines::packets::persian_word_packets
 162	diff::checksum_frames::record::the_ranges_record_names_each_first_parting
 162	diff::checksum_lines::the_builds_line_is_the_original_s_range_by_range
+161	diff::minted::the_army_s_forming_claims_the_adopted_record_on_both_sides
 161	debug_view::tests::selected_failure_exports_actual_replay_context
 161	diff::minted::the_bucket_reader_reads_a_known_dump
 160	diff::minted::the_city_gathered_minted_script_s_effects_on_our_walk
@@ -1934,8 +1937,10 @@
 159	diff::checksum_lines::the_items_line_is_the_original_s_range_by_range
 159	diff::checksum_lines::the_units_four_chain_words_are_the_original_s
 159	diff::minted::what_the_arms_do_on_both_sides
+158	diff::minted::a_pushed_group_s_member_answers_no_army_on_both_sides
 158	diff::minted::the_clicked_minted_packages_round_trip_and_stand_on_our_placement_check
 158	diff::checksum_lines::the_guys_line_is_the_original_s_range_by_range
+157	diff::start_walk::recording::the_demand_s_lobby_demands_on_6081
 157	diff::checksum_lines::the_goods_line_is_the_original_s_range_by_range
 157	diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range
 156	diff::checksum_lines::the_units_line_is_the_original_s_range_by_range
@@ -1986,6 +1991,7 @@
 114	diff::minted::the_picked_minted_packages_round_trip
 114	diff::minted::the_arms_minted_packages_round_trip
 114	diff::minted::the_transport_minted_packages_round_trip
+114	diff::minted::the_repair_minted_packages_round_trip
 113	diff::minted::the_auto_explored_minted_packages_round_trip
 113	diff::minted::the_disbanded_minted_packages_round_trip
 113	diff::minted::the_toggled_minted_packages_round_trip
@@ -2009,6 +2015,7 @@
 101	diff::chinese_medieval_pair::chinese_medieval_pair_is_no_other_lobby
 96	diff::checksum_lines::packets::run1645_take_packet
 93	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_is_no_other_lobby
+89	diff::start_walk::recording::the_demand_s_game_is_whole_on_run1683
 85	diff::checksum_frames::the_world_is_the_original_s_on_the_start_by_section
 82	diff::checksum_frames::the_stats_bits_follow_the_militia_line
 80	writers::a_field_the_sim_writes_is_read_by_something
@@ -2022,9 +2029,11 @@
 67	diff::checksum_lines::deaths::the_disbanded_scout_and_dog_match_the_whole_packet
 66	load::memo::a_kept_load_is_the_load_a_fresh_read_builds
 65	checksum::playback::combat::window_a_unit_and_building_flags_match_on_both_sides_of_their_first_changes
+64	diff::sample::tests::the_sample_s_ranges_name_each_first_parting
 64	diff::start::tests::the_harness_lobby_s_map_is_the_traced_setup_path
 64	diff::leader::tests::run111_s_block_9381_list_is_make_me_s_from_four_offers
 63	diff::world::tests::run61_s_birds_fly_where_the_original_s_do
+63	diff::start_walk::recording::the_demand_s_ranges_name_each_first_parting
 62	checksum::playback::combat::both_occupied_sprite_pools_match_every_record_in_window_a
 62	stores::tests::the_scan_finds_dow_s_writers_and_a_perturbed_scan_misses_them
 60	checksum::playback::combat::both_occupied_sprite_pools_match_every_record_in_window_b
@@ -2348,6 +2357,9 @@
 5	diff::start::tests::a_seat_s_teammates_are_built_at_once_after_it
 5	diff::checksum_lines::packets::packet_first_difference_distinguishes_bytes_ends_and_absent_ranges
 5	diff::checksum_lines::deaths::both_casualty_pivots_match_the_original_at_every_whole_degree
+5	recgame::tests::a_donor_may_differ_in_team_style_alone
+5	diff::start_walk::recording::mint_4387_the_demand_s_game
+5	diff::start_walk::recording::sweep_4382_the_demand_over_style_zero_lobbies
 4	commands::tests::the_empty_group_is_the_same_selection
 4	commands::tests::the_mp_obfuscation_reverses
 4	diff::floors::tests::the_handoff_s_golden_line_is_the_pinned_word
