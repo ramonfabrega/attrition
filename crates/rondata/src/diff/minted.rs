@@ -7057,12 +7057,15 @@ const REPAIR_READ_AT: [i64; 16] = [
 /// (`hits − health` on ours), the repairing Citizen's position and head
 /// order (`None` before it is trained), and each Bowman's, `None` once
 /// it is gone.
+/// A unit on one frame: its position and its head order.
+type Seen = Option<((i64, i64), Option<i64>)>;
+
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct RepairEffect {
     pub frame: i64,
     pub damage: i64,
-    pub repairer: Option<((i64, i64), Option<i64>)>,
-    pub wounders: [Option<((i64, i64), Option<i64>)>; 3],
+    pub repairer: Seen,
+    pub wounders: [Seen; 3],
 }
 
 /// Our walk under the pump on `orders`' file, read on `at`.
@@ -7129,9 +7132,8 @@ fn repair_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<RepairEffect>> {
 /// `docs/CLIENT_INPUT.md` §32.15), pinned off our walk's print before
 /// run1679's records were read on these frames.
 fn repair_effects() -> Vec<RepairEffect> {
-    type U = Option<((i64, i64), Option<i64>)>;
     let u = |x, y, head| Some(((x, y), head));
-    let row = |frame, damage, repairer: U, wounders: [U; 3]| RepairEffect {
+    let row = |frame, damage, repairer: Seen, wounders: [Seen; 3]| RepairEffect {
         frame,
         damage,
         repairer,
