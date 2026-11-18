@@ -57,6 +57,10 @@ mod particle;
 mod patch;
 mod recording;
 mod roads;
+// Item 4398's first act: the outline's geometry, read by its row; the
+// draw that consumes it outside the tests is the item's second half.
+#[cfg_attr(not(test), allow(dead_code))]
+mod selection;
 mod shadows;
 mod silhouette;
 mod snowcap;
