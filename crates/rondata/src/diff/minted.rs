@@ -6739,6 +6739,252 @@ fn the_original_s_playback_of_the_arms_file_walks_in_lockstep() {
     assert_eq!(walked, ARMS_WALKED, "the walked table");
 }
 
+/// **The transport press's packages round-trip** (item 4375,
+/// `docs/CLIENT_INPUT.md` §32.14): the arms' script and one package more,
+/// `group [10]`, `set_transport(1)` on [`crate::script::TRANSPORT_FRAME`];
+/// every package before it is the arms' file's, frame, slot and stamp.
+/// With `RON_RCX_OUT=<file>` it writes the `.rcx` a playback takes open.
+#[test]
+fn the_transport_minted_packages_round_trip() {
+    use crate::script::{TRANSPORT_FRAME, picked_arms, picked_transport};
+    let (Some(rec), Some(before)) = (minted(&picked_transport()), minted(&picked_arms())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "transport").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in picked_transport().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "TRANSPORT tails {:?} against {:?}",
+        &ours[ours.len() - 3..],
+        &old[old.len() - 2..]
+    );
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 1, old[..m - 1].to_vec()));
+    assert_eq!((ours[n - 2].0, ours[n - 2].1), (TRANSPORT_FRAME, 0));
+    assert_eq!(
+        (ours[n - 1].0, ours[n - 1].2),
+        (old[m - 1].0, old[m - 1].2 + 1)
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "TRANSPORT RCX {} bytes (the arms' file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), ARMS_RCX_BYTES, "the file run1663 played");
+    assert_eq!(gz.len(), TRANSPORT_RCX_BYTES, "TRANSPORT_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The transport file's gzipped length (`docs/CLIENT_INPUT.md` §32.14).
+const TRANSPORT_RCX_BYTES: usize = 59_825;
+
+/// The frames the press's effect is read on, both sides: the package's
+/// frame, the two records after its tick, and two across the window.
+const TRANSPORT_READ_AT: [i64; 5] = [6910, 6911, 6912, 7000, 7499];
+
+/// The pressed Citizen on one frame: `unit_masks & 0x800000` (ours
+/// `Unit::auto_transport`), its position and its head order.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct TransportEffect {
+    pub frame: i64,
+    pub auto_transport: bool,
+    pub pos: (i64, i64),
+    pub head: Option<i64>,
+}
+
+/// Our walk under the pump on `orders`' file, read on `at`, and slot 0's
+/// transport level on each.
+fn transport_effects_ours(orders: &[Order], at: &[i64]) -> Vec<TransportEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        let s = &built.sim;
+        let u = &s.units[s
+            .unit_by_o(0, crate::script::TRANSPORT_UNIT)
+            .expect("the Citizen")];
+        ours.push(TransportEffect {
+            frame: s.frame,
+            auto_transport: u.auto_transport,
+            pos: (i64::from(u.pos.x), i64::from(u.pos.y)),
+            head: u.orders.front().map(|o| i64::from(o.index())),
+        });
+    }
+    ours
+}
+
+/// The original's, off the take's records on `at`.
+fn transport_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<TransportEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for &n in at {
+        let Some(i) = source.frames().iter().position(|f| f.number == n) else {
+            continue;
+        };
+        let f = source.frame_state(i).unwrap();
+        let o = i64::from(crate::script::TRANSPORT_UNIT);
+        let u = f
+            .units
+            .iter()
+            .find(|u| u.who == 0 && u.o == o)
+            .expect("the Citizen");
+        theirs.push(TransportEffect {
+            frame: n,
+            auto_transport: u.unit_masks.expect("unit_masks") & 0x80_0000 != 0,
+            pos: (u.pos.x, u.pos.y),
+            head: u.current_order().map(|o| o.index),
+        });
+    }
+    Some(theirs)
+}
+
+/// **What the press does on our walk** (item 4375, `docs/CLIENT_INPUT.md`
+/// §32.14), pinned off our walk's print before run1668's records were
+/// read on these frames.
+fn transport_effects() -> Vec<TransportEffect> {
+    let row = |frame, pos, head| TransportEffect {
+        frame,
+        auto_transport: false,
+        pos,
+        head,
+    };
+    vec![
+        row(6910, (2991, 32508), Some(2)),
+        row(6911, (3003, 32530), Some(2)),
+        row(6912, (3015, 32552), Some(2)),
+        row(7000, (3306, 33036), None),
+        row(7499, (4248, 28296), Some(7)),
+    ]
+}
+
+/// **The press on our walk and on the original's** (item 4375): the
+/// pressed Citizen on [`TRANSPORT_READ_AT`], ours pinned and equal to the
+/// arms' file's walk (slot 0's level is 0, so `action_set_transport`
+/// forces the flag to 0 and the bit stays clear); and run1668's records,
+/// equal to ours.
+#[test]
+fn what_the_transport_press_does_on_both_sides() {
+    if built_start().is_none() || minted(&crate::script::picked_transport()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = transport_effects_ours(&crate::script::picked_transport(), &TRANSPORT_READ_AT);
+    let without = transport_effects_ours(&crate::script::picked_arms(), &TRANSPORT_READ_AT);
+    for (a, b) in ours.iter().zip(&without) {
+        eprintln!("TRANSPORT EFFECT ours {a:?}\n                 without {b:?}");
+    }
+    assert_eq!(ours, transport_effects(), "ours, pinned");
+    assert_eq!(ours, without, "level 0: the press changes nothing");
+    let Some(theirs) = transport_effects_theirs(TRANSPORT_WALKED[0].0, &TRANSPORT_READ_AT) else {
+        return;
+    };
+    for t in &theirs {
+        eprintln!("TRANSPORT EFFECT theirs {t:?}");
+    }
+    assert_eq!(theirs, ours, "the original's Citizen is ours");
+}
+
+/// **The original's playback of the transport file** (item 4375,
+/// `docs/CLIENT_INPUT.md` §32.14): `(take, trace, first sequence parting
+/// or the last frame, last frame, records compared, records parted)`.
+/// Pinned before run1668 was read, with none parted.
+pub(crate) const TRANSPORT_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1668-greatlakes-playback-of-transport-7500.txt",
+    "rontrace-run1668.log",
+    7500,
+    7500,
+    700,
+    0,
+)];
+
+/// The functions the press's package enters on the original's side:
+/// `process_set_transport@00948f60`, `Group::action_set_transport@007024b0`
+/// and the member walk's `UnitData::can_ever_transport@0046f290`.
+const TRANSPORT_FUNCTIONS: [(u32, &str); 3] = [
+    (0x0094_8f60, "CommandPackage::process_set_transport"),
+    (0x0070_24b0, "Group::action_set_transport"),
+    (0x0046_f290, "UnitData::can_ever_transport"),
+];
+
+/// Each take's first entry into [`TRANSPORT_FUNCTIONS`], in sim-frames:
+/// none on run1663, the arms' file's playback, and the tick that takes the
+/// 6910 package on run1668 (`process_guard` reads 6869 for 6870's on both).
+const TRANSPORT_ENTRIES: &[(&str, [Option<i64>; 3])] = &[
+    ("rontrace-run1663.log", [None; 3]),
+    ("rontrace-run1668.log", [Some(6909); 3]),
+];
+
+/// **The original plays the transport file in lockstep** (item 4375): the
+/// built start walked under the pump on the transport file against the
+/// take, every frame's draws and every record of its window
+/// ([`TRANSPORT_WALKED`]).
+#[test]
+fn the_original_s_playback_of_the_transport_file_walks_in_lockstep() {
+    let orders = crate::script::picked_transport();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in TRANSPORT_WALKED {
+        let Some((w, _)) = walk_minted(&orders, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "TRANSPORT WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        if let Some((o, t)) = &w.sites
+            && let Some((_, d)) = first_parting(o, t)
+        {
+            eprintln!("the first parting frame, {:?}: {d}", w.first_sequence);
+        }
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    let mut entries = Vec::new();
+    for &(take_trace, _) in TRANSPORT_ENTRIES {
+        let Some(tr) = trace(take_trace) else {
+            return;
+        };
+        let first = TRANSPORT_FUNCTIONS.map(|(va, _)| tr.first_entry(va));
+        for ((_, name), f) in TRANSPORT_FUNCTIONS.iter().zip(&first) {
+            eprintln!("TRANSPORT ENTRY {take_trace} {name}: {f:?}");
+        }
+        entries.push((take_trace, first));
+    }
+    assert_eq!(walked, TRANSPORT_WALKED, "the walked table");
+    assert_eq!(entries, TRANSPORT_ENTRIES, "the press's functions");
+}
+
 /// **The original's playback of the auto-explored file** (item 4291,
 /// `docs/CLIENT_INPUT.md` §31.5): `(take, trace, first sequence parting or
 /// the last frame, last frame, records compared, records parted)`. Pinned

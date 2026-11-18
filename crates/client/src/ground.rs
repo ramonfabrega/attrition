@@ -1741,8 +1741,10 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
 /// Item 4358: `SANDY` 520 → 519 (a named fall of one): the border's band across its whole width on the owner's
 /// side (item 4358, `docs/RENDERER.md` §3.29, "The settled band") over the east edge's beach.
+/// Item 4376: `PLAIN` 678 → 679 of 679: the band on the curve's samples, the chord between, with the depth test
+/// off (item 4376, `docs/RENDERER.md` §3.29, "The band's heights"), moves the frame's mean, so its white.
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
-    [678, 679],
+    [679, 679],
     [0, 0],
     [32, 32],
     [0, 0],

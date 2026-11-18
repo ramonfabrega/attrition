@@ -4274,19 +4274,49 @@ and sand.
 
 On run1564's photograph, the morph, the same change reads 222 → 43 of 1,440 (a named fall).
 
+**The band's heights (item 4376).** 4358's vertex check read v0 to v15, all off screen. The band in view is v22 to
+v29, and the packet's strip, projected through run1665's camera (orthographic, `w` 10429.4), lands on the
+photograph's edges to half a pixel. At x 1860 the owner's edge is at y 490.5 and the far edge at 504.0, and the
+photograph's band runs from 490 to about 504.5. At x 1890 they are 502.2 and 515.7, and the photograph reads 502
+and 514 to 515. Ours sat 2.5 to 3 px north because the strip is only the curve's samples: v28 at x 51.0 cells, z −57,
+and v26 at x 52.2, z 17, with the chord between and the depth test off. Ours resampled every 96 units onto the
+ground's own heights and lifted them 6. The shore rises convexly from the lake, so at x 51.6 ours stood about 17
+units above the chord, and at x 51.84 about 14. One unit of z is 0.1925 px up the screen. Now the band is the
+samples, at the ground's height at each sample's two edges, linear across, with no lift, in a `PatchKind::Border`
+pass whose depth compare is `Always`.
+
+The end's alpha is `init_border_render@00882b90`'s:
+- The first pair takes `param_5` (31) when `flags & 2` is set; the packet's v0 reads `0x1f`.
+- Vertices 2 to n − 3 take the tile mask's rule.
+- The last pair is written at the colour list's length, `max(verts, the list's old length)`, and a render is reused
+  across rebuilds. The east strip has 30 vertices and 100 colours, so its fade lands past the strip, and v28 and v29
+  keep `0x40`.
+
+So only our first pair fades, and our chain's first sample is the packet's v0, (60, 45). A level inside the width
+takes its alpha linear between the two edges', as the one quad does. `RUN1665_3279_BORDER` 59 → **155** of 262, ours
+384 → 387; `RUN1564_3279_BORDER` 43 → 48. At x 1860 the band's blue excess over the bare still is theirs 67, 69,
+61, 28, 14, rim 30, against ours 74, 73, 60, 28, 15, rim 30.
+
 **What is not established.**
 - ~~**The "<"'s upper arm** (parked 4306a).~~ The cells and the rule agree with the packet. The arm is morph 1's
   `to` strip, above (item 4356).
 - ~~Ours lies a few pixels off theirs along the lower arm.~~ The settled band is named above (item 4358). What is
   left is bounded. Theirs lies 2.5 to 3 px south of ours along the whole strip: the start, the strong part and the
   rim move alike, at x 1830, 1860 and 1890. That is about a quarter of the band, with x, y and z agreeing to the
-  units above. Parked 4358a.
+  units above. Parked 4358a. ~~That shift.~~ It is the chord between the curve's samples ("The band's heights",
+  item 4376).
+- **The band's colour.** At the same blue excess, theirs is about (27, 25, 19) lighter than ours: (174, 164, 167)
+  against (147, 139, 148) at x 1860. That moves theirs onto the row's red-keeps-pace and blue thresholds, and it
+  is the band's whole residue. One candidate is a blend on the land's HDR target before the tone map, as the land's
+  layers are (§3.27). Parked 4376a. Of the row's 107 theirs alone, 66 are the original's HUD in the photograph.
+- The last pair's alpha depends on the colour list a reused render keeps, so a fresh render (list as long as the
+  strip) fades its last pair too. Ours never does.
 - The owner's edge falls between row 2m+1 and row 2m+2, so it carries leader m+1's colour at ½. Near the strip's
   start, `u` below 2.5 texels blends the column before. Neither is drawn. A chain between two players keeps two flat
   halves, each now on its own side; no photograph holds one.
 - The morph itself (`BorderMorphRender`, `make_interp_spline@008811e0`) is not drawn. A border change shows
   for 45 graphic ticks, so at play speed it lasts about 1.5 s.
-- `BORDER_LIFT` (6 units) is ours: the patch pass tests depth, the original's does not.
+- ~~`BORDER_LIFT` (6 units) is ours.~~ Gone: the border pass's depth test is off, as the original's is (item 4376).
 - The leader's colour slot (`team_colors.list[leader +0x6928]`) is taken as the leader's index; alliances
   and `can_see_borders` are not applied (no allied pair and a full reveal on run1564); the diplomatic-colours
   preference and the border's morph (`BorderMorphRender`) are not drawn.

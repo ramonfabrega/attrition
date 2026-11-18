@@ -4270,9 +4270,9 @@ packet (`the_transport_press_as_the_original`). No capture, no playback, no `cra
 - **Backed by the oracle**: the order's bytes for one and two members, both arms of the bit, and the
   every-member rule (the mixed row).
 - **One reading**: the on-map and plane predicates. Every member checked was a citizen on the map. The
-  `unit_flags & 0x10` arm (no citizen carries it), and `action_set_transport`'s effect played from a minted file.
+  `unit_flags & 0x10` arm (no citizen carries it). ~~`action_set_transport`'s effect played from a minted file.
   The original played the command from its own issuer in chapter twenty (run249, `docs/GOLDEN.md` §28), never
-  from a file.
+  from a file.~~ Played from a minted file at level 0 on run1668 (§32.14); the level-3 arm is still run249's alone.
 - **Not established**: a live press, which needs the human's level at 3 (a Dock and `TRANSPORT_BONUS`). No
   script of ours builds that.
 
@@ -4345,6 +4345,61 @@ effect is equal on both sides, 40 of 40 values. `INPUT_ARMS_FILE` is 40 of 40. N
   timer, not a wound (`docs/GOLDEN.md` §165). So no person's events on this game make the arm's target.
 - **Not established**: the guard's head order. It is index 2 in both dumps, which is `ATTACK_TO`'s number. Whether
   `issue_guard`'s order is stored as an `ATTACK_TO` or the reader names it so is not read here.
+
+## 32.14 A minted `set_transport`, played by the original (item 4375)
+
+*Item 4375, 2026-11-18 (`docs/journal/2026-11-18-item-4375.md`). The score is `Recording:`, which gains the transport
+press: **`TRANSPORT_WALKED` is 7,500 of 7,500 frames' draws and 700 records, 0 parted** (run1668). The press's
+effect is equal on both sides, 5 of 5 frames: none. `INPUT_TRANSPORT_FILE` is 41 of 41. No `crates/sim` change.*
+
+- **The script.** `script::picked_transport()` is the arms' script (§32.13) and one package more: on 6910, Citizen
+  `0/10` (on its way to the Attack pick's ground point), `group [10]`, `set_transport(1)`.
+- **Stage 0**, on 6910 of the walk under the arms' script, at the opening camera: the citizen at (833, 638). In
+  the standard panel the HUD draws for it, `OPTION_TRANSPORT` stands at (237, 984) with `disable` 1, because slot
+  0's level is none and the citizen's `transport_type` is `Civilian`. A press on it through the HUD mints nothing.
+  So the order is minted at the layer past the greying, `Event::Transport`, as §32.12's count is.
+- **The flag.** No slot-0 unit carries `0x800000` (run1663 on 6901, run1668 on 6911: `0/10`'s `unit_masks` is 8).
+  So `GroupData::can_transport` answers 0 and the press writes `set_transport(1)`.
+- **The count.** `minted_transport_at_the_opening_camera`: the arms' events, a press on the citizen and
+  `Event::Transport`, through the HUD and the layer (`mint_with_sim`), mint the script field for field.
+  **`INPUT_TRANSPORT_FILE` is 41 of 41**, seen red at 40 with the script's flag at 0.
+- **The file.** `~/ron-golden/recordings/item4363-transport-greatlakes-24000.rcx` (named before the item was
+  renumbered), 59,825 bytes, SHA-256 `7eea12c243d18cc9635d8c56241c586d70ad70cb4d4be2c134740b10a21f894f`
+  (`the_transport_minted_packages_round_trip`). It is the arms' file's packages, then the one stamped 42; the
+  closing stamp goes from 42 to 43. The client's events write it byte for byte.
+- **Our stream.** `Stream`'s pump now takes `set_transport` (`input::group_set_transport`, item 803's entry). It
+  was skipped as "not mapped" before. No recording on disk carries the command (`KINDS_ON_DISK`), so no other
+  walk changes.
+- **The take.** run1668 (`docs/RUNS.md`) is run1663's line with this file. The playback was not refused. It left
+  no `.rcx` but the run's own `input.rcx` symlink, so none was removed.
+- **Lockstep** (`TRANSPORT_WALKED`, pinned before the read with none parted): draws agree on all 7,500 frames,
+  count and sequence; 700 records compared (6800..7499), 0 part.
+- **What the original does with the order** (`TRANSPORT_ENTRIES`, off each take's trace by `Trace::first_entry`).
+  `CommandPackage::process_set_transport@00948f60`, `Group::action_set_transport@007024b0` and the member walk's
+  `UnitData::can_ever_transport@0046f290` are first entered on 6909, the tick that takes the 6910 package
+  (`process_guard` reads 6869 for 6870's on both takes). None of the three is entered on run1663. So the original
+  processes the order and walks the member, and at level 0 the flag is forced to 0 (§32.12, `docs/TRANSPORT.md`
+  §3.4).
+- **Its effect** (`what_the_transport_press_does_on_both_sides`). `0/10`'s `0x800000` (ours `auto_transport`), its
+  position and its head order on 6910, 6911, 6912, 7000 and 7499. Ours was pinned off our walk's print and committed
+  (`7a8746e06`) before run1668 was launched. It equals the arms' file's walk on every row, and the original's
+  records equal it on all five:
+
+  | frame | `0x800000` | position | head |
+  | --- | --- | --- | --- |
+  | 6910 | clear | (2991, 32508) | `ATTACK_TO` |
+  | 6911 | clear | (3003, 32530) | `ATTACK_TO` |
+  | 6912 | clear | (3015, 32552) | `ATTACK_TO` |
+  | 7000 | clear | (3306, 33036) | none |
+  | 7499 | clear | (4248, 28296) | `GATHER` |
+
+- **The comparison can fail.** With `Sim::set_transport`'s level-0 force removed (a scratch edit, reverted), ours
+  sets the bit on 6911 and holds it to 7499, and the pinned row reads red. The take's records cannot tell this file
+  from the arms' file, because the order writes nothing at level 0. The trace's entries are what tell them apart.
+- **Backed by a diff**: the order's bytes (the client's file, byte for byte), its play in lockstep, the functions
+  it enters on the original's side, and the bit on both sides at level 0.
+- **Not established**: the level-3 arm from a minted file, where the bit is set or cleared. It needs the human's
+  level at 3 (a Dock and `TRANSPORT_BONUS`), and no script of ours builds that (§32.12).
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 

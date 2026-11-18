@@ -28530,7 +28530,7 @@ Archive `gamelog-run1283c-eastindies-chinese-gunpowder-window-4795-4880.txt`, 21
 SHA-256 `16120bdc0d233550d2310e098065b411f6844feaab70470ed19a8803dbbd7707`.
 
 Archive `rontrace-run1283c.log`, 210,768,896 bytes,
-SHA-256 `d25aa3d04362a995ede56084fab7c69f23e47865190170c2fa74762761391e1e`.
+SHA-256 `d25aa3d04374a995ede56084fab7c69f23e47865190170c2fa74762761391e1e`.
 
 **What it holds**: `chinese_gunpowder_pair_run1283c_s_gap_is_widened_whole` (85 blocks, 144 keys). **The state first
 parts on block 4863, at the Heavy Fire Lance `1/215`**: theirs stands out a `retry` of 6 it holds on 4862, ours 0.
@@ -38461,6 +38461,53 @@ It was waited on with `waitrun.sh` in the background. `df -g ~` read 157 GB free
 Archive `gamelog-run1663-greatlakes-playback-of-arms-7500.txt`, 165,533,592 bytes,
 SHA-256 `6d70876674a37b56838bb65fa5656f027596a06299e633454c5aa0260de4ca1e`; `rontrace-run1663.log`, 36,810,912
 bytes, SHA-256 `b646b960004f9ba8c36bd9f3ab5198f33dcdb40919c79dd59841bbb84121bd25`.
+
+## run1668 — the original playing the file a minted `set_transport` extends (2026-11-18, item 4375, `att-4363`)
+
+`docs/CLIENT_INPUT.md` §32.14. **What the disk could not answer**: no take on disk plays a `set_transport` from a
+file. run249 played it from the original's own issuer (`docs/GOLDEN.md` §28), and no recording carries one
+(`KINDS_ON_DISK`). The file: `~/ron-golden/recordings/item4363-transport-greatlakes-24000.rcx` (named before the
+item was renumbered), 59,825 bytes, SHA-256 `7eea12c243d18cc9635d8c56241c586d70ad70cb4d4be2c134740b10a21f894f`.
+It is the arms' file (run1663) with one package more: `group [10]`, `set_transport(1)` on 6910.
+
+The take is run1663's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1668 --recording <the file> --end-frame 7500 --cover cover=1
+--log-window 6800 7500 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2,DEATHS=1 --timeout 2400 --stall-seconds 120`.
+It was waited on with `waitrun.sh` in the background. `df -g ~` read 154 GB free before it.
+- **The run**: pool lane 1, launched 07:09:16 −05:00, exited 07:18:47: **570.8 s launch to exit**, exit 0,
+  `success`, no page fault, no relaunch. 7,501 frames, `last_frame` 7500, seed 12345, map 14. Players: tribe 4
+  (flags 7) and tribe 11 (flags 1). Five settings restored. The receipt names the file's SHA-256. Minutes waited on
+  another lane: none.
+- **The `.rcx` the playback leaves**: none. No `.rcx` newer than the launch is under lane 1's prefix or the run's
+  directory, but the run's own `input.rcx`, the symlink to the file played (DECISIONS 140 §2).
+- Filed with `filerun.py run1668 greatlakes-playback-of-transport-7500`.
+
+Archive `gamelog-run1668-greatlakes-playback-of-transport-7500.txt`, 165,533,593 bytes,
+SHA-256 `8b01b8116b4f45814876f549b30515c85040d2dafac54c5168d03d87be15a9ae`; `rontrace-run1668.log`, 35,765,408
+bytes, SHA-256 `8a0af93e9d5a3b4162084bd50aa9dbfa8920589dab897c5e6df115a6c206bd71`.
+## run1667 — run1646's lobby to 5700 with a packet at 5667: the nuke's strike order (2026-11-18, item 4374, `att-4362`)
+
+`docs/LEADERS.md` §8.2, `docs/ARMY.md` §18. **What the disk could not answer**: item 4360 put the parting in
+`find_target`'s choice for army `1/1` on 5667, inside the Russian nuke's emergency, and no dump prints an army or a city's
+bits. Filed **in place**, as run1646 is: `~/ron-golden/run1667/map-18/`, `filerun.py` not run.
+- **The line**: run1655's with `--log-window 5661 5701 --tracer-def RON_STATE_FRAME=5667` (the plan path whole:
+  `~/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h`), through `viadriver.sh golden_capture.sh`, waited on with
+  `waitrun.sh`. `df -g ~` read 148 GB free before it.
+- **The receipt**: pool lane 1, launched 06:52:25 −05:00, exited 06:58:05, **340.3 s**, exit 0, `success`, 5701 frames,
+  `last_frame` 5700, seed 12345, who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 10), who 2 (flags 1, tribe 13), no page
+  fault, no relaunch. Minutes waited on another lane: none.
+- **The packet**: `frame-snapshot.bin`, 946,684,652 bytes, logger frame 5667, SHA-256
+  `dee297b09bb98d631fdbedfec8fab46d2ab3a5e476cf2f599a88ccc1b632043c`; the game seed at `0xe37a8c` is 5667's first draw's
+  (`218e75d5`). Army `1/1` at `0x158928b4` (`armies` lists at `0xc09700`, `+0x10` the data, `+4` the count) targets
+  `2/2057`, as ours on 5666. `Ammo::do_damage@00678060` on the Russian ammo `0x1613c2f4` (launcher `2/97`, ground (19008,
+  35136)), game seed poked to `92450aef` (theirs' trace, the take's draw), `TerrainOut::terraform_for_nuke`,
+  `NukeOut::graph_do_damage` and `Sound::init` answered at once, `_itow_s` and the CRT string calls stubbed: 13
+  `find_target` draws equal to theirs' trace (17656 … 55940), target `2/2057`.
+
+Files in place: `gamelog.txt`, 72,625,701 bytes, SHA-256 `2a802e7c27474867281a8e81eacd39ed2ce288e6874fd0a7a1bc9dc40250e1fd`;
+`rontrace.log`, 277,464,224 bytes, SHA-256 `f694e21aef24a5b338648a146249d12b9af5d63635021a9dc2009f4efe6a0e17`.
+
+**What it holds**: no walk reads it; the strike order's value diff (item 4374's journal).
 ## run1665 — run1564's take with fast-forward ended before the pause: the settled borders (2026-11-18, item 4358, `att-4358`)
 
 `docs/RENDERER.md` §3.29, "The settled band". **What the disk could not answer:** every `!ffwd 4` photograph near
