@@ -5884,8 +5884,9 @@ const TAKE1645_PINNED: Pinned = (
 );
 
 /// The leaves of run1645's leaders line that part outside
-/// [`LEADERS_HELD_OUT`] at 1000, as found: `diplos` on slots 3..7 and
-/// `flags.leader_flags`' high bits, as on the two take packets before
+/// [`LEADERS_HELD_OUT`] at 1000, as found: `flags.leader_flags`' high
+/// bits, as on the two take packets before (`diplos` on slots 3..7 too
+/// until item 4392 kept `Leader::init`'s row whole: 6 → 4 ranges parted)
 /// ([`TAKE_LEAF_PARTINGS`]), and **`ally_mask`**, the French theirs 3 ours 1:
 /// the alliance of 903 still stands at the packet, and the two bits
 /// `Leader::set_diplo@006ec6a0` and `Leader::plan_strategy@006b9620:205`

@@ -87,13 +87,14 @@ impl Diplomacy {
 /// exchange leaves (item 4298: run1629's human, 640 of good 2 from 1187).
 /// `tribute_demanded` is held and stays off the line: nothing our walks hold
 /// moves it by a decision we compute (`docs/LEADERS.md` §8.5).
-pub const TRIBUTE_LEAVES: [&str; 6] = [
+pub const TRIBUTE_LEAVES: [&str; 7] = [
     "tribute_stamp",
     "gift_stamp",
     "tribute_sent",
     "tribute_received",
     "counteroffer",
     "tributes",
+    "tribute_demanded",
 ];
 
 /// One leader's tribute leaves and deal records (`docs/LEADERS.md` §8.1).
@@ -136,6 +137,9 @@ impl Sim {
             "tribute_received" => Some(vec![i64::from(t.tribute_received)]),
             "counteroffer" => Some(t.counteroffer.iter().map(|&c| i64::from(c)).collect()),
             "tributes" => Some(t.tributes.iter().map(|&c| i64::from(c)).collect()),
+            // Item 4392: the planned war's demand (`docs/LEADERS.md` §8.2),
+            // stored on run1683's 6081 by both sides.
+            "tribute_demanded" => Some(t.tribute_demanded.iter().map(|&c| i64::from(c)).collect()),
             _ => None,
         }
     }

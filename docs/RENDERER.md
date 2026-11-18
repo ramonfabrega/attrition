@@ -4496,8 +4496,27 @@ specular + reflection`, at the vertex's alpha. Each of its inputs, on run1681's 
   water beside them and the body tile; the closest step is 0.0188 away (about 560 view units, the seabed under the
   ray).
 
-So no input of the water's shader lays the strokes: the item's stop. *Not established:* past the pass (the bloom
-and FXAA, §3.14), and whether run1564's photograph and the probe takes' 3279 show the same water (4386b; 4390a).
+So no input of the water's shader lays the strokes: the item's stop. *Not established:* ~~past the pass (the bloom
+and FXAA, §3.14), and whether run1564's photograph and the probe takes' 3279 show the same water (4386b; 4390a)~~
+(item 4393, below).
+
+**The frame the card logs, photographed** (item 4393, run1688; the ledger: `docs/journal/2026-11-18-item-4393.md`).
+`RON_CARD_POST` (`tools/trace/card.h`) copies the post chain's buffers back off the GPU on each logged pass. The
+hooks are `D3D11ToneMapper::do_run`, `do_blur`, `do_blend`, `D3D11AntiAlias::run` and `D3D11GLSys::flip`; the
+buffers are found by `d3dgl.pdb`'s type records (`mHDRBuffer`, `mScreen`, `mTonedRTV`, `mPingRTV`, `mPongRTV`).
+- **The window presented the logged pass.** run1688's photograph equals 3279's `flip` readback on every pixel.
+- **The water is not the frame's.** Against run1564's photograph, the HUD agrees (MAD 0.59) and the lake does not
+  (MAD 10.49). run1564's south-east strokes (item 4386's 2,027 pixels) read luma 182.7 there and 100.7 here, their
+  local contrast 51.5 against 4.9. run1688's own strokes (6,113 pixels, the same rule) lie elsewhere: 569 of them
+  overlap run1564's. On one take, the lake parts between the 3263 and 3279 passes at MAD 5.16. So the 3279 passes
+  that items 4386 and 4390 read drew other water than the one run1564 photographed.
+- **The strokes are in the pass, not past it.** On run1688's 3279, the HDR buffer at `do_run`'s entry holds them:
+  luma 2.80 on the stroke pixels against 1.31 on the water beside them, its local contrast at r 0.939 with the
+  photograph's. The bloom adds 0.27 of 255 to them (0.01 beside them). FXAA leaves the lake's pixels within MAD 0.38.
+  So the post chain lays none of them.
+
+*Coverage.* Diff-backed on one take: the photograph against the readback, bit for bit. Not established: which draw
+on run1688's own 3279 pass lays its strokes (4393a). The pass has the take's streams and photograph on disk.
 
 ## 4. The stack
 

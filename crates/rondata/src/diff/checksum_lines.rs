@@ -1049,6 +1049,7 @@ fn the_ported_lines_are_checksum_state() {
         sim.checksum_guys(),
         sim.checksum_units(),
         sim.checksum_groups(),
+        sim.checksum_leaders(),
         sim.checksum_world(),
     ];
     let bytes: usize = lines.iter().map(sim::checksum::Line::bytes).sum();
@@ -2151,7 +2152,16 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 0, 58343);
 /// its packet at 1000 holds the French ring's first sender 1 — the human's
 /// `who`, off the reset 0 every walked sender at who 0 left — ours equal
 /// (`packets::TAKE1645_RELEASED`).
-pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[("tribute_demanded (unheld)", 2)];
+///
+/// Item 4392, the planned war's demand: 1 → 0 names, `tribute_demanded`,
+/// agreeing on frame 91 (0 per cell). Released by entry 131 §1: a walk we
+/// compute moves it. run1683 (the demand's game, Great Lakes 12345 at
+/// difficulty 2 and team style 0, minted by item 4387) moves the French
+/// `tribute_demanded[0]` 0 → 1 on 6081 on both sides; with it emitted, all
+/// twelve lines agree on 6,401 of 6,401 states, and held, leaders parts on
+/// 6081 (ours 2843059440, theirs 411149553;
+/// `start_walk::recording::the_demand_s_game_is_whole_on_run1683`).
+pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[];
 
 /// The long range's leaves the test bends, one of each kind carried
 /// (`docs/CHECKSUM.md` §20).
