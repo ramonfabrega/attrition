@@ -14072,3 +14072,31 @@ line is corrected (entry 133 §6).
 
 **§6. The four designed items are ratified**: 4383 as designed; 4382,
 4384 and 4385 with the first acts above. One a seat.
+
+**§7. Ramon, on the row, after the gate.** Three answers, the day the
+pass ended.
+
+- **Parity's set stands at six games, five agreeing**: "codex games
+  should be in and 5/6 is ok no? codex finished em right". They are
+  finished: each of the four is pinned in the gate (§1).
+- **The render seat is the pass's to place, by the highest win**: "im ok
+  with lake, or borders, or anything else. up to you, we'll do em all
+  eventually anyways. highest win imo". The pass's take: **the seat
+  returns to the lake after 4385's measure.** The border's band is a
+  strip of about 130 by 80 pixels whose colour is already theirs, and
+  what 4385 leaves after its two measure acts is an owner edge a few
+  pixels wide (parked 4379b). The lake is most of both photographs and
+  what the eye finds first on each. Entry 140 §6 took the seat off it
+  because twelve lanes had read the packet's lists and five moved
+  nothing; 4353 stopped on theirs' strokes laid by no draw the packet
+  names, and said what would place them: the card's own stream per draw
+  (parked 4353a, 4281a), which no lane has taken. So item 4386's first
+  act is that one take, and it parks with its kill if the take
+  attributes the strokes to no world draw. 4385 stops after the HUD's
+  mask.
+- **The pictures are published by his word**: "im authing you to publish
+  tocdn". The classifier had refused `share` during the pass; with his
+  word on the row the same command ran:
+  `https://cdn.ramonfabrega.com/attrition/pass-1118/`, three files. The
+  clause in `docs/LOOP.md` (entry 140 §6) already says a pass uploads its
+  pairs; what a refusal needs is a permission rule, which is his to add.

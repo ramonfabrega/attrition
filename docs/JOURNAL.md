@@ -22246,5 +22246,8 @@ lines and its item starts there. The pass drew run1665's still beside its
 photograph: the band's colour is theirs now and the row that fell was
 reading a colour; the lake is what the eye finds first, as before. The
 pass moved no score and took no capture; the pictures' upload was
-refused. **DECISIONS 142.**
+refused, and ran on Ramon's word after the gate
+(`https://cdn.ramonfabrega.com/attrition/pass-1118/`). He left the render
+seat to the pass: after 4385's measure it returns to the lake, by the
+card's own stream per draw (item 4386; entry 142 §7). **DECISIONS 142.**
 `docs/audit/2026-11-18-fable-pass-astra.md`.

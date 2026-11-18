@@ -38,10 +38,13 @@ improve. The pass before it is `2026-11-17-fable-pass-empty-lines.md`.*
 - **The week:** 61 % at 10:46 against today's line of 70. The tranche took
   nine points for twenty landings; the lanes cost 131.52 USD at list, 6.92
   each. Fable's week reads 33 %.
-- **Blocked on you:** the picture upload was refused by the permission
-  classifier. The three pictures are in
-  `~/ron-data/lab-experiments/2026-11-18-pass/upload/`; the command is
-  `share ~/ron-data/lab-experiments/2026-11-18-pass/upload attrition/pass-1118/`.
+- **The pictures:** `https://cdn.ramonfabrega.com/attrition/pass-1118/`,
+  three files (the two pairs and the band at 4:1). ~~Blocked on you: the
+  upload was refused by the permission classifier~~; it ran on your word
+  after the gate (entry 142 §7).
+- **Your answers, after the gate** (entry 142 §7): parity's set stands at
+  5 of 6; the render seat was left to the pass, and it returns to the
+  lake after 4385's measure (item 4386).
 - **Yours, carried:** ten minutes playing the client; the merged branches
   on origin; the README's line 12; Codex's worktrees hold 17 GB.
 
@@ -78,6 +81,10 @@ improve. The pass before it is `2026-11-17-fable-pass-empty-lines.md`.*
   queue's `RUN1564_3279_BORDER` is corrected 48 → 1** (§5).
 - **The four designed items are ratified**, three with new first acts
   (§6).
+- **After the gate, on Ramon's answers** (§7): parity's set stands; the
+  render seat returns to the lake after 4385's measure, by the card's own
+  stream per draw (item 4386); 4385 stops after the HUD's mask; the
+  pictures are published.
 - **Marked rows:** no `FABLE:` marker and no second reading in the
   tranche; nothing to ratify.
 
@@ -108,7 +115,8 @@ the LDR blend, the HDR blend), and run1564's pair (`pair-1564-half.png`).
 | 4382 the demand on a game our walk holds | rules, whole; the chain's | `LEADERS_HELD_OUT` 1 → 0 | a sweep in our own sim for a lobby whose computer demands early; then that game minted, played by the original and scored | no lobby demands in ours (then the walk from 5677, two acts that move nothing) |
 | 4384 the sample's lines at the start | rules, whole; the suite's | `SAMPLE_LINES`' first partings: builds 0, leaders 0, world 0, goods 1, units 92 | a ranges take of the playback's states 0 to 100, each line's first differing range named | two acts move no line's first parting and the word by nothing |
 | 4383 the Repair pick's `REPAIR` played | input, scoped; the third seat | the arm's effect equal on both sides | an attack package that wounds a building of slot 0's, then the pick | the playback is refused |
-| 4385 a border row that reads by value | render, scoped | `RUN1665_3279_BORDER` 138 of 262, `RUN1564_3279_BORDER` 1 of 1,440, both re-minted | the footprint from our strip's geometry, a pixel counted within a stated distance of theirs, seen red on a perturbed side | two acts move the row by nothing |
+| 4385 a border row that reads by value | render, scoped | `RUN1665_3279_BORDER` 138 of 262, `RUN1564_3279_BORDER` 1 of 1,440, both re-minted | the footprint from our strip's geometry, a pixel counted within a stated distance of theirs, seen red on a perturbed side | ~~two acts move the row by nothing~~ the HUD's mask is in (§7) |
+| 4386 the lake by the card's own draws (§7) | render, scoped; after 4385 | `RUN1564_3279_TEXTURE_STILL` ocean 244 of 437, `RUN1564_3279_FOAM` | one take with the card probe keeping each draw's vertex stream after 3279; the strokes' pixels and a body tile's attributed to a draw | the take attributes the strokes to no world draw |
 
 ## Built
 
@@ -124,8 +132,9 @@ the LDR blend, the HDR blend), and run1564's pair (`pair-1564-half.png`).
 
 ## Not done, and said
 
-- **The pictures were not uploaded.** The classifier refused `share`; the
-  command is under "For Ramon".
+- ~~**The pictures were not uploaded.** The classifier refused `share`; the
+  command is under "For Ramon".~~ Uploaded after the gate on Ramon's word
+  (entry 142 §7).
 - **The two walkers were not merged or cross-run.** Codex's refuses a
   recording with no closing package, which the 2017 sample is. One walker
   over both kinds of file is a small structure item nobody has booked.
