@@ -2268,8 +2268,19 @@ impl Sim {
             if !self.ai.armies[w].list[s].valid {
                 continue;
             }
+            if std::env::var_os("RON_PROBE_4359").is_some() {
+                let a = &self.ai.armies[w].list[s];
+                eprintln!("PROBE4359 f{} emergency {}/{} status {:#x} city {:?} target {:?} groups {:?}", self.frame, who, s, a.status, a.city, a.target, self.army_group(who, s).list);
+            }
             self.ai.armies[w].list[s].target = None;
             self.army_process(who, s, true);
+            if std::env::var_os("RON_PROBE_4359").is_some() {
+                let a = &self.ai.armies[w].list[s];
+                eprintln!("PROBE4359   after status {:#x} target {:?}", a.status, a.target);
+            }
+        }
+        if std::env::var_os("RON_PROBE_4359").is_some() {
+            eprintln!("PROBE4359 f{} emergency {} done", self.frame, who);
         }
     }
 
