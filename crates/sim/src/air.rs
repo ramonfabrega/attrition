@@ -1737,6 +1737,59 @@ impl Sim {
                     target = Some(at);
                 }
             }
+            // The forts (`650150`..`650263`): each record below `L`'s
+            // `fort_mark` in use, `(hits_left + 1000) / (d / 0x1200 + 1)`.
+            for f in self.forts_of(l) {
+                let at = self.buildings[f].pos;
+                if self.buildings[f].ever_seen == 0 || self.own_object_within(owner, at, 0x1800) {
+                    continue;
+                }
+                let d = vector_dist(at.x - silo.x, at.y - silo.y);
+                if d > reach {
+                    continue;
+                }
+                let v = (self.buildings[f].health.max(0) + 1000) / (d / 0x1200 + 1);
+                if v > best {
+                    best = v;
+                    target = Some(at);
+                }
+            }
+            // The wonders (`6502c0`..`65052c`): each record below `L`'s
+            // `wonder_mark` in use, but the Forbidden City's line
+            // (`is(0x213)`), `damage / 100 + 1000`, ×10 while my team's
+            // wonder points trail my enemies', ×100 above difficulty 2
+            // while a non-ally is winning by wonders.
+            for w in self.wonders_of(l) {
+                if self.building_is(w, crate::cities::build::Ident::ForbiddenCity) {
+                    continue;
+                }
+                let at = self.buildings[w].pos;
+                if self.buildings[w].ever_seen == 0 {
+                    continue;
+                }
+                let mut v = self.buildings[w].damage / 100 + 1000;
+                if self.team_wonder_points(owner) < self.enemy_wonder_points(owner) {
+                    v *= 10;
+                }
+                if self.ai_difficulty() > 2 {
+                    let winning = self.wonder_winning();
+                    if winning >= 0 && !self.is_ally(owner, winning as crate::Player) {
+                        v *= 100;
+                    }
+                }
+                if self.own_object_within(owner, at, 0x1800) {
+                    continue;
+                }
+                let d = vector_dist(at.x - silo.x, at.y - silo.y);
+                if d > reach {
+                    continue;
+                }
+                let v = v / (d / 0x1200 + 1);
+                if v > best {
+                    best = v;
+                    target = Some(at);
+                }
+            }
         }
         if let Some(at) = target {
             self.add_air_attack_ground_order(m, at, None, crate::orders::QueuePos::New, true);
