@@ -165,6 +165,40 @@ def brief_line(count, waiver=None):
                    'to steer --opener-file <file> (docs/LOOP.md, "Supply calls the pass")')
 
 
+ASTRA_WAIVER = 'ATTRITION_ASTRA_WAIVED'
+
+
+def astra_ahead(cwd=None, tip='HEAD'):
+    """`[(branch, commits ahead of tip)]` for every `codex/*` branch, local
+    or on origin, that `tip` does not hold. Codex's worktree shares this
+    repository, so its local branch is read with no fetch."""
+    refs = subprocess.run(['git', 'for-each-ref', '--format=%(refname:short)', 'refs/heads/codex',
+                           'refs/remotes/origin/codex'], cwd=cwd, capture_output=True, text=True).stdout.split()
+    out, seen = [], set()
+    for ref in refs:
+        name = ref.removeprefix('origin/')
+        n = subprocess.run(['git', 'rev-list', '--count', f'{tip}..{ref}'], cwd=cwd, capture_output=True, text=True)
+        ahead = int(n.stdout.strip() or 0) if n.returncode == 0 else 0
+        if ahead and name not in seen:
+            seen.add(name)
+            out.append((name, ahead))
+    return out
+
+
+def astra_line(ahead, waiver=None):
+    """`(ok, line)` for a lane's brief: none is composed while a Codex
+    branch is ahead of the tree (DECISIONS 60, 140 §6, 142 §2). On
+    2026-11-18 the driver woke with one 23 commits ahead of its own HEAD,
+    spawned four lanes and reused three of its item numbers."""
+    if not ahead or waiver:
+        return True, ''
+    said = ', '.join(f'{name} {n} ahead' for name, n in ahead)
+    return False, (f'a Codex branch is ahead of this tree ({said}): settle it before a lane is briefed. '
+                   'Fast-forward where HEAD is its ancestor (git merge --ff-only <branch>), merge otherwise, '
+                   f'gate whole, then brief; its item numbers are taken. {ASTRA_WAIVER}=<why> waives a branch '
+                   'that is not to be merged')
+
+
 def landings_line(count, scoped, waiver=None):
     """`(ok, line)` for a gate: a scoped one is refused once the count is
     past the backstop and the seats; the drain's whole gate never is."""

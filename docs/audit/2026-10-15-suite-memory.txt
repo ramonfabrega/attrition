@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-17, tools/suite_timings.py (tree 88e7c245).
+# Every rondata release test's peak resident set alone, 2026-11-18, tools/suite_timings.py (tree cce4d958).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -117,6 +117,7 @@
 1177	diff::dutch_medieval_pair::dutch_medieval_pair_run1273_s_closing_state
 1172	diff::british_classical_pair::british_classical_pair_run1316_s_closing_state
 1171	diff::checksum_lines::packets::aztec_ancient_pair_packets
+1167	diff::checksum_lines::packets::building_slots::building_slots_match_the_original_build_data
 1145	diff::aztec_ancient_pair::aztec_ancient_pair_first_parting
 1135	diff::persian_gunpowder_pair::persian_gunpowder_pair_run1387_s_word_frame_is_widened_whole
 1111	diff::dutch_medieval_pair::dutch_medieval_pair_first_parting
@@ -454,6 +455,7 @@
 633	diff::bantu_ancient_pair::bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole
 633	diff::golden::chapter_seven_b_s_word_frame_is_widened_whole
 632	diff::bantu_word::run978e_s_word_frame_is_widened_whole
+631	diff::sample::tests::the_sample_s_lines_against_the_hook
 631	diff::british_enlightenment_pair::run1157_british_enlightenment_pair_closing_state
 629	diff::lakota_medieval_pair::run1204_lakota_medieval_pair_closing_state
 629	diff::mongol_medieval_pair::mongol_medieval_pair_run1391b_s_closing_frame_is_widened_whole
@@ -859,6 +861,7 @@
 482	diff::indian_word::run970e_s_word_frame_is_widened_whole
 482	diff::audit::japanese_enlightenment_pair_corrections_change_nothing
 482	diff::lakota_enlightenment_pair::lakota_enlightenment_pair_first_parting
+481	diff::checksum_lines::deaths::the_sea_packet_keeps_the_attrition_figure_alongside_three_round_impacts
 481	diff::sahara_toughest::tests::run469_s_score_holds
 481	mapgen::tests::australian_outback_s_rivers_are_5012_to_5118
 481	diff::golden::chapter_fifteen_holds_to_the_golden_word
@@ -916,6 +919,7 @@
 468	diff::checksum_lines::packets::chapter75_packets
 468	diff::american_industrial_pair::american_industrial_pair_the_long_s_stride_walks_back_from_3174
 468	diff::american_modern_pair::american_modern_pair_run1151c_s_word_frame_is_widened_whole
+468	diff::checksum_lines::deaths::the_british_packet_turns_both_fallen_figures_before_measuring_the_hit
 467	diff::golden::chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell
 467	diff::spanish_word::run958_s_word_frame_is_widened_whole
 467	diff::golden::chapter_forty_two_holds_to_the_golden_word
@@ -1388,6 +1392,7 @@
 395	mapgen::tests::sea_power_s_place_all_and_tail_are_7859_to_7870
 395	diff::american_information_pair::american_information_pair_the_long_s_stride_walks_back_from_the_word
 395	mapgen::tests::australian_outback_s_place_all_and_tail_are_7859_to_7870
+395	diff::checksum_lines::deaths::the_mongol_packet_keeps_the_attached_piece_and_relative_direction
 394	diff::iroquois_sahara_word::run1001c_s_word_frame_is_widened_whole
 394	diff::classical_melee::classical_melee_s_dead_catapult_crew_clears_its_disc
 394	diff::egyptian_classical_pair::egyptian_classical_pair_captures_say_their_lobby
@@ -1404,6 +1409,7 @@
 392	diff::classical_melee::classical_melee_s_kushite_archers_loose_from_the_bow
 392	diff::audit::greek_word_corrections_change_nothing
 392	diff::greek_word::run961c_s_gap_is_widened_whole
+391	diff::checksum_frames::the_held_count_reads_the_melee_s_shot
 391	diff::setup::tests::a_gaia_figure_s_piece_is_the_gaia_arm_s
 391	diff::roman_word::run956_s_word_frame_is_widened_whole
 391	diff::indian_sahara_word::run1007c_s_word_frame_is_widened_whole
@@ -1531,6 +1537,7 @@
 357	diff::iroquois_word::run930_s_squad_is_widened_whole
 357	diff::japanese_word::run965_s_word_frame_is_widened_whole
 357	diff::army::tests::run29_s_priority_bit_says_allocated_rather_than_hotkey
+357	diff::checksum_lines::deaths::the_combat_packet_keeps_the_hit_direction_without_an_attachment
 356	diff::army::tests::run29_s_engagement_bumps_order_num_by_one_and_writes_no_form
 356	diff::roman_modern_pair::roman_modern_pair_captures_say_their_lobby
 356	diff::army::tests::run29_s_navy_group_s_curr_is_the_leader_s_heading_applied_to_the_slot_table
@@ -1796,6 +1803,7 @@
 263	diff::harness::tests::run257_s_word_frame_is_widened_whole
 263	diff::sahara_toughest::tests::run471_s_word_frame_is_widened_whole
 263	diff::harness::tests::run269_s_word_frame_is_widened_whole
+262	diff::minted::the_original_s_playback_of_the_transport_file_walks_in_lockstep
 262	diff::inca_word::inca_word_is_no_other_lobby
 262	diff::sahara_toughest::tests::run476_s_word_frame_is_widened_whole
 262	diff::harness::tests::run251_s_word_frame_is_widened_whole
@@ -1868,8 +1876,10 @@
 221	diff::minted::the_boxed_script_against_the_attacked_playback_parts
 219	diff::minted::the_unqueued_script_against_the_city_gathered_playback_parts
 219	diff::minted::the_chatted_script_against_the_gathered_playback_is_whole
+219	diff::minted::the_original_s_playback_of_the_arms_file_walks_in_lockstep
 218	diff::minted::the_original_s_playback_of_the_came_out_file_walks_in_lockstep
 218	diff::minted::the_original_s_playback_of_the_gathered_file_walks_in_lockstep
+218	diff::minted::the_original_s_playback_of_the_picked_file_walks_in_lockstep
 217	diff::minted::the_attacked_script_against_the_followed_playback_parts
 216	diff::minted::the_original_s_playback_of_the_attacked_file_walks_in_lockstep
 215	diff::minted::the_original_s_playback_of_the_repeated_file_walks_in_lockstep
@@ -1903,6 +1913,7 @@
 175	gamelog::tests::the_lazy_tree_is_the_eager_tree
 173	diff::harness::tests::observing_a_replay_preserves_the_complete_report
 173	diff::minted::what_the_disband_does_on_our_walk
+172	diff::minted::what_the_transport_press_does_on_both_sides
 172	diff::minted::the_hotkeyed_minted_script_s_effects_on_our_walk
 169	diff::checksum_lines::world::the_world_line_is_the_original_s_by_section
 169	diff::minted::the_attacked_minted_script_s_effects_on_our_walk
@@ -1919,8 +1930,10 @@
 161	debug_view::tests::selected_failure_exports_actual_replay_context
 161	diff::minted::the_bucket_reader_reads_a_known_dump
 160	diff::minted::the_city_gathered_minted_script_s_effects_on_our_walk
+159	diff::minted::what_the_picks_do_on_both_sides
 159	diff::checksum_lines::the_items_line_is_the_original_s_range_by_range
 159	diff::checksum_lines::the_units_four_chain_words_are_the_original_s
+159	diff::minted::what_the_arms_do_on_both_sides
 158	diff::minted::the_clicked_minted_packages_round_trip_and_stand_on_our_placement_check
 158	diff::checksum_lines::the_guys_line_is_the_original_s_range_by_range
 157	diff::checksum_lines::the_goods_line_is_the_original_s_range_by_range
@@ -1952,10 +1965,12 @@
 133	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
 131	diff::minted::the_boxed_minted_packages_round_trip
 130	diff::world::tests::run9_s_world_dump_puts_the_ai_s_farm_on_the_original_s_tile
+127	checksum::playback::combat::the_combat_window_b_matches_every_line_through_closing
 126	diff::start_walk::the_built_start_s_goods_ever_seen_is_the_start_dump_s
 125	diff::minted::the_garrisoned_minted_packages_round_trip
 123	census::tests::the_census_s_simulation_share_is_pinned
 123	diff::diplomacy_take::run1645_s_taunt_parts_from_the_old_seat
+122	checksum::playback::combat::the_combat_window_a_matches_every_line_through_closing
 122	diff::minted::the_right_pressed_minted_packages_round_trip
 120	diff::build::tests::run9_s_camps_get_the_original_s_gatherer_counts
 120	diff::minted::the_attacked_minted_packages_round_trip
@@ -1968,6 +1983,9 @@
 116	diff::minted::the_repeated_minted_packages_round_trip
 115	diff::lakota_medieval_pair::lakota_medieval_pair_is_no_other_lobby
 114	diff::setup::tests::run11_s_checksum_trace_pins_the_setup_stream
+114	diff::minted::the_picked_minted_packages_round_trip
+114	diff::minted::the_arms_minted_packages_round_trip
+114	diff::minted::the_transport_minted_packages_round_trip
 113	diff::minted::the_auto_explored_minted_packages_round_trip
 113	diff::minted::the_disbanded_minted_packages_round_trip
 113	diff::minted::the_toggled_minted_packages_round_trip
@@ -1982,6 +2000,7 @@
 113	diff::minted::the_came_out_minted_packages_round_trip
 113	diff::minted::the_renamed_minted_packages_round_trip
 113	diff::minted::the_hotkeyed_minted_packages_round_trip
+111	checksum::playback::tests::the_long_window_game_agrees_through_its_closing_state
 111	diff::start_walk::recording::the_lobby_s_recording_is_written_and_reads_back
 108	diff::setup::tests::the_style_s_limits_give_the_start_dump_s_owners
 107	diff::roman_classical_pair::roman_classical_pair_is_no_other_lobby
@@ -1998,12 +2017,18 @@
 76	diff::setup::tests::a_leader_s_opening_units_are_its_own_nation_s
 75	input::tests::the_order_kinds_on_disk
 75	recgame::tests::what_our_file_borrows_is_constant_for_one_lobby_s_options
+73	checksum::playback::tests::the_short_window_game_agrees_through_its_closing_state
 72	diff::shutdown::tests::the_closing_dump_lags_one_tick_on_one_unit
+67	diff::checksum_lines::deaths::the_disbanded_scout_and_dog_match_the_whole_packet
 66	load::memo::a_kept_load_is_the_load_a_fresh_read_builds
+65	checksum::playback::combat::window_a_unit_and_building_flags_match_on_both_sides_of_their_first_changes
 64	diff::start::tests::the_harness_lobby_s_map_is_the_traced_setup_path
 64	diff::leader::tests::run111_s_block_9381_list_is_make_me_s_from_four_offers
 63	diff::world::tests::run61_s_birds_fly_where_the_original_s_do
+62	checksum::playback::combat::both_occupied_sprite_pools_match_every_record_in_window_a
 62	stores::tests::the_scan_finds_dow_s_writers_and_a_perturbed_scan_misses_them
+60	checksum::playback::combat::both_occupied_sprite_pools_match_every_record_in_window_b
+60	checksum::playback::tests::the_long_window_game_matches_the_unit_and_group_ranges_at_the_army_split
 60	stores::tests::the_frozen_leaves_every_store_writes_zero
 60	stores::tests::the_scan_s_premises_hold_on_the_image
 60	stores::tests::the_quiet_releases_writers_are_the_documented_ones
@@ -2321,6 +2346,8 @@
 5	prefs::tests::the_flags_word_is_the_last_bit_s
 5	prefs::tests::the_default_prefs_word_is_default_profile_s
 5	diff::start::tests::a_seat_s_teammates_are_built_at_once_after_it
+5	diff::checksum_lines::packets::packet_first_difference_distinguishes_bytes_ends_and_absent_ranges
+5	diff::checksum_lines::deaths::both_casualty_pivots_match_the_original_at_every_whole_degree
 4	commands::tests::the_empty_group_is_the_same_selection
 4	commands::tests::the_mp_obfuscation_reverses
 4	diff::floors::tests::the_handoff_s_golden_line_is_the_pinned_word

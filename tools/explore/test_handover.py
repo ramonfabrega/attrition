@@ -110,6 +110,34 @@ class DriverLineTests(unittest.TestCase):
         self.assertIn("waived: Fable's week reads 91 %", line)
         self.assertTrue(handover.brief_line(31, waiver="Fable's week reads 91 %")[0])
 
+    def test_a_codex_branch_ahead_of_the_tree_refuses_a_brief_and_names_itself(self):
+        # 2026-11-18: the driver woke at 06:07 with codex/live-game-recording 23
+        # commits ahead of its HEAD, a pure fast-forward, spawned four lanes
+        # and numbered three items Codex had already used (DECISIONS 142 §2).
+        ok, line = handover.astra_line([('codex/live-game-recording', 23)])
+        self.assertFalse(ok)
+        self.assertIn('codex/live-game-recording', line)
+        self.assertIn('23', line)
+        self.assertTrue(handover.astra_line([])[0])
+        ok, line = handover.astra_line([('codex/old', 4)], waiver='abandoned, Ramon 11-18')
+        self.assertTrue(ok)
+
+    def test_the_codex_branches_ahead_are_read_from_a_repository(self):
+        with tempfile.TemporaryDirectory() as d:
+            def git(*a):
+                subprocess.run(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', *a], cwd=d,
+                               check=True, capture_output=True)
+            git('init', '-q', '-b', 'main')
+            git('commit', '-q', '--allow-empty', '-m', 'base')
+            git('branch', 'codex/merged')
+            git('checkout', '-q', '-b', 'codex/ahead')
+            git('commit', '-q', '--allow-empty', '-m', 'one')
+            git('commit', '-q', '--allow-empty', '-m', 'two')
+            git('checkout', '-q', 'main')
+            self.assertEqual(handover.astra_ahead(cwd=d), [('codex/ahead', 2)])
+            git('merge', '-q', '--ff-only', 'codex/ahead')
+            self.assertEqual(handover.astra_ahead(cwd=d), [])
+
     def test_the_driver_s_depth_warns_at_the_line_and_refuses_at_the_ceiling(self):
         ok, line = handover.depth_line(399_000)
         self.assertTrue(ok)

@@ -669,8 +669,14 @@ order records' base fields.
 
 **On a reading alone:** the hooks' order in `Game::do_frame@00591ef0`
 (begin, tick, end), and what each `must_walk` local and each order-type
-local means. Also the walls and ammo walkers' record shapes (no element
-on either frame read), and `say_checksum`'s labels beyond the fifteen.
+local means. Also the walls walker's record shape (no element on any
+frame read; the ammo's and the deaths' are diff-backed since items 4363
+to 4367, §8), and `say_checksum`'s labels beyond the fifteen. Four
+branches no record on disk enters (items 4366 to 4370; DECISIONS 142
+§1): an active city's early return on the building's hit bit and the
+repair's; the casualty attachment forwarded on overflow; the looping of
+a multi-figure unit with a moving crew; and which figures take the
+type-4 third draw's alternate animation (`docs/COMBAT.md` §42.1).
 
 **Not established:**
 

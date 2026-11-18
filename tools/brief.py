@@ -589,6 +589,12 @@ def main():
     if not ok:
         print(f'brief.py: {line}', file=sys.stderr)
         sys.exit(2)
+    # Codex's branch first (DECISIONS 142 §2): a lane briefed on a tree a
+    # codex/* branch is ahead of reuses its item numbers and its ground.
+    ok, line = handover.astra_line(handover.astra_ahead(cwd=ROOT), os.environ.get(handover.ASTRA_WAIVER))
+    if not ok:
+        print(f'brief.py: {line}', file=sys.stderr)
+        sys.exit(2)
     briefs = {f.name: f.read_text() for f in sorted(args.briefs.glob('brief*.md'))} if args.briefs and args.briefs.is_dir() else {}
     base = subprocess.run(['git', 'rev-parse', '--short=8', 'HEAD'], cwd=ROOT,
                           capture_output=True, text=True, check=True).stdout.strip()

@@ -22223,3 +22223,28 @@ first. Ramon came onto the row: parity waits on 4355, Astra comes in when
 a pass uploads its pairs for him to glance at. The pass moved no score and
 took no capture. **DECISIONS 140.**
 `docs/audit/2026-11-17-fable-pass-empty-lines.md`.
+
+## 2026-11-18 — the pass after Codex's night: parity's set, and a cheaper game for the demand (Fable 5.2, steering)
+
+`commander` ran twenty merges off the pass before, seven lanes in the
+evening and, from the 06:07 wake, twelve more and Codex's branch, and
+handed over at `cce4d958b` on a green whole gate. Codex had worked from
+20:22 to 04:27 while the driver was paused: the client records a live
+game, the original plays the file, and all twelve state lines agree on
+every state of four such games, two with combat in them. The pass read
+its twelve journals and ruled the branch stands as merged with no second
+reading owed, since every score it moved is a diff; the four games join
+parity's set, which reads 5 of 6, the 2017 sample the sixth. The morning
+was untidy: the driver woke with the branch 23 commits ahead, briefed
+lanes first and reused three of its numbers, so `brief.py` now refuses a
+lane while a Codex branch is ahead. One thing was built twice, a walker
+of a recording against the hook's sums. The demand's leaf has taken ten
+lanes and 89.72 USD and stands 404 frames short; the pass showed it moves
+on none of Codex's games, and re-aimed its item at a sweep of our own sim
+for a small game that demands early. The sample parts on state 0 on four
+lines and its item starts there. The pass drew run1665's still beside its
+photograph: the band's colour is theirs now and the row that fell was
+reading a colour; the lake is what the eye finds first, as before. The
+pass moved no score and took no capture; the pictures' upload was
+refused. **DECISIONS 142.**
+`docs/audit/2026-11-18-fable-pass-astra.md`.

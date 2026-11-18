@@ -156,6 +156,7 @@ is append-only and amended in place, as it always was.
 - 139 standing — The pass of 2026-11-17: the render seat leaves the nine deep tiles for the whitecaps and the fish, the HUD draws the panel the filter computes, the 2017 sample (a person's whole game) is booked to be walked, a continuation is numbered before it is spawned, the wake exercised
 - 140 standing — The pass of 2026-11-17, second: parity's first game is one comparison short (theirs' walls, ammo and deaths are empty on every frame, ours uncounted), the four designed items ratified with the sample taking the hook, the packets' wiring pin runs in every lane gate, the render seat's five lines stay in their journals
 - 141 standing — Lanes out at the day's line land, and only the last day is careful at the stop (Ramon, 2026-11-17)
+- 142 standing — Codex's live windows join parity's set (5 of 6 games), a driver settles Codex's branch before it briefs, the demand is tried on a game the walk holds, the sample is read by its lines, and a row's footprint is never a colour (2026-11-18)
 
 ## 1. Fidelity before divergence
 
@@ -13970,3 +13971,104 @@ taken: the line is cumulative and the day after pays for it, nothing out
 was time-critical, and the free seat's item (4358) is a capture better
 started fresh. It is his to ask for on any day.
 
+
+## 142. Codex's live windows join parity's set, a driver settles Codex's branch before it briefs, the demand is tried on a game the walk holds, and the sample is read by its lines (2026-11-18)
+
+**What happened.** `commander` (Opus 5.5) ran twenty first-parent merges
+off the pass of 2026-11-17, second: seven lanes' in the evening to the
+day's line, then, from the 06:07 wake, twelve lanes' and Codex's
+`codex/live-game-recording` (items 4362 to 4373, 23 commits, 20:22 to
+04:27 while the driver was paused). It reached the backstop, drained and
+gated whole (`gate-drain-1118.log`, exit 0 on `cce4d958b`). The pass ran
+on the `steer` row from 10:46 −05:00 with no subagent and no capture;
+Ramon was on the row. The tables are in
+`docs/audit/2026-11-18-fable-pass-astra.md`.
+
+**§1. Codex's branch stands as merged, and its four live windows join
+parity's declared set: 5 of 6 games.** The branch was read whole, journal
+by journal. Its scores are diffs against the original's own playback: the
+client records a live game (`--record`), the original plays the file under
+the checksum hook, and `checksum::playback` compares all twelve lines on
+every state. Four games agree throughout and are pinned in the gate: the
+short window (428 states), the long one (9,476, a disband's two death
+records), window A (seed 12345, 11,721) and window B (seed 123, 14,438).
+A and B hold combat: the ammo line is occupied on 848 and 680 states and
+the deaths line on 1,152 and 1,019. Its comparison was seen to fail (a
+move's X changed by 128 parts units on 31). So:
+
+- **Parity's declared set is six games**: the minted game (entry 140 §1,
+  item 4355), these four, and the 2017 sample (entry 139 §3). Five agree
+  on every state; the sample does not (§4). The limits said at entry 140
+  change: two of the three record shapes are now exercised on two games;
+  no game on disk holds a wall.
+- **No second reading is owed.** Every score the branch moved rests on a
+  diff. Its journals name four branches read from the source that no
+  record enters (an active city's early return on the hit bit and the
+  repair's; the attachment's overflow forward; a multi-figure unit's loop
+  with a moving crew; the type-4 third draw's alternate animation). No
+  score rests on them, so by entry 134 they are listed as one reading in
+  `docs/CHECKSUM.md` §10, which the pass amended, until a diff reaches one.
+- **The milestone's step 5 is not moved**: frame 91's count stays 8 of 12.
+
+**§2. A driver settles Codex's branch before it briefs a lane.** At the
+06:07 wake Codex's branch was 23 commits ahead of the driver's own HEAD
+(`405a7658f`), a pure fast-forward, in this same repository. The driver
+spawned four lanes at 06:11 and two more at 06:51 under the numbers 4362
+and 4363, which Codex had used hours before, and merged the branch at
+07:36 with a queue conflict and three live items renumbered (4374 to
+4376; `tools/tranche.py` cannot find them). Entry 140 §6 had the order
+right and nothing enforced it. Now `tools/brief.py` refuses to compose a
+brief while any `codex/*` branch, local or on origin, is ahead of HEAD
+(`handover.astra_ahead`, `astra_line`; `ATTRITION_ASTRA_WAIVED=<why>` for
+a branch that is not to be merged). Seen red first on the morning's case.
+**What was built twice** is one thing: a walker of a recording against a
+hook's sets. `diff::checksum_frames::first_partings_of` (item 4355's,
+generalised by 4359 for the sample at 06:17) and Codex's
+`checksum::playback::compare` (20:22 the night before, on a branch the
+lane's base did not hold) do one job on different games. No mechanic was
+built twice: 4359 minted the sample's ammo row on its own tree and
+re-pinned it 2929 → 3022 when the merge brought Codex's emitter.
+
+**§3. The demand is tried on a game the walk holds.** Entry 138 §1 left
+one option unweighed, "taken only if the walk stalls past 5,000". It has:
+`RUN1646_WORD` went 5622 → 5677 over four items (4354, 4360, 4374, 4377:
+36.19 USD at list, 55 frames; two moved nothing), and the leaf has now
+taken ten lanes and 89.72 USD and stands 404 frames short, in a
+three-nation war where each parting is another mechanic. Since last night
+there are games our walk holds whole on all twelve lines for 14,438
+states. The pass walked the three long ones: `tribute_demanded` moves on
+none of them, so it is not free. Item 4382's first act is therefore a
+sweep in our own sim, no capture: lobbies over seeds and difficulties,
+each walked order-free past its gate (`docs/LEADERS.md` §8.2), listing
+those where ours takes the demand branch. The earliest is minted, played
+by the original under the hook and scored. **The leaf leaves when the
+leaders line agrees on every state through the demand with the leaf
+emitted, seen red with it held**: a sum over the whole record on every
+frame is a stronger oracle than the one dump the old rule asked for. If
+the line parts first, that parting is the item's, on that game. If no
+lobby demands in ours, the walk from 5677 resumes under its stop rule.
+
+**§4. The sample is read by its lines, from the start.** Item 4359 minted
+parity's own measure on the 2017 sample: builds, leaders and world part
+on state 0, goods on 1, units on 92. The suite's seat then spent 4380 on
+the draw word at 2892 and moved nothing. A parting on state 0 has no walk
+before it and is the cheapest kind to name, and the two-seat windows
+agree from state 0, so what parts is in what a five-seat lobby at the
+hardest setting adds. Item 4384's first act is a ranges take of the
+playback's first hundred states and each line's first differing range
+named; the scout's detour is its last.
+
+**§5. 4379's fall stands as named, and a row's footprint is never a
+colour.** The pass drew run1665's still beside its photograph: the band
+carries theirs' lavender where the LDR blend was greyer and darker, and
+the value diff says the same on seven of seven sampled pixels
+(`RUN1665_3279_BORDER_ERROR` 45.1 → 39.8). The row fell because `band()`
+finds the band by its colour, fit to the morph's. That is the second
+border row a colour threshold has blinded, so item 4385's reader takes
+its footprint from our strip's geometry and counts a pixel within a
+stated distance of theirs. The queue carried `RUN1564_3279_BORDER` at 48
+of 1,440, which is the LDR arm; the client's default reads **1**, and the
+line is corrected (entry 133 §6).
+
+**§6. The four designed items are ratified**: 4383 as designed; 4382,
+4384 and 4385 with the first acts above. One a seat.
