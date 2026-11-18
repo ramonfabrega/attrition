@@ -11242,3 +11242,23 @@ fn a_rename_names_the_city_its_building_belongs_to() {
     assert!(sim.command().process_rename_city(0, o, "Norwich"));
     assert_eq!(sim.city_name_written(c), Some("Norwich"));
 }
+
+/// **The start samples every building's `z` again once it stands**
+/// (`Setup::reinit_game_units@005abf90`, item 4397): a building keeps the
+/// height it was placed on while a later terraform moves its tile, until
+/// the start's resample takes the ground as it is; a dead one is left.
+#[test]
+fn the_start_s_resample_takes_each_live_building_s_ground() {
+    let mut sim = world_sim();
+    let (t, u) = ((10, 10), (20, 20));
+    let a = sim.add_building(0, tile_pos(t.0, t.1), 1);
+    let b = sim.add_building(1, tile_pos(u.0, u.1), 1);
+    let (za, zb) = (sim.buildings[a].z, sim.buildings[b].z);
+    sim.world.set_tile_z(Pos::new(t.0, t.1), za + 3);
+    sim.world.set_tile_z(Pos::new(u.0, u.1), zb + 14);
+    sim.buildings[b].alive = false;
+    assert_eq!(sim.buildings[a].z, za, "placed, and never rewritten after");
+    sim.reinit_game_units();
+    assert_eq!(sim.buildings[a].z, za + 3, "the ground the start leaves");
+    assert_eq!(sim.buildings[b].z, zb, "a dead building is not sampled");
+}
