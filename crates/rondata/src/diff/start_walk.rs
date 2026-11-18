@@ -1058,6 +1058,10 @@ pub(crate) mod recording {
             .ok()
     }
 
+    /// A line's first parting on run1686: `(frame, the record's ranges,
+    /// ours, parted, the text)`.
+    type DemandSeen = (i64, usize, usize, usize, String);
+
     /// run1686's last frame, ours: the record holds trace frames −1 to 39.
     const DEMAND_RANGES_WINDOW: i64 = 40;
 
@@ -1098,7 +1102,7 @@ pub(crate) mod recording {
         let loaded = crate::load::load(&inst).unwrap();
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec_game);
         let mut stream = crate::input::Stream::pump(&rec_game);
-        let mut seen: Vec<Option<(i64, usize, usize, usize, String)>> = vec![None; 12];
+        let mut seen: Vec<Option<DemandSeen>> = vec![None; 12];
         let mut frames = 0usize;
         while built.sim.frame <= DEMAND_RANGES_WINDOW {
             let f = built.sim.frame;
