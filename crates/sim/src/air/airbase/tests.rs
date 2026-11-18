@@ -1200,8 +1200,9 @@ fn a_computer_s_silo_strikes_an_enemy_city_with_its_nuke() {
 
 /// **The silo strike walks the leader's forts and wonders after its
 /// cities** (item 4377, `Object::do_launch@0064f3b0`'s nuke arm,
-/// `650150`..`65052c`): a fort scores `(hits_left + 1000) / (d / 0x1200
-/// + 1)` and a wonder `damage / 100 + 1000`, ×10 while the silo's team
+/// `650150`..`65052c`): a fort scores
+/// `(hits_left + 1000) / (d / 0x1200 + 1)` and a wonder
+/// `damage / 100 + 1000`, ×10 while the silo's team
 /// trails its enemies in wonder points, on the same strictly-greater best
 /// as the cities; the Forbidden City's line is passed over. run1646's
 /// Russian silo `2/2035` on 5517 took the French wonder `1/2033` (1000
