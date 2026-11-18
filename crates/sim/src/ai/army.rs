@@ -2743,6 +2743,19 @@ impl FormView for FormSim<'_> {
             );
         }
         self.sim.group_action_siege_attack_to(&g, to, angle);
+        if std::env::var_os("RON_PROBE_4395").is_some() {
+            for &u in &g.list {
+                let x = &self.sim.units[u];
+                eprintln!(
+                    "PROBE4395 f{} after {}/{} at {:?} orders {:?}",
+                    self.sim.frame,
+                    x.owner,
+                    x.index,
+                    x.pos,
+                    x.orders.iter().map(|o| (o.index(), format!("{o:?}"))).collect::<Vec<_>>()
+                );
+            }
+        }
     }
 }
 
