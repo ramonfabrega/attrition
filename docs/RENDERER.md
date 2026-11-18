@@ -4518,6 +4518,14 @@ buffers are found by `d3dgl.pdb`'s type records (`mHDRBuffer`, `mScreen`, `mTone
 *Coverage.* Diff-backed on one take: the photograph against the readback, bit for bit. Not established: which draw
 on run1688's own 3279 pass lays its strokes (4393a). The pass has the take's streams and photograph on disk.
 
+**What three takes agree on** (item 4399; the ledger: `docs/journal/2026-11-18-item-4399.md`). run1564, run1665 and
+run1688 photograph the 3279 state at one camera. The takes' noise floor is 2 luma: the HUD's per-pixel q99 is 1.2,
+the land's q95 1.1–1.9 at every block from 1 to 32 px. Within it, **all three agree on 17,771 of 469,323 water pixels
+(3.8 %)**, as even speckle; a pair, 18–21 %, against 13–15 % with one side shifted 40 px. At 32-px blocks three-way
+is 7.7 %. The foam row's share (luma ≥ 150, within 0.05) agrees on 15 % of the foam blocks, a pair no better than
+shifted. Only the lake's mean holds (100.0, 99.2, 100.0). So no row is minted on the lake's pattern: the item's
+stop. *Not established:* what moves the water between takes (4393a).
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
