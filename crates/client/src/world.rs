@@ -332,7 +332,7 @@ pub struct World {
     /// many cells away.
     pub borders_shift: (i32, i32),
     /// The owner grid and the switches the borders were laid at.
-    borders_laid: (Vec<sim::Owner>, bool, (i32, i32)),
+    borders_laid: (Vec<sim::Owner>, bool, (i32, i32), bool),
     /// Draw the map's edge border (item 4311, §3.15). On by default; the
     /// row's count as drawn before turns it off.
     pub edge: bool,
@@ -350,6 +350,13 @@ pub struct World {
     /// compound. On by default; off, each list is drawn over one copy of the
     /// frame and its overlaps overwrite (the made-to-fail side).
     pub surf_hdr: bool,
+    /// **The national borders blended on the HDR target** (item 4379;
+    /// `docs/RENDERER.md` §3.29, "The band's colour"): the owner's colour
+    /// through `TL_FAKE_LIGHT`, `5 · c^1.9`, source alpha over on 4327's HDR
+    /// target before the tone map, as the card's draws 135 and 136. On by
+    /// default; off, the colour as it stands over the tone-mapped frame
+    /// (item 4376's draw).
+    pub border_hdr: bool,
     /// **The objects before the water** (item 4344; `docs/RENDERER.md`
     /// §3.30, "The fish under the water"): the figures, the trees and the
     /// textured meshes drawn before the water and the surf, as
@@ -1203,6 +1210,7 @@ impl World {
             faded_hdr: true,
             land_hdr: false,
             surf_hdr: true,
+            border_hdr: true,
             objects_under_water: true,
             herd_lit: true,
             hidden: Vec::new(),
@@ -1233,7 +1241,7 @@ impl World {
             roads_laid: (-1, false, (0, 0), Vec::new()),
             borders: true,
             borders_shift: (0, 0),
-            borders_laid: (Vec::new(), false, (0, 0)),
+            borders_laid: (Vec::new(), false, (0, 0), false),
             edge: true,
             edge_art,
             edge_laid: None,
@@ -1839,7 +1847,7 @@ impl World {
             self.laid_ramp = None;
             self.weather_laid = (-1, false, (0, 0), Vec::new());
             self.roads_laid = (-1, false, (0, 0), Vec::new());
-            self.borders_laid = (Vec::new(), false, (0, 0));
+            self.borders_laid = (Vec::new(), false, (0, 0), false);
             self.edge_laid = None;
             self.surf_laid = (-1, false);
         }
@@ -1911,16 +1919,20 @@ impl World {
             self.runner.territory().owner,
             self.borders,
             self.borders_shift,
+            self.border_hdr,
         );
         if self.borders_laid != key {
             self.drawn.3.retain(|m| !is_border(m.piece));
             if self.borders {
                 let meshes = self.border_meshes();
+                // Item 4379: and before the water, as the card's draws 135
+                // and 136 come before its 162, so the borders blend in the
+                // ground's run, ahead of the shade and the water.
                 let at = self
                     .drawn
                     .3
                     .iter()
-                    .position(|p| p.mountain)
+                    .position(|p| p.mountain || (self.border_hdr && p.piece == WATER_PIECE))
                     .unwrap_or(self.drawn.3.len());
                 self.drawn.3.splice(at..at, meshes);
             }

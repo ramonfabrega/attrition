@@ -349,6 +349,9 @@ pub struct Frame<'a> {
     /// Item 4338: the surf's lists blended on the HDR target
     /// ([`crate::world::World::surf_hdr`]).
     pub surf_hdr: bool,
+    /// Item 4379: the national borders blended on the HDR target
+    /// ([`crate::world::World::border_hdr`]).
+    pub border_hdr: bool,
     /// Item 4344: the objects before the water and the surf
     /// ([`crate::world::World::objects_under_water`]).
     pub objects_before_water: bool,
@@ -538,6 +541,9 @@ pub struct Gpu {
     hdr_floor: wgpu::RenderPipeline,
     /// Item 4338: the surf on the HDR target (`fs_surf_hdr`).
     hdr_surf: wgpu::RenderPipeline,
+    /// Item 4379: the national borders on the HDR target
+    /// (`fs_border_hdr`), the depth test off as `border`'s.
+    hdr_border: wgpu::RenderPipeline,
     untone: wgpu::RenderPipeline,
     retone: wgpu::RenderPipeline,
     /// The ocean floor, lit per pixel, depth written; the water, blended in
@@ -1239,6 +1245,16 @@ impl Gpu {
             LAND_HDR_FORMAT,
             wgpu::CompareFunction::LessEqual,
         );
+        // Item 4379: the national borders on the same target, through
+        // `TL_FAKE_LIGHT`, with the depth test off (item 4376).
+        let hdr_border = patch_pass_to(
+            "hdr_border",
+            "fs_border_hdr",
+            &patch_layout,
+            false,
+            LAND_HDR_FORMAT,
+            wgpu::CompareFunction::Always,
+        );
         let full_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("full"),
             bind_group_layouts: &[None, None, None, Some(&lake_layout)],
@@ -1446,6 +1462,7 @@ impl Gpu {
             hdr_faded,
             hdr_floor,
             hdr_surf,
+            hdr_border,
             untone,
             retone,
             floor,
@@ -2107,6 +2124,7 @@ impl Gpu {
                 ground_run,
                 frame.land_hdr,
                 frame.surf_hdr,
+                frame.border_hdr,
             );
         } else {
             // Item 4232: the ground in passes of its own, so the water can
@@ -2121,6 +2139,7 @@ impl Gpu {
                 ground_run,
                 frame.land_hdr,
                 frame.surf_hdr,
+                frame.border_hdr,
             );
         }
         {
@@ -2225,6 +2244,7 @@ impl Gpu {
                 size,
                 water_run,
                 frame.surf_hdr,
+                frame.border_hdr,
             );
         }
         // Item 4233 (§3.25): the particles after the figures, as draws
@@ -2395,6 +2415,7 @@ impl Gpu {
         patches: &[UploadedPatch],
         land_hdr: bool,
         surf_hdr: bool,
+        border_hdr: bool,
     ) {
         let view = target.create_view(&Default::default());
         let water = patches.iter().position(|p| p.5 == PatchKind::Water);
@@ -2411,23 +2432,66 @@ impl Gpu {
             }
             None => (first, &first[..0], &first[..0]),
         };
-        {
-            let mut pass = begin(enc, &view, depth_view, true);
-            self.draw_ground(&mut pass, terrain, Some(meshes), first, None);
-        }
         let extent = wgpu::Extent3d {
             width: size.0,
             height: size.1,
             depth_or_array_layers: 1,
         };
+        // Item 4379: the borders' runs leave the frame pass for the HDR
+        // target, so the first pass stops at the first of them.
+        let k = first
+            .iter()
+            .position(|p| border_hdr && p.5 == PatchKind::Border)
+            .unwrap_or(first.len());
+        {
+            let mut pass = begin(enc, &view, depth_view, true);
+            self.draw_ground(&mut pass, terrain, Some(meshes), &first[..k], None);
+        }
+        let draws = (target, &view, depth_view, extent, border_hdr);
+        self.draw_split(enc, draws, &first[k..], None);
         if !run.is_empty() {
             self.land_hdr_pass(enc, target, &view, depth_view, extent, run);
-            if !after.is_empty() {
-                let mut pass = begin(enc, &view, depth_view, false);
-                self.draw_ground(&mut pass, None, None, after, None);
-            }
+            self.draw_split(enc, draws, after, None);
         }
-        self.water_passes(enc, target, depth_view, size, rest, surf_hdr);
+        self.water_passes(enc, target, depth_view, size, rest, surf_hdr, border_hdr);
+    }
+
+    /// **Patches over the frame, the borders' runs in HDR** (item 4379;
+    /// `docs/RENDERER.md` §3.29, "The band's colour"): each run of
+    /// [`PatchKind::Border`] drawn by [`Self::land_hdr_pass`], as the card's
+    /// draws 135 and 136 blend on its HDR target before the tone map, and
+    /// the patches between over the frame as [`Self::draw_ground`] draws
+    /// them. With `border_hdr` off, all of them over the frame.
+    fn draw_split(
+        &self,
+        enc: &mut wgpu::CommandEncoder,
+        (target, view, depth_view, extent, border_hdr): (
+            &wgpu::Texture,
+            &wgpu::TextureView,
+            &wgpu::TextureView,
+            wgpu::Extent3d,
+            bool,
+        ),
+        patches: &[UploadedPatch],
+        lake: Option<&wgpu::BindGroup>,
+    ) {
+        let is_border = |p: &UploadedPatch| border_hdr && p.5 == PatchKind::Border;
+        let mut i = 0;
+        while i < patches.len() {
+            let j = patches[i..]
+                .iter()
+                .position(is_border)
+                .map_or(patches.len(), |k| i + k);
+            if j > i {
+                let mut pass = begin(enc, view, depth_view, false);
+                self.draw_ground(&mut pass, None, None, &patches[i..j], lake);
+            }
+            let e = j + patches[j..].iter().take_while(|p| is_border(p)).count();
+            if e > j {
+                self.land_hdr_pass(enc, target, view, depth_view, extent, &patches[j..e]);
+            }
+            i = e;
+        }
     }
 
     /// **The water and what follows it** (items 4232, 4239, 4338): the
@@ -2444,6 +2508,7 @@ impl Gpu {
         size: (u32, u32),
         rest: &[UploadedPatch],
         surf_hdr: bool,
+        border_hdr: bool,
     ) {
         if rest.is_empty() {
             return;
@@ -2487,8 +2552,8 @@ impl Gpu {
                 .position(|p| p.5 == PatchKind::Surf)
                 .map_or(rest.len(), |k| i + k);
             if j > i {
-                let mut pass = begin(enc, &view, depth_view, false);
-                self.draw_ground(&mut pass, None, None, &rest[i..j], Some(&bind));
+                let draws = (target, &view, depth_view, extent, border_hdr);
+                self.draw_split(enc, draws, &rest[i..j], Some(&bind));
             }
             if j < rest.len() && surf_hdr {
                 // Item 4338: the run of lists from here, on the HDR target.
@@ -2618,6 +2683,7 @@ impl Gpu {
                     PatchKind::Faded => &self.hdr_faded,
                     PatchKind::Floor => &self.hdr_floor,
                     PatchKind::Surf => &self.hdr_surf,
+                    PatchKind::Border => &self.hdr_border,
                     _ => &self.hdr_lit,
                 });
                 pass.set_bind_group(1, t, &[]);

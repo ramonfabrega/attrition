@@ -1090,7 +1090,8 @@ pub const RUN1564_DEEP_GREY: [[i32; 3]; 2] = [[1_139, 0, 0], [274, -7, 4]];
 /// Item 4310: [645, 649, 1, 5] → [661, 663, 2, 4]: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
 #[cfg(test)]
 /// Item 4338: off 661 → 715, on 663 → 717, crossing 2/4 → 0/2: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
-pub const RUN1564_DEEP_STILL: [u32; 4] = [715, 717, 0, 2];
+/// Item 4379: off 715 → 717, on 717 → 718, crossing 0/2 → 0/1: the national borders blended on the HDR target through `TL_FAKE_LIGHT`, before the water and the shade (item 4379, `docs/RENDERER.md` §3.29, "The band's colour"), move the frame's mean, so its white.
+pub const RUN1564_DEEP_STILL: [u32; 4] = [717, 718, 0, 1];
 
 /// **`RUN1564_FADED_HDR`** (item 4310; `docs/RENDERER.md` §3.27, "The
 /// faded land in HDR"): run1564's still at 3279, `SANDY` `[agree with the
@@ -1098,7 +1099,8 @@ pub const RUN1564_DEEP_STILL: [u32; 4] = [715, 717, 0, 2];
 /// up]`.
 #[cfg(test)]
 /// Item 4338: off 649 → 712, on 663 → 717, crossing 0/14 → 2/7: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
-pub const RUN1564_FADED_HDR: [u32; 4] = [712, 717, 2, 7];
+/// Item 4379: off 712 → 713, on 717 → 718: the national borders blended on the HDR target through `TL_FAKE_LIGHT`, before the water and the shade (item 4379, `docs/RENDERER.md` §3.29, "The band's colour"), move the frame's mean, so its white.
+pub const RUN1564_FADED_HDR: [u32; 4] = [713, 718, 2, 7];
 
 /// **`RUN1564_LAND_HDR`** (item 4327; `docs/RENDERER.md` §3.27, "The patches
 /// over the faded land in HDR"): run1564's still at 3279, `[SANDY, the
@@ -1110,7 +1112,8 @@ pub const RUN1564_FADED_HDR: [u32; 4] = [712, 717, 2, 7];
 /// Item 4338: `SANDY` 663, 661, 661, 662 → 717, 719, 715, 717 and the row 1,798, 1,797, 1,796, 1,798 → 1,852, 1,855, 1,850, 1,853: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30). The HDR blend's arm now rises, by two.
 /// Item 4348: each scored count up three, 1,852 → 1,855 and so on, the
 /// agreeing ones held: the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
-pub const RUN1564_LAND_HDR: [[u32; 2]; 4] = [[717, 1855], [719, 1858], [715, 1853], [717, 1856]];
+/// Item 4379: `SANDY` 717 → 718, 719 → 720, 715 → 718 and 717 → 719, each scored count up one to three: the national borders blended on the HDR target through `TL_FAKE_LIGHT`, before the water and the shade (item 4379, `docs/RENDERER.md` §3.29, "The band's colour"), move the frame's mean, so its white.
+pub const RUN1564_LAND_HDR: [[u32; 2]; 4] = [[718, 1856], [720, 1859], [718, 1856], [719, 1858]];
 
 /// **`RUN1564_3279_SURF`** (item 4225; `docs/RENDERER.md` §3.18, "The
 /// surf, off the packet"): `SANDY` and `OCEAN` `[agree, scored]` on the
@@ -1141,7 +1144,8 @@ pub const RUN1564_LAND_HDR: [[u32; 2]; 4] = [[717, 1855], [719, 1858], [715, 185
 /// Item 4310: **`SANDY` 688 → 708**, `OCEAN` holds: the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"; [`RUN1564_FADED_HDR`]).
 /// Item 4348: `OCEAN` 424 of 437 → 427 of 438: the herd turned to the
 /// dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
-pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[708, 772], [427, 438]];
+/// Item 4379: `SANDY` 708 → 711: the national borders blended on the HDR target, before the water (item 4379, `docs/RENDERER.md` §3.29, "The band's colour").
+pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[711, 772], [427, 438]];
 
 /// **`RUN1564_3279_SURF_DRAWN`** (item 4239; `docs/RENDERER.md` §3.27):
 /// `SANDY` and `OCEAN` `[agree, scored]` on run1564's still with the
@@ -1169,9 +1173,10 @@ pub const RUN1564_3279_SURF: [[u32; 2]; 2] = [[708, 772], [427, 438]];
 /// Item 4338: drawn **663 → 717**, typed 689 → 756, off and `OCEAN` hold: the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30).
 /// Item 4348: `OCEAN` 424 of 437 → 427 of 438 on each arm: the herd
 /// turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
+/// Item 4379: `SANDY` 585 → 587 off and 717 → 718 drawn: the national borders blended on the HDR target through `TL_FAKE_LIGHT`, before the water and the shade (item 4379, `docs/RENDERER.md` §3.29, "The band's colour"), move the frame's mean, so its white.
 pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
-    [[585, 772], [427, 438]],
-    [[717, 772], [427, 438]],
+    [[587, 772], [427, 438]],
+    [[718, 772], [427, 438]],
     [[756, 772], [427, 438]],
 ];
 
@@ -1192,10 +1197,11 @@ pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
 /// Item 4358: `SANDY` 166 → 164, 196 → 194, 215 → 213 (a named fall of two on each arm): the border's band
 /// across its whole width on the owner's side (item 4358, `docs/RENDERER.md` §3.29, "The settled band") moves the
 /// frame's mean, so its white.
+/// Item 4379: the dark arms 164 → 165 of 345, 194 of 361 → 192 of 362 (a named fall of two), 213 of 373 → 222 of 378: the national borders blended on the HDR target through `TL_FAKE_LIGHT`, before the water and the shade (item 4379, `docs/RENDERER.md` §3.29, "The band's colour"), move the frame's mean, so its white.
 pub const RUN1564_3279_FOAM: [[[u32; 2]; 2]; 3] = [
-    [[0, 8], [164, 345]],
-    [[0, 8], [194, 361]],
-    [[0, 8], [213, 373]],
+    [[0, 8], [165, 345]],
+    [[0, 8], [192, 362]],
+    [[0, 8], [222, 378]],
 ];
 
 /// **`RUN1564_3279_FISH`** (item 4344; `docs/RENDERER.md` §3.30, "The fish
@@ -1223,10 +1229,11 @@ pub const RUN1564_3279_FOAM: [[[u32; 2]; 2]; 3] = [
 #[cfg(test)]
 /// Item 4358: ours dark 446 → 441 on the second arm (a named fall of five): the border's settled band (item
 /// 4358, `docs/RENDERER.md` §3.29) moves the frame's mean, so its white.
+/// Item 4379: ours dark 441 → 484 and 810 → 857: the national borders blended on the HDR target through `TL_FAKE_LIGHT`, before the water and the shade (item 4379, `docs/RENDERER.md` §3.29, "The band's colour"), move the frame's mean, so its white.
 pub const RUN1564_3279_FISH: [[[u32; 2]; 2]; 3] = [
     [[0, 969], [302, 304]],
-    [[441, 969], [302, 304]],
-    [[810, 969], [302, 304]],
+    [[484, 969], [302, 304]],
+    [[857, 969], [302, 304]],
 ];
 
 /// [`RUN1564_3279_FISH`]'s box about theirs' fish, `(x0, y0, x1, y1)`: the
@@ -1304,15 +1311,16 @@ pub const FOAM_SHARE: f32 = 0.05;
 /// Item 4338: **1,798 → 1,852** (`SANDY` 663 → 717): the surf's lists blended on the HDR target under the card's point sampler (item 4338, `docs/RENDERER.md` §3.30); [`RUN1564_3279_FOAM`].
 /// Item 4348: **1,852 of 1,920 → 1,855 of 1,921**, `OCEAN` 424 of 437 →
 /// 427 of 438: the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
+/// Item 4379: **1,855 → 1,856 of 1,921**, `SANDY` 717 → 718: the national borders blended on the HDR target through `TL_FAKE_LIGHT`, before the water and the shade (item 4379, `docs/RENDERER.md` §3.29, "The band's colour"), move the frame's mean, so its white.
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1855, 1921),
+    (1856, 1921),
     [
         [679, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [717, 772],
+        [718, 772],
         [427, 438],
     ],
 );
@@ -1369,8 +1377,11 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
             [0, 0],
         ],
     ),
+    // Item 4379: run1564 1,866 → 1,868, `OCEAN` 419 → 421: the national
+    // borders blended on the HDR target (`docs/RENDERER.md` §3.29, "The
+    // band's colour").
     (
-        (1866, 1921),
+        (1868, 1921),
         [
             [679, 679],
             [0, 0],
@@ -1378,7 +1389,7 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
             [0, 0],
             [0, 0],
             [736, 772],
-            [419, 438],
+            [421, 438],
         ],
     ),
 ];
@@ -1417,7 +1428,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Item 4338: run1564 1,768 → 1,711 (a named fall of 57 on the made-to-fail side, which now trails the drawn row by 141): the surf's lists blended on the HDR target (`docs/RENDERER.md` §3.30).
 /// Item 4348: run1564's 1,711 of 1,920 → 1,710 of 1,921 (a named fall of
 /// one): the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1020, 1109), (1710, 1921)];
+/// Item 4379: run1564's 1,710 → 1,700 (a named fall of ten on the made-to-fail side, which now trails the drawn row by 156): the national borders blended on the HDR target (item 4379, `docs/RENDERER.md` §3.29, "The band's colour").
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1020, 1109), (1700, 1921)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1743,14 +1755,15 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// side (item 4358, `docs/RENDERER.md` §3.29, "The settled band") over the east edge's beach.
 /// Item 4376: `PLAIN` 678 → 679 of 679: the band on the curve's samples, the chord between, with the depth test
 /// off (item 4376, `docs/RENDERER.md` §3.29, "The band's heights"), moves the frame's mean, so its white.
+/// Item 4379: `PLAIN` 679 → 678 (a named fall of one), `SANDY` 519 → 530, `OCEAN` 244 → 252: the national borders blended on the HDR target through `TL_FAKE_LIGHT`, before the water and the shade (item 4379, `docs/RENDERER.md` §3.29, "The band's colour"), move the frame's mean, so its white.
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
-    [679, 679],
+    [678, 679],
     [0, 0],
     [32, 32],
     [0, 0],
     [0, 0],
-    [519, 772],
-    [244, 438],
+    [530, 772],
+    [252, 438],
 ];
 
 /// **`RUN1564_3279_LAKE_HDR_TEXTURE`** (item 4232): [`TEXTURE`]'s
@@ -8441,9 +8454,11 @@ pub(crate) mod tests {
         }
         assert_eq!(got, RUN1564_LAND_HDR);
         // Item 4338: with the surf in HDR the blend's arm rises by two; the
-        // coral's arms still fall or hold.
+        // coral's arms still fall or hold. Item 4379: or rise by one, the
+        // white the borders' HDR blend moves on each arm (717 against 717
+        // before it, 719 against 718 after).
         assert!(
-            got[2..].iter().all(|g| g[0] <= got[0][0]),
+            got[2..].iter().all(|g| g[0] <= got[0][0] + 1),
             "4327: the coral's arms do not rise on SANDY"
         );
     }

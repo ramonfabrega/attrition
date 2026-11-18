@@ -272,7 +272,11 @@ pub(crate) mod tests {
         // Item 4348: run1564 off row 1,851 → 1,854, luma 1,841 → 1,842; on
         // row 1,852 → 1,855, luma 1,866 holds: the herd turned to the
         // dump's angle (`docs/RENDERER.md` §3.30, "Where the herd stands").
-        ([679, 1854, 1842], [679, 1855, 1866]),
+        // Item 4379: run1564 off row 1,854 → 1,855, luma 1,842 → 1,839 (a
+        // named fall of three); on row 1,855 → 1,856, luma 1,866 → 1,868:
+        // the national borders blended on the HDR target (`docs/RENDERER.md`
+        // §3.29, "The band's colour").
+        ([679, 1855, 1839], [679, 1856, 1868]),
         ([1042, 1171, 1144], [1041, 1171, 1166]),
     ];
 

@@ -91,6 +91,18 @@ fn fs_surf_hdr(i: VOut) -> @location(0) vec4<f32> {
     return vec4<f32>(s, t0.a * i.nl * m);
 }
 
+// Item 4379 (`docs/RENDERER.md` §3.29, "The band's colour"): a national
+// border on the HDR target. The card's draws 135 and 136 (run1567, the pass
+// after 3279) are `MODULATE(TEXTURE, CURRENT)` under a white vertex, through
+// `TL_FAKE_LIGHT`, with no `NO_HDR`: the owner's colour taken to `5 · c^1.9`
+// and blended source alpha over before the tone map, at the vertex ramp's
+// alpha.
+@fragment
+fn fs_border_hdr(i: VOut) -> @location(0) vec4<f32> {
+    let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    return vec4<f32>(surf_light(textureSample(tex, samp, i.uv).rgb), a);
+}
+
 // Item 4327 (`docs/RENDERER.md` §3.27, "The patches over the faded land in
 // HDR"): `fs_floor` before the curve, on the land pass's HDR target.
 @fragment
