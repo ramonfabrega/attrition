@@ -143,4 +143,17 @@ the LDR blend, the HDR blend), and run1564's pair (`pair-1564-half.png`).
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`; quoted below once it has run.
+Whole, by `tools/gate_run.sh`, on `7caf87512`.
+
+- **`gate-pass-1118.log`: `gate exit 0`**, 9 of 9 steps: offline 2.0,
+  guard 0.3, merge pins 1.4, release 23.3, clock 0.1. `Clock: green
+  beside load`. `Suite: 1392 processes for 2521 tests: 145 groups hold
+  1274, 1247 ran alone; 10121 test CPU-seconds`; admission 9.2 s over
+  1,429 leases; load 2.6 at its start and 12.6 at its end; no
+  `skipping:` line. `Rows: one driver row at most: steer 315aa80c
+  (working)`; `Driver: 0 landings since the last pass (backstop 20) ·
+  context 254 k`. `Builders: 0 reaped`; 194 GB free after it.
+
+The guard went red once on the pass's own paperwork before that commit,
+as built: entry 142 had no row in the decisions' index
+(`every_decision_has_an_index_row`), and was given one.
