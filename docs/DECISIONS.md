@@ -157,6 +157,7 @@ is append-only and amended in place, as it always was.
 - 140 standing — The pass of 2026-11-17, second: parity's first game is one comparison short (theirs' walls, ammo and deaths are empty on every frame, ours uncounted), the four designed items ratified with the sample taking the hook, the packets' wiring pin runs in every lane gate, the render seat's five lines stay in their journals
 - 141 standing — Lanes out at the day's line land, and only the last day is careful at the stop (Ramon, 2026-11-17)
 - 142 standing — Codex's live windows join parity's set (5 of 6 games), a driver settles Codex's branch before it briefs, the demand is tried on a game the walk holds, the sample is read by its lines, and a row's footprint is never a colour (2026-11-18)
+- 143 standing — The pass of 2026-11-18, second: step 5 is ratified and the milestone closed, the headline is parity on the declared set, the chain plays the demand's game to its end, the third seat draws what a selected city shows, and no row is minted on the lake's streaks
 
 ## 1. Fidelity before divergence
 
@@ -14100,3 +14101,107 @@ pass ended.
   `https://cdn.ramonfabrega.com/attrition/pass-1118/`, three files. The
   clause in `docs/LOOP.md` (entry 140 §6) already says a pass uploads its
   pairs; what a refusal needs is a permission rule, which is his to add.
+
+## 143. Step 5 is ratified and the milestone closed, the headline is parity, the demand's game is played to its end, and no row is minted on the lake's streaks (2026-11-18)
+
+**What happened.** `commander` (Opus 5.5) ran fourteen lanes off the pass
+of 2026-11-18 (items 4382 to 4395, sixteen first-parent merges), drained
+and gated whole (`gate-drain-1118b.log`, exit 0 on `1e0e1fdfe`, the tip
+and origin/main). The pass ran on the `steer` row from 17:26 −05:00 with
+no subagent and no capture. The tables are in
+`docs/audit/2026-11-18-fable-pass-milestone.md`.
+
+**§1. Step 5 is ratified, and the milestone is closed.** What it rests
+on, each read by the pass and none taken from the handoff:
+
+- **Frame 91.** On run1562's packet nine of the twelve lines are the
+  original's range by range, 425,499 of 425,499 bytes, and walls, ammo and
+  deaths are empty there on both sides. The tests that say so ran in the
+  drain's gate on the tip, with no `skipping:` line.
+- **The last leaf.** `tribute_demanded` left `LEADERS_HELD_OUT` by entry
+  142 §3's rule: on run1683, the demand's game, all twelve lines agree on
+  6,401 of 6,401 states with the leaf emitted. The pass mutated the leaf's
+  three touches against that test (`tools/mutate.py`). The store written
+  0 goes red on 6081, ours 2843059440 against theirs 411149553, the sums
+  item 4392's journal quotes. So the comparison fails when the leaf is
+  wrong.
+- **Every frame.** The minted game agrees on all twelve lines on 24,000
+  of 24,000 frames (`CHECKSUM_FRAMES`), which is more than the step asked.
+
+Three limits, each written where it belongs:
+
+- **The leaf's clear and its one reader are not diff-backed.** With
+  `action_respond`'s clear removed, or the cadence's read removed, the
+  same test stays green: the take ends 320 states after the demand. Both
+  rest on the two readings and the adjudication of 2026-11-11
+  (`docs/audit/2026-11-11-item-4152/`), which is what the second-reading
+  rule asks, and on the fixtures (`docs/LEADERS.md` §8.6).
+- **The walls line has no emitter.** Ours is the empty walk, which refuses
+  a state that holds a wall. No game on disk holds one.
+- **By range, the claim is one frame of one game.** Past frame 91 the
+  agreement is by sum.
+
+The milestone of entry 116 is therefore closed on all five steps: a game
+played here, on a start built here, is replayed by the original and
+agrees with it for its full length.
+
+**§2. The headline is parity on the declared set.** The milestone was the
+headline because it built the oracle. The oracle exists, so the headline
+is what it measures: entry 132 §10's count, zero mismatched frames on the
+twelve state checksums over a declared set of games. It reads **5 of 6**
+(entry 142 §1). The sixth is the 2017 sample, the only whole game by a
+person on disk. This moves nothing of Ramon's: the finish line names this
+counter. **The set's membership is his.** The pass's ruling, his to
+overturn: a game joins when the original has played it to its end and
+every state agrees, so the demand's game joins as a seventh when item
+4396 lands it whole, and a truncated take does not.
+
+**§3. The chain's seat plays the demand's game to its end.** Entry 142
+§3's lesson held: three lanes on a small game closed what ten lanes in a
+three-nation war had not. The same game goes further. Walked past its
+take in our sim (a scratch walk, reverted), the French declare war on the
+idle human on 7937 and conquer it on 10929: `defeated_by` 1, type 0, the
+French won. That is a whole game against the computer in under 11,000
+frames, on a lobby whose first 6,401 states already agree. Item 4396
+mints the same lobby to 11,200 frames and has the original play it under
+the hook. It exercises what §1 could not: the stretch of the cadence, the
+declaration with a demand standing, an attack on an idle seat, the
+conquest and the cascade. The frames are ours and are a hypothesis: a
+parting before them is the item's, on that game.
+
+**§4. The suite's seat stays on the sample, ascending by state.**
+`SAMPLE_RANGES` reads 3 parted ranges on state 0, from 28 at the pass
+before (4384, 4388, 4394). Item 4397 takes them in order: builds' `z` on
+two Farms, leader 2's `oil_patches` order, then units' `unit_masks` on
+92, then the lowest first parting of `SAMPLE_LINES`. Behind it the pass
+books the packets' lines (item 4400): `PACKETS_SCORE` reads 608 of 1,053
+lines on games the walk already holds by draws, a diff on disk with no
+capture, unseated since item 4205.
+
+**§5. The third seat draws what a selected city shows.** The input track
+is whole by its counters and the seat spent three items on the AI's army
+path, which is whole on run1679. The pass looked at run1559b's pair. In
+theirs the selected city has a red line round its plaza, a name plate
+and a health bar; ours has none of the three (`crates/client/src/hud.rs`
+draws a footprint rectangle of its own and prints health as text).
+`docs/RENDERER.md`'s open question 8 kept these out until candidate C was
+counted; entry 134 §11 put playing before the picture since. Item 4398
+mints a row on that photograph with its footprint from geometry (entry
+142 §5) and draws the three.
+
+**§6. No row is minted on the lake's streaks.** Items 4386, 4390 and 4393
+each stopped on their first act and moved nothing (18.80 USD). 4393's
+finding ends the line: two takes of the same frame have equal HUDs (MAD
+0.59) and different lakes (10.49), so the streaks are not a function of
+the state a photograph was taken on. The pass set both takes over ours.
+What the two agree on, and ours does not have: a wide soft band of foam
+inside the south shore, no crisp arcs at the west and east rims, and a
+darker body. Item 4399 mints its row over the pixels where the two takes
+agree within a stated distance, and scores only those.
+
+**§7. One thing was built twice, and no rule is added.** Items 4388 and
+4392 each built `Leader::init`'s row on unseated slots, one for the
+sample and one for the demand's game. The lane gate's `Base moved:`
+refusal caught it and 4392 took 4388's. A prose rule would not hold, and
+the pass found no check that sees two lanes reading the same function
+before either commits.

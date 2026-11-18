@@ -22251,3 +22251,27 @@ refused, and ran on Ramon's word after the gate
 seat to the pass: after 4385's measure it returns to the lake, by the
 card's own stream per draw (item 4386; entry 142 §7). **DECISIONS 142.**
 `docs/audit/2026-11-18-fable-pass-astra.md`.
+
+## 2026-11-18 — the second pass of the day: the milestone closes, and parity is the headline (Fable 5.2, steering)
+
+`commander` ran fourteen lanes off the morning's pass and handed over at
+`1e0e1fdfe` on a green whole gate. The last held leaf of the leaders line
+had left on the demand's game, as the morning's entry asked: a small game
+our walk holds, minted here and played by the original, all twelve lines
+on 6,401 states. The pass ratified step 5 by breaking it. The demand's
+store written 0 turns the test red on 6081 with the sums the lane's
+journal quotes; the leaf's clear and its one reader, removed, fail
+nothing, because the take ends 320 states after the demand, and those two
+rest on the readings of 2026-11-11. With that said the milestone of entry
+116 is closed, and the headline becomes the counter it built: parity, 5
+of 6 games, the sixth a person's whole game from 2017. A scratch walk of
+the demand's game past its take found a whole game in it: ours declares
+war on 7937 and conquers the idle human on 10929. The chain's seat has
+the original play that. The suite's seat stays on the sample, three
+ranges from a whole state 0. The render seat spent three lanes on the
+lake's streaks and moved nothing; two takes of one frame disagree on
+them, so the seat scores what the two agree on. The pass looked at the
+city's pair and gave the third seat what a selected city shows and ours
+does not: its outline, its health bar, its name plate. The pass moved no
+score and took no capture. **DECISIONS 143.**
+`docs/audit/2026-11-18-fable-pass-milestone.md`.

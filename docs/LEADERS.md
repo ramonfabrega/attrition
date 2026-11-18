@@ -2509,6 +2509,15 @@ left at 0, refused by its bucket clause (11,057 ≥ 3,000). The four tributes ar
   states** (`the_demand_s_game_is_whole_on_run1683`); held, leaders parts
   on 6081 (ours 2843059440, theirs 411149553). The demand arm's draws and
   goods are therefore diff-backed on this one walk to 6400.
+  **The pass of 2026-11-18, second** (DECISIONS 143 §1) mutated the leaf's
+  three touches against that test. The store written 0: red on 6081, the
+  same two sums. `action_respond`'s clear removed, and the cadence's read
+  removed: each fails nothing, since the take ends 320 states after the
+  demand. So the store is diff-backed, and the clear and the stretch to
+  `0x2000` rest on §8.5's two readings and the fixtures. Ours walked past
+  the take, unpinned: the French declare on 7937 and the human is
+  conquered on 10929 (`defeated_by` 1, type 0). Item 4396 has the original
+  play that game to its end.
 - **`scale_tribute`**: the load scale of `commerce_tribute` and
   `base_tribute` (`Constants::init`), and its rounding branches, which were
   not re-listed. A deal captured above Commerce 0 pins them.

@@ -190,7 +190,8 @@ impl Sim {
         // to `t` (`dip[t].agree`, `+0x692c`), a demand outstanding
         // (`tribute_demanded`, `+0x334`) stretches the period to `0x2000`
         // and a counteroffer (`counteroffer`, `+0x314`) doubles it. The
-        // demand arm is not carried; the counteroffer is set by the offers
+        // demand is set by `demand_or_declare` (run1683's French on 6081,
+        // item 4392); the counteroffer is set by the offers
         // arm on a deal found short (steps VII-c, VII-d): run1575's French
         // on the alliance of 1051, which doubles their period on the human
         // from 1052.

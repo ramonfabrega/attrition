@@ -85,8 +85,9 @@ impl Diplomacy {
 /// and `counteroffer`, which the French answer to run1575's alliance moves
 /// on 1052 (step VII-d); and `tributes`, the attack price's residue the
 /// exchange leaves (item 4298: run1629's human, 640 of good 2 from 1187).
-/// `tribute_demanded` is held and stays off the line: nothing our walks hold
-/// moves it by a decision we compute (`docs/LEADERS.md` §8.5).
+/// `tribute_demanded` joined them at item 4392: the French store it on 6081
+/// of the demand's game and the leaders line agrees through it (run1683,
+/// `docs/LEADERS.md` §8.6).
 pub const TRIBUTE_LEAVES: [&str; 7] = [
     "tribute_stamp",
     "gift_stamp",

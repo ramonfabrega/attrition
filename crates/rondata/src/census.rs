@@ -352,7 +352,9 @@ pub const RUBRIC_GROUPS: usize = 112;
 // 734 → 736 ported, 332 → 331 replaced and 573 → 572 open at the pass of
 // 2026-11-15 (items 4259 and 4159's twelfth residue each spelled a backed
 // function: one row out of `replaced` and one out of open, by the counts).
-pub const RUBRIC_TERRITORY_PORTED: usize = 736;
+// 736 → 737 ported at the pass of 2026-11-18, second (`tools/rubric.py
+// --record`, after item 4394's `update_all_seen`); replaced and open stand.
+pub const RUBRIC_TERRITORY_PORTED: usize = 737;
 pub const RUBRIC_TERRITORY_REPLACED: usize = 331;
 pub const RUBRIC_TERRITORY_OPEN: usize = 572;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
