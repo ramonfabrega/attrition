@@ -38922,3 +38922,33 @@ run1651 and run1662 print no frame block, and run1654's window ends on 101. File
 Files in place: `gamelog_p.txt`, 3,972,686 bytes, SHA-256
 `09028a282ce7aee7e05b7235d9f51185704e60478486ebec52ffafc1618567f8`; `rontrace.log`, 42,983,808 bytes, SHA-256
 `8fa5edec3b366234586ada66eb0b0345343bd99baf4ab2414440b39ab9b8e833`.
+
+## run1681 — run1567's take with each draw's own stream kept: the lake's strokes by the card (2026-11-18, item 4386, `att-4386`)
+
+`docs/RENDERER.md` §3.30, "The strokes by the card's own stream". **What the disk could not answer**: which draw lays
+the photograph's broad strokes on the lake (parked 4353a). run1567's card trace streams no vertices, and the packet's
+lists are not the card's own per draw. The line is run1567's with one more define, `RON_CARD_STREAMS`
+(`tools/trace/card.h`, this branch):
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1681 --map 14 --end-frame 3296
+--timeout 600 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 0 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cmd-file
+~/ron-data/lab-experiments/2026-11-12-item-4160/photo3294.cmd --tracer-def RON_CARD_PROBE --tracer-def
+RON_CARD_STREAMS`. `poolshot.py ~/ron-golden/run1681 3294 --map 14` ran beside it.
+- **Two dead takes first.** Both died on Wine's `wow64cpu+0x1139` bop fault, a read of `0x00004ECD` at `0x7BF21139`.
+  Take 1 was on pool lane 2 at 13:38: the probe installed on all six sites, and the take died on frame 0. Take 2 was on
+  pool lane 1 at 13:40 and died before frame 0, before the probe installs. Both are kept, not filed:
+  `~/ron-golden/2026-11-18-run1681-take1-fault` and `…-take2-fault`. Each lane's runner held the lane to its
+  600 s timeout.
+- The third take: pool lane 1, launched 13:51:29, at 32.1 frames a second. The probe installed on six sites, with none
+  refused. Two passes were logged, after 3263 (206 draws) and 3279 (207). Every draw kept its stream: the land's own
+  buffers at stride 56, the fish at 40, and the surf's and the churn's through the card's arrays and the shared buffer
+  (`0x0314b1c0`, stride 32). The paused take ran to its timeout as run1567's did. 151 GB free after. Not filed.
+- **The window is stale.** The photograph (`~/ron-data/lab-experiments/2026-11-18-item-4386/run1681-3294.png`, window
+  20577, gamelog at 3295, SHA-256 `bed4514122c4039585dd71ea10e237459ea006c31e7774ca178ceb50621109f2`) shows the start
+  camera over the city, with the clock at 03:28. A second shot a minute later showed the same. Yet the commands staged
+  on 37, 3200 and 3294, and the card's 3279 pass draws the lake. So the pixels are run1564's photograph (parked 4386b).
+- **What it holds**: draws 0–185 are run1567's draw for draw, by both stages' textures. Only three screen-space alert
+  circles are absent.
+
+Trace `~/ron-golden/run1681/map-14/rontrace.log`, 79,549,792 bytes, SHA-256
+`99bfd62caafb4c834d3a38d8bd1e64207313d5a4814eebe0b858a3cc83ee7ded`.
