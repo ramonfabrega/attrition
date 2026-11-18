@@ -1385,6 +1385,20 @@ impl Sim {
             }
 
             let here = self.units[u].pos;
+            if std::env::var_os("RON_PROBE_4395").is_some()
+                && self.frame == 7418
+                && self.units[u].owner == 1
+                && (30..=32).contains(&self.units[u].index)
+            {
+                eprintln!(
+                    "PROBE4395 there 1/{} here {here:?} wp {:?} hit {hit:?} tol {} vd {} top {top:?} path {:?}",
+                    self.units[u].index,
+                    mo.waypoint,
+                    self.units[u].tolerance,
+                    vector_dist(mo.waypoint.x - here.x, mo.waypoint.y - here.y),
+                    self.units[u].path
+                );
+            }
             // Already there: the Euclidean test before the step.
             if vector_dist(mo.waypoint.x - here.x, mo.waypoint.y - here.y)
                 <= self.units[u].tolerance
