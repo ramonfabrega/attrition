@@ -521,7 +521,8 @@ pub(in crate::diff) mod tests {
     /// Item 4394 (the frame-0 `seen2` share and the census's `ever_seen`
     /// mark): goods 1 → 4094 and world 0 → 1716; builds and leaders still
     /// part on the start. Item 4397 (`Setup::reinit_game_units`, every
-    /// building's `z` off the whole start's ground): builds 0 → 76.
+    /// building's `z` off the whole start's ground): builds 0 → 76; and
+    /// (the walk's oil left to `compute_all_territory`) leaders 0 → 241.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 92),
         ("builds", 76),
@@ -530,7 +531,7 @@ pub(in crate::diff) mod tests {
         ("deaths", 3365),
         ("groups", 927),
         ("guys", 2920),
-        ("leaders", 0),
+        ("leaders", 241),
         ("cities", 3176),
         ("items", 3976),
         ("goods", 4094),
