@@ -590,7 +590,7 @@ mod tests {
         let rec_game = crate::recgame::read(&rcx).expect("the sample parses");
         let (mut built, _) = sample_start(&inst, &rec_game);
         let mut stream = crate::input::Stream::pump(&rec_game);
-        let mut seen: Vec<Option<(i64, usize, usize, usize, String)>> = vec![None; 12];
+        let mut seen: Vec<Option<FirstSeen>> = vec![None; 12];
         let mut frames = 0usize;
         while built.sim.frame <= SAMPLE_RANGES_WINDOW {
             let f = built.sim.frame;
@@ -688,6 +688,9 @@ mod tests {
     }
 
     type SampleRange = (&'static str, i64, usize, usize, usize, String);
+
+    /// A line's first parting: `(frame, the record's ranges, ours, parted, the text)`.
+    type FirstSeen = (i64, usize, usize, usize, String);
 
     /// run1678's last frame, ours: the record holds trace frames −1 to 99.
     const SAMPLE_RANGES_WINDOW: i64 = 100;
