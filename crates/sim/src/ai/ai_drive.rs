@@ -189,10 +189,6 @@ impl Sim {
             self.ai.ai[w].step = Step::Idle;
             return;
         }
-        if std::env::var_os("RON_PROBE_4359").is_some() && (2795..=2912).contains(&self.frame) {
-            let l: Vec<(i32, i32)> = self.ai.ai[w].make_list.list.iter().map(|m| (m.t, m.val)).collect();
-            eprintln!("PROBE4359 f{} who {} step {:?} make {:?}", self.frame, who, self.ai.ai[w].step, l);
-        }
         let unlimited = self.ai.lobby.resources_unlimited();
         self.ai.ai[w].effective_pop = self.queued_units(who) + self.roster.muster[w].control + 1;
         self.ai.ai[w].enter(unlimited);
