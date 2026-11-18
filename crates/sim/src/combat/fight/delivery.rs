@@ -1210,6 +1210,7 @@ impl Sim {
             // `docs/AI.md` §230): run866's capital at its ceiling steps
             // `damage_frac` 10, 15, 4, 9 … from 5161.
             if bd.damage >= hits {
+                bd.damage_marked = true;
                 bd.damage = hits;
                 if !bd.garrison.is_empty() {
                     bd.eject_pending = true;
@@ -1218,6 +1219,7 @@ impl Sim {
             bd.sync_health();
             return Taken::Alive { lost };
         }
+        bd.damage_marked |= matches!(taken, Taken::Alive { .. });
         bd.sync_health();
         if matches!(taken, Taken::Died { .. }) {
             bd.damage = hits;

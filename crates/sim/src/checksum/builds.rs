@@ -147,6 +147,7 @@ impl Sim {
             (0x1, bd.alive),
             (0x2, bd.started),
             (0x4, bd.active),
+            (0x10, bd.damage_marked),
             (0x20, city),
             (0x80, bd.attacking),
         ]

@@ -38516,3 +38516,26 @@ sweeps came from `get_position.py <exe> <packet> sweep 127 0 ANIM TIME`.
 361 headings. Retained score runs are `score-before-a.log`,
 `score-ammo-a.log` and `score-socket-melee-a.log`; the full packet survey
 is `socket-melee-packets.log`.
+
+
+## Window combat A, independent flags take (item 4366, 2026-11-18)
+
+Same recording, seed, end frame and snapshot plan as item 4365. Output
+`$E/seam-a`. The capture changed to `--log-window 9413 9455 --detail
+end:MISC,UNITS=4,BUILDS=4 --tracer-def RNG_MASK=0x83 --tracer-def
+RON_STATE_FRAME=9416`. It exited 0, reached 11720, restored five files,
+and recorded zero page faults. The two independent takes agree on all
+11,722 checksum sets. The offline state-9416 packet reproduced all 15
+sums. Its 3,798 unit, build and leader ranges match the in-game bytes.
+The hook uses the preceding tick number, 9415, for that state.
+
+```sh
+python3 tools/trace/ranges.py "$E/seam-a/map-14/rontrace.ranges" check \
+  --hook "$E/oracle-a/map-14/rontrace.log"
+python3 tools/trace/ranges.py "$E/seam-a/map-14/rontrace.ranges" compare \
+  --frame 9416 --stream "$E/seam-a-stream.tsv"
+```
+
+The final comparison is `$E/score-flags-a.log`. Packet measurements are
+in `$E/flags-packets.log`. The regression reads the unit and building
+ranges on 9415, 9416, 9451, 9452, 9746 and 10320.

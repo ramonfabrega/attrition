@@ -312,8 +312,8 @@ impl Sim {
     /// frames 1 to 30 without it), `0x10` [`crate::Unit::cant_reach`], and
     /// `0x40`, which `Object::init@00647750:39` sets when the type's
     /// `objmask` carries `0x2000000` — [`crate::combat::mask::DETECT`], the
-    /// type's `obj_masks` (`docs/CHECKSUM.md` §17). `0x20` and `0x80` are
-    /// not emitted.
+    /// type's `obj_masks` (`docs/CHECKSUM.md` §17). The attack latch is
+    /// `0x80` (window A, state 9416).
     fn unit_flags_byte(&self, u: usize) -> u8 {
         let un = &self.units[u];
         let detect = un.ty.is_some_and(|t| {
@@ -322,6 +322,7 @@ impl Sim {
         1 | if un.idle_latch { 0x08 } else { 0 }
             | if un.cant_reach { 0x10 } else { 0 }
             | if detect { 0x40 } else { 0 }
+            | if un.attacking { 0x80 } else { 0 }
     }
 
     /// A garrisoned captain's two neighbours in its building's chain, as

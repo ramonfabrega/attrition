@@ -579,6 +579,13 @@ rows measured over all whole degrees put the sprites at the original integer
 coordinates (COMBAT §22.5). The packet census gains 43 whole ammo lines and
 six whole deaths lines, from 500 to 549 of 1,053. Frame 91 stays 8/12.
 
+Item 4366 closes the two remaining window A lines. The shared object flag byte
+includes a unit's existing attack latch in bit 7. An ordinary building which
+survives a hit keeps bit 4. An active city returns early and sets that bit
+only when its damage reaches its hit ceiling. Repair changes damage without
+clearing the flag. These flags take the full-file score to twelve lines on
+all 11,721 states, and the independent packet score to 562 of 1,053.
+
 ## 9. Pointers, floats, padding and locals
 
 - **Pointers: none walked**, in any of the twelve on this frame (§4).

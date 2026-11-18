@@ -799,3 +799,10 @@ clearance and closing. The leaders line gains 350 states from the corrected
 sprite timing. Units first differ at 9416 and buildings at 9452, both in
 their flags. The immutable baseline, recordings and capture receipts are
 in the item 4365 entry in RUNS.
+
+
+Item 4366 closes the two flag differences. On state 9416 the only differing
+unit byte was object 1/29's first flag, 17 versus 145. On 9452 the only
+differing building byte was object 0/2004's first flag, 7 versus 23.
+The independent take includes both sides of each boundary. All twelve
+lines now agree throughout the 11,721 states, including the closing one.
