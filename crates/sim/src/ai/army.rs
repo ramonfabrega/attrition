@@ -1812,16 +1812,8 @@ impl Sim {
                         k,
                         draw,
                     ) else {
-                        if std::env::var_os("RON_PROBE_SCORE").is_some() {
-                            eprintln!("PROBE_SCORE f{} who {who} slot {slot} pass {pass} ip {ip} k {k} build {} draw {draw} v None", self.frame, self.buildings[self.cities.cities[c].building].index);
-                        }
                         continue;
                     };
-                    if std::env::var_os("RON_PROBE_SCORE").is_some() {
-                        eprintln!("PROBE_GATE f{} who {who} i {i} about {about} ww {:?} pop {:?} winning {} bits no_heal {} cap {} at_war {:?} defmod {:?}", self.frame, self.leaders.endgame.iter().map(|e| e.wonderwin_timer).collect::<Vec<_>>(), self.leaders.pop_issues, self.wonder_winning(), self.cities.cities[c].no_heal, self.cities.cities[c].capital, self.leaders.at_war, self.ai.ai.iter().map(|a| a.defense_mod).collect::<Vec<_>>());
-                        eprintln!("PROBE_CHAIN f{} city {} {:?}", self.frame, self.buildings[self.cities.cities[c].building].index, self.city_chain(c).into_iter().filter(|&b| self.buildings[b].ty.is_some_and(|t| self.tables.build_types[t].wonder)).map(|b| (self.buildings[b].index, self.buildings[b].alive, self.buildings[b].active, self.buildings[b].health)).collect::<Vec<_>>());
-                        eprintln!("PROBE_SCORE f{} who {who} slot {slot} pass {pass} ip {ip} k {k} build {} draw {draw} v {v}", self.frame, self.buildings[self.cities.cities[c].building].index);
-                    }
                     if best.is_none_or(|(bv, _, _)| bv <= v) {
                         best = Some((v, self.cities.cities[c].building, ip));
                     }
