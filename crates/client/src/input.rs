@@ -3528,8 +3528,31 @@ pub(crate) mod tests {
     fn mint_on(
         events: Vec<Scripted>,
         with_sim: bool,
+        through: impl FnMut(&mut Input, i32, Event, &View) -> Option<Order>,
+    ) -> Option<(Vec<Order>, FreeRunner)> {
+        mint_beside(events, &[], with_sim, through)
+    }
+
+    /// [`mint_with_sim`] with `foreign`'s packages issued on their frames
+    /// beside the events, each before the events of its frame: another
+    /// slot's orders, which no event of slot 0's client mints (item 4383,
+    /// the computer's attack). They are the script's, not minted, and the
+    /// count says so.
+    pub(crate) fn mint_with_sim_beside(
+        events: Vec<Scripted>,
+        foreign: &[Order],
+        through: impl FnMut(&mut Input, i32, Event, &View) -> Option<Order>,
+    ) -> Option<(Vec<Order>, FreeRunner)> {
+        mint_beside(events, foreign, true, through)
+    }
+
+    fn mint_beside(
+        events: Vec<Scripted>,
+        foreign: &[Order],
+        with_sim: bool,
         mut through: impl FnMut(&mut Input, i32, Event, &View) -> Option<Order>,
     ) -> Option<(Vec<Order>, FreeRunner)> {
+        let mut foreign = foreign.iter().peekable();
         let mut r = match lobby() {
             Ok(r) => r,
             Err(e) => {
@@ -3540,6 +3563,13 @@ pub(crate) mod tests {
         let mut input = Input::new(0);
         let mut out = Vec::new();
         for (frame, at, ev) in events {
+            while let Some(o) = foreign.next_if(|o| o.0 <= frame) {
+                while r.frame() < i64::from(o.0) {
+                    r.step();
+                }
+                r.issue(o);
+                out.push(o.clone());
+            }
             while r.frame() < i64::from(frame) {
                 r.step();
             }
@@ -13510,6 +13540,134 @@ pub(crate) mod tests {
     /// `RON_RCX_OUT`.
     const TRANSPORT_RCX: &str = "ron-golden/recordings/item4363-transport-greatlakes-24000.rcx";
     const TRANSPORT_RCX_BYTES: usize = 59_825;
+
+    /// **The Repair pick's `REPAIR` stage 0** (item 4383,
+    /// `docs/CLIENT_INPUT.md` §32.15): on [`script::REPAIR_FRAME`] of the
+    /// walk under the repair script, the Citizen [`script::REPAIR_UNIT`]'s
+    /// pixel at the opening camera, the REPAIR button's centre in the
+    /// standard panel the HUD draws for it, and the wounded Capital's pixel.
+    const REPAIR_AT: (i32, i32) = (916, 476);
+    const REPAIR_BUTTON: (i32, i32) = (545, 1012);
+    const REPAIR_PRESS: (i32, i32) = (1127, 521);
+
+    /// The repair file's events: the transport file's, then a press on the
+    /// citizen, one on REPAIR and one on the Capital.
+    fn repair_events() -> Vec<Scripted> {
+        let mut e = transport_events();
+        for (x, y) in [REPAIR_AT, REPAIR_BUTTON, REPAIR_PRESS] {
+            e.push((script::REPAIR_FRAME, None, Event::Press { x, y }));
+        }
+        e
+    }
+
+    /// **`INPUT_REPAIR_FILE`** (item 4383): the repair file's events,
+    /// through the HUD and the layer (`mint_with_sim_beside`), mint
+    /// [`script::picked_repair`]'s slot-0 orders field for field, of 42;
+    /// the computer's attack is the script's, injected on its frame.
+    const INPUT_REPAIR_FILE: usize = 42;
+
+    /// **The repair file's count**: stage 0 on [`script::REPAIR_FRAME`] —
+    /// the citizen is slot 0's and where the press lands, REPAIR stands
+    /// where the second lands, the Capital is damaged and where the third
+    /// lands — then the events, with the computer's attack beside them,
+    /// mint the repair script, and the file written from them is the
+    /// repair file.
+    #[test]
+    fn minted_repair_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let orders = script::picked_repair();
+        let c = camera(None);
+        let mut next = 0;
+        while r.frame() < i64::from(script::REPAIR_FRAME) {
+            let g = r.frame() as i32;
+            while next < orders.len() && orders[next].0 == g {
+                r.issue(&orders[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        let (scene, terrain) = (r.scene(Some(0)), r.terrain());
+        let v = view(&c, &scene, &terrain);
+        let uid = ObjId {
+            who: 0,
+            o: script::REPAIR_UNIT,
+        };
+        let u = scene.units.iter().find(|u| u.id == uid).unwrap();
+        let mut input = Input::new(0);
+        input.selection = vec![uid];
+        let row = crate::hud::roster_menu(&input, &scene, Some(r.sim()), HUD_SIZE);
+        let button = row
+            .iter()
+            .find(|b| b.button.option == OPTION_REPAIR && b.ev == Event::Pick(OPTION_REPAIR))
+            .map(|b| b.rect.centre());
+        let capital = ObjId {
+            who: 0,
+            o: script::WOUNDED,
+        };
+        let b = r.sim().building_by_o(0, script::WOUNDED).unwrap();
+        let (hits, health) = (r.sim().buildings[b].hits, r.sim().buildings[b].health);
+        let t = scene
+            .buildings
+            .iter()
+            .find(|x| x.id == capital)
+            .map(|x| v.pixel(x.pos.x, x.pos.y, x.z));
+        println!(
+            "REPAIR STAGE0 f{} unit 0/{} peasant {} at {:?} button {button:?} capital {t:?} hits {hits} health {health}",
+            r.frame(),
+            uid.o,
+            u.spy.peasant,
+            v.pixel(u.pos.x, u.pos.y, u.z),
+        );
+        assert!(u.spy.peasant, "a citizen");
+        assert_eq!(v.pixel(u.pos.x, u.pos.y, u.z), REPAIR_AT);
+        assert_eq!(button, Some(REPAIR_BUTTON));
+        assert!(health < hits, "the Capital is damaged");
+        assert_eq!(t, Some(REPAIR_PRESS));
+        drop(r);
+
+        let foreign: Vec<Order> = orders.iter().filter(|o| o.1 != 0).cloned().collect();
+        assert_eq!(foreign.len(), 1, "the computer's attack");
+        let Some((ours, r)) =
+            mint_with_sim_beside(repair_events(), &foreign, |input, frame, ev, view| {
+                crate::hud::event(input, HUD_SIZE, frame, ev, view)
+            })
+        else {
+            return;
+        };
+        let minted = ours
+            .iter()
+            .zip(&orders)
+            .filter(|(a, b)| a.1 == 0 && a == b)
+            .count();
+        assert_eq!(
+            (ours.len(), minted),
+            (orders.len(), INPUT_REPAIR_FILE),
+            "{:?}",
+            &ours[ours.len().saturating_sub(3)..]
+        );
+        assert_eq!(ours, orders);
+        drop(r);
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(transport), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(TRANSPORT_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(REPAIR_RCX)),
+        ) else {
+            println!("skipping the bytes: no {TRANSPORT_RCX} or {REPAIR_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), REPAIR_RCX_BYTES);
+        let written = written(&ours).unwrap();
+        assert!(written == file, "the file from the repair orders");
+        assert!(written != transport, "not the transport file");
+    }
+
+    /// The repair file (`docs/CLIENT_INPUT.md` §32.15), written by
+    /// rondata's `the_repair_minted_packages_round_trip` under `RON_RCX_OUT`.
+    const REPAIR_RCX: &str = "ron-golden/recordings/item4383-repair-greatlakes-24000.rcx";
+    const REPAIR_RCX_BYTES: usize = 59_862;
 
     /// **`INPUT_KINDS`** (item 4249, `docs/CLIENT_INPUT.md` §11): of the
     /// order kinds the recordings on disk carry

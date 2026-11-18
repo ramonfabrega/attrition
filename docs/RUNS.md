@@ -38952,3 +38952,53 @@ RON_CARD_STREAMS`. `poolshot.py ~/ron-golden/run1681 3294 --map 14` ran beside i
 
 Trace `~/ron-golden/run1681/map-14/rontrace.log`, 79,549,792 bytes, SHA-256
 `99bfd62caafb4c834d3a38d8bd1e64207313d5a4814eebe0b858a3cc83ee7ded`.
+## run1679 — the original playing the repair file: the computer's attack and the Repair pick's `REPAIR` (2026-11-18, item 4383, `att-4383`)
+
+`docs/CLIENT_INPUT.md` §32.15. **What the disk could not answer**: no take on disk plays a `play` 1 package from a
+minted file, and none plays the Repair pick's `REPAIR` from one (4381a). The file:
+`~/ron-golden/recordings/item4383-repair-greatlakes-24000.rcx`, 59,862 bytes, SHA-256
+`d3e5662832136b00a4828ff6dd93f5e7b54dc6ae79d812c78f5aeac5b6b7de04`. It is the transport file (run1668) with two
+packages more: on 6920, `play` 1, `group [24, 25, 26]` and `attack(2000, 0, 0, QUEUE_NEW)`; on 8200, `group [12]` and
+`swarm_around(2000, 0, QUEUE_NEW, REPAIR)`.
+
+The take is run1668's line with this file, to 8500: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1679 --recording <the file> --end-frame 8500 --cover cover=1
+--log-window 6900 8500 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2,DEATHS=1 --timeout 3600 --stall-seconds 120`.
+It was waited on with `waitrun.sh` in the background. `df -g ~` read 166 GB free before it.
+- **The run**: pool lane 1, launched 13:23:52 −05:00, exited 13:39:35: **942.9 s from launch to exit**, exit 0,
+  `success`, no page fault, no relaunch. 8,501 frames, `last_frame` 8500, seed 12345, map 14. Players: tribe 4
+  (flags 7) and tribe 11 (flags 1). Five settings restored. The receipt names the file's SHA-256. The playback
+  was not refused. Minutes waited on another lane: none.
+- **The `.rcx` the playback leaves**: none but the run's own `input.rcx`, the symlink to the file played.
+- Filed with `filerun.py run1679 greatlakes-playback-of-repair-8500`.
+
+Archive `gamelog-run1679-greatlakes-playback-of-repair-8500.txt`, 390,546,546 bytes,
+SHA-256 `17f712946e312ee0f460653a0a60967b35654d2ca475907d20d039ba82f7ec80`; `rontrace-run1679.log`, 36,496,416
+bytes, SHA-256 `3d031a0eeef6d729d642954c615e1a9ce31dcd5a5f7d424a5ec6e93613624085`.
+
+## run1678 — the 2017 sample's playback to 100 with the checksum and ranges hooks, all twelve lines kept (2026-11-18, item 4384, `att-4384`)
+
+`docs/RECGAME.md` §7; DECISIONS 142 §4. **What the disk could not answer**: run1662's sums say builds, leaders and world
+part on state 0, goods on 1 and units on 92, and name no range. No range record of the sample existed, and the
+default `RNG_MASK` keeps lines 0 to 7, without goods and world. The take: run1662's line to 100 with the range record
+and the mask widened, `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1678
+--recording "<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx" --end-frame 100 --cover cover=1
+--log-window 0 101 --detail end:MISC --timeout 900 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xfffu`, waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 13:08:52 −05:00, exited 13:09:24: **32.3 s** launch to exit, exit 0, `success`, 101 frames,
+  `last_frame` 100, not ended early, seed observed 340513920, five settings restored, no page fault, no relaunch.
+  `df -g ~` read 180 GB free before it. Minutes waited on another lane: none. DLL `290cd4db…`, defines
+  `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xfffu`.
+- **The record**, `~/ron-golden/run1678/map-7/rontrace.ranges`, 77,271,928 bytes, SHA-256
+  `e2d4118974a7019487f7f74948279c4def2187b2d9e3799dc1c28d0f8ab8871e`: 111 sets on trace frames −1 to 99, 1,284,529
+  ranges, 56,708,636 bytes, none over, all twelve lines kept. `ranges.py check --hook <run1662's log>`: every set's
+  twelve lines re-sum to its words, and the 111 sets are run1662's (0 part, 0 of ours missing there).
+- Filed with `filerun.py run1678 sample2017-playback-ranges-100` (not a `greatsahara` tag, run1662's lesson). The
+  record stays where the take left it.
+
+Archive `gamelog-run1678-sample2017-playback-ranges-100.txt`, 3,772 bytes,
+SHA-256 `7cc03a2b1214b88c2d3a726ddda41d6ff805b37010006edab20dedf010e88782`; `rontrace-run1678.log`, 8,914,240 bytes,
+SHA-256 `4e95371959a2d3cfae9cf1860557740af7d046555d894fe8873ab05b77f2901f`.
+
+**What it holds**: `diff::sample::tests::the_sample_s_ranges_name_each_first_parting` (`SAMPLE_RANGES`): each line's
+first parting by range, record and field.

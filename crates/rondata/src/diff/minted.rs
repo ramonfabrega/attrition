@@ -6985,6 +6985,325 @@ fn the_original_s_playback_of_the_transport_file_walks_in_lockstep() {
     assert_eq!(entries, TRANSPORT_ENTRIES, "the press's functions");
 }
 
+/// **The repair file's packages round-trip** (item 4383,
+/// `docs/CLIENT_INPUT.md` §32.15): the transport script and two packages
+/// more, the computer's `attack` on [`crate::script::WOUND_FRAME`] on
+/// `play` 1 and the Repair pick's `REPAIR` on
+/// [`crate::script::REPAIR_FRAME`]; every package before them is the
+/// transport file's, frame, slot and stamp. With `RON_RCX_OUT=<file>` it
+/// writes the `.rcx` a playback takes open.
+#[test]
+fn the_repair_minted_packages_round_trip() {
+    use crate::script::{REPAIR_FRAME, WOUND_FRAME, picked_repair, picked_transport};
+    let (Some(rec), Some(before)) = (minted(&picked_repair()), minted(&picked_transport())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "repair").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in picked_repair().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let stamps = |r: &crate::recgame::RecGame| -> Vec<(i32, i32, u32)> {
+        r.packages
+            .iter()
+            .map(|p| (p.frame, p.play, p.stamp))
+            .collect()
+    };
+    let (ours, old) = (stamps(&back), stamps(&before));
+    eprintln!(
+        "REPAIR tails {:?} against {:?}",
+        &ours[ours.len() - 4..],
+        &old[old.len() - 2..]
+    );
+    let (n, m) = (ours.len(), old.len());
+    assert_eq!((n, ours[..m - 1].to_vec()), (m + 2, old[..m - 1].to_vec()));
+    assert_eq!((ours[n - 3].0, ours[n - 3].1), (WOUND_FRAME, 1));
+    assert_eq!((ours[n - 2].0, ours[n - 2].1), (REPAIR_FRAME, 0));
+    let gz = crate::recgame::write_gz(&rec);
+    let old = crate::recgame::write_gz(&before);
+    eprintln!(
+        "REPAIR RCX {} bytes (the transport file {})",
+        gz.len(),
+        old.len()
+    );
+    assert_eq!(old.len(), TRANSPORT_RCX_BYTES, "the file run1668 played");
+    assert_eq!(gz.len(), REPAIR_RCX_BYTES, "REPAIR_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The repair file's gzipped length (`docs/CLIENT_INPUT.md` §32.15).
+const REPAIR_RCX_BYTES: usize = 59_862;
+
+/// The frames the two packages' effects are read on, both sides.
+const REPAIR_READ_AT: [i64; 16] = [
+    6920, 6921, 6922, 7500, 8180, 8190, 8200, 8201, 8202, 8250, 8300, 8325, 8350, 8375, 8400, 8500,
+];
+
+/// One frame of the two packages' effects: the Capital's `damage`
+/// (`hits − health` on ours), the repairing Citizen's position and head
+/// order (`None` before it is trained), and each Bowman's, `None` once
+/// it is gone.
+/// A unit on one frame: its position and its head order.
+type Seen = Option<((i64, i64), Option<i64>)>;
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct RepairEffect {
+    pub frame: i64,
+    pub damage: i64,
+    pub repairer: Seen,
+    pub wounders: [Seen; 3],
+}
+
+/// Our walk under the pump on `orders`' file, read on `at`.
+fn repair_effects_ours(orders: &[Order], at: &[i64]) -> Vec<RepairEffect> {
+    use crate::script::{REPAIR_UNIT, WOUNDED, WOUNDERS};
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in at {
+        tick_to(&mut built, Some(&mut stream), n);
+        let s = &built.sim;
+        let b = &s.buildings[s.building_by_o(0, WOUNDED).expect("the Capital")];
+        let unit = |who, o| {
+            s.unit_by_o(who, o).map(|k| {
+                let u = &s.units[k];
+                (
+                    (i64::from(u.pos.x), i64::from(u.pos.y)),
+                    u.orders.front().map(|o| i64::from(o.index())),
+                )
+            })
+        };
+        ours.push(RepairEffect {
+            frame: s.frame,
+            damage: i64::from(b.hits - b.health),
+            repairer: unit(0, REPAIR_UNIT),
+            wounders: WOUNDERS.map(|o| unit(1, o)),
+        });
+    }
+    ours
+}
+
+/// The original's, off the take's records on `at`.
+fn repair_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<RepairEffect>> {
+    use crate::script::{REPAIR_UNIT, WOUNDED, WOUNDERS};
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take)?).unwrap();
+    let mut theirs = Vec::new();
+    for &n in at {
+        let Some(i) = source.frames().iter().position(|f| f.number == n) else {
+            continue;
+        };
+        let f = source.frame_state(i).unwrap();
+        let b = f
+            .builds
+            .iter()
+            .find(|b| b.who == 0 && b.o == i64::from(WOUNDED))
+            .expect("the Capital");
+        let unit = |who: i64, o: i16| {
+            f.units
+                .iter()
+                .find(|u| u.who == who && u.o == i64::from(o))
+                .map(|u| ((u.pos.x, u.pos.y), u.current_order().map(|o| o.index)))
+        };
+        theirs.push(RepairEffect {
+            frame: n,
+            damage: b.damage.expect("damage"),
+            repairer: unit(0, REPAIR_UNIT),
+            wounders: WOUNDERS.map(|o| unit(1, o)),
+        });
+    }
+    Some(theirs)
+}
+
+/// **What the two packages do on our walk** (item 4383,
+/// `docs/CLIENT_INPUT.md` §32.15), pinned off our walk's print before
+/// run1679's records were read on these frames.
+fn repair_effects() -> Vec<RepairEffect> {
+    let u = |x, y, head| Some(((x, y), head));
+    let row = |frame, damage, repairer: Seen, wounders: [Seen; 3]| RepairEffect {
+        frame,
+        damage,
+        repairer,
+        wounders,
+    };
+    let (bowmen, citizen) = ([None; 3], u(2232, 31224, Some(7)));
+    let at = u(2472, 30840, Some(13));
+    let done = u(2472, 30840, None);
+    let (a, c) = (u(6216, 29976, Some(10)), u(6168, 29592, Some(10)));
+    vec![
+        row(
+            6920,
+            0,
+            None,
+            [
+                u(30919, 21067, None),
+                u(30888, 21192, None),
+                u(30936, 20952, None),
+            ],
+        ),
+        row(
+            6921,
+            0,
+            None,
+            [
+                u(30936, 21048, Some(1)),
+                u(30888, 21192, Some(1)),
+                u(30936, 20952, Some(1)),
+            ],
+        ),
+        row(
+            6922,
+            0,
+            None,
+            [
+                u(30964, 21052, Some(1)),
+                u(30911, 21176, Some(1)),
+                u(30965, 20952, Some(1)),
+            ],
+        ),
+        row(
+            7500,
+            0,
+            citizen,
+            [
+                u(22740, 27052, Some(1)),
+                u(22529, 26686, Some(1)),
+                u(22882, 26635, Some(1)),
+            ],
+        ),
+        row(8180, 0, citizen, [a, None, c]),
+        row(8190, 1, citizen, [a, None, c]),
+        row(8200, 1, citizen, [a, None, None]),
+        row(8201, 1, u(2245, 31203, Some(1)), [a, None, None]),
+        row(8202, 1, u(2258, 31182, Some(1)), [a, None, None]),
+        row(8250, 3, at, [a, None, None]),
+        row(8300, 2, at, bowmen),
+        row(8325, 2, at, bowmen),
+        row(8350, 0, done, bowmen),
+        row(8375, 0, done, bowmen),
+        row(8400, 0, done, bowmen),
+        row(8500, 0, done, bowmen),
+    ]
+}
+
+/// **The computer's attack and the Repair pick's `REPAIR` on our walk and
+/// on the original's** (item 4383): on [`REPAIR_READ_AT`], ours pinned,
+/// against the transport file's walk (no wound, no repair); and run1679's
+/// records, equal to ours.
+#[test]
+fn what_the_repair_does_on_both_sides() {
+    if built_start().is_none() || minted(&crate::script::picked_repair()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let ours = repair_effects_ours(&crate::script::picked_repair(), &REPAIR_READ_AT);
+    let without = repair_effects_ours(&crate::script::picked_transport(), &REPAIR_READ_AT);
+    for (a, b) in ours.iter().zip(&without) {
+        eprintln!("REPAIR EFFECT ours {a:?}\n              without {b:?}");
+    }
+    assert_eq!(ours, repair_effects(), "ours, pinned");
+    assert!(
+        without.iter().all(|e| e.damage == 0),
+        "the transport file wounds nothing"
+    );
+    let Some(theirs) = repair_effects_theirs(REPAIR_WALKED[0].0, &REPAIR_READ_AT) else {
+        return;
+    };
+    for t in &theirs {
+        eprintln!("REPAIR EFFECT theirs {t:?}");
+    }
+    // The walk parts on 7163 (parked 4383a): ours equals theirs through
+    // 7500, the attack's march; past it the wound and the repair are
+    // read on each side by when they happen.
+    assert_eq!(theirs[..4], ours[..4], "the march, both sides");
+    assert_eq!(
+        theirs.len(),
+        REPAIR_READ_AT.len() - 1,
+        "8500 is the closing block"
+    );
+    let first = |v: &[RepairEffect]| v.iter().find(|e| e.damage > 0).map(|e| e.frame);
+    let repairing = |v: &[RepairEffect]| {
+        v.iter()
+            .find(|e| e.repairer.and_then(|r| r.1) == Some(i64::from(sim::ids::order::REPAIR)))
+            .map(|e| e.frame)
+    };
+    let whole = |v: &[RepairEffect]| {
+        v.iter()
+            .rev()
+            .take_while(|e| e.damage == 0)
+            .last()
+            .map(|e| e.frame)
+    };
+    let read = |v: &[RepairEffect]| (first(v), repairing(v), whole(v));
+    assert_eq!(read(&ours), (Some(8190), Some(8250), Some(8350)), "ours");
+    assert_eq!(
+        read(&theirs),
+        (Some(8200), Some(8250), Some(8300)),
+        "the original wounds the Capital, repairs it, and it is whole"
+    );
+}
+
+/// **The original's playback of the repair file** (item 4383,
+/// `docs/CLIENT_INPUT.md` §32.15): `(take, trace, first sequence parting
+/// or the last frame, last frame, records compared, records parted)`.
+/// Pinned before run1679 was read at 8500 and none parted; it read parted,
+/// first on 7163 (slot 1's new Longbowman `1/30` heads `GROUP_ATTACK_TO`
+/// on ours, `ATTACK_TO` on theirs; parked 4383a), the draws on 7274, and
+/// is pinned as measured.
+pub(crate) const REPAIR_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1679-greatlakes-playback-of-repair-8500.txt",
+    "rontrace-run1679.log",
+    7274,
+    8500,
+    1600,
+    1337,
+)];
+
+/// **The original plays the repair file in lockstep** (item 4383): the
+/// built start walked under the pump on the repair file against the take,
+/// every frame's draws and every record of its window ([`REPAIR_WALKED`]).
+#[test]
+fn the_original_s_playback_of_the_repair_file_walks_in_lockstep() {
+    let orders = crate::script::picked_repair();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in REPAIR_WALKED {
+        let Some((w, _)) = walk_minted(&orders, take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "REPAIR WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        if let Some((o, t)) = &w.sites
+            && let Some((_, d)) = first_parting(o, t)
+        {
+            eprintln!("the first parting frame, {:?}: {d}", w.first_sequence);
+        }
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    assert_eq!(walked, REPAIR_WALKED, "the walked table");
+}
+
 /// **The original's playback of the auto-explored file** (item 4291,
 /// `docs/CLIENT_INPUT.md` §31.5): `(take, trace, first sequence parting or
 /// the last frame, last frame, records compared, records parted)`. Pinned

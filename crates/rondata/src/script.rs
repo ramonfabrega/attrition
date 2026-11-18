@@ -1150,6 +1150,68 @@ pub fn picked_transport() -> Vec<Order> {
     orders
 }
 
+/// **The Repair pick's `REPAIR`, on a building the computer wounds**
+/// (item 4383, `docs/CLIENT_INPUT.md` §32.15): the transport script and
+/// two packages more. On [`WOUND_FRAME`], a `play` 1 package: slot 1's
+/// three Bowmen [`WOUNDERS`], idle in their own land, `attack` slot 0's
+/// Capital [`WOUNDED`]. It is no person's order: the client is slot 0's
+/// and mints none for slot 1, so the count injects it as the script's
+/// (§32.15). `process_group@0094a0c0` takes it, since its `who` is
+/// `info.player[1].who`, and the playback reads a package of any `play`
+/// (`RecordGame::read_package@00952d90` with `param_3` −1). On
+/// [`REPAIR_FRAME`], after our walk's first wound to the Capital on 8190,
+/// the Citizen [`REPAIR_UNIT`], REPAIR, and a press on the Capital: the
+/// Repair pick's second arm, `swarm_around(ox, whom, QUEUE_NEW, REPAIR)`,
+/// the Capital being built, alive and damaged (§32.10.1).
+pub fn picked_repair() -> Vec<Order> {
+    let mut orders = picked_transport();
+    orders.push((
+        WOUND_FRAME,
+        1,
+        vec![
+            Command::Group {
+                who: 1,
+                objects: WOUNDERS.to_vec(),
+            },
+            Command::Attack {
+                ox: i32::from(WOUNDED),
+                whom: 0,
+                ignore: 0,
+                queued: PICK_QUEUE,
+            },
+        ],
+    ));
+    orders.push((
+        REPAIR_FRAME,
+        0,
+        vec![
+            Command::Group {
+                who: 0,
+                objects: vec![REPAIR_UNIT],
+            },
+            Command::SwarmAround {
+                ox: i32::from(WOUNDED),
+                whom: 0,
+                queued: PICK_QUEUE,
+                orders: i32::from(sim::ids::order::REPAIR),
+            },
+        ],
+    ));
+    orders
+}
+
+/// The computer's attack's frame, ten after [`TRANSPORT_FRAME`].
+pub const WOUND_FRAME: i32 = 6920;
+/// Slot 1's Bowmen `1/24` to `1/26`, idle at (30900, 21000) on 6910 and
+/// Longbowmen by 7200.
+pub const WOUNDERS: [i16; 3] = [24, 25, 26];
+/// The building they attack: slot 0's Capital `0/2000`.
+pub const WOUNDED: i16 = CAPITAL;
+/// The Repair pick's `REPAIR` frame, ten after our walk's first wound.
+pub const REPAIR_FRAME: i32 = 8200;
+/// Its selection: slot 0's Citizen pressed at the opening camera.
+pub const REPAIR_UNIT: i16 = 12;
+
 /// The transport press's frame, ten after [`ARM_SITE_FRAME`].
 pub const TRANSPORT_FRAME: i32 = 6910;
 /// Its selection: slot 0's Citizen `0/10`, on its way to the Attack pick's
