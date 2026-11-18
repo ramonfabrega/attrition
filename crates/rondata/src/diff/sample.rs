@@ -592,6 +592,17 @@ pub(in crate::diff) mod tests {
             .and_then(|v| v.parse().ok());
         let rec_game = crate::recgame::read(&rcx).expect("the sample parses");
         let (mut built, _) = sample_start(&inst, &rec_game);
+        if std::env::var("RON_PROBE_4397").is_ok() {
+            let s = &built.sim;
+            for (b, bd) in s.buildings.iter().enumerate() {
+                let t = bd.pos.tile();
+                eprintln!(
+                    "PROBE b{b} {}/{} ty {:?} pos ({}, {}) tile ({}, {}) z {} obj_z {} tile_z {} data_z {:?}",
+                    bd.owner, bd.index, bd.ty, bd.pos.x, bd.pos.y, t.x, t.y, bd.z,
+                    s.world.object_z(t), s.world.tile_z(t), s.world.data_z(bd.pos.x, bd.pos.y)
+                );
+            }
+        }
         let mut stream = crate::input::Stream::pump(&rec_game);
         let mut seen: Vec<Option<FirstSeen>> = vec![None; 12];
         let mut frames = 0usize;
