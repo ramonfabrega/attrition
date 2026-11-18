@@ -7493,3 +7493,29 @@ fn the_original_s_playback_of_the_auto_explored_file_walks_in_lockstep() {
     assert_eq!(entries, UNITMASK_ENTRIES, "the handler's entry");
     assert_eq!(walked, AUTO_EXPLORED_WALKED, "the walked table");
 }
+
+/// PROBE 4389: our walk's slot-1 squads on 7158..7164.
+#[test]
+fn probe_4389_squads() {
+    if std::env::var_os("RON_PROBE_4389").is_none() {
+        return;
+    }
+    let Some((_, mut built, _)) = built_start() else { return };
+    let mut stream = crate::input::Stream::pump(&minted(&crate::script::picked_repair()).unwrap());
+    for n in 7158..=7164 {
+        tick_to(&mut built, Some(&mut stream), n);
+        let s = &built.sim;
+        for (i, u) in s.units.iter().enumerate() {
+            if u.who != 1 || u.group.is_none() && !(24..=40).contains(&u.o) {
+                continue;
+            }
+            eprintln!(
+                "P4389 f{} 1/{} i{} ty{:?} cap{} up{:?} down{:?} group{:?} pos({},{}) orders {:?}",
+                s.frame, u.o, i, u.ty, u.captain,
+                u.o_up.map(|j| s.units[j].o), u.o_down.map(|j| s.units[j].o),
+                u.group, u.pos.x, u.pos.y,
+                u.orders.iter().map(|o| o.index()).collect::<Vec<_>>()
+            );
+        }
+    }
+}
