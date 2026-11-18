@@ -1791,6 +1791,9 @@ impl Sim {
                 }
             }
         }
+        if std::env::var_os("RON_PROBE_4377").is_some() {
+            eprintln!("PROBE4377 silo frame {} {}/{} target {target:?} best {best} team {} enemy {} winning {} diff {}", self.frame, owner, self.buildings[b].index, self.team_wonder_points(owner), self.enemy_wonder_points(owner), self.wonder_winning(), self.ai_difficulty());
+        }
         if let Some(at) = target {
             self.add_air_attack_ground_order(m, at, None, crate::orders::QueuePos::New, true);
         }
