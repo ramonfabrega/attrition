@@ -4297,61 +4297,21 @@ takes its alpha linear between the two edges', as the one quad does. `RUN1665_32
 384 → 387; `RUN1564_3279_BORDER` 43 → 48. At x 1860 the band's blue excess over the bare still is theirs 67, 69,
 61, 28, 14, rim 30, against ours 74, 73, 60, 28, 15, rim 30.
 
-**The band's colour (item 4379).** run1567's card pass after 3279 holds two border draws: 135, called from
-`0x00880d51` (the morph's render), and 136, from `0x00882838` (`BorderSplineRender`). Both are blend `SRCALPHA`/`INVSRCALPHA`,
-alpha test greater than 4, stage 0 `MODULATE(TEXTURE, CURRENT)` on colour and alpha, stage 1 off, and options
-`ALPHA_TEST VERTEX_COLOR_DIFFUSE TL_FAKE_LIGHT`, with no `LIGHTING` and no `NO_HDR`. The install's `ps_global.hlsl`
-takes such a draw's stage colour to `5 · c^1.9`, and the blend runs on the HDR target before the tone map, as the
-surf's does (§3.27). Under the packet's white vertex (`0x40ffffff`) the stage colour is the owner's texel. The client
-now draws each run of border patches on 4327's HDR target (`fs_border_hdr`, `Gpu::draw_split`), with the depth test
-off, and `World` lays them before the water, as 135 and 136 come before the water's 162: ahead of the shade and the
-water. `World::border_hdr` turns it off, back to item 4376's draw.
-
-**The value diff, run1665 at x 1860** (theirs; ours in LDR, 4376's; ours in HDR):
-
-| row | theirs | LDR | HDR |
-|---|---|---|---|
-| 491, the owner's edge | (174, 164, 167) | (147, 139, 148) | (169, 159, 160) |
-| 495 | (172, 166, 155) | (159, 150, 140) | (178, 166, 151) |
-| 498 | (189, 180, 134) | (181, 170, 125) | (189, 177, 131) |
-| 503, the rim | (190, 184, 151) | (179, 172, 140) | (190, 182, 145) |
-
-At x 1890, row 505, theirs is (166, 162, 165), LDR (139, 137, 149), HDR (159, 157, 162).
-
-**`RUN1665_3279_BORDER_ERROR`**, a value row with no threshold, its rule fixed before the count. The footprint is the
-hood's pixels where either drawn arm's still differs from the bare one: 6,842 of them, since the band moves the frame's
-white. On the footprint, the mean `|theirs − ours|` summed over r, g and b reads:
-
-| arm | mean error |
-|---|---|
-| bare | 48.8 |
-| HDR | **39.8** |
-| moved (the made-to-fail) | 48.8 |
-| LDR | 45.1 |
-
-HDR is the nearer on 2,320 pixels and LDR on 850.
-
-**`RUN1665_3279_BORDER`, `band()`'s row, falls 155 → 137 of 262** (ours 387 → 212; ours alone 232 → 75), a named fall,
-and `RUN1564_3279_BORDER` falls 48 → 1 on the morph's photograph. The reader's thresholds were set on run1564's morph
-colour (154, 148, 169). The settled band's strong part, theirs (174, 164, 167), fails `b > (r + g) / 2` itself, so the
-row reads only the band's margins. There theirs and ours both lie at the threshold. A fourth arm in both rows pins
-4376's LDR draw: 155 and 48, unmoved. The pinned stills of run1564 move by the white, 1 to 3 on most rows. `OCEAN`
-in `RUN1564_3279_TEXTURE_STILL` rises 244 → 252 and `SANDY` 519 → 530, and `RUN1564_3279_FISH` 441 → 484. The falls are
-`RUN1564_3279_ROUGH` 2,290 → 2,287, `PLAIN` 679 → 678, one foam arm 194 → 192, and `GROUND_STILL_SRGB` 1,710 → 1,700 on its
-sRGB side. The ledger is `docs/journal/2026-11-18-item-4379.md`.
-
-*Coverage.* Diff-backed: the draws' state and options, on one take's card. On a reading: the shader's `TL_FAKE_LIGHT`
-branch, and that the stage colour is the owner's texel. No dump prints a vertex colour other than the packet's white.
+**The band's colour (item 4379).** run1567's card pass after 3279 holds the border's two draws, 135 (`0x00880d51`, the
+morph) and 136 (`0x00882838`, `BorderSplineRender`): `SRCALPHA`/`INVSRCALPHA`, stage 0 `MODULATE(TEXTURE, CURRENT)`,
+`ALPHA_TEST VERTEX_COLOR_DIFFUSE TL_FAKE_LIGHT`, no `NO_HDR`. So `ps_global.hlsl` takes the owner's texel (the packet's
+vertex is white) to `5 · c^1.9` and the blend runs on the HDR target before the tone map, as the surf's (§3.27). The
+client draws each run of border patches there (`fs_border_hdr`, `Gpu::draw_split`), laid before the water as 135 and 136
+precede its 162; `World::border_hdr` off is 4376's draw. At run1665's x 1860, row 491, theirs (174, 164, 167), 4376's
+(147, 139, 148), now (169, 159, 160). `RUN1665_3279_BORDER_ERROR`, the mean `|theirs − ours|` (r + g + b) on the band's
+footprint: 45.1 → **39.8**, the bare and the moved arm 48.8; HDR nearer on 2,320 pixels, LDR on 850. `band()`'s row falls
+155 → 137 of 262 (ours alone 232 → 75), a named fall: theirs' core fails `b > (r + g) / 2` itself (4379c). The value
+diff and the run1564 pins it moves are `docs/journal/2026-11-18-item-4379.md`. *Coverage:* diff-backed, the draws' state
+on one take's card; on a reading, the shader's branch.
 
 **What is not established.**
-- **Draw 136 carries `TEX0_NOT_BOUND`** (and 135 does not). Under it `ps_global.hlsl` leaves `tex1` at 1, so the band
-  would be its white vertex: white over the frame. run1665's band is lavender, so its regular render's texture is
-  bound there. Why run1567's 136 compiled unbound is not read (parked 4379a).
-- **The band's edge is stair-stepped in ours and soft in theirs** (the crop under
-  `~/ron-data/lab-experiments/2026-11-18-item-4379/`). One candidate is the FXAA theirs applies (§3.14, 4168b),
-  not drawn (parked 4379b).
-- ~~**The band's colour** (parked 4376a).~~ "The band's colour", above (item 4379). Left: theirs is 5 to 7 lighter
-  at the owner's edge, and the row's reader is blind to the band's core.
+- Draw 136 compiles `TEX0_NOT_BOUND`, under which the band would be its white vertex (4379a). Ours' edge is
+  stair-stepped where theirs' is soft; FXAA is one candidate (4379b).
 - ~~**The "<"'s upper arm** (parked 4306a).~~ The cells and the rule agree with the packet. The arm is morph 1's
   `to` strip, above (item 4356).
 - ~~Ours lies a few pixels off theirs along the lower arm.~~ The settled band is named above (item 4358). What is
