@@ -13549,8 +13549,10 @@ pub(crate) mod tests {
     /// Item 4391 moved the Citizen: `REPAIR_AT` (916, 476) -> (795, 474), its
     /// position on 8200 (2232, 31224) -> (1848, 31608), where theirs (run1679's
     /// record) stands at (2040, 31032), neither before nor after. It is our
-    /// walk's, downstream of the first parting on 7419.
-    const REPAIR_AT: (i32, i32) = (795, 474);
+    /// walk's, downstream of the first parting on 7419. Item 4395 moved it
+    /// (795, 474) -> (916, 445): the walk is whole to 8500, and the Citizen
+    /// stands on theirs' (2040, 31032) on 8200.
+    const REPAIR_AT: (i32, i32) = (916, 445);
     const REPAIR_BUTTON: (i32, i32) = (545, 1012);
     const REPAIR_PRESS: (i32, i32) = (1127, 521);
 
