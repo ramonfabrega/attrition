@@ -38434,6 +38434,29 @@ Archive `gamelog-run1663-greatlakes-playback-of-arms-7500.txt`, 165,533,592 byte
 SHA-256 `6d70876674a37b56838bb65fa5656f027596a06299e633454c5aa0260de4ca1e`; `rontrace-run1663.log`, 36,810,912
 bytes, SHA-256 `b646b960004f9ba8c36bd9f3ab5198f33dcdb40919c79dd59841bbb84121bd25`.
 
+## run1668 — the original playing the file a minted `set_transport` extends (2026-11-18, item 4375, `att-4363`)
+
+`docs/CLIENT_INPUT.md` §32.14. **What the disk could not answer**: no take on disk plays a `set_transport` from a
+file. run249 played it from the original's own issuer (`docs/GOLDEN.md` §28), and no recording carries one
+(`KINDS_ON_DISK`). The file: `~/ron-golden/recordings/item4363-transport-greatlakes-24000.rcx` (named before the
+item was renumbered), 59,825 bytes, SHA-256 `7eea12c243d18cc9635d8c56241c586d70ad70cb4d4be2c134740b10a21f894f`.
+It is the arms' file (run1663) with one package more: `group [10]`, `set_transport(1)` on 6910.
+
+The take is run1663's line with this file: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1668 --recording <the file> --end-frame 7500 --cover cover=1
+--log-window 6800 7500 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2,DEATHS=1 --timeout 2400 --stall-seconds 120`.
+It was waited on with `waitrun.sh` in the background. `df -g ~` read 154 GB free before it.
+- **The run**: pool lane 1, launched 07:09:16 −05:00, exited 07:18:47: **570.8 s launch to exit**, exit 0,
+  `success`, no page fault, no relaunch. 7,501 frames, `last_frame` 7500, seed 12345, map 14. Players: tribe 4
+  (flags 7) and tribe 11 (flags 1). Five settings restored. The receipt names the file's SHA-256. Minutes waited on
+  another lane: none.
+- **The `.rcx` the playback leaves**: none. No `.rcx` newer than the launch is under lane 1's prefix or the run's
+  directory, but the run's own `input.rcx`, the symlink to the file played (DECISIONS 140 §2).
+- Filed with `filerun.py run1668 greatlakes-playback-of-transport-7500`.
+
+Archive `gamelog-run1668-greatlakes-playback-of-transport-7500.txt`, 165,533,593 bytes,
+SHA-256 `8b01b8116b4f45814876f549b30515c85040d2dafac54c5168d03d87be15a9ae`; `rontrace-run1668.log`, 35,765,408
+bytes, SHA-256 `8a0af93e9d5a3b4162084bd50aa9dbfa8920589dab897c5e6df115a6c206bd71`.
 ## run1667 — run1646's lobby to 5700 with a packet at 5667: the nuke's strike order (2026-11-18, item 4374, `att-4362`)
 
 `docs/LEADERS.md` §8.2, `docs/ARMY.md` §18. **What the disk could not answer**: item 4360 put the parting in

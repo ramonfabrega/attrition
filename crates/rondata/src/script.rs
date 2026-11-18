@@ -1123,6 +1123,42 @@ pub fn picked_arms() -> Vec<Order> {
     orders
 }
 
+/// **A minted `set_transport`** (item 4375, `docs/CLIENT_INPUT.md`
+/// §32.14): the arms' script and one package more, on
+/// [`TRANSPORT_FRAME`]: a press on the Citizen [`TRANSPORT_UNIT`], then
+/// `OPTION_TRANSPORT`'s press at the layer past the HUD's greying
+/// (`input::Event::Transport`), since slot 0's transport level is 0 and the
+/// HUD greys the button (§32.12). No member carries `0x800000`, so
+/// `GroupData::can_transport` answers 0 and the press writes
+/// `set_transport(1)`; `Group::action_set_transport` then forces the flag to
+/// 0 at level 0.
+pub fn picked_transport() -> Vec<Order> {
+    let mut orders = picked_arms();
+    orders.push((
+        TRANSPORT_FRAME,
+        0,
+        vec![
+            Command::Group {
+                who: 0,
+                objects: vec![TRANSPORT_UNIT],
+            },
+            Command::SetTransport {
+                flag: TRANSPORT_FLAG,
+            },
+        ],
+    ));
+    orders
+}
+
+/// The transport press's frame, ten after [`ARM_SITE_FRAME`].
+pub const TRANSPORT_FRAME: i32 = 6910;
+/// Its selection: slot 0's Citizen `0/10`, on its way to the Attack pick's
+/// ground point.
+pub const TRANSPORT_UNIT: i16 = 10;
+/// The flag the press writes: `can_transport == 0`, with no member's
+/// `0x800000` set.
+pub const TRANSPORT_FLAG: i32 = 1;
+
 /// The Move pick's ground arm's frame, ten after [`PICK_ATTACK_FRAME`].
 pub const ARM_MOVE_FRAME: i32 = 6860;
 /// Its selection: slot 0's Citizen `0/1`, a woodcutter at its trees.
