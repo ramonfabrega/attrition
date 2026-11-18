@@ -543,14 +543,21 @@ mod tests {
     /// lines kept (`RNG_MASK` 0xfff). `RON_SAMPLE_RANGES`, else where the
     /// take left it.
     fn run1678() -> Option<crate::trace::ranges::Record> {
-        let path = std::env::var("RON_SAMPLE_RANGES").unwrap_or_else(|_| {
-            let home = std::env::var("HOME").unwrap_or_default();
-            format!("{home}/ron-golden/run1678/map-7/rontrace.ranges")
-        });
-        match crate::trace::ranges::Record::open(std::path::Path::new(&path)) {
+        let path = match std::env::var("RON_SAMPLE_RANGES") {
+            Ok(p) => std::path::PathBuf::from(p),
+            Err(_) => {
+                let home = std::env::var("HOME").unwrap_or_default();
+                let dir = std::path::PathBuf::from(format!("{home}/ron-golden/run1678/map-7"));
+                crate::testenv::experiment(&dir, "rontrace.ranges")?
+            }
+        };
+        match crate::trace::ranges::Record::open(&path) {
             Ok(r) => Some(r),
             Err(e) => {
-                eprintln!("skipping: no sample ranges record at {path} ({e})");
+                eprintln!(
+                    "skipping: no sample ranges record at {} ({e})",
+                    path.display()
+                );
                 None
             }
         }
