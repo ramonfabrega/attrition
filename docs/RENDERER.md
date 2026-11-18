@@ -4204,10 +4204,9 @@ With it on the far side of the curve, 225. On the lower arm the photograph's ban
 y 184, outside player 1's cells, so the draw takes the far side. The reader's convention ("`who` on `+N`")
 was stated in y-up axes and the cells are y-down; this is the photograph's word on it, not a second reading.
 
-**The row** (`borders::tests::RUN1564_3279_BORDER`; the settled one is `RUN1665_3279_BORDER`, below). On run1564's photograph at the client's frame 3279,
-the pixels within one cell of an owner's edge on the sim's grid (157,622). A border's pixel is one bluer than
-the mean of its red and green, red within 2 of green and above 110 (the band reads (154, 148, 169) over sand
-(192, 181, 117)). `(both, theirs, ours)`:
+**The row** (`RUN1564_3279_BORDER`, by colour until "The row by value"). On run1564's photograph at frame 3279, the
+pixels within a cell of an owner's edge (157,622); a border's pixel is bluer than the mean of red and green, red
+within 2 of green and above 110. `(both, theirs, ours)`:
 
 | draw | both | theirs | ours |
 |---|---|---|---|
@@ -4304,11 +4303,18 @@ vertex is white) to `5 · c^1.9` and the blend runs on the HDR target before the
 client blends each run of border patches so over a copy of the frame, `T(T⁻¹(d) · (1 − a) + L · a)` on the band's own
 pixels (`fs_border_over`, `Gpu::draw_split`; a whole-frame pass on the HDR target cost 7 ms of p99 on the clock), laid
 before the water as 135 and 136 precede its 162; `World::border_hdr` off is 4376's draw. At run1665's x 1860, row 491, theirs (174, 164, 167), 4376's
-(147, 139, 148), now (169, 159, 160). `RUN1665_3279_BORDER_ERROR`, the mean `|theirs − ours|` (r + g + b) on the band's
-footprint: 45.1 → **39.8**, the bare and the moved arm 48.8; HDR nearer on 2,325 pixels, LDR on 862. `band()`'s row falls
-155 → 138 of 262 (ours alone 232 → 75), a named fall: theirs' core fails `b > (r + g) / 2` itself (4379c). The value
-diff and the run1564 pins it moves are `docs/journal/2026-11-18-item-4379.md`. *Coverage:* diff-backed, the draws' state
-on one take's card; on a reading, the shader's branch.
+(147, 139, 148), now (169, 159, 160). The colour reader fell 155 → 138 of 262, as theirs' core fails `b > (r + g) / 2`
+(4379c, closed by the row by value below). The value diff and the run1564 pins it moves are
+`docs/journal/2026-11-18-item-4379.md`. *Coverage:* diff-backed, the draws' state on one take's card; on a reading, the
+shader's branch.
+
+**The row by value (item 4385).** The footprint is our strip's geometry: each pixel whose centre lies in a triangle of
+`World::border_meshes`, projected through the still's `to_screen_matrix` as `vs_patch` does, where the alpha,
+perspective-correct, passes the card's alpha test (> 4, draws 135 and 136). It is 1,466 pixels on both photographs at
+x 1798 to 1919, y 472 to 526, and the HUD's four rectangles (`borders::tests::HUD`, 4376b) take none of it. A pixel
+counts when `|Δr| + |Δg| + |Δb| ≤ 30` (`NEAR`). `RUN1665_3279_BORDER`: bare 456, HDR **1,425**, moved 456, LDR 655, of
+1,466; with theirs read 3 px south, once, 493. `RUN1665_3279_BORDER_ERROR` on it: HDR **10.7**, LDR 35.4, bare and moved
+52.9. `RUN1564_3279_BORDER` (the morph's photograph): bare 689, HDR 502, LDR 194, as ours draws no morph.
 
 **What is not established.**
 - Draw 136 compiles `TEX0_NOT_BOUND`, under which the band would be its white vertex (4379a). Ours' edge is
@@ -4322,7 +4328,7 @@ on one take's card; on a reading, the shader's branch.
   item 4376).
 - ~~**The band's colour.** At the same blue excess, theirs is about (27, 25, 19) lighter than ours: (174, 164, 167)
   against (147, 139, 148) at x 1860. Parked 4376a.~~ It is the card's HDR blend through `TL_FAKE_LIGHT` ("The band's
-  colour", item 4379). Of the row's theirs, 66 are the original's HUD in the photograph (4376b).
+  colour", item 4379). ~~Of the row's theirs, 66 are the HUD (4376b).~~ Off the footprint ("The row by value").
 - The last pair's alpha depends on the colour list a reused render keeps, so a fresh render (list as long as the
   strip) fades its last pair too. Ours never does.
 - The owner's edge falls between row 2m+1 and row 2m+2, so it carries leader m+1's colour at ½. Near the strip's
