@@ -7304,6 +7304,53 @@ fn the_original_s_playback_of_the_repair_file_walks_in_lockstep() {
     assert_eq!(walked, REPAIR_WALKED, "the walked table");
 }
 
+/// **A pushed group's member answers no army** (item 4391, `docs/ORDERS.md`
+/// §8.2, §14; `docs/GOLDEN.md` §77): slot 1's Longbowmen `1/30` (captain),
+/// `1/31` and `1/32`, born 6993 in group 65, army 1's index, emptied of its
+/// Bowmen by the `play` 1 package of 6920. `Object::get_army@00649d70`
+/// answers −1 for them (the record's `army` is −1), so `add_to_army`
+/// re-runs on every 32-frame edge and `go_to_unit` re-marks the squad
+/// (`unit_masks & 4`): on block 7162, the army's tick, the mark stands on
+/// all three, on both sides, and ours answers no army.
+#[test]
+fn a_pushed_group_s_member_answers_no_army_on_both_sides() {
+    const SQUAD: [i16; 3] = [30, 31, 32];
+    const AT: i64 = 7162;
+    if built_start().is_none() || minted(&crate::script::picked_repair()).is_none() {
+        eprintln!("skipping: no install, no lobby or no recording");
+        return;
+    }
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(&crate::script::picked_repair()).unwrap());
+    tick_to(&mut built, Some(&mut stream), AT);
+    let s = &built.sim;
+    let ours = SQUAD.map(|o| {
+        let k = s.unit_by_o(1, o).expect("the squad");
+        (s.units[k].in_danger, s.army_of(k))
+    });
+    eprintln!("SQUAD ours on {AT}: {ours:?}");
+    assert_eq!(ours, [(true, None); 3], "ours: marked, in no army");
+    let Some(path) = dump(REPAIR_WALKED[0].0) else {
+        return;
+    };
+    let mut source = crate::capture::indexed::IndexedCapture::open(path).unwrap();
+    let i = source
+        .frames()
+        .iter()
+        .position(|f| f.number == AT)
+        .expect("block 7162");
+    let f = source.frame_state(i).unwrap();
+    let theirs = SQUAD.map(|o| {
+        let u = f
+            .units
+            .iter()
+            .find(|u| u.who == 1 && u.o == i64::from(o))
+            .expect("the squad");
+        u.unit_masks.expect("unit_masks") & 4 != 0
+    });
+    assert_eq!(theirs, [true; 3], "theirs: marked");
+}
+
 /// **The original's playback of the auto-explored file** (item 4291,
 /// `docs/CLIENT_INPUT.md` §31.5): `(take, trace, first sequence parting or
 /// the last frame, last frame, records compared, records parted)`. Pinned
