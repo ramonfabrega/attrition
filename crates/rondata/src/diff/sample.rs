@@ -728,7 +728,11 @@ pub(in crate::diff) mod tests {
     /// builds `146 2003 z` 142|145 and `785 2002 z` 316|330 agree (Farms
     /// placed before `0/2006`'s and `3/2005`'s terraforms moved their
     /// tiles). Builds whole on state 0, its first parting 0 → 76, `758
-    /// 2000 gather[k]` 32640|31872. State 0: 3 → 1 parted range.
+    /// 2000 gather[k]` 32640|31872. State 0: 3 → 1 parted range. Act 2
+    /// (the start's walk leaves the oil to `compute_all_territory`, after
+    /// the city's `update_seen(0)`): leader 2's `oil_patches` (20, 4, 5,
+    /// 15)|(5, 4, 20, 15) agree, its capital's disc revealing goods 5 and 4
+    /// first. Leaders whole over the window; state 0: 1 → 0 parted ranges.
     const SAMPLE_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -745,14 +749,6 @@ pub(in crate::diff) mod tests {
             1214,
             4,
             "758 2000 gather[k]: gather[k] 32640|31872",
-        ),
-        (
-            "leaders",
-            0,
-            663,
-            663,
-            1,
-            "328 2 oil_patches: +0x0 of 16|16: 14000000|05000000",
         ),
     ];
 }
