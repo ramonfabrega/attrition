@@ -64,7 +64,7 @@ parked in `docs/LEADERS.md` §7.6 with what would falsify it.
 moved nothing: on 5667 the Russian nuke strikes the French capital `1/2000` and `Armies::emergency` re-ticks both French armies; the 26
 `find_target` draws are equal, theirs takes a Russian city (run1655's `LEADERDATA` on 5668: Russian `frame_attacked` 5626 → 5667), ours
 `1/2000`, scoring it 102,200 against `2/2057`'s 25,525; `pop_issues` and the strike order ruled out; parked 4360a). First act: a packet at
-`RON_STATE_FRAME=5667` (run1661), army `1/1`'s per-city score stepped through `Army::find_target` against ours. Then the seed (4347). It
+`RON_STATE_FRAME=5667` (run1667), army `1/1`'s per-city score stepped through `Army::find_target` against ours. Then the seed (4347). It
 stops when two acts move the word by nothing.
 
 4359. **The 2017 sample: the hook's take, then the walk from 2888** (a rules item, whole; the suite's seat; `docs/RECGAME.md`
@@ -86,7 +86,7 @@ when the drawn row is minted and the lower arm's offset is named or bounded.
 `INPUT_TRANSPORT` 4 of 4 (4357), `INPUT_ARMS_FILE` 40 of 40 (4361, run1663: the picks' other arms played, each effect equal; the Repair
 pick's `REPAIR` has no damaged building on the walk, parked 4361a). The HUD greys the button on a person's seat, so the press is minted at
 the layer past the greying (`Event::Transport`) and appended to the arms' file at 6910 or after (4357b). First act: that file played by
-the original on run1664, the order's effect on both sides, whatever the original does with it. It stops when the playback is refused,
+the original on run1668, the order's effect on both sides, whatever the original does with it. It stops when the playback is refused,
 and says so.
 
 ## How to maintain this file
