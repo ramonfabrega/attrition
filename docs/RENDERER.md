@@ -4518,6 +4518,10 @@ buffers are found by `d3dgl.pdb`'s type records (`mHDRBuffer`, `mScreen`, `mTone
 *Coverage.* Diff-backed on one take: the photograph against the readback, bit for bit. Not established: which draw
 on run1688's own 3279 pass lays its strokes (4393a). The pass has the take's streams and photograph on disk.
 
+**What three takes agree on** (item 4399, its journal). Within the takes' 2-luma noise floor, run1564, run1665 and
+run1688 agree on **3.8 % of the water's pixels**, as even speckle; a pair barely beats one side shifted. Only the
+lake's mean holds. So no row is minted on its pattern: the item's stop.
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
