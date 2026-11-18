@@ -435,10 +435,38 @@ toward (39048, 17736) on both. The person's next nine shift-clicks
 no group. run1654's window agrees whole, 18 of 18 records (9 parted
 before). The draws part at frame 2888, draw 32.
 
-**Not established:** the parting on 2888; whether `work`'s arm or the
+**Not established:** ~~the parting on 2888~~ (answered by item 4359,
+below); whether `work`'s arm or the
 think's clear is reached on this file (the move is the conversion's,
-scored by mutation in `docs/journal/2026-11-17-item-4351.md`); the
-playback under the `RON_CHECKSUMS` hook, booked for the item after.
+scored by mutation in `docs/journal/2026-11-17-item-4351.md`); ~~the
+playback under the `RON_CHECKSUMS` hook, booked for the item after~~
+(run1662, item 4359).
+
+**The hook's take and the word 2888 → 3019 (item 4359, 2026-11-18).**
+run1662 plays the sample whole under the `RON_CHECKSUMS` hook (22,077
+sets, `docs/RUNS.md`), and `diff::sample`'s
+`the_sample_s_lines_against_the_hook` holds our walk's twelve lines
+against it on every frame. Theirs' walls stay empty all game; the first
+shot in flight is on 2929 and the first death object on 3365, so the
+sample is the first walk on disk where ammo and deaths are not empty.
+Our walk holds its first shot on 2929 too. By state, builds, leaders and
+world part on frame 0 and goods on 1, though the start block agrees
+record for record; units part on 92, a frame whose `UNITS` records agree
+whole; then groups 927, guys 2920, cities 3176, items 3976
+(`SAMPLE_LINES`). The draws' word moved twice. On 2887 the person's units
+(sent on 2747) strike computer 4's capital `4/2000`, and
+`take_damage`'s city-building arm rings the city's bell
+(`Sim::city_struck_alarm`, `docs/AI.md` §416.2): 2888 → 2908. Without the
+arm, run1662's cities line parts on 2888 (ours 3376104779, theirs
+164251019). On 2901 computer 4's `ai economic` asks `was_city_raided`,
+which this crate read as never, though the capital's light blow had
+stamped `raid_stamp` 2887; it reads `CityData +0x18` now
+(`was_city_raided@009fd3e0`): 2908 → 3019.
+
+**Not established:** the parting on 3019, where theirs starts two units'
+steps three frames after `Armies::emergency`, whose two armies are empty
+in our walk; which field the units line parts on at 92; why four lines
+part on the start by sum.
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

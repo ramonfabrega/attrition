@@ -38407,3 +38407,30 @@ It was waited on with `waitrun.sh` in the background. `df -g ~` read 191 GB free
 Archive `gamelog-run1656-greatlakes-playback-of-picked-7500.txt`, 162,697,261 bytes,
 SHA-256 `67db4c2cbf29bc63dbd05add67d02609e3a8ae00d3e269a9ee2b49e03910fedf`; `rontrace-run1656.log`, 36,068,544
 bytes, SHA-256 `30baa1190df53f1df6fa373a8a72c1d0ad408ed10432889e7bde1c7a3171680a`.
+
+## run1662 — the 2017 sample played whole under the checksum hook (2026-11-18, item 4359, `att-4359`)
+
+`docs/RECGAME.md` §7; DECISIONS 140 §2. **What the disk could not answer**: the sample's only state oracle was run1654's
+dump window (84..101), so no line's first parting by state and no frame on which the original holds a wall, a shot or
+a death object was on disk. run1651 carries the draws only. The take: run1651's line with the hook,
+`TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1662 --recording
+"<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx" --end-frame 21044 --cover cover=1 --log-window 0
+21045 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS`, waited on with `waitrun.sh`
+in the background lane.
+- Pool lane 1, launched 06:12:54 −05:00, exited 06:45:33: **1,959.1 s** launch to exit, exit 0, `success`, 21,045
+  frames, `last_frame` 21044, not ended early, seed observed 340513920, five settings restored. One relaunch on a
+  page fault 4.9 s in (`wine-fault-1.log`). `df -g ~` read 166 GB free before it. Minutes waited on another lane:
+  none. DLL `e7db2733…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS`.
+- **The `.rcx` the playback leaves**: none. No `.rcx` newer than the launch is under lane 1's prefix or the run's
+  directory, but the run's own `input.rcx`, the symlink to the file played.
+- The hook: 22,077 sets, one on every trace frame −1 to 21,043 and a second before an order's package; theirs'
+  walls are the Adler of no bytes on every set, ammo is not from trace frame 2928 (our 2929), deaths from 3364
+  (our 3365).
+- Filed with `filerun.py run1662 greatsahara-playback-of-sample-checksums-21044`.
+
+Archive `gamelog-run1662-greatsahara-playback-of-sample-checksums-21044.txt`, 3,776 bytes,
+SHA-256 `b6e2dbef289aa25eb6f2239ea5216819e278ca60198ae127b3ffdc2b68efccd7`; `rontrace-run1662.log`, 582,307,712 bytes,
+SHA-256 `41e5997e7dd01ab609890f8c15c8c75d68afd576b1ce4b22bdd34738f66ce03a`.
+
+**What it holds**: `diff::sample::tests::the_sample_s_lines_against_the_hook` (`SAMPLE_HOOK`, `SAMPLE_THEIRS_HELD`,
+`SAMPLE_LINES`, `SAMPLE_OURS_HELD`).
