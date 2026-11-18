@@ -1189,10 +1189,13 @@ pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
 #[cfg(test)]
 /// Item 4344: surf off `SANDY` 167 → 166 (the made-to-fail side): the
 /// objects and the patches after the water drawn before it.
+/// Item 4358: `SANDY` 166 → 164, 196 → 194, 215 → 213 (a named fall of two on each arm): the border's band
+/// across its whole width on the owner's side (item 4358, `docs/RENDERER.md` §3.29, "The settled band") moves the
+/// frame's mean, so its white.
 pub const RUN1564_3279_FOAM: [[[u32; 2]; 2]; 3] = [
-    [[0, 8], [166, 345]],
-    [[0, 8], [196, 361]],
-    [[0, 8], [215, 373]],
+    [[0, 8], [164, 345]],
+    [[0, 8], [194, 361]],
+    [[0, 8], [213, 373]],
 ];
 
 /// **`RUN1564_3279_FISH`** (item 4344; `docs/RENDERER.md` §3.30, "The fish
@@ -1218,9 +1221,11 @@ pub const RUN1564_3279_FOAM: [[[u32; 2]; 2]; 3] = [
 /// 969, dark 393 → 446 and 613 → 810, the lit mean (34.5, 89.5, 149.7) →
 /// (25.1, 83.9, 146.4).
 #[cfg(test)]
+/// Item 4358: ours dark 446 → 441 on the second arm (a named fall of five): the border's settled band (item
+/// 4358, `docs/RENDERER.md` §3.29) moves the frame's mean, so its white.
 pub const RUN1564_3279_FISH: [[[u32; 2]; 2]; 3] = [
     [[0, 969], [302, 304]],
-    [[446, 969], [302, 304]],
+    [[441, 969], [302, 304]],
     [[810, 969], [302, 304]],
 ];
 
@@ -1734,13 +1739,15 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// Item 4344: `OCEAN` 245 → 244 (a named fall of one): the objects and the patches after the water drawn before it (item 4344, `docs/RENDERER.md` §3.30, "The fish under the water").
 /// Item 4348: `OCEAN` 244 of 437 → 244 of 438: the herd turned to the
 /// dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
+/// Item 4358: `SANDY` 520 → 519 (a named fall of one): the border's band across its whole width on the owner's
+/// side (item 4358, `docs/RENDERER.md` §3.29, "The settled band") over the east edge's beach.
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [678, 679],
     [0, 0],
     [32, 32],
     [0, 0],
     [0, 0],
-    [520, 772],
+    [519, 772],
     [244, 438],
 ];
 
