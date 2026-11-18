@@ -31,14 +31,13 @@ fn assert_ranges(
     }
 }
 
-#[test]
-fn both_occupied_sprite_pools_match_every_record_in_window_a() {
+fn window_sprite_ranges(name: &str, closing: i32, expected_occupied: [usize; 2]) {
     let Some(root) = crate::testenv::install_root() else {
         return;
     };
     let dir = lab();
-    let game = crate::testenv::experiment(&dir, "window-a.rcx");
-    let ranges = crate::testenv::experiment(&dir, "oracle-a/map-14/rontrace.ranges");
+    let game = crate::testenv::experiment(&dir, &format!("window-{name}.rcx"));
+    let ranges = crate::testenv::experiment(&dir, &format!("oracle-{name}/map-14/rontrace.ranges"));
     let (Some(game), Some(ranges)) = (game, ranges) else {
         return;
     };
@@ -50,7 +49,7 @@ fn both_occupied_sprite_pools_match_every_record_in_window_a() {
     assert!(!original.truncated);
     assert_eq!(original.mask & 0x18, 0x18);
     let last = rec.packages.last().unwrap().frame;
-    assert_eq!(last, 11720);
+    assert_eq!(last, closing);
     let mut occupied = [0; 2];
     for frame in 0..=last {
         let set = original.first_of(i64::from(frame) - 1).unwrap().clone();
@@ -71,24 +70,43 @@ fn both_occupied_sprite_pools_match_every_record_in_window_a() {
             built.sim.command().tick();
         }
     }
-    assert_eq!(occupied, [848, 1152]);
+    assert_eq!(occupied, expected_occupied);
 }
 
 #[test]
-fn the_combat_window_a_matches_every_line_through_closing() {
+fn both_occupied_sprite_pools_match_every_record_in_window_a() {
+    window_sprite_ranges("a", 11720, [848, 1152]);
+}
+
+#[test]
+fn both_occupied_sprite_pools_match_every_record_in_window_b() {
+    window_sprite_ranges("b", 14437, [680, 1019]);
+}
+
+fn window_score(name: &str, states: u32) {
     let Some(root) = crate::testenv::install_root() else {
         return;
     };
     let dir = lab();
-    let game = crate::testenv::experiment(&dir, "window-a.rcx");
-    let trace = crate::testenv::experiment(&dir, "oracle-a/map-14/rontrace.log");
+    let game = crate::testenv::experiment(&dir, &format!("window-{name}.rcx"));
+    let trace = crate::testenv::experiment(&dir, &format!("oracle-{name}/map-14/rontrace.log"));
     let (Some(game), Some(trace)) = (game, trace) else {
         return;
     };
     let score = super::compare(root.as_ref(), &game, &trace).unwrap();
-    assert_eq!(score.states, 11721);
+    assert_eq!(score.states, states);
     assert_eq!(score.first, [None; 12]);
-    assert_eq!(score.agreed, [11721; 12]);
+    assert_eq!(score.agreed, [states; 12]);
+}
+
+#[test]
+fn the_combat_window_a_matches_every_line_through_closing() {
+    window_score("a", 11721);
+}
+
+#[test]
+fn the_combat_window_b_matches_every_line_through_closing() {
+    window_score("b", 14438);
 }
 
 #[test]

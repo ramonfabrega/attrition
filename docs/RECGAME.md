@@ -806,3 +806,15 @@ unit byte was object 1/29's first flag, 17 versus 145. On 9452 the only
 differing building byte was object 0/2004's first flag, 7 versus 23.
 The independent take includes both sides of each boundary. All twelve
 lines now agree throughout the 11,721 states, including the closing one.
+
+
+### 10.2 A second combat recording on another seed (item 4367)
+
+The seed-123 game has a separate input package at 9000 and closes at
+14437. On the pre-batch branch, eight lines agreed throughout. After
+item 4366 only ammo differed, on 359 states. Sweeping piece 120 on the
+first game's snapshot closed those differences (COMBAT §22.6). The
+original and the sim now agree on twelve lines for all 14,438 states.
+The raw test compares the complete ammo and casualty pools on all states,
+including the 680 and 1,019 occupied states respectively. The old packet
+score of 562/1,053 and the frame-91 score of 8/12 both hold.

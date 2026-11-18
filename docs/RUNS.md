@@ -38539,3 +38539,42 @@ python3 tools/trace/ranges.py "$E/seam-a/map-14/rontrace.ranges" compare \
 The final comparison is `$E/score-flags-a.log`. Packet measurements are
 in `$E/flags-packets.log`. The regression reads the unit and building
 ranges on 9415, 9416, 9451, 9452, 9746 and 10320.
+
+## Window combat B, an independent lobby seed (item 4367, 2026-11-18)
+
+Same experiment directory and snapshot plan as window A. The client changed
+the lobby seed from 12345 to 123, started, and saved one order at 9000.
+The selected unit was 0/1 and its order named 1/9. The recording closes at 14437. Playback uses the
+recording's lobby and packages. Use a fresh output directory.
+
+```sh
+RON_CAPTURE_LANE=1 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh "$OUT" \
+  --recording "$E/window-b.rcx" --end-frame 14437 --log-window 8970 9390 \
+  --detail end:MISC,UNITS=3,AMMO=5,DEATHS=1 --cover cover=1 --timeout 3600 \
+  --stall-seconds 180 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES \
+  --tracer-def RNG_MASK=0x9b --tracer-def RON_STATE_FRAME=9332 \
+  --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""
+```
+
+The original is in `$E/oracle-b/map-14`. The first take's state-9746 packet
+supplied the three sweeps `$E/socket-120-a{11,12,13}-t{12,9,15}.txt`,
+measured before B reached combat. `$E/b-socket-prediction.txt` was written
+while B was at state 6415. It predicts that the first sprite at 8981
+would start at X 11289 with heading −265027584. The in-game record gives
+those values. At 9332 the five recorded lines matched all 3,278 ranges
+from an offline call on B's own packet. All 15 snapshot sums agree.
+`$E/stream-b.tsv` and `$E/values-b.tsv` retain those measurements.
+
+The original exited 0 on state 14437 and restored all five files with
+zero page faults. The staging receipt's requested default was 12345.
+The actual playback reported seed 123, matching the client lobby. All
+14,439 captured checksum sets passed the range audit with zero overflow.
+Both occupied pools matched on 3,417 ammo ranges and 3,882 casualty
+ranges. The traces, scored states and packet census remain under
+`$E`; the raw recordings and snapshot bytes stay outside git.
+
+
+`$E/score-before-b.log` gives the pre-batch baseline. At the item 4366
+checkpoint (`$E/score-4366-b.log`) only ammo still differed, on 359
+states. `$E/score-4367-b.log` has 14,438 agreements on each of twelve
+lines and exited 0. `$E/bow-packets.log` confirms every old packet pin.

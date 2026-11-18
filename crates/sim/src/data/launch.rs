@@ -2829,24 +2829,16 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 87,
         },
     ),
-    // **Piece 120, a British player's Bowmen: run256's twelve arrows**
-    // (`docs/GOLDEN.md` §29, item 813). Its release events are 472's —
-    // frame 12 on `CHAR_ATTACK1`, 9 on `CHAR_ATTACK2`, 15 on
-    // `CHAR_ATTACK3` — and 472's nodes put every arrow within one to
-    // four units of the dump, a frame of flight on the first, so the
-    // piece is measured on its own. Three bowmen at three facings
-    // (−999686144, −987168768, −885391360) give seven distinct launch
-    // points; each row is the centroid of the region of integer `(right,
-    // fwd)` that reproduces every point of its key exactly under the
-    // whole-degree rotation, and `dz` is `sz` less the figure's own `z`,
-    // the same on every arrow of the key.
+    // Piece 120, the Bowmen. Run256 measured twelve arrows at three
+    // facings. The window A state-9746 snapshot supplies all 361 headings
+    // for each event, measured before the seed-123 window B comparison.
     (
         120,
         crate::units::anim::ATTACK1,
         12,
         Bay {
-            right: -1_830,
-            fwd: 88_800,
+            right: -1_826,
+            fwd: 88_749,
             dz: 163,
         },
     ),
@@ -2855,8 +2847,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::units::anim::ATTACK2,
         9,
         Bay {
-            right: 118,
-            fwd: 87_244,
+            right: 336,
+            fwd: 87_408,
             dz: 164,
         },
     ),
@@ -2865,8 +2857,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::units::anim::ATTACK3,
         15,
         Bay {
-            right: 9_536,
-            fwd: 66_509,
+            right: 9_711,
+            fwd: 66_508,
             dz: 164,
         },
     ),

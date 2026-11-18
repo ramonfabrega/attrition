@@ -3316,6 +3316,21 @@ all nine earlier run109 observations. Every occupied ammo record in the
 new file now agrees, including the frame-9951 slot turnover. The exact
 sweeps and independent in-game range record are listed in RUNS.
 
+### 22.6 Predicting another lobby's sprite position (item 4367)
+
+Run256 observed twelve releases from piece 120 at three facings. Its
+three fitted rows cover 333, 237 and 301 of the 361 whole-degree queries
+on the original. The first combat recording's state-9746 snapshot loads
+this piece too. Sweeping those three events gives one Cartesian row per
+event that matches every heading and all twelve run256 releases.
+
+The second recording used a different seed. At state 8981 slot 0 the
+previous row gave X 11288 and heading −264765440. The new row predicted
+11289 and −265027584 before playback reached the encounter. The original
+confirmed both. These three rows change 359 occupied states while keeping
+the same slots occupied throughout. The raw values and the timing of the
+prediction are in the item 4367 entry in RUNS.
+
 ## 23. The emergency is a city alarm (item 399, 2026-09-19)
 
 **`Armies::emergency` is not reached by hitting a soldier.** That is the

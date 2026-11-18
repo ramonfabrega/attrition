@@ -529,16 +529,16 @@ each shot in flight through `vtable +0` into `AmmoData`'s walker.
 whose first word is not 0: 4 bytes, then [+0x4, +0x4b). None of the
 three has an element on run1100's frame. On run1420's packet the deaths
 line walks 8 ranges of 300 bytes in all, which is consistent with 4 × (4 + 71). The
-walls and ammo record shapes rest on the recon's reading alone (§10). Our walk
-emits the three as the empty walk alone, refusing a frame that holds an element
-(item 4355).
+wall record shape rests on the recon's reading alone (§10). Item 4355
+emitted all three only when empty. Items 4363 and 4365 extend the deaths
+and ammo lines to the occupied records below.
 
 **Item 4355 compared the three empty lines** (DECISIONS 140 §1). The hook's walls, ammo and deaths read 1, the Adler
 of no bytes, on all 24,004 of run1578's sets and 124 of run1577's. Our walk's count of each at the moment the other
 lines are taken (`held`: live buildings at `index >= WALL_BASE`, `combat.projectiles`, `combat.deaths`, §8's three
 walkers) reads none on 24,000 of 24,000 frames and 120 of 120 (`EMPTY_HELD`, minted at 0, red first). The count can
-part: on the classical melee it reads a shot from 642 and a death object from 692 (`MELEE_HELD`), and the emitter
-refuses both there; the walls arm is held by a building moved into the 3000 band, since no walk on disk holds a wall.
+part: on the classical melee it reads a shot from 642 and a death object from 692 (`MELEE_HELD`), and the original item 4355 emitter
+refused both there; the walls arm is held by a building moved into the 3000 band, since no walk on disk holds a wall.
 The three then join `EMITTED` through `empty_walk`, never `our_lines`' three `Line::default()`s, which read 1 whatever
 the walk holds. **The twelve state lines agree on every frame of the minted game.** Its limits: one game, no combat
 in it, and the three record shapes unexercised (no emitter walks a wall, a shot or a death record; §8's walls and ammo
@@ -585,6 +585,11 @@ survives a hit keeps bit 4. An active city returns early and sets that bit
 only when its damage reaches its hit ceiling. Repair changes damage without
 clearing the flag. These flags take the full-file score to twelve lines on
 all 11,721 states, and the independent packet score to 562 of 1,053.
+
+On an independent lobby seed, the remaining 359 differing ammo states
+came from another sprite's coordinates. With its full heading sweep
+(RECGAME §10.2) all twelve lines agree on all 14,438 states of window B.
+The two occupied pools cover 3,417 and 3,882 original ranges respectively.
 
 ## 9. Pointers, floats, padding and locals
 
@@ -2475,7 +2480,7 @@ so is run1578's on that frame. The kill the item booked (the hook's values not t
 
 Per line our walk emits, the first of our frames whose Adler parts from the hook's first set of the frame before, on
 the minted game's 24,000 (run1578; `our_lines_part_from_the_hook_s_on_their_first_frame`, `CHECKSUM_FRAMES`).
-Walls, ammo and deaths are the empty walk, refusing a frame that holds an element (item 4355, §8). Rules and the two
+All three pools are empty in this recording. Occupied ammo and deaths are described in §8. Rules and the two
 script lines are not the simulation's (entry 119). Each line is taken every frame inside the first 300 (`DIAG`), and
 past them only until it first parts:
 
