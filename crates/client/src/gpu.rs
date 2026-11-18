@@ -2243,8 +2243,7 @@ impl Gpu {
                 &depth_view,
                 size,
                 water_run,
-                frame.surf_hdr,
-                frame.border_hdr,
+                (frame.surf_hdr, frame.border_hdr),
             );
         }
         // Item 4233 (§3.25): the particles after the figures, as draws
@@ -2453,7 +2452,7 @@ impl Gpu {
             self.land_hdr_pass(enc, target, &view, depth_view, extent, run);
             self.draw_split(enc, draws, after, None);
         }
-        self.water_passes(enc, target, depth_view, size, rest, surf_hdr, border_hdr);
+        self.water_passes(enc, target, depth_view, size, rest, (surf_hdr, border_hdr));
     }
 
     /// **Patches over the frame, the borders' runs in HDR** (item 4379;
@@ -2507,8 +2506,7 @@ impl Gpu {
         depth_view: &wgpu::TextureView,
         size: (u32, u32),
         rest: &[UploadedPatch],
-        surf_hdr: bool,
-        border_hdr: bool,
+        (surf_hdr, border_hdr): (bool, bool),
     ) {
         if rest.is_empty() {
             return;
