@@ -2354,6 +2354,22 @@ impl Sim {
         if let Some(m) = self.current_move(u) {
             mo.coll = m.coll;
         }
+        if std::env::var_os("RON_PROBE_4395").is_some()
+            && self.frame == 7418
+            && self.units[u].owner == 1
+            && (30..=32).contains(&self.units[u].index)
+        {
+            eprintln!(
+                "PROBE4395 step 1/{} from {from:?} target {target:?} wp {:?} hit {hit:?} snapped {} arrived {} owed {} turned {:?} tol {} top {top:?}",
+                self.units[u].index,
+                mo.waypoint,
+                step.snapped,
+                step.arrived,
+                step.owed,
+                step.turned_in_place,
+                self.units[u].tolerance
+            );
+        }
         if let Some(_other) = hit
             && step.snapped
         {
