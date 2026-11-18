@@ -38426,9 +38426,11 @@ in the background lane.
 - The hook: 22,077 sets, one on every trace frame −1 to 21,043 and a second before an order's package; theirs'
   walls are the Adler of no bytes on every set, ammo is not from trace frame 2928 (our 2929), deaths from 3364
   (our 3365).
-- Filed with `filerun.py run1662 greatsahara-playback-of-sample-checksums-21044`.
+- Filed with `filerun.py run1662 greatsahara-playback-of-sample-checksums-21044`, then the gamelog renamed to the tag
+  `sample2017-playback-checksums-21044`: a `greatsahara` gamelog puts its trace in `mapgen`'s Great Sahara corpus
+  (`sahara_traces`), whose ported lobbies the sample's seed and five seats are not, and four tests went red.
 
-Archive `gamelog-run1662-greatsahara-playback-of-sample-checksums-21044.txt`, 3,776 bytes,
+Archive `gamelog-run1662-sample2017-playback-checksums-21044.txt`, 3,776 bytes,
 SHA-256 `b6e2dbef289aa25eb6f2239ea5216819e278ca60198ae127b3ffdc2b68efccd7`; `rontrace-run1662.log`, 582,307,712 bytes,
 SHA-256 `41e5997e7dd01ab609890f8c15c8c75d68afd576b1ce4b22bdd34738f66ce03a`.
 
