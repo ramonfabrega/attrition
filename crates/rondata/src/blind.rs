@@ -826,6 +826,16 @@ pub const TRACES: &[&str] = &[
     // the attack request's store, `Leader::action_attack`, on trace frame
     // 1130, which no other trace here does.
     "rontrace-run1629.log",
+    // Item 4378's take: the blind list's input issuers (`docs/RUNS.md`
+    // run1671b, `tools/gamelog/coverage/blind4378-issuers.cmd`), each on its
+    // line's frame: ctrl and 1 enter `GroupOut::issue_hotkey` and
+    // `CommandManager::issue_hotkey` on 724, the stance key `Options::
+    // do_stance` on 744, the pause key `TurnControl::issue_toggle_pause` on
+    // 800, the console's `unit_eject_order` `UnitOut::issue_come_out` on 850,
+    // the garrison key `Options::do_garrison` on 924; the DLL's `@gstance`,
+    // `@pause` and `@gdisband` enter `GroupOut::issue_stance` on 760,
+    // `CommandManager::issue_pause` on 770 and `GroupOut::issue_disband` on 830.
+    "rontrace-run1671b.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -890,6 +900,14 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
     (
         0x0094_2c90,
         "CommandManager::issue_come_out: run1030, chapter thirteen's lobby's `@comeout`",
+    ),
+    (
+        0x0094_0ba0,
+        "CommandManager::issue_pause: run1671b, item 4378's `@pause 0`",
+    ),
+    (
+        0x0070_b100,
+        "GroupOut::issue_stance: run1671b, item 4378's `@gstance` (Loop 3473: no caller)",
     ),
 ];
 
@@ -1533,6 +1551,16 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// on 1146 (the record's 1147), each left `NEVER` with the trace's pinning; open 11 → 9.
 /// **345 → 346** with item 4346: §32.9 cites `Options::do_repair` (the standard panel's
 /// `OPTION_REPAIR`), which no trace enters; open unchanged.
+/// **346 → 337** with item 4378's run1671b joining [`TRACES`] (`docs/CLIENT_INPUT.md` §13.4,
+/// §22.5, §23.5, §26.5, §27.5, §29.5): the nine input issuers leave, six by the game's own path —
+/// `GroupOut::issue_hotkey` and `CommandManager::issue_hotkey` (ctrl and 1, `@hold 17`, on 724),
+/// `Options::do_stance` (KEYMAP_STANCE_AGGRESSIVE, 744), `TurnControl::issue_toggle_pause`
+/// (KEYMAP_OPTION_PAUSE, 800), `UnitOut::issue_come_out` (the console's `unit_eject_order`, 850),
+/// `Options::do_garrison` (KEYMAP_OPTION_GARRISON, 924) — and three by the DLL's new lines:
+/// `GroupOut::issue_stance` (`@gstance`, 760) and `CommandManager::issue_pause` (`@pause 0`, 770),
+/// both dead in the image and so [`ENTERED_BY_THE_DLL_ONLY`], and `GroupOut::issue_disband`
+/// (`@gdisband`, 830), whose one caller is the selected panel's one-object arm, a press with no
+/// screen point on this lane; open 10 → 1.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1542,7 +1570,7 @@ pub const NEVER: &[u32] = &[
     0x0058_33b0, 0x0058_33c0, 0x0058_33d0, 0x0058_3400, 0x0058_3410, 0x0058_3420, 0x0058_3450, 0x0058_3470, 0x0058_3480, 0x0058_3490, 0x0058_34a0, 0x0058_5cb0, 0x0058_5e90,
     0x0058_60c0, 0x0058_6440, 0x0058_6790, 0x0058_69e0, 0x0058_7060, 0x0058_8560, 0x0058_8f00, 0x0058_90b0, 0x0059_30c0, 0x0059_3f70, 0x0059_4080, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660,
     0x0059_46c0, 0x0059_47e0, 0x005a_ac70, 0x005a_bc70, 0x005d_01f0, 0x005d_86a0, 0x005d_86b0, 0x005d_8fb0, 0x005d_8fc0, 0x005e_2bb0, 0x005e_3310,
-    0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_4720, 0x005f_4730, 0x0060_3130, 0x0060_4550, 0x0060_7be0,
+    0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_4720, 0x005f_4730, 0x0060_3130, 0x0060_4550,
     0x0060_8850, 0x0060_8a30, 0x0060_9a20, 0x0060_a600, 0x0060_a6e0, 0x0060_a800, 0x0060_a810, 0x0060_fde0, 0x0061_d740, 0x0061_daf0, 0x0061_db10, 0x0061_dc50,
     0x0061_dc60, 0x0062_2ce0, 0x0062_3310, 0x0062_d430, 0x0062_d5b0, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_3390, 0x0063_89b0, 0x0063_9830,
     0x0063_e390, 0x0063_e440, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_6f50,
@@ -1554,15 +1582,14 @@ pub const NEVER: &[u32] = &[
     0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
-    0x006e_c170, 0x006e_de80, 0x006e_fb20, 0x006e_fb50, 0x006e_fda0, 0x006e_ff70, 0x006f_0230, 0x006f_a090, 0x0070_0010, 0x0070_20c0, 0x0070_7aa0, 0x0070_7b50, 0x0070_8800, 0x0070_a470, 0x0070_aa20, 0x0070_b100, 0x0070_ce70, 0x0070_f8a0, 0x0071_0aa0, 0x0071_37f0, 0x0071_3bb0, 0x0071_ccb0, 0x0071_d6b0,
-    0x0072_1480, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
+    0x006e_c170, 0x006e_de80, 0x006e_fb20, 0x006e_fb50, 0x006e_fda0, 0x006e_ff70, 0x006f_0230, 0x006f_a090, 0x0070_0010, 0x0070_20c0, 0x0070_7aa0, 0x0070_7b50, 0x0070_aa20, 0x0070_ce70, 0x0070_f8a0, 0x0071_0aa0, 0x0071_37f0, 0x0071_3bb0, 0x0071_ccb0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
     0x0078_be90, 0x0079_6140, 0x0079_7200, 0x0079_7c40, 0x0079_8880, 0x0079_99e0, 0x0079_ea80, 0x007a_a400, 0x007a_a560, 0x0081_2d20, 0x0081_34d0, 0x0084_2050,
     0x0084_2060, 0x0084_2070, 0x0084_b8d0, 0x0086_1960, 0x0087_a770, 0x0089_0060, 0x0089_4060, 0x0089_41b0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_8920,
     0x0089_8cf0, 0x0089_8f10, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x0089_ddc0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008a_60e0,
     0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7810, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_43b0,
-    0x0093_a140, 0x0093_a150, 0x0093_e9e0, 0x0093_ee70, 0x0094_0ba0, 0x0094_1fd0, 0x0094_3f30, 0x0094_8cb0, 0x0094_8e00,
-    0x0094_9050, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0095_6b40, 0x0095_9110, 0x0095_9500, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20, 0x0099_c750,
+    0x0093_a140, 0x0093_a150, 0x0093_e9e0, 0x0093_ee70, 0x0094_3f30, 0x0094_8cb0, 0x0094_8e00,
+    0x0094_9050, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0095_9110, 0x0095_9500, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20, 0x0099_c750,
     0x009a_0950, 0x009a_1380, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009a_df40, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_3340, 0x009b_3590,
     0x009b_37a0, 0x009b_39e0, 0x009b_4820, 0x009b_4930, 0x009b_4da0, 0x009b_59f0, 0x009b_5d20, 0x009b_5e00, 0x009b_5ec0, 0x009b_5f20, 0x009b_6de0, 0x009b_6fa0,
     0x009b_7060, 0x009b_71c0, 0x009b_7d30, 0x009b_7de0, 0x009b_8ac0, 0x009f_b2d0, 0x00a4_69f0,
