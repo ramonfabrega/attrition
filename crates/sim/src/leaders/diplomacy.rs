@@ -220,7 +220,7 @@ impl Sim {
         let flags = self.ai.ai[me].player_flags;
         let rusher = flags >> 12 & 1 != 0;
         let boomer = flags >> 13 & 1 != 0;
-        let seed = self.game_seed as u32;
+        let seed = self.info_seed() as u32;
         let span = if rusher {
             seed % 3 + 4
         } else if boomer {
