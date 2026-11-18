@@ -582,13 +582,6 @@ pub const EDGE_ALPHA: usize = 914;
 pub fn is_edge(piece: i32) -> bool {
     piece == EDGE_PIECE || piece == EDGE_OUTER_PIECE
 }
-/// **How far a border is lifted** off the ground's heights, in world
-/// units (item 4306): the original draws it with the depth test off
-/// (`Scene::init_render_states@008ba450`), the patch pass tests
-/// `LessEqual`, and the lift keeps the ground between two of the band's
-/// vertices from covering it. Not the original's.
-pub const BORDER_LIFT: f32 = 6.0;
-
 /// Whether a patch is a border's.
 pub fn is_border(piece: i32) -> bool {
     (BORDER_PIECE - 15..=BORDER_PIECE).contains(&piece)
@@ -2194,8 +2187,9 @@ impl World {
     }
 
     /// **The national borders as patch meshes** (item 4306, §3.29): one a
-    /// player, [`crate::borders::band`]'s halves on the ground's heights,
-    /// lifted [`BORDER_LIFT`], the texture the owner's border colour and
+    /// player, [`crate::borders::band`]'s halves on the ground's heights at
+    /// the curve's samples (item 4376: no lift, the chord between, drawn
+    /// with the depth test off), the texture the owner's border colour and
     /// the alpha each vertex's off [`border_alpha_mips`].
     fn border_meshes(&mut self) -> Vec<PatchMesh> {
         use crate::borders::{BORDER_ALPHA, BORDER_COLOURS, FADED_ALPHA};
@@ -2271,7 +2265,7 @@ impl World {
         let mut by: BTreeMap<sim::Player, PatchMesh> = BTreeMap::new();
         let alpha_mips = border_alpha_mips();
         for c in &chains {
-            for (who, tris) in crate::borders::band(c, &alpha) {
+            for (who, tris) in crate::borders::band(c, &alpha, &z) {
                 let m = by.entry(who).or_insert_with(|| {
                     let [r, g, b] = BORDER_COLOURS
                         .get(usize::from(who))
@@ -2299,8 +2293,8 @@ impl World {
                         light: Vec::new(),
                     }
                 });
-                for ([x, y], a) in tris {
-                    m.positions.push([x, y, z(x, y) + BORDER_LIFT]);
+                for ([x, y, zz], a) in tris {
+                    m.positions.push([x, y, zz]);
                     m.uvs.push([0.5, 0.5]);
                     m.alpha_uvs.push([(f32::from(a) + 0.5) / 256.0, 0.5]);
                 }
