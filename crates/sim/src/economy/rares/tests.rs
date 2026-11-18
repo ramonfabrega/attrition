@@ -1212,3 +1212,42 @@ fn a_unit_s_speed_is_never_set_from_the_raw_moves() {
         "a spawn site sets `movement.speed` from the type's raw `MOVES`;              use `Sim::type_speed`, which is `Unit::update_speed`: {bad:#?}"
     );
 }
+
+/// **Before the first frame the wholesale pass claims the oil on owned
+/// ground after what a reveal already listed** (item 4397):
+/// `Setup::build_cities@005ab910` runs the new city's `update_seen(0)`
+/// before `compute_all_territory`, so a patch the disc reveals joins its
+/// leader's `oil_patches` through `reveal_fog`'s oil arm first, and the
+/// pass's per-cell scan appends the others in region and cell order.
+#[test]
+fn setup_s_pass_claims_oil_after_the_reveals() {
+    let (mut s, _) = sea_sim();
+    s.world
+        .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 9));
+    let (w, h) = (s.world.width(), s.world.height());
+    assert!(s.world.set_fog(vec![0; (w * h * 4) as usize]));
+    let (early, late) = (Cell::new(3, 2), Cell::new(6, 5));
+    let mut put = |c: Cell| {
+        let mut d = s.world.cell_data(c);
+        d.flags |= crate::world::cell::OIL;
+        s.world.set_cell_data(c, d);
+        s.world.add_good(Good {
+            pos: Pos::new(c.x * 768 + 384, c.y * 768 + 384),
+            ty: crate::world::OIL_GOOD,
+            alive: true,
+        })
+    };
+    let (a, b) = (put(early), put(late));
+    for at in [early, late] {
+        s.world.set_owner(
+            at,
+            crate::world::Owner::Player(1),
+            crate::world::Owner::None,
+        );
+    }
+    s.reveal_fog(2 * late.x, 2 * late.y, 1);
+    assert_eq!(s.ai.ai[1].oil_patches, vec![b], "the reveal lists its own");
+    assert!(!s.in_play);
+    s.settle_borders();
+    assert_eq!(s.ai.ai[1].oil_patches, vec![b, a], "then the pass, once each");
+}
