@@ -1189,10 +1189,13 @@ pub const RUN1564_3279_SURF_DRAWN: [[[u32; 2]; 2]; 3] = [
 #[cfg(test)]
 /// Item 4344: surf off `SANDY` 167 → 166 (the made-to-fail side): the
 /// objects and the patches after the water drawn before it.
+/// Item 4358: `SANDY` 166 → 164, 196 → 194, 215 → 213 (a named fall of two on each arm): the border's band
+/// across its whole width on the owner's side (item 4358, `docs/RENDERER.md` §3.29, "The settled band") moves the
+/// frame's mean, so its white.
 pub const RUN1564_3279_FOAM: [[[u32; 2]; 2]; 3] = [
-    [[0, 8], [166, 345]],
-    [[0, 8], [196, 361]],
-    [[0, 8], [215, 373]],
+    [[0, 8], [164, 345]],
+    [[0, 8], [194, 361]],
+    [[0, 8], [213, 373]],
 ];
 
 /// **`RUN1564_3279_FISH`** (item 4344; `docs/RENDERER.md` §3.30, "The fish
@@ -1218,9 +1221,11 @@ pub const RUN1564_3279_FOAM: [[[u32; 2]; 2]; 3] = [
 /// 969, dark 393 → 446 and 613 → 810, the lit mean (34.5, 89.5, 149.7) →
 /// (25.1, 83.9, 146.4).
 #[cfg(test)]
+/// Item 4358: ours dark 446 → 441 on the second arm (a named fall of five): the border's settled band (item
+/// 4358, `docs/RENDERER.md` §3.29) moves the frame's mean, so its white.
 pub const RUN1564_3279_FISH: [[[u32; 2]; 2]; 3] = [
     [[0, 969], [302, 304]],
-    [[446, 969], [302, 304]],
+    [[441, 969], [302, 304]],
     [[810, 969], [302, 304]],
 ];
 
@@ -1734,13 +1739,15 @@ pub const TEXTURE: render::silhouette::Luma = render::silhouette::Luma {
 /// Item 4344: `OCEAN` 245 → 244 (a named fall of one): the objects and the patches after the water drawn before it (item 4344, `docs/RENDERER.md` §3.30, "The fish under the water").
 /// Item 4348: `OCEAN` 244 of 437 → 244 of 438: the herd turned to the
 /// dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
+/// Item 4358: `SANDY` 520 → 519 (a named fall of one): the border's band across its whole width on the owner's
+/// side (item 4358, `docs/RENDERER.md` §3.29, "The settled band") over the east edge's beach.
 pub const RUN1564_3279_TEXTURE_STILL: [[u32; 2]; 7] = [
     [678, 679],
     [0, 0],
     [32, 32],
     [0, 0],
     [0, 0],
-    [520, 772],
+    [519, 772],
     [244, 438],
 ];
 
@@ -2896,18 +2903,35 @@ pub(crate) mod tests {
         }
     }
 
+    /// **run1665's photograph** (item 4358; `docs/RUNS.md` run1665):
+    /// run1564's take with `3194 !ffwd 0` staged, so the last 100 frames
+    /// draw at play speed and the borders' morphs have ended. The grab is
+    /// sRGB, 1920 × 1080 with no title bar, and registers on run1564's
+    /// cut at (0, 0); its camera is run1564's.
+    pub(crate) fn run1665() -> Photo {
+        let path = std::env::var_os("RON_PHOTO_RUN1665")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home)
+                    .join("ron-data/lab-experiments/2026-11-18-item-4358/run1665-3294.tga")
+            });
+        Photo { path, ..run1564() }
+    }
+
     pub(crate) fn probe() -> Option<Probe> {
         probe_at(run1559b())
     }
 
     /// **The PNG each photograph a row reads was cut from** (item 4223),
     /// under `~/ron-data/lab-experiments/`: run1559b's, run1564's matched
-    /// to sRGB, run1570's. The last entry is run1564's grab as written,
+    /// to sRGB, run1570's, run1665's (item 4358). The last entry is run1564's grab as written,
     /// which must read as not sRGB: the guard's own failing case.
-    pub(crate) const PHOTO_SOURCES: [(&str, bool); 4] = [
+    pub(crate) const PHOTO_SOURCES: [(&str, bool); 5] = [
         ("2026-11-09-item-4036/run1559b-3294.png", true),
         ("2026-11-13-item-4223/run1564-3294-srgb.png", true),
         ("2026-11-12-item-4183/run1570-3331.png", true),
+        ("2026-11-18-item-4358/run1665-3294.png", true),
         ("2026-11-12-item-4160/run1564-3294.png", false),
     ];
 
