@@ -1014,6 +1014,155 @@ pub const PICK_ENEMY: (i16, i16) = (1, 0);
 /// and the Repair arm's literal.
 pub const PICK_QUEUE: i32 = 2;
 
+/// **The picks' other arms** (item 4361, `docs/CLIENT_INPUT.md` §32.13):
+/// the picked script and five packages more, the arms of
+/// `Options::picked_spot@00721c40` the picked file does not reach, each
+/// from one citizen's selection at the opening camera:
+///
+/// - on [`ARM_MOVE_FRAME`] the Citizen [`ARM_MOVE_UNIT`], MOVE, and a press
+///   on bare ground: mode 3's ground arm, `move_to(MOVE_TO, drag_form,
+///   drag_form_mod)`, the formation the last main-view right press wrote
+///   ([`ARM_MOVE_FORM`], [`ARM_MOVE_WIDTH`]);
+/// - on [`ARM_GUARD_FRAME`] the Citizen [`ARM_GUARD_UNIT`], ATTACK, and a
+///   press on the Slinger [`ARM_GUARDED`], one's own: mode 1's ally arm,
+///   `guard(ox, whom, QUEUE_NEW)`;
+/// - on [`ARM_ATTACK_FRAME`] the Citizen [`ARM_ATTACK_UNIT`], ATTACK, and a
+///   press on bare ground: mode 1's ground arm, `move_to(ATTACK_TO, −1,
+///   −1)`;
+/// - on [`ARM_BUILD_FRAME`] the Citizen [`ARM_BUILD_UNIT`], the Farm's key
+///   and a press on the ground: `build`, which lays the site
+///   [`ARM_SITE`];
+/// - on [`ARM_SITE_FRAME`] the Citizen [`ARM_SITE_UNIT`], REPAIR, and a
+///   press on that unfinished site: the Repair pick's first arm,
+///   `swarm_around(ox, whom, QUEUE_NEW, BUILD_AT)`.
+///
+/// The Repair pick's second arm, `REPAIR` on a damaged building, has no
+/// target here: no building of slot 0's is damaged on the walk (parked
+/// 4361a). The client's `minted_arms_at_the_opening_camera` mints these
+/// field for field, the buttons pressed through the HUD.
+pub fn picked_arms() -> Vec<Order> {
+    let mut orders = picked();
+    let group = |o: i16| Command::Group {
+        who: 0,
+        objects: vec![o],
+    };
+    let move_to = |to: Pos, kind: u8, form: i8, width: i8| Command::MoveTo {
+        to_x: to.x,
+        to_y: to.y,
+        set_angle: 0,
+        angle: 0,
+        orders: kind as i8,
+        queued: PICK_QUEUE as i8,
+        form,
+        width,
+        disembark: 0,
+    };
+    orders.extend([
+        (
+            ARM_MOVE_FRAME,
+            0,
+            vec![
+                group(ARM_MOVE_UNIT),
+                move_to(
+                    ARM_MOVE_TO,
+                    sim::ids::order::MOVE_TO,
+                    ARM_MOVE_FORM,
+                    ARM_MOVE_WIDTH,
+                ),
+            ],
+        ),
+        (
+            ARM_GUARD_FRAME,
+            0,
+            vec![
+                group(ARM_GUARD_UNIT),
+                Command::Guard {
+                    ox: i32::from(ARM_GUARDED),
+                    whom: 0,
+                    queued: PICK_QUEUE,
+                },
+            ],
+        ),
+        (
+            ARM_ATTACK_FRAME,
+            0,
+            vec![
+                group(ARM_ATTACK_UNIT),
+                move_to(ARM_ATTACK_TO, sim::ids::order::ATTACK_TO, -1, -1),
+            ],
+        ),
+        (
+            ARM_BUILD_FRAME,
+            0,
+            vec![
+                group(ARM_BUILD_UNIT),
+                Command::Build {
+                    x: ARM_FARM_AT.x,
+                    y: ARM_FARM_AT.y,
+                    x2: ARM_FARM_AT.x,
+                    y2: ARM_FARM_AT.y,
+                    build: FARM_TYPE,
+                    queued: PICK_QUEUE,
+                },
+            ],
+        ),
+        (
+            ARM_SITE_FRAME,
+            0,
+            vec![
+                group(ARM_SITE_UNIT),
+                Command::SwarmAround {
+                    ox: i32::from(ARM_SITE),
+                    whom: 0,
+                    queued: PICK_QUEUE,
+                    orders: i32::from(sim::ids::order::BUILD_AT),
+                },
+            ],
+        ),
+    ]);
+    orders
+}
+
+/// The Move pick's ground arm's frame, ten after [`PICK_ATTACK_FRAME`].
+pub const ARM_MOVE_FRAME: i32 = 6860;
+/// Its selection: slot 0's Citizen `0/1`, a woodcutter at its trees.
+pub const ARM_MOVE_UNIT: i16 = 1;
+/// The ground the press names: pixel (1500, 640) at the opening camera,
+/// under the layer's inverse.
+pub const ARM_MOVE_TO: Pos = Pos { x: 5148, y: 30423 };
+/// The ground order's `form` and `width`: `drag_form` and `drag_form_mod`
+/// as the last main-view right press of the events wrote them
+/// (`Console::down@007cd8f0`), a Citizen's selection's 0 and 50 — not
+/// `Console::clear`'s (0, −1), which the count read red at 39 of 40.
+pub const ARM_MOVE_FORM: i8 = 0;
+pub const ARM_MOVE_WIDTH: i8 = 50;
+/// The Attack pick's guard arm's frame.
+pub const ARM_GUARD_FRAME: i32 = 6870;
+/// Its selection: slot 0's Citizen `0/6`.
+pub const ARM_GUARD_UNIT: i16 = 6;
+/// The unit pressed: slot 0's Slinger `0/9`, standing.
+pub const ARM_GUARDED: i16 = 9;
+/// The Attack pick's ground arm's frame.
+pub const ARM_ATTACK_FRAME: i32 = 6880;
+/// Its selection: slot 0's Citizen `0/10`.
+pub const ARM_ATTACK_UNIT: i16 = 10;
+/// The ground the press names: pixel (800, 700), under the inverse.
+pub const ARM_ATTACK_TO: Pos = Pos { x: 3306, y: 33036 };
+/// The Farm's placement's frame.
+pub const ARM_BUILD_FRAME: i32 = 6890;
+/// Its selection: slot 0's Citizen `0/4`, following the Slinger since its
+/// pick.
+pub const ARM_BUILD_UNIT: i16 = 4;
+/// The Farm's point: pixel (1010, 700), under the inverse, a click.
+pub const ARM_FARM_AT: Pos = Pos { x: 3994, y: 32387 };
+/// The Repair pick's site arm's frame.
+pub const ARM_SITE_FRAME: i32 = 6900;
+/// Its selection: slot 0's Citizen `0/5`, walking to the Farm `0/2007`
+/// since its pick.
+pub const ARM_SITE_UNIT: i16 = 5;
+/// The site pressed: the Farm the placement laid, `0/2009`, unfinished.
+pub const ARM_SITE: i16 = 2009;
+
 /// The frame of the auto-explore, ten after [`DISBAND_FRAME`].
 pub const AUTO_EXPLORE_FRAME: i32 = 6820;
 /// The unit sent exploring: slot 0's Scout, its first unit, the recordings'
