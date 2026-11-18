@@ -802,7 +802,7 @@ pub fn from_lobby(
             }
         }
     }
-    if donor.version != version || donor.options != options {
+    if !donor_serves(donor, &version, &options) {
         return Err(format!(
             "the donor is another lobby: {:?} {:02x?} against ours {version:?} {options:02x?}",
             donor.version, donor.options
@@ -839,6 +839,27 @@ pub fn from_lobby(
         packages,
         truncated: Vec::new(),
     })
+}
+
+/// **`TEAM_STYLE`'s byte** in [`RecGame::options`] ([`OPTION_KEYS`]'s
+/// first): the one option a donor may differ in (item 4387).
+pub const TEAM_STYLE_OPTION: usize = 0;
+
+/// Whether `donor` may lend its borrowed sections to a lobby of this
+/// `version` and these `options` ([`from_lobby`], `docs/RECGAME.md` §8.2):
+/// the same version and the same thirty option bytes, but for
+/// `TEAM_STYLE` — the rules section does not move with it (item 4382: both
+/// East Indies pairs on disk that differ in that byte alone carry equal
+/// rules, run state and semaphore), and no Great Lakes game at style 0 has
+/// ever been recorded.
+pub fn donor_serves(donor: &RecGame, version: &str, options: &[u8; 30]) -> bool {
+    donor.version == version
+        && donor
+            .options
+            .iter()
+            .zip(options)
+            .enumerate()
+            .all(|(k, (d, o))| k == TEAM_STYLE_OPTION || d == o)
 }
 
 /// The package stream of a game with no input, played to `last` frames:
@@ -929,6 +950,28 @@ pub fn minted_packages(
 
 #[cfg(test)]
 pub(crate) mod tests {
+    /// **A donor may differ in `TEAM_STYLE` alone** (item 4387,
+    /// `docs/RECGAME.md` §8.2): any other option byte, or the version,
+    /// refuses it.
+    #[test]
+    fn a_donor_may_differ_in_team_style_alone() {
+        let donor = super::RecGame {
+            version: "v".into(),
+            options: [1; 30],
+            ..Default::default()
+        };
+        let mut ours = [1u8; 30];
+        assert!(super::donor_serves(&donor, "v", &ours));
+        ours[super::TEAM_STYLE_OPTION] = 0;
+        assert!(super::donor_serves(&donor, "v", &ours));
+        assert!(!super::donor_serves(&donor, "w", &ours));
+        for k in 1..30 {
+            let mut o = ours;
+            o[k] = 2;
+            assert!(!super::donor_serves(&donor, "v", &o), "option {k}");
+        }
+    }
+
     use super::*;
 
     /// The external sample, if this machine has it: the one explicitly
