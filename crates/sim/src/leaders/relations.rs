@@ -175,6 +175,9 @@ impl Sim {
     ///
     /// Only this leader's row is written; the other's own `Leader::init`
     /// writes the mirror. The diagonal is the crate's untouched `false`.
+    /// **The row is kept whole** ([`crate::ai::Leader::diplos_row`]): a
+    /// slot no player takes keeps its `d` in the record, 0 under locked
+    /// teams and 1 at team style 0 (item 4392, run1686's `diplos[2..7]`).
     /// SEAM: the arm after it, `semaphore[1] & 2` forcing war with every
     /// other leader, is not a lobby field and is not carried; nor is the
     /// loop's `treaties` (`reveal_map == 3` or'd with the team bit), which
@@ -220,6 +223,7 @@ impl Sim {
             return;
         }
         let mut aggression = [0i32; 8];
+        let mut row = [0i32; 8];
         for (u, slot) in aggression.iter_mut().enumerate() {
             let d = if is_team(w, u) {
                 2
@@ -231,6 +235,7 @@ impl Sim {
                 1
             };
             *slot = i32::from(d == 0);
+            row[u] = d;
             if u != w && u < n {
                 self.leaders.at_war[w][u] = d == 0;
                 self.leaders.allied[w][u] = d == 2;
@@ -250,6 +255,7 @@ impl Sim {
         }
         if let Some(l) = self.ai.ai.get_mut(w) {
             l.aggression = aggression;
+            l.diplos_row = row;
             l.census.ally_mask |= allies;
         }
     }

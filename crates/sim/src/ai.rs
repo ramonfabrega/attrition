@@ -741,6 +741,11 @@ pub struct Leader {
     /// `Leader::diplomacy@006bc950` concluded about it on its last visit
     /// (`docs/AI.md` §220). Nothing else writes them.
     pub aggression: [i32; 8],
+    /// `diplos[8]` (`LeaderData +0x74`) as `Leader::init@006e3930`'s row
+    /// wrote it, every slot: what the record keeps on a slot no player
+    /// takes, which no writer in play reaches (item 4392). A seated slot's
+    /// is read live off `Leaders::at_war` and `allied`.
+    pub diplos_row: [i32; 8],
     pub strong: [i32; 8],
     pub weak: [i32; 8],
     /// `got_diplo_message` (`LeaderData +0x2f0`): the frame another
@@ -909,6 +914,7 @@ impl Leader {
             known_rares: 0,
             player_flags: 0,
             aggression: [0; 8],
+            diplos_row: [0; 8],
             strong: [0; 8],
             weak: [0; 8],
             got_diplo_message: 0,

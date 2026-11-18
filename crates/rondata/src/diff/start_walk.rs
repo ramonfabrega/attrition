@@ -1064,18 +1064,14 @@ pub(crate) mod recording {
     /// Per line that parts on run1686's window, its first parting by range:
     /// `(line, frame, the record's ranges, ours, parted, the first parting
     /// as `range record field: name ours|theirs`)` (item 4392; minted
-    /// empty, then at the first act's row). A leaders range starts at
-    /// `LeaderData +0x8`: range 1's `+0x74..+0x88` (and range 129's, leader
-    /// 1's) is `diplos[2..7]` (`+0x7c..+0x90`), ours 0, theirs 1 — the
-    /// slots no player takes, under team style 0.
-    const DEMAND_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[(
-        "leaders",
-        0,
-        267,
-        267,
-        2,
-        "1 0 who..ally_mask: +0x74 of 26914|26914: 00000000|01000000",
-    )];
+    /// empty, then at the first act's row, then empty again). A leaders
+    /// range starts at `LeaderData +0x8`. The first act's row was `("leaders",
+    /// 0, 267, 267, 2, "1 0 who..ally_mask: +0x74 of 26914|26914:
+    /// 00000000|01000000")`: ranges 1 and 129 (leaders 0 and 1), `+0x74..+0x88`
+    /// = `diplos[2..7]` (`+0x7c..+0x90`), ours 0, theirs 1 — the slots no
+    /// player takes, under team style 0, which `Leader::init`'s row writes and
+    /// the crate kept only for seated leaders (`ai::Leader::diplos_row`).
+    const DEMAND_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[];
 
     /// **The demand's lines by range, from the start** (item 4392,
     /// `docs/LEADERS.md` §8.6): the demand's file walked as

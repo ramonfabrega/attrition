@@ -549,6 +549,20 @@ impl Sim {
     }
 
     /// The number of leader slots this game seats (`leader_flags & 1`).
+    /// `diplos[i]` (`LeaderData +0x74`) of a seated `w` toward a seated
+    /// `i`: 2 to itself and an ally, 0 at war, 1 at peace.
+    fn seated_diplos(&self, w: usize, i: usize) -> i64 {
+        if i == w {
+            2
+        } else if self.leaders.at_war[w][i] {
+            0
+        } else if self.leaders.allied[w][i] {
+            2
+        } else {
+            1
+        }
+    }
+
     fn leader_seats(&self) -> usize {
         self.economy.ledgers.len().min(LEADER_SLOTS)
     }
@@ -1089,17 +1103,16 @@ impl Sim {
             "who" => one(w as i64),
             "tribe" => one(t.tribe as i64),
             "gov" => one(t.gov.map_or(-1, |g| self.tree_type_index(g))),
-            "diplos" => per_player(&|i| {
-                if i == w {
-                    2
-                } else if self.leaders.at_war[w][i] {
-                    0
-                } else if self.leaders.allied[w][i] {
-                    2
-                } else {
-                    1
+            // A slot no player takes: `Leader::init`'s row as it wrote it
+            // (item 4392; 0 under locked teams, 1 at team style 0).
+            "diplos" if count > players => {
+                let mut v = per_player(&|i| self.seated_diplos(w, i))?;
+                for (i, x) in v.iter_mut().enumerate().skip(players) {
+                    *x = i64::from(a.diplos_row.get(i).copied().unwrap_or(0));
                 }
-            }),
+                Some(v)
+            }
+            "diplos" => per_player(&|i| self.seated_diplos(w, i)),
             "treaties" => per_player(&|i| {
                 if i == w {
                     1
