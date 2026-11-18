@@ -7,10 +7,6 @@
 # issuer by the game's own path where one is reachable without a screen
 # point, and by the DLL's `@` line where none is:
 #
-#   700  `!eval unit_eject_order(1, 7)`: the console's eval reaches
-#        `ScenarioFuncSet::unit_eject_order@009f84e0`, whose container test
-#        is `Options::exec` case 0xaa's, and it calls
-#        `UnitOut::issue_come_out@00607be0` on `0/7`.
 #   720  ctrl and 1 over the selected City `0/2000` (`@hold 17` is
 #        GetKeyState's ctrl, which `OnKey` ORs in as 0x20000):
 #        `Console::on_key_down@007cc210` → `GroupOut::issue_hotkey@00708800`
@@ -29,16 +25,23 @@
 #   830  `@gdisband 0 0 7`: `GroupOut::issue_disband@0070a470`, whose one
 #        caller is the selected panel's one-object arm, a button with no point
 #        here.
+#   850  `!eval unit_eject_order(1, 7)`: the console's eval reaches
+#        `ScenarioFuncSet::unit_eject_order@009f84e0`, whose container test
+#        is `Options::exec` case 0xaa's, and it calls
+#        `UnitOut::issue_come_out@00607be0` on `0/7`. run1671 had it on 700,
+#        where `0/7` was still walking to the Barracks (`inside_up` -1 to
+#        760, 6 from 800): entered, and it issued nothing.
 #   900  chapter thirteen's eject; the Chariot `0/6` out.
 #   920  F13 over `0/6`, bound to KEYMAP_OPTION_GARRISON (149 →
 #        OPTION_GARRISON 26): `Options::exec` case 0x1a →
 #        `Options::do_garrison@0071d6b0`. Last, because its pick may leave
 #        the options in a selecting mode.
 #
-# run1671 (cover=1) and run1672 (its cover=0 twin), on the click-free pool:
+# run1671b (cover=1) and run1672b (its cover=0 twin), on the click-free pool;
+# `--ai-tribe 11` because run1672's lane drew tribe 2 for who 1:
 #
-#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1671 \
-#       --map 14 --end-frame 1000 --log-window 690 1000 --timeout 3600 \
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1671b \
+#       --map 14 --ai-tribe 11 --end-frame 1000 --log-window 690 1000 --timeout 3600 \
 #       --detail end:MISC,UNITS=3,BUILDS=7 --detail misc:COMMANDMANAGER=1 \
 #       --bindkey OPTION_GARRISON=124 --bindkey STANCE_AGGRESSIVE=125 --bindkey OPTION_PAUSE=126 \
 #       --cmd-file tools/gamelog/coverage/blind4378-issuers.cmd --cover cover=1
@@ -59,8 +62,6 @@
 620 @garrison 0 2007 0 6
 640 @garrison 0 2007 0 7
 
-700 !eval unit_eject_order(1, 7)
-
 720 select 2000 who=0
 722 @hold 17 726
 724 @key 49
@@ -75,6 +76,8 @@
 800 @after 3000 key 126
 
 830 @gdisband 0 0 7
+
+850 !eval unit_eject_order(1, 7)
 
 900 @eject 0 2007
 
