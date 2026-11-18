@@ -2161,6 +2161,13 @@ impl Sim {
         out
     }
 
+    /// The object below `o` on its cell's chain — the link a walker reads
+    /// off `o`'s `down`/`down_who` (`+0x2c`/`+0x2e`) — or `None` at the
+    /// tail and once `o` is off the chain.
+    pub(crate) fn chain_below(&self, o: Obj) -> Option<Obj> {
+        self.chain_words(o).below
+    }
+
     /// The four words of a unit, `(up, down, down_who, up_who)`.
     pub fn unit_chain_words(&self, u: usize) -> (i16, i16, i16, i8) {
         let w = &self.units[u].chain;

@@ -313,3 +313,64 @@ fn the_struck_fraction_is_the_emulated_original_s() {
         assert_eq!(struck_count(d, 1920), c, "d = {d}");
     }
 }
+
+/// **The building arm strikes centre-first, each cell's chain head
+/// first** (item 4377, `Nuke::do_damage@0092bc80`'s `92c0b5..92c556`):
+/// four buildings in one ring on one frame — index 0 two cells south of
+/// the point (`move` entry 16), index 1 in the point's own cell (entry 0),
+/// 2 and 3 one cell south (entry 6), 3 threaded last so heading its chain —
+/// are struck 1, 3, 2, 0. run1667's 5667 is the case: theirs strikes
+/// `1/2033` in the blast's cell before the capital `1/2000`, eight rows
+/// south. Made to fail with the buildings walked by index (0, 1, 2, 3).
+#[test]
+fn the_building_arm_strikes_outward_from_the_point_s_cell() {
+    use crate::world::UNITS_PER_CELL as C;
+    let mut s = Sim::new(
+        crate::core::tuning::Tuning::RON,
+        crate::world::World::new(60, 60),
+        2,
+    );
+    s.leaders.at_war[0][1] = true;
+    s.leaders.at_war[1][0] = true;
+    let bt = s.add_build_type(crate::cities::build::BuildType {
+        x_size: 1,
+        y_size: 1,
+        ..crate::cities::build::BuildType::default()
+    });
+    let mid = |cx: i32, cy: i32| Pos::new(cx * C + C / 2, cy * C + C / 2);
+    let put = |s: &mut Sim, p: Pos| {
+        let b = s.add_building(1, p, 0);
+        s.buildings[b].ty = Some(bt);
+        s.buildings[b].hits = 1200;
+        s.buildings[b].health = 1200;
+        s.buildings[b].combat = Some(crate::combat::Profile {
+            x_size: 1,
+            y_size: 1,
+            ..crate::combat::Profile::default()
+        });
+        b
+    };
+    let far = put(&mut s, mid(20, 22));
+    let centre = put(&mut s, mid(20, 20));
+    let older = put(&mut s, Pos::new(20 * C + C / 2 - 96, 21 * C + C / 2));
+    let newer = put(&mut s, Pos::new(20 * C + C / 2 + 96, 21 * C + C / 2));
+    assert_eq!(
+        s.object_chain(crate::Cell::new(20, 21)),
+        vec![Obj::Building(newer), Obj::Building(older)]
+    );
+    let shooter = s.add_building(0, mid(5, 5), 0);
+    s.combat.nukes.blasts.push(Blast {
+        at: mid(20, 20),
+        min: 1920,
+        max: 1920,
+        start: 3200,
+        who: 0,
+        shooter: Obj::Building(shooter),
+        struck: Vec::new(),
+    });
+    s.nuke_do_damage(3201);
+    assert_eq!(
+        s.combat.nukes.blasts[0].struck,
+        [centre, newer, older, far].map(Obj::Building).to_vec()
+    );
+}
