@@ -1027,57 +1027,6 @@ pub(crate) mod recording {
         assert_eq!((demand, declared), (Some((6081, 1, 0)), None));
     }
 
-    /// PROBE 4387 (reverted whole): the minted file walked, every
-    /// `LEADERDATA` key against run1683's window.
-    #[test]
-    fn probe_4387_leaders_against_the_take() {
-        let (Ok(rcx), Ok(glog)) = (
-            std::env::var("RON_PROBE_RCX"),
-            std::env::var("RON_PROBE_LOG"),
-        ) else {
-            return;
-        };
-        let inst = crate::testenv::install().unwrap();
-        let loaded = crate::load::load(&inst).unwrap();
-        let rec = read(&rcx).unwrap();
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let text = crate::capture::read(&glog);
-        let log = crate::gamelog::Log::parse(&text);
-        let frames: Vec<i64> = log.frames().into_iter().map(|(n, _)| n).collect();
-        let (lo, hi) = (*frames.first().unwrap(), *frames.last().unwrap());
-        for frame in 0..=hi as i32 {
-            stream.apply(frame, &mut built);
-            built.sim.command().tick();
-            let f = built.sim.frame;
-            if f < lo || f > hi {
-                continue;
-            }
-            for who in 0..2 {
-                let Some(block) = log.leader_block(f, who) else {
-                    continue;
-                };
-                let t = crate::diff::leader::theirs(&block);
-                let mine: std::collections::BTreeMap<String, i64> =
-                    crate::diff::leader::rows(&loaded, &built, who as usize)
-                        .into_iter()
-                        .collect();
-                let parts: Vec<String> = t
-                    .iter()
-                    .filter_map(|(k, v)| {
-                        let o = mine.get(k)?;
-                        (o != v).then(|| format!("{k} ours {o} theirs {v}"))
-                    })
-                    .collect();
-                eprintln!(
-                    "PROBE {f} who {who}: {} keys, {} part: {parts:?}",
-                    t.len(),
-                    parts.len()
-                );
-            }
-        }
-    }
-
     /// **Item 4387's game** (`docs/LEADERS.md` §8.2, `docs/RECGAME.md`
     /// §8.2): the harness lobby at `TEAM_STYLE 0`, `DIFFICULTY 2`, seed
     /// 12345 — the sweep's earliest demand, the French on the human on 6081
