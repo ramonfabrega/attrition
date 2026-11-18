@@ -1186,7 +1186,8 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// rows, all in the leaders slot.
 /// Item 4348: lines agreeing 482 → 499 of 1,053: gaia's angles from the
 /// start dump, the `guys` line whole on seventeen packets.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 499, 1053);
+/// Item 4363: chapter 94 adds the occupied deaths line (16 of 16 ranges).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 500, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1293,7 +1294,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (517, 517, 13),
             (0, 0, 0),
             (0, 0, 0),
-            (16, 0, 16),
+            (16, 16, 0),
             (538, 538, 0),
             (382, 382, 0),
             (271, 271, 3),

@@ -558,7 +558,9 @@ The skeleton piece is the unit graphic's named entry in the install's
 skeleton table. That table starts after the shadow pieces
 (`GraphicPieces::init_piece_ranges@008f70e0`, `GraphicPieces::init@008ffcc0`).
 A disband has ammo piece −1 and zero ammo angle. Its two records agree
-through their separate removals. On run1420, treating four combat deaths as
+through their separate removals. Chapter 94 at state 846 also matches
+eight death records, all 600 bytes (Adler 1073114359), following cast
+orders against two artillery units. On run1420, treating four combat deaths as
 unarmed reproduces 294 of 300 bytes. The six differing bytes are all in the
 ammo angles. Their original values are 16, 193, 201 and 0 degrees. A damage
 path with unknown impact inputs leaves the whole deaths line unavailable.
