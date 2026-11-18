@@ -4372,7 +4372,9 @@ effect is equal on both sides, 40 of 40 values. `INPUT_ARMS_FILE` is 40 of 40. N
   damage_object@009f5bd0`). Its `damage` is 480 from 690 to 1000. The DLL's `@repair 0 2007 0 6` on 800 issues
   the REPAIR swarm (`process_swarm_around` 800, `Unit::add_repair_order` 800). The Citizen is still walking on
   1000, so `Unit::do_repair` is not entered in the window. The arm's effect on both sides is still one reading:
-  no minted file wounds a building of slot 0's, and the console's eval is no order a file carries (4381a).
+  no minted file wounds a building of slot 0's, and the console's eval is no order a file carries (4381a). A minted
+  file now wounds one, through a `play` 1 attack, and the original plays the arm from it (run1679, §32.15). The
+  values wait on 4383a.
 - **Not established**: the guard's head order. It is index 2 in both dumps, which is `ATTACK_TO`'s number. Whether
   `issue_guard`'s order is stored as an `ATTACK_TO` or the reader names it so is not read here.
 
@@ -4430,6 +4432,57 @@ effect is equal on both sides, 5 of 5 frames: none. `INPUT_TRANSPORT_FILE` is 41
   it enters on the original's side, and the bit on both sides at level 0.
 - **Not established**: the level-3 arm from a minted file, where the bit is set or cleared. It needs the human's
   level at 3 (a Dock and `TRANSPORT_BONUS`), and no script of ours builds that (§32.12).
+
+## 32.15 The Repair pick's `REPAIR`, on a building the computer wounds (item 4383)
+
+*Item 4383, 2026-11-18 (`docs/journal/2026-11-18-item-4383.md`). **`INPUT_REPAIR_FILE` is 42 of 42**, and the original
+plays the file (run1679, not refused), but **the walk parts**: `REPAIR_WALKED` reads draws to 7274 of 8500 and 1,337
+of 1,600 records parted, first on 7163 (parked 4383a). The arm's effect plays on both sides, ten frames apart. No
+`crates/sim` change.*
+
+- **The script.** `script::picked_repair()` is the transport script (§32.14) and two packages more:
+
+  | frame | play | selection | order |
+  | --- | --- | --- | --- |
+  | 6920 | 1 | slot 1's Bowmen `1/24` to `1/26`, idle at (30900, 21000) | `group [24, 25, 26]`, `attack(2000, 0, 0, QUEUE_NEW)` |
+  | 8200 | 0 | Citizen `0/12`, REPAIR, a press on the Capital `0/2000` | `group [12]`, `swarm_around(2000, 0, QUEUE_NEW, REPAIR)` |
+
+  The attack is no person's order. It is the script's, and the count injects it beside the events
+  (`mint_with_sim_beside`), because slot 0's client mints nothing for slot 1. The original takes it.
+  `RecordGame::read_package@00952d90` is called with `param_3` −1 on playback, which reads any `play`.
+  `process_group@0094a0c0` compares the group's `who` with `info.player[play].who`. Slot 1's Scout cannot be
+  the wounder (`ATTACK` 0). On our walk the Capital is first wounded on 8190, the earliest of slot 0's buildings.
+- **Stage 0**, on 8200 at the opening camera: the citizen at (916, 476), REPAIR at (545, 1012), and the Capital at
+  (1127, 521), `hits` 1200 and `health` 1199. The Capital is built, alive and damaged, so the pick takes arm 2
+  (§32.10.1).
+- **The count.** `minted_repair_at_the_opening_camera`: 43 orders, the 42 of slot 0's minted from the events
+  field for field. **`INPUT_REPAIR_FILE` is 42 of 42**. It read red at 41 with the script's swarm made `BUILD_AT`.
+- **The file.** `~/ron-golden/recordings/item4383-repair-greatlakes-24000.rcx`, 59,862 bytes, SHA-256
+  `d3e5662832136b00a4828ff6dd93f5e7b54dc6ae79d812c78f5aeac5b6b7de04` (`the_repair_minted_packages_round_trip`).
+  The stamps 43 and 44 are the two packages, `play` 1 and 0, and the closing stamp goes from 43 to 45. The events
+  write it byte for byte.
+- **The take.** run1679 (`docs/RUNS.md`) is run1668's line to 8500, with the window 6900..8500.
+- **The walk parts** (`REPAIR_WALKED`, pinned at 8500 and none parted before the read, and then re-pinned as
+  measured). The first record parts on 7163: slot 1's new Longbowman `1/30` heads `GROUP_ATTACK_TO` (21) on ours
+  and `ATTACK_TO` (2) on theirs, and `1/31` stands at (33592, 21949) against (33602, 21946). The draws part on
+  7274. The transport file walked whole to 7500 (§32.14), so the parting is the computer's answer once its
+  Bowmen are taken: its new archers' attack-move is a group order on ours and a plain one on theirs.
+- **The effects** (`what_the_repair_does_on_both_sides`, ours pinned and committed before the take). Equal on
+  6920, 6921, 6922 and 7500, which covers the Bowmen standing, their march's first two ticks and their march at
+  (22740, 27052). After the parting each side is read by when things happen:
+
+  | | first damage | the Citizen heads `REPAIR` | the Capital whole again |
+  | --- | --- | --- | --- |
+  | ours | 8190 | by 8250 | by 8350 (2 on 8325) |
+  | the original | 8200 | by 8250 | by 8300 (2 on 8250) |
+
+  The transport file's walk wounds nothing. So the Repair pick's `REPAIR` is played from a minted file, and on
+  the original it takes the Citizen to the Capital and makes it whole. **The values are not equal on both sides**,
+  because the walk parted 1,000 frames before the press.
+- **Backed by a diff**: the two orders' bytes (the client's file, byte for byte) and the march to 7500.
+  **One reading, still**: the REPAIR arm's values on both sides, waiting on 4383a.
+- **Not established**: whether the original gives `GROUP_ATTACK_TO` to any member when the group is the AI's own
+  (4383a).
 
 ## 33. The shift's queue: the modifiers each issuer reads (item 4293)
 
