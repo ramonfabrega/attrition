@@ -38433,3 +38433,27 @@ It was waited on with `waitrun.sh` in the background. `df -g ~` read 157 GB free
 Archive `gamelog-run1663-greatlakes-playback-of-arms-7500.txt`, 165,533,592 bytes,
 SHA-256 `6d70876674a37b56838bb65fa5656f027596a06299e633454c5aa0260de4ca1e`; `rontrace-run1663.log`, 36,810,912
 bytes, SHA-256 `b646b960004f9ba8c36bd9f3ab5198f33dcdb40919c79dd59841bbb84121bd25`.
+
+## run1667 — run1646's lobby to 5700 with a packet at 5667: the nuke's strike order (2026-11-18, item 4362, `att-4362`)
+
+`docs/LEADERS.md` §8.2, `docs/ARMY.md` §18. **What the disk could not answer**: item 4360 put the parting in
+`find_target`'s choice for army `1/1` on 5667, inside the Russian nuke's emergency, and no dump prints an army or a city's
+bits. Filed **in place**, as run1646 is: `~/ron-golden/run1667/map-18/`, `filerun.py` not run.
+- **The line**: run1655's with `--log-window 5661 5701 --tracer-def RON_STATE_FRAME=5667` (the plan path whole:
+  `~/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h`), through `viadriver.sh golden_capture.sh`, waited on with
+  `waitrun.sh`. `df -g ~` read 148 GB free before it.
+- **The receipt**: pool lane 1, launched 06:52:25 −05:00, exited 06:58:05, **340.3 s**, exit 0, `success`, 5701 frames,
+  `last_frame` 5700, seed 12345, who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 10), who 2 (flags 1, tribe 13), no page
+  fault, no relaunch. Minutes waited on another lane: none.
+- **The packet**: `frame-snapshot.bin`, 946,684,652 bytes, logger frame 5667, SHA-256
+  `dee297b09bb98d631fdbedfec8fab46d2ab3a5e476cf2f599a88ccc1b632043c`; the game seed at `0xe37a8c` is 5667's first draw's
+  (`218e75d5`). Army `1/1` at `0x158928b4` (`armies` lists at `0xc09700`, `+0x10` the data, `+4` the count) targets
+  `2/2057`, as ours on 5666. `Ammo::do_damage@00678060` on the Russian ammo `0x1613c2f4` (launcher `2/97`, ground (19008,
+  35136)), game seed poked to `92450aef` (theirs' trace, the take's draw), `TerrainOut::terraform_for_nuke`,
+  `NukeOut::graph_do_damage` and `Sound::init` answered at once, `_itow_s` and the CRT string calls stubbed: 13
+  `find_target` draws equal to theirs' trace (17656 … 55940), target `2/2057`.
+
+Files in place: `gamelog.txt`, 72,625,701 bytes, SHA-256 `2a802e7c27474867281a8e81eacd39ed2ce288e6874fd0a7a1bc9dc40250e1fd`;
+`rontrace.log`, 277,464,224 bytes, SHA-256 `f694e21aef24a5b338648a146249d12b9af5d63635021a9dc2009f4efe6a0e17`.
+
+**What it holds**: no walk reads it; the strike order's value diff (item 4362's journal).
