@@ -3473,6 +3473,27 @@ computed once** (`find_wpath` from the leader's cell to slot 0) **and copied
 to every member translated by its slot offset**, each waypoint re-validated;
 the group paths once and offsets.
 
+**A computer's newborn squad in a pushed group on its army's index walks
+plain** (item 4389, run1679, one reading and the dump; not built). The gate
+above holds on both sides; what parts is `unit_masks & 4` going into it.
+Slot 1's Longbowmen `1/30` (captain), `1/31` and `1/32` (`TypeIndex` 127,
+land) are born on 6993 in pool group 65. Group 65 is army 1's index, and
+the `play` 1 package of 6920 had moved the army's Bowmen out of it, to 64.
+In theirs, `get_army@00649d70` answers −1 for them, because group 65's
+`army` is −1. So `think_attack`'s `add_to_army@005f7740` runs on each
+32-frame edge of the captain's. `normalize` counts group 65 through the
+index, `get_unit(0)` answers the squad's own captain, and
+`go_to_unit@005f78c0` marks the squad (no walk, the distance 0).
+`add_unit` then finds the captain already in group 65 (`Army::member@006f8de0`)
+and does nothing. The captain's `work@0060d180` clears its own bit on the
+same edge, so the bit is on all three on 7162. The army's tick on 7162
+moves the index's group, and the gate sends each member a plain
+`ATTACK_TO`. Ours seats the joiner on the army (`docs/GOLDEN.md` §77, the
+arm kept for a joiner the record already lists), so `army_of` answers
+army 1 from 6995 on. Nothing re-marks, and the same tick issues
+`GROUP_ATTACK_TO`. The value diff and its reading are in
+`docs/journal/2026-11-18-item-4389.md`.
+
 ## 8.3 `GroupMoveOrder` per frame — `do_group_move@005e79a0`
 
 `G` = the order: a `MoveOrder` plus `oxx/whose` = the leader, `id`, `form_id` =
@@ -4376,6 +4397,9 @@ moves fall out of dispatching once on the front at the top of `work`.
 - **`find_repair_spot` is still absent**, on all four of its arms
   (§5.5, §5.6, §5.9). It needs `FILTER_DAMAGED` and the difficulty gate,
   and it only ever runs when the build search comes back empty.
+- **`get_army` on a member of a pushed group the army's index names**
+  (§8.2, item 4389): the original answers −1 and re-joins every 32 frames,
+  and ours answers the army. Not built; parked 4389a.
 
 **Not established — the order system**
 

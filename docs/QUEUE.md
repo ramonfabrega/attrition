@@ -38,7 +38,7 @@ Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame
 Start: 161 of 161 lobbies · GreatLakes walked w24000 of 24,000
 Lobby: the page sets 161 of 161 lobbies · starts 161 of 161, walked 600 frames
 Hud: buttons mint the clicked file byte for byte, 2 of 2 keyed orders · the transport press 4 of 4 (4357) · the panel equals run1568's dump, 628 of 628 values · the bar equals the LEADERDATA record, 57,420 of 57,420 values · the clock reads the photographs' time, 3 of 3, and Game::tick on 109 of 109 packets · a wounded unit's panel equals run1571's dump, 840 of 840 values · the HUD draws the panels, 103 of 103 buildings and 36 of 36 citizens' pages, 2,711 of 2,711 buttons, paged as theirs, 468 of 468 states, the idle arms held on 3 packets, the standard panel 398 of 398 buttons, the picks 24 of 24 (4334 to 4349)
-Recording: 50 of 50 round-tripped · the original plays ours: GreatLakes 24,000 of 24,000 frames in lockstep (run1560) · with a person's orders (move_to, queue_up, build): 24,000 of 24,000 frames in lockstep, 299 records whole, each order's effect equal on both sides (run1561, run1561a) · right presses: 300 of 300 frames, each effect equal (run1568) · a box: 300 of 300 (run1569) · an attack: 6,900 of 6,900 frames, 210 records whole, the blow's hits equal (run1571) · a follow: 6,900 of 6,900 (run1573) · a gather point: 7,000 of 7,000 frames, 300 records whole (run1598) · a chat: 7,000 of 7,000 (run1599) · a pause: 7,000 of 7,000 draws, 300 of 300 records whole (run1601; a Slinger's third swing launches from its node, 4256) · sell and buy: 7,000 of 7,000 draws, 300 of 300 records whole (run1604) · a city's gather: 7,000 of 7,000, 300 of 300 (run1605) · an unqueue: 7,000 of 7,000, 300 of 300, the capital's queue equal (run1606) · a repeated group: 7,000 of 7,000, 300 of 300 (run1607) · a city's rename: 7,000 of 7,000, 300 of 300 (run1609) · a hot key: 7,000 of 7,000, 300 of 300, slot 0's group 1 equal before and after (run1610, run1611) · a garrison: draws 7,000 of 7,000, the Citizen inside `0/2000` on 6767 on both sides, 300 of 300 records (run1613; 4277) · a buildmask: draws 7,000 of 7,000, the capital's mask and re-queue equal, 300 of 300 records (run1614; 4277) · a come_out: 7,000 of 7,000 frames, 300 of 300 records, the Citizen's exit equal on 6781 (run1616) · a stance: 7,000 of 7,000, 300 of 300 (run1617) · the console's ai off: 7,000 of 7,000, 300 of 300, slot 1's Citizens' retarget equal on 6982 (run1618) · a disband: draws 7,000 of 7,000, 300 of 300 records, the corpse equal (run1623) · an auto-explore: draws 7,500 of 7,500, 700 of 700 records whole, the Scout's path equal from 6819 (run1627) · the picks (follow, gather, attack): 7,500 of 7,500, 700 of 700, each effect equal (run1656) · the picks' other arms (the Move pick's ground order, the guard, the ground `ATTACK_TO`, `BUILD_AT` on a Farm site): 7,500 of 7,500, 700 of 700, 40 of 40 effects (run1663) · a minted `set_transport`: 7,500 of 7,500, 700 of 700, no effect at level 0 on both sides (run1668)
+Recording: 50 of 50 round-tripped · the original plays ours: GreatLakes 24,000 of 24,000 frames in lockstep (run1560) · with a person's orders (move_to, queue_up, build): 24,000 of 24,000 frames in lockstep, 299 records whole, each order's effect equal on both sides (run1561, run1561a) · right presses: 300 of 300 frames, each effect equal (run1568) · a box: 300 of 300 (run1569) · an attack: 6,900 of 6,900 frames, 210 records whole, the blow's hits equal (run1571) · a follow: 6,900 of 6,900 (run1573) · a gather point: 7,000 of 7,000 frames, 300 records whole (run1598) · a chat: 7,000 of 7,000 (run1599) · a pause: 7,000 of 7,000 draws, 300 of 300 records whole (run1601) · sell and buy: 7,000 of 7,000 draws, 300 of 300 records whole (run1604) · a city's gather: 7,000 of 7,000, 300 of 300 (run1605) · an unqueue: 7,000 of 7,000, 300 of 300, the capital's queue equal (run1606) · a repeated group: 7,000 of 7,000, 300 of 300 (run1607) · a city's rename: 7,000 of 7,000, 300 of 300 (run1609) · a hot key: 7,000 of 7,000, 300 of 300, slot 0's group 1 equal before and after (run1610, run1611) · a garrison: draws 7,000 of 7,000, the Citizen inside `0/2000` on 6767 on both sides, 300 of 300 records (run1613; 4277) · a buildmask: draws 7,000 of 7,000, the capital's mask and re-queue equal, 300 of 300 records (run1614; 4277) · a come_out: 7,000 of 7,000 frames, 300 of 300 records, the Citizen's exit equal on 6781 (run1616) · a stance: 7,000 of 7,000, 300 of 300 (run1617) · the console's ai off: 7,000 of 7,000, 300 of 300, slot 1's Citizens' retarget equal on 6982 (run1618) · a disband: draws 7,000 of 7,000, 300 of 300 records, the corpse equal (run1623) · an auto-explore: draws 7,500 of 7,500, 700 of 700 records whole, the Scout's path equal from 6819 (run1627) · the picks (follow, gather, attack): 7,500 of 7,500, 700 of 700, each effect equal (run1656) · the picks' other arms (the Move pick's ground order, the guard, the ground `ATTACK_TO`, `BUILD_AT` on a Farm site): 7,500 of 7,500, 700 of 700, 40 of 40 effects (run1663) · a minted `set_transport`: 7,500 of 7,500, 700 of 700, no effect at level 0 on both sides (run1668) · a repair after an attack: played, ten frames apart, parting on 7163 (run1679)
 Checksum: instrument 15 of 15 lines (run1562 f91) · state 8 of 12 lines, 367,156 of 425,499 bytes · packets 107 of 121 · lines 608 of 1,053
 
 **Opener: continue the tranche (`commander`, Opus 5.5)** — check the gate log the handoff names ends `gate exit 0` and HEAD = origin/main; cut the seats from the lanes line under "The queue"; read the week at each booking against the day's line.
@@ -49,23 +49,23 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out: the chain's 4387 (after 4382's sweep), the suite's 4388 (after 4384's ranges), the third's 4383 and render's 4386 (after 4385).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7): four seats out: the chain's 4392 (after 4387 minted the demand), the suite's 4388, the third's 4391 (after 4389) and render's 4393 (after 4390, the lake's last). The third seat has left the input track for the AI's army path, for the pass to weigh.
 
 4159. **The leaders line, to the milestone** (the chain's; `docs/LEADERS.md`; CHECKSUM §20, §23; DECISIONS 131 §1 to §3, 132 §1,
 §2, 137 §1, §2; builders). `LEADERS_HELD_OUT` 1 (from 140; the steps are CHECKSUM §20's table). A leaf leaves where it moves on a dump or
 packet our walk holds, on a block no staged decision precedes, or frozen. run1575 is **1150 computed**, run1628 (recon4206-4, read in
 place) **1150 computed**, run1629 **1300 whole**. Frame 91's line parts on 0 of 267 ranges and is held, not whole, while a leaf is held
-(the driver's ruling at 4298). **Held:** `tribute_demanded`. **Order:** item 4387; the line on every frame is whole (4340). The diplomacy's
+(the driver's ruling at 4298). **Held:** `tribute_demanded`. **Order:** item 4392; the line on every frame is whole (4340). The diplomacy's
 second reading is adjudicated (`docs/audit/2026-11-14-leaders-diplomacy-adjudication.md`); the proposal's draw at five live leaders is
 parked in `docs/LEADERS.md` §7.6 with what would falsify it.
 
-4387. **The demand's seed, then the demand minted** (a rules item, whole; the chain's; `docs/LEADERS.md` §8.2; DECISIONS 142 §3).
-`LEADERS_HELD_OUT` 1 → 0. 4382's sweep (Great Lakes, style 0, seeds 12340–12359, difficulties 0–5, order-free): 30 of 120 lobbies demand
-on the base, earliest 7105 (12348, d2); with diplomacy reading the lobby's seed, a probe, 33 of 120, earliest 6081 (12345, d2), the
-original's frame; every demand is leader 1 at the person. First act: the planned war's seed mended to the lobby's, every floor held,
-the demand on 12345 d2 on 6081 in ours. Second: `from_lobby`'s donor relaxed to let options[0] differ (the rules equal across
-`TEAM_STYLE` on both East Indies pairs; no style-0 Great Lakes donor on disk); third: that game minted as run1677, played under
-`RON_CHECKSUMS` and scored, the leaf leaving if the leaders line agrees through the demand with it emitted, red with it held.
+4392. **The demand game's leaders line from state 0** (a rules item, whole; the chain's; `docs/LEADERS.md` §8.2, §8.6; DECISIONS 142 §3).
+`LEADERS_HELD_OUT` 1 → 0. 4387 mended the planned war's seed to the lobby's, every floor held, and minted Great Lakes 12345 d2 at style
+0 (run1683): theirs and ours set `tribute_demanded[0]` 0 → 1 on 6081, the `LEADERDATA` record agrees on 6070 to 6100 but `SITE[i].reg`
+(parked 4387b), and eleven lines agree on 6,401 of 6,401 states; the leaders line parts on every state from 0 (ours 40276137, theirs
+10260661) on a leaf the record does not print (parked 4387a). First act: that file played for a few frames under `RON_CHECKSUMS` and
+`RON_RANGES` (run1678's recipe) as run1686, the state-0 range named by record and field. Then it closed; the leaf leaves if the line
+agrees through 6081 with it emitted, seen red with it held. It stops when two acts move the first parting by nothing.
 
 4388. **The sample's state 0, its team game first** (a rules item, whole; the suite's; `docs/RECGAME.md` §7; DECISIONS 142 §4).
 `SAMPLE_LINES` first partings (4384, run1678, `SAMPLE_RANGES`): units on 92 (`unit_masks` 8 vs 0x4000008, the explore bit, which ours
@@ -76,20 +76,21 @@ goods on 1 (`ever_seen` 0x04 vs 0x17), world on 0 (`seen2` 0x04 vs 0x17). State 
 +0x6929 and their order in `build_game`; then `chat_status`; then the unseated slots' team byte; each row re-minted with its value diff.
 The nine left (oil patches, two z, six `seen2` cells) come after. It stops when two acts move no line's first parting.
 
-4386. **The lake by the card's own draws** (a `render` item, scoped; the render seat's, out; `docs/RENDERER.md` §3.30;
-DECISIONS 142 §7). `RUN1564_3279_TEXTURE_STILL` ocean 244 of 437 and `RUN1564_3279_FOAM`. On both of the pass's pairs theirs' lake is dark and
-mottled with white streaks across its body; ours is pale and smooth with heavy crescents on the west and east rims, and no row counts it.
-4353 read every world draw by the packet's lists and placed no stroke (parked 4353a). First act, one take on run1564's camera: the card
-probe keeping each draw's vertex stream on the pass after 3279 (parked 4281a), and the strokes' pixels and a body tile's attributed to the
-draw that lays each, by the card's own stream. Then a row minted on the body by value, seen red on a perturbed side, and that draw closed
-with its value diff. It stops when the take attributes the strokes to no world draw, and parks with that kill.
+4393. **The lake's photograph and its card pass on one take** (a `render` item, scoped; the render seat's, the lake's last; `docs/RENDERER.md`
+§3.30; DECISIONS 142 §7). `RUN1564_3279_TEXTURE_STILL` ocean 244 of 437. 4386 and 4390 (run1681) placed the broad strokes under the
+floor (36) and the water (162) and found no input of either that lays them: not their streams, not stage 0 (the stages select the
+vertex colour), not the specular (about 1e-5), not the reflection (0 hits on the lake); a probe take's window stopped presenting
+(parked 4386b, 4390a). First act: one take on run1564's camera, run1688, photographing the frame its card pass logs, and the post
+chain's (bloom, FXAA) inputs and output read on it. It stops there: if the strokes are absent the photograph was another frame,
+said with its value diff; if present and the post chain lays none, the lake parks for the pass to re-place the seat.
 
-4383. **The Repair pick's `REPAIR` played from a minted file** (an `input` item, scoped; the third seat's, unspawned;
-`docs/CLIENT_INPUT.md` §32.13). `Blind: open 0` (4381, run1675: `Options::do_repair` entered on 724 by a key bound to
-`KEYMAP_OPTION_REPAIR` over a Citizen beside a Barracks the console wounded; parked 4381b, the argument it took). The REPAIR arm's
-effect from a file is unplayed: no minted file wounds a building of slot 0's yet (parked 4381a). First act: a play-1 attack package
-appended to the arms' file after 6910 on the Great Lakes lobby that wounds one, then the pick's `REPAIR` on it, played by the original:
-each effect equal on both sides. It stops when the playback is refused, and says so.
+4391. **A pushed group's member answers no army** (a rules item, whole; the third seat's; `docs/ORDERS.md` §8.2, §14; GOLDEN §77).
+`REPAIR_WALKED` (7274, 8500, 1600, 1337) on run1679. 4389 read the 7163 parting as the gate's input: theirs' `1/30` squad (born 6993
+in group 65, army 1's index, emptied of its Bowmen by the `play` 1 attack) carries `unit_masks & 4` on 7162, since `get_army` answers
+−1 for a pushed group's member and `add_to_army` → `go_to_unit` re-marks it on every 32-frame edge; ours seats it on army 1 by §77's
+listed-joiner arm, so nothing marks and it heads `GROUP_ATTACK_TO` (parked 4389a). First act: `army_of` answers `None` for such a
+member while the army's tick still acts on the record, red first on the mark on 7162; a mutation dropping the re-run fails it. Golden
+chapter forty-two (it fell 1160 → 1020 on `1/6`'s stance the last time) and every walk floor hold, or the build parks with its fall.
 
 ## How to maintain this file
 

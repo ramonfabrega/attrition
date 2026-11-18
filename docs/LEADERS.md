@@ -2485,8 +2485,18 @@ left at 0, refused by its bucket clause (11,057 ≥ 3,000). The four tributes ar
   there (`Game::info.seed`). Its draws (`+0x1da0`, `+0x1e3f`) and the
   goods it picks are unproven until 6080 is walked. Item 4382's sweep
   finds ours demanding on a Great Lakes lobby at style 0 (seed 12345,
-  difficulty 2: 6081 with the lobby seed, 8129 with the world seed); no
-  such game has been played by the original.
+  difficulty 2: 6081 with the lobby seed, 8129 with the world seed). ~~No
+  such game has been played by the original.~~ **Item 4387** mended the
+  seed (`Sim::info_seed`) and minted that game; the original played it as
+  run1683 and stores the French `tribute_demanded[0]` 0 → 1 on block 6081,
+  ours on 6081 too (`the_demand_s_lobby_demands_on_6081`), and every
+  `LEADERDATA` key the reader parses agrees on 6070–6100 but `SITE[i].reg`
+  (ours 1, theirs 0, every site of both leaders). The leaders line still
+  parts on every state from 0 (state 0: ours 40276137, theirs 10260661) on
+  a field the record does not print: ours' state-0 image moves with
+  `TEAM_STYLE` (`diplos`, `aggression`) and `DIFFICULTY` (`multi_diff`)
+  alone, and those three agree with the record mid-game. A ranges take of
+  the same file names it (parked 4387a).
 - **`scale_tribute`**: the load scale of `commerce_tribute` and
   `base_tribute` (`Constants::init`), and its rounding branches, which were
   not re-listed. A deal captured above Commerce 0 pins them.

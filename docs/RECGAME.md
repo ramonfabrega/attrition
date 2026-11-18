@@ -635,9 +635,15 @@ written by `the_lobby_s_recording_is_written_and_reads_back` under
 | §4.3 | stamps, frames, the closing package | the frame-0 `leader_options` payload (the profile's auto-manage settings; the same 33 bytes on all 49 of this install's recordings) | — |
 
 The donor is the first finished recording on disk with our version string
-and our 30 option bytes; `from_lobby` refuses any other, because §8.1 shows
-the rules move with the options. It is read from the user's install at run
-time and never kept.
+and our 30 option bytes, but for `TEAM_STYLE`; `from_lobby` refuses any
+other (`donor_serves`), because §8.1 shows the rules move with the options.
+**`TEAM_STYLE` alone does not move them** (items 4382, 4387): the three
+pairs in the profile's `Recorded Games/` that differ in that byte alone
+(East Indies, styles 0 and 1, difficulties 5, 5 and 0) carry equal rules,
+run state, semaphore and markers (`mint_4387_the_demand_s_game`'s `MINT
+pair` rows), and no Great Lakes game at style 0 has been recorded, so a
+style-1 donor serves a style-0 lobby. It is read from the user's install at
+run time and never kept.
 
 **Against the original's own recording of this lobby's game**
 (`Playback - 2026.08.25 00'39'07 (Tue)`, 24,001 packages over frames

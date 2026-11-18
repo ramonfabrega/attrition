@@ -4453,8 +4453,51 @@ equal), and their model is
 - draws 170–209 are screen space.
 
 So no draw on the card pass puts the stroke there by what is on disk: the item's stop. The card trace streams no
-vertices, so this rests on the packet's lists, not the card's own per draw. *Not established:* which draw lays theirs'
-strokes. A card probe keeping each draw's stream after 3279 (4281a) would attribute each pixel.
+vertices, so this rests on the packet's lists, not the card's own per draw. *Not established:* ~~which draw lays theirs'
+strokes. A card probe keeping each draw's stream after 3279 (4281a) would attribute each pixel~~ — the probe ran (item
+4386, below), and no draw's own stream lays them.
+
+**The strokes by the card's own stream** (item 4386, run1681; the ledger: `docs/journal/2026-11-18-item-4386.md`).
+`RON_CARD_STREAMS` (`tools/trace/card.h`) keeps each draw's bound buffer over the drawn range, its indices, and the
+card's arrays. On run1681's 3279 pass, draws 0–185 are run1567's draw for draw. Every world draw is rasterised from
+its own vertices through its own matrices onto run1564's photograph. A stroke pixel is luma 40 over its 31×31 mean,
+inside the lake's rows, off the HUD and the sand: 3,636 pixels, 2,027 of them in the south-east.
+- Only the floor (36) and the water (162) lie under every stroke. The surf lays 1,225 of the 3,636 at α > 0.15, the
+  west rim's speckle (lists 7 and 8), and none of the south-east's broad strokes.
+- On the south-east strokes against the water beside them, the photograph's luma is 182.7 against 109.6. The floor's
+  model, 2·tex(uv0)·diffuse·tex(uv1) off its stream, is 0.519 against 0.522. The water's vertex is (0, 140, 240) at
+  α 0.715 against 0.641, so the strokes are not the floor showing through.
+- On a body tile (700–800, 250–330), the water's α is 0.741 with no spread, and the photograph's mottle follows the
+  floor's model at a correlation of 0.30.
+
+So the strokes are in neither draw's stream: the item's stop. *Not established:* ~~draw 162's own shading, which no
+stream carries: stage 0's unnamed texture, `SCREEN_REFLECTIONS` and the Torrance specular (4386a)~~ (item 4390,
+below), or past the pass.
+
+**The water's shader as the card binds it** (item 4390; the ledger: `docs/journal/2026-11-18-item-4390.md`). The
+pixel shader is the install's `ps_global.hlsl` under draw 162's defines (d3dgl's strings carry
+`HAS_SCREEN_REFLECTIONS` and `TS1_COLORARG_1` …). Its colour is `pow(saturate(stage), 1.45) · (diffuse + ambient) +
+specular + reflection`, at the vertex's alpha. Each of its inputs, on run1681's 3279 pass:
+- **The stages.** `RenderState` (rise.pdb) puts `colorarg1` at `+0xb4` and `colorarg2` at `+0xbc`, as
+  `card_pass.py` reads them. Stage 0 `SELECTARG2(TEXTURE, DIFFUSE)` and stage 1 `SELECTARG2(DIFFUSE, CURRENT)`, alpha
+  `SELECTARG2(~TEXTURE, CURRENT)`, so the stage is the vertex colour: neither the unnamed stage 0 nor `fow_fade.tga`
+  enters. The stream's 1,755 vertices carry the normal (0, 0, 1) and z 0 on every one.
+- **The specular.** On the draw's own `gView`, light and material (roughness 0.3, specular 40), with V the shader's
+  `−normalize(ViewPos)`: N·H 0.63 to 0.65 over the south-east, the specular 2·10⁻⁶ to 1.4·10⁻⁵ in HDR, strokes and
+  not alike.
+- **The reflection.** `D3D11GLGraphicCard::frame_ended` (d3dgl `0x1001d280`) resamples, at each frame's end,
+  `mHDRBuffer`'s colour into `ReflectionManager::mBackTexture` and `mScreen`'s depth into `mDepthTexture`, both at a
+  quarter of the screen (`createTextures`, d3dgl `0x10050f00`: `R16G16B16A16_FLOAT` and `R32_FLOAT`).
+  `create_hdr_buffer` (d3dgl `0x10023f70`) gives the HDR buffer the screen's own depth surface, so that depth is the
+  world pass's. `set_render_state` binds the two at t5 and t6 on `enables & 0x200000`. So draw 162 reads the previous
+  frame's depth and colour. The depth writers (`enables & 3 == 3`) are the land 0–35, the sand, the mountains, the
+  trees and the fish; the floor, the water and the surf write none. Marched as the shader marches (ten 10-unit
+  steps, threshold 0.00075) against that depth rasterised off the streams: **0 hits** on the south-east strokes, the
+  water beside them and the body tile; the closest step is 0.0188 away (about 560 view units, the seabed under the
+  ray).
+
+So no input of the water's shader lays the strokes: the item's stop. *Not established:* past the pass (the bloom
+and FXAA, §3.14), and whether run1564's photograph and the probe takes' 3279 show the same water (4386b; 4390a).
 
 ## 4. The stack
 
