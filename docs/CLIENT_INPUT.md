@@ -4362,6 +4362,17 @@ effect is equal on both sides, 40 of 40 values. `INPUT_ARMS_FILE` is 40 of 40. N
 - **One reading, still: the Repair pick's `REPAIR` arm** (parked 4361a). No building of slot 0's is damaged on the
   walk, from frame 0 to 24,000 at every twentieth frame and from 7,400 at every tenth. A building's disband is a
   timer, not a wound (`docs/GOLDEN.md` §165). So no person's events on this game make the arm's target.
+- **Entered by a capture** (item 4381, run1675; `rondata::blind::TRACES`): the REPAIR press, `Options::do_repair`,
+  on 724 in a live game of this lobby, `tools/gamelog/coverage/blind4381-repair.cmd`. F13 is bound to
+  KEYMAP_OPTION_REPAIR (392, the PDB's KeyMap enum). `KeyMap::keymap_options[392]` in the PE is (3, −1),
+  OPTION_REPAIR. The key, over the selected Citizen `0/6`, enters `Console::exec_keymap`, `Options::exec` and
+  `do_repair` on 724, and it **arms** the pick: `MessageWin::add_instructions` is first entered on 724, and
+  `picked_spot` is entered nowhere in the trace. Both `I_KEY` records (724, 764) map key 124 to 392. The Barracks
+  `0/2007` beside it is wounded by the console's `eval damage_object(1, 2007, 40)` on 640 (`ScenarioFuncSet::
+  damage_object@009f5bd0`). Its `damage` is 480 from 690 to 1000. The DLL's `@repair 0 2007 0 6` on 800 issues
+  the REPAIR swarm (`process_swarm_around` 800, `Unit::add_repair_order` 800). The Citizen is still walking on
+  1000, so `Unit::do_repair` is not entered in the window. The arm's effect on both sides is still one reading:
+  no minted file wounds a building of slot 0's, and the console's eval is no order a file carries (4381a).
 - **Not established**: the guard's head order. It is index 2 in both dumps, which is `ATTACK_TO`'s number. Whether
   `issue_guard`'s order is stored as an `ATTACK_TO` or the reader names it so is not read here.
 
