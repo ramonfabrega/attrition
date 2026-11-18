@@ -7223,23 +7223,51 @@ fn what_the_repair_does_on_both_sides() {
     for t in &theirs {
         eprintln!("REPAIR EFFECT theirs {t:?}");
     }
+    // The walk parts on 7163 (parked 4383a): ours equals theirs through
+    // 7500, the attack's march; past it the wound and the repair are
+    // read on each side by when they happen.
+    assert_eq!(theirs[..4], ours[..4], "the march, both sides");
     assert_eq!(
-        theirs, ours,
-        "the original's Capital, Citizen and Bowmen are ours"
+        theirs.len(),
+        REPAIR_READ_AT.len() - 1,
+        "8500 is the closing block"
+    );
+    let first = |v: &[RepairEffect]| v.iter().find(|e| e.damage > 0).map(|e| e.frame);
+    let repairing = |v: &[RepairEffect]| {
+        v.iter()
+            .find(|e| e.repairer.and_then(|r| r.1) == Some(i64::from(sim::ids::order::REPAIR)))
+            .map(|e| e.frame)
+    };
+    let whole = |v: &[RepairEffect]| {
+        v.iter()
+            .rev()
+            .take_while(|e| e.damage == 0)
+            .last()
+            .map(|e| e.frame)
+    };
+    let read = |v: &[RepairEffect]| (first(v), repairing(v), whole(v));
+    assert_eq!(read(&ours), (Some(8190), Some(8250), Some(8350)), "ours");
+    assert_eq!(
+        read(&theirs),
+        (Some(8200), Some(8250), Some(8300)),
+        "the original wounds the Capital, repairs it, and it is whole"
     );
 }
 
 /// **The original's playback of the repair file** (item 4383,
 /// `docs/CLIENT_INPUT.md` §32.15): `(take, trace, first sequence parting
 /// or the last frame, last frame, records compared, records parted)`.
-/// Pinned before run1679 was read, with none parted.
+/// Pinned before run1679 was read at 8500 and none parted; it read parted,
+/// first on 7163 (slot 1's new Longbowman `1/30` heads `GROUP_ATTACK_TO`
+/// on ours, `ATTACK_TO` on theirs; parked 4383a), the draws on 7274, and
+/// is pinned as measured.
 pub(crate) const REPAIR_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
     "gamelog-run1679-greatlakes-playback-of-repair-8500.txt",
     "rontrace-run1679.log",
-    8500,
+    7274,
     8500,
     1600,
-    0,
+    1337,
 )];
 
 /// **The original plays the repair file in lockstep** (item 4383): the

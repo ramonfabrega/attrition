@@ -38922,3 +38922,26 @@ run1651 and run1662 print no frame block, and run1654's window ends on 101. File
 Files in place: `gamelog_p.txt`, 3,972,686 bytes, SHA-256
 `09028a282ce7aee7e05b7235d9f51185704e60478486ebec52ffafc1618567f8`; `rontrace.log`, 42,983,808 bytes, SHA-256
 `8fa5edec3b366234586ada66eb0b0345343bd99baf4ab2414440b39ab9b8e833`.
+## run1679 — the original playing the repair file: the computer's attack and the Repair pick's `REPAIR` (2026-11-18, item 4383, `att-4383`)
+
+`docs/CLIENT_INPUT.md` §32.15. **What the disk could not answer**: no take on disk plays a `play` 1 package from a
+minted file, and none plays the Repair pick's `REPAIR` from one (4381a). The file:
+`~/ron-golden/recordings/item4383-repair-greatlakes-24000.rcx`, 59,862 bytes, SHA-256
+`d3e5662832136b00a4828ff6dd93f5e7b54dc6ae79d812c78f5aeac5b6b7de04`. It is the transport file (run1668) with two
+packages more: on 6920, `play` 1, `group [24, 25, 26]` and `attack(2000, 0, 0, QUEUE_NEW)`; on 8200, `group [12]` and
+`swarm_around(2000, 0, QUEUE_NEW, REPAIR)`.
+
+The take is run1668's line with this file, to 8500: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1679 --recording <the file> --end-frame 8500 --cover cover=1
+--log-window 6900 8500 --detail end:MISC,UNITS=3,BUILDS=7,LEADERS=2,DEATHS=1 --timeout 3600 --stall-seconds 120`.
+It was waited on with `waitrun.sh` in the background. `df -g ~` read 166 GB free before it.
+- **The run**: pool lane 1, launched 13:23:52 −05:00, exited 13:39:35: **942.9 s from launch to exit**, exit 0,
+  `success`, no page fault, no relaunch. 8,501 frames, `last_frame` 8500, seed 12345, map 14. Players: tribe 4
+  (flags 7) and tribe 11 (flags 1). Five settings restored. The receipt names the file's SHA-256. The playback
+  was not refused. Minutes waited on another lane: none.
+- **The `.rcx` the playback leaves**: none but the run's own `input.rcx`, the symlink to the file played.
+- Filed with `filerun.py run1679 greatlakes-playback-of-repair-8500`.
+
+Archive `gamelog-run1679-greatlakes-playback-of-repair-8500.txt`, 390,546,546 bytes,
+SHA-256 `17f712946e312ee0f460653a0a60967b35654d2ca475907d20d039ba82f7ec80`; `rontrace-run1679.log`, 36,496,416
+bytes, SHA-256 `3d031a0eeef6d729d642954c615e1a9ce31dcd5a5f7d424a5ec6e93613624085`.
