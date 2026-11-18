@@ -463,10 +463,32 @@ which this crate read as never, though the capital's light blow had
 stamped `raid_stamp` 2887; it reads `CityData +0x18` now
 (`was_city_raided@009fd3e0`): 2908 → 3019.
 
-**Not established:** the parting on 3019, where theirs starts two units'
+**Not established:** ~~the parting on 3019, where theirs starts two units'
 steps three frames after `Armies::emergency`, whose two armies are empty
-in our walk; which field the units line parts on at 92; why four lines
+in our walk~~ (item 4380, below); which field the units line parts on at 92; why four lines
 part on the start by sum.
+
+**The word 3019 read on run1674's window (item 4380, 2026-11-18).**
+run1674 prints every unit and figure over 3013..3021 (`docs/RUNS.md`).
+The 4359 hypothesis does not stand: every army of every computer is
+empty in our walk over 3014..3019, and the units that part are not
+soldiers. **One unit parts on every block, the person's SCOUT `3/0`**
+(`TypeIndex` 69, land), on the tenth `EXPLORE_TO` of its queue, to
+(42216, 31320). On 3013 ours stands at (39311, 32904) with the move's
+`dest_x` 39912, and theirs at (39801, 32538) with 40680. The two paths agree
+on their first 61 nodes. Ours holds three more, (41448, 32088), (40680, 32856) and
+(39912, 32856). They are the rest of a grid detour our walk pushed on 2892
+round computer 1's capital (the Woodcutter `1/2001` at (40128, 31680),
+the Market `1/2010`, the Library `1/2005`), after both sides refused
+the straight line on 2891 (`Unit::do_move+0xe84 < Unit::do_explore_to`,
+one draw each). Theirs' scout at 3013 walks straight from the south to
+(40680, 31320) through the ground ours went round. On 3019 theirs' scout passes
+computer 1's MERCHANT `1/17` (`TypeIndex` 61), close enough for theirs'
+draws 1 to 5 (two `move_step+0x823` pairs and a `turn_towards`) to be the
+two units' steps; that is not checked unit by unit. On 3020 `1/17` takes a collision at (39826,
+32220) in theirs and none in ours. **Not established:** whether theirs'
+capital stands on the cells ours does on 2891, which needs a `BUILDS`
+print there, and the grid route theirs took.
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

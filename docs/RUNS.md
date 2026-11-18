@@ -38868,3 +38868,25 @@ SHA-256 `f74ae4f71ed23225db845b51b4afa1084304a9d447697a67b31adb6d6d1e7491`.
 
 **What it holds**: the nine input issuers the blind list left open, each entered on its line's frame in a live
 game.
+
+## run1674 — the 2017 sample's playback to 3021, units and figures printed over 3013..3021 (2026-11-18, item 4380, `att-4380`)
+
+`docs/RECGAME.md` §7. **What the disk could not answer**: which units move in theirs on 3019 and whose they are.
+run1651 and run1662 print no frame block, and run1654's window ends on 101. Filed **in place**, as run1654 is:
+`~/ron-golden/run1674/map-7/`, `filerun.py` not run.
+- **The line**: `TMPDIR=<fresh> viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1674 --recording
+  "<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx" --end-frame 3021 --log-window 3013 3021 --detail
+  end:UNITS=3,GUYS=4 --cover cover=0 --timeout 1200`, waited on with `waitrun.sh` in the background lane.
+- **The receipt**: pool lane 1, launched 09:19:39 −05:00, exited 09:26:15, **396.4 s** launch to exit, exit 0,
+  `success`, 3,022 frames, `last_frame` 3021, not ended early, no relaunch, no page fault, five settings restored;
+  seed observed 340513920. `df -g ~` read 143 GB free before it. Minutes waited on another lane: none. DLL
+  `10ad158b…`, defines `-DRON_AUTOSTART -DRON_REPLAY`.
+- **What it prints**: every unit and figure on 3013..3021. The person's SCOUT `3/0` (`TypeIndex` 69, `uid` 6) on the
+  tenth `EXPLORE_TO` of its queue, to (42216, 31320), at (39801, 32538) on 3013 with a 61-node path; computer 1's
+  MERCHANT `1/17` (`TypeIndex` 61) beside it, whose path gains a node at (39816, 32184) on 3020.
+- **What it holds**: `diff::sample::tests::the_sample_walks_to_its_word`'s window (`SAMPLE_WINDOW_RECORDS` 18, 0 →
+  26, 8, the first on 3013).
+
+Files in place: `gamelog_p.txt`, 3,972,686 bytes, SHA-256
+`09028a282ce7aee7e05b7235d9f51185704e60478486ebec52ffafc1618567f8`; `rontrace.log`, 42,983,808 bytes, SHA-256
+`8fa5edec3b366234586ada66eb0b0345343bd99baf4ab2414440b39ab9b8e833`.

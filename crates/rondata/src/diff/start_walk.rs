@@ -400,6 +400,14 @@ pub(crate) fn walk_with(
             }
         }
         built.tick();
+        // The harness's frame probes (`RON_DEBUG_UNIT`, `RON_DEBUG_ARMIES`),
+        // on the walk too (item 4380); nothing when unset.
+        #[cfg(test)]
+        {
+            crate::diff::harness::debug_watch(built, built.sim.frame);
+            crate::diff::harness::debug_armies(built, built.sim.frame);
+            crate::diff::harness::debug_builds(built, built.sim.frame);
+        }
     };
     let mut w = Walked::default();
     let mut sources: Vec<crate::capture::indexed::IndexedCapture> = captures
