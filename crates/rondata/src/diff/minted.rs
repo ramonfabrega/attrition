@@ -7506,14 +7506,14 @@ fn probe_4389_squads() {
         tick_to(&mut built, Some(&mut stream), n);
         let s = &built.sim;
         for (i, u) in s.units.iter().enumerate() {
-            if u.who != 1 || u.group.is_none() && !(24..=40).contains(&u.o) {
+            if u.owner != 1 || !u.alive() || !(24..=40).contains(&u.index) {
                 continue;
             }
             eprintln!(
-                "P4389 f{} 1/{} i{} ty{:?} cap{} up{:?} down{:?} group{:?} pos({},{}) orders {:?}",
-                s.frame, u.o, i, u.ty, u.captain,
-                u.o_up.map(|j| s.units[j].o), u.o_down.map(|j| s.units[j].o),
-                u.group, u.pos.x, u.pos.y,
+                "P4389 f{} 1/{} i{} ty{:?} cap{} up{:?} down{:?} group{} pos({},{}) orders {:?}",
+                s.frame, u.index, i, u.ty, u.captain,
+                u.o_up.map(|j| s.units[j].index), u.o_down.map(|j| s.units[j].index),
+                s.pool_group_of(i), u.pos.x, u.pos.y,
                 u.orders.iter().map(|o| o.index()).collect::<Vec<_>>()
             );
         }
