@@ -7234,11 +7234,11 @@ fn what_the_repair_does_on_both_sides() {
 /// or the last frame, last frame, records compared, records parted)`.
 /// Pinned before run1679 was read, with none parted.
 pub(crate) const REPAIR_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
-    "gamelog-run1679-greatlakes-playback-of-repair-0.txt",
+    "gamelog-run1679-greatlakes-playback-of-repair-8500.txt",
     "rontrace-run1679.log",
-    0,
-    0,
-    0,
+    8500,
+    8500,
+    1600,
     0,
 )];
 
