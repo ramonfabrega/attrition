@@ -1414,8 +1414,12 @@ buildings' arm, which this crate carried before and does not change.
 - ~~`seen3` and the cell twin `+0x168` are still not kept.~~ Both are
   kept (`seen3` since `docs/GOLDEN.md` §101, the twin since item 4148,
   §12). The scenario
-  reveal points and the frame-0 arm of `update_all_seen` are not carried;
-  no capture here has either.
+  reveal points are not carried; no capture here has them. ~~The frame-0
+  arm of `update_all_seen`~~ is carried (item 4394, `docs/RECGAME.md` §7):
+  `Game::run:722` runs the pass once before the first frame, and its
+  frame-0 tail shares each team's `seen2` (`Sim::share_team_seen2`,
+  diff-backed on run1678's state 0). The pass's own `reveal_map != 3`
+  gate is not carried; no lobby on disk sets 3.
 - A building's `visible` byte is still never set here (§9.1), so a
   building's relight through it cannot fire, and nor can
   `BuildData::is_seen`'s first arm. Infiltration, the two leader arms and

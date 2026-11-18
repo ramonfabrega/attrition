@@ -1369,6 +1369,10 @@ pub fn from_lobby(
         // filled once before the first frame (item 4218). It draws nothing.
         sim.setup().calc_danger();
         steps.push(("Game::run: calc_danger", true));
+        // `Game::run:722`, next: `GameDaemon::update_all_seen`, whose
+        // frame-0 tail shares each team's `seen2` (item 4394). It draws
+        // nothing.
+        sim.setup().update_all_seen();
     } else {
         steps.push(("the start permutation", false));
         steps.push(("Leader::init (the personality roll)", false));

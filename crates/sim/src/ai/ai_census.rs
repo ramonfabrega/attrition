@@ -525,6 +525,12 @@ impl Sim {
             if !self.was_really_seen_fog(half(pos.x), half(pos.y), who) {
                 continue;
             }
+            // `LAB_006b9d1d`, ahead of the owner test: the good's
+            // `ever_seen` (`+0x20`) takes the leader's bit (item 4394: on
+            // the sample's frame 0 good 29, in leader 2's city, reads 0x17
+            // in theirs — the team's `new_rares` — where only the revealer's
+            // `reveal_fog` had marked it).
+            self.mark_good_seen(gi, who);
             let cell = pos.cell();
             if let Owner::Player(o) = self.world.owner(cell)
                 && o != who

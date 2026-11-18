@@ -544,10 +544,27 @@ each a mutation that turns the pin red:
   so the person's `Leader::init` writes slots 5 to 7 a teammate's row.
   Leaders 6 → 1 parted.
 
-Left on state 0: builds' two `z`, leader 2's `oil_patches` order, and the
-six `seen2` cells, ours 0x04 against theirs 0x17. The cells are probably a
-unit's start reveal given to the owner alone where theirs gives it to the
-reach. That is not read.
+Four ranges were left; item 4394 took the `seen2` cells (not a unit's
+reveal, as guessed) and goods' `ever_seen`.
+
+**Item 4394** (journal `docs/journal/2026-11-18-item-4394.md`).
+*Diff-backed* on run1678, each by a mutation:
+
+- **The cells: the Woodcutter `2/2001`'s disc past its city's, shared
+  at frame 0.**
+  `Game::run@00584590:722` runs `GameDaemon::update_all_seen` before the
+  first frame. Its `frame == 0` tail ors each live leader's team (own
+  bit, both-way allies, the stored `+0x6929`) into every `seen2` byte
+  holding one of its bits (`Sim::share_team_seen2`). World whole over
+  the window.
+- **`plan_strategy:314`–`:337` marks each `new_rares` good it counts**
+  (`ever_seen |= 1 << who`), and `new_rare` gives a good to every ally:
+  good 29's frame-1 `ever_seen` 0x04|0x17 agrees. Goods whole over the
+  window.
+
+By sum (`SAMPLE_LINES`): goods 1 → 4094, world 0 → 1716.
+Left on state 0: builds' two `z` (`0/2003` 142|145, `3/2002` 316|330) and
+leader 2's `oil_patches` order, (20, 5) against (5, 20).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

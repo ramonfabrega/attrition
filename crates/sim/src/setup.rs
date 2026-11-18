@@ -209,6 +209,14 @@ impl Setup<'_> {
         self.sim.calc_danger()
     }
 
+    /// `Game::run@00584590:722`'s `GameDaemon::update_all_seen`, after the
+    /// danger map and before the first frame (item 4394):
+    /// [`Sim::update_all_seen`] (`vision.rs`), whose frame-0 tail shares
+    /// each team's `seen2`.
+    pub fn update_all_seen(&mut self) {
+        self.sim.update_all_seen()
+    }
+
     /// [`Sim::sync_territory`] (`cities/city.rs`).
     pub fn sync_territory(&mut self) {
         self.sim.sync_territory()

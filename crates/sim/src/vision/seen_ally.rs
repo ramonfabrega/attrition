@@ -32,6 +32,41 @@ impl Sim {
         m
     }
 
+    /// **`GameDaemon::update_all_seen@00732840`'s frame-0 tail** (item
+    /// 4394, `docs/RECGAME.md` §7): once the planes are relit, on frame 0
+    /// alone, each live leader's team — its own bit, every leader allied
+    /// both ways (`diplos` 2 each way), and the bits of its stored
+    /// `+0x6929` ([`Sim::stored_ally_mask`]) — shares `seen2`: a byte that
+    /// holds any of the team's bits takes them all. A team already shared
+    /// (every bit in the running union) is skipped, and the share needs
+    /// `starting_resources != 0 || reveal_map != 0` (`GameInfo`). It is
+    /// what `Game::run@00584590:722` does to a start before its first
+    /// frame: a building whose disc reaches past its city's radius gives
+    /// the cells past it to the team, not to its owner alone.
+    pub(crate) fn share_team_seen2(&mut self) {
+        let lobby = &self.ai.lobby;
+        if lobby.starting_resources == 0 && lobby.reveal_map == 0 {
+            return;
+        }
+        let n = self.territory.players.len().min(8);
+        let mut done = 0u8;
+        for i in 0..n {
+            let stored = self.stored_ally_mask(i as crate::Player);
+            let mut team = 1u8 << i;
+            for u in 0..n {
+                let allied = self.leaders.allied.get(i).and_then(|r| r.get(u)) == Some(&true)
+                    && self.leaders.allied.get(u).and_then(|r| r.get(i)) == Some(&true);
+                if u != i && (allied || stored & (1 << u) != 0) {
+                    team |= 1 << u;
+                }
+            }
+            if team & done != team {
+                self.world.share_seen2(team);
+                done |= team;
+            }
+        }
+    }
+
     /// **`Object::update_seen_ally`** on building `b`: the radius is the
     /// building's line of sight (vslot `+0x128`, `WallData::los`, the
     /// cached [`crate::Building::mylos`]), or for a city's own building
