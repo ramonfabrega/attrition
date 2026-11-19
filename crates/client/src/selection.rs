@@ -541,13 +541,74 @@ pub struct GlyphCell {
 /// and `D3D11GLFont::add_character` lays the cell's quad at the pen
 /// (`abs_a` 0 on every packet) for `pix_width` × 16 pixels. The atlas
 /// itself is the GPU's and no packet holds it, so the cells are
-/// rasterised here from the same file, unhinted (`ab_glyph`), where the
-/// DLL's FreeType hints by default (`docs/HUD.md` §6). Each advance is
+/// rasterised here from the same file, hinted as the DLL's FreeType hints
+/// by default (item 4427: the face's TrueType bytecode under `skrifa`'s
+/// interpreter, FreeType v40's normal target), the outline drawn by
+/// `ab_glyph`'s coverage rasteriser (`docs/HUD.md` §6). Each advance is
 /// the glyph's linear advance at [`PLATE_PPEM`], rounded: the packets'
 /// 77 characters agree on all 9,849 entries.
 #[derive(Clone)]
 pub struct PlateFace {
     font: std::sync::Arc<ab_glyph::FontVec>,
+    bytes: std::sync::Arc<Vec<u8>>,
+    hinter: std::sync::Arc<skrifa::outline::HintingInstance>,
+}
+
+/// One glyph's outline in pixels, y up, as the hinter leaves it.
+#[derive(Default)]
+struct PixelPath {
+    segs: Vec<Seg>,
+    start: (f32, f32),
+    at: (f32, f32),
+}
+
+enum Seg {
+    Line([(f32, f32); 2]),
+    Quad([(f32, f32); 3]),
+    Cubic([(f32, f32); 4]),
+}
+
+impl skrifa::outline::OutlinePen for PixelPath {
+    fn move_to(&mut self, x: f32, y: f32) {
+        self.start = (x, y);
+        self.at = (x, y);
+    }
+    fn line_to(&mut self, x: f32, y: f32) {
+        self.segs.push(Seg::Line([self.at, (x, y)]));
+        self.at = (x, y);
+    }
+    fn quad_to(&mut self, cx0: f32, cy0: f32, x: f32, y: f32) {
+        self.segs.push(Seg::Quad([self.at, (cx0, cy0), (x, y)]));
+        self.at = (x, y);
+    }
+    fn curve_to(&mut self, cx0: f32, cy0: f32, cx1: f32, cy1: f32, x: f32, y: f32) {
+        self.segs
+            .push(Seg::Cubic([self.at, (cx0, cy0), (cx1, cy1), (x, y)]));
+        self.at = (x, y);
+    }
+    fn close(&mut self) {
+        if self.at != self.start {
+            self.segs.push(Seg::Line([self.at, self.start]));
+        }
+        self.at = self.start;
+    }
+}
+
+impl PixelPath {
+    /// `FT_Outline_Get_CBox`'s box: every point, the controls too.
+    fn cbox(&self) -> Option<(f32, f32, f32, f32)> {
+        let pts = self.segs.iter().flat_map(|s| match s {
+            Seg::Line(p) => p.to_vec(),
+            Seg::Quad(p) => p.to_vec(),
+            Seg::Cubic(p) => p.to_vec(),
+        });
+        pts.fold(None, |b, (x, y)| {
+            Some(match b {
+                None => (x, y, x, y),
+                Some((x0, y0, x1, y1)) => (x0.min(x), y0.min(y), x1.max(x), y1.max(y)),
+            })
+        })
+    }
 }
 
 impl std::fmt::Debug for PlateFace {
@@ -563,8 +624,25 @@ impl PlateFace {
         let bytes = std::fs::read(&path).map_err(|e| format!("{PLATE_FACE_FILE}: {e}"))?;
         let font = ab_glyph::FontVec::try_from_vec(bytes)
             .map_err(|e| format!("{PLATE_FACE_FILE}: {e}"))?;
+        let hinter = {
+            use skrifa::MetadataProvider;
+            let f = skrifa::FontRef::new(font.as_slice())
+                .map_err(|e| format!("{PLATE_FACE_FILE}: {e}"))?;
+            skrifa::outline::HintingInstance::new(
+                &f.outline_glyphs(),
+                skrifa::instance::Size::new(PLATE_PPEM as f32),
+                skrifa::instance::LocationRef::default(),
+                skrifa::outline::HintingOptions {
+                    engine: skrifa::outline::Engine::Interpreter,
+                    target: skrifa::outline::SmoothMode::Normal.into(),
+                },
+            )
+            .map_err(|e| format!("{PLATE_FACE_FILE}: the hinter: {e}"))?
+        };
         let face = PlateFace {
+            bytes: std::sync::Arc::new(font.as_slice().to_vec()),
             font: std::sync::Arc::new(font),
+            hinter: std::sync::Arc::new(hinter),
         };
         let upm = face.font.units_per_em().ok_or("the face has no em")?;
         // Rounded, as the packet's `mAscent` 13 and `mDescent` −3 are
@@ -589,12 +667,6 @@ impl PlateFace {
         (id.0 != 0).then_some(id)
     }
 
-    fn scale(&self) -> ab_glyph::PxScale {
-        use ab_glyph::Font;
-        let upm = self.font.units_per_em().unwrap_or(1.0);
-        ab_glyph::PxScale::from(PLATE_PPEM as f32 * self.font.height_unscaled() / upm)
-    }
-
     /// One character's advance: its linear advance at [`PLATE_PPEM`],
     /// rounded, or `None` when the face has no glyph for it.
     pub fn advance(&self, c: char) -> Option<i32> {
@@ -610,27 +682,45 @@ impl PlateFace {
     }
 
     /// One character's atlas cell ([`GlyphCell`]); a glyph with no
-    /// outline (the space) is a cell 0 wide.
+    /// outline (the space) is a cell 0 wide. The hinted outline's box is
+    /// floored and ceiled to whole pixels, as `FT_Render_Glyph` sizes its
+    /// bitmap, and the cell's row `r` is the band `PLATE_ASCENT − r − 1 ..
+    /// PLATE_ASCENT − r` above the baseline.
     pub fn cell(&self, c: char) -> Option<GlyphCell> {
-        use ab_glyph::Font;
+        use skrifa::MetadataProvider;
         let id = self.glyph(c)?;
-        let glyph =
-            id.with_scale_and_position(self.scale(), ab_glyph::point(0.0, PLATE_ASCENT as f32));
-        let Some(outline) = self.font.outline_glyph(glyph) else {
+        let font = skrifa::FontRef::new(self.bytes.as_slice()).ok()?;
+        let outline = font
+            .outline_glyphs()
+            .get(skrifa::GlyphId::new(u32::from(id.0)))?;
+        let mut path = PixelPath::default();
+        outline
+            .draw(
+                skrifa::outline::DrawSettings::hinted(&self.hinter, false),
+                &mut path,
+            )
+            .ok()?;
+        let Some((x0, _, x1, _)) = path.cbox() else {
             return Some(GlyphCell {
                 w: 0,
                 cover: Vec::new(),
             });
         };
-        let b = outline.px_bounds();
-        let (w, top) = ((b.max.x - b.min.x) as usize, b.min.y as i32);
+        let left = x0.floor();
+        let w = (x1.ceil() - left) as usize;
         let h = PLATE_FONT_HEIGHT as usize;
-        let mut cover = vec![0u8; w * h];
-        outline.draw(|x, y, v| {
-            let row = top + y as i32;
-            if (0..PLATE_FONT_HEIGHT).contains(&row) && (x as usize) < w {
-                cover[row as usize * w + x as usize] = (v.clamp(0.0, 1.0) * 255.0).round() as u8;
+        let mut raster = ab_glyph_rasterizer::Rasterizer::new(w, h);
+        let pt = |(x, y): (f32, f32)| ab_glyph_rasterizer::point(x - left, PLATE_ASCENT as f32 - y);
+        for seg in &path.segs {
+            match *seg {
+                Seg::Line([a, b]) => raster.draw_line(pt(a), pt(b)),
+                Seg::Quad([a, b, c]) => raster.draw_quad(pt(a), pt(b), pt(c)),
+                Seg::Cubic([a, b, c, d]) => raster.draw_cubic(pt(a), pt(b), pt(c), pt(d)),
             }
+        }
+        let mut cover = vec![0u8; w * h];
+        raster.for_each_pixel_2d(|x, y, v| {
+            cover[y as usize * w + x as usize] = (v.clamp(0.0, 1.0) * 255.0).round() as u8;
         });
         Some(GlyphCell { w, cover })
     }
@@ -1301,11 +1391,14 @@ mod tests {
     /// east, the pin failed. Then `[theirs light, ours light, both
     /// light]`, the name's white ink (item 4426): the overlay's 5 × 7
     /// lit 9 of the photograph's 53; the face's glyphs ([`PlateFace`])
-    /// light 47 (and the dark half `[1742, 1251]` → `[1537, 1233]`).
+    /// light 47 (and the dark half `[1742, 1251]` → `[1537, 1233]`);
+    /// hinted as the DLL's FreeType hints them (item 4427), 47 → 53 of 53,
+    /// ours light 192 → 209, the dark half → `[1541, 1238]`. Made to fail:
+    /// the same path drawn unhinted reads `[53, 193, 47]`.
     pub const RUN1559B_3279_PLATE: ([[usize; 2]; 3], [usize; 2], [usize; 3]) = (
         [[2670, 1285], [2670, 0], [1608, 1018]],
-        [1537, 1233],
-        [53, 192, 47],
+        [1541, 1238],
+        [53, 209, 53],
     );
 
     #[test]
@@ -1587,6 +1680,7 @@ mod tests {
     /// packets]`. A cell agrees when its width is the entry's `pix_width`,
     /// and the entry's `pix_height` is 16 and its `abs_a` 0. Made to fail:
     /// the advance truncated rather than rounded, 5,322 of 9,849 agree.
+    /// Hinted (item 4427), every cell keeps the packet's width.
     pub const PLATE_FACE_PACKETS: [usize; 4] = [9849, 9849, 9849, 144];
 
     #[test]
