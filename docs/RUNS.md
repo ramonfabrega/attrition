@@ -39029,6 +39029,31 @@ SHA-256 `4e95371959a2d3cfae9cf1860557740af7d046555d894fe8873ab05b77f2901f`.
 **What it holds**: `diff::sample::tests::the_sample_s_ranges_name_each_first_parting` (`SAMPLE_RANGES`): each line's
 first parting by range, record and field.
 
+## run1710 — the 2017 sample's playback to 3,100 with the checksum and ranges hooks, all twelve lines kept (2026-11-19, item 4414, `att-4414`)
+
+`docs/RECGAME.md` §7; DECISIONS 144 §3. **What the disk could not answer**: run1697's record ends on 559. After
+units 532, the sample's first partings by sum were groups 927, world 1716, units and leaders 2112, guys 2920, ammo
+3022 and builds 3029, so each needed a range record on its frame. This take is run1697's recipe with the end moved
+and the log window at 921..931: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1710 --recording "<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx" --end-frame 3100
+--cover cover=1 --log-window 921 931 --detail end:MISC --timeout 3000 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0xfffu`. It was waited on with `waitrun.sh` in the background lane.
+- Pool lane 1, launched 10:43:38 −05:00 and exited 10:47:31: **232.8 s** launch to exit, exit 0, `success`, 3,101
+  frames, `last_frame` 3100, not ended early. Seed observed 340513920; five settings restored; no page fault, no
+  relaunch. `df -g ~` read 91 GB free before it. Minutes waited on another lane: none. DLL `74bc92c4…`, defines
+  `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xfffu`.
+- **The record**, `~/ron-golden/run1710/map-7/rontrace.ranges`, 2,501,358,876 bytes, SHA-256
+  `66761f61327372e2230d95893f4d2a85c00d2930b0e83713c911fa9273c27a29`. It holds 3,268 sets on trace frames −1 to
+  3099: 44,024,972 ranges, 1,796,640,673 bytes, none over, all twelve lines kept.
+- Filed with `filerun.py run1710 sample2017-playback-ranges-3100`. The record stays where the take left it.
+
+Archive `gamelog-run1710-sample2017-playback-ranges-3100.txt`, 3,774 bytes,
+SHA-256 `26ab2e98e86548f834bb94d2fa480968bd01cce9e3d1936891cdf88da2b9da1c`; `rontrace-run1710.log`, 45,526,848
+bytes, SHA-256 `c8c19483c607cbbc14760eeb54e2d41f88e4da969fec3dbabf0f5eea6c2791f4`.
+
+**What it holds**: `diff::sample::tests::the_sample_s_ranges_to_3100_name_each_first_parting`
+(`SAMPLE_RANGES_1710`): each line's first parting by range over 0..3100.
+
 ## run1697 — the 2017 sample's playback to 560 with the checksum and ranges hooks, all twelve lines kept (2026-11-19, item 4412, `att-4412`)
 
 `docs/RECGAME.md` §7; DECISIONS 142 §4, 143 §4. **What the disk could not answer**: run1678's record ends on 99, and
