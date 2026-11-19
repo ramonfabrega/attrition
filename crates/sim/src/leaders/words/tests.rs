@@ -1,4 +1,4 @@
-use super::{anti_attrition, name_step};
+use super::{Founding, anti_attrition, founding_name, name_step};
 
 /// The table of `docs/LEADERS.md` §6.2 over the shipped data, bit for
 /// bit: the tier down the side, the Mongol bonus and titanium across
@@ -40,19 +40,19 @@ fn a_tribe_mate_takes_the_step_and_the_owner_takes_one() {
     let tribes = [4, 4, 11];
     let mut names = [0; 3];
     // Distinct tribes, each naming its first city: the owner steps.
-    name_step(&mut names, &tribes, 0);
-    name_step(&mut names, &tribes, 2);
+    name_step(&mut names, &tribes, 0, None);
+    name_step(&mut names, &tribes, 2, None);
     assert_eq!(names, [1, 0, 1]);
     // Slot 1 shares slot 0's tribe: slot 0 wins the step (2), and slot
     // 1, which had named nothing, takes 1.
-    name_step(&mut names, &tribes, 1);
+    name_step(&mut names, &tribes, 1, None);
     assert_eq!(names, [2, 1, 1]);
     // Slot 0 leads the tribe, so slot 1's next city steps slot 0.
-    name_step(&mut names, &tribes, 1);
+    name_step(&mut names, &tribes, 1, None);
     assert_eq!(names, [3, 1, 1]);
     // A tie keeps the lowest slot.
     let mut tied = [2, 2, 0];
-    name_step(&mut tied, &tribes, 1);
+    name_step(&mut tied, &tribes, 1, None);
     assert_eq!(tied, [3, 2, 0]);
 }
 
@@ -77,4 +77,45 @@ fn the_anti_attrition_single_reaches_the_bleed() {
     );
     assert_eq!(sim.territory.players[1].resistance, Resistance::Single(0));
     assert!(!sim.territory.players[0].foraging_1);
+}
+
+/// **`generate_name`'s three arms** (`City::generate_name@00735c90`,
+/// `docs/LEADERS.md` §1.2), each worked by hand from the listing.
+#[test]
+fn a_founding_name_takes_the_arm_its_counts_name() {
+    // The first city of slot 1, the second of its tribe: the slots below
+    // it of its tribe, plus one — the list's second name — and the
+    // second store.
+    let tribes = [4, 4, 9];
+    let mut names = [0, 0, 0];
+    assert_eq!(
+        founding_name(&mut names, &tribes, 0, 29, 7236),
+        Some(Founding::Listed(0))
+    );
+    assert_eq!(names, [1, 0, 0]);
+    assert_eq!(
+        founding_name(&mut names, &tribes, 1, 29, 7236),
+        Some(Founding::Listed(1)),
+        "slot 0 holds the tribe's largest count, so it steps; slot 1 had none"
+    );
+    assert_eq!(names, [2, 1, 0]);
+    // Slot 0's next: n = 3, prev 2, the Galois arm. m = 2, M = 28,
+    // x = (4 + 7236) mod 28 + 1 = 17; 17 → 176 → 88 → 44 → 22 (kept, the
+    // second) → 11 (kept, the third, n): index 11 + 2 = 13.
+    assert_eq!(
+        founding_name(&mut names, &tribes, 0, 29, 7236),
+        Some(Founding::Listed(12))
+    );
+    assert_eq!(names, [3, 1, 0]);
+    // A count reaching the list's length names by number and skips the
+    // second store, where the step alone would make it.
+    let mut names = [2, 0, 0];
+    assert_eq!(
+        founding_name(&mut names, &tribes, 1, 3, 7236),
+        Some(Founding::Numbered(4))
+    );
+    assert_eq!(names, [3, 0, 0]);
+    let mut stepped = [2, 0, 0];
+    name_step(&mut stepped, &tribes, 1, None);
+    assert_eq!(stepped, [3, 1, 0]);
 }

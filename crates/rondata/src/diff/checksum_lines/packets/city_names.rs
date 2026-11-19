@@ -75,9 +75,7 @@ pub(in crate::diff) fn name_rows(sim: &sim::Sim, theirs: &[Named]) -> Vec<NameRo
                 o: *o,
                 theirs: name.clone(),
                 held: city.is_some(),
-                ours: city
-                    .and_then(|c| sim.city_name_written(c))
-                    .map(str::to_string),
+                ours: city.and_then(|c| sim.city_name(c)).map(str::to_string),
             }
         })
         .collect()
@@ -102,125 +100,20 @@ pub(super) fn first_parting(w: &Walked) -> Option<String> {
     ))
 }
 
-/// **The packets whose city names part**, `(run, rows parting)`, pinned as
-/// found (item 4416's first act, before any name was ported: every live
-/// city of every packet, ours `None`). A packet not listed agrees on every
-/// live city.
-pub(in crate::diff) const NAMES_PARTING: &[(&str, usize)] = &[
-    ("ch94p", 2),
-    ("ch95pkt", 2),
-    ("run1001d", 5),
-    ("run1007b", 5),
-    ("run1011b", 5),
-    ("run1011c", 5),
-    ("run1011d", 5),
-    ("run1011e", 5),
-    ("run1015b", 5),
-    ("run1155c", 4),
-    ("run1161", 2),
-    ("run1164", 5),
-    ("run1165", 5),
-    ("run1166", 5),
-    ("run1169", 4),
-    ("run1185", 4),
-    ("run1186b", 3),
-    ("run1217", 9),
-    ("run1220b", 4),
-    ("run1221", 6),
-    ("run1224b", 9),
-    ("run1235b", 5),
-    ("run1236", 7),
-    ("run1237", 4),
-    ("run1238c", 7),
-    ("run1247", 6),
-    ("run1254c", 4),
-    ("run1263", 8),
-    ("run1264b", 6),
-    ("run1266c", 9),
-    ("run1268", 5),
-    ("run1293", 4),
-    ("run1294", 4),
-    ("run1296", 4),
-    ("run1304", 5),
-    ("run1305b", 5),
-    ("run1320b", 7),
-    ("run1323b", 4),
-    ("run1324c", 4),
-    ("run1325c", 7),
-    ("run1326", 5),
-    ("run1327", 9),
-    ("run1332a", 5),
-    ("run1351", 5),
-    ("run1351c", 5),
-    ("run1355", 4),
-    ("run1357", 5),
-    ("run1359", 7),
-    ("run1359b", 7),
-    ("run1359c", 7),
-    ("run1361", 5),
-    ("run1381", 4),
-    ("run1382", 4),
-    ("run1383", 2),
-    ("run1385p", 4),
-    ("run1391", 5),
-    ("run1416", 5),
-    ("run1417", 6),
-    ("run1419b", 4),
-    ("run1420", 6),
-    ("run1424", 4),
-    ("run1426b", 4),
-    ("run1437", 5),
-    ("run1438", 3),
-    ("run1440", 3),
-    ("run1441", 5),
-    ("run1451", 3),
-    ("run1457", 3),
-    ("run1459", 3),
-    ("run1460", 3),
-    ("run1469", 3),
-    ("run1469b", 3),
-    ("run1472", 3),
-    ("run1484", 3),
-    ("run1487", 5),
-    ("run1496", 5),
-    ("run1559b", 5),
-    ("run1562", 2),
-    ("run1564", 5),
-    ("run1570", 5),
-    ("run785", 6),
-    ("run789", 7),
-    ("run795", 7),
-    ("run810", 9),
-    ("run823", 9),
-    ("run825", 9),
-    ("run839", 2),
-    ("run842", 3),
-    ("run842b", 3),
-    ("run854", 6),
-    ("run865", 9),
-    ("run870", 2),
-    ("run882b", 9),
-    ("run883b", 9),
-    ("run893b", 3),
-    ("run912e", 4),
-    ("run938b", 2),
-    ("run943c", 4),
-    ("run946", 4),
-    ("run954b", 4),
-    ("run958b", 2),
-    ("run959", 3),
-    ("run973g", 5),
-    ("run984b", 3),
-    ("run984c", 3),
-    ("run985b", 6),
-    ("run991d", 5),
-];
+/// **The packets whose city names part**, `(run, rows parting)`. Item
+/// 4416's first act pinned all 107 (ours `None` on every live city, 0 of
+/// 521); item 4418's port of `City::generate_name@00735c90` empties it.
+/// Its first walk, with the tribe files' `<CITY>` texts untrimmed, parted
+/// six (`run1011b` to `e`, `run1015b`, `run1323b`: ours `"Huaraz  "`,
+/// theirs `"Huaraz"`). A packet not listed agrees on every live city.
+pub(in crate::diff) const NAMES_PARTING: &[(&str, usize)] = &[];
 
 /// **The row**: `(names agreeing, live cities)` over every pinned packet
 /// with a names file — the original's `CityData +0x90` on each against
 /// ours. **0 of 521** at item 4416's first act, on 107 packets: the
-/// sim carried no founding name (`sim::cities::rename`'s SEAM).
-pub(crate) const CITY_NAMES_SCORE: (usize, usize) = (0, 521);
+/// sim carried no founding name. **521 of 521** at item 4418 (+521), the
+/// port (`sim::leaders::words::founding_name`).
+pub(crate) const CITY_NAMES_SCORE: (usize, usize) = (521, 521);
 
 /// [`CITY_NAMES_SCORE`] is the names files' rows less [`NAMES_PARTING`]'s,
 /// over the pinned packets; every listed packet is a pinned one.

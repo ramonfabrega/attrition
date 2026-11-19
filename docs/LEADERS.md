@@ -227,10 +227,23 @@ The tests are signed. When the winner is `own`, `city_name[own]` is at least
 `own` had never named a city. When `n >= L`, the name is the tribe name with
 a numbered suffix and no second store runs.
 
-**Not needed for the counter:** the LFSR (taps 0x170, signed `idivl`), the
-name index loop and the numbered suffix. They choose the name and write no
-`city_name`. The LFSR is the maximal 8-bit polynomial; its loop ends whenever
-`M >= 2` and never at `M = 1`. That matters to a name port, not to this leaf.
+**The name** (item 4418; the rule item 4416 read at the listing,
+736150–7362fe). After the step, with `n`, `prev`, `L` as above, `m` the
+slots of `0..8` whose tribe is `T` and the separator
+`loc_str_array_orig +0x15e0` (one space):
+
+1. `n >= L`: `Tribe::name + " " + (n + 1)`.
+2. `n <= 1` or `prev == 0`: `idx = 1 +` the slots `k < own` with tribe `T`.
+3. otherwise: `M = L − m + 1`, `x = (T + world->seed) mod M + 1` (signed
+   `idivl`), then `x ^= 0x170` when odd, `x >>= 1` (`sarl`), repeated,
+   rejecting `x >= M` and stopping on the `(n − 1)`th value kept;
+   `idx = x + m`.
+4. `idx > L`: `Tribe::name + " " + (idx + 1)`; else the `idx`th `<CITY>`.
+
+Exemption 1 names the city its type's name (`type +0x74`), exemption 2 by
+`ConquestGame::get_city_name` from frame 1, exemption 3 by `Tribe::name`.
+The LFSR is the maximal 8-bit polynomial; its loop ends whenever `M >= 2`
+and never at `M = 1`.
 
 **Reset.** `Leader::init` alone, at game setup. `Setup::build_game` runs it
 for each live slot (`leader_flags & 1`) before it reaches `build_cities`
@@ -259,10 +272,13 @@ outside naming changes a decision.
   `flags & 0x20` is `is(VILLAGE)`; `crates/sim/src/vision.rs:977-980`), so a
   completed Forbidden City runs the city branch. The port must exempt it by
   type, not trust the branch.
-- **No city-name list in the crate.** Exemption 3 and the `n < L` guard need
-  `L` per tribe. Until the data layer carries it, a port takes every shipped
-  list as non-empty and long enough that `n < L`, and records that as an
-  assumption.
+- ~~**No city-name list in the crate.**~~ Since item 4418 the data layer
+  carries each tribe file's `<CITIES>` (`rondata::TribeDef::cities` into
+  `sim::tech::Tribe::cities`), and `leaders::words::founding_name` is the
+  step, the guard and the name together, writing `City +0x90` where a
+  rename writes (`Sim::city_name`). A tribe whose list was never loaded (a
+  hand-built tree) steps as before and names nothing. Neither exempt name
+  (the type's, the campaign's) is carried: those cities stay unnamed.
 - **Unrelated:** `crates/sim/src/ai/ai_host.rs:445 city_name` is a synthetic
   AI label.
 - **Checksum.** The leaf is `crates/sim/src/checksum/leaders.rs:98`. The held
@@ -327,8 +343,14 @@ tribe-shared winner and the `= 1` store rest on the listing alone.
   (`SubObject::init (00662300)`) was not re-derived; it is taken from the
   crate's ratified reading. A diff of a completed Forbidden City on this leaf
   would back the exemption directly.
-- **`L` per tribe** is not in the crate; the `n < L` guard and exemption 3 are
-  ported under the assumption above.
+- ~~**`L` per tribe** is not in the crate.~~ Carried since item 4418 (§1.3).
+  **A diff backs the name** (`CITY_NAMES_SCORE` 521 of 521 on 107
+  packets, `rondata::diff::checksum_lines::packets::city_names`): arm 2 on
+  every capital, the Galois arm on the 94 packet slots holding two cities
+  or more. Not reached by any packet: arms 1 and 4 (the numbered suffix),
+  the three exemptions, and two slots of one tribe (the tribe-shared
+  winner's name). The trim of a `<CITY>` text rests on MSXML's `text`
+  and on the six `Huaraz` rows that part without it.
 
 ## 2. The kill, loss and raze counters
 

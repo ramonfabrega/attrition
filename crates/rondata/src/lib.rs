@@ -115,6 +115,12 @@ pub struct TribeDef {
     /// `GraphicPieces::get_build_gpiece@0090bce0` walks second, where the
     /// nation's own has no `<BUILD>` for a type (item 4035).
     pub backup_build_continent: i32,
+    /// `<CITIES>`'s `<CITY>` texts, in file order and trimmed: the list
+    /// `City::generate_name@00735c90` names a founded city from
+    /// (`docs/LEADERS.md` §1.2). `Some(empty)` for a file with no
+    /// `<CITIES>` (the original's "Couldn't Find Cities List" arm, which
+    /// names the city after the tribe); `None` for a file not read.
+    pub cities: Option<Vec<String>>,
 }
 
 impl Install {
@@ -234,8 +240,23 @@ impl Install {
                             .and_then(|t| t.parse().ok())
                             .unwrap_or(0)
                     };
+                    let cities = root
+                        .descendants()
+                        .find(|n| n.has_tag_name("CITIES"))
+                        .map(|list| {
+                            list.children()
+                                .filter(|n| n.has_tag_name("CITY"))
+                                // `XMLElement::get_text@00a271b0` reads
+                                // MSXML's `text` (vtable `+0x68`), which
+                                // strips the ends: `<CITY>Huaraz  </CITY>`
+                                // is `Huaraz` on every packet (item 4418).
+                                .map(|n| n.text().unwrap_or_default().trim().to_string())
+                                .collect()
+                        })
+                        .unwrap_or_default();
                     Some(TribeDef {
                         name,
+                        cities: Some(cities),
                         unit_continent: number("UNIT_CONTINENT"),
                         build_continent: number("BUILD_CONTINENT"),
                         backup_build_continent: number("BACKUP_BUILD_CONTINENT"),

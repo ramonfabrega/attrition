@@ -503,12 +503,12 @@ Not established:
   drawing helper rather than an `iface*` window; the bar is
   `WallOut::draw_health_bar@00640dd0`/`@00640f20`'s (§3, item 4410).
 - **The plate, drawn** (items 4403 and 4410, §3): its rectangle and its
-  drawing are counted on run1559b (`RUN1559B_3279_PLATE`). Not
-  established: **the name.** The sim carries no founding name
-  (`sim::cities::rename`'s SEAM), so the client draws a plate only for a
-  city a rename has named, and the row names `Napata` itself (item 4416
-  minted the name's own row on the packets, `CITY_NAMES_SCORE` 0 of 521;
-  a captured city's name is not read, parked 4416a); and the
+  drawing are counted on run1559b (`RUN1559B_3279_PLATE`). **The name**
+  is the sim's since item 4418: `City::generate_name@00735c90` ported
+  (`docs/LEADERS.md` §1.2), `CITY_NAMES_SCORE` 0 → 521 of 521 on the
+  packets, so the client draws a plate for every named city and the row
+  no longer names `Napata` itself. Not established: a captured city's
+  name (parked 4416a); and the
   font's advances are held for `N`, `a`, `p` and `t` alone
   (`selection::PLATE_ADVANCES`, the packet's): a name with any other
   character draws no plate rather than a guessed one. **The glyphs** are
