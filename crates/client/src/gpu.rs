@@ -295,6 +295,12 @@ fn shader_sources() -> [(&'static str, String); 11] {
 /// The camera-space depth range mapped onto [0, 1]: wider than any map.
 const DEPTH_RANGE: (f32, f32) = (-200_000.0, 200_000.0);
 
+/// **The underlay's alpha** (item 4401; `docs/HUD.md` §3):
+/// `WallOut::draw_underlays@006410a0` clears the top bit of the owner's
+/// `TeamColor::get_unit` alpha unless `Camera::is_zoom_out`, so `0xff`
+/// draws at `0x7f`. That `get_unit`'s alpha is `0xff` is not read.
+pub const UNDERLAY_ALPHA: u8 = 0x7f;
+
 /// Depth, and a stencil the silhouette pass marks its pixels in (item 4171).
 const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24PlusStencil8;
 /// The frame's clear colour, off the heightfield.
@@ -328,6 +334,9 @@ pub struct Frame<'a> {
     pub terrain: Tris<'a>,
     pub figures: Tris<'a>,
     pub overlay: Tris<'a>,
+    /// The underlays (item 4401): the selected buildings' bands, drawn
+    /// after the ground and before the objects.
+    pub underlay: Tris<'a>,
     /// The figures drawn textured (item 4099).
     pub textured: &'a [crate::world::TexturedMesh],
     /// The trees' textured faces, one mesh a texture (item 4173).
@@ -515,6 +524,10 @@ pub struct Gpu {
     pub queue: wgpu::Queue,
     world: wgpu::RenderPipeline,
     overlay: wgpu::RenderPipeline,
+    /// The underlays (item 4401; `docs/HUD.md` §3): world triangles over
+    /// the ground and under the buildings, blended at [`UNDERLAY_ALPHA`],
+    /// no depth test, no depth written.
+    underlay: wgpu::RenderPipeline,
     uniform: wgpu::Buffer,
     bind: wgpu::BindGroup,
     format: wgpu::TextureFormat,
@@ -705,7 +718,7 @@ impl Gpu {
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &attributes,
         })];
-        let pipeline = |entry: &str, depth: bool| {
+        let pipeline = |entry: &str, depth: bool, blend: Option<wgpu::BlendState>| {
             device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 label: Some(entry),
                 layout: Some(&layout),
@@ -737,7 +750,7 @@ impl Gpu {
                     compilation_options: Default::default(),
                     targets: &[Some(wgpu::ColorTargetState {
                         format,
-                        blend: None,
+                        blend,
                         write_mask: wgpu::ColorWrites::ALL,
                     })],
                 }),
@@ -745,6 +758,17 @@ impl Gpu {
                 cache: None,
             })
         };
+        // Item 4401: the underlay's blend, `c·a + d·(1 − a)` with `a` the
+        // pass's constant ([`UNDERLAY_ALPHA`]).
+        let constant = wgpu::BlendComponent {
+            src_factor: wgpu::BlendFactor::Constant,
+            dst_factor: wgpu::BlendFactor::OneMinusConstant,
+            operation: wgpu::BlendOperation::Add,
+        };
+        let underlay_blend = Some(wgpu::BlendState {
+            color: constant,
+            alpha: constant,
+        });
         let sprite_uniform = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("screen"),
             size: 16,
@@ -1498,8 +1522,9 @@ impl Gpu {
             sprite_layout,
             sampler,
             textures: std::sync::Mutex::new(Default::default()),
-            world: pipeline("vs_world", true),
-            overlay: pipeline("vs_overlay", false),
+            world: pipeline("vs_world", true, None),
+            overlay: pipeline("vs_overlay", false, None),
+            underlay: pipeline("vs_world", false, underlay_blend),
             device,
             queue,
             uniform,
@@ -2040,6 +2065,7 @@ impl Gpu {
         }
         let figures = self.vertices(frame.figures);
         let overlay = self.vertices(frame.overlay);
+        let underlay = self.vertices(frame.underlay);
         let mut enc = self.device.create_command_encoder(&Default::default());
         let empty = (Vec::new(), Vec::new());
         let (meshes, patches) = ground
@@ -2184,6 +2210,21 @@ impl Gpu {
                 self.draw_ground(&mut pass, None, None, run, None);
             }
             pass.set_bind_group(0, &self.bind, &[]);
+            // Item 4401: the underlays after the ground, before the
+            // buildings, as `BuildOut::draw_underlays` comes before the
+            // objects draw over it.
+            if let Some(b) = &underlay {
+                let a = f64::from(UNDERLAY_ALPHA) / 255.0;
+                pass.set_pipeline(&self.underlay);
+                pass.set_blend_constant(wgpu::Color {
+                    r: a,
+                    g: a,
+                    b: a,
+                    a,
+                });
+                pass.set_vertex_buffer(0, b.slice(..));
+                pass.draw(0..frame.underlay.0.len() as u32, 0..1);
+            }
             pass.set_pipeline(&self.world);
             if !quads.is_empty() {
                 pass.set_pipeline(&self.sprite);

@@ -247,6 +247,12 @@ impl Sim {
     /// it counts and the cells it slides to (run651's block 1, `docs/AI.md`
     /// §141).
     pub(crate) fn sees_every_cell(&self, who: Player) -> bool {
+        self.sees_every_cell_bit(who) || self.sees_every_unit(who)
+    }
+
+    /// `leader_flags & 0x1000` as [`Sim::sees_every_cell`] reads it:
+    /// `EXPLORE_MAP_BONUS` held, or the Spanish tribe bonus.
+    pub(crate) fn sees_every_cell_bit(&self, who: Player) -> bool {
         self.holds_bonus(who, self.tables.tech_tree.roles.explore_map_preq)
             || self.tech.get(who as usize).is_some_and(|p| {
                 self.tables.tech_tree.has_tribe_bonus(
@@ -255,7 +261,6 @@ impl Sim {
                     crate::cities::nations::power::SPANISH,
                 )
             })
-            || self.sees_every_unit(who)
     }
 
     /// The two always-true leader arms `WorldData::was_seen@006b53f0` shares

@@ -1310,6 +1310,13 @@ impl World {
         (n[2] < render::slope::LEVEL_Z).then_some(n)
     }
 
+    /// The scene's buildings as the draw list takes them, each with its
+    /// piece and foundation resolved (item 4398: the selected building's
+    /// outline reads its foundation's `back`; item 4401 draws it).
+    pub fn placed_buildings(&self) -> Vec<PlacedBuilding> {
+        placed_buildings(&self.runner.scene(None), &self.look, &self.tribes)
+    }
+
     /// The heightfield's triangles, rebuilt when the door's terrain version
     /// moves.
     pub fn terrain(&mut self) -> &TerrainMesh {

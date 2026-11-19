@@ -1024,10 +1024,10 @@ pub const RING_POINTS: usize = 32;
 /// ([`Names::rings`]; `UnitOut::draw_underlays@00614100` hands
 /// `draw_unit_circles@00606a10` `unit_block_radius × +0x234`, and that
 /// draws one circle each figure in the owner's `TeamColor::get_iface`).
-/// A building: its footprint's rectangle about its place, **ours**: the
-/// original draws `draw_funky_rectangle_circle` at `BuildData::max_range`
-/// (vtable `+0x130`), not ported. An object no longer in the scene draws
-/// nothing; a type with no radius draws no circle.
+/// A building draws no ring: its outline is the band under the buildings,
+/// [`crate::selection::underlay`] (item 4401; `docs/HUD.md` §3), where
+/// item 4203 had drawn its footprint's rectangle here. An object no longer
+/// in the scene draws nothing; a type with no radius draws no circle.
 pub fn rings(input: &Input, scene: &Scene, names: &Names) -> Vec<Ring> {
     let mut out = Vec::new();
     for id in &input.selection {
@@ -1055,25 +1055,6 @@ pub fn rings(input: &Input, scene: &Scene, names: &Names) -> Vec<Ring> {
                     points,
                 });
             }
-        } else if let Some(b) = scene.buildings.iter().find(|b| b.id == *id) {
-            let (w, h) =
-                b.ty.and_then(|t| names.footprints.get(t))
-                    .copied()
-                    .unwrap_or((1, 1));
-            let (hx, hy) = (
-                w * sim::ids::scale::UNITS_PER_TILE / 2,
-                h * sim::ids::scale::UNITS_PER_TILE / 2,
-            );
-            let (x, y, z) = (b.pos.x, b.pos.y, b.z);
-            out.push(Ring {
-                owner: b.owner,
-                points: vec![
-                    (x - hx, y - hy, z),
-                    (x + hx, y - hy, z),
-                    (x + hx, y + hy, z),
-                    (x - hx, y + hy, z),
-                ],
-            });
         }
     }
     out

@@ -1058,8 +1058,8 @@ fn the_panel_s_damage_half_is_the_dump_s() {
 
 /// **The ring** (item 4203, `docs/HUD.md` §3): a selected unit takes one
 /// circle each figure at its type's radius (48 × `CIRCLE_RADIUS`), every
-/// point that far from the figure; a selected building its footprint's
-/// four corners; nothing selected, nothing. Drawn, each ring's sides are
+/// point that far from the figure; a selected building none (item 4401:
+/// its band is the underlay's); nothing selected, nothing. Drawn, each ring's sides are
 /// quads in the owner's colour.
 #[test]
 fn the_selection_s_rings() {
@@ -1103,22 +1103,8 @@ fn the_selection_s_rings() {
     }
     let mut input = building_selected();
     input.selection = vec![ObjId { who: 0, o: 2000 }];
-    let city = scene
-        .buildings
-        .iter()
-        .find(|b| b.id == input.selection[0])
-        .unwrap();
-    let got = rings(&input, &scene, &names);
-    let (w, h) = names.footprints[city.ty.unwrap()];
-    assert_eq!(got.len(), 1);
-    assert_eq!(
-        got[0].points[0],
-        (city.pos.x - w * 96, city.pos.y - h * 96, city.z)
-    );
-    assert_eq!(
-        got[0].points[2],
-        (city.pos.x + w * 96, city.pos.y + h * 96, city.z)
-    );
+    // Item 4401: a building's outline is the underlay's band, not a ring.
+    assert!(rings(&input, &scene, &names).is_empty());
     let mut p = Painter::new(SIZE);
     paint(&mut p, &input, &scene, None, &names, SIZE, &|x, y, _| {
         Some((x / 20, y / 40))
@@ -1126,8 +1112,8 @@ fn the_selection_s_rings() {
     let red = [1.0, 0.0, 0.0];
     assert_eq!(
         p.col.iter().filter(|c| **c == red).count(),
-        4 * 6,
-        "four sides, two triangles each"
+        0,
+        "a building's outline is the underlay's, not the HUD's"
     );
 }
 
