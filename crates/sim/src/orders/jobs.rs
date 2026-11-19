@@ -2808,7 +2808,7 @@ impl DoGatherView for SimDoGather<'_> {
         let stand = Pos::new(x, y);
         if self.s.world.accepts(stand) {
             let from = self.s.units[self.u].pos;
-            self.s.set_new_location(self.u, stand, true);
+            self.s.set_new_location_turning(self.u, stand, true);
             // `do_gather`'s `set_new_location(…, 1, 1)`: the whole disc,
             // not the ring (`docs/VISION.md` §6).
             self.s.moved_to(self.u, from, false);

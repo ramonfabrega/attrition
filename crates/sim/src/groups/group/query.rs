@@ -980,15 +980,29 @@ impl Sim {
         if turned {
             self.units[u].movement.mirror = !self.units[u].movement.mirror;
         }
-        // **Set, `Guy::set_angle@005d9010:13–16` writes guy 0's `angle`
-        // (`+0x18`) and `last_angle` (`+0x1c`) outright** — the figure faces
-        // the new way this frame, and the frame's `Guy::move` head copies
-        // the same angle back. Guy 0 is the unit's own figure here: its
-        // `angle` is [`crate::Movement`]'s `facing`, its `last_angle` the
-        // angle of [`crate::units::anim::Guy::last`] (`None` reads the
-        // facing). The crew's own `set_angle(crew, des_angle, 1)` is
-        // [`Sim::crew_des`]'s snap, which writes the facing and not the
-        // crew's `last_angle` (item 4253, parked 4253a: no walk parts on it).
+        self.guy_set_angle(u, angle, snap);
+        if turned {
+            self.toggle_leader_facing(u);
+        }
+    }
+
+    /// **`Guy::set_angle@005d9010` on guy 0**: `des_angle` (`+0x64`, the
+    /// unit's heading here, which every caller has already written) and,
+    /// with `snap`, the figure's own angle, then the crew loop
+    /// ([`Sim::crew_des`]) from guy 0's point. `Unit::set_angle`'s tail,
+    /// and `Unit::set_new_location`'s `param_4` arm
+    /// ([`Sim::set_new_location_turning`]).
+    ///
+    /// **Set, `Guy::set_angle@005d9010:13–16` writes guy 0's `angle`
+    /// (`+0x18`) and `last_angle` (`+0x1c`) outright** — the figure faces
+    /// the new way this frame, and the frame's `Guy::move` head copies
+    /// the same angle back. Guy 0 is the unit's own figure here: its
+    /// `angle` is [`crate::Movement`]'s `facing`, its `last_angle` the
+    /// angle of [`crate::units::anim::Guy::last`] (`None` reads the
+    /// facing). The crew's own `set_angle(crew, des_angle, 1)` is
+    /// [`Sim::crew_des`]'s snap, which writes the facing and not the
+    /// crew's `last_angle` (item 4253, parked 4253a: no walk parts on it).
+    pub(crate) fn guy_set_angle(&mut self, u: usize, angle: Angle, snap: bool) {
         if snap {
             let m = &mut self.units[u].movement;
             m.facing = angle;
@@ -1001,9 +1015,6 @@ impl Sim {
         }
         let from = self.units[u].movement.body.pos;
         self.crew_des(u, from, angle, snap);
-        if turned {
-            self.toggle_leader_facing(u);
-        }
     }
 
     /// `Unit::set_angle@00605400`'s group arm on its own: a turn of 90° or

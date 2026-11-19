@@ -2196,6 +2196,24 @@ impl Sim {
     }
 
     pub(crate) fn set_new_location(&mut self, u: usize, to: Pos, move_guys: bool) -> bool {
+        self.set_new_location_with(u, to, move_guys, false)
+    }
+
+    /// `Unit::set_new_location(x, y, move_guys, 1)`: **with `param_4`
+    /// set**, the guy half opens with `Guy::set_angle(guy 0, heading,
+    /// param_3)` (`005f8d20:156`, `:192` for a squad), ahead of the
+    /// figure's own `set_new_location`. With `move_guys` that snaps the
+    /// figure onto the heading at once, so the frame's `Guy::move` finds
+    /// `des_angle == angle` and asks for no walk (item 4415,
+    /// `docs/CHECKSUM.md` §23.10: the oil-well stand of
+    /// `Unit::do_gather@005ef2a0:384`, whose `CHAR_FARM` started a frame
+    /// late without it). The early returns of the shore half skip it, as
+    /// they skip the rest of the guy half.
+    pub(crate) fn set_new_location_turning(&mut self, u: usize, to: Pos, move_guys: bool) -> bool {
+        self.set_new_location_with(u, to, move_guys, true)
+    }
+
+    fn set_new_location_with(&mut self, u: usize, to: Pos, move_guys: bool, turn: bool) -> bool {
         let from = self.units[u].pos;
         // **A move onto the point the unit already stands on is not a
         // no-op**, and the early return that used to sit here made it
@@ -2276,6 +2294,10 @@ impl Sim {
                 }
             }
             self.ceo_tile_step(u, on_map, from, to);
+        }
+        if turn {
+            let heading = self.units[u].movement.heading;
+            self.guy_set_angle(u, heading, move_guys);
         }
         if move_guys {
             self.units[u].movement.body.pos = to;
