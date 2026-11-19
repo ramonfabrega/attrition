@@ -212,7 +212,8 @@ white. **Every quantity is the packet's** (run1559b, frame 3294): pads 8,
 `scroll_tex[0]`'s width, 4, and the sides twice it); the star 22 × 21;
 the font `onscreen_mouseover_size` (`FontFamily` lookup 36, size 14), its
 `D3D11GLFont` `mFontHeight` 16; the name `Napata`, its `CharacterInfo`
-advances 12 + 8 + 9 + 8 + 6 + 8 = 51; the city's flags `0x401f`, a capital.
+advances 12 + 8 + 9 + 8 + 6 + 8 = 51; the city's flags carry the capital's
+bit (`& 0x10`).
 `client::selection::plate` is that rectangle: **x [1083, 1172), y [580,
 610)**, 89 × 30, which is the plate on the photograph to the pixel (its
 gold edge at 1083 and 1171, 580 and 609). **`RUN1559B_3279_PLATE`** reads
