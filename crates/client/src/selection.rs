@@ -189,6 +189,462 @@ pub fn plate(
     (x0 - l, x1 + r, y0 - t, y1 + bo)
 }
 
+/// **The camera's zoom level on run1559b's packet**: `Camera::zoom_level`
+/// (`+0x294` of `MiscAccess::camera`'s object) reads 5 at frame 3294
+/// (item 4410), which is also `to_zoom_level`.
+pub const BAR_ZOOM_LEVEL: i32 = 5;
+
+/// **A building's health bar, on the screen** (item 4410):
+/// `WallOut::draw_health_bar@00640f20`'s rectangle, as `[x0, x1) × [y0,
+/// y1)` in window pixels. The anchor is `world_to_console` of the
+/// building's point lifted `0x180` in z, the console's y added; the bar is
+/// 30 × 3 at zoom level 6, 20 × 2 at 5 and 10 × 1 otherwise, about the
+/// anchor (`x0 = sx − w/2`, `y0 = sy − h/2`, each half an arithmetic
+/// shift). `GraphicPieces::draw_health_bar@00908650` then lays a black
+/// quad one pixel outside it, and the fill from `x0` over `w · fraction`
+/// (truncated) in the health level's colour.
+pub fn bar(
+    camera: &render::Camera,
+    b: &render::draw::PlacedBuilding,
+    zoom_level: i32,
+) -> (i32, i32, i32, i32) {
+    let p = render::camera::world_to_screen(
+        &camera.to_screen_matrix(),
+        &crate::pinned_screen(),
+        b.x,
+        b.y,
+        b.z + 0x180,
+        None,
+    );
+    let (w, h) = match zoom_level {
+        6 => (30, 3),
+        5 => (20, 2),
+        _ => (10, 1),
+    };
+    let (x0, y0) = (p.x - (w >> 1), p.y - (h >> 1));
+    (x0, x0 + w, y0, y0 + h)
+}
+
+/// **`ObjectData::health_level@006534b0`**: the hits left, `hits(0)` less
+/// the damage, clamped to `[0, hits(0)]`, against `hits(0)`'s 90, 75, 50,
+/// 25 and 10 per cent (each `full · n / 100`, truncated): 0 at or over
+/// 90 %, then 1, 2, 3, 4, and under 10 % 5, or 6 with nothing left.
+pub fn health_level(left: i32, full: i32) -> i32 {
+    let at = |n: i32| full * n / 100;
+    if left >= at(90) {
+        0
+    } else if left >= at(75) {
+        1
+    } else if left >= at(50) {
+        2
+    } else if left >= at(25) {
+        3
+    } else if left >= at(10) {
+        4
+    } else if left < 1 {
+        6
+    } else {
+        5
+    }
+}
+
+/// The bar's colours: `draw_health_bar`'s `GREEN` at level 0, `YELLOW` at
+/// 1 to 3, `RED` past them; the frame `BLACK`. The red is the
+/// photograph's fill, `(255, 0, 0)`; the green and the yellow are taken
+/// as the plain primaries (`docs/HUD.md` §6).
+pub const BAR_GREEN: [f32; 3] = [0.0, 1.0, 0.0];
+pub const BAR_YELLOW: [f32; 3] = [1.0, 1.0, 0.0];
+pub const BAR_RED: [f32; 3] = [1.0, 0.0, 0.0];
+pub const BAR_BLACK: [f32; 3] = [0.0, 0.0, 0.0];
+
+/// **The selected buildings' health bars** (item 4410):
+/// `WallOut::draw_health_bar@00640dd0`'s arm for a member of the
+/// console's `play` group, on [`bar`]'s rectangle at `zoom_level`. The
+/// frame is a black quad one pixel outside it; the fill runs from `x0`
+/// over `trunc(w · left / full)` in single precision, `full` the
+/// building's `hits(1)` (at least 1) and `left` its `hits(0)` less the
+/// damage, zeroed below nothing and capped at `full` (the listing at
+/// `00640fb9`–`0064108b`); its colour is [`health_level`]'s. The arms for
+/// the mouse-over, `+0x24` and another's unfinished building are not
+/// ported (`docs/HUD.md` §6).
+pub fn bars(
+    world: &crate::world::World,
+    camera: &render::Camera,
+    size: (i32, i32),
+    selection: &[sim::observe::ObjId],
+    zoom_level: i32,
+) -> Vec<crate::gpu::ScreenLayer> {
+    if selection.is_empty() {
+        return Vec::new();
+    }
+    let scene = world.runner.scene(None);
+    let placed = world.placed_buildings();
+    let mut p = crate::overlay::Painter::new(size);
+    for id in selection {
+        let Some(s) = scene.buildings.iter().find(|s| s.id == *id) else {
+            continue;
+        };
+        let Some(b) = placed.iter().find(|b| (b.who, b.o) == (id.who, id.o)) else {
+            continue;
+        };
+        let (x0, x1, y0, y1) = bar(camera, b, zoom_level);
+        p.rect(x0 - 1, y0 - 1, x1 - x0 + 2, y1 - y0 + 2, BAR_BLACK);
+        let full = s.hits.max(1);
+        let left = s.health.clamp(0, full);
+        let fill = ((x1 - x0) as f32 * (left as f32 / full as f32)) as i32;
+        let colour = match health_level(s.health, s.construct_hits) {
+            0 => BAR_GREEN,
+            1..=3 => BAR_YELLOW,
+            _ => BAR_RED,
+        };
+        if fill > 0 {
+            p.rect(x0, y0, fill, y1 - y0, colour);
+        }
+    }
+    vec![crate::gpu::ScreenLayer {
+        alpha: 255,
+        pos: p.pos,
+        col: p.col,
+    }]
+}
+
+/// **The plate's font's advances** (item 4403): each character's
+/// `CharacterInfo::advance` in `onscreen_mouseover_size`'s `D3D11GLFont`
+/// on run1559b's packet, for the characters `Napata` holds and no others.
+/// A name with any other character has no width here, and no plate is
+/// drawn for it rather than one guessed (`docs/HUD.md` §6).
+pub const PLATE_ADVANCES: [(char, i32); 4] = [('N', 12), ('a', 8), ('p', 9), ('t', 6)];
+
+/// The name's `text_width` in the plate's font, or `None` when a
+/// character's advance is not held ([`PLATE_ADVANCES`]).
+pub fn plate_text_width(name: &str) -> Option<i32> {
+    name.chars()
+        .map(|c| PLATE_ADVANCES.iter().find(|(k, _)| *k == c).map(|(_, a)| a))
+        .sum()
+}
+
+/// One rectangle of interface texels, RGBA8, the top row first.
+#[derive(Clone, Debug)]
+pub struct Texels {
+    pub w: usize,
+    pub h: usize,
+    pub rgba: Vec<u8>,
+}
+
+impl Texels {
+    fn crop(
+        image: &render::tga::Image,
+        (l, t, w, h): (usize, usize, usize, usize),
+    ) -> Option<Texels> {
+        if l + w > image.width || t + h > image.height || w == 0 || h == 0 {
+            return None;
+        }
+        let mut rgba = Vec::with_capacity(w * h * 4);
+        for y in t..t + h {
+            let at = (y * image.width + l) * 4;
+            rgba.extend_from_slice(&image.rgba[at..at + w * 4]);
+        }
+        Some(Texels { w, h, rgba })
+    }
+
+    fn at(&self, u: usize, v: usize) -> [u8; 4] {
+        let i = ((v % self.h) * self.w + u % self.w) * 4;
+        [
+            self.rgba[i],
+            self.rgba[i + 1],
+            self.rgba[i + 2],
+            self.rgba[i + 3],
+        ]
+    }
+}
+
+/// **The plate's art, off the install** (item 4410): the nine parts of
+/// `IFaceRenderManager::scroll_tex`, `interface.xml`'s nine `<IFACETEX
+/// name="scroll">` under `<IFACERENDERMANAGER>` on `TEX_CIV`, row-major
+/// from the top-left corner; and `scroll_capital_star`, `interface.txt`'s
+/// `SCROLL_CAPITAL_STAR` on `TEX_COMMON`. Each texture is the
+/// `<IFACETEXLOAD>` of its id. The rectangles are the files'; the reader
+/// holds the star to [`CAPITAL_STAR`] and the top-left corner to
+/// [`SCROLL_PAD`]'s top, the packet's, so a file that moved them is a
+/// refusal rather than a plate.
+#[derive(Clone, Debug)]
+pub struct ScrollArt {
+    pub parts: Vec<Texels>,
+    pub star: Texels,
+}
+
+/// `name="value"` of one tag, the value trimmed.
+fn attr<'a>(tag: &'a str, name: &str) -> Option<&'a str> {
+    let at = tag.find(&format!("{name}=\""))? + name.len() + 2;
+    let len = tag[at..].find('"')?;
+    Some(tag[at..at + len].trim())
+}
+
+impl ScrollArt {
+    pub fn load(root: &std::path::Path) -> Result<ScrollArt, String> {
+        let xml = std::fs::read_to_string(root.join("Data").join("interface.xml"))
+            .map_err(|e| format!("interface.xml: {e}"))?;
+        let manager = xml
+            .split("<IFACERENDERMANAGER>")
+            .nth(1)
+            .and_then(|s| s.split("</IFACERENDERMANAGER>").next())
+            .ok_or("interface.xml: no <IFACERENDERMANAGER>")?;
+        let tags: Vec<&str> = manager.split('<').collect();
+        let texture = |id: &str| -> Result<render::tga::Image, String> {
+            let file = tags
+                .iter()
+                .filter(|t| t.starts_with("IFACETEXLOAD"))
+                .find(|t| attr(t, "id") == Some(id))
+                .and_then(|t| attr(t, "file"))
+                .ok_or(format!("interface.xml: no {id}"))?;
+            let path =
+                rondata::artdata::resolve_art(root, file).ok_or(format!("{file}: absent"))?;
+            let bytes = std::fs::read(&path).map_err(|e| format!("{file}: {e}"))?;
+            render::tga::decode(&bytes).map_err(|e| format!("{file}: {e:?}"))
+        };
+        let civ = texture("TEX_CIV")?;
+        let num = |t: &str, n: &str| attr(t, n).and_then(|v| v.parse::<usize>().ok());
+        let parts: Vec<Texels> = tags
+            .iter()
+            .filter(|t| t.starts_with("IFACETEX ") && attr(t, "name") == Some("scroll"))
+            .map(|t| {
+                (attr(t, "texture") == Some("TEX_CIV"))
+                    .then(|| {
+                        Some((
+                            num(t, "left")?,
+                            num(t, "top")?,
+                            num(t, "width")?,
+                            num(t, "height")?,
+                        ))
+                    })
+                    .flatten()
+                    .and_then(|r| Texels::crop(&civ, r))
+                    .ok_or(format!("interface.xml: a scroll part off TEX_CIV: {t}"))
+            })
+            .collect::<Result<_, _>>()?;
+        if parts.len() != 9 {
+            return Err(format!(
+                "interface.xml: {} scroll parts, not nine",
+                parts.len()
+            ));
+        }
+        if parts[0].w as i32 != SCROLL_PAD.1 || parts[0].h as i32 != SCROLL_PAD.1 {
+            return Err(format!(
+                "the scroll's corner is {} × {}, the packet's pad {}",
+                parts[0].w, parts[0].h, SCROLL_PAD.1
+            ));
+        }
+        let txt = std::fs::read_to_string(root.join("interface.txt"))
+            .map_err(|e| format!("interface.txt: {e}"))?;
+        let line = txt
+            .lines()
+            .find(|l| l.trim_start().starts_with("SCROLL_CAPITAL_STAR"))
+            .ok_or("interface.txt: no SCROLL_CAPITAL_STAR")?;
+        let fields: Vec<&str> = line.split(',').map(str::trim).collect();
+        let digits = |s: &str| {
+            s.chars()
+                .take_while(char::is_ascii_digit)
+                .collect::<String>()
+                .parse::<usize>()
+                .ok()
+        };
+        let (Some(&"TEX_COMMON"), Some(l), Some(t), Some(w), Some(h)) = (
+            fields.get(1),
+            fields.get(2).and_then(|s| digits(s)),
+            fields.get(3).and_then(|s| digits(s)),
+            fields.get(4).and_then(|s| digits(s)),
+            fields.get(5).and_then(|s| digits(s)),
+        ) else {
+            return Err(format!("interface.txt: the star's line reads {line:?}"));
+        };
+        if (w as i32, h as i32) != CAPITAL_STAR {
+            return Err(format!(
+                "the star is {w} × {h}, the packet's {CAPITAL_STAR:?}"
+            ));
+        }
+        let star = Texels::crop(&texture("TEX_COMMON")?, (l, t, w, h))
+            .ok_or("the star lies off TEX_COMMON")?;
+        Ok(ScrollArt { parts, star })
+    }
+}
+
+/// The plate's name colour: `draw_overlays` writes it white.
+pub const PLATE_INK: [f32; 3] = [1.0, 1.0, 1.0];
+
+/// Texels as [`crate::gpu::ScreenLayer`]s, one an alpha, `place(x, y)`
+/// the texel of window pixel `(x, y)` or `None`; a row's run of one
+/// texel is one quad.
+fn layers_of(
+    size: (i32, i32),
+    (x0, x1, y0, y1): (i32, i32, i32, i32),
+    place: impl Fn(i32, i32) -> Option<[u8; 4]>,
+) -> Vec<crate::gpu::ScreenLayer> {
+    let mut by_alpha: std::collections::BTreeMap<u8, crate::overlay::Painter> = Default::default();
+    for y in y0..y1 {
+        let mut x = x0;
+        while x < x1 {
+            let Some(t) = place(x, y) else {
+                x += 1;
+                continue;
+            };
+            let mut end = x + 1;
+            while end < x1 && place(end, y) == Some(t) {
+                end += 1;
+            }
+            if t[3] > 0 {
+                let c = [t[0], t[1], t[2]].map(|v| f32::from(v) / 255.0);
+                by_alpha
+                    .entry(t[3])
+                    .or_insert_with(|| crate::overlay::Painter::new(size))
+                    .rect(x, y, end - x, 1, c);
+            }
+            x = end;
+        }
+    }
+    by_alpha
+        .into_iter()
+        .map(|(alpha, p)| crate::gpu::ScreenLayer {
+            alpha,
+            pos: p.pos,
+            col: p.col,
+        })
+        .collect()
+}
+
+/// **One city's plate drawn** (item 4410): `draw_scroll@0051cdb0` on
+/// [`plate`]'s rectangle `r`, as layers for the screen pass.
+/// `draw_2d_expander@0051c7b0` lays the nine parts: the corners at the
+/// rectangle's corners, the top and bottom edges and the sides tiled from
+/// their part's first texel, the body `tile_random`'s (its one texel on
+/// the install's `TEX_CIV`, so the random offset draws nothing different).
+/// Over it, a capital's star at the pads' inner corner, its texels times
+/// the owner's `TeamColor::get_unit` (`add_smooth`'s colour); then the
+/// name, at the text's rectangle past the star and 3 rows down, each
+/// character at its advance. The glyphs are not the font's: the overlay's
+/// 5 × 7 stands in, white, on the font's height (`docs/HUD.md` §6).
+pub fn plate_layers(
+    art: &ScrollArt,
+    size: (i32, i32),
+    r: (i32, i32, i32, i32),
+    capital: bool,
+    tint: [u8; 3],
+    name: &str,
+) -> Vec<crate::gpu::ScreenLayer> {
+    let (x0, x1, y0, y1) = r;
+    let (w, h) = (x1 - x0, y1 - y0);
+    let (cw, ch) = (art.parts[0].w as i32, art.parts[0].h as i32);
+    let (rw, bh) = (art.parts[2].w as i32, art.parts[6].h as i32);
+    let mut out = layers_of(size, r, |x, y| {
+        let (u, v) = (x - x0, y - y0);
+        let (col, du) = if u < cw {
+            (0, u)
+        } else if u >= w - rw {
+            (2, u - (w - rw))
+        } else {
+            (1, u - cw)
+        };
+        let (row, dv) = if v < ch {
+            (0, v)
+        } else if v >= h - bh {
+            (2, v - (h - bh))
+        } else {
+            (1, v - ch)
+        };
+        Some(art.parts[row * 3 + col].at(du as usize, dv as usize))
+    });
+    let (pl, pt, _, _) = SCROLL_PAD;
+    let (sx, sy) = (x0 + pl, y0 + pt);
+    if capital {
+        let s = &art.star;
+        out.extend(layers_of(
+            size,
+            (sx, sx + s.w as i32, sy, sy + s.h as i32),
+            |x, y| {
+                let t = s.at((x - sx) as usize, (y - sy) as usize);
+                let m = |k: usize| (u16::from(t[k]) * u16::from(tint[k]) / 255) as u8;
+                Some([m(0), m(1), m(2), t[3]])
+            },
+        ));
+    }
+    let (tx, ty) = if capital {
+        (sx + CAPITAL_STAR.0, sy + 3)
+    } else {
+        (sx, sy)
+    };
+    let mut p = crate::overlay::Painter::new(size);
+    let mut x = tx;
+    for c in name.chars() {
+        p.text(
+            x,
+            ty + (PLATE_FONT_HEIGHT - 7) / 2,
+            &c.to_string(),
+            1,
+            PLATE_INK,
+        );
+        x += PLATE_ADVANCES
+            .iter()
+            .find(|(k, _)| *k == c)
+            .map_or(0, |(_, a)| *a);
+    }
+    out.push(crate::gpu::ScreenLayer {
+        alpha: 255,
+        pos: p.pos,
+        col: p.col,
+    });
+    out
+}
+
+/// **The plates of the scene** (item 4410): `BuildOut::draw_overlays
+/// @0062cb30`'s, for every finished city centre (`flags & 4`, `& 0x20`)
+/// the viewer sees, selected or not, whose name `name_of(city)` gives and
+/// whose width [`plate_text_width`] holds. The capital's bit is the city
+/// record's (`CityData +4 & 0x10`). `player_profile.prefs & 0x40000` is
+/// taken as set, the default the photographs show.
+pub fn plates(
+    world: &crate::world::World,
+    camera: &render::Camera,
+    size: (i32, i32),
+    name_of: &dyn Fn(usize) -> Option<String>,
+) -> Vec<crate::gpu::ScreenLayer> {
+    let Some(art) = world.scroll_art.as_ref() else {
+        return Vec::new();
+    };
+    let sim = world.runner.sim();
+    let scene = world.runner.scene(None);
+    let placed = world.placed_buildings();
+    let mut out = Vec::new();
+    for s in scene
+        .buildings
+        .iter()
+        .filter(|s| s.city && s.active && s.seen)
+    {
+        let Some(c) = sim
+            .building_by_o(s.id.who, s.id.o)
+            .and_then(|b| sim.buildings[b].city)
+        else {
+            continue;
+        };
+        let Some(b) = placed.iter().find(|b| (b.who, b.o) == (s.id.who, s.id.o)) else {
+            continue;
+        };
+        let Some(&(_, y_size)) = usize::try_from(b.type_index - rondata::load::BASE_BUILDTYPES)
+            .ok()
+            .and_then(|ti| world.names.footprints.get(ti))
+        else {
+            continue;
+        };
+        let Some(name) = name_of(c) else { continue };
+        let Some(text_w) = plate_text_width(&name) else {
+            continue;
+        };
+        let capital = sim.cities.cities.get(c).is_some_and(|k| k.capital);
+        let r = plate(camera, b, y_size, text_w, PLATE_FONT_HEIGHT, capital);
+        let tint = render::silhouette::team_unit(b.who);
+        out.extend(plate_layers(art, size, r, capital, tint, &name));
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -442,9 +898,11 @@ mod tests {
     /// `[footprint, theirs dark]`: as the listing places it; moved one
     /// plate-height (30 px) down; and without the capital's star. Then, on
     /// the first arm's footprint, `[ours dark, both dark]` on the
-    /// client's still: the half the drawing moves.
+    /// client's still: the half the drawing moves. Item 4410 drew the
+    /// plate ([`plate_layers`]): `[0, 0]` → `[1742, 1251]`; drawn 89 px
+    /// east, the pin failed.
     pub const RUN1559B_3279_PLATE: ([[usize; 2]; 3], [usize; 2]) =
-        ([[2670, 1285], [2670, 0], [1608, 1018]], [0, 0]);
+        ([[2670, 1285], [2670, 0], [1608, 1018]], [1742, 1251]);
 
     #[test]
     fn the_capital_s_plate_on_run1559b() {
@@ -467,7 +925,20 @@ mod tests {
         }
         let size = (p.photo.width as u32, p.photo.height as u32);
         let camera = p.camera;
-        let ours = crate::still_selected(
+        // The capital's city is `Napata` on the packet (item 4403: city 0
+        // of slot 0, `CityData +0x90`); the sim does not carry a founding
+        // name, so the row names it, and only it.
+        let sim = p.world.runner.sim();
+        let napata = sim
+            .building_by_o(CITY.0, CITY.1)
+            .and_then(|b| sim.buildings[b].city)
+            .expect("the capital is in a city");
+        assert!(
+            sim.cities.cities[napata].capital,
+            "the city's record carries the capital's bit"
+        );
+        assert!(p.world.scroll_art.is_some(), "the plate's art loads");
+        let ours = crate::still_named(
             &mut p.world,
             &camera,
             size,
@@ -477,6 +948,7 @@ mod tests {
                 who: CITY.0,
                 o: CITY.1,
             }],
+            &|c| (c == napata).then(|| "Napata".to_string()),
         );
         if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
             let out = std::path::PathBuf::from(dir).join("still-plate.bmp");
@@ -490,5 +962,115 @@ mod tests {
         let got = (got, [mine, both]);
         println!("RUN1559B_3279_PLATE: {got:?}");
         assert_eq!(got, RUN1559B_3279_PLATE);
+    }
+
+    /// The bar's footprint: [`bar`]'s rectangle one pixel out on every
+    /// side (the black quad), moved `d` pixels, the point lifted `lift`.
+    fn bar_foot(p: &crate::ground::tests::Probe, d: (i32, i32), lift: bool) -> Vec<bool> {
+        let mut b = p
+            .world
+            .placed_buildings()
+            .into_iter()
+            .find(|b| (b.who, b.o) == CITY)
+            .expect("the city is in the scene");
+        if !lift {
+            b.z -= 0x180;
+        }
+        let (x0, x1, y0, y1) = bar(&p.camera, &b, BAR_ZOOM_LEVEL);
+        println!(
+            "bar: point ({}, {}, {}) rect x [{x0}, {x1}) y [{y0}, {y1})",
+            b.x, b.y, b.z
+        );
+        let (w, h) = (p.photo.width as i32, p.photo.height as i32);
+        let mut out = vec![false; (w * h) as usize];
+        for py in (y0 - 1 + d.1).max(0)..(y1 + 1 + d.1).min(h) {
+            for px in (x0 - 1 + d.0).max(0)..(x1 + 1 + d.0).min(w) {
+                out[(py * w + px) as usize] = true;
+            }
+        }
+        out
+    }
+
+    /// The bar's black reads where every channel is under [`BLACK`]: the
+    /// frame `GraphicPieces::draw_health_bar` lays in `BLACK`, never the
+    /// footprint.
+    const BLACK: i32 = 12;
+
+    fn black(rgba: &[u8], i: usize) -> bool {
+        rgba[i * 4..i * 4 + 3].iter().all(|&c| i32::from(c) < BLACK)
+    }
+
+    /// **`RUN1559B_3279_BAR`** (item 4410): the capital's health bar on
+    /// run1559b's photograph, its footprint [`bar`]'s at the packet's zoom
+    /// level, one pixel out. Per arm, `[footprint, theirs black]`: as the
+    /// listing places it; moved one bar (4 px) down; and without the
+    /// `0x180` lift. Then, on the first arm's footprint, `[ours black,
+    /// both black, both red]` on the client's still: the half the drawing
+    /// moves (item 4410: `[0, 0, 0]` before the draw, `[86, 86, 2]` with
+    /// it; the fill drawn green read 0 red, and the bar drawn without the
+    /// lift read 0 black, and each failed the pin).
+    pub const RUN1559B_3279_BAR: ([[usize; 2]; 3], [usize; 3]) =
+        ([[88, 86], [88, 0], [88, 0]], [86, 86, 2]);
+
+    #[test]
+    fn the_capital_s_bar_on_run1559b() {
+        let Some(mut p) = probe_at(run1559b()) else {
+            return;
+        };
+        let scene = p.world.runner.scene(None);
+        let s = scene
+            .buildings
+            .iter()
+            .find(|s| (s.id.who, s.id.o) == CITY)
+            .expect("the city is in the scene");
+        println!(
+            "bar: health {} hits {} construct_hits {} level {}",
+            s.health,
+            s.hits,
+            s.construct_hits,
+            health_level(s.health, s.construct_hits)
+        );
+        let arms = [((0, 0), true), ((0, 4), true), ((0, 0), false)];
+        let mut got = [[0; 2]; 3];
+        let mut first = Vec::new();
+        for (k, (d, lift)) in arms.into_iter().enumerate() {
+            let foot = bar_foot(&p, d, lift);
+            let n = foot.iter().filter(|f| **f).count();
+            let r = (0..foot.len())
+                .filter(|&i| foot[i] && black(&p.photo.rgba, i))
+                .count();
+            got[k] = [n, r];
+            if k == 0 {
+                first = foot;
+            }
+        }
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let ours = crate::still_selected(
+            &mut p.world,
+            &camera,
+            size,
+            crate::gpu::SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+            &[sim::observe::ObjId {
+                who: CITY.0,
+                o: CITY.1,
+            }],
+        );
+        if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+            let out = std::path::PathBuf::from(dir).join("still-bar.bmp");
+            std::fs::write(&out, crate::gpu::bmp(&ours, size)).expect("the still writes");
+        }
+        let on = |i: usize| first[i] && black(&ours, i);
+        let mine = (0..first.len()).filter(|&i| on(i)).count();
+        let both = (0..first.len())
+            .filter(|&i| on(i) && black(&p.photo.rgba, i))
+            .count();
+        let reds = (0..first.len())
+            .filter(|&i| first[i] && red(&ours, i) && red(&p.photo.rgba, i))
+            .count();
+        let got = (got, [mine, both, reds]);
+        println!("RUN1559B_3279_BAR: {got:?}");
+        assert_eq!(got, RUN1559B_3279_BAR);
     }
 }

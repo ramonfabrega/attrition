@@ -327,6 +327,19 @@ const ONCE: wgpu::StencilFaceState = wgpu::StencilFaceState {
 /// Triangles as positions and colours, three vertices each.
 pub type Tris<'a> = (&'a [[f32; 3]], &'a [[f32; 3]]);
 
+/// **One layer of the screen pass** (item 4410; `docs/HUD.md` §3): quads
+/// in normalised device coordinates, every one at `alpha`, the pass's
+/// blend constant, `c·a + d·(1 − a)`. The interface's textures carry a
+/// handful of alphas (the scroll's 255 and 224, the star's edge), so a
+/// layer of each draws them in one call; layers draw in order, so a later
+/// layer lies over an earlier one.
+#[derive(Clone, Debug, Default)]
+pub struct ScreenLayer {
+    pub alpha: u8,
+    pub pos: Vec<[f32; 3]>,
+    pub col: Vec<[f32; 3]>,
+}
+
 /// One frame's triangles: the terrain's (kept on the GPU while its version
 /// stands), the figures' and the overlay's.
 pub struct Frame<'a> {
@@ -337,6 +350,9 @@ pub struct Frame<'a> {
     /// The underlays (item 4401): the selected buildings' bands, drawn
     /// after the ground and before the objects.
     pub underlay: Tris<'a>,
+    /// The screen pass (item 4410): the cities' plates, after the tone map
+    /// and before the overlay, each layer blended at its alpha.
+    pub screen: &'a [ScreenLayer],
     /// The figures drawn textured (item 4099).
     pub textured: &'a [crate::world::TexturedMesh],
     /// The trees' textured faces, one mesh a texture (item 4173).
@@ -528,6 +544,9 @@ pub struct Gpu {
     /// the ground and under the buildings, blended at [`UNDERLAY_ALPHA`],
     /// no depth test, no depth written.
     underlay: wgpu::RenderPipeline,
+    /// The screen pass (item 4410): the overlay's shader under the
+    /// underlay's constant blend, one draw a [`ScreenLayer`].
+    screen: wgpu::RenderPipeline,
     uniform: wgpu::Buffer,
     bind: wgpu::BindGroup,
     format: wgpu::TextureFormat,
@@ -1525,6 +1544,7 @@ impl Gpu {
             world: pipeline("vs_world", true, None),
             overlay: pipeline("vs_overlay", false, None),
             underlay: pipeline("vs_world", false, underlay_blend),
+            screen: pipeline("vs_overlay", false, underlay_blend),
             device,
             queue,
             uniform,
@@ -2066,6 +2086,9 @@ impl Gpu {
         let figures = self.vertices(frame.figures);
         let overlay = self.vertices(frame.overlay);
         let underlay = self.vertices(frame.underlay);
+        let screen_pos: Vec<[f32; 3]> = frame.screen.iter().flat_map(|l| l.pos.clone()).collect();
+        let screen_col: Vec<[f32; 3]> = frame.screen.iter().flat_map(|l| l.col.clone()).collect();
+        let screen = self.vertices((&screen_pos, &screen_col));
         let mut enc = self.device.create_command_encoder(&Default::default());
         let empty = (Vec::new(), Vec::new());
         let (meshes, patches) = ground
@@ -2325,6 +2348,27 @@ impl Gpu {
                 multiview_mask: None,
             });
             self.expose.show(&mut pass, &exposed);
+            // Item 4410: the plates over the tone-mapped scene, as
+            // `BuildOut::draw_overlays` lays them through the interface's
+            // renderer, under the debug overlay and the HUD.
+            if let Some(b) = &screen {
+                pass.set_bind_group(0, &self.bind, &[]);
+                pass.set_pipeline(&self.screen);
+                pass.set_vertex_buffer(0, b.slice(..));
+                let mut at = 0u32;
+                for l in frame.screen {
+                    let n = l.pos.len() as u32;
+                    let a = f64::from(l.alpha) / 255.0;
+                    pass.set_blend_constant(wgpu::Color {
+                        r: a,
+                        g: a,
+                        b: a,
+                        a,
+                    });
+                    pass.draw(at..at + n, 0..1);
+                    at += n;
+                }
+            }
             if let Some(b) = &overlay {
                 pass.set_bind_group(0, &self.bind, &[]);
                 pass.set_pipeline(&self.overlay);

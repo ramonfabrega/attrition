@@ -12,7 +12,12 @@ impl Sim {
                 return None;
             }
             let (o, _) = self.obj_o_who(p.shooter);
-            let (ox, whom) = p.target.map_or((-1, -1), |t| self.obj_o_who(t));
+            // A gone target's pair stays on the round (item 4404).
+            let (ox, whom) = p
+                .target
+                .map(|t| self.obj_o_who(t))
+                .or(p.left)
+                .unwrap_or((-1, -1));
             let flags = if p.spent {
                 1
             } else {

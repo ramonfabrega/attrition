@@ -39175,6 +39175,55 @@ Files in place, `~/ron-golden/run1695/map-14/`: `gamelog_p.txt`, 3,147,331 bytes
 `8b877c882b68094ac45965df7be9515560141304ae5681df2e6f4c1e060c0fdc`; `rontrace.ranges`, 567,468,184 bytes, SHA-256
 `45a954cb314d874390866b428b85ecf35a2f3cb84f9d790bf417f5fb98931213`.
 
+## run1696 — the demand's game to 10090 with the ammo line's ranges (2026-11-19, item 4404, `att-4404`)
+
+`docs/LEADERS.md` §8.6; `docs/COMBAT.md` §46.9. **What the disk could not answer**: run1691's ammo line parts on
+10075 with every other line whole. run1695 kept units' ranges alone (`RNG_MASK=0x1`), so no take of this file holds
+ammo's. The file is run1691's (`item4396-demand-greatlakes-style0-d2-11200.rcx`, SHA-256 `373fac0a…`).
+
+The take: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1696
+--recording <the file> --end-frame 10090 --cover cover=1 --log-window 10069 10091 --detail end:MISC,UNITS=3,AMMO=5
+--timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x8u`,
+waited on with `waitrun.sh` in the background. `df -g ~` read 149 GB free before it.
+- **The run**: pool lane 1, launched 06:38:29 −05:00, exited 06:50:39: **730.7 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 10,091 frames, `last_frame` 10090, not ended early. DLL `d234aa0f…`. Minutes waited on
+  another lane: none. run1696 was reserved for item 4404.
+- **What it holds**: ammo's ranges on every state to 10090, and the window's `UNITDATA` and `AMMO`. The French
+  Longbowmen `1/11`'s arrows in slots 0 and 1 print `whom 0 ox 5` (the human's Citizen `0/5`, uid 12) on every
+  block. `0/5` is last dumped on frame 10074.
+- **Read by** `the_demand_s_ammo_parts_by_range_on_run1696` (`RUN1696_AMMO`): minted at state 10075, range 1 of 6,
+  record 0's body offset `0x43` (`whom`, then `ox`), ours `-1, -1`, theirs `0, 5`, two ranges parted. With the pair
+  kept (`Projectile::left`), none parts on 10069–10090.
+- Filed **in place**, as run1691 is.
+
+Files in place, `~/ron-golden/run1696/map-14/`: `gamelog_p.txt`, 3,888,238 bytes, SHA-256
+`a08bf1cf28f25a55064922fb707dc851e8dee93e90d4ec4faea0bbf27dfe83a4`; `rontrace.log`, 55,616,576 bytes, SHA-256
+`45f6bbb190fd9b1ea1e94d9435c8b71f765cc0dc40842f7a6b5dc73e6a51a2cf`; `rontrace.ranges`, 1,194,156 bytes, SHA-256
+`a6b7d44164cb63e9222f9369300c091ea00d7f72c4c5badeb66fdf218d7cb67a`.
+
+## run1698 — the demand's game to 10190 with the ammo line's ranges (2026-11-19, item 4404, `att-4404`)
+
+`docs/COMBAT.md` §46.9. **What the disk could not answer**: with run1696's word mended, run1691's ammo line parts
+first on 10177, past run1696's last state. The file is run1691's.
+
+The take: run1696's command with `~/ron-golden/run1698`, `--end-frame 10190` and `--log-window 10171 10191`.
+`df -g ~` read 128 GB free before it.
+- **The run**: pool lane 1, launched 07:08:28 −05:00, exited 07:21:19: **770.8 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 10,191 frames, `last_frame` 10190, not ended early. DLL `b3a4b184…`. Minutes waited
+  on another lane: none. **run1698 was given by `commander`** for this take (run1697 is 4405's).
+- **What it holds**: ammo's ranges on every state to 10190 and the window's `UNITDATA` and `AMMO`. Slot 2's rolling
+  arrow from `1/11` prints `whom 0 ox 3` through dump frame 10176 and `whom -1 ox -1 flags 14` on 10177, its landing
+  (`cur_time 14` of 14).
+- **Read by** `the_demand_s_ammo_parts_by_range_on_run1698` (`RUN1698_AMMO`): minted at state 10177, range 4 of 6,
+  record 2's `whom`/`ox`, ours `0, 3`, theirs `-1, -1`, one range parted, and slot 1 the same on 10181. With the
+  rolling arm's `check_hit` clearing the pair, none parts on 10171–10190.
+- Filed **in place**.
+
+Files in place, `~/ron-golden/run1698/map-14/`: `gamelog_p.txt`, 3,441,375 bytes, SHA-256
+`517f367c00e87fa376e3e3a417fef4104085d1339b7563a58fd95aa0c4cdd0b1`; `rontrace.log`, 55,346,208 bytes, SHA-256
+`6d9a2e13bf287dec6187a883e54e9366d0df54335e23cbfea9deaf5f09ab78f7`; `rontrace.ranges`, 1,236,264 bytes, SHA-256
+`0553d2ed131492a03008483a51c0e9fd46b38a63ebeb6f607c83cac880958f0a`.
+
 ## Recording diagnostics on three archived captures (2026-11-18, item 4406)
 
 Each comparison used the release `score_recording` example, the installed game

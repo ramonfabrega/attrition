@@ -96,6 +96,7 @@ fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
         ..crate::combat::Profile::default()
     });
     let round = crate::combat::Projectile {
+        left: None,
         shooter: Obj::Unit(n),
         owner: 0,
         target: None,
@@ -260,6 +261,7 @@ fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
     put(&mut s, 0, probe, Pos::new(23040, 34560));
     assert_eq!(s.leaders.treaties[0][1], 0);
     s.combat.projectiles.push(crate::combat::Projectile {
+        left: None,
         shooter: Obj::Unit(n),
         owner: 1,
         target: None,
