@@ -115,6 +115,107 @@ mod tests {
             );
         }
     }
+
+    /// Where game `k`'s file and take sit: the client's recording under
+    /// `~/ron-golden/recordings/`, and `run1700 + k`'s `map-*/rontrace.log`.
+    fn paths(k: usize) -> (std::path::PathBuf, Option<std::path::PathBuf>) {
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let rcx = home.join(format!(
+            "ron-golden/recordings/item4413-row{:03}-6000.rcx",
+            HELD_OUT[k].row
+        ));
+        let run = home.join(format!("ron-golden/run{}", 1700 + k));
+        let map = std::fs::read_dir(&run).ok().and_then(|d| {
+            d.filter_map(Result::ok).map(|e| e.path()).find(|p| {
+                p.file_name()
+                    .is_some_and(|n| n.to_string_lossy().starts_with("map-"))
+            })
+        });
+        let take = map.and_then(|m| crate::testenv::experiment(&m, "rontrace.log"));
+        (rcx, take)
+    }
+
+    /// **The held-out scores** (item 4413, `docs/RECGAME.md` §10.3): each of
+    /// the eight games the original has played, scored by
+    /// `checksum::playback` on every state to the take's last, against its
+    /// pinned score: [`FirstScore::moved`] where a later fix has moved it,
+    /// else the score as found. A game with no take skips, and says so; a
+    /// take with no pin fails and prints the score to pin.
+    #[test]
+    fn the_held_out_games_score_as_pinned() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        for (k, held) in HELD_OUT.iter().enumerate() {
+            let (rcx, take) = paths(k);
+            let (true, Some(take)) = (rcx.exists(), take) else {
+                eprintln!(
+                    "skipping: row {} has no file or no run{} take",
+                    held.row,
+                    1700 + k
+                );
+                continue;
+            };
+            let pin = &SCORES[k];
+            let until = pin.as_ref().and_then(|p| p.last);
+            let score = crate::checksum::playback::compare_until(inst.root(), &rcx, &take, until)
+                .expect("scored");
+            let first: Vec<First> = crate::checksum::CHECKSUM_LINES
+                .iter()
+                .zip(&score.first)
+                .filter_map(|(l, f)| f.map(|f| (l.0, f)))
+                .collect();
+            eprintln!(
+                "HELD OUT row {} run{}: states {} agreed {:?} first {first:?} over {:?}",
+                held.row,
+                1700 + k,
+                score.states,
+                score.agreed,
+                score.over
+            );
+            for (line, d) in crate::checksum::CHECKSUM_LINES.iter().zip(&score.details) {
+                if let Some(d) = d {
+                    eprintln!("  {}: {d}", line.0);
+                }
+            }
+            let Some(pin) = pin else {
+                panic!(
+                    "row {}: run{} is taken and SCORES[{k}] is unpinned",
+                    held.row,
+                    1700 + k
+                );
+            };
+            let want = pin.moved.unwrap_or(pin.found);
+            assert_eq!(
+                (score.states, score.agreed, first),
+                (want.states, want.agreed, want.first.to_vec()),
+                "row {} run{}: states, each line's agreeing states, the first partings",
+                held.row,
+                1700 + k
+            );
+        }
+    }
+
+    /// **The held-out line**, from the table alone: the games whose score
+    /// agrees on every line on every state, of the eight, and how many are
+    /// taken.
+    #[test]
+    fn the_held_out_line_reads_as_pinned() {
+        let taken = SCORES.iter().flatten().count();
+        let whole = SCORES
+            .iter()
+            .flatten()
+            .filter(|p| {
+                let s = p.moved.unwrap_or(p.found);
+                s.first.is_empty() && s.agreed == [s.states; 12]
+            })
+            .count();
+        assert_eq!(
+            (whole, taken),
+            HELD_OUT_LINE,
+            "parity held out: N of 8, T taken"
+        );
+    }
 }
 
 /// **The eight, as declared** (item 4413, before any take): rows 0, 20, …,
@@ -218,3 +319,39 @@ pub(crate) const HELD_OUT: [HeldOut; 8] = [
         digest: 0xafdc08ec613c25c1,
     },
 ];
+
+/// A line's first parting: `(line, (state, ours, theirs))`, ours `None`
+/// where the record is unemitted.
+#[cfg(test)]
+type First = (&'static str, (i32, Option<u32>, u32));
+
+/// One score: the states compared, each line's agreeing states in
+/// `CHECKSUM_LINES`' order, and the lines' first partings.
+#[cfg(test)]
+#[derive(Clone, Copy)]
+pub(crate) struct Score {
+    pub states: u32,
+    pub agreed: [u32; 12],
+    pub first: &'static [First],
+}
+
+/// A held-out game's pins: its first score, as found and never re-pinned in
+/// place, and the second column a later fix moves.
+#[cfg(test)]
+pub(crate) struct FirstScore {
+    /// The last state compared, where the original ended the game before
+    /// the file's closing package.
+    pub last: Option<i32>,
+    pub found: Score,
+    pub moved: Option<Score>,
+}
+
+/// **The held-out scores**, `HELD_OUT[k]` played as `run1700 + k`: `None`
+/// until the original has played it.
+#[cfg(test)]
+pub(crate) const SCORES: [Option<FirstScore>; 8] = [None, None, None, None, None, None, None, None];
+
+/// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
+/// line and state, and the games taken.
+#[cfg(test)]
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 0);
