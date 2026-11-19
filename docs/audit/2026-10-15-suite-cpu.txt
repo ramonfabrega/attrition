@@ -1,6 +1,6 @@
-# Every rondata release test's CPU alone, 2026-11-18, tools/suite_timings.py (tree 1e0e1fdf).
+# Every rondata release test's CPU alone, 2026-11-19, tools/suite_timings.py (tree 1940ba9d).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 6,762 CPU-seconds and 132.85e12 instructions over 2533 tests; the host's load 2.3 at the start and 3.4 at the end.
+# Sum 6,820 CPU-seconds and 134.29e12 instructions over 2542 tests; the host's load 10.5 at the start and 6.1 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 148.65	4234.56	diff::sample::tests::the_sample_s_lines_against_the_hook
@@ -9,6 +9,7 @@
 65.16	1613.29	checksum::playback::combat::the_combat_window_b_matches_every_line_through_closing
 55.90	1314.93	checksum::playback::combat::the_combat_window_a_matches_every_line_through_closing
 53.64	1084.53	diff::start::tests::every_lobby_s_start_built_from_its_choices
+50.45	1223.07	diff::start_walk::recording::the_demand_s_game_to_its_end_on_run1691
 49.39	944.50	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
 44.27	1057.79	checksum::playback::tests::the_long_window_game_agrees_through_its_closing_state
 30.98	712.98	diff::start_walk::recording::the_demand_s_game_is_whole_on_run1683
@@ -242,6 +243,7 @@
 5.01	103.92	diff::mongol_classical_pair::mongol_classical_pair_first_parting
 5.01	103.26	diff::mongol_classical_pair::mongol_classical_pair_run1222_walks_the_gap_before_9744
 4.99	96.73	diff::minted::the_original_s_playback_of_the_minted_file_walks_in_lockstep
+4.98	144.54	diff::sample::tests::the_sample_s_ranges_to_560_name_each_first_parting
 4.92	95.00	diff::dutch_medieval_pair::dutch_medieval_pair_the_long_s_stride_walks_back_from_7063
 4.91	119.81	diff::diplomacy_take::run1575_s_peace_parts_without_the_human_s_proposal
 4.89	94.91	diff::egyptian_classical_pair::egyptian_classical_pair_run1241b_s_word_frame_is_widened_whole
@@ -1367,6 +1369,7 @@
 1.02	21.46	diff::harness::tests::run97_s_window_clocks_are_the_original_s
 1.02	21.61	diff::iroquois_word::run937_s_word_frame_is_widened_whole
 1.02	21.96	diff::russian_medieval_pair::russian_medieval_pair_s_guard_search_values_the_market_as_a_trainer
+1.02	23.39	diff::start_walk::recording::the_demand_s_units_part_by_range_on_run1695
 1.01	21.83	diff::american_enlightenment_pair::american_enlightenment_pair_the_long_s_stride_walks_back_from_3215
 1.01	21.02	diff::aztec_word::run989_s_word_frame_is_widened_whole
 1.01	19.02	diff::checksum_lines::the_builds_line_is_the_original_s_range_by_range
@@ -1406,6 +1409,8 @@
 0.97	16.36	diff::golden::chapter_forty_s_word_frame_is_widened_whole
 0.97	16.56	diff::golden::chapter_ninety_s_window_is_widened_whole
 0.97	16.88	diff::golden::chapter_sixteen_s_word_frame_is_widened_whole
+0.97	23.56	diff::start_walk::recording::the_demand_s_ammo_parts_by_range_on_run1696
+0.97	23.29	diff::start_walk::recording::the_demand_s_ammo_parts_by_range_on_run1698
 0.96	18.63	diff::persian_word::run984d_s_word_frame_is_widened_whole
 0.96	15.54	diff::golden::chapter_fifty_s_word_frame_is_widened_whole
 0.96	19.26	diff::information_melee::information_melee_run1468_s_word_window_is_widened_whole
@@ -2534,3 +2539,7 @@
 0.00	0.03	diff::start_walk::recording::mint_4387_the_demand_s_game
 0.00	0.03	diff::start_walk::recording::sweep_4382_the_demand_over_style_zero_lobbies
 0.00	0.03	recgame::tests::a_donor_may_differ_in_team_style_alone
+0.00	0.03	checksum::tests::range_values_require_matching_shapes_and_a_known_field
+0.00	0.03	diff::harness::prefix::tests::the_overlap_checkpoint_keeps_the_earlier_start_and_group_boundary
+0.00	0.03	gamelog::tests::indexed_fields_keep_file_order_and_record_only_requested_names
+0.00	0.03	trace::checksums::tests::a_receipted_trace_requires_its_endpoint_checksum_and_detach

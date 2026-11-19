@@ -1,7 +1,7 @@
-# Every rondata release test timed alone, 2026-11-18, tools/suite_timings.py (tree 1e0e1fdf).
+# Every rondata release test timed alone, 2026-11-19, tools/suite_timings.py (tree 1940ba9d).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 5,433 s over 2533 tests; --stale-only merged. Top 10 = 962 s, top 30 = 1295, top 100 = 1818; 1082 tests under 1 s.
-# By module: mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, coverage 266 s / 6 tests, harness 227 s / 100 tests.
+# Sum 5,492 s over 2542 tests; --stale-only merged. Top 10 = 968 s, top 30 = 1336, top 100 = 1862; 1088 tests under 1 s.
+# By module: mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, coverage 266 s / 6 tests, harness 227 s / 101 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 148.69	diff::sample::tests::the_sample_s_lines_against_the_hook
 144.47	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
@@ -10,6 +10,7 @@
 65.26	checksum::playback::combat::the_combat_window_b_matches_every_line_through_closing
 55.97	checksum::playback::combat::the_combat_window_a_matches_every_line_through_closing
 54.95	diff::start::tests::every_lobby_s_start_built_from_its_choices
+50.51	diff::start_walk::recording::the_demand_s_game_to_its_end_on_run1691
 49.73	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
 44.29	checksum::playback::tests::the_long_window_game_agrees_through_its_closing_state
 31.00	diff::start_walk::recording::the_demand_s_game_is_whole_on_run1683
@@ -149,6 +150,7 @@
 5.15	mapgen::tests::nile_delta_s_rivers_are_5012_to_5118
 5.15	diff::diplomacy_take::run1575_s_taunt_parts_without_its_chat
 5.15	diff::diplomacy_take::run1575_s_peace_is_the_french_answer
+5.14	diff::sample::tests::the_sample_s_ranges_to_560_name_each_first_parting
 5.09	diff::minted::the_original_s_playback_of_the_minted_file_walks_in_lockstep
 5.08	diff::mongol_classical_pair::mongol_classical_pair_run1222_walks_the_gap_before_9744
 5.08	mapgen::tests::australian_outback_s_terrain_init_without_heights_is_734_to_5012
@@ -989,6 +991,7 @@
 1.70	diff::golden::chapter_twenty_six_s_word_frame_is_widened_whole
 1.70	diff::lakota_gunpowder_pair::lakota_gunpowder_pair_run1289_s_closing_state
 1.70	diff::diplomacy_take::run1645_s_taunt_parts_from_the_old_seat
+1.70	diff::start_walk::recording::the_demand_s_units_part_by_range_on_run1695
 1.69	diff::checksum_lines::packets::maya_ancient_pair_packets
 1.69	diff::persian_medieval_pair::persian_medieval_pair_the_long_s_stride_walks_back_from_4038
 1.69	diff::inca_sahara_word::run1006b_inca_sahara_closing_state
@@ -1466,6 +1469,8 @@
 0.99	diff::persian_medieval_pair::persian_medieval_pair_run1189_lands_the_explorer_on_its_attack
 0.99	diff::iroquois_word::run934_s_word_frame_is_widened_whole
 0.99	diff::second::tests::run373_s_word_frame_is_widened_whole
+0.99	diff::start_walk::recording::the_demand_s_ammo_parts_by_range_on_run1696
+0.98	diff::start_walk::recording::the_demand_s_ammo_parts_by_range_on_run1698
 0.98	diff::golden::chapter_thirty_five_s_v2_blast_is_compared_field_for_field
 0.98	diff::gunpowder_melee::gunpowder_melee_run1413_s_closing_state
 0.98	diff::checksum_lines::packets::classical_melee_packets
@@ -2467,6 +2472,10 @@
 0.01	diff::start::tests::a_seat_s_teammates_are_built_at_once_after_it
 0.01	diff::checksum_lines::deaths::both_casualty_pivots_match_the_original_at_every_whole_degree
 0.01	diff::start_walk::recording::mint_4387_the_demand_s_game
+0.01	checksum::tests::range_values_require_matching_shapes_and_a_known_field
+0.01	diff::harness::prefix::tests::the_overlap_checkpoint_keeps_the_earlier_start_and_group_boundary
+0.01	gamelog::tests::indexed_fields_keep_file_order_and_record_only_requested_names
+0.00	trace::checksums::tests::a_receipted_trace_requires_its_endpoint_checksum_and_detach
 0.00	recgame::tests::a_donor_may_differ_in_team_style_alone
 0.00	diff::start_walk::recording::sweep_4382_the_demand_over_style_zero_lobbies
 0.00	diff::checksum_lines::packets::packet_first_difference_distinguishes_bytes_ends_and_absent_ranges

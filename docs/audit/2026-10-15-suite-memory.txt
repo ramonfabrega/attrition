@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-18, tools/suite_timings.py (tree 1e0e1fdf).
+# Every rondata release test's peak resident set alone, 2026-11-19, tools/suite_timings.py (tree 1940ba9d).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -1975,6 +1975,7 @@
 125	diff::minted::the_garrisoned_minted_packages_round_trip
 123	census::tests::the_census_s_simulation_share_is_pinned
 123	diff::diplomacy_take::run1645_s_taunt_parts_from_the_old_seat
+122	diff::start_walk::recording::the_demand_s_game_to_its_end_on_run1691
 122	checksum::playback::combat::the_combat_window_a_matches_every_line_through_closing
 122	diff::minted::the_right_pressed_minted_packages_round_trip
 120	diff::build::tests::run9_s_camps_get_the_original_s_gatherer_counts
@@ -2028,12 +2029,16 @@
 72	diff::shutdown::tests::the_closing_dump_lags_one_tick_on_one_unit
 67	diff::checksum_lines::deaths::the_disbanded_scout_and_dog_match_the_whole_packet
 66	load::memo::a_kept_load_is_the_load_a_fresh_read_builds
+66	diff::sample::tests::the_sample_s_ranges_to_560_name_each_first_parting
 65	checksum::playback::combat::window_a_unit_and_building_flags_match_on_both_sides_of_their_first_changes
 64	diff::sample::tests::the_sample_s_ranges_name_each_first_parting
 64	diff::start::tests::the_harness_lobby_s_map_is_the_traced_setup_path
 64	diff::leader::tests::run111_s_block_9381_list_is_make_me_s_from_four_offers
+64	diff::start_walk::recording::the_demand_s_units_part_by_range_on_run1695
 63	diff::world::tests::run61_s_birds_fly_where_the_original_s_do
 63	diff::start_walk::recording::the_demand_s_ranges_name_each_first_parting
+62	diff::start_walk::recording::the_demand_s_ammo_parts_by_range_on_run1696
+62	diff::start_walk::recording::the_demand_s_ammo_parts_by_range_on_run1698
 62	checksum::playback::combat::both_occupied_sprite_pools_match_every_record_in_window_a
 62	stores::tests::the_scan_finds_dow_s_writers_and_a_perturbed_scan_misses_them
 60	checksum::playback::combat::both_occupied_sprite_pools_match_every_record_in_window_b
@@ -2170,6 +2175,7 @@
 8	diff::harness::trunk::tests::a_rider_s_later_run_ups_take_the_rungs_past_where_it_stands
 8	diff::harness::trunk::tests::the_verifier_refuses_a_rung_that_is_not_the_plain_walk_s_state
 8	diff::harness::trunk::tests::a_walk_that_ticks_itself_leaves_the_rungs_a_run_up_takes
+8	gamelog::tests::indexed_fields_keep_file_order_and_record_only_requested_names
 7	artdata::tests::every_surf_section_model_the_install_ships_decodes
 7	artdata::tests::the_surf_s_sections_and_timings_are_the_packet_s
 7	diff::harness::trunk::tests::a_state_past_frame_zero_a_short_run_up_and_a_process_not_sharing_tick_plainly
@@ -2185,6 +2191,7 @@
 7	gamelog::tests::checksum_records_are_read_from_the_preamble
 7	diff::floors::tests::a_golden_widening_s_window_reaches_its_trace_s_end
 7	diff::third_pair::replay::full_state_audit_accepts_only_future_inputs_and_rejects_value_changes
+6	diff::harness::prefix::tests::the_overlap_checkpoint_keeps_the_earlier_start_and_group_boundary
 6	diff::oracle::the_schema_key_moves_on_the_parser_and_the_codec_only
 6	diff::oracle::gc::a_failed_removal_is_recorded_and_the_sweep_goes_on
 6	capture::indexed::tests::reused_frame_tree_still_requires_one_matching_frame
@@ -2360,6 +2367,8 @@
 5	recgame::tests::a_donor_may_differ_in_team_style_alone
 5	diff::start_walk::recording::mint_4387_the_demand_s_game
 5	diff::start_walk::recording::sweep_4382_the_demand_over_style_zero_lobbies
+5	trace::checksums::tests::a_receipted_trace_requires_its_endpoint_checksum_and_detach
+5	checksum::tests::range_values_require_matching_shapes_and_a_known_field
 4	commands::tests::the_empty_group_is_the_same_selection
 4	commands::tests::the_mp_obfuscation_reverses
 4	diff::floors::tests::the_handoff_s_golden_line_is_the_pinned_word
