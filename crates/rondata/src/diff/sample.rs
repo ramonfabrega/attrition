@@ -533,7 +533,8 @@ pub(in crate::diff) mod tests {
     /// flags byte): units 532 → 2112. Item 4419 (a dead building leaves its
     /// group on the next push): groups 927 → 961. Item 4422
     /// (`action_swarm_around`'s `form` −1, slot 195 on 961): groups 961 →
-    /// 2888.
+    /// 2888. Item 4424 (a trained captain's exit lights no disc; the
+    /// gather re-seat lights its own): world 1716 → 2921.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 2112),
         ("builds", 3029),
@@ -546,7 +547,7 @@ pub(in crate::diff) mod tests {
         ("cities", 3176),
         ("items", 3976),
         ("goods", 4094),
-        ("world", 1716),
+        ("world", 2921),
     ];
 
     /// `(frames our walk holds no wall, shot or death, the first it holds
@@ -918,13 +919,16 @@ pub(in crate::diff) mod tests {
             1,
             "267 2 who..ally_mask: +0x1ec of 26914|26914: 3f080000|00000000",
         ),
+        // Item 4424: 1716 -> 2921 (the person's type-107 captain out of
+        // its trainer on 1715 with a gather point lit nine fog cells round
+        // (74, 39) in ours alone; the exit lights no disc).
         (
             "world",
-            1716,
-            7489,
-            7489,
-            3,
-            "3625 -1 seen: +0x1128 of 14400|14400: 08080808|00000808",
+            2921,
+            7709,
+            7709,
+            2,
+            "6412 2449 block.body: +0x1a of 96|96: e000e000|0000e000",
         ),
     ];
 }
