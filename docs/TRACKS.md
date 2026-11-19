@@ -130,6 +130,12 @@ are booked behind them (item 4400); **orders** — whole by its counters; the se
 **renderer** — three lanes on the lake's streaks moved nothing, the streaks differ between takes, and the seat scores what two takes
 agree on (item 4399).
 
+**At the pass of 2026-11-19** (entry 144): **checksum** — parity 6 of 7, the demand's game ratified as the seventh with its end tick
+pinned; the sample's lowest first parting 532 of 21,044 (item 4414); the packets' lines 690 of 1,053 (items 4415, 4417); a game is
+declared before the original plays it, and parity held out is booked on eight lobbies nobody tuned for (item 4413); **orders** — whole
+by its counters; a live game shows no city name, and the third seat ports the founding name (item 4416); **renderer** — the selected
+city's band, plate and bar are drawn; the lake has no seat, three takes of one state agreeing on 3.8 % of it.
+
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
 on one lane, taking textures and team colours next; then the lobby screen

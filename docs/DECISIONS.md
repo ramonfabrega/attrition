@@ -158,6 +158,7 @@ is append-only and amended in place, as it always was.
 - 141 standing — Lanes out at the day's line land, and only the last day is careful at the stop (Ramon, 2026-11-17)
 - 142 standing — Codex's live windows join parity's set (5 of 6 games), a driver settles Codex's branch before it briefs, the demand is tried on a game the walk holds, the sample is read by its lines, and a row's footprint is never a colour (2026-11-18)
 - 143 standing — The pass of 2026-11-18, second: step 5 is ratified and the milestone closed, the headline is parity on the declared set, the chain plays the demand's game to its end, the third seat draws what a selected city shows, and no row is minted on the lake's streaks
+- 144 standing — The pass of 2026-11-19: item 4404's game is ratified as parity's seventh with its end tick pinned, a game is declared before the original plays it and parity held out is booked, the sample takes its ranges once, the lake gives up its seat, and the third seat names a city
 
 ## 1. Fidelity before divergence
 
@@ -14205,3 +14206,131 @@ sample and one for the demand's game. The lane gate's `Base moved:`
 refusal caught it and 4392 took 4388's. A prose rule would not hold, and
 the pass found no check that sees two lanes reading the same function
 before either commits.
+
+## 144. The demand's game is ratified as parity's seventh with its end pinned, a game is declared before the original plays it, and the lake gives up its seat (2026-11-19)
+
+**What happened.** `commander` (Opus 5.5) ran thirteen lanes off the pass
+of 2026-11-18, second (items 4396 to 4405 and 4410 to 4412; Codex's 4406
+to 4409 fast-forwarded and gated whole between them), drained and gated
+whole (`gate-drain-1119.log`, exit 0 on `1940ba9d5`, the tip and
+origin/main). The pass ran on the `steer` row from 09:13 −05:00 with no
+subagent and no capture. The tables are in
+`docs/audit/2026-11-19-fable-pass-seventh.md`.
+
+**§1. Item 4404's game is ratified: the demand's game is the seventh in
+parity's set.** Entry 143 §2 ruled that it joins when the original has
+played it to its end and every state agrees. What the pass read, none of
+it taken from the handoff:
+
+- **The test ran.** `the_demand_s_game_to_its_end_on_run1691` passed in
+  the drain's gate on the tip, with no `skipping:` line, and again on the
+  pass's own run: 10,929 states, each of the twelve lines agreeing on
+  10,929, no first parting.
+- **The comparison fails from the original's side.** The pass copied
+  run1691's take and flipped one bit of one ammo sum, state 10177. The
+  reader refused it: every set carries the total of its lines, and
+  `complete_sets` checks it (`checksum set total disagrees at trace frame
+  10176 ordinal 0`). With the total moved to match, the test goes red on
+  that state and no other: ammo 10,928 of 10,929, first parting 10177,
+  ours 1314070668 against the bent 1314070669. So every state to the last
+  is read, and a set cannot be half-edited.
+- **It fails from ours.** With the cadence's read of `tribute_demanded`
+  removed (`tools/mutate.py`), leaders parts on 9985, ours 2254783755
+  against theirs 705512842: the sums `docs/LEADERS.md` §8.6 quotes. That
+  read was one of entry 143 §1's two unbacked touches. It is diff-backed
+  now. `action_respond`'s clear is still not: no game on disk clears a
+  live demand.
+- **The three predicates are the listing's.** `Ammo::hit_target@00678f90`
+  returns 0 without writing when the pair's slot is not in use, and writes
+  −1 only after a live target's miss. `Ammo::check_hit@00678d90` writes
+  what `find_unit` returns, then −1 on its miss arms.
+  `Ammo::do_damage@00678060` clears the pair of a slot no longer in use
+  before either is called. `docs/COMBAT.md` §46.9 says the same.
+
+One limit was found, and it is pinned. **The conquest is in no compared
+state.** The hook prints a set after every tick but the one that ends the
+game: the take holds states 0 to 10928, and the original stops after
+frame 10928 under a file that closes on 11,200. Until this pass nothing
+held our side to that tick. `the_demand_s_game_ends_on_the_tick_the_
+original_stops_on` now reads theirs' last frame off the take's own frame
+records and walks ours with no set read: `RUN1691_END` is (10928, 10929,
+the human's `defeated_by` 1, the French `won`). It was seen red with
+`check_victory` held off (ours never over, `won` false). What the
+conquest does to the state after that tick is still compared nowhere.
+
+`check_hit` also writes a building it finds (`find_building_at`), which
+parked 4404b does not say. The sample's ammo line first parts on 3022,
+and a round that lands on something other than its target is the first
+thing to read there.
+
+**§2. A game is declared before the original plays it.** Entry 143 §2's
+rule has a flaw the pass did not see when it wrote it. A game that joins
+only once every state agrees can only raise the fraction: the set grows
+by its successes, and "6 of 7" would read "9 of 10" with the sample no
+nearer. From here a game enters the denominator when it is named, before
+the original has played it, and stays there. The seven stand as they
+are; six of them were scored first and joined after. **The set's
+membership is still Ramon's.** What the pass books beside it is a
+separate line, his to fold in or not: **parity held out** (item 4413).
+Eight lobbies are named by a rule fixed here, before any take: rows 0,
+20, 40, 60, 80, 100, 120 and 140 of the 161 lobbies in the order
+`Start:` counts them, each at its own seed, the human idle, 6,000
+frames. The client records each from its own lobby page, the original
+plays the file under the checksum hook, and `checksum::playback` scores
+it. The first score of each is pinned as found and never re-pinned in
+place: a later fix moves a second column. This is the held-out battery of
+entry 29 on the finish line's own counter, and it is the first number
+that says how far "exactly" reaches on games nobody tuned for. It needs
+the game lane for about an hour in all.
+
+**§3. The suite's seat stays on the sample, and takes its ranges once.**
+`SAMPLE_LINES` reads units 532, groups 927, world 1716, leaders 2112,
+guys 2920, ammo 3022 and builds 3029; the draw walk holds to 3019 of
+21,044. Three lanes moved the lowest first parting 0 → 532, two acts
+each, and five of their six fixes were in a checksum emitter with the
+simulation already right. A ranges take to 560 is 38 MB on disk. So item
+4414's first act is units on 532, inside run1697's window, and its
+second is one ranges take to 3,100, past the draw walk's word. After
+that every first parting under 3019 is a diff on disk and the lane stops
+taking a capture an act.
+
+**§4. The lake gives up its seat.** Item 4399 stopped on its first act:
+three takes of one state agree on 3.8 % of the lake within the takes' own
+floor, so no row can be minted on its pixels, and entry 143 §6's design
+is closed with it. Four lanes since entry 142 §7 moved nothing there. The
+pass looked again: the pair is as it was. No item is booked on the lake.
+Parked 4399a (the foam band as an envelope over many takes) stays parked
+until someone wants the lake more than what is below. The render seat's
+worker goes where the driver already sent it when the lake stopped, the
+packets' lines (item 4415: guys' `cur_time`, on 17 lines; then
+`turret_inc` and `z`). The units line's two commonest ranges, `id..march`
+on 44 lines and `collide_frame..play` on 42, are booked behind it (item
+4417) for the first seat to free.
+
+**§5. The third seat names a city.** The pass drew the minted lobby at
+6,000 with its capital selected. The band is there; no plate is, because
+the sim does not carry `City::generate_name@00735c90`'s choice and a city
+reads no name until a rename (parked 4410a). Every game a person plays
+shows that. Item 4416 mints its row first, on disk: each city's name in
+the packets (`CityData +0x90`) against ours. Then the choice is ported
+and the plate draws in a live game. Behind it in the same item, the
+band: ours is drawn wider and further out than theirs (`RUN1559B_3279_
+SELECTED` ours 2,132 red on theirs' 1,477; parked 4401a).
+
+**§6. The packets' table has its own re-pin.** Item 4411 rewrote 27 rows
+of `PINNED` by a scratch script and item 4412 thirty by hand;
+`tools/repin.py` reads `pin_eq!` reports and that table is not one. With
+three seats moving packet pins this tranche the pass built
+`tools/repin_packets.py`: it reads a `RON_PACKETS_PRINT` walk, rewrites
+each moved row with one comment above it, recomputes `PACKETS_SCORE` from
+the table and names every line turned, shrunk or grown. Its tests run in
+the offline step; a copy with the count bent failed four of six. The
+frame's re-pin row and the checklist carry it, with the two flags a
+census print needs (items 4400, 4402).
+
+**§7. The merged lanes' rows were not reaped.** The drain left seven
+merged lane rows idle and eight `att-*` trees holding 55 GB. `ccc rm` on
+them, the pass's fourth first act, was refused by the auto-mode
+classifier, and the pass did not route around it. `tools/disk.py` reaps
+`agent-*` trees only. The disk reads 98 GB free, from 183 at the pass
+before. It is Ramon's to run or to allow.

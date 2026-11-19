@@ -2536,7 +2536,16 @@ left at 0, refused by its bucket clause (11,057 ≥ 3,000). The four tributes ar
   fails nothing**: the demand arm calls `action_respond(me, t, 1)` just before
   its own store of 1, and the idle human answers nothing, so no game on disk
   clears a live demand. The clear rests on §8.5's two readings and the
-  fixtures.
+  fixtures. **The pass of 2026-11-19** (DECISIONS 144 §1) ran the cadence
+  mutation again and got the same two sums on 9985, and bent one ammo sum
+  of the take on state 10177: red there alone, 10,928 of 10,929. **The
+  conquest itself is in no compared state**: the hook prints no set after
+  the tick that ends the game, so the take holds states 0 to 10928. The
+  one number both sides give is pinned
+  (`the_demand_s_game_ends_on_the_tick_the_original_stops_on`,
+  `RUN1691_END`): the original stops after frame 10928 and ours is over
+  on state 10929, the human's `defeated_by` 1, the French `won`. What the
+  conquest writes after that tick is not compared.
 - **`scale_tribute`**: the load scale of `commerce_tribute` and
   `base_tribute` (`Constants::init`), and its rounding branches, which were
   not re-listed. A deal captured above Commerce 0 pins them.

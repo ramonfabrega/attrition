@@ -1151,6 +1151,14 @@ the release-node row below, one reach since the twentieth pass.
   names and lists by hand the rest; 140, 8 and 85 pins were rewritten
   by scratch script before it. The delta in the constant's comment and
   the word's block in its widening stay yours (`CLAUDE.md`).
+- **The packets' `PINNED` re-pins through `tools/repin_packets.py <log>
+  --item <N> --note "<what moved it>"`** (items 4411, 4412; the pass of
+  2026-11-19): the table is a row a packet, not a `pin_eq!`, so
+  `repin.py` cannot see it; 27 rows were rewritten by scratch script and
+  30 by hand before it. The log is a `RON_PACKETS_PRINT=1` walk on
+  `--test-threads 1 --nocapture` (items 4400, 4402). It rewrites
+  `PACKETS_SCORE` from the table and names each line turned, shrunk or
+  grown; the queue's `Checksum:` line stays the driver's.
 - **`seams.py --field` knows a struct literal from a declaration, says
   where a bare name occurs when it is no field, and `--unwritten
   <Struct>` lists the fields no non-test line writes** (1397, 1382,

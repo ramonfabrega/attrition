@@ -22275,3 +22275,30 @@ city's pair and gave the third seat what a selected city shows and ours
 does not: its outline, its health bar, its name plate. The pass moved no
 score and took no capture. **DECISIONS 143.**
 `docs/audit/2026-11-18-fable-pass-milestone.md`.
+
+## 2026-11-19 — the pass: the seventh game ratified, and a game is declared before it is played (Fable 5.2, steering)
+
+`commander` ran thirteen lanes off the second pass of 2026-11-18 and
+handed over at `1940ba9d5` on a green whole gate. The demand's game had
+been played by the original to its own end and agreed on all twelve
+lines for 10,929 states, so it stood as the seventh in parity's set. The
+pass ratified it by breaking it from both sides. One bit of the take's
+ammo sum on state 10177 turns the test red on that state alone, once the
+set's own total is moved to match; before that the reader refuses the
+take. The cadence's read of the demand, removed, parts leaders on 9985
+with the sums the document quotes, so that read is diff-backed now. One
+gap was found: the hook prints no set after the tick that ends a game,
+so the conquest was compared nowhere. A new test holds the one number
+both sides give for it, the original stopping after frame 10928 and ours
+over on the next state. The pass then found a flaw in its own rule of
+the day before: a game that joins the set only once it agrees can only
+raise the fraction. From here a game is named before the original plays
+it. Eight lobbies picked by a fixed rule are booked as parity held out,
+on a line of their own. The suite's seat stays on the sample, at 532 of
+21,044, and takes its ranges once to 3,100. The lake stopped a fourth
+lane and has no seat; its worker is on the packets, whose table got a
+re-pin tool. The pass drew a live lobby and saw no city name on it, and
+the third seat ports the founding name. Seven merged lane rows stand
+un-reaped: the classifier refused the reap. The pass moved no score and
+took no capture. **DECISIONS 144.**
+`docs/audit/2026-11-19-fable-pass-seventh.md`.
