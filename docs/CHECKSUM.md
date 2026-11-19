@@ -2580,9 +2580,38 @@ has walked, so it keeps the ground under `last`. No packet on disk parts on it. 
 (the `unit_masks`/`+0x6c` clears and the `come_out` check) are not compared here. The 12 lines the first act
 predicted were not the 15 that turned: run1169 and run1320b keep one range each, and run893b's line did not
 move. Also open: `turret_inc` nonzero on some figure in theirs (byte 58, now the first parting on 9 lines;
-parked 4402a), against §16's `0x00000000` on every figure of two frames. **The next leaf is `cur_time`**
-(byte 108, the first parting on 17 lines). Ours is one behind on both first rows: run882b f6808 record
-24, ours 22 theirs 23; run810 f3631 record 45, ours `0x4d` theirs `0x4e`.
+parked 4402a), against §16's `0x00000000` on every figure of two frames. ~~**The next leaf is `cur_time`**
+(byte 108, the first parting on 17 lines).~~ Answered by item 4415, below.
+
+**`cur_time` was the oil-well stand's `param_4`** (item 4415, diff-backed). The 17 lines' first ranges sit on
+14 packets, and on every one the figure is a Citizen (`TypeIndex` 50) playing `CHAR_FARM` (37, length 90),
+`stopped`, `guy_flags 0x10`, and the range parts on `cur_time` and `last_time` alone, ours one step behind.
+`unitat.py` on run1424's own window puts `1/16` on a `GATHERORDER` with `build_type` 421 (`OILWELL`).
+Theirs' clock there, blocks 3154 to 3157: (89, 88), the wrap's (0, −1), (1, 0), (2, 1); ours is (0, −1) on
+the packet's 3156, so ours wraps a frame late and the phase was set at the stand. `RON_DEBUG_UNIT` on the
+pair's walk: ours reaches the stand facing east on the tick that ends 3066, but on walk (`a8 t1/15`), and
+takes `CHAR_FARM` on the next. A backtrace probe on that tick names the writer: `do_gather_steps` asks
+`CHAR_FARM` (cur 0, last −1), then `process_movement → guy_follow_anim` asks `CHAR_WALK`, `Guy::move:73–89`'s
+"at its point, still owed a turn" arm. The original cannot take that arm there: `Unit::do_gather@005ef2a0:381–385`
+is `set_anim(CHAR_FARM, 0, 1)`, `set_angle(0x40000000, ., 0)` and `set_new_location(x + 0x120, y, 1, 1)`, and
+`Unit::set_new_location@005f8d20:156` with `param_4` set opens the guy half with `Guy::set_angle(guy 0,
+heading, param_3)`, which with `param_3` writes the figure's `angle` and `last_angle` outright. So the figure
+faces east before its `Guy::move`, which finds `des_angle == angle` and asks for nothing. Ours had no `param_4`.
+`Sim::set_new_location_turning` is that argument (`crates/sim/src/movement/collide.rs`), its snap
+`Sim::guy_set_angle` (`Guy::set_angle` on guy 0, factored out of `unit_set_angle_as`), and the oil-well arm
+calls it. **7 guys lines turn, none grow** (`PACKETS_SCORE` 690 → 697): run1417, run1424, run1484, run1496,
+run865, run1155c and run1169. The guys line parts on fewer ranges on 9 more packets and the units line on 19.
+Value diff, run1424 frame 3156 record 16 (`1/16`, Citizen, TI 50): `cur_time` theirs 1, ours 0 → 1;
+`last_time` theirs 0, ours −1 → 0; the line whole. Byte 108 is the first parting on no line now (17 before).
+The pair's draws hold to 3866 with it.
+
+**Not established.** Six other callers of the original pass `param_4 = 1`: `Unit::work@0060d180` (two),
+`do_spec_anim@005e5880`, `init@00612100`, `come_out@00617c10` (four) and the debug jumps; and
+`do_air_physics@005e86d0` passes `(0, 1)`. Ours reaches them through `set_new_location` without the snap. No
+packet parts on one now. The oil-well arm's `set_angle(0x40000000, ., 0)` is still `Movement::set_heading` in
+ours, without `Unit::set_angle`'s mirror flip and group arm (brief row 2234's list). **The next leaf is
+`turret_inc`** (byte 58, the first parting on 15 lines; parked 4402a): run882b f6808 record 50 (TI 305) and
+run810 f3631 record 51 (TI 256), ours 0 theirs `0x42b40000` (90.0 as an `f32`), the only field parted.
 
 ## 24. Step H: the fifteen, every frame (item 4214)
 
