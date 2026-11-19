@@ -461,7 +461,31 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         moved: None,
     }),
     // run1705
-    None,
+    // row 100, Great Lakes at Information (seed 12345), as found 2026-11-19: the
+    // original ended the game itself on 3330 (ours holds no `game_over` there);
+    // five lines whole; units 1,611 of 3,331, first 1611; builds 2,230, first 1976;
+    // ammo 3,172, first 2618; deaths 2,756, first 2756; groups 2,400, first 2400;
+    // guys 2,895, first 2646; world 134, first 134.
+    Some(FirstScore {
+        last: Some(3330),
+        found: Score {
+            states: 3331,
+            agreed: [
+                1611, 2230, 3331, 3172, 2756, 2400, 2895, 3331, 3331, 3331, 3331, 134,
+            ],
+            first: &[
+                ("units", (1611, Some(1862838836), 884976179)),
+                ("builds", (1976, Some(3652536594), 4264774034)),
+                ("ammo", (2618, Some(1076236747), 891350609)),
+                ("deaths", (2756, Some(1136466598), 3621657254)),
+                ("groups", (2400, Some(1692465100), 225246143)),
+                ("guys", (2646, Some(1999790736), 3081855676)),
+                ("world", (134, Some(3348711314), 341395346)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
     // run1706
     None,
     // run1707
@@ -471,4 +495,4 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
 /// line and state, and the games taken.
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 5);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 6);

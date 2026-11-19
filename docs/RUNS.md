@@ -39371,3 +39371,27 @@ Files in place, `~/ron-golden/run1704/map-14/`: `gamelog_p.txt`, 2,424 bytes, SH
 `67e83483fe0600fdcb00119bd574e8ac88667b3411e76ffa29fd4fc8fd20837e`.
 
 **What it holds**: `diff::held_out::the_held_out_games_score_as_pinned` (`SCORES[4]`).
+
+## run1705 — parity held out, row 100: Great Lakes at Information recorded idle by the client, played to 3330 (2026-11-19, item 4413, `att-4413`)
+
+`docs/RECGAME.md` §10.3; DECISIONS 144 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before the take (`8b3538f49`). The file:
+`~/ron-golden/recordings/item4413-row100-6000.rcx`, 58,798 bytes, SHA-256
+`90371f7e2c79fb2fce945884571bdba88682ad2324e6ffd6ac8ea9e3b33788dc`: `client --record <file> --headless --page-of
+gamelog-run1410-greatlakes-maya-information-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1700's line with `~/ron-golden/run1705` and this file, waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 11:28:18 −05:00, exited 11:32:41:
+  **263.1 s** launch to exit, exit 0, `success`, no page fault, no relaunch.
+  3,331 frames, `last_frame` 3330, **ended early: the game ended itself**, seed 12345 observed, map
+  14. Players: tribe 4 (flags 7) and tribe 1 (flags 1). 5 settings restored. DLL `c91114a8…`, defines
+  `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS`. **The original took the file**: no section refused.
+- **Scored as found** (`the_held_out_games_score_as_pinned`): the original ended the game itself on 3330 (`compare_until` closing there), and our walk holds no `game_over` to it; walls, leaders, cities, items and goods 3,331 of 3,331; **units 1,611**, first parting state 1611, ours 1862838836, theirs 884976179; **builds 2,230**, first 1976, ours 3652536594, theirs 4264774034; **ammo 3,172**, first 2618, ours 1076236747, theirs 891350609; **deaths 2,756**, first 2756, ours 1136466598, theirs 3621657254; **groups 2,400**, first 2400, ours 1692465100, theirs 225246143; **guys 2,895**, first 2646, ours 1999790736, theirs 3081855676; **world 134**, first 134, ours 3348711314, theirs 341395346.
+- Filed **in place**, as run1700 is. run1705 was the number reserved for row 100.
+
+Files in place, `~/ron-golden/run1705/map-14/`: `gamelog_p.txt`, 2,417 bytes, SHA-256
+`527cb6b17c4a3d66849ba215dbfe08b7b2b091d050701b4246833417f88c990a`; `rontrace.log`, 73,115,808 bytes, SHA-256
+`b12b66936cd00651fa485b278783ec4b22398573032539d45bbbebed8ba6d1a3`.
+
+**What it holds**: `diff::held_out::the_held_out_games_score_as_pinned` (`SCORES[5]`).
