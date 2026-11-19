@@ -177,6 +177,11 @@ impl Record {
             });
             k += n;
         }
+        if k != data.len() {
+            return Err(std::io::Error::other(
+                "range lengths do not cover the set's bytes",
+            ));
+        }
         Ok(out)
     }
 }

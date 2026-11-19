@@ -19,6 +19,7 @@
 //! This file is not one of `diff::oracle`'s `SCHEMA_SOURCES`: editing it
 //! writes no new oracle-cache generation.
 
+pub(crate) mod fields;
 pub mod playback;
 pub(crate) mod state;
 

@@ -1001,22 +1001,12 @@ pub(in crate::diff) fn first_text(
     let o = f.ours.as_deref().unwrap_or_default();
     let t = f.theirs.as_deref().unwrap_or_default();
     let head = format!("{} {} {}", f.index, f.record, f.field);
-    let decoded = (o.len() == t.len() && !o.is_empty())
-        .then(|| {
-            let a = super::checksum_lines::range_fields(line, &f.field, o)?;
-            let b = super::checksum_lines::range_fields(line, &f.field, t)?;
-            Some(
-                a.iter()
-                    .zip(&b)
-                    .filter(|(x, y)| x.1 != y.1)
-                    .map(|(x, y)| format!("{} {}|{}", x.0, x.1, y.1))
-                    .collect::<Vec<_>>(),
-            )
-        })
-        .flatten()
-        .filter(|d| !d.is_empty());
-    if let Some(d) = decoded {
-        return format!("{head}: {}", d.join(", "));
+    let decoded: Vec<_> = crate::checksum::fields::differing_fields(line, &f.field, o, t)
+        .into_iter()
+        .map(|(name, x, y)| format!("{name} {x}|{y}"))
+        .collect();
+    if !decoded.is_empty() {
+        return format!("{head}: {}", decoded.join(", "));
     }
     let at = f.offset;
     let cut = |b: &[u8]| {

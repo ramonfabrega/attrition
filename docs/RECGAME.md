@@ -895,6 +895,32 @@ the comparison could not complete.
 cargo run --release -p rondata --example score_recording -- /path/to/install OUT.rcx /path/to/rontrace.log
 ```
 
+For a native capture archive, pass its map directory in the same position. This
+works with a person's recording whose last package carries orders, and with a
+game that ended before a minted file's closing package.
+
+```sh
+cargo run --release -p rondata --example score_recording -- /path/to/install GAME.rcx /path/to/run/map-14
+```
+
+The directory supplies `receipt.json`, `rontrace.log` and, when retained,
+`rontrace.ranges`. The command checks the recording's SHA-256, the successful
+lifecycle and map receipt, the native frame sequence and closing count, the
+detach record and checksum summaries. It compares the twelve lines on every
+observed state from setup. Output distinguishes a scheduled capture window,
+the recording's closing package and a verified early ending. Exit 0 applies
+only to the stated interval. An invalid receipt or incomplete trace exits 2.
+
+The first differing state names every line tied there. Each line's first
+mismatch gives both checksums. With ranges from that take it also gives the
+first differing range in fold order, our record and field, the byte offset
+and both values. Field decoders are shared with the packet tests. Range
+headers must match the checksum sets, and the original bytes used in a
+diagnosis must reproduce that line's Adler. If the bytes are unavailable,
+the report gives the state, trace frame, mask and capture window for a
+follow-up on the same recording. The range hook records from setup until
+the endpoint or its size cap. `--log-window` selects the native text dump.
+
 In the short window take, two actions on frame 30 moved scout 0 to
 (3281, 33851) and queued type 50 at building 2000. The 59,249-byte file
 rebuilds byte for byte. All twelve lines match at states 0 through 427.

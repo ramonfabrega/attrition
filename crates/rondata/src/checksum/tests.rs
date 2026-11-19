@@ -255,3 +255,17 @@ fn first_in_frame(records: &[Record], n: i64) -> Option<&Record> {
         .iter()
         .find(|r| matches!(r.hook, Hook::Begin(m) | Hook::End(m) if m == n))
 }
+
+#[test]
+fn range_values_require_matching_shapes_and_a_known_field() {
+    use crate::checksum::fields::differing_fields;
+    let a = [4, 0, 0, 0, 7, 0, 0, 0, 0];
+    let b = [5, 0, 0, 0, 7, 0, 0, 0, 0];
+    assert_eq!(
+        differing_fields("builds", "gather[k]", &a, &b),
+        [("gather[k]".into(), 4, 5)]
+    );
+    assert!(differing_fields("builds", "gather[k]", &a, &b[..1]).is_empty());
+    assert!(differing_fields("cities", "city_flags", &a[..2], &b[..2]).is_empty());
+    assert!(differing_fields("world", "unknown", &a, &b).is_empty());
+}

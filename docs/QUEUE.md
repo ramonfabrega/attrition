@@ -73,6 +73,11 @@ commonest packet, record and field and both sides. Then the next leaf by count. 
 tile east (parked 4401a: the band's texture). First act: the plate's row minted on run1559b's photograph before it is drawn, then the
 plate as `BuildOut::draw_overlays` draws it. Then the bar, with its own row. It stops when two acts move no row.
 
+## Direct branch handoff
+
+`codex/replay-diagnostics`, item 4406, adds the capture-directory scorer (RECGAME §10).
+Parity holds at 5 of 6 and packet lines at 661 of 1,053. Branch gate pending.
+
 ## How to maintain this file
 
 - **End of session:** rewrite "Where things stand" from scratch, headline first and whether it moved; delete

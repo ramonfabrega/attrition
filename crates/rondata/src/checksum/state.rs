@@ -66,7 +66,3 @@ pub(crate) fn ranges(sim: &sim::Sim, look: &BuildLook, tribes: &[TribeDef]) -> [
         Some(sim.checksum_world()),
     ]
 }
-
-pub(super) fn adlers(sim: &sim::Sim, look: &BuildLook, tribes: &[TribeDef]) -> [Option<u32>; 12] {
-    ranges(sim, look, tribes).map(|line| line.map(|l| l.adler()))
-}

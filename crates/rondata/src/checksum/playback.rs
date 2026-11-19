@@ -1,7 +1,9 @@
 //! Score a window recording against a complete original playback.
+mod diagnostic;
 use crate::checksum::state;
 use crate::diff::{built_from_lobby, from_lobby, sample::header_lobby};
-use crate::trace::checksums::{per_frame, sets, summary};
+use crate::trace::checksums::{complete_sets, per_frame};
+use crate::trace::ranges::Record;
 use std::path::Path;
 
 pub struct Score {
@@ -13,6 +15,10 @@ pub struct Score {
     pub first: [Option<(i32, Option<u32>, u32)>; 12],
     /// The first state our walk holds `Sim::game_over` on, if any.
     pub over: Option<i32>,
+    /// True when the final scored state is the file's explicit closing package.
+    pub through_closing: bool,
+    /// Range evidence or capture instructions for each line's first mismatch.
+    pub details: [Option<String>; 12],
 }
 
 pub(crate) fn recording_start(
@@ -39,14 +45,59 @@ pub fn compare_until(
     trace: &Path,
     until: Option<i32>,
 ) -> Result<Score, String> {
+    score(install, recording, trace, Endpoint::Recording(until), None)
+}
+
+enum Endpoint {
+    Recording(Option<i32>),
+    Capture(i32),
+}
+
+/// Score every state of a verified native capture, including an intentionally short
+/// capture of a longer recording. The caller verifies the receipt and recording identity.
+pub fn diagnose_capture(
+    install: &Path,
+    recording: &Path,
+    trace: &Path,
+    last_state: i32,
+    ranges: Option<&Path>,
+) -> Result<Score, String> {
+    let ranges = ranges
+        .map(Record::open)
+        .transpose()
+        .map_err(|e| e.to_string())?;
+    score(
+        install,
+        recording,
+        trace,
+        Endpoint::Capture(last_state),
+        ranges,
+    )
+}
+
+fn score(
+    install: &Path,
+    recording: &Path,
+    trace: &Path,
+    end: Endpoint,
+    mut ranges: Option<Record>,
+) -> Result<Score, String> {
     let rec = crate::recgame::read(&recording.to_string_lossy()).map_err(|e| e.to_string())?;
     let closing = rec
         .packages
         .last()
         .filter(|p| p.data.is_empty() && p.frame > 0)
-        .ok_or("missing the recording's closing package")?
-        .frame;
-    let last = until.map_or(closing, |u| u.min(closing));
+        .map(|p| p.frame);
+    let last = match end {
+        Endpoint::Recording(limit) => {
+            let closing = closing.ok_or("missing the recording's closing package")?;
+            limit.map_or(closing, |u| u.min(closing))
+        }
+        Endpoint::Capture(last) => last,
+    };
+    if last < 0 {
+        return Err("negative final state".into());
+    }
     if !rec.truncated.is_empty() {
         return Err("truncated recording".into());
     }
@@ -54,11 +105,23 @@ pub fn compare_until(
         crate::commands::decode(&p.data).map_err(|e| format!("frame {}: {e:?}", p.frame))?;
     }
     let bytes = std::fs::read(trace).map_err(|e| format!("{}: {e}", trace.display()))?;
-    let trace_sets = sets(&bytes);
-    if summary(&bytes) != Some((trace_sets.len() as u32, 0, true)) {
-        return Err("incomplete checksum take".into());
-    }
+    let observed_end = match end {
+        Endpoint::Recording(_) => None,
+        Endpoint::Capture(last) => Some(last),
+    };
+    let trace_sets = complete_sets(&bytes, observed_end)?;
     let first = per_frame(&trace_sets);
+    if let Endpoint::Capture(_) = end {
+        if first.len() != last as usize + 1
+            || first.first_key_value().map(|(&f, _)| f) != Some(-1)
+            || first.last_key_value().map(|(&f, _)| f) != Some(i64::from(last) - 1)
+        {
+            return Err("checksum states do not span the capture receipt".into());
+        }
+        if let Some(record) = ranges.as_ref() {
+            diagnostic::verify_record(record, &trace_sets, &bytes)?;
+        }
+    }
     let inst = crate::Install::new(install);
     let loaded = crate::load::load(&inst).map_err(|e| e.to_string())?;
     let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
@@ -69,6 +132,7 @@ pub fn compare_until(
     let mut agreed = [0u32; 12];
     let mut mismatch = [None; 12];
     let mut over = None;
+    let mut details = [const { None }; 12];
     // Include the terminal state produced by the last tick. The original
     // tags a state's first set with the frame that just ran (setup is -1).
     for frame in 0..=last {
@@ -78,12 +142,16 @@ pub fn compare_until(
         if over.is_none() && built.sim.game_over() {
             over = Some(frame);
         }
-        let ours = state::adlers(&built.sim, &look, &tribes);
-        for (i, value) in ours.into_iter().enumerate() {
+        let lines = state::ranges(&built.sim, &look, &tribes);
+        for (i, line) in lines.iter().enumerate() {
+            let value = line.as_ref().map(|l| l.adler());
             if value == Some(set.lines[i]) {
                 agreed[i] += 1;
-            } else {
-                mismatch[i].get_or_insert((frame, value, set.lines[i]));
+            } else if mismatch[i].is_none() {
+                mismatch[i] = Some((frame, value, set.lines[i]));
+                if matches!(end, Endpoint::Capture(_)) {
+                    details[i] = Some(diagnostic::explain(i, line.as_ref(), set, ranges.as_mut())?);
+                }
             }
         }
         if frame < last {
@@ -96,6 +164,8 @@ pub fn compare_until(
         agreed,
         first: mismatch,
         over,
+        details,
+        through_closing: closing == Some(last),
     })
 }
 

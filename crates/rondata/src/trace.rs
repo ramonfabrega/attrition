@@ -1056,6 +1056,13 @@ impl Trace {
     /// Validate a finalized trace before it can serve as fidelity evidence.
     /// `parse` remains permissive for inspecting incomplete diagnostic streams.
     pub fn parse_finalized(bytes: &[u8]) -> std::io::Result<Trace> {
+        Self::validated_frames(bytes)?;
+        Self::parse(bytes)
+            .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidData, "not a trace"))
+    }
+
+    /// Check transport integrity without materializing every draw and call.
+    pub(crate) fn validated_frames(bytes: &[u8]) -> std::io::Result<Option<(i64, i64)>> {
         let invalid = |message| std::io::Error::new(std::io::ErrorKind::InvalidData, message);
         if bytes.len() < 32 || !bytes.len().is_multiple_of(32) {
             return Err(invalid("incomplete trace header or record"));
@@ -1069,7 +1076,7 @@ impl Trace {
         if !matches!(word(bytes, 1), 1 | 2) {
             return Err(invalid("unsupported trace version"));
         }
-        let mut previous_frame = None;
+        let mut bounds = None::<(i64, i64)>;
         for record in bytes[32..].as_chunks::<32>().0 {
             // Writer protocol: INFO (5), I_DROPPED (14), count in slot 2.
             if word(record, 0) == 5 && word(record, 1) == 14 && word(record, 2) != 0 {
@@ -1083,13 +1090,14 @@ impl Trace {
                 if word(record, 1) != word(record, 7) {
                     return Err(invalid("trace FRAME fields disagree"));
                 }
-                if previous_frame.is_some_and(|previous| frame != previous + 1) {
+                if bounds.is_some_and(|(_, previous)| frame != previous + 1) {
                     return Err(invalid("trace FRAME sequence is not consecutive"));
                 }
-                previous_frame = Some(frame);
+                let first = bounds.map_or(frame, |(first, _)| first);
+                bounds = Some((first, frame));
             }
         }
-        Self::parse(bytes).ok_or_else(|| invalid("not a trace"))
+        Ok(bounds)
     }
 
     /// Read finalized evidence. Unrecognized files remain `Ok(None)`;

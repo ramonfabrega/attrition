@@ -39149,3 +39149,24 @@ Files in place, `~/ron-golden/run1695/map-14/`: `gamelog_p.txt`, 3,147,331 bytes
 `13d486c7b8c4377ac688fcef6d294bb88275ed29a642297ff4858be8fc202ad8`; `rontrace.log`, 53,334,784 bytes, SHA-256
 `8b877c882b68094ac45965df7be9515560141304ae5681df2e6f4c1e060c0fdc`; `rontrace.ranges`, 567,468,184 bytes, SHA-256
 `45a954cb314d874390866b428b85ecf35a2f3cb84f9d790bf417f5fb98931213`.
+
+## Recording diagnostics on three archived captures (2026-11-18, item 4406)
+
+Each comparison used the release `score_recording` example, the installed game
+at `~/code/fun/attrition/game`, the recording at the map receipt's
+`recording.path`, and the map directory below. The baseline at `88539f4b0`
+used the same inputs and binary name with the map's `rontrace.log` as the
+last argument. Each three-game series ran sequentially under one CPU slot.
+No native capture was required.
+
+| Game | Map directory | Observed result |
+| --- | --- | --- |
+| Short live window | `~/ron-data/lab-experiments/2026-11-17-codex-live-recording/oracle-short/map-14` | All twelve lines through closing state 427 |
+| 2017 sample | `~/ron-golden/run1678/map-7` | Builds first on 76, units first on 92, requested window through 100 |
+| Demand | `~/ron-golden/run1691/map-14` | Original early ending, 10,929 states, ammo first on 10075 |
+
+Full before and after command output, timings and the damaged-copy controls
+are in `~/ron-data/lab-experiments/2026-11-18-codex-replay-diagnostics.fPek3B/`.
+Its `acceptance.py` records the exact inputs and expected results. Build the
+release example before reproducing it. Direct its evidence output to an
+unused directory. The script opens every result with exclusive creation.

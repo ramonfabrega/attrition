@@ -39,12 +39,23 @@ pub struct Set {
 /// for a log that never detached or no `RON_CHECKSUMS` build wrote.
 pub fn summary(bytes: &[u8]) -> Option<(u32, u32, bool)> {
     records(bytes)
-        .filter(|r| r[0] == 5 && r[1] == 35)
-        .last()
+        .rfind(|r| r[0] == 5 && r[1] == 35)
         .map(|r| (r[2], r[3], r[4] == 1))
 }
 
-fn records(bytes: &[u8]) -> impl Iterator<Item = [u32; 8]> + '_ {
+/// A clean tracer shutdown ends with INFO I_DETACH after its checksum summary.
+fn detached(bytes: &[u8]) -> bool {
+    records(bytes).next_back().is_some_and(|r| r[..2] == [5, 7])
+}
+
+/// Step R's detach receipt: sets due, file capped, file opened.
+pub(crate) fn ranges_summary(bytes: &[u8]) -> Option<(u32, bool, bool)> {
+    records(bytes)
+        .rfind(|r| r[0] == 5 && r[1] == 36)
+        .map(|r| (r[2], r[5] != 0, r[6] == 1))
+}
+
+fn records(bytes: &[u8]) -> impl DoubleEndedIterator<Item = [u32; 8]> + '_ {
     let base_ok = bytes.len() >= 32;
     bytes
         .get(32..)
@@ -108,6 +119,36 @@ pub fn sets(bytes: &[u8]) -> Vec<Set> {
         parts.clear();
     }
     out
+}
+
+/// Verify transport, detach and the checksum hook's count before using its sets
+/// as an oracle. A capture receipt also fixes the inclusive native frame bounds.
+pub(crate) fn complete_sets(bytes: &[u8], last: Option<i32>) -> Result<Vec<Set>, String> {
+    let frames = super::Trace::validated_frames(bytes).map_err(|e| e.to_string())?;
+    if let Some(last) = last
+        && frames != Some((0, i64::from(last)))
+    {
+        return Err(format!(
+            "capture receipt ends on {last}, trace frames {frames:?}"
+        ));
+    }
+    if !detached(bytes) {
+        return Err("incomplete checksum take: missing trace detach".into());
+    }
+    let trace_sets = sets(bytes);
+    if summary(bytes) != Some((trace_sets.len() as u32, 0, true)) {
+        return Err("incomplete checksum take".into());
+    }
+    if let Some(bad) = trace_sets
+        .iter()
+        .find(|s| s.total != s.lines.iter().copied().fold(0, u32::wrapping_add))
+    {
+        return Err(format!(
+            "checksum set total disagrees at trace frame {} ordinal {}",
+            bad.frame, bad.ordinal
+        ));
+    }
+    Ok(trace_sets)
 }
 
 /// The first set of each frame, in frame order: the state at the end of
@@ -186,5 +227,36 @@ mod tests {
         assert_eq!(first[&90].lines[0], 100, "the frame's first set");
         assert_eq!(first[&91].lines[5], 405);
         assert_eq!(summary(&bytes), Some((3, 0, true)));
+    }
+    #[test]
+    fn a_receipted_trace_requires_its_endpoint_checksum_and_detach() {
+        let mut rows = set(-1, 0, 1);
+        // The original's total is the wrapping sum of its fifteen lines.
+        rows[3][12..16].copy_from_slice(&120u32.to_le_bytes());
+        rows.extend([
+            rec(2, 0, [0; 5], 0),
+            rec(5, 35, [1, 0, 1, 0, 0], 0),
+            rec(5, 7, [0; 5], 0),
+        ]);
+        let bytes = log(rows);
+        assert_eq!(complete_sets(&bytes, Some(0)).unwrap().len(), 1);
+        assert!(
+            complete_sets(&bytes, Some(1))
+                .unwrap_err()
+                .contains("receipt")
+        );
+        assert!(complete_sets(&bytes[..bytes.len() - 1], Some(0)).is_err());
+        assert!(
+            complete_sets(&bytes[..bytes.len() - 32], Some(0))
+                .unwrap_err()
+                .contains("detach")
+        );
+        let mut changed = bytes;
+        changed[32 + 12] ^= 1;
+        assert!(
+            complete_sets(&changed, Some(0))
+                .unwrap_err()
+                .contains("total")
+        );
     }
 }
