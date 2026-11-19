@@ -554,8 +554,9 @@ pub(in crate::diff) mod tests {
 
     /// `(frames our walk holds no wall, shot or death, the first it holds
     /// one)`. Minted at 0: none on 3,594 of 21,044, the first shot on 2929,
-    /// theirs' frame.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3594, Some(2929));
+    /// theirs' frame. Item 4429 (an ally's ground bleeds nothing): 3594 →
+    /// 4361 empty frames, past every parting; the first shot stays on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4361, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
