@@ -44,6 +44,12 @@ fixture requests. A missing fixture, unstable input or unsupported archive
 mapping leaves the verdict to the running test. Hashing uses a separate lease
 and timeout. A prediction has no role in selection or the gate's exit.
 
+Item 4408's matched trial read 38.2 GB in 22.8 seconds to predict one
+pass, confirmed by the live census. Charging that cost across fifteen
+historical scopes yielded about ten seconds of modeled net release
+savings. The experiment stays opt-in. The [item journal](journal/2026-11-19-item-4408.md)
+records the paired gates, field totals and missed-failure control.
+
 Camera packet and sweep binaries run one test thread each. The render library
 uses up to two. All three reserve 512 MiB and retain their 32 GiB RSS ceiling.
 The ages census decodes the farm art lazily once per lobby's tileset and
