@@ -136,5 +136,20 @@ ours' band, ours' plate, ours' bar), and the minted lobby at 6,000.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`; its verdict is quoted in the commit after
-this one.
+Whole, by `tools/gate_run.sh`, on `babd6a1fb`.
+
+- **`gate-pass-1119.log`: `gate exit 0`**, 9 of 9 steps: offline 1.0,
+  guard 0.6, merge pins 1.1, release 21.5, clock 0.2. `Clock: green
+  beside load`. `Suite: 1414 processes for 2543 tests: 145 groups hold
+  1274, 1269 ran alone; 9528 test CPU-seconds`; admission 10.2 s over
+  1,451 leases; load 3.6 at its start and 9.7 at its end; no `skipping:`
+  line; the new end-tick test ran and passed. `Rows: one driver row at
+  most: steer 95464781 (working)`; `Driver: 0 landings since the last
+  pass (backstop 20) · context 301 k`. `Builders: 0 reaped`; 106 GB free
+  after it.
+
+The guard went red three times on the pass's own paperwork before that
+commit, as built: the brief's frame went over its ceiling with a row for
+the new tool (the row was taken out; the checklist and item 4415 name the
+tool), the queue's handoff went over its 16,000 bytes, and entry 144 had
+no index row.
