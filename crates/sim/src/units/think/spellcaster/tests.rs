@@ -307,3 +307,33 @@ fn a_human_s_scout_and_a_decoy_throw_nothing() {
     assert!(!sim.think_spellcaster(scout));
     assert_eq!(sim.rng, before, "a human's");
 }
+
+/// **The leader's Ambush bit** (item 4400, `docs/CHECKSUM.md` §23.8):
+/// `cast_ambush` raises `leader_flags & 0x4000`, and
+/// `Leader::verify_spell_flags` drops it on an expiry once no hero of the
+/// leader still holds `unit_masks & 0x2000` — so a second hero's standing
+/// ambush keeps it, and the checksum's flags word carries it.
+#[test]
+fn the_leader_s_ambush_bit_stands_while_a_hero_ambushes() {
+    let (mut sim, g, _) = ai_general();
+    let row = (crate::orders::spell::AMBUSH - crate::orders::spell::FIRST) as usize;
+    sim.orders.spells[row].duration = 150;
+    let word = |s: &Sim| s.leader_flag_words(1).0.unwrap() & 0x4000;
+    assert_eq!(word(&sim), 0);
+    sim.cast_ambush(g);
+    assert!(sim.leaders.ambush[1], "cast_ambush raises it");
+    assert_eq!(word(&sim), 0x4000, "the flags word carries it");
+    let end = sim.units[g].ambushing.unwrap();
+    let mut other = crate::Unit::new(1, 2, sim.units[g].pos, 20);
+    other.ty = sim.units[g].ty;
+    other.ambushing = Some(end + 100);
+    let h = sim.add_unit(other);
+    sim.process_spells(g, end);
+    assert!(sim.leaders.ambush[1], "held through its end frame");
+    sim.process_spells(g, end + 1);
+    assert!(sim.units[g].ambushing.is_none());
+    assert!(sim.leaders.ambush[1], "a second hero still ambushes");
+    sim.process_spells(h, end + 101);
+    assert!(!sim.leaders.ambush[1], "the last expiry drops it");
+    assert_eq!(word(&sim), 0);
+}

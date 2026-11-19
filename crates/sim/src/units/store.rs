@@ -778,6 +778,17 @@ impl Sim {
         }
         self.ai.ai[who as usize].census.active += delta;
         self.track_civilian_type(who, ty, delta);
+        // `track_unit_type:62–69`: a `SPECIALFORCES` type's own count decides
+        // `leader_flags & 0x20000` (item 4400). The arm is skipped only for a
+        // militia counted from its building, which is never this lineage.
+        let sf = self.tables.unit_types[ty].tree.is_some_and(|t| {
+            t == SPECIALFORCES
+                || (t < self.tables.tech_tree.types.len()
+                    && self.tables.tech_tree.is(t, SPECIALFORCES, false))
+        });
+        if sf && let Some(b) = self.leaders.special_forces.get_mut(who as usize) {
+            *b = self.roster.muster[who as usize].by_type[ty] != 0;
+        }
     }
 
     /// The live half of the census's civilian counts (item 1398,
@@ -814,3 +825,7 @@ impl Sim {
         }
     }
 }
+
+/// `SPECIALFORCES` (`TypeIndex` 0x4b), the lineage
+/// `Leader::track_unit_type@006e0dd0`'s jammer arm asks (item 4400).
+const SPECIALFORCES: crate::tech::TypeId = 0x4b;

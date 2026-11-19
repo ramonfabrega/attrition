@@ -103,6 +103,11 @@ impl Sim {
             {
                 *n = 0;
             }
+            // And `leader_flags & 0x40000`, in the same gate
+            // (`Leaders::process_all@006ed2a0:19–36`, item 4400).
+            if !self.leaders.defeated.get(who).copied().unwrap_or(false) {
+                self.refresh_jam_threat(who);
+            }
             // `Leader::calc_gather` assembles its inputs from the live state
             // inside the same gate it recomputes under, so the holdings are
             // rebuilt only on the frames the rate is actually reassembled —
