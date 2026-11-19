@@ -615,13 +615,6 @@ impl Sim {
         let Some(sw) = self.seen_sweep(u, ring_pass) else {
             return 0;
         };
-        if crate::world::PROBE_4424.load(std::sync::atomic::Ordering::Relaxed) && who == 3 {
-            let un = &self.units[u];
-            eprintln!(
-                "PROBE4424 update_seen u {u} ty {:?} pos ({},{}) heading {:?} ring_pass {ring_pass} sweep c {:?} r {} ring {} {}..{}",
-                un.ty, un.pos.x, un.pos.y, un.movement.heading, sw.centre, sw.radius, sw.ring, sw.start, sw.end
-            );
-        }
         // The whole-disc call relights what the unit has made visible to
         // others first (`00651b80`: `param_1 == 0` and `visible != 0` →
         // vtable `+0x164`, `Unit::update_local_seen`), so a rebuild of

@@ -73,11 +73,6 @@ impl Sim {
     pub fn tick(&mut self) -> Vec<Tick> {
         self.in_play = true;
         let frame = self.frame;
-        {
-            static F: std::sync::OnceLock<Option<i64>> = std::sync::OnceLock::new();
-            let want = *F.get_or_init(|| std::env::var("RON_PROBE_4424").ok().and_then(|v| v.parse().ok()));
-            crate::world::PROBE_4424.store(want == Some(frame as i64), std::sync::atomic::Ordering::Relaxed);
-        }
         let mut events = Vec::new();
         // The staged input's marks, taken before the clear and put back at
         // the head of the frame's own — `do_frame`'s entry, which is where
