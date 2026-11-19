@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6): the pass designed five, four a seat, all out: the chain's 4396 (the demand's game to its end), the suite's 4397 (the sample, ascending), the third's 4398 (what a selected city shows), and render's 4400 (the packets' lines), the first seat to stop (4399 stopped on its first act: three takes agree on 3.8 % of the lake, no row; parked 4399a). The queue holds no item behind them.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6): the pass designed five, four a seat, all out: the chain's 4396 (the demand's game to its end), the suite's 4397 (the sample, ascending), the third's 4401 (the selected city's band, after 4398's row), and render's 4400 (the packets' lines), the first seat to stop (4399 stopped on its first act: three takes agree on 3.8 % of the lake, no row; parked 4399a). The queue holds no item behind them.
 
 4396. **The demand's game to its end** (a rules item, whole; the chain's, unspawned; `docs/LEADERS.md` §8.2, §8.6; DECISIONS 143 §1,
 §3). run1683 agrees on twelve lines for 6,401 of 6,401 states, and its take ends 320 states after the demand: the leaf's clear and the
@@ -66,12 +66,12 @@ writers `reveal_fog`'s oil arm and `compute_reg_territory`), then units' `unit_m
 them `SAMPLE_LINES`' lowest first parting, by a ranges take of its window: groups 927, world 1716, guys 2920. `SAMPLE_WALKED` 3019 of
 21,044 is its last (parked 4380a). It stops when two acts move no line's first parting.
 
-4398. **What a selected city shows: the plaza's outline, the health bar, the name plate** (a `render` item, scoped; the third seat's,
-unspawned; `docs/HUD.md` §3; `docs/RENDERER.md` open question 8; DECISIONS 143 §5). The pass's look at run1559b's pair: theirs draws a
-red line round the selected city's plaza, a plate under it and a bar over one building; ours draws a footprint rectangle of its own and
-prints health as text (`crates/client/src/hud.rs`, `rings`). First act: the still at the photograph's camera with `--select` on the
-city, and a row minted on run1559b's photograph at what it reads, its footprint from our geometry, seen red on a perturbed side. Then
-the three drawn as `UnitOut::draw`'s neighbours draw them. It stops, and says so, where a mark is an `iface*` window's on the cut list.
+4401. **The selected city's band, then its plate and bar** (a `render` item, scoped; the third seat's; `docs/HUD.md` §3; DECISIONS 143 §5).
+4398 minted `RUN1559B_3279_SELECTED` on run1559b's photograph (`crates/client/src/selection.rs`): the band theirs draws round the
+selected plaza is `WallOut::draw_underlays`' `draw_thick_rectangle`, 48 units outside an `(x_size−k)×(y_size−k)` rectangle, `k` the
+foundation's back; 1,477 of its 4,551 pixels read red in theirs, ours 52 with nothing drawn, and the row went red on three perturbed
+sides. First act: draw `selection::band` as an underlay in the owner's `get_unit` colour, scored on that row. Then the plate
+(`BuildOut::draw_overlays`) and the bar, each with its row. None is an `iface*` window's. It stops when two acts move the row by nothing.
 
 4400. **The packets' lines** (a rules item, whole; the render seat's, after 4399; CHECKSUM §23; DECISIONS 143 §4).
 `PACKETS_SCORE` 608 of 1,053 lines on 107 packets, each on a game the walk holds by draws from its built start. First act, on disk alone:

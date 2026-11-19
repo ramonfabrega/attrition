@@ -158,6 +158,34 @@ vtable `+0x130`, `BuildData::max_range`, in `TeamColor::get_unit` at alpha
 0x40: run1570's photograph shows it as a rounded red outline about
 Napata's plaza. Not ported (§6).
 
+**Amended by item 4398: the red line round a selected city's plaza is not
+the funky circle; it is `WallOut::draw_underlays@006410a0`'s
+`draw_thick_rectangle@008c6180`**, which `BuildOut::draw_underlays` calls
+first, for any selected building (`GroupData::member` of the console's
+`play` group; `Console::target_o`'s own branch draws it in
+`target_color` instead). run1559b's packet holds the selection: group 0's
+`num` 1, `buildings` 1, `who` 0, `list[0]` 2000 (the capital), and
+`target_o` −1. The rectangle, by the listing at `006411a4`–`0064136d`:
+`k` is the drawn piece's `build_half_tcoord`, or the type's `x_size` less
+a non-zero `build_construction` (the foundation's `back`); the centre is
+the point less `0x60·k` on both axes, and its sides are `x_size − k` and
+`y_size − k` tiles (`ECX`, `EDX`). `draw_thick_rectangle` lays one vertex a
+tile on each side, from `(−x, −y)` counter-clockwise, each paired with one
+`48.0` out along the previous side's direction, with a corner square
+closing each side: **a band 48 world units wide outside the rectangle**,
+every vertex at `find_data_z`. Its colour is the owner's
+`TeamColor::get_unit` with the alpha's top bit cleared unless
+`Camera::is_zoom_out`; its texture is `int_str_array +0x1784`'s; a vertex
+off the map takes alpha 0. `client::selection::band` is that geometry, and
+**`RUN1559B_3279_SELECTED`** reads it on run1559b's photograph, the city's
+type 0 (7 × 7, `back` 1, point (3168, 30816)): of the band's 4,551 pixels,
+**1,477 are red in theirs** (`r − g` and `r − b` over 40); moved one tile
+east 721 of 4,157, with no back 312 of 5,398; theirs read 3 px south, once,
+1,016. The rest of the band is behind the buildings, which draw over an
+underlay. Ours, with nothing drawn: 52 red, 9 of them on theirs. The
+footprint is the geometry's, never a colour (DECISIONS 142 §5). Not drawn
+yet (§6).
+
 ## 4. The bar (item 4198)
 
 A `LeaderScene` through `sim::observe`, read-only, for the issuing slot:
@@ -381,6 +409,17 @@ Not established:
 - **A building's marker.** `draw_funky_rectangle_circle` at
   `BuildData::max_range` is not read, and its shape and size are not
   ported; ours outlines the footprint.
+- **The selected building's band, drawn** (item 4398, §3): its geometry
+  is read and counted on run1559b (`RUN1559B_3279_SELECTED`), not drawn;
+  `rings` still outlines the whole footprint about the point. Not read:
+  string `+0x1784`'s texture and its coordinates (`TexArray::add`'s
+  arguments are registers the decompiler lost), card mode 3, and the
+  draw's place among the underlays. The name plate is
+  `BuildOut::draw_overlays@0062cb30`'s (`CityData +0x90`'s name on
+  `IFaceRenderManager::draw_scroll` in the owner's colour, under
+  `player_profile.prefs & 0x40000`, every seen city, selected or not), a
+  drawing helper rather than an `iface*` window; the bar is
+  `WallOut::draw_health_bar@00640dd0`/`@00640f20`'s, not read.
 - **Slots 8 and 9.** The record prints two more leaders (no tribe, no
   goods); the bar shows the issuing slot only and they are not compared.
 - **A narrow window.** The bar is one line, about 1,430 pixels at the
