@@ -563,10 +563,29 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         moved: None,
     }),
     // run1707
-    None,
+    // row 140, East Indies at difficulty 4 (seed 12345), as found 2026-11-19 on the
+    // tree at 1e94d6275 (the drain's gate): nine lines whole to 6000; units 1,568
+    // of 6,001, first 1568; guys 5,994, first 3081; leaders 6,000, first parting on
+    // state 0.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                1568, 6001, 6001, 6001, 6001, 6001, 5994, 6000, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (1568, Some(3165276990), 354175805)),
+                ("guys", (3081, Some(2868511280), 3461022379)),
+                ("leaders", (0, Some(3890907082), 2955970510)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
 ];
 
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
 /// line and state, and the games taken.
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 7);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 8);
