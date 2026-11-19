@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5): the pass designed five; the tranche drains at sixteen landings (the backstop, twenty with the four live): out, the chain's builder on 4413 (parity held out; the game lane) and the render seat's 4427 (the plate's hinting); unseated for the pass, 4430 (guys' `last_angle`), 4431 (groups' `facing`) and 4432 (the sample, from units 2700).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5): the pass designed five; the tranche drains at sixteen landings (the backstop, twenty with the four live): out, the chain's builder on 4413 (parity held out; the game lane); unseated for the pass, 4430 (guys' `last_angle`), 4431 (groups' `facing`), 4432 (the sample, from units 2700) and 4433 (a plate for a city but Napata).
 
 4413. **Parity held out: eight lobbies named before the original plays them** (a rules item, whole; the chain's, unspawned;
 `docs/RECGAME.md` §10; DECISIONS 144 §2). The seven games of parity's set were scored and then joined; this line is declared first. The
@@ -80,12 +80,12 @@ now part first on units 2700, then groups 2888, guys 2920, world 2921, leaders 2
 o 27's move order, `off_y` 72|696 and `y` 30792|30648, its path shifted (+22, +126). Then leaders 2989 (player 3's `oil_patches`
 0x0c|0x0d). It stops when two acts move no line's first parting.
 
-4427. **The plate's hinting** (a `render` item, scoped; the render seat's, unspawned; `docs/HUD.md` §3, §6). 4426 drew the
-plate's glyphs from the install's `georgiab.ttf` at 14 ppem (`ab_glyph`, as d3dgl's FreeType lays them; `PLATE_FACE_PACKETS` 9,849 of
-9,849 entries on 144 packets, every city name a width): `RUN1559B_3279_PLATE`'s light arm both-lit 9 → 47 of theirs' 53, the dark half
-[1742, 1251] → [1537, 1233]. Parked 4426a: the DLL loads with `FT_LOAD_DEFAULT` and ours is unhinted, so 6 light pixels miss at stem
-edges; a hinted render of the same file hits 53 of 53. First act: hinting the face's outlines as FreeType does, 47 → 53. It stops when
-two acts move no row.
+4433. **A plate for a city but Napata** (a `render` item, scoped; unseated; `docs/HUD.md` §3, §6). 4427 hinted the plate's glyphs
+(`skrifa` in `crates/client`, FreeType v40's interpreter; the face still read from the install): `RUN1559B_3279_PLATE`'s light arm
+both-lit 47 → 53 of 53, the dark half [1541, 1238]. With the founding name (4418), the font's advances (4423) and its glyphs (4426,
+4427), every plate the client draws has a width and a face, but no photograph on disk shows a city other than Napata (parked 4423a).
+First act: one photograph of a second city's plate at a frame the client can reach, taken as run1715. It stops when the take shows no
+plate the client can score.
 
 ## Direct branch handoff
 
