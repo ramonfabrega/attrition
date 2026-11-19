@@ -271,6 +271,21 @@ impl Sim {
         // exempt unit comes out of it with nothing pending.
         if phase % ATTRITION_REFRESH_FRAMES == 0 {
             let outcome = self.attrition_for(i);
+            if std::env::var("RON_PROBE_4429")
+                .ok()
+                .and_then(|v| v.parse::<i64>().ok())
+                .is_some_and(|f| (f - 64..=f + 64).contains(&frame))
+            {
+                let u = &self.units[i];
+                if !matches!(outcome, crate::territory::attrition::Outcome::Exempt(_)) || u.owner == 2 {
+                    let g = self.world.owner_at(u.pos);
+                    let war = g.player().map(|o| (self.leaders.at_war[u.owner as usize][o as usize], self.leaders.at_war[o as usize][u.owner as usize]));
+                    eprintln!(
+                        "PROBE4429 f{frame} {}/{} ti {} pos {:?} ground {:?} war {:?} kind {:?} orders {} -> {:?}",
+                        u.owner, u.index, u.type_index, u.pos, g, war, u.kind, u.orders.len(), outcome
+                    );
+                }
+            }
             // **`attrition_stamp`'s peace and assassin arms**
             // (`Unit::process_attrition@005e11a0`, `docs/LEADERS.md` §5.2):
             // past every exemption, a bleed assigned by either arm is the
