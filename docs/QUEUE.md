@@ -76,7 +76,7 @@ plate as `BuildOut::draw_overlays` draws it. Then the bar, with its own row. It 
 ## Direct branch handoff
 
 `codex/replay-diagnostics` (4406) adds the capture-directory scorer (RECGAME §10).
-Parity holds at 5 of 6 and packet lines at 661 of 1,053. Branch gate pending.
+Parity holds at 5 of 6 and packet lines at 661 of 1,053. Whole branch gate passed on `58facf3c6` with required fixtures.
 
 ## How to maintain this file
 
