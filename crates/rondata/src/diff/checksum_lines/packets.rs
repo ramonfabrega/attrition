@@ -205,6 +205,23 @@ pub(in crate::diff) fn compare(
                         .as_ref()
                         .or(td.as_ref())
                         .and_then(|d| d.iter().find(|x| x.0 == "guy_num").map(|x| x.1));
+                    let pick = |d: &Option<Vec<(String, i64)>>| -> String {
+                        d.as_ref().map_or(String::new(), |d| {
+                            ["x", "y", "z", "last_x", "last_y", "last_z"]
+                                .iter()
+                                .filter_map(|k| d.iter().find(|x| x.0 == *k).map(|x| x.1.to_string()))
+                                .collect::<Vec<_>>()
+                                .join(",")
+                        })
+                    };
+                    eprintln!(
+                        "FIELDS\t{name}\trange {i}\trecord {}\t{field}\tTI {ty:?} guy {gn:?}\t{}\tT {}\tO {}",
+                        ob.map_or(-1, |r| r.record),
+                        diffs.join("; "),
+                        pick(&td),
+                        pick(&od)
+                    );
+                    #[cfg(any())]
                     eprintln!(
                         "FIELDS\t{name}\trange {i}\trecord {}\t{field}\tTI {ty:?} guy {gn:?}\t{}",
                         ob.map_or(-1, |r| r.record),
