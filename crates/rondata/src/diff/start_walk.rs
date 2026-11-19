@@ -1513,6 +1513,62 @@ pub(crate) mod recording {
         );
     }
 
+    /// run1691's end, from both sides: `(the last frame the original
+    /// entered, the first state our walk holds `game_over` on, the human's
+    /// `defeated_by`, the French `won`)` (the pass of 2026-11-19, DECISIONS
+    /// 144 §1). The hook prints no set after the tick that ends the game, so
+    /// the conquest is in no compared state, and this is the one number both
+    /// sides give for it: the original stops after frame 10928 under a file
+    /// that closes on 11,200, and ours is over on the state that tick makes.
+    const RUN1691_END: (i64, i64, i32, bool) = (10928, 10929, 1, true);
+
+    /// **The demand's game ends on the tick the original stops on** (the
+    /// pass of 2026-11-19, `docs/LEADERS.md` §8.6): theirs' last frame is
+    /// read off the take's own frame records, ours is walked with no set
+    /// read, and the two are held one apart.
+    #[test]
+    fn the_demand_s_game_ends_on_the_tick_the_original_stops_on() {
+        let home = std::env::var("HOME").unwrap_or_default();
+        let rcx = std::env::var("RON_DEMAND_END_RCX").unwrap_or_else(|_| {
+            format!("{home}/ron-golden/recordings/item4396-demand-greatlakes-style0-d2-11200.rcx")
+        });
+        let take = match std::env::var("RON_DEMAND_END_TAKE") {
+            Ok(p) => Some(std::path::PathBuf::from(p)),
+            Err(_) => {
+                let dir = std::path::PathBuf::from(format!("{home}/ron-golden/run1691/map-14"));
+                crate::testenv::experiment(&dir, "rontrace.log")
+            }
+        };
+        let (Some(inst), Ok(rec_game), Some(take)) = (crate::testenv::install(), read(&rcx), take)
+        else {
+            eprintln!("skipping: no install, no demand end file or no run1691 take");
+            return;
+        };
+        let bytes = std::fs::read(&take).expect("the take");
+        let (_, theirs) = crate::trace::Trace::validated_frames(&bytes)
+            .expect("a finalized trace")
+            .expect("frames");
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec_game);
+        let mut stream = crate::input::Stream::pump(&rec_game);
+        while !built.sim.game_over() && built.sim.frame <= theirs + 64 {
+            let f = built.sim.frame;
+            stream.apply(f as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let end = &built.sim.leaders.endgame;
+        let got = (theirs, built.sim.frame, end[0].defeated_by, end[1].won);
+        eprintln!(
+            "DEMAND END the original's last frame, ours' first state over, defeated_by, won: {got:?}"
+        );
+        assert_eq!(
+            got.1,
+            got.0 + 1,
+            "ours is over on the state theirs' last tick makes"
+        );
+        assert_eq!(got, RUN1691_END, "RUN1691_END");
+    }
+
     /// **Item 4387's game** (`docs/LEADERS.md` §8.2, `docs/RECGAME.md`
     /// §8.2): the harness lobby at `TEAM_STYLE 0`, `DIFFICULTY 2`, seed
     /// 12345 — the sweep's earliest demand, the French on the human on 6081
