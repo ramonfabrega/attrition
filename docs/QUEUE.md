@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6): four out, cut off `62bd6c79e` on 2026-11-19 at 72 of 84 (Opus 5.5, high): the chain's 4404 (ammo on the demand's game, 10075; run1696, run1698), the suite's 4405 (the sample from state 76; run1697), the third's 4410 (the plate drawn; 4403 minted its row at 0, landed on depth) and render's 4402 (the packets' guys `guy`). Codex's 4406 to 4409 were fast-forwarded and gated whole first (`gate-codex-1119.log`, exit 0). Nothing is designed behind them: the seat that stops first after these is the pass's boundary.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6): four out, cut off `62bd6c79e` on 2026-11-19 at 72 of 84 (Opus 5.5, high): the chain's 4404 (ammo on the demand's game, 10075; run1696, run1698), the suite's 4405 (the sample from state 76; run1697), the third's 4410 (the plate drawn; 4403 minted its row at 0, landed on depth) and render's 4411 (guys' `last_z`; 4402 named the leaf, landed on depth). Codex's 4406 to 4409 were fast-forwarded and gated whole first (`gate-codex-1119.log`, exit 0). Nothing is designed behind them: the seat that stops first after these is the pass's boundary.
 
 4404. **The demand's game: ammo on 10075** (a rules item, whole; the chain's, out; `docs/LEADERS.md` §8.6; DECISIONS 143 §2,
 §3). 4396 played the game to the original's own end on 10929 (run1691): 11 of 12 lines whole for all 10,929 states, units 9,981 →
@@ -63,10 +63,12 @@ the oil claim after the city's `update_seen`). First act: builds on 76, `758 200
 window. Then units' `unit_masks` `0x4000000` on 92 (item 4351), then `SAMPLE_LINES`' lowest first parting. `SAMPLE_WALKED` 3019 of
 21,044 is its last (parked 4380a). It stops when two acts move no line's first parting.
 
-4402. **The packets' lines: guys' `guy`** (a rules item, whole; the render seat's, out; CHECKSUM §23; DECISIONS 143 §4). 4400 closed
-leaders' `flags` (transport, jammers, the three bonuses, Ambush and Forced March), `PACKETS_SCORE` 608 → 651 of 1,053; its census
-puts guys' `guy` next, 50 of the 402 lines that still part (byte 104 on 21 of them). First act, on disk: that leaf's value diff on its
-commonest packet, record and field and both sides. Then the next leaf by count. It stops when two acts turn no line.
+4411. **The packets' lines: guys' `last_z` on a squad's figure 0** (a rules item, whole; the render seat's; CHECKSUM §23.9; DECISIONS 143 §4).
+4402's value diff: 165 guys ranges part on `last_z` alone, every one figure 0 of a foot squad, theirs' `last_z` its own current `z`,
+ours the ground under `last` (run1325c f5578 rec 41, Marines: theirs 2, ours 4); the writer is not in the reading (parked 4402a:
+`turret_inc` nonzero, 7 lines). First act: a `step4 --watch` of `+0x14`/`+0x70` over `Unit::process` for Rifleman 1/22 on run1169's
+packet, naming the writer. The hypothesis, 12 lines on `last_z = z`, is the act's to keep or kill. Then `cur_time` (byte 108, 15 lines).
+It stops when two acts turn no line.
 
 4410. **The selected city's plate drawn, then its bar** (a `render` item, scoped; the third seat's; `docs/HUD.md` §3; DECISIONS 143 §5).
 4403 minted `RUN1559B_3279_PLATE` before any draw: `selection::plate`'s rectangle x [1083,1172) y [580,610), every quantity off
