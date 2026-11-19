@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5): the pass designed five; out: the chain's builder on 4413 (parity held out; the game lane), the suite seat's 4424 (the sample, from world 1716; 4422 put a group's `form` right, packets 697 → 729, the sample's groups 961 → 2888), the third seat's 4426 (the plate's glyphs; 4423 read the font's advances off the packets, 4 → 77 characters), and the render seat's 4420 (`turret_inc`, then `z`; 4415 turned 7 guys lines, 690 → 697); 4425 (the packets' groups `off_x`) for the seat that stops first.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5): the pass designed five; out: the chain's builder on 4413 (parity held out; the game lane), the suite seat's 4424 (the sample, from world 1716; 4422 put a group's `form` right, packets 697 → 729, the sample's groups 961 → 2888), the third seat's 4425 (the packets' groups `off_x`; 4426 drew the plate's glyphs from the install's face, both-lit 9 → 47 of 53), and the render seat's 4420 (`turret_inc`, then `z`; 4415 turned 7 guys lines, 690 → 697); 4427 (the plate's hinting) for the seat that stops first.
 
 4413. **Parity held out: eight lobbies named before the original plays them** (a rules item, whole; the chain's, unspawned;
 `docs/RECGAME.md` §10; DECISIONS 144 §2). The seven games of parity's set were scored and then joined; this line is declared first. The
@@ -58,13 +58,6 @@ idle, 6,000 frames. First act: the eight named in a pinned table before any take
 (`--lobby --record`), played by the original under the checksum hook and scored by `checksum::playback`. Each game's first score is
 pinned as found and never re-pinned in place; a fix moves a second column. It stops when the original refuses a file the client
 recorded on a lobby, and says which section it refused.
-
-4426. **The plate's glyphs: the font's own, in place of the overlay** (a `render` item, scoped; the third seat's, unspawned; `docs/HUD.md`
-§3, §6). 4423 read the `D3D11GLFont` off 144 packets (`PLATE_FONT_PACKETS` 9,849 of 9,849 entries, no two packets differ;
-`tools/render/plate_font_packet.py`): `PLATE_ADVANCES` 4 → 77 characters, a width for 1,142 of 1,164 tribe `<CITY>` names. A London
-plate moves no row: no photograph on disk shows a city but Napata (parked 4423a); X and Z no packet has drawn (4423b). First act: the
-glyphs' `CharacterInfo` texture rectangles drawn in place of the 5×7 overlay, scored on `RUN1559B_3279_PLATE`'s ours half. It stops when
-two acts move no row.
 
 4420. **The packets' guys line: `turret_inc`, then `z`** (a rules item, whole; the render seat's, unspawned; CHECKSUM §23).
 4415 turned 7 guys lines, `PACKETS_SCORE` 690 → 697 of 1,053 (`cur_time`: the oil-well stand's missing `Unit::set_new_location`
@@ -80,9 +73,16 @@ then units and leaders 2112, ammo 3022, builds 3029. First act, on disk: `SAMPLE
 ours `08080808` theirs `00000808`: whose sight marked those tiles. Then units 2112 (`619 1 flags` 17|1). Every first parting under 3019 is
 already a diff on run1710's ranges. It stops when two acts move no line's first parting.
 
-4425. **The packets' groups `off_x`** (a rules item, whole; unseated, for the seat that stops first; CHECKSUM §23). After 4422 the groups
+4425. **The packets' groups `off_x`** (a rules item, whole; the third seat's, unspawned; CHECKSUM §23). After 4422 the groups
 lines still part on 31 rows, and `off_x` is the first range on 27 of them, unread. First act, on disk: the commonest packet's value diff,
 record and both sides, then its writer by a `step4.py` watch. Re-pin through `tools/repin_packets.py`. It stops when two acts turn no line.
+
+4427. **The plate's hinting** (a `render` item, scoped; unseated, for the seat that stops first; `docs/HUD.md` §3, §6). 4426 drew the
+plate's glyphs from the install's `georgiab.ttf` at 14 ppem (`ab_glyph`, as d3dgl's FreeType lays them; `PLATE_FACE_PACKETS` 9,849 of
+9,849 entries on 144 packets, every city name a width): `RUN1559B_3279_PLATE`'s light arm both-lit 9 → 47 of theirs' 53, the dark half
+[1742, 1251] → [1537, 1233]. Parked 4426a: the DLL loads with `FT_LOAD_DEFAULT` and ours is unhinted, so 6 light pixels miss at stem
+edges; a hinted render of the same file hits 53 of 53. First act: hinting the face's outlines as FreeType does, 47 → 53. It stops when
+two acts move no row.
 
 ## Direct branch handoff
 
