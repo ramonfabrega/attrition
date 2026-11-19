@@ -1584,6 +1584,23 @@ impl Sim {
     /// `Guy::set_anim@005da300`, the paths a unit on open ground reaches
     /// (`docs/ANIM.md` §4). Returns whether the stream was drawn from.
     pub(crate) fn guy_set_anim(&mut self, u: usize, g: usize, anim: i8, force: bool, p3: bool) {
+        if let Ok(spec) = std::env::var("RON_PROBE_4415_ANIM") {
+            let me = format!(
+                "{}/{}@{}",
+                self.units[u].owner, self.units[u].index, self.frame
+            );
+            if spec.split(',').any(|x| x == me) {
+                let gy = self.units[u].guys[g];
+                eprintln!(
+                    "ANIMPROBE {me} g{g} ask {anim} force {force} p3 {p3} was a{} t{}/{} l{}\n{}",
+                    gy.anim,
+                    gy.cur_time,
+                    gy.end_time,
+                    gy.last_time,
+                    std::backtrace::Backtrace::force_capture()
+                );
+            }
+        }
         let frame = self.frame;
         let guy = self.units[u].guys[g];
         // **`Guy::set_anim@005da300`'s head** (`docs/GOLDEN.md` §65): a
