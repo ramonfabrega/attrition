@@ -563,12 +563,8 @@ on its ranges, each by a mutation:
   out. → 2112.
 
 run1710 holds every first parting to 3,100 (`SAMPLE_RANGES_1710`).
-Item 4419: groups 927 → 961 (its journal). Item 4422: groups 961 → 2888.
-State 961's groups range 243 is record 195 (the person's pool 3), and
-`form` there goes from ours 9 to −1, which matches theirs' −1.
-`action_swarm_around:111` stores it under the `Build` the person dropped
-on 960 (`docs/GROUPS.md` §24.2). Next: groups on 2888, range 346, record
-256 (computer 4's pool 0), `stamp` ours 2701, theirs 2887.
+Items 4419, 4422: groups 927 → 2888 (GROUPS §24.2); next, record 256's
+`stamp`.
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
