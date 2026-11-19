@@ -1466,8 +1466,9 @@ emitted as their bits: `+0.0`, the store of `Guy::clear` and
 from integers and singles this crate already holds — `air::Airframe`,
 software floats by their bits (`num::single::Single`) — and the emitter
 writes guy 0's from there; on a **missile** `turret_inc` is 90.0's bits
-(`come_out_view::MISSILE_FIGURE_90`), which the emitter does not yet
-write. No float enters the simulation.
+(`come_out_view::MISSILE_FIGURE_90`), ~~which the emitter does not yet
+write~~ held as `Turret::inc` and kept by the object number's next
+occupant (item 4420, §23.9). No float enters the simulation.
 
 **Made to fail**: a herd's `gpiece` back at −1 parts on its range
 alone and moves the Adler; the first moving figure's `last_x` at its
@@ -1495,7 +1496,7 @@ this frame: the writers above, the gaia piece arm, the domain arms of
   floats.
 - A bird's figure: its `bank` is `air::Flight::roll`, and its
   `last_bank`, `pitch` and `last_pitch` are not held; an aircraft's crew
-  past guy 0; a missile's `turret_inc`; a converted figure's copied one.
+  past guy 0; ~~a missile's `turret_inc`~~ (item 4420, §23.9); a converted figure's copied one.
 - `size` past a re-init with a smaller crew; `last` past a teleport
   (`Unit::set_new_location(…, 1)`'s seat, which writes it equal to the
   point) or on a unit whose `Unit::process` this crate skips while the
@@ -2609,9 +2610,30 @@ The pair's draws hold to 3866 with it.
 `do_spec_anim@005e5880`, `init@00612100`, `come_out@00617c10` (four) and the debug jumps; and
 `do_air_physics@005e86d0` passes `(0, 1)`. Ours reaches them through `set_new_location` without the snap. No
 packet parts on one now. The oil-well arm's `set_angle(0x40000000, ., 0)` is still `Movement::set_heading` in
-ours, without `Unit::set_angle`'s mirror flip and group arm (brief row 2234's list). **The next leaf is
-`turret_inc`** (byte 58, the first parting on 15 lines; parked 4402a): run882b f6808 record 50 (TI 305) and
-run810 f3631 record 51 (TI 256), ours 0 theirs `0x42b40000` (90.0 as an `f32`), the only field parted.
+ours, without `Unit::set_angle`'s mirror flip and group arm (brief row 2234's list). ~~**The next leaf is
+`turret_inc`** (byte 58, the first parting on 15 lines; parked 4402a)~~: answered by item 4420, below.
+
+**`turret_inc` is a dead missile's, kept by its object number** (item 4420, diff-backed). Every nonzero
+`+0x40` in the 110 streams is `0x42b40000` on guy 0 of a `who 1` unit that is no missile: Citizen,
+`FLAMETHROWER`, `ARMOREDSCOUTCAR`, `T80`, `MLRS`, `KATYUSHA`, `MUSTANG`, `STRATEGICBOMBER`,
+`TRANSPORTFREIGHTER`. The image stores that value once, at `Unit::come_out@00617c10:502`, for a type with the
+missile bit (`+0x1e4 & 0x8000000`). The value survives because a unit object belongs to its number. `find_free`
+hands back a dead number's object, and `Unit::init@00612100:68`–`74` saves `guy_mark` across `Object::init`.
+The pop loop (`:486`) starts at that mark, so guy 0 is never popped and never `Guy::clear`ed. `init_real`
+zeroes `+0x20..+0x3c` and stops short of `+0x40`. `Guy::clear`'s callers are `Guy::Guy`, `~Unit`,
+`Unit::init`'s pops and `set_type`'s crew. The pool holds only cleared guys, so the slot is the only carrier.
+In ours: `Turret::inc` (`units/anim.rs`) is the word, `SimComeOut::set_figure_90` writes it, and
+`Sim::init_guys` copies it beside the aim and turret flags it already kept. `set_guy` keeps the walk's. Run
+on the packets' own walks, every inheritance traces to a `NUCLEARMISSILE` (315) or `ICBM` (316) out of a
+silo. The chain runs on through non-missiles: Lakota `1/206` is missile 5053, 322 on 5325, 322 on 6128, 322
+on 6652. **14 guys lines turn, none grow** (`PACKETS_SCORE` 697 → 711): run785, run789, run795, run810,
+run823, run825, run882b, run883b, run1166, run1416, run1441, run1559b, run1564, run1570. The units line parts
+on one range fewer on 7 packets, the guys line on fewer on run1164 (3 → 1) and run1426b (3 → 2). Value diff, run882b frame 6808 record 50 (`1/50`, `STRATEGICBOMBER`, TI
+305): `turret_inc` theirs `0x42b40000`, ours `0` → `0x42b40000`. The ICBM `1/50` left it on 4541, and the
+bomber took the number on 4859. Byte 58 is the first parting on no line now (15 before). **Not established**:
+a seated figure's word (no reader parses the dump's `*((dword*) &turret_inc)`, so a stand-up starts at 0);
+guys past 0, which no store reaches. **The next leaf is `z`** (byte 12, the first parting on 8 lines): run1359
+f5619 record 36, ours `00` theirs `7d`.
 
 ## 24. Step H: the fifteen, every frame (item 4214)
 
