@@ -666,6 +666,12 @@ pub(in crate::diff) mod tests {
                 frames += 1;
                 let ours = our_lines(&built.sim, &pieces);
                 if detail == Some(f) {
+                    if std::env::var("RON_PROBE_4412").is_ok() {
+                        for bd in built.sim.buildings.iter().filter(|b| b.index == 2008) {
+                            let ty = bd.ty.map(|t| built.sim.tables.build_types[t].ident);
+                            eprintln!("PROBE4412 2008 owner {} ty {:?} {:?} alive {}", bd.owner, bd.ty, ty, bd.alive);
+                        }
+                    }
                     print_partings(&ours, &theirs);
                 }
                 let outcome = compare(&ours, &theirs);
