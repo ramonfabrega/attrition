@@ -15,6 +15,9 @@ pub mod taunt;
 pub mod tribute;
 pub mod words;
 
+#[cfg(test)]
+mod flag_bits_tests;
+
 /// The `leaders/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
 /// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
 #[derive(Clone, Debug)]
@@ -42,6 +45,12 @@ pub struct LeadersState {
     /// arm of `think_spellcaster` throws no coin while it is up
     /// (`docs/AI.md` §99.13).
     pub forced_march: Vec<bool>,
+    /// `leader_flags & 0x4000` per player: one of its heroes cast Ambush.
+    /// `SpellType::cast_ambush@00671610:52` sets it and
+    /// `Leader::verify_spell_flags@006ce190` clears it, on an Ambush's or a
+    /// Forced March's expiry, once no hero's `unit_masks & 0x2000` stands
+    /// (item 4400).
+    pub ambush: Vec<bool>,
     /// Whether each player has been defeated — `leader_flags & 2` clear.
     pub defeated: Vec<bool>,
     /// Each slot's lobby team (`GameInfo::player[k].team` of the seat
@@ -71,6 +80,18 @@ pub struct LeadersState {
     /// citizen of a live slot idled through `do_idle`, and a defeated
     /// slot keeps it (`docs/CHECKSUM.md` §25.4, item 4332).
     pub citizen_thought: Vec<bool>,
+    /// `leader_flags & 0x20000`: the slot holds a unit of a `SPECIALFORCES`
+    /// (`TypeIndex` 0x4b) type. `Leader::track_unit_type@006e0dd0:62–69` is
+    /// its one writer: on every count move of a type that `is(0x4b)` it sets
+    /// the bit while that type's own `num_units` is nonzero and clears it
+    /// at zero, so the last move of any such type decides it
+    /// (`docs/CHECKSUM.md` §23.8, item 4400).
+    pub special_forces: Vec<bool>,
+    /// `leader_flags & 0x40000`: some seated other slot, not allied both
+    /// ways, holds [`Self::special_forces`]. `Leaders::process_all@006ed2a0:19–36`
+    /// clears and re-derives it at the head of each live slot's step;
+    /// `ObjectData::is_jammed@00653660` reads it (`docs/CHECKSUM.md` §23.8).
+    pub jam_threat: Vec<bool>,
     /// The slot marks, the build counters and the queued bins
     /// (`docs/LEADERS.md` §13, §14; [`marks`], item 4167), one per slot.
     pub marks: Vec<marks::Marks>,
@@ -116,4 +137,30 @@ pub struct LeadersState {
     /// window is where a human quits once the game has ended
     /// (`docs/LEADERS.md` §10.2; item 4189).
     pub game_over: bool,
+}
+
+impl crate::Sim {
+    /// `leader_flags & 0x40000` of live slot `who`, re-derived at its step's
+    /// head (`Leaders::process_all@006ed2a0:19–36`; `Leader::process@006b88b0:16–29`
+    /// is its uncalled twin): cleared, then raised when any seated slot
+    /// other than `who` whose `diplos` with `who` is not 2 (allied) both
+    /// ways holds [`LeadersState::special_forces`] (item 4400).
+    pub(crate) fn refresh_jam_threat(&mut self, who: usize) {
+        let seats = self
+            .economy
+            .ledgers
+            .len()
+            .min(crate::checksum::leaders::LEADER_SLOTS);
+        // `diplos[a][b] == 2` as the checksum's leaders line emits it: allied
+        // and not at war.
+        let ally = |a: usize, b: usize| self.leaders.allied[a][b] && !self.leaders.at_war[a][b];
+        let threat = (0..seats).any(|j| {
+            j != who
+                && !(ally(j, who) && ally(who, j))
+                && self.leaders.special_forces.get(j).copied().unwrap_or(false)
+        });
+        if let Some(b) = self.leaders.jam_threat.get_mut(who) {
+            *b = threat;
+        }
+    }
 }
