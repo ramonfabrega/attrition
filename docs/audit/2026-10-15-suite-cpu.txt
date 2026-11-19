@@ -1,8 +1,9 @@
-# Every rondata release test's CPU alone, 2026-11-19, tools/suite_timings.py (tree 1940ba9d).
+# Every rondata release test's CPU alone, 2026-11-19, tools/suite_timings.py (tree 4623a2e0).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 6,820 CPU-seconds and 134.29e12 instructions over 2542 tests; the host's load 10.5 at the start and 6.1 at the end.
+# Sum 7,047 CPU-seconds and 140.00e12 instructions over 2548 tests; the host's load 12.1 at the start and 2.4 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
+199.37	4888.75	diff::held_out::tests::the_held_out_games_score_as_pinned
 148.65	4234.56	diff::sample::tests::the_sample_s_lines_against_the_hook
 144.32	3295.19	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
 91.38	1901.60	lobby::tests::the_page_starts_every_lobby_on_disk
@@ -15,6 +16,7 @@
 30.98	712.98	diff::start_walk::recording::the_demand_s_game_is_whole_on_run1683
 26.48	492.07	mapgen::tests::east_indies_s_heights_at_894_are_the_start_dump_s_grid
 26.19	491.96	mapgen::tests::east_indies_s_heights_are_the_start_dump_s_grid
+26.09	786.74	diff::sample::tests::the_sample_s_ranges_to_3100_name_each_first_parting
 25.05	441.79	mapgen::tests::great_lakes_s_heights_are_the_start_dump_s_grid
 24.72	440.67	mapgen::tests::great_lakes_s_heights_are_the_start_dump_s_grid_off_the_rivers
 21.76	463.57	diff::start_walk::the_lobby_walked_from_the_built_start
@@ -1428,6 +1430,7 @@
 0.95	18.98	diff::gunpowder_melee::gunpowder_melee_first_parting
 0.95	18.83	diff::gunpowder_melee::gunpowder_melee_run1413_s_closing_state
 0.95	22.14	diff::persian_classical_pair::persian_classical_pair_captures_say_their_lobby
+0.95	22.76	diff::start_walk::recording::the_demand_s_game_ends_on_the_tick_the_original_stops_on
 0.94	20.06	diff::coverage_pair::run1066_s_carrier_window_is_widened_whole
 0.94	17.33	diff::golden::chapter_six_b_s_word_frame_is_widened_whole
 0.94	19.71	diff::leader::tests::run114_s_offers_are_the_original_s_own
@@ -1955,6 +1958,7 @@
 0.30	7.10	diff::chinese_enlightenment_pair::chinese_enlightenment_pair_captures_say_their_lobby
 0.30	6.97	diff::chinese_industrial_pair::chinese_industrial_pair_captures_say_their_lobby
 0.30	5.05	load::tests::every_building_has_a_page
+0.29	4.66	diff::held_out::tests::the_held_out_eight_are_the_rows_the_rule_names
 0.29	4.53	diff::minted::the_auto_explored_minted_packages_round_trip
 0.29	5.87	diff::build::tests::a_british_barracks_pays_one_bowmen_as_three_chained_units
 0.29	5.87	diff::setup::tests::a_leader_s_opening_units_are_its_own_nation_s
@@ -2543,3 +2547,5 @@
 0.00	0.03	diff::harness::prefix::tests::the_overlap_checkpoint_keeps_the_earlier_start_and_group_boundary
 0.00	0.03	gamelog::tests::indexed_fields_keep_file_order_and_record_only_requested_names
 0.00	0.03	trace::checksums::tests::a_receipted_trace_requires_its_endpoint_checksum_and_detach
+0.00	0.07	diff::checksum_lines::packets::city_names::the_city_names_score_is_the_table
+0.00	0.03	diff::held_out::tests::the_held_out_line_reads_as_pinned

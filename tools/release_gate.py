@@ -234,6 +234,8 @@ COMMANDERS_LINES = (
     'the_handoff_s_blind_list_is_the_pinned_count',
     # The held-out battery's line (the forty-eighth pass).
     'the_handoff_s_held_out_line_is_the_pinned_battery',
+    # Parity held out's line (the pass of 2026-11-19, second; DECISIONS 145 §1).
+    'the_handoff_s_parity_held_out_line_is_the_pinned_scores',
     # The rubric's line (the forty-ninth pass, Ramon's: the steer's pin).
     'the_handoff_s_rubric_is_the_pinned_scorecard',
     # The structure track's line (item 4008, STRUCTURE §2); the pin's own

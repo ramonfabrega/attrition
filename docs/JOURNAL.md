@@ -22302,3 +22302,32 @@ the third seat ports the founding name. Seven merged lane rows stand
 un-reaped: the classifier refused the reap. The pass moved no score and
 took no capture. **DECISIONS 144.**
 `docs/audit/2026-11-19-fable-pass-seventh.md`.
+
+## 2026-11-19 — the pass, second: parity held out ratified at 0 of 8, and the lanes follow the eight (Fable 5.2, steering)
+
+`commander` ran sixteen lanes and the chain's builder off the morning's
+pass, reached the backstop and handed over at `4623a2e03` on a green
+whole gate. Item 4413 had named eight lobbies by the morning's rule,
+recorded each in the client, had the original play them, and scored
+none whole. The pass ratified the line as found. The declaration is two
+minutes older than the first take; the pass's own run of the eight gives
+the pinned scores; and the drain's first gate is red on the test with a
+row unpinned. One hole was mended: a lost recording or run directory
+filed no fixture request, so the test could skip with the gate reading
+no fixture missing. The line is parsed on the scoreboard now, and its
+found half never moves. What the eight say is two things. The four
+Ancient starts are near whole: ten lines of twelve agree to 6000 and
+units parts and agrees again. The four later starts part for good by
+2239 and the original ends them, which our walk of one shows as the
+computer burning an idle capital. The pass then ruled what the number is
+for: the found column is the estimate, a game is spent once a lane reads
+it, and a second battery is named now for when this one is half whole.
+The lanes go to the eight, each game's ranges taken once so a parting is
+a diff on disk. The results paragraph of item 4434 was written by the
+pass. The
+pass's own table tool had misread five bookings and priced two lanes
+from months ago; mended, the tranche reads 98.53 USD, 6.16 a landing.
+The pass drew three held-out lobbies in the client and found it opens
+every game on Great Lakes' camera, open sea on East Indies; the eye's
+seat takes that. The pass moved no score and took no capture.
+**DECISIONS 145.** `docs/audit/2026-11-19-fable-pass-held-out.md`.

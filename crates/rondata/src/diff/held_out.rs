@@ -118,21 +118,29 @@ mod tests {
 
     /// Where game `k`'s file and take sit: the client's recording under
     /// `~/ron-golden/recordings/`, and `run1700 + k`'s `map-*/rontrace.log`.
-    fn paths(k: usize) -> (std::path::PathBuf, Option<std::path::PathBuf>) {
+    /// **Both are asked of the fixture audit**, the take under `map-0` when
+    /// the run's directory holds no map: until the pass of 2026-11-19,
+    /// second, a lost recording or a lost run directory filed no request,
+    /// so the scores below skipped with `0 missing fixtures` on the gate's
+    /// log. Seen with `HOME` pointed at an empty directory: sixteen requests
+    /// missing, where the audit had counted none.
+    fn paths(k: usize) -> (Option<std::path::PathBuf>, Option<std::path::PathBuf>) {
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let rcx = home.join(format!(
-            "ron-golden/recordings/item4413-row{:03}-6000.rcx",
-            HELD_OUT[k].row
-        ));
+        let rcx = crate::testenv::experiment(
+            &home.join("ron-golden/recordings"),
+            &format!("item4413-row{:03}-6000.rcx", HELD_OUT[k].row),
+        );
         let run = home.join(format!("ron-golden/run{}", 1700 + k));
-        let map = std::fs::read_dir(&run).ok().and_then(|d| {
-            d.filter_map(Result::ok).map(|e| e.path()).find(|p| {
-                p.file_name()
-                    .is_some_and(|n| n.to_string_lossy().starts_with("map-"))
+        let map = std::fs::read_dir(&run)
+            .ok()
+            .and_then(|d| {
+                d.filter_map(Result::ok).map(|e| e.path()).find(|p| {
+                    p.file_name()
+                        .is_some_and(|n| n.to_string_lossy().starts_with("map-"))
+                })
             })
-        });
-        let take = map.and_then(|m| crate::testenv::experiment(&m, "rontrace.log"));
-        (rcx, take)
+            .unwrap_or_else(|| run.join("map-0"));
+        (rcx, crate::testenv::experiment(&map, "rontrace.log"))
     }
 
     /// **The held-out scores** (item 4413, `docs/RECGAME.md` §10.3): each of
@@ -148,8 +156,7 @@ mod tests {
         };
         let mut wrong: Vec<String> = Vec::new();
         for (k, held) in HELD_OUT.iter().enumerate() {
-            let (rcx, take) = paths(k);
-            let (true, Some(take)) = (rcx.exists(), take) else {
+            let (Some(rcx), Some(take)) = paths(k) else {
                 eprintln!(
                     "skipping: row {} has no file or no run{} take",
                     held.row,
@@ -228,6 +235,69 @@ mod tests {
             (whole, taken),
             HELD_OUT_LINE,
             "parity held out: N of 8, T taken"
+        );
+    }
+
+    /// The queue's line for [`SCORES`]: the games whole of the eight, the
+    /// games taken, the lines whole of twelve a game as found and now
+    /// ([`FirstScore::moved`], else as found), and each game's lowest first
+    /// parting in row order, as found and now (`whole` for a game with
+    /// none, `-` for one not taken).
+    fn queue_line() -> String {
+        let lines = |s: &Score| s.agreed.iter().filter(|&&a| a == s.states).count();
+        let lowest = |s: &Score| {
+            s.first
+                .iter()
+                .map(|f| f.1.0)
+                .min()
+                .map_or("whole".to_string(), |v| v.to_string())
+        };
+        let col = |now: bool| -> (usize, String) {
+            let scores = SCORES.iter().map(|p| {
+                p.as_ref().map(|p| {
+                    if now {
+                        p.moved.unwrap_or(p.found)
+                    } else {
+                        p.found
+                    }
+                })
+            });
+            let n = scores.clone().flatten().map(|s| lines(&s)).sum();
+            let firsts: Vec<String> = scores
+                .map(|s| s.map_or("-".to_string(), |s| lowest(&s)))
+                .collect();
+            (n, firsts.join(" "))
+        };
+        let (found, found_firsts) = col(false);
+        let (now, now_firsts) = col(true);
+        format!(
+            "Parity held out: {} of {} whole \u{b7} {} taken \u{b7} lines {found} of {} as found, \
+             {now} now \u{b7} first partings {found_firsts} as found, {now_firsts} now",
+            HELD_OUT_LINE.0,
+            SCORES.len(),
+            HELD_OUT_LINE.1,
+            12 * HELD_OUT_LINE.1,
+        )
+    }
+
+    /// **The handoff's parity-held-out line is the pinned scores** (the
+    /// pass of 2026-11-19, second; DECISIONS 145 §1): `docs/QUEUE.md`
+    /// carries [`queue_line`] beside the older battery's `Held-out:` (parked
+    /// 4413a: two lines were named "held out" and only the battery's was
+    /// parsed). The found half never moves; a fix that moves a game's second
+    /// column moves the `now` half, and the commander writes it at the
+    /// booking. Made to fail first on a handoff with no such line.
+    #[test]
+    fn the_handoff_s_parity_held_out_line_is_the_pinned_scores() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let want = queue_line();
+        let line = q.lines().find(|l| l.starts_with("Parity held out:"));
+        assert_eq!(
+            line.map(str::trim_end),
+            Some(want.as_str()),
+            "docs/QUEUE.md's handoff carries `{want}` (`diff::held_out::SCORES`), beside the \
+             Held-out line"
         );
     }
 }

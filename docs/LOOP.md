@@ -493,7 +493,14 @@ after `lore index`, never a count from memory. **A waiter on a lane is
 armed with `--deep 400`** (DECISIONS 131 §6). **A `--no-widen` lane gate
 keeps the widenings itself when its branch moves the sim's source**
 (DECISIONS 134 §3; every test ending `_widened_whole` or `_walked_whole`
-since 135 §6): a brief carries no line for it.
+since 135 §6): a brief carries no line for it. **A lane lands one act, so
+an item's stop rule is the driver's to count** (DECISIONS 145 §4): two
+landings running on one item's line that move no number end the line. The
+driver says so at the second booking and seats what the lanes line names
+next. **A held-out game's found column is never re-pinned** (DECISIONS 144
+§2, 145 §2): a worker moves `SCORES[k].moved`, the driver writes the
+`Parity held out:` line, and the second battery (rows 10 to 150) is taken
+when the first reads 4 of 8 now, or on Ramon's word.
 
 ## Ratification, and the passes
 

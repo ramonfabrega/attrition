@@ -136,6 +136,13 @@ declared before the original plays it, and parity held out is booked on eight lo
 by its counters; a live game shows no city name, and the third seat ports the founding name (item 4416); **renderer** — the selected
 city's band, plate and bar are drawn; the lake has no seat, three takes of one state agreeing on 3.8 % of it.
 
+**At the pass of 2026-11-19, second** (entry 145): **checksum** — parity 6 of 7; parity held out ratified at 0 of 8 as found, 64 of 96
+lines, and parsed on the scoreboard: the four Ancient starts are near whole and the four later starts part for good by 2239 and are ended
+by the original (items 4435, 4436, each game's ranges taken once); a held-out game is spent once a lane reads it, and a second battery
+is named; the sample's lowest first parting 2700 of 21,044 (item 4432); the packets' lines 771 of 1,053 (items 4430, 4431); **orders** —
+whole by its counters; **renderer** — the plate reads the city's name in the install's face; the client opens every lobby on Great
+Lakes' camera (item 4437), and theirs' buildings carry a team colour ours lack (item 4438).
+
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
 on one lane, taking textures and team colours next; then the lobby screen

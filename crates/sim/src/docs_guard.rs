@@ -100,8 +100,11 @@ const OPEN_ITEMS: usize = 18;
 const ITEM_LINES: usize = 8;
 
 /// The handoff section, in lines including blanks. The file says "about
-/// twenty"; this is the tolerance.
-const HANDOFF_LINES: usize = 32;
+/// twenty"; this is the tolerance. 33 since the pass of 2026-11-19,
+/// second (`docs/DECISIONS.md` entry 145 §1): the scoreboard took one
+/// parsed line, `Parity held out:`, and both blanks round the opener are
+/// read by `tools/handover.py`.
+const HANDOFF_LINES: usize = 33;
 
 /// The queue's **non-item mass**, pinned by section at its size on
 /// 2026-09-07 and may only shrink.

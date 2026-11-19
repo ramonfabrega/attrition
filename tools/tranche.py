@@ -290,6 +290,7 @@ def other_heads_line(row: dict, floor: float = 10.0, top: int = 3) -> str | None
 # (the pass of 2026-11-15). An item is a number of four digits or more ahead
 # of the subject's colon.
 BOOK = re.compile(r"^Book(?:ing)? (\d[^:]*)")
+BOOK_PLAIN = re.compile(r"^Book(?:ing)? (\d.*)")
 # `QUEUE: book 4298 (the attack deal: …); 4313 minted` and `The drain of …:
 # book 4313 (…)` are the forms of 2026-11-16's second tranche; the list read
 # none of its twenty and the handoff line said 0 landings (the pass of
@@ -304,14 +305,26 @@ ITEM = re.compile(r"(?<![\w.])(\d{4,})(?:r\w+|[a-z]\d?)?(?!\w)(?! of\b)")
 def booked_text(subject: str) -> str | None:
     """The part of a commit subject that names the items it booked, or
     None when the commit is no booking."""
-    if m := BOOK.match(subject):
-        return m.group(1)
+    if m := BOOK_PLAIN.match(subject):
+        # `Book 4424 (the sample's world 1716 → 2921: …); … booked as 4429`
+        # and `Book 4417 (first act, no score: …) and 4419 (…); …` are the
+        # forms of 2026-11-19: the first colon is inside a parenthesis, so
+        # the list read the frames 1716 and 2921 as items (two wells months
+        # old, priced into the handoff) and never reached 4419 or 4429 (the
+        # pass of 2026-11-19, second). Parentheses go first, then what
+        # follows the first semicolon, then what follows the colon.
+        return re.split(r":", outside_parentheses(m.group(1)), maxsplit=1)[0]
     if m := QUEUE_BOOK.match(subject):
-        text = m.group(1)
-        while (stripped := PARENTHESIS.sub("", text)) != text:
-            text = stripped
-        return re.split(r"[;(]", text)[0]
+        return outside_parentheses(m.group(1))
     return None
+
+
+def outside_parentheses(text: str) -> str:
+    """`text` with every parenthesis taken out, up to its first semicolon
+    or unclosed parenthesis."""
+    while (stripped := PARENTHESIS.sub("", text)) != text:
+        text = stripped
+    return re.split(r"[;(]", text)[0]
 
 
 def booked_items(subjects: list[str]) -> list[int]:

@@ -325,6 +325,28 @@ class TheHandoff(unittest.TestCase):
                     'blind::NEVER 346 -> 347 (CommandPackage::process_tribute@00946d70), open 10 -> 11']
         self.assertEqual(tranche.booked_items(subjects), [4159, 4306, 4299, 4300, 4305, 4313])
 
+    def test_a_booking_s_colon_inside_a_parenthesis_ends_nothing(self):
+        # The pass of 2026-11-19 (second): the driver wrote `Book N (… : …)
+        # and M (…); … booked as K`. The list stopped at the first colon,
+        # inside the parenthesis: it read the frames 1716 and 2921 and the
+        # year 2017 as items, found wells of those numbers months old,
+        # priced them into the handoff, and never reached 4419 or 4429.
+        subjects = ["Book 4425 (groups off_x: Form::compute_dests keeps an off-map member's entry; PACKETS_SCORE "
+                    "748 → 771 of 1,053, 23 groups lines) and 4429 (process_attrition's check 6, an ally's ground, "
+                    "wired: the sample's units 2112 → 2700, leaders 2112 → 2989); the drain: facing as 4431, the "
+                    "sample from units 2700 as 4432",
+                    'Merge worktree-att-4429 (7 commits)',
+                    "Book 4424 (the sample's world 1716 → 2921: a trained captain's exit lights no disc); units "
+                    "and leaders 2112 booked as 4429 for the suite seat",
+                    "Book 4417 (first act, no score: the packets' parted ranges by leaf, groups form +0x10 first "
+                    "on 45 rows) and 4419 (the sample's groups 927 → 961: Group::normalize drops the deleted "
+                    "Lookout); the two meet on a group's form, booked as 4422; 4420 seated",
+                    "Book 4414 (the 2017 sample: units 532 → 2112, the Citizen 3/6's THINK order walk_data flags "
+                    "byte at range 905); groups 927 booked as 4419 for the suite seat",
+                    "Book 4413's eighth game (row 140, run1707, pinned as found: units 1,568 first 1568); 4434 "
+                    "narrowed to the results paragraph"]
+        self.assertEqual(tranche.booked_items(subjects), [4413, 4414, 4417, 4419, 4424, 4425, 4429])
+
     def test_the_handoff_s_line_is_the_table_s_counts(self):
         rows = [{'item': 3567, 'session': 'a', 'peak_k': 328, 'price': 11.91, 'waiting_min': 21.0},
                 {'item': 3567, 'session': 'b', 'peak_k': 146, 'price': 2.75, 'waiting_min': 90.9},

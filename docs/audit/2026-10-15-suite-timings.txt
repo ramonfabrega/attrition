@@ -1,8 +1,9 @@
-# Every rondata release test timed alone, 2026-11-19, tools/suite_timings.py (tree 1940ba9d).
+# Every rondata release test timed alone, 2026-11-19, tools/suite_timings.py (tree 4623a2e0).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 5,492 s over 2542 tests; --stale-only merged. Top 10 = 968 s, top 30 = 1336, top 100 = 1862; 1088 tests under 1 s.
+# Sum 5,720 s over 2548 tests; --stale-only merged. Top 10 = 1118 s, top 30 = 1540, top 100 = 2077; 1092 tests under 1 s.
 # By module: mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, coverage 266 s / 6 tests, harness 227 s / 101 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
+199.71	diff::held_out::tests::the_held_out_games_score_as_pinned
 148.69	diff::sample::tests::the_sample_s_lines_against_the_hook
 144.47	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
 91.51	lobby::tests::the_page_starts_every_lobby_on_disk
@@ -14,6 +15,7 @@
 49.73	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
 44.29	checksum::playback::tests::the_long_window_game_agrees_through_its_closing_state
 31.00	diff::start_walk::recording::the_demand_s_game_is_whole_on_run1683
+26.54	diff::sample::tests::the_sample_s_ranges_to_3100_name_each_first_parting
 26.53	mapgen::tests::great_lakes_s_heights_are_the_start_dump_s_grid
 25.16	mapgen::tests::great_lakes_s_heights_are_the_start_dump_s_grid_off_the_rivers
 22.45	diff::battery::battery_floors_hold
@@ -1480,6 +1482,7 @@
 0.98	diff::persian_classical_pair::persian_classical_pair_captures_say_their_lobby
 0.98	diff::third::tests::run382_s_trace_says_where_the_third_map_s_word_parts
 0.98	diff::second::tests::run421_s_gap_is_walked_whole
+0.97	diff::start_walk::recording::the_demand_s_game_ends_on_the_tick_the_original_stops_on
 0.97	diff::audit::russian_word_corrections_change_nothing
 0.97	diff::golden::chapter_fifty_six_s_word_frame_is_widened_whole
 0.96	diff::second::tests::run356_s_word_frame_is_widened_whole
@@ -1564,6 +1567,7 @@
 0.86	diff::army::tests::run29_s_engagement_seeds_its_attack_from_the_first_member_of_the_group_s_list
 0.86	diff::golden::chapter_thirty_eight_s_battery_is_short_of_its_aim_on_the_word_s_block
 0.86	diff::american_lakes_word::run1004b_american_lakes_closing_state
+0.85	diff::held_out::tests::the_held_out_eight_are_the_rows_the_rule_names
 0.85	diff::classical_melee::classical_melee_first_parting
 0.85	diff::start_walk::the_harness_lobby_s_start_is_the_installed_one_wide
 0.85	diff::golden::chapter_thirty_one_holds_to_the_golden_word
@@ -2179,6 +2183,7 @@
 0.02	capture::archive::tests::lz4_payload_crc_is_checked_even_with_valid_metadata
 0.02	mapgen::tests::great_sahara_s_groups_parse_as_read
 0.02	diff::harness::trunk::tests::the_game_s_other_stand_up_rides_the_trunk_and_carries_its_own_fields
+0.01	diff::checksum_lines::packets::city_names::the_city_names_score_is_the_table
 0.01	artdata::tests::the_tileset_light_is_read
 0.01	diff::harness::trunk::tests::a_rider_s_later_run_ups_take_the_rungs_past_where_it_stands
 0.01	diff::testkit::whole_capture::tests::bounded_bodies_keep_frame_offset_first_match_and_last_nonempty_position
@@ -2475,6 +2480,7 @@
 0.01	checksum::tests::range_values_require_matching_shapes_and_a_known_field
 0.01	diff::harness::prefix::tests::the_overlap_checkpoint_keeps_the_earlier_start_and_group_boundary
 0.01	gamelog::tests::indexed_fields_keep_file_order_and_record_only_requested_names
+0.00	diff::held_out::tests::the_held_out_line_reads_as_pinned
 0.00	trace::checksums::tests::a_receipted_trace_requires_its_endpoint_checksum_and_detach
 0.00	recgame::tests::a_donor_may_differ_in_team_style_alone
 0.00	diff::start_walk::recording::sweep_4382_the_demand_over_style_zero_lobbies

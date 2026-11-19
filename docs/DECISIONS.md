@@ -158,7 +158,8 @@ is append-only and amended in place, as it always was.
 - 141 standing — Lanes out at the day's line land, and only the last day is careful at the stop (Ramon, 2026-11-17)
 - 142 standing — Codex's live windows join parity's set (5 of 6 games), a driver settles Codex's branch before it briefs, the demand is tried on a game the walk holds, the sample is read by its lines, and a row's footprint is never a colour (2026-11-18)
 - 143 standing — The pass of 2026-11-18, second: step 5 is ratified and the milestone closed, the headline is parity on the declared set, the chain plays the demand's game to its end, the third seat draws what a selected city shows, and no row is minted on the lake's streaks
-- 144 standing — The pass of 2026-11-19: item 4404's game is ratified as parity's seventh with its end tick pinned, a game is declared before the original plays it and parity held out is booked, the sample takes its ranges once, the lake gives up its seat, and the third seat names a city
+- 144 extended by 145 — The pass of 2026-11-19: item 4404's game is ratified as parity's seventh with its end tick pinned, a game is declared before the original plays it and parity held out is booked, the sample takes its ranges once, the lake gives up its seat, and the third seat names a city
+- 145 standing — The pass of 2026-11-19, second: parity held out is ratified at 0 of 8 and parsed on the scoreboard, a held-out game is spent once a lane reads it and a second battery is named, the lanes follow the eight with each game's ranges taken once, a lane lands one act and the driver counts the stop, the client opens every game on one camera, and `tranche.py` reads a booking's parentheses
 
 ## 1. Fidelity before divergence
 
@@ -14334,3 +14335,136 @@ them, the pass's fourth first act, was refused by the auto-mode
 classifier, and the pass did not route around it. `tools/disk.py` reaps
 `agent-*` trees only. The disk reads 98 GB free, from 183 at the pass
 before. It is Ramon's to run or to allow.
+
+## 145. Parity held out is ratified at 0 of 8 and parsed, a held-out game is spent once a lane reads it, the lanes follow the eight, and the client opens on one camera (2026-11-19)
+
+**What happened.** `commander` (Opus 5.5) ran sixteen lanes and the
+chain's builder off the pass of 2026-11-19 (items 4413 to 4429, twenty
+first-parent merges), reached the backstop, drained and gated whole
+(`gate-drain-1119c.log`, exit 0 on `4623a2e03`, the tip and origin/main).
+The pass ran on the `steer` row from 18:06 −05:00 with no subagent and no
+capture. The tables are in `docs/audit/2026-11-19-fable-pass-held-out.md`.
+
+**§1. Item 4413's line is ratified: parity held out reads 0 of 8, all
+eight taken.** What the pass read, none of it taken from the handoff:
+
+- **The declaration came first.** `8b3538f49` (10:45:54 −05:00) holds the
+  table and no take. run1700 launched at 10:48:02. The rule was entry 144
+  §2's, committed at 10:03.
+- **The scores are the tree's.** The pass ran
+  `the_held_out_games_score_as_pinned` alone: eight games in 206 s, each
+  row's states, agreeing counts and first partings as pinned.
+- **The comparison fails.** `gate-drain-1119b.log` is red on that test,
+  with row 140 taken and its score unpinned.
+- **One hole, mended: the test could skip unseen.** A lost recording or
+  a lost run directory filed no fixture request, so the gate's `0 missing
+  fixtures` said nothing about them. A passing test's `skipping:` line is
+  not on a gate log either: one log of 258 holds one, so "no `skipping:`
+  line", which the last two records quoted, is no evidence. Both paths go
+  through the audit now. With `HOME` at an empty directory it counts 16
+  missing where it counted none.
+- **The line is parsed.** The scoreboard carries `Parity held out:`, held
+  to `SCORES` by `the_handoff_s_parity_held_out_line_is_the_pinned_scores`
+  (seen red on a queue without it). The found half never moves, the `now`
+  half moves with the second column, and the commander writes it at a
+  booking. It closes parked 4413a. The handoff's bound goes 32 → 33 lines
+  for it.
+
+What 0 of 8 says. Two kinds of game came out (`docs/RECGAME.md` §10.3):
+
+- **The four Ancient starts are near whole.** Rows 0, 20 and 120 agree on
+  ten of twelve lines on all 6,001 states. Units parts first on 2990, 3694
+  and 2694 and agrees again later, and guys parts on 3 or 4 states. Row
+  140 parts units for good on 1568 and leaders on setup's set alone.
+- **The four later starts part early and for good** (rows 40, 60, 80,
+  100: Medieval to Information, each with resources 7 and difficulty 5):
+  units on 1858, 1055, 2239 and 1611, with another line before it on
+  three of them. The original ends each between 3330 and 4973. The pass drew row 100 in the client at 3000: the human's
+  capital is burning with the computer's army beside it. So the end looks
+  like a conquest of an idle seat, as the demand's game's was. That is
+  our walk, not theirs.
+- **Two of them part on setup's own set**, row 80's world and row 140's
+  leaders, on lobbies `Start: 161 of 161` calls equal. The start block
+  the dumps print is narrower than those two lines.
+
+**§2. A held-out game is spent once a lane reads it, and the estimate is
+the found column.** Entry 144 §2 kept a first score from being re-pinned.
+It did not say what the number is for once lanes work the eight. The
+found column is the estimate of how far "exactly" reaches on a game
+nobody tuned for: 0 of 8 games and 64 of 96 lines, on 2026-11-19. The now
+column is work, and it stops being an estimate the day a lane reads a
+parting off it. So a second battery is named here, before any take: rows
+10, 30, 50, 70, 90, 110, 130 and 150 of the same order, by the same
+recipe. It is taken when the first reads 4 of 8 now, or on Ramon's word,
+and its found column replaces this one as the estimate.
+
+One limit covers both batteries. Of 718 captures on disk with a lobby
+block, 688 seat two players, 26 three and 4 five, and 4 share a team
+(the sample's). Item 4429 found the namesake's sixth check passed as
+`false` since 2026-08-19, and found it only because the sample has
+allies. The lobbies on disk cannot say how far parity reaches with three
+opponents and a team. **Ramon's:** whether the eight fold into the
+headline's count (it would read 6 of 15), and whether the second battery
+adds seats and a team to each row.
+
+**§3. The lanes follow the eight, and each game's ranges are taken
+once.** The take holds one sum a line, so a parting names its state and
+not its leaf. Theirs' ranges never change, so one take of a game makes
+every later parting on it a diff on disk (entry 144 §3's lesson, applied
+before a lane spends a capture an act).
+
+- **The chain's builder: item 4435**, the Ancient starts' units line.
+  One ranges take of row 120 to its end, then the leaf. If one cause
+  parts rows 0, 20 and 120, three games turn whole on it.
+- **A parity seat: item 4436**, the later starts. Row 80's take first:
+  the world line on setup's set, by leaf.
+- **A parity seat: item 4432**, the sample, as booked. It is the one
+  game with a team.
+- **The eye's seat: item 4437** (§5).
+- **Unseated**: the packets' lines (items 4430, 4431, a diff on disk for
+  a seat that stops first), item 4433 and item 4438.
+
+**§4. A lane lands one act, and the stop rule is the driver's to
+count.** Sixteen lanes peaked between 133 and 281 k. None passed 300,
+against two at the pass before and six of thirteen on 2026-11-14, at
+6.16 USD a landing. Entry 134 §9's row is kept. Its consequence was not
+written down: every item says "it stops when two acts turn no line", no
+lane takes a second act, and so the rule could not fire. It is counted
+across an item's continuations: two landings running that move no number
+end the line, and each item says so. There is no guard. The count is two
+bookings, which a person reads.
+
+**§5. The client opens every game on one camera.** The pass drew the
+minted lobby and three held-out lobbies in the client. `pinned_camera`
+is the camera of run1559b's packet, beside the human's capital on Great
+Lakes. On East Indies (rows 40 and 120) the same camera opens on open
+sea, with the capital off the screen. A person who picks another map
+sees that first. Item 4437 mints its row first: slot 0's capital inside
+the frame at the opening camera, of 161 lobbies. Then it reads where the
+original puts the view at the start, against the cameras the click-free
+captures' packets hold. Seen on the same pair and booked behind it (item
+4438): theirs' buildings carry the player's red on their roofs and ours
+carry none.
+
+**§6. `tools/tranche.py` misread the tranche's bookings.** The driver
+wrote `Book N (… : …) and M (…); … booked as K`. The list stopped at the
+first colon, which sat inside a parenthesis. It read the frames 1716 and
+2921 and the year 2017 as items, found wells of those numbers from
+months ago, priced them, and never reached 4419 or 4429. The handoff's
+98.39 USD over sixteen sessions was two wrong sessions and two missing.
+Read right it is 98.53 USD, 6.16 a landing, 48.4 minutes waiting a
+landing. The parser takes parentheses out first now, and a test holds
+this tranche's subjects (red on the old parser).
+
+**§7. Three smaller rulings.**
+
+- **`skrifa` is earned.** It is in `crates/client` alone, the face is
+  read from the install at run time, and it moved the plate's light arm
+  47 → 53 of 53 (item 4427). The simulation gains no dependency.
+- **The namesake's other constants.** Beside the check item 4429 wired,
+  `upkeep.rs` still passes four of `Situation`'s predicates as `false`:
+  the scenario's free zone, the war grace (dead with shipped data),
+  assassin mode and the Conquer the World bonus. No lobby the page sets
+  reaches one. No item is booked.
+- **Item 4434 is done by the pass**: `docs/RECGAME.md` §10.3's results
+  paragraph reads all eight, and the line is §1's.

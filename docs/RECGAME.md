@@ -997,10 +997,33 @@ original under the checksum hook as `run1700 + k`, and scored by
 first parting with both values) is pinned as found and never re-pinned in
 place: a fix moves a second column.
 
-As found (item 4413, 2026-11-19), five of the eight taken, none whole:
-rows 0 and 20 agree on ten lines to 6000, units and guys parting
-(first 2990 and 3694); rows 40, 60 and 80 the original ended itself on
-4973, 4074 and 3836 with our walk not over, seven, five and eight lines
-whole; row 80's world parts on setup's set. The original refused none of
-the five client-recorded files. `SCORES` holds every value; `docs/RUNS.md`
-run1700 to run1704.
+As found (item 4413, 2026-11-19), all eight taken, none whole: 64 of 96
+lines agree on every state. The queue's `Parity held out:` line is held to
+`SCORES` by `the_handoff_s_parity_held_out_line_is_the_pinned_scores`
+(DECISIONS 145 §1). Two kinds of game came out.
+
+- **The Ancient starts** (rows 0, 20, 120, 140) play to 6000. Rows 0, 20
+  and 120 agree on ten lines on all 6,001 states; units parts first on
+  2990, 3694 and 2694 and agrees again later (5,435, 5,073 and 4,815
+  states), and guys parts on 3 or 4 states. Row 140 (difficulty 4) parts
+  units for good on 1568, guys on 7 states, and leaders on setup's set
+  alone (6,000 of 6,001).
+- **The later starts** (rows 40, 60, 80, 100: Medieval, Gunpowder,
+  Enlightenment, Information, each with `STARTING_RESOURCES 7` and
+  `DIFFICULTY 5`) the original ended itself on 4973, 4074, 3836 and 3330,
+  with our walk not over. They part for good early: row 40 groups 711 and
+  units 1858; row 60 leaders 969 and units 1055; row 80 world on setup's
+  set and units 2239; row 100 world 134 and units 1611. Seven, five, eight
+  and five lines are whole.
+
+The second column, since: rows 40, 80 and 100 moved on the groups line
+with the tranche's packet fixes (66 of 96 lines now). The original refused
+none of the eight client-recorded files. `SCORES` holds every value;
+`docs/RUNS.md` run1700 to run1707.
+
+**What it has not established.** The take holds sums, so no parting names
+its leaf until a ranges take of the same file (items 4435, 4436). Why the
+original ended the four later starts is not read from theirs: our walk of
+row 100 has the computer's army at the human's burning capital on 3000,
+which suggests a conquest and is our side only. All eight seat two
+players with no team (DECISIONS 145 §2).
