@@ -347,9 +347,10 @@ pub struct Frame<'a> {
     pub terrain: Tris<'a>,
     pub figures: Tris<'a>,
     pub overlay: Tris<'a>,
-    /// The underlays (item 4401): the selected buildings' bands, drawn
-    /// after the ground and before the objects.
-    pub underlay: Tris<'a>,
+    /// The underlays (items 4401, 4421): the selected buildings' bands,
+    /// drawn after the ground and before the objects, each layer blended
+    /// at its alpha (the texel's) times [`UNDERLAY_ALPHA`].
+    pub underlay: &'a [ScreenLayer],
     /// The screen pass (item 4410): the cities' plates, after the tone map
     /// and before the overlay, each layer blended at its alpha.
     pub screen: &'a [ScreenLayer],
@@ -2085,7 +2086,9 @@ impl Gpu {
         }
         let figures = self.vertices(frame.figures);
         let overlay = self.vertices(frame.overlay);
-        let underlay = self.vertices(frame.underlay);
+        let under_pos: Vec<[f32; 3]> = frame.underlay.iter().flat_map(|l| l.pos.clone()).collect();
+        let under_col: Vec<[f32; 3]> = frame.underlay.iter().flat_map(|l| l.col.clone()).collect();
+        let underlay = self.vertices((&under_pos, &under_col));
         let screen_pos: Vec<[f32; 3]> = frame.screen.iter().flat_map(|l| l.pos.clone()).collect();
         let screen_col: Vec<[f32; 3]> = frame.screen.iter().flat_map(|l| l.col.clone()).collect();
         let screen = self.vertices((&screen_pos, &screen_col));
@@ -2236,17 +2239,24 @@ impl Gpu {
             // Item 4401: the underlays after the ground, before the
             // buildings, as `BuildOut::draw_underlays` comes before the
             // objects draw over it.
+            // Item 4421: a layer a row of the band's texture, its alpha
+            // the texel's times the vertex's (`MODULATE(TEXTURE, CURRENT)`).
             if let Some(b) = &underlay {
-                let a = f64::from(UNDERLAY_ALPHA) / 255.0;
                 pass.set_pipeline(&self.underlay);
-                pass.set_blend_constant(wgpu::Color {
-                    r: a,
-                    g: a,
-                    b: a,
-                    a,
-                });
                 pass.set_vertex_buffer(0, b.slice(..));
-                pass.draw(0..frame.underlay.0.len() as u32, 0..1);
+                let mut at = 0u32;
+                for l in frame.underlay {
+                    let n = l.pos.len() as u32;
+                    let a = f64::from(l.alpha) / 255.0 * f64::from(UNDERLAY_ALPHA) / 255.0;
+                    pass.set_blend_constant(wgpu::Color {
+                        r: a,
+                        g: a,
+                        b: a,
+                        a,
+                    });
+                    pass.draw(at..at + n, 0..1);
+                    at += n;
+                }
             }
             pass.set_pipeline(&self.world);
             if !quads.is_empty() {
