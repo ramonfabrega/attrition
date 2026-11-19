@@ -1728,7 +1728,7 @@ fn run602_s_word_frame_is_widened_whole() {
     );
     // Item 2384: 29 -> 31, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
-    // Item 4419: 31 -> 30, `group:64.form` ours 0 theirs −1 on 981
+    // Item 4422: 31 -> 30, `group:64.form` ours 0 theirs −1 on 981
     // agrees (`action_swarm_around`'s `form = −1`, parked 3386i).
     pin_eq!(w.firsts.len(), 30, "run602 after French worker capacity");
     assert!(

@@ -1115,7 +1115,7 @@ fn a_human_s_build_drop_gives_each_citizen_a_move_then_the_build() {
         }
         assert!(sim.push_group(&mut g, true));
         // `action_swarm_around@0070fbe0:111` writes the record's `form`
-        // −1 (item 4419; the 2017 sample's slot 195 on 961).
+        // −1 (items 4419, 4422; the 2017 sample's slot 195 on 961).
         sim.gstate_mut(&g).expect("a seated group").form = 9;
         let b = sim
             .group_action_build(&g, tile_pos(40, 40), t.barracks, QueuePos::New)
