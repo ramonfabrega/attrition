@@ -187,9 +187,9 @@ mod tests {
             };
             let want = pin.moved.unwrap_or(pin.found);
             assert_eq!(
-                (score.states, score.agreed, first),
-                (want.states, want.agreed, want.first.to_vec()),
-                "row {} run{}: states, each line's agreeing states, the first partings",
+                (score.states, score.agreed, first, score.over),
+                (want.states, want.agreed, want.first.to_vec(), want.over),
+                "row {} run{}: states, each line's agreeing states, the first partings, ours' end",
                 held.row,
                 1700 + k
             );
@@ -333,6 +333,8 @@ pub(crate) struct Score {
     pub states: u32,
     pub agreed: [u32; 12],
     pub first: &'static [First],
+    /// The first state our walk holds `Sim::game_over` on, if any.
+    pub over: Option<i32>,
 }
 
 /// A held-out game's pins: its first score, as found and never re-pinned in
@@ -364,15 +366,78 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
                 ("units", (2990, Some(3067758760), 2623096745)),
                 ("guys", (3157, Some(3930404420), 1713190284)),
             ],
+            over: None,
         },
         moved: None,
     }),
     // run1701
-    None,
+    // row 20, New World (seed 12345), as found 2026-11-19: ten lines whole;
+    // units 5,073 of 6,001, first parting state 3694; guys 5,997, first 4180.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                5073, 6001, 6001, 6001, 6001, 6001, 5997, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (3694, Some(1358059058), 1889097011)),
+                ("guys", (4180, Some(797978321), 3921096337)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
     // run1702
-    None,
+    // row 40, East Indies at Medieval (seed 12345), as found 2026-11-19: the
+    // original ended the game itself on 4973 (ours holds no `game_over` there);
+    // seven lines whole; units 1,858 of 4,974, first 1858; groups 1,843, first
+    // 711; guys 4,824, first 2444; cities 4,967, first 4127; world 4,859, first
+    // 4859.
+    Some(FirstScore {
+        last: Some(4973),
+        found: Score {
+            states: 4974,
+            agreed: [
+                1858, 4974, 4974, 4974, 4974, 1843, 4824, 4974, 4967, 4974, 4974, 4859,
+            ],
+            first: &[
+                ("units", (1858, Some(2347968956), 4143655355)),
+                ("groups", (711, Some(3431986133), 1658910664)),
+                ("guys", (2444, Some(4226756071), 1757622212)),
+                ("cities", (4127, Some(3606914667), 2610767417)),
+                ("world", (4859, Some(155879679), 1707773025)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
     // run1703
-    None,
+    // row 60, Great Sahara at Gunpowder (seed 12345), as found 2026-11-19: the
+    // original ended the game itself on 4074 (ours holds no `game_over` there);
+    // five lines whole; units 1,055 of 4,075, first 1055; builds 4,073, first 4019;
+    // groups 3,863, first 3598; guys 3,958, first 2014; leaders 4,068, first 969;
+    // cities 4,066, first 2253; world 3,984, first 3984.
+    Some(FirstScore {
+        last: Some(4074),
+        found: Score {
+            states: 4075,
+            agreed: [
+                1055, 4073, 4075, 4075, 4075, 3863, 3958, 4068, 4066, 4075, 4075, 3984,
+            ],
+            first: &[
+                ("units", (1055, Some(2835614280), 2603158087)),
+                ("builds", (4019, Some(202745570), 1178445602)),
+                ("groups", (3598, Some(3778361523), 962934390)),
+                ("guys", (2014, Some(4240840485), 61413159)),
+                ("leaders", (969, Some(2042929290), 243376476)),
+                ("cities", (2253, Some(2126061725), 1479221375)),
+                ("world", (3984, Some(402934873), 4267790267)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
     // run1704
     None,
     // run1705
@@ -386,4 +451,4 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
 /// line and state, and the games taken.
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 1);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 4);
