@@ -506,7 +506,9 @@ Not established:
   drawing are counted on run1559b (`RUN1559B_3279_PLATE`). Not
   established: **the name.** The sim carries no founding name
   (`sim::cities::rename`'s SEAM), so the client draws a plate only for a
-  city a rename has named, and the row names `Napata` itself; and the
+  city a rename has named, and the row names `Napata` itself (item 4416
+  minted the name's own row on the packets, `CITY_NAMES_SCORE` 0 of 521;
+  a captured city's name is not read, parked 4416a); and the
   font's advances are held for `N`, `a`, `p` and `t` alone
   (`selection::PLATE_ADVANCES`, the packet's): a name with any other
   character draws no plate rather than a guessed one. **The glyphs** are

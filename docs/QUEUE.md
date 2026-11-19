@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5): the pass designed five, four a seat, none out: the chain's 4413 (parity held out), the suite's 4414 (the sample, from units 532), the render seat's 4415 (the packets' guys line), the third's 4416 (a city's founding name); 4417 (the packets' units line) for the seat that stops first. 4413 and 4414 both take the game lane, one game at a time.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5): the pass designed five; out: the chain's builder on 4413 (parity held out), lane-4414 (the sample, from units 532), lane-4415 (the packets' guys line), and the third seat's 4418 (the founding name's port; 4416's first act minted `CITY_NAMES_SCORE` at 0 of 521); 4417 (the packets' units line) for the seat that stops first. 4413 and 4414 both take the game lane, one game at a time.
 
 4413. **Parity held out: eight lobbies named before the original plays them** (a rules item, whole; the chain's, unspawned;
 `docs/RECGAME.md` §10; DECISIONS 144 §2). The seven games of parity's set were scored and then joined; this line is declared first. The
@@ -72,12 +72,13 @@ behind: run882b f6808 record 24, ours 22 theirs 23; run810 f3631 record 45, ours
 `step4.py` watch on a packet, as 4411 named `last_z`'s. Then `turret_inc`'s byte 58 (9 lines, parked 4402a) and `z` (byte 12, 7). The
 table re-pins through `tools/repin_packets.py`. It stops when two acts turn no line.
 
-4416. **A city's founding name, then the band's width** (a `render` item, scoped, touching `crates/sim`; the third seat's, unspawned;
-`docs/HUD.md` §3; DECISIONS 144 §5). A live game draws no plate: the sim carries no founding name (parked 4410a), so a city reads none
-until a rename. First act, on disk: a row minted at each city's name on the packets (`CityData +0x90`) against ours, before anything is
-ported. Then `City::generate_name@00735c90`'s choice from the listing, and the plate drawn in a live lobby. Then the band: ours reads
-2,132 red on theirs' 1,477 on `RUN1559B_3279_SELECTED`, wider and further out (parked 4401a). It stops when the snapshot tools cannot
-reach a city's record, and says what would.
+4418. **A city's founding name: the port, then the plate, then the band** (a `render` item, scoped, touching `crates/sim`; the third
+seat's, unspawned; `docs/HUD.md` §3, §6; DECISIONS 144 §5). The first act (4416, `cbd2f07ed`) minted the row on disk: `CITY_NAMES_SCORE`
+0 of 521 live cities on 107 packets (`packets/city_names.rs`, `tools/recomp/city_names.py`); our sim holds every one and names none.
+Next: port `City::generate_name@00735c90`, the rule written in 4416's journal and confirmed at the listing (736150–7362fe); the seed is
+our sim's game seed, an unused slot holds tribe −1, the suffix separator is " "; expected 0 → 521 of 521. Then the plate drawn in a live
+lobby, then the band: ours 2,132 red on theirs' 1,477 on `RUN1559B_3279_SELECTED` (parked 4401a). Parked 4416a: a conquered city's name.
+It stops when two acts move the row by nothing.
 
 4417. **The packets' units line** (a rules item, whole; unseated, for the seat that stops first; CHECKSUM §23; DECISIONS 144 §4).
 4400's census put two ranges of the units line next by count: `id..march` on 44 of the lines that part and `collide_frame..play` on 42.

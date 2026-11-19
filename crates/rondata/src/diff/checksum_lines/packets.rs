@@ -13,6 +13,7 @@
 //! ([`SEATED_WORDS`]).
 
 mod building_slots;
+pub(in crate::diff) mod city_names;
 
 use super::*;
 use crate::diff::third::stand_up_from;
@@ -270,6 +271,9 @@ pub(super) struct Walked {
     pub frame: i64,
     pub lines: Vec<LineOutcome>,
     pub leaves: Vec<LeafRow>,
+    /// Each live city's name, theirs against ours ([`city_names`], item
+    /// 4416); `None` on a packet with no names file.
+    pub names: Option<Vec<city_names::NameRow>>,
 }
 
 /// Walk `game` from its frame zero to each of `packets`' frames (ascending)
@@ -315,14 +319,18 @@ pub(super) fn walk_packets_with(
             frame <= length,
             "{run}: frame {frame} past {name}'s pinned length {length}"
         );
-        streams.push((run, frame, s));
+        let names = city_names::packet_names(run).map(|(at, rows)| {
+            assert_eq!(at, frame, "{run}: names.tsv's logger frame");
+            rows
+        });
+        streams.push((run, frame, s, names));
     }
     let pieces = Pieces::read()?;
     let frames: Vec<i64> = streams.iter().map(|s| s.1).collect();
     let mut out = Vec::new();
     let mut at = 0;
     walk(&frames, &mut |f, built| {
-        let (run, frame, theirs) = &streams[at];
+        let (run, frame, theirs, names) = &streams[at];
         assert_eq!(
             (f, built.sim.frame),
             (*frame, *frame),
@@ -352,11 +360,15 @@ pub(super) fn walk_packets_with(
         let lines = compare(&ours, theirs);
         let empty = StreamRows::new();
         let leaves = leader_leaf_rows(&built.sim, theirs.get("leaders").unwrap_or(&empty));
+        let names = names
+            .as_deref()
+            .map(|rows| city_names::name_rows(&built.sim, rows));
         out.push(Walked {
             run,
             frame: *frame,
             lines,
             leaves,
+            names,
         });
     })?;
     Some(out)
@@ -617,6 +629,13 @@ pub(super) fn check(name: &str, walked: &[Walked]) {
                 eprintln!("  {n}: {} of {} ranges part; first {f}", l.parted, l.theirs);
             }
         }
+        if let Some((agree, of)) = city_names::tally(w) {
+            let first = city_names::first_parting(w);
+            eprintln!(
+                "NAMES\t{}\t{}\t{agree}\t{of}\tfirst {:?}",
+                w.run, w.frame, first
+            );
+        }
         if print {
             eprintln!("PIN\t(\"{}\", {}, {:?}),", w.run, w.frame, pin_of(&w.lines));
             for (slot, field, leaf, ours, t, _) in &w.leaves {
@@ -674,6 +693,20 @@ pub(super) fn check(name: &str, walked: &[Walked]) {
             name,
             w.run
         );
+        if let Some((agree, of)) = city_names::tally(w) {
+            let want = city_names::NAMES_PARTING
+                .iter()
+                .find(|p| p.0 == w.run)
+                .map_or(0, |p| p.1);
+            assert_eq!(
+                of - agree,
+                want,
+                "{} {}: the city names parting (NAMES_PARTING), first {:?}",
+                name,
+                w.run,
+                city_names::first_parting(w)
+            );
+        }
         hold_released(w, &held);
     }
 }
@@ -718,6 +751,7 @@ fn hold_witnesses(
             frame: w.frame,
             lines: w.lines.clone(),
             leaves: w.leaves.clone(),
+            names: w.names.clone(),
         };
         for r in bent.leaves.iter_mut() {
             if r.0 == slot && r.1 == "who..ally_mask" && r.2 == leaf {
@@ -933,6 +967,8 @@ fn minted_packet() {
             frame: MINTED.1,
             lines,
             leaves,
+            names: city_names::packet_names(MINTED.0)
+                .map(|(_, rows)| city_names::name_rows(&sim, &rows)),
         }],
     );
 }
@@ -5568,6 +5604,7 @@ fn probe_built_packet() {
             frame,
             lines: vec![],
             leaves: leaves.clone(),
+            names: None,
         };
         eprintln!(
             "{side} leaves parting outside the list: {}",
