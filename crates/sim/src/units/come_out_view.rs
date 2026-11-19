@@ -574,10 +574,6 @@ impl ComeOutView for SimComeOut<'_> {
         // `617fc7`: guy 0's `turret_inc` (item 4420).
         if let Some(g) = self.sim.units[self.unit].guys.first_mut() {
             g.turret.inc = MISSILE_FIGURE_90;
-            if std::env::var_os("RON_PROBE_4420").is_some() {
-                let u = &self.sim.units[self.unit];
-                eprintln!("PROBE4420 f{} {}/{} missile out, TI {}", self.sim.frame, u.owner as u8, u.index, u.type_index);
-            }
         }
     }
     fn v20(&mut self, _player: i32, h: i32) -> bool {
