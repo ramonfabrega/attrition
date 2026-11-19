@@ -82,6 +82,8 @@ Parity holds at 5 of 6 and packet lines at 661 of 1,053. Whole branch gate passe
 
 `codex/scoped-gates` (4408) builds on that handoff. Widened scope 13m56s → 13m26s, ages census 289 → 216s alone. Required-fixture whole gate green on `41d0a2731` in 24m11s. Reuse prediction stays opt-in.
 
+`codex/field-coverage` (4409) builds on 4408. Measuring repeated replay ticks and trace decoding in the field-coverage test. Branch gate pending.
+
 ## How to maintain this file
 
 - **End of session:** rewrite "Where things stand" from scratch, headline first and whether it moved; delete

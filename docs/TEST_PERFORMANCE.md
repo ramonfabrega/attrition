@@ -99,14 +99,18 @@ The journal for item 4407 records the paired runs and corruption control.
 ## Scoped replay reuse
 
 The coverage driver may open a thread-local `harness::prefix::Scope` over
-immutable finalized fixtures and an unchanged installation. It retains at most
-one `Built` plus one shared loaded installation. A subsequent widening can move
-that complete state forward only when its ordered base/trace/sibling paths,
+immutable finalized fixtures and an unchanged installation. Each worker can
+retain the previous end state, its ordinary starting state and one intermediate
+state, plus the loaded installation. A subsequent widening can move
+one of those complete states forward only when its ordered base/trace/sibling paths,
 lengths, modification times, and installation root agree, and its first compared
 block is strictly after the retained simulation frame. All observation streams,
-links and simulation state travel together. Overlapping or incompatible windows
-restart; a missing input is included in the key rather than silently equated
-with a present input. The comparison capture is never substituted: every requested
+links and simulation state travel together. The intermediate state is taken
+512 frames before the tail on a long walk with another window in its group.
+It can move the normal starting state forward when the next window overlaps.
+The ordinary fallback stays available. A replayed quit closes eligibility for
+subsequent snapshots, and a new group clears all three states. Missing inputs
+are part of the key. Every window reads its own comparison capture. Every requested
 block and all existing comparisons still execute. Per-window result accumulators
 start empty. No verdict, comparison result, or recorded coverage is cached.
 
@@ -117,7 +121,11 @@ unchanged while it runs; this is not a persistent cross-version replay cache.
 `RON_DISABLE_PREFIX_REUSE=1` supplies the independent replay path.
 `RON_VERIFY_PREFIX_REUSE=1` compares each optimized widening's complete report,
 checkpoints and independently recorded field set with a fresh from-zero walk.
-`RON_PROFILE_REPLAY=1` reports setup, ticking, total time and reused frame count.
+`RON_PROFILE_REPLAY=1` reports the ordinary stages plus the first compared block,
+elapsed time approaching it and ticks saved by the intermediate state. The
+generic window advanced `tail - start` ticks, including
+`max(first - 1 - start, 0)` before comparison. The independently verified walk
+reports its own timings. See the [field-coverage journal](journal/2026-11-19-item-4409.md).
 An audit is followed by the ordinary coverage test, so the legacy walk cannot
 supply missing coverage to a normal passing verdict.
 

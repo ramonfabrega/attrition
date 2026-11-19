@@ -45,6 +45,22 @@ pub mod ranges;
 
 use std::path::Path;
 
+/// A finalized or diagnostic trace uses eight little-endian words per
+/// record. Diagnostics can still read the complete records of a cut file.
+fn records(bytes: &[u8]) -> impl DoubleEndedIterator<Item = [u32; 8]> + '_ {
+    bytes
+        .get(32..)
+        .unwrap_or_default()
+        .as_chunks::<32>()
+        .0
+        .iter()
+        .map(|record| {
+            std::array::from_fn(|i| {
+                u32::from_le_bytes(record[i * 4..i * 4 + 4].try_into().unwrap())
+            })
+        })
+}
+
 /// The image base every address here is normalised to. A run that
 /// relocated reports its own base in the header and is folded back to this
 /// one, so a site is comparable between runs and against the Ghidra
@@ -986,11 +1002,9 @@ impl Trace {
         // leaves a CALL with no RET; both are dropped rather than half
         // reported.
         let mut open: Vec<(u32, u32, [i32; 4], i64)> = Vec::new();
-        let mut off = 32;
         // `emit` writes the frame counter into slot 7, and it is `-1`
         // before the first `do_frame`.
-        while off + 32 <= bytes.len() {
-            let r: Vec<u32> = (0..8).map(|i| word(off + i * 4)).collect();
+        for r in records(bytes) {
             let frame = i64::from(r[7] as i32);
             if r[0] == 0 {
                 t.hits.push((norm(r[1]), frame));
@@ -1044,7 +1058,6 @@ impl Trace {
                     kind: r[0],
                 });
             }
-            off += 32;
         }
         t.draw_frames_ordered = t
             .draws
@@ -1404,7 +1417,9 @@ mod tests {
                 vec![(7, 123)]
             );
             for cut in 1..32 {
-                assert!(Trace::parse_finalized(&valid[..valid.len() - cut]).is_err());
+                let truncated = &valid[..valid.len() - cut];
+                assert!(Trace::parse(truncated).unwrap().frames.is_empty());
+                assert!(Trace::parse_finalized(truncated).is_err());
             }
             let lost = bytes(&[header, [5, 14, 3, 0, 0, 0, 0, 7]]);
             assert!(

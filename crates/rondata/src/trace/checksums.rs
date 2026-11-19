@@ -13,6 +13,8 @@
 //! tick and its `end_frame`, and its `ordinal` 0 is the first `check_all`
 //! after it (`docs/CHECKSUM.md` §24).
 
+use super::records;
+
 /// The record kind the hook writes (`tracer.c`'s `K_CSUM`).
 pub const K_CSUM: u32 = 13;
 
@@ -53,24 +55,6 @@ pub(crate) fn ranges_summary(bytes: &[u8]) -> Option<(u32, bool, bool)> {
     records(bytes)
         .rfind(|r| r[0] == 5 && r[1] == 36)
         .map(|r| (r[2], r[5] != 0, r[6] == 1))
-}
-
-fn records(bytes: &[u8]) -> impl DoubleEndedIterator<Item = [u32; 8]> + '_ {
-    let base_ok = bytes.len() >= 32;
-    bytes
-        .get(32..)
-        .filter(|_| base_ok)
-        .unwrap_or(&[])
-        .as_chunks::<32>()
-        .0
-        .iter()
-        .map(|c| {
-            let mut r = [0u32; 8];
-            for (i, w) in r.iter_mut().enumerate() {
-                *w = u32::from_le_bytes(c[i * 4..i * 4 + 4].try_into().unwrap());
-            }
-            r
-        })
 }
 
 /// Every set the log holds, in log order. A set is four records, parts 0

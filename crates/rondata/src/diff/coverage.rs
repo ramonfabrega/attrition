@@ -4120,6 +4120,7 @@ fn walk_by_module(windows: &[(&str, Window)], walkers: usize) -> Vec<Walk> {
                         {
                             prefix_batch.begin_group();
                             for index in group.clone() {
+                                prefix_batch.set_has_next_window(index + 1 < group.end);
                                 match (windows[index].1)() {
                                     Some(w) => {
                                         if index == 0 {

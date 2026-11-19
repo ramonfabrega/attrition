@@ -5042,8 +5042,10 @@ pub(crate) mod tests {
                 build()
             }
         });
+        let prefix_at = built.sim.frame;
         if let Some(key) = &prefix_key {
             super::prefix::mark_start(key, &built);
+            super::prefix::resume_overlap(key, &mut built, first_block);
         }
         let resumed_at = built.sim.frame;
         let setup_time = started.elapsed();
@@ -5122,13 +5124,36 @@ pub(crate) mod tests {
         // its stand-up rides the game's trunk to the frame before the first
         // block (`trunk`, item 4220). A verifying walk takes no prefix and
         // rides nothing.
+        let approach_started = profiling.then(std::time::Instant::now);
+        let overlap = prefix_key.as_ref().and_then(|key| {
+            super::prefix::overlap_frame(resumed_at, tail).map(|frame| (frame, key))
+        });
+        if let Some((frame, key)) = overlap
+            && frame < first_block - 1
+        {
+            super::trunk::advance(&mut built, frame);
+            super::prefix::remember_overlap(key, &built);
+        }
         if prefix {
             super::trunk::advance(&mut built, first_block - 1);
         }
+        let mut approach_time = std::time::Duration::ZERO;
         // Frame `f` writes block `f + 1`, so the window's last block is
         // frame `tail - 1`'s. `0..=tail` read block `tail + 1` too, which no
         // chain held until run211 followed run202 (item 722).
         for f in built.sim.frame..tail {
+            if let Some(t) = approach_started
+                && f == first_block - 1
+                && resumed_at < f
+            {
+                approach_time = t.elapsed();
+            }
+            if let Some((frame, key)) = overlap
+                && f == frame
+                && !quit_replayed
+            {
+                super::prefix::remember_overlap(key, &built);
+            }
             if let Some((sf, w, o)) = sweep
                 && sf == f
             {
@@ -5474,12 +5499,13 @@ pub(crate) mod tests {
         }
         if profiling {
             eprintln!(
-                "replay profile {name}: base={base} prefix={prefix} start={resumed_at} tail={tail} blocks={blocks} total={:?} setup={setup_time:?} parse={parse_time:?} ticks={tick_time:?} decode={:?} values={:?} groups={:?} leaders_gaia={:?}",
+                "replay profile {name}: base={base} prefix={prefix} start={resumed_at} tail={tail} blocks={blocks} total={:?} setup={setup_time:?} parse={parse_time:?} ticks={tick_time:?} decode={:?} values={:?} groups={:?} leaders_gaia={:?} first={first_block} approach={approach_time:?} overlap_ticks={}",
                 started.elapsed(),
                 stages[0],
                 stages[1],
                 stages[2],
-                stages[3]
+                stages[3],
+                resumed_at - prefix_at,
             );
         }
         // A state past a replayed quit is no other walk's prefix.

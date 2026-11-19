@@ -1,4 +1,4 @@
-//! A single movable replay prefix inside an explicit, immutable-fixture batch.
+//! Movable replay states inside an explicit, immutable-fixture batch.
 //! Never caches verdicts or comparison records; every requested block is compared.
 //!
 //! **Two holders** (item 4216, DECISIONS 132 §11). A [`Scope`] is one
@@ -66,6 +66,10 @@ struct Batch {
     /// the same inputs whose first block falls inside that walk resumes
     /// here instead of ticking again from frame zero.
     start: Option<(Key, Built)>,
+    /// One checkpoint just before the end of the preceding window. The
+    /// ordinary start still stands for windows that reach further back.
+    overlap: Option<(Key, Built)>,
+    has_next_window: bool,
     reused_ticks: i64,
     loaded: Option<(PathBuf, std::sync::Arc<crate::load::Loaded>)>,
 }
@@ -149,7 +153,8 @@ pub(super) fn stand_up(build: impl FnOnce() -> Built) -> Built {
 }
 
 /// Inputs, install and tuning remain immutable until this guard drops.
-/// Only one Built is retained, moved into the next walk (never cloned).
+/// Each worker can retain the end, the ordinary start and one intermediate
+/// state. A resumed state moves into the walk that consumes it.
 pub(crate) struct Scope(std::marker::PhantomData<std::rc::Rc<()>>);
 impl Scope {
     pub(crate) fn enter() -> Self {
@@ -169,7 +174,12 @@ impl Scope {
             let mut batch = batch.borrow_mut();
             batch.prefix = None;
             batch.start = None;
+            batch.overlap = None;
         });
+    }
+
+    pub(crate) fn set_has_next_window(&self, has_next: bool) {
+        BATCH.with(|batch| batch.borrow_mut().has_next_window = has_next);
     }
 }
 impl Drop for Scope {
@@ -296,6 +306,41 @@ pub(super) fn mark_start(key: &Key, built: &Built) {
         }
     });
 }
+
+/// Keep one state a detailed capture window back from the end. Overlapping
+/// windows often start a few hundred frames before the preceding tail.
+/// Short walks and the last window of a batch need no extra clone.
+pub(super) fn overlap_frame(start: i64, tail: i64) -> Option<i64> {
+    const SPAN: i64 = 512;
+    let frame = tail - SPAN;
+    (frame - start >= SPAN
+        && BATCH.with(|batch| {
+            let b = batch.borrow();
+            b.active && b.has_next_window
+        }))
+    .then_some(frame)
+}
+
+pub(super) fn remember_overlap(key: &Key, built: &Built) {
+    BATCH.with(|batch| batch.borrow_mut().overlap = Some((key.clone(), built.clone())));
+}
+
+/// The ordinary stand-up or prefix has already supplied its inputs and
+/// saved its start. Moving this state forward preserves both that receipt
+/// and the original fallback for a later window that starts earlier.
+pub(super) fn resume_overlap(key: &Key, built: &mut Built, first: i64) {
+    BATCH.with(|batch| {
+        let mut batch = batch.borrow_mut();
+        if let Some((previous, saved)) = batch.overlap.take()
+            && previous == *key
+            && built.sim.frame < saved.sim.frame
+            && saved.sim.frame < first
+        {
+            batch.reused_ticks += saved.sim.frame - built.sim.frame;
+            *built = saved;
+        }
+    });
+}
 pub(super) fn put(key: Key, built: Built) {
     if !batch_active() {
         if sharing() {
@@ -402,6 +447,43 @@ mod tests {
             "the previous starting state is gone too"
         );
     }
+    #[test]
+    fn the_overlap_checkpoint_keeps_the_earlier_start_and_group_boundary() {
+        let scope = scope();
+        let k = key("a");
+        scope.set_has_next_window(true);
+        assert_eq!(overlap_frame(0, 1600), Some(1088));
+        assert_eq!(overlap_frame(1000, 1600), None);
+        scope.set_has_next_window(false);
+        assert_eq!(overlap_frame(0, 1600), None);
+
+        let mut start = built(10);
+        let mut checkpoint = built(80);
+        checkpoint.frame_seeds.push((80, 99));
+        mark_start(&k, &start);
+        remember_overlap(&k, &checkpoint);
+        resume_overlap(&k, &mut start, 81);
+        assert_eq!(start.sim.frame, 80);
+        assert_eq!(start.frame_seeds, [(1, 42), (80, 99)]);
+        assert_eq!(take(&k, 75).unwrap().sim.frame, 10);
+
+        for (lookup, first) in [(key("b"), 81), (key("a"), 80), (key("a"), 79)] {
+            let mut fresh = built(0);
+            remember_overlap(&k, &checkpoint);
+            resume_overlap(&lookup, &mut fresh, first);
+            assert_eq!(fresh.sim.frame, 0);
+        }
+        let mut newer = built(90);
+        remember_overlap(&k, &checkpoint);
+        resume_overlap(&k, &mut newer, 100);
+        assert_eq!(newer.sim.frame, 90);
+        remember_overlap(&k, &checkpoint);
+        scope.begin_group();
+        let mut fresh = built(0);
+        resume_overlap(&k, &mut fresh, 81);
+        assert_eq!(fresh.sim.frame, 0);
+    }
+
     #[test]
     fn dropping_a_batch_discards_its_state_even_on_unwind() {
         let panic = std::panic::catch_unwind(|| {
