@@ -372,6 +372,30 @@ fn supply_does_not_shelter_a_peacetime_border_violation() {
     assert_eq!(frames_of(&ticks, 0).len(), 96 / T_PEACE as usize);
 }
 
+/// Eligibility check 6 (`Unit::process_attrition@005e11a0`, the `diplos`
+/// pair at `+0x74`): an ally's ground takes nothing, and only an alliance
+/// both ways counts (item 4429: the sample's computer 2's Citizen on its
+/// ally 0's ground bled the peace period on 2111 in ours alone).
+#[test]
+fn an_allys_ground_takes_no_attrition_and_one_way_is_no_alliance() {
+    let mut sim = skirmish(1);
+    sim.leaders.at_war = vec![vec![false; 2]; 2];
+    sim.leaders.allied = vec![vec![true; 2]; 2];
+    sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 1000));
+    assert!(run(&mut sim, 96).is_empty(), "an ally's ground bled");
+    assert_eq!(sim.units[0].attrition, 0);
+    assert!(!sim.units[0].ignores_supply);
+    assert_eq!(sim.units[0].health, 1000);
+
+    // Player 1 calls player 0 an ally and player 0 does not: the peace
+    // period, as on any peaceful border.
+    sim.leaders.allied[0][1] = false;
+    let ticks = run(&mut sim, 96);
+    assert_eq!(sim.units[0].attrition, T_PEACE);
+    assert!(sim.units[0].ignores_supply);
+    assert!(!ticks.is_empty());
+}
+
 #[test]
 fn a_garrisoned_unit_is_not_processed_at_all() {
     let mut sim = skirmish(4);

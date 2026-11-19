@@ -368,10 +368,19 @@ impl Sim {
         let at_war = ground
             .player()
             .is_none_or(|o| self.leaders.at_war[unit.owner as usize][o as usize]);
+        // Check 6, `Unit::process_attrition@005e11a0`'s `diplos` pair: the
+        // victim's `diplos[ground]` (`LeaderData +0x74`, read at
+        // `0xe3a404 + victim * 0x6eec + ground * 4`, `leaders.list` being
+        // `0xe3a390`) and the ground's `diplos[victim.who]` both 2: an
+        // alliance both ways, `LeaderData::is_ally` (item 4429: the sample's
+        // computer 2's Citizen on its ally 0's ground on 2111).
+        let mutual_treaty = ground
+            .player()
+            .is_some_and(|o| o != unit.owner && self.is_ally(unit.owner, o));
         let situation = crate::territory::attrition::Situation {
             ground,
             in_free_zone: false,
-            mutual_treaty: false,
+            mutual_treaty,
             at_war,
             in_war_grace: false,
             assassin: false,
