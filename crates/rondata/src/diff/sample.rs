@@ -668,6 +668,16 @@ pub(in crate::diff) mod tests {
                 frames += 1;
                 let ours = our_lines(&built.sim, &pieces);
                 if detail == Some(f) {
+                    if std::env::var("RON_PROBE_4414").is_ok() {
+                        for (u, x) in built.sim.units.iter().enumerate() {
+                            if x.alive() && x.index == 6 {
+                                eprintln!(
+                                    "PROBE4414 u{u} who {} o {} TI {} orders {:?}",
+                                    x.owner, x.index, x.type_index, x.orders
+                                );
+                            }
+                        }
+                    }
                     print_partings(&ours, &theirs);
                 }
                 let outcome = compare(&ours, &theirs);
