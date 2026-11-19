@@ -563,7 +563,8 @@ on its ranges, each by a mutation:
   out. → 2112.
 
 run1710 holds every first parting to 3,100 (`SAMPLE_RANGES_1710`).
-Item 4419: groups 927 → 961 (its journal). Next: groups on 961, slot 195's `form`.
+Items 4419, 4422: groups 927 → 2888 (GROUPS §24.2); next, record 256's
+`stamp`.
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

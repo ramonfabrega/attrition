@@ -2455,7 +2455,8 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // Item 4159's fourth residue: 7746 -> 7792, the launch rows of pieces 1814, 1837, 1851 and 81; the block-2124 row leaves (`0/17` `damage` ours 6 frac 4 against 7 frac 9, who 0 `damage_current_frame` 16 against 17), the first blow apart is 2354 (`0/18` `hits_left` ours 174 theirs 173) and the first gameplay parting 2346 (`1/70`'s `dest_angle`); the later fight parts more keys.
     // Item 4159's sixth residue: 7792 -> 3947, the muster chase land-only (`Army::find_muster_spot`'s two `find_unit`s carry `FILTER_DOMAIN, 0`). On the 2300 tick army 0 found who=0's staged ship `0/20` beside a damaged building of who=1's capital in ours alone and took `hurry` 1, muster (51, 59) against theirs' 0 and (45, 47) (the `ARMY` record on 2552); the hurry gate then kept `1/70` from looking on 2345. Now `1/70` takes `0/18` on 2346 as theirs (`dest_angle` 1522728960, `orders_x/y` (41931, 38098), the `ATTACKORDER` `defensive 1` with `def` (41928, 38088)); the first gameplay parting is 2554 (`1/84`'s and `1/111`'s orders), the combat leaves' first 2588 (who 0 `hits_current_frame` ours 36 theirs 35).
     // Item 4159's eighth residue: 3947 -> 227, `do_move` re-pushes the goal after a failed planner unless it is on top (run1608's packet, `1/84` on 2553); the 2554 parting leaves whole (`1/84` and `1/111` hold their `ATTACK_TO`s, `1/84` at (43176, 44328), path empty, as theirs), and no leader row parts in the window; the next gameplay rows 2554 `1/2033` `construct_hits` (ours 10323 theirs 10359) and 2594 `1/135` `hits_left` (130 / 127).
-    pin_eq!(w.firsts.len(), 227, "initial run1075 baseline");
+    // Item 4422: 227 -> 226, `group:64.form` on 2040 (ours 0, theirs −1) agrees: `action_swarm_around`'s `form = −1`.
+    pin_eq!(w.firsts.len(), 226, "initial run1075 baseline");
 }
 
 /// `Ammo::init+0xcd9` (`0x67c8c9`): the first of a round's two landing
