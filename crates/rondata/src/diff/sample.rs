@@ -529,9 +529,10 @@ pub(in crate::diff) mod tests {
     /// building lines and its third parties at war are a human target's
     /// arm, `6bd02a`): leaders 241 → 2112; and (a detector building's
     /// `SubObjectData::flags & 0x40`, `Object::init`'s `DETECT`) builds 525
-    /// → 3029.
+    /// → 3029. Item 4414 (a `THINK` walks `UnitOrder::walk_data@0047f2b0`'s
+    /// flags byte): units 532 → 2112.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 532),
+        ("units", 2112),
         ("builds", 3029),
         ("walls", 21044),
         ("ammo", 3022),
@@ -821,12 +822,10 @@ pub(in crate::diff) mod tests {
     /// 00647750:39`'s `flags |= 0x40` for a `DETECT` type, a building's as
     /// a unit's): builds `974 2008 flags` 1|0x41, the person's Lookout
     /// `3/2008` (`TypeIndex` 107), agrees; builds whole over the window.
-    const SAMPLE_RANGES_1697: &[(&str, i64, usize, usize, usize, &str)] = &[(
-        "units",
-        532,
-        1557,
-        1556,
-        586,
-        "905 6 guys.length: +0x0 of 4|1: 01000000|04",
-    )];
+    /// Item 4414, act 1 (`ThinkOrder`'s vslot `+0x8` is the base's
+    /// `UnitOrder::walk_data@0047f2b0`, the flags byte): the person's
+    /// Citizen `3/6` (`TypeIndex` 50, land), a `MOVE_TO` then a `THINK`, its
+    /// range `905` absent|`04` agrees, ours 1,556 → 1,557 ranges of 1,557.
+    /// All twelve lines whole over the window.
+    const SAMPLE_RANGES_1697: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }
