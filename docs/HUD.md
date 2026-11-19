@@ -286,16 +286,21 @@ row `mAscent` − `bitmap_top`; `D3D11GLFont::add_character` lays the
 cell's quad at the pen plus `abs_a` (0 on every entry), `pix_width` × 16,
 less half a pixel. The atlas is the GPU's, so `client::selection::PlateFace`
 rasterises the same file at 14 pixels an em (`mPointSize`; ascent 12.84
-and descent 3.07 round to the packet's 13 and 3), unhinted, under
-`ab_glyph`. **`PLATE_FACE_PACKETS`**: every advance (the linear advance,
+and descent 3.07 round to the packet's 13 and 3), hinted as the DLL's
+FreeType hints (item 4427: the face's TrueType bytecode under `skrifa`'s
+interpreter, v40's normal target), the hinted outline's box floored and
+ceiled to the bitmap's, its coverage `ab_glyph`'s rasteriser's.
+**`PLATE_FACE_PACKETS`**: every advance (the linear advance,
 rounded) and every cell (its width the bitmap's, `pix_width`) agree on
 **9,849 of 9,849 entries over 144 packets**; truncating the advance
 leaves 5,322. So `X` and `Z` take the face's advances too, and every one
 of the 1,164 `<CITY>` names has a width (`Zela`). On the row, the name's
 white ink (every channel over 150, where the `Reduced!` banner leaves it
 bare): **theirs 53; ours lit 97 → 192, on theirs' 9 → 47**, the dark
-half 1,742 / 1,251 → 1,537 / 1,233. The six it misses are stem edges
-that FreeType's hinting would snap (§6).
+half 1,742 / 1,251 → 1,537 / 1,233; **hinted (item 4427), ours lit 192
+→ 209, on theirs' 47 → 53 of 53**, the dark half → 1,541 / 1,238, and
+every cell keeps its `pix_width` (9,849 of 9,849). The same path drawn
+unhinted reads 47 again: the six were stem edges the hinter snaps.
 
 **The bar (item 4410).** `WallOut::draw_health_bar@00640dd0` draws it for a
 member of the console's `play` group (or the mouse-over, or `+0x24`), at
@@ -573,11 +578,16 @@ Not established:
   all 77 drawn characters keep, a derivation and not a reading; and a
   plate for any city but Napata against a photograph (none on disk
   shows another, parked 4423a). **The glyphs** are the install's face
-  rasterised unhinted (§3, item 4426), where the DLL's FreeType hints
-  by default: its interpreter and version are not read, and on the row
-  the face misses 6 of the 53 light pixels, stem edges (parked 4426a).
-  How the atlas is sampled is not read either (the quad's half-pixel
-  step is taken as a 1:1 mapping, which the 47 bear out).
+  hinted (§3, item 4427), lighting 53 of the row's 53. The DLL's
+  FreeType version is not read: its strings carry `FREETYPE_PROPERTIES`
+  (2.7.1 and later, where v40 is the default interpreter) and
+  `interpreter-version`, so v40 is the inference, borne out by the 53
+  and by every cell's width; `skrifa`'s interpreter is taken as
+  FreeType's outline for outline, and `ab_glyph`'s rasteriser for
+  FreeType's smooth one (their coverage may part by a level where the
+  row's threshold cannot see it). How the atlas is sampled is not read
+  either (the quad's half-pixel step is taken as a 1:1 mapping, which
+  the 53 bear out).
   Also not established: which architecture set's `TEX_CIV` the original
   loads (`iface_AS0_assets.tga` is `interface.xml`'s; `AS3`'s scroll
   differs only in the body's `(0, 0, 0)` for `(1, 1, 1)`), `tile_random`'s
