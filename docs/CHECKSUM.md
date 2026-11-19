@@ -2546,7 +2546,7 @@ Program built between two technology gains raises ours a gain early. No packet h
 arm of `is_jammed` still finds no enemy special over the unit (`air.rs`, its SEAM). After the build,
 the commonest first leaf is the guys line's `guy` range: 50 of the 402 lines that still part.
 
-## 23.9 The guys line's `last_z` on a foot squad (item 4402, first act)
+## 23.9 The guys line's `last_z` on a unit inside (items 4402, 4411)
 
 The census after item 4400, taken on one thread with `--nocapture`: the guys line parts on 54 counted lines,
 and the `guy` range is the first parting on 53. By byte of the range: 104 (`last_z`, `+0x70`) on 21 lines,
@@ -2559,14 +2559,30 @@ diff, `x, y, z, last_x, last_y, last_z`: run1325c frame 5578 record 41 (Marines)
 29544, 40233, **2**, ours **4**; run1169 frame 3769 record 22 (Riflemen), theirs …, −23, …, **−23**, ours
 **−20**.
 
-**Not established: the writer.** `Guy::move@005d9240`'s head copies `z` to `last_z`, and figure 0's
-`set_new_location(des, 0)` writes `z` at the new point. Read that way, `last_z` is the ground under `last`.
-None of `+0x70`'s writers (`Guy::move`, `Guy::set_new_location`, `Guy::set_new_z`, `Guy::clear`), nor
-`Unit::set_new_location`, `Unit::update_z` or `Guy::process`, writes a squad's figure 0 differently. The
-next act is a packet watch on run1169's Rifleman (`step4.py --watch` of `+0x14` and `+0x70`). Emitting
-`last_z = z` on a squad's figure 0 is predicted to turn 12 lines. It is not built without its writer. Also
-open: `turret_inc` nonzero on some figure in theirs (byte 58, 7 lines; parked 4402a), against §16's
-`0x00000000` on every figure of two frames.
+~~**Not established: the writer.**~~ **The writer is `Unit::process@00610bc0`'s arm for a unit inside
+something** (item 4411, diff-backed). `step4.py --entry 610bc0 --this 155b8aac --watch 39b91064+0x14:4
+--watch 39b91064+0x68:12` on run1169's packet (Rifleman `1/22`, `TypeIndex` 100, land; its only figure at
+`0x39b91064`) stops on the function's own return after 159 instructions. It makes two writes,
+`0x0061158d` `[guy+0x70] <- −23` and `0x00611590` `[guy+0x14] <- −23`. The branch is `:435`'s `inside_up
+(+0x82) < 0`, whose else (`:554`) runs no `Guy::process`. It clears the unit masks, runs the 32-frame
+`come_out` check, then loops every figure: `last_z = z; z = z` (`:582`), and returns. So while a unit is
+garrisoned or carried, `last_x`/`last_y` keep the last walk's start and `last_z` is the figure's own `z`.
+run1153c prints `inside_up 87` on `1/22` at 3768. "Figure 0 of a foot squad" was a stand-in: every unit
+that garrisons is a foot unit with one figure. The guys line emits it (`Sim::guy_record_bytes`, the
+predicate `inside` or `inside_unit`, the same the units line writes as `inside_up`). **15 guys lines turn
+and none part anew** (`PACKETS_SCORE` 661 → 676, 677 with item 4404's ammo line); the guys line parts on fewer ranges on 12 more packets,
+and the units line on 22. Value diff, run1325c frame 5578 record 41 (Marines): `last_z` theirs 2, ours 4 →
+2, the line whole. Byte 104 is the first parting on no line now (21 before).
+
+**Not established.** The entering frame: our predicate is the state at the checksum, while theirs is
+`inside_up` at the unit's own `process`. A unit that went inside after its `process` on the dumped frame
+has walked, so it keeps the ground under `last`. No packet on disk parts on it. The arm's other effects
+(the `unit_masks`/`+0x6c` clears and the `come_out` check) are not compared here. The 12 lines the first act
+predicted were not the 15 that turned: run1169 and run1320b keep one range each, and run893b's line did not
+move. Also open: `turret_inc` nonzero on some figure in theirs (byte 58, now the first parting on 9 lines;
+parked 4402a), against §16's `0x00000000` on every figure of two frames. **The next leaf is `cur_time`**
+(byte 108, the first parting on 17 lines). Ours is one behind on both first rows: run882b f6808 record
+24, ours 22 theirs 23; run810 f3631 record 45, ours `0x4d` theirs `0x4e`.
 
 ## 24. Step H: the fifteen, every frame (item 4214)
 
