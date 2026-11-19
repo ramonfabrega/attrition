@@ -301,29 +301,6 @@ impl Sim {
     /// `Unit::go_inside`: the whole squad goes in, appended at the bottom.
     pub fn go_inside(&mut self, unit: usize, b: usize) {
         let captain = self.captain_of(unit);
-        if std::env::var_os("RON_PROBE_4428").is_some() {
-            for f in self.squad_of(captain) {
-                let u = &self.units[f];
-                let p = u.movement.body.pos;
-                eprintln!(
-                    "GOIN4428\tf{}\t{}/{}\tTI {}\tpos ({},{})\tbody ({},{})\tground {}\taf.z {}\taf.last_z {}\tinto b{} at ({},{})",
-                    self.frame,
-                    u.owner as i32,
-                    u.index,
-                    u.type_index,
-                    u.pos.x,
-                    u.pos.y,
-                    p.x,
-                    p.y,
-                    self.world.data_z(p.x, p.y).0,
-                    u.airframe.z,
-                    u.airframe.last_z,
-                    self.buildings[b].index,
-                    self.buildings[b].pos.x,
-                    self.buildings[b].pos.y
-                );
-            }
-        }
         // **The chain is joined first.** `Object::insert_inside@00647e90`
         // is `Unit::go_inside@0061a2e0`'s first statement, ahead of the
         // scholar seating at its tail — and the seating's `set_anim`

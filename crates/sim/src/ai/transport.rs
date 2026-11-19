@@ -1136,21 +1136,6 @@ impl Sim {
         // Bounded by the list: a cycle would hang the original.
         for _ in 0..self.units.len() {
             let Some(f) = at else { break };
-            if std::env::var_os("RON_PROBE_4428").is_some() {
-                let un = &self.units[f];
-                let p = un.movement.body.pos;
-                eprintln!(
-                    "BOARD4428\tf{}\t{}/{}\tTI {}\tbody ({},{})\tground {}\tlast {:?}",
-                    self.frame,
-                    un.owner as i32,
-                    un.index,
-                    un.type_index,
-                    p.x,
-                    p.y,
-                    self.world.data_z(p.x, p.y).0,
-                    un.guys.first().and_then(|g| g.last)
-                );
-            }
             self.coll_remove(f);
             self.chain_remove(f);
             {
