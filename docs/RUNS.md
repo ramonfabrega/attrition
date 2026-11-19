@@ -39110,7 +39110,8 @@ background. `df -g ~` read 170 GB free before it.
 - **Scored** (`the_demand_s_game_to_its_end_on_run1691`, `checksum::playback::compare_until` closing on state
   10928): builds, walls, deaths, groups, guys, **leaders**, cities, items, goods and world 10,929 of 10,929;
   **units 9,981**, first parting state 9981, ours 2715156771, theirs 2445541469; **ammo 10,893**, first parting state
-  10075, ours 4012779512, theirs 4143847442. Our walk holds no `game_over` to 10928.
+  10075, ours 4012779512, theirs 4143847442. Our walk holds no `game_over` to 10928. With the captain mirror's copy
+  refreshed (item 4396, run1695): **units 10,929 of 10,929**, ammo unmoved.
 - Filed **in place**, as run1683 is (a `greatlakes` gamelog at style 0 stays out of the Great Lakes corpora).
   run1691 was the one number reserved.
 
@@ -39120,3 +39121,31 @@ Files in place, `~/ron-golden/run1691/map-14/`: `gamelog_p.txt`, 44,945,255 byte
 
 **What it holds**: `diff::start_walk::recording::the_demand_s_game_to_its_end_on_run1691` (`RUN1691_AGREED`,
 `RUN1691_FIRST`, `RUN1691_OVER`).
+
+## run1695 — the demand's game to 9990 with the units line's ranges (2026-11-18, item 4396, `att-4396`)
+
+`docs/LEADERS.md` §8.6; `docs/COMBAT.md` §44.2. **What the disk could not answer**: run1691's units line parts on
+state 9981 with every other line whole, so the parted field is one only the units line reads; no take of this file
+holds ranges past 40 (run1686). The file is run1691's (`item4396-demand-greatlakes-style0-d2-11200.rcx`, SHA-256
+`373fac0a…`).
+
+The take: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1695
+--recording <the file> --end-frame 9990 --cover cover=1 --log-window 9975 9991 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5
+--timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x1u`,
+waited on with `waitrun.sh` in the background. `df -g ~` read 155 GB free before it.
+- **The run**: pool lane 1, launched 18:57:22 −05:00, exited 19:09:47: **745.7 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 9,991 frames, `last_frame` 9990, not ended early. DLL `f73a2230…`. Minutes waited on
+  another lane: none. run1695 was given by `commander` for this take (run1692 is 4397's).
+- **What it holds**: the units line's ranges on every state to 9990 (`rontrace.ranges`, 567 MB), and the window's
+  `UNITDATA`: the French Longbowmen `1/11` (uid 20, TypeIndex 177, group 65) on dump frame 9981 at stance 0 with a
+  `MOVEORDER` to (3576, 32040) over its `ATTACKORDER`, whose target reads `ox 5 whom 0 uid 12` (the human's Citizen
+  `0/5`, TypeIndex 50), `ox 2000 uid 0` before.
+- **Read by** `the_demand_s_units_part_by_range_on_run1695` (`RUN1695_UNITS`): minted at state 9981, range 478 of
+  2,249, record 11's `order.target`, ours `ox 2000 uid 0`, theirs `ox 5 uid 12`, the only range parted; with the captain
+  mirror's copy refreshed (`Sim::do_attack_fight`, item 4396), none parts on 9975–9990.
+- Filed **in place**, as run1691 is.
+
+Files in place, `~/ron-golden/run1695/map-14/`: `gamelog_p.txt`, 3,147,331 bytes, SHA-256
+`13d486c7b8c4377ac688fcef6d294bb88275ed29a642297ff4858be8fc202ad8`; `rontrace.log`, 53,334,784 bytes, SHA-256
+`8b877c882b68094ac45965df7be9515560141304ae5681df2e6f4c1e060c0fdc`; `rontrace.ranges`, 567,468,184 bytes, SHA-256
+`45a954cb314d874390866b428b85ecf35a2f3cb84f9d790bf417f5fb98931213`.

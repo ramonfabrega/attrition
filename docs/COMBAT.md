@@ -7799,6 +7799,22 @@ It is a **second** captain mirror and it is not §21's: that one is
 `QUEUE_NEW` order. This one runs on the attack step of a unit that
 already has one.
 
+**The write lands in the order and stays there** (item 4396,
+diff-backed). `Sim::do_attack_fight` works on a copy of the attack order
+taken at entry and stores the copy back after the range test. The
+mirror's `set_attack_target` wrote the live order, and the store
+overwrote it with the copy's old pair. `combat.target` moved and the
+order's `TargetOrder` did not. run1695 (the demand's game, ranges to
+9990) holds it: range 478 on state 9981, the French Longbowmen `1/11`
+(TypeIndex 177, group 65), `order.target` ours `ox 2000 uid 0` (the dead
+target's), theirs `ox 5 uid 12`, the human's Citizen `0/5`, which its
+captain had taken on 9980. The copy now takes the live pair after the
+mirror. run1691's units line goes from 9,981 to 10,929 of 10,929 states
+(`the_demand_s_game_to_its_end_on_run1691`); with the refresh removed,
+units part on 9981 again (`tools/mutate.py`, held). Why no earlier
+capture parted on it is not established: run112's followers at 696 were
+not re-walked under this item.
+
 ### 44.2.1 A field whose write condition makes it silent cannot date an event
 
 State this one as a rule too, because it is how §43.2 came to cite the
