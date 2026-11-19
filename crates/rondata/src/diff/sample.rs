@@ -530,14 +530,16 @@ pub(in crate::diff) mod tests {
     /// arm, `6bd02a`): leaders 241 → 2112; and (a detector building's
     /// `SubObjectData::flags & 0x40`, `Object::init`'s `DETECT`) builds 525
     /// → 3029. Item 4414 (a `THINK` walks `UnitOrder::walk_data@0047f2b0`'s
-    /// flags byte): units 532 → 2112.
+    /// flags byte): units 532 → 2112. Item 4419 (a dead building leaves its
+    /// group on the next push, and `action_swarm_around`'s `form` −1):
+    /// groups 927 → 2888.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 2112),
         ("builds", 3029),
         ("walls", 21044),
         ("ammo", 3022),
         ("deaths", 3365),
-        ("groups", 927),
+        ("groups", 2888),
         ("guys", 2920),
         ("leaders", 2112),
         ("cities", 3176),
