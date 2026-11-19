@@ -302,6 +302,8 @@ pub struct World {
     /// The burning slots' particle systems and texture (item 4233), loaded
     /// once; `Some(None)` where the install has none.
     pub(crate) particle_art: Option<Option<std::sync::Arc<crate::particle::ParticleArt>>>,
+    /// The selected band's texture column (item 4421), loaded once.
+    band_alphas: std::sync::OnceLock<Option<crate::selection::BandAlphas>>,
     /// Particles a test lays in place of the plumes (item 4233: the
     /// packets' own, to read the draw apart from the emission).
     pub particles_given: Option<Vec<(usize, render::particle::Particle)>>,
@@ -1235,6 +1237,7 @@ impl World {
             fires: true,
             fire_slots: BTreeMap::new(),
             particle_art: None,
+            band_alphas: Default::default(),
             particles_given: None,
             weather_mips,
             weather_laid: (-1, false, (0, 0), Vec::new()),
@@ -3235,6 +3238,16 @@ pub(crate) fn shade(t: [[f32; 3]; 3]) -> f32 {
     let light = [-0.4f32, -0.4, 0.82];
     let ll = (light[0] * light[0] + light[1] * light[1] + light[2] * light[2]).sqrt();
     0.45 + 0.55 * ((n[0] * light[0] + n[1] * light[1] + n[2] * light[2]) / (l * ll)).abs()
+}
+
+impl World {
+    /// The selected band's texture column (item 4421;
+    /// [`crate::selection::BandAlphas`]), read from the install once.
+    pub fn band_alphas(&self) -> Option<&crate::selection::BandAlphas> {
+        self.band_alphas
+            .get_or_init(|| crate::selection::BandAlphas::load(&self.root))
+            .as_ref()
+    }
 }
 
 #[cfg(test)]

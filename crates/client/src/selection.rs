@@ -19,9 +19,17 @@
 //! (`192.0`), and pairs each with one moved `48.0` along the previous
 //! side's direction, which is outward; a corner square closes each side.
 //! So the band is **48 world units wide, outside the rectangle**, every
-//! vertex at `TerrainOut::find_data_z` of its own point. The colour, the
-//! texture (`int_str_array +0x1784`) and the alpha are the draw's, not
-//! this module's (§3, "What is not established").
+//! vertex at `TerrainOut::find_data_z` of its own point.
+//!
+//! **Its texture** (item 4421): `set_texture(0, circle_gen +0x134)`, the
+//! first of `CircleRender::circle_textures`, which `CircleRender::init`
+//! loads from `effects_graphics.xml`'s `<SELECTIONCIRCLE>` list: the
+//! install's `city_radius.tga`. Every vertex's `u` is 0; an inner one's
+//! `v` is 0, an outer one's 1 (`TexArray::add`'s `xmm1`, `xmm2`; `1.0` at
+//! `0xb69514`). The texture's columns are one tent, alpha 0 at both edges
+//! and 255 at row 16, point-sampled ([`BandAlphas`]), so the band is a soft
+//! line at its middle, not a solid fill. (`int_str_array +0x1784`,
+//! `Effects`, is `set_poly_count_type`'s statistics name, not a texture.)
 
 use render::terrain::Heightfield;
 
@@ -44,6 +52,20 @@ pub fn rectangle(x: i32, y: i32, size: (i32, i32), k: i32) -> (i32, i32, i32, i3
 /// [`BAND`] out, and the corner square at the side's end, each vertex at
 /// `data_z` of its point clamped to the map as the listing clamps it.
 pub fn band(field: &Heightfield<'_>, r: (i32, i32, i32, i32)) -> Vec<[(i32, i32, i32); 3]> {
+    band_v(field, r)
+        .into_iter()
+        .map(|t| t.map(|(p, _)| p))
+        .collect()
+}
+
+/// A band corner: its point `(x, y, z)` and its texture `v`, 0 or 1.
+pub type BandVertex = ((i32, i32, i32), u8);
+
+/// [`band`]'s triangles with each corner's texture `v` (item 4421): 0 on
+/// the rectangle's edge, 1 on the edge [`BAND`] out; in a corner square, 0
+/// at the rectangle's corner and 1 at the other three, as the listing's
+/// `TexArray::add` calls give them (`0, 1, 1, 1` after the strip's pair).
+pub fn band_v(field: &Heightfield<'_>, r: (i32, i32, i32, i32)) -> Vec<[BandVertex; 3]> {
     let (x0, y0, x1, y1) = r;
     // Corners from (−x, −y) counter-clockwise, and each side's direction.
     let corners = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)];
@@ -71,18 +93,21 @@ pub fn band(field: &Heightfield<'_>, r: (i32, i32, i32, i32)) -> Vec<[(i32, i32,
                 (sx + dx * w[0], sy + dy * w[0]),
                 (sx + dx * w[1], sy + dy * w[1]),
             );
-            let (ai, bi) = (at(a.0, a.1), at(b.0, b.1));
-            let (ao, bo) = (at(a.0 + out_x, a.1 + out_y), at(b.0 + out_x, b.1 + out_y));
+            let (ai, bi) = ((at(a.0, a.1), 0), (at(b.0, b.1), 0));
+            let (ao, bo) = (
+                (at(a.0 + out_x, a.1 + out_y), 1),
+                (at(b.0 + out_x, b.1 + out_y), 1),
+            );
             out.push([ai, bi, bo]);
             out.push([ai, bo, ao]);
         }
         // The corner square past the side's end.
         let e = (sx + dx * len, sy + dy * len);
         let c = [
-            at(e.0, e.1),
-            at(e.0 + dx * BAND, e.1 + dy * BAND),
-            at(e.0 + dx * BAND + out_x, e.1 + dy * BAND + out_y),
-            at(e.0 + out_x, e.1 + out_y),
+            (at(e.0, e.1), 0),
+            (at(e.0 + dx * BAND, e.1 + dy * BAND), 1),
+            (at(e.0 + dx * BAND + out_x, e.1 + dy * BAND + out_y), 1),
+            (at(e.0 + out_x, e.1 + out_y), 1),
         ];
         out.push([c[0], c[1], c[2]]);
         out.push([c[0], c[2], c[3]]);
@@ -90,22 +115,78 @@ pub fn band(field: &Heightfield<'_>, r: (i32, i32, i32, i32)) -> Vec<[(i32, i32,
     out
 }
 
-/// **The selected buildings' bands as drawn** (item 4401): for each
-/// building of `selection` in the scene, [`band`] about its
+/// **The band's texture, as the draw samples it** (item 4421): the alpha
+/// of each row of column 0 of the first `<SELECTIONCIRCLE>`'s texture,
+/// rows top-down as the card holds them. Its rgb is white, so the band's
+/// colour is the vertex's (`MODULATE(TEXTURE, CURRENT)` on run1566b's
+/// draw 115) and its alpha the row's times the vertex's.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BandAlphas(pub Vec<u8>);
+
+impl BandAlphas {
+    /// The install's: `effects_graphics.xml`'s first `<SELECTIONCIRCLE
+    /// texture=…>` (`CircleRender::init@008c48a0`, `circle_textures[0]`).
+    pub fn load(root: &std::path::Path) -> Option<BandAlphas> {
+        let xml = std::fs::read_to_string(root.join("Data/effects_graphics.xml")).ok()?;
+        let at = xml.find("<SELECTIONCIRCLE")?;
+        let rest = &xml[at..];
+        let t = rest.find("texture=\"")? + "texture=\"".len();
+        let name = &rest[t..t + rest[t..].find('"')?];
+        let bytes = std::fs::read(rondata::artdata::resolve_art(root, name)?).ok()?;
+        let img = render::tga::decode(&bytes).ok()?;
+        Some(BandAlphas(
+            (0..img.height)
+                .map(|y| img.rgba[y * img.width * 4 + 3])
+                .collect(),
+        ))
+    }
+}
+
+/// One triangle's part with `v` in `[lo, hi]`, as a fan of triangles: the
+/// triangle clipped by the two lines, `v` affine over it as a
+/// perspective-correct interpolation makes it in the world.
+fn clip_v(tri: &[([f32; 3], f32); 3], lo: f32, hi: f32) -> Vec<[[f32; 3]; 3]> {
+    let cut = |poly: Vec<([f32; 3], f32)>, keep: &dyn Fn(f32) -> bool, at: f32| {
+        let mut out = Vec::new();
+        for i in 0..poly.len() {
+            let (a, b) = (poly[i], poly[(i + 1) % poly.len()]);
+            if keep(a.1) {
+                out.push(a);
+            }
+            if keep(a.1) != keep(b.1) {
+                let t = (at - a.1) / (b.1 - a.1);
+                let p = [0, 1, 2].map(|k| a.0[k] + (b.0[k] - a.0[k]) * t);
+                out.push((p, at));
+            }
+        }
+        out
+    };
+    let poly = cut(tri.to_vec(), &|v| v >= lo, lo);
+    let poly = cut(poly, &|v| v <= hi, hi);
+    (1..poly.len().saturating_sub(1))
+        .map(|i| [poly[0].0, poly[i].0, poly[i + 1].0])
+        .collect()
+}
+
+/// **The selected buildings' bands as drawn** (items 4401, 4421): for
+/// each building of `selection` in the scene, [`band_v`] about its
 /// [`rectangle`], every vertex in the owner's unit colour
-/// (`render::silhouette::team_unit`, `TeamColor::get_unit`'s), as world
-/// triangles for the GPU's underlay pass, which blends them at
-/// [`crate::gpu::UNDERLAY_ALPHA`]. A unit draws no band here (its ring is
-/// [`crate::hud::rings`]'). The listing's alpha 0 for a vertex off the map
-/// is not carried: the pass's alpha is one constant.
+/// (`render::silhouette::team_unit`, `TeamColor::get_unit`'s), cut at
+/// each row of [`BandAlphas`] into one layer an alpha: the texel's, which
+/// the GPU's underlay pass multiplies by [`crate::gpu::UNDERLAY_ALPHA`].
+/// A row of alpha 0 draws nothing. Without the texture the band is one
+/// layer at 255, the solid fill of item 4401. A unit draws no band here
+/// (its ring is [`crate::hud::rings`]'). The listing's alpha 0 for a
+/// vertex off the map is not carried.
 pub fn underlay(
     world: &crate::world::World,
     selection: &[sim::observe::ObjId],
-) -> (Vec<[f32; 3]>, Vec<[f32; 3]>) {
-    let (mut pos, mut col) = (Vec::new(), Vec::new());
+) -> Vec<crate::gpu::ScreenLayer> {
+    let mut layers: std::collections::BTreeMap<u8, crate::gpu::ScreenLayer> = Default::default();
     if selection.is_empty() {
-        return (pos, col);
+        return Vec::new();
     }
+    let alphas = world.band_alphas();
     let placed = world.placed_buildings();
     let t = world.runner.terrain();
     let field = Heightfield {
@@ -125,14 +206,27 @@ pub fn underlay(
         };
         let back = b.foundation.map_or(b.half_offset, |f| f.back);
         let c = render::silhouette::team_unit(b.who).map(|v| f32::from(v) / 255.0);
-        for tri in band(&field, rectangle(b.x, b.y, size, back)) {
-            for (x, y, z) in tri {
-                pos.push([x as f32, y as f32, z as f32]);
-                col.push(c);
+        for tri in band_v(&field, rectangle(b.x, b.y, size, back)) {
+            let tri = tri.map(|((x, y, z), v)| ([x as f32, y as f32, z as f32], f32::from(v)));
+            let rows = alphas.map_or(1, |a| a.0.len());
+            for r in 0..rows {
+                let a = alphas.map_or(255, |a| a.0[r]);
+                if a == 0 {
+                    continue;
+                }
+                let (lo, hi) = (r as f32 / rows as f32, (r + 1) as f32 / rows as f32);
+                let l = layers.entry(a).or_insert_with(|| crate::gpu::ScreenLayer {
+                    alpha: a,
+                    ..Default::default()
+                });
+                for t in clip_v(&tri, lo, hi) {
+                    l.pos.extend(t);
+                    l.col.extend([c; 3]);
+                }
             }
         }
     }
-    (pos, col)
+    layers.into_values().filter(|l| !l.pos.is_empty()).collect()
 }
 
 /// **The scroll's pads** (item 4403), `IFaceRenderManager +0xe84`:
@@ -762,12 +856,67 @@ mod tests {
     /// row's evidence that the footprint is theirs. Then, on the first
     /// arm's footprint, `[ours red, both red]` on the client's still with
     /// nothing selected (item 4398), and then with the city selected, its
-    /// band drawn by [`underlay`] (item 4401): the half the drawing moves.
+    /// band drawn by [`underlay`]: the half the drawing moves. Item 4401
+    /// drew it solid, `[2132, 1404]`; item 4421 through `city_radius.tga`'s
+    /// rows, the soft line theirs is: `[1395, 1300]` (ours' red off theirs
+    /// 728 → 95).
     pub const RUN1559B_3279_SELECTED: ([[usize; 2]; 3], [usize; 2], [usize; 2]) = (
         [[4551, 1477], [4157, 721], [5398, 312]],
         [52, 9],
-        [2132, 1404],
+        [1395, 1300],
     );
+
+    /// **The band's texture is one tent** (item 4421): the install's first
+    /// `<SELECTIONCIRCLE>`, 32 rows, alpha 0 at the top row and 255 at row
+    /// 16, rising to it and falling after it.
+    #[test]
+    fn the_band_s_texture_is_a_tent_peaking_at_mid_band() {
+        let root = std::env::var_os("RON_INSTALL")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| std::path::PathBuf::from("../../game"));
+        let Some(BandAlphas(a)) = BandAlphas::load(&root) else {
+            println!("skipping: no effects_graphics.xml under {}", root.display());
+            return;
+        };
+        assert_eq!(a.len(), 32);
+        assert_eq!((a[0], a[16]), (0, 255));
+        assert!(a[..=16].windows(2).all(|w| w[0] < w[1]), "{a:?}");
+        assert!(a[16..].windows(2).all(|w| w[0] > w[1]), "{a:?}");
+    }
+
+    /// **The rows tile each triangle** (item 4421): [`clip_v`]'s pieces
+    /// over the 32 rows cover a triangle's area once, with `v` 0 at one
+    /// corner and 1 at the other two as a corner square's is, and the
+    /// strip `[0, 1/2]` holds a quarter of it (`v ≤ 1/2` is a triangle a
+    /// half the size on each side).
+    #[test]
+    fn the_rows_tile_a_triangle_once() {
+        let area = |t: &[[f32; 3]; 3]| {
+            let (u, w) = (
+                [0, 1, 2].map(|k| t[1][k] - t[0][k]),
+                [0, 1, 2].map(|k| t[2][k] - t[0][k]),
+            );
+            let c = [
+                u[1] * w[2] - u[2] * w[1],
+                u[2] * w[0] - u[0] * w[2],
+                u[0] * w[1] - u[1] * w[0],
+            ];
+            (c[0] * c[0] + c[1] * c[1] + c[2] * c[2]).sqrt() / 2.0
+        };
+        let tri = [
+            ([0.0, 0.0, 10.0], 0.0),
+            ([48.0, 0.0, 12.0], 1.0),
+            ([48.0, 48.0, 14.0], 1.0),
+        ];
+        let whole = area(&tri.map(|(p, _)| p));
+        let rows: f32 = (0..32)
+            .flat_map(|r| clip_v(&tri, r as f32 / 32.0, (r + 1) as f32 / 32.0))
+            .map(|t| area(&t))
+            .sum();
+        assert!((rows - whole).abs() < whole * 1e-4, "{rows} of {whole}");
+        let half: f32 = clip_v(&tri, 0.0, 0.5).iter().map(area).sum();
+        assert!((half - whole / 4.0).abs() < whole * 1e-4, "{half}");
+    }
 
     #[test]
     fn the_selected_city_s_band_on_run1559b() {
