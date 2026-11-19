@@ -520,7 +520,8 @@ fn airbase_melee_run1496_s_window_is_widened_whole() {
         "neither 1/18 nor 1/41 parts on any block of the window"
     );
     pin_eq!(w.blocks, 45, "every block in the window");
-    pin_eq!(w.firsts.len(), 120, "run1496's window");
+    // Item 4415, the oil-well stand's `param_4`: block 1500's `2/7` `cur_time`/`last_time` agree, −2.
+    pin_eq!(w.firsts.len(), 118, "run1496's window");
     pin_eq!(w.rounds_read, (139, 139), "the rounds read");
     pin_eq!(w.rounds.len(), 15, "the rounds that part");
 }
