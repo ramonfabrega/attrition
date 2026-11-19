@@ -173,6 +173,45 @@ pub(in crate::diff) fn compare(
         .zip(ours)
         .map(|(name, o)| {
             let t = theirs.get(*name).unwrap_or(&empty);
+            // PROBE 4402: every differing range of the named line, decoded.
+            if std::env::var("RON_PACKETS_FIELDS").is_ok_and(|v| v == *name) {
+                for i in differing_ranges(o, t) {
+                    let ob = o.ranges.get(i);
+                    let tb = t.get(i);
+                    let field = ob
+                        .map(|r| r.field)
+                        .unwrap_or_else(|| tb.unwrap().0.as_str());
+                    let od = ob.map(|r| crate::checksum::fields::guy_range_fields(field, &r.bytes));
+                    let td = tb.map(|r| crate::checksum::fields::guy_range_fields(field, &r.2));
+                    let mut diffs = Vec::new();
+                    if let (Some(od), Some(td)) = (&od, &td) {
+                        for ((n, a), (_, b)) in od.iter().zip(td) {
+                            if a != b {
+                                diffs.push(format!("{n} ours {a} theirs {b}"));
+                            }
+                        }
+                    } else {
+                        diffs.push(format!(
+                            "absent ours {} theirs {}",
+                            ob.is_some(),
+                            tb.is_some()
+                        ));
+                    }
+                    let ty = od
+                        .as_ref()
+                        .or(td.as_ref())
+                        .and_then(|d| d.iter().find(|x| x.0 == "type").map(|x| x.1));
+                    let gn = od
+                        .as_ref()
+                        .or(td.as_ref())
+                        .and_then(|d| d.iter().find(|x| x.0 == "guy_num").map(|x| x.1));
+                    eprintln!(
+                        "FIELDS\t{name}\trange {i}\trecord {}\t{field}\tTI {ty:?} guy {gn:?}\t{}",
+                        ob.map_or(-1, |r| r.record),
+                        diffs.join("; ")
+                    );
+                }
+            }
             let mut differences = differing_ranges(o, t);
             let first = differences.next().map(|i| FirstDifference::at(o, t, i));
             LineOutcome {
