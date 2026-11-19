@@ -1418,7 +1418,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// `SubObjectData::flags & 0x40`, `Object::init`'s `DETECT`: run1217,
 /// run1221, run1224b, run1236, run1238c, run1263, run1264b, run1266c,
 /// run1294, run1296, run1327, run1361, run985b).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 743, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 748, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1903,6 +1903,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 5) -> (271, 271, 3).
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (1321, 1321, 3) -> (1321, 1321, 1).
+    // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: guys (1321, 1321, 1) -> (1321, 1321, 0).
     (
         "run1164",
         4528,
@@ -1913,7 +1914,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (3, 3, 0),
             (0, 0, 0),
             (550, 550, 0),
-            (1321, 1321, 1),
+            (1321, 1321, 0),
             (271, 271, 3),
             (30, 30, 0),
             (75, 75, 0),
@@ -3230,17 +3231,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4415, the oil-well stand's cur_time: units (4745, 4745, 11) -> (4745, 4745, 10), guys (1352, 1352, 3) -> (1352, 1352, 2).
     // Item 4422, the swarm's form -1: groups (562, 562, 2) -> (562, 562, 0).
+    // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (4745, 4745, 10) -> (4745, 4745, 9), guys (1352, 1352, 2) -> (1352, 1352, 1).
     (
         "run1351",
         4303,
         [
-            (4745, 4745, 10),
+            (4745, 4745, 9),
             (2237, 2237, 0),
             (0, 0, 0),
             (3, 3, 0),
             (0, 0, 0),
             (562, 562, 0),
-            (1352, 1352, 2),
+            (1352, 1352, 1),
             (271, 271, 0),
             (30, 30, 0),
             (75, 75, 0),
@@ -3393,17 +3395,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2974, 2974, 15) -> (2974, 2974, 13).
     // Item 4415, the oil-well stand's cur_time: units (6464, 6464, 9) -> (6464, 6464, 7), guys (1584, 1584, 3) -> (1584, 1584, 1).
     // Item 4422, the swarm's form -1: groups (568, 568, 3) -> (568, 568, 0).
+    // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6464, 6464, 7) -> (6464, 6464, 6), guys (1584, 1584, 1) -> (1584, 1584, 0).
     (
         "run1359",
         5619,
         [
-            (6464, 6464, 7),
+            (6464, 6464, 6),
             (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (568, 568, 0),
-            (1584, 1584, 1),
+            (1584, 1584, 0),
             (271, 271, 2),
             (48, 48, 0),
             (60, 60, 0),
@@ -3437,17 +3440,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2974, 2974, 15) -> (2974, 2974, 13).
     // Item 4415, the oil-well stand's cur_time: units (6408, 6408, 9) -> (6408, 6408, 7), guys (1598, 1598, 3) -> (1598, 1598, 1).
     // Item 4422, the swarm's form -1: groups (556, 556, 3) -> (556, 556, 0).
+    // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6408, 6408, 7) -> (6408, 6408, 6), guys (1598, 1598, 1) -> (1598, 1598, 0).
     (
         "run1359b",
         5677,
         [
-            (6408, 6408, 7),
+            (6408, 6408, 6),
             (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (556, 556, 0),
-            (1598, 1598, 1),
+            (1598, 1598, 0),
             (271, 271, 2),
             (48, 48, 0),
             (55, 55, 0),
@@ -3481,17 +3485,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2974, 2974, 15) -> (2974, 2974, 13).
     // Item 4415, the oil-well stand's cur_time: units (6407, 6407, 9) -> (6407, 6407, 7), guys (1598, 1598, 3) -> (1598, 1598, 1).
     // Item 4422, the swarm's form -1: groups (556, 556, 3) -> (556, 556, 0).
+    // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6407, 6407, 7) -> (6407, 6407, 6), guys (1598, 1598, 1) -> (1598, 1598, 0).
     (
         "run1359c",
         5678,
         [
-            (6407, 6407, 7),
+            (6407, 6407, 6),
             (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (556, 556, 0),
-            (1598, 1598, 1),
+            (1598, 1598, 0),
             (271, 271, 2),
             (48, 48, 0),
             (55, 55, 0),
@@ -3882,17 +3887,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2515, 2513, 683) -> (2515, 2513, 686).
+    // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (5583, 5423, 1536) -> (5583, 5423, 1535), guys (1327, 1327, 1) -> (1327, 1327, 0).
     (
         "run1420",
         4586,
         [
-            (5583, 5423, 1536),
+            (5583, 5423, 1535),
             (2515, 2513, 686),
             (0, 0, 0),
             (0, 0, 0),
             (8, 8, 0),
             (544, 544, 0),
-            (1327, 1327, 1),
+            (1327, 1327, 0),
             (271, 271, 0),
             (38, 38, 0),
             (70, 70, 0),

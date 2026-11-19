@@ -7718,17 +7718,24 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // start with the two Airbases staged — the computers' Strategic Bombers
     // (305) drop from 1101 (chapter seventeen's corners): 6 to the word
     // 1817. Item 3873, the game whole: 48 to its last frame.
-    ("airbase_melee_first_parting", 48),
+    // Item 4428: 48 -> 50, `Unit::come_out`'s `Guy::update_z` on an
+    // aircraft's figure (a read the original makes at the same point).
+    ("airbase_melee_first_parting", 50),
+    // Item 4428: the packets' walk of the same lobby to its packet frame and
+    // run1496's window, one each under the same read.
+    ("airbase_melee_packets", 1),
+    ("airbase_melee_run1496_s_window_is_widened_whole", 1),
     // Its closing state and its leaders' walk, run1492 to the closing block
     // 2601: 49 each; the word's window 1801..2067: 6, and 49 once item
-    // 3873 made it the closing window 2501..2601.
-    ("airbase_melee_run1492_s_closing_state", 49),
-    ("airbase_melee_s_leaders_are_compared_on_every_seat", 49),
-    ("airbase_melee_run1492_s_word_window_is_widened_whole", 49),
+    // 3873 made it the closing window 2501..2601. Item 4428: 49 -> 51 each,
+    // and the stride 6 -> 7, under `come_out`'s `Guy::update_z`.
+    ("airbase_melee_run1492_s_closing_state", 51),
+    ("airbase_melee_s_leaders_are_compared_on_every_seat", 51),
+    ("airbase_melee_run1492_s_word_window_is_widened_whole", 51),
     // The stride before the word, 1401..1701: 6.
     (
         "airbase_melee_run1492_s_stride_before_the_word_is_widened_whole",
-        6,
+        7,
     ),
     // Item 3744: the Russian Information pair's first try, run1401 walked
     // from run1400's start past the word 6153 once the siege-city arm lands
