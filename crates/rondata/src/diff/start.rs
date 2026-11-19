@@ -1365,6 +1365,11 @@ pub fn from_lobby(
         steps.push(("Herd::create_units", herds_built));
         words.push(("setup.cpp", 1240, sim.rng.seed));
         words.push(("setup.cpp", 1244, sim.rng.seed));
+        // `Game::init@0058c480:629`, past `build_game`:
+        // `Setup::reinit_game_units` samples every live building's `z`
+        // again off the ground the whole start leaves (item 4397). It
+        // draws nothing.
+        sim.setup().reinit_game_units();
         // 9. `Game::run@00584590:721`, past `build_game`: the danger map
         // filled once before the first frame (item 4218). It draws nothing.
         sim.setup().calc_danger();

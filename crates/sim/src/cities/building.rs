@@ -24,7 +24,9 @@ pub struct Building {
     /// terraform has run, at placement, and never rewritten after — a
     /// later neighbour's terraform moves the tile and leaves the building
     /// where it was (run1429's Factory `1/2026`: 185 from frame 1583, its
-    /// tile 214 from 2186; item 4035).
+    /// tile 214 from 2186; item 4035). The one rewrite is the start's:
+    /// [`Sim::reinit_game_units`] samples every building again once the
+    /// whole start stands (item 4397).
     pub z: i32,
     pub queue: crate::cities::production::Queue,
     /// Whether this is a library — the original's `is(LIBRARY, 0)`. Two rules
@@ -278,6 +280,27 @@ pub struct Produced {
 }
 
 impl Sim {
+    /// **`Setup::reinit_game_units@005abf90`** (item 4397; `docs/START.md`
+    /// §2 step 8), `Game::init@0058c480:629`'s call after `build_game`:
+    /// for each seated leader, every live object (`ObjectData +0x8 & 1`)
+    /// in the unit band, then `2000…` and `3000…`, has its `z` (`+0xc`)
+    /// sampled again as `TerrainOut::find_tcoord_z(x, y, 1)` of its tile
+    /// (`pushl $0x1` at `005ac000`), which is [`crate::World::object_z`].
+    /// A unit's height is read off its tile wherever this crate needs it,
+    /// so only the buildings carry the write: a start building placed
+    /// before a later neighbour's terraform moved its tile takes the
+    /// ground as the whole start leaves it (the sample's Farms `0/2003`
+    /// under `0/2006`'s terraform, 142 → 145, and `3/2002` under
+    /// `3/2005`'s, 316 → 330). Every building at this point is a seated
+    /// leader's.
+    pub fn reinit_game_units(&mut self) {
+        for b in 0..self.buildings.len() {
+            if self.buildings[b].alive {
+                self.buildings[b].z = self.world.object_z(self.buildings[b].pos.tile());
+            }
+        }
+    }
+
     /// Registers a building type and returns its id.
     pub fn add_build_type(&mut self, ty: crate::cities::build::BuildType) -> usize {
         self.tables.build_types.push(ty);

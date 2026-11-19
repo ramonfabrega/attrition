@@ -520,16 +520,18 @@ pub(in crate::diff) mod tests {
     /// into this lane), where our emitter refused a held shot before.
     /// Item 4394 (the frame-0 `seen2` share and the census's `ever_seen`
     /// mark): goods 1 → 4094 and world 0 → 1716; builds and leaders still
-    /// part on the start.
+    /// part on the start. Item 4397 (`Setup::reinit_game_units`, every
+    /// building's `z` off the whole start's ground): builds 0 → 76; and
+    /// (the walk's oil left to `compute_all_territory`) leaders 0 → 241.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 92),
-        ("builds", 0),
+        ("builds", 76),
         ("walls", 21044),
         ("ammo", 3022),
         ("deaths", 3365),
         ("groups", 927),
         ("guys", 2920),
-        ("leaders", 0),
+        ("leaders", 241),
         ("cities", 3176),
         ("items", 3976),
         ("goods", 4094),
@@ -721,6 +723,17 @@ pub(in crate::diff) mod tests {
     /// `plan_strategy`'s `new_rares` arm marking `ever_seen`, goods' `145
     /// 29 ever_seen` on frame 1, ours 0x04, theirs 0x17 → agree; goods
     /// whole over the window. State 0: 4 → 3 parted ranges.
+    ///
+    /// Item 4397, act 1 (`Game::init:629`'s `Setup::reinit_game_units`,
+    /// every live building's `z` sampled again once the start stands):
+    /// builds `146 2003 z` 142|145 and `785 2002 z` 316|330 agree (Farms
+    /// placed before `0/2006`'s and `3/2005`'s terraforms moved their
+    /// tiles). Builds whole on state 0, its first parting 0 → 76, `758
+    /// 2000 gather[k]` 32640|31872. State 0: 3 → 1 parted range. Act 2
+    /// (the start's walk leaves the oil to `compute_all_territory`, after
+    /// the city's `update_seen(0)`): leader 2's `oil_patches` (20, 4, 5,
+    /// 15)|(5, 4, 20, 15) agree, its capital's disc revealing goods 5 and 4
+    /// first. Leaders whole over the window; state 0: 1 → 0 parted ranges.
     const SAMPLE_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -732,19 +745,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "builds",
-            0,
-            1079,
-            1079,
-            2,
-            "146 2003 who..y_internal: z 142|145",
-        ),
-        (
-            "leaders",
-            0,
-            663,
-            663,
-            1,
-            "328 2 oil_patches: +0x0 of 16|16: 14000000|05000000",
+            76,
+            1214,
+            1214,
+            4,
+            "758 2000 gather[k]: gather[k] 32640|31872",
         ),
     ];
 }

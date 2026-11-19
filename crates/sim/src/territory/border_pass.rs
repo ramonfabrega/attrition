@@ -55,7 +55,18 @@ impl Sim {
             self.wholesale_bordering(&target, &won);
             self.wholesale_reg_terr(&target);
             self.update_territory_holdings();
-            self.claim_oil_from_owners();
+            // **The start's walk leaves the oil to `compute_all_territory`**
+            // (item 4397): the original's pre-play fix
+            // (`Build::activate`'s) writes no cell, and its oil arm runs
+            // only in `World::compute_reg_territory`'s per-cell scan, which
+            // `Setup::build_cities@005ab910` reaches after the city's
+            // `Object::update_seen(0)` — so a patch the new city's disc
+            // reveals joins its leader's `oil_patches` first, through
+            // `reveal_fog`'s oil arm ([`Sim::settle_borders`]). A start
+            // installed from a capture claims here, as it always has.
+            if !self.cities.walks_setup {
+                self.claim_oil_from_owners();
+            }
             return;
         }
         let target = self.world.owners();
@@ -234,6 +245,12 @@ impl Sim {
         } else {
             false
         };
+        // Before the first frame, the call's oil arm over the owners as they
+        // stand (item 4397): a no-op where the fix already claimed, the
+        // whole claim on the start's walk.
+        if !settled && !self.in_play {
+            self.claim_oil_from_owners();
+        }
         if settled || !self.in_play {
             self.claim_rares_from_owners();
         }

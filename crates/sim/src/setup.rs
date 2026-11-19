@@ -217,6 +217,13 @@ impl Setup<'_> {
         self.sim.update_all_seen()
     }
 
+    /// `Game::init@0058c480:629`, after `build_game`:
+    /// [`Sim::reinit_game_units`] (`cities/building.rs`), every live
+    /// building's `z` off the ground the whole start leaves (item 4397).
+    pub fn reinit_game_units(&mut self) {
+        self.sim.reinit_game_units()
+    }
+
     /// [`Sim::sync_territory`] (`cities/city.rs`).
     pub fn sync_territory(&mut self) {
         self.sim.sync_territory()

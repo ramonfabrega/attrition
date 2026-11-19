@@ -181,7 +181,8 @@ it (**not built**).
    the k-th empire built takes start cell k; `build_cities`' village
    (`snap_center` of the cell's corner, `init_build`, `activate(b, false,
    false)`) and its `compute_all_territory` (`sync_territory`,
-   `settle_borders`); `pre_placed_buildings` — the Small Town list and
+   `settle_borders`; the walk's fixes leave the oil to the call, after
+   the city's `update_seen(0)`, item 4397); `pre_placed_buildings` — the Small Town list and
    `build_civ_specific` through `produce_building`'s frame-0 arm (a forward
    on the setup door). The draws, against run100's draw-site trace of the
    same lobby: the village none; the camp's `Objects::init_build` 244
@@ -263,7 +264,10 @@ it (**not built**).
    1240's `0x3bd39ae9`.
 
 Then `Setup::reinit_game_units` re-reads every object's `z` from the
-terrain, and `begin_game` dumps.
+terrain, and `begin_game` dumps. **Built** (item 4397,
+`Sim::reinit_game_units`): every live building's `z` off the ground the
+whole start leaves; units read their tile and carry no field.
+*Diff-backed*: run1678's Farms `0/2003` 142|145, `3/2002` 316|330.
 
 9. **`Game::run@00584590:720–722`, past `build_game` and before the
    loop**: `Leaders::init_production_script`, then
@@ -581,7 +585,7 @@ an assumption the dump cannot settle.
 | `new_rares` | a replay off the dump's fog | the walk's own reveals and setup's goods scan (item 4093) | dump-only: ~~the installer's replay gives seat 1 rare 15 and the walk none~~ both give seat 1 `[15]` (item 4093); the original's frame-0 list is in no dump, and its `ever_seen` bit is: run9's `GOOD 15` 2, ours 2 |
 | oil claims | a replay off the owners | the walk's territory | built; whole comparison |
 | the sync word | the trace's last word | the walk | built; block |
-| a building's `z` | the setup block | its own terraform | not read by the simulation (the renderer's) |
+| a building's `z` | the setup block | its own terraform, then `reinit_game_units` (item 4397) | built; the builds line, run1678 |
 | a cell's `down`, `down_who` | the dump's chain heads | the map's (−1, −2, −3) | dump-only as cell bytes: the simulation threads its chains in `terrain.chain_heads`; 28 cells differ. ~~Not established that anything reads the cell's copy~~: the world line prints it (`object_head_words`), and a box's −3 goes −1 when the box is taken (item 4209, `docs/GOODY.md` §4) |
 | corrections: frame words, clocks, re-seats | the siblings' `DUMP_ALL` | none | not taken by either walk of §7.4 |
 

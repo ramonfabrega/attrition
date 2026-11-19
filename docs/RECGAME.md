@@ -385,10 +385,6 @@ whole with every frame's draws (`docs/RUNS.md`). Two rows, in
   Guy::inc_time+0x271`, which is their fourth draw: one animal's idle
   arm takes three draws ours does not.
 
-~~**Not established:** which animal it is and which arm of `do_idle`;
-whether the person has issued an order by frame 98; the run past 98.~~
-Answered by item 4347, below.
-
 **The word moved: 98 → 444 (item 4347, 2026-11-17).** run1654 retakes the
 opening to frame 100 with every unit and figure printed over 84..101
 (`docs/RUNS.md`). The animal on 98 is herd 0's peacock (`TypeIndex` 413,
@@ -410,9 +406,7 @@ The person has ordered by then: `process_group` on 8, 9, 21 and 28
 **On 92 the person's scout `3/0` holds an `EXPLORE_TO` in theirs and a
 `MOVE_TO` here**, the next parting by state, ahead of the draws' 444.
 
-**Not established:** ~~which package gives the scout its explore-to, and
-how our stream reads it; the parting on 444~~ (answered by item 4351,
-below); `Leader::diplomacy`'s war plan still reads the world seed
+**Not established:** `Leader::diplomacy`'s war plan still reads the world seed
 (`docs/LEADERS.md` §8.2, item 4341's).
 
 **The word moved: 444 → 2888 (item 4351, 2026-11-17).** The package on
@@ -435,8 +429,7 @@ toward (39048, 17736) on both. The person's next nine shift-clicks
 no group. run1654's window agrees whole, 18 of 18 records (9 parted
 before). The draws part at frame 2888, draw 32.
 
-**Not established:** ~~the parting on 2888~~ (answered by item 4359,
-below); whether `work`'s arm or the
+**Not established:** whether `work`'s arm or the
 think's clear is reached on this file (the move is the conversion's,
 scored by mutation in `docs/journal/2026-11-17-item-4351.md`); ~~the
 playback under the `RON_CHECKSUMS` hook, booked for the item after~~
@@ -547,24 +540,28 @@ each a mutation that turns the pin red:
 Four ranges were left; item 4394 took the `seen2` cells (not a unit's
 reveal, as guessed) and goods' `ever_seen`.
 
-**Item 4394** (journal `docs/journal/2026-11-18-item-4394.md`).
+**Items 4394 and 4397** (their journals under `docs/journal/`).
 *Diff-backed* on run1678, each by a mutation:
 
-- **The cells: the Woodcutter `2/2001`'s disc past its city's, shared
-  at frame 0.**
-  `Game::run@00584590:722` runs `GameDaemon::update_all_seen` before the
-  first frame. Its `frame == 0` tail ors each live leader's team (own
-  bit, both-way allies, the stored `+0x6929`) into every `seen2` byte
-  holding one of its bits (`Sim::share_team_seen2`). World whole over
-  the window.
-- **`plan_strategy:314`–`:337` marks each `new_rares` good it counts**
-  (`ever_seen |= 1 << who`), and `new_rare` gives a good to every ally:
-  good 29's frame-1 `ever_seen` 0x04|0x17 agrees. Goods whole over the
-  window.
+- **4394, the cells**: `Game::run@00584590:722`'s
+  `GameDaemon::update_all_seen` ors each live leader's team into every
+  `seen2` byte holding one of its bits at frame 0 (the Woodcutter
+  `2/2001`'s disc past its city's). World whole over the window.
+- **4394, goods**: `plan_strategy:314`–`:337` marks each `new_rares` good
+  it counts (`ever_seen |= 1 << who`). Goods whole over the window.
+- **4397, builds' `z`**: `Game::init@0058c480:629`'s
+  `Setup::reinit_game_units@005abf90` samples every live object's `z`
+  again. Farms `0/2003` 142|145 and `3/2002`
+  316|330, placed before `0/2006`'s and `3/2005`'s terraforms, agree.
+- **4397, the oil**: `Setup::build_cities@005ab910` runs the city's
+  `update_seen(0)` before `compute_all_territory`, and the pre-play fix
+  claims nothing, so leader 2's capital disc lists goods 5 and 4 first:
+  `oil_patches` (20, 4, 5, 15)|(5, 4, 20, 15) agrees.
 
-By sum (`SAMPLE_LINES`): goods 1 → 4094, world 0 → 1716.
-Left on state 0: builds' two `z` (`0/2003` 142|145, `3/2002` 316|330) and
-leader 2's `oil_patches` order, (20, 5) against (5, 20).
+By sum (`SAMPLE_LINES`): goods 1 → 4094, world 0 → 1716, builds 0 → 76,
+leaders 0 → 241. State 0 is whole by range. The next first partings by
+range are builds on 76 (`758 2000 gather[k]` 32640|31872) and units on 92
+(`unit_masks` 0x4000000).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
