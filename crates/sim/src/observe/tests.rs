@@ -215,6 +215,7 @@ fn the_grids_and_their_counters() {
 fn the_door_carries_the_round_s_piece_and_the_corpse_s() {
     let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(8, 8), 2);
     let mut round = crate::combat::Projectile {
+        left: None,
         shooter: crate::combat::Obj::Unit(0),
         owner: 1,
         target: None,

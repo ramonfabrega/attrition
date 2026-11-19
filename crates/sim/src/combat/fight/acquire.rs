@@ -34,10 +34,16 @@ impl Sim {
     /// building `0/2004` left the dump. Clearing that sent a HOLD_FIRE
     /// raider into [`crate::Sim::do_attack`]'s stance arm, which returns,
     /// so the order it should have dropped stood for ever.
+    ///
+    /// A round's record keeps the pair it was aimed at
+    /// ([`combat::Projectile::left`], item 4404): `forget` reads the
+    /// object's `(o, who)` before it lets go.
     pub(crate) fn forget(&mut self, dead: Obj) {
+        let pair = self.obj_o_who(dead);
         for p in &mut self.combat.projectiles {
             if p.target == Some(dead) {
                 p.target = None;
+                p.left = Some(pair);
             }
         }
     }

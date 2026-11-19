@@ -2523,8 +2523,15 @@ left at 0, refused by its bucket clause (11,057 ≥ 3,000). The four tributes ar
   states** (`the_demand_s_game_to_its_end_on_run1691`), and the declaration is
   printed on block 7937 on theirs (`diplos[0][1]`, `[1][0]` 1 → 0), ours on
   7937 too. Units parted from 9981 (the captain mirror's stale copy,
-  `docs/COMBAT.md` §44.2, mended by the same item: 10,929 of 10,929); ammo
-  parts from 10075 (10,893 of 10,929), the next word. **The cadence's read is diff-backed** there: removed, leaders parts on
+  `docs/COMBAT.md` §44.2, mended by the same item: 10,929 of 10,929). ~~Ammo
+  parts from 10075 (10,893 of 10,929), the next word.~~ **Item 4404**: ammo
+  parted where a round's target had gone. The original keeps the target's
+  `whom`/`ox` on the round until `do_damage` or `check_hit` writes it, and
+  ours dropped it at the death (`docs/COMBAT.md` §46.9; run1696 on 10075,
+  run1698 on 10177). Mended, **all twelve lines agree on all 10,929 states
+  of the game the original played to its own end**
+  (`the_demand_s_game_to_its_end_on_run1691`, `RUN1691_AGREED` whole), so the
+  game joins parity's set as the seventh (DECISIONS 143 §2). **The cadence's read is diff-backed** there: removed, leaders parts on
   9985 (ours 2254783755, theirs 705512842). **`action_respond`'s clear still
   fails nothing**: the demand arm calls `action_respond(me, t, 1)` just before
   its own store of 1, and the idle human answers nothing, so no game on disk

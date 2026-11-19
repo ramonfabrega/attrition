@@ -436,6 +436,16 @@ pub struct Projectile {
     pub owner: crate::Player,
     /// The intended target; forgotten if it dies in flight.
     pub target: Option<Obj>,
+    /// **The pair the round keeps after its target leaves the pool**
+    /// (item 4404, `docs/COMBAT.md` §46.9): `AmmoData` stores its target as
+    /// `whom`/`ox` (`+0x48`/`+0x4c`) and nothing clears them when the object
+    /// dies — `Ammo::hit_target@00678f90` returns 0 on a slot no longer in
+    /// use (`flags & 1`) without writing them, and writes −1 only on a live
+    /// target's miss. [`crate::Sim::forget`] drops [`Self::target`], which
+    /// the game reads, and leaves the target's own `(o, who)` here for the
+    /// record: run1696's arrows of the French `1/11` print `whom 0 ox 5`
+    /// after the human's Citizen `0/5` leaves the dump.
+    pub left: Option<(i64, i64)>,
     pub launch: Pos,
     /// Where it comes down.
     pub landing: Pos,
