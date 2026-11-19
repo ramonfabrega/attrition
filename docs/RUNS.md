@@ -39420,3 +39420,27 @@ Files in place, `~/ron-golden/run1705/map-14/`: `gamelog_p.txt`, 2,417 bytes, SH
 `b12b66936cd00651fa485b278783ec4b22398573032539d45bbbebed8ba6d1a3`.
 
 **What it holds**: `diff::held_out::the_held_out_games_score_as_pinned` (`SCORES[5]`).
+
+## run1706 — parity held out, row 120: Islands recorded idle by the client, played to 6000 (2026-11-19, item 4413, `att-4413`)
+
+`docs/RECGAME.md` §10.3; DECISIONS 144 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before the take (`8b3538f49`). The file:
+`~/ron-golden/recordings/item4413-row120-6000.rcx`, 59,219 bytes, SHA-256
+`6b86e3196463a9d0111d00277c7544fc416701efe34fc276e3058107f90269a8`: `client --record <file> --headless --page-of
+gamelog-run346-islands-toughest-24k-trace.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the bottle's `Logs\`.
+
+The take: run1700's line with `~/ron-golden/run1706` and this file, waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 11:33:54 −05:00, exited 11:41:23:
+  **449.2 s** launch to exit, exit 0, `success`, no page fault, no relaunch.
+  6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map
+  18. Players: tribe 4 (flags 7) and tribe 11 (flags 1). 5 settings restored. DLL `2959b851…`, defines
+  `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS`. **The original took the file**: no section refused.
+- **Scored as found** (`the_held_out_games_score_as_pinned`): on the tree merged with origin/main at `0b34ad2ac`: builds, walls, ammo, deaths, groups, leaders, cities, items, goods and world 6,001 of 6,001; **units 4,815**, first parting state 2694, ours 1165909129, theirs 10705802; **guys 5,998**, first parting state 3250, ours 2633326924, theirs 47538376.
+- Filed **in place**, as run1700 is. run1706 was the number reserved for row 120.
+
+Files in place, `~/ron-golden/run1706/map-18/`: `gamelog_p.txt`, 2,450 bytes, SHA-256
+`06bd92a84e8c2eefc5e098e98d32be8e834e3d40812ee39fd332620d10e98827`; `rontrace.log`, 51,875,264 bytes, SHA-256
+`0e981333cfbfcdae83da052203b74d4514df3e009c6b3662479ef875efb177e8`.
+
+**What it holds**: `diff::held_out::the_held_out_games_score_as_pinned` (`SCORES[6]`).

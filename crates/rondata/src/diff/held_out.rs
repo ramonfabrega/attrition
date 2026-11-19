@@ -146,6 +146,7 @@ mod tests {
         let Some(inst) = crate::testenv::install() else {
             return;
         };
+        let mut wrong: Vec<String> = Vec::new();
         for (k, held) in HELD_OUT.iter().enumerate() {
             let (rcx, take) = paths(k);
             let (true, Some(take)) = (rcx.exists(), take) else {
@@ -158,8 +159,14 @@ mod tests {
             };
             let pin = &SCORES[k];
             let until = pin.as_ref().and_then(|p| p.last);
-            let score = crate::checksum::playback::compare_until(inst.root(), &rcx, &take, until)
-                .expect("scored");
+            let score =
+                match crate::checksum::playback::compare_until(inst.root(), &rcx, &take, until) {
+                    Ok(s) => s,
+                    Err(e) => {
+                        wrong.push(format!("row {} run{}: not scored: {e}", held.row, 1700 + k));
+                        continue;
+                    }
+                };
             let first: Vec<First> = crate::checksum::CHECKSUM_LINES
                 .iter()
                 .zip(&score.first)
@@ -179,21 +186,28 @@ mod tests {
                 }
             }
             let Some(pin) = pin else {
-                panic!(
+                wrong.push(format!(
                     "row {}: run{} is taken and SCORES[{k}] is unpinned",
                     held.row,
                     1700 + k
-                );
+                ));
+                continue;
             };
             let want = pin.moved.unwrap_or(pin.found);
-            assert_eq!(
-                (score.states, score.agreed, first, score.over),
-                (want.states, want.agreed, want.first.to_vec(), want.over),
-                "row {} run{}: states, each line's agreeing states, the first partings, ours' end",
-                held.row,
-                1700 + k
-            );
+            let got = (score.states, score.agreed, first, score.over);
+            if got != (want.states, want.agreed, want.first.to_vec(), want.over) {
+                wrong.push(format!(
+                    "row {} run{}: states, agreeing, first partings, ours' end: got {got:?}",
+                    held.row,
+                    1700 + k
+                ));
+            }
         }
+        assert!(
+            wrong.is_empty(),
+            "the held-out games against their pins:\n{}",
+            wrong.join("\n")
+        );
     }
 
     /// **The held-out line**, from the table alone: the games whose score
@@ -410,7 +424,22 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by origin/main at 0b34ad2ac (merged into item 4413's branch): groups
+        // 1,843 -> 4,964, its first parting 711 -> 1854.
+        moved: Some(Score {
+            states: 4974,
+            agreed: [
+                1858, 4974, 4974, 4974, 4974, 4964, 4824, 4974, 4967, 4974, 4974, 4859,
+            ],
+            first: &[
+                ("units", (1858, Some(2347968956), 4143655355)),
+                ("groups", (1854, Some(284774603), 2949074744)),
+                ("guys", (2444, Some(4226756071), 1757622212)),
+                ("cities", (4127, Some(3606914667), 2610767417)),
+                ("world", (4859, Some(155879679), 1707773025)),
+            ],
+            over: None,
+        }),
     }),
     // run1703
     // row 60, Great Sahara at Gunpowder (seed 12345), as found 2026-11-19: the
@@ -458,7 +487,19 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by origin/main at 0b34ad2ac: groups 854 -> 3,837, whole.
+        moved: Some(Score {
+            states: 3837,
+            agreed: [
+                2239, 3736, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 0,
+            ],
+            first: &[
+                ("units", (2239, Some(3211665055), 2108038814)),
+                ("builds", (2376, Some(2962723024), 945131824)),
+                ("world", (0, Some(3924883285), 3379296129)),
+            ],
+            over: None,
+        }),
     }),
     // run1705
     // row 100, Great Lakes at Information (seed 12345), as found 2026-11-19: the
@@ -484,10 +525,43 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by origin/main at 0b34ad2ac: groups 2,400 -> 3,331, whole; guys
+        // 2,895 -> 3,316, its first parting unmoved.
+        moved: Some(Score {
+            states: 3331,
+            agreed: [
+                1611, 2230, 3331, 3172, 2756, 3331, 3316, 3331, 3331, 3331, 3331, 134,
+            ],
+            first: &[
+                ("units", (1611, Some(1862838836), 884976179)),
+                ("builds", (1976, Some(3652536594), 4264774034)),
+                ("ammo", (2618, Some(1076236747), 891350609)),
+                ("deaths", (2756, Some(1136466598), 3621657254)),
+                ("guys", (2646, Some(1999790736), 3081855676)),
+                ("world", (134, Some(3348711314), 341395346)),
+            ],
+            over: None,
+        }),
     }),
     // run1706
-    None,
+    // row 120, Islands (seed 12345), as found 2026-11-19 on the tree merged with
+    // origin/main at 0b34ad2ac: ten lines whole to 6000; units 4,815 of 6,001,
+    // first 2694; guys 5,998, first 3250.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                4815, 6001, 6001, 6001, 6001, 6001, 5998, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (2694, Some(1165909129), 10705802)),
+                ("guys", (3250, Some(2633326924), 47538376)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
     // run1707
     None,
 ];
@@ -495,4 +569,4 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
 /// line and state, and the games taken.
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 6);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 7);
