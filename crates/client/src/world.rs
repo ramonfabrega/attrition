@@ -1312,8 +1312,7 @@ impl World {
 
     /// The scene's buildings as the draw list takes them, each with its
     /// piece and foundation resolved (item 4398: the selected building's
-    /// outline reads its foundation's `back`).
-    #[cfg_attr(not(test), allow(dead_code))]
+    /// outline reads its foundation's `back`; item 4401 draws it).
     pub fn placed_buildings(&self) -> Vec<PlacedBuilding> {
         placed_buildings(&self.runner.scene(None), &self.look, &self.tribes)
     }
