@@ -7,8 +7,14 @@ profiles; its launch-argument test runs a temporary zsh helper and /usr/bin/true
 The gate suite substitutes its child runner, so it does not recurse into a gate.
 The memcap suite uses fake RSS samples and small disposable child processes.
 """
+import argparse
+import json
 from pathlib import Path
+import shutil
+import subprocess
 import sys
+import tempfile
+import time
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'explore'))
@@ -113,6 +119,56 @@ NOT_RUN = {
     'test_wow64_fault': 'the lab',
 }
 
-if __name__ == '__main__':
+# These suites spend most of their time waiting for disposable child
+# processes. Together they occupied about half of the single-worker run.
+PROCESS_SUITES = {'test_isolated_tests', 'test_memcap', 'test_mutate', 'test_waitrun'}
+
+
+def run_modules(names):
     timing = ['--durations', '10'] if hasattr(unittest.TestResult, 'addDuration') else []
-    unittest.main(module=None, argv=[sys.argv[0], *timing, *SUITES], verbosity=2)
+    return unittest.main(module=None, argv=[sys.argv[0], *timing, *names], verbosity=2, exit=False).result
+
+
+def run_two_workers():
+    start = time.monotonic()
+    with tempfile.TemporaryDirectory() as directory:
+        summary = Path(directory) / 'worker.json'
+        # Keep unittest's multi-line tracebacks intact. The foreground's
+        # output is live and the process worker's complete log follows it.
+        with tempfile.TemporaryFile(mode='w+', encoding='utf-8', errors='replace') as log:
+            with subprocess.Popen([sys.executable, __file__, '--process-worker', str(summary)],
+                                  stdout=log, stderr=subprocess.STDOUT) as worker:
+                try:
+                    other = run_modules([name for name in SUITES if name not in PROCESS_SUITES])
+                    code = worker.wait()
+                finally:
+                    if worker.poll() is None:
+                        worker.terminate()
+                    worker.wait()
+                    log.seek(0)
+                    shutil.copyfileobj(log, sys.stderr)
+        if code:
+            return code
+        counts = json.loads(summary.read_text())
+        print(f"Offline tests: {other.testsRun + counts['ran']} ran in {time.monotonic() - start:.2f}s "
+              f"with two workers, {len(other.skipped) + counts['skipped']} skipped", flush=True)
+        return int(not other.wasSuccessful())
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--jobs', type=int, choices=(1, 2), default=1)
+    parser.add_argument('--process-worker', type=Path, help=argparse.SUPPRESS)
+    args = parser.parse_args()
+    if args.process_worker:
+        result = run_modules([name for name in SUITES if name in PROCESS_SUITES])
+        with args.process_worker.open('x') as summary:
+            json.dump(dict(ran=result.testsRun, skipped=len(result.skipped)), summary)
+        return int(not result.wasSuccessful())
+    if args.jobs == 2:
+        return run_two_workers()
+    return int(not run_modules(SUITES).wasSuccessful())
+
+
+if __name__ == '__main__':
+    sys.exit(main())

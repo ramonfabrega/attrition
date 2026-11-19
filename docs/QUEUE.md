@@ -78,7 +78,7 @@ plate as `BuildOut::draw_overlays` draws it. Then the bar, with its own row. It 
 `codex/replay-diagnostics` (4406) adds the capture-directory scorer (RECGAME §10).
 Parity holds at 5 of 6 and packet lines at 661 of 1,053. Whole branch gate passed on `58facf3c6` with required fixtures.
 
-`codex/gate-performance` (4407) builds on that tip. The historical queue failure exits in 1.06 s. Required-fixture gate green on `f4efee5c3` in 26m05s.
+`codex/gate-performance` (4407) builds on that tip. The historical queue failure exits in 1.06 s. Gate green on `f4efee5c3` in 26m05s; offline suite 113 → 56 s on the follow-up, final gate pending.
 
 ## How to maintain this file
 

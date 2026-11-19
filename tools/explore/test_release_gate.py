@@ -409,7 +409,7 @@ class GateTests(unittest.TestCase):
             gate.gate(path, report_dir=path/'report', run=run)
             self.assertEqual(len(calls), 9)
             self.assertEqual(calls[0], ['sh', 'tools/source_pins.sh'])
-            self.assertEqual(calls[1], [sys.executable, 'tools/offline_tests.py'])
+            self.assertEqual(calls[1], [sys.executable, 'tools/offline_tests.py', '--jobs', '2'])
             self.assertEqual(calls[4][:4], ['cargo','run','-p','rondata'])
             self.assertIn('--release', release_of(calls))
 
@@ -555,14 +555,14 @@ garbage line
             calls=[]
             def run(command, **kwargs):
                 calls.append(command)
-                if command == [sys.executable, 'tools/offline_tests.py']:
+                if command == [sys.executable, 'tools/offline_tests.py', '--jobs', '2']:
                     raise subprocess.CalledProcessError(1, command)
                 if '--release' in command:
                     release_ran(kwargs)
             with self.assertRaises(subprocess.CalledProcessError):
                 gate.gate(path, report_dir=path/'report', run=run)
             self.assertEqual(calls, [['sh', 'tools/source_pins.sh'],
-                                     [sys.executable, 'tools/offline_tests.py']])
+                                     [sys.executable, 'tools/offline_tests.py', '--jobs', '2']])
 
     def test_a_pin_that_reads_the_tree_is_red_in_the_first_step_and_the_guard_before_release(self):
         # Loop 4070: 4063's inline test tail was red on the structure pin

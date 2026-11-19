@@ -29,6 +29,10 @@ The release log also prints which lane finished last and the five largest
 rondata processes by CPU seconds. Group members share a process, so the
 ranking sums their attributed CPU. A test's wall time can overlap several
 others. The offline step prints its slowest cases on Python 3.12 and later.
+The gate runs `python3 tools/offline_tests.py --jobs 2` within its existing
+two-slot reservation. One worker runs the four process-supervision suites.
+The other runs the remaining modules. Each prints its complete results,
+and either worker's failure fails the step. Omit `--jobs 2` to run serially.
 
 On macOS, copy the printed `--sample TEST_OR_GROUP` command to sample the
 process under its recorded CPU reservation, memory ceiling, allocator setting,

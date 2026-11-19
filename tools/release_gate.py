@@ -1281,7 +1281,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     # still runs every one of them.
     commands = [
         ['sh', 'tools/source_pins.sh'],
-        [sys.executable, 'tools/offline_tests.py'],
+        [sys.executable, 'tools/offline_tests.py', '--jobs', '2'],
         ['cargo', 'clippy', '--all-targets', '--', '-D', 'warnings'],
         ['cargo', 'fmt', '--check'],
         ['cargo', 'run', '-p', 'rondata', '--', str(install)],
@@ -1498,7 +1498,7 @@ def step_name(command):
         return 'merge pins'
     if command == ['sh', 'tools/source_pins.sh']:
         return 'pins'
-    if command[-1].endswith('offline_tests.py'):
+    if 'tools/offline_tests.py' in command:
         return 'offline'
     if 'clippy' in command:
         return 'clippy'
