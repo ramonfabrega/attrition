@@ -8483,8 +8483,9 @@ So when the target dies or leaves the pool, the record keeps its pair
 while the round flies and loses it at the landing. The crate drops
 `Projectile::target` at the death (`Sim::forget`, which the hit test reads),
 so the record printed `whom -1 ox -1` at once. `Projectile::left` now
-keeps the pair `forget` read, `land` clears it first as `do_damage` does,
-and the ammo line prints `target`'s pair, else `left`'s.
+keeps the pair `forget` read. `land` clears it first, as `do_damage` does,
+and so does the rolling arm's miss, where `inc_time` calls `check_hit`. The
+ammo line prints `target`'s pair, else `left`'s.
 
 **Diff-backed**: run1696 (`the_demand_s_ammo_parts_by_range_on_run1696`).
 The French Longbowmen `1/11`'s two arrows at the human's Citizen `0/5`,
@@ -8493,13 +8494,20 @@ offset `0x43`, ours `whom -1 ox -1`, theirs `whom 0 ox 5`, every state from
 10075 to 10090. Mended, the window agrees, and run1691's ammo line goes
 10,893 → 10,926 of 10,929 (`the_demand_s_game_to_its_end_on_run1691`).
 The landing's clear is diff-backed by the same test: without it, ammo
-agrees on only 10,724. run1011e's packet on 13296 goes whole on its ammo
-line as well (2 → 0).
+agrees on only 10,724. run1698 (`the_demand_s_ammo_parts_by_range_on_run1698`)
+backs the rolling arm: slot 2's rolling arrow from `1/11`, at its landing
+on 10177 (`flags 14`), aimed at the gone `0/3`. Ours kept `whom 0 ox 3`,
+theirs printed −1; slot 1's arrow from `1/10` did the same on 10181.
+Cleared there, **run1691 agrees on all twelve lines on every one of its
+10,929 states**. run1011e's packet on 13296 goes whole on its ammo line as
+well (2 → 0). Each of the three writes has a mutation that turns its test
+red.
 
 **Not established**: a recycled slot. The original's hit test would find
 a new object in `objects[whom][ox]` and could strike it. Ours has dropped
 `target`, so the arrow strikes nothing there. No capture on file shows a
-round outliving its target's slot reuse.
+round outliving its target's slot reuse (parked 4404a). Nor is the unit
+`check_hit` finds on a rolling miss written to the record (parked 4404b).
 
 ## 47. The captain the roll reads, and the shot's own bearing (item 523, 2026-09-22)
 
