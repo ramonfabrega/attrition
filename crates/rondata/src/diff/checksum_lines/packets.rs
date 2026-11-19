@@ -5772,17 +5772,18 @@ fn probe_built_clocks() {
 // both sides' ranges one count.
 /// Item 4348, gaia's angles from the start dump: units (3907, 3907, 408) -> (3907, 3907, 286), guys (1289, 1289, 124) -> (1289, 1289, 2).
 /// Item 4400, the `leader_flags` bits: leaders (407, 407, 6) -> (407, 407, 3).
+// Item 4415, the oil-well stand's cur_time: units (3907, 3907, 286) -> (3907, 3907, 284), guys (1289, 1289, 2) -> (1289, 1289, 0).
 const TAKE_PINNED: Pinned = (
     "run1575",
     1090,
     [
-        (3907, 3907, 286),
+        (3907, 3907, 284),
         (1709, 1709, 23),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
         (556, 556, 2),
-        (1289, 1289, 2),
+        (1289, 1289, 0),
         (407, 407, 3),
         (12, 12, 0),
         (25, 25, 0),
@@ -5891,17 +5892,18 @@ fn run1575_take_packet() {
 /// run1575's take packet's count, none of them a hire or a tribute.
 /// Item 4348, gaia's angles from the start dump: units (3911, 3911, 401) -> (3911, 3911, 279), guys (1289, 1289, 123) -> (1289, 1289, 1).
 /// Item 4400, the `leader_flags` bits: leaders (407, 407, 6) -> (407, 407, 3).
+// Item 4415, the oil-well stand's cur_time: units (3911, 3911, 279) -> (3911, 3911, 278), guys (1289, 1289, 1) -> (1289, 1289, 0).
 const TAKE1629_PINNED: Pinned = (
     "run1629",
     1190,
     [
-        (3911, 3911, 279),
+        (3911, 3911, 278),
         (2015, 2015, 23),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
         (556, 556, 2),
-        (1289, 1289, 1),
+        (1289, 1289, 0),
         (407, 407, 3),
         (12, 12, 0),
         (25, 25, 0),
@@ -6007,17 +6009,18 @@ fn run1629_take_packet() {
 /// Item 4400, the `leader_flags` bits: leaders (403, 403, 3) -> (403, 403, 0).
 /// the unseated slots' `diplos` agreeing. Item 4397: builds 1 → 0, the
 /// start's buildings' `z` resampled (`Setup::reinit_game_units`).
+// Item 4415, the oil-well stand's cur_time: units (3750, 3750, 1) -> (3750, 3750, 0), guys (1261, 1261, 1) -> (1261, 1261, 0).
 const TAKE1645_PINNED: Pinned = (
     "run1645",
     1000,
     [
-        (3750, 3750, 1),
+        (3750, 3750, 0),
         (2024, 2024, 0),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
         (556, 556, 2),
-        (1261, 1261, 1),
+        (1261, 1261, 0),
         (403, 403, 0),
         (9, 9, 0),
         (30, 30, 0),
