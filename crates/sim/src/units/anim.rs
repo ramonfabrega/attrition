@@ -1237,6 +1237,33 @@ impl Sim {
             // what run882b's Strategic Bomber `1/50` carries on 6808.
             first.turret.inc = old.turret.inc;
         }
+        if std::env::var_os("RON_PROBE_4428").is_some()
+            && let Some((i, old)) = self
+                .units
+                .iter()
+                .enumerate()
+                .rev()
+                .find(|(i, old)| *i != u && old.owner == who && old.index == o && !old.alive())
+        {
+            let p = old.movement.body.pos;
+            eprintln!(
+                "HEIR4428\tf{}\t{}/{}\tnew TI {}\told u{} TI {} dom {:?}\tpos ({},{})\tground {}\taf.z {}\taf.last_z {}\tinside {:?}/{:?}",
+                self.frame,
+                who as i32,
+                o,
+                self.units[u].type_index,
+                i,
+                old.type_index,
+                old.kind.domain,
+                p.x,
+                p.y,
+                self.world.data_z(p.x, p.y).0,
+                old.airframe.z,
+                old.airframe.last_z,
+                old.inside,
+                old.inside_unit
+            );
+        }
         self.units[u].guys = guys;
         // `Unit::init@00612100:548`-`549`, which follow the guy loop:
         // `update_gpiece`, then `set_new_location(x, y, 1, 1)`. The

@@ -627,6 +627,22 @@ pub(super) fn check(name: &str, walked: &[Walked]) {
         for (n, l) in STATE_LINES.iter().zip(&w.lines) {
             if let Some(f) = &l.first {
                 eprintln!("  {n}: {} of {} ranges part; first {f}", l.parted, l.theirs);
+                if std::env::var_os("RON_PROBE_4428").is_some() {
+                    let hex = |b: &Option<Vec<u8>>| {
+                        b.as_ref().map_or_else(String::new, |b| {
+                            b.iter().map(|x| format!("{x:02x}")).collect::<String>()
+                        })
+                    };
+                    eprintln!(
+                        "PROBE4428\t{}\t{}\t{n}\t{}\t{}\t{}\t{}",
+                        w.run,
+                        w.frame,
+                        f.record,
+                        f.field,
+                        hex(&f.ours),
+                        hex(&f.theirs)
+                    );
+                }
             }
         }
         if let Some((agree, of)) = city_names::tally(w) {
