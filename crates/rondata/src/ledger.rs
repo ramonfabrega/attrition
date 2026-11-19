@@ -163,6 +163,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "compares 22-byte building ranges with packet streams by owner and object across four games (item 4372)",
     ),
     (
+        "diff/checksum_lines/packets/city_names.rs",
+        "each live city's CityData +0x90 name, read off the packet itself (tools/recomp/city_names.py), against ours at the same (who, o) (item 4416); it reads no dump record",
+    ),
+    (
         "diff/checksum_lines/deaths.rs",
         "compares the death pool with original packet bytes at a scout disband and a combat boundary (item 4363)",
     ),
