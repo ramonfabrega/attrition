@@ -175,8 +175,8 @@ tile on each side, from `(−x, −y)` counter-clockwise, each paired with one
 closing each side: **a band 48 world units wide outside the rectangle**,
 every vertex at `find_data_z`. Its colour is the owner's
 `TeamColor::get_unit` with the alpha's top bit cleared unless
-`Camera::is_zoom_out`; its texture is `int_str_array +0x1784`'s; a vertex
-off the map takes alpha 0. `client::selection::band` is that geometry, and
+`Camera::is_zoom_out`; its texture is `city_radius.tga` (item 4421,
+below); a vertex off the map takes alpha 0. `client::selection::band` is that geometry, and
 **`RUN1559B_3279_SELECTED`** reads it on run1559b's photograph, the city's
 type 0 (7 × 7, `back` 1, point (3168, 30816)): of the band's 4,551 pixels,
 **1,477 are red in theirs** (`r − g` and `r − b` over 40); moved one tile
@@ -195,6 +195,32 @@ selected: **ours red 52 → 2,132, of them on theirs' red 9 → 1,404** (of
 theirs' 1,477). Drawn one tile east, it read 855 and 542, and the pin
 failed. Ours is a solid 48-unit band; theirs is thinner and soft-edged,
 its texture's, so ours paints about 728 red pixels theirs does not.
+
+**Textured by item 4421.** The card calls name the texture, by
+`rise.pdb`'s `GSGraphicCard` vtable (`LF_ONEMETHOD` offsets):
+`set_render_state(render_states[17])` (`+0x24`, `0xc11d3c` the array's
+data, `+0x44`), `set_texture(0, circle_gen +0x134)` (`+0x20`), then
+`set_prim_type(3)` (`+0x2c`) and `set_poly_count_type("Effects")`
+(`+0x30`: `int_str_array +0x1784` is string 301, a statistics name, not a
+texture). `circle_gen +0x134` is `CircleRender::circle_textures[0]`, the
+first `<SELECTIONCIRCLE texture=…>` of `effects_graphics.xml`
+(`CircleRender::init@008c48a0`): **`city_radius.tga`**, 32 × 32, white,
+every column one tent of alpha, 0 at row 0 and 255 at row 16. The
+listing's `TexArray::add` (`xmm1`, `xmm2`) gives every vertex `u` 0, an
+inner one `v` 0 and an outer one `v` 1.0 (`0xb69514`); in a corner square
+`v` is 0 at the rectangle's corner alone. **run1566b's card pass agrees**:
+draw 115 binds `.\art\city_radius.tga`, flushed when the next state is
+set (its stack `RenderStateMethod::execute ← … ← flush_shadows`, as draw
+114's `draw_thick_rectangle` frame flushes the batch before the band's),
+with stage 0 `MODULATE(TEXTURE, CURRENT)` on colour and alpha, a point
+filter, no mip, `SRCALPHA`/`INVSRCALPHA` and the vertex's diffuse. So a
+pixel is the owner's colour at alpha `tex_a[⌊32 v⌋] · 0x7f / 255`: a soft
+line at mid-band. `client::selection::underlay` cuts each triangle at
+`v = r/32` into one layer a texel alpha (`BandAlphas`, `clip_v`), and the
+GPU's pass blends each at its alpha times `UNDERLAY_ALPHA`. **Ours red
+2,132 → 1,395, of them on theirs' red 1,404 → 1,300** (of 1,477): ours'
+red off theirs 728 → 95, theirs' red ours misses 73 → 177. Untextured, the
+pin reads the solid band's `[2132, 1404]` and fails.
 
 **The city's plate, placed (item 4403).** `BuildOut::draw_overlays@0062cb30`
 draws it for any active city centre (`flags & 4` and `& 0x20`), selected or
@@ -487,14 +513,17 @@ Not established:
 - **A building's marker.** `draw_funky_rectangle_circle` at
   `BuildData::max_range` is not read, and its shape and size are not
   ported; ours outlines the footprint.
-- **The selected building's band, drawn** (items 4398 and 4401, §3): its
-  geometry is counted on run1559b (`RUN1559B_3279_SELECTED`) and drawn
-  untextured at one constant alpha. Not read: string `+0x1784`'s texture
-  and its coordinates (`TexArray::add`'s arguments are registers the
-  decompiler lost), which is why ours is wider and harder than theirs;
-  card mode 3 (`+0x2c(3)`): whether it depth-tests as `render_states[3]`
-  does for land units (0x20287, `docs/RENDERER.md` §3.7) is not read, and
-  ours tests nothing; `get_unit`'s alpha being `0xff`; the listing's alpha
+- **The selected building's band, drawn** (items 4398, 4401 and 4421,
+  §3): its geometry is counted on run1559b (`RUN1559B_3279_SELECTED`) and
+  drawn through `city_radius.tga`'s rows. ~~Not read: string `+0x1784`'s
+  texture and its coordinates~~: read (4421, §3), `+0x1784` is a
+  statistics name and the texture `circle_textures[0]`; the coordinates
+  rest on the listing, and the texture on run1566b's draw 115, whose
+  stream the probe did not keep (no vertex is compared). Not established:
+  `render_states[17]`'s depth test (`+0x2c(3)` is `set_prim_type`, not a
+  mode; ours tests nothing), and why theirs reads a shade stronger than
+  ours by eye (177 of theirs' red pixels ours misses: the blend's place in
+  HDR, or the tone map, is not read, parked 4421a); `get_unit`'s alpha being `0xff`; the listing's alpha
   0 for a vertex off the map (ours carries one alpha a pass); and the
   draw's place among the other underlays. The name plate is
   `BuildOut::draw_overlays@0062cb30`'s (`CityData +0x90`'s name on

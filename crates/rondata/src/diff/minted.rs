@@ -4218,17 +4218,21 @@ fn name_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<NameEffect>> {
 }
 
 /// **The renamed script's effects on our walk** (item 4268), pinned before
-/// the original's playback was read: no name before the package (the
-/// founding name is not carried), [`crate::script::RENAME_NAME`] from the
-/// frame after it; without the order, no name on any of the three. Seen
-/// red first: pinned empty.
+/// the original's playback was read: [`crate::script::RENAME_NAME`] from
+/// the frame after the package. Seen red first: pinned empty. On the
+/// package's frame the capital holds its founding name, `Napata`, since
+/// item 4418 ported `City::generate_name` (it was `None` before); the
+/// source that backs it is run1609's take, slot 0's `CITY` record on frame
+/// 6730 ([`renamed_effects_theirs`], read off
+/// `gamelog-run1609-greatlakes-playback-of-renamed-7000.txt`), which is
+/// now equal to this row on all three frames.
 fn renamed_effects_ours() -> Vec<NameEffect> {
-    let row = |frame, name: Option<&str>| NameEffect {
+    let row = |frame, name: &str| NameEffect {
         frame,
-        name: name.map(str::to_string),
+        name: Some(name.to_string()),
     };
-    let name = Some(crate::script::RENAME_NAME);
-    vec![row(6730, None), row(6731, name), row(6999, name)]
+    let name = crate::script::RENAME_NAME;
+    vec![row(6730, "Napata"), row(6731, name), row(6999, name)]
 }
 
 /// **What the rename does on our walk** (item 4268), on
@@ -4308,9 +4312,9 @@ fn the_original_s_playback_of_the_renamed_file_walks_in_lockstep() {
     assert_eq!(walked, RENAMED_WALKED, "the walked table");
     assert_eq!(theirs, renamed_effects_theirs(), "the original's names");
     assert_eq!(
-        theirs[1..],
-        renamed_effects_ours()[1..],
-        "ours after the package"
+        theirs,
+        renamed_effects_ours(),
+        "ours: the founding name on the package's frame (item 4418), the rename after it"
     );
 }
 

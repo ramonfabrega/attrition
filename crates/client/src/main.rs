@@ -306,8 +306,8 @@ struct Built {
     /// The burning buildings' particles (item 4233), one mesh a blend.
     particles: Vec<particle::ParticleMesh>,
     overlay: (Vec<[f32; 3]>, Vec<[f32; 3]>),
-    /// The selected buildings' bands (item 4401), world triangles.
-    underlay: (Vec<[f32; 3]>, Vec<[f32; 3]>),
+    /// The selected buildings' bands (items 4401, 4421), a layer an alpha.
+    underlay: Vec<gpu::ScreenLayer>,
     /// The cities' plates (item 4410), the screen pass's layers.
     screen: Vec<gpu::ScreenLayer>,
 }
@@ -436,7 +436,7 @@ fn draw(
         textured: &b.textured,
         trees: &b.trees,
         overlay: (&b.overlay.0, &b.overlay.1),
-        underlay: (&b.underlay.0, &b.underlay.1),
+        underlay: &b.underlay,
         screen: &b.screen,
         sprites: &b.sprites,
         shadows: &b.shadows,
@@ -531,7 +531,7 @@ pub(crate) fn still_named(
         textured: &b.textured,
         trees: &b.trees,
         overlay: (&[], &[]),
-        underlay: (&underlay.0, &underlay.1),
+        underlay: &underlay,
         screen: &screen,
         sprites: &b.sprites,
         shadows: &b.shadows,
@@ -574,7 +574,7 @@ fn draw_page(
         textured: &[],
         trees: &[],
         overlay: (&overlay.0, &overlay.1),
-        underlay: (&[], &[]),
+        underlay: &[],
         screen: &[],
         sprites: &[],
         shadows: &[],
