@@ -131,6 +131,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the 2017 sample's two rows (item 4336): the start's records are start.rs's start_block and compare_start, the walk's draws start_walk's walk_with; it adds only the header's GAMEINFO keys against the playback's print, no field of the simulation",
     ),
     (
+        "diff/held_out.rs",
+        "parity held out's eight lobbies (item 4413): the pinned table of rows the rule names, and each client-recorded game scored by checksum::playback's twelve state checksums; it reads no dumped record's fields",
+    ),
+    (
         "diff/held_probe.rs",
         "the held-leaf probe (item 4159's eighteenth residue): off unless switched on by name, it reports the cells the leader-record sites already compare; it compares no field itself",
     ),
