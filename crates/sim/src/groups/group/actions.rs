@@ -412,15 +412,6 @@ impl Sim {
         // kills the list whole and `Group::clear`s the record leaves it −1
         // (run1555's slot 64 on 765, item 4000); `ox`/`oy` and `o_angle`
         // come after it ([`Self::record_move`]).
-        if std::env::var_os("RON_PROBE_4417_BT").is_some() && g.who == 1 {
-            eprintln!(
-                "PROBE4417BT f{} who {} pool {:?} form {form} kind {kind:?}\n{}",
-                self.frame,
-                g.who,
-                self.gstate_mut(g).and_then(|s| s.pool),
-                std::backtrace::Backtrace::force_capture()
-            );
-        }
         if let Some(st) = self.gstate_mut(g) {
             st.form = form;
         }
