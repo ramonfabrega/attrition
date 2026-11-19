@@ -986,6 +986,29 @@ impl Sim {
         }
     }
 
+    /// **A payoff probe's hand**, not a mechanic: seat unit `u` on `to`
+    /// through [`Sim::set_new_location`], so the collision grid and the
+    /// figures follow. The diff harness uses it to put a unit where the
+    /// original's dump has it and ask whether a later frame agrees.
+    #[doc(hidden)]
+    pub fn probe_relocate(&mut self, u: usize, to: Pos) -> bool {
+        self.set_new_location(u, to, true)
+    }
+
+    /// `Unit::set_new_location(x, y, move_guys, 1)`: **with `param_4`
+    /// set**, the guy half opens with `Guy::set_angle(guy 0, heading,
+    /// param_3)` (`005f8d20:156`, `:192` for a squad), ahead of the
+    /// figure's own `set_new_location`. With `move_guys` that snaps the
+    /// figure onto the heading at once, so the frame's `Guy::move` finds
+    /// `des_angle == angle` and asks for no walk (item 4415,
+    /// `docs/CHECKSUM.md` §23.9: the oil-well stand of
+    /// `Unit::do_gather@005ef2a0:384`, whose `CHAR_FARM` started a frame
+    /// late without it). The early returns of the shore half skip it, as
+    /// they skip the rest of the guy half.
+    pub(crate) fn set_new_location_turning(&mut self, u: usize, to: Pos, move_guys: bool) -> bool {
+        self.set_location_with(u, to, move_guys, true)
+    }
+
     /// **`Guy::set_angle@005d9010` on guy 0**: `des_angle` (`+0x64`, the
     /// unit's heading here, which every caller has already written) and,
     /// with `snap`, the figure's own angle, then the crew loop

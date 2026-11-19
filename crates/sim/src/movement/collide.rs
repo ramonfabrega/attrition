@@ -2186,34 +2186,12 @@ impl Sim {
     ///
     /// The fog reveal that hangs off the same call stays with its caller
     /// ([`Sim::moved_to`], `docs/VISION.md` §6).
-    /// **A payoff probe's hand**, not a mechanic: seat unit `u` on `to`
-    /// through [`Sim::set_new_location`], so the collision grid and the
-    /// figures follow. The diff harness uses it to put a unit where the
-    /// original's dump has it and ask whether a later frame agrees.
-    #[doc(hidden)]
-    pub fn probe_relocate(&mut self, u: usize, to: Pos) -> bool {
-        self.set_new_location(u, to, true)
-    }
-
     pub(crate) fn set_new_location(&mut self, u: usize, to: Pos, move_guys: bool) -> bool {
-        self.set_new_location_with(u, to, move_guys, false)
+        self.set_location_with(u, to, move_guys, false)
     }
 
-    /// `Unit::set_new_location(x, y, move_guys, 1)`: **with `param_4`
-    /// set**, the guy half opens with `Guy::set_angle(guy 0, heading,
-    /// param_3)` (`005f8d20:156`, `:192` for a squad), ahead of the
-    /// figure's own `set_new_location`. With `move_guys` that snaps the
-    /// figure onto the heading at once, so the frame's `Guy::move` finds
-    /// `des_angle == angle` and asks for no walk (item 4415,
-    /// `docs/CHECKSUM.md` §23.9: the oil-well stand of
-    /// `Unit::do_gather@005ef2a0:384`, whose `CHAR_FARM` started a frame
-    /// late without it). The early returns of the shore half skip it, as
-    /// they skip the rest of the guy half.
-    pub(crate) fn set_new_location_turning(&mut self, u: usize, to: Pos, move_guys: bool) -> bool {
-        self.set_new_location_with(u, to, move_guys, true)
-    }
-
-    fn set_new_location_with(&mut self, u: usize, to: Pos, move_guys: bool, turn: bool) -> bool {
+    /// `Unit::set_new_location` with `param_4` as `turn` ([`Sim::set_new_location_turning`]).
+    pub(crate) fn set_location_with(&mut self, u: usize, to: Pos, guys: bool, turn: bool) -> bool {
         let from = self.units[u].pos;
         // **A move onto the point the unit already stands on is not a
         // no-op**, and the early return that used to sit here made it
@@ -2296,10 +2274,9 @@ impl Sim {
             self.ceo_tile_step(u, on_map, from, to);
         }
         if turn {
-            let heading = self.units[u].movement.heading;
-            self.guy_set_angle(u, heading, move_guys);
+            self.guy_set_angle(u, self.units[u].movement.heading, guys);
         }
-        if move_guys {
+        if guys {
             self.units[u].movement.body.pos = to;
             // `Guy::set_new_location(guy 0, pos, 1)`'s crew loop
             // (`005d86f0:83`–`127`): every crew figure takes guy 0's
