@@ -505,9 +505,8 @@ leader 2's `oil_patches` order, two buildings' `z` and six `seen2` cells.
 Units' 92 is the explore bit, which item 4351 carried as
 `sim::Unit::explore_queued`, outside the word `checksum/units.rs` builds.
 
-**Item 4388: 24 of the 28 taken** (`SAMPLE_RANGES`; journal
-`docs/journal/2026-11-18-item-4388.md`). *Diff-backed* on run1678's state 0,
-each a mutation that turns the pin red:
+**Item 4388: 24 of the 28 taken** (`SAMPLE_RANGES`). *Diff-backed* on
+run1678's state 0, each by a mutation:
 
 - **The mask.** `Setup::build_game@005ac190` calls `Leader::init` over
   `start_list`, the start permutation, and `Leader::init`'s loop ors a slot
@@ -550,8 +549,8 @@ by a mutation:
 
 All twelve agree to 100.
 
-**Items 4412 and 4414: run1697, to 560** (their journals). *Diff-backed*
-on its ranges, each by a mutation:
+**Items 4412, 4414: run1697, to 560**. *Diff-backed*, each by a
+mutation:
 
 - **Leaders on 241**: leader 4's `strong[2]` toward teammate 2, 32|0.
   `Leader::diplomacy`'s `6bd02a` (`leader_flags & 4`) skips the building
@@ -562,9 +561,10 @@ on its ranges, each by a mutation:
   `UnitOrder::walk_data@0047f2b0`, the flags byte (`04`), which ours left
   out. → 2112.
 
-run1710 holds every first parting to 3,100 (`SAMPLE_RANGES_1710`).
-Items 4419, 4422: groups 927 → 2888 (GROUPS §24.2). Item 4424: world
-1716 → 2921, an exit lights no disc (VISION §6).
+run1710 holds every first parting to 3,100 (`SAMPLE_RANGES_1710`):
+groups 927 → 2888 (4419, 4422; GROUPS §24.2); world 1716 → 2921, no
+exit lights a disc (4424; VISION §6); units 2112 → 2700, leaders → 2989,
+an ally's ground bleeds nothing (4429; ATTRITION, check 6).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

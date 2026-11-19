@@ -882,6 +882,10 @@ The last loop slides the whole block so that one member sits at the
 origin, and quantises: `group.off[i] = div_3_table[form.off[i] >> 4]`.
 Two things about it were wrong or missing in every earlier pass.
 
+**The store sits inside the slide's member test** (item 4425, diff-backed):
+a member off the map keeps the record's old entry, never the `Form`'s
+zero, and `compute_form`'s tail negates all `num` entries.
+
 **The anchor is the first member of the *lowest-indexed* non-empty
 category, not the last.** The rank-stack walk's `prev` is written **only
 while it is still negative** — `72cfe2 movl %ecx, %esi` sits on the
@@ -940,18 +944,16 @@ approximation of the same 216 at three different bearings. The whole
 `72d17c`–`72d198` is `cmpl %eax, -0x1c(%ebp)` (the rank-stack's `prev`
 against this member's category), `cmpl $0x0, -0x20(%ebp)` (its `cat_id`),
 then `movl %esi, -0x40(%ebp)` / `movl %ebx, -0x38(%ebp)`. So the anchor is
-`cat_id 0` of the lowest non-empty category, full stop — which is the same
-member `find_leader` names. A record whose block sits somewhere else has
+`cat_id 0` of the lowest non-empty category, the member `find_leader`
+names. A record whose block sits somewhere else has
 been **re-origined** since, and that is §6.8.
 
 **Where the slot destination ends up in the order.** §6.6 step 6 passes it
 as a `UCoord` (`/0x30`), and the round trip is lossy in a way that is
 exactly `Unit::add_move_order`'s own snap: the `MOVEORDER`'s `x`/`y` is
 `floor(to / 48) × 48 + 24`. run31 reproduces all 36 members' destinations
-that way on every frame the un-refreshed table is readable — and note it is
-`x`/`y` that carries it, **not** `dest_x`/`dest_y`, which is the path
-stack's current waypoint (`docs/ORDERS.md` §11.1) and lags a whole click
-behind on most members.
+that way. `x`/`y` carries it, **not** `dest_x`/`dest_y`, the path
+stack's waypoint (`docs/ORDERS.md` §11.1).
 
 The quantisation is a **floor**: `init_coord_lookup_array@00681db0` builds
 `div_3_table` as `j / 3` for `j ≥ 0` and `(j − 2) / 3` for `j < 0`, which
@@ -977,9 +979,8 @@ Everything above closes on one row of one record, with no free parameter:
 which is `GROUPDATA` `id 66`'s own `off_x`, with `off_y` and `angles` all
 zero and `form_num 4`. `curr = [(0,0), (473,480), (−440,−446),
 (946,960)]` follows exactly from §6.6's `update_positions` under the
-leader's logged `angle` of `−1_605_566_464`. A **truncation** instead of
-the floor gives `[0, −13, 13, −27]`, which is why the rounding had to be
-settled first.
+leader's logged `angle` of `−1_605_566_464`. A truncation gives
+`[0, −13, 13, −27]`.
 
 #### The four things this does not reproduce
 

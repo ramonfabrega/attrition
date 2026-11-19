@@ -534,16 +534,18 @@ pub(in crate::diff) mod tests {
     /// group on the next push): groups 927 → 961. Item 4422
     /// (`action_swarm_around`'s `form` −1, slot 195 on 961): groups 961 →
     /// 2888. Item 4424 (a trained captain's exit lights no disc; the
-    /// gather re-seat lights its own): world 1716 → 2921.
+    /// gather re-seat lights its own): world 1716 → 2921. Item 4429
+    /// (`process_attrition`'s check 6, an ally's ground both ways): units
+    /// 2112 → 2700 and leaders 2112 → 2989.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 2112),
+        ("units", 2700),
         ("builds", 3029),
         ("walls", 21044),
         ("ammo", 3022),
         ("deaths", 3365),
         ("groups", 2888),
         ("guys", 2920),
-        ("leaders", 2112),
+        ("leaders", 2989),
         ("cities", 3176),
         ("items", 3976),
         ("goods", 4094),
@@ -552,8 +554,9 @@ pub(in crate::diff) mod tests {
 
     /// `(frames our walk holds no wall, shot or death, the first it holds
     /// one)`. Minted at 0: none on 3,594 of 21,044, the first shot on 2929,
-    /// theirs' frame.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3594, Some(2929));
+    /// theirs' frame. Item 4429 (an ally's ground bleeds nothing): 3594 →
+    /// 4361 empty frames, past every parting; the first shot stays on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4361, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -876,7 +879,16 @@ pub(in crate::diff) mod tests {
     /// (item 4414). Minted at seven rows, each on the frame the sum parts
     /// (`SAMPLE_LINES`): units, builds, ammo, groups, guys, leaders, world.
     const SAMPLE_RANGES_1710: &[(&str, i64, usize, usize, usize, &str)] = &[
-        ("units", 2112, 2286, 2286, 3, "619 1 flags: flags 17|1"),
+        // Item 4429: 2112 -> 2700 (computer 2's Citizen `2/1` on its ally
+        // 0's ground bled the peace period on 2111 in ours alone).
+        (
+            "units",
+            2700,
+            2875,
+            2875,
+            19,
+            "2087 27 collide_frame..play: orders_y 30792|30648",
+        ),
         (
             "builds",
             3029,
@@ -911,13 +923,15 @@ pub(in crate::diff) mod tests {
             2,
             "379 0 guy: angle 2146133600|2134310912, last_angle 2146133600|2134310912, des_angle -1748041728|2134310912",
         ),
+        // Item 4429: 2112 -> 2989 (leader 2's `attrition_stamp` and
+        // `attrition_stamp2` 2111|0 go with the ally's bleed).
         (
             "leaders",
-            2112,
+            2989,
             667,
             667,
-            1,
-            "267 2 who..ally_mask: +0x1ec of 26914|26914: 3f080000|00000000",
+            2,
+            "457 3 oil_patches: +0x0 of 4|4: 0c000000|0d000000",
         ),
         // Item 4424: 1716 -> 2921 (the person's type-107 captain out of
         // its trainer on 1715 with a gather point lit nine fog cells round

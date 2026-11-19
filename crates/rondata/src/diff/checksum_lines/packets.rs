@@ -1402,7 +1402,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// `SubObjectData::flags & 0x40`, `Object::init`'s `DETECT`: run1217,
 /// run1221, run1224b, run1236, run1238c, run1263, run1264b, run1266c,
 /// run1294, run1296, run1327, run1361, run985b).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 748, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 771, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2019,6 +2019,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // 100) -> (7749, 7749, 90); guys (1934, 1934, 11) -> (1934, 1934, 1).
     // Item 4415, the oil-well stand's cur_time: units (7749, 7749, 90) -> (7749, 7749, 89), guys (1934, 1934, 1) -> (1934, 1934, 0).
     // Item 4422, the swarm's form -1: groups (628, 628, 5) -> (628, 628, 4).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (628, 628, 4) -> (628, 628, 0).
     (
         "run1169",
         3769,
@@ -2028,7 +2029,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (12, 12, 0),
             (0, 0, 0),
-            (628, 628, 4),
+            (628, 628, 0),
             (1934, 1934, 0),
             (271, 271, 0),
             (27, 27, 0),
@@ -2063,6 +2064,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (6735, 6735,
     // 67) -> (6735, 6735, 60); guys (1962, 1962, 7) -> (1962, 1962, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (640, 640, 4) -> (640, 640, 0).
     (
         "run1185",
         4582,
@@ -2072,7 +2074,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (3, 3, 0),
             (4, 4, 0),
-            (640, 640, 4),
+            (640, 640, 0),
             (1962, 1962, 0),
             (271, 271, 0),
             (27, 27, 0),
@@ -2139,6 +2141,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (10607,
     // 10607, 66) -> (10607, 10607, 58); guys (3247, 3247, 10) -> (3247, 3247, 2).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (3412, 3412, 11) -> (3412, 3412, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (700, 700, 8) -> (700, 700, 0).
     (
         "run1217",
         7728,
@@ -2148,7 +2151,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (6, 6, 0),
             (0, 0, 0),
-            (700, 700, 8),
+            (700, 700, 0),
             (3247, 3247, 2),
             (271, 271, 0),
             (56, 56, 0),
@@ -2217,6 +2220,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (6445, 6445,
     // 69) -> (6445, 6445, 54); guys (1768, 1768, 15) -> (1768, 1768, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1719, 1719, 6) -> (1719, 1719, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (592, 592, 4) -> (592, 592, 0).
     (
         "run1221",
         4287,
@@ -2226,7 +2230,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (6, 6, 0),
             (0, 0, 0),
-            (592, 592, 4),
+            (592, 592, 0),
             (1768, 1768, 0),
             (271, 271, 0),
             (33, 33, 0),
@@ -2302,6 +2306,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (7490, 7490,
     // 63) -> (7490, 7490, 57); guys (2097, 2097, 6) -> (2097, 2097, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (646, 646, 7) -> (646, 646, 0).
     (
         "run1235b",
         4127,
@@ -2311,7 +2316,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (12, 12, 0),
             (4, 4, 0),
-            (646, 646, 7),
+            (646, 646, 0),
             (2097, 2097, 0),
             (271, 271, 0),
             (30, 30, 1),
@@ -2341,6 +2346,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1762, 1762, 5) -> (1762, 1762, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (658, 658, 4) -> (658, 658, 0).
     (
         "run1236",
         4179,
@@ -2350,7 +2356,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (658, 658, 4),
+            (658, 658, 0),
             (2070, 2070, 0),
             (271, 271, 0),
             (44, 44, 0),
@@ -2420,6 +2426,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (6417, 6417,
     // 37) -> (6417, 6417, 36); guys (2151, 2151, 1) -> (2151, 2151, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2494, 2494, 6) -> (2494, 2494, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (646, 646, 4) -> (646, 646, 0).
     (
         "run1238c",
         5021,
@@ -2429,7 +2436,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (646, 646, 4),
+            (646, 646, 0),
             (2151, 2151, 0),
             (271, 271, 0),
             (49, 49, 0),
@@ -2461,6 +2468,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (5942, 5942,
     // 8) -> (5942, 5942, 7); guys (1748, 1748, 1) -> (1748, 1748, 0).
     // Item 4422, the swarm's form -1: groups (622, 622, 5) -> (622, 622, 4).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (622, 622, 4) -> (622, 622, 0).
     (
         "run1247",
         4306,
@@ -2470,7 +2478,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (6, 6, 0),
             (0, 0, 0),
-            (622, 622, 4),
+            (622, 622, 0),
             (1748, 1748, 0),
             (271, 271, 0),
             (38, 38, 0),
@@ -2583,6 +2591,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (6468, 6468,
     // 99) -> (6468, 6468, 88); guys (1895, 1895, 12) -> (1895, 1895, 1).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1770, 1770, 4) -> (1770, 1770, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (586, 586, 7) -> (586, 586, 0).
     (
         "run1264b",
         4919,
@@ -2592,7 +2601,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (3, 3, 0),
             (2, 2, 0),
-            (586, 586, 7),
+            (586, 586, 0),
             (1895, 1895, 1),
             (271, 271, 0),
             (43, 43, 0),
@@ -2631,6 +2640,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (11161,
     // 11161, 77) -> (11161, 11161, 68); guys (3210, 3210, 9) -> (3210, 3210, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (3796, 3796, 10) -> (3796, 3796, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (682, 682, 8) -> (682, 682, 0).
     (
         "run1266c",
         8700,
@@ -2640,7 +2650,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (6, 6, 0),
             (0, 0, 0),
-            (682, 682, 8),
+            (682, 682, 0),
             (3210, 3210, 0),
             (271, 271, 0),
             (54, 54, 0),
@@ -2711,6 +2721,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (9512, 9512,
     // 120) -> (9512, 9512, 109); guys (2191, 2191, 11) -> (2191, 2191, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (586, 586, 4) -> (586, 586, 0).
     (
         "run1293",
         3606,
@@ -2720,7 +2731,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (586, 586, 4),
+            (586, 586, 0),
             (2191, 2191, 0),
             (271, 271, 0),
             (25, 25, 0),
@@ -2757,6 +2768,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // 68) -> (8216, 8216, 61); guys (2242, 2242, 7) -> (2242, 2242, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2123, 2123, 2) -> (2123, 2123, 0).
     // Item 4422, the swarm's form -1: groups (688, 688, 9) -> (688, 688, 8).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (688, 688, 8) -> (688, 688, 0).
     (
         "run1294",
         4473,
@@ -2766,7 +2778,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (3, 3, 0),
             (0, 0, 0),
-            (688, 688, 8),
+            (688, 688, 0),
             (2242, 2242, 0),
             (271, 271, 0),
             (27, 27, 0),
@@ -2802,6 +2814,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // 58) -> (9905, 9905, 52); guys (2172, 2172, 9) -> (2172, 2172, 3).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2163, 2163, 4) -> (2163, 2163, 0).
     // Item 4422, the swarm's form -1: groups (682, 682, 9) -> (682, 682, 8).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (682, 682, 8) -> (682, 682, 0).
     (
         "run1296",
         4632,
@@ -2811,7 +2824,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (6, 6, 0),
-            (682, 682, 8),
+            (682, 682, 0),
             (2172, 2172, 3),
             (271, 271, 0),
             (27, 27, 0),
@@ -2928,6 +2941,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (8490, 8490,
     // 86) -> (8490, 8490, 78); guys (2197, 2197, 9) -> (2197, 2197, 1).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2140, 2140, 4) -> (2140, 2140, 3).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (652, 652, 4) -> (652, 652, 0).
     (
         "run1320b",
         5066,
@@ -2937,7 +2951,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (9, 9, 0),
             (2, 2, 0),
-            (652, 652, 4),
+            (652, 652, 0),
             (2197, 2197, 1),
             (271, 271, 1),
             (39, 39, 1),
@@ -3008,6 +3022,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // 94) -> (7276, 7276, 85); guys (2055, 2055, 9) -> (2055, 2055, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1918, 1918, 4) -> (1918, 1918, 2).
     // Item 4422, the swarm's form -1: groups (676, 676, 9) -> (676, 676, 8).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (676, 676, 8) -> (676, 676, 0).
     (
         "run1324c",
         4904,
@@ -3017,7 +3032,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (15, 15, 0),
             (2, 2, 0),
-            (676, 676, 8),
+            (676, 676, 0),
             (2055, 2055, 0),
             (271, 271, 0),
             (27, 27, 0),
@@ -3051,6 +3066,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (10367,
     // 10367, 132) -> (10367, 10367, 119); guys (2706, 2706, 13) -> (2706, 2706, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2521, 2521, 4) -> (2521, 2521, 2).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (682, 682, 8) -> (682, 682, 0).
     (
         "run1325c",
         5578,
@@ -3060,7 +3076,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (682, 682, 8),
+            (682, 682, 0),
             (2706, 2706, 0),
             (271, 271, 0),
             (43, 43, 2),
@@ -3095,6 +3111,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (6268, 6268,
     // 81) -> (6268, 6268, 71); guys (1993, 1993, 10) -> (1993, 1993, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (616, 616, 4) -> (616, 616, 0).
     (
         "run1326",
         4567,
@@ -3104,7 +3121,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (3, 3, 0),
             (0, 0, 0),
-            (616, 616, 4),
+            (616, 616, 0),
             (1993, 1993, 0),
             (271, 271, 0),
             (30, 30, 0),
@@ -3707,6 +3724,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (6512, 6512,
     // 38) -> (6512, 6512, 34); guys (1927, 1927, 4) -> (1927, 1927, 0).
     // Item 4422, the swarm's form -1: groups (694, 694, 13) -> (694, 694, 12).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (694, 694, 12) -> (694, 694, 0).
     (
         "run1391",
         4174,
@@ -3716,7 +3734,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (694, 694, 12),
+            (694, 694, 0),
             (1927, 1927, 0),
             (271, 271, 0),
             (35, 35, 0),
@@ -3750,6 +3768,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // 84) -> (6953, 6953, 73); guys (1829, 1829, 12) -> (1829, 1829, 1).
     // Item 4422, the swarm's form -1: groups (634, 634, 9) -> (634, 634, 8).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (6953, 6953, 73) -> (6953, 6953, 72), guys (1829, 1829, 1) -> (1829, 1829, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (634, 634, 8) -> (634, 634, 0).
     (
         "run1416",
         4016,
@@ -3759,7 +3778,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (18, 18, 1),
             (0, 0, 0),
-            (634, 634, 8),
+            (634, 634, 0),
             (1829, 1829, 0),
             (271, 271, 0),
             (33, 33, 0),
@@ -4683,6 +4702,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: guys (2341, 2341, 3) -> (2341, 2341, 2).
     // Item 4422, the swarm's form -1: groups (688, 688, 5) -> (688, 688, 4).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2341, 2341, 2) -> (2341, 2341, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (688, 688, 4) -> (688, 688, 0).
     (
         "run810",
         3631,
@@ -4692,7 +4712,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (156, 0, 156),
             (0, 0, 0),
-            (688, 688, 4),
+            (688, 688, 0),
             (2341, 2341, 0),
             (271, 271, 1),
             (58, 58, 0),
@@ -4725,6 +4745,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (9339, 9227, 8404) -> (9339, 9227, 8403), guys (2450, 2450, 4) -> (2450, 2450, 2).
     // Item 4422, the swarm's form -1: groups (676, 676, 6) -> (676, 676, 5).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2450, 2450, 2) -> (2450, 2450, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (676, 676, 5) -> (676, 676, 1).
     (
         "run823",
         4238,
@@ -4734,7 +4755,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (676, 676, 5),
+            (676, 676, 1),
             (2450, 2450, 0),
             (271, 271, 1),
             (58, 58, 0),
@@ -4767,6 +4788,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: guys (2471, 2471, 3) -> (2471, 2471, 2).
     // Item 4422, the swarm's form -1: groups (688, 688, 5) -> (688, 688, 4).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2471, 2471, 2) -> (2471, 2471, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (688, 688, 4) -> (688, 688, 0).
     (
         "run825",
         4204,
@@ -4776,7 +4798,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (688, 688, 4),
+            (688, 688, 0),
             (2471, 2471, 0),
             (271, 271, 1),
             (58, 58, 0),
@@ -4872,6 +4894,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2095, 2095, 7) -> (2095, 2095, 5).
     // Item 4422, the swarm's form -1: groups (640, 640, 7) -> (640, 640, 5).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (640, 640, 5) -> (640, 640, 1).
     (
         "run854",
         3301,
@@ -4881,7 +4904,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (640, 640, 5),
+            (640, 640, 1),
             (1794, 1794, 0),
             (271, 271, 0),
             (36, 36, 0),
@@ -4982,6 +5005,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2737, 2732, 1916) -> (2737, 2732, 1917).
     // Item 4415, the oil-well stand's cur_time: units (11125, 10815, 9506) -> (11125, 10815, 9505), guys (2832, 2832, 5) -> (2832, 2832, 3).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2832, 2832, 3) -> (2832, 2832, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (616, 616, 7) -> (616, 616, 3).
     (
         "run882b",
         6808,
@@ -4991,7 +5015,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (15, 15, 5),
             (0, 0, 0),
-            (616, 616, 7),
+            (616, 616, 3),
             (2832, 2832, 0),
             (271, 271, 1),
             (64, 64, 0),
@@ -5027,6 +5051,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2737, 2732, 1917) -> (2737, 2732, 1918).
     // Item 4415, the oil-well stand's cur_time: units (11180, 10834, 9394) -> (11180, 10834, 9393), guys (2832, 2832, 5) -> (2832, 2832, 3).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2832, 2832, 3) -> (2832, 2832, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (616, 616, 7) -> (616, 616, 3).
     (
         "run883b",
         6821,
@@ -5036,7 +5061,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (36, 36, 5),
             (0, 0, 0),
-            (616, 616, 7),
+            (616, 616, 3),
             (2832, 2832, 0),
             (271, 271, 1),
             (64, 64, 0),
@@ -5099,6 +5124,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (4112, 4112,
     // 18) -> (4112, 4112, 15); guys (1352, 1352, 3) -> (1352, 1352, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (568, 568, 4) -> (568, 568, 0).
     (
         "run912e",
         12753,
@@ -5108,7 +5134,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (568, 568, 4),
+            (568, 568, 0),
             (1352, 1352, 0),
             (271, 271, 0),
             (27, 27, 0),
@@ -5305,6 +5331,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4425, a member compute_dests skips keeps its record offset: groups (562, 562, 4) -> (562, 562, 0).
     (
         "run959",
         18368,
@@ -5314,7 +5341,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (9, 9, 0),
             (0, 0, 0),
-            (562, 562, 4),
+            (562, 562, 0),
             (1514, 1514, 0),
             (271, 271, 0),
             (17, 17, 0),
