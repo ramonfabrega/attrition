@@ -2570,7 +2570,7 @@ garrisoned or carried, `last_x`/`last_y` keep the last walk's start and `last_z`
 run1153c prints `inside_up 87` on `1/22` at 3768. "Figure 0 of a foot squad" was a stand-in: every unit
 that garrisons is a foot unit with one figure. The guys line emits it (`Sim::guy_record_bytes`, the
 predicate `inside` or `inside_unit`, the same the units line writes as `inside_up`). **15 guys lines turn
-and none part anew** (`PACKETS_SCORE` 661 → 676); the guys line parts on fewer ranges on 12 more packets,
+and none part anew** (`PACKETS_SCORE` 661 → 676, 677 with item 4404's ammo line); the guys line parts on fewer ranges on 12 more packets,
 and the units line on 22. Value diff, run1325c frame 5578 record 41 (Marines): `last_z` theirs 2, ours 4 →
 2, the line whole. Byte 104 is the first parting on no line now (21 before).
 

@@ -1192,17 +1192,27 @@ pub(crate) mod recording {
     /// run1691's agreeing states per line, in `CHECKSUM_LINES`' order (item
     /// 4396: ammo 10,893 of 10,929, the rest whole, leaders among them; the
     /// first act's units 9,981 → 10,929 with the captain mirror's copy
-    /// refreshed, `Sim::do_attack_fight`).
-    const RUN1691_AGREED: [u32; 12] = [
-        10929, 10929, 10929, 10893, 10929, 10929, 10929, 10929, 10929, 10929, 10929, 10929,
-    ];
+    /// refreshed, `Sim::do_attack_fight`); item 4404's ammo 10,893 → 10,926
+    /// with a gone target's pair kept on the round until it lands
+    /// (`Projectile::left`; 10,724 with the pair kept past the landing), and
+    /// 10,926 → 10,929 with the pair dropped where the rolling arm's
+    /// `check_hit` writes it (run1698). **Whole: all twelve lines on every
+    /// state, the game played by the original to its own end** — parity's
+    /// seventh game (DECISIONS 143 §2).
+    const RUN1691_AGREED: [u32; 12] = [10929; 12];
 
     /// run1691's first partings: `(line, (state, ours, theirs))` (item
     /// 4396). The first act's units row, `(9981, Some(2715156771),
     /// 2445541469)`, left with the captain mirror's fix: run1695's range 478,
     /// record 11's `order.target`, ours `ox 2000 uid 0`, theirs `ox 5 uid 12`.
+    /// Item 4404's ammo row, `(10075, Some(4012779512), 4143847442)`, left
+    /// with the gone target's pair kept: run1696's range 1, record 0's
+    /// `whom`/`ox`, ours `-1, -1`, theirs `0, 5`; then `(10177,
+    /// Some(1669798039), 1314070668)`, left with the rolling arm's
+    /// `check_hit` dropping it: run1698's range 4, record 2's `whom`/`ox`,
+    /// ours `0, 3`, theirs `-1, -1`. None parts.
     type DemandEnd = (&'static str, (i32, Option<u32>, u32));
-    const RUN1691_FIRST: &[DemandEnd] = &[("ammo", (10075, Some(4012779512), 4143847442))];
+    const RUN1691_FIRST: &[DemandEnd] = &[];
 
     /// The first state our walk holds `game_over` on, to run1691's last:
     /// none (item 4396's first act).
@@ -1349,6 +1359,157 @@ pub(crate) mod recording {
             seen,
             RUN1695_UNITS.map(|(f, t, o, p, x)| (f, t, o, p, x.to_string())),
             "RUN1695_UNITS"
+        );
+    }
+
+    /// An ammo take's record (item 4404, `docs/RUNS.md` run1696 and run1698):
+    /// run1691's file played under the checksum and ranges hooks, the ammo
+    /// line alone kept (`RNG_MASK=0x8`). `RON_DEMAND_AMMO_RANGES`, else where
+    /// the take left it.
+    fn ammo_take(run: &str) -> Option<crate::trace::ranges::Record> {
+        let path = match std::env::var("RON_DEMAND_AMMO_RANGES") {
+            Ok(p) => std::path::PathBuf::from(p),
+            Err(_) => {
+                let home = std::env::var("HOME").unwrap_or_default();
+                let dir = std::path::PathBuf::from(format!("{home}/ron-golden/{run}/map-14"));
+                crate::testenv::experiment(&dir, "rontrace.ranges")?
+            }
+        };
+        crate::trace::ranges::Record::open(&path)
+            .map_err(|e| {
+                eprintln!(
+                    "skipping: no demand ammo ranges at {} ({e})",
+                    path.display()
+                )
+            })
+            .ok()
+    }
+
+    /// The window run1696's ammo ranges are held over: from six states
+    /// before run1691's ammo parting (10075) to the take's last.
+    const RUN1696_WINDOW: (i64, i64) = (10069, 10090);
+
+    /// The ammo line's first parting on run1696's window: `(state, the
+    /// record's ranges, ours, parted, the first parting)` (item 4404; minted
+    /// at `(10075, 6, 6, 2, "1 0 rolling..start_roll_angle: +0x43 of 99|99:
+    /// ffffffff|00000000")` — byte 0x43 is the body's `whom`, then `ox`:
+    /// the French Longbowmen `1/11`'s two arrows at the human's Citizen
+    /// `0/5`, gone after dump frame 10074, ours `-1, -1`, theirs `0, 5` —
+    /// and empty with the pair kept, `Projectile::left`).
+    const RUN1696_AMMO: Option<(i64, usize, usize, usize, &str)> = None;
+
+    /// **The demand's ammo line by range at its first parting** (item
+    /// 4404, `docs/LEADERS.md` §8.6): run1691's file walked as
+    /// `score_recording` walks it, the ammo line held range by range
+    /// against an ammo take's sets over a window.
+    /// `RON_DEMAND_END_DETAIL=<state>` prints every parted ammo range on
+    /// that state, decoded; `RON_DEMAND_AMMO_ALL=1` every state's outcome.
+    fn demand_ammo_first(run: &str, (lo, hi): (i64, i64)) -> Option<Option<DemandSeen>> {
+        use crate::diff::checksum_lines::packets::{Pieces, compare, our_lines};
+        let home = std::env::var("HOME").unwrap_or_default();
+        let rcx = std::env::var("RON_DEMAND_END_RCX").unwrap_or_else(|_| {
+            format!("{home}/ron-golden/recordings/item4396-demand-greatlakes-style0-d2-11200.rcx")
+        });
+        let (Some(inst), Ok(rec_game), Some(mut rec)) =
+            (crate::testenv::install(), read(&rcx), ammo_take(run))
+        else {
+            eprintln!("skipping: no install, no demand end file or no {run}");
+            return None;
+        };
+        let pieces = Pieces::read()?;
+        let detail: Option<i64> = std::env::var("RON_DEMAND_END_DETAIL")
+            .ok()
+            .and_then(|v| v.parse().ok());
+        let all = std::env::var("RON_DEMAND_AMMO_ALL").is_ok();
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec_game);
+        let mut stream = crate::input::Stream::pump(&rec_game);
+        let mut seen: Option<DemandSeen> = None;
+        let mut frames = 0usize;
+        while built.sim.frame <= hi {
+            let f = built.sim.frame;
+            if f >= lo {
+                let theirs = crate::diff::checksum_frames::record::stream_at(&mut rec, f)
+                    .expect("the take holds a set for every state of the window");
+                frames += 1;
+                crate::diff::harness::debug_watch(&built, f);
+                let ours = our_lines(&built.sim, &pieces);
+                if detail == Some(f) {
+                    let masked: Vec<sim::checksum::Line> = ours
+                        .iter()
+                        .enumerate()
+                        .map(|(k, l)| {
+                            if k == 3 {
+                                l.clone()
+                            } else {
+                                Default::default()
+                            }
+                        })
+                        .collect();
+                    crate::diff::sample::tests::print_partings(&masked, &theirs);
+                }
+                let ammo = &compare(&ours, &theirs)[3];
+                if all {
+                    eprintln!(
+                        "DEMAND AMMO state {f}: theirs {} ours {} parted {} first {:?}",
+                        ammo.theirs,
+                        ammo.ours,
+                        ammo.parted,
+                        ammo.first
+                            .as_ref()
+                            .map(|d| crate::diff::checksum_frames::first_text("ammo", d))
+                    );
+                }
+                if let (None, Some(d)) = (&seen, &ammo.first) {
+                    let text = crate::diff::checksum_frames::first_text("ammo", d);
+                    seen = Some((f, ammo.theirs, ammo.ours, ammo.parted, text));
+                }
+            }
+            stream.apply(f as i32, &mut built);
+            built.sim.command().tick();
+        }
+        eprintln!("DEMAND END {run} ammo first {seen:?}");
+        assert_eq!(frames, (hi - lo + 1) as usize, "{run}'s sets, one a state");
+        Some(seen)
+    }
+
+    #[test]
+    fn the_demand_s_ammo_parts_by_range_on_run1696() {
+        let Some(seen) = demand_ammo_first("run1696", RUN1696_WINDOW) else {
+            return;
+        };
+        assert_eq!(
+            seen,
+            RUN1696_AMMO.map(|(f, t, o, p, x)| (f, t, o, p, x.to_string())),
+            "RUN1696_AMMO"
+        );
+    }
+
+    /// The window run1698's ammo ranges are held over (item 4404): from six
+    /// states before run1691's second ammo parting (10177) to the take's
+    /// last.
+    const RUN1698_WINDOW: (i64, i64) = (10171, 10190);
+
+    /// The ammo line's first parting on run1698's window (item 4404; minted
+    /// at `(10177, 6, 6, 1, "4 2 rolling..start_roll_angle: +0x43 of 99|99:
+    /// 00000000|ffffffff")` — the French `1/11`'s rolling arrow in slot 2
+    /// at its landing (`flags 14`), whose target `0/3` had gone: ours kept
+    /// `whom 0 ox 3`, theirs' `check_hit` wrote −1 — and slot 1, `1/10`'s,
+    /// on 10181 the same; empty with the rolling arm clearing the pair).
+    const RUN1698_AMMO: Option<(i64, usize, usize, usize, &str)> = None;
+
+    /// **The demand's ammo line by range at its second parting** (item
+    /// 4404): as [`the_demand_s_ammo_parts_by_range_on_run1696`], against
+    /// run1698's sets over [`RUN1698_WINDOW`].
+    #[test]
+    fn the_demand_s_ammo_parts_by_range_on_run1698() {
+        let Some(seen) = demand_ammo_first("run1698", RUN1698_WINDOW) else {
+            return;
+        };
+        assert_eq!(
+            seen,
+            RUN1698_AMMO.map(|(f, t, o, p, x)| (f, t, o, p, x.to_string())),
+            "RUN1698_AMMO"
         );
     }
 

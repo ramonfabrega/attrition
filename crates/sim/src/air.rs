@@ -2027,6 +2027,7 @@ impl Sim {
         }
         let ez = self.ground_z(at).max(0);
         self.add_ammo(crate::combat::Projectile {
+            left: None,
             shooter: me,
             owner: self.units[u].owner,
             target: None,
@@ -3197,6 +3198,7 @@ impl Sim {
             crate::combat::Rng::new(figure.x.wrapping_add(figure.y).wrapping_add(z) as u32);
         let bank = (local.get(-0x1e, 0x1e), local.get(-0x1e, 0x1e));
         self.add_ammo(crate::combat::Projectile {
+            left: None,
             shooter: crate::combat::Obj::Unit(u),
             owner,
             target: None,

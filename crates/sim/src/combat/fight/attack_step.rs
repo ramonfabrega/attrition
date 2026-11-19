@@ -971,6 +971,7 @@ impl Sim {
             };
             let _ = (angle, frame);
             self.add_ammo(combat::Projectile {
+                left: None,
                 shooter,
                 owner: self.owner_of(shooter),
                 target,
@@ -1221,6 +1222,7 @@ impl Sim {
         // and the `0x4b` over a land unit are set. Chapter forty-one's
         // Biplane on 1529, whose round lands behind it, short of `0/9`.
         self.add_ammo(combat::Projectile {
+            left: None,
             shooter,
             owner: self.owner_of(shooter),
             target,

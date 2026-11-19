@@ -134,6 +134,7 @@ fn round(
     splash: i32,
 ) -> combat::Projectile {
     combat::Projectile {
+        left: None,
         shooter: Obj::Unit(shooter),
         owner: sim.units[shooter].owner,
         target,
@@ -4301,6 +4302,7 @@ fn an_arrow_never_lands_on_gaia() {
     let landing = Pos::new(0x1400, 0x1000);
     let sheep = put(&mut sim, PLAYER_SLOTS, ty, landing);
     let ammo = combat::Projectile {
+        left: None,
         shooter: Obj::Unit(me),
         owner: 0,
         target: None,
@@ -4365,6 +4367,7 @@ fn a_round_with_no_target_strikes_the_building_it_lands_on() {
     sim.buildings[b].combat = Some(Profile::default());
     let me = put(&mut sim, 0, ty, Pos::new(9974, 12347));
     let ammo = combat::Projectile {
+        left: None,
         shooter: Obj::Unit(me),
         owner: 0,
         target: None,
@@ -4451,6 +4454,7 @@ fn a_missed_round_strikes_a_city_at_its_ceiling() {
     sim.buildings[b].combat = Some(Profile::default());
     let me = put(&mut sim, 1, ty, Pos::new(7272, 10200));
     let ammo = combat::Projectile {
+        left: None,
         shooter: Obj::Unit(me),
         owner: 1,
         target: None,
@@ -4535,6 +4539,7 @@ fn the_shield_closes_a_missile_s_round_in_its_holder_s_land() {
     sim.buildings[b].combat = Some(Profile::default());
     let me = put(&mut sim, 0, ty, Pos::new(9974, 12347));
     let ammo = combat::Projectile {
+        left: None,
         shooter: Obj::Unit(me),
         owner: 0,
         target: None,
@@ -4689,6 +4694,7 @@ fn a_tied_target_goes_to_the_cell_chain_s_head() {
 /// `total` frames, leaving at height `sz` and aimed at `ez`.
 fn shot(me: usize, launch: Pos, landing: Pos, total: i32, sz: i32, ez: i32) -> combat::Projectile {
     combat::Projectile {
+        left: None,
         shooter: Obj::Unit(me),
         owner: 0,
         target: None,
