@@ -24554,8 +24554,9 @@ window drops 1133 → 42 keys, 17388's standing family alone, and the draw strea
 closing field (`run895b_aztec_closing_state`). Every other lobby's first parting, the battery floors and every
 closing state hold on this tree.
 
-**Not established.** The gather arm's half-cell condition (approximated as always true; no capture holds a
-gather re-placement on this lobby). Whether a decoy's bleed tick should join the frame's attrition events (the
+**Not established.** ~~The gather arm's half-cell condition (approximated as always true; no capture holds a
+gather re-placement on this lobby).~~ Answered by item 4424 (`docs/VISION.md` §6): the exit lights nothing, the
+re-seat lights its own disc. Whether a decoy's bleed tick should join the frame's attrition events (the
 `AttritionSync`-shaped `Tick` list): ours discards it, and no dump compares that list.
 
 **Coverage.** Diff-backed: the fog by `run989_s_fog_agrees_over_the_birth_and_on_the_word`, the bleed by

@@ -412,7 +412,7 @@ impl Sim {
         // A plane's figure keeps its running average through a launch
         // (run265's 778: 25, the value it stood inside with).
         let avg = self.units[captain].movement.body.avg_speed;
-        self.come_out_place(captain, spot, gather.map(|g| g.1), false, gather.is_some());
+        self.come_out_place(captain, spot, gather.map(|g| g.1), false);
         self.track_garrison(captain, -1);
         // The captain's `orders_x/y` and `dest_angle` are its new place
         // on the block it leaves (run208's `0/6` on 902, `0/7` on 903);
@@ -447,7 +447,7 @@ impl Sim {
             // `0/8` and `0/9` come out on 903 with `0/7`'s heading and
             // facing, not their own.
             if let Some(s) = self.come_out_unit_host_spot(f, captain) {
-                self.come_out_place(f, s, Some(host_angle), true, false);
+                self.come_out_place(f, s, Some(host_angle), true);
                 // **The member's own `come_out` runs the same tail**
                 // (`Unit::come_out@00617c10:545`, the `o_down` recursion,
                 // then `:552`..`:563`): a computer's unit that is not a
@@ -665,7 +665,6 @@ impl Sim {
         spot: crate::Pos,
         angle: Option<crate::movement::Angle>,
         turn: bool,
-        light: bool,
     ) {
         let u = &mut self.units[f];
         let flip = turn
@@ -715,15 +714,16 @@ impl Sim {
         // change; a trained unit's disc is the one `Unit::init` wrote at
         // its trainer's snapped centre ([`Sim::add_unit`]). Only the
         // gather point's re-placement of a captain (`619381`, `619c08`,
-        // `619f86`) moves it off the first spot and lights the whole disc
-        // (`docs/VISION.md` §6). The battery's Aztec Horse Archer `1/45`,
-        // out on 8655 at (44184, 19704) with no gather point, lit fog
-        // (117, 55) and (119, 53) here and not in run989c (item 3361).
+        // `619f86`) moves it off the first spot, and that lights the whole
+        // disc from its own call, when the half-cell changes
+        // ([`Sim::gather_reseat`], `docs/VISION.md` §6). The battery's
+        // Aztec Horse Archer `1/45`, out on 8655 at (44184, 19704) with no
+        // gather point, lit fog (117, 55) and (119, 53) here and not in
+        // run989c (item 3361); the sample's person's three type-107s out
+        // of their trainer on 1715 with a gather point lit nine cells round
+        // (74, 39) here and not in run1710 (item 4424).
         self.coll_add(f);
         self.chain_add(f);
-        if light {
-            self.update_seen(f, false);
-        }
         // **And the crew comes out with it.** The original places the
         // unit with `set_new_location(·, ·, 1, 1)` (`00617c10:518`),
         // whose snap flag reaches `Guy::set_new_location(guy 0, spot,

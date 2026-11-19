@@ -540,22 +540,22 @@ samples every `z` again; `build_cities@005ab910` leaves the oil to
 by a mutation:
 
 - **Builds on 76**: the person's `city_gather` (recording frame 75, kind
-  0x1a1) lays five Farm points on `3/2000`, appended (`QUEUE_LAST` is 1,
-  `622efe`) in `city_down` order on both sides.
+  0x1a1) lays five Farm points on `3/2000`, appended (`622efe`) in
+  `city_down` order on both sides.
   `PtrLinkListAbstract<GatherPoint>::walk_data@004708a0` walks from
   `head_node->prev` by `prev`, last point first: `758 2000 gather[k]`
   32640|31872 and three more agree. Builds by sum 76 → 525.
-- **Units on 92**: `unit_masks & 0x4000000` (`Unit::explore_queued`,
-  4351's) is on the word: `439 0` 8|0x4000008 agrees. Units 92 → 532.
+- **Units on 92**: `unit_masks & 0x4000000` (`Unit::explore_queued`)
+  is on the word: `439 0` 8|0x4000008 agrees. Units 92 → 532.
 
-All twelve agree over 0..100.
+All twelve agree to 100.
 
 **Items 4412 and 4414: run1697, to 560** (their journals). *Diff-backed*
 on its ranges, each by a mutation:
 
 - **Leaders on 241**: leader 4's `strong[2]` toward teammate 2, 32|0.
-  `Leader::diplomacy`'s `6bd02a` (`leader_flags & 4`, `je 6bd228`) skips
-  the building lines and the war count for a computer target. → 2112.
+  `Leader::diplomacy`'s `6bd02a` (`leader_flags & 4`) skips the building
+  lines and the war count for a computer target. → 2112.
 - **Builds on 525**: the Lookout `3/2008`'s `flags` 1|0x41;
   `Object::init@00647750:39` ors `0x40` for a `DETECT` type. → 3029.
 - **Units on 532**: the Citizen `3/6`'s `THINK` walks
@@ -563,8 +563,8 @@ on its ranges, each by a mutation:
   out. → 2112.
 
 run1710 holds every first parting to 3,100 (`SAMPLE_RANGES_1710`).
-Items 4419, 4422: groups 927 → 2888 (GROUPS §24.2); next, record 256's
-`stamp`.
+Items 4419, 4422: groups 927 → 2888 (GROUPS §24.2). Item 4424: world
+1716 → 2921, an exit lights no disc (VISION §6).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
