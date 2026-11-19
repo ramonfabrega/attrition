@@ -203,7 +203,7 @@ fn turkish_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // Item 3782, 165 → 149: the sub's re-seat agrees, so its rows on 3901
     // go; the rest are the standing families and the Tornado's `g.z[0]`
     // (`docs/AI.md` §378.2).
-    pin_eq!(w.firsts.len(), 149, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 148, "the stride's baseline");
 }
 
 /// run1446b: the word 2551's window, blocks 2495..2801 at the long's
@@ -351,7 +351,7 @@ fn turkish_information_pair_run1452_s_word_frame_is_widened_whole() {
     // standing families alone — `form` (35), who=1's groups' `held` and
     // pools (20 each), `SITE[..].reg` (15), two `mirror`s and the Tornado
     // `1/89`'s `g.z[0]` (`docs/AI.md` §378.2).
-    pin_eq!(w.firsts.len(), 93, "run1452 baseline");
+    pin_eq!(w.firsts.len(), 92, "run1452 baseline");
     // Every round, both directions: 360 against 360, parting from 4030
     // (`1/63`'s launch point), past the word. Item 3782, 144 → 174: every
     // parting row is an Advanced Battleship's launch point — `1/49`,
@@ -423,7 +423,7 @@ fn turkish_information_pair_run1454_s_closing_frame_is_widened_whole() {
     // Tornado `1/89`'s `g.z[0]` aboard its carrier, and `mirror` on `1/132`,
     // `1/139` and `1/145`. No draw parts to 5036.
     // Item 4159's residue: 86 -> 85, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 85, "run1454 baseline");
+    pin_eq!(w.firsts.len(), 84, "run1454 baseline");
     pin_eq!(w.rounds_read, (360, 360), "the rounds read");
     // Every round, both directions: 360 against 360; the 174 that part, from
     // 4830, are the Advanced Battleships' launch points — `sx`/`sy`/`sz`,

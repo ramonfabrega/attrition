@@ -372,7 +372,7 @@ fn german_modern_pair_run1418_s_word_frame_is_widened_whole() {
     // who=1's groups and pools, and the eight aircraft's `mirror`, 3742a),
     // the Bomber `1/36`'s `g.z` on 4528, and groups 65 and 69's lists on
     // 4587 and 4687.
-    pin_eq!(w.firsts.len(), 58, "run1418 baseline");
+    pin_eq!(w.firsts.len(), 57, "run1418 baseline");
     // Every round, both directions: 912 against 102, 55 parting, the
     // first the Bomber `1/95`'s `ammo[0]` on 4753, which the dump holds
     // alone — the airports' family, past the word. Item 3742: (912, 912),
@@ -459,7 +459,7 @@ fn german_modern_pair_run1422_s_closing_frame_is_widened_whole() {
     // never feel it.
     pin_eq!(w.rounds_read, (228, 228), "the rounds read");
     // Item 4159r5: 13 -> 3, the launch rows of pieces 59 (2): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.rounds.len(), 3, "the rounds that part");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3719): run1397's closing block 5305,

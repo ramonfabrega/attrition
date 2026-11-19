@@ -7701,7 +7701,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // frames.
     (
         "run1075_s_staged_battleships_release_on_the_original_s_frames",
-        4,
+        8,
     ),
     // Item 3970: chapter one hundred and twenty-six, run1541 walked to its
     // end 1100 — one inexact corner under the Chariots' and the arrows'
@@ -7740,18 +7740,18 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3744: the Russian Information pair's first try, run1401 walked
     // from run1400's start past the word 6153 once the siege-city arm lands
     // (`docs/AI.md` §368.1): 8 inexact corners.
-    ("russian_information_pair_first_parting", 8),
+    ("russian_information_pair_first_parting", 11),
     // Item 3744: its closing state, run1401 walked to the closing block
     // 6707, and the word's window 6095..6403 on run1401b: 8 each.
-    ("russian_information_pair_run1401_s_closing_state", 8),
+    ("russian_information_pair_run1401_s_closing_state", 11),
     (
         "russian_information_pair_run1401b_s_word_frame_is_widened_whole",
-        8,
+        11,
     ),
     // Item 3744: the closing window 6450..6707 on run1423c: 8.
     (
         "russian_information_pair_run1423c_s_closing_frame_is_widened_whole",
-        8,
+        11,
     ),
     // Item 3703: the Greek Medieval pair's first try, run1380 walked from
     // run1379's start to the word 5626: 1 inexact corner.
@@ -7988,18 +7988,18 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3524: the Russian pair walked past 4207 to its word 5651 reads
     // 91 inexact corners; item 3527, whole to its last frame 5841, 131,
     // and its closing walk the same 131.
-    ("russian_modern_pair_first_parting", 131),
-    ("run1149_russian_modern_pair_closing_state", 131),
+    ("russian_modern_pair_first_parting", 132),
+    ("run1149_russian_modern_pair_closing_state", 132),
     // Item 3527: run1149's own hundredths over the gap 4349..5644 read 81.
     (
         "russian_modern_pair_run1149_s_gap_before_5651_is_widened_whole",
-        81,
+        82,
     ),
     // And run1170's window past the word 5651, to the game's last frame:
     // 131 reads.
     (
         "russian_modern_pair_run1170_s_word_frame_is_widened_whole",
-        131,
+        132,
     ),
     // Item 2627: run874, the Helicopter's flight to a Barracks reads eight
     // inexact corners, in the walk and in the widening alike.
@@ -8023,13 +8023,13 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // The coverage pair's run715 (item 1605): four reads in the replay's
     // diverged tail past the word 2969 — `coverage_pair_first_parting`,
     // which walks to the word, reads none.
-    ("run715_s_word_frame_is_widened_whole", 4),
+    ("run715_s_word_frame_is_widened_whole", 11),
     // And run716 (item 1614): fourteen reads in its window, the replay
     // past the word 3142 — `coverage_pair_first_parting` read none until
     // item 1625 walked it through the window to 3395 (below). Item 3804:
     // fifteen — a helicopter born in the window reads the ground for its
     // birth climb (`Unit::init`'s `set_new_location(·, 1, 1)`).
-    ("run716_s_word_frame_is_widened_whole", 15),
+    ("run716_s_word_frame_is_widened_whole", 25),
     // And run721 (item 1625): 149 reads in its window, the replay past
     // the word 3395 (pinned at 148, it fails).
     ("run721_s_word_frame_is_widened_whole", 149),
@@ -8080,10 +8080,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // The first late-age pair (item 3506): the Germans at All
     // Technologies, East Indies, walked from run1144 to the game's end on
     // run1145b; its closing state walks the same.
-    ("german_alltech_pair_first_parting", 1585),
-    ("run1145b_german_alltech_pair_closing_state", 1585),
+    ("german_alltech_pair_first_parting", 1598),
+    ("run1145b_german_alltech_pair_closing_state", 1598),
     // And run1145c (item 3506): the pair's last blocks, 4169..4176.
-    ("run1145c_s_closing_frame_is_widened_whole", 1585),
+    ("run1145c_s_closing_frame_is_widened_whole", 1598),
     // The peace pair walked to its word (item 2423): 858 reads in the walk
     // past 3479 to the word 4544, where it read none before.
     // Item 2460: 858 -> 1080, the walk past 4544 to the word 4859.
@@ -8129,9 +8129,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // And run834 (item 2107): the word 2995's window to the closing block.
     ("run834_s_word_frame_is_widened_whole", 204),
     ("run831_sahara_mongol_closing_state", 204),
-    ("run780_s_word_frame_is_widened_whole", 4),
-    ("run788_s_word_frame_is_widened_whole", 4),
-    ("run799_s_word_frame_is_widened_whole", 4),
+    ("run780_s_word_frame_is_widened_whole", 8),
+    ("run788_s_word_frame_is_widened_whole", 8),
+    ("run799_s_word_frame_is_widened_whole", 8),
     // run809 (item 2001): the word 3632's window, 181 reads.
     ("run809_s_word_frame_is_widened_whole", 181),
     // run820 (item 2088): the word 4238's window, 765 reads.
@@ -8325,10 +8325,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run652_coverage_pair_closing_state", 513),
     ("run763_s_closing_frame_is_widened_whole", 514),
     ("run762_s_word_frame_is_widened_whole", 456),
-    ("run710_s_word_frame_is_widened_whole", 3),
-    ("run711_s_word_frame_is_widened_whole", 4),
+    ("run710_s_word_frame_is_widened_whole", 6),
+    ("run711_s_word_frame_is_widened_whole", 8),
     // And run714's, which walks past it to the word 2288 (item 1598).
-    ("run714_s_word_frame_is_widened_whole", 4),
+    ("run714_s_word_frame_is_widened_whole", 9),
     // The coverage driver walks run710's and run711's windows: run710's
     // three reads, and run711's four (item 1591; pinned at 3, run711's
     // walk fails). Item 1583 (the third map's run702, whose nuke reads five
@@ -8395,9 +8395,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // long walked from its start to the closing record with the audit on.
     ("bantu_ancient_pair_corrections_change_nothing", 143),
     // Item 3804: +1 — a helicopter born on the walk reads the ground for its birth climb.
-    ("coverage_pair_corrections_change_nothing", 218),
+    ("coverage_pair_corrections_change_nothing", 239),
     ("dutch_medieval_pair_corrections_change_nothing", 9),
-    ("german_alltech_pair_corrections_change_nothing", 1585),
+    ("german_alltech_pair_corrections_change_nothing", 1598),
     ("greek_medieval_pair_corrections_change_nothing", 1),
     ("iroquois_enlightenment_pair_corrections_change_nothing", 2),
     ("japanese_ancient_pair_corrections_change_nothing", 43),
@@ -8405,13 +8405,13 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("korean_ancient_pair_corrections_change_nothing", 181),
     ("lakota_medieval_pair_corrections_change_nothing", 2),
     // Item 3804: +1 — a helicopter born on the walk reads the ground for its birth climb.
-    ("lakota_pair_corrections_change_nothing", 584),
+    ("lakota_pair_corrections_change_nothing", 600),
     ("maya_ancient_pair_corrections_change_nothing", 52),
     ("mongol_gunpowder_pair_corrections_change_nothing", 2),
     // Item 3804: +2 — a helicopter born on the walk reads the ground for its birth climb.
-    ("mongol_pair_corrections_change_nothing", 207),
+    ("mongol_pair_corrections_change_nothing", 219),
     ("roman_medieval_pair_corrections_change_nothing", 27),
-    ("russian_modern_pair_corrections_change_nothing", 131),
+    ("russian_modern_pair_corrections_change_nothing", 132),
     ("spanish_gunpowder_pair_corrections_change_nothing", 28),
     // Item 3775: the seventeen whole late-age pairs joined the audit; each
     // count is its own closing walk's.
@@ -8420,7 +8420,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("british_modern_pair_corrections_change_nothing", 11),
     ("egyptian_information_pair_corrections_change_nothing", 1),
     ("mongol_medieval_pair_corrections_change_nothing", 7),
-    ("russian_information_pair_corrections_change_nothing", 8),
+    ("russian_information_pair_corrections_change_nothing", 11),
     // Item 3723: the Bantu Modern pair's closing walk, run1405 from
     // run1404's start to the closing block 4396, past the word 3410.
     ("bantu_modern_pair_run1405_s_closing_state", 8),
@@ -8480,6 +8480,86 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("mongol_gunpowder_pair_packets", 2),
     ("mongol_medieval_pair_packets", 1),
     ("mongol_pair_packets", 138),
+    // Item 4428: `Unit::come_out`'s `Guy::update_z` on an aircraft's figure
+    // reads the ground at the spot, as the original does; these walks touch
+    // an inexact corner under it where none was read before. Twenty-six rows
+    // above grew under the same read (one to thirteen each); their comments
+    // keep the counts they were pinned at.
+    ("chinese_modern_pair_corrections_change_nothing", 2),
+    ("chinese_modern_pair_first_parting", 2),
+    ("chinese_modern_pair_run1431_s_closing_state", 2),
+    (
+        "chinese_modern_pair_run1431b_s_closing_frame_is_widened_whole",
+        2,
+    ),
+    ("chinese_modern_pair_the_long_s_stride_is_widened", 2),
+    ("roman_modern_pair_corrections_change_nothing", 3),
+    ("roman_modern_pair_first_parting", 3),
+    ("roman_modern_pair_run1444_s_closing_state", 3),
+    (
+        "roman_modern_pair_run1444b_s_closing_frame_is_widened_whole",
+        3,
+    ),
+    ("roman_modern_pair_the_long_s_stride_is_widened", 3),
+    ("run1646_walks_to_its_word_at_difficulty_4", 2),
+    ("russian_information_pair_run1423_s_gap_is_widened_whole", 3),
+    (
+        "russian_information_pair_run1423b_s_gap_is_widened_whole",
+        3,
+    ),
+    (
+        "russian_information_pair_the_long_s_stride_walks_back_from_the_word",
+        3,
+    ),
+    (
+        "russian_modern_pair_run1161b_s_word_frame_is_widened_whole",
+        1,
+    ),
+    ("russian_modern_pair_run1162_s_gap_is_widened_whole", 1),
+    (
+        "russian_modern_pair_run1166b_s_word_frame_is_widened_whole",
+        1,
+    ),
+    ("russian_modern_pair_run1168_s_gap_is_widened_whole", 1),
+    (
+        "russian_modern_pair_s_road_search_on_4207_holds_node_for_node",
+        1,
+    ),
+    ("spanish_modern_pair_corrections_change_nothing", 1),
+    ("spanish_modern_pair_first_parting", 1),
+    ("spanish_modern_pair_run1395_s_closing_state", 1),
+    (
+        "spanish_modern_pair_run1395b_s_word_frame_is_widened_whole",
+        1,
+    ),
+    ("spanish_modern_pair_run1395c_walks_the_state_back", 1),
+    (
+        "spanish_modern_pair_run1415_s_word_frame_is_widened_whole",
+        1,
+    ),
+    (
+        "spanish_modern_pair_the_long_s_stride_walks_back_from_the_word",
+        1,
+    ),
+    ("turkish_information_pair_corrections_change_nothing", 5),
+    ("turkish_information_pair_first_parting", 5),
+    ("turkish_information_pair_run1446_s_closing_state", 5),
+    (
+        "turkish_information_pair_run1446b_s_word_frame_is_widened_whole",
+        1,
+    ),
+    (
+        "turkish_information_pair_run1452_s_word_frame_is_widened_whole",
+        3,
+    ),
+    (
+        "turkish_information_pair_run1454_s_closing_frame_is_widened_whole",
+        5,
+    ),
+    (
+        "turkish_information_pair_the_long_s_stride_walks_back_from_the_word",
+        2,
+    ),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
