@@ -1321,6 +1321,7 @@ pub(crate) mod recording {
                 let theirs = crate::diff::checksum_frames::record::stream_at(&mut rec, f)
                     .expect("run1695 holds a set for every state of the window");
                 frames += 1;
+                crate::diff::harness::debug_watch(&built, f);
                 let ours = our_lines(&built.sim, &pieces);
                 if detail == Some(f) {
                     crate::diff::sample::tests::print_partings(&ours[..1], &theirs);
