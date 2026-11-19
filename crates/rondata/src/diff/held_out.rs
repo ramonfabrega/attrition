@@ -349,9 +349,41 @@ pub(crate) struct FirstScore {
 /// **The held-out scores**, `HELD_OUT[k]` played as `run1700 + k`: `None`
 /// until the original has played it.
 #[cfg(test)]
-pub(crate) const SCORES: [Option<FirstScore>; 8] = [None, None, None, None, None, None, None, None];
+pub(crate) const SCORES: [Option<FirstScore>; 8] = [
+    // run1700
+    // row 0, the fuzz lobby (seed 424242), as found 2026-11-19: ten lines whole;
+    // units 5,435 of 6,001, first parting state 2990; guys 5,998, first 3157.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                5435, 6001, 6001, 6001, 6001, 6001, 5998, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (2990, Some(3067758760), 2623096745)),
+                ("guys", (3157, Some(3930404420), 1713190284)),
+            ],
+        },
+        moved: None,
+    }),
+    // run1701
+    None,
+    // run1702
+    None,
+    // run1703
+    None,
+    // run1704
+    None,
+    // run1705
+    None,
+    // run1706
+    None,
+    // run1707
+    None,
+];
 
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
 /// line and state, and the games taken.
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 0);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 1);

@@ -39244,3 +39244,34 @@ are in `~/ron-data/lab-experiments/2026-11-18-codex-replay-diagnostics.fPek3B/`.
 Its `acceptance.py` records the exact inputs and expected results. Build the
 release example before reproducing it. Direct its evidence output to an
 unused directory. The script opens every result with exclusive creation.
+
+## run1700 — parity held out, row 0: the fuzz lobby recorded idle by the client, played to 6000 (2026-11-19, item 4413, `att-4413`)
+
+`docs/RECGAME.md` §10.3; DECISIONS 144 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote. The row was declared before the take (`8b3538f49`). The file:
+`~/ron-golden/recordings/item4413-row000-6000.rcx`, 59,216 bytes, SHA-256
+`fb34e75ac39aa5fd98d42fbad25fa380a457d8c9fb0db3d11045e71bed8592a9`: `client --record <file> --headless --page-of
+gamelog-fuzz-424242-early.txt --frame 6000` (the lobby page set to row 0 by its own keys, slot 0's opening
+preferences at frame 0, no other order, closing on 6000), its donor the first finished recording with its version and
+options in the bottle's `Logs\`.
+
+The take: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1700
+--recording <the file> --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31 --detail end:MISC
+--timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS`, waited on with `waitrun.sh` in the background.
+`df -g ~` read 113 GB free before it.
+- **The run**: pool lane 1, launched 10:48:02 −05:00, exited 10:55:21: **439.1 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 424242 observed, map
+  18. Players: tribe 4 (flags 7) and tribe 16 (flags 1). Five settings restored. DLL `6e60b3b5…`, defines
+  `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS`. **The original took the file**: no section refused.
+- **Scored as found** (`the_held_out_games_score_as_pinned`, `checksum::playback::compare` closing on 6000): builds,
+  walls, ammo, deaths, groups, leaders, cities, items, goods and world 6,001 of 6,001; **units 5,435**, first parting
+  state 2990, ours 3067758760, theirs 2623096745; **guys 5,998**, first parting state 3157, ours 3930404420, theirs
+  1713190284.
+- Filed **in place**, as run1691 is: a held-out take stays out of the corpora, so the rows it was named from cannot
+  move. run1700 was the number reserved for row 0.
+
+Files in place, `~/ron-golden/run1700/map-18/`: `gamelog_p.txt`, 2,441 bytes, SHA-256
+`d593ea479fe99cfe57049f276bb0800d32b7e9f0f3457ea502605c9c94d508e7`; `rontrace.log`, 33,456,064 bytes, SHA-256
+`c070506e53e0409cfa1bb14f45f1db9184022d8415349cc3f8473fcabfce082e`.
+
+**What it holds**: `diff::held_out::the_held_out_games_score_as_pinned` (`SCORES[0]`).
