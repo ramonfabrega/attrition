@@ -28,9 +28,12 @@ impl NameRow {
     }
 }
 
+/// One live city as the names file holds it: `(who, o, name)`.
+pub(in crate::diff) type Named = (i64, i64, String);
+
 /// The packet's `names.tsv`: its logger frame and each live city's
 /// `(who, o, name)`. `None` on a packet the tool has not read.
-pub(in crate::diff) fn packet_names(run: &str) -> Option<(i64, Vec<(i64, i64, String)>)> {
+pub(in crate::diff) fn packet_names(run: &str) -> Option<(i64, Vec<Named>)> {
     let text = std::fs::read_to_string(format!("{}/{run}/names.tsv", packets_dir())).ok()?;
     let mut lines = text.lines();
     let frame = lines
@@ -55,7 +58,7 @@ pub(in crate::diff) fn packet_names(run: &str) -> Option<(i64, Vec<(i64, i64, St
 }
 
 /// Ours against `theirs` on `sim`'s frame.
-pub(in crate::diff) fn name_rows(sim: &sim::Sim, theirs: &[(i64, i64, String)]) -> Vec<NameRow> {
+pub(in crate::diff) fn name_rows(sim: &sim::Sim, theirs: &[Named]) -> Vec<NameRow> {
     theirs
         .iter()
         .map(|(who, o, name)| {
