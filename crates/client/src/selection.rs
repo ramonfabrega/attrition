@@ -189,6 +189,125 @@ pub fn plate(
     (x0 - l, x1 + r, y0 - t, y1 + bo)
 }
 
+/// **The camera's zoom level on run1559b's packet**: `Camera::zoom_level`
+/// (`+0x294` of `MiscAccess::camera`'s object) reads 5 at frame 3294
+/// (item 4410), which is also `to_zoom_level`.
+pub const BAR_ZOOM_LEVEL: i32 = 5;
+
+/// **A building's health bar, on the screen** (item 4410):
+/// `WallOut::draw_health_bar@00640f20`'s rectangle, as `[x0, x1) × [y0,
+/// y1)` in window pixels. The anchor is `world_to_console` of the
+/// building's point lifted `0x180` in z, the console's y added; the bar is
+/// 30 × 3 at zoom level 6, 20 × 2 at 5 and 10 × 1 otherwise, about the
+/// anchor (`x0 = sx − w/2`, `y0 = sy − h/2`, each half an arithmetic
+/// shift). `GraphicPieces::draw_health_bar@00908650` then lays a black
+/// quad one pixel outside it, and the fill from `x0` over `w · fraction`
+/// (truncated) in the health level's colour.
+pub fn bar(
+    camera: &render::Camera,
+    b: &render::draw::PlacedBuilding,
+    zoom_level: i32,
+) -> (i32, i32, i32, i32) {
+    let p = render::camera::world_to_screen(
+        &camera.to_screen_matrix(),
+        &crate::pinned_screen(),
+        b.x,
+        b.y,
+        b.z + 0x180,
+        None,
+    );
+    let (w, h) = match zoom_level {
+        6 => (30, 3),
+        5 => (20, 2),
+        _ => (10, 1),
+    };
+    let (x0, y0) = (p.x - (w >> 1), p.y - (h >> 1));
+    (x0, x0 + w, y0, y0 + h)
+}
+
+/// **`ObjectData::health_level@006534b0`**: the hits left, `hits(0)` less
+/// the damage, clamped to `[0, hits(0)]`, against `hits(0)`'s 90, 75, 50,
+/// 25 and 10 per cent (each `full · n / 100`, truncated): 0 at or over
+/// 90 %, then 1, 2, 3, 4, and under 10 % 5, or 6 with nothing left.
+pub fn health_level(left: i32, full: i32) -> i32 {
+    let at = |n: i32| full * n / 100;
+    if left >= at(90) {
+        0
+    } else if left >= at(75) {
+        1
+    } else if left >= at(50) {
+        2
+    } else if left >= at(25) {
+        3
+    } else if left >= at(10) {
+        4
+    } else if left < 1 {
+        6
+    } else {
+        5
+    }
+}
+
+/// The bar's colours: `draw_health_bar`'s `GREEN` at level 0, `YELLOW` at
+/// 1 to 3, `RED` past them; the frame `BLACK`. The red is the
+/// photograph's fill, `(255, 0, 0)`; the green and the yellow are taken
+/// as the plain primaries (`docs/HUD.md` §6).
+pub const BAR_GREEN: [f32; 3] = [0.0, 1.0, 0.0];
+pub const BAR_YELLOW: [f32; 3] = [1.0, 1.0, 0.0];
+pub const BAR_RED: [f32; 3] = [1.0, 0.0, 0.0];
+pub const BAR_BLACK: [f32; 3] = [0.0, 0.0, 0.0];
+
+/// **The selected buildings' health bars** (item 4410):
+/// `WallOut::draw_health_bar@00640dd0`'s arm for a member of the
+/// console's `play` group, on [`bar`]'s rectangle at `zoom_level`. The
+/// frame is a black quad one pixel outside it; the fill runs from `x0`
+/// over `trunc(w · left / full)` in single precision, `full` the
+/// building's `hits(1)` (at least 1) and `left` its `hits(0)` less the
+/// damage, zeroed below nothing and capped at `full` (the listing at
+/// `00640fb9`–`0064108b`); its colour is [`health_level`]'s. The arms for
+/// the mouse-over, `+0x24` and another's unfinished building are not
+/// ported (`docs/HUD.md` §6).
+pub fn bars(
+    world: &crate::world::World,
+    camera: &render::Camera,
+    size: (i32, i32),
+    selection: &[sim::observe::ObjId],
+    zoom_level: i32,
+) -> Vec<crate::gpu::ScreenLayer> {
+    if selection.is_empty() {
+        return Vec::new();
+    }
+    let scene = world.runner.scene(None);
+    let placed = world.placed_buildings();
+    let mut p = crate::overlay::Painter::new(size);
+    for id in selection {
+        let Some(s) = scene.buildings.iter().find(|s| s.id == *id) else {
+            continue;
+        };
+        let Some(b) = placed.iter().find(|b| (b.who, b.o) == (id.who, id.o)) else {
+            continue;
+        };
+        let (x0, x1, y0, y1) = bar(camera, b, zoom_level);
+        p.rect(x0 - 1, y0 - 1, x1 - x0 + 2, y1 - y0 + 2, BAR_BLACK);
+        let full = s.hits.max(1);
+        let left = s.health.clamp(0, full);
+        let fill = ((x1 - x0) as f32 * (left as f32 / full as f32)) as i32;
+        let colour = match health_level(s.health, s.construct_hits) {
+            0 => BAR_GREEN,
+            1..=3 => BAR_YELLOW,
+            _ => BAR_RED,
+        };
+        if fill > 0 {
+            p.rect(x0, y0, fill, y1 - y0, colour);
+        }
+    }
+    vec![crate::gpu::ScreenLayer {
+        alpha: 255,
+        pos: p.pos,
+        col: p.col,
+    }]
+}
+
 /// **The plate's font's advances** (item 4403): each character's
 /// `CharacterInfo::advance` in `onscreen_mouseover_size`'s `D3D11GLFont`
 /// on run1559b's packet, for the characters `Napata` holds and no others.
@@ -843,5 +962,115 @@ mod tests {
         let got = (got, [mine, both]);
         println!("RUN1559B_3279_PLATE: {got:?}");
         assert_eq!(got, RUN1559B_3279_PLATE);
+    }
+
+    /// The bar's footprint: [`bar`]'s rectangle one pixel out on every
+    /// side (the black quad), moved `d` pixels, the point lifted `lift`.
+    fn bar_foot(p: &crate::ground::tests::Probe, d: (i32, i32), lift: bool) -> Vec<bool> {
+        let mut b = p
+            .world
+            .placed_buildings()
+            .into_iter()
+            .find(|b| (b.who, b.o) == CITY)
+            .expect("the city is in the scene");
+        if !lift {
+            b.z -= 0x180;
+        }
+        let (x0, x1, y0, y1) = bar(&p.camera, &b, BAR_ZOOM_LEVEL);
+        println!(
+            "bar: point ({}, {}, {}) rect x [{x0}, {x1}) y [{y0}, {y1})",
+            b.x, b.y, b.z
+        );
+        let (w, h) = (p.photo.width as i32, p.photo.height as i32);
+        let mut out = vec![false; (w * h) as usize];
+        for py in (y0 - 1 + d.1).max(0)..(y1 + 1 + d.1).min(h) {
+            for px in (x0 - 1 + d.0).max(0)..(x1 + 1 + d.0).min(w) {
+                out[(py * w + px) as usize] = true;
+            }
+        }
+        out
+    }
+
+    /// The bar's black reads where every channel is under [`BLACK`]: the
+    /// frame `GraphicPieces::draw_health_bar` lays in `BLACK`, never the
+    /// footprint.
+    const BLACK: i32 = 12;
+
+    fn black(rgba: &[u8], i: usize) -> bool {
+        rgba[i * 4..i * 4 + 3].iter().all(|&c| i32::from(c) < BLACK)
+    }
+
+    /// **`RUN1559B_3279_BAR`** (item 4410): the capital's health bar on
+    /// run1559b's photograph, its footprint [`bar`]'s at the packet's zoom
+    /// level, one pixel out. Per arm, `[footprint, theirs black]`: as the
+    /// listing places it; moved one bar (4 px) down; and without the
+    /// `0x180` lift. Then, on the first arm's footprint, `[ours black,
+    /// both black, both red]` on the client's still: the half the drawing
+    /// moves (item 4410: `[0, 0, 0]` before the draw, `[86, 86, 2]` with
+    /// it; the fill drawn green read 0 red, and the bar drawn without the
+    /// lift read 0 black, and each failed the pin).
+    pub const RUN1559B_3279_BAR: ([[usize; 2]; 3], [usize; 3]) =
+        ([[88, 86], [88, 0], [88, 0]], [86, 86, 2]);
+
+    #[test]
+    fn the_capital_s_bar_on_run1559b() {
+        let Some(mut p) = probe_at(run1559b()) else {
+            return;
+        };
+        let scene = p.world.runner.scene(None);
+        let s = scene
+            .buildings
+            .iter()
+            .find(|s| (s.id.who, s.id.o) == CITY)
+            .expect("the city is in the scene");
+        println!(
+            "bar: health {} hits {} construct_hits {} level {}",
+            s.health,
+            s.hits,
+            s.construct_hits,
+            health_level(s.health, s.construct_hits)
+        );
+        let arms = [((0, 0), true), ((0, 4), true), ((0, 0), false)];
+        let mut got = [[0; 2]; 3];
+        let mut first = Vec::new();
+        for (k, (d, lift)) in arms.into_iter().enumerate() {
+            let foot = bar_foot(&p, d, lift);
+            let n = foot.iter().filter(|f| **f).count();
+            let r = (0..foot.len())
+                .filter(|&i| foot[i] && black(&p.photo.rgba, i))
+                .count();
+            got[k] = [n, r];
+            if k == 0 {
+                first = foot;
+            }
+        }
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let ours = crate::still_selected(
+            &mut p.world,
+            &camera,
+            size,
+            crate::gpu::SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+            &[sim::observe::ObjId {
+                who: CITY.0,
+                o: CITY.1,
+            }],
+        );
+        if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+            let out = std::path::PathBuf::from(dir).join("still-bar.bmp");
+            std::fs::write(&out, crate::gpu::bmp(&ours, size)).expect("the still writes");
+        }
+        let on = |i: usize| first[i] && black(&ours, i);
+        let mine = (0..first.len()).filter(|&i| on(i)).count();
+        let both = (0..first.len())
+            .filter(|&i| on(i) && black(&p.photo.rgba, i))
+            .count();
+        let reds = (0..first.len())
+            .filter(|&i| first[i] && red(&ours, i) && red(&p.photo.rgba, i))
+            .count();
+        let got = (got, [mine, both, reds]);
+        println!("RUN1559B_3279_BAR: {got:?}");
+        assert_eq!(got, RUN1559B_3279_BAR);
     }
 }

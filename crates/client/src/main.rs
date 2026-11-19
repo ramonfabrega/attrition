@@ -369,9 +369,18 @@ fn build(
     });
     // Item 4410: a city's plate wants its name, and the founding name is
     // not carried (`sim::cities::rename`'s SEAM): a written one is drawn.
-    let screen = selection::plates(world, camera, (size.0 as i32, size.1 as i32), &|c| {
+    let mut screen = selection::plates(world, camera, (size.0 as i32, size.1 as i32), &|c| {
         world.runner.sim().city_name_written(c).map(String::from)
     });
+    if let Some(input) = hud {
+        screen.extend(selection::bars(
+            world,
+            camera,
+            (size.0 as i32, size.1 as i32),
+            &input.selection,
+            selection::BAR_ZOOM_LEVEL,
+        ));
+    }
     Built {
         figures,
         textured,
@@ -490,7 +499,14 @@ pub(crate) fn still_named(
     gpu.silhouette_order = order;
     let b = build(world, camera, size, 0.0, None);
     let underlay = selection::underlay(world, selection);
-    let screen = selection::plates(world, camera, (size.0 as i32, size.1 as i32), names);
+    let mut screen = selection::plates(world, camera, (size.0 as i32, size.1 as i32), names);
+    screen.extend(selection::bars(
+        world,
+        camera,
+        (size.0 as i32, size.1 as i32),
+        selection,
+        selection::BAR_ZOOM_LEVEL,
+    ));
     let version = world.runner.terrain().version;
     world.set_screen(camera, size);
     world.drawn_terrain();
