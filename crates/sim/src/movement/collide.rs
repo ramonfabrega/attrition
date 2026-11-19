@@ -2186,16 +2186,12 @@ impl Sim {
     ///
     /// The fog reveal that hangs off the same call stays with its caller
     /// ([`Sim::moved_to`], `docs/VISION.md` §6).
-    /// **A payoff probe's hand**, not a mechanic: seat unit `u` on `to`
-    /// through [`Sim::set_new_location`], so the collision grid and the
-    /// figures follow. The diff harness uses it to put a unit where the
-    /// original's dump has it and ask whether a later frame agrees.
-    #[doc(hidden)]
-    pub fn probe_relocate(&mut self, u: usize, to: Pos) -> bool {
-        self.set_new_location(u, to, true)
+    pub(crate) fn set_new_location(&mut self, u: usize, to: Pos, move_guys: bool) -> bool {
+        self.set_location_with(u, to, move_guys, false)
     }
 
-    pub(crate) fn set_new_location(&mut self, u: usize, to: Pos, move_guys: bool) -> bool {
+    /// `Unit::set_new_location` with `param_4` as `turn` ([`Sim::set_new_location_turning`]).
+    pub(crate) fn set_location_with(&mut self, u: usize, to: Pos, guys: bool, turn: bool) -> bool {
         let from = self.units[u].pos;
         // **A move onto the point the unit already stands on is not a
         // no-op**, and the early return that used to sit here made it
@@ -2277,7 +2273,10 @@ impl Sim {
             }
             self.ceo_tile_step(u, on_map, from, to);
         }
-        if move_guys {
+        if turn {
+            self.guy_set_angle(u, self.units[u].movement.heading, guys);
+        }
+        if guys {
             self.units[u].movement.body.pos = to;
             // `Guy::set_new_location(guy 0, pos, 1)`'s crew loop
             // (`005d86f0:83`–`127`): every crew figure takes guy 0's

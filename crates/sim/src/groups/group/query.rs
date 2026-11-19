@@ -980,15 +980,52 @@ impl Sim {
         if turned {
             self.units[u].movement.mirror = !self.units[u].movement.mirror;
         }
-        // **Set, `Guy::set_angle@005d9010:13–16` writes guy 0's `angle`
-        // (`+0x18`) and `last_angle` (`+0x1c`) outright** — the figure faces
-        // the new way this frame, and the frame's `Guy::move` head copies
-        // the same angle back. Guy 0 is the unit's own figure here: its
-        // `angle` is [`crate::Movement`]'s `facing`, its `last_angle` the
-        // angle of [`crate::units::anim::Guy::last`] (`None` reads the
-        // facing). The crew's own `set_angle(crew, des_angle, 1)` is
-        // [`Sim::crew_des`]'s snap, which writes the facing and not the
-        // crew's `last_angle` (item 4253, parked 4253a: no walk parts on it).
+        self.guy_set_angle(u, angle, snap);
+        if turned {
+            self.toggle_leader_facing(u);
+        }
+    }
+
+    /// **A payoff probe's hand**, not a mechanic: seat unit `u` on `to`
+    /// through [`Sim::set_new_location`], so the collision grid and the
+    /// figures follow. The diff harness uses it to put a unit where the
+    /// original's dump has it and ask whether a later frame agrees.
+    #[doc(hidden)]
+    pub fn probe_relocate(&mut self, u: usize, to: Pos) -> bool {
+        self.set_new_location(u, to, true)
+    }
+
+    /// `Unit::set_new_location(x, y, move_guys, 1)`: **with `param_4`
+    /// set**, the guy half opens with `Guy::set_angle(guy 0, heading,
+    /// param_3)` (`005f8d20:156`, `:192` for a squad), ahead of the
+    /// figure's own `set_new_location`. With `move_guys` that snaps the
+    /// figure onto the heading at once, so the frame's `Guy::move` finds
+    /// `des_angle == angle` and asks for no walk (item 4415,
+    /// `docs/CHECKSUM.md` §23.9: the oil-well stand of
+    /// `Unit::do_gather@005ef2a0:384`, whose `CHAR_FARM` started a frame
+    /// late without it). The early returns of the shore half skip it, as
+    /// they skip the rest of the guy half.
+    pub(crate) fn set_new_location_turning(&mut self, u: usize, to: Pos, move_guys: bool) -> bool {
+        self.set_location_with(u, to, move_guys, true)
+    }
+
+    /// **`Guy::set_angle@005d9010` on guy 0**: `des_angle` (`+0x64`, the
+    /// unit's heading here, which every caller has already written) and,
+    /// with `snap`, the figure's own angle, then the crew loop
+    /// ([`Sim::crew_des`]) from guy 0's point. `Unit::set_angle`'s tail,
+    /// and `Unit::set_new_location`'s `param_4` arm
+    /// ([`Sim::set_new_location_turning`]).
+    ///
+    /// **Set, `Guy::set_angle@005d9010:13–16` writes guy 0's `angle`
+    /// (`+0x18`) and `last_angle` (`+0x1c`) outright** — the figure faces
+    /// the new way this frame, and the frame's `Guy::move` head copies
+    /// the same angle back. Guy 0 is the unit's own figure here: its
+    /// `angle` is [`crate::Movement`]'s `facing`, its `last_angle` the
+    /// angle of [`crate::units::anim::Guy::last`] (`None` reads the
+    /// facing). The crew's own `set_angle(crew, des_angle, 1)` is
+    /// [`Sim::crew_des`]'s snap, which writes the facing and not the
+    /// crew's `last_angle` (item 4253, parked 4253a: no walk parts on it).
+    pub(crate) fn guy_set_angle(&mut self, u: usize, angle: Angle, snap: bool) {
         if snap {
             let m = &mut self.units[u].movement;
             m.facing = angle;
@@ -1001,9 +1038,6 @@ impl Sim {
         }
         let from = self.units[u].movement.body.pos;
         self.crew_des(u, from, angle, snap);
-        if turned {
-            self.toggle_leader_facing(u);
-        }
     }
 
     /// `Unit::set_angle@00605400`'s group arm on its own: a turn of 90° or
