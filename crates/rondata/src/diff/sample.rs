@@ -695,6 +695,26 @@ pub(in crate::diff) mod tests {
         let mut frames = 0usize;
         while built.sim.frame <= window {
             let f = built.sim.frame;
+            if std::env::var("RON_PROBE_4419").is_ok() && (924..=962).contains(&f) {
+                for i in crate::input::input(&rec_game).iter().filter(|i| i.frame == f as i32) {
+                    eprintln!("PROBE4419 f{f} input play {} who {} {:?}", i.play, i.who, i.cmd);
+                }
+                for (st, m) in built.sim.pool_records(3, 3) {
+                    eprintln!(
+                        "PROBE4419 f{f} slot195 form {} order_num {} stamp {} list {m:?}",
+                        st.form, st.order_num, st.stamp
+                    );
+                }
+                for (k, u) in built.sim.units.iter().enumerate() {
+                    if u.owner == 3 && u.index == 12 {
+                        eprintln!(
+                            "PROBE4419 f{f} unit 3/12 #{k} group {} orders {:?}",
+                            built.sim.pool_group_of(k),
+                            u.orders
+                        );
+                    }
+                }
+            }
             if let Some(theirs) = super::super::checksum_frames::record::stream_at(&mut rec, f) {
                 frames += 1;
                 let ours = our_lines(&built.sim, &pieces);
