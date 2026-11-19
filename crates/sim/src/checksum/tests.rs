@@ -604,6 +604,35 @@ fn a_guard_walks_its_target_and_its_own_twenty_four_bytes() {
     );
 }
 
+/// **A think walks the base's `UnitOrder::walk_data@0047f2b0`** (item
+/// 4414, `docs/RECGAME.md` §7): `ThinkOrder::vftable@00b48d88`'s `+0x8`
+/// is the base's walker, the flags byte alone. run1697 on 532: the
+/// person's Citizen `3/6`, a move then a think, `1b 00 00 00`, `00`, `04`.
+#[test]
+fn a_think_walks_its_flags_byte() {
+    use crate::orders::{Body, Order, flag};
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let u = sim.add_unit(crate::Unit::new(1, 16, Pos::new(480, 480), 10));
+    sim.units[u].orders.push_back(Order {
+        flags: flag::ACTION,
+        body: Body::Think,
+    });
+    let record = sim.units[u].index;
+    let ranges = sim.checksum_units().ranges;
+    let at = ranges
+        .iter()
+        .position(|r| r.record == record && r.field == "order.type")
+        .expect("the order's type");
+    assert_eq!(ranges[at].bytes, 27i32.to_le_bytes(), "THINK");
+    let walked: Vec<(&str, Vec<u8>)> = ranges[at + 2..]
+        .iter()
+        .take_while(|r| r.field.starts_with("order."))
+        .map(|r| (r.field, r.bytes.clone()))
+        .collect();
+    assert_eq!(walked, vec![("order.flags", vec![4])], "run1697's 3/6");
+}
+
 #[test]
 fn queued_attacks_keep_their_own_target_generation_and_fields() {
     use crate::combat::Obj;

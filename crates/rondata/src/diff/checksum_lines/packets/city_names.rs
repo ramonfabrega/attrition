@@ -68,7 +68,7 @@ pub(in crate::diff) fn name_rows(sim: &sim::Sim, theirs: &[Named]) -> Vec<NameRo
                     && sim
                         .buildings
                         .get(c.building)
-                        .is_some_and(|b| i64::from(b.index) == *o)
+                        .is_some_and(|b| b.alive && i64::from(b.index) == *o)
             });
             NameRow {
                 who: *who,
